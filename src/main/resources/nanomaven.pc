@@ -1,0 +1,21 @@
+# ~~~~~~~~~~~~~~~~~~~~~~ #
+#       Nano Maven       #
+# ~~~~~~~~~~~~~~~~~~~~~~ #
+
+# General Repository Name
+repository-name: NanoMaven Repository
+
+# Hostname
+hostname: ''
+# Port
+port: 80
+
+# Include a repository names in the path
+repository-path-enabled: false
+# Enable directory indexing
+indexing-enabled: true
+
+# Nested Maven
+nested-maven: true
+# External Maven directory (if 'nested-maven': false)
+external-maven: /usr/local/share/java/maven33
