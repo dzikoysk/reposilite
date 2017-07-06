@@ -109,6 +109,13 @@
         </dependency>
     </dependencies>
 
+    <repositories>
+        <repository>
+            <id>panda-repo</id>
+            <url>https://repo.panda-lang.org/</url>
+        </repository>
+    </repositories>
+  
     <build>
         <defaultGoal>clean install</defaultGoal>
         <plugins>
