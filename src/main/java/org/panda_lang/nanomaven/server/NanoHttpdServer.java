@@ -18,6 +18,7 @@ package org.panda_lang.nanomaven.server;
 
 import fi.iki.elonen.NanoHTTPD;
 import org.panda_lang.nanomaven.NanoMaven;
+import org.panda_lang.nanomaven.server.data.temp.NanoTempFileFactory;
 import org.panda_lang.nanomaven.server.router.NanoFrontRouter;
 import org.panda_lang.nanomaven.server.router.NanoPanelRouter;
 import org.panda_lang.nanomaven.server.router.NanoRepositoryRouter;
@@ -42,7 +43,8 @@ public class NanoHttpdServer extends NanoHTTPD {
 
     @Override
     public void start() throws IOException {
-        start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
+        super.setTempFileManagerFactory(new NanoTempFileFactory());
+        super.start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
     }
 
     @Override
