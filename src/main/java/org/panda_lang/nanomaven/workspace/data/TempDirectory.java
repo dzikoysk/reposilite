@@ -14,7 +14,23 @@
  * limitations under the License.
  */
 
-package org.panda_lang.nanomaven.server.data;
+package org.panda_lang.nanomaven.workspace.data;
 
-public class UserDatabase {
+import org.apache.commons.io.FileUtils;
+
+import java.io.File;
+import java.io.IOException;
+
+public class TempDirectory {
+
+    public static final File TEMP = new File("data/temp");
+
+    static {
+        try {
+            FileUtils.forceMkdir(TEMP);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 }
