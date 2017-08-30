@@ -20,7 +20,7 @@
 
     <groupId>org.panda-lang</groupId>
     <artifactId>nanomaven</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
     <licenses>
         <license>
             <name>Apache License, Version 2.0</name>
@@ -89,6 +89,11 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>1.7.25</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+            <version>1.1.1</version>
         </dependency>
 
         <dependency>

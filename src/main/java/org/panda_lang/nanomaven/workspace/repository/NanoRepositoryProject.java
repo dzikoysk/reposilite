@@ -16,10 +16,13 @@
 
 package org.panda_lang.nanomaven.workspace.repository;
 
+import org.panda_lang.nanomaven.server.auth.NanoProject;
+import org.panda_lang.nanomaven.server.auth.NanoProjectsManager;
+
 import java.io.File;
 import java.util.regex.Pattern;
 
-public class NanoProject {
+public class NanoRepositoryProject {
 
     private final String group;
     private final String artifact;
@@ -27,7 +30,7 @@ public class NanoProject {
     private final File[] files;
     private String repository;
 
-    public NanoProject(String repository, String group, String artifact, String version) {
+    public NanoRepositoryProject(String repository, String group, String artifact, String version) {
         this.repository = repository;
         this.group = group;
         this.artifact = artifact;
@@ -60,7 +63,11 @@ public class NanoProject {
         return group;
     }
 
-    public static NanoProject fromPath(String jarPath) {
+    public NanoProject toNanoProject(NanoProjectsManager projectsManager) {
+        return projectsManager.getProject(getGroup() + "/" + getArtifact());
+    }
+
+    public static NanoRepositoryProject fromPath(String jarPath) {
         String splitRegex = Pattern.quote(System.getProperty("file.separator"));
         String[] sides = jarPath.split(splitRegex + "repositories" + splitRegex);
 
@@ -77,7 +84,7 @@ public class NanoProject {
         }
         String groupId = groupIdBuilder.toString();
 
-        return new NanoProject(repositoryName, groupId, artifactId, versionDir);
+        return new NanoRepositoryProject(repositoryName, groupId, artifactId, versionDir);
     }
 
 }

@@ -17,27 +17,36 @@
 package org.panda_lang.nanomaven.server.router;
 
 import fi.iki.elonen.NanoHTTPD;
+import fi.iki.elonen.NanoHTTPD.Response.Status;
 import org.panda_lang.nanomaven.NanoMaven;
 import org.panda_lang.nanomaven.server.NanoHttpdServer;
 import org.panda_lang.nanomaven.server.NanoRouter;
-import org.panda_lang.nanomaven.workspace.repository.NanoRepositoryManager;
 
 public class NanoRepositoryRouter implements NanoRouter {
 
     private final NanoMaven nanoMaven;
-    private final NanoRepositoryManager repositoryManager;
     private final NanoRepositoryRouterGet get;
     private final NanoRepositoryRouterPut put;
 
     public NanoRepositoryRouter(NanoMaven nanoMaven) {
         this.nanoMaven = nanoMaven;
-        this.repositoryManager = nanoMaven.getRepositoryManager();
         this.get = new NanoRepositoryRouterGet();
         this.put = new NanoRepositoryRouterPut();
     }
 
     @Override
     public NanoHTTPD.Response serve(NanoHttpdServer server, NanoHTTPD.IHTTPSession session) {
+        System.out.println(session.getUri() + " " + session.getMethod().name());
+
+        try {
+            return serveOrCatch(server, session);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return NanoHTTPD.newFixedLengthResponse(Status.INTERNAL_ERROR, NanoHTTPD.MIME_HTML, "Cannot serve request");
+        }
+    }
+
+    public NanoHTTPD.Response serveOrCatch(NanoHttpdServer server, NanoHTTPD.IHTTPSession session) throws Exception {
         switch (session.getMethod()) {
             case GET:
                 return get.serve(server, session);
@@ -45,7 +54,7 @@ public class NanoRepositoryRouter implements NanoRouter {
                 return put.serve(server, session);
             default:
                 NanoMaven.getLogger().error("Unknown method: " + session.getUri());
-                return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.NOT_FOUND, "text/html", "Unknown method");
+                return NanoHTTPD.newFixedLengthResponse(Status.NOT_FOUND, NanoHTTPD.MIME_HTML, "Unknown method");
         }
     }
 

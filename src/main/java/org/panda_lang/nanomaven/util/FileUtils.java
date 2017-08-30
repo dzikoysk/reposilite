@@ -38,6 +38,17 @@ public class FileUtils {
         return true;
     }
 
+    public static void createFile(String path) {
+        File file = new File(path);
+        file.getParentFile().mkdirs();
+
+        try {
+            file.createNewFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public static boolean fileExists(String file) {
         return new File(file).exists();
     }

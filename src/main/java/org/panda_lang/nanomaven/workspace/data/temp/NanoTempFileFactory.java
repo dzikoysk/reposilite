@@ -14,7 +14,18 @@
  * limitations under the License.
  */
 
-package org.panda_lang.nanomaven.server.data;
+package org.panda_lang.nanomaven.workspace.data.temp;
 
-public class NanoUserDatabase {
+import fi.iki.elonen.NanoHTTPD;
+
+public class NanoTempFileFactory implements NanoHTTPD.TempFileManagerFactory {
+
+    @Override
+    public NanoHTTPD.TempFileManager create() {
+        NanoTempFileManager manager = new NanoTempFileManager();
+        manager.initialize();
+
+        return manager;
+    }
+
 }

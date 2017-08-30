@@ -19,15 +19,22 @@ package org.panda_lang.nanomaven.workspace.configuration;
 import org.panda_lang.panda.utilities.configuration.PandaConfiguration;
 
 import java.io.File;
+import java.util.List;
 
 public class NanoMavenConfiguration {
 
     private int port;
     private String hostname;
+
     private boolean repositoryPathEnabled;
     private boolean indexingEnabled;
+
     private boolean nestedMaven;
     private String externalMaven;
+
+    private boolean deployEnabled;
+    private boolean authorizationEnabled;
+    private List<String> administrators;
 
     public void load() {
         File configurationFile = new File("nanomaven.pc");
@@ -41,6 +48,22 @@ public class NanoMavenConfiguration {
 
         this.nestedMaven = configuration.getBoolean("nested-maven");
         this.externalMaven = configuration.getString("external-maven");
+
+        this.deployEnabled = configuration.getBoolean("deploy-enabled");
+        this.authorizationEnabled = configuration.getBoolean("authorization-enabled");
+        this.administrators = configuration.getStringList("administrators");
+    }
+
+    public boolean isDeployEnabled() {
+        return deployEnabled;
+    }
+
+    public boolean isAuthorizationEnabled() {
+        return authorizationEnabled;
+    }
+
+    public List<String> getAdministrators() {
+        return administrators;
     }
 
     public String getExternalMaven() {

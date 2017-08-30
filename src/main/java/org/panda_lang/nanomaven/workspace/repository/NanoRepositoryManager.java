@@ -57,10 +57,10 @@ public class NanoRepositoryManager {
         NanoMaven.getLogger().info("Result: " + repositories.size() + " repositories have been found");
     }
 
-    public NanoProject find(String... path) {
+    public NanoRepositoryProject find(String... path) {
         for (Map.Entry<String, NanoRepository> repositoryEntry : repositories.entrySet()) {
             NanoRepository repository = repositoryEntry.getValue();
-            NanoProject project = repository.get(path);
+            NanoRepositoryProject project = repository.get(path);
 
             if (project != null) {
                 return project;

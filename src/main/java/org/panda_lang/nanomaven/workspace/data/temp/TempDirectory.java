@@ -14,18 +14,23 @@
  * limitations under the License.
  */
 
-package org.panda_lang.nanomaven.server.data.temp;
+package org.panda_lang.nanomaven.workspace.data.temp;
 
-import fi.iki.elonen.NanoHTTPD;
+import org.apache.commons.io.FileUtils;
 
-public class NanoTempFileFactory implements NanoHTTPD.TempFileManagerFactory {
+import java.io.File;
+import java.io.IOException;
 
-    @Override
-    public NanoHTTPD.TempFileManager create() {
-        NanoTempFileManager manager = new NanoTempFileManager();
-        manager.initialize();
+public class TempDirectory {
 
-        return manager;
+    public static final File TEMP = new File("data/temp");
+
+    static {
+        try {
+            FileUtils.forceMkdir(TEMP);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 }

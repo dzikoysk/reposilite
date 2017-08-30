@@ -25,6 +25,7 @@ public class NanoWorkspace {
         NanoMaven.getLogger().info("Preparing workspace");
         DefaultWorkspace defaultWorkspace = new DefaultWorkspace();
 
+        // NanoMaven Configuration
         if (!FileUtils.fileExists("nanomaven.pc")) {
             defaultWorkspace.generateConfiguration();
             NanoMaven.getLogger().info("NanoMaven configuration file has been generated");
@@ -33,6 +34,7 @@ public class NanoWorkspace {
             NanoMaven.getLogger().info("Using an existing configuration file");
         }
 
+        // Repositories
         if (!FileUtils.fileExists("repositories")) {
             defaultWorkspace.generateRepositories();
             NanoMaven.getLogger().info("Default repositories have been created");
@@ -41,6 +43,7 @@ public class NanoWorkspace {
             NanoMaven.getLogger().info("Using an existing repositories");
         }
 
+        // Maven
         if (!FileUtils.fileExists("maven")) {
             NanoMaven.getLogger().info("Unpacking Maven...");
             defaultWorkspace.generateMaven();
@@ -48,6 +51,26 @@ public class NanoWorkspace {
         }
         else {
             NanoMaven.getLogger().info("Using an existing nested maven library");
+        }
+
+        // Users data
+        if (!FileUtils.fileExists("data/users.pc")) {
+            NanoMaven.getLogger().info("Generating users data file...");
+            defaultWorkspace.generateUsers();
+            NanoMaven.getLogger().info("Empty users data file has been generated");
+        }
+        else {
+            NanoMaven.getLogger().info("Using an existing users data file");
+        }
+
+        // Projects data
+        if (!FileUtils.fileExists("data/projects.pc")) {
+            NanoMaven.getLogger().info("Generating projects data file...");
+            defaultWorkspace.generateProjects();
+            NanoMaven.getLogger().info("Empty projects data file has been generated");
+        }
+        else {
+            NanoMaven.getLogger().info("Using an existing projects data file");
         }
     }
 
