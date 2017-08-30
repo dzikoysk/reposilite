@@ -4,8 +4,6 @@ Lightweight repository manager for Maven artifacts
 #### Download
 Releases: [GitHub Downloads](https://github.com/dzikoysk/NanoMaven/releases)
 
-Required: Java 1.8
-
 #### Features
 * [x] Working repository manager
 * [x] Multiple repositories under a single URL
