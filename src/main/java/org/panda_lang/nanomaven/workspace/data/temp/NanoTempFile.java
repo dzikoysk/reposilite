@@ -14,43 +14,50 @@
  * limitations under the License.
  */
 
-package org.panda_lang.nanomaven.server.data.temp;
+package org.panda_lang.nanomaven.workspace.data.temp;
 
 import fi.iki.elonen.NanoHTTPD;
 import org.apache.commons.io.FileUtils;
-import org.panda_lang.nanomaven.workspace.data.TempDirectory;
+import org.apache.commons.io.IOUtils;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.util.UUID;
 
-public class NanoTempFileManager implements NanoHTTPD.TempFileManager {
+public class NanoTempFile implements NanoHTTPD.TempFile {
 
-    private static final File NANOHTTPD_TEMP = new File(TempDirectory.TEMP, "nanohttpd");
+    private final File file;
+    private OutputStream outputStream;
 
-    public void initialize() {
+    public NanoTempFile(File nanohttpdTemp) {
+        this.file = new File("data/temp/nanohttpd/" + UUID.randomUUID().toString());
+    }
+
+    public void prepare() {
         try {
-            FileUtils.forceMkdir(NANOHTTPD_TEMP);
-            System.out.println(NANOHTTPD_TEMP.getAbsolutePath());
+            file.createNewFile();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     @Override
-    public NanoHTTPD.TempFile createTempFile(String s) throws Exception {
-        NanoTempFile file = new NanoTempFile(NANOHTTPD_TEMP);
-        file.prepare();
-
-        return file;
+    public void delete() throws Exception {
+        IOUtils.closeQuietly(outputStream);
+        FileUtils.forceDelete(file);
     }
 
     @Override
-    public void clear() {
-        try {
-            FileUtils.cleanDirectory(NANOHTTPD_TEMP);
-        } catch (IOException e) {
-            // acceptable
-        }
+    public String getName() {
+        return file.getAbsolutePath();
+    }
+
+    @Override
+    public OutputStream open() throws Exception {
+        this.outputStream = new FileOutputStream(file);
+        return outputStream;
     }
 
 }

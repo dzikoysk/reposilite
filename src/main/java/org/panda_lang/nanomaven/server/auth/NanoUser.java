@@ -16,5 +16,47 @@
 
 package org.panda_lang.nanomaven.server.auth;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
 public class NanoUser {
+
+    private final String username;
+    private String encryptedPassword;
+    private Collection<NanoProject> projects;
+    private boolean administrator;
+
+    public NanoUser(String username) {
+        this.username = username;
+        this.projects = new ArrayList<>();
+    }
+
+    public void addProject(NanoProject project) {
+        this.projects.add(project);
+    }
+
+    public void setEncryptedPassword(String encryptedPassword) {
+        this.encryptedPassword = encryptedPassword;
+    }
+
+    public void enableAdministrator() {
+        this.administrator = true;
+    }
+
+    public boolean isAdministrator() {
+        return administrator;
+    }
+
+    public Collection<NanoProject> getProjects() {
+        return projects;
+    }
+
+    public String getEncryptedPassword() {
+        return encryptedPassword;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
 }

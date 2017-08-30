@@ -31,7 +31,7 @@ public class NanoRepository {
         this.path = "repositories/" + repositoryName + "/";
     }
 
-    public NanoProject get(String... path) {
+    public NanoRepositoryProject get(String... path) {
         StringBuilder pathBuilder = new StringBuilder(getLocalPath());
 
         for (String element : path) {
@@ -46,7 +46,7 @@ public class NanoRepository {
             return null;
         }
 
-        return new NanoProject(repositoryName, GroupUtils.groupFromArray(Arrays.copyOfRange(path, 0, path.length - 3)), path[path.length - 3], path[path.length - 2]);
+        return new NanoRepositoryProject(repositoryName, GroupUtils.groupFromArray(Arrays.copyOfRange(path, 0, path.length - 3)), path[path.length - 3], path[path.length - 2]);
     }
 
     public String getLocalPath() {

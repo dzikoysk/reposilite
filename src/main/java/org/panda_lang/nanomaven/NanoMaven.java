@@ -16,10 +16,12 @@
 
 package org.panda_lang.nanomaven;
 
-import org.fusesource.jansi.Ansi;
 import org.panda_lang.nanomaven.console.NanoConsole;
+import org.panda_lang.nanomaven.console.commands.HelpCommand;
 import org.panda_lang.nanomaven.maven.NanoMavenCli;
 import org.panda_lang.nanomaven.server.NanoHttpdServer;
+import org.panda_lang.nanomaven.server.auth.NanoProjectsManager;
+import org.panda_lang.nanomaven.server.auth.NanoUsersManager;
 import org.panda_lang.nanomaven.util.DirectoryUtils;
 import org.panda_lang.nanomaven.util.TimeUtils;
 import org.panda_lang.nanomaven.workspace.NanoWorkspace;
@@ -31,8 +33,10 @@ public class NanoMaven {
 
     private NanoConsole console;
     private NanoWorkspace workspace;
+    private NanoUsersManager usersManager;
     private NanoMavenConfiguration configuration;
     private NanoRepositoryManager repositoryManager;
+    private NanoProjectsManager projectsManager;
     private NanoHttpdServer httpdServer;
     private NanoMavenCli mavenCli;
     private boolean stopped;
@@ -48,15 +52,21 @@ public class NanoMaven {
         this.configuration = new NanoMavenConfiguration();
         configuration.load();
 
+        this.usersManager = new NanoUsersManager();
+        usersManager.load(configuration);
+
         this.repositoryManager = new NanoRepositoryManager();
         repositoryManager.scan();
+
+        this.projectsManager = new NanoProjectsManager(usersManager);
+        projectsManager.load();
 
         this.httpdServer = new NanoHttpdServer(this);
         this.mavenCli = new NanoMavenCli(this);
     }
 
     public void launch() {
-        getLogger().info(Ansi.ansi().bold().fg(Ansi.Color.MAGENTA).a("NanoMaven ").reset().a(NanoMavenConstants.VERSION).toString());
+        getLogger().info(NanoMavenConstants.GREETING_MESSAGE);
         initialize();
 
         getLogger().info("Binding NanoMaven at *::" + configuration.getPort());
@@ -69,6 +79,9 @@ public class NanoMaven {
             Runtime.getRuntime().addShutdownHook(shutdownHook);
 
             getLogger().info("Done (" + TimeUtils.getUptime(uptime) + "s)!");
+
+            HelpCommand listCommands = new HelpCommand();
+            listCommands.call(this);
         } catch (Exception exception) {
             exception.printStackTrace();
             shutdown();
@@ -83,6 +96,13 @@ public class NanoMaven {
 
         getLogger().info("Shutting down...");
         httpdServer.stop();
+
+        getLogger().info("Saving users...");
+        usersManager.save();
+
+        getLogger().info("Saving projects...");
+        projectsManager.save();
+
         getLogger().info("Bye! Uptime: " + TimeUtils.getUptime(uptime) + "s");
     }
 
@@ -98,12 +118,20 @@ public class NanoMaven {
         return mavenCli;
     }
 
+    public NanoProjectsManager getProjectsManager() {
+        return projectsManager;
+    }
+
     public NanoRepositoryManager getRepositoryManager() {
         return repositoryManager;
     }
 
     public NanoMavenConfiguration getConfiguration() {
         return configuration;
+    }
+
+    public NanoUsersManager getUsersManager() {
+        return usersManager;
     }
 
     public static String getDataFolder() {

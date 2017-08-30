@@ -18,7 +18,7 @@ package org.panda_lang.nanomaven.server;
 
 import fi.iki.elonen.NanoHTTPD;
 import org.panda_lang.nanomaven.NanoMaven;
-import org.panda_lang.nanomaven.server.data.temp.NanoTempFileFactory;
+import org.panda_lang.nanomaven.workspace.data.temp.NanoTempFileFactory;
 import org.panda_lang.nanomaven.server.router.NanoFrontRouter;
 import org.panda_lang.nanomaven.server.router.NanoPanelRouter;
 import org.panda_lang.nanomaven.server.router.NanoRepositoryRouter;

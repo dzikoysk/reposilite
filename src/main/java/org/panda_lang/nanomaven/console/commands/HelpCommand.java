@@ -16,17 +16,22 @@
 
 package org.panda_lang.nanomaven.console.commands;
 
-import io.airlift.airline.Command;
-import io.airlift.airline.Help;
 import org.panda_lang.nanomaven.NanoMaven;
+import org.panda_lang.nanomaven.NanoMavenConstants;
 import org.panda_lang.nanomaven.console.NanoCommand;
 
-@Command(name = "help", description = "Display help information")
-public class NanoHelpCommand extends Help implements NanoCommand {
+public class HelpCommand implements NanoCommand {
 
     @Override
     public void call(NanoMaven nanoMaven) {
-        super.run();
+        NanoMaven.getLogger().info("");
+        NanoMaven.getLogger().info("NanoMaven " + NanoMavenConstants.VERSION + " Commands:");
+        NanoMaven.getLogger().info("  help - List available commands");
+        NanoMaven.getLogger().info("  add-user <username> <password> - Add user");
+        NanoMaven.getLogger().info("  add-project <groupId|artifactId> - Add project extra data");
+        NanoMaven.getLogger().info("  add-member <groupId|artifactId> <username> - Add user to the specified project");
+        NanoMaven.getLogger().info("  reinstall-artifacts (rs) - Reinstall all artifacts");
+        NanoMaven.getLogger().info("");
     }
 
 }

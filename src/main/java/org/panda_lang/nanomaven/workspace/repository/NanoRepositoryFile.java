@@ -18,7 +18,7 @@ package org.panda_lang.nanomaven.workspace.repository;
 
 import java.io.File;
 
-public class NanoFile {
+public class NanoRepositoryFile {
 
     private final String fileName;
     private final String artifactId;
@@ -28,7 +28,7 @@ public class NanoFile {
     private final File directory;
     private final File file;
 
-    public NanoFile(String fileName, String artifactId, String groupId, String version, String repositoryName, File directory, File file) {
+    public NanoRepositoryFile(String fileName, String artifactId, String groupId, String version, String repositoryName, File directory, File file) {
         this.fileName = fileName;
         this.artifactId = artifactId;
         this.groupId = groupId;
@@ -38,8 +38,8 @@ public class NanoFile {
         this.file = file;
     }
 
-    public NanoProject toNanoProject() {
-        return new NanoProject(repositoryName, groupId, artifactId, version);
+    public NanoRepositoryProject toRepositoryProject() {
+        return new NanoRepositoryProject(repositoryName, groupId, artifactId, version);
     }
 
     public File getFile() {
@@ -66,7 +66,7 @@ public class NanoFile {
         return fileName;
     }
 
-    public static NanoFile fromURL(String urlPath) {
+    public static NanoRepositoryFile fromURL(String urlPath) {
         String[] dirs = urlPath.split("/");
 
         String repositoryName = dirs[0];
@@ -83,7 +83,7 @@ public class NanoFile {
         File file = new File("repositories/" + urlPath);
         File directory = file.getParentFile();
 
-        return new NanoFile(fileName, artifactId, groupId, versionDir, repositoryName, directory, file);
+        return new NanoRepositoryFile(fileName, artifactId, groupId, versionDir, repositoryName, directory, file);
     }
 
 }

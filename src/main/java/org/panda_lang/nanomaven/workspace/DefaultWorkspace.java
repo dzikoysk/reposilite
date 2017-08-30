@@ -37,4 +37,12 @@ public class DefaultWorkspace {
         ZipUtils.unzipResource("/apache-maven-3.5.0.zip", "maven");
     }
 
+    public void generateUsers() {
+        FileUtils.createFile("data/users.pc");
+    }
+
+    public void generateProjects() {
+        FileUtils.createFile("data/projects.pc");
+    }
+
 }

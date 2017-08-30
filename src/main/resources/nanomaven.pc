@@ -19,3 +19,11 @@ indexing-enabled: true
 nested-maven: true
 # External Maven directory (if 'nested-maven': false)
 external-maven: /usr/local/share/java/maven33
+
+# Accept deployment connections
+deploy-enabled: true
+# Require authorization
+authorization-enabled: true
+# Administrator accounts
+administrators:
+- dzikoysk

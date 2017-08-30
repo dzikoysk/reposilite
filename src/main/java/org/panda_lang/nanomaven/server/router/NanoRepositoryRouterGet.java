@@ -20,7 +20,7 @@ import fi.iki.elonen.NanoHTTPD;
 import org.panda_lang.nanomaven.NanoMaven;
 import org.panda_lang.nanomaven.server.NanoHttpdServer;
 import org.panda_lang.nanomaven.server.NanoRouter;
-import org.panda_lang.nanomaven.workspace.repository.NanoProject;
+import org.panda_lang.nanomaven.workspace.repository.NanoRepositoryProject;
 import org.panda_lang.nanomaven.workspace.repository.NanoRepository;
 import org.panda_lang.nanomaven.workspace.repository.NanoRepositoryManager;
 
@@ -39,7 +39,7 @@ public class NanoRepositoryRouterGet implements NanoRouter {
         NanoRepositoryManager repositoryManager = nanoMaven.getRepositoryManager();
 
         String[] path = session.getUri().replace("maven-metadata", "maven-metadata-local").split("/");
-        NanoProject project;
+        NanoRepositoryProject project;
 
         if (!nanoMaven.getConfiguration().isRepositoryPathEnabled()) {
             project = repositoryManager.find(path);

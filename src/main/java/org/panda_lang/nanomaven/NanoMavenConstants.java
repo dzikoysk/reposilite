@@ -16,8 +16,16 @@
 
 package org.panda_lang.nanomaven;
 
+import org.fusesource.jansi.Ansi.Color;
+
+import static org.fusesource.jansi.Ansi.ansi;
+
 public class NanoMavenConstants {
 
-    public static final String VERSION = "1.0.2";
+    public static final String VERSION = "1.0.3";
+
+    public static final boolean INTERNAL_DEBUG = true;
+
+    protected static final String GREETING_MESSAGE = ansi().bold().fg(Color.CYAN).a("NanoMaven ").reset().a(NanoMavenConstants.VERSION).toString();
 
 }

@@ -21,7 +21,7 @@ import org.apache.maven.shared.invoker.*;
 import org.fusesource.jansi.Ansi;
 import org.panda_lang.nanomaven.NanoMaven;
 import org.panda_lang.nanomaven.maven.NanoInvokerLogger;
-import org.panda_lang.nanomaven.workspace.repository.NanoProject;
+import org.panda_lang.nanomaven.workspace.repository.NanoRepositoryProject;
 import org.panda_lang.nanomaven.workspace.repository.NanoRepository;
 
 import java.io.File;
@@ -53,7 +53,7 @@ public class ReinstallArtifactsCommand {
             Collection< File > jars = FileUtils.listFiles(tempRepository, new String[]{ "jar" }, true);
 
             for (File jar : jars) {
-                NanoProject project = NanoProject.fromPath(jar.getAbsolutePath());
+                NanoRepositoryProject project = NanoRepositoryProject.fromPath(jar.getAbsolutePath());
                 System.setProperty("maven.multiModuleProjectDirectory", jar.getParentFile().getAbsolutePath());
 
                 String[] goals = new String[]{

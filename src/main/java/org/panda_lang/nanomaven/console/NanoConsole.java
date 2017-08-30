@@ -17,7 +17,7 @@
 package org.panda_lang.nanomaven.console;
 
 import org.panda_lang.nanomaven.NanoMaven;
-import org.panda_lang.nanomaven.console.commands.ReinstallArtifactsCommand;
+import org.panda_lang.nanomaven.console.commands.*;
 
 public class NanoConsole {
 
@@ -36,10 +36,41 @@ public class NanoConsole {
 
     // TODO
     public void execute(String command) throws Exception {
+        String[] elements = command.split(" ");
+
+        if (command.equalsIgnoreCase("help")) {
+            HelpCommand helpCommand = new HelpCommand();
+            helpCommand.call(nanoMaven);
+            return;
+        }
+
         if (command.equalsIgnoreCase("reinstall-artifacts") || command.equalsIgnoreCase("rs")) {
             ReinstallArtifactsCommand reinstallArtifactsCommand = new ReinstallArtifactsCommand();
             reinstallArtifactsCommand.execute(nanoMaven);
+            return;
         }
+
+        command = elements[0];
+
+        if (command.equalsIgnoreCase("add-user")) {
+            UserCommand userCommand = new UserCommand(elements[1], elements[2]);
+            userCommand.call(nanoMaven);
+            return;
+        }
+
+        if (command.equalsIgnoreCase("add-project")) {
+            ProjectCommand projectCommand = new ProjectCommand(elements[1]);
+            projectCommand.call(nanoMaven);
+            return;
+        }
+
+        if (command.equalsIgnoreCase("add-member")) {
+            MemberCommand memberCommand = new MemberCommand(elements[1], elements[2]);
+            memberCommand.call(nanoMaven);
+            return;
+        }
+
+        NanoMaven.getLogger().warn("Unknown command " + elements[0]);
     }
 
 }
