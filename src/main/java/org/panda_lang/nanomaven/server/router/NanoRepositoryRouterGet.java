@@ -83,6 +83,7 @@ public class NanoRepositoryRouterGet implements NanoRouter {
         try {
             response = NanoHTTPD.newChunkedResponse(NanoHTTPD.Response.Status.OK, Files.probeContentType(file.toPath()), fis);
             response.addHeader("Content-Disposition", "attachment; filename=\"" + file.getName().replace("maven-metadata-local", "maven-metadata") +"\"");
+            response.addHeader("Content-Length", String.valueOf(file.length()));
             NanoMaven.getLogger().info("Fis: " + fis.available() + "; mime: " + Files.probeContentType(file.toPath()));
         } catch (IOException e) {
             e.printStackTrace();

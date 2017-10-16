@@ -20,7 +20,7 @@
 
     <groupId>org.panda-lang</groupId>
     <artifactId>nanomaven</artifactId>
-    <version>1.0.3</version>
+    <version>1.0.4</version>
     <licenses>
         <license>
             <name>Apache License, Version 2.0</name>
@@ -110,7 +110,6 @@
             <groupId>org.zeroturnaround</groupId>
             <artifactId>zt-zip</artifactId>
             <version>1.11</version>
-            <type>jar</type>
         </dependency>
         <dependency>
             <groupId>org.panda_lang</groupId>
@@ -130,7 +129,7 @@
     <distributionManagement>
         <repository>
             <id>panda-repository</id>
-            <url>https://repo.panda-lang.org</url>
+            <url>https://repo.panda-lang.org/releases</url>
         </repository>
     </distributionManagement>
 

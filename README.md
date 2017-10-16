@@ -49,7 +49,7 @@ administrators:
 #### Commands
 Commands can be invoked from the console
 ```bash
-NanoMaven 1.0.3 Commands:
+NanoMaven 1.0.4 Commands:
    help - List available commands
    add-user <username> <password> - Add user
    add-project <groupId|artifactId> - Add project extra data
@@ -64,7 +64,7 @@ You can also use maven to embed NanoMaven in your application
 <dependency>
     <groupId>org.panda-lang</groupId>
     <artifactId>nanomaven</artifactId>
-    <version>1.0.3</version>
+    <version>1.0.4</version>
 </dependency>
 
 <repository>
