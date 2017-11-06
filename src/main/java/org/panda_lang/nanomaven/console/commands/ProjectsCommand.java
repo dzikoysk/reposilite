@@ -21,37 +21,15 @@ import org.panda_lang.nanomaven.console.NanoCommand;
 import org.panda_lang.nanomaven.server.auth.NanoProject;
 import org.panda_lang.nanomaven.server.auth.NanoProjectsManager;
 
-public class ProjectCommand implements NanoCommand {
-
-    private final String projectName;
-
-    public ProjectCommand(String projectName) {
-        this.projectName = projectName;
-    }
+public class ProjectsCommand implements NanoCommand {
 
     @Override
     public void call(NanoMaven nanoMaven) {
         NanoProjectsManager projectsManager = nanoMaven.getProjectsManager();
 
-        if (!projectName.contains("/")) {
-            NanoMaven.getLogger().warn("GroupId or ArtifactId is not specified");
-            return;
+        for (NanoProject project : projectsManager.getProjects()) {
+            NanoMaven.getLogger().info(project.getProjectName());
         }
-
-        NanoProject nanoProject = projectsManager.getProject(projectName);
-
-        if (nanoProject != null) {
-            NanoMaven.getLogger().warn("Project " + projectName + " exists");
-            return;
-        }
-
-        NanoMaven.getLogger().info("Creating project...");
-
-        NanoProject project = new NanoProject(projectName);
-        projectsManager.addProject(project);
-        projectsManager.save();
-
-        NanoMaven.getLogger().info("Project " + project.getProjectName() + " has been created");
     }
 
 }

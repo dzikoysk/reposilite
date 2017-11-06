@@ -67,6 +67,7 @@ public class NanoRepositoryFile {
     }
 
     public static NanoRepositoryFile fromURL(String urlPath) {
+        System.out.println(urlPath);
         String[] dirs = urlPath.split("/");
 
         String repositoryName = dirs[0];
@@ -79,6 +80,12 @@ public class NanoRepositoryFile {
             groupIdBuilder.append(".").append(dirs[i]);
         }
         String groupId = groupIdBuilder.toString();
+
+        if (!versionDir.matches(".*\\d+.*")) {
+            groupId += "." + artifactId;
+            artifactId = versionDir;
+            versionDir = null;
+        }
 
         File file = new File("repositories/" + urlPath);
         File directory = file.getParentFile();

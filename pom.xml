@@ -121,7 +121,7 @@
     <repositories>
         <repository>
             <name>Panda Repository</name>
-            <id>panda-repo</id>
+            <id>panda-repository</id>
             <url>https://repo.panda-lang.org/</url>
         </repository>
     </repositories>

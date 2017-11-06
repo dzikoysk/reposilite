@@ -36,6 +36,10 @@ public class NanoConsole {
 
     // TODO
     public void execute(String command) throws Exception {
+        if (command.trim().isEmpty()) {
+            return;
+        }
+
         String[] elements = command.split(" ");
 
         if (command.equalsIgnoreCase("help")) {
@@ -50,23 +54,35 @@ public class NanoConsole {
             return;
         }
 
+        if (command.equals("users")) {
+            UsersCommand usersCommand = new UsersCommand();
+            usersCommand.call(nanoMaven);
+            return;
+        }
+
+        if (command.equals("projects")) {
+            ProjectsCommand projectsCommand = new ProjectsCommand();
+            projectsCommand.call(nanoMaven);
+            return;
+        }
+
         command = elements[0];
 
         if (command.equalsIgnoreCase("add-user")) {
-            UserCommand userCommand = new UserCommand(elements[1], elements[2]);
-            userCommand.call(nanoMaven);
+            AddUserCommand addUserCommand = new AddUserCommand(elements[1], elements[2]);
+            addUserCommand.call(nanoMaven);
             return;
         }
 
         if (command.equalsIgnoreCase("add-project")) {
-            ProjectCommand projectCommand = new ProjectCommand(elements[1]);
-            projectCommand.call(nanoMaven);
+            AddProjectCommand addProjectCommand = new AddProjectCommand(elements[1]);
+            addProjectCommand.call(nanoMaven);
             return;
         }
 
         if (command.equalsIgnoreCase("add-member")) {
-            MemberCommand memberCommand = new MemberCommand(elements[1], elements[2]);
-            memberCommand.call(nanoMaven);
+            AddMemberCommand addMemberCommand = new AddMemberCommand(elements[1], elements[2]);
+            addMemberCommand.call(nanoMaven);
             return;
         }
 
