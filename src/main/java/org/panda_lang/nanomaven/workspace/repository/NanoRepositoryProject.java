@@ -63,8 +63,12 @@ public class NanoRepositoryProject {
         return group;
     }
 
+    public String getProjectName() {
+        return getGroup() + "/" + getArtifact();
+    }
+
     public NanoProject toNanoProject(NanoProjectsManager projectsManager) {
-        return projectsManager.getProject(getGroup() + "/" + getArtifact());
+        return projectsManager.getProject(getProjectName());
     }
 
     public static NanoRepositoryProject fromPath(String jarPath) {

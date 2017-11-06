@@ -20,38 +20,16 @@ import org.panda_lang.nanomaven.NanoMaven;
 import org.panda_lang.nanomaven.console.NanoCommand;
 import org.panda_lang.nanomaven.server.auth.NanoUser;
 import org.panda_lang.nanomaven.server.auth.NanoUsersManager;
-import org.panda_lang.nanomaven.workspace.data.users.NanoUserDatabase;
 
-public class UserCommand implements NanoCommand {
-
-    private final String username;
-    private final String password;
-
-    public UserCommand(String username, String password) {
-        this.username = username;
-        this.password = password;
-    }
+public class UsersCommand implements NanoCommand {
 
     @Override
     public void call(NanoMaven nanoMaven) {
         NanoUsersManager usersManager = nanoMaven.getUsersManager();
-        NanoUser nanoUser = usersManager.getUser(username);
 
-        if (nanoUser != null) {
-            NanoMaven.getLogger().warn("User " + username + " exists");
-            return;
+        for (NanoUser user : usersManager.getUsers()) {
+            NanoMaven.getLogger().info(user.getUsername() + (user.isAdministrator() ? " [admin]" : ""));
         }
-
-        NanoMaven.getLogger().info("Creating user...");
-
-        NanoUser user = new NanoUser(username);
-        usersManager.addUser(user);
-
-        String encodedPassword = NanoUserDatabase.B_CRYPT_PASSWORD_ENCODER.encode(password);
-        user.setEncryptedPassword(encodedPassword);
-
-        usersManager.save();
-        NanoMaven.getLogger().info("User " + username + " has been created");
     }
 
 }

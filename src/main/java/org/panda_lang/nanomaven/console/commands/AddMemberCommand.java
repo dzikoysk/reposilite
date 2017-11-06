@@ -23,12 +23,12 @@ import org.panda_lang.nanomaven.server.auth.NanoProjectsManager;
 import org.panda_lang.nanomaven.server.auth.NanoUser;
 import org.panda_lang.nanomaven.server.auth.NanoUsersManager;
 
-public class MemberCommand implements NanoCommand {
+public class AddMemberCommand implements NanoCommand {
 
     private final String projectName;
     private final String username;
 
-    public MemberCommand(String projectName, String username) {
+    public AddMemberCommand(String projectName, String username) {
         this.projectName = projectName;
         this.username = username;
     }

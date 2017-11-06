@@ -111,6 +111,7 @@ public class NanoRepositoryRouterPut implements NanoRouter {
                 if (!user.isAdministrator()) {
                     NanoProjectsManager projectsManager = nanoMaven.getProjectsManager();
                     NanoRepositoryProject project = targetFile.toRepositoryProject();
+                    System.out.println(targetFile.getFile().getName() + ": " + project.getProjectName());
                     NanoProject nanoProject = project.toNanoProject(projectsManager);
 
                     if (nanoProject == null) {

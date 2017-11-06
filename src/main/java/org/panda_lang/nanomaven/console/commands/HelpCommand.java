@@ -27,9 +27,11 @@ public class HelpCommand implements NanoCommand {
         NanoMaven.getLogger().info("");
         NanoMaven.getLogger().info("NanoMaven " + NanoMavenConstants.VERSION + " Commands:");
         NanoMaven.getLogger().info("  help - List available commands");
+        NanoMaven.getLogger().info("  users - List all registered users");
+        NanoMaven.getLogger().info("  projects - List all added projects");
         NanoMaven.getLogger().info("  add-user <username> <password> - Add user");
-        NanoMaven.getLogger().info("  add-project <groupId|artifactId> - Add project extra data");
-        NanoMaven.getLogger().info("  add-member <groupId|artifactId> <username> - Add user to the specified project");
+        NanoMaven.getLogger().info("  add-project <repository>.<groupId>/<artifactId> - Add project extra data");
+        NanoMaven.getLogger().info("  add-member <repository>.<groupId>/<artifactId> <username> - Add user to the specified project");
         NanoMaven.getLogger().info("  reinstall-artifacts (rs) - Reinstall all artifacts");
         NanoMaven.getLogger().info("");
     }
