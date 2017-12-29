@@ -12,6 +12,7 @@ Releases: [GitHub Downloads](https://github.com/dzikoysk/NanoMaven/releases)
 * [ ] Proxy for the specified remote repositories
 * [ ] Front page
 * [ ] Statistics
+* [ ] Code quality
 
 #### Configuration
 ```yaml
