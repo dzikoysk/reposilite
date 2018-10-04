@@ -20,7 +20,7 @@
 
     <groupId>org.panda-lang</groupId>
     <artifactId>nanomaven</artifactId>
-    <version>1.0.5</version>
+    <version>1.0.6</version>
     <licenses>
         <license>
             <name>Apache License, Version 2.0</name>

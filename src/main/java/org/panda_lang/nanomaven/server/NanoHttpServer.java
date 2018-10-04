@@ -25,20 +25,20 @@ import org.panda_lang.nanomaven.server.router.NanoRepositoryRouter;
 
 import java.io.IOException;
 
-public class NanoHttpdServer extends NanoHTTPD {
+public class NanoHttpServer extends NanoHTTPD {
 
     private final NanoMaven nanoMaven;
     private final NanoFrontRouter frontRouter;
     private final NanoPanelRouter panelRouter;
     private final NanoRepositoryRouter repositoryRouter;
 
-    public NanoHttpdServer(NanoMaven nanoMaven) {
+    public NanoHttpServer(NanoMaven nanoMaven) {
         super(nanoMaven.getConfiguration().getPort());
 
         this.nanoMaven = nanoMaven;
         this.frontRouter = new NanoFrontRouter(nanoMaven);
         this.panelRouter = new NanoPanelRouter(nanoMaven);
-        this.repositoryRouter = new NanoRepositoryRouter(nanoMaven);
+        this.repositoryRouter = new NanoRepositoryRouter();
     }
 
     @Override

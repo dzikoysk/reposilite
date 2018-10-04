@@ -18,7 +18,7 @@ package org.panda_lang.nanomaven.server.router;
 
 import fi.iki.elonen.NanoHTTPD;
 import org.panda_lang.nanomaven.NanoMaven;
-import org.panda_lang.nanomaven.server.NanoHttpdServer;
+import org.panda_lang.nanomaven.server.NanoHttpServer;
 import org.panda_lang.nanomaven.server.NanoRouter;
 import org.panda_lang.nanomaven.workspace.repository.NanoRepositoryProject;
 import org.panda_lang.nanomaven.workspace.repository.NanoRepository;
@@ -34,7 +34,7 @@ import java.util.Arrays;
 public class NanoRepositoryRouterGet implements NanoRouter {
 
     @Override
-    public NanoHTTPD.Response serve(NanoHttpdServer server, NanoHTTPD.IHTTPSession session) {
+    public NanoHTTPD.Response serve(NanoHttpServer server, NanoHTTPD.IHTTPSession session) {
         NanoMaven nanoMaven = server.getNanoMaven();
         NanoRepositoryManager repositoryManager = nanoMaven.getRepositoryManager();
 

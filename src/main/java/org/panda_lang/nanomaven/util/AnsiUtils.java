@@ -24,7 +24,6 @@ public class AnsiUtils {
     public static final Object RESET = new Object();
 
     public static String translate(Object... elements) {
-
         Ansi ansi = Ansi.ansi();
 
         for (Object element : elements) {

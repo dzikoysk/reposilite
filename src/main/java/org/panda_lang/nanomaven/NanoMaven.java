@@ -19,7 +19,7 @@ package org.panda_lang.nanomaven;
 import org.panda_lang.nanomaven.console.NanoConsole;
 import org.panda_lang.nanomaven.console.commands.HelpCommand;
 import org.panda_lang.nanomaven.maven.NanoMavenCli;
-import org.panda_lang.nanomaven.server.NanoHttpdServer;
+import org.panda_lang.nanomaven.server.NanoHttpServer;
 import org.panda_lang.nanomaven.server.auth.NanoProjectsManager;
 import org.panda_lang.nanomaven.server.auth.NanoUsersManager;
 import org.panda_lang.nanomaven.util.DirectoryUtils;
@@ -37,20 +37,20 @@ public class NanoMaven {
     private NanoMavenConfiguration configuration;
     private NanoRepositoryManager repositoryManager;
     private NanoProjectsManager projectsManager;
-    private NanoHttpdServer httpdServer;
+    private NanoHttpServer httpServer;
     private NanoMavenCli mavenCli;
     private boolean stopped;
     private long uptime;
 
     private void initialize() {
+        this.configuration = new NanoMavenConfiguration();
+        configuration.load();
+
         this.console = new NanoConsole(this);
         console.hook();
 
         this.workspace = new NanoWorkspace();
         workspace.prepare();
-
-        this.configuration = new NanoMavenConfiguration();
-        configuration.load();
 
         this.usersManager = new NanoUsersManager();
         usersManager.load(configuration);
@@ -61,7 +61,7 @@ public class NanoMaven {
         this.projectsManager = new NanoProjectsManager(usersManager);
         projectsManager.load();
 
-        this.httpdServer = new NanoHttpdServer(this);
+        this.httpServer = new NanoHttpServer(this);
         this.mavenCli = new NanoMavenCli(this);
     }
 
@@ -73,7 +73,7 @@ public class NanoMaven {
         this.uptime = System.currentTimeMillis();
 
         try {
-            httpdServer.start();
+            httpServer.start();
 
             Thread shutdownHook = new Thread(this::shutdown);
             Runtime.getRuntime().addShutdownHook(shutdownHook);
@@ -95,7 +95,7 @@ public class NanoMaven {
         this.stopped = true;
 
         getLogger().info("Shutting down...");
-        httpdServer.stop();
+        httpServer.stop();
 
         getLogger().info("Saving users...");
         usersManager.save();
