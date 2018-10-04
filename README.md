@@ -67,7 +67,7 @@ You can also use maven to embed NanoMaven in your application
 <dependency>
     <groupId>org.panda-lang</groupId>
     <artifactId>nanomaven</artifactId>
-    <version>1.0.4</version>
+    <version>1.0.6</version>
 </dependency>
 
 <repository>
