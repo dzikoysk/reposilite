@@ -20,6 +20,6 @@ import fi.iki.elonen.NanoHTTPD;
 
 public interface NanoRouter {
 
-    NanoHTTPD.Response serve(NanoHttpdServer server, NanoHTTPD.IHTTPSession session) throws Exception;
+    NanoHTTPD.Response serve(NanoHttpServer server, NanoHTTPD.IHTTPSession session) throws Exception;
 
 }

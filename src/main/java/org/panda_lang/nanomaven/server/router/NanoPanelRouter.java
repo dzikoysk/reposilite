@@ -18,7 +18,7 @@ package org.panda_lang.nanomaven.server.router;
 
 import fi.iki.elonen.NanoHTTPD;
 import org.panda_lang.nanomaven.NanoMaven;
-import org.panda_lang.nanomaven.server.NanoHttpdServer;
+import org.panda_lang.nanomaven.server.NanoHttpServer;
 import org.panda_lang.nanomaven.server.NanoRouter;
 
 public class NanoPanelRouter implements NanoRouter {
@@ -28,7 +28,7 @@ public class NanoPanelRouter implements NanoRouter {
     }
 
     @Override
-    public NanoHTTPD.Response serve(NanoHttpdServer server, NanoHTTPD.IHTTPSession session) {
+    public NanoHTTPD.Response serve(NanoHttpServer server, NanoHTTPD.IHTTPSession session) {
         return NanoHTTPD.newFixedLengthResponse("#TODO");
     }
 

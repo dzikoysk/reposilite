@@ -24,7 +24,7 @@ import fi.iki.elonen.NanoHTTPD.ResponseException;
 import org.apache.commons.io.FileUtils;
 import org.panda_lang.nanomaven.NanoMaven;
 import org.panda_lang.nanomaven.NanoMavenConstants;
-import org.panda_lang.nanomaven.server.NanoHttpdServer;
+import org.panda_lang.nanomaven.server.NanoHttpServer;
 import org.panda_lang.nanomaven.server.NanoRouter;
 import org.panda_lang.nanomaven.server.auth.NanoProject;
 import org.panda_lang.nanomaven.server.auth.NanoProjectsManager;
@@ -47,7 +47,7 @@ import java.util.Map;
 public class NanoRepositoryRouterPut implements NanoRouter {
 
     @Override
-    public NanoHTTPD.Response serve(NanoHttpdServer server, NanoHTTPD.IHTTPSession session) throws Exception {
+    public NanoHTTPD.Response serve(NanoHttpServer server, NanoHTTPD.IHTTPSession session) throws Exception {
         NanoMaven nanoMaven = server.getNanoMaven();
         NanoMavenConfiguration configuration = nanoMaven.getConfiguration();
 
