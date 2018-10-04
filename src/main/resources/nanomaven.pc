@@ -10,6 +10,11 @@ hostname: ''
 # Port
 port: 80
 
+# Root directories of repositories
+repositories:
+- releases
+- snapshots
+
 # Include a repository names in the path
 repository-path-enabled: false
 # Enable directory indexing
