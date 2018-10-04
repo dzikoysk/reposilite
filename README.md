@@ -12,6 +12,7 @@ Releases: [GitHub Downloads](https://github.com/dzikoysk/NanoMaven/releases)
 * [ ] Proxy for the specified remote repositories
 * [ ] Front page
 * [ ] Statistics
+* [ ] Code quality
 
 #### Configuration
 ```yaml
@@ -49,11 +50,13 @@ administrators:
 #### Commands
 Commands can be invoked from the console
 ```bash
-NanoMaven 1.0.4 Commands:
+NanoMaven 1.0.4 Commands:   
    help - List available commands
+   users - List all registered users
+   projects - List all added projects
    add-user <username> <password> - Add user
-   add-project <groupId|artifactId> - Add project extra data
-   add-member <groupId|artifactId> <username> - Add user to the specified project
+   add-project <repository>.<groupId>/<artifactId> - Add project extra data
+   add-member <repository>.<groupId>/<artifactId> <username> - Add user to the specified project
    reinstall-artifacts (rs) - Reinstall all artifacts
 ```
 
