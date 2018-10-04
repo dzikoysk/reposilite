@@ -56,7 +56,7 @@ public class NanoMaven {
         usersManager.load(configuration);
 
         this.repositoryManager = new NanoRepositoryManager();
-        repositoryManager.scan();
+        repositoryManager.scan(configuration);
 
         this.projectsManager = new NanoProjectsManager(usersManager);
         projectsManager.load();

@@ -26,6 +26,7 @@ public class NanoMavenConfiguration {
     private int port;
     private String hostname;
 
+    private List<String> repositories;
     private boolean repositoryPathEnabled;
     private boolean indexingEnabled;
 
@@ -43,6 +44,7 @@ public class NanoMavenConfiguration {
         this.port = configuration.getInt("port");
         this.hostname = configuration.getString("hostname");
 
+        this.repositories = configuration.getStringList("repositories");
         this.repositoryPathEnabled = configuration.getBoolean("repository-path-enabled");
         this.indexingEnabled = configuration.getBoolean("indexing-enabled");
 
@@ -62,7 +64,7 @@ public class NanoMavenConfiguration {
         return authorizationEnabled;
     }
 
-    public List<String> getAdministrators() {
+    public List<? extends String> getAdministrators() {
         return administrators;
     }
 
@@ -80,6 +82,10 @@ public class NanoMavenConfiguration {
 
     public boolean isRepositoryPathEnabled() {
         return repositoryPathEnabled;
+    }
+
+    public List<? extends String> getRepositories() {
+        return repositories;
     }
 
     public String getHostname() {

@@ -62,7 +62,7 @@ public class NanoRepositoryRouterGet implements NanoRouter {
 
         if (!file.exists()) {
             NanoMaven.getLogger().warn("File " + file.getAbsolutePath() + " doesn't exist");
-            return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.NOT_FOUND, "text/html", "Artifact not found");
+            return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.NOT_FOUND, "text/html", "Artifact " + file.getName() + " not found");
         }
 
         FileInputStream fis = null;

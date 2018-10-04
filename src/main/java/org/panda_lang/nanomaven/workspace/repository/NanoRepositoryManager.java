@@ -17,6 +17,7 @@
 package org.panda_lang.nanomaven.workspace.repository;
 
 import org.panda_lang.nanomaven.NanoMaven;
+import org.panda_lang.nanomaven.workspace.configuration.NanoMavenConfiguration;
 
 import java.io.File;
 import java.util.Collection;
@@ -31,25 +32,26 @@ public class NanoRepositoryManager {
         this.repositories = new HashMap<>(2);
     }
 
-    public void scan() {
+    public void scan(NanoMavenConfiguration configuration) {
         File rootDirectory = new File("repositories");
         repositories.clear();
 
         NanoMaven.getLogger().info("Scanning to find repositories...");
-        File[] repositoriesDirectory = rootDirectory.listFiles();
 
-        if (repositoriesDirectory == null) {
-            NanoMaven.getLogger().warn("Nothing has been found!");
-            return;
-        }
+        for (String repositoryName : configuration.getRepositories()) {
+            File repositoryDirectory = new File(rootDirectory, repositoryName);
 
-        for (File repositoryDirectory : repositoriesDirectory) {
+            if (!repositoryDirectory.exists()) {
+                NanoMaven.getLogger().warn("Nothing has been found!");
+                return;
+            }
+
             if (!repositoryDirectory.isDirectory()) {
                 NanoMaven.getLogger().info("  Skipping " + repositoryDirectory.getName());
             }
 
-            NanoRepository repository = new NanoRepository(repositoryDirectory.getName());
-            NanoMaven.getLogger().info("  + " + repository.getRepositoryName());
+            NanoRepository repository = new NanoRepository(repositoryName);
+            NanoMaven.getLogger().info("  + " + repositoryDirectory.getName());
 
             repositories.put(repository.getRepositoryName(), repository);
         }

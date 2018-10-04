@@ -28,13 +28,17 @@ public class NanoRepository {
 
     public NanoRepository(String repositoryName) {
         this.repositoryName = repositoryName;
-        this.path = "repositories/" + repositoryName + "/";
+        this.path = "repositories/" + (repositoryName.isEmpty() ? "" : repositoryName + "/");
     }
 
     public NanoRepositoryProject get(String... path) {
         StringBuilder pathBuilder = new StringBuilder(getLocalPath());
 
         for (String element : path) {
+            if (element.isEmpty()) {
+                continue;
+            }
+
             pathBuilder.append(element);
             pathBuilder.append("/");
         }
