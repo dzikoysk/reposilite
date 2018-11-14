@@ -25,14 +25,14 @@ public class NanoWorkspace {
         NanoMaven.getLogger().info("Preparing workspace");
         DefaultWorkspace defaultWorkspace = new DefaultWorkspace();
 
-        // NanoMaven Configuration
-        if (!FileUtils.fileExists("nanomaven.pc")) {
-            defaultWorkspace.generateConfiguration();
-            NanoMaven.getLogger().info("NanoMaven configuration file has been generated");
-        }
-        else {
-            NanoMaven.getLogger().info("Using an existing configuration file");
-        }
+//        // NanoMaven Configuration
+//        if (!FileUtils.fileExists("nanomaven.yml")) {
+//            defaultWorkspace.generateConfiguration();
+//            NanoMaven.getLogger().info("NanoMaven configuration file has been generated");
+//        }
+//        else {
+//            NanoMaven.getLogger().info("Using an existing configuration file");
+//        }
 
         // Repositories
         if (!FileUtils.fileExists("repositories")) {

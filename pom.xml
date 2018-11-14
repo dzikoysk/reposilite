@@ -104,7 +104,7 @@
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
-            <version>2.5</version>
+            <version>2.6</version>
         </dependency>
         <dependency>
             <groupId>org.zeroturnaround</groupId>
@@ -115,6 +115,11 @@
             <groupId>org.panda-lang</groupId>
             <artifactId>panda</artifactId>
             <version>indev-18.11.4</version>
+        </dependency>
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <version>1.23</version>
         </dependency>
     </dependencies>
 
