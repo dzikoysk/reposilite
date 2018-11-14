@@ -29,7 +29,7 @@ public class NanoFrontRouter implements NanoRouter {
 
     @Override
     public NanoHTTPD.Response serve(NanoHttpServer server, NanoHTTPD.IHTTPSession session) {
-        return NanoHTTPD.newFixedLengthResponse("#TODO");
+        return NanoHTTPD.newFixedLengthResponse("<div style=\"text-align: center;\"> #onlypanda </div>");
     }
 
 }
