@@ -112,9 +112,9 @@
             <version>1.11</version>
         </dependency>
         <dependency>
-            <groupId>org.panda_lang</groupId>
+            <groupId>org.panda-lang</groupId>
             <artifactId>panda</artifactId>
-            <version>indev-0.2.1-SNAPSHOT</version>
+            <version>indev-18.11.4</version>
         </dependency>
     </dependencies>
 
