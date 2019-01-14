@@ -39,6 +39,11 @@ public class NanoRepositoryRouterGet implements NanoRouter {
         NanoRepositoryManager repositoryManager = nanoMaven.getRepositoryManager();
 
         String[] path = session.getUri().replace("maven-metadata", "maven-metadata-local").split("/");
+
+        if (path[0].isEmpty()) {
+            path = Arrays.copyOfRange(path, 1, path.length);
+        }
+
         NanoRepositoryProject project;
 
         if (!nanoMaven.getConfiguration().isRepositoryPathEnabled()) {
