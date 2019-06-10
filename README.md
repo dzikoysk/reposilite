@@ -9,6 +9,7 @@ Releases: [GitHub Downloads](https://github.com/dzikoysk/NanoMaven/releases)
 * [x] Multiple repositories under a single URL
 * [x] Deploy
 * [x] Authorization
+* [x] Console
 * [ ] Proxy for the specified remote repositories
 * [ ] Front page
 * [ ] Statistics
