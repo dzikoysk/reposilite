@@ -1,6 +1,9 @@
 # NanoMaven [![Build Status](https://travis-ci.org/dzikoysk/NanoMaven.svg?branch=master)](https://travis-ci.org/dzikoysk/NanoMaven)
 Lightweight repository manager for Maven artifacts
 
+#### Abandoned
+NanoMaven was just a simple solution to replace managers like Nexus and Artifactory. It was done quickly using primitive libraries and supporting only part of maven protocol - this project does not have future. As a successor of NanoMaven, you should checkout the [Reposilite](https://github.com/panda-lang/reposilite) - lightweight repository management software mainly dedicated for Maven artifacts.
+
 #### Download
 Releases: [GitHub Downloads](https://github.com/dzikoysk/NanoMaven/releases)
 
