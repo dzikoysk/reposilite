@@ -49,8 +49,11 @@ public class NanoMaven {
     }
 
     public void launch() throws Exception {
+        getLogger().info("");
         getLogger().info(NanoConstants.GREETING_MESSAGE);
+        getLogger().info("");
 
+        NanoMaven.getLogger().info("--- Preparing workspace");
         NanoWorkspace workspace = new NanoWorkspace();
         workspace.prepare();
 
@@ -66,13 +69,16 @@ public class NanoMaven {
         FrontendLoader frontendLoader = new FrontendLoader();
         this.frontend = frontendLoader.loadFrontend(NanoConstants.FRONTEND_FILE_NAME);
 
+        getLogger().info("--- Loading data");
         this.tokenService = new TokenService();
         tokenService.load();
+        getLogger().info("");
 
         this.repositoryService = new RepositoryService();
         repositoryService.scan(configuration);
+        getLogger().info("");
 
-        getLogger().info("Binding at *::" + configuration.getPort());
+        getLogger().info("Binding server at *::" + configuration.getPort());
         this.httpServer = new NanoHttpServer(this);
         this.uptime = System.currentTimeMillis();
 

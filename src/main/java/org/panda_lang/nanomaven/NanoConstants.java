@@ -24,7 +24,7 @@ public final class NanoConstants {
 
     public static final String VERSION = "2.0.0";
 
-    static final String GREETING_MESSAGE = ansi().bold().fg(Color.CYAN).a("NanoMaven ").reset().a(NanoConstants.VERSION).toString();
+    static final String GREETING_MESSAGE = ansi().bold().fg(Color.GREEN).a("NanoMaven ").reset().a(NanoConstants.VERSION).toString();
 
     public static final String CONFIGURATION_FILE_NAME = "nanomaven.yml";
 

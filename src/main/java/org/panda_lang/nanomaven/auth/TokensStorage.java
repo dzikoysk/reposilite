@@ -22,6 +22,7 @@ import org.panda_lang.nanomaven.utils.YamlUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class TokensStorage {
 
@@ -40,18 +41,19 @@ public class TokensStorage {
             tokenService.addToken(token);
         }
 
-        NanoMaven.getLogger().info("Loaded tokens: " + tokenService.count());
+        NanoMaven.getLogger().info("Tokens: " + tokenService.count());
     }
 
     public void saveTokens() throws IOException {
-        TokensCollection tokensCollection = YamlUtils.load(TOKENS_FILE, TokensCollection.class);
+        TokensCollection tokensCollection = new TokensCollection();
+        tokensCollection.setTokens(new ArrayList<>());
 
         for (Token token : tokenService.getTokens()) {
             tokensCollection.getTokens().add(token);
         }
 
         YamlUtils.save(TOKENS_FILE, tokensCollection);
-        NanoMaven.getLogger().info("Saved tokens: " + tokensCollection.getTokens().size());
+        NanoMaven.getLogger().info("Stored tokens: " + tokensCollection.getTokens().size());
     }
 
 }

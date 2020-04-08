@@ -19,6 +19,8 @@ package org.panda_lang.nanomaven.auth;
 import org.panda_lang.nanomaven.NanoMaven;
 import org.panda_lang.nanomaven.console.NanoCommand;
 
+import java.io.IOException;
+
 public final class KeygenCommand implements NanoCommand {
 
     private final TokenService tokenService;
@@ -40,8 +42,13 @@ public final class KeygenCommand implements NanoCommand {
         String token = tokenService.generateToken();
         tokenService.addToken(new Token(path, alias, TokenService.B_CRYPT_TOKENS_ENCODER.encode(token)));
 
-        NanoMaven.getLogger().info("Generated new access token for " + alias + " (" + path + ")");
-        NanoMaven.getLogger().info(token);
+        try {
+            NanoMaven.getLogger().info("Generated new access token for " + alias + " (" + path + ")");
+            NanoMaven.getLogger().info(token);
+            tokenService.save();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 }

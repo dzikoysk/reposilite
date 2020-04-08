@@ -23,8 +23,6 @@ import org.panda_lang.nanomaven.utils.ZipUtils;
 public class NanoWorkspace {
 
     public void prepare() {
-        NanoMaven.getLogger().info("Preparing workspace");
-
         if (!FilesUtils.fileExists(NanoConstants.CONFIGURATION_FILE_NAME)) {
             NanoMaven.getLogger().info("Generating default configuration file.");
             FilesUtils.copyResource("/nanomaven.yml", NanoConstants.CONFIGURATION_FILE_NAME);
@@ -39,7 +37,7 @@ public class NanoWorkspace {
             NanoMaven.getLogger().info("Default repositories have been created");
         }
         else {
-            NanoMaven.getLogger().info("Using an existing repositories");
+            NanoMaven.getLogger().info("Using an existing repositories directory");
         }
 
         // Maven
@@ -61,6 +59,8 @@ public class NanoWorkspace {
         else {
             NanoMaven.getLogger().info("Using an existing tokens data file");
         }
+
+        NanoMaven.getLogger().info("");
     }
 
 }
