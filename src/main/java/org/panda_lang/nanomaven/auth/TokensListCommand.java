@@ -14,12 +14,20 @@
  * limitations under the License.
  */
 
-package org.panda_lang.nanomaven.console;
+package org.panda_lang.nanomaven.auth;
 
 import org.panda_lang.nanomaven.NanoMaven;
+import org.panda_lang.nanomaven.console.NanoCommand;
 
-public interface NanoCommand {
+public class TokensListCommand implements NanoCommand {
 
-    void call(NanoMaven nanoMaven);
+    @Override
+    public void call(NanoMaven nanoMaven) {
+        NanoMaven.getLogger().info("Tokens (" + nanoMaven.getTokenService().count() + ")");
+
+        for (Token token : nanoMaven.getTokenService().getTokens()) {
+            NanoMaven.getLogger().info(token.getPath() + " as " + token.getAlias());
+        }
+    }
 
 }

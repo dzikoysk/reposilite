@@ -18,8 +18,11 @@ package org.panda_lang.nanomaven.console;
 
 import org.panda_lang.nanomaven.NanoMaven;
 
-public interface NanoCommand {
+final class StopCommand implements NanoCommand {
 
-    void call(NanoMaven nanoMaven);
+    @Override
+    public void call(NanoMaven nanoMaven) {
+        nanoMaven.shutdown();
+    }
 
 }

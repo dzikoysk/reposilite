@@ -27,8 +27,3 @@ externalMaven: /usr/local/share/java/maven33
 
 # Accept deployment connections
 deployEnabled: true
-# Require authorization
-authorizationEnabled: true
-# Administrator accounts
-administrators:
-  - dzikoysk

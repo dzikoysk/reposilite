@@ -1,5 +1,9 @@
 # NanoMaven [![Build Status](https://travis-ci.org/dzikoysk/NanoMaven.svg?branch=master)](https://travis-ci.org/dzikoysk/NanoMaven)
-Lightweight repository manager for Maven artifacts. It a simple solution to replace managers like Nexus and Artifactory. As a successor of NanoMaven, you should also check the [Reposilite](https://github.com/panda-lang/reposilite) - enhanced repository management software mainly dedicated for Maven artifacts.
+Lightweight repository manager for Maven artifacts. 
+It a simple solution to replace managers like Nexus and Artifactory. 
+As a successor of NanoMaven, you should also check the [Reposilite](https://github.com/panda-lang/reposilite) - enhanced repository management software mainly dedicated for Maven artifacts.
+
+![obraz](https://user-images.githubusercontent.com/4235722/78812901-73b8c680-79cc-11ea-95d5-9763a53e4240.png)
 
 #### Download
 Releases: [GitHub Downloads](https://github.com/dzikoysk/NanoMaven/releases)
@@ -11,7 +15,7 @@ Releases: [GitHub Downloads](https://github.com/dzikoysk/NanoMaven/releases)
 * [x] Authorization
 * [x] Console
 * [ ] Proxy for the specified remote repositories
-* [ ] Front page
+* [x] Front page
 * [ ] Statistics
 * [ ] Code quality
 
@@ -51,14 +55,12 @@ administrators:
 #### Commands
 Commands can be invoked from the console
 ```bash
-NanoMaven 1.0.7 Commands:   
-   help - List available commands
-   users - List all registered users
-   projects - List all added projects
-   add-user <username> <password> - Add user
-   add-project <repository>.<groupId>/<artifactId> - Add project extra data
-   add-member <repository>.<groupId>/<artifactId> <username> - Add user to the specified project
-   reinstall-artifacts (rs) - Reinstall all artifacts
+NanoMaven 2.0.0 Commands:
+  help - List available commands
+  tokens - List all generated tokens
+  keygen <path> <alias> - Generate a new access token for the given path
+  rs - Reinstall all artifacts
+  stop - Shutdown server
 ```
 
 #### Maven builds
@@ -68,7 +70,7 @@ You can also use maven to embed NanoMaven in your application
 <dependency>
     <groupId>org.panda-lang</groupId>
     <artifactId>nanomaven</artifactId>
-    <version>1.0.7</version>
+    <version>2.0.0</version>
 </dependency>
 
 <repository>
