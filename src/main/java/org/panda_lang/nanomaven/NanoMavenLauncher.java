@@ -18,7 +18,7 @@ package org.panda_lang.nanomaven;
 
 public class NanoMavenLauncher {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         NanoMaven nanoMaven = new NanoMaven();
         nanoMaven.launch();
     }
