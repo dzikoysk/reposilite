@@ -16,12 +16,9 @@
 
 package org.panda_lang.nanomaven.workspace.configuration;
 
-import org.panda_lang.panda.utilities.configuration.PandaConfiguration;
-
-import java.io.File;
 import java.util.List;
 
-public class NanoMavenConfiguration {
+public final class NanoMavenConfiguration {
 
     private int port;
     private String hostname;
@@ -36,25 +33,6 @@ public class NanoMavenConfiguration {
     private boolean deployEnabled;
     private boolean authorizationEnabled;
     private List<String> administrators;
-
-    public void load() {
-        File configurationFile = new File("nanomaven.pc");
-        PandaConfiguration configuration = new PandaConfiguration(configurationFile);
-
-        this.port = configuration.getInt("port");
-        this.hostname = configuration.getString("hostname");
-
-        this.repositories = configuration.getStringList("repositories");
-        this.repositoryPathEnabled = configuration.getBoolean("repository-path-enabled");
-        this.indexingEnabled = configuration.getBoolean("indexing-enabled");
-
-        this.nestedMaven = configuration.getBoolean("nested-maven");
-        this.externalMaven = configuration.getString("external-maven");
-
-        this.deployEnabled = configuration.getBoolean("deploy-enabled");
-        this.authorizationEnabled = configuration.getBoolean("authorization-enabled");
-        this.administrators = configuration.getStringList("administrators");
-    }
 
     public boolean isDeployEnabled() {
         return deployEnabled;
@@ -96,4 +74,43 @@ public class NanoMavenConfiguration {
         return port;
     }
 
+    public void setPort(int port) {
+        this.port = port;
+    }
+
+    public void setHostname(String hostname) {
+        this.hostname = hostname;
+    }
+
+    public void setRepositories(List<String> repositories) {
+        this.repositories = repositories;
+    }
+
+    public void setRepositoryPathEnabled(boolean repositoryPathEnabled) {
+        this.repositoryPathEnabled = repositoryPathEnabled;
+    }
+
+    public void setIndexingEnabled(boolean indexingEnabled) {
+        this.indexingEnabled = indexingEnabled;
+    }
+
+    public void setNestedMaven(boolean nestedMaven) {
+        this.nestedMaven = nestedMaven;
+    }
+
+    public void setExternalMaven(String externalMaven) {
+        this.externalMaven = externalMaven;
+    }
+
+    public void setDeployEnabled(boolean deployEnabled) {
+        this.deployEnabled = deployEnabled;
+    }
+
+    public void setAuthorizationEnabled(boolean authorizationEnabled) {
+        this.authorizationEnabled = authorizationEnabled;
+    }
+
+    public void setAdministrators(List<String> administrators) {
+        this.administrators = administrators;
+    }
 }
