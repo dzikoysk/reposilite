@@ -114,7 +114,7 @@
         <dependency>
             <groupId>org.panda-lang</groupId>
             <artifactId>panda</artifactId>
-            <version>indev-18.11.4</version>
+            <version>indev-20.4.5</version>
         </dependency>
         <dependency>
             <groupId>org.yaml</groupId>

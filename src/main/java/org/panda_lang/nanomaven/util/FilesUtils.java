@@ -16,20 +16,21 @@
 
 package org.panda_lang.nanomaven.util;
 
+import org.apache.commons.io.FileUtils;
 import org.panda_lang.nanomaven.NanoMaven;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 
-public class FileUtils {
+public class FilesUtils {
 
-    public static boolean excludeResource(String resourcePath, String destinationPath) {
-        URL inputUrl = NanoMaven.class.getClass().getResource(resourcePath);
+    public static boolean copyResource(String resourcePath, String destinationPath) {
+        URL inputUrl = NanoMaven.class.getResource(resourcePath);
         File destination = new File(destinationPath);
 
         try {
-            org.apache.commons.io.FileUtils.copyURLToFile(inputUrl, destination);
+            FileUtils.copyURLToFile(inputUrl, destination);
         } catch (IOException e) {
             e.printStackTrace();
             return false;

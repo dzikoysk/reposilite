@@ -16,8 +16,6 @@
 
 package org.panda_lang.nanomaven;
 
-import com.google.common.base.Charsets;
-import com.google.common.io.Resources;
 import org.panda_lang.nanomaven.console.NanoConsole;
 import org.panda_lang.nanomaven.console.commands.HelpCommand;
 import org.panda_lang.nanomaven.maven.NanoMavenCli;
@@ -25,29 +23,20 @@ import org.panda_lang.nanomaven.server.NanoHttpServer;
 import org.panda_lang.nanomaven.server.auth.NanoProjectsManager;
 import org.panda_lang.nanomaven.server.auth.NanoUsersManager;
 import org.panda_lang.nanomaven.util.DirectoryUtils;
-import org.panda_lang.nanomaven.util.FileUtils;
 import org.panda_lang.nanomaven.util.TimeUtils;
 import org.panda_lang.nanomaven.workspace.NanoWorkspace;
+import org.panda_lang.nanomaven.workspace.configuration.ConfigurationLoader;
 import org.panda_lang.nanomaven.workspace.configuration.NanoMavenConfiguration;
+import org.panda_lang.nanomaven.workspace.frontend.Frontend;
+import org.panda_lang.nanomaven.workspace.frontend.FrontendLoader;
 import org.panda_lang.nanomaven.workspace.repository.NanoRepositoryManager;
 import org.slf4j.Logger;
-import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.representer.Representer;
-
-import java.io.InputStream;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 
 public class NanoMaven {
 
-    private static final String CONFIGURATION_FILE_NAME = "nanomaven.yml";
-
     private NanoConsole console;
     private NanoWorkspace workspace;
+    private Frontend frontend;
     private NanoUsersManager usersManager;
     private NanoMavenConfiguration configuration;
     private NanoRepositoryManager repositoryManager;
@@ -58,33 +47,17 @@ public class NanoMaven {
     private long uptime;
 
     private void initialize() throws Exception {
-        Path configurationPath = Paths.get(CONFIGURATION_FILE_NAME);
-
-        if (! FileUtils.fileExists(CONFIGURATION_FILE_NAME)) {
-            URL url = Resources.getResource(CONFIGURATION_FILE_NAME);
-
-            Files.write(
-                    configurationPath,
-                    Resources.readLines(url, Charsets.UTF_8), StandardCharsets.UTF_8, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE
-            );
-        }
-
-        Representer representer = new Representer();
-        representer.getPropertyUtils().setSkipMissingProperties(true);
-        Yaml yaml = new Yaml(representer);
-
-        try (InputStream input = Files.newInputStream(configurationPath)) {
-            this.configuration = yaml.loadAs(input, NanoMavenConfiguration.class);
-        }
-        catch (Exception ex) {
-            throw new RuntimeException("could not load configuration", ex);
-        }
+        ConfigurationLoader configurationLoader = new ConfigurationLoader();
+        this.configuration = configurationLoader.load(NanoMavenConstants.CONFIGURATION_FILE_NAME);
 
         this.console = new NanoConsole(this);
         console.hook();
 
         this.workspace = new NanoWorkspace();
         workspace.prepare();
+
+        FrontendLoader frontendLoader = new FrontendLoader();
+        this.frontend = frontendLoader.loadFrontend(NanoMavenConstants.FRONTEND_FILE_NAME);
 
         this.usersManager = new NanoUsersManager();
         usersManager.load(configuration);
@@ -150,6 +123,10 @@ public class NanoMaven {
 
     public NanoMavenCli getMavenCli() {
         return mavenCli;
+    }
+
+    public Frontend getFrontend() {
+        return frontend;
     }
 
     public NanoProjectsManager getProjectsManager() {

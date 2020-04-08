@@ -17,25 +17,17 @@
 package org.panda_lang.nanomaven.workspace;
 
 import org.panda_lang.nanomaven.NanoMaven;
-import org.panda_lang.nanomaven.util.FileUtils;
+import org.panda_lang.nanomaven.util.FilesUtils;
 
 public class NanoWorkspace {
+
 
     public void prepare() {
         NanoMaven.getLogger().info("Preparing workspace");
         DefaultWorkspace defaultWorkspace = new DefaultWorkspace();
 
-//        // NanoMaven Configuration
-//        if (!FileUtils.fileExists("nanomaven.yml")) {
-//            defaultWorkspace.generateConfiguration();
-//            NanoMaven.getLogger().info("NanoMaven configuration file has been generated");
-//        }
-//        else {
-//            NanoMaven.getLogger().info("Using an existing configuration file");
-//        }
-
         // Repositories
-        if (!FileUtils.fileExists("repositories")) {
+        if (!FilesUtils.fileExists("repositories")) {
             defaultWorkspace.generateRepositories();
             NanoMaven.getLogger().info("Default repositories have been created");
         }
@@ -44,7 +36,7 @@ public class NanoWorkspace {
         }
 
         // Maven
-        if (!FileUtils.fileExists("maven")) {
+        if (!FilesUtils.fileExists("maven")) {
             NanoMaven.getLogger().info("Unpacking Maven...");
             defaultWorkspace.generateMaven();
             NanoMaven.getLogger().info("Nested Maven has been unpacked");
@@ -54,7 +46,7 @@ public class NanoWorkspace {
         }
 
         // Users data
-        if (!FileUtils.fileExists("data/users.pc")) {
+        if (!FilesUtils.fileExists("data/users.pc")) {
             NanoMaven.getLogger().info("Generating users data file...");
             defaultWorkspace.generateUsers();
             NanoMaven.getLogger().info("Empty users data file has been generated");
@@ -64,7 +56,7 @@ public class NanoWorkspace {
         }
 
         // Projects data
-        if (!FileUtils.fileExists("data/projects.pc")) {
+        if (!FilesUtils.fileExists("data/projects.pc")) {
             NanoMaven.getLogger().info("Generating projects data file...");
             defaultWorkspace.generateProjects();
             NanoMaven.getLogger().info("Empty projects data file has been generated");
