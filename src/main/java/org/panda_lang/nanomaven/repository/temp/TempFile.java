@@ -32,7 +32,7 @@ public class TempFile implements NanoHTTPD.TempFile {
     private OutputStream outputStream;
 
     public TempFile(File nanohttpdTemp) {
-        this.file = new File(nanohttpdTemp, "nanohttpd/" + UUID.randomUUID().toString());
+        this.file = new File(nanohttpdTemp, UUID.randomUUID().toString());
     }
 
     public void prepare() {
