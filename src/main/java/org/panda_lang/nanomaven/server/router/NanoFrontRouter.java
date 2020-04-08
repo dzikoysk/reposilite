@@ -21,29 +21,17 @@ import org.panda_lang.nanomaven.NanoMaven;
 import org.panda_lang.nanomaven.server.NanoHttpServer;
 import org.panda_lang.nanomaven.server.NanoRouter;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-
 public class NanoFrontRouter implements NanoRouter {
 
-    public NanoFrontRouter(NanoMaven nanoMaven) {
+    private final NanoMaven nanoMaven;
 
+    public NanoFrontRouter(NanoMaven nanoMaven) {
+        this.nanoMaven = nanoMaven;
     }
 
     @Override
     public NanoHTTPD.Response serve(NanoHttpServer server, NanoHTTPD.IHTTPSession session) {
-        String response;
-
-        try {
-            response = String.join("", Files.readAllLines(Paths.get("index.html")));
-        }
-        catch (IOException ex) {
-            NanoMaven.getLogger().warn("Could not load index.html", ex);
-            response = "<div style=\"text-align: center;\"> #onlypanda </div>";
-        }
-
-        return NanoHTTPD.newFixedLengthResponse(response);
+        return NanoHTTPD.newFixedLengthResponse(nanoMaven.getFrontend().getContent());
     }
 
 }

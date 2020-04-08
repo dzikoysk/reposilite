@@ -17,7 +17,7 @@
 package org.panda_lang.nanomaven.workspace;
 
 import org.panda_lang.nanomaven.util.DirectoryUtils;
-import org.panda_lang.nanomaven.util.FileUtils;
+import org.panda_lang.nanomaven.util.FilesUtils;
 import org.panda_lang.nanomaven.util.ZipUtils;
 
 public class DefaultWorkspace {
@@ -26,7 +26,7 @@ public class DefaultWorkspace {
     }
 
     public void generateConfiguration(){
-        FileUtils.excludeResource("/nanomaven.yml", "nanomaven.yml");
+        FilesUtils.copyResource("/nanomaven.yml", "nanomaven.yml");
     }
 
     public void generateRepositories() {
@@ -38,11 +38,11 @@ public class DefaultWorkspace {
     }
 
     public void generateUsers() {
-        FileUtils.createFile("data/users.pc");
+        FilesUtils.createFile("data/users.yml");
     }
 
     public void generateProjects() {
-        FileUtils.createFile("data/projects.pc");
+        FilesUtils.createFile("data/projects.yml");
     }
 
 }

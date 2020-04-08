@@ -19,10 +19,11 @@ package org.panda_lang.nanomaven.workspace.data.users;
 import org.panda_lang.nanomaven.NanoMaven;
 import org.panda_lang.nanomaven.server.auth.NanoUser;
 import org.panda_lang.nanomaven.server.auth.NanoUsersManager;
-import org.panda_lang.panda.utilities.configuration.PandaConfiguration;
+import org.panda_lang.nanomaven.util.YamlUtils;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Map.Entry;
 
 public class NanoUserDatabase {
@@ -36,31 +37,30 @@ public class NanoUserDatabase {
         this.usersManager = usersManager;
     }
 
-    public void loadUsers() {
-        PandaConfiguration configuration = new PandaConfiguration(USERS_FILE);
+    public void loadUsers() throws IOException {
+        UserData userData = YamlUtils.load(USERS_FILE, UserData.class);
 
-        for (Entry<String, Object> entry : configuration.getMap().entrySet()) {
+        for (Entry<String, String> entry : userData.getPasswords().entrySet()) {
             String username = entry.getKey();
-            String password = entry.getValue().toString();
+            String password = entry.getValue();
 
             NanoUser user = new NanoUser(username);
             user.setEncryptedPassword(password);
-
             usersManager.addUser(user);
         }
 
         NanoMaven.getLogger().info("Loaded " + usersManager.getAmountOfUsers() + " users");
     }
 
-    public void saveUsers() {
-        PandaConfiguration configuration = new PandaConfiguration();
+    public void saveUsers() throws IOException {
+        UserData userData = YamlUtils.load(USERS_FILE, UserData.class);
 
         for (NanoUser user : usersManager.getUsers()) {
-            configuration.set(user.getUsername(), user.getEncryptedPassword());
+            userData.getPasswords().put(user.getUsername(), user.getEncryptedPassword());
         }
 
-        configuration.save(USERS_FILE);
-        NanoMaven.getLogger().info("Saved " + configuration.getMap().size() + " users");
+        YamlUtils.save(USERS_FILE, userData);
+        NanoMaven.getLogger().info("Saved " + userData.getPasswords().size() + " users");
     }
 
 }
