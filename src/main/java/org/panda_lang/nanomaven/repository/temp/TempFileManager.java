@@ -19,24 +19,21 @@ package org.panda_lang.nanomaven.repository.temp;
 import fi.iki.elonen.NanoHTTPD;
 import org.apache.commons.io.FileUtils;
 
-import java.io.File;
 import java.io.IOException;
 
 public class TempFileManager implements NanoHTTPD.TempFileManager {
 
-    private static final File NANOHTTPD_TEMP = new File(TempDirectory.TEMP, "nanohttpd");
-
     public void initialize() {
         try {
-            FileUtils.forceMkdir(NANOHTTPD_TEMP);
+            FileUtils.forceMkdir(TempDirectory.TEMP);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     @Override
-    public NanoHTTPD.TempFile createTempFile(String s) throws Exception {
-        TempFile file = new TempFile(NANOHTTPD_TEMP);
+    public NanoHTTPD.TempFile createTempFile(String s) {
+        TempFile file = new TempFile(TempDirectory.TEMP);
         file.prepare();
 
         return file;
@@ -45,7 +42,7 @@ public class TempFileManager implements NanoHTTPD.TempFileManager {
     @Override
     public void clear() {
         try {
-            FileUtils.cleanDirectory(NANOHTTPD_TEMP);
+            FileUtils.cleanDirectory(TempDirectory.TEMP);
         } catch (IOException e) {
             // acceptable
         }
