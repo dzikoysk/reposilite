@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.panda_lang.nanomaven.console;
+package org.panda_lang.nanomaven;
 
-import org.panda_lang.nanomaven.NanoMaven;
+import fi.iki.elonen.NanoHTTPD;
 
-public interface NanoCommand {
+public interface NanoController {
 
-    void call(NanoMaven nanoMaven);
+    NanoHTTPD.Response serve(NanoHttpServer server, NanoHTTPD.IHTTPSession session) throws Exception;
 
 }

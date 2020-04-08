@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Dzikoysk
+ * Copyright (c) 2020 Dzikoysk
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,75 +16,68 @@
 
 package org.panda_lang.nanomaven;
 
+import org.panda_lang.nanomaven.auth.TokenService;
+import org.panda_lang.nanomaven.console.HelpCommand;
 import org.panda_lang.nanomaven.console.NanoConsole;
-import org.panda_lang.nanomaven.console.commands.HelpCommand;
-import org.panda_lang.nanomaven.maven.NanoMavenCli;
-import org.panda_lang.nanomaven.server.NanoHttpServer;
-import org.panda_lang.nanomaven.server.auth.NanoProjectsManager;
-import org.panda_lang.nanomaven.server.auth.NanoUsersManager;
-import org.panda_lang.nanomaven.util.DirectoryUtils;
-import org.panda_lang.nanomaven.util.TimeUtils;
-import org.panda_lang.nanomaven.workspace.NanoWorkspace;
-import org.panda_lang.nanomaven.workspace.configuration.ConfigurationLoader;
-import org.panda_lang.nanomaven.workspace.configuration.NanoMavenConfiguration;
-import org.panda_lang.nanomaven.workspace.frontend.Frontend;
-import org.panda_lang.nanomaven.workspace.frontend.FrontendLoader;
-import org.panda_lang.nanomaven.workspace.repository.NanoRepositoryManager;
+import org.panda_lang.nanomaven.frontend.Frontend;
+import org.panda_lang.nanomaven.frontend.FrontendLoader;
+import org.panda_lang.nanomaven.repository.RepositoryService;
+import org.panda_lang.nanomaven.utils.TimeUtils;
+import org.panda_lang.nanomaven.utils.YamlUtils;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.IOException;
 
 public class NanoMaven {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger("NanoMaven");
+
     private NanoConsole console;
-    private NanoWorkspace workspace;
     private Frontend frontend;
-    private NanoUsersManager usersManager;
-    private NanoMavenConfiguration configuration;
-    private NanoRepositoryManager repositoryManager;
-    private NanoProjectsManager projectsManager;
+    private TokenService tokenService;
+    private NanoConfiguration configuration;
+    private RepositoryService repositoryService;
     private NanoHttpServer httpServer;
-    private NanoMavenCli mavenCli;
     private boolean stopped;
     private long uptime;
 
-    private void initialize() throws Exception {
-        ConfigurationLoader configurationLoader = new ConfigurationLoader();
-        this.configuration = configurationLoader.load(NanoMavenConstants.CONFIGURATION_FILE_NAME);
+    public static void main(String[] args) throws Exception {
+        NanoMaven nanoMaven = new NanoMaven();
+        nanoMaven.launch();
+    }
+
+    public void launch() throws Exception {
+        getLogger().info(NanoConstants.GREETING_MESSAGE);
+
+        NanoWorkspace workspace = new NanoWorkspace();
+        workspace.prepare();
+
+        File configurationFile = new File(NanoConstants.CONFIGURATION_FILE_NAME);
+        this.configuration = YamlUtils.load(configurationFile, NanoConfiguration.class);
 
         this.console = new NanoConsole(this);
         console.hook();
 
-        this.workspace = new NanoWorkspace();
-        workspace.prepare();
+        Thread shutdownHook = new Thread(this::shutdown);
+        Runtime.getRuntime().addShutdownHook(shutdownHook);
 
         FrontendLoader frontendLoader = new FrontendLoader();
-        this.frontend = frontendLoader.loadFrontend(NanoMavenConstants.FRONTEND_FILE_NAME);
+        this.frontend = frontendLoader.loadFrontend(NanoConstants.FRONTEND_FILE_NAME);
 
-        this.usersManager = new NanoUsersManager();
-        usersManager.load(configuration);
+        this.tokenService = new TokenService();
+        tokenService.load();
 
-        this.repositoryManager = new NanoRepositoryManager();
-        repositoryManager.scan(configuration);
+        this.repositoryService = new RepositoryService();
+        repositoryService.scan(configuration);
 
-        this.projectsManager = new NanoProjectsManager(usersManager);
-        projectsManager.load();
-
+        getLogger().info("Binding at *::" + configuration.getPort());
         this.httpServer = new NanoHttpServer(this);
-        this.mavenCli = new NanoMavenCli(this);
-    }
-
-    public void launch() throws Exception {
-        getLogger().info(NanoMavenConstants.GREETING_MESSAGE);
-        initialize();
-
-        getLogger().info("Binding NanoMaven at *::" + configuration.getPort());
         this.uptime = System.currentTimeMillis();
 
         try {
             httpServer.start();
-
-            Thread shutdownHook = new Thread(this::shutdown);
-            Runtime.getRuntime().addShutdownHook(shutdownHook);
-
             getLogger().info("Done (" + TimeUtils.getUptime(uptime) + "s)!");
 
             HelpCommand listCommands = new HelpCommand();
@@ -92,6 +85,17 @@ public class NanoMaven {
         } catch (Exception exception) {
             exception.printStackTrace();
             shutdown();
+        }
+    }
+
+    public void save() {
+        getLogger().info("Saving tokens...");
+
+        try {
+            tokenService.save();
+        } catch (IOException e) {
+            getLogger().info("Failed to save users due to:");
+            e.printStackTrace();
         }
     }
 
@@ -104,53 +108,30 @@ public class NanoMaven {
         getLogger().info("Shutting down...");
         httpServer.stop();
 
-        getLogger().info("Saving users...");
-        usersManager.save();
 
-        getLogger().info("Saving projects...");
-        projectsManager.save();
 
+        console.stop();
         getLogger().info("Bye! Uptime: " + TimeUtils.getUptime(uptime) + "s");
-    }
-
-    public boolean isStopped() {
-        return stopped;
-    }
-
-    public long getUptime() {
-        return uptime;
-    }
-
-    public NanoMavenCli getMavenCli() {
-        return mavenCli;
     }
 
     public Frontend getFrontend() {
         return frontend;
     }
 
-    public NanoProjectsManager getProjectsManager() {
-        return projectsManager;
+    public RepositoryService getRepositoryService() {
+        return repositoryService;
     }
 
-    public NanoRepositoryManager getRepositoryManager() {
-        return repositoryManager;
-    }
-
-    public NanoMavenConfiguration getConfiguration() {
+    public NanoConfiguration getConfiguration() {
         return configuration;
     }
 
-    public NanoUsersManager getUsersManager() {
-        return usersManager;
-    }
-
-    public static String getDataFolder() {
-        return DirectoryUtils.getDataFolder(NanoMaven.class);
+    public TokenService getTokenService() {
+        return tokenService;
     }
 
     public static Logger getLogger() {
-        return NanoLogger.LOGGER;
+        return LOGGER;
     }
 
 }

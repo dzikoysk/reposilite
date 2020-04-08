@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.panda_lang.nanomaven.console;
+package org.panda_lang.nanomaven.utils;
 
-import org.panda_lang.nanomaven.NanoMaven;
+public class TimeUtils {
 
-public interface NanoCommand {
-
-    void call(NanoMaven nanoMaven);
+    public static double getUptime(long uptime) {
+        long current = System.currentTimeMillis() - uptime;
+        return current / 1000D;
+    }
 
 }
