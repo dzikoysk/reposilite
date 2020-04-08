@@ -3,10 +3,7 @@ Lightweight repository manager for Maven artifacts.
 It is a simple solution to replace managers like Nexus, Archiva or Artifactory. 
 As a successor of NanoMaven, you should also check the [Reposilite](https://github.com/panda-lang/reposilite) - enhanced repository management software mainly dedicated for Maven artifacts.
 
-![obraz](https://user-images.githubusercontent.com/4235722/78812901-73b8c680-79cc-11ea-95d5-9763a53e4240.png)
-
-#### Download
-Releases: [GitHub Downloads](https://github.com/dzikoysk/NanoMaven/releases)
+![Preview](https://user-images.githubusercontent.com/4235722/78812901-73b8c680-79cc-11ea-95d5-9763a53e4240.png)
 
 #### Features
 * [x] Working repository manager
@@ -19,41 +16,12 @@ Releases: [GitHub Downloads](https://github.com/dzikoysk/NanoMaven/releases)
 * [ ] Statistics
 * [ ] Code quality
 
-#### Configuration
-```yaml
-# ~~~~~~~~~~~~~~~~~~~~~~ #
-#       Nano Maven       #
-# ~~~~~~~~~~~~~~~~~~~~~~ #
+#### Download
+Releases: [GitHub Downloads](https://github.com/dzikoysk/NanoMaven/releases)
 
-# General Repository Name
-repository-name: NanoMaven Repository
+#### Commands & Configuration
+List of available management commands
 
-# Hostname
-hostname: ''
-# Port
-port: 80
-
-# Include a repository names in the path
-repository-path-enabled: false
-# Enable directory indexing
-indexing-enabled: true
-
-# Nested Maven
-nested-maven: true
-# External Maven directory (if 'nested-maven': false)
-external-maven: /usr/local/share/java/maven33
-
-# Accept deployment connections
-deploy-enabled: true
-# Require authorization
-authorization-enabled: true
-# Administrator accounts
-administrators:
-- dzikoysk
-```
-
-#### Commands
-Commands can be invoked from the console
 ```bash
 NanoMaven 2.0.0 Commands:
   help - List available commands
@@ -63,6 +31,64 @@ NanoMaven 2.0.0 Commands:
   stop - Shutdown server
 ```
 
+Configuration
+
+```yaml
+# ~~~~~~~~~~~~~~~~~~~~~~ #
+#       Nano Maven       #
+# ~~~~~~~~~~~~~~~~~~~~~~ #
+
+# General Repository Name
+repositoryName: NanoMaven Repository
+
+# Hostname
+hostname: ''
+# Port
+port: 80
+
+# Include a repository names in the path
+repositoryPathEnabled: false
+# Enable directory indexing
+indexingEnabled: true
+
+# Root directories of repositories
+repositories:
+  - releases
+  - snapshots
+
+# Nested Maven
+nestedMaven: true
+# External Maven directory (if 'nested-maven': false)
+externalMaven: /usr/local/share/java/maven33
+
+# Accept deployment connections
+deployEnabled: true
+```
+
+#### Guide
+To deploy artifacts we have to generate `access token` assigned to the given path. Example usages:
+
+```bash
+keygen / admin
+19:55:20.692 INFO | Generated new access token for admin (/)
+19:55:20.692 INFO | AW7-kaXSSXTRVL_Ip9v7ruIiqe56gh96o1XdSrqZCyTX2vUsrZU3roVOfF-YYF-y
+19:55:20.723 INFO | Stored tokens: 1
+
+keygen /org/panda-lang/nanomaven nanomaven
+19:56:09.109 INFO | Generated new access token for nanomaven (/org/panda-lang/nanomaven)
+19:56:09.109 INFO | OFnV-2GiZeX0cHpeDvuLo0xjUpU5wNUcpkR4521fG68U9anfqNwKsVkFcQUCK4yk
+19:56:09.114 INFO | Stored tokens: 2
+```
+
+To use generated token add a new server in your `./m2/settings.xml`  
+
+```xml
+<server>
+  <id>{repository-id}</id>
+  <username>{alias}</username>
+  <password>{token}</password>
+</server>
+```
 #### Maven builds
 You can also use maven builds to embed NanoMaven in your application
 

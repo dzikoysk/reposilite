@@ -36,7 +36,7 @@ public class RepositoryService {
         File rootDirectory = new File("repositories");
         repositories.clear();
 
-        NanoMaven.getLogger().info("Scanning to find repositories...");
+        NanoMaven.getLogger().info("--- Scanning to find repositories");
 
         for (String repositoryName : configuration.getRepositories()) {
             File repositoryDirectory = new File(rootDirectory, repositoryName);
@@ -51,12 +51,12 @@ public class RepositoryService {
             }
 
             Repository repository = new Repository(repositoryName);
-            NanoMaven.getLogger().info("  + " + repositoryDirectory.getName());
+            NanoMaven.getLogger().info("+ " + repositoryDirectory.getName());
 
             repositories.put(repository.getRepositoryName(), repository);
         }
 
-        NanoMaven.getLogger().info("Result: " + repositories.size() + " repositories have been found");
+        NanoMaven.getLogger().info(repositories.size() + " repositories have been found");
     }
 
     public Artifact find(String... path) {
