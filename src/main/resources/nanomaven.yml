@@ -3,7 +3,7 @@
 # ~~~~~~~~~~~~~~~~~~~~~~ #
 
 # General Repository Name
-repository-name: NanoMaven Repository
+repositoryName: NanoMaven Repository
 
 # Hostname
 hostname: ''
@@ -11,9 +11,9 @@ hostname: ''
 port: 80
 
 # Include a repository names in the path
-repository-path-enabled: false
+repositoryPathEnabled: false
 # Enable directory indexing
-indexing-enabled: true
+indexingEnabled: true
 
 # Root directories of repositories
 repositories:
@@ -21,14 +21,14 @@ repositories:
   - snapshots
 
 # Nested Maven
-nested-maven: true
+nestedMaven: true
 # External Maven directory (if 'nested-maven': false)
-external-maven: /usr/local/share/java/maven33
+externalMaven: /usr/local/share/java/maven33
 
 # Accept deployment connections
-deploy-enabled: true
+deployEnabled: true
 # Require authorization
-authorization-enabled: true
+authorizationEnabled: true
 # Administrator accounts
 administrators:
-- dzikoysk
+  - dzikoysk

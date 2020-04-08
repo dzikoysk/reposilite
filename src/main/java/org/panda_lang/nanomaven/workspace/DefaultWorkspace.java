@@ -26,7 +26,7 @@ public class DefaultWorkspace {
     }
 
     public void generateConfiguration(){
-        FileUtils.excludeResource("/nanomaven.pc", "nanomaven.pc");
+        FileUtils.excludeResource("/nanomaven.yml", "nanomaven.yml");
     }
 
     public void generateRepositories() {
