@@ -14,12 +14,18 @@
  * limitations under the License.
  */
 
-package org.panda_lang.nanomaven.console;
+package org.panda_lang.nanomaven.repository.temp;
 
-import org.panda_lang.nanomaven.NanoMaven;
+import fi.iki.elonen.NanoHTTPD;
 
-public interface NanoCommand {
+public class TempFileFactory implements NanoHTTPD.TempFileManagerFactory {
 
-    void call(NanoMaven nanoMaven);
+    @Override
+    public NanoHTTPD.TempFileManager create() {
+        TempFileManager manager = new TempFileManager();
+        manager.initialize();
+
+        return manager;
+    }
 
 }

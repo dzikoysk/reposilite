@@ -14,12 +14,18 @@
  * limitations under the License.
  */
 
-package org.panda_lang.nanomaven.console;
+package org.panda_lang.nanomaven.frontend;
 
-import org.panda_lang.nanomaven.NanoMaven;
+public final class Frontend {
 
-public interface NanoCommand {
+    private final String content;
 
-    void call(NanoMaven nanoMaven);
+    public Frontend(String content) {
+        this.content = content;
+    }
+
+    public String getContent() {
+        return content;
+    }
 
 }

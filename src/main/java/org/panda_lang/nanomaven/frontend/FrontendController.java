@@ -14,12 +14,24 @@
  * limitations under the License.
  */
 
-package org.panda_lang.nanomaven.console;
+package org.panda_lang.nanomaven.frontend;
 
+import fi.iki.elonen.NanoHTTPD;
 import org.panda_lang.nanomaven.NanoMaven;
+import org.panda_lang.nanomaven.NanoHttpServer;
+import org.panda_lang.nanomaven.NanoController;
 
-public interface NanoCommand {
+public class FrontendController implements NanoController {
 
-    void call(NanoMaven nanoMaven);
+    private final NanoMaven nanoMaven;
+
+    public FrontendController(NanoMaven nanoMaven) {
+        this.nanoMaven = nanoMaven;
+    }
+
+    @Override
+    public NanoHTTPD.Response serve(NanoHttpServer server, NanoHTTPD.IHTTPSession session) {
+        return NanoHTTPD.newFixedLengthResponse(nanoMaven.getFrontend().getContent());
+    }
 
 }

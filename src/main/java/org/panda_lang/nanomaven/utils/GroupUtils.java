@@ -14,12 +14,20 @@
  * limitations under the License.
  */
 
-package org.panda_lang.nanomaven.console;
+package org.panda_lang.nanomaven.utils;
 
-import org.panda_lang.nanomaven.NanoMaven;
+public class GroupUtils {
 
-public interface NanoCommand {
+    public static String groupFromArray(String... array) {
+        StringBuilder groupBuilder = new StringBuilder();
 
-    void call(NanoMaven nanoMaven);
+        for (String element : array) {
+            groupBuilder.append(element);
+            groupBuilder.append(".");
+        }
+
+        groupBuilder.setLength(groupBuilder.length() - 1);
+        return groupBuilder.toString();
+    }
 
 }

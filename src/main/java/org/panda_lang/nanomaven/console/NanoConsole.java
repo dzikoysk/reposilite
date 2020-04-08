@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Dzikoysk
+ * Copyright (c) 2020 Dzikoysk
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,8 @@
 package org.panda_lang.nanomaven.console;
 
 import org.panda_lang.nanomaven.NanoMaven;
-import org.panda_lang.nanomaven.console.commands.*;
+import org.panda_lang.nanomaven.auth.KeygenCommand;
+import org.panda_lang.nanomaven.auth.TokensListCommand;
 
 public class NanoConsole {
 
@@ -29,7 +30,6 @@ public class NanoConsole {
         this.consoleThread = new NanoConsoleThread(this);
     }
 
-    @SuppressWarnings({ "unchecked "})
     public void hook() {
         consoleThread.start();
     }
@@ -48,45 +48,37 @@ public class NanoConsole {
             return;
         }
 
+        if (command.equalsIgnoreCase("stop")) {
+            StopCommand stopCommand = new StopCommand();
+            stopCommand.call(nanoMaven);
+            return;
+        }
+
         if (command.equalsIgnoreCase("reinstall-artifacts") || command.equalsIgnoreCase("rs")) {
             ReinstallArtifactsCommand reinstallArtifactsCommand = new ReinstallArtifactsCommand();
             reinstallArtifactsCommand.execute(nanoMaven);
             return;
         }
 
-        if (command.equals("users")) {
-            UsersCommand usersCommand = new UsersCommand();
-            usersCommand.call(nanoMaven);
-            return;
-        }
-
-        if (command.equals("projects")) {
-            ProjectsCommand projectsCommand = new ProjectsCommand();
-            projectsCommand.call(nanoMaven);
+        if (command.equals("tokens")) {
+            TokensListCommand tokensListCommand = new TokensListCommand();
+            tokensListCommand.call(nanoMaven);
             return;
         }
 
         command = elements[0];
 
-        if (command.equalsIgnoreCase("add-user")) {
-            AddUserCommand addUserCommand = new AddUserCommand(elements[1], elements[2]);
+        if (command.equalsIgnoreCase("keygen")) {
+            KeygenCommand addUserCommand = new KeygenCommand(nanoMaven.getTokenService(), elements[1], elements[2]);
             addUserCommand.call(nanoMaven);
             return;
         }
 
-        if (command.equalsIgnoreCase("add-project")) {
-            AddProjectCommand addProjectCommand = new AddProjectCommand(elements[1]);
-            addProjectCommand.call(nanoMaven);
-            return;
-        }
-
-        if (command.equalsIgnoreCase("add-member")) {
-            AddMemberCommand addMemberCommand = new AddMemberCommand(elements[1], elements[2]);
-            addMemberCommand.call(nanoMaven);
-            return;
-        }
-
         NanoMaven.getLogger().warn("Unknown command " + elements[0]);
+    }
+
+    public void stop() {
+        consoleThread.interrupt();
     }
 
 }

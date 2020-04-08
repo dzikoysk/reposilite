@@ -14,12 +14,24 @@
  * limitations under the License.
  */
 
-package org.panda_lang.nanomaven.console;
+package org.panda_lang.nanomaven.repository.temp;
 
-import org.panda_lang.nanomaven.NanoMaven;
+import org.apache.commons.io.FileUtils;
+import org.panda_lang.nanomaven.NanoConstants;
 
-public interface NanoCommand {
+import java.io.File;
+import java.io.IOException;
 
-    void call(NanoMaven nanoMaven);
+public class TempDirectory {
+
+    public static final File TEMP = new File(NanoConstants.TEMP_FILE_NAME);
+
+    static {
+        try {
+            FileUtils.forceMkdir(TEMP);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
 }

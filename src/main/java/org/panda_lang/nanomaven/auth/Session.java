@@ -14,12 +14,22 @@
  * limitations under the License.
  */
 
-package org.panda_lang.nanomaven.console;
+package org.panda_lang.nanomaven.auth;
 
-import org.panda_lang.nanomaven.NanoMaven;
+public final class Session {
 
-public interface NanoCommand {
+    private final Token token;
 
-    void call(NanoMaven nanoMaven);
+    public Session(Token token) {
+        this.token = token;
+    }
+
+    public boolean hasPermission(String path) {
+        return path.startsWith(token.getPath());
+    }
+
+    public Token getToken() {
+        return token;
+    }
 
 }
