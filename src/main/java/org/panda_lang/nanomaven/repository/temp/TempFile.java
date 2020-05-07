@@ -17,8 +17,8 @@
 package org.panda_lang.nanomaven.repository.temp;
 
 import fi.iki.elonen.NanoHTTPD;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
+import org.panda_lang.utilities.commons.FileUtils;
+import org.panda_lang.utilities.commons.IOUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -44,9 +44,9 @@ public class TempFile implements NanoHTTPD.TempFile {
     }
 
     @Override
-    public void delete() throws Exception {
-        IOUtils.closeQuietly(outputStream);
-        FileUtils.forceDelete(file);
+    public void delete() {
+        IOUtils.close(outputStream);
+        FileUtils.delete(file);
     }
 
     @Override

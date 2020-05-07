@@ -1,7 +1,8 @@
 # NanoMaven [![Build Status](https://travis-ci.org/dzikoysk/NanoMaven.svg?branch=master)](https://travis-ci.org/dzikoysk/NanoMaven)
 Lightweight repository manager for Maven artifacts. 
 It is a simple solution to replace managers like Nexus, Archiva or Artifactory. 
-As a successor of NanoMaven, you should also check the [Reposilite](https://github.com/panda-lang/reposilite) - enhanced repository management software mainly dedicated for Maven artifacts.
+As a successor of NanoMaven,
+you should also check the [Reposilite](https://github.com/panda-lang/reposilite) - enhanced repository management software mainly dedicated for Maven artifacts.
 
 ![Preview](https://user-images.githubusercontent.com/4235722/78812901-73b8c680-79cc-11ea-95d5-9763a53e4240.png)
 
@@ -11,13 +12,14 @@ As a successor of NanoMaven, you should also check the [Reposilite](https://gith
 * [x] Deploy
 * [x] Authorization
 * [x] Console
-* [ ] Proxy for the specified remote repositories
 * [x] Front page
 * [ ] Statistics
-* [ ] Code quality
+* [ ] Proxy for the specified remote repositories
+* [ ] Admin panel
 
 #### Download
-Releases: [GitHub Downloads](https://github.com/dzikoysk/NanoMaven/releases)
+Releases: [GitHub Downloads](https://github.com/dzikoysk/NanoMaven/releases) <br>
+Requirements: Java 8, ~50MB of memory _(24MB on IDLE)_
 
 #### Commands & Configuration
 List of available management commands

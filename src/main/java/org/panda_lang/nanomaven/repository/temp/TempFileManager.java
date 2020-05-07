@@ -17,18 +17,12 @@
 package org.panda_lang.nanomaven.repository.temp;
 
 import fi.iki.elonen.NanoHTTPD;
-import org.apache.commons.io.FileUtils;
-
-import java.io.IOException;
+import org.panda_lang.utilities.commons.FileUtils;
 
 public class TempFileManager implements NanoHTTPD.TempFileManager {
 
     public void initialize() {
-        try {
-            FileUtils.forceMkdir(TempDirectory.TEMP);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        TempDirectory.TEMP.mkdirs();
     }
 
     @Override
@@ -41,11 +35,8 @@ public class TempFileManager implements NanoHTTPD.TempFileManager {
 
     @Override
     public void clear() {
-        try {
-            FileUtils.cleanDirectory(TempDirectory.TEMP);
-        } catch (IOException e) {
-            // acceptable
-        }
+        FileUtils.delete(TempDirectory.TEMP);
+        TempDirectory.TEMP.mkdirs();
     }
 
 }
