@@ -17,9 +17,12 @@
 package org.panda_lang.nanomaven.repository;
 
 import fi.iki.elonen.NanoHTTPD;
+import org.panda_lang.nanomaven.NanoConfiguration;
 import org.panda_lang.nanomaven.NanoController;
 import org.panda_lang.nanomaven.NanoHttpServer;
 import org.panda_lang.nanomaven.NanoMaven;
+import org.panda_lang.utilities.commons.StringUtils;
+import org.panda_lang.utilities.commons.text.ContentJoiner;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -34,19 +37,10 @@ public class DownloadController implements NanoController {
     public NanoHTTPD.Response serve(NanoHttpServer server, NanoHTTPD.IHTTPSession session) {
         NanoMaven nanoMaven = server.getNanoMaven();
         RepositoryService repositoryService = nanoMaven.getRepositoryService();
-        String uri = session.getUri();
-
-        if (!nanoMaven.getConfiguration().isRepositoryPathEnabled()) {
-            String mainRepository = nanoMaven.getConfiguration().getRepositories().get(0);
-
-            if (!uri.startsWith("/" + mainRepository)) {
-                uri = nanoMaven.getConfiguration().getRepositories().get(0) + "/" + uri;
-            }
-        }
-
+        String uri = normalizeUri(nanoMaven.getConfiguration(), session.getUri());
         String[] path = uri.replace("maven-metadata", "maven-metadata-local").split("/");
 
-        if (path[0].isEmpty()) {
+        if (path.length == 0|| path[0].isEmpty()) {
             path = Arrays.copyOfRange(path, 1, path.length);
         }
 
@@ -56,10 +50,16 @@ public class DownloadController implements NanoController {
             return notFound(nanoMaven, "Repository " + path[0] + " not found");
         }
 
-        Artifact artifact = repository.get(Arrays.copyOfRange(path, 1, path.length));
+        String[] artifactPath = Arrays.copyOfRange(path, 1, path.length);
+
+        if (artifactPath.length == 0) {
+            return notFound(nanoMaven, "Missing artifact path");
+        }
+
+        Artifact artifact = repository.get(artifactPath);
 
         if (artifact == null) {
-            return notFound(nanoMaven, "Artifact not found");
+            return notFound(nanoMaven, "Artifact " + ContentJoiner.on("/").join(artifactPath) + " not found");
         }
 
         File file = artifact.getFile(path[path.length - 1]);
@@ -92,6 +92,24 @@ public class DownloadController implements NanoController {
             e.printStackTrace();
             return notFound(nanoMaven, "Unknown mime type");
         }
+    }
+
+    private String normalizeUri(NanoConfiguration configuration, String uri) {
+        if (configuration.isRepositoryPathEnabled()) {
+            return uri;
+        }
+
+        if (StringUtils.countOccurrences(uri, "/") <= 1) {
+            return uri;
+        }
+
+        for (String repositoryName : configuration.getRepositories()) {
+            if (uri.startsWith("/" + repositoryName)) {
+                return uri;
+            }
+        }
+
+        return configuration.getRepositories().get(0) + "/" + uri;
     }
 
     private NanoHTTPD.Response notFound(NanoMaven nanoMaven, String message) {
