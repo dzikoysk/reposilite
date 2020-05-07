@@ -48,9 +48,9 @@
             <version>2.3.1</version>
         </dependency>
         <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-crypto</artifactId>
-            <version>4.2.3.RELEASE</version>
+            <groupId>org.panda-lang</groupId>
+            <artifactId>panda-utilities</artifactId>
+            <version>indev-20.5.7</version>
         </dependency>
 
         <dependency>
@@ -65,14 +65,9 @@
         </dependency>
 
         <dependency>
-            <groupId>org.fusesource.jansi</groupId>
-            <artifactId>jansi</artifactId>
-            <version>1.16</version>
-        </dependency>
-        <dependency>
-            <groupId>io.airlift</groupId>
-            <artifactId>airline</artifactId>
-            <version>0.7</version>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-crypto</artifactId>
+            <version>4.2.3.RELEASE</version>
         </dependency>
         <dependency>
             <groupId>commons-logging</groupId>
@@ -80,11 +75,6 @@
             <version>1.1.1</version>
         </dependency>
 
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>22.0</version>
-        </dependency>
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
@@ -96,9 +86,9 @@
             <version>1.11</version>
         </dependency>
         <dependency>
-            <groupId>org.panda-lang</groupId>
-            <artifactId>panda</artifactId>
-            <version>indev-20.4.5</version>
+            <groupId>org.fusesource.jansi</groupId>
+            <artifactId>jansi</artifactId>
+            <version>1.16</version>
         </dependency>
         <dependency>
             <groupId>org.yaml</groupId>
