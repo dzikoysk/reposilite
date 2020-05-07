@@ -15,7 +15,8 @@ repositoryPathEnabled: false
 # Enable directory indexing
 indexingEnabled: true
 
-# Root directories of repositories
+# Root directories of repositories.
+# First directory on the list is the main repository.
 repositories:
   - releases
   - snapshots

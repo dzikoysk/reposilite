@@ -34,37 +34,39 @@ public class DownloadController implements NanoController {
     public NanoHTTPD.Response serve(NanoHttpServer server, NanoHTTPD.IHTTPSession session) {
         NanoMaven nanoMaven = server.getNanoMaven();
         RepositoryService repositoryService = nanoMaven.getRepositoryService();
+        String uri = session.getUri();
 
-        String[] path = session.getUri().replace("maven-metadata", "maven-metadata-local").split("/");
+        if (!nanoMaven.getConfiguration().isRepositoryPathEnabled()) {
+            String mainRepository = nanoMaven.getConfiguration().getRepositories().get(0);
+
+            if (!uri.startsWith("/" + mainRepository)) {
+                uri = nanoMaven.getConfiguration().getRepositories().get(0) + "/" + uri;
+            }
+        }
+
+        String[] path = uri.replace("maven-metadata", "maven-metadata-local").split("/");
 
         if (path[0].isEmpty()) {
             path = Arrays.copyOfRange(path, 1, path.length);
         }
 
-        Artifact project;
+        Repository repository = repositoryService.getRepository(path[0]);
 
-        if (!nanoMaven.getConfiguration().isRepositoryPathEnabled()) {
-            project = repositoryService.find(path);
-        }
-        else {
-            Repository repository = repositoryService.getRepository(path[0]);
-
-            if (repository == null) {
-                return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.NOT_FOUND, "text/html", "Repository " + path[0] + " not found");
-            }
-
-            project = repository.get(Arrays.copyOfRange(path, 1, path.length));
+        if (repository == null) {
+            return notFound(nanoMaven, "Repository " + path[0] + " not found");
         }
 
-        if (project == null) {
-            return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.NOT_FOUND, "text/html", "Artifact not found");
+        Artifact artifact = repository.get(Arrays.copyOfRange(path, 1, path.length));
+
+        if (artifact == null) {
+            return notFound(nanoMaven, "Artifact not found");
         }
 
-        File file = project.getFile(path[path.length - 1]);
+        File file = artifact.getFile(path[path.length - 1]);
 
         if (!file.exists()) {
             NanoMaven.getLogger().warn("File " + file.getAbsolutePath() + " doesn't exist");
-            return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.NOT_FOUND, "text/html", "Artifact " + file.getName() + " not found");
+            return notFound(nanoMaven, "Artifact " + file.getName() + " not found");
         }
 
         FileInputStream fis = null;
@@ -77,21 +79,23 @@ public class DownloadController implements NanoController {
 
         if (fis == null) {
             NanoMaven.getLogger().warn("Cannot read file " + file.getAbsolutePath());
-            return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.NOT_FOUND, "text/html", "Cannot read artifact");
+            return notFound(nanoMaven, "Cannot read artifact");
         }
 
-        NanoHTTPD.Response response = NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.NOT_FOUND, "text/html", "Unknown mime type");
-
         try {
-            response = NanoHTTPD.newChunkedResponse(NanoHTTPD.Response.Status.OK, Files.probeContentType(file.toPath()), fis);
+            NanoHTTPD.Response response = NanoHTTPD.newChunkedResponse(NanoHTTPD.Response.Status.OK, Files.probeContentType(file.toPath()), fis);
             response.addHeader("Content-Disposition", "attachment; filename=\"" + file.getName().replace("maven-metadata-local", "maven-metadata") +"\"");
             response.addHeader("Content-Length", String.valueOf(file.length()));
             NanoMaven.getLogger().info("Fis: " + fis.available() + "; mime: " + Files.probeContentType(file.toPath()));
+            return response;
         } catch (IOException e) {
             e.printStackTrace();
+            return notFound(nanoMaven, "Unknown mime type");
         }
+    }
 
-        return response;
+    private NanoHTTPD.Response notFound(NanoMaven nanoMaven, String message) {
+        return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.NOT_FOUND, "text/html", nanoMaven.getFrontend().forMessage(message));
     }
 
 }

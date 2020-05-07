@@ -23,7 +23,7 @@ Releases: [GitHub Downloads](https://github.com/dzikoysk/NanoMaven/releases)
 List of available management commands
 
 ```bash
-NanoMaven 2.0.0 Commands:
+NanoMaven 2.0.1 Commands:
   help - List available commands
   tokens - List all generated tokens
   keygen <path> <alias> - Generate a new access token for the given path
@@ -96,7 +96,7 @@ You can also use maven builds to embed NanoMaven in your application
 <dependency>
     <groupId>org.panda-lang</groupId>
     <artifactId>nanomaven</artifactId>
-    <version>2.0.0</version>
+    <version>2.0.1</version>
 </dependency>
 
 <repository>
