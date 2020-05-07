@@ -16,12 +16,12 @@
 
 package org.panda_lang.nanomaven.repository;
 
-import org.panda_lang.nanomaven.NanoMaven;
 import org.panda_lang.nanomaven.NanoConfiguration;
+import org.panda_lang.nanomaven.NanoMaven;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class RepositoryService {
@@ -29,7 +29,7 @@ public class RepositoryService {
     private final Map<String, Repository> repositories;
 
     public RepositoryService() {
-        this.repositories = new HashMap<>(2);
+        this.repositories = new LinkedHashMap<>(2);
     }
 
     public void scan(NanoConfiguration configuration) {

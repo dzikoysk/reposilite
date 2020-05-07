@@ -31,7 +31,7 @@ public class FrontendController implements NanoController {
 
     @Override
     public NanoHTTPD.Response serve(NanoHttpServer server, NanoHTTPD.IHTTPSession session) {
-        return NanoHTTPD.newFixedLengthResponse(nanoMaven.getFrontend().getContent());
+        return NanoHTTPD.newFixedLengthResponse(nanoMaven.getFrontend().forMessage("maven repository"));
     }
 
 }

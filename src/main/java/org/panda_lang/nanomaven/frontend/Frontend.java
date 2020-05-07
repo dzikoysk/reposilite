@@ -16,6 +16,8 @@
 
 package org.panda_lang.nanomaven.frontend;
 
+import org.panda_lang.utilities.commons.StringUtils;
+
 public final class Frontend {
 
     private final String content;
@@ -24,8 +26,8 @@ public final class Frontend {
         this.content = content;
     }
 
-    public String getContent() {
-        return content;
+    public String forMessage(String message) {
+        return StringUtils.replace(content, "{{message}}", message);
     }
 
 }
