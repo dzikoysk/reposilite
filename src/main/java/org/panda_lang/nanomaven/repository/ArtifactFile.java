@@ -38,7 +38,7 @@ public class ArtifactFile {
         this.file = file;
     }
 
-    public Artifact toRepositoryProject() {
+    public Artifact toArtifact() {
         return new Artifact(repositoryName, groupId, artifactId, version);
     }
 

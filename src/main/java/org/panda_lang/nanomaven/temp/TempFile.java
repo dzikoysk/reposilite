@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.panda_lang.nanomaven.repository.temp;
+package org.panda_lang.nanomaven.temp;
 
 import fi.iki.elonen.NanoHTTPD;
 import org.panda_lang.utilities.commons.FileUtils;

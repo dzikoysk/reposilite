@@ -17,7 +17,9 @@
 package org.panda_lang.nanomaven.repository;
 
 import java.io.File;
+import java.util.Comparator;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 public class Artifact {
 
@@ -32,7 +34,10 @@ public class Artifact {
         this.group = group;
         this.artifact = artifact;
         this.version = version;
-        this.files = getFile("").listFiles();
+        this.files = Stream.of(getFile("").listFiles())
+                .filter(File::isFile)
+                .sorted(Comparator.comparing(File::getName))
+                .toArray(File[]::new);
     }
 
     public void setRepository(String repository) {
@@ -43,9 +48,17 @@ public class Artifact {
         return group.replace(".", "/") + "/" + artifact + "/" + version + "/";
     }
 
+    public File getLatest() {
+        return files.length > 0 ? files[0] : null;
+    }
+
     public File getFile(String fileName) {
         String[] parts = fileName.split("/");
         return new File("repositories/" + repository + "/" + getLocalPath() + parts[parts.length - 1]);
+    }
+
+    public File[] getFiles() {
+        return files;
     }
 
     public String getVersion() {
