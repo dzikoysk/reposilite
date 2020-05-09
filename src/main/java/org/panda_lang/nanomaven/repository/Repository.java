@@ -46,7 +46,7 @@ public class Repository {
         pathBuilder.setLength(pathBuilder.length() - 1);
         File targetFile = new File(pathBuilder.toString());
 
-        if (!targetFile.exists() || targetFile.isDirectory()) {
+        if (!targetFile.getName().equals("maven-metadata.xml") && (!targetFile.exists() || targetFile.isDirectory())) {
             return null;
         }
 

@@ -17,6 +17,7 @@
 package org.panda_lang.nanomaven.repository;
 
 import fi.iki.elonen.NanoHTTPD;
+import fi.iki.elonen.NanoHTTPD.Response.Status;
 import org.panda_lang.nanomaven.NanoConfiguration;
 import org.panda_lang.nanomaven.NanoController;
 import org.panda_lang.nanomaven.NanoHttpServer;
@@ -34,11 +35,11 @@ import java.util.Arrays;
 public class DownloadController implements NanoController {
 
     @Override
-    public NanoHTTPD.Response serve(NanoHttpServer server, NanoHTTPD.IHTTPSession session) {
+    public NanoHTTPD.Response serve(NanoHttpServer server, NanoHTTPD.IHTTPSession session) throws IOException {
         NanoMaven nanoMaven = server.getNanoMaven();
         RepositoryService repositoryService = nanoMaven.getRepositoryService();
         String uri = normalizeUri(nanoMaven.getConfiguration(), session.getUri());
-        String[] path = uri.replace("maven-metadata", "maven-metadata-local").split("/");
+        String[] path = uri.split("/");
 
         if (path.length == 0|| path[0].isEmpty()) {
             path = Arrays.copyOfRange(path, 1, path.length);
@@ -54,6 +55,12 @@ public class DownloadController implements NanoController {
 
         if (artifactPath.length == 0) {
             return notFound(nanoMaven, "Missing artifact path");
+        }
+
+        String requestedFileName = artifactPath[artifactPath.length - 1];
+
+        if (requestedFileName.equals("maven-metadata.xml")) {
+            return NanoHTTPD.newFixedLengthResponse(Status.OK, "text/xml", repositoryService.generateMetadata(repository, artifactPath));
         }
 
         Artifact artifact = repository.get(artifactPath);
@@ -95,6 +102,10 @@ public class DownloadController implements NanoController {
     }
 
     private String normalizeUri(NanoConfiguration configuration, String uri) {
+        if (uri.startsWith("/")) {
+            uri = uri.substring(1);
+        }
+
         if (configuration.isRepositoryPathEnabled()) {
             return uri;
         }

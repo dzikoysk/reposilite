@@ -76,6 +76,11 @@ public class UploadController implements NanoController {
 
         for (Entry<String, String> entry : files.entrySet()){
             File tempFile = new File(entry.getValue());
+
+            if (tempFile.getName().contains("maven-metadata")) {
+                continue;
+            }
+
             ArtifactFile targetFile = ArtifactFile.fromURL(httpSession.getUri());
             FileUtils.forceMkdirParent(targetFile.getFile());
             Files.copy(tempFile.toPath(), targetFile.getFile().toPath(), StandardCopyOption.REPLACE_EXISTING);

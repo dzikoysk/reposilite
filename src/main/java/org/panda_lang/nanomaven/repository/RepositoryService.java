@@ -18,18 +18,32 @@ package org.panda_lang.nanomaven.repository;
 
 import org.panda_lang.nanomaven.NanoConfiguration;
 import org.panda_lang.nanomaven.NanoMaven;
+import org.panda_lang.nanomaven.repository.Metadata.Versioning;
+import org.panda_lang.nanomaven.repository.Metadata.Versioning.Versions;
+import org.panda_lang.utilities.commons.FileUtils;
+import org.panda_lang.utilities.commons.text.ContentJoiner;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class RepositoryService {
 
     private final Map<String, Repository> repositories;
+    private final Map<String, String> metadataCache;
 
     public RepositoryService() {
         this.repositories = new LinkedHashMap<>(2);
+        this.metadataCache = new HashMap<>();
     }
 
     public void scan(NanoConfiguration configuration) {
@@ -59,17 +73,31 @@ public class RepositoryService {
         NanoMaven.getLogger().info(repositories.size() + " repositories have been found");
     }
 
-    public Artifact find(String... path) {
-        for (Map.Entry<String, Repository> repositoryEntry : repositories.entrySet()) {
-            Repository repository = repositoryEntry.getValue();
-            Artifact project = repository.get(path);
+    public String generateMetadata(Repository repository, String[] path) throws IOException {
+        File metadataFile = new File(repository.getLocalPath() + File.separator + ContentJoiner.on(File.separator).join(path));
+        File artifactDirectory = metadataFile.getParentFile();
+        File[] list = RepositoryUtils.toSortedDirectories(artifactDirectory);
+        File latest = RepositoryUtils.getLatest(list);
 
-            if (project != null) {
-                return project;
-            }
+        if (latest == null) {
+            return "Empty metadata";
         }
 
-        return null;
+        Versions versions = new Versions(Stream.of(list).map(File::getName).collect(Collectors.toList()));
+        Versioning versioning = new Versioning(latest.getName(), latest.getName(), versions, latest.lastModified());
+        Metadata metadata = new Metadata(ContentJoiner.on(".").join(Arrays.copyOfRange(path, 0, path.length - 1)).toString(), artifactDirectory.getName(), versioning);
+
+        try {
+            JAXBContext jaxbContext = JAXBContext.newInstance(Metadata.class);
+            Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
+
+            jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+            jaxbMarshaller.marshal(metadata, metadataFile);
+        } catch (JAXBException e) {
+            e.printStackTrace();
+        }
+
+        return FileUtils.getContentOfFile(metadataFile);
     }
 
     public Repository getRepository(String repositoryName) {

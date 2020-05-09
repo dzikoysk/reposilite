@@ -14,29 +14,18 @@
  * limitations under the License.
  */
 
-package org.panda_lang.nanomaven.repository.temp;
+package org.panda_lang.nanomaven.temp;
 
 import fi.iki.elonen.NanoHTTPD;
-import org.panda_lang.utilities.commons.FileUtils;
 
-public class TempFileManager implements NanoHTTPD.TempFileManager {
-
-    public void initialize() {
-        TempDirectory.TEMP.mkdirs();
-    }
+public class TempFileFactory implements NanoHTTPD.TempFileManagerFactory {
 
     @Override
-    public NanoHTTPD.TempFile createTempFile(String s) {
-        TempFile file = new TempFile(TempDirectory.TEMP);
-        file.prepare();
+    public NanoHTTPD.TempFileManager create() {
+        TempFileManager manager = new TempFileManager();
+        manager.initialize();
 
-        return file;
-    }
-
-    @Override
-    public void clear() {
-        FileUtils.delete(TempDirectory.TEMP);
-        TempDirectory.TEMP.mkdirs();
+        return manager;
     }
 
 }

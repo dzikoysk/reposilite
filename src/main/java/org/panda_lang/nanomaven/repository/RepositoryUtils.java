@@ -14,24 +14,24 @@
  * limitations under the License.
  */
 
-package org.panda_lang.nanomaven.repository.temp;
-
-import org.apache.commons.io.FileUtils;
-import org.panda_lang.nanomaven.NanoConstants;
+package org.panda_lang.nanomaven.repository;
 
 import java.io.File;
-import java.io.IOException;
+import java.util.stream.Stream;
 
-public class TempDirectory {
+final class RepositoryUtils {
 
-    public static final File TEMP = new File(NanoConstants.TEMP_FILE_NAME);
+    private RepositoryUtils() { }
 
-    static {
-        try {
-            FileUtils.forceMkdir(TEMP);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    protected static File[] toSortedDirectories(File directory) {
+        return Stream.of(directory.listFiles())
+                .filter(File::isDirectory)
+                .sorted((file, to) -> to.getName().compareTo(file.getName())) // reversed order
+                .toArray(File[]::new);
+    }
+
+    protected static File getLatest(File[] directories) {
+        return directories.length > 0 ? directories[0] : null;
     }
 
 }
