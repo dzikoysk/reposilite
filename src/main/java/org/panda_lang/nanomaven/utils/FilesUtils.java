@@ -25,6 +25,13 @@ import java.net.URL;
 
 public class FilesUtils {
 
+    private static final File[] EMPTY = new File[0];
+
+    public static File[] listFiles(File directory) {
+        File[] files = directory.listFiles();
+        return files == null ? EMPTY : files;
+    }
+
     public static boolean copyResource(String resourcePath, String destinationPath) {
         URL inputUrl = NanoMaven.class.getResource(resourcePath);
         File destination = new File(destinationPath);

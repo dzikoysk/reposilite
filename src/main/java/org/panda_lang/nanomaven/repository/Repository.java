@@ -16,7 +16,7 @@
 
 package org.panda_lang.nanomaven.repository;
 
-import org.panda_lang.nanomaven.utils.GroupUtils;
+import org.panda_lang.nanomaven.metadata.MetadataUtils;
 
 import java.io.File;
 import java.util.Arrays;
@@ -46,11 +46,11 @@ public class Repository {
         pathBuilder.setLength(pathBuilder.length() - 1);
         File targetFile = new File(pathBuilder.toString());
 
-        if (!targetFile.getName().equals("maven-metadata.xml") && (!targetFile.exists() || targetFile.isDirectory())) {
+        if (!targetFile.exists() || targetFile.isDirectory()) {
             return null;
         }
 
-        return new Artifact(repositoryName, GroupUtils.groupFromArray(Arrays.copyOfRange(path, 0, path.length - 3)), path[path.length - 3], path[path.length - 2]);
+        return new Artifact(repositoryName, MetadataUtils.toGroup(Arrays.copyOfRange(path, 0, path.length - 3)), path[path.length - 3], path[path.length - 2]);
     }
 
     public String getLocalPath() {

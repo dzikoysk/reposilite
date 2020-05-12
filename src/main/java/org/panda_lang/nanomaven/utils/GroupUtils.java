@@ -16,18 +16,12 @@
 
 package org.panda_lang.nanomaven.utils;
 
+import org.panda_lang.utilities.commons.text.ContentJoiner;
+
 public class GroupUtils {
 
     public static String groupFromArray(String... array) {
-        StringBuilder groupBuilder = new StringBuilder();
-
-        for (String element : array) {
-            groupBuilder.append(element);
-            groupBuilder.append(".");
-        }
-
-        groupBuilder.setLength(groupBuilder.length() - 1);
-        return groupBuilder.toString();
+        return ContentJoiner.on(".").join(array).toString();
     }
 
 }

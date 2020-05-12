@@ -41,7 +41,7 @@ public class RepositoryController implements NanoController {
 
         try {
             return serveOrCatch(server, session);
-        } catch (Exception e) {
+        } catch (Throwable e) {
             e.printStackTrace();
             return NanoHTTPD.newFixedLengthResponse(Status.INTERNAL_ERROR, NanoHTTPD.MIME_HTML, "Cannot serve request");
         }

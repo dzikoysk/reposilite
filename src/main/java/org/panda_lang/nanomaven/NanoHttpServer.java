@@ -26,15 +26,15 @@ import java.io.IOException;
 public class NanoHttpServer extends NanoHTTPD {
 
     private final NanoMaven nanoMaven;
-    private final FrontendController frontRouter;
-    private final RepositoryController repositoryRouter;
+    private final FrontendController frontendController;
+    private final RepositoryController repositoryController;
 
     public NanoHttpServer(NanoMaven nanoMaven) {
         super(nanoMaven.getConfiguration().getPort());
 
         this.nanoMaven = nanoMaven;
-        this.frontRouter = new FrontendController(nanoMaven);
-        this.repositoryRouter = new RepositoryController(nanoMaven);
+        this.frontendController = new FrontendController(nanoMaven);
+        this.repositoryController = new RepositoryController(nanoMaven);
     }
 
     @Override
@@ -48,10 +48,10 @@ public class NanoHttpServer extends NanoHTTPD {
         NanoMaven.getLogger().debug(session.getUri() + " | " + session.getParameters().toString() + " | " + session.getMethod() + " | " + session.getQueryParameterString() + " | " + session.getHeaders().toString());
 
         if (session.getUri().isEmpty() || session.getUri().equals("/") || session.getUri().startsWith("/#")) {
-            return frontRouter.serve(this, session);
+            return frontendController.serve(this, session);
         }
 
-        return repositoryRouter.serve(this, session);
+        return repositoryController.serve(this, session);
     }
 
     public NanoMaven getNanoMaven() {
