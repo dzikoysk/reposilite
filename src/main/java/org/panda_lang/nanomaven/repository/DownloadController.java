@@ -22,6 +22,8 @@ import org.panda_lang.nanomaven.NanoConfiguration;
 import org.panda_lang.nanomaven.NanoController;
 import org.panda_lang.nanomaven.NanoHttpServer;
 import org.panda_lang.nanomaven.NanoMaven;
+import org.panda_lang.nanomaven.metadata.MetadataService;
+import org.panda_lang.nanomaven.metadata.MetadataUtils;
 import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.text.ContentJoiner;
 
@@ -34,6 +36,8 @@ import java.util.Arrays;
 
 public class DownloadController implements NanoController {
 
+    private final MetadataService metadataService = new MetadataService();
+
     @Override
     public NanoHTTPD.Response serve(NanoHttpServer server, NanoHTTPD.IHTTPSession session) throws IOException {
         NanoMaven nanoMaven = server.getNanoMaven();
@@ -41,7 +45,11 @@ public class DownloadController implements NanoController {
         String uri = normalizeUri(nanoMaven.getConfiguration(), session.getUri());
         String[] path = uri.split("/");
 
-        if (path.length == 0|| path[0].isEmpty()) {
+        if (path.length == 0) {
+            return notFound(nanoMaven, "Unsupported request");
+        }
+
+        if (path[0].isEmpty()) {
             path = Arrays.copyOfRange(path, 1, path.length);
         }
 
@@ -51,25 +59,29 @@ public class DownloadController implements NanoController {
             return notFound(nanoMaven, "Repository " + path[0] + " not found");
         }
 
-        String[] artifactPath = Arrays.copyOfRange(path, 1, path.length);
+        String[] requestPath = Arrays.copyOfRange(path, 1, path.length);
 
-        if (artifactPath.length == 0) {
+        if (requestPath.length == 0) {
             return notFound(nanoMaven, "Missing artifact path");
         }
 
-        String requestedFileName = artifactPath[artifactPath.length - 1];
+        String requestedFileName = requestPath[requestPath.length - 1];
 
         if (requestedFileName.equals("maven-metadata.xml")) {
-            return NanoHTTPD.newFixedLengthResponse(Status.OK, "text/xml", repositoryService.generateMetadata(repository, artifactPath));
+            return NanoHTTPD.newFixedLengthResponse(Status.OK, "text/xml", metadataService.generateMetadata(repository, requestPath));
         }
 
-        Artifact artifact = repository.get(artifactPath);
+        if (requestedFileName.contains("-SNAPSHOT")) {
+            requestPath = repositoryService.resolveSnapshot(repository, requestPath);
+        }
+
+        Artifact artifact = repository.get(requestPath);
 
         if (artifact == null) {
-            return notFound(nanoMaven, "Artifact " + ContentJoiner.on("/").join(artifactPath) + " not found");
+            return notFound(nanoMaven, "Artifact " + ContentJoiner.on("/").join(requestPath) + " not found");
         }
 
-        File file = artifact.getFile(path[path.length - 1]);
+        File file = artifact.getFile(requestPath[requestPath.length - 1]);
 
         if (!file.exists()) {
             NanoMaven.getLogger().warn("File " + file.getAbsolutePath() + " doesn't exist");
@@ -90,10 +102,11 @@ public class DownloadController implements NanoController {
         }
 
         try {
-            NanoHTTPD.Response response = NanoHTTPD.newChunkedResponse(NanoHTTPD.Response.Status.OK, Files.probeContentType(file.toPath()), fis);
-            response.addHeader("Content-Disposition", "attachment; filename=\"" + file.getName().replace("maven-metadata-local", "maven-metadata") +"\"");
+            String mimeType = Files.probeContentType(file.toPath());
+            NanoHTTPD.Response response = NanoHTTPD.newChunkedResponse(NanoHTTPD.Response.Status.OK, mimeType, fis);
+            response.addHeader("Content-Disposition", "attachment; filename=\"" + MetadataUtils.getLast(path) +"\"");
             response.addHeader("Content-Length", String.valueOf(file.length()));
-            NanoMaven.getLogger().info("Fis: " + fis.available() + "; mime: " + Files.probeContentType(file.toPath()));
+            NanoMaven.getLogger().info("Available: " + fis.available() + "; mime: " + mimeType + "; size: " + file.length() + "; file: " + file.getPath());
             return response;
         } catch (IOException e) {
             e.printStackTrace();
@@ -106,6 +119,10 @@ public class DownloadController implements NanoController {
             uri = uri.substring(1);
         }
 
+        if (uri.contains("..")) {
+            return StringUtils.EMPTY;
+        }
+
         if (configuration.isRepositoryPathEnabled()) {
             return uri;
         }
@@ -115,7 +132,7 @@ public class DownloadController implements NanoController {
         }
 
         for (String repositoryName : configuration.getRepositories()) {
-            if (uri.startsWith("/" + repositoryName)) {
+            if (uri.startsWith(repositoryName)) {
                 return uri;
             }
         }
