@@ -36,7 +36,11 @@ import java.util.Arrays;
 
 public class DownloadController implements NanoController {
 
-    private final MetadataService metadataService = new MetadataService();
+    private final MetadataService metadataService;
+
+    public DownloadController(MetadataService metadataService) {
+        this.metadataService = metadataService;
+    }
 
     @Override
     public NanoHTTPD.Response serve(NanoHttpServer server, NanoHTTPD.IHTTPSession session) throws IOException {

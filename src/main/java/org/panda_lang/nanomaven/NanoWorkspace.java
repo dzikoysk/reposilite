@@ -23,7 +23,7 @@ import org.panda_lang.nanomaven.utils.ZipUtils;
 public class NanoWorkspace {
 
     public void prepare() {
-        if (!FilesUtils.fileExists(NanoConstants.CONFIGURATION_FILE_NAME)) {
+        if (!FilesUtils.exists(NanoConstants.CONFIGURATION_FILE_NAME)) {
             NanoMaven.getLogger().info("Generating default configuration file.");
             FilesUtils.copyResource("/nanomaven.yml", NanoConstants.CONFIGURATION_FILE_NAME);
         }
@@ -32,7 +32,7 @@ public class NanoWorkspace {
         }
 
         // Repositories
-        if (!FilesUtils.fileExists("repositories")) {
+        if (!FilesUtils.exists("repositories")) {
             DirectoryUtils.createDirectories("repositories/releases", "repositories/snapshots");
             NanoMaven.getLogger().info("Default repositories have been created");
         }
@@ -41,7 +41,7 @@ public class NanoWorkspace {
         }
 
         // Maven
-        if (!FilesUtils.fileExists("maven")) {
+        if (!FilesUtils.exists("maven")) {
             NanoMaven.getLogger().info("Unpacking Maven...");
             ZipUtils.unzipResource("/apache-maven-3.5.0.zip", "maven");
             NanoMaven.getLogger().info("Nested Maven has been unpacked");
@@ -51,7 +51,7 @@ public class NanoWorkspace {
         }
 
         // Tokens data
-        if (!FilesUtils.fileExists(NanoConstants.TOKENS_FILE_NAME)) {
+        if (!FilesUtils.exists(NanoConstants.TOKENS_FILE_NAME)) {
             NanoMaven.getLogger().info("Generating tokens data file...");
             FilesUtils.copyResource("/tokens.yml", NanoConstants.TOKENS_FILE_NAME);
             NanoMaven.getLogger().info("Empty tokens file has been generated");

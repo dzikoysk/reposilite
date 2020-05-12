@@ -22,6 +22,7 @@ import org.panda_lang.nanomaven.NanoController;
 import org.panda_lang.nanomaven.NanoHttpServer;
 import org.panda_lang.nanomaven.NanoMaven;
 import org.panda_lang.nanomaven.auth.Authenticator;
+import org.panda_lang.nanomaven.metadata.MetadataService;
 
 import java.io.ByteArrayInputStream;
 
@@ -31,8 +32,9 @@ public class RepositoryController implements NanoController {
     private final UploadController put;
 
     public RepositoryController(NanoMaven nanoMaven) {
-        this.get = new DownloadController();
-        this.put = new UploadController(new Authenticator(nanoMaven.getTokenService()));
+        MetadataService metadataService = new MetadataService();
+        this.get = new DownloadController(metadataService);
+        this.put = new UploadController(new Authenticator(nanoMaven.getTokenService()), metadataService);
     }
 
     @Override

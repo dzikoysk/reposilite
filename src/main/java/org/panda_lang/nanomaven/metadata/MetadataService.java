@@ -19,6 +19,7 @@ package org.panda_lang.nanomaven.metadata;
 import org.panda_lang.nanomaven.NanoMaven;
 import org.panda_lang.nanomaven.repository.Repository;
 import org.panda_lang.nanomaven.repository.RepositoryUtils;
+import org.panda_lang.nanomaven.utils.FilesUtils;
 import org.panda_lang.utilities.commons.FileUtils;
 import org.panda_lang.utilities.commons.StringUtils;
 
@@ -55,10 +56,10 @@ public final class MetadataService {
         File[] versions = MetadataUtils.toSortedVersions(artifactDirectory);
 
         if (versions.length > 0) {
-            return generateArtifactMetadata(metadataFile, MetadataUtils.toGroup(requested, 1), artifactDirectory, versions);
+            return generateArtifactMetadata(metadataFile, MetadataUtils.toGroup(requested, 2), artifactDirectory, versions);
         }
 
-        return generateSnapshotMetadata(metadataFile, MetadataUtils.toGroup(requested, 2), artifactDirectory);
+        return generateSnapshotMetadata(metadataFile, MetadataUtils.toGroup(requested, 3), artifactDirectory);
     }
 
     private String generateArtifactMetadata(File metadataFile, String groupId, File artifactDirectory, File[] list) throws IOException {
@@ -98,7 +99,7 @@ public final class MetadataService {
             snapshotVersions.add(snapshotVersion);
         }
 
-        String latestRelease = name + "-" + latestIdentifier;
+        String latestRelease = name + "-" + version + "-" + latestIdentifier;
         Versioning versioning = new Versioning(latestRelease, latestRelease, null, snapshot, snapshotVersions, MetadataUtils.toUpdateTime(latestBuild));
         Metadata metadata = new Metadata(groupId, name, version, versioning);
 
@@ -116,10 +117,18 @@ public final class MetadataService {
             return "Internal error";
         }
 
+        if (!FilesUtils.writeFileChecksums(metadataFile.toPath())) {
+            NanoMaven.getLogger().error("Cannot write metadata checksums");
+        }
+
         String content = FileUtils.getContentOfFile(metadataFile);
         metadataCache.put(metadataFile.getPath(), content);
 
         return content;
+    }
+
+    public void clearMetadata(File metadataFile) {
+        metadataCache.remove(metadataFile.getPath());
     }
 
 }
