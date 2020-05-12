@@ -72,6 +72,12 @@ public class DownloadController implements NanoController {
         String requestedFileName = requestPath[requestPath.length - 1];
 
         if (requestedFileName.equals("maven-metadata.xml")) {
+            String result = metadataService.generateMetadata(repository, requestPath);
+
+            if (result == null) {
+                return notFound(nanoMaven, "Metadata not found");
+            }
+
             return NanoHTTPD.newFixedLengthResponse(Status.OK, "text/xml", metadataService.generateMetadata(repository, requestPath));
         }
 

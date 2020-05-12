@@ -16,6 +16,7 @@
 
 package org.panda_lang.nanomaven.metadata;
 
+import org.jetbrains.annotations.Nullable;
 import org.panda_lang.nanomaven.NanoMaven;
 import org.panda_lang.nanomaven.repository.Repository;
 import org.panda_lang.nanomaven.repository.RepositoryUtils;
@@ -38,7 +39,7 @@ public final class MetadataService {
 
     private final Map<String, String> metadataCache = new HashMap<>();
 
-    public String generateMetadata(Repository repository, String[] requested) throws IOException {
+    public @Nullable String generateMetadata(Repository repository, String[] requested) throws IOException {
         File metadataFile = RepositoryUtils.toRequestedFile(repository, requested);
         String cachedContent = metadataCache.get(metadataFile.getPath());
 
@@ -50,7 +51,8 @@ public final class MetadataService {
         File artifactDirectory = metadataFile.getParentFile();
 
         if (artifactDirectory.isFile()) {
-            return "Bad request";
+            NanoMaven.getLogger().warn("Bad request");
+            return null;
         }
 
         File[] versions = MetadataUtils.toSortedVersions(artifactDirectory);
@@ -62,11 +64,11 @@ public final class MetadataService {
         return generateSnapshotMetadata(metadataFile, MetadataUtils.toGroup(requested, 3), artifactDirectory);
     }
 
-    private String generateArtifactMetadata(File metadataFile, String groupId, File artifactDirectory, File[] list) throws IOException {
+    private @Nullable String generateArtifactMetadata(File metadataFile, String groupId, File artifactDirectory, File[] list) throws IOException {
         File latest = MetadataUtils.getLatest(list);
 
         if (latest == null) {
-            return "Empty artifact metadata";
+            return null;
         }
 
         Versions versions = Versions.of(list);
@@ -76,13 +78,13 @@ public final class MetadataService {
         return toMetadataFile(metadataFile, metadata);
     }
 
-    private String generateSnapshotMetadata(File metadataFile, String groupId, File versionDirectory) throws IOException {
+    private @Nullable String generateSnapshotMetadata(File metadataFile, String groupId, File versionDirectory) throws IOException {
         File artifactDirectory = versionDirectory.getParentFile();
         File[] builds = MetadataUtils.toSortedBuilds(versionDirectory);
         File latestBuild = MetadataUtils.getLatest(builds);
 
         if (latestBuild == null) {
-            return "Empty build metadata";
+            return null;
         }
 
         String name = artifactDirectory.getName();
@@ -113,8 +115,8 @@ public final class MetadataService {
             jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
             jaxbMarshaller.marshal(metadata, metadataFile);
         } catch (JAXBException e) {
-            e.printStackTrace();
-            return "Internal error";
+            NanoMaven.getLogger().error("Internal error in " + metadataFile.getPath(), e);
+            return null;
         }
 
         if (!FilesUtils.writeFileChecksums(metadataFile.toPath())) {
