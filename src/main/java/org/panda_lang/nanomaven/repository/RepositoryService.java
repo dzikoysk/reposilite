@@ -18,32 +18,20 @@ package org.panda_lang.nanomaven.repository;
 
 import org.panda_lang.nanomaven.NanoConfiguration;
 import org.panda_lang.nanomaven.NanoMaven;
-import org.panda_lang.nanomaven.repository.Metadata.Versioning;
-import org.panda_lang.nanomaven.repository.Metadata.Versioning.Versions;
-import org.panda_lang.utilities.commons.FileUtils;
-import org.panda_lang.utilities.commons.text.ContentJoiner;
+import org.panda_lang.nanomaven.metadata.MetadataUtils;
+import org.panda_lang.utilities.commons.StringUtils;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class RepositoryService {
 
     private final Map<String, Repository> repositories;
-    private final Map<String, String> metadataCache;
 
     public RepositoryService() {
         this.repositories = new LinkedHashMap<>(2);
-        this.metadataCache = new HashMap<>();
     }
 
     public void scan(NanoConfiguration configuration) {
@@ -73,31 +61,24 @@ public class RepositoryService {
         NanoMaven.getLogger().info(repositories.size() + " repositories have been found");
     }
 
-    public String generateMetadata(Repository repository, String[] path) throws IOException {
-        File metadataFile = new File(repository.getLocalPath() + File.separator + ContentJoiner.on(File.separator).join(path));
-        File artifactDirectory = metadataFile.getParentFile();
-        File[] list = RepositoryUtils.toSortedDirectories(artifactDirectory);
-        File latest = RepositoryUtils.getLatest(list);
+    public String[] resolveSnapshot(Repository repository, String[] requestPath) {
+        File artifactFile = RepositoryUtils.toRequestedFile(repository, requestPath);
+        File versionDirectory = artifactFile.getParentFile();
 
-        if (latest == null) {
-            return "Empty metadata";
+        File[] builds = MetadataUtils.toSortedBuilds(versionDirectory);
+        File latestBuild = MetadataUtils.getLatest(builds);
+
+        if (latestBuild == null) {
+            return requestPath;
         }
 
-        Versions versions = new Versions(Stream.of(list).map(File::getName).collect(Collectors.toList()));
-        Versioning versioning = new Versioning(latest.getName(), latest.getName(), versions, latest.lastModified());
-        Metadata metadata = new Metadata(ContentJoiner.on(".").join(Arrays.copyOfRange(path, 0, path.length - 1)).toString(), artifactDirectory.getName(), versioning);
+        String version = StringUtils.replace(versionDirectory.getName(), "-SNAPSHOT", StringUtils.EMPTY);
+        File artifactDirectory = versionDirectory.getParentFile();
 
-        try {
-            JAXBContext jaxbContext = JAXBContext.newInstance(Metadata.class);
-            Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
+        String identifier = MetadataUtils.toIdentifier(artifactDirectory.getName(), version, latestBuild);
+        requestPath[requestPath.length - 1] = StringUtils.replace(requestPath[requestPath.length - 1], "SNAPSHOT", identifier);
 
-            jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-            jaxbMarshaller.marshal(metadata, metadataFile);
-        } catch (JAXBException e) {
-            e.printStackTrace();
-        }
-
-        return FileUtils.getContentOfFile(metadataFile);
+        return requestPath;
     }
 
     public Repository getRepository(String repositoryName) {

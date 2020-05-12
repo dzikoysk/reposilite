@@ -16,22 +16,16 @@
 
 package org.panda_lang.nanomaven.repository;
 
-import java.io.File;
-import java.util.stream.Stream;
+import org.panda_lang.utilities.commons.text.ContentJoiner;
 
-final class RepositoryUtils {
+import java.io.File;
+
+public final class RepositoryUtils {
 
     private RepositoryUtils() { }
 
-    protected static File[] toSortedDirectories(File directory) {
-        return Stream.of(directory.listFiles())
-                .filter(File::isDirectory)
-                .sorted((file, to) -> to.getName().compareTo(file.getName())) // reversed order
-                .toArray(File[]::new);
-    }
-
-    protected static File getLatest(File[] directories) {
-        return directories.length > 0 ? directories[0] : null;
+    public static File toRequestedFile(Repository repository, String[] requestPath) {
+        return new File(repository.getLocalPath() + File.separator + ContentJoiner.on(File.separator).join(requestPath));
     }
 
 }
