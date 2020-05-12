@@ -16,20 +16,38 @@
 
 package org.panda_lang.nanomaven.utils;
 
+import com.google.common.hash.Hashing;
+import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
 import org.panda_lang.nanomaven.NanoMaven;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class FilesUtils {
 
     private static final File[] EMPTY = new File[0];
 
-    public static File[] listFiles(File directory) {
-        File[] files = directory.listFiles();
-        return files == null ? EMPTY : files;
+    public static boolean writeFileChecksums(Path path) {
+        try {
+            Files.touch(new File(path + ".md5"));
+            Files.touch(new File(path + ".sha1"));
+
+            Path md5FileFile = Paths.get(path + ".md5");
+            Path sha1FileFile = Paths.get(path + ".sha1");
+
+            FileUtils.writeStringToFile(md5FileFile.toFile(), Files.hash(md5FileFile.toFile(), Hashing.md5()).toString(), StandardCharsets.UTF_8);
+            FileUtils.writeStringToFile(sha1FileFile.toFile(), Files.hash(sha1FileFile.toFile(), Hashing.sha1()).toString(), StandardCharsets.UTF_8);
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return false;
     }
 
     public static boolean copyResource(String resourcePath, String destinationPath) {
@@ -46,21 +64,12 @@ public class FilesUtils {
         return true;
     }
 
-    public static void createFile(String path) {
-        File file = new File(path);
-
-        if (file.getParentFile() != null) {
-            file.getParentFile().mkdirs();
-        }
-
-        try {
-            file.createNewFile();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public static File[] listFiles(File directory) {
+        File[] files = directory.listFiles();
+        return files == null ? EMPTY : files;
     }
 
-    public static boolean fileExists(String file) {
+    public static boolean exists(String file) {
         return new File(file).exists();
     }
 

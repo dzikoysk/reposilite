@@ -25,7 +25,7 @@ import java.io.IOException;
 public final class FrontendLoader {
 
     public Frontend loadFrontend(String frontendFile) throws IOException {
-        if (!FilesUtils.fileExists(frontendFile)) {
+        if (!FilesUtils.exists(frontendFile)) {
             FilesUtils.copyResource("/index.html", frontendFile);
         }
 

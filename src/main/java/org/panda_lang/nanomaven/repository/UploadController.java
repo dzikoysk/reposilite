@@ -27,6 +27,7 @@ import org.panda_lang.nanomaven.NanoMaven;
 import org.panda_lang.nanomaven.auth.Authenticator;
 import org.panda_lang.nanomaven.auth.Session;
 import org.panda_lang.nanomaven.NanoConfiguration;
+import org.panda_lang.nanomaven.metadata.MetadataService;
 import org.panda_lang.nanomaven.utils.Result;
 
 import java.io.File;
@@ -40,9 +41,11 @@ import java.util.Map.Entry;
 public class UploadController implements NanoController {
 
     private final Authenticator authenticator;
+    private final MetadataService metadataService;
 
-    public UploadController(Authenticator authenticator) {
+    public UploadController(Authenticator authenticator, MetadataService metadataService) {
         this.authenticator = authenticator;
+        this.metadataService = metadataService;
     }
 
     @Override
@@ -74,6 +77,8 @@ public class UploadController implements NanoController {
             return response(Status.BAD_REQUEST, "Cannot parse body");
         }
 
+        ArtifactFile targetFile = ArtifactFile.fromURL(httpSession.getUri());
+
         for (Entry<String, String> entry : files.entrySet()){
             File tempFile = new File(entry.getValue());
 
@@ -81,10 +86,12 @@ public class UploadController implements NanoController {
                 continue;
             }
 
-            ArtifactFile targetFile = ArtifactFile.fromURL(httpSession.getUri());
             FileUtils.forceMkdirParent(targetFile.getFile());
             Files.copy(tempFile.toPath(), targetFile.getFile().toPath(), StandardCopyOption.REPLACE_EXISTING);
         }
+
+        File metadataFile = new File(targetFile.getFile().getParentFile(), "maven-metadata.xml");
+        metadataService.clearMetadata(metadataFile);
 
         return NanoHTTPD.newFixedLengthResponse(Status.OK, NanoHTTPD.MIME_PLAINTEXT, "Success");
     }

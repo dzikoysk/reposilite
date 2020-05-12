@@ -81,7 +81,7 @@ public final class MetadataUtils {
 
     public static String toGroup(String[] elements) {
         return ContentJoiner.on(".")
-                .join(Arrays.copyOfRange(elements, 0, elements.length - 1))
+                .join(Arrays.copyOfRange(elements, 0, elements.length))
                 .toString();
     }
 
