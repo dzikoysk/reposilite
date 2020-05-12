@@ -28,7 +28,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
 
 public class NanoMaven {
 
@@ -94,17 +93,6 @@ public class NanoMaven {
         }
     }
 
-    public void save() {
-        getLogger().info("Saving tokens...");
-
-        try {
-            tokenService.save();
-        } catch (IOException e) {
-            getLogger().info("Failed to save users due to:");
-            e.printStackTrace();
-        }
-    }
-
     public void shutdown() {
         if (stopped) {
             return;
@@ -114,10 +102,8 @@ public class NanoMaven {
         getLogger().info("Shutting down...");
         httpServer.stop();
 
-
-
         console.stop();
-        getLogger().info("Bye! Uptime: " + TimeUtils.getUptime(uptime) + "s");
+        getLogger().info("Bye! Uptime: " + (TimeUtils.getUptime(uptime) / 60) + "min");
     }
 
     public Frontend getFrontend() {
