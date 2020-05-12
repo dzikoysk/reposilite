@@ -47,7 +47,6 @@ buildNumber.properties
 # IntelliJ
 /out/
 /bin/
-/workspace/
 
 # mpeltonen/sbt-idea plugin
 .idea_modules/
@@ -110,7 +109,6 @@ local.properties
 .mtj.tmp/
 
 # Package Files #
-*.jar
 *.war
 *.ear
 

@@ -29,7 +29,6 @@ public class TempFileManager implements NanoHTTPD.TempFileManager {
     public NanoHTTPD.TempFile createTempFile(String s) {
         TempFile file = new TempFile(TempDirectory.TEMP);
         file.prepare();
-
         return file;
     }
 
