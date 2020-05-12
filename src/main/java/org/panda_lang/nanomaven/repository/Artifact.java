@@ -16,6 +16,8 @@
 
 package org.panda_lang.nanomaven.repository;
 
+import org.panda_lang.nanomaven.utils.FilesUtils;
+
 import java.io.File;
 import java.util.Comparator;
 import java.util.regex.Pattern;
@@ -34,7 +36,7 @@ public class Artifact {
         this.group = group;
         this.artifact = artifact;
         this.version = version;
-        this.files = Stream.of(getFile("").listFiles())
+        this.files = Stream.of(FilesUtils.listFiles(getFile("")))
                 .filter(File::isFile)
                 .sorted(Comparator.comparing(File::getName))
                 .toArray(File[]::new);
@@ -46,10 +48,6 @@ public class Artifact {
 
     public String getLocalPath() {
         return group.replace(".", "/") + "/" + artifact + "/" + version + "/";
-    }
-
-    public File getLatest() {
-        return files.length > 0 ? files[0] : null;
     }
 
     public File getFile(String fileName) {
