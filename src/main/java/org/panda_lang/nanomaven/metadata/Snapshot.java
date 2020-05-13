@@ -25,9 +25,9 @@ import javax.xml.bind.annotation.XmlRootElement;
 final class Snapshot {
 
     private String timestamp;
-    private int buildNumber;
+    private String buildNumber;
 
-    Snapshot(String timestamp, int buildNumber) {
+    Snapshot(String timestamp, String buildNumber) {
         this.timestamp = timestamp;
         this.buildNumber = buildNumber;
     }
@@ -36,7 +36,7 @@ final class Snapshot {
 
     }
 
-    int getBuildNumber() {
+    String getBuildNumber() {
         return buildNumber;
     }
 
