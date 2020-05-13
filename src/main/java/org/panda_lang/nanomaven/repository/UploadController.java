@@ -79,11 +79,16 @@ public class UploadController implements NanoController {
 
         ArtifactFile targetFile = ArtifactFile.fromURL(httpSession.getUri());
 
+
         for (Entry<String, String> entry : files.entrySet()){
             File tempFile = new File(entry.getValue());
 
             if (tempFile.getName().contains("maven-metadata")) {
                 continue;
+            }
+
+            if (!session.hasPermission("/" + targetFile.getFile().getPath())) {
+                response(Status.UNAUTHORIZED, "Unauthorized access");
             }
 
             FileUtils.forceMkdirParent(targetFile.getFile());
