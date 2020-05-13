@@ -93,17 +93,26 @@ public final class MetadataService {
         String[] identifiers = MetadataUtils.toSortedIdentifiers(name, version, builds);
         String latestIdentifier = Objects.requireNonNull(MetadataUtils.getLatest(identifiers));
 
-        Snapshot snapshot = new Snapshot(latestIdentifier, builds.length);
+        int buildSeparatorIndex = latestIdentifier.lastIndexOf("-");
+        String latestTimestamp = latestIdentifier.substring(0, buildSeparatorIndex);
+        String latestBuildNumber = latestIdentifier.substring(buildSeparatorIndex + 1);
+        Snapshot snapshot = new Snapshot(latestTimestamp, latestBuildNumber);
+
         Collection<SnapshotVersion> snapshotVersions = new ArrayList<>(builds.length);
 
-        for (String identifier : identifiers) {
-            SnapshotVersion snapshotVersion = new SnapshotVersion("jar", name + "-" + version + "-" + identifier, identifier);
-            snapshotVersions.add(snapshotVersion);
+        for (int index = 0; index < identifiers.length; index++) {
+            String updated = MetadataUtils.toUpdateTime(builds[index]);
+            String snapshotValue = version + "-" + identifiers[index];
+
+            SnapshotVersion snapshotJarVersion = new SnapshotVersion("jar", snapshotValue, updated);
+            snapshotVersions.add(snapshotJarVersion);
+
+            SnapshotVersion snapshotPomVersion = new SnapshotVersion("pom", snapshotValue, updated);
+            snapshotVersions.add(snapshotPomVersion);
         }
 
-        String latestRelease = name + "-" + version + "-" + latestIdentifier;
-        Versioning versioning = new Versioning(latestRelease, latestRelease, null, snapshot, snapshotVersions, MetadataUtils.toUpdateTime(latestBuild));
-        Metadata metadata = new Metadata(groupId, name, version, versioning);
+        Versioning versioning = new Versioning(null, null, null, snapshot, snapshotVersions, MetadataUtils.toUpdateTime(latestBuild));
+        Metadata metadata = new Metadata(groupId, name, versionDirectory.getName(), versioning);
 
         return toMetadataFile(metadataFile, metadata);
     }
