@@ -10,6 +10,7 @@ It is a simple solution to replace managers like Nexus, Archiva or Artifactory.
 * [x] Deploy
 * [x] Authorization (deploy and downloads)
 * [x] Customizable front page
+* [x] [dependabot](https://dependabot.com/) supported
 * [x] Multiple repositories under a single URL
 * [x] CLI
 * [ ] Statistics

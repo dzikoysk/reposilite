@@ -33,6 +33,22 @@ public final class Authenticator {
         this.tokenService = tokenService;
     }
 
+    public Result<Session, Response> authUri(IHTTPSession httpSession) {
+        Result<Session, Response> authResult = auth(httpSession);
+
+        if (authResult.getError().isDefined()) {
+            return authResult;
+        }
+
+        Session session = authResult.getValue().get();
+
+        if (!session.hasPermission(httpSession.getUri())) {
+            return error("Unauthorized access");
+        }
+
+        return authResult;
+    }
+
     public Result<Session, Response> auth(IHTTPSession session) {
         String authorization = session.getHeaders().get("authorization");
 

@@ -17,14 +17,17 @@
 package org.panda_lang.nanomaven.repository;
 
 import fi.iki.elonen.NanoHTTPD;
+import fi.iki.elonen.NanoHTTPD.Response;
 import fi.iki.elonen.NanoHTTPD.Response.Status;
 import org.panda_lang.nanomaven.NanoConfiguration;
 import org.panda_lang.nanomaven.NanoController;
 import org.panda_lang.nanomaven.NanoHttpServer;
 import org.panda_lang.nanomaven.NanoMaven;
+import org.panda_lang.nanomaven.auth.Authenticator;
+import org.panda_lang.nanomaven.auth.Session;
 import org.panda_lang.nanomaven.metadata.MetadataService;
 import org.panda_lang.nanomaven.metadata.MetadataUtils;
-import org.panda_lang.utilities.commons.IOUtils;
+import org.panda_lang.nanomaven.utils.Result;
 import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.text.ContentJoiner;
 
@@ -37,18 +40,31 @@ import java.util.Arrays;
 
 public class DownloadController implements NanoController {
 
+    private final NanoMaven nanoMaven;
+    private final NanoConfiguration configuration;
+    private final Authenticator authenticator;
     private final MetadataService metadataService;
+    private final RepositoryService repositoryService;
 
-    public DownloadController(MetadataService metadataService) {
-        this.metadataService = metadataService;
+    public DownloadController(NanoMaven nanoMaven) {
+        this.nanoMaven = nanoMaven;
+        this.configuration = nanoMaven.getConfiguration();
+        this.authenticator = nanoMaven.getAuthenticator();
+        this.metadataService = nanoMaven.getMetadataService();
+        this.repositoryService = nanoMaven.getRepositoryService();
     }
 
     @Override
-    public NanoHTTPD.Response serve(NanoHttpServer server, NanoHTTPD.IHTTPSession session) throws IOException {
-        NanoMaven nanoMaven = server.getNanoMaven();
-        RepositoryService repositoryService = nanoMaven.getRepositoryService();
-        String uri = normalizeUri(nanoMaven.getConfiguration(), session.getUri());
-        String[] path = uri.split("/");
+    public NanoHTTPD.Response serve(NanoHttpServer server, NanoHTTPD.IHTTPSession httpSession) throws IOException {
+        if (configuration.isFullAuthEnabled()) {
+            Result<Session, Response> authResult = this.authenticator.authUri(httpSession);
+
+            if (this.authenticator.authUri(httpSession).getError().isDefined()) {
+                return authResult.getError().get();
+            }
+        }
+
+        String[] path = normalizeUri(nanoMaven.getConfiguration(), httpSession.getUri()).split("/");
 
         if (path.length == 0) {
             return notFound(nanoMaven, "Unsupported request");
@@ -99,17 +115,17 @@ public class DownloadController implements NanoController {
             return notFound(nanoMaven, "Artifact " + file.getName() + " not found");
         }
 
-        FileInputStream fis = null;
+        FileInputStream content;
 
         try {
-            fis = new FileInputStream(file);
+            content = new FileInputStream(file);
 
             String mimeType = Files.probeContentType(file.toPath());
-            NanoHTTPD.Response response = NanoHTTPD.newChunkedResponse(NanoHTTPD.Response.Status.OK, mimeType, fis);
+            NanoHTTPD.Response response = NanoHTTPD.newChunkedResponse(NanoHTTPD.Response.Status.OK, mimeType, content);
             response.addHeader("Content-Disposition", "attachment; filename=\"" + MetadataUtils.getLast(path) +"\"");
             response.addHeader("Content-Length", String.valueOf(file.length()));
 
-            NanoMaven.getLogger().info("Available: " + fis.available() + "; mime: " + mimeType + "; size: " + file.length() + "; file: " + file.getPath());
+            NanoMaven.getLogger().info("Available: " + content.available() + "; mime: " + mimeType + "; size: " + file.length() + "; file: " + file.getPath());
             return response;
         } catch (FileNotFoundException e) {
             NanoMaven.getLogger().warn("Cannot read file " + file.getAbsolutePath());
@@ -117,8 +133,6 @@ public class DownloadController implements NanoController {
         } catch (IOException e) {
             e.printStackTrace();
             return notFound(nanoMaven, "Unknown mime type");
-        } finally {
-            IOUtils.close(fis);
         }
     }
 

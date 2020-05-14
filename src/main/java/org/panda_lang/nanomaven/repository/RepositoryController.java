@@ -33,9 +33,8 @@ public class RepositoryController implements NanoController {
     private final UploadController put;
 
     public RepositoryController(NanoMaven nanoMaven) {
-        MetadataService metadataService = new MetadataService();
-        this.get = new DownloadController(metadataService);
-        this.put = new UploadController(new Authenticator(nanoMaven.getTokenService()), metadataService);
+        this.get = new DownloadController(nanoMaven);
+        this.put = new UploadController(nanoMaven);
     }
 
     @Override
