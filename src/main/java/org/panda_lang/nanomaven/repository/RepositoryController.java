@@ -23,6 +23,7 @@ import org.panda_lang.nanomaven.NanoHttpServer;
 import org.panda_lang.nanomaven.NanoMaven;
 import org.panda_lang.nanomaven.auth.Authenticator;
 import org.panda_lang.nanomaven.metadata.MetadataService;
+import org.panda_lang.utilities.commons.IOUtils;
 
 import java.io.ByteArrayInputStream;
 
@@ -64,6 +65,7 @@ public class RepositoryController implements NanoController {
     }
 
     private NanoHTTPD.Response toHeadResponse(NanoHTTPD.Response response) {
+        IOUtils.close(response.getData());
         response.setData(new ByteArrayInputStream(new byte[0]));
         response.setRequestMethod(NanoHTTPD.Method.HEAD);
         return response;

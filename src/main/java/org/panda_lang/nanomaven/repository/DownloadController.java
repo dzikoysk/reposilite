@@ -24,6 +24,7 @@ import org.panda_lang.nanomaven.NanoHttpServer;
 import org.panda_lang.nanomaven.NanoMaven;
 import org.panda_lang.nanomaven.metadata.MetadataService;
 import org.panda_lang.nanomaven.metadata.MetadataUtils;
+import org.panda_lang.utilities.commons.IOUtils;
 import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.text.ContentJoiner;
 
@@ -102,25 +103,22 @@ public class DownloadController implements NanoController {
 
         try {
             fis = new FileInputStream(file);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
 
-        if (fis == null) {
-            NanoMaven.getLogger().warn("Cannot read file " + file.getAbsolutePath());
-            return notFound(nanoMaven, "Cannot read artifact");
-        }
-
-        try {
             String mimeType = Files.probeContentType(file.toPath());
             NanoHTTPD.Response response = NanoHTTPD.newChunkedResponse(NanoHTTPD.Response.Status.OK, mimeType, fis);
             response.addHeader("Content-Disposition", "attachment; filename=\"" + MetadataUtils.getLast(path) +"\"");
             response.addHeader("Content-Length", String.valueOf(file.length()));
+
             NanoMaven.getLogger().info("Available: " + fis.available() + "; mime: " + mimeType + "; size: " + file.length() + "; file: " + file.getPath());
             return response;
+        } catch (FileNotFoundException e) {
+            NanoMaven.getLogger().warn("Cannot read file " + file.getAbsolutePath());
+            return notFound(nanoMaven, "Cannot read artifact");
         } catch (IOException e) {
             e.printStackTrace();
             return notFound(nanoMaven, "Unknown mime type");
+        } finally {
+            IOUtils.close(fis);
         }
     }
 
