@@ -133,7 +133,7 @@ public class DownloadController implements NanoController {
             return StringUtils.EMPTY;
         }
 
-        if (configuration.isRepositoryPathEnabled()) {
+        if (!configuration.isRewritePathsEnabled()) {
             return uri;
         }
 
