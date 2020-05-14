@@ -28,7 +28,6 @@ public class HelpCommand implements NanoCommand {
         NanoMaven.getLogger().info("  help - List available commands");
         NanoMaven.getLogger().info("  tokens - List all generated tokens");
         NanoMaven.getLogger().info("  keygen <path> <alias> - Generate a new access token for the given path");
-        NanoMaven.getLogger().info("  rs - Reinstall all artifacts");
         NanoMaven.getLogger().info("  stop - Shutdown server");
         NanoMaven.getLogger().info("");
     }
