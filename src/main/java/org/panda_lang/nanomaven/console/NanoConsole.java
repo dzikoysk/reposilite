@@ -35,7 +35,7 @@ public class NanoConsole {
     }
 
     // TODO
-    public void execute(String command) throws Exception {
+    public void execute(String command) {
         if (command.trim().isEmpty()) {
             return;
         }
