@@ -21,12 +21,12 @@ import fi.iki.elonen.NanoHTTPD.Response;
 import fi.iki.elonen.NanoHTTPD.Response.Status;
 import fi.iki.elonen.NanoHTTPD.ResponseException;
 import org.apache.commons.io.FileUtils;
+import org.panda_lang.nanomaven.NanoConfiguration;
 import org.panda_lang.nanomaven.NanoController;
 import org.panda_lang.nanomaven.NanoHttpServer;
 import org.panda_lang.nanomaven.NanoMaven;
 import org.panda_lang.nanomaven.auth.Authenticator;
 import org.panda_lang.nanomaven.auth.Session;
-import org.panda_lang.nanomaven.NanoConfiguration;
 import org.panda_lang.nanomaven.metadata.MetadataService;
 import org.panda_lang.nanomaven.utils.Result;
 
@@ -40,35 +40,29 @@ import java.util.Map.Entry;
 
 public class UploadController implements NanoController {
 
+    private final NanoConfiguration configuration;
     private final Authenticator authenticator;
     private final MetadataService metadataService;
 
-    public UploadController(Authenticator authenticator, MetadataService metadataService) {
-        this.authenticator = authenticator;
-        this.metadataService = metadataService;
+    public UploadController(NanoMaven nanoMaven) {
+        this.configuration = nanoMaven.getConfiguration();
+        this.authenticator = nanoMaven.getAuthenticator();
+        this.metadataService = nanoMaven.getMetadataService();
     }
 
     @Override
     public NanoHTTPD.Response serve(NanoHttpServer server, NanoHTTPD.IHTTPSession httpSession) throws Exception {
-        NanoMaven nanoMaven = server.getNanoMaven();
-        NanoConfiguration configuration = nanoMaven.getConfiguration();
-
         if (!configuration.isDeployEnabled()) {
             return response(Status.INTERNAL_ERROR, "Artifact deployment is disabled");
         }
 
-        Result<Session, Response> authResult = this.authenticator.auth(httpSession);
+        Result<Session, Response> authResult = this.authenticator.authUri(httpSession);
 
         if (authResult.getError().isDefined()) {
             return authResult.getError().get();
         }
 
         Session session = authResult.getValue().get();
-
-        if (!session.hasPermission(httpSession.getUri())) {
-            response(Status.UNAUTHORIZED, "Unauthorized access");
-        }
-
         Map<String, String> files = new HashMap<>();
 
         try {

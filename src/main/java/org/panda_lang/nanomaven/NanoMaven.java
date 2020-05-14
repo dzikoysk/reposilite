@@ -16,11 +16,13 @@
 
 package org.panda_lang.nanomaven;
 
+import org.panda_lang.nanomaven.auth.Authenticator;
 import org.panda_lang.nanomaven.auth.TokenService;
 import org.panda_lang.nanomaven.console.HelpCommand;
 import org.panda_lang.nanomaven.console.NanoConsole;
 import org.panda_lang.nanomaven.frontend.Frontend;
 import org.panda_lang.nanomaven.frontend.FrontendLoader;
+import org.panda_lang.nanomaven.metadata.MetadataService;
 import org.panda_lang.nanomaven.repository.RepositoryService;
 import org.panda_lang.nanomaven.utils.TimeUtils;
 import org.panda_lang.nanomaven.utils.YamlUtils;
@@ -35,9 +37,11 @@ public class NanoMaven {
 
     private NanoConsole console;
     private Frontend frontend;
+    private Authenticator authenticator;
     private TokenService tokenService;
-    private NanoConfiguration configuration;
+    private MetadataService metadataService;
     private RepositoryService repositoryService;
+    private NanoConfiguration configuration;
     private NanoHttpServer httpServer;
     private boolean stopped;
     private long uptime;
@@ -72,6 +76,9 @@ public class NanoMaven {
         this.tokenService = new TokenService();
         tokenService.load();
         getLogger().info("");
+
+        this.authenticator = new Authenticator(tokenService);
+        this.metadataService = new MetadataService();
 
         this.repositoryService = new RepositoryService();
         repositoryService.scan(configuration);
@@ -114,12 +121,20 @@ public class NanoMaven {
         return repositoryService;
     }
 
-    public NanoConfiguration getConfiguration() {
-        return configuration;
+    public MetadataService getMetadataService() {
+        return metadataService;
     }
 
     public TokenService getTokenService() {
         return tokenService;
+    }
+
+    public NanoConfiguration getConfiguration() {
+        return configuration;
+    }
+
+    public Authenticator getAuthenticator() {
+        return authenticator;
     }
 
     public static Logger getLogger() {
