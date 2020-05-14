@@ -2,29 +2,22 @@
 #       Nano Maven       #
 # ~~~~~~~~~~~~~~~~~~~~~~ #
 
-# General Repository Name
-repositoryName: NanoMaven Repository
-
 # Hostname
 hostname: ''
 # Port
 port: 80
 
-# Include a repository names in the path
-repositoryPathEnabled: false
-# Enable directory indexing
-indexingEnabled: true
-
-# Root directories of repositories.
+# List of supported Maven repositories.
 # First directory on the list is the main repository.
 repositories:
   - releases
   - snapshots
 
-# Nested Maven
-nestedMaven: true
-# External Maven directory (if 'nested-maven': false)
-externalMaven: /usr/local/share/java/maven33
-
 # Accept deployment connections
 deployEnabled: true
+# Allow to omit name of the main repository in request
+# e.g. /org/panda-lang/nanomaven will be redirected to /releases/org/panda-lang/nanomaven
+rewritePathsEnabled: true
+# Require authentication of all requests (download, head requests)
+# This option should be set to 'false', if you are hosting public repository
+fullAuthEnabled: false

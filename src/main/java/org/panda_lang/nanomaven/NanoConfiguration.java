@@ -16,43 +16,40 @@
 
 package org.panda_lang.nanomaven;
 
+import java.io.Serializable;
 import java.util.List;
 
-public final class NanoConfiguration {
+public final class NanoConfiguration implements Serializable {
 
-    private int port;
     private String hostname;
-
+    private int port;
     private List<String> repositories;
-    private boolean repositoryPathEnabled;
-    private boolean indexingEnabled;
     private boolean deployEnabled;
+    private boolean rewritePathsEnabled;
+    private boolean fullAuthEnabled;
 
-    private boolean nestedMaven;
-    private String externalMaven;
-
-    public boolean isDeployEnabled() {
-        return deployEnabled;
+    public void setHostname(String hostname) {
+        this.hostname = hostname;
     }
 
-    public String getExternalMaven() {
-        return externalMaven;
+    public void setPort(int port) {
+        this.port = port;
     }
 
-    public boolean isNestedMaven() {
-        return nestedMaven;
+    public void setRepositories(List<String> repositories) {
+        this.repositories = repositories;
     }
 
-    public boolean isIndexingEnabled() {
-        return indexingEnabled;
+    public void setDeployEnabled(boolean deployEnabled) {
+        this.deployEnabled = deployEnabled;
     }
 
-    public boolean isRepositoryPathEnabled() {
-        return repositoryPathEnabled;
+    public void setRewritePathsEnabled(boolean rewritePathsEnabled) {
+        this.rewritePathsEnabled = rewritePathsEnabled;
     }
 
-    public List<? extends String> getRepositories() {
-        return repositories;
+    public void setFullAuthEnabled(boolean fullAuthEnabled) {
+        this.fullAuthEnabled = fullAuthEnabled;
     }
 
     public String getHostname() {
@@ -63,36 +60,20 @@ public final class NanoConfiguration {
         return port;
     }
 
-    public void setPort(int port) {
-        this.port = port;
+    public List<String> getRepositories() {
+        return repositories;
     }
 
-    public void setHostname(String hostname) {
-        this.hostname = hostname;
+    public boolean isDeployEnabled() {
+        return deployEnabled;
     }
 
-    public void setRepositories(List<String> repositories) {
-        this.repositories = repositories;
+    public boolean isRewritePathsEnabled() {
+        return rewritePathsEnabled;
     }
 
-    public void setRepositoryPathEnabled(boolean repositoryPathEnabled) {
-        this.repositoryPathEnabled = repositoryPathEnabled;
-    }
-
-    public void setIndexingEnabled(boolean indexingEnabled) {
-        this.indexingEnabled = indexingEnabled;
-    }
-
-    public void setNestedMaven(boolean nestedMaven) {
-        this.nestedMaven = nestedMaven;
-    }
-
-    public void setExternalMaven(String externalMaven) {
-        this.externalMaven = externalMaven;
-    }
-
-    public void setDeployEnabled(boolean deployEnabled) {
-        this.deployEnabled = deployEnabled;
+    public boolean isFullAuthEnabled() {
+        return fullAuthEnabled;
     }
 
 }

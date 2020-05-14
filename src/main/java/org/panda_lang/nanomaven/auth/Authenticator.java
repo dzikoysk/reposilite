@@ -27,7 +27,7 @@ import java.util.Base64;
 
 public final class Authenticator {
 
-    private TokenService tokenService;
+    private final TokenService tokenService;
 
     public Authenticator(TokenService tokenService) {
         this.tokenService = tokenService;
