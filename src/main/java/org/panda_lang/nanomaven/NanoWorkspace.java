@@ -18,7 +18,6 @@ package org.panda_lang.nanomaven;
 
 import org.panda_lang.nanomaven.utils.DirectoryUtils;
 import org.panda_lang.nanomaven.utils.FilesUtils;
-import org.panda_lang.nanomaven.utils.ZipUtils;
 
 public class NanoWorkspace {
 
@@ -38,16 +37,6 @@ public class NanoWorkspace {
         }
         else {
             NanoMaven.getLogger().info("Using an existing repositories directory");
-        }
-
-        // Maven
-        if (!FilesUtils.exists("maven")) {
-            NanoMaven.getLogger().info("Unpacking Maven...");
-            ZipUtils.unzipResource("/apache-maven-3.5.0.zip", "maven");
-            NanoMaven.getLogger().info("Nested Maven has been unpacked");
-        }
-        else {
-            NanoMaven.getLogger().info("Using an existing nested maven library");
         }
 
         // Tokens data

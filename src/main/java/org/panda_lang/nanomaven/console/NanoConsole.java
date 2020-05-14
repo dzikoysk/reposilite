@@ -54,12 +54,6 @@ public class NanoConsole {
             return;
         }
 
-        if (command.equalsIgnoreCase("reinstall-artifacts") || command.equalsIgnoreCase("rs")) {
-            ReinstallArtifactsCommand reinstallArtifactsCommand = new ReinstallArtifactsCommand();
-            reinstallArtifactsCommand.execute(nanoMaven);
-            return;
-        }
-
         if (command.equals("tokens")) {
             TokensListCommand tokensListCommand = new TokensListCommand();
             tokensListCommand.call(nanoMaven);
