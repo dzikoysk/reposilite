@@ -17,6 +17,7 @@
 package org.panda_lang.nanomaven;
 
 import fi.iki.elonen.NanoHTTPD;
+import io.vavr.control.Option;
 import org.panda_lang.nanomaven.frontend.FrontendController;
 import org.panda_lang.nanomaven.repository.RepositoryController;
 import org.panda_lang.nanomaven.temp.TempFileFactory;
@@ -52,6 +53,10 @@ public class NanoHttpServer extends NanoHTTPD {
         }
 
         return repositoryController.serve(this, session);
+    }
+
+    public Option<Throwable> getLatestError() {
+        return repositoryController.getLatestError();
     }
 
     public NanoMaven getNanoMaven() {

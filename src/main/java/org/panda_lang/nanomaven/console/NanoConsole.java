@@ -35,40 +35,42 @@ public class NanoConsole {
     }
 
     // TODO
-    public void execute(String command) {
+    public boolean execute(String command) {
         if (command.trim().isEmpty()) {
-            return;
+            return false;
+        }
+
+        switch (command.toLowerCase()) {
+            case "help":
+                return displayHelp();
+            case "status":
+                return new StatusCommand().call(nanoMaven);
+            case "purge":
+                return new PurgeCommand().call(nanoMaven);
+            case "tokens":
+                return new TokensListCommand().call(nanoMaven);
+            case "stop": 
+                nanoMaven.shutdown();
+                break;
+            default:
+                break;
         }
 
         String[] elements = command.split(" ");
-
-        if (command.equalsIgnoreCase("help")) {
-            HelpCommand helpCommand = new HelpCommand();
-            helpCommand.call(nanoMaven);
-            return;
-        }
-
-        if (command.equalsIgnoreCase("stop")) {
-            StopCommand stopCommand = new StopCommand();
-            stopCommand.call(nanoMaven);
-            return;
-        }
-
-        if (command.equals("tokens")) {
-            TokensListCommand tokensListCommand = new TokensListCommand();
-            tokensListCommand.call(nanoMaven);
-            return;
-        }
-
         command = elements[0];
 
         if (command.equalsIgnoreCase("keygen")) {
             KeygenCommand addUserCommand = new KeygenCommand(nanoMaven.getTokenService(), elements[1], elements[2]);
-            addUserCommand.call(nanoMaven);
-            return;
+            return addUserCommand.call(nanoMaven);
         }
 
-        NanoMaven.getLogger().warn("Unknown command " + elements[0]);
+        NanoMaven.getLogger().warn("Unknown command " + command);
+        return false;
+    }
+
+    public boolean displayHelp() {
+        HelpCommand helpCommand = new HelpCommand();
+        return helpCommand.call(nanoMaven);
     }
 
     public void stop() {

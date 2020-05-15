@@ -34,7 +34,7 @@ public final class KeygenCommand implements NanoCommand {
     }
 
     @Override
-    public void call(NanoMaven nanoMaven) {
+    public boolean call(NanoMaven nanoMaven) {
         if (tokenService.getToken(alias) != null) {
             tokenService.deleteToken(alias);
         }
@@ -49,6 +49,8 @@ public final class KeygenCommand implements NanoCommand {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        return true;
     }
 
 }

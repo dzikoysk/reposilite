@@ -22,12 +22,14 @@ import org.panda_lang.nanomaven.console.NanoCommand;
 public class TokensListCommand implements NanoCommand {
 
     @Override
-    public void call(NanoMaven nanoMaven) {
+    public boolean call(NanoMaven nanoMaven) {
         NanoMaven.getLogger().info("Tokens (" + nanoMaven.getTokenService().count() + ")");
 
         for (Token token : nanoMaven.getTokenService().getTokens()) {
             NanoMaven.getLogger().info(token.getPath() + " as " + token.getAlias());
         }
+
+        return true;
     }
 
 }

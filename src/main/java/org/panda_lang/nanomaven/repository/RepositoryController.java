@@ -18,6 +18,8 @@ package org.panda_lang.nanomaven.repository;
 
 import fi.iki.elonen.NanoHTTPD;
 import fi.iki.elonen.NanoHTTPD.Response.Status;
+import io.vavr.control.Option;
+import org.jetbrains.annotations.Nullable;
 import org.panda_lang.nanomaven.NanoController;
 import org.panda_lang.nanomaven.NanoHttpServer;
 import org.panda_lang.nanomaven.NanoMaven;
@@ -29,6 +31,7 @@ public final class RepositoryController implements NanoController {
 
     private final DownloadController get;
     private final UploadController put;
+    private @Nullable Throwable latestError;
 
     public RepositoryController(NanoMaven nanoMaven) {
         this.get = new DownloadController(nanoMaven);
@@ -43,6 +46,8 @@ public final class RepositoryController implements NanoController {
             return serveOrCatch(server, session);
         } catch (Throwable e) {
             e.printStackTrace();
+
+            this.latestError = e;
             return NanoHTTPD.newFixedLengthResponse(Status.INTERNAL_ERROR, NanoHTTPD.MIME_HTML, "Cannot serve request");
         }
     }
@@ -66,6 +71,10 @@ public final class RepositoryController implements NanoController {
         response.setData(new ByteArrayInputStream(new byte[0]));
         response.setRequestMethod(NanoHTTPD.Method.HEAD);
         return response;
+    }
+
+    public Option<Throwable> getLatestError() {
+        return Option.of(latestError);
     }
 
 }

@@ -20,6 +20,6 @@ import org.panda_lang.nanomaven.NanoMaven;
 
 public interface NanoCommand {
 
-    void call(NanoMaven nanoMaven);
+    boolean call(NanoMaven nanoMaven);
 
 }

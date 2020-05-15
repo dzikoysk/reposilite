@@ -19,17 +19,21 @@ package org.panda_lang.nanomaven.console;
 import org.panda_lang.nanomaven.NanoMaven;
 import org.panda_lang.nanomaven.NanoConstants;
 
-public class HelpCommand implements NanoCommand {
+final class HelpCommand implements NanoCommand {
 
     @Override
-    public void call(NanoMaven nanoMaven) {
+    public boolean call(NanoMaven nanoMaven) {
         NanoMaven.getLogger().info("");
         NanoMaven.getLogger().info("NanoMaven " + NanoConstants.VERSION + " Commands:");
         NanoMaven.getLogger().info("  help - List available commands");
+        NanoMaven.getLogger().info("  status - Display metrics");
         NanoMaven.getLogger().info("  tokens - List all generated tokens");
         NanoMaven.getLogger().info("  keygen <path> <alias> - Generate a new access token for the given path");
+        NanoMaven.getLogger().info("  purge - Clear cache");
         NanoMaven.getLogger().info("  stop - Shutdown server");
         NanoMaven.getLogger().info("");
+
+        return true;
     }
 
 }
