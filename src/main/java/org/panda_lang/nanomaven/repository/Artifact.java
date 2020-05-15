@@ -23,7 +23,7 @@ import java.util.Comparator;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-public class Artifact {
+final class Artifact {
 
     private final String group;
     private final String artifact;
@@ -31,7 +31,7 @@ public class Artifact {
     private final File[] files;
     private String repository;
 
-    public Artifact(String repository, String group, String artifact, String version) {
+    Artifact(String repository, String group, String artifact, String version) {
         this.repository = repository;
         this.group = group;
         this.artifact = artifact;

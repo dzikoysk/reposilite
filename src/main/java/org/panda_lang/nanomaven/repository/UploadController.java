@@ -38,7 +38,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-public class UploadController implements NanoController {
+final class UploadController implements NanoController {
 
     private final NanoConfiguration configuration;
     private final Authenticator authenticator;

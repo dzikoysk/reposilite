@@ -21,13 +21,11 @@ import fi.iki.elonen.NanoHTTPD.Response.Status;
 import org.panda_lang.nanomaven.NanoController;
 import org.panda_lang.nanomaven.NanoHttpServer;
 import org.panda_lang.nanomaven.NanoMaven;
-import org.panda_lang.nanomaven.auth.Authenticator;
-import org.panda_lang.nanomaven.metadata.MetadataService;
 import org.panda_lang.utilities.commons.IOUtils;
 
 import java.io.ByteArrayInputStream;
 
-public class RepositoryController implements NanoController {
+public final class RepositoryController implements NanoController {
 
     private final DownloadController get;
     private final UploadController put;
