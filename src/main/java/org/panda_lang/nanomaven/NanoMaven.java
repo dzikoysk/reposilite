@@ -18,7 +18,6 @@ package org.panda_lang.nanomaven;
 
 import org.panda_lang.nanomaven.auth.Authenticator;
 import org.panda_lang.nanomaven.auth.TokenService;
-import org.panda_lang.nanomaven.console.HelpCommand;
 import org.panda_lang.nanomaven.console.NanoConsole;
 import org.panda_lang.nanomaven.frontend.Frontend;
 import org.panda_lang.nanomaven.frontend.FrontendLoader;
@@ -91,9 +90,7 @@ public class NanoMaven {
         try {
             httpServer.start();
             getLogger().info("Done (" + TimeUtils.getUptime(uptime) + "s)!");
-
-            HelpCommand listCommands = new HelpCommand();
-            listCommands.call(this);
+            console.displayHelp();
         } catch (Exception exception) {
             exception.printStackTrace();
             shutdown();
@@ -111,6 +108,14 @@ public class NanoMaven {
 
         console.stop();
         getLogger().info("Bye! Uptime: " + (TimeUtils.getUptime(uptime) / 60) + "min");
+    }
+
+    public long getUptime() {
+        return System.currentTimeMillis() - uptime;
+    }
+
+    public NanoHttpServer getHttpServer() {
+        return httpServer;
     }
 
     public Frontend getFrontend() {

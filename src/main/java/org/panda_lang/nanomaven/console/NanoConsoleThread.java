@@ -18,12 +18,12 @@ package org.panda_lang.nanomaven.console;
 
 import java.util.Scanner;
 
-public class NanoConsoleThread extends Thread {
+final class NanoConsoleThread extends Thread {
 
     private final NanoConsole console;
     private boolean interrupted;
 
-    public NanoConsoleThread(NanoConsole nanoConsole) {
+    NanoConsoleThread(NanoConsole nanoConsole) {
         this.console = nanoConsole;
     }
 
