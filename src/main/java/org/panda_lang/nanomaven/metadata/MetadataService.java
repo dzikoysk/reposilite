@@ -152,4 +152,12 @@ public final class MetadataService {
         metadataCache.remove(metadataFile.getPath());
     }
 
+    public void purgeCache() {
+        metadataCache.clear();
+    }
+
+    public int getCacheSize() {
+        return metadataCache.size();
+    }
+
 }
