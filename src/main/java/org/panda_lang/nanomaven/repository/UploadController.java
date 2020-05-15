@@ -73,7 +73,6 @@ final class UploadController implements NanoController {
 
         ArtifactFile targetFile = ArtifactFile.fromURL(httpSession.getUri());
 
-
         for (Entry<String, String> entry : files.entrySet()){
             File tempFile = new File(entry.getValue());
 
