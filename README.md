@@ -25,7 +25,7 @@ Requirements: Java 8, ~50MB of memory _(24MB on IDLE)_
 List of available management commands
 
 ```bash
-NanoMaven 2.2.0 Commands:
+NanoMaven 2.2.1 Commands:
   help - List available commands
   tokens - List all generated tokens
   keygen <path> <alias> - Generate a new access token for the given path
