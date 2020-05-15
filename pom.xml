@@ -87,6 +87,11 @@
             <artifactId>snakeyaml</artifactId>
             <version>1.26</version>
         </dependency>
+        <dependency>
+            <groupId>jakarta.xml.bind</groupId>
+            <artifactId>jakarta.xml.bind-api</artifactId>
+            <version>2.3.3</version>
+        </dependency>
 
         <!-- Tests -->
         <dependency>
