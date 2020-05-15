@@ -16,7 +16,7 @@
 
 package org.panda_lang.nanomaven.metadata;
 
-import com.google.common.io.Files;
+import io.vavr.collection.Stream;
 import org.panda_lang.nanomaven.utils.FilesUtils;
 import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.text.ContentJoiner;
@@ -28,7 +28,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Locale;
-import java.util.stream.Stream;
 
 public final class MetadataUtils {
 
@@ -46,33 +45,61 @@ public final class MetadataUtils {
                 .filter(File::isFile)
                 .filter(file -> file.getName().endsWith(".jar"))
                 .sorted(REVERSED_FILE_COMPARATOR) // reversed order
-                .toArray(File[]::new);
+                .toJavaArray(File[]::new);
     }
 
     protected static File[] toSortedVersions(File artifactDirectory) {
         return Stream.of(FilesUtils.listFiles(artifactDirectory))
                 .filter(File::isDirectory)
                 .sorted(REVERSED_FILE_COMPARATOR) // reversed order
-                .toArray(File[]::new);
+                .toJavaArray(File[]::new);
     }
 
     protected static String[] toSortedIdentifiers(String artifact, String version, File[] builds) {
         return Stream.of(builds)
-                .map(File::getName)
-                .map(name -> StringUtils.replace(name, ".jar", StringUtils.EMPTY))
-                .map(name -> StringUtils.replace(name, artifact + "-", StringUtils.EMPTY))
-                .map(name -> StringUtils.replace(name, version + "-", StringUtils.EMPTY))
+                .map(build -> toIdentifier(artifact, version, build))
+                .filterNot(StringUtils::isEmpty)
+                .distinct()
                 .sorted(REVERSED_STRING_COMPARATOR)
-                .toArray(String[]::new);
+                .toJavaArray(String[]::new);
     }
 
-    @SuppressWarnings("UnstableApiUsage")
+    protected static File[] toBuildFiles(File artifactDirectory, String identifier) {
+        return Stream.of(FilesUtils.listFiles(artifactDirectory))
+                .filter(file -> file.getName().contains(identifier + ".") || file.getName().contains(identifier + "-"))
+                .filterNot(file -> file.getName().endsWith(".md5"))
+                .filterNot(file -> file.getName().endsWith(".sha1"))
+                .sorted(REVERSED_FILE_COMPARATOR)
+                .toJavaArray(File[]::new);
+    }
+
     public static String toIdentifier(String artifact, String version, File build) {
         String identifier = build.getName();
-        identifier = StringUtils.replace(identifier, "." + Files.getFileExtension(identifier), StringUtils.EMPTY);
+        identifier = StringUtils.replace(identifier, "." + FilesUtils.getExtension(identifier), StringUtils.EMPTY);
         identifier = StringUtils.replace(identifier, artifact + "-", StringUtils.EMPTY);
         identifier = StringUtils.replace(identifier, version + "-", StringUtils.EMPTY);
-        return identifier;
+        return declassifyIdentifier(identifier);
+    }
+
+    private static String declassifyIdentifier(String identifier) {
+        int occurrences = StringUtils.countOccurrences(identifier, "-");
+
+        // no action required
+        if (occurrences == 0) {
+            return identifier;
+        }
+
+        int occurrence = identifier.indexOf("-");
+
+        // process identifiers without classifier or build number
+        if (occurrences == 1) {
+            return isBuildNumber(identifier.substring(occurrence + 1)) ? identifier : identifier.substring(0, occurrence);
+        }
+
+        // remove classifier
+        return isBuildNumber(identifier.substring(occurrence + 1, identifier.indexOf("-", occurrence + 1)))
+                ? identifier.substring(0, identifier.indexOf("-", occurrence + 1))
+                : identifier.substring(0, occurrence);
     }
 
     protected static String toUpdateTime(File file) {
@@ -93,6 +120,15 @@ public final class MetadataUtils {
         return Arrays.copyOfRange(elements, 0, elements.length - toShrink);
     }
 
+    private static boolean isBuildNumber(String content) {
+        for (char character : content.toCharArray()) {
+            if (!Character.isDigit(character)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
     public static <T> T getLatest(T[] elements) {
         return elements.length > 0 ? elements[0] : null;
     }

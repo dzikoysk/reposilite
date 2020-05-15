@@ -20,6 +20,7 @@ import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
 import org.panda_lang.nanomaven.NanoMaven;
+import org.panda_lang.utilities.commons.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,6 +33,7 @@ public class FilesUtils {
 
     private static final File[] EMPTY = new File[0];
 
+    @SuppressWarnings({ "UnstableApiUsage", "deprecation" })
     public static boolean writeFileChecksums(Path path) {
         try {
             Files.touch(new File(path + ".md5"));
@@ -67,6 +69,15 @@ public class FilesUtils {
     public static File[] listFiles(File directory) {
         File[] files = directory.listFiles();
         return files == null ? EMPTY : files;
+    }
+
+    public static String getExtension(File file) {
+        return getExtension(file.getName());
+    }
+
+    public static String getExtension(String name) {
+        int occurrence = name.lastIndexOf(".");
+        return occurrence == -1 ? StringUtils.EMPTY : name.substring(occurrence + 1);
     }
 
     public static boolean exists(String file) {

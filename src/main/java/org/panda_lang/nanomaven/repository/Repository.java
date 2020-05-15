@@ -21,7 +21,7 @@ import org.panda_lang.nanomaven.metadata.MetadataUtils;
 import java.io.File;
 import java.util.Arrays;
 
-public class Repository {
+public final class Repository {
 
     private final String repositoryName;
     private final String path;

@@ -18,7 +18,7 @@ package org.panda_lang.nanomaven.repository;
 
 import java.io.File;
 
-public class ArtifactFile {
+final class ArtifactFile {
 
     private final String fileName;
     private final String artifactId;
@@ -28,7 +28,7 @@ public class ArtifactFile {
     private final File directory;
     private final File file;
 
-    public ArtifactFile(String fileName, String artifactId, String groupId, String version, String repositoryName, File directory, File file) {
+    ArtifactFile(String fileName, String artifactId, String groupId, String version, String repositoryName, File directory, File file) {
         this.fileName = fileName;
         this.artifactId = artifactId;
         this.groupId = groupId;

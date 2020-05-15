@@ -45,7 +45,7 @@ public final class MetadataService {
 
         if (cachedContent != null) {
             NanoMaven.getLogger().debug("Served cached content");
-            return cachedContent;
+            //return cachedContent;
         }
 
         File artifactDirectory = metadataFile.getParentFile();
@@ -92,23 +92,33 @@ public final class MetadataService {
 
         String[] identifiers = MetadataUtils.toSortedIdentifiers(name, version, builds);
         String latestIdentifier = Objects.requireNonNull(MetadataUtils.getLatest(identifiers));
-
         int buildSeparatorIndex = latestIdentifier.lastIndexOf("-");
+
         String latestTimestamp = latestIdentifier.substring(0, buildSeparatorIndex);
         String latestBuildNumber = latestIdentifier.substring(buildSeparatorIndex + 1);
-        Snapshot snapshot = new Snapshot(latestTimestamp, latestBuildNumber);
 
+        Snapshot snapshot = new Snapshot(latestTimestamp, latestBuildNumber);
         Collection<SnapshotVersion> snapshotVersions = new ArrayList<>(builds.length);
 
-        for (int index = 0; index < identifiers.length; index++) {
-            String updated = MetadataUtils.toUpdateTime(builds[index]);
-            String snapshotValue = version + "-" + identifiers[index];
+        for (String identifier : identifiers) {
+            File[] buildFiles = MetadataUtils.toBuildFiles(versionDirectory, identifier);
 
-            SnapshotVersion snapshotJarVersion = new SnapshotVersion("jar", snapshotValue, updated);
-            snapshotVersions.add(snapshotJarVersion);
+            for (File buildFile : buildFiles) {
+                String fileName = buildFile.getName();
+                String value = version + "-" + identifier;
+                String classifier = FilesUtils.getExtension(buildFile);
+                String updated = MetadataUtils.toUpdateTime(buildFile);
 
-            SnapshotVersion snapshotPomVersion = new SnapshotVersion("pom", snapshotValue, updated);
-            snapshotVersions.add(snapshotPomVersion);
+                if (StringUtils.countOccurrences(fileName, "-") >= 4) {
+                    classifier = fileName
+                            .replace(name + "-", StringUtils.EMPTY)
+                            .replace(value + "-", StringUtils.EMPTY)
+                            .replace("." + classifier, StringUtils.EMPTY);
+                }
+
+                SnapshotVersion snapshotVersion = new SnapshotVersion(classifier, value, updated);
+                snapshotVersions.add(snapshotVersion);
+            }
         }
 
         Versioning versioning = new Versioning(null, null, null, snapshot, snapshotVersions, MetadataUtils.toUpdateTime(latestBuild));

@@ -26,7 +26,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class RepositoryService {
+public final class RepositoryService {
 
     private final Map<String, Repository> repositories;
 

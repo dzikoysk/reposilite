@@ -38,7 +38,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Arrays;
 
-public class DownloadController implements NanoController {
+final class DownloadController implements NanoController {
 
     private final NanoMaven nanoMaven;
     private final NanoConfiguration configuration;
@@ -99,7 +99,7 @@ public class DownloadController implements NanoController {
         }
 
         if (requestedFileName.contains("-SNAPSHOT")) {
-            requestPath = repositoryService.resolveSnapshot(repository, requestPath);
+            repositoryService.resolveSnapshot(repository, requestPath);
         }
 
         Artifact artifact = repository.get(requestPath);
