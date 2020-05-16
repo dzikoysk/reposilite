@@ -5,21 +5,36 @@ It is a simple solution to replace managers like Nexus, Archiva or Artifactory.
 ![Preview](https://user-images.githubusercontent.com/4235722/78812901-73b8c680-79cc-11ea-95d5-9763a53e4240.png)
 
 #### Features
-* [x] Working repository manager
-* [x] Snapshots
-* [x] Deploy
-* [x] Authorization (deploy and downloads)
+* [x] Working Maven repository manager *(example: [repo.panda-lang.org](https://repo.panda-lang.org))*
+* [x] Authorization *(deploy and downloads)*
+* [x] Deploy *(using tokens and BCrypt)*
 * [x] Customizable front page
 * [x] [dependabot](https://dependabot.com/) supported
 * [x] Multiple repositories under a single URL
+* [x] Snapshots
 * [x] CLI
 * [ ] Statistics
 * [ ] Proxy for the specified remote repositories
 * [ ] Admin panel
 
-#### Download
+#### Installation
 Releases: [GitHub Downloads](https://github.com/dzikoysk/NanoMaven/releases) <br>
-Requirements: Java 8, ~50MB of memory _(24MB on IDLE)_
+Requirements: 
+* Java 8+
+* RAM 4MB+
+
+| Amount | Description |
+|:------:|-------------|
+| *4MB* | Tiny repository for personal projects |
+| *8MB* - *32MB* | *------------------------^----------------------* + CI |
+| *48MB - 128MB* | Tiny public repository *(recommended)* |
+| *128MB+* | Public repository | 
+
+To launch NanoMaven with defined amount of RAM, use `Xmx` parameter:
+```bash
+java -Xmx<Amount>M -jar nanomaven.jar
+```
+If you will not define the memory size, NanoMaven will probably use around *~30 to ~250MB*.
 
 #### Guide
 List of available management commands
@@ -27,8 +42,10 @@ List of available management commands
 ```bash
 NanoMaven 2.2.1 Commands:
   help - List available commands
+  status - Display metrics
   tokens - List all generated tokens
   keygen <path> <alias> - Generate a new access token for the given path
+  purge - Clear cache
   stop - Shutdown server
 ```
 
