@@ -40,7 +40,7 @@ If you will not define the memory size, NanoMaven will probably use around *~30 
 List of available management commands
 
 ```bash
-NanoMaven 2.2.1 Commands:
+NanoMaven 2.2.2 Commands:
   help - List available commands
   status - Display metrics
   tokens - List all generated tokens
