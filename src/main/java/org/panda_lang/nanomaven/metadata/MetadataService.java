@@ -45,7 +45,7 @@ public final class MetadataService {
 
         if (cachedContent != null) {
             NanoMaven.getLogger().debug("Served cached content");
-            //return cachedContent;
+            return cachedContent;
         }
 
         File artifactDirectory = metadataFile.getParentFile();
