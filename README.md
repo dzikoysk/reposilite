@@ -26,7 +26,7 @@ Requirements:
 | Amount | Description |
 |:------:|-------------|
 | *4MB* | Tiny repository for personal projects |
-| *8MB* - *32MB* | *------------------------^----------------------* + CI |
+| *8MB* - *32MB* | *---------------------^-------------------* + CI |
 | *48MB - 128MB* | Tiny public repository *(recommended)* |
 | *128MB+* | Public repository | 
 
