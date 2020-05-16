@@ -34,7 +34,6 @@ public class NanoConsole {
         consoleThread.start();
     }
 
-    // TODO
     public boolean execute(String command) {
         if (command.trim().isEmpty()) {
             return false;
@@ -49,6 +48,10 @@ public class NanoConsole {
                 return new PurgeCommand().call(nanoMaven);
             case "tokens":
                 return new TokensListCommand().call(nanoMaven);
+            case "gc":
+                NanoMaven.getLogger().info("[Utility Command] Called gc");
+                System.gc();
+                return true;
             case "stop": 
                 nanoMaven.shutdown();
                 break;
