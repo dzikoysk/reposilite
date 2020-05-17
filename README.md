@@ -2,7 +2,7 @@
 Lightweight repository manager for Maven artifacts. 
 It is a simple solution to replace managers like Nexus, Archiva or Artifactory. 
 
-![Preview](https://user-images.githubusercontent.com/4235722/78812901-73b8c680-79cc-11ea-95d5-9763a53e4240.png)
+![Preview](https://user-images.githubusercontent.com/4235722/82151266-f732c680-985a-11ea-842c-bb53acad794b.png)
 
 #### Features
 * [x] Working Maven repository manager *(example: [repo.panda-lang.org](https://repo.panda-lang.org))*
