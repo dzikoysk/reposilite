@@ -54,7 +54,7 @@ public class NanoConsole {
                 return true;
             case "stop": 
                 nanoMaven.shutdown();
-                break;
+                return true;
             default:
                 break;
         }
