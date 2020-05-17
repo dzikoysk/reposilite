@@ -6,6 +6,7 @@ It is a simple solution to replace managers like Nexus, Archiva or Artifactory.
 
 #### Features
 * [x] Working Maven repository manager *(example: [repo.panda-lang.org](https://repo.panda-lang.org))*
+* [x] Docker image *(repository: [dzikoysk/nanomaven](https://hub.docker.com/r/dzikoysk/nanomaven))*
 * [x] Authorization *(deploy and downloads)*
 * [x] Deploy *(using tokens and BCrypt)*
 * [x] Customizable front page
@@ -19,6 +20,7 @@ It is a simple solution to replace managers like Nexus, Archiva or Artifactory.
 
 #### Installation
 Releases: [GitHub Downloads](https://github.com/dzikoysk/NanoMaven/releases) <br>
+Images: [DockerHub Repository](https://hub.docker.com/r/dzikoysk/nanomaven) <br>
 Requirements: 
 * Java 8+
 * RAM 4MB+
@@ -32,9 +34,14 @@ Requirements:
 
 To launch NanoMaven with defined amount of RAM, use `Xmx` parameter:
 ```bash
-java -Xmx<Amount>M -jar nanomaven.jar
+$ java -Xmx<Amount>M -jar nanomaven.jar
 ```
 If you will not define the memory size, NanoMaven will probably use around *~30 to ~250MB*.
+You may also use NanoMaven through the docker image:
+
+```bash
+$ docker pull dzikoysk/nanomaven
+```
 
 #### Guide
 List of available management commands
