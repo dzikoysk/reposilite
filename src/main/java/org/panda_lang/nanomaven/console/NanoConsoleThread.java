@@ -21,17 +21,17 @@ import java.util.Scanner;
 final class NanoConsoleThread extends Thread {
 
     private final NanoConsole console;
-    private boolean interrupted;
 
     NanoConsoleThread(NanoConsole nanoConsole) {
         this.console = nanoConsole;
+        this.setDaemon(true);
     }
 
     @Override
     public void run() {
         Scanner in = new Scanner(System.in);
 
-        while (!interrupted) {
+        while (!isInterrupted()) {
             String command = in.nextLine();
 
             try {
@@ -40,12 +40,6 @@ final class NanoConsoleThread extends Thread {
                 exception.printStackTrace();
             }
         }
-    }
-
-    @Override
-    public void interrupt() {
-        this.interrupted = true;
-        super.interrupt();
     }
 
 }
