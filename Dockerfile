@@ -1,5 +1,9 @@
+# Build stage
+FROM maven:3.6.0-jdk-14-slim AS build
+COPY ./ /app/
+RUN mvn -f /app/pom.xml clean package
+
+# Run stage
 FROM openjdk:14-alpine
-
-COPY target/nanomaven-*.jar /app/nanomaven.jar
-
-CMD ["java", "-Xmx128M", "-jar", "/app/nanomaven.jar"]
+COPY --from=build /app/target/nanomaven*.jar /app/nanomaven.jar
+ENTRYPOINT [ "java", "-Xmx128M", "-jar", "/app/nanomaven.jar"]
