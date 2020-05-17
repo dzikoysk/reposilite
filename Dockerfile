@@ -1,5 +1,5 @@
 # Build stage
-FROM maven:3.6.0-jdk-14-slim AS build
+FROM maven:3.6.3-openjdk-14-slim AS build
 COPY ./ /app/
 RUN mvn -f /app/pom.xml clean package
 
