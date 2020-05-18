@@ -1,0 +1,23 @@
+# ~~~~~~~~~~~~~~~~~~~~~~ #
+#       Reposilite       #
+# ~~~~~~~~~~~~~~~~~~~~~~ #
+
+# Hostname
+hostname: ''
+# Port
+port: 80
+
+# List of supported Maven repositories.
+# First directory on the list is the main repository.
+repositories:
+  - releases
+  - snapshots
+
+# Accept deployment connections
+deployEnabled: true
+# Allow to omit name of the main repository in request
+# e.g. /org/panda-lang/reposilite will be redirected to /releases/org/panda-lang/reposilite
+rewritePathsEnabled: true
+# Require authentication of all requests (download, head requests)
+# This option should be set to 'false', if you are hosting public repository
+fullAuthEnabled: false

@@ -19,7 +19,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.panda-lang</groupId>
-    <artifactId>nanomaven</artifactId>
+    <artifactId>reposilite</artifactId>
     <version>2.2.2</version>
     <licenses>
         <license>
@@ -31,13 +31,13 @@
 
     <properties>
         <!-- NanoMaven properties -->
-        <nanomaven.version>${project.version}</nanomaven.version>
-        <nanomaven.javaLanguageLevel>1.8</nanomaven.javaLanguageLevel>
-        <nanomaven.javaVersion>1.8</nanomaven.javaVersion>
+        <reposilite.version>${project.version}</reposilite.version>
+        <reposilite.javaLanguageLevel>1.8</reposilite.javaLanguageLevel>
+        <reposilite.javaVersion>1.8</reposilite.javaVersion>
 
         <!-- Maven properties -->
-        <maven.compiler.source>${nanomaven.javaLanguageLevel}</maven.compiler.source>
-        <maven.compiler.target>${nanomaven.javaVersion}</maven.compiler.target>
+        <maven.compiler.source>${reposilite.javaLanguageLevel}</maven.compiler.source>
+        <maven.compiler.target>${reposilite.javaVersion}</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -166,8 +166,8 @@
                     </dependency>
                 </dependencies>
                 <configuration>
-                    <source>${nanomaven.javaLanguageLevel}</source>
-                    <target>${nanomaven.javaVersion}</target>
+                    <source>${reposilite.javaLanguageLevel}</source>
+                    <target>${reposilite.javaVersion}</target>
                 </configuration>
             </plugin>
             <plugin>
@@ -192,8 +192,8 @@
                     <archive>
                         <manifestEntries>
                             <Implementation-Title>NanoMaven</Implementation-Title>
-                            <Implementation-Version>${nanomaven.version}</Implementation-Version>
-                            <Main-Class>org.panda_lang.nanomaven.NanoMaven</Main-Class>
+                            <Implementation-Version>${reposilite.version}</Implementation-Version>
+                            <Main-Class>org.panda_lang.reposilite.Reposilite</Main-Class>
                         </manifestEntries>
                     </archive>
                 </configuration>

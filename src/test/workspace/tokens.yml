@@ -1,3 +1,3 @@
-!!org.panda_lang.nanomaven.auth.TokensCollection
+!!org.panda_lang.reposilite.auth.TokensCollection
 tokens:
 - {alias: admin, path: /, token: $2a$10$Rb2m1vYj7CIW9ve.twvabOMtSp3vnkrsqd08F2Edi3.kGnqjTcWmy}
