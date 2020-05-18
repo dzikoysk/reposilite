@@ -1,4 +1,4 @@
-# Reposilite [![Build Status](https://travis-ci.org/dzikoysk/nanomaven.svg?branch=master)](https://travis-ci.org/dzikoysk/nanomaven)
+# Reposilite [![Build Status](https://travis-ci.org/dzikoysk/reposilite.svg?branch=master)](https://travis-ci.org/dzikoysk/reposilite)
 Reposilite *(formerly NanoMaven)* - lightweight repository manager for Maven artifacts. 
 It is a simple solution to replace managers like Nexus, Archiva or Artifactory. 
 
@@ -6,7 +6,7 @@ It is a simple solution to replace managers like Nexus, Archiva or Artifactory.
 
 #### Features
 * [x] Working Maven repository manager *(example: [repo.panda-lang.org](https://repo.panda-lang.org))*
-* [x] Docker image *(repository: [dzikoysk/nanomaven](https://hub.docker.com/r/dzikoysk/nanomaven))*
+* [x] Docker image *(repository: [dzikoysk/reposilite](https://hub.docker.com/r/dzikoysk/reposilite))*
 * [x] Authorization *(deploy and downloads)*
 * [x] Deploy *(using tokens and BCrypt)*
 * [x] Customizable front page
@@ -19,8 +19,8 @@ It is a simple solution to replace managers like Nexus, Archiva or Artifactory.
 * [ ] Admin panel
 
 #### Installation
-Releases: [GitHub Downloads](https://github.com/dzikoysk/NanoMaven/releases) <br>
-Images: [DockerHub Repository](https://hub.docker.com/r/dzikoysk/nanomaven) <br>
+Releases: [GitHub Downloads](https://github.com/dzikoysk/reposilite/releases) <br>
+Images: [DockerHub Repository](https://hub.docker.com/r/dzikoysk/reposilite) <br>
 Requirements: 
 * Java 8+
 * RAM 4MB+
@@ -32,22 +32,22 @@ Requirements:
 | *48MB - 128MB* | Tiny public repository *(recommended)* |
 | *128MB+* | Public repository | 
 
-To launch NanoMaven with defined amount of RAM, use `Xmx` parameter:
+To launch Reposilite with defined amount of RAM, use `Xmx` parameter:
 ```bash
-$ java -Xmx<Amount>M -jar nanomaven.jar
+$ java -Xmx<Amount>M -jar reposilite.jar
 ```
-If you will not define the memory size, NanoMaven will probably use around *~30 to ~250MB*.
-You may also use NanoMaven through the docker image:
+If you will not define the memory size, Reposilite will probably use around *~30 to ~250MB*.
+You may also use Reposilite through the docker image:
 
 ```bash
-$ docker pull dzikoysk/nanomaven
+$ docker pull dzikoysk/reposilite
 ```
 
 #### Guide
 List of available management commands
 
 ```bash
-NanoMaven 2.2.2 Commands:
+Reposilite 2.3.0 Commands:
   help - List available commands
   status - Display metrics
   tokens - List all generated tokens
@@ -64,13 +64,13 @@ keygen / admin
 19:55:20.692 INFO | AW7-kaXSSXTRVL_Ip9v7ruIiqe56gh96o1XdSrqZCyTX2vUsrZU3roVOfF-YYF-y
 19:55:20.723 INFO | Stored tokens: 1
 
-keygen /org/panda-lang/nanomaven nanomaven
-19:56:09.109 INFO | Generated new access token for nanomaven (/org/panda-lang/nanomaven)
+keygen /org/panda-lang/reposilite reposilite
+19:56:09.109 INFO | Generated new access token for reposilite (/org/panda-lang/reposilite)
 19:56:09.109 INFO | OFnV-2GiZeX0cHpeDvuLo0xjUpU5wNUcpkR4521fG68U9anfqNwKsVkFcQUCK4yk
 19:56:09.114 INFO | Stored tokens: 2
 ```
 
-To use generated token add a new server in your `./m2/settings.xml`  
+To use generated token add a new server in your `~/m2/settings.xml`  
 
 ```xml
 <server>

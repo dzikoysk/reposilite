@@ -6,5 +6,5 @@ RUN mvn -f /app/pom.xml clean package
 # Run stage
 FROM openjdk:14-alpine
 WORKDIR /app
-COPY --from=build /app/target/nanomaven*.jar nanomaven.jar
-ENTRYPOINT [ "java", "-Xmx128M", "-jar", "nanomaven.jar"]
+COPY --from=build /app/target/reposilite*.jar reposilite.jar
+ENTRYPOINT [ "java", "-Xmx128M", "-jar", "reposilite.jar"]
