@@ -1,5 +1,5 @@
-# NanoMaven [![Build Status](https://travis-ci.org/dzikoysk/nanomaven.svg?branch=master)](https://travis-ci.org/dzikoysk/nanomaven)
-Lightweight repository manager for Maven artifacts. 
+# Reposilite [![Build Status](https://travis-ci.org/dzikoysk/nanomaven.svg?branch=master)](https://travis-ci.org/dzikoysk/nanomaven)
+Reposilite *(formerly NanoMaven)* - lightweight repository manager for Maven artifacts. 
 It is a simple solution to replace managers like Nexus, Archiva or Artifactory. 
 
 ![Preview](https://user-images.githubusercontent.com/4235722/82151266-f732c680-985a-11ea-842c-bb53acad794b.png)
