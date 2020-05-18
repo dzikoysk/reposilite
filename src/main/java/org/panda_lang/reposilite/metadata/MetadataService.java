@@ -94,6 +94,11 @@ public final class MetadataService {
         String latestIdentifier = Objects.requireNonNull(MetadataUtils.getLatest(identifiers));
         int buildSeparatorIndex = latestIdentifier.lastIndexOf("-");
 
+        // not a snapshot request, missing build number
+        if (buildSeparatorIndex == -1) {
+            return null;
+        }
+
         String latestTimestamp = latestIdentifier.substring(0, buildSeparatorIndex);
         String latestBuildNumber = latestIdentifier.substring(buildSeparatorIndex + 1);
 
