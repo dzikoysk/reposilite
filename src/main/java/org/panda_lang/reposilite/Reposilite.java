@@ -32,7 +32,7 @@ import java.io.File;
 
 public class Reposilite {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("NanoMaven");
+    private static final Logger LOGGER = LoggerFactory.getLogger("Reposilite");
 
     private Console console;
     private Frontend frontend;
@@ -89,7 +89,7 @@ public class Reposilite {
 
         try {
             httpServer.start();
-            getLogger().info("Done (" + TimeUtils.getUptime(uptime) + "s)!");
+            getLogger().info("Done (" + TimeUtils.format(TimeUtils.getUptime(uptime)) + "s)!");
             console.displayHelp();
         } catch (Exception exception) {
             exception.printStackTrace();
@@ -107,7 +107,7 @@ public class Reposilite {
         httpServer.stop();
 
         console.stop();
-        getLogger().info("Bye! Uptime: " + (TimeUtils.getUptime(uptime) / 60) + "min");
+        getLogger().info("Bye! Uptime: " + TimeUtils.format(TimeUtils.getUptime(uptime) / 60) + "min");
     }
 
     public long getUptime() {

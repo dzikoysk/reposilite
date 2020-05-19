@@ -30,7 +30,7 @@
     </licenses>
 
     <properties>
-        <!-- NanoMaven properties -->
+        <!-- Reposilite properties -->
         <reposilite.version>${project.version}</reposilite.version>
         <reposilite.javaLanguageLevel>1.8</reposilite.javaLanguageLevel>
         <reposilite.javaVersion>1.8</reposilite.javaVersion>
@@ -191,7 +191,7 @@
                 <configuration>
                     <archive>
                         <manifestEntries>
-                            <Implementation-Title>NanoMaven</Implementation-Title>
+                            <Implementation-Title>Reposilite</Implementation-Title>
                             <Implementation-Version>${reposilite.version}</Implementation-Version>
                             <Main-Class>org.panda_lang.reposilite.Reposilite</Main-Class>
                         </manifestEntries>
