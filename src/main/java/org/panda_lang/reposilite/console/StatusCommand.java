@@ -16,8 +16,9 @@
 
 package org.panda_lang.reposilite.console;
 
-import org.panda_lang.reposilite.ReposiliteConstants;
 import org.panda_lang.reposilite.Reposilite;
+import org.panda_lang.reposilite.ReposiliteConstants;
+import org.panda_lang.reposilite.utils.TimeUtils;
 import org.panda_lang.utilities.commons.console.Effect;
 
 final class StatusCommand implements NanoCommand {
@@ -25,10 +26,10 @@ final class StatusCommand implements NanoCommand {
     @Override
     public boolean call(Reposilite reposilite) {
         Reposilite.getLogger().info("");
-        Reposilite.getLogger().info("NanoMaven " + ReposiliteConstants.VERSION + " Status");
+        Reposilite.getLogger().info("Reposilite " + ReposiliteConstants.VERSION + " Status");
         Reposilite.getLogger().info("  Active: " + Effect.GREEN_BOLD + reposilite.getHttpServer().isAlive() + Effect.RESET);
-        Reposilite.getLogger().info("  Uptime: " + format(reposilite.getUptime() / 1000.0 / 60.0) + "min");
-        Reposilite.getLogger().info("  Memory usage of process: " + format((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1024.0D / 1024.0D) + "M");
+        Reposilite.getLogger().info("  Uptime: " + TimeUtils.format(reposilite.getUptime() / 1000.0 / 60.0) + "min");
+        Reposilite.getLogger().info("  Memory usage of process: " + getMemoryUsage());
         Reposilite.getLogger().info("  Cached elements: " + reposilite.getMetadataService().getCacheSize());
         reposilite.getHttpServer().getLatestError().peek(throwable -> Reposilite.getLogger().error(" Latest exception", throwable));
         Reposilite.getLogger().info("");
@@ -36,8 +37,8 @@ final class StatusCommand implements NanoCommand {
         return true;
     }
 
-    private String format(double number) {
-        return String.format("%.2f", number);
+    private String getMemoryUsage() {
+        return TimeUtils.format((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1024.0D / 1024.0D) + "M";
     }
 
 }

@@ -16,11 +16,17 @@
 
 package org.panda_lang.reposilite.utils;
 
-public class TimeUtils {
+public final class TimeUtils {
+
+    private TimeUtils() { }
 
     public static double getUptime(long uptime) {
         long current = System.currentTimeMillis() - uptime;
         return current / 1000D;
+    }
+
+    public static String format(double time) {
+        return String.format("%.2f", time);
     }
 
 }
