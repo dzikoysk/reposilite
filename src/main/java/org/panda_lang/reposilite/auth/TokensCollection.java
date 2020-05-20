@@ -18,7 +18,7 @@ package org.panda_lang.reposilite.auth;
 
 import java.util.List;
 
-public class TokensCollection {
+public final class TokensCollection {
 
     List<Token> tokens;
 

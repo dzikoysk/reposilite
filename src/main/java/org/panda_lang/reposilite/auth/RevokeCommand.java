@@ -21,36 +21,31 @@ import org.panda_lang.reposilite.console.NanoCommand;
 
 import java.io.IOException;
 
-public final class KeygenCommand implements NanoCommand {
+public final class RevokeCommand implements NanoCommand {
 
-    private final String path;
     private final String alias;
 
-    public KeygenCommand(String path, String alias) {
-        this.path = path;
+    public RevokeCommand(String alias) {
         this.alias = alias;
     }
 
     @Override
     public boolean call(Reposilite reposilite) {
-        TokenService tokenService = reposilite.getTokenService();
+        Token token = reposilite.getTokenService().deleteToken(alias);
 
-        if (tokenService.getToken(alias) != null) {
-            tokenService.deleteToken(alias);
+        if (token == null) {
+            Reposilite.getLogger().info("Alias '" + alias + "' not found");
+            return false;
         }
-
-        String token = tokenService.generateToken();
-        tokenService.addToken(new Token(path, alias, TokenService.B_CRYPT_TOKENS_ENCODER.encode(token)));
 
         try {
-            Reposilite.getLogger().info("Generated new access token for " + alias + " (" + path + ")");
-            Reposilite.getLogger().info(token);
-            tokenService.save();
+            reposilite.getTokenService().save();
+            Reposilite.getLogger().info("Token for '" + alias + "' has been revoked");
+            return true;
         } catch (IOException e) {
             e.printStackTrace();
+            return false;
         }
-
-        return true;
     }
 
 }
