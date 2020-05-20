@@ -19,7 +19,7 @@ package org.panda_lang.reposilite.auth;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.console.NanoCommand;
 
-public class TokensListCommand implements NanoCommand {
+public final class TokensListCommand implements NanoCommand {
 
     @Override
     public boolean call(Reposilite reposilite) {

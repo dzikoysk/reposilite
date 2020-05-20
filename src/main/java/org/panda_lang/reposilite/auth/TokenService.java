@@ -25,7 +25,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-public class TokenService {
+public final class TokenService {
 
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
     private static final Base64.Encoder BASE_64_ENCODER = Base64.getUrlEncoder();
@@ -56,8 +56,8 @@ public class TokenService {
         this.tokens.put(token.getAlias(), token);
     }
 
-    public void deleteToken(String alias) {
-        tokens.remove(alias);
+    public Token deleteToken(String alias) {
+        return tokens.remove(alias);
     }
 
     public Token getToken(String alias) {

@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.console;
+package org.panda_lang.reposilite.metadata;
 
 import org.panda_lang.reposilite.Reposilite;
-import org.panda_lang.reposilite.metadata.MetadataService;
+import org.panda_lang.reposilite.console.NanoCommand;
 
-final class PurgeCommand implements NanoCommand {
+public final class PurgeCommand implements NanoCommand {
 
     @Override
     public boolean call(Reposilite reposilite) {

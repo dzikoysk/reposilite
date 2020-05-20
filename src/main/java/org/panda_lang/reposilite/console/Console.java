@@ -18,7 +18,9 @@ package org.panda_lang.reposilite.console;
 
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.auth.KeygenCommand;
+import org.panda_lang.reposilite.auth.RevokeCommand;
 import org.panda_lang.reposilite.auth.TokensListCommand;
+import org.panda_lang.reposilite.metadata.PurgeCommand;
 
 public class Console {
 
@@ -62,13 +64,15 @@ public class Console {
         String[] elements = command.split(" ");
         command = elements[0];
 
-        if (command.equalsIgnoreCase("keygen")) {
-            KeygenCommand addUserCommand = new KeygenCommand(reposilite.getTokenService(), elements[1], elements[2]);
-            return addUserCommand.call(reposilite);
+        switch (command.toLowerCase()) {
+            case "keygen":
+                return new KeygenCommand(elements[1], elements[2]).call(reposilite);
+            case "revoke":
+                return new RevokeCommand(elements[1]).call(reposilite);
+            default:
+                Reposilite.getLogger().warn("Unknown command " + command);
+                return false;
         }
-
-        Reposilite.getLogger().warn("Unknown command " + command);
-        return false;
     }
 
     public boolean displayHelp() {

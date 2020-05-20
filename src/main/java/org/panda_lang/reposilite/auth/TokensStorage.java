@@ -24,7 +24,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
-public class TokensStorage {
+public final class TokensStorage {
 
     private static final File TOKENS_FILE = new File(ReposiliteConstants.TOKENS_FILE_NAME);
 

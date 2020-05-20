@@ -16,7 +16,7 @@
 
 package org.panda_lang.reposilite.auth;
 
-public class Token {
+public final class Token {
 
     private String alias;
     private String path;

@@ -29,6 +29,7 @@ final class HelpCommand implements NanoCommand {
         Reposilite.getLogger().info("  status - Display metrics");
         Reposilite.getLogger().info("  tokens - List all generated tokens");
         Reposilite.getLogger().info("  keygen <path> <alias> - Generate a new access token for the given path");
+        Reposilite.getLogger().info("  revoke <alias> - Revoke token");
         Reposilite.getLogger().info("  purge - Clear cache");
         Reposilite.getLogger().info("  stop - Shutdown server");
         Reposilite.getLogger().info("");
