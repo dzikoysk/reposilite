@@ -16,12 +16,9 @@
 
 package org.panda_lang.reposilite.metadata;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
-@XmlRootElement(name = "snapshotVersion")
-@XmlAccessorType(XmlAccessType.FIELD)
+@JacksonXmlRootElement(localName = "snapshotVersion")
 final class SnapshotVersion {
 
     private String extension;
@@ -38,15 +35,15 @@ final class SnapshotVersion {
 
     }
 
-    String getExtension() {
+    public String getExtension() {
         return extension;
     }
 
-    String getValue() {
+    public String getValue() {
         return value;
     }
 
-    String getUpdated() {
+    public String getUpdated() {
         return updated;
     }
 

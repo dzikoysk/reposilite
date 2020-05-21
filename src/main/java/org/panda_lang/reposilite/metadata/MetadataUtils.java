@@ -27,6 +27,7 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Locale;
 
 public final class MetadataUtils {
@@ -79,6 +80,12 @@ public final class MetadataUtils {
         identifier = StringUtils.replace(identifier, artifact + "-", StringUtils.EMPTY);
         identifier = StringUtils.replace(identifier, version + "-", StringUtils.EMPTY);
         return declassifyIdentifier(identifier);
+    }
+
+    public static List<String> toNames(File[] files) {
+        return Stream.of(files)
+                .map(File::getName)
+                .toJavaList();
     }
 
     private static String declassifyIdentifier(String identifier) {

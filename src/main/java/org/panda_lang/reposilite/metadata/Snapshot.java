@@ -16,12 +16,9 @@
 
 package org.panda_lang.reposilite.metadata;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
-@XmlRootElement(name = "snapshot")
-@XmlAccessorType(XmlAccessType.FIELD)
+@JacksonXmlRootElement(localName = "snapshot")
 final class Snapshot {
 
     private String timestamp;
@@ -36,11 +33,11 @@ final class Snapshot {
 
     }
 
-    String getBuildNumber() {
+    public String getBuildNumber() {
         return buildNumber;
     }
 
-    String getTimestamp() {
+    public String getTimestamp() {
         return timestamp;
     }
 
