@@ -16,6 +16,8 @@
 
 package org.panda_lang.reposilite.repository;
 
+import org.panda_lang.reposilite.Configuration;
+import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.text.ContentJoiner;
 
 import java.io.File;
@@ -26,6 +28,32 @@ public final class RepositoryUtils {
 
     public static File toRequestedFile(Repository repository, String[] requestPath) {
         return new File(repository.getLocalPath() + File.separator + ContentJoiner.on(File.separator).join(requestPath));
+    }
+
+    protected static String normalizeUri(Configuration configuration, String uri) {
+        if (uri.startsWith("/")) {
+            uri = uri.substring(1);
+        }
+
+        if (uri.contains("..")) {
+            return StringUtils.EMPTY;
+        }
+
+        if (!configuration.isRewritePathsEnabled()) {
+            return uri;
+        }
+
+        if (StringUtils.countOccurrences(uri, "/") <= 1) {
+            return uri;
+        }
+
+        for (String repositoryName : configuration.getRepositories()) {
+            if (uri.startsWith(repositoryName)) {
+                return uri;
+            }
+        }
+
+        return configuration.getRepositories().get(0) + "/" + uri;
     }
 
 }

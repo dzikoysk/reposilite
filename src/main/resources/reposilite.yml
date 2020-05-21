@@ -13,6 +13,12 @@ repositories:
   - releases
   - snapshots
 
+# List of proxied repositories.
+# Reposilite will search for an artifact in remote repositories listed below, if the requested artifact was not found.
+# Note: URL cannot contains / at the end
+proxied: []
+# - https://repo.panda-lang.org
+
 # Accept deployment connections
 deployEnabled: true
 # Allow to omit name of the main repository in request
