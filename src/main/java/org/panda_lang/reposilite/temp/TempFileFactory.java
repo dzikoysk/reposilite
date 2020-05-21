@@ -18,7 +18,7 @@ package org.panda_lang.reposilite.temp;
 
 import fi.iki.elonen.NanoHTTPD;
 
-public class TempFileFactory implements NanoHTTPD.TempFileManagerFactory {
+public final class TempFileFactory implements NanoHTTPD.TempFileManagerFactory {
 
     @Override
     public NanoHTTPD.TempFileManager create() {

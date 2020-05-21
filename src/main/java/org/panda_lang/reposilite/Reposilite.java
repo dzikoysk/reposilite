@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
-public class Reposilite {
+public final class Reposilite {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("Reposilite");
 

@@ -22,7 +22,7 @@ import org.panda_lang.reposilite.ReposiliteConstants;
 import java.io.File;
 import java.io.IOException;
 
-public class TempDirectory {
+public final class TempDirectory {
 
     public static final File TEMP = new File(ReposiliteConstants.TEMP_FILE_NAME);
 

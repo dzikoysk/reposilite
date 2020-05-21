@@ -26,10 +26,6 @@ public final class RepositoryUtils {
 
     private RepositoryUtils() { }
 
-    public static File toRequestedFile(Repository repository, String[] requestPath) {
-        return new File(repository.getLocalPath() + File.separator + ContentJoiner.on(File.separator).join(requestPath));
-    }
-
     protected static String normalizeUri(Configuration configuration, String uri) {
         if (uri.startsWith("/")) {
             uri = uri.substring(1);
@@ -54,6 +50,10 @@ public final class RepositoryUtils {
         }
 
         return configuration.getRepositories().get(0) + "/" + uri;
+    }
+
+    public static File toRequestedFile(Repository repository, String[] requestPath) {
+        return new File(repository.getLocalPath() + File.separator + ContentJoiner.on(File.separator).join(requestPath));
     }
 
 }
