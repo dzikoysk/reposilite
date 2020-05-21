@@ -16,19 +16,24 @@
 
 package org.panda_lang.reposilite.repository;
 
+import com.google.api.client.http.GenericUrl;
+import com.google.api.client.http.HttpRequest;
+import com.google.api.client.http.HttpRequestFactory;
+import com.google.api.client.http.HttpResponse;
+import com.google.api.client.http.javanet.NetHttpTransport;
 import fi.iki.elonen.NanoHTTPD;
+import fi.iki.elonen.NanoHTTPD.IHTTPSession;
 import fi.iki.elonen.NanoHTTPD.Response;
 import fi.iki.elonen.NanoHTTPD.Response.Status;
 import org.panda_lang.reposilite.Configuration;
+import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.ReposiliteController;
 import org.panda_lang.reposilite.ReposiliteHttpServer;
-import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.auth.Authenticator;
 import org.panda_lang.reposilite.auth.Session;
 import org.panda_lang.reposilite.metadata.MetadataService;
 import org.panda_lang.reposilite.metadata.MetadataUtils;
 import org.panda_lang.reposilite.utils.Result;
-import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.text.ContentJoiner;
 
 import java.io.File;
@@ -45,6 +50,7 @@ final class DownloadController implements ReposiliteController {
     private final Authenticator authenticator;
     private final MetadataService metadataService;
     private final RepositoryService repositoryService;
+    private final HttpRequestFactory requestFactory;
 
     public DownloadController(Reposilite reposilite) {
         this.reposilite = reposilite;
@@ -52,10 +58,44 @@ final class DownloadController implements ReposiliteController {
         this.authenticator = reposilite.getAuthenticator();
         this.metadataService = reposilite.getMetadataService();
         this.repositoryService = reposilite.getRepositoryService();
+        this.requestFactory = configuration.getProxied().isEmpty() ? null : new NetHttpTransport().createRequestFactory();
     }
 
     @Override
-    public NanoHTTPD.Response serve(ReposiliteHttpServer server, NanoHTTPD.IHTTPSession httpSession) throws IOException {
+    public Response serve(ReposiliteHttpServer server, IHTTPSession httpSession) throws Exception {
+        Response response = serveLocal(httpSession);
+
+        if (response.getStatus().getRequestStatus() == Status.NOT_FOUND.getRequestStatus()) {
+            return serveProxied(httpSession);
+        }
+
+        return response;
+    }
+
+    public Response serveProxied(IHTTPSession httpSession) throws IOException {
+        String uri = httpSession.getUri();
+
+        for (String proxied : configuration.getProxied()) {
+            HttpRequest request = requestFactory.buildGetRequest(new GenericUrl(proxied + uri));
+            request.setThrowExceptionOnExecuteError(false);
+            HttpResponse response = request.execute();
+
+            if (!response.isSuccessStatusCode()) {
+                continue;
+            }
+
+            return NanoHTTPD.newFixedLengthResponse(
+                    Status.lookup(response.getStatusCode()),
+                    response.getMediaType().toString(),
+                    response.getContent(),
+                    response.getContent().available()
+            );
+        }
+
+        return notFound(reposilite, "Artifact not found in local and remote repository");
+    }
+
+    public Response serveLocal(IHTTPSession httpSession) throws IOException {
         if (configuration.isFullAuthEnabled()) {
             Result<Session, Response> authResult = this.authenticator.authUri(httpSession);
 
@@ -64,7 +104,7 @@ final class DownloadController implements ReposiliteController {
             }
         }
 
-        String[] path = normalizeUri(reposilite.getConfiguration(), httpSession.getUri()).split("/");
+        String[] path = RepositoryUtils.normalizeUri(configuration, httpSession.getUri()).split("/");
 
         if (path.length == 0) {
             return notFound(reposilite, "Unsupported request");
@@ -95,7 +135,7 @@ final class DownloadController implements ReposiliteController {
                 return notFound(reposilite, "Metadata not found");
             }
 
-            return NanoHTTPD.newFixedLengthResponse(Status.OK, "text/xml", metadataService.generateMetadata(repository, requestPath));
+            return NanoHTTPD.newFixedLengthResponse(Status.OK, "text/xml", result);
         }
 
         if (requestedFileName.contains("-SNAPSHOT")) {
@@ -121,7 +161,7 @@ final class DownloadController implements ReposiliteController {
             content = new FileInputStream(file);
 
             String mimeType = Files.probeContentType(file.toPath());
-            NanoHTTPD.Response response = NanoHTTPD.newChunkedResponse(NanoHTTPD.Response.Status.OK, mimeType, content);
+            Response response = NanoHTTPD.newChunkedResponse(Response.Status.OK, mimeType, content);
             response.addHeader("Content-Disposition", "attachment; filename=\"" + MetadataUtils.getLast(path) +"\"");
             response.addHeader("Content-Length", String.valueOf(file.length()));
 
@@ -136,34 +176,8 @@ final class DownloadController implements ReposiliteController {
         }
     }
 
-    private String normalizeUri(Configuration configuration, String uri) {
-        if (uri.startsWith("/")) {
-            uri = uri.substring(1);
-        }
-
-        if (uri.contains("..")) {
-            return StringUtils.EMPTY;
-        }
-
-        if (!configuration.isRewritePathsEnabled()) {
-            return uri;
-        }
-
-        if (StringUtils.countOccurrences(uri, "/") <= 1) {
-            return uri;
-        }
-
-        for (String repositoryName : configuration.getRepositories()) {
-            if (uri.startsWith(repositoryName)) {
-                return uri;
-            }
-        }
-
-        return configuration.getRepositories().get(0) + "/" + uri;
-    }
-
-    private NanoHTTPD.Response notFound(Reposilite reposilite, String message) {
-        return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.NOT_FOUND, "text/html", reposilite.getFrontend().forMessage(message));
+    private Response notFound(Reposilite reposilite, String message) {
+        return NanoHTTPD.newFixedLengthResponse(Response.Status.NOT_FOUND, "text/html", reposilite.getFrontend().forMessage(message));
     }
 
 }

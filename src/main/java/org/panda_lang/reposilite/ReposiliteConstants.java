@@ -22,7 +22,7 @@ import static org.fusesource.jansi.Ansi.ansi;
 
 public final class ReposiliteConstants {
 
-    public static final String VERSION = "2.3.2";
+    public static final String VERSION = "2.3.4";
 
     static final String GREETING_MESSAGE = ansi().bold().fg(Color.GREEN).a("Reposilite ").reset().a(ReposiliteConstants.VERSION).reset().toString();
 

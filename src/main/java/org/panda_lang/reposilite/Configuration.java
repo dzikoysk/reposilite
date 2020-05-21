@@ -24,6 +24,7 @@ public final class Configuration implements Serializable {
     private String hostname;
     private int port;
     private List<String> repositories;
+    private List<String> proxied;
     private boolean deployEnabled;
     private boolean rewritePathsEnabled;
     private boolean fullAuthEnabled;
@@ -38,6 +39,10 @@ public final class Configuration implements Serializable {
 
     public void setRepositories(List<String> repositories) {
         this.repositories = repositories;
+    }
+
+    public void setProxied(List<String> proxied) {
+        this.proxied = proxied;
     }
 
     public void setDeployEnabled(boolean deployEnabled) {
@@ -58,6 +63,10 @@ public final class Configuration implements Serializable {
 
     public int getPort() {
         return port;
+    }
+
+    public List<String> getProxied() {
+        return proxied;
     }
 
     public List<String> getRepositories() {

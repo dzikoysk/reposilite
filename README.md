@@ -47,7 +47,7 @@ $ docker pull dzikoysk/reposilite
 List of available management commands
 
 ```bash
-Reposilite 2.3.2 Commands:
+Reposilite 2.3.4 Commands:
   help - List available commands
   status - Display metrics
   tokens - List all generated tokens
@@ -79,3 +79,5 @@ To use generated token add a new server in your `~/m2/settings.xml`
   <password>{token}</password>
 </server>
 ```
+
+#### FAQ
