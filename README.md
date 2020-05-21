@@ -12,10 +12,10 @@ It is a simple solution to replace managers like Nexus, Archiva or Artifactory.
 * [x] Customizable front page
 * [x] [dependabot](https://dependabot.com/) supported
 * [x] Multiple repositories under a single URL
-* [x] Snapshots
 * [x] CLI
+* [x] Snapshots
+* [x] Proxy for the specified remote repositories
 * [ ] Statistics
-* [ ] Proxy for the specified remote repositories
 * [ ] Admin panel
 
 #### Installation
@@ -28,7 +28,7 @@ Requirements:
 | Amount | Description |
 |:------:|-------------|
 | *4MB* | Tiny repository for personal projects |
-| *8MB* - *32MB* | *--------------------^------------------* + CI |
+| *8MB* - *32MB* | *--------------------^------------------* + CI + Proxy |
 | *48MB - 128MB* | Tiny public repository *(recommended)* |
 | *128MB+* | Public repository | 
 
