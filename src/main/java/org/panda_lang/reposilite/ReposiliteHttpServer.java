@@ -24,13 +24,13 @@ import org.panda_lang.reposilite.temp.TempFileFactory;
 
 import java.io.IOException;
 
-public class ReposiliteHttpServer extends NanoHTTPD {
+public final class ReposiliteHttpServer extends NanoHTTPD {
 
     private final Reposilite reposilite;
     private final FrontendController frontendController;
     private final RepositoryController repositoryController;
 
-    public ReposiliteHttpServer(Reposilite reposilite) {
+    ReposiliteHttpServer(Reposilite reposilite) {
         super(reposilite.getConfiguration().getPort());
 
         this.reposilite = reposilite;

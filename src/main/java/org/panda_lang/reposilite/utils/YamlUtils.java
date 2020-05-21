@@ -31,6 +31,8 @@ public final class YamlUtils {
 
     private static final Yaml YAML = new Yaml(REPRESENTER);
 
+    private YamlUtils() { }
+
     public static <T> T load(File file, Class<T> type) throws IOException {
         return YAML.loadAs(FileUtils.getContentOfFile(file), type);
     }

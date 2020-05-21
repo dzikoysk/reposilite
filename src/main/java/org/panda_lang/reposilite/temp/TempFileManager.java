@@ -19,7 +19,7 @@ package org.panda_lang.reposilite.temp;
 import fi.iki.elonen.NanoHTTPD;
 import org.panda_lang.utilities.commons.FileUtils;
 
-public class TempFileManager implements NanoHTTPD.TempFileManager {
+public final class TempFileManager implements NanoHTTPD.TempFileManager {
 
     public void initialize() {
         TempDirectory.TEMP.mkdirs();

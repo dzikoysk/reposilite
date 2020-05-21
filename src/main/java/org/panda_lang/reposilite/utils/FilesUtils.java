@@ -29,9 +29,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public class FilesUtils {
+public final class FilesUtils {
 
     private static final File[] EMPTY = new File[0];
+
+    private FilesUtils() {}
 
     @SuppressWarnings({ "UnstableApiUsage", "deprecation" })
     public static boolean writeFileChecksums(Path path) {

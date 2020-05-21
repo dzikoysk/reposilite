@@ -26,7 +26,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.UUID;
 
-public class TempFile implements NanoHTTPD.TempFile {
+public final class TempFile implements NanoHTTPD.TempFile {
 
     private final File file;
     private OutputStream outputStream;

@@ -16,12 +16,14 @@
 
 package org.panda_lang.reposilite;
 
-import org.panda_lang.reposilite.utils.DirectoryUtils;
 import org.panda_lang.reposilite.utils.FilesUtils;
 
-public class ReposiliteWorkspace {
+import java.io.File;
 
-    public void prepare() {
+final class ReposiliteWorkspace {
+
+    void prepare() {
+        // Configuration
         if (!FilesUtils.exists(ReposiliteConstants.CONFIGURATION_FILE_NAME)) {
             Reposilite.getLogger().info("Generating default configuration file.");
             FilesUtils.copyResource("/reposilite.yml", ReposiliteConstants.CONFIGURATION_FILE_NAME);
@@ -32,7 +34,7 @@ public class ReposiliteWorkspace {
 
         // Repositories
         if (!FilesUtils.exists("repositories")) {
-            DirectoryUtils.createDirectories("repositories/releases", "repositories/snapshots");
+            createDirectories("repositories/releases", "repositories/snapshots");
             Reposilite.getLogger().info("Default repositories have been created");
         }
         else {
@@ -50,6 +52,22 @@ public class ReposiliteWorkspace {
         }
 
         Reposilite.getLogger().info("");
+    }
+
+    private boolean createDirectories(String... dirs) {
+        for (String dir : dirs) {
+            File directory = new File(dir);
+
+            if (directory.exists()) {
+                continue;
+            }
+
+            if (!directory.mkdirs()) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
 }
