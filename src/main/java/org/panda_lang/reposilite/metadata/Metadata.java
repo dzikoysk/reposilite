@@ -16,13 +16,11 @@
 
 package org.panda_lang.reposilite.metadata;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
 import java.io.Serializable;
 
-@XmlRootElement(name = "metadata")
-@XmlAccessorType(XmlAccessType.FIELD)
+@JacksonXmlRootElement(localName = "metadata")
 final class Metadata implements Serializable {
 
     private String groupId;
@@ -41,19 +39,19 @@ final class Metadata implements Serializable {
 
     }
 
-    String getGroupId() {
+    public String getGroupId() {
         return groupId;
     }
 
-    String getArtifactId() {
+    public String getArtifactId() {
         return artifactId;
     }
 
-    String getVersion() {
+    public String getVersion() {
         return version;
     }
 
-    Versioning getVersioning() {
+    public Versioning getVersioning() {
         return versioning;
     }
 

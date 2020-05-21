@@ -16,6 +16,8 @@
 
 package org.panda_lang.reposilite.metadata;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.jetbrains.annotations.Nullable;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.repository.Repository;
@@ -24,9 +26,6 @@ import org.panda_lang.reposilite.utils.FilesUtils;
 import org.panda_lang.utilities.commons.FileUtils;
 import org.panda_lang.utilities.commons.StringUtils;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -38,6 +37,11 @@ import java.util.Objects;
 public final class MetadataService {
 
     private final Map<String, String> metadataCache = new HashMap<>();
+
+    private final XmlMapper xmlMapper = XmlMapper.xmlBuilder()
+            .serializationInclusion(Include.NON_NULL)
+            .defaultUseWrapper(false)
+            .build();
 
     public @Nullable String generateMetadata(Repository repository, String[] requested) throws IOException {
         File metadataFile = RepositoryUtils.toRequestedFile(repository, requested);
@@ -64,15 +68,14 @@ public final class MetadataService {
         return generateSnapshotMetadata(metadataFile, MetadataUtils.toGroup(requested, 3), artifactDirectory);
     }
 
-    private @Nullable String generateArtifactMetadata(File metadataFile, String groupId, File artifactDirectory, File[] list) throws IOException {
-        File latest = MetadataUtils.getLatest(list);
+    private @Nullable String generateArtifactMetadata(File metadataFile, String groupId, File artifactDirectory, File[] versions) throws IOException {
+        File latest = MetadataUtils.getLatest(versions);
 
         if (latest == null) {
             return null;
         }
 
-        Versions versions = Versions.of(list);
-        Versioning versioning = new Versioning(latest.getName(), latest.getName(), versions, null, null, MetadataUtils.toUpdateTime(latest));
+        Versioning versioning = new Versioning(latest.getName(), latest.getName(), MetadataUtils.toNames(versions), null, null, MetadataUtils.toUpdateTime(latest));
         Metadata metadata = new Metadata(groupId, artifactDirectory.getName(), null, versioning);
 
         return toMetadataFile(metadataFile, metadata);
@@ -133,24 +136,15 @@ public final class MetadataService {
     }
 
     private String toMetadataFile(File metadataFile, Metadata metadata) throws IOException {
-        try {
-            JAXBContext jaxbContext = JAXBContext.newInstance(Metadata.class);
-            Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
-            jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-            jaxbMarshaller.marshal(metadata, metadataFile);
-        } catch (JAXBException e) {
-            Reposilite.getLogger().error("Internal error in " + metadataFile.getPath(), e);
-            return null;
-        }
+        String serializedMetadata = xmlMapper.writeValueAsString(metadata);
+        FileUtils.overrideFile(metadataFile, serializedMetadata);
+        metadataCache.put(metadataFile.getPath(), serializedMetadata);
 
         if (!FilesUtils.writeFileChecksums(metadataFile.toPath())) {
             Reposilite.getLogger().error("Cannot write metadata checksums");
         }
 
-        String content = FileUtils.getContentOfFile(metadataFile);
-        metadataCache.put(metadataFile.getPath(), content);
-
-        return content;
+        return serializedMetadata;
     }
 
     public void clearMetadata(File metadataFile) {

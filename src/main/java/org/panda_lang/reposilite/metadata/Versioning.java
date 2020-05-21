@@ -16,27 +16,27 @@
 
 package org.panda_lang.reposilite.metadata;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
-import javax.xml.bind.annotation.XmlRootElement;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
 import java.util.Collection;
 
-@XmlRootElement(name = "versioning")
-@XmlAccessorType(XmlAccessType.FIELD)
+@JacksonXmlRootElement(localName = "versioning")
 final class Versioning {
 
     private String release;
     private String latest;
-    private Versions versions;
+    @JacksonXmlElementWrapper(localName = "versions")
+    @JacksonXmlProperty(localName = "version")
+    private Collection<String> versions;
     private Snapshot snapshot;
-    @XmlElementWrapper(name = "snapshotVersions")
-    @XmlElement(name = "snapshotVersion")
+    @JacksonXmlElementWrapper(localName = "snapshotVersions")
+    @JacksonXmlProperty(localName = "snapshotVersion")
     private Collection<SnapshotVersion> snapshotVersions;
     private String lastUpdated;
 
-    Versioning(String release, String latest, Versions versions, Snapshot snapshot, Collection<SnapshotVersion> snapshotVersions, String lastUpdated) {
+    Versioning(String release, String latest, Collection<String> versions, Snapshot snapshot, Collection<SnapshotVersion> snapshotVersions, String lastUpdated) {
         this.release = release;
         this.latest = latest;
         this.versions = versions;
@@ -49,27 +49,27 @@ final class Versioning {
 
     }
 
-    String getRelease() {
+    public String getRelease() {
         return release;
     }
 
-    String getLatest() {
+    public String getLatest() {
         return latest;
     }
 
-    Versions getVersions() {
+    public Collection<String> getVersions() {
         return versions;
     }
 
-    Snapshot getSnapshot() {
+    public Snapshot getSnapshot() {
         return snapshot;
     }
 
-    Collection<SnapshotVersion> getSnapshotVersions() {
+    public Collection<SnapshotVersion> getSnapshotVersions() {
         return snapshotVersions;
     }
 
-    String getLastUpdated() {
+    public String getLastUpdated() {
         return lastUpdated;
     }
 
