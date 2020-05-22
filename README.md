@@ -15,6 +15,7 @@ It is a simple solution to replace managers like Nexus, Archiva or Artifactory.
 * [x] CLI
 * [x] Snapshots
 * [x] Proxy for the specified remote repositories
+* [ ] Multithreaded 
 * [ ] Statistics
 * [ ] Admin panel
 
