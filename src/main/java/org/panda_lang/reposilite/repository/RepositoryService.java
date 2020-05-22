@@ -16,7 +16,7 @@
 
 package org.panda_lang.reposilite.repository;
 
-import org.panda_lang.reposilite.Configuration;
+import org.panda_lang.reposilite.config.Configuration;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.metadata.MetadataUtils;
 import org.panda_lang.utilities.commons.StringUtils;
@@ -28,16 +28,35 @@ import java.util.Map;
 
 public final class RepositoryService {
 
+    private final File rootDirectory = new File("repositories");
     private final Map<String, Repository> repositories;
 
     public RepositoryService() {
         this.repositories = new LinkedHashMap<>(2);
     }
 
-    public void scan(Configuration configuration) {
-        File rootDirectory = new File("repositories");
-        repositories.clear();
+    public void load(Configuration configuration) {
+        Reposilite.getLogger().info("--- Loading repository");
 
+        if (rootDirectory.mkdirs()) {
+            Reposilite.getLogger().info("Default repository directory has been created");
+        }
+        else {
+            Reposilite.getLogger().info("Using an existing repository directory");
+        }
+
+        for (String repository : configuration.getRepositories()) {
+            File repositoryDirectory = new File(rootDirectory, repository);
+
+            if (repositoryDirectory.mkdirs()) {
+                Reposilite.getLogger().info("+ Repository '" + repository + "' has been created");
+            }
+        }
+
+        Reposilite.getLogger().info("");
+    }
+
+    public void scan(Configuration configuration) {
         Reposilite.getLogger().info("--- Scanning to find repositories");
 
         for (String repositoryName : configuration.getRepositories()) {

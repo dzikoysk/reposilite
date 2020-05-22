@@ -16,7 +16,7 @@
 
 package org.panda_lang.reposilite.repository;
 
-import org.panda_lang.reposilite.Configuration;
+import org.panda_lang.reposilite.config.Configuration;
 import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.text.ContentJoiner;
 

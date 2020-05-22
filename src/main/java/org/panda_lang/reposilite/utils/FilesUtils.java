@@ -82,8 +82,4 @@ public final class FilesUtils {
         return occurrence == -1 ? StringUtils.EMPTY : name.substring(occurrence + 1);
     }
 
-    public static boolean exists(String file) {
-        return new File(file).exists();
-    }
-
 }
