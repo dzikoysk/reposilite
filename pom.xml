@@ -48,6 +48,11 @@
             <version>2.3.1</version>
         </dependency>
         <dependency>
+            <groupId>io.projectreactor.netty</groupId>
+            <artifactId>reactor-netty</artifactId>
+            <version>0.9.7.RELEASE</version>
+        </dependency>
+        <dependency>
             <groupId>org.panda-lang</groupId>
             <artifactId>panda-utilities</artifactId>
             <version>indev-20.5.18</version>

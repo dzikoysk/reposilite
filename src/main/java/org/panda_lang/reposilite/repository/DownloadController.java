@@ -25,7 +25,7 @@ import fi.iki.elonen.NanoHTTPD;
 import fi.iki.elonen.NanoHTTPD.IHTTPSession;
 import fi.iki.elonen.NanoHTTPD.Response;
 import fi.iki.elonen.NanoHTTPD.Response.Status;
-import org.panda_lang.reposilite.Configuration;
+import org.panda_lang.reposilite.config.Configuration;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.ReposiliteController;
 import org.panda_lang.reposilite.ReposiliteHttpServer;

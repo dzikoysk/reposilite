@@ -25,11 +25,13 @@ import java.io.IOException;
 public final class FrontendLoader {
 
     public Frontend loadFrontend(String frontendFile) throws IOException {
-        if (!FilesUtils.exists(frontendFile)) {
+        File frontend = new File(frontendFile);
+
+        if (!frontend.exists()) {
             FilesUtils.copyResource("/index.html", frontendFile);
         }
 
-        return new Frontend(FileUtils.getContentOfFile(new File(frontendFile)));
+        return new Frontend(FileUtils.getContentOfFile(frontend));
     }
 
 }

@@ -18,17 +18,16 @@ package org.panda_lang.reposilite;
 
 import org.panda_lang.reposilite.auth.Authenticator;
 import org.panda_lang.reposilite.auth.TokenService;
+import org.panda_lang.reposilite.config.Configuration;
+import org.panda_lang.reposilite.config.ConfigurationLoader;
 import org.panda_lang.reposilite.console.Console;
 import org.panda_lang.reposilite.frontend.Frontend;
 import org.panda_lang.reposilite.frontend.FrontendLoader;
 import org.panda_lang.reposilite.metadata.MetadataService;
 import org.panda_lang.reposilite.repository.RepositoryService;
 import org.panda_lang.reposilite.utils.TimeUtils;
-import org.panda_lang.reposilite.utils.YamlUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
 
 public final class Reposilite {
 
@@ -56,11 +55,11 @@ public final class Reposilite {
         getLogger().info("");
 
         Reposilite.getLogger().info("--- Preparing workspace");
-        ReposiliteWorkspace workspace = new ReposiliteWorkspace();
-        workspace.prepare();
+        ConfigurationLoader configurationLoader = new ConfigurationLoader();
+        this.configuration = configurationLoader.load();
 
-        File configurationFile = new File(ReposiliteConstants.CONFIGURATION_FILE_NAME);
-        this.configuration = YamlUtils.load(configurationFile, Configuration.class);
+        // ReposiliteReactiveHttpServer reactiveHttpServer = new ReposiliteReactiveHttpServer(this);
+        // reactiveHttpServer.start(configuration);
 
         this.console = new Console(this);
         console.hook();
@@ -80,6 +79,7 @@ public final class Reposilite {
         this.metadataService = new MetadataService();
 
         this.repositoryService = new RepositoryService();
+        repositoryService.load(configuration);
         repositoryService.scan(configuration);
         getLogger().info("");
 

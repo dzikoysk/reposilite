@@ -16,8 +16,9 @@
 
 package org.panda_lang.reposilite.auth;
 
-import org.panda_lang.reposilite.ReposiliteConstants;
 import org.panda_lang.reposilite.Reposilite;
+import org.panda_lang.reposilite.ReposiliteConstants;
+import org.panda_lang.reposilite.utils.FilesUtils;
 import org.panda_lang.reposilite.utils.YamlUtils;
 
 import java.io.File;
@@ -35,6 +36,15 @@ public final class TokensStorage {
     }
 
     public void loadTokens() throws IOException {
+        if (!TOKENS_FILE.exists()) {
+            Reposilite.getLogger().info("Generating tokens data file...");
+            FilesUtils.copyResource("/tokens.yml", ReposiliteConstants.TOKENS_FILE_NAME);
+            Reposilite.getLogger().info("Empty tokens file has been generated");
+        }
+        else {
+            Reposilite.getLogger().info("Using an existing tokens data file");
+        }
+
         TokensCollection tokensCollection = YamlUtils.load(TOKENS_FILE, TokensCollection.class);
 
         for (Token token : tokensCollection.getTokens()) {
