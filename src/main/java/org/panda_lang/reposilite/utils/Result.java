@@ -19,6 +19,8 @@ package org.panda_lang.reposilite.utils;
 import io.vavr.control.Option;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.Supplier;
+
 public final class Result<V, E> {
 
     private final @Nullable V value;
@@ -27,6 +29,14 @@ public final class Result<V, E> {
     Result(@Nullable V value, @Nullable E error) {
         this.value = value;
         this.error = error;
+    }
+
+    public Result<V, E> orElse(Supplier<Result<V, E>> orElse) {
+        return isDefined() ? this : orElse.get();
+    }
+
+    public boolean isDefined() {
+        return getValue().isDefined();
     }
 
     public Option<V> getValue() {

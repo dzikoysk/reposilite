@@ -40,7 +40,7 @@ public final class Reposilite {
     private MetadataService metadataService;
     private RepositoryService repositoryService;
     private Configuration configuration;
-    private ReposiliteHttpServer httpServer;
+    private ReposiliteHttpServer reactiveHttpServer;
     private boolean stopped;
     private long uptime;
 
@@ -57,9 +57,6 @@ public final class Reposilite {
         Reposilite.getLogger().info("--- Preparing workspace");
         ConfigurationLoader configurationLoader = new ConfigurationLoader();
         this.configuration = configurationLoader.load();
-
-        // ReposiliteReactiveHttpServer reactiveHttpServer = new ReposiliteReactiveHttpServer(this);
-        // reactiveHttpServer.start(configuration);
 
         this.console = new Console(this);
         console.hook();
@@ -84,17 +81,13 @@ public final class Reposilite {
         getLogger().info("");
 
         getLogger().info("Binding server at *::" + configuration.getPort());
-        this.httpServer = new ReposiliteHttpServer(this);
         this.uptime = System.currentTimeMillis();
 
-        try {
-            httpServer.start();
+        this.reactiveHttpServer = new ReposiliteHttpServer(this);
+        reactiveHttpServer.start(configuration, () -> {
             getLogger().info("Done (" + TimeUtils.format(TimeUtils.getUptime(uptime)) + "s)!");
             console.displayHelp();
-        } catch (Exception exception) {
-            exception.printStackTrace();
-            shutdown();
-        }
+        });
     }
 
     public void shutdown() {
@@ -104,7 +97,7 @@ public final class Reposilite {
         this.stopped = true;
 
         getLogger().info("Shutting down...");
-        httpServer.stop();
+        reactiveHttpServer.stop();
 
         console.stop();
         getLogger().info("Bye! Uptime: " + TimeUtils.format(TimeUtils.getUptime(uptime) / 60) + "min");
@@ -114,8 +107,8 @@ public final class Reposilite {
         return System.currentTimeMillis() - uptime;
     }
 
-    public ReposiliteHttpServer getHttpServer() {
-        return httpServer;
+    public ReposiliteHttpServer getReactiveHttpServer() {
+        return reactiveHttpServer;
     }
 
     public Frontend getFrontend() {

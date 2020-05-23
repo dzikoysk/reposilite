@@ -67,7 +67,6 @@ final class ArtifactFile {
     }
 
     public static ArtifactFile fromURL(String urlPath) {
-        System.out.println(urlPath);
         String[] dirs = urlPath.split("/");
 
         String repositoryName = dirs[0];

@@ -41,5 +41,4 @@ public final class ConfigurationLoader {
         return YamlUtils.load(configurationFile, Configuration.class);
     }
 
-
 }
