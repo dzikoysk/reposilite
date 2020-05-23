@@ -27,11 +27,11 @@ final class StatusCommand implements NanoCommand {
     public boolean call(Reposilite reposilite) {
         Reposilite.getLogger().info("");
         Reposilite.getLogger().info("Reposilite " + ReposiliteConstants.VERSION + " Status");
-        Reposilite.getLogger().info("  Active: " + Effect.GREEN_BOLD + reposilite.getHttpServer().isAlive() + Effect.RESET);
+        Reposilite.getLogger().info("  Active: " + Effect.GREEN_BOLD + reposilite.getReactiveHttpServer().isAlive() + Effect.RESET);
         Reposilite.getLogger().info("  Uptime: " + TimeUtils.format(reposilite.getUptime() / 1000.0 / 60.0) + "min");
         Reposilite.getLogger().info("  Memory usage of process: " + getMemoryUsage());
         Reposilite.getLogger().info("  Cached elements: " + reposilite.getMetadataService().getCacheSize());
-        reposilite.getHttpServer().getLatestError().peek(throwable -> Reposilite.getLogger().error(" Latest exception", throwable));
+        // reposilite.getHttpServer().getLatestError().peek(throwable -> Reposilite.getLogger().error(" Latest exception", throwable));
         Reposilite.getLogger().info("");
 
         return true;

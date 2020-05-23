@@ -15,7 +15,7 @@ It is a simple solution to replace managers like Nexus, Archiva or Artifactory.
 * [x] CLI
 * [x] Snapshots
 * [x] Proxy for the specified remote repositories
-* [ ] Multithreaded 
+* [x] Multithreading
 * [ ] Statistics
 * [ ] Admin panel
 
@@ -24,12 +24,12 @@ Releases: [GitHub Downloads](https://github.com/dzikoysk/reposilite/releases) <b
 Images: [DockerHub Repository](https://hub.docker.com/r/dzikoysk/reposilite) <br>
 Requirements: 
 * Java 8+
-* RAM 4MB+
+* RAM 8MB+
 
 | Amount | Description |
 |:------:|-------------|
-| *4MB* | Tiny repository for personal projects |
-| *8MB* - *32MB* | *--------------------^------------------* + CI + Proxy |
+| *8MB* | Tiny repository for personal projects |
+| *16MB* - *32MB* | *--------------------^------------------* + CI + Proxy |
 | *48MB - 128MB* | Tiny public repository *(recommended)* |
 | *128MB+* | Public repository | 
 
@@ -37,7 +37,7 @@ To launch Reposilite with defined amount of RAM, use `Xmx` parameter:
 ```bash
 $ java -Xmx<Amount>M -jar reposilite.jar
 ```
-If you will not define the memory size, Reposilite will probably use around *~30 to ~250MB*.
+If you will not define the memory size, Reposilite will probably use around *~30MB to ~250MB*.
 You may also use Reposilite through the docker image:
 
 ```bash
@@ -48,7 +48,7 @@ $ docker pull dzikoysk/reposilite
 List of available management commands
 
 ```bash
-Reposilite 2.3.4 Commands:
+Reposilite 2.4.0 Commands:
   help - List available commands
   status - Display metrics
   tokens - List all generated tokens

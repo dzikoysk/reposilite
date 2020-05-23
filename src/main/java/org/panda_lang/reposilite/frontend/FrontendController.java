@@ -16,12 +16,11 @@
 
 package org.panda_lang.reposilite.frontend;
 
-import fi.iki.elonen.NanoHTTPD;
+import io.javalin.http.Context;
+import io.javalin.http.Handler;
 import org.panda_lang.reposilite.Reposilite;
-import org.panda_lang.reposilite.ReposiliteHttpServer;
-import org.panda_lang.reposilite.ReposiliteController;
 
-public class FrontendController implements ReposiliteController {
+public class FrontendController implements Handler {
 
     private final Reposilite reposilite;
 
@@ -30,8 +29,8 @@ public class FrontendController implements ReposiliteController {
     }
 
     @Override
-    public NanoHTTPD.Response serve(ReposiliteHttpServer server, NanoHTTPD.IHTTPSession session) {
-        return NanoHTTPD.newFixedLengthResponse(reposilite.getFrontend().forMessage("maven repository"));
+    public void handle(Context context) {
+        context.header("Content-Type", "text/html").result(reposilite.getFrontend().forMessage("maven repository"));
     }
 
 }

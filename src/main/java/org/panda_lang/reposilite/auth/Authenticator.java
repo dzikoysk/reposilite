@@ -16,10 +16,7 @@
 
 package org.panda_lang.reposilite.auth;
 
-import fi.iki.elonen.NanoHTTPD;
-import fi.iki.elonen.NanoHTTPD.IHTTPSession;
-import fi.iki.elonen.NanoHTTPD.Response;
-import fi.iki.elonen.NanoHTTPD.Response.Status;
+import io.javalin.http.Context;
 import org.panda_lang.reposilite.utils.Result;
 
 import java.nio.charset.StandardCharsets;
@@ -33,8 +30,8 @@ public final class Authenticator {
         this.tokenService = tokenService;
     }
 
-    public Result<Session, Response> authUri(IHTTPSession httpSession) {
-        Result<Session, Response> authResult = auth(httpSession);
+    public Result<Session, String> authUri(Context context) {
+        Result<Session, String> authResult = auth(context);
 
         if (authResult.getError().isDefined()) {
             return authResult;
@@ -42,22 +39,22 @@ public final class Authenticator {
 
         Session session = authResult.getValue().get();
 
-        if (!session.hasPermission(httpSession.getUri())) {
-            return error("Unauthorized access");
+        if (!session.hasPermission(context.req.getRequestURI())) {
+            return Result.error("Unauthorized access");
         }
 
         return authResult;
     }
 
-    public Result<Session, Response> auth(IHTTPSession session) {
-        String authorization = session.getHeaders().get("authorization");
+    public Result<Session, String> auth(Context context) {
+        String authorization = context.header("authorization");
 
         if (authorization == null) {
-            return error("Authorization credentials are not specified");
+            return Result.error("Authorization credentials are not specified");
         }
 
         if (!authorization.startsWith("Basic")) {
-            return error("Unsupported auth method");
+            return Result.error("Unsupported auth method");
         }
 
         String base64Credentials = authorization.substring("Basic".length()).trim();
@@ -66,7 +63,7 @@ public final class Authenticator {
         String[] values = credentials.split(":", 2);
 
         if (values.length != 2) {
-            return error("Invalid authorization credentials");
+            return Result.error("Invalid authorization credentials");
         }
 
         String alias = values[0];
@@ -75,24 +72,20 @@ public final class Authenticator {
         Token token = tokenService.getToken(alias);
 
         if (token == null) {
-            return error("Invalid authorization credentials");
+            return Result.error("Invalid authorization credentials");
         }
 
         boolean authorized = TokenService.B_CRYPT_TOKENS_ENCODER.matches(rawToken, token.getToken());
 
         if (!authorized) {
-            return error("Invalid authorization credentials");
+            return Result.error("Invalid authorization credentials");
         }
 
-        if (!session.getUri().startsWith(token.getPath())) {
-            return error("Invalid authorization credentials");
+        if (!context.req.getRequestURI().startsWith(token.getPath())) {
+            return Result.error("Invalid authorization credentials");
         }
 
         return Result.ok(new Session(token));
-    }
-
-    private Result<Session, Response> error(String message) {
-        return Result.error(NanoHTTPD.newFixedLengthResponse(Status.UNAUTHORIZED, NanoHTTPD.MIME_PLAINTEXT, message));
     }
 
 }

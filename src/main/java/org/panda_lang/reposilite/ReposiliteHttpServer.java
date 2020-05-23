@@ -1,66 +1,49 @@
-/*
- * Copyright (c) 2020 Dzikoysk
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package org.panda_lang.reposilite;
 
-import fi.iki.elonen.NanoHTTPD;
-import io.vavr.control.Option;
+import io.javalin.Javalin;
+import io.javalin.core.JavalinConfig;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
+import org.panda_lang.reposilite.config.Configuration;
 import org.panda_lang.reposilite.frontend.FrontendController;
-import org.panda_lang.reposilite.repository.RepositoryController;
-import org.panda_lang.reposilite.temp.TempFileFactory;
+import org.panda_lang.reposilite.repository.DeployController;
+import org.panda_lang.reposilite.repository.LookupController;
+import org.panda_lang.reposilite.repository.LookupService;
 
-import java.io.IOException;
-
-public final class ReposiliteHttpServer extends NanoHTTPD {
+public final class ReposiliteHttpServer {
 
     private final Reposilite reposilite;
-    private final FrontendController frontendController;
-    private final RepositoryController repositoryController;
+    private Javalin javalin;
 
     ReposiliteHttpServer(Reposilite reposilite) {
-        super(reposilite.getConfiguration().getPort());
-
         this.reposilite = reposilite;
-        this.frontendController = new FrontendController(reposilite);
-        this.repositoryController = new RepositoryController(reposilite);
     }
 
-    @Override
-    public void start() throws IOException {
-        super.setTempFileManagerFactory(new TempFileFactory());
-        super.start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
+    void start(Configuration configuration, Runnable onStart) {
+        LookupService lookupService = new LookupService(reposilite);
+        LookupController lookupController = new LookupController(reposilite.getFrontend(), lookupService);
+
+        this.javalin = Javalin.create(this::config)
+                .get("/", new FrontendController(reposilite))
+                .get("/*", lookupController)
+                .head("/*", lookupController)
+                .put("/*", new DeployController(reposilite))
+                .start(configuration.getHostname(), configuration.getPort());
+
+        onStart.run();
     }
 
-    @Override
-    public Response serve(IHTTPSession session) {
-        Reposilite.getLogger().debug(session.getUri() + " | " + session.getParameters().toString() + " | " + session.getMethod() + " | " + session.getQueryParameterString() + " | " + session.getHeaders().toString());
-
-        if (session.getUri().isEmpty() || session.getUri().equals("/") || session.getUri().startsWith("/#")) {
-            return frontendController.serve(this, session);
-        }
-
-        return repositoryController.serve(this, session);
+    private void config(JavalinConfig config) {
+        config.server(() -> new Server(new QueuedThreadPool(4 * Runtime.getRuntime().availableProcessors())));
+        config.showJavalinBanner = false;
     }
 
-    public Option<Throwable> getLatestError() {
-        return repositoryController.getLatestError();
+    public boolean isAlive() {
+        return true;
     }
 
-    public Reposilite getReposilite() {
-        return reposilite;
+    void stop() {
+        javalin.stop();
     }
 
 }

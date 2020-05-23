@@ -22,6 +22,7 @@ import org.apache.commons.io.FileUtils;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.utilities.commons.StringUtils;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -66,6 +67,16 @@ public final class FilesUtils {
         }
 
         return true;
+    }
+
+    public static void close(Closeable closeable) {
+        if (closeable != null) {
+            try {
+                closeable.close();
+            } catch (IOException e) {
+                // idc
+            }
+        }
     }
 
     public static File[] listFiles(File directory) {
