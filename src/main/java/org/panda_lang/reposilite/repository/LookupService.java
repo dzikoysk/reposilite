@@ -77,10 +77,12 @@ public final class LookupService {
 
         String[] path = RepositoryUtils.normalizeUri(configuration, context.req.getRequestURI()).split("/");
 
-        if (path.length == 0) {
+        // discard invalid requests (less than 'repository/group/artifact')
+        if (path.length < 3) {
             return Result.error("Unsupported request");
         }
 
+        // remove empty element '/x/y/z' before root due to String#split result
         if (path[0].isEmpty()) {
             path = Arrays.copyOfRange(path, 1, path.length);
         }
@@ -91,33 +93,35 @@ public final class LookupService {
             return Result.error("Repository " + path[0] + " not found");
         }
 
+        // remove repository name from path
         String[] requestPath = Arrays.copyOfRange(path, 1, path.length);
 
-        if (requestPath.length == 0) {
+        // discard invalid requests (less than 'group/(artifact OR metadata)')
+        if (requestPath.length < 2) {
             return Result.error("Missing artifact path");
         }
 
         String requestedFileName = requestPath[requestPath.length - 1];
 
         if (requestedFileName.equals("maven-metadata.xml")) {
-            String result;
-
             try {
-                result = metadataService.generateMetadata(repository, requestPath);
+                String result = metadataService.generateMetadata(repository, requestPath);
+
+                if (result == null) {
+                    return Result.error("Metadata not found");
+                }
+
+                return Result.ok(context.contentType("text/xml").result(result));
             } catch (IOException e) {
-                e.printStackTrace();
                 return Result.error("Cannot find metadata file");
             }
-
-            if (result == null) {
-                return Result.error("Metadata not found");
-            }
-
-            return Result.ok(context.contentType("text/xml").result(result));
         }
 
+        // resolve snapshot requests
         if (requestedFileName.contains("-SNAPSHOT")) {
-            repositoryService.resolveSnapshot(repository, requestPath);
+            // ignore inspection to make it clear that 'requestPath' content is updated
+            // noinspection ConstantConditions
+            requestPath = repositoryService.resolveSnapshot(repository, requestPath);
         }
 
         Artifact artifact = repository.get(requestPath);
@@ -126,10 +130,11 @@ public final class LookupService {
             return Result.error("Artifact " + ContentJoiner.on("/").join(requestPath) + " not found");
         }
 
-        File file = artifact.getFile(requestPath[requestPath.length - 1]);
+        requestedFileName = requestPath[requestPath.length - 1];
+        File file = artifact.getFile(requestedFileName);
 
         if (!file.exists()) {
-            Reposilite.getLogger().warn("File " + file.getAbsolutePath() + " doesn't exist");
+            Reposilite.getLogger().warn("File " + file.getAbsolutePath() + " does not exist");
             return Result.error("Artifact " + file.getName() + " not found");
         }
 

@@ -9,6 +9,7 @@ import org.panda_lang.reposilite.frontend.FrontendController;
 import org.panda_lang.reposilite.repository.DeployController;
 import org.panda_lang.reposilite.repository.LookupController;
 import org.panda_lang.reposilite.repository.LookupService;
+import org.panda_lang.utilities.commons.collection.Pair;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -17,7 +18,7 @@ import java.util.Objects;
 public final class ReposiliteHttpServer {
 
     private final Reposilite reposilite;
-    private final Collection<Exception> exceptions;
+    private final Collection<Pair<String, Exception>> exceptions;
     private Javalin javalin;
 
     ReposiliteHttpServer(Reposilite reposilite) {
@@ -36,7 +37,7 @@ public final class ReposiliteHttpServer {
                 .put("/*", new DeployController(reposilite))
                 .exception(Exception.class, (exception, ctx) -> {
                     exception.printStackTrace();
-                    exceptions.add(exception);
+                    exceptions.add(new Pair<>(ctx.req.getRequestURI(), exception));
                 })
                 .start(configuration.getHostname(), configuration.getPort());
 
@@ -56,7 +57,7 @@ public final class ReposiliteHttpServer {
         return Objects.requireNonNull(javalin.server()).server().isRunning();
     }
 
-    public Collection<Exception> getExceptions() {
+    public Collection<Pair<String, Exception>> getExceptions() {
         return exceptions;
     }
 
