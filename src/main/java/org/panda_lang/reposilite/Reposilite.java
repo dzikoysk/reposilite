@@ -107,7 +107,7 @@ public final class Reposilite {
         return System.currentTimeMillis() - uptime;
     }
 
-    public ReposiliteHttpServer getReactiveHttpServer() {
+    public ReposiliteHttpServer getHttpServer() {
         return reactiveHttpServer;
     }
 

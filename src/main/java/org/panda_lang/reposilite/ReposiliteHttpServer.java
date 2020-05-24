@@ -10,13 +10,19 @@ import org.panda_lang.reposilite.repository.DeployController;
 import org.panda_lang.reposilite.repository.LookupController;
 import org.panda_lang.reposilite.repository.LookupService;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Objects;
+
 public final class ReposiliteHttpServer {
 
     private final Reposilite reposilite;
+    private final Collection<Exception> exceptions;
     private Javalin javalin;
 
     ReposiliteHttpServer(Reposilite reposilite) {
         this.reposilite = reposilite;
+        this.exceptions = new ArrayList<>();
     }
 
     void start(Configuration configuration, Runnable onStart) {
@@ -28,6 +34,10 @@ public final class ReposiliteHttpServer {
                 .get("/*", lookupController)
                 .head("/*", lookupController)
                 .put("/*", new DeployController(reposilite))
+                .exception(Exception.class, (exception, ctx) -> {
+                    exception.printStackTrace();
+                    exceptions.add(exception);
+                })
                 .start(configuration.getHostname(), configuration.getPort());
 
         onStart.run();
@@ -38,12 +48,16 @@ public final class ReposiliteHttpServer {
         config.showJavalinBanner = false;
     }
 
-    public boolean isAlive() {
-        return true;
-    }
-
     void stop() {
         javalin.stop();
+    }
+
+    public boolean isAlive() {
+        return Objects.requireNonNull(javalin.server()).server().isRunning();
+    }
+
+    public Collection<Exception> getExceptions() {
+        return exceptions;
     }
 
 }
