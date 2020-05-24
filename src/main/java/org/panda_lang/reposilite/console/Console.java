@@ -45,7 +45,7 @@ public class Console {
             case "help":
                 return displayHelp();
             case "status":
-                return new StatusCommand().call(reposilite);
+                return displayStatus();
             case "purge":
                 return new PurgeCommand().call(reposilite);
             case "tokens":
@@ -76,8 +76,11 @@ public class Console {
     }
 
     public boolean displayHelp() {
-        HelpCommand helpCommand = new HelpCommand();
-        return helpCommand.call(reposilite);
+        return new HelpCommand().call(reposilite);
+    }
+
+    public boolean displayStatus() {
+        return new StatusCommand().call(reposilite);
     }
 
     public void stop() {

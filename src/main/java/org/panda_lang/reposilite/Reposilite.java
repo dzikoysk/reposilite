@@ -16,6 +16,7 @@
 
 package org.panda_lang.reposilite;
 
+import org.fusesource.jansi.Ansi.Color;
 import org.panda_lang.reposilite.auth.Authenticator;
 import org.panda_lang.reposilite.auth.TokenService;
 import org.panda_lang.reposilite.config.Configuration;
@@ -28,6 +29,8 @@ import org.panda_lang.reposilite.repository.RepositoryService;
 import org.panda_lang.reposilite.utils.TimeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static org.fusesource.jansi.Ansi.ansi;
 
 public final class Reposilite {
 
@@ -51,7 +54,7 @@ public final class Reposilite {
 
     public void launch() throws Exception {
         getLogger().info("");
-        getLogger().info(ReposiliteConstants.GREETING_MESSAGE);
+        getLogger().info(ansi().bold().fg(Color.GREEN).a("Reposilite ").reset().a(ReposiliteConstants.VERSION).reset().toString());
         getLogger().info("");
 
         Reposilite.getLogger().info("--- Preparing workspace");
@@ -87,6 +90,9 @@ public final class Reposilite {
         reactiveHttpServer.start(configuration, () -> {
             getLogger().info("Done (" + TimeUtils.format(TimeUtils.getUptime(uptime)) + "s)!");
             console.displayHelp();
+
+            getLogger().info("Collecting status metrics...");
+            console.displayStatus();
         });
     }
 

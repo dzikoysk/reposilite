@@ -19,6 +19,8 @@ package org.panda_lang.reposilite.console;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.ReposiliteConstants;
 import org.panda_lang.reposilite.utils.TimeUtils;
+import org.panda_lang.utilities.commons.IOUtils;
+import org.panda_lang.utilities.commons.collection.Pair;
 import org.panda_lang.utilities.commons.console.Effect;
 
 import java.util.Collection;
@@ -27,28 +29,36 @@ final class StatusCommand implements NanoCommand {
 
     @Override
     public boolean call(Reposilite reposilite) {
+        String latestVersion = getVersion();
+
         Reposilite.getLogger().info("");
         Reposilite.getLogger().info("Reposilite " + ReposiliteConstants.VERSION + " Status");
         Reposilite.getLogger().info("  Active: " + Effect.GREEN_BOLD + reposilite.getHttpServer().isAlive() + Effect.RESET);
         Reposilite.getLogger().info("  Uptime: " + TimeUtils.format(reposilite.getUptime() / 1000.0 / 60.0) + "min");
         Reposilite.getLogger().info("  Memory usage of process: " + getMemoryUsage());
-        Reposilite.getLogger().info("  Cached elements: " + reposilite.getMetadataService().getCacheSize());
+        Reposilite.getLogger().info("  Latest version of reposilite: " + latestVersion);
+        Reposilite.getLogger().info("  Cached metadata: " + reposilite.getMetadataService().getCacheSize());
         printExceptions(reposilite.getHttpServer().getExceptions());
         Reposilite.getLogger().info("");
         return true;
     }
 
-    private void printExceptions(Collection<Exception> exceptions) {
+    private void printExceptions(Collection<Pair<String, Exception>> exceptions) {
         if (exceptions.isEmpty()) {
             return;
         }
 
-        Reposilite.getLogger().info("List of cached exceptions:");
+        Reposilite.getLogger().info("  List of cached exceptions:");
         int count = 0;
 
-        for (Exception throwable : exceptions) {
-            Reposilite.getLogger().error("Exception " + (++count), throwable);
+        for (Pair<String, Exception> exception : exceptions) {
+            Reposilite.getLogger().error("Exception " + (++count) + " at " + exception.getKey() , exception.getValue());
         }
+    }
+
+    private String getVersion() {
+        String latest = IOUtils.getURLContent(ReposiliteConstants.REMOTE_VERSION);
+        return (ReposiliteConstants.VERSION.equals(latest) ? Effect.GREEN : Effect.RED_UNDERLINED) + latest + Effect.RESET;
     }
 
     private String getMemoryUsage() {
