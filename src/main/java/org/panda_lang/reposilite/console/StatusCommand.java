@@ -21,20 +21,34 @@ import org.panda_lang.reposilite.ReposiliteConstants;
 import org.panda_lang.reposilite.utils.TimeUtils;
 import org.panda_lang.utilities.commons.console.Effect;
 
+import java.util.Collection;
+
 final class StatusCommand implements NanoCommand {
 
     @Override
     public boolean call(Reposilite reposilite) {
         Reposilite.getLogger().info("");
         Reposilite.getLogger().info("Reposilite " + ReposiliteConstants.VERSION + " Status");
-        Reposilite.getLogger().info("  Active: " + Effect.GREEN_BOLD + reposilite.getReactiveHttpServer().isAlive() + Effect.RESET);
+        Reposilite.getLogger().info("  Active: " + Effect.GREEN_BOLD + reposilite.getHttpServer().isAlive() + Effect.RESET);
         Reposilite.getLogger().info("  Uptime: " + TimeUtils.format(reposilite.getUptime() / 1000.0 / 60.0) + "min");
         Reposilite.getLogger().info("  Memory usage of process: " + getMemoryUsage());
         Reposilite.getLogger().info("  Cached elements: " + reposilite.getMetadataService().getCacheSize());
-        // reposilite.getHttpServer().getLatestError().peek(throwable -> Reposilite.getLogger().error(" Latest exception", throwable));
+        printExceptions(reposilite.getHttpServer().getExceptions());
         Reposilite.getLogger().info("");
-
         return true;
+    }
+
+    private void printExceptions(Collection<Exception> exceptions) {
+        if (exceptions.isEmpty()) {
+            return;
+        }
+
+        Reposilite.getLogger().info("List of cached exceptions:");
+        int count = 0;
+
+        for (Exception throwable : exceptions) {
+            Reposilite.getLogger().error("Exception " + (++count), throwable);
+        }
     }
 
     private String getMemoryUsage() {
