@@ -16,23 +16,17 @@
 
 package org.panda_lang.reposilite;
 
-import org.fusesource.jansi.Ansi.Color;
-
-import static org.fusesource.jansi.Ansi.ansi;
-
 public final class ReposiliteConstants {
 
     public static final String VERSION = "2.4.0";
 
-    static final String GREETING_MESSAGE = ansi().bold().fg(Color.GREEN).a("Reposilite ").reset().a(ReposiliteConstants.VERSION).reset().toString();
+    public static final String REMOTE_VERSION = "https://raw.githubusercontent.com/dzikoysk/reposilite/master/version";
 
     public static final String CONFIGURATION_FILE_NAME = "reposilite.yml";
 
     public static final String TOKENS_FILE_NAME = "tokens.yml";
 
     public static final String FRONTEND_FILE_NAME = "index.html";
-
-    public static final String TEMP_FILE_NAME = ".temp";
 
     private ReposiliteConstants() { }
 

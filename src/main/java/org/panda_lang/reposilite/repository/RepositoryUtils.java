@@ -26,12 +26,25 @@ public final class RepositoryUtils {
 
     private RepositoryUtils() { }
 
+    /**
+     * Process uri applying following changes:
+     *
+     * <ul>
+     *     <li>Remove root slash</li>
+     *     <li>Remove illegal path modifiers like .. and ~</li>
+     *     <li>Insert repository name if missing</li>
+     * </ul>
+     *
+     * @param configuration the configuration with repositories list
+     * @param uri the uri to process
+     * @return the normalized uri
+     */
     protected static String normalizeUri(Configuration configuration, String uri) {
         if (uri.startsWith("/")) {
             uri = uri.substring(1);
         }
 
-        if (uri.contains("..")) {
+        if (uri.contains("..") || uri.contains("~")) {
             return StringUtils.EMPTY;
         }
 
@@ -52,6 +65,13 @@ public final class RepositoryUtils {
         return configuration.getRepositories().get(0) + "/" + uri;
     }
 
+    /**
+     * Map repository and path array to file
+     *
+     * @param repository the repository of requested file
+     * @param requestPath the path to file
+     * @return the requested file
+     */
     public static File toRequestedFile(Repository repository, String[] requestPath) {
         return new File(repository.getLocalPath() + File.separator + ContentJoiner.on(File.separator).join(requestPath));
     }
