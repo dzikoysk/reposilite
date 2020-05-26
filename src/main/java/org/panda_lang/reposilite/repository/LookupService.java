@@ -68,6 +68,10 @@ public final class LookupService {
     }
 
     protected Result<Context, String> serveProxied(Context context) {
+        if (proxiedExecutor == null) {
+            return Result.error("Proxied repositories are not enabled");
+        }
+
         String uri = context.req.getRequestURI();
 
         if (StringUtils.countOccurrences(uri, "/") < 4) {
