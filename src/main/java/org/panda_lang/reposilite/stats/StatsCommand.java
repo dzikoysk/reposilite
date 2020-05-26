@@ -18,6 +18,7 @@ package org.panda_lang.reposilite.stats;
 
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.console.NanoCommand;
+import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.console.Effect;
 
 import java.util.Map;
@@ -34,7 +35,7 @@ public final class StatsCommand implements NanoCommand {
     }
 
     public StatsCommand(long limiter) {
-        this(limiter, "");
+        this(limiter, StringUtils.EMPTY);
     }
 
     public StatsCommand(String pattern) {
@@ -49,7 +50,7 @@ public final class StatsCommand implements NanoCommand {
 
         if (limiter == -1) {
             double avg = sum / (double) count;
-            limiter = Math.round(1.5 * avg);
+            limiter = (long) Math.floor(1.8 * avg);
         }
 
         Map<String, Integer> stats = statsService.fetchStats(entry -> entry.getValue() >= limiter && entry.getKey().contains(pattern));
@@ -58,7 +59,7 @@ public final class StatsCommand implements NanoCommand {
         Reposilite.getLogger().info("");
         Reposilite.getLogger().info("Statistics: ");
         Reposilite.getLogger().info("  Requests count: " + count + " (sum: " + sum + ")");
-        Reposilite.getLogger().info("  Recorded: " + (stats.isEmpty() ? "[] " : "") +" (limiter: " + highlight(limiter), ", pattern: '" + highlight(pattern) + "')");
+        Reposilite.getLogger().info("  Recorded: " + (stats.isEmpty() ? "[] " : "") +" (limiter: " + highlight(limiter) + ", pattern: '" + highlight(pattern) + "')");
 
         for (Entry<String, Integer> entry : stats.entrySet()) {
             Reposilite.getLogger().info("    " + (++order) + ". (" + entry.getValue() + ") " + entry.getKey());
