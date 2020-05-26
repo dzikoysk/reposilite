@@ -16,6 +16,7 @@
 
 package org.panda_lang.reposilite;
 
+import io.vavr.control.Try;
 import org.fusesource.jansi.Ansi.Color;
 import org.panda_lang.reposilite.auth.Authenticator;
 import org.panda_lang.reposilite.auth.TokenService;
@@ -26,6 +27,7 @@ import org.panda_lang.reposilite.frontend.Frontend;
 import org.panda_lang.reposilite.frontend.FrontendLoader;
 import org.panda_lang.reposilite.metadata.MetadataService;
 import org.panda_lang.reposilite.repository.RepositoryService;
+import org.panda_lang.reposilite.stats.StatsService;
 import org.panda_lang.reposilite.utils.TimeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +42,7 @@ public final class Reposilite {
     private Frontend frontend;
     private Authenticator authenticator;
     private TokenService tokenService;
+    private StatsService statsService;
     private MetadataService metadataService;
     private RepositoryService repositoryService;
     private Configuration configuration;
@@ -64,7 +67,7 @@ public final class Reposilite {
         this.console = new Console(this);
         console.hook();
 
-        Thread shutdownHook = new Thread(this::shutdown);
+        Thread shutdownHook = new Thread(() -> Try.run(this::shutdown).orElseRun(Throwable::printStackTrace));
         Runtime.getRuntime().addShutdownHook(shutdownHook);
 
         FrontendLoader frontendLoader = new FrontendLoader();
@@ -73,6 +76,9 @@ public final class Reposilite {
         getLogger().info("--- Loading data");
         this.tokenService = new TokenService();
         tokenService.load();
+
+        this.statsService = new StatsService();
+        statsService.load();
         getLogger().info("");
 
         this.authenticator = new Authenticator(tokenService);
@@ -96,16 +102,18 @@ public final class Reposilite {
         });
     }
 
-    public void shutdown() {
+    public void shutdown() throws Exception {
         if (stopped) {
             return;
         }
+
         this.stopped = true;
-
         getLogger().info("Shutting down...");
-        reactiveHttpServer.stop();
 
+        statsService.save();
+        reactiveHttpServer.stop();
         console.stop();
+
         getLogger().info("Bye! Uptime: " + TimeUtils.format(TimeUtils.getUptime(uptime) / 60) + "min");
     }
 
@@ -127,6 +135,10 @@ public final class Reposilite {
 
     public MetadataService getMetadataService() {
         return metadataService;
+    }
+
+    public StatsService getStatsService() {
+        return statsService;
     }
 
     public TokenService getTokenService() {
