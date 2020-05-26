@@ -16,8 +16,10 @@ It is a simple solution to replace managers like Nexus, Archiva or Artifactory.
 * [x] Snapshots
 * [x] Proxy for the specified remote repositories
 * [x] Multithreading
-* [ ] Statistics
+* [x] Statistics
+* [ ] REST API
 * [ ] Admin panel
+* [ ] Docs
 
 #### Installation
 Releases: [GitHub Downloads](https://github.com/dzikoysk/reposilite/releases) <br>
@@ -80,5 +82,3 @@ To use generated token add a new server in your `~/m2/settings.xml`
   <password>{token}</password>
 </server>
 ```
-
-#### FAQ
