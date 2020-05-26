@@ -17,6 +17,7 @@
 package org.panda_lang.reposilite.utils;
 
 import org.panda_lang.utilities.commons.FileUtils;
+import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.representer.Representer;
 
@@ -26,7 +27,8 @@ import java.io.IOException;
 public final class YamlUtils {
 
     private static final Representer REPRESENTER = new Representer() {{
-        getPropertyUtils().setSkipMissingProperties(true);
+        this.getPropertyUtils().setSkipMissingProperties(true);
+        this.setDefaultScalarStyle(DumperOptions.ScalarStyle.DOUBLE_QUOTED);
     }};
 
     private static final Yaml YAML = new Yaml(REPRESENTER);

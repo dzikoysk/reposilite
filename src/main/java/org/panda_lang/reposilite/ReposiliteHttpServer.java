@@ -39,6 +39,7 @@ public final class ReposiliteHttpServer {
                     exception.printStackTrace();
                     exceptions.add(new Pair<>(ctx.req.getRequestURI(), exception));
                 })
+                .before(ctx -> reposilite.getStatsService().record(ctx.req.getRequestURI()))
                 .start(configuration.getHostname(), configuration.getPort());
 
         onStart.run();

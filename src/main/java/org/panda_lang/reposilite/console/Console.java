@@ -21,6 +21,7 @@ import org.panda_lang.reposilite.auth.KeygenCommand;
 import org.panda_lang.reposilite.auth.RevokeCommand;
 import org.panda_lang.reposilite.auth.TokensListCommand;
 import org.panda_lang.reposilite.metadata.PurgeCommand;
+import org.panda_lang.reposilite.stats.StatsCommand;
 
 public class Console {
 
@@ -36,7 +37,7 @@ public class Console {
         consoleThread.start();
     }
 
-    public boolean execute(String command) {
+    public boolean execute(String command) throws Exception {
         if (command.trim().isEmpty()) {
             return false;
         }
@@ -65,6 +66,8 @@ public class Console {
         command = elements[0];
 
         switch (command.toLowerCase()) {
+            case "stats":
+                return new StatsCommand(elements.length == 1 ? 2 : Integer.parseInt(elements[1])).call(reposilite);
             case "keygen":
                 return new KeygenCommand(elements[1], elements[2]).call(reposilite);
             case "revoke":

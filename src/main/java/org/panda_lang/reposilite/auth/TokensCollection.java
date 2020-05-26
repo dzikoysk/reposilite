@@ -16,15 +16,12 @@
 
 package org.panda_lang.reposilite.auth;
 
+import java.io.Serializable;
 import java.util.List;
 
-public final class TokensCollection {
+public final class TokensCollection implements Serializable {
 
     List<Token> tokens;
-
-    public TokensCollection() {
-        // deserialize
-    }
 
     public void setTokens(List<Token> tokens) {
         this.tokens = tokens;
