@@ -16,47 +16,40 @@
 
 package org.panda_lang.reposilite.repository;
 
-import org.panda_lang.reposilite.utils.FilesUtils;
+import org.panda_lang.reposilite.metadata.MetadataUtils;
 
 import java.io.File;
-import java.util.Comparator;
-import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 final class Artifact {
 
+    private final String repository;
     private final String group;
     private final String artifact;
     private final String version;
-    private final File[] files;
-    private String repository;
+    private final File[] builds;
 
     Artifact(String repository, String group, String artifact, String version) {
         this.repository = repository;
         this.group = group;
         this.artifact = artifact;
         this.version = version;
-        this.files = Stream.of(FilesUtils.listFiles(getFile("")))
-                .filter(File::isFile)
-                .sorted(Comparator.comparing(File::getName))
-                .toArray(File[]::new);
+        this.builds = MetadataUtils.toFiles(getFile(""));
     }
 
-    public void setRepository(String repository) {
-        this.repository = repository;
+    public File getFile(String fileName) {
+        return new File("repositories/" + repository + "/" + getLocalPath() + MetadataUtils.getLast(fileName.split("/")));
+    }
+
+    public File getLatest() {
+        return MetadataUtils.getLatest(builds);
     }
 
     public String getLocalPath() {
         return group.replace(".", "/") + "/" + artifact + "/" + version + "/";
     }
 
-    public File getFile(String fileName) {
-        String[] parts = fileName.split("/");
-        return new File("repositories/" + repository + "/" + getLocalPath() + parts[parts.length - 1]);
-    }
-
-    public File[] getFiles() {
-        return files;
+    public File[] getBuilds() {
+        return builds;
     }
 
     public String getVersion() {
@@ -71,28 +64,8 @@ final class Artifact {
         return group;
     }
 
-    public String getProjectName() {
-        return getGroup() + "/" + getArtifact();
-    }
-
-    public static Artifact fromPath(String jarPath) {
-        String splitRegex = Pattern.quote(System.getProperty("file.separator"));
-        String[] sides = jarPath.split(splitRegex + "repositories" + splitRegex);
-
-        String path = sides[sides.length - 1];
-        String[] dirs = path.split(splitRegex);
-
-        String repositoryName = dirs[0];
-        String versionDir = dirs[dirs.length - 2];
-        String artifactId = dirs[dirs.length - 3];
-
-        StringBuilder groupIdBuilder = new StringBuilder(dirs[1]);
-        for (int i = 2; i < dirs.length - 3; i++) {
-            groupIdBuilder.append(".").append(dirs[i]);
-        }
-        String groupId = groupIdBuilder.toString();
-
-        return new Artifact(repositoryName, groupId, artifactId, versionDir);
+    public String getRepository() {
+        return repository;
     }
 
 }

@@ -49,7 +49,14 @@ public final class MetadataUtils {
                 .toJavaArray(File[]::new);
     }
 
-    protected static File[] toSortedVersions(File artifactDirectory) {
+    public static File[] toFiles(File directory) {
+        return Stream.of(FilesUtils.listFiles(directory))
+                .filter(File::isFile)
+                .sorted(Comparator.comparing(File::getName))
+                .toJavaArray(File[]::new);
+    }
+
+    public static File[] toSortedVersions(File artifactDirectory) {
         return Stream.of(FilesUtils.listFiles(artifactDirectory))
                 .filter(File::isDirectory)
                 .sorted(REVERSED_FILE_COMPARATOR) // reversed order
