@@ -16,6 +16,7 @@
 
 package org.panda_lang.reposilite.console;
 
+import io.vavr.control.Try;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.auth.KeygenCommand;
 import org.panda_lang.reposilite.auth.RevokeCommand;
@@ -67,7 +68,13 @@ public class Console {
 
         switch (command.toLowerCase()) {
             case "stats":
-                return new StatsCommand(elements.length == 1 ? 2 : Integer.parseInt(elements[1])).call(reposilite);
+                if (elements.length == 1) {
+                    return new StatsCommand(-1).call(reposilite);
+                }
+
+                return Try.ofSupplier(() -> new StatsCommand(Long.parseLong(elements[1])))
+                        .getOrElse(new StatsCommand(elements[1]))
+                        .call(reposilite);
             case "keygen":
                 return new KeygenCommand(elements[1], elements[2]).call(reposilite);
             case "revoke":
