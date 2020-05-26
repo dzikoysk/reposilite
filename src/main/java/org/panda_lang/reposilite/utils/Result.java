@@ -19,7 +19,7 @@ package org.panda_lang.reposilite.utils;
 import io.vavr.control.Option;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.function.Supplier;
+import java.util.function.Function;
 
 public final class Result<V, E> {
 
@@ -31,8 +31,8 @@ public final class Result<V, E> {
         this.error = error;
     }
 
-    public Result<V, E> orElse(Supplier<Result<V, E>> orElse) {
-        return isDefined() ? this : orElse.get();
+    public Result<V, E> orElse(Function<E, Result<V, E>> orElse) {
+        return isDefined() ? this : orElse.apply(error);
     }
 
     public boolean isDefined() {
