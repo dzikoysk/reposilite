@@ -50,7 +50,11 @@ public final class Repository {
             return null;
         }
 
-        return new Artifact(repositoryName, MetadataUtils.toGroup(Arrays.copyOfRange(path, 0, path.length - 3)), path[path.length - 3], path[path.length - 2]);
+        String groupId = MetadataUtils.toGroup(Arrays.copyOfRange(path, 0, path.length - 3));
+        String artifactId = path[path.length - 3];
+        String version = path[path.length - 2];
+
+        return new Artifact(repositoryName, groupId, artifactId, version);
     }
 
     public String getLocalPath() {

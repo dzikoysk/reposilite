@@ -40,7 +40,7 @@ public final class LookupController implements Handler {
 
         Result<Context, String> lookupResponse = lookupService
                 .serveLocal(ctx)
-                .orElse(() ->  lookupService.serveProxied(ctx));
+                .orElse(localError -> lookupService.serveProxied(ctx).orElse(proxiedError -> Result.error(localError)));
 
         lookupResponse.getError().peek(error -> ctx.status(HttpStatus.SC_NOT_FOUND)
                 .contentType("text/html")
