@@ -48,7 +48,7 @@ $ docker pull dzikoysk/reposilite
 List of available management commands
 
 ```bash
-Reposilite 2.4.1 Commands:
+Reposilite 2.4.2 Commands:
   help - List available commands
   status - Display metrics
   tokens - List all generated tokens
