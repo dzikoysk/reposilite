@@ -23,14 +23,18 @@ import com.google.api.client.http.HttpResponse;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import io.javalin.http.Context;
 import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.auth.Authenticator;
 import org.panda_lang.reposilite.auth.Session;
 import org.panda_lang.reposilite.config.Configuration;
+import org.panda_lang.reposilite.frontend.Frontend;
 import org.panda_lang.reposilite.metadata.MetadataService;
 import org.panda_lang.reposilite.metadata.MetadataUtils;
+import org.panda_lang.reposilite.utils.ExecutorsUtils;
 import org.panda_lang.reposilite.utils.FilesUtils;
 import org.panda_lang.reposilite.utils.Result;
+import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.text.ContentJoiner;
 
 import java.io.File;
@@ -40,49 +44,68 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public final class LookupService {
 
+    private final Frontend frontend;
     private final Configuration configuration;
     private final Authenticator authenticator;
     private final MetadataService metadataService;
     private final RepositoryService repositoryService;
     private final HttpRequestFactory requestFactory;
+    private final ExecutorService proxiedExecutor;
 
     public LookupService(Reposilite reposilite) {
+        this.frontend = reposilite.getFrontend();
         this.configuration = reposilite.getConfiguration();
         this.authenticator = reposilite.getAuthenticator();
         this.metadataService = reposilite.getMetadataService();
         this.repositoryService = reposilite.getRepositoryService();
         this.requestFactory = configuration.getProxied().isEmpty() ? null : new NetHttpTransport().createRequestFactory();
+        this.proxiedExecutor = configuration.getProxied().isEmpty() ? null : Executors.newCachedThreadPool();
     }
 
-    Result<Context, String> serveProxied(Context context) {
+    protected Result<Context, String> serveProxied(Context context) {
         String uri = context.req.getRequestURI();
 
-        for (String proxied : configuration.getProxied()) {
-            try {
-                HttpRequest remoteRequest = requestFactory.buildGetRequest(new GenericUrl(proxied + uri));
-                remoteRequest.setThrowExceptionOnExecuteError(false);
-                HttpResponse remoteResponse = remoteRequest.execute();
-
-                if (!remoteResponse.isSuccessStatusCode()) {
-                    continue;
-                }
-
-                return Result.ok(context.status(remoteResponse.getStatusCode())
-                        .contentType(remoteResponse.getContentType())
-                        .header("Content-Length", Objects.toString(remoteResponse.getHeaders().getContentLength(), "0"))
-                        .result(remoteResponse.getContent()));
-            } catch (IOException e) {
-                Reposilite.getLogger().warn("Proxied repository " + proxied + " is unavailable: " + e.getMessage());
-            }
+        if (StringUtils.countOccurrences(uri, "/") < 4) {
+            return Result.error("Invalid proxied request");
         }
 
-        return Result.error("Artifact not found in local and remote repository");
+        return Result.ok(context.result(ExecutorsUtils.submit(proxiedExecutor, future -> {
+            for (String proxied : configuration.getProxied()) {
+                try {
+                    HttpRequest remoteRequest = requestFactory.buildGetRequest(new GenericUrl(proxied + uri));
+                    remoteRequest.setThrowExceptionOnExecuteError(false);
+                    remoteRequest.setConnectTimeout(3000);
+                    remoteRequest.setReadTimeout(10000);
+                    HttpResponse remoteResponse = remoteRequest.execute();
+
+                    if (!remoteResponse.isSuccessStatusCode()) {
+                        continue;
+                    }
+
+                    future.complete(context
+                            .status(remoteResponse.getStatusCode())
+                            .contentType(remoteResponse.getContentType())
+                            .header("Content-Length", Objects.toString(remoteResponse.getHeaders().getContentLength(), "0"))
+                            .result(remoteResponse.getContent()));
+                    return;
+                } catch (IOException e) {
+                    Reposilite.getLogger().warn("Proxied repository " + proxied + " is unavailable: " + e.getMessage());
+                }
+            }
+
+            future.complete(context
+                    .status(HttpStatus.SC_NOT_FOUND)
+                    .contentType("text/html")
+                    .result(frontend.forMessage("Artifact not found in local and remote repository")));
+        })));
     }
 
-    Result<Context, String> serveLocal(Context context) {
+    protected Result<Context, String> serveLocal(Context context) {
         if (configuration.isFullAuthEnabled()) {
             Result<Session, String> authResult = this.authenticator.authUri(context);
 
@@ -131,6 +154,18 @@ public final class LookupService {
             } catch (IOException e) {
                 return Result.error("Cannot find metadata file");
             }
+        }
+
+        if (requestedFileName.equalsIgnoreCase("latest")) {
+            File requestDirectory = new File(repository.getLocalPath() + "/" + ContentJoiner.on("/").join(requestPath)).getParentFile();
+            File[] versions = MetadataUtils.toSortedVersions(requestDirectory);
+            File version = MetadataUtils.getLatest(versions);
+
+            if (version == null) {
+                return Result.error("Latest version not found");
+            }
+
+            return Result.ok(context.result(version.getName()));
         }
 
         // resolve snapshot requests
