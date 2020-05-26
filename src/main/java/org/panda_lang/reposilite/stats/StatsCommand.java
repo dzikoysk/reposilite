@@ -50,7 +50,7 @@ public final class StatsCommand implements NanoCommand {
 
         if (limiter == -1) {
             double avg = sum / (double) count;
-            limiter = Math.round(avg + (0.2 * avg));
+            limiter = Math.round(avg + (0.5 * avg));
         }
 
         Map<String, Integer> stats = statsService.fetchStats(entry -> entry.getValue() >= limiter && entry.getKey().contains(pattern));
