@@ -18,6 +18,7 @@ package org.panda_lang.reposilite.stats;
 
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.console.NanoCommand;
+import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.console.Effect;
 
 import java.util.Map;
@@ -25,21 +26,43 @@ import java.util.Map.Entry;
 
 public final class StatsCommand implements NanoCommand {
 
-    private final int limiter;
+    private final String pattern;
+    private Long limiter;
 
-    public StatsCommand(int limiter) {
+    public StatsCommand(long limiter, String pattern) {
         this.limiter = limiter;
+        this.pattern = pattern;
+    }
+
+    public StatsCommand(long limiter) {
+        this(limiter, "");
+    }
+
+    public StatsCommand(String pattern) {
+        this(0, pattern);
     }
 
     @Override
     public boolean call(Reposilite reposilite) {
         StatsService statsService = reposilite.getStatsService();
-        Map<String, Integer> stats = statsService.fetchStats(entry -> entry.getValue() >= limiter);
+        int count = statsService.countRecords();
+        int sum = statsService.sumRecords();
+
+        if (limiter == -1) {
+            double avg = sum / (double) count;
+            limiter = Math.round(avg + (0.2 * avg));
+        }
+
+        Map<String, Integer> stats = statsService.fetchStats(entry -> entry.getValue() >= limiter && entry.getKey().contains(pattern));
 
         Reposilite.getLogger().info("");
         Reposilite.getLogger().info("Statistics: ");
-        Reposilite.getLogger().info("  Requests count: " + statsService.countRecords() + " (sum: " + statsService.sumRecords() + ")");
-        Reposilite.getLogger().info("  Recorded: " + (stats.isEmpty() ? "[] " : "") + "(list filtered by at least " + Effect.BLACK_BOLD + limiter + Effect.RESET + " recorded requests)");
+        Reposilite.getLogger().info("  Requests count: " + count + " (sum: " + sum + ")");
+        Reposilite.getLogger().info(StringUtils.join(
+                "  Recorded: " + (stats.isEmpty() ? "[] " : ""),
+                " (limiter: " + Effect.BLACK_BOLD + limiter + Effect.RESET, ", pattern: '" + Effect.BLACK_BOLD + pattern + Effect.RESET + "')"
+        ));
+
         int order = 0;
 
         for (Entry<String, Integer> entry : stats.entrySet()) {
