@@ -52,10 +52,16 @@ public final class Reposilite {
 
     public static void main(String[] args) throws Exception {
         Reposilite reposilite = new Reposilite();
-        reposilite.launch();
+        reposilite.launch(args);
     }
 
-    public void launch() throws Exception {
+    public void launch(String[] args) throws Exception {
+        this.console = new Console(this);
+
+        if (console.executeArguments(args)) {
+            return;
+        }
+
         getLogger().info("");
         getLogger().info(ansi().bold().fg(Color.GREEN).a("Reposilite ").reset().a(ReposiliteConstants.VERSION).reset().toString());
         getLogger().info("");
@@ -64,11 +70,9 @@ public final class Reposilite {
         ConfigurationLoader configurationLoader = new ConfigurationLoader();
         this.configuration = configurationLoader.load();
 
-        this.console = new Console(this);
-        console.hook();
-
         Thread shutdownHook = new Thread(() -> Try.run(this::shutdown).orElseRun(Throwable::printStackTrace));
         Runtime.getRuntime().addShutdownHook(shutdownHook);
+        console.hook();
 
         FrontendLoader frontendLoader = new FrontendLoader();
         this.frontend = frontendLoader.loadFrontend(ReposiliteConstants.FRONTEND_FILE_NAME);

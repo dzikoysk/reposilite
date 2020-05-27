@@ -18,11 +18,13 @@ package org.panda_lang.reposilite.console;
 
 import io.vavr.control.Try;
 import org.panda_lang.reposilite.Reposilite;
+import org.panda_lang.reposilite.ReposiliteConstants;
 import org.panda_lang.reposilite.auth.KeygenCommand;
 import org.panda_lang.reposilite.auth.RevokeCommand;
 import org.panda_lang.reposilite.auth.TokensListCommand;
 import org.panda_lang.reposilite.metadata.PurgeCommand;
 import org.panda_lang.reposilite.stats.StatsCommand;
+import org.panda_lang.utilities.commons.ArrayUtils;
 
 public class Console {
 
@@ -46,6 +48,8 @@ public class Console {
         switch (command.toLowerCase()) {
             case "help":
                 return displayHelp();
+            case "version":
+                return displayVersion();
             case "status":
                 return displayStatus();
             case "purge":
@@ -83,6 +87,28 @@ public class Console {
                 Reposilite.getLogger().warn("Unknown command " + command);
                 return false;
         }
+    }
+
+    public boolean executeArguments(String[] arguments) {
+        if (ArrayUtils.isEmpty(arguments)) {
+            return false;
+        }
+
+        String command = arguments[0].toLowerCase();
+
+        switch (command) {
+            case "help":
+                return displayHelp();
+            case "version":
+                return displayVersion();
+            default:
+                return false;
+        }
+    }
+
+    public boolean displayVersion() {
+        Reposilite.getLogger().info("Reposilite " + ReposiliteConstants.VERSION);
+        return true;
     }
 
     public boolean displayHelp() {
