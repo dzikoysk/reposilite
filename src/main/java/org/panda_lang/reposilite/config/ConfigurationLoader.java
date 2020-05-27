@@ -20,9 +20,12 @@ import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.ReposiliteConstants;
 import org.panda_lang.reposilite.utils.FilesUtils;
 import org.panda_lang.reposilite.utils.YamlUtils;
+import org.panda_lang.utilities.commons.ClassUtils;
+import org.panda_lang.utilities.commons.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map.Entry;
 
 public final class ConfigurationLoader {
 
@@ -38,7 +41,37 @@ public final class ConfigurationLoader {
         }
 
         Reposilite.getLogger().info("");
-        return YamlUtils.load(configurationFile, Configuration.class);
+
+        return YamlUtils.load(configurationFile, Configuration.class, properties -> {
+            for (Entry<String, Object> property : properties.entrySet()) {
+                String custom = System.getProperty("reposilite." + property.getKey());
+
+                if (StringUtils.isEmpty(custom) || property.getValue() == null) {
+                    continue;
+                }
+
+                Class<?> type = ClassUtils.getNonPrimitiveClass(property.getValue().getClass());
+                Object customValue;
+
+                if (String.class == type) {
+                    customValue = custom;
+                }
+                else if (Integer.class == type) {
+                    customValue = Integer.parseInt(custom);
+                }
+                else if (Boolean.class == type) {
+                    customValue = Boolean.parseBoolean(custom);
+                }
+                else {
+                    Reposilite.getLogger().info("Unsupported type: " + type + " for " + custom);
+                    continue;
+                }
+
+                property.setValue(customValue);
+            }
+
+            return properties;
+        });
     }
 
 }
