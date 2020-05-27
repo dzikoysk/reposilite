@@ -26,8 +26,10 @@ import java.util.Map.Entry;
 
 public final class StatsCommand implements NanoCommand {
 
+    private static final int TOP_SIZE = 15;
+
     private final String pattern;
-    private Long limiter;
+    private final long limiter;
 
     public StatsCommand(long limiter, String pattern) {
         this.limiter = limiter;
@@ -45,24 +47,22 @@ public final class StatsCommand implements NanoCommand {
     @Override
     public boolean call(Reposilite reposilite) {
         StatsService statsService = reposilite.getStatsService();
-        int count = statsService.countRecords();
-        int sum = statsService.sumRecords();
 
-        if (limiter == -1) {
-            double avg = sum / (double) count;
-            limiter = (long) Math.floor(1.8 * avg);
-        }
+        Reposilite.getLogger().info("");
+        Reposilite.getLogger().info("Statistics: ");
+        Reposilite.getLogger().info("  Requests count: " + statsService.countRecords() + " (sum: " + statsService.sumRecords() + ")");
 
         Map<String, Integer> stats = statsService.fetchStats(entry -> entry.getValue() >= limiter && entry.getKey().contains(pattern));
         int order = 0;
 
-        Reposilite.getLogger().info("");
-        Reposilite.getLogger().info("Statistics: ");
-        Reposilite.getLogger().info("  Requests count: " + count + " (sum: " + sum + ")");
         Reposilite.getLogger().info("  Recorded: " + (stats.isEmpty() ? "[] " : "") +" (limiter: " + highlight(limiter) + ", pattern: '" + highlight(pattern) + "')");
 
         for (Entry<String, Integer> entry : stats.entrySet()) {
             Reposilite.getLogger().info("    " + (++order) + ". (" + entry.getValue() + ") " + entry.getKey());
+
+            if (limiter == -1 && order == TOP_SIZE) {
+                break;
+            }
         }
 
         Reposilite.getLogger().info("");

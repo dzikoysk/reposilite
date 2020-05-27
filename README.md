@@ -56,7 +56,7 @@ $ docker run -e JAVA_OPTS='-Xmx128M -Dreposilite.port="8080"' reposilite
 List of available management commands
 
 ```bash
-Reposilite 2.4.3 Commands:
+Reposilite 2.4.4 Commands:
   help - List available commands
   status - Display metrics
   tokens - List all generated tokens
