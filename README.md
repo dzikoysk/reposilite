@@ -46,6 +46,12 @@ You may also use Reposilite through the docker image:
 $ docker pull dzikoysk/reposilite
 ```
 
+You can also pass custom configuration values through the environment variables:
+
+```bash
+$ docker run -e JAVA_OPTS='-Xmx128M -Dreposilite.port="8080"' reposilite
+```
+
 #### Guide
 List of available management commands
 
