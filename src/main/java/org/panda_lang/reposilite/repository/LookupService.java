@@ -22,6 +22,7 @@ import com.google.api.client.http.HttpRequestFactory;
 import com.google.api.client.http.HttpResponse;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import io.javalin.http.Context;
+import io.vavr.control.Try;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.Reposilite;
@@ -43,7 +44,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -91,12 +91,19 @@ public final class LookupService {
                         continue;
                     }
 
-                    future.complete(context
-                            .status(remoteResponse.getStatusCode())
-                            .contentType(remoteResponse.getContentType())
-                            .header("Content-Length", Objects.toString(remoteResponse.getHeaders().getContentLength(), "0"))
-                            .result(remoteResponse.getContent()));
-                    return;
+                    Long contentLength = remoteResponse.getHeaders().getContentLength();
+
+                    if (contentLength != null && contentLength != 0) {
+                        context.res.setContentLengthLong(contentLength);
+                    }
+
+                    if (!context.method().equals("HEAD")) {
+                        IOUtils.copy(remoteResponse.getContent(), context.res.getOutputStream());
+                    }
+
+                    return future.complete(context
+                        .status(remoteResponse.getStatusCode())
+                        .contentType(remoteResponse.getContentType()));
                 } catch (IOException e) {
                     Reposilite.getLogger().warn("Proxied repository " + proxied + " is unavailable: " + e.getMessage());
                 }
@@ -152,6 +159,7 @@ public final class LookupService {
                     .getOrElse(() -> Result.error("Cannot find metadata file"));
         }
 
+        // resolve requests for latest version of artifact
         if (requestedFileName.equalsIgnoreCase("latest")) {
             File requestDirectory = new File(repository.getLocalPath() + "/" + ContentJoiner.on("/").join(requestPath)).getParentFile();
             File[] versions = MetadataUtils.toSortedVersions(requestDirectory);
@@ -177,7 +185,6 @@ public final class LookupService {
             return Result.error("Artifact " + ContentJoiner.on("/").join(requestPath) + " not found");
         }
 
-        requestedFileName = requestPath[requestPath.length - 1];
         File file = artifact.getFile(requestedFileName);
 
         if (!file.exists()) {
@@ -188,13 +195,12 @@ public final class LookupService {
         FileInputStream content = null;
 
         try {
+            // resolve content type associated with the requested extension
             String mimeType = Files.probeContentType(file.toPath());
             context.res.setContentType(mimeType);
 
-            content = new FileInputStream(file);
-            IOUtils.copy(content, context.res.getOutputStream());
-
-            context.res.setContentLength((int) file.length());
+            // add content description to the header
+            context.res.setContentLengthLong(file.length());
             context.res.setHeader("Content-Disposition", "attachment; filename=\"" + MetadataUtils.getLast(path) + "\"");
 
             // exclude content for head requests
