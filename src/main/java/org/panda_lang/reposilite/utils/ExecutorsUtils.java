@@ -18,15 +18,15 @@ package org.panda_lang.reposilite.utils;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
-import java.util.function.Consumer;
+import java.util.function.Function;
 
 public final class ExecutorsUtils {
 
     private ExecutorsUtils() { }
 
-    public static <T> CompletableFuture<T> submit(ExecutorService service, Consumer<CompletableFuture<T>> futureConsumer) {
+    public static <T> CompletableFuture<T> submit(ExecutorService service, Function<CompletableFuture<T>, ?> futureConsumer) {
         CompletableFuture<T> completableFuture = new CompletableFuture<>();
-        service.submit(() -> futureConsumer.accept(completableFuture));
+        service.submit(() -> futureConsumer.apply(completableFuture));
         return completableFuture;
     }
 

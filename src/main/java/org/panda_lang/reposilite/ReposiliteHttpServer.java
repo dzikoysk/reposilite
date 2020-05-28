@@ -67,7 +67,9 @@ public final class ReposiliteHttpServer {
     }
 
     void stop() {
-        javalin.stop();
+        if (javalin != null) {
+            javalin.stop();
+        }
     }
 
     public boolean isAlive() {
