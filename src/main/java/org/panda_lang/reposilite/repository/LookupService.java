@@ -102,7 +102,7 @@ public final class LookupService {
                 }
             }
 
-            future.complete(context
+            return future.complete(context
                     .status(HttpStatus.SC_NOT_FOUND)
                     .contentType("text/html")
                     .result(frontend.forMessage("Artifact not found in local and remote repository")));
@@ -147,17 +147,9 @@ public final class LookupService {
         String requestedFileName = requestPath[requestPath.length - 1];
 
         if (requestedFileName.equals("maven-metadata.xml")) {
-            try {
-                String result = metadataService.generateMetadata(repository, requestPath);
-
-                if (result == null) {
-                    return Result.error("Metadata not found");
-                }
-
-                return Result.ok(context.contentType("text/xml").result(result));
-            } catch (IOException e) {
-                return Result.error("Cannot find metadata file");
-            }
+            return Try.of(() -> metadataService.generateMetadata(repository, requestPath))
+                    .map(result -> Result.<Context, String> ok(context.contentType("text/xml").result(result)))
+                    .getOrElse(() -> Result.error("Cannot find metadata file"));
         }
 
         if (requestedFileName.equalsIgnoreCase("latest")) {
@@ -174,9 +166,9 @@ public final class LookupService {
 
         // resolve snapshot requests
         if (requestedFileName.contains("-SNAPSHOT")) {
-            // ignore inspection to make it clear that 'requestPath' content is updated
-            // noinspection ConstantConditions
-            requestPath = repositoryService.resolveSnapshot(repository, requestPath);
+            repositoryService.resolveSnapshot(repository, requestPath);
+            // update requested file name in case of snapshot request
+            requestedFileName = requestPath[requestPath.length - 1];
         }
 
         Artifact artifact = repository.get(requestPath);
@@ -205,10 +197,16 @@ public final class LookupService {
             context.res.setContentLength((int) file.length());
             context.res.setHeader("Content-Disposition", "attachment; filename=\"" + MetadataUtils.getLast(path) + "\"");
 
-            Reposilite.getLogger().info("Available: " + content.available() + "; mime: " + mimeType + "; size: " + file.length() + "; file: " + file.getPath());
-            return Result.ok(context.header("Content-Disposition", "attachment; filename=\"" + MetadataUtils.getLast(path) + "\""));
+            // exclude content for head requests
+            if (!context.method().equals("HEAD")) {
+                content = new FileInputStream(file);
+                IOUtils.copy(content, context.res.getOutputStream());
+            }
+
+            // success
+            Reposilite.getLogger().info("Mime: " + mimeType + "; size: " + file.length() + "; file: " + file.getPath());
+            return Result.ok(context);
         } catch (FileNotFoundException e) {
-            Reposilite.getLogger().warn("Cannot read file " + file.getAbsolutePath());
             return Result.error("Cannot read artifact");
         } catch (IOException e) {
             return Result.error("Unknown mime type " + file.getName());

@@ -17,7 +17,6 @@
 package org.panda_lang.reposilite;
 
 import io.vavr.control.Try;
-import org.fusesource.jansi.Ansi.Color;
 import org.panda_lang.reposilite.auth.Authenticator;
 import org.panda_lang.reposilite.auth.TokenService;
 import org.panda_lang.reposilite.config.Configuration;
@@ -29,24 +28,23 @@ import org.panda_lang.reposilite.metadata.MetadataService;
 import org.panda_lang.reposilite.repository.RepositoryService;
 import org.panda_lang.reposilite.stats.StatsService;
 import org.panda_lang.reposilite.utils.TimeUtils;
+import org.panda_lang.utilities.commons.console.Effect;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static org.fusesource.jansi.Ansi.ansi;
 
 public final class Reposilite {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("Reposilite");
 
-    private Console console;
-    private Frontend frontend;
-    private Authenticator authenticator;
-    private TokenService tokenService;
-    private StatsService statsService;
-    private MetadataService metadataService;
-    private RepositoryService repositoryService;
+    private final Console console = new Console(this);
+    private final TokenService tokenService = new TokenService();
+    private final StatsService statsService = new StatsService();
+    private final MetadataService metadataService = new MetadataService();
+    private final RepositoryService repositoryService = new RepositoryService();
+    private final Authenticator authenticator = new Authenticator(tokenService);
+    private final ReposiliteHttpServer reactiveHttpServer = new ReposiliteHttpServer(this);
     private Configuration configuration;
-    private ReposiliteHttpServer reactiveHttpServer;
+    private Frontend frontend;
     private boolean stopped;
     private long uptime;
 
@@ -56,39 +54,29 @@ public final class Reposilite {
     }
 
     public void launch(String[] args) throws Exception {
-        this.console = new Console(this);
-
         if (console.executeArguments(args)) {
             return;
         }
 
+        Thread shutdownHook = new Thread(() -> Try.run(this::shutdown).orElseRun(Throwable::printStackTrace));
+        Runtime.getRuntime().addShutdownHook(shutdownHook);
+
         getLogger().info("");
-        getLogger().info(ansi().bold().fg(Color.GREEN).a("Reposilite ").reset().a(ReposiliteConstants.VERSION).reset().toString());
+        getLogger().info(Effect.GREEN + "Reposilite " + Effect.RESET + ReposiliteConstants.VERSION);
         getLogger().info("");
 
         Reposilite.getLogger().info("--- Preparing workspace");
         ConfigurationLoader configurationLoader = new ConfigurationLoader();
         this.configuration = configurationLoader.load();
 
-        Thread shutdownHook = new Thread(() -> Try.run(this::shutdown).orElseRun(Throwable::printStackTrace));
-        Runtime.getRuntime().addShutdownHook(shutdownHook);
-        console.hook();
-
         FrontendLoader frontendLoader = new FrontendLoader();
         this.frontend = frontendLoader.loadFrontend(ReposiliteConstants.FRONTEND_FILE_NAME);
 
         getLogger().info("--- Loading data");
-        this.tokenService = new TokenService();
         tokenService.load();
-
-        this.statsService = new StatsService();
         statsService.load();
+
         getLogger().info("");
-
-        this.authenticator = new Authenticator(tokenService);
-        this.metadataService = new MetadataService();
-
-        this.repositoryService = new RepositoryService();
         repositoryService.load(configuration);
         repositoryService.scan(configuration);
         getLogger().info("");
@@ -96,7 +84,6 @@ public final class Reposilite {
         getLogger().info("Binding server at *::" + configuration.getPort());
         this.uptime = System.currentTimeMillis();
 
-        this.reactiveHttpServer = new ReposiliteHttpServer(this);
         reactiveHttpServer.start(configuration, () -> {
             getLogger().info("Done (" + TimeUtils.format(TimeUtils.getUptime(uptime)) + "s)!");
             console.displayHelp();
@@ -104,6 +91,8 @@ public final class Reposilite {
             getLogger().info("Collecting status metrics...");
             console.displayStatus();
         });
+
+        console.hook();
     }
 
     public void shutdown() throws Exception {
