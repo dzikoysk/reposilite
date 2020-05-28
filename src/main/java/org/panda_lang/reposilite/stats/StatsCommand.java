@@ -26,7 +26,7 @@ import java.util.Map.Entry;
 
 public final class StatsCommand implements NanoCommand {
 
-    private static final int TOP_SIZE = 15;
+    private static final int TOP_SIZE = 20;
 
     private final String pattern;
     private final long limiter;
