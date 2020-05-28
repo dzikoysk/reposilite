@@ -51,7 +51,7 @@ public final class DeployController implements Handler {
     }
 
     @Override
-    public void handle(Context context) throws Exception {
+    public void handle(Context context) {
         Reposilite.getLogger().info(context.req.getRequestURI() + " DEPLOY");
         Result<Context, String> deploy = deploy(context);
 

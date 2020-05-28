@@ -20,6 +20,7 @@ import io.javalin.Javalin;
 import io.javalin.core.JavalinConfig;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
+import org.panda_lang.reposilite.api.IndexApiController;
 import org.panda_lang.reposilite.config.Configuration;
 import org.panda_lang.reposilite.frontend.FrontendController;
 import org.panda_lang.reposilite.repository.DeployController;
@@ -48,6 +49,7 @@ public final class ReposiliteHttpServer {
 
         this.javalin = Javalin.create(this::config)
                 .get("/", new FrontendController(reposilite))
+                .get("/api/*", new IndexApiController(reposilite))
                 .get("/*", lookupController)
                 .head("/*", lookupController)
                 .put("/*", new DeployController(reposilite))

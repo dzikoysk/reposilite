@@ -39,7 +39,7 @@ public final class RepositoryUtils {
      * @param uri the uri to process
      * @return the normalized uri
      */
-    protected static String normalizeUri(Configuration configuration, String uri) {
+    public static String normalizeUri(Configuration configuration, String uri) {
         if (uri.startsWith("/")) {
             uri = uri.substring(1);
         }

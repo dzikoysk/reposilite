@@ -100,6 +100,10 @@ public final class RepositoryService {
         return requestPath;
     }
 
+    public File getFile(String path) {
+        return new File(rootDirectory, path);
+    }
+
     public Repository getRepository(String repositoryName) {
         return repositories.get(repositoryName);
     }
