@@ -19,7 +19,6 @@ package org.panda_lang.reposilite.repository;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import org.apache.http.HttpStatus;
-import org.jetbrains.annotations.NotNull;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.frontend.Frontend;
 import org.panda_lang.reposilite.utils.Result;
@@ -35,7 +34,7 @@ public final class LookupController implements Handler {
     }
 
     @Override
-    public void handle(@NotNull Context ctx) {
+    public void handle(Context ctx) {
         Reposilite.getLogger().info(ctx.req.getRequestURI() + " " + ctx.method());
 
         Result<Context, String> lookupResponse = lookupService
