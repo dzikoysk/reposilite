@@ -20,5 +20,5 @@ LABEL org.label-schema.build-date=$BUILD_DATE \
 # Run stage
 FROM openjdk:14-alpine
 WORKDIR /app
-COPY --from=build /app/target/reposilite*.jar reposilite.jar
+COPY --from=build /app/target/reposilite-backend/reposilite*.jar reposilite.jar
 ENTRYPOINT [ "java", "-Xmx128M", "-jar", "reposilite.jar"]
