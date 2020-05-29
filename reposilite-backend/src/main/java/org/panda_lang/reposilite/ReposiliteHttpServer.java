@@ -66,7 +66,7 @@ public final class ReposiliteHttpServer {
     private void config(JavalinConfig config) {
         config.server(() -> new Server(new QueuedThreadPool(2 * Runtime.getRuntime().availableProcessors())));
         config.showJavalinBanner = false;
-        config.enableCorsForOrigin("http://localhost:8080/");
+        // config.enableCorsForOrigin("http://localhost:8080/");
     }
 
     void stop() {
