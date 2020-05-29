@@ -20,12 +20,14 @@ import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
 import org.panda_lang.reposilite.Reposilite;
+import org.panda_lang.utilities.commons.IOUtils;
 import org.panda_lang.utilities.commons.StringUtils;
 
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -91,6 +93,10 @@ public final class FilesUtils {
     public static String getExtension(String name) {
         int occurrence = name.lastIndexOf(".");
         return occurrence == -1 ? StringUtils.EMPTY : name.substring(occurrence + 1);
+    }
+
+    public static String getResource(String name) {
+        return IOUtils.toString(Reposilite.class.getResourceAsStream(name), StandardCharsets.UTF_8);
     }
 
 }

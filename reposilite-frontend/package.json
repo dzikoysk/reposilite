@@ -8,19 +8,40 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
+    "@fortawesome/fontawesome": "^1.1.8",
+    "@fortawesome/fontawesome-free": "^5.13.0",
+    "axios": "^0.19.2",
     "core-js": "^3.6.5",
-    "vue": "^2.6.11"
+    "tailwindcss": "^1.4.6",
+    "vue": "^2.6.11",
+    "vue-router": "^3.3.1"
   },
   "devDependencies": {
+    "@babel/core": "^7.10.1",
+    "@babel/preset-env": "^7.10.1",
+    "@fullhuman/postcss-purgecss": "^2.2.0",
     "@vue/cli-plugin-babel": "~4.4.0",
     "@vue/cli-plugin-eslint": "~4.4.0",
     "@vue/cli-service": "~4.4.0",
     "babel-eslint": "^10.1.0",
+    "babel-loader": "^8.1.0",
+    "css-loader": "^3.5.3",
     "eslint": "^6.7.2",
     "eslint-plugin-vue": "^6.2.2",
+    "html-webpack-inline-source-plugin": "^0.0.10",
+    "html-webpack-plugin": "^4.3.0",
+    "pug": "^3.0.0",
+    "pug-plain-loader": "^1.0.0",
+    "purgecss": "^2.2.1",
+    "rimraf": "^3.0.2",
     "stylus": "^0.54.7",
     "stylus-loader": "^3.0.2",
-    "vue-template-compiler": "^2.6.11"
+    "vue-loader": "^15.9.2",
+    "vue-style-loader": "^4.1.2",
+    "vue-template-compiler": "^2.6.11",
+    "webpack": "^4.43.0",
+    "webpack-cli": "^3.3.11",
+    "webpack-dev-server": "^3.11.0"
   },
   "eslintConfig": {
     "root": true,

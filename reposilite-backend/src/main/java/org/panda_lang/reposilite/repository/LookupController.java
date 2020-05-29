@@ -41,10 +41,13 @@ public final class LookupController implements Handler {
                 .serveLocal(ctx)
                 .orElse(localError -> lookupService.serveProxied(ctx).orElse(proxiedError -> Result.error(localError)));
 
-        lookupResponse.getError().peek(error -> ctx.status(HttpStatus.SC_NOT_FOUND)
-                .contentType("text/html")
-                .result(frontend.forMessage(error))
-        );
+
+        lookupResponse.getError().peek(error -> {
+            ctx.res.setCharacterEncoding("UTF-8");
+            ctx.status(HttpStatus.SC_NOT_FOUND)
+                    .contentType("text/html")
+                    .result(frontend.forMessage(error));
+        });
     }
 
 }

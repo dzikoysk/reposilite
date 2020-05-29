@@ -19,8 +19,9 @@ package org.panda_lang.reposilite.frontend;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import org.panda_lang.reposilite.Reposilite;
+import org.panda_lang.reposilite.RepositoryController;
 
-public class FrontendController implements Handler {
+public class FrontendController implements RepositoryController {
 
     private final Reposilite reposilite;
 
@@ -29,8 +30,12 @@ public class FrontendController implements Handler {
     }
 
     @Override
-    public void handle(Context context) {
-        context.header("Content-Type", "text/html").result(reposilite.getFrontend().forMessage("maven repository"));
+    public Context handleContext(Context ctx) {
+        ctx.res.setCharacterEncoding("utf-8");
+
+        return ctx
+                .header("Content-Type", "application/javascript")
+                .result(reposilite.getFrontend().getApp());
     }
 
 }
