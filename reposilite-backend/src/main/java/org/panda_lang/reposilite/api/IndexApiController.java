@@ -34,7 +34,6 @@ public final class IndexApiController implements RepositoryController {
     private final Configuration configuration;
     private final RepositoryService repositoryService;
 
-
     public IndexApiController(Reposilite reposilite) {
         this.configuration = reposilite.getConfiguration();
         this.repositoryService = reposilite.getRepositoryService();
@@ -42,6 +41,8 @@ public final class IndexApiController implements RepositoryController {
 
     @Override
     public Context handleContext(Context ctx) {
+        Reposilite.getLogger().info(ctx.req.getRequestURI() + " API");
+
         String uri = RepositoryUtils.normalizeUri(configuration, StringUtils.replaceFirst(ctx.req.getRequestURI(), "/api/", StringUtils.EMPTY));
         File requestedFile = repositoryService.getFile(uri);
 

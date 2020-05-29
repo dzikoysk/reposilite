@@ -25,6 +25,7 @@ import org.panda_lang.reposilite.repository.RepositoryUtils;
 import org.panda_lang.reposilite.utils.FilesUtils;
 import org.panda_lang.utilities.commons.FileUtils;
 import org.panda_lang.utilities.commons.StringUtils;
+import org.panda_lang.utilities.commons.function.Lazy;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,10 +39,10 @@ public final class MetadataService {
 
     private final Map<String, String> metadataCache = new HashMap<>();
 
-    private final XmlMapper xmlMapper = XmlMapper.xmlBuilder()
+    private final Lazy<XmlMapper> xmlMapper = new Lazy<>(() -> XmlMapper.xmlBuilder()
             .serializationInclusion(Include.NON_NULL)
             .defaultUseWrapper(false)
-            .build();
+            .build());
 
     public @Nullable String generateMetadata(Repository repository, String[] requested) throws IOException {
         File metadataFile = RepositoryUtils.toRequestedFile(repository, requested);
@@ -136,7 +137,7 @@ public final class MetadataService {
     }
 
     private String toMetadataFile(File metadataFile, Metadata metadata) throws IOException {
-        String serializedMetadata = xmlMapper.writeValueAsString(metadata);
+        String serializedMetadata = xmlMapper.get().writeValueAsString(metadata);
         FileUtils.overrideFile(metadataFile, serializedMetadata);
         metadataCache.put(metadataFile.getPath(), serializedMetadata);
 

@@ -23,7 +23,6 @@ import org.panda_lang.reposilite.config.Configuration;
 import org.panda_lang.reposilite.config.ConfigurationLoader;
 import org.panda_lang.reposilite.console.Console;
 import org.panda_lang.reposilite.frontend.Frontend;
-import org.panda_lang.reposilite.frontend.FrontendLoader;
 import org.panda_lang.reposilite.metadata.MetadataService;
 import org.panda_lang.reposilite.repository.RepositoryService;
 import org.panda_lang.reposilite.stats.StatsService;
@@ -43,8 +42,8 @@ public final class Reposilite {
     private final RepositoryService repositoryService = new RepositoryService();
     private final Authenticator authenticator = new Authenticator(tokenService);
     private final ReposiliteHttpServer reactiveHttpServer = new ReposiliteHttpServer(this);
+    private final Frontend frontend = Frontend.createInstance();
     private Configuration configuration;
-    private Frontend frontend;
     private boolean stopped;
     private long uptime;
 
@@ -68,9 +67,6 @@ public final class Reposilite {
         Reposilite.getLogger().info("--- Preparing workspace");
         ConfigurationLoader configurationLoader = new ConfigurationLoader();
         this.configuration = configurationLoader.load();
-
-        FrontendLoader frontendLoader = new FrontendLoader();
-        this.frontend = frontendLoader.loadFrontend(ReposiliteConstants.FRONTEND_FILE_NAME);
 
         getLogger().info("--- Loading data");
         tokenService.load();

@@ -1,0 +1,32 @@
+# ~~~~~~~~~~~~~~~~~~~~~~ #
+#       Reposilite       #
+# ~~~~~~~~~~~~~~~~~~~~~~ #
+
+# Hostname
+hostname: ''
+# Port
+port: 80
+
+# List of supported Maven repositories.
+# First directory on the list is the main repository.
+repositories:
+  - releases
+  - snapshots
+
+# List of proxied repositories.
+# Reposilite will search for an artifact in remote repositories listed below, if the requested artifact was not found.
+# Note: URL cannot contains / at the end
+proxied:
+  - "https://repo.panda-lang.org"
+  - "https://repo.insertt.dev"
+  - "https://jcenter.bintray.com"
+  - "https://repo.maven.apache.org/maven2"
+
+# Accept deployment connections
+deployEnabled: true
+# Allow to omit name of the main repository in request
+# e.g. /org/panda-lang/reposilite will be redirected to /releases/org/panda-lang/reposilite
+rewritePathsEnabled: true
+# Require authentication of all requests (download, head requests)
+# This option should be set to 'false', if you are hosting public repository
+fullAuthEnabled: false

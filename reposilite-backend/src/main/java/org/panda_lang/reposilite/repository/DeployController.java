@@ -28,7 +28,6 @@ import org.panda_lang.reposilite.frontend.Frontend;
 import org.panda_lang.reposilite.metadata.MetadataService;
 import org.panda_lang.reposilite.utils.Result;
 
-import javax.servlet.MultipartConfigElement;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -41,7 +40,6 @@ public final class DeployController implements Handler {
     private final Configuration configuration;
     private final Authenticator authenticator;
     private final MetadataService metadataService;
-    private final MultipartConfigElement configElement = new MultipartConfigElement(".temp");
 
     public DeployController(Reposilite reposilite) {
         this.frontend = reposilite.getFrontend();
@@ -97,17 +95,5 @@ public final class DeployController implements Handler {
             return Result.error("Failed to upload artifact");
         }
     }
-
-    /*
-    public ServletInputStream getInputStream(Request request) throws IOException {
-        HttpServletRequest raw = request.raw();
-
-        if (raw instanceof ServletRequestWrapper) {
-            return ((ServletRequestWrapper) raw).getRequest().getInputStream();
-        }
-
-        return raw.getInputStream();
-    }
-    */
 
 }

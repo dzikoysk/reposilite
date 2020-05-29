@@ -28,8 +28,6 @@ public final class ReposiliteConstants {
 
     public static final String STATS_FILE_NAME = "stats.yml";
 
-    public static final String FRONTEND_FILE_NAME = "index.html";
-
     private ReposiliteConstants() { }
 
 }
