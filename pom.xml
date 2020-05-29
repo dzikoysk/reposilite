@@ -19,9 +19,10 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.panda-lang</groupId>
-    <artifactId>reposilite</artifactId>
+    <artifactId>reposilite-parent</artifactId>
     <packaging>pom</packaging>
     <version>2.5.0</version>
+
     <modules>
         <module>reposilite-backend</module>
     </modules>
