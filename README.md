@@ -2,7 +2,7 @@
 Reposilite *(formerly NanoMaven)* - lightweight repository manager for Maven artifacts. 
 It is a simple solution to replace managers like Nexus, Archiva or Artifactory. 
 
-![Preview](https://user-images.githubusercontent.com/4235722/82151266-f732c680-985a-11ea-842c-bb53acad794b.png)
+![Preview](https://user-images.githubusercontent.com/4235722/83308288-ca8d9000-a206-11ea-8db4-5981b39f2239.png)
 
 #### Features
 * [x] Working Maven repository manager *(example: [repo.panda-lang.org](https://repo.panda-lang.org))*
@@ -17,7 +17,8 @@ It is a simple solution to replace managers like Nexus, Archiva or Artifactory.
 * [x] Proxy for the specified remote repositories
 * [x] Multithreading
 * [x] Statistics
-* [ ] REST API
+* [x] REST API
+* [x] Repository browser
 * [ ] Admin panel
 * [ ] Docs
 
@@ -58,9 +59,11 @@ List of available management commands
 ```bash
 Reposilite 2.4.4 Commands:
   help - List available commands
-  status - Display metrics
+  status - Display summary status of app health
+  stats [<limiter>/<pattern>] - Display collected metrics and (optional) filter them using the given limiter or pattern
   tokens - List all generated tokens
   keygen <path> <alias> - Generate a new access token for the given path
+  revoke <alias> - Revoke token
   purge - Clear cache
   stop - Shutdown server
 ```
