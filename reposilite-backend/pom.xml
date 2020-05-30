@@ -22,6 +22,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
+    <name>reposilite-backend</name>
     <artifactId>reposilite</artifactId>
 
     <properties>
@@ -145,13 +146,6 @@
             <url>https://repo.panda-lang.org/</url>
         </repository>
     </repositories>
-
-    <distributionManagement>
-        <repository>
-            <id>panda-repository</id>
-            <url>https://repo.panda-lang.org/releases</url>
-        </repository>
-    </distributionManagement>
 
     <build>
         <defaultGoal>clean install</defaultGoal>
