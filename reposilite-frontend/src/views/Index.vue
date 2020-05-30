@@ -10,7 +10,7 @@
                   | Public Maven repository hosted through the Reposilite
     main.mt-64.lg_mt-24
         .container.mx-auto
-            .mx-4
+            .mx-4.pb-16
                 .flex.justify-between.py-4
                     h1.text-xl Index of {{ this.qualifier }}
                     router-link(
