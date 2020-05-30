@@ -91,3 +91,7 @@ To use generated token add a new server in your `~/m2/settings.xml`
   <password>{token}</password>
 </server>
 ```
+
+#### FAQ
+**Q:** Maven randomly interrupts deploy and throws socket write error <br>
+**A:** It is a common issue on Java 12 due to the bug related to SSL. To resolve this problem, just change Java version used by Maven build, e.g. 8 or 14. 

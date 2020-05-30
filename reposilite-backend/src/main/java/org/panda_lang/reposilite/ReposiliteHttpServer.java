@@ -18,6 +18,8 @@ package org.panda_lang.reposilite;
 
 import io.javalin.Javalin;
 import io.javalin.core.JavalinConfig;
+import io.javalin.core.compression.Brotli;
+import io.javalin.core.compression.Gzip;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.panda_lang.reposilite.api.IndexApiController;
@@ -66,7 +68,7 @@ public final class ReposiliteHttpServer {
     private void config(JavalinConfig config) {
         config.server(() -> new Server(new QueuedThreadPool(2 * Runtime.getRuntime().availableProcessors())));
         config.showJavalinBanner = false;
-        // config.enableCorsForOrigin("http://localhost:8080/");
+        config.enableCorsForOrigin("http://localhost:8080/");
     }
 
     void stop() {
