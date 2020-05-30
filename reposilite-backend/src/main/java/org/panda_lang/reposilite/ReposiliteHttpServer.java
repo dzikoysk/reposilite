@@ -18,8 +18,6 @@ package org.panda_lang.reposilite;
 
 import io.javalin.Javalin;
 import io.javalin.core.JavalinConfig;
-import io.javalin.core.compression.Brotli;
-import io.javalin.core.compression.Gzip;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.panda_lang.reposilite.api.IndexApiController;
