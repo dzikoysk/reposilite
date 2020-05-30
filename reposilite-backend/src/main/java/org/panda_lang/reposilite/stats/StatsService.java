@@ -21,7 +21,7 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.function.Predicate;
+import java.util.function.BiPredicate;
 import java.util.stream.Collectors;
 
 public final class StatsService {
@@ -47,10 +47,19 @@ public final class StatsService {
         entity.getRecords().compute(uri, (key, count) -> (count == null) ? 1 : count + 1);
     }
 
-    public Map<String, Integer> fetchStats(Predicate<Entry<String, Integer>> filter) {
+    @SafeVarargs
+    public final Map<String, Integer> fetchStats(BiPredicate<String, Integer>... filters) {
         return entity.getRecords().entrySet().stream()
-                .filter(filter)
-                .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+                .filter(entry -> {
+                    for (BiPredicate<String, Integer> filter : filters) {
+                        if (!filter.test(entry.getKey(), entry.getValue())) {
+                            return false;
+                        }
+                    }
+
+                    return true;
+                })
+                .sorted(Entry.comparingByValue(Comparator.reverseOrder()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,(oldValue, newValue) -> oldValue, LinkedHashMap::new));
     }
 

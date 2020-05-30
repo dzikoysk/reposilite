@@ -26,7 +26,7 @@ import java.util.Map.Entry;
 
 public final class StatsCommand implements NanoCommand {
 
-    private static final int TOP_SIZE = 20;
+    private static final int TOP_SIZE = 25;
 
     private final String pattern;
     private final long limiter;
@@ -52,10 +52,17 @@ public final class StatsCommand implements NanoCommand {
         Reposilite.getLogger().info("Statistics: ");
         Reposilite.getLogger().info("  Requests count: " + statsService.countRecords() + " (sum: " + statsService.sumRecords() + ")");
 
-        Map<String, Integer> stats = statsService.fetchStats(entry -> entry.getValue() >= limiter && entry.getKey().contains(pattern));
-        int order = 0;
+        Map<String, Integer> stats = statsService.fetchStats(
+                (uri, counts) -> counts >= limiter,
+                (uri, counts) -> uri.contains(pattern),
+                (uri, counts) -> !uri.endsWith(".md1"),
+                (uri, counts) -> !uri.endsWith(".sha1"),
+                (uri, counts) -> !uri.endsWith(".pom"),
+                (uri, counts) -> !uri.endsWith("/js/app.js")
+        );
 
         Reposilite.getLogger().info("  Recorded: " + (stats.isEmpty() ? "[] " : "") +" (limiter: " + highlight(limiter) + ", pattern: '" + highlight(pattern) + "')");
+        int order = 0;
 
         for (Entry<String, Integer> entry : stats.entrySet()) {
             Reposilite.getLogger().info("    " + (++order) + ". (" + entry.getValue() + ") " + entry.getKey());
