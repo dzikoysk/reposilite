@@ -1,13 +1,12 @@
 <template lang="pug">
   #app
     header
-        Wave.absolute.w-full
-        .flex.text-white.h-56.flex-col.justify-center.px-8.container.mx-auto
+        Wave(:accentColor="this.configuration.accentColor").absolute.w-full
+        a(href="/").flex.text-white.h-56.flex-col.justify-center.px-8.container.mx-auto
             .w-full
-                h1.text-5xl.segoe.text-grey.font-bold.pt-1 #onlypanda
+                h1.text-5xl.segoe.text-grey.font-bold.pt-1 {{ this.configuration.title }}
             .w-full
-                p.text-lg.w-96.md_w-full
-                  | Public Maven repository hosted through the Reposilite
+                p.text-lg.w-96.md_w-full {{ this.configuration.description }}
     main.mt-64.lg_mt-24
         .container.mx-auto
             .mx-4.pb-16
@@ -18,7 +17,7 @@
                         :to='getParentPath()'
                     ) ← Back
                 FileEntry(
-                    v-if="response.files != undefined" 
+                    v-if="response.files != undefined && response.files.length > 0" 
                     v-for="file in response.files" 
                     :key="file.name" 
                     :file="file"
@@ -33,12 +32,18 @@ import FileEntry from '../components/FileEntry'
 
 export default {
   data: () => ({
+    configuration: {},
     qualifier: undefined,
     response: []
   }),
   components: {
     Wave,
     FileEntry
+  },
+  created() {
+    this.$http
+      .get(this.getApi('configuration'))
+      .then(response => (this.configuration = response.data))
   },
   mounted() {
     this.updateEntities()
@@ -51,12 +56,13 @@ export default {
   methods: {
     updateEntities() {
       this.qualifier = this.$route.params['qualifier']
-      console.log('/api/' + this.qualifier)
-      const server = (process.env.NODE_ENV == 'production') ? '/' : 'http://localhost:80/'
 
       this.$http
-        .get(server + 'api/' + this.qualifier)
+        .get(this.getApi(this.qualifier))
         .then(response => (this.response = response.data))
+    },
+    getApi(path) {
+      return ((process.env.NODE_ENV == 'production') ? '/' : 'http://localhost:80/') + 'api/' + path
     },
     getParentPath() {
         const elements = ('/' + this.qualifier).split('/')

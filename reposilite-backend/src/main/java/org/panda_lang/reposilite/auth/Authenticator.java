@@ -30,7 +30,11 @@ public final class Authenticator {
         this.tokenService = tokenService;
     }
 
-    public Result<Session, String> authUri(Context context) {
+    public Result<Session, String> authDefault(Context context) {
+        return authUri(context, context.req.getRequestURI());
+    }
+
+    public Result<Session, String> authUri(Context context, String uri) {
         Result<Session, String> authResult = auth(context);
 
         if (authResult.getError().isDefined()) {
@@ -39,7 +43,7 @@ public final class Authenticator {
 
         Session session = authResult.getValue().get();
 
-        if (!session.hasPermission(context.req.getRequestURI())) {
+        if (!session.hasPermission(uri)) {
             return Result.error("Unauthorized access");
         }
 
@@ -78,10 +82,6 @@ public final class Authenticator {
         boolean authorized = TokenService.B_CRYPT_TOKENS_ENCODER.matches(rawToken, token.getToken());
 
         if (!authorized) {
-            return Result.error("Invalid authorization credentials");
-        }
-
-        if (!context.req.getRequestURI().startsWith(token.getPath())) {
             return Result.error("Invalid authorization credentials");
         }
 

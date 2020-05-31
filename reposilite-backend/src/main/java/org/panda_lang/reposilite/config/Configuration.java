@@ -17,17 +17,28 @@
 package org.panda_lang.reposilite.config;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 public final class Configuration implements Serializable {
 
-    private String hostname;
-    private int port;
-    private List<String> repositories;
-    private List<String> proxied;
-    private boolean deployEnabled;
-    private boolean rewritePathsEnabled;
-    private boolean fullAuthEnabled;
+    // Bind properties
+    private String hostname = "";
+    private int port = 80;
+
+    // Repository properties
+    private final List<String> repositories = new ArrayList<>(3);
+    private final List<String> proxied = new ArrayList<>(3);
+
+    // Access properties
+    private boolean deployEnabled = true;
+    private boolean rewritePathsEnabled = true;
+    private boolean fullAuthEnabled = false;
+
+    // Frontend properties
+    private String title = "#onlypanda";
+    private String description = "Public Maven repository hosted through the Reposilite";
+    private String accentColor = "#009890";
 
     public void setHostname(String hostname) {
         this.hostname = hostname;
@@ -38,11 +49,11 @@ public final class Configuration implements Serializable {
     }
 
     public void setRepositories(List<String> repositories) {
-        this.repositories = repositories;
+        this.repositories.addAll(repositories);
     }
 
     public void setProxied(List<String> proxied) {
-        this.proxied = proxied;
+        this.proxied.addAll(proxied);
     }
 
     public void setDeployEnabled(boolean deployEnabled) {
@@ -55,6 +66,30 @@ public final class Configuration implements Serializable {
 
     public void setFullAuthEnabled(boolean fullAuthEnabled) {
         this.fullAuthEnabled = fullAuthEnabled;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setAccentColor(String accentColor) {
+        this.accentColor = accentColor;
+    }
+
+    public String getAccentColor() {
+        return accentColor;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public String getTitle() {
+        return title;
     }
 
     public String getHostname() {

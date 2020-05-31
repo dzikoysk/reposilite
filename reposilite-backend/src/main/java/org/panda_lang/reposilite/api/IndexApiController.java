@@ -18,8 +18,10 @@ package org.panda_lang.reposilite.api;
 
 import io.javalin.http.Context;
 import io.vavr.collection.Stream;
+import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.RepositoryController;
+import org.panda_lang.reposilite.auth.Authenticator;
 import org.panda_lang.reposilite.config.Configuration;
 import org.panda_lang.reposilite.metadata.MetadataUtils;
 import org.panda_lang.reposilite.repository.RepositoryService;
@@ -32,18 +34,24 @@ import java.io.File;
 public final class IndexApiController implements RepositoryController {
 
     private final Configuration configuration;
+    private final Authenticator authenticator;
     private final RepositoryService repositoryService;
 
     public IndexApiController(Reposilite reposilite) {
         this.configuration = reposilite.getConfiguration();
+        this.authenticator = reposilite.getAuthenticator();
         this.repositoryService = reposilite.getRepositoryService();
     }
 
     @Override
     public Context handleContext(Context ctx) {
         Reposilite.getLogger().info(ctx.req.getRequestURI() + " API");
-
         String uri = RepositoryUtils.normalizeUri(configuration, StringUtils.replaceFirst(ctx.req.getRequestURI(), "/api/", StringUtils.EMPTY));
+
+        if (configuration.isFullAuthEnabled() && authenticator.authUri(ctx, uri).getError().isDefined()) {
+            return ctx.status(HttpStatus.SC_UNAUTHORIZED);
+        }
+
         File requestedFile = repositoryService.getFile(uri);
 
         if (requestedFile.getName().equals("latest")) {
