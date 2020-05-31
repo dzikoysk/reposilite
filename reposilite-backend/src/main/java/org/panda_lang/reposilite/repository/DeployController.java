@@ -64,7 +64,7 @@ public final class DeployController implements Handler {
             return Result.error("Artifact deployment is disabled");
         }
 
-        Result<Session, String> authResult = this.authenticator.authUri(context);
+        Result<Session, String> authResult = this.authenticator.authDefault(context);
 
         if (authResult.getError().isDefined()) {
             return Result.error(authResult.getError().get());

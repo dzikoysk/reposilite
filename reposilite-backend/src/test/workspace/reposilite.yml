@@ -30,3 +30,10 @@ rewritePathsEnabled: true
 # Require authentication of all requests (download, head requests)
 # This option should be set to 'false', if you are hosting public repository
 fullAuthEnabled: false
+
+# Title displayed by frontend
+title: "#onlypanda-custom"
+# Description displayed by frontend
+description: "Public Maven repository hosted through the Reposilite - custom"
+# Accent color used by frontend
+accentColor: "#008000"

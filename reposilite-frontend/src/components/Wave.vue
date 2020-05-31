@@ -1,7 +1,7 @@
 <template lang="pug">
     svg.w-full.h-264.lg_h-168(viewBox="0 0 1080 640" preserveAspectRatio="none")
         path(
-            fill="#009890" 
+            :fill="this.accentColor" 
             fill-opacity="1" 
             d=" \
                 M 0,260 \
@@ -21,3 +21,9 @@
                 Z \
         ")
 </template>
+
+<script>
+export default {
+    props: [ 'accentColor' ]
+}
+</script>

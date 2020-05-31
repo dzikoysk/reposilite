@@ -3,15 +3,15 @@
 # ~~~~~~~~~~~~~~~~~~~~~~ #
 
 # Hostname
-hostname: ''
+hostname: ""
 # Port
 port: 80
 
 # List of supported Maven repositories.
 # First directory on the list is the main repository.
 repositories:
-  - releases
-  - snapshots
+    "releases"
+  - "snapshots"
 
 # List of proxied repositories.
 # Reposilite will search for an artifact in remote repositories listed below, if the requested artifact was not found.
@@ -27,3 +27,10 @@ rewritePathsEnabled: true
 # Require authentication of all requests (download, head requests)
 # This option should be set to 'false', if you are hosting public repository
 fullAuthEnabled: false
+
+# Title displayed by frontend
+title: "#onlypanda"
+# Description displayed by frontend
+description: "Public Maven repository hosted through the Reposilite"
+# Accent color used by frontend
+accentColor: "#009890"

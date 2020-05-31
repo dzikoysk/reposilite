@@ -118,7 +118,7 @@ public final class LookupService {
 
     protected Result<Context, String> serveLocal(Context context) {
         if (configuration.isFullAuthEnabled()) {
-            Result<Session, String> authResult = this.authenticator.authUri(context);
+            Result<Session, String> authResult = this.authenticator.authDefault(context);
 
             if (authResult.getError().isDefined()) {
                 return Result.error(authResult.getError().get());
