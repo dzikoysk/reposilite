@@ -11,7 +11,9 @@
         .container.mx-auto
             .mx-4.pb-16
                 .flex.justify-between.py-4
-                    h1.text-xl Index of {{ this.qualifier }}
+                    h1.text-xl 
+                      | Index of 
+                      span.ml-1 /{{ this.qualifier }}
                     router-link(
                         v-if="this.qualifier != undefined && this.qualifier.length > 1" 
                         :to='getParentPath()'
@@ -89,5 +91,5 @@ html
 svg
   z-index -1
 .segoe
-  font-family 'Segoe UI'
+  font-family 'Segoe UI', 'Manrope'
 </style>
