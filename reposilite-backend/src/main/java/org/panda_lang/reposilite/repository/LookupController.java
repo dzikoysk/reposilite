@@ -43,6 +43,8 @@ public final class LookupController implements Handler {
 
 
         lookupResponse.getError().peek(error -> {
+            Reposilite.getLogger().debug("error=" + error + "; uri=" + ctx.req.getRequestURI());
+
             ctx.res.setCharacterEncoding("UTF-8");
             ctx.status(HttpStatus.SC_NOT_FOUND)
                     .contentType("text/html")

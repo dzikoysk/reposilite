@@ -15,16 +15,17 @@
                       | Index of 
                       span.ml-1 /{{ this.qualifier }}
                     router-link(
-                        v-if="this.qualifier != undefined && this.qualifier.length > 1" 
+                        v-if="this.qualifier != undefined && this.qualifier.length > 0" 
                         :to='getParentPath()'
                     ) ← Back
                 FileEntry(
-                    v-if="response.files != undefined && response.files.length > 0" 
+                    v-if="hasFiles()" 
                     v-for="file in response.files" 
                     :key="file.name" 
                     :file="file"
                 )
-                h1(v-else) {{window.REPOSILITE_MESSAGE}}
+                h1(v-if="isEmpty()") Empty directory
+                h1(v-if="!hasFiles()").font-bold {{ this.message }}
 
 </template>
 
@@ -36,6 +37,7 @@ export default {
   data: () => ({
     configuration: {},
     qualifier: undefined,
+    message: undefined,
     response: []
   }),
   components: {
@@ -43,6 +45,8 @@ export default {
     FileEntry
   },
   created() {
+    this.message = window.REPOSILITE_MESSAGE
+
     this.$http
       .get(this.getApi('configuration'))
       .then(response => (this.configuration = response.data))
@@ -62,6 +66,12 @@ export default {
       this.$http
         .get(this.getApi(this.qualifier))
         .then(response => (this.response = response.data))
+    },
+    hasFiles() {
+      return this.response.files != undefined
+    },
+    isEmpty() {
+      return this.hasFiles() && (this.response.files.length == 0)
     },
     getApi(path) {
       return ((process.env.NODE_ENV == 'production') ? '/' : 'http://localhost:80/') + 'api/' + path

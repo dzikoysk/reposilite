@@ -22,6 +22,7 @@ import org.jetbrains.annotations.Nullable;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.repository.Repository;
 import org.panda_lang.reposilite.repository.RepositoryUtils;
+import org.panda_lang.reposilite.utils.ArrayUtils;
 import org.panda_lang.reposilite.utils.FilesUtils;
 import org.panda_lang.utilities.commons.FileUtils;
 import org.panda_lang.utilities.commons.StringUtils;
@@ -70,13 +71,13 @@ public final class MetadataService {
     }
 
     private @Nullable String generateArtifactMetadata(File metadataFile, String groupId, File artifactDirectory, File[] versions) throws IOException {
-        File latest = MetadataUtils.getLatest(versions);
+        File latest = ArrayUtils.getLatest(versions);
 
         if (latest == null) {
             return null;
         }
 
-        Versioning versioning = new Versioning(latest.getName(), latest.getName(), MetadataUtils.toNames(versions), null, null, MetadataUtils.toUpdateTime(latest));
+        Versioning versioning = new Versioning(latest.getName(), latest.getName(), FilesUtils.toNames(versions), null, null, MetadataUtils.toUpdateTime(latest));
         Metadata metadata = new Metadata(groupId, artifactDirectory.getName(), null, versioning);
 
         return toMetadataFile(metadataFile, metadata);
@@ -85,7 +86,7 @@ public final class MetadataService {
     private @Nullable String generateSnapshotMetadata(File metadataFile, String groupId, File versionDirectory) throws IOException {
         File artifactDirectory = versionDirectory.getParentFile();
         File[] builds = MetadataUtils.toSortedBuilds(versionDirectory);
-        File latestBuild = MetadataUtils.getLatest(builds);
+        File latestBuild = ArrayUtils.getLatest(builds);
 
         if (latestBuild == null) {
             return null;
@@ -95,7 +96,7 @@ public final class MetadataService {
         String version = StringUtils.replace(versionDirectory.getName(), "-SNAPSHOT", StringUtils.EMPTY);
 
         String[] identifiers = MetadataUtils.toSortedIdentifiers(name, version, builds);
-        String latestIdentifier = Objects.requireNonNull(MetadataUtils.getLatest(identifiers));
+        String latestIdentifier = Objects.requireNonNull(ArrayUtils.getLatest(identifiers));
         int buildSeparatorIndex = latestIdentifier.lastIndexOf("-");
 
         // not a snapshot request, missing build number

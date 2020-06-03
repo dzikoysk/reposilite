@@ -18,6 +18,7 @@ package org.panda_lang.reposilite.utils;
 
 import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
+import io.vavr.collection.Stream;
 import org.apache.commons.io.FileUtils;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.utilities.commons.IOUtils;
@@ -27,10 +28,10 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 public final class FilesUtils {
 
@@ -84,6 +85,12 @@ public final class FilesUtils {
     public static File[] listFiles(File directory) {
         File[] files = directory.listFiles();
         return files == null ? EMPTY : files;
+    }
+
+    public static List<String> toNames(File[] files) {
+        return Stream.of(files)
+                .map(File::getName)
+                .toJavaList();
     }
 
     public static String getExtension(File file) {

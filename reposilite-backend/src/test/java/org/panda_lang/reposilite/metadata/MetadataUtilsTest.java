@@ -34,14 +34,22 @@ class MetadataUtilsTest {
     static File versions;
 
     private static final String[] BUILDS = {
-            "abc-version-timestamp.jar",
-            "abc-version-timestamp-classifier.jar",
-            "abc-version-timestamp-2-classifier.jar",
-            "abc-version-timestamp-1.jar",
-            "abc-version-timestamp-1-classifier.jar",
+            "abc-1.0.0-1337.jar",
+            "abc-1.0.0-1337-classifier.jar",
+            "abc-1.0.0-1337-2-classifier.jar",
+            "abc-1.0.0-1337-1.jar",
+            "abc-1.0.0-1337-1-classifier.jar"
     };
 
-    private static final String[] VERSIONS = { "2", "1" };
+    private static final String[] VERSIONS = {
+            "3.0.0",
+            "2.11.0",
+            "2.9.0",
+            "2.8.10",
+            "2.8.10-SNAPSHOT",
+            "2.07",
+            "1"
+    };
 
     @BeforeAll
     static void prepare() throws IOException {
@@ -64,43 +72,30 @@ class MetadataUtilsTest {
     void toSortedBuilds() {
         Assertions.assertArrayEquals(BUILDS, Stream.of(MetadataUtils.toSortedBuilds(builds))
                 .map(File::getName)
-                .toArray(String[]::new)
-        );
+                .toArray(String[]::new));
     }
 
     @Test
     void toSortedVersions() {
         Assertions.assertArrayEquals(VERSIONS, Stream.of(MetadataUtils.toSortedVersions(versions))
                 .map(File::getName)
-                .toArray(String[]::new)
-        );
+                .toArray(String[]::new));
     }
 
     @Test
     void toSortedIdentifiers() {
         Assertions.assertArrayEquals(new String[] {
-                "timestamp-2",
-                "timestamp-1",
-                "timestamp"
-        }, MetadataUtils.toSortedIdentifiers("abc", "version", FilesUtils.listFiles(builds)));
+                "1337-2",
+                "1337-1",
+                "1337"
+        }, MetadataUtils.toSortedIdentifiers("abc", "1.0.0", FilesUtils.listFiles(builds)));
     }
 
     @Test
     void toBuildFiles() {
-        Assertions.assertArrayEquals(BUILDS, Stream.of(MetadataUtils.toBuildFiles(builds, "timestamp"))
+        Assertions.assertArrayEquals(BUILDS, Stream.of(MetadataUtils.toBuildFiles(builds, "1337"))
                 .map(File::getName)
-                .toArray(String[]::new)
-        );
-    }
-
-    @Test
-    void getLatest() {
-        Assertions.assertEquals("2", MetadataUtils.getLatest(VERSIONS));
-    }
-
-    @Test
-    void getLast() {
-        Assertions.assertEquals("1", MetadataUtils.getLast(VERSIONS));
+                .toArray(String[]::new));
     }
 
 }

@@ -26,6 +26,7 @@ import org.panda_lang.reposilite.config.Configuration;
 import org.panda_lang.reposilite.metadata.MetadataUtils;
 import org.panda_lang.reposilite.repository.RepositoryService;
 import org.panda_lang.reposilite.repository.RepositoryUtils;
+import org.panda_lang.reposilite.utils.ArrayUtils;
 import org.panda_lang.reposilite.utils.FilesUtils;
 import org.panda_lang.utilities.commons.StringUtils;
 
@@ -59,7 +60,7 @@ public final class IndexApiController implements RepositoryController {
 
             if (parent != null && parent.exists()) {
                 File[] files = MetadataUtils.toSortedVersions(parent);
-                File latest = MetadataUtils.getLatest(files);
+                File latest = ArrayUtils.getLatest(files);
 
                 if (latest != null) {
                     return ctx.json(FileDto.of(latest));
