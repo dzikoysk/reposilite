@@ -16,9 +16,10 @@
 
 package org.panda_lang.reposilite.repository;
 
-import org.panda_lang.reposilite.config.Configuration;
 import org.panda_lang.reposilite.Reposilite;
+import org.panda_lang.reposilite.config.Configuration;
 import org.panda_lang.reposilite.metadata.MetadataUtils;
+import org.panda_lang.reposilite.utils.ArrayUtils;
 import org.panda_lang.utilities.commons.StringUtils;
 
 import java.io.File;
@@ -85,7 +86,7 @@ public final class RepositoryService {
         File versionDirectory = artifactFile.getParentFile();
 
         File[] builds = MetadataUtils.toSortedBuilds(versionDirectory);
-        File latestBuild = MetadataUtils.getLatest(builds);
+        File latestBuild = ArrayUtils.getLatest(builds);
 
         if (latestBuild == null) {
             return requestPath;

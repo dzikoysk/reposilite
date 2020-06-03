@@ -32,6 +32,7 @@ import org.panda_lang.reposilite.config.Configuration;
 import org.panda_lang.reposilite.frontend.Frontend;
 import org.panda_lang.reposilite.metadata.MetadataService;
 import org.panda_lang.reposilite.metadata.MetadataUtils;
+import org.panda_lang.reposilite.utils.ArrayUtils;
 import org.panda_lang.reposilite.utils.ExecutorsUtils;
 import org.panda_lang.reposilite.utils.FilesUtils;
 import org.panda_lang.reposilite.utils.Result;
@@ -163,7 +164,7 @@ public final class LookupService {
         if (requestedFileName.equalsIgnoreCase("latest")) {
             File requestDirectory = new File(repository.getLocalPath() + "/" + ContentJoiner.on("/").join(requestPath)).getParentFile();
             File[] versions = MetadataUtils.toSortedVersions(requestDirectory);
-            File version = MetadataUtils.getLatest(versions);
+            File version = ArrayUtils.getLatest(versions);
 
             if (version == null) {
                 return Result.error("Latest version not found");
@@ -201,7 +202,7 @@ public final class LookupService {
 
             // add content description to the header
             context.res.setContentLengthLong(file.length());
-            context.res.setHeader("Content-Disposition", "attachment; filename=\"" + MetadataUtils.getLast(path) + "\"");
+            context.res.setHeader("Content-Disposition", "attachment; filename=\"" + ArrayUtils.getLast(path) + "\"");
 
             // exclude content for head requests
             if (!context.method().equals("HEAD")) {

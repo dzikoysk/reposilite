@@ -16,9 +16,12 @@
 
 package org.panda_lang.reposilite.metadata;
 
+import com.vdurmont.semver4j.Semver;
+import com.vdurmont.semver4j.Semver.SemverType;
 import io.vavr.collection.Stream;
 import org.panda_lang.reposilite.utils.FilesUtils;
 import org.panda_lang.utilities.commons.StringUtils;
+import org.panda_lang.utilities.commons.collection.Pair;
 import org.panda_lang.utilities.commons.text.ContentJoiner;
 
 import java.io.File;
@@ -27,7 +30,6 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.List;
 import java.util.Locale;
 
 public final class MetadataUtils {
@@ -38,6 +40,7 @@ public final class MetadataUtils {
 
     private static final Comparator<String> REVERSED_STRING_COMPARATOR = Comparator.reverseOrder();
     private static final Comparator<File> REVERSED_FILE_COMPARATOR = (file, to) -> REVERSED_STRING_COMPARATOR.compare(file.getName(), to.getName());
+    private static final Comparator<Pair<?, Semver>> REVERSED_SEMVER_PAIR_COMPARATOR = (pair, to) -> to.getValue().compareTo(pair.getValue());
 
     private MetadataUtils() { }
 
@@ -45,6 +48,7 @@ public final class MetadataUtils {
         return Stream.of(FilesUtils.listFiles(artifactDirectory))
                 .filter(File::isFile)
                 .filter(file -> file.getName().endsWith(".jar"))
+                .sorted()
                 .sorted(REVERSED_FILE_COMPARATOR) // reversed order
                 .toJavaArray(File[]::new);
     }
@@ -59,7 +63,9 @@ public final class MetadataUtils {
     public static File[] toSortedVersions(File artifactDirectory) {
         return Stream.of(FilesUtils.listFiles(artifactDirectory))
                 .filter(File::isDirectory)
-                .sorted(REVERSED_FILE_COMPARATOR) // reversed order
+                .map(file -> new Pair<>(file, new Semver(file.getName(), SemverType.LOOSE)))
+                .sorted(REVERSED_SEMVER_PAIR_COMPARATOR) // reversed order
+                .map(Pair::getKey)
                 .toJavaArray(File[]::new);
     }
 
@@ -87,12 +93,6 @@ public final class MetadataUtils {
         identifier = StringUtils.replace(identifier, artifact + "-", StringUtils.EMPTY);
         identifier = StringUtils.replace(identifier, version + "-", StringUtils.EMPTY);
         return declassifyIdentifier(identifier);
-    }
-
-    public static List<String> toNames(File[] files) {
-        return Stream.of(files)
-                .map(File::getName)
-                .toJavaList();
     }
 
     private static String declassifyIdentifier(String identifier) {
@@ -142,13 +142,6 @@ public final class MetadataUtils {
         }
 
         return true;
-    }
-    public static <T> T getLatest(T[] elements) {
-        return elements.length > 0 ? elements[0] : null;
-    }
-
-    public static <T> T getLast(T[] elements) {
-        return  elements.length == 0 ? null : elements[elements.length - 1];
     }
 
 }
