@@ -23,6 +23,9 @@ import java.io.Serializable;
 
 final class FileDto implements Serializable, Comparable<FileDto> {
 
+    private static final String FILE = "file";
+    private static final String DIRECTORY = "directory";
+
     private final String type;
     private final String name;
     private final long contentLength;
@@ -44,6 +47,10 @@ final class FileDto implements Serializable, Comparable<FileDto> {
         return result;
     }
 
+    boolean isDirectory() {
+        return DIRECTORY.equals(type);
+    }
+
     public long getContentLength() {
         return contentLength;
     }
@@ -57,7 +64,7 @@ final class FileDto implements Serializable, Comparable<FileDto> {
     }
 
     public static FileDto of(File file) {
-        return new FileDto(file.isDirectory() ? "directory" : "file", file.getName(), file.isDirectory() ? -1 : file.length());
+        return new FileDto(file.isDirectory() ? DIRECTORY : FILE, file.getName(), file.isDirectory() ? -1 : file.length());
     }
 
 }

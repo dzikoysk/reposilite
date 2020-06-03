@@ -78,7 +78,7 @@ public final class IndexApiController implements RepositoryController {
 
         return ctx.json(new FileListDto(Stream.of(FilesUtils.listFiles(requestedFile))
                 .map(FileDto::of)
-                .sorted()
+                .transform(stream -> MetadataUtils.toSorted(stream, FileDto::getName, FileDto::isDirectory))
                 .toJavaList()));
     }
 

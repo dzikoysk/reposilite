@@ -16,8 +16,6 @@
 
 package org.panda_lang.reposilite.metadata;
 
-import com.vdurmont.semver4j.Semver;
-import com.vdurmont.semver4j.Semver.SemverType;
 import io.vavr.collection.Stream;
 import org.panda_lang.reposilite.utils.FilesUtils;
 import org.panda_lang.utilities.commons.StringUtils;
@@ -29,8 +27,9 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.Locale;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 public final class MetadataUtils {
 
@@ -38,34 +37,27 @@ public final class MetadataUtils {
                     .withLocale(Locale.getDefault())
                     .withZone(ZoneOffset.UTC);
 
-    private static final Comparator<String> REVERSED_STRING_COMPARATOR = Comparator.reverseOrder();
-    private static final Comparator<File> REVERSED_FILE_COMPARATOR = (file, to) -> REVERSED_STRING_COMPARATOR.compare(file.getName(), to.getName());
-    private static final Comparator<Pair<?, Semver>> REVERSED_SEMVER_PAIR_COMPARATOR = (pair, to) -> to.getValue().compareTo(pair.getValue());
-
     private MetadataUtils() { }
 
     public static File[] toSortedBuilds(File artifactDirectory) {
         return Stream.of(FilesUtils.listFiles(artifactDirectory))
                 .filter(File::isFile)
                 .filter(file -> file.getName().endsWith(".jar"))
-                .sorted()
-                .sorted(REVERSED_FILE_COMPARATOR) // reversed order
+                .transform(stream -> toSorted(stream, File::getName, File::isDirectory))
                 .toJavaArray(File[]::new);
     }
 
     public static File[] toFiles(File directory) {
         return Stream.of(FilesUtils.listFiles(directory))
                 .filter(File::isFile)
-                .sorted(Comparator.comparing(File::getName))
+                .transform(stream -> toSorted(stream, File::getName, File::isDirectory))
                 .toJavaArray(File[]::new);
     }
 
     public static File[] toSortedVersions(File artifactDirectory) {
         return Stream.of(FilesUtils.listFiles(artifactDirectory))
                 .filter(File::isDirectory)
-                .map(file -> new Pair<>(file, new Semver(file.getName(), SemverType.LOOSE)))
-                .sorted(REVERSED_SEMVER_PAIR_COMPARATOR) // reversed order
-                .map(Pair::getKey)
+                .transform(stream -> toSorted(stream, File::getName, File::isDirectory))
                 .toJavaArray(File[]::new);
     }
 
@@ -74,7 +66,7 @@ public final class MetadataUtils {
                 .map(build -> toIdentifier(artifact, version, build))
                 .filterNot(StringUtils::isEmpty)
                 .distinct()
-                .sorted(REVERSED_STRING_COMPARATOR)
+                .transform(stream -> toSorted(stream, Function.identity(), identifier -> true))
                 .toJavaArray(String[]::new);
     }
 
@@ -83,8 +75,15 @@ public final class MetadataUtils {
                 .filter(file -> file.getName().contains(identifier + ".") || file.getName().contains(identifier + "-"))
                 .filterNot(file -> file.getName().endsWith(".md5"))
                 .filterNot(file -> file.getName().endsWith(".sha1"))
-                .sorted(REVERSED_FILE_COMPARATOR)
+                .transform(stream -> toSorted(stream, File::getName, File::isDirectory))
                 .toJavaArray(File[]::new);
+    }
+
+    public static <T> Stream<T> toSorted(Stream<T> stream, Function<T, String> mapper, Predicate<T> isDirectory) {
+        return stream
+                .map(object -> new Pair<>(object, mapper.apply(object).split("[-.]")))
+                .sorted(new MetadataComparator<>(Pair::getValue, pair -> isDirectory.test(pair.getKey())))
+                .map(Pair::getKey);
     }
 
     public static String toIdentifier(String artifact, String version, File build) {
