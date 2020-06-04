@@ -6,6 +6,8 @@
 hostname: ""
 # Port
 port: 80
+# Debug
+debugEnabled: false
 
 # List of supported Maven repositories.
 # First directory on the list is the main repository.

@@ -32,8 +32,8 @@ rewritePathsEnabled: true
 fullAuthEnabled: false
 
 # Title displayed by frontend
-title: "#onlypanda-custom"
+title: "Your company"
 # Description displayed by frontend
-description: "Public Maven repository hosted through the Reposilite - custom"
+description: "Definitely not Reposilite"
 # Accent color used by frontend
-accentColor: "#008000"
+accentColor: "#1de9b6"
