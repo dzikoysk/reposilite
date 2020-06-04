@@ -19,7 +19,6 @@ package org.panda_lang.reposilite;
 import io.javalin.Javalin;
 import io.javalin.core.JavalinConfig;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.panda_lang.reposilite.api.ConfigurationApiController;
 import org.panda_lang.reposilite.api.IndexApiController;
 import org.panda_lang.reposilite.config.Configuration;
@@ -58,7 +57,7 @@ public final class ReposiliteHttpServer {
     }
 
     private void config(Configuration configuration, JavalinConfig config) {
-        config.server(() -> new Server(new QueuedThreadPool(2 * Runtime.getRuntime().availableProcessors())));
+        config.server(Server::new);
         config.showJavalinBanner = false;
 
         if (configuration.isDebugEnabled()) {
