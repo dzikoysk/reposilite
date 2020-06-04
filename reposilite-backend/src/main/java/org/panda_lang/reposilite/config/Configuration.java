@@ -25,6 +25,7 @@ public final class Configuration implements Serializable {
     // Bind properties
     private String hostname = "";
     private int port = 80;
+    private boolean debugEnabled;
 
     // Repository properties
     private final List<String> repositories = new ArrayList<>(3);
@@ -90,6 +91,10 @@ public final class Configuration implements Serializable {
 
     public String getTitle() {
         return title;
+    }
+
+    public boolean isDebugEnabled() {
+        return debugEnabled;
     }
 
     public String getHostname() {

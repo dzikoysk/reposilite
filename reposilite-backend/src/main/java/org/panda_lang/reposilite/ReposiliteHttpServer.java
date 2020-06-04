@@ -43,7 +43,7 @@ public final class ReposiliteHttpServer {
         LookupService lookupService = new LookupService(reposilite);
         LookupController lookupController = new LookupController(reposilite.getFrontend(), lookupService);
 
-        this.javalin = Javalin.create(this::config)
+        this.javalin = Javalin.create(config -> config(configuration, config))
                 .get("/api/configuration", new ConfigurationApiController(reposilite.getConfiguration()))
                 .get("/api/*", new IndexApiController(reposilite))
                 .get("/js/app.js", new FrontendController(reposilite))
@@ -57,10 +57,14 @@ public final class ReposiliteHttpServer {
         onStart.run();
     }
 
-    private void config(JavalinConfig config) {
+    private void config(Configuration configuration, JavalinConfig config) {
         config.server(() -> new Server(new QueuedThreadPool(2 * Runtime.getRuntime().availableProcessors())));
         config.showJavalinBanner = false;
-        config.enableCorsForOrigin("http://localhost:8080/");
+
+        if (configuration.isDebugEnabled()) {
+            config.enableCorsForOrigin("http://localhost:8080/");
+            config.enableDevLogging();
+        }
     }
 
     void stop() {
