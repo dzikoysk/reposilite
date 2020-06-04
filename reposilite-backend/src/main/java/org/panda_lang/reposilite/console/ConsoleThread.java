@@ -16,6 +16,8 @@
 
 package org.panda_lang.reposilite.console;
 
+import org.panda_lang.reposilite.Reposilite;
+
 import java.util.Scanner;
 
 final class ConsoleThread extends Thread {
@@ -30,6 +32,11 @@ final class ConsoleThread extends Thread {
     @Override
     public void run() {
         Scanner in = new Scanner(System.in);
+
+        if (!in.hasNextLine()) {
+            Reposilite.getLogger().warn("Interactive CLI is not available in current environment.");
+            Reposilite.getLogger().warn("Solution for Docker users: https://docs.docker.com/engine/reference/run/#foreground");
+        }
 
         while (!isInterrupted() && in.hasNextLine()) {
             String command = in.nextLine();
