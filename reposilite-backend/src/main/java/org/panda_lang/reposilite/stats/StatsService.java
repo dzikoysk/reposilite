@@ -63,13 +63,13 @@ public final class StatsService {
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,(oldValue, newValue) -> oldValue, LinkedHashMap::new));
     }
 
-    public int sumRecords() {
+    public int countRecords() {
         return entity.getRecords().values().stream()
                 .mapToInt(Integer::intValue)
                 .sum();
     }
 
-    public int countRecords() {
+    public int countUniqueRecords() {
         return entity.getRecords().size();
     }
 

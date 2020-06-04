@@ -22,10 +22,10 @@ import com.google.api.client.http.HttpRequestFactory;
 import com.google.api.client.http.HttpResponse;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import io.javalin.http.Context;
-import io.vavr.control.Try;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.Reposilite;
+import org.panda_lang.reposilite.ReposiliteHttpServer;
 import org.panda_lang.reposilite.auth.Authenticator;
 import org.panda_lang.reposilite.auth.Session;
 import org.panda_lang.reposilite.config.Configuration;
@@ -57,6 +57,7 @@ public final class LookupService {
     private final RepositoryService repositoryService;
     private final HttpRequestFactory requestFactory;
     private final ExecutorService proxiedExecutor;
+    private final ReposiliteHttpServer httpServer;
 
     public LookupService(Reposilite reposilite) {
         this.frontend = reposilite.getFrontend();
@@ -66,6 +67,7 @@ public final class LookupService {
         this.repositoryService = reposilite.getRepositoryService();
         this.requestFactory = configuration.getProxied().isEmpty() ? null : new NetHttpTransport().createRequestFactory();
         this.proxiedExecutor = configuration.getProxied().isEmpty() ? null : Executors.newCachedThreadPool();
+        this.httpServer = reposilite.getHttpServer();
     }
 
     protected Result<Context, String> serveProxied(Context context) {
@@ -155,9 +157,7 @@ public final class LookupService {
         String requestedFileName = requestPath[requestPath.length - 1];
 
         if (requestedFileName.equals("maven-metadata.xml")) {
-            return Try.of(() -> metadataService.generateMetadata(repository, requestPath))
-                    .map(result -> Result.<Context, String> ok(context.contentType("text/xml").result(result)))
-                    .getOrElse(() -> Result.error("Cannot find metadata file"));
+            return metadataService.generateMetadata(repository, requestPath).map(result -> context.contentType("text/xml").result(result));
         }
 
         // resolve requests for latest version of artifact

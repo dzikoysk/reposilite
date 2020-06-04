@@ -38,12 +38,12 @@ final class StatusCommand implements NanoCommand {
         Reposilite.getLogger().info("  Memory usage of process: " + getMemoryUsage());
         Reposilite.getLogger().info("  Latest version of reposilite: " + latestVersion);
         Reposilite.getLogger().info("  Cached metadata: " + reposilite.getMetadataService().getCacheSize());
-        printExceptions(reposilite.getHttpServer().getExceptions());
+        printExceptions(reposilite.getExceptions());
         Reposilite.getLogger().info("");
         return true;
     }
 
-    private void printExceptions(Collection<Pair<String, Exception>> exceptions) {
+    private void printExceptions(Collection<? extends Pair<String, Throwable>> exceptions) {
         if (exceptions.isEmpty()) {
             return;
         }
@@ -51,7 +51,7 @@ final class StatusCommand implements NanoCommand {
         Reposilite.getLogger().info("  List of cached exceptions:");
         int count = 0;
 
-        for (Pair<String, Exception> exception : exceptions) {
+        for (Pair<String, Throwable> exception : exceptions) {
             Reposilite.getLogger().error("Exception " + (++count) + " at " + exception.getKey() , exception.getValue());
         }
     }
