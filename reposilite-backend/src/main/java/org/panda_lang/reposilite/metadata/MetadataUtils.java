@@ -42,7 +42,7 @@ public final class MetadataUtils {
     public static File[] toSortedBuilds(File artifactDirectory) {
         return Stream.of(FilesUtils.listFiles(artifactDirectory))
                 .filter(File::isFile)
-                .filter(file -> file.getName().endsWith(".jar"))
+                .filter(file -> file.getName().endsWith(".pom"))
                 .transform(stream -> toSorted(stream, File::getName, File::isDirectory))
                 .toJavaArray(File[]::new);
     }

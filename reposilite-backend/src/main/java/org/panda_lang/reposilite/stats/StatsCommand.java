@@ -50,12 +50,12 @@ public final class StatsCommand implements NanoCommand {
 
         Reposilite.getLogger().info("");
         Reposilite.getLogger().info("Statistics: ");
-        Reposilite.getLogger().info("  Requests count: " + statsService.countRecords() + " (sum: " + statsService.sumRecords() + ")");
+        Reposilite.getLogger().info("  Unique requests: " + statsService.countUniqueRecords() + " (count: " + statsService.countRecords() + ")");
 
         Map<String, Integer> stats = statsService.fetchStats(
                 (uri, counts) -> counts >= limiter,
                 (uri, counts) -> uri.contains(pattern),
-                (uri, counts) -> !uri.endsWith(".md1"),
+                (uri, counts) -> !uri.endsWith(".md5"),
                 (uri, counts) -> !uri.endsWith(".sha1"),
                 (uri, counts) -> !uri.endsWith(".pom"),
                 (uri, counts) -> !uri.endsWith("/js/app.js")

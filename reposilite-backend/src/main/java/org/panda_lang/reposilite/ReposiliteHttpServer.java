@@ -27,21 +27,16 @@ import org.panda_lang.reposilite.frontend.FrontendController;
 import org.panda_lang.reposilite.repository.DeployController;
 import org.panda_lang.reposilite.repository.LookupController;
 import org.panda_lang.reposilite.repository.LookupService;
-import org.panda_lang.utilities.commons.collection.Pair;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Objects;
 
 public final class ReposiliteHttpServer {
 
     private final Reposilite reposilite;
-    private final Collection<Pair<String, Exception>> exceptions;
     private Javalin javalin;
 
     ReposiliteHttpServer(Reposilite reposilite) {
         this.reposilite = reposilite;
-        this.exceptions = new ArrayList<>();
     }
 
     void start(Configuration configuration, Runnable onStart) {
@@ -55,11 +50,8 @@ public final class ReposiliteHttpServer {
                 .get("/*", lookupController)
                 .head("/*", lookupController)
                 .put("/*", new DeployController(reposilite))
-                .exception(Exception.class, (exception, ctx) -> {
-                    exception.printStackTrace();
-                    exceptions.add(new Pair<>(ctx.req.getRequestURI(), exception));
-                })
                 .before(ctx -> reposilite.getStatsService().record(ctx.req.getRequestURI()))
+                .exception(Exception.class, (exception, ctx) -> reposilite.throwException(ctx.req.getRequestURI(), exception))
                 .start(configuration.getHostname(), configuration.getPort());
 
         onStart.run();
@@ -79,10 +71,6 @@ public final class ReposiliteHttpServer {
 
     public boolean isAlive() {
         return Objects.requireNonNull(javalin.server()).server().isRunning();
-    }
-
-    public Collection<Pair<String, Exception>> getExceptions() {
-        return exceptions;
     }
 
 }

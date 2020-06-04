@@ -21,7 +21,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Function;
 
-public final class Result<V, E> {
+public final class Result<V, E>  {
 
     private final @Nullable V value;
     private final @Nullable E error;
@@ -29,6 +29,10 @@ public final class Result<V, E> {
     Result(@Nullable V value, @Nullable E error) {
         this.value = value;
         this.error = error;
+    }
+
+    public <R> Result<R, E> map(Function<V, R> function) {
+        return value != null ? Result.ok(function.apply(value)) : Result.error(error);
     }
 
     public Result<V, E> orElse(Function<E, Result<V, E>> orElse) {
