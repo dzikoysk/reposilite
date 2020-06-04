@@ -12,7 +12,7 @@ debugEnabled: false
 # List of supported Maven repositories.
 # First directory on the list is the main repository.
 repositories:
-    "releases"
+  - "releases"
   - "snapshots"
 
 # List of proxied repositories.
