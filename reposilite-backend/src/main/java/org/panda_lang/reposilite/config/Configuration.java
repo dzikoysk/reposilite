@@ -20,6 +20,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+// @formatter:off
 public final class Configuration implements Serializable {
 
     // Bind properties
@@ -35,94 +36,47 @@ public final class Configuration implements Serializable {
     private boolean deployEnabled = true;
     private boolean rewritePathsEnabled = true;
     private boolean fullAuthEnabled = false;
+    private boolean indexingEnabled = true;
 
     // Frontend properties
     private String title = "#onlypanda";
     private String description = "Public Maven repository hosted through the Reposilite";
     private String accentColor = "#009890";
 
-    public void setHostname(String hostname) {
-        this.hostname = hostname;
-    }
+    public void setHostname(String hostname) { this.hostname = hostname; }
+    public String getHostname() { return hostname; }
 
-    public void setPort(int port) {
-        this.port = port;
-    }
+    public void setPort(int port) { this.port = port; }
+    public int getPort() { return port; }
 
-    public void setRepositories(List<String> repositories) {
-        this.repositories.addAll(repositories);
-    }
+    public void setDebugEnabled(boolean debugEnabled) { this.debugEnabled = debugEnabled; }
+    public boolean isDebugEnabled() { return debugEnabled; }
 
-    public void setProxied(List<String> proxied) {
-        this.proxied.addAll(proxied);
-    }
+    public void setProxied(List<String> proxied) { this.proxied.addAll(proxied); }
+    public List<String> getProxied() { return proxied; }
 
-    public void setDeployEnabled(boolean deployEnabled) {
-        this.deployEnabled = deployEnabled;
-    }
+    public void setRepositories(List<String> repositories) { this.repositories.addAll(repositories); }
+    public List<String> getRepositories() { return repositories; }
 
-    public void setRewritePathsEnabled(boolean rewritePathsEnabled) {
-        this.rewritePathsEnabled = rewritePathsEnabled;
-    }
+    public void setDeployEnabled(boolean deployEnabled) { this.deployEnabled = deployEnabled; }
+    public boolean isDeployEnabled() { return deployEnabled; }
 
-    public void setFullAuthEnabled(boolean fullAuthEnabled) {
-        this.fullAuthEnabled = fullAuthEnabled;
-    }
+    public void setRewritePathsEnabled(boolean rewritePathsEnabled) { this.rewritePathsEnabled = rewritePathsEnabled; }
+    public boolean isRewritePathsEnabled() { return rewritePathsEnabled; }
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
+    public void setFullAuthEnabled(boolean fullAuthEnabled) { this.fullAuthEnabled = fullAuthEnabled; }
+    public boolean isFullAuthEnabled() { return fullAuthEnabled; }
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
+    public void setIndexingEnabled(boolean indexingEnabled) { this.indexingEnabled = indexingEnabled; }
+    public boolean isIndexingEnabled() { return indexingEnabled; }
 
-    public void setAccentColor(String accentColor) {
-        this.accentColor = accentColor;
-    }
+    public void setTitle(String title) { this.title = title; }
+    public String getTitle() { return title; }
 
-    public String getAccentColor() {
-        return accentColor;
-    }
+    public void setDescription(String description) { this.description = description; }
+    public String getDescription() { return description; }
 
-    public String getDescription() {
-        return description;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public boolean isDebugEnabled() {
-        return debugEnabled;
-    }
-
-    public String getHostname() {
-        return hostname;
-    }
-
-    public int getPort() {
-        return port;
-    }
-
-    public List<String> getProxied() {
-        return proxied;
-    }
-
-    public List<String> getRepositories() {
-        return repositories;
-    }
-
-    public boolean isDeployEnabled() {
-        return deployEnabled;
-    }
-
-    public boolean isRewritePathsEnabled() {
-        return rewritePathsEnabled;
-    }
-
-    public boolean isFullAuthEnabled() {
-        return fullAuthEnabled;
-    }
+    public void setAccentColor(String accentColor) { this.accentColor = accentColor; }
+    public String getAccentColor() { return accentColor; }
 
 }

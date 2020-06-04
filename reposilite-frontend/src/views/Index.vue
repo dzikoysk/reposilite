@@ -25,8 +25,7 @@
                     :file="file"
                 )
                 h1(v-if="isEmpty()") Empty directory
-                h1(v-if="!hasFiles()").font-bold {{ this.message }}
-
+                h1(v-if="!hasFiles()").font-bold {{ response.message }}
 </template>
 
 <script>
