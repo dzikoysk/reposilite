@@ -29,6 +29,9 @@ rewritePathsEnabled: true
 # Require authentication of all requests (download, head requests)
 # This option should be set to 'false', if you are hosting public repository
 fullAuthEnabled: false
+# If you don't want to display content of your repositories,
+# you can just disable indexing
+indexingEnabled: true
 
 # Title displayed by frontend
 title: "#onlypanda"
