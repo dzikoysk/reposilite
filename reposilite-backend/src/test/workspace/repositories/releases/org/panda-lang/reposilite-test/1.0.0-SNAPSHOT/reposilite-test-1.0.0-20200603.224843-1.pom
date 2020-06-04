@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>reposilite-parent</artifactId>
+        <groupId>org.panda-lang</groupId>
+        <version>2.5.2</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>reposilite-test</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+
+    <distributionManagement>
+        <repository>
+            <id>local-repository</id>
+            <url>http://localhost/releases</url>
+        </repository>
+    </distributionManagement>
+
+</project>
