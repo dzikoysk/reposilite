@@ -31,7 +31,7 @@ final class ConsoleThread extends Thread {
     public void run() {
         Scanner in = new Scanner(System.in);
 
-        while (!isInterrupted()) {
+        while (!isInterrupted() && in.hasNextLine()) {
             String command = in.nextLine();
 
             try {
