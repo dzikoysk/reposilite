@@ -1,3 +1,8 @@
 !!org.panda_lang.reposilite.auth.TokensCollection
-tokens:
-- {alias: admin, path: /, token: $2a$10$Rb2m1vYj7CIW9ve.twvabOMtSp3vnkrsqd08F2Edi3.kGnqjTcWmy}
+"tokens":
+- "alias": "authtest"
+  "path": "/releases/auth/test"
+  "token": "$2a$10$gQ9/kwYOl9T1zgGlfFPyMuFdb2fd5of7nhDK4TS26A7yYZiVfiuSi"
+- "alias": "admin"
+  "path": "/"
+  "token": "$2a$10$Rb2m1vYj7CIW9ve.twvabOMtSp3vnkrsqd08F2Edi3.kGnqjTcWmy"

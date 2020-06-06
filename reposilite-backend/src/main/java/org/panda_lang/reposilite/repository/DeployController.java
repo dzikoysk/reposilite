@@ -82,10 +82,6 @@ public final class DeployController implements Handler {
             return Result.ok(context.result("Success"));
         }
 
-        if (!session.hasPermission("/" + targetFile.getFile().getPath())) {
-            return Result.error("Unauthorized access");
-        }
-
         try {
             FileUtils.forceMkdirParent(file);
             Files.copy(Objects.requireNonNull(context.req.getInputStream()), file.toPath(), StandardCopyOption.REPLACE_EXISTING);
