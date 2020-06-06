@@ -34,6 +34,7 @@
   "/releases/org/panda-lang/reposilite/2.10.0-SNAPSHOT/maven-metadata.xml": !!int "8"
   "/releases/org/panda-lang/reposilite-parent/2.5.0/maven-metadata.xml": !!int "2"
   "/releases/org/panda-lang/reposilite-test/1.0.0-SNAPSHOT/reposilite-test-1.0.0-20200603.224843-1.pom.md5": !!int "1"
+  "/releases/auth/test/test.jar": !!int "5"
   "/api/releases/org": !!int "1"
   "/api/releases": !!int "1"
   "/api/releases/org/x": !!int "1"

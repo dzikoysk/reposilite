@@ -44,7 +44,7 @@ public final class Authenticator {
         Session session = authResult.getValue().get();
 
         if (!session.hasPermission(uri)) {
-            return Result.error("Unauthorized access");
+            return Result.error("Unauthorized access attempt");
         }
 
         return authResult;
@@ -63,23 +63,19 @@ public final class Authenticator {
 
         String base64Credentials = authorization.substring("Basic".length()).trim();
         String credentials = new String(Base64.getDecoder().decode(base64Credentials), StandardCharsets.UTF_8);
-
         String[] values = credentials.split(":", 2);
 
         if (values.length != 2) {
             return Result.error("Invalid authorization credentials");
         }
 
-        String alias = values[0];
-        String rawToken = values[1];
-
-        Token token = tokenService.getToken(alias);
+        Token token = tokenService.getToken(values[0]);
 
         if (token == null) {
             return Result.error("Invalid authorization credentials");
         }
 
-        boolean authorized = TokenService.B_CRYPT_TOKENS_ENCODER.matches(rawToken, token.getToken());
+        boolean authorized = TokenService.B_CRYPT_TOKENS_ENCODER.matches(values[1], token.getToken());
 
         if (!authorized) {
             return Result.error("Invalid authorization credentials");
