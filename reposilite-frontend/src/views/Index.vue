@@ -43,6 +43,23 @@ export default {
     Wave,
     FileEntry
   },
+  metaInfo() {
+    return {
+      meta: [
+          // Default
+          {name: 'description', content: 'Repository holds build artifacts and dependencies of varying types'},
+          // Twitter Card
+          {name: 'twitter:card', content: 'summary'},
+          {name: 'twitter:title', content: 'Maven Repository'},
+          {name: 'twitter:description', content: 'Repository holds build artifacts and dependencies of varying types'},
+          // Facebook OpenGraph
+          {property: 'og:title', content: 'Maven Repository'},
+          {property: 'og:site_name', content: 'Maven Repository'},
+          {property: 'og:type', content: 'website'},
+          {property: 'og:description', content: 'Repository holds build artifacts and dependencies of varying types'}
+      ]
+    }
+  },
   created() {
     this.message = window.REPOSILITE_MESSAGE
 
