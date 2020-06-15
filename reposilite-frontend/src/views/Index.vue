@@ -13,7 +13,10 @@
                 .flex.justify-between.py-4
                     h1.text-xl 
                       | Index of 
-                      span.ml-1 {{ this.qualifier }}
+                      span.ml-2 {{ this.qualifier }}
+                      router-link(:to="'/dashboard' + this.qualifier")
+                        span.ml-3(:style="'color: ' + this.configuration.accentColor")
+                          i.fas.fa-feather-alt
                     router-link(
                         v-if="this.qualifier != undefined && this.qualifier.length > 0" 
                         :to='parentPath()'
@@ -63,7 +66,7 @@ export default {
   created() {
     this.message = window.REPOSILITE_MESSAGE
 
-    this.api('/configuration')
+    this.api('/configuration', {})
       .then(response => (this.configuration = response.data))
       .catch(err => (this.response = err.response.data))
   },
@@ -79,7 +82,7 @@ export default {
     updateEntities() {
       this.qualifier = this.getQualifier()
 
-      this.api(this.qualifier)
+      this.api(this.qualifier, {})
         .then(response => (this.response = response.data))
         .catch(err => (this.response = err.response.data))
     },
@@ -95,7 +98,7 @@ export default {
 
 <style lang="stylus">  
 html
-  background-color #f3f3f3
+  background-color #f1f1f1
 #app
   font-family 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif
   -webkit-font-smoothing antialiased

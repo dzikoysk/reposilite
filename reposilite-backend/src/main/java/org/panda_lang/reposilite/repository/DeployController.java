@@ -70,8 +70,6 @@ public final class DeployController implements Handler {
             return Result.error(authResult.getError().get());
         }
 
-        Session session = authResult.getValue().get();
-
         ArtifactFile targetFile = ArtifactFile.fromURL(context.req.getRequestURI());
         File file = targetFile.getFile();
 

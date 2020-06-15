@@ -42,6 +42,7 @@ public final class ReposiliteHttpServer {
     void start(Configuration configuration, Runnable onStart) {
         LookupService lookupService = new LookupService(reposilite);
         LookupController lookupController = new LookupController(reposilite.getFrontend(), lookupService);
+        DeployController deployController = new DeployController(reposilite);
 
         this.javalin = Javalin.create(config -> config(configuration, config))
                 .get("/api/auth", new AuthApiController(configuration, reposilite.getAuthenticator()))
@@ -50,7 +51,8 @@ public final class ReposiliteHttpServer {
                 .get("/js/app.js", new FrontendController(reposilite))
                 .get("/*", lookupController)
                 .head("/*", lookupController)
-                .put("/*", new DeployController(reposilite))
+                .put("/*", deployController)
+                .post("/*", deployController)
                 .before(ctx -> reposilite.getStatsService().record(ctx.req.getRequestURI()))
                 .exception(Exception.class, (exception, ctx) -> reposilite.throwException(ctx.req.getRequestURI(), exception))
                 .start(configuration.getHostname(), configuration.getPort());

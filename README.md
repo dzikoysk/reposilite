@@ -19,7 +19,7 @@ It is a simple solution to replace managers like Nexus, Archiva or Artifactory.
 * [x] Statistics
 * [x] REST API
 * [x] Repository browser
-* [ ] Admin panel
+* [x] Dashboard (+ Admin panel)
 * [ ] Docs
 
 #### Installation
