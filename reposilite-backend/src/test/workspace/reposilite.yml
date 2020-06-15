@@ -6,6 +6,8 @@
 hostname: ''
 # Port
 port: 80
+# Debug
+debugEnabled: false
 
 # List of supported Maven repositories.
 # First directory on the list is the main repository.
@@ -33,6 +35,9 @@ fullAuthEnabled: false
 # If you don't want to display content of your repositories,
 # you can just disable indexing
 indexingEnabled: false
+# List of management tokens used by dashboard to access extra options.
+# (By default, people are allowed to use standard dashboard options related to the associated path)
+managers: []
 
 # Title displayed by frontend
 title: "Your company"

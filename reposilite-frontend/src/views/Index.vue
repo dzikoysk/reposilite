@@ -13,10 +13,10 @@
                 .flex.justify-between.py-4
                     h1.text-xl 
                       | Index of 
-                      span.ml-1 /{{ this.qualifier }}
+                      span.ml-1 {{ this.qualifier }}
                     router-link(
                         v-if="this.qualifier != undefined && this.qualifier.length > 0" 
-                        :to='getParentPath()'
+                        :to='parentPath()'
                     ) ← Back
                 FileEntry(
                     v-if="hasFiles()" 
@@ -63,9 +63,9 @@ export default {
   created() {
     this.message = window.REPOSILITE_MESSAGE
 
-    this.$http
-      .get(this.getApi('configuration'))
+    this.api('/configuration')
       .then(response => (this.configuration = response.data))
+      .catch(err => (this.response = err.response.data))
   },
   mounted() {
     this.updateEntities()
@@ -77,26 +77,17 @@ export default {
   },
   methods: {
     updateEntities() {
-      this.qualifier = this.$route.params['qualifier']
+      this.qualifier = this.getQualifier()
 
-      this.$http
-        .get(this.getApi(this.qualifier))
+      this.api(this.qualifier)
         .then(response => (this.response = response.data))
+        .catch(err => (this.response = err.response.data))
     },
     hasFiles() {
       return this.response.files != undefined
     },
     isEmpty() {
       return this.hasFiles() && (this.response.files.length == 0)
-    },
-    getApi(path) {
-      return ((process.env.NODE_ENV == 'production') ? '/' : 'http://localhost:80/') + 'api/' + path
-    },
-    getParentPath() {
-        const elements = ('/' + this.qualifier).split('/')
-        elements.pop()
-        const path = elements.join('/')
-        return path.length == 0 ? '/' : path
     }
   }
 }
@@ -104,7 +95,7 @@ export default {
 
 <style lang="stylus">  
 html
-  background-color: #f8f8f8
+  background-color #f3f3f3
 #app
   font-family 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif
   -webkit-font-smoothing antialiased

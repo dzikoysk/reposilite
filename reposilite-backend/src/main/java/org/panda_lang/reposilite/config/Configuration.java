@@ -37,6 +37,7 @@ public final class Configuration implements Serializable {
     private boolean rewritePathsEnabled = true;
     private boolean fullAuthEnabled = false;
     private boolean indexingEnabled = true;
+    private final List<String> managers = new ArrayList<>(2);
 
     // Frontend properties
     private String title = "#onlypanda";
@@ -69,6 +70,9 @@ public final class Configuration implements Serializable {
 
     public void setIndexingEnabled(boolean indexingEnabled) { this.indexingEnabled = indexingEnabled; }
     public boolean isIndexingEnabled() { return indexingEnabled; }
+
+    public void setManagers(List<String> managers) { this.managers.addAll(managers); }
+    public List<String> getManagers() { return managers; }
 
     public void setTitle(String title) { this.title = title; }
     public String getTitle() { return title; }

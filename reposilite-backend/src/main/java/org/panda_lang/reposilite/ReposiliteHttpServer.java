@@ -19,6 +19,7 @@ package org.panda_lang.reposilite;
 import io.javalin.Javalin;
 import io.javalin.core.JavalinConfig;
 import org.eclipse.jetty.server.Server;
+import org.panda_lang.reposilite.api.AuthApiController;
 import org.panda_lang.reposilite.api.ConfigurationApiController;
 import org.panda_lang.reposilite.api.IndexApiController;
 import org.panda_lang.reposilite.config.Configuration;
@@ -43,6 +44,7 @@ public final class ReposiliteHttpServer {
         LookupController lookupController = new LookupController(reposilite.getFrontend(), lookupService);
 
         this.javalin = Javalin.create(config -> config(configuration, config))
+                .get("/api/auth", new AuthApiController(configuration, reposilite.getAuthenticator()))
                 .get("/api/configuration", new ConfigurationApiController(reposilite.getConfiguration()))
                 .get("/api/*", new IndexApiController(reposilite))
                 .get("/js/app.js", new FrontendController(reposilite))
@@ -61,7 +63,8 @@ public final class ReposiliteHttpServer {
         config.showJavalinBanner = false;
 
         if (configuration.isDebugEnabled()) {
-            config.enableCorsForOrigin("http://localhost:8080/");
+            Reposilite.getLogger().info("Debug enabled");
+            config.enableCorsForAllOrigins();
             config.enableDevLogging();
         }
     }
