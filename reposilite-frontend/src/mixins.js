@@ -1,9 +1,15 @@
-const url = ((process.env.NODE_ENV == 'production') ? '/' : 'http://localhost:80/') + 'api';
+const url = (process.env.NODE_ENV == 'production') ? '/' : 'http://localhost:80/';
+const apiUrl = url + 'api';
 
 export default {
     methods: {
-        api(uri, credentials) {
-            return this.$http.get(url + uri, { auth: credentials })
+        api(uri, auth) {
+            return this.$http.get(apiUrl + uri, { 
+                auth: {
+                    username: auth.alias,
+                    password: auth.token 
+                }
+            })
         },
         parentPath() {
             const elements = ('/' + this.getQualifier()).split('/')
@@ -28,6 +34,9 @@ export default {
             }
 
             return uri
+        },
+        url() {
+            return url
         }
     }
 }
