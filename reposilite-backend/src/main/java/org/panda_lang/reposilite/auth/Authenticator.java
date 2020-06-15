@@ -35,6 +35,10 @@ public final class Authenticator {
     }
 
     public Result<Session, String> authUri(Context context, String uri) {
+        if (!uri.startsWith("/")) {
+            uri = "/" + uri;
+        }
+
         Result<Session, String> authResult = auth(context);
 
         if (authResult.getError().isDefined()) {

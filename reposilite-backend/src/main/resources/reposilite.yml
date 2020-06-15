@@ -32,6 +32,10 @@ fullAuthEnabled: false
 # If you don't want to display content of your repositories,
 # you can just disable indexing
 indexingEnabled: true
+# List of management tokens used by dashboard to access extra options.
+# (By default, people are allowed to use standard dashboard options related to the associated path)
+managers: []
+# - root
 
 # Title displayed by frontend
 title: "#onlypanda"

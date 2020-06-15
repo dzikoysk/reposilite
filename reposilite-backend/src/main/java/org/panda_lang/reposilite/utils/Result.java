@@ -39,6 +39,10 @@ public final class Result<V, E>  {
         return isDefined() ? this : orElse.apply(error);
     }
 
+    public V orElseGet(Function<E, V> orElse) {
+        return isDefined() ? value : orElse.apply(error);
+    }
+
     public boolean isDefined() {
         return getValue().isDefined();
     }

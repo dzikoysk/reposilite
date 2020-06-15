@@ -47,15 +47,10 @@ public final class IndexApiController implements RepositoryController {
     @Override
     public Context handleContext(Context ctx) {
         Reposilite.getLogger().info(ctx.req.getRequestURI() + " API");
+        String uri = RepositoryUtils.normalizeUri(configuration, StringUtils.replaceFirst(ctx.req.getRequestURI(), "/api", StringUtils.EMPTY));
 
-        if (!configuration.isIndexingEnabled()) {
-            return ctx.json(new ErrorDto(HttpStatus.SC_LOCKED, "Indexing is disabled"));
-        }
-
-        String uri = RepositoryUtils.normalizeUri(configuration, StringUtils.replaceFirst(ctx.req.getRequestURI(), "/api/", StringUtils.EMPTY));
-
-        if (configuration.isFullAuthEnabled() && authenticator.authUri(ctx, uri).getError().isDefined()) {
-            return ctx.json(new ErrorDto(HttpStatus.SC_UNAUTHORIZED, "Unauthorized request"));
+        if ((configuration.isFullAuthEnabled() || !configuration.isIndexingEnabled()) && authenticator.authUri(ctx, uri).getError().isDefined()) {
+            return ErrorUtils.error(ctx, HttpStatus.SC_UNAUTHORIZED, "Unauthorized request");
         }
 
         File requestedFile = repositoryService.getFile(uri);
@@ -74,7 +69,7 @@ public final class IndexApiController implements RepositoryController {
         }
 
         if (!requestedFile.exists()) {
-            return ctx.json(new ErrorDto(HttpStatus.SC_NOT_FOUND, "Not Found"));
+            return ErrorUtils.error(ctx, HttpStatus.SC_NOT_FOUND, "Not Found");
         }
 
         if (requestedFile.isFile()) {
