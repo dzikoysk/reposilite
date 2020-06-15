@@ -25,6 +25,8 @@ import org.panda_lang.utilities.commons.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Map.Entry;
 
 public final class ConfigurationLoader {
@@ -61,6 +63,9 @@ public final class ConfigurationLoader {
                 }
                 else if (Boolean.class == type) {
                     customValue = Boolean.parseBoolean(custom);
+                }
+                else if (Collection.class.isAssignableFrom(type)) {
+                    customValue = Arrays.asList(custom.split(","));
                 }
                 else {
                     Reposilite.getLogger().info("Unsupported type: " + type + " for " + custom);
