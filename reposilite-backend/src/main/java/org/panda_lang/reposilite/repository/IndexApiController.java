@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.api;
+package org.panda_lang.reposilite.repository;
 
 import io.javalin.http.Context;
 import io.vavr.collection.Stream;
 import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.RepositoryController;
+import org.panda_lang.reposilite.api.ErrorUtils;
 import org.panda_lang.reposilite.auth.Authenticator;
 import org.panda_lang.reposilite.config.Configuration;
 import org.panda_lang.reposilite.metadata.MetadataUtils;
-import org.panda_lang.reposilite.repository.RepositoryService;
-import org.panda_lang.reposilite.repository.RepositoryUtils;
 import org.panda_lang.reposilite.utils.ArrayUtils;
 import org.panda_lang.reposilite.utils.FilesUtils;
 import org.panda_lang.utilities.commons.StringUtils;
