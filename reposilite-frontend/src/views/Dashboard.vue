@@ -5,7 +5,13 @@
         div.py-1
             input(placeholder="Alias" name="alias" v-model="auth.alias").w-96.bg-gray-100.p-2.rounded
         div.py-1
-            input(placeholder="Token" name="token" v-model="auth.token" autocomple="on").w-96.bg-gray-100.p-2.rounded
+            input(
+                name="token" 
+                v-model="auth.token"
+                type="password"
+                placeholder="Token" 
+                autocomple="on"
+            ).w-96.bg-gray-100.p-2.rounded
         div.py-1.text-right.px-2.mt-1
             router-link(:to="this.qualifier").text-blue-400.text-xs ← Back to index
         div.py-3
