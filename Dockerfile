@@ -21,4 +21,4 @@ LABEL org.label-schema.build-date=$BUILD_DATE \
 FROM openjdk:14-alpine
 WORKDIR /app
 COPY --from=build /app/reposilite-backend/target/reposilite*.jar reposilite.jar
-ENTRYPOINT [ "java", "-Xmx128M", "-jar", "reposilite.jar"]
+ENTRYPOINT exec java $JAVA_OPTS -jar reposilite.jar
