@@ -18,7 +18,7 @@ package org.panda_lang.reposilite.api;
 
 import java.io.Serializable;
 
-final class ErrorDto implements Serializable {
+public final class ErrorDto implements Serializable {
 
     private final int status;
     private final String message;

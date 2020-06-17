@@ -1,4 +1,4 @@
-package org.panda_lang.reposilite.api;
+package org.panda_lang.reposilite.auth;
 
 import java.io.Serializable;
 

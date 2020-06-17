@@ -19,12 +19,12 @@ package org.panda_lang.reposilite;
 import io.javalin.Javalin;
 import io.javalin.core.JavalinConfig;
 import org.eclipse.jetty.server.Server;
-import org.panda_lang.reposilite.api.AuthApiController;
-import org.panda_lang.reposilite.api.ConfigurationApiController;
-import org.panda_lang.reposilite.api.IndexApiController;
+import org.panda_lang.reposilite.auth.AuthApiController;
 import org.panda_lang.reposilite.config.Configuration;
+import org.panda_lang.reposilite.config.ConfigurationApiController;
 import org.panda_lang.reposilite.frontend.FrontendController;
 import org.panda_lang.reposilite.repository.DeployController;
+import org.panda_lang.reposilite.repository.IndexApiController;
 import org.panda_lang.reposilite.repository.LookupController;
 import org.panda_lang.reposilite.repository.LookupService;
 

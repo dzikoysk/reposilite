@@ -1,14 +1,14 @@
-package org.panda_lang.reposilite.api;
+package org.panda_lang.reposilite.config;
 
 import java.io.Serializable;
 
-final class ConfigDto implements Serializable {
+final class ConfigurationDto implements Serializable {
 
     private final String title;
     private final String description;
     private final String accentColor;
 
-    ConfigDto(String title, String description, String accentColor) {
+    ConfigurationDto(String title, String description, String accentColor) {
         this.title = title;
         this.description = description;
         this.accentColor = accentColor;

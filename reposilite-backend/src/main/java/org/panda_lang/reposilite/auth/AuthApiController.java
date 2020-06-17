@@ -1,10 +1,9 @@
-package org.panda_lang.reposilite.api;
+package org.panda_lang.reposilite.auth;
 
 import io.javalin.http.Context;
 import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.RepositoryController;
-import org.panda_lang.reposilite.auth.Authenticator;
-import org.panda_lang.reposilite.auth.Session;
+import org.panda_lang.reposilite.api.ErrorUtils;
 import org.panda_lang.reposilite.config.Configuration;
 
 public final class AuthApiController implements RepositoryController {
@@ -24,8 +23,7 @@ public final class AuthApiController implements RepositoryController {
                 .map(Session::getToken)
                 .map(token -> new AuthDto(token.getPath(), configuration.getManagers().contains(token.getAlias())))
                 .map(ctx::json)
-                .orElseGet(error -> ctx.status(HttpStatus.SC_UNAUTHORIZED).json(new ErrorDto(HttpStatus.SC_UNAUTHORIZED, error)));
+                .orElseGet(error -> ErrorUtils.error(ctx, HttpStatus.SC_UNAUTHORIZED, error));
     }
-
 
 }
