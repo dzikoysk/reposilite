@@ -42,7 +42,7 @@ public final class Configuration implements Serializable {
     // Frontend properties
     private String title = "#onlypanda";
     private String description = "Public Maven repository hosted through the Reposilite";
-    private String accentColor = "#009890";
+    private String accentColor = "#2fd4aa";
 
     public void setHostname(String hostname) { this.hostname = hostname; }
     public String getHostname() { return hostname; }
