@@ -66,9 +66,16 @@ export default {
   created() {
     this.message = window.REPOSILITE_MESSAGE
 
+    if (sessionStorage.configuration) {
+      this.configuration = JSON.parse(sessionStorage.configuration)
+    }
+
     this.api('/configuration', {})
-      .then(response => (this.configuration = response.data))
-      .catch(err => (this.response = err.response.data))
+      .then(response => {
+        this.configuration = response.data
+        sessionStorage.configuration = JSON.stringify(this.configuration)
+      })
+      .catch(err => this.response = err.response.data)
   },
   mounted() {
     this.updateEntities()
