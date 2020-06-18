@@ -16,6 +16,11 @@
 
 package org.panda_lang.reposilite.auth;
 
+import org.panda_lang.utilities.commons.StringUtils;
+
+import java.util.Collections;
+import java.util.List;
+
 public final class Session {
 
     private final Token token;
@@ -24,8 +29,37 @@ public final class Session {
         this.token = token;
     }
 
-    public boolean hasPermission(String path) {
-        return path.startsWith(token.getPath());
+    public boolean hasPermission(List<String> repositories, String path) {
+        String tokenPath = token.getPath();
+
+        if (token.isWildcard()) {
+            for (String repository : getRepositories(repositories)) {
+                String name = "/" + repository;
+
+                if (path.startsWith(name)) {
+                    path = StringUtils.replaceFirst(path, "/" + repository, "*");
+                    break;
+                }
+            }
+        }
+
+        return path.startsWith(tokenPath);
+    }
+
+    public List<String> getRepositories(List<String> repositories) {
+        if (token.isWildcard() || "/".equals(token.getPath())) {
+            return repositories;
+        }
+
+        for (String repository : repositories) {
+            String name = "/" + repository;
+
+            if (token.getPath().startsWith(name)) {
+                return Collections.singletonList(repository);
+            }
+        }
+
+        return Collections.emptyList();
     }
 
     public Token getToken() {

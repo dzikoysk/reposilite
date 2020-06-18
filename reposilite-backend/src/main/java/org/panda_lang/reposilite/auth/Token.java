@@ -16,7 +16,9 @@
 
 package org.panda_lang.reposilite.auth;
 
-public final class Token {
+import java.io.Serializable;
+
+public final class Token implements Serializable {
 
     private String alias;
     private String path;
@@ -30,6 +32,10 @@ public final class Token {
 
     public Token() {
         // deserialize
+    }
+
+    public boolean isWildcard() {
+        return path.startsWith("*");
     }
 
     public void setToken(String token) {
