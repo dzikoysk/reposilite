@@ -2,7 +2,7 @@
     form(method="put").flex.flex-col.items-center.pb-3
         h1.pb-3.font-bold Upload artifact
         select#repositories(name="repository" v-model="repository" placeholder="repository" required).w-96.text-center.p-1.m-1
-            option(v-for="repo in repositories" :value="repo.name") {{ repo.name }}
+            option(v-for="repo in this.$parent.auth.repositories" :value="repo") {{ repo }}
         input(name="groupId" v-model="groupId" placeholder="groupId" required).p-1.m-1.w-96.text-center
         input(name="artifactId" v-model="artifactId" placeholder="artifactId" required).p-1.m-1.w-96.text-center
         input(name="version" v-model="version" placeholder="version" required).p-1.m-1.w-96.text-center
@@ -27,9 +27,8 @@ import FileUpload from 'vue-upload-component'
 export default {
     data() {
         return {
-            repositories: [],
             files: [],
-            repository: '',
+            repository: this.$parent.auth.repositories[0],
             groupId: '',
             artifactId: '',
             version: '',
@@ -37,14 +36,6 @@ export default {
     },
     components: {
         FileUpload
-    },
-    mounted() {
-        this.api('/', this.$parent.auth)
-            .then(response => {
-                this.repositories = response.data.files
-                this.$nextTick(() => document.querySelector('#repositories option').selected = true)
-            })
-            .catch(err => (this.error = err))
     },
     methods: {
         upload(event) {
