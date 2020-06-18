@@ -43,8 +43,12 @@ export default {
             }
         },
         redirect() {
-            const path = this.auth.path.replace('\\', '/') 
+            let path = this.auth.path.replace('\\', '/') 
             
+            if (path.startsWith('*')) {
+                path = path.replace('*', '/' + this.auth.repositories[0])
+            }
+
             if (!this.$route.fullPath.includes(path)) {
                 this.$router.push({ path: `/dashboard${path}` })
                 return true

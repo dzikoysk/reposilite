@@ -34,6 +34,7 @@ const defaultAuth = {
     alias: '',
     token: '',
     path: '',
+    repositories: [],
     manager: false,
     verified: false,
     qualifier: ''
@@ -61,6 +62,7 @@ export default {
             this.api('/auth', this.auth).then(response => {
                 this.auth.verified = true
                 this.auth.path = response.data.path
+                this.auth.repositories = response.data.repositories
                 this.auth.manager = response.data.manager
                 sessionStorage.auth = JSON.stringify(this.auth)
                 this.list()
