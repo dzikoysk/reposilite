@@ -44,11 +44,11 @@ public final class Reposilite {
     private final TokenService tokenService = new TokenService();
     private final StatsService statsService = new StatsService();
     private final RepositoryService repositoryService = new RepositoryService();
-    private final Authenticator authenticator = new Authenticator(tokenService);
     private final ReposiliteHttpServer reactiveHttpServer = new ReposiliteHttpServer(this);
     private final MetadataService metadataService = new MetadataService(this);
     private final Frontend frontend = Frontend.createInstance();
     private Configuration configuration;
+    private Authenticator authenticator;
     private boolean stopped;
     private long uptime;
 
@@ -74,8 +74,9 @@ public final class Reposilite {
         this.configuration = configurationLoader.load();
 
         getLogger().info("--- Loading data");
-        tokenService.load();
         statsService.load();
+        tokenService.load();
+        this.authenticator = new Authenticator(configuration, tokenService);
 
         getLogger().info("");
         repositoryService.load(configuration);

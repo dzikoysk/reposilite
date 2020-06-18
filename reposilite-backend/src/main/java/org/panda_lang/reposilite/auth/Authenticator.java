@@ -17,6 +17,7 @@
 package org.panda_lang.reposilite.auth;
 
 import io.javalin.http.Context;
+import org.panda_lang.reposilite.config.Configuration;
 import org.panda_lang.reposilite.utils.Result;
 
 import java.nio.charset.StandardCharsets;
@@ -24,9 +25,11 @@ import java.util.Base64;
 
 public final class Authenticator {
 
+    private final Configuration configuration;
     private final TokenService tokenService;
 
-    public Authenticator(TokenService tokenService) {
+    public Authenticator(Configuration configuration, TokenService tokenService) {
+        this.configuration = configuration;
         this.tokenService = tokenService;
     }
 
@@ -47,7 +50,7 @@ public final class Authenticator {
 
         Session session = authResult.getValue().get();
 
-        if (!session.hasPermission(uri)) {
+        if (!session.hasPermission(configuration.getRepositories(), uri)) {
             return Result.error("Unauthorized access attempt");
         }
 
