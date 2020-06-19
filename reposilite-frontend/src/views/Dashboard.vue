@@ -6,10 +6,10 @@
             input(placeholder="Alias" name="alias" v-model="auth.alias").w-96.bg-gray-100.p-2.rounded
         div.py-1
             input(
-                name="token" 
+                name="token"
                 v-model="auth.token"
                 type="password"
-                placeholder="Token" 
+                placeholder="Token"
                 autocomple="on"
             ).w-96.bg-gray-100.p-2.rounded
         div.py-1.text-right.px-2.mt-1
@@ -32,55 +32,57 @@
 import FileEntry from '../components/FileEntry'
 
 const defaultAuth = {
-    alias: '',
-    token: '',
-    path: '',
-    repositories: [],
-    manager: false,
-    verified: false,
-    qualifier: ''
+  alias: '',
+  token: '',
+  path: '',
+  repositories: [],
+  manager: false,
+  verified: false,
+  qualifier: ''
 }
 
 export default {
-    data: () => ({
-        auth: Object.assign({}, defaultAuth),
-        qualifier: ''
-    }),
-    components: {
-        FileEntry
-    },
-    mounted() {
-        this.qualifier = this.getQualifier()
+  data: () => ({
+    auth: Object.assign({}, defaultAuth),
+    qualifier: ''
+  }),
+  components: {
+    FileEntry
+  },
+  mounted () {
+    this.qualifier = this.getQualifier()
 
-        if (sessionStorage.auth) {
-            this.auth = JSON.parse(sessionStorage.auth)
-        }
-    },
-    methods: {
-        login(event) {
-            event.preventDefault()
-
-            this.api('/auth', this.auth).then(response => {
-                this.auth.verified = true
-                this.auth.path = response.data.path
-                this.auth.repositories = response.data.repositories
-                this.auth.manager = response.data.manager
-                sessionStorage.auth = JSON.stringify(this.auth)
-                this.list()
-            }).catch(err => {
-                this.$notify({
-                    group: 'login',
-                    type: 'error',
-                    title: err.response.data.message
-                })
-            })
-        },
-        logout() {
-            sessionStorage.removeItem('auth')
-            this.auth = Object.assign({}, defaultAuth)
-            this.error = undefined
-        }
+    if (sessionStorage.auth) {
+      this.auth = JSON.parse(sessionStorage.auth)
     }
+  },
+  methods: {
+    login (event) {
+      event.preventDefault()
+
+      this.api('/auth', this.auth)
+        .then(response => {
+          this.auth.verified = true
+          this.auth.path = response.data.path
+          this.auth.repositories = response.data.repositories
+          this.auth.manager = response.data.manager
+          sessionStorage.auth = JSON.stringify(this.auth)
+          this.list()
+        })
+        .catch(err => {
+          this.$notify({
+            group: 'login',
+            type: 'error',
+            title: err.response.data.message
+          })
+        })
+    },
+    logout () {
+      sessionStorage.removeItem('auth')
+      this.auth = Object.assign({}, defaultAuth)
+      this.error = undefined
+    }
+  }
 }
 </script>
 
@@ -94,4 +96,3 @@ html, body
 #panel
     background-color #f8f8f8
 </style>
-

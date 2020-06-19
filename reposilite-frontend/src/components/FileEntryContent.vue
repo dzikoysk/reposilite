@@ -11,6 +11,6 @@
 
 <script>
 export default {
-    props: [ 'file' ]
+  props: ['file']
 }
 </script>

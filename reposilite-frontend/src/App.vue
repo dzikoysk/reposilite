@@ -5,7 +5,7 @@
 <script>
 export default {
   name: 'App',
-  mounted() {
+  mounted () {
     console.log(window.REPOSILITE_MESSAGE)
   }
 }
