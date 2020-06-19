@@ -103,18 +103,20 @@ public final class Reposilite {
         getLogger().info("Bye! Uptime: " + TimeUtils.format(TimeUtils.getUptime(uptime) / 60) + "min");
     }
 
-    public void shutdown() throws Exception {
-        if (stopped) {
-            return;
-        }
+    public void shutdown() {
+        schedule(() -> {
+            if (stopped) {
+                return;
+            }
 
-        this.stopped = true;
-        getLogger().info("Shutting down...");
+            this.stopped = true;
+            getLogger().info("Shutting down...");
 
-        statsService.save();
-        reactiveHttpServer.stop();
-        console.stop();
-        executor.stop();
+            statsService.save();
+            reactiveHttpServer.stop();
+            console.stop();
+            executor.stop();
+        });
     }
 
     public void throwException(String id, Throwable throwable) {
