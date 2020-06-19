@@ -21,7 +21,7 @@ public final class AuthApiController implements RepositoryController {
     @Override
     public Context handleContext(Context ctx) {
         return authenticator
-                .auth(ctx)
+                .auth(ctx.headerMap())
                 .map(session -> {
                     Token token = session.getToken();
                     List<String> repositories;
@@ -30,7 +30,7 @@ public final class AuthApiController implements RepositoryController {
                         repositories = configuration.getRepositories();
                     }
                     else {
-                        repositories = session.getRepositories(configuration.getRepositories());
+                        repositories = session.getRepositories();
                     }
 
                     return new AuthDto(

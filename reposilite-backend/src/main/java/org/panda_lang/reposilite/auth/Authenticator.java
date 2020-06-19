@@ -17,11 +17,13 @@
 package org.panda_lang.reposilite.auth;
 
 import io.javalin.http.Context;
+import org.jetbrains.annotations.Nullable;
 import org.panda_lang.reposilite.config.Configuration;
 import org.panda_lang.reposilite.utils.Result;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.Map;
 
 public final class Authenticator {
 
@@ -42,23 +44,23 @@ public final class Authenticator {
             uri = "/" + uri;
         }
 
-        Result<Session, String> authResult = auth(context);
+        Result<Session, String> authResult = auth(context.headerMap());
 
-        if (authResult.getError().isDefined()) {
+        if (authResult.containsError()) {
             return authResult;
         }
 
-        Session session = authResult.getValue().get();
+        Session session = authResult.getValue();
 
-        if (!session.hasPermission(configuration.getRepositories(), uri)) {
+        if (!session.hasPermission(uri)) {
             return Result.error("Unauthorized access attempt");
         }
 
         return authResult;
     }
 
-    public Result<Session, String> auth(Context context) {
-        String authorization = context.header("authorization");
+    public Result<Session, String> auth(Map<String, String> header) {
+        String authorization = header.get("Authorization");
 
         if (authorization == null) {
             return Result.error("Authorization credentials are not specified");
@@ -70,6 +72,15 @@ public final class Authenticator {
 
         String base64Credentials = authorization.substring("Basic".length()).trim();
         String credentials = new String(Base64.getDecoder().decode(base64Credentials), StandardCharsets.UTF_8);
+
+        return auth(credentials);
+    }
+
+    public Result<Session, String> auth(@Nullable String credentials) {
+        if (credentials == null) {
+            return Result.error("Authorization credentials are not specified");
+        }
+
         String[] values = credentials.split(":", 2);
 
         if (values.length != 2) {
@@ -88,7 +99,7 @@ public final class Authenticator {
             return Result.error("Invalid authorization credentials");
         }
 
-        return Result.ok(new Session(token));
+        return Result.ok(new Session(configuration, token));
     }
 
 }

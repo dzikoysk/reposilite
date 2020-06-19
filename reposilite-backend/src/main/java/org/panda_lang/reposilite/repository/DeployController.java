@@ -24,7 +24,7 @@ import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.auth.Authenticator;
 import org.panda_lang.reposilite.auth.Session;
 import org.panda_lang.reposilite.config.Configuration;
-import org.panda_lang.reposilite.frontend.Frontend;
+import org.panda_lang.reposilite.frontend.FrontendService;
 import org.panda_lang.reposilite.metadata.MetadataService;
 import org.panda_lang.reposilite.utils.Result;
 
@@ -36,7 +36,7 @@ import java.util.Objects;
 
 public final class DeployController implements Handler {
 
-    private final Frontend frontend;
+    private final FrontendService frontend;
     private final Configuration configuration;
     private final Authenticator authenticator;
     private final MetadataService metadataService;
@@ -53,7 +53,7 @@ public final class DeployController implements Handler {
         Reposilite.getLogger().info(context.req.getRequestURI() + " DEPLOY");
         Result<Context, String> deploy = deploy(context);
 
-        deploy.getError().peek(error -> context
+        deploy.onError(error -> context
                 .status(HttpStatus.SC_UNAUTHORIZED)
                 .contentType("text/html")
                 .result(frontend.forMessage(error)));
@@ -66,8 +66,8 @@ public final class DeployController implements Handler {
 
         Result<Session, String> authResult = this.authenticator.authDefault(context);
 
-        if (authResult.getError().isDefined()) {
-            return Result.error(authResult.getError().get());
+        if (authResult.containsError()) {
+            return Result.error(authResult.getError());
         }
 
         ArtifactFile targetFile = ArtifactFile.fromURL(context.req.getRequestURI());

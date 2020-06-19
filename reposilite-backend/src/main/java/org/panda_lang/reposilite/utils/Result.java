@@ -16,15 +16,15 @@
 
 package org.panda_lang.reposilite.utils;
 
-import io.vavr.control.Option;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public final class Result<V, E>  {
 
-    private final @Nullable V value;
-    private final @Nullable E error;
+    private final V value;
+    private final E error;
 
     Result(@Nullable V value, @Nullable E error) {
         this.value = value;
@@ -43,16 +43,26 @@ public final class Result<V, E>  {
         return isDefined() ? value : orElse.apply(error);
     }
 
+    public void onError(Consumer<E> consumer) {
+        if (containsError()) {
+            consumer.accept(error);
+        }
+    }
+
     public boolean isDefined() {
-        return getValue().isDefined();
+        return value != null;
     }
 
-    public Option<V> getValue() {
-        return Option.of(value);
+    public V getValue() {
+        return value;
     }
 
-    public Option<E> getError() {
-        return Option.of(error);
+    public boolean containsError() {
+        return error != null;
+    }
+
+    public E getError() {
+        return error;
     }
 
     public static <V, E> Result<V, E> ok(V value) {

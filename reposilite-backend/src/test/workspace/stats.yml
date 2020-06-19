@@ -2,7 +2,7 @@
 "records":
   "/api/releases/auth/test": !!int "58"
   "/api/configuration": !!int "42"
-  "/api/auth": !!int "29"
+  "/api/auth": !!int "33"
   "/////hello.panda": !!int "33"
-  "/api/": !!int "333"
+  "/api/": !!int "343"
   "/////test.panda": !!int "8"
