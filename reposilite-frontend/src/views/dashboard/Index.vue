@@ -28,20 +28,17 @@ export default {
     components: {
         FileEntry
     },
-    mounted() {
-        this.update()
-    },
     watch: {
-        $route() {
-            this.update()
+        $route: {
+            immediate: true,
+            handler() {
+                if (!this.redirect()) {
+                    this.list()
+                }
+            }
         }
     },
     methods: {
-        update() {
-            if (!this.redirect()) {
-                this.list()
-            }
-        },
         redirect() {
             let path = this.auth.path.replace('\\', '/') 
             

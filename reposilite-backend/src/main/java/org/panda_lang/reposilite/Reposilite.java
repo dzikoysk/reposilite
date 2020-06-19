@@ -22,13 +22,14 @@ import org.panda_lang.reposilite.auth.TokenService;
 import org.panda_lang.reposilite.config.Configuration;
 import org.panda_lang.reposilite.config.ConfigurationLoader;
 import org.panda_lang.reposilite.console.Console;
-import org.panda_lang.reposilite.frontend.Frontend;
+import org.panda_lang.reposilite.frontend.FrontendService;
 import org.panda_lang.reposilite.metadata.MetadataService;
 import org.panda_lang.reposilite.repository.RepositoryService;
 import org.panda_lang.reposilite.stats.StatsService;
 import org.panda_lang.reposilite.utils.TimeUtils;
 import org.panda_lang.utilities.commons.collection.Pair;
 import org.panda_lang.utilities.commons.console.Effect;
+import org.panda_lang.utilities.commons.function.ThrowingRunnable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,13 +41,15 @@ public final class Reposilite {
     private static final Logger LOGGER = LoggerFactory.getLogger("Reposilite");
 
     private final Collection<Pair<String, Throwable>> exceptions = new ArrayList<>();
+    private final ReposiliteExecutor executor = new ReposiliteExecutor(this);
     private final Console console = new Console(this);
     private final TokenService tokenService = new TokenService();
     private final StatsService statsService = new StatsService();
     private final RepositoryService repositoryService = new RepositoryService();
     private final ReposiliteHttpServer reactiveHttpServer = new ReposiliteHttpServer(this);
     private final MetadataService metadataService = new MetadataService(this);
-    private final Frontend frontend = Frontend.createInstance();
+    private final FrontendService frontend = FrontendService.load();
+
     private Configuration configuration;
     private Authenticator authenticator;
     private boolean stopped;
@@ -95,6 +98,9 @@ public final class Reposilite {
         });
 
         console.hook();
+        executor.await();
+
+        getLogger().info("Bye! Uptime: " + TimeUtils.format(TimeUtils.getUptime(uptime) / 60) + "min");
     }
 
     public void shutdown() throws Exception {
@@ -108,13 +114,16 @@ public final class Reposilite {
         statsService.save();
         reactiveHttpServer.stop();
         console.stop();
-
-        getLogger().info("Bye! Uptime: " + TimeUtils.format(TimeUtils.getUptime(uptime) / 60) + "min");
+        executor.stop();
     }
 
     public void throwException(String id, Throwable throwable) {
         getLogger().error(id, throwable);
         exceptions.add(new Pair<>(id, throwable));
+    }
+
+    public void schedule(ThrowingRunnable<?> runnable) {
+        executor.schedule(runnable);
     }
 
     public long getUptime() {
@@ -125,7 +134,7 @@ public final class Reposilite {
         return reactiveHttpServer;
     }
 
-    public Frontend getFrontend() {
+    public FrontendService getFrontend() {
         return frontend;
     }
 
@@ -151,6 +160,10 @@ public final class Reposilite {
 
     public Authenticator getAuthenticator() {
         return authenticator;
+    }
+
+    public Console getConsole() {
+        return console;
     }
 
     public Collection<? extends Pair<String, Throwable>> getExceptions() {

@@ -20,15 +20,15 @@ import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.Reposilite;
-import org.panda_lang.reposilite.frontend.Frontend;
+import org.panda_lang.reposilite.frontend.FrontendService;
 import org.panda_lang.reposilite.utils.Result;
 
 public final class LookupController implements Handler {
 
-    private final Frontend frontend;
+    private final FrontendService frontend;
     private final LookupService lookupService;
 
-    public LookupController(Frontend frontend, LookupService lookupService) {
+    public LookupController(FrontendService frontend, LookupService lookupService) {
         this.frontend = frontend;
         this.lookupService = lookupService;
     }
@@ -42,7 +42,7 @@ public final class LookupController implements Handler {
                 .orElse(localError -> lookupService.serveProxied(ctx).orElse(proxiedError -> Result.error(localError)));
 
 
-        lookupResponse.getError().peek(error -> {
+        lookupResponse.onError(error -> {
             Reposilite.getLogger().debug("error=" + error + "; uri=" + ctx.req.getRequestURI());
 
             ctx.res.setCharacterEncoding("UTF-8");

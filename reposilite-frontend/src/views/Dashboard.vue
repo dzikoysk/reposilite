@@ -21,6 +21,7 @@
         header.pb-4
             router-link(to="/dashboard").px-4 Index
             router-link(to="/dashboard/upload").px-4 Upload
+            router-link(to="/dashboard/cli" v-if="auth.manager").px-4 Cli
             router-link(to="/dashboard/settings" v-if="auth.manager").px-4 Settings
             button(v-on:click="logout").px-4 Logout
         hr.py-2

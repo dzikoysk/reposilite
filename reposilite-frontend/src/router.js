@@ -4,6 +4,7 @@ import Index from './views/Index.vue'
 import Dashboard from './views/Dashboard.vue'
 import DashboardIndex from './views/dashboard/Index.vue'
 import DashboardUpload from './views/dashboard/Upload.vue'
+import DashboardCli from './views/dashboard/Cli.vue'
 import DashboardSettings from './views/dashboard/Settings.vue'
 
 Vue.use(Router)
@@ -26,6 +27,11 @@ export default new Router({
                     path: 'settings',
                     name: 'Dashboard Settings',
                     component: DashboardSettings
+                },
+                {
+                    path: 'cli',
+                    name: 'Dashboard Cli',
+                    component: DashboardCli
                 },
                 {
                     path: '',

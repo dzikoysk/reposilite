@@ -22,12 +22,12 @@ import org.panda_lang.utilities.commons.function.Lazy;
 
 import java.util.function.Supplier;
 
-public final class Frontend {
+public final class FrontendService {
 
     private final Lazy<String> index;
     private final Lazy<String> app;
 
-    public Frontend(Supplier<String> index, Supplier<String> app) {
+    public FrontendService(Supplier<String> index, Supplier<String> app) {
         this.index = new Lazy<>(index);
         this.app = new Lazy<>(app);
     }
@@ -40,8 +40,8 @@ public final class Frontend {
         return app.get();
     }
 
-    public static Frontend createInstance() {
-        return new Frontend(() -> FilesUtils.getResource("/frontend/index.html"), () -> FilesUtils.getResource("/frontend/js/app.js"));
+    public static FrontendService load() {
+        return new FrontendService(() -> FilesUtils.getResource("/frontend/index.html"), () -> FilesUtils.getResource("/frontend/js/app.js"));
     }
 
 }
