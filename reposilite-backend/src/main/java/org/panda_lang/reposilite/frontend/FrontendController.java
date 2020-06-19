@@ -17,7 +17,6 @@
 package org.panda_lang.reposilite.frontend;
 
 import io.javalin.http.Context;
-import io.javalin.http.Handler;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.RepositoryController;
 
