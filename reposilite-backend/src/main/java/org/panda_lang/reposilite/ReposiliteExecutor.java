@@ -17,7 +17,7 @@ final class ReposiliteExecutor {
         this.reposilite = reposilite;
     }
 
-    void await() throws InterruptedException {
+    void await(Runnable onExit) throws InterruptedException {
         while (alive) {
             Queue<ThrowingRunnable<?>> copy;
 
@@ -35,6 +35,8 @@ final class ReposiliteExecutor {
                 }
             }
         }
+
+        onExit.run();
     }
 
     void schedule(ThrowingRunnable<?> runnable) {

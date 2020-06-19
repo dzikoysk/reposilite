@@ -27,6 +27,7 @@ import org.panda_lang.reposilite.metadata.MetadataService;
 import org.panda_lang.reposilite.repository.RepositoryService;
 import org.panda_lang.reposilite.stats.StatsService;
 import org.panda_lang.reposilite.utils.TimeUtils;
+import org.panda_lang.utilities.commons.ArrayUtils;
 import org.panda_lang.utilities.commons.collection.Pair;
 import org.panda_lang.utilities.commons.console.Effect;
 import org.panda_lang.utilities.commons.function.ThrowingRunnable;
@@ -52,6 +53,7 @@ public final class Reposilite {
 
     private Configuration configuration;
     private Authenticator authenticator;
+    private boolean test;
     private boolean stopped;
     private long uptime;
 
@@ -60,7 +62,9 @@ public final class Reposilite {
         reposilite.launch(args);
     }
 
-    public void launch(String[] args) throws Exception {
+    public void launch(String... args) throws Exception {
+        this.test = ArrayUtils.contains(args, "profile:test");
+
         if (console.executeArguments(args)) {
             return;
         }
@@ -91,16 +95,19 @@ public final class Reposilite {
 
         reactiveHttpServer.start(configuration, () -> {
             getLogger().info("Done (" + TimeUtils.format(TimeUtils.getUptime(uptime)) + "s)!");
-            console.displayHelp();
 
-            getLogger().info("Collecting status metrics...");
-            console.displayStatus();
+            runProductionTask(() -> {
+                console.displayHelp();
+                console.hook();
+
+                getLogger().info("Collecting status metrics...");
+                console.displayStatus();
+            });
         });
 
-        console.hook();
-        executor.await();
-
-        getLogger().info("Bye! Uptime: " + TimeUtils.format(TimeUtils.getUptime(uptime) / 60) + "min");
+        runProductionTask(() -> executor.await(() -> {
+            getLogger().info("Bye! Uptime: " + TimeUtils.format(TimeUtils.getUptime(uptime) / 60) + "min");
+        }));
     }
 
     public void shutdown() {
@@ -122,6 +129,12 @@ public final class Reposilite {
     public void throwException(String id, Throwable throwable) {
         getLogger().error(id, throwable);
         exceptions.add(new Pair<>(id, throwable));
+    }
+
+    public <E extends Exception> void runProductionTask(ThrowingRunnable<E> runnable) throws E {
+        if (!test) {
+            runnable.run();
+        }
     }
 
     public void schedule(ThrowingRunnable<?> runnable) {
