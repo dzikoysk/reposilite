@@ -1,3 +1,3 @@
 <template lang="pug">
-    div #soon™ 
+    div #soon™
 </template>

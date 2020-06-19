@@ -2,11 +2,7 @@ module.exports = {
   prefix: '',
   important: false,
   separator: '_',
-  purge: [
-    './src/**/*.js',
-    './src/**/*.html', 
-    './src/**/*.vue'
-  ],
+  purge: ['./src/**/*.js', './src/**/*.html', './src/**/*.vue'],
   theme: {
     screens: {
       sm: '640px',
@@ -15,11 +11,11 @@ module.exports = {
       xl: '1280px'
     },
     colors: {
-      'transparent': 'transparent',
-      'black': '#000',
-      'white': '#fff',
+      transparent: 'transparent',
+      black: '#000',
+      white: '#fff',
       'pre-theme': '#19191c',
-      'grey': '#f7f7f7',
+      grey: '#f7f7f7',
       'dark-grey': '#141414',
       'medium-grey': '#27282b',
       'light-grey': '#323538',
@@ -222,10 +218,14 @@ module.exports = {
     },
     boxShadow: {
       sm: '0 1px 2px 0 rgba(0, 0, 0, 0.04)',
-      default: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
-      md: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-      lg: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-      xl: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+      default:
+        '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+      md:
+        '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+      lg:
+        '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+      xl:
+        '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
       '2xl': '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
       inner: 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.06)',
       outline: '0 0 0 3px rgba(66, 153, 225, 0.5)',
@@ -259,7 +259,7 @@ module.exports = {
       default: '1'
     },
     fontFamily: {
-      manrope: [ 'Manrope', 'sans-serif' ],
+      manrope: ['Manrope', 'sans-serif'],
       sans: [
         'Inter',
         '-apple-system',
@@ -276,10 +276,22 @@ module.exports = {
         '"Noto Color Emoji"'
       ],
       serif: ['Georgia', 'Cambria', '"Times New Roman"', 'Times', 'serif'],
-      mono: ['Menlo', 'Monaco', 'Consolas', '"Liberation Mono"', '"Courier New"', 'monospace'],
-      lucida: [ 
-        'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', 
-        'Geneva', 'Verdana', 'sans-serif' 
+      mono: [
+        'Menlo',
+        'Monaco',
+        'Consolas',
+        '"Liberation Mono"',
+        '"Courier New"',
+        'monospace'
+      ],
+      lucida: [
+        'Lucida Sans',
+        'Lucida Sans Regular',
+        'Lucida Grande',
+        'Lucida Sans Unicode',
+        'Geneva',
+        'Verdana',
+        'sans-serif'
       ]
     },
     fontSize: {

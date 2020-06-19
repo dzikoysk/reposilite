@@ -1,34 +1,34 @@
 <template lang="pug">
   #app
-    header
-        Wave(:accentColor="this.configuration.accentColor").absolute.w-full
-        a(href="/").flex.text-white.h-56.flex-col.justify-center.px-8.container.mx-auto
-            .w-full
-                h1.text-5xl.segoe.text-grey.font-bold.pt-1 {{ this.configuration.title }}
-            .w-full
-                p.text-lg.w-96.md_w-full {{ this.configuration.description }}
-    main.mt-64.lg_mt-24
-        .container.mx-auto
-            .mx-4.pb-16
-                .flex.justify-between.py-4
-                    h1.text-xl 
-                      | Index of 
-                      span.ml-2 {{ this.qualifier }}
-                      router-link(:to="'/dashboard' + this.qualifier")
-                        span.ml-3(:style="'color: ' + this.configuration.accentColor")
-                          i.fas.fa-feather-alt
-                    router-link(
-                        v-if="this.qualifier != undefined && this.qualifier.length > 0" 
-                        :to='parentPath()'
-                    ) ← Back
-                FileEntry(
-                    v-if="hasFiles()" 
-                    v-for="file in response.files" 
-                    :key="file.name" 
-                    :file="file"
-                )
-                h1(v-if="isEmpty()") Empty directory
-                h1(v-if="!hasFiles()").font-bold {{ response.message }}
+      header
+          Wave(:accentColor="this.configuration.accentColor").absolute.w-full
+          a(href="/").flex.text-white.h-56.flex-col.justify-center.px-8.container.mx-auto
+              .w-full
+                  h1.text-5xl.segoe.text-grey.font-bold.pt-1 {{ this.configuration.title }}
+              .w-full
+                  p.text-lg.w-96.md_w-full {{ this.configuration.description }}
+      main.mt-64.lg_mt-24
+          .container.mx-auto
+              .mx-4.pb-16
+                  .flex.justify-between.py-4
+                      h1.text-xl
+                          | Index of
+                          span.ml-2 {{ this.qualifier }}
+                          router-link(:to="'/dashboard' + this.qualifier")
+                              span.ml-3(:style="'color: ' + this.configuration.accentColor")
+                                  i.fas.fa-feather-alt
+                      router-link(
+                          v-if="this.qualifier != undefined && this.qualifier.length > 0"
+                          :to='parentPath()'
+                      ) ← Back
+                  FileEntry(
+                      v-if="hasFiles()"
+                      v-for="file in response.files"
+                      :key="file.name"
+                      :file="file"
+                  )
+                  h1(v-if="isEmpty()") Empty directory
+                  h1(v-if="!hasFiles()").font-bold {{ response.message }}
 </template>
 
 <script>
@@ -46,24 +46,36 @@ export default {
     Wave,
     FileEntry
   },
-  metaInfo() {
+  metaInfo () {
     return {
       meta: [
-          // Default
-          {name: 'description', content: 'Repository holds build artifacts and dependencies of varying types'},
-          // Twitter Card
-          {name: 'twitter:card', content: 'summary'},
-          {name: 'twitter:title', content: 'Maven Repository'},
-          {name: 'twitter:description', content: 'Repository holds build artifacts and dependencies of varying types'},
-          // Facebook OpenGraph
-          {property: 'og:title', content: 'Maven Repository'},
-          {property: 'og:site_name', content: 'Maven Repository'},
-          {property: 'og:type', content: 'website'},
-          {property: 'og:description', content: 'Repository holds build artifacts and dependencies of varying types'}
+        // Default
+        {
+          name: 'description',
+          content:
+            'Repository holds build artifacts and dependencies of varying types'
+        },
+        // Twitter Card
+        { name: 'twitter:card', content: 'summary' },
+        { name: 'twitter:title', content: 'Maven Repository' },
+        {
+          name: 'twitter:description',
+          content:
+            'Repository holds build artifacts and dependencies of varying types'
+        },
+        // Facebook OpenGraph
+        { property: 'og:title', content: 'Maven Repository' },
+        { property: 'og:site_name', content: 'Maven Repository' },
+        { property: 'og:type', content: 'website' },
+        {
+          property: 'og:description',
+          content:
+            'Repository holds build artifacts and dependencies of varying types'
+        }
       ]
     }
   },
-  created() {
+  created () {
     this.message = window.REPOSILITE_MESSAGE
 
     if (sessionStorage.configuration) {
@@ -75,35 +87,35 @@ export default {
         this.configuration = response.data
         sessionStorage.configuration = JSON.stringify(this.configuration)
       })
-      .catch(err => this.response = err.response.data)
+      .catch(err => (this.response = err.response.data))
   },
-  mounted() {
+  mounted () {
     this.updateEntities()
   },
   watch: {
-    $route() {
-       this.updateEntities()
+    $route () {
+      this.updateEntities()
     }
   },
   methods: {
-    updateEntities() {
+    updateEntities () {
       this.qualifier = this.getQualifier()
 
       this.api(this.qualifier, {})
         .then(response => (this.response = response.data))
         .catch(err => (this.response = err.response.data))
     },
-    hasFiles() {
-      return this.response.files != undefined
+    hasFiles () {
+      return this.response.files !== undefined
     },
-    isEmpty() {
-      return this.hasFiles() && (this.response.files.length == 0)
+    isEmpty () {
+      return this.hasFiles() && this.response.files.length === 0
     }
   }
 }
 </script>
 
-<style lang="stylus">  
+<style lang="stylus">
 html
   background-color #f1f1f1
 #app

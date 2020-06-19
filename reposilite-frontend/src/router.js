@@ -10,45 +10,45 @@ import DashboardSettings from './views/dashboard/Settings.vue'
 Vue.use(Router)
 
 export default new Router({
-    mode: 'history',
-    base: process.env.BASE_URL,
-    routes: [
-        {
-            path: '/dashboard',
-            component: Dashboard,
+  mode: 'history',
+  base: process.env.BASE_URL,
+  routes: [
+    {
+      path: '/dashboard',
+      component: Dashboard,
 
-            children: [
-                {
-                    path: 'upload',
-                    name: 'Dashboard Upload',
-                    component: DashboardUpload
-                },
-                {
-                    path: 'settings',
-                    name: 'Dashboard Settings',
-                    component: DashboardSettings
-                },
-                {
-                    path: 'cli',
-                    name: 'Dashboard Cli',
-                    component: DashboardCli
-                },
-                {
-                    path: '',
-                    name: 'Dashboard Index',
-                    component: DashboardIndex
-                },
-                {
-                    path: ':qualifier(.*)',
-                    name: 'Dashboard Qualified Index',
-                    component: DashboardIndex
-                }
-            ]
+      children: [
+        {
+          path: 'upload',
+          name: 'Dashboard Upload',
+          component: DashboardUpload
         },
         {
-            path: '/:qualifier(.*)',
-            name: 'Index',
-            component: Index
+          path: 'settings',
+          name: 'Dashboard Settings',
+          component: DashboardSettings
+        },
+        {
+          path: 'cli',
+          name: 'Dashboard Cli',
+          component: DashboardCli
+        },
+        {
+          path: '',
+          name: 'Dashboard Index',
+          component: DashboardIndex
+        },
+        {
+          path: ':qualifier(.*)',
+          name: 'Dashboard Qualified Index',
+          component: DashboardIndex
         }
-    ]
+      ]
+    },
+    {
+      path: '/:qualifier(.*)',
+      name: 'Index',
+      component: Index
+    }
+  ]
 })
