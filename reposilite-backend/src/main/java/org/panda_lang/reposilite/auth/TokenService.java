@@ -32,10 +32,10 @@ public final class TokenService {
     public static final BCryptPasswordEncoder B_CRYPT_TOKENS_ENCODER = new BCryptPasswordEncoder();
 
     private final Map<String, Token> tokens = new HashMap<>();
-    private final TokensStorage database;
+    private final TokenStorage database;
 
     public TokenService(String workingDirectory) {
-        this.database = new TokensStorage(this, workingDirectory);
+        this.database = new TokenStorage(this, workingDirectory);
     }
 
     public void load() throws IOException {
