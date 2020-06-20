@@ -17,34 +17,23 @@
 package org.panda_lang.reposilite.repository;
 
 import org.panda_lang.reposilite.metadata.MetadataUtils;
+import org.panda_lang.utilities.commons.text.ContentJoiner;
 
 import java.io.File;
 import java.util.Arrays;
 
 public final class Repository {
 
-    private final String repositoryName;
-    private final String path;
+    private final File directory;
+    private final String name;
 
-    public Repository(String repositoryName) {
-        this.repositoryName = repositoryName;
-        this.path = "repositories/" + (repositoryName.isEmpty() ? "" : repositoryName + "/");
+    public Repository(File rootDirectory, String name) {
+        this.directory = new File(rootDirectory, name);
+        this.name = name;
     }
 
     public Artifact get(String... path) {
-        StringBuilder pathBuilder = new StringBuilder(getLocalPath());
-
-        for (String element : path) {
-            if (element.isEmpty()) {
-                continue;
-            }
-
-            pathBuilder.append(element);
-            pathBuilder.append("/");
-        }
-
-        pathBuilder.setLength(pathBuilder.length() - 1);
-        File targetFile = new File(pathBuilder.toString());
+        File targetFile = getFile(path);
 
         if (!targetFile.exists() || targetFile.isDirectory()) {
             return null;
@@ -54,19 +43,15 @@ public final class Repository {
         String artifactId = path[path.length - 3];
         String version = path[path.length - 2];
 
-        return new Artifact(repositoryName, groupId, artifactId, version);
+        return new Artifact(this, groupId, artifactId, version);
     }
 
-    public String getLocalPath() {
-        return path;
+    public File getFile(String... path) {
+        return new File(directory, ContentJoiner.on(File.separator).join(path).toString());
     }
 
-    public String getDirectory() {
-        return getLocalPath();
-    }
-
-    public String getRepositoryName() {
-        return repositoryName;
+    public String getName() {
+        return name;
     }
 
 }

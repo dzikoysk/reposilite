@@ -29,9 +29,9 @@ public final class StatsService {
     private final StatsEntity entity;
     private final StatsStorage statsStorage;
 
-    public StatsService() {
+    public StatsService(String workingDirectory) {
         this.entity = new StatsEntity();
-        this.statsStorage = new StatsStorage();
+        this.statsStorage = new StatsStorage(workingDirectory);
     }
 
     public void save() throws IOException {

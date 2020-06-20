@@ -41,6 +41,9 @@ public final class Reposilite {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("Reposilite");
 
+    private final String workingDirectory;
+    private final boolean testEnvEnabled;
+
     private final Collection<Pair<String, Throwable>> exceptions = new ArrayList<>();
     private final ReposiliteExecutor executor = new ReposiliteExecutor(this);
     private final Console console = new Console(this);
@@ -57,18 +60,22 @@ public final class Reposilite {
     private boolean stopped;
     private long uptime;
 
-    public static void main(String[] args) throws Exception {
-        Reposilite reposilite = new Reposilite();
-        reposilite.launch(args);
+    Reposilite(String workingDirectory, boolean testEnv) {
+        this.workingDirectory = workingDirectory;
+        this.testEnvEnabled = testEnv;
+
+        this.configuration = ConfigurationLoader.load(workingDirectory);
+        this.tokenService = new TokenService(workingDirectory);
+        this.statsService = new StatsService(workingDirectory);
+        this.repositoryService = new RepositoryService(workingDirectory);
+        this.metadataService = new MetadataService(this);
+
+        this.authenticator = new Authenticator(configuration, tokenService);
+        this.frontend = FrontendService.load();
+        this.reactiveHttpServer= new ReposiliteHttpServer(this);
     }
 
-    public void launch(String... args) throws Exception {
-        this.test = ArrayUtils.contains(args, "profile:test");
-
-        if (console.executeArguments(args)) {
-            return;
-        }
-
+    public void launch() throws Exception {
         Thread shutdownHook = new Thread(() -> Try.run(this::shutdown).orElseRun(Throwable::printStackTrace));
         Runtime.getRuntime().addShutdownHook(shutdownHook);
 

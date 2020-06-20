@@ -58,9 +58,8 @@ public final class FilesUtils {
         return false;
     }
 
-    public static boolean copyResource(String resourcePath, String destinationPath) {
+    public static boolean copyResource(String resourcePath, File destination) {
         URL inputUrl = Reposilite.class.getResource(resourcePath);
-        File destination = new File(destinationPath);
 
         try {
             FileUtils.copyURLToFile(inputUrl, destination);

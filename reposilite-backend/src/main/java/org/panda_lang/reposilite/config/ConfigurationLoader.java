@@ -24,19 +24,18 @@ import org.panda_lang.utilities.commons.ClassUtils;
 import org.panda_lang.utilities.commons.StringUtils;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map.Entry;
 
 public final class ConfigurationLoader {
 
-    public Configuration load() throws IOException {
-        File configurationFile = new File(ReposiliteConstants.CONFIGURATION_FILE_NAME);
+    public static Configuration load(String workingDirectory) {
+        File configurationFile = new File(workingDirectory, ReposiliteConstants.CONFIGURATION_FILE_NAME);
 
         if (!configurationFile.exists()) {
             Reposilite.getLogger().info("Generating default configuration file.");
-            FilesUtils.copyResource("/reposilite.yml", ReposiliteConstants.CONFIGURATION_FILE_NAME);
+            FilesUtils.copyResource("/" + ReposiliteConstants.CONFIGURATION_FILE_NAME, configurationFile);
         }
         else {
             Reposilite.getLogger().info("Using an existing configuration file");
@@ -44,7 +43,7 @@ public final class ConfigurationLoader {
 
         Reposilite.getLogger().info("");
 
-        return YamlUtils.load(configurationFile, Configuration.class, properties -> {
+        return YamlUtils.forceLoad(configurationFile, Configuration.class, properties -> {
             for (Entry<String, Object> property : properties.entrySet()) {
                 String custom = System.getProperty("reposilite." + property.getKey());
 

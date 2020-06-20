@@ -11,12 +11,13 @@ import java.io.IOException;
 
 public abstract class ReposiliteIntegrationTest {
 
-    protected final Reposilite reposilite = new Reposilite();
     protected final HttpRequestFactory requestFactory = new NetHttpTransport().createRequestFactory();
+    protected Reposilite reposilite;
 
     @BeforeEach
     protected void before() throws Exception {
-        reposilite.launch("profile:test");
+        this.reposilite = ReposiliteLauncher.create("./src/test/workspace/", true);
+        reposilite.launch();
     }
 
     @AfterEach
