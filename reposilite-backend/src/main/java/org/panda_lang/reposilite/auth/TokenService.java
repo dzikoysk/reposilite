@@ -28,7 +28,6 @@ import java.util.Map;
 public final class TokenService {
 
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
-    private static final Base64.Encoder BASE_64_ENCODER = Base64.getUrlEncoder();
     public static final BCryptPasswordEncoder B_CRYPT_TOKENS_ENCODER = new BCryptPasswordEncoder();
 
     private final Map<String, Token> tokens = new HashMap<>();
@@ -49,7 +48,7 @@ public final class TokenService {
     public String generateToken() {
         byte[] randomBytes = new byte[48];
         SECURE_RANDOM.nextBytes(randomBytes);
-        return BASE_64_ENCODER.encodeToString(randomBytes);
+        return Base64.getEncoder().encodeToString(randomBytes);
     }
 
     public void addToken(Token token) {

@@ -20,6 +20,7 @@ import io.javalin.http.Context;
 import org.jetbrains.annotations.Nullable;
 import org.panda_lang.reposilite.config.Configuration;
 import org.panda_lang.reposilite.utils.Result;
+import org.panda_lang.utilities.commons.StringUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -81,7 +82,7 @@ public final class Authenticator {
             return Result.error("Authorization credentials are not specified");
         }
 
-        String[] values = credentials.split(":", 2);
+        String[] values = StringUtils.split(credentials, ":");
 
         if (values.length != 2) {
             return Result.error("Invalid authorization credentials");
