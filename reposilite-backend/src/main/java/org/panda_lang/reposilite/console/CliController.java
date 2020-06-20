@@ -35,7 +35,7 @@ public final class CliController implements Consumer<WsHandler> {
             wsHandler.onClose(context -> ReposiliteWriter.getConsumers().remove(context));
             ReposiliteWriter.getConsumers().put(ctx, ctx::send);
 
-            for (String message : ReposiliteWriter.getLatest()) {
+            for (String message : ReposiliteWriter.getCache()) {
                 ctx.send(message);
             }
 
