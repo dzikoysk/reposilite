@@ -24,14 +24,10 @@ public final class AuthApiController implements RepositoryController {
                 .auth(ctx.headerMap())
                 .map(session -> {
                     Token token = session.getToken();
-                    List<String> repositories;
 
-                    if (token.isWildcard() || "/".equals(token.getPath())) {
-                        repositories = configuration.getRepositories();
-                    }
-                    else {
-                        repositories = session.getRepositories();
-                    }
+                    List<String> repositories = token.hasMultiaccess()
+                            ? configuration.getRepositories()
+                            : session.getRepositories();
 
                     return new AuthDto(
                             configuration.getManagers().contains(token.getAlias()),

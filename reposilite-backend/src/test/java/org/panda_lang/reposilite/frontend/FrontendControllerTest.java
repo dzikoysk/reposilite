@@ -14,7 +14,7 @@ class FrontendControllerTest extends ReposiliteIntegrationTest {
 
     @Test
     void shouldReturn200AndJavaScriptContent() throws IOException {
-        HttpResponse response = get("http://localhost:80/js/app.js");
+        HttpResponse response = super.get("http://localhost:80/js/app.js");
 
         assertEquals(HttpStatus.SC_OK, response.getStatusCode());
         assertTrue(response.getContentType().contains("application/javascript"));

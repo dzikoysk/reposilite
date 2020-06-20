@@ -38,6 +38,10 @@ public final class Token implements Serializable {
         return path.startsWith("*");
     }
 
+    public boolean hasMultiaccess() {
+        return "/".equals(path) || isWildcard();
+    }
+
     public void setToken(String token) {
         this.token = token;
     }
