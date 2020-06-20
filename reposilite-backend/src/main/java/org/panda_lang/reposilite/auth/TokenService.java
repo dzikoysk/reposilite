@@ -16,6 +16,7 @@
 
 package org.panda_lang.reposilite.auth;
 
+import org.panda_lang.utilities.commons.collection.Pair;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.io.IOException;
@@ -45,14 +46,24 @@ public final class TokenService {
         this.database.saveTokens();
     }
 
+    public Pair<String, Token> createToken(String path, String alias) {
+        return createToken(path, alias, generateToken());
+    }
+
+    public Pair<String, Token> createToken(String path, String alias, String token) {
+        String encodedToken = B_CRYPT_TOKENS_ENCODER.encode(token);
+        return new Pair<>(token, addToken(new Token(path, alias, encodedToken)));
+    }
+
     public String generateToken() {
         byte[] randomBytes = new byte[48];
         SECURE_RANDOM.nextBytes(randomBytes);
         return Base64.getEncoder().encodeToString(randomBytes);
     }
 
-    public void addToken(Token token) {
+    public Token addToken(Token token) {
         this.tokens.put(token.getAlias(), token);
+        return token;
     }
 
     public Token deleteToken(String alias) {
