@@ -159,7 +159,7 @@ public final class LookupService {
 
         // resolve requests for latest version of artifact
         if (requestedFileName.equalsIgnoreCase("latest")) {
-            File requestDirectory = new File(repository.getLocalPath() + "/" + ContentJoiner.on("/").join(requestPath)).getParentFile();
+            File requestDirectory = repository.getFile(requestPath).getParentFile();
             File[] versions = MetadataUtils.toSortedVersions(requestDirectory);
             File version = ArrayUtils.getLatest(versions);
 

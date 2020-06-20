@@ -29,11 +29,11 @@ import java.util.Map;
 
 public final class RepositoryService {
 
-    private final File rootDirectory = new File("repositories");
-    private final Map<String, Repository> repositories;
+    private final File rootDirectory;
+    private final Map<String, Repository> repositories = new LinkedHashMap<>(2);
 
-    public RepositoryService() {
-        this.repositories = new LinkedHashMap<>(2);
+    public RepositoryService(String workingDirectory) {
+        this.rootDirectory = new File(workingDirectory, "repositories");
     }
 
     public void load(Configuration configuration) {
@@ -72,17 +72,17 @@ public final class RepositoryService {
                 Reposilite.getLogger().info("  Skipping " + repositoryDirectory.getName());
             }
 
-            Repository repository = new Repository(repositoryName);
+            Repository repository = new Repository(rootDirectory, repositoryName);
             Reposilite.getLogger().info("+ " + repositoryDirectory.getName());
 
-            repositories.put(repository.getRepositoryName(), repository);
+            repositories.put(repository.getName(), repository);
         }
 
         Reposilite.getLogger().info(repositories.size() + " repositories have been found");
     }
 
     public String[] resolveSnapshot(Repository repository, String[] requestPath) {
-        File artifactFile = RepositoryUtils.toRequestedFile(repository, requestPath);
+        File artifactFile = repository.getFile(requestPath);
         File versionDirectory = artifactFile.getParentFile();
 
         File[] builds = MetadataUtils.toSortedBuilds(versionDirectory);
@@ -111,6 +111,10 @@ public final class RepositoryService {
 
     public Collection<Repository> getRepositories() {
         return repositories.values();
+    }
+
+    public File getRootDirectory() {
+        return rootDirectory;
     }
 
 }

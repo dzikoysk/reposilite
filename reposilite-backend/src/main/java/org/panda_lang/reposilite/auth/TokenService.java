@@ -34,8 +34,8 @@ public final class TokenService {
     private final Map<String, Token> tokens = new HashMap<>();
     private final TokensStorage database;
 
-    public TokenService() {
-        this.database = new TokensStorage(this);
+    public TokenService(String workingDirectory) {
+        this.database = new TokensStorage(this, workingDirectory);
     }
 
     public void load() throws IOException {

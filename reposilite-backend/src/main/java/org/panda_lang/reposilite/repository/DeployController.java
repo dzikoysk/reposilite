@@ -39,12 +39,14 @@ public final class DeployController implements Handler {
     private final FrontendService frontend;
     private final Configuration configuration;
     private final Authenticator authenticator;
+    private final RepositoryService repositoryService;
     private final MetadataService metadataService;
 
     public DeployController(Reposilite reposilite) {
         this.frontend = reposilite.getFrontend();
         this.configuration = reposilite.getConfiguration();
         this.authenticator = reposilite.getAuthenticator();
+        this.repositoryService = reposilite.getRepositoryService();
         this.metadataService = reposilite.getMetadataService();
     }
 
@@ -70,10 +72,8 @@ public final class DeployController implements Handler {
             return Result.error(authResult.getError());
         }
 
-        ArtifactFile targetFile = ArtifactFile.fromURL(context.req.getRequestURI());
-        File file = targetFile.getFile();
-
-        File metadataFile = new File(targetFile.getFile().getParentFile(), "maven-metadata.xml");
+        File file = repositoryService.getFile(context.req.getRequestURI());
+        File metadataFile = new File(file.getParentFile(), "maven-metadata.xml");
         metadataService.clearMetadata(metadataFile);
 
         if (file.getName().contains("maven-metadata")) {

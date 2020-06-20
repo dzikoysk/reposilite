@@ -27,25 +27,25 @@ import java.util.ArrayList;
 
 public final class TokensStorage {
 
-    private static final File TOKENS_FILE = new File(ReposiliteConstants.TOKENS_FILE_NAME);
-
     private final TokenService tokenService;
+    private final File tokensFile;
 
-    public TokensStorage(TokenService tokenService) {
+    public TokensStorage(TokenService tokenService, String workingDirectory) {
         this.tokenService = tokenService;
+        this.tokensFile = new File(workingDirectory, ReposiliteConstants.TOKENS_FILE_NAME);
     }
 
     public void loadTokens() throws IOException {
-        if (!TOKENS_FILE.exists()) {
+        if (!tokensFile.exists()) {
             Reposilite.getLogger().info("Generating tokens data file...");
-            FilesUtils.copyResource("/tokens.yml", ReposiliteConstants.TOKENS_FILE_NAME);
+            FilesUtils.copyResource("/" + ReposiliteConstants.TOKENS_FILE_NAME, tokensFile);
             Reposilite.getLogger().info("Empty tokens file has been generated");
         }
         else {
             Reposilite.getLogger().info("Using an existing tokens data file");
         }
 
-        TokensCollection tokensCollection = YamlUtils.load(TOKENS_FILE, TokensCollection.class);
+        TokensCollection tokensCollection = YamlUtils.load(tokensFile, TokensCollection.class);
 
         for (Token token : tokensCollection.getTokens()) {
             tokenService.addToken(token);
@@ -62,7 +62,7 @@ public final class TokensStorage {
             tokensCollection.getTokens().add(token);
         }
 
-        YamlUtils.save(TOKENS_FILE, tokensCollection);
+        YamlUtils.save(tokensFile, tokensCollection);
         Reposilite.getLogger().info("Stored tokens: " + tokensCollection.getTokens().size());
     }
 

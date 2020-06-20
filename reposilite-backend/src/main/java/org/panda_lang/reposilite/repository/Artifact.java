@@ -23,13 +23,13 @@ import java.io.File;
 
 final class Artifact {
 
-    private final String repository;
+    private final Repository repository;
     private final String group;
     private final String artifact;
     private final String version;
     private final File[] builds;
 
-    Artifact(String repository, String group, String artifact, String version) {
+    Artifact(Repository repository, String group, String artifact, String version) {
         this.repository = repository;
         this.group = group;
         this.artifact = artifact;
@@ -38,7 +38,7 @@ final class Artifact {
     }
 
     public File getFile(String fileName) {
-        return new File("repositories/" + repository + "/" + getLocalPath() + ArrayUtils.getLast(fileName.split("/")));
+        return repository.getFile(getLocalPath() + ArrayUtils.getLast(fileName.split("/")));
     }
 
     public File getLatest() {
@@ -65,7 +65,7 @@ final class Artifact {
         return group;
     }
 
-    public String getRepository() {
+    public Repository getRepository() {
         return repository;
     }
 

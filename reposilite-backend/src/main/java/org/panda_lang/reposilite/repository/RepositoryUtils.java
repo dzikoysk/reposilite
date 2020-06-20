@@ -18,9 +18,6 @@ package org.panda_lang.reposilite.repository;
 
 import org.panda_lang.reposilite.config.Configuration;
 import org.panda_lang.utilities.commons.StringUtils;
-import org.panda_lang.utilities.commons.text.ContentJoiner;
-
-import java.io.File;
 
 public final class RepositoryUtils {
 
@@ -63,17 +60,6 @@ public final class RepositoryUtils {
         }
 
         return configuration.getRepositories().get(0) + "/" + uri;
-    }
-
-    /**
-     * Map repository and path array to file
-     *
-     * @param repository the repository of requested file
-     * @param requestPath the path to file
-     * @return the requested file
-     */
-    public static File toRequestedFile(Repository repository, String[] requestPath) {
-        return new File(repository.getLocalPath() + File.separator + ContentJoiner.on(File.separator).join(requestPath));
     }
 
 }

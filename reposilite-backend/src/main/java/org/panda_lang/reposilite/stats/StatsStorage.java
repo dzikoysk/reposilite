@@ -26,26 +26,30 @@ import java.io.IOException;
 
 public final class StatsStorage {
 
-    private static final File STATS_FILE = new File(ReposiliteConstants.STATS_FILE_NAME);
+    private final File statsFile;
+
+    public StatsStorage(String workingDirectory) {
+        this.statsFile = new File(workingDirectory, ReposiliteConstants.STATS_FILE_NAME);
+    }
 
     public StatsEntity loadStats() throws IOException {
-        if (!STATS_FILE.exists()) {
+        if (!statsFile.exists()) {
             Reposilite.getLogger().info("Generating stats data file...");
-            FilesUtils.copyResource("/stats.yml", ReposiliteConstants.STATS_FILE_NAME);
+            FilesUtils.copyResource("/" + ReposiliteConstants.STATS_FILE_NAME, statsFile);
             Reposilite.getLogger().info("Empty stats file has been generated");
         }
         else {
             Reposilite.getLogger().info("Using an existing stats data file");
         }
 
-        StatsEntity statsEntity = YamlUtils.load(STATS_FILE, StatsEntity.class);
+        StatsEntity statsEntity = YamlUtils.load(statsFile, StatsEntity.class);
         Reposilite.getLogger().info("Records: " + statsEntity.getRecords().size());
 
         return statsEntity;
     }
 
     public void saveStats(StatsEntity entity) throws IOException {
-        YamlUtils.save(STATS_FILE, entity);
+        YamlUtils.save(statsFile, entity);
         Reposilite.getLogger().info("Stored records: " + entity.getRecords().size());
     }
 
