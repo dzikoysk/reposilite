@@ -18,7 +18,7 @@ package org.panda_lang.reposilite.console;
 
 import org.panda_lang.reposilite.Reposilite;
 
-public interface NanoCommand {
+public interface ReposiliteCommand {
 
     boolean call(Reposilite reposilite);
 

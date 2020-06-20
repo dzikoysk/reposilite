@@ -17,14 +17,14 @@
 package org.panda_lang.reposilite.stats;
 
 import org.panda_lang.reposilite.Reposilite;
-import org.panda_lang.reposilite.console.NanoCommand;
+import org.panda_lang.reposilite.console.ReposiliteCommand;
 import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.console.Effect;
 
 import java.util.Map;
 import java.util.Map.Entry;
 
-public final class StatsCommand implements NanoCommand {
+public final class StatsCommand implements ReposiliteCommand {
 
     private static final int TOP_SIZE = 25;
 

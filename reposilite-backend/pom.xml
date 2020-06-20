@@ -85,7 +85,7 @@
         <!-- Utilities -->
         <dependency>
             <groupId>org.panda-lang</groupId>
-            <artifactId>panda-utilities</artifactId>
+            <artifactId>panda</artifactId>
             <version>indev-20.6.6</version>
         </dependency>
         <dependency>
@@ -229,7 +229,7 @@
                         <manifestEntries>
                             <Implementation-Title>Reposilite</Implementation-Title>
                             <Implementation-Version>${reposilite.version}</Implementation-Version>
-                            <Main-Class>org.panda_lang.reposilite.Reposilite</Main-Class>
+                            <Main-Class>org.panda_lang.reposilite.ReposiliteLauncher</Main-Class>
                         </manifestEntries>
                     </archive>
                 </configuration>

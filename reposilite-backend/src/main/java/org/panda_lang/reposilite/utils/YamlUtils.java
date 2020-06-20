@@ -39,6 +39,14 @@ public final class YamlUtils {
 
     private YamlUtils() { }
 
+    public static <T> T forceLoad(File file, Class<T> type, Function<Map<String, Object>, Map<String, Object>> patches) {
+        try {
+            return load(file, type, patches);
+        } catch (IOException e) {
+            throw new RuntimeException("Cannot load requested file", e);
+        }
+    }
+
     public static <T> T load(File file, Class<T> type, Function<Map<String, Object>, Map<String, Object>> patches) throws IOException {
         Map<String, Object> content = YAML.load(FileUtils.getContentOfFile(file));
         content = patches.apply(content);
