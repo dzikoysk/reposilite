@@ -25,12 +25,12 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
-public final class TokensStorage {
+public final class TokenStorage {
 
     private final TokenService tokenService;
     private final File tokensFile;
 
-    public TokensStorage(TokenService tokenService, String workingDirectory) {
+    public TokenStorage(TokenService tokenService, String workingDirectory) {
         this.tokenService = tokenService;
         this.tokensFile = new File(workingDirectory, ReposiliteConstants.TOKENS_FILE_NAME);
     }

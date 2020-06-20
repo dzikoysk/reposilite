@@ -21,7 +21,7 @@ import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.ReposiliteConstants;
 import org.panda_lang.reposilite.auth.KeygenCommand;
 import org.panda_lang.reposilite.auth.RevokeCommand;
-import org.panda_lang.reposilite.auth.TokensListCommand;
+import org.panda_lang.reposilite.auth.TokenListCommand;
 import org.panda_lang.reposilite.metadata.PurgeCommand;
 import org.panda_lang.reposilite.stats.StatsCommand;
 import org.panda_lang.utilities.commons.ArrayUtils;
@@ -55,7 +55,7 @@ public class Console {
             case "purge":
                 return new PurgeCommand().call(reposilite);
             case "tokens":
-                return new TokensListCommand().call(reposilite);
+                return new TokenListCommand().call(reposilite);
             case "gc":
                 Reposilite.getLogger().info("[Utility Command] Called gc");
                 System.gc();
