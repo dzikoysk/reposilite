@@ -61,7 +61,7 @@ public class Console {
                 System.gc();
                 return true;
             case "stop": 
-                reposilite.shutdown();
+                reposilite.schedule(reposilite::shutdown);
                 return true;
             default:
                 break;

@@ -18,6 +18,7 @@ package org.panda_lang.reposilite.auth;
 
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.console.ReposiliteCommand;
+import org.panda_lang.utilities.commons.collection.Pair;
 
 import java.io.IOException;
 
@@ -39,12 +40,11 @@ public final class KeygenCommand implements ReposiliteCommand {
             tokenService.deleteToken(alias);
         }
 
-        String token = tokenService.generateToken();
-        tokenService.addToken(new Token(path, alias, TokenService.B_CRYPT_TOKENS_ENCODER.encode(token)));
+        Pair<String, Token> token = tokenService.createToken(path, alias);
 
         try {
             Reposilite.getLogger().info("Generated new access token for " + alias + " (" + path + ")");
-            Reposilite.getLogger().info(token);
+            Reposilite.getLogger().info(token.getKey());
             tokenService.save();
         } catch (IOException e) {
             e.printStackTrace();

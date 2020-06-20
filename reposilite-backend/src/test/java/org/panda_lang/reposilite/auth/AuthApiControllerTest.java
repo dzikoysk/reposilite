@@ -4,20 +4,25 @@ import com.google.api.client.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.hjson.JsonObject;
 import org.hjson.JsonValue;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.panda_lang.reposilite.ReposiliteIntegrationTest;
 import org.panda_lang.utilities.commons.ArrayUtils;
 
 import java.io.IOException;
+import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * Auth credentials are specified in the 'src/test/workspace/access.md' file
- */
 final class AuthApiControllerTest extends ReposiliteIntegrationTest {
+
+    @BeforeEach
+    void generateToken() {
+        reposilite.getTokenService().createToken("/", "admin", "secret");
+        reposilite.getConfiguration().setManagers(Collections.singletonList("admin"));
+    }
 
     @Test
     void shouldReturn401WithoutCredentials() throws IOException {
@@ -26,12 +31,12 @@ final class AuthApiControllerTest extends ReposiliteIntegrationTest {
 
     @Test
     void shouldReturn401ForInvalidCredentials() throws IOException {
-        assertEquals(HttpStatus.SC_UNAUTHORIZED, super.getAuthenticated("/api/auth", "admin", "secret").getStatusCode());
+        assertEquals(HttpStatus.SC_UNAUTHORIZED, super.getAuthenticated("/api/auth", "admin", "giga_secret").getStatusCode());
     }
 
     @Test
     void shouldReturn200AndAuthDto() throws IOException {
-        HttpResponse response = super.getAuthenticated("/api/auth", "admin", "axZKMo71EHUKriM-dj0cA0ujiPYBc6OltpJQ3JYrc5yJl1QohvjR1Zi7EMKqf91O");
+        HttpResponse response = super.getAuthenticated("/api/auth", "admin", "secret");
         assertEquals(HttpStatus.SC_OK, response.getStatusCode());
 
         JsonObject authDto = (JsonObject) JsonObject.readJSON(response.parseAsString());
