@@ -19,7 +19,7 @@ package org.panda_lang.reposilite.auth;
 import java.io.Serializable;
 import java.util.List;
 
-public final class TokensCollection implements Serializable {
+public final class TokenCollection implements Serializable {
 
     List<Token> tokens;
 

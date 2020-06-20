@@ -45,9 +45,9 @@ public final class TokensStorage {
             Reposilite.getLogger().info("Using an existing tokens data file");
         }
 
-        TokensCollection tokensCollection = YamlUtils.load(tokensFile, TokensCollection.class);
+        TokenCollection tokenCollection = YamlUtils.load(tokensFile, TokenCollection.class);
 
-        for (Token token : tokensCollection.getTokens()) {
+        for (Token token : tokenCollection.getTokens()) {
             tokenService.addToken(token);
         }
 
@@ -55,15 +55,15 @@ public final class TokensStorage {
     }
 
     public void saveTokens() throws IOException {
-        TokensCollection tokensCollection = new TokensCollection();
-        tokensCollection.setTokens(new ArrayList<>());
+        TokenCollection tokenCollection = new TokenCollection();
+        tokenCollection.setTokens(new ArrayList<>());
 
         for (Token token : tokenService.getTokens()) {
-            tokensCollection.getTokens().add(token);
+            tokenCollection.getTokens().add(token);
         }
 
-        YamlUtils.save(tokensFile, tokensCollection);
-        Reposilite.getLogger().info("Stored tokens: " + tokensCollection.getTokens().size());
+        YamlUtils.save(tokensFile, tokenCollection);
+        Reposilite.getLogger().info("Stored tokens: " + tokenCollection.getTokens().size());
     }
 
 }
