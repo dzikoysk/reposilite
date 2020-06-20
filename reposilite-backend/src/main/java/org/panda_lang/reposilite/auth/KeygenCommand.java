@@ -17,11 +17,11 @@
 package org.panda_lang.reposilite.auth;
 
 import org.panda_lang.reposilite.Reposilite;
-import org.panda_lang.reposilite.console.NanoCommand;
+import org.panda_lang.reposilite.console.ReposiliteCommand;
 
 import java.io.IOException;
 
-public final class KeygenCommand implements NanoCommand {
+public final class KeygenCommand implements ReposiliteCommand {
 
     private final String path;
     private final String alias;

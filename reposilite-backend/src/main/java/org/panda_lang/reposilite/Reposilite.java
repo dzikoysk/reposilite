@@ -27,9 +27,7 @@ import org.panda_lang.reposilite.metadata.MetadataService;
 import org.panda_lang.reposilite.repository.RepositoryService;
 import org.panda_lang.reposilite.stats.StatsService;
 import org.panda_lang.reposilite.utils.TimeUtils;
-import org.panda_lang.utilities.commons.ArrayUtils;
 import org.panda_lang.utilities.commons.collection.Pair;
-import org.panda_lang.utilities.commons.console.Effect;
 import org.panda_lang.utilities.commons.function.ThrowingRunnable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,16 +45,16 @@ public final class Reposilite {
     private final Collection<Pair<String, Throwable>> exceptions = new ArrayList<>();
     private final ReposiliteExecutor executor = new ReposiliteExecutor(this);
     private final Console console = new Console(this);
-    private final TokenService tokenService = new TokenService();
-    private final StatsService statsService = new StatsService();
-    private final RepositoryService repositoryService = new RepositoryService();
-    private final ReposiliteHttpServer reactiveHttpServer = new ReposiliteHttpServer(this);
-    private final MetadataService metadataService = new MetadataService(this);
-    private final FrontendService frontend = FrontendService.load();
 
-    private Configuration configuration;
-    private Authenticator authenticator;
-    private boolean test;
+    private final Configuration configuration;
+    private final Authenticator authenticator;
+    private final TokenService tokenService;
+    private final StatsService statsService;
+    private final RepositoryService repositoryService;
+    private final ReposiliteHttpServer reactiveHttpServer;
+    private final MetadataService metadataService;
+    private final FrontendService frontend;
+
     private boolean stopped;
     private long uptime;
 
@@ -79,18 +77,9 @@ public final class Reposilite {
         Thread shutdownHook = new Thread(() -> Try.run(this::shutdown).orElseRun(Throwable::printStackTrace));
         Runtime.getRuntime().addShutdownHook(shutdownHook);
 
-        getLogger().info("");
-        getLogger().info(Effect.GREEN + "Reposilite " + Effect.RESET + ReposiliteConstants.VERSION);
-        getLogger().info("");
-
-        Reposilite.getLogger().info("--- Preparing workspace");
-        ConfigurationLoader configurationLoader = new ConfigurationLoader();
-        this.configuration = configurationLoader.load();
-
         getLogger().info("--- Loading data");
         statsService.load();
         tokenService.load();
-        this.authenticator = new Authenticator(configuration, tokenService);
 
         getLogger().info("");
         repositoryService.load(configuration);
@@ -139,13 +128,17 @@ public final class Reposilite {
     }
 
     public <E extends Exception> void runProductionTask(ThrowingRunnable<E> runnable) throws E {
-        if (!test) {
+        if (!isTestEnvEnabled()) {
             runnable.run();
         }
     }
 
     public void schedule(ThrowingRunnable<?> runnable) {
         executor.schedule(runnable);
+    }
+
+    public boolean isTestEnvEnabled() {
+        return testEnvEnabled;
     }
 
     public long getUptime() {
@@ -190,6 +183,10 @@ public final class Reposilite {
 
     public Collection<? extends Pair<String, Throwable>> getExceptions() {
         return exceptions;
+    }
+
+    public String getWorkingDirectory() {
+        return workingDirectory;
     }
 
     public static Logger getLogger() {

@@ -25,7 +25,7 @@ import org.panda_lang.utilities.commons.console.Effect;
 
 import java.util.Collection;
 
-final class StatusCommand implements NanoCommand {
+final class StatusCommand implements ReposiliteCommand {
 
     @Override
     public boolean call(Reposilite reposilite) {

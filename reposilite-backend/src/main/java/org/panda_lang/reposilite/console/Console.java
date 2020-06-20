@@ -40,7 +40,7 @@ public class Console {
         consoleThread.start();
     }
 
-    public boolean execute(String command) throws Exception {
+    public boolean execute(String command) {
         if (command.trim().isEmpty()) {
             return false;
         }

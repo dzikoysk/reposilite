@@ -19,10 +19,15 @@ package org.panda_lang.reposilite.console;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.ReposiliteConstants;
 
-final class HelpCommand implements NanoCommand {
+public final class HelpCommand implements ReposiliteCommand {
 
     @Override
     public boolean call(Reposilite reposilite) {
+        displayHelp();
+        return true;
+    }
+
+    public static void displayHelp() {
         Reposilite.getLogger().info("");
         Reposilite.getLogger().info("Reposilite " + ReposiliteConstants.VERSION + " Commands:");
         Reposilite.getLogger().info("  help - List available commands");
@@ -34,8 +39,6 @@ final class HelpCommand implements NanoCommand {
         Reposilite.getLogger().info("  purge - Clear cache");
         Reposilite.getLogger().info("  stop - Shutdown server");
         Reposilite.getLogger().info("");
-
-        return true;
     }
 
 }

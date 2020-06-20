@@ -20,7 +20,6 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.repository.Repository;
-import org.panda_lang.reposilite.repository.RepositoryUtils;
 import org.panda_lang.reposilite.utils.ArrayUtils;
 import org.panda_lang.reposilite.utils.FilesUtils;
 import org.panda_lang.reposilite.utils.Result;
@@ -52,7 +51,7 @@ public final class MetadataService {
     }
 
     public Result<String, String> generateMetadata(Repository repository, String[] requested) {
-        File metadataFile = RepositoryUtils.toRequestedFile(repository, requested);
+        File metadataFile = repository.getFile(requested);
         String cachedContent = metadataCache.get(metadataFile.getPath());
 
         if (cachedContent != null) {
