@@ -5,12 +5,12 @@ import java.util.List;
 
 final class AuthDto implements Serializable {
 
-    private final boolean isManager;
+    private final boolean manager;
     private final String path;
     private final List<String> repositories;
 
-    AuthDto(boolean isManager, String path, List<String> repositories) {
-        this.isManager = isManager;
+    AuthDto(boolean manager, String path, List<String> repositories) {
+        this.manager = manager;
         this.path = path;
         this.repositories = repositories;
     }
@@ -24,7 +24,7 @@ final class AuthDto implements Serializable {
     }
 
     public boolean isManager() {
-        return isManager;
+        return manager;
     }
 
 }
