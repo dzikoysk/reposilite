@@ -19,9 +19,10 @@ import java.util.function.Consumer;
  */
 public final class ReposiliteWriter extends AbstractFormatPatternWriter {
 
+    static final int CACHE_SIZE = 100;
     @SuppressWarnings("UnstableApiUsage")
-    private static final Queue<String> LATEST = EvictingQueue.create(100);
-    private static final Map<Object, Consumer<String>> CONSUMERS = new ConcurrentHashMap<>();
+    static final Queue<String> CACHE = EvictingQueue.create(CACHE_SIZE);
+    static final Map<Object, Consumer<String>> CONSUMERS = new ConcurrentHashMap<>();
 
     private final Level level;
 
@@ -51,7 +52,7 @@ public final class ReposiliteWriter extends AbstractFormatPatternWriter {
     @Override
     public void write(LogEntry logEntry) {
         String message = render(logEntry);
-        LATEST.add(message);
+        CACHE.add(message);
         CONSUMERS.forEach((object, consumer) -> consumer.accept(message));
 
         if (logEntry.getLevel().ordinal() < level.ordinal()) {
@@ -83,8 +84,8 @@ public final class ReposiliteWriter extends AbstractFormatPatternWriter {
         return CONSUMERS;
     }
 
-    public static Queue<String> getLatest() {
-        return LATEST;
+    public static Queue<String> getCache() {
+        return CACHE;
     }
 
 }
