@@ -26,7 +26,7 @@ public final class Configuration implements Serializable {
     // Bind properties
     private String hostname = "";
     private int port = 80;
-    private boolean debugEnabled;
+    private boolean debugEnabled = false;
 
     // Repository properties
     private final List<String> repositories = new ArrayList<>(3);
