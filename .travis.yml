@@ -5,7 +5,7 @@ jdk:
 - openjdk8
 
 script:
-  - mvn test jacoco:report
+  - mvn test jacoco:report-aggregate
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
