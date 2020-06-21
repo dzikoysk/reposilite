@@ -4,11 +4,14 @@ sudo: true
 jdk:
 - openjdk8
 
+install:
+  - mvn test-compile -DskipTests=true -B -V
+
 script:
-  - sudo /usr/local/maven/bin/mvn test jacoco:report-aggregate
+  - sudo /usr/local/maven/bin/mvn test jacoco:report
 
 after_success:
-  - sudo bash <(curl -s https://codecov.io/bash)
+  - bash <(curl -s https://codecov.io/bash)
   - sudo /usr/local/maven/bin/mvn coveralls:report
 
 notifications:
