@@ -4,5 +4,12 @@ sudo: true
 jdk:
 - openjdk8
 
+script:
+  - mvn test jacoco:report
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
+  - mvn coveralls:report
+
 notifications:
   email: false
