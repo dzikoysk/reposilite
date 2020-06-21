@@ -17,7 +17,8 @@
 package org.panda_lang.reposilite.config;
 
 import java.io.Serializable;
-import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 // @formatter:off
@@ -29,15 +30,15 @@ public final class Configuration implements Serializable {
     private boolean debugEnabled = false;
 
     // Repository properties
-    private final List<String> repositories = new ArrayList<>(3);
-    private final List<String> proxied = new ArrayList<>(3);
+    private List<String> repositories = Arrays.asList("releases", "snapshots");
+    private List<String> proxied = Collections.emptyList();
 
     // Access properties
     private boolean deployEnabled = true;
     private boolean rewritePathsEnabled = true;
     private boolean fullAuthEnabled = false;
     private boolean indexingEnabled = true;
-    private final List<String> managers = new ArrayList<>(2);
+    private List<String> managers = Collections.emptyList();
 
     // Frontend properties
     private String title = "#onlypanda";
@@ -53,10 +54,10 @@ public final class Configuration implements Serializable {
     public void setDebugEnabled(boolean debugEnabled) { this.debugEnabled = debugEnabled; }
     public boolean isDebugEnabled() { return debugEnabled; }
 
-    public void setProxied(List<String> proxied) { this.proxied.addAll(proxied); }
+    public void setProxied(List<String> proxied) { this.proxied = proxied; }
     public List<String> getProxied() { return proxied; }
 
-    public void setRepositories(List<String> repositories) { this.repositories.addAll(repositories); }
+    public void setRepositories(List<String> repositories) { this.repositories = repositories; }
     public List<String> getRepositories() { return repositories; }
 
     public void setDeployEnabled(boolean deployEnabled) { this.deployEnabled = deployEnabled; }
@@ -71,7 +72,7 @@ public final class Configuration implements Serializable {
     public void setIndexingEnabled(boolean indexingEnabled) { this.indexingEnabled = indexingEnabled; }
     public boolean isIndexingEnabled() { return indexingEnabled; }
 
-    public void setManagers(List<String> managers) { this.managers.addAll(managers); }
+    public void setManagers(List<String> managers) { this.managers = managers; }
     public List<String> getManagers() { return managers; }
 
     public void setTitle(String title) { this.title = title; }
