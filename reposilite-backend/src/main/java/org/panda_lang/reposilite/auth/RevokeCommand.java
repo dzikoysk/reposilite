@@ -43,7 +43,9 @@ public final class RevokeCommand implements ReposiliteCommand {
             Reposilite.getLogger().info("Token for '" + alias + "' has been revoked");
             return true;
         } catch (IOException e) {
-            e.printStackTrace();
+            Reposilite.getLogger().error("Cannot remove token due to: " + e.getMessage());
+            Reposilite.getLogger().error("Token has been restored.");
+            reposilite.getTokenService().addToken(token);
             return false;
         }
     }
