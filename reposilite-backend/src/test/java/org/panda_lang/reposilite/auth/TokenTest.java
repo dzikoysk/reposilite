@@ -18,6 +18,15 @@ class TokenTest {
     }
 
     @Test
+    void hasMultiaccess() {
+        Token multiaccess = new Token("/", "multiaccess", "secret");
+        assertTrue(multiaccess.hasMultiaccess());
+
+        Token multiaccessWildcard = new Token("*", "multiaccess", "secret");
+        assertTrue(multiaccessWildcard.hasMultiaccess());
+    }
+
+    @Test
     void token() {
         Token token = new Token("path", "alias", "giga_secret");
         assertEquals("giga_secret", token.getToken());
