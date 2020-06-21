@@ -1,0 +1,16 @@
+codecov:
+  notify:
+    require_ci_to_pass: false
+
+coverage:
+  range: 10..60
+  round: up
+  precision: 2
+
+  status:
+    project:
+      default:
+        target: 0
+    patch:
+      default:
+        target: 0
