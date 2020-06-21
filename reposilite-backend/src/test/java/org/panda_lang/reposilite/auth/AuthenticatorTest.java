@@ -1,20 +1,26 @@
 package org.panda_lang.reposilite.auth;
 
+import io.javalin.http.Context;
+import io.javalin.http.util.ContextUtil;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.panda_lang.reposilite.config.Configuration;
 import org.panda_lang.utilities.commons.collection.Maps;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.Base64;
 import java.util.Collections;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class AuthenticatorTest {
 
     private static final TokenService TOKEN_SERVICE = new TokenService("");
     private static final Token AUTH_TOKEN = new Token("/auth/test", "alias", TokenService.B_CRYPT_TOKENS_ENCODER.encode("secret"));
+    private static final String BASIC = "Basic " + Base64.getEncoder().encodeToString("alias:secret".getBytes());
     private static final Authenticator AUTHENTICATOR = new Authenticator(new Configuration(), TOKEN_SERVICE);
 
     @BeforeAll
@@ -59,17 +65,30 @@ class AuthenticatorTest {
     @Test
     void shouldAuth() {
         assertTrue(AUTHENTICATOR.auth("alias:secret").isDefined());
-        assertTrue(AUTHENTICATOR.auth(Maps.of("Authorization", "Basic " + Base64.getEncoder().encodeToString("alias:secret".getBytes()))).isDefined());
+        assertTrue(AUTHENTICATOR.auth(Maps.of("Authorization", BASIC)).isDefined());
+    }
+
+    @Test
+    void shouldAuthContext() {
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        when(request.getRequestURI()).thenReturn("auth/test");
+        when(request.getHeaderNames()).thenReturn(Collections.enumeration(Collections.singletonList("Authorization")));
+        when(request.getHeader("Authorization")).thenReturn(BASIC);
+
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        Context context = ContextUtil.init(request, response);
+
+        assertTrue(AUTHENTICATOR.authDefault(context).isDefined());
     }
 
     @Test
     void shouldNotAuthInvalidUri() {
-        assertFalse(AUTHENTICATOR.authUri(Maps.of("Authorization", "Basic " + Base64.getEncoder().encodeToString("alias:secret".getBytes())), "auth").isDefined());
+        assertTrue(AUTHENTICATOR.authUri(Maps.of("Authorization", BASIC), "auth").containsError());
     }
 
     @Test
     void shouldAuthUri() {
-        assertTrue(AUTHENTICATOR.authUri(Maps.of("Authorization", "Basic " + Base64.getEncoder().encodeToString("alias:secret".getBytes())), "auth/test").isDefined());
+        assertTrue(AUTHENTICATOR.authUri(Maps.of("Authorization", BASIC), "auth/test").isDefined());
     }
 
 }
