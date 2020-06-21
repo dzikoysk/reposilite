@@ -11,9 +11,8 @@ import org.junit.jupiter.api.io.TempDir;
 import org.panda_lang.utilities.commons.function.ThrowingRunnable;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 
 public abstract class ReposiliteIntegrationTest {
@@ -36,12 +35,12 @@ public abstract class ReposiliteIntegrationTest {
     }
 
     protected <E extends Exception> void executeOnLocked(File file, ThrowingRunnable<E> runnable) throws E, IOException {
-        RandomAccessFile randomAccessFile = new RandomAccessFile(file, "rw");
-        FileChannel channel = randomAccessFile.getChannel();
-        FileLock lock = channel.lock();
+        FileOutputStream out = new FileOutputStream(file);
+        FileLock lock = out.getChannel().lock();
+        out.write(-1);
         runnable.run();
         lock.release();
-        channel.close();
+        out.close();
     }
 
     protected HttpResponse get(String uri) throws IOException {
