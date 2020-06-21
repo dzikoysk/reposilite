@@ -37,15 +37,15 @@ public final class Authenticator {
     }
 
     public Result<Session, String> authDefault(Context context) {
-        return authUri(context, context.req.getRequestURI());
+        return authUri(context.headerMap(), context.req.getRequestURI());
     }
 
-    public Result<Session, String> authUri(Context context, String uri) {
+    public Result<Session, String> authUri(Map<String, String> header, String uri) {
         if (!uri.startsWith("/")) {
             uri = "/" + uri;
         }
 
-        Result<Session, String> authResult = auth(context.headerMap());
+        Result<Session, String> authResult = auth(header);
 
         if (authResult.containsError()) {
             return authResult;
