@@ -54,7 +54,7 @@ public final class Session {
     }
 
     public List<String> getRepositories() {
-        if (token.isWildcard() || "/".equals(token.getPath())) {
+        if (token.hasMultiaccess()) {
             return configuration.getRepositories();
         }
 
