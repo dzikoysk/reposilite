@@ -26,7 +26,7 @@ class ConfigurationTest {
         Configuration configuration = new Configuration();
 
         for (Method method : configuration.getClass().getDeclaredMethods()) {
-            if (method.getName().startsWith("get")) {
+            if (isGetter(method)) {
                 assertNotNull(method.invoke(configuration));
             }
         }
@@ -35,10 +35,16 @@ class ConfigurationTest {
     @Test
     void shouldContainSetterForEveryGetter() throws NoSuchMethodException {
         for (Method method : Configuration.class.getDeclaredMethods()) {
-            if (method.getName().startsWith("get")) {
-                assertNotNull(Configuration.class.getDeclaredMethod(StringUtils.replaceFirst(method.getName(), "get", "set"), method.getReturnType()));
+            if (isGetter(method)) {
+                String name = StringUtils.replaceFirst(method.getName(), "get", "set");
+                name = StringUtils.replaceFirst(name, "is", "set");
+                assertNotNull(Configuration.class.getDeclaredMethod(name, method.getReturnType()));
             }
         }
+    }
+
+    private boolean isGetter(Method method) {
+        return method.getName().startsWith("get") || method.getName().startsWith("is");
     }
 
 }
