@@ -18,20 +18,23 @@ package org.panda_lang.reposilite.console;
 
 import org.panda_lang.reposilite.Reposilite;
 
+import java.io.InputStream;
 import java.util.Scanner;
 
 final class ConsoleThread extends Thread {
 
     private final Console console;
+    private final InputStream source;
 
-    ConsoleThread(Console console) {
+    ConsoleThread(Console console, InputStream source) {
         this.console = console;
+        this.source = source;
         this.setDaemon(true);
     }
 
     @Override
     public void run() {
-        Scanner in = new Scanner(System.in);
+        Scanner in = new Scanner(source);
 
         if (!in.hasNextLine()) {
             Reposilite.getLogger().warn("Interactive CLI is not available in current environment.");
