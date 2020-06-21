@@ -22,7 +22,7 @@ import org.panda_lang.reposilite.ReposiliteConstants;
 public final class HelpCommand implements ReposiliteCommand {
 
     @Override
-    public boolean call(Reposilite reposilite) {
+    public boolean execute(Reposilite reposilite) {
         displayHelp();
         return true;
     }

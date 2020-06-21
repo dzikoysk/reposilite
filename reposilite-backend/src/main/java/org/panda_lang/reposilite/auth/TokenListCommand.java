@@ -22,7 +22,7 @@ import org.panda_lang.reposilite.console.ReposiliteCommand;
 public final class TokenListCommand implements ReposiliteCommand {
 
     @Override
-    public boolean call(Reposilite reposilite) {
+    public boolean execute(Reposilite reposilite) {
         Reposilite.getLogger().info("Tokens (" + reposilite.getTokenService().count() + ")");
 
         for (Token token : reposilite.getTokenService().getTokens()) {

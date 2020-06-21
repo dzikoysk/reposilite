@@ -14,7 +14,7 @@ class RevokeCommandTest extends ReposiliteIntegrationTest {
         tokenService.addToken(new Token("path", "alias", "secret"));
 
         RevokeCommand revokeCommand = new RevokeCommand("alias");
-        assertTrue(revokeCommand.call(reposilite));
+        assertTrue(revokeCommand.execute(reposilite));
         assertNull(tokenService.getToken("alias"));
     }
 

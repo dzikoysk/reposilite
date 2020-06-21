@@ -28,7 +28,7 @@ import java.util.Collection;
 final class StatusCommand implements ReposiliteCommand {
 
     @Override
-    public boolean call(Reposilite reposilite) {
+    public boolean execute(Reposilite reposilite) {
         String latestVersion = getVersion();
 
         Reposilite.getLogger().info("");

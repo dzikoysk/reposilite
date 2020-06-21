@@ -14,7 +14,7 @@ class TokenListCommandTest extends ReposiliteIntegrationTest {
         tokenService.createToken("/b", "b");
 
         TokenListCommand tokenListCommand = new TokenListCommand();
-        assertTrue(tokenListCommand.call(super.reposilite));
+        assertTrue(tokenListCommand.execute(super.reposilite));
     }
 
 }
