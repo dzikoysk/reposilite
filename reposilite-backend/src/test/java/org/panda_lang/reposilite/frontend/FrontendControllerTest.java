@@ -5,17 +5,14 @@ import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 import org.panda_lang.reposilite.ReposiliteIntegrationTest;
 
-import java.io.IOException;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class FrontendControllerTest extends ReposiliteIntegrationTest {
 
     @Test
-    void shouldReturn200AndJavaScriptContent() throws IOException {
-        HttpResponse response = super.get("http://localhost:80/js/app.js");
-
+    void shouldReturn200AndJavaScriptContent() throws Exception {
+       HttpResponse response = super.get("/js/app.js");
         assertEquals(HttpStatus.SC_OK, response.getStatusCode());
         assertTrue(response.getContentType().contains("application/javascript"));
     }

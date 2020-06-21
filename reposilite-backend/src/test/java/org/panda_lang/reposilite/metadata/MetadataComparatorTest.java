@@ -11,21 +11,22 @@ import java.util.List;
 
 class MetadataComparatorTest {
 
-    private static final MetadataComparator<Pair<String[], String>> METADATA_COMPARATOR = new MetadataComparator<>(Pair::getKey, pair -> false);
+    private static final MetadataComparator<Pair<String[], String>> METADATA_COMPARATOR = new MetadataComparator<>(Pair::getValue, Pair::getKey, pair -> false);
 
     private static final String[] STRINGS = {
-            "1",
             "2",
-            "a",
-            "a-1",
-            "a.1.0",
+            "1",
+            "a.12.00",
+            "a-10.1",
             "a.2",
             "a-2-0",
             "a-2-0-SNAPSHOT",
-            "a-10.1",
-            "a.12.00",
-            "b",
+            "a.2-classifier",
+            "a.1.0",
+            "a-1",
+            "a",
             "b.1.0.0",
+            "b"
     };
 
     @Test

@@ -82,7 +82,7 @@ public final class MetadataUtils {
     public static <T> Stream<T> toSorted(Stream<T> stream, Function<T, String> mapper, Predicate<T> isDirectory) {
         return stream
                 .map(object -> new Pair<>(object, mapper.apply(object).split("[-.]")))
-                .sorted(new MetadataComparator<>(Pair::getValue, pair -> isDirectory.test(pair.getKey())))
+                .sorted(new MetadataComparator<>(pair -> mapper.apply(pair.getKey()), Pair::getValue, pair -> isDirectory.test(pair.getKey())))
                 .map(Pair::getKey);
     }
 

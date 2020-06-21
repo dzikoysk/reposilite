@@ -6,11 +6,13 @@ import java.util.function.Predicate;
 
 final class MetadataComparator<T> implements Comparator<T> {
 
-    private final Function<T, String[]> mapper;
+    private final Function<T, String> originalValue;
+    private final Function<T, String[]> cachedValue;
     private final Predicate<T> isDirectory;
 
-    MetadataComparator(Function<T, String[]> mapper, Predicate<T> isDirectory) {
-        this.mapper = mapper;
+    MetadataComparator(Function<T, String> originalValue, Function<T, String[]> cachedValue, Predicate<T> isDirectory) {
+        this.originalValue = originalValue;
+        this.cachedValue = cachedValue;
         this.isDirectory = isDirectory;
     }
 
@@ -23,16 +25,12 @@ final class MetadataComparator<T> implements Comparator<T> {
             return 1;
         }
 
-        String[] data = mapper.apply(object);
-        String[] toData = mapper.apply(to);
+        String[] data = cachedValue.apply(object);
+        String[] toData = cachedValue.apply(to);
 
-        for (int index = 0; index < data.length; index++) {
-            if (toData.length <= index) {
-                return 1;
-            }
-
-            String fragment = data[index];
-            String toFragment = toData[index];
+        for (int index = 0; index < Math.max(data.length, toData.length); index++) {
+            String fragment = (index < data.length) ? data[index] : "0";
+            String toFragment = (index < toData.length) ? toData[index] : "0";
             int value;
 
             // number to string
@@ -58,7 +56,7 @@ final class MetadataComparator<T> implements Comparator<T> {
             }
         }
 
-        return data.length == toData.length ? 0 : 1;
+        return -originalValue.apply(object).compareTo(originalValue.apply(to));
     }
 
     private boolean isDigit(String string) {

@@ -80,7 +80,7 @@ public final class ReposiliteHttpServer {
     }
 
     public boolean isAlive() {
-        return Objects.requireNonNull(javalin.server()).server().isRunning();
+        return Objects.requireNonNull(javalin.server()).server().isStarted();
     }
 
 }
