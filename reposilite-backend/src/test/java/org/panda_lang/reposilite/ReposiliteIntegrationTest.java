@@ -8,9 +8,13 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.io.TempDir;
+import org.panda_lang.utilities.commons.function.ThrowingRunnable;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
 
 public abstract class ReposiliteIntegrationTest {
 
@@ -29,6 +33,15 @@ public abstract class ReposiliteIntegrationTest {
     @AfterEach
     protected void after() throws Exception {
         reposilite.shutdown();
+    }
+
+    protected <E extends Exception> void executeOnLocked(File file, ThrowingRunnable<E> runnable) throws E, IOException {
+        RandomAccessFile randomAccessFile = new RandomAccessFile(file, "rw");
+        FileChannel channel = randomAccessFile.getChannel();
+        FileLock lock = channel.lock();
+        runnable.run();
+        lock.release();
+        channel.close();
     }
 
     protected HttpResponse get(String uri) throws IOException {

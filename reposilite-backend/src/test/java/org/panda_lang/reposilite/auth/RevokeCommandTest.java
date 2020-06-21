@@ -4,9 +4,6 @@ import org.junit.jupiter.api.Test;
 import org.panda_lang.reposilite.ReposiliteIntegrationTest;
 
 import java.io.File;
-import java.io.RandomAccessFile;
-import java.nio.channels.FileChannel;
-import java.nio.channels.FileLock;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -31,15 +28,8 @@ class RevokeCommandTest extends ReposiliteIntegrationTest {
     @Test
     void shouldFalseIfFileIsNotAvailable() throws Exception {
         super.reposilite.getTokenService().addToken(new Token("path", "alias", "secret"));
-
         File tokensFile = new File(super.workingDirectory, "tokens.yml");
-        RandomAccessFile randomAccessFile = new RandomAccessFile(tokensFile, "rw");
-        FileChannel channel = randomAccessFile.getChannel();
-        FileLock lock = channel.lock();
-
-        assertFalse(new RevokeCommand("alias").execute(reposilite));
-        lock.release();
-        channel.close();
+        executeOnLocked(tokensFile, () -> assertFalse(new RevokeCommand("alias").execute(reposilite)));
         assertTrue(new RevokeCommand("alias").execute(reposilite));
     }
 

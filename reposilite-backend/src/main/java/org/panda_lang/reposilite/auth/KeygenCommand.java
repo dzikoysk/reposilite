@@ -35,22 +35,24 @@ public final class KeygenCommand implements ReposiliteCommand {
     @Override
     public boolean execute(Reposilite reposilite) {
         TokenService tokenService = reposilite.getTokenService();
-
-        if (tokenService.getToken(alias) != null) {
-            tokenService.deleteToken(alias);
-        }
-
-        Pair<String, Token> token = tokenService.createToken(path, alias);
+        Token previousToken = tokenService.getToken(alias);
 
         try {
+            Pair<String, Token> token = tokenService.createToken(path, alias);
             Reposilite.getLogger().info("Generated new access token for " + alias + " (" + path + ")");
             Reposilite.getLogger().info(token.getKey());
             tokenService.save();
+            return true;
         } catch (IOException e) {
-            e.printStackTrace();
-        }
+            Reposilite.getLogger().info("Cannot generate token due to: " + e.getMessage());
 
-        return true;
+            if (previousToken != null) {
+                tokenService.addToken(previousToken);
+                Reposilite.getLogger().info("The former token has been restored.");
+            }
+
+            return false;
+        }
     }
 
 }
