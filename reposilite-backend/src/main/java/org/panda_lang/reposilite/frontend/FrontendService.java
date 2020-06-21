@@ -27,7 +27,7 @@ public final class FrontendService {
     private final Lazy<String> index;
     private final Lazy<String> app;
 
-    public FrontendService(Supplier<String> index, Supplier<String> app) {
+    private FrontendService(Supplier<String> index, Supplier<String> app) {
         this.index = new Lazy<>(index);
         this.app = new Lazy<>(app);
     }
