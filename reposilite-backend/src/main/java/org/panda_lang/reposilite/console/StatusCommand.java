@@ -29,7 +29,7 @@ final class StatusCommand implements ReposiliteCommand {
 
     @Override
     public boolean execute(Reposilite reposilite) {
-        String latestVersion = getVersion();
+        String latestVersion = reposilite.isTestEnvEnabled() ? ReposiliteConstants.VERSION : getVersion();
 
         Reposilite.getLogger().info("");
         Reposilite.getLogger().info("Reposilite " + ReposiliteConstants.VERSION + " Status");
