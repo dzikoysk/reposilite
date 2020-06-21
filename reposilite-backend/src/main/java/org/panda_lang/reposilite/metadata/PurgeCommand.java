@@ -22,7 +22,7 @@ import org.panda_lang.reposilite.console.ReposiliteCommand;
 public final class PurgeCommand implements ReposiliteCommand {
 
     @Override
-    public boolean call(Reposilite reposilite) {
+    public boolean execute(Reposilite reposilite) {
         MetadataService metadataService = reposilite.getMetadataService();
         int cacheSize = metadataService.getCacheSize();
 

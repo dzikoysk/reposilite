@@ -44,7 +44,7 @@ public final class Reposilite {
 
     private final Collection<Pair<String, Throwable>> exceptions = new ArrayList<>();
     private final ReposiliteExecutor executor = new ReposiliteExecutor(this);
-    private final Console console = new Console(this);
+    private final Console console = new Console(this, System.in);
 
     private final Configuration configuration;
     private final Authenticator authenticator;
@@ -93,11 +93,11 @@ public final class Reposilite {
             getLogger().info("Done (" + TimeUtils.format(TimeUtils.getUptime(uptime)) + "s)!");
 
             runProductionTask(() -> {
-                console.displayHelp();
+                console.execute("help");
                 console.hook();
 
                 getLogger().info("Collecting status metrics...");
-                console.displayStatus();
+                console.execute("status");
             });
         });
 

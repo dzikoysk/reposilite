@@ -18,22 +18,22 @@ package org.panda_lang.reposilite.console;
 
 import io.vavr.control.Try;
 import org.panda_lang.reposilite.Reposilite;
-import org.panda_lang.reposilite.ReposiliteConstants;
 import org.panda_lang.reposilite.auth.KeygenCommand;
 import org.panda_lang.reposilite.auth.RevokeCommand;
 import org.panda_lang.reposilite.auth.TokenListCommand;
 import org.panda_lang.reposilite.metadata.PurgeCommand;
 import org.panda_lang.reposilite.stats.StatsCommand;
-import org.panda_lang.utilities.commons.ArrayUtils;
+
+import java.io.InputStream;
 
 public class Console {
 
     private final Reposilite reposilite;
     private final ConsoleThread consoleThread;
 
-    public Console(Reposilite reposilite) {
+    public Console(Reposilite reposilite, InputStream source) {
         this.reposilite = reposilite;
-        this.consoleThread = new ConsoleThread(this);
+        this.consoleThread = new ConsoleThread(this, source);
     }
 
     public void hook() {
@@ -47,15 +47,15 @@ public class Console {
 
         switch (command.toLowerCase()) {
             case "help":
-                return displayHelp();
+                return new HelpCommand().execute(reposilite);
             case "version":
-                return displayVersion();
+                return new VersionCommand().execute(reposilite);
             case "status":
-                return displayStatus();
+                return new StatusCommand().execute(reposilite);
             case "purge":
-                return new PurgeCommand().call(reposilite);
+                return new PurgeCommand().execute(reposilite);
             case "tokens":
-                return new TokenListCommand().call(reposilite);
+                return new TokenListCommand().execute(reposilite);
             case "gc":
                 Reposilite.getLogger().info("[Utility Command] Called gc");
                 System.gc();
@@ -73,50 +73,20 @@ public class Console {
         switch (command.toLowerCase()) {
             case "stats":
                 if (elements.length == 1) {
-                    return new StatsCommand(-1).call(reposilite);
+                    return new StatsCommand(-1).execute(reposilite);
                 }
 
                 return Try.ofSupplier(() -> new StatsCommand(Long.parseLong(elements[1])))
                         .getOrElse(new StatsCommand(elements[1]))
-                        .call(reposilite);
+                        .execute(reposilite);
             case "keygen":
-                return new KeygenCommand(elements[1], elements[2]).call(reposilite);
+                return new KeygenCommand(elements[1], elements[2]).execute(reposilite);
             case "revoke":
-                return new RevokeCommand(elements[1]).call(reposilite);
+                return new RevokeCommand(elements[1]).execute(reposilite);
             default:
                 Reposilite.getLogger().warn("Unknown command " + command);
                 return false;
         }
-    }
-
-    public boolean executeArguments(String[] arguments) {
-        if (ArrayUtils.isEmpty(arguments)) {
-            return false;
-        }
-
-        String command = arguments[0].toLowerCase();
-
-        switch (command) {
-            case "help":
-                return displayHelp();
-            case "version":
-                return displayVersion();
-            default:
-                return false;
-        }
-    }
-
-    public boolean displayVersion() {
-        Reposilite.getLogger().info("Reposilite " + ReposiliteConstants.VERSION);
-        return true;
-    }
-
-    public boolean displayHelp() {
-        return new HelpCommand().call(reposilite);
-    }
-
-    public boolean displayStatus() {
-        return new StatusCommand().call(reposilite);
     }
 
     public void stop() {
