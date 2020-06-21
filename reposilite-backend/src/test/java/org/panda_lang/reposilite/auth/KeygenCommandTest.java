@@ -14,7 +14,7 @@ class KeygenCommandTest extends ReposiliteIntegrationTest {
     @Test
     void shouldCreateNewToken() throws IOException {
         KeygenCommand keygenCommand = new KeygenCommand("/a/b/c", "alias");
-        assertTrue(keygenCommand.call(reposilite));
+        assertTrue(keygenCommand.execute(reposilite));
 
         TokenService tokenService = reposilite.getTokenService();
         Token token = reposilite.getTokenService().getToken("alias");

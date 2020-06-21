@@ -45,7 +45,7 @@ public final class StatsCommand implements ReposiliteCommand {
     }
 
     @Override
-    public boolean call(Reposilite reposilite) {
+    public boolean execute(Reposilite reposilite) {
         StatsService statsService = reposilite.getStatsService();
 
         Reposilite.getLogger().info("");

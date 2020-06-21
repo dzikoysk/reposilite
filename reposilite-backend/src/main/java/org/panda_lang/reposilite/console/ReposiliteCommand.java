@@ -20,6 +20,6 @@ import org.panda_lang.reposilite.Reposilite;
 
 public interface ReposiliteCommand {
 
-    boolean call(Reposilite reposilite);
+    boolean execute(Reposilite reposilite);
 
 }

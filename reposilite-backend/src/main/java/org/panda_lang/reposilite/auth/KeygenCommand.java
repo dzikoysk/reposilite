@@ -33,7 +33,7 @@ public final class KeygenCommand implements ReposiliteCommand {
     }
 
     @Override
-    public boolean call(Reposilite reposilite) {
+    public boolean execute(Reposilite reposilite) {
         TokenService tokenService = reposilite.getTokenService();
 
         if (tokenService.getToken(alias) != null) {

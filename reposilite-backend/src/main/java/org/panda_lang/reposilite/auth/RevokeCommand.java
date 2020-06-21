@@ -30,7 +30,7 @@ public final class RevokeCommand implements ReposiliteCommand {
     }
 
     @Override
-    public boolean call(Reposilite reposilite) {
+    public boolean execute(Reposilite reposilite) {
         Token token = reposilite.getTokenService().deleteToken(alias);
 
         if (token == null) {
