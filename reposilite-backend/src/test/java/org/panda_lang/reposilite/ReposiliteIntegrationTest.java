@@ -31,8 +31,8 @@ public abstract class ReposiliteIntegrationTest {
         reposilite.shutdown();
     }
 
-    protected HttpResponse get(String url) throws IOException {
-        return requestFactory.buildGetRequest(url(url))
+    protected HttpResponse get(String uri) throws IOException {
+        return requestFactory.buildGetRequest(url(uri))
             .setThrowExceptionOnExecuteError(false)
             .execute();
     }

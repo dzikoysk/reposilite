@@ -30,7 +30,7 @@ class TokenTest {
     @Test
     void alias() {
         Token token = new Token("path", "alias", "secret");
-        assertEquals("alias", token.getToken());
+        assertEquals("alias", token.getAlias());
 
         Token deserializedToken = new Token();
         deserializedToken.setAlias("alias");

@@ -54,7 +54,7 @@ class CliControllerTest extends ReposiliteIntegrationTest {
         // Don't let JUnit to interrupt this task for up to 2 seconds
         while (session.isOpen() && (System.currentTimeMillis() - uptime) < 2000) {
             //noinspection BusyWait
-            Thread.sleep(10);
+            Thread.sleep(50);
         }
     }
     

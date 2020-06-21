@@ -24,6 +24,7 @@ import org.panda_lang.reposilite.utils.FilesUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.stream.Stream;
 
 class MetadataUtilsTest {
@@ -34,11 +35,11 @@ class MetadataUtilsTest {
     static File versions;
 
     private static final String[] BUILDS = {
-            "abc-1.0.0-1337.jar",
-            "abc-1.0.0-1337-classifier.jar",
-            "abc-1.0.0-1337-2-classifier.jar",
-            "abc-1.0.0-1337-1.jar",
-            "abc-1.0.0-1337-1-classifier.jar"
+            "abc-1.0.0-1337-2-classifier.pom",
+            "abc-1.0.0-1337-1-classifier.pom",
+            "abc-1.0.0-1337-1.pom",
+            "abc-1.0.0-1337-classifier.pom",
+            "abc-1.0.0-1337.pom",
     };
 
     private static final String[] VERSIONS = {
@@ -87,12 +88,15 @@ class MetadataUtilsTest {
         Assertions.assertArrayEquals(new String[] {
                 "1337-2",
                 "1337-1",
-                "1337"
+                "1337",
         }, MetadataUtils.toSortedIdentifiers("abc", "1.0.0", FilesUtils.listFiles(builds)));
     }
 
     @Test
     void toBuildFiles() {
+        System.out.println(Arrays.toString(Stream.of(MetadataUtils.toBuildFiles(builds, "1337"))
+                .map(File::getName)
+                .toArray(String[]::new)));
         Assertions.assertArrayEquals(BUILDS, Stream.of(MetadataUtils.toBuildFiles(builds, "1337"))
                 .map(File::getName)
                 .toArray(String[]::new));
