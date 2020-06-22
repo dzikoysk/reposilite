@@ -27,7 +27,7 @@ class ConfigurationLoaderTest {
         assertEquals("localhost", configuration.getHostname());
         assertEquals(8080, configuration.getPort());
         assertTrue(configuration.isDebugEnabled());
-        assertEquals(Arrays.asList("http://a.com", "b.com"), configuration.getManagers());
+        assertEquals(Arrays.asList("http://a.com", "b.com"), configuration.getProxied());
         assertFalse(configuration.getRepositories().isEmpty());
 
         // Clean up the system properties to avoid loading of these values by the further tests
