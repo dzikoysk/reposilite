@@ -16,16 +16,20 @@
 
 package org.panda_lang.reposilite.metadata;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.panda_lang.reposilite.utils.FilesUtils;
+import org.panda_lang.utilities.commons.ArrayUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.Calendar;
 import java.util.stream.Stream;
+
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MetadataUtilsTest {
 
@@ -52,6 +56,8 @@ class MetadataUtilsTest {
             "1"
     };
 
+    private static final File FILE = new File(temp, "file");
+
     @BeforeAll
     static void prepare() throws IOException {
         builds = new File(temp, "builds");
@@ -67,25 +73,34 @@ class MetadataUtilsTest {
         for (String version : VERSIONS) {
             new File(versions, version).mkdir();
         }
+
+        FILE.createNewFile();
     }
 
     @Test
     void toSortedBuilds() {
-        Assertions.assertArrayEquals(BUILDS, Stream.of(MetadataUtils.toSortedBuilds(builds))
+        assertArrayEquals(BUILDS, Stream.of(MetadataUtils.toSortedBuilds(builds))
+                .map(File::getName)
+                .toArray(String[]::new));
+    }
+
+    @Test
+    void toFiles() {
+        assertArrayEquals(BUILDS, Stream.of(MetadataUtils.toFiles(builds))
                 .map(File::getName)
                 .toArray(String[]::new));
     }
 
     @Test
     void toSortedVersions() {
-        Assertions.assertArrayEquals(VERSIONS, Stream.of(MetadataUtils.toSortedVersions(versions))
+        assertArrayEquals(VERSIONS, Stream.of(MetadataUtils.toSortedVersions(versions))
                 .map(File::getName)
                 .toArray(String[]::new));
     }
 
     @Test
     void toSortedIdentifiers() {
-        Assertions.assertArrayEquals(new String[] {
+        assertArrayEquals(new String[] {
                 "1337-2",
                 "1337-1",
                 "1337",
@@ -94,12 +109,19 @@ class MetadataUtilsTest {
 
     @Test
     void toBuildFiles() {
-        System.out.println(Arrays.toString(Stream.of(MetadataUtils.toBuildFiles(builds, "1337"))
-                .map(File::getName)
-                .toArray(String[]::new)));
-        Assertions.assertArrayEquals(BUILDS, Stream.of(MetadataUtils.toBuildFiles(builds, "1337"))
+        assertArrayEquals(BUILDS, Stream.of(MetadataUtils.toBuildFiles(builds, "1337"))
                 .map(File::getName)
                 .toArray(String[]::new));
+    }
+
+    @Test
+    void toUpdateTime() {
+        assertTrue(MetadataUtils.toUpdateTime(FILE).startsWith(Integer.toString(Calendar.getInstance().get(Calendar.YEAR))));
+    }
+
+    @Test
+    void toGroup() {
+        assertEquals("a.b.c", MetadataUtils.toGroup(ArrayUtils.of("a", "b", "c")));
     }
 
 }

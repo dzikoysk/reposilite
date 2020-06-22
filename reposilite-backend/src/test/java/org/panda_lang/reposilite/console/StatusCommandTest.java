@@ -9,8 +9,8 @@ class StatusCommandTest extends ReposiliteIntegrationTest {
 
     @Test
     void shouldReturnTrueAndDisplayStatus() {
-        StatusCommand statusCommand = new StatusCommand();
-        assertTrue(statusCommand.execute(super.reposilite));
+        super.reposilite.throwException("/",  new RuntimeException());
+        assertTrue(new StatusCommand().execute(super.reposilite));
     }
 
 }
