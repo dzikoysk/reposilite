@@ -37,6 +37,7 @@ class MetadataUtilsTest {
     static File temp;
     static File builds;
     static File versions;
+    static File file;
 
     private static final String[] BUILDS = {
             "abc-1.0.0-1337-2-classifier.pom",
@@ -56,7 +57,6 @@ class MetadataUtilsTest {
             "1"
     };
 
-    private static final File FILE = new File(temp, "file");
 
     @BeforeAll
     static void prepare() throws IOException {
@@ -74,7 +74,8 @@ class MetadataUtilsTest {
             new File(versions, version).mkdir();
         }
 
-        FILE.createNewFile();
+        file = new File(temp, "file");
+        file.createNewFile();
     }
 
     @Test
@@ -116,7 +117,7 @@ class MetadataUtilsTest {
 
     @Test
     void toUpdateTime() {
-        assertTrue(MetadataUtils.toUpdateTime(FILE).startsWith(Integer.toString(Calendar.getInstance().get(Calendar.YEAR))));
+        assertTrue(MetadataUtils.toUpdateTime(file).startsWith(Integer.toString(Calendar.getInstance().get(Calendar.YEAR))));
     }
 
     @Test

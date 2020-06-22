@@ -3,6 +3,7 @@ package org.panda_lang.reposilite.metadata;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 class MetadataTest {
 
@@ -27,6 +28,14 @@ class MetadataTest {
     @Test
     void getVersioning() {
         assertEquals(VERSIONING, METADATA.getVersioning());
+    }
+
+    @Test
+    void shouldBeEmpty() {
+        assertNull(new Metadata().getGroupId());
+        assertNull(new Metadata().getArtifactId());
+        assertNull(new Metadata().getVersion());
+        assertNull(new Metadata().getVersioning());
     }
 
 }
