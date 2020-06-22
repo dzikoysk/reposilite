@@ -32,8 +32,8 @@ import org.panda_lang.reposilite.frontend.FrontendService;
 import org.panda_lang.reposilite.metadata.MetadataService;
 import org.panda_lang.reposilite.metadata.MetadataUtils;
 import org.panda_lang.reposilite.utils.ArrayUtils;
-import org.panda_lang.reposilite.utils.ExecutorsUtils;
 import org.panda_lang.reposilite.utils.FilesUtils;
+import org.panda_lang.reposilite.utils.FutureUtils;
 import org.panda_lang.reposilite.utils.Result;
 import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.text.ContentJoiner;
@@ -78,7 +78,7 @@ public final class LookupService {
             return Result.error("Invalid proxied request");
         }
 
-        return Result.ok(context.result(ExecutorsUtils.submit(proxiedExecutor, future -> {
+        return Result.ok(context.result(FutureUtils.submit(proxiedExecutor, future -> {
             for (String proxied : configuration.getProxied()) {
                 try {
                     HttpRequest remoteRequest = requestFactory.buildGetRequest(new GenericUrl(proxied + uri));
@@ -161,7 +161,7 @@ public final class LookupService {
         if (requestedFileName.equalsIgnoreCase("latest")) {
             File requestDirectory = repository.getFile(requestPath).getParentFile();
             File[] versions = MetadataUtils.toSortedVersions(requestDirectory);
-            File version = ArrayUtils.getLatest(versions);
+            File version = ArrayUtils.getFirst(versions);
 
             if (version == null) {
                 return Result.error("Latest version not found");

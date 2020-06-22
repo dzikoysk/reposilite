@@ -86,7 +86,7 @@ public final class RepositoryService {
         File versionDirectory = artifactFile.getParentFile();
 
         File[] builds = MetadataUtils.toSortedBuilds(versionDirectory);
-        File latestBuild = ArrayUtils.getLatest(builds);
+        File latestBuild = ArrayUtils.getFirst(builds);
 
         if (latestBuild == null) {
             return requestPath;

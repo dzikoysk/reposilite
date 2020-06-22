@@ -4,7 +4,7 @@ public final class ArrayUtils {
 
     private ArrayUtils() { }
 
-    public static <T> T getLatest(T[] elements) {
+    public static <T> T getFirst(T[] elements) {
         return elements.length > 0 ? elements[0] : null;
     }
 
