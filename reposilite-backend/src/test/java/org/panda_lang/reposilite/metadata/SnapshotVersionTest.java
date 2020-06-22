@@ -26,9 +26,9 @@ class SnapshotVersionTest {
 
     @Test
     void shouldBeEmpty() {
-        assertNull(SNAPSHOT_VERSION.getExtension());
-        assertNull(SNAPSHOT_VERSION.getValue());
-        assertNull(SNAPSHOT_VERSION.getUpdated());
+        assertNull(new SnapshotVersion().getExtension());
+        assertNull(new SnapshotVersion().getValue());
+        assertNull(new SnapshotVersion().getUpdated());
     }
 
 }
