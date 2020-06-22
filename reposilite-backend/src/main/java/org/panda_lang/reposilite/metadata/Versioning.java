@@ -20,10 +20,11 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
+import java.io.Serializable;
 import java.util.Collection;
 
 @JacksonXmlRootElement(localName = "versioning")
-final class Versioning {
+final class Versioning implements Serializable {
 
     private String release;
     private String latest;

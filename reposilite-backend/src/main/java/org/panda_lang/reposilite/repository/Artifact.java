@@ -16,9 +16,6 @@
 
 package org.panda_lang.reposilite.repository;
 
-import org.panda_lang.reposilite.metadata.MetadataUtils;
-import org.panda_lang.reposilite.utils.ArrayUtils;
-
 import java.io.File;
 
 final class Artifact {
@@ -27,30 +24,20 @@ final class Artifact {
     private final String group;
     private final String artifact;
     private final String version;
-    private final File[] builds;
 
     Artifact(Repository repository, String group, String artifact, String version) {
         this.repository = repository;
         this.group = group;
         this.artifact = artifact;
         this.version = version;
-        this.builds = MetadataUtils.toFiles(getFile(""));
     }
 
     public File getFile(String fileName) {
-        return repository.getFile(getLocalPath() + ArrayUtils.getLast(fileName.split("/")));
-    }
-
-    public File getLatest() {
-        return ArrayUtils.getLatest(builds);
+        return repository.getFile(getLocalPath() + fileName);
     }
 
     public String getLocalPath() {
         return group.replace(".", "/") + "/" + artifact + "/" + version + "/";
-    }
-
-    public File[] getBuilds() {
-        return builds;
     }
 
     public String getVersion() {
