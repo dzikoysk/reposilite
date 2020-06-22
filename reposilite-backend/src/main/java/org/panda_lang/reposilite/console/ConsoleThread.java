@@ -43,13 +43,7 @@ final class ConsoleThread extends Thread {
         }
 
         do {
-            String command = in.nextLine();
-
-            try {
-                console.execute(command);
-            } catch (Exception exception) {
-                exception.printStackTrace();
-            }
+            console.execute(in.nextLine());
         }
         while (!isInterrupted() && in.hasNextLine());
     }

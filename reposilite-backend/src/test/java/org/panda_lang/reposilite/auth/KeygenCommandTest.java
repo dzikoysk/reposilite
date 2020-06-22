@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class KeygenCommandTest extends ReposiliteIntegrationTest {
 
     @Test
-    void shouldCreateNewToken() throws IOException {
+    void shouldCreateNewToken() {
         TokenService tokenService = super.reposilite.getTokenService();
         tokenService.createToken("/a", "alias");
 
