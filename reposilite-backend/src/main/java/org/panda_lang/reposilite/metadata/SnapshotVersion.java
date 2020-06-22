@@ -18,8 +18,10 @@ package org.panda_lang.reposilite.metadata;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
+import java.io.Serializable;
+
 @JacksonXmlRootElement(localName = "snapshotVersion")
-final class SnapshotVersion {
+final class SnapshotVersion implements Serializable {
 
     private String extension;
     private String value;

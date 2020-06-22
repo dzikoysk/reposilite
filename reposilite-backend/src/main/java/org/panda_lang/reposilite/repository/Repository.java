@@ -35,7 +35,7 @@ public final class Repository {
     public Artifact get(String... path) {
         File targetFile = getFile(path);
 
-        if (!targetFile.exists() || targetFile.isDirectory()) {
+        if (!targetFile.exists() || targetFile.isDirectory() || path.length < 3) {
             return null;
         }
 

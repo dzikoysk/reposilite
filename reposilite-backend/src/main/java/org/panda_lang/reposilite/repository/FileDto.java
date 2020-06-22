@@ -23,8 +23,8 @@ import java.io.Serializable;
 
 final class FileDto implements Serializable, Comparable<FileDto> {
 
-    private static final String FILE = "file";
-    private static final String DIRECTORY = "directory";
+    static final String FILE = "file";
+    static final String DIRECTORY = "directory";
 
     private final String type;
     private final String name;
