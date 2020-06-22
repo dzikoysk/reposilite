@@ -39,9 +39,10 @@ final class ConsoleThread extends Thread {
         if (!in.hasNextLine()) {
             Reposilite.getLogger().warn("Interactive CLI is not available in current environment.");
             Reposilite.getLogger().warn("Solution for Docker users: https://docs.docker.com/engine/reference/run/#foreground");
+            return;
         }
 
-        while (!isInterrupted() && in.hasNextLine()) {
+        do {
             String command = in.nextLine();
 
             try {
@@ -50,6 +51,7 @@ final class ConsoleThread extends Thread {
                 exception.printStackTrace();
             }
         }
+        while (!isInterrupted() && in.hasNextLine());
     }
 
 }
