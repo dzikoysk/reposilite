@@ -21,7 +21,7 @@ class ConfigurationLoaderTest {
         System.setProperty("reposilite.port", "8080");                  // Integer type
         System.setProperty("reposilite.debugEnabled", "true");          // Boolean type
         System.setProperty("reposilite.proxied", "http://a.com,b.com"); // List<String> type
-        System.setProperty("reposilite.repositories", "");              // Skip empty
+        System.setProperty("reposilite.repositories", " ");              // Skip empty
 
         Configuration configuration = ConfigurationLoader.load(workingDirectory.getAbsolutePath());
         assertEquals("localhost", configuration.getHostname());
