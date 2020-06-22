@@ -20,9 +20,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Function;
 
-public final class ExecutorsUtils {
+public final class FutureUtils {
 
-    private ExecutorsUtils() { }
+    private FutureUtils() { }
 
     public static <T> CompletableFuture<T> submit(ExecutorService service, Function<CompletableFuture<T>, ?> futureConsumer) {
         CompletableFuture<T> completableFuture = new CompletableFuture<>();

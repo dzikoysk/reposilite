@@ -59,7 +59,7 @@ public final class IndexApiController implements RepositoryController {
 
             if (parent != null && parent.exists()) {
                 File[] files = MetadataUtils.toSortedVersions(parent);
-                File latest = ArrayUtils.getLatest(files);
+                File latest = ArrayUtils.getFirst(files);
 
                 if (latest != null) {
                     return ctx.json(FileDto.of(latest));

@@ -74,7 +74,7 @@ public final class MetadataService {
     }
 
     private Result<String, String> generateArtifactMetadata(File metadataFile, String groupId, File artifactDirectory, File[] versions) {
-        File latest = ArrayUtils.getLatest(versions);
+        File latest = ArrayUtils.getFirst(versions);
 
         if (latest == null) {
             return Result.error("Artifact does not have any releases");
@@ -89,7 +89,7 @@ public final class MetadataService {
     private Result<String, String> generateBuildMetadata(File metadataFile, String groupId, File versionDirectory) {
         File artifactDirectory = versionDirectory.getParentFile();
         File[] builds = MetadataUtils.toSortedBuilds(versionDirectory);
-        File latestBuild = ArrayUtils.getLatest(builds);
+        File latestBuild = ArrayUtils.getFirst(builds);
 
         if (latestBuild == null) {
             return Result.error("Version does not have any builds");
@@ -99,7 +99,7 @@ public final class MetadataService {
         String version = StringUtils.replace(versionDirectory.getName(), "-SNAPSHOT", StringUtils.EMPTY);
 
         String[] identifiers = MetadataUtils.toSortedIdentifiers(name, version, builds);
-        String latestIdentifier = Objects.requireNonNull(ArrayUtils.getLatest(identifiers));
+        String latestIdentifier = Objects.requireNonNull(ArrayUtils.getFirst(identifiers));
         int buildSeparatorIndex = latestIdentifier.lastIndexOf("-");
         Versioning versioning;
 
