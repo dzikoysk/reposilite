@@ -30,9 +30,7 @@ final class MetadataServiceTest extends ReposiliteIntegrationTest {
         assertTrue(result.isDefined());
         assertTrue(result.getValue().contains("1.0.0"));
         assertTrue(result.getValue().contains("1.0.0-SNAPSHOT"));
-        assertTrue(result.getValue().contains("1.0.1"));
         assertTrue(result.getValue().contains("1.0.1-SNAPSHOT"));
-        assertTrue(result.getValue().contains("1.0.2-SNAPSHOT"));
     }
 
     @Test
@@ -74,7 +72,7 @@ final class MetadataServiceTest extends ReposiliteIntegrationTest {
     }
 
     @Test
-    void purgeCache() {
+    void shouldPurgeCache() {
         MetadataService metadataService = super.reposilite.getMetadataService();
         assertEquals(0, metadataService.purgeCache());
         assertEquals(0, metadataService.getCacheSize());
@@ -85,7 +83,7 @@ final class MetadataServiceTest extends ReposiliteIntegrationTest {
     }
 
     @Test
-    void getCacheSize() {
+    void shouldReturnCurrentCacheSize() {
         MetadataService metadataService = super.reposilite.getMetadataService();
         assertEquals(0, metadataService.getCacheSize());
 
@@ -99,7 +97,6 @@ final class MetadataServiceTest extends ReposiliteIntegrationTest {
         generate("org", "panda-lang", "reposilite-test", "1.0.0-SNAPSHOT", "maven-metadata.xml");
         generate("org", "panda-lang", "reposilite-test", "1.0.1", "maven-metadata.xml"); // should not generate this one (empty dir)
         generate("org", "panda-lang", "reposilite-test", "1.0.1-SNAPSHOT", "maven-metadata.xml");
-        generate("org", "panda-lang", "reposilite-test", "1.0.2-SNAPSHOT", "maven-metadata.xml"); // should not generate this one (empty dir)
     }
 
     private Result<String, String> generate(String... path) {
