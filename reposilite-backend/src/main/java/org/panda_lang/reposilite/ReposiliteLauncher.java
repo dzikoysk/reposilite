@@ -1,11 +1,14 @@
 package org.panda_lang.reposilite;
 
+import io.vavr.control.Try;
 import org.panda_lang.reposilite.console.HelpCommand;
 import org.panda_lang.reposilite.console.VersionCommand;
 import org.panda_lang.utilities.commons.console.Effect;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
+
+import java.util.Optional;
 
 @Command(name = "reposilite", version = "Reposilite " + ReposiliteConstants.VERSION)
 final class ReposiliteLauncher {
@@ -22,26 +25,25 @@ final class ReposiliteLauncher {
     @Option(names = { "--working-directory", "-wd" }, description = "set custom working directory of application instance")
     private String workingDirectory;
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         ReposiliteLauncher launcher = new ReposiliteLauncher();
-        launcher.launch(args);
+        launcher.create(args).ifPresent(reposilite -> Try.run(reposilite::launch));
     }
 
-    public void launch(String... args) throws Exception {
+    public Optional<Reposilite> create(String... args) {
         CommandLine.populateCommand(this, args);
 
         if (usageHelpRequested) {
             HelpCommand.displayHelp();
-            return;
+            return Optional.empty();
         }
 
         if (versionInfoRequested) {
             VersionCommand.displayVersion();
-            return;
+            return Optional.empty();
         }
 
-        Reposilite reposilite = create(workingDirectory, testEnv);
-        reposilite.launch();
+        return Optional.of(create(workingDirectory, testEnv));
     }
 
     public static Reposilite create(String workingDirectory, boolean testEnv) {

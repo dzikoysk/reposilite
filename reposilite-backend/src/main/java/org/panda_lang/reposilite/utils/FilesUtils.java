@@ -92,10 +92,6 @@ public final class FilesUtils {
                 .toJavaList();
     }
 
-    public static String getExtension(File file) {
-        return getExtension(file.getName());
-    }
-
     public static String getExtension(String name) {
         int occurrence = name.lastIndexOf(".");
         return occurrence == -1 ? StringUtils.EMPTY : name.substring(occurrence + 1);

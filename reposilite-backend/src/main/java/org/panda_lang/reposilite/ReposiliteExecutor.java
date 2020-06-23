@@ -18,11 +18,14 @@ final class ReposiliteExecutor {
     }
 
     void await(Runnable onExit) throws InterruptedException {
-        while (alive) {
+        while (isAlive()) {
             Queue<ThrowingRunnable<?>> copy;
 
             synchronized (lock) {
-                lock.wait();
+                if (tasks.isEmpty()) {
+                    lock.wait();
+                }
+
                 copy = new LinkedBlockingDeque<>(tasks);
                 tasks.clear();
             }
@@ -51,6 +54,10 @@ final class ReposiliteExecutor {
             this.alive = false;
             lock.notify();
         }
+    }
+
+    boolean isAlive() {
+        return alive;
     }
 
 }

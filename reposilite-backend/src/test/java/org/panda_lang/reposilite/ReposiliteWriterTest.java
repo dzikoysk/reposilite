@@ -24,13 +24,19 @@ class ReposiliteWriterTest {
     void getLatest() {
         Queue<String> queue = ReposiliteWriter.getCache();
 
-        for (int index = 0; index < ReposiliteWriter.CACHE_SIZE; index++) {
+        for (int index = 0; index < ReposiliteWriter.getCacheSize(); index++) {
             queue.add(Integer.toString(index));
         }
 
-        assertEquals(ReposiliteWriter.CACHE_SIZE, queue.size());
+        assertEquals(ReposiliteWriter.getCacheSize(), queue.size());
         queue.add("above limit");
-        assertEquals(ReposiliteWriter.CACHE_SIZE, queue.size());
+        assertEquals(ReposiliteWriter.getCacheSize(), queue.size());
+    }
+
+    @Test
+    void contains() {
+        Reposilite.getLogger().info("test::contains");
+        assertTrue(ReposiliteWriter.contains("test::contains"));
     }
 
 }

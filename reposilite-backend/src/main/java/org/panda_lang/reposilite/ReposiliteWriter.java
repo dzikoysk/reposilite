@@ -8,7 +8,6 @@ import org.tinylog.provider.InternalLogger;
 import org.tinylog.writers.AbstractFormatPatternWriter;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -19,16 +18,12 @@ import java.util.function.Consumer;
  */
 public final class ReposiliteWriter extends AbstractFormatPatternWriter {
 
-    static final int CACHE_SIZE = 100;
+    private static final int CACHE_SIZE = 100;
     @SuppressWarnings("UnstableApiUsage")
-    static final Queue<String> CACHE = EvictingQueue.create(CACHE_SIZE);
-    static final Map<Object, Consumer<String>> CONSUMERS = new ConcurrentHashMap<>();
+    private static final Queue<String> CACHE = EvictingQueue.create(CACHE_SIZE);
+    private static final Map<Object, Consumer<String>> CONSUMERS = new ConcurrentHashMap<>();
 
     private final Level level;
-
-    public ReposiliteWriter() {
-        this(Collections.emptyMap());
-    }
 
     public ReposiliteWriter(Map<String, String> properties) {
         super(properties);
@@ -65,12 +60,10 @@ public final class ReposiliteWriter extends AbstractFormatPatternWriter {
 
     @Override
     public void flush() {
-
     }
 
     @Override
     public void close() {
-
     }
 
     @Override
@@ -84,8 +77,22 @@ public final class ReposiliteWriter extends AbstractFormatPatternWriter {
         return CONSUMERS;
     }
 
+    public static boolean contains(String message) {
+        for (String line : getCache()) {
+            if (line.contains(message)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public static Queue<String> getCache() {
         return CACHE;
+    }
+
+    public static int getCacheSize() {
+        return CACHE_SIZE;
     }
 
 }
