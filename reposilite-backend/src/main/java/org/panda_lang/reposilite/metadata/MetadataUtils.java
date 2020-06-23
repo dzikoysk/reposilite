@@ -129,7 +129,7 @@ public final class MetadataUtils {
         return toGroup(shrinkGroup(elements, toShrink));
     }
 
-    protected static String[] shrinkGroup(String[] elements, int toShrink) {
+    private static String[] shrinkGroup(String[] elements, int toShrink) {
         return Arrays.copyOfRange(elements, 0, elements.length - toShrink);
     }
 

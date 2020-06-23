@@ -5,6 +5,7 @@ import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestFactory;
 import com.google.api.client.http.HttpResponse;
 import com.google.api.client.http.javanet.NetHttpTransport;
+import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.io.TempDir;
@@ -23,6 +24,8 @@ public abstract class ReposiliteIntegrationTest {
 
     @BeforeEach
     protected void before() throws Exception {
+        FileUtils.copyDirectory(new File("src/test/workspace/repositories"), new File(workingDirectory, "repositories"));
+
         reposilite = ReposiliteLauncher.create(workingDirectory.getAbsolutePath(), true);
         reposilite.launch();
     }

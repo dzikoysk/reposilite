@@ -123,6 +123,7 @@ class MetadataUtilsTest {
     @Test
     void toGroup() {
         assertEquals("a.b.c", MetadataUtils.toGroup(ArrayUtils.of("a", "b", "c")));
+        assertEquals("a.b.c", MetadataUtils.toGroup(ArrayUtils.of("a", "b", "c", "d", "e"), 2));
     }
 
 }
