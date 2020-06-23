@@ -52,6 +52,11 @@ public final class MetadataService {
 
     public Result<String, String> generateMetadata(Repository repository, String[] requested) {
         File metadataFile = repository.getFile(requested);
+
+        if (!metadataFile.getName().equals("maven-metadata.xml")) {
+            return Result.error("Bad request");
+        }
+
         String cachedContent = metadataCache.get(metadataFile.getPath());
 
         if (cachedContent != null) {
@@ -74,11 +79,7 @@ public final class MetadataService {
     }
 
     private Result<String, String> generateArtifactMetadata(File metadataFile, String groupId, File artifactDirectory, File[] versions) {
-        File latest = ArrayUtils.getFirst(versions);
-
-        if (latest == null) {
-            return Result.error("Artifact does not have any releases");
-        }
+        File latest = Objects.requireNonNull(ArrayUtils.getFirst(versions));
 
         Versioning versioning = new Versioning(latest.getName(), latest.getName(), FilesUtils.toNames(versions), null, null, MetadataUtils.toUpdateTime(latest));
         Metadata metadata = new Metadata(groupId, artifactDirectory.getName(), null, versioning);
@@ -92,7 +93,7 @@ public final class MetadataService {
         File latestBuild = ArrayUtils.getFirst(builds);
 
         if (latestBuild == null) {
-            return Result.error("Version does not have any builds");
+            return Result.error("Builds not found");
         }
 
         String name = artifactDirectory.getName();
@@ -118,17 +119,12 @@ public final class MetadataService {
                 for (File buildFile : buildFiles) {
                     String fileName = buildFile.getName();
                     String value = version + "-" + identifier;
-                    String classifier = FilesUtils.getExtension(buildFile);
                     String updated = MetadataUtils.toUpdateTime(buildFile);
+                    String extension = fileName
+                            .replace(name + "-", StringUtils.EMPTY)
+                            .replace(value + ".", StringUtils.EMPTY);
 
-                    if (StringUtils.countOccurrences(fileName, "-") >= 4) {
-                        classifier = fileName
-                                .replace(name + "-", StringUtils.EMPTY)
-                                .replace(value + "-", StringUtils.EMPTY)
-                                .replace("." + classifier, StringUtils.EMPTY);
-                    }
-
-                    SnapshotVersion snapshotVersion = new SnapshotVersion(classifier, value, updated);
+                    SnapshotVersion snapshotVersion = new SnapshotVersion(extension, value, updated);
                     snapshotVersions.add(snapshotVersion);
                 }
             }
@@ -164,8 +160,10 @@ public final class MetadataService {
         metadataCache.remove(metadataFile.getPath());
     }
 
-    public void purgeCache() {
+    public int purgeCache() {
+        int count = getCacheSize();
         metadataCache.clear();
+        return count;
     }
 
     public int getCacheSize() {
