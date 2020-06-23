@@ -1,4 +1,4 @@
-# Reposilite [![Build Status](https://travis-ci.org/dzikoysk/reposilite.svg?branch=master)](https://travis-ci.org/dzikoysk/reposilite)
+# Reposilite [![Build Status](https://travis-ci.com/dzikoysk/reposilite.svg?branch=master)](https://travis-ci.com/dzikoysk/reposilite)
 Reposilite *(formerly NanoMaven)* - lightweight repository manager for Maven artifacts. 
 It is a simple solution to replace managers like Nexus, Archiva or Artifactory. 
 
