@@ -16,6 +16,8 @@
 
 package org.panda_lang.reposilite.utils;
 
+import java.util.Locale;
+
 public final class TimeUtils {
 
     private TimeUtils() { }
@@ -26,7 +28,7 @@ public final class TimeUtils {
     }
 
     public static String format(double time) {
-        return String.format("%.2f", time);
+        return String.format(Locale.US, "%.2f", time);
     }
 
 }
