@@ -9,7 +9,7 @@ class TimeUtilsTest {
 
     @Test
     void format() {
-        assertEquals("3,14", TimeUtils.format(Math.PI));
+        assertEquals("3.14", TimeUtils.format(Math.PI));
     }
 
     @Test
