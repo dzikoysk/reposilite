@@ -24,6 +24,7 @@ import org.panda_lang.utilities.commons.ClassUtils;
 import org.panda_lang.utilities.commons.StringUtils;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map.Entry;
@@ -35,7 +36,12 @@ public final class ConfigurationLoader {
 
         if (!configurationFile.exists()) {
             Reposilite.getLogger().info("Generating default configuration file.");
-            FilesUtils.copyResource("/" + ReposiliteConstants.CONFIGURATION_FILE_NAME, configurationFile);
+
+            try {
+                FilesUtils.copyResource("/" + ReposiliteConstants.CONFIGURATION_FILE_NAME, configurationFile);
+            } catch (IOException exception) {
+                throw new RuntimeException("Cannot create configuration file, ", exception);
+            }
         }
         else {
             Reposilite.getLogger().info("Using an existing configuration file");

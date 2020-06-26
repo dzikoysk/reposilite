@@ -143,12 +143,8 @@ public final class MetadataService {
         try {
             String serializedMetadata = XML_MAPPER.get().writeValueAsString(metadata);
             FileUtils.overrideFile(metadataFile, serializedMetadata);
+            FilesUtils.writeFileChecksums(metadataFile.toPath());
             metadataCache.put(metadataFile.getPath(), serializedMetadata);
-
-            if (!FilesUtils.writeFileChecksums(metadataFile.toPath())) {
-                Reposilite.getLogger().error("Cannot write metadata checksums");
-            }
-
             return Result.ok(serializedMetadata);
         } catch (IOException e) {
             reposilite.throwException(metadataFile.getAbsolutePath(), e);

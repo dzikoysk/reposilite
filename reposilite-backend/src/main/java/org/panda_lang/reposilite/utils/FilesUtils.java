@@ -40,35 +40,20 @@ public final class FilesUtils {
     private FilesUtils() {}
 
     @SuppressWarnings({ "UnstableApiUsage", "deprecation" })
-    public static boolean writeFileChecksums(Path path) {
-        try {
-            Files.touch(new File(path + ".md5"));
-            Files.touch(new File(path + ".sha1"));
+    public static void writeFileChecksums(Path path) throws IOException {
+        Files.touch(new File(path + ".md5"));
+        Files.touch(new File(path + ".sha1"));
 
-            Path md5FileFile = Paths.get(path + ".md5");
-            Path sha1FileFile = Paths.get(path + ".sha1");
+        Path md5FileFile = Paths.get(path + ".md5");
+        Path sha1FileFile = Paths.get(path + ".sha1");
 
-            FileUtils.writeStringToFile(md5FileFile.toFile(), Files.hash(md5FileFile.toFile(), Hashing.md5()).toString(), StandardCharsets.UTF_8);
-            FileUtils.writeStringToFile(sha1FileFile.toFile(), Files.hash(sha1FileFile.toFile(), Hashing.sha1()).toString(), StandardCharsets.UTF_8);
-            return true;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return false;
+        FileUtils.writeStringToFile(md5FileFile.toFile(), Files.hash(md5FileFile.toFile(), Hashing.md5()).toString(), StandardCharsets.UTF_8);
+        FileUtils.writeStringToFile(sha1FileFile.toFile(), Files.hash(sha1FileFile.toFile(), Hashing.sha1()).toString(), StandardCharsets.UTF_8);
     }
 
-    public static boolean copyResource(String resourcePath, File destination) {
+    public static void copyResource(String resourcePath, File destination) throws IOException {
         URL inputUrl = Reposilite.class.getResource(resourcePath);
-
-        try {
-            FileUtils.copyURLToFile(inputUrl, destination);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
-        }
-
-        return true;
+        FileUtils.copyURLToFile(inputUrl, destination);
     }
 
     public static void close(Closeable closeable) {
