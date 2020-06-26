@@ -128,7 +128,7 @@ public final class LookupService {
         String[] path = RepositoryUtils.normalizeUri(configuration, context.req.getRequestURI()).split("/");
 
         // discard invalid requests (less than 'repository/group/artifact')
-        if (path.length < 3) {
+        if (path.length < 2) {
             return Result.error("Unsupported request");
         }
 
@@ -148,13 +148,15 @@ public final class LookupService {
 
         // discard invalid requests (less than 'group/(artifact OR metadata)')
         if (requestPath.length < 2) {
-            return Result.error("Missing artifact path");
+            return Result.error("Missing artifact identifier");
         }
 
         String requestedFileName = requestPath[requestPath.length - 1];
 
         if (requestedFileName.equals("maven-metadata.xml")) {
-            return metadataService.generateMetadata(repository, requestPath).map(result -> context.contentType("text/xml").result(result));
+            return metadataService
+                    .generateMetadata(repository, requestPath)
+                    .map(result -> context.contentType("text/xml").result(result));
         }
 
         // resolve requests for latest version of artifact
@@ -184,12 +186,6 @@ public final class LookupService {
         }
 
         File file = artifact.getFile(requestedFileName);
-
-        if (!file.exists()) {
-            Reposilite.getLogger().warn("File " + file.getAbsolutePath() + " does not exist");
-            return Result.error("Artifact " + file.getName() + " not found");
-        }
-
         FileInputStream content = null;
 
         try {

@@ -1,0 +1,92 @@
+package org.panda_lang.reposilite.repository;
+
+import com.google.api.client.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.junit.jupiter.api.Test;
+import org.panda_lang.reposilite.ReposiliteIntegrationTest;
+
+import java.io.IOException;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+class LookupControllerTest extends ReposiliteIntegrationTest {
+
+    @Test
+    void shouldReturn404AndFrontendWithUnsupportedRequestMessage() throws IOException {
+        assert404WithMessage(get("/"), "Unsupported request");
+    }
+
+    @Test
+    void shouldReturn404AndFrontendWithRepositoryNotFoundMessage() throws IOException {
+        super.reposilite.getConfiguration().setRewritePathsEnabled(false);
+        assert404WithMessage(get("/invalid_repository/groupId/artifactId"), "Repository invalid_repository not found");
+    }
+
+    @Test
+    void shouldReturn404AndFrontendWithMissingArtifactIdentifier() throws IOException {
+        assert404WithMessage(get("/releases/groupId"), "Missing artifact identifier");
+    }
+
+    @Test
+    void shouldReturn404AndFrontendWithMissingArtifactPathMessage() throws IOException {
+        assert404WithMessage(get("/releases/groupId/artifactId"), "Artifact groupId/artifactId not found");
+    }
+
+    @Test
+    void shouldReturn200AndMetadataFile() throws IOException {
+        HttpResponse response = get("/releases/org/panda-lang/reposilite-test/maven-metadata.xml");
+        assertEquals(HttpStatus.SC_OK, response.getStatusCode());
+        assertTrue(response.parseAsString().contains("<version>1.0.0</version>"));
+    }
+
+    @Test
+    void shouldReturn200AndLatestVersion() throws IOException {
+        HttpResponse response = get("/releases/org/panda-lang/reposilite-test/latest");
+        assertEquals(HttpStatus.SC_OK, response.getStatusCode());
+        assertEquals("1.0.1-SNAPSHOT", response.parseAsString());
+    }
+
+    @Test
+    void shouldReturn404AndFrontendWithLatestVersionNotFound() throws IOException {
+        assert404WithMessage(get("/releases/org/panda-lang/reposilite-test/reposilite-test-1.0.0.jar/latest"), "Latest version not found");
+    }
+
+    @Test
+    void shouldReturn200AndResolvedSnapshotFile() throws IOException {
+        HttpResponse response = super.get("/releases/org/panda-lang/reposilite-test/1.0.0-SNAPSHOT/reposilite-test-1.0.0-SNAPSHOT.pom");
+        assertEquals(HttpStatus.SC_OK, response.getStatusCode());
+        assertTrue(response.parseAsString().contains("<version>1.0.0-SNAPSHOT</version>"));
+    }
+
+    @Test
+    void shouldReturn404AndArtifactNotFoundMessage() throws IOException{
+        assert404WithMessage(super.get("/releases/org/panda-lang/reposilite-test/1.0.0/artifactId"), "Artifact org/panda-lang/reposilite-test/1.0.0/artifactId not found");
+    }
+
+    @Test
+    void shouldReturn200AndRequestedFile() throws IOException {
+        HttpResponse response = super.get("/releases/org/panda-lang/reposilite-test/1.0.0/reposilite-test-1.0.0.pom");
+        assertEquals(HttpStatus.SC_OK, response.getStatusCode());
+        assertTrue(response.parseAsString().contains("<version>1.0.0</version>"));
+    }
+
+    @Test
+    void shouldReturn200AndHeadRequestedFile() throws IOException {
+        HttpResponse response = requestFactory
+                .buildHeadRequest(super.url("/releases/org/panda-lang/reposilite-test/1.0.0/reposilite-test-1.0.0.pom"))
+                .execute();
+
+        assertEquals(HttpStatus.SC_OK, response.getStatusCode());
+        assertTrue(response.parseAsString().isEmpty());
+    }
+
+    static void assert404WithMessage(HttpResponse response, String message) throws IOException {
+        assertEquals(HttpStatus.SC_NOT_FOUND, response.getStatusCode());
+
+        String content = response.parseAsString();
+        System.out.println(content);
+        assertTrue(content.contains("REPOSILITE_MESSAGE = '" + message + "'"));
+    }
+
+}
