@@ -4,7 +4,6 @@ import com.google.common.collect.EvictingQueue;
 import org.tinylog.Level;
 import org.tinylog.core.LogEntry;
 import org.tinylog.core.LogEntryValue;
-import org.tinylog.provider.InternalLogger;
 import org.tinylog.writers.AbstractFormatPatternWriter;
 
 import java.util.Collection;
@@ -27,21 +26,7 @@ public final class ReposiliteWriter extends AbstractFormatPatternWriter {
 
     public ReposiliteWriter(Map<String, String> properties) {
         super(properties);
-        String stream = properties.get("stream");
-
-        if (stream == null) {
-            level = Level.WARN;
-        }
-        else if ("err".equalsIgnoreCase(stream)) {
-            level = Level.TRACE;
-        }
-        else if ("out".equalsIgnoreCase(stream)) {
-            level = Level.OFF;
-        }
-        else {
-            InternalLogger.log(Level.WARN, "Logging stream is not defined");
-            level = Level.WARN;
-        }
+        this.level = "out".equalsIgnoreCase(properties.get("stream")) ? Level.OFF : Level.TRACE;
     }
 
     @Override

@@ -6,6 +6,7 @@ import java.util.Queue;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ReposiliteWriterTest {
@@ -37,6 +38,7 @@ class ReposiliteWriterTest {
     void contains() {
         Reposilite.getLogger().info("test::contains");
         assertTrue(ReposiliteWriter.contains("test::contains"));
+        assertFalse(ReposiliteWriter.contains("diorite::release_date"));
     }
 
 }

@@ -8,22 +8,20 @@ class ReposiliteLauncherTest {
 
     @Test
     void shouldPrintVersion() {
-        ReposiliteLauncher launcher = new ReposiliteLauncher();
-        launcher.create("--version");
+        ReposiliteLauncher.create("--version");
         assertTrue(ReposiliteWriter.contains(ReposiliteConstants.VERSION));
     }
 
     @Test
     void shouldPrintHelp() {
         ReposiliteLauncher launcher = new ReposiliteLauncher();
-        launcher.create("--help");
+        ReposiliteLauncher.create("--help");
         assertTrue(ReposiliteWriter.contains("Commands"));
     }
 
     @Test
     void shouldReturnReposilite() {
-        ReposiliteLauncher launcher = new ReposiliteLauncher();
-        assertTrue(launcher.create().isPresent());
+        assertTrue(ReposiliteLauncher.create().isPresent());
     }
 
 }

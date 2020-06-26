@@ -26,24 +26,23 @@ final class ReposiliteLauncher {
     private String workingDirectory;
 
     public static void main(String[] args) {
-        ReposiliteLauncher launcher = new ReposiliteLauncher();
-        launcher.create(args).ifPresent(reposilite -> Try.run(reposilite::launch));
+        create(args).ifPresent(reposilite -> Try.run(reposilite::launch));
     }
 
-    public Optional<Reposilite> create(String... args) {
-        CommandLine.populateCommand(this, args);
+    public static Optional<Reposilite> create(String... args) {
+        ReposiliteLauncher launcher = CommandLine.populateCommand(new ReposiliteLauncher(), args);
 
-        if (usageHelpRequested) {
+        if (launcher.usageHelpRequested) {
             HelpCommand.displayHelp();
             return Optional.empty();
         }
 
-        if (versionInfoRequested) {
+        if (launcher.versionInfoRequested) {
             VersionCommand.displayVersion();
             return Optional.empty();
         }
 
-        return Optional.of(create(workingDirectory, testEnv));
+        return Optional.of(create(launcher.workingDirectory, launcher.testEnv));
     }
 
     public static Reposilite create(String workingDirectory, boolean testEnv) {
