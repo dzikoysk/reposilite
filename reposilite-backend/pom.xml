@@ -175,6 +175,35 @@
                 <artifactId>maven-surefire-plugin</artifactId>
             </plugin>
             <plugin>
+                <groupId>org.pitest</groupId>
+                <artifactId>pitest-maven</artifactId>
+                <version>1.5.2</version>
+                <executions>
+                    <execution>
+                        <id>pit-report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>mutationCoverage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.pitest</groupId>
+                        <artifactId>pitest-junit5-plugin</artifactId>
+                        <version>0.12</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <targetClasses>
+                        <param>org.panda_lang.reposilite.*</param>
+                    </targetClasses>
+                    <targetTests>
+                        <param>org.panda_lang.reposilite.*</param>
+                    </targetTests>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>3.2.4</version>
