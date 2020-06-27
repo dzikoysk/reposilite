@@ -3,14 +3,22 @@ package org.panda_lang.reposilite.repository;
 import com.google.api.client.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.ReposiliteIntegrationTest;
+import org.panda_lang.utilities.commons.FileUtils;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class LookupControllerTest extends ReposiliteIntegrationTest {
+
+    @TempDir
+    File proxiedWorkingDirectory;
 
     @Test
     void shouldReturn404AndFrontendWithUnsupportedRequestMessage() throws IOException {
@@ -85,6 +93,31 @@ class LookupControllerTest extends ReposiliteIntegrationTest {
     void shouldReturn404WithUnauthorizedMessage() throws IOException {
         super.reposilite.getConfiguration().setFullAuthEnabled(true);
         assert404WithMessage(super.get("/releases"), "Authorization credentials are not specified");
+    }
+
+    @Test
+    void shouldReturn200AndProxiedFile() throws Exception {
+        super.reposilite.getConfiguration().setProxied(Collections.singletonList("http://localhost:8080"));
+
+        try {
+            System.setProperty("reposilite.port", "8080");
+            Reposilite proxiedReposilite = super.reposilite(proxiedWorkingDirectory);
+            proxiedReposilite.launch();
+
+            File proxiedFile = new File(proxiedWorkingDirectory, "/repositories/releases/proxiedGroup/proxiedArtifact/proxied.txt");
+            proxiedFile.getParentFile().mkdirs();
+            proxiedFile.createNewFile();
+            FileUtils.overrideFile(proxiedFile, "proxied content");
+
+            HttpResponse response = get("/releases/proxiedGroup/proxiedArtifact/proxied.txt");
+            assertEquals(HttpStatus.SC_OK, response.getStatusCode());
+            assertEquals("proxied content", response.parseAsString());
+
+            proxiedReposilite.shutdown();
+        }
+        finally {
+            System.clearProperty("reposilite.port");
+        }
     }
 
     static void assert404WithMessage(HttpResponse response, String message) throws IOException {

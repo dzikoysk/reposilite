@@ -11,7 +11,7 @@ import picocli.CommandLine.Option;
 import java.util.Optional;
 
 @Command(name = "reposilite", version = "Reposilite " + ReposiliteConstants.VERSION)
-final class ReposiliteLauncher {
+public final class ReposiliteLauncher {
 
     @Option(names = { "--help", "-H" }, usageHelp = true, description = "display help message")
     private boolean usageHelpRequested;
@@ -26,7 +26,7 @@ final class ReposiliteLauncher {
     private String workingDirectory;
 
     public static void main(String[] args) {
-        create(args).ifPresent(reposilite -> Try.run(reposilite::launch));
+        create(args).ifPresent(reposilite -> Try.run(reposilite::launch).orElseRun(Throwable::printStackTrace));
     }
 
     public static Optional<Reposilite> create(String... args) {
