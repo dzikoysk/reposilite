@@ -43,16 +43,6 @@ final class ReposiliteExecutor {
     }
 
     void schedule(ThrowingRunnable<?> runnable) {
-        if (reposilite.isTestEnvEnabled()) {
-            try {
-                runnable.run();
-            } catch (Exception e) {
-                reposilite.throwException("<test executor>", e);
-            }
-
-            return;
-        }
-
         synchronized (lock) {
             tasks.offer(runnable);
             lock.notify();
