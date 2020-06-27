@@ -40,7 +40,6 @@ import org.panda_lang.utilities.commons.text.ContentJoiner;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Arrays;
@@ -74,7 +73,7 @@ public final class LookupService {
 
         String uri = context.req.getRequestURI();
 
-        if (StringUtils.countOccurrences(uri, "/") < 4) {
+        if (StringUtils.countOccurrences(uri, "/") < 3) {
             return Result.error("Invalid proxied request");
         }
 
@@ -206,10 +205,8 @@ public final class LookupService {
             // success
             Reposilite.getLogger().info("Mime: " + mimeType + "; size: " + file.length() + "; file: " + file.getPath());
             return Result.ok(context);
-        } catch (FileNotFoundException e) {
+        } catch (Exception exception) {
             return Result.error("Cannot read artifact");
-        } catch (IOException e) {
-            return Result.error("Unknown mime type " + file.getName());
         } finally {
             FilesUtils.close(content);
         }
