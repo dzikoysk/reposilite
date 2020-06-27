@@ -81,6 +81,12 @@ class LookupControllerTest extends ReposiliteIntegrationTest {
         assertTrue(response.parseAsString().isEmpty());
     }
 
+    @Test
+    void shouldReturn404WithUnauthorizedMessage() throws IOException {
+        super.reposilite.getConfiguration().setFullAuthEnabled(true);
+        assert404WithMessage(super.get("/releases"), "Authorization credentials are not specified");
+    }
+
     static void assert404WithMessage(HttpResponse response, String message) throws IOException {
         assertEquals(HttpStatus.SC_NOT_FOUND, response.getStatusCode());
 
