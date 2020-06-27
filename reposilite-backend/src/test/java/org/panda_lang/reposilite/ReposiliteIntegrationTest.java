@@ -35,9 +35,7 @@ public abstract class ReposiliteIntegrationTest {
         return ReposiliteLauncher.create(ArrayUtils.mergeArrays(args, ArrayUtils.of(
                 "--working-directory=" + workingDirectory.getAbsolutePath(),
                 "--test-env"
-        ))).orElseThrow(() -> {
-            throw new RuntimeException("Invalid test parameters");
-        });
+        ))).orElseThrow(() -> new RuntimeException("Invalid test parameters"));
     }
 
     @AfterEach
