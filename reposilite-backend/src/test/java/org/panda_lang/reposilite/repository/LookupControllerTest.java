@@ -68,7 +68,7 @@ class LookupControllerTest extends ReposiliteIntegrationTest {
     }
 
     @Test
-    void shouldReturn404AndArtifactNotFoundMessage() throws IOException{
+    void shouldReturn404AndArtifactNotFoundMessage() throws IOException {
         assert404WithMessage(super.get("/releases/org/panda-lang/reposilite-test/1.0.0/artifactId"), "Artifact org/panda-lang/reposilite-test/1.0.0/artifactId not found");
     }
 
@@ -122,7 +122,6 @@ class LookupControllerTest extends ReposiliteIntegrationTest {
 
     static void assert404WithMessage(HttpResponse response, String message) throws IOException {
         assertEquals(HttpStatus.SC_NOT_FOUND, response.getStatusCode());
-
         String content = response.parseAsString();
         System.out.println(content);
         assertTrue(content.contains("REPOSILITE_MESSAGE = '" + message + "'"));

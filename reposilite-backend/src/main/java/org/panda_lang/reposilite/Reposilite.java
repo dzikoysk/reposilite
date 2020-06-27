@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public final class Reposilite {
@@ -91,6 +92,7 @@ public final class Reposilite {
 
         getLogger().info("Binding server at *::" + configuration.getPort());
         this.uptime = System.currentTimeMillis();
+        CountDownLatch latch = new CountDownLatch(1);
 
         reactiveHttpServer.start(configuration, () -> {
             getLogger().info("Done (" + TimeUtils.format(TimeUtils.getUptime(uptime)) + "s)!");
@@ -102,7 +104,11 @@ public final class Reposilite {
                 getLogger().info("Collecting status metrics...");
                 console.execute("status");
             });
+
+            latch.countDown();
         });
+
+        latch.await();
 
         runProductionTask(() -> executor.await(() -> {
             getLogger().info("Bye! Uptime: " + TimeUtils.format(TimeUtils.getUptime(uptime) / 60) + "min");
