@@ -9,6 +9,7 @@ import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.io.TempDir;
+import org.panda_lang.utilities.commons.ArrayUtils;
 import org.panda_lang.utilities.commons.function.ThrowingRunnable;
 
 import java.io.File;
@@ -24,10 +25,19 @@ public abstract class ReposiliteIntegrationTest {
 
     @BeforeEach
     protected void before() throws Exception {
+        reposilite = reposilite(workingDirectory);
+        reposilite.launch();
+    }
+
+    protected Reposilite reposilite(File workingDirectory, String... args) throws IOException {
         FileUtils.copyDirectory(new File("src/test/workspace/repositories"), new File(workingDirectory, "repositories"));
 
-        reposilite = ReposiliteLauncher.create(workingDirectory.getAbsolutePath(), true);
-        reposilite.launch();
+        return ReposiliteLauncher.create(ArrayUtils.mergeArrays(args, ArrayUtils.of(
+                "--working-directory=" + workingDirectory.getAbsolutePath(),
+                "--test-env"
+        ))).orElseThrow(() -> {
+            throw new RuntimeException("Invalid test parameters");
+        });
     }
 
     @AfterEach

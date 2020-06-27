@@ -34,11 +34,13 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public final class Reposilite {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("Reposilite");
 
+    private final AtomicBoolean alive;
     private final String workingDirectory;
     private final boolean testEnvEnabled;
 
@@ -54,11 +56,10 @@ public final class Reposilite {
     private final ReposiliteHttpServer reactiveHttpServer;
     private final MetadataService metadataService;
     private final FrontendService frontend;
-
-    private boolean stopped;
     private long uptime;
 
     Reposilite(String workingDirectory, boolean testEnv) {
+        this.alive = new AtomicBoolean(false);
         this.workingDirectory = workingDirectory;
         this.testEnvEnabled = testEnv;
 
@@ -74,6 +75,8 @@ public final class Reposilite {
     }
 
     public void launch() throws Exception {
+        this.alive.set(true);
+
         Thread shutdownHook = new Thread(() -> Try.run(this::shutdown).orElseRun(Throwable::printStackTrace));
         Runtime.getRuntime().addShutdownHook(shutdownHook);
 
@@ -107,12 +110,12 @@ public final class Reposilite {
     }
 
     public void shutdown() throws Exception {
-        if (stopped) {
+        if (!alive.get()) {
             return;
         }
 
-        this.stopped = true;
-        getLogger().info("Shutting down...");
+        this.alive.set(false);
+        getLogger().info("Shutting down *::" + configuration.getPort() + " ...");
 
         statsService.save();
         reactiveHttpServer.stop();
