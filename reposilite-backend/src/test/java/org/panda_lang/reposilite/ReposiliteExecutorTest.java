@@ -13,7 +13,7 @@ class ReposiliteExecutorTest {
 
     @Test
     void shouldExecuteAndExit() throws InterruptedException {
-        ReposiliteExecutor reposiliteExecutor = new ReposiliteExecutor(null);
+        ReposiliteExecutor reposiliteExecutor = new ReposiliteExecutor(new Reposilite("", true));
         AtomicBoolean onExitCalled = new AtomicBoolean(false);
         AtomicBoolean scheduleCalled = new AtomicBoolean(false);
         CountDownLatch latch = new CountDownLatch(1);
@@ -27,7 +27,7 @@ class ReposiliteExecutorTest {
 
                 reposiliteExecutor.await(() -> onExitCalled.set(true));
                 latch.countDown();
-            });
+            }).onFailure(Throwable::printStackTrace);
         }).start();
 
         latch.await();
