@@ -111,7 +111,10 @@ class LookupControllerTest extends ReposiliteIntegrationTest {
 
             HttpResponse response = get("/releases/proxiedGroup/proxiedArtifact/proxied.txt");
             assertEquals(HttpStatus.SC_OK, response.getStatusCode());
-            assertEquals("proxied content", response.parseAsString());
+
+            String content = response.parseAsString();
+            assertEquals("proxied content", content);
+            System.out.println(content);
 
             proxiedReposilite.shutdown();
         }

@@ -43,6 +43,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Arrays;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -66,7 +67,7 @@ public final class LookupService {
         this.proxiedExecutor = configuration.getProxied().isEmpty() ? null : Executors.newCachedThreadPool();
     }
 
-    protected Result<Context, String> serveProxied(Context context) {
+    protected Result<CompletableFuture<Context>, String> serveProxied(Context context) {
         if (proxiedExecutor == null) {
             return Result.error("Proxied repositories are not enabled");
         }
@@ -77,7 +78,7 @@ public final class LookupService {
             return Result.error("Invalid proxied request");
         }
 
-        return Result.ok(context.result(FutureUtils.submit(proxiedExecutor, future -> {
+        return Result.ok(FutureUtils.submit(proxiedExecutor, future -> {
             for (String proxied : configuration.getProxied()) {
                 try {
                     HttpRequest remoteRequest = requestFactory.buildGetRequest(new GenericUrl(proxied + uri));
@@ -112,7 +113,7 @@ public final class LookupService {
                     .status(HttpStatus.SC_NOT_FOUND)
                     .contentType("text/html")
                     .result(frontend.forMessage("Artifact not found in local and remote repository")));
-        })));
+        }));
     }
 
     protected Result<Context, String> serveLocal(Context context) {
