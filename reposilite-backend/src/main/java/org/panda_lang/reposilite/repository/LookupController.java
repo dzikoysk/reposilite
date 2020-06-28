@@ -39,8 +39,9 @@ public final class LookupController implements Handler {
 
         Result<Context, String> lookupResponse = lookupService
                 .serveLocal(ctx)
-                .orElse(localError -> lookupService.serveProxied(ctx).orElse(proxiedError -> Result.error(localError)));
-
+                .orElse(localError -> lookupService.serveProxied(ctx)
+                        .map(ctx::result)
+                        .orElse(proxiedError -> Result.error(localError)));
 
         lookupResponse.onError(error -> {
             Reposilite.getLogger().debug("error=" + error + "; uri=" + ctx.req.getRequestURI());
