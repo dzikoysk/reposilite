@@ -97,7 +97,7 @@ public final class Reposilite {
         reactiveHttpServer.start(configuration, () -> {
             getLogger().info("Done (" + TimeUtils.format(TimeUtils.getUptime(uptime)) + "s)!");
 
-            runProductionTask(() -> {
+            schedule(() -> {
                 console.execute("help");
                 console.hook();
 
@@ -110,9 +110,11 @@ public final class Reposilite {
 
         latch.await();
 
-        runProductionTask(() -> executor.await(() -> {
-            getLogger().info("Bye! Uptime: " + TimeUtils.format(TimeUtils.getUptime(uptime) / 60) + "min");
-        }));
+        if (!isTestEnvEnabled()) {
+            executor.await(() -> {
+                getLogger().info("Bye! Uptime: " + TimeUtils.format(TimeUtils.getUptime(uptime) / 60) + "min");
+            });
+        }
     }
 
     public void shutdown() throws Exception {
@@ -132,12 +134,6 @@ public final class Reposilite {
     public void throwException(String id, Throwable throwable) {
         getLogger().error(id, throwable);
         exceptions.add(new Pair<>(id, throwable));
-    }
-
-    public <E extends Exception> void runProductionTask(ThrowingRunnable<E> runnable) throws E {
-        if (!isTestEnvEnabled()) {
-            runnable.run();
-        }
     }
 
     public void schedule(ThrowingRunnable<?> runnable) {

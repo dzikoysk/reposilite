@@ -16,15 +16,16 @@
 
 package org.panda_lang.reposilite.utils;
 
+import org.panda_lang.utilities.commons.function.ThrowingFunction;
+
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
-import java.util.function.Function;
 
 public final class FutureUtils {
 
     private FutureUtils() { }
 
-    public static <T> CompletableFuture<T> submit(ExecutorService service, Function<CompletableFuture<T>, ?> futureConsumer) {
+    public static <T, E extends Exception> CompletableFuture<T> submit(ExecutorService service, ThrowingFunction<CompletableFuture<T>, ?, E> futureConsumer) {
         CompletableFuture<T> completableFuture = new CompletableFuture<>();
         service.submit(() -> futureConsumer.apply(completableFuture));
         return completableFuture;
