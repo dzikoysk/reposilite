@@ -24,7 +24,7 @@ final class ReposiliteExecutor {
 
     void await(Runnable onExit) throws InterruptedException {
         if (reposilite.isTestEnvEnabled()) {
-            FutureUtils.submitChecked(executorService, () -> start(onExit));
+            FutureUtils.executeChecked(reposilite, executorService, () -> start(onExit));
             return;
         }
 

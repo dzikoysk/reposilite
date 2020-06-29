@@ -26,7 +26,7 @@ public final class ReposiliteLauncher {
     private String workingDirectory;
 
     public static void main(String[] args) {
-        create(args).ifPresent(reposilite -> FutureUtils.ofChecked(reposilite::launch));
+        create(args).ifPresent(reposilite -> FutureUtils.ofChecked(reposilite, reposilite::launch));
     }
 
     public static Optional<Reposilite> create(String... args) {

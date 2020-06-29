@@ -1,8 +1,10 @@
 package org.panda_lang.reposilite;
 
-import io.vavr.control.Try;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.panda_lang.reposilite.utils.FutureUtils;
 
+import java.io.File;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -11,24 +13,28 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ReposiliteExecutorTest {
 
+    @TempDir
+    File workingDirectory;
+
     @Test
     void shouldExecuteAndExit() throws InterruptedException {
-        ReposiliteExecutor reposiliteExecutor = new ReposiliteExecutor(new Reposilite("", true));
+        Reposilite reposilite = new Reposilite(workingDirectory.getAbsolutePath(), true);
+        ReposiliteExecutor reposiliteExecutor = new ReposiliteExecutor(reposilite);
         AtomicBoolean onExitCalled = new AtomicBoolean(false);
         AtomicBoolean scheduleCalled = new AtomicBoolean(false);
         CountDownLatch latch = new CountDownLatch(1);
 
-        new Thread(() -> {
-            Try.run(() -> {
-                reposiliteExecutor.schedule(() -> {
-                    reposiliteExecutor.schedule(() -> scheduleCalled.set(true));
-                    reposiliteExecutor.schedule(reposiliteExecutor::stop);
-                });
+        new Thread(FutureUtils.ofChecked(reposilite, () -> {
+            reposiliteExecutor.schedule(() -> {
+                reposiliteExecutor.schedule(() -> scheduleCalled.set(true));
+                reposiliteExecutor.schedule(reposiliteExecutor::stop);
+            });
 
-                reposiliteExecutor.await(() -> onExitCalled.set(true));
+            reposiliteExecutor.await(() -> {
+                onExitCalled.set(true);
                 latch.countDown();
-            }).onFailure(Throwable::printStackTrace);
-        }).start();
+            });
+        })).start();
 
         latch.await();
         assertFalse(reposiliteExecutor.isAlive());
