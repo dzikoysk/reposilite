@@ -52,6 +52,16 @@ public final class ReposiliteWriter extends AbstractFormatPatternWriter {
     public void close() {
     }
 
+    public static boolean contains(String message) {
+        for (String line : getCache()) {
+            if (line.contains(message)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     @Override
     public Collection<LogEntryValue> getRequiredLogEntryValues() {
         Collection<LogEntryValue> logEntryValues = super.getRequiredLogEntryValues();
@@ -61,16 +71,6 @@ public final class ReposiliteWriter extends AbstractFormatPatternWriter {
 
     public static Map<Object, Consumer<String>> getConsumers() {
         return CONSUMERS;
-    }
-
-    public static boolean contains(String message) {
-        for (String line : getCache()) {
-            if (line.contains(message)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     public static Queue<String> getCache() {

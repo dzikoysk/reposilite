@@ -2,7 +2,6 @@ package org.panda_lang.reposilite;
 
 import org.junit.jupiter.api.Test;
 
-import java.util.Queue;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -23,15 +22,13 @@ class ReposiliteWriterTest {
 
     @Test
     void getLatest() {
-        Queue<String> queue = ReposiliteWriter.getCache();
-
         for (int index = 0; index < ReposiliteWriter.getCacheSize(); index++) {
-            queue.add(Integer.toString(index));
+            Reposilite.getLogger().info(Integer.toString(index));
         }
 
-        assertEquals(ReposiliteWriter.getCacheSize(), queue.size());
-        queue.add("above limit");
-        assertEquals(ReposiliteWriter.getCacheSize(), queue.size());
+        assertEquals(ReposiliteWriter.getCacheSize(), ReposiliteWriter.getCache().size());
+        Reposilite.getLogger().info("above limit");
+        assertEquals(ReposiliteWriter.getCacheSize(), ReposiliteWriter.getCache().size());
     }
 
     @Test
