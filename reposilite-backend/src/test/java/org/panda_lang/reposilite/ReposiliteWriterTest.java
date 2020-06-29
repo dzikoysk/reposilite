@@ -22,13 +22,13 @@ class ReposiliteWriterTest {
 
     @Test
     void getLatest() {
-        for (int index = 0; index < ReposiliteWriter.getCacheSize(); index++) {
+        for (int index = 0; index < ReposiliteWriter.CACHE_SIZE; index++) {
             Reposilite.getLogger().info(Integer.toString(index));
         }
 
-        assertEquals(ReposiliteWriter.getCacheSize(), ReposiliteWriter.getCache().size());
+        assertEquals(ReposiliteWriter.CACHE_SIZE, ReposiliteWriter.getCache().size());
         Reposilite.getLogger().info("above limit");
-        assertEquals(ReposiliteWriter.getCacheSize(), ReposiliteWriter.getCache().size());
+        assertEquals(ReposiliteWriter.CACHE_SIZE, ReposiliteWriter.getCache().size());
     }
 
     @Test

@@ -100,10 +100,11 @@ public final class Reposilite {
 
             schedule(() -> {
                 console.execute("help");
-                console.hook();
 
                 getLogger().info("Collecting status metrics...");
                 console.execute("status");
+
+                console.hook();
             });
 
             latch.countDown();

@@ -1,13 +1,13 @@
 package org.panda_lang.reposilite;
 
 import com.google.common.collect.EvictingQueue;
-import org.tinylog.Level;
 import org.tinylog.core.LogEntry;
 import org.tinylog.core.LogEntryValue;
 import org.tinylog.writers.AbstractFormatPatternWriter;
 
-import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -18,16 +18,14 @@ import java.util.function.Consumer;
  */
 public final class ReposiliteWriter extends AbstractFormatPatternWriter {
 
-    private static final int CACHE_SIZE = 100;
+    public static final int CACHE_SIZE = 100;
+
     @SuppressWarnings("UnstableApiUsage")
     private static final Queue<String> CACHE = EvictingQueue.create(CACHE_SIZE);
     private static final Map<Object, Consumer<String>> CONSUMERS = new ConcurrentHashMap<>();
 
-    private final Level level;
-
     public ReposiliteWriter(Map<String, String> properties) {
         super(properties);
-        this.level = "out".equalsIgnoreCase(properties.get("stream")) ? Level.OFF : Level.TRACE;
     }
 
     @Override
@@ -35,13 +33,7 @@ public final class ReposiliteWriter extends AbstractFormatPatternWriter {
         String message = render(logEntry);
         CACHE.add(message);
         CONSUMERS.forEach((object, consumer) -> consumer.accept(message));
-
-        if (logEntry.getLevel().ordinal() < level.ordinal()) {
-            System.out.print(message);
-            return;
-        }
-
-        System.err.print(message);
+        System.out.print(message);
     }
 
     @Override
@@ -53,13 +45,11 @@ public final class ReposiliteWriter extends AbstractFormatPatternWriter {
     }
 
     public static boolean contains(String message) {
-        for (String line : getCache()) {
-            if (line.contains(message)) {
-                return true;
-            }
-        }
+        return getCache().stream().anyMatch(line -> line.contains(message));
+    }
 
-        return false;
+    public static List<String> getCache() {
+        return new ArrayList<>(CACHE);
     }
 
     @Override
@@ -71,14 +61,6 @@ public final class ReposiliteWriter extends AbstractFormatPatternWriter {
 
     public static Map<Object, Consumer<String>> getConsumers() {
         return CONSUMERS;
-    }
-
-    public static Queue<String> getCache() {
-        return new ArrayDeque<>(CACHE);
-    }
-
-    public static int getCacheSize() {
-        return CACHE_SIZE;
     }
 
 }
