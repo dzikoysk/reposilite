@@ -22,7 +22,7 @@ class IndexApiControllerTest extends ReposiliteIntegrationTest {
 
     @Test
     void shouldReturn200AndLatestFile() throws IOException {
-        JsonObject result = shouldReturn200AndFileDto("/api/org/panda-lang/reposilite-test/latest");
+        JsonObject result = shouldReturn200AndJsonResponse("/api/org/panda-lang/reposilite-test/latest");
         assertEquals("directory", result.getString("type", null));
         assertEquals("1.0.1-SNAPSHOT", result.getString("name", null));
     }
@@ -37,7 +37,7 @@ class IndexApiControllerTest extends ReposiliteIntegrationTest {
 
     @Test
     void shouldReturn200AndFileDto() throws IOException {
-        JsonObject result = shouldReturn200AndFileDto("/api/org/panda-lang/reposilite-test/1.0.0/reposilite-test-1.0.0.jar");
+        JsonObject result = shouldReturn200AndJsonResponse("/api/org/panda-lang/reposilite-test/1.0.0/reposilite-test-1.0.0.jar");
 
         assertEquals("file", result.getString("type", null));
         assertEquals("reposilite-test-1.0.0.jar", result.getString("name", null));
@@ -45,14 +45,14 @@ class IndexApiControllerTest extends ReposiliteIntegrationTest {
 
     @Test
     void shouldReturn200AndDirectoryDto() throws IOException {
-        JsonObject result = shouldReturn200AndFileDto("/api/org/panda-lang/reposilite-test");
+        JsonObject result = shouldReturn200AndJsonResponse("/api/org/panda-lang/reposilite-test");
         assertTrue(result.get("files").isArray());
 
         JsonArray array = result.get("files").asArray();
         assertEquals("1.0.1-SNAPSHOT", array.get(0).asObject().getString("name", null));
     }
 
-    private JsonObject shouldReturn200AndFileDto(String uri) throws IOException {
+    private JsonObject shouldReturn200AndJsonResponse(String uri) throws IOException {
         HttpResponse response = super.get(uri);
         assertEquals(HttpStatus.SC_OK, response.getStatusCode());
 
