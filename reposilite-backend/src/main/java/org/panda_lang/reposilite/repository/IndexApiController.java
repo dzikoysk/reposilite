@@ -68,7 +68,7 @@ public final class IndexApiController implements RepositoryController {
         }
 
         if (!requestedFile.exists()) {
-            return ErrorUtils.error(ctx, HttpStatus.SC_NOT_FOUND, "Not Found");
+            return ErrorUtils.error(ctx, HttpStatus.SC_NOT_FOUND, "File not found");
         }
 
         if (requestedFile.isFile()) {

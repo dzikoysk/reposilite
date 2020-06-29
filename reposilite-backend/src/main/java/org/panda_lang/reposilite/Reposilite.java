@@ -16,7 +16,6 @@
 
 package org.panda_lang.reposilite;
 
-import io.vavr.control.Try;
 import org.panda_lang.reposilite.auth.Authenticator;
 import org.panda_lang.reposilite.auth.TokenService;
 import org.panda_lang.reposilite.config.Configuration;
@@ -26,6 +25,7 @@ import org.panda_lang.reposilite.frontend.FrontendService;
 import org.panda_lang.reposilite.metadata.MetadataService;
 import org.panda_lang.reposilite.repository.RepositoryService;
 import org.panda_lang.reposilite.stats.StatsService;
+import org.panda_lang.reposilite.utils.FutureUtils;
 import org.panda_lang.reposilite.utils.TimeUtils;
 import org.panda_lang.utilities.commons.collection.Pair;
 import org.panda_lang.utilities.commons.function.ThrowingRunnable;
@@ -44,9 +44,9 @@ public final class Reposilite {
     private final AtomicBoolean alive;
     private final String workingDirectory;
     private final boolean testEnvEnabled;
+    private final ReposiliteExecutor executor;
 
     private final Collection<Pair<String, Throwable>> exceptions = new ArrayList<>();
-    private final ReposiliteExecutor executor = new ReposiliteExecutor(this);
     private final Console console = new Console(this, System.in);
 
     private final Configuration configuration;
@@ -64,6 +64,7 @@ public final class Reposilite {
         this.workingDirectory = workingDirectory;
         this.testEnvEnabled = testEnv;
 
+        this.executor = new ReposiliteExecutor(this);
         this.configuration = ConfigurationLoader.load(workingDirectory);
         this.tokenService = new TokenService(workingDirectory);
         this.statsService = new StatsService(workingDirectory);
@@ -78,7 +79,7 @@ public final class Reposilite {
     public void launch() throws Exception {
         this.alive.set(true);
 
-        Thread shutdownHook = new Thread(() -> Try.run(this::shutdown).orElseRun(Throwable::printStackTrace));
+        Thread shutdownHook = new Thread(FutureUtils.ofChecked(this::shutdown));
         Runtime.getRuntime().addShutdownHook(shutdownHook);
 
         getLogger().info("--- Loading data");
@@ -110,11 +111,9 @@ public final class Reposilite {
 
         latch.await();
 
-        if (!isTestEnvEnabled()) {
-            executor.await(() -> {
-                getLogger().info("Bye! Uptime: " + TimeUtils.format(TimeUtils.getUptime(uptime) / 60) + "min");
-            });
-        }
+        executor.await(() -> {
+            getLogger().info("Bye! Uptime: " + TimeUtils.format(TimeUtils.getUptime(uptime) / 60) + "min");
+        });
     }
 
     public void shutdown() throws Exception {
