@@ -17,7 +17,6 @@
 package org.panda_lang.reposilite.utils;
 
 import org.panda_lang.reposilite.Reposilite;
-import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.function.ThrowingFunction;
 import org.panda_lang.utilities.commons.function.ThrowingRunnable;
 
@@ -46,7 +45,7 @@ public final class FutureUtils {
         try {
             runnable.run();
         } catch (Exception e) {
-            reposilite.throwException(StringUtils.EMPTY, e);
+            reposilite.throwException("Exception occurred during the task execution", e);
         }
     }
 
