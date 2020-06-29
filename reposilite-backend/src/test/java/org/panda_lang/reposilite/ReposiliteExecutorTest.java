@@ -24,7 +24,7 @@ class ReposiliteExecutorTest {
         AtomicBoolean scheduleCalled = new AtomicBoolean(false);
         CountDownLatch latch = new CountDownLatch(1);
 
-        new Thread(FutureUtils.ofChecked(reposilite, () -> {
+        Thread asyncTest = new Thread(FutureUtils.ofChecked(reposilite, () -> {
             reposiliteExecutor.schedule(() -> {
                 reposiliteExecutor.schedule(() -> scheduleCalled.set(true));
                 reposiliteExecutor.schedule(reposiliteExecutor::stop);
@@ -34,9 +34,11 @@ class ReposiliteExecutorTest {
                 onExitCalled.set(true);
                 latch.countDown();
             });
-        })).start();
+        }));
 
+        asyncTest.start();
         latch.await();
+
         assertFalse(reposiliteExecutor.isAlive());
         assertTrue(scheduleCalled.get());
         assertTrue(onExitCalled.get());

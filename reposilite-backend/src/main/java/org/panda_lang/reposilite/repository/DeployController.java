@@ -21,10 +21,10 @@ import io.javalin.http.Handler;
 import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.Reposilite;
+import org.panda_lang.reposilite.api.ErrorUtils;
 import org.panda_lang.reposilite.auth.Authenticator;
 import org.panda_lang.reposilite.auth.Session;
 import org.panda_lang.reposilite.config.Configuration;
-import org.panda_lang.reposilite.frontend.FrontendService;
 import org.panda_lang.reposilite.metadata.MetadataService;
 import org.panda_lang.reposilite.utils.Result;
 
@@ -36,14 +36,12 @@ import java.util.Objects;
 
 public final class DeployController implements Handler {
 
-    private final FrontendService frontend;
     private final Configuration configuration;
     private final Authenticator authenticator;
     private final RepositoryService repositoryService;
     private final MetadataService metadataService;
 
     public DeployController(Reposilite reposilite) {
-        this.frontend = reposilite.getFrontend();
         this.configuration = reposilite.getConfiguration();
         this.authenticator = reposilite.getAuthenticator();
         this.repositoryService = reposilite.getRepositoryService();
@@ -53,12 +51,9 @@ public final class DeployController implements Handler {
     @Override
     public void handle(Context context) {
         Reposilite.getLogger().info(context.req.getRequestURI() + " DEPLOY");
-        Result<Context, String> deploy = deploy(context);
 
-        deploy.onError(error -> context
-                .status(HttpStatus.SC_UNAUTHORIZED)
-                .contentType("text/html")
-                .result(frontend.forMessage(error)));
+        deploy(context)
+            .onError(error -> ErrorUtils.error(context, HttpStatus.SC_UNAUTHORIZED, error));
     }
 
     public Result<Context, String> deploy(Context context) {
