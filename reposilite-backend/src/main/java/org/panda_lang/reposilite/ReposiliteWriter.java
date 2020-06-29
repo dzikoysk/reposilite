@@ -6,6 +6,7 @@ import org.tinylog.core.LogEntry;
 import org.tinylog.core.LogEntryValue;
 import org.tinylog.writers.AbstractFormatPatternWriter;
 
+import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Queue;
@@ -73,7 +74,7 @@ public final class ReposiliteWriter extends AbstractFormatPatternWriter {
     }
 
     public static Queue<String> getCache() {
-        return CACHE;
+        return new ArrayDeque<>(CACHE);
     }
 
     public static int getCacheSize() {
