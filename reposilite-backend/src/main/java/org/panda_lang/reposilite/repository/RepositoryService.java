@@ -23,7 +23,6 @@ import org.panda_lang.reposilite.utils.ArrayUtils;
 import org.panda_lang.utilities.commons.StringUtils;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -107,14 +106,6 @@ public final class RepositoryService {
 
     public Repository getRepository(String repositoryName) {
         return repositories.get(repositoryName);
-    }
-
-    public Collection<Repository> getRepositories() {
-        return repositories.values();
-    }
-
-    public File getRootDirectory() {
-        return rootDirectory;
     }
 
 }

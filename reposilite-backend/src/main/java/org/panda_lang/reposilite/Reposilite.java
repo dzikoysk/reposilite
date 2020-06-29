@@ -188,10 +188,6 @@ public final class Reposilite {
         return exceptions;
     }
 
-    public String getWorkingDirectory() {
-        return workingDirectory;
-    }
-
     public static Logger getLogger() {
         return LOGGER;
     }

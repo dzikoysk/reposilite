@@ -53,7 +53,7 @@ public final class ConfigurationLoader {
             for (Entry<String, Object> property : properties.entrySet()) {
                 String custom = System.getProperty("reposilite." + property.getKey());
 
-                if (StringUtils.isEmpty(custom) || property.getValue() == null) {
+                if (StringUtils.isEmpty(custom)) {
                     continue;
                 }
 

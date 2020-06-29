@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.List;
 
 // @formatter:off
+@SuppressWarnings("unused")
 public final class Configuration implements Serializable {
 
     // Bind properties

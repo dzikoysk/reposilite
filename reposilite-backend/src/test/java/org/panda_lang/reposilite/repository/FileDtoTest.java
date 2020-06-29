@@ -33,6 +33,7 @@ class FileDtoTest {
     @Test
     void compareTo() {
         assertTrue(fileDto.compareTo(tempDto) > 0);
+        assertEquals(0, fileDto.compareTo(FileDto.of(file)));
     }
 
     @Test
