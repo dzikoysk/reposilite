@@ -1,4 +1,4 @@
-# Reposilite [![Build Status](https://travis-ci.com/dzikoysk/reposilite.svg?branch=master)](https://travis-ci.com/dzikoysk/reposilite) [![Coverage Status](https://coveralls.io/repos/github/dzikoysk/reposilite/badge.svg?branch=master)](https://coveralls.io/github/dzikoysk/reposilite?branch=master)
+# Reposilite [![Build Status](https://travis-ci.com/dzikoysk/reposilite.svg?branch=master)](https://travis-ci.com/dzikoysk/reposilite)  [![Coverage Status](https://coveralls.io/repos/github/dzikoysk/reposilite/badge.svg?branch=master)](https://coveralls.io/github/dzikoysk/reposilite?branch=master) [![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/dzikoysk/reposilite.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/dzikoysk/reposilite/context:javascript) [![CodeFactor](https://www.codefactor.io/repository/github/dzikoysk/reposilite/badge/master)](https://www.codefactor.io/repository/github/dzikoysk/reposilite/overview/master) 
 Reposilite *(formerly NanoMaven)* - lightweight repository manager for Maven artifacts. 
 It is a simple solution to replace managers like Nexus, Archiva or Artifactory. 
 
@@ -19,8 +19,11 @@ It is a simple solution to replace managers like Nexus, Archiva or Artifactory.
 * [x] Statistics
 * [x] REST API
 * [x] Repository browser
-* [x] Dashboard (+ Admin panel)
-* [ ] Docs
+* [x] Dashboard
+* [x] Admin panel
+* [x] 90%+ test coverage
+* [ ] Website
+* [ ] Documentation
 
 #### Installation
 Releases: [GitHub Downloads](https://github.com/dzikoysk/reposilite/releases) <br>
@@ -80,6 +83,11 @@ keygen /org/panda-lang/reposilite reposilite
 19:56:09.109 INFO | Generated new access token for reposilite (/org/panda-lang/reposilite)
 19:56:09.109 INFO | OFnV-2GiZeX0cHpeDvuLo0xjUpU5wNUcpkR4521fG68U9anfqNwKsVkFcQUCK4yk
 19:56:09.114 INFO | Stored tokens: 2
+
+keygen */wildcard/access wildcard
+19:56:09.109 INFO | Generated new access token for wildcard (*/wildcard/access)
+19:56:09.109 INFO | AW7-kaXSSXTRVL_Ip9v7ruIiqe56gh96o1XdSrqZCyTX2vUsrZU3roVOfF-YYF-y
+19:56:09.114 INFO | Stored tokens: 3
 ```
 
 To use generated token add a new server in your `~/m2/settings.xml`  
