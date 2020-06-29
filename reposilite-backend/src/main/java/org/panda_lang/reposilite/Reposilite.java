@@ -79,7 +79,7 @@ public final class Reposilite {
     public void launch() throws Exception {
         this.alive.set(true);
 
-        Thread shutdownHook = new Thread(FutureUtils.ofChecked(this::shutdown));
+        Thread shutdownHook = new Thread(FutureUtils.ofChecked(this, this::shutdown));
         Runtime.getRuntime().addShutdownHook(shutdownHook);
 
         getLogger().info("--- Loading data");

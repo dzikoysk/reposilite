@@ -16,7 +16,8 @@
 
 package org.panda_lang.reposilite.utils;
 
-import io.vavr.control.Try;
+import org.panda_lang.reposilite.Reposilite;
+import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.function.ThrowingFunction;
 import org.panda_lang.utilities.commons.function.ThrowingRunnable;
 
@@ -33,12 +34,20 @@ public final class FutureUtils {
         return completableFuture;
     }
 
-    public static <E extends Exception> Runnable ofChecked(ThrowingRunnable<E> runnable) {
-        return () -> Try.run(runnable::run).onFailure(Throwable::printStackTrace);
+    public static <E extends Exception> Runnable ofChecked(Reposilite reposilite, ThrowingRunnable<E> runnable) {
+        return () -> run(reposilite, runnable);
     }
 
-    public static <E extends Exception> void submitChecked(ExecutorService service, ThrowingRunnable<E> runnable) {
-        service.submit(() -> ofChecked(runnable));
+    public static <E extends Exception> void executeChecked(Reposilite reposilite, ExecutorService service, ThrowingRunnable<E> runnable) {
+        service.execute(() -> run(reposilite, runnable));
+    }
+
+    private static void run(Reposilite reposilite, ThrowingRunnable<?> runnable) {
+        try {
+            runnable.run();
+        } catch (Exception e) {
+            reposilite.throwException(StringUtils.EMPTY, e);
+        }
     }
 
 }
