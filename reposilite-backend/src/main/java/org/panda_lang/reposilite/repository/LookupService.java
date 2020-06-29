@@ -49,6 +49,7 @@ import java.util.concurrent.Executors;
 
 public final class LookupService {
 
+    private final Reposilite reposilite;
     private final FrontendService frontend;
     private final Configuration configuration;
     private final Authenticator authenticator;
@@ -58,6 +59,7 @@ public final class LookupService {
     private final ExecutorService proxiedExecutor;
 
     public LookupService(Reposilite reposilite) {
+        this.reposilite = reposilite;
         this.frontend = reposilite.getFrontend();
         this.configuration = reposilite.getConfiguration();
         this.authenticator = reposilite.getAuthenticator();
@@ -106,6 +108,9 @@ public final class LookupService {
                         .contentType(remoteResponse.getContentType()));
                 } catch (IOException e) {
                     Reposilite.getLogger().warn("Proxied repository " + proxied + " is unavailable: " + e.getMessage());
+                } catch (Exception e) {
+                    reposilite.throwException(uri, e);
+                    future.cancel(true);
                 }
             }
 
@@ -125,7 +130,8 @@ public final class LookupService {
             }
         }
 
-        String[] path = RepositoryUtils.normalizeUri(configuration, context.req.getRequestURI()).split("/");
+        String uri = RepositoryUtils.normalizeUri(configuration, context.req.getRequestURI());
+        String[] path = uri.split("/");
 
         // discard invalid requests (less than 'repository/group/artifact')
         if (path.length < 2) {
@@ -191,7 +197,7 @@ public final class LookupService {
         try {
             // resolve content type associated with the requested extension
             String mimeType = Files.probeContentType(file.toPath());
-            context.res.setContentType(mimeType);
+            context.res.setContentType(mimeType != null ? mimeType : "application/octet-stream");
 
             // add content description to the header
             context.res.setContentLengthLong(file.length());
@@ -207,6 +213,7 @@ public final class LookupService {
             Reposilite.getLogger().info("Mime: " + mimeType + "; size: " + file.length() + "; file: " + file.getPath());
             return Result.ok(context);
         } catch (Exception exception) {
+            reposilite.throwException(uri, exception);
             return Result.error("Cannot read artifact");
         } finally {
             FilesUtils.close(content);

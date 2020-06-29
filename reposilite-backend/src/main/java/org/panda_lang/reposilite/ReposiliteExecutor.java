@@ -45,14 +45,14 @@ final class ReposiliteExecutor {
     void schedule(ThrowingRunnable<?> runnable) {
         synchronized (lock) {
             tasks.offer(runnable);
-            lock.notify();
+            lock.notifyAll();
         }
     }
 
     void stop() {
         synchronized (lock) {
             this.alive = false;
-            lock.notify();
+            lock.notifyAll();
         }
     }
 
