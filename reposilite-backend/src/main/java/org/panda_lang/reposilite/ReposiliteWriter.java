@@ -1,6 +1,6 @@
 package org.panda_lang.reposilite;
 
-import com.google.common.collect.EvictingQueue;
+import org.apache.commons.collections4.queue.CircularFifoQueue;
 import org.tinylog.core.LogEntry;
 import org.tinylog.core.LogEntryValue;
 import org.tinylog.writers.AbstractFormatPatternWriter;
@@ -20,9 +20,7 @@ import java.util.function.Consumer;
 public final class ReposiliteWriter extends AbstractFormatPatternWriter {
 
     public static final int CACHE_SIZE = 100;
-
-    @SuppressWarnings("UnstableApiUsage")
-    private static final Queue<String> CACHE = EvictingQueue.create(CACHE_SIZE);
+    private static final Queue<String> CACHE = new CircularFifoQueue<>(CACHE_SIZE);
     private static final Map<Object, Consumer<String>> CONSUMERS = new ConcurrentHashMap<>();
 
     public ReposiliteWriter(Map<String, String> properties) {
