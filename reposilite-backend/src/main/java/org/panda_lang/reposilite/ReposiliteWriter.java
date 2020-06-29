@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
@@ -45,7 +46,9 @@ public final class ReposiliteWriter extends AbstractFormatPatternWriter {
     }
 
     public static boolean contains(String message) {
-        return getCache().stream().anyMatch(line -> line.contains(message));
+        return getCache().stream()
+                .filter(Objects::nonNull)
+                .anyMatch(line -> line.contains(message));
     }
 
     public static List<String> getCache() {
