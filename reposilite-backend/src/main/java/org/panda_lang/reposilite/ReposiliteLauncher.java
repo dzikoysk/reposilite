@@ -1,8 +1,8 @@
 package org.panda_lang.reposilite;
 
-import io.vavr.control.Try;
 import org.panda_lang.reposilite.console.HelpCommand;
 import org.panda_lang.reposilite.console.VersionCommand;
+import org.panda_lang.reposilite.utils.FutureUtils;
 import org.panda_lang.utilities.commons.console.Effect;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -26,7 +26,7 @@ public final class ReposiliteLauncher {
     private String workingDirectory;
 
     public static void main(String[] args) {
-        create(args).ifPresent(reposilite -> Try.run(reposilite::launch).orElseRun(Throwable::printStackTrace));
+        create(args).ifPresent(reposilite -> FutureUtils.ofChecked(reposilite::launch));
     }
 
     public static Optional<Reposilite> create(String... args) {
