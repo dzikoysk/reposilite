@@ -36,12 +36,14 @@ import java.util.Objects;
 
 public final class DeployController implements Handler {
 
+    private final Reposilite reposilite;
     private final Configuration configuration;
     private final Authenticator authenticator;
     private final RepositoryService repositoryService;
     private final MetadataService metadataService;
 
     public DeployController(Reposilite reposilite) {
+        this.reposilite = reposilite;
         this.configuration = reposilite.getConfiguration();
         this.authenticator = reposilite.getAuthenticator();
         this.repositoryService = reposilite.getRepositoryService();
@@ -80,7 +82,7 @@ public final class DeployController implements Handler {
             Files.copy(Objects.requireNonNull(context.req.getInputStream()), file.toPath(), StandardCopyOption.REPLACE_EXISTING);
             return Result.ok(context.result("Success"));
         } catch (IOException e) {
-            e.printStackTrace();
+            reposilite.throwException(context.req.getRequestURI(), e);
             return Result.error("Failed to upload artifact");
         }
     }

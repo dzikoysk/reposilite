@@ -41,7 +41,7 @@ final class FileDto implements Serializable, Comparable<FileDto> {
         int result = type.compareTo(to.getType());
 
         if (result == 0) {
-            result = name.compareTo(to.getType());
+            result = name.compareTo(to.getName());
         }
 
         return result;

@@ -23,10 +23,10 @@ import org.jetbrains.annotations.NotNull;
 public interface RepositoryController extends Handler {
 
     @Override
-    default void handle(@NotNull Context ctx) throws Exception {
+    default void handle(@NotNull Context ctx) {
         handleContext(ctx);
     }
 
-    Context handleContext(Context ctx) throws Exception;
+    Context handleContext(Context ctx);
 
 }

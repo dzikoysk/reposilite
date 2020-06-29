@@ -138,11 +138,6 @@ public final class LookupService {
             return Result.error("Unsupported request");
         }
 
-        // remove empty element '/x/y/z' before root due to String#split result
-        if (path[0].isEmpty()) {
-            path = Arrays.copyOfRange(path, 1, path.length);
-        }
-
         Repository repository = repositoryService.getRepository(path[0]);
 
         if (repository == null) {
