@@ -12,7 +12,6 @@ script:
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
-  - sudo /usr/local/maven/bin/mvn coveralls:report
 
 notifications:
   email: false

@@ -1,10 +1,10 @@
 !!org.panda_lang.reposilite.stats.StatsEntity
 "records":
   "/api/releases/auth/test": !!int "58"
-  "/api/configuration": !!int "43"
-  "/api/auth": !!int "34"
-  "/": !!int "1"
+  "/api/configuration": !!int "45"
+  "/api/auth": !!int "35"
+  "/": !!int "2"
   "/////hello.panda": !!int "33"
-  "/api/": !!int "345"
-  "/js/app.js": !!int "1"
+  "/api/": !!int "348"
+  "/js/app.js": !!int "2"
   "/////test.panda": !!int "8"
