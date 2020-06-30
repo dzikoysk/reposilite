@@ -65,10 +65,10 @@ public final class ReposiliteHttpServer {
     private void config(Configuration configuration, JavalinConfig config) {
         config.server(Server::new);
         config.showJavalinBanner = false;
+        config.enableCorsForAllOrigins();
 
         if (configuration.isDebugEnabled()) {
             Reposilite.getLogger().info("Debug enabled");
-            config.enableCorsForAllOrigins();
             config.enableDevLogging();
         }
     }
