@@ -8,6 +8,7 @@ import org.panda_lang.utilities.commons.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Calendar;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -45,6 +46,11 @@ class FileDtoTest {
     @Test
     void getContentLength() {
         assertTrue(fileDto.getContentLength() != 0);
+    }
+
+    @Test
+    void getDate() {
+        assertTrue(fileDto.getDate().contains(Integer.toString(Calendar.getInstance().get(Calendar.YEAR))));
     }
 
     @Test

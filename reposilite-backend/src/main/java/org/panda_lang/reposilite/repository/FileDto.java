@@ -17,22 +17,29 @@
 package org.panda_lang.reposilite.repository;
 
 import org.jetbrains.annotations.NotNull;
+import org.panda_lang.utilities.commons.StringUtils;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
+import java.nio.file.Files;
+import java.text.SimpleDateFormat;
 
 final class FileDto implements Serializable, Comparable<FileDto> {
 
-    static final String FILE = "file";
-    static final String DIRECTORY = "directory";
+    public static final String FILE = "file";
+    public static final String DIRECTORY = "directory";
+    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd-MM-yyyy");
 
     private final String type;
     private final String name;
+    private final String date;
     private final long contentLength;
 
-    private FileDto(String type, String name, long contentLength) {
+    private FileDto(String type, String name, String date, long contentLength) {
         this.type = type;
         this.name = name;
+        this.date = date;
         this.contentLength = contentLength;
     }
 
@@ -55,6 +62,10 @@ final class FileDto implements Serializable, Comparable<FileDto> {
         return contentLength;
     }
 
+    public String getDate() {
+        return date;
+    }
+
     public String getName() {
         return name;
     }
@@ -64,7 +75,19 @@ final class FileDto implements Serializable, Comparable<FileDto> {
     }
 
     public static FileDto of(File file) {
-        return new FileDto(file.isDirectory() ? DIRECTORY : FILE, file.getName(), file.isDirectory() ? -1 : file.length());
+        String date = StringUtils.EMPTY;
+
+        try {
+            date = DATE_FORMAT.format(Files.getLastModifiedTime(file.toPath()).toMillis());
+        }
+        catch (IOException ignored) { /* file does not exist */ }
+
+        return new FileDto(
+                file.isDirectory() ? DIRECTORY : FILE,
+                file.getName(),
+                date,
+                file.isDirectory() ? -1 : file.length()
+        );
     }
 
 }

@@ -30,6 +30,7 @@ import org.panda_lang.reposilite.utils.FilesUtils;
 import org.panda_lang.utilities.commons.StringUtils;
 
 import java.io.File;
+import java.io.IOException;
 
 public final class IndexApiController implements RepositoryController {
 
