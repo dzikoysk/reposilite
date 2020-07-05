@@ -38,10 +38,12 @@ class ReposiliteLauncherTest {
 
         try {
             System.setProperty("reposilite.debugEnabled", "true");
+            System.setProperty("reposilite.port", ReposiliteIntegrationTest.testPort);
             ReposiliteLauncher.main("-wd=" + workingDirectory.getAbsolutePath());
         }
         finally {
             System.clearProperty("reposilite.debugEnabled");
+            System.clearProperty("reposilite.port");
         }
 
         assertTrue(ReposiliteWriter.contains("Debug enabled"));
