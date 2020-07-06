@@ -31,21 +31,4 @@ class ReposiliteLauncherTest {
         assertTrue(ReposiliteLauncher.create("-wd=" + workingDirectory.getAbsolutePath()).isPresent());
     }
 
-    @Test
-    void shouldLaunchReposilite() {
-        InputStream in = new ByteArrayInputStream("stop".getBytes());
-        System.setIn(in);
-
-        try {
-            System.setProperty("reposilite.debugEnabled", "true");
-            ReposiliteLauncher.main("-wd=" + workingDirectory.getAbsolutePath());
-        }
-        finally {
-            System.clearProperty("reposilite.debugEnabled");
-        }
-
-        assertTrue(ReposiliteWriter.contains("Debug enabled"));
-        assertTrue(ReposiliteWriter.contains("Done"));
-    }
-
 }

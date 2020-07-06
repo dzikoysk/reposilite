@@ -25,6 +25,7 @@ public abstract class ReposiliteIntegrationTest {
 
     @BeforeEach
     protected void before() throws Exception {
+        ReposiliteWriter.clear();
         reposilite = reposilite(workingDirectory);
         reposilite.launch();
     }
@@ -43,6 +44,7 @@ public abstract class ReposiliteIntegrationTest {
         reposilite.shutdown();
     }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     protected <E extends Exception> void executeOnLocked(File file, ThrowingRunnable<E> runnable) throws E, IOException {
         file.delete();
         file.mkdirs();
