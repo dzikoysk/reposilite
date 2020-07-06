@@ -103,8 +103,12 @@ public final class Reposilite {
 
                 getLogger().info("Collecting status metrics...");
                 console.execute("status");
-
-                console.hook();
+                
+                // disable console in tests due to issues with coverage and interrupt method call
+                // https://github.com/jacoco/jacoco/issues/1066
+                if (!isTestEnvEnabled()) { 
+                    console.hook();
+                }
             });
 
             latch.countDown();
