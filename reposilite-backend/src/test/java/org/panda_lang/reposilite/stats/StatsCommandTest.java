@@ -18,15 +18,17 @@ class StatsCommandTest extends ReposiliteIntegrationTest {
     }
 
     @Test
-    void shouldDisplayRecord() {
+    void shouldDisplayRecord() throws InterruptedException {
         StatsService statsService = super.reposilite.getStatsService();
         statsService.record("/record");
         callDefaultStatusCommand();
+
+        Thread.sleep(10);
         assertTrue(ReposiliteWriter.contains("/record"));
     }
 
     @Test
-    void shouldFilterExtensions() {
+    void shouldFilterExtensions() throws InterruptedException {
         StatsService statsService = super.reposilite.getStatsService();
 
         String[] records = {
@@ -40,6 +42,7 @@ class StatsCommandTest extends ReposiliteIntegrationTest {
         StatsCommand statsCommand = new StatsCommand(2);
         statsCommand.execute(super.reposilite);
 
+        Thread.sleep(10);
         Arrays.stream(records).forEach(record -> assertFalse(ReposiliteWriter.contains(record)));
     }
 
