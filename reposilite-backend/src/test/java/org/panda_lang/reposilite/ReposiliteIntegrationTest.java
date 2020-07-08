@@ -18,8 +18,8 @@ import java.util.Random;
 
 public abstract class ReposiliteIntegrationTest {
 
-    protected static final HttpRequestFactory requestFactory = new NetHttpTransport().createRequestFactory();
-    public static final String testPort = String.valueOf(new Random().nextInt(16383) + 49152);
+    public static final String PORT = String.valueOf(new Random().nextInt(16383) + 49151);
+    public static final HttpRequestFactory REQUEST_FACTORY = new NetHttpTransport().createRequestFactory();
 
     @TempDir
     protected File workingDirectory;
@@ -33,18 +33,20 @@ public abstract class ReposiliteIntegrationTest {
     }
 
     protected Reposilite reposilite(File workingDirectory, String... args) throws IOException {
-        return reposilite(testPort, workingDirectory, args);
+        return reposilite(PORT, workingDirectory, args);
     }
 
     protected Reposilite reposilite(String port, File workingDirectory, String... args) throws IOException {
         FileUtils.copyDirectory(new File("src/test/workspace/repositories"), new File(workingDirectory, "repositories"));
         System.setProperty("reposilite.port", port);
+
         try {
             return ReposiliteLauncher.create(ArrayUtils.mergeArrays(args, ArrayUtils.of(
                     "--working-directory=" + workingDirectory.getAbsolutePath(),
                     "--test-env"
             ))).orElseThrow(() -> new RuntimeException("Invalid test parameters"));
-        } finally {
+        }
+        finally {
             System.clearProperty("reposilite.port");
         }
     }
@@ -64,20 +66,20 @@ public abstract class ReposiliteIntegrationTest {
     }
 
     protected HttpResponse get(String uri) throws IOException {
-        return requestFactory.buildGetRequest(url(uri))
+        return REQUEST_FACTORY.buildGetRequest(url(uri))
             .setThrowExceptionOnExecuteError(false)
             .execute();
     }
 
     protected HttpResponse getAuthenticated(String uri, String username, String password) throws IOException {
-        HttpRequest request = requestFactory.buildGetRequest(url(uri));
+        HttpRequest request = REQUEST_FACTORY.buildGetRequest(url(uri));
         request.setThrowExceptionOnExecuteError(false);
         request.getHeaders().setBasicAuthentication(username, password);
         return request.execute();
     }
 
     protected GenericUrl url(String uri) {
-        return new GenericUrl("http://localhost:" + testPort + uri);
+        return new GenericUrl("http://localhost:" + PORT + uri);
     }
 
 }

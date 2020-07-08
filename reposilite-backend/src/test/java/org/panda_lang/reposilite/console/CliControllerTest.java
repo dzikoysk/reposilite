@@ -90,7 +90,7 @@ class CliControllerTest extends ReposiliteIntegrationTest {
             @Override
             public void onWebSocketClose(int statusCode, String reason) { }
 
-        }, new URI("ws://localhost:"+testPort+"/api/cli"), clientUpgradeRequest).get();
+        }, new URI("ws://localhost:" + PORT + "/api/cli"), clientUpgradeRequest).get();
     }
 
 }
