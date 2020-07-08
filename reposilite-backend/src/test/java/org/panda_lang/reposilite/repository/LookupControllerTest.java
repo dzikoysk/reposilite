@@ -81,7 +81,7 @@ class LookupControllerTest extends ReposiliteIntegrationTest {
 
     @Test
     void shouldReturn200AndHeadRequestedFile() throws IOException {
-        HttpResponse response = requestFactory
+        HttpResponse response = REQUEST_FACTORY
                 .buildHeadRequest(super.url("/releases/org/panda-lang/reposilite-test/1.0.0/reposilite-test-1.0.0.pom"))
                 .execute();
 
@@ -97,8 +97,8 @@ class LookupControllerTest extends ReposiliteIntegrationTest {
 
     @Test
     void shouldReturn200AndProxiedFile() throws Exception {
-        String proxyPort = String.valueOf(Integer.parseInt(testPort)+1);
-        super.reposilite.getConfiguration().setProxied(Collections.singletonList("http://localhost:"+proxyPort));
+        String proxyPort = String.valueOf(Integer.parseInt(PORT) + 1);
+        super.reposilite.getConfiguration().setProxied(Collections.singletonList("http://localhost:" + proxyPort));
 
         try {
             Reposilite proxiedReposilite = super.reposilite(proxyPort, proxiedWorkingDirectory);
