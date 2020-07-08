@@ -97,11 +97,11 @@ class LookupControllerTest extends ReposiliteIntegrationTest {
 
     @Test
     void shouldReturn200AndProxiedFile() throws Exception {
-        super.reposilite.getConfiguration().setProxied(Collections.singletonList("http://localhost:8080"));
+        String proxyPort = String.valueOf(Integer.parseInt(testPort)+1);
+        super.reposilite.getConfiguration().setProxied(Collections.singletonList("http://localhost:"+proxyPort));
 
         try {
-            System.setProperty("reposilite.port", "8080");
-            Reposilite proxiedReposilite = super.reposilite(proxiedWorkingDirectory);
+            Reposilite proxiedReposilite = super.reposilite(proxyPort, proxiedWorkingDirectory);
             proxiedReposilite.launch();
 
             File proxiedFile = new File(proxiedWorkingDirectory, "/repositories/releases/proxiedGroup/proxiedArtifact/proxied.txt");
