@@ -41,6 +41,12 @@ public final class ReposiliteWriter extends AbstractFormatPatternWriter {
 
     @Override
     public void close() {
+        clear();
+    }
+
+    public static void clear() {
+        CACHE.clear();
+        CONSUMERS.clear();
     }
 
     public static boolean contains(String message) {

@@ -42,13 +42,10 @@ public final class Reposilite {
     private static final Logger LOGGER = LoggerFactory.getLogger("Reposilite");
 
     private final AtomicBoolean alive;
-    private final String workingDirectory;
+    private final Collection<Pair<String, Throwable>> exceptions;
     private final boolean testEnvEnabled;
     private final ReposiliteExecutor executor;
-
-    private final Collection<Pair<String, Throwable>> exceptions = new ArrayList<>();
-    private final Console console = new Console(this, System.in);
-
+    private final Console console;
     private final Configuration configuration;
     private final Authenticator authenticator;
     private final TokenService tokenService;
@@ -61,7 +58,7 @@ public final class Reposilite {
 
     Reposilite(String workingDirectory, boolean testEnv) {
         this.alive = new AtomicBoolean(false);
-        this.workingDirectory = workingDirectory;
+        this.exceptions = new ArrayList<>();
         this.testEnvEnabled = testEnv;
 
         this.executor = new ReposiliteExecutor(this);
@@ -74,6 +71,7 @@ public final class Reposilite {
         this.authenticator = new Authenticator(configuration, tokenService);
         this.frontend = FrontendService.load();
         this.reactiveHttpServer= new ReposiliteHttpServer(this);
+        this.console = new Console(this, System.in);
     }
 
     public void launch() throws Exception {
@@ -104,7 +102,11 @@ public final class Reposilite {
                 getLogger().info("Collecting status metrics...");
                 console.execute("status");
 
-                console.hook();
+                // disable console daemon in tests due to issues with coverage and interrupt method call
+                // https://github.com/jacoco/jacoco/issues/1066
+                if (!isTestEnvEnabled()) {
+                    console.hook();
+                }
             });
 
             latch.countDown();
