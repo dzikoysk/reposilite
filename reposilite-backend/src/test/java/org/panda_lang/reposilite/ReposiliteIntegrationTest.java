@@ -14,10 +14,12 @@ import org.panda_lang.utilities.commons.function.ThrowingRunnable;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Random;
 
 public abstract class ReposiliteIntegrationTest {
 
     protected static final HttpRequestFactory requestFactory = new NetHttpTransport().createRequestFactory();
+    public static final String testPort = String.valueOf(new Random().nextInt(16383) + 49152);
 
     @TempDir
     protected File workingDirectory;
@@ -31,12 +33,20 @@ public abstract class ReposiliteIntegrationTest {
     }
 
     protected Reposilite reposilite(File workingDirectory, String... args) throws IOException {
-        FileUtils.copyDirectory(new File("src/test/workspace/repositories"), new File(workingDirectory, "repositories"));
+        return reposilite(testPort, workingDirectory, args);
+    }
 
-        return ReposiliteLauncher.create(ArrayUtils.mergeArrays(args, ArrayUtils.of(
-                "--working-directory=" + workingDirectory.getAbsolutePath(),
-                "--test-env"
-        ))).orElseThrow(() -> new RuntimeException("Invalid test parameters"));
+    protected Reposilite reposilite(String port, File workingDirectory, String... args) throws IOException {
+        FileUtils.copyDirectory(new File("src/test/workspace/repositories"), new File(workingDirectory, "repositories"));
+        System.setProperty("reposilite.port", port);
+        try {
+            return ReposiliteLauncher.create(ArrayUtils.mergeArrays(args, ArrayUtils.of(
+                    "--working-directory=" + workingDirectory.getAbsolutePath(),
+                    "--test-env"
+            ))).orElseThrow(() -> new RuntimeException("Invalid test parameters"));
+        } finally {
+            System.clearProperty("reposilite.port");
+        }
     }
 
     @AfterEach
@@ -67,7 +77,7 @@ public abstract class ReposiliteIntegrationTest {
     }
 
     protected GenericUrl url(String uri) {
-        return new GenericUrl("http://localhost:80" + uri);
+        return new GenericUrl("http://localhost:" + testPort + uri);
     }
 
 }
