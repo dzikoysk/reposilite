@@ -27,11 +27,10 @@ proxied: []
 # Accept deployment connections
 deployEnabled: true
 # Require authentication of all requests (download, head requests)
+# If you don't want to display content of your repositories,
+# you can just disable indexing.
 # This option should be set to 'false', if you are hosting public repository
 fullAuthEnabled: false
-# If you don't want to display content of your repositories,
-# you can just disable indexing
-indexingEnabled: true
 # List of management tokens used by dashboard to access extra options.
 # (By default, people are allowed to use standard dashboard options related to the associated path)
 managers: []

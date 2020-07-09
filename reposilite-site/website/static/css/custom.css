@@ -36,9 +36,9 @@ header {
 #whatis div {
   border-radius: 15px;
   padding: 15px 40px 40px 40px;
-  border: 1px solid #101357;
+  border: 1px solid #1013574f;
   /* background-color: #f59d98; */
-  margin: 0 40px;
+  margin: 20px 40px;
 }
 .blockElement {
   padding-bottom: 20px;
@@ -60,6 +60,9 @@ header {
 .toggleNav ul {
   padding: 0 15px !important;
 }
+.wrapper article a {
+  color: #1651ac;
+}
 pre {
   line-height: 19px;
 }
@@ -69,6 +72,7 @@ code {
   border: 1px solid #1013571c !important;
   border-radius: 5px;
 }
+.hljs-tag,
 .hljs-bullet {
   background: none !important;
 }

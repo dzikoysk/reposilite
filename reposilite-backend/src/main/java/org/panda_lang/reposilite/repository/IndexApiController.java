@@ -49,7 +49,7 @@ public final class IndexApiController implements RepositoryController {
         Reposilite.getLogger().info(ctx.req.getRequestURI() + " API");
         String uri = RepositoryUtils.normalizeUri(configuration, StringUtils.replaceFirst(ctx.req.getRequestURI(), "/api", StringUtils.EMPTY));
 
-        if ((configuration.isFullAuthEnabled() || !configuration.isIndexingEnabled()) && authenticator.authUri(ctx.headerMap(), uri).containsError()) {
+        if (configuration.isFullAuthEnabled() && authenticator.authUri(ctx.headerMap(), uri).containsError()) {
             return ErrorUtils.error(ctx, HttpStatus.SC_UNAUTHORIZED, "Unauthorized request");
         }
 

@@ -100,18 +100,19 @@ class Index extends React.Component {
     )
 
     const WhatIs = () => (
-      <div id='whatis' layout='fourColumn' style={{
+      <div id='whatis' layout='twoColumn' style={{
         display: 'flex',
         justifyContent: 'center',
-        paddingTop: '60px',
-        paddingBottom: '80px',
+        paddingTop: '20px',
+        paddingBottom: '20px',
+        flexWrap: 'wrap'
       }}>
         <div>
           <h2># What is Reposilite?</h2>
           <ul>
             <li>Repository manager for Maven artifacts</li>
             <li>Replaces managers like Nexus, Archiva or Artifactory</li>
-            <li>Open Source project</li>
+            <li>Open source project</li>
           </ul>
         </div>
         <div>

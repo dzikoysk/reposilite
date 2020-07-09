@@ -3,7 +3,7 @@ const siteConfig = {
   tagline: 'Lightweight repository manager for Maven artifacts',
   url: 'https://reposilite.com',
   baseUrl: '/',
-  copyright: `Copyright © ${new Date().getFullYear()} dzikoysk and ❤ panda-lang organization`,
+  copyright: `Copyright © ${new Date().getFullYear()} dzikoysk with ❤ panda-lang`,
 
   projectName: 'reposilite-site',
   organizationName: 'panda-lang',
