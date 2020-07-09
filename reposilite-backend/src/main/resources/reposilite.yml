@@ -14,6 +14,9 @@ debugEnabled: false
 repositories:
   - "releases"
   - "snapshots"
+# Allow to omit name of the main repository in request
+# e.g. /org/panda-lang/reposilite will be redirected to /releases/org/panda-lang/reposilite
+rewritePathsEnabled: true
 
 # List of proxied repositories.
 # Reposilite will search for an artifact in remote repositories listed below, if the requested artifact was not found.
@@ -23,9 +26,6 @@ proxied: []
 
 # Accept deployment connections
 deployEnabled: true
-# Allow to omit name of the main repository in request
-# e.g. /org/panda-lang/reposilite will be redirected to /releases/org/panda-lang/reposilite
-rewritePathsEnabled: true
 # Require authentication of all requests (download, head requests)
 # This option should be set to 'false', if you are hosting public repository
 fullAuthEnabled: false
