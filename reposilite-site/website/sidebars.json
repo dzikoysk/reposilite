@@ -1,0 +1,7 @@
+{
+  "docs": {
+    "Introduction": ["about", "install"],
+    "Settings": [ "general", "repositories", "authorization", "proxy", "customization" ],
+    "Developers": [ "developers" ]
+  }
+}
