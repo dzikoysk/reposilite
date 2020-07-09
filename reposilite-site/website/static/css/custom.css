@@ -1,0 +1,83 @@
+/**
+ * Copyright (c) 2017-present, Facebook, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+ .fixedHeaderContainer {
+  background-color: white;
+ }
+header {
+  font-size: 1.05em;
+  padding: 5px 0;
+}
+.headerTitle, .nav-site a {
+  color: black !important;
+}
+.slidingNav ul li a:focus,
+.slidingNav ul li a:hover {
+  border-bottom: 1px solid #101357 !important;
+  background-color: white !important;
+}
+.siteNavGroupActive a,
+.siteNavGroupActive a:hover,
+.siteNavItemActive a, 
+.siteNavItemActive a:hover {
+  background-color: white !important;
+  font-weight: bold !important;
+}
+.slidingNav ul li a {
+  line-height: 1.1em !important;
+}
+#whatis {
+  /* background: #fea49f;*/
+}
+#whatis div {
+  border-radius: 15px;
+  padding: 15px 40px 40px 40px;
+  border: 1px solid #101357;
+  /* background-color: #f59d98; */
+  margin: 0 40px;
+}
+.blockElement {
+  padding-bottom: 20px;
+  border: none;
+  border-radius: 5px;
+}
+.blockElement a {
+  color: #101357;
+}
+.nav-footer {
+  background-color: #101357;
+}
+.navGroupCategoryTitle {
+  font-size: 20px !important;
+}
+.toc a {
+  font-size: 16px !important;
+}
+.toggleNav ul {
+  padding: 0 15px !important;
+}
+pre {
+  line-height: 19px;
+}
+
+@media only screen and (min-width: 360px) and (max-width: 736px) {
+  header {
+    justify-content: center !important;
+  }
+}
+
+@media only screen and (min-width: 1024px) {
+}
+
+@media only screen and (max-width: 1023px) {
+}
+
+@media only screen and (min-width: 1400px) {
+}
+
+@media only screen and (min-width: 1500px) {
+}
