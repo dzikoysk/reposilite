@@ -6,11 +6,20 @@
         .flex.justify-between.w-full
             h1(v-if="file.type === 'file'") {{ file.name }}
             h1(v-else).font-bold {{ file.name }}
-            p(v-if="file.type === 'file'") {{ (file.contentLength) }} bytes
+            p(v-if="file.type === 'file'") {{ fileSize }}
 </template>
 
 <script>
+import prettyBytes from 'pretty-bytes'
+
 export default {
-  props: ['file']
+  props: {
+    file: Object
+  },
+  data () {
+    return {
+      fileSize: prettyBytes(this.file.contentLength)
+    }
+  }
 }
 </script>
