@@ -3,7 +3,7 @@
 Reposilite *(formerly NanoMaven)* - lightweight repository manager for Maven artifacts. 
 It is a simple solution to replace managers like Nexus, Archiva or Artifactory. 
 
-![Preview](https://user-images.githubusercontent.com/4235722/83308288-ca8d9000-a206-11ea-8db4-5981b39f2239.png)
+![Preview](https://user-images.githubusercontent.com/4235722/83757901-7c96e300-a671-11ea-9881-f0b85f058a6c.png)
 
 #### Features
 * [x] Working Maven repository manager *(example: [repo.panda-lang.org](https://repo.panda-lang.org))*
