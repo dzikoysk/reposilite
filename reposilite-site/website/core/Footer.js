@@ -33,7 +33,7 @@ class Footer extends React.Component {
             <a href={this.docUrl('install', this.props.language)}>
               Installation
             </a>
-            <a href={this.docUrl('developers', this.props.language)}>
+            <a href={this.docUrl('indexing', this.props.language)}>
               Developer API
             </a>
           </div>
