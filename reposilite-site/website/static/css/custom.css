@@ -52,16 +52,25 @@ header {
   background-color: #101357;
 }
 .navGroupCategoryTitle {
-  font-size: 20px !important;
+  font-size: 18px !important;
 }
 .toc a {
-  font-size: 16px !important;
+  font-size: 15px !important;
 }
 .toggleNav ul {
   padding: 0 15px !important;
 }
 pre {
   line-height: 19px;
+}
+code {
+  font-size: 13px !important;
+  font-family: Consolas, 'Liberation Mono', 'Courier New', monospace !important;
+  border: 1px solid #1013571c !important;
+  border-radius: 5px;
+}
+.hljs-bullet {
+  background: none !important;
 }
 
 @media only screen and (min-width: 360px) and (max-width: 736px) {

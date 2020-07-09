@@ -50,7 +50,7 @@ class HomeSplash extends React.Component {
         <a
           className='button'
           style={{
-            width: '200px',
+            width: '250px',
             background: '#101357',
             'marginTop': '15px',
             'border': 'none',
@@ -72,8 +72,8 @@ class HomeSplash extends React.Component {
         <div className='inner'>
           <ProjectTitle tagline={siteConfig.tagline} title={siteConfig.title} />
           <PromoSection>
-            <Button href={docUrl('about')}>Guide</Button>
-            <Button href={docUrl('install')}>Install Reposilite</Button>
+            <Button href={docUrl('about')}>Get started</Button>
+            <Button href={docUrl('install')}>Download Reposilite</Button>
           </PromoSection> 
         </div>
       </SplashContainer>
