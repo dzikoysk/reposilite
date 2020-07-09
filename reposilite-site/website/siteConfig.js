@@ -26,11 +26,12 @@ const siteConfig = {
 
   highlight: {
     // Highlight.js theme to use for syntax highlighting in code blocks.
-    theme: 'default'
+    theme: 'idea'
   },
 
   scripts: ['https://buttons.github.io/buttons.js'],
   onPageNav: 'separate',
+  // docsSideNavCollapsible: true,
   cleanUrl: true,
 
   ogImage: 'img/undraw_online.svg',

@@ -27,28 +27,23 @@ class Footer extends React.Component {
         <section className="sitemap center">
           <div>
             <h5>Guide</h5>
-            <a href={this.docUrl('doc1.html', this.props.language)}>
+            <a href={this.docUrl('about', this.props.language)}>
               Getting Started
             </a>
-            <a href={this.docUrl('doc2.html', this.props.language)}>
+            <a href={this.docUrl('install', this.props.language)}>
               Installation
             </a>
-            <a href={this.docUrl('doc3.html', this.props.language)}>
+            <a href={this.docUrl('developers', this.props.language)}>
               Developer API
             </a>
           </div>
           <div>
             <h5>Community</h5>
-            <a href="https://stackoverflow.com/questions/tagged/" target="_blank">
+            <a href="https://github.com/dzikoysk/reposilite/issues" target="_blank">
               Report Issue
             </a>
-            <a href="https://discordapp.com/">Project Chat</a>
-            <a
-              href="https://twitter.com/"
-              target="_blank"
-              rel="noreferrer noopener">
-              Twitter
-            </a>
+            <a href="https://github.com/dzikoysk/reposilite" target="_blank">Star Reposilite</a>
+            <a href="https://twitter.com/dzikoysk" target="_blank">Follow @dzikoysk</a>
           </div>
         </section>
 

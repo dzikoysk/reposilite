@@ -1,16 +1,25 @@
 ---
-id: general
-title: General
-sidebar_label: General
+id: configuration
+title: Configuration
+sidebar_label: Configuration
 ---
 
-x
+There are two ways to pass custom properties to your Reposilite instance:
 
-### Defaul configuration
+* Through the `reposilite.yml` configuration file
+* Using the [system properties](#system-properties) *(overrides values from configuration)*
+
+Detailed description of properties is located in the following chapters:
+* [Repositories](./repositories)
+* [Authorization](./authorization)
+* [Proxy](./proxy)
+* [Customization](./customization)
+
+## Default configuration
 The standard configuration of Reposilite should be generated
 by Reposilite during your first start and it should look like this:
 
-```yaml
+```yml
 # ~~~~~~~~~~~~~~~~~~~~~~ #
 #       Reposilite       #
 # ~~~~~~~~~~~~~~~~~~~~~~ #
@@ -56,4 +65,19 @@ title: "#onlypanda"
 description: "Public Maven repository hosted through the Reposilite"
 # Accent color used by frontend
 accentColor: "#2fd4aa"
+```
+
+## System properties
+Passing properties through the system properties is especially useful, 
+when we want to use Docker image. The parameter must be provided in the following structure:
+
+```properties
+-Dreposilite.propertyName="propertyValue"
+-Dreposilite.propertyName="arrayValue1,arrayValue2"
+```
+
+For instance:
+
+```bash
+$ java -Xmx32M -Dreposilite.port="8080" -jar reposilite.jar
 ```
