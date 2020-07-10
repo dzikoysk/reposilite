@@ -48,7 +48,7 @@ function Help(props) {
             This project is maintained mainly by 
             <a href="https://github.com/dzikoysk"> @dzikoysk</a>. 
             To support this project, visit 
-            <a href="https://panda-lang.org/support/">support</a> 
+            <a href="https://panda-lang.org/support/"> support </a> 
             page, leave a star or contribute. If you are looking for help, search here:
           </p>
           <GridBlock contents={supportLinks} layout="threeColumn" />
