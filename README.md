@@ -46,6 +46,11 @@ Requirements:
 * [x] Website
 * [x] Documentation
 
+#### Stack
+* Reposilite Backend: Java + Javalin (Jetty)
+* Reposilite Frontend: Vue.js + Pug + Stylus + Tailwindcss
+* Reposilite Site: React.js + Docusaurus 
+
 #### FAQ
 **Q:** Maven randomly interrupts deploy and throws socket write error <br>
 **A:** It is a common issue on Java 12 due to the bug related to SSL. To resolve this problem, just change Java version used by Maven build, e.g. 8 or 14. 
