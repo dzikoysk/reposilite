@@ -21,6 +21,10 @@ Requirements:
 | *48MB - 128MB* | Tiny public repository *(recommended)* |
 | *128MB+* | Public repository | 
 
+#### Publications
+* [Reposilite - Official Guide](https://reposilite.com/docs/about)
+* [Publishing your artifacts to the Reposilite - a new self-hosted repository manager ](https://dev.to/dzikoysk/publishing-your-artifacts-to-the-reposilite-a-new-self-hosted-repository-manager-3n0h)
+
 #### Features
 * [x] Working Maven repository manager *(example: [repo.panda-lang.org](https://repo.panda-lang.org))*
 * [x] Docker image *(repository: [dzikoysk/reposilite](https://hub.docker.com/r/dzikoysk/reposilite))*
