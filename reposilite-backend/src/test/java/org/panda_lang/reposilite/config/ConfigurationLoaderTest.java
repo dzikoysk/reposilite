@@ -2,13 +2,15 @@ package org.panda_lang.reposilite.config;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.panda_lang.reposilite.ReposiliteConstants;
+import org.panda_lang.reposilite.utils.FilesUtils;
+import org.panda_lang.utilities.commons.FileUtils;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 class ConfigurationLoaderTest {
 
@@ -24,7 +26,7 @@ class ConfigurationLoaderTest {
             System.setProperty("reposilite.proxied", "http://a.com,b.com"); // List<String> type
             System.setProperty("reposilite.repositories", " ");              // Skip empty
 
-            Configuration configuration = ConfigurationLoader.load(workingDirectory.getAbsolutePath());
+            Configuration configuration = ConfigurationLoader.load("", workingDirectory.getAbsolutePath());
             assertEquals("localhost", configuration.getHostname());
             assertEquals(8080, configuration.getPort());
             assertTrue(configuration.isDebugEnabled());
@@ -40,8 +42,26 @@ class ConfigurationLoaderTest {
             System.clearProperty("reposilite.repositories");
         }
 
-        Configuration configuration = ConfigurationLoader.load(workingDirectory.getAbsolutePath());
+        Configuration configuration = ConfigurationLoader.load("", workingDirectory.getAbsolutePath());
         assertEquals(80, configuration.getPort());
+    }
+
+    @Test
+    void shouldLoadCustomConfig() throws IOException {
+        File customConfig = new File(workingDirectory, "random.yml");
+        FilesUtils.copyResource("/" + ReposiliteConstants.CONFIGURATION_FILE_NAME, customConfig);
+        FileUtils.overrideFile(customConfig, FileUtils.getContentOfFile(customConfig).replace("port: 80", "port: 7"));
+
+        Configuration configuration = ConfigurationLoader.load(customConfig.getAbsolutePath(), workingDirectory.getAbsolutePath());
+        assertEquals(7, configuration.getPort());
+    }
+
+    @Test
+    void shouldNotLoadOtherFileTypes() throws IOException {
+        File customConfig = new File(workingDirectory, "random.properties");
+        FilesUtils.copyResource("/" + ReposiliteConstants.CONFIGURATION_FILE_NAME, customConfig);
+
+        assertThrows(IllegalArgumentException.class, () -> ConfigurationLoader.load(customConfig.getAbsolutePath(), workingDirectory.getAbsolutePath()));
     }
 
 }

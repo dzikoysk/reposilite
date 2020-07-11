@@ -16,6 +16,7 @@
 
 package org.panda_lang.reposilite;
 
+import org.jetbrains.annotations.Nullable;
 import org.panda_lang.reposilite.auth.Authenticator;
 import org.panda_lang.reposilite.auth.TokenService;
 import org.panda_lang.reposilite.config.Configuration;
@@ -27,6 +28,8 @@ import org.panda_lang.reposilite.repository.RepositoryService;
 import org.panda_lang.reposilite.stats.StatsService;
 import org.panda_lang.reposilite.utils.FutureUtils;
 import org.panda_lang.reposilite.utils.TimeUtils;
+import org.panda_lang.utilities.commons.StringUtils;
+import org.panda_lang.utilities.commons.ValidationUtils;
 import org.panda_lang.utilities.commons.collection.Pair;
 import org.panda_lang.utilities.commons.function.ThrowingRunnable;
 import org.slf4j.Logger;
@@ -44,25 +47,29 @@ public final class Reposilite {
     private final AtomicBoolean alive;
     private final Collection<Pair<String, Throwable>> exceptions;
     private final boolean testEnvEnabled;
-    private final ReposiliteExecutor executor;
-    private final Console console;
     private final Configuration configuration;
+    private final ReposiliteExecutor executor;
     private final Authenticator authenticator;
     private final TokenService tokenService;
     private final StatsService statsService;
     private final RepositoryService repositoryService;
-    private final ReposiliteHttpServer reactiveHttpServer;
     private final MetadataService metadataService;
     private final FrontendService frontend;
+    private final ReposiliteHttpServer reactiveHttpServer;
+    private final Console console;
+    private final Thread shutdownHook;
     private long uptime;
 
-    Reposilite(String workingDirectory, boolean testEnv) {
+    Reposilite(String configurationFile, String workingDirectory, boolean testEnv) {
+        ValidationUtils.notNull(configurationFile, "Configuration file cannot be null. To use default configuration file, provide empty string");
+        ValidationUtils.notNull(workingDirectory, "Working directory cannot be null. To use default working directory, provide empty string");
+
         this.alive = new AtomicBoolean(false);
         this.exceptions = new ArrayList<>();
         this.testEnvEnabled = testEnv;
 
+        this.configuration = ConfigurationLoader.load(configurationFile, workingDirectory);
         this.executor = new ReposiliteExecutor(this);
-        this.configuration = ConfigurationLoader.load(workingDirectory);
         this.tokenService = new TokenService(workingDirectory);
         this.statsService = new StatsService(workingDirectory);
         this.repositoryService = new RepositoryService(workingDirectory);
@@ -72,13 +79,12 @@ public final class Reposilite {
         this.frontend = FrontendService.load();
         this.reactiveHttpServer= new ReposiliteHttpServer(this);
         this.console = new Console(this, System.in);
+        this.shutdownHook = new Thread(FutureUtils.ofChecked(this, this::shutdown));
     }
 
     public void launch() throws Exception {
         this.alive.set(true);
-
-        Thread shutdownHook = new Thread(FutureUtils.ofChecked(this, this::shutdown));
-        Runtime.getRuntime().addShutdownHook(shutdownHook);
+        Runtime.getRuntime().addShutdownHook(this.shutdownHook);
 
         getLogger().info("--- Loading data");
         statsService.load();
@@ -113,18 +119,17 @@ public final class Reposilite {
         });
 
         latch.await();
-
-        executor.await(() -> {
-            getLogger().info("Bye! Uptime: " + TimeUtils.format(TimeUtils.getUptime(uptime) / 60) + "min");
-        });
+        executor.await(() -> getLogger().info("Bye! Uptime: " + TimeUtils.format(TimeUtils.getUptime(uptime) / 60) + "min"));
     }
 
-    public void shutdown() throws Exception {
+    public synchronized void shutdown() throws Exception {
         if (!alive.get()) {
             return;
         }
 
         this.alive.set(false);
+        Runtime.getRuntime().removeShutdownHook(shutdownHook);
+
         getLogger().info("Shutting down *::" + configuration.getPort() + " ...");
 
         statsService.save();

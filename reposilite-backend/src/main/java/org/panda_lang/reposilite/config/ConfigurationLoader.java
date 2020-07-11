@@ -21,6 +21,7 @@ import org.panda_lang.reposilite.ReposiliteConstants;
 import org.panda_lang.reposilite.utils.FilesUtils;
 import org.panda_lang.reposilite.utils.YamlUtils;
 import org.panda_lang.utilities.commons.ClassUtils;
+import org.panda_lang.utilities.commons.FileUtils;
 import org.panda_lang.utilities.commons.StringUtils;
 
 import java.io.File;
@@ -31,8 +32,19 @@ import java.util.Map.Entry;
 
 public final class ConfigurationLoader {
 
-    public static Configuration load(String workingDirectory) {
-        File configurationFile = new File(workingDirectory, ReposiliteConstants.CONFIGURATION_FILE_NAME);
+    public static Configuration load(String customConfigurationFile, String workingDirectory) {
+        File configurationFile;
+
+        if (StringUtils.isEmpty(customConfigurationFile)) {
+            configurationFile = new File(workingDirectory, ReposiliteConstants.CONFIGURATION_FILE_NAME);
+        }
+        else {
+            configurationFile = new File(customConfigurationFile);
+
+            if (!FilesUtils.getExtension(configurationFile.getName()).equals("yml")) {
+                throw new IllegalArgumentException("Custom configuration file does not have '.yml' extension");
+            }
+        }
 
         if (!configurationFile.exists()) {
             Reposilite.getLogger().info("Generating default configuration file.");

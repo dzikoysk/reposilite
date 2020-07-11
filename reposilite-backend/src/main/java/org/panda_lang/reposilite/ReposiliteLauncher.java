@@ -3,6 +3,7 @@ package org.panda_lang.reposilite;
 import org.panda_lang.reposilite.console.HelpCommand;
 import org.panda_lang.reposilite.console.VersionCommand;
 import org.panda_lang.reposilite.utils.FutureUtils;
+import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.console.Effect;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -25,6 +26,9 @@ public final class ReposiliteLauncher {
     @Option(names = { "--working-directory", "-wd" }, description = "set custom working directory of application instance")
     private String workingDirectory;
 
+    @Option(names = { "--config", "-cfg" }, description = "set custom location of configuration file")
+    private String configurationFile;
+
     public static void main(String... args) {
         create(args).ifPresent(reposilite -> FutureUtils.ofChecked(reposilite, reposilite::launch).run());
     }
@@ -42,15 +46,23 @@ public final class ReposiliteLauncher {
             return Optional.empty();
         }
 
-        return Optional.of(create(launcher.workingDirectory, launcher.testEnv));
+        return Optional.of(create(launcher.configurationFile, launcher.workingDirectory, launcher.testEnv));
     }
 
-    public static Reposilite create(String workingDirectory, boolean testEnv) {
+    public static Reposilite create(String configurationFile, String workingDirectory, boolean testEnv) {
         Reposilite.getLogger().info("");
         Reposilite.getLogger().info(Effect.GREEN + "Reposilite " + Effect.RESET + ReposiliteConstants.VERSION);
         Reposilite.getLogger().info("");
 
-        return new Reposilite(workingDirectory, testEnv);
+        if (configurationFile == null) {
+            configurationFile = StringUtils.EMPTY;
+        }
+
+        if (workingDirectory == null) {
+            workingDirectory = StringUtils.EMPTY;
+        }
+
+        return new Reposilite(configurationFile, workingDirectory, testEnv);
     }
 
 }
