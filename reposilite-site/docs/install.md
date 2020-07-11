@@ -37,18 +37,29 @@ you should be able to see its frontend located under the default http://localhos
 
 ![Preview](/img/about-preview.png)
 
-## Docker
+## Parameters
+Some of the properties have to be set through the command-line parameters.
 
-You may also use Reposilite through the docker image:
-
-```bash
-$ docker pull dzikoysk/reposilite
-```
-
-You can also pass custom configuration values using the environment variables:
+### Working directory
+To declare custom working directory for Reposilite instance,
+you should use `--working-directory` *(alias: `-wd`)* parameter:
 
 ```bash
-$ docker run -e JAVA_OPTS='-Xmx128M -Dreposilite.port="8080"' reposilite
+$ java -jar reposilite.jar --working-directory=/app/data
 ```
 
-You'll find more about configuration options in the next chapter.
+### Configuration file
+You may also declare custom location of configuration file using the `--config` *(alias: `-cfg`)* parameter:
+
+```bash
+$ java reposilite.jar --config=/etc/reposilite/reposilite.yml
+```
+
+You don't have to create this file manually,
+Reposilite will generate it during the first startup, 
+but make sure that you've granted `write` permission.
+
+### Properties
+Using the system properties, 
+you can also override values from the loaded configuration.
+See [configuration#system-properties](./configuration#system-properties) to learn more.
