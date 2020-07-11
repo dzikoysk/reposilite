@@ -18,7 +18,7 @@ class ReposiliteExecutorTest {
 
     @Test
     void shouldExecuteAndExit() throws InterruptedException {
-        Reposilite reposilite = new Reposilite(workingDirectory.getAbsolutePath(), true);
+        Reposilite reposilite = new Reposilite("", workingDirectory.getAbsolutePath(), true);
         ReposiliteExecutor reposiliteExecutor = new ReposiliteExecutor(reposilite);
         AtomicBoolean onExitCalled = new AtomicBoolean(false);
         AtomicBoolean scheduleCalled = new AtomicBoolean(false);
