@@ -1,7 +1,13 @@
 {
   "docs": {
     "Introduction": ["about", "install", "docker"],
-    "Settings": [ "configuration", "repositories", "authorization", "proxy", "customization" ],
-    "Developers": [ "indexing" ]
+    "Settings": [
+      "configuration",
+      "repositories",
+      "authorization",
+      "proxy",
+      "customization"
+    ],
+    "Developers": ["indexing"]
   }
 }
