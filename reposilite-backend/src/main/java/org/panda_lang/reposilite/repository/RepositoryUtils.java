@@ -19,7 +19,11 @@ package org.panda_lang.reposilite.repository;
 import org.panda_lang.reposilite.config.Configuration;
 import org.panda_lang.utilities.commons.StringUtils;
 
+import java.util.regex.Pattern;
+
 public final class RepositoryUtils {
+
+    private static final Pattern ALLOWED_PATTERN = Pattern.compile("\\W+/");
 
     private RepositoryUtils() { }
 
@@ -41,7 +45,7 @@ public final class RepositoryUtils {
             uri = uri.substring(1);
         }
 
-        if (uri.contains("..") || uri.contains("~")) {
+        if (uri.contains("..") || uri.contains("~") || uri.contains(":") || uri.contains("\\")) {
             return StringUtils.EMPTY;
         }
 

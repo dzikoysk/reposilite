@@ -25,10 +25,12 @@ You may also use Docker image available on Docker Hub:
 
 
 ## Running
-To launch Reposilite with defined amount of RAM, use `Xmx` parameter, for instance:
-```bash
+To launch Reposilite with defined amount of RAM, use `-Xmx` parameter, for instance:
+
+```console
 $ java -Xmx32M -jar reposilite.jar
 ```
+
 If you will not define the memory size, Reposilite will probably use around *~40MB to ~250MB*.
 
 ### Preview
@@ -37,6 +39,10 @@ you should be able to see its frontend located under the default http://localhos
 
 ![Preview](/img/about-preview.png)
 
+### Interactive CLI
+Reposilite exposes interactive console in terminal.
+Type `help` and learn more.
+
 ## Parameters
 Some of the properties have to be set through the command-line parameters.
 
@@ -44,14 +50,14 @@ Some of the properties have to be set through the command-line parameters.
 To declare custom working directory for Reposilite instance,
 you should use `--working-directory` *(alias: `-wd`)* parameter:
 
-```bash
+```console
 $ java -jar reposilite.jar --working-directory=/app/data
 ```
 
 ### Configuration file
 You may also declare custom location of configuration file using the `--config` *(alias: `-cfg`)* parameter:
 
-```bash
+```console
 $ java reposilite.jar --config=/etc/reposilite/reposilite.yml
 ```
 
