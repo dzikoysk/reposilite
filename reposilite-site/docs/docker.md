@@ -25,7 +25,7 @@ just run the image in interactive mode
 *(to support [interactive CLI](install#interactive-cli))*:
 
 ```console
-$ docker run -it reposilite-data:/app/data dzikoysk/reposilite
+$ docker run -it -v reposilite-data:/app/data dzikoysk/reposilite:nightly
 ```
 
 ### Data persistence
