@@ -34,12 +34,18 @@ public final class KeygenCommand implements ReposiliteCommand {
 
     @Override
     public boolean execute(Reposilite reposilite) {
+        String processedPath = path;
+
+        if (path.contains(".") && !path.contains("/")) {
+            processedPath = "*/" + path.replace(".", "/");
+        }
+
         TokenService tokenService = reposilite.getTokenService();
         Token previousToken = tokenService.getToken(alias);
 
         try {
-            Pair<String, Token> token = tokenService.createToken(path, alias);
-            Reposilite.getLogger().info("Generated new access token for " + alias + " (" + path + ")");
+            Pair<String, Token> token = tokenService.createToken(processedPath, alias);
+            Reposilite.getLogger().info("Generated new access token for " + alias + " (" + processedPath + ")");
             Reposilite.getLogger().info(token.getKey());
             tokenService.save();
             return true;

@@ -18,6 +18,7 @@ package org.panda_lang.reposilite.auth;
 
 import org.junit.jupiter.api.Test;
 import org.panda_lang.reposilite.ReposiliteIntegrationTest;
+import org.panda_lang.utilities.commons.collection.Pair;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,6 +43,13 @@ class KeygenCommandTest extends ReposiliteIntegrationTest {
         assertEquals("/a/b/c", token.getPath());
         assertEquals("alias", token.getAlias());
         assertNotNull(token.getToken());
+    }
+
+    @Test
+    void shouldCreateTokenBasedOnQualifier() {
+        KeygenCommand keygenCommand = new KeygenCommand("org.panda-lang.reposilite", "reposilite");
+        assertTrue(keygenCommand.execute(super.reposilite));
+        assertEquals("*/org/panda-lang/reposilite", super.reposilite.getTokenService().getToken("reposilite").getPath());
     }
 
     @Test
