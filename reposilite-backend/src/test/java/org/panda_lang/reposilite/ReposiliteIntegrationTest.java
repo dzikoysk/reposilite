@@ -69,7 +69,7 @@ public abstract class ReposiliteIntegrationTest {
 
     @AfterEach
     protected void after() throws Exception {
-        reposilite.shutdown();
+        reposilite.forceShutdown();
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")

@@ -132,7 +132,7 @@ class LookupControllerTest extends ReposiliteIntegrationTest {
             assertEquals("proxied content", content);
             System.out.println(content);
 
-            proxiedReposilite.shutdown();
+            proxiedReposilite.forceShutdown();
         }
         finally {
             System.clearProperty("reposilite.port");

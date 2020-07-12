@@ -35,6 +35,7 @@ import org.panda_lang.utilities.commons.function.ThrowingRunnable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.CountDownLatch;
@@ -122,14 +123,17 @@ public final class Reposilite {
         executor.await(() -> getLogger().info("Bye! Uptime: " + TimeUtils.format(TimeUtils.getUptime(uptime) / 60) + "min"));
     }
 
+    public synchronized void forceShutdown() throws Exception {
+        Runtime.getRuntime().removeShutdownHook(shutdownHook);
+        shutdown();
+    }
+
     public synchronized void shutdown() throws Exception {
         if (!alive.get()) {
             return;
         }
 
         this.alive.set(false);
-        Runtime.getRuntime().removeShutdownHook(shutdownHook);
-
         getLogger().info("Shutting down *::" + configuration.getPort() + " ...");
 
         statsService.save();
