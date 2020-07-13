@@ -45,6 +45,7 @@
                   )
                   h1(v-if="isEmpty()") Empty directory
                   h1(v-if="!hasFiles()").font-bold {{ response.message }}
+      notifications(group="index" position="center top")
 </template>
 
 <script>
@@ -119,7 +120,13 @@ export default {
 
       this.api(this.qualifier, {})
         .then(response => (this.response = response.data))
-        .catch(err => (this.response = err.response.data))
+        .catch(err => {
+          this.$notify({
+            group: 'index',
+            type: 'error',
+            title: err.response.data
+          })
+        })
     },
     hasFiles () {
       return this.response.files !== undefined

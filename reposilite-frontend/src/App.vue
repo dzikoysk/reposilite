@@ -22,7 +22,7 @@
 export default {
   name: 'App',
   mounted () {
-    console.log(window.REPOSILITE_MESSAGE)
+    console.log('REPOSILITE_MESSAGE: ' + window.REPOSILITE_MESSAGE)
   }
 }
 </script>

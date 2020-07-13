@@ -70,12 +70,12 @@ public final class ReposiliteLauncher {
         Reposilite.getLogger().info(Effect.GREEN + "Reposilite " + Effect.RESET + ReposiliteConstants.VERSION);
         Reposilite.getLogger().info("");
 
-        if (configurationFile == null) {
-            configurationFile = StringUtils.EMPTY;
+        if (StringUtils.isEmpty(configurationFile)) {
+            configurationFile = ReposiliteConstants.CONFIGURATION_FILE_NAME;
         }
 
-        if (workingDirectory == null) {
-            workingDirectory = StringUtils.EMPTY;
+        if (StringUtils.isEmpty(workingDirectory)) {
+            workingDirectory = ".";
         }
 
         return new Reposilite(configurationFile, workingDirectory, testEnv);
