@@ -4,8 +4,10 @@
 
 # Hostname
 hostname: ""
-# Port
+# Port to bind
 port: 80
+# Custom base path
+basePath: "/"
 # Debug
 debugEnabled: false
 

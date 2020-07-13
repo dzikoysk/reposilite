@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-const url = process.env.NODE_ENV === 'production' ? '/' : 'http://localhost:80/'
+const url = process.env.NODE_ENV === 'production' ? '{{REPOSILITE.BASE_PATH}}' : 'http://localhost:80/'
 const apiUrl = url + 'api'
 
 export default {
