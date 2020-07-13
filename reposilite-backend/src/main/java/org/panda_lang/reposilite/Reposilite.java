@@ -33,6 +33,7 @@ import org.panda_lang.utilities.commons.function.ThrowingRunnable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.CountDownLatch;
@@ -44,6 +45,8 @@ public final class Reposilite {
 
     private final AtomicBoolean alive;
     private final Collection<Pair<String, Throwable>> exceptions;
+    private final File configurationFile;
+    private final File workingDirectory;
     private final boolean testEnvEnabled;
     private final Configuration configuration;
     private final ReposiliteExecutor executor;
@@ -64,6 +67,8 @@ public final class Reposilite {
 
         this.alive = new AtomicBoolean(false);
         this.exceptions = new ArrayList<>();
+        this.configurationFile = new File(configurationFile);
+        this.workingDirectory = new File(workingDirectory);
         this.testEnvEnabled = testEnv;
 
         this.configuration = ConfigurationLoader.load(configurationFile, workingDirectory);
@@ -81,6 +86,17 @@ public final class Reposilite {
     }
 
     public void launch() throws Exception {
+        getLogger().info("--- Environment");
+
+        if (isTestEnvEnabled()) {
+            getLogger().info("Test environment enabled");
+        }
+
+        getLogger().info("Platform: " + System.getProperty("java.version") + " (" + System.getProperty("os.name") + ")");
+        getLogger().info("Configuration: " + configurationFile.getAbsolutePath());
+        getLogger().info("Working directory: " + workingDirectory.getAbsolutePath());
+        getLogger().info("");
+
         this.alive.set(true);
         Runtime.getRuntime().addShutdownHook(this.shutdownHook);
 

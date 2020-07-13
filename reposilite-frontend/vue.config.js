@@ -15,6 +15,7 @@
  */
 
 module.exports = {
+  publicPath: '',
   outputDir: '../reposilite-backend/src/main/resources/frontend/',
   filenameHashing: false,
   productionSourceMap: false,
