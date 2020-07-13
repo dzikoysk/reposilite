@@ -16,6 +16,7 @@
 
 package org.panda_lang.reposilite.frontend;
 
+import org.panda_lang.reposilite.config.Configuration;
 import org.panda_lang.reposilite.utils.FilesUtils;
 import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.function.Lazy;
@@ -33,15 +34,18 @@ public final class FrontendService {
     }
 
     public String forMessage(String message) {
-        return StringUtils.replace(index.get(), "{{message}}", message);
+        return StringUtils.replace(index.get(), "{{REPOSILITE.MESSAGE}}", message);
     }
 
     public String getApp() {
         return app.get();
     }
 
-    public static FrontendService load() {
-        return new FrontendService(() -> FilesUtils.getResource("/frontend/index.html"), () -> FilesUtils.getResource("/frontend/js/app.js"));
+    public static FrontendService load(Configuration configuration) {
+        return new FrontendService(
+                () -> FilesUtils.getResource("/frontend/index.html").replace("{{REPOSILITE.BASE_PATH}}", configuration.getBasePath()),
+                () -> FilesUtils.getResource("/frontend/js/app.js").replace("{{REPOSILITE.BASE_PATH}}", configuration.getBasePath())
+        );
     }
 
 }

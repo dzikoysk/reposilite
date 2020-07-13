@@ -35,7 +35,7 @@ export default {
   created () {
     let origin =
       process.env.NODE_ENV === 'production'
-        ? window.location.origin
+        ? window.location.origin + '{{REPOSILITE.BASE_PATH}}'
         : 'http://localhost:80'
 
     if (origin.startsWith('https')) {

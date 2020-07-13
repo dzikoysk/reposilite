@@ -41,6 +41,8 @@ public final class RepositoryUtils {
      * @return the normalized uri
      */
     public static String normalizeUri(Configuration configuration, String uri) {
+        // uri = StringUtils.replaceFirst(uri, configuration.getBasePath(), "");
+
         if (uri.startsWith("/")) {
             uri = uri.substring(1);
         }

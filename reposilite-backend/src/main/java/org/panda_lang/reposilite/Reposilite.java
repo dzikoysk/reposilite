@@ -79,7 +79,7 @@ public final class Reposilite {
         this.metadataService = new MetadataService(this);
 
         this.authenticator = new Authenticator(configuration, tokenService);
-        this.frontend = FrontendService.load();
+        this.frontend = FrontendService.load(configuration);
         this.reactiveHttpServer= new ReposiliteHttpServer(this);
         this.console = new Console(this, System.in);
         this.shutdownHook = new Thread(FutureUtils.ofChecked(this, this::shutdown));

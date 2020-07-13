@@ -28,6 +28,7 @@ public final class Configuration implements Serializable {
     // Bind properties
     private String hostname = "";
     private int port = 80;
+    private String basePath = "/";
     private boolean debugEnabled = false;
 
     // Repository properties
@@ -51,6 +52,9 @@ public final class Configuration implements Serializable {
 
     public void setPort(int port) { this.port = port; }
     public int getPort() { return port; }
+
+    public void setBasePath(String basePath) { this.basePath = basePath; }
+    public String getBasePath() { return basePath; }
 
     public void setDebugEnabled(boolean debugEnabled) { this.debugEnabled = debugEnabled; }
     public boolean isDebugEnabled() { return debugEnabled; }

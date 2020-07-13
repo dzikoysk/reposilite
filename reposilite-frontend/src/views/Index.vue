@@ -18,7 +18,7 @@
   #app
       header
           Wave(:accentColor="this.configuration.accentColor").absolute.w-full
-          a(href="/").flex.text-white.h-56.flex-col.justify-center.px-8.container.mx-auto
+          router-link(to="/").flex.text-white.h-56.flex-col.justify-center.px-8.container.mx-auto
               .w-full
                   h1.text-5xl.segoe.text-grey.font-bold.pt-1 {{ this.configuration.title }}
               .w-full
