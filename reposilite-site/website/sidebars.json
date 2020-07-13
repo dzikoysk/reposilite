@@ -6,7 +6,8 @@
       "repositories",
       "authorization",
       "proxy",
-      "customization"
+      "customization",
+      "faq"
     ],
     "Developers": ["indexing"]
   }
