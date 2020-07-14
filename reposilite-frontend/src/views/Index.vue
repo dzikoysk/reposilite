@@ -34,7 +34,7 @@
                               span.ml-3(:style="'color: ' + this.configuration.accentColor")
                                   i.fas.fa-feather-alt
                       router-link(
-                          v-if="this.qualifier != undefined && this.qualifier.length > 0"
+                          v-if="this.qualifier != undefined && this.qualifier.length > 1"
                           :to='parentPath()'
                       ) ← Back
                   FileEntry(
@@ -124,7 +124,7 @@ export default {
           this.$notify({
             group: 'index',
             type: 'error',
-            title: err.response.data
+            title: err.response.data.message
           })
         })
     },

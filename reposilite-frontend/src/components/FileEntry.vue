@@ -38,10 +38,10 @@ export default {
   },
   methods: {
     uri () {
-      return this.normalize(this.$route.fullPath) + '/' + this.file.name
+      return this.normalize(this.$route.fullPath) + this.file.name
     },
     url () {
-      return this.qualifier + '/' + this.file.name
+      return this.qualifier + this.file.name
     }
   }
 }

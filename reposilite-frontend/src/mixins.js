@@ -36,14 +36,15 @@ export default {
         uri = '/' + uri
       }
 
-      if (uri.length > 1 && uri.endsWith('/')) {
-        uri = uri.substr(0, uri.length - 1)
+      if (!uri.endsWith('/')) {
+        uri += '/'
       }
 
       return uri
     },
     parentPath () {
-      const elements = ('/' + this.getQualifier()).split('/')
+      const elements = (this.getQualifier()).split('/')
+      elements.pop()
       elements.pop()
       const path = this.normalize(elements.join('/'))
       return path.length === 0 ? '/' : path
