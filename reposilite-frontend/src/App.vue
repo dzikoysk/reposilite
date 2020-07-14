@@ -23,6 +23,7 @@ export default {
   name: 'App',
   mounted () {
     console.log('REPOSILITE_BASE_PATH: ' + window.REPOSILITE_BASE_PATH)
+    console.log('REPOSILITE_VUE_BASE_PATH: ' + window.REPOSILITE_VUE_BASE_PATH)
     console.log('REPOSILITE_MESSAGE: ' + window.REPOSILITE_MESSAGE)
   }
 }

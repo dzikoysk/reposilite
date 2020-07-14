@@ -27,7 +27,7 @@ Vue.use(Router)
 
 export default new Router({
   mode: 'history',
-  base: process.env.NODE_ENV === 'production' ? '{{REPOSILITE.BASE_PATH}}' : '/',
+  base: process.env.NODE_ENV === 'production' ? '{{REPOSILITE.VUE_BASE_PATH}}' : '/',
   routes: [
     {
       path: '/dashboard',
