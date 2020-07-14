@@ -27,10 +27,13 @@ import org.panda_lang.reposilite.config.Configuration;
 import org.panda_lang.reposilite.metadata.MetadataUtils;
 import org.panda_lang.reposilite.utils.ArrayUtils;
 import org.panda_lang.reposilite.utils.FilesUtils;
+import org.panda_lang.reposilite.utils.Result;
 import org.panda_lang.utilities.commons.StringUtils;
+import org.panda_lang.utilities.commons.collection.Pair;
 
 import java.io.File;
-import java.io.IOException;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 public final class IndexApiController implements RepositoryController {
 
@@ -45,16 +48,50 @@ public final class IndexApiController implements RepositoryController {
     }
 
     @Override
-    public Context handleContext(Context ctx) {
-        Reposilite.getLogger().info(ctx.req.getRequestURI() + " API");
-        String uri = RepositoryUtils.normalizeUri(configuration, StringUtils.replaceFirst(ctx.req.getRequestURI(), "/api", StringUtils.EMPTY));
+    public Context handleContext(Context context) {
+        Reposilite.getLogger().info(context.req.getRequestURI() + " API");
+        String uri = RepositoryUtils.normalizeUri(configuration, repositoryService, StringUtils.replaceFirst(context.req.getRequestURI(), "/api", ""));
 
-        if (configuration.isFullAuthEnabled() && authenticator.authUri(ctx.headerMap(), uri).containsError()) {
-            return ErrorUtils.error(ctx, HttpStatus.SC_UNAUTHORIZED, "Unauthorized request");
+        if (StringUtils.isEmpty(uri) || "/".equals(uri)) {
+            return context.json(listRepositories(context));
+        }
+
+        Result<Pair<String[], Repository>, String> result = authenticator.authRepository(context, uri);
+
+        if (result.containsError()) {
+            return ErrorUtils.error(context, HttpStatus.SC_UNAUTHORIZED, "Unauthorized request");
         }
 
         File requestedFile = repositoryService.getFile(uri);
+        Optional<FileDto> latest = findLatest(requestedFile);
 
+        if (latest.isPresent()) {
+            return context.json(latest.get());
+        }
+
+        if (!requestedFile.exists()) {
+            return ErrorUtils.error(context, HttpStatus.SC_NOT_FOUND, "File not found");
+        }
+
+        if (requestedFile.isFile()) {
+            return context.json(FileDto.of(requestedFile));
+        }
+
+        return context.json(new FileListDto(Stream.of(FilesUtils.listFiles(requestedFile))
+                .map(FileDto::of)
+                .transform(stream -> MetadataUtils.toSorted(stream, FileDto::getName, FileDto::isDirectory))
+                .toJavaList()));
+    }
+
+    private FileListDto listRepositories(Context context) {
+        return new FileListDto(repositoryService.getRepositories().stream()
+                .filter(repository -> repository.isPublic() || authenticator.authUri(context, repository.getUri()).isDefined())
+                .map(Repository::getFile)
+                .map(FileDto::of)
+                .collect(Collectors.toList()));
+    }
+
+    private Optional<FileDto> findLatest(File requestedFile) {
         if (requestedFile.getName().equals("latest")) {
             File parent = requestedFile.getParentFile();
 
@@ -63,23 +100,13 @@ public final class IndexApiController implements RepositoryController {
                 File latest = ArrayUtils.getFirst(files);
 
                 if (latest != null) {
-                    return ctx.json(FileDto.of(latest));
+                    return Optional.of(FileDto.of(latest));
                 }
             }
+
         }
 
-        if (!requestedFile.exists()) {
-            return ErrorUtils.error(ctx, HttpStatus.SC_NOT_FOUND, "File not found");
-        }
-
-        if (requestedFile.isFile()) {
-            return ctx.json(FileDto.of(requestedFile));
-        }
-
-        return ctx.json(new FileListDto(Stream.of(FilesUtils.listFiles(requestedFile))
-                .map(FileDto::of)
-                .transform(stream -> MetadataUtils.toSorted(stream, FileDto::getName, FileDto::isDirectory))
-                .toJavaList()));
+        return Optional.empty();
     }
 
 }

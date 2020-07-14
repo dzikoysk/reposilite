@@ -44,13 +44,15 @@ public final class ReposiliteHttpServer {
         LookupService lookupService = new LookupService(reposilite);
         LookupController lookupController = new LookupController(reposilite.getFrontend(), lookupService);
         DeployController deployController = new DeployController(reposilite);
+        IndexApiController indexApiController = new IndexApiController(reposilite);
 
         this.javalin = Javalin.create(config -> config(configuration, config))
-                .get("/api/auth", new AuthApiController(configuration, reposilite.getAuthenticator()))
-                .get("/api/configuration", new ConfigurationApiController(reposilite.getConfiguration()))
-                .ws("/api/cli", new CliController(reposilite))
-                .get("/api/*", new IndexApiController(reposilite))
                 .get("/js/app.js", new FrontendController(reposilite))
+                .get("/api/configuration", new ConfigurationApiController(reposilite.getConfiguration()))
+                .get("/api/auth", new AuthApiController(reposilite.getAuthenticator()))
+                .ws("/api/cli", new CliController(reposilite))
+                .get("/api", indexApiController)
+                .get("/api/*", indexApiController)
                 .get("/*", lookupController)
                 .head("/*", lookupController)
                 .put("/*", deployController)

@@ -25,6 +25,7 @@ import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
+import java.io.File;
 import java.util.Optional;
 
 @Command(name = "reposilite", version = "Reposilite " + ReposiliteConstants.VERSION)
@@ -70,12 +71,12 @@ public final class ReposiliteLauncher {
         Reposilite.getLogger().info(Effect.GREEN + "Reposilite " + Effect.RESET + ReposiliteConstants.VERSION);
         Reposilite.getLogger().info("");
 
-        if (StringUtils.isEmpty(configurationFile)) {
-            configurationFile = ReposiliteConstants.CONFIGURATION_FILE_NAME;
-        }
-
         if (StringUtils.isEmpty(workingDirectory)) {
             workingDirectory = ".";
+        }
+
+        if (StringUtils.isEmpty(configurationFile)) {
+            configurationFile = new File(workingDirectory, ReposiliteConstants.CONFIGURATION_FILE_NAME).getAbsolutePath();
         }
 
         return new Reposilite(configurationFile, workingDirectory, testEnv);

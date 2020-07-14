@@ -21,6 +21,7 @@ import io.javalin.http.util.ContextUtil;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.panda_lang.reposilite.config.Configuration;
+import org.panda_lang.reposilite.repository.RepositoryService;
 import org.panda_lang.utilities.commons.collection.Maps;
 
 import javax.servlet.http.HttpServletRequest;
@@ -34,10 +35,11 @@ import static org.mockito.Mockito.when;
 
 class AuthenticatorTest {
 
-    private static final TokenService TOKEN_SERVICE = new TokenService("");
+    private static final RepositoryService REPOSITORY_SERVICE = new RepositoryService(".");
+    private static final TokenService TOKEN_SERVICE = new TokenService(".");
     private static final Token AUTH_TOKEN = new Token("/auth/test", "alias", TokenService.B_CRYPT_TOKENS_ENCODER.encode("secret"));
     private static final String BASIC = "Basic " + Base64.getEncoder().encodeToString("alias:secret".getBytes());
-    private static final Authenticator AUTHENTICATOR = new Authenticator(new Configuration(), TOKEN_SERVICE);
+    private static final Authenticator AUTHENTICATOR = new Authenticator(new Configuration(), REPOSITORY_SERVICE, TOKEN_SERVICE);
 
     @BeforeAll
     static void generateTokens() {

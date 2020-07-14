@@ -20,17 +20,16 @@ import io.javalin.http.Context;
 import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.RepositoryController;
 import org.panda_lang.reposilite.api.ErrorUtils;
-import org.panda_lang.reposilite.config.Configuration;
+import org.panda_lang.reposilite.repository.Repository;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public final class AuthApiController implements RepositoryController {
 
-    private final Configuration configuration;
     private final Authenticator authenticator;
 
-    public AuthApiController(Configuration configuration, Authenticator authenticator) {
-        this.configuration = configuration;
+    public AuthApiController(Authenticator authenticator) {
         this.authenticator = authenticator;
     }
 
@@ -39,17 +38,11 @@ public final class AuthApiController implements RepositoryController {
         return authenticator
                 .auth(ctx.headerMap())
                 .map(session -> {
-                    Token token = session.getToken();
+                    List<String> repositories = session.getRepositories().stream()
+                            .map(Repository::getName)
+                            .collect(Collectors.toList());
 
-                    List<String> repositories = token.hasMultiaccess()
-                            ? configuration.getRepositories()
-                            : session.getRepositories();
-
-                    return new AuthDto(
-                            configuration.getManagers().contains(token.getAlias()),
-                            token.getPath(),
-                            repositories
-                    );
+                    return new AuthDto(session.isManager(),  session.getToken().getPath(),repositories);
                 })
                 .map(ctx::json)
                 .orElseGet(error -> ErrorUtils.error(ctx, HttpStatus.SC_UNAUTHORIZED, error));

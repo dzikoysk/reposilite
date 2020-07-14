@@ -40,9 +40,7 @@ public final class RepositoryUtils {
      * @param uri the uri to process
      * @return the normalized uri
      */
-    public static String normalizeUri(Configuration configuration, String uri) {
-        // uri = StringUtils.replaceFirst(uri, configuration.getBasePath(), "");
-
+    public static String normalizeUri(Configuration configuration, RepositoryService repositoryService, String uri) {
         if (uri.startsWith("/")) {
             uri = uri.substring(1);
         }
@@ -59,13 +57,13 @@ public final class RepositoryUtils {
             return uri;
         }
 
-        for (String repositoryName : configuration.getRepositories()) {
-            if (uri.startsWith(repositoryName)) {
+        for (Repository repository : repositoryService.getRepositories()) {
+            if (uri.startsWith(repository.getName())) {
                 return uri;
             }
         }
 
-        return configuration.getRepositories().get(0) + "/" + uri;
+        return repositoryService.getPrimaryRepository().getName() + "/" + uri;
     }
 
 }

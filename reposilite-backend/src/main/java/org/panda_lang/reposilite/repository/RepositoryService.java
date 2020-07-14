@@ -23,6 +23,7 @@ import org.panda_lang.reposilite.utils.ArrayUtils;
 import org.panda_lang.utilities.commons.StringUtils;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -30,13 +31,14 @@ public final class RepositoryService {
 
     private final File rootDirectory;
     private final Map<String, Repository> repositories = new LinkedHashMap<>(2);
+    private Repository primaryRepository;
 
     public RepositoryService(String workingDirectory) {
         this.rootDirectory = new File(workingDirectory, "repositories");
     }
 
     public void load(Configuration configuration) {
-        Reposilite.getLogger().info("--- Loading repository");
+        Reposilite.getLogger().info("--- Loading repositories");
 
         if (rootDirectory.mkdirs()) {
             Reposilite.getLogger().info("Default repository directory has been created");
@@ -45,39 +47,33 @@ public final class RepositoryService {
             Reposilite.getLogger().info("Using an existing repository directory");
         }
 
-        for (String repository : configuration.getRepositories()) {
-            File repositoryDirectory = new File(rootDirectory, repository);
-
-            if (repositoryDirectory.mkdirs()) {
-                Reposilite.getLogger().info("+ Repository '" + repository + "' has been created");
-            }
-        }
-
-        Reposilite.getLogger().info("");
-    }
-
-    public void scan(Configuration configuration) {
-        Reposilite.getLogger().info("--- Scanning to find repositories");
-
         for (String repositoryName : configuration.getRepositories()) {
+            boolean hidden = repositoryName.startsWith(".");
+
+            if (hidden) {
+                repositoryName = repositoryName.substring(1);
+            }
+
             File repositoryDirectory = new File(rootDirectory, repositoryName);
 
-            if (!repositoryDirectory.exists()) {
-                Reposilite.getLogger().warn("Nothing has been found!");
-                return;
+            if (repositoryDirectory.mkdirs()) {
+                Reposilite.getLogger().info("+ Repository '" + repositoryName + "' has been created");
             }
 
-            if (!repositoryDirectory.isDirectory()) {
-                Reposilite.getLogger().info("  Skipping " + repositoryDirectory.getName());
-            }
-
-            Repository repository = new Repository(rootDirectory, repositoryName);
-            Reposilite.getLogger().info("+ " + repositoryDirectory.getName());
-
+            Repository repository = new Repository(rootDirectory, repositoryName, hidden);
             repositories.put(repository.getName(), repository);
+
+            Reposilite.getLogger().info("+ " + repositoryDirectory.getName());
         }
 
         Reposilite.getLogger().info(repositories.size() + " repositories have been found");
+
+        if (!repositories.isEmpty()) {
+            this.primaryRepository = getRepository(configuration.getRepositories().get(0));
+            Reposilite.getLogger().info("Primary repository: " + primaryRepository.getName());
+        }
+
+        Reposilite.getLogger().info("");
     }
 
     public String[] resolveSnapshot(Repository repository, String[] requestPath) {
@@ -106,6 +102,14 @@ public final class RepositoryService {
 
     public Repository getRepository(String repositoryName) {
         return repositories.get(repositoryName);
+    }
+
+    public Collection<Repository> getRepositories() {
+        return repositories.values();
+    }
+
+    public Repository getPrimaryRepository() {
+        return primaryRepository;
     }
 
 }

@@ -30,6 +30,8 @@ import org.panda_lang.utilities.commons.function.ThrowingRunnable;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 public abstract class ReposiliteIntegrationTest {
@@ -39,6 +41,7 @@ public abstract class ReposiliteIntegrationTest {
 
     @TempDir
     protected File workingDirectory;
+    protected Map<String, String> properties = new HashMap<>();
     protected Reposilite reposilite;
 
     @BeforeEach
@@ -55,6 +58,7 @@ public abstract class ReposiliteIntegrationTest {
     protected Reposilite reposilite(String port, File workingDirectory, String... args) throws IOException {
         FileUtils.copyDirectory(new File("src/test/workspace/repositories"), new File(workingDirectory, "repositories"));
         System.setProperty("reposilite.port", port);
+        properties.forEach(System::setProperty);
 
         try {
             return ReposiliteLauncher.create(ArrayUtils.mergeArrays(args, ArrayUtils.of(
@@ -64,6 +68,7 @@ public abstract class ReposiliteIntegrationTest {
         }
         finally {
             System.clearProperty("reposilite.port");
+            properties.forEach((key, value) -> System.clearProperty(key));
         }
     }
 

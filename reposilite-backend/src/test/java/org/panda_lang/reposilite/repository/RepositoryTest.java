@@ -24,8 +24,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 class RepositoryTest {
 
@@ -34,16 +33,17 @@ class RepositoryTest {
     static Repository repository;
 
     @BeforeAll
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     static void prepare() throws IOException {
-        repository = new Repository(temp, "releases");
+        repository = new Repository(temp, "releases", false);
         repository.getFile("group", "artifact", "version").mkdirs();
         repository.getFile("group", "artifact", "version", "test").createNewFile();
     }
 
     @Test
     void get() {
-        assertNull(repository.get("unknown"));
-        assertEquals("test", Objects.requireNonNull(repository.get("group", "artifact", "version", "test")).getFile("test").getName());
+        assertFalse(repository.find("unknown").isPresent());
+        assertEquals("test", Objects.requireNonNull(repository.find("group", "artifact", "version", "test")).get().getFile("test").getName());
     }
 
     @Test

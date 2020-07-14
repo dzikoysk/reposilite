@@ -34,8 +34,9 @@ class ArtifactTest {
     static Artifact artifact;
 
     @BeforeAll
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     static void prepare() throws IOException {
-        repository = new Repository(temp, "releases");
+        repository = new Repository(temp, "releases", false);
 
         File build1 = repository.getFile("groupId", "artifactId", "version", "build1");
         build1.getParentFile().mkdirs();
