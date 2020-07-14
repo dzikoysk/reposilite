@@ -22,6 +22,8 @@ import org.hjson.JsonArray;
 import org.hjson.JsonObject;
 import org.junit.jupiter.api.Test;
 import org.panda_lang.reposilite.ReposiliteIntegrationTest;
+import org.panda_lang.reposilite.auth.Token;
+import org.panda_lang.utilities.commons.collection.Pair;
 
 import java.io.IOException;
 
@@ -30,10 +32,34 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class IndexApiControllerTest extends ReposiliteIntegrationTest {
 
+    {
+        super.properties.put("reposilite.repositories", "releases,snapshots,.private");
+    }
+
     @Test
-    void shouldReturn401WithUnauthorizedRequestMessage() throws IOException {
-        super.reposilite.getConfiguration().setFullAuthEnabled(true);
-        assertEquals(HttpStatus.SC_UNAUTHORIZED, super.get("/api/").getStatusCode());
+    void shouldReturnListOfRepositories() throws IOException {
+        JsonObject repositories = shouldReturn200AndJsonResponse("/api");
+        assertTrue(repositories.get("files").isArray());
+
+        JsonArray array = repositories.get("files").asArray();
+        assertEquals(2, array.size());
+        assertEquals("releases", array.get(0).asObject().get("name").asString());
+        assertEquals("snapshots", array.get(1).asObject().get("name").asString());
+    }
+
+    @Test
+    void shouldReturnListOfAllAuthenticatedRepositories() throws IOException {
+        Pair<String, Token> secret = super.reposilite.getTokenService().createToken("/private", "secret");
+
+        HttpResponse response = super.getAuthenticated("/api", "secret", secret.getKey());
+        assertEquals(HttpStatus.SC_OK, response.getStatusCode());
+
+        JsonObject repositories = (JsonObject) JsonObject.readJSON(response.parseAsString());
+        JsonArray files = repositories.get("files").asArray();
+        assertEquals(3, files.size());
+        assertEquals("releases", files.get(0).asObject().getString("name", null));
+        assertEquals("snapshots", files.get(1).asObject().getString("name", null));
+        assertEquals("private", files.get(2).asObject().getString("name", null));
     }
 
     @Test

@@ -12,7 +12,8 @@ basePath: "/"
 debugEnabled: false
 
 # List of supported Maven repositories.
-# First directory on the list is the main repository.
+# First directory on the list is the main (primary) repository.
+# Tu mark repository as private, prefix its name with a dot, e.g. ".private"
 repositories:
   - "releases"
   - "snapshots"

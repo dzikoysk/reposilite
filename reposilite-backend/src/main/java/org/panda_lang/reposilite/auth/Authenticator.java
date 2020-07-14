@@ -19,8 +19,12 @@ package org.panda_lang.reposilite.auth;
 import io.javalin.http.Context;
 import org.jetbrains.annotations.Nullable;
 import org.panda_lang.reposilite.config.Configuration;
+import org.panda_lang.reposilite.repository.Repository;
+import org.panda_lang.reposilite.repository.RepositoryService;
+import org.panda_lang.reposilite.repository.RepositoryUtils;
 import org.panda_lang.reposilite.utils.Result;
 import org.panda_lang.utilities.commons.StringUtils;
+import org.panda_lang.utilities.commons.collection.Pair;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -29,15 +33,57 @@ import java.util.Map;
 public final class Authenticator {
 
     private final Configuration configuration;
+    private final RepositoryService repositoryService;
     private final TokenService tokenService;
 
-    public Authenticator(Configuration configuration, TokenService tokenService) {
+    public Authenticator(Configuration configuration, RepositoryService repositoryService, TokenService tokenService) {
         this.configuration = configuration;
+        this.repositoryService = repositoryService;
         this.tokenService = tokenService;
     }
 
+    public Result<Pair<String[], Repository>, String> authDefaultRepository(Context context, String uri) {
+        return authRepository(context, RepositoryUtils.normalizeUri(configuration, repositoryService, uri));
+    }
+
+    public Result<Pair<String[], Repository>, String> authRepository(Context context, String uri) {
+        String[] path = StringUtils.split(uri, "/");
+
+        // discard invalid requests (less than 'repository/group/artifact')
+        if (path.length < 1) {
+            return Result.error("Unsupported request");
+        }
+
+        String repositoryName = path[0];
+
+        if (StringUtils.isEmpty(repositoryName)) {
+            return Result.error("Unsupported request");
+        }
+
+        Repository repository = repositoryService.getRepository(path[0]);
+
+        if (repository == null) {
+            return Result.error("Repository " + path[0] + " not found");
+        }
+
+        // auth hidden repositories
+        if (repository.isHidden()) {
+            Result<Session, String> authResult = authDefault(context);
+
+            if (authResult.containsError()) {
+                return Result.error("Unauthorized request");
+            }
+        }
+
+        return Result.ok(new Pair<>(path, repository));
+    }
+
     public Result<Session, String> authDefault(Context context) {
-        return authUri(context.headerMap(), context.req.getRequestURI());
+        return authUri(context, context.req.getRequestURI());
+    }
+
+    public Result<Session, String> authUri(Context context, String uri) {
+        return authUri(context.headerMap(), uri);
     }
 
     public Result<Session, String> authUri(Map<String, String> header, String uri) {
@@ -100,7 +146,9 @@ public final class Authenticator {
             return Result.error("Invalid authorization credentials");
         }
 
-        return Result.ok(new Session(configuration, token));
+        boolean manager = configuration.getManagers().contains(token.getAlias());
+
+        return Result.ok(new Session(repositoryService, token, manager));
     }
 
 }

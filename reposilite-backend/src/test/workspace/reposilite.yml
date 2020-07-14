@@ -12,8 +12,9 @@ debugEnabled: false
 # List of supported Maven repositories.
 # First directory on the list is the main repository.
 repositories:
-  - releases
-  - snapshots
+  - "releases"
+  - "snapshots"
+  - ".private"
 
 # List of proxied repositories.
 # Reposilite will search for an artifact in remote repositories listed below, if the requested artifact was not found.

@@ -78,7 +78,7 @@ public final class Reposilite {
         this.repositoryService = new RepositoryService(workingDirectory);
         this.metadataService = new MetadataService(this);
 
-        this.authenticator = new Authenticator(configuration, tokenService);
+        this.authenticator = new Authenticator(configuration, repositoryService, tokenService);
         this.frontend = FrontendService.load(configuration);
         this.reactiveHttpServer= new ReposiliteHttpServer(this);
         this.console = new Console(this, System.in);
@@ -106,7 +106,6 @@ public final class Reposilite {
 
         getLogger().info("");
         repositoryService.load(configuration);
-        repositoryService.scan(configuration);
         getLogger().info("");
 
         getLogger().info("Binding server at " + configuration.getHostname() + "::" + configuration.getPort());

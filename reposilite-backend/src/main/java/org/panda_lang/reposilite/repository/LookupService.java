@@ -36,6 +36,7 @@ import org.panda_lang.reposilite.utils.FilesUtils;
 import org.panda_lang.reposilite.utils.FutureUtils;
 import org.panda_lang.reposilite.utils.Result;
 import org.panda_lang.utilities.commons.StringUtils;
+import org.panda_lang.utilities.commons.collection.Pair;
 import org.panda_lang.utilities.commons.text.ContentJoiner;
 
 import java.io.File;
@@ -43,6 +44,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -67,6 +69,86 @@ public final class LookupService {
         this.repositoryService = reposilite.getRepositoryService();
         this.requestFactory = configuration.getProxied().isEmpty() ? null : new NetHttpTransport().createRequestFactory();
         this.proxiedExecutor = configuration.getProxied().isEmpty() ? null : Executors.newCachedThreadPool();
+    }
+
+    protected Result<Context, String> serveLocal(Context context) {
+        Result<Pair<String[], Repository>, String> result = this.authenticator.authDefaultRepository(context, context.req.getRequestURI());
+
+        if (result.containsError()) {
+            return Result.error(result.getError());
+        }
+
+        String[] path = result.getValue().getKey();
+        // remove repository name from path
+        String[] requestPath = Arrays.copyOfRange(path, 1, path.length);
+
+        // discard invalid requests (less than 'group/(artifact OR metadata)')
+        if (requestPath.length < 2) {
+            return Result.error("Missing artifact identifier");
+        }
+
+        Repository repository = result.getValue().getValue();
+        String requestedFileName = requestPath[requestPath.length - 1];
+
+        if (requestedFileName.equals("maven-metadata.xml")) {
+            return metadataService
+                    .generateMetadata(repository, requestPath)
+                    .map(res -> context.contentType("text/xml").result(res));
+        }
+
+        // resolve requests for latest version of artifact
+        if (requestedFileName.equalsIgnoreCase("latest")) {
+            File requestDirectory = repository.getFile(requestPath).getParentFile();
+            File[] versions = MetadataUtils.toSortedVersions(requestDirectory);
+            File version = ArrayUtils.getFirst(versions);
+
+            if (version == null) {
+                return Result.error("Latest version not found");
+            }
+
+            return Result.ok(context.result(version.getName()));
+        }
+
+        // resolve snapshot requests
+        if (requestedFileName.contains("-SNAPSHOT")) {
+            repositoryService.resolveSnapshot(repository, requestPath);
+            // update requested file name in case of snapshot request
+            requestedFileName = requestPath[requestPath.length - 1];
+        }
+
+        Optional<Artifact> artifact = repository.find(requestPath);
+
+        if (!artifact.isPresent()) {
+            return Result.error("Artifact " + ContentJoiner.on("/").join(requestPath) + " not found");
+        }
+
+        File file = artifact.get().getFile(requestedFileName);
+        FileInputStream content = null;
+
+        try {
+            // resolve content type associated with the requested extension
+            String mimeType = Files.probeContentType(file.toPath());
+            context.res.setContentType(mimeType != null ? mimeType : "application/octet-stream");
+
+            // add content description to the header
+            context.res.setContentLengthLong(file.length());
+            context.res.setHeader("Content-Disposition", "attachment; filename=\"" + ArrayUtils.getLast(path) + "\"");
+
+            // exclude content for head requests
+            if (!context.method().equals("HEAD")) {
+                content = new FileInputStream(file);
+                IOUtils.copy(content, context.res.getOutputStream());
+            }
+
+            // success
+            Reposilite.getLogger().info("Mime: " + mimeType + "; size: " + file.length() + "; file: " + file.getPath());
+            return Result.ok(context);
+        } catch (Exception exception) {
+            reposilite.throwException(context.req.getRequestURI(), exception);
+            return Result.error("Cannot read artifact");
+        } finally {
+            FilesUtils.close(content);
+        }
     }
 
     protected Result<CompletableFuture<Context>, String> serveProxied(Context context) {
@@ -104,8 +186,8 @@ public final class LookupService {
                     }
 
                     return future.complete(context
-                        .status(remoteResponse.getStatusCode())
-                        .contentType(remoteResponse.getContentType()));
+                            .status(remoteResponse.getStatusCode())
+                            .contentType(remoteResponse.getContentType()));
                 } catch (IOException e) {
                     Reposilite.getLogger().warn("Proxied repository " + proxied + " is unavailable: " + e.getMessage());
                 } catch (Exception e) {
@@ -119,100 +201,6 @@ public final class LookupService {
                     .contentType("text/html")
                     .result(frontend.forMessage("Artifact not found in local and remote repository")));
         }));
-    }
-
-    protected Result<Context, String> serveLocal(Context context) {
-        if (configuration.isFullAuthEnabled()) {
-            Result<Session, String> authResult = this.authenticator.authDefault(context);
-
-            if (authResult.containsError()) {
-                return Result.error(authResult.getError());
-            }
-        }
-
-        String uri = RepositoryUtils.normalizeUri(configuration, context.req.getRequestURI());
-        String[] path = uri.split("/");
-
-        // discard invalid requests (less than 'repository/group/artifact')
-        if (path.length < 2) {
-            return Result.error("Unsupported request");
-        }
-
-        Repository repository = repositoryService.getRepository(path[0]);
-
-        if (repository == null) {
-            return Result.error("Repository " + path[0] + " not found");
-        }
-
-        // remove repository name from path
-        String[] requestPath = Arrays.copyOfRange(path, 1, path.length);
-
-        // discard invalid requests (less than 'group/(artifact OR metadata)')
-        if (requestPath.length < 2) {
-            return Result.error("Missing artifact identifier");
-        }
-
-        String requestedFileName = requestPath[requestPath.length - 1];
-
-        if (requestedFileName.equals("maven-metadata.xml")) {
-            return metadataService
-                    .generateMetadata(repository, requestPath)
-                    .map(result -> context.contentType("text/xml").result(result));
-        }
-
-        // resolve requests for latest version of artifact
-        if (requestedFileName.equalsIgnoreCase("latest")) {
-            File requestDirectory = repository.getFile(requestPath).getParentFile();
-            File[] versions = MetadataUtils.toSortedVersions(requestDirectory);
-            File version = ArrayUtils.getFirst(versions);
-
-            if (version == null) {
-                return Result.error("Latest version not found");
-            }
-
-            return Result.ok(context.result(version.getName()));
-        }
-
-        // resolve snapshot requests
-        if (requestedFileName.contains("-SNAPSHOT")) {
-            repositoryService.resolveSnapshot(repository, requestPath);
-            // update requested file name in case of snapshot request
-            requestedFileName = requestPath[requestPath.length - 1];
-        }
-
-        Artifact artifact = repository.get(requestPath);
-
-        if (artifact == null) {
-            return Result.error("Artifact " + ContentJoiner.on("/").join(requestPath) + " not found");
-        }
-
-        File file = artifact.getFile(requestedFileName);
-        FileInputStream content = null;
-
-        try {
-            // resolve content type associated with the requested extension
-            String mimeType = Files.probeContentType(file.toPath());
-            context.res.setContentType(mimeType != null ? mimeType : "application/octet-stream");
-
-            // add content description to the header
-            context.res.setContentLengthLong(file.length());
-            context.res.setHeader("Content-Disposition", "attachment; filename=\"" + ArrayUtils.getLast(path) + "\"");
-
-            // exclude content for head requests
-            if (!context.method().equals("HEAD")) {
-                content = new FileInputStream(file);
-                IOUtils.copy(content, context.res.getOutputStream());
-            }
-
-            // success
-            Reposilite.getLogger().info("Mime: " + mimeType + "; size: " + file.length() + "; file: " + file.getPath());
-            return Result.ok(context);
-        } catch (Exception exception) {
-            reposilite.throwException(uri, exception);
-            return Result.error("Cannot read artifact");
-        } finally {
-            FilesUtils.close(content);
-        }
     }
 
 }

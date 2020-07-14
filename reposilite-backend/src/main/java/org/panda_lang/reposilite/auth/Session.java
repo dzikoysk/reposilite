@@ -16,35 +16,38 @@
 
 package org.panda_lang.reposilite.auth;
 
-import org.panda_lang.reposilite.config.Configuration;
+import org.panda_lang.reposilite.repository.Repository;
+import org.panda_lang.reposilite.repository.RepositoryService;
 import org.panda_lang.utilities.commons.StringUtils;
 
+import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 
 public final class Session {
 
-    private final Configuration configuration;
+    private final RepositoryService repositoryService;
     private final Token token;
+    private final boolean manager;
 
-    public Session(Configuration configuration, Token token) {
-        this.configuration = configuration;
+    public Session(RepositoryService repositoryService, Token token, boolean manager) {
+        this.repositoryService = repositoryService;
         this.token = token;
+        this.manager = manager;
     }
 
     public boolean isManager() {
-        return configuration.getManagers().contains(token.getAlias());
+        return manager;
     }
 
     public boolean hasPermission(String path) {
         String tokenPath = token.getPath();
 
         if (token.isWildcard()) {
-            for (String repository : getRepositories()) {
-                String name = "/" + repository;
+            for (Repository repository : getRepositories()) {
+                String name = "/" + repository.getName();
 
                 if (path.startsWith(name)) {
-                    path = StringUtils.replaceFirst(path, "/" + repository, "*");
+                    path = StringUtils.replaceFirst(path, "/" + repository.getName(), "*");
                     break;
                 }
             }
@@ -53,13 +56,13 @@ public final class Session {
         return path.startsWith(tokenPath);
     }
 
-    public List<String> getRepositories() {
+    public Collection<Repository> getRepositories() {
         if (token.hasMultiaccess()) {
-            return configuration.getRepositories();
+            return repositoryService.getRepositories();
         }
 
-        for (String repository : configuration.getRepositories()) {
-            String name = "/" + repository;
+        for (Repository repository : repositoryService.getRepositories()) {
+            String name = "/" + repository.getName();
 
             if (token.getPath().startsWith(name)) {
                 return Collections.singletonList(repository);

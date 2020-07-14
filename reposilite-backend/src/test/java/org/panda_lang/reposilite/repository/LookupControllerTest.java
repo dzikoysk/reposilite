@@ -18,6 +18,7 @@ package org.panda_lang.reposilite.repository;
 
 import com.google.api.client.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.panda_lang.reposilite.Reposilite;
@@ -35,6 +36,10 @@ class LookupControllerTest extends ReposiliteIntegrationTest {
 
     @TempDir
     File proxiedWorkingDirectory;
+
+    {
+        super.properties.put("reposilite.repositories", "releases,snapshots,.private");
+    }
 
     @Test
     void shouldReturn404AndFrontendWithUnsupportedRequestMessage() throws IOException {
@@ -107,8 +112,7 @@ class LookupControllerTest extends ReposiliteIntegrationTest {
 
     @Test
     void shouldReturn404WithUnauthorizedMessage() throws IOException {
-        super.reposilite.getConfiguration().setFullAuthEnabled(true);
-        assert404WithMessage(super.get("/releases"), "Authorization credentials are not specified");
+        assert404WithMessage(super.get("/private/a/b"), "Unauthorized request");
     }
 
     @Test
