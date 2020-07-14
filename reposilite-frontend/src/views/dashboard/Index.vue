@@ -20,7 +20,7 @@
             h1.font-bold
                 | Index of
                 span.ml-2 {{ this.qualifier }}
-            router-link(v-if="this.qualifier != undefined && this.qualifier.length > 0" :to="'/dashboard' + parentPath()") ← Back
+            router-link(v-if="this.qualifier != undefined && this.qualifier.length > 1" :to="'/dashboard' + parentPath()") ← Back
         FileEntry(
             v-for="file in files"
             :key="file.name"
