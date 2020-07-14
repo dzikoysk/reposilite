@@ -34,20 +34,20 @@ public final class LookupController implements Handler {
     }
 
     @Override
-    public void handle(Context ctx) {
-        Reposilite.getLogger().info(ctx.req.getRequestURI() + " " + ctx.method());
+    public void handle(Context context) {
+        Reposilite.getLogger().info("LOOKUP | " + context.req.getRequestURI() + " from " + context.req.getRemoteAddr());
 
         Result<Context, String> lookupResponse = lookupService
-                .serveLocal(ctx)
-                .orElse(localError -> lookupService.serveProxied(ctx)
-                        .map(ctx::result)
+                .serveLocal(context)
+                .orElse(localError -> lookupService.serveProxied(context)
+                        .map(context::result)
                         .orElse(proxiedError -> Result.error(localError)));
 
         lookupResponse.onError(error -> {
-            Reposilite.getLogger().debug("error=" + error + "; uri=" + ctx.req.getRequestURI());
+            Reposilite.getLogger().debug("error=" + error + "; uri=" + context.req.getRequestURI());
 
-            ctx.res.setCharacterEncoding("UTF-8");
-            ctx.status(HttpStatus.SC_NOT_FOUND)
+            context.res.setCharacterEncoding("UTF-8");
+            context.status(HttpStatus.SC_NOT_FOUND)
                     .contentType("text/html")
                     .result(frontend.forMessage(error));
         });

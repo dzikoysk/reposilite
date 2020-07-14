@@ -20,6 +20,7 @@ import org.panda_lang.reposilite.config.Configuration;
 import org.panda_lang.reposilite.utils.FilesUtils;
 import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.function.Lazy;
+import org.panda_lang.utilities.commons.text.MessageFormatter;
 
 import java.util.function.Supplier;
 
@@ -42,9 +43,13 @@ public final class FrontendService {
     }
 
     public static FrontendService load(Configuration configuration) {
+        MessageFormatter formatter = new MessageFormatter()
+                .register("{{REPOSILITE.BASE_PATH}}", configuration.getBasePath())
+                .register("{{REPOSILITE.VUE_BASE_PATH}}", configuration.getBasePath().equals("/") ? "" : configuration.getBasePath());
+
         return new FrontendService(
-                () -> FilesUtils.getResource("/frontend/index.html").replace("{{REPOSILITE.BASE_PATH}}", configuration.getBasePath()),
-                () -> FilesUtils.getResource("/frontend/js/app.js").replace("{{REPOSILITE.BASE_PATH}}", configuration.getBasePath())
+                () -> formatter.format(FilesUtils.getResource("/frontend/index.html")),
+                () -> formatter.format(FilesUtils.getResource("/frontend/js/app.js"))
         );
     }
 

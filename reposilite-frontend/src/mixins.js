@@ -43,9 +43,14 @@ export default {
       return uri
     },
     parentPath () {
-      const elements = (this.getQualifier()).split('/')
+      const qualifier = this.getQualifier()
+      const elements = qualifier.split('/')
       elements.pop()
-      elements.pop()
+
+      if (qualifier.endsWith('/')) {
+        elements.pop()
+      }
+
       const path = this.normalize(elements.join('/'))
       return path.length === 0 ? '/' : path
     },

@@ -49,6 +49,7 @@ public final class RepositoryService {
 
         for (String repositoryName : configuration.getRepositories()) {
             boolean hidden = repositoryName.startsWith(".");
+            boolean primary = primaryRepository == null;
 
             if (hidden) {
                 repositoryName = repositoryName.substring(1);
@@ -63,17 +64,14 @@ public final class RepositoryService {
             Repository repository = new Repository(rootDirectory, repositoryName, hidden);
             repositories.put(repository.getName(), repository);
 
-            Reposilite.getLogger().info("+ " + repositoryDirectory.getName());
+            if (primary) {
+                this.primaryRepository = repository;
+            }
+
+            Reposilite.getLogger().info("+ " + repositoryDirectory.getName() + (hidden ? " (hidden)" : "") + (primary ? " (primary)" : ""));
         }
 
         Reposilite.getLogger().info(repositories.size() + " repositories have been found");
-
-        if (!repositories.isEmpty()) {
-            this.primaryRepository = getRepository(configuration.getRepositories().get(0));
-            Reposilite.getLogger().info("Primary repository: " + primaryRepository.getName());
-        }
-
-        Reposilite.getLogger().info("");
     }
 
     public String[] resolveSnapshot(Repository repository, String[] requestPath) {
