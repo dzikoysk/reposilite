@@ -23,7 +23,7 @@ public final class ErrorDto implements Serializable {
     private final int status;
     private final String message;
 
-    ErrorDto(int status, String message) {
+    public ErrorDto(int status, String message) {
         this.status = status;
         this.message = message;
     }

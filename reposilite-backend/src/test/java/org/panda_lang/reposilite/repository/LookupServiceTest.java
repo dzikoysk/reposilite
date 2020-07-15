@@ -24,6 +24,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.panda_lang.reposilite.ReposiliteIntegrationTest;
+import org.panda_lang.reposilite.api.ErrorDto;
 import org.panda_lang.reposilite.utils.FutureUtils;
 import org.panda_lang.reposilite.utils.Result;
 import org.panda_lang.utilities.commons.FileUtils;
@@ -54,6 +55,7 @@ class LookupServiceTest extends ReposiliteIntegrationTest {
     private LookupService lookupService;
     
     @BeforeEach
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     void configure() throws IOException {
         super.reposilite.getConfiguration().setProxied(Collections.singletonList(url("").toString()));
         this.lookupService = new LookupService(super.reposilite);
@@ -67,10 +69,10 @@ class LookupServiceTest extends ReposiliteIntegrationTest {
     @Test
     void shouldReturnErrorForInvalidProxiedRequest() {
         Context context = mockContext("/groupId/artifactId");
-        Result<CompletableFuture<Context>, String> result = lookupService.serveProxied(context);
+        Result<CompletableFuture<Context>, ErrorDto> result = lookupService.serveProxied(context);
 
         assertTrue(result.containsError());
-        assertEquals("Invalid proxied request", result.getError());
+        assertEquals("Invalid proxied request", result.getError().getMessage());
     }
 
     @Test
@@ -82,7 +84,7 @@ class LookupServiceTest extends ReposiliteIntegrationTest {
             return null;
         }).when(context.res).setStatus(anyInt());
 
-        FutureUtils.submit(SERVICE, future -> {
+        FutureUtils.submit(reposilite, SERVICE, future -> {
             return future.complete(lookupService.serveProxied(context).getValue().get());
         }).get();
 
@@ -100,7 +102,7 @@ class LookupServiceTest extends ReposiliteIntegrationTest {
             return null;
         }).when(context.res).setStatus(anyInt());
 
-        FutureUtils.submit(SERVICE, future -> {
+        FutureUtils.submit(reposilite, SERVICE, future -> {
             return future.complete(lookupService.serveProxied(context).getValue().get());
         }).get();
     }
