@@ -52,7 +52,7 @@ public final class DeployController implements Handler {
 
     @Override
     public void handle(Context context) {
-        Reposilite.getLogger().info(context.req.getRequestURI() + " DEPLOY");
+        Reposilite.getLogger().info("DEPLOY " + context.req.getRequestURI() + " from " + context.req.getRemoteAddr());
 
         deploy(context)
             .onError(error -> ErrorUtils.error(context, HttpStatus.SC_UNAUTHORIZED, error));
@@ -80,6 +80,8 @@ public final class DeployController implements Handler {
         try {
             FileUtils.forceMkdirParent(file);
             Files.copy(Objects.requireNonNull(context.req.getInputStream()), file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+
+            Reposilite.getLogger().info("DEPLOY " + authResult.getValue().getAlias() + " successfully deployed " + file + " from " + context.req.getRemoteAddr());
             return Result.ok(context.result("Success"));
         } catch (IOException e) {
             reposilite.throwException(context.req.getRequestURI(), e);

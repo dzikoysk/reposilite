@@ -43,6 +43,7 @@ public final class CliController implements Consumer<WsHandler> {
             Result<Session, String> auth = authenticator.auth(ctx.header("Sec-WebSocket-Protocol"));
 
             if (!auth.isDefined() || !auth.getValue().isManager()) {
+                Reposilite.getLogger().info("CLI Unauthorized CLI access request from " + ctx.session.getRemoteAddress());
                 ctx.send("Unauthorized connection request");
                 ctx.session.disconnect();
                 return;
@@ -50,6 +51,7 @@ public final class CliController implements Consumer<WsHandler> {
 
             wsHandler.onClose(context -> ReposiliteWriter.getConsumers().remove(context));
             ReposiliteWriter.getConsumers().put(ctx, ctx::send);
+            Reposilite.getLogger().info("CLI " + auth.getValue().getAlias() + " accessed CLI from " + ctx.session.getRemoteAddress());
 
             for (String message : ReposiliteWriter.getCache()) {
                 ctx.send(message);

@@ -18,6 +18,7 @@ package org.panda_lang.reposilite.auth;
 
 import io.javalin.http.Context;
 import org.jetbrains.annotations.Nullable;
+import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.config.Configuration;
 import org.panda_lang.reposilite.repository.Repository;
 import org.panda_lang.reposilite.repository.RepositoryService;
@@ -103,6 +104,7 @@ public final class Authenticator {
             return Result.error("Unauthorized access attempt");
         }
 
+        Reposilite.getLogger().info("AUTH " + session.getToken().getAlias() + " accessed " + uri);
         return authResult;
     }
 
@@ -147,7 +149,6 @@ public final class Authenticator {
         }
 
         boolean manager = configuration.getManagers().contains(token.getAlias());
-
         return Result.ok(new Session(repositoryService, token, manager));
     }
 

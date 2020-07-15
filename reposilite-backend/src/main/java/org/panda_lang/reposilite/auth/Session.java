@@ -72,6 +72,10 @@ public final class Session {
         return Collections.emptyList();
     }
 
+    public String getAlias() {
+        return getToken().getAlias();
+    }
+
     public Token getToken() {
         return token;
     }

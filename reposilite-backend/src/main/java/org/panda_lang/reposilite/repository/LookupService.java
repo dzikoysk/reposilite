@@ -141,7 +141,7 @@ public final class LookupService {
             }
 
             // success
-            Reposilite.getLogger().info("Mime: " + mimeType + "; size: " + file.length() + "; file: " + file.getPath());
+            Reposilite.getLogger().info("RESOLVED " + file.getPath() + "; mime: " + mimeType + "; size: " + file.length());
             return Result.ok(context);
         } catch (Exception exception) {
             reposilite.throwException(context.req.getRequestURI(), exception);
