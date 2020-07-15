@@ -29,10 +29,10 @@ public class FrontendController implements RepositoryController {
     }
 
     @Override
-    public Context handleContext(Context ctx) {
-        ctx.res.setCharacterEncoding("utf-8");
+    public Context handleContext(Context context) {
+        context.res.setCharacterEncoding("utf-8");
 
-        return ctx
+        return context
                 .header("Content-Type", "application/javascript")
                 .result(reposilite.getFrontend().getApp());
     }

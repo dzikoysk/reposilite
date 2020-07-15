@@ -35,7 +35,7 @@ public final class LookupController implements Handler {
 
     @Override
     public void handle(Context context) {
-        Reposilite.getLogger().info("LOOKUP | " + context.req.getRequestURI() + " from " + context.req.getRemoteAddr());
+        Reposilite.getLogger().info("LOOKUP " + context.req.getRequestURI() + " from " + context.req.getRemoteAddr());
 
         Result<Context, String> lookupResponse = lookupService
                 .serveLocal(context)
