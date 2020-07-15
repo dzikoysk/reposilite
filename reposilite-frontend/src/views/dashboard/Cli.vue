@@ -35,7 +35,7 @@ export default {
   created () {
     let origin =
       process.env.NODE_ENV === 'production'
-        ? window.location.origin + '{{REPOSILITE.BASE_PATH}}'
+        ? window.location.origin + '{{REPOSILITE.VUE_BASE_PATH}}'
         : 'http://localhost:80'
 
     if (origin.startsWith('https')) {
@@ -44,6 +44,10 @@ export default {
 
     if (origin.startsWith('http')) {
       origin = origin.replace('http', 'ws')
+    }
+
+    if (origin.endsWith('/')) {
+      origin.substring(1)
     }
 
     const convert = new Convert()
