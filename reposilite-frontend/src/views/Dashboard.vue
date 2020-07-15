@@ -86,6 +86,7 @@ export default {
           this.list()
         })
         .catch(err => {
+          console.log(err.response)
           this.$notify({
             group: 'login',
             type: 'error',
