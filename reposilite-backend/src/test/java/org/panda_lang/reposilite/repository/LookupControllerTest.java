@@ -18,7 +18,6 @@ package org.panda_lang.reposilite.repository;
 
 import com.google.api.client.http.HttpResponse;
 import org.apache.http.HttpStatus;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.panda_lang.reposilite.Reposilite;
@@ -42,24 +41,24 @@ class LookupControllerTest extends ReposiliteIntegrationTest {
     }
 
     @Test
-    void shouldReturn404AndFrontendWithUnsupportedRequestMessage() throws IOException {
-        assert404WithMessage(get("/"), "Unsupported request");
+    void shouldReturn200AndFrontendWithUnsupportedRequestMessage() throws IOException {
+        assertResponseWithMessage(get("/"), HttpStatus.SC_OK, "Unsupported request");
     }
 
     @Test
-    void shouldReturn404AndFrontendWithRepositoryNotFoundMessage() throws IOException {
+    void shouldReturn200AndFrontendWithRepositoryNotFoundMessage() throws IOException {
         super.reposilite.getConfiguration().setRewritePathsEnabled(false);
-        assert404WithMessage(get("/invalid_repository/groupId/artifactId"), "Repository invalid_repository not found");
+        assertResponseWithMessage(get("/invalid_repository/groupId/artifactId"), HttpStatus.SC_OK, "Repository invalid_repository not found");
     }
 
     @Test
-    void shouldReturn404AndFrontendWithMissingArtifactIdentifier() throws IOException {
-        assert404WithMessage(get("/releases/groupId"), "Missing artifact identifier");
+    void shouldReturn200AndFrontendWithMissingArtifactIdentifier() throws IOException {
+        assertResponseWithMessage(get("/releases/groupId"), HttpStatus.SC_OK, "Missing artifact identifier");
     }
 
     @Test
-    void shouldReturn404AndFrontendWithMissingArtifactPathMessage() throws IOException {
-        assert404WithMessage(get("/releases/groupId/artifactId"), "Artifact groupId/artifactId not found");
+    void shouldReturn404AndFrontendWithProxiedRepositoriesAreNotEnabledMessage() throws IOException {
+        assertResponseWithMessage(get("/releases/groupId/artifactId"), HttpStatus.SC_NOT_FOUND, "Artifact artifactId not found");
     }
 
     @Test
@@ -78,7 +77,11 @@ class LookupControllerTest extends ReposiliteIntegrationTest {
 
     @Test
     void shouldReturn404AndFrontendWithLatestVersionNotFound() throws IOException {
-        assert404WithMessage(get("/releases/org/panda-lang/reposilite-test/reposilite-test-1.0.0.jar/latest"), "Latest version not found");
+        assertResponseWithMessage(
+                get("/releases/org/panda-lang/reposilite-test/reposilite-test-1.0.0.jar/latest"),
+                HttpStatus.SC_NOT_FOUND,
+                "Latest version not found"
+        );
     }
 
     @Test
@@ -90,7 +93,11 @@ class LookupControllerTest extends ReposiliteIntegrationTest {
 
     @Test
     void shouldReturn404AndArtifactNotFoundMessage() throws IOException {
-        assert404WithMessage(super.get("/releases/org/panda-lang/reposilite-test/1.0.0/artifactId"), "Artifact org/panda-lang/reposilite-test/1.0.0/artifactId not found");
+        assertResponseWithMessage(
+                super.get("/releases/org/panda-lang/reposilite-test/1.0.0/artifactId"),
+                HttpStatus.SC_NOT_FOUND,
+                "Artifact artifactId not found"
+        );
     }
 
     @Test
@@ -111,11 +118,12 @@ class LookupControllerTest extends ReposiliteIntegrationTest {
     }
 
     @Test
-    void shouldReturn404WithUnauthorizedMessage() throws IOException {
-        assert404WithMessage(super.get("/private/a/b"), "Unauthorized request");
+    void shouldReturn200WithUnauthorizedMessage() throws IOException {
+        assertResponseWithMessage(super.get("/private/a/b"), HttpStatus.SC_OK, "Unauthorized request");
     }
 
     @Test
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     void shouldReturn200AndProxiedFile() throws Exception {
         String proxyPort = String.valueOf(Integer.parseInt(PORT) + 1);
         super.reposilite.getConfiguration().setProxied(Collections.singletonList("http://localhost:" + proxyPort));
@@ -143,8 +151,8 @@ class LookupControllerTest extends ReposiliteIntegrationTest {
         }
     }
 
-    static void assert404WithMessage(HttpResponse response, String message) throws IOException {
-        assertEquals(HttpStatus.SC_NOT_FOUND, response.getStatusCode());
+    static void assertResponseWithMessage(HttpResponse response, int status, String message) throws IOException {
+        assertEquals(status, response.getStatusCode());
         String content = response.parseAsString();
         System.out.println(content);
         assertTrue(content.contains("REPOSILITE_MESSAGE = '" + message + "'"));

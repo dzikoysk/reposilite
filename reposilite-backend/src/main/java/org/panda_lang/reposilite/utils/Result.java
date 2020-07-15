@@ -35,6 +35,10 @@ public final class Result<V, E>  {
         return value != null ? Result.ok(function.apply(value)) : Result.error(error);
     }
 
+    public <R> Result<V, R> mapError(Function<E, R> function) {
+        return isDefined() ? Result.ok(value) : Result.error(function.apply(error));
+    }
+
     public Result<V, E> orElse(Function<E, Result<V, E>> orElse) {
         return isDefined() ? this : orElse.apply(error);
     }

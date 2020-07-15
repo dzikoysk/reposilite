@@ -30,7 +30,7 @@ class FutureUtilsTest {
 
     @Test
     void submit() throws ExecutionException, InterruptedException {
-        assertEquals("result", FutureUtils.submit(EXECUTOR_SERVICE, completableFuture -> completableFuture.complete("result")).get());
+        assertEquals("result", FutureUtils.submit(null, EXECUTOR_SERVICE, completableFuture -> completableFuture.complete("result")).get());
     }
 
 }

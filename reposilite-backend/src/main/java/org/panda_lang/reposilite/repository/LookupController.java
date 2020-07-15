@@ -20,6 +20,7 @@ import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.Reposilite;
+import org.panda_lang.reposilite.api.ErrorDto;
 import org.panda_lang.reposilite.frontend.FrontendService;
 import org.panda_lang.reposilite.utils.Result;
 
@@ -36,21 +37,28 @@ public final class LookupController implements Handler {
     @Override
     public void handle(Context context) {
         Reposilite.getLogger().info("LOOKUP " + context.req.getRequestURI() + " from " + context.req.getRemoteAddr());
+        Result<Context, ErrorDto> lookupResponse = lookupService.serveLocal(context);
 
-        Result<Context, String> lookupResponse = lookupService
-                .serveLocal(context)
-                .orElse(localError -> lookupService.serveProxied(context)
-                        .map(context::result)
-                        .orElse(proxiedError -> Result.error(localError)));
+        if (isProxied(lookupResponse)) {
+            if (lookupService.hasProxiedRepositories()) {
+                lookupResponse = lookupResponse.orElse(localError -> lookupService.serveProxied(context).map(context::result));
+            }
+
+            if (isProxied(lookupResponse)) {
+                lookupResponse = lookupResponse.mapError(proxiedError -> new ErrorDto(HttpStatus.SC_NOT_FOUND, proxiedError.getMessage()));
+            }
+        }
 
         lookupResponse.onError(error -> {
-            Reposilite.getLogger().debug("error=" + error + "; uri=" + context.req.getRequestURI());
-
             context.res.setCharacterEncoding("UTF-8");
-            context.status(HttpStatus.SC_NOT_FOUND)
+            context.status(error.getStatus())
                     .contentType("text/html")
-                    .result(frontend.forMessage(error));
+                    .result(frontend.forMessage(error.getMessage()));
         });
+    }
+
+    private boolean isProxied(Result<Context, ErrorDto> lookupResponse) {
+        return lookupResponse.containsError() && lookupResponse.getError().getStatus() == HttpStatus.SC_USE_PROXY;
     }
 
 }
