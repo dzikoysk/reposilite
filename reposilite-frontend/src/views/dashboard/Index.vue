@@ -56,7 +56,7 @@ export default {
   },
   methods: {
     redirect () {
-      let path = this.auth.path.replace('\\', '/')
+      let path = this.auth.path.replaceAll('\\', '/')
 
       if (path.startsWith('*')) {
         path = path.replace('*', '/' + this.auth.repositories[0])
