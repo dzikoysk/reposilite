@@ -57,6 +57,7 @@ public abstract class ReposiliteIntegrationTest {
 
     protected Reposilite reposilite(String port, File workingDirectory, String... args) throws IOException {
         FileUtils.copyDirectory(new File("src/test/workspace/repositories"), new File(workingDirectory, "repositories"));
+        System.setProperty("tinylog.writerFile.file", new File(workingDirectory, "log.txt").getAbsolutePath());
         System.setProperty("reposilite.port", port);
         properties.forEach(System::setProperty);
 
@@ -67,6 +68,7 @@ public abstract class ReposiliteIntegrationTest {
             ))).orElseThrow(() -> new RuntimeException("Invalid test parameters"));
         }
         finally {
+            System.clearProperty("tinylog.writerFile.file");
             System.clearProperty("reposilite.port");
             properties.forEach((key, value) -> System.clearProperty(key));
         }

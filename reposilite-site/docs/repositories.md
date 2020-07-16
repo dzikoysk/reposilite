@@ -14,10 +14,15 @@ You can also define a new one just adding it in the configuration:
 
 ```yaml
 repositories:
-  - "releases" # primary repository (declared as first)
+  - "releases" # (primary) - declared as first
   - "snapshots"
   - "custom_repository"
+  - ".private" # (hidden) - requires authorization to browse
 ```
+
+## Private repositories
+To hide repository from public view, prefix its name with `.` symbol *(the dot will be removed from name)*.
+Hidden repository can be accessed (indexed and modified) only using a proper [access token](authorization#access-token).
 
 ## Rewrite paths
 Let's say, we have artifact `groupId/artifactId` located in the `releases` repository with some builds.
@@ -25,7 +30,7 @@ Maven will access this file using the standard path qualifier built on top of da
 
 * [localhost:80/releases/groupId/artifactId](http://localhost:80/releases/groupId/artifactId)
 
-We can force Reposilite to support requests without primary repository name using this option:
+We can force Reposilite to support requests without **primary** repository name using this option:
 
 ```properties
 rewritePathsEnabled: true

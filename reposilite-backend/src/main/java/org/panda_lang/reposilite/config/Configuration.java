@@ -38,7 +38,6 @@ public final class Configuration implements Serializable {
     // Access properties
     private boolean deployEnabled = true;
     private boolean rewritePathsEnabled = true;
-    private boolean fullAuthEnabled = false;
     private boolean indexingEnabled = true;
     private List<String> managers = Collections.emptyList();
 
@@ -70,9 +69,6 @@ public final class Configuration implements Serializable {
 
     public void setRewritePathsEnabled(boolean rewritePathsEnabled) { this.rewritePathsEnabled = rewritePathsEnabled; }
     public boolean isRewritePathsEnabled() { return rewritePathsEnabled; }
-
-    public void setFullAuthEnabled(boolean fullAuthEnabled) { this.fullAuthEnabled = fullAuthEnabled; }
-    public boolean isFullAuthEnabled() { return fullAuthEnabled; }
 
     public void setIndexingEnabled(boolean indexingEnabled) { this.indexingEnabled = indexingEnabled; }
     public boolean isIndexingEnabled() { return indexingEnabled; }
