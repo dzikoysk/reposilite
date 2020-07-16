@@ -33,6 +33,28 @@ $ java -Xmx32M -jar reposilite.jar
 
 If you will not define the memory size, Reposilite will probably use around *~40MB to ~250MB*.
 
+### Structure
+Reposilite stores data in current [working directory](#working-directory),
+by default it is a place where you've launched it.
+
+```shell-session
+user@host ~/workspace: java -jar reposilite.jar
+```
+
+```bash
+~workspace/
++--repositories/        The root directory for all declared repositories
+   +--/releases         Default repository for releases
+   +--/snapshots        Default repository for snapshot releases
++--log.txt              Mirror of log from CLI
++--reposilite.jar       Application file
++--reposilite.yml       Configuration file
++--stats.yml            Data file containing stats records
++--tokens.yml           Data file containing stored tokens
+```
+
+To separate data files and configuration from application, use [parameters](#parameters).
+
 ### Preview
 If Reposilite has been launched properly,
 you should be able to see its frontend located under the default http://localhost:80 address:
@@ -58,7 +80,7 @@ $ java -jar reposilite.jar --working-directory=/app/data
 You may also declare custom location of configuration file using the `--config` *(alias: `-cfg`)* parameter:
 
 ```console
-$ java reposilite.jar --config=/etc/reposilite/reposilite.yml
+$ java -jar reposilite.jar --config=/etc/reposilite/reposilite.yml
 ```
 
 You don't have to create this file manually,
@@ -69,3 +91,11 @@ but make sure that you've granted `write` permission.
 Using the system properties, 
 you can also override values from the loaded configuration.
 See [configuration#system-properties](./configuration#system-properties) to learn more.
+
+### Log file
+Reposilite uses [tinylog](https://tinylog.org) as logging library. 
+To change location of log file, use [system properties](https://tinylog.org/v2/configuration/#configuration):
+
+```console
+$ java -Dtinylog.writerFile.file=/etc/reposilite/log.txt -jar reposilite.jar
+```

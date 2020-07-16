@@ -3,9 +3,11 @@
 # ~~~~~~~~~~~~~~~~~~~~~~ #
 
 # Hostname
-hostname: ''
-# Port
+hostname: ""
+# Port to bind
 port: 80
+# Custom base path
+basePath: "/"
 # Debug
 debugEnabled: false
 
@@ -15,6 +17,9 @@ repositories:
   - "releases"
   - "snapshots"
   - ".private"
+# Allow to omit name of the main repository in request
+# e.g. /org/panda-lang/reposilite will be redirected to /releases/org/panda-lang/reposilite
+rewritePathsEnabled: true
 
 # List of proxied repositories.
 # Reposilite will search for an artifact in remote repositories listed below, if the requested artifact was not found.
@@ -27,23 +32,14 @@ proxied:
 
 # Accept deployment connections
 deployEnabled: true
-# Allow to omit name of the main repository in request
-# e.g. /org/panda-lang/reposilite will be redirected to /releases/org/panda-lang/reposilite
-rewritePathsEnabled: true
-# Require authentication of all requests (download, head requests)
-# This option should be set to 'false', if you are hosting public repository
-fullAuthEnabled: false
-# If you don't want to display content of your repositories,
-# you can just disable indexing
-indexingEnabled: true
 # List of management tokens used by dashboard to access extra options.
 # (By default, people are allowed to use standard dashboard options related to the associated path)
 managers:
   - admin
 
 # Title displayed by frontend
-title: "Your company"
+title: "#onlypanda"
 # Description displayed by frontend
-description: "Definitely not Reposilite"
+description: "Public Maven repository hosted through the Reposilite"
 # Accent color used by frontend
 accentColor: "#2fd4aa"

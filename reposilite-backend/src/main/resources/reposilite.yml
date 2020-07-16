@@ -29,19 +29,14 @@ proxied: []
 
 # Accept deployment connections
 deployEnabled: true
-# Require authentication of all requests (download, head requests)
-# If you don't want to display content of your repositories,
-# you can just disable indexing.
-# This option should be set to 'false', if you are hosting public repository
-fullAuthEnabled: false
 # List of management tokens used by dashboard to access extra options.
 # (By default, people are allowed to use standard dashboard options related to the associated path)
 managers: []
 # - root
 
 # Title displayed by frontend
-title: "#onlypanda"
+title: "Your company"
 # Description displayed by frontend
-description: "Public Maven repository hosted through the Reposilite"
+description: "Definitely not Reposilite"
 # Accent color used by frontend
 accentColor: "#2fd4aa"

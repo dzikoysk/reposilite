@@ -134,15 +134,3 @@ If you've configured everything correctly, you should be able to deploy artifact
 ```bash
 $ mvn deploy
 ```
-
-## Full authentication
-If you are not hosting public repository,
-you might be looking for an option that disabled indexing of your artifacts:
-
-```properties
-# Require authentication of all requests (download, head requests)
-# If you don't want to display content of your repositories,
-# you can just disable indexing.
-# This option should be set to 'false', if you are hosting public repository
-fullAuthEnabled: false
-```
