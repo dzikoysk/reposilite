@@ -49,7 +49,7 @@ public final class IndexApiController implements RepositoryController {
 
     @Override
     public Context handleContext(Context context) {
-        Reposilite.getLogger().info("API " + context.req.getRequestURI() + " from " + context.req.getRemoteAddr());
+        Reposilite.getLogger().info("API " + context.req.getRequestURI() + " from " + context.ip());
         String uri = RepositoryUtils.normalizeUri(configuration, repositoryService, StringUtils.replaceFirst(context.req.getRequestURI(), "/api", ""));
 
         if (StringUtils.isEmpty(uri) || "/".equals(uri)) {
