@@ -72,10 +72,10 @@ public final class LookupService {
     }
 
     protected Result<Context, ErrorDto> serveLocal(Context context) {
-        Result<Pair<String[], Repository>, String> result = this.authenticator.authDefaultRepository(context, context.req.getRequestURI());
+        Result<Pair<String[], Repository>, ErrorDto> result = this.authenticator.authDefaultRepository(context, context.req.getRequestURI());
 
         if (result.containsError()) {
-            return Result.error(new ErrorDto(HttpStatus.SC_UNAUTHORIZED, result.getError()));
+            return Result.error(result.getError());
         }
 
         String[] path = result.getValue().getKey();

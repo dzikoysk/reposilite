@@ -118,8 +118,8 @@ class LookupControllerTest extends ReposiliteIntegrationTest {
     }
 
     @Test
-    void shouldReturn200WithUnauthorizedMessage() throws IOException {
-        assertResponseWithMessage(super.get("/private/a/b"), HttpStatus.SC_OK, "Unauthorized request");
+    void shouldReturn401WithUnauthorizedMessage() throws IOException {
+        assertResponseWithMessage(super.get("/private/a/b"), HttpStatus.SC_UNAUTHORIZED, "Unauthorized request");
     }
 
     @Test

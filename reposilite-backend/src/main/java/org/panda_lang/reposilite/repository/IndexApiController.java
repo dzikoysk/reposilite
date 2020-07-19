@@ -21,6 +21,7 @@ import io.vavr.collection.Stream;
 import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.RepositoryController;
+import org.panda_lang.reposilite.api.ErrorDto;
 import org.panda_lang.reposilite.api.ErrorUtils;
 import org.panda_lang.reposilite.auth.Authenticator;
 import org.panda_lang.reposilite.config.Configuration;
@@ -56,7 +57,7 @@ public final class IndexApiController implements RepositoryController {
             return context.json(listRepositories(context));
         }
 
-        Result<Pair<String[], Repository>, String> result = authenticator.authRepository(context, uri);
+        Result<Pair<String[], Repository>, ErrorDto> result = authenticator.authRepository(context, uri);
 
         if (result.containsError()) {
             return ErrorUtils.error(context, HttpStatus.SC_UNAUTHORIZED, "Unauthorized request");
