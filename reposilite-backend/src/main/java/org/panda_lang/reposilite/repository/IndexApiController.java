@@ -60,7 +60,7 @@ public final class IndexApiController implements RepositoryController {
         Result<Pair<String[], Repository>, ErrorDto> result = authenticator.authRepository(context, uri);
 
         if (result.containsError()) {
-            return ErrorUtils.error(context, HttpStatus.SC_UNAUTHORIZED, "Unauthorized request");
+            return ErrorUtils.error(context, result.getError().getStatus(), result.getError().getMessage());
         }
 
         File requestedFile = repositoryService.getFile(uri);
