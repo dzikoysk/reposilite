@@ -75,7 +75,7 @@ public final class LookupService {
         Result<Pair<String[], Repository>, String> result = this.authenticator.authDefaultRepository(context, context.req.getRequestURI());
 
         if (result.containsError()) {
-            return Result.error(new ErrorDto(HttpStatus.SC_OK, result.getError()));
+            return Result.error(new ErrorDto(HttpStatus.SC_UNAUTHORIZED, result.getError()));
         }
 
         String[] path = result.getValue().getKey();
