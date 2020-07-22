@@ -41,7 +41,9 @@
                       v-if="hasFiles()"
                       v-for="file in response.files"
                       :key="file.name"
+                      prefix=""
                       :file="file"
+                      :auth="{}"
                   )
                   h1(v-if="isEmpty()") Empty directory
                   h1(v-if="!hasFiles()").font-bold {{ response.message }}

@@ -16,17 +16,18 @@
 
 <template lang="pug">
     .file-preview.w-full
-        a(v-if="file.type === 'file'" :href="url()" target="_blank" )
+        a(v-if="file.type === 'file'" v-on:click="download" target="_blank" ).cursor-pointer
             FileEntryContent(:file="file")
         router-link(v-else :to="uri()")
             FileEntryContent(:file="file")
 </template>
 
 <script>
+import download from 'downloadjs'
 import FileEntryContent from './FileEntryContent'
 
 export default {
-  props: ['file'],
+  props: ['prefix', 'auth', 'file'],
   components: {
     FileEntryContent
   },
@@ -37,11 +38,22 @@ export default {
     this.qualifier = this.getQualifier()
   },
   methods: {
-    uri () {
-      return this.normalize(this.$route.fullPath) + this.file.name
+    download () {
+      const fileUrl = this.normalize(this.url() + this.qualifier.substring(1)) + this.file.name
+
+      this.$http.get(fileUrl, {
+        responseType: 'blob',
+        auth: {
+          username: this.auth.alias,
+          password: this.auth.token
+        }
+      }).then(response => {
+        const content = response.headers['content-type']
+        download(response.data, this.file.name, content)
+      }).catch(err => console.log(err))
     },
-    url () {
-      return this.qualifier + this.file.name
+    uri () {
+      return this.prefix + this.qualifier + this.file.name
     }
   }
 }
