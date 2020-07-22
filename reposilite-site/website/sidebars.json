@@ -1,6 +1,6 @@
 {
   "docs": {
-    "Introduction": ["about", "install", "docker"],
+    "Introduction": ["about", "install", "docker", "cdn"],
     "Settings": [
       "configuration",
       "repositories",
