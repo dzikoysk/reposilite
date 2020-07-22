@@ -9,6 +9,7 @@
       "customization",
       "faq"
     ],
+    "Dashboard": ["file-viewer", "cli", "deploy"],
     "Developers": ["indexing"]
   }
 }
