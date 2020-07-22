@@ -24,6 +24,8 @@
         FileEntry(
             v-for="file in files"
             :key="file.name"
+            prefix="/dashboard"
+            :auth="auth"
             :file="file"
         )
         h1(v-if="files && files.length === 0").px-2 Directory is empty

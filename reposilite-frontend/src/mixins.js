@@ -29,7 +29,7 @@ export default {
     },
     normalize (uri) {
       if (uri === undefined) {
-        return '/'
+        return '{{REPOSILITE.BASE_PATH}}'
       }
 
       if (!uri.startsWith('/')) {
