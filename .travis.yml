@@ -11,7 +11,7 @@ script:
   - sudo /usr/local/maven/bin/mvn test jacoco:report
 
 after_success:
-  - bash <(curl -s https://codecov.io/bash) || (sleep 5 && bash <(curl -s https://codecov.io/bash)) || (sleep 5 && bash <(curl -s https://codecov.io/bash)) || (sleep 5 && bash <(curl -s https://codecov.io/bash)) || (sleep 5 && bash <(curl -s https://codecov.io/bash))
+  - bash <(curl -s https://codecov.io/bash) || (sleep 5 && bash <(curl -s https://codecov.io/bash))
   - sudo /usr/local/maven/bin/mvn coveralls:report
 
 notifications:
