@@ -83,10 +83,9 @@ export default {
           this.auth.repositories = response.data.repositories
           this.auth.manager = response.data.manager
           sessionStorage.auth = JSON.stringify(this.auth)
-          this.list()
         })
         .catch(err => {
-          console.log(err.response)
+          console.log(err)
           this.$notify({
             group: 'login',
             type: 'error',
