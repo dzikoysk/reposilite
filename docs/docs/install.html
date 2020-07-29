@@ -1,0 +1,132 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Installation · Reposilite</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="You can download standalone version of Reposilite from GitHub releases page:"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Installation · Reposilite"/><meta property="og:type" content="website"/><meta property="og:url" content="https://reposilite.com/"/><meta property="og:description" content="You can download standalone version of Reposilite from GitHub releases page:"/><meta property="og:image" content="https://reposilite.com/img/undraw_online.svg"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://reposilite.com/img/undraw_tweetstorm.svg"/><link rel="shortcut icon" href="/img/favicon.png"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/idea.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script src="/js/scrollSpy.js"></script><link rel="stylesheet" href="/css/main.css"/><script src="/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/"><h2 class="headerTitle">Reposilite</h2></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class="siteNavGroupActive"><a href="/docs/about" target="_self">Guide</a></li><li class=""><a href="/help" target="_self">Help</a></li><li class=""><a href="https://panda-lang.org/support" target="_self">Support</a></li><li class=""><a href="https://github.com/dzikoysk/reposilite" target="_self">GitHub</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="docsNavContainer" id="docsNav"><nav class="toc"><div class="toggleNav"><section class="navWrapper wrapper"><div class="navBreadcrumb wrapper"><div class="navToggle" id="navToggler"><div class="hamburger-menu"><div class="line1"></div><div class="line2"></div><div class="line3"></div></div></div><h2><i>›</i><span>Introduction</span></h2><div class="tocToggler" id="tocToggler"><i class="icon-toc"></i></div></div><div class="navGroups"><div class="navGroup"><h3 class="navGroupCategoryTitle">Introduction</h3><ul class=""><li class="navListItem"><a class="navItem" href="/docs/about">About</a></li><li class="navListItem navListItemActive"><a class="navItem" href="/docs/install">Installation</a></li><li class="navListItem"><a class="navItem" href="/docs/docker">Docker</a></li><li class="navListItem"><a class="navItem" href="/docs/cdn">CDN</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Settings</h3><ul class=""><li class="navListItem"><a class="navItem" href="/docs/configuration">Configuration</a></li><li class="navListItem"><a class="navItem" href="/docs/repositories">Repositories</a></li><li class="navListItem"><a class="navItem" href="/docs/authorization">Authorization</a></li><li class="navListItem"><a class="navItem" href="/docs/proxy">Proxy</a></li><li class="navListItem"><a class="navItem" href="/docs/customization">Customization</a></li><li class="navListItem"><a class="navItem" href="/docs/faq">FAQ</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Dashboard</h3><ul class=""><li class="navListItem"><a class="navItem" href="/docs/file-viewer">File Viewer</a></li><li class="navListItem"><a class="navItem" href="/docs/cli">CLI</a></li><li class="navListItem"><a class="navItem" href="/docs/deploy">Deploy</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Developers</h3><ul class=""><li class="navListItem"><a class="navItem" href="/docs/indexing">Indexing</a></li></ul></div></div></section></div><script>
+            var coll = document.getElementsByClassName('collapsible');
+            var checkActiveCategory = true;
+            for (var i = 0; i < coll.length; i++) {
+              var links = coll[i].nextElementSibling.getElementsByTagName('*');
+              if (checkActiveCategory){
+                for (var j = 0; j < links.length; j++) {
+                  if (links[j].classList.contains('navListItemActive')){
+                    coll[i].nextElementSibling.classList.toggle('hide');
+                    coll[i].childNodes[1].classList.toggle('rotate');
+                    checkActiveCategory = false;
+                    break;
+                  }
+                }
+              }
+
+              coll[i].addEventListener('click', function() {
+                var arrow = this.childNodes[1];
+                arrow.classList.toggle('rotate');
+                var content = this.nextElementSibling;
+                content.classList.toggle('hide');
+              });
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+              createToggler('#navToggler', '#docsNav', 'docsSliderActive');
+              createToggler('#tocToggler', 'body', 'tocActive');
+
+              var headings = document.querySelector('.toc-headings');
+              headings && headings.addEventListener('click', function(event) {
+                var el = event.target;
+                while(el !== headings){
+                  if (el.tagName === 'A') {
+                    document.body.classList.remove('tocActive');
+                    break;
+                  } else{
+                    el = el.parentNode;
+                  }
+                }
+              }, false);
+
+              function createToggler(togglerSelector, targetSelector, className) {
+                var toggler = document.querySelector(togglerSelector);
+                var target = document.querySelector(targetSelector);
+
+                if (!toggler) {
+                  return;
+                }
+
+                toggler.onclick = function(event) {
+                  event.preventDefault();
+
+                  target.classList.toggle(className);
+                };
+              }
+            });
+        </script></nav></div><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"><h1 id="__docusaurus" class="postHeaderTitle">Installation</h1></header><article><div><span><p>You can download standalone version of Reposilite from GitHub releases page:</p>
+<ul>
+<li><a href="https://github.com/dzikoysk/reposilite/releases">GitHub Downloads</a></li>
+</ul>
+<p>You may also use Docker image available on Docker Hub:</p>
+<ul>
+<li><a href="https://hub.docker.com/r/dzikoysk/reposilite">DockerHub Repository</a></li>
+</ul>
+<h2><a class="anchor" aria-hidden="true" id="requirements"></a><a href="#requirements" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Requirements</h2>
+<ul>
+<li>Java 8+</li>
+<li>RAM 8MB+</li>
+</ul>
+<table>
+<thead>
+<tr><th style="text-align:center">Amount</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td style="text-align:center"><em>8MB</em></td><td>Tiny repository for personal projects</td></tr>
+<tr><td style="text-align:center"><em>16MB</em> - <em>32MB</em></td><td><em>--------------------^------------------</em> + CI + Proxy</td></tr>
+<tr><td style="text-align:center"><em>48MB - 128MB</em></td><td>Tiny public repository <em>(recommended)</em></td></tr>
+<tr><td style="text-align:center"><em>128MB+</em></td><td>Public repository</td></tr>
+</tbody>
+</table>
+<h2><a class="anchor" aria-hidden="true" id="running"></a><a href="#running" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Running</h2>
+<p>To launch Reposilite with defined amount of RAM, use <code>-Xmx</code> parameter, for instance:</p>
+<pre><code class="hljs css language-console"><span class="hljs-meta">$</span><span class="bash"> java -Xmx32M -jar reposilite.jar</span>
+</code></pre>
+<p>If you will not define the memory size, Reposilite will probably use around <em>~40MB to ~250MB</em>.</p>
+<h3><a class="anchor" aria-hidden="true" id="structure"></a><a href="#structure" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Structure</h3>
+<p>Reposilite stores data in current <a href="#working-directory">working directory</a>,
+by default it is a place where you've launched it.</p>
+<pre><code class="hljs css language-shell-session"><span class="hljs-selector-tag">user</span><span class="hljs-keyword">@host</span> ~/<span class="hljs-attribute">workspace:</span> java -jar reposilite.jar
+</code></pre>
+<pre><code class="hljs css language-bash">~workspace/
++--repositories/        The root directory <span class="hljs-keyword">for</span> all declared repositories
+   +--/releases         Default repository <span class="hljs-keyword">for</span> releases
+   +--/snapshots        Default repository <span class="hljs-keyword">for</span> snapshot releases
++--log.txt              Mirror of <span class="hljs-built_in">log</span> from CLI
++--reposilite.jar       Application file
++--reposilite.yml       Configuration file
++--stats.yml            Data file containing stats records
++--tokens.yml           Data file containing stored tokens
+</code></pre>
+<p>To separate data files and configuration from application, use <a href="#parameters">parameters</a>.</p>
+<h3><a class="anchor" aria-hidden="true" id="preview"></a><a href="#preview" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Preview</h3>
+<p>If Reposilite has been launched properly,
+you should be able to see its frontend located under the default <a href="http://localhost:80">http://localhost:80</a> address:</p>
+<p><img src="/img/about-preview.png" alt="Preview"></p>
+<h3><a class="anchor" aria-hidden="true" id="interactive-cli"></a><a href="#interactive-cli" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Interactive CLI</h3>
+<p>Reposilite exposes interactive console in terminal.
+Type <code>help</code> and learn more.</p>
+<h2><a class="anchor" aria-hidden="true" id="parameters"></a><a href="#parameters" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Parameters</h2>
+<p>Some of the properties have to be set through the command-line parameters.</p>
+<h3><a class="anchor" aria-hidden="true" id="working-directory"></a><a href="#working-directory" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Working directory</h3>
+<p>To declare custom working directory for Reposilite instance,
+you should use <code>--working-directory</code> <em>(alias: <code>-wd</code>)</em> parameter:</p>
+<pre><code class="hljs css language-console"><span class="hljs-meta">$</span><span class="bash"> java -jar reposilite.jar --working-directory=/app/data</span>
+</code></pre>
+<h3><a class="anchor" aria-hidden="true" id="configuration-file"></a><a href="#configuration-file" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Configuration file</h3>
+<p>You may also declare custom location of configuration file using the <code>--config</code> <em>(alias: <code>-cfg</code>)</em> parameter:</p>
+<pre><code class="hljs css language-console"><span class="hljs-meta">$</span><span class="bash"> java -jar reposilite.jar --config=/etc/reposilite/reposilite.yml</span>
+</code></pre>
+<p>You don't have to create this file manually,
+Reposilite will generate it during the first startup,
+but make sure that you've granted <code>write</code> permission.</p>
+<h3><a class="anchor" aria-hidden="true" id="properties"></a><a href="#properties" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Properties</h3>
+<p>Using the system properties,
+you can also override values from the loaded configuration.
+See <a href="./configuration#system-properties">configuration#system-properties</a> to learn more.</p>
+<h3><a class="anchor" aria-hidden="true" id="log-file"></a><a href="#log-file" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Log file</h3>
+<p>Reposilite uses <a href="https://tinylog.org">tinylog</a> as logging library.
+To change location of log file, use <a href="https://tinylog.org/v2/configuration/#configuration">system properties</a>:</p>
+<pre><code class="hljs css language-console"><span class="hljs-meta">$</span><span class="bash"> java -Dtinylog.writerFile.file=/etc/reposilite/log.txt -jar reposilite.jar</span>
+</code></pre>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/docs/about"><span class="arrow-prev">← </span><span>About</span></a><a class="docs-next button" href="/docs/docker"><span>Docker</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#requirements">Requirements</a></li><li><a href="#running">Running</a><ul class="toc-headings"><li><a href="#structure">Structure</a></li><li><a href="#preview">Preview</a></li><li><a href="#interactive-cli">Interactive CLI</a></li></ul></li><li><a href="#parameters">Parameters</a><ul class="toc-headings"><li><a href="#working-directory">Working directory</a></li><li><a href="#configuration-file">Configuration file</a></li><li><a href="#properties">Properties</a></li><li><a href="#log-file">Log file</a></li></ul></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap center"><div><h5>Guide</h5><a href="/docs/en/about">Getting Started</a><a href="/docs/en/install">Installation</a><a href="/docs/en/indexing">Developer API</a></div><div><h5>Community</h5><a href="https://github.com/dzikoysk/reposilite/issues" target="_blank">Report Issue</a><a href="https://github.com/dzikoysk/reposilite" target="_blank">Star Reposilite</a><a href="https://twitter.com/dzikoysk" target="_blank">Follow @dzikoysk</a></div></section><section class="copyright">Copyright © 2020 dzikoysk with ❤ panda-lang</section></footer></div><script>window.twttr=(function(d,s, id){var js,fjs=d.getElementsByTagName(s)[0],t=window.twttr||{};if(d.getElementById(id))return t;js=d.createElement(s);js.id=id;js.src='https://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js, fjs);t._e = [];t.ready = function(f) {t._e.push(f);};return t;}(document, 'script', 'twitter-wjs'));</script></body></html>
