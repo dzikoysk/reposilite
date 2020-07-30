@@ -61,36 +61,32 @@ export default {
 
       for (const vueFile of this.files) {
         const auth = this.$parent.auth
-        const reader = new FileReader()
 
-        reader.addEventListener('load', event => {
-          this.$http
-            .put(this.url() + artifact + vueFile.name, event.target.result, {
-              auth: {
-                username: auth.alias,
-                password: auth.token
-              }
+        this.$http
+          .put(this.url() + artifact + vueFile.name, vueFile.file, {
+            auth: {
+              username: auth.alias,
+              password: auth.token
+            }
+          })
+          .then(() =>
+            this.$notify({
+              group: 'upload',
+              type: 'success',
+              title:
+                'File ' + vueFile.name + ' has been uploaded successfully'
             })
-            .then(() =>
-              this.$notify({
-                group: 'upload',
-                type: 'success',
-                title:
-                  'File ' + vueFile.name + ' has been uploaded successfully'
-              })
-            )
-            .catch(err => {
-              this.error = err
-              this.$notify({
-                group: 'upload',
-                type: 'error',
-                title: 'Cannot upload file ' + vueFile.name,
-                text: err.status + ': ' + err.message
-              })
+          )
+          .catch(err => {
+            this.error = err
+            this.$notify({
+              group: 'upload',
+              type: 'error',
+              title: 'Cannot upload file ' + vueFile.name,
+              text: err.status + ': ' + err.message
             })
-        })
+          })
 
-        reader.readAsBinaryString(vueFile.file)
         event.preventDefault()
       }
     }
