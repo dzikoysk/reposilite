@@ -55,7 +55,7 @@ export default {
   },
   methods: {
     upload (event) {
-      const artifact = `${this.repository}/${this.groupId.replaceAll('.', '/')}/${
+      const artifact = `${this.repository}/${this.groupId.replace(/\./g, '/')}/${
         this.artifactId
       }/${this.version}/`
 
