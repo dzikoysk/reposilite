@@ -51,10 +51,11 @@ export default {
     }
 
     const convert = new Convert()
-    this.connection = new WebSocket(origin + '/api/cli', [
-      this.$parent.auth.alias + ':' + this.$parent.auth.token
-    ])
+    this.connection = new WebSocket(origin + '/api/cli')
 
+    this.connection.onopen = () => {
+      this.connection.send(`Authorization:${this.$parent.auth.alias}:${this.$parent.auth.token}`)
+    }
     this.connection.onmessage = event => {
       this.log.push(convert.toHtml(event.data))
       this.$nextTick(() => this.scrollToEnd())
