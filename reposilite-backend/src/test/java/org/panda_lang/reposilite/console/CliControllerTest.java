@@ -18,13 +18,13 @@ package org.panda_lang.reposilite.console;
 
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.WebSocketListener;
-import org.eclipse.jetty.websocket.client.ClientUpgradeRequest;
 import org.eclipse.jetty.websocket.client.WebSocketClient;
 import org.junit.jupiter.api.Test;
 import org.panda_lang.reposilite.ReposiliteIntegrationTest;
 import org.panda_lang.reposilite.auth.Token;
 import org.panda_lang.utilities.commons.collection.Pair;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.Collections;
 import java.util.function.BiConsumer;
@@ -78,15 +78,20 @@ class CliControllerTest extends ReposiliteIntegrationTest {
         WebSocketClient webSocketClient = new WebSocketClient();
         webSocketClient.start();
 
-        ClientUpgradeRequest clientUpgradeRequest = new ClientUpgradeRequest();
-        clientUpgradeRequest.setSubProtocols(username + ":" + password);
-
         return webSocketClient.connect(new WebSocketListener() {
             private Session session;
 
             @Override
             public void onWebSocketConnect(Session session) {
                 this.session = session;
+
+                String authCredentials = String.format("Authorization:%s:%s", username, password);
+
+                try {
+                    session.getRemote().sendString(authCredentials);
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
             }
 
             @Override
@@ -106,7 +111,7 @@ class CliControllerTest extends ReposiliteIntegrationTest {
             @Override
             public void onWebSocketClose(int statusCode, String reason) { }
 
-        }, new URI("ws://localhost:" + PORT + "/api/cli"), clientUpgradeRequest).get();
+        }, new URI("ws://localhost:" + PORT + "/api/cli")).get();
     }
 
 }
