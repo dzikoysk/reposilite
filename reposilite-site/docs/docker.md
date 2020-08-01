@@ -13,8 +13,8 @@ Reposilite defines two types of builds:
 First of all, you have to pull the image from [DockerHub](https://hub.docker.com/r/dzikoysk/reposilite):
 
 ```shell-session
-// released builds, e.g. 2.7.3
-$ docker pull dzikoysk/reposilite:2.7.3
+// released builds, e.g. 2.7.4
+$ docker pull dzikoysk/reposilite:2.7.4
 
 // nightly builds
 $ docker pull dzikoysk/reposilite:nightly
