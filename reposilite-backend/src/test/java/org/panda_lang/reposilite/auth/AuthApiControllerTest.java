@@ -37,7 +37,7 @@ final class AuthApiControllerTest extends ReposiliteIntegrationTest {
     @BeforeEach
     void generateToken() {
         reposilite.getTokenService().createToken("/", "admin", "secret");
-        reposilite.getConfiguration().setManagers(Collections.singletonList("admin"));
+        reposilite.getConfiguration().managers = Collections.singletonList("admin");
     }
 
     @Test

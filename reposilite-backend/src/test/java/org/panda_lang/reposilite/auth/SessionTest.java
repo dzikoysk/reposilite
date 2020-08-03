@@ -42,7 +42,7 @@ public class SessionTest {
     @Test
     void hasPermission() {
         Configuration configuration = new Configuration();
-        configuration.setRepositories(Collections.emptyList());
+        configuration.repositories = Collections.emptyList();
         Session standardSession = new Session(REPOSITORY_SERVICE, new Token("/a/b/c", "alias", "token"), false);
 
         assertTrue(standardSession.hasPermission("/a/b/c"));

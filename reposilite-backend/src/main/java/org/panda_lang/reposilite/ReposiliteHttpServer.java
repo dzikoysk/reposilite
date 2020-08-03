@@ -59,7 +59,7 @@ public final class ReposiliteHttpServer {
                 .post("/*", deployController)
                 .before(ctx -> reposilite.getStatsService().record(ctx.req.getRequestURI()))
                 .exception(Exception.class, (exception, ctx) -> reposilite.throwException(ctx.req.getRequestURI(), exception))
-                .start(configuration.getHostname(), configuration.getPort());
+                .start(configuration.hostname, configuration.port);
 
         onStart.run();
     }
@@ -69,7 +69,7 @@ public final class ReposiliteHttpServer {
         config.showJavalinBanner = false;
         config.enableCorsForAllOrigins();
 
-        if (configuration.isDebugEnabled()) {
+        if (configuration.debugEnabled) {
             Reposilite.getLogger().info("Debug enabled");
             config.enableDevLogging();
         }

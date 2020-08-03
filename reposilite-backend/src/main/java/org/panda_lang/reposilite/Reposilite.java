@@ -108,7 +108,7 @@ public final class Reposilite {
         repositoryService.load(configuration);
         getLogger().info("");
 
-        getLogger().info("Binding server at " + configuration.getHostname() + "::" + configuration.getPort());
+        getLogger().info("Binding server at " + configuration.hostname + "::" + configuration.port);
         this.uptime = System.currentTimeMillis();
         CountDownLatch latch = new CountDownLatch(1);
 
@@ -146,7 +146,7 @@ public final class Reposilite {
         }
 
         this.alive.set(false);
-        getLogger().info("Shutting down " + configuration.getHostname()  + "::" + configuration.getPort() + " ...");
+        getLogger().info("Shutting down " + configuration.hostname  + "::" + configuration.port + " ...");
 
         statsService.save();
         reactiveHttpServer.stop();

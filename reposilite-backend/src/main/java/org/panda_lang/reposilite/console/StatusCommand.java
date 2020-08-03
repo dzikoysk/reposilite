@@ -57,7 +57,10 @@ final class StatusCommand implements ReposiliteCommand {
     }
 
     private String getVersion() {
-        String latest = IOUtils.getURLContent(ReposiliteConstants.REMOTE_VERSION);
+        String latest = IOUtils
+                .fetchContent(ReposiliteConstants.REMOTE_VERSION)
+                .orElseGet(ioException -> ReposiliteConstants.REMOTE_VERSION + " is unavailable: " + ioException.getMessage());
+
         return (ReposiliteConstants.VERSION.equals(latest) ? Effect.GREEN : Effect.RED_UNDERLINED) + latest + Effect.RESET;
     }
 

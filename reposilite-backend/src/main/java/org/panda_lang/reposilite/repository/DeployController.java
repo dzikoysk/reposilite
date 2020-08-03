@@ -59,7 +59,7 @@ public final class DeployController implements Handler {
     }
 
     public Result<Context, String> deploy(Context context) {
-        if (!configuration.isDeployEnabled()) {
+        if (!configuration.deployEnabled) {
             return Result.error("Artifact deployment is disabled");
         }
 

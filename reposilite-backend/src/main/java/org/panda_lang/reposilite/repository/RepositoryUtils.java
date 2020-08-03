@@ -49,7 +49,7 @@ public final class RepositoryUtils {
             return StringUtils.EMPTY;
         }
 
-        if (!configuration.isRewritePathsEnabled()) {
+        if (!configuration.rewritePathsEnabled) {
             return uri;
         }
 

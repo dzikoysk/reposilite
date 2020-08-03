@@ -67,8 +67,8 @@ public final class LookupService {
         this.authenticator = reposilite.getAuthenticator();
         this.metadataService = reposilite.getMetadataService();
         this.repositoryService = reposilite.getRepositoryService();
-        this.requestFactory = configuration.getProxied().isEmpty() ? null : new NetHttpTransport().createRequestFactory();
-        this.proxiedExecutor = configuration.getProxied().isEmpty() ? null : Executors.newCachedThreadPool();
+        this.requestFactory = configuration.proxied.isEmpty() ? null : new NetHttpTransport().createRequestFactory();
+        this.proxiedExecutor = configuration.proxied.isEmpty() ? null : Executors.newCachedThreadPool();
     }
 
     protected Result<Context, ErrorDto> serveLocal(Context context) {
@@ -174,7 +174,7 @@ public final class LookupService {
         }
 
         return Result.ok(FutureUtils.submit(reposilite, proxiedExecutor, future -> {
-            for (String proxied : configuration.getProxied()) {
+            for (String proxied : configuration.proxied) {
                 try {
                     HttpRequest remoteRequest = requestFactory.buildGetRequest(new GenericUrl(proxied + uri));
                     remoteRequest.setThrowExceptionOnExecuteError(false);

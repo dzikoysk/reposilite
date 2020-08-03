@@ -59,7 +59,7 @@ class RepositoryUtilsTest {
     @Test
     void shouldNotRewritePaths() {
         Configuration configuration = new Configuration();
-        configuration.setRewritePathsEnabled(false);
+        configuration.rewritePathsEnabled = false;
 
         assertEquals("without/repo/", RepositoryUtils.normalizeUri(configuration, REPOSITORY_SERVICE, "without/repo/"));
     }

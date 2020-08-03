@@ -47,7 +47,7 @@ class CliControllerTest extends ReposiliteIntegrationTest {
     @Test
     void shouldAuthorizeAndSendMessages() throws Exception {
         Pair<String, Token> result = super.reposilite.getTokenService().createToken("/", "admin");
-        super.reposilite.getConfiguration().setManagers(Collections.singletonList("admin"));
+        super.reposilite.getConfiguration().managers = Collections.singletonList("admin");
         StringBuilder output = new StringBuilder();
 
         Session session = connect("admin", result.getKey(), (s, message) -> {

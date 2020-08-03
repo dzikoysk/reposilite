@@ -47,7 +47,7 @@ public final class RepositoryService {
             Reposilite.getLogger().info("Using an existing repository directory");
         }
 
-        for (String repositoryName : configuration.getRepositories()) {
+        for (String repositoryName : configuration.repositories) {
             boolean hidden = repositoryName.startsWith(".");
             boolean primary = primaryRepository == null;
 
