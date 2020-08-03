@@ -43,11 +43,11 @@ class ConfigurationLoaderTest {
             System.setProperty("reposilite.repositories", " ");              // Skip empty
 
             Configuration configuration = ConfigurationLoader.load("", workingDirectory.getAbsolutePath());
-            assertEquals("localhost", configuration.getHostname());
-            assertEquals(8080, configuration.getPort());
-            assertTrue(configuration.isDebugEnabled());
-            assertEquals(Arrays.asList("http://a.com", "b.com"), configuration.getProxied());
-            assertFalse(configuration.getRepositories().isEmpty());
+            assertEquals("localhost", configuration.hostname);
+            assertEquals(8080, configuration.port);
+            assertTrue(configuration.debugEnabled);
+            assertEquals(Arrays.asList("http://a.com", "b.com"), configuration.proxied);
+            assertFalse(configuration.repositories.isEmpty());
         }
         finally {
             // Clean up the system properties to avoid loading of these values by the further tests
@@ -59,7 +59,7 @@ class ConfigurationLoaderTest {
         }
 
         Configuration configuration = ConfigurationLoader.load("", workingDirectory.getAbsolutePath());
-        assertEquals(80, configuration.getPort());
+        assertEquals(80, configuration.port);
     }
 
     @Test
@@ -69,7 +69,7 @@ class ConfigurationLoaderTest {
         FileUtils.overrideFile(customConfig, FileUtils.getContentOfFile(customConfig).replace("port: 80", "port: 7"));
 
         Configuration configuration = ConfigurationLoader.load(customConfig.getAbsolutePath(), workingDirectory.getAbsolutePath());
-        assertEquals(7, configuration.getPort());
+        assertEquals(7, configuration.port);
     }
 
     @Test

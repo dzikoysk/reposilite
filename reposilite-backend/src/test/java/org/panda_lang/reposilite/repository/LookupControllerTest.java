@@ -47,7 +47,7 @@ class LookupControllerTest extends ReposiliteIntegrationTest {
 
     @Test
     void shouldReturn200AndFrontendWithRepositoryNotFoundMessage() throws IOException {
-        super.reposilite.getConfiguration().setRewritePathsEnabled(false);
+        super.reposilite.getConfiguration().rewritePathsEnabled = false;
         assertResponseWithMessage(get("/invalid_repository/groupId/artifactId"), HttpStatus.SC_OK, "Repository invalid_repository not found");
     }
 
@@ -126,7 +126,7 @@ class LookupControllerTest extends ReposiliteIntegrationTest {
     @SuppressWarnings("ResultOfMethodCallIgnored")
     void shouldReturn200AndProxiedFile() throws Exception {
         String proxyPort = String.valueOf(Integer.parseInt(PORT) + 1);
-        super.reposilite.getConfiguration().setProxied(Collections.singletonList("http://localhost:" + proxyPort));
+        super.reposilite.getConfiguration().proxied = Collections.singletonList("http://localhost:" + proxyPort);
 
         try {
             Reposilite proxiedReposilite = super.reposilite(proxyPort, proxiedWorkingDirectory);

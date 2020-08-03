@@ -150,7 +150,7 @@ public final class Authenticator {
             return Result.error("Invalid authorization credentials");
         }
 
-        boolean manager = configuration.getManagers().contains(token.getAlias());
+        boolean manager = configuration.managers.contains(token.getAlias());
         return Result.ok(new Session(repositoryService, token, manager));
     }
 

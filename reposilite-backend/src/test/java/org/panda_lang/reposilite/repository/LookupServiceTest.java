@@ -34,7 +34,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -57,7 +56,7 @@ class LookupServiceTest extends ReposiliteIntegrationTest {
     @BeforeEach
     @SuppressWarnings("ResultOfMethodCallIgnored")
     void configure() throws IOException {
-        super.reposilite.getConfiguration().setProxied(Collections.singletonList(url("").toString()));
+        super.reposilite.getConfiguration().proxied = Collections.singletonList(url("").toString());
         this.lookupService = new LookupService(super.reposilite);
 
         File proxiedFile = new File(super.workingDirectory, "/repositories/releases/proxiedGroup/proxiedArtifact/proxied.pom");
@@ -88,7 +87,7 @@ class LookupServiceTest extends ReposiliteIntegrationTest {
             return future.complete(lookupService.serveProxied(context).getValue().get());
         }).get();
 
-        String result = IOUtils.toString(context.resultStream(), StandardCharsets.UTF_8);
+        String result = IOUtils.convertStreamToString(context.resultStream()).getValue();
         assertNotNull(result);
         assertTrue(result.contains("REPOSILITE_MESSAGE = 'Artifact not found in local and remote repository'"));
     }

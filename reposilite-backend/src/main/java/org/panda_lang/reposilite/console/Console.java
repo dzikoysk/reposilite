@@ -16,13 +16,13 @@
 
 package org.panda_lang.reposilite.console;
 
-import io.vavr.control.Try;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.auth.KeygenCommand;
 import org.panda_lang.reposilite.auth.RevokeCommand;
 import org.panda_lang.reposilite.auth.TokenListCommand;
 import org.panda_lang.reposilite.metadata.PurgeCommand;
 import org.panda_lang.reposilite.stats.StatsCommand;
+import org.panda_lang.utilities.commons.function.Option;
 
 import java.io.InputStream;
 
@@ -76,8 +76,8 @@ public class Console {
                     return new StatsCommand(-1).execute(reposilite);
                 }
 
-                return Try.ofSupplier(() -> new StatsCommand(Long.parseLong(elements[1])))
-                        .getOrElse(new StatsCommand(elements[1]))
+                return Option.of(new StatsCommand(Long.parseLong(elements[1])))
+                        .orElseGet(new StatsCommand(elements[1]))
                         .execute(reposilite);
             case "keygen":
                 return new KeygenCommand(elements[1], elements[2]).execute(reposilite);

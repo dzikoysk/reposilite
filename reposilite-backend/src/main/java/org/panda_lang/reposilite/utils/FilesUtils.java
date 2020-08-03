@@ -18,11 +18,11 @@ package org.panda_lang.reposilite.utils;
 
 import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
-import io.vavr.collection.Stream;
 import org.apache.commons.io.FileUtils;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.utilities.commons.IOUtils;
 import org.panda_lang.utilities.commons.StringUtils;
+import org.panda_lang.utilities.commons.function.PandaStream;
 
 import java.io.Closeable;
 import java.io.File;
@@ -72,9 +72,9 @@ public final class FilesUtils {
     }
 
     public static List<String> toNames(File[] files) {
-        return Stream.of(files)
+        return PandaStream.of(files)
                 .map(File::getName)
-                .toJavaList();
+                .toList();
     }
 
     public static String getExtension(String name) {
@@ -83,7 +83,9 @@ public final class FilesUtils {
     }
 
     public static String getResource(String name) {
-        return IOUtils.toString(Reposilite.class.getResourceAsStream(name), StandardCharsets.UTF_8);
+        return IOUtils.convertStreamToString(Reposilite.class.getResourceAsStream(name)).orElseThrow(ioException -> {
+            throw new RuntimeException("Cannot load resource " + name, ioException);
+        });
     }
 
 }

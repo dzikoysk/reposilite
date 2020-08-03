@@ -17,7 +17,6 @@
 package org.panda_lang.reposilite.repository;
 
 import io.javalin.http.Context;
-import io.vavr.collection.Stream;
 import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.RepositoryController;
@@ -31,6 +30,7 @@ import org.panda_lang.reposilite.utils.FilesUtils;
 import org.panda_lang.reposilite.utils.Result;
 import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.collection.Pair;
+import org.panda_lang.utilities.commons.function.PandaStream;
 
 import java.io.File;
 import java.util.Optional;
@@ -78,10 +78,10 @@ public final class IndexApiController implements RepositoryController {
             return context.json(FileDto.of(requestedFile));
         }
 
-        return context.json(new FileListDto(Stream.of(FilesUtils.listFiles(requestedFile))
+        return context.json(new FileListDto(PandaStream.of(FilesUtils.listFiles(requestedFile))
                 .map(FileDto::of)
                 .transform(stream -> MetadataUtils.toSorted(stream, FileDto::getName, FileDto::isDirectory))
-                .toJavaList()));
+                .toList()));
     }
 
     private FileListDto listRepositories(Context context) {

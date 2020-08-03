@@ -44,8 +44,8 @@ public final class FrontendService {
 
     public static FrontendService load(Configuration configuration) {
         MessageFormatter formatter = new MessageFormatter()
-                .register("{{REPOSILITE.BASE_PATH}}", configuration.getBasePath())
-                .register("{{REPOSILITE.VUE_BASE_PATH}}", configuration.getBasePath().equals("/") ? "" : configuration.getBasePath());
+                .register("{{REPOSILITE.BASE_PATH}}", configuration.basePath)
+                .register("{{REPOSILITE.VUE_BASE_PATH}}", configuration.basePath.equals("/") ? "" : configuration.basePath);
 
         return new FrontendService(
                 () -> formatter.format(FilesUtils.getResource("/frontend/index.html")),

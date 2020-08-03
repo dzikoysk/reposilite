@@ -16,10 +16,11 @@
 
 package org.panda_lang.reposilite.metadata;
 
-import io.vavr.collection.Stream;
+import org.panda_lang.panda.Panda;
 import org.panda_lang.reposilite.utils.FilesUtils;
 import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.collection.Pair;
+import org.panda_lang.utilities.commons.function.PandaStream;
 import org.panda_lang.utilities.commons.text.ContentJoiner;
 
 import java.io.File;
@@ -30,6 +31,7 @@ import java.util.Arrays;
 import java.util.Locale;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 public final class MetadataUtils {
 
@@ -40,43 +42,43 @@ public final class MetadataUtils {
     private MetadataUtils() { }
 
     public static File[] toSortedBuilds(File artifactDirectory) {
-        return Stream.of(FilesUtils.listFiles(artifactDirectory))
+        return PandaStream.of(FilesUtils.listFiles(artifactDirectory))
                 .filter(File::isFile)
                 .filter(file -> file.getName().endsWith(".pom"))
-                .transform(stream -> toSorted(stream, File::getName, File::isDirectory))
-                .toJavaArray(File[]::new);
+                .stream(stream -> toSorted(stream, File::getName, File::isDirectory))
+                .toArray(File[]::new);
     }
 
     public static File[] toFiles(File directory) {
-        return Stream.of(FilesUtils.listFiles(directory))
+        return PandaStream.of(FilesUtils.listFiles(directory))
                 .filter(File::isFile)
                 .transform(stream -> toSorted(stream, File::getName, File::isDirectory))
-                .toJavaArray(File[]::new);
+                .toArray(File[]::new);
     }
 
     public static File[] toSortedVersions(File artifactDirectory) {
-        return Stream.of(FilesUtils.listFiles(artifactDirectory))
+        return PandaStream.of(FilesUtils.listFiles(artifactDirectory))
                 .filter(File::isDirectory)
                 .transform(stream -> toSorted(stream, File::getName, File::isDirectory))
-                .toJavaArray(File[]::new);
+                .toArray(File[]::new);
     }
 
     protected static String[] toSortedIdentifiers(String artifact, String version, File[] builds) {
-        return Stream.of(builds)
+        return PandaStream.of(builds)
                 .map(build -> toIdentifier(artifact, version, build))
                 .filterNot(StringUtils::isEmpty)
                 .distinct()
                 .transform(stream -> toSorted(stream, Function.identity(), identifier -> true))
-                .toJavaArray(String[]::new);
+                .toArray(String[]::new);
     }
 
     protected static File[] toBuildFiles(File artifactDirectory, String identifier) {
-        return Stream.of(FilesUtils.listFiles(artifactDirectory))
+        return PandaStream.of(FilesUtils.listFiles(artifactDirectory))
                 .filter(file -> file.getName().contains(identifier + ".") || file.getName().contains(identifier + "-"))
                 .filterNot(file -> file.getName().endsWith(".md5"))
                 .filterNot(file -> file.getName().endsWith(".sha1"))
                 .transform(stream -> toSorted(stream, File::getName, File::isDirectory))
-                .toJavaArray(File[]::new);
+                .toArray(File[]::new);
     }
 
     public static <T> Stream<T> toSorted(Stream<T> stream, Function<T, String> mapper, Predicate<T> isDirectory) {

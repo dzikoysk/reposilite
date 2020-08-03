@@ -30,9 +30,9 @@ public final class ConfigurationApiController implements RepositoryController {
     @Override
     public Context handleContext(Context ctx) {
         return ctx.json(new ConfigurationDto(
-                configuration.getTitle(),
-                configuration.getDescription(),
-                configuration.getAccentColor())
+                configuration.title,
+                configuration.description,
+                configuration.accentColor)
         );
     }
 

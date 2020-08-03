@@ -32,11 +32,8 @@ import org.panda_lang.utilities.commons.IOUtils;
 import org.panda_lang.utilities.commons.StringUtils;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 class DeployControllerTest extends ReposiliteIntegrationTest {
 
@@ -49,7 +46,7 @@ class DeployControllerTest extends ReposiliteIntegrationTest {
 
     @Test
     void shouldReturn401AndArtifactDeploymentIsDisabledMessage() throws IOException, AuthenticationException {
-        super.reposilite.getConfiguration().setDeployEnabled(false);
+        super.reposilite.getConfiguration().deployEnabled = false;
         shouldReturn401AndGivenMessage("/releases/groupId/artifactId/file", "authtest", "secure", "content", "Artifact deployment is disabled");
     }
 
@@ -62,7 +59,7 @@ class DeployControllerTest extends ReposiliteIntegrationTest {
         HttpResponse response = put(uri, username, password, content);
         assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getStatusLine().getStatusCode());
 
-        String result = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
+        String result = IOUtils.convertStreamToString(response.getEntity().getContent()).getValue();
         assertNotNull(result);
         assertTrue(result.contains(message));
     }
@@ -81,7 +78,7 @@ class DeployControllerTest extends ReposiliteIntegrationTest {
         HttpResponse deployResponse = put(uri, username, password, content);
         assertEquals(HttpStatus.SC_OK, deployResponse.getStatusLine().getStatusCode());
 
-        String result = IOUtils.toString(deployResponse.getEntity().getContent(), StandardCharsets.UTF_8);
+        String result = IOUtils.convertStreamToString(deployResponse.getEntity().getContent()).getValue();
         assertNotNull(result);
         assertEquals("Success", result);
 
