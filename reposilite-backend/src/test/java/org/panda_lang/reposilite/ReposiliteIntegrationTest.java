@@ -46,6 +46,7 @@ public abstract class ReposiliteIntegrationTest {
 
     @BeforeEach
     protected void before() throws Exception {
+        System.setProperty("tinylog.writerFile.file", "target/log.txt");
         ReposiliteWriter.clear();
         reposilite = reposilite(workingDirectory);
         reposilite.launch();
