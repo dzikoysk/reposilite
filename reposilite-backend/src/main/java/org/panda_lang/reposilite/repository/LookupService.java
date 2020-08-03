@@ -72,9 +72,16 @@ public final class LookupService {
     }
 
     protected Result<Context, ErrorDto> serveLocal(Context context) {
-        Result<Pair<String[], Repository>, ErrorDto> result = this.authenticator.authDefaultRepository(context, context.req.getRequestURI());
+        String uri = context.req.getRequestURI();
+        Result<Pair<String[], Repository>, ErrorDto> result = this.authenticator.authDefaultRepository(context, uri);
 
         if (result.containsError()) {
+            // Maven requests maven-metadata.xml file during deploy for snapshot releases without specifying credentials
+            // https://github.com/dzikoysk/reposilite/issues/184
+            if (uri.contains("-SNAPSHOT") && uri.endsWith("maven-metadata.xml")) {
+                return Result.error(new ErrorDto(HttpStatus.SC_NOT_FOUND, result.getError().getMessage()));
+            }
+
             return Result.error(result.getError());
         }
 
