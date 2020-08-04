@@ -102,7 +102,7 @@ public final class LookupService {
             return metadataService
                     .generateMetadata(repository, requestPath)
                     .map(res -> context.contentType("text/xml").result(res))
-                    .mapError(error -> new ErrorDto(HttpStatus.SC_NOT_FOUND, error));
+                    .mapError(error -> new ErrorDto(HttpStatus.SC_USE_PROXY, error));
         }
 
         // resolve requests for latest version of artifact
