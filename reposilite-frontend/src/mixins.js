@@ -43,16 +43,21 @@ export default {
       return uri
     },
     parentPath () {
+      const elements = this.splitQualifier()
+      elements.pop()
+
+      const path = this.normalize(elements.join('/'))
+      return path.length === 0 ? '/' : path
+    },
+    splitQualifier () {
       const qualifier = this.getQualifier()
       const elements = qualifier.split('/')
-      elements.pop()
 
       if (qualifier.endsWith('/')) {
         elements.pop()
       }
 
-      const path = this.normalize(elements.join('/'))
-      return path.length === 0 ? '/' : path
+      return elements
     },
     getQualifier () {
       return this.normalize(this.$route.params.qualifier)
