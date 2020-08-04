@@ -76,7 +76,7 @@ public class Console {
                     return new StatsCommand(-1).execute(reposilite);
                 }
 
-                return Option.of(new StatsCommand(Long.parseLong(elements[1])))
+                return Option.attempt(NumberFormatException.class, () -> new StatsCommand(Long.parseLong(elements[1])))
                         .orElseGet(new StatsCommand(elements[1]))
                         .execute(reposilite);
             case "keygen":
