@@ -75,7 +75,7 @@ public final class Reposilite {
         this.executor = new ReposiliteExecutor(this);
         this.tokenService = new TokenService(workingDirectory);
         this.statsService = new StatsService(workingDirectory);
-        this.repositoryService = new RepositoryService(workingDirectory);
+        this.repositoryService = new RepositoryService(workingDirectory, configuration.diskQuota);
         this.metadataService = new MetadataService(this);
 
         this.authenticator = new Authenticator(configuration, repositoryService, tokenService);

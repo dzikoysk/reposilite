@@ -35,7 +35,7 @@ class RepositoryUtilsTest {
 
     @BeforeEach
     void prepare() {
-        REPOSITORY_SERVICE = new RepositoryService(temp.getAbsolutePath());
+        REPOSITORY_SERVICE = new RepositoryService(temp.getAbsolutePath(), "0");
         REPOSITORY_SERVICE.load(CONFIGURATION);
     }
 

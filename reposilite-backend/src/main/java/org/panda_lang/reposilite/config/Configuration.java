@@ -42,6 +42,9 @@ public final class Configuration implements Serializable {
 
     // Repository properties
     @Description("")
+    @Description("# Control the maximum amount of data assigned to Reposilite instance")
+    @Description("# Supported formats: 90%, 500MB, 10GB")
+    public String diskQuota = "85%";
     @Description("# List of supported Maven repositories.")
     @Description("# First directory on the list is the main (primary) repository.")
     @Description("# Tu mark repository as private, prefix its name with a dot, e.g. \".private\"")
@@ -53,8 +56,11 @@ public final class Configuration implements Serializable {
     // Proxy
     @Description("")
     @Description("# List of proxied repositories.")
-    @Description("# Reposilite will search for an artifact in remote repositories listed below, if the requested artifact was not found.")
+    @Description("# Reposilite will search for an artifact in remote repositories listed below,")
+    @Description("# if the requested artifact was not found.")
     public List<String> proxied = Collections.emptyList();
+    @Description("# Reposilite can store proxied artifacts locally to reduce response time and improve stability")
+    public Boolean storeProxied = true;
 
     // Access properties
     @Description("")

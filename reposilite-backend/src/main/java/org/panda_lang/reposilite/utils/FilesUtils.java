@@ -32,10 +32,16 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public final class FilesUtils {
 
     private static final File[] EMPTY = new File[0];
+
+    private final static long KB_FACTOR = 1024;
+    private final static long MB_FACTOR = 1024 * KB_FACTOR;
+    private final static long GB_FACTOR = 1024 * MB_FACTOR;
 
     private FilesUtils() {}
 
@@ -49,6 +55,28 @@ public final class FilesUtils {
 
         FileUtils.writeStringToFile(md5FileFile.toFile(), Files.hash(md5FileFile.toFile(), Hashing.md5()).toString(), StandardCharsets.UTF_8);
         FileUtils.writeStringToFile(sha1FileFile.toFile(), Files.hash(sha1FileFile.toFile(), Hashing.sha1()).toString(), StandardCharsets.UTF_8);
+    }
+
+    public static long displaySizeToBytesCount(String displaySize) {
+        Pattern pattern = Pattern.compile("([0-9]+)(([KMG])B)");
+        Matcher match = pattern.matcher(displaySize);
+
+        if (!match.matches() || match.groupCount() != 3) {
+            return Long.parseLong(displaySize);
+        }
+
+        long ret = Long.parseLong(match.group(1));
+
+        switch (match.group(2).toUpperCase()) {
+            case "GB":
+                return ret * GB_FACTOR;
+            case "MB":
+                return ret * MB_FACTOR;
+            case "KB":
+                return ret * KB_FACTOR;
+        }
+
+        throw new NumberFormatException("Wrong format");
     }
 
     public static void copyResource(String resourcePath, File destination) throws IOException {

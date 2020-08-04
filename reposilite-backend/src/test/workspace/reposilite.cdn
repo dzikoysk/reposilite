@@ -11,6 +11,9 @@ basePath: /
 # Debug
 debugEnabled: false
 
+# Control the maximum amount of data assigned to Reposilite instance
+# Supported formats: 90%, 500MB, 10GB
+diskQuota: 85%
 # List of supported Maven repositories.
 # First directory on the list is the main (primary) repository.
 # Tu mark repository as private, prefix its name with a dot, e.g. ".private"
@@ -24,13 +27,16 @@ repositories {
 rewritePathsEnabled: true
 
 # List of proxied repositories.
-# Reposilite will search for an artifact in remote repositories listed below, if the requested artifact was not found.
+# Reposilite will search for an artifact in remote repositories listed below,
+# if the requested artifact was not found.
 proxied {
   https://repo.panda-lang.org
   https://repo.insertt.dev
   https://jcenter.bintray.com
   https://repo.maven.apache.org/maven2
 }
+# Reposilite can store proxied artifacts locally to reduce response time and improve stability
+storeProxied: true
 
 # Accept deployment connections
 deployEnabled: true
