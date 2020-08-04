@@ -69,7 +69,9 @@ public final class DeployController implements Handler {
             return Result.error(authResult.getError());
         }
 
-        if (!repositoryService.getDiskQuota().hasUsableSpace()) {
+        DiskQuota diskQuota = repositoryService.getDiskQuota();
+
+        if (!diskQuota.hasUsableSpace()) {
             return Result.error("Out of disk space");
         }
 
@@ -84,7 +86,7 @@ public final class DeployController implements Handler {
         try {
             FileUtils.forceMkdirParent(file);
             Files.copy(Objects.requireNonNull(context.req.getInputStream()), file.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            repositoryService.getDiskQuota().allocate(file.length());
+            diskQuota.allocate(file.length());
 
             Reposilite.getLogger().info("DEPLOY " + authResult.getValue().getAlias() + " successfully deployed " + file + " from " + context.req.getRemoteAddr());
             return Result.ok(context.result("Success"));

@@ -22,6 +22,7 @@ import com.google.api.client.http.HttpRequestFactory;
 import com.google.api.client.http.HttpResponse;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import io.javalin.http.Context;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.Reposilite;
@@ -193,7 +194,23 @@ public final class LookupService {
                     }
 
                     if (!context.method().equals("HEAD")) {
-                        IOUtils.copy(remoteResponse.getContent(), context.res.getOutputStream());
+                        if (configuration.storeProxied) {
+                            DiskQuota diskQuota = repositoryService.getDiskQuota();
+
+                            if (diskQuota.hasUsableSpace()) {
+                                File proxiedFile = repositoryService.getFile(uri);
+                                FileUtils.copyInputStreamToFile(remoteResponse.getContent(), proxiedFile);
+                                FileUtils.copyFile(proxiedFile, context.res.getOutputStream());
+                                diskQuota.allocate(proxiedFile.length());
+                                Reposilite.getLogger().info("Stored proxied " + uri);
+                            }
+                            else {
+                                Reposilite.getLogger().warn("Out of disk space - Cannot store proxied artifact " + uri);
+                            }
+                        }
+                        else {
+                            IOUtils.copy(remoteResponse.getContent(), context.res.getOutputStream());
+                        }
                     }
 
                     return future.complete(context
