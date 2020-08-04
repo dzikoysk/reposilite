@@ -29,10 +29,15 @@
                   .flex.justify-between.py-4
                       h1.text-xl
                           | Index of
-                          span.ml-2 {{ this.qualifier }}
-                          router-link(:to="'/dashboard' + this.qualifier")
-                              span.ml-3(:style="'color: ' + this.configuration.accentColor")
-                                  i.fas.fa-feather-alt
+                          span.ml-2
+                              span(v-for="(element, idx) in splitQualifier()")
+                                  router-link(
+                                  :to="splitQualifier().slice(0, idx + 1).join('/')"
+                                  ) {{ element }}
+                                  span /
+                              router-link(:to="'/dashboard' + this.qualifier")
+                                  span.ml-3(:style="'color: ' + this.configuration.accentColor")
+                                      i.fas.fa-feather-alt
                       router-link(
                           v-if="this.qualifier != undefined && this.qualifier.length > 1"
                           :to='parentPath()'
