@@ -42,7 +42,7 @@ class HomeSplash extends React.Component {
         <h2 className='projectTitle' style={{ color: 'black', paddingTop: '60px' }}>
           {props.title}
         </h2>
-        <small>{props.tagline}</small>
+        <small>{props.tagline} 📦</small>
       </div>
     )
 

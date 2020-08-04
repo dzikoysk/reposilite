@@ -19,7 +19,8 @@
  }
 header {
   font-size: 1.05em;
-  padding: 5px 0;
+  padding: 5px 27px 13px;
+  border-bottom: 1px solid lightgray;
 }
 .headerTitle, .nav-site a {
   color: black !important;
@@ -40,12 +41,12 @@ header {
   line-height: 1.1em !important;
 }
 #whatis {
-  /* background: #fea49f;*/
+  background: #e8e8e8;
 }
 #whatis div {
   border-radius: 15px;
   padding: 15px 40px 40px 40px;
-  border: 1px solid #1013574f;
+  border: 1px solid lightgrayxxx;
   /* background-color: #f59d98; */
   margin: 20px 40px;
 }
