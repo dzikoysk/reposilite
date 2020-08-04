@@ -71,7 +71,7 @@ public final class Reposilite {
         this.workingDirectory = new File(workingDirectory);
         this.testEnvEnabled = testEnv;
 
-        this.configuration = ConfigurationLoader.load(configurationFile, workingDirectory);
+        this.configuration = ConfigurationLoader.tryLoad(configurationFile, workingDirectory);
         this.executor = new ReposiliteExecutor(this);
         this.tokenService = new TokenService(workingDirectory);
         this.statsService = new StatsService(workingDirectory);

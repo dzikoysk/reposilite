@@ -16,84 +16,117 @@
 
 package org.panda_lang.reposilite.config;
 
+import net.dzikoysk.cdn.CDN;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.ReposiliteConstants;
 import org.panda_lang.reposilite.utils.FilesUtils;
-import org.panda_lang.reposilite.utils.YamlUtils;
 import org.panda_lang.utilities.commons.ClassUtils;
 import org.panda_lang.utilities.commons.FileUtils;
 import org.panda_lang.utilities.commons.StringUtils;
 
 import java.io.File;
-import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Map.Entry;
 
 public final class ConfigurationLoader {
 
-    public static Configuration load(String customConfigurationFile, String workingDirectory) {
-        File configurationFile;
-
-        if (StringUtils.isEmpty(customConfigurationFile)) {
-            configurationFile = new File(workingDirectory, ReposiliteConstants.CONFIGURATION_FILE_NAME);
+    public static Configuration tryLoad(String customConfigurationFile, String workingDirectory) {
+        try {
+            return load(customConfigurationFile, workingDirectory);
+        } catch (Exception exception) {
+            throw new RuntimeException("Cannot load configuration", exception);
         }
-        else {
-            configurationFile = new File(customConfigurationFile);
+    }
 
-            if (!FilesUtils.getExtension(configurationFile.getName()).equals("yml")) {
-                throw new IllegalArgumentException("Custom configuration file does not have '.yml' extension");
-            }
+    public static Configuration load(String customConfigurationFile, String workingDirectory) throws Exception {
+        File configurationFile = StringUtils.isEmpty(customConfigurationFile)
+            ? new File(workingDirectory, ReposiliteConstants.CONFIGURATION_FILE_NAME)
+            : new File(customConfigurationFile);
+
+        if (!FilesUtils.getExtension(configurationFile.getName()).equals("cdn")) {
+            throw new IllegalArgumentException("Custom configuration file does not have '.cdn' extension");
         }
 
-        if (!configurationFile.exists()) {
-            Reposilite.getLogger().info("Generating default configuration file.");
+        CDN cdn = CDN.defaultInstance();
 
-            try {
-                FilesUtils.copyResource("/" + ReposiliteConstants.CONFIGURATION_FILE_NAME, configurationFile);
-            } catch (IOException exception) {
-                throw new RuntimeException("Cannot create configuration file, ", exception);
-            }
-        }
-        else {
-            Reposilite.getLogger().info("Using an existing configuration file");
-        }
+        Configuration configuration = configurationFile.exists()
+            ? cdn.parse(Configuration.class, FileUtils.getContentOfFile(configurationFile))
+            : createConfiguration(configurationFile);
 
         Reposilite.getLogger().info("");
 
-        return YamlUtils.forceLoad(configurationFile, Configuration.class, properties -> {
-            for (Entry<String, Object> property : properties.entrySet()) {
-                String custom = System.getProperty("reposilite." + property.getKey());
+        verifyProxied(configuration);
+        FileUtils.overrideFile(configurationFile, cdn.compose(configuration));
+        loadProperties(configuration);
 
-                if (StringUtils.isEmpty(custom)) {
-                    continue;
-                }
+        return configuration;
+    }
 
-                Class<?> type = ClassUtils.getNonPrimitiveClass(property.getValue().getClass());
-                Object customValue;
+    private static Configuration createConfiguration(File configurationFile) throws Exception {
+        File legacyConfiguration = new File(configurationFile.getAbsolutePath().replace(".cdn", ".yml"));
 
-                if (String.class == type) {
-                    customValue = custom;
-                }
-                else if (Integer.class == type) {
-                    customValue = Integer.parseInt(custom);
-                }
-                else if (Boolean.class == type) {
-                    customValue = Boolean.parseBoolean(custom);
-                }
-                else if (Collection.class.isAssignableFrom(type)) {
-                    customValue = Arrays.asList(custom.split(","));
-                }
-                else {
-                    Reposilite.getLogger().info("Unsupported type: " + type + " for " + custom);
-                    continue;
-                }
+        if (!legacyConfiguration.exists()) {
+            Reposilite.getLogger().info("Generating default configuration file.");
+            return new Configuration();
+        }
 
-                property.setValue(customValue);
+        Reposilite.getLogger().info("Legacy configuration file has been found");
+
+        Configuration configuration = CDN.configure()
+                .enableIndentationFormatting()
+                .build()
+                .parse(Configuration.class, FileUtils.getContentOfFile(legacyConfiguration));
+
+        Reposilite.getLogger().info("YAML configuration has been converted to CDN format");
+        FileUtils.delete(legacyConfiguration);
+        return configuration;
+    }
+
+    private static void verifyProxied(Configuration configuration) {
+        for (int index = 0; index < configuration.proxied.size(); index++) {
+            String proxied = configuration.proxied.get(index);
+
+            if (proxied.endsWith("/")) {
+                configuration.proxied.set(index, proxied.substring(0, proxied.length() - 1));
+            }
+        }
+    }
+
+    private static void loadProperties(Configuration configuration) {
+        for (Field declaredField : configuration.getClass().getDeclaredFields()) {
+            String custom = System.getProperty("reposilite." + declaredField.getName());
+
+            if (StringUtils.isEmpty(custom)) {
+                continue;
             }
 
-            return properties;
-        });
+            Class<?> type = ClassUtils.getNonPrimitiveClass(declaredField.getType());
+            Object customValue;
+
+            if (String.class == type) {
+                customValue = custom;
+            }
+            else if (Integer.class == type) {
+                customValue = Integer.parseInt(custom);
+            }
+            else if (Boolean.class == type) {
+                customValue = Boolean.parseBoolean(custom);
+            }
+            else if (Collection.class.isAssignableFrom(type)) {
+                customValue = Arrays.asList(custom.split(","));
+            }
+            else {
+                Reposilite.getLogger().info("Unsupported type: " + type + " for " + custom);
+                continue;
+            }
+
+            try {
+                declaredField.set(configuration, customValue);
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException("Cannot modify configuration value", e);
+            }
+        }
     }
 
 }

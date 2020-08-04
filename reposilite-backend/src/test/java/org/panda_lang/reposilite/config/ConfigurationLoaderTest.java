@@ -16,10 +16,9 @@
 
 package org.panda_lang.reposilite.config;
 
+import net.dzikoysk.cdn.CDN;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.panda_lang.reposilite.ReposiliteConstants;
-import org.panda_lang.reposilite.utils.FilesUtils;
 import org.panda_lang.utilities.commons.FileUtils;
 
 import java.io.File;
@@ -42,7 +41,7 @@ class ConfigurationLoaderTest {
             System.setProperty("reposilite.proxied", "http://a.com,b.com"); // List<String> type
             System.setProperty("reposilite.repositories", " ");              // Skip empty
 
-            Configuration configuration = ConfigurationLoader.load("", workingDirectory.getAbsolutePath());
+            Configuration configuration = ConfigurationLoader.tryLoad("", workingDirectory.getAbsolutePath());
             assertEquals("localhost", configuration.hostname);
             assertEquals(8080, configuration.port);
             assertTrue(configuration.debugEnabled);
@@ -58,26 +57,25 @@ class ConfigurationLoaderTest {
             System.clearProperty("reposilite.repositories");
         }
 
-        Configuration configuration = ConfigurationLoader.load("", workingDirectory.getAbsolutePath());
+        Configuration configuration = ConfigurationLoader.tryLoad("", workingDirectory.getAbsolutePath());
         assertEquals(80, configuration.port);
     }
 
     @Test
     void shouldLoadCustomConfig() throws IOException {
-        File customConfig = new File(workingDirectory, "random.yml");
-        FilesUtils.copyResource("/" + ReposiliteConstants.CONFIGURATION_FILE_NAME, customConfig);
+        File customConfig = new File(workingDirectory, "random.cdn");
+        FileUtils.overrideFile(customConfig, CDN.defaultInstance().compose(new Configuration()));
         FileUtils.overrideFile(customConfig, FileUtils.getContentOfFile(customConfig).replace("port: 80", "port: 7"));
 
-        Configuration configuration = ConfigurationLoader.load(customConfig.getAbsolutePath(), workingDirectory.getAbsolutePath());
+        Configuration configuration = ConfigurationLoader.tryLoad(customConfig.getAbsolutePath(), workingDirectory.getAbsolutePath());
         assertEquals(7, configuration.port);
     }
 
     @Test
     void shouldNotLoadOtherFileTypes() throws IOException {
         File customConfig = new File(workingDirectory, "random.properties");
-        FilesUtils.copyResource("/" + ReposiliteConstants.CONFIGURATION_FILE_NAME, customConfig);
-
-        assertThrows(IllegalArgumentException.class, () -> ConfigurationLoader.load(customConfig.getAbsolutePath(), workingDirectory.getAbsolutePath()));
+        FileUtils.overrideFile(customConfig, CDN.defaultInstance().compose(new Configuration()));
+        assertThrows(RuntimeException.class, () -> ConfigurationLoader.load(customConfig.getAbsolutePath(), workingDirectory.getAbsolutePath()));
     }
 
 }

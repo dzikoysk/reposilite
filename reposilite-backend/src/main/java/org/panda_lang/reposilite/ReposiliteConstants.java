@@ -22,7 +22,7 @@ public final class ReposiliteConstants {
 
     public static final String REMOTE_VERSION = "https://repo.panda-lang.org/org/panda-lang/reposilite/latest";
 
-    public static final String CONFIGURATION_FILE_NAME = "reposilite.yml";
+    public static final String CONFIGURATION_FILE_NAME = "reposilite.cdn";
 
     public static final String TOKENS_FILE_NAME = "tokens.yml";
 
