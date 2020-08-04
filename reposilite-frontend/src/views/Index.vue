@@ -35,9 +35,9 @@
                                   :to="splitQualifier().slice(0, idx + 1).join('/')"
                                   ) {{ element }}
                                   span /
-                              router-link(:to="'/dashboard' + this.qualifier")
-                                  span.ml-3(:style="'color: ' + this.configuration.accentColor")
-                                      i.fas.fa-feather-alt
+                          router-link(:to="'/dashboard' + this.qualifier")
+                              span.ml-3(:style="'color: ' + this.configuration.accentColor")
+                                  i.fas.fa-feather-alt
                       router-link(
                           v-if="this.qualifier != undefined && this.qualifier.length > 1"
                           :to='parentPath()'
