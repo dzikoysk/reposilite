@@ -69,6 +69,10 @@ public final class DeployController implements Handler {
             return Result.error(authResult.getError());
         }
 
+        if (!repositoryService.getDiskQuota().hasUsableSpace()) {
+            return Result.error("Out of disk space");
+        }
+
         File file = repositoryService.getFile(context.req.getRequestURI());
         File metadataFile = new File(file.getParentFile(), "maven-metadata.xml");
         metadataService.clearMetadata(metadataFile);
@@ -80,6 +84,7 @@ public final class DeployController implements Handler {
         try {
             FileUtils.forceMkdirParent(file);
             Files.copy(Objects.requireNonNull(context.req.getInputStream()), file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            repositoryService.getDiskQuota().allocate(file.length());
 
             Reposilite.getLogger().info("DEPLOY " + authResult.getValue().getAlias() + " successfully deployed " + file + " from " + context.req.getRemoteAddr());
             return Result.ok(context.result("Success"));

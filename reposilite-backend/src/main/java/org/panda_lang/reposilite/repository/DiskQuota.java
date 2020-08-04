@@ -16,13 +16,12 @@ final class DiskQuota {
         this.usage = new AtomicLong(usage);
     }
 
-    public synchronized boolean allocate(long size) {
-        if (usage.get() + size >= quota.get()) {
-            return false;
-        }
-
+    public void allocate(long size) {
         usage.addAndGet(size);
-        return true;
+    }
+
+    public boolean hasUsableSpace() {
+        return usage.get() < quota.get();
     }
 
     public static DiskQuota ofPercentage(File workingDirectory, long usage, int percentage) {
