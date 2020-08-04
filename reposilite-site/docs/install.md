@@ -48,7 +48,7 @@ user@host ~/workspace: java -jar reposilite.jar
    +--/snapshots        Default repository for snapshot releases
 +--log.txt              Mirror of log from CLI
 +--reposilite.jar       Application file
-+--reposilite.yml       Configuration file
++--reposilite.cdn       Configuration file
 +--stats.yml            Data file containing stats records
 +--tokens.yml           Data file containing stored tokens
 ```
@@ -80,7 +80,7 @@ $ java -jar reposilite.jar --working-directory=/app/data
 You may also declare custom location of configuration file using the `--config` *(alias: `-cfg`)* parameter:
 
 ```console
-$ java -jar reposilite.jar --config=/etc/reposilite/reposilite.yml
+$ java -jar reposilite.jar --config=/etc/reposilite/reposilite.cdn
 ```
 
 You don't have to create this file manually,

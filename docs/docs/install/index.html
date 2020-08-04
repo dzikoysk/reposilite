@@ -94,7 +94,7 @@ by default it is a place where you've launched it.</p>
    +--/snapshots        Default repository <span class="hljs-keyword">for</span> snapshot releases
 +--log.txt              Mirror of <span class="hljs-built_in">log</span> from CLI
 +--reposilite.jar       Application file
-+--reposilite.yml       Configuration file
++--reposilite.cdn       Configuration file
 +--stats.yml            Data file containing stats records
 +--tokens.yml           Data file containing stored tokens
 </code></pre>
@@ -115,7 +115,7 @@ you should use <code>--working-directory</code> <em>(alias: <code>-wd</code>)</e
 </code></pre>
 <h3><a class="anchor" aria-hidden="true" id="configuration-file"></a><a href="#configuration-file" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Configuration file</h3>
 <p>You may also declare custom location of configuration file using the <code>--config</code> <em>(alias: <code>-cfg</code>)</em> parameter:</p>
-<pre><code class="hljs css language-console"><span class="hljs-meta">$</span><span class="bash"> java -jar reposilite.jar --config=/etc/reposilite/reposilite.yml</span>
+<pre><code class="hljs css language-console"><span class="hljs-meta">$</span><span class="bash"> java -jar reposilite.jar --config=/etc/reposilite/reposilite.cdn</span>
 </code></pre>
 <p>You don't have to create this file manually,
 Reposilite will generate it during the first startup,

@@ -6,7 +6,7 @@ sidebar_label: Configuration
 
 There are two ways to pass custom properties to your Reposilite instance:
 
-* Through the `reposilite.yml` configuration file
+* Through the `reposilite.cdn` configuration file
 * Using the [system properties](#system-properties) *(overrides values from configuration)*
 
 Detailed description of properties is located in the following chapters:
@@ -19,7 +19,7 @@ Detailed description of properties is located in the following chapters:
 The standard configuration of Reposilite should be generated
 by Reposilite during your first start and it should look like this:
 
-```yml
+```json5
 # ~~~~~~~~~~~~~~~~~~~~~~ #
 #       Reposilite       #
 # ~~~~~~~~~~~~~~~~~~~~~~ #
@@ -36,25 +36,28 @@ debugEnabled: false
 # List of supported Maven repositories.
 # First directory on the list is the main (primary) repository.
 # Tu mark repository as private, prefix its name with a dot, e.g. ".private"
-repositories:
-  - "releases"
-  - "snapshots"
+repositories {
+  releases
+  snapshots
+  .private
+}
 # Allow to omit name of the main repository in request
 # e.g. /org/panda-lang/reposilite will be redirected to /releases/org/panda-lang/reposilite
 rewritePathsEnabled: true
 
 # List of proxied repositories.
 # Reposilite will search for an artifact in remote repositories listed below, if the requested artifact was not found.
-# Note: URL cannot contains / at the end
-proxied: []
-# - https://repo.panda-lang.org
+proxied {
+  # https://repo.panda-lang.org
+}
 
 # Accept deployment connections
 deployEnabled: true
 # List of management tokens used by dashboard to access extra options.
 # (By default, people are allowed to use standard dashboard options related to the associated path)
-managers: []
-# - root
+managers {
+  # root
+}
 
 # Title displayed by frontend
 title: "Your company"
@@ -64,7 +67,7 @@ description: "Definitely not Reposilite"
 accentColor: "#2fd4aa"
 ```
 
-Customized version of configuration file can be found in test workspace: [reposilite.yml](https://github.com/dzikoysk/reposilite/blob/master/reposilite-backend/src/test/workspace/reposilite.yml)
+Customized version of configuration file can be found in test workspace: [reposilite.cdn](https://github.com/dzikoysk/reposilite/blob/master/reposilite-backend/src/test/workspace/reposilite.cdn)
 
 ## System properties
 Passing properties through the system properties is especially useful, 
