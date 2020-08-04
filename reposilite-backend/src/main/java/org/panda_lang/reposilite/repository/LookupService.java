@@ -195,27 +195,18 @@ public final class LookupService {
 
                     if (!context.method().equals("HEAD")) {
                         if (configuration.storeProxied) {
-                            DiskQuota diskQuota = repositoryService.getDiskQuota();
-
-                            if (diskQuota.hasUsableSpace()) {
-                                File proxiedFile = repositoryService.getFile(uri);
-                                FileUtils.copyInputStreamToFile(remoteResponse.getContent(), proxiedFile);
-                                FileUtils.copyFile(proxiedFile, context.res.getOutputStream());
-                                diskQuota.allocate(proxiedFile.length());
-                                Reposilite.getLogger().info("Stored proxied " + uri);
-                            }
-                            else {
-                                Reposilite.getLogger().warn("Out of disk space - Cannot store proxied artifact " + uri);
-                            }
+                            store(context, uri, remoteResponse);
                         }
                         else {
                             IOUtils.copy(remoteResponse.getContent(), context.res.getOutputStream());
                         }
                     }
 
-                    return future.complete(context
-                            .status(remoteResponse.getStatusCode())
-                            .contentType(remoteResponse.getContentType()));
+                    if (remoteResponse.getContentType() != null) {
+                        context.contentType(remoteResponse.getContentType());
+                    }
+
+                    return future.complete(context.status(remoteResponse.getStatusCode()));
                 } catch (IOException e) {
                     Reposilite.getLogger().warn("Proxied repository " + proxied + " is unavailable: " + e.getMessage());
                 } catch (Exception e) {
@@ -229,6 +220,33 @@ public final class LookupService {
                     .contentType("text/html")
                     .result(frontend.forMessage("Artifact not found in local and remote repository")));
         }));
+    }
+
+    private void store(Context context, String uri, HttpResponse remoteResponse) throws IOException {
+        DiskQuota diskQuota = repositoryService.getDiskQuota();
+
+        if (!diskQuota.hasUsableSpace()) {
+            Reposilite.getLogger().warn("Out of disk space - Cannot store proxied artifact " + uri);
+            return;
+        }
+
+        String repositoryName = StringUtils.split(uri, "/")[1]; // skip first path separator
+        Repository repository = repositoryService.getRepository(repositoryName);
+
+        if (repository == null) {
+            if (!configuration.rewritePathsEnabled) {
+                return;
+            }
+
+            uri = repositoryService.getPrimaryRepository().getName() + uri;
+        }
+
+        File proxiedFile = repositoryService.getFile(uri);
+        FileUtils.copyInputStreamToFile(remoteResponse.getContent(), proxiedFile);
+        FileUtils.copyFile(proxiedFile, context.res.getOutputStream());
+        diskQuota.allocate(proxiedFile.length());
+
+        Reposilite.getLogger().info("Stored proxied " + uri);
     }
 
     public boolean hasProxiedRepositories() {
