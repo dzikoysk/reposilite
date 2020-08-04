@@ -30,11 +30,13 @@ import java.util.Map;
 public final class RepositoryService {
 
     private final File rootDirectory;
-    private final Map<String, Repository> repositories = new LinkedHashMap<>(2);
+    private final DiskQuota diskQuota;
     private Repository primaryRepository;
+    private final Map<String, Repository> repositories = new LinkedHashMap<>(2);
 
-    public RepositoryService(String workingDirectory) {
+    public RepositoryService(String workingDirectory, String diskQuota) {
         this.rootDirectory = new File(workingDirectory, "repositories");
+        this.diskQuota = DiskQuota.of(rootDirectory.getParentFile(), diskQuota);
     }
 
     public void load(Configuration configuration) {
@@ -108,6 +110,10 @@ public final class RepositoryService {
 
     public Repository getPrimaryRepository() {
         return primaryRepository;
+    }
+
+    public DiskQuota getDiskQuota() {
+        return diskQuota;
     }
 
 }

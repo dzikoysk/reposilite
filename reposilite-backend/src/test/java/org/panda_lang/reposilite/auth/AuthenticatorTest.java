@@ -35,7 +35,7 @@ import static org.mockito.Mockito.when;
 
 class AuthenticatorTest {
 
-    private static final RepositoryService REPOSITORY_SERVICE = new RepositoryService(".");
+    private static final RepositoryService REPOSITORY_SERVICE = new RepositoryService(".", "0");
     private static final TokenService TOKEN_SERVICE = new TokenService(".");
     private static final Token AUTH_TOKEN = new Token("/auth/test", "alias", TokenService.B_CRYPT_TOKENS_ENCODER.encode("secret"));
     private static final String BASIC = "Basic " + Base64.getEncoder().encodeToString("alias:secret".getBytes());
