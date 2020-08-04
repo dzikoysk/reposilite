@@ -3,43 +3,46 @@
 # ~~~~~~~~~~~~~~~~~~~~~~ #
 
 # Hostname
-hostname: ""
+hostname: 
 # Port to bind
 port: 80
 # Custom base path
-basePath: "/"
+basePath: /
 # Debug
 debugEnabled: false
 
 # List of supported Maven repositories.
-# First directory on the list is the main repository.
-repositories:
-  - "releases"
-  - "snapshots"
-  - ".private"
+# First directory on the list is the main (primary) repository.
+# Tu mark repository as private, prefix its name with a dot, e.g. ".private"
+repositories {
+  releases
+  snapshots
+  .private
+}
 # Allow to omit name of the main repository in request
 # e.g. /org/panda-lang/reposilite will be redirected to /releases/org/panda-lang/reposilite
 rewritePathsEnabled: true
 
 # List of proxied repositories.
 # Reposilite will search for an artifact in remote repositories listed below, if the requested artifact was not found.
-# Note: URL cannot contains / at the end
-proxied:
-  - "https://repo.panda-lang.org"
-  - "https://repo.insertt.dev"
-  - "https://jcenter.bintray.com"
-  - "https://repo.maven.apache.org/maven2"
+proxied {
+  https://repo.panda-lang.org
+  https://repo.insertt.dev
+  https://jcenter.bintray.com
+  https://repo.maven.apache.org/maven2
+}
 
 # Accept deployment connections
 deployEnabled: true
 # List of management tokens used by dashboard to access extra options.
 # (By default, people are allowed to use standard dashboard options related to the associated path)
-managers:
-  - admin
+managers {
+  admin
+}
 
 # Title displayed by frontend
-title: "#onlypanda"
+title: #onlypanda
 # Description displayed by frontend
-description: "Public Maven repository hosted through the Reposilite"
+description: Public Maven repository hosted through the Reposilite
 # Accent color used by frontend
-accentColor: "#2fd4aa"
+accentColor: #2fd4aa

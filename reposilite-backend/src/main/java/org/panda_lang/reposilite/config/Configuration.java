@@ -54,7 +54,6 @@ public final class Configuration implements Serializable {
     @Description("")
     @Description("# List of proxied repositories.")
     @Description("# Reposilite will search for an artifact in remote repositories listed below, if the requested artifact was not found.")
-    @Description("# Note: URL cannot contains / at the end")
     public List<String> proxied = Collections.emptyList();
 
     // Access properties
