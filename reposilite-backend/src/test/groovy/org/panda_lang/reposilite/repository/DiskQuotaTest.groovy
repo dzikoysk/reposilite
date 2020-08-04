@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue
 class DiskQuotaTest {
 
     @TempDir
-    public File workingDirectory;
+    public File workingDirectory
 
     @Test
     @SuppressWarnings('GroovyAccessibility')
@@ -21,22 +21,30 @@ class DiskQuotaTest {
 
         assertEquals size, quota.@quota.longValue()
         assertEquals 0, quota.@usage.longValue()
+        assertTrue quota.hasUsableSpace()
 
-        assertTrue quota.allocate(1)
-        assertFalse quota.allocate(size)
+        quota.allocate(1)
+        assertTrue quota.hasUsableSpace()
+
+        quota.allocate(size)
+        assertFalse quota.hasUsableSpace()
     }
 
     @Test
     @SuppressWarnings('GroovyAccessibility')
     void 'should create quota of the given size' () {
-        def size = 10L * 1024 * 1024 * 1024;
+        def size = 10L * 1024 * 1024 * 1024
         def quota = DiskQuota.of(workingDirectory, '10GB')
 
         assertEquals size, quota.@quota.longValue()
         assertEquals 0, quota.@usage.longValue()
+        assertTrue quota.hasUsableSpace()
 
-        assertTrue quota.allocate(1)
-        assertFalse quota.allocate(size)
+        quota.allocate(1)
+        assertTrue quota.hasUsableSpace()
+
+        quota.allocate(size)
+        assertFalse quota.hasUsableSpace()
     }
 
 }

@@ -44,7 +44,7 @@ public final class Configuration implements Serializable {
     @Description("")
     @Description("# Control the maximum amount of data assigned to Reposilite instance")
     @Description("# Supported formats: 90%, 500MB, 10GB")
-    public String diskQuota = "85%";
+    public String diskQuota = "10GB";
     @Description("# List of supported Maven repositories.")
     @Description("# First directory on the list is the main (primary) repository.")
     @Description("# Tu mark repository as private, prefix its name with a dot, e.g. \".private\"")
