@@ -53,7 +53,7 @@ You can find list of configuration properties in [configuration](configuration) 
 To pass custom parameters described in [installation#properties](install#properties), use `REPOSILITE_OPTS` variable:
 
 ```shell-session
-$ docker run -e REPOSILITE_OPTS='--config=/app/data/custom.yml' dzikoysk/reposilite
+$ docker run -e REPOSILITE_OPTS='--config=/app/data/custom.cdn' dzikoysk/reposilite
 ```
 
 **Note:** Default Dockerfile changes Reposilite working directory to `/app/data/` and marks it as volume.
@@ -62,20 +62,12 @@ It is not recommended to modify this property.
 ### External configuration
 You can mount external configuration file using the `--mount` and `--config` parameter.
 Before that, you have to make sure the the configuration file already exists on Docker host. 
-To download current configuration file, you can fetch its content from [GitHub](https://raw.githubusercontent.com/dzikoysk/reposilite/master/reposilite-backend/src/main/resources/reposilite.yml):
-
-```console
-$ curl \
-  https://raw.githubusercontent.com/dzikoysk/reposilite/master/reposilite-backend/src/main/resources/reposilite.yml \
-  --output /etc/reposilite/reposilite.yml
-```
-
-To launch Reposilite with this configuration, we have to mount proper file:
+To launch Reposilite with a custom configuration, we have to mount proper file:
 
 ```console
 $ docker run -it \
-  --mount type=bind,source=/etc/reposilite/reposilite.yml,target=/app/reposilite-host.yml \
-  -e REPOSILITE_OPTS='--config=/app/reposilite-host.yml' \
+  --mount type=bind,source=/etc/reposilite/reposilite.cdn,target=/app/reposilite-host.cdn \
+  -e REPOSILITE_OPTS='--config=/app/reposilite-host.cdn' \
   -v reposilite-data:/app/data
   dzikoysk/reposilite
 ```

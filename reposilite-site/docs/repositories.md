@@ -12,12 +12,12 @@ By default, Reposilite generates two standard repositories:
 ## Custom repository 
 You can also define a new one just adding it in the configuration:
 
-```yaml
-repositories:
-  - "releases" # (primary) - declared as first
-  - "snapshots"
-  - "custom_repository"
-  - ".private" # (hidden) - requires authorization to browse
+```json5
+repositories {
+  releases // (primary) - declared as first
+  snapshots
+  custom_repository
+  .private // (hidden) - requires authorization to browse
 ```
 
 ## Private repositories
