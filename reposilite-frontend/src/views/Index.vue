@@ -32,7 +32,7 @@
                           span.ml-2
                               span(v-for="(element, idx) in splitQualifier()")
                                   router-link(
-                                    :to="splitQualifier().slice(0, idx + 1).join('/')"
+                                      :to="splitQualifier().slice(0, idx + 1).join('/')"
                                   ) {{ element }}
                                   span /
                           router-link(:to="'/dashboard' + this.qualifier")

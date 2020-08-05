@@ -20,11 +20,11 @@
             h1.font-bold
                 | Index of
                 span.ml-2
-                  span(v-for="(element, idx) in splitQualifier()")
-                    router-link(
-                      :to="'/dashboard' + splitQualifier().slice(0, idx + 1).join('/')"
-                    ) {{ element }}
-                    span /
+                    span(v-for="(element, idx) in splitQualifier()")
+                        router-link(
+                            :to="'/dashboard' + splitQualifier().slice(0, idx + 1).join('/')"
+                        ) {{ element }}
+                        span /
             router-link(v-if="this.qualifier != undefined && this.qualifier.length > 1" :to="'/dashboard' + parentPath()") ← Back
         FileEntry(
             v-for="file in files"
