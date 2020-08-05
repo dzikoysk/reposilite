@@ -72,6 +72,8 @@ export default {
   },
   metaInfo () {
     return {
+      title:
+        this.configuration.title !== undefined ? `${this.configuration.title} - ${this.configuration.description}` : 'Reposilite',
       meta: [
         // Default
         {
