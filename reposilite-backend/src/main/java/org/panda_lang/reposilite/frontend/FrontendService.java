@@ -16,6 +16,7 @@
 
 package org.panda_lang.reposilite.frontend;
 
+import org.panda_lang.reposilite.ReposiliteConstants;
 import org.panda_lang.reposilite.config.Configuration;
 import org.panda_lang.reposilite.utils.FilesUtils;
 import org.panda_lang.utilities.commons.StringUtils;
@@ -45,7 +46,9 @@ public final class FrontendService {
     public static FrontendService load(Configuration configuration) {
         MessageFormatter formatter = new MessageFormatter()
                 .register("{{REPOSILITE.BASE_PATH}}", configuration.basePath)
-                .register("{{REPOSILITE.VUE_BASE_PATH}}", configuration.basePath.equals("/") ? "" : configuration.basePath);
+                .register("{{REPOSILITE.VUE_BASE_PATH}}", configuration.basePath.equals("/") ? "" : configuration.basePath)
+                .register("{{REPOSILITE.TITLE}}", configuration.websiteTitle)
+                .register("{{REPOSILITE.VERSION}}", ReposiliteConstants.VERSION);
 
         return new FrontendService(
                 () -> formatter.format(FilesUtils.getResource("/frontend/index.html")),

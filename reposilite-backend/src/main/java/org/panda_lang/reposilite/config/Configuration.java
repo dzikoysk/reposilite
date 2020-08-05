@@ -72,6 +72,8 @@ public final class Configuration implements Serializable {
 
     // Frontend properties
     @Description("")
+    @Description("# Website title used by frontend")
+    public String websiteTitle = "Reposilite";
     @Description("# Title displayed by frontend")
     public String title = "#onlypanda";
     @Description("# Description displayed by frontend")

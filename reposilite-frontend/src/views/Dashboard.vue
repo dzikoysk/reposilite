@@ -42,10 +42,12 @@
             button(v-on:click="logout").px-4 Logout
         hr.py-2
         router-view
+        Footer
 </template>
 
 <script>
 import FileEntry from '../components/FileEntry'
+import Footer from '../components/Footer'
 
 const defaultAuth = {
   alias: '',
@@ -63,7 +65,8 @@ export default {
     qualifier: ''
   }),
   components: {
-    FileEntry
+    FileEntry,
+    Footer
   },
   mounted () {
     this.qualifier = this.getQualifier()

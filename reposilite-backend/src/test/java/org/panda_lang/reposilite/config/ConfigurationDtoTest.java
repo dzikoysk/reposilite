@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class ConfigurationDtoTest {
 
-    private final ConfigurationDto configurationDto = new ConfigurationDto("title", "description", "accentColor");
+    private final ConfigurationDto configurationDto = new ConfigurationDto("websiteTitle", "title", "description", "accentColor");
 
     @Test
     void getAccentColor() {

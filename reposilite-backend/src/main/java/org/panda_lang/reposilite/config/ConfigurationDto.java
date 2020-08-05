@@ -20,11 +20,13 @@ import java.io.Serializable;
 
 final class ConfigurationDto implements Serializable {
 
+    private final String websiteTitle;
     private final String title;
     private final String description;
     private final String accentColor;
 
-    ConfigurationDto(String title, String description, String accentColor) {
+    ConfigurationDto(String websiteTitle, String title, String description, String accentColor) {
+        this.websiteTitle = websiteTitle;
         this.title = title;
         this.description = description;
         this.accentColor = accentColor;
@@ -41,5 +43,9 @@ final class ConfigurationDto implements Serializable {
 
     public String getTitle() {
         return title;
+    }
+
+    public String getWebsiteTitle() {
+        return websiteTitle;
     }
 }

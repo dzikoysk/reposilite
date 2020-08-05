@@ -53,11 +53,13 @@
                   h1(v-if="isEmpty()") Empty directory
                   h1(v-if="!hasFiles()").font-bold {{ response.message }}
       notifications(group="index" position="center top")
+      Footer
 </template>
 
 <script>
 import Wave from '../components/Wave'
 import FileEntry from '../components/FileEntry'
+import Footer from '../components/Footer'
 
 export default {
   data: () => ({
@@ -68,7 +70,8 @@ export default {
   }),
   components: {
     Wave,
-    FileEntry
+    FileEntry,
+    Footer
   },
   metaInfo () {
     return {

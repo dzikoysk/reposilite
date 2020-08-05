@@ -30,6 +30,7 @@ public final class ConfigurationApiController implements RepositoryController {
     @Override
     public Context handleContext(Context ctx) {
         return ctx.json(new ConfigurationDto(
+                configuration.websiteTitle,
                 configuration.title,
                 configuration.description,
                 configuration.accentColor)

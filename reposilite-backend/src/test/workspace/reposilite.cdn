@@ -46,6 +46,8 @@ managers {
   admin
 }
 
+# Website title used by frontend
+websiteTitle: Reposilite Test
 # Title displayed by frontend
 title: #onlypanda
 # Description displayed by frontend
