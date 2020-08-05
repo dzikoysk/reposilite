@@ -26,7 +26,7 @@
                 v-model="auth.token"
                 type="password"
                 placeholder="Token"
-                autocomple="on"
+                autocomplete="on"
             ).w-96.bg-gray-100.p-2.rounded
         div.py-1.text-right.px-2.mt-1
             router-link(:to="this.qualifier").text-blue-400.text-xs ← Back to index
