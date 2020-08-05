@@ -16,10 +16,10 @@ class DiskQuotaTest {
     @Test
     @SuppressWarnings('GroovyAccessibility')
     void 'should create quota of the given percentage' () {
-        def size = Math.round(workingDirectory.getUsableSpace() * 0.9)
         def quota = DiskQuota.of(workingDirectory, '90%')
+        def size = quota.@quota.longValue();
 
-        assertEquals size, quota.@quota.longValue()
+        assertTrue size > 0
         assertEquals 0, quota.@usage.longValue()
         assertTrue quota.hasUsableSpace()
 
