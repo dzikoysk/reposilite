@@ -17,7 +17,7 @@
  .fixedHeaderContainer {
   background-color: white;
  }
-header {
+ .headerWrapper header {
   font-size: 1.05em;
   padding: 5px 27px 13px;
   border-bottom: 1px solid lightgray;
