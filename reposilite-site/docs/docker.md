@@ -25,7 +25,7 @@ just run the image in interactive mode
 *(to support [interactive CLI](install#interactive-cli))*:
 
 ```console
-$ docker run -it -v reposilite-data:/app/data dzikoysk/reposilite:nightly
+$ docker run -it -v reposilite-data:/app/data -p 80:80 dzikoysk/reposilite:nightly
 ```
 
 ### Data persistence
@@ -36,7 +36,7 @@ To use named volume which can be reused by Docker,
 run docker with `-v` parameter:
 
 ```console
-$ docker run -it -v reposilite-data:/app/data dzikoysk/reposilite
+$ docker run -it -v reposilite-data:/app/data -p 80:80 dzikoysk/reposilite
 ```
 
 ### Custom properties
@@ -44,7 +44,7 @@ $ docker run -it -v reposilite-data:/app/data dzikoysk/reposilite
 You can also pass custom configuration values using the environment variables:
 
 ```shell-session
-$ docker run -e JAVA_OPTS='-Xmx128M -Dreposilite.port="8080"' dzikoysk/reposilite
+$ docker run -e JAVA_OPTS='-Xmx128M -Dreposilite.port="8080"' -p 8080:80 dzikoysk/reposilite
 ```
 
 You can find list of configuration properties in [configuration](configuration) chapter.
@@ -53,7 +53,7 @@ You can find list of configuration properties in [configuration](configuration) 
 To pass custom parameters described in [installation#properties](install#properties), use `REPOSILITE_OPTS` variable:
 
 ```shell-session
-$ docker run -e REPOSILITE_OPTS='--config=/app/data/custom.cdn' dzikoysk/reposilite
+$ docker run -e REPOSILITE_OPTS='--config=/app/data/custom.cdn' -p 80:80 dzikoysk/reposilite
 ```
 
 **Note:** Default Dockerfile changes Reposilite working directory to `/app/data/` and marks it as volume.
@@ -69,6 +69,7 @@ $ docker run -it \
   --mount type=bind,source=/etc/reposilite/reposilite.cdn,target=/app/reposilite-host.cdn \
   -e REPOSILITE_OPTS='--config=/app/reposilite-host.cdn' \
   -v reposilite-data:/app/data
+  -p 80:80
   dzikoysk/reposilite
 ```
 
