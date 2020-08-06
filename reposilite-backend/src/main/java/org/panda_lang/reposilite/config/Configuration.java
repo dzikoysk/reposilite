@@ -32,7 +32,7 @@ public final class Configuration implements Serializable {
     // Bind properties
     @Description("")
     @Description("# Hostname")
-    public String hostname = "";
+    public String hostname = "0.0.0.0";
     @Description("# Port to bind")
     public Integer port = 80;
     @Description("# Custom base path")
