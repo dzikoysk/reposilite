@@ -65,12 +65,6 @@ export default {
   components: {
     FileEntry
   },
-  metaInfo () {
-    return {
-      title:
-        this.configuration.title !== undefined ? `${this.configuration.title} - ${this.configuration.description}` : 'Reposilite'
-    }
-  },
   mounted () {
     this.qualifier = this.getQualifier()
 
