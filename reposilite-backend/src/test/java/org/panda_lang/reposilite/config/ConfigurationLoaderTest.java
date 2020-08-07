@@ -20,6 +20,7 @@ import net.dzikoysk.cdn.CDN;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.panda_lang.utilities.commons.FileUtils;
+import org.panda_lang.utilities.commons.text.ContentJoiner;
 
 import java.io.File;
 import java.io.IOException;
@@ -76,6 +77,32 @@ class ConfigurationLoaderTest {
         File customConfig = new File(workingDirectory, "random.properties");
         FileUtils.overrideFile(customConfig, CDN.defaultInstance().compose(new Configuration()));
         assertThrows(RuntimeException.class, () -> ConfigurationLoader.load(customConfig.getAbsolutePath(), workingDirectory.getAbsolutePath()));
+    }
+
+    @Test
+    void shouldConvertLegacyConfig() throws IOException {
+        File config = new File(workingDirectory, "config.cdn");
+        FileUtils.overrideFile(config, "port: 7");
+        File legacyConfig = new File(config.getAbsolutePath().replace(".cdn", ".yml"));
+
+        Configuration configuration = ConfigurationLoader.tryLoad(config.getAbsolutePath(), workingDirectory.getAbsolutePath());
+        assertEquals(7, configuration.port);
+        assertTrue(config.exists());
+        assertFalse(legacyConfig.exists());
+    }
+
+    @Test
+    void shouldVerifyProxied() throws IOException {
+        File config = new File(workingDirectory, "config.cdn");
+        FileUtils.overrideFile(config, ContentJoiner.on("\n").join(
+                "proxied {",
+                "  https://without.slash",
+                "  https://with.slash/",
+                "}"
+        ).toString());
+
+        Configuration configuration = ConfigurationLoader.tryLoad(config.getAbsolutePath(), workingDirectory.getAbsolutePath());
+        assertEquals(Arrays.asList("https://without.slash", "https://with.slash"), configuration.proxied);
     }
 
 }
