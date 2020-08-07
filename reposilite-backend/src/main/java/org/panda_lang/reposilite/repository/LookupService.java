@@ -169,15 +169,25 @@ public final class LookupService {
     protected Result<CompletableFuture<Context>, ErrorDto> serveProxied(Context context) {
         String uri = context.req.getRequestURI();
 
+        // remove repository name if defined
+        for (Repository repository : repositoryService.getRepositories()) {
+            if (uri.startsWith("/" + repository.getName())) {
+                uri = uri.substring(1 + repository.getName().length());
+                break;
+            }
+        }
+
         // /groupId/artifactId/<content>
         if (StringUtils.countOccurrences(uri, "/") < 3) {
             return Result.error(new ErrorDto(HttpStatus.SC_OK, "Invalid proxied request"));
         }
 
+        String remoteUri = uri;
+
         return Result.ok(FutureUtils.submit(reposilite, proxiedExecutor, future -> {
             for (String proxied : configuration.proxied) {
                 try {
-                    HttpRequest remoteRequest = requestFactory.buildGetRequest(new GenericUrl(proxied + uri));
+                    HttpRequest remoteRequest = requestFactory.buildGetRequest(new GenericUrl(proxied + remoteUri));
                     remoteRequest.setThrowExceptionOnExecuteError(false);
                     remoteRequest.setConnectTimeout(3000);
                     remoteRequest.setReadTimeout(10000);
@@ -195,7 +205,7 @@ public final class LookupService {
 
                     if (!context.method().equals("HEAD")) {
                         if (configuration.storeProxied) {
-                            store(context, uri, remoteResponse);
+                            store(context, remoteUri, remoteResponse);
                         }
                         else {
                             IOUtils.copy(remoteResponse.getContent(), context.res.getOutputStream());
@@ -210,7 +220,7 @@ public final class LookupService {
                 } catch (IOException e) {
                     Reposilite.getLogger().warn("Proxied repository " + proxied + " is unavailable: " + e.getMessage());
                 } catch (Exception e) {
-                    reposilite.throwException(uri, e);
+                    reposilite.throwException(remoteUri, e);
                     future.cancel(true);
                 }
             }
