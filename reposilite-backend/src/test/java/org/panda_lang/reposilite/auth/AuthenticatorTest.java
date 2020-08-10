@@ -29,7 +29,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.Base64;
 import java.util.Collections;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -97,6 +97,11 @@ class AuthenticatorTest {
         Context context = ContextUtil.init(request, response);
 
         assertTrue(AUTHENTICATOR.authDefault(context).isDefined());
+    }
+
+    @Test
+    void shouldNotAuthInvalidRepositoryUri() {
+        assertEquals("Unsupported request", AUTHENTICATOR.authRepository(null, "").getError().getMessage());
     }
 
     @Test
