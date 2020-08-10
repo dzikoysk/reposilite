@@ -63,10 +63,10 @@ public final class Authenticator {
             return Result.error(new ErrorDto(HttpStatus.SC_OK, "Unsupported request"));
         }
 
-        Repository repository = repositoryService.getRepository(path[0]);
+        Repository repository = repositoryService.getRepository(repositoryName);
 
         if (repository == null) {
-            return Result.error(new ErrorDto(HttpStatus.SC_OK, "Repository " + path[0] + " not found"));
+            return Result.error(new ErrorDto(HttpStatus.SC_OK, "Repository " + repositoryName  + " not found"));
         }
 
         // auth hidden repositories

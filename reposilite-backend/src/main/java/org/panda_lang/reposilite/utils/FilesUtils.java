@@ -58,7 +58,7 @@ public final class FilesUtils {
     }
 
     public static long displaySizeToBytesCount(String displaySize) {
-        Pattern pattern = Pattern.compile("([0-9]+)(([KMG])B)");
+        Pattern pattern = Pattern.compile("([0-9]+)(([KkMmGg])[Bb])");
         Matcher match = pattern.matcher(displaySize);
 
         if (!match.matches() || match.groupCount() != 3) {
