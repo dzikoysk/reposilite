@@ -34,9 +34,17 @@ public final class StatsStorage {
 
     public StatsEntity loadStats() throws IOException {
         if (!statsFile.exists()) {
-            Reposilite.getLogger().info("Generating stats data file...");
-            FilesUtils.copyResource("/" + ReposiliteConstants.STATS_FILE_NAME, statsFile);
-            Reposilite.getLogger().info("Empty stats file has been generated");
+            File legacyStatsFile = new File(statsFile.getAbsolutePath().replace(".dat", ".yml"));
+
+            if (legacyStatsFile.exists()) {
+                legacyStatsFile.renameTo(statsFile);
+                Reposilite.getLogger().info("Legacy stats file has been converted to dat file");
+            }
+            else {
+                Reposilite.getLogger().info("Generating stats data file...");
+                FilesUtils.copyResource("/" + ReposiliteConstants.STATS_FILE_NAME, statsFile);
+                Reposilite.getLogger().info("Empty stats file has been generated");
+            }
         }
         else {
             Reposilite.getLogger().info("Using an existing stats data file");

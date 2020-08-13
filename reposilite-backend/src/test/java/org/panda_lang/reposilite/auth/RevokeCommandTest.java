@@ -44,7 +44,7 @@ class RevokeCommandTest extends ReposiliteIntegrationTest {
     @Test
     void shouldFalseIfFileIsNotAvailable() throws Exception {
         super.reposilite.getTokenService().addToken(new Token("path", "alias", "secret"));
-        File tokensFile = new File(super.workingDirectory, "tokens.yml");
+        File tokensFile = new File(super.workingDirectory, "tokens.dat");
         executeOnLocked(tokensFile, () -> assertFalse(new RevokeCommand("alias").execute(reposilite)));
         assertTrue(new RevokeCommand("alias").execute(reposilite));
     }

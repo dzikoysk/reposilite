@@ -18,7 +18,6 @@ package org.panda_lang.reposilite.auth;
 
 import org.junit.jupiter.api.Test;
 import org.panda_lang.reposilite.ReposiliteIntegrationTest;
-import org.panda_lang.utilities.commons.collection.Pair;
 
 import java.io.File;
 import java.io.IOException;
@@ -55,7 +54,7 @@ class KeygenCommandTest extends ReposiliteIntegrationTest {
     @Test
     void shouldFalseIfFileIsNotAvailable() throws IOException {
         super.reposilite.getTokenService().createToken("/", "alias");
-        File tokensFile = new File(super.workingDirectory, "tokens.yml");
+        File tokensFile = new File(super.workingDirectory, "tokens.dat");
         executeOnLocked(tokensFile, () -> assertFalse(new KeygenCommand("/a/b/c", "alias").execute(super.reposilite)));
         assertTrue(new KeygenCommand("/a/b/c", "alias").execute(super.reposilite));
     }

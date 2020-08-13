@@ -24,9 +24,9 @@ public final class ReposiliteConstants {
 
     public static final String CONFIGURATION_FILE_NAME = "reposilite.cdn";
 
-    public static final String TOKENS_FILE_NAME = "tokens.yml";
+    public static final String TOKENS_FILE_NAME = "tokens.dat";
 
-    public static final String STATS_FILE_NAME = "stats.yml";
+    public static final String STATS_FILE_NAME = "stats.dat";
 
     private ReposiliteConstants() { }
 
