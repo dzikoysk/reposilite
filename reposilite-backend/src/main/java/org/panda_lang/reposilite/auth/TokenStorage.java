@@ -37,9 +37,17 @@ public final class TokenStorage {
 
     public void loadTokens() throws IOException {
         if (!tokensFile.exists()) {
-            Reposilite.getLogger().info("Generating tokens data file...");
-            FilesUtils.copyResource("/" + ReposiliteConstants.TOKENS_FILE_NAME, tokensFile);
-            Reposilite.getLogger().info("Empty tokens file has been generated");
+            File legacyTokensFile = new File(tokensFile.getAbsolutePath().replace(".dat", ".yml"));
+
+            if (legacyTokensFile.exists()) {
+                legacyTokensFile.renameTo(tokensFile);
+                Reposilite.getLogger().info("Legacy tokens file has been converted to dat file");
+            }
+            else {
+                Reposilite.getLogger().info("Generating tokens data file...");
+                FilesUtils.copyResource("/" + ReposiliteConstants.TOKENS_FILE_NAME, tokensFile);
+                Reposilite.getLogger().info("Empty tokens file has been generated");
+            }
         }
         else {
             Reposilite.getLogger().info("Using an existing tokens data file");
