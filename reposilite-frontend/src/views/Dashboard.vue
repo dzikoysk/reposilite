@@ -17,36 +17,34 @@
 <template lang="pug">
   #app.flex.justify-center.items-center
     form#login(v-if="!auth.verified" method="post").p-8.text-center.border-dashed.border-black.rounded.bg-white
-        h1.font-bold.pb-4.text-xl Login
-        div.py-1
-            input(placeholder="Alias" name="alias" v-model="auth.alias").w-96.bg-gray-100.p-2.rounded
-        div.py-1
-            input(
-                name="token"
-                v-model="auth.token"
-                type="password"
-                placeholder="Token"
-                autocomplete="on"
-            ).w-96.bg-gray-100.p-2.rounded
-        div.py-1.text-right.px-2.mt-1
-            router-link(:to="this.qualifier").text-blue-400.text-xs ← Back to index
-        div.py-3
-            button(v-on:click="login").bg-gray-200.px-6.py-1.mt-1.w-96 Login
-        notifications(group="login" position="center top")
+      h1.font-bold.pb-4.text-xl Login
+      div.py-1
+        input(placeholder="Alias" name="alias" v-model="auth.alias").w-96.bg-gray-100.p-2.rounded
+      div.py-1
+        input(
+          name="token"
+          v-model="auth.token"
+          type="password"
+          placeholder="Token"
+          autocomplete="on"
+        ).w-96.bg-gray-100.p-2.rounded
+      div.py-1.text-right.px-2.mt-1
+        router-link(:to="this.qualifier").text-blue-400.text-xs ← Back to index
+      div.py-3
+        button(v-on:click="login").bg-gray-200.px-6.py-1.mt-1.w-96 Login
+      notifications(group="login" position="center top")
     #panel(v-else).p-6.container
-        header.pb-4
-            router-link(to="/dashboard").px-4 Index
-            router-link(to="/dashboard/upload").px-4 Upload
-            router-link(to="/dashboard/cli" v-if="auth.manager").px-4 Cli
-            router-link(to="/dashboard/settings" v-if="auth.manager").px-4 Settings
-            button(v-on:click="logout").px-4 Logout
-        hr.py-2
-        router-view
+      header.pb-4
+        router-link(to="/dashboard").px-4 Index
+        router-link(to="/dashboard/upload").px-4 Upload
+        router-link(to="/dashboard/cli" v-if="auth.manager").px-4 Cli
+        router-link(to="/dashboard/settings" v-if="auth.manager").px-4 Settings
+        button(v-on:click="logout").px-4 Logout
+      hr.py-2
+      router-view
 </template>
 
 <script>
-import FileEntry from '../components/FileEntry'
-
 const defaultAuth = {
   alias: '',
   token: '',
@@ -62,9 +60,6 @@ export default {
     auth: Object.assign({}, defaultAuth),
     qualifier: ''
   }),
-  components: {
-    FileEntry
-  },
   mounted () {
     this.qualifier = this.getQualifier()
 

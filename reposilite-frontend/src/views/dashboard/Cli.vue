@@ -15,14 +15,15 @@
   -->
 
 <template lang="pug">
-    div.text-white.text-xs.bg-black
-        #console.pt-3.px-4.overflow-y-scroll.h-144
-            p(v-for="message in log" :key="message" v-html="message")
-        input#in(placeholder="Type command or '?' to get help" v-on:keyup.enter="execute").w-full.pb-3.pt-2.px-4.bg-black.text-white
-        notifications(group="cli" position="center top")
+  div.text-white.text-xs.bg-black
+    #console.pt-3.px-4.overflow-y-scroll.h-144
+      p(v-for="(message, index) in log" :key="index + '::' + message" v-html="message")
+    input#in(placeholder="Type command or '?' to get help" v-on:keyup.enter="execute").w-full.pb-3.pt-2.px-4.bg-black.text-white
+    notifications(group="cli" position="center top")
 </template>
 
 <script>
+import Vue from 'vue'
 import Convert from 'ansi-to-html'
 
 export default {
@@ -35,7 +36,7 @@ export default {
   created () {
     let origin =
       process.env.NODE_ENV === 'production'
-        ? window.location.origin + '{{REPOSILITE.VUE_BASE_PATH}}'
+        ? window.location.origin + Vue.prototype.$reposilite.vueBasePath
         : 'http://localhost:80'
 
     if (origin.startsWith('https')) {
@@ -54,7 +55,9 @@ export default {
     this.connection = new WebSocket(origin + '/api/cli')
 
     this.connection.onopen = () => {
-      this.connection.send(`Authorization:${this.$parent.auth.alias}:${this.$parent.auth.token}`)
+      this.connection.send(
+        `Authorization:${this.$parent.auth.alias}:${this.$parent.auth.token}`
+      )
     }
     this.connection.onmessage = event => {
       this.log.push(convert.toHtml(event.data))

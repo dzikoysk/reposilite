@@ -22,18 +22,31 @@ import Axios from 'axios'
 import router from './router'
 import Notifications from 'vue-notification'
 import Meta from 'vue-meta'
-import mixins from './mixins'
+import uri from './mixins/uri'
+import orDefault from './mixins/default'
 
 import fontawesome from '@fortawesome/fontawesome'
-
 fontawesome.config = { autoReplaceSvg: false }
 
 Vue.config.productionTip = false
 Vue.prototype.$http = Axios
 
+// Map placeholders into Vue configuration object
+Vue.prototype.$reposilite = {
+  message: orDefault(window.REPOSILITE_MESSAGE, 'unknown message'),
+  basePath: orDefault(window.REPOSILITE_BASE_PATH, '/'),
+  vueBasePath: orDefault(window.REPOSILITE_VUE_BASE_PATH, ''),
+  title: orDefault(window.REPOSILITE_TITLE, 'Reposilite'),
+  description: orDefault(
+    window.REPOSILITE_DESCRIPTION,
+    'Reposilite description'
+  ),
+  accentColor: orDefault(window.REPOSILITE_ACCENT_COLOR, '#000000')
+}
+
 Vue.use(Notifications)
 Vue.use(Meta)
-Vue.mixin(mixins)
+Vue.mixin(uri)
 
 new Vue({
   router,

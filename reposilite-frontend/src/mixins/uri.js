@@ -14,22 +14,33 @@
  * limitations under the License.
  */
 
-const url = process.env.NODE_ENV === 'production' ? '{{REPOSILITE.BASE_PATH}}' : 'http://localhost:80/'
-const apiUrl = url + 'api'
+import Vue from 'vue'
 
 export default {
   methods: {
+    /**
+     * Make authorized get request to api
+     * @param {string} uri the api endpoint qualifier
+     * @param {object} auth object with 'alias' and 'token' properties
+     */
     api (uri, auth) {
-      return this.$http.get(apiUrl + uri, {
+      return this.$http.get(this.baseApiUrl() + uri, {
         auth: {
           username: auth.alias,
           password: auth.token
         }
       })
     },
+    /**
+     * Normalize uri:
+     * * returns base path if uri is undefined
+     * * adds / at the beginning of uri if not defined
+     * * adds / at the end of uri if not defined
+     * @param {string} uri to normalize
+     */
     normalize (uri) {
       if (uri === undefined) {
-        return '{{REPOSILITE.BASE_PATH}}'
+        return Vue.prototype.$reposilite.basePath
       }
 
       if (!uri.startsWith('/')) {
@@ -42,6 +53,9 @@ export default {
 
       return uri
     },
+    /**
+     * Get parent uri
+     */
     parentPath () {
       const elements = this.splitQualifier()
       elements.pop()
@@ -49,6 +63,9 @@ export default {
       const path = this.normalize(elements.join('/'))
       return path.length === 0 ? '/' : path
     },
+    /**
+     * Split normalized uri
+     */
     splitQualifier () {
       const qualifier = this.getQualifier()
       const elements = qualifier.split('/')
@@ -59,11 +76,25 @@ export default {
 
       return elements
     },
+    /**
+     * Get normalized uri as qualifier
+     */
     getQualifier () {
       return this.normalize(this.$route.params.qualifier)
     },
-    url () {
-      return url
+    /**
+     * Get Reposilite base API url
+     */
+    baseApiUrl () {
+      return this.baseUrl() + 'api'
+    },
+    /**
+     * Get Reposilite base url
+     */
+    baseUrl () {
+      return process.env.NODE_ENV === 'production'
+        ? Vue.prototype.$reposilite.basePath
+        : 'http://localhost:80/'
     }
   }
 }

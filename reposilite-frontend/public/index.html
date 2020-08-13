@@ -20,14 +20,32 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <title>Reposilite</title>
+    <!-- Reposilite Description -->
+    <title>{{REPOSILITE.TITLE}}</title>
+    <meta name="description" content="{{REPOSILITE.DESCRIPTION}}">
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="{{REPOSILITE.TITLE}}">
+    <meta name="twitter:description" content="{{REPOSILITE.DESCRIPTION}}">
+    <!-- OpenGraph -->
+    <meta property="og:title" content="{{REPOSILITE.TITLE}}">
+    <meta property="og:site_name" content="{{REPOSILITE.TITLE}}">
+    <meta property="og:type" content="website">
+    <meta property="og:description" content="{{REPOSILITE.DESCRIPTION}}">
+    <!-- Assets -->
     <link rel="icon" href="data:;base64,iVBORw0KGgo=">
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;500&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/js/all.min.js"></script>
     <script>
-      window.REPOSILITE_BASE_PATH = '{{REPOSILITE.BASE_PATH}}'
-      window.REPOSILITE_VUE_BASE_PATH = '{{REPOSILITE.VUE_BASE_PATH}}'
-      window.REPOSILITE_MESSAGE = '{{REPOSILITE.MESSAGE}}'
+      // don't assign placeholders to window
+      if (!'{{REPOSILITE.BASE_PATH}}'.includes('REPOSILITE.BASE_PATH')) {
+        window.REPOSILITE_BASE_PATH = '{{REPOSILITE.BASE_PATH}}'
+        window.REPOSILITE_VUE_BASE_PATH = '{{REPOSILITE.VUE_BASE_PATH}}'
+        window.REPOSILITE_TITLE = '{{REPOSILITE.TITLE}}'
+        window.REPOSILITE_DESCRIPTION = '{{REPOSILITE.DESCRIPTION}}'
+        window.REPOSILITE_ACCENT_COLOR = '{{REPOSILITE.ACCENT_COLOR}}'
+        window.REPOSILITE_MESSAGE = '{{REPOSILITE.MESSAGE}}'
+      }
     </script>
   </head>
   <body>
