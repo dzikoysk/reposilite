@@ -9,6 +9,7 @@ It is a simple solution to replace managers like Nexus, Archiva or Artifactory.
 Website: [Reposilite](https://reposilite.com) <br>
 Releases: [GitHub Downloads](https://github.com/dzikoysk/reposilite/releases) <br>
 Docker Images: [DockerHub Repository](https://hub.docker.com/r/dzikoysk/reposilite) <br>
+Demo: [repo.panda-lang.org](https://repo.panda-lang.org) <br>
 
 Requirements: 
 * Java 8+
