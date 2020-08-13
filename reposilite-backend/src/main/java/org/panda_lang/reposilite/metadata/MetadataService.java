@@ -93,7 +93,7 @@ public final class MetadataService {
         File latestBuild = ArrayUtils.getFirst(builds);
 
         if (latestBuild == null) {
-            return Result.error("Builds not found");
+            return Result.error("Latest build not found");
         }
 
         String name = artifactDirectory.getName();
