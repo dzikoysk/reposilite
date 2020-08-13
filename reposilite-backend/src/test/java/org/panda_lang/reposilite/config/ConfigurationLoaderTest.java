@@ -81,9 +81,9 @@ class ConfigurationLoaderTest {
 
     @Test
     void shouldConvertLegacyConfig() throws IOException {
-        File config = new File(workingDirectory, "config.cdn");
-        FileUtils.overrideFile(config, "port: 7");
-        File legacyConfig = new File(config.getAbsolutePath().replace(".cdn", ".yml"));
+        File legacyConfig = new File(workingDirectory, "config.yml");
+        FileUtils.overrideFile(legacyConfig, "port: 7");
+        File config = new File(legacyConfig.getAbsolutePath().replace(".yml", ".cdn"));
 
         Configuration configuration = ConfigurationLoader.tryLoad(config.getAbsolutePath(), workingDirectory.getAbsolutePath());
         assertEquals(7, configuration.port);

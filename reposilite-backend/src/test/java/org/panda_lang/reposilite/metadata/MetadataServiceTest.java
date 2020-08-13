@@ -52,7 +52,7 @@ final class MetadataServiceTest extends ReposiliteIntegrationTest {
     @Test
     void shouldReturnBuildsNotFound() {
         Result<String, String> result = generate("org", "panda-lang", "reposilite-test", "1.0.2-SNAPSHOT", "maven-metadata.xml");
-        assertEquals("Builds not found", result.getError());
+        assertEquals("Latest build not found", result.getError());
     }
 
     @Test

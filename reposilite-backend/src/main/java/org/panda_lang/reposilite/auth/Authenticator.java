@@ -51,12 +51,6 @@ public final class Authenticator {
 
     public Result<Pair<String[], Repository>, ErrorDto> authRepository(Context context, String uri) {
         String[] path = StringUtils.split(uri, "/");
-
-        // discard invalid requests (less than 'repository/group/artifact')
-        if (path.length < 1) {
-            return Result.error(new ErrorDto(HttpStatus.SC_OK, "Unsupported request"));
-        }
-
         String repositoryName = path[0];
 
         if (StringUtils.isEmpty(repositoryName)) {

@@ -46,6 +46,11 @@ class LookupControllerTest extends ReposiliteIntegrationTest {
     }
 
     @Test
+    void shouldReturn404ForMissingSnapshotMetadataFileWithBuildsNotFoundMessage() throws IOException {
+        assertResponseWithMessage(get("/gav/1.0.0-SNAPSHOT/maven-metadata.xml"), HttpStatus.SC_NOT_FOUND, "Latest build not found");
+    }
+
+    @Test
     void shouldReturn200AndFrontendWithRepositoryNotFoundMessage() throws IOException {
         super.reposilite.getConfiguration().rewritePathsEnabled = false;
         assertResponseWithMessage(get("/invalid_repository/groupId/artifactId"), HttpStatus.SC_OK, "Repository invalid_repository not found");
