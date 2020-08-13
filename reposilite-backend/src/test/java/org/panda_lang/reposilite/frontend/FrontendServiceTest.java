@@ -28,9 +28,8 @@ class FrontendServiceTest {
 
     @Test
     void forMessage() {
-        assertTrue(FRONTEND_SERVICE.forMessage("#onlypanda").contains("#onlypanda"));
-        assertFalse(FRONTEND_SERVICE.forMessage("#onlyreposilite").contains("#onlypanda"));
-        assertTrue(FRONTEND_SERVICE.forMessage("#onlyreposilite").contains("#onlyreposilite"));
+        assertTrue(FRONTEND_SERVICE.forMessage("test message").contains("test message"));
+        assertFalse(FRONTEND_SERVICE.forMessage("test message").contains("other message"));
     }
 
     @Test
