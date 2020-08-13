@@ -15,7 +15,10 @@
  */
 
 module.exports = {
-  publicPath: process.env.NODE_ENV === 'production' ? '{{REPOSILITE.VUE_BASE_PATH}}' : '/',
+  publicPath:
+    process.env.NODE_ENV === 'production'
+      ? '{{REPOSILITE.VUE_BASE_PATH}}'
+      : '/',
   outputDir: '../reposilite-backend/src/main/resources/frontend/',
   filenameHashing: false,
   productionSourceMap: false,

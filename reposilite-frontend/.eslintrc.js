@@ -23,6 +23,9 @@ module.exports = {
     'plugin:vue/essential',
     '@vue/standard'
   ],
+  plugins: [
+    'pug'
+  ],
   parserOptions: {
     parser: 'babel-eslint'
   },

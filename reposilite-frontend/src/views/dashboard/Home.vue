@@ -15,26 +15,31 @@
   -->
 
 <template lang="pug">
-    .py-2.px-6.border.flex
-        .pr-5
-            i(v-if="file.type === 'directory'").fas.fa-folder
-            i(v-if="file.type === 'file'").fas.fa-file
-        .flex.justify-between.w-full
-            h1(v-if="file.type === 'file'") {{ file.name }}
-            h1(v-else).font-bold {{ file.name }}
-            p(v-if="file.type === 'file'") {{ fileSize }}
+  FileBrowser(
+    :qualifier='qualifier'
+    :auth="$parent.auth"
+    prefix="/dashboard"
+  )
 </template>
 
 <script>
-import prettyBytes from 'pretty-bytes'
+import FileBrowser from '../../components/browser/FileBrowser'
 
 export default {
-  props: {
-    file: Object
-  },
   data () {
     return {
-      fileSize: prettyBytes(this.file.contentLength)
+      qualifier: undefined
+    }
+  },
+  components: {
+    FileBrowser
+  },
+  watch: {
+    $route: {
+      immediate: true,
+      handler () {
+        this.qualifier = this.getQualifier()
+      }
     }
   }
 }

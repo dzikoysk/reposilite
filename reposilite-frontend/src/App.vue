@@ -19,12 +19,27 @@
 </template>
 
 <script>
+import Vue from 'vue'
+
 export default {
   name: 'App',
+  data () {
+    return {
+      reposilite: Vue.prototype.$reposilite
+    }
+  },
+  metaInfo () {
+    return {
+      title: this.reposilite.title
+    }
+  },
   mounted () {
-    console.log('REPOSILITE_BASE_PATH: ' + window.REPOSILITE_BASE_PATH)
-    console.log('REPOSILITE_VUE_BASE_PATH: ' + window.REPOSILITE_VUE_BASE_PATH)
-    console.log('REPOSILITE_MESSAGE: ' + window.REPOSILITE_MESSAGE)
+    console.log('REPOSILITE_MESSAGE: ' + this.reposilite.message)
+    console.log('REPOSILITE_BASE_PATH: ' + this.reposilite.basePath)
+    console.log('REPOSILITE_VUE_BASE_PATH: ' + this.reposilite.vueBasePath)
+    console.log('REPOSILITE_TITLE: ' + this.reposilite.title)
+    console.log('REPOSILITE_DESCRIPTION: ' + this.reposilite.description)
+    console.log('REPOSILITE_ACCENT_COLOR: ' + this.reposilite.accentColor)
   }
 }
 </script>

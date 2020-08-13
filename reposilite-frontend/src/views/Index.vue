@@ -16,132 +16,44 @@
 
 <template lang="pug">
   #app
-      header
-          Wave(:accentColor="this.configuration.accentColor").absolute.w-full
-          router-link(to="/").flex.text-white.h-56.flex-col.justify-center.px-8.container.mx-auto
-              .w-full
-                  h1.text-5xl.segoe.text-grey.font-bold.pt-1 {{ this.configuration.title }}
-              .w-full
-                  p.text-lg.w-96.md_w-full {{ this.configuration.description }}
-      main.mt-64.lg_mt-24
-          .container.mx-auto
-              .mx-4.pb-16
-                  .flex.justify-between.py-4
-                      h1.text-xl
-                          | Index of
-                          span.ml-2
-                              span(v-for="(element, idx) in splitQualifier()")
-                                  router-link(
-                                      :to="splitQualifier().slice(0, idx + 1).join('/')"
-                                  ) {{ element }}
-                                  span /
-                          router-link(:to="'/dashboard' + this.qualifier")
-                              span.ml-3(:style="'color: ' + this.configuration.accentColor")
-                                  i.fas.fa-feather-alt
-                      router-link(
-                          v-if="this.qualifier != undefined && this.qualifier.length > 1"
-                          :to='parentPath()'
-                      ) ← Back
-                  FileEntry(
-                      v-if="hasFiles()"
-                      v-for="file in response.files"
-                      :key="file.name"
-                      prefix=""
-                      :file="file"
-                      :auth="{}"
-                  )
-                  h1(v-if="isEmpty()") Empty directory
-                  h1(v-if="!hasFiles()").font-bold {{ response.message }}
-      notifications(group="index" position="center top")
+    header
+      Wave(:accentColor="reposilite.accentColor").absolute.w-full
+      router-link(to="/").flex.text-white.h-56.flex-col.justify-center.px-8.container.mx-auto
+        .w-full
+          h1.text-5xl.segoe.text-grey.font-bold.pt-1 {{ reposilite.title }}
+        .w-full
+          p.text-lg.w-96.md_w-full {{ reposilite.description }}
+    main.mt-64.lg_mt-24
+      .container.mx-auto
+        .mx-4.pb-16
+           FileBrowser(
+             :qualifier='qualifier'
+             :auth="{}"
+             prefix=""
+           )
+    notifications(group="index" position="center top")
 </template>
 
 <script>
+import Vue from 'vue'
 import Wave from '../components/Wave'
-import FileEntry from '../components/FileEntry'
+import FileBrowser from '../components/browser/FileBrowser'
 
 export default {
   data: () => ({
-    configuration: {},
-    qualifier: undefined,
-    message: undefined,
-    response: []
+    reposilite: Vue.prototype.$reposilite,
+    qualifier: undefined
   }),
   components: {
     Wave,
-    FileEntry
-  },
-  metaInfo () {
-    return {
-      title:
-        this.configuration.title !== undefined ? `${this.configuration.title} - ${this.configuration.description}` : 'Reposilite',
-      meta: [
-        // Default
-        {
-          name: 'description',
-          content:
-            'Repository holds build artifacts and dependencies of varying types'
-        },
-        // Twitter Card
-        { name: 'twitter:card', content: 'summary' },
-        { name: 'twitter:title', content: 'Maven Repository' },
-        {
-          name: 'twitter:description',
-          content:
-            'Repository holds build artifacts and dependencies of varying types'
-        },
-        // Facebook OpenGraph
-        { property: 'og:title', content: 'Maven Repository' },
-        { property: 'og:site_name', content: 'Maven Repository' },
-        { property: 'og:type', content: 'website' },
-        {
-          property: 'og:description',
-          content:
-            'Repository holds build artifacts and dependencies of varying types'
-        }
-      ]
-    }
-  },
-  created () {
-    this.message = window.REPOSILITE_MESSAGE
-
-    if (sessionStorage.configuration) {
-      this.configuration = JSON.parse(sessionStorage.configuration)
-    }
-
-    this.api('/configuration', {})
-      .then(response => {
-        this.configuration = response.data
-        sessionStorage.configuration = JSON.stringify(this.configuration)
-      })
-      .catch(err => (this.response = err.response.data))
-  },
-  mounted () {
-    this.updateEntities()
+    FileBrowser
   },
   watch: {
-    $route () {
-      this.updateEntities()
-    }
-  },
-  methods: {
-    updateEntities () {
-      this.qualifier = this.getQualifier()
-
-      this.api(this.qualifier, {})
-        .then(response => (this.response = response.data))
-        .catch(err => {
-          this.$notify({
-            group: 'index',
-            type: 'error',
-            title: err.response.data.message
-          })
-        })
-    },
-    hasFiles () {
-      return this.response.files !== undefined
-    },
-    isEmpty () {
-      return this.hasFiles() && this.response.files.length === 0
+    $route: {
+      immediate: true,
+      handler: function () {
+        this.qualifier = this.getQualifier()
+      }
     }
   }
 }

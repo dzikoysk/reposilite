@@ -18,7 +18,7 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import Index from './views/Index.vue'
 import Dashboard from './views/Dashboard.vue'
-import DashboardIndex from './views/dashboard/Index.vue'
+import DashboardHome from './views/dashboard/Home.vue'
 import DashboardUpload from './views/dashboard/Upload.vue'
 import DashboardCli from './views/dashboard/Cli.vue'
 import DashboardSettings from './views/dashboard/Settings.vue'
@@ -27,7 +27,10 @@ Vue.use(Router)
 
 export default new Router({
   mode: 'history',
-  base: process.env.NODE_ENV === 'production' ? '{{REPOSILITE.VUE_BASE_PATH}}' : '/',
+  base:
+    process.env.NODE_ENV === 'production'
+      ? '{{REPOSILITE.VUE_BASE_PATH}}'
+      : '/',
   routes: [
     {
       path: '/dashboard',
@@ -51,13 +54,13 @@ export default new Router({
         },
         {
           path: '',
-          name: 'Dashboard Index',
-          component: DashboardIndex
+          name: 'Dashboard Home',
+          component: DashboardHome
         },
         {
           path: ':qualifier(.*)',
-          name: 'Dashboard Qualified Index',
-          component: DashboardIndex
+          name: 'Dashboard Qualified Home',
+          component: DashboardHome
         }
       ]
     },
