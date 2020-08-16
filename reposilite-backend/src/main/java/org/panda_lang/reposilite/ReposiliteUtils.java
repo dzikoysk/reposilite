@@ -14,18 +14,16 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.repository;
+package org.panda_lang.reposilite;
 
 import org.panda_lang.reposilite.config.Configuration;
+import org.panda_lang.reposilite.repository.Repository;
+import org.panda_lang.reposilite.repository.RepositoryService;
 import org.panda_lang.utilities.commons.StringUtils;
 
-import java.util.regex.Pattern;
+public final class ReposiliteUtils {
 
-public final class RepositoryUtils {
-
-    private static final Pattern ALLOWED_PATTERN = Pattern.compile("\\W+/");
-
-    private RepositoryUtils() { }
+    private ReposiliteUtils() { }
 
     /**
      * Process uri applying following changes:

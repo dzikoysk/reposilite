@@ -16,63 +16,42 @@
 
 package org.panda_lang.reposilite.repository;
 
-import com.google.api.client.http.GenericUrl;
-import com.google.api.client.http.HttpRequest;
-import com.google.api.client.http.HttpRequestFactory;
-import com.google.api.client.http.HttpResponse;
-import com.google.api.client.http.javanet.NetHttpTransport;
 import io.javalin.http.Context;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.api.ErrorDto;
+import org.panda_lang.reposilite.api.ErrorUtils;
 import org.panda_lang.reposilite.auth.Authenticator;
-import org.panda_lang.reposilite.config.Configuration;
-import org.panda_lang.reposilite.frontend.FrontendService;
 import org.panda_lang.reposilite.metadata.MetadataService;
 import org.panda_lang.reposilite.metadata.MetadataUtils;
 import org.panda_lang.reposilite.utils.ArrayUtils;
 import org.panda_lang.reposilite.utils.FilesUtils;
-import org.panda_lang.reposilite.utils.FutureUtils;
 import org.panda_lang.reposilite.utils.Result;
-import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.collection.Pair;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
-public final class LookupService {
+final class LookupService {
 
     private final Reposilite reposilite;
-    private final FrontendService frontend;
-    private final Configuration configuration;
     private final Authenticator authenticator;
     private final MetadataService metadataService;
     private final RepositoryService repositoryService;
-    private final HttpRequestFactory requestFactory;
-    private final ExecutorService proxiedExecutor;
 
-    public LookupService(Reposilite reposilite) {
+    LookupService(Reposilite reposilite) {
         this.reposilite = reposilite;
-        this.frontend = reposilite.getFrontend();
-        this.configuration = reposilite.getConfiguration();
         this.authenticator = reposilite.getAuthenticator();
         this.metadataService = reposilite.getMetadataService();
         this.repositoryService = reposilite.getRepositoryService();
-        this.requestFactory = configuration.proxied.isEmpty() ? null : new NetHttpTransport().createRequestFactory();
-        this.proxiedExecutor = configuration.proxied.isEmpty() ? null : Executors.newCachedThreadPool();
     }
 
-    protected Result<Context, ErrorDto> serveLocal(Context context) {
+    protected Result<Context, ErrorDto> findLocal(Context context) {
         String uri = context.req.getRequestURI();
         Result<Pair<String[], Repository>, ErrorDto> result = this.authenticator.authDefaultRepository(context, uri);
 
@@ -80,7 +59,7 @@ public final class LookupService {
             // Maven requests maven-metadata.xml file during deploy for snapshot releases without specifying credentials
             // https://github.com/dzikoysk/reposilite/issues/184
             if (uri.contains("-SNAPSHOT") && uri.endsWith("maven-metadata.xml")) {
-                return Result.error(new ErrorDto(HttpStatus.SC_NOT_FOUND, result.getError().getMessage()));
+                return ErrorUtils.error(HttpStatus.SC_NOT_FOUND, result.getError().getMessage());
             }
 
             return Result.error(result.getError());
@@ -92,7 +71,7 @@ public final class LookupService {
 
         // discard invalid requests (less than 'group/(artifact OR metadata)')
         if (requestPath.length < 2) {
-            return Result.error(new ErrorDto(HttpStatus.SC_OK, "Missing artifact identifier"));
+            return ErrorUtils.error(HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, "Missing artifact identifier");
         }
 
         Repository repository = result.getValue().getValue();
@@ -112,7 +91,7 @@ public final class LookupService {
             File version = ArrayUtils.getFirst(versions);
 
             if (version == null) {
-                return Result.error(new ErrorDto(HttpStatus.SC_NOT_FOUND, "Latest version not found"));
+                return ErrorUtils.error(HttpStatus.SC_NOT_FOUND, "Latest version not found");
             }
 
             return Result.ok(context.result(version.getName()));
@@ -128,13 +107,13 @@ public final class LookupService {
         File repositoryFile = repository.getFile(requestPath);
 
         if (repositoryFile.exists() && repositoryFile.isDirectory()) {
-            return Result.error(new ErrorDto(HttpStatus.SC_OK, "Directory access"));
+            return ErrorUtils.error(HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, "Directory access");
         }
 
         Optional<Artifact> artifact = repository.find(requestPath);
 
         if (!artifact.isPresent()) {
-            return Result.error(new ErrorDto(HttpStatus.SC_USE_PROXY, "Artifact " + requestedFileName + " not found"));
+            return ErrorUtils.error(HttpStatus.SC_USE_PROXY, "Artifact " + requestedFileName + " not found");
         }
 
         File file = artifact.get().getFile(requestedFileName);
@@ -160,107 +139,10 @@ public final class LookupService {
             return Result.ok(context);
         } catch (Exception exception) {
             reposilite.throwException(context.req.getRequestURI(), exception);
-            return Result.error(new ErrorDto(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Cannot read artifact"));
+            return ErrorUtils.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Cannot read artifact");
         } finally {
             FilesUtils.close(content);
         }
-    }
-
-    protected Result<CompletableFuture<Context>, ErrorDto> serveProxied(Context context) {
-        String uri = context.req.getRequestURI();
-
-        // remove repository name if defined
-        for (Repository repository : repositoryService.getRepositories()) {
-            if (uri.startsWith("/" + repository.getName())) {
-                uri = uri.substring(1 + repository.getName().length());
-                break;
-            }
-        }
-
-        // /groupId/artifactId/<content>
-        if (StringUtils.countOccurrences(uri, "/") < 3) {
-            return Result.error(new ErrorDto(HttpStatus.SC_OK, "Invalid proxied request"));
-        }
-
-        String remoteUri = uri;
-
-        return Result.ok(FutureUtils.submit(reposilite, proxiedExecutor, future -> {
-            for (String proxied : configuration.proxied) {
-                try {
-                    HttpRequest remoteRequest = requestFactory.buildGetRequest(new GenericUrl(proxied + remoteUri));
-                    remoteRequest.setThrowExceptionOnExecuteError(false);
-                    remoteRequest.setConnectTimeout(3000);
-                    remoteRequest.setReadTimeout(10000);
-                    HttpResponse remoteResponse = remoteRequest.execute();
-
-                    if (!remoteResponse.isSuccessStatusCode()) {
-                        continue;
-                    }
-
-                    Long contentLength = remoteResponse.getHeaders().getContentLength();
-
-                    if (contentLength != null && contentLength != 0) {
-                        context.res.setContentLengthLong(contentLength);
-                    }
-
-                    if (!context.method().equals("HEAD")) {
-                        if (configuration.storeProxied) {
-                            store(context, remoteUri, remoteResponse);
-                        }
-                        else {
-                            IOUtils.copy(remoteResponse.getContent(), context.res.getOutputStream());
-                        }
-                    }
-
-                    if (remoteResponse.getContentType() != null) {
-                        context.contentType(remoteResponse.getContentType());
-                    }
-
-                    return future.complete(context.status(remoteResponse.getStatusCode()));
-                } catch (IOException e) {
-                    Reposilite.getLogger().warn("Proxied repository " + proxied + " is unavailable: " + e.getMessage());
-                } catch (Exception e) {
-                    reposilite.throwException(remoteUri, e);
-                    future.cancel(true);
-                }
-            }
-
-            return future.complete(context
-                    .status(HttpStatus.SC_NOT_FOUND)
-                    .contentType("text/html")
-                    .result(frontend.forMessage("Artifact not found in local and remote repository")));
-        }));
-    }
-
-    private void store(Context context, String uri, HttpResponse remoteResponse) throws IOException {
-        DiskQuota diskQuota = repositoryService.getDiskQuota();
-
-        if (!diskQuota.hasUsableSpace()) {
-            Reposilite.getLogger().warn("Out of disk space - Cannot store proxied artifact " + uri);
-            return;
-        }
-
-        String repositoryName = StringUtils.split(uri, "/")[1]; // skip first path separator
-        Repository repository = repositoryService.getRepository(repositoryName);
-
-        if (repository == null) {
-            if (!configuration.rewritePathsEnabled) {
-                return;
-            }
-
-            uri = repositoryService.getPrimaryRepository().getName() + uri;
-        }
-
-        File proxiedFile = repositoryService.getFile(uri);
-        FileUtils.copyInputStreamToFile(remoteResponse.getContent(), proxiedFile);
-        FileUtils.copyFile(proxiedFile, context.res.getOutputStream());
-        diskQuota.allocate(proxiedFile.length());
-
-        Reposilite.getLogger().info("Stored proxied " + uri);
-    }
-
-    public boolean hasProxiedRepositories() {
-        return proxiedExecutor != null;
     }
 
 }

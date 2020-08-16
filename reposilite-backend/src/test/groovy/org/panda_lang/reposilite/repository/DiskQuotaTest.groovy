@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals
 import static org.junit.jupiter.api.Assertions.assertFalse
 import static org.junit.jupiter.api.Assertions.assertTrue
 
-class DiskQuotaTest {
+final class DiskQuotaTest {
 
     @TempDir
     public File workingDirectory
@@ -17,7 +17,7 @@ class DiskQuotaTest {
     @SuppressWarnings('GroovyAccessibility')
     void 'should create quota of the given percentage' () {
         def quota = DiskQuota.of(workingDirectory, '90%')
-        def size = quota.@quota.longValue();
+        def size = quota.@quota.longValue()
 
         assertTrue size > 0
         assertEquals 0, quota.@usage.longValue()

@@ -8,7 +8,7 @@ import org.panda_lang.utilities.commons.FileUtils
 import static org.junit.jupiter.api.Assertions.assertEquals
 import static org.junit.jupiter.api.Assertions.assertTrue
 
-class StatsStorageTest {
+final class StatsStorageTest {
 
     @TempDir
     public File workingDirectory

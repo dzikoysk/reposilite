@@ -20,6 +20,7 @@ import io.javalin.http.Context;
 import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.RepositoryController;
+import org.panda_lang.reposilite.ReposiliteUtils;
 import org.panda_lang.reposilite.api.ErrorDto;
 import org.panda_lang.reposilite.api.ErrorUtils;
 import org.panda_lang.reposilite.auth.Authenticator;
@@ -51,7 +52,7 @@ public final class IndexApiController implements RepositoryController {
     @Override
     public Context handleContext(Context context) {
         Reposilite.getLogger().info("API " + context.req.getRequestURI() + " from " + context.ip());
-        String uri = RepositoryUtils.normalizeUri(configuration, repositoryService, StringUtils.replaceFirst(context.req.getRequestURI(), "/api", ""));
+        String uri = ReposiliteUtils.normalizeUri(configuration, repositoryService, StringUtils.replaceFirst(context.req.getRequestURI(), "/api", ""));
 
         if (StringUtils.isEmpty(uri) || "/".equals(uri)) {
             return context.json(listRepositories(context));
@@ -60,7 +61,7 @@ public final class IndexApiController implements RepositoryController {
         Result<Pair<String[], Repository>, ErrorDto> result = authenticator.authRepository(context, uri);
 
         if (result.containsError()) {
-            return ErrorUtils.error(context, result.getError().getStatus(), result.getError().getMessage());
+            return ErrorUtils.errorResponse(context, result.getError().getStatus(), result.getError().getMessage());
         }
 
         File requestedFile = repositoryService.getFile(uri);
@@ -71,7 +72,7 @@ public final class IndexApiController implements RepositoryController {
         }
 
         if (!requestedFile.exists()) {
-            return ErrorUtils.error(context, HttpStatus.SC_NOT_FOUND, "File not found");
+            return ErrorUtils.errorResponse(context, HttpStatus.SC_NOT_FOUND, "File not found");
         }
 
         if (requestedFile.isFile()) {

@@ -28,20 +28,22 @@ public final class LookupController implements Handler {
 
     private final FrontendService frontend;
     private final LookupService lookupService;
+    private final ProxyService proxyService;
 
-    public LookupController(FrontendService frontend, LookupService lookupService) {
-        this.frontend = frontend;
-        this.lookupService = lookupService;
+    public LookupController(Reposilite reposilite) {
+        this.frontend = reposilite.getFrontendService();
+        this.lookupService = new LookupService(reposilite);
+        this.proxyService = new ProxyService(reposilite);
     }
 
     @Override
     public void handle(Context context) {
         Reposilite.getLogger().info("LOOKUP " + context.req.getRequestURI() + " from " + context.req.getRemoteAddr());
-        Result<Context, ErrorDto> lookupResponse = lookupService.serveLocal(context);
+        Result<Context, ErrorDto> lookupResponse = lookupService.findLocal(context);
 
         if (isProxied(lookupResponse)) {
-            if (lookupService.hasProxiedRepositories()) {
-                lookupResponse = lookupResponse.orElse(localError -> lookupService.serveProxied(context).map(context::result));
+            if (proxyService.hasProxiedRepositories()) {
+                lookupResponse = lookupResponse.orElse(localError -> proxyService.findProxied(context).map(context::result));
             }
 
             if (isProxied(lookupResponse)) {

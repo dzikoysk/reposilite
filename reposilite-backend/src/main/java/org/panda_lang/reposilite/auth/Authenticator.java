@@ -21,10 +21,11 @@ import org.apache.http.HttpStatus;
 import org.jetbrains.annotations.Nullable;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.api.ErrorDto;
+import org.panda_lang.reposilite.api.ErrorUtils;
 import org.panda_lang.reposilite.config.Configuration;
 import org.panda_lang.reposilite.repository.Repository;
 import org.panda_lang.reposilite.repository.RepositoryService;
-import org.panda_lang.reposilite.repository.RepositoryUtils;
+import org.panda_lang.reposilite.ReposiliteUtils;
 import org.panda_lang.reposilite.utils.Result;
 import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.collection.Pair;
@@ -46,7 +47,7 @@ public final class Authenticator {
     }
 
     public Result<Pair<String[], Repository>, ErrorDto> authDefaultRepository(Context context, String uri) {
-        return authRepository(context, RepositoryUtils.normalizeUri(configuration, repositoryService, uri));
+        return authRepository(context, ReposiliteUtils.normalizeUri(configuration, repositoryService, uri));
     }
 
     public Result<Pair<String[], Repository>, ErrorDto> authRepository(Context context, String uri) {
@@ -54,13 +55,13 @@ public final class Authenticator {
         String repositoryName = path[0];
 
         if (StringUtils.isEmpty(repositoryName)) {
-            return Result.error(new ErrorDto(HttpStatus.SC_OK, "Unsupported request"));
+            return ErrorUtils.error(HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, "Unsupported request");
         }
 
         Repository repository = repositoryService.getRepository(repositoryName);
 
         if (repository == null) {
-            return Result.error(new ErrorDto(HttpStatus.SC_OK, "Repository " + repositoryName  + " not found"));
+            return ErrorUtils.error(HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, "Repository " + repositoryName  + " not found");
         }
 
         // auth hidden repositories
@@ -68,7 +69,7 @@ public final class Authenticator {
             Result<Session, String> authResult = authDefault(context);
 
             if (authResult.containsError()) {
-                return Result.error(new ErrorDto(HttpStatus.SC_UNAUTHORIZED, "Unauthorized request"));
+                return ErrorUtils.error(HttpStatus.SC_UNAUTHORIZED, "Unauthorized request");
             }
         }
 

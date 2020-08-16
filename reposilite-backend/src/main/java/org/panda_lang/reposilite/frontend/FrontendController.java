@@ -34,7 +34,7 @@ public class FrontendController implements RepositoryController {
 
         return context
                 .header("Content-Type", "application/javascript")
-                .result(reposilite.getFrontend().getApp());
+                .result(reposilite.getFrontendService().getApp());
     }
 
 }

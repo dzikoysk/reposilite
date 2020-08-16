@@ -25,7 +25,7 @@ import org.panda_lang.reposilite.ReposiliteIntegrationTest
 import static org.junit.jupiter.api.Assertions.assertEquals
 import static org.junit.jupiter.api.Assertions.assertNotNull
 
-class ConfigurationApiControllerTest extends ReposiliteIntegrationTest {
+final class ConfigurationApiControllerTest extends ReposiliteIntegrationTest {
 
     @Test
     void 'should return 200 and configuration dto' () throws IOException {

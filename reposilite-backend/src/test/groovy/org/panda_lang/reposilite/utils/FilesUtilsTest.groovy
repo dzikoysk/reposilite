@@ -6,7 +6,7 @@ import org.junit.jupiter.api.function.Executable
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow
 import static org.junit.jupiter.api.Assertions.assertEquals
 
-class FilesUtilsTest {
+final class FilesUtilsTest {
 
     @Test
     void 'should convert display size to bytes count' () {

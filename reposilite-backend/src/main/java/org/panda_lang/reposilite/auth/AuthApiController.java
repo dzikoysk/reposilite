@@ -45,7 +45,7 @@ public final class AuthApiController implements RepositoryController {
                     return new AuthDto(session.isManager(),  session.getToken().getPath(),repositories);
                 })
                 .map(ctx::json)
-                .orElseGet(error -> ErrorUtils.error(ctx, HttpStatus.SC_UNAUTHORIZED, error));
+                .orElseGet(error -> ErrorUtils.errorResponse(ctx, HttpStatus.SC_UNAUTHORIZED, error));
     }
 
 }

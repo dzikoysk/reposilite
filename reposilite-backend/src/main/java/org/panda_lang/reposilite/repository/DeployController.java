@@ -21,6 +21,7 @@ import io.javalin.http.Handler;
 import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.Reposilite;
+import org.panda_lang.reposilite.api.ErrorDto;
 import org.panda_lang.reposilite.api.ErrorUtils;
 import org.panda_lang.reposilite.auth.Authenticator;
 import org.panda_lang.reposilite.auth.Session;
@@ -55,24 +56,24 @@ public final class DeployController implements Handler {
         Reposilite.getLogger().info("DEPLOY " + context.req.getRequestURI() + " from " + context.req.getRemoteAddr());
 
         deploy(context)
-            .onError(error -> ErrorUtils.error(context, HttpStatus.SC_UNAUTHORIZED, error));
+                .onError(error -> ErrorUtils.errorResponse(context, error));
     }
 
-    public Result<Context, String> deploy(Context context) {
+    public Result<Context, ErrorDto> deploy(Context context) {
         if (!configuration.deployEnabled) {
-            return Result.error("Artifact deployment is disabled");
+            return ErrorUtils.error(HttpStatus.SC_METHOD_NOT_ALLOWED, "Artifact deployment is disabled");
         }
 
         Result<Session, String> authResult = this.authenticator.authDefault(context);
 
         if (authResult.containsError()) {
-            return Result.error(authResult.getError());
+            return ErrorUtils.error(HttpStatus.SC_UNAUTHORIZED, authResult.getError());
         }
 
         DiskQuota diskQuota = repositoryService.getDiskQuota();
 
         if (!diskQuota.hasUsableSpace()) {
-            return Result.error("Out of disk space");
+            return ErrorUtils.error(HttpStatus.SC_INSUFFICIENT_STORAGE, "Out of disk space");
         }
 
         File file = repositoryService.getFile(context.req.getRequestURI());
@@ -92,7 +93,7 @@ public final class DeployController implements Handler {
             return Result.ok(context.result("Success"));
         } catch (IOException e) {
             reposilite.throwException(context.req.getRequestURI(), e);
-            return Result.error("Failed to upload artifact");
+            return ErrorUtils.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Failed to upload artifact");
         }
     }
 

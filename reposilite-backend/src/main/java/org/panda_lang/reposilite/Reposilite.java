@@ -175,7 +175,7 @@ public final class Reposilite {
         return reactiveHttpServer;
     }
 
-    public FrontendService getFrontend() {
+    public FrontendService getFrontendService() {
         return frontend;
     }
 
