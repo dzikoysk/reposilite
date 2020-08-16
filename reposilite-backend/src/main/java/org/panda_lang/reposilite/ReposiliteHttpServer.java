@@ -20,6 +20,7 @@ import io.javalin.Javalin;
 import io.javalin.core.JavalinConfig;
 import org.eclipse.jetty.server.Server;
 import org.panda_lang.reposilite.auth.AuthApiController;
+import org.panda_lang.reposilite.auth.PostAuthHandler;
 import org.panda_lang.reposilite.config.Configuration;
 import org.panda_lang.reposilite.config.ConfigurationApiController;
 import org.panda_lang.reposilite.console.CliController;
@@ -27,7 +28,6 @@ import org.panda_lang.reposilite.frontend.FrontendController;
 import org.panda_lang.reposilite.repository.DeployController;
 import org.panda_lang.reposilite.repository.IndexApiController;
 import org.panda_lang.reposilite.repository.LookupController;
-import org.panda_lang.reposilite.repository.LookupService;
 
 import java.util.Objects;
 
@@ -41,12 +41,12 @@ public final class ReposiliteHttpServer {
     }
 
     void start(Configuration configuration, Runnable onStart) {
-        LookupService lookupService = new LookupService(reposilite);
-        LookupController lookupController = new LookupController(reposilite.getFrontend(), lookupService);
+        LookupController lookupController = new LookupController(reposilite);
         DeployController deployController = new DeployController(reposilite);
         IndexApiController indexApiController = new IndexApiController(reposilite);
 
         this.javalin = Javalin.create(config -> config(configuration, config))
+                .before(ctx -> reposilite.getStatsService().record(ctx.req.getRequestURI()))
                 .get("/js/app.js", new FrontendController(reposilite))
                 .get("/api/configuration", new ConfigurationApiController(reposilite.getConfiguration()))
                 .get("/api/auth", new AuthApiController(reposilite.getAuthenticator()))
@@ -57,7 +57,7 @@ public final class ReposiliteHttpServer {
                 .head("/*", lookupController)
                 .put("/*", deployController)
                 .post("/*", deployController)
-                .before(ctx -> reposilite.getStatsService().record(ctx.req.getRequestURI()))
+                .after("/*", new PostAuthHandler())
                 .exception(Exception.class, (exception, ctx) -> reposilite.throwException(ctx.req.getRequestURI(), exception))
                 .start(configuration.hostname, configuration.port);
 
