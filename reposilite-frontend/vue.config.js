@@ -27,7 +27,7 @@ module.exports = {
   },
   chainWebpack: config => {
     config.optimization.delete('splitChunks')
-    
+
     // Vue removes quotes from attributes which causes bugs in placeholders with spaces
     // ~ https://github.com/dzikoysk/reposilite/issues/209
     config.plugin('html')
