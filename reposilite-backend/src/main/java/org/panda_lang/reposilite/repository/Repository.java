@@ -29,7 +29,7 @@ public final class Repository {
     private final String name;
     private final boolean hidden;
 
-    public Repository(File rootDirectory, String name, boolean hidden) {
+    Repository(File rootDirectory, String name, boolean hidden) {
         this.directory = new File(rootDirectory, name);
         this.name = name;
         this.hidden = hidden;

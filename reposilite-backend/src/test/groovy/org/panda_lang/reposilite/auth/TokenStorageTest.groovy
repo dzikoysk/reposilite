@@ -7,7 +7,7 @@ import org.panda_lang.utilities.commons.FileUtils
 
 import static org.junit.jupiter.api.Assertions.*
 
-class TokenStorageTest {
+final class TokenStorageTest {
 
     @TempDir
     public File workingDirectory

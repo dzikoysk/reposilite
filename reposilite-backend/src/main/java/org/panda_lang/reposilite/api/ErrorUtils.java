@@ -17,15 +17,24 @@
 package org.panda_lang.reposilite.api;
 
 import io.javalin.http.Context;
+import org.panda_lang.reposilite.utils.Result;
 
 public final class ErrorUtils {
 
     private ErrorUtils() { }
 
-    public static Context error(Context context, int status, String message) {
+    public static <T> Result<T, ErrorDto> error(int status, String messge) {
+        return Result.error(new ErrorDto(status, messge));
+    }
+
+    public static Context errorResponse(Context context, int status, String message) {
+        return errorResponse(context, new ErrorDto(status, message));
+    }
+
+    public static Context errorResponse(Context context, ErrorDto error) {
         return context
-                .status(status)
-                .json(new ErrorDto(status, message));
+                .status(error.getStatus())
+                .json(error);
     }
 
 }

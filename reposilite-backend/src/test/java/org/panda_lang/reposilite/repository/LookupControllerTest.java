@@ -41,8 +41,8 @@ class LookupControllerTest extends ReposiliteIntegrationTest {
     }
 
     @Test
-    void shouldReturn200AndFrontendWithUnsupportedRequestMessage() throws IOException {
-        assertResponseWithMessage(get("/"), HttpStatus.SC_OK, "Unsupported request");
+    void shouldReturn203AndFrontendWithUnsupportedRequestMessage() throws IOException {
+        assertResponseWithMessage(get("/"), HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, "Unsupported request");
     }
 
     @Test
@@ -51,14 +51,14 @@ class LookupControllerTest extends ReposiliteIntegrationTest {
     }
 
     @Test
-    void shouldReturn200AndFrontendWithRepositoryNotFoundMessage() throws IOException {
+    void shouldReturn203AndFrontendWithRepositoryNotFoundMessage() throws IOException {
         super.reposilite.getConfiguration().rewritePathsEnabled = false;
-        assertResponseWithMessage(get("/invalid_repository/groupId/artifactId"), HttpStatus.SC_OK, "Repository invalid_repository not found");
+        assertResponseWithMessage(get("/invalid_repository/groupId/artifactId"), HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, "Repository invalid_repository not found");
     }
 
     @Test
-    void shouldReturn200AndFrontendWithMissingArtifactIdentifier() throws IOException {
-        assertResponseWithMessage(get("/releases/groupId"), HttpStatus.SC_OK, "Missing artifact identifier");
+    void shouldReturn203AndFrontendWithMissingArtifactIdentifier() throws IOException {
+        assertResponseWithMessage(get("/releases/groupId"), HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, "Missing artifact identifier");
     }
 
     @Test
