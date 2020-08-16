@@ -45,19 +45,19 @@ class DeployControllerTest extends ReposiliteIntegrationTest {
     }
 
     @Test
-    void shouldReturn401AndArtifactDeploymentIsDisabledMessage() throws IOException, AuthenticationException {
+    void shouldReturn405AndArtifactDeploymentIsDisabledMessage() throws Exception {
         super.reposilite.getConfiguration().deployEnabled = false;
-        shouldReturn401AndGivenMessage("/releases/groupId/artifactId/file", "authtest", "secure", "content", "Artifact deployment is disabled");
+        shouldReturnErrorGivenMessage("/releases/groupId/artifactId/file", "authtest", "secure", "content", HttpStatus.SC_METHOD_NOT_ALLOWED, "Artifact deployment is disabled");
     }
 
     @Test
-    void shouldReturn401AndInvalidCredentialsMessage() throws IOException, AuthenticationException {
-        shouldReturn401AndGivenMessage("/releases/groupId/artifactId/file", "authtest", "invalid_token", "content", "Invalid authorization credentials");
+    void shouldReturn401AndInvalidCredentialsMessage() throws Exception {
+        shouldReturnErrorGivenMessage("/releases/groupId/artifactId/file", "authtest", "invalid_token", "content", HttpStatus.SC_UNAUTHORIZED, "Invalid authorization credentials");
     }
 
-    private void shouldReturn401AndGivenMessage(String uri, String username, String password, String content, String message) throws IOException, AuthenticationException {
+    private void shouldReturnErrorGivenMessage(String uri, String username, String password, String content, int status, String message) throws Exception {
         HttpResponse response = put(uri, username, password, content);
-        assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getStatusLine().getStatusCode());
+        assertEquals(status, response.getStatusLine().getStatusCode());
 
         String result = IOUtils.convertStreamToString(response.getEntity().getContent()).getValue();
         assertNotNull(result);

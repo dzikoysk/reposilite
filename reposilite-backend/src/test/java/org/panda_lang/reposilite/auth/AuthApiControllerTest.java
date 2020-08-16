@@ -17,20 +17,18 @@
 package org.panda_lang.reposilite.auth;
 
 import com.google.api.client.http.HttpResponse;
+import net.dzikoysk.cdn.CDN;
+import net.dzikoysk.cdn.model.Configuration;
 import org.apache.http.HttpStatus;
-import org.hjson.JsonObject;
-import org.hjson.JsonValue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.panda_lang.reposilite.ReposiliteIntegrationTest;
-import org.panda_lang.utilities.commons.ArrayUtils;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 final class AuthApiControllerTest extends ReposiliteIntegrationTest {
 
@@ -55,14 +53,10 @@ final class AuthApiControllerTest extends ReposiliteIntegrationTest {
         HttpResponse response = super.getAuthenticated("/api/auth", "admin", "secret");
         assertEquals(HttpStatus.SC_OK, response.getStatusCode());
 
-        JsonObject authDto = (JsonObject) JsonObject.readJSON(response.parseAsString());
-        assertTrue(authDto.getBoolean("manager", false));
-        assertEquals("/", authDto.getString("path", null));
-
-        assertArrayEquals(ArrayUtils.of("releases", "snapshots"), authDto.get("repositories")
-                .asArray().values().stream()
-                .map(JsonValue::asString)
-                .toArray(String[]::new));
+        Configuration authDto = CDN.defaultInstance().parseJson(response.parseAsString());
+        assertTrue(authDto.getBoolean("manager"));
+        assertEquals("/", authDto.getString("path"));
+        assertEquals(Arrays.asList("releases", "snapshots"), authDto.getList("repositories"));
     }
 
 }
