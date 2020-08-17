@@ -65,18 +65,18 @@ public final class FilesUtils {
             return Long.parseLong(displaySize);
         }
 
-        long ret = Long.parseLong(match.group(1));
+        long value = Long.parseLong(match.group(1));
 
         switch (match.group(2).toUpperCase()) {
             case "GB":
-                return ret * GB_FACTOR;
+                return value * GB_FACTOR;
             case "MB":
-                return ret * MB_FACTOR;
+                return value * MB_FACTOR;
             case "KB":
-                return ret * KB_FACTOR;
+                return value * KB_FACTOR;
+            default:
+                throw new NumberFormatException("Wrong format");
         }
-
-        throw new NumberFormatException("Wrong format");
     }
 
     public static void copyResource(String resourcePath, File destination) throws IOException {
