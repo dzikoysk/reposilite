@@ -22,7 +22,6 @@ import org.eclipse.jetty.server.Server;
 import org.panda_lang.reposilite.auth.AuthApiController;
 import org.panda_lang.reposilite.auth.PostAuthHandler;
 import org.panda_lang.reposilite.config.Configuration;
-import org.panda_lang.reposilite.config.ConfigurationApiController;
 import org.panda_lang.reposilite.console.CliController;
 import org.panda_lang.reposilite.frontend.FrontendController;
 import org.panda_lang.reposilite.repository.DeployController;
@@ -48,7 +47,6 @@ public final class ReposiliteHttpServer {
         this.javalin = Javalin.create(config -> config(configuration, config))
                 .before(ctx -> reposilite.getStatsService().record(ctx.req.getRequestURI()))
                 .get("/js/app.js", new FrontendController(reposilite))
-                .get("/api/configuration", new ConfigurationApiController(reposilite.getConfiguration()))
                 .get("/api/auth", new AuthApiController(reposilite.getAuthenticator()))
                 .ws("/api/cli", new CliController(reposilite))
                 .get("/api", indexApiController)
