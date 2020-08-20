@@ -15,7 +15,7 @@
   -->
 
 <template lang="pug">
-  .file-preview.w-full
+  .file-preview.w-full(v-if="this.qualifier !== undefined")
     a(v-if="file.type === 'file'" v-on:click="handleDownload" target="_blank" ).cursor-pointer
       FileEntryContent(:file="file")
     router-link(v-else :to="fileUri()")
@@ -37,10 +37,15 @@ export default {
     FileEntryContent
   },
   data: () => ({
-    qualifier: ''
+    qualifier: undefined
   }),
-  mounted () {
-    this.qualifier = this.getQualifier()
+  watch: {
+    $route: {
+      immediate: true,
+      handler: function () {
+        this.qualifier = this.getQualifier()
+      }
+    }
   },
   methods: {
     handleDownload () {
