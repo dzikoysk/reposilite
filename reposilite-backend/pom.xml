@@ -86,7 +86,7 @@
         <dependency>
             <groupId>org.panda-lang</groupId>
             <artifactId>panda</artifactId>
-            <version>0.1.2-alpha</version>
+            <version>0.1.3-alpha</version>
         </dependency>
         <dependency>
             <groupId>net.dzikoysk</groupId>
