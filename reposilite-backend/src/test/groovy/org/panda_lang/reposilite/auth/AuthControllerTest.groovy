@@ -25,7 +25,7 @@ import org.panda_lang.reposilite.ReposiliteIntegrationTest
 import static org.junit.jupiter.api.Assertions.assertEquals
 import static org.junit.jupiter.api.Assertions.assertTrue
 
-final class AuthApiControllerTest extends ReposiliteIntegrationTest {
+final class AuthControllerTest extends ReposiliteIntegrationTest {
 
     @BeforeEach
     void generateToken() {
