@@ -76,12 +76,12 @@ public final class RepositoryService {
         return Collections.emptyList();
     }
 
-    public Repository getRepository(String repositoryName) {
-        return repositoryStorage.getRepository(repositoryName);
-    }
-
     public List<Repository> getRepositories() {
         return repositoryStorage.getRepositories();
+    }
+
+    public Repository getRepository(String repositoryName) {
+        return repositoryStorage.getRepository(repositoryName);
     }
 
     public Repository getPrimaryRepository() {

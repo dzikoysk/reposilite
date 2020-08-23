@@ -20,6 +20,7 @@ import io.javalin.http.Context;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.Reposilite;
+import org.panda_lang.reposilite.auth.Authenticator;
 import org.panda_lang.reposilite.metadata.MetadataService;
 import org.panda_lang.reposilite.metadata.MetadataUtils;
 import org.panda_lang.reposilite.utils.ArrayUtils;
@@ -33,24 +34,28 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.nio.file.Files;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 final class LookupService {
 
     private final Reposilite reposilite;
+    private final Authenticator authenticator;
     private final RepositoryAuthenticator repositoryAuthenticator;
     private final MetadataService metadataService;
     private final RepositoryService repositoryService;
 
     LookupService(Reposilite reposilite) {
         this.reposilite = reposilite;
+        this.authenticator = reposilite.getAuthenticator();
         this.repositoryAuthenticator = reposilite.getRepositoryAuthenticator();
         this.metadataService = reposilite.getMetadataService();
         this.repositoryService = reposilite.getRepositoryService();
     }
 
-    protected Result<Context, ErrorDto> findLocal(Context context) {
+    Result<Context, ErrorDto> findLocal(Context context) {
         String uri = context.req.getRequestURI();
         Result<Pair<String[], Repository>, ErrorDto> result = this.repositoryAuthenticator.authDefaultRepository(context, uri);
 
@@ -143,5 +148,32 @@ final class LookupService {
             FilesUtils.close(content);
         }
     }
+
+    FileListDto findAvailableRepositories(Map<String, String> headers) {
+        return new FileListDto(repositoryService.getRepositories().stream()
+                .filter(repository -> repository.isPublic() || authenticator.authByUri(headers, repository.getUri()).isDefined())
+                .map(Repository::getFile)
+                .map(FileDto::of)
+                .collect(Collectors.toList()));
+    }
+
+    Optional<FileDto> findLatest(File requestedFile) {
+        if (requestedFile.getName().equals("latest")) {
+            File parent = requestedFile.getParentFile();
+
+            if (parent != null && parent.exists()) {
+                File[] files = MetadataUtils.toSortedVersions(parent);
+                File latest = ArrayUtils.getFirst(files);
+
+                if (latest != null) {
+                    return Optional.of(FileDto.of(latest));
+                }
+            }
+        }
+
+        return Optional.empty();
+    }
+
+
 
 }

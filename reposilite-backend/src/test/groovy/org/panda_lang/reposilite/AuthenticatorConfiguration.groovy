@@ -25,15 +25,17 @@ import org.panda_lang.reposilite.repository.RepositoryService
 
 class AuthenticatorConfiguration {
 
-    static final RepositoryService REPOSITORY_SERVICE = new RepositoryService(".", "0");
-    static final TokenService TOKEN_SERVICE = new TokenService(".");
-    static final Token AUTH_TOKEN = new Token("/auth/test", "alias", TokenService.B_CRYPT_TOKENS_ENCODER.encode("secret"));
-    static final String BASIC = "Basic " + Base64.getEncoder().encodeToString("alias:secret".getBytes());
-    static final Authenticator AUTHENTICATOR = new Authenticator(new Configuration(), REPOSITORY_SERVICE, TOKEN_SERVICE);
+    static final RepositoryService REPOSITORY_SERVICE = new RepositoryService(".", "0")
+
+    static final TokenService TOKEN_SERVICE = new TokenService(".")
+    static final Token AUTH_TOKEN = new Token("/auth/test", "alias", TokenService.B_CRYPT_TOKENS_ENCODER.encode("secret"))
+    static final String BASIC = "Basic " + Base64.getEncoder().encodeToString("alias:secret".getBytes())
+
+    static final Authenticator AUTHENTICATOR = new Authenticator(new Configuration(), REPOSITORY_SERVICE, TOKEN_SERVICE)
 
     @BeforeAll
     static void generateTokens() {
-        TOKEN_SERVICE.addToken(AUTH_TOKEN);
+        TOKEN_SERVICE.addToken(AUTH_TOKEN)
     }
 
 }

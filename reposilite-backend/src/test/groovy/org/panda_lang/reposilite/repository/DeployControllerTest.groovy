@@ -69,7 +69,7 @@ class DeployControllerTest extends ReposiliteIntegrationTest {
         assertEquals HttpStatus.SC_OK, deployResponse.getStatusLine().getStatusCode()
 
         if (StringUtils.isEmpty(content)) {
-            return;
+            return
         }
 
         assertEquals HttpStatus.SC_OK, super.getAuthenticated(uri, username, password).getStatusCode()
