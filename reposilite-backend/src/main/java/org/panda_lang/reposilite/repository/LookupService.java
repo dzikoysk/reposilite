@@ -20,13 +20,12 @@ import io.javalin.http.Context;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.Reposilite;
-import org.panda_lang.reposilite.utils.ErrorDto;
-import org.panda_lang.reposilite.utils.ResponseUtils;
-import org.panda_lang.reposilite.auth.Authenticator;
 import org.panda_lang.reposilite.metadata.MetadataService;
 import org.panda_lang.reposilite.metadata.MetadataUtils;
 import org.panda_lang.reposilite.utils.ArrayUtils;
+import org.panda_lang.reposilite.utils.ErrorDto;
 import org.panda_lang.reposilite.utils.FilesUtils;
+import org.panda_lang.reposilite.utils.ResponseUtils;
 import org.panda_lang.reposilite.utils.Result;
 import org.panda_lang.utilities.commons.collection.Pair;
 
@@ -40,20 +39,20 @@ import java.util.Optional;
 final class LookupService {
 
     private final Reposilite reposilite;
-    private final Authenticator authenticator;
+    private final RepositoryAuthenticator repositoryAuthenticator;
     private final MetadataService metadataService;
     private final RepositoryService repositoryService;
 
     LookupService(Reposilite reposilite) {
         this.reposilite = reposilite;
-        this.authenticator = reposilite.getAuthenticator();
+        this.repositoryAuthenticator = reposilite.getRepositoryAuthenticator();
         this.metadataService = reposilite.getMetadataService();
         this.repositoryService = reposilite.getRepositoryService();
     }
 
     protected Result<Context, ErrorDto> findLocal(Context context) {
         String uri = context.req.getRequestURI();
-        Result<Pair<String[], Repository>, ErrorDto> result = this.authenticator.authDefaultRepository(context, uri);
+        Result<Pair<String[], Repository>, ErrorDto> result = this.repositoryAuthenticator.authDefaultRepository(context, uri);
 
         if (result.containsError()) {
             // Maven requests maven-metadata.xml file during deploy for snapshot releases without specifying credentials

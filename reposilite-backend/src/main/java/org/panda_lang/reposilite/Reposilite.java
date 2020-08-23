@@ -25,6 +25,7 @@ import org.panda_lang.reposilite.console.Console;
 import org.panda_lang.reposilite.frontend.FrontendService;
 import org.panda_lang.reposilite.metadata.MetadataService;
 import org.panda_lang.reposilite.repository.DeployService;
+import org.panda_lang.reposilite.repository.RepositoryAuthenticator;
 import org.panda_lang.reposilite.repository.RepositoryService;
 import org.panda_lang.reposilite.stats.StatsService;
 import org.panda_lang.reposilite.utils.FutureUtils;
@@ -53,6 +54,7 @@ public final class Reposilite {
     private final Configuration configuration;
     private final ReposiliteExecutor executor;
     private final Authenticator authenticator;
+    private final RepositoryAuthenticator repositoryAuthenticator;
     private final AuthService authService;
     private final TokenService tokenService;
     private final StatsService statsService;
@@ -83,6 +85,7 @@ public final class Reposilite {
         this.metadataService = new MetadataService(this);
 
         this.authenticator = new Authenticator(configuration, repositoryService, tokenService);
+        this.repositoryAuthenticator = new RepositoryAuthenticator(configuration, authenticator, repositoryService);
         this.authService = new AuthService(authenticator);
         this.deployService = new DeployService(this, authenticator, repositoryService, metadataService);
 
@@ -208,6 +211,10 @@ public final class Reposilite {
 
     public AuthService getAuthService() {
         return authService;
+    }
+
+    public RepositoryAuthenticator getRepositoryAuthenticator() {
+        return repositoryAuthenticator;
     }
 
     public Authenticator getAuthenticator() {

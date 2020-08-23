@@ -21,9 +21,9 @@ import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.RepositoryController;
 import org.panda_lang.reposilite.ReposiliteUtils;
+import org.panda_lang.reposilite.auth.Authenticator;
 import org.panda_lang.reposilite.utils.ErrorDto;
 import org.panda_lang.reposilite.utils.ResponseUtils;
-import org.panda_lang.reposilite.auth.Authenticator;
 import org.panda_lang.reposilite.config.Configuration;
 import org.panda_lang.reposilite.metadata.MetadataUtils;
 import org.panda_lang.reposilite.utils.ArrayUtils;
@@ -41,11 +41,13 @@ public final class LookupApiController implements RepositoryController {
 
     private final Configuration configuration;
     private final Authenticator authenticator;
+    private final RepositoryAuthenticator repositoryAuthenticator;
     private final RepositoryService repositoryService;
 
     public LookupApiController(Reposilite reposilite) {
         this.configuration = reposilite.getConfiguration();
         this.authenticator = reposilite.getAuthenticator();
+        this.repositoryAuthenticator = reposilite.getRepositoryAuthenticator();
         this.repositoryService = reposilite.getRepositoryService();
     }
 
@@ -58,7 +60,7 @@ public final class LookupApiController implements RepositoryController {
             return context.json(listRepositories(context));
         }
 
-        Result<Pair<String[], Repository>, ErrorDto> result = authenticator.authRepository(context, uri);
+        Result<Pair<String[], Repository>, ErrorDto> result = repositoryAuthenticator.authRepository(context, uri);
 
         if (result.containsError()) {
             return ResponseUtils.errorResponse(context, result.getError().getStatus(), result.getError().getMessage());

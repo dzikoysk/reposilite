@@ -16,19 +16,12 @@
 
 package org.panda_lang.reposilite.auth;
 
-import io.javalin.http.Context;
-import org.apache.http.HttpStatus;
 import org.jetbrains.annotations.Nullable;
 import org.panda_lang.reposilite.Reposilite;
-import org.panda_lang.reposilite.utils.ErrorDto;
-import org.panda_lang.reposilite.utils.ResponseUtils;
 import org.panda_lang.reposilite.config.Configuration;
-import org.panda_lang.reposilite.repository.Repository;
 import org.panda_lang.reposilite.repository.RepositoryService;
-import org.panda_lang.reposilite.ReposiliteUtils;
 import org.panda_lang.reposilite.utils.Result;
 import org.panda_lang.utilities.commons.StringUtils;
-import org.panda_lang.utilities.commons.collection.Pair;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -44,36 +37,6 @@ public final class Authenticator {
         this.configuration = configuration;
         this.repositoryService = repositoryService;
         this.tokenService = tokenService;
-    }
-
-    public Result<Pair<String[], Repository>, ErrorDto> authDefaultRepository(Context context, String uri) {
-        return authRepository(context, ReposiliteUtils.normalizeUri(configuration, repositoryService, uri));
-    }
-
-    public Result<Pair<String[], Repository>, ErrorDto> authRepository(Context context, String uri) {
-        String[] path = StringUtils.split(uri, "/");
-        String repositoryName = path[0];
-
-        if (StringUtils.isEmpty(repositoryName)) {
-            return ResponseUtils.error(HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, "Unsupported request");
-        }
-
-        Repository repository = repositoryService.getRepository(repositoryName);
-
-        if (repository == null) {
-            return ResponseUtils.error(HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, "Repository " + repositoryName  + " not found");
-        }
-
-        // auth hidden repositories
-        if (repository.isHidden()) {
-            Result<Session, String> authResult = authByUri(context.headerMap(), context.req.getRequestURI());
-
-            if (authResult.containsError()) {
-                return ResponseUtils.error(HttpStatus.SC_UNAUTHORIZED, "Unauthorized request");
-            }
-        }
-
-        return Result.ok(new Pair<>(path, repository));
     }
 
     public Result<Session, String> authByUri(Map<String, String> header, String uri) {
