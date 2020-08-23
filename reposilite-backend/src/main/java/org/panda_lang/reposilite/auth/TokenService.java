@@ -57,7 +57,7 @@ public final class TokenService {
         return new Pair<>(token, addToken(new Token(path, alias, encodedToken)));
     }
 
-    Token addToken(Token token) {
+    public Token addToken(Token token) {
         this.tokens.put(token.getAlias(), token);
         return token;
     }
