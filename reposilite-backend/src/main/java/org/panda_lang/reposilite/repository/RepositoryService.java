@@ -16,64 +16,28 @@
 
 package org.panda_lang.reposilite.repository;
 
-import org.panda_lang.reposilite.Reposilite;
+import org.panda_lang.reposilite.auth.Token;
 import org.panda_lang.reposilite.config.Configuration;
 import org.panda_lang.reposilite.metadata.MetadataUtils;
 import org.panda_lang.reposilite.utils.ArrayUtils;
 import org.panda_lang.utilities.commons.StringUtils;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.Collections;
+import java.util.List;
 
 public final class RepositoryService {
 
-    private final File rootDirectory;
+    private final RepositoryStorage repositoryStorage;
     private final DiskQuota diskQuota;
-    private Repository primaryRepository;
-    private final Map<String, Repository> repositories = new LinkedHashMap<>(2);
 
     public RepositoryService(String workingDirectory, String diskQuota) {
-        this.rootDirectory = new File(workingDirectory, "repositories");
-        this.diskQuota = DiskQuota.of(rootDirectory.getParentFile(), diskQuota);
+        this.repositoryStorage = new RepositoryStorage(new File(workingDirectory, "repositories"));
+        this.diskQuota = DiskQuota.of(repositoryStorage.getRootDirectory().getParentFile(), diskQuota);
     }
 
     public void load(Configuration configuration) {
-        Reposilite.getLogger().info("--- Loading repositories");
-
-        if (rootDirectory.mkdirs()) {
-            Reposilite.getLogger().info("Default repository directory has been created");
-        }
-        else {
-            Reposilite.getLogger().info("Using an existing repository directory");
-        }
-
-        for (String repositoryName : configuration.repositories) {
-            boolean hidden = repositoryName.startsWith(".");
-            boolean primary = primaryRepository == null;
-
-            if (hidden) {
-                repositoryName = repositoryName.substring(1);
-            }
-
-            File repositoryDirectory = new File(rootDirectory, repositoryName);
-
-            if (repositoryDirectory.mkdirs()) {
-                Reposilite.getLogger().info("+ Repository '" + repositoryName + "' has been created");
-            }
-
-            Repository repository = new Repository(rootDirectory, repositoryName, hidden);
-            repositories.put(repository.getName(), repository);
-
-            if (primary) {
-                this.primaryRepository = repository;
-            }
-
-            Reposilite.getLogger().info("+ " + repositoryDirectory.getName() + (hidden ? " (hidden)" : "") + (primary ? " (primary)" : ""));
-        }
-
-        Reposilite.getLogger().info(repositories.size() + " repositories have been found");
+        repositoryStorage.load(configuration);
     }
 
     public String[] resolveSnapshot(Repository repository, String[] requestPath) {
@@ -96,20 +60,36 @@ public final class RepositoryService {
         return requestPath;
     }
 
-    public File getFile(String path) {
-        return new File(rootDirectory, path);
+    public List<Repository> getRepositories(Token token) {
+        if (token.hasMultiaccess()) {
+            return getRepositories();
+        }
+
+        for (Repository repository : getRepositories()) {
+            String name = "/" + repository.getName();
+
+            if (token.getPath().startsWith(name)) {
+                return Collections.singletonList(repository);
+            }
+        }
+
+        return Collections.emptyList();
     }
 
     public Repository getRepository(String repositoryName) {
-        return repositories.get(repositoryName);
+        return repositoryStorage.getRepository(repositoryName);
     }
 
-    public Collection<Repository> getRepositories() {
-        return repositories.values();
+    public List<Repository> getRepositories() {
+        return repositoryStorage.getRepositories();
     }
 
     public Repository getPrimaryRepository() {
-        return primaryRepository;
+        return repositoryStorage.getPrimaryRepository();
+    }
+
+    public File getFile(String path) {
+        return repositoryStorage.getFile(path);
     }
 
     public DiskQuota getDiskQuota() {

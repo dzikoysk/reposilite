@@ -16,6 +16,7 @@
 
 package org.panda_lang.reposilite;
 
+import org.panda_lang.reposilite.auth.AuthService;
 import org.panda_lang.reposilite.auth.Authenticator;
 import org.panda_lang.reposilite.auth.TokenService;
 import org.panda_lang.reposilite.config.Configuration;
@@ -23,6 +24,7 @@ import org.panda_lang.reposilite.config.ConfigurationLoader;
 import org.panda_lang.reposilite.console.Console;
 import org.panda_lang.reposilite.frontend.FrontendService;
 import org.panda_lang.reposilite.metadata.MetadataService;
+import org.panda_lang.reposilite.repository.DeployService;
 import org.panda_lang.reposilite.repository.RepositoryService;
 import org.panda_lang.reposilite.stats.StatsService;
 import org.panda_lang.reposilite.utils.FutureUtils;
@@ -51,10 +53,12 @@ public final class Reposilite {
     private final Configuration configuration;
     private final ReposiliteExecutor executor;
     private final Authenticator authenticator;
+    private final AuthService authService;
     private final TokenService tokenService;
     private final StatsService statsService;
     private final RepositoryService repositoryService;
     private final MetadataService metadataService;
+    private final DeployService deployService;
     private final FrontendService frontend;
     private final ReposiliteHttpServer reactiveHttpServer;
     private final Console console;
@@ -79,6 +83,9 @@ public final class Reposilite {
         this.metadataService = new MetadataService(this);
 
         this.authenticator = new Authenticator(configuration, repositoryService, tokenService);
+        this.authService = new AuthService(authenticator);
+        this.deployService = new DeployService(this, authenticator, repositoryService, metadataService);
+
         this.frontend = FrontendService.load(configuration);
         this.reactiveHttpServer= new ReposiliteHttpServer(this);
         this.console = new Console(this, System.in);
@@ -101,8 +108,8 @@ public final class Reposilite {
         Runtime.getRuntime().addShutdownHook(this.shutdownHook);
 
         getLogger().info("--- Loading data");
-        statsService.load();
-        tokenService.load();
+        statsService.loadStats();
+        tokenService.loadTokens();
 
         getLogger().info("");
         repositoryService.load(configuration);
@@ -148,7 +155,7 @@ public final class Reposilite {
         this.alive.set(false);
         getLogger().info("Shutting down " + configuration.hostname  + "::" + configuration.port + " ...");
 
-        statsService.save();
+        statsService.saveStats();
         reactiveHttpServer.stop();
         console.stop();
         executor.stop();
@@ -179,6 +186,10 @@ public final class Reposilite {
         return frontend;
     }
 
+    public DeployService getDeployService() {
+        return deployService;
+    }
+
     public RepositoryService getRepositoryService() {
         return repositoryService;
     }
@@ -195,12 +206,16 @@ public final class Reposilite {
         return tokenService;
     }
 
-    public Configuration getConfiguration() {
-        return configuration;
+    public AuthService getAuthService() {
+        return authService;
     }
 
     public Authenticator getAuthenticator() {
         return authenticator;
+    }
+
+    public Configuration getConfiguration() {
+        return configuration;
     }
 
     public Console getConsole() {

@@ -20,8 +20,8 @@ import io.javalin.http.Context;
 import org.apache.http.HttpStatus;
 import org.jetbrains.annotations.Nullable;
 import org.panda_lang.reposilite.Reposilite;
-import org.panda_lang.reposilite.api.ErrorDto;
-import org.panda_lang.reposilite.api.ErrorUtils;
+import org.panda_lang.reposilite.utils.ErrorDto;
+import org.panda_lang.reposilite.utils.ResponseUtils;
 import org.panda_lang.reposilite.config.Configuration;
 import org.panda_lang.reposilite.repository.Repository;
 import org.panda_lang.reposilite.repository.RepositoryService;
@@ -55,41 +55,33 @@ public final class Authenticator {
         String repositoryName = path[0];
 
         if (StringUtils.isEmpty(repositoryName)) {
-            return ErrorUtils.error(HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, "Unsupported request");
+            return ResponseUtils.error(HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, "Unsupported request");
         }
 
         Repository repository = repositoryService.getRepository(repositoryName);
 
         if (repository == null) {
-            return ErrorUtils.error(HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, "Repository " + repositoryName  + " not found");
+            return ResponseUtils.error(HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, "Repository " + repositoryName  + " not found");
         }
 
         // auth hidden repositories
         if (repository.isHidden()) {
-            Result<Session, String> authResult = authDefault(context);
+            Result<Session, String> authResult = authByUri(context.headerMap(), context.req.getRequestURI());
 
             if (authResult.containsError()) {
-                return ErrorUtils.error(HttpStatus.SC_UNAUTHORIZED, "Unauthorized request");
+                return ResponseUtils.error(HttpStatus.SC_UNAUTHORIZED, "Unauthorized request");
             }
         }
 
         return Result.ok(new Pair<>(path, repository));
     }
 
-    public Result<Session, String> authDefault(Context context) {
-        return authUri(context, context.req.getRequestURI());
-    }
-
-    public Result<Session, String> authUri(Context context, String uri) {
-        return authUri(context.headerMap(), uri);
-    }
-
-    public Result<Session, String> authUri(Map<String, String> header, String uri) {
+    public Result<Session, String> authByUri(Map<String, String> header, String uri) {
         if (!uri.startsWith("/")) {
             uri = "/" + uri;
         }
 
-        Result<Session, String> authResult = auth(header);
+        Result<Session, String> authResult = authByHeader(header);
 
         if (authResult.containsError()) {
             return authResult;
@@ -105,7 +97,7 @@ public final class Authenticator {
         return authResult;
     }
 
-    public Result<Session, String> auth(Map<String, String> header) {
+    public Result<Session, String> authByHeader(Map<String, String> header) {
         String authorization = header.get("Authorization");
 
         if (authorization == null) {
@@ -119,10 +111,10 @@ public final class Authenticator {
         String base64Credentials = authorization.substring("Basic".length()).trim();
         String credentials = new String(Base64.getDecoder().decode(base64Credentials), StandardCharsets.UTF_8);
 
-        return auth(credentials);
+        return authByCredentials(credentials);
     }
 
-    public Result<Session, String> auth(@Nullable String credentials) {
+    public Result<Session, String> authByCredentials(@Nullable String credentials) {
         if (credentials == null) {
             return Result.error("Authorization credentials are not specified");
         }
@@ -146,7 +138,7 @@ public final class Authenticator {
         }
 
         boolean manager = configuration.managers.contains(token.getAlias());
-        return Result.ok(new Session(repositoryService, token, manager));
+        return Result.ok(new Session(token, manager, repositoryService.getRepositories(token)));
     }
 
 }

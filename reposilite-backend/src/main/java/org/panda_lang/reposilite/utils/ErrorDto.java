@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.api;
+package org.panda_lang.reposilite.utils;
 
 import java.io.Serializable;
 

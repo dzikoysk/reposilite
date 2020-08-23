@@ -34,11 +34,11 @@ public final class StatsService {
         this.statsStorage = new StatsStorage(workingDirectory);
     }
 
-    public void save() throws IOException {
+    public void saveStats() throws IOException {
         statsStorage.saveStats(entity);
     }
 
-    public void load() throws IOException {
+    public void loadStats() throws IOException {
         StatsEntity storedEntity = statsStorage.loadStats();
         entity.setRecords(storedEntity.getRecords());
     }

@@ -21,8 +21,8 @@ import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.RepositoryController;
 import org.panda_lang.reposilite.ReposiliteUtils;
-import org.panda_lang.reposilite.api.ErrorDto;
-import org.panda_lang.reposilite.api.ErrorUtils;
+import org.panda_lang.reposilite.utils.ErrorDto;
+import org.panda_lang.reposilite.utils.ResponseUtils;
 import org.panda_lang.reposilite.auth.Authenticator;
 import org.panda_lang.reposilite.config.Configuration;
 import org.panda_lang.reposilite.metadata.MetadataUtils;
@@ -37,13 +37,13 @@ import java.io.File;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public final class IndexApiController implements RepositoryController {
+public final class LookupApiController implements RepositoryController {
 
     private final Configuration configuration;
     private final Authenticator authenticator;
     private final RepositoryService repositoryService;
 
-    public IndexApiController(Reposilite reposilite) {
+    public LookupApiController(Reposilite reposilite) {
         this.configuration = reposilite.getConfiguration();
         this.authenticator = reposilite.getAuthenticator();
         this.repositoryService = reposilite.getRepositoryService();
@@ -61,7 +61,7 @@ public final class IndexApiController implements RepositoryController {
         Result<Pair<String[], Repository>, ErrorDto> result = authenticator.authRepository(context, uri);
 
         if (result.containsError()) {
-            return ErrorUtils.errorResponse(context, result.getError().getStatus(), result.getError().getMessage());
+            return ResponseUtils.errorResponse(context, result.getError().getStatus(), result.getError().getMessage());
         }
 
         File requestedFile = repositoryService.getFile(uri);
@@ -72,7 +72,7 @@ public final class IndexApiController implements RepositoryController {
         }
 
         if (!requestedFile.exists()) {
-            return ErrorUtils.errorResponse(context, HttpStatus.SC_NOT_FOUND, "File not found");
+            return ResponseUtils.errorResponse(context, HttpStatus.SC_NOT_FOUND, "File not found");
         }
 
         if (requestedFile.isFile()) {
@@ -87,7 +87,7 @@ public final class IndexApiController implements RepositoryController {
 
     private FileListDto listRepositories(Context context) {
         return new FileListDto(repositoryService.getRepositories().stream()
-                .filter(repository -> repository.isPublic() || authenticator.authUri(context, repository.getUri()).isDefined())
+                .filter(repository -> repository.isPublic() || authenticator.authByUri(context.headerMap(), repository.getUri()).isDefined())
                 .map(Repository::getFile)
                 .map(FileDto::of)
                 .collect(Collectors.toList()));

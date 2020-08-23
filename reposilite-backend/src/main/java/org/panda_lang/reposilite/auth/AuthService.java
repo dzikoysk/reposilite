@@ -14,26 +14,27 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.api;
+package org.panda_lang.reposilite.auth;
 
 import org.apache.http.HttpStatus;
-import org.junit.jupiter.api.Test;
 import org.panda_lang.reposilite.utils.ErrorDto;
+import org.panda_lang.reposilite.utils.Result;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import java.util.Map;
 
-class ErrorDtoTest {
+public final class AuthService {
 
-    private static final ErrorDto ERROR_DTO = new ErrorDto(HttpStatus.SC_NOT_FOUND, "Message");
+    private final Authenticator authenticator;
 
-    @Test
-    void getStatus() {
-        assertEquals(HttpStatus.SC_NOT_FOUND, ERROR_DTO.getStatus());
+    public AuthService(Authenticator authenticator) {
+        this.authenticator = authenticator;
     }
 
-    @Test
-    void getMessage() {
-        assertEquals("Message", ERROR_DTO.getMessage());
+    Result<AuthDto, ErrorDto> authByHeader(Map<String, String> headers) {
+        return authenticator
+                .authByHeader(headers)
+                .map(session -> new AuthDto(session.isManager(), session.getToken().getPath(), session.getRepositoryNames()))
+                .mapError(error -> new ErrorDto(HttpStatus.SC_UNAUTHORIZED, error));
     }
 
 }

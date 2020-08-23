@@ -39,7 +39,7 @@ public final class RevokeCommand implements ReposiliteCommand {
         }
 
         try {
-            reposilite.getTokenService().save();
+            reposilite.getTokenService().saveTokens();
             Reposilite.getLogger().info("Token for '" + alias + "' has been revoked");
             return true;
         } catch (IOException e) {

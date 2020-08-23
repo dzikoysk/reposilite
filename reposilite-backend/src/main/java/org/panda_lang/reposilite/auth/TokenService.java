@@ -38,11 +38,11 @@ public final class TokenService {
         this.database = new TokenStorage(this, workingDirectory);
     }
 
-    public void load() throws IOException {
+    public void loadTokens() throws IOException {
         this.database.loadTokens();
     }
 
-    public void save() throws IOException {
+    public void saveTokens() throws IOException {
         this.database.saveTokens();
     }
 

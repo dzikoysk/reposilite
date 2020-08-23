@@ -20,7 +20,7 @@ import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.Reposilite;
-import org.panda_lang.reposilite.api.ErrorDto;
+import org.panda_lang.reposilite.utils.ErrorDto;
 import org.panda_lang.reposilite.frontend.FrontendService;
 import org.panda_lang.reposilite.utils.Result;
 

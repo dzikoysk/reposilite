@@ -46,9 +46,9 @@ class TokenServiceTest {
     void shouldSaveAndLoad() throws IOException {
         TokenService tempService = new TokenService(workingDirectory.getAbsolutePath());
         tempService.createToken("path", "alias");
-        tempService.save();
+        tempService.saveTokens();
 
-        tokenService.load(); // uses the same file
+        tokenService.loadTokens(); // uses the same file
         Token token = tokenService.getToken("alias");
         assertEquals("path", token.getPath());
     }

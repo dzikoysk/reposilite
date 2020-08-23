@@ -54,7 +54,7 @@ public final class CliController implements Consumer<WsHandler> {
                 }
 
                 String credentials = StringUtils.replaceFirst(authMessage, AUTHORIZATION_PREFIX, "");
-                Result<Session, String> auth = authenticator.auth(credentials);
+                Result<Session, String> auth = authenticator.authByCredentials(credentials);
 
                 if (!auth.isDefined() || !auth.getValue().isManager()) {
                     Reposilite.getLogger().info("CLI Unauthorized CLI access request from " + ctx.session.getRemoteAddress());
