@@ -30,7 +30,7 @@ import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class IndexApiControllerTest extends ReposiliteIntegrationTest {
+class LookupApiControllerTest extends ReposiliteIntegrationTest {
 
     {
         super.properties.put("reposilite.repositories", "releases,snapshots,.private");

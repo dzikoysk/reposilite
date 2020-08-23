@@ -14,14 +14,18 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.api;
+package org.panda_lang.reposilite.utils;
 
 import io.javalin.http.Context;
-import org.panda_lang.reposilite.utils.Result;
 
-public final class ErrorUtils {
+public final class ResponseUtils {
 
-    private ErrorUtils() { }
+    private ResponseUtils() { }
+
+    public static Context response(Context ctx, Result<?, ErrorDto> response) {
+        response.peek(ctx::json).onError(error -> errorResponse(ctx, error));
+        return ctx;
+    }
 
     public static <T> Result<T, ErrorDto> error(int status, String messge) {
         return Result.error(new ErrorDto(status, messge));

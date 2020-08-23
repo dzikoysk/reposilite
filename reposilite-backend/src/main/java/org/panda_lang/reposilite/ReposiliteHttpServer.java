@@ -19,13 +19,13 @@ package org.panda_lang.reposilite;
 import io.javalin.Javalin;
 import io.javalin.core.JavalinConfig;
 import org.eclipse.jetty.server.Server;
-import org.panda_lang.reposilite.auth.AuthApiController;
+import org.panda_lang.reposilite.auth.AuthController;
 import org.panda_lang.reposilite.auth.PostAuthHandler;
 import org.panda_lang.reposilite.config.Configuration;
 import org.panda_lang.reposilite.console.CliController;
 import org.panda_lang.reposilite.frontend.FrontendController;
 import org.panda_lang.reposilite.repository.DeployController;
-import org.panda_lang.reposilite.repository.IndexApiController;
+import org.panda_lang.reposilite.repository.LookupApiController;
 import org.panda_lang.reposilite.repository.LookupController;
 
 import java.util.Objects;
@@ -41,16 +41,16 @@ public final class ReposiliteHttpServer {
 
     void start(Configuration configuration, Runnable onStart) {
         LookupController lookupController = new LookupController(reposilite);
-        DeployController deployController = new DeployController(reposilite);
-        IndexApiController indexApiController = new IndexApiController(reposilite);
+        DeployController deployController = new DeployController(reposilite.getDeployService());
+        LookupApiController lookupApiController = new LookupApiController(reposilite);
 
         this.javalin = Javalin.create(config -> config(configuration, config))
                 .before(ctx -> reposilite.getStatsService().record(ctx.req.getRequestURI()))
                 .get("/js/app.js", new FrontendController(reposilite))
-                .get("/api/auth", new AuthApiController(reposilite.getAuthenticator()))
+                .get("/api/auth", new AuthController(reposilite.getAuthService()))
                 .ws("/api/cli", new CliController(reposilite))
-                .get("/api", indexApiController)
-                .get("/api/*", indexApiController)
+                .get("/api", lookupApiController)
+                .get("/api/*", lookupApiController)
                 .get("/*", lookupController)
                 .head("/*", lookupController)
                 .put("/*", deployController)

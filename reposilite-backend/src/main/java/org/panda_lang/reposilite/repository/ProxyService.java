@@ -26,7 +26,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.Reposilite;
-import org.panda_lang.reposilite.api.ErrorDto;
+import org.panda_lang.reposilite.utils.ErrorDto;
 import org.panda_lang.reposilite.config.Configuration;
 import org.panda_lang.reposilite.frontend.FrontendService;
 import org.panda_lang.reposilite.utils.FutureUtils;

@@ -47,10 +47,20 @@ public final class Result<V, E>  {
         return isDefined() ? value : orElse.apply(error);
     }
 
-    public void onError(Consumer<E> consumer) {
+    public Result<V, E> peek(Consumer<V> consumer) {
+        if (isDefined()) {
+            consumer.accept(value);
+        }
+
+        return this;
+    }
+
+    public Result<V, E> onError(Consumer<E> consumer) {
         if (containsError()) {
             consumer.accept(error);
         }
+
+        return this;
     }
 
     public boolean isDefined() {

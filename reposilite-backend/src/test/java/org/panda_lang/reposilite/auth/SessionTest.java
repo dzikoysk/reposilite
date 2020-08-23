@@ -43,7 +43,9 @@ public class SessionTest {
     void hasPermission() {
         Configuration configuration = new Configuration();
         configuration.repositories = Collections.emptyList();
-        Session standardSession = new Session(REPOSITORY_SERVICE, new Token("/a/b/c", "alias", "token"), false);
+
+        Token token = new Token("/a/b/c", "alias", "token");
+        Session standardSession = new Session(token, false, REPOSITORY_SERVICE.getRepositories(token));
 
         assertTrue(standardSession.hasPermission("/a/b/c"));
         assertTrue(standardSession.hasPermission("/a/b/c/d"));
@@ -54,7 +56,8 @@ public class SessionTest {
 
     @Test
     void hasPermissionWithWildcard() {
-        Session wildcardSession = new Session(REPOSITORY_SERVICE, new Token("*/b/c", "alias", "token"), false);
+        Token token = new Token("*/b/c", "alias", "token");
+        Session wildcardSession = new Session(token, false, REPOSITORY_SERVICE.getRepositories(token));
 
         assertTrue(wildcardSession.hasPermission("/releases/b/c"));
         assertTrue(wildcardSession.hasPermission("/releases/b/c/d"));
@@ -67,8 +70,11 @@ public class SessionTest {
 
     @Test
     void hasRootPermission() {
-        Session standardRootSession = new Session(REPOSITORY_SERVICE, new Token("/", "alias", "token"), false);
-        Session wildcardRootSession = new Session(REPOSITORY_SERVICE, new Token("*", "alias", "token"), false);
+        Token standardToken = new Token("/", "alias", "token");
+        Session standardRootSession = new Session(standardToken, false, REPOSITORY_SERVICE.getRepositories(standardToken));
+
+        Token wildcardToken = new Token("*", "alias", "token");
+        Session wildcardRootSession = new Session(wildcardToken, false, REPOSITORY_SERVICE.getRepositories(wildcardToken));
 
         assertTrue(standardRootSession.hasPermission("/"));
         assertFalse(wildcardRootSession.hasPermission("/"));
@@ -78,13 +84,15 @@ public class SessionTest {
 
     @Test
     void shouldContainRepositoryFromPath() {
-        Session session = new Session(REPOSITORY_SERVICE, new Token("/releases", "alias", "token"), false);
+        Token token = new Token("/releases", "alias", "token");
+        Session session = new Session(token, false, REPOSITORY_SERVICE.getRepositories(token));
         assertEquals(Collections.singletonList(REPOSITORY_SERVICE.getRepository("releases")), session.getRepositories());
     }
 
     @Test
     void shouldReturnEmptyListForUnknownRepositoryInPath() {
-        Session session = new Session(REPOSITORY_SERVICE, new Token("/unknown_repository", "alias", "token"), false);
+        Token token = new Token("/unknown_repository", "alias", "token");
+        Session session = new Session(token, false, REPOSITORY_SERVICE.getRepositories(token));
         assertEquals(Collections.emptyList(), session.getRepositories());
     }
 

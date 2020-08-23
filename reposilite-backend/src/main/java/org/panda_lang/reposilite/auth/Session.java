@@ -17,22 +17,21 @@
 package org.panda_lang.reposilite.auth;
 
 import org.panda_lang.reposilite.repository.Repository;
-import org.panda_lang.reposilite.repository.RepositoryService;
 import org.panda_lang.utilities.commons.StringUtils;
 
-import java.util.Collection;
-import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public final class Session {
 
-    private final RepositoryService repositoryService;
     private final Token token;
     private final boolean manager;
+    private final List<Repository> repositories;
 
-    public Session(RepositoryService repositoryService, Token token, boolean manager) {
-        this.repositoryService = repositoryService;
+    public Session(Token token, boolean manager, List<Repository> repositories) {
         this.token = token;
         this.manager = manager;
+        this.repositories = repositories;
     }
 
     public boolean isManager() {
@@ -43,7 +42,7 @@ public final class Session {
         String tokenPath = token.getPath();
 
         if (token.isWildcard()) {
-            for (Repository repository : getRepositories()) {
+            for (Repository repository : repositories) {
                 String name = "/" + repository.getName();
 
                 if (path.startsWith(name)) {
@@ -56,20 +55,14 @@ public final class Session {
         return path.startsWith(tokenPath);
     }
 
-    public Collection<Repository> getRepositories() {
-        if (token.hasMultiaccess()) {
-            return repositoryService.getRepositories();
-        }
+    public List<Repository> getRepositories() {
+        return repositories;
+    }
 
-        for (Repository repository : repositoryService.getRepositories()) {
-            String name = "/" + repository.getName();
-
-            if (token.getPath().startsWith(name)) {
-                return Collections.singletonList(repository);
-            }
-        }
-
-        return Collections.emptyList();
+    public List<String> getRepositoryNames() {
+        return repositories.stream()
+                .map(Repository::getName)
+                .collect(Collectors.toList());
     }
 
     public String getAlias() {

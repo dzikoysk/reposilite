@@ -14,27 +14,23 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.repository;
+package org.panda_lang.reposilite.auth;
 
 import io.javalin.http.Context;
-import io.javalin.http.Handler;
-import org.panda_lang.reposilite.Reposilite;
+import org.panda_lang.reposilite.RepositoryController;
 import org.panda_lang.reposilite.utils.ResponseUtils;
 
-public final class DeployController implements Handler {
+public final class AuthController implements RepositoryController {
 
-    private final DeployService deployService;
+    private final AuthService authService;
 
-    public DeployController(DeployService deployService) {
-        this.deployService = deployService;
+    public AuthController(AuthService authService) {
+        this.authService = authService;
     }
 
     @Override
-    public void handle(Context context) {
-        Reposilite.getLogger().info("DEPLOY " + context.req.getRequestURI() + " from " + context.req.getRemoteAddr());
-
-        deployService.deploy(context.req.getRemoteAddr(), context.headerMap(), context.req.getRequestURI(), context.req::getInputStream)
-                .onError(error -> ResponseUtils.errorResponse(context, error));
+    public Context handleContext(Context ctx) {
+        return ResponseUtils.response(ctx, authService.authByHeader(ctx.headerMap()));
     }
 
 }

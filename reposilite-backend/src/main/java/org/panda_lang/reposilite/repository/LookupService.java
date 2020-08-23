@@ -20,8 +20,8 @@ import io.javalin.http.Context;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.Reposilite;
-import org.panda_lang.reposilite.api.ErrorDto;
-import org.panda_lang.reposilite.api.ErrorUtils;
+import org.panda_lang.reposilite.utils.ErrorDto;
+import org.panda_lang.reposilite.utils.ResponseUtils;
 import org.panda_lang.reposilite.auth.Authenticator;
 import org.panda_lang.reposilite.metadata.MetadataService;
 import org.panda_lang.reposilite.metadata.MetadataUtils;
@@ -59,7 +59,7 @@ final class LookupService {
             // Maven requests maven-metadata.xml file during deploy for snapshot releases without specifying credentials
             // https://github.com/dzikoysk/reposilite/issues/184
             if (uri.contains("-SNAPSHOT") && uri.endsWith("maven-metadata.xml")) {
-                return ErrorUtils.error(HttpStatus.SC_NOT_FOUND, result.getError().getMessage());
+                return ResponseUtils.error(HttpStatus.SC_NOT_FOUND, result.getError().getMessage());
             }
 
             return Result.error(result.getError());
@@ -71,7 +71,7 @@ final class LookupService {
 
         // discard invalid requests (less than 'group/(artifact OR metadata)')
         if (requestPath.length < 2) {
-            return ErrorUtils.error(HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, "Missing artifact identifier");
+            return ResponseUtils.error(HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, "Missing artifact identifier");
         }
 
         Repository repository = result.getValue().getValue();
@@ -91,7 +91,7 @@ final class LookupService {
             File version = ArrayUtils.getFirst(versions);
 
             if (version == null) {
-                return ErrorUtils.error(HttpStatus.SC_NOT_FOUND, "Latest version not found");
+                return ResponseUtils.error(HttpStatus.SC_NOT_FOUND, "Latest version not found");
             }
 
             return Result.ok(context.result(version.getName()));
@@ -107,13 +107,13 @@ final class LookupService {
         File repositoryFile = repository.getFile(requestPath);
 
         if (repositoryFile.exists() && repositoryFile.isDirectory()) {
-            return ErrorUtils.error(HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, "Directory access");
+            return ResponseUtils.error(HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, "Directory access");
         }
 
         Optional<Artifact> artifact = repository.find(requestPath);
 
         if (!artifact.isPresent()) {
-            return ErrorUtils.error(HttpStatus.SC_USE_PROXY, "Artifact " + requestedFileName + " not found");
+            return ResponseUtils.error(HttpStatus.SC_USE_PROXY, "Artifact " + requestedFileName + " not found");
         }
 
         File file = artifact.get().getFile(requestedFileName);
@@ -139,7 +139,7 @@ final class LookupService {
             return Result.ok(context);
         } catch (Exception exception) {
             reposilite.throwException(context.req.getRequestURI(), exception);
-            return ErrorUtils.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Cannot read artifact");
+            return ResponseUtils.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Cannot read artifact");
         } finally {
             FilesUtils.close(content);
         }
