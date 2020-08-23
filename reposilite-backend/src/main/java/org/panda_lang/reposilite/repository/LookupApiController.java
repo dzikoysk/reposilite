@@ -19,15 +19,13 @@ package org.panda_lang.reposilite.repository;
 import io.javalin.http.Context;
 import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.Reposilite;
-import org.panda_lang.reposilite.RepositoryController;
 import org.panda_lang.reposilite.ReposiliteUtils;
-import org.panda_lang.reposilite.auth.Authenticator;
-import org.panda_lang.reposilite.utils.ErrorDto;
-import org.panda_lang.reposilite.utils.ResponseUtils;
+import org.panda_lang.reposilite.RepositoryController;
 import org.panda_lang.reposilite.config.Configuration;
 import org.panda_lang.reposilite.metadata.MetadataUtils;
-import org.panda_lang.reposilite.utils.ArrayUtils;
+import org.panda_lang.reposilite.utils.ErrorDto;
 import org.panda_lang.reposilite.utils.FilesUtils;
+import org.panda_lang.reposilite.utils.ResponseUtils;
 import org.panda_lang.reposilite.utils.Result;
 import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.collection.Pair;
@@ -35,20 +33,19 @@ import org.panda_lang.utilities.commons.function.PandaStream;
 
 import java.io.File;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 public final class LookupApiController implements RepositoryController {
 
     private final Configuration configuration;
-    private final Authenticator authenticator;
     private final RepositoryAuthenticator repositoryAuthenticator;
     private final RepositoryService repositoryService;
+    private final LookupService lookupService;
 
     public LookupApiController(Reposilite reposilite) {
         this.configuration = reposilite.getConfiguration();
-        this.authenticator = reposilite.getAuthenticator();
         this.repositoryAuthenticator = reposilite.getRepositoryAuthenticator();
         this.repositoryService = reposilite.getRepositoryService();
+        this.lookupService = new LookupService(reposilite);
     }
 
     @Override
@@ -57,7 +54,7 @@ public final class LookupApiController implements RepositoryController {
         String uri = ReposiliteUtils.normalizeUri(configuration, repositoryService, StringUtils.replaceFirst(context.req.getRequestURI(), "/api", ""));
 
         if (StringUtils.isEmpty(uri) || "/".equals(uri)) {
-            return context.json(listRepositories(context));
+            return context.json(lookupService.findAvailableRepositories(context.headerMap()));
         }
 
         Result<Pair<String[], Repository>, ErrorDto> result = repositoryAuthenticator.authRepository(context, uri);
@@ -67,7 +64,7 @@ public final class LookupApiController implements RepositoryController {
         }
 
         File requestedFile = repositoryService.getFile(uri);
-        Optional<FileDto> latest = findLatest(requestedFile);
+        Optional<FileDto> latest = lookupService.findLatest(requestedFile);
 
         if (latest.isPresent()) {
             return context.json(latest.get());
@@ -85,32 +82,6 @@ public final class LookupApiController implements RepositoryController {
                 .map(FileDto::of)
                 .transform(stream -> MetadataUtils.toSorted(stream, FileDto::getName, FileDto::isDirectory))
                 .toList()));
-    }
-
-    private FileListDto listRepositories(Context context) {
-        return new FileListDto(repositoryService.getRepositories().stream()
-                .filter(repository -> repository.isPublic() || authenticator.authByUri(context.headerMap(), repository.getUri()).isDefined())
-                .map(Repository::getFile)
-                .map(FileDto::of)
-                .collect(Collectors.toList()));
-    }
-
-    private Optional<FileDto> findLatest(File requestedFile) {
-        if (requestedFile.getName().equals("latest")) {
-            File parent = requestedFile.getParentFile();
-
-            if (parent != null && parent.exists()) {
-                File[] files = MetadataUtils.toSortedVersions(parent);
-                File latest = ArrayUtils.getFirst(files);
-
-                if (latest != null) {
-                    return Optional.of(FileDto.of(latest));
-                }
-            }
-
-        }
-
-        return Optional.empty();
     }
 
 }
