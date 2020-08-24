@@ -18,19 +18,19 @@ package org.panda_lang.reposilite.utils;
 
 import org.junit.jupiter.api.Test;
 
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class FutureUtilsTest {
-
-    private static final ExecutorService EXECUTOR_SERVICE = Executors.newFixedThreadPool(1);
+class TimeUtilsTest {
 
     @Test
-    void submit() throws ExecutionException, InterruptedException {
-        assertEquals("result", FutureUtils.submit(null, EXECUTOR_SERVICE, completableFuture -> completableFuture.complete("result")).get());
+    void 'should format double' () {
+        assertEquals '3.14', TimeUtils.format(Math.PI)
+    }
+
+    @Test
+    void 'should return uptime' () {
+        assertTrue TimeUtils.getUptime(System.currentTimeMillis()) < 1
     }
 
 }

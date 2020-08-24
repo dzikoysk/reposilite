@@ -14,26 +14,25 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.api;
+package org.panda_lang.reposilite.utils;
 
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
-import org.panda_lang.reposilite.utils.ErrorDto;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class ErrorDtoTest {
 
-    private static final ErrorDto ERROR_DTO = new ErrorDto(HttpStatus.SC_NOT_FOUND, "Message");
+    private static final def ERROR_DTO = new ErrorDto(HttpStatus.SC_NOT_FOUND, "Message")
 
     @Test
-    void getStatus() {
-        assertEquals(HttpStatus.SC_NOT_FOUND, ERROR_DTO.getStatus());
+    void 'should return status code' () {
+        assertEquals HttpStatus.SC_NOT_FOUND, ERROR_DTO.getStatus()
     }
 
     @Test
-    void getMessage() {
-        assertEquals("Message", ERROR_DTO.getMessage());
+    void 'should return status message' () {
+        assertEquals "Message", ERROR_DTO.getMessage()
     }
 
 }
