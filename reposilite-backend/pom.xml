@@ -44,7 +44,7 @@
         <dependency>
             <groupId>io.javalin</groupId>
             <artifactId>javalin</artifactId>
-            <version>3.10.0</version>
+            <version>3.10.1</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
