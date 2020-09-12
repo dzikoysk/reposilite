@@ -55,6 +55,8 @@ export default {
   },
   methods: {
     upload (event) {
+      event.preventDefault()
+
       const artifact = `${this.repository}/${this.groupId.replace(
         /\./g,
         '/'
@@ -64,7 +66,7 @@ export default {
         const auth = this.$parent.auth
 
         this.$http
-          .put(this.url() + artifact + vueFile.name, vueFile.file, {
+          .put(this.baseUrl() + artifact + vueFile.name, vueFile.file, {
             auth: {
               username: auth.alias,
               password: auth.token
@@ -86,8 +88,6 @@ export default {
               text: err.status + ': ' + err.message
             })
           })
-
-        event.preventDefault()
       }
     }
   }
