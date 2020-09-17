@@ -26,9 +26,9 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.Reposilite;
-import org.panda_lang.reposilite.utils.ErrorDto;
 import org.panda_lang.reposilite.config.Configuration;
 import org.panda_lang.reposilite.frontend.FrontendService;
+import org.panda_lang.reposilite.utils.ErrorDto;
 import org.panda_lang.reposilite.utils.FutureUtils;
 import org.panda_lang.reposilite.utils.Result;
 import org.panda_lang.utilities.commons.StringUtils;
@@ -36,8 +36,6 @@ import org.panda_lang.utilities.commons.StringUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 final class ProxyService {
 
@@ -46,7 +44,6 @@ final class ProxyService {
     private final RepositoryService repositoryService;
     private final FrontendService frontendService;
     private final HttpRequestFactory requestFactory;
-    private final ExecutorService proxiedExecutor;
 
     ProxyService(Reposilite reposilite) {
         this.reposilite = reposilite;
@@ -54,7 +51,6 @@ final class ProxyService {
         this.repositoryService = reposilite.getRepositoryService();
         this.frontendService = reposilite.getFrontendService();
         this.requestFactory = configuration.proxied.isEmpty() ? null : new NetHttpTransport().createRequestFactory();
-        this.proxiedExecutor = configuration.proxied.isEmpty() ? null : Executors.newCachedThreadPool();
     }
 
     protected Result<CompletableFuture<Context>, ErrorDto> findProxied(Context context) {
@@ -75,7 +71,7 @@ final class ProxyService {
 
         String remoteUri = uri;
 
-        return Result.ok(FutureUtils.submit(reposilite, proxiedExecutor, future -> {
+        return Result.ok(FutureUtils.submit(reposilite, future -> {
             for (String proxied : configuration.proxied) {
                 try {
                     HttpRequest remoteRequest = requestFactory.buildGetRequest(new GenericUrl(proxied + remoteUri));
@@ -151,7 +147,7 @@ final class ProxyService {
     }
 
     public boolean hasProxiedRepositories() {
-        return proxiedExecutor != null;
+        return requestFactory != null;
     }
 
 }

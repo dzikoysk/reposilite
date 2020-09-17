@@ -40,6 +40,10 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public final class Reposilite {
@@ -47,6 +51,7 @@ public final class Reposilite {
     private static final Logger LOGGER = LoggerFactory.getLogger("Reposilite");
 
     private final AtomicBoolean alive;
+    private final ExecutorService executorService;
     private final Collection<Pair<String, Throwable>> exceptions;
     private final File configurationFile;
     private final File workingDirectory;
@@ -72,6 +77,7 @@ public final class Reposilite {
         ValidationUtils.notNull(workingDirectory, "Working directory cannot be null. To use default working directory, provide empty string");
 
         this.alive = new AtomicBoolean(false);
+        this.executorService = new ThreadPoolExecutor(0, Integer.MAX_VALUE, 1, TimeUnit.SECONDS, new SynchronousQueue<>());
         this.exceptions = new ArrayList<>();
         this.configurationFile = new File(configurationFile);
         this.workingDirectory = new File(workingDirectory);
@@ -231,6 +237,10 @@ public final class Reposilite {
 
     public Collection<? extends Pair<String, Throwable>> getExceptions() {
         return exceptions;
+    }
+
+    public ExecutorService getExecutorService() {
+        return executorService;
     }
 
     public static Logger getLogger() {
