@@ -34,6 +34,9 @@ public final class DeployController implements Handler {
         Reposilite.getLogger().info("DEPLOY " + context.req.getRequestURI() + " from " + context.req.getRemoteAddr());
 
         deployService.deploy(context.req.getRemoteAddr(), context.headerMap(), context.req.getRequestURI(), context.req::getInputStream)
+                .map(future -> context.result(future.thenAccept(result -> result
+                        .map(context::json)
+                        .mapError(error -> ResponseUtils.errorResponse(context, error)))))
                 .onError(error -> ResponseUtils.errorResponse(context, error));
     }
 

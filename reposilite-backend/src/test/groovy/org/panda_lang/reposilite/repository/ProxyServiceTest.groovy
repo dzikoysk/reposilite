@@ -29,8 +29,6 @@ import org.panda_lang.utilities.commons.IOUtils
 
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 
 import static org.junit.jupiter.api.Assertions.*
 import static org.mockito.ArgumentMatchers.anyInt
@@ -38,7 +36,6 @@ import static org.mockito.Mockito.*
 
 final class ProxyServiceTest extends ReposiliteIntegrationTest {
 
-    private static final ExecutorService SERVICE = Executors.newFixedThreadPool(2)
     private ProxyService proxyService
 
     @BeforeEach
@@ -70,7 +67,7 @@ final class ProxyServiceTest extends ReposiliteIntegrationTest {
             return null
         }).when(context.res).setStatus(anyInt())
 
-        FutureUtils.submit(reposilite, SERVICE, { future ->
+        FutureUtils.submit(reposilite, { future ->
             return future.complete(proxyService.findProxied(context).getValue().get())
         }).get()
 
@@ -88,7 +85,7 @@ final class ProxyServiceTest extends ReposiliteIntegrationTest {
             return null
         }).when(context.res).setStatus anyInt()
 
-        FutureUtils.submit(reposilite, SERVICE, { future ->
+        FutureUtils.submit(reposilite, { future ->
             return future.complete(proxyService.findProxied(context).getValue().get())
         }).get()
     }

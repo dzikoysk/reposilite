@@ -16,7 +16,6 @@
 
 package org.panda_lang.reposilite.utils;
 
-import org.jetbrains.annotations.Nullable;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.utilities.commons.function.ThrowingFunction;
 import org.panda_lang.utilities.commons.function.ThrowingRunnable;
@@ -28,9 +27,18 @@ public final class FutureUtils {
 
     private FutureUtils() { }
 
-    public static <T, E extends Exception> CompletableFuture<T> submit(Reposilite reposilite, ExecutorService service, ThrowingFunction<CompletableFuture<T>, ?, E> futureConsumer) {
+    public static <T, E extends Exception> CompletableFuture<T> submit(Reposilite reposilite, ThrowingFunction<CompletableFuture<T>, ?, E> futureConsumer) {
         CompletableFuture<T> completableFuture = new CompletableFuture<>();
-        service.submit(() -> run(reposilite, () -> futureConsumer.apply(completableFuture)));
+
+        reposilite.getExecutorService().execute(() -> {
+            try {
+                futureConsumer.apply(completableFuture);
+            } catch (Exception exception) {
+                reposilite.throwException("Exception occurred during the task execution", exception);
+                completableFuture.cancel(true);
+            }
+        });
+
         return completableFuture;
     }
 
@@ -42,16 +50,11 @@ public final class FutureUtils {
         service.execute(() -> run(reposilite, runnable));
     }
 
-    private static void run(@Nullable Reposilite reposilite, ThrowingRunnable<?> runnable) {
+    private static void run(Reposilite reposilite, ThrowingRunnable<?> runnable) {
         try {
             runnable.run();
-        } catch (Exception e) {
-            if (reposilite != null) {
-                reposilite.throwException("Exception occurred during the task execution", e);
-            }
-            else {
-                e.printStackTrace();
-            }
+        } catch (Exception exception) {
+            reposilite.throwException("Exception occurred during the task execution", exception);
         }
     }
 

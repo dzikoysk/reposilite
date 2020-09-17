@@ -14,23 +14,27 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.utils;
+package org.panda_lang.reposilite.utils
 
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
+import org.panda_lang.reposilite.Reposilite
 
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutionException
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals
 
 class FutureUtilsTest {
 
-    private static final ExecutorService EXECUTOR_SERVICE = Executors.newFixedThreadPool(1)
+    @TempDir
+    public File workingDirectory;
 
     @Test
     void 'should submit future'() throws ExecutionException, InterruptedException {
-        assertEquals "result", FutureUtils.submit(null, EXECUTOR_SERVICE, { completableFuture -> completableFuture.complete("result") }).get()
+        assertEquals "result", FutureUtils.submit(
+                new Reposilite('', workingDirectory.getAbsolutePath(), true),
+                { completableFuture -> completableFuture.complete("result") }
+        ).get()
     }
 
 }
