@@ -8,6 +8,12 @@ hostname:
 port: 80
 # Custom base path
 basePath: /
+# Any kind of proxy services change real ip.
+# The origin ip should be available in one of the headers.
+# Nginx: X-Forwarded-For
+# Cloudflare: CF-Connecting-IP
+# Popular: X-Real-IP
+forwardedIp: X-Forwarded-For
 # Debug
 debugEnabled: false
 

@@ -17,6 +17,7 @@
 package org.panda_lang.reposilite.repository
 
 import org.junit.jupiter.api.Test
+import org.panda_lang.reposilite.ReposiliteContext
 import org.panda_lang.reposilite.ReposiliteIntegrationTest
 import org.panda_lang.utilities.commons.FileUtils
 
@@ -44,7 +45,14 @@ class DeployServiceTest extends ReposiliteIntegrationTest {
             lock.release()
         }).start()
 
-        assertTrue deployService.writeFile("/releases/a/b/c.txt", FileDto.of(file), file, { new ByteArrayInputStream("test".bytes) }).get().isDefined()
+        def context = new ReposiliteContext(
+                "/releases/a/b/c.txt",
+                "",
+                [:],
+                { new ByteArrayInputStream("test".bytes) },
+                { null })
+
+        assertTrue deployService.writeFile(context, FileDto.of(file), file).get().isDefined()
     }
 
 }

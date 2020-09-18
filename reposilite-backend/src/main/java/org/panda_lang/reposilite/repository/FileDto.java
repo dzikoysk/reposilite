@@ -34,12 +34,14 @@ final class FileDto implements Serializable, Comparable<FileDto> {
     private final String type;
     private final String name;
     private final String date;
+    private final String contentType;
     private final long contentLength;
 
-    private FileDto(String type, String name, String date, long contentLength) {
+    private FileDto(String type, String name, String date, String contentType, long contentLength) {
         this.type = type;
         this.name = name;
         this.date = date;
+        this.contentType = contentType;
         this.contentLength = contentLength;
     }
 
@@ -62,6 +64,10 @@ final class FileDto implements Serializable, Comparable<FileDto> {
         return contentLength;
     }
 
+    public String getContentType() {
+        return contentType;
+    }
+
     public String getDate() {
         return date;
     }
@@ -76,9 +82,11 @@ final class FileDto implements Serializable, Comparable<FileDto> {
 
     public static FileDto of(File file) {
         String date = StringUtils.EMPTY;
+        String contentType = StringUtils.EMPTY;
 
         try {
             date = DATE_FORMAT.format(Files.getLastModifiedTime(file.toPath()).toMillis());
+            contentType = Files.probeContentType(file.toPath());
         }
         catch (IOException ignored) { /* file does not exist */ }
 
@@ -86,8 +94,8 @@ final class FileDto implements Serializable, Comparable<FileDto> {
                 file.isDirectory() ? DIRECTORY : FILE,
                 file.getName(),
                 date,
-                file.isDirectory() ? -1 : file.length()
-        );
+                contentType,
+                file.isDirectory() ? -1 : file.length());
     }
 
 }

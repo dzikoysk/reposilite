@@ -25,7 +25,7 @@ class StatusCommandTest extends ReposiliteIntegrationTest {
 
     @Test
     void shouldReturnTrueAndDisplayStatus() {
-        super.reposilite.throwException("/",  new RuntimeException());
+        super.reposilite.getFailureService().throwException("/",  new RuntimeException());
         assertTrue(new StatusCommand().execute(super.reposilite));
     }
 

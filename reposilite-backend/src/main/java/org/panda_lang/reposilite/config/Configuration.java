@@ -37,6 +37,12 @@ public final class Configuration implements Serializable {
     public Integer port = 80;
     @Description("# Custom base path")
     public String basePath = "/";
+    @Description("# Any kind of proxy services change real ip.")
+    @Description("# The origin ip should be available in one of the headers.")
+    @Description("# Nginx: X-Forwarded-For")
+    @Description("# Cloudflare: CF-Connecting-IP")
+    @Description("# Popular: X-Real-IP")
+    public String forwardedIp = "X-Forwarded-For";
     @Description("# Debug")
     public Boolean debugEnabled = false;
 

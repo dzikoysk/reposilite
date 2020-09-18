@@ -22,23 +22,22 @@ import org.panda_lang.reposilite.auth.TokenService;
 import org.panda_lang.reposilite.config.Configuration;
 import org.panda_lang.reposilite.config.ConfigurationLoader;
 import org.panda_lang.reposilite.console.Console;
+import org.panda_lang.reposilite.error.FailureService;
 import org.panda_lang.reposilite.frontend.FrontendService;
 import org.panda_lang.reposilite.metadata.MetadataService;
 import org.panda_lang.reposilite.repository.DeployService;
+import org.panda_lang.reposilite.repository.LookupService;
 import org.panda_lang.reposilite.repository.RepositoryAuthenticator;
 import org.panda_lang.reposilite.repository.RepositoryService;
 import org.panda_lang.reposilite.stats.StatsService;
-import org.panda_lang.reposilite.utils.FutureUtils;
+import org.panda_lang.reposilite.utils.RunUtils;
 import org.panda_lang.reposilite.utils.TimeUtils;
 import org.panda_lang.utilities.commons.ValidationUtils;
-import org.panda_lang.utilities.commons.collection.Pair;
 import org.panda_lang.utilities.commons.function.ThrowingRunnable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.SynchronousQueue;
@@ -52,12 +51,12 @@ public final class Reposilite {
 
     private final AtomicBoolean alive;
     private final ExecutorService executorService;
-    private final Collection<Pair<String, Throwable>> exceptions;
     private final File configurationFile;
     private final File workingDirectory;
     private final boolean testEnvEnabled;
     private final Configuration configuration;
     private final ReposiliteExecutor executor;
+    private final FailureService failureService;
     private final Authenticator authenticator;
     private final RepositoryAuthenticator repositoryAuthenticator;
     private final AuthService authService;
@@ -65,6 +64,7 @@ public final class Reposilite {
     private final StatsService statsService;
     private final RepositoryService repositoryService;
     private final MetadataService metadataService;
+    private final LookupService lookupService;
     private final DeployService deployService;
     private final FrontendService frontend;
     private final ReposiliteHttpServer reactiveHttpServer;
@@ -78,27 +78,28 @@ public final class Reposilite {
 
         this.alive = new AtomicBoolean(false);
         this.executorService = new ThreadPoolExecutor(0, Integer.MAX_VALUE, 1, TimeUnit.SECONDS, new SynchronousQueue<>());
-        this.exceptions = new ArrayList<>();
         this.configurationFile = new File(configurationFile);
         this.workingDirectory = new File(workingDirectory);
         this.testEnvEnabled = testEnv;
 
         this.configuration = ConfigurationLoader.tryLoad(configurationFile, workingDirectory);
-        this.executor = new ReposiliteExecutor(this);
+        this.failureService = new FailureService();
+        this.executor = new ReposiliteExecutor(testEnvEnabled, failureService);
         this.tokenService = new TokenService(workingDirectory);
         this.statsService = new StatsService(workingDirectory);
         this.repositoryService = new RepositoryService(workingDirectory, configuration.diskQuota);
-        this.metadataService = new MetadataService(this);
+        this.metadataService = new MetadataService(failureService);
 
         this.authenticator = new Authenticator(configuration, repositoryService, tokenService);
-        this.repositoryAuthenticator = new RepositoryAuthenticator(configuration, authenticator, repositoryService);
+        this.repositoryAuthenticator = new RepositoryAuthenticator(configuration.rewritePathsEnabled, authenticator, repositoryService);
         this.authService = new AuthService(authenticator);
-        this.deployService = new DeployService(this, authenticator, repositoryService, metadataService);
+        this.deployService = new DeployService(configuration.deployEnabled, authenticator, repositoryService, metadataService, failureService, executorService);
+        this.lookupService = new LookupService(authenticator, repositoryAuthenticator, metadataService, repositoryService, failureService);
 
         this.frontend = FrontendService.load(configuration);
         this.reactiveHttpServer= new ReposiliteHttpServer(this);
         this.console = new Console(this, System.in);
-        this.shutdownHook = new Thread(FutureUtils.ofChecked(this, this::shutdown));
+        this.shutdownHook = new Thread(RunUtils.ofChecked(failureService, this::shutdown));
     }
 
     public void launch() throws Exception {
@@ -170,11 +171,6 @@ public final class Reposilite {
         executor.stop();
     }
 
-    public void throwException(String id, Throwable throwable) {
-        getLogger().error(id, throwable);
-        exceptions.add(new Pair<>(id, throwable));
-    }
-
     public void schedule(ThrowingRunnable<?> runnable) {
         executor.schedule(runnable);
     }
@@ -193,6 +189,10 @@ public final class Reposilite {
 
     public FrontendService getFrontendService() {
         return frontend;
+    }
+
+    public LookupService getLookupService() {
+        return lookupService;
     }
 
     public DeployService getDeployService() {
@@ -231,12 +231,12 @@ public final class Reposilite {
         return configuration;
     }
 
-    public Console getConsole() {
-        return console;
+    public FailureService getFailureService() {
+        return failureService;
     }
 
-    public Collection<? extends Pair<String, Throwable>> getExceptions() {
-        return exceptions;
+    public Console getConsole() {
+        return console;
     }
 
     public ExecutorService getExecutorService() {

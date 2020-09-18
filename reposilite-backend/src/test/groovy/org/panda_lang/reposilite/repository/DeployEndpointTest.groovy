@@ -26,13 +26,12 @@ import org.apache.http.impl.auth.BasicScheme
 import org.apache.http.impl.client.HttpClients
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.panda_lang.reposilite.ReposiliteContext
 import org.panda_lang.reposilite.ReposiliteIntegrationTest
 import org.panda_lang.utilities.commons.IOUtils
 import org.panda_lang.utilities.commons.StringUtils
 
-import static org.junit.jupiter.api.Assertions.assertEquals
-import static org.junit.jupiter.api.Assertions.assertNotNull
-import static org.junit.jupiter.api.Assertions.assertTrue
+import static org.junit.jupiter.api.Assertions.*
 
 class DeployEndpointTest extends ReposiliteIntegrationTest {
 
@@ -45,8 +44,20 @@ class DeployEndpointTest extends ReposiliteIntegrationTest {
 
     @Test
     void 'should return 405 and artifact deployment is disabled message' () throws Exception {
-        super.reposilite.getConfiguration().deployEnabled = false
-        shouldReturnErrorWithGivenMessage "/releases/groupId/artifactId/file", "authtest", "secure", "content", HttpStatus.SC_METHOD_NOT_ALLOWED, "Artifact deployment is disabled"
+        def deployService = new DeployService(
+                false,
+                reposilite.getAuthenticator(),
+                reposilite.getRepositoryService(),
+                reposilite.getMetadataService(),
+                reposilite.getFailureService(),
+                reposilite.getExecutorService())
+
+        def result = deployService.deploy(new ReposiliteContext("/releases/groupId/artifactId/file", "", [:], { null }, { null }))
+        assertTrue result.containsError()
+
+        def error = result.getError()
+        assertEquals HttpStatus.SC_METHOD_NOT_ALLOWED, error.status
+        assertEquals 'Artifact deployment is disabled', error.message
     }
 
     @Test

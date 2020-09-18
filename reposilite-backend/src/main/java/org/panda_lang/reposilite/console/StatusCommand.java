@@ -38,7 +38,7 @@ final class StatusCommand implements ReposiliteCommand {
         Reposilite.getLogger().info("  Memory usage of process: " + getMemoryUsage());
         Reposilite.getLogger().info("  Latest version of reposilite: " + latestVersion);
         Reposilite.getLogger().info("  Cached metadata: " + reposilite.getMetadataService().getCacheSize());
-        printExceptions(reposilite.getExceptions());
+        printExceptions(reposilite.getFailureService().getExceptions());
         Reposilite.getLogger().info("");
         return true;
     }

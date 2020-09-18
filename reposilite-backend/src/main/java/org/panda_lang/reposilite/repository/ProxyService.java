@@ -26,34 +26,46 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.Reposilite;
-import org.panda_lang.reposilite.config.Configuration;
-import org.panda_lang.reposilite.frontend.FrontendService;
-import org.panda_lang.reposilite.utils.ErrorDto;
-import org.panda_lang.reposilite.utils.FutureUtils;
+import org.panda_lang.reposilite.error.ErrorDto;
+import org.panda_lang.reposilite.error.FailureService;
+import org.panda_lang.reposilite.error.ResponseUtils;
 import org.panda_lang.reposilite.utils.Result;
 import org.panda_lang.utilities.commons.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 
 final class ProxyService {
 
-    private final Reposilite reposilite;
-    private final Configuration configuration;
+    private final boolean storeProxied;
+    private final boolean rewritePathsEnabled;
+    private final List<? extends String> proxied;
+    private final ExecutorService executorService;
     private final RepositoryService repositoryService;
-    private final FrontendService frontendService;
-    private final HttpRequestFactory requestFactory;
+    private final FailureService failureService;
+    private final HttpRequestFactory httpRequestFactory;
 
-    ProxyService(Reposilite reposilite) {
-        this.reposilite = reposilite;
-        this.configuration = reposilite.getConfiguration();
-        this.repositoryService = reposilite.getRepositoryService();
-        this.frontendService = reposilite.getFrontendService();
-        this.requestFactory = configuration.proxied.isEmpty() ? null : new NetHttpTransport().createRequestFactory();
+    ProxyService(
+            boolean storeProxied,
+            boolean rewritePathsEnabled,
+            List<? extends String> proxied,
+            ExecutorService executorService,
+            FailureService failureService,
+            RepositoryService repositoryService) {
+
+        this.storeProxied = storeProxied;
+        this.rewritePathsEnabled = rewritePathsEnabled;
+        this.proxied = proxied;
+        this.executorService = executorService;
+        this.repositoryService = repositoryService;
+        this.failureService = failureService;
+        this.httpRequestFactory = new NetHttpTransport().createRequestFactory();
     }
 
-    protected Result<CompletableFuture<Context>, ErrorDto> findProxied(Context context) {
+    protected Result<CompletableFuture<Result<Context, ErrorDto>>, ErrorDto> findProxied(Context context) {
         String uri = context.req.getRequestURI();
 
         // remove repository name if defined
@@ -70,11 +82,12 @@ final class ProxyService {
         }
 
         String remoteUri = uri;
+        CompletableFuture<Result<Context, ErrorDto>> proxiedResult = new CompletableFuture<>();
 
-        return Result.ok(FutureUtils.submit(reposilite, future -> {
-            for (String proxied : configuration.proxied) {
+        executorService.submit(() -> {
+            for (String proxied : proxied) {
                 try {
-                    HttpRequest remoteRequest = requestFactory.buildGetRequest(new GenericUrl(proxied + remoteUri));
+                    HttpRequest remoteRequest = httpRequestFactory.buildGetRequest(new GenericUrl(proxied + remoteUri));
                     remoteRequest.setThrowExceptionOnExecuteError(false);
                     remoteRequest.setConnectTimeout(3000);
                     remoteRequest.setReadTimeout(10000);
@@ -91,7 +104,7 @@ final class ProxyService {
                     }
 
                     if (!context.method().equals("HEAD")) {
-                        if (configuration.storeProxied) {
+                        if (storeProxied) {
                             store(context, remoteUri, remoteResponse);
                         }
                         else {
@@ -103,20 +116,18 @@ final class ProxyService {
                         context.contentType(remoteResponse.getContentType());
                     }
 
-                    return future.complete(context.status(remoteResponse.getStatusCode()));
-                } catch (IOException e) {
-                    Reposilite.getLogger().warn("Proxied repository " + proxied + " is unavailable: " + e.getMessage());
-                } catch (Exception e) {
-                    reposilite.throwException(remoteUri, e);
-                    future.cancel(true);
+                    proxiedResult.complete(Result.ok(context.status(remoteResponse.getStatusCode())));
+                    return;
+                } catch (Exception exception) {
+                    Reposilite.getLogger().warn("Proxied repository " + proxied + " is unavailable: " + exception.getMessage());
+                    failureService.throwException(remoteUri, exception);
                 }
             }
 
-            return future.complete(context
-                    .status(HttpStatus.SC_NOT_FOUND)
-                    .contentType("text/html")
-                    .result(frontendService.forMessage("Artifact not found in local and remote repository")));
-        }));
+            proxiedResult.complete(ResponseUtils.error(HttpStatus.SC_NOT_FOUND, "Artifact not found in local and remote repository"));
+        });
+
+        return Result.ok(proxiedResult);
     }
 
     private void store(Context context, String uri, HttpResponse remoteResponse) throws IOException {
@@ -131,7 +142,7 @@ final class ProxyService {
         Repository repository = repositoryService.getRepository(repositoryName);
 
         if (repository == null) {
-            if (!configuration.rewritePathsEnabled) {
+            if (!rewritePathsEnabled) {
                 return;
             }
 
@@ -144,10 +155,6 @@ final class ProxyService {
         diskQuota.allocate(proxiedFile.length());
 
         Reposilite.getLogger().info("Stored proxied " + uri);
-    }
-
-    public boolean hasProxiedRepositories() {
-        return requestFactory != null;
     }
 
 }

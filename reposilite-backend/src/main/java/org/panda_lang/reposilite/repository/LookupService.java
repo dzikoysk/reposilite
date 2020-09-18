@@ -21,12 +21,13 @@ import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.auth.Authenticator;
+import org.panda_lang.reposilite.error.FailureService;
 import org.panda_lang.reposilite.metadata.MetadataService;
 import org.panda_lang.reposilite.metadata.MetadataUtils;
 import org.panda_lang.reposilite.utils.ArrayUtils;
-import org.panda_lang.reposilite.utils.ErrorDto;
+import org.panda_lang.reposilite.error.ErrorDto;
 import org.panda_lang.reposilite.utils.FilesUtils;
-import org.panda_lang.reposilite.utils.ResponseUtils;
+import org.panda_lang.reposilite.error.ResponseUtils;
 import org.panda_lang.reposilite.utils.Result;
 import org.panda_lang.utilities.commons.collection.Pair;
 
@@ -39,25 +40,31 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-final class LookupService {
+public final class LookupService {
 
-    private final Reposilite reposilite;
     private final Authenticator authenticator;
     private final RepositoryAuthenticator repositoryAuthenticator;
     private final MetadataService metadataService;
     private final RepositoryService repositoryService;
+    private final FailureService failureService;
 
-    LookupService(Reposilite reposilite) {
-        this.reposilite = reposilite;
-        this.authenticator = reposilite.getAuthenticator();
-        this.repositoryAuthenticator = reposilite.getRepositoryAuthenticator();
-        this.metadataService = reposilite.getMetadataService();
-        this.repositoryService = reposilite.getRepositoryService();
+    public LookupService(
+            Authenticator authenticator,
+            RepositoryAuthenticator repositoryAuthenticator,
+            MetadataService metadataService,
+            RepositoryService repositoryService,
+            FailureService failureService) {
+
+        this.authenticator = authenticator;
+        this.repositoryAuthenticator = repositoryAuthenticator;
+        this.metadataService = metadataService;
+        this.repositoryService = repositoryService;
+        this.failureService = failureService;
     }
 
     Result<Context, ErrorDto> findLocal(Context context) {
         String uri = context.req.getRequestURI();
-        Result<Pair<String[], Repository>, ErrorDto> result = this.repositoryAuthenticator.authDefaultRepository(context, uri);
+        Result<Pair<String[], Repository>, ErrorDto> result = this.repositoryAuthenticator.authDefaultRepository(context.headerMap(), uri);
 
         if (result.containsError()) {
             // Maven requests maven-metadata.xml file during deploy for snapshot releases without specifying credentials
@@ -142,7 +149,7 @@ final class LookupService {
             Reposilite.getLogger().info("RESOLVED " + file.getPath() + "; mime: " + mimeType + "; size: " + file.length());
             return Result.ok(context);
         } catch (Exception exception) {
-            reposilite.throwException(context.req.getRequestURI(), exception);
+            failureService.throwException(context.req.getRequestURI(), exception);
             return ResponseUtils.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Cannot read artifact");
         } finally {
             FilesUtils.close(content);

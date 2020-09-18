@@ -20,20 +20,41 @@ import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.Reposilite;
-import org.panda_lang.reposilite.utils.ErrorDto;
+import org.panda_lang.reposilite.config.Configuration;
+import org.panda_lang.reposilite.error.ErrorDto;
+import org.panda_lang.reposilite.error.FailureService;
+import org.panda_lang.reposilite.error.ResponseUtils;
 import org.panda_lang.reposilite.frontend.FrontendService;
 import org.panda_lang.reposilite.utils.Result;
 
+import java.util.concurrent.ExecutorService;
+
 public final class LookupController implements Handler {
 
+    private final boolean hasProxied;
     private final FrontendService frontend;
     private final LookupService lookupService;
     private final ProxyService proxyService;
 
-    public LookupController(Reposilite reposilite) {
-        this.frontend = reposilite.getFrontendService();
-        this.lookupService = new LookupService(reposilite);
-        this.proxyService = new ProxyService(reposilite);
+    public LookupController(
+            Configuration configuration,
+            ExecutorService executorService,
+            FrontendService frontendService,
+            LookupService lookupService,
+            RepositoryService repositoryService,
+            FailureService failureService) {
+
+        this.frontend = frontendService;
+        this.lookupService = lookupService;
+        this.hasProxied = configuration.proxied.size() > 0;
+
+        this.proxyService = new ProxyService(
+                configuration.storeProxied,
+                configuration.rewritePathsEnabled,
+                configuration.proxied,
+                executorService,
+                failureService,
+                repositoryService);
     }
 
     @Override
@@ -42,8 +63,12 @@ public final class LookupController implements Handler {
         Result<Context, ErrorDto> lookupResponse = lookupService.findLocal(context);
 
         if (isProxied(lookupResponse)) {
-            if (proxyService.hasProxiedRepositories()) {
-                lookupResponse = lookupResponse.orElse(localError -> proxyService.findProxied(context).map(context::result));
+            if (hasProxied) {
+                lookupResponse = lookupResponse.orElse(localError -> proxyService
+                        .findProxied(context)
+                        .map(future -> context.result(future.thenAccept(result -> result
+                                .map(context::json)
+                                .mapError(error -> ResponseUtils.errorResponse(context, error))))));
             }
 
             if (isProxied(lookupResponse)) {

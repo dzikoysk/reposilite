@@ -23,6 +23,7 @@ import org.panda_lang.reposilite.auth.AuthController;
 import org.panda_lang.reposilite.auth.PostAuthHandler;
 import org.panda_lang.reposilite.config.Configuration;
 import org.panda_lang.reposilite.console.CliController;
+import org.panda_lang.reposilite.error.FailureService;
 import org.panda_lang.reposilite.frontend.FrontendController;
 import org.panda_lang.reposilite.repository.DeployController;
 import org.panda_lang.reposilite.repository.LookupApiController;
@@ -40,9 +41,22 @@ public final class ReposiliteHttpServer {
     }
 
     void start(Configuration configuration, Runnable onStart) {
-        LookupController lookupController = new LookupController(reposilite);
-        DeployController deployController = new DeployController(reposilite.getDeployService());
-        LookupApiController lookupApiController = new LookupApiController(reposilite);
+        FailureService failureService = reposilite.getFailureService();
+        DeployController deployController = new DeployController(configuration, reposilite.getDeployService());
+
+        LookupController lookupController = new LookupController(
+                configuration,
+                reposilite.getExecutorService(),
+                reposilite.getFrontendService(),
+                reposilite.getLookupService(),
+                reposilite.getRepositoryService(),
+                failureService);
+
+        LookupApiController lookupApiController = new LookupApiController(
+                configuration.rewritePathsEnabled,
+                reposilite.getRepositoryAuthenticator(),
+                reposilite.getRepositoryService(),
+                reposilite.getLookupService());
 
         this.javalin = Javalin.create(config -> config(configuration, config))
                 .before(ctx -> reposilite.getStatsService().record(ctx.req.getRequestURI()))
@@ -56,7 +70,7 @@ public final class ReposiliteHttpServer {
                 .put("/*", deployController)
                 .post("/*", deployController)
                 .after("/*", new PostAuthHandler())
-                .exception(Exception.class, (exception, ctx) -> reposilite.throwException(ctx.req.getRequestURI(), exception))
+                .exception(Exception.class, (exception, ctx) -> failureService.throwException(ctx.req.getRequestURI(), exception))
                 .start(configuration.hostname, configuration.port);
 
         onStart.run();

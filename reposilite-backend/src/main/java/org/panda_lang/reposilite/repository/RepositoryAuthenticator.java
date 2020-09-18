@@ -16,36 +16,36 @@
 
 package org.panda_lang.reposilite.repository;
 
-import io.javalin.http.Context;
 import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.ReposiliteUtils;
 import org.panda_lang.reposilite.auth.Authenticator;
 import org.panda_lang.reposilite.auth.Session;
-import org.panda_lang.reposilite.config.Configuration;
-import org.panda_lang.reposilite.utils.ErrorDto;
-import org.panda_lang.reposilite.utils.ResponseUtils;
+import org.panda_lang.reposilite.error.ErrorDto;
+import org.panda_lang.reposilite.error.ResponseUtils;
 import org.panda_lang.reposilite.utils.Result;
 import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.collection.Pair;
 
+import java.util.Map;
+
 public final class RepositoryAuthenticator {
 
-    private final Configuration configuration;
+    private final boolean rewritePathsEnabled;
     private final Authenticator authenticator;
     private final RepositoryService repositoryService;
 
-    public RepositoryAuthenticator(Configuration configuration, Authenticator authenticator, RepositoryService repositoryService) {
-        this.configuration = configuration;
+    public RepositoryAuthenticator(boolean rewritePathsEnabled, Authenticator authenticator, RepositoryService repositoryService) {
+        this.rewritePathsEnabled = rewritePathsEnabled;
         this.authenticator = authenticator;
         this.repositoryService = repositoryService;
     }
 
-    public Result<Pair<String[], Repository>, ErrorDto> authDefaultRepository(Context context, String uri) {
-        return authRepository(context, ReposiliteUtils.normalizeUri(configuration, repositoryService, uri));
+    public Result<Pair<String[], Repository>, ErrorDto> authDefaultRepository(Map<String, String> headers, String uri) {
+        return authRepository(headers, uri, ReposiliteUtils.normalizeUri(rewritePathsEnabled, repositoryService, uri));
     }
 
-    public Result<Pair<String[], Repository>, ErrorDto> authRepository(Context context, String uri) {
-        String[] path = StringUtils.split(uri, "/");
+    public Result<Pair<String[], Repository>, ErrorDto> authRepository(Map<String, String> headers, String uri, String normalizedUri) {
+        String[] path = StringUtils.split(normalizedUri, "/");
         String repositoryName = path[0];
 
         if (StringUtils.isEmpty(repositoryName)) {
@@ -60,7 +60,7 @@ public final class RepositoryAuthenticator {
 
         // auth hidden repositories
         if (repository.isHidden()) {
-            Result<Session, String> authResult = authenticator.authByUri(context.headerMap(), context.req.getRequestURI());
+            Result<Session, String> authResult = authenticator.authByUri(headers, uri);
 
             if (authResult.containsError()) {
                 return ResponseUtils.error(HttpStatus.SC_UNAUTHORIZED, "Unauthorized request");

@@ -16,7 +16,8 @@
 
 package org.panda_lang.reposilite;
 
-import org.panda_lang.reposilite.utils.FutureUtils;
+import org.panda_lang.reposilite.error.FailureService;
+import org.panda_lang.reposilite.utils.RunUtils;
 import org.panda_lang.utilities.commons.function.ThrowingRunnable;
 
 import java.util.Queue;
@@ -27,20 +28,22 @@ import java.util.concurrent.LinkedBlockingDeque;
 
 final class ReposiliteExecutor {
 
-    private final Reposilite reposilite;
+    private final boolean testEnvEnabled;
+    private final FailureService failureService;
     private final Object lock = new Object();
     private final Queue<ThrowingRunnable<?>> tasks = new ConcurrentLinkedQueue<>();
     private final ExecutorService executorService;
     private volatile boolean alive = true;
 
-    ReposiliteExecutor(Reposilite reposilite) {
-        this.reposilite = reposilite;
-        this.executorService = reposilite.isTestEnvEnabled() ? Executors.newSingleThreadExecutor() : null;
+    ReposiliteExecutor(boolean testEnvEnabled, FailureService failureService) {
+        this.testEnvEnabled = testEnvEnabled;
+        this.failureService = failureService;
+        this.executorService = testEnvEnabled ? Executors.newSingleThreadExecutor() : null;
     }
 
     void await(Runnable onExit) throws InterruptedException {
-        if (reposilite.isTestEnvEnabled()) {
-            FutureUtils.executeChecked(reposilite, executorService, () -> start(onExit));
+        if (testEnvEnabled) {
+            RunUtils.executeChecked(failureService, executorService, () -> start(onExit));
             return;
         }
 
@@ -64,7 +67,7 @@ final class ReposiliteExecutor {
                 try {
                     task.run();
                 } catch (Exception e) {
-                    reposilite.throwException("<executor>", e);
+                    failureService.throwException("<executor>", e);
                 }
             }
         }

@@ -18,7 +18,7 @@ package org.panda_lang.reposilite.metadata;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import org.panda_lang.reposilite.Reposilite;
+import org.panda_lang.reposilite.error.FailureService;
 import org.panda_lang.reposilite.repository.Repository;
 import org.panda_lang.reposilite.utils.ArrayUtils;
 import org.panda_lang.reposilite.utils.FilesUtils;
@@ -43,11 +43,11 @@ public final class MetadataService {
             .defaultUseWrapper(false)
             .build());
 
-    private final Reposilite reposilite;
     private final Map<String, String> metadataCache = new HashMap<>();
+    private final FailureService failureService;
 
-    public MetadataService(Reposilite reposilite) {
-        this.reposilite = reposilite;
+    public MetadataService(FailureService failureService) {
+        this.failureService = failureService;
     }
 
     public Result<String, String> generateMetadata(Repository repository, String[] requested) {
@@ -147,7 +147,7 @@ public final class MetadataService {
             metadataCache.put(metadataFile.getPath(), serializedMetadata);
             return Result.ok(serializedMetadata);
         } catch (IOException e) {
-            reposilite.throwException(metadataFile.getAbsolutePath(), e);
+            failureService.throwException(metadataFile.getAbsolutePath(), e);
             return Result.error("Cannot generate metadata");
         }
     }
