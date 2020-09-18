@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.utils;
+package org.panda_lang.reposilite.error;
 
 import io.javalin.http.Context;
+import org.panda_lang.reposilite.utils.Result;
 
 public final class ResponseUtils {
 

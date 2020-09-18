@@ -14,23 +14,26 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.auth;
+package org.panda_lang.reposilite.error;
 
-import io.javalin.http.Context;
-import org.panda_lang.reposilite.RepositoryController;
-import org.panda_lang.reposilite.error.ResponseUtils;
+import org.panda_lang.reposilite.Reposilite;
+import org.panda_lang.utilities.commons.collection.Pair;
 
-public final class AuthController implements RepositoryController {
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
-    private final AuthService authService;
+public final class FailureService {
 
-    public AuthController(AuthService authService) {
-        this.authService = authService;
+    private final List<Pair<String, Throwable>> exceptions = new ArrayList<>();
+
+    public void throwException(String id, Throwable throwable) {
+        Reposilite.getLogger().error(id, throwable);
+        exceptions.add(new Pair<>(id, throwable));
     }
 
-    @Override
-    public Context handleContext(Context ctx) {
-        return ResponseUtils.response(ctx, authService.authByHeader(ctx.headerMap()));
+    public Collection<? extends Pair<String, Throwable>> getExceptions() {
+        return exceptions;
     }
 
 }

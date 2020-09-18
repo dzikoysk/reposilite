@@ -23,12 +23,12 @@ import org.apache.http.HttpStatus
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.panda_lang.reposilite.ReposiliteIntegrationTest
-import org.panda_lang.reposilite.utils.FutureUtils
+import org.panda_lang.reposilite.error.FailureService
 import org.panda_lang.utilities.commons.FileUtils
-import org.panda_lang.utilities.commons.IOUtils
 
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
+import java.util.concurrent.ExecutorService
 
 import static org.junit.jupiter.api.Assertions.*
 import static org.mockito.ArgumentMatchers.anyInt
@@ -36,12 +36,23 @@ import static org.mockito.Mockito.*
 
 final class ProxyServiceTest extends ReposiliteIntegrationTest {
 
+    private ExecutorService executorService
+    private FailureService failureService
     private ProxyService proxyService
 
     @BeforeEach
     void configure() throws IOException {
         super.reposilite.getConfiguration().proxied = Collections.singletonList(url('').toString())
-        this.proxyService = new ProxyService(super.reposilite)
+
+        this.executorService = super.reposilite.getExecutorService()
+        this.failureService = super.reposilite.getFailureService()
+        this.proxyService = new ProxyService(
+                true,
+                true,
+                [],
+                super.reposilite.getExecutorService(),
+                failureService,
+                super.reposilite.getRepositoryService())
 
         def proxiedFile = new File(super.workingDirectory, '/repositories/releases/proxiedGroup/proxiedArtifact/proxied.pom')
         proxiedFile.getParentFile().mkdirs()
@@ -67,13 +78,9 @@ final class ProxyServiceTest extends ReposiliteIntegrationTest {
             return null
         }).when(context.res).setStatus(anyInt())
 
-        FutureUtils.submit(reposilite, { future ->
-            return future.complete(proxyService.findProxied(context).getValue().get())
-        }).get()
-
-        def result = IOUtils.convertStreamToString(context.resultStream()).getValue()
-        assertNotNull result
-        assertTrue result.contains("REPOSILITE_MESSAGE = 'Artifact not found in local and remote repository'")
+        def error = proxyService.findProxied(context).getValue().get().getError()
+        assertNotNull error
+        assertEquals 'Artifact not found in local and remote repository', error.message
     }
 
     @Test
@@ -85,8 +92,8 @@ final class ProxyServiceTest extends ReposiliteIntegrationTest {
             return null
         }).when(context.res).setStatus anyInt()
 
-        FutureUtils.submit(reposilite, { future ->
-            return future.complete(proxyService.findProxied(context).getValue().get())
+        executorService.submit({
+            return proxyService.findProxied(context).getValue().get()
         }).get()
     }
 

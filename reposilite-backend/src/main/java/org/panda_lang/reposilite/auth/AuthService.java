@@ -17,7 +17,7 @@
 package org.panda_lang.reposilite.auth;
 
 import org.apache.http.HttpStatus;
-import org.panda_lang.reposilite.utils.ErrorDto;
+import org.panda_lang.reposilite.error.ErrorDto;
 import org.panda_lang.reposilite.utils.Result;
 
 import java.util.Map;

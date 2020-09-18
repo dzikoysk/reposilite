@@ -19,49 +19,59 @@ package org.panda_lang.reposilite.repository;
 import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.Reposilite;
+import org.panda_lang.reposilite.ReposiliteContext;
 import org.panda_lang.reposilite.auth.Authenticator;
 import org.panda_lang.reposilite.auth.Session;
+import org.panda_lang.reposilite.error.ErrorDto;
+import org.panda_lang.reposilite.error.FailureService;
+import org.panda_lang.reposilite.error.ResponseUtils;
 import org.panda_lang.reposilite.metadata.MetadataService;
-import org.panda_lang.reposilite.utils.ErrorDto;
-import org.panda_lang.reposilite.utils.ResponseUtils;
 import org.panda_lang.reposilite.utils.Result;
-import org.panda_lang.utilities.commons.function.ThrowingSupplier;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.channels.OverlappingFileLockException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 
 public final class DeployService {
 
     protected static final int RETRY_WRITE_TIME = 1000;
 
-    private final Reposilite reposilite;
+    private final boolean deployEnabled;
     private final Authenticator authenticator;
     private final RepositoryService repositoryService;
     private final MetadataService metadataService;
+    private final FailureService failureService;
+    private final ExecutorService executorService;
 
-    public DeployService(Reposilite reposilite, Authenticator authenticator, RepositoryService repositoryService, MetadataService metadataService) {
-        this.reposilite = reposilite;
+    public DeployService(
+            boolean deployEnabled,
+            Authenticator authenticator,
+            RepositoryService repositoryService,
+            MetadataService metadataService,
+            FailureService failureService,
+            ExecutorService executorService) {
+
+        this.deployEnabled = deployEnabled;
+        this.failureService = failureService;
         this.authenticator = authenticator;
         this.repositoryService = repositoryService;
         this.metadataService = metadataService;
+        this.executorService = executorService;
     }
 
-    public Result<CompletableFuture<Result<FileDto, ErrorDto>>, ErrorDto> deploy(String address, Map<String, String> headers, String uri, ThrowingSupplier<InputStream, IOException> deployedFile) {
-        if (!reposilite.getConfiguration().deployEnabled) {
+    public Result<CompletableFuture<Result<FileDto, ErrorDto>>, ErrorDto> deploy(ReposiliteContext context) {
+        if (!deployEnabled) {
             return ResponseUtils.error(HttpStatus.SC_METHOD_NOT_ALLOWED, "Artifact deployment is disabled");
         }
 
-        Result<Session, String> authResult = this.authenticator.authByUri(headers, uri);
+        Result<Session, String> authResult = this.authenticator.authByUri(context.headers(), context.uri());
 
         if (authResult.containsError()) {
             return ResponseUtils.error(HttpStatus.SC_UNAUTHORIZED, authResult.getError());
@@ -71,39 +81,39 @@ public final class DeployService {
             return ResponseUtils.error(HttpStatus.SC_INSUFFICIENT_STORAGE, "Out of disk space");
         }
 
-        File file = repositoryService.getFile(uri);
+        File file = repositoryService.getFile(context.uri());
         FileDto fileDto = FileDto.of(file);
 
         File metadataFile = new File(file.getParentFile(), "maven-metadata.xml");
         metadataService.clearMetadata(metadataFile);
 
-        Reposilite.getLogger().info("DEPLOY " + authResult.getValue().getAlias() + " successfully deployed " + file + " from " + address);
+        Reposilite.getLogger().info("DEPLOY " + authResult.getValue().getAlias() + " successfully deployed " + file + " from " + context.address());
 
         if (file.getName().contains("maven-metadata")) {
             return Result.ok(CompletableFuture.completedFuture(Result.ok(fileDto)));
         }
 
-        return Result.ok(writeFile(uri, fileDto, file, deployedFile));
+        return Result.ok(writeFile(context, fileDto, file));
     }
 
-    protected CompletableFuture<Result<FileDto, ErrorDto>> writeFile(String uri, FileDto fileDto, File file, ThrowingSupplier<InputStream, IOException> deployedFile) {
+    protected CompletableFuture<Result<FileDto, ErrorDto>> writeFile(ReposiliteContext context, FileDto fileDto, File file) {
         CompletableFuture<Result<FileDto, ErrorDto>> completableFuture = new CompletableFuture<>();
 
-        reposilite.getExecutorService().submit(() -> {
+        executorService.submit(() -> {
             try (FileChannel channel = FileChannel.open(file.toPath(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE)) {
                 FileLock lock = channel.lock();
 
                 FileUtils.forceMkdirParent(file);
-                Files.copy(Objects.requireNonNull(deployedFile.get()), file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                Files.copy(Objects.requireNonNull(context.input()), file.toPath(), StandardCopyOption.REPLACE_EXISTING);
                 repositoryService.getDiskQuota().allocate(file.length());
 
                 lock.release();
                 return completableFuture.complete(Result.ok(fileDto));
             } catch (OverlappingFileLockException overlappingFileLockException) {
                 Thread.sleep(RETRY_WRITE_TIME);
-                return completableFuture.complete(writeFile(uri, fileDto, file, deployedFile).get());
+                return completableFuture.complete(writeFile(context, fileDto, file).get());
             } catch (Exception ioException) {
-                reposilite.throwException(uri, ioException);
+                failureService.throwException(context.uri(), ioException);
                 return completableFuture.complete(ResponseUtils.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Failed to upload artifact"));
             }
         });

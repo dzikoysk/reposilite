@@ -16,20 +16,18 @@
 
 package org.panda_lang.reposilite.repository
 
-
 import org.junit.jupiter.api.Test
 import org.panda_lang.reposilite.AuthenticatorConfiguration
-import org.panda_lang.reposilite.config.Configuration
 
 import static org.junit.jupiter.api.Assertions.assertEquals
 
 class RepositoryAuthenticatorTest extends AuthenticatorConfiguration {
 
-    static final RepositoryAuthenticator REPOSITORY_AUTHENTICATOR = new RepositoryAuthenticator(new Configuration(), AUTHENTICATOR, REPOSITORY_SERVICE)
+    static final RepositoryAuthenticator REPOSITORY_AUTHENTICATOR = new RepositoryAuthenticator(true, AUTHENTICATOR, REPOSITORY_SERVICE)
 
     @Test
     void 'should not auth invalid repository uri' () {
-        assertEquals "Unsupported request", REPOSITORY_AUTHENTICATOR.authRepository(null, "").getError().getMessage()
+        assertEquals "Unsupported request", REPOSITORY_AUTHENTICATOR.authRepository([:], '', '').getError().getMessage()
     }
 
 }

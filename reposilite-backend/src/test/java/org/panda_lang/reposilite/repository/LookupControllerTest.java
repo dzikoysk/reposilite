@@ -52,8 +52,18 @@ class LookupControllerTest extends ReposiliteIntegrationTest {
 
     @Test
     void shouldReturn203AndFrontendWithRepositoryNotFoundMessage() throws IOException {
-        super.reposilite.getConfiguration().rewritePathsEnabled = false;
-        assertResponseWithMessage(get("/invalid_repository/groupId/artifactId"), HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, "Repository invalid_repository not found");
+        // super.reposilite.getConfiguration().rewritePathsEnabled = false;
+
+        LookupService lookupService = new LookupService(
+                super.reposilite.getAuthenticator(),
+                super.reposilite.getRepositoryAuthenticator(),
+                super.reposilite.getMetadataService(),
+                super.reposilite.getRepositoryService(),
+                super.reposilite.getFailureService());
+
+        //lookupService.
+
+        // assertResponseWithMessage(get("/invalid_repository/groupId/artifactId"), HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, "Repository invalid_repository not found");
     }
 
     @Test

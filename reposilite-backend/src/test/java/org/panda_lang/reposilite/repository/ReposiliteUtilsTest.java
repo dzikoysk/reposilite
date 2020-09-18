@@ -30,39 +30,36 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class ReposiliteUtilsTest {
 
     @TempDir
-    File temp;
-    Configuration CONFIGURATION = new Configuration();
-    RepositoryService REPOSITORY_SERVICE;
+    public File temp;
+
+    private RepositoryService REPOSITORY_SERVICE;
 
     @BeforeEach
     void prepare() {
         REPOSITORY_SERVICE = new RepositoryService(temp.getAbsolutePath(), "0");
-        REPOSITORY_SERVICE.load(CONFIGURATION);
+        REPOSITORY_SERVICE.load(new Configuration());
     }
 
     @Test
     void shouldNotInterfere() {
-        assertEquals("releases/without/repo-one/", ReposiliteUtils.normalizeUri(CONFIGURATION, REPOSITORY_SERVICE, "releases/without/repo-one/"));
+        assertEquals("releases/without/repo-one/", ReposiliteUtils.normalizeUri(true, REPOSITORY_SERVICE, "releases/without/repo-one/"));
     }
 
     @Test
     void shouldRewritePath() {
-        assertEquals("releases/without/repo/", ReposiliteUtils.normalizeUri(CONFIGURATION, REPOSITORY_SERVICE, "/without/repo/"));
+        assertEquals("releases/without/repo/", ReposiliteUtils.normalizeUri(true, REPOSITORY_SERVICE, "/without/repo/"));
     }
 
     @Test
     void shouldNotAllowPathEscapes() {
-        assertEquals(StringUtils.EMPTY, ReposiliteUtils.normalizeUri(CONFIGURATION, REPOSITORY_SERVICE, "~/home"));
-        assertEquals(StringUtils.EMPTY, ReposiliteUtils.normalizeUri(CONFIGURATION, REPOSITORY_SERVICE, "../../../../monkas"));
-        assertEquals(StringUtils.EMPTY, ReposiliteUtils.normalizeUri(CONFIGURATION, REPOSITORY_SERVICE, "C:\\"));
+        assertEquals(StringUtils.EMPTY, ReposiliteUtils.normalizeUri(true, REPOSITORY_SERVICE, "~/home"));
+        assertEquals(StringUtils.EMPTY, ReposiliteUtils.normalizeUri(true, REPOSITORY_SERVICE, "../../../../monkas"));
+        assertEquals(StringUtils.EMPTY, ReposiliteUtils.normalizeUri(true, REPOSITORY_SERVICE, "C:\\"));
     }
 
     @Test
     void shouldNotRewritePaths() {
-        Configuration configuration = new Configuration();
-        configuration.rewritePathsEnabled = false;
-
-        assertEquals("without/repo/", ReposiliteUtils.normalizeUri(configuration, REPOSITORY_SERVICE, "without/repo/"));
+        assertEquals("without/repo/", ReposiliteUtils.normalizeUri(false, REPOSITORY_SERVICE, "without/repo/"));
     }
 
 }

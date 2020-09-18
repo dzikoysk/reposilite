@@ -16,7 +16,6 @@
 
 package org.panda_lang.reposilite;
 
-import org.panda_lang.reposilite.config.Configuration;
 import org.panda_lang.reposilite.repository.Repository;
 import org.panda_lang.reposilite.repository.RepositoryService;
 import org.panda_lang.utilities.commons.StringUtils;
@@ -34,11 +33,11 @@ public final class ReposiliteUtils {
      *     <li>Insert repository name if missing</li>
      * </ul>
      *
-     * @param configuration the configuration with repositories list
+     * @param rewritePathsEnabled determines if path reqriting is enabled
      * @param uri the uri to process
      * @return the normalized uri
      */
-    public static String normalizeUri(Configuration configuration, RepositoryService repositoryService, String uri) {
+    public static String normalizeUri(boolean rewritePathsEnabled, RepositoryService repositoryService, String uri) {
         if (uri.startsWith("/")) {
             uri = uri.substring(1);
         }
@@ -47,7 +46,7 @@ public final class ReposiliteUtils {
             return StringUtils.EMPTY;
         }
 
-        if (!configuration.rewritePathsEnabled) {
+        if (!rewritePathsEnabled) {
             return uri;
         }
 

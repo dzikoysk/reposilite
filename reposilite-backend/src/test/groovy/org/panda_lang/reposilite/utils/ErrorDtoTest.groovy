@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.utils;
+package org.panda_lang.reposilite.utils
 
-import org.apache.http.HttpStatus;
-import org.junit.jupiter.api.Test;
+import org.apache.http.HttpStatus
+import org.junit.jupiter.api.Test
+import org.panda_lang.reposilite.error.ErrorDto
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals
 
 class ErrorDtoTest {
 

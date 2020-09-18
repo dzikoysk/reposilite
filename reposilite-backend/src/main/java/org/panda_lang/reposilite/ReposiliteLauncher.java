@@ -18,7 +18,7 @@ package org.panda_lang.reposilite;
 
 import org.panda_lang.reposilite.console.HelpCommand;
 import org.panda_lang.reposilite.console.VersionCommand;
-import org.panda_lang.reposilite.utils.FutureUtils;
+import org.panda_lang.reposilite.utils.RunUtils;
 import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.console.Effect;
 import picocli.CommandLine;
@@ -47,7 +47,7 @@ public final class ReposiliteLauncher {
     private String configurationFile;
 
     public static void main(String... args) {
-        create(args).ifPresent(reposilite -> FutureUtils.ofChecked(reposilite, reposilite::launch).run());
+        create(args).ifPresent(reposilite -> RunUtils.ofChecked(reposilite.getFailureService(), reposilite::launch).run());
     }
 
     public static Optional<Reposilite> create(String... args) {

@@ -18,7 +18,7 @@ package org.panda_lang.reposilite;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.panda_lang.reposilite.utils.FutureUtils;
+import org.panda_lang.reposilite.utils.RunUtils;
 
 import java.io.File;
 import java.util.concurrent.CountDownLatch;
@@ -35,12 +35,12 @@ class ReposiliteExecutorTest {
     @Test
     void shouldExecuteAndExit() throws InterruptedException {
         Reposilite reposilite = ReposiliteLauncher.create(null, workingDirectory.getAbsolutePath(), true);
-        ReposiliteExecutor reposiliteExecutor = new ReposiliteExecutor(reposilite);
+        ReposiliteExecutor reposiliteExecutor = new ReposiliteExecutor(true, reposilite.getFailureService());
         AtomicBoolean onExitCalled = new AtomicBoolean(false);
         AtomicBoolean scheduleCalled = new AtomicBoolean(false);
         CountDownLatch latch = new CountDownLatch(1);
 
-        Thread asyncTest = new Thread(FutureUtils.ofChecked(reposilite, () -> {
+        Thread asyncTest = new Thread(RunUtils.ofChecked(reposilite.getFailureService(), () -> {
             reposiliteExecutor.schedule(() -> {
                 reposiliteExecutor.schedule(() -> scheduleCalled.set(true));
                 reposiliteExecutor.schedule(reposiliteExecutor::stop);

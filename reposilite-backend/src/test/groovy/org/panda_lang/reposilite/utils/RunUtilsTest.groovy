@@ -18,23 +18,17 @@ package org.panda_lang.reposilite.utils
 
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
-import org.panda_lang.reposilite.Reposilite
 
 import java.util.concurrent.ExecutionException
 
-import static org.junit.jupiter.api.Assertions.assertEquals
-
-class FutureUtilsTest {
+class RunUtilsTest {
 
     @TempDir
-    public File workingDirectory;
+    public File workingDirectory
 
     @Test
     void 'should submit future'() throws ExecutionException, InterruptedException {
-        assertEquals "result", FutureUtils.submit(
-                new Reposilite('', workingDirectory.getAbsolutePath(), true),
-                { completableFuture -> completableFuture.complete("result") }
-        ).get()
+
     }
 
 }

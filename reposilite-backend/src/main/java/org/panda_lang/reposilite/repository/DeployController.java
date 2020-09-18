@@ -19,25 +19,30 @@ package org.panda_lang.reposilite.repository;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import org.panda_lang.reposilite.Reposilite;
-import org.panda_lang.reposilite.utils.ResponseUtils;
+import org.panda_lang.reposilite.ReposiliteContext;
+import org.panda_lang.reposilite.config.Configuration;
+import org.panda_lang.reposilite.error.ResponseUtils;
 
 public final class DeployController implements Handler {
 
+    private final Configuration configuration;
     private final DeployService deployService;
 
-    public DeployController(DeployService deployService) {
+    public DeployController(Configuration configuration, DeployService deployService) {
+        this.configuration = configuration;
         this.deployService = deployService;
     }
 
     @Override
-    public void handle(Context context) {
-        Reposilite.getLogger().info("DEPLOY " + context.req.getRequestURI() + " from " + context.req.getRemoteAddr());
+    public void handle(Context ctx) {
+        ReposiliteContext context = ReposiliteContext.create(configuration, ctx);
+        Reposilite.getLogger().info("DEPLOY " + context.uri() + " from " + context.address());
 
-        deployService.deploy(context.req.getRemoteAddr(), context.headerMap(), context.req.getRequestURI(), context.req::getInputStream)
-                .map(future -> context.result(future.thenAccept(result -> result
-                        .map(context::json)
-                        .mapError(error -> ResponseUtils.errorResponse(context, error)))))
-                .onError(error -> ResponseUtils.errorResponse(context, error));
+        deployService.deploy(context)
+                .map(future -> ctx.result(future.thenAccept(result -> result
+                        .map(ctx::json)
+                        .mapError(error -> ResponseUtils.errorResponse(ctx, error)))))
+                .onError(error -> ResponseUtils.errorResponse(ctx, error));
     }
 
 }
