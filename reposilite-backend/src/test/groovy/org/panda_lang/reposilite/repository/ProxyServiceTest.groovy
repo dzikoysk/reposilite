@@ -63,7 +63,8 @@ final class ProxyServiceTest extends ReposiliteIntegrationTest {
     @Test
     void 'should return error for invalid proxied request' () {
         def context = mockContext '/groupId/artifactId'
-        def result = proxyService.findProxied(context)
+        def reposiliteContext = super.reposilite.getContextFactory().create(context)
+        def result = proxyService.findProxied(reposiliteContext)
 
         assertTrue result.containsError()
         assertEquals 'Invalid proxied request', result.getError().getMessage()
@@ -78,7 +79,8 @@ final class ProxyServiceTest extends ReposiliteIntegrationTest {
             return null
         }).when(context.res).setStatus(anyInt())
 
-        def error = proxyService.findProxied(context).getValue().get().getError()
+        def reposiliteContext = super.reposilite.getContextFactory().create(context)
+        def error = proxyService.findProxied(reposiliteContext).getValue().get().getError()
         assertNotNull error
         assertEquals 'Artifact not found in local and remote repository', error.message
     }
@@ -92,8 +94,10 @@ final class ProxyServiceTest extends ReposiliteIntegrationTest {
             return null
         }).when(context.res).setStatus anyInt()
 
+        def reposiliteContext = super.reposilite.getContextFactory().create(context)
+
         executorService.submit({
-            return proxyService.findProxied(context).getValue().get()
+            return proxyService.findProxied(reposiliteContext).getValue().get()
         }).get()
     }
 

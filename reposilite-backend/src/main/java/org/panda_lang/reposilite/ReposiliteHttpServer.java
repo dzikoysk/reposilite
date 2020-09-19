@@ -42,10 +42,11 @@ public final class ReposiliteHttpServer {
 
     void start(Configuration configuration, Runnable onStart) {
         FailureService failureService = reposilite.getFailureService();
-        DeployController deployController = new DeployController(configuration, reposilite.getDeployService());
+        DeployController deployController = new DeployController(reposilite.getContextFactory(), reposilite.getDeployService());
 
         LookupController lookupController = new LookupController(
                 configuration,
+                reposilite.getContextFactory(),
                 reposilite.getExecutorService(),
                 reposilite.getFrontendService(),
                 reposilite.getLookupService(),

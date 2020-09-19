@@ -16,24 +16,24 @@
 
 package org.panda_lang.reposilite.repository;
 
-import io.javalin.http.Context;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.Reposilite;
+import org.panda_lang.reposilite.ReposiliteContext;
+import org.panda_lang.reposilite.ReposiliteContextFactory;
 import org.panda_lang.reposilite.auth.Authenticator;
+import org.panda_lang.reposilite.error.ErrorDto;
 import org.panda_lang.reposilite.error.FailureService;
+import org.panda_lang.reposilite.error.ResponseUtils;
 import org.panda_lang.reposilite.metadata.MetadataService;
 import org.panda_lang.reposilite.metadata.MetadataUtils;
 import org.panda_lang.reposilite.utils.ArrayUtils;
-import org.panda_lang.reposilite.error.ErrorDto;
-import org.panda_lang.reposilite.utils.FilesUtils;
-import org.panda_lang.reposilite.error.ResponseUtils;
 import org.panda_lang.reposilite.utils.Result;
 import org.panda_lang.utilities.commons.collection.Pair;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.nio.file.Files;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
@@ -42,6 +42,7 @@ import java.util.stream.Collectors;
 
 public final class LookupService {
 
+    private final ReposiliteContextFactory contextFactory;
     private final Authenticator authenticator;
     private final RepositoryAuthenticator repositoryAuthenticator;
     private final MetadataService metadataService;
@@ -49,12 +50,14 @@ public final class LookupService {
     private final FailureService failureService;
 
     public LookupService(
+            ReposiliteContextFactory contextFactory,
             Authenticator authenticator,
             RepositoryAuthenticator repositoryAuthenticator,
             MetadataService metadataService,
             RepositoryService repositoryService,
             FailureService failureService) {
 
+        this.contextFactory = contextFactory;
         this.authenticator = authenticator;
         this.repositoryAuthenticator = repositoryAuthenticator;
         this.metadataService = metadataService;
@@ -62,9 +65,9 @@ public final class LookupService {
         this.failureService = failureService;
     }
 
-    Result<Context, ErrorDto> findLocal(Context context) {
-        String uri = context.req.getRequestURI();
-        Result<Pair<String[], Repository>, ErrorDto> result = this.repositoryAuthenticator.authDefaultRepository(context.headerMap(), uri);
+    Result<LookupResponse, ErrorDto> findLocal(ReposiliteContext context) {
+        String uri = context.uri();
+        Result<Pair<String[], Repository>, ErrorDto> result = this.repositoryAuthenticator.authDefaultRepository(context.headers(), uri);
 
         if (result.containsError()) {
             // Maven requests maven-metadata.xml file during deploy for snapshot releases without specifying credentials
@@ -91,7 +94,7 @@ public final class LookupService {
         if (requestedFileName.equals("maven-metadata.xml")) {
             return metadataService
                     .generateMetadata(repository, requestPath)
-                    .map(res -> context.contentType("text/xml").result(res))
+                    .map(metadataContent -> new LookupResponse("text/xml", metadataContent))
                     .mapError(error -> new ErrorDto(HttpStatus.SC_USE_PROXY, error));
         }
 
@@ -105,7 +108,7 @@ public final class LookupService {
                 return ResponseUtils.error(HttpStatus.SC_NOT_FOUND, "Latest version not found");
             }
 
-            return Result.ok(context.result(version.getName()));
+            return Result.ok(new LookupResponse("text/plain", version.getName()));
         }
 
         // resolve snapshot requests
@@ -128,43 +131,35 @@ public final class LookupService {
         }
 
         File file = artifact.get().getFile(requestedFileName);
-        FileInputStream content = null;
+        FileDetailsDto fileDetails = FileDetailsDto.of(file);
 
-        try {
-            // resolve content type associated with the requested extension
-            String mimeType = Files.probeContentType(file.toPath());
-            context.res.setContentType(mimeType != null ? mimeType : "application/octet-stream");
+        if (!context.method().equals("HEAD")) {
+            FileInputStream content = null;
 
-            // add content description to the header
-            context.res.setContentLengthLong(file.length());
-            context.res.setHeader("Content-Disposition", "attachment; filename=\"" + ArrayUtils.getLast(path) + "\"");
-
-            // exclude content for head requests
-            if (!context.method().equals("HEAD")) {
+            try {
                 content = new FileInputStream(file);
-                IOUtils.copy(content, context.res.getOutputStream());
+                IOUtils.copy(content, context.output());
+            } catch (IOException exception) {
+                failureService.throwException(uri, exception);
+                return ResponseUtils.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Failed to transfer artifact");
+            } finally {
+                IOUtils.closeQuietly(content, exception -> failureService.throwException(uri, exception));
             }
-
-            // success
-            Reposilite.getLogger().info("RESOLVED " + file.getPath() + "; mime: " + mimeType + "; size: " + file.length());
-            return Result.ok(context);
-        } catch (Exception exception) {
-            failureService.throwException(context.req.getRequestURI(), exception);
-            return ResponseUtils.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Cannot read artifact");
-        } finally {
-            FilesUtils.close(content);
         }
+
+        Reposilite.getLogger().info("RESOLVED " + file.getPath() + "; mime: " + fileDetails.getContentType() + "; size: " + file.length());
+        return Result.ok(new LookupResponse(fileDetails));
     }
 
     FileListDto findAvailableRepositories(Map<String, String> headers) {
         return new FileListDto(repositoryService.getRepositories().stream()
                 .filter(repository -> repository.isPublic() || authenticator.authByUri(headers, repository.getUri()).isDefined())
                 .map(Repository::getFile)
-                .map(FileDto::of)
+                .map(FileDetailsDto::of)
                 .collect(Collectors.toList()));
     }
 
-    Optional<FileDto> findLatest(File requestedFile) {
+    Optional<FileDetailsDto> findLatest(File requestedFile) {
         if (requestedFile.getName().equals("latest")) {
             File parent = requestedFile.getParentFile();
 
@@ -173,7 +168,7 @@ public final class LookupService {
                 File latest = ArrayUtils.getFirst(files);
 
                 if (latest != null) {
-                    return Optional.of(FileDto.of(latest));
+                    return Optional.of(FileDetailsDto.of(latest));
                 }
             }
         }

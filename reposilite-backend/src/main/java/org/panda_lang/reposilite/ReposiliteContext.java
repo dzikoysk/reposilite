@@ -16,9 +16,6 @@
 
 package org.panda_lang.reposilite;
 
-import io.javalin.http.Context;
-import org.panda_lang.reposilite.config.Configuration;
-import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.function.ThrowingSupplier;
 
 import java.io.IOException;
@@ -29,6 +26,7 @@ import java.util.Map;
 public final class ReposiliteContext {
 
     private final String uri;
+    private final String method;
     private final String address;
     private final Map<String, String> header;
     private final ThrowingSupplier<InputStream, IOException> input;
@@ -36,12 +34,14 @@ public final class ReposiliteContext {
 
     public ReposiliteContext(
             String uri,
+            String method,
             String address,
             Map<String, String> header,
             ThrowingSupplier<InputStream, IOException> input,
             ThrowingSupplier<OutputStream, IOException> output) {
 
         this.uri = uri;
+        this.method = method;
         this.address = address;
         this.header = header;
         this.input = input;
@@ -64,21 +64,12 @@ public final class ReposiliteContext {
         return address;
     }
 
-    public String uri() {
-        return uri;
+    public String method() {
+        return method;
     }
 
-    public static ReposiliteContext create(Configuration configuration, Context context) {
-        String realIp = context.header(configuration.forwardedIp);
-        String address = StringUtils.isEmpty(realIp) ? realIp : context.ip();
-
-        return new ReposiliteContext(
-                context.req.getRequestURI(),
-                address,
-                context.headerMap(),
-                context.req::getInputStream,
-                context.res::getOutputStream
-        );
+    public String uri() {
+        return uri;
     }
 
 }

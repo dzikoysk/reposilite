@@ -30,54 +30,54 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class FileDtoTest {
+class FileDetailsDtoTest {
 
     @TempDir
     static File temp;
-    static FileDto tempDto;
+    static FileDetailsDto tempDto;
     static File file;
-    static FileDto fileDto;
+    static FileDetailsDto fileDetails;
 
     @BeforeAll
     static void prepare() throws IOException {
-        tempDto = FileDto.of(temp);
+        tempDto = FileDetailsDto.of(temp);
 
         file = new File(temp, "file");
         FileUtils.overrideFile(file, StringUtils.repeated(1024 * 1024, "7"));
-        fileDto = FileDto.of(file);
+        fileDetails = FileDetailsDto.of(file);
     }
 
     @Test
     void compareTo() {
-        assertTrue(fileDto.compareTo(tempDto) > 0);
-        assertEquals(0, fileDto.compareTo(FileDto.of(file)));
+        assertTrue(fileDetails.compareTo(tempDto) > 0);
+        assertEquals(0, fileDetails.compareTo(FileDetailsDto.of(file)));
     }
 
     @Test
     void isDirectory() {
         assertTrue(tempDto.isDirectory());
-        assertFalse(fileDto.isDirectory());
+        assertFalse(fileDetails.isDirectory());
     }
 
     @Test
     void getContentLength() {
-        assertTrue(fileDto.getContentLength() != 0);
+        assertTrue(fileDetails.getContentLength() != 0);
     }
 
     @Test
     void getDate() {
-        assertTrue(fileDto.getDate().contains(Integer.toString(Calendar.getInstance().get(Calendar.YEAR))));
+        assertTrue(fileDetails.getDate().contains(Integer.toString(Calendar.getInstance().get(Calendar.YEAR))));
     }
 
     @Test
     void getName() {
-        assertEquals("file", fileDto.getName());
+        assertEquals("file", fileDetails.getName());
     }
 
     @Test
     void getType() {
-        assertEquals(FileDto.FILE, fileDto.getType());
-        assertEquals(FileDto.DIRECTORY, tempDto.getType());
+        assertEquals(FileDetailsDto.FILE, fileDetails.getType());
+        assertEquals(FileDetailsDto.DIRECTORY, tempDto.getType());
     }
 
 }

@@ -20,22 +20,22 @@ import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.ReposiliteContext;
-import org.panda_lang.reposilite.config.Configuration;
+import org.panda_lang.reposilite.ReposiliteContextFactory;
 import org.panda_lang.reposilite.error.ResponseUtils;
 
 public final class DeployController implements Handler {
 
-    private final Configuration configuration;
+    private final ReposiliteContextFactory contextFactory;
     private final DeployService deployService;
 
-    public DeployController(Configuration configuration, DeployService deployService) {
-        this.configuration = configuration;
+    public DeployController(ReposiliteContextFactory contextFactory, DeployService deployService) {
+        this.contextFactory = contextFactory;
         this.deployService = deployService;
     }
 
     @Override
     public void handle(Context ctx) {
-        ReposiliteContext context = ReposiliteContext.create(configuration, ctx);
+        ReposiliteContext context = contextFactory.create(ctx);
         Reposilite.getLogger().info("DEPLOY " + context.uri() + " from " + context.address());
 
         deployService.deploy(context)

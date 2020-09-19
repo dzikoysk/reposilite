@@ -47,12 +47,13 @@ class DeployServiceTest extends ReposiliteIntegrationTest {
 
         def context = new ReposiliteContext(
                 "/releases/a/b/c.txt",
+                "GET",
                 "",
                 [:],
                 { new ByteArrayInputStream("test".bytes) },
                 { null })
 
-        assertTrue deployService.writeFile(context, FileDto.of(file), file).get().isDefined()
+        assertTrue deployService.writeFile(context, FileDetailsDto.of(file), file).get().isDefined()
     }
 
 }
