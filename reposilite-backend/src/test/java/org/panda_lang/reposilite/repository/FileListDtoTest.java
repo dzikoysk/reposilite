@@ -39,7 +39,7 @@ class FileListDtoTest {
         File file2 = new File(temp, "file2");
         file2.createNewFile();
 
-        List<FileDto> files = Arrays.asList(FileDto.of(file1), FileDto.of(file2));
+        List<FileDetailsDto> files = Arrays.asList(FileDetailsDto.of(file1), FileDetailsDto.of(file2));
         FileListDto fileListDto = new FileListDto(files);
 
         assertEquals(files, fileListDto.getFiles());

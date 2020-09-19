@@ -55,6 +55,7 @@ public final class Reposilite {
     private final File workingDirectory;
     private final boolean testEnvEnabled;
     private final Configuration configuration;
+    private final ReposiliteContextFactory contextFactory;
     private final ReposiliteExecutor executor;
     private final FailureService failureService;
     private final Authenticator authenticator;
@@ -83,6 +84,7 @@ public final class Reposilite {
         this.testEnvEnabled = testEnv;
 
         this.configuration = ConfigurationLoader.tryLoad(configurationFile, workingDirectory);
+        this.contextFactory = new ReposiliteContextFactory(configuration.forwardedIp);
         this.failureService = new FailureService();
         this.executor = new ReposiliteExecutor(testEnvEnabled, failureService);
         this.tokenService = new TokenService(workingDirectory);
@@ -94,7 +96,7 @@ public final class Reposilite {
         this.repositoryAuthenticator = new RepositoryAuthenticator(configuration.rewritePathsEnabled, authenticator, repositoryService);
         this.authService = new AuthService(authenticator);
         this.deployService = new DeployService(configuration.deployEnabled, authenticator, repositoryService, metadataService, failureService, executorService);
-        this.lookupService = new LookupService(authenticator, repositoryAuthenticator, metadataService, repositoryService, failureService);
+        this.lookupService = new LookupService(contextFactory, authenticator, repositoryAuthenticator, metadataService, repositoryService, failureService);
 
         this.frontend = FrontendService.load(configuration);
         this.reactiveHttpServer= new ReposiliteHttpServer(this);
@@ -233,6 +235,10 @@ public final class Reposilite {
 
     public FailureService getFailureService() {
         return failureService;
+    }
+
+    public ReposiliteContextFactory getContextFactory() {
+        return contextFactory;
     }
 
     public Console getConsole() {

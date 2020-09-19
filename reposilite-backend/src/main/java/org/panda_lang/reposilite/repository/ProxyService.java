@@ -21,16 +21,17 @@ import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestFactory;
 import com.google.api.client.http.HttpResponse;
 import com.google.api.client.http.javanet.NetHttpTransport;
-import io.javalin.http.Context;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.Reposilite;
+import org.panda_lang.reposilite.ReposiliteContext;
 import org.panda_lang.reposilite.error.ErrorDto;
 import org.panda_lang.reposilite.error.FailureService;
 import org.panda_lang.reposilite.error.ResponseUtils;
 import org.panda_lang.reposilite.utils.Result;
 import org.panda_lang.utilities.commons.StringUtils;
+import org.panda_lang.utilities.commons.function.Option;
 
 import java.io.File;
 import java.io.IOException;
@@ -65,8 +66,8 @@ final class ProxyService {
         this.httpRequestFactory = new NetHttpTransport().createRequestFactory();
     }
 
-    protected Result<CompletableFuture<Result<Context, ErrorDto>>, ErrorDto> findProxied(Context context) {
-        String uri = context.req.getRequestURI();
+    protected Result<CompletableFuture<Result<LookupResponse, ErrorDto>>, ErrorDto> findProxied(ReposiliteContext context) {
+        String uri = context.uri();
 
         // remove repository name if defined
         for (Repository repository : repositoryService.getRepositories()) {
@@ -82,7 +83,7 @@ final class ProxyService {
         }
 
         String remoteUri = uri;
-        CompletableFuture<Result<Context, ErrorDto>> proxiedResult = new CompletableFuture<>();
+        CompletableFuture<Result<LookupResponse, ErrorDto>> proxiedResult = new CompletableFuture<>();
 
         executorService.submit(() -> {
             for (String proxied : proxied) {
@@ -97,26 +98,18 @@ final class ProxyService {
                         continue;
                     }
 
-                    Long contentLength = remoteResponse.getHeaders().getContentLength();
-
-                    if (contentLength != null && contentLength != 0) {
-                        context.res.setContentLengthLong(contentLength);
-                    }
-
                     if (!context.method().equals("HEAD")) {
                         if (storeProxied) {
                             store(context, remoteUri, remoteResponse);
                         }
                         else {
-                            IOUtils.copy(remoteResponse.getContent(), context.res.getOutputStream());
+                            IOUtils.copy(remoteResponse.getContent(), context.output());
                         }
                     }
 
-                    if (remoteResponse.getContentType() != null) {
-                        context.contentType(remoteResponse.getContentType());
-                    }
-
-                    proxiedResult.complete(Result.ok(context.status(remoteResponse.getStatusCode())));
+                    long contentLength = Option.of(remoteResponse.getHeaders().getContentLength()).orElseGet(0L);
+                    FileDetailsDto fileDetails = new FileDetailsDto(FileDetailsDto.FILE, remoteUri, "", remoteResponse.getContentType(), contentLength);
+                    proxiedResult.complete(Result.ok(new LookupResponse(fileDetails)));
                     return;
                 } catch (Exception exception) {
                     Reposilite.getLogger().warn("Proxied repository " + proxied + " is unavailable: " + exception.getMessage());
@@ -130,7 +123,7 @@ final class ProxyService {
         return Result.ok(proxiedResult);
     }
 
-    private void store(Context context, String uri, HttpResponse remoteResponse) throws IOException {
+    private void store(ReposiliteContext context, String uri, HttpResponse remoteResponse) throws IOException {
         DiskQuota diskQuota = repositoryService.getDiskQuota();
 
         if (!diskQuota.hasUsableSpace()) {
@@ -151,7 +144,7 @@ final class ProxyService {
 
         File proxiedFile = repositoryService.getFile(uri);
         FileUtils.copyInputStreamToFile(remoteResponse.getContent(), proxiedFile);
-        FileUtils.copyFile(proxiedFile, context.res.getOutputStream());
+        FileUtils.copyFile(proxiedFile, context.output());
         diskQuota.allocate(proxiedFile.length());
 
         Reposilite.getLogger().info("Stored proxied " + uri);

@@ -68,7 +68,7 @@ public final class LookupApiController implements RepositoryController {
         }
 
         File requestedFile = repositoryService.getFile(uri);
-        Optional<FileDto> latest = lookupService.findLatest(requestedFile);
+        Optional<FileDetailsDto> latest = lookupService.findLatest(requestedFile);
 
         if (latest.isPresent()) {
             return context.json(latest.get());
@@ -79,12 +79,12 @@ public final class LookupApiController implements RepositoryController {
         }
 
         if (requestedFile.isFile()) {
-            return context.json(FileDto.of(requestedFile));
+            return context.json(FileDetailsDto.of(requestedFile));
         }
 
         return context.json(new FileListDto(PandaStream.of(FilesUtils.listFiles(requestedFile))
-                .map(FileDto::of)
-                .transform(stream -> MetadataUtils.toSorted(stream, FileDto::getName, FileDto::isDirectory))
+                .map(FileDetailsDto::of)
+                .transform(stream -> MetadataUtils.toSorted(stream, FileDetailsDto::getName, FileDetailsDto::isDirectory))
                 .toList()));
     }
 

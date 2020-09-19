@@ -66,7 +66,7 @@ public final class DeployService {
         this.executorService = executorService;
     }
 
-    public Result<CompletableFuture<Result<FileDto, ErrorDto>>, ErrorDto> deploy(ReposiliteContext context) {
+    public Result<CompletableFuture<Result<FileDetailsDto, ErrorDto>>, ErrorDto> deploy(ReposiliteContext context) {
         if (!deployEnabled) {
             return ResponseUtils.error(HttpStatus.SC_METHOD_NOT_ALLOWED, "Artifact deployment is disabled");
         }
@@ -82,7 +82,7 @@ public final class DeployService {
         }
 
         File file = repositoryService.getFile(context.uri());
-        FileDto fileDto = FileDto.of(file);
+        FileDetailsDto fileDetails = FileDetailsDto.of(file);
 
         File metadataFile = new File(file.getParentFile(), "maven-metadata.xml");
         metadataService.clearMetadata(metadataFile);
@@ -90,14 +90,14 @@ public final class DeployService {
         Reposilite.getLogger().info("DEPLOY " + authResult.getValue().getAlias() + " successfully deployed " + file + " from " + context.address());
 
         if (file.getName().contains("maven-metadata")) {
-            return Result.ok(CompletableFuture.completedFuture(Result.ok(fileDto)));
+            return Result.ok(CompletableFuture.completedFuture(Result.ok(fileDetails)));
         }
 
-        return Result.ok(writeFile(context, fileDto, file));
+        return Result.ok(writeFile(context, fileDetails, file));
     }
 
-    protected CompletableFuture<Result<FileDto, ErrorDto>> writeFile(ReposiliteContext context, FileDto fileDto, File file) {
-        CompletableFuture<Result<FileDto, ErrorDto>> completableFuture = new CompletableFuture<>();
+    protected CompletableFuture<Result<FileDetailsDto, ErrorDto>> writeFile(ReposiliteContext context, FileDetailsDto fileDetails, File file) {
+        CompletableFuture<Result<FileDetailsDto, ErrorDto>> completableFuture = new CompletableFuture<>();
 
         executorService.submit(() -> {
             try (FileChannel channel = FileChannel.open(file.toPath(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE)) {
@@ -108,10 +108,10 @@ public final class DeployService {
                 repositoryService.getDiskQuota().allocate(file.length());
 
                 lock.release();
-                return completableFuture.complete(Result.ok(fileDto));
+                return completableFuture.complete(Result.ok(fileDetails));
             } catch (OverlappingFileLockException overlappingFileLockException) {
                 Thread.sleep(RETRY_WRITE_TIME);
-                return completableFuture.complete(writeFile(context, fileDto, file).get());
+                return completableFuture.complete(writeFile(context, fileDetails, file).get());
             } catch (Exception ioException) {
                 failureService.throwException(context.uri(), ioException);
                 return completableFuture.complete(ResponseUtils.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Failed to upload artifact"));

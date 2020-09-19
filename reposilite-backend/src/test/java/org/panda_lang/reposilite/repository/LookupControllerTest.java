@@ -55,6 +55,7 @@ class LookupControllerTest extends ReposiliteIntegrationTest {
         // super.reposilite.getConfiguration().rewritePathsEnabled = false;
 
         LookupService lookupService = new LookupService(
+                super.reposilite.getContextFactory(),
                 super.reposilite.getAuthenticator(),
                 super.reposilite.getRepositoryAuthenticator(),
                 super.reposilite.getMetadataService(),

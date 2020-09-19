@@ -25,10 +25,11 @@ import java.io.Serializable;
 import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 
-final class FileDto implements Serializable, Comparable<FileDto> {
+final class FileDetailsDto implements Serializable, Comparable<FileDetailsDto> {
 
     public static final String FILE = "file";
     public static final String DIRECTORY = "directory";
+
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd-MM-yyyy");
 
     private final String type;
@@ -37,7 +38,7 @@ final class FileDto implements Serializable, Comparable<FileDto> {
     private final String contentType;
     private final long contentLength;
 
-    private FileDto(String type, String name, String date, String contentType, long contentLength) {
+    public FileDetailsDto(String type, String name, String date, String contentType, long contentLength) {
         this.type = type;
         this.name = name;
         this.date = date;
@@ -46,7 +47,7 @@ final class FileDto implements Serializable, Comparable<FileDto> {
     }
 
     @Override
-    public int compareTo(@NotNull FileDto to) {
+    public int compareTo(@NotNull FileDetailsDto to) {
         int result = type.compareTo(to.getType());
 
         if (result == 0) {
@@ -80,9 +81,9 @@ final class FileDto implements Serializable, Comparable<FileDto> {
         return type;
     }
 
-    public static FileDto of(File file) {
+    public static FileDetailsDto of(File file) {
         String date = StringUtils.EMPTY;
-        String contentType = StringUtils.EMPTY;
+        String contentType = "application/octet-stream";
 
         try {
             date = DATE_FORMAT.format(Files.getLastModifiedTime(file.toPath()).toMillis());
@@ -90,7 +91,7 @@ final class FileDto implements Serializable, Comparable<FileDto> {
         }
         catch (IOException ignored) { /* file does not exist */ }
 
-        return new FileDto(
+        return new FileDetailsDto(
                 file.isDirectory() ? DIRECTORY : FILE,
                 file.getName(),
                 date,
