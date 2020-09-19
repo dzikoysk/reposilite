@@ -100,10 +100,11 @@ public final class DeployService {
         CompletableFuture<Result<FileDetailsDto, ErrorDto>> completableFuture = new CompletableFuture<>();
 
         executorService.submit(() -> {
+            FileUtils.forceMkdirParent(file);
+
             try (FileChannel channel = FileChannel.open(file.toPath(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE)) {
                 FileLock lock = channel.lock();
 
-                FileUtils.forceMkdirParent(file);
                 Files.copy(Objects.requireNonNull(context.input()), file.toPath(), StandardCopyOption.REPLACE_EXISTING);
                 repositoryService.getDiskQuota().allocate(file.length());
 
