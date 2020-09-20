@@ -15,3 +15,7 @@ It's fine and it does not affect your builds.
 **A:** It is a problem with CDN cache, because Reposilite does not store any files in memory to reduce usage of resources. 
 You should take a look at cache policy of your provider. 
 For instance, if you use Cloudflare, you can set `Cache Level` to `Bypass` through the custom page rules.
+
+**Q:** Artifacts fail to deploy and I see ``Body already consumed, and was too big to cache. Adjust cache size with `config.requestCacheSize = newMaxSize;` `` in the log <br>
+**A:** If you have `debugEnabled`, this can happen with very large artifacts. You can try to tune this by setting the system property `reposilite.requestCacheSize` (defaults to 8MB) to the maximum artifact size. e.g.
+`-Dreposilite.requestCacheSize=20MB`. See using [system properties](./configuration#system-properties) for more information on setting this.
