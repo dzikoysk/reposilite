@@ -19,7 +19,7 @@ package org.panda_lang.reposilite.repository
 import org.apache.http.HttpStatus
 import org.junit.jupiter.api.Test
 import org.panda_lang.reposilite.ReposiliteContext
-import org.panda_lang.reposilite.ReposiliteIntegrationTest
+import org.panda_lang.reposilite.ReposiliteTest
 import org.panda_lang.utilities.commons.FileUtils
 
 import java.nio.channels.FileChannel
@@ -29,7 +29,7 @@ import java.nio.file.StandardOpenOption
 import static org.junit.jupiter.api.Assertions.assertEquals
 import static org.junit.jupiter.api.Assertions.assertTrue
 
-class DeployServiceTest extends ReposiliteIntegrationTest {
+class DeployServiceTest extends ReposiliteTest {
 
     @Test
     void 'should respect disk quota' () {

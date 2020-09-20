@@ -19,29 +19,28 @@ package org.panda_lang.reposilite.repository
 import org.apache.http.HttpStatus
 import org.junit.jupiter.api.Test
 import org.panda_lang.reposilite.ReposiliteContext
-import org.panda_lang.reposilite.ReposiliteIntegrationTest
+import org.panda_lang.reposilite.ReposiliteTest
 
 import static org.junit.jupiter.api.Assertions.assertEquals
 import static org.junit.jupiter.api.Assertions.assertTrue
 
-class LookupServiceTest extends ReposiliteIntegrationTest {
+class LookupServiceTest extends ReposiliteTest {
 
     @Test
     void 'should return 203 for directory access' () {
         def context = new ReposiliteContext('/releases/org/panda-lang', 'GET', '', [:], {}, {})
-        def result = super.reposilite.lookupService.findLocal(context)
+        def result = super.reposilite.getLookupService().findLocal(context)
         assertTrue result.containsError()
 
         def error = result.getError()
-        assertEquals HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, error.status
         assertEquals 'Directory access', error.message
+        assertEquals HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, error.status
     }
 
     @Test
     void 'should return 404 for unauthorized request to snapshot metadata file' () {
-        def lookupService = createLookupService()
         def context = new ReposiliteContext('/unauthorized_repository/1.0.0-SNAPSHOT/maven-metadata.xml', 'GET', '', [:], {}, {})
-        def result = lookupService.findLocal(context)
+        def result = createLookupService().findLocal(context)
         assertTrue result.containsError()
 
         def error = result.getError()
@@ -50,9 +49,8 @@ class LookupServiceTest extends ReposiliteIntegrationTest {
 
     @Test
     void 'should return 203 and repository not found message' () {
-        def lookupService = createLookupService()
         def context = new ReposiliteContext('/invalid_repository/groupId/artifactId', 'GET', '', [:], {}, {})
-        def result = lookupService.findLocal(context)
+        def result = createLookupService().findLocal(context)
         assertTrue result.containsError()
 
         def error = result.getError()
