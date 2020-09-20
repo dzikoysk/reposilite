@@ -26,7 +26,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingDeque;
 
-final class ReposiliteExecutor {
+public final class ReposiliteExecutor {
 
     private final boolean testEnvEnabled;
     private final FailureService failureService;
@@ -75,7 +75,7 @@ final class ReposiliteExecutor {
         onExit.run();
     }
 
-    void schedule(ThrowingRunnable<?> runnable) {
+    public void schedule(ThrowingRunnable<?> runnable) {
         synchronized (lock) {
             tasks.offer(runnable);
             lock.notifyAll();

@@ -19,6 +19,8 @@ package org.panda_lang.reposilite.repository;
 import io.javalin.http.Context;
 import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.Reposilite;
+import org.panda_lang.reposilite.ReposiliteContext;
+import org.panda_lang.reposilite.ReposiliteContextFactory;
 import org.panda_lang.reposilite.ReposiliteUtils;
 import org.panda_lang.reposilite.RepositoryController;
 import org.panda_lang.reposilite.error.ErrorDto;
@@ -36,53 +38,58 @@ import java.util.Optional;
 public final class LookupApiController implements RepositoryController {
 
     private final boolean rewritePathsEnabled;
+    private final ReposiliteContextFactory contextFactory;
     private final RepositoryAuthenticator repositoryAuthenticator;
     private final RepositoryService repositoryService;
     private final LookupService lookupService;
 
     public LookupApiController(
             boolean rewritePathsEnabled,
+            ReposiliteContextFactory contextFactory,
             RepositoryAuthenticator repositoryAuthenticator,
             RepositoryService repositoryService,
             LookupService lookupService) {
 
         this.rewritePathsEnabled = rewritePathsEnabled;
+        this.contextFactory = contextFactory;
         this.repositoryAuthenticator = repositoryAuthenticator;
         this.repositoryService = repositoryService;
         this.lookupService = lookupService;
     }
 
     @Override
-    public Context handleContext(Context context) {
-        Reposilite.getLogger().info("API " + context.req.getRequestURI() + " from " + context.ip());
-        String uri = ReposiliteUtils.normalizeUri(rewritePathsEnabled, repositoryService, StringUtils.replaceFirst(context.req.getRequestURI(), "/api", ""));
+    public Context handleContext(Context ctx) {
+        ReposiliteContext context = contextFactory.create(ctx);
+        Reposilite.getLogger().info("API " + context.uri() + " from " + context.address());
+
+        String uri = ReposiliteUtils.normalizeUri(rewritePathsEnabled, repositoryService, StringUtils.replaceFirst(ctx.req.getRequestURI(), "/api", ""));
 
         if (StringUtils.isEmpty(uri) || "/".equals(uri)) {
-            return context.json(lookupService.findAvailableRepositories(context.headerMap()));
+            return ctx.json(lookupService.findAvailableRepositories(ctx.headerMap()));
         }
 
-        Result<Pair<String[], Repository>, ErrorDto> result = repositoryAuthenticator.authRepository(context.headerMap(), context.req.getRequestURI(), uri);
+        Result<Pair<String[], Repository>, ErrorDto> result = repositoryAuthenticator.authRepository(ctx.headerMap(), ctx.req.getRequestURI(), uri);
 
         if (result.containsError()) {
-            return ResponseUtils.errorResponse(context, result.getError().getStatus(), result.getError().getMessage());
+            return ResponseUtils.errorResponse(ctx, result.getError().getStatus(), result.getError().getMessage());
         }
 
         File requestedFile = repositoryService.getFile(uri);
         Optional<FileDetailsDto> latest = lookupService.findLatest(requestedFile);
 
         if (latest.isPresent()) {
-            return context.json(latest.get());
+            return ctx.json(latest.get());
         }
 
         if (!requestedFile.exists()) {
-            return ResponseUtils.errorResponse(context, HttpStatus.SC_NOT_FOUND, "File not found");
+            return ResponseUtils.errorResponse(ctx, HttpStatus.SC_NOT_FOUND, "File not found");
         }
 
         if (requestedFile.isFile()) {
-            return context.json(FileDetailsDto.of(requestedFile));
+            return ctx.json(FileDetailsDto.of(requestedFile));
         }
 
-        return context.json(new FileListDto(PandaStream.of(FilesUtils.listFiles(requestedFile))
+        return ctx.json(new FileListDto(PandaStream.of(FilesUtils.listFiles(requestedFile))
                 .map(FileDetailsDto::of)
                 .transform(stream -> MetadataUtils.toSorted(stream, FileDetailsDto::getName, FileDetailsDto::isDirectory))
                 .toList()));

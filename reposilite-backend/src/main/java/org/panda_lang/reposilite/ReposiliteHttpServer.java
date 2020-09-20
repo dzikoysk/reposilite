@@ -55,15 +55,22 @@ public final class ReposiliteHttpServer {
 
         LookupApiController lookupApiController = new LookupApiController(
                 configuration.rewritePathsEnabled,
+                reposilite.getContextFactory(),
                 reposilite.getRepositoryAuthenticator(),
                 reposilite.getRepositoryService(),
                 reposilite.getLookupService());
+
+        CliController cliController = new CliController(
+                reposilite.getContextFactory(),
+                reposilite.getExecutor(),
+                reposilite.getAuthenticator(),
+                reposilite.getConsole());
 
         this.javalin = Javalin.create(config -> config(configuration, config))
                 .before(ctx -> reposilite.getStatsService().record(ctx.req.getRequestURI()))
                 .get("/js/app.js", new FrontendController(reposilite))
                 .get("/api/auth", new AuthController(reposilite.getAuthService()))
-                .ws("/api/cli", new CliController(reposilite))
+                .ws("/api/cli", cliController)
                 .get("/api", lookupApiController)
                 .get("/api/*", lookupApiController)
                 .get("/*", lookupController)

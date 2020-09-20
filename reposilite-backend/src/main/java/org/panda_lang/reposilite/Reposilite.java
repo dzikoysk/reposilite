@@ -245,6 +245,10 @@ public final class Reposilite {
         return console;
     }
 
+    public ReposiliteExecutor getExecutor() {
+        return executor;
+    }
+
     public ExecutorService getExecutorService() {
         return executorService;
     }

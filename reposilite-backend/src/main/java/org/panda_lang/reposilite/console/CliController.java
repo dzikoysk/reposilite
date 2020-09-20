@@ -18,6 +18,9 @@ package org.panda_lang.reposilite.console;
 
 import io.javalin.websocket.WsHandler;
 import org.panda_lang.reposilite.Reposilite;
+import org.panda_lang.reposilite.ReposiliteContext;
+import org.panda_lang.reposilite.ReposiliteContextFactory;
+import org.panda_lang.reposilite.ReposiliteExecutor;
 import org.panda_lang.reposilite.ReposiliteWriter;
 import org.panda_lang.reposilite.auth.Authenticator;
 import org.panda_lang.reposilite.auth.Session;
@@ -30,50 +33,56 @@ public final class CliController implements Consumer<WsHandler> {
 
     private static final String AUTHORIZATION_PREFIX = "Authorization:";
 
-    private final Reposilite reposilite;
+    private final ReposiliteContextFactory contextFactory;
+    private final ReposiliteExecutor reposiliteExecutor;
     private final Authenticator authenticator;
     private final Console console;
 
-    public CliController(Reposilite reposilite) {
-        this.reposilite = reposilite;
-        this.authenticator = reposilite.getAuthenticator();
-        this.console = reposilite.getConsole();
+    public CliController(
+            ReposiliteContextFactory contextFactory,
+            ReposiliteExecutor reposiliteExecutor,
+            Authenticator authenticator,
+            Console console) {
+
+        this.contextFactory = contextFactory;
+        this.reposiliteExecutor = reposiliteExecutor;
+        this.authenticator = authenticator;
+        this.console = console;
     }
 
     @Override
     public void accept(WsHandler wsHandler) {
-        wsHandler.onConnect(ctx -> {
-            wsHandler.onMessage(authContext -> {
-                String authMessage = authContext.message();
+        wsHandler.onConnect(connectContext -> wsHandler.onMessage(authContext -> {
+            ReposiliteContext context = contextFactory.create(authContext);
+            String authMessage = authContext.message();
 
-                if (! authMessage.startsWith(AUTHORIZATION_PREFIX)) {
-                    Reposilite.getLogger().info("CLI Unauthorized CLI access request from " + ctx.session.getRemoteAddress());
-                    ctx.send("Unauthorized connection request");
-                    ctx.session.disconnect();
-                    return;
-                }
+            if (!authMessage.startsWith(AUTHORIZATION_PREFIX)) {
+                Reposilite.getLogger().info("CLI Unauthorized CLI access request from " + context.address());
+                connectContext.send("Unauthorized connection request");
+                connectContext.session.disconnect();
+                return;
+            }
 
-                String credentials = StringUtils.replaceFirst(authMessage, AUTHORIZATION_PREFIX, "");
-                Result<Session, String> auth = authenticator.authByCredentials(credentials);
+            String credentials = StringUtils.replaceFirst(authMessage, AUTHORIZATION_PREFIX, "");
+            Result<Session, String> auth = authenticator.authByCredentials(credentials);
 
-                if (!auth.isDefined() || !auth.getValue().isManager()) {
-                    Reposilite.getLogger().info("CLI Unauthorized CLI access request from " + ctx.session.getRemoteAddress());
-                    ctx.send("Unauthorized connection request");
-                    ctx.session.disconnect();
-                    return;
-                }
+            if (!auth.isDefined() || !auth.getValue().isManager()) {
+                Reposilite.getLogger().info("CLI Unauthorized CLI access request from " + context.address());
+                connectContext.send("Unauthorized connection request");
+                connectContext.session.disconnect();
+                return;
+            }
 
-                wsHandler.onClose(context -> ReposiliteWriter.getConsumers().remove(context));
-                ReposiliteWriter.getConsumers().put(ctx, ctx::send);
-                Reposilite.getLogger().info("CLI " + auth.getValue().getAlias() + " accessed CLI from " + ctx.session.getRemoteAddress());
+            wsHandler.onClose(closeContext -> ReposiliteWriter.getConsumers().remove(closeContext));
+            ReposiliteWriter.getConsumers().put(connectContext, connectContext::send);
+            Reposilite.getLogger().info("CLI " + auth.getValue().getAlias() + " accessed CLI from " + context.address());
 
-                for (String message : ReposiliteWriter.getCache()) {
-                    ctx.send(message);
-                }
+            for (String message : ReposiliteWriter.getCache()) {
+                connectContext.send(message);
+            }
 
-                wsHandler.onMessage(context -> reposilite.schedule(() -> console.execute(context.message())));
-            });
-        });
+            wsHandler.onMessage(messageContext -> reposiliteExecutor.schedule(() -> console.execute(messageContext.message())));
+        }));
     }
 
 }

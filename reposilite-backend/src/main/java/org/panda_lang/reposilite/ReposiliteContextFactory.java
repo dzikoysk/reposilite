@@ -17,6 +17,7 @@
 package org.panda_lang.reposilite;
 
 import io.javalin.http.Context;
+import io.javalin.websocket.WsContext;
 import org.panda_lang.utilities.commons.StringUtils;
 
 public final class ReposiliteContextFactory {
@@ -29,7 +30,7 @@ public final class ReposiliteContextFactory {
 
     public ReposiliteContext create(Context context) {
         String realIp = context.header(forwardedIpHeader);
-        String address = StringUtils.isEmpty(realIp) ? realIp : context.ip();
+        String address = StringUtils.isEmpty(realIp) ? context.req.getRemoteAddr() : realIp;
 
         return new ReposiliteContext(
                 context.req.getRequestURI(),
@@ -37,8 +38,20 @@ public final class ReposiliteContextFactory {
                 address,
                 context.headerMap(),
                 context.req::getInputStream,
-                context.res::getOutputStream
-        );
+                context.res::getOutputStream);
+    }
+
+    public ReposiliteContext create(WsContext context) {
+        String realIp = context.header(forwardedIpHeader);
+        String address = StringUtils.isEmpty(realIp) ? context.session.getRemoteAddress().toString() : realIp;
+
+        return new ReposiliteContext(
+                context.host(),
+                "WS",
+                address,
+                context.headerMap(),
+                () -> { throw new UnsupportedOperationException("WebSocket based context does not support input stream"); },
+                () -> { throw new UnsupportedOperationException("WebSocket based context does not support input output"); });
     }
 
 }
