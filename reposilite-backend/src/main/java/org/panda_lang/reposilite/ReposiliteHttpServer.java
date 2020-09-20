@@ -28,6 +28,7 @@ import org.panda_lang.reposilite.frontend.FrontendController;
 import org.panda_lang.reposilite.repository.DeployController;
 import org.panda_lang.reposilite.repository.LookupApiController;
 import org.panda_lang.reposilite.repository.LookupController;
+import org.panda_lang.reposilite.utils.FilesUtils;
 
 import java.util.Objects;
 
@@ -90,6 +91,8 @@ public final class ReposiliteHttpServer {
         config.enableCorsForAllOrigins();
 
         if (configuration.debugEnabled) {
+            config.requestCacheSize = FilesUtils.displaySizeToBytesCount(System.getProperty("reposilite.requestCacheSize", "8MB"));
+            Reposilite.getLogger().debug("requestCacheSize set to " + config.requestCacheSize + " bytes");
             Reposilite.getLogger().info("Debug enabled");
             config.enableDevLogging();
         }
