@@ -27,26 +27,51 @@ import static org.junit.jupiter.api.Assertions.assertTrue
 class LookupServiceTest extends ReposiliteIntegrationTest {
 
     @Test
+    void 'should return 203 for directory access' () {
+        def context = new ReposiliteContext('/releases/org/panda-lang', 'GET', '', [:], {}, {})
+        def result = super.reposilite.lookupService.findLocal(context)
+        assertTrue result.containsError()
+
+        def error = result.getError()
+        assertEquals HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, error.status
+        assertEquals 'Directory access', error.message
+    }
+
+    @Test
+    void 'should return 404 for unauthorized request to snapshot metadata file' () {
+        def lookupService = createLookupService()
+        def context = new ReposiliteContext('/unauthorized_repository/1.0.0-SNAPSHOT/maven-metadata.xml', 'GET', '', [:], {}, {})
+        def result = lookupService.findLocal(context)
+        assertTrue result.containsError()
+
+        def error = result.getError()
+        assertEquals HttpStatus.SC_NOT_FOUND, error.status
+    }
+
+    @Test
     void 'should return 203 and repository not found message' () {
+        def lookupService = createLookupService()
+        def context = new ReposiliteContext('/invalid_repository/groupId/artifactId', 'GET', '', [:], {}, {})
+        def result = lookupService.findLocal(context)
+        assertTrue result.containsError()
+
+        def error = result.getError()
+        assertEquals HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, error.status
+        assertEquals 'Repository invalid_repository not found', error.message
+    }
+
+    private LookupService createLookupService() {
         def repositoryAuthenticator = new RepositoryAuthenticator(
                 false, // disable path rewrite option which is enabled by default
                 super.reposilite.getAuthenticator(),
                 super.reposilite.getRepositoryService())
 
-        def lookupService = new LookupService(
+        return new LookupService(
                 super.reposilite.getAuthenticator(),
                 repositoryAuthenticator,
                 super.reposilite.getMetadataService(),
                 super.reposilite.getRepositoryService(),
                 super.reposilite.getFailureService())
-
-        def context = new ReposiliteContext('/invalid_repository/groupId/artifactId', 'GET', '', [:], { null }, { null })
-        def result = lookupService.findLocal(context)
-        assertTrue result.containsError()
-
-        def error = result.getError()
-        assertEquals HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, error.getStatus()
-        assertEquals 'Repository invalid_repository not found', error.getMessage()
     }
 
 }
