@@ -28,8 +28,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 class LookupControllerTest extends ReposiliteIntegrationTest {
 
@@ -48,23 +47,6 @@ class LookupControllerTest extends ReposiliteIntegrationTest {
     @Test
     void shouldReturn404ForMissingSnapshotMetadataFileWithBuildsNotFoundMessage() throws IOException {
         assertResponseWithMessage(get("/gav/1.0.0-SNAPSHOT/maven-metadata.xml"), HttpStatus.SC_NOT_FOUND, "Latest build not found");
-    }
-
-    @Test
-    void shouldReturn203AndFrontendWithRepositoryNotFoundMessage() throws IOException {
-        // super.reposilite.getConfiguration().rewritePathsEnabled = false;
-
-        LookupService lookupService = new LookupService(
-                super.reposilite.getContextFactory(),
-                super.reposilite.getAuthenticator(),
-                super.reposilite.getRepositoryAuthenticator(),
-                super.reposilite.getMetadataService(),
-                super.reposilite.getRepositoryService(),
-                super.reposilite.getFailureService());
-
-        //lookupService.
-
-        // assertResponseWithMessage(get("/invalid_repository/groupId/artifactId"), HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, "Repository invalid_repository not found");
     }
 
     @Test

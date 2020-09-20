@@ -20,7 +20,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.ReposiliteContext;
-import org.panda_lang.reposilite.ReposiliteContextFactory;
 import org.panda_lang.reposilite.auth.Authenticator;
 import org.panda_lang.reposilite.error.ErrorDto;
 import org.panda_lang.reposilite.error.FailureService;
@@ -42,7 +41,6 @@ import java.util.stream.Collectors;
 
 public final class LookupService {
 
-    private final ReposiliteContextFactory contextFactory;
     private final Authenticator authenticator;
     private final RepositoryAuthenticator repositoryAuthenticator;
     private final MetadataService metadataService;
@@ -50,14 +48,12 @@ public final class LookupService {
     private final FailureService failureService;
 
     public LookupService(
-            ReposiliteContextFactory contextFactory,
             Authenticator authenticator,
             RepositoryAuthenticator repositoryAuthenticator,
             MetadataService metadataService,
             RepositoryService repositoryService,
             FailureService failureService) {
 
-        this.contextFactory = contextFactory;
         this.authenticator = authenticator;
         this.repositoryAuthenticator = repositoryAuthenticator;
         this.metadataService = metadataService;
@@ -175,7 +171,5 @@ public final class LookupService {
 
         return Optional.empty();
     }
-
-
 
 }
