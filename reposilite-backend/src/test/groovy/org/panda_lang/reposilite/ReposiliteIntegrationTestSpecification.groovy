@@ -26,9 +26,8 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
 import org.panda_lang.utilities.commons.ArrayUtils
-import org.panda_lang.utilities.commons.function.ThrowingRunnable
 
-abstract class ReposiliteIntegrationTestSpecification {
+abstract class ReposiliteIntegrationTestSpecification extends ReposiliteTestSpecificationExtension {
 
     public static final String PORT = String.valueOf(new Random().nextInt(16383) + 49151)
     public static final HttpRequestFactory REQUEST_FACTORY = new NetHttpTransport().createRequestFactory()
@@ -72,18 +71,10 @@ abstract class ReposiliteIntegrationTestSpecification {
         reposilite.forceShutdown()
     }
 
-    protected static <E extends Exception> void executeOnLocked(File file, ThrowingRunnable<E> runnable) {
-        file.delete()
-        file.mkdirs()
-        runnable.run()
-        file.delete()
-        file.createNewFile()
-    }
-
     protected static HttpResponse getRequest(String uri) {
         return REQUEST_FACTORY.buildGetRequest(url(uri))
-            .setThrowExceptionOnExecuteError(false)
-            .execute()
+                .setThrowExceptionOnExecuteError(false)
+                .execute()
     }
 
     protected static HttpResponse getAuthenticated(String uri, String username, String password) {

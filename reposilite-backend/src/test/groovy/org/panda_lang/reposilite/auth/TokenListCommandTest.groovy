@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.auth;
+package org.panda_lang.reposilite.auth
 
-import org.junit.jupiter.api.Test;
-import org.panda_lang.reposilite.ReposiliteIntegrationTestSpecification;
+import org.junit.jupiter.api.Test
+import org.panda_lang.reposilite.ReposiliteTestSpecification
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue
 
-class TokenListCommandTest extends ReposiliteIntegrationTestSpecification {
+class TokenListCommandTest extends ReposiliteTestSpecification {
 
     @Test
-    void shouldListAllTokens() {
-        TokenService tokenService = super.reposilite.getTokenService();
-        tokenService.createToken("/a", "a");
-        tokenService.createToken("/b", "b");
+    void 'should list all tokens' () {
+        def tokenService = super.reposilite.getTokenService()
+        tokenService.createToken("/a", "a")
+        tokenService.createToken("/b", "b")
 
-        TokenListCommand tokenListCommand = new TokenListCommand();
-        assertTrue(tokenListCommand.execute(super.reposilite));
+        def tokenListCommand = new TokenListCommand()
+        assertTrue tokenListCommand.execute(super.reposilite)
     }
 
 }
