@@ -35,21 +35,21 @@ final class AuthControllerTest extends ReposiliteIntegrationTestSpecification {
 
     @Test
     void 'should return 401 without credentials' () throws IOException {
-        def response = super.getRequest('/api/auth')
+        def response = getRequest('/api/auth')
         assertEquals HttpStatus.SC_UNAUTHORIZED, response.getStatusCode()
         assertTrue response.getHeaders().containsKey(PostAuthHandler.WWW_AUTHENTICATE)
     }
 
     @Test
     void 'should return 401 for invalid credentials' () throws IOException {
-        def response = super.getAuthenticated('/api/auth', 'admin', 'giga_secret')
+        def response = getAuthenticated('/api/auth', 'admin', 'giga_secret')
         assertEquals HttpStatus.SC_UNAUTHORIZED, response.getStatusCode()
         assertTrue response.getHeaders().containsKey(PostAuthHandler.WWW_AUTHENTICATE)
     }
 
     @Test
     void 'should return 200 and auth dto' () throws IOException {
-        def response = super.getAuthenticated('/api/auth', 'admin', 'secret')
+        def response = getAuthenticated('/api/auth', 'admin', 'secret')
         assertEquals HttpStatus.SC_OK, response.getStatusCode()
 
         def authDto = CDN.defaultInstance().parseJson(response.parseAsString())

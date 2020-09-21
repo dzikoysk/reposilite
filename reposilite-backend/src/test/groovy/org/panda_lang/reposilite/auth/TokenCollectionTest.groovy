@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.auth;
+package org.panda_lang.reposilite.auth
 
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Test
 
-import java.util.Arrays;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals
 
 class TokenCollectionTest {
 
     @Test
-    void testTokens() {
-        Token token = new Token();
-        TokenCollection tokenCollection = new TokenCollection();
-        tokenCollection.setTokens(Arrays.asList(token, token));
+    void 'should keep tokens' () {
+        def token = new Token()
+        def tokens = [ token, token ]
 
-        assertEquals(Arrays.asList(token, token), tokenCollection.getTokens());
+        def tokenCollection = new TokenCollection()
+        tokenCollection.setTokens(tokens)
+
+        assertEquals tokens, tokenCollection.getTokens()
     }
 
 }
