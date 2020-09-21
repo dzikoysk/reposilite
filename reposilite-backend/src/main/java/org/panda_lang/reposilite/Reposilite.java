@@ -128,8 +128,8 @@ public final class Reposilite {
         getLogger().info("");
 
         getLogger().info("Binding server at " + configuration.hostname + "::" + configuration.port);
-        this.uptime = System.currentTimeMillis();
         CountDownLatch latch = new CountDownLatch(1);
+        this.uptime = System.currentTimeMillis();
 
         reactiveHttpServer.start(configuration, () -> {
             getLogger().info("Done (" + TimeUtils.format(TimeUtils.getUptime(uptime)) + "s)!");

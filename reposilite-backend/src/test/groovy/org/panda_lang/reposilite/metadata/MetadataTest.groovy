@@ -23,35 +23,35 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 class MetadataTest {
 
-    private static final Versioning VERSIONING = new Versioning();
-    private static final Metadata METADATA = new Metadata("group", "artifact", "version", VERSIONING);
+    private static final Versioning VERSIONING = new Versioning()
+    private static final Metadata METADATA = new Metadata("group", "artifact", "version", VERSIONING)
 
     @Test
-    void getGroupId() {
-        assertEquals("group", METADATA.getGroupId());
+    void 'should return group '() {
+        assertEquals "group", METADATA.getGroupId()
     }
 
     @Test
-    void getArtifactId() {
-        assertEquals("artifact", METADATA.getArtifactId());
+    void 'should return artifact'() {
+        assertEquals "artifact", METADATA.getArtifactId()
     }
 
     @Test
-    void getVersion() {
-        assertEquals("version", METADATA.getVersion());
+    void 'should return version' () {
+        assertEquals "version", METADATA.getVersion()
     }
 
     @Test
-    void getVersioning() {
-        assertEquals(VERSIONING, METADATA.getVersioning());
+    void 'shourt return artifact versioning'() {
+        assertEquals VERSIONING, METADATA.getVersioning()
     }
 
     @Test
-    void shouldBeEmpty() {
-        assertNull(new Metadata().getGroupId());
-        assertNull(new Metadata().getArtifactId());
-        assertNull(new Metadata().getVersion());
-        assertNull(new Metadata().getVersioning());
+    void 'should be empty' () {
+        assertNull new Metadata().getGroupId()
+        assertNull new Metadata().getArtifactId()
+        assertNull new Metadata().getVersion()
+        assertNull new Metadata().getVersioning()
     }
 
 }
