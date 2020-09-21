@@ -14,20 +14,23 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.repository
+package org.panda_lang.reposilite.frontend
 
+
+import org.apache.http.HttpStatus
 import org.junit.jupiter.api.Test
-import org.panda_lang.reposilite.AuthenticatorSpecification
+import org.panda_lang.reposilite.ReposiliteIntegrationTestSpecification
 
 import static org.junit.jupiter.api.Assertions.assertEquals
+import static org.junit.jupiter.api.Assertions.assertTrue
 
-class RepositoryAuthenticatorTest extends AuthenticatorSpecification {
-
-    static final RepositoryAuthenticator REPOSITORY_AUTHENTICATOR = new RepositoryAuthenticator(true, AUTHENTICATOR, REPOSITORY_SERVICE)
+class FrontendControllerTest extends ReposiliteIntegrationTestSpecification {
 
     @Test
-    void 'should not auth invalid repository uri' () {
-        assertEquals "Unsupported request", REPOSITORY_AUTHENTICATOR.authRepository([:], '', '').getError().getMessage()
+    void 'should return 200 and JavaScript content' () {
+        def response = getRequest("/js/app.js")
+        assertEquals HttpStatus.SC_OK, response.getStatusCode()
+        assertTrue response.getContentType().contains("application/javascript")
     }
 
 }

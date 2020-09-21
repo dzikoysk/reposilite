@@ -18,12 +18,12 @@ package org.panda_lang.reposilite.auth
 
 
 import org.junit.jupiter.api.Test
-import org.panda_lang.reposilite.AuthenticatorConfiguration
+import org.panda_lang.reposilite.AuthenticatorSpecification
 import org.panda_lang.utilities.commons.collection.Maps
 
 import static org.junit.jupiter.api.Assertions.assertTrue
 
-class AuthenticatorTest extends AuthenticatorConfiguration {
+class AuthenticatorTest extends AuthenticatorSpecification {
 
     @Test
     void 'should not auth without authorization header' () {

@@ -22,7 +22,7 @@ import io.javalin.http.util.ContextUtil
 import org.apache.http.HttpStatus
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.panda_lang.reposilite.ReposiliteTest
+import org.panda_lang.reposilite.ReposiliteTestSpecification
 import org.panda_lang.reposilite.error.FailureService
 import org.panda_lang.utilities.commons.FileUtils
 
@@ -34,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.*
 import static org.mockito.ArgumentMatchers.anyInt
 import static org.mockito.Mockito.*
 
-final class ProxyServiceTest extends ReposiliteTest {
+final class ProxyServiceTest extends ReposiliteTestSpecification {
 
     private ExecutorService executorService
     private FailureService failureService

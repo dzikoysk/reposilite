@@ -17,7 +17,7 @@
 package org.panda_lang.reposilite.auth;
 
 import org.junit.jupiter.api.Test;
-import org.panda_lang.reposilite.ReposiliteIntegrationTest;
+import org.panda_lang.reposilite.ReposiliteIntegrationTestSpecification;
 
 import java.io.File;
 
@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class RevokeCommandTest extends ReposiliteIntegrationTest {
+class RevokeCommandTest extends ReposiliteIntegrationTestSpecification {
 
     @Test
     void shouldRevokeExistingToken() {

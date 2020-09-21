@@ -17,17 +17,14 @@
 package org.panda_lang.reposilite.auth;
 
 import org.junit.jupiter.api.Test;
-import org.panda_lang.reposilite.ReposiliteIntegrationTest;
+import org.panda_lang.reposilite.ReposiliteIntegrationTestSpecification;
+import org.panda_lang.utilities.commons.function.ThrowingRunnable;
 
 import java.io.File;
-import java.io.IOException;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
-class KeygenCommandTest extends ReposiliteIntegrationTest {
+class KeygenCommandTest extends ReposiliteIntegrationTestSpecification {
 
     @Test
     void shouldCreateNewToken() {
@@ -52,10 +49,10 @@ class KeygenCommandTest extends ReposiliteIntegrationTest {
     }
 
     @Test
-    void shouldFalseIfFileIsNotAvailable() throws IOException {
+    void shouldFalseIfFileIsNotAvailable() throws Exception {
         super.reposilite.getTokenService().createToken("/", "alias");
         File tokensFile = new File(super.workingDirectory, "tokens.dat");
-        executeOnLocked(tokensFile, () -> assertFalse(new KeygenCommand("/a/b/c", "alias").execute(super.reposilite)));
+        executeOnLocked(tokensFile, (ThrowingRunnable<? extends Exception>) () -> assertFalse(new KeygenCommand("/a/b/c", "alias").execute(super.reposilite)));
         assertTrue(new KeygenCommand("/a/b/c", "alias").execute(super.reposilite));
     }
 

@@ -21,7 +21,7 @@ import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.panda_lang.reposilite.Reposilite;
-import org.panda_lang.reposilite.ReposiliteIntegrationTest;
+import org.panda_lang.reposilite.ReposiliteIntegrationTestSpecification;
 import org.panda_lang.utilities.commons.FileUtils;
 
 import java.io.File;
@@ -30,7 +30,7 @@ import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class LookupControllerTest extends ReposiliteIntegrationTest {
+class LookupControllerTest extends ReposiliteIntegrationTestSpecification {
 
     @TempDir
     File proxiedWorkingDirectory;
@@ -41,34 +41,34 @@ class LookupControllerTest extends ReposiliteIntegrationTest {
 
     @Test
     void shouldReturn203AndFrontendWithUnsupportedRequestMessage() throws IOException {
-        assertResponseWithMessage(get("/"), HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, "Unsupported request");
+        assertResponseWithMessage(getRequest("/"), HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, "Unsupported request");
     }
 
     @Test
     void shouldReturn404ForMissingSnapshotMetadataFileWithBuildsNotFoundMessage() throws IOException {
-        assertResponseWithMessage(get("/gav/1.0.0-SNAPSHOT/maven-metadata.xml"), HttpStatus.SC_NOT_FOUND, "Latest build not found");
+        assertResponseWithMessage(getRequest("/gav/1.0.0-SNAPSHOT/maven-metadata.xml"), HttpStatus.SC_NOT_FOUND, "Latest build not found");
     }
 
     @Test
     void shouldReturn203AndFrontendWithMissingArtifactIdentifier() throws IOException {
-        assertResponseWithMessage(get("/releases/groupId"), HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, "Missing artifact identifier");
+        assertResponseWithMessage(getRequest("/releases/groupId"), HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, "Missing artifact identifier");
     }
 
     @Test
     void shouldReturn404AndFrontendWithProxiedRepositoriesAreNotEnabledMessage() throws IOException {
-        assertResponseWithMessage(get("/releases/groupId/artifactId"), HttpStatus.SC_NOT_FOUND, "Artifact artifactId not found");
+        assertResponseWithMessage(getRequest("/releases/groupId/artifactId"), HttpStatus.SC_NOT_FOUND, "Artifact artifactId not found");
     }
 
     @Test
     void shouldReturn200AndMetadataFile() throws IOException {
-        HttpResponse response = get("/releases/org/panda-lang/reposilite-test/maven-metadata.xml");
+        HttpResponse response = getRequest("/releases/org/panda-lang/reposilite-test/maven-metadata.xml");
         assertEquals(HttpStatus.SC_OK, response.getStatusCode());
         assertTrue(response.parseAsString().contains("<version>1.0.0</version>"));
     }
 
     @Test
     void shouldReturn200AndLatestVersion() throws IOException {
-        HttpResponse response = get("/releases/org/panda-lang/reposilite-test/latest");
+        HttpResponse response = getRequest("/releases/org/panda-lang/reposilite-test/latest");
         assertEquals(HttpStatus.SC_OK, response.getStatusCode());
         assertEquals("1.0.1-SNAPSHOT", response.parseAsString());
     }
@@ -76,7 +76,7 @@ class LookupControllerTest extends ReposiliteIntegrationTest {
     @Test
     void shouldReturn404AndFrontendWithLatestVersionNotFound() throws IOException {
         assertResponseWithMessage(
-                get("/releases/org/panda-lang/reposilite-test/reposilite-test-1.0.0.jar/latest"),
+                getRequest("/releases/org/panda-lang/reposilite-test/reposilite-test-1.0.0.jar/latest"),
                 HttpStatus.SC_NOT_FOUND,
                 "Latest version not found"
         );
@@ -84,7 +84,7 @@ class LookupControllerTest extends ReposiliteIntegrationTest {
 
     @Test
     void shouldReturn200AndResolvedSnapshotFile() throws IOException {
-        HttpResponse response = super.get("/releases/org/panda-lang/reposilite-test/1.0.0-SNAPSHOT/reposilite-test-1.0.0-SNAPSHOT.pom");
+        HttpResponse response = super.getRequest("/releases/org/panda-lang/reposilite-test/1.0.0-SNAPSHOT/reposilite-test-1.0.0-SNAPSHOT.pom");
         assertEquals(HttpStatus.SC_OK, response.getStatusCode());
         assertTrue(response.parseAsString().contains("<version>1.0.0-SNAPSHOT</version>"));
     }
@@ -92,7 +92,7 @@ class LookupControllerTest extends ReposiliteIntegrationTest {
     @Test
     void shouldReturn404AndArtifactNotFoundMessage() throws IOException {
         assertResponseWithMessage(
-                super.get("/releases/org/panda-lang/reposilite-test/1.0.0/artifactId"),
+                super.getRequest("/releases/org/panda-lang/reposilite-test/1.0.0/artifactId"),
                 HttpStatus.SC_NOT_FOUND,
                 "Artifact artifactId not found"
         );
@@ -100,7 +100,7 @@ class LookupControllerTest extends ReposiliteIntegrationTest {
 
     @Test
     void shouldReturn200AndRequestedFile() throws IOException {
-        HttpResponse response = super.get("/releases/org/panda-lang/reposilite-test/1.0.0/reposilite-test-1.0.0.pom");
+        HttpResponse response = super.getRequest("/releases/org/panda-lang/reposilite-test/1.0.0/reposilite-test-1.0.0.pom");
         assertEquals(HttpStatus.SC_OK, response.getStatusCode());
         assertTrue(response.parseAsString().contains("<version>1.0.0</version>"));
     }
@@ -117,7 +117,7 @@ class LookupControllerTest extends ReposiliteIntegrationTest {
 
     @Test
     void shouldReturn401WithUnauthorizedMessage() throws IOException {
-        assertResponseWithMessage(super.get("/private/a/b"), HttpStatus.SC_UNAUTHORIZED, "Unauthorized request");
+        assertResponseWithMessage(super.getRequest("/private/a/b"), HttpStatus.SC_UNAUTHORIZED, "Unauthorized request");
     }
 
     @Test
@@ -135,7 +135,7 @@ class LookupControllerTest extends ReposiliteIntegrationTest {
             proxiedFile.createNewFile();
             FileUtils.overrideFile(proxiedFile, "proxied content");
 
-            HttpResponse response = get("/releases/proxiedGroup/proxiedArtifact/proxied.txt");
+            HttpResponse response = getRequest("/releases/proxiedGroup/proxiedArtifact/proxied.txt");
             assertEquals(HttpStatus.SC_OK, response.getStatusCode());
 
             String content = response.parseAsString();

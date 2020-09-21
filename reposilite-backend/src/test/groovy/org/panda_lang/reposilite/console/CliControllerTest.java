@@ -20,7 +20,7 @@ import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.WebSocketListener;
 import org.eclipse.jetty.websocket.client.WebSocketClient;
 import org.junit.jupiter.api.Test;
-import org.panda_lang.reposilite.ReposiliteIntegrationTest;
+import org.panda_lang.reposilite.ReposiliteIntegrationTestSpecification;
 import org.panda_lang.reposilite.auth.Token;
 import org.panda_lang.utilities.commons.collection.Pair;
 
@@ -35,7 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * dirty websocket connection test
  */
-class CliControllerTest extends ReposiliteIntegrationTest {
+class CliControllerTest extends ReposiliteIntegrationTestSpecification {
 
     @Test
     void shouldNotAuthorizeInvalidCredentials() throws Exception {

@@ -14,37 +14,19 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite;
+package org.panda_lang.reposilite.console;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.InputStream;
+import org.panda_lang.reposilite.ReposiliteIntegrationTestSpecification;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class ReposiliteLauncherTest {
-
-    @TempDir
-    File workingDirectory;
+class StatusCommandTest extends ReposiliteIntegrationTestSpecification {
 
     @Test
-    void shouldPrintVersion() {
-        ReposiliteLauncher.create("--version");
-        assertTrue(ReposiliteWriter.contains(ReposiliteConstants.VERSION));
-    }
-
-    @Test
-    void shouldPrintHelp() {
-        ReposiliteLauncher.create("--help");
-        assertTrue(ReposiliteWriter.contains("Commands"));
-    }
-
-    @Test
-    void shouldReturnReposilite() {
-        assertTrue(ReposiliteLauncher.create("-wd=" + workingDirectory.getAbsolutePath()).isPresent());
+    void shouldReturnTrueAndDisplayStatus() {
+        super.reposilite.getFailureService().throwException("/",  new RuntimeException());
+        assertTrue(new StatusCommand().execute(super.reposilite));
     }
 
 }
