@@ -17,16 +17,16 @@
 package org.panda_lang.reposilite.console;
 
 import org.junit.jupiter.api.Test;
-import org.panda_lang.reposilite.ReposiliteIntegrationTest;
+import org.panda_lang.reposilite.ReposiliteIntegrationTestSpecification;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class HelpCommandTest extends ReposiliteIntegrationTest {
+class VersionCommandTest extends ReposiliteIntegrationTestSpecification {
 
     @Test
-    void shouldReturnTrueAndDisplayMessage() {
-        HelpCommand helpCommand = new HelpCommand();
-        assertTrue(helpCommand.execute(super.reposilite));
+    void shouldReturnTrueAndDisplayVersion() {
+        VersionCommand versionCommand = new VersionCommand();
+        assertTrue(versionCommand.execute(super.reposilite));
     }
 
 }

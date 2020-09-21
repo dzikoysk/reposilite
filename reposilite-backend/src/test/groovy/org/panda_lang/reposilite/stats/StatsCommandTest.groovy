@@ -17,7 +17,7 @@
 package org.panda_lang.reposilite.stats
 
 import org.junit.jupiter.api.Test
-import org.panda_lang.reposilite.ReposiliteTest
+import org.panda_lang.reposilite.ReposiliteTestSpecification
 import org.panda_lang.reposilite.ReposiliteWriter
 
 import java.util.stream.IntStream
@@ -25,7 +25,7 @@ import java.util.stream.IntStream
 import static org.junit.jupiter.api.Assertions.assertFalse
 import static org.junit.jupiter.api.Assertions.assertTrue 
 
-class StatsCommandTest extends ReposiliteTest {
+class StatsCommandTest extends ReposiliteTestSpecification {
 
     @Test
     void 'should return true if succeed' () {

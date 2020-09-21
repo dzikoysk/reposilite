@@ -14,27 +14,27 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.frontend;
+package org.panda_lang.reposilite.frontend
 
-import org.junit.jupiter.api.Test;
-import org.panda_lang.reposilite.config.Configuration;
+import org.junit.jupiter.api.Test
+import org.panda_lang.reposilite.config.Configuration
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse
+import static org.junit.jupiter.api.Assertions.assertTrue
 
 class FrontendServiceTest {
 
-    private static final FrontendService FRONTEND_SERVICE = FrontendService.load(new Configuration());
+    private static final FrontendService FRONTEND_SERVICE = FrontendService.load(new Configuration())
 
     @Test
-    void forMessage() {
-        assertTrue(FRONTEND_SERVICE.forMessage("test message").contains("test message"));
-        assertFalse(FRONTEND_SERVICE.forMessage("test message").contains("other message"));
+    void forMessage () {
+        assertTrue FRONTEND_SERVICE.forMessage("test message").contains("test message")
+        assertFalse FRONTEND_SERVICE.forMessage("test message").contains("other message")
     }
 
     @Test
-    void getApp() {
-        assertTrue(FRONTEND_SERVICE.getApp().contains("Vue"));
+    void getApp () {
+        assertTrue FRONTEND_SERVICE.getApp().contains("Vue")
     }
 
 }

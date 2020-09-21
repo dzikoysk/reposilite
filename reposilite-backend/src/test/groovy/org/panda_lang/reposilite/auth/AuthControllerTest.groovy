@@ -20,12 +20,12 @@ import net.dzikoysk.cdn.CDN
 import org.apache.http.HttpStatus
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.panda_lang.reposilite.ReposiliteIntegrationTest
+import org.panda_lang.reposilite.ReposiliteIntegrationTestSpecification
 
 import static org.junit.jupiter.api.Assertions.assertEquals
 import static org.junit.jupiter.api.Assertions.assertTrue
 
-final class AuthControllerTest extends ReposiliteIntegrationTest {
+final class AuthControllerTest extends ReposiliteIntegrationTestSpecification {
 
     @BeforeEach
     void generateToken() {
@@ -35,7 +35,7 @@ final class AuthControllerTest extends ReposiliteIntegrationTest {
 
     @Test
     void 'should return 401 without credentials' () throws IOException {
-        def response = super.get('/api/auth')
+        def response = super.getRequest('/api/auth')
         assertEquals HttpStatus.SC_UNAUTHORIZED, response.getStatusCode()
         assertTrue response.getHeaders().containsKey(PostAuthHandler.WWW_AUTHENTICATE)
     }

@@ -17,13 +17,13 @@
 package org.panda_lang.reposilite.console;
 
 import org.junit.jupiter.api.Test;
-import org.panda_lang.reposilite.ReposiliteIntegrationTest;
+import org.panda_lang.reposilite.ReposiliteIntegrationTestSpecification;
 import org.panda_lang.utilities.commons.StringUtils;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class ConsoleTest extends ReposiliteIntegrationTest {
+class ConsoleTest extends ReposiliteIntegrationTestSpecification {
 
     @Test
     void shouldFalseOnEmpty() {

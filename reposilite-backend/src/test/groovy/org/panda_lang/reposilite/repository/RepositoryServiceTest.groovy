@@ -19,7 +19,7 @@ package org.panda_lang.reposilite.repository
 
 import org.junit.jupiter.api.Test
 import org.panda_lang.reposilite.ReposiliteContext
-import org.panda_lang.reposilite.ReposiliteTest
+import org.panda_lang.reposilite.ReposiliteTestSpecification
 import org.panda_lang.utilities.commons.FileUtils
 
 import java.nio.channels.FileChannel
@@ -28,7 +28,7 @@ import java.nio.file.StandardOpenOption
 
 import static org.junit.jupiter.api.Assertions.assertTrue
 
-class RepositoryServiceTest extends ReposiliteTest {
+class RepositoryServiceTest extends ReposiliteTestSpecification {
 
     @Test
     void 'should retry deployment of locked file' () {

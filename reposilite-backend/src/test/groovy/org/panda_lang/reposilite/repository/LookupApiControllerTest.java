@@ -22,7 +22,7 @@ import net.dzikoysk.cdn.model.Configuration;
 import net.dzikoysk.cdn.model.Section;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
-import org.panda_lang.reposilite.ReposiliteIntegrationTest;
+import org.panda_lang.reposilite.ReposiliteIntegrationTestSpecification;
 import org.panda_lang.reposilite.auth.Token;
 import org.panda_lang.utilities.commons.collection.Pair;
 
@@ -30,7 +30,7 @@ import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class LookupApiControllerTest extends ReposiliteIntegrationTest {
+class LookupApiControllerTest extends ReposiliteIntegrationTestSpecification {
 
     {
         super.properties.put("reposilite.repositories", "releases,snapshots,.private");
@@ -51,7 +51,7 @@ class LookupApiControllerTest extends ReposiliteIntegrationTest {
     void shouldReturnListOfAllAuthenticatedRepositories() throws IOException {
         Pair<String, Token> secret = super.reposilite.getTokenService().createToken("/private", "secret");
 
-        HttpResponse response = super.getAuthenticated("/api", "secret", secret.getKey());
+        HttpResponse response = getAuthenticated("/api", "secret", secret.getKey());
         assertEquals(HttpStatus.SC_OK, response.getStatusCode());
 
         Configuration repositories = CDN.defaultInstance().parseJson(response.parseAsString());
@@ -71,7 +71,7 @@ class LookupApiControllerTest extends ReposiliteIntegrationTest {
 
     @Test
     void shouldReturn404IfRequestedFileIsNotFound() throws IOException {
-        HttpResponse response = super.get("/api/org/panda-lang/reposilite-test/unknown");
+        HttpResponse response = getRequest("/api/org/panda-lang/reposilite-test/unknown");
         assertEquals(HttpStatus.SC_NOT_FOUND, response.getStatusCode());
         assertTrue(response.parseAsString().contains("File not found"));
     }
@@ -91,7 +91,7 @@ class LookupApiControllerTest extends ReposiliteIntegrationTest {
     }
 
     private Configuration shouldReturn200AndJsonResponse(String uri) throws IOException {
-        HttpResponse response = super.get(uri);
+        HttpResponse response = super.getRequest(uri);
         assertEquals(HttpStatus.SC_OK, response.getStatusCode());
         return CDN.defaultInstance().parseJson(response.parseAsString());
     }

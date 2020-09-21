@@ -20,7 +20,7 @@ import org.apache.commons.io.FileUtils
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
 
-class ReposiliteTest {
+class ReposiliteTestSpecification {
 
     private static final String TINYLOG_WRITER_PROPERTY = 'tinylog.writerFile.file'
 

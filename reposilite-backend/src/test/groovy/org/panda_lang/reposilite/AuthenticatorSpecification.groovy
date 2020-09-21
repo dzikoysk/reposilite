@@ -26,7 +26,7 @@ import org.panda_lang.reposilite.repository.RepositoryService
 
 import java.util.concurrent.Executors
 
-class AuthenticatorConfiguration {
+class AuthenticatorSpecification {
 
     static final RepositoryService REPOSITORY_SERVICE = new RepositoryService(".", "0", Executors.newSingleThreadExecutor(), new FailureService())
 

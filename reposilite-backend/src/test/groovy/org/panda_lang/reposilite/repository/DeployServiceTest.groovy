@@ -19,7 +19,7 @@ package org.panda_lang.reposilite.repository
 import org.apache.http.HttpStatus
 import org.junit.jupiter.api.Test
 import org.panda_lang.reposilite.ReposiliteContext
-import org.panda_lang.reposilite.ReposiliteTest
+import org.panda_lang.reposilite.ReposiliteTestSpecification
 import org.panda_lang.reposilite.error.FailureService
 
 import java.util.concurrent.Executors
@@ -27,7 +27,7 @@ import java.util.concurrent.Executors
 import static org.junit.jupiter.api.Assertions.assertEquals
 import static org.junit.jupiter.api.Assertions.assertTrue
 
-class DeployServiceTest extends ReposiliteTest {
+class DeployServiceTest extends ReposiliteTestSpecification {
 
     @Test
     void 'should respect disk quota' () {

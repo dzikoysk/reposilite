@@ -27,13 +27,13 @@ import org.apache.http.impl.client.HttpClients
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.panda_lang.reposilite.ReposiliteContext
-import org.panda_lang.reposilite.ReposiliteIntegrationTest
+import org.panda_lang.reposilite.ReposiliteIntegrationTestSpecification
 import org.panda_lang.utilities.commons.IOUtils
 import org.panda_lang.utilities.commons.StringUtils
 
 import static org.junit.jupiter.api.Assertions.*
 
-class DeployEndpointTest extends ReposiliteIntegrationTest {
+class DeployEndpointTest extends ReposiliteIntegrationTestSpecification {
 
     private final def client = HttpClients.createDefault()
 
@@ -81,8 +81,8 @@ class DeployEndpointTest extends ReposiliteIntegrationTest {
             return
         }
 
-        assertEquals HttpStatus.SC_OK, super.getAuthenticated(uri, username, password).getStatusCode()
-        assertEquals content, super.getAuthenticated(uri, username, password).parseAsString()
+        assertEquals HttpStatus.SC_OK, getAuthenticated(uri, username, password).getStatusCode()
+        assertEquals content, getAuthenticated(uri, username, password).parseAsString()
     }
 
     private void shouldReturnErrorWithGivenMessage(String uri, String username, String password, String content, int status, String message) throws Exception {

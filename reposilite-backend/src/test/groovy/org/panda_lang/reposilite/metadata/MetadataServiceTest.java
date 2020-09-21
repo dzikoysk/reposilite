@@ -17,14 +17,14 @@
 package org.panda_lang.reposilite.metadata;
 
 import org.junit.jupiter.api.Test;
-import org.panda_lang.reposilite.ReposiliteIntegrationTest;
+import org.panda_lang.reposilite.ReposiliteIntegrationTestSpecification;
 import org.panda_lang.reposilite.repository.Repository;
 import org.panda_lang.reposilite.utils.Result;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-final class MetadataServiceTest extends ReposiliteIntegrationTest {
+final class MetadataServiceTest extends ReposiliteIntegrationTestSpecification {
 
     @Test
     void shouldReturnBadRequest() {
