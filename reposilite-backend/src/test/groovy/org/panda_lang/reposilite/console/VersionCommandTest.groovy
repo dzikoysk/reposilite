@@ -21,12 +21,12 @@ import org.panda_lang.reposilite.ReposiliteIntegrationTestSpecification;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class StatusCommandTest extends ReposiliteIntegrationTestSpecification {
+class VersionCommandTest extends ReposiliteIntegrationTestSpecification {
 
     @Test
-    void shouldReturnTrueAndDisplayStatus() {
-        super.reposilite.getFailureService().throwException("/",  new RuntimeException());
-        assertTrue(new StatusCommand().execute(super.reposilite));
+    void 'should return true and display version' () {
+        def versionCommand = new VersionCommand()
+        assertTrue versionCommand.execute(super.reposilite)
     }
 
 }

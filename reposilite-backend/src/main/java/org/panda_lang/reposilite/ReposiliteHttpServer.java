@@ -18,6 +18,7 @@ package org.panda_lang.reposilite;
 
 import io.javalin.Javalin;
 import io.javalin.core.JavalinConfig;
+import io.javalin.core.JavalinServer;
 import org.eclipse.jetty.server.Server;
 import org.panda_lang.reposilite.auth.AuthController;
 import org.panda_lang.reposilite.auth.PostAuthHandler;
@@ -29,8 +30,7 @@ import org.panda_lang.reposilite.repository.DeployController;
 import org.panda_lang.reposilite.repository.LookupApiController;
 import org.panda_lang.reposilite.repository.LookupController;
 import org.panda_lang.reposilite.utils.FilesUtils;
-
-import java.util.Objects;
+import org.panda_lang.utilities.commons.function.Option;
 
 public final class ReposiliteHttpServer {
 
@@ -105,7 +105,11 @@ public final class ReposiliteHttpServer {
     }
 
     public boolean isAlive() {
-        return Objects.requireNonNull(javalin.server()).server().isStarted();
+        return Option.of(javalin)
+                .map(Javalin::server)
+                .map(JavalinServer::server)
+                .map(Server::isStarted)
+                .orElseGet(false);
     }
 
 }
