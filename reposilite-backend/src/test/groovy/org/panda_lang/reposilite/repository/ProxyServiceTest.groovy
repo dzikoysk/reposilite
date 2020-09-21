@@ -97,7 +97,7 @@ final class ProxyServiceTest extends ReposiliteTest {
         def reposiliteContext = super.reposilite.getContextFactory().create(context)
 
         executorService.submit({
-            return proxyService.findProxied(reposiliteContext).getValue().get()
+            return proxyService.findProxied(reposiliteContext).getValue().get().getValue()
         }).get()
     }
 

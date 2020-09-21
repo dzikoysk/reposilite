@@ -21,9 +21,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.panda_lang.reposilite.ReposiliteUtils;
 import org.panda_lang.reposilite.config.Configuration;
+import org.panda_lang.reposilite.error.FailureService;
 import org.panda_lang.utilities.commons.StringUtils;
 
 import java.io.File;
+import java.util.concurrent.Executors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -36,7 +38,7 @@ class ReposiliteUtilsTest {
 
     @BeforeEach
     void prepare() {
-        REPOSITORY_SERVICE = new RepositoryService(temp.getAbsolutePath(), "0");
+        REPOSITORY_SERVICE = new RepositoryService(temp.getAbsolutePath(), "0", Executors.newSingleThreadExecutor(), new FailureService());
         REPOSITORY_SERVICE.load(new Configuration());
     }
 

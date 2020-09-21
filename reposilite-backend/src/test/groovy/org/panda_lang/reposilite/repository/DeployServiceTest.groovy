@@ -20,11 +20,9 @@ import org.apache.http.HttpStatus
 import org.junit.jupiter.api.Test
 import org.panda_lang.reposilite.ReposiliteContext
 import org.panda_lang.reposilite.ReposiliteTest
-import org.panda_lang.utilities.commons.FileUtils
+import org.panda_lang.reposilite.error.FailureService
 
-import java.nio.channels.FileChannel
-import java.nio.file.OpenOption
-import java.nio.file.StandardOpenOption
+import java.util.concurrent.Executors
 
 import static org.junit.jupiter.api.Assertions.assertEquals
 import static org.junit.jupiter.api.Assertions.assertTrue
@@ -36,10 +34,8 @@ class DeployServiceTest extends ReposiliteTest {
         def deployService = new DeployService(
                 true,
                 super.reposilite.authenticator,
-                new RepositoryService(super.workingDirectory.getAbsolutePath(), '0MB'),
-                super.reposilite.metadataService,
-                super.reposilite.failureService,
-                super.reposilite.executorService)
+                new RepositoryService(super.workingDirectory.getAbsolutePath(), '0MB', Executors.newSingleThreadExecutor(), new FailureService()),
+                super.reposilite.metadataService)
 
         super.reposilite.tokenService.createToken('/', 'user', 'secret')
         def auth = [ 'Authorization': 'Basic ' + 'user:secret'.bytes.encodeBase64() ]
@@ -51,26 +47,6 @@ class DeployServiceTest extends ReposiliteTest {
         def error = result.getError()
         assertEquals HttpStatus.SC_INSUFFICIENT_STORAGE, error.status
         assertEquals 'Out of disk space', error.message
-    }
-
-    @Test
-    void 'should retry deployment of locked file' () {
-        def deployService = super.reposilite.getDeployService()
-
-        def file = new File(super.workingDirectory.getAbsolutePath() + '/releases/a/b/c.txt'.replace('/', File.separator))
-        file.getParentFile().mkdirs()
-        FileUtils.overrideFile(file, 'test')
-
-        def channel = FileChannel.open(file.toPath(), [ StandardOpenOption.WRITE ] as OpenOption[])
-        def lock = channel.lock()
-
-        new Thread({
-            Thread.sleep(deployService.RETRY_WRITE_TIME)
-            lock.release()
-        }).start()
-
-        def context = new ReposiliteContext('/releases/a/b/c.txt', 'POST', '', [:], { new ByteArrayInputStream('test'.bytes) }, {})
-        assertTrue deployService.writeFile(context, FileDetailsDto.of(file), file).get().isDefined()
     }
 
 }

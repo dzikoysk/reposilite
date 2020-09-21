@@ -34,7 +34,6 @@ import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.function.Option;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -83,7 +82,7 @@ final class ProxyService {
         }
 
         String remoteUri = uri;
-        CompletableFuture<Result<LookupResponse, ErrorDto>> proxiedResult = new CompletableFuture<>();
+        CompletableFuture<Result<LookupResponse, ErrorDto>> proxiedTask = new CompletableFuture<>();
 
         executorService.submit(() -> {
             for (String proxied : proxied) {
@@ -98,56 +97,70 @@ final class ProxyService {
                         continue;
                     }
 
-                    if (!context.method().equals("HEAD")) {
-                        if (storeProxied) {
-                            store(context, remoteUri, remoteResponse);
-                        }
-                        else {
-                            IOUtils.copy(remoteResponse.getContent(), context.output());
-                        }
-                    }
-
                     long contentLength = Option.of(remoteResponse.getHeaders().getContentLength()).orElseGet(0L);
                     FileDetailsDto fileDetails = new FileDetailsDto(FileDetailsDto.FILE, remoteUri, "", remoteResponse.getContentType(), contentLength);
-                    proxiedResult.complete(Result.ok(new LookupResponse(fileDetails)));
-                    return;
+                    LookupResponse response = new LookupResponse(fileDetails);
+
+                    if (context.method().equals("HEAD")) {
+                        return proxiedTask.complete(Result.ok(response));
+                    }
+
+                    if (!storeProxied) {
+                        IOUtils.copy(remoteResponse.getContent(), context.output());
+                        return proxiedTask.complete(Result.ok(response));
+                    }
+
+                    Option<CompletableFuture<Result<LookupResponse, ErrorDto>>> storeResult = store(context, remoteUri, remoteResponse, response);
+
+                    if (storeResult.isEmpty()) {
+                        return proxiedTask.complete(Result.ok(response));
+                    }
+
+                    return proxiedTask.complete(storeResult.get().get());
                 } catch (Exception exception) {
-                    Reposilite.getLogger().warn("Proxied repository " + proxied + " is unavailable: " + exception.getMessage());
+                    Reposilite.getLogger().error("Proxied repository " + proxied + " is unavailable: " + exception.getMessage());
                     failureService.throwException(remoteUri, exception);
                 }
             }
 
-            proxiedResult.complete(ResponseUtils.error(HttpStatus.SC_NOT_FOUND, "Artifact not found in local and remote repository"));
+            return proxiedTask.complete(ResponseUtils.error(HttpStatus.SC_NOT_FOUND, "Artifact not found in local and remote repository"));
         });
 
-        return Result.ok(proxiedResult);
+        return Result.ok(proxiedTask);
     }
 
-    private void store(ReposiliteContext context, String uri, HttpResponse remoteResponse) throws IOException {
+    private Option<CompletableFuture<Result<LookupResponse, ErrorDto>>> store(ReposiliteContext context, String uri, HttpResponse remoteResponse, LookupResponse response) {
         DiskQuota diskQuota = repositoryService.getDiskQuota();
 
         if (!diskQuota.hasUsableSpace()) {
             Reposilite.getLogger().warn("Out of disk space - Cannot store proxied artifact " + uri);
-            return;
+            return Option.none();
         }
 
-        String repositoryName = StringUtils.split(uri, "/")[1]; // skip first path separator
+        String repositoryName = StringUtils.split(uri.substring(1), "/")[0]; // skip first path separator
         Repository repository = repositoryService.getRepository(repositoryName);
 
         if (repository == null) {
             if (!rewritePathsEnabled) {
-                return;
+                Option.none();
             }
 
             uri = repositoryService.getPrimaryRepository().getName() + uri;
         }
 
         File proxiedFile = repositoryService.getFile(uri);
-        FileUtils.copyInputStreamToFile(remoteResponse.getContent(), proxiedFile);
-        FileUtils.copyFile(proxiedFile, context.output());
-        diskQuota.allocate(proxiedFile.length());
 
-        Reposilite.getLogger().info("Stored proxied " + uri);
+        return Option.of(repositoryService.storeFile(
+                uri,
+                proxiedFile,
+                remoteResponse::getContent,
+                () -> {
+                    Reposilite.getLogger().info("Stored proxied " + proxiedFile);
+                    FileUtils.copyFile(proxiedFile, context.output());
+                    return response;
+                },
+                exception -> new ErrorDto(HttpStatus.SC_UNPROCESSABLE_ENTITY, "Cannot process artifact")));
+
     }
 
 }
