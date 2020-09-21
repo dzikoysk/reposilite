@@ -14,22 +14,23 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.metadata;
+package org.panda_lang.reposilite.metadata
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.panda_lang.utilities.commons.collection.Pair;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import org.junit.jupiter.api.Test
+import org.panda_lang.utilities.commons.collection.Pair
+
+import static org.junit.jupiter.api.Assertions.assertArrayEquals
 
 class MetadataComparatorTest {
 
-    private static final MetadataComparator<Pair<String[], String>> METADATA_COMPARATOR = new MetadataComparator<>(Pair::getValue, Pair::getKey, pair -> false);
+    private static final MetadataComparator<Pair<String[], String>> METADATA_COMPARATOR = new MetadataComparator<>(
+            { pair -> pair.getValue() },
+            { pair -> pair.getKey() },
+            { pair -> false }
+    )
 
-    private static final String[] STRINGS = {
+    private static final String[] VERSIONS = [
             "2",
             "1",
             "a.12.00",
@@ -43,22 +44,20 @@ class MetadataComparatorTest {
             "a",
             "b.1.0.0",
             "b"
-    };
+    ]
 
     @Test
-    void testMetadataComparator() {
-        List<String> strings = new ArrayList<>(Arrays.asList(STRINGS));
-        Collections.shuffle(strings);
+    void 'should compare and sort versions' () {
+        def strings = new ArrayList<>(Arrays.asList(VERSIONS))
+        Collections.shuffle(strings)
 
         String[] sorted = strings.stream()
-                .map(string -> new Pair<>(string.split("[-.]"), string))
+                .map({ string -> new Pair<>(string.split("[-.]"), string) })
                 .sorted(METADATA_COMPARATOR)
-                .map(Pair::getValue)
-                .toArray(String[]::new);
+                .map({ pair -> pair.getValue() })
+                .toArray({ length -> new String[length] })
 
-        System.out.println(Arrays.toString(STRINGS));
-        System.out.println(Arrays.toString(sorted));
-        Assertions.assertArrayEquals(STRINGS, sorted);
+        assertArrayEquals VERSIONS, sorted
     }
 
 }

@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.console;
+package org.panda_lang.reposilite.console
 
-import org.junit.jupiter.api.Test;
-import org.panda_lang.reposilite.ReposiliteIntegrationTestSpecification;
+import org.junit.jupiter.api.Test
+import org.panda_lang.reposilite.ReposiliteTestSpecification
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue
 
-class VersionCommandTest extends ReposiliteIntegrationTestSpecification {
+class VersionCommandTest extends ReposiliteTestSpecification {
 
     @Test
     void 'should return true and display version' () {
