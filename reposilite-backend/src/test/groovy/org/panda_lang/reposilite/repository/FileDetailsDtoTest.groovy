@@ -14,43 +14,38 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.repository;
+package org.panda_lang.reposilite.repository
 
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-import org.panda_lang.utilities.commons.FileUtils;
-import org.panda_lang.utilities.commons.StringUtils;
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
+import org.panda_lang.utilities.commons.FileUtils
+import org.panda_lang.utilities.commons.StringUtils
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Calendar;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*
 
 class FileDetailsDtoTest {
 
     @TempDir
-    static File temp;
-    static FileDetailsDto tempDto;
-    static File file;
-    static FileDetailsDto fileDetails;
+    protected static File temp
+
+    static FileDetailsDto tempDto
+    static File file
+    static FileDetailsDto fileDetails
 
     @BeforeAll
     static void prepare() throws IOException {
-        tempDto = FileDetailsDto.of(temp);
+        tempDto = FileDetailsDto.of(temp)
 
-        file = new File(temp, "file");
-        FileUtils.overrideFile(file, StringUtils.repeated(1024 * 1024, "7"));
-        fileDetails = FileDetailsDto.of(file);
+        file = new File(temp, "file")
+        FileUtils.overrideFile(file, StringUtils.repeated(1024 * 1024, "7"))
+        fileDetails = FileDetailsDto.of(file)
     }
 
     @Test
     void compareTo() {
-        assertTrue(fileDetails.compareTo(tempDto) > 0);
-        assertEquals(0, fileDetails.compareTo(FileDetailsDto.of(file)));
+        assertTrue(fileDetails.compareTo(tempDto) > 0)
+        assertEquals(0, fileDetails.compareTo(FileDetailsDto.of(file)))
     }
 
     @Test
