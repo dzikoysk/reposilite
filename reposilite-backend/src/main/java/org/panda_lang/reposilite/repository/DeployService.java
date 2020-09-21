@@ -16,28 +16,18 @@
 
 package org.panda_lang.reposilite.repository;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.ReposiliteContext;
 import org.panda_lang.reposilite.auth.Authenticator;
 import org.panda_lang.reposilite.auth.Session;
 import org.panda_lang.reposilite.error.ErrorDto;
-import org.panda_lang.reposilite.error.FailureService;
 import org.panda_lang.reposilite.error.ResponseUtils;
 import org.panda_lang.reposilite.metadata.MetadataService;
 import org.panda_lang.reposilite.utils.Result;
 
 import java.io.File;
-import java.nio.channels.FileChannel;
-import java.nio.channels.FileLock;
-import java.nio.channels.OverlappingFileLockException;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
-import java.nio.file.StandardOpenOption;
-import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
 
 public final class DeployService {
 
@@ -47,23 +37,17 @@ public final class DeployService {
     private final Authenticator authenticator;
     private final RepositoryService repositoryService;
     private final MetadataService metadataService;
-    private final FailureService failureService;
-    private final ExecutorService executorService;
 
     public DeployService(
             boolean deployEnabled,
             Authenticator authenticator,
             RepositoryService repositoryService,
-            MetadataService metadataService,
-            FailureService failureService,
-            ExecutorService executorService) {
+            MetadataService metadataService) {
 
         this.deployEnabled = deployEnabled;
-        this.failureService = failureService;
         this.authenticator = authenticator;
         this.repositoryService = repositoryService;
         this.metadataService = metadataService;
-        this.executorService = executorService;
     }
 
     public Result<CompletableFuture<Result<FileDetailsDto, ErrorDto>>, ErrorDto> deploy(ReposiliteContext context) {
@@ -93,33 +77,14 @@ public final class DeployService {
             return Result.ok(CompletableFuture.completedFuture(Result.ok(fileDetails)));
         }
 
-        return Result.ok(writeFile(context, fileDetails, file));
-    }
+        CompletableFuture<Result<FileDetailsDto, ErrorDto>> task = repositoryService.storeFile(
+                context.uri(),
+                file,
+                context::input,
+                () -> fileDetails,
+                exception -> new ErrorDto(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Failed to upload artifact"));
 
-    protected CompletableFuture<Result<FileDetailsDto, ErrorDto>> writeFile(ReposiliteContext context, FileDetailsDto fileDetails, File file) {
-        CompletableFuture<Result<FileDetailsDto, ErrorDto>> completableFuture = new CompletableFuture<>();
-
-        executorService.submit(() -> {
-            FileUtils.forceMkdirParent(file);
-
-            try (FileChannel channel = FileChannel.open(file.toPath(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE)) {
-                FileLock lock = channel.lock();
-
-                Files.copy(Objects.requireNonNull(context.input()), file.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                repositoryService.getDiskQuota().allocate(file.length());
-
-                lock.release();
-                return completableFuture.complete(Result.ok(fileDetails));
-            } catch (OverlappingFileLockException overlappingFileLockException) {
-                Thread.sleep(RETRY_WRITE_TIME);
-                return completableFuture.complete(writeFile(context, fileDetails, file).get());
-            } catch (Exception ioException) {
-                failureService.throwException(context.uri(), ioException);
-                return completableFuture.complete(ResponseUtils.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Failed to upload artifact"));
-            }
-        });
-
-        return completableFuture;
+        return Result.ok(task);
     }
 
 }

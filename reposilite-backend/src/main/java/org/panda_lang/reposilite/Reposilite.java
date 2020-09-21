@@ -89,13 +89,13 @@ public final class Reposilite {
         this.executor = new ReposiliteExecutor(testEnvEnabled, failureService);
         this.tokenService = new TokenService(workingDirectory);
         this.statsService = new StatsService(workingDirectory);
-        this.repositoryService = new RepositoryService(workingDirectory, configuration.diskQuota);
+        this.repositoryService = new RepositoryService(workingDirectory, configuration.diskQuota, executorService, failureService);
         this.metadataService = new MetadataService(failureService);
 
         this.authenticator = new Authenticator(configuration, repositoryService, tokenService);
         this.repositoryAuthenticator = new RepositoryAuthenticator(configuration.rewritePathsEnabled, authenticator, repositoryService);
         this.authService = new AuthService(authenticator);
-        this.deployService = new DeployService(configuration.deployEnabled, authenticator, repositoryService, metadataService, failureService, executorService);
+        this.deployService = new DeployService(configuration.deployEnabled, authenticator, repositoryService, metadataService);
         this.lookupService = new LookupService(authenticator, repositoryAuthenticator, metadataService, repositoryService, failureService);
 
         this.frontend = FrontendService.load(configuration);
