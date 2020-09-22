@@ -14,26 +14,23 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.utils
+package org.panda_lang.reposilite.error
 
-import org.apache.http.HttpStatus
+import groovy.transform.CompileStatic
 import org.junit.jupiter.api.Test
-import org.panda_lang.reposilite.error.ErrorDto
 
 import static org.junit.jupiter.api.Assertions.assertEquals
+import static org.junit.jupiter.api.Assertions.assertTrue
 
-class ErrorDtoTest {
-
-    private static final def ERROR_DTO = new ErrorDto(HttpStatus.SC_NOT_FOUND, "Message")
-
-    @Test
-    void 'should return status code' () {
-        assertEquals HttpStatus.SC_NOT_FOUND, ERROR_DTO.getStatus()
-    }
+@CompileStatic
+class ResponseUtilsTest {
 
     @Test
-    void 'should return status message' () {
-        assertEquals "Message", ERROR_DTO.getMessage()
+    void 'should create error dto result' () {
+        def result = ResponseUtils.error(123, 'Error')
+        assertTrue result.containsError()
+        assertEquals 123, result.getError().status
+        assertEquals 'Error', result.getError().message
     }
 
 }
