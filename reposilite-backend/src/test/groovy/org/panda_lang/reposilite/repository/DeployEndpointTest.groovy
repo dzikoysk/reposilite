@@ -16,10 +16,12 @@
 
 package org.panda_lang.reposilite.repository
 
+import groovy.transform.CompileStatic
 import org.apache.http.HttpResponse
 import org.apache.http.HttpStatus
 import org.apache.http.auth.AuthenticationException
 import org.apache.http.auth.UsernamePasswordCredentials
+import org.apache.http.client.HttpClient
 import org.apache.http.client.methods.HttpPut
 import org.apache.http.entity.StringEntity
 import org.apache.http.impl.auth.BasicScheme
@@ -33,9 +35,10 @@ import org.panda_lang.utilities.commons.StringUtils
 
 import static org.junit.jupiter.api.Assertions.*
 
+@CompileStatic
 class DeployEndpointTest extends ReposiliteIntegrationTestSpecification {
 
-    private final def client = HttpClients.createDefault()
+    private final HttpClient client = HttpClients.createDefault()
 
     @BeforeEach
     void configure() {

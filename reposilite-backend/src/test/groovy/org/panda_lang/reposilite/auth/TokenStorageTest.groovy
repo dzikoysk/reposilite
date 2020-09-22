@@ -16,6 +16,7 @@
 
 package org.panda_lang.reposilite.auth
 
+import groovy.transform.CompileStatic
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.panda_lang.reposilite.ReposiliteConstants
@@ -23,6 +24,7 @@ import org.panda_lang.utilities.commons.FileUtils
 
 import static org.junit.jupiter.api.Assertions.*
 
+@CompileStatic
 final class TokenStorageTest {
 
     @TempDir

@@ -16,11 +16,13 @@
 
 package org.panda_lang.reposilite.console
 
+import groovy.transform.CompileStatic
 import org.junit.jupiter.api.Test
 import org.panda_lang.reposilite.ReposiliteTestSpecification
 
 import static org.junit.jupiter.api.Assertions.assertTrue
 
+@CompileStatic
 class HelpCommandTest extends ReposiliteTestSpecification {
 
     @Test

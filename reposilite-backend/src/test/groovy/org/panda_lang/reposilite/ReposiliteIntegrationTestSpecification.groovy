@@ -21,12 +21,14 @@ import com.google.api.client.http.HttpRequest
 import com.google.api.client.http.HttpRequestFactory
 import com.google.api.client.http.HttpResponse
 import com.google.api.client.http.javanet.NetHttpTransport
+import groovy.transform.CompileStatic
 import org.apache.commons.io.FileUtils
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
 import org.panda_lang.utilities.commons.ArrayUtils
 
+@CompileStatic
 abstract class ReposiliteIntegrationTestSpecification extends ReposiliteTestSpecificationExtension {
 
     public static final String PORT = String.valueOf(new Random().nextInt(16383) + 49151)

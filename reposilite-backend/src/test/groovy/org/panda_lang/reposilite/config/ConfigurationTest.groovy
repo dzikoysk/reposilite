@@ -16,10 +16,12 @@
 
 package org.panda_lang.reposilite.config
 
+import groovy.transform.CompileStatic
 import org.junit.jupiter.api.Test
 
 import static org.junit.jupiter.api.Assertions.assertNotNull
 
+@CompileStatic
 class ConfigurationTest {
 
     @Test

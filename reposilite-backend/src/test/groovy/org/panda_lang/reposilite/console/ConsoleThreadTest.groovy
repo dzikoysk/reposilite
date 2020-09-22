@@ -16,6 +16,7 @@
 
 package org.panda_lang.reposilite.console
 
+import groovy.transform.CompileStatic
 import org.junit.jupiter.api.Test
 import org.panda_lang.reposilite.ReposiliteConstants
 import org.panda_lang.reposilite.ReposiliteWriter
@@ -23,6 +24,7 @@ import org.panda_lang.utilities.commons.text.ContentJoiner
 
 import static org.junit.jupiter.api.Assertions.assertTrue
 
+@CompileStatic
 class ConsoleThreadTest {
 
     @Test

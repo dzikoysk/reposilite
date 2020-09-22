@@ -16,11 +16,13 @@
 
 package org.panda_lang.reposilite.metadata
 
+import groovy.transform.CompileStatic
 import org.junit.jupiter.api.Test
 
 import static org.junit.jupiter.api.Assertions.assertEquals
 import static org.junit.jupiter.api.Assertions.assertNull
 
+@CompileStatic
 class SnapshotTest {
 
     private static final String TIMESTAMP = Long.toString(System.currentTimeMillis())

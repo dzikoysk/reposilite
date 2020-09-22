@@ -16,6 +16,7 @@
 
 package org.panda_lang.reposilite.auth
 
+import groovy.transform.CompileStatic
 import net.dzikoysk.cdn.CDN
 import org.apache.http.HttpStatus
 import org.junit.jupiter.api.BeforeEach
@@ -25,6 +26,7 @@ import org.panda_lang.reposilite.ReposiliteIntegrationTestSpecification
 import static org.junit.jupiter.api.Assertions.assertEquals
 import static org.junit.jupiter.api.Assertions.assertTrue
 
+@CompileStatic
 final class AuthControllerTest extends ReposiliteIntegrationTestSpecification {
 
     @BeforeEach

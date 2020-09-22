@@ -16,11 +16,13 @@
 
 package org.panda_lang.reposilite.auth
 
+import groovy.transform.CompileStatic
 import org.junit.jupiter.api.Test
 
 import static org.junit.jupiter.api.Assertions.assertEquals
-import static org.junit.jupiter.api.Assertions.assertTrue 
+import static org.junit.jupiter.api.Assertions.assertTrue
 
+@CompileStatic
 class AuthDtoTest {
 
     private static final AuthDto AUTH_DTO = new AuthDto(true, 'associated_path', Collections.singletonList('releases'))

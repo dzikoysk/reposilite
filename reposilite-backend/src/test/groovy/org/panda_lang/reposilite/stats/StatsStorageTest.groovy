@@ -16,6 +16,7 @@
 
 package org.panda_lang.reposilite.stats
 
+import groovy.transform.CompileStatic
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.panda_lang.reposilite.ReposiliteConstants
@@ -24,6 +25,7 @@ import org.panda_lang.utilities.commons.FileUtils
 import static org.junit.jupiter.api.Assertions.assertEquals
 import static org.junit.jupiter.api.Assertions.assertTrue
 
+@CompileStatic
 final class StatsStorageTest {
 
     @TempDir

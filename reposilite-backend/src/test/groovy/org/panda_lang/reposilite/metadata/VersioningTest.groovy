@@ -16,10 +16,12 @@
 
 package org.panda_lang.reposilite.metadata
 
+import groovy.transform.CompileStatic
 import org.junit.jupiter.api.Test
 
 import static org.junit.jupiter.api.Assertions.assertEquals
 
+@CompileStatic
 class VersioningTest {
 
     private static final List<SnapshotVersion> SNAPSHOT_VERSION_LIST = Arrays.asList(

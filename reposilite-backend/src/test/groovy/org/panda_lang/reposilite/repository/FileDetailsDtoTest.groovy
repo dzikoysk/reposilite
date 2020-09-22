@@ -16,6 +16,7 @@
 
 package org.panda_lang.reposilite.repository
 
+import groovy.transform.CompileStatic
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -24,6 +25,7 @@ import org.panda_lang.utilities.commons.StringUtils
 
 import static org.junit.jupiter.api.Assertions.*
 
+@CompileStatic
 class FileDetailsDtoTest {
 
     @TempDir

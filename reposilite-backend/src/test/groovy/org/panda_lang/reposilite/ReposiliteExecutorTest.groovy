@@ -16,6 +16,7 @@
 
 package org.panda_lang.reposilite
 
+import groovy.transform.CompileStatic
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.panda_lang.reposilite.utils.RunUtils
@@ -26,6 +27,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import static org.junit.jupiter.api.Assertions.assertFalse
 import static org.junit.jupiter.api.Assertions.assertTrue
 
+@CompileStatic
 class ReposiliteExecutorTest {
 
     @TempDir

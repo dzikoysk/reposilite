@@ -16,6 +16,7 @@
 
 package org.panda_lang.reposilite.stats
 
+import groovy.transform.CompileStatic
 import org.junit.jupiter.api.Test
 import org.panda_lang.reposilite.ReposiliteTestSpecification
 import org.panda_lang.reposilite.ReposiliteWriter
@@ -23,8 +24,9 @@ import org.panda_lang.reposilite.ReposiliteWriter
 import java.util.stream.IntStream
 
 import static org.junit.jupiter.api.Assertions.assertFalse
-import static org.junit.jupiter.api.Assertions.assertTrue 
+import static org.junit.jupiter.api.Assertions.assertTrue
 
+@CompileStatic
 class StatsCommandTest extends ReposiliteTestSpecification {
 
     @Test

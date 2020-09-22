@@ -16,6 +16,7 @@
 
 package org.panda_lang.reposilite
 
+import groovy.transform.CompileStatic
 import org.junit.jupiter.api.BeforeAll
 import org.panda_lang.reposilite.auth.Authenticator
 import org.panda_lang.reposilite.auth.Token
@@ -26,6 +27,7 @@ import org.panda_lang.reposilite.repository.RepositoryService
 
 import java.util.concurrent.Executors
 
+@CompileStatic
 class AuthenticatorSpecification {
 
     static final RepositoryService REPOSITORY_SERVICE = new RepositoryService(".", "0", Executors.newSingleThreadExecutor(), new FailureService())

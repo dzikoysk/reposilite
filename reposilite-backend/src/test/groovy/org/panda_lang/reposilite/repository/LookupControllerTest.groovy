@@ -17,6 +17,7 @@
 package org.panda_lang.reposilite.repository
 
 import com.google.api.client.http.HttpResponse
+import groovy.transform.CompileStatic
 import org.apache.http.HttpStatus
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -26,6 +27,7 @@ import org.panda_lang.utilities.commons.FileUtils
 import static org.junit.jupiter.api.Assertions.assertEquals
 import static org.junit.jupiter.api.Assertions.assertTrue
 
+@CompileStatic
 class LookupControllerTest extends ReposiliteIntegrationTestSpecification {
 
     @TempDir

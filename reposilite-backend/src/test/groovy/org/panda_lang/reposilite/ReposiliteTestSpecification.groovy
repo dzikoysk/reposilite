@@ -16,10 +16,12 @@
 
 package org.panda_lang.reposilite
 
+import groovy.transform.CompileStatic
 import org.apache.commons.io.FileUtils
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
 
+@CompileStatic
 class ReposiliteTestSpecification extends ReposiliteTestSpecificationExtension {
 
     private static final String TINYLOG_WRITER_PROPERTY = 'tinylog.writerFile.file'

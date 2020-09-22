@@ -16,11 +16,13 @@
 
 package org.panda_lang.reposilite.auth
 
+import groovy.transform.CompileStatic
 import org.junit.jupiter.api.Test
 import org.panda_lang.reposilite.ReposiliteTestSpecification
 
 import static org.junit.jupiter.api.Assertions.*
 
+@CompileStatic
 class KeygenCommandTest extends ReposiliteTestSpecification {
 
     @Test

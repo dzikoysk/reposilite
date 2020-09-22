@@ -16,6 +16,7 @@
 
 package org.panda_lang.reposilite.console
 
+import groovy.transform.CompileStatic
 import org.junit.jupiter.api.Test
 import org.panda_lang.reposilite.ReposiliteTestSpecification
 import org.panda_lang.utilities.commons.StringUtils
@@ -23,6 +24,7 @@ import org.panda_lang.utilities.commons.StringUtils
 import static org.junit.jupiter.api.Assertions.assertFalse
 import static org.junit.jupiter.api.Assertions.assertTrue
 
+@CompileStatic
 class ConsoleTest extends ReposiliteTestSpecification {
 
     @Test
