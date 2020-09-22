@@ -18,18 +18,37 @@ package org.panda_lang.reposilite.error
 
 import groovy.transform.CompileStatic
 import org.junit.jupiter.api.Test
+import org.panda_lang.reposilite.ReposiliteWriter
+
+import static org.junit.jupiter.api.Assertions.assertEquals
+import static org.junit.jupiter.api.Assertions.assertTrue
 
 @CompileStatic
 class FailureServiceTest {
 
+    @CompileStatic
+    static class FailureServiceTestException extends Exception {
+        FailureServiceTestException(String message) {
+            super(message, null, false, false)
+        }
+    }
+
     @Test
     void 'should throw exception' () {
+        def failureService = new FailureService()
+        failureService.throwException('id', new FailureServiceTestException('FailureServiceTest'))
 
+        Thread.sleep(10L) // make sure that tinylog service had a chance to process log
+        assertTrue ReposiliteWriter.contains('FailureServiceTest')
     }
 
     @Test
     void 'should keep all exceptions' () {
+        def failureService = new FailureService()
+        failureService.throwException('1', new FailureServiceTestException('1'))
+        failureService.throwException('2', new FailureServiceTestException('2'))
 
+        assertEquals 2, failureService.getExceptions().size()
     }
 
 }
