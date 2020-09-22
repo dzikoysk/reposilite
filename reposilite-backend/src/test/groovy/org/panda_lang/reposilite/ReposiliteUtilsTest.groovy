@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.repository
+package org.panda_lang.reposilite
 
 import groovy.transform.CompileStatic
 import org.junit.jupiter.api.BeforeEach
@@ -23,6 +23,7 @@ import org.junit.jupiter.api.io.TempDir
 import org.panda_lang.reposilite.ReposiliteUtils
 import org.panda_lang.reposilite.config.Configuration
 import org.panda_lang.reposilite.error.FailureService
+import org.panda_lang.reposilite.repository.RepositoryService
 import org.panda_lang.utilities.commons.StringUtils
 
 import java.util.concurrent.Executors
