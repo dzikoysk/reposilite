@@ -49,6 +49,6 @@ Requirements:
 * [x] Documentation
 
 #### Stack
-* Reposilite Backend: Java + Javalin (Jetty)
+* Reposilite Backend: Java + Javalin (Jetty) + Groovy (JUnit)
 * Reposilite Frontend: Vue.js + Pug + Stylus + Tailwindcss
 * Reposilite Site: React.js + Docusaurus 
