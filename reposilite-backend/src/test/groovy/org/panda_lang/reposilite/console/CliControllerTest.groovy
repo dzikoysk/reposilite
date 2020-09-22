@@ -16,6 +16,7 @@
 
 package org.panda_lang.reposilite.console
 
+import groovy.transform.CompileStatic
 import org.eclipse.jetty.websocket.api.Session
 import org.eclipse.jetty.websocket.api.WebSocketListener
 import org.eclipse.jetty.websocket.client.WebSocketClient
@@ -26,9 +27,11 @@ import java.util.function.BiConsumer
 
 import static org.junit.jupiter.api.Assertions.assertFalse
 import static org.junit.jupiter.api.Assertions.assertTrue
+
 /**
  * dirty websocket connection test
  */
+@CompileStatic
 class CliControllerTest extends ReposiliteIntegrationTestSpecification {
 
     @Test

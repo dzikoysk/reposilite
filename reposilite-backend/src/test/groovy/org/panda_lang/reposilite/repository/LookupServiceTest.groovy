@@ -16,6 +16,7 @@
 
 package org.panda_lang.reposilite.repository
 
+import groovy.transform.CompileStatic
 import org.apache.http.HttpStatus
 import org.junit.jupiter.api.Test
 import org.panda_lang.reposilite.ReposiliteContext
@@ -24,6 +25,7 @@ import org.panda_lang.reposilite.ReposiliteTestSpecification
 import static org.junit.jupiter.api.Assertions.assertEquals
 import static org.junit.jupiter.api.Assertions.assertTrue
 
+@CompileStatic
 class LookupServiceTest extends ReposiliteTestSpecification {
 
     @Test

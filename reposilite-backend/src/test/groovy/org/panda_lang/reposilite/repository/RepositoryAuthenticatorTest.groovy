@@ -16,11 +16,13 @@
 
 package org.panda_lang.reposilite.repository
 
+import groovy.transform.CompileStatic
 import org.junit.jupiter.api.Test
 import org.panda_lang.reposilite.AuthenticatorSpecification
 
 import static org.junit.jupiter.api.Assertions.assertEquals
 
+@CompileStatic
 class RepositoryAuthenticatorTest extends AuthenticatorSpecification {
 
     static final RepositoryAuthenticator REPOSITORY_AUTHENTICATOR = new RepositoryAuthenticator(true, AUTHENTICATOR, REPOSITORY_SERVICE)

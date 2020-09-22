@@ -16,6 +16,7 @@
 
 package org.panda_lang.reposilite.repository
 
+import groovy.transform.CompileStatic
 import io.javalin.http.Context
 import io.javalin.http.HandlerType
 import io.javalin.http.util.ContextUtil
@@ -34,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.*
 import static org.mockito.ArgumentMatchers.anyInt
 import static org.mockito.Mockito.*
 
+@CompileStatic
 final class ProxyServiceTest extends ReposiliteTestSpecification {
 
     private ExecutorService executorService

@@ -16,12 +16,14 @@
 
 package org.panda_lang.reposilite.utils
 
+import groovy.transform.CompileStatic
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.function.Executable
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow
 import static org.junit.jupiter.api.Assertions.assertEquals
 
+@CompileStatic
 final class FilesUtilsTest {
 
     @Test

@@ -16,11 +16,13 @@
 
 package org.panda_lang.reposilite.metadata
 
+import groovy.transform.CompileStatic
 import org.junit.jupiter.api.Test
 
 import static org.junit.jupiter.api.Assertions.assertEquals
 import static org.junit.jupiter.api.Assertions.assertNull
 
+@CompileStatic
 class SnapshotVersionTest {
 
     private static final SnapshotVersion SNAPSHOT_VERSION = new SnapshotVersion("pom", "file-1.0.0",  "2020")

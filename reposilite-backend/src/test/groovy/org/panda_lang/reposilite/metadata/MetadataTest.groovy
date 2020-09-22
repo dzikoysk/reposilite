@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.metadata;
+package org.panda_lang.reposilite.metadata
 
+import groovy.transform.CompileStatic;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+@CompileStatic
 class MetadataTest {
 
     private static final Versioning VERSIONING = new Versioning()

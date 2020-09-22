@@ -28,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.*
 class ReposiliteWriterTest {
 
     @Test
-    void getConsumers() {
+    void 'should call custom consumer' () {
         def reference = new AtomicReference<String>(null)
 
         ReposiliteWriter.getConsumers().put("key", { String value -> reference.set(value) } as Consumer<String>)
@@ -38,19 +38,20 @@ class ReposiliteWriterTest {
     }
 
     @Test
-    void getLatest() {
+    void 'should not exceed cache limit' () {
         for (int index = 0; index < ReposiliteWriter.CACHE_SIZE; index++) {
             Reposilite.getLogger().info(Integer.toString(index))
         }
-
         assertEquals ReposiliteWriter.CACHE_SIZE, ReposiliteWriter.getCache().size()
+
         Reposilite.getLogger().info("above limit")
         assertEquals ReposiliteWriter.CACHE_SIZE, ReposiliteWriter.getCache().size()
     }
 
     @Test
-    void contains() {
+    void 'should contain given messages'() {
         Reposilite.getLogger().info("test::contains")
+
         assertTrue ReposiliteWriter.contains("test::contains")
         assertFalse ReposiliteWriter.contains("diorite::release_date")
     }

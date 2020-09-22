@@ -16,15 +16,17 @@
 
 package org.panda_lang.reposilite.error
 
+import groovy.transform.CompileStatic
 import org.apache.http.HttpStatus
 import org.junit.jupiter.api.Test
 import org.panda_lang.reposilite.error.ErrorDto
 
 import static org.junit.jupiter.api.Assertions.assertEquals
 
+@CompileStatic
 class ErrorDtoTest {
 
-    private static final def ERROR_DTO = new ErrorDto(HttpStatus.SC_NOT_FOUND, "Message")
+    private static final ErrorDto ERROR_DTO = new ErrorDto(HttpStatus.SC_NOT_FOUND, "Message")
 
     @Test
     void 'should return status code' () {

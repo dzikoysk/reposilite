@@ -16,9 +16,10 @@
 
 package org.panda_lang.reposilite
 
-
+import groovy.transform.CompileStatic
 import org.panda_lang.utilities.commons.function.ThrowingRunnable
 
+@CompileStatic
 class ReposiliteTestSpecificationExtension {
 
     protected static <E extends Exception> void executeOnLocked(File file, ThrowingRunnable<E> runnable) {

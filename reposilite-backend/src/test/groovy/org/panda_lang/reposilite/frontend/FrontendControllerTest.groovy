@@ -16,7 +16,7 @@
 
 package org.panda_lang.reposilite.frontend
 
-
+import groovy.transform.CompileStatic
 import org.apache.http.HttpStatus
 import org.junit.jupiter.api.Test
 import org.panda_lang.reposilite.ReposiliteIntegrationTestSpecification
@@ -24,6 +24,7 @@ import org.panda_lang.reposilite.ReposiliteIntegrationTestSpecification
 import static org.junit.jupiter.api.Assertions.assertEquals
 import static org.junit.jupiter.api.Assertions.assertTrue
 
+@CompileStatic
 class FrontendControllerTest extends ReposiliteIntegrationTestSpecification {
 
     @Test

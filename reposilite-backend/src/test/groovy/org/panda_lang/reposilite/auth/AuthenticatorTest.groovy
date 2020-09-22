@@ -16,13 +16,14 @@
 
 package org.panda_lang.reposilite.auth
 
-
+import groovy.transform.CompileStatic
 import org.junit.jupiter.api.Test
 import org.panda_lang.reposilite.AuthenticatorSpecification
 import org.panda_lang.utilities.commons.collection.Maps
 
 import static org.junit.jupiter.api.Assertions.assertTrue
 
+@CompileStatic
 class AuthenticatorTest extends AuthenticatorSpecification {
 
     @Test

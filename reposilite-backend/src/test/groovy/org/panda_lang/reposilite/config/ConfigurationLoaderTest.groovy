@@ -16,6 +16,7 @@
 
 package org.panda_lang.reposilite.config
 
+import groovy.transform.CompileStatic
 import net.dzikoysk.cdn.CDN
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -24,6 +25,7 @@ import org.panda_lang.utilities.commons.text.ContentJoiner
 
 import static org.junit.jupiter.api.Assertions.*
 
+@CompileStatic
 class ConfigurationLoaderTest {
 
     @TempDir

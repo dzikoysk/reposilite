@@ -16,24 +16,26 @@
 
 package org.panda_lang.reposilite.utils
 
+import groovy.transform.CompileStatic
 import org.junit.jupiter.api.Test
 import org.panda_lang.utilities.commons.StringUtils
 
 import static org.junit.jupiter.api.Assertions.assertEquals
 import static org.junit.jupiter.api.Assertions.assertNull
 
+@CompileStatic
 class ArrayUtilsTest {
 
     private static final String[] ARRAY = [ "a", "b", "c" ]
 
     @Test
-    void 'should return first element from array'() {
+    void 'should return first element from array' () {
         assertNull ArrayUtils.getFirst(StringUtils.EMPTY_ARRAY)
         assertEquals "a", ArrayUtils.getFirst(ARRAY)
     }
 
     @Test
-    void 'should return last element from array'() {
+    void 'should return last element from array' () {
         assertNull ArrayUtils.getLast(StringUtils.EMPTY_ARRAY)
         assertEquals "c", ArrayUtils.getLast(ARRAY)
     }

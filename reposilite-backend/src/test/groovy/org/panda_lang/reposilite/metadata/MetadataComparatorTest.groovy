@@ -16,17 +16,18 @@
 
 package org.panda_lang.reposilite.metadata
 
-
+import groovy.transform.CompileStatic
 import org.junit.jupiter.api.Test
 import org.panda_lang.utilities.commons.collection.Pair
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals
 
+@CompileStatic
 class MetadataComparatorTest {
 
     private static final MetadataComparator<Pair<String[], String>> METADATA_COMPARATOR = new MetadataComparator<>(
-            { pair -> pair.getValue() },
-            { pair -> pair.getKey() },
+            { Pair<String[], String> pair -> pair.getValue() },
+            { Pair<String[], String> pair -> pair.getKey() },
             { pair -> false }
     )
 

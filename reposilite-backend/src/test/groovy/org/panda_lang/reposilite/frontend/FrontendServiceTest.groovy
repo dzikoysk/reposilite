@@ -16,12 +16,14 @@
 
 package org.panda_lang.reposilite.frontend
 
+import groovy.transform.CompileStatic
 import org.junit.jupiter.api.Test
 import org.panda_lang.reposilite.config.Configuration
 
 import static org.junit.jupiter.api.Assertions.assertFalse
 import static org.junit.jupiter.api.Assertions.assertTrue
 
+@CompileStatic
 class FrontendServiceTest {
 
     private static final FrontendService FRONTEND_SERVICE = FrontendService.load(new Configuration())

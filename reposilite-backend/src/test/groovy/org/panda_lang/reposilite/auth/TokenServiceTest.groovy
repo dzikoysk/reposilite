@@ -16,12 +16,14 @@
 
 package org.panda_lang.reposilite.auth
 
+import groovy.transform.CompileStatic
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 
 import static org.junit.jupiter.api.Assertions.*
 
+@CompileStatic
 class TokenServiceTest {
 
     @TempDir

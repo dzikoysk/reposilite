@@ -16,11 +16,13 @@
 
 package org.panda_lang.reposilite.utils
 
+import groovy.transform.CompileStatic
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 
 import java.util.concurrent.ExecutionException
 
+@CompileStatic
 class RunUtilsTest {
 
     @TempDir
