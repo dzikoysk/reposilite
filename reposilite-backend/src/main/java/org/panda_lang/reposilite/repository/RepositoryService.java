@@ -23,7 +23,7 @@ import org.panda_lang.reposilite.metadata.MetadataUtils;
 import org.panda_lang.reposilite.utils.ArrayUtils;
 import org.panda_lang.reposilite.utils.Result;
 import org.panda_lang.utilities.commons.StringUtils;
-import org.panda_lang.utilities.commons.function.ThrowingFunction;
+import org.panda_lang.utilities.commons.function.ThrowingRunnable;
 import org.panda_lang.utilities.commons.function.ThrowingSupplier;
 
 import java.io.File;
@@ -33,17 +33,16 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Function;
 
 public final class RepositoryService {
 
-    private final RepositoryStorage repositoryStorage;
-    private final ExecutorService ioExecutorService;
     private final FailureService failureService;
+    private final RepositoryStorage repositoryStorage;
 
     public RepositoryService(String workingDirectory, String diskQuota, ExecutorService ioExecutorService, FailureService failureService) {
-        this.repositoryStorage = new RepositoryStorage(new File(workingDirectory, "repositories"), diskQuota);
-        this.ioExecutorService = ioExecutorService;
         this.failureService = failureService;
+        this.repositoryStorage = new RepositoryStorage(new File(workingDirectory, "repositories"), diskQuota, ioExecutorService);
     }
 
     public void load(Configuration configuration) {
@@ -55,21 +54,28 @@ public final class RepositoryService {
             File targetFile,
             ThrowingSupplier<InputStream, IOException> source,
             ThrowingSupplier<R, T> onSuccess,
-            ThrowingFunction<Exception, E, T> onError) {
+            Function<Exception, E> onError) {
 
         CompletableFuture<Result<R, E>> task = new CompletableFuture<>();
 
-        ioExecutorService.submit(() -> {
-            try {
-                repositoryStorage.storeFileSync(source.get(), targetFile);
-                return task.complete(Result.ok(onSuccess.get()));
-            } catch (Exception exception) {
-                failureService.throwException(id, exception);
-                return task.complete(Result.error(onError.apply(exception)));
-            }
+        tryExecute(id, task, onError, () -> {
+            repositoryStorage.storeFile(source.get(), targetFile).thenAccept(file -> {
+                tryExecute(id, task, onError, () -> {
+                    task.complete(Result.ok(onSuccess.get()));
+                });
+            });
         });
 
         return task;
+    }
+
+    private <R, E> void tryExecute(String id, CompletableFuture<Result<R, E>> task, Function<Exception, E> onError, ThrowingRunnable<? extends Exception> runnable) {
+        try {
+            runnable.run();
+        } catch (Exception exception) {
+            failureService.throwException(id, exception);
+            task.complete(Result.error(onError.apply(exception)));
+        }
     }
 
     public String[] resolveSnapshot(Repository repository, String[] requestPath) {
