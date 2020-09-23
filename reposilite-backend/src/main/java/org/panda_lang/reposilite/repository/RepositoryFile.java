@@ -28,8 +28,6 @@ import java.nio.channels.FileLock;
 import java.nio.channels.OverlappingFileLockException;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.concurrent.TimeoutException;
 
 final class RepositoryFile {
@@ -37,17 +35,15 @@ final class RepositoryFile {
     private static final long RETRY_WRITE_TIME = 2000L;
     private static final int RETRY_LIMIT = 5;
 
-    private final Set<RepositoryFile> LOCKS = new HashSet<>();
-
     private final File file;
-    private final String absolute;
-    private final DiskQuota diskQuota;
+    private final String identifier;
+    private final RepositoryStorage storage;
     private Option<FileLock> lock = Option.none();
 
-    RepositoryFile(DiskQuota diskQuota, File file) {
+    RepositoryFile(RepositoryStorage storage, File file) {
         this.file = file;
-        this.absolute = file.getAbsolutePath();
-        this.diskQuota = diskQuota;
+        this.identifier = file.getAbsolutePath();
+        this.storage = storage;
     }
 
     void store(InputStream source) throws Exception {
@@ -59,12 +55,10 @@ final class RepositoryFile {
         FileUtils.forceMkdirParent(file);
 
         synchronized (this) {
-            if (LOCKS.contains(this)) {
+            if (!storage.lock(this)) {
                 retry(source, attempt);
                 return;
             }
-
-            LOCKS.add(this);
         }
 
         try (FileChannel channel = FileChannel.open(target, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE)) {
@@ -73,7 +67,7 @@ final class RepositoryFile {
             channel.truncate(0L).transferFrom(Channels.newChannel(source), 0, Long.MAX_VALUE);
             //Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
 
-            diskQuota.allocate(file.length());
+            storage.getDiskQuota().allocate(file.length());
         } catch (OverlappingFileLockException exception) {
             release();
             retry(source, attempt);
@@ -94,7 +88,7 @@ final class RepositoryFile {
             return Option.none();
         });
 
-        LOCKS.remove(this);
+        this.storage.unlock(this);
     }
 
     private void retry(InputStream source, int currentAttempt) throws Exception {
@@ -106,23 +100,8 @@ final class RepositoryFile {
         store(source, currentAttempt + 1);
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        RepositoryFile that = (RepositoryFile) o;
-        return absolute.equals(that.absolute);
-    }
-
-    @Override
-    public int hashCode() {
-        return absolute.hashCode();
+    String getIdentifier() {
+        return identifier;
     }
 
 }

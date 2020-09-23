@@ -25,10 +25,13 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 final class RepositoryStorage {
 
     private final Map<String, Repository> repositories = new LinkedHashMap<>(4);
+    private final Map<String, RepositoryFile> locks = new ConcurrentHashMap<>();
+
     private final File rootDirectory;
     private final DiskQuota diskQuota;
     private Repository primaryRepository;
@@ -76,12 +79,36 @@ final class RepositoryStorage {
     }
 
     void storeFileSync(InputStream source, File targetFile) throws Exception {
-        RepositoryFile repositoryFile = new RepositoryFile(diskQuota, targetFile);
+        RepositoryFile repositoryFile = new RepositoryFile(this, targetFile);
         repositoryFile.store(source);
+    }
+
+    synchronized boolean lock(RepositoryFile file) {
+        if (!locks.containsKey(file.getIdentifier())) {
+            locks.put(file.getIdentifier(), file);
+            return true;
+        }
+
+        return false;
+    }
+
+    synchronized boolean unlock(RepositoryFile file) {
+        RepositoryFile locked = locks.get(file.getIdentifier());
+
+        if (file.equals(locked)) {
+            locks.remove(file.getIdentifier());
+            return true;
+        }
+
+        return false;
     }
 
     File getFile(String path) {
         return new File(rootDirectory, path);
+    }
+
+    Repository getRepository(String repositoryName) {
+        return repositories.get(repositoryName);
     }
 
     List<Repository> getRepositories() {
@@ -90,10 +117,6 @@ final class RepositoryStorage {
 
     Repository getPrimaryRepository() {
         return primaryRepository;
-    }
-
-    Repository getRepository(String repositoryName) {
-        return repositories.get(repositoryName);
     }
 
     DiskQuota getDiskQuota() {
