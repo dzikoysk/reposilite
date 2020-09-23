@@ -16,29 +16,41 @@
 
 package org.panda_lang.reposilite.repository;
 
+import org.apache.commons.io.FileUtils;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.config.Configuration;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 final class RepositoryStorage {
 
+    private static final long RETRY_WRITE_TIME = 2000L;
+
     private final Map<String, Repository> repositories = new LinkedHashMap<>(4);
-    private final Map<String, RepositoryFile> locks = new ConcurrentHashMap<>();
+    private final ScheduledExecutorService retryExecutorService = Executors.newSingleThreadScheduledExecutor();
 
     private final File rootDirectory;
     private final DiskQuota diskQuota;
+    private final ExecutorService ioExecutorService;
     private Repository primaryRepository;
 
-    RepositoryStorage(File rootDirectory, String diskQuota) {
+    RepositoryStorage(File rootDirectory, String diskQuota, ExecutorService ioExecutorService) {
         this.rootDirectory = rootDirectory;
         this.diskQuota = DiskQuota.of(getRootDirectory().getParentFile(), diskQuota);
+        this.ioExecutorService = ioExecutorService;
     }
 
     void load(Configuration configuration) {
@@ -78,29 +90,31 @@ final class RepositoryStorage {
         Reposilite.getLogger().info(repositories.size() + " repositories have been found");
     }
 
-    void storeFileSync(InputStream source, File targetFile) throws Exception {
-        RepositoryFile repositoryFile = new RepositoryFile(this, targetFile);
-        repositoryFile.store(source);
+    CompletableFuture<File> storeFile(InputStream source, File targetFile) throws Exception {
+        return storeFile(new CompletableFuture<>(), source, targetFile);
     }
 
-    synchronized boolean lock(RepositoryFile file) {
-        if (!locks.containsKey(file.getIdentifier())) {
-            locks.put(file.getIdentifier(), file);
-            return true;
+    private CompletableFuture<File> storeFile(CompletableFuture<File> task, InputStream source, File targetFile) throws IOException {
+        File lockFile = new File(targetFile.getAbsolutePath() + ".lock");
+
+        if (lockFile.exists()) {
+            retryExecutorService.schedule(() -> {
+                ioExecutorService.submit(() -> {
+                    storeFile(task, source, targetFile);
+                    return null;
+                });
+            }, RETRY_WRITE_TIME, TimeUnit.MILLISECONDS);
+
+            return task;
         }
 
-        return false;
-    }
+        FileUtils.forceMkdirParent(targetFile);
+        Files.copy(source, lockFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        diskQuota.allocate(lockFile.length());
+        lockFile.renameTo(targetFile);
 
-    synchronized boolean unlock(RepositoryFile file) {
-        RepositoryFile locked = locks.get(file.getIdentifier());
-
-        if (file.equals(locked)) {
-            locks.remove(file.getIdentifier());
-            return true;
-        }
-
-        return false;
+        task.complete(targetFile);
+        return task;
     }
 
     File getFile(String path) {

@@ -29,6 +29,7 @@ import org.panda_lang.reposilite.ReposiliteContext;
 import org.panda_lang.reposilite.error.ErrorDto;
 import org.panda_lang.reposilite.error.FailureService;
 import org.panda_lang.reposilite.error.ResponseUtils;
+import org.panda_lang.reposilite.utils.OutputUtils;
 import org.panda_lang.reposilite.utils.Result;
 import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.function.Option;
@@ -106,17 +107,16 @@ final class ProxyService {
                     }
 
                     if (!storeProxied) {
-                        IOUtils.copy(remoteResponse.getContent(), context.output());
+                        if (!OutputUtils.mayBeClosed(context.output())) {
+                            IOUtils.copy(remoteResponse.getContent(), context.output());
+                        }
+
                         return proxiedTask.complete(Result.ok(response));
                     }
 
-                    Option<CompletableFuture<Result<LookupResponse, ErrorDto>>> storeResult = store(context, remoteUri, remoteResponse, response);
-
-                    if (storeResult.isEmpty()) {
-                        return proxiedTask.complete(Result.ok(response));
-                    }
-
-                    return proxiedTask.complete(storeResult.get().get());
+                    return store(context, remoteUri, remoteResponse, response)
+                            .onEmpty(() -> proxiedTask.complete(Result.ok(response)))
+                            .peek(task -> task.thenAccept(proxiedTask::complete));
                 } catch (Exception exception) {
                     Reposilite.getLogger().error("Proxied repository " + proxied + " is unavailable: " + exception.getMessage());
                     failureService.throwException(remoteUri, exception);
@@ -156,7 +156,11 @@ final class ProxyService {
                 remoteResponse::getContent,
                 () -> {
                     Reposilite.getLogger().info("Stored proxied " + proxiedFile);
-                    FileUtils.copyFile(proxiedFile, context.output());
+
+                    if (!OutputUtils.mayBeClosed(context.output())) {
+                        FileUtils.copyFile(proxiedFile, context.output());
+                    }
+
                     return response;
                 },
                 exception -> new ErrorDto(HttpStatus.SC_UNPROCESSABLE_ENTITY, "Cannot process artifact")));
