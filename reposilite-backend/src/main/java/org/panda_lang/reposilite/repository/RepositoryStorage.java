@@ -16,28 +16,17 @@
 
 package org.panda_lang.reposilite.repository;
 
-import org.apache.commons.io.FileUtils;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.config.Configuration;
 
 import java.io.File;
 import java.io.InputStream;
-import java.nio.channels.FileChannel;
-import java.nio.channels.FileLock;
-import java.nio.channels.OverlappingFileLockException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
-import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 final class RepositoryStorage {
-
-    protected static final long RETRY_WRITE_TIME = 1000L;
 
     private final Map<String, Repository> repositories = new LinkedHashMap<>(4);
     private final File rootDirectory;
@@ -87,20 +76,8 @@ final class RepositoryStorage {
     }
 
     void storeFileSync(InputStream source, File targetFile) throws Exception {
-        Path target = targetFile.toPath();
-        FileUtils.forceMkdirParent(targetFile);
-
-        try (FileChannel channel = FileChannel.open(target, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE)) {
-            FileLock lock = channel.lock();
-
-            Files.copy(Objects.requireNonNull(source), target, StandardCopyOption.REPLACE_EXISTING);
-            diskQuota.allocate(targetFile.length());
-
-            lock.release();
-        } catch (OverlappingFileLockException overlappingFileLockException) {
-            Thread.sleep(RETRY_WRITE_TIME);
-            storeFileSync(source, targetFile);
-        }
+        RepositoryFile repositoryFile = new RepositoryFile(diskQuota, targetFile);
+        repositoryFile.store(source);
     }
 
     File getFile(String path) {
