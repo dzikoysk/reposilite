@@ -27,15 +27,17 @@
           span.ml-3(:style="'color: ' + configuration.accentColor")
             i.fas.fa-feather-alt
       router-link(v-if="!isRoot()" :to='prefix + parentPath()') ← Back
-    FileEntry(
-      v-if="hasFiles()"
-      v-for="file in response.files"
-      :key="file.name"
-      :prefix="prefix"
-      :file="file"
-      :auth="auth")
-    h1(v-if="isEmpty()") Empty directory
-    h1(v-if="!hasFiles()").font-bold {{ response.message }}
+    .list.overflow-y-auto
+      FileEntry(
+        v-if="hasFiles()"
+        v-for="file in response.files"
+        :key="file.name"
+        :prefix="prefix"
+        :file="file"
+        :auth="auth"
+      )
+      h1(v-if="isEmpty()") Empty directory
+      h1(v-if="!hasFiles()").font-bold {{ response.message }}
     notifications(group="index" position="center top")
 </template>
 
@@ -97,3 +99,8 @@ export default {
   }
 }
 </script>
+
+<style lang="stylus">
+.list
+  max-height: 70vh
+</style>
