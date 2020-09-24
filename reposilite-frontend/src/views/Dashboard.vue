@@ -106,4 +106,5 @@ html, body
   width 100%
 #panel
     background-color #f8f8f8
+    max-height: 90vh
 </style>

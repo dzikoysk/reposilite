@@ -19,7 +19,7 @@ module.exports = {
     process.env.NODE_ENV === 'production'
       ? '{{REPOSILITE.VUE_BASE_PATH}}'
       : '/',
-  outputDir: '../reposilite-backend/src/main/resources/frontend/',
+  outputDir: '../reposilite-backend/src/main/resources/static/',
   filenameHashing: false,
   productionSourceMap: false,
   css: {

@@ -51,8 +51,8 @@ public final class FrontendService {
                 .register("{{REPOSILITE.ACCENT_COLOR}}", configuration.accentColor);
 
         return new FrontendService(
-                () -> formatter.format(FilesUtils.getResource("/frontend/index.html")),
-                () -> formatter.format(FilesUtils.getResource("/frontend/js/app.js"))
+                () -> formatter.format(FilesUtils.getResource("/static/index.html")),
+                () -> formatter.format(FilesUtils.getResource("/static/js/app.js"))
         );
     }
 
