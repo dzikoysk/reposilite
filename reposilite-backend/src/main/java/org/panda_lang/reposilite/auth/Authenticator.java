@@ -52,7 +52,7 @@ public final class Authenticator {
 
         Session session = authResult.getValue();
 
-        if (!session.hasPermission(uri)) {
+        if (!session.hasPermissionTo(uri)) {
             return Result.error("Unauthorized access attempt");
         }
 

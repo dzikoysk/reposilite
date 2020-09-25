@@ -26,10 +26,12 @@ public final class KeygenCommand implements ReposiliteCommand {
 
     private final String path;
     private final String alias;
+    private final String permissions;
 
-    public KeygenCommand(String path, String alias) {
+    public KeygenCommand(String path, String alias, String permissions) {
         this.path = path;
         this.alias = alias;
+        this.permissions = permissions;
     }
 
     @Override
@@ -44,7 +46,7 @@ public final class KeygenCommand implements ReposiliteCommand {
         Token previousToken = tokenService.getToken(alias);
 
         try {
-            Pair<String, Token> token = tokenService.createToken(processedPath, alias);
+            Pair<String, Token> token = tokenService.createToken(processedPath, alias, permissions);
             Reposilite.getLogger().info("Generated new access token for " + alias + " (" + processedPath + ")");
             Reposilite.getLogger().info(token.getKey());
             tokenService.saveTokens();

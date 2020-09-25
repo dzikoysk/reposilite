@@ -58,6 +58,10 @@ public final class TokenStorage {
         TokenCollection tokenCollection = YamlUtils.load(tokensFile, TokenCollection.class);
 
         for (Token token : tokenCollection.getTokens()) {
+            if (token.getPermissions() == null) {
+                token.setPermissions(Permission.READ.getName() + Permission.WRITE.getName());
+            }
+
             tokenService.addToken(token);
         }
 

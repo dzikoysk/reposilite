@@ -46,15 +46,15 @@ public final class TokenService {
         this.database.saveTokens();
     }
 
-    public Pair<String, Token> createToken(String path, String alias) {
+    public Pair<String, Token> createToken(String path, String alias, String permissions) {
         byte[] randomBytes = new byte[48];
         SECURE_RANDOM.nextBytes(randomBytes);
-        return createToken(path, alias, Base64.getEncoder().encodeToString(randomBytes));
+        return createToken(path, alias, permissions, Base64.getEncoder().encodeToString(randomBytes));
     }
 
-    public Pair<String, Token> createToken(String path, String alias, String token) {
+    public Pair<String, Token> createToken(String path, String alias, String permissions, String token) {
         String encodedToken = B_CRYPT_TOKENS_ENCODER.encode(token);
-        return new Pair<>(token, addToken(new Token(path, alias, encodedToken)));
+        return new Pair<>(token, addToken(new Token(path, alias, permissions, encodedToken)));
     }
 
     public Token addToken(Token token) {

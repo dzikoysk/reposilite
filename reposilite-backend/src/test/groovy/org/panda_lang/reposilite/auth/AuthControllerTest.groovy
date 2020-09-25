@@ -31,7 +31,7 @@ final class AuthControllerTest extends ReposiliteIntegrationTestSpecification {
 
     @BeforeEach
     void generateToken() {
-        reposilite.getTokenService().createToken('/', 'admin', 'secret')
+        reposilite.getTokenService().createToken('/', 'admin', 'rwm', 'secret')
         reposilite.getConfiguration().managers = Collections.singletonList('admin')
     }
 
