@@ -17,10 +17,9 @@
 package org.panda_lang.reposilite
 
 import groovy.transform.CompileStatic
-import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
-import org.panda_lang.reposilite.ReposiliteUtils
 import org.panda_lang.reposilite.config.Configuration
 import org.panda_lang.reposilite.error.FailureService
 import org.panda_lang.reposilite.repository.RepositoryService
@@ -34,13 +33,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals
 class ReposiliteUtilsTest {
 
     @TempDir
-    protected File temp
+    protected static File WORKING_DIRECTORY
+    private static RepositoryService REPOSITORY_SERVICE
 
-    private RepositoryService REPOSITORY_SERVICE
-
-    @BeforeEach
-    void prepare() {
-        REPOSITORY_SERVICE = new RepositoryService(temp.getAbsolutePath(), "0", Executors.newSingleThreadExecutor(), new FailureService())
+    @BeforeAll
+    static void prepare() {
+        REPOSITORY_SERVICE = new RepositoryService(WORKING_DIRECTORY.getAbsolutePath(), '0', Executors.newSingleThreadExecutor(), Executors.newSingleThreadScheduledExecutor(), new FailureService())
         REPOSITORY_SERVICE.load(new Configuration())
     }
 

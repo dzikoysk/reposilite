@@ -46,13 +46,13 @@ final class ProxyServiceTest extends ReposiliteTestSpecification {
     void configure() throws IOException {
         super.reposilite.getConfiguration().proxied = Collections.singletonList('http://localhost/')
 
-        this.executorService = super.reposilite.getExecutorService()
+        this.executorService = super.reposilite.getIoService()
         this.failureService = super.reposilite.getFailureService()
         this.proxyService = new ProxyService(
                 true,
                 true,
                 [],
-                super.reposilite.getExecutorService(),
+                super.reposilite.getIoService(),
                 failureService,
                 super.reposilite.getRepositoryService())
 

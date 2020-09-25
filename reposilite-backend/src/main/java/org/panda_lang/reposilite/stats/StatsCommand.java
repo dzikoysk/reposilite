@@ -23,6 +23,7 @@ import org.panda_lang.utilities.commons.console.Effect;
 
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.CompletableFuture;
 
 public final class StatsCommand implements ReposiliteCommand {
 
@@ -46,34 +47,43 @@ public final class StatsCommand implements ReposiliteCommand {
 
     @Override
     public boolean execute(Reposilite reposilite) {
-        StatsService statsService = reposilite.getStatsService();
-
-        Reposilite.getLogger().info("");
-        Reposilite.getLogger().info("Statistics: ");
-        Reposilite.getLogger().info("  Unique requests: " + statsService.countUniqueRecords() + " (count: " + statsService.countRecords() + ")");
-
-        Map<String, Integer> stats = statsService.fetchStats(
-                (uri, counts) -> counts >= limiter,
-                (uri, counts) -> uri.contains(pattern),
-                (uri, counts) -> !uri.endsWith(".md5"),
-                (uri, counts) -> !uri.endsWith(".sha1"),
-                (uri, counts) -> !uri.endsWith(".pom"),
-                (uri, counts) -> !uri.endsWith("/js/app.js")
-        );
-
-        Reposilite.getLogger().info("  Recorded: " + (stats.isEmpty() ? "[] " : "") +" (limiter: " + highlight(limiter) + ", pattern: '" + highlight(pattern) + "')");
-        int order = 0;
-
-        for (Entry<String, Integer> entry : stats.entrySet()) {
-            Reposilite.getLogger().info("    " + (++order) + ". (" + entry.getValue() + ") " + entry.getKey());
-
-            if (limiter == -1 && order == TOP_SIZE) {
-                break;
-            }
+        try {
+            execute(reposilite.getStatsService()).get();
+            return true;
+        } catch (Exception exception) {
+            exception.printStackTrace();
+            return false;
         }
+    }
 
-        Reposilite.getLogger().info("");
-        return true;
+    private CompletableFuture<Void> execute(StatsService statsService) {
+        return statsService.loadAggregatedStats().thenAccept(aggregatedStats -> {
+            Reposilite.getLogger().info("");
+            Reposilite.getLogger().info("Statistics: ");
+            Reposilite.getLogger().info("  Unique requests: " + aggregatedStats.countUniqueRecords() + " (count: " + aggregatedStats.countRecords() + ")");
+
+            Map<String, Integer> stats = aggregatedStats.fetchStats(
+                    (uri, counts) -> counts >= limiter,
+                    (uri, counts) -> uri.contains(pattern),
+                    (uri, counts) -> !uri.endsWith(".md5"),
+                    (uri, counts) -> !uri.endsWith(".sha1"),
+                    (uri, counts) -> !uri.endsWith(".pom"),
+                    (uri, counts) -> !uri.endsWith("/js/app.js")
+            );
+
+            Reposilite.getLogger().info("  Recorded: " + (stats.isEmpty() ? "[] " : "") +" (limiter: " + highlight(limiter) + ", pattern: '" + highlight(pattern) + "')");
+            int order = 0;
+
+            for (Entry<String, Integer> entry : stats.entrySet()) {
+                Reposilite.getLogger().info("    " + (++order) + ". (" + entry.getValue() + ") " + entry.getKey());
+
+                if (limiter == -1 && order == TOP_SIZE) {
+                    break;
+                }
+            }
+
+            Reposilite.getLogger().info("");
+        });
     }
 
     private String highlight(Object value) {

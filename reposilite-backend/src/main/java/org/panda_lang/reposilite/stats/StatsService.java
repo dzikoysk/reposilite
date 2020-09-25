@@ -16,61 +16,39 @@
 
 package org.panda_lang.reposilite.stats;
 
+import org.panda_lang.reposilite.error.FailureService;
+
 import java.io.IOException;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.function.BiPredicate;
-import java.util.stream.Collectors;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
 
 public final class StatsService {
 
-    private final StatsEntity entity;
+    private final StatsEntity instanceStats = new StatsEntity();
     private final StatsStorage statsStorage;
 
-    public StatsService(String workingDirectory) {
-        this.entity = new StatsEntity();
-        this.statsStorage = new StatsStorage(workingDirectory);
-    }
-
-    public void saveStats() throws IOException {
-        statsStorage.saveStats(entity);
-    }
-
-    public void loadStats() throws IOException {
-        StatsEntity storedEntity = statsStorage.loadStats();
-        entity.setRecords(storedEntity.getRecords());
+    public StatsService(String workingDirectory, FailureService failureService, ExecutorService ioService, ScheduledExecutorService retryService) {
+        this.statsStorage = new StatsStorage(workingDirectory, failureService, ioService, retryService);
     }
 
     public void record(String uri) {
-        entity.getRecords().compute(uri, (key, count) -> (count == null) ? 1 : count + 1);
+        instanceStats.getRecords().compute(uri, (key, count) -> (count == null) ? 1 : count + 1);
     }
 
-    @SafeVarargs
-    public final Map<String, Integer> fetchStats(BiPredicate<String, Integer>... filters) {
-        return entity.getRecords().entrySet().stream()
-                .filter(entry -> {
-                    for (BiPredicate<String, Integer> filter : filters) {
-                        if (!filter.test(entry.getKey(), entry.getValue())) {
-                            return false;
-                        }
-                    }
-
-                    return true;
-                })
-                .sorted(Entry.comparingByValue(Comparator.reverseOrder()))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,(oldValue, newValue) -> oldValue, LinkedHashMap::new));
+    public void saveStats() throws IOException, ExecutionException, InterruptedException {
+        statsStorage.saveStats(loadAggregatedStats().get().getAggregatedStatsEntity());
     }
 
-    public int countRecords() {
-        return entity.getRecords().values().stream()
-                .mapToInt(Integer::intValue)
-                .sum();
-    }
+    public CompletableFuture<AggregatedStats> loadAggregatedStats() {
+        return statsStorage.loadStoredStats().thenApply(aggregatedStats -> {
+            instanceStats.getRecords().forEach((key, value) -> {
+                aggregatedStats.getRecords().merge(key, value, Integer::sum);
+            });
 
-    public int countUniqueRecords() {
-        return entity.getRecords().size();
+            return new AggregatedStats(aggregatedStats);
+        });
     }
 
 }

@@ -16,32 +16,35 @@
 
 package org.panda_lang.reposilite.stats
 
+import groovy.transform.CompileStatic
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.io.TempDir
-import org.panda_lang.reposilite.error.FailureService
-
-import java.util.concurrent.Executors
 
 import static org.junit.jupiter.api.Assertions.assertEquals
 
-class StatsServiceTest {
+@CompileStatic
+class AggregatedStatsTest {
 
-    @TempDir
-    protected static File WORKING_DIRECTORY
+    @Test
+    void 'should count records' () {
+        def stats = new StatsEntity()
+        def entity = new AggregatedStats(stats)
 
-    private StatsService service = new StatsService(WORKING_DIRECTORY.getAbsolutePath(), new FailureService(), Executors.newSingleThreadExecutor(), Executors.newSingleThreadScheduledExecutor())
+        assertEquals 0, entity.countRecords()
+        stats.records.put('/record', 1)
+        assertEquals 1, entity.countRecords()
+    }
 
     @Test
     void 'should count unique records' () {
-        assertEquals 0, service.loadAggregatedStats().get().countRecords()
+        def stats = new StatsEntity()
+        def entity = new AggregatedStats(stats)
+        assertEquals 0, entity.countRecords()
 
-        service.record('/record1')
-        service.record('/record1')
-        assertEquals 1, service.loadAggregatedStats().get().countUniqueRecords()
+        stats.records.put('/record1', 2)
+        assertEquals 1, entity.countUniqueRecords()
 
-        service.record('/record2')
-        service.record('/record2')
-        assertEquals 2, service.loadAggregatedStats().get().countUniqueRecords()
+        stats.records.put('/record2', 2)
+        assertEquals 2, entity.countUniqueRecords()
     }
 
 }

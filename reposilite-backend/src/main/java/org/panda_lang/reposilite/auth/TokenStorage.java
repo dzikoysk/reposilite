@@ -23,6 +23,8 @@ import org.panda_lang.reposilite.utils.YamlUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 
 public final class TokenStorage {
@@ -40,7 +42,7 @@ public final class TokenStorage {
             File legacyTokensFile = new File(tokensFile.getAbsolutePath().replace(".dat", ".yml"));
 
             if (legacyTokensFile.exists()) {
-                legacyTokensFile.renameTo(tokensFile);
+                Files.move(legacyTokensFile.toPath(), tokensFile.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
                 Reposilite.getLogger().info("Legacy tokens file has been converted to dat file");
             }
             else {

@@ -23,6 +23,8 @@ import org.yaml.snakeyaml.representer.Representer;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 
 public final class YamlUtils {
 
@@ -40,7 +42,17 @@ public final class YamlUtils {
     }
 
     public static void save(File file, Object value) throws IOException {
-        FileUtils.overrideFile(file, YAML.dump(value));
+        File lockedFile = new File(file.getAbsolutePath() + ".lock");
+
+        if (file.exists()) {
+            Files.move(file.toPath(), lockedFile.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+        }
+
+        try {
+            FileUtils.overrideFile(lockedFile, YAML.dump(value));
+        } finally {
+            Files.move(lockedFile.toPath(), file.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+        }
     }
 
 }

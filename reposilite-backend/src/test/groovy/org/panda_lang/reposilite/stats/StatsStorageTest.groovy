@@ -20,7 +20,10 @@ import groovy.transform.CompileStatic
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.panda_lang.reposilite.ReposiliteConstants
+import org.panda_lang.reposilite.error.FailureService
 import org.panda_lang.utilities.commons.FileUtils
+
+import java.util.concurrent.Executors
 
 import static org.junit.jupiter.api.Assertions.assertEquals
 import static org.junit.jupiter.api.Assertions.assertTrue
@@ -33,10 +36,10 @@ final class StatsStorageTest {
 
     @Test
     void 'should convert old data file' () {
-        def statsStorage = new StatsStorage(workingDirectory.getAbsolutePath())
+        def statsStorage = new StatsStorage(workingDirectory.getAbsolutePath(), new FailureService(), Executors.newSingleThreadExecutor(), Executors.newSingleThreadScheduledExecutor())
 
         FileUtils.overrideFile(new File(workingDirectory, 'stats.yml'), 'records: {}')
-        statsStorage.loadStats()
+        statsStorage.loadStoredStats().get()
 
         def dataFile = new File(workingDirectory, ReposiliteConstants.STATS_FILE_NAME)
         assertTrue dataFile.exists()
