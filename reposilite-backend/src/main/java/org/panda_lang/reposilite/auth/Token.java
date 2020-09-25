@@ -22,11 +22,13 @@ public final class Token implements Serializable {
 
     private String alias;
     private String path;
+    private String permissions;
     private String token;
 
-    public Token(String path, String alias, String token) {
+    public Token(String path, String alias, String permissions, String token) {
         this.alias = alias;
         this.path = path;
+        this.permissions = permissions;
         this.token = token;
     }
 
@@ -48,6 +50,14 @@ public final class Token implements Serializable {
 
     public String getToken() {
         return token;
+    }
+
+    public void setPermissions(String permissions) {
+        this.permissions = permissions;
+    }
+
+    public String getPermissions() {
+        return permissions;
     }
 
     public void setAlias(String alias) {

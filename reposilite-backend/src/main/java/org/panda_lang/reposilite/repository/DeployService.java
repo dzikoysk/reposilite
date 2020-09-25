@@ -20,6 +20,7 @@ import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.ReposiliteContext;
 import org.panda_lang.reposilite.auth.Authenticator;
+import org.panda_lang.reposilite.auth.Permission;
 import org.panda_lang.reposilite.auth.Session;
 import org.panda_lang.reposilite.error.ErrorDto;
 import org.panda_lang.reposilite.error.ResponseUtils;
@@ -30,8 +31,6 @@ import java.io.File;
 import java.util.concurrent.CompletableFuture;
 
 public final class DeployService {
-
-    protected static final int RETRY_WRITE_TIME = 1000;
 
     private final boolean deployEnabled;
     private final Authenticator authenticator;
@@ -57,7 +56,7 @@ public final class DeployService {
 
         Result<Session, String> authResult = this.authenticator.authByUri(context.headers(), context.uri());
 
-        if (authResult.containsError()) {
+        if (authResult.containsError() || !authResult.getValue().hasPermission(Permission.WRITE)) {
             return ResponseUtils.error(HttpStatus.SC_UNAUTHORIZED, authResult.getError());
         }
 

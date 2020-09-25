@@ -35,10 +35,14 @@ public final class Session {
     }
 
     public boolean isManager() {
-        return manager;
+        return manager || hasPermission(Permission.MANAGER);
     }
 
-    public boolean hasPermission(String path) {
+    public boolean hasPermission(Permission permission) {
+        return token.getPermissions().contains(permission.getName());
+    }
+
+    public boolean hasPermissionTo(String path) {
         String tokenPath = token.getPath();
 
         if (token.isWildcard()) {

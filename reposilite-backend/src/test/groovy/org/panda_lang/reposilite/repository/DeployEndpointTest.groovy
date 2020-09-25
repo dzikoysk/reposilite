@@ -1,14 +1,14 @@
 /*
  * Copyright (c) 2020 Dzikoysk
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the 'License');
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
+ * distributed under the License is distributed on an 'AS IS' BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
@@ -42,7 +42,7 @@ class DeployEndpointTest extends ReposiliteIntegrationTestSpecification {
 
     @BeforeEach
     void configure() {
-        super.reposilite.getTokenService().createToken("/releases/auth/test", "authtest", "secure")
+        super.reposilite.getTokenService().createToken('/releases/auth/test', 'authtest', 'rwm', 'secure')
     }
 
     @Test
@@ -53,7 +53,7 @@ class DeployEndpointTest extends ReposiliteIntegrationTestSpecification {
                 reposilite.getRepositoryService(),
                 reposilite.getMetadataService())
 
-        def result = deployService.deploy(new ReposiliteContext("/releases/groupId/artifactId/file", "GET", "", [:], { null }, { null }))
+        def result = deployService.deploy(new ReposiliteContext('/releases/groupId/artifactId/file', 'GET', '', [:], { null }, { null }))
         assertTrue result.containsError()
 
         def error = result.getError()
@@ -63,17 +63,17 @@ class DeployEndpointTest extends ReposiliteIntegrationTestSpecification {
 
     @Test
     void 'should return 401 and invalid credentials message' () throws Exception {
-        shouldReturnErrorWithGivenMessage "/releases/groupId/artifactId/file", "authtest", "invalid_token", "content", HttpStatus.SC_UNAUTHORIZED, "Invalid authorization credentials"
+        shouldReturnErrorWithGivenMessage '/releases/groupId/artifactId/file', 'authtest', 'invalid_token', 'content', HttpStatus.SC_UNAUTHORIZED, 'Invalid authorization credentials'
     }
 
     @Test
     void 'should return 200 and success message for metadata files' () throws IOException, AuthenticationException {
-        shouldReturn200AndSuccessMessage "/releases/auth/test/maven-metadata.xml", "authtest", "secure", StringUtils.EMPTY
+        shouldReturn200AndSuccessMessage '/releases/auth/test/maven-metadata.xml', 'authtest', 'secure', StringUtils.EMPTY
     }
 
     @Test
     void 'should return 200 and success message'() throws IOException, AuthenticationException {
-        shouldReturn200AndSuccessMessage "/releases/auth/test/pom.xml", "authtest", "secure", "maven metadata content"
+        shouldReturn200AndSuccessMessage '/releases/auth/test/pom.xml', 'authtest', 'secure', 'maven metadata content'
     }
 
     private void shouldReturn200AndSuccessMessage(String uri, String username, String password, String content) throws IOException, AuthenticationException {

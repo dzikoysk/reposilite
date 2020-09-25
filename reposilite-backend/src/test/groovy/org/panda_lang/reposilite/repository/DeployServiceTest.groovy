@@ -39,7 +39,7 @@ class DeployServiceTest extends ReposiliteTestSpecification {
                 new RepositoryService(super.workingDirectory.getAbsolutePath(), '0MB', Executors.newSingleThreadExecutor(), Executors.newSingleThreadScheduledExecutor(), new FailureService()),
                 super.reposilite.metadataService)
 
-        super.reposilite.tokenService.createToken('/', 'user', 'secret')
+        super.reposilite.tokenService.createToken('/', 'user', 'rw', 'secret')
         def auth = [ 'Authorization': 'Basic ' + 'user:secret'.bytes.encodeBase64() ]
 
         def context = new ReposiliteContext('/releases/a/b/c.txt', 'POST', '', auth, { new ByteArrayInputStream('test'.bytes) }, {})
