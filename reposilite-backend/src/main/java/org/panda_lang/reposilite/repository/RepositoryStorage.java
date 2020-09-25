@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -40,17 +39,18 @@ final class RepositoryStorage {
     private static final long RETRY_WRITE_TIME = 2000L;
 
     private final Map<String, Repository> repositories = new LinkedHashMap<>(4);
-    private final ScheduledExecutorService retryExecutorService = Executors.newSingleThreadScheduledExecutor();
 
     private final File rootDirectory;
     private final DiskQuota diskQuota;
-    private final ExecutorService ioExecutorService;
+    private final ExecutorService ioService;
+    private final ScheduledExecutorService retryService;
     private Repository primaryRepository;
 
-    RepositoryStorage(File rootDirectory, String diskQuota, ExecutorService ioExecutorService) {
+    RepositoryStorage(File rootDirectory, String diskQuota, ExecutorService ioService, ScheduledExecutorService retryService) {
         this.rootDirectory = rootDirectory;
         this.diskQuota = DiskQuota.of(getRootDirectory().getParentFile(), diskQuota);
-        this.ioExecutorService = ioExecutorService;
+        this.ioService = ioService;
+        this.retryService = retryService;
     }
 
     void load(Configuration configuration) {
@@ -95,11 +95,11 @@ final class RepositoryStorage {
     }
 
     private CompletableFuture<File> storeFile(CompletableFuture<File> task, InputStream source, File targetFile) throws IOException {
-        File lockFile = new File(targetFile.getAbsolutePath() + ".lock");
+        File lockedFile = new File(targetFile.getAbsolutePath() + ".lock");
 
-        if (lockFile.exists()) {
-            retryExecutorService.schedule(() -> {
-                ioExecutorService.submit(() -> {
+        if (lockedFile.exists()) {
+            retryService.schedule(() -> {
+                ioService.submit(() -> {
                     storeFile(task, source, targetFile);
                     return null;
                 });
@@ -109,9 +109,11 @@ final class RepositoryStorage {
         }
 
         FileUtils.forceMkdirParent(targetFile);
-        Files.copy(source, lockFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-        diskQuota.allocate(lockFile.length());
-        lockFile.renameTo(targetFile);
+        targetFile.renameTo(lockedFile);
+
+        Files.copy(source, lockedFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        diskQuota.allocate(lockedFile.length());
+        lockedFile.renameTo(targetFile);
 
         task.complete(targetFile);
         return task;

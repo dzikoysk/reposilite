@@ -48,7 +48,7 @@ public final class ReposiliteHttpServer {
         LookupController lookupController = new LookupController(
                 configuration,
                 reposilite.getContextFactory(),
-                reposilite.getExecutorService(),
+                reposilite.getIoService(),
                 reposilite.getFrontendService(),
                 reposilite.getLookupService(),
                 reposilite.getRepositoryService(),
