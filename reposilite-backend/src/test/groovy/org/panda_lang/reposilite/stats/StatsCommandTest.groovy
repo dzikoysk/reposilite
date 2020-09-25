@@ -40,7 +40,7 @@ class StatsCommandTest extends ReposiliteTestSpecification {
         statsService.record('/record')
         callDefaultStatusCommand()
 
-        Thread.sleep(10) // make sure that tinylog service had a chance to store log
+        Thread.sleep(100) // make sure that tinylog service had a chance to store log
         assertTrue ReposiliteWriter.contains('/record')
     }
 
@@ -59,7 +59,7 @@ class StatsCommandTest extends ReposiliteTestSpecification {
         def statsCommand = new StatsCommand(2)
         statsCommand.execute(super.reposilite)
 
-        Thread.sleep(10) // make sure that tinylog service had a chance to store log
+        Thread.sleep(100) // make sure that tinylog service had a chance to store log
         Arrays.stream(records).forEach({ record -> assertFalse ReposiliteWriter.contains(record) })
     }
 
@@ -78,6 +78,7 @@ class StatsCommandTest extends ReposiliteTestSpecification {
         def statsCommand = new StatsCommand(2)
         statsCommand.execute(super.reposilite)
 
+        Thread.sleep(100) // make sure that tinylog service had a chance to store log
         IntStream.range(0, 10).forEach({ i -> assertTrue ReposiliteWriter.contains('/' + i) })
         IntStream.range(10, 20).forEach({ i -> assertFalse ReposiliteWriter.contains('/' + i) })
     }

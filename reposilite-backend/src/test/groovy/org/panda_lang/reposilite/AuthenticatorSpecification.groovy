@@ -30,7 +30,7 @@ import java.util.concurrent.Executors
 @CompileStatic
 class AuthenticatorSpecification {
 
-    static final RepositoryService REPOSITORY_SERVICE = new RepositoryService(".", "0", Executors.newSingleThreadExecutor(), new FailureService())
+    static final RepositoryService REPOSITORY_SERVICE = new RepositoryService('.', '0', Executors.newSingleThreadExecutor(), Executors.newSingleThreadScheduledExecutor(), new FailureService())
 
     static final TokenService TOKEN_SERVICE = new TokenService(".")
     static final Token AUTH_TOKEN = new Token("/auth/test", "alias", TokenService.B_CRYPT_TOKENS_ENCODER.encode("secret"))

@@ -37,7 +37,7 @@ class SessionTest {
 
     @BeforeAll
     static void prepare () {
-        REPOSITORY_SERVICE = new RepositoryService(WORKING_DIRECTORY.getAbsolutePath(), "0", Executors.newSingleThreadExecutor(), new FailureService())
+        REPOSITORY_SERVICE = new RepositoryService(WORKING_DIRECTORY.getAbsolutePath(), '0', Executors.newSingleThreadExecutor(), Executors.newSingleThreadScheduledExecutor(), new FailureService())
         REPOSITORY_SERVICE.load(new Configuration())
     }
 

@@ -109,11 +109,14 @@ final class RepositoryStorage {
         }
 
         FileUtils.forceMkdirParent(targetFile);
-        targetFile.renameTo(lockedFile);
+
+        if (targetFile.exists()) {
+            Files.move(targetFile.toPath(), lockedFile.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+        }
 
         Files.copy(source, lockedFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
         diskQuota.allocate(lockedFile.length());
-        lockedFile.renameTo(targetFile);
+        Files.move(lockedFile.toPath(), targetFile.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
 
         task.complete(targetFile);
         return task;
