@@ -1,5 +1,6 @@
 ### Reposilite ###
 stats.yml
+stats.dat
 maven-metadata.xml*
 
 ### Maven ###

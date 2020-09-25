@@ -33,6 +33,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Function;
 
 public final class RepositoryService {
@@ -40,9 +41,15 @@ public final class RepositoryService {
     private final FailureService failureService;
     private final RepositoryStorage repositoryStorage;
 
-    public RepositoryService(String workingDirectory, String diskQuota, ExecutorService ioExecutorService, FailureService failureService) {
+    public RepositoryService(
+            String workingDirectory,
+            String diskQuota,
+            ExecutorService ioService,
+            ScheduledExecutorService retryService,
+            FailureService failureService) {
+
         this.failureService = failureService;
-        this.repositoryStorage = new RepositoryStorage(new File(workingDirectory, "repositories"), diskQuota, ioExecutorService);
+        this.repositoryStorage = new RepositoryStorage(new File(workingDirectory, "repositories"), diskQuota, ioService, retryService);
     }
 
     public void load(Configuration configuration) {

@@ -40,6 +40,8 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -50,7 +52,8 @@ public final class Reposilite {
     private static final Logger LOGGER = LoggerFactory.getLogger("Reposilite");
 
     private final AtomicBoolean alive;
-    private final ExecutorService executorService;
+    private final ExecutorService ioService;
+    private final ScheduledExecutorService retryService;
     private final File configurationFile;
     private final File workingDirectory;
     private final boolean testEnvEnabled;
@@ -78,7 +81,8 @@ public final class Reposilite {
         ValidationUtils.notNull(workingDirectory, "Working directory cannot be null. To use default working directory, provide empty string");
 
         this.alive = new AtomicBoolean(false);
-        this.executorService = new ThreadPoolExecutor(0, Integer.MAX_VALUE, 1, TimeUnit.SECONDS, new SynchronousQueue<>());
+        this.ioService = new ThreadPoolExecutor(0, Integer.MAX_VALUE, 1, TimeUnit.SECONDS, new SynchronousQueue<>());
+        this.retryService = Executors.newSingleThreadScheduledExecutor();
         this.configurationFile = new File(configurationFile);
         this.workingDirectory = new File(workingDirectory);
         this.testEnvEnabled = testEnv;
@@ -88,8 +92,8 @@ public final class Reposilite {
         this.failureService = new FailureService();
         this.executor = new ReposiliteExecutor(testEnvEnabled, failureService);
         this.tokenService = new TokenService(workingDirectory);
-        this.statsService = new StatsService(workingDirectory);
-        this.repositoryService = new RepositoryService(workingDirectory, configuration.diskQuota, executorService, failureService);
+        this.statsService = new StatsService(workingDirectory, failureService, ioService, retryService);
+        this.repositoryService = new RepositoryService(workingDirectory, configuration.diskQuota, ioService, retryService, failureService);
         this.metadataService = new MetadataService(failureService);
 
         this.authenticator = new Authenticator(configuration, repositoryService, tokenService);
@@ -120,7 +124,6 @@ public final class Reposilite {
         Runtime.getRuntime().addShutdownHook(this.shutdownHook);
 
         getLogger().info("--- Loading data");
-        statsService.loadStats();
         tokenService.loadTokens();
 
         getLogger().info("");
@@ -249,8 +252,12 @@ public final class Reposilite {
         return executor;
     }
 
-    public ExecutorService getExecutorService() {
-        return executorService;
+    public ScheduledExecutorService getRetryService() {
+        return retryService;
+    }
+
+    public ExecutorService getIoService() {
+        return ioService;
     }
 
     public static Logger getLogger() {
