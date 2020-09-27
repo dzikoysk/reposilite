@@ -81,7 +81,7 @@ public class Console {
                         .orElseGet(new StatsCommand(elements[1]))
                         .execute(reposilite);
             case "keygen":
-                return new KeygenCommand(elements[1], elements[2], ArrayUtils.get(elements, 3).orElseGet("rw")).execute(reposilite);
+                return new KeygenCommand(elements[1], elements[2], ArrayUtils.get(elements, 3).orElseGet("w")).execute(reposilite);
             case "revoke":
                 return new RevokeCommand(elements[1]).execute(reposilite);
             default:

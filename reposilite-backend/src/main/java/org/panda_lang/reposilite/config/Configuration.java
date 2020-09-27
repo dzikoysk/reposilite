@@ -72,6 +72,7 @@ public final class Configuration implements Serializable {
     @Description("")
     @Description("# Accept deployment connections")
     public Boolean deployEnabled = true;
+    @Deprecated
     @Description("# List of management tokens used by dashboard to access extra options.")
     @Description("# (By default, people are allowed to use standard dashboard options related to the associated path)")
     public List<String> managers = Collections.emptyList();

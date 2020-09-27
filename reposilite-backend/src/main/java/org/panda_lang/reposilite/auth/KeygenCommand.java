@@ -47,7 +47,7 @@ public final class KeygenCommand implements ReposiliteCommand {
 
         try {
             Pair<String, Token> token = tokenService.createToken(processedPath, alias, permissions);
-            Reposilite.getLogger().info("Generated new access token for " + alias + " (" + processedPath + ")");
+            Reposilite.getLogger().info("Generated new access token for " + alias + " (" + processedPath + ") with '" + permissions + "' permissions");
             Reposilite.getLogger().info(token.getKey());
             tokenService.saveTokens();
             return true;

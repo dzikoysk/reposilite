@@ -26,7 +26,7 @@ public final class TokenListCommand implements ReposiliteCommand {
         Reposilite.getLogger().info("Tokens (" + reposilite.getTokenService().count() + ")");
 
         for (Token token : reposilite.getTokenService().getTokens()) {
-            Reposilite.getLogger().info(token.getPath() + " as " + token.getAlias());
+            Reposilite.getLogger().info(token.getPath() + " as " + token.getAlias() + " with '" + token.getPermissions() + "' permissions");
         }
 
         return true;

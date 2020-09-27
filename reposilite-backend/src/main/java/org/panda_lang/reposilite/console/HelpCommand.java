@@ -34,7 +34,7 @@ public final class HelpCommand implements ReposiliteCommand {
         Reposilite.getLogger().info("  status - Display summary status of app health");
         Reposilite.getLogger().info("  stats [<limiter>/<pattern>] - Display collected metrics and (optional) filter them using the given limiter or pattern");
         Reposilite.getLogger().info("  tokens - List all generated tokens");
-        Reposilite.getLogger().info("  keygen <path> <alias> <permissions:r/w/m> - Generate a new access token for the given path");
+        Reposilite.getLogger().info("  keygen <path> <alias> <permissions> - Generate a new access token for the given path");
         Reposilite.getLogger().info("  revoke <alias> - Revoke token");
         Reposilite.getLogger().info("  purge - Clear cache");
         Reposilite.getLogger().info("  stop - Shutdown server");
