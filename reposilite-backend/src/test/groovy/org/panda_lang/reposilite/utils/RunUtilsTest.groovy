@@ -19,8 +19,7 @@ package org.panda_lang.reposilite.utils
 import groovy.transform.CompileStatic
 import org.junit.jupiter.api.Test
 import org.panda_lang.reposilite.error.FailureService
-
-import java.util.stream.Collectors
+import org.panda_lang.utilities.commons.collection.Pair
 
 import static org.junit.jupiter.api.Assertions.assertTrue
 
@@ -34,10 +33,10 @@ class RunUtilsTest {
         def exception = new RuntimeException('RunUtilsTest')
         RunUtils.ofChecked(failureService, { throw exception }).run()
 
-        assertTrue failureService.getExceptions().stream()
-                .map({ pair -> pair.getValue() })
-                .collect(Collectors.toList())
-                .contains(exception)
+        assertTrue failureService.exceptions.stream()
+            .map({ Pair<String, Throwable> pair -> pair.getValue() })
+            .collect()
+            .contains(exception)
     }
 
 }
