@@ -56,8 +56,14 @@ public final class DeployService {
 
         Result<Session, String> authResult = this.authenticator.authByUri(context.headers(), context.uri());
 
-        if (authResult.containsError() || !authResult.getValue().hasPermission(Permission.WRITE)) {
+        if (authResult.containsError()) {
             return ResponseUtils.error(HttpStatus.SC_UNAUTHORIZED, authResult.getError());
+        }
+
+        Session session = authResult.getValue();
+
+        if (!session.hasPermission(Permission.WRITE) && !session.isManager()) {
+            return ResponseUtils.error(HttpStatus.SC_UNAUTHORIZED, "Cannot deploy artifact without write permission");
         }
 
         if (!repositoryService.getDiskQuota().hasUsableSpace()) {

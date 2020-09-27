@@ -31,6 +31,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue
 @CompileStatic
 class DeployServiceTest extends ReposiliteTestSpecification {
 
+    private static final String ALIAS = 'user'
+    private static final String TOKEN = 'secret'
+
     @Test
     void 'should respect disk quota' () {
         def deployService = new DeployService(
@@ -39,16 +42,34 @@ class DeployServiceTest extends ReposiliteTestSpecification {
                 new RepositoryService(super.workingDirectory.getAbsolutePath(), '0MB', Executors.newSingleThreadExecutor(), Executors.newSingleThreadScheduledExecutor(), new FailureService()),
                 super.reposilite.metadataService)
 
-        super.reposilite.tokenService.createToken('/', 'user', 'rw', 'secret')
-        def auth = [ 'Authorization': 'Basic ' + 'user:secret'.bytes.encodeBase64() ]
+        super.reposilite.tokenService.createToken('/', ALIAS, 'rw', TOKEN)
+        def context = createAuthenticatedContext('/releases/a/b/c.txt')
 
-        def context = new ReposiliteContext('/releases/a/b/c.txt', 'POST', '', auth, { new ByteArrayInputStream('test'.bytes) }, {})
         def result = deployService.deploy(context)
         assertTrue result.containsError()
 
         def error = result.getError()
         assertEquals HttpStatus.SC_INSUFFICIENT_STORAGE, error.status
         assertEquals 'Out of disk space', error.message
+    }
+
+    @Test
+    void 'should check write permission' () {
+        super.reposilite.getTokenService().createToken('/', ALIAS, 'r', TOKEN)
+        def deployService = super.reposilite.getDeployService()
+
+        def context = createAuthenticatedContext('/releases/a/b/c.txt')
+        def result = deployService.deploy(context)
+        assertTrue result.containsError()
+
+        def error = result.getError()
+        assertEquals HttpStatus.SC_UNAUTHORIZED, error.status
+        assertEquals 'Cannot deploy artifact without write permission', error.message
+    }
+
+    private static ReposiliteContext createAuthenticatedContext(String uri) {
+        def auth = [ 'Authorization': 'Basic ' + (ALIAS + ':' + TOKEN).bytes.encodeBase64() ]
+        return new ReposiliteContext(uri, 'POST', '', auth, { new ByteArrayInputStream('test'.bytes) }, {})
     }
 
 }
