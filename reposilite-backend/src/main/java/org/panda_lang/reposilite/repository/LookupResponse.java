@@ -16,6 +16,7 @@
 
 package org.panda_lang.reposilite.repository;
 
+import org.panda_lang.reposilite.utils.FilesUtils;
 import org.panda_lang.utilities.commons.function.Option;
 
 final class LookupResponse {
@@ -38,7 +39,7 @@ final class LookupResponse {
         this.value = Option.none();
         this.fileDetails = Option.of(fileDetails);
         this.contentType = Option.of(fileDetails.getContentType());
-        this.attachment = true;
+        this.attachment = !FilesUtils.isReadable(fileDetails.getName());
     }
 
     private LookupResponse() {

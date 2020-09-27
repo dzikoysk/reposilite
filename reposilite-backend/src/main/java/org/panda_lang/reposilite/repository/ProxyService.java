@@ -29,6 +29,7 @@ import org.panda_lang.reposilite.ReposiliteContext;
 import org.panda_lang.reposilite.error.ErrorDto;
 import org.panda_lang.reposilite.error.FailureService;
 import org.panda_lang.reposilite.error.ResponseUtils;
+import org.panda_lang.reposilite.utils.ArrayUtils;
 import org.panda_lang.reposilite.utils.OutputUtils;
 import org.panda_lang.reposilite.utils.Result;
 import org.panda_lang.utilities.commons.StringUtils;
@@ -99,7 +100,9 @@ final class ProxyService {
                     }
 
                     long contentLength = Option.of(remoteResponse.getHeaders().getContentLength()).orElseGet(0L);
-                    FileDetailsDto fileDetails = new FileDetailsDto(FileDetailsDto.FILE, remoteUri, "", remoteResponse.getContentType(), contentLength);
+                    String[] path = remoteUri.split("/");
+
+                    FileDetailsDto fileDetails = new FileDetailsDto(FileDetailsDto.FILE, ArrayUtils.getLast(path), "", remoteResponse.getContentType(), contentLength);
                     LookupResponse response = new LookupResponse(fileDetails);
 
                     if (context.method().equals("HEAD")) {
