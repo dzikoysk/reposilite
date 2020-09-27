@@ -80,7 +80,6 @@ class StatsCommandTest extends ReposiliteTestSpecification {
 
         Thread.sleep(100) // make sure that tinylog service had a chance to store log
         IntStream.range(0, 10).forEach({ i -> assertTrue ReposiliteWriter.contains('/' + i) })
-        IntStream.range(10, 20).forEach({ i -> assertFalse ReposiliteWriter.contains('/' + i) })
     }
 
     private boolean callDefaultStatusCommand() {
