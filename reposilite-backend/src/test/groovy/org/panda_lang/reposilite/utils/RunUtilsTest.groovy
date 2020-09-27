@@ -18,25 +18,26 @@ package org.panda_lang.reposilite.utils
 
 import groovy.transform.CompileStatic
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.io.TempDir
 import org.panda_lang.reposilite.error.FailureService
+
+import java.util.stream.Collectors
 
 import static org.junit.jupiter.api.Assertions.assertTrue
 
 @CompileStatic
 class RunUtilsTest {
 
-    @TempDir
-    public File workingDirectory
-
     @Test
     void 'should log exception ' () {
         def failureService = new FailureService()
 
         def exception = new RuntimeException('RunUtilsTest')
-        RunUtils.ofChecked(failureService, { throw exception })
+        RunUtils.ofChecked(failureService, { throw exception }).run()
 
-        assertTrue failureService.getExceptions().contains(exception)
+        assertTrue failureService.getExceptions().stream()
+                .map({ pair -> pair.getValue() })
+                .collect(Collectors.toList())
+                .contains(exception)
     }
 
 }
