@@ -24,13 +24,13 @@ public final class OutputUtils {
 
     private OutputUtils() { }
 
-    public static boolean mayBeClosed(OutputStream outputStream) {
+    public static boolean isProbablyOpen(OutputStream outputStream) {
         if (outputStream instanceof HttpOutput) {
             HttpOutput httpOutput = (HttpOutput) outputStream;
-            return httpOutput.isClosed();
+            return !httpOutput.isClosed();
         }
 
-        return false;
+        return true;
     }
 
 }

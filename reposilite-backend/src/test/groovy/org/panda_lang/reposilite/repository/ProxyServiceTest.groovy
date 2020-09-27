@@ -17,27 +17,29 @@
 package org.panda_lang.reposilite.repository
 
 import groovy.transform.CompileStatic
-import io.javalin.http.Context
-import io.javalin.http.HandlerType
-import io.javalin.http.util.ContextUtil
-import org.apache.http.HttpStatus
+import net.dzikoysk.cdn.CDN
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.panda_lang.reposilite.ReposiliteTestSpecification
+import org.junit.jupiter.api.io.TempDir
+import org.panda_lang.reposilite.ReposiliteConstants
+import org.panda_lang.reposilite.ReposiliteContext
+import org.panda_lang.reposilite.ReposiliteIntegrationTestSpecification
+import org.panda_lang.reposilite.ReposiliteLauncher
+import org.panda_lang.reposilite.config.Configuration
 import org.panda_lang.reposilite.error.FailureService
 import org.panda_lang.utilities.commons.FileUtils
 
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
 import java.util.concurrent.ExecutorService
 
 import static org.junit.jupiter.api.Assertions.*
-import static org.mockito.ArgumentMatchers.anyInt
-import static org.mockito.Mockito.*
 
 @CompileStatic
-final class ProxyServiceTest extends ReposiliteTestSpecification {
+final class ProxyServiceTest extends ReposiliteIntegrationTestSpecification {
 
+    @TempDir
+    protected File PROXIED_WORKING_DIRECTORY
+
+    private int proxiedPort = Integer.parseInt(PORT) - 1
     private ExecutorService executorService
     private FailureService failureService
     private ProxyService proxyService
@@ -51,7 +53,10 @@ final class ProxyServiceTest extends ReposiliteTestSpecification {
         this.proxyService = new ProxyService(
                 true,
                 true,
-                [],
+                [
+                        'http://unknown-repository.site/',
+                        'http://127.0.0.1:' + proxiedPort
+                ],
                 super.reposilite.getIoService(),
                 failureService,
                 super.reposilite.getRepositoryService())
@@ -64,52 +69,58 @@ final class ProxyServiceTest extends ReposiliteTestSpecification {
 
     @Test
     void 'should return error for invalid proxied request' () {
-        def context = mockContext '/groupId/artifactId'
-        def reposiliteContext = super.reposilite.getContextFactory().create(context)
-        def result = proxyService.findProxied(reposiliteContext)
-
+        def result = proxyService.findProxied(context('/groupId/artifactId'))
         assertTrue result.containsError()
         assertEquals 'Invalid proxied request', result.getError().getMessage()
     }
 
     @Test
     void 'should return 404 and artifact not found' () throws Exception {
-        def context = mockContext '/releases/proxiedGroup/proxiedArtifact/notfound.pom'
-
-        doAnswer({ invocation ->
-            assertEquals HttpStatus.SC_NOT_FOUND, (int) invocation.getArgument(0)
-            return null
-        }).when(context.res).setStatus(anyInt())
-
-        def reposiliteContext = super.reposilite.getContextFactory().create(context)
-        def error = proxyService.findProxied(reposiliteContext).getValue().get().getError()
+        def error = proxyService.findProxied(context('/releases/proxiedGroup/proxiedArtifact/notfound.pom')).getValue().get().getError()
         assertNotNull error
         assertEquals 'Artifact not found in local and remote repository', error.message
     }
 
     @Test
     void 'should return 200 and proxied file' () throws Exception {
-        def context = mockContext '/releases/proxiedGroup/proxiedArtifact/proxied.pom'
-
-        doAnswer({ invocation ->
-            assertEquals(HttpStatus.SC_OK, (int) invocation.getArgument(0))
-            return null
-        }).when(context.res).setStatus anyInt()
-
-        def reposiliteContext = super.reposilite.getContextFactory().create(context)
-
         executorService.submit({
-            return proxyService.findProxied(reposiliteContext).getValue().get().getValue()
+            return proxyService.findProxied(context('/releases/proxiedGroup/proxiedArtifact/proxied.pom')).getValue().get().getValue()
         }).get()
     }
 
-    private static Context mockContext(String uri) {
-        def request = mock(HttpServletRequest.class, RETURNS_DEEP_STUBS)
-        when(request.getRequestURI()).thenReturn(uri)
-        when(request.getMethod()).thenReturn('HEAD')
+    @Test
+    void 'should proxy remote file' () {
+        def proxiedConfiguration = new Configuration()
+        proxiedConfiguration.port = proxiedPort
 
-        def response = mock HttpServletResponse.class, RETURNS_DEEP_STUBS
-        return ContextUtil.init(request, response, '*', Collections.emptyMap(), HandlerType.HEAD)
+        def proxiedConfigurationFile = new File(PROXIED_WORKING_DIRECTORY.getAbsolutePath() + '/' + ReposiliteConstants.CONFIGURATION_FILE_NAME)
+        proxiedConfigurationFile.getParentFile().mkdirs()
+        FileUtils.overrideFile(proxiedConfigurationFile, CDN.defaultInstance().compose(proxiedConfiguration))
+
+        def proxiedReposilite = ReposiliteLauncher.create(null, PROXIED_WORKING_DIRECTORY.getAbsolutePath(), true)
+
+        try {
+            proxiedReposilite.launch()
+
+            def proxiedFile = new File(PROXIED_WORKING_DIRECTORY.getAbsolutePath() + '/repositories/releases/g/a/file.txt')
+            proxiedFile.getParentFile().mkdirs()
+            FileUtils.overrideFile(proxiedFile, 'test')
+
+            def result = proxyService
+                    .findProxied(context('/releases/g/a/file.txt'))
+                    .getValue()
+                    .get()
+                    .getValue()
+
+            assertTrue result.isAttachment()
+            assertEquals 'text/plain', result.getContentType().get()
+        } finally {
+            proxiedReposilite.shutdown()
+        }
+    }
+
+    private static ReposiliteContext context(String uri) {
+        return new ReposiliteContext(uri, 'GET', 'address', [:], { new ByteArrayInputStream() }, { new ByteArrayOutputStream(1024) })
     }
 
 }

@@ -20,6 +20,7 @@ import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.ReposiliteConstants;
 import org.panda_lang.reposilite.utils.FilesUtils;
 import org.panda_lang.reposilite.utils.YamlUtils;
+import org.panda_lang.utilities.commons.function.Option;
 
 import java.io.File;
 import java.io.IOException;
@@ -58,10 +59,7 @@ public final class TokenStorage {
         TokenCollection tokenCollection = YamlUtils.load(tokensFile, TokenCollection.class);
 
         for (Token token : tokenCollection.getTokens()) {
-            if (token.getPermissions() == null) {
-                token.setPermissions(Permission.READ.getName() + Permission.WRITE.getName());
-            }
-
+            token.setPermissions(Option.of(token.getPermissions()).orElseGet(Permission.READ.getName() + Permission.WRITE.getName())); // todo: improve loading
             tokenService.addToken(token);
         }
 

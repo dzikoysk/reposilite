@@ -16,27 +16,30 @@
 
 package org.panda_lang.reposilite.utils
 
-import groovy.transform.CompileStatic
+import org.eclipse.jetty.server.HttpOutput
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.io.TempDir
-import org.panda_lang.reposilite.error.FailureService
 
+import static org.junit.jupiter.api.Assertions.assertFalse
 import static org.junit.jupiter.api.Assertions.assertTrue
+import static org.mockito.Mockito.mock
+import static org.mockito.Mockito.when
 
-@CompileStatic
-class RunUtilsTest {
-
-    @TempDir
-    public File workingDirectory
+class OutputUtilsTest {
 
     @Test
-    void 'should log exception ' () {
-        def failureService = new FailureService()
+    void 'should return false if http output is closed' () {
+        OutputStream output = mock(HttpOutput.class)
+        when(output.isClosed()).thenReturn(true)
 
-        def exception = new RuntimeException('RunUtilsTest')
-        RunUtils.ofChecked(failureService, { throw exception })
+        assertFalse OutputUtils.isProbablyOpen(output)
+    }
 
-        assertTrue failureService.getExceptions().contains(exception)
+    @Test
+    void 'should return true for unknown output stream' () {
+        def outputStream = new ByteArrayOutputStream()
+        outputStream.close()
+
+        assertTrue OutputUtils.isProbablyOpen(outputStream)
     }
 
 }

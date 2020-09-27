@@ -107,7 +107,7 @@ final class ProxyService {
                     }
 
                     if (!storeProxied) {
-                        if (!OutputUtils.mayBeClosed(context.output())) {
+                        if (OutputUtils.isProbablyOpen(context.output())) {
                             IOUtils.copy(remoteResponse.getContent(), context.output());
                         }
 
@@ -157,7 +157,7 @@ final class ProxyService {
                 () -> {
                     Reposilite.getLogger().info("Stored proxied " + proxiedFile);
 
-                    if (!OutputUtils.mayBeClosed(context.output())) {
+                    if (OutputUtils.isProbablyOpen(context.output())) {
                         FileUtils.copyFile(proxiedFile, context.output());
                     }
 
