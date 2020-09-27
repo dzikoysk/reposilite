@@ -70,8 +70,9 @@ public final class LookupController implements Handler {
 
         if (isProxied(lookupResponse)) {
             if (hasProxied) {
-                Result<?, ?> proxiedResult = proxyService.findProxied(context)
-                        .map(future -> future.thenAccept(result -> handleResult(ctx, result)));
+                Result<?, ErrorDto> proxiedResult = proxyService.findProxied(context)
+                        .map(future -> future.thenAccept(result -> handleResult(ctx, result)))
+                        .peek(ctx::result);
 
                 if (proxiedResult.isDefined()) {
                     return;
@@ -98,8 +99,8 @@ public final class LookupController implements Handler {
                 }
             });
 
-            response.getContentType().peek(ctx.res::setContentType);
             response.getValue().peek(ctx::result);
+            response.getContentType().peek(ctx.res::setContentType);
         })
         .onError(error -> ctx
                 .status(error.getStatus())

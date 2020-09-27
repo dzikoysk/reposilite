@@ -37,11 +37,17 @@ import java.util.regex.Pattern;
 
 public final class FilesUtils {
 
-    private static final File[] EMPTY = new File[0];
+    private static final File[] EMPTY = {};
 
     private final static long KB_FACTOR = 1024;
     private final static long MB_FACTOR = 1024 * KB_FACTOR;
     private final static long GB_FACTOR = 1024 * MB_FACTOR;
+
+    private static final String[] READABLE_CONTENT = {
+            ".xml",
+            ".pom",
+            ".txt"
+    };
 
     private FilesUtils() {}
 
@@ -77,6 +83,16 @@ public final class FilesUtils {
             default:
                 throw new NumberFormatException("Wrong format");
         }
+    }
+
+    public static boolean isReadable(String name) {
+        for (String extension : READABLE_CONTENT) {
+            if (name.endsWith(extension)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public static void copyResource(String resourcePath, File destination) throws IOException {
