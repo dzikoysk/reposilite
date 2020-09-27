@@ -25,17 +25,25 @@ by Reposilite during your first start and it should look like this:
 # ~~~~~~~~~~~~~~~~~~~~~~ #
 
 # Hostname
-hostname: ""
+hostname: 
 # Port to bind
 port: 80
 # Custom base path
-basePath: "/"
+basePath: /
+# Any kind of proxy services change real ip.
+# The origin ip should be available in one of the headers.
+# Nginx: X-Forwarded-For
+# Cloudflare: CF-Connecting-IP
+# Popular: X-Real-IP
+forwardedIp: X-Forwarded-For
 # Debug
 debugEnabled: false
 
+# Control the maximum amount of data assigned to Reposilite instance
+# Supported formats: 90%, 500MB, 10GB
+diskQuota: 85%
 # List of supported Maven repositories.
 # First directory on the list is the main (primary) repository.
-# Tu mark repository as private, prefix its name with a dot, e.g. ".private"
 repositories {
   releases
   snapshots
@@ -50,6 +58,8 @@ rewritePathsEnabled: true
 proxied {
   # https://repo.panda-lang.org
 }
+# Reposilite can store proxied artifacts locally to reduce response time and improve stability
+storeProxied: true
 
 # Accept deployment connections
 deployEnabled: true

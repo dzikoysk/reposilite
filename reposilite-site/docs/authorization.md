@@ -8,11 +8,17 @@ To simplify management process and reduce complex permission system between user
 Reposilite uses path based token system.
 
 ## Access token
-The access token consists of three elements:
+The access token consists of four elements:
 
 * Path - the path covered by the token
 * Alias - the short form associated with token
+* Permissions - the permissions associated with token
 * Token - generated secret token used to access associated path
+
+Currently supported permissions:
+
+* `w` - allows to write *(deploy)* using this token
+* `m` - marks token as manager token *(full access)*
 
 As an example, we can imagine we have several projects located in our repository. 
 As an administrator, we want to have permission to whole repository, so the credentials for us should look like this:
@@ -20,6 +26,7 @@ As an administrator, we want to have permission to whole repository, so the cred
 ```properties
 path: /
 alias: admin
+permissions: m
 ```
 
 Access to requested paths is resolved by comparing the access token path with the beginning of current uri. Our `admin` user associated with `/` has access to all paths, because all of requests starts with this path separator:
@@ -72,14 +79,14 @@ alias: khaleesi
 Tokens are generated using the `keygen` command in Reposilite CLI:
 
 ```log
-$ keygen <path> <alias>
+$ keygen <path> <alias> <permissions>
 ```
 
 As an example, we can generate access token for our `root` user:
 
 ```bash
-$ keygen / root
-19:55:20.692 INFO | Generated new access token for root (/)
+$ keygen / root m
+19:55:20.692 INFO | Generated new access token for root (/) with 'm' permissions
 19:55:20.692 INFO | AW7-kaXSSXTRVL_Ip9v7ruIiqe56gh96o1XdSrqZCyTX2vUsrZU3roVOfF-YYF-y
 19:55:20.723 INFO | Stored tokens: 1
 ```
