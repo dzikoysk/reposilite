@@ -22,13 +22,9 @@ import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.ReposiliteContext;
 import org.panda_lang.reposilite.ReposiliteContextFactory;
-import org.panda_lang.reposilite.config.Configuration;
 import org.panda_lang.reposilite.error.ErrorDto;
-import org.panda_lang.reposilite.error.FailureService;
 import org.panda_lang.reposilite.frontend.FrontendService;
 import org.panda_lang.reposilite.utils.Result;
-
-import java.util.concurrent.ExecutorService;
 
 public final class LookupController implements Handler {
 
@@ -39,26 +35,17 @@ public final class LookupController implements Handler {
     private final ProxyService proxyService;
 
     public LookupController(
-            Configuration configuration,
+            boolean hasProxied,
             ReposiliteContextFactory contextFactory,
-            ExecutorService executorService,
             FrontendService frontendService,
             LookupService lookupService,
-            RepositoryService repositoryService,
-            FailureService failureService) {
+            ProxyService proxyService) {
 
+        this.hasProxied = hasProxied;
         this.contextFactory = contextFactory;
         this.frontend = frontendService;
         this.lookupService = lookupService;
-        this.hasProxied = configuration.proxied.size() > 0;
-
-        this.proxyService = new ProxyService(
-                configuration.storeProxied,
-                configuration.rewritePathsEnabled,
-                configuration.proxied,
-                executorService,
-                failureService,
-                repositoryService);
+        this.proxyService = proxyService;
     }
 
     @Override
