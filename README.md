@@ -13,7 +13,7 @@ Demo: [repo.panda-lang.org](https://repo.panda-lang.org) <br>
 
 Requirements: 
 * Java 8+
-* RAM 8MB+
+* RAM 12MB+
 
 | Amount | Description |
 |:------:|-------------|
