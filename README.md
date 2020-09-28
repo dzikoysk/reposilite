@@ -17,7 +17,7 @@ Requirements:
 
 | Amount | Description |
 |:------:|-------------|
-| *8MB* | Tiny repository for personal projects |
+| *12MB* | Tiny repository for personal projects |
 | *16MB* - *32MB* | *--------------------^------------------* + CI + Proxy |
 | *48MB - 128MB* | Tiny public repository *(recommended)* |
 | *128MB+* | Public repository | 
@@ -32,20 +32,20 @@ Requirements:
 * [x] Docker image *(repository: [dzikoysk/reposilite](https://hub.docker.com/r/dzikoysk/reposilite))*
 * [x] Authorization *(deploy and downloads)*
 * [x] Deploy *(using tokens and BCrypt)*
-* [x] Customizable front page
 * [x] [dependabot](https://dependabot.com/) supported
-* [x] Multiple repositories under a single URL
-* [x] CLI
-* [x] Snapshots
-* [x] Proxy for the specified remote repositories
+* [x] Supports distributed environments like [K8s](https://github.com/dzikoysk/reposilite/issues/251#issuecomment-698974936)
 * [x] Multithreading
+* [x] Proxy of other remote repositories
+* [x] Supports requests to primary repository without its name in url
+* [x] Dashboard
+  * [x] Customizable front page
+  * [x] CLI
+  * [x] Repository browser
+  * [x] Admin panel
+* [x] Snapshots
 * [x] Statistics
 * [x] REST API
-* [x] Repository browser
-* [x] Dashboard
-* [x] Admin panel
 * [x] 90%+ test coverage
-* [x] Website
 * [x] Documentation
 
 #### Stack
