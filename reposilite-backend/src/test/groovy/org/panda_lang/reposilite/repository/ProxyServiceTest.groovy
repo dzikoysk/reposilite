@@ -89,7 +89,7 @@ final class ProxyServiceTest extends ReposiliteIntegrationTestSpecification {
     }
 
     @Test
-    void 'should proxy remote file' () {
+    void 'should return proxied remote file' () {
         def proxiedConfiguration = new Configuration()
         proxiedConfiguration.port = proxiedPort
 
@@ -112,7 +112,7 @@ final class ProxyServiceTest extends ReposiliteIntegrationTestSpecification {
                     .get()
                     .getValue()
 
-            assertTrue result.isAttachment()
+            assertFalse result.isAttachment()
             assertEquals 'text/plain', result.getContentType().get()
         } finally {
             proxiedReposilite.shutdown()

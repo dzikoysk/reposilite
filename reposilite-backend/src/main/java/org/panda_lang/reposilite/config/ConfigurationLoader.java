@@ -54,8 +54,6 @@ public final class ConfigurationLoader {
             ? cdn.parse(Configuration.class, FileUtils.getContentOfFile(configurationFile))
             : createConfiguration(configurationFile);
 
-        Reposilite.getLogger().info("");
-
         verifyProxied(configuration);
         FileUtils.overrideFile(configurationFile, cdn.compose(configuration));
         loadProperties(configuration);

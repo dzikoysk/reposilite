@@ -170,8 +170,10 @@ public final class Reposilite {
         this.alive.set(false);
         getLogger().info("Shutting down " + configuration.hostname  + "::" + configuration.port + " ...");
 
-        statsService.saveStats();
         reactiveHttpServer.stop();
+        statsService.saveStats();
+        ioService.shutdownNow();
+        retryService.shutdownNow();
         console.stop();
         executor.stop();
     }
