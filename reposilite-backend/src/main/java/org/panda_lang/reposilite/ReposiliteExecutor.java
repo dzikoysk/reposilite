@@ -32,18 +32,18 @@ public final class ReposiliteExecutor {
     private final FailureService failureService;
     private final Object lock = new Object();
     private final Queue<ThrowingRunnable<?>> tasks = new ConcurrentLinkedQueue<>();
-    private final ExecutorService executorService;
+    private final ExecutorService testService;
     private volatile boolean alive = true;
 
     ReposiliteExecutor(boolean testEnvEnabled, FailureService failureService) {
         this.testEnvEnabled = testEnvEnabled;
         this.failureService = failureService;
-        this.executorService = testEnvEnabled ? Executors.newSingleThreadExecutor() : null;
+        this.testService = testEnvEnabled ? Executors.newSingleThreadExecutor() : null;
     }
 
     void await(Runnable onExit) throws InterruptedException {
         if (testEnvEnabled) {
-            RunUtils.executeChecked(failureService, executorService, () -> start(onExit));
+            RunUtils.executeChecked(failureService, testService, () -> start(onExit));
             return;
         }
 

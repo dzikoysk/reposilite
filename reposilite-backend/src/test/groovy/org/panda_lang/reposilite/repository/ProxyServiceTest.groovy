@@ -40,7 +40,7 @@ final class ProxyServiceTest extends ReposiliteIntegrationTestSpecification {
     protected File PROXIED_WORKING_DIRECTORY
 
     private int proxiedPort = Integer.parseInt(PORT) - 1
-    private ExecutorService executorService
+    private ExecutorService ioService
     private FailureService failureService
     private ProxyService proxyService
 
@@ -48,7 +48,7 @@ final class ProxyServiceTest extends ReposiliteIntegrationTestSpecification {
     void configure() throws IOException {
         super.reposilite.getConfiguration().proxied = Collections.singletonList('http://localhost/')
 
-        this.executorService = super.reposilite.getIoService()
+        this.ioService = super.reposilite.getIoService()
         this.failureService = super.reposilite.getFailureService()
         this.proxyService = new ProxyService(
                 true,
@@ -83,7 +83,7 @@ final class ProxyServiceTest extends ReposiliteIntegrationTestSpecification {
 
     @Test
     void 'should return 200 and proxied file' () throws Exception {
-        executorService.submit({
+        ioService.submit({
             return proxyService.findProxied(context('/releases/proxiedGroup/proxiedArtifact/proxied.pom')).getValue().get().getValue()
         }).get()
     }

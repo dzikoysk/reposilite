@@ -46,13 +46,11 @@ public final class ReposiliteHttpServer {
         DeployController deployController = new DeployController(reposilite.getContextFactory(), reposilite.getDeployService());
 
         LookupController lookupController = new LookupController(
-                configuration,
+                configuration.proxied.size() > 0,
                 reposilite.getContextFactory(),
-                reposilite.getIoService(),
                 reposilite.getFrontendService(),
                 reposilite.getLookupService(),
-                reposilite.getRepositoryService(),
-                failureService);
+                reposilite.getProxyService());
 
         LookupApiController lookupApiController = new LookupApiController(
                 configuration.rewritePathsEnabled,

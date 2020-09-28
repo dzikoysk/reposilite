@@ -27,6 +27,7 @@ import org.panda_lang.reposilite.frontend.FrontendService;
 import org.panda_lang.reposilite.metadata.MetadataService;
 import org.panda_lang.reposilite.repository.DeployService;
 import org.panda_lang.reposilite.repository.LookupService;
+import org.panda_lang.reposilite.repository.ProxyService;
 import org.panda_lang.reposilite.repository.RepositoryAuthenticator;
 import org.panda_lang.reposilite.repository.RepositoryService;
 import org.panda_lang.reposilite.stats.StatsService;
@@ -69,6 +70,7 @@ public final class Reposilite {
     private final RepositoryService repositoryService;
     private final MetadataService metadataService;
     private final LookupService lookupService;
+    private final ProxyService proxyService;
     private final DeployService deployService;
     private final FrontendService frontend;
     private final ReposiliteHttpServer reactiveHttpServer;
@@ -101,7 +103,7 @@ public final class Reposilite {
         this.authService = new AuthService(authenticator);
         this.deployService = new DeployService(configuration.deployEnabled, authenticator, repositoryService, metadataService);
         this.lookupService = new LookupService(authenticator, repositoryAuthenticator, metadataService, repositoryService, failureService);
-
+        this.proxyService = new ProxyService(configuration.storeProxied, configuration.rewritePathsEnabled, configuration.proxied, ioService, failureService, repositoryService);
         this.frontend = FrontendService.load(configuration);
         this.reactiveHttpServer= new ReposiliteHttpServer(this);
         this.console = new Console(this, System.in);
@@ -196,6 +198,10 @@ public final class Reposilite {
 
     public FrontendService getFrontendService() {
         return frontend;
+    }
+
+    public ProxyService getProxyService() {
+        return proxyService;
     }
 
     public LookupService getLookupService() {

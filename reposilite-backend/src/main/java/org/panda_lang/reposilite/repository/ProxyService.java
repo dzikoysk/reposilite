@@ -26,6 +26,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.ReposiliteContext;
+import org.panda_lang.reposilite.ReposiliteException;
 import org.panda_lang.reposilite.error.ErrorDto;
 import org.panda_lang.reposilite.error.FailureService;
 import org.panda_lang.reposilite.error.ResponseUtils;
@@ -40,28 +41,28 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
-final class ProxyService {
+public final class ProxyService {
 
     private final boolean storeProxied;
     private final boolean rewritePathsEnabled;
     private final List<? extends String> proxied;
-    private final ExecutorService executorService;
+    private final ExecutorService ioService;
     private final RepositoryService repositoryService;
     private final FailureService failureService;
     private final HttpRequestFactory httpRequestFactory;
 
-    ProxyService(
+    public ProxyService(
             boolean storeProxied,
             boolean rewritePathsEnabled,
             List<? extends String> proxied,
-            ExecutorService executorService,
+            ExecutorService ioService,
             FailureService failureService,
             RepositoryService repositoryService) {
 
         this.storeProxied = storeProxied;
         this.rewritePathsEnabled = rewritePathsEnabled;
         this.proxied = proxied;
-        this.executorService = executorService;
+        this.ioService = ioService;
         this.repositoryService = repositoryService;
         this.failureService = failureService;
         this.httpRequestFactory = new NetHttpTransport().createRequestFactory();
@@ -86,7 +87,7 @@ final class ProxyService {
         String remoteUri = uri;
         CompletableFuture<Result<LookupResponse, ErrorDto>> proxiedTask = new CompletableFuture<>();
 
-        executorService.submit(() -> {
+        ioService.submit(() -> {
             for (String proxied : proxied) {
                 try {
                     HttpRequest remoteRequest = httpRequestFactory.buildGetRequest(new GenericUrl(proxied + remoteUri));
@@ -121,8 +122,9 @@ final class ProxyService {
                             .onEmpty(() -> proxiedTask.complete(Result.ok(response)))
                             .peek(task -> task.thenAccept(proxiedTask::complete));
                 } catch (Exception exception) {
-                    Reposilite.getLogger().error("Proxied repository " + proxied + " is unavailable: " + exception.getMessage());
-                    failureService.throwException(remoteUri, exception);
+                    String message = "Proxied repository " + proxied + " is unavailable due to: " + exception;
+                    Reposilite.getLogger().error(message);
+                    failureService.throwException(remoteUri, new ReposiliteException(message, exception));
                 }
             }
 
