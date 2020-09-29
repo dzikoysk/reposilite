@@ -21,8 +21,6 @@ import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestFactory;
 import com.google.api.client.http.HttpResponse;
 import com.google.api.client.http.javanet.NetHttpTransport;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.ReposiliteContext;
@@ -31,12 +29,12 @@ import org.panda_lang.reposilite.error.ErrorDto;
 import org.panda_lang.reposilite.error.FailureService;
 import org.panda_lang.reposilite.error.ResponseUtils;
 import org.panda_lang.reposilite.utils.ArrayUtils;
-import org.panda_lang.reposilite.utils.OutputUtils;
 import org.panda_lang.reposilite.utils.Result;
 import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.function.Option;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -111,10 +109,7 @@ public final class ProxyService {
                     }
 
                     if (!storeProxied) {
-                        if (OutputUtils.isProbablyOpen(context.output())) {
-                            IOUtils.copy(remoteResponse.getContent(), context.output());
-                        }
-
+                        context.resultStream(remoteResponse.getContent());
                         return proxiedTask.complete(Result.ok(response));
                     }
 
@@ -160,12 +155,8 @@ public final class ProxyService {
                 proxiedFile,
                 remoteResponse::getContent,
                 () -> {
-                    Reposilite.getLogger().info("Stored proxied " + proxiedFile);
-
-                    if (OutputUtils.isProbablyOpen(context.output())) {
-                        FileUtils.copyFile(proxiedFile, context.output());
-                    }
-
+                    Reposilite.getLogger().info("Stored proxied " + proxiedFile + " from " + remoteResponse.getRequest().getUrl());
+                    context.resultStream(new FileInputStream(proxiedFile));
                     return response;
                 },
                 exception -> new ErrorDto(HttpStatus.SC_UNPROCESSABLE_ENTITY, "Cannot process artifact")));

@@ -56,7 +56,6 @@ class ReposiliteContextFactoryTest {
         assertEquals 'forwarded address', CONTEXT.address()
         assertEquals HEADERS, CONTEXT.headers()
         assertNotNull CONTEXT.input()
-        assertNotNull CONTEXT.output()
     }
 
     private static Context createContext() {

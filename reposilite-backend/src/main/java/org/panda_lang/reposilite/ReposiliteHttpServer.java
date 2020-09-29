@@ -50,7 +50,8 @@ public final class ReposiliteHttpServer {
                 reposilite.getContextFactory(),
                 reposilite.getFrontendService(),
                 reposilite.getLookupService(),
-                reposilite.getProxyService());
+                reposilite.getProxyService(),
+                reposilite.getFailureService());
 
         LookupApiController lookupApiController = new LookupApiController(
                 configuration.rewritePathsEnabled,

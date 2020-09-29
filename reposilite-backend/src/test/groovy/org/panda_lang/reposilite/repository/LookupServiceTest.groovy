@@ -30,7 +30,7 @@ class LookupServiceTest extends ReposiliteTestSpecification {
 
     @Test
     void 'should return 203 for directory access' () {
-        def context = new ReposiliteContext('/releases/org/panda-lang', 'GET', '', [:], {}, {})
+        def context = new ReposiliteContext('/releases/org/panda-lang', 'GET', '', [:], {})
         def result = super.reposilite.getLookupService().findLocal(context)
         assertTrue result.containsError()
 
@@ -41,7 +41,7 @@ class LookupServiceTest extends ReposiliteTestSpecification {
 
     @Test
     void 'should return 404 for unauthorized request to snapshot metadata file' () {
-        def context = new ReposiliteContext('/unauthorized_repository/1.0.0-SNAPSHOT/maven-metadata.xml', 'GET', '', [:], {}, {})
+        def context = new ReposiliteContext('/unauthorized_repository/1.0.0-SNAPSHOT/maven-metadata.xml', 'GET', '', [:], {})
         def result = createLookupService().findLocal(context)
         assertTrue result.containsError()
 
@@ -51,7 +51,7 @@ class LookupServiceTest extends ReposiliteTestSpecification {
 
     @Test
     void 'should return 203 and repository not found message' () {
-        def context = new ReposiliteContext('/invalid_repository/groupId/artifactId', 'GET', '', [:], {}, {})
+        def context = new ReposiliteContext('/invalid_repository/groupId/artifactId', 'GET', '', [:], {})
         def result = createLookupService().findLocal(context)
         assertTrue result.containsError()
 
@@ -71,6 +71,7 @@ class LookupServiceTest extends ReposiliteTestSpecification {
                 repositoryAuthenticator,
                 super.reposilite.getMetadataService(),
                 super.reposilite.getRepositoryService(),
+                super.reposilite.ioService,
                 super.reposilite.getFailureService())
     }
 

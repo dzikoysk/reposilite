@@ -37,8 +37,7 @@ public final class ReposiliteContextFactory {
                 context.method(),
                 address,
                 context.headerMap(),
-                context.req::getInputStream,
-                context.res::getOutputStream);
+                context.req::getInputStream);
     }
 
     public ReposiliteContext create(WsContext context) {
@@ -50,8 +49,7 @@ public final class ReposiliteContextFactory {
                 "WS",
                 address,
                 context.headerMap(),
-                () -> { throw new UnsupportedOperationException("WebSocket based context does not support input stream"); },
-                () -> { throw new UnsupportedOperationException("WebSocket based context does not support input output"); });
+                () -> { throw new UnsupportedOperationException("WebSocket based context does not support input stream"); });
     }
 
 }

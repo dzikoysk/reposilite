@@ -120,7 +120,7 @@ final class ProxyServiceTest extends ReposiliteIntegrationTestSpecification {
     }
 
     private static ReposiliteContext context(String uri) {
-        return new ReposiliteContext(uri, 'GET', 'address', [:], { new ByteArrayInputStream() }, { new ByteArrayOutputStream(1024) })
+        return new ReposiliteContext(uri, 'GET', 'address', [:], { new ByteArrayInputStream() })
     }
 
 }

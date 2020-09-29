@@ -34,15 +34,13 @@ class ReposiliteContextTest {
                 "method",
                 "address",
                 headers,
-                { new ByteArrayInputStream() },
-                { new ByteArrayOutputStream() })
+                { new ByteArrayInputStream() })
 
         assertEquals "uri", context.uri()
         assertEquals "method", context.method()
         assertEquals "address", context.address()
         assertEquals headers, context.headers()
         assertNotNull context.input()
-        assertNotNull context.output()
     }
 
 }

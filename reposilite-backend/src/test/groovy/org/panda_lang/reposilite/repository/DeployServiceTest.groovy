@@ -69,7 +69,7 @@ class DeployServiceTest extends ReposiliteTestSpecification {
 
     private static ReposiliteContext createAuthenticatedContext(String uri) {
         def auth = [ 'Authorization': 'Basic ' + (ALIAS + ':' + TOKEN).bytes.encodeBase64() ]
-        return new ReposiliteContext(uri, 'POST', '', auth, { new ByteArrayInputStream('test'.bytes) }, {})
+        return new ReposiliteContext(uri, 'POST', '', auth, { new ByteArrayInputStream('test'.bytes) })
     }
 
 }
