@@ -16,7 +16,6 @@
 
 package org.panda_lang.reposilite.repository;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.ReposiliteContext;
@@ -32,11 +31,12 @@ import org.panda_lang.utilities.commons.collection.Pair;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
 public final class LookupService {
@@ -45,6 +45,7 @@ public final class LookupService {
     private final RepositoryAuthenticator repositoryAuthenticator;
     private final MetadataService metadataService;
     private final RepositoryService repositoryService;
+    private final ExecutorService ioService;
     private final FailureService failureService;
 
     public LookupService(
@@ -52,16 +53,18 @@ public final class LookupService {
             RepositoryAuthenticator repositoryAuthenticator,
             MetadataService metadataService,
             RepositoryService repositoryService,
+            ExecutorService ioService,
             FailureService failureService) {
 
         this.authenticator = authenticator;
         this.repositoryAuthenticator = repositoryAuthenticator;
         this.metadataService = metadataService;
         this.repositoryService = repositoryService;
+        this.ioService = ioService;
         this.failureService = failureService;
     }
 
-    Result<LookupResponse, ErrorDto> findLocal(ReposiliteContext context) {
+    Result<CompletableFuture<Result<LookupResponse, ErrorDto>>, ErrorDto> findLocal(ReposiliteContext context) {
         String uri = context.uri();
         Result<Pair<String[], Repository>, ErrorDto> result = this.repositoryAuthenticator.authDefaultRepository(context.headers(), uri);
 
@@ -90,8 +93,8 @@ public final class LookupService {
         if (requestedFileName.equals("maven-metadata.xml")) {
             return metadataService
                     .generateMetadata(repository, requestPath)
-                    .map(metadataContent -> new LookupResponse("text/xml", metadataContent))
-                    .mapError(error -> new ErrorDto(HttpStatus.SC_USE_PROXY, error));
+                    .mapError(error -> new ErrorDto(HttpStatus.SC_USE_PROXY, error))
+                    .map(metadataContent -> CompletableFuture.completedFuture(Result.ok(new LookupResponse("text/xml", metadataContent))));
         }
 
         // resolve requests for latest version of artifact
@@ -104,7 +107,7 @@ public final class LookupService {
                 return ResponseUtils.error(HttpStatus.SC_NOT_FOUND, "Latest version not found");
             }
 
-            return Result.ok(new LookupResponse("text/plain", version.getName()));
+            return Result.ok(CompletableFuture.completedFuture(Result.ok(new LookupResponse("text/plain", version.getName()))));
         }
 
         // resolve snapshot requests
@@ -128,23 +131,18 @@ public final class LookupService {
 
         File file = artifact.get().getFile(requestedFileName);
         FileDetailsDto fileDetails = FileDetailsDto.of(file);
+        CompletableFuture<Result<LookupResponse, ErrorDto>> task = new CompletableFuture<>();
 
-        if (!context.method().equals("HEAD")) {
-            FileInputStream content = null;
-
-            try {
-                content = new FileInputStream(file);
-                IOUtils.copy(content, context.output());
-            } catch (IOException exception) {
-                failureService.throwException(uri, exception);
-                return ResponseUtils.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Failed to transfer artifact");
-            } finally {
-                IOUtils.closeQuietly(content, exception -> failureService.throwException(uri, exception));
+        ioService.submit(() -> {
+            if (!context.method().equals("HEAD")) {
+                context.resultStream(new FileInputStream(file));
             }
-        }
 
-        Reposilite.getLogger().info("RESOLVED " + file.getPath() + "; mime: " + fileDetails.getContentType() + "; size: " + file.length());
-        return Result.ok(new LookupResponse(fileDetails));
+            Reposilite.getLogger().info("RESOLVED " + file.getPath() + "; mime: " + fileDetails.getContentType() + "; size: " + file.length());
+            return task.complete(Result.ok(new LookupResponse(fileDetails)));
+        });
+
+        return Result.ok(task);
     }
 
     FileListDto findAvailableRepositories(Map<String, String> headers) {

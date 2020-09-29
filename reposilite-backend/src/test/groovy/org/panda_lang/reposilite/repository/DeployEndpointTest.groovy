@@ -53,7 +53,7 @@ class DeployEndpointTest extends ReposiliteIntegrationTestSpecification {
                 reposilite.getRepositoryService(),
                 reposilite.getMetadataService())
 
-        def result = deployService.deploy(new ReposiliteContext('/releases/groupId/artifactId/file', 'GET', '', [:], { null }, { null }))
+        def result = deployService.deploy(new ReposiliteContext('/releases/groupId/artifactId/file', 'GET', '', [:], { null }))
         assertTrue result.containsError()
 
         def error = result.getError()

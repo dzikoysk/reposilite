@@ -16,11 +16,11 @@
 
 package org.panda_lang.reposilite;
 
+import org.panda_lang.utilities.commons.function.Option;
 import org.panda_lang.utilities.commons.function.ThrowingSupplier;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Map;
 
 public final class ReposiliteContext {
@@ -30,26 +30,28 @@ public final class ReposiliteContext {
     private final String address;
     private final Map<String, String> header;
     private final ThrowingSupplier<InputStream, IOException> input;
-    private final ThrowingSupplier<OutputStream, IOException> output;
+    private InputStream resultStream;
 
     public ReposiliteContext(
             String uri,
             String method,
             String address,
             Map<String, String> header,
-            ThrowingSupplier<InputStream, IOException> input,
-            ThrowingSupplier<OutputStream, IOException> output) {
+            ThrowingSupplier<InputStream, IOException> input) {
 
         this.uri = uri;
         this.method = method;
         this.address = address;
         this.header = header;
         this.input = input;
-        this.output = output;
     }
 
-    public OutputStream output() throws IOException {
-        return output.get();
+    public void resultStream(InputStream resultStream) {
+        this.resultStream = resultStream;
+    }
+
+    public Option<InputStream> resultStream() {
+        return Option.of(resultStream);
     }
 
     public InputStream input() throws IOException {

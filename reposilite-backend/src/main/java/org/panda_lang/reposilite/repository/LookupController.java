@@ -18,13 +18,19 @@ package org.panda_lang.reposilite.repository;
 
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.ReposiliteContext;
 import org.panda_lang.reposilite.ReposiliteContextFactory;
 import org.panda_lang.reposilite.error.ErrorDto;
+import org.panda_lang.reposilite.error.FailureService;
 import org.panda_lang.reposilite.frontend.FrontendService;
+import org.panda_lang.reposilite.utils.OutputUtils;
 import org.panda_lang.reposilite.utils.Result;
+
+import java.io.IOException;
+import java.util.concurrent.CompletableFuture;
 
 public final class LookupController implements Handler {
 
@@ -33,19 +39,22 @@ public final class LookupController implements Handler {
     private final FrontendService frontend;
     private final LookupService lookupService;
     private final ProxyService proxyService;
+    private final FailureService failureService;
 
     public LookupController(
             boolean hasProxied,
             ReposiliteContextFactory contextFactory,
             FrontendService frontendService,
             LookupService lookupService,
-            ProxyService proxyService) {
+            ProxyService proxyService,
+            FailureService failureService) {
 
         this.hasProxied = hasProxied;
         this.contextFactory = contextFactory;
         this.frontend = frontendService;
         this.lookupService = lookupService;
         this.proxyService = proxyService;
+        this.failureService = failureService;
     }
 
     @Override
@@ -53,51 +62,68 @@ public final class LookupController implements Handler {
         ReposiliteContext context = contextFactory.create(ctx);
         Reposilite.getLogger().info("LOOKUP " + context.uri() + " from " + context.address());
 
-        Result<LookupResponse, ErrorDto> lookupResponse = lookupService.findLocal(context);
+        Result<CompletableFuture<Result<LookupResponse, ErrorDto>>, ErrorDto> response = lookupService.findLocal(context);
 
-        if (isProxied(lookupResponse)) {
+        if (isProxied(response)) {
             if (hasProxied) {
-                Result<?, ErrorDto> proxiedResult = proxyService.findProxied(context)
-                        .map(future -> future.thenAccept(result -> handleResult(ctx, result)))
-                        .peek(ctx::result);
-
-                if (proxiedResult.isDefined()) {
-                    return;
-                }
+                response = proxyService.findProxied(context);
             }
 
-            if (isProxied(lookupResponse)) {
-                lookupResponse = lookupResponse.mapError(proxiedError -> new ErrorDto(HttpStatus.SC_NOT_FOUND, proxiedError.getMessage()));
+            if (isProxied(response)) {
+                response = response.mapError(proxiedError -> new ErrorDto(HttpStatus.SC_NOT_FOUND, proxiedError.getMessage()));
             }
         }
 
-        handleResult(ctx, lookupResponse);
+        handle(ctx, context, response);
     }
 
-    private void handleResult(Context ctx, Result<LookupResponse, ErrorDto> result) {
-        result.peek(response -> {
-            response.getFileDetails().peek(details -> {
-                if (details.getContentLength() > 0) {
-                    ctx.res.setContentLengthLong(details.getContentLength());
-                }
+    private void handle(Context ctx, ReposiliteContext context, Result<CompletableFuture<Result<LookupResponse, ErrorDto>>, ErrorDto> response) {
+        response
+            .map(task -> task.thenAccept(result -> handleResult(ctx, context, result)))
+            .peek(ctx::result)
+            .onError(error -> handleError(ctx, error));
+    }
 
-                if (response.isAttachment()) {
-                    ctx.res.setHeader("Content-Disposition", "attachment; filename=\"" + details.getName() + "\"");
-                }
-            });
+    private void handleResult(Context ctx, ReposiliteContext context, Result<LookupResponse, ErrorDto> result) {
+        result
+            .peek(response -> handleResult(ctx, context, response))
+            .onError(error -> handleError(ctx, error));
+    }
 
-            response.getValue().peek(ctx::result);
-            response.getContentType().peek(ctx.res::setContentType);
-        })
-        .onError(error -> ctx
+    private void handleResult(Context ctx, ReposiliteContext context, LookupResponse response) {
+        response.getFileDetails().peek(details -> {
+            if (details.getContentLength() > 0) {
+                ctx.res.setContentLengthLong(details.getContentLength());
+            }
+
+            if (response.isAttachment()) {
+                ctx.res.setHeader("Content-Disposition", "attachment; filename=\"" + details.getName() + "\"");
+            }
+        });
+
+        response.getContentType().peek(ctx.res::setContentType);
+        response.getValue().peek(ctx::result);
+
+        context.resultStream().peek(resultStream -> {
+            try {
+                if (OutputUtils.isProbablyOpen(ctx.res.getOutputStream())) {
+                    IOUtils.copyLarge(resultStream, ctx.res.getOutputStream());
+                }
+            } catch (IOException exception) {
+                failureService.throwException(context.uri(), exception);
+                IOUtils.closeQuietly(resultStream, ignored -> {});
+            }
+        });
+    }
+
+    private void handleError(Context ctx, ErrorDto error) {
+        ctx.result(frontend.forMessage(error.getMessage()))
                 .status(error.getStatus())
                 .contentType("text/html")
-                .result(frontend.forMessage(error.getMessage()))
-                .res.setCharacterEncoding("UTF-8")
-        );
+                .res.setCharacterEncoding("UTF-8");
     }
 
-    private boolean isProxied(Result<LookupResponse, ErrorDto> lookupResponse) {
+    private boolean isProxied(Result<?, ErrorDto> lookupResponse) {
         return lookupResponse.containsError() && lookupResponse.getError().getStatus() == HttpStatus.SC_USE_PROXY;
     }
 
