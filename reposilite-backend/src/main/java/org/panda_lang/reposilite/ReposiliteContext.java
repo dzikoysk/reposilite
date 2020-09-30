@@ -17,10 +17,12 @@
 package org.panda_lang.reposilite;
 
 import org.panda_lang.utilities.commons.function.Option;
+import org.panda_lang.utilities.commons.function.ThrowingConsumer;
 import org.panda_lang.utilities.commons.function.ThrowingSupplier;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Map;
 
 public final class ReposiliteContext {
@@ -30,7 +32,7 @@ public final class ReposiliteContext {
     private final String address;
     private final Map<String, String> header;
     private final ThrowingSupplier<InputStream, IOException> input;
-    private InputStream resultStream;
+    private ThrowingConsumer<OutputStream, IOException> result;
 
     public ReposiliteContext(
             String uri,
@@ -46,12 +48,12 @@ public final class ReposiliteContext {
         this.input = input;
     }
 
-    public void resultStream(InputStream resultStream) {
-        this.resultStream = resultStream;
+    public void result(ThrowingConsumer<OutputStream, IOException> result) {
+        this.result = result;
     }
 
-    public Option<InputStream> resultStream() {
-        return Option.of(resultStream);
+    public Option<ThrowingConsumer<OutputStream, IOException>> result() {
+        return Option.of(result);
     }
 
     public InputStream input() throws IOException {

@@ -18,7 +18,6 @@ package org.panda_lang.reposilite.repository;
 
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
-import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.ReposiliteContext;
@@ -62,11 +61,12 @@ public final class LookupController implements Handler {
         ReposiliteContext context = contextFactory.create(ctx);
         Reposilite.getLogger().info("LOOKUP " + context.uri() + " from " + context.address());
 
-        Result<CompletableFuture<Result<LookupResponse, ErrorDto>>, ErrorDto> response = lookupService.findLocal(context);
+        Result<LookupResponse, ErrorDto> response = lookupService.findLocal(context);
 
         if (isProxied(response)) {
             if (hasProxied) {
-                response = proxyService.findProxied(context);
+                handle(ctx, context, proxyService.findProxied(context));
+                return;
             }
 
             if (isProxied(response)) {
@@ -74,7 +74,7 @@ public final class LookupController implements Handler {
             }
         }
 
-        handle(ctx, context, response);
+        handleResult(ctx, context, response);
     }
 
     private void handle(Context ctx, ReposiliteContext context, Result<CompletableFuture<Result<LookupResponse, ErrorDto>>, ErrorDto> response) {
@@ -104,14 +104,13 @@ public final class LookupController implements Handler {
         response.getContentType().peek(ctx.res::setContentType);
         response.getValue().peek(ctx::result);
 
-        context.resultStream().peek(resultStream -> {
+        context.result().peek(result -> {
             try {
                 if (OutputUtils.isProbablyOpen(ctx.res.getOutputStream())) {
-                    IOUtils.copyLarge(resultStream, ctx.res.getOutputStream());
+                    result.accept(ctx.res.getOutputStream());
                 }
             } catch (IOException exception) {
                 failureService.throwException(context.uri(), exception);
-                IOUtils.closeQuietly(resultStream, ignored -> {});
             }
         });
     }
