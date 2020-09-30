@@ -21,6 +21,8 @@ import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestFactory;
 import com.google.api.client.http.HttpResponse;
 import com.google.api.client.http.javanet.NetHttpTransport;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.ReposiliteContext;
@@ -34,7 +36,6 @@ import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.function.Option;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -109,7 +110,7 @@ public final class ProxyService {
                     }
 
                     if (!storeProxied) {
-                        context.resultStream(remoteResponse.getContent());
+                        context.result(outputStream -> IOUtils.copyLarge(remoteResponse.getContent(), outputStream));
                         return proxiedTask.complete(Result.ok(response));
                     }
 
@@ -156,7 +157,7 @@ public final class ProxyService {
                 remoteResponse::getContent,
                 () -> {
                     Reposilite.getLogger().info("Stored proxied " + proxiedFile + " from " + remoteResponse.getRequest().getUrl());
-                    context.resultStream(new FileInputStream(proxiedFile));
+                    context.result(outputStream -> FileUtils.copyFile(proxiedFile, outputStream));
                     return response;
                 },
                 exception -> new ErrorDto(HttpStatus.SC_UNPROCESSABLE_ENTITY, "Cannot process artifact")));

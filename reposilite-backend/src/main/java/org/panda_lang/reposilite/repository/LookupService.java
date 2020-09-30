@@ -16,6 +16,7 @@
 
 package org.panda_lang.reposilite.repository;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.ReposiliteContext;
@@ -30,12 +31,10 @@ import org.panda_lang.reposilite.utils.Result;
 import org.panda_lang.utilities.commons.collection.Pair;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
@@ -64,7 +63,7 @@ public final class LookupService {
         this.failureService = failureService;
     }
 
-    Result<CompletableFuture<Result<LookupResponse, ErrorDto>>, ErrorDto> findLocal(ReposiliteContext context) {
+    Result<LookupResponse, ErrorDto> findLocal(ReposiliteContext context) {
         String uri = context.uri();
         Result<Pair<String[], Repository>, ErrorDto> result = this.repositoryAuthenticator.authDefaultRepository(context.headers(), uri);
 
@@ -94,7 +93,7 @@ public final class LookupService {
             return metadataService
                     .generateMetadata(repository, requestPath)
                     .mapError(error -> new ErrorDto(HttpStatus.SC_USE_PROXY, error))
-                    .map(metadataContent -> CompletableFuture.completedFuture(Result.ok(new LookupResponse("text/xml", metadataContent))));
+                    .map(metadataContent -> new LookupResponse("text/xml", metadataContent));
         }
 
         // resolve requests for latest version of artifact
@@ -107,7 +106,7 @@ public final class LookupService {
                 return ResponseUtils.error(HttpStatus.SC_NOT_FOUND, "Latest version not found");
             }
 
-            return Result.ok(CompletableFuture.completedFuture(Result.ok(new LookupResponse("text/plain", version.getName()))));
+            return Result.ok(new LookupResponse("text/plain", version.getName()));
         }
 
         // resolve snapshot requests
@@ -131,18 +130,13 @@ public final class LookupService {
 
         File file = artifact.get().getFile(requestedFileName);
         FileDetailsDto fileDetails = FileDetailsDto.of(file);
-        CompletableFuture<Result<LookupResponse, ErrorDto>> task = new CompletableFuture<>();
 
-        ioService.submit(() -> {
-            if (!context.method().equals("HEAD")) {
-                context.resultStream(new FileInputStream(file));
-            }
+        if (!context.method().equals("HEAD")) {
+            context.result(outputStream -> FileUtils.copyFile(file, outputStream));
+        }
 
-            Reposilite.getLogger().info("RESOLVED " + file.getPath() + "; mime: " + fileDetails.getContentType() + "; size: " + file.length());
-            return task.complete(Result.ok(new LookupResponse(fileDetails)));
-        });
-
-        return Result.ok(task);
+        Reposilite.getLogger().info("RESOLVED " + file.getPath() + "; mime: " + fileDetails.getContentType() + "; size: " + file.length());
+        return Result.ok(new LookupResponse(fileDetails));
     }
 
     FileListDto findAvailableRepositories(Map<String, String> headers) {
