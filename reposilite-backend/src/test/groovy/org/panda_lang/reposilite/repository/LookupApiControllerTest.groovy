@@ -40,8 +40,8 @@ class LookupApiControllerTest extends ReposiliteIntegrationTestSpecification {
 
         def files = repositories.getSection('files')
         assertEquals 2, files.size()
-        assertEquals 'releases', files.getSection(0).getString('name')
-        assertEquals 'snapshots', files.getSection(1).getString('name')
+        assertEquals 'releases', files.getSection(0).getString('name').get()
+        assertEquals 'snapshots', files.getSection(1).getString('name').get()
     }
 
     @Test
@@ -54,16 +54,16 @@ class LookupApiControllerTest extends ReposiliteIntegrationTestSpecification {
         def repositories = CDN.defaultInstance().parseJson(response.parseAsString())
         def files = repositories.getSection('files')
         assertEquals 3, files.size()
-        assertEquals 'releases', files.getSection(0).getString('name')
-        assertEquals 'snapshots', files.getSection(1).getString('name')
-        assertEquals 'private', files.getSection(2).getString('name')
+        assertEquals 'releases', files.getSection(0).getString('name').get()
+        assertEquals 'snapshots', files.getSection(1).getString('name').get()
+        assertEquals 'private', files.getSection(2).getString('name').get()
     }
 
     @Test
     void 'should return 200 and latest file' () {
         def result = shouldReturn200AndJsonResponse('/api/org/panda-lang/reposilite-test/latest')
-        assertEquals 'directory', result.getString('type')
-        assertEquals '1.0.1-SNAPSHOT', result.getString('name')
+        assertEquals 'directory', result.getString('type').get()
+        assertEquals '1.0.1-SNAPSHOT', result.getString('name').get()
     }
 
     @Test
@@ -76,15 +76,15 @@ class LookupApiControllerTest extends ReposiliteIntegrationTestSpecification {
     @Test
     void 'should return 200 and file dto' () {
         def result = shouldReturn200AndJsonResponse('/api/org/panda-lang/reposilite-test/1.0.0/reposilite-test-1.0.0.jar')
-        assertEquals 'file', result.getString('type')
-        assertEquals 'reposilite-test-1.0.0.jar', result.getString('name')
+        assertEquals 'file', result.getString('type').get()
+        assertEquals 'reposilite-test-1.0.0.jar', result.getString('name').get()
     }
 
     @Test
     void 'should return 200 and directory dto' () {
         def result = shouldReturn200AndJsonResponse('/api/org/panda-lang/reposilite-test')
         def files = result.getSection('files')
-        assertEquals '1.0.1-SNAPSHOT', files.getSection(0).getString('name')
+        assertEquals '1.0.1-SNAPSHOT', files.getSection(0).getString('name').get()
     }
 
     private static Configuration shouldReturn200AndJsonResponse(String uri) {
