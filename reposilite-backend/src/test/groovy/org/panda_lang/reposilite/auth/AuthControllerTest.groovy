@@ -55,8 +55,8 @@ final class AuthControllerTest extends ReposiliteIntegrationTestSpecification {
         assertEquals HttpStatus.SC_OK, response.getStatusCode()
 
         def authDto = CDN.defaultInstance().parseJson(response.parseAsString())
-        assertTrue authDto.getBoolean('manager')
-        assertEquals '/', authDto.getString('path')
+        assertTrue authDto.getBoolean('manager').get()
+        assertEquals '/', authDto.getString('path').get()
         assertEquals Arrays.asList('releases', 'snapshots'), authDto.getList('repositories')
     }
 
