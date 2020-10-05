@@ -54,6 +54,7 @@ public final class ConfigurationLoader {
             ? cdn.parse(Configuration.class, FileUtils.getContentOfFile(configurationFile))
             : createConfiguration(configurationFile);
 
+        verifyBasePath(configuration);
         verifyProxied(configuration);
         FileUtils.overrideFile(configurationFile, cdn.compose(configuration));
         loadProperties(configuration);
@@ -79,6 +80,22 @@ public final class ConfigurationLoader {
         Reposilite.getLogger().info("YAML configuration has been converted to CDN format");
         FileUtils.delete(legacyConfiguration);
         return configuration;
+    }
+
+    private static void verifyBasePath(Configuration configuration) {
+        String basePath = configuration.basePath;
+
+        if (!StringUtils.isEmpty(basePath)) {
+            if (!basePath.startsWith("/")) {
+                basePath = "/" + basePath;
+            }
+
+            if (!basePath.endsWith("/")) {
+                basePath += "/";
+            }
+
+            configuration.basePath = basePath;
+        }
     }
 
     private static void verifyProxied(Configuration configuration) {
