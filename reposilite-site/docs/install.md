@@ -14,11 +14,11 @@ You may also use Docker image available on Docker Hub:
 
 ## Requirements
 * Java 8+
-* RAM 8MB+
+* RAM 12MB+
 
 | Amount | Description |
 |:------:|-------------|
-| *8MB* | Tiny repository for personal projects |
+| *12MB* | Tiny repository for personal projects |
 | *16MB* - *32MB* | *--------------------^------------------* + CI + Proxy |
 | *48MB - 128MB* | Tiny public repository *(recommended)* |
 | *128MB+* | Public repository | 
