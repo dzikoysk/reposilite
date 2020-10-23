@@ -37,7 +37,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- Dependencies -->
-        <jetty.version>9.4.32.v20200930</jetty.version>
+        <jetty.version>9.4.33.v20201020</jetty.version>
     </properties>
 
     <dependencies>
