@@ -20,6 +20,8 @@ import io.javalin.Javalin;
 import io.javalin.core.JavalinConfig;
 import io.javalin.core.JavalinServer;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.panda_lang.reposilite.auth.AuthController;
 import org.panda_lang.reposilite.auth.PostAuthHandler;
 import org.panda_lang.reposilite.config.Configuration;
@@ -66,7 +68,7 @@ public final class ReposiliteHttpServer {
                 reposilite.getAuthenticator(),
                 reposilite.getConsole());
 
-        this.javalin = Javalin.create(config -> config(configuration, config))
+        this.javalin = Javalin.create(config -> configure(configuration, config))
                 .before(ctx -> reposilite.getStatsService().record(ctx.req.getRequestURI()))
                 .get("/js/app.js", new FrontendController(reposilite))
                 .get("/api/auth", new AuthController(reposilite.getAuthService()))
@@ -84,10 +86,30 @@ public final class ReposiliteHttpServer {
         onStart.run();
     }
 
-    private void config(Configuration configuration, JavalinConfig config) {
-        config.server(Server::new);
-        config.showJavalinBanner = false;
+    private void configure(Configuration configuration, JavalinConfig config) {
+        Server server = new Server();
+
+        if (configuration.sslEnabled) {
+            Reposilite.getLogger().info("Enabling SSL connector at ::" + configuration.sslPort);
+
+            SslContextFactory sslContextFactory = new SslContextFactory.Server();
+            sslContextFactory.setKeyStorePath(configuration.keyStorePath.replace("${WORKING_DIRECTORY}", reposilite.getWorkingDirectory().getAbsolutePath()));
+            sslContextFactory.setKeyStorePassword(configuration.keyStorePassword);
+
+            ServerConnector sslConnector = new ServerConnector(server, sslContextFactory);
+            sslConnector.setPort(configuration.sslPort);
+            server.addConnector(sslConnector);
+
+            if (!configuration.enforceSsl) {
+                ServerConnector standardConnector = new ServerConnector(server);
+                standardConnector.setPort(configuration.port);
+                server.addConnector(standardConnector);
+            }
+        }
+
         config.enableCorsForAllOrigins();
+        config.enforceSsl = configuration.enforceSsl;
+        config.showJavalinBanner = false;
 
         if (configuration.debugEnabled) {
             config.requestCacheSize = FilesUtils.displaySizeToBytesCount(System.getProperty("reposilite.requestCacheSize", "8MB"));
@@ -95,6 +117,8 @@ public final class ReposiliteHttpServer {
             Reposilite.getLogger().info("Debug enabled");
             config.enableDevLogging();
         }
+
+        config.server(() -> server);
     }
 
     void stop() {
