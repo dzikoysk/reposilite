@@ -17,6 +17,18 @@ forwardedIp: X-Forwarded-For
 # Debug
 debugEnabled: false
 
+# Support encrypted connections
+sslEnabled: true
+# SSL port to bind
+sslPort: 443
+# Key store file to use.
+# You can specify absolute path to the given file or use ${WORKING_DIRECTORY} variable.
+keyStorePath: ${WORKING_DIRECTORY}/keystore.jks
+# Key store password to use
+keyStorePassword: reposilite
+# Redirect http traffic to https
+enforceSsl: false
+
 # Control the maximum amount of data assigned to Reposilite instance
 # Supported formats: 90%, 500MB, 10GB
 diskQuota: 85%

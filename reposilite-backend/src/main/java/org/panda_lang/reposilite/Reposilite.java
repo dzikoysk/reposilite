@@ -268,6 +268,10 @@ public final class Reposilite {
         return ioService;
     }
 
+    public File getWorkingDirectory() {
+        return workingDirectory;
+    }
+
     public static Logger getLogger() {
         return LOGGER;
     }

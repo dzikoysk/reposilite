@@ -46,6 +46,20 @@ public final class Configuration implements Serializable {
     @Description("# Debug")
     public Boolean debugEnabled = false;
 
+    // SSL
+    @Description("")
+    @Description("# Support encrypted connections")
+    public Boolean sslEnabled = false;
+    @Description("# SSL port to bind")
+    public Integer sslPort = 443;
+    @Description("# Key store file to use.")
+    @Description("# You can specify absolute path to the given file or use ${WORKING_DIRECTORY} variable.")
+    public String keyStorePath = "${WORKING_DIRECTORY}/keystore.jks";
+    @Description("# Key store password to use")
+    public String keyStorePassword = "";
+    @Description("# Redirect http traffic to https")
+    public Boolean enforceSsl = false;
+
     // Repository properties
     @Description("")
     @Description("# Control the maximum amount of data assigned to Reposilite instance")
