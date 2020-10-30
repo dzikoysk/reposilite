@@ -41,10 +41,10 @@ public final class RepositoryAuthenticator {
     }
 
     public Result<Pair<String[], Repository>, ErrorDto> authDefaultRepository(Map<String, String> headers, String uri) {
-        return authRepository(headers, uri, ReposiliteUtils.normalizeUri(rewritePathsEnabled, repositoryService, uri));
+        return authRepository(headers, ReposiliteUtils.normalizeUri(rewritePathsEnabled, repositoryService, uri));
     }
 
-    public Result<Pair<String[], Repository>, ErrorDto> authRepository(Map<String, String> headers, String uri, String normalizedUri) {
+    public Result<Pair<String[], Repository>, ErrorDto> authRepository(Map<String, String> headers, String normalizedUri) {
         String[] path = StringUtils.split(normalizedUri, "/");
         String repositoryName = path[0];
 
@@ -60,7 +60,7 @@ public final class RepositoryAuthenticator {
 
         // auth hidden repositories
         if (repository.isHidden()) {
-            Result<Session, String> authResult = authenticator.authByUri(headers, uri);
+            Result<Session, String> authResult = authenticator.authByUri(headers, normalizedUri);
 
             if (authResult.containsError()) {
                 return ResponseUtils.error(HttpStatus.SC_UNAUTHORIZED, "Unauthorized request");
