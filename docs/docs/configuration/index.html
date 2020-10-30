@@ -88,6 +88,18 @@ by Reposilite during your first start and it should look like this:</p>
 <span class="hljs-comment"># Debug</span>
 <span class="hljs-attr">debugEnabled:</span> <span class="hljs-literal">false</span>
 
+<span class="hljs-comment"># Support encrypted connections</span>
+<span class="hljs-attr">sslEnabled:</span> <span class="hljs-literal">true</span>
+<span class="hljs-comment"># SSL port to bind</span>
+<span class="hljs-attr">sslPort:</span> <span class="hljs-number">443</span>
+<span class="hljs-comment"># Key store file to use.</span>
+<span class="hljs-comment"># You can specify absolute path to the given file or use ${WORKING_DIRECTORY} variable.</span>
+<span class="hljs-attr">keyStorePath:</span> <span class="hljs-string">${WORKING_DIRECTORY}/keystore.jks</span>
+<span class="hljs-comment"># Key store password to use</span>
+<span class="hljs-attr">keyStorePassword:</span> <span class="hljs-string">reposilite</span>
+<span class="hljs-comment"># Redirect http traffic to https</span>
+<span class="hljs-attr">enforceSsl:</span> <span class="hljs-literal">false</span>
+
 <span class="hljs-comment"># Control the maximum amount of data assigned to Reposilite instance</span>
 <span class="hljs-comment"># Supported formats: 90%, 500MB, 10GB</span>
 <span class="hljs-attr">diskQuota:</span> <span class="hljs-number">85</span><span class="hljs-string">%</span>
