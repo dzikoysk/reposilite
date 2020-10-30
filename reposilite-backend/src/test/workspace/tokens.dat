@@ -1,8 +1,14 @@
-!!org.panda_lang.reposilite.auth.TokensCollection
+!!org.panda_lang.reposilite.auth.TokenCollection
 "tokens":
+- "alias": "private"
+  "path": "/private"
+  "permissions": "w"
+  "token": "$2a$10$emGPCUwsR650EJYNrjy/tucpi2rA0O2oYTT87OYQU9bSodGlNrI.q"
 - "alias": "authtest"
   "path": "/releases/auth/test"
+  "permissions": "w"
   "token": "$2a$10$gQ9/kwYOl9T1zgGlfFPyMuFdb2fd5of7nhDK4TS26A7yYZiVfiuSi"
 - "alias": "admin"
   "path": "/"
+  "permissions": "w"
   "token": "$2a$10$Rb2m1vYj7CIW9ve.twvabOMtSp3vnkrsqd08F2Edi3.kGnqjTcWmy"

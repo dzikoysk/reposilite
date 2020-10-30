@@ -29,7 +29,7 @@ class RepositoryAuthenticatorTest extends AuthenticatorSpecification {
 
     @Test
     void 'should not auth invalid repository uri' () {
-        assertEquals "Unsupported request", REPOSITORY_AUTHENTICATOR.authRepository([:], '', '').getError().getMessage()
+        assertEquals "Unsupported request", REPOSITORY_AUTHENTICATOR.authRepository([:], '').getError().getMessage()
     }
 
 }

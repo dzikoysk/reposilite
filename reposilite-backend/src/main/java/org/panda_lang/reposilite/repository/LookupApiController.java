@@ -62,13 +62,13 @@ public final class LookupApiController implements RepositoryController {
         ReposiliteContext context = contextFactory.create(ctx);
         Reposilite.getLogger().info("API " + context.uri() + " from " + context.address());
 
-        String uri = ReposiliteUtils.normalizeUri(rewritePathsEnabled, repositoryService, StringUtils.replaceFirst(ctx.req.getRequestURI(), "/api", ""));
+        String uri = ReposiliteUtils.normalizeUri(rewritePathsEnabled, repositoryService, StringUtils.replaceFirst(context.uri(), "/api", ""));
 
         if (StringUtils.isEmpty(uri) || "/".equals(uri)) {
-            return ctx.json(lookupService.findAvailableRepositories(ctx.headerMap()));
+            return ctx.json(lookupService.findAvailableRepositories(context.headers()));
         }
 
-        Result<Pair<String[], Repository>, ErrorDto> result = repositoryAuthenticator.authRepository(ctx.headerMap(), ctx.req.getRequestURI(), uri);
+        Result<Pair<String[], Repository>, ErrorDto> result = repositoryAuthenticator.authRepository(context.headers(), uri);
 
         if (result.containsError()) {
             return ResponseUtils.errorResponse(ctx, result.getError().getStatus(), result.getError().getMessage());
