@@ -35,7 +35,7 @@
     ) Select or drop files
     label.m-1
       input(name="stubPom" type="radio" v-model="stubPom" :value="true").mx-2.stub-pom
-      span Generate stub pom.xml file
+      span Generate stub pom file for this artifact
     button(name="submit" type="submit" v-on:click="upload").w-96.p-1.m-1.bg-white.cursor-pointer.border Upload
     notifications(group="upload" position="center top")
 </template>
