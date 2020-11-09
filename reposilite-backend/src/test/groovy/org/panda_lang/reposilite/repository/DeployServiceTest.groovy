@@ -45,7 +45,6 @@ class DeployServiceTest extends ReposiliteTestSpecification {
                         Executors.newSingleThreadExecutor(),
                         Executors.newSingleThreadScheduledExecutor(),
                         new FailureService(),
-                        new FileService(Executors.newSingleThreadExecutor(), 2)
                 ),
                 super.reposilite.metadataService)
 

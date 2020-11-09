@@ -60,8 +60,7 @@ public final class ReposiliteHttpServer {
                 reposilite.getContextFactory(),
                 reposilite.getRepositoryAuthenticator(),
                 reposilite.getRepositoryService(),
-                reposilite.getLookupService(),
-                reposilite.getFileService());
+                reposilite.getLookupService());
 
         CliController cliController = new CliController(
                 reposilite.getContextFactory(),

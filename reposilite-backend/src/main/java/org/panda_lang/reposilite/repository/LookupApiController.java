@@ -25,9 +25,12 @@ import org.panda_lang.reposilite.ReposiliteUtils;
 import org.panda_lang.reposilite.RepositoryController;
 import org.panda_lang.reposilite.error.ErrorDto;
 import org.panda_lang.reposilite.error.ResponseUtils;
+import org.panda_lang.reposilite.metadata.MetadataUtils;
+import org.panda_lang.reposilite.utils.FilesUtils;
 import org.panda_lang.reposilite.utils.Result;
 import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.collection.Pair;
+import org.panda_lang.utilities.commons.function.PandaStream;
 
 import java.io.File;
 import java.util.Optional;
@@ -39,22 +42,19 @@ public final class LookupApiController implements RepositoryController {
     private final RepositoryAuthenticator repositoryAuthenticator;
     private final RepositoryService repositoryService;
     private final LookupService lookupService;
-    private final FileService fileService;
 
     public LookupApiController(
             boolean rewritePathsEnabled,
             ReposiliteContextFactory contextFactory,
             RepositoryAuthenticator repositoryAuthenticator,
             RepositoryService repositoryService,
-            LookupService lookupService,
-            FileService fileService) {
+            LookupService lookupService) {
 
         this.rewritePathsEnabled = rewritePathsEnabled;
         this.contextFactory = contextFactory;
         this.repositoryAuthenticator = repositoryAuthenticator;
         this.repositoryService = repositoryService;
         this.lookupService = lookupService;
-        this.fileService = fileService;
     }
 
     @Override
@@ -89,7 +89,10 @@ public final class LookupApiController implements RepositoryController {
             return ctx.json(FileDetailsDto.of(requestedFile));
         }
 
-        return ctx.json(fileService.toFileListDto(requestedFile));
+        return ctx.json(new FileListDto(PandaStream.of(FilesUtils.listFiles(requestedFile))
+                .map(FileDetailsDto::of)
+                .transform(stream -> MetadataUtils.toSorted(stream, FileDetailsDto::getName, FileDetailsDto::isDirectory))
+                .toList()));
     }
 
 }
