@@ -26,6 +26,7 @@ import org.panda_lang.reposilite.error.FailureService;
 import org.panda_lang.reposilite.frontend.FrontendService;
 import org.panda_lang.reposilite.metadata.MetadataService;
 import org.panda_lang.reposilite.repository.DeployService;
+import org.panda_lang.reposilite.repository.FileService;
 import org.panda_lang.reposilite.repository.LookupService;
 import org.panda_lang.reposilite.repository.ProxyService;
 import org.panda_lang.reposilite.repository.RepositoryAuthenticator;
@@ -62,6 +63,7 @@ public final class Reposilite {
     private final ReposiliteContextFactory contextFactory;
     private final ReposiliteExecutor executor;
     private final FailureService failureService;
+    private final FileService fileService;
     private final Authenticator authenticator;
     private final RepositoryAuthenticator repositoryAuthenticator;
     private final AuthService authService;
@@ -93,9 +95,10 @@ public final class Reposilite {
         this.contextFactory = new ReposiliteContextFactory(configuration.forwardedIp);
         this.failureService = new FailureService();
         this.executor = new ReposiliteExecutor(testEnvEnabled, failureService);
+        this.fileService = new FileService(ioService, configuration.initialCache);
         this.tokenService = new TokenService(workingDirectory);
         this.statsService = new StatsService(workingDirectory, failureService, ioService, retryService);
-        this.repositoryService = new RepositoryService(workingDirectory, configuration.diskQuota, ioService, retryService, failureService);
+        this.repositoryService = new RepositoryService(workingDirectory, configuration.diskQuota, ioService, retryService, failureService, fileService);
         this.metadataService = new MetadataService(failureService);
 
         this.authenticator = new Authenticator(configuration, repositoryService, tokenService);
@@ -130,6 +133,7 @@ public final class Reposilite {
 
         getLogger().info("");
         repositoryService.load(configuration);
+        fileService.loadInitialRepositoryCache(repositoryService.getRootDirectory());
         getLogger().info("");
 
         getLogger().info("Binding server at " + configuration.hostname + "::" + configuration.port);
@@ -254,6 +258,10 @@ public final class Reposilite {
 
     public Console getConsole() {
         return console;
+    }
+
+    public FileService getFileService() {
+        return fileService;
     }
 
     public ReposiliteExecutor getExecutor() {

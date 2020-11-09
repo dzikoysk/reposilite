@@ -46,10 +46,11 @@ public final class RepositoryService {
             String diskQuota,
             ExecutorService ioService,
             ScheduledExecutorService retryService,
-            FailureService failureService) {
+            FailureService failureService,
+            FileService fileService) {
 
         this.failureService = failureService;
-        this.repositoryStorage = new RepositoryStorage(new File(workingDirectory, "repositories"), diskQuota, ioService, retryService);
+        this.repositoryStorage = new RepositoryStorage(new File(workingDirectory, "repositories"), diskQuota, ioService, retryService, fileService);
     }
 
     public void load(Configuration configuration) {
@@ -139,6 +140,10 @@ public final class RepositoryService {
 
     public DiskQuota getDiskQuota() {
         return repositoryStorage.getDiskQuota();
+    }
+
+    public File getRootDirectory() {
+        return repositoryStorage.getRootDirectory();
     }
 
 }

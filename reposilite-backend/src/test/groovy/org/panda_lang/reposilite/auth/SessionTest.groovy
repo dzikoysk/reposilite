@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.panda_lang.reposilite.config.Configuration
 import org.panda_lang.reposilite.error.FailureService
+import org.panda_lang.reposilite.repository.FileService
 import org.panda_lang.reposilite.repository.RepositoryService
 
 import java.util.concurrent.Executors
@@ -37,7 +38,15 @@ class SessionTest {
 
     @BeforeAll
     static void prepare () {
-        REPOSITORY_SERVICE = new RepositoryService(WORKING_DIRECTORY.getAbsolutePath(), '0', Executors.newSingleThreadExecutor(), Executors.newSingleThreadScheduledExecutor(), new FailureService())
+        REPOSITORY_SERVICE = new RepositoryService(
+                WORKING_DIRECTORY.getAbsolutePath(),
+                '0',
+                Executors.newSingleThreadExecutor(),
+                Executors.newSingleThreadScheduledExecutor(),
+                new FailureService(),
+                new FileService(Executors.newSingleThreadExecutor(), 2)
+        )
+
         REPOSITORY_SERVICE.load(new Configuration())
     }
 
