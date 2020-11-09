@@ -28,14 +28,7 @@
             i.fas.fa-feather-alt
       router-link(v-if="!isRoot()" :to='prefix + parentPath()') ← Back
     .list.overflow-y-auto
-      FileEntry(
-        v-if="hasFiles()"
-        v-for="file in response.files"
-        :key="file.name"
-        :prefix="prefix"
-        :file="file"
-        :auth="auth"
-      )
+      FileEntry(v-if="hasFiles()" v-for="file in response.files" :key="file.name" :prefix="prefix" :file="file" :auth="auth")
       h1(v-if="isEmpty()") Empty directory
       h1(v-if="!hasFiles()").font-bold {{ response.message }}
     notifications(group="index" position="center top")
@@ -43,9 +36,11 @@
 
 <script>
 import Vue from 'vue'
+import smoothReflow from 'vue-smooth-reflow'
 import FileEntry from './FileEntry'
 
 export default {
+  mixins: [smoothReflow],
   props: {
     qualifier: String,
     prefix: String,
@@ -68,6 +63,7 @@ export default {
 
         this.api(this.qualifier, this.auth)
           .then(response => (this.response = response.data))
+          .then(response => (console.log(this.response)))
           .catch(err => {
             this.$notify({
               group: 'index',
@@ -77,6 +73,9 @@ export default {
           })
       }
     }
+  },
+  mounted () {
+    this.$smoothReflow()
   },
   methods: {
     pathFragmentUri (index) {
