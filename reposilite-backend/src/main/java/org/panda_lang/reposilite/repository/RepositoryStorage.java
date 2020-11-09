@@ -44,13 +44,15 @@ final class RepositoryStorage {
     private final DiskQuota diskQuota;
     private final ExecutorService ioService;
     private final ScheduledExecutorService retryService;
+    private final FileService fileService;
     private Repository primaryRepository;
 
-    RepositoryStorage(File rootDirectory, String diskQuota, ExecutorService ioService, ScheduledExecutorService retryService) {
+    RepositoryStorage(File rootDirectory, String diskQuota, ExecutorService ioService, ScheduledExecutorService retryService, FileService fileService) {
         this.rootDirectory = rootDirectory;
         this.diskQuota = DiskQuota.of(getRootDirectory().getParentFile(), diskQuota);
         this.ioService = ioService;
         this.retryService = retryService;
+        this.fileService = fileService;
     }
 
     void load(Configuration configuration) {
@@ -117,6 +119,7 @@ final class RepositoryStorage {
         diskQuota.allocate(lockedFile.length());
         Files.copy(source, lockedFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
         Files.move(lockedFile.toPath(), targetFile.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+        fileService.forceCacheUpdate(targetFile.getParentFile());
 
         task.complete(targetFile);
         return task;

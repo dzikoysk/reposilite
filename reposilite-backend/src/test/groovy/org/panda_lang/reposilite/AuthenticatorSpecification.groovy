@@ -23,6 +23,7 @@ import org.panda_lang.reposilite.auth.Token
 import org.panda_lang.reposilite.auth.TokenService
 import org.panda_lang.reposilite.config.Configuration
 import org.panda_lang.reposilite.error.FailureService
+import org.panda_lang.reposilite.repository.FileService
 import org.panda_lang.reposilite.repository.RepositoryService
 
 import java.util.concurrent.Executors
@@ -30,7 +31,14 @@ import java.util.concurrent.Executors
 @CompileStatic
 class AuthenticatorSpecification {
 
-    static final RepositoryService REPOSITORY_SERVICE = new RepositoryService('.', '0', Executors.newSingleThreadExecutor(), Executors.newSingleThreadScheduledExecutor(), new FailureService())
+    static final RepositoryService REPOSITORY_SERVICE = new RepositoryService(
+            '.',
+            '0',
+            Executors.newSingleThreadExecutor(),
+            Executors.newSingleThreadScheduledExecutor(),
+            new FailureService(),
+            new FileService(Executors.newSingleThreadExecutor(), 2)
+    )
 
     static final TokenService TOKEN_SERVICE = new TokenService('.')
     static final Token AUTH_TOKEN = new Token('/auth/test', 'alias', 'rw', TokenService.B_CRYPT_TOKENS_ENCODER.encode('secret'))

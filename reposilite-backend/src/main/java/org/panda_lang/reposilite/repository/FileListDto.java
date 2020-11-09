@@ -21,13 +21,13 @@ import java.util.List;
 
 final class FileListDto implements Serializable {
 
-    private final List<FileDetailsDto> files;
+    private final List<? extends FileDetailsDto> files;
 
-    FileListDto(List<FileDetailsDto> files) {
+    FileListDto(List<? extends FileDetailsDto> files) {
         this.files = files;
     }
 
-    public List<FileDetailsDto> getFiles() {
+    public List<? extends FileDetailsDto> getFiles() {
         return files;
     }
 

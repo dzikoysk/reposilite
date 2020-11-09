@@ -39,7 +39,14 @@ class DeployServiceTest extends ReposiliteTestSpecification {
         def deployService = new DeployService(
                 true,
                 super.reposilite.authenticator,
-                new RepositoryService(super.workingDirectory.getAbsolutePath(), '0MB', Executors.newSingleThreadExecutor(), Executors.newSingleThreadScheduledExecutor(), new FailureService()),
+                new RepositoryService(
+                        super.workingDirectory.getAbsolutePath(),
+                        '0MB',
+                        Executors.newSingleThreadExecutor(),
+                        Executors.newSingleThreadScheduledExecutor(),
+                        new FailureService(),
+                        new FileService(Executors.newSingleThreadExecutor(), 2)
+                ),
                 super.reposilite.metadataService)
 
         super.reposilite.tokenService.createToken('/', ALIAS, 'rw', TOKEN)

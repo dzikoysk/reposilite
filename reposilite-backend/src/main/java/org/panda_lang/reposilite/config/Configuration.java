@@ -72,6 +72,11 @@ public final class Configuration implements Serializable {
     @Description("# Allow to omit name of the main repository in request")
     @Description("# e.g. /org/panda-lang/reposilite will be redirected to /releases/org/panda-lang/reposilite")
     public Boolean rewritePathsEnabled = true;
+    @Description("# Specify how deep Reposilite should index repositories at startup.")
+    @Description("# If initialCache is 0, directory caching is disabled and does not impact the memory usage.")
+    @Description("# This function is dedicated for huge repositories,")
+    @Description("# where direct reads from disk significantly increase load times and impact the performance of frontend/dashboard.")
+    public Integer initialCache = 0;
 
     // Proxy
     @Description("")
