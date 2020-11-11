@@ -48,6 +48,7 @@ public class Console {
 
         switch (command.toLowerCase()) {
             case "help":
+            case "?":
                 return new HelpCommand().execute(reposilite);
             case "version":
                 return new VersionCommand().execute(reposilite);
