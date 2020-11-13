@@ -114,8 +114,8 @@ final class RepositoryStorage {
             Files.move(targetFile.toPath(), lockedFile.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
         }
 
-        diskQuota.allocate(lockedFile.length());
         Files.copy(source, lockedFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        diskQuota.allocate(lockedFile.length());
         Files.move(lockedFile.toPath(), targetFile.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
 
         task.complete(targetFile);
