@@ -46,7 +46,7 @@ class RepositoryStorageTest {
     }
 
     @Test
-    void 'should add size off written file to the disk quota'() {
+    void 'should add size of written file to the disk quota'() {
         def initialUsage = repositoryStorage.diskQuota.usage
         def string = "test"
         def expectedUsage = initialUsage + string.bytes.length
