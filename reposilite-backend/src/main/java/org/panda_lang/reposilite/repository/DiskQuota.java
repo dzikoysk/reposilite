@@ -40,6 +40,10 @@ final class DiskQuota {
         return usage.get() < quota.get();
     }
 
+    public long getUsage() {
+        return usage.get();
+    }
+
     public static DiskQuota ofPercentage(File workingDirectory, long usage, int percentage) {
         return new DiskQuota(Math.round(workingDirectory.getUsableSpace() * (percentage / 100D)), usage);
     }
