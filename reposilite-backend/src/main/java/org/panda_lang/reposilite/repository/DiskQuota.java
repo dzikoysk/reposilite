@@ -41,7 +41,7 @@ final class DiskQuota {
     }
 
     public long getUsage() {
-        return usage.longValue();
+        return usage.get();
     }
 
     public static DiskQuota ofPercentage(File workingDirectory, long usage, int percentage) {
