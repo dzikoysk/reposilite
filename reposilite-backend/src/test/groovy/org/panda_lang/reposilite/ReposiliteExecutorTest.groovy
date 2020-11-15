@@ -35,7 +35,7 @@ class ReposiliteExecutorTest {
 
     @Test
     void 'should execute and exit' () throws InterruptedException {
-        def reposilite = ReposiliteLauncher.create(null, workingDirectory.getAbsolutePath(), true)
+        def reposilite = ReposiliteLauncher.create(null, workingDirectory.getAbsolutePath(), false, true)
         def reposiliteExecutor = new ReposiliteExecutor(true, reposilite.getFailureService())
         def onExitCalled = new AtomicBoolean(false)
         def scheduleCalled = new AtomicBoolean(false)

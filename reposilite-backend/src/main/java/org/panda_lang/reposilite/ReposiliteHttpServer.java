@@ -37,10 +37,12 @@ import org.panda_lang.utilities.commons.function.Option;
 public final class ReposiliteHttpServer {
 
     private final Reposilite reposilite;
+    private final boolean servlet;
     private Javalin javalin;
 
-    ReposiliteHttpServer(Reposilite reposilite) {
+    ReposiliteHttpServer(Reposilite reposilite, boolean servlet) {
         this.reposilite = reposilite;
+        this.servlet = servlet;
     }
 
     void start(Configuration configuration, Runnable onStart) {
@@ -68,7 +70,7 @@ public final class ReposiliteHttpServer {
                 reposilite.getAuthenticator(),
                 reposilite.getConsole());
 
-        this.javalin = Javalin.create(config -> configure(configuration, config))
+        this.javalin = create(configuration)
                 .before(ctx -> reposilite.getStatsService().record(ctx.req.getRequestURI()))
                 .get("/js/app.js", new FrontendController(reposilite))
                 .get("/api/auth", new AuthController(reposilite.getAuthService()))
@@ -80,10 +82,18 @@ public final class ReposiliteHttpServer {
                 .put("/*", deployController)
                 .post("/*", deployController)
                 .after("/*", new PostAuthHandler())
-                .exception(Exception.class, (exception, ctx) -> failureService.throwException(ctx.req.getRequestURI(), exception))
-                .start(configuration.hostname, configuration.port);
+                .exception(Exception.class, (exception, ctx) -> failureService.throwException(ctx.req.getRequestURI(), exception));
 
-        onStart.run();
+        if (!servlet) {
+            javalin.start(configuration.hostname, configuration.port);
+            onStart.run();
+        }
+    }
+
+    private Javalin create(Configuration configuration) {
+        return servlet
+                ? Javalin.createStandalone(config -> configure(configuration, config))
+                : Javalin.create(config -> configure(configuration, config));
     }
 
     private void configure(Configuration configuration, JavalinConfig config) {
@@ -128,11 +138,15 @@ public final class ReposiliteHttpServer {
     }
 
     public boolean isAlive() {
-        return Option.of(javalin)
+        return getJavalin()
                 .map(Javalin::server)
                 .map(JavalinServer::server)
                 .map(Server::isStarted)
                 .orElseGet(false);
+    }
+
+    public Option<Javalin> getJavalin() {
+        return Option.of(javalin);
     }
 
 }

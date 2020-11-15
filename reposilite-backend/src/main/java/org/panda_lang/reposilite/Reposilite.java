@@ -52,6 +52,7 @@ public final class Reposilite {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("Reposilite");
 
+    private final boolean servlet;
     private final AtomicBoolean alive;
     private final ExecutorService ioService;
     private final ScheduledExecutorService retryService;
@@ -78,10 +79,11 @@ public final class Reposilite {
     private final Thread shutdownHook;
     private long uptime;
 
-    Reposilite(String configurationFile, String workingDirectory, boolean testEnv) {
+    Reposilite(String configurationFile, String workingDirectory, boolean servlet, boolean testEnv) {
         ValidationUtils.notNull(configurationFile, "Configuration file cannot be null. To use default configuration file, provide empty string");
         ValidationUtils.notNull(workingDirectory, "Working directory cannot be null. To use default working directory, provide empty string");
 
+        this.servlet = servlet;
         this.alive = new AtomicBoolean(false);
         this.ioService = new ThreadPoolExecutor(0, Integer.MAX_VALUE, 1, TimeUnit.SECONDS, new SynchronousQueue<>());
         this.retryService = Executors.newSingleThreadScheduledExecutor();
@@ -105,12 +107,17 @@ public final class Reposilite {
         this.lookupService = new LookupService(authenticator, repositoryAuthenticator, metadataService, repositoryService, ioService, failureService);
         this.proxyService = new ProxyService(configuration.storeProxied, configuration.rewritePathsEnabled, configuration.proxied, ioService, failureService, repositoryService);
         this.frontend = FrontendService.load(configuration);
-        this.reactiveHttpServer= new ReposiliteHttpServer(this);
+        this.reactiveHttpServer = new ReposiliteHttpServer(this, servlet);
         this.console = new Console(this, System.in);
         this.shutdownHook = new Thread(RunUtils.ofChecked(failureService, this::shutdown));
     }
 
     public void launch() throws Exception {
+        load();
+        start();
+    }
+
+    public void load() throws Exception {
         getLogger().info("--- Environment");
 
         if (isTestEnvEnabled()) {
@@ -131,8 +138,11 @@ public final class Reposilite {
         getLogger().info("");
         repositoryService.load(configuration);
         getLogger().info("");
+    }
 
+    public void start() throws Exception {
         getLogger().info("Binding server at " + configuration.hostname + "::" + configuration.port);
+
         CountDownLatch latch = new CountDownLatch(1);
         this.uptime = System.currentTimeMillis();
 
