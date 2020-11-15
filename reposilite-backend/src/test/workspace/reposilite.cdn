@@ -43,11 +43,6 @@ repositories [
 # Allow to omit name of the main repository in request
 # e.g. /org/panda-lang/reposilite will be redirected to /releases/org/panda-lang/reposilite
 rewritePathsEnabled: true
-# Specify how deep Reposilite should index repositories at startup.
-# If initialCache is 0, directory caching is disabled and does not impact the memory usage.
-# This function is dedicated for huge repositories,
-# where direct reads from disk significantly increase load times and impact the performance of frontend/dashboard.
-initialCache: 5
 
 # List of proxied repositories.
 # Reposilite will search for an artifact in remote repositories listed below,

@@ -63,10 +63,10 @@ public final class ReposiliteLauncher {
             return Optional.empty();
         }
 
-        return Optional.of(create(launcher.configurationFile, launcher.workingDirectory, launcher.testEnv));
+        return Optional.of(create(launcher.configurationFile, launcher.workingDirectory, false, launcher.testEnv));
     }
 
-    public static Reposilite create(String configurationFile, String workingDirectory, boolean testEnv) {
+    public static Reposilite create(String configurationFile, String workingDirectory, boolean servlet, boolean testEnv) {
         Reposilite.getLogger().info("");
         Reposilite.getLogger().info(Effect.GREEN + "Reposilite " + Effect.RESET + ReposiliteConstants.VERSION);
         Reposilite.getLogger().info("");
@@ -79,7 +79,7 @@ public final class ReposiliteLauncher {
             configurationFile = new File(workingDirectory, ReposiliteConstants.CONFIGURATION_FILE_NAME).getAbsolutePath();
         }
 
-        return new Reposilite(configurationFile, workingDirectory, testEnv);
+        return new Reposilite(configurationFile, workingDirectory, servlet, testEnv);
     }
 
 }
