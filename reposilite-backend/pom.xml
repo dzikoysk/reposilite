@@ -37,7 +37,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- Dependencies -->
-        <jetty.version>9.4.34.v20201102</jetty.version>
+        <jetty.version>9.4.35.v20201120</jetty.version>
     </properties>
 
     <dependencies>
@@ -91,12 +91,12 @@
         <dependency>
             <groupId>net.dzikoysk</groupId>
             <artifactId>cdn</artifactId>
-            <version>1.5.2</version>
+            <version>1.5.3</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-crypto</artifactId>
-            <version>5.4.1</version>
+            <version>5.4.2</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
@@ -138,19 +138,19 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-inline</artifactId>
-            <version>3.6.0</version>
+            <version>3.6.28</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>3.6.0</version>
+            <version>3.6.28</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy</artifactId>
-            <version>3.0.6</version>
+            <version>3.0.7</version>
             <scope>test</scope>
         </dependency>
         <dependency>
