@@ -27,6 +27,10 @@
             <id>local-repository</id>
             <url>http://localhost/private</url>
         </repository>
+        <snapshotRepository>
+            <id>local-repository</id>
+            <url>http://localhost/snapshots</url>
+        </snapshotRepository>
     </distributionManagement>
 
     <repositories>

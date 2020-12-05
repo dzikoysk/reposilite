@@ -64,18 +64,36 @@ Reposilite uses path based token system.</p>
 <li>Permissions - the permissions associated with token</li>
 <li>Token - generated secret token used to access associated path</li>
 </ul>
+<p>The path must follow the given pattern: <code>/{repository}/{gav}</code></p>
+<ul>
+<li><code>{repository}</code> - required name of repository used to distinguish repositories</li>
+<li><code>{gav}</code> - optional GAV (<code>group-artifact-version</code>) path</li>
+</ul>
+<p>Some examples:</p>
+<table>
+<thead>
+<tr><th style="text-align:left">Path</th><th style="text-align:left">Matches</th><th style="text-align:center">Status</th></tr>
+</thead>
+<tbody>
+<tr><td style="text-align:left">/releases</td><td style="text-align:left">/releases/*</td><td style="text-align:center">Ok</td></tr>
+<tr><td style="text-align:left">/releases/artifactId/groupId/*</td><td style="text-align:left">Ok</td></tr>
+<tr><td style="text-align:left">/snapshots</td><td style="text-align:left">/snapshots/*</td><td style="text-align:center">Ok</td></tr>
+<tr><td style="text-align:left">/</td><td style="text-align:left">/releases/*</td><td style="text-align:center">Ok (only if <code>rewrite-paths</code> option is enabled)</td></tr>
+<tr><td style="text-align:left">*/</td><td style="text-align:left">/*</td><td style="text-align:center">Ok</td></tr>
+</tbody>
+</table>
 <p>Currently supported permissions:</p>
 <ul>
 <li><code>w</code> - allows to write <em>(deploy)</em> using this token</li>
 <li><code>m</code> - marks token as manager token <em>(full access)</em></li>
 </ul>
 <p>As an example, we can imagine we have several projects located in our repository.
-As an administrator, we want to have permission to whole repository, so the credentials for us should look like this:</p>
-<pre><code class="hljs css language-properties"><span class="hljs-attr">path</span>: <span class="hljs-string">/</span>
+In most cases, the administrator want to have permission to whole repository, so the credentials for us should look like this:</p>
+<pre><code class="hljs css language-properties"><span class="hljs-attr">path</span>: <span class="hljs-string">*/</span>
 <span class="hljs-attr">alias</span>: <span class="hljs-string">admin</span>
 <span class="hljs-attr">permissions</span>: <span class="hljs-string">m</span>
 </code></pre>
-<p>Access to requested paths is resolved by comparing the access token path with the beginning of current uri. Our <code>admin</code> user associated with <code>/</code> has access to all paths, because all of requests starts with this path separator:</p>
+<p>Access to requested paths is resolved by comparing the access token path with the beginning of current uri. Our <code>admin</code> user associated with <code>*/</code> has access to all paths, because all of requests starts with this path separator:</p>
 <table>
 <thead>
 <tr><th style="text-align:left">URI</th><th style="text-align:center">Status</th></tr>
