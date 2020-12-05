@@ -76,9 +76,9 @@ Reposilite uses path based token system.</p>
 </thead>
 <tbody>
 <tr><td style="text-align:left">/releases</td><td style="text-align:left">/releases/*</td><td style="text-align:center">Ok</td></tr>
-<tr><td style="text-align:left">/releases/artifactId/groupId/*</td><td style="text-align:left">Ok</td></tr>
+<tr><td style="text-align:left">/releases/abc</td><td style="text-align:left">/releases/abc*</td><td style="text-align:center">Ok</td></tr>
 <tr><td style="text-align:left">/snapshots</td><td style="text-align:left">/snapshots/*</td><td style="text-align:center">Ok</td></tr>
-<tr><td style="text-align:left">/</td><td style="text-align:left">/releases/*</td><td style="text-align:center">Ok (only if <code>rewrite-paths</code> option is enabled)</td></tr>
+<tr><td style="text-align:left">/</td><td style="text-align:left">/releases/*</td><td style="text-align:center">Ok (if <code>rewrite-paths</code> enabled)</td></tr>
 <tr><td style="text-align:left">*/</td><td style="text-align:left">/*</td><td style="text-align:center">Ok</td></tr>
 </tbody>
 </table>

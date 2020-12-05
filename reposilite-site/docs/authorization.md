@@ -24,9 +24,9 @@ Some examples:
 | Path | Matches | Status |
 | :--  | :--     | :--:   |
 | /releases | /releases/* | Ok |
-| /releases/artifactId/groupId/* | Ok |
+| /releases/abc | /releases/abc* | Ok |
 | /snapshots | /snapshots/* | Ok |
-| / | /releases/* | Ok (only if `rewrite-paths` option is enabled) |
+| / | /releases/* | Ok (if `rewrite-paths` enabled) |
 | */ | /* | Ok |
 
 Currently supported permissions:
