@@ -15,28 +15,42 @@ The access token consists of four elements:
 * Permissions - the permissions associated with token
 * Token - generated secret token used to access associated path
 
+The path must follow the given pattern: `/{repository}/{gav}`
+* `{repository}` - required name of repository used to distinguish repositories
+* `{gav}` - optional GAV (`group-artifact-version`) path
+
+Some examples:
+
+| Path | Matches | Status |
+| :--  | :--     | :--:   |
+| /releases | /releases/* | Ok |
+| /releases/artifactId/groupId/* | Ok |
+| /snapshots | /snapshots/* | Ok |
+| / | /releases/* | Ok (only if `rewrite-paths` option is enabled) |
+| */ | /* | Ok |
+
 Currently supported permissions:
 
 * `w` - allows to write *(deploy)* using this token
 * `m` - marks token as manager token *(full access)*
 
 As an example, we can imagine we have several projects located in our repository. 
-As an administrator, we want to have permission to whole repository, so the credentials for us should look like this:
+In most cases, the administrator want to have permission to whole repository, so the credentials for us should look like this:
 
 ```properties
-path: /
+path: */
 alias: admin
 permissions: m
 ```
 
-Access to requested paths is resolved by comparing the access token path with the beginning of current uri. Our `admin` user associated with `/` has access to all paths, because all of requests starts with this path separator:
+Access to requested paths is resolved by comparing the access token path with the beginning of current uri. Our `admin` user associated with `*/` has access to all paths, because all of requests starts with this path separator:
 
 | URI | Status |
 | :-- | :----: |
 | / | Ok |
-|/releases | Ok |
-|/releases/artifactId/groupId | Ok |
-|/snapshots | Ok |
+| /releases | Ok |
+| /releases/artifactId/groupId | Ok |
+| /snapshots | Ok |
 
 We also might add some of co-workers to their projects. 
 For instance, we will add *Daenerys Targaryen* user as `khaleesi` to `com.hbo.got` project:
