@@ -47,12 +47,14 @@ public final class Authenticator {
         Result<Session, String> authResult = authByHeader(header);
 
         if (authResult.containsError()) {
+            Reposilite.getLogger().debug(authResult.getError());
             return authResult;
         }
 
         Session session = authResult.getValue();
 
         if (!session.hasPermissionTo(uri)) {
+            Reposilite.getLogger().debug(authResult.getError());
             return Result.error("Unauthorized access attempt");
         }
 
@@ -62,6 +64,11 @@ public final class Authenticator {
 
     public Result<Session, String> authByHeader(Map<String, String> header) {
         String authorization = header.get("Authorization");
+        Reposilite.getLogger().debug("Header ---");
+
+        header.forEach((key, value) -> {
+            Reposilite.getLogger().debug(key + ": " + value);
+        });
 
         if (authorization == null) {
             return Result.error("Authorization credentials are not specified");
