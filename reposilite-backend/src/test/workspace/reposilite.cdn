@@ -3,7 +3,7 @@
 # ~~~~~~~~~~~~~~~~~~~~~~ #
 
 # Hostname
-hostname: 
+hostname:
 # Port to bind
 port: 80
 # Custom base path

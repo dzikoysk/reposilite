@@ -13,5 +13,9 @@ path: /private
 alias: private
 token: 6U8GaizE0udSuk9ADVhcUXBUPNqZg46L55JN9XYdtwC21cNMubP8x9ez+/I8Q/Bn
 
+path: /snapshots
+alias: snapshots-test
+token: 64zfaMgX2GsLu/Ct+RL9EEYpm3zCoN0VuwKqEGeov2B4RVSjXEhI5H/8OOTWOAND
+
 SSL password: reposilite
 ```

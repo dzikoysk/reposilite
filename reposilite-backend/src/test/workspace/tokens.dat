@@ -12,3 +12,7 @@
   "path": "/"
   "permissions": "w"
   "token": "$2a$10$Rb2m1vYj7CIW9ve.twvabOMtSp3vnkrsqd08F2Edi3.kGnqjTcWmy"
+- "alias": "snapshots-test"
+  "path": "/snapshots"
+  "permissions": "m"
+  "token": "$2a$10$XPmJ1jaeeYjh/KJkbyS9GeZoWNYcgkn4f8LYmLznNNHOWm10apWN."
