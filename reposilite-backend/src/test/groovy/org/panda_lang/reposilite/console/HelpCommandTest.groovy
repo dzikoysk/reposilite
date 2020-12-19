@@ -27,8 +27,7 @@ class HelpCommandTest extends ReposiliteTestSpecification {
 
     @Test
     void 'should return true and display message' () {
-        def helpCommand = new HelpCommand()
-        assertTrue helpCommand.execute(super.reposilite)
+        assertTrue executeCommand('help')
     }
 
 }

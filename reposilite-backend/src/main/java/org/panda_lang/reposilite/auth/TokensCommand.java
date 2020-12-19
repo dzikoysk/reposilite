@@ -14,19 +14,31 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.console;
+package org.panda_lang.reposilite.auth;
 
-import org.panda_lang.reposilite.ReposiliteConstants;
+import org.panda_lang.reposilite.Reposilite;
+import org.panda_lang.reposilite.console.ReposiliteCommand;
 import picocli.CommandLine.Command;
 
 import java.util.List;
 
-@Command(name = "version", description = "Display current version of Reposilite")
-final class VersionCommand implements ReposiliteCommand {
+@Command(name = "tokens", description = "List all generated tokens")
+final class TokensCommand implements ReposiliteCommand {
+
+    private final TokenService tokenService;
+
+    public TokensCommand(TokenService tokenService) {
+        this.tokenService = tokenService;
+    }
 
     @Override
     public boolean execute(List<String> response) {
-        response.add("Reposilite " + ReposiliteConstants.VERSION);
+        Reposilite.getLogger().info("Tokens (" + tokenService.count() + ")");
+
+        for (Token token : tokenService.getTokens()) {
+            Reposilite.getLogger().info(token.getPath() + " as " + token.getAlias() + " with '" + token.getPermissions() + "' permissions");
+        }
+
         return true;
     }
 

@@ -28,7 +28,7 @@ class StatusCommandTest extends ReposiliteTestSpecification {
     @Test
     void 'should return true and display status' () {
         super.reposilite.getFailureService().throwException("/", new RuntimeException())
-        assertTrue new StatusCommand().execute(super.reposilite)
+        assertTrue executeCommand('status')
     }
 
 }

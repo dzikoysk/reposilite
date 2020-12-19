@@ -96,12 +96,12 @@ Passing properties through the system properties is especially useful,
 when we want to use Docker image. The parameter must be provided in the following structure:
 
 ```properties
--Dreposilite.propertyName="propertyValue"
--Dreposilite.propertyName="arrayValue1,arrayValue2"
+-Dreposilite.propertyName=propertyValue
+-Dreposilite.propertyName=arrayValue1,arrayValue2
 ```
 
 For instance:
 
 ```bash
-$ java -Xmx32M -Dreposilite.port="8080" -jar reposilite.jar
+$ java -Xmx32M -Dreposilite.port=8080 -jar reposilite.jar
 ```

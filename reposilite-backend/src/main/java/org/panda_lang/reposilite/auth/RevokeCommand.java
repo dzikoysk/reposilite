@@ -16,36 +16,42 @@
 
 package org.panda_lang.reposilite.auth;
 
-import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.console.ReposiliteCommand;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Parameters;
 
 import java.io.IOException;
+import java.util.List;
 
-public final class RevokeCommand implements ReposiliteCommand {
+@Command(name = "revoke", description = "Revoke token")
+final class RevokeCommand implements ReposiliteCommand {
 
-    private final String alias;
+    @Parameters(index = "0", paramLabel = "<alias>", description = "alias of token to revoke")
+    private String alias;
 
-    public RevokeCommand(String alias) {
-        this.alias = alias;
+    private final TokenService tokenService;
+
+    public RevokeCommand(TokenService tokenService) {
+        this.tokenService = tokenService;
     }
 
     @Override
-    public boolean execute(Reposilite reposilite) {
-        Token token = reposilite.getTokenService().deleteToken(alias);
+    public boolean execute(List<String> response) {
+        Token token = tokenService.deleteToken(alias);
 
         if (token == null) {
-            Reposilite.getLogger().info("Alias '" + alias + "' not found");
+            response.add("Alias '" + alias + "' not found");
             return false;
         }
 
         try {
-            reposilite.getTokenService().saveTokens();
-            Reposilite.getLogger().info("Token for '" + alias + "' has been revoked");
+            tokenService.saveTokens();
+            response.add("Token for '" + alias + "' has been revoked");
             return true;
         } catch (IOException e) {
-            Reposilite.getLogger().error("Cannot remove token due to: " + e);
-            Reposilite.getLogger().error("Token has been restored.");
-            reposilite.getTokenService().addToken(token);
+            response.add("Cannot remove token due to: " + e);
+            response.add("Token has been restored.");
+            tokenService.addToken(token);
             return false;
         }
     }

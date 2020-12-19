@@ -16,39 +16,36 @@
 
 package org.panda_lang.reposilite.stats;
 
-import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.console.ReposiliteCommand;
 import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.console.Effect;
+import org.panda_lang.utilities.commons.function.Option;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Parameters;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.CompletableFuture;
 
-public final class StatsCommand implements ReposiliteCommand {
+@Command(name = "stats", description = "Display collected metrics")
+final class StatsCommand implements ReposiliteCommand {
 
-    private static final int TOP_SIZE = 25;
+    private static final int TOP_SIZE = 20;
 
-    private final String pattern;
-    private final long limiter;
+    @Parameters(index = "0", paramLabel = "[<filter>]", description = "accepts string as pattern and int as limiter", defaultValue = "")
+    private String filter;
 
-    public StatsCommand(long limiter, String pattern) {
-        this.limiter = limiter;
-        this.pattern = pattern;
-    }
+    private final StatsService statsService;
 
-    public StatsCommand(long limiter) {
-        this(limiter, StringUtils.EMPTY);
-    }
-
-    public StatsCommand(String pattern) {
-        this(0, pattern);
+    StatsCommand(StatsService statsService) {
+        this.statsService = statsService;
     }
 
     @Override
-    public boolean execute(Reposilite reposilite) {
+    public boolean execute(List<String> response) {
         try {
-            execute(reposilite.getStatsService()).get();
+            loadAndProcessStats(response).get();
             return true;
         } catch (Exception exception) {
             exception.printStackTrace();
@@ -56,11 +53,13 @@ public final class StatsCommand implements ReposiliteCommand {
         }
     }
 
-    private CompletableFuture<Void> execute(StatsService statsService) {
+    private CompletableFuture<Void> loadAndProcessStats(List<String> response) {
         return statsService.loadAggregatedStats().thenAccept(aggregatedStats -> {
-            Reposilite.getLogger().info("");
-            Reposilite.getLogger().info("Statistics: ");
-            Reposilite.getLogger().info("  Unique requests: " + aggregatedStats.countUniqueRecords() + " (count: " + aggregatedStats.countRecords() + ")");
+            response.add("Statistics: ");
+            response.add("  Unique requests: " + aggregatedStats.countUniqueRecords() + " (count: " + aggregatedStats.countRecords() + ")");
+
+            int limiter = Option.attempt(NumberFormatException.class, () -> Integer.parseInt(filter)).orElseGet(0);
+            String pattern = limiter != 0 ? StringUtils.EMPTY : filter;
 
             Map<String, Integer> stats = aggregatedStats.fetchStats(
                     (uri, counts) -> counts >= limiter,
@@ -71,18 +70,16 @@ public final class StatsCommand implements ReposiliteCommand {
                     (uri, counts) -> !uri.endsWith("/js/app.js")
             );
 
-            Reposilite.getLogger().info("  Recorded: " + (stats.isEmpty() ? "[] " : "") +" (limiter: " + highlight(limiter) + ", pattern: '" + highlight(pattern) + "')");
+            response.add("  Recorded: " + (stats.isEmpty() ? "[] " : "") +" (limiter: " + highlight(limiter) + ", pattern: '" + highlight(pattern) + "')");
             int order = 0;
 
             for (Entry<String, Integer> entry : stats.entrySet()) {
-                Reposilite.getLogger().info("    " + (++order) + ". (" + entry.getValue() + ") " + entry.getKey());
+                response.add("    " + (++order) + ". (" + entry.getValue() + ") " + entry.getKey());
 
                 if (limiter == -1 && order == TOP_SIZE) {
                     break;
                 }
             }
-
-            Reposilite.getLogger().info("");
         });
     }
 

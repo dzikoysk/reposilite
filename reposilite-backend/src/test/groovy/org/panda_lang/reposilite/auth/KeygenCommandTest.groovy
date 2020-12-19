@@ -30,33 +30,32 @@ class KeygenCommandTest extends ReposiliteTestSpecification {
         def tokenService = super.reposilite.getTokenService()
         tokenService.createToken('/a', 'alias', 'rwm')
 
-        def keygenCommand = new KeygenCommand('/a/b/c', 'alias', 'rw')
-        assertTrue(keygenCommand.execute(super.reposilite))
+        // should also override previous token
+        assertTrue executeCommand('keygen /a/b/c alias rw')
 
-        def token = reposilite.getTokenService().getToken('alias')
+        def token = tokenService.getToken('alias')
         assertNotNull token
         assertEquals '/a/b/c', token.getPath()
         assertEquals 'alias', token.getAlias()
+        assertEquals 'rw', token.getPermissions()
         assertNotNull token.getToken()
     }
 
     @Test
     void 'should create token based on qualifier' () {
-        def keygenCommand = new KeygenCommand('org.panda-lang.reposilite', 'reposilite', 'rw')
-        assertTrue keygenCommand.execute(super.reposilite)
+        assertTrue executeCommand('keygen org.panda-lang.reposilite reposilite rw')
         assertEquals '*/org/panda-lang/reposilite', super.reposilite.getTokenService().getToken('reposilite').getPath()
     }
 
     @Test
     void 'should false if file is not available' () {
-        def reposilite = super.reposilite
         super.reposilite.getTokenService().createToken('/', 'alias', 'rwm')
 
         executeOnLocked(new File(super.workingDirectory, 'tokens.dat'), {
-            assertFalse(new KeygenCommand('/a/b/c', 'alias', 'rw').execute(reposilite))
+            assertFalse executeCommand('keygen /a/b/c alias rw')
         })
 
-        assertTrue new KeygenCommand('/a/b/c', 'alias', 'rw').execute(reposilite)
+        assertTrue executeCommand('keygen /a/b/c alias rw')
     }
 
 }

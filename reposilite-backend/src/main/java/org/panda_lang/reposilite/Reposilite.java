@@ -17,19 +17,23 @@
 package org.panda_lang.reposilite;
 
 import org.panda_lang.reposilite.auth.AuthService;
+import org.panda_lang.reposilite.auth.AuthenticationConfiguration;
 import org.panda_lang.reposilite.auth.Authenticator;
 import org.panda_lang.reposilite.auth.TokenService;
 import org.panda_lang.reposilite.config.Configuration;
 import org.panda_lang.reposilite.config.ConfigurationLoader;
 import org.panda_lang.reposilite.console.Console;
+import org.panda_lang.reposilite.console.ConsoleConfiguration;
 import org.panda_lang.reposilite.error.FailureService;
 import org.panda_lang.reposilite.frontend.FrontendService;
+import org.panda_lang.reposilite.metadata.MetadataConfiguration;
 import org.panda_lang.reposilite.metadata.MetadataService;
 import org.panda_lang.reposilite.repository.DeployService;
 import org.panda_lang.reposilite.repository.LookupService;
 import org.panda_lang.reposilite.repository.ProxyService;
 import org.panda_lang.reposilite.repository.RepositoryAuthenticator;
 import org.panda_lang.reposilite.repository.RepositoryService;
+import org.panda_lang.reposilite.stats.StatsConfiguration;
 import org.panda_lang.reposilite.stats.StatsService;
 import org.panda_lang.reposilite.utils.RunUtils;
 import org.panda_lang.reposilite.utils.TimeUtils;
@@ -108,8 +112,17 @@ public final class Reposilite {
         this.proxyService = new ProxyService(configuration.storeProxied, configuration.rewritePathsEnabled, configuration.proxied, ioService, failureService, repositoryService);
         this.frontend = FrontendService.load(configuration);
         this.reactiveHttpServer = new ReposiliteHttpServer(this, servlet);
-        this.console = new Console(this, System.in);
+        this.console = new Console(System.in, failureService);
         this.shutdownHook = new Thread(RunUtils.ofChecked(failureService, this::shutdown));
+    }
+
+    public ReposiliteConfiguration[] configurations() {
+        return new ReposiliteConfiguration[] {
+                new AuthenticationConfiguration(),
+                new ConsoleConfiguration(),
+                new MetadataConfiguration(),
+                new StatsConfiguration()
+        };
     }
 
     public void launch() throws Exception {
@@ -138,6 +151,11 @@ public final class Reposilite {
         getLogger().info("");
         repositoryService.load(configuration);
         getLogger().info("");
+
+        getLogger().info("--- Loading domain configurations");
+        for (ReposiliteConfiguration configuration : configurations()) {
+            configuration.configure(this);
+        }
     }
 
     public void start() throws Exception {
@@ -150,10 +168,10 @@ public final class Reposilite {
             getLogger().info("Done (" + TimeUtils.format(TimeUtils.getUptime(uptime)) + "s)!");
 
             schedule(() -> {
-                console.execute("help");
+                console.defaultExecute("help");
 
                 getLogger().info("Collecting status metrics...");
-                console.execute("status");
+                console.defaultExecute("status");
 
                 // disable console daemon in tests due to issues with coverage and interrupt method call
                 // https://github.com/jacoco/jacoco/issues/1066

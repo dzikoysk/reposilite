@@ -16,19 +16,20 @@
 
 package org.panda_lang.reposilite.auth;
 
-public enum Permission {
+import org.panda_lang.reposilite.Reposilite;
+import org.panda_lang.reposilite.ReposiliteConfiguration;
+import org.panda_lang.reposilite.console.Console;
 
-    WRITE("w"),
-    MANAGER("m");
+public final class AuthenticationConfiguration implements ReposiliteConfiguration {
 
-    private final String name;
+    @Override
+    public void configure(Reposilite reposilite) {
+        TokenService tokenService = reposilite.getTokenService();
 
-    Permission(String name) {
-        this.name = name;
-    }
-
-    public String getName() {
-        return name;
+        Console console = reposilite.getConsole();
+        console.registerCommand(new KeygenCommand(tokenService));
+        console.registerCommand(new RevokeCommand(tokenService));
+        console.registerCommand(new TokensCommand(tokenService));
     }
 
 }

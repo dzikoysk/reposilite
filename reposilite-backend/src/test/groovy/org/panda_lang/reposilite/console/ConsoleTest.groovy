@@ -29,36 +29,35 @@ class ConsoleTest extends ReposiliteTestSpecification {
 
     @Test
     void 'should false on empty' () {
-        assertFalse super.reposilite.getConsole().execute(StringUtils.EMPTY)
+        assertFalse executeCommand(StringUtils.EMPTY)
     }
 
     @Test
     void 'should succeed on single element' () {
-        def console = super.reposilite.getConsole()
-        assertTrue console.execute("help")
-        assertTrue console.execute("version")
-        assertTrue console.execute("status")
-        assertTrue console.execute("purge")
-        assertTrue console.execute("tokens")
-        assertTrue console.execute("gc")
-        assertTrue console.execute("stop")
+        assertTrue executeCommand("help")
+        assertTrue executeCommand("version")
+        assertTrue executeCommand("status")
+        assertTrue executeCommand("purge")
+        // assertTrue executeCommand("gc")
+        assertTrue executeCommand("tokens")
+        assertTrue executeCommand("stop")
     }
 
     @Test
     void 'should succeed on complex' () {
         def console = super.reposilite.getConsole()
 
-        assertTrue console.execute("stats")
-        assertTrue console.execute("stats 10")
-        assertTrue console.execute("stats /")
+        assertTrue executeCommand("stats")
+        assertTrue executeCommand("stats 10")
+        assertTrue executeCommand("stats /")
 
-        assertTrue console.execute("keygen / root")
-        assertTrue console.execute("revoke root")
+        assertTrue executeCommand("keygen / root")
+        assertTrue executeCommand("revoke root")
     }
 
     @Test
     void 'should false on unknown' () {
-        assertFalse super.reposilite.getConsole().execute("unknown")
+        assertFalse executeCommand("unknown")
     }
 
 }

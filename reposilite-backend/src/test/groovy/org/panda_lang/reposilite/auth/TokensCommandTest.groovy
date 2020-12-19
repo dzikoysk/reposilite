@@ -23,7 +23,7 @@ import org.panda_lang.reposilite.ReposiliteTestSpecification
 import static org.junit.jupiter.api.Assertions.assertTrue
 
 @CompileStatic
-class TokenListCommandTest extends ReposiliteTestSpecification {
+class TokensCommandTest extends ReposiliteTestSpecification {
 
     @Test
     void 'should list all tokens' () {
@@ -31,8 +31,7 @@ class TokenListCommandTest extends ReposiliteTestSpecification {
         tokenService.createToken('/a', 'a', 'r')
         tokenService.createToken('/b', 'b', 'r')
 
-        def tokenListCommand = new TokenListCommand()
-        assertTrue tokenListCommand.execute(super.reposilite)
+        assertTrue executeCommand('tokens')
     }
 
 }

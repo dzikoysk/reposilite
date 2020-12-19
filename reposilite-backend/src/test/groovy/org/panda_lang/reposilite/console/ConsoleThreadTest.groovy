@@ -20,6 +20,7 @@ import groovy.transform.CompileStatic
 import org.junit.jupiter.api.Test
 import org.panda_lang.reposilite.ReposiliteConstants
 import org.panda_lang.reposilite.ReposiliteWriter
+import org.panda_lang.reposilite.error.FailureService
 import org.panda_lang.utilities.commons.text.ContentJoiner
 
 import static org.junit.jupiter.api.Assertions.assertTrue
@@ -48,9 +49,10 @@ class ConsoleThreadTest {
     }
 
     private static void executeInput(String command) {
+        def failureService = new FailureService()
         def input = new ByteArrayInputStream(command.getBytes())
-        def console = new Console(null, input)
-        def thread = new ConsoleThread(console, input)
+        def console = new Console(input, failureService)
+        def thread = new ConsoleThread(console, input, failureService)
         thread.run()
     }
 

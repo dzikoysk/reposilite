@@ -14,21 +14,25 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.auth;
+package org.panda_lang.reposilite.console;
 
 import org.panda_lang.reposilite.Reposilite;
-import org.panda_lang.reposilite.console.ReposiliteCommand;
+import picocli.CommandLine.Command;
 
-public final class TokenListCommand implements ReposiliteCommand {
+import java.util.List;
+
+@Command(name = "stop", aliases = "shutdown", description = "Shutdown server")
+final class StopCommand implements ReposiliteCommand {
+
+    private final Reposilite reposilite;
+
+    StopCommand(Reposilite reposilite) {
+        this.reposilite = reposilite;
+    }
 
     @Override
-    public boolean execute(Reposilite reposilite) {
-        Reposilite.getLogger().info("Tokens (" + reposilite.getTokenService().count() + ")");
-
-        for (Token token : reposilite.getTokenService().getTokens()) {
-            Reposilite.getLogger().info(token.getPath() + " as " + token.getAlias() + " with '" + token.getPermissions() + "' permissions");
-        }
-
+    public boolean execute(List<String> output) {
+        reposilite.schedule(reposilite::forceShutdown);
         return true;
     }
 

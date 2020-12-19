@@ -16,8 +16,6 @@
 
 package org.panda_lang.reposilite;
 
-import org.panda_lang.reposilite.console.HelpCommand;
-import org.panda_lang.reposilite.console.VersionCommand;
 import org.panda_lang.reposilite.utils.RunUtils;
 import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.console.Effect;
@@ -54,12 +52,12 @@ public final class ReposiliteLauncher {
         ReposiliteLauncher launcher = CommandLine.populateCommand(new ReposiliteLauncher(), args);
 
         if (launcher.usageHelpRequested) {
-            HelpCommand.displayHelp();
+            CommandLine.usage(launcher, System.out);
             return Optional.empty();
         }
 
         if (launcher.versionInfoRequested) {
-            VersionCommand.displayVersion();
+            System.out.println("Reposilite " + ReposiliteConstants.VERSION);;
             return Optional.empty();
         }
 

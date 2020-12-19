@@ -16,29 +16,62 @@
 
 package org.panda_lang.reposilite.console;
 
-import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.ReposiliteConstants;
+import org.panda_lang.utilities.commons.text.ContentJoiner;
+import picocli.CommandLine;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Model.ArgSpec;
+import picocli.CommandLine.Model.CommandSpec;
+import picocli.CommandLine.Parameters;
 
-public final class HelpCommand implements ReposiliteCommand {
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
-    @Override
-    public boolean execute(Reposilite reposilite) {
-        displayHelp();
-        return true;
+@Command(name = "help", aliases = "?", helpCommand = true, description = "List of available commands")
+final class HelpCommand implements ReposiliteCommand {
+
+    @Parameters(index = "0", paramLabel = "[<command>]", description = "display usage of the given command", defaultValue = "")
+    private String requestedCommand;
+
+    private final Console console;
+
+    HelpCommand(Console console) {
+        this.console = console;
     }
 
-    public static void displayHelp() {
-        Reposilite.getLogger().info("");
-        Reposilite.getLogger().info("Reposilite " + ReposiliteConstants.VERSION + " Commands:");
-        Reposilite.getLogger().info("  help - List available commands");
-        Reposilite.getLogger().info("  status - Display summary status of app health");
-        Reposilite.getLogger().info("  stats [<limiter>/<pattern>] - Display collected metrics and (optional) filter them using the given limiter or pattern");
-        Reposilite.getLogger().info("  tokens - List all generated tokens");
-        Reposilite.getLogger().info("  keygen <path> <alias> <permissions> - Generate a new access token for the given path");
-        Reposilite.getLogger().info("  revoke <alias> - Revoke token");
-        Reposilite.getLogger().info("  purge - Clear cache");
-        Reposilite.getLogger().info("  stop - Shutdown server");
-        Reposilite.getLogger().info("");
+    @Override
+    public boolean execute(List<String> response) {
+        Set<CommandLine> uniqueCommands = new TreeSet<>(Comparator.comparing(CommandLine::getCommandName));
+
+        if (!requestedCommand.isEmpty()) {
+            CommandLine requested = console.getCommandExecutor().getSubcommands().get(requestedCommand);
+
+            if (requested == null) {
+                response.add("Unknown command '" + requestedCommand + "'");
+                return false;
+            }
+
+            response.add(requested.getUsageMessage());
+            return true;
+        }
+
+        if (uniqueCommands.isEmpty()) {
+            uniqueCommands.addAll(console.getCommandExecutor().getSubcommands().values());
+        }
+
+        response.add("Reposilite " + ReposiliteConstants.VERSION + " Commands:");
+
+        for (CommandLine command : uniqueCommands) {
+            CommandSpec specification = command.getCommandSpec();
+
+            response.add("  " + command.getCommandName()
+                    + " " + ContentJoiner.on(" ").join(specification.args(), ArgSpec::paramLabel)
+                    + " - " + ContentJoiner.on(". ").join(specification.usageMessage().description()));
+        }
+
+        return true;
     }
 
 }

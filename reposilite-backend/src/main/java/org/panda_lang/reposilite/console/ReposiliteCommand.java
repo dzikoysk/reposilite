@@ -16,10 +16,10 @@
 
 package org.panda_lang.reposilite.console;
 
-import org.panda_lang.reposilite.Reposilite;
+import java.util.List;
 
 public interface ReposiliteCommand {
 
-    boolean execute(Reposilite reposilite);
+    boolean execute(List<String> output);
 
 }

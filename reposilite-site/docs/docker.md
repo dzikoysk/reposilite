@@ -44,7 +44,7 @@ $ docker run -it -v reposilite-data:/app/data -p 80:80 dzikoysk/reposilite
 You can also pass custom configuration values using the environment variables:
 
 ```shell-session
-$ docker run -e JAVA_OPTS='-Xmx128M -Dreposilite.port="8080"' -p 8080:80 dzikoysk/reposilite
+$ docker run -e JAVA_OPTS='-Xmx128M -Dreposilite.port=8080' -p 8080:80 dzikoysk/reposilite
 ```
 
 You can find list of configuration properties in [configuration](configuration) chapter.
