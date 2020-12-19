@@ -85,7 +85,7 @@ class RemoteExecutionEndpointTest extends ReposiliteIntegrationTestSpecification
         assertEquals HttpStatus.SC_BAD_REQUEST, response.getKey()
     }
 
-    private Pair<Integer, RemoteExecutionDto> execute(String alias, String token, String command) {
+    private static Pair<Integer, RemoteExecutionDto> execute(String alias, String token, String command) {
         def request = REQUEST_FACTORY.buildPostRequest(url('/api/execute'), ByteArrayContent.fromString("text/plain", command))
         request.setThrowExceptionOnExecuteError(false)
         request.headers.setBasicAuthentication(alias, token)
