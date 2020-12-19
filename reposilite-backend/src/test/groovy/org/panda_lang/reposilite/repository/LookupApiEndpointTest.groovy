@@ -27,7 +27,7 @@ import org.panda_lang.reposilite.ReposiliteIntegrationTestSpecification
 import static org.junit.jupiter.api.Assertions.*
 
 @CompileStatic
-class LookupApiControllerTest extends ReposiliteIntegrationTestSpecification {
+class LookupApiEndpointTest extends ReposiliteIntegrationTestSpecification {
 
     {
         super.properties.put('reposilite.repositories', 'releases,snapshots,.private')

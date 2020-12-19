@@ -99,51 +99,6 @@ public final class Console {
             response.add(missingParameterException.getCommandLine().getUsageMessage());
             return Result.error(response);
         }
-        /*
-        switch (command.toLowerCase()) {
-            case "help":
-            case "?":
-                return new HelpCommand().execute(reposilite);
-            case "version":
-                return new VersionCommand().execute(reposilite);
-            case "status":
-                return new StatusCommand().execute(reposilite);
-            case "purge":
-                return new PurgeCommand().execute(reposilite);
-            case "tokens":
-                return new TokenListCommand().execute(reposilite);
-            case "gc":
-                Reposilite.getLogger().info("[Utility Command] Called gc");
-                System.gc();
-                return true;
-            case "stop": 
-                reposilite.schedule(reposilite::forceShutdown);
-                return true;
-            default:
-                break;
-        }
-
-        String[] elements = command.split(" ");
-        command = elements[0];
-
-        switch (command.toLowerCase()) {
-            case "stats":
-                if (elements.length == 1) {
-                    return new StatsCommand(-1).execute(reposilite);
-                }
-
-                return Option.attempt(NumberFormatException.class, () -> new StatsCommand(Long.parseLong(elements[1])))
-                        .orElseGet(new StatsCommand(elements[1]))
-                        .execute(reposilite);
-            case "keygen":
-                return new KeygenCommand(elements[1], elements[2], ArrayUtils.get(elements, 3).orElseGet("w")).execute(reposilite);
-            case "revoke":
-                return new RevokeCommand(elements[1]).execute(reposilite);
-            default:
-                Reposilite.getLogger().warn("Unknown command " + command);
-                return false;
-        }
-         */
     }
 
     public void stop() {

@@ -16,7 +16,6 @@
 
 package org.panda_lang.reposilite.auth;
 
-import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.console.ReposiliteCommand;
 import picocli.CommandLine.Command;
 
@@ -33,10 +32,10 @@ final class TokensCommand implements ReposiliteCommand {
 
     @Override
     public boolean execute(List<String> response) {
-        Reposilite.getLogger().info("Tokens (" + tokenService.count() + ")");
+        response.add("Tokens (" + tokenService.count() + ")");
 
         for (Token token : tokenService.getTokens()) {
-            Reposilite.getLogger().info(token.getPath() + " as " + token.getAlias() + " with '" + token.getPermissions() + "' permissions");
+            response.add(token.getPath() + " as " + token.getAlias() + " with '" + token.getPermissions() + "' permissions");
         }
 
         return true;

@@ -23,12 +23,12 @@ import org.panda_lang.reposilite.ReposiliteContext;
 import org.panda_lang.reposilite.ReposiliteContextFactory;
 import org.panda_lang.reposilite.error.ResponseUtils;
 
-public final class DeployController implements Handler {
+public final class DeployEndpoint implements Handler {
 
     private final ReposiliteContextFactory contextFactory;
     private final DeployService deployService;
 
-    public DeployController(ReposiliteContextFactory contextFactory, DeployService deployService) {
+    public DeployEndpoint(ReposiliteContextFactory contextFactory, DeployService deployService) {
         this.contextFactory = contextFactory;
         this.deployService = deployService;
     }
