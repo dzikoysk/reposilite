@@ -19,30 +19,36 @@ package org.panda_lang.reposilite.auth;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.console.ReposiliteCommand;
 import org.panda_lang.utilities.commons.collection.Pair;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Parameters;
 
 import java.io.IOException;
+import java.util.List;
 
-public final class KeygenCommand implements ReposiliteCommand {
+@Command(name = "keygen", description = "Generate a new access token for the given path")
+final class KeygenCommand implements ReposiliteCommand {
 
-    private final String path;
-    private final String alias;
-    private final String permissions;
+    @Parameters(index = "0", paramLabel = "<path>", description = "assigned path")
+    private String path;
+    @Parameters(index = "1", paramLabel = "<alias>", description = "associated alias")
+    private String alias;
+    @Parameters(index = "2", paramLabel = "[<permissions>]", description = "extra permissions (w - write, m - manager)", defaultValue = "")
+    private String permissions;
 
-    public KeygenCommand(String path, String alias, String permissions) {
-        this.path = path;
-        this.alias = alias;
-        this.permissions = permissions;
+    private final TokenService tokenService;
+
+    KeygenCommand(TokenService tokenService) {
+        this.tokenService = tokenService;
     }
 
     @Override
-    public boolean execute(Reposilite reposilite) {
+    public boolean execute(List<String> response) {
         String processedPath = path;
 
         if (path.contains(".") && !path.contains("/")) {
             processedPath = "*/" + path.replace(".", "/");
         }
 
-        TokenService tokenService = reposilite.getTokenService();
         Token previousToken = tokenService.getToken(alias);
 
         try {

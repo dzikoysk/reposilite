@@ -22,37 +22,52 @@ import org.panda_lang.reposilite.utils.TimeUtils;
 import org.panda_lang.utilities.commons.IOUtils;
 import org.panda_lang.utilities.commons.collection.Pair;
 import org.panda_lang.utilities.commons.console.Effect;
+import picocli.CommandLine.Command;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Collection;
+import java.util.List;
 
+@Command(name = "status", description = "Display summary status of app health")
 final class StatusCommand implements ReposiliteCommand {
 
+    private final Reposilite reposilite;
+
+    StatusCommand(Reposilite reposilite) {
+        this.reposilite = reposilite;
+    }
+
     @Override
-    public boolean execute(Reposilite reposilite) {
+    public boolean execute(List<String> response) {
         String latestVersion = reposilite.isTestEnvEnabled() ? ReposiliteConstants.VERSION : getVersion();
 
-        Reposilite.getLogger().info("");
-        Reposilite.getLogger().info("Reposilite " + ReposiliteConstants.VERSION + " Status");
-        Reposilite.getLogger().info("  Active: " + Effect.GREEN_BOLD + reposilite.getHttpServer().isAlive() + Effect.RESET);
-        Reposilite.getLogger().info("  Uptime: " + TimeUtils.format(reposilite.getUptime() / 1000.0 / 60.0) + "min");
-        Reposilite.getLogger().info("  Memory usage of process: " + getMemoryUsage());
-        Reposilite.getLogger().info("  Latest version of reposilite: " + latestVersion);
-        Reposilite.getLogger().info("  Cached metadata: " + reposilite.getMetadataService().getCacheSize());
-        printExceptions(reposilite.getFailureService().getExceptions());
-        Reposilite.getLogger().info("");
+        response.add("Reposilite " + ReposiliteConstants.VERSION + " Status");
+        response.add("  Active: " + Effect.GREEN_BOLD + reposilite.getHttpServer().isAlive() + Effect.RESET);
+        response.add("  Uptime: " + TimeUtils.format(reposilite.getUptime() / 1000.0 / 60.0) + "min");
+        response.add("  Memory usage of process: " + getMemoryUsage());
+        response.add("  Latest version of reposilite: " + latestVersion);
+        response.add("  Cached metadata: " + reposilite.getMetadataService().getCacheSize());
+        printExceptions(response, reposilite.getFailureService().getExceptions());
+
         return true;
     }
 
-    private void printExceptions(Collection<? extends Pair<String, Throwable>> exceptions) {
+    private void printExceptions(List<String> response, Collection<? extends Pair<String, Throwable>> exceptions) {
         if (exceptions.isEmpty()) {
             return;
         }
 
-        Reposilite.getLogger().info("  List of cached exceptions:");
+        response.add("  List of cached exceptions:");
         int count = 0;
 
         for (Pair<String, Throwable> exception : exceptions) {
-            Reposilite.getLogger().error("Exception " + (++count) + " at " + exception.getKey() , exception.getValue());
+            response.add("Exception " + (++count) + " at " + exception.getKey());
+
+            StringWriter stringWriter = new StringWriter();
+            PrintWriter printWriter = new PrintWriter(stringWriter);
+            exception.getValue().printStackTrace(printWriter);
+            response.add(stringWriter.toString());
         }
     }
 

@@ -38,9 +38,17 @@ class ReposiliteTestSpecification extends ReposiliteTestSpecificationExtension {
 
             FileUtils.copyDirectory(new File("src/test/workspace/repositories"), new File(workingDirectory, "repositories"));
             this.reposilite.repositoryService.load(this.reposilite.configuration)
+
+            for (def configuration : reposilite.configurations()) {
+                configuration.configure(reposilite)
+            }
         } finally {
             System.clearProperty(TINYLOG_WRITER_PROPERTY)
         }
+    }
+
+    protected boolean executeCommand(String name) {
+        return reposilite.getConsole().defaultExecute(name)
     }
 
 }

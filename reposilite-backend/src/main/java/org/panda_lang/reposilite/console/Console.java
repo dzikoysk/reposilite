@@ -17,35 +17,89 @@
 package org.panda_lang.reposilite.console;
 
 import org.panda_lang.reposilite.Reposilite;
-import org.panda_lang.reposilite.auth.KeygenCommand;
-import org.panda_lang.reposilite.auth.RevokeCommand;
-import org.panda_lang.reposilite.auth.TokenListCommand;
-import org.panda_lang.reposilite.metadata.PurgeCommand;
-import org.panda_lang.reposilite.stats.StatsCommand;
-import org.panda_lang.utilities.commons.ArrayUtils;
-import org.panda_lang.utilities.commons.function.Option;
+import org.panda_lang.reposilite.ReposiliteConstants;
+import org.panda_lang.reposilite.error.FailureService;
+import org.panda_lang.reposilite.utils.Result;
+import picocli.CommandLine;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.MissingParameterException;
+import picocli.CommandLine.ParseResult;
+import picocli.CommandLine.UnmatchedArgumentException;
 
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.Consumer;
 
-public class Console {
+@Command(name = "", version = "Reposilite " + ReposiliteConstants.VERSION)
+public final class Console {
 
-    private final Reposilite reposilite;
     private final ConsoleThread consoleThread;
+    private final CommandLine commandExecutor;
 
-    public Console(Reposilite reposilite, InputStream source) {
-        this.reposilite = reposilite;
-        this.consoleThread = new ConsoleThread(this, source);
+    public Console(InputStream source, FailureService failureService) {
+        this.consoleThread = new ConsoleThread(this, source, failureService);
+        this.commandExecutor = new CommandLine(this);
     }
 
     public void hook() {
         consoleThread.start();
     }
 
-    public boolean execute(String command) {
-        if (command.trim().isEmpty()) {
-            return false;
+    public CommandLine registerCommand(ReposiliteCommand command) {
+        return commandExecutor.addSubcommand(command);
+    }
+
+    public boolean defaultExecute(String command) {
+        Reposilite.getLogger().info("");
+        boolean status = execute(command, line -> Reposilite.getLogger().info(line));
+        Reposilite.getLogger().info("");
+
+        return status;
+    }
+
+    public boolean execute(String command, Consumer<String> outputConsumer) {
+        Result<List<String>, List<String>> response = execute(command);
+
+        for (String entry : (response.isDefined() ? response.getValue() : response.getError())) {
+            for (String line : entry.replace(System.lineSeparator(), "\n").split("\n")) {
+                outputConsumer.accept(line);
+            }
         }
 
+        return response.isDefined();
+    }
+
+    public Result<List<String>, List<String>> execute(String command) {
+        command = command.trim();
+
+        if (command.isEmpty()) {
+            return Result.error(Collections.emptyList());
+        }
+
+        List<String> response = new ArrayList<>();
+
+        try {
+            ParseResult result = commandExecutor.parseArgs(command.split(" "));
+            Object commandObject = result.subcommand().commandSpec().userObject();
+
+            if (!(commandObject instanceof ReposiliteCommand)) {
+                return Result.error(Collections.singletonList(commandExecutor.getUsageMessage()));
+            }
+
+            return ((ReposiliteCommand) commandObject).execute(response)
+                    ? Result.ok(response)
+                    : Result.error(response);
+        } catch (UnmatchedArgumentException unmatchedArgumentException) {
+            return Result.error(Collections.singletonList("Unknown command " + command));
+        } catch (MissingParameterException missingParameterException) {
+            response.add(missingParameterException.getMessage());
+            response.add("");
+            response.add(missingParameterException.getCommandLine().getUsageMessage());
+            return Result.error(response);
+        }
+        /*
         switch (command.toLowerCase()) {
             case "help":
             case "?":
@@ -89,10 +143,15 @@ public class Console {
                 Reposilite.getLogger().warn("Unknown command " + command);
                 return false;
         }
+         */
     }
 
     public void stop() {
         consoleThread.interrupt();
+    }
+
+    protected CommandLine getCommandExecutor() {
+        return commandExecutor;
     }
 
 }

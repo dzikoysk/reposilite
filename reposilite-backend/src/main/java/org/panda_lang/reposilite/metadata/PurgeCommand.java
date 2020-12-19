@@ -16,18 +16,25 @@
 
 package org.panda_lang.reposilite.metadata;
 
-import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.console.ReposiliteCommand;
+import picocli.CommandLine.Command;
 
-public final class PurgeCommand implements ReposiliteCommand {
+import java.util.List;
+
+@Command(name = "purge", description = "Clear cache")
+final class PurgeCommand implements ReposiliteCommand {
+
+    private final MetadataService metadataService;
+
+    PurgeCommand(MetadataService metadataService) {
+        this.metadataService = metadataService;
+    }
 
     @Override
-    public boolean execute(Reposilite reposilite) {
-        MetadataService metadataService = reposilite.getMetadataService();
+    public boolean execute(List<String> response) {
         int cacheSize = metadataService.getCacheSize();
-
-        reposilite.getMetadataService().purgeCache();
-        Reposilite.getLogger().info("Purged " + cacheSize + " elements");
+        metadataService.purgeCache();
+        response.add("Purged " + cacheSize + " elements");
 
         return true;
     }

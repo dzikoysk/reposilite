@@ -17,6 +17,7 @@
 package org.panda_lang.reposilite.console;
 
 import org.panda_lang.reposilite.Reposilite;
+import org.panda_lang.reposilite.error.FailureService;
 
 import java.io.InputStream;
 import java.util.Scanner;
@@ -25,10 +26,12 @@ final class ConsoleThread extends Thread {
 
     private final Console console;
     private final InputStream source;
+    private final FailureService failureService;
 
-    ConsoleThread(Console console, InputStream source) {
+    ConsoleThread(Console console, InputStream source, FailureService failureService) {
         this.console = console;
         this.source = source;
+        this.failureService = failureService;
         this.setDaemon(true);
     }
 
@@ -43,7 +46,13 @@ final class ConsoleThread extends Thread {
         }
 
         do {
-            console.execute(in.nextLine());
+            String command = in.nextLine();
+
+            try {
+                console.defaultExecute(command);
+            } catch (Exception exception) {
+                failureService.throwException("Command: " + command, exception);
+            }
         }
         while (!isInterrupted() && in.hasNextLine());
     }

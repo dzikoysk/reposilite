@@ -14,20 +14,16 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.console
+package org.panda_lang.reposilite.metadata;
 
-import groovy.transform.CompileStatic
-import org.junit.jupiter.api.Test
-import org.panda_lang.reposilite.ReposiliteTestSpecification
+import org.panda_lang.reposilite.Reposilite;
+import org.panda_lang.reposilite.ReposiliteConfiguration;
 
-import static org.junit.jupiter.api.Assertions.assertTrue
+public final class MetadataConfiguration implements ReposiliteConfiguration {
 
-@CompileStatic
-class VersionCommandTest extends ReposiliteTestSpecification {
-
-    @Test
-    void 'should return true and display version' () {
-        assertTrue executeCommand('version')
+    @Override
+    public void configure(Reposilite reposilite) {
+       reposilite.getConsole().registerCommand(new PurgeCommand(reposilite.getMetadataService()));
     }
 
 }

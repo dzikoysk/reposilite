@@ -56,8 +56,7 @@ class StatsCommandTest extends ReposiliteTestSpecification {
         ]
         
         Arrays.stream(records).forEach({ record -> statsService.record(record) })
-        def statsCommand = new StatsCommand(2)
-        statsCommand.execute(super.reposilite)
+        executeCommand('stats 2')
 
         Thread.sleep(100) // make sure that tinylog service had a chance to store log
         Arrays.stream(records).forEach({ record -> assertFalse ReposiliteWriter.contains(record) })
@@ -75,15 +74,14 @@ class StatsCommandTest extends ReposiliteTestSpecification {
             statsService.record('/' + i)
         })
 
-        def statsCommand = new StatsCommand(2)
-        statsCommand.execute(super.reposilite)
+        executeCommand('stats 2')
 
         Thread.sleep(100) // make sure that tinylog service had a chance to store log
         IntStream.range(0, 10).forEach({ i -> assertTrue ReposiliteWriter.contains('/' + i) })
     }
 
     private boolean callDefaultStatusCommand() {
-        return new StatsCommand(-1, '').execute(super.reposilite)
+        return executeCommand('stats')
     }
 
 }
