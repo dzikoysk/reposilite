@@ -30,14 +30,12 @@ class ReposiliteLauncherTest {
 
     @Test
     void 'should print version' () {
-        ReposiliteLauncher.create("--version")
-        assertTrue ReposiliteWriter.contains(ReposiliteConstants.VERSION)
+        assertTrue ReposiliteLauncher.create("--version").isEmpty()
     }
 
     @Test
     void 'should print help' () {
-        ReposiliteLauncher.create("--help")
-        assertTrue ReposiliteWriter.contains("Commands")
+        assertTrue ReposiliteLauncher.create("--help").isEmpty()
     }
 
     @Test
