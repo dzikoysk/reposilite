@@ -75,8 +75,8 @@ export default {
         .then(response => {
           this.auth.verified = true
           this.auth.path = response.data.path
+          this.auth.manager = response.data.permissions.contains('m')
           this.auth.repositories = response.data.repositories
-          this.auth.manager = response.data.manager
           sessionStorage.auth = JSON.stringify(this.auth)
         })
         .catch(err => {

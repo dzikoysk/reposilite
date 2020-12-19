@@ -23,13 +23,13 @@ public final class ResponseUtils {
 
     private ResponseUtils() { }
 
+    public static <T> Result<T, ErrorDto> error(int status, String messge) {
+        return Result.error(new ErrorDto(status, messge));
+    }
+
     public static Context response(Context ctx, Result<?, ErrorDto> response) {
         response.peek(ctx::json).onError(error -> errorResponse(ctx, error));
         return ctx;
-    }
-
-    public static <T> Result<T, ErrorDto> error(int status, String messge) {
-        return Result.error(new ErrorDto(status, messge));
     }
 
     public static Context errorResponse(Context context, int status, String message) {

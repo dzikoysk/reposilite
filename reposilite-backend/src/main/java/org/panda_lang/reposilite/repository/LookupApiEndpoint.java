@@ -35,7 +35,7 @@ import org.panda_lang.utilities.commons.function.PandaStream;
 import java.io.File;
 import java.util.Optional;
 
-public final class LookupApiController implements RepositoryController {
+public final class LookupApiEndpoint implements RepositoryController {
 
     private final boolean rewritePathsEnabled;
     private final ReposiliteContextFactory contextFactory;
@@ -43,7 +43,7 @@ public final class LookupApiController implements RepositoryController {
     private final RepositoryService repositoryService;
     private final LookupService lookupService;
 
-    public LookupApiController(
+    public LookupApiEndpoint(
             boolean rewritePathsEnabled,
             ReposiliteContextFactory contextFactory,
             RepositoryAuthenticator repositoryAuthenticator,

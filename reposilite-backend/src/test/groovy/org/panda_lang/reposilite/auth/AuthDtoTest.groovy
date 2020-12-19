@@ -20,12 +20,11 @@ import groovy.transform.CompileStatic
 import org.junit.jupiter.api.Test
 
 import static org.junit.jupiter.api.Assertions.assertEquals
-import static org.junit.jupiter.api.Assertions.assertTrue
 
 @CompileStatic
 class AuthDtoTest {
 
-    private static final AuthDto AUTH_DTO = new AuthDto(true, 'associated_path', Collections.singletonList('releases'))
+    private static final AuthDto AUTH_DTO = new AuthDto('associated_path', 'm', Collections.singletonList('releases'))
 
     @Test
     void getRepositories() {
@@ -38,8 +37,8 @@ class AuthDtoTest {
     }
 
     @Test
-    void isManager() {
-        assertTrue AUTH_DTO.isManager()
+    void 'has permission'() {
+        assertEquals 'm', AUTH_DTO.getPermissions()
     }
 
 }

@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals
 import static org.junit.jupiter.api.Assertions.assertTrue
 
 @CompileStatic
-final class AuthControllerTest extends ReposiliteIntegrationTestSpecification {
+final class AuthEndpointTest extends ReposiliteIntegrationTestSpecification {
 
     @BeforeEach
     void generateToken() {

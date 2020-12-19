@@ -16,31 +16,21 @@
 
 package org.panda_lang.reposilite.auth;
 
-import java.io.Serializable;
-import java.util.List;
+import io.javalin.http.Context;
+import org.panda_lang.reposilite.RepositoryController;
+import org.panda_lang.reposilite.error.ResponseUtils;
 
-final class AuthDto implements Serializable {
+public final class AuthEndpoint implements RepositoryController {
 
-    private final String path;
-    private final String permissions;
-    private final List<String> repositories;
+    private final AuthService authService;
 
-    AuthDto(String path, String permissions, List<String> repositories) {
-        this.path = path;
-        this.permissions = permissions;
-        this.repositories = repositories;
+    public AuthEndpoint(AuthService authService) {
+        this.authService = authService;
     }
 
-    public List<String> getRepositories() {
-        return repositories;
-    }
-
-    public String getPermissions() {
-        return permissions;
-    }
-
-    public String getPath() {
-        return path;
+    @Override
+    public Context handleContext(Context ctx) {
+        return ResponseUtils.response(ctx, authService.authByHeader(ctx.headerMap()));
     }
 
 }

@@ -33,7 +33,7 @@ public final class AuthService {
     Result<AuthDto, ErrorDto> authByHeader(Map<String, String> headers) {
         return authenticator
                 .authByHeader(headers)
-                .map(session -> new AuthDto(session.isManager(), session.getToken().getPath(), session.getRepositoryNames()))
+                .map(session -> new AuthDto(session.getToken().getPath(), session.getToken().getPermissions(), session.getRepositoryNames()))
                 .mapError(error -> new ErrorDto(HttpStatus.SC_UNAUTHORIZED, error));
     }
 

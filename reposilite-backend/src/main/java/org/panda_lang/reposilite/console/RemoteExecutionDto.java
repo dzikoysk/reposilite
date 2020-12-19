@@ -14,23 +14,34 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.auth;
+package org.panda_lang.reposilite.console;
 
-import io.javalin.http.Context;
-import org.panda_lang.reposilite.RepositoryController;
-import org.panda_lang.reposilite.error.ResponseUtils;
+import com.google.api.client.util.Key;
 
-public final class AuthController implements RepositoryController {
+import java.util.List;
 
-    private final AuthService authService;
+public final class RemoteExecutionDto {
 
-    public AuthController(AuthService authService) {
-        this.authService = authService;
+    @Key
+    private boolean succeeded;
+    @Key
+    private List<String> response;
+
+    public RemoteExecutionDto(boolean succeeded, List<String> response) {
+        this.succeeded = succeeded;
+        this.response = response;
     }
 
-    @Override
-    public Context handleContext(Context ctx) {
-        return ResponseUtils.response(ctx, authService.authByHeader(ctx.headerMap()));
+    public RemoteExecutionDto() {
+        // Jackson
+    }
+
+    public boolean isSucceeded() {
+        return succeeded;
+    }
+
+    public List<String> getResponse() {
+        return response;
     }
 
 }
