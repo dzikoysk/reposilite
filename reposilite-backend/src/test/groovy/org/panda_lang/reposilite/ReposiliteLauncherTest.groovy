@@ -20,6 +20,7 @@ import groovy.transform.CompileStatic
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 
+import static org.junit.jupiter.api.Assertions.assertFalse
 import static org.junit.jupiter.api.Assertions.assertTrue
 
 @CompileStatic
@@ -30,12 +31,12 @@ class ReposiliteLauncherTest {
 
     @Test
     void 'should print version' () {
-        assertTrue ReposiliteLauncher.create("--version").isEmpty()
+        assertFalse ReposiliteLauncher.create("--version").isPresent()
     }
 
     @Test
     void 'should print help' () {
-        assertTrue ReposiliteLauncher.create("--help").isEmpty()
+        assertFalse ReposiliteLauncher.create("--help").isPresent()
     }
 
     @Test
