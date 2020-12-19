@@ -9,7 +9,14 @@
       "customization",
       "faq"
     ],
-    "Dashboard": ["file-viewer", "cli", "deploy"],
-    "Developers": ["indexing"]
+    "Dashboard": [
+      "file-viewer", 
+      "cli", 
+      "deploy"
+    ],
+    "Developers": [
+      "indexing",
+      "remote-execution"
+    ]
   }
 }

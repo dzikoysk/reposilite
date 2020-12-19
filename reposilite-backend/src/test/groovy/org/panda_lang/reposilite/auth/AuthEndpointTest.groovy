@@ -32,7 +32,6 @@ final class AuthEndpointTest extends ReposiliteIntegrationTestSpecification {
     @BeforeEach
     void generateToken() {
         reposilite.getTokenService().createToken('/', 'admin', 'rwm', 'secret')
-        reposilite.getConfiguration().managers = Collections.singletonList('admin')
     }
 
     @Test
@@ -55,7 +54,7 @@ final class AuthEndpointTest extends ReposiliteIntegrationTestSpecification {
         assertEquals HttpStatus.SC_OK, response.getStatusCode()
 
         def authDto = CDN.defaultInstance().parseJson(response.parseAsString())
-        assertTrue authDto.getBoolean('manager').get()
+        assertEquals 'rwm', authDto.getString('permissions').get()
         assertEquals '/', authDto.getString('path').get()
         assertEquals Arrays.asList('releases', 'snapshots'), authDto.getList('repositories')
     }
