@@ -4,7 +4,7 @@ title: Remote execution
 sidebar_label: Remote execution
 ---
 
-Reposilite allows you to execute commands through the API under the **PUT** `/api/execute` route. 
+Reposilite allows you to execute commands through the API under the **POST** `/api/execute` route. 
 To authenticate the request, you need to pass alias and token with manager permission as a credentials for a [basic method](https://en.wikipedia.org/wiki/Basic_access_authentication). The command to execute should be provided as a request content _(body)_.
 
 If you configured your request properly, you should receive JSON response:
