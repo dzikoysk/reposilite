@@ -83,7 +83,7 @@ export default {
 
       if (this.stubPom) {
         const content = this.stubPomContent
-          .replace('{groupId}', groupId)
+          .replace('{groupId}', this.groupId)
           .replace('{artifactId}', this.artifactId)
           .replace('{version}', this.version)
 
