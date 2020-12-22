@@ -73,9 +73,10 @@ export default {
 
       this.api('/auth', this.auth)
         .then(response => {
+          console.log(response.data)
           this.auth.verified = true
           this.auth.path = response.data.path
-          this.auth.manager = response.data.permissions.contains('m')
+          this.auth.manager = response.data.permissions.includes('m')
           this.auth.repositories = response.data.repositories
           sessionStorage.auth = JSON.stringify(this.auth)
         })
