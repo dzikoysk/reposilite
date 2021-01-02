@@ -86,6 +86,7 @@ export default {
           .replace('{groupId}', this.groupId)
           .replace('{artifactId}', this.artifactId)
           .replace('{version}', this.version)
+          .trim()
 
         this.uploadFile(auth, artifact, this.artifactId + '-' + this.version + '.pom', new Blob([content], { type: 'text/xml' }))
       }
