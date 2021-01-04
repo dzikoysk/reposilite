@@ -3,7 +3,7 @@
 ```
 path: /
 alias: admin
-token: axZKMo71EHUKriM-dj0cA0ujiPYBc6OltpJQ3JYrc5yJl1QohvjR1Zi7EMKqf91O
+token: zDqLLYSsPF01LasamNtqNXiZJ3dJ0JKR51Xx4Mbm0JuqMo1bMDOnN3Q2iQ9KDMvk
 
 path: /releases/auth/test
 alias: authtest

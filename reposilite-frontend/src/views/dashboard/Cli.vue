@@ -48,35 +48,41 @@ export default {
     }
 
     if (origin.endsWith('/')) {
-      origin.substring(1)
+      origin = origin.substring(1)
     }
 
-    const convert = new Convert()
-    this.connection = new WebSocket(origin + '/api/cli')
+    origin = origin + '/api/cli'
 
-    this.connection.onopen = () => {
-      this.connection.send(
-        `Authorization:${this.$parent.auth.alias}:${this.$parent.auth.token}`
-      )
-    }
-    this.connection.onmessage = event => {
-      this.log.push(convert.toHtml(event.data))
-      this.$nextTick(() => this.scrollToEnd())
-    }
-    this.connection.onerror = error =>
-      this.$notify({
-        group: 'cli',
-        type: 'error',
-        title: 'CLI Error',
-        text: error
-      })
+    try {
+      const convert = new Convert()
+      this.connection = new WebSocket(origin)
 
-    this.connection.onclose = () =>
-      this.$notify({
-        group: 'cli',
-        type: 'warn',
-        title: 'Connection closed'
-      })
+      this.connection.onopen = () => {
+        this.connection.send(
+          `Authorization:${this.$parent.auth.alias}:${this.$parent.auth.token}`
+        )
+      }
+      this.connection.onmessage = event => {
+        this.log.push(convert.toHtml(event.data))
+        this.$nextTick(() => this.scrollToEnd())
+      }
+      this.connection.onerror = error =>
+        this.$notify({
+          group: 'cli',
+          type: 'error',
+          title: 'CLI Error',
+          text: error
+        })
+
+      this.connection.onclose = () =>
+        this.$notify({
+          group: 'cli',
+          type: 'warn',
+          title: 'Connection closed'
+        })
+    } catch (error) {
+      console.log(error)
+    }
   },
   mounted () {
     this.$nextTick(() => document.getElementById('in').focus())
@@ -90,6 +96,7 @@ export default {
       const value = input.value
       input.value = ''
       this.connection.send(value)
+      console.log(value)
     },
     scrollToEnd () {
       const console = document.getElementById('console')
