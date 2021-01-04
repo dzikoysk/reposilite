@@ -57,7 +57,7 @@ public final class CliController implements Consumer<WsHandler> {
             String authMessage = authContext.message();
 
             if (!authMessage.startsWith(AUTHORIZATION_PREFIX)) {
-                Reposilite.getLogger().info("CLI Unauthorized CLI access request from " + context.address());
+                Reposilite.getLogger().info("CLI | Unauthorized CLI access request from " + context.address() + " (missing credentials)");
                 connectContext.send("Unauthorized connection request");
                 connectContext.session.disconnect();
                 return;
@@ -67,21 +67,30 @@ public final class CliController implements Consumer<WsHandler> {
             Result<Session, String> auth = authenticator.authByCredentials(credentials);
 
             if (!auth.isDefined() || !auth.getValue().isManager()) {
-                Reposilite.getLogger().info("CLI Unauthorized CLI access request from " + context.address());
+                Reposilite.getLogger().info("CLI | Unauthorized CLI access request from " + context.address());
                 connectContext.send("Unauthorized connection request");
                 connectContext.session.disconnect();
                 return;
             }
 
-            wsHandler.onClose(closeContext -> ReposiliteWriter.getConsumers().remove(closeContext));
+            String username = auth.getValue().getAlias() + context.address();
+
+            wsHandler.onClose(closeContext -> {
+                Reposilite.getLogger().info("CLI | " + username + " closed connection");
+                ReposiliteWriter.getConsumers().remove(closeContext);
+            });
+
             ReposiliteWriter.getConsumers().put(connectContext, connectContext::send);
-            Reposilite.getLogger().info("CLI " + auth.getValue().getAlias() + " accessed CLI from " + context.address());
+            Reposilite.getLogger().info("CLI | " + username + " accessed remote console");
+
+            wsHandler.onMessage(messageContext -> {
+                Reposilite.getLogger().info("CLI | " + username + "> " + messageContext.message());
+                reposiliteExecutor.schedule(() -> console.defaultExecute(messageContext.message()));
+            });
 
             for (String message : ReposiliteWriter.getCache()) {
                 connectContext.send(message);
             }
-
-            wsHandler.onMessage(messageContext -> reposiliteExecutor.schedule(() -> console.execute(messageContext.message())));
         }));
     }
 
