@@ -17,7 +17,7 @@
 <template lang="pug">
   div.text-white.text-xs.bg-black
     #console.pt-3.px-4.overflow-y-scroll.h-144
-      p(v-for="(message, index) in log" :key="index + '::' + message" v-html="message")
+      p(v-for="(message, index) in log" :key="index + '::' + message") {{ message }}
     input#in(placeholder="Type command or '?' to get help" v-on:keyup.enter="execute").w-full.pb-3.pt-2.px-4.bg-black.text-white
     notifications(group="cli" position="center top")
 </template>
@@ -62,10 +62,16 @@ export default {
           `Authorization:${this.$parent.auth.alias}:${this.$parent.auth.token}`
         )
       }
+
       this.connection.onmessage = event => {
-        this.log.push(convert.toHtml(event.data))
+        const message = event.data
+          .replaceAll('<', '\u003C')
+          .replaceAll('>', '\u003E')
+
+        this.log.push(convert.toHtml(message))
         this.$nextTick(() => this.scrollToEnd())
       }
+
       this.connection.onerror = error =>
         this.$notify({
           group: 'cli',
