@@ -27,7 +27,7 @@
       span {{ file.name }}
       span(v-if="file.error") {{ file.error }}
       span(v-else-if="file.success") {{ file.success }}
-    FileUpload.my-2.bg-gray-200.border-dashed.border-gray-500.rounded.border.w-96.h-9.pt-1(
+    FileUpload.my-2.bg-gray-200.border-dashed.border-gray-500.rounded.border-1.w-96.h-9.pt-1(
       v-model="files"
       ref="upload"
       :drop="true"
@@ -36,7 +36,7 @@
     label.m-1
       input(name="stubPom" type="radio" v-model="stubPom" :value="true").mx-2.stub-pom
       span Generate stub pom file for this artifact
-    button(name="submit" type="submit" v-on:click="upload").w-96.p-1.m-1.bg-white.cursor-pointer.border Upload
+    button(name="submit" type="submit" v-on:click="upload").w-96.p-1.m-1.bg-white.cursor-pointer.border-1.border-gray-300 Upload
     notifications(group="upload" position="center top")
 </template>
 

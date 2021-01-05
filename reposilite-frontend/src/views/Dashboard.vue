@@ -40,7 +40,7 @@
         router-link(to="/dashboard/cli" v-if="auth.manager").px-4 Cli
         router-link(to="/dashboard/settings" v-if="auth.manager").px-4 Settings
         button(v-on:click="logout").px-4 Logout
-      hr.py-2
+      hr.py-1.border-gray-300
       router-view
 </template>
 
@@ -100,12 +100,12 @@ export default {
 
 <style lang="stylus">
 html, body
-    height 100%
-    width 100%
+  height 100%
+  width 100%
 #app
   height 100%
   width 100%
 #panel
-    background-color #f8f8f8
-    max-height: 90vh
+  background-color #f8f8f8
+  max-height: 90vh
 </style>

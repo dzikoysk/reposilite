@@ -51,7 +51,7 @@ const CHUNK_SIZE = 10
 export default {
   mixins: [smoothReflow],
   props: {
-    qualifier: String,
+    initQualifier: String,
     prefix: String,
     auth: Object
   },
@@ -60,7 +60,8 @@ export default {
       configuration: Vue.prototype.$reposilite,
       files: [],
       error: undefined,
-      taskId: 0
+      taskId: 0,
+      qualifier: this.initQualifier
     }
   },
   components: {

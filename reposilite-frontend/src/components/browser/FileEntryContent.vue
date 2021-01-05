@@ -15,7 +15,7 @@
   -->
 
 <template lang="pug">
-  .flex.py-2.px-6.border
+  .flex.py-2.px-6.border-1.border-gray-300
     .pr-5
       i(v-if="file.type === 'directory'").fas.fa-folder
       i(v-if="file.type === 'file'").fas.fa-file
