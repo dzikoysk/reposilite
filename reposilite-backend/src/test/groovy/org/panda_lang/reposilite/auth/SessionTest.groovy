@@ -54,7 +54,7 @@ class SessionTest {
         configuration.repositories = Collections.emptyList()
 
         def token = new Token('/a/b/c', 'alias', 'rw', 'token')
-        def standardSession = new Session(token, false, REPOSITORY_SERVICE.getRepositories(token))
+        def standardSession = new Session(token, REPOSITORY_SERVICE.getRepositories(token))
 
         assertTrue standardSession.hasPermissionTo('/a/b/c')
         assertTrue standardSession.hasPermissionTo('/a/b/c/d')
@@ -66,7 +66,7 @@ class SessionTest {
     @Test
     void 'has permission with wildcard' () {
         def token = new Token('*/b/c', 'alias', 'rw', 'token')
-        def wildcardSession = new Session(token, false, REPOSITORY_SERVICE.getRepositories(token))
+        def wildcardSession = new Session(token, REPOSITORY_SERVICE.getRepositories(token))
 
         assertTrue wildcardSession.hasPermissionTo('/releases/b/c')
         assertTrue wildcardSession.hasPermissionTo('/releases/b/c/d')
@@ -80,10 +80,10 @@ class SessionTest {
     @Test
     void 'has root permission' () {
         def standardToken = new Token('/', 'alias', 'rw', 'token')
-        def standardRootSession = new Session(standardToken, false, REPOSITORY_SERVICE.getRepositories(standardToken))
+        def standardRootSession = new Session(standardToken, REPOSITORY_SERVICE.getRepositories(standardToken))
 
         def wildcardToken = new Token('*', 'alias', 'rw', 'token')
-        def wildcardRootSession = new Session(wildcardToken, false, REPOSITORY_SERVICE.getRepositories(wildcardToken))
+        def wildcardRootSession = new Session(wildcardToken, REPOSITORY_SERVICE.getRepositories(wildcardToken))
 
         assertTrue standardRootSession.hasPermissionTo('/')
         assertFalse wildcardRootSession.hasPermissionTo('/')
@@ -94,14 +94,14 @@ class SessionTest {
     @Test
     void 'should contain repository from path' () {
         def token = new Token('/releases', 'alias', 'rw', 'token')
-        def session = new Session(token, false, REPOSITORY_SERVICE.getRepositories(token))
+        def session = new Session(token, REPOSITORY_SERVICE.getRepositories(token))
         assertEquals Collections.singletonList(REPOSITORY_SERVICE.getRepository('releases')), session.getRepositories()
     }
 
     @Test
     void 'should return empty list for unknown repository in path' () {
         def token = new Token('/unknown_repository', 'alias', 'rw', 'token')
-        def session = new Session(token, false, REPOSITORY_SERVICE.getRepositories(token))
+        def session = new Session(token, REPOSITORY_SERVICE.getRepositories(token))
         assertEquals Collections.emptyList(), session.getRepositories()
     }
 

@@ -22,6 +22,7 @@ import org.panda_lang.reposilite.config.Configuration;
 import org.panda_lang.reposilite.repository.RepositoryService;
 import org.panda_lang.reposilite.utils.Result;
 import org.panda_lang.utilities.commons.StringUtils;
+import org.panda_lang.utilities.commons.function.Option;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -95,20 +96,20 @@ public final class Authenticator {
             return Result.error("Invalid authorization credentials");
         }
 
-        Token token = tokenService.getToken(values[0]);
+        Option<Token> tokenValue = tokenService.getToken(values[0]);
 
-        if (token == null) {
+        if (tokenValue.isEmpty()) {
             return Result.error("Invalid authorization credentials");
         }
 
+        Token token = tokenValue.get();
         boolean authorized = TokenService.B_CRYPT_TOKENS_ENCODER.matches(values[1], token.getToken());
 
         if (!authorized) {
             return Result.error("Invalid authorization credentials");
         }
 
-        boolean manager = configuration.managers.contains(token.getAlias());
-        return Result.ok(new Session(token, manager, repositoryService.getRepositories(token)));
+        return Result.ok(new Session(token, repositoryService.getRepositories(token)));
     }
 
 }

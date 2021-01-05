@@ -23,35 +23,37 @@ import picocli.CommandLine.Parameters;
 import java.io.IOException;
 import java.util.List;
 
-@Command(name = "revoke", description = "Revoke token")
-final class RevokeCommand implements ReposiliteCommand {
+@Command(name = "chmod", description = "Change token permissions")
+final class ChmodCommand implements ReposiliteCommand {
 
-    @Parameters(index = "0", paramLabel = "<alias>", description = "alias of token to revoke")
+    @Parameters(index = "0", paramLabel = "<alias>", description = "alias to update")
     private String alias;
+    @Parameters(index = "1", paramLabel = "<permissions>", description = "new permissions")
+    private String permissions;
 
     private final TokenService tokenService;
 
-    public RevokeCommand(TokenService tokenService) {
+    public ChmodCommand(TokenService tokenService) {
         this.tokenService = tokenService;
     }
 
     @Override
-    public boolean execute(List<String> response) {
-        return tokenService.deleteToken(alias)
+    public boolean execute(List<String> output) {
+        return tokenService.getToken(alias)
                 .map(token -> {
+                    output.add("Permissions have been changed from '" + token.getPermissions() + "' to '" + permissions + "'");
+                    token.setPermissions(permissions);
+
                     try {
                         tokenService.saveTokens();
-                        response.add("Token for '" + alias + "' has been revoked");
                         return true;
                     } catch (IOException ioException) {
-                        response.add("Cannot remove token due to: " + ioException);
-                        response.add("Token has been restored.");
-                        tokenService.addToken(token);
+                        ioException.printStackTrace();
                         return false;
                     }
                 })
                 .orElseGet(() -> {
-                    response.add("Alias '" + alias + "' not found");
+                    output.add("Cannot find token associated with '" + alias + "' alias");
                     return false;
                 });
     }

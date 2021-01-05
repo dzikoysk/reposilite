@@ -33,7 +33,7 @@ class KeygenCommandTest extends ReposiliteTestSpecification {
         // should also override previous token
         assertTrue executeCommand('keygen /a/b/c alias rw')
 
-        def token = tokenService.getToken('alias')
+        def token = tokenService.getToken('alias').get()
         assertNotNull token
         assertEquals '/a/b/c', token.getPath()
         assertEquals 'alias', token.getAlias()
@@ -44,7 +44,7 @@ class KeygenCommandTest extends ReposiliteTestSpecification {
     @Test
     void 'should create token based on qualifier' () {
         assertTrue executeCommand('keygen org.panda-lang.reposilite reposilite rw')
-        assertEquals '*/org/panda-lang/reposilite', super.reposilite.getTokenService().getToken('reposilite').getPath()
+        assertEquals '*/org/panda-lang/reposilite', super.reposilite.getTokenService().getToken('reposilite').get().getPath()
     }
 
     @Test

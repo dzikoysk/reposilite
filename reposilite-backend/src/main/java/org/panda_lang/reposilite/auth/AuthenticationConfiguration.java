@@ -27,6 +27,7 @@ public final class AuthenticationConfiguration implements ReposiliteConfiguratio
         TokenService tokenService = reposilite.getTokenService();
 
         Console console = reposilite.getConsole();
+        console.registerCommand(new ChmodCommand(tokenService));
         console.registerCommand(new KeygenCommand(tokenService));
         console.registerCommand(new RevokeCommand(tokenService));
         console.registerCommand(new TokensCommand(tokenService));

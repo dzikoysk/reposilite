@@ -72,6 +72,8 @@ public final class Configuration implements Serializable {
     @Description("# Allow to omit name of the main repository in request")
     @Description("# e.g. /org/panda-lang/reposilite will be redirected to /releases/org/panda-lang/reposilite")
     public Boolean rewritePathsEnabled = true;
+    @Description("# Accept deployment connections")
+    public Boolean deployEnabled = true;
 
     // Proxy
     @Description("")
@@ -81,15 +83,6 @@ public final class Configuration implements Serializable {
     public List<String> proxied = Collections.emptyList();
     @Description("# Reposilite can store proxied artifacts locally to reduce response time and improve stability")
     public Boolean storeProxied = true;
-
-    // Access properties
-    @Description("")
-    @Description("# Accept deployment connections")
-    public Boolean deployEnabled = true;
-    @Deprecated
-    @Description("# List of management tokens used by dashboard to access extra options.")
-    @Description("# (By default, people are allowed to use standard dashboard options related to the associated path)")
-    public List<String> managers = Collections.emptyList();
 
     // Frontend properties
     @Description("")

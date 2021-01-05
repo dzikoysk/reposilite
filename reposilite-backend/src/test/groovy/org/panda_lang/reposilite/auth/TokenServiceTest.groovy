@@ -40,10 +40,9 @@ class TokenServiceTest {
         def tempService = new TokenService(workingDirectory.getAbsolutePath())
         tempService.createToken('path', 'alias', 'rw')
         tempService.saveTokens()
-
         tokenService.loadTokens() // uses the same file
-        Token token = tokenService.getToken('alias')
-        assertEquals 'path', token.getPath()
+
+        assertEquals 'path',  tokenService.getToken('alias').get().getPath()
     }
 
     @Test
@@ -69,24 +68,24 @@ class TokenServiceTest {
     void 'should add token' () {
         def token = new Token('path', 'alias', 'secret', 'rw')
         tokenService.addToken(token)
-        assertEquals token, tokenService.getToken('alias')
+        assertEquals token, tokenService.getToken('alias').get()
     }
 
     @Test
     void 'should delete token' () {
-        assertNull(tokenService.deleteToken('random'))
+        assertTrue tokenService.deleteToken('random').isEmpty()
 
         tokenService.createToken('path', 'alias', 'token')
-        Token token = tokenService.deleteToken('alias')
-        assertNotNull(token)
-        assertEquals('alias', token.getAlias())
+        Token token = tokenService.deleteToken('alias').get()
+        assertNotNull token
+        assertEquals 'alias', token.getAlias()
 
-        assertNull(tokenService.getToken('alias'))
+        assertTrue tokenService.getToken('alias').isEmpty()
     }
 
     @Test
     void 'should get token' () {
-        assertNull tokenService.getToken('random')
+        assertTrue tokenService.getToken('random').isEmpty()
         tokenService.createToken('path', 'alias', 'rw')
         assertNotNull tokenService.getToken('alias')
     }
