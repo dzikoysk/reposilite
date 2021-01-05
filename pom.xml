@@ -21,7 +21,7 @@
     <groupId>org.panda-lang</groupId>
     <artifactId>reposilite-parent</artifactId>
     <packaging>pom</packaging>
-    <version>2.9.9</version>
+    <version>2.9.10</version>
 
     <modules>
         <module>reposilite-backend</module>
