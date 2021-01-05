@@ -16,9 +16,9 @@
 
 package org.panda_lang.reposilite.auth;
 
-import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.console.ReposiliteCommand;
 import org.panda_lang.utilities.commons.collection.Pair;
+import org.panda_lang.utilities.commons.function.Option;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Parameters;
 
@@ -49,21 +49,22 @@ final class KeygenCommand implements ReposiliteCommand {
             processedPath = "*/" + path.replace(".", "/");
         }
 
-        Token previousToken = tokenService.getToken(alias);
+        Option<Token> previousToken = tokenService.getToken(alias);
 
         try {
             Pair<String, Token> token = tokenService.createToken(processedPath, alias, permissions);
-            Reposilite.getLogger().info("Generated new access token for " + alias + " (" + processedPath + ") with '" + permissions + "' permissions");
-            Reposilite.getLogger().info(token.getKey());
+            response.add("Generated new access token for " + alias + " (" + processedPath + ") with '" + permissions + "' permissions");
+            response.add(token.getKey());
             tokenService.saveTokens();
             return true;
-        } catch (IOException e) {
-            Reposilite.getLogger().info("Cannot generate token due to: " + e.getMessage());
+        }
+        catch (IOException ioException) {
+            response.add("Cannot generate token due to: " + ioException.getMessage());
 
-            if (previousToken != null) {
-                tokenService.addToken(previousToken);
-                Reposilite.getLogger().info("The former token has been restored.");
-            }
+            previousToken.peek(token -> {
+                tokenService.addToken(token);
+                response.add("The former token has been restored.");
+            });
 
             return false;
         }

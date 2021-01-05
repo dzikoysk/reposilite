@@ -43,6 +43,8 @@ repositories [
 # Allow to omit name of the main repository in request
 # e.g. /org/panda-lang/reposilite will be redirected to /releases/org/panda-lang/reposilite
 rewritePathsEnabled: true
+# Accept deployment connections
+deployEnabled: true
 
 # List of proxied repositories.
 # Reposilite will search for an artifact in remote repositories listed below,
@@ -55,14 +57,6 @@ proxied [
 ]
 # Reposilite can store proxied artifacts locally to reduce response time and improve stability
 storeProxied: true
-
-# Accept deployment connections
-deployEnabled: true
-# List of management tokens used by dashboard to access extra options.
-# (By default, people are allowed to use standard dashboard options related to the associated path)
-managers [
-  admin
-]
 
 # Title displayed by frontend
 title: #onlypanda

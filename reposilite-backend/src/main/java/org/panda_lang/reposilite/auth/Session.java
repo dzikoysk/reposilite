@@ -25,17 +25,15 @@ import java.util.stream.Collectors;
 public final class Session {
 
     private final Token token;
-    private final boolean manager;
     private final List<Repository> repositories;
 
-    public Session(Token token, boolean manager, List<Repository> repositories) {
+    public Session(Token token, List<Repository> repositories) {
         this.token = token;
-        this.manager = manager;
         this.repositories = repositories;
     }
 
     public boolean isManager() {
-        return manager || hasPermission(Permission.MANAGER);
+        return hasPermission(Permission.MANAGER);
     }
 
     public boolean hasPermission(Permission permission) {

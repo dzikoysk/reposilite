@@ -17,6 +17,7 @@
 package org.panda_lang.reposilite.auth;
 
 import org.panda_lang.utilities.commons.collection.Pair;
+import org.panda_lang.utilities.commons.function.Option;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.io.IOException;
@@ -62,12 +63,12 @@ public final class TokenService {
         return token;
     }
 
-    Token deleteToken(String alias) {
-        return tokens.remove(alias);
+    Option<Token> deleteToken(String alias) {
+        return Option.of(tokens.remove(alias));
     }
 
-    Token getToken(String alias) {
-        return tokens.get(alias);
+    Option<Token> getToken(String alias) {
+        return Option.of(tokens.get(alias));
     }
 
     public int count() {

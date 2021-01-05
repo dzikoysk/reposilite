@@ -31,7 +31,7 @@ class RevokeCommandTest extends ReposiliteTestSpecification {
         tokenService.addToken(new Token('path', 'alias', 'rw', 'secret'))
 
         assertTrue executeCommand('revoke alias')
-        assertNull tokenService.getToken('alias')
+        assertTrue tokenService.getToken('alias').isEmpty()
     }
 
     @Test

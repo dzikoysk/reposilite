@@ -43,8 +43,6 @@ class CliControllerTest extends ReposiliteIntegrationTestSpecification {
 
     @Test
     void 'should authorize and send messages' () {
-        super.reposilite.getConfiguration().managers = Collections.singletonList("admin")
-
         def result = super.reposilite.getTokenService().createToken('/', 'admin', 'rwm')
         def output = new StringBuilder()
 
