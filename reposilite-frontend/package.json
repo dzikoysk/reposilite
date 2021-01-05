@@ -11,7 +11,7 @@
     "@fortawesome/fontawesome": "^1.1.8",
     "@fortawesome/fontawesome-free": "^5.13.0",
     "ansi-to-html": "^0.6.14",
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "core-js": "^3.6.5",
     "downloadjs": "^1.4.7",
     "mime-types": "^2.1.27",
