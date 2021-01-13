@@ -48,13 +48,13 @@ public final class Session {
                 String name = "/" + repository.getName();
 
                 if (path.startsWith(name)) {
-                    path = StringUtils.replaceFirst(path, "/" + repository.getName(), "*");
+                    path = StringUtils.replaceFirst(path, name, "*");
                     break;
                 }
             }
         }
 
-        return path.startsWith(tokenPath);
+        return path.startsWith(tokenPath) || path.startsWith(tokenPath + "/");
     }
 
     public List<Repository> getRepositories() {

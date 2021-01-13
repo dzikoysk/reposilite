@@ -17,5 +17,13 @@ path: /snapshots
 alias: snapshots-test
 token: 64zfaMgX2GsLu/Ct+RL9EEYpm3zCoN0VuwKqEGeov2B4RVSjXEhI5H/8OOTWOAND
 
+path: *
+alias: wvffle
+token: 8/W2d87YMdfSjfWxBRC3JwoQVb5SLTd+IqMWi9Y5AhG1jdAK0JiWfA2rJjislEwA
+
+path */org
+alias: org-wildcard
+token: J0YUSYlxfc8RU/OiAyTK6tHZybbTD2+jxPWboSLyy72Zy+KWbZQCaHDXsXmhkhlt
+
 SSL password: reposilite
 ```
