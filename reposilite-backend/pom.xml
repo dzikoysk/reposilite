@@ -138,7 +138,7 @@
         <dependency>
             <groupId>com.google.http-client</groupId>
             <artifactId>google-http-client-jackson2</artifactId>
-            <version>1.38.0</version>
+            <version>1.38.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
