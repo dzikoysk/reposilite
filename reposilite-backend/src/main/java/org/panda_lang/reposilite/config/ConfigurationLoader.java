@@ -56,7 +56,7 @@ public final class ConfigurationLoader {
 
         verifyBasePath(configuration);
         verifyProxied(configuration);
-        FileUtils.overrideFile(configurationFile, cdn.compose(configuration));
+        FileUtils.overrideFile(configurationFile, cdn.render(configuration));
         loadProperties(configuration);
 
         return configuration;
@@ -73,7 +73,7 @@ public final class ConfigurationLoader {
         Reposilite.getLogger().info("Legacy configuration file has been found");
 
         Configuration configuration = CDN.configure()
-                .enableIndentationFormatting()
+                .enableYamlLikeFormatting()
                 .build()
                 .parse(Configuration.class, FileUtils.getContentOfFile(legacyConfiguration));
 

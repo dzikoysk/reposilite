@@ -38,10 +38,10 @@ class LookupApiEndpointTest extends ReposiliteIntegrationTestSpecification {
         def repositories = shouldReturn200AndJsonResponse('/api')
         assertNotNull repositories.get('files')
 
-        def files = repositories.getSection('files')
+        def files = repositories.getSection('files').get()
         assertEquals 2, files.size()
-        assertEquals 'releases', files.getSection(0).getString('name').get()
-        assertEquals 'snapshots', files.getSection(1).getString('name').get()
+        assertEquals 'releases', files.getSection(0).get().getString('name', null)
+        assertEquals 'snapshots', files.getSection(1).get().getString('name', null)
     }
 
     @Test
@@ -52,11 +52,11 @@ class LookupApiEndpointTest extends ReposiliteIntegrationTestSpecification {
         assertEquals HttpStatus.SC_OK, response.getStatusCode()
 
         def repositories = CDN.defaultInstance().parseJson(response.parseAsString())
-        def files = repositories.getSection('files')
+        def files = repositories.getSection('files').get()
         assertEquals 3, files.size()
-        assertEquals 'releases', files.getSection(0).getString('name').get()
-        assertEquals 'snapshots', files.getSection(1).getString('name').get()
-        assertEquals 'private', files.getSection(2).getString('name').get()
+        assertEquals 'releases', files.getSection(0).get().getString('name').get()
+        assertEquals 'snapshots', files.getSection(1).get().getString('name').get()
+        assertEquals 'private', files.getSection(2).get().getString('name').get()
     }
 
     @Test
@@ -83,8 +83,8 @@ class LookupApiEndpointTest extends ReposiliteIntegrationTestSpecification {
     @Test
     void 'should return 200 and directory dto' () {
         def result = shouldReturn200AndJsonResponse('/api/org/panda-lang/reposilite-test')
-        def files = result.getSection('files')
-        assertEquals '1.0.1-SNAPSHOT', files.getSection(0).getString('name').get()
+        def files = result.getSection('files').get()
+        assertEquals '1.0.1-SNAPSHOT', files.getSection(0).get().getString('name').get()
     }
 
     private static Configuration shouldReturn200AndJsonResponse(String uri) {
