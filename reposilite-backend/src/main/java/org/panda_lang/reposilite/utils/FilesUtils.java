@@ -46,7 +46,11 @@ public final class FilesUtils {
     private static final String[] READABLE_CONTENT = {
             ".xml",
             ".pom",
-            ".txt"
+            ".txt",
+            ".json",
+            ".cdn",
+            ".yaml",
+            ".yml"
     };
 
     private FilesUtils() {}
@@ -59,8 +63,8 @@ public final class FilesUtils {
         Path md5FileFile = Paths.get(path + ".md5");
         Path sha1FileFile = Paths.get(path + ".sha1");
 
-        FileUtils.writeStringToFile(md5FileFile.toFile(), Files.hash(md5FileFile.toFile(), Hashing.md5()).toString(), StandardCharsets.UTF_8);
-        FileUtils.writeStringToFile(sha1FileFile.toFile(), Files.hash(sha1FileFile.toFile(), Hashing.sha1()).toString(), StandardCharsets.UTF_8);
+        FileUtils.writeStringToFile(md5FileFile.toFile(), Files.hash(path.toFile(), Hashing.md5()).toString(), StandardCharsets.UTF_8);
+        FileUtils.writeStringToFile(sha1FileFile.toFile(), Files.hash(path.toFile(), Hashing.sha1()).toString(), StandardCharsets.UTF_8);
     }
 
     public static long displaySizeToBytesCount(String displaySize) {
