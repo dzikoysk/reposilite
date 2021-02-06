@@ -15,7 +15,38 @@ The access token consists of four elements:
 * Permissions - the permissions associated with token
 * Token - generated secret token used to access associated path
 
-The path must follow the given pattern: `/{repository}/{gav}`
+### Generate token
+Tokens are generated using the `keygen` command in Reposilite CLI:
+
+```log
+$ keygen <path> <alias> [<permissions>]
+```
+
+As an example, we can generate access token for `root` and standard `user`:
+
+```bash
+$ keygen / root m
+19:55:20.692 INFO | Generated new access token for root (/) with 'm' permissions
+19:55:20.692 INFO | AW7-kaXSSXTRVL_Ip9v7ruIiqe56gh96o1XdSrqZCyTX2vUsrZU3roVOfF-YYF-y
+19:55:20.723 INFO | Stored tokens: 1
+
+$ keygen com.example.project user w
+19:55:20.692 INFO | Generated new access token for user (*/com/example/project) with 'w' permissions
+19:55:20.692 INFO | AW7-kaXSSXTRVL_Ip9v7ruIiqe56gh96o1XdSrqZCyTX2vUsrZU3roVOfF-YYF-y
+19:55:20.723 INFO | Stored tokens: 2
+```
+
+## Properties
+
+### Permission
+Currently supported permissions:
+
+* `w` - allows to write *(deploy)* using this token
+* `m` - marks token as manager token *(full access)*
+
+### Path
+
+The path must follow the given pattern: `/{repository}/{gav}` or `x.y.z` gav pattern:
 * `{repository}` - required name of repository used to distinguish repositories
 * `{gav}` - optional GAV (`group-artifact-version`) path
 
@@ -28,11 +59,6 @@ Some examples:
 | /snapshots | /snapshots/* | Ok |
 | / | /releases/* | Ok (if `rewrite-paths` enabled) |
 | */ | /* | Ok |
-
-Currently supported permissions:
-
-* `w` - allows to write *(deploy)* using this token
-* `m` - marks token as manager token *(full access)*
 
 As an example, we can imagine we have several projects located in our repository. 
 In most cases, the administrator want to have permission to whole repository, so the credentials for us should look like this:
@@ -49,7 +75,7 @@ Access to requested paths is resolved by comparing the access token path with th
 | :-- | :----: |
 | / | Ok |
 | /releases | Ok |
-| /releases/artifactId/groupId | Ok |
+| /releases/groupId/artifactId | Ok |
 | /snapshots | Ok |
 
 We also might add some of co-workers to their projects. 
@@ -89,21 +115,7 @@ path: */com/hbo/got
 alias: khaleesi
 ```
 
-### Generate token
-Tokens are generated using the `keygen` command in Reposilite CLI:
-
-```log
-$ keygen <path> <alias> <permissions>
-```
-
-As an example, we can generate access token for our `root` user:
-
-```bash
-$ keygen / root m
-19:55:20.692 INFO | Generated new access token for root (/) with 'm' permissions
-19:55:20.692 INFO | AW7-kaXSSXTRVL_Ip9v7ruIiqe56gh96o1XdSrqZCyTX2vUsrZU3roVOfF-YYF-y
-19:55:20.723 INFO | Stored tokens: 1
-```
+## Other commands
 
 ### List tokens
 To display list of all generated tokens, just use `tokens` command in Reposilite CLI:
@@ -117,41 +129,3 @@ $ tokens
 
 ### Revoke tokens
 You can revoke token using the `revoke <alias>` command in Reposilite CLI.
-
-## Deploy
-The deploy phase adds your artifact to a remote repository automatically.
-Before we get to that, you have to make sure that the deploy feature is enabled in Repository:
-
-```properties
-# Accept deployment connections
-deployEnabled: true
-```
-
-Now, you should determine in your `pom.xml` the target repository where Maven should upload artifact.
-Let's say we want to deploy artifact to the `releases` repository:
-
-```xml
-<distributionManagement>
-    <repository>
-        <id>local-repository</id>
-        <url>http://localhost:80/releases</url>
-    </repository>
-</distributionManagement>
-```
-
-To use generated token add, a new server in your [~/m2/settings.xml](https://maven.apache.org/settings.html):
-
-```xml
-<server>
-  <!-- Id has to match the id provided in pom.xml -->
-  <id>local-repository</id>
-  <username>{alias}</username>
-  <password>{token}</password>
-</server>
-```
-
-If you've configured everything correctly, you should be able to deploy artifact using the following command:
-
-```bash
-$ mvn deploy
-```

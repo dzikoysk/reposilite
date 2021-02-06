@@ -1,18 +1,27 @@
 {
   "docs": {
-    "Introduction": ["about", "install", "docker", "cdn"],
+    "Introduction": [
+      "about", 
+      "install",
+      "authorization",
+      "deploy",
+      "faq"
+    ],
+    "Services": [
+      "docker", 
+      "cdn",
+      "reverse-proxy"
+    ],
     "Settings": [
       "configuration",
       "repositories",
-      "authorization",
       "proxy",
-      "customization",
-      "faq"
+      "customization"
     ],
     "Dashboard": [
-      "file-viewer", 
-      "cli", 
-      "deploy"
+      "file-browser", 
+      "remote-cli", 
+      "manual-deploy"
     ],
     "Developers": [
       "indexing",

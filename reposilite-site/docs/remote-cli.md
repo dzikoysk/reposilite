@@ -1,7 +1,7 @@
 ---
-id: cli
-title: CLI
-sidebar_label: CLI
+id: remote-cli
+title: Remote CLI
+sidebar_label: Remote CLI
 ---
 
 CLI *(command-line interface)* displays current Reposilite output and allows to perform available [commands](install#interactive-cli).

@@ -1,7 +1,7 @@
 ---
-id: file-viewer
-title: File Viewer
-sidebar_label: File Viewer
+id: file-browser
+title: File browser
+sidebar_label: File browser
 ---
 
 Reposilite contains two type of file viewers:
