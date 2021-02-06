@@ -20,7 +20,7 @@ import groovy.transform.CompileStatic
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
-import org.panda_lang.utilities.commons.text.ContentJoiner
+import org.panda_lang.utilities.commons.text.Joiner
 
 import static org.junit.jupiter.api.Assertions.assertEquals
 
@@ -50,7 +50,7 @@ class ArtifactTest {
 
     @Test
     void 'should return artifact file' () {
-        def fileName = ContentJoiner.on(File.separator)
+        def fileName = Joiner.on(File.separator)
                 .join(ARTIFACT.getRepository().getName(), ARTIFACT.getGroup(), ARTIFACT.getArtifact(), ARTIFACT.getVersion())
                 .toString()
 

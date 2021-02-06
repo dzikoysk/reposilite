@@ -92,7 +92,7 @@ class DeployEndpointTest extends ReposiliteIntegrationTestSpecification {
         def response = put(uri, username, password, content)
         assertEquals status, response.getStatusLine().getStatusCode()
 
-        def result = IOUtils.convertStreamToString(response.getEntity().getContent()).getValue()
+        def result = IOUtils.convertStreamToString(response.getEntity().getContent()).get()
         assertNotNull result
         assertTrue result.contains(message)
     }

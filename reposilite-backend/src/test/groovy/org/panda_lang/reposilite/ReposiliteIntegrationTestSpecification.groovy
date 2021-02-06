@@ -57,13 +57,13 @@ abstract class ReposiliteIntegrationTestSpecification extends ReposiliteTestSpec
         properties.forEach({ property, value -> System.setProperty(property, value) })
 
         try {
-            return ReposiliteLauncher.create(ArrayUtils.mergeArrays(args, ArrayUtils.of(
+            return ReposiliteLauncher.create(ArrayUtils.merge(args, ArrayUtils.of(
                     "--working-directory=" + workingDirectory.getAbsolutePath(),
                     "--test-env"
             ))).orElseThrow({ new RuntimeException("Invalid test parameters") })
         }
         finally {
-            System.clearProperty("reposilite.port");
+            System.clearProperty("reposilite.port")
             properties.forEach({ key, value -> System.clearProperty(key) })
         }
     }

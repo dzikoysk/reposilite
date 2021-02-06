@@ -20,7 +20,7 @@ import org.panda_lang.reposilite.config.Configuration;
 import org.panda_lang.reposilite.utils.FilesUtils;
 import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.function.Lazy;
-import org.panda_lang.utilities.commons.text.MessageFormatter;
+import org.panda_lang.utilities.commons.text.Formatter;
 
 import java.util.function.Supplier;
 
@@ -43,7 +43,7 @@ public final class FrontendService {
     }
 
     public static FrontendService load(Configuration configuration) {
-        MessageFormatter formatter = new MessageFormatter()
+        Formatter formatter = new Formatter()
                 .register("{{REPOSILITE.BASE_PATH}}", configuration.basePath)
                 .register("{{REPOSILITE.VUE_BASE_PATH}}", configuration.basePath.equals("/") ? "" : configuration.basePath)
                 .register("{{REPOSILITE.TITLE}}", configuration.title.replace("'", "\\'"))

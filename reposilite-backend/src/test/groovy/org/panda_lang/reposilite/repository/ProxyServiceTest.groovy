@@ -95,7 +95,7 @@ final class ProxyServiceTest extends ReposiliteIntegrationTestSpecification {
 
         def proxiedConfigurationFile = new File(PROXIED_WORKING_DIRECTORY.getAbsolutePath() + '/' + ReposiliteConstants.CONFIGURATION_FILE_NAME)
         proxiedConfigurationFile.getParentFile().mkdirs()
-        FileUtils.overrideFile(proxiedConfigurationFile, CDN.defaultInstance().compose(proxiedConfiguration))
+        FileUtils.overrideFile(proxiedConfigurationFile, CDN.defaultInstance().render(proxiedConfiguration))
 
         def proxiedReposilite = ReposiliteLauncher.create(null, PROXIED_WORKING_DIRECTORY.getAbsolutePath(), false, true)
 

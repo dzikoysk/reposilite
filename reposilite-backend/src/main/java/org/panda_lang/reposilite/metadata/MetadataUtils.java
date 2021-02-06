@@ -16,12 +16,11 @@
 
 package org.panda_lang.reposilite.metadata;
 
-import org.panda_lang.panda.Panda;
 import org.panda_lang.reposilite.utils.FilesUtils;
 import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.collection.Pair;
 import org.panda_lang.utilities.commons.function.PandaStream;
-import org.panda_lang.utilities.commons.text.ContentJoiner;
+import org.panda_lang.utilities.commons.text.Joiner;
 
 import java.io.File;
 import java.time.Instant;
@@ -122,7 +121,7 @@ public final class MetadataUtils {
     }
 
     public static String toGroup(String[] elements) {
-        return ContentJoiner.on(".")
+        return Joiner.on(".")
                 .join(Arrays.copyOfRange(elements, 0, elements.length))
                 .toString();
     }

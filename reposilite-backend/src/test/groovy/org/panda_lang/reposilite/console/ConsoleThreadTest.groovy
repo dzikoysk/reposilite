@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test
 import org.panda_lang.reposilite.ReposiliteConstants
 import org.panda_lang.reposilite.ReposiliteWriter
 import org.panda_lang.reposilite.error.FailureService
-import org.panda_lang.utilities.commons.text.ContentJoiner
+import org.panda_lang.utilities.commons.text.Joiner
 
 import static org.junit.jupiter.api.Assertions.assertTrue
 
@@ -32,7 +32,7 @@ class ConsoleThreadTest {
     void 'should print version message' () {
         executeInput("version")
 
-        assertTrue ContentJoiner.on('')
+        assertTrue Joiner.on('')
                 .join(ReposiliteWriter.getCache())
                 .toString()
                 .contains(ReposiliteConstants.VERSION)
@@ -42,7 +42,7 @@ class ConsoleThreadTest {
     void 'should print docker info' () {
         executeInput('')
 
-        assertTrue ContentJoiner.on('')
+        assertTrue Joiner.on('')
                 .join(ReposiliteWriter.getCache())
                 .toString()
                 .contains("Docker")

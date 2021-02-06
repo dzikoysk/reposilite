@@ -17,7 +17,7 @@
 package org.panda_lang.reposilite.repository;
 
 import org.panda_lang.reposilite.metadata.MetadataUtils;
-import org.panda_lang.utilities.commons.text.ContentJoiner;
+import org.panda_lang.utilities.commons.text.Joiner;
 
 import java.io.File;
 import java.util.Arrays;
@@ -58,7 +58,7 @@ public final class Repository {
     }
 
     public File getFile(String... path) {
-        return new File(directory, ContentJoiner.on(File.separator).join(path).toString());
+        return new File(directory, Joiner.on(File.separator).join(path).toString());
     }
 
     public String getUri() {

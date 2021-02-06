@@ -17,7 +17,7 @@
 package org.panda_lang.reposilite.console;
 
 import org.panda_lang.reposilite.ReposiliteConstants;
-import org.panda_lang.utilities.commons.text.ContentJoiner;
+import org.panda_lang.utilities.commons.text.Joiner;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Model.ArgSpec;
@@ -67,8 +67,8 @@ final class HelpCommand implements ReposiliteCommand {
             CommandSpec specification = command.getCommandSpec();
 
             response.add("  " + command.getCommandName()
-                    + " " + ContentJoiner.on(" ").join(specification.args(), ArgSpec::paramLabel)
-                    + " - " + ContentJoiner.on(". ").join(specification.usageMessage().description()));
+                    + " " + Joiner.on(" ").join(specification.args(), ArgSpec::paramLabel)
+                    + " - " + Joiner.on(". ").join(specification.usageMessage().description()));
         }
 
         return true;

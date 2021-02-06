@@ -21,7 +21,7 @@ import net.dzikoysk.cdn.CDN
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.panda_lang.utilities.commons.FileUtils
-import org.panda_lang.utilities.commons.text.ContentJoiner
+import org.panda_lang.utilities.commons.text.Joiner
 
 import static org.junit.jupiter.api.Assertions.*
 
@@ -63,7 +63,7 @@ class ConfigurationLoaderTest {
     @Test
     void 'should load custom config' () {
         def customConfig = new File(workingDirectory, "random.cdn")
-        FileUtils.overrideFile(customConfig, CDN.defaultInstance().compose(new Configuration()))
+        FileUtils.overrideFile(customConfig, CDN.defaultInstance().render(new Configuration()))
         FileUtils.overrideFile(customConfig, FileUtils.getContentOfFile(customConfig).replace("port: 80", "port: 7"))
 
         def configuration = ConfigurationLoader.tryLoad(customConfig.getAbsolutePath(), workingDirectory.getAbsolutePath())
@@ -73,7 +73,7 @@ class ConfigurationLoaderTest {
     @Test
     void 'should not load other file types' () {
         def customConfig = new File(workingDirectory, "random.properties")
-        FileUtils.overrideFile(customConfig, CDN.defaultInstance().compose(new Configuration()))
+        FileUtils.overrideFile(customConfig, CDN.defaultInstance().render(new Configuration()))
         assertThrows RuntimeException.class, { ConfigurationLoader.load(customConfig.getAbsolutePath(), workingDirectory.getAbsolutePath()) }
     }
 
@@ -92,7 +92,7 @@ class ConfigurationLoaderTest {
     @Test
     void 'should verify proxied' () {
         def config = new File(workingDirectory, "config.cdn")
-        FileUtils.overrideFile(config, ContentJoiner.on("\n").join(
+        FileUtils.overrideFile(config, Joiner.on("\n").join(
                 "proxied {",
                 "  https://without.slash",
                 "  https://with.slash/",
