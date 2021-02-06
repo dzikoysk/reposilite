@@ -16,6 +16,7 @@
 
 package org.panda_lang.reposilite.auth;
 
+import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.console.ReposiliteCommand;
 import org.panda_lang.utilities.commons.collection.Pair;
 import org.panda_lang.utilities.commons.function.Option;
@@ -45,8 +46,17 @@ final class KeygenCommand implements ReposiliteCommand {
     public boolean execute(List<String> response) {
         String processedPath = path;
 
+        // Support simplified artifact qualifier (x.y.z instead of /x/y/z)
+        // ~ https://github.com/dzikoysk/reposilite/issues/145
         if (path.contains(".") && !path.contains("/")) {
             processedPath = "*/" + path.replace(".", "/");
+        }
+
+        // Fix non-functional wildcard usage
+        // ~ https://github.com/dzikoysk/reposilite/issues/351
+        if (processedPath.endsWith("*")) {
+            processedPath = processedPath.substring(0, processedPath.length() - 1);
+            Reposilite.getLogger().warn("Non-functional wildcard has been removed from the end of the given path");
         }
 
         Option<Token> previousToken = tokenService.getToken(alias);
