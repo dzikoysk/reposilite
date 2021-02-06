@@ -105,3 +105,39 @@ For instance:
 ```bash
 $ java -Xmx32M -Dreposilite.port=8080 -jar reposilite.jar
 ```
+
+
+## Parameters
+Some of the properties have to be set through the command-line parameters.
+
+### Working directory
+To declare custom working directory for Reposilite instance,
+you should use `--working-directory` *(alias: `-wd`)* parameter:
+
+```console
+$ java -jar reposilite.jar --working-directory=/app/data
+```
+
+### Configuration file
+You may also declare custom location of configuration file using the `--config` *(alias: `-cfg`)* parameter:
+
+```console
+$ java -jar reposilite.jar --config=/etc/reposilite/reposilite.cdn
+```
+
+You don't have to create this file manually,
+Reposilite will generate it during the first startup, 
+but make sure that you've granted `write` permission.
+
+### Properties
+Using the system properties, 
+you can also override values from the loaded configuration.
+See [configuration#system-properties](./configuration#system-properties) to learn more.
+
+### Log file
+Reposilite uses [tinylog](https://tinylog.org) as logging library. 
+To change location of log file, use [system properties](https://tinylog.org/v2/configuration/#configuration):
+
+```console
+$ java -Dtinylog.writerFile.file=/etc/reposilite/log.txt -jar reposilite.jar
+```

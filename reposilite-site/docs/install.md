@@ -33,6 +33,15 @@ $ java -Xmx32M -jar reposilite.jar
 
 If you will not define the memory size, Reposilite will probably use around *~40MB to ~250MB*.
 
+### Interactive CLI
+Reposilite exposes interactive console directly in a terminal and it awaits for an input.
+Type `help` and learn more about available commands.
+
+![Interactive CLI](https://user-images.githubusercontent.com/4235722/93831263-aac91e80-fc72-11ea-8316-50b1e37cf16f.gif)
+
+**Note**: Your first access token has to be generated through the terminal. 
+Read more about tokens and keygen command here: [Authorization](authorization#generate-token).
+
 ### Structure
 Reposilite stores data in current [working directory](#working-directory),
 by default it is a place where you've launched it.
@@ -53,49 +62,21 @@ user@host ~/workspace: java -jar reposilite.jar
 +--tokens.yml           Data file containing stored tokens
 ```
 
-To separate data files and configuration from application, use [parameters](#parameters).
+To separate data files and configuration from application, use [parameters](configuration#parameters).
 
-### Preview
+### Interface
 If Reposilite has been launched properly,
 you should be able to see its frontend located under the default http://localhost:80 address:
 
 ![Preview](/img/about-preview.png)
 
-### Interactive CLI
-Reposilite exposes interactive console in terminal.
-Type `help` and learn more.
+To access dashboard visit http://localhost:80/dashboard or click on the feather icon.
 
-## Parameters
-Some of the properties have to be set through the command-line parameters.
+### Further reading
 
-### Working directory
-To declare custom working directory for Reposilite instance,
-you should use `--working-directory` *(alias: `-wd`)* parameter:
+* [Generate token to access dashboard](authorization#generate-token)
+* [Deploy artifact](deploy)
 
-```console
-$ java -jar reposilite.jar --working-directory=/app/data
-```
+External publications:
 
-### Configuration file
-You may also declare custom location of configuration file using the `--config` *(alias: `-cfg`)* parameter:
-
-```console
-$ java -jar reposilite.jar --config=/etc/reposilite/reposilite.cdn
-```
-
-You don't have to create this file manually,
-Reposilite will generate it during the first startup, 
-but make sure that you've granted `write` permission.
-
-### Properties
-Using the system properties, 
-you can also override values from the loaded configuration.
-See [configuration#system-properties](./configuration#system-properties) to learn more.
-
-### Log file
-Reposilite uses [tinylog](https://tinylog.org) as logging library. 
-To change location of log file, use [system properties](https://tinylog.org/v2/configuration/#configuration):
-
-```console
-$ java -Dtinylog.writerFile.file=/etc/reposilite/log.txt -jar reposilite.jar
-```
+* [DEV.to article - Install & deploy your first artifact](https://dev.to/dzikoysk/publishing-your-artifacts-to-the-reposilite-a-new-self-hosted-repository-manager-3n0h)

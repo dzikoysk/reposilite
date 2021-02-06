@@ -1,0 +1,99 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Reverse proxy · Reposilite</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="Reposilite uses websocket connection to provide remote CLI functionality. "/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Reverse proxy · Reposilite"/><meta property="og:type" content="website"/><meta property="og:url" content="https://reposilite.com/"/><meta property="og:description" content="Reposilite uses websocket connection to provide remote CLI functionality. "/><meta property="og:image" content="https://reposilite.com/img/undraw_online.svg"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://reposilite.com/img/undraw_tweetstorm.svg"/><link rel="shortcut icon" href="/img/favicon.png"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/idea.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script src="/js/scrollSpy.js"></script><link rel="stylesheet" href="/css/main.css"/><script src="/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/"><h2 class="headerTitle">Reposilite</h2></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class="siteNavGroupActive"><a href="/docs/about" target="_self">Guide</a></li><li class=""><a href="/help" target="_self">Help</a></li><li class=""><a href="https://panda-lang.org/support" target="_self">Support</a></li><li class=""><a href="https://github.com/dzikoysk/reposilite" target="_self">GitHub</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="docsNavContainer" id="docsNav"><nav class="toc"><div class="toggleNav"><section class="navWrapper wrapper"><div class="navBreadcrumb wrapper"><div class="navToggle" id="navToggler"><div class="hamburger-menu"><div class="line1"></div><div class="line2"></div><div class="line3"></div></div></div><h2><i>›</i><span>Services</span></h2><div class="tocToggler" id="tocToggler"><i class="icon-toc"></i></div></div><div class="navGroups"><div class="navGroup"><h3 class="navGroupCategoryTitle">Introduction</h3><ul class=""><li class="navListItem"><a class="navItem" href="/docs/about">About</a></li><li class="navListItem"><a class="navItem" href="/docs/install">Installation</a></li><li class="navListItem"><a class="navItem" href="/docs/authorization">Authorization</a></li><li class="navListItem"><a class="navItem" href="/docs/deploy">Deploy</a></li><li class="navListItem"><a class="navItem" href="/docs/faq">FAQ</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Services</h3><ul class=""><li class="navListItem"><a class="navItem" href="/docs/docker">Docker</a></li><li class="navListItem"><a class="navItem" href="/docs/cdn">CDN</a></li><li class="navListItem navListItemActive"><a class="navItem" href="/docs/reverse-proxy">Reverse proxy</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Settings</h3><ul class=""><li class="navListItem"><a class="navItem" href="/docs/configuration">Configuration</a></li><li class="navListItem"><a class="navItem" href="/docs/repositories">Repositories</a></li><li class="navListItem"><a class="navItem" href="/docs/proxy">Proxy and caching</a></li><li class="navListItem"><a class="navItem" href="/docs/customization">Customization</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Dashboard</h3><ul class=""><li class="navListItem"><a class="navItem" href="/docs/file-browser">File browser</a></li><li class="navListItem"><a class="navItem" href="/docs/remote-cli">Remote CLI</a></li><li class="navListItem"><a class="navItem" href="/docs/manual-deploy">Manual deploy</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Developers</h3><ul class=""><li class="navListItem"><a class="navItem" href="/docs/indexing">Indexing</a></li><li class="navListItem"><a class="navItem" href="/docs/remote-execution">Remote execution</a></li></ul></div></div></section></div><script>
+            var coll = document.getElementsByClassName('collapsible');
+            var checkActiveCategory = true;
+            for (var i = 0; i < coll.length; i++) {
+              var links = coll[i].nextElementSibling.getElementsByTagName('*');
+              if (checkActiveCategory){
+                for (var j = 0; j < links.length; j++) {
+                  if (links[j].classList.contains('navListItemActive')){
+                    coll[i].nextElementSibling.classList.toggle('hide');
+                    coll[i].childNodes[1].classList.toggle('rotate');
+                    checkActiveCategory = false;
+                    break;
+                  }
+                }
+              }
+
+              coll[i].addEventListener('click', function() {
+                var arrow = this.childNodes[1];
+                arrow.classList.toggle('rotate');
+                var content = this.nextElementSibling;
+                content.classList.toggle('hide');
+              });
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+              createToggler('#navToggler', '#docsNav', 'docsSliderActive');
+              createToggler('#tocToggler', 'body', 'tocActive');
+
+              var headings = document.querySelector('.toc-headings');
+              headings && headings.addEventListener('click', function(event) {
+                var el = event.target;
+                while(el !== headings){
+                  if (el.tagName === 'A') {
+                    document.body.classList.remove('tocActive');
+                    break;
+                  } else{
+                    el = el.parentNode;
+                  }
+                }
+              }, false);
+
+              function createToggler(togglerSelector, targetSelector, className) {
+                var toggler = document.querySelector(togglerSelector);
+                var target = document.querySelector(targetSelector);
+
+                if (!toggler) {
+                  return;
+                }
+
+                toggler.onclick = function(event) {
+                  event.preventDefault();
+
+                  target.classList.toggle(className);
+                };
+              }
+            });
+        </script></nav></div><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"><h1 id="__docusaurus" class="postHeaderTitle">Reverse proxy</h1></header><article><div><span><p>Reposilite uses websocket connection to provide remote CLI functionality.
+Proxing such a connection through services like <a href="https://www.nginx.com/">Nginx</a> or <a href="https://httpd.apache.org/">Apache</a> requires additional configuration.</p>
+<p>Related GitHub Issue: <a href="https://github.com/dzikoysk/reposilite/issues/346">#346</a></p>
+<h2><a class="anchor" aria-hidden="true" id="nginx"></a><a href="#nginx" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Nginx</h2>
+<pre><code class="hljs css language-conf"><span class="hljs-attr">map</span> <span class="hljs-string">$http_upgrade $connection_upgrade {</span>
+    <span class="hljs-attr">default</span> <span class="hljs-string">upgrade;</span>
+    <span class="hljs-meta">''</span> <span class="hljs-string">close;</span>
+<span class="hljs-attr">}</span>
+<span class="hljs-comment">
+# reposilite ip and port</span>
+<span class="hljs-attr">upstream</span> <span class="hljs-string">reposilite {</span>
+    <span class="hljs-attr">server</span> <span class="hljs-string">domain:8081;</span>
+<span class="hljs-attr">}</span>
+
+<span class="hljs-attr">server</span> <span class="hljs-string">{                                                                                                                                                   </span>
+    <span class="hljs-attr">server_name</span> <span class="hljs-string">domain;                                                                                                                                    </span>
+    <span class="hljs-attr">listen</span> <span class="hljs-string">80;                                                                                                                                                </span>
+    <span class="hljs-attr">listen</span> <span class="hljs-string">[::]:80;                                                                                                                                           </span>
+    <span class="hljs-attr">access_log</span> <span class="hljs-string">/var/log/nginx/reverse-access.log;                                                                                                             </span>
+    <span class="hljs-attr">error_log</span> <span class="hljs-string">/var/log/nginx/reverse-error.log;                                                                                                               </span>
+    <span class="hljs-attr">location</span> <span class="hljs-string">/ {</span>
+        <span class="hljs-attr">proxy_pass</span> <span class="hljs-string">http://reposilite;</span>
+        <span class="hljs-attr">proxy_set_header</span>   <span class="hljs-string">Host              $host;</span>
+        <span class="hljs-attr">proxy_set_header</span>   <span class="hljs-string">X-Real-IP         $remote_addr;</span>
+        <span class="hljs-attr">proxy_set_header</span>   <span class="hljs-string">X-Forwarded-For   $proxy_add_x_forwarded_for;</span>
+        <span class="hljs-attr">proxy_set_header</span>   <span class="hljs-string">X-Forwarded-Proto $scheme;</span>
+        <span class="hljs-attr">proxy_set_header</span>   <span class="hljs-string">Upgrade           $http_upgrade;</span>
+        <span class="hljs-attr">proxy_set_header</span>   <span class="hljs-string">Connection        $connection_upgrade;</span>
+        <span class="hljs-attr">proxy_http_version</span> <span class="hljs-string">1.1;    </span>
+    <span class="hljs-meta">}</span>                                                                                                                                                              <span class="hljs-string"></span>
+<span class="hljs-meta">}</span> <span class="hljs-string"></span>
+</code></pre>
+<h2><a class="anchor" aria-hidden="true" id="apache"></a><a href="#apache" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Apache</h2>
+<pre><code class="hljs css language-conf"><span class="hljs-comment"># reposilite is listening on 127.0.0.1:8081</span>
+<span class="hljs-attribute"><span class="hljs-nomarkup">RewriteEngine</span></span> <span class="hljs-literal">On</span>
+
+<span class="hljs-attribute"><span class="hljs-nomarkup">RewriteCond</span></span> <span class="hljs-variable">%{HTTP:Upgrade}</span> =websocket<span class="hljs-meta"> [NC]</span>
+<span class="hljs-attribute"><span class="hljs-nomarkup">RewriteRule</span></span> ^/api/(.*) ws://127.0.0.1:8081/api/<span class="hljs-number">$1</span><span class="hljs-meta"> [P,L]</span>
+
+<span class="hljs-attribute">ProxyPass</span> / http://127.0.0.1:8081/
+<span class="hljs-attribute">ProxyPassReverse</span> / http://127.0.0.1:8081/
+</code></pre>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/docs/cdn"><span class="arrow-prev">← </span><span>CDN</span></a><a class="docs-next button" href="/docs/configuration"><span>Configuration</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#nginx">Nginx</a></li><li><a href="#apache">Apache</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap center"><div><h5>Guide</h5><a href="/docs/en/about">Getting Started</a><a href="/docs/en/install">Installation</a><a href="/docs/en/indexing">Developer API</a></div><div><h5>Community</h5><a href="https://github.com/dzikoysk/reposilite/issues" target="_blank">Report Issue</a><a href="https://github.com/dzikoysk/reposilite" target="_blank">Star Reposilite</a><a href="https://twitter.com/dzikoysk" target="_blank">Follow @dzikoysk</a></div></section><section class="copyright">Copyright © 2021 dzikoysk with ❤ panda-lang</section></footer></div><script>window.twttr=(function(d,s, id){var js,fjs=d.getElementsByTagName(s)[0],t=window.twttr||{};if(d.getElementById(id))return t;js=d.createElement(s);js.id=id;js.src='https://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js, fjs);t._e = [];t.ready = function(f) {t._e.push(f);};return t;}(document, 'script', 'twitter-wjs'));</script></body></html>

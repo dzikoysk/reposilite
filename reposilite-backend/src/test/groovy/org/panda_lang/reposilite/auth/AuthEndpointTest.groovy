@@ -56,7 +56,7 @@ final class AuthEndpointTest extends ReposiliteIntegrationTestSpecification {
         def authDto = CDN.defaultInstance().parseJson(response.parseAsString())
         assertEquals 'rwm', authDto.getString('permissions').get()
         assertEquals '/', authDto.getString('path').get()
-        assertEquals Arrays.asList('releases', 'snapshots'), authDto.getList('repositories')
+        assertEquals Arrays.asList('releases', 'snapshots'), authDto.getList('repositories', [])
     }
 
 }
