@@ -16,6 +16,8 @@
 
 package org.panda_lang.reposilite.repository;
 
+import org.panda_lang.reposilite.metadata.MetadataUtils;
+
 import java.io.File;
 
 final class Artifact {
@@ -37,19 +39,13 @@ final class Artifact {
     }
 
     public String getLocalPath() {
-        return group.replace(".", "/") + "/" + artifact + "/" + version + "/";
+        return getGroupPath() + "/" + artifact + "/" + version + "/";
     }
 
-    public String getVersion() {
-        return version;
-    }
-
-    public String getArtifact() {
-        return artifact;
-    }
-
-    public String getGroup() {
-        return group;
+    private String getGroupPath() {
+        return group
+                .replaceAll("([^`])\\.([^`])", "$1/$2")
+                .replace(MetadataUtils.ESCAPE_DOT, ".");
     }
 
     public Repository getRepository() {

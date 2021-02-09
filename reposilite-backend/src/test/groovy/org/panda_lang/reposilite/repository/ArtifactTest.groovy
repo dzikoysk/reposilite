@@ -51,7 +51,7 @@ class ArtifactTest {
     @Test
     void 'should return artifact file' () {
         def fileName = Joiner.on(File.separator)
-                .join(ARTIFACT.getRepository().getName(), ARTIFACT.getGroup(), ARTIFACT.getArtifact(), ARTIFACT.getVersion())
+                .join(ARTIFACT.getRepository().getName(), "groupId", "artifactId", "version")
                 .toString()
 
         assertEquals new File(WORKING_DIRECTORY, fileName), ARTIFACT.getFile("")
@@ -60,21 +60,6 @@ class ArtifactTest {
     @Test
     void 'should return local path' () {
         assertEquals "groupId/artifactId/version/", ARTIFACT.getLocalPath()
-    }
-
-    @Test
-    void 'should return version' () {
-        assertEquals "version", ARTIFACT.getVersion()
-    }
-
-    @Test
-    void 'should return artifact' () {
-        assertEquals "artifactId", ARTIFACT.getArtifact()
-    }
-
-    @Test
-    void 'should return group' () {
-        assertEquals "groupId", ARTIFACT.getGroup()
     }
 
     @Test
