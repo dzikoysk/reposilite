@@ -16,6 +16,7 @@
 
 package org.panda_lang.reposilite.metadata;
 
+import java.math.BigInteger;
 import java.util.Comparator;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -55,7 +56,11 @@ final class MetadataComparator<T> implements Comparator<T> {
 
                 // number to number
                 if (isDigit(toFragment)) {
-                    value = Integer.compare(Integer.parseInt(fragment), Integer.parseInt(toFragment));
+                    try {
+                        value = Long.compare(Long.parseLong(fragment), Long.parseLong(toFragment));
+                    } catch (NumberFormatException numberFormatException) {
+                        value = new BigInteger(fragment).compareTo(new BigInteger(toFragment));
+                    }
                 }
             }
             // string to number

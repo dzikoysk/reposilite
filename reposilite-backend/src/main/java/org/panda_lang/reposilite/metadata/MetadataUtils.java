@@ -34,6 +34,8 @@ import java.util.stream.Stream;
 
 public final class MetadataUtils {
 
+    public static final String ESCAPE_DOT = "`.`";
+
     private static final DateTimeFormatter TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
                     .withLocale(Locale.getDefault())
                     .withZone(ZoneOffset.UTC);
@@ -122,12 +124,12 @@ public final class MetadataUtils {
 
     public static String toGroup(String[] elements) {
         return Joiner.on(".")
-                .join(Arrays.copyOfRange(elements, 0, elements.length))
+                .join(Arrays.copyOfRange(elements, 0, elements.length), value -> value.contains(".") ? value.replace(".", ESCAPE_DOT) : value)
                 .toString();
     }
 
     protected static String toGroup(String[] elements, int toShrink) {
-        return toGroup(shrinkGroup(elements, toShrink));
+        return toGroup(shrinkGroup(elements, toShrink)).replace(ESCAPE_DOT, ".");
     }
 
     private static String[] shrinkGroup(String[] elements, int toShrink) {
