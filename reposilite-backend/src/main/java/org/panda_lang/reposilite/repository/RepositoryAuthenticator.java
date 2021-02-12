@@ -25,8 +25,10 @@ import org.panda_lang.reposilite.error.ResponseUtils;
 import org.panda_lang.reposilite.utils.Result;
 import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.collection.Pair;
+import org.panda_lang.utilities.commons.function.Option;
 
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public final class RepositoryAuthenticator {
 
@@ -68,6 +70,16 @@ public final class RepositoryAuthenticator {
         }
 
         return Result.ok(new Pair<>(path, repository));
+    }
+
+    FileListDto findAvailableRepositories(Map<String, String> headers) {
+        Option<Session> session = authenticator.authByHeader(headers).toOption();
+
+        return new FileListDto(repositoryService.getRepositories().stream()
+                .filter(repository -> repository.isPublic() || session.map(value -> value.getRepositoryNames().contains(repository.getName())).orElseGet(false))
+                .map(Repository::getFile)
+                .map(FileDetailsDto::of)
+                .collect(Collectors.toList()));
     }
 
 }

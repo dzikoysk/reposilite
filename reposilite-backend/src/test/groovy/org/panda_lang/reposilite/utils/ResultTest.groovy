@@ -40,7 +40,7 @@ class ResultTest {
 
     @Test
     void 'should get else value on error' () {
-        assertEquals 7, Result.error(-1).orElseGet({ err -> 7 })
+        assertEquals 7, Result.<Integer, Integer> error(-1).orElseGet({ err -> 7 })
     }
 
     @Test

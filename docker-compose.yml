@@ -1,10 +1,10 @@
 version: "3.9"
 services:
   reposilite:
+    image: reposilite:2.9.12
     build:
       context: .
       dockerfile: Dockerfile
-    # image: reposilite:2.9.11
     ports:
       - ${PORT}:${PORT}
     env_file:

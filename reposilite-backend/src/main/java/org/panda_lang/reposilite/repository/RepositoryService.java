@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
@@ -103,6 +104,23 @@ public final class RepositoryService {
         requestPath[requestPath.length - 1] = StringUtils.replace(requestPath[requestPath.length - 1], "SNAPSHOT", identifier);
 
         return requestPath;
+    }
+
+    public Optional<FileDetailsDto> findLatest(File requestedFile) {
+        if (requestedFile.getName().equals("latest")) {
+            File parent = requestedFile.getParentFile();
+
+            if (parent != null && parent.exists()) {
+                File[] files = MetadataUtils.toSortedVersions(parent);
+                File latest = ArrayUtils.getFirst(files);
+
+                if (latest != null) {
+                    return Optional.of(FileDetailsDto.of(latest));
+                }
+            }
+        }
+
+        return Optional.empty();
     }
 
     public List<Repository> getRepositories(Token token) {

@@ -21,7 +21,6 @@ import org.junit.jupiter.api.BeforeAll
 import org.panda_lang.reposilite.auth.Authenticator
 import org.panda_lang.reposilite.auth.Token
 import org.panda_lang.reposilite.auth.TokenService
-import org.panda_lang.reposilite.config.Configuration
 import org.panda_lang.reposilite.error.FailureService
 import org.panda_lang.reposilite.repository.RepositoryService
 
@@ -42,7 +41,7 @@ class AuthenticatorSpecification {
     static final Token AUTH_TOKEN = new Token('/auth/test', 'alias', 'rw', TokenService.B_CRYPT_TOKENS_ENCODER.encode('secret'))
     static final String BASIC = 'Basic ' + Base64.getEncoder().encodeToString('alias:secret'.getBytes())
 
-    static final Authenticator AUTHENTICATOR = new Authenticator(new Configuration(), REPOSITORY_SERVICE, TOKEN_SERVICE)
+    static final Authenticator AUTHENTICATOR = new Authenticator(REPOSITORY_SERVICE, TOKEN_SERVICE)
 
     @BeforeAll
     static void generateTokens() {

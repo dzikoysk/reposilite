@@ -18,7 +18,6 @@ package org.panda_lang.reposilite.auth;
 
 import org.jetbrains.annotations.Nullable;
 import org.panda_lang.reposilite.Reposilite;
-import org.panda_lang.reposilite.config.Configuration;
 import org.panda_lang.reposilite.repository.RepositoryService;
 import org.panda_lang.reposilite.utils.Result;
 import org.panda_lang.utilities.commons.StringUtils;
@@ -30,12 +29,10 @@ import java.util.Map;
 
 public final class Authenticator {
 
-    private final Configuration configuration;
     private final RepositoryService repositoryService;
     private final TokenService tokenService;
 
-    public Authenticator(Configuration configuration, RepositoryService repositoryService, TokenService tokenService) {
-        this.configuration = configuration;
+    public Authenticator(RepositoryService repositoryService, TokenService tokenService) {
         this.repositoryService = repositoryService;
         this.tokenService = tokenService;
     }
