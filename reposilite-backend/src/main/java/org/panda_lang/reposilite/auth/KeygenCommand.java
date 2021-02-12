@@ -18,6 +18,7 @@ package org.panda_lang.reposilite.auth;
 
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.console.ReposiliteCommand;
+import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.collection.Pair;
 import org.panda_lang.utilities.commons.function.Option;
 import picocli.CommandLine.Command;
@@ -33,7 +34,7 @@ final class KeygenCommand implements ReposiliteCommand {
     private String path;
     @Parameters(index = "1", paramLabel = "<alias>", description = "associated alias")
     private String alias;
-    @Parameters(index = "2", paramLabel = "[<permissions>]", description = "extra permissions (w - write, m - manager)", defaultValue = "")
+    @Parameters(index = "2", paramLabel = "[<permissions>]", description = "extra permissions: m - manager, w - write r - read (optional)", defaultValue = "")
     private String permissions;
 
     private final TokenService tokenService;
@@ -57,6 +58,11 @@ final class KeygenCommand implements ReposiliteCommand {
         if (processedPath.endsWith("*")) {
             processedPath = processedPath.substring(0, processedPath.length() - 1);
             Reposilite.getLogger().warn("Non-functional wildcard has been removed from the end of the given path");
+        }
+
+        if (StringUtils.isEmpty(permissions)) {
+            this.permissions = Permission.toString(Permission.getDefaultPermissions());
+            response.add("Added default permissions: " + permissions);
         }
 
         Option<Token> previousToken = tokenService.getToken(alias);

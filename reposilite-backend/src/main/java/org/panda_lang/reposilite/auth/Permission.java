@@ -16,19 +16,47 @@
 
 package org.panda_lang.reposilite.auth;
 
+import org.panda_lang.utilities.commons.StringUtils;
+import org.panda_lang.utilities.commons.text.Joiner;
+
+import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 public enum Permission {
 
-    WRITE("w"),
-    MANAGER("m");
+    MANAGER("m", false),
+    WRITE("w", false),
+    // Stub permission
+    // ~ https://github.com/dzikoysk/reposilite/issues/362
+    READ("r", true);
 
     private final String name;
+    private final boolean isDefault;
 
-    Permission(String name) {
+    Permission(String name, boolean isDefault) {
         this.name = name;
+        this.isDefault = isDefault;
+    }
+
+    public boolean isDefault() {
+        return isDefault;
     }
 
     public String getName() {
         return name;
+    }
+
+    public static Set<Permission> getDefaultPermissions() {
+        return Arrays.stream(values())
+                .filter(Permission::isDefault)
+                .collect(Collectors.toSet());
+    }
+
+    public static String toString(Iterable<? extends Permission> permissions) {
+        return Joiner.on(StringUtils.EMPTY)
+                .join(permissions)
+                .toString();
     }
 
 }

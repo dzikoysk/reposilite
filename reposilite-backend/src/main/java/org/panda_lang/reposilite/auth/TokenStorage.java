@@ -59,9 +59,9 @@ public final class TokenStorage {
         TokenCollection tokenCollection = YamlUtils.load(tokensFile, TokenCollection.class);
 
         for (Token token : tokenCollection.getTokens()) {
-            // Update missing permission property of old tokens
+            // Update missing default permissions of old tokens
             // ~ https://github.com/dzikoysk/reposilite/issues/233
-            token.setPermissions(Option.of(token.getPermissions()).orElseGet(Permission.WRITE.getName()));
+            token.setPermissions(Option.of(token.getPermissions()).orElseGet(Permission.toString(Permission.getDefaultPermissions())));
             tokenService.addToken(token);
         }
 
