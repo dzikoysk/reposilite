@@ -62,8 +62,7 @@ public final class ReposiliteHttpServer {
                 configuration.rewritePathsEnabled,
                 reposilite.getContextFactory(),
                 reposilite.getRepositoryAuthenticator(),
-                reposilite.getRepositoryService(),
-                reposilite.getLookupService());
+                reposilite.getRepositoryService());
 
         CliController cliController = new CliController(
                 reposilite.getContextFactory(),

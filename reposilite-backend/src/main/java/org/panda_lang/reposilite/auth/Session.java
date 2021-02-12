@@ -24,6 +24,8 @@ import java.util.stream.Collectors;
 
 public final class Session {
 
+    public static final String WILDCARD = "*";
+
     private final Token token;
     private final List<Repository> repositories;
 
@@ -48,7 +50,7 @@ public final class Session {
                 String name = "/" + repository.getName();
 
                 if (path.startsWith(name)) {
-                    path = StringUtils.replaceFirst(path, name, "*");
+                    path = StringUtils.replaceFirst(path, name, WILDCARD);
                     break;
                 }
             }

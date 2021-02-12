@@ -17,6 +17,7 @@
 package org.panda_lang.reposilite.utils;
 
 import org.jetbrains.annotations.Nullable;
+import org.panda_lang.utilities.commons.function.Option;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -45,6 +46,10 @@ public final class Result<V, E>  {
 
     public V orElseGet(Function<E, V> orElse) {
         return isDefined() ? value : orElse.apply(error);
+    }
+
+    public V orElseGet(V elseValue) {
+        return isDefined() ? value : elseValue;
     }
 
     public Result<V, E> peek(Consumer<V> consumer) {
@@ -77,6 +82,10 @@ public final class Result<V, E>  {
 
     public E getError() {
         return error;
+    }
+
+    public Option<V> toOption() {
+        return Option.of(value);
     }
 
     public static <V, E> Result<V, E> ok(V value) {

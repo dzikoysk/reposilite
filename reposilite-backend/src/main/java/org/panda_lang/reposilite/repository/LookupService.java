@@ -32,11 +32,9 @@ import org.panda_lang.utilities.commons.collection.Pair;
 
 import java.io.File;
 import java.util.Arrays;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
-import java.util.stream.Collectors;
 
 public final class LookupService {
 
@@ -137,31 +135,6 @@ public final class LookupService {
 
         Reposilite.getLogger().info("RESOLVED " + file.getPath() + "; mime: " + fileDetails.getContentType() + "; size: " + file.length());
         return Result.ok(new LookupResponse(fileDetails));
-    }
-
-    FileListDto findAvailableRepositories(Map<String, String> headers) {
-        return new FileListDto(repositoryService.getRepositories().stream()
-                .filter(repository -> repository.isPublic() || authenticator.authByUri(headers, repository.getUri()).isDefined())
-                .map(Repository::getFile)
-                .map(FileDetailsDto::of)
-                .collect(Collectors.toList()));
-    }
-
-    Optional<FileDetailsDto> findLatest(File requestedFile) {
-        if (requestedFile.getName().equals("latest")) {
-            File parent = requestedFile.getParentFile();
-
-            if (parent != null && parent.exists()) {
-                File[] files = MetadataUtils.toSortedVersions(parent);
-                File latest = ArrayUtils.getFirst(files);
-
-                if (latest != null) {
-                    return Optional.of(FileDetailsDto.of(latest));
-                }
-            }
-        }
-
-        return Optional.empty();
     }
 
 }

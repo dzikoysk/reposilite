@@ -41,20 +41,17 @@ public final class LookupApiEndpoint implements RepositoryController {
     private final ReposiliteContextFactory contextFactory;
     private final RepositoryAuthenticator repositoryAuthenticator;
     private final RepositoryService repositoryService;
-    private final LookupService lookupService;
 
     public LookupApiEndpoint(
             boolean rewritePathsEnabled,
             ReposiliteContextFactory contextFactory,
             RepositoryAuthenticator repositoryAuthenticator,
-            RepositoryService repositoryService,
-            LookupService lookupService) {
+            RepositoryService repositoryService) {
 
         this.rewritePathsEnabled = rewritePathsEnabled;
         this.contextFactory = contextFactory;
         this.repositoryAuthenticator = repositoryAuthenticator;
         this.repositoryService = repositoryService;
-        this.lookupService = lookupService;
     }
 
     @Override
@@ -65,7 +62,7 @@ public final class LookupApiEndpoint implements RepositoryController {
         String uri = ReposiliteUtils.normalizeUri(rewritePathsEnabled, repositoryService, StringUtils.replaceFirst(context.uri(), "/api", ""));
 
         if (StringUtils.isEmpty(uri) || "/".equals(uri)) {
-            return ctx.json(lookupService.findAvailableRepositories(context.headers()));
+            return ctx.json(repositoryAuthenticator.findAvailableRepositories(context.headers()));
         }
 
         Result<Pair<String[], Repository>, ErrorDto> result = repositoryAuthenticator.authRepository(context.headers(), uri);
@@ -75,7 +72,7 @@ public final class LookupApiEndpoint implements RepositoryController {
         }
 
         File requestedFile = repositoryService.getFile(uri);
-        Optional<FileDetailsDto> latest = lookupService.findLatest(requestedFile);
+        Optional<FileDetailsDto> latest = repositoryService.findLatest(requestedFile);
 
         if (latest.isPresent()) {
             return ctx.json(latest.get());
