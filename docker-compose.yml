@@ -1,0 +1,23 @@
+version: "3.9"
+services:
+  reposilite:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    # image: reposilite:2.9.11
+    ports:
+      - ${PORT}:${PORT}
+    env_file:
+      - .env
+    environment:
+      - JAVA_OPTS=-Xmx${MEMORY} -Dreposilite.port=${PORT} ${JAVA_COMPOSE_OPTS}
+      - REPOSILITE_OPTS=${REPOSILITE_COMPOSE_OPTS}
+    volumes:
+      - reposilite-data:/app/data
+    cpus: 2.0
+    mem_limit: ${MEMORY}
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+volumes:
+  reposilite-data: {}
