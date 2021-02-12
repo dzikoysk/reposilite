@@ -18,7 +18,7 @@ LABEL org.label-schema.build-date=$BUILD_DATE \
       org.label-schema.schema-version="1.0"
 
 # Run stage
-FROM openjdk:14-alpine
+FROM openjdk:15-alpine
 RUN apk add --no-cache mailcap
 WORKDIR /app
 RUN mkdir -p /app/data
