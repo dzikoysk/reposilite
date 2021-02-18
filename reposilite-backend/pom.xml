@@ -116,7 +116,7 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-crypto</artifactId>
-            <version>5.4.4</version>
+            <version>5.4.5</version>
         </dependency>
 
         <!-- Utilities -->
