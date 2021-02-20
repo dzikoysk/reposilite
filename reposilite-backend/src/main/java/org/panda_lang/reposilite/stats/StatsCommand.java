@@ -31,9 +31,9 @@ import java.util.concurrent.CompletableFuture;
 @Command(name = "stats", description = "Display collected metrics")
 final class StatsCommand implements ReposiliteCommand {
 
-    private static final int TOP_SIZE = 20;
+    private static final int DEFAULT_TOP_SIZE = 20;
 
-    @Parameters(index = "0", paramLabel = "[<filter>]", description = "accepts string as pattern and int as limiter", defaultValue = "")
+    @Parameters(index = "0", paramLabel = "[<filter>]", description = "accepts string as pattern and int as limiter", defaultValue = "-1")
     private String filter;
 
     private final StatsService statsService;
@@ -76,7 +76,7 @@ final class StatsCommand implements ReposiliteCommand {
             for (Entry<String, Integer> entry : stats.entrySet()) {
                 response.add("    " + (++order) + ". (" + entry.getValue() + ") " + entry.getKey());
 
-                if (limiter == -1 && order == TOP_SIZE) {
+                if (limiter == -1 && order == DEFAULT_TOP_SIZE) {
                     break;
                 }
             }
