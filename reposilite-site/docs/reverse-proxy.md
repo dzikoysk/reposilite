@@ -27,7 +27,8 @@ server {
     listen 80;                                                                                                                                                
     listen [::]:80;                                                                                                                                           
     access_log /var/log/nginx/reverse-access.log;                                                                                                             
-    error_log /var/log/nginx/reverse-error.log;                                                                                                               
+    error_log /var/log/nginx/reverse-error.log;
+
     location / {
         proxy_pass http://reposilite;
         proxy_set_header   Host              $host;
@@ -39,6 +40,21 @@ server {
         proxy_http_version 1.1;    
     }                                                                                                                                                              
 } 
+```
+
+To use custom base path (e.g. `/reposilite`), modify the configuration just like this:
+
+```conf
+location /reposilite/ {
+    rewrite /reposilite/(.*) /$1 break;
+}
+```
+
+And update the base path in Reposilite configuration:
+
+```yaml
+# Custom base path
+basePath: /reposilite/
 ```
 
 ## Apache

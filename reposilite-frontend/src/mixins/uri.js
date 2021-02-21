@@ -24,6 +24,7 @@ export default {
      * @param {object} auth object with 'alias' and 'token' properties
      */
     api (uri, auth) {
+      console.log('api(): ' + this.baseApiUrl() + ' : ' + uri)
       return this.$http.get(this.baseApiUrl() + uri, {
         auth: {
           username: auth.alias,
@@ -39,6 +40,8 @@ export default {
      * @param {string} uri to normalize
      */
     normalize (uri) {
+      const baseUri = uri
+
       if (uri === undefined) {
         return Vue.prototype.$reposilite.basePath
       }
@@ -51,6 +54,7 @@ export default {
         uri += '/'
       }
 
+      console.log('Normalize: ' + baseUri + ' => ' + uri)
       return uri
     },
     /**
@@ -80,7 +84,7 @@ export default {
      * Get normalized uri as qualifier
      */
     getQualifier () {
-      return this.normalize(this.$route.params.qualifier)
+      return this.normalize(this.$route.params.qualifier || '')
     },
     /**
      * Get Reposilite base API url
