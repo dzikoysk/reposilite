@@ -45,7 +45,7 @@ public final class FrontendService {
     public static FrontendService load(Configuration configuration) {
         Formatter formatter = new Formatter()
                 .register("{{REPOSILITE.BASE_PATH}}", configuration.basePath)
-                .register("{{REPOSILITE.VUE_BASE_PATH}}", configuration.basePath.equals("/") ? "" : configuration.basePath)
+                .register("{{REPOSILITE.VUE_BASE_PATH}}", configuration.basePath.substring(0, configuration.basePath.length() - 1))
                 .register("{{REPOSILITE.TITLE}}", configuration.title.replace("'", "\\'"))
                 .register("{{REPOSILITE.DESCRIPTION}}", configuration.description.replace("'", "\\'"))
                 .register("{{REPOSILITE.ACCENT_COLOR}}", configuration.accentColor);
