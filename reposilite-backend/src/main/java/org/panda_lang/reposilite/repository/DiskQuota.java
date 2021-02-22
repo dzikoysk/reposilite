@@ -22,17 +22,17 @@ import org.panda_lang.reposilite.utils.FilesUtils;
 import java.io.File;
 import java.util.concurrent.atomic.AtomicLong;
 
-final class DiskQuota {
+public final class DiskQuota {
 
     private final AtomicLong quota;
     private final AtomicLong usage;
 
-    public DiskQuota(long quota, long usage) {
+    DiskQuota(long quota, long usage) {
         this.quota = new AtomicLong(quota);
         this.usage = new AtomicLong(usage);
     }
 
-    public void allocate(long size) {
+    void allocate(long size) {
         usage.addAndGet(size);
     }
 
@@ -44,23 +44,22 @@ final class DiskQuota {
         return usage.get();
     }
 
-    public static DiskQuota ofPercentage(File workingDirectory, long usage, int percentage) {
+    static DiskQuota ofPercentage(File workingDirectory, long usage, int percentage) {
         return new DiskQuota(Math.round(workingDirectory.getUsableSpace() * (percentage / 100D)), usage);
     }
 
-    public static DiskQuota ofSize(long usage, String size) {
+    static DiskQuota ofSize(long usage, String size) {
         return new DiskQuota(FilesUtils.displaySizeToBytesCount(size), usage);
     }
 
-    public static DiskQuota of(File workingDirectory, String value) {
+    static DiskQuota of(File workingDirectory, String value) {
         long usage = FileUtils.sizeOfDirectory(workingDirectory);
 
         if (value.endsWith("%")) {
             return ofPercentage(workingDirectory,  usage, Integer.parseInt(value.substring(0, value.length() - 1)));
         }
-        else {
-            return ofSize(usage, value);
-        }
+
+        return ofSize(usage, value);
     }
 
 }

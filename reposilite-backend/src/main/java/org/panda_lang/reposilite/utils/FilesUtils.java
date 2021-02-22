@@ -31,6 +31,8 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.CharacterIterator;
+import java.text.StringCharacterIterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -87,6 +89,27 @@ public final class FilesUtils {
             default:
                 throw new NumberFormatException("Wrong format");
         }
+    }
+
+    // Source
+    // ~ https://stackoverflow.com/a/3758880/3426515
+    public static String humanReadableByteCount(long bytes) {
+        long absB = bytes == Long.MIN_VALUE ? Long.MAX_VALUE : Math.abs(bytes);
+
+        if (absB < 1024) {
+            return bytes + " B";
+        }
+
+        long value = absB;
+        CharacterIterator ci = new StringCharacterIterator("KMGTPE");
+
+        for (int i = 40; i >= 0 && absB > 0xfffccccccccccccL >> i; i -= 10) {
+            value >>= 10;
+            ci.next();
+        }
+
+        value *= Long.signum(bytes);
+        return String.format("%.1f %ciB", value / 1024.0, ci.current());
     }
 
     public static boolean isReadable(String name) {
