@@ -18,15 +18,18 @@
   .browser
     .flex.justify-between.py-4
       h1.text-xl
-        | Index of
+        router-link(to="/")
+          | Index of
         span.ml-2
           span(v-for="(element, idx) in splitQualifier()")
             router-link(:to="pathFragmentUri(idx)") {{ element }}
             span /
-        router-link(v-if="!isDashboard()" :to="'/dashboard' + this.qualifier")
-          span.ml-3(:style="'color: ' + configuration.accentColor")
-            i.fas.fa-feather-alt
-      router-link(v-if="!isRoot()" :to='prefix + parentPath()') ← Back
+        router-link(v-if="!isRoot()" :to='prefix + parentPath()')
+          span.ml-1.text-2xl(:style="'color: ' + configuration.accentColor")
+            | &#x2934;
+      router-link(v-if="!isDashboard()" :to="'/dashboard' + this.qualifier")
+        span.ml-3.text-xl(:style="'color: ' + configuration.accentColor")
+          i.fas.fa-feather-alt
     .list.overflow-y-auto
       FileEntry(
         v-if="!error"
@@ -36,7 +39,7 @@
         :file="file"
         :auth="auth"
       )
-      h1(v-if="!error && files.length == 0") Empty directory
+      h1(v-if="!error && filesFetched && files.length == 0") Empty directory
       h1(v-if="error").font-bold {{ response.message }}
     notifications(group="index" position="center top")
 </template>
@@ -59,6 +62,7 @@ export default {
     return {
       configuration: Vue.prototype.$reposilite,
       files: [],
+      filesFetched: false,
       error: undefined,
       taskId: 0,
       qualifier: this.initQualifier
@@ -110,6 +114,8 @@ export default {
           break
         }
       }
+
+      this.filesFetched = true
     },
     pathFragmentUri (index) {
       return this.splitQualifier()
