@@ -18,7 +18,10 @@ package org.panda_lang.reposilite.console
 
 import groovy.transform.CompileStatic
 import org.junit.jupiter.api.Test
+import org.panda_lang.reposilite.ReposiliteConstants
 import org.panda_lang.reposilite.ReposiliteTestSpecification
+import org.panda_lang.reposilite.ReposiliteWriter
+import org.panda_lang.utilities.commons.text.Joiner
 
 import static org.junit.jupiter.api.Assertions.assertTrue
 
@@ -28,6 +31,11 @@ class VersionCommandTest extends ReposiliteTestSpecification {
     @Test
     void 'should return true and display version' () {
         assertTrue executeCommand('version')
+
+        assertTrue Joiner.on('')
+                .join(ReposiliteWriter.getCache())
+                .toString()
+                .contains(ReposiliteConstants.VERSION)
     }
 
 }
