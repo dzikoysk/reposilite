@@ -115,7 +115,9 @@ export default {
         }
       }
 
-      this.filesFetched = true
+      if (files.length === 0) {
+        this.filesFetched = true
+      }
     },
     pathFragmentUri (index) {
       return this.splitQualifier()
