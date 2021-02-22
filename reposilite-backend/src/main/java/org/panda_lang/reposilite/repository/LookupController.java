@@ -24,7 +24,7 @@ import org.panda_lang.reposilite.ReposiliteContext;
 import org.panda_lang.reposilite.ReposiliteContextFactory;
 import org.panda_lang.reposilite.error.ErrorDto;
 import org.panda_lang.reposilite.error.FailureService;
-import org.panda_lang.reposilite.frontend.FrontendService;
+import org.panda_lang.reposilite.frontend.FrontendProvider;
 import org.panda_lang.reposilite.utils.OutputUtils;
 import org.panda_lang.reposilite.utils.Result;
 
@@ -35,7 +35,7 @@ public final class LookupController implements Handler {
 
     private final boolean hasProxied;
     private final ReposiliteContextFactory contextFactory;
-    private final FrontendService frontend;
+    private final FrontendProvider frontend;
     private final LookupService lookupService;
     private final ProxyService proxyService;
     private final FailureService failureService;
@@ -43,14 +43,14 @@ public final class LookupController implements Handler {
     public LookupController(
             boolean hasProxied,
             ReposiliteContextFactory contextFactory,
-            FrontendService frontendService,
+            FrontendProvider frontendProvider,
             LookupService lookupService,
             ProxyService proxyService,
             FailureService failureService) {
 
         this.hasProxied = hasProxied;
         this.contextFactory = contextFactory;
-        this.frontend = frontendService;
+        this.frontend = frontendProvider;
         this.lookupService = lookupService;
         this.proxyService = proxyService;
         this.failureService = failureService;

@@ -24,12 +24,12 @@ import org.panda_lang.utilities.commons.text.Formatter;
 
 import java.util.function.Supplier;
 
-public final class FrontendService {
+public final class FrontendProvider {
 
     private final Lazy<String> index;
     private final Lazy<String> app;
 
-    private FrontendService(Supplier<String> index, Supplier<String> app) {
+    private FrontendProvider(Supplier<String> index, Supplier<String> app) {
         this.index = new Lazy<>(index);
         this.app = new Lazy<>(app);
     }
@@ -42,7 +42,7 @@ public final class FrontendService {
         return app.get();
     }
 
-    public static FrontendService load(Configuration configuration) {
+    public static FrontendProvider load(Configuration configuration) {
         Formatter formatter = new Formatter()
                 .register("{{REPOSILITE.BASE_PATH}}", configuration.basePath)
                 .register("{{REPOSILITE.VUE_BASE_PATH}}", configuration.basePath.substring(0, configuration.basePath.length() - 1))
@@ -50,7 +50,7 @@ public final class FrontendService {
                 .register("{{REPOSILITE.DESCRIPTION}}", configuration.description.replace("'", "\\'"))
                 .register("{{REPOSILITE.ACCENT_COLOR}}", configuration.accentColor);
 
-        return new FrontendService(
+        return new FrontendProvider(
                 () -> formatter.format(FilesUtils.getResource("/static/index.html")),
                 () -> formatter.format(FilesUtils.getResource("/static/js/app.js"))
         );

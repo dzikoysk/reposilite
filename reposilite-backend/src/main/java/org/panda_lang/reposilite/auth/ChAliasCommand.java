@@ -22,17 +22,17 @@ import picocli.CommandLine.Parameters;
 
 import java.util.List;
 
-@Command(name = "chmod", description = "Change token permissions")
-final class ChmodCommand implements ReposiliteCommand {
+@Command(name = "chalias", description = "Change token alias")
+final class ChAliasCommand implements ReposiliteCommand {
 
     @Parameters(index = "0", paramLabel = "<alias>", description = "alias to update")
     private String alias;
-    @Parameters(index = "1", paramLabel = "<permissions>", description = "new permissions")
-    private String permissions;
+    @Parameters(index = "1", paramLabel = "<new alias>", description = "new token name")
+    private String updatedAlias;
 
     private final TokenService tokenService;
 
-    public ChmodCommand(TokenService tokenService) {
+    public ChAliasCommand(TokenService tokenService) {
         this.tokenService = tokenService;
     }
 
@@ -40,8 +40,8 @@ final class ChmodCommand implements ReposiliteCommand {
     public boolean execute(List<String> output) {
         return tokenService
                 .updateToken(alias, token -> {
-                    output.add("Permissions have been changed from '" + token.getPermissions() + "' to '" + permissions + "'");
-                    token.setPermissions(permissions);
+                    output.add("Token alias has been changed from '" + token.getAlias() + "' to '" + updatedAlias + "'");
+                    token.setAlias(updatedAlias);
                 })
                 .onError(output::add)
                 .isOk();
