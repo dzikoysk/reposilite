@@ -23,11 +23,12 @@ import org.panda_lang.reposilite.ReposiliteTestSpecification
 import static org.junit.jupiter.api.Assertions.assertTrue
 
 @CompileStatic
-class StatusCommandTest extends ReposiliteTestSpecification {
+class ExceptionsCommandTest extends ReposiliteTestSpecification {
 
     @Test
-    void 'should return true and display status' () {
-        assertTrue executeCommand('status')
+    void 'should return true and display exception' () {
+        super.reposilite.getFailureService().throwException("/", new RuntimeException())
+        assertTrue executeCommand('exceptions')
 
         // TODO: Check output
     }
