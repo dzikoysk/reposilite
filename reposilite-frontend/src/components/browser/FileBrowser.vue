@@ -76,8 +76,8 @@ export default {
         this.files = []
 
         this.api(this.qualifier, this.auth)
-          .then(response => console.log(response))
           .then(response => this.loadFiles(this.taskId, response.data.files))
+          .then(() => console.log(this.files))
           .catch(err => this.$notify({
             group: 'index',
             type: 'error',
