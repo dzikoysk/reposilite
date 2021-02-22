@@ -18,6 +18,7 @@ package org.panda_lang.reposilite.auth;
 
 import org.panda_lang.utilities.commons.collection.Pair;
 import org.panda_lang.utilities.commons.function.Option;
+import org.panda_lang.utilities.commons.function.Result;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.io.IOException;
@@ -26,6 +27,7 @@ import java.util.Base64;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
 public final class TokenService {
 
@@ -56,6 +58,22 @@ public final class TokenService {
     public Pair<String, Token> createToken(String path, String alias, String permissions, String token) {
         String encodedToken = B_CRYPT_TOKENS_ENCODER.encode(token);
         return new Pair<>(token, addToken(new Token(path, alias, permissions, encodedToken)));
+    }
+
+    public Result<Token, String> updateToken(String alias, Consumer<Token> tokenConsumer) {
+        return getToken(alias)
+                .map(token -> {
+                    tokenConsumer.accept(token);
+
+                    try {
+                        saveTokens();
+                        return Result.<Token, String> ok(token);
+                    } catch (IOException ioException) {
+                        ioException.printStackTrace();
+                        return Result.<Token, String> error(ioException.getMessage());
+                    }
+                })
+                .orElseGet(() -> Result.error("Cannot find token associated with '" + alias + "' alias"));
     }
 
     public Token addToken(Token token) {

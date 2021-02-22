@@ -25,7 +25,7 @@ import org.panda_lang.reposilite.config.ConfigurationLoader;
 import org.panda_lang.reposilite.console.Console;
 import org.panda_lang.reposilite.console.ConsoleConfiguration;
 import org.panda_lang.reposilite.error.FailureService;
-import org.panda_lang.reposilite.frontend.FrontendService;
+import org.panda_lang.reposilite.frontend.FrontendProvider;
 import org.panda_lang.reposilite.metadata.MetadataConfiguration;
 import org.panda_lang.reposilite.metadata.MetadataService;
 import org.panda_lang.reposilite.repository.DeployService;
@@ -77,7 +77,7 @@ public final class Reposilite {
     private final LookupService lookupService;
     private final ProxyService proxyService;
     private final DeployService deployService;
-    private final FrontendService frontend;
+    private final FrontendProvider frontend;
     private final ReposiliteHttpServer reactiveHttpServer;
     private final Console console;
     private final Thread shutdownHook;
@@ -110,7 +110,7 @@ public final class Reposilite {
         this.deployService = new DeployService(configuration.deployEnabled, authenticator, repositoryService, metadataService);
         this.lookupService = new LookupService(authenticator, repositoryAuthenticator, metadataService, repositoryService, ioService, failureService);
         this.proxyService = new ProxyService(configuration.storeProxied, configuration.rewritePathsEnabled, configuration.proxied, ioService, failureService, repositoryService);
-        this.frontend = FrontendService.load(configuration);
+        this.frontend = FrontendProvider.load(configuration);
         this.reactiveHttpServer = new ReposiliteHttpServer(this, servlet);
         this.console = new Console(System.in, failureService);
         this.shutdownHook = new Thread(RunUtils.ofChecked(failureService, this::shutdown));
@@ -224,7 +224,7 @@ public final class Reposilite {
         return reactiveHttpServer;
     }
 
-    public FrontendService getFrontendService() {
+    public FrontendProvider getFrontendService() {
         return frontend;
     }
 

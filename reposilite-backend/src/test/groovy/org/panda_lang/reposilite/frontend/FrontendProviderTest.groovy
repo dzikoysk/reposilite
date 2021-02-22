@@ -24,9 +24,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse
 import static org.junit.jupiter.api.Assertions.assertTrue
 
 @CompileStatic
-class FrontendServiceTest {
+class FrontendProviderTest {
 
-    private static final FrontendService FRONTEND_SERVICE = FrontendService.load(new Configuration())
+    private static final FrontendProvider FRONTEND_SERVICE = FrontendProvider.load(new Configuration())
 
     @Test
     void forMessage () {
