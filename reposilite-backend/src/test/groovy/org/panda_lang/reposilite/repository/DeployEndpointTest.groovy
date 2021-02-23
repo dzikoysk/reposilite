@@ -49,6 +49,7 @@ class DeployEndpointTest extends ReposiliteIntegrationTestSpecification {
     void 'should return 405 and artifact deployment is disabled message' () throws Exception {
         def deployService = new DeployService(
                 false,
+                false,
                 reposilite.getAuthenticator(),
                 reposilite.getRepositoryService(),
                 reposilite.getMetadataService())

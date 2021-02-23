@@ -19,6 +19,7 @@ package org.panda_lang.reposilite.repository;
 import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.ReposiliteContext;
+import org.panda_lang.reposilite.ReposiliteUtils;
 import org.panda_lang.reposilite.auth.Authenticator;
 import org.panda_lang.reposilite.auth.Permission;
 import org.panda_lang.reposilite.auth.Session;
@@ -33,17 +34,20 @@ import java.util.concurrent.CompletableFuture;
 public final class DeployService {
 
     private final boolean deployEnabled;
+    private final boolean rewritePathsEnabled;
     private final Authenticator authenticator;
     private final RepositoryService repositoryService;
     private final MetadataService metadataService;
 
     public DeployService(
             boolean deployEnabled,
+            boolean rewritePathsEnabled,
             Authenticator authenticator,
             RepositoryService repositoryService,
             MetadataService metadataService) {
 
         this.deployEnabled = deployEnabled;
+        this.rewritePathsEnabled = rewritePathsEnabled;
         this.authenticator = authenticator;
         this.repositoryService = repositoryService;
         this.metadataService = metadataService;
@@ -54,7 +58,8 @@ public final class DeployService {
             return ResponseUtils.error(HttpStatus.SC_METHOD_NOT_ALLOWED, "Artifact deployment is disabled");
         }
 
-        Result<Session, String> authResult = this.authenticator.authByUri(context.headers(), context.uri());
+        String uri = ReposiliteUtils.normalizeUri(rewritePathsEnabled, repositoryService, context.uri());
+        Result<Session, String> authResult = this.authenticator.authByUri(context.headers(), uri);
 
         if (authResult.containsError()) {
             return ResponseUtils.error(HttpStatus.SC_UNAUTHORIZED, authResult.getError());
@@ -70,7 +75,7 @@ public final class DeployService {
             return ResponseUtils.error(HttpStatus.SC_INSUFFICIENT_STORAGE, "Out of disk space");
         }
 
-        File file = repositoryService.getFile(context.uri());
+        File file = repositoryService.getFile(uri);
         FileDetailsDto fileDetails = FileDetailsDto.of(file);
 
         File metadataFile = new File(file.getParentFile(), "maven-metadata.xml");
@@ -83,7 +88,7 @@ public final class DeployService {
         }
 
         CompletableFuture<Result<FileDetailsDto, ErrorDto>> task = repositoryService.storeFile(
-                context.uri(),
+                uri,
                 file,
                 context::input,
                 () -> fileDetails,

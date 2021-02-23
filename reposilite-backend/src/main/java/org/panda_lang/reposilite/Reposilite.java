@@ -107,7 +107,7 @@ public final class Reposilite {
         this.authenticator = new Authenticator(repositoryService, tokenService);
         this.repositoryAuthenticator = new RepositoryAuthenticator(configuration.rewritePathsEnabled, authenticator, repositoryService);
         this.authService = new AuthService(authenticator);
-        this.deployService = new DeployService(configuration.deployEnabled, authenticator, repositoryService, metadataService);
+        this.deployService = new DeployService(configuration.deployEnabled, configuration.rewritePathsEnabled, authenticator, repositoryService, metadataService);
         this.lookupService = new LookupService(authenticator, repositoryAuthenticator, metadataService, repositoryService, ioService, failureService);
         this.proxyService = new ProxyService(configuration.storeProxied, configuration.rewritePathsEnabled, configuration.proxied, ioService, failureService, repositoryService);
         this.frontend = FrontendProvider.load(configuration);
