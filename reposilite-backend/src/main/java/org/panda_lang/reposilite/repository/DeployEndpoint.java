@@ -42,7 +42,7 @@ public final class DeployEndpoint implements Handler {
                 .map(future -> ctx.result(future.thenAccept(result -> result
                         .map(ctx::json)
                         .onError(error -> Reposilite.getLogger().debug("Cannot deploy artifact due to: (future) " + error.getMessage()))
-                        .mapError(error -> ResponseUtils.errorResponse(ctx, error)))))
+                        .mapErr(error -> ResponseUtils.errorResponse(ctx, error)))))
                 .onError(error -> {
                     Reposilite.getLogger().debug("Cannot deploy artifact due to: " + error.getMessage());
                     ResponseUtils.errorResponse(ctx, error);

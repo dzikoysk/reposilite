@@ -53,7 +53,7 @@ class DeployServiceTest extends ReposiliteTestSpecification {
         def context = createAuthenticatedContext('/releases/a/b/c.txt')
 
         def result = deployService.deploy(context)
-        assertTrue result.containsError()
+        assertTrue result.isErr()
 
         def error = result.getError()
         assertEquals HttpStatus.SC_INSUFFICIENT_STORAGE, error.status
@@ -67,7 +67,7 @@ class DeployServiceTest extends ReposiliteTestSpecification {
 
         def context = createAuthenticatedContext('/releases/a/b/c.txt')
         def result = deployService.deploy(context)
-        assertTrue result.containsError()
+        assertTrue result.isErr()
 
         def error = result.getError()
         assertEquals HttpStatus.SC_UNAUTHORIZED, error.status

@@ -55,7 +55,7 @@ class DeployEndpointTest extends ReposiliteIntegrationTestSpecification {
                 reposilite.getMetadataService())
 
         def result = deployService.deploy(new ReposiliteContext('/releases/groupId/artifactId/file', 'GET', '', [:], { null }))
-        assertTrue result.containsError()
+        assertTrue result.isErr()
 
         def error = result.getError()
         assertEquals HttpStatus.SC_METHOD_NOT_ALLOWED, error.status

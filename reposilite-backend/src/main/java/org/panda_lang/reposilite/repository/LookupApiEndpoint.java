@@ -27,10 +27,10 @@ import org.panda_lang.reposilite.error.ErrorDto;
 import org.panda_lang.reposilite.error.ResponseUtils;
 import org.panda_lang.reposilite.metadata.MetadataUtils;
 import org.panda_lang.reposilite.utils.FilesUtils;
-import org.panda_lang.reposilite.utils.Result;
 import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.collection.Pair;
 import org.panda_lang.utilities.commons.function.PandaStream;
+import org.panda_lang.utilities.commons.function.Result;
 
 import java.io.File;
 import java.util.Optional;
@@ -67,7 +67,7 @@ public final class LookupApiEndpoint implements RepositoryController {
 
         Result<Pair<String[], Repository>, ErrorDto> result = repositoryAuthenticator.authRepository(context.headers(), uri);
 
-        if (result.containsError()) {
+        if (result.isErr()) {
             return ResponseUtils.errorResponse(ctx, result.getError().getStatus(), result.getError().getMessage());
         }
 

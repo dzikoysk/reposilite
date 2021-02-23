@@ -17,7 +17,7 @@
 package org.panda_lang.reposilite.error;
 
 import io.javalin.http.Context;
-import org.panda_lang.reposilite.utils.Result;
+import org.panda_lang.utilities.commons.function.Result;
 
 public final class ResponseUtils {
 

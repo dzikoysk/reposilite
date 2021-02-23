@@ -22,10 +22,10 @@ import org.panda_lang.reposilite.auth.Authenticator;
 import org.panda_lang.reposilite.auth.Session;
 import org.panda_lang.reposilite.error.ErrorDto;
 import org.panda_lang.reposilite.error.ResponseUtils;
-import org.panda_lang.reposilite.utils.Result;
 import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.collection.Pair;
 import org.panda_lang.utilities.commons.function.Option;
+import org.panda_lang.utilities.commons.function.Result;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -64,7 +64,7 @@ public final class RepositoryAuthenticator {
         if (repository.isHidden()) {
             Result<Session, String> authResult = authenticator.authByUri(headers, normalizedUri);
 
-            if (authResult.containsError()) {
+            if (authResult.isErr()) {
                 return ResponseUtils.error(HttpStatus.SC_UNAUTHORIZED, "Unauthorized request");
             }
         }

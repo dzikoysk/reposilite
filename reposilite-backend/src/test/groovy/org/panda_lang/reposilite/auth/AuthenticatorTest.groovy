@@ -28,57 +28,57 @@ class AuthenticatorTest extends AuthenticatorSpecification {
 
     @Test
     void 'should not auth without authorization header' () {
-        assertTrue AUTHENTICATOR.authByUri(Collections.emptyMap(), "auth/test").containsError()
+        assertTrue AUTHENTICATOR.authByUri(Collections.emptyMap(), "auth/test").isErr()
     }
 
     @Test
     void 'should not auth using other auth method' () {
-        assertTrue AUTHENTICATOR.authByUri(Maps.of("Authorization", "Bearer " + AUTH_TOKEN.getToken()), "auth/test").containsError()
+        assertTrue AUTHENTICATOR.authByUri(Maps.of("Authorization", "Bearer " + AUTH_TOKEN.getToken()), "auth/test").isErr()
     }
 
     @Test
     void 'should not auth using invalid basic format' () {
-        assertTrue AUTHENTICATOR.authByUri(Maps.of("Authorization", "Basic"), "auth/test").containsError()
+        assertTrue AUTHENTICATOR.authByUri(Maps.of("Authorization", "Basic"), "auth/test").isErr()
     }
 
     @Test
     void 'should not auth using null credentials' () {
-        assertTrue AUTHENTICATOR.authByCredentials((String) null).containsError()
+        assertTrue AUTHENTICATOR.authByCredentials((String) null).isErr()
     }
 
     @Test
     void 'should not auth using credentials with invalid format' () {
-        assertTrue AUTHENTICATOR.authByCredentials("alias " + AUTH_TOKEN.getToken()).containsError()
-        assertTrue AUTHENTICATOR.authByCredentials("alias:" + AUTH_TOKEN.getToken() + ":whatever").containsError()
-        assertTrue AUTHENTICATOR.authByCredentials(":" + AUTH_TOKEN.getToken()).containsError()
+        assertTrue AUTHENTICATOR.authByCredentials("alias " + AUTH_TOKEN.getToken()).isErr()
+        assertTrue AUTHENTICATOR.authByCredentials("alias:" + AUTH_TOKEN.getToken() + ":whatever").isErr()
+        assertTrue AUTHENTICATOR.authByCredentials(":" + AUTH_TOKEN.getToken()).isErr()
     }
 
     @Test
     void 'should not auth using invalid credentials' () {
-        assertTrue AUTHENTICATOR.authByCredentials("admin:admin").containsError()
-        assertTrue AUTHENTICATOR.authByCredentials("alias:another_secret").containsError()
-        assertTrue AUTHENTICATOR.authByCredentials("alias:" + TokenService.B_CRYPT_TOKENS_ENCODER.encode("secret")).containsError()
+        assertTrue AUTHENTICATOR.authByCredentials("admin:admin").isErr()
+        assertTrue AUTHENTICATOR.authByCredentials("alias:another_secret").isErr()
+        assertTrue AUTHENTICATOR.authByCredentials("alias:" + TokenService.B_CRYPT_TOKENS_ENCODER.encode("secret")).isErr()
     }
 
     @Test
     void 'should auth' () {
-        assertTrue AUTHENTICATOR.authByCredentials("alias:secret").isDefined()
-        assertTrue AUTHENTICATOR.authByHeader(Maps.of("Authorization", BASIC)).isDefined()
+        assertTrue AUTHENTICATOR.authByCredentials("alias:secret").isOk()
+        assertTrue AUTHENTICATOR.authByHeader(Maps.of("Authorization", BASIC)).isOk()
     }
 
     @Test
     void 'should auth context' () {
-        assertTrue AUTHENTICATOR.authByUri(Maps.of("Authorization", BASIC), "auth/test").isDefined()
+        assertTrue AUTHENTICATOR.authByUri(Maps.of("Authorization", BASIC), "auth/test").isOk()
     }
 
     @Test
     void 'should not auth invalid uri' () {
-        assertTrue AUTHENTICATOR.authByUri(Maps.of("Authorization", BASIC), "auth").containsError()
+        assertTrue AUTHENTICATOR.authByUri(Maps.of("Authorization", BASIC), "auth").isErr()
     }
 
     @Test
     void 'should auth uri' () {
-        assertTrue AUTHENTICATOR.authByUri(Maps.of("Authorization", BASIC), "auth/test").isDefined()
+        assertTrue AUTHENTICATOR.authByUri(Maps.of("Authorization", BASIC), "auth/test").isOk()
     }
 
 }
