@@ -38,6 +38,7 @@ class DeployServiceTest extends ReposiliteTestSpecification {
     void 'should respect disk quota' () {
         def deployService = new DeployService(
                 true,
+                false,
                 super.reposilite.authenticator,
                 new RepositoryService(
                         super.workingDirectory.getAbsolutePath(),
