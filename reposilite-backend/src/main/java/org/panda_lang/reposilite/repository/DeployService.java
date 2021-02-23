@@ -26,7 +26,7 @@ import org.panda_lang.reposilite.auth.Session;
 import org.panda_lang.reposilite.error.ErrorDto;
 import org.panda_lang.reposilite.error.ResponseUtils;
 import org.panda_lang.reposilite.metadata.MetadataService;
-import org.panda_lang.reposilite.utils.Result;
+import org.panda_lang.utilities.commons.function.Result;
 
 import java.io.File;
 import java.util.concurrent.CompletableFuture;
@@ -61,11 +61,11 @@ public final class DeployService {
         String uri = ReposiliteUtils.normalizeUri(rewritePathsEnabled, repositoryService, context.uri());
         Result<Session, String> authResult = this.authenticator.authByUri(context.headers(), uri);
 
-        if (authResult.containsError()) {
+        if (authResult.isErr()) {
             return ResponseUtils.error(HttpStatus.SC_UNAUTHORIZED, authResult.getError());
         }
 
-        Session session = authResult.getValue();
+        Session session = authResult.get();
 
         if (!session.hasPermission(Permission.WRITE) && !session.isManager()) {
             return ResponseUtils.error(HttpStatus.SC_UNAUTHORIZED, "Cannot deploy artifact without write permission");
@@ -81,7 +81,7 @@ public final class DeployService {
         File metadataFile = new File(file.getParentFile(), "maven-metadata.xml");
         metadataService.clearMetadata(metadataFile);
 
-        Reposilite.getLogger().info("DEPLOY " + authResult.getValue().getAlias() + " successfully deployed " + file + " from " + context.address());
+        Reposilite.getLogger().info("DEPLOY " + authResult.get().getAlias() + " successfully deployed " + file + " from " + context.address());
 
         if (file.getName().contains("maven-metadata")) {
             return Result.ok(CompletableFuture.completedFuture(Result.ok(fileDetails)));

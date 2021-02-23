@@ -18,7 +18,7 @@ package org.panda_lang.reposilite.auth;
 
 import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.error.ErrorDto;
-import org.panda_lang.reposilite.utils.Result;
+import org.panda_lang.utilities.commons.function.Result;
 
 import java.util.Map;
 
@@ -34,7 +34,7 @@ public final class AuthService {
         return authenticator
                 .authByHeader(headers)
                 .map(session -> new AuthDto(session.getToken().getPath(), session.getToken().getPermissions(), session.getRepositoryNames()))
-                .mapError(error -> new ErrorDto(HttpStatus.SC_UNAUTHORIZED, error));
+                .mapErr(error -> new ErrorDto(HttpStatus.SC_UNAUTHORIZED, error));
     }
 
 }

@@ -19,7 +19,7 @@ package org.panda_lang.reposilite.metadata
 import groovy.transform.CompileStatic
 import org.junit.jupiter.api.Test
 import org.panda_lang.reposilite.ReposiliteTestSpecification
-import org.panda_lang.reposilite.utils.Result
+import org.panda_lang.utilities.commons.function.Result
 
 import static org.junit.jupiter.api.Assertions.assertEquals
 import static org.junit.jupiter.api.Assertions.assertTrue
@@ -36,7 +36,7 @@ final class MetadataServiceTest extends ReposiliteTestSpecification {
     @Test
     void 'should not generate invalid file' () {
         def result = generate("org", "panda-lang", "reposilite-test")
-        assertTrue result.containsError()
+        assertTrue result.isErr()
         assertEquals "Bad request", result.getError()
     }
 
@@ -44,10 +44,10 @@ final class MetadataServiceTest extends ReposiliteTestSpecification {
     void 'should return artifact metadata content' () {
         def result = generate("org", "panda-lang", "reposilite-test", "maven-metadata.xml")
 
-        assertTrue result.isDefined()
-        assertTrue result.getValue().contains("1.0.0")
-        assertTrue result.getValue().contains("1.0.0-SNAPSHOT")
-        assertTrue result.getValue().contains("1.0.1-SNAPSHOT")
+        assertTrue result.isOk()
+        assertTrue result.get().contains("1.0.0")
+        assertTrue result.get().contains("1.0.0-SNAPSHOT")
+        assertTrue result.get().contains("1.0.1-SNAPSHOT")
     }
 
     @Test
@@ -59,21 +59,21 @@ final class MetadataServiceTest extends ReposiliteTestSpecification {
     @Test
     void 'should return snapshot metadata content' () {
         def result = generate("org", "panda-lang", "reposilite-test", "1.0.0-SNAPSHOT", "maven-metadata.xml")
-        assertTrue result.isDefined()
-        assertTrue result.getValue().contains("1.0.0-SNAPSHOT")
-        assertTrue result.getValue().contains("<buildNumber>1</buildNumber>")
-        assertTrue result.getValue().contains("<timestamp>20200603.224843</timestamp>")
-        assertTrue result.getValue().contains("<extension>pom</extension>")
-        assertTrue result.getValue().contains("<value>1.0.0-20200603.224843-1</value>")
+        assertTrue result.isOk()
+        assertTrue result.get().contains("1.0.0-SNAPSHOT")
+        assertTrue result.get().contains("<buildNumber>1</buildNumber>")
+        assertTrue result.get().contains("<timestamp>20200603.224843</timestamp>")
+        assertTrue result.get().contains("<extension>pom</extension>")
+        assertTrue result.get().contains("<value>1.0.0-20200603.224843-1</value>")
     }
 
     @Test
     void 'should return fake snapshot metadata content' () {
         def result = generate("org", "panda-lang", "reposilite-test", "1.0.1-SNAPSHOT", "maven-metadata.xml")
-        assertTrue result.isDefined()
-        assertTrue result.getValue().contains("<release>1.0.1-SNAPSHOT</release>")
-        assertTrue result.getValue().contains("<latest>1.0.1-SNAPSHOT</latest>")
-        assertTrue result.getValue().contains("<version>1.0.1-SNAPSHOT</version>")
+        assertTrue result.isOk()
+        assertTrue result.get().contains("<release>1.0.1-SNAPSHOT</release>")
+        assertTrue result.get().contains("<latest>1.0.1-SNAPSHOT</latest>")
+        assertTrue result.get().contains("<version>1.0.1-SNAPSHOT</version>")
     }
 
     @Test

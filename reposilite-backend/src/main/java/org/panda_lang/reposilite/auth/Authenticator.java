@@ -19,9 +19,9 @@ package org.panda_lang.reposilite.auth;
 import org.jetbrains.annotations.Nullable;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.repository.RepositoryService;
-import org.panda_lang.reposilite.utils.Result;
 import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.function.Option;
+import org.panda_lang.utilities.commons.function.Result;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -44,15 +44,14 @@ public final class Authenticator {
 
         Result<Session, String> authResult = authByHeader(header);
 
-        if (authResult.containsError()) {
+        if (authResult.isErr()) {
             Reposilite.getLogger().debug(authResult.getError());
             return authResult;
         }
 
-        Session session = authResult.getValue();
+        Session session = authResult.get();
 
         if (!session.hasPermissionTo(uri)) {
-            Reposilite.getLogger().debug(authResult.getError());
             return Result.error("Unauthorized access attempt");
         }
 

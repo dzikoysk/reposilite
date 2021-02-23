@@ -19,7 +19,7 @@ package org.panda_lang.reposilite.console;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.ReposiliteConstants;
 import org.panda_lang.reposilite.error.FailureService;
-import org.panda_lang.reposilite.utils.Result;
+import org.panda_lang.utilities.commons.function.Result;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.MissingParameterException;
@@ -62,13 +62,13 @@ public final class Console {
     public boolean execute(String command, Consumer<String> outputConsumer) {
         Result<List<String>, List<String>> response = execute(command);
 
-        for (String entry : (response.isDefined() ? response.getValue() : response.getError())) {
+        for (String entry : (response.isOk() ? response.get() : response.getError())) {
             for (String line : entry.replace(System.lineSeparator(), "\n").split("\n")) {
                 outputConsumer.accept(line);
             }
         }
 
-        return response.isDefined();
+        return response.isOk();
     }
 
     public Result<List<String>, List<String>> execute(String command) {
@@ -91,9 +91,11 @@ public final class Console {
             return ((ReposiliteCommand) commandObject).execute(response)
                     ? Result.ok(response)
                     : Result.error(response);
-        } catch (UnmatchedArgumentException unmatchedArgumentException) {
+        }
+        catch (UnmatchedArgumentException unmatchedArgumentException) {
             return Result.error(Collections.singletonList("Unknown command " + command));
-        } catch (MissingParameterException missingParameterException) {
+        }
+        catch (MissingParameterException missingParameterException) {
             response.add(missingParameterException.getMessage());
             response.add("");
             response.add(missingParameterException.getCommandLine().getUsageMessage());

@@ -28,7 +28,7 @@ class ResponseUtilsTest {
     @Test
     void 'should create error dto result' () {
         def result = ResponseUtils.error(123, 'Error')
-        assertTrue result.containsError()
+        assertTrue result.isErr()
         assertEquals 123, result.getError().status
         assertEquals 'Error', result.getError().message
     }

@@ -27,8 +27,8 @@ import org.panda_lang.reposilite.error.ResponseUtils;
 import org.panda_lang.reposilite.metadata.MetadataService;
 import org.panda_lang.reposilite.metadata.MetadataUtils;
 import org.panda_lang.reposilite.utils.ArrayUtils;
-import org.panda_lang.reposilite.utils.Result;
 import org.panda_lang.utilities.commons.collection.Pair;
+import org.panda_lang.utilities.commons.function.Result;
 
 import java.io.File;
 import java.util.Arrays;
@@ -65,7 +65,7 @@ public final class LookupService {
         String uri = context.uri();
         Result<Pair<String[], Repository>, ErrorDto> result = this.repositoryAuthenticator.authDefaultRepository(context.headers(), uri);
 
-        if (result.containsError()) {
+        if (result.isErr()) {
             // Maven requests maven-metadata.xml file during deploy for snapshot releases without specifying credentials
             // https://github.com/dzikoysk/reposilite/issues/184
             if (uri.contains("-SNAPSHOT") && uri.endsWith("maven-metadata.xml")) {
@@ -75,7 +75,7 @@ public final class LookupService {
             return Result.error(result.getError());
         }
 
-        String[] path = result.getValue().getKey();
+        String[] path = result.get().getKey();
         // remove repository name from path
         String[] requestPath = Arrays.copyOfRange(path, 1, path.length);
 
@@ -84,13 +84,13 @@ public final class LookupService {
             return ResponseUtils.error(HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, "Missing artifact identifier");
         }
 
-        Repository repository = result.getValue().getValue();
+        Repository repository = result.get().getValue();
         String requestedFileName = Objects.requireNonNull(ArrayUtils.getLast(requestPath));
 
         if (requestedFileName.equals("maven-metadata.xml")) {
             return metadataService
                     .generateMetadata(repository, requestPath)
-                    .mapError(error -> new ErrorDto(HttpStatus.SC_USE_PROXY, error))
+                    .mapErr(error -> new ErrorDto(HttpStatus.SC_USE_PROXY, error))
                     .map(metadataContent -> new LookupResponse("text/xml", metadataContent));
         }
 

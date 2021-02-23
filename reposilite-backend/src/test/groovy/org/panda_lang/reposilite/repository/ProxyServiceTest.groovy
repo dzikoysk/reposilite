@@ -46,7 +46,7 @@ final class ProxyServiceTest extends ReposiliteIntegrationTestSpecification {
 
     @BeforeEach
     void configure() throws IOException {
-        super.reposilite.getConfiguration().proxied = Collections.singletonList('http://localhost/')
+        super.reposilite.getConfiguration().proxied = Collections.singletonList('http://localhost:' + PORT)
 
         this.ioService = super.reposilite.getIoService()
         this.failureService = super.reposilite.getFailureService()
@@ -70,22 +70,15 @@ final class ProxyServiceTest extends ReposiliteIntegrationTestSpecification {
     @Test
     void 'should return error for invalid proxied request' () {
         def result = proxyService.findProxied(context('/groupId/artifactId'))
-        assertTrue result.containsError()
+        assertTrue result.isErr()
         assertEquals 'Invalid proxied request', result.getError().getMessage()
     }
 
     @Test
     void 'should return 404 and artifact not found' () throws Exception {
-        def error = proxyService.findProxied(context('/releases/proxiedGroup/proxiedArtifact/notfound.pom')).getValue().get().getError()
+        def error = proxyService.findProxied(context('/releases/proxiedGroup/proxiedArtifact/notfound.pom')).get().get().getError()
         assertNotNull error
         assertEquals 'Artifact not found in local and remote repository', error.message
-    }
-
-    @Test
-    void 'should return 200 and proxied file' () throws Exception {
-        ioService.submit({
-            return proxyService.findProxied(context('/releases/proxiedGroup/proxiedArtifact/proxied.pom')).getValue().get().getValue()
-        }).get()
     }
 
     @Test
@@ -106,12 +99,7 @@ final class ProxyServiceTest extends ReposiliteIntegrationTestSpecification {
             proxiedFile.getParentFile().mkdirs()
             FileUtils.overrideFile(proxiedFile, 'test')
 
-            def result = proxyService
-                    .findProxied(context('/releases/g/a/file.txt'))
-                    .getValue()
-                    .get()
-                    .getValue()
-
+            def result = proxyService.findProxied(context('/releases/g/a/file.txt')).get().get().get()
             assertFalse result.isAttachment()
             assertEquals 'text/plain', result.getContentType().get()
         } finally {

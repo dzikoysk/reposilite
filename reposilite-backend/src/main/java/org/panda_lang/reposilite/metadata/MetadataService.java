@@ -22,10 +22,10 @@ import org.panda_lang.reposilite.error.FailureService;
 import org.panda_lang.reposilite.repository.Repository;
 import org.panda_lang.reposilite.utils.ArrayUtils;
 import org.panda_lang.reposilite.utils.FilesUtils;
-import org.panda_lang.reposilite.utils.Result;
 import org.panda_lang.utilities.commons.FileUtils;
 import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.function.Lazy;
+import org.panda_lang.utilities.commons.function.Result;
 
 import java.io.File;
 import java.io.IOException;

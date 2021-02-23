@@ -24,8 +24,8 @@ import org.panda_lang.reposilite.ReposiliteExecutor;
 import org.panda_lang.reposilite.ReposiliteWriter;
 import org.panda_lang.reposilite.auth.Authenticator;
 import org.panda_lang.reposilite.auth.Session;
-import org.panda_lang.reposilite.utils.Result;
 import org.panda_lang.utilities.commons.StringUtils;
+import org.panda_lang.utilities.commons.function.Result;
 
 import java.util.function.Consumer;
 
@@ -66,14 +66,14 @@ public final class CliController implements Consumer<WsHandler> {
             String credentials = StringUtils.replaceFirst(authMessage, AUTHORIZATION_PREFIX, "");
             Result<Session, String> auth = authenticator.authByCredentials(credentials);
 
-            if (!auth.isDefined() || !auth.getValue().isManager()) {
+            if (!auth.isOk() || !auth.get().isManager()) {
                 Reposilite.getLogger().info("CLI | Unauthorized CLI access request from " + context.address());
                 connectContext.send("Unauthorized connection request");
                 connectContext.session.disconnect();
                 return;
             }
 
-            String username = auth.getValue().getAlias() + context.address();
+            String username = auth.get().getAlias() + context.address();
 
             wsHandler.onClose(closeContext -> {
                 Reposilite.getLogger().info("CLI | " + username + " closed connection");

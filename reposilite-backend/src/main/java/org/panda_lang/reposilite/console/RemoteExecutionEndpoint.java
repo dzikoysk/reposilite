@@ -25,8 +25,8 @@ import org.panda_lang.reposilite.RepositoryController;
 import org.panda_lang.reposilite.auth.Authenticator;
 import org.panda_lang.reposilite.auth.Session;
 import org.panda_lang.reposilite.error.ResponseUtils;
-import org.panda_lang.reposilite.utils.Result;
 import org.panda_lang.utilities.commons.StringUtils;
+import org.panda_lang.utilities.commons.function.Result;
 
 import java.util.List;
 
@@ -51,11 +51,11 @@ public final class RemoteExecutionEndpoint implements RepositoryController {
 
         Result<Session, String> authResult = authenticator.authByHeader(context.headers());
 
-        if (authResult.containsError()) {
+        if (authResult.isErr()) {
             return ResponseUtils.errorResponse(ctx, HttpStatus.SC_UNAUTHORIZED, authResult.getError());
         }
 
-        Session session = authResult.getValue();
+        Session session = authResult.get();
 
         if (!session.isManager()) {
             return ResponseUtils.errorResponse(ctx, HttpStatus.SC_UNAUTHORIZED, "Authenticated user is not a manger");
@@ -74,7 +74,7 @@ public final class RemoteExecutionEndpoint implements RepositoryController {
         Reposilite.getLogger().info(session.getAlias() + " (" + context.address() + ") requested command: " + command);
         Result<List<String>, List<String>> result = console.execute(command);
 
-        return ctx.json(new RemoteExecutionDto(result.isDefined(), result.isDefined() ? result.getValue() : result.getError()));
+        return ctx.json(new RemoteExecutionDto(result.isOk(), result.isOk() ? result.get() : result.getError()));
     }
 
 }
