@@ -46,7 +46,7 @@ public final class WebJarsHandler implements Handler {
         }
 
         context.result(resource.getInputStream())
-                .contentType(FilesUtils.getMimeType(resource.getFile().getAbsolutePath(), "text/plain"))
+                .contentType(FilesUtils.getMimeType(context.path(), "text/plain"))
                 .res.setCharacterEncoding("UTF-8");
     }
 
