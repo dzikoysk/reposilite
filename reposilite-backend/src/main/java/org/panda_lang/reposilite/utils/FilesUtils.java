@@ -123,11 +123,7 @@ public final class FilesUtils {
     }
 
     public static String getMimeType(String path, String defaultType) {
-        try {
-            return java.nio.file.Files.probeContentType(new File(path).toPath());
-        } catch (IOException exception) {
-            return MimeTypes.getMimeType(getExtension(path), defaultType);
-        }
+        return MimeTypes.getMimeType(getExtension(path), defaultType);
     }
 
     public static void copyResource(String resourcePath, File destination) throws IOException {
