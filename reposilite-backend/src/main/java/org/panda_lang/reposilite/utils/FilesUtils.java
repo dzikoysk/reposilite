@@ -126,7 +126,7 @@ public final class FilesUtils {
         try {
             return java.nio.file.Files.probeContentType(new File(path).toPath());
         } catch (IOException exception) {
-            return defaultType;
+            return MimeTypes.getMimeType(getExtension(path), defaultType);
         }
     }
 
