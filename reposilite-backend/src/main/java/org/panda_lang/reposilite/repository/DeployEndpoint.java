@@ -18,6 +18,11 @@ package org.panda_lang.reposilite.repository;
 
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
+import io.javalin.plugin.openapi.annotations.ContentType;
+import io.javalin.plugin.openapi.annotations.OpenApi;
+import io.javalin.plugin.openapi.annotations.OpenApiContent;
+import io.javalin.plugin.openapi.annotations.OpenApiParam;
+import io.javalin.plugin.openapi.annotations.OpenApiResponse;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.ReposiliteContext;
 import org.panda_lang.reposilite.ReposiliteContextFactory;
@@ -33,6 +38,36 @@ public final class DeployEndpoint implements Handler {
         this.deployService = deployService;
     }
 
+    @OpenApi(
+            operationId = "repositoryDeploy",
+            summary = "Deploy artifact to the repository",
+            description = "Deploy supports both, POST and PUT, methods and allows to deploy artifact builds",
+            tags = { "Repository" },
+            pathParams = {
+                    @OpenApiParam(name = "*", description = "Artifact path qualifier", required = true)
+            },
+            responses = {
+                    @OpenApiResponse(status = "200", description = "Input stream of requested file", content = {
+                            @OpenApiContent(type = ContentType.FORM_DATA_MULTIPART)
+                    }),
+                    @OpenApiResponse(
+                            status = "401",
+                            description = "Returns 401 for invalid credentials"
+                    ),
+                    @OpenApiResponse(
+                            status = "405",
+                            description = "Returns 405 if deployment is disabled in configuration"
+                    ),
+                    @OpenApiResponse(
+                            status = "500",
+                            description = "Returns 507 if Reposilite does not have enough disk space to store the uploaded file"
+                    ),
+                    @OpenApiResponse(
+                            status = "507",
+                            description = "Returns 507 if Reposilite does not have enough disk space to store the uploaded file"
+                    ),
+            }
+    )
     @Override
     public void handle(Context ctx) {
         ReposiliteContext context = contextFactory.create(ctx);

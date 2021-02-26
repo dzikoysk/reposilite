@@ -39,12 +39,13 @@ Requirements:
 * [x] Supports requests to primary repository without its name in url
 * [x] Dashboard
   * [x] Customizable front page
-  * [x] CLI
+  * [x] Command line interface
   * [x] Repository browser
   * [x] Admin panel
 * [x] Snapshots
 * [x] Statistics
 * [x] REST API
+* [x] OpenAPI with Swagger UI
 * [x] 90%+ test coverage
 * [x] Documentation
 

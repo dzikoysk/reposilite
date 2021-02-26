@@ -122,6 +122,14 @@ public final class FilesUtils {
         return false;
     }
 
+    public static String getMimeType(String path, String defaultType) {
+        try {
+            return java.nio.file.Files.probeContentType(new File(path).toPath());
+        } catch (IOException exception) {
+            return defaultType;
+        }
+    }
+
     public static void copyResource(String resourcePath, File destination) throws IOException {
         URL inputUrl = Reposilite.class.getResource(resourcePath);
         FileUtils.copyURLToFile(inputUrl, destination);

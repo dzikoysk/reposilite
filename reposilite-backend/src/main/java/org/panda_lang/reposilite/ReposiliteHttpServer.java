@@ -19,6 +19,10 @@ package org.panda_lang.reposilite;
 import io.javalin.Javalin;
 import io.javalin.core.JavalinConfig;
 import io.javalin.core.JavalinServer;
+import io.javalin.plugin.openapi.OpenApiOptions;
+import io.javalin.plugin.openapi.OpenApiPlugin;
+import io.javalin.plugin.openapi.ui.SwaggerOptions;
+import io.swagger.v3.oas.models.info.Info;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
@@ -27,11 +31,12 @@ import org.panda_lang.reposilite.auth.PostAuthHandler;
 import org.panda_lang.reposilite.config.Configuration;
 import org.panda_lang.reposilite.console.CliController;
 import org.panda_lang.reposilite.console.RemoteExecutionEndpoint;
-import org.panda_lang.reposilite.error.FailureService;
-import org.panda_lang.reposilite.frontend.FrontendController;
+import org.panda_lang.reposilite.error.FailureHandler;
 import org.panda_lang.reposilite.repository.DeployEndpoint;
 import org.panda_lang.reposilite.repository.LookupApiEndpoint;
 import org.panda_lang.reposilite.repository.LookupController;
+import org.panda_lang.reposilite.resource.FrontendHandler;
+import org.panda_lang.reposilite.resource.WebJarsHandler;
 import org.panda_lang.reposilite.utils.FilesUtils;
 import org.panda_lang.utilities.commons.function.Option;
 
@@ -47,7 +52,6 @@ public final class ReposiliteHttpServer {
     }
 
     void start(Configuration configuration, Runnable onStart) {
-        FailureService failureService = reposilite.getFailureService();
         DeployEndpoint deployEndpoint = new DeployEndpoint(reposilite.getContextFactory(), reposilite.getDeployService());
 
         LookupController lookupController = new LookupController(
@@ -72,7 +76,8 @@ public final class ReposiliteHttpServer {
 
         this.javalin = create(configuration)
                 .before(ctx -> reposilite.getStatsService().record(ctx.req.getRequestURI()))
-                .get("/js/app.js", new FrontendController(reposilite))
+                .get("/webjars/*", new WebJarsHandler())
+                .get("/js/app.js", new FrontendHandler(reposilite))
                 .get("/api/auth", new AuthEndpoint(reposilite.getAuthService()))
                 .post("/api/execute", new RemoteExecutionEndpoint(reposilite.getAuthenticator(), reposilite.getContextFactory(), reposilite.getConsole()))
                 .ws("/api/cli", cliController)
@@ -83,12 +88,16 @@ public final class ReposiliteHttpServer {
                 .put("/*", deployEndpoint)
                 .post("/*", deployEndpoint)
                 .after("/*", new PostAuthHandler())
-                .exception(Exception.class, (exception, ctx) -> failureService.throwException(ctx.req.getRequestURI(), exception));
+                .exception(Exception.class, new FailureHandler(reposilite.getFailureService()));
 
         if (!servlet) {
             javalin.start(configuration.hostname, configuration.port);
             onStart.run();
         }
+    }
+
+    void stop() {
+        getJavalin().peek(Javalin::stop);
     }
 
     private Javalin create(Configuration configuration) {
@@ -118,9 +127,24 @@ public final class ReposiliteHttpServer {
             }
         }
 
-        config.enableCorsForAllOrigins();
         config.enforceSsl = configuration.enforceSsl;
+        config.enableCorsForAllOrigins();
         config.showJavalinBanner = false;
+
+        if (configuration.swagger) {
+            Info applicationInfo = new Info()
+                    .description(ReposiliteConstants.NAME)
+                    .version(ReposiliteConstants.VERSION);
+
+            SwaggerOptions swaggerOptions = new SwaggerOptions("/swagger")
+                    .title("Reposilite API documentation");
+
+            OpenApiOptions options = new OpenApiOptions(applicationInfo)
+                    .path("/swagger-docs")
+                    .swagger(swaggerOptions);
+
+            config.registerPlugin(new OpenApiPlugin(options));
+        }
 
         if (configuration.debugEnabled) {
             config.requestCacheSize = FilesUtils.displaySizeToBytesCount(System.getProperty("reposilite.requestCacheSize", "8MB"));
@@ -130,12 +154,6 @@ public final class ReposiliteHttpServer {
         }
 
         config.server(() -> server);
-    }
-
-    void stop() {
-        if (javalin != null) {
-            javalin.stop();
-        }
     }
 
     public boolean isAlive() {

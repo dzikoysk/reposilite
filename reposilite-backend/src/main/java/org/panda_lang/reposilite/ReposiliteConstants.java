@@ -18,7 +18,9 @@ package org.panda_lang.reposilite;
 
 public final class ReposiliteConstants {
 
-    public static final String VERSION = "2.9.17";
+    public static final String NAME = "Reposilite";
+
+    public static final String VERSION = "2.9.18";
 
     public static final String REMOTE_VERSION = "https://repo.panda-lang.org/org/panda-lang/reposilite/latest";
 

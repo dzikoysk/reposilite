@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.frontend
+package org.panda_lang.reposilite.resource
 
 import groovy.transform.CompileStatic
 import org.junit.jupiter.api.Test

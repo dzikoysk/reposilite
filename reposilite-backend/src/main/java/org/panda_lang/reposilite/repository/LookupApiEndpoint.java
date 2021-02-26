@@ -17,12 +17,16 @@
 package org.panda_lang.reposilite.repository;
 
 import io.javalin.http.Context;
+import io.javalin.http.Handler;
+import io.javalin.plugin.openapi.annotations.OpenApi;
+import io.javalin.plugin.openapi.annotations.OpenApiContent;
+import io.javalin.plugin.openapi.annotations.OpenApiParam;
+import io.javalin.plugin.openapi.annotations.OpenApiResponse;
 import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.ReposiliteContext;
 import org.panda_lang.reposilite.ReposiliteContextFactory;
 import org.panda_lang.reposilite.ReposiliteUtils;
-import org.panda_lang.reposilite.RepositoryController;
 import org.panda_lang.reposilite.error.ErrorDto;
 import org.panda_lang.reposilite.error.ResponseUtils;
 import org.panda_lang.reposilite.metadata.MetadataUtils;
@@ -35,7 +39,7 @@ import org.panda_lang.utilities.commons.function.Result;
 import java.io.File;
 import java.util.Optional;
 
-public final class LookupApiEndpoint implements RepositoryController {
+public final class LookupApiEndpoint implements Handler {
 
     private final boolean rewritePathsEnabled;
     private final ReposiliteContextFactory contextFactory;
@@ -54,39 +58,72 @@ public final class LookupApiEndpoint implements RepositoryController {
         this.repositoryService = repositoryService;
     }
 
+    @OpenApi(
+            operationId = "repositoryApi",
+            summary = "Browse the contents of repositories using API",
+            description = "Get details about the requested file as JSON response",
+            tags = { "Repository" },
+            pathParams = {
+                    @OpenApiParam(name = "*", description = "Artifact path qualifier", required = true, allowEmptyValue = true),
+            },
+            responses = {
+                    @OpenApiResponse(
+                            status = "200",
+                            description = "Returns document (different for directory and file) that describes requested resource",
+                            content = {
+                                    @OpenApiContent(from = FileDetailsDto.class),
+                                    @OpenApiContent(from = FileListDto.class)
+                            }
+                    ),
+                    @OpenApiResponse(
+                            status = "401",
+                            description = "Returns 401 in case of unauthorized attempt of access to private repository",
+                            content = @OpenApiContent(from = ErrorDto.class)
+                    ),
+                    @OpenApiResponse(
+                            status = "404",
+                            description = "Returns 404 (for Maven) and frontend (for user) as a response if requested artifact is not in the repository"
+                    ),
+            }
+    )
     @Override
-    public Context handleContext(Context ctx) {
+    public void handle(Context ctx) {
         ReposiliteContext context = contextFactory.create(ctx);
         Reposilite.getLogger().info("API " + context.uri() + " from " + context.address());
 
         String uri = ReposiliteUtils.normalizeUri(rewritePathsEnabled, repositoryService, StringUtils.replaceFirst(context.uri(), "/api", ""));
 
         if (StringUtils.isEmpty(uri) || "/".equals(uri)) {
-            return ctx.json(repositoryAuthenticator.findAvailableRepositories(context.headers()));
+            ctx.json(repositoryAuthenticator.findAvailableRepositories(context.headers()));
+            return;
         }
 
         Result<Pair<String[], Repository>, ErrorDto> result = repositoryAuthenticator.authRepository(context.headers(), uri);
 
         if (result.isErr()) {
-            return ResponseUtils.errorResponse(ctx, result.getError().getStatus(), result.getError().getMessage());
+            ResponseUtils.errorResponse(ctx, result.getError().getStatus(), result.getError().getMessage());
+            return;
         }
 
         File requestedFile = repositoryService.getFile(uri);
         Optional<FileDetailsDto> latest = repositoryService.findLatest(requestedFile);
 
         if (latest.isPresent()) {
-            return ctx.json(latest.get());
+            ctx.json(latest.get());
+            return;
         }
 
         if (!requestedFile.exists()) {
-            return ResponseUtils.errorResponse(ctx, HttpStatus.SC_NOT_FOUND, "File not found");
+            ResponseUtils.errorResponse(ctx, HttpStatus.SC_NOT_FOUND, "File not found");
+            return;
         }
 
         if (requestedFile.isFile()) {
-            return ctx.json(FileDetailsDto.of(requestedFile));
+            ctx.json(FileDetailsDto.of(requestedFile));
+            return;
         }
 
-        return ctx.json(new FileListDto(PandaStream.of(FilesUtils.listFiles(requestedFile))
+        ctx.json(new FileListDto(PandaStream.of(FilesUtils.listFiles(requestedFile))
                 .map(FileDetailsDto::of)
                 .transform(stream -> MetadataUtils.toSorted(stream, FileDetailsDto::getName, FileDetailsDto::isDirectory))
                 .toList()));
