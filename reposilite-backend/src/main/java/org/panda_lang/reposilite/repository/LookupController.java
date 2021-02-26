@@ -18,13 +18,18 @@ package org.panda_lang.reposilite.repository;
 
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
+import io.javalin.plugin.openapi.annotations.ContentType;
+import io.javalin.plugin.openapi.annotations.OpenApi;
+import io.javalin.plugin.openapi.annotations.OpenApiContent;
+import io.javalin.plugin.openapi.annotations.OpenApiParam;
+import io.javalin.plugin.openapi.annotations.OpenApiResponse;
 import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.ReposiliteContext;
 import org.panda_lang.reposilite.ReposiliteContextFactory;
 import org.panda_lang.reposilite.error.ErrorDto;
 import org.panda_lang.reposilite.error.FailureService;
-import org.panda_lang.reposilite.frontend.FrontendProvider;
+import org.panda_lang.reposilite.resource.FrontendProvider;
 import org.panda_lang.reposilite.utils.OutputUtils;
 import org.panda_lang.utilities.commons.function.Result;
 
@@ -56,6 +61,28 @@ public final class LookupController implements Handler {
         this.failureService = failureService;
     }
 
+    @OpenApi(
+            operationId = "repositoryLookup",
+            summary = "Browse the contents of repositories",
+            description = "The route may return various responses to properly handle Maven specification and frontend application using the same path.",
+            tags = { "Repository" },
+            pathParams = {
+                    @OpenApiParam(name = "*", description = "Artifact path qualifier", required = true, allowEmptyValue = true),
+                    @OpenApiParam(
+                            name = "*/latest",
+                            description = "[Optional] Artifact path qualifier with /latest at the end returns latest version of artifact as text/plain"
+                    )
+            },
+            responses = {
+                    @OpenApiResponse(status = "200", description = "Input stream of requested file", content = {
+                            @OpenApiContent(type = ContentType.FORM_DATA_MULTIPART)
+                    }),
+                    @OpenApiResponse(
+                            status = "404",
+                            description = "Returns 404 (for Maven) with frontend (for user) as a response if requested resource is not located in the current repository"
+                    ),
+            }
+    )
     @Override
     public void handle(Context ctx) {
         ReposiliteContext context = contextFactory.create(ctx);
@@ -65,7 +92,7 @@ public final class LookupController implements Handler {
 
         if (isProxied(response)) {
             if (hasProxied) {
-                handle(ctx, context, proxyService.findProxied(context));
+                handleProxied(ctx, context, proxyService.findProxied(context));
                 return;
             }
 
@@ -77,7 +104,7 @@ public final class LookupController implements Handler {
         handleResult(ctx, context, response);
     }
 
-    private void handle(Context ctx, ReposiliteContext context, Result<CompletableFuture<Result<LookupResponse, ErrorDto>>, ErrorDto> response) {
+    private void handleProxied(Context ctx, ReposiliteContext context, Result<CompletableFuture<Result<LookupResponse, ErrorDto>>, ErrorDto> response) {
         response
             .map(task -> task.thenAccept(result -> handleResult(ctx, context, result)))
             .peek(ctx::result)

@@ -14,6 +14,8 @@ basePath: /
 # Cloudflare: CF-Connecting-IP
 # Popular: X-Real-IP
 forwardedIp: X-Forwarded-For
+# Enable Swagger (/swagger-docs) and Swagger UI (/swagger)
+swagger: true
 # Debug
 debugEnabled: false
 

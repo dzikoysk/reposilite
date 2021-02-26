@@ -25,7 +25,7 @@ import org.panda_lang.reposilite.config.ConfigurationLoader;
 import org.panda_lang.reposilite.console.Console;
 import org.panda_lang.reposilite.console.ConsoleConfiguration;
 import org.panda_lang.reposilite.error.FailureService;
-import org.panda_lang.reposilite.frontend.FrontendProvider;
+import org.panda_lang.reposilite.resource.FrontendProvider;
 import org.panda_lang.reposilite.metadata.MetadataConfiguration;
 import org.panda_lang.reposilite.metadata.MetadataService;
 import org.panda_lang.reposilite.repository.DeployService;

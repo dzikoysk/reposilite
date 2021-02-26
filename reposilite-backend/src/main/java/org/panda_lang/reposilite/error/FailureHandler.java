@@ -14,27 +14,22 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.frontend;
+package org.panda_lang.reposilite.error;
 
 import io.javalin.http.Context;
-import org.panda_lang.reposilite.Reposilite;
-import org.panda_lang.reposilite.RepositoryController;
+import io.javalin.http.ExceptionHandler;
 
-public class FrontendController implements RepositoryController {
+public final class FailureHandler implements ExceptionHandler<Exception> {
 
-    private final Reposilite reposilite;
+    private final FailureService failureService;
 
-    public FrontendController(Reposilite reposilite) {
-        this.reposilite = reposilite;
+    public FailureHandler(FailureService failureService) {
+        this.failureService = failureService;
     }
 
     @Override
-    public Context handleContext(Context context) {
-        context.res.setCharacterEncoding("utf-8");
-
-        return context
-                .header("Content-Type", "application/javascript")
-                .result(reposilite.getFrontendService().getApp());
+    public void handle(Exception exception, Context context) {
+        failureService.throwException(context.req.getRequestURI(), exception);
     }
 
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.frontend;
+package org.panda_lang.reposilite.resource;
 
 import org.panda_lang.reposilite.config.Configuration;
 import org.panda_lang.reposilite.utils.FilesUtils;

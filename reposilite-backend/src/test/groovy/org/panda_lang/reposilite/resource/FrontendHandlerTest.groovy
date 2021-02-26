@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.frontend
+package org.panda_lang.reposilite.resource
 
 import groovy.transform.CompileStatic
 import org.apache.http.HttpStatus
@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals
 import static org.junit.jupiter.api.Assertions.assertTrue
 
 @CompileStatic
-class FrontendControllerTest extends ReposiliteIntegrationTestSpecification {
+class FrontendHandlerTest extends ReposiliteIntegrationTestSpecification {
 
     @Test
     void 'should return 200 and JavaScript content' () {

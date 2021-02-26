@@ -17,6 +17,7 @@
 package org.panda_lang.reposilite.repository;
 
 import org.jetbrains.annotations.NotNull;
+import org.panda_lang.reposilite.utils.FilesUtils;
 import org.panda_lang.utilities.commons.StringUtils;
 
 import java.io.File;
@@ -83,11 +84,10 @@ final class FileDetailsDto implements Serializable, Comparable<FileDetailsDto> {
 
     public static FileDetailsDto of(File file) {
         String date = StringUtils.EMPTY;
-        String contentType = "application/octet-stream";
+        String contentType = FilesUtils.getMimeType(file.getAbsolutePath(), "application/octet-stream");
 
         try {
             date = DATE_FORMAT.format(Files.getLastModifiedTime(file.toPath()).toMillis());
-            contentType = Files.probeContentType(file.toPath());
         }
         catch (IOException ignored) { /* file does not exist */ }
 
