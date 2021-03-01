@@ -24,20 +24,21 @@ import org.panda_lang.reposilite.auth.TokenService
 import org.panda_lang.reposilite.error.FailureService
 import org.panda_lang.reposilite.repository.RepositoryService
 
+import java.nio.file.Paths
 import java.util.concurrent.Executors
 
 @CompileStatic
 class AuthenticatorSpecification {
 
     static final RepositoryService REPOSITORY_SERVICE = new RepositoryService(
-            '.',
+            Paths.get(""),
             '0',
             Executors.newSingleThreadExecutor(),
             Executors.newSingleThreadScheduledExecutor(),
             new FailureService(),
     )
 
-    static final TokenService TOKEN_SERVICE = new TokenService('.')
+    static final TokenService TOKEN_SERVICE = new TokenService(Paths.get(""))
     static final Token AUTH_TOKEN = new Token('/auth/test', 'alias', 'rw', TokenService.B_CRYPT_TOKENS_ENCODER.encode('secret'))
     static final String BASIC = 'Basic ' + Base64.getEncoder().encodeToString('alias:secret'.getBytes())
 

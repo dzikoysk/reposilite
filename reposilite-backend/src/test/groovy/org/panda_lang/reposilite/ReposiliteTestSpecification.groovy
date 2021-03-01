@@ -21,22 +21,32 @@ import org.apache.commons.io.FileUtils
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
 
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
+
 @CompileStatic
 class ReposiliteTestSpecification extends ReposiliteTestSpecificationExtension {
 
     private static final String TINYLOG_WRITER_PROPERTY = 'tinylog.writerFile.file'
 
     @TempDir
-    protected File workingDirectory
+    protected Path workingDirectory
     protected Reposilite reposilite
 
     @BeforeEach
     protected void before() throws Exception {
         try {
             System.setProperty(TINYLOG_WRITER_PROPERTY, 'target/log.txt')
-            this.reposilite = new Reposilite('', workingDirectory.getAbsolutePath(), false, true)
+            this.reposilite = new Reposilite(workingDirectory.resolve(ReposiliteConstants.CONFIGURATION_FILE_NAME), workingDirectory, false, true)
 
-            FileUtils.copyDirectory(new File("src/test/workspace/repositories"), new File(workingDirectory, "repositories"));
+            def from = Paths.get("src/test/workspace/repositories")
+            def to = workingDirectory.resolve("repositories")
+
+            Files.walk(from).forEach(source -> {
+                Files.copy(source, to.resolve(source.relativize(from)))
+            })
+
             this.reposilite.repositoryService.load(this.reposilite.configuration)
 
             for (def configuration : reposilite.configurations()) {

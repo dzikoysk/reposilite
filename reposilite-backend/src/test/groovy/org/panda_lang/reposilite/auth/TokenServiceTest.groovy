@@ -21,23 +21,25 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 
+import java.nio.file.Path
+
 import static org.junit.jupiter.api.Assertions.*
 
 @CompileStatic
 class TokenServiceTest {
 
     @TempDir
-    protected File workingDirectory
+    protected Path workingDirectory
     protected TokenService tokenService
 
     @BeforeEach
     void prepare() {
-        this.tokenService = new TokenService(workingDirectory.getAbsolutePath())
+        this.tokenService = new TokenService(workingDirectory)
     }
 
     @Test
     void 'should save and load' () {
-        def tempService = new TokenService(workingDirectory.getAbsolutePath())
+        def tempService = new TokenService(workingDirectory)
         tempService.createToken('path', 'alias', 'rw')
         tempService.saveTokens()
         tokenService.loadTokens() // uses the same file

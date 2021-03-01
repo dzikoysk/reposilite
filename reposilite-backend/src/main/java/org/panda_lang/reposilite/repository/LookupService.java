@@ -16,13 +16,10 @@
 
 package org.panda_lang.reposilite.repository;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.ReposiliteContext;
-import org.panda_lang.reposilite.auth.Authenticator;
 import org.panda_lang.reposilite.error.ErrorDto;
-import org.panda_lang.reposilite.error.FailureService;
 import org.panda_lang.reposilite.error.ResponseUtils;
 import org.panda_lang.reposilite.metadata.MetadataService;
 import org.panda_lang.reposilite.metadata.MetadataUtils;
@@ -30,38 +27,30 @@ import org.panda_lang.reposilite.utils.ArrayUtils;
 import org.panda_lang.reposilite.utils.Result;
 import org.panda_lang.utilities.commons.collection.Pair;
 
-import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.ExecutorService;
 
 public final class LookupService {
 
-    private final Authenticator authenticator;
     private final RepositoryAuthenticator repositoryAuthenticator;
     private final MetadataService metadataService;
     private final RepositoryService repositoryService;
-    private final ExecutorService ioService;
-    private final FailureService failureService;
 
     public LookupService(
-            Authenticator authenticator,
             RepositoryAuthenticator repositoryAuthenticator,
             MetadataService metadataService,
-            RepositoryService repositoryService,
-            ExecutorService ioService,
-            FailureService failureService) {
+            RepositoryService repositoryService) {
 
-        this.authenticator = authenticator;
         this.repositoryAuthenticator = repositoryAuthenticator;
         this.metadataService = metadataService;
         this.repositoryService = repositoryService;
-        this.ioService = ioService;
-        this.failureService = failureService;
     }
 
-    Result<LookupResponse, ErrorDto> findLocal(ReposiliteContext context) {
+    Result<LookupResponse, ErrorDto> findLocal(ReposiliteContext context) throws IOException {
         String uri = context.uri();
         Result<Pair<String[], Repository>, ErrorDto> result = this.repositoryAuthenticator.authDefaultRepository(context.headers(), uri);
 
@@ -96,15 +85,15 @@ public final class LookupService {
 
         // resolve requests for latest version of artifact
         if (requestedFileName.equalsIgnoreCase("latest")) {
-            File requestDirectory = repository.getFile(requestPath).getParentFile();
-            File[] versions = MetadataUtils.toSortedVersions(requestDirectory);
-            File version = ArrayUtils.getFirst(versions);
+            Path requestDirectory = repository.getFile(requestPath).getParent();
+            Path[] versions = MetadataUtils.toSortedVersions(requestDirectory);
+            Path version = ArrayUtils.getFirst(versions);
 
             if (version == null) {
                 return ResponseUtils.error(HttpStatus.SC_NOT_FOUND, "Latest version not found");
             }
 
-            return Result.ok(new LookupResponse("text/plain", version.getName()));
+            return Result.ok(new LookupResponse("text/plain", version.getFileName().toString()));
         }
 
         // resolve snapshot requests
@@ -114,9 +103,9 @@ public final class LookupService {
             requestedFileName = requestPath[requestPath.length - 1];
         }
 
-        File repositoryFile = repository.getFile(requestPath);
+        Path repositoryFile = repository.getFile(requestPath);
 
-        if (repositoryFile.exists() && repositoryFile.isDirectory()) {
+        if (Files.exists(repositoryFile) && Files.isDirectory(repositoryFile)) {
             return ResponseUtils.error(HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, "Directory access");
         }
 
@@ -126,14 +115,14 @@ public final class LookupService {
             return ResponseUtils.error(HttpStatus.SC_USE_PROXY, "Artifact " + requestedFileName + " not found");
         }
 
-        File file = artifact.get().getFile(requestedFileName);
+        Path file = artifact.get().getFile(requestedFileName);
         FileDetailsDto fileDetails = FileDetailsDto.of(file);
 
         if (!context.method().equals("HEAD")) {
-            context.result(outputStream -> FileUtils.copyFile(file, outputStream));
+            context.result(outputStream -> Files.copy(file, outputStream));
         }
 
-        Reposilite.getLogger().info("RESOLVED " + file.getPath() + "; mime: " + fileDetails.getContentType() + "; size: " + file.length());
+        Reposilite.getLogger().info("RESOLVED " + file + "; mime: " + fileDetails.getContentType() + "; size: " + Files.size(file));
         return Result.ok(new LookupResponse(fileDetails));
     }
 

@@ -22,28 +22,28 @@ import org.panda_lang.reposilite.utils.FilesUtils;
 import org.panda_lang.reposilite.utils.YamlUtils;
 import org.panda_lang.utilities.commons.function.Option;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 
 public final class TokenStorage {
 
     private final TokenService tokenService;
-    private final File tokensFile;
+    private final Path tokensFile;
 
-    public TokenStorage(TokenService tokenService, String workingDirectory) {
+    public TokenStorage(TokenService tokenService, Path workingDirectory) {
         this.tokenService = tokenService;
-        this.tokensFile = new File(workingDirectory, ReposiliteConstants.TOKENS_FILE_NAME);
+        this.tokensFile = workingDirectory.resolve(ReposiliteConstants.TOKENS_FILE_NAME);
     }
 
     public void loadTokens() throws IOException {
-        if (!tokensFile.exists()) {
-            File legacyTokensFile = new File(tokensFile.getAbsolutePath().replace(".dat", ".yml"));
+        if (!Files.exists(tokensFile)) {
+            Path legacyTokensFile = tokensFile.resolveSibling(tokensFile.getFileName().toString().replace(".dat", ".yml"));
 
-            if (legacyTokensFile.exists()) {
-                Files.move(legacyTokensFile.toPath(), tokensFile.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+            if (Files.exists(legacyTokensFile)) {
+                Files.move(legacyTokensFile, tokensFile, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
                 Reposilite.getLogger().info("Legacy tokens file has been converted to dat file");
             }
             else {

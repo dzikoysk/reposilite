@@ -20,8 +20,15 @@ import groovy.transform.CompileStatic
 import net.dzikoysk.cdn.CDN
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import org.panda_lang.reposilite.ReposiliteConstants
 import org.panda_lang.utilities.commons.FileUtils
 import org.panda_lang.utilities.commons.text.Joiner
+
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.nio.file.OpenOption
+import java.nio.file.Path
+import java.nio.file.StandardOpenOption
 
 import static org.junit.jupiter.api.Assertions.*
 
@@ -29,7 +36,7 @@ import static org.junit.jupiter.api.Assertions.*
 class ConfigurationLoaderTest {
 
     @TempDir
-    protected File workingDirectory
+    protected Path workingDirectory
 
     @Test
     void 'should load file with custom properties' () {
@@ -40,7 +47,7 @@ class ConfigurationLoaderTest {
             System.setProperty("reposilite.proxied", "http://a.com,b.com")  // List<String> type
             System.setProperty("reposilite.repositories", " ")              // Skip empty
 
-            def configuration = ConfigurationLoader.tryLoad("", workingDirectory.getAbsolutePath())
+            def configuration = ConfigurationLoader.tryLoad(workingDirectory.resolve(ReposiliteConstants.CONFIGURATION_FILE_NAME))
             assertEquals "localhost", configuration.hostname
             assertEquals 8080, configuration.port
             assertTrue configuration.debugEnabled
@@ -55,51 +62,49 @@ class ConfigurationLoaderTest {
             System.clearProperty("reposilite.proxied")
             System.clearProperty("reposilite.repositories")
         }
-
-        def configuration = ConfigurationLoader.tryLoad("", workingDirectory.getAbsolutePath())
-        assertEquals 80, configuration.port
     }
 
     @Test
     void 'should load custom config' () {
-        def customConfig = new File(workingDirectory, "random.cdn")
-        FileUtils.overrideFile(customConfig, CDN.defaultInstance().render(new Configuration()))
-        FileUtils.overrideFile(customConfig, FileUtils.getContentOfFile(customConfig).replace("port: 80", "port: 7"))
+        def customConfig = workingDirectory.resolve("random.cdn")
+        Files.write(customConfig, CDN.defaultInstance().render(new Configuration()).getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
+        Files.write(customConfig, new String(Files.readAllBytes(customConfig), StandardCharsets.UTF_8).replace("port: 80", "port: 7").getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
 
-        def configuration = ConfigurationLoader.tryLoad(customConfig.getAbsolutePath(), workingDirectory.getAbsolutePath())
+        def configuration = ConfigurationLoader.tryLoad(customConfig)
         assertEquals 7, configuration.port
     }
 
     @Test
     void 'should not load other file types' () {
-        def customConfig = new File(workingDirectory, "random.properties")
-        FileUtils.overrideFile(customConfig, CDN.defaultInstance().render(new Configuration()))
-        assertThrows RuntimeException.class, { ConfigurationLoader.load(customConfig.getAbsolutePath(), workingDirectory.getAbsolutePath()) }
+        def customConfig = workingDirectory.resolve("random.properties")
+        Files.write(customConfig, CDN.defaultInstance().render(new Configuration()).getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
+
+        assertThrows RuntimeException.class, { ConfigurationLoader.load(customConfig) }
     }
 
     @Test
     void 'should convert legacy config' () {
-        def legacyConfig = new File(workingDirectory, "config.yml")
-        FileUtils.overrideFile(legacyConfig, "port: 7")
-        def config = new File(legacyConfig.getAbsolutePath().replace(".yml", ".cdn"))
+        def legacyConfig = workingDirectory.resolve("config.yml")
+        Files.write(legacyConfig, "port: 7".getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
+        def config = legacyConfig.getParent().resolve(legacyConfig.getFileName().toString().replace(".yml", ".cdn"))
 
-        def configuration = ConfigurationLoader.tryLoad(config.getAbsolutePath(), workingDirectory.getAbsolutePath())
+        def configuration = ConfigurationLoader.tryLoad(config)
         assertEquals 7, configuration.port
-        assertTrue config.exists()
-        assertFalse legacyConfig.exists()
+        assertTrue Files.exists(config)
+        assertFalse Files.exists(legacyConfig)
     }
 
     @Test
     void 'should verify proxied' () {
-        def config = new File(workingDirectory, "config.cdn")
-        FileUtils.overrideFile(config, Joiner.on("\n").join(
+        def config = workingDirectory.resolve("config.cdn")
+        Files.write(config, Joiner.on("\n").join(
                 "proxied {",
                 "  https://without.slash",
                 "  https://with.slash/",
                 "}"
-        ).toString())
+        ).toString().getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
 
-        def configuration = ConfigurationLoader.tryLoad(config.getAbsolutePath(), workingDirectory.getAbsolutePath())
+        def configuration = ConfigurationLoader.tryLoad(config)
         assertEquals(Arrays.asList("https://without.slash", "https://with.slash"), configuration.proxied)
     }
 

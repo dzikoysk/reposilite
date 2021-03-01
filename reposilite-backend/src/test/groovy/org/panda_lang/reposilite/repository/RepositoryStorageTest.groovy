@@ -21,6 +21,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 
+import java.nio.file.Path
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
@@ -34,7 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals
 class RepositoryStorageTest {
 
     @TempDir
-    protected File temp
+    protected Path temp
 
     private RepositoryStorage repositoryStorage
 

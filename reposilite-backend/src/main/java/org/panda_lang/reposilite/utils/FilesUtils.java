@@ -17,27 +17,26 @@
 package org.panda_lang.reposilite.utils;
 
 import com.google.common.hash.Hashing;
-import com.google.common.io.Files;
-import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.panda_lang.reposilite.Reposilite;
-import org.panda_lang.utilities.commons.IOUtils;
 import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.function.PandaStream;
 
 import java.io.Closeable;
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public final class FilesUtils {
 
-    private static final File[] EMPTY = {};
+    private static final Path[] EMPTY = {};
 
     private final static long KB_FACTOR = 1024;
     private final static long MB_FACTOR = 1024 * KB_FACTOR;
@@ -57,14 +56,18 @@ public final class FilesUtils {
 
     @SuppressWarnings({ "UnstableApiUsage", "deprecation" })
     public static void writeFileChecksums(Path path) throws IOException {
-        Files.touch(new File(path + ".md5"));
-        Files.touch(new File(path + ".sha1"));
+        Path md5 = path.resolveSibling(path.getFileName() + ".md5");
+        if (!Files.exists(md5)) {
+            Files.createFile(md5);
+        }
 
-        Path md5FileFile = Paths.get(path + ".md5");
-        Path sha1FileFile = Paths.get(path + ".sha1");
+        Path sha1 = path.resolveSibling(path.getFileName() + ".sha1");
+        if (!Files.exists(sha1)) {
+            Files.createFile(sha1);
+        }
 
-        FileUtils.writeStringToFile(md5FileFile.toFile(), Files.hash(path.toFile(), Hashing.md5()).toString(), StandardCharsets.UTF_8);
-        FileUtils.writeStringToFile(sha1FileFile.toFile(), Files.hash(path.toFile(), Hashing.sha1()).toString(), StandardCharsets.UTF_8);
+        Files.write(md5, com.google.common.io.Files.hash(path.toFile(), Hashing.md5()).toString().getBytes(StandardCharsets.UTF_8));
+        Files.write(sha1, com.google.common.io.Files.hash(path.toFile(), Hashing.sha1()).toString().getBytes(StandardCharsets.UTF_8));
     }
 
     public static long displaySizeToBytesCount(String displaySize) {
@@ -99,9 +102,11 @@ public final class FilesUtils {
         return false;
     }
 
-    public static void copyResource(String resourcePath, File destination) throws IOException {
+    public static void copyResource(String resourcePath, Path destination) throws IOException {
         URL inputUrl = Reposilite.class.getResource(resourcePath);
-        FileUtils.copyURLToFile(inputUrl, destination);
+        InputStream in = inputUrl.openStream();
+        OutputStream out = Files.newOutputStream(destination);
+        IOUtils.copy(in, out);
     }
 
     public static void close(Closeable closeable) {
@@ -114,14 +119,9 @@ public final class FilesUtils {
         }
     }
 
-    public static File[] listFiles(File directory) {
-        File[] files = directory.listFiles();
-        return files == null ? EMPTY : files;
-    }
-
-    public static List<String> toNames(File[] files) {
+    public static List<String> toNames(Path[] files) {
         return PandaStream.of(files)
-                .map(File::getName)
+                .map(path -> path.getFileName().toString())
                 .toList();
     }
 
@@ -131,9 +131,10 @@ public final class FilesUtils {
     }
 
     public static String getResource(String name) {
-        return IOUtils.convertStreamToString(Reposilite.class.getResourceAsStream(name)).orElseThrow(ioException -> {
-            throw new RuntimeException("Cannot load resource " + name, ioException);
-        });
+        return org.panda_lang.utilities.commons.IOUtils.convertStreamToString(Reposilite.class.getResourceAsStream(name))
+                .orElseThrow(ioException -> {
+                    throw new RuntimeException("Cannot load resource " + name, ioException);
+                });
     }
 
 }

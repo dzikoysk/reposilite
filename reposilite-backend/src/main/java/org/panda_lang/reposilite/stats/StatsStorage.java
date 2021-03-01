@@ -22,9 +22,10 @@ import org.panda_lang.reposilite.error.FailureService;
 import org.panda_lang.reposilite.utils.FilesUtils;
 import org.panda_lang.reposilite.utils.YamlUtils;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -35,13 +36,13 @@ public final class StatsStorage {
 
     private static final long RETRY_TIME = 1000L;
 
-    private final File statsFile;
+    private final Path statsFile;
     private final FailureService failureService;
     private final ExecutorService ioService;
     private final ScheduledExecutorService retryService;
 
-    public StatsStorage(String workingDirectory, FailureService failureService, ExecutorService ioService, ScheduledExecutorService retryService) {
-        this.statsFile = new File(workingDirectory, ReposiliteConstants.STATS_FILE_NAME);
+    public StatsStorage(Path workingDirectory, FailureService failureService, ExecutorService ioService, ScheduledExecutorService retryService) {
+        this.statsFile = workingDirectory.resolve(ReposiliteConstants.STATS_FILE_NAME);
         this.failureService = failureService;
         this.ioService = ioService;
         this.retryService = retryService;
@@ -54,9 +55,9 @@ public final class StatsStorage {
     CompletableFuture<StatsEntity> loadStoredStats(CompletableFuture<StatsEntity> loadTask) {
         ioService.submit(() -> {
             try {
-                File lockFile = new File(statsFile.getAbsolutePath() + ".lock");
+                Path lockFile = statsFile.resolve(statsFile.getFileName().toString() + ".lock");
 
-                if (lockFile.exists()) {
+                if (Files.exists(lockFile)) {
                     return retryService.schedule(() -> {
                         ioService.submit(() -> {
                             loadStoredStats(loadTask);
@@ -64,11 +65,11 @@ public final class StatsStorage {
                     }, RETRY_TIME, TimeUnit.MILLISECONDS);
                 }
 
-                if (!statsFile.exists()) {
-                    File legacyStatsFile = new File(statsFile.getAbsolutePath().replace(".dat", ".yml"));
+                if (!Files.exists(statsFile)) {
+                    Path legacyStatsFile = statsFile.resolveSibling(statsFile.getFileName().toString().replace(".dat", ".yml"));
 
-                    if (legacyStatsFile.exists()) {
-                        Files.move(legacyStatsFile.toPath(), statsFile.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+                    if (Files.exists(legacyStatsFile)) {
+                        Files.move(legacyStatsFile, statsFile, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
                         Reposilite.getLogger().info("Legacy stats file has been converted to dat file");
                     }
                     else {

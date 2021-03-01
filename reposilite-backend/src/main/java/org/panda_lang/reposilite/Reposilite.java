@@ -28,11 +28,7 @@ import org.panda_lang.reposilite.error.FailureService;
 import org.panda_lang.reposilite.frontend.FrontendService;
 import org.panda_lang.reposilite.metadata.MetadataConfiguration;
 import org.panda_lang.reposilite.metadata.MetadataService;
-import org.panda_lang.reposilite.repository.DeployService;
-import org.panda_lang.reposilite.repository.LookupService;
-import org.panda_lang.reposilite.repository.ProxyService;
-import org.panda_lang.reposilite.repository.RepositoryAuthenticator;
-import org.panda_lang.reposilite.repository.RepositoryService;
+import org.panda_lang.reposilite.repository.*;
 import org.panda_lang.reposilite.stats.StatsConfiguration;
 import org.panda_lang.reposilite.stats.StatsService;
 import org.panda_lang.reposilite.utils.RunUtils;
@@ -42,14 +38,8 @@ import org.panda_lang.utilities.commons.function.ThrowingRunnable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.nio.file.Path;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public final class Reposilite {
@@ -60,8 +50,8 @@ public final class Reposilite {
     private final AtomicBoolean alive;
     private final ExecutorService ioService;
     private final ScheduledExecutorService retryService;
-    private final File configurationFile;
-    private final File workingDirectory;
+    private final Path configurationFile;
+    private final Path workingDirectory;
     private final boolean testEnvEnabled;
     private final Configuration configuration;
     private final ReposiliteContextFactory contextFactory;
@@ -83,7 +73,7 @@ public final class Reposilite {
     private final Thread shutdownHook;
     private long uptime;
 
-    Reposilite(String configurationFile, String workingDirectory, boolean servlet, boolean testEnv) {
+    Reposilite(Path configurationFile, Path workingDirectory, boolean servlet, boolean testEnv) {
         ValidationUtils.notNull(configurationFile, "Configuration file cannot be null. To use default configuration file, provide empty string");
         ValidationUtils.notNull(workingDirectory, "Working directory cannot be null. To use default working directory, provide empty string");
 
@@ -91,11 +81,11 @@ public final class Reposilite {
         this.alive = new AtomicBoolean(false);
         this.ioService = new ThreadPoolExecutor(0, Integer.MAX_VALUE, 1, TimeUnit.SECONDS, new SynchronousQueue<>());
         this.retryService = Executors.newSingleThreadScheduledExecutor();
-        this.configurationFile = new File(configurationFile);
-        this.workingDirectory = new File(workingDirectory);
+        this.configurationFile = configurationFile;
+        this.workingDirectory = workingDirectory;
         this.testEnvEnabled = testEnv;
 
-        this.configuration = ConfigurationLoader.tryLoad(configurationFile, workingDirectory);
+        this.configuration = ConfigurationLoader.tryLoad(configurationFile);
         this.contextFactory = new ReposiliteContextFactory(configuration.forwardedIp);
         this.failureService = new FailureService();
         this.executor = new ReposiliteExecutor(testEnvEnabled, failureService);
@@ -108,7 +98,7 @@ public final class Reposilite {
         this.repositoryAuthenticator = new RepositoryAuthenticator(configuration.rewritePathsEnabled, authenticator, repositoryService);
         this.authService = new AuthService(authenticator);
         this.deployService = new DeployService(configuration.deployEnabled, authenticator, repositoryService, metadataService);
-        this.lookupService = new LookupService(authenticator, repositoryAuthenticator, metadataService, repositoryService, ioService, failureService);
+        this.lookupService = new LookupService(repositoryAuthenticator, metadataService, repositoryService);
         this.proxyService = new ProxyService(configuration.storeProxied, configuration.rewritePathsEnabled, configuration.proxied, ioService, failureService, repositoryService);
         this.frontend = FrontendService.load(configuration);
         this.reactiveHttpServer = new ReposiliteHttpServer(this, servlet);
@@ -138,8 +128,8 @@ public final class Reposilite {
         }
 
         getLogger().info("Platform: " + System.getProperty("java.version") + " (" + System.getProperty("os.name") + ")");
-        getLogger().info("Configuration: " + configurationFile.getAbsolutePath());
-        getLogger().info("Working directory: " + workingDirectory.getAbsolutePath());
+        getLogger().info("Configuration: " + configurationFile.toAbsolutePath());
+        getLogger().info("Working directory: " + workingDirectory.toAbsolutePath());
         getLogger().info("");
 
         this.alive.set(true);
@@ -296,7 +286,7 @@ public final class Reposilite {
         return ioService;
     }
 
-    public File getWorkingDirectory() {
+    public Path getWorkingDirectory() {
         return workingDirectory;
     }
 

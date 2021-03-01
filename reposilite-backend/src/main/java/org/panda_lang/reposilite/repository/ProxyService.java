@@ -21,7 +21,6 @@ import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestFactory;
 import com.google.api.client.http.HttpResponse;
 import com.google.api.client.http.javanet.NetHttpTransport;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.Reposilite;
@@ -35,7 +34,8 @@ import org.panda_lang.reposilite.utils.Result;
 import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.function.Option;
 
-import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -142,14 +142,10 @@ public final class ProxyService {
         Repository repository = repositoryService.getRepository(repositoryName);
 
         if (repository == null) {
-            if (!rewritePathsEnabled) {
-                Option.none();
-            }
-
             uri = repositoryService.getPrimaryRepository().getName() + uri;
         }
 
-        File proxiedFile = repositoryService.getFile(uri);
+        Path proxiedFile = repositoryService.getFile(uri);
 
         return Option.of(repositoryService.storeFile(
                 uri,
@@ -157,7 +153,7 @@ public final class ProxyService {
                 remoteResponse::getContent,
                 () -> {
                     Reposilite.getLogger().info("Stored proxied " + proxiedFile + " from " + remoteResponse.getRequest().getUrl());
-                    context.result(outputStream -> FileUtils.copyFile(proxiedFile, outputStream));
+                    context.result(outputStream -> Files.copy(proxiedFile, outputStream));
                     return response;
                 },
                 exception -> new ErrorDto(HttpStatus.SC_UNPROCESSABLE_ENTITY, "Cannot process artifact")));

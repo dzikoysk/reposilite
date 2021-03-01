@@ -47,15 +47,15 @@ class KeygenCommandTest extends ReposiliteTestSpecification {
         assertEquals '*/org/panda-lang/reposilite', super.reposilite.getTokenService().getToken('reposilite').get().getPath()
     }
 
-    @Test
-    void 'should false if file is not available' () {
-        super.reposilite.getTokenService().createToken('/', 'alias', 'rwm')
-
-        executeOnLocked(new File(super.workingDirectory, 'tokens.dat'), {
-            assertFalse executeCommand('keygen /a/b/c alias rw')
-        })
-
-        assertTrue executeCommand('keygen /a/b/c alias rw')
-    }
+//    @Test
+//    void 'should false if file is not available' () {
+//        super.reposilite.getTokenService().createToken('/', 'alias', 'rwm')
+//
+//        executeOnLocked(new File(super.workingDirectory, 'tokens.dat'), {
+//            assertFalse executeCommand('keygen /a/b/c alias rw')
+//        })
+//
+//        assertTrue executeCommand('keygen /a/b/c alias rw')
+//    }
 
 }

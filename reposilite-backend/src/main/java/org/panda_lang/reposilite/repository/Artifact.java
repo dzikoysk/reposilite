@@ -18,7 +18,7 @@ package org.panda_lang.reposilite.repository;
 
 import org.panda_lang.reposilite.metadata.MetadataUtils;
 
-import java.io.File;
+import java.nio.file.Path;
 
 final class Artifact {
 
@@ -34,7 +34,7 @@ final class Artifact {
         this.version = version;
     }
 
-    public File getFile(String fileName) {
+    public Path getFile(String fileName) {
         return repository.getFile(getLocalPath() + fileName);
     }
 

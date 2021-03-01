@@ -22,7 +22,9 @@ import org.panda_lang.utilities.commons.collection.Pair;
 import org.panda_lang.utilities.commons.function.PandaStream;
 import org.panda_lang.utilities.commons.text.Joiner;
 
-import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -42,29 +44,33 @@ public final class MetadataUtils {
 
     private MetadataUtils() { }
 
-    public static File[] toSortedBuilds(File artifactDirectory) {
-        return PandaStream.of(FilesUtils.listFiles(artifactDirectory))
-                .filter(File::isFile)
-                .filter(file -> file.getName().endsWith(".pom"))
-                .stream(stream -> toSorted(stream, File::getName, File::isDirectory))
-                .toArray(File[]::new);
+    public static Path[] toSortedBuilds(Path artifactDirectory) throws IOException {
+        return toSorted(Files.walk(artifactDirectory, 1)
+                        .filter(path -> Files.exists(path) && !Files.isDirectory(path))
+                        .filter(path -> path.getFileName().endsWith(".pom")),
+                path -> path.getFileName().toString(), Files::isDirectory)
+                .toArray(Path[]::new);
     }
 
-    public static File[] toFiles(File directory) {
-        return PandaStream.of(FilesUtils.listFiles(directory))
-                .filter(File::isFile)
-                .transform(stream -> toSorted(stream, File::getName, File::isDirectory))
-                .toArray(File[]::new);
+    public static Path[] toFiles(Path directory) throws IOException {
+        return toSorted(Files.walk(directory, 1)
+                        .filter(path -> Files.exists(path) && !Files.isDirectory(path)),
+                path -> path.getFileName().toString(), Files::isDirectory)
+                .toArray(Path[]::new);
     }
 
-    public static File[] toSortedVersions(File artifactDirectory) {
-        return PandaStream.of(FilesUtils.listFiles(artifactDirectory))
-                .filter(File::isDirectory)
-                .transform(stream -> toSorted(stream, File::getName, File::isDirectory))
-                .toArray(File[]::new);
+    public static Path[] toSortedVersions(Path artifactDirectory) throws IOException {
+        if (!Files.exists(artifactDirectory)) {
+            Files.createDirectories(artifactDirectory);
+        }
+
+        return toSorted(Files.walk(artifactDirectory, 1)
+                        .filter(Files::isDirectory),
+                path -> path.getFileName().toString(), Files::isDirectory)
+                .toArray(Path[]::new);
     }
 
-    protected static String[] toSortedIdentifiers(String artifact, String version, File[] builds) {
+    protected static String[] toSortedIdentifiers(String artifact, String version, Path[] builds) {
         return PandaStream.of(builds)
                 .map(build -> toIdentifier(artifact, version, build))
                 .filterNot(StringUtils::isEmpty)
@@ -73,13 +79,16 @@ public final class MetadataUtils {
                 .toArray(String[]::new);
     }
 
-    protected static File[] toBuildFiles(File artifactDirectory, String identifier) {
-        return PandaStream.of(FilesUtils.listFiles(artifactDirectory))
-                .filter(file -> file.getName().contains(identifier + ".") || file.getName().contains(identifier + "-"))
-                .filterNot(file -> file.getName().endsWith(".md5"))
-                .filterNot(file -> file.getName().endsWith(".sha1"))
-                .transform(stream -> toSorted(stream, File::getName, File::isDirectory))
-                .toArray(File[]::new);
+    protected static Path[] toBuildFiles(Path artifactDirectory, String identifier) throws IOException {
+        return toSorted(Files.walk(artifactDirectory, 1)
+                .filter(path -> {
+                    String name = path.getFileName().toString();
+                    return (!name.endsWith(".md5"))
+                            && (!name.endsWith(".sha1"))
+                            && (name.contains(identifier + ".") || name.contains(identifier + "-"));
+                }),
+                path -> path.getFileName().toString(), Files::isDirectory)
+                .toArray(Path[]::new);
     }
 
     public static <T> Stream<T> toSorted(Stream<T> stream, Function<T, String> mapper, Predicate<T> isDirectory) {
@@ -89,8 +98,8 @@ public final class MetadataUtils {
                 .map(Pair::getKey);
     }
 
-    public static String toIdentifier(String artifact, String version, File build) {
-        String identifier = build.getName();
+    public static String toIdentifier(String artifact, String version, Path build) {
+        String identifier = build.getFileName().toString();
         identifier = StringUtils.replace(identifier, "." + FilesUtils.getExtension(identifier), StringUtils.EMPTY);
         identifier = StringUtils.replace(identifier, artifact + "-", StringUtils.EMPTY);
         identifier = StringUtils.replace(identifier, version + "-", StringUtils.EMPTY);
@@ -118,8 +127,8 @@ public final class MetadataUtils {
                 : identifier.substring(0, occurrence);
     }
 
-    protected static String toUpdateTime(File file) {
-        return TIMESTAMP_FORMATTER.format(Instant.ofEpochMilli(file.lastModified()));
+    protected static String toUpdateTime(Path file) throws IOException {
+        return TIMESTAMP_FORMATTER.format(Instant.ofEpochMilli(Files.getLastModifiedTime(file).toMillis()));
     }
 
     public static String toGroup(String[] elements) {

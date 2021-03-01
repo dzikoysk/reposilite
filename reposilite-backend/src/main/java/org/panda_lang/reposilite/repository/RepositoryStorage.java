@@ -16,14 +16,13 @@
 
 package org.panda_lang.reposilite.repository;
 
-import org.apache.commons.io.FileUtils;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.config.Configuration;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -40,23 +39,24 @@ final class RepositoryStorage {
 
     private final Map<String, Repository> repositories = new LinkedHashMap<>(4);
 
-    private final File rootDirectory;
+    private final Path rootDirectory;
     private final DiskQuota diskQuota;
     private final ExecutorService ioService;
     private final ScheduledExecutorService retryService;
     private Repository primaryRepository;
 
-    RepositoryStorage(File rootDirectory, String diskQuota, ExecutorService ioService, ScheduledExecutorService retryService) {
-        this.rootDirectory = rootDirectory;
-        this.diskQuota = DiskQuota.of(getRootDirectory().getParentFile(), diskQuota);
+    RepositoryStorage(Path workingDirectory, String diskQuota, ExecutorService ioService, ScheduledExecutorService retryService) {
+        this.rootDirectory = workingDirectory.resolve("repositories");
+        this.diskQuota = DiskQuota.of(rootDirectory, diskQuota);
         this.ioService = ioService;
         this.retryService = retryService;
     }
 
-    void load(Configuration configuration) {
+    void load(Configuration configuration) throws IOException {
         Reposilite.getLogger().info("--- Loading repositories");
 
-        if (rootDirectory.mkdirs()) {
+        if (!Files.exists(rootDirectory)) {
+            Files.createDirectories(rootDirectory);
             Reposilite.getLogger().info("Default repository directory has been created");
         }
         else {
@@ -71,9 +71,10 @@ final class RepositoryStorage {
                 repositoryName = repositoryName.substring(1);
             }
 
-            File repositoryDirectory = new File(rootDirectory, repositoryName);
+            Path repositoryDirectory = rootDirectory.resolve(repositoryName);
 
-            if (repositoryDirectory.mkdirs()) {
+            if (!Files.exists(repositoryDirectory)) {
+                Files.createDirectories(repositoryDirectory);
                 Reposilite.getLogger().info("+ Repository '" + repositoryName + "' has been created");
             }
 
@@ -84,20 +85,20 @@ final class RepositoryStorage {
                 this.primaryRepository = repository;
             }
 
-            Reposilite.getLogger().info("+ " + repositoryDirectory.getName() + (hidden ? " (hidden)" : "") + (primary ? " (primary)" : ""));
+            Reposilite.getLogger().info("+ " + repositoryDirectory.getFileName() + (hidden ? " (hidden)" : "") + (primary ? " (primary)" : ""));
         }
 
         Reposilite.getLogger().info(repositories.size() + " repositories have been found");
     }
 
-    CompletableFuture<File> storeFile(InputStream source, File targetFile) throws Exception {
+    CompletableFuture<Path> storeFile(InputStream source, Path targetFile) throws Exception {
         return storeFile(new CompletableFuture<>(), source, targetFile);
     }
 
-    private CompletableFuture<File> storeFile(CompletableFuture<File> task, InputStream source, File targetFile) throws IOException {
-        File lockedFile = new File(targetFile.getAbsolutePath() + ".lock");
+    private CompletableFuture<Path> storeFile(CompletableFuture<Path> task, InputStream source, Path targetFile) throws IOException {
+        Path lockedFile = targetFile.resolveSibling(targetFile.getFileName() + ".lock");
 
-        if (lockedFile.exists()) {
+        if (Files.exists(lockedFile)) {
             retryService.schedule(() -> {
                 ioService.submit(() -> {
                     storeFile(task, source, targetFile);
@@ -108,22 +109,22 @@ final class RepositoryStorage {
             return task;
         }
 
-        FileUtils.forceMkdirParent(targetFile);
+        Files.createDirectories(targetFile.getParent());
 
-        if (targetFile.exists()) {
-            Files.move(targetFile.toPath(), lockedFile.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+        if (Files.exists(targetFile)) {
+            Files.move(targetFile, lockedFile, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
         }
 
-        Files.copy(source, lockedFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-        diskQuota.allocate(lockedFile.length());
-        Files.move(lockedFile.toPath(), targetFile.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+        Files.copy(source, lockedFile, StandardCopyOption.REPLACE_EXISTING);
+        diskQuota.allocate(Files.size(lockedFile));
+        Files.move(lockedFile, targetFile, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
 
         task.complete(targetFile);
         return task;
     }
 
-    File getFile(String path) {
-        return new File(rootDirectory, path);
+    Path getFile(String path) {
+        return rootDirectory.resolve(path);
     }
 
     Repository getRepository(String repositoryName) {
@@ -142,7 +143,7 @@ final class RepositoryStorage {
         return diskQuota;
     }
 
-    File getRootDirectory() {
+    Path getRootDirectory() {
         return rootDirectory;
     }
 

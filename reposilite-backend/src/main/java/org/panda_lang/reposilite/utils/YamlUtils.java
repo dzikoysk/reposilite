@@ -16,15 +16,17 @@
 
 package org.panda_lang.reposilite.utils;
 
-import org.panda_lang.utilities.commons.FileUtils;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.representer.Representer;
 
-import java.io.File;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 
 public final class YamlUtils {
 
@@ -37,21 +39,21 @@ public final class YamlUtils {
 
     private YamlUtils() { }
 
-    public static <T> T load(File file, Class<T> type) throws IOException {
-        return YAML.loadAs(FileUtils.getContentOfFile(file), type);
+    public static <T> T load(Path file, Class<T> type) throws IOException {
+        return YAML.loadAs(new ByteArrayInputStream(Files.readAllBytes(file)), type);
     }
 
-    public static void save(File file, Object value) throws IOException {
-        File lockedFile = new File(file.getAbsolutePath() + ".lock");
+    public static void save(Path file, Object value) throws IOException {
+        Path lockedFile = file.resolveSibling(file.getFileName() + ".lock");
 
-        if (file.exists()) {
-            Files.move(file.toPath(), lockedFile.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+        if (Files.exists(lockedFile)) {
+            Files.move(file, lockedFile, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
         }
 
         try {
-            FileUtils.overrideFile(lockedFile, YAML.dump(value));
+            Files.write(lockedFile, YAML.dump(value).getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
         } finally {
-            Files.move(lockedFile.toPath(), file.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+            Files.move(lockedFile, file, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
         }
     }
 

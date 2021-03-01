@@ -11,7 +11,7 @@
     </method>
   </configuration>
   <configuration default="false" name="Reposilite" type="Application" factoryName="Application">
-    <option name="ALTERNATIVE_JRE_PATH" value="8" />
+    <option name="ALTERNATIVE_JRE_PATH" value="D:\Program Files\Java\jdk1.8.0_251\jre" />
     <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
     <option name="MAIN_CLASS_NAME" value="org.panda_lang.reposilite.ReposiliteLauncher" />
     <module name="reposilite" />
