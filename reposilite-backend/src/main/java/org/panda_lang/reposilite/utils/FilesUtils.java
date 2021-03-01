@@ -60,14 +60,7 @@ public final class FilesUtils {
     @SuppressWarnings({ "UnstableApiUsage", "deprecation" })
     public static void writeFileChecksums(Path path) throws IOException {
         Path md5 = path.resolveSibling(path.getFileName() + ".md5");
-        if (!Files.exists(md5)) {
-            Files.createFile(md5);
-        }
-
         Path sha1 = path.resolveSibling(path.getFileName() + ".sha1");
-        if (!Files.exists(sha1)) {
-            Files.createFile(sha1);
-        }
 
         Files.write(md5, com.google.common.io.Files.hash(path.toFile(), Hashing.md5()).toString().getBytes(StandardCharsets.UTF_8));
         Files.write(sha1, com.google.common.io.Files.hash(path.toFile(), Hashing.sha1()).toString().getBytes(StandardCharsets.UTF_8));

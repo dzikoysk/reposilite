@@ -31,6 +31,8 @@ import org.panda_lang.reposilite.metadata.MetadataService;
 import org.panda_lang.reposilite.repository.*;
 import org.panda_lang.reposilite.stats.StatsConfiguration;
 import org.panda_lang.reposilite.stats.StatsService;
+import org.panda_lang.reposilite.storage.FileSystemStorageProvider;
+import org.panda_lang.reposilite.storage.StorageProvider;
 import org.panda_lang.reposilite.utils.RunUtils;
 import org.panda_lang.reposilite.utils.TimeUtils;
 import org.panda_lang.utilities.commons.ValidationUtils;
@@ -39,6 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -53,6 +56,7 @@ public final class Reposilite {
     private final Path configurationFile;
     private final Path workingDirectory;
     private final boolean testEnvEnabled;
+    private final StorageProvider storageProvider;
     private final Configuration configuration;
     private final ReposiliteContextFactory contextFactory;
     private final ReposiliteExecutor executor;
@@ -85,6 +89,7 @@ public final class Reposilite {
         this.workingDirectory = workingDirectory;
         this.testEnvEnabled = testEnv;
 
+        this.storageProvider = new FileSystemStorageProvider(Paths.get(""));
         this.configuration = ConfigurationLoader.tryLoad(configurationFile);
         this.contextFactory = new ReposiliteContextFactory(configuration.forwardedIp);
         this.failureService = new FailureService();
