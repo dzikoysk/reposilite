@@ -89,8 +89,8 @@ public final class Reposilite {
         this.workingDirectory = workingDirectory;
         this.testEnvEnabled = testEnv;
 
-        this.storageProvider = new FileSystemStorageProvider(Paths.get(""));
         this.configuration = ConfigurationLoader.tryLoad(configurationFile);
+        this.storageProvider = FileSystemStorageProvider.of(LOGGER, Paths.get(""), this.configuration.diskQuota);
         this.contextFactory = new ReposiliteContextFactory(configuration.forwardedIp);
         this.failureService = new FailureService();
         this.executor = new ReposiliteExecutor(testEnvEnabled, failureService);
