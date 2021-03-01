@@ -22,19 +22,18 @@ import org.panda_lang.reposilite.error.FailureService;
 import org.panda_lang.reposilite.repository.Repository;
 import org.panda_lang.reposilite.utils.ArrayUtils;
 import org.panda_lang.reposilite.utils.FilesUtils;
+import org.panda_lang.reposilite.utils.Result;
 import org.panda_lang.utilities.commons.FileUtils;
 import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.function.Lazy;
 import org.panda_lang.utilities.commons.function.Result;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+import java.util.*;
 
 public final class MetadataService {
 
@@ -50,26 +49,26 @@ public final class MetadataService {
         this.failureService = failureService;
     }
 
-    public Result<String, String> generateMetadata(Repository repository, String[] requested) {
-        File metadataFile = repository.getFile(requested);
+    public Result<String, String> generateMetadata(Repository repository, String[] requested) throws IOException {
+        Path metadataFile = repository.getFile(requested);
 
-        if (!metadataFile.getName().equals("maven-metadata.xml")) {
+        if (!metadataFile.getFileName().toString().equals("maven-metadata.xml")) {
             return Result.error("Bad request");
         }
 
-        String cachedContent = metadataCache.get(metadataFile.getPath());
+        String cachedContent = metadataCache.get(metadataFile.toString());
 
         if (cachedContent != null) {
             return Result.ok(cachedContent);
         }
 
-        File artifactDirectory = metadataFile.getParentFile();
+        Path artifactDirectory = metadataFile.getParent();
 
-        if (artifactDirectory.isFile()) {
+        if (Files.exists(artifactDirectory) && !Files.isDirectory(artifactDirectory)) {
             return Result.error("Bad request");
         }
 
-        File[] versions = MetadataUtils.toSortedVersions(artifactDirectory);
+        Path[] versions = MetadataUtils.toSortedVersions(artifactDirectory);
 
         if (versions.length > 0) {
             return generateArtifactMetadata(metadataFile, MetadataUtils.toGroup(requested, 2), artifactDirectory, versions);
@@ -78,26 +77,26 @@ public final class MetadataService {
         return generateBuildMetadata(metadataFile, MetadataUtils.toGroup(requested, 3), artifactDirectory);
     }
 
-    private Result<String, String> generateArtifactMetadata(File metadataFile, String groupId, File artifactDirectory, File[] versions) {
-        File latest = Objects.requireNonNull(ArrayUtils.getFirst(versions));
+    private Result<String, String> generateArtifactMetadata(Path metadataFile, String groupId, Path artifactDirectory, Path[] versions) throws IOException {
+        Path latest = Objects.requireNonNull(ArrayUtils.getFirst(versions));
 
-        Versioning versioning = new Versioning(latest.getName(), latest.getName(), FilesUtils.toNames(versions), null, null, MetadataUtils.toUpdateTime(latest));
-        Metadata metadata = new Metadata(groupId, artifactDirectory.getName(), null, versioning);
+        Versioning versioning = new Versioning(latest.getFileName().toString(), latest.getFileName().toString(), FilesUtils.toNames(versions), null, null, MetadataUtils.toUpdateTime(latest));
+        Metadata metadata = new Metadata(groupId, artifactDirectory.getFileName().toString(), null, versioning);
 
         return toMetadataFile(metadataFile, metadata);
     }
 
-    private Result<String, String> generateBuildMetadata(File metadataFile, String groupId, File versionDirectory) {
-        File artifactDirectory = versionDirectory.getParentFile();
-        File[] builds = MetadataUtils.toSortedBuilds(versionDirectory);
-        File latestBuild = ArrayUtils.getFirst(builds);
+    private Result<String, String> generateBuildMetadata(Path metadataFile, String groupId, Path versionDirectory) throws IOException {
+        Path artifactDirectory = versionDirectory.getParent();
+        Path[] builds = MetadataUtils.toSortedBuilds(versionDirectory);
+        Path latestBuild = ArrayUtils.getFirst(builds);
 
         if (latestBuild == null) {
             return Result.error("Latest build not found");
         }
 
-        String name = artifactDirectory.getName();
-        String version = StringUtils.replace(versionDirectory.getName(), "-SNAPSHOT", StringUtils.EMPTY);
+        String name = artifactDirectory.getFileName().toString();
+        String version = StringUtils.replace(versionDirectory.getFileName().toString(), "-SNAPSHOT", StringUtils.EMPTY);
 
         String[] identifiers = MetadataUtils.toSortedIdentifiers(name, version, builds);
         String latestIdentifier = Objects.requireNonNull(ArrayUtils.getFirst(identifiers));
@@ -114,10 +113,10 @@ public final class MetadataService {
             Collection<SnapshotVersion> snapshotVersions = new ArrayList<>(builds.length);
 
             for (String identifier : identifiers) {
-                File[] buildFiles = MetadataUtils.toBuildFiles(versionDirectory, identifier);
+                Path[] buildFiles = MetadataUtils.toBuildFiles(versionDirectory, identifier);
 
-                for (File buildFile : buildFiles) {
-                    String fileName = buildFile.getName();
+                for (Path buildFile : buildFiles) {
+                    String fileName = buildFile.getFileName().toString();
                     String value = version + "-" + identifier;
                     String updated = MetadataUtils.toUpdateTime(buildFile);
                     String extension = fileName
@@ -136,24 +135,24 @@ public final class MetadataService {
             versioning = new Versioning(fullVersion, fullVersion, Collections.singletonList(fullVersion), null, null, MetadataUtils.toUpdateTime(latestBuild));
         }
 
-        return toMetadataFile(metadataFile, new Metadata(groupId, name, versionDirectory.getName(), versioning));
+        return toMetadataFile(metadataFile, new Metadata(groupId, name, versionDirectory.getFileName().toString(), versioning));
     }
 
-    private Result<String, String> toMetadataFile(File metadataFile, Metadata metadata) {
+    private Result<String, String> toMetadataFile(Path metadataFile, Metadata metadata) {
         try {
             String serializedMetadata = XML_MAPPER.get().writeValueAsString(metadata);
-            FileUtils.overrideFile(metadataFile, serializedMetadata);
-            FilesUtils.writeFileChecksums(metadataFile.toPath());
-            metadataCache.put(metadataFile.getPath(), serializedMetadata);
+            Files.write(metadataFile, serializedMetadata.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+            FilesUtils.writeFileChecksums(metadataFile);
+            metadataCache.put(metadataFile.toString(), serializedMetadata);
             return Result.ok(serializedMetadata);
         } catch (IOException e) {
-            failureService.throwException(metadataFile.getAbsolutePath(), e);
+            failureService.throwException(metadataFile.toAbsolutePath().toString(), e);
             return Result.error("Cannot generate metadata");
         }
     }
 
-    public void clearMetadata(File metadataFile) {
-        metadataCache.remove(metadataFile.getPath());
+    public void clearMetadata(Path metadataFile) {
+        metadataCache.remove(metadataFile.toString());
     }
 
     public int purgeCache() {

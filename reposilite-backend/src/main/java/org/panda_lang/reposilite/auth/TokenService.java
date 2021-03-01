@@ -22,6 +22,7 @@ import org.panda_lang.utilities.commons.function.Result;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.Collection;
@@ -37,7 +38,7 @@ public final class TokenService {
     private final Map<String, Token> tokens = new HashMap<>();
     private final TokenStorage database;
 
-    public TokenService(String workingDirectory) {
+    public TokenService(Path workingDirectory) {
         this.database = new TokenStorage(this, workingDirectory);
     }
 

@@ -19,6 +19,7 @@ package org.panda_lang.reposilite.stats;
 import org.panda_lang.reposilite.error.FailureService;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -29,7 +30,7 @@ public final class StatsService {
     private final StatsEntity instanceStats = new StatsEntity();
     private final StatsStorage statsStorage;
 
-    public StatsService(String workingDirectory, FailureService failureService, ExecutorService ioService, ScheduledExecutorService retryService) {
+    public StatsService(Path workingDirectory, FailureService failureService, ExecutorService ioService, ScheduledExecutorService retryService) {
         this.statsStorage = new StatsStorage(workingDirectory, failureService, ioService, retryService);
     }
 
@@ -43,9 +44,7 @@ public final class StatsService {
 
     public CompletableFuture<AggregatedStats> loadAggregatedStats() {
         return statsStorage.loadStoredStats().thenApply(aggregatedStats -> {
-            instanceStats.getRecords().forEach((key, value) -> {
-                aggregatedStats.getRecords().merge(key, value, Integer::sum);
-            });
+            instanceStats.getRecords().forEach((key, value) -> aggregatedStats.getRecords().merge(key, value, Integer::sum));
 
             return new AggregatedStats(aggregatedStats);
         });

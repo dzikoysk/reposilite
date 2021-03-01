@@ -24,6 +24,7 @@ import org.panda_lang.reposilite.config.Configuration
 import org.panda_lang.reposilite.error.FailureService
 import org.panda_lang.reposilite.repository.RepositoryService
 
+import java.nio.file.Path
 import java.util.concurrent.Executors
 
 import static org.junit.jupiter.api.Assertions.*
@@ -32,13 +33,13 @@ import static org.junit.jupiter.api.Assertions.*
 class SessionTest {
 
     @TempDir
-    protected static File WORKING_DIRECTORY
+    protected static Path WORKING_DIRECTORY
     protected static RepositoryService REPOSITORY_SERVICE
 
     @BeforeAll
     static void prepare () {
         REPOSITORY_SERVICE = new RepositoryService(
-                WORKING_DIRECTORY.getAbsolutePath(),
+                WORKING_DIRECTORY,
                 '0',
                 Executors.newSingleThreadExecutor(),
                 Executors.newSingleThreadScheduledExecutor(),

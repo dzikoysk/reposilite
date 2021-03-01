@@ -22,13 +22,16 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.panda_lang.utilities.commons.text.Joiner
 
+import java.nio.file.Files
+import java.nio.file.Path
+
 import static org.junit.jupiter.api.Assertions.assertEquals
 
 @CompileStatic
 class ArtifactTest {
 
     @TempDir
-    protected static File WORKING_DIRECTORY
+    protected static Path WORKING_DIRECTORY
 
     static Repository REPOSITORY
     static Artifact ARTIFACT
@@ -38,12 +41,12 @@ class ArtifactTest {
         REPOSITORY = new Repository(WORKING_DIRECTORY, "releases", false)
 
         def build1 = REPOSITORY.getFile("groupId", "artifactId", "version", "build1")
-        build1.getParentFile().mkdirs()
-        build1.createNewFile()
+        Files.createDirectories(build1.parent)
+        Files.createFile(build1)
 
         def build2 = REPOSITORY.getFile("groupId", "artifactId", "version", "build2")
-        build2.getParentFile().mkdirs()
-        build2.createNewFile()
+        Files.createDirectories(build2.parent)
+        Files.createFile(build2)
 
         ARTIFACT = new Artifact(REPOSITORY, "groupId", "artifactId", "version")
     }
@@ -54,7 +57,7 @@ class ArtifactTest {
                 .join(ARTIFACT.getRepository().getName(), "groupId", "artifactId", "version")
                 .toString()
 
-        assertEquals new File(WORKING_DIRECTORY, fileName), ARTIFACT.getFile("")
+        assertEquals WORKING_DIRECTORY.resolve(fileName), ARTIFACT.getFile("")
     }
 
     @Test

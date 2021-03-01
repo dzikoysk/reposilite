@@ -20,21 +20,24 @@ import groovy.transform.CompileStatic
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 
+import java.nio.file.Files
+import java.nio.file.Path
+
 import static org.junit.jupiter.api.Assertions.assertEquals
 
 @CompileStatic
 class FileListDtoTest {
 
     @TempDir
-    protected File temp
+    protected Path temp
 
     @Test
     void 'should return list of files' () {
-        def file1 = new File(temp, "file1")
-        file1.createNewFile()
+        def file1 = temp.resolve("file1")
+        Files.createFile(file1)
 
-        def file2 = new File(temp, "file2")
-        file2.createNewFile()
+        def file2 = temp.resolve("file2")
+        Files.createFile(file2)
 
         def files = Arrays.asList(FileDetailsDto.of(file1), FileDetailsDto.of(file2))
         def fileListDto = new FileListDto(files)

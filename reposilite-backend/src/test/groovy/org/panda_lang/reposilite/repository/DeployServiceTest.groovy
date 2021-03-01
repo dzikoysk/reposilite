@@ -41,7 +41,7 @@ class DeployServiceTest extends ReposiliteTestSpecification {
                 false,
                 super.reposilite.authenticator,
                 new RepositoryService(
-                        super.workingDirectory.getAbsolutePath(),
+                        super.workingDirectory,
                         '0MB',
                         Executors.newSingleThreadExecutor(),
                         Executors.newSingleThreadScheduledExecutor(),

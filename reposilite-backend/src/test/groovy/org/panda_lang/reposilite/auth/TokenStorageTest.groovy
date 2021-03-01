@@ -22,25 +22,30 @@ import org.junit.jupiter.api.io.TempDir
 import org.panda_lang.reposilite.ReposiliteConstants
 import org.panda_lang.utilities.commons.FileUtils
 
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.StandardOpenOption
+
 import static org.junit.jupiter.api.Assertions.*
 
 @CompileStatic
 final class TokenStorageTest {
 
     @TempDir
-    public File workingDirectory
+    public Path workingDirectory
 
     @Test
     void 'should convert old data file' () {
-        def workspace = workingDirectory.getAbsolutePath()
-        def tokenStorage = new TokenStorage(new TokenService(workspace), workspace)
+        def tokenStorage = new TokenStorage(new TokenService(workingDirectory), workingDirectory)
 
-        FileUtils.overrideFile(new File(workingDirectory, 'tokens.yml'), 'tokens: []')
+        Files.write(workingDirectory.resolve("tokens.yml"), 'tokens: []'.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
+
         tokenStorage.loadTokens()
 
-        def dataFile = new File(workingDirectory, ReposiliteConstants.TOKENS_FILE_NAME)
-        assertTrue dataFile.exists()
-        assertEquals 'tokens: []', FileUtils.getContentOfFile(dataFile)
+        def dataFile = workingDirectory.resolve(ReposiliteConstants.TOKENS_FILE_NAME)
+        assertTrue Files.exists(dataFile)
+        assertEquals 'tokens: []', new String(Files.readAllBytes(dataFile), StandardCharsets.UTF_8)
     }
 
 }

@@ -16,10 +16,12 @@
 
 package org.panda_lang.reposilite.repository;
 
-import org.apache.commons.io.FileUtils;
 import org.panda_lang.reposilite.utils.FilesUtils;
+import org.panda_lang.utilities.commons.function.mutable.Mutable;
 
-import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicLong;
 
 public final class DiskQuota {
@@ -44,19 +46,40 @@ public final class DiskQuota {
         return usage.get();
     }
 
-    static DiskQuota ofPercentage(File workingDirectory, long usage, int percentage) {
-        return new DiskQuota(Math.round(workingDirectory.getUsableSpace() * (percentage / 100D)), usage);
+    static DiskQuota ofPercentage(Path workingDirectory, long usage, int percentage) {
+        long size = -1;
+
+        try {
+            size = Files.getFileStore(workingDirectory).getUsableSpace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return new DiskQuota(Math.round(size * (percentage / 100D)), usage);
     }
 
     static DiskQuota ofSize(long usage, String size) {
         return new DiskQuota(FilesUtils.displaySizeToBytesCount(size), usage);
     }
 
-    static DiskQuota of(File workingDirectory, String value) {
-        long usage = FileUtils.sizeOfDirectory(workingDirectory);
+    public static DiskQuota of(Path workingDirectory, String value) {
+        Mutable<Long> usage = new Mutable<>(0L);
+
+        try {
+            Files.walk(workingDirectory).forEach(path -> {
+                if (Files.exists(path) && !Files.isDirectory(path)) {
+                    try {
+                        usage.set(usage.get() + Files.size(path));
+                    } catch (IOException ignored) {
+                    }
+                }
+            });
+        } catch (IOException e) {
+            usage.set(-1L);
+        }
 
         if (value.endsWith("%")) {
-            return ofPercentage(workingDirectory,  usage, Integer.parseInt(value.substring(0, value.length() - 1)));
+            return ofPercentage(workingDirectory,  usage.get(), Integer.parseInt(value.substring(0, value.length() - 1)));
         }
 
         return ofSize(usage, value);

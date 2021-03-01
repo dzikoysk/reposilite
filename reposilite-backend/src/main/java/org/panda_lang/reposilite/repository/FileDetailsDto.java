@@ -20,10 +20,10 @@ import org.jetbrains.annotations.NotNull;
 import org.panda_lang.reposilite.utils.FilesUtils;
 import org.panda_lang.utilities.commons.StringUtils;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 
 final class FileDetailsDto implements Serializable, Comparable<FileDetailsDto> {
@@ -82,21 +82,24 @@ final class FileDetailsDto implements Serializable, Comparable<FileDetailsDto> {
         return type;
     }
 
-    public static FileDetailsDto of(File file) {
+    public static FileDetailsDto of(Path file) {
         String date = StringUtils.EMPTY;
         String contentType = FilesUtils.getMimeType(file.getAbsolutePath(), "application/octet-stream");
 
+        long size = -1;
+
         try {
-            date = DATE_FORMAT.format(Files.getLastModifiedTime(file.toPath()).toMillis());
+            date = DATE_FORMAT.format(Files.getLastModifiedTime(file).toMillis());
+            size = Files.size(file);
         }
         catch (IOException ignored) { /* file does not exist */ }
 
         return new FileDetailsDto(
-                file.isDirectory() ? DIRECTORY : FILE,
-                file.getName(),
+                Files.isDirectory(file) ? DIRECTORY : FILE,
+                file.getFileName().toString(),
                 date,
                 contentType,
-                file.isDirectory() ? -1 : file.length());
+                Files.isDirectory(file) ? -1 : size);
     }
 
 }

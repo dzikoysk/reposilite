@@ -20,8 +20,12 @@ import groovy.transform.CompileStatic
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
-import org.panda_lang.utilities.commons.FileUtils
 import org.panda_lang.utilities.commons.StringUtils
+
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.StandardOpenOption
 
 import static org.junit.jupiter.api.Assertions.*
 
@@ -29,52 +33,52 @@ import static org.junit.jupiter.api.Assertions.*
 class FileDetailsDtoTest {
 
     @TempDir
-    protected static File temp
+    protected static Path temp
 
     static FileDetailsDto tempDto
-    static File file
+    static Path path
     static FileDetailsDto fileDetails
 
     @BeforeAll
     static void prepare() throws IOException {
         tempDto = FileDetailsDto.of(temp)
 
-        file = new File(temp, "file")
-        FileUtils.overrideFile(file, StringUtils.repeated(1024 * 1024, "7"))
-        fileDetails = FileDetailsDto.of(file)
+        path = temp.resolve("file")
+        Files.write(path, StringUtils.repeated(1024 * 1024, "7").getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
+        fileDetails = FileDetailsDto.of(path)
     }
 
     @Test
     void compareTo() {
         assertTrue(fileDetails.compareTo(tempDto) > 0)
-        assertEquals(0, fileDetails.compareTo(FileDetailsDto.of(file)))
+        assertEquals(0, fileDetails.compareTo(FileDetailsDto.of(path)))
     }
 
     @Test
     void isDirectory() {
-        assertTrue(tempDto.isDirectory());
-        assertFalse(fileDetails.isDirectory());
+        assertTrue(tempDto.isDirectory())
+        assertFalse(fileDetails.isDirectory())
     }
 
     @Test
     void getContentLength() {
-        assertTrue(fileDetails.getContentLength() != 0);
+        assertTrue(fileDetails.getContentLength() != 0)
     }
 
     @Test
     void getDate() {
-        assertTrue(fileDetails.getDate().contains(Integer.toString(Calendar.getInstance().get(Calendar.YEAR))));
+        assertTrue(fileDetails.getDate().contains(Integer.toString(Calendar.getInstance().get(Calendar.YEAR))))
     }
 
     @Test
     void getName() {
-        assertEquals("file", fileDetails.getName());
+        assertEquals("file", fileDetails.getName())
     }
 
     @Test
     void getType() {
-        assertEquals(FileDetailsDto.FILE, fileDetails.getType());
-        assertEquals(FileDetailsDto.DIRECTORY, tempDto.getType());
+        assertEquals(FileDetailsDto.FILE, fileDetails.getType())
+        assertEquals(FileDetailsDto.DIRECTORY, tempDto.getType())
     }
 
 }

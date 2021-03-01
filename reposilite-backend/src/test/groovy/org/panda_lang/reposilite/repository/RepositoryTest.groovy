@@ -21,33 +21,36 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 
+import java.nio.file.Files
+import java.nio.file.Path
+
 import static org.junit.jupiter.api.Assertions.assertEquals
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertFalse
 
 @CompileStatic
 class RepositoryTest {
 
     @TempDir
-    protected static File temp
+    protected static Path temp
 
     private static Repository repository
 
     @BeforeAll
     static void prepare() {
         repository = new Repository(temp, "releases", false)
-        repository.getFile("group", "artifact", "version").mkdirs()
-        repository.getFile("group", "artifact", "version", "test").createNewFile()
+        Files.createDirectories(repository.getFile("group", "artifact", "version"))
+        Files.createFile(repository.getFile("group", "artifact", "version", "test"))
     }
 
     @Test
     void 'should find requested entity' () {
         assertFalse repository.find("unknown").isPresent()
-        assertEquals "test", Objects.requireNonNull(repository.find("group", "artifact", "version", "test")).get().getFile("test").getName()
+        assertEquals "test", Objects.requireNonNull(repository.find("group", "artifact", "version", "test")).get().getFile("test").getFileName()
     }
 
     @Test
     void 'should return file' () {
-        assertEquals "test", repository.getFile("test").getName()
+        assertEquals "test", repository.getFile("test").getFileName()
     }
 
     @Test

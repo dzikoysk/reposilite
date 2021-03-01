@@ -24,6 +24,7 @@ import io.javalin.plugin.openapi.annotations.OpenApiContent;
 import io.javalin.plugin.openapi.annotations.OpenApiParam;
 import io.javalin.plugin.openapi.annotations.OpenApiResponse;
 import org.apache.http.HttpStatus;
+import org.jetbrains.annotations.NotNull;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.ReposiliteContext;
 import org.panda_lang.reposilite.ReposiliteContextFactory;
@@ -84,11 +85,18 @@ public final class LookupController implements Handler {
             }
     )
     @Override
-    public void handle(Context ctx) {
+    public void handle(@NotNull Context ctx) {
         ReposiliteContext context = contextFactory.create(ctx);
         Reposilite.getLogger().info("LOOKUP " + context.uri() + " from " + context.address());
 
-        Result<LookupResponse, ErrorDto> response = lookupService.findLocal(context);
+        Result<LookupResponse, ErrorDto> response;
+
+        try {
+            response = lookupService.findLocal(context);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
+        }
 
         if (isProxied(response)) {
             if (hasProxied) {

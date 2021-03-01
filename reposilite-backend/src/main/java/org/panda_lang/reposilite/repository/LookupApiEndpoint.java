@@ -23,12 +23,14 @@ import io.javalin.plugin.openapi.annotations.OpenApiContent;
 import io.javalin.plugin.openapi.annotations.OpenApiParam;
 import io.javalin.plugin.openapi.annotations.OpenApiResponse;
 import org.apache.http.HttpStatus;
+import org.panda_lang.reposilite.*;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.ReposiliteContext;
 import org.panda_lang.reposilite.ReposiliteContextFactory;
 import org.panda_lang.reposilite.ReposiliteUtils;
 import org.panda_lang.reposilite.error.ErrorDto;
 import org.panda_lang.reposilite.error.ResponseUtils;
+import org.panda_lang.reposilite.utils.Result;
 import org.panda_lang.reposilite.metadata.MetadataUtils;
 import org.panda_lang.reposilite.utils.FilesUtils;
 import org.panda_lang.utilities.commons.StringUtils;
@@ -36,7 +38,11 @@ import org.panda_lang.utilities.commons.collection.Pair;
 import org.panda_lang.utilities.commons.function.PandaStream;
 import org.panda_lang.utilities.commons.function.Result;
 
-import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 public final class LookupApiEndpoint implements Handler {
@@ -105,28 +111,41 @@ public final class LookupApiEndpoint implements Handler {
             return;
         }
 
-        File requestedFile = repositoryService.getFile(uri);
-        Optional<FileDetailsDto> latest = repositoryService.findLatest(requestedFile);
+        Path requestedFile = repositoryService.getFile(uri);
+        Optional<FileDetailsDto> latest = Optional.empty();
+
+        try {
+            latest = repositoryService.findLatest(requestedFile);
+        } catch (IOException ignored) {
+
+        }
 
         if (latest.isPresent()) {
             ctx.json(latest.get());
             return;
         }
 
-        if (!requestedFile.exists()) {
+        if (!Files.exists(requestedFile)) {
             ResponseUtils.errorResponse(ctx, HttpStatus.SC_NOT_FOUND, "File not found");
             return;
         }
 
-        if (requestedFile.isFile()) {
+        if (!Files.isDirectory(requestedFile)) {
             ctx.json(FileDetailsDto.of(requestedFile));
             return;
         }
 
-        ctx.json(new FileListDto(PandaStream.of(FilesUtils.listFiles(requestedFile))
-                .map(FileDetailsDto::of)
-                .transform(stream -> MetadataUtils.toSorted(stream, FileDetailsDto::getName, FileDetailsDto::isDirectory))
-                .toList()));
+        List<FileDetailsDto> list = new ArrayList<>();
+
+        try {
+            for (Path directory : Files.newDirectoryStream(requestedFile)) {
+                list.add(FileDetailsDto.of(directory));
+            }
+        } catch (Exception ignored) {
+
+        }
+
+        ctx.json(new FileListDto(list));
     }
 
 }

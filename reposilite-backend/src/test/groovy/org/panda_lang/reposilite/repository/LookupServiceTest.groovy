@@ -67,12 +67,10 @@ class LookupServiceTest extends ReposiliteTestSpecification {
                 super.reposilite.getRepositoryService())
 
         return new LookupService(
-                super.reposilite.getAuthenticator(),
                 repositoryAuthenticator,
                 super.reposilite.getMetadataService(),
-                super.reposilite.getRepositoryService(),
-                super.reposilite.ioService,
-                super.reposilite.getFailureService())
+                super.reposilite.getRepositoryService()
+        )
     }
 
 }

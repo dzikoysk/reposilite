@@ -20,25 +20,27 @@ import org.panda_lang.reposilite.metadata.MetadataUtils;
 import org.panda_lang.utilities.commons.text.Joiner;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Optional;
 
 public final class Repository {
 
-    private final File directory;
+    private final Path directory;
     private final String name;
     private final boolean hidden;
 
-    Repository(File rootDirectory, String name, boolean hidden) {
-        this.directory = new File(rootDirectory, name);
+    Repository(Path rootDirectory, String name, boolean hidden) {
+        this.directory = rootDirectory.resolve(name);
         this.name = name;
         this.hidden = hidden;
     }
 
     public Optional<Artifact> find(String... path) {
-        File targetFile = getFile(path);
+        Path targetFile = getFile(path);
 
-        if (!targetFile.exists() || targetFile.isDirectory() || path.length < 3) {
+        if (!Files.exists(targetFile) || Files.isDirectory(targetFile) || path.length < 3) {
             return Optional.empty();
         }
 
@@ -57,8 +59,8 @@ public final class Repository {
         return hidden;
     }
 
-    public File getFile(String... path) {
-        return new File(directory, Joiner.on(File.separator).join(path).toString());
+    public Path getFile(String... path) {
+        return directory.resolve(Joiner.on(File.separator).join(path).toString());
     }
 
     public String getUri() {
