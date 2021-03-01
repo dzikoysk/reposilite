@@ -82,7 +82,7 @@ public final class DiskQuota {
             return ofPercentage(workingDirectory,  usage.get(), Integer.parseInt(value.substring(0, value.length() - 1)));
         }
 
-        return ofSize(usage, value);
+        return ofSize(usage.get(), value);
     }
 
 }

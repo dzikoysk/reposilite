@@ -51,6 +51,6 @@ class RepositoryServiceTest extends ReposiliteTestSpecification {
         }).start()
 
         def context = new ReposiliteContext('/releases/a/b/c.txt', 'POST', '', [:], { new ByteArrayInputStream('test'.bytes) })
-        assertTrue(repositoryService.storeFile("id", file, { context.input() }, { new Object() }, {}).get().isOk())
+        assertTrue(repositoryService.storeFile("id", path, { context.input() }, { new Object() }, {}).get().isOk())
     }
 }

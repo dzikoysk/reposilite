@@ -75,15 +75,13 @@ public final class DeployService {
             return ResponseUtils.error(HttpStatus.SC_INSUFFICIENT_STORAGE, "Out of disk space");
         }
 
-        String uri = context.uri().substring(1);
-
         Path path = repositoryService.getFile(uri);
         FileDetailsDto fileDetails = FileDetailsDto.of(path);
 
         Path metadataFile = path.resolveSibling("maven-metadata.xml");
         metadataService.clearMetadata(metadataFile);
 
-        Reposilite.getLogger().info("DEPLOY " + authResult.getValue().getAlias() + " successfully deployed " + path + " from " + context.address());
+        Reposilite.getLogger().info("DEPLOY " + authResult.isOk() + " successfully deployed " + path + " from " + context.address());
 
         if (path.getFileName().toString().contains("maven-metadata")) {
             return Result.ok(CompletableFuture.completedFuture(Result.ok(fileDetails)));

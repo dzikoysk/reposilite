@@ -84,7 +84,7 @@ final class FileDetailsDto implements Serializable, Comparable<FileDetailsDto> {
 
     public static FileDetailsDto of(Path file) {
         String date = StringUtils.EMPTY;
-        String contentType = FilesUtils.getMimeType(file.getAbsolutePath(), "application/octet-stream");
+        String contentType = FilesUtils.getMimeType(file.getFileName().toString(), "application/octet-stream");
 
         long size = -1;
 
