@@ -45,7 +45,7 @@ Requirements:
 * [x] Snapshots
 * [x] Statistics
 * [x] REST API
-* [x] OpenAPI with Swagger UI
+* [x] [OpenAPI with Swagger UI](https://repo.panda-lang.org/swagger)
 * [x] 90%+ test coverage
 * [x] Documentation
 
