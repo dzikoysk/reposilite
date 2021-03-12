@@ -21,6 +21,10 @@ import org.apache.http.HttpStatus
 import org.junit.jupiter.api.Test
 import org.panda_lang.reposilite.ReposiliteContext
 import org.panda_lang.reposilite.ReposiliteTestSpecification
+import org.panda_lang.reposilite.storage.FileSystemStorageProvider
+import org.panda_lang.reposilite.storage.StorageProvider
+
+import java.nio.file.Paths
 
 import static org.junit.jupiter.api.Assertions.assertEquals
 import static org.junit.jupiter.api.Assertions.assertTrue
@@ -29,14 +33,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue
 class LookupServiceTest extends ReposiliteTestSpecification {
 
     @Test
-    void 'should return 203 for directory access' () {
+    void 'should return 305 for artifact not found' () {
         def context = new ReposiliteContext('/releases/org/panda-lang', 'GET', '', [:], {})
         def result = super.reposilite.getLookupService().findLocal(context)
         assertTrue result.isErr()
 
         def error = result.getError()
-        assertEquals 'Directory access', error.message
-        assertEquals HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, error.status
+        assertEquals 'Artifact panda-lang not found', error.message
+        assertEquals HttpStatus.SC_USE_PROXY, error.status
     }
 
     @Test
@@ -61,15 +65,17 @@ class LookupServiceTest extends ReposiliteTestSpecification {
     }
 
     private LookupService createLookupService() {
+        StorageProvider storageProvider = FileSystemStorageProvider.of(Paths.get(""), "10GB");
         def repositoryAuthenticator = new RepositoryAuthenticator(
                 false, // disable path rewrite option which is enabled by default
                 super.reposilite.getAuthenticator(),
-                super.reposilite.getRepositoryService())
+                super.reposilite.getRepositoryService(), storageProvider)
 
         return new LookupService(
                 repositoryAuthenticator,
                 super.reposilite.getMetadataService(),
-                super.reposilite.getRepositoryService()
+                super.reposilite.getRepositoryService(),
+                storageProvider
         )
     }
 

@@ -99,24 +99,12 @@ public final class LookupController implements Handler {
         }
 
         if (isProxied(response)) {
-            if (hasProxied) {
-                handleProxied(ctx, context, proxyService.findProxied(context));
-                return;
-            }
-
-            if (isProxied(response)) {
-                response = response.mapErr(proxiedError -> new ErrorDto(HttpStatus.SC_NOT_FOUND, proxiedError.getMessage()));
-            }
+            response = proxyService.findProxied(context);
+        } else {
+            response = response.mapErr(proxiedError -> new ErrorDto(HttpStatus.SC_NOT_FOUND, proxiedError.getMessage()));
         }
 
         handleResult(ctx, context, response);
-    }
-
-    private void handleProxied(Context ctx, ReposiliteContext context, Result<CompletableFuture<Result<LookupResponse, ErrorDto>>, ErrorDto> response) {
-        response
-            .map(task -> task.thenAccept(result -> handleResult(ctx, context, result)))
-            .peek(ctx::result)
-            .onError(error -> handleError(ctx, error));
     }
 
     private void handleResult(Context ctx, ReposiliteContext context, Result<LookupResponse, ErrorDto> result) {
@@ -158,7 +146,6 @@ public final class LookupController implements Handler {
     }
 
     private boolean isProxied(Result<?, ErrorDto> lookupResponse) {
-        return lookupResponse.isErr() && lookupResponse.getError().getStatus() == HttpStatus.SC_USE_PROXY;
+        return this.hasProxied && lookupResponse.isErr() && lookupResponse.getError().getStatus() == HttpStatus.SC_USE_PROXY;
     }
-
 }

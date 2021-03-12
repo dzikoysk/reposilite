@@ -21,9 +21,10 @@ import org.apache.http.HttpStatus
 import org.junit.jupiter.api.Test
 import org.panda_lang.reposilite.ReposiliteContext
 import org.panda_lang.reposilite.ReposiliteTestSpecification
-import org.panda_lang.reposilite.error.FailureService
+import org.panda_lang.reposilite.storage.FileSystemStorageProvider
+import org.panda_lang.reposilite.storage.StorageProvider
 
-import java.util.concurrent.Executors
+import java.nio.file.Paths
 
 import static org.junit.jupiter.api.Assertions.assertEquals
 import static org.junit.jupiter.api.Assertions.assertTrue
@@ -36,18 +37,17 @@ class DeployServiceTest extends ReposiliteTestSpecification {
 
     @Test
     void 'should respect disk quota' () {
+        StorageProvider storageProvider = FileSystemStorageProvider.of(Paths.get(""), "1KB");
         def deployService = new DeployService(
                 true,
                 false,
                 super.reposilite.authenticator,
                 new RepositoryService(
-                        super.workingDirectory,
-                        '0MB',
-                        Executors.newSingleThreadExecutor(),
-                        Executors.newSingleThreadScheduledExecutor(),
-                        new FailureService(),
+                        super.workingDirectory
+                        ,
+                        storageProvider
                 ),
-                super.reposilite.metadataService)
+                super.reposilite.metadataService, storageProvider)
 
         super.reposilite.tokenService.createToken('/', ALIAS, 'rw', TOKEN)
         def context = createAuthenticatedContext('/releases/a/b/c.txt')
@@ -57,7 +57,7 @@ class DeployServiceTest extends ReposiliteTestSpecification {
 
         def error = result.getError()
         assertEquals HttpStatus.SC_INSUFFICIENT_STORAGE, error.status
-        assertEquals 'Out of disk space', error.message
+        assertEquals 'Not enough storage space available', error.message
     }
 
     @Test

@@ -26,10 +26,16 @@ import org.panda_lang.reposilite.auth.Session;
 import org.panda_lang.reposilite.error.ErrorDto;
 import org.panda_lang.reposilite.error.ResponseUtils;
 import org.panda_lang.reposilite.metadata.MetadataService;
+import org.panda_lang.reposilite.storage.StorageProvider;
 import org.panda_lang.utilities.commons.function.Result;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.StreamSupport;
 
 public final class DeployService {
 
@@ -38,19 +44,21 @@ public final class DeployService {
     private final Authenticator authenticator;
     private final RepositoryService repositoryService;
     private final MetadataService metadataService;
+    private final StorageProvider storageProvider;
 
     public DeployService(
             boolean deployEnabled,
             boolean rewritePathsEnabled,
             Authenticator authenticator,
             RepositoryService repositoryService,
-            MetadataService metadataService) {
+            MetadataService metadataService, StorageProvider storageProvider) {
 
         this.deployEnabled = deployEnabled;
         this.rewritePathsEnabled = rewritePathsEnabled;
         this.authenticator = authenticator;
         this.repositoryService = repositoryService;
         this.metadataService = metadataService;
+        this.storageProvider = storageProvider;
     }
 
     public Result<CompletableFuture<Result<FileDetailsDto, ErrorDto>>, ErrorDto> deploy(ReposiliteContext context) {
@@ -71,30 +79,41 @@ public final class DeployService {
             return ResponseUtils.error(HttpStatus.SC_UNAUTHORIZED, "Cannot deploy artifact without write permission");
         }
 
-        if (!repositoryService.getDiskQuota().hasUsableSpace()) {
-            return ResponseUtils.error(HttpStatus.SC_INSUFFICIENT_STORAGE, "Out of disk space");
+        if (storageProvider.isFull()) {
+            return ResponseUtils.error(HttpStatus.SC_INSUFFICIENT_STORAGE, "Not enough storage space available");
         }
 
         Path path = repositoryService.getFile(uri);
-        FileDetailsDto fileDetails = FileDetailsDto.of(path);
+        Result<FileDetailsDto, ErrorDto> fileDetails = storageProvider.getFileDetails(path);
 
         Path metadataFile = path.resolveSibling("maven-metadata.xml");
         metadataService.clearMetadata(metadataFile);
 
         Reposilite.getLogger().info("DEPLOY " + authResult.isOk() + " successfully deployed " + path + " from " + context.address());
 
-        if (path.getFileName().toString().contains("maven-metadata")) {
-            return Result.ok(CompletableFuture.completedFuture(Result.ok(fileDetails)));
+        try {
+            if (path.getFileName().toString().contains("maven-metadata")) {
+                if (!storageProvider.exists(path)) {
+                    ArrayList<String> list = new ArrayList<>();
+
+                    path.forEach(p -> list.add(p.toString()));
+
+                    String[] strarr = list.toArray(new String[0]);
+
+                    // remove repository name from path
+                    String[] requestPath = Arrays.copyOfRange(strarr, 1, strarr.length);
+
+                    metadataService.generateMetadata(repositoryService.getRepository(path.getName(1).toString()), requestPath);
+
+                    fileDetails = storageProvider.getFileDetails(path);
+                }
+
+                return Result.ok(CompletableFuture.completedFuture(Result.ok(fileDetails.get())));
+            }
+
+            return Result.ok(CompletableFuture.completedFuture(storageProvider.putFile(path, context.input())));
+        } catch (Exception e) {
+            return Result.error(new ErrorDto(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Failed to upload artifact"));
         }
-
-        CompletableFuture<Result<FileDetailsDto, ErrorDto>> task = repositoryService.storeFile(
-                uri,
-                path,
-                context::input,
-                () -> fileDetails,
-                exception -> new ErrorDto(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Failed to upload artifact"));
-
-        return Result.ok(task);
     }
-
 }

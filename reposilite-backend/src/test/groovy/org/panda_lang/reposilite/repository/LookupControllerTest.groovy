@@ -44,7 +44,8 @@ class LookupControllerTest extends ReposiliteIntegrationTestSpecification {
 
     @Test
     void 'should return 404 for missing snapshot metadata file with builds not found message' () {
-        assertResponseWithMessage getRequest("/gav/1.0.0-SNAPSHOT/maven-metadata.xml"), HttpStatus.SC_NOT_FOUND, "Latest build not found"
+        def response = getRequest("/gav/1.0.0-SNAPSHOT/maven-metadata.xml")
+        assertResponseWithMessage response, HttpStatus.SC_NOT_FOUND, "Latest build not found"
     }
 
     @Test

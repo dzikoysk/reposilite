@@ -53,9 +53,9 @@ deployEnabled: true
 # if the requested artifact was not found.
 proxied [
   https://repo.panda-lang.org
-  https://repo.insertt.dev
   https://jcenter.bintray.com
   https://repo.maven.apache.org/maven2
+  https://hephaestus.dev/release
 ]
 # Reposilite can store proxied artifacts locally to reduce response time and improve stability
 storeProxied: true

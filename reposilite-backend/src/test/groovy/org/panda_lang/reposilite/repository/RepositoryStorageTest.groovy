@@ -20,8 +20,10 @@ import groovy.transform.CompileStatic
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import org.panda_lang.reposilite.storage.FileSystemStorageProvider
 
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
@@ -41,19 +43,17 @@ class RepositoryStorageTest {
 
     @BeforeEach
     void setUp() {
-        ExecutorService ioService = new ThreadPoolExecutor(0, Integer.MAX_VALUE, 1, TimeUnit.SECONDS, new SynchronousQueue<>())
-        ScheduledExecutorService retryService = Executors.newSingleThreadScheduledExecutor()
-        repositoryStorage = new RepositoryStorage(temp, "100%", ioService, retryService)
+        repositoryStorage = new RepositoryStorage(temp, FileSystemStorageProvider.of(Paths.get(""), "10GB"))
     }
 
     @Test
     void 'should add size of written file to the disk quota'() {
-        def initialUsage = repositoryStorage.diskQuota.usage
+        def initialUsage = repositoryStorage.storageProvider.getFileSize(Paths.get("")).get()
         def string = "test"
         def expectedUsage = initialUsage + string.bytes.length
 
         repositoryStorage.storeFile(new ByteArrayInputStream(string.bytes), temp)
 
-        assertEquals expectedUsage, repositoryStorage.diskQuota.usage
+        assertEquals expectedUsage, repositoryStorage.storageProvider.getFileSize(Paths.get("")).get()
     }
 }

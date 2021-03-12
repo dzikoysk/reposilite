@@ -23,12 +23,12 @@ import org.panda_lang.reposilite.error.ErrorDto;
 import org.panda_lang.reposilite.error.ResponseUtils;
 import org.panda_lang.reposilite.metadata.MetadataService;
 import org.panda_lang.reposilite.metadata.MetadataUtils;
+import org.panda_lang.reposilite.storage.StorageProvider;
 import org.panda_lang.reposilite.utils.ArrayUtils;
 import org.panda_lang.utilities.commons.collection.Pair;
 import org.panda_lang.utilities.commons.function.Result;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Objects;
@@ -39,15 +39,18 @@ public final class LookupService {
     private final RepositoryAuthenticator repositoryAuthenticator;
     private final MetadataService metadataService;
     private final RepositoryService repositoryService;
+    private final StorageProvider storageProvider;
 
     public LookupService(
             RepositoryAuthenticator repositoryAuthenticator,
             MetadataService metadataService,
-            RepositoryService repositoryService) {
+            RepositoryService repositoryService,
+            StorageProvider storageProvider) {
 
         this.repositoryAuthenticator = repositoryAuthenticator;
         this.metadataService = metadataService;
         this.repositoryService = repositoryService;
+        this.storageProvider = storageProvider;
     }
 
     Result<LookupResponse, ErrorDto> findLocal(ReposiliteContext context) throws IOException {
@@ -86,8 +89,11 @@ public final class LookupService {
         // resolve requests for latest version of artifact
         if (requestedFileName.equalsIgnoreCase("latest")) {
             Path requestDirectory = repository.getFile(requestPath).getParent();
-            Path[] versions = MetadataUtils.toSortedVersions(requestDirectory);
-            Path version = ArrayUtils.getFirst(versions);
+            Result<Path[], ErrorDto> versions = MetadataUtils.toSortedVersions(storageProvider, requestDirectory);
+
+            if (versions.isErr()) return versions.map(p -> null);
+
+            Path version = ArrayUtils.getFirst(versions.get());
 
             if (version == null) {
                 return ResponseUtils.error(HttpStatus.SC_NOT_FOUND, "Latest version not found");
@@ -105,7 +111,7 @@ public final class LookupService {
 
         Path repositoryFile = repository.getFile(requestPath);
 
-        if (Files.exists(repositoryFile) && Files.isDirectory(repositoryFile)) {
+        if (storageProvider.isDirectory(repositoryFile)) {
             return ResponseUtils.error(HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, "Directory access");
         }
 
@@ -116,14 +122,23 @@ public final class LookupService {
         }
 
         Path file = artifact.get().getFile(requestedFileName);
-        FileDetailsDto fileDetails = FileDetailsDto.of(file);
+        Result<FileDetailsDto, ErrorDto> fileDetailsResult = storageProvider.getFileDetails(file);
 
-        if (!context.method().equals("HEAD")) {
-            context.result(outputStream -> Files.copy(file, outputStream));
+        if (fileDetailsResult.isOk()) {
+            FileDetailsDto fileDetails = fileDetailsResult.get();
+
+            if (!context.method().equals("HEAD")) {
+                context.result(outputStream -> {
+                    byte[] bytes = storageProvider.getFile(file).get();
+                    outputStream.write(bytes);
+                });
+            }
+
+            Reposilite.getLogger().info("RESOLVED " + file + "; mime: " + fileDetails.getContentType() + "; size: " + storageProvider.getFileSize(file).get());
+            return Result.ok(new LookupResponse(fileDetails));
+        } else {
+            return Result.error(fileDetailsResult.getError());
         }
-
-        Reposilite.getLogger().info("RESOLVED " + file + "; mime: " + fileDetails.getContentType() + "; size: " + Files.size(file));
-        return Result.ok(new LookupResponse(fileDetails));
     }
 
 }

@@ -18,83 +18,45 @@ package org.panda_lang.reposilite.repository;
 
 import org.panda_lang.reposilite.auth.Token;
 import org.panda_lang.reposilite.config.Configuration;
-import org.panda_lang.reposilite.error.FailureService;
+import org.panda_lang.reposilite.error.ErrorDto;
 import org.panda_lang.reposilite.metadata.MetadataUtils;
+import org.panda_lang.reposilite.storage.StorageProvider;
 import org.panda_lang.reposilite.utils.ArrayUtils;
 import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.function.Result;
-import org.panda_lang.utilities.commons.function.ThrowingRunnable;
-import org.panda_lang.utilities.commons.function.ThrowingSupplier;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.function.Function;
 
 public final class RepositoryService {
 
-    private final FailureService failureService;
     private final RepositoryStorage repositoryStorage;
+    private final StorageProvider storageProvider;
 
     public RepositoryService(
             Path workingDirectory,
-            String diskQuota,
-            ExecutorService ioService,
-            ScheduledExecutorService retryService,
-            FailureService failureService) {
+            StorageProvider storageProvider) {
 
-        this.failureService = failureService;
-        this.repositoryStorage = new RepositoryStorage(workingDirectory, diskQuota, ioService, retryService);
+        this.repositoryStorage = new RepositoryStorage(workingDirectory, storageProvider);
+        this.storageProvider = storageProvider;
     }
 
     public void load(Configuration configuration) throws IOException {
         repositoryStorage.load(configuration);
     }
 
-    public <R, E, T extends Exception> CompletableFuture<Result<R, E>> storeFile(
-            String id,
-            Path targetFile,
-            ThrowingSupplier<InputStream, IOException> source,
-            ThrowingSupplier<R, T> onSuccess,
-            Function<Exception, E> onError) {
-
-        CompletableFuture<Result<R, E>> task = new CompletableFuture<>();
-
-        tryExecute(id, task, onError, () ->
-                repositoryStorage.storeFile(source.get(), targetFile).thenAccept(file ->
-                        tryExecute(id, task, onError, () -> task.complete(Result.ok(onSuccess.get())))
-                )
-        );
-
-        return task;
-    }
-
-    private <R, E> void tryExecute(String id, CompletableFuture<Result<R, E>> task, Function<Exception, E> onError, ThrowingRunnable<? extends Exception> runnable) {
-        try {
-            runnable.run();
-        } catch (Exception exception) {
-            failureService.throwException(id, exception);
-            task.complete(Result.error(onError.apply(exception)));
-        }
-    }
-
-    public String[] resolveSnapshot(Repository repository, String[] requestPath) throws IOException {
+    public void resolveSnapshot(Repository repository, String[] requestPath) {
         Path artifactFile = repository.getFile(requestPath);
         Path versionDirectory = artifactFile.getParent();
 
-        Path[] builds = MetadataUtils.toSortedBuilds(versionDirectory);
+        Path[] builds = MetadataUtils.toSortedBuilds(storageProvider, versionDirectory).get();
         Path latestBuild = ArrayUtils.getFirst(builds);
 
         if (latestBuild == null) {
-            return requestPath;
+            return;
         }
 
         String version = StringUtils.replace(versionDirectory.getFileName().toString(), "-SNAPSHOT", StringUtils.EMPTY);
@@ -102,20 +64,21 @@ public final class RepositoryService {
 
         String identifier = MetadataUtils.toIdentifier(artifactDirectory.getFileName().toString(), version, latestBuild);
         requestPath[requestPath.length - 1] = StringUtils.replace(requestPath[requestPath.length - 1], "SNAPSHOT", identifier);
-
-        return requestPath;
     }
 
     public Optional<FileDetailsDto> findLatest(Path requestedFile) throws IOException {
         if (requestedFile.getFileName().toString().equals("latest")) {
             Path parent = requestedFile.getParent();
 
-            if (parent != null && Files.exists(parent)) {
-                Path[] files = MetadataUtils.toSortedVersions(parent);
-                Path latest = ArrayUtils.getFirst(files);
+            if (parent != null && storageProvider.isDirectory(parent)) {
+                Result<Path[], ErrorDto> files = MetadataUtils.toSortedVersions(storageProvider, parent);
 
-                if (latest != null) {
-                    return Optional.of(FileDetailsDto.of(latest));
+                if (files.isOk()) {
+                    Path latest = ArrayUtils.getFirst(files.get());
+
+                    if (latest != null) {
+                        return Optional.ofNullable(storageProvider.getFileDetails(latest).orElseGet(e -> null));
+                    }
                 }
             }
         }
@@ -155,11 +118,4 @@ public final class RepositoryService {
         return repositoryStorage.getFile(path);
     }
 
-    public DiskQuota getDiskQuota() {
-        return repositoryStorage.getDiskQuota();
-    }
-
-    public Path getRootDirectory() {
-        return repositoryStorage.getRootDirectory();
-    }
 }

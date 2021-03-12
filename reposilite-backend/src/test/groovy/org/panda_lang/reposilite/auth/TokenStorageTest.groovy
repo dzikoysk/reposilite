@@ -20,11 +20,12 @@ import groovy.transform.CompileStatic
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.panda_lang.reposilite.ReposiliteConstants
-import org.panda_lang.utilities.commons.FileUtils
+import org.panda_lang.reposilite.storage.FileSystemStorageProvider
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
 
 import static org.junit.jupiter.api.Assertions.*
@@ -37,7 +38,8 @@ final class TokenStorageTest {
 
     @Test
     void 'should convert old data file' () {
-        def tokenStorage = new TokenStorage(new TokenService(workingDirectory), workingDirectory)
+        def storageProvider = FileSystemStorageProvider.of(Paths.get(""), "10GB")
+        def tokenStorage = new TokenStorage(new TokenService(workingDirectory, storageProvider), workingDirectory, storageProvider)
 
         Files.write(workingDirectory.resolve("tokens.yml"), 'tokens: []'.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
 

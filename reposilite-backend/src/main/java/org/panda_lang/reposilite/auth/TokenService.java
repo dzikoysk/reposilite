@@ -16,6 +16,7 @@
 
 package org.panda_lang.reposilite.auth;
 
+import org.panda_lang.reposilite.storage.StorageProvider;
 import org.panda_lang.utilities.commons.collection.Pair;
 import org.panda_lang.utilities.commons.function.Option;
 import org.panda_lang.utilities.commons.function.Result;
@@ -38,8 +39,8 @@ public final class TokenService {
     private final Map<String, Token> tokens = new HashMap<>();
     private final TokenStorage database;
 
-    public TokenService(Path workingDirectory) {
-        this.database = new TokenStorage(this, workingDirectory);
+    public TokenService(Path workingDirectory, StorageProvider storageProvider) {
+        this.database = new TokenStorage(this, workingDirectory, storageProvider);
     }
 
     public void loadTokens() throws IOException {

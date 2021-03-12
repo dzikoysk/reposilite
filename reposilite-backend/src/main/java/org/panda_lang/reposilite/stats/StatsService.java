@@ -17,6 +17,7 @@
 package org.panda_lang.reposilite.stats;
 
 import org.panda_lang.reposilite.error.FailureService;
+import org.panda_lang.reposilite.storage.StorageProvider;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -30,15 +31,15 @@ public final class StatsService {
     private final StatsEntity instanceStats = new StatsEntity();
     private final StatsStorage statsStorage;
 
-    public StatsService(Path workingDirectory, FailureService failureService, ExecutorService ioService, ScheduledExecutorService retryService) {
-        this.statsStorage = new StatsStorage(workingDirectory, failureService, ioService, retryService);
+    public StatsService(Path workingDirectory, FailureService failureService, StorageProvider storageProvider) {
+        this.statsStorage = new StatsStorage(workingDirectory, failureService, storageProvider);
     }
 
     public void record(String uri) {
         instanceStats.getRecords().compute(uri, (key, count) -> (count == null) ? 1 : count + 1);
     }
 
-    public void saveStats() throws IOException, ExecutionException, InterruptedException {
+    public void saveStats() throws ExecutionException, InterruptedException {
         statsStorage.saveStats(loadAggregatedStats().get().getAggregatedStatsEntity());
     }
 

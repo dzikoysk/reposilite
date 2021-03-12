@@ -18,50 +18,30 @@ package org.panda_lang.reposilite.repository;
 
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.config.Configuration;
+import org.panda_lang.reposilite.storage.StorageProvider;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 final class RepositoryStorage {
-
-    private static final long RETRY_WRITE_TIME = 2000L;
-
     private final Map<String, Repository> repositories = new LinkedHashMap<>(4);
 
+    private final StorageProvider storageProvider;
     private final Path rootDirectory;
-    private final DiskQuota diskQuota;
-    private final ExecutorService ioService;
-    private final ScheduledExecutorService retryService;
     private Repository primaryRepository;
 
-    RepositoryStorage(Path workingDirectory, String diskQuota, ExecutorService ioService, ScheduledExecutorService retryService) {
+    RepositoryStorage(Path workingDirectory, StorageProvider storageProvider) {
+        this.storageProvider = storageProvider;
         this.rootDirectory = workingDirectory.resolve("repositories");
-        this.diskQuota = DiskQuota.of(rootDirectory, diskQuota);
-        this.ioService = ioService;
-        this.retryService = retryService;
     }
 
-    void load(Configuration configuration) throws IOException {
+    void load(Configuration configuration) {
         Reposilite.getLogger().info("--- Loading repositories");
-
-        if (!Files.exists(rootDirectory)) {
-            Files.createDirectories(rootDirectory);
-            Reposilite.getLogger().info("Default repository directory has been created");
-        }
-        else {
-            Reposilite.getLogger().info("Using an existing repository directory");
-        }
 
         for (String repositoryName : configuration.repositories) {
             boolean hidden = repositoryName.startsWith(".");
@@ -72,13 +52,7 @@ final class RepositoryStorage {
             }
 
             Path repositoryDirectory = rootDirectory.resolve(repositoryName);
-
-            if (!Files.exists(repositoryDirectory)) {
-                Files.createDirectories(repositoryDirectory);
-                Reposilite.getLogger().info("+ Repository '" + repositoryName + "' has been created");
-            }
-
-            Repository repository = new Repository(rootDirectory, repositoryName, hidden);
+            Repository repository = new Repository(rootDirectory, repositoryName, hidden, storageProvider);
             repositories.put(repository.getName(), repository);
 
             if (primary) {
@@ -91,34 +65,12 @@ final class RepositoryStorage {
         Reposilite.getLogger().info(repositories.size() + " repositories have been found");
     }
 
-    CompletableFuture<Path> storeFile(InputStream source, Path targetFile) throws Exception {
+    CompletableFuture<Path> storeFile(InputStream source, Path targetFile) {
         return storeFile(new CompletableFuture<>(), source, targetFile);
     }
 
-    private CompletableFuture<Path> storeFile(CompletableFuture<Path> task, InputStream source, Path targetFile) throws IOException {
-        Path lockedFile = targetFile.resolveSibling(targetFile.getFileName() + ".lock");
-
-        if (Files.exists(lockedFile)) {
-            retryService.schedule(() -> {
-                ioService.submit(() -> {
-                    storeFile(task, source, targetFile);
-                    return null;
-                });
-            }, RETRY_WRITE_TIME, TimeUnit.MILLISECONDS);
-
-            return task;
-        }
-
-        Files.createDirectories(targetFile.getParent());
-
-        if (Files.exists(targetFile)) {
-            Files.move(targetFile, lockedFile, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
-        }
-
-        Files.copy(source, lockedFile, StandardCopyOption.REPLACE_EXISTING);
-        diskQuota.allocate(Files.size(lockedFile));
-        Files.move(lockedFile, targetFile, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
-
+    private CompletableFuture<Path> storeFile(CompletableFuture<Path> task, InputStream source, Path targetFile) {
+        this.storageProvider.putFile(targetFile, source);
         task.complete(targetFile);
         return task;
     }
@@ -139,12 +91,12 @@ final class RepositoryStorage {
         return primaryRepository;
     }
 
-    DiskQuota getDiskQuota() {
-        return diskQuota;
-    }
-
     Path getRootDirectory() {
         return rootDirectory;
+    }
+
+    StorageProvider getStorageProvider() {
+        return storageProvider;
     }
 
 }

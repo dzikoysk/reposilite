@@ -30,8 +30,11 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.panda_lang.reposilite.ReposiliteContext
 import org.panda_lang.reposilite.ReposiliteIntegrationTestSpecification
+import org.panda_lang.reposilite.storage.FileSystemStorageProvider
 import org.panda_lang.utilities.commons.IOUtils
 import org.panda_lang.utilities.commons.StringUtils
+
+import java.nio.file.Paths
 
 import static org.junit.jupiter.api.Assertions.*
 
@@ -52,7 +55,8 @@ class DeployEndpointTest extends ReposiliteIntegrationTestSpecification {
                 false,
                 reposilite.getAuthenticator(),
                 reposilite.getRepositoryService(),
-                reposilite.getMetadataService())
+                reposilite.getMetadataService(),
+                FileSystemStorageProvider.of(Paths.get(""), "10GB"))
 
         def result = deployService.deploy(new ReposiliteContext('/releases/groupId/artifactId/file', 'GET', '', [:], { null }))
         assertTrue result.isErr()

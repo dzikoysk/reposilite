@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals
 @CompileStatic
 class RepositoryAuthenticatorTest extends AuthenticatorSpecification {
 
-    static final RepositoryAuthenticator REPOSITORY_AUTHENTICATOR = new RepositoryAuthenticator(true, AUTHENTICATOR, REPOSITORY_SERVICE)
+    static final RepositoryAuthenticator REPOSITORY_AUTHENTICATOR = new RepositoryAuthenticator(true, AUTHENTICATOR, REPOSITORY_SERVICE, STORAGE_PROVIDER)
 
     @Test
     void 'should not auth invalid repository uri' () {

@@ -17,6 +17,7 @@
 package org.panda_lang.reposilite.repository;
 
 import org.panda_lang.reposilite.metadata.MetadataUtils;
+import org.panda_lang.reposilite.storage.StorageProvider;
 import org.panda_lang.utilities.commons.text.Joiner;
 
 import java.io.File;
@@ -30,8 +31,10 @@ public final class Repository {
     private final Path directory;
     private final String name;
     private final boolean hidden;
+    private final StorageProvider storageProvider;
 
-    Repository(Path rootDirectory, String name, boolean hidden) {
+    Repository(Path rootDirectory, String name, boolean hidden, StorageProvider storageProvider) {
+        this.storageProvider = storageProvider;
         this.directory = rootDirectory.resolve(name);
         this.name = name;
         this.hidden = hidden;
@@ -40,7 +43,7 @@ public final class Repository {
     public Optional<Artifact> find(String... path) {
         Path targetFile = getFile(path);
 
-        if (!Files.exists(targetFile) || Files.isDirectory(targetFile) || path.length < 3) {
+        if (!storageProvider.exists(targetFile) || storageProvider.isDirectory(targetFile) || path.length < 3) {
             return Optional.empty();
         }
 

@@ -16,15 +16,18 @@
 
 package org.panda_lang.reposilite.metadata;
 
+import org.panda_lang.reposilite.error.ErrorDto;
+import org.panda_lang.reposilite.storage.StorageProvider;
 import org.panda_lang.reposilite.utils.FilesUtils;
 import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.collection.Pair;
 import org.panda_lang.utilities.commons.function.PandaStream;
+import org.panda_lang.utilities.commons.function.Result;
 import org.panda_lang.utilities.commons.text.Joiner;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -44,30 +47,29 @@ public final class MetadataUtils {
 
     private MetadataUtils() { }
 
-    public static Path[] toSortedBuilds(Path artifactDirectory) throws IOException {
-        return toSorted(Files.walk(artifactDirectory, 1)
-                        .filter(path -> Files.exists(path) && !Files.isDirectory(path))
+    public static Result<Path[], ErrorDto> toSortedBuilds(StorageProvider storageProvider, Path directory) {
+        return storageProvider.getFiles(directory).map(list -> toSorted(list.stream()
+                        .filter(path -> path.getParent().equals(directory))
+                        .filter(storageProvider::exists)
                         .filter(path -> path.getFileName().endsWith(".pom")),
-                path -> path.getFileName().toString(), Files::isDirectory)
-                .toArray(Path[]::new);
+                path -> path.getFileName().toString(), storageProvider::isDirectory)
+                .toArray(Path[]::new));
     }
 
-    public static Path[] toFiles(Path directory) throws IOException {
-        return toSorted(Files.walk(directory, 1)
-                        .filter(path -> Files.exists(path) && !Files.isDirectory(path)),
-                path -> path.getFileName().toString(), Files::isDirectory)
-                .toArray(Path[]::new);
+    public static Result<Path[], ErrorDto> toFiles(StorageProvider storageProvider, Path directory) {
+        return storageProvider.getFiles(directory).map(list -> toSorted(list.stream()
+                        .filter(path -> path.getParent().equals(directory))
+                        .filter(storageProvider::exists),
+                path -> path.getFileName().toString(), storageProvider::isDirectory)
+                .toArray(Path[]::new));
     }
 
-    public static Path[] toSortedVersions(Path artifactDirectory) throws IOException {
-        if (!Files.exists(artifactDirectory)) {
-            Files.createDirectories(artifactDirectory);
-        }
-
-        return toSorted(Files.walk(artifactDirectory, 1)
-                        .filter(Files::isDirectory),
-                path -> path.getFileName().toString(), Files::isDirectory)
-                .toArray(Path[]::new);
+    public static Result<Path[], ErrorDto> toSortedVersions(StorageProvider storageProvider, Path directory) throws IOException {
+        return storageProvider.getFiles(directory).map(list -> toSorted(list.stream()
+                        .filter(path -> path.getParent().equals(directory))
+                        .filter(storageProvider::isDirectory),
+                path -> path.getFileName().toString(), storageProvider::isDirectory)
+                .toArray(Path[]::new));
     }
 
     protected static String[] toSortedIdentifiers(String artifact, String version, Path[] builds) {
@@ -79,15 +81,19 @@ public final class MetadataUtils {
                 .toArray(String[]::new);
     }
 
-    protected static Path[] toBuildFiles(Path artifactDirectory, String identifier) throws IOException {
-        return toSorted(Files.walk(artifactDirectory, 1)
-                .filter(path -> {
-                    String name = path.getFileName().toString();
-                    return (!name.endsWith(".md5"))
-                            && (!name.endsWith(".sha1"))
-                            && (name.contains(identifier + ".") || name.contains(identifier + "-"));
-                }),
-                path -> path.getFileName().toString(), Files::isDirectory)
+    protected static boolean isNotChecksum(Path path, String identifier) {
+        String name = path.getFileName().toString();
+
+        return (!name.endsWith(".md5"))
+                && (!name.endsWith(".sha1"))
+                && (name.contains(identifier + ".") || name.contains(identifier + "-"));
+    }
+
+    protected static Path[] toBuildFiles(StorageProvider storageProvider, Path directory, String identifier) {
+        return toSorted(storageProvider.getFiles(directory).get().stream()
+                        .filter(path -> path.getParent().equals(directory))
+                        .filter(path -> isNotChecksum(path, identifier)),
+                path -> path.getFileName().toString(), storageProvider::isDirectory)
                 .toArray(Path[]::new);
     }
 
@@ -127,8 +133,14 @@ public final class MetadataUtils {
                 : identifier.substring(0, occurrence);
     }
 
-    protected static String toUpdateTime(Path file) throws IOException {
-        return TIMESTAMP_FORMATTER.format(Instant.ofEpochMilli(Files.getLastModifiedTime(file).toMillis()));
+    protected static String toUpdateTime(StorageProvider storageProvider, Path file) throws IOException {
+        Result<FileTime, ErrorDto> result = storageProvider.getLastModifiedTime(file);
+
+        if (result.isOk()) {
+            return TIMESTAMP_FORMATTER.format(Instant.ofEpochMilli(result.get().toMillis()));
+        } else {
+            throw new IOException(result.getError().getMessage());
+        }
     }
 
     public static String toGroup(String[] elements) {

@@ -30,12 +30,12 @@ import org.panda_lang.reposilite.ReposiliteContextFactory;
 import org.panda_lang.reposilite.ReposiliteUtils;
 import org.panda_lang.reposilite.error.ErrorDto;
 import org.panda_lang.reposilite.error.ResponseUtils;
+import org.panda_lang.reposilite.storage.StorageProvider;
 import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.collection.Pair;
 import org.panda_lang.utilities.commons.function.Result;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,17 +47,19 @@ public final class LookupApiEndpoint implements Handler {
     private final ReposiliteContextFactory contextFactory;
     private final RepositoryAuthenticator repositoryAuthenticator;
     private final RepositoryService repositoryService;
+    private final StorageProvider storageProvider;
 
     public LookupApiEndpoint(
             boolean rewritePathsEnabled,
             ReposiliteContextFactory contextFactory,
             RepositoryAuthenticator repositoryAuthenticator,
-            RepositoryService repositoryService) {
+            RepositoryService repositoryService, StorageProvider storageProvider) {
 
         this.rewritePathsEnabled = rewritePathsEnabled;
         this.contextFactory = contextFactory;
         this.repositoryAuthenticator = repositoryAuthenticator;
         this.repositoryService = repositoryService;
+        this.storageProvider = storageProvider;
     }
 
     @OpenApi(
@@ -121,21 +123,21 @@ public final class LookupApiEndpoint implements Handler {
             return;
         }
 
-        if (!Files.exists(requestedFile)) {
+        if (!storageProvider.exists(requestedFile) && !storageProvider.isDirectory(requestedFile)) {
             ResponseUtils.errorResponse(ctx, HttpStatus.SC_NOT_FOUND, "File not found");
             return;
         }
 
-        if (!Files.isDirectory(requestedFile)) {
-            ctx.json(FileDetailsDto.of(requestedFile));
+        if (storageProvider.exists(requestedFile)) {
+            ctx.json(storageProvider.getFileDetails(requestedFile).get());
             return;
         }
 
         List<FileDetailsDto> list = new ArrayList<>();
 
         try {
-            for (Path directory : Files.newDirectoryStream(requestedFile)) {
-                list.add(FileDetailsDto.of(directory));
+            for (Path directory : storageProvider.getFiles(requestedFile).get()) {
+                list.add(storageProvider.getFileDetails(directory).get());
             }
         } catch (Exception ignored) {
 

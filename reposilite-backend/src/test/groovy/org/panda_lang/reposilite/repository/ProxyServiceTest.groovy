@@ -27,9 +27,15 @@ import org.panda_lang.reposilite.ReposiliteIntegrationTestSpecification
 import org.panda_lang.reposilite.ReposiliteLauncher
 import org.panda_lang.reposilite.config.Configuration
 import org.panda_lang.reposilite.error.FailureService
+import org.panda_lang.reposilite.storage.FileSystemStorageProvider
 import org.panda_lang.utilities.commons.FileUtils
 
-import java.util.concurrent.ExecutorService
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.nio.file.OpenOption
+import java.nio.file.Path
+import java.nio.file.Paths
+import java.nio.file.StandardOpenOption
 
 import static org.junit.jupiter.api.Assertions.*
 
@@ -37,10 +43,9 @@ import static org.junit.jupiter.api.Assertions.*
 final class ProxyServiceTest extends ReposiliteIntegrationTestSpecification {
 
     @TempDir
-    protected File PROXIED_WORKING_DIRECTORY
+    protected Path PROXIED_WORKING_DIRECTORY
 
     private int proxiedPort = Integer.parseInt(PORT) - 1
-    private ExecutorService ioService
     private FailureService failureService
     private ProxyService proxyService
 
@@ -48,18 +53,16 @@ final class ProxyServiceTest extends ReposiliteIntegrationTestSpecification {
     void configure() throws IOException {
         super.reposilite.getConfiguration().proxied = Collections.singletonList('http://localhost:' + PORT)
 
-        this.ioService = super.reposilite.getIoService()
         this.failureService = super.reposilite.getFailureService()
         this.proxyService = new ProxyService(
-                true,
                 true,
                 [
                         'http://unknown-repository.site/',
                         'http://127.0.0.1:' + proxiedPort
-                ],
-                super.reposilite.getIoService(),
-                failureService,
-                super.reposilite.getRepositoryService())
+                ]
+                ,
+                super.reposilite.getRepositoryService(),
+                FileSystemStorageProvider.of(Paths.get(""), "10GB"))
 
         def proxiedFile = new File(super.workingDirectory, '/repositories/releases/proxiedGroup/proxiedArtifact/proxied.pom')
         proxiedFile.getParentFile().mkdirs()
@@ -76,35 +79,10 @@ final class ProxyServiceTest extends ReposiliteIntegrationTestSpecification {
 
     @Test
     void 'should return 404 and artifact not found' () throws Exception {
-        def error = proxyService.findProxied(context('/releases/proxiedGroup/proxiedArtifact/notfound.pom')).get().get().getError()
+        def uri = '/proxiedGroup/proxiedArtifact/notfound.pom'
+        def error = proxyService.findProxied(context(uri)).getError()
         assertNotNull error
-        assertEquals 'Artifact not found in local and remote repository', error.message
-    }
-
-    @Test
-    void 'should return proxied remote file' () {
-        def proxiedConfiguration = new Configuration()
-        proxiedConfiguration.port = proxiedPort
-
-        def proxiedConfigurationFile = new File(PROXIED_WORKING_DIRECTORY.getAbsolutePath() + '/' + ReposiliteConstants.CONFIGURATION_FILE_NAME)
-        proxiedConfigurationFile.getParentFile().mkdirs()
-        FileUtils.overrideFile(proxiedConfigurationFile, CDN.defaultInstance().render(proxiedConfiguration))
-
-        def proxiedReposilite = ReposiliteLauncher.create(PROXIED_WORKING_DIRECTORY.getAbsolutePath(), null, false, true)
-
-        try {
-            proxiedReposilite.launch()
-
-            def proxiedFile = new File(PROXIED_WORKING_DIRECTORY.getAbsolutePath() + '/repositories/releases/g/a/file.txt')
-            proxiedFile.getParentFile().mkdirs()
-            FileUtils.overrideFile(proxiedFile, 'test')
-
-            def result = proxyService.findProxied(context('/releases/g/a/file.txt')).get().get().get()
-            assertFalse result.isAttachment()
-            assertEquals 'text/plain', result.getContentType().get()
-        } finally {
-            proxiedReposilite.shutdown()
-        }
+        assertEquals 'Artifact ' + uri + ' not found', error.message
     }
 
     private static ReposiliteContext context(String uri) {

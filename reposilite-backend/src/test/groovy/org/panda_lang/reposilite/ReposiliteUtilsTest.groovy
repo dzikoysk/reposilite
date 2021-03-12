@@ -21,12 +21,12 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.panda_lang.reposilite.config.Configuration
-import org.panda_lang.reposilite.error.FailureService
 import org.panda_lang.reposilite.repository.RepositoryService
+import org.panda_lang.reposilite.storage.FileSystemStorageProvider
 import org.panda_lang.utilities.commons.StringUtils
 
 import java.nio.file.Path
-import java.util.concurrent.Executors
+import java.nio.file.Paths
 
 import static org.junit.jupiter.api.Assertions.assertEquals
 
@@ -40,11 +40,9 @@ class ReposiliteUtilsTest {
     @BeforeAll
     static void prepare() {
         REPOSITORY_SERVICE = new RepositoryService(
-                WORKING_DIRECTORY,
-                '0',
-                Executors.newSingleThreadExecutor(),
-                Executors.newSingleThreadScheduledExecutor(),
-                new FailureService(),
+                WORKING_DIRECTORY
+                ,
+                FileSystemStorageProvider.of(Paths.get(""), "10GB")
         )
 
         REPOSITORY_SERVICE.load(new Configuration())

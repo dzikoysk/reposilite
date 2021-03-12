@@ -19,7 +19,9 @@ package org.panda_lang.reposilite.stats
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.panda_lang.reposilite.error.FailureService
+import org.panda_lang.reposilite.storage.FileSystemStorageProvider
 
+import java.nio.file.Path
 import java.util.concurrent.Executors
 
 import static org.junit.jupiter.api.Assertions.assertEquals
@@ -27,9 +29,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals
 class StatsServiceTest {
 
     @TempDir
-    protected static File WORKING_DIRECTORY
+    protected static Path WORKING_DIRECTORY
 
-    private StatsService service = new StatsService(WORKING_DIRECTORY.getAbsolutePath(), new FailureService(), Executors.newSingleThreadExecutor(), Executors.newSingleThreadScheduledExecutor())
+    private StatsService service = new StatsService(WORKING_DIRECTORY, new FailureService(), FileSystemStorageProvider.of(WORKING_DIRECTORY, "10GB"))
 
     @Test
     void 'should count unique records' () {

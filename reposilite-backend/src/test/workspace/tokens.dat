@@ -1,5 +1,9 @@
 !!org.panda_lang.reposilite.auth.TokenCollection
 "tokens":
+- "alias": "haven"
+  "path": "*/dev/hephaestus"
+  "permissions": "w"
+  "token": "$2a$10$oKtwsEG2MNS/PvXOeCdD0.Xtk.OTzPhIj6Wj.HqCK5FxV/KI6i//G"
 - "alias": "private"
   "path": "/private"
   "permissions": "w"

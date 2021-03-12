@@ -20,7 +20,8 @@ import groovy.transform.CompileStatic
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
-import org.panda_lang.reposilite.utils.FilesUtils
+import org.panda_lang.reposilite.storage.FileSystemStorageProvider
+import org.panda_lang.reposilite.storage.StorageProvider
 import org.panda_lang.utilities.commons.ArrayUtils
 
 import java.nio.file.Files
@@ -35,6 +36,8 @@ class MetadataUtilsTest {
 
     @TempDir
     protected static Path temp
+
+    static StorageProvider storageProvider = FileSystemStorageProvider.of(Paths.get(""), "10GB")
 
     static Path builds
     static Path versions
@@ -80,21 +83,21 @@ class MetadataUtilsTest {
 
     @Test
     void 'should sort builds' () {
-        assertArrayEquals BUILDS, Stream.of(MetadataUtils.toSortedBuilds(builds))
+        assertArrayEquals BUILDS, Stream.of(MetadataUtils.toSortedBuilds(storageProvider, builds).get())
                 .map({ file -> file.getFileName() })
                 .toArray({ length -> new String[length] })
     }
 
     @Test
     void 'should map directory to list of files' () {
-        assertArrayEquals BUILDS, Stream.of(MetadataUtils.toFiles(builds))
+        assertArrayEquals BUILDS, Stream.of(MetadataUtils.toFiles(storageProvider, builds).get())
                 .map({ file -> file.getFileName() })
                 .toArray({ length -> new String[length] })
     }
 
     @Test
     void 'should sort versions' () {
-        assertArrayEquals VERSIONS, Stream.of(MetadataUtils.toSortedVersions(versions))
+        assertArrayEquals VERSIONS, Stream.of(MetadataUtils.toSortedVersions(storageProvider, versions).get()   )
                 .map({ file -> file.getFileName() })
                 .toArray({ length -> new String[length] })
     }
@@ -110,14 +113,14 @@ class MetadataUtilsTest {
 
     @Test
     void toBuildFiles() {
-        assertArrayEquals BUILDS, Stream.of(MetadataUtils.toBuildFiles(builds, "1337"))
+        assertArrayEquals BUILDS, Stream.of(MetadataUtils.toBuildFiles(storageProvider, builds, "1337"))
                 .map({ file -> file.getFileName() })
                 .toArray({ length -> new String[length] })
     }
 
     @Test
     void 'should convert date to update time' () {
-        assertTrue MetadataUtils.toUpdateTime(file).startsWith(Integer.toString(Calendar.getInstance().get(Calendar.YEAR)))
+        assertTrue MetadataUtils.toUpdateTime(storageProvider, file).startsWith(Integer.toString(Calendar.getInstance().get(Calendar.YEAR)))
     }
 
     @Test

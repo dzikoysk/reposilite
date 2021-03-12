@@ -20,9 +20,11 @@ import groovy.transform.CompileStatic
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import org.panda_lang.reposilite.storage.FileSystemStorageProvider
 
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 
 import static org.junit.jupiter.api.Assertions.assertEquals
 import static org.junit.jupiter.api.Assertions.assertFalse
@@ -37,7 +39,7 @@ class RepositoryTest {
 
     @BeforeAll
     static void prepare() {
-        repository = new Repository(temp, "releases", false)
+        repository = new Repository(temp, "releases", false, FileSystemStorageProvider.of(Paths.get(""), "10GB"))
         Files.createDirectories(repository.getFile("group", "artifact", "version"))
         Files.createFile(repository.getFile("group", "artifact", "version", "test"))
     }

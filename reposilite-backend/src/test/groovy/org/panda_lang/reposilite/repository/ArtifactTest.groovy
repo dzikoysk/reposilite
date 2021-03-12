@@ -20,10 +20,12 @@ import groovy.transform.CompileStatic
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import org.panda_lang.reposilite.storage.FileSystemStorageProvider
 import org.panda_lang.utilities.commons.text.Joiner
 
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 
 import static org.junit.jupiter.api.Assertions.assertEquals
 
@@ -38,7 +40,7 @@ class ArtifactTest {
 
     @BeforeAll
     static void prepare() throws IOException {
-        REPOSITORY = new Repository(WORKING_DIRECTORY, "releases", false)
+        REPOSITORY = new Repository(WORKING_DIRECTORY, "releases", false, FileSystemStorageProvider.of(Paths.get(""), "10GB"))
 
         def build1 = REPOSITORY.getFile("groupId", "artifactId", "version", "build1")
         Files.createDirectories(build1.parent)

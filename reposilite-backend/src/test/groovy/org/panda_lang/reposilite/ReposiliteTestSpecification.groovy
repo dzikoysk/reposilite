@@ -44,7 +44,14 @@ class ReposiliteTestSpecification extends ReposiliteTestSpecificationExtension {
             def to = workingDirectory.resolve("repositories")
 
             Files.walk(from).forEach(source -> {
-                Files.copy(source, to.resolve(source.relativize(from)))
+                Path destination = source.relativize(from)
+                if (destination.parent != null && !Files.exists(destination.parent)) {
+                    Files.createDirectories(destination.parent)
+                }
+
+                if (!Files.exists(destination)) {
+                    Files.copy(source, to.resolve(destination))
+                }
             })
 
             this.reposilite.repositoryService.load(this.reposilite.configuration)

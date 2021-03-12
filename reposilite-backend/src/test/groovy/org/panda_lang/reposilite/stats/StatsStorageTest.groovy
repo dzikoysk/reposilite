@@ -21,11 +21,13 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.panda_lang.reposilite.ReposiliteConstants
 import org.panda_lang.reposilite.error.FailureService
+import org.panda_lang.reposilite.storage.FileSystemStorageProvider
 import org.panda_lang.utilities.commons.FileUtils
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
 import java.util.concurrent.Executors
 
@@ -40,7 +42,7 @@ final class StatsStorageTest {
 
     @Test
     void 'should convert old data file' () {
-        def statsStorage = new StatsStorage(workingDirectory, new FailureService(), Executors.newSingleThreadExecutor(), Executors.newSingleThreadScheduledExecutor())
+        def statsStorage = new StatsStorage(workingDirectory, new FailureService(), FileSystemStorageProvider.of(Paths.get(""), "10GB"))
 
         Files.write(workingDirectory.resolve("stats.yml"), 'records: {}'.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
 

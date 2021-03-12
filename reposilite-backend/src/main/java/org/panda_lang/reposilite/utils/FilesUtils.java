@@ -17,20 +17,16 @@
 package org.panda_lang.reposilite.utils;
 
 import com.google.common.hash.Hashing;
-import org.apache.commons.io.IOUtils;
+import com.google.common.io.Files;
 import org.panda_lang.reposilite.Reposilite;
+import org.panda_lang.reposilite.storage.StorageProvider;
 import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.function.PandaStream;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.util.List;
@@ -58,12 +54,16 @@ public final class FilesUtils {
     private FilesUtils() {}
 
     @SuppressWarnings({ "UnstableApiUsage", "deprecation" })
-    public static void writeFileChecksums(Path path) throws IOException {
+    public static void writeFileChecksums(StorageProvider storageProvider, Path path) throws IOException {
         Path md5 = path.resolveSibling(path.getFileName() + ".md5");
         Path sha1 = path.resolveSibling(path.getFileName() + ".sha1");
+        Path sha256 = path.resolveSibling(path.getFileName() + ".sha256");
+        Path sha512 = path.resolveSibling(path.getFileName() + ".sha512");
 
-        Files.write(md5, com.google.common.io.Files.hash(path.toFile(), Hashing.md5()).toString().getBytes(StandardCharsets.UTF_8));
-        Files.write(sha1, com.google.common.io.Files.hash(path.toFile(), Hashing.sha1()).toString().getBytes(StandardCharsets.UTF_8));
+        storageProvider.putFile(md5, Files.hash(path.toFile(), Hashing.md5()).toString().getBytes(StandardCharsets.UTF_8));
+        storageProvider.putFile(sha1, Files.hash(path.toFile(), Hashing.sha1()).toString().getBytes(StandardCharsets.UTF_8));
+        storageProvider.putFile(sha256, Files.hash(path.toFile(), Hashing.sha256()).toString().getBytes(StandardCharsets.UTF_8));
+        storageProvider.putFile(sha512, Files.hash(path.toFile(), Hashing.sha512()).toString().getBytes(StandardCharsets.UTF_8));
     }
 
     public static long displaySizeToBytesCount(String displaySize) {
@@ -121,13 +121,6 @@ public final class FilesUtils {
 
     public static String getMimeType(String path, String defaultType) {
         return MimeTypes.getMimeType(getExtension(path), defaultType);
-    }
-
-    public static void copyResource(String resourcePath, Path destination) throws IOException {
-        URL inputUrl = Reposilite.class.getResource(resourcePath);
-        InputStream in = inputUrl.openStream();
-        OutputStream out = Files.newOutputStream(destination);
-        IOUtils.copy(in, out);
     }
 
     public static void close(Closeable closeable) {

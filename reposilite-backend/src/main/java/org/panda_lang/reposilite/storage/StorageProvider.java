@@ -1,37 +1,56 @@
 package org.panda_lang.reposilite.storage;
 
-import org.slf4j.Logger;
+import org.panda_lang.reposilite.error.ErrorDto;
+import org.panda_lang.reposilite.repository.FileDetailsDto;
+import org.panda_lang.utilities.commons.function.Result;
 
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
 import java.util.List;
 
-public abstract class StorageProvider {
-    protected final Logger logger;
+public interface StorageProvider {
+    /**
+     * Writes the bytes to the path specified in storage.
+     *
+     * @param file  the path of the file to be written
+     * @param bytes the bytes to write
+     * @return a {@link FileDetailsDto} object describing the file if successful, and an {@link ErrorDto} if not
+     */
+    Result<FileDetailsDto, ErrorDto> putFile(Path file, byte[] bytes);
 
-    protected StorageProvider(Logger logger) {
-        this.logger = logger;
+    /**
+     * Writes the given {@link InputStream} to the path specified in storage.
+     *
+     * @param file  the path of the file to be written
+     * @param inputStream the stream supplying the data to write
+     * @return a {@link FileDetailsDto} object describing the file if successful, and an {@link ErrorDto} if not
+     */
+    Result<FileDetailsDto, ErrorDto> putFile(Path file, InputStream inputStream);
+
+    Result<byte[], ErrorDto> getFile(Path file);
+
+    Result<FileDetailsDto, ErrorDto> getFileDetails(Path file);
+
+    Result<Void, ErrorDto> removeFile(Path file);
+
+    Result<List<Path>, ErrorDto> getFiles(Path directory);
+
+    Result<FileTime, ErrorDto> getLastModifiedTime(Path file);
+
+    Result<Long, ErrorDto> getFileSize(Path file);
+
+    boolean exists(Path file);
+
+    boolean isDirectory(Path file);
+
+    boolean isFull();
+
+    long getUsage();
+
+    boolean canHold(long contentLength);
+
+    default void shutdown() {
+
     }
-
-    abstract void putFile(Path file, byte[] bytes);
-
-    abstract void putFile(Path file, byte[] bytes, String contentType);
-
-    abstract byte[] getFile(Path file);
-
-    abstract void removeFile(Path file);
-
-    abstract List<Path> getFiles(Path directory);
-
-    abstract FileTime getLastModifiedTime(Path file);
-
-    abstract long getFileSize(Path file);
-
-    abstract boolean exists(Path file);
-
-    abstract boolean isFull();
-
-    abstract long getUsage();
-
-    abstract boolean canHold(long contentLength);
 }

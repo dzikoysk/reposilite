@@ -16,6 +16,9 @@
 
 package org.panda_lang.reposilite.utils;
 
+import org.panda_lang.reposilite.error.ErrorDto;
+import org.panda_lang.reposilite.storage.StorageProvider;
+import org.panda_lang.utilities.commons.function.Result;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.representer.Representer;
@@ -23,10 +26,7 @@ import org.yaml.snakeyaml.representer.Representer;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
-import java.nio.file.StandardOpenOption;
 
 public final class YamlUtils {
 
@@ -39,22 +39,18 @@ public final class YamlUtils {
 
     private YamlUtils() { }
 
-    public static <T> T load(Path file, Class<T> type) throws IOException {
-        return YAML.loadAs(new ByteArrayInputStream(Files.readAllBytes(file)), type);
+    public static <T> T load(StorageProvider storageProvider, Path file, Class<T> type) throws IOException {
+        Result<byte[], ErrorDto> result = storageProvider.getFile(file);
+
+        if (result.isOk()) {
+            return YAML.loadAs(new ByteArrayInputStream(result.get()), type);
+        } else {
+            throw new IOException(result.getError().getMessage());
+        }
     }
 
-    public static void save(Path file, Object value) throws IOException {
-        Path lockedFile = file.resolveSibling(file.getFileName() + ".lock");
-
-        if (Files.exists(lockedFile)) {
-            Files.move(file, lockedFile, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
-        }
-
-        try {
-            Files.write(lockedFile, YAML.dump(value).getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-        } finally {
-            Files.move(lockedFile, file, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
-        }
+    public static void save(StorageProvider storageProvider, Object value, Path file) {
+        storageProvider.putFile(file, YAML.dump(value).getBytes(StandardCharsets.UTF_8));
     }
 
 }

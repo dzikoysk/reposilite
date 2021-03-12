@@ -51,8 +51,6 @@ public final class Reposilite {
 
     private final boolean servlet;
     private final AtomicBoolean alive;
-    private final ExecutorService ioService;
-    private final ScheduledExecutorService retryService;
     private final Path configurationFile;
     private final Path workingDirectory;
     private final boolean testEnvEnabled;
@@ -83,28 +81,26 @@ public final class Reposilite {
 
         this.servlet = servlet;
         this.alive = new AtomicBoolean(false);
-        this.ioService = new ThreadPoolExecutor(0, Integer.MAX_VALUE, 1, TimeUnit.SECONDS, new SynchronousQueue<>());
-        this.retryService = Executors.newSingleThreadScheduledExecutor();
         this.configurationFile = configurationFile;
         this.workingDirectory = workingDirectory;
         this.testEnvEnabled = testEnv;
 
         this.configuration = ConfigurationLoader.tryLoad(configurationFile);
-        this.storageProvider = FileSystemStorageProvider.of(LOGGER, Paths.get(""), this.configuration.diskQuota);
+        this.storageProvider = FileSystemStorageProvider.of(Paths.get(""), this.configuration.diskQuota);
         this.contextFactory = new ReposiliteContextFactory(configuration.forwardedIp);
         this.failureService = new FailureService();
         this.executor = new ReposiliteExecutor(testEnvEnabled, failureService);
-        this.tokenService = new TokenService(workingDirectory);
-        this.statsService = new StatsService(workingDirectory, failureService, ioService, retryService);
-        this.repositoryService = new RepositoryService(workingDirectory, configuration.diskQuota, ioService, retryService, failureService);
-        this.metadataService = new MetadataService(failureService);
+        this.tokenService = new TokenService(workingDirectory, storageProvider);
+        this.statsService = new StatsService(workingDirectory, failureService, storageProvider);
+        this.repositoryService = new RepositoryService(workingDirectory, storageProvider);
+        this.metadataService = new MetadataService(failureService, storageProvider);
 
         this.authenticator = new Authenticator(repositoryService, tokenService);
-        this.repositoryAuthenticator = new RepositoryAuthenticator(configuration.rewritePathsEnabled, authenticator, repositoryService);
+        this.repositoryAuthenticator = new RepositoryAuthenticator(configuration.rewritePathsEnabled, authenticator, repositoryService, storageProvider);
         this.authService = new AuthService(authenticator);
-        this.deployService = new DeployService(configuration.deployEnabled, configuration.rewritePathsEnabled, authenticator, repositoryService, metadataService);
-        this.lookupService = new LookupService(repositoryAuthenticator, metadataService, repositoryService);
-        this.proxyService = new ProxyService(configuration.storeProxied, configuration.rewritePathsEnabled, configuration.proxied, ioService, failureService, repositoryService);
+        this.deployService = new DeployService(configuration.deployEnabled, configuration.rewritePathsEnabled, authenticator, repositoryService, metadataService, storageProvider);
+        this.lookupService = new LookupService(repositoryAuthenticator, metadataService, repositoryService, storageProvider);
+        this.proxyService = new ProxyService(configuration.storeProxied, configuration.proxied, repositoryService, storageProvider);
         this.frontend = FrontendProvider.load(configuration);
         this.reactiveHttpServer = new ReposiliteHttpServer(this, servlet);
         this.console = new Console(System.in, failureService);
@@ -197,8 +193,7 @@ public final class Reposilite {
 
         reactiveHttpServer.stop();
         statsService.saveStats();
-        ioService.shutdownNow();
-        retryService.shutdownNow();
+        storageProvider.shutdown();
         console.stop();
         executor.stop();
     }
@@ -283,14 +278,6 @@ public final class Reposilite {
         return executor;
     }
 
-    public ScheduledExecutorService getRetryService() {
-        return retryService;
-    }
-
-    public ExecutorService getIoService() {
-        return ioService;
-    }
-
     public Path getWorkingDirectory() {
         return workingDirectory;
     }
@@ -299,4 +286,7 @@ public final class Reposilite {
         return LOGGER;
     }
 
+    public StorageProvider getStorageProvider() {
+        return storageProvider;
+    }
 }
