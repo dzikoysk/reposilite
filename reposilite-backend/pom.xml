@@ -109,7 +109,7 @@
         <dependency>
             <groupId>com.google.http-client</groupId>
             <artifactId>google-http-client</artifactId>
-            <version>1.39.0</version>
+            <version>1.39.1</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.google.guava</groupId>
