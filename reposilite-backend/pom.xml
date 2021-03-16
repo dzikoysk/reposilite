@@ -204,7 +204,7 @@
         <dependency>
             <groupId>com.google.http-client</groupId>
             <artifactId>google-http-client-jackson2</artifactId>
-            <version>1.39.0</version>
+            <version>1.39.1</version>
             <scope>test</scope>
             <exclusions>
                 <exclusion>
