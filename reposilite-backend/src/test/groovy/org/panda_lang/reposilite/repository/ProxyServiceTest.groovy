@@ -53,6 +53,7 @@ final class ProxyServiceTest extends ReposiliteIntegrationTestSpecification {
         this.proxyService = new ProxyService(
                 true,
                 true,
+                true,
                 [
                         'http://unknown-repository.site/',
                         'http://127.0.0.1:' + proxiedPort
