@@ -43,6 +43,7 @@ import java.util.concurrent.ExecutorService;
 public final class ProxyService {
 
     private final boolean storeProxied;
+    private final boolean proxyPrivate;
     private final boolean rewritePathsEnabled;
     private final List<? extends String> proxied;
     private final ExecutorService ioService;
@@ -52,6 +53,7 @@ public final class ProxyService {
 
     public ProxyService(
             boolean storeProxied,
+            boolean proxyPrivate,
             boolean rewritePathsEnabled,
             List<? extends String> proxied,
             ExecutorService ioService,
@@ -59,6 +61,7 @@ public final class ProxyService {
             RepositoryService repositoryService) {
 
         this.storeProxied = storeProxied;
+        this.proxyPrivate = proxyPrivate;
         this.rewritePathsEnabled = rewritePathsEnabled;
         this.proxied = proxied;
         this.ioService = ioService;
@@ -69,13 +72,19 @@ public final class ProxyService {
 
     protected Result<CompletableFuture<Result<LookupResponse, ErrorDto>>, ErrorDto> findProxied(ReposiliteContext context) {
         String uri = context.uri();
+        Repository repository = repositoryService.getPrimaryRepository();
 
         // remove repository name if defined
-        for (Repository repository : repositoryService.getRepositories()) {
-            if (uri.startsWith("/" + repository.getName())) {
-                uri = uri.substring(1 + repository.getName().length());
+        for (Repository localRepository : repositoryService.getRepositories()) {
+            if (uri.startsWith("/" + localRepository.getName())) {
+                repository = localRepository;
+                uri = uri.substring(1 + localRepository.getName().length());
                 break;
             }
+        }
+
+        if (!proxyPrivate && repository.isHidden()) {
+            return Result.error(new ErrorDto(HttpStatus.SC_NOT_FOUND, "Proxying is disabled in private repositories"));
         }
 
         // /groupId/artifactId/<content>
