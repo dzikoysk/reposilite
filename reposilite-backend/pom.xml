@@ -67,7 +67,7 @@
         <dependency>
             <groupId>io.javalin</groupId>
             <artifactId>javalin</artifactId>
-            <version>3.13.4</version>
+            <version>3.13.5</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
