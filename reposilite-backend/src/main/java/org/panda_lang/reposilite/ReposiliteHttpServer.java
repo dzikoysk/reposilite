@@ -141,6 +141,7 @@ public final class ReposiliteHttpServer {
 
             OpenApiOptions options = new OpenApiOptions(applicationInfo)
                     .path("/swagger-docs")
+                    // .reDoc(new ReDocOptions("/redoc"))
                     .swagger(swaggerOptions);
 
             config.registerPlugin(new OpenApiPlugin(options));

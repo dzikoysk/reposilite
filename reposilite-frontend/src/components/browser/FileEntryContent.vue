@@ -17,8 +17,8 @@
 <template lang="pug">
   .flex.py-2.px-6.border-1.border-gray-300
     .pr-5
-      i(v-if="file.type === 'directory'").fas.fa-folder
-      i(v-if="file.type === 'file'").fas.fa-file
+      FolderIcon(v-if="file.type === 'directory'")
+      FileIcon(v-if="file.type === 'file'")
     .flex.justify-between.w-full
       h1(v-if="file.type === 'file'") {{ file.name }}
       h1(v-else).font-bold {{ file.name }}
@@ -27,10 +27,16 @@
 
 <script>
 import prettyBytes from 'pretty-bytes'
+import FolderIcon from 'vue-material-design-icons/Folder.vue'
+import FileIcon from 'vue-material-design-icons/File.vue'
 
 export default {
   props: {
     file: Object
+  },
+  components: {
+    FileIcon,
+    FolderIcon
   },
   data () {
     return {
@@ -39,3 +45,10 @@ export default {
   }
 }
 </script>
+
+<style lang="stylus">
+.folder-icon svg
+.file-icon svg
+  width: 1.2em
+  padding-top: 0.2em
+</style>

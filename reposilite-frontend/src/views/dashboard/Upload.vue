@@ -23,7 +23,7 @@
     input(name="artifactId" v-model="artifactId" placeholder="artifactId" required).p-1.m-1.w-96.text-center
     input(name="version" v-model="version" placeholder="version" required).p-1.m-1.w-96.text-center
     div(v-for="(file, index) in files" :key="file.id").p-1.m-1
-      i.fas.fa-file.mr-2
+      FileIcon.mr-2
       span {{ file.name }}
       span(v-if="file.error") {{ file.error }}
       span(v-else-if="file.success") {{ file.success }}
@@ -41,6 +41,7 @@
 </template>
 
 <script>
+import { FileIcon } from 'vue-feather-icons'
 import FileUpload from 'vue-upload-component'
 
 export default {
@@ -66,6 +67,7 @@ export default {
     }
   },
   components: {
+    FileIcon,
     FileUpload
   },
   methods: {
