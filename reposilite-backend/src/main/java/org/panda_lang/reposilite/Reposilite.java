@@ -100,7 +100,7 @@ public final class Reposilite {
         this.authService = new AuthService(authenticator);
         this.deployService = new DeployService(configuration.deployEnabled, configuration.rewritePathsEnabled, authenticator, repositoryService, metadataService, storageProvider);
         this.lookupService = new LookupService(repositoryAuthenticator, metadataService, repositoryService, storageProvider);
-        this.proxyService = new ProxyService(configuration.storeProxied, configuration.proxied, repositoryService, storageProvider);
+        this.proxyService = new ProxyService(configuration.storeProxied, configuration.proxyPrivate, configuration.proxied, repositoryService, storageProvider);
         this.frontend = FrontendProvider.load(configuration);
         this.reactiveHttpServer = new ReposiliteHttpServer(this, servlet);
         this.console = new Console(System.in, failureService);

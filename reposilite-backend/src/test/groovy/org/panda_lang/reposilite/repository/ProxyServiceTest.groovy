@@ -56,6 +56,7 @@ final class ProxyServiceTest extends ReposiliteIntegrationTestSpecification {
         this.failureService = super.reposilite.getFailureService()
         this.proxyService = new ProxyService(
                 true,
+                true,
                 [
                         'http://unknown-repository.site/',
                         'http://127.0.0.1:' + proxiedPort
