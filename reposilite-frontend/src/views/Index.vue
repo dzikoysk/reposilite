@@ -63,7 +63,7 @@ export default {
 html
   background-color #f1f1f1
 #app
-  font-family 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif
+  font-family system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, "Helvetica Neue", Oxygen, Cantarell, sans-serif
   -webkit-font-smoothing antialiased
   -moz-osx-font-smoothing grayscale
   color #2c3e50
@@ -74,5 +74,5 @@ html
 svg
   z-index -1
 .segoe
-  font-family 'Segoe UI', 'Manrope'
+  font-family system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, "Helvetica Neue", Oxygen, Cantarell, sans-serif
 </style>
