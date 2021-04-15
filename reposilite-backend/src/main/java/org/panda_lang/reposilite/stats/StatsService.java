@@ -34,7 +34,7 @@ public final class StatsService {
     }
 
     public void record(String uri) {
-        instanceStats.getRecords().compute(uri, (key, count) -> (count == null) ? 1 : count + 1);
+        instanceStats.getRecords().merge(uri, 1, Integer::sum);
     }
 
     public void saveStats() throws IOException, ExecutionException, InterruptedException {
