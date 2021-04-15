@@ -18,12 +18,12 @@ package org.panda_lang.reposilite.stats;
 
 import java.io.Serializable;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ConcurrentSkipListMap;
 
 public final class StatsEntity implements Serializable {
 
-    private final ConcurrentMap<String, Integer> records = new ConcurrentSkipListMap<>();
+    private final ConcurrentMap<String, Integer> records = new ConcurrentHashMap<>();
 
     public void setRecords(Map<String, Integer> records) {
         this.records.putAll(records);
