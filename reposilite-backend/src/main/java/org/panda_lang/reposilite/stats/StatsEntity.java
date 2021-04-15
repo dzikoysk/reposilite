@@ -17,12 +17,13 @@
 package org.panda_lang.reposilite.stats;
 
 import java.io.Serializable;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 public final class StatsEntity implements Serializable {
 
-    private final Map<String, Integer> records = new HashMap<>(128);
+    private final ConcurrentMap<String, Integer> records = new ConcurrentHashMap<>();
 
     public void setRecords(Map<String, Integer> records) {
         this.records.putAll(records);
