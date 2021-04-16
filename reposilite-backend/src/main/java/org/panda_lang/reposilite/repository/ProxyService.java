@@ -36,6 +36,7 @@ import org.panda_lang.utilities.commons.function.Option;
 import org.panda_lang.utilities.commons.function.Result;
 
 import java.io.File;
+import java.net.SocketTimeoutException;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -126,10 +127,14 @@ public final class ProxyService {
                     return store(context, remoteUri, remoteResponse, response)
                             .onEmpty(() -> proxiedTask.complete(Result.ok(response)))
                             .peek(task -> task.thenAccept(proxiedTask::complete));
-                } catch (Exception exception) {
-                    String message = "Proxied repository " + proxied + " is unavailable due to: " + exception;
+                }
+                catch (Exception exception) {
+                    String message = "Proxied repository " + proxied + " is unavailable due to: " + exception.getMessage();
                     Reposilite.getLogger().error(message);
-                    failureService.throwException(remoteUri, new ReposiliteException(message, exception));
+
+                    if (!(exception instanceof SocketTimeoutException)) {
+                        failureService.throwException(remoteUri, new ReposiliteException(message, exception));
+                    }
                 }
             }
 
