@@ -73,7 +73,7 @@ public final class CliController implements Consumer<WsHandler> {
                 return;
             }
 
-            String username = auth.get().getAlias() + context.address();
+            String username = auth.get().getAlias() + "@" + context.address();
 
             wsHandler.onClose(closeContext -> {
                 Reposilite.getLogger().info("CLI | " + username + " closed connection");
