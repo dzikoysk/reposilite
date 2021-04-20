@@ -24,7 +24,7 @@ public final class ConsoleConfiguration implements ReposiliteConfiguration {
     @Override
     public void configure(Reposilite reposilite) {
         Console console = reposilite.getConsole();
-        console.registerCommand(new ExceptionsCommand(reposilite.getFailureService()));
+        console.registerCommand(new FailuresCommand(reposilite.getFailureService()));
         console.registerCommand(new HelpCommand(console));
         console.registerCommand(new StatusCommand(reposilite));
         console.registerCommand(new StopCommand(reposilite));

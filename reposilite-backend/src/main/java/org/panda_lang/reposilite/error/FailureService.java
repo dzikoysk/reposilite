@@ -17,22 +17,31 @@
 package org.panda_lang.reposilite.error;
 
 import org.panda_lang.reposilite.Reposilite;
-import org.panda_lang.utilities.commons.collection.Pair;
+import org.panda_lang.utilities.commons.ArrayUtils;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class FailureService {
 
-    private final List<Pair<String, Throwable>> exceptions = new ArrayList<>();
+    private final Set<String> exceptions = ConcurrentHashMap.newKeySet();
 
     public void throwException(String id, Throwable throwable) {
         Reposilite.getLogger().error(id, throwable);
-        exceptions.add(new Pair<>(id, throwable));
+
+        exceptions.add(String.join(System.lineSeparator(),
+                "failure " + id,
+                "  by " + throwable.getClass().getSimpleName() + ": " + throwable.getMessage(),
+                "  at " + ArrayUtils.get(throwable.getStackTrace(), 0).map(StackTraceElement::toString).orElseGet("<unknown stacktrace>")
+        ));
     }
 
-    public Collection<? extends Pair<String, Throwable>> getExceptions() {
+    public boolean hasFailures() {
+        return !exceptions.isEmpty();
+    }
+
+    public Collection<? extends String> getFailures() {
         return exceptions;
     }
 
