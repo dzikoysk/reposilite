@@ -145,7 +145,7 @@
         <dependency>
             <groupId>net.dzikoysk</groupId>
             <artifactId>cdn</artifactId>
-            <version>1.7.0-SNAPSHOT</version>
+            <version>1.7.0</version>
         </dependency>
         <dependency>
             <groupId>info.picocli</groupId>
