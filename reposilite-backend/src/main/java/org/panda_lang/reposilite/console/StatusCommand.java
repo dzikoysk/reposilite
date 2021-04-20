@@ -45,7 +45,7 @@ final class StatusCommand implements ReposiliteCommand {
         response.add("  Memory usage of process: " + getMemoryUsage());
         response.add("  Disk usage: " + FilesUtils.humanReadableByteCount(reposilite.getRepositoryService().getDiskQuota().getUsage()));
         response.add("  Cached metadata: " + reposilite.getMetadataService().getCacheSize());
-        response.add("  Exceptions: " + reposilite.getFailureService().getExceptions().size());
+        response.add("  Exceptions: " + reposilite.getFailureService().getFailures().size());
         response.add("  Latest version of reposilite: " + latestVersion);
 
         return true;
