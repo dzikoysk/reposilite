@@ -17,7 +17,7 @@
 package org.panda_lang.reposilite.auth
 
 import groovy.transform.CompileStatic
-import net.dzikoysk.cdn.CDN
+import net.dzikoysk.cdn.CdnFactory
 import org.apache.http.HttpStatus
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -53,7 +53,7 @@ final class AuthEndpointTest extends ReposiliteIntegrationTestSpecification {
         def response = getAuthenticated('/api/auth', 'admin', 'secret')
         assertEquals HttpStatus.SC_OK, response.getStatusCode()
 
-        def authDto = CDN.defaultInstance().parseJson(response.parseAsString())
+        def authDto = CdnFactory.createJson().load(response.parseAsString())
         assertEquals 'rwm', authDto.getString('permissions').get()
         assertEquals '/', authDto.getString('path').get()
         assertEquals Arrays.asList('releases', 'snapshots'), authDto.getList('repositories', [])

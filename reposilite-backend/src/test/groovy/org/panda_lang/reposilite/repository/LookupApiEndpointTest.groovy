@@ -18,7 +18,7 @@ package org.panda_lang.reposilite.repository
 
 
 import groovy.transform.CompileStatic
-import net.dzikoysk.cdn.CDN
+import net.dzikoysk.cdn.CdnFactory
 import net.dzikoysk.cdn.model.Configuration
 import org.apache.http.HttpStatus
 import org.junit.jupiter.api.Test
@@ -51,7 +51,7 @@ class LookupApiEndpointTest extends ReposiliteIntegrationTestSpecification {
         def response = getAuthenticated('/api', 'secret', secret.getKey())
         assertEquals HttpStatus.SC_OK, response.getStatusCode()
 
-        def repositories = CDN.defaultInstance().parseJson(response.parseAsString())
+        def repositories = CdnFactory.createJson().load(response.parseAsString())
         def files = repositories.getSection('files').get()
         assertEquals 3, files.size()
         assertEquals 'releases', files.getSection(0).get().getString('name').get()
@@ -90,7 +90,7 @@ class LookupApiEndpointTest extends ReposiliteIntegrationTestSpecification {
     private static Configuration shouldReturn200AndJsonResponse(String uri) {
         def response = getRequest(uri)
         assertEquals HttpStatus.SC_OK, response.getStatusCode()
-        return CDN.defaultInstance().parseJson(response.parseAsString())
+        return CdnFactory.createJson().load(response.parseAsString())
     }
 
 }

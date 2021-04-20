@@ -17,7 +17,7 @@
 package org.panda_lang.reposilite.repository
 
 import groovy.transform.CompileStatic
-import net.dzikoysk.cdn.CDN
+import net.dzikoysk.cdn.CdnFactory
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -89,7 +89,7 @@ final class ProxyServiceTest extends ReposiliteIntegrationTestSpecification {
 
         def proxiedConfigurationFile = new File(PROXIED_WORKING_DIRECTORY.getAbsolutePath() + '/' + ReposiliteConstants.CONFIGURATION_FILE_NAME)
         proxiedConfigurationFile.getParentFile().mkdirs()
-        FileUtils.overrideFile(proxiedConfigurationFile, CDN.defaultInstance().render(proxiedConfiguration))
+        CdnFactory.createStandard().render(proxiedConfiguration, proxiedConfigurationFile)
 
         def proxiedReposilite = ReposiliteLauncher.create(null, PROXIED_WORKING_DIRECTORY.getAbsolutePath(), false, true)
 
