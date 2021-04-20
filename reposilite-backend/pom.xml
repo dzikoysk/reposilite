@@ -45,11 +45,15 @@
         <dependency>
             <groupId>io.javalin</groupId>
             <artifactId>javalin-openapi</artifactId>
-            <version>3.13.6</version>
+            <version>4.0.0.ALPHA1</version>
             <exclusions>
                 <exclusion>
                     <artifactId>snakeyaml</artifactId>
                     <groupId>org.yaml</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>jackson-core</artifactId>
+                    <groupId>com.fasterxml.jackson.core</groupId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -63,7 +67,7 @@
         <dependency>
             <groupId>io.javalin</groupId>
             <artifactId>javalin</artifactId>
-            <version>3.13.6</version>
+            <version>4.0.0.ALPHA1</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
@@ -141,7 +145,7 @@
         <dependency>
             <groupId>net.dzikoysk</groupId>
             <artifactId>cdn</artifactId>
-            <version>1.6.6</version>
+            <version>1.7.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>info.picocli</groupId>
@@ -204,8 +208,8 @@
             <scope>test</scope>
             <exclusions>
                 <exclusion>
-                    <groupId>com.fasterxml.jackson.core</groupId>
                     <artifactId>jackson-core</artifactId>
+                    <groupId>com.fasterxml.jackson.core</groupId>
                 </exclusion>
             </exclusions>
         </dependency>

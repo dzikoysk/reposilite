@@ -17,7 +17,7 @@
 package org.panda_lang.reposilite.config
 
 import groovy.transform.CompileStatic
-import net.dzikoysk.cdn.CDN
+import net.dzikoysk.cdn.CdnFactory
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.panda_lang.utilities.commons.FileUtils
@@ -63,7 +63,7 @@ class ConfigurationLoaderTest {
     @Test
     void 'should load custom config' () {
         def customConfig = new File(workingDirectory, "random.cdn")
-        FileUtils.overrideFile(customConfig, CDN.defaultInstance().render(new Configuration()))
+        CdnFactory.createStandard().render(new Configuration(), customConfig)
         FileUtils.overrideFile(customConfig, FileUtils.getContentOfFile(customConfig).replace("port: 80", "port: 7"))
 
         def configuration = ConfigurationLoader.tryLoad(customConfig.getAbsolutePath(), workingDirectory.getAbsolutePath())
@@ -73,7 +73,7 @@ class ConfigurationLoaderTest {
     @Test
     void 'should not load other file types' () {
         def customConfig = new File(workingDirectory, "random.properties")
-        FileUtils.overrideFile(customConfig, CDN.defaultInstance().render(new Configuration()))
+        CdnFactory.createStandard().render(new Configuration(), customConfig)
         assertThrows RuntimeException.class, { ConfigurationLoader.load(customConfig.getAbsolutePath(), workingDirectory.getAbsolutePath()) }
     }
 
@@ -93,10 +93,10 @@ class ConfigurationLoaderTest {
     void 'should verify proxied' () {
         def config = new File(workingDirectory, "config.cdn")
         FileUtils.overrideFile(config, Joiner.on("\n").join(
-                "proxied {",
+                "proxied [",
                 "  https://without.slash",
                 "  https://with.slash/",
-                "}"
+                "]"
         ).toString())
 
         def configuration = ConfigurationLoader.tryLoad(config.getAbsolutePath(), workingDirectory.getAbsolutePath())

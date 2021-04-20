@@ -37,7 +37,6 @@ import org.panda_lang.reposilite.repository.LookupApiEndpoint;
 import org.panda_lang.reposilite.repository.LookupController;
 import org.panda_lang.reposilite.resource.FrontendHandler;
 import org.panda_lang.reposilite.resource.WebJarsHandler;
-import org.panda_lang.reposilite.utils.FilesUtils;
 import org.panda_lang.utilities.commons.function.Option;
 
 public final class ReposiliteHttpServer {
@@ -148,8 +147,8 @@ public final class ReposiliteHttpServer {
         }
 
         if (configuration.debugEnabled) {
-            config.requestCacheSize = FilesUtils.displaySizeToBytesCount(System.getProperty("reposilite.requestCacheSize", "8MB"));
-            Reposilite.getLogger().debug("requestCacheSize set to " + config.requestCacheSize + " bytes");
+            // config.requestCacheSize = FilesUtils.displaySizeToBytesCount(System.getProperty("reposilite.requestCacheSize", "8MB"));
+            // Reposilite.getLogger().debug("requestCacheSize set to " + config.requestCacheSize + " bytes");
             Reposilite.getLogger().info("Debug enabled");
             config.enableDevLogging();
         }

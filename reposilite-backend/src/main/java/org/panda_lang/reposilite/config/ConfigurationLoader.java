@@ -16,7 +16,8 @@
 
 package org.panda_lang.reposilite.config;
 
-import net.dzikoysk.cdn.CDN;
+import net.dzikoysk.cdn.Cdn;
+import net.dzikoysk.cdn.CdnFactory;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.ReposiliteConstants;
 import org.panda_lang.reposilite.utils.FilesUtils;
@@ -48,10 +49,10 @@ public final class ConfigurationLoader {
             throw new IllegalArgumentException("Custom configuration file does not have '.cdn' extension");
         }
 
-        CDN cdn = CDN.defaultInstance();
+        Cdn cdn = CdnFactory.createStandard();
 
         Configuration configuration = configurationFile.exists()
-            ? cdn.parse(Configuration.class, FileUtils.getContentOfFile(configurationFile))
+            ? cdn.load(configurationFile, Configuration.class)
             : createConfiguration(configurationFile);
 
         verifyBasePath(configuration);
@@ -71,14 +72,10 @@ public final class ConfigurationLoader {
         }
 
         Reposilite.getLogger().info("Legacy configuration file has been found");
-
-        Configuration configuration = CDN.configure()
-                .enableYamlLikeFormatting()
-                .build()
-                .parse(Configuration.class, FileUtils.getContentOfFile(legacyConfiguration));
-
+        Configuration configuration = CdnFactory.createYamlLike().load(legacyConfiguration, Configuration.class);
         Reposilite.getLogger().info("YAML configuration has been converted to CDN format");
         FileUtils.delete(legacyConfiguration);
+
         return configuration;
     }
 

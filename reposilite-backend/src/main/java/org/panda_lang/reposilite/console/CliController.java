@@ -16,7 +16,7 @@
 
 package org.panda_lang.reposilite.console;
 
-import io.javalin.websocket.WsHandler;
+import io.javalin.websocket.WsConfig;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.ReposiliteContext;
 import org.panda_lang.reposilite.ReposiliteContextFactory;
@@ -29,7 +29,7 @@ import org.panda_lang.utilities.commons.function.Result;
 
 import java.util.function.Consumer;
 
-public final class CliController implements Consumer<WsHandler> {
+public final class CliController implements Consumer<WsConfig> {
 
     private static final String AUTHORIZATION_PREFIX = "Authorization:";
 
@@ -51,8 +51,8 @@ public final class CliController implements Consumer<WsHandler> {
     }
 
     @Override
-    public void accept(WsHandler wsHandler) {
-        wsHandler.onConnect(connectContext -> wsHandler.onMessage(authContext -> {
+    public void accept(WsConfig wsConfig) {
+        wsConfig.onConnect(connectContext -> wsConfig.onMessage(authContext -> {
             ReposiliteContext context = contextFactory.create(authContext);
             String authMessage = authContext.message();
 
@@ -75,7 +75,7 @@ public final class CliController implements Consumer<WsHandler> {
 
             String username = auth.get().getAlias() + "@" + context.address();
 
-            wsHandler.onClose(closeContext -> {
+            wsConfig.onClose(closeContext -> {
                 Reposilite.getLogger().info("CLI | " + username + " closed connection");
                 ReposiliteWriter.getConsumers().remove(closeContext);
             });
@@ -83,7 +83,7 @@ public final class CliController implements Consumer<WsHandler> {
             ReposiliteWriter.getConsumers().put(connectContext, connectContext::send);
             Reposilite.getLogger().info("CLI | " + username + " accessed remote console");
 
-            wsHandler.onMessage(messageContext -> {
+            wsConfig.onMessage(messageContext -> {
                 Reposilite.getLogger().info("CLI | " + username + "> " + messageContext.message());
                 reposiliteExecutor.schedule(() -> console.defaultExecute(messageContext.message()));
             });
