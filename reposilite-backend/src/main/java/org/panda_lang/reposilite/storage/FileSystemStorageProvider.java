@@ -86,17 +86,15 @@ public abstract class FileSystemStorageProvider implements StorageProvider {
                 return Result.error(new ErrorDto(HttpStatus.SC_INSUFFICIENT_STORAGE, "Not enough storage space available"));
             }
 
-            Path destination = this.rootDirectory.resolve(file);
-
-            if (destination.getParent() != null && !Files.exists(destination.getParent())) {
-                Files.createDirectories(destination.getParent());
+            if (file.getParent() != null && !Files.exists(file.getParent())) {
+                Files.createDirectories(file.getParent());
             }
 
-            if (!Files.exists(destination)) {
-                Files.createFile(destination);
+            if (!Files.exists(file)) {
+                Files.createFile(file);
             }
 
-            FileChannel fileChannel = FileChannel.open(destination, StandardOpenOption.WRITE, StandardOpenOption.CREATE);
+            FileChannel fileChannel = FileChannel.open(file, StandardOpenOption.WRITE, StandardOpenOption.CREATE);
             fileChannel.lock();
 
             long bytesWritten = writer.apply(input, fileChannel);

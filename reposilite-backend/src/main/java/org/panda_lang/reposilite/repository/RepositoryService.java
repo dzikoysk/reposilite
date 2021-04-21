@@ -16,68 +16,81 @@
 
 package org.panda_lang.reposilite.repository;
 
+import org.jetbrains.annotations.Nullable;
+import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.auth.Token;
 import org.panda_lang.reposilite.config.Configuration;
+import org.panda_lang.reposilite.config.RepositoryConfig;
+import org.panda_lang.reposilite.config.RepositoryOption;
 import org.panda_lang.reposilite.error.ErrorDto;
 import org.panda_lang.reposilite.metadata.MetadataUtils;
-import org.panda_lang.reposilite.storage.StorageProvider;
 import org.panda_lang.reposilite.utils.ArrayUtils;
 import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.function.Result;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public final class RepositoryService {
+    private final Map<String, Repository> repositories = new LinkedHashMap<>(4);
+    private Repository primaryRepository;
 
-    private final RepositoryStorage repositoryStorage;
-    private final StorageProvider storageProvider;
+    public void load(Configuration configuration) {
+        Reposilite.getLogger().info("--- Loading repositories");
 
-    public RepositoryService(
-            Path workingDirectory,
-            StorageProvider storageProvider) {
+        for (String repositoryString : configuration.repositories) {
+            boolean primary = primaryRepository == null;
+            RepositoryConfig config = RepositoryConfig.parse(repositoryString);
 
-        this.repositoryStorage = new RepositoryStorage(workingDirectory, storageProvider);
-        this.storageProvider = storageProvider;
+            Repository repository = new Repository(
+                    config
+            );
+
+            repositories.put(repository.getName(), repository);
+
+            if (primary) {
+                this.primaryRepository = repository;
+            }
+
+            Reposilite.getLogger().info("+ " + (config.get(RepositoryOption.PRIVATE) ? " (hidden)" : "") + (primary ? " (primary)" : ""));
+        }
+
+        Reposilite.getLogger().info(repositories.size() + " repositories have been found");
     }
 
-    public void load(Configuration configuration) throws IOException {
-        repositoryStorage.load(configuration);
-    }
-
-    public void resolveSnapshot(Repository repository, String[] requestPath) {
-        Path artifactFile = repository.getFile(requestPath);
+    public @Nullable Path resolveSnapshot(Repository repository, Path requestPath) {
+        Path artifactFile = repository.relativize(requestPath);
         Path versionDirectory = artifactFile.getParent();
 
-        Path[] builds = MetadataUtils.toSortedBuilds(storageProvider, versionDirectory).get();
+        Path[] builds = MetadataUtils.toSortedBuilds(repository, versionDirectory).get();
         Path latestBuild = ArrayUtils.getFirst(builds);
 
         if (latestBuild == null) {
-            return;
+            return null;
         }
 
         String version = StringUtils.replace(versionDirectory.getFileName().toString(), "-SNAPSHOT", StringUtils.EMPTY);
         Path artifactDirectory = versionDirectory.getParent();
 
         String identifier = MetadataUtils.toIdentifier(artifactDirectory.getFileName().toString(), version, latestBuild);
-        requestPath[requestPath.length - 1] = StringUtils.replace(requestPath[requestPath.length - 1], "SNAPSHOT", identifier);
+        return requestPath.getParent().resolve(requestPath.getFileName().toString().replace("SNAPSHOT", identifier));
     }
 
     public Optional<FileDetailsDto> findLatest(Path requestedFile) throws IOException {
         if (requestedFile.getFileName().toString().equals("latest")) {
             Path parent = requestedFile.getParent();
 
-            if (parent != null && storageProvider.isDirectory(parent)) {
-                Result<Path[], ErrorDto> files = MetadataUtils.toSortedVersions(storageProvider, parent);
+            for (Repository repository : repositories.values()) {
+                if (parent != null && repository.isDirectory(parent)) {
+                    Result<Path[], ErrorDto> files = MetadataUtils.toSortedVersions(repository, parent);
 
-                if (files.isOk()) {
-                    Path latest = ArrayUtils.getFirst(files.get());
+                    if (files.isOk()) {
+                        Path latest = ArrayUtils.getFirst(files.get());
 
-                    if (latest != null) {
-                        return Optional.ofNullable(storageProvider.getFileDetails(latest).orElseGet(e -> null));
+                        if (latest != null) {
+                            return Optional.ofNullable(repository.getFileDetails(latest).orElseGet(e -> null));
+                        }
                     }
                 }
             }
@@ -86,7 +99,7 @@ public final class RepositoryService {
         return Optional.empty();
     }
 
-    public List<Repository> getRepositories(Token token) {
+    public Collection<Repository> getRepositories(Token token) {
         if (token.hasMultiaccess()) {
             return getRepositories();
         }
@@ -102,20 +115,15 @@ public final class RepositoryService {
         return Collections.emptyList();
     }
 
-    public List<Repository> getRepositories() {
-        return repositoryStorage.getRepositories();
+    public Collection<Repository> getRepositories() {
+        return this.repositories.values();
     }
 
     public Repository getRepository(String repositoryName) {
-        return repositoryStorage.getRepository(repositoryName);
+        return this.repositories.get(repositoryName);
     }
 
     public Repository getPrimaryRepository() {
-        return repositoryStorage.getPrimaryRepository();
+        return this.primaryRepository;
     }
-
-    public Path getFile(String path) {
-        return repositoryStorage.getFile(path);
-    }
-
 }

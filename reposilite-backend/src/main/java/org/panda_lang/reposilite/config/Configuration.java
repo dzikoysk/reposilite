@@ -69,8 +69,8 @@ public final class Configuration implements Serializable {
     public String diskQuota = "10GB";
     @Description("# List of supported Maven repositories.")
     @Description("# First directory on the list is the main (primary) repository.")
-    @Description("# Tu mark repository as private, prefix its name with a dot, e.g. \".private\"")
-    public List<String> repositories = Arrays.asList("releases", "snapshots");
+    @Description("# Tu mark repository as private, add the \"--private\" flag")
+    public List<String> repositories = Arrays.asList("releases --no-redeploy", "snapshots");
     @Description("# Allow to omit name of the main repository in request")
     @Description("# e.g. /org/panda-lang/reposilite will be redirected to /releases/org/panda-lang/reposilite")
     public Boolean rewritePathsEnabled = true;

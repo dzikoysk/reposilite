@@ -36,11 +36,12 @@ enforceSsl: false
 diskQuota: 85%
 # List of supported Maven repositories.
 # First directory on the list is the main (primary) repository.
-# Tu mark repository as private, prefix its name with a dot, e.g. ".private"
+# Tu mark repository as private, add the "--private" flag
 repositories [
-  releases
-  snapshots
-  .private
+  releases --storage-provider=files --disk-quota=5GB
+  snapshots --storage-provider=files --disk-quota=2GB
+  .private --storage-provider=files --disk-quota=2GB
+  s3-test --storage-provider=s3 --s3-bucket=reposilite-s3-test-bucket --s3-region=us-west-2
 ]
 # Allow to omit name of the main repository in request
 # e.g. /org/panda-lang/reposilite will be redirected to /releases/org/panda-lang/reposilite

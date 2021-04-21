@@ -63,11 +63,9 @@ public final class ReposiliteHttpServer {
                 reposilite.getFailureService());
 
         LookupApiEndpoint lookupApiEndpoint = new LookupApiEndpoint(
-                configuration.rewritePathsEnabled,
                 reposilite.getContextFactory(),
                 reposilite.getRepositoryAuthenticator(),
-                reposilite.getRepositoryService(),
-                reposilite.getStorageProvider());
+                reposilite.getRepositoryService());
 
         CliController cliController = new CliController(
                 reposilite.getContextFactory(),

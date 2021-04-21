@@ -35,6 +35,7 @@ import org.panda_lang.utilities.commons.function.Result;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -147,7 +148,7 @@ public final class ProxyService {
             uri = repositoryService.getPrimaryRepository().getName() + uri;
         }
 
-        Path proxiedFile = repositoryService.getFile(uri);
+        Path proxiedFile = Paths.get(uri);
 
         try {
             Result<FileDetailsDto, ErrorDto> result = this.storageProvider.putFile(proxiedFile, remoteResponse.getContent());

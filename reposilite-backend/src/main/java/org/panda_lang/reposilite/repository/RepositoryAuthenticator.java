@@ -22,12 +22,13 @@ import org.panda_lang.reposilite.auth.Authenticator;
 import org.panda_lang.reposilite.auth.Session;
 import org.panda_lang.reposilite.error.ErrorDto;
 import org.panda_lang.reposilite.error.ResponseUtils;
-import org.panda_lang.reposilite.storage.StorageProvider;
 import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.collection.Pair;
 import org.panda_lang.utilities.commons.function.Option;
 import org.panda_lang.utilities.commons.function.Result;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -36,22 +37,20 @@ public final class RepositoryAuthenticator {
     private final boolean rewritePathsEnabled;
     private final Authenticator authenticator;
     private final RepositoryService repositoryService;
-    private final StorageProvider storageProvider;
 
-    public RepositoryAuthenticator(boolean rewritePathsEnabled, Authenticator authenticator, RepositoryService repositoryService, StorageProvider storageProvider) {
+    public RepositoryAuthenticator(boolean rewritePathsEnabled, Authenticator authenticator, RepositoryService repositoryService) {
         this.rewritePathsEnabled = rewritePathsEnabled;
         this.authenticator = authenticator;
         this.repositoryService = repositoryService;
-        this.storageProvider = storageProvider;
     }
 
-    public Result<Pair<String[], Repository>, ErrorDto> authDefaultRepository(Map<String, String> headers, String uri) {
-        return authRepository(headers, ReposiliteUtils.normalizeUri(rewritePathsEnabled, repositoryService, uri));
+    public Result<Pair<Path, Repository>, ErrorDto> authDefaultRepository(Map<String, String> headers, String uri) {
+        return authRepository(headers, ReposiliteUtils.normalizeUri(uri));
     }
 
-    public Result<Pair<String[], Repository>, ErrorDto> authRepository(Map<String, String> headers, String normalizedUri) {
-        String[] path = StringUtils.split(normalizedUri, "/");
-        String repositoryName = path[0];
+    public Result<Pair<Path, Repository>, ErrorDto> authRepository(Map<String, String> headers, String normalizedUri) {
+        String[] split = StringUtils.split(normalizedUri, "/");
+        String repositoryName = split[0];
 
         if (StringUtils.isEmpty(repositoryName)) {
             return ResponseUtils.error(HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, "Unsupported request");
@@ -60,11 +59,15 @@ public final class RepositoryAuthenticator {
         Repository repository = repositoryService.getRepository(repositoryName);
 
         if (repository == null) {
-            return ResponseUtils.error(HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, "Repository " + repositoryName  + " not found");
+            if (this.rewritePathsEnabled) {
+                repository = repositoryService.getPrimaryRepository();
+            } else {
+                return ResponseUtils.error(HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, "Repository " + repositoryName + " not found");
+            }
         }
 
         // auth hidden repositories
-        if (repository.isHidden()) {
+        if (repository.isPrivate()) {
             Result<Session, String> authResult = authenticator.authByUri(headers, normalizedUri);
 
             if (authResult.isErr()) {
@@ -72,16 +75,21 @@ public final class RepositoryAuthenticator {
             }
         }
 
+        Path path = Paths.get(split.length > 1 ? split[1] : "");
+
+        for (int i = 2; i < split.length; ++i) {
+            path = path.resolve(split[i]);
+        }
+
         return Result.ok(new Pair<>(path, repository));
     }
 
-    FileListDto findAvailableRepositories(Map<String, String> headers) {
+    ListDto<FileDetailsDto> findAvailableRepositories(Map<String, String> headers) {
         Option<Session> session = authenticator.authByHeader(headers).toOption();
 
-        return new FileListDto(repositoryService.getRepositories().stream()
+        return new ListDto<>(repositoryService.getRepositories().stream()
                 .filter(repository -> repository.isPublic() || session.map(value -> value.getRepositoryNames().contains(repository.getName())).orElseGet(false))
-                .map(Repository::getFile)
-                .map(path -> storageProvider.getFileDetails(path).get())
+                .map(repository -> new FileDetailsDto(FileDetailsDto.DIRECTORY, repository.getName(), "", "application/octet-stream", 0))
                 .collect(Collectors.toList()));
     }
 

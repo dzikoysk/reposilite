@@ -1,12 +1,15 @@
 package org.panda_lang.reposilite.storage;
 
 import org.apache.http.HttpStatus;
+import org.jetbrains.annotations.Nullable;
 import org.panda_lang.reposilite.error.ErrorDto;
 import org.panda_lang.reposilite.repository.FileDetailsDto;
 import org.panda_lang.reposilite.utils.FilesUtils;
 import org.panda_lang.utilities.commons.function.Result;
+import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 
@@ -19,24 +22,36 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class S3StorageProvider implements StorageProvider {
-    private final S3Client s3 = S3Client.create();
+    private final S3Client s3;
     private final String bucket;
 
-    public S3StorageProvider(String bucketName) {
+    public S3StorageProvider(String bucketName, String region) {
         this.bucket = bucketName;
+        this.s3 = S3Client.builder().region(Region.of(region)).credentialsProvider(AnonymousCredentialsProvider.create()).build();
     }
 
     @Override
     public Result<FileDetailsDto, ErrorDto> putFile(Path file, byte[] bytes) {
         PutObjectRequest.Builder builder = PutObjectRequest.builder();
         builder.bucket(bucket);
-        builder.key(file.toString());
+        builder.key(file.toString().replace('\\', '/'));
         builder.contentType(FilesUtils.getMimeType(file.toString(), "text/plain"));
         builder.contentLength((long) bytes.length);
 
-        PutObjectResponse response = this.s3.putObject(builder.build(), RequestBody.fromBytes(bytes));
+        try {
+            this.s3.putObject(builder.build(), RequestBody.fromBytes(bytes));
 
-        return Result.error(new ErrorDto(HttpStatus.SC_INTERNAL_SERVER_ERROR, "S3 file test"));
+            return Result.ok(new FileDetailsDto(
+                    FileDetailsDto.FILE,
+                    file.getFileName().toString(),
+                    FileDetailsDto.DATE_FORMAT.format(System.currentTimeMillis()),
+                    FilesUtils.getMimeType(file.getFileName().toString(), "application/octet-stream"),
+                    bytes.length
+            ));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Result.error(new ErrorDto(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Failed to write " + file.toString()));
+        }
     }
 
     @Override
@@ -44,15 +59,25 @@ public class S3StorageProvider implements StorageProvider {
         try {
             PutObjectRequest.Builder builder = PutObjectRequest.builder();
             builder.bucket(bucket);
-            builder.key(file.toString());
+            builder.key(file.toString().replace('\\', '/'));
             builder.contentType(FilesUtils.getMimeType(file.toString(), "text/plain"));
-            builder.contentLength((long) inputStream.available());
 
-            PutObjectResponse response = this.s3.putObject(builder.build(), RequestBody.fromInputStream(inputStream, inputStream.available()));
+            long length = inputStream.available();
+            builder.contentLength(length);
 
-            return Result.error(new ErrorDto(HttpStatus.SC_INTERNAL_SERVER_ERROR, "S3 file test"));
+            this.s3.putObject(builder.build(), RequestBody.fromInputStream(inputStream, inputStream.available()));
+
+            return Result.ok(new FileDetailsDto(
+                    FileDetailsDto.FILE,
+                    file.getFileName().toString(),
+                    FileDetailsDto.DATE_FORMAT.format(System.currentTimeMillis()),
+                    FilesUtils.getMimeType(file.getFileName().toString(), "application/octet-stream"),
+                    length
+            ));
+
         } catch (IOException e) {
-            return Result.error(new ErrorDto(HttpStatus.SC_INTERNAL_SERVER_ERROR, "S3 file test 2"));
+            e.printStackTrace();
+            return Result.error(new ErrorDto(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Failed to write " + file.toString()));
         }
     }
 
@@ -62,35 +87,45 @@ public class S3StorageProvider implements StorageProvider {
             GetObjectRequest.Builder request = GetObjectRequest.builder();
 
             request.bucket(this.bucket);
-            request.key(file.toString());
+            request.key(file.toString().replace('\\', '/'));
 
             ResponseInputStream<GetObjectResponse> response = this.s3.getObject(request.build());
 
             byte[] bytes = new byte[Math.toIntExact(response.response().contentLength())];
 
-            int written = response.read(bytes);
+            int read = response.read(bytes);
 
             return Result.ok(bytes);
-        } catch (IOException e) {
-            return Result.error(new ErrorDto(HttpStatus.SC_INTERNAL_SERVER_ERROR, "S3 file test"));
+        } catch (NoSuchKeyException | IOException e) {
+            return Result.error(new ErrorDto(HttpStatus.SC_NOT_FOUND, "File not found: " + file.toString()));
         }
     }
 
     @Override
     public Result<FileDetailsDto, ErrorDto> getFileDetails(Path file) {
-        try {
-            HeadObjectResponse response = this.head(file);
+        if (file.toString().equals("")) {
+            return Result.ok(new FileDetailsDto(
+                    FileDetailsDto.DIRECTORY,
+                    "",
+                    "WHATEVER",
+                    "application/octet-stream",
+                    0
+            ));
+        }
 
+        HeadObjectResponse response = this.head(file);
+
+        if (response != null) {
             return Result.ok(new FileDetailsDto(
                     FileDetailsDto.FILE,
                     file.getFileName().toString(),
-                    FileDetailsDto.DATE_FORMAT.format(response.lastModified()),
+                    FileDetailsDto.DATE_FORMAT.format(System.currentTimeMillis()),
                     FilesUtils.getMimeType(file.getFileName().toString(), "application/octet-stream"),
                     response.contentLength()
             ));
-        } catch (NoSuchKeyException e) {
-            return Result.error(new ErrorDto(HttpStatus.SC_NOT_FOUND, "File not found: " + file.toString()));
         }
+
+        return Result.error(new ErrorDto(HttpStatus.SC_NOT_FOUND, "File not found: " + file.toString()));
     }
 
     @Override
@@ -98,7 +133,7 @@ public class S3StorageProvider implements StorageProvider {
         DeleteObjectRequest.Builder request = DeleteObjectRequest.builder();
 
         request.bucket(this.bucket);
-        request.key(file.toString());
+        request.key(file.toString().replace('\\', '/'));
 
         this.s3.deleteObject(request.build());
 
@@ -112,9 +147,9 @@ public class S3StorageProvider implements StorageProvider {
 
             request.bucket(this.bucket);
 
-            String directoryString = directory.toString();
+            String directoryString = directory.toString().replace('\\', '/');
             request.prefix(directoryString);
-            request.delimiter("/");
+//            request.delimiter("/");
 
             ListObjectsResponse response = this.s3.listObjects(request.build());
 
@@ -123,9 +158,7 @@ public class S3StorageProvider implements StorageProvider {
             for (S3Object object : response.contents()) {
                 String sub = object.key().substring(directoryString.length());
 
-                if (sub.chars().filter(c -> c == '/').count() == 1) {
-                    paths.add(Paths.get(sub));
-                }
+                paths.add(Paths.get(sub));
             }
 
             return Result.ok(paths);
@@ -136,37 +169,55 @@ public class S3StorageProvider implements StorageProvider {
 
     @Override
     public Result<FileTime, ErrorDto> getLastModifiedTime(Path file) {
-        try {
-            return Result.ok(FileTime.from(this.head(file).lastModified()));
-        } catch (Exception e) {
-            return Result.error(new ErrorDto(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getLocalizedMessage()));
-        }    }
+        HeadObjectResponse response = this.head(file);
 
-    @Override
-    public Result<Long, ErrorDto> getFileSize(Path file) {
-        try {
-            return Result.ok(this.head(file).contentLength());
-        } catch (Exception e) {
-            return Result.error(new ErrorDto(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getLocalizedMessage()));
+        if (response != null) {
+            return Result.ok(FileTime.from(response.lastModified()));
+        } else {
+            Result<List<Path>, ErrorDto> result = this.getFiles(file);
+
+            if (result.isOk()) {
+                for (Path path : result.get()) {
+                    return this.getLastModifiedTime(file.resolve(path.getName(0)));
+                }
+            }
+
+            return Result.error(new ErrorDto(HttpStatus.SC_NOT_FOUND, "File not found: " + file.toString()));
         }
     }
 
-    private HeadObjectResponse head(Path file) {
-        HeadObjectRequest.Builder request = HeadObjectRequest.builder();
+    @Override
+    public Result<Long, ErrorDto> getFileSize(Path file) {
+        HeadObjectResponse response = this.head(file);
 
-        request.bucket(this.bucket);
-        request.key(file.toString());
+        if (response != null) {
+            return Result.ok(response.contentLength());
+        } else {
+            return Result.error(new ErrorDto(HttpStatus.SC_NOT_FOUND, "File not found: " + file.toString()));
+        }
+    }
 
-        return this.s3.headObject(request.build());
+    private @Nullable HeadObjectResponse head(Path file) {
+        try {
+            HeadObjectRequest.Builder request = HeadObjectRequest.builder();
+
+            request.bucket(this.bucket);
+            request.key(file.toString().replace('\\', '/'));
+
+            return this.s3.headObject(request.build());
+        } catch (NoSuchKeyException ignored) {
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
     @Override
     public boolean exists(Path file) {
-        try {
-            return this.head(file) != null;
-        } catch (Exception e) {
-            return false;
-        }
+        HeadObjectResponse response = this.head(file);
+
+        return response != null;
     }
 
     @Override
@@ -182,6 +233,7 @@ public class S3StorageProvider implements StorageProvider {
 
     @Override
     public long getUsage() {
+        // TODO
         return -1;
     }
 

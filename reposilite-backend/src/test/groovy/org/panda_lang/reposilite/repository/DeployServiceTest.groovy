@@ -37,17 +37,12 @@ class DeployServiceTest extends ReposiliteTestSpecification {
 
     @Test
     void 'should respect disk quota' () {
-        StorageProvider storageProvider = FileSystemStorageProvider.of(Paths.get(""), "1KB");
         def deployService = new DeployService(
                 true,
                 false,
                 super.reposilite.authenticator,
-                new RepositoryService(
-                        super.workingDirectory
-                        ,
-                        storageProvider
-                ),
-                super.reposilite.metadataService, storageProvider)
+                new RepositoryService(),
+                super.reposilite.metadataService)
 
         super.reposilite.tokenService.createToken('/', ALIAS, 'rw', TOKEN)
         def context = createAuthenticatedContext('/releases/a/b/c.txt')

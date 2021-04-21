@@ -31,11 +31,7 @@ import java.nio.file.Paths
 class AuthenticatorSpecification {
 
     static final StorageProvider STORAGE_PROVIDER = FileSystemStorageProvider.of(Paths.get(""), "10GB")
-    static final RepositoryService REPOSITORY_SERVICE = new RepositoryService(
-            Paths.get("")
-            ,
-            STORAGE_PROVIDER
-    )
+    static final RepositoryService REPOSITORY_SERVICE = new RepositoryService()
 
     static final TokenService TOKEN_SERVICE = new TokenService(Paths.get(""), STORAGE_PROVIDER)
     static final Token AUTH_TOKEN = new Token('/auth/test', 'alias', 'rw', TokenService.B_CRYPT_TOKENS_ENCODER.encode('secret'))

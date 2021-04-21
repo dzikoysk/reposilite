@@ -17,10 +17,9 @@
 package org.panda_lang.reposilite.metadata;
 
 import org.panda_lang.reposilite.error.ErrorDto;
-import org.panda_lang.reposilite.storage.StorageProvider;
+import org.panda_lang.reposilite.repository.Repository;
 import org.panda_lang.reposilite.utils.FilesUtils;
 import org.panda_lang.utilities.commons.StringUtils;
-import org.panda_lang.utilities.commons.collection.Pair;
 import org.panda_lang.utilities.commons.function.PandaStream;
 import org.panda_lang.utilities.commons.function.Result;
 import org.panda_lang.utilities.commons.text.Joiner;
@@ -31,11 +30,7 @@ import java.nio.file.attribute.FileTime;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.Locale;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.stream.Stream;
+import java.util.*;
 
 public final class MetadataUtils {
 
@@ -47,37 +42,37 @@ public final class MetadataUtils {
 
     private MetadataUtils() { }
 
-    public static Result<Path[], ErrorDto> toSortedBuilds(StorageProvider storageProvider, Path directory) {
-        return storageProvider.getFiles(directory).map(list -> toSorted(list.stream()
-                        .filter(path -> path.getParent().equals(directory))
-                        .filter(storageProvider::exists)
-                        .filter(path -> path.getFileName().endsWith(".pom")),
-                path -> path.getFileName().toString(), storageProvider::isDirectory)
-                .toArray(Path[]::new));
+    public static Result<Path[], ErrorDto> toSortedBuilds(Repository repository, Path directory) {
+        Result<List<Path>, ErrorDto> result = repository.getFiles(directory);
+
+        if (result.isOk()) {
+            Collection<Path> paths = new TreeSet<>(repository);
+
+            for (Path path : result.get()) {
+                paths.add(directory.resolve(path.getName(0)));
+            }
+
+            return Result.ok(paths.toArray(new Path[0]));
+        }
+
+        return result.map(p -> null);
     }
 
-    public static Result<Path[], ErrorDto> toFiles(StorageProvider storageProvider, Path directory) {
-        return storageProvider.getFiles(directory).map(list -> toSorted(list.stream()
-                        .filter(path -> path.getParent().equals(directory))
-                        .filter(storageProvider::exists),
-                path -> path.getFileName().toString(), storageProvider::isDirectory)
-                .toArray(Path[]::new));
+    public static Result<Path[], ErrorDto> toSortedVersions(Repository repository, Path directory) {
+        return repository.getFiles(directory).map(list -> list.stream()
+                .filter(path -> path.getParent().endsWith(directory))
+                .filter(repository::isDirectory)
+                .sorted(repository)
+                .toArray(Path[]::new)
+        );
     }
 
-    public static Result<Path[], ErrorDto> toSortedVersions(StorageProvider storageProvider, Path directory) throws IOException {
-        return storageProvider.getFiles(directory).map(list -> toSorted(list.stream()
-                        .filter(path -> path.getParent().equals(directory))
-                        .filter(storageProvider::isDirectory),
-                path -> path.getFileName().toString(), storageProvider::isDirectory)
-                .toArray(Path[]::new));
-    }
-
-    protected static String[] toSortedIdentifiers(String artifact, String version, Path[] builds) {
+    protected static String[] toSortedIdentifiers(Repository repository, String artifact, String version, Path[] builds) {
         return PandaStream.of(builds)
+                .sorted(repository)
                 .map(build -> toIdentifier(artifact, version, build))
                 .filterNot(StringUtils::isEmpty)
                 .distinct()
-                .transform(stream -> toSorted(stream, Function.identity(), identifier -> true))
                 .toArray(String[]::new);
     }
 
@@ -89,19 +84,13 @@ public final class MetadataUtils {
                 && (name.contains(identifier + ".") || name.contains(identifier + "-"));
     }
 
-    protected static Path[] toBuildFiles(StorageProvider storageProvider, Path directory, String identifier) {
-        return toSorted(storageProvider.getFiles(directory).get().stream()
-                        .filter(path -> path.getParent().equals(directory))
-                        .filter(path -> isNotChecksum(path, identifier)),
-                path -> path.getFileName().toString(), storageProvider::isDirectory)
+    protected static Path[] toBuildFiles(Repository repository, Path directory, String identifier) {
+        return repository.getFiles(directory).get().stream()
+                .filter(path -> path.getParent().equals(directory))
+                .filter(path -> isNotChecksum(path, identifier))
+                .filter(repository::exists)
+                .sorted(repository)
                 .toArray(Path[]::new);
-    }
-
-    public static <T> Stream<T> toSorted(Stream<T> stream, Function<T, String> mapper, Predicate<T> isDirectory) {
-        return stream
-                .map(object -> new Pair<>(object, mapper.apply(object).split("[-.]")))
-                .sorted(new MetadataComparator<>(pair -> mapper.apply(pair.getKey()), Pair::getValue, pair -> isDirectory.test(pair.getKey())))
-                .map(Pair::getKey);
     }
 
     public static String toIdentifier(String artifact, String version, Path build) {
@@ -133,8 +122,8 @@ public final class MetadataUtils {
                 : identifier.substring(0, occurrence);
     }
 
-    protected static String toUpdateTime(StorageProvider storageProvider, Path file) throws IOException {
-        Result<FileTime, ErrorDto> result = storageProvider.getLastModifiedTime(file);
+    protected static String toUpdateTime(Repository repository, Path file) throws IOException {
+        Result<FileTime, ErrorDto> result = repository.getLastModifiedTime(file);
 
         if (result.isOk()) {
             return TIMESTAMP_FORMATTER.format(Instant.ofEpochMilli(result.get().toMillis()));
@@ -155,6 +144,21 @@ public final class MetadataUtils {
 
     private static String[] shrinkGroup(String[] elements, int toShrink) {
         return Arrays.copyOfRange(elements, 0, elements.length - toShrink);
+    }
+
+    public static String toGroup(Path metadataFilePath) {
+        StringBuilder builder = new StringBuilder();
+
+        for (Iterator<Path> iterator = metadataFilePath.getParent().getParent().iterator(); iterator.hasNext(); ) {
+            Path path = iterator.next();
+            builder.append(path.getFileName().toString());
+
+            if (iterator.hasNext()) {
+                builder.append('.');
+            }
+        }
+
+        return builder.toString();
     }
 
     private static boolean isBuildNumber(String content) {
