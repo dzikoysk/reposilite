@@ -21,7 +21,6 @@ import org.panda_lang.reposilite.metadata.MetadataUtils;
 import java.nio.file.Path;
 
 final class Artifact {
-
     private final Repository repository;
     private final String group;
     private final String artifact;
@@ -32,20 +31,6 @@ final class Artifact {
         this.group = group;
         this.artifact = artifact;
         this.version = version;
-    }
-
-    public Path getFile(String fileName) {
-        return repository.getFile(getLocalPath() + fileName);
-    }
-
-    public String getLocalPath() {
-        return getGroupPath() + "/" + artifact + "/" + version + "/";
-    }
-
-    private String getGroupPath() {
-        return group
-                .replaceAll("([^`])\\.([^`])", "$1/$2")
-                .replace(MetadataUtils.ESCAPE_DOT, ".");
     }
 
     public Repository getRepository() {

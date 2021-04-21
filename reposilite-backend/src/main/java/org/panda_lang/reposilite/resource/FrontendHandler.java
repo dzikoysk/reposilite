@@ -45,5 +45,4 @@ public class FrontendHandler implements Handler {
                 .header("Content-Type", "application/javascript")
                 .res.setCharacterEncoding("UTF-8");
     }
-
 }

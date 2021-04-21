@@ -22,11 +22,9 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.panda_lang.reposilite.config.Configuration
 import org.panda_lang.reposilite.repository.RepositoryService
-import org.panda_lang.reposilite.storage.FileSystemStorageProvider
 import org.panda_lang.utilities.commons.StringUtils
 
 import java.nio.file.Path
-import java.nio.file.Paths
 
 import static org.junit.jupiter.api.Assertions.assertEquals
 
@@ -39,35 +37,31 @@ class ReposiliteUtilsTest {
 
     @BeforeAll
     static void prepare() {
-        REPOSITORY_SERVICE = new RepositoryService(
-                WORKING_DIRECTORY
-                ,
-                FileSystemStorageProvider.of(Paths.get(""), "10GB")
-        )
+        REPOSITORY_SERVICE = new RepositoryService()
 
         REPOSITORY_SERVICE.load(new Configuration())
     }
 
     @Test
     void 'should not interfere' () {
-        assertEquals "releases/without/repo-one/", ReposiliteUtils.normalizeUri(true, REPOSITORY_SERVICE, "releases/without/repo-one/")
+        assertEquals "releases/without/repo-one/", ReposiliteUtils.normalizeUri("releases/without/repo-one/")
     }
 
     @Test
     void 'should rewrite path' () {
-        assertEquals "releases/without/repo/", ReposiliteUtils.normalizeUri(true, REPOSITORY_SERVICE, "/without/repo/")
+        assertEquals "releases/without/repo/", ReposiliteUtils.normalizeUri("/without/repo/")
     }
 
     @Test
     void 'should not allow path escapes' () {
-        assertEquals StringUtils.EMPTY, ReposiliteUtils.normalizeUri(true, REPOSITORY_SERVICE, "~/home")
-        assertEquals StringUtils.EMPTY, ReposiliteUtils.normalizeUri(true, REPOSITORY_SERVICE, "../../../../monkas")
-        assertEquals StringUtils.EMPTY, ReposiliteUtils.normalizeUri(true, REPOSITORY_SERVICE, "C:\\")
+        assertEquals StringUtils.EMPTY, ReposiliteUtils.normalizeUri("~/home")
+        assertEquals StringUtils.EMPTY, ReposiliteUtils.normalizeUri("../../../../monkas")
+        assertEquals StringUtils.EMPTY, ReposiliteUtils.normalizeUri("C:\\")
     }
 
     @Test
     void 'should not rewrite paths' () {
-        assertEquals "without/repo/", ReposiliteUtils.normalizeUri(false, REPOSITORY_SERVICE, "without/repo/")
+        assertEquals "without/repo/", ReposiliteUtils.normalizeUri("without/repo/")
     }
 
 }

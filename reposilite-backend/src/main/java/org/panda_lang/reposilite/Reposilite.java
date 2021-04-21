@@ -54,7 +54,7 @@ public final class Reposilite {
     private final Path configurationFile;
     private final Path workingDirectory;
     private final boolean testEnvEnabled;
-    private final StorageProvider storageProvider;
+    private final FileSystemStorageProvider storageProvider;
     private final Configuration configuration;
     private final ReposiliteContextFactory contextFactory;
     private final ReposiliteExecutor executor;
@@ -92,14 +92,14 @@ public final class Reposilite {
         this.executor = new ReposiliteExecutor(testEnvEnabled, failureService);
         this.tokenService = new TokenService(workingDirectory, storageProvider);
         this.statsService = new StatsService(workingDirectory, failureService, storageProvider);
-        this.repositoryService = new RepositoryService(workingDirectory, storageProvider);
-        this.metadataService = new MetadataService(failureService, storageProvider);
+        this.repositoryService = new RepositoryService();
+        this.metadataService = new MetadataService(failureService);
 
         this.authenticator = new Authenticator(repositoryService, tokenService);
-        this.repositoryAuthenticator = new RepositoryAuthenticator(configuration.rewritePathsEnabled, authenticator, repositoryService, storageProvider);
+        this.repositoryAuthenticator = new RepositoryAuthenticator(configuration.rewritePathsEnabled, authenticator, repositoryService);
         this.authService = new AuthService(authenticator);
-        this.deployService = new DeployService(configuration.deployEnabled, configuration.rewritePathsEnabled, authenticator, repositoryService, metadataService, storageProvider);
-        this.lookupService = new LookupService(repositoryAuthenticator, metadataService, repositoryService, storageProvider);
+        this.deployService = new DeployService(configuration.deployEnabled, configuration.rewritePathsEnabled, authenticator, repositoryService, metadataService);
+        this.lookupService = new LookupService(repositoryAuthenticator, repositoryService);
         this.proxyService = new ProxyService(configuration.storeProxied, configuration.proxied, repositoryService, storageProvider);
         this.frontend = FrontendProvider.load(configuration);
         this.reactiveHttpServer = new ReposiliteHttpServer(this, servlet);

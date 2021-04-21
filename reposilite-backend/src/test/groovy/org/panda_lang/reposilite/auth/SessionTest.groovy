@@ -22,10 +22,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.panda_lang.reposilite.config.Configuration
 import org.panda_lang.reposilite.repository.RepositoryService
-import org.panda_lang.reposilite.storage.FileSystemStorageProvider
 
 import java.nio.file.Path
-import java.nio.file.Paths
 
 import static org.junit.jupiter.api.Assertions.*
 
@@ -38,11 +36,7 @@ class SessionTest {
 
     @BeforeAll
     static void prepare () {
-        REPOSITORY_SERVICE = new RepositoryService(
-                WORKING_DIRECTORY
-                ,
-                FileSystemStorageProvider.of(Paths.get(""), "10GB")
-        )
+        REPOSITORY_SERVICE = new RepositoryService()
 
         REPOSITORY_SERVICE.load(new Configuration())
     }

@@ -26,16 +26,11 @@ import org.panda_lang.reposilite.auth.Session;
 import org.panda_lang.reposilite.error.ErrorDto;
 import org.panda_lang.reposilite.error.ResponseUtils;
 import org.panda_lang.reposilite.metadata.MetadataService;
-import org.panda_lang.reposilite.storage.StorageProvider;
+import org.panda_lang.utilities.commons.collection.Pair;
 import org.panda_lang.utilities.commons.function.Result;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Spliterator;
-import java.util.Spliterators;
-import java.util.concurrent.CompletableFuture;
-import java.util.stream.StreamSupport;
+import java.nio.file.Paths;
 
 public final class DeployService {
 
@@ -44,29 +39,28 @@ public final class DeployService {
     private final Authenticator authenticator;
     private final RepositoryService repositoryService;
     private final MetadataService metadataService;
-    private final StorageProvider storageProvider;
 
     public DeployService(
             boolean deployEnabled,
             boolean rewritePathsEnabled,
             Authenticator authenticator,
             RepositoryService repositoryService,
-            MetadataService metadataService, StorageProvider storageProvider) {
+            MetadataService metadataService) {
 
         this.deployEnabled = deployEnabled;
         this.rewritePathsEnabled = rewritePathsEnabled;
         this.authenticator = authenticator;
         this.repositoryService = repositoryService;
         this.metadataService = metadataService;
-        this.storageProvider = storageProvider;
     }
 
-    public Result<CompletableFuture<Result<FileDetailsDto, ErrorDto>>, ErrorDto> deploy(ReposiliteContext context) {
+    public Result<FileDetailsDto, ErrorDto> deploy(ReposiliteContext context) {
         if (!deployEnabled) {
             return ResponseUtils.error(HttpStatus.SC_METHOD_NOT_ALLOWED, "Artifact deployment is disabled");
         }
 
-        String uri = ReposiliteUtils.normalizeUri(rewritePathsEnabled, repositoryService, context.uri());
+        String uri = ReposiliteUtils.normalizeUri(context.uri());
+        Repository repository = ReposiliteUtils.getRepository(rewritePathsEnabled, repositoryService, uri);
         Result<Session, String> authResult = this.authenticator.authByUri(context.headers(), uri);
 
         if (authResult.isErr()) {
@@ -79,39 +73,33 @@ public final class DeployService {
             return ResponseUtils.error(HttpStatus.SC_UNAUTHORIZED, "Cannot deploy artifact without write permission");
         }
 
-        if (storageProvider.isFull()) {
+        if (repository == null) {
+            return ResponseUtils.error(HttpStatus.SC_NOT_FOUND, "Repository not found");
+        }
+
+        if (repository.isFull()) {
             return ResponseUtils.error(HttpStatus.SC_INSUFFICIENT_STORAGE, "Not enough storage space available");
         }
 
-        Path path = repositoryService.getFile(uri);
-        Result<FileDetailsDto, ErrorDto> fileDetails = storageProvider.getFileDetails(path);
+        Path path = Paths.get(uri);
 
         Path metadataFile = path.resolveSibling("maven-metadata.xml");
         metadataService.clearMetadata(metadataFile);
 
-        Reposilite.getLogger().info("DEPLOY " + authResult.isOk() + " successfully deployed " + path + " from " + context.address());
-
         try {
+            Result<FileDetailsDto, ErrorDto> result;
+
             if (path.getFileName().toString().contains("maven-metadata")) {
-                if (!storageProvider.exists(path)) {
-                    ArrayList<String> list = new ArrayList<>();
-
-                    path.forEach(p -> list.add(p.toString()));
-
-                    String[] strarr = list.toArray(new String[0]);
-
-                    // remove repository name from path
-                    String[] requestPath = Arrays.copyOfRange(strarr, 1, strarr.length);
-
-                    metadataService.generateMetadata(repositoryService.getRepository(path.getName(1).toString()), requestPath);
-
-                    fileDetails = storageProvider.getFileDetails(path);
-                }
-
-                return Result.ok(CompletableFuture.completedFuture(Result.ok(fileDetails.get())));
+                result = metadataService.getMetadata(repository, metadataFile).map(Pair::getKey);
+            } else {
+                result = repository.putFile(path, context.input());
             }
 
-            return Result.ok(CompletableFuture.completedFuture(storageProvider.putFile(path, context.input())));
+            if (result.isOk()) {
+                Reposilite.getLogger().info("DEPLOY " + authResult.isOk() + " successfully deployed " + path + " from " + context.address());
+            }
+
+            return result;
         } catch (Exception e) {
             return Result.error(new ErrorDto(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Failed to upload artifact"));
         }

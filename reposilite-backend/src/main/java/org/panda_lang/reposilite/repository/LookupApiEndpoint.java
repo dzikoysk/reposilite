@@ -30,36 +30,28 @@ import org.panda_lang.reposilite.ReposiliteContextFactory;
 import org.panda_lang.reposilite.ReposiliteUtils;
 import org.panda_lang.reposilite.error.ErrorDto;
 import org.panda_lang.reposilite.error.ResponseUtils;
-import org.panda_lang.reposilite.storage.StorageProvider;
 import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.collection.Pair;
 import org.panda_lang.utilities.commons.function.Result;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public final class LookupApiEndpoint implements Handler {
 
-    private final boolean rewritePathsEnabled;
     private final ReposiliteContextFactory contextFactory;
     private final RepositoryAuthenticator repositoryAuthenticator;
     private final RepositoryService repositoryService;
-    private final StorageProvider storageProvider;
 
     public LookupApiEndpoint(
-            boolean rewritePathsEnabled,
             ReposiliteContextFactory contextFactory,
             RepositoryAuthenticator repositoryAuthenticator,
-            RepositoryService repositoryService, StorageProvider storageProvider) {
+            RepositoryService repositoryService) {
 
-        this.rewritePathsEnabled = rewritePathsEnabled;
         this.contextFactory = contextFactory;
         this.repositoryAuthenticator = repositoryAuthenticator;
         this.repositoryService = repositoryService;
-        this.storageProvider = storageProvider;
     }
 
     @OpenApi(
@@ -76,7 +68,7 @@ public final class LookupApiEndpoint implements Handler {
                             description = "Returns document (different for directory and file) that describes requested resource",
                             content = {
                                     @OpenApiContent(from = FileDetailsDto.class),
-                                    @OpenApiContent(from = FileListDto.class)
+                                    @OpenApiContent(from = ListDto.class)
                             }
                     ),
                     @OpenApiResponse(
@@ -95,21 +87,22 @@ public final class LookupApiEndpoint implements Handler {
         ReposiliteContext context = contextFactory.create(ctx);
         Reposilite.getLogger().info("API " + context.uri() + " from " + context.address());
 
-        String uri = ReposiliteUtils.normalizeUri(rewritePathsEnabled, repositoryService, StringUtils.replaceFirst(context.uri(), "/api", ""));
+        String uri = ReposiliteUtils.normalizeUri(StringUtils.replaceFirst(context.uri(), "/api", ""));
 
         if (StringUtils.isEmpty(uri) || "/".equals(uri)) {
             ctx.json(repositoryAuthenticator.findAvailableRepositories(context.headers()));
             return;
         }
 
-        Result<Pair<String[], Repository>, ErrorDto> result = repositoryAuthenticator.authRepository(context.headers(), uri);
+        Result<Pair<Path, Repository>, ErrorDto> result = repositoryAuthenticator.authRepository(context.headers(), uri);
 
         if (result.isErr()) {
             ResponseUtils.errorResponse(ctx, result.getError().getStatus(), result.getError().getMessage());
             return;
         }
 
-        Path requestedFile = repositoryService.getFile(uri);
+        Repository repository = result.get().getValue();
+        Path requestedFile = result.get().getKey(); // The first element is the repository name
         Optional<FileDetailsDto> latest = Optional.empty();
 
         try {
@@ -123,27 +116,36 @@ public final class LookupApiEndpoint implements Handler {
             return;
         }
 
-        if (!storageProvider.exists(requestedFile) && !storageProvider.isDirectory(requestedFile)) {
+        if (!repository.exists(requestedFile) && !repository.isDirectory(requestedFile)) {
             ResponseUtils.errorResponse(ctx, HttpStatus.SC_NOT_FOUND, "File not found");
             return;
         }
 
-        if (storageProvider.exists(requestedFile)) {
-            ctx.json(storageProvider.getFileDetails(requestedFile).get());
+        if (repository.exists(requestedFile)) {
+            ctx.json(repository.getFileDetails(requestedFile).get());
             return;
         }
 
+        Collection<Path> paths = new HashSet<>();
         List<FileDetailsDto> list = new ArrayList<>();
 
         try {
-            for (Path directory : storageProvider.getFiles(requestedFile).get()) {
-                list.add(storageProvider.getFileDetails(directory).get());
+            for (Path path : repository.getFiles(requestedFile).get()) {
+                Path next = path.getName(0);
+
+                if (!paths.contains(next)) {
+                    paths.add(next);
+
+                    list.add(repository.isDirectory(next)
+                            ? new FileDetailsDto(FileDetailsDto.DIRECTORY, next.toString(), "", "application/octet-stream", 0)
+                            : repository.getFileDetails(next).get());
+                }
             }
         } catch (Exception ignored) {
 
         }
 
-        ctx.json(new FileListDto(list));
+        ctx.json(new ListDto<>(list));
     }
 
 }

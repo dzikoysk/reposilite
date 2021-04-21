@@ -17,15 +17,15 @@
 package org.panda_lang.reposilite.utils;
 
 import com.google.common.hash.Hashing;
-import com.google.common.io.Files;
 import org.panda_lang.reposilite.Reposilite;
-import org.panda_lang.reposilite.storage.StorageProvider;
+import org.panda_lang.reposilite.error.ErrorDto;
+import org.panda_lang.reposilite.repository.Repository;
 import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.function.PandaStream;
+import org.panda_lang.utilities.commons.function.Result;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
@@ -34,9 +34,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public final class FilesUtils {
-
-    private static final Path[] EMPTY = {};
-
     private final static long KB_FACTOR = 1024;
     private final static long MB_FACTOR = 1024 * KB_FACTOR;
     private final static long GB_FACTOR = 1024 * MB_FACTOR;
@@ -54,16 +51,17 @@ public final class FilesUtils {
     private FilesUtils() {}
 
     @SuppressWarnings({ "UnstableApiUsage", "deprecation" })
-    public static void writeFileChecksums(StorageProvider storageProvider, Path path) throws IOException {
+    public static void writeFileChecksums(Repository repository, Path path, byte[] bytes) throws IOException {
+        path = repository.relativize(path);
         Path md5 = path.resolveSibling(path.getFileName() + ".md5");
         Path sha1 = path.resolveSibling(path.getFileName() + ".sha1");
         Path sha256 = path.resolveSibling(path.getFileName() + ".sha256");
         Path sha512 = path.resolveSibling(path.getFileName() + ".sha512");
 
-        storageProvider.putFile(md5, Files.hash(path.toFile(), Hashing.md5()).toString().getBytes(StandardCharsets.UTF_8));
-        storageProvider.putFile(sha1, Files.hash(path.toFile(), Hashing.sha1()).toString().getBytes(StandardCharsets.UTF_8));
-        storageProvider.putFile(sha256, Files.hash(path.toFile(), Hashing.sha256()).toString().getBytes(StandardCharsets.UTF_8));
-        storageProvider.putFile(sha512, Files.hash(path.toFile(), Hashing.sha512()).toString().getBytes(StandardCharsets.UTF_8));
+        repository.putFile(md5, Hashing.md5().hashBytes(bytes).asBytes());
+        repository.putFile(sha1, Hashing.sha1().hashBytes(bytes).asBytes());
+        repository.putFile(sha256, Hashing.sha256().hashBytes(bytes).asBytes());
+        repository.putFile(sha512, Hashing.sha512().hashBytes(bytes).asBytes());
     }
 
     public static long displaySizeToBytesCount(String displaySize) {

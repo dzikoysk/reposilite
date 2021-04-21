@@ -55,8 +55,7 @@ class DeployEndpointTest extends ReposiliteIntegrationTestSpecification {
                 false,
                 reposilite.getAuthenticator(),
                 reposilite.getRepositoryService(),
-                reposilite.getMetadataService(),
-                FileSystemStorageProvider.of(Paths.get(""), "10GB"))
+                reposilite.getMetadataService())
 
         def result = deployService.deploy(new ReposiliteContext('/releases/groupId/artifactId/file', 'GET', '', [:], { null }))
         assertTrue result.isErr()

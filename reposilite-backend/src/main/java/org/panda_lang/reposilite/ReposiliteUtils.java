@@ -16,6 +16,7 @@
 
 package org.panda_lang.reposilite;
 
+import org.jetbrains.annotations.Nullable;
 import org.panda_lang.reposilite.repository.Repository;
 import org.panda_lang.reposilite.repository.RepositoryService;
 import org.panda_lang.utilities.commons.StringUtils;
@@ -30,14 +31,12 @@ public final class ReposiliteUtils {
      * <ul>
      *     <li>Remove root slash</li>
      *     <li>Remove illegal path modifiers like .. and ~</li>
-     *     <li>Insert repository name if missing</li>
      * </ul>
      *
-     * @param rewritePathsEnabled determines if path reqriting is enabled
      * @param uri the uri to process
      * @return the normalized uri
      */
-    public static String normalizeUri(boolean rewritePathsEnabled, RepositoryService repositoryService, String uri) {
+    public static String normalizeUri(String uri) {
         if (uri.startsWith("/")) {
             uri = uri.substring(1);
         }
@@ -46,21 +45,29 @@ public final class ReposiliteUtils {
             return StringUtils.EMPTY;
         }
 
-        if (!rewritePathsEnabled) {
-            return uri;
-        }
-
-        if (StringUtils.countOccurrences(uri, "/") <= 1) {
-            return uri;
-        }
-
-        for (Repository repository : repositoryService.getRepositories()) {
-            if (uri.startsWith(repository.getName())) {
-                return uri;
-            }
-        }
-
-        return repositoryService.getPrimaryRepository().getName() + "/" + uri;
+        return uri;
     }
 
+    public static @Nullable Repository getRepository(boolean rewritePathsEnabled, RepositoryService repositoryService, String uri) {
+        String repositoryName = uri;
+
+        if (repositoryName.startsWith("/")) {
+            repositoryName = repositoryName.substring(1);
+        }
+
+        if (repositoryName.contains("..") || repositoryName.contains("~") || repositoryName.contains(":") || repositoryName.contains("\\")) {
+            return null;
+        }
+
+
+        String repository = StringUtils.countOccurrences(repositoryName, "/") > 0
+                ? repositoryName.substring(0, repositoryName.indexOf('/'))
+                : repositoryName;
+
+        if (rewritePathsEnabled && repositoryService.getRepository(repository) == null) {
+            repository = repositoryService.getPrimaryRepository().getName();
+        }
+
+        return repositoryService.getRepository(repository);
+    }
 }

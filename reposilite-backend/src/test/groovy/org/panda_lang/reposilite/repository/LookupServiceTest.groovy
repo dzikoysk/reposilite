@@ -35,7 +35,7 @@ class LookupServiceTest extends ReposiliteTestSpecification {
     @Test
     void 'should return 305 for artifact not found' () {
         def context = new ReposiliteContext('/releases/org/panda-lang', 'GET', '', [:], {})
-        def result = super.reposilite.getLookupService().findLocal(context)
+        def result = super.reposilite.getLookupService().find(context)
         assertTrue result.isErr()
 
         def error = result.getError()
@@ -46,7 +46,7 @@ class LookupServiceTest extends ReposiliteTestSpecification {
     @Test
     void 'should return 404 for unauthorized request to snapshot metadata file' () {
         def context = new ReposiliteContext('/unauthorized_repository/1.0.0-SNAPSHOT/maven-metadata.xml', 'GET', '', [:], {})
-        def result = createLookupService().findLocal(context)
+        def result = createLookupService().find(context)
         assertTrue result.isErr()
 
         def error = result.getError()
@@ -56,7 +56,7 @@ class LookupServiceTest extends ReposiliteTestSpecification {
     @Test
     void 'should return 203 and repository not found message' () {
         def context = new ReposiliteContext('/invalid_repository/groupId/artifactId', 'GET', '', [:], {})
-        def result = createLookupService().findLocal(context)
+        def result = createLookupService().find(context)
         assertTrue result.isErr()
 
         def error = result.getError()
@@ -65,17 +65,15 @@ class LookupServiceTest extends ReposiliteTestSpecification {
     }
 
     private LookupService createLookupService() {
-        StorageProvider storageProvider = FileSystemStorageProvider.of(Paths.get(""), "10GB");
         def repositoryAuthenticator = new RepositoryAuthenticator(
                 false, // disable path rewrite option which is enabled by default
                 super.reposilite.getAuthenticator(),
-                super.reposilite.getRepositoryService(), storageProvider)
+                super.reposilite.getRepositoryService())
 
         return new LookupService(
-                repositoryAuthenticator,
-                super.reposilite.getMetadataService(),
-                super.reposilite.getRepositoryService(),
-                storageProvider
+                repositoryAuthenticator
+                ,
+                super.reposilite.getRepositoryService()
         )
     }
 

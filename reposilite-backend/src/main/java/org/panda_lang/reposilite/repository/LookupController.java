@@ -18,11 +18,7 @@ package org.panda_lang.reposilite.repository;
 
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
-import io.javalin.plugin.openapi.annotations.ContentType;
-import io.javalin.plugin.openapi.annotations.OpenApi;
-import io.javalin.plugin.openapi.annotations.OpenApiContent;
-import io.javalin.plugin.openapi.annotations.OpenApiParam;
-import io.javalin.plugin.openapi.annotations.OpenApiResponse;
+import io.javalin.plugin.openapi.annotations.*;
 import org.apache.http.HttpStatus;
 import org.jetbrains.annotations.NotNull;
 import org.panda_lang.reposilite.Reposilite;
@@ -35,7 +31,6 @@ import org.panda_lang.reposilite.utils.OutputUtils;
 import org.panda_lang.utilities.commons.function.Result;
 
 import java.io.IOException;
-import java.util.concurrent.CompletableFuture;
 
 public final class LookupController implements Handler {
 
@@ -91,17 +86,17 @@ public final class LookupController implements Handler {
 
         Result<LookupResponse, ErrorDto> response;
 
-        try {
-            response = lookupService.findLocal(context);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return;
-        }
-
-        if (isProxied(response)) {
+        if (lookupService.exists(context)) {
+            try {
+                response = lookupService.find(context);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return;
+            }
+        } else if (this.hasProxied) {
             response = proxyService.findProxied(context);
         } else {
-            response = response.mapErr(proxiedError -> new ErrorDto(HttpStatus.SC_NOT_FOUND, proxiedError.getMessage()));
+            response = Result.error(new ErrorDto(HttpStatus.SC_NOT_FOUND, "File not found"));
         }
 
         handleResult(ctx, context, response);
@@ -143,9 +138,5 @@ public final class LookupController implements Handler {
                 .status(error.getStatus())
                 .contentType("text/html")
                 .res.setCharacterEncoding("UTF-8");
-    }
-
-    private boolean isProxied(Result<?, ErrorDto> lookupResponse) {
-        return this.hasProxied && lookupResponse.isErr() && lookupResponse.getError().getStatus() == HttpStatus.SC_USE_PROXY;
     }
 }
