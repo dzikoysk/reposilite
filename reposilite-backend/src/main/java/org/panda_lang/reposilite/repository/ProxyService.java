@@ -44,6 +44,7 @@ import java.util.concurrent.CompletableFuture;
 public final class ProxyService {
 
     private final boolean storeProxied;
+    private final boolean proxyPrivate;
     private final List<? extends String> proxied;
     private final RepositoryService repositoryService;
     private final HttpRequestFactory httpRequestFactory;
@@ -51,10 +52,12 @@ public final class ProxyService {
 
     public ProxyService(
             boolean storeProxied,
+            boolean proxyPrivate,
             List<? extends String> proxied,
             RepositoryService repositoryService, StorageProvider storageProvider) {
 
         this.storeProxied = storeProxied;
+        this.proxyPrivate = proxyPrivate;
         this.proxied = proxied;
         this.repositoryService = repositoryService;
         this.storageProvider = storageProvider;
@@ -63,13 +66,19 @@ public final class ProxyService {
 
     protected Result<LookupResponse, ErrorDto> findProxied(ReposiliteContext context) {
         String uri = context.uri();
+        Repository repository = repositoryService.getPrimaryRepository();
 
         // remove repository name if defined
-        for (Repository repository : repositoryService.getRepositories()) {
-            if (uri.startsWith("/" + repository.getName())) {
-                uri = uri.substring(1 + repository.getName().length());
+        for (Repository localRepository : repositoryService.getRepositories()) {
+            if (uri.startsWith("/" + localRepository.getName())) {
+                repository = localRepository;
+                uri = uri.substring(1 + localRepository.getName().length());
                 break;
             }
+        }
+
+        if (!proxyPrivate && repository.isHidden()) {
+            return Result.error(new ErrorDto(HttpStatus.SC_NOT_FOUND, "Proxying is disabled in private repositories"));
         }
 
         // /groupId/artifactId/<content>

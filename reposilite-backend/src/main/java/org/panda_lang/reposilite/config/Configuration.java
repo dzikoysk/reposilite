@@ -85,6 +85,9 @@ public final class Configuration implements Serializable {
     public List<String> proxied = Collections.emptyList();
     @Description("# Reposilite can store proxied artifacts locally to reduce response time and improve stability")
     public Boolean storeProxied = true;
+    @Description("# Proxying is disabled by default in private repositories because of the security policy.")
+    @Description("# Enabling this feature may expose private data like i.e. artifact name used in your company.")
+    public Boolean proxyPrivate = false;
 
     // Frontend properties
     @Description("")
