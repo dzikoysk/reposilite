@@ -1,14 +1,25 @@
-name: Java CI
-on: [push]
+name: Reposilite CI
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
 
 jobs:
   build:
+    name: "Build with JDK${{ matrix.jdk }}"
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # Use both LTS releases and latest one
+        jdk: [ 8, 11, 16 ]
     steps:
-    - uses: actions/checkout@v1
-    - name: Set up JDK 1.8
+    - uses: actions/checkout@v2
+    - name: Set up JDK
       uses: actions/setup-java@v1
       with:
-        java-version: 1.8
+        java-version: ${{ matrix.jdk }}
     - name: Build with Maven
       run: sudo mvn package --file pom.xml
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v1
