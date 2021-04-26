@@ -17,10 +17,10 @@
 <template lang="pug">
   #app
     header
-      Wave(:accentColor="reposilite.accentColor").absolute.w-full
-      router-link(to="/").flex.text-white.h-56.flex-col.justify-center.px-8.container.mx-auto
+      //Wave(:accentColor="reposilite.accentColor").absolute.w-full
+      router-link(to="/").flex.h-56.flex-col.justify-center.px-8.container.mx-auto
         .w-full
-          h1.text-5xl.segoe.text-grey.font-bold.pt-1 {{ reposilite.title }}
+          h1.text-5xl.font-bold.pt-1 {{ reposilite.title }}
         .w-full
           p.text-lg.w-96.md_w-full {{ reposilite.description }}
     main.mt-64.lg_mt-24
@@ -60,19 +60,9 @@ export default {
 </script>
 
 <style lang="stylus">
-html
-  background-color #f1f1f1
 #app
-  font-family system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, "Helvetica Neue", Oxygen, Cantarell, sans-serif
   -webkit-font-smoothing antialiased
   -moz-osx-font-smoothing grayscale
-  color #2c3e50
   height 100%
   width 100%
-.blue
-  background-color #0077dd
-svg
-  z-index -1
-.segoe
-  font-family system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, "Helvetica Neue", Oxygen, Cantarell, sans-serif
 </style>
