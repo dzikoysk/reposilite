@@ -1,0 +1,18 @@
+version: 2
+updates:
+- package-ecosystem: maven
+  directory: "/"
+  schedule:
+    interval: daily
+    time: "04:00"
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: org.webjars:swagger-ui
+    versions:
+    - "> 3.25.2"
+  - dependency-name: org.codehaus.groovy:groovy
+    versions:
+    - 3.0.8
+  - dependency-name: net.dzikoysk:cdn
+    versions:
+    - 1.6.0
