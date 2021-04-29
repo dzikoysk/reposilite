@@ -10,9 +10,3 @@ updates:
   - dependency-name: org.webjars:swagger-ui
     versions:
     - "> 3.25.2"
-  - dependency-name: org.codehaus.groovy:groovy
-    versions:
-    - 3.0.8
-  - dependency-name: net.dzikoysk:cdn
-    versions:
-    - 1.6.0
