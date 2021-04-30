@@ -5,9 +5,11 @@
         <router-link to="/">{{ title }}</router-link>
       </h1>
       <nav class="flex flex-row mt-0.5">
-        <div class="border rounded-full pt-1.5 px-6 text-sm dark:border-gray-900">
-          <router-link to="/dashboard">Dashboard</router-link>
-        </div>
+       <router-link to="/dashboard">
+          <div class="border rounded-full pt-1.5 px-6 text-sm dark:border-gray-900">
+            Dashboard
+          </div>
+        </router-link>
         <div class="pl-6 py-1 cursor-pointer" v-on:click="toggleTheme()">
           <SunIcon v-if="theme.isDark"/>
           <MoonIcon v-else/>
