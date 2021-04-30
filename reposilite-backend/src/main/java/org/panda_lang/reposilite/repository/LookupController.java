@@ -86,7 +86,7 @@ public final class LookupController implements Handler {
     @Override
     public void handle(Context ctx) {
         ReposiliteContext context = contextFactory.create(ctx);
-        Reposilite.getLogger().info("LOOKUP " + context.uri() + " from " + context.address());
+        Reposilite.getLogger().debug("LOOKUP " + context.uri() + " from " + context.address());
 
         Result<LookupResponse, ErrorDto> response = lookupService.findLocal(context);
 
