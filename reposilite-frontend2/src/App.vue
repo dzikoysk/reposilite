@@ -37,4 +37,16 @@ export default defineComponent({
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+.container {
+  @apply px-10;
+}
+
+.active {
+  @apply dark:border-white;
+}
+
+.bg-default {
+  @apply bg-gray-50 dark:border-gray-900;
+}
 </style>

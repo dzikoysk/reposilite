@@ -1,7 +1,7 @@
 <template>
   <div>
     <Header/>
-    <div class="bg-white dark:bg-black">
+    <div>
       <div class="container mx-auto">
         <tabs v-model="selectedMenuTab" >
           <tab

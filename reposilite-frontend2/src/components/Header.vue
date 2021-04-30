@@ -6,7 +6,7 @@
       </h1>
       <nav class="flex flex-row mt-0.5">
        <router-link to="/dashboard">
-          <div class="border rounded-full pt-1.5 px-6 text-sm dark:border-gray-900">
+          <div class="border rounded-full py-1 px-6 text-sm dark:border-gray-900">
             Dashboard
           </div>
         </router-link>
