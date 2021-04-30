@@ -5,7 +5,7 @@
 
 <script>
 import Hero from './Hero.vue'
-import Browser from '../Browser.vue'
+import Browser from '../browser/Browser.vue'
 
 export default {
   components: {

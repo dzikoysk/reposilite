@@ -1,6 +1,6 @@
 <template>
   <div v-bind:class="{ 'dark': theme.isDark }">
-    <router-view class="min-h-screen bg-gray-50 dark:bg-black dark:text-white"/>
+    <router-view class="min-h-screen dark:bg-black dark:text-white"/>
   </div>
 </template>
 
