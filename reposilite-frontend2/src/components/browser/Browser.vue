@@ -8,7 +8,7 @@
     <hr class="border-gray-100 dark:border-gray-900">
     <div>
       <div class="container mx-auto relative">
-        <div class="lg:absolute pt-5 -top-24.5 right-0">
+        <div class="lg:absolute pt-5 -top-24.5 right-8">
           <Card/>
         </div>
         <div class="pt-2 min-h-90">
