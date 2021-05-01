@@ -17,6 +17,7 @@
 package org.panda_lang.reposilite.repository;
 
 import com.google.api.client.http.GenericUrl;
+import com.google.api.client.http.HttpHeaders;
 import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestFactory;
 import com.google.api.client.http.HttpResponse;
@@ -109,7 +110,13 @@ public final class ProxyService {
                         continue;
                     }
 
-                    long contentLength = Option.of(remoteResponse.getHeaders().getContentLength()).orElseGet(0L);
+                    HttpHeaders headers = remoteResponse.getHeaders();
+
+                    if ("text/html".equals(headers.getContentType())) {
+                        continue;
+                    }
+
+                    long contentLength = Option.of(headers.getContentLength()).orElseGet(0L);
                     String[] path = remoteUri.split("/");
 
                     FileDetailsDto fileDetails = new FileDetailsDto(FileDetailsDto.FILE, ArrayUtils.getLast(path), "", remoteResponse.getContentType(), contentLength);
