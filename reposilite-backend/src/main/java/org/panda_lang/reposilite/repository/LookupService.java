@@ -133,7 +133,7 @@ public final class LookupService {
             context.result(outputStream -> FileUtils.copyFile(file, outputStream));
         }
 
-        Reposilite.getLogger().info("RESOLVED " + file.getPath() + "; mime: " + fileDetails.getContentType() + "; size: " + file.length());
+        Reposilite.getLogger().debug("RESOLVED " + file.getPath() + "; mime: " + fileDetails.getContentType() + "; size: " + file.length());
         return Result.ok(new LookupResponse(fileDetails));
     }
 

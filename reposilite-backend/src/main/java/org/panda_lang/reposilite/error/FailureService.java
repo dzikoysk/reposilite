@@ -16,8 +16,10 @@
 
 package org.panda_lang.reposilite.error;
 
+import org.jetbrains.annotations.Nullable;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.utilities.commons.ArrayUtils;
+import org.panda_lang.utilities.commons.StringUtils;
 
 import java.util.Collection;
 import java.util.Set;
@@ -32,9 +34,16 @@ public final class FailureService {
 
         exceptions.add(String.join(System.lineSeparator(),
                 "failure " + id,
+                throwException(throwable)
+        ).trim());
+    }
+
+    private String throwException(@Nullable Throwable throwable) {
+        return throwable == null ? StringUtils.EMPTY : String.join(System.lineSeparator(),
                 "  by " + throwable.getClass().getSimpleName() + ": " + throwable.getMessage(),
-                "  at " + ArrayUtils.get(throwable.getStackTrace(), 0).map(StackTraceElement::toString).orElseGet("<unknown stacktrace>")
-        ));
+                "  at " + ArrayUtils.get(throwable.getStackTrace(), 0).map(StackTraceElement::toString).orElseGet("<unknown stacktrace>"),
+                throwException(throwable.getCause())
+        );
     }
 
     public boolean hasFailures() {
