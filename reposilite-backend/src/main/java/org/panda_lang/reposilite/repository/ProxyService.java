@@ -46,6 +46,8 @@ public final class ProxyService {
 
     private final boolean storeProxied;
     private final boolean proxyPrivate;
+    private final int proxyConnectTimeout;
+    private final int proxyReadTimeout;
     private final boolean rewritePathsEnabled;
     private final List<? extends String> proxied;
     private final ExecutorService ioService;
@@ -56,6 +58,8 @@ public final class ProxyService {
     public ProxyService(
             boolean storeProxied,
             boolean proxyPrivate,
+            int proxyConnectTimeout,
+            int proxyReadTimeout,
             boolean rewritePathsEnabled,
             List<? extends String> proxied,
             ExecutorService ioService,
@@ -64,6 +68,8 @@ public final class ProxyService {
 
         this.storeProxied = storeProxied;
         this.proxyPrivate = proxyPrivate;
+        this.proxyConnectTimeout = proxyConnectTimeout;
+        this.proxyReadTimeout = proxyReadTimeout;
         this.rewritePathsEnabled = rewritePathsEnabled;
         this.proxied = proxied;
         this.ioService = ioService;
@@ -102,8 +108,8 @@ public final class ProxyService {
                 try {
                     HttpRequest remoteRequest = httpRequestFactory.buildGetRequest(new GenericUrl(proxied + remoteUri));
                     remoteRequest.setThrowExceptionOnExecuteError(false);
-                    remoteRequest.setConnectTimeout(3000);
-                    remoteRequest.setReadTimeout(10000);
+                    remoteRequest.setConnectTimeout(proxyConnectTimeout * 1000);
+                    remoteRequest.setReadTimeout(proxyReadTimeout * 1000);
                     HttpResponse remoteResponse = remoteRequest.execute();
 
                     if (!remoteResponse.isSuccessStatusCode()) {
