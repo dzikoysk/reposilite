@@ -53,6 +53,8 @@ final class ProxyServiceTest extends ReposiliteIntegrationTestSpecification {
         this.proxyService = new ProxyService(
                 true,
                 true,
+                1000,
+                1000,
                 true,
                 [
                         'http://unknown-repository.site/',
