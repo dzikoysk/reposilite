@@ -33,6 +33,7 @@ import org.panda_lang.reposilite.metadata.MetadataUtils;
 import org.panda_lang.reposilite.utils.FilesUtils;
 import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.collection.Pair;
+import org.panda_lang.utilities.commons.function.Option;
 import org.panda_lang.utilities.commons.function.PandaStream;
 import org.panda_lang.utilities.commons.function.Result;
 
@@ -91,9 +92,16 @@ public final class LookupApiEndpoint implements Handler {
         ReposiliteContext context = contextFactory.create(ctx);
         Reposilite.getLogger().info("API " + context.uri() + " from " + context.address());
 
-        String uri = ReposiliteUtils.normalizeUri(rewritePathsEnabled, repositoryService, StringUtils.replaceFirst(context.uri(), "/api", ""));
+        Option<String> normalizedUri = ReposiliteUtils.normalizeUri(rewritePathsEnabled, repositoryService, StringUtils.replaceFirst(context.uri(), "/api", ""));
 
-        if (StringUtils.isEmpty(uri) || "/".equals(uri)) {
+        if (normalizedUri.isEmpty()) {
+            ResponseUtils.errorResponse(ctx, new ErrorDto(HttpStatus.SC_BAD_REQUEST, "Invalid GAV path"));
+            return;
+        }
+
+        String uri = normalizedUri.get();
+
+        if ("/".equals(uri) || StringUtils.isEmpty(uri)) {
             ctx.json(repositoryAuthenticator.findAvailableRepositories(context.headers()));
             return;
         }

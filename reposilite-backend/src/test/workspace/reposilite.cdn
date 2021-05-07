@@ -62,6 +62,11 @@ storeProxied: true
 # Proxying is disabled by default in private repositories because of the security policy.
 # Enabling this feature may expose private data like i.e. artifact name used in your company.
 proxyPrivate: false
+# How long Reposilite can wait for establishing the connection with a remote host. (In seconds)
+proxyConnectTimeout: 3
+# How long Reposilite can read data from remote proxy. (In seconds)
+# Increasing this value may be required in case of proxying slow remote repositories.
+proxyReadTimeout: 15
 
 # Title displayed by frontend
 title: #onlypanda
