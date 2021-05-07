@@ -58,6 +58,13 @@
         </snapshotRepository>
     </distributionManagement>
 
+    <pluginRepositories>
+        <pluginRepository>
+            <id>panda-repository</id>
+            <url>https://repo.panda-lang.org/releases</url>
+        </pluginRepository>
+    </pluginRepositories>
+
     <build>
         <defaultGoal>clean install</defaultGoal>
         <plugins>
