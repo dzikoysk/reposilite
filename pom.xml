@@ -21,7 +21,7 @@
     <groupId>org.panda-lang</groupId>
     <artifactId>reposilite-parent</artifactId>
     <packaging>pom</packaging>
-    <version>2.9.22-SNAPSHOT</version>
+    <version>2.9.22</version>
 
     <modules>
         <module>reposilite-backend</module>
@@ -58,6 +58,13 @@
         </snapshotRepository>
     </distributionManagement>
 
+    <pluginRepositories>
+        <pluginRepository>
+            <id>panda-repository</id>
+            <url>https://repo.panda-lang.org/releases</url>
+        </pluginRepository>
+    </pluginRepositories>
+
     <build>
         <defaultGoal>clean install</defaultGoal>
         <plugins>
@@ -80,7 +87,7 @@
                 <plugin>
                     <groupId>org.jacoco</groupId>
                     <artifactId>jacoco-maven-plugin</artifactId>
-                    <version>0.8.6</version>
+                    <version>0.8.7</version>
                     <executions>
                         <execution>
                             <goals>

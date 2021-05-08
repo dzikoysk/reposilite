@@ -43,7 +43,9 @@ public final class RepositoryAuthenticator {
     }
 
     public Result<Pair<String[], Repository>, ErrorDto> authDefaultRepository(Map<String, String> headers, String uri) {
-        return authRepository(headers, ReposiliteUtils.normalizeUri(rewritePathsEnabled, repositoryService, uri));
+        return ReposiliteUtils.normalizeUri(rewritePathsEnabled, repositoryService, uri)
+                .map(normalizedUri -> authRepository(headers, normalizedUri))
+                .orElseGet(() -> ResponseUtils.error(HttpStatus.SC_BAD_REQUEST, "Invalid GAV path"));
     }
 
     public Result<Pair<String[], Repository>, ErrorDto> authRepository(Map<String, String> headers, String normalizedUri) {
