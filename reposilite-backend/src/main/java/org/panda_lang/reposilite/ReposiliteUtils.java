@@ -19,6 +19,7 @@ package org.panda_lang.reposilite;
 import org.panda_lang.reposilite.repository.Repository;
 import org.panda_lang.reposilite.repository.RepositoryService;
 import org.panda_lang.utilities.commons.StringUtils;
+import org.panda_lang.utilities.commons.function.Option;
 
 public final class ReposiliteUtils {
 
@@ -33,34 +34,34 @@ public final class ReposiliteUtils {
      *     <li>Insert repository name if missing</li>
      * </ul>
      *
-     * @param rewritePathsEnabled determines if path reqriting is enabled
+     * @param rewritePathsEnabled determines if path rewriting is enabled
      * @param uri the uri to process
      * @return the normalized uri
      */
-    public static String normalizeUri(boolean rewritePathsEnabled, RepositoryService repositoryService, String uri) {
+    public static Option<String> normalizeUri(boolean rewritePathsEnabled, RepositoryService repositoryService, String uri) {
         if (uri.startsWith("/")) {
             uri = uri.substring(1);
         }
 
         if (uri.contains("..") || uri.contains("~") || uri.contains(":") || uri.contains("\\")) {
-            return StringUtils.EMPTY;
+            return Option.none();
         }
 
         if (!rewritePathsEnabled) {
-            return uri;
+            return Option.of(uri);
         }
 
         if (StringUtils.countOccurrences(uri, "/") <= 1) {
-            return uri;
+            return Option.of(uri);
         }
 
         for (Repository repository : repositoryService.getRepositories()) {
             if (uri.startsWith(repository.getName())) {
-                return uri;
+                return Option.of(uri);
             }
         }
 
-        return repositoryService.getPrimaryRepository().getName() + "/" + uri;
+        return Option.of(repositoryService.getPrimaryRepository().getName() + "/" + uri);
     }
 
 }

@@ -95,6 +95,10 @@ final class RepositoryStorage {
     }
 
     private CompletableFuture<File> storeFile(CompletableFuture<File> task, InputStream source, File targetFile) throws IOException {
+        if (targetFile.isDirectory()) {
+            throw new IOException("Cannot lock directory");
+        }
+
         File lockedFile = new File(targetFile.getAbsolutePath() + ".lock");
 
         if (lockedFile.exists()) {

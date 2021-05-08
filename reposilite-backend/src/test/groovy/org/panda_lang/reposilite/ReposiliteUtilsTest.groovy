@@ -23,11 +23,11 @@ import org.junit.jupiter.api.io.TempDir
 import org.panda_lang.reposilite.config.Configuration
 import org.panda_lang.reposilite.error.FailureService
 import org.panda_lang.reposilite.repository.RepositoryService
-import org.panda_lang.utilities.commons.StringUtils
 
 import java.util.concurrent.Executors
 
 import static org.junit.jupiter.api.Assertions.assertEquals
+import static org.junit.jupiter.api.Assertions.assertTrue
 
 @CompileStatic
 class ReposiliteUtilsTest {
@@ -51,24 +51,24 @@ class ReposiliteUtilsTest {
 
     @Test
     void 'should not interfere' () {
-        assertEquals "releases/without/repo-one/", ReposiliteUtils.normalizeUri(true, REPOSITORY_SERVICE, "releases/without/repo-one/")
+        assertEquals "releases/without/repo-one/", ReposiliteUtils.normalizeUri(true, REPOSITORY_SERVICE, "releases/without/repo-one/").get()
     }
 
     @Test
     void 'should rewrite path' () {
-        assertEquals "releases/without/repo/", ReposiliteUtils.normalizeUri(true, REPOSITORY_SERVICE, "/without/repo/")
+        assertEquals "releases/without/repo/", ReposiliteUtils.normalizeUri(true, REPOSITORY_SERVICE, "/without/repo/").get()
     }
 
     @Test
     void 'should not allow path escapes' () {
-        assertEquals StringUtils.EMPTY, ReposiliteUtils.normalizeUri(true, REPOSITORY_SERVICE, "~/home")
-        assertEquals StringUtils.EMPTY, ReposiliteUtils.normalizeUri(true, REPOSITORY_SERVICE, "../../../../monkas")
-        assertEquals StringUtils.EMPTY, ReposiliteUtils.normalizeUri(true, REPOSITORY_SERVICE, "C:\\")
+        assertTrue ReposiliteUtils.normalizeUri(true, REPOSITORY_SERVICE, "~/home").isEmpty()
+        assertTrue ReposiliteUtils.normalizeUri(true, REPOSITORY_SERVICE, "../../../../monkas").isEmpty()
+        assertTrue ReposiliteUtils.normalizeUri(true, REPOSITORY_SERVICE, "C:\\").isEmpty()
     }
 
     @Test
     void 'should not rewrite paths' () {
-        assertEquals "without/repo/", ReposiliteUtils.normalizeUri(false, REPOSITORY_SERVICE, "without/repo/")
+        assertEquals "without/repo/", ReposiliteUtils.normalizeUri(false, REPOSITORY_SERVICE, "without/repo/").get()
     }
 
 }

@@ -51,7 +51,7 @@ class RepositoryStorageTest {
         def string = "test"
         def expectedUsage = initialUsage + string.bytes.length
 
-        repositoryStorage.storeFile(new ByteArrayInputStream(string.bytes), temp)
+        repositoryStorage.storeFile(new ByteArrayInputStream(string.bytes), new File(temp, "file"))
 
         assertEquals expectedUsage, repositoryStorage.diskQuota.usage
     }

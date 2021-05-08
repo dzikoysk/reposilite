@@ -26,6 +26,7 @@ import org.panda_lang.reposilite.auth.Session;
 import org.panda_lang.reposilite.error.ErrorDto;
 import org.panda_lang.reposilite.error.ResponseUtils;
 import org.panda_lang.reposilite.metadata.MetadataService;
+import org.panda_lang.utilities.commons.function.Option;
 import org.panda_lang.utilities.commons.function.Result;
 
 import java.io.File;
@@ -58,7 +59,13 @@ public final class DeployService {
             return ResponseUtils.error(HttpStatus.SC_METHOD_NOT_ALLOWED, "Artifact deployment is disabled");
         }
 
-        String uri = ReposiliteUtils.normalizeUri(rewritePathsEnabled, repositoryService, context.uri());
+        Option<String> uriValue = ReposiliteUtils.normalizeUri(rewritePathsEnabled, repositoryService, context.uri());
+
+        if (uriValue.isEmpty()) {
+            return ResponseUtils.error(HttpStatus.SC_BAD_REQUEST, "Invalid GAV path");
+        }
+
+        String uri = uriValue.get();
         Result<Session, String> authResult = this.authenticator.authByUri(context.headers(), uri);
 
         if (authResult.isErr()) {
