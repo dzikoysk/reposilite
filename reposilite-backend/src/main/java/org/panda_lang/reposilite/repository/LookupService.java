@@ -141,7 +141,7 @@ public final class LookupService {
                 context.result(outputStream -> outputStream.write(bytes.get()));
             }
 
-            Reposilite.getLogger().info("RESOLVED " + path + "; mime: " + fileDetails.getContentType() + "; size: " + repository.getFileSize(path).get());
+            Reposilite.getLogger().debug("RESOLVED " + path + "; mime: " + fileDetails.getContentType() + "; size: " + repository.getFileSize(path).get());
             return Result.ok(new LookupResponse(fileDetails));
         } else {
             return Result.error(fileDetailsResult.getError());

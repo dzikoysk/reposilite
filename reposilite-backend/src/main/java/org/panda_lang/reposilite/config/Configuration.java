@@ -88,6 +88,11 @@ public final class Configuration implements Serializable {
     @Description("# Proxying is disabled by default in private repositories because of the security policy.")
     @Description("# Enabling this feature may expose private data like i.e. artifact name used in your company.")
     public Boolean proxyPrivate = false;
+    @Description("# How long Reposilite can wait for establishing the connection with a remote host. (In seconds)")
+    public Integer proxyConnectTimeout = 3;
+    @Description("# How long Reposilite can read data from remote proxy. (In seconds)")
+    @Description("# Increasing this value may be required in case of proxying slow remote repositories.")
+    public Integer proxyReadTimeout = 15;
 
     // Frontend properties
     @Description("")

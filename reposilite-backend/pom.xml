@@ -18,7 +18,7 @@
     <parent>
         <artifactId>reposilite-parent</artifactId>
         <groupId>org.panda-lang</groupId>
-        <version>2.9.19</version>
+        <version>2.9.22</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -37,7 +37,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- Dependencies -->
-        <jetty.version>9.4.39.v20210325</jetty.version>
+        <jetty.version>9.4.40.v20210413</jetty.version>
     </properties>
 
     <dependencyManagement>
@@ -57,15 +57,19 @@
         <dependency>
             <groupId>io.javalin</groupId>
             <artifactId>javalin-openapi</artifactId>
-            <version>3.13.5</version>
+            <version>4.0.0.ALPHA1</version>
             <exclusions>
-                <exclusion>
-                    <artifactId>redoc</artifactId>
-                    <groupId>org.webjars.npm</groupId>
-                </exclusion>
                 <exclusion>
                     <artifactId>snakeyaml</artifactId>
                     <groupId>org.yaml</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>jackson-core</artifactId>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>guava</artifactId>
+                    <groupId>com.google.guava</groupId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -79,7 +83,7 @@
         <dependency>
             <groupId>io.javalin</groupId>
             <artifactId>javalin</artifactId>
-            <version>3.13.5</version>
+            <version>4.0.0.ALPHA1</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
@@ -150,14 +154,14 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-crypto</artifactId>
-            <version>5.4.5</version>
+            <version>5.4.6</version>
         </dependency>
 
         <!-- Utilities -->
         <dependency>
             <groupId>net.dzikoysk</groupId>
             <artifactId>cdn</artifactId>
-            <version>1.6.6</version>
+            <version>1.8.0</version>
         </dependency>
         <dependency>
             <groupId>info.picocli</groupId>
@@ -167,7 +171,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>29.0-jre</version>
+            <version>30.1.1-jre</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -187,7 +191,7 @@
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-xml</artifactId>
-            <version>2.12.1</version>
+            <version>2.12.3</version>
         </dependency>
 
         <!-- Logging -->
@@ -199,17 +203,17 @@
         <dependency>
             <groupId>org.tinylog</groupId>
             <artifactId>slf4j-tinylog</artifactId>
-            <version>2.2.1</version>
+            <version>2.3.1</version>
         </dependency>
         <dependency>
             <groupId>org.tinylog</groupId>
             <artifactId>tinylog-api</artifactId>
-            <version>2.2.1</version>
+            <version>2.3.1</version>
         </dependency>
         <dependency>
             <groupId>org.tinylog</groupId>
             <artifactId>tinylog-impl</artifactId>
-            <version>2.2.1</version>
+            <version>2.3.1</version>
         </dependency>
 
         <!-- Tests -->
@@ -220,8 +224,8 @@
             <scope>test</scope>
             <exclusions>
                 <exclusion>
-                    <groupId>com.fasterxml.jackson.core</groupId>
                     <artifactId>jackson-core</artifactId>
+                    <groupId>com.fasterxml.jackson.core</groupId>
                 </exclusion>
             </exclusions>
         </dependency>

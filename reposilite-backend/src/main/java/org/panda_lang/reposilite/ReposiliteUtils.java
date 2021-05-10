@@ -16,10 +16,10 @@
 
 package org.panda_lang.reposilite;
 
-import org.jetbrains.annotations.Nullable;
 import org.panda_lang.reposilite.repository.Repository;
 import org.panda_lang.reposilite.repository.RepositoryService;
 import org.panda_lang.utilities.commons.StringUtils;
+import org.panda_lang.utilities.commons.function.Option;
 
 public final class ReposiliteUtils {
 
@@ -36,19 +36,19 @@ public final class ReposiliteUtils {
      * @param uri the uri to process
      * @return the normalized uri
      */
-    public static String normalizeUri(String uri) {
+    public static Option<String> normalizeUri(String uri) {
+        if (uri.contains("..") || uri.contains("~") || uri.contains(":") || uri.contains("\\")) {
+            return Option.none();
+        }
+
         if (uri.startsWith("/")) {
             uri = uri.substring(1);
         }
 
-        if (uri.contains("..") || uri.contains("~") || uri.contains(":") || uri.contains("\\")) {
-            return StringUtils.EMPTY;
-        }
-
-        return uri;
+        return Option.of(uri);
     }
 
-    public static @Nullable Repository getRepository(boolean rewritePathsEnabled, RepositoryService repositoryService, String uri) {
+    public static Option<Repository> getRepository(boolean rewritePathsEnabled, RepositoryService repositoryService, String uri) {
         String repositoryName = uri;
 
         if (repositoryName.startsWith("/")) {
@@ -56,9 +56,8 @@ public final class ReposiliteUtils {
         }
 
         if (repositoryName.contains("..") || repositoryName.contains("~") || repositoryName.contains(":") || repositoryName.contains("\\")) {
-            return null;
+            return Option.none();
         }
-
 
         String repository = StringUtils.countOccurrences(repositoryName, "/") > 0
                 ? repositoryName.substring(0, repositoryName.indexOf('/'))
@@ -68,6 +67,7 @@ public final class ReposiliteUtils {
             repository = repositoryService.getPrimaryRepository().getName();
         }
 
-        return repositoryService.getRepository(repository);
+        return Option.of(repositoryService.getRepository(repository));
     }
+
 }

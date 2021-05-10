@@ -276,7 +276,6 @@ module.exports = {
       default: '1'
     },
     fontFamily: {
-      manrope: ['Manrope', 'sans-serif'],
       sans: [
         'Inter',
         '-apple-system',

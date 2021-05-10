@@ -17,7 +17,7 @@
 package org.panda_lang.reposilite.repository
 
 import groovy.transform.CompileStatic
-import net.dzikoysk.cdn.CDN
+import net.dzikoysk.cdn.CdnFactory
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -57,12 +57,15 @@ final class ProxyServiceTest extends ReposiliteIntegrationTestSpecification {
         this.proxyService = new ProxyService(
                 true,
                 true,
+                1000,
+                1000,
                 [
                         'http://unknown-repository.site/',
                         'http://127.0.0.1:' + proxiedPort
                 ]
                 ,
                 super.reposilite.getRepositoryService(),
+                failureService,
                 FileSystemStorageProvider.of(Paths.get(""), "10GB"))
 
         def proxiedFile = new File(super.workingDirectory, '/repositories/releases/proxiedGroup/proxiedArtifact/proxied.pom')

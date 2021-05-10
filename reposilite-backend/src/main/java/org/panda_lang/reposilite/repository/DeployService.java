@@ -27,6 +27,7 @@ import org.panda_lang.reposilite.error.ErrorDto;
 import org.panda_lang.reposilite.error.ResponseUtils;
 import org.panda_lang.reposilite.metadata.MetadataService;
 import org.panda_lang.utilities.commons.collection.Pair;
+import org.panda_lang.utilities.commons.function.Option;
 import org.panda_lang.utilities.commons.function.Result;
 
 import java.nio.file.Path;
@@ -59,8 +60,14 @@ public final class DeployService {
             return ResponseUtils.error(HttpStatus.SC_METHOD_NOT_ALLOWED, "Artifact deployment is disabled");
         }
 
-        String uri = ReposiliteUtils.normalizeUri(context.uri());
-        Repository repository = ReposiliteUtils.getRepository(rewritePathsEnabled, repositoryService, uri);
+        Option<String> uriValue = ReposiliteUtils.normalizeUri(context.uri());
+
+        if (uriValue.isEmpty()) {
+            return ResponseUtils.error(HttpStatus.SC_BAD_REQUEST, "Invalid GAV path");
+        }
+
+        String uri = uriValue.get();
+
         Result<Session, String> authResult = this.authenticator.authByUri(context.headers(), uri);
 
         if (authResult.isErr()) {
@@ -73,9 +80,13 @@ public final class DeployService {
             return ResponseUtils.error(HttpStatus.SC_UNAUTHORIZED, "Cannot deploy artifact without write permission");
         }
 
-        if (repository == null) {
+        Option<Repository> repositoryValue = ReposiliteUtils.getRepository(rewritePathsEnabled, repositoryService, uri);
+
+        if (repositoryValue.isEmpty()) {
             return ResponseUtils.error(HttpStatus.SC_NOT_FOUND, "Repository not found");
         }
+
+        Repository repository = repositoryValue.get();
 
         if (repository.isFull()) {
             return ResponseUtils.error(HttpStatus.SC_INSUFFICIENT_STORAGE, "Not enough storage space available");

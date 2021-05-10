@@ -1,5 +1,6 @@
 package org.panda_lang.reposilite.storage;
 
+import org.apache.commons.lang3.mutable.Mutable;
 import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.error.ErrorDto;
 import org.panda_lang.reposilite.repository.FileDetailsDto;
@@ -7,7 +8,6 @@ import org.panda_lang.reposilite.utils.FilesUtils;
 import org.panda_lang.utilities.commons.function.Result;
 import org.panda_lang.utilities.commons.function.ThrowingBiFunction;
 import org.panda_lang.utilities.commons.function.ThrowingFunction;
-import org.panda_lang.utilities.commons.function.mutable.Mutable;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -19,6 +19,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.FileTime;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 public abstract class FileSystemStorageProvider implements StorageProvider {
@@ -215,7 +216,7 @@ public abstract class FileSystemStorageProvider implements StorageProvider {
 
     @Override
     public long getUsage() {
-        Mutable<Long> usage = new Mutable<>(0L);
+        AtomicLong usage = new AtomicLong();
 
         try {
             Files.walk(this.rootDirectory).forEach(path -> {

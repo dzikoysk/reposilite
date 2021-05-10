@@ -25,9 +25,6 @@ import Meta from 'vue-meta'
 import uri from './mixins/uri'
 import orDefault from './mixins/default'
 
-import fontawesome from '@fortawesome/fontawesome'
-fontawesome.config = { autoReplaceSvg: false }
-
 Vue.config.productionTip = false
 Vue.prototype.$http = Axios
 

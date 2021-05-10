@@ -28,15 +28,15 @@ class FailureServiceTest {
 
     @CompileStatic
     static class FailureServiceTestException extends Exception {
-        FailureServiceTestException(String message) {
-            super(message, null, false, false)
+        FailureServiceTestException(String message, boolean stacktrace) {
+            super(message, null, false, stacktrace)
         }
     }
 
     @Test
     void 'should throw exception' () {
         def failureService = new FailureService()
-        failureService.throwException('id', new FailureServiceTestException('FailureServiceTest'))
+        failureService.throwException('id', new FailureServiceTestException('FailureServiceTest', true))
 
         Thread.sleep(10L) // make sure that tinylog service had a chance to process log
         assertTrue ReposiliteWriter.contains('FailureServiceTest')
@@ -45,10 +45,10 @@ class FailureServiceTest {
     @Test
     void 'should keep all exceptions' () {
         def failureService = new FailureService()
-        failureService.throwException('1', new FailureServiceTestException('1'))
-        failureService.throwException('2', new FailureServiceTestException('2'))
+        failureService.throwException('id1', new FailureServiceTestException('message1', true))
+        failureService.throwException('id2', new FailureServiceTestException('message2', false))
 
-        assertEquals 2, failureService.getExceptions().size()
+        assertEquals 2, failureService.getFailures().size()
     }
 
 }

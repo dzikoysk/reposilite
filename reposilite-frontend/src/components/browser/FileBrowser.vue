@@ -28,8 +28,7 @@
           span.ml-1.text-2xl(:style="'color: ' + configuration.accentColor")
             | &#x2934;
       router-link(v-if="!isDashboard()" :to="'/dashboard' + this.qualifier")
-        span.ml-3.text-xl(:style="'color: ' + configuration.accentColor")
-          i.fas.fa-feather-alt
+        FeatherIcon.ml-3.mt-1(:style="'color: ' + configuration.accentColor")
     .list.overflow-y-auto
       FileEntry(
         v-if="!error"
@@ -47,6 +46,7 @@
 <script>
 import Vue from 'vue'
 import smoothReflow from 'vue-smooth-reflow'
+import { FeatherIcon } from 'vue-feather-icons'
 import FileEntry from './FileEntry'
 
 const CHUNK_SIZE = 10
@@ -69,6 +69,7 @@ export default {
     }
   },
   components: {
+    FeatherIcon,
     FileEntry
   },
   watch: {

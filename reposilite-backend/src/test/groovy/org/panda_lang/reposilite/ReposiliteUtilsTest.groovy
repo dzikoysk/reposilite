@@ -22,11 +22,11 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.panda_lang.reposilite.config.Configuration
 import org.panda_lang.reposilite.repository.RepositoryService
-import org.panda_lang.utilities.commons.StringUtils
 
 import java.nio.file.Path
 
 import static org.junit.jupiter.api.Assertions.assertEquals
+import static org.junit.jupiter.api.Assertions.assertTrue
 
 @CompileStatic
 class ReposiliteUtilsTest {
@@ -44,24 +44,24 @@ class ReposiliteUtilsTest {
 
     @Test
     void 'should not interfere' () {
-        assertEquals "releases/without/repo-one/", ReposiliteUtils.normalizeUri("releases/without/repo-one/")
+        assertEquals "releases/without/repo-one/", ReposiliteUtils.normalizeUri("releases/without/repo-one/").get()
     }
 
     @Test
     void 'should rewrite path' () {
-        assertEquals "releases/without/repo/", ReposiliteUtils.normalizeUri("/without/repo/")
+        assertEquals "releases/without/repo/", ReposiliteUtils.normalizeUri("/without/repo/").get()
     }
 
     @Test
     void 'should not allow path escapes' () {
-        assertEquals StringUtils.EMPTY, ReposiliteUtils.normalizeUri("~/home")
-        assertEquals StringUtils.EMPTY, ReposiliteUtils.normalizeUri("../../../../monkas")
-        assertEquals StringUtils.EMPTY, ReposiliteUtils.normalizeUri("C:\\")
+        assertTrue ReposiliteUtils.normalizeUri("~/home").isEmpty()
+        assertTrue ReposiliteUtils.normalizeUri("../../../../monkas").isEmpty()
+        assertTrue ReposiliteUtils.normalizeUri("C:\\").isEmpty()
     }
 
     @Test
     void 'should not rewrite paths' () {
-        assertEquals "without/repo/", ReposiliteUtils.normalizeUri("without/repo/")
+        assertEquals "without/repo/", ReposiliteUtils.normalizeUri("without/repo/").get()
     }
 
 }

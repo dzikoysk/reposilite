@@ -17,7 +17,7 @@
 package org.panda_lang.reposilite.config
 
 import groovy.transform.CompileStatic
-import net.dzikoysk.cdn.CDN
+import net.dzikoysk.cdn.CdnFactory
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.panda_lang.reposilite.ReposiliteConstants
@@ -67,7 +67,7 @@ class ConfigurationLoaderTest {
     @Test
     void 'should load custom config' () {
         def customConfig = workingDirectory.resolve("random.cdn")
-        Files.write(customConfig, CDN.defaultInstance().render(new Configuration()).getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
+        Files.write(customConfig, CdnFactory.createStandard().render(new Configuration()).getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
         Files.write(customConfig, new String(Files.readAllBytes(customConfig), StandardCharsets.UTF_8).replace("port: 80", "port: 7").getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
 
         def configuration = ConfigurationLoader.tryLoad(customConfig)
@@ -77,7 +77,7 @@ class ConfigurationLoaderTest {
     @Test
     void 'should not load other file types' () {
         def customConfig = workingDirectory.resolve("random.properties")
-        Files.write(customConfig, CDN.defaultInstance().render(new Configuration()).getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
+        Files.write(customConfig, CdnFactory.createStandard().render(new Configuration()).getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
 
         assertThrows RuntimeException.class, { ConfigurationLoader.load(customConfig) }
     }

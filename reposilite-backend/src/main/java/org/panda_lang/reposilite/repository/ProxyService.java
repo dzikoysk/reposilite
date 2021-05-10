@@ -17,6 +17,7 @@
 package org.panda_lang.reposilite.repository;
 
 import com.google.api.client.http.GenericUrl;
+import com.google.api.client.http.HttpHeaders;
 import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestFactory;
 import com.google.api.client.http.HttpResponse;
@@ -25,7 +26,9 @@ import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.ReposiliteContext;
+import org.panda_lang.reposilite.ReposiliteException;
 import org.panda_lang.reposilite.error.ErrorDto;
+import org.panda_lang.reposilite.error.FailureService;
 import org.panda_lang.reposilite.error.ResponseUtils;
 import org.panda_lang.reposilite.storage.StorageProvider;
 import org.panda_lang.reposilite.utils.ArrayUtils;
@@ -38,6 +41,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.io.File;
+import java.net.SocketTimeoutException;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -45,22 +50,32 @@ public final class ProxyService {
 
     private final boolean storeProxied;
     private final boolean proxyPrivate;
+    private final int proxyConnectTimeout;
+    private final int proxyReadTimeout;
     private final List<? extends String> proxied;
     private final RepositoryService repositoryService;
+    private final FailureService failureService;
     private final HttpRequestFactory httpRequestFactory;
     private final StorageProvider storageProvider;
 
     public ProxyService(
             boolean storeProxied,
             boolean proxyPrivate,
+            int proxyConnectTimeout,
+            int proxyReadTimeout,
             List<? extends String> proxied,
-            RepositoryService repositoryService, StorageProvider storageProvider) {
+            RepositoryService repositoryService,
+            FailureService failureService,
+            StorageProvider storageProvider) {
 
         this.storeProxied = storeProxied;
         this.proxyPrivate = proxyPrivate;
+        this.proxyConnectTimeout = proxyConnectTimeout;
+        this.proxyReadTimeout = proxyReadTimeout;
         this.proxied = proxied;
         this.repositoryService = repositoryService;
         this.storageProvider = storageProvider;
+        this.failureService = failureService;
         this.httpRequestFactory = new NetHttpTransport().createRequestFactory();
     }
 
@@ -77,7 +92,7 @@ public final class ProxyService {
             }
         }
 
-        if (!proxyPrivate && repository.isHidden()) {
+        if (!proxyPrivate && repository.isPrivate()) {
             return Result.error(new ErrorDto(HttpStatus.SC_NOT_FOUND, "Proxying is disabled in private repositories"));
         }
 
@@ -95,16 +110,25 @@ public final class ProxyService {
                 try {
                     HttpRequest remoteRequest = httpRequestFactory.buildGetRequest(new GenericUrl(proxied + remoteUri));
                     remoteRequest.setThrowExceptionOnExecuteError(false);
-                    remoteRequest.setConnectTimeout(3000);
-                    remoteRequest.setReadTimeout(10000);
+                    remoteRequest.setConnectTimeout(proxyConnectTimeout * 1000);
+                    remoteRequest.setReadTimeout(proxyReadTimeout * 1000);
                     HttpResponse remoteResponse = remoteRequest.execute();
+                    HttpHeaders headers = remoteResponse.getHeaders();
+
+                    if ("text/html".equals(headers.getContentType())) {
+                        return;
+                    }
 
                     if (remoteResponse.isSuccessStatusCode()) {
                         responses.add(remoteResponse);
                     }
                 } catch (Exception exception) {
-                    String message = "Proxied repository " + proxied + " is unavailable due to: " + exception;
+                    String message = "Proxied repository " + proxied + " is unavailable due to: " + exception.getMessage();
                     Reposilite.getLogger().error(message);
+
+                    if (!(exception instanceof SocketTimeoutException)) {
+                        failureService.throwException(remoteUri, new ReposiliteException(message, exception));
+                    }
                 }
             }));
         }

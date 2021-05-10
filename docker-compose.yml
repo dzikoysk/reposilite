@@ -1,7 +1,7 @@
 version: "3.9"
 services:
   reposilite:
-    image: reposilite:2.9.19
+    image: reposilite:2.9.22
     build:
       context: .
       dockerfile: Dockerfile
@@ -14,8 +14,6 @@ services:
       - REPOSILITE_OPTS=${REPOSILITE_COMPOSE_OPTS}
     volumes:
       - reposilite-data:/app/data
-    cpus: 2.0
-    mem_limit: ${MEMORY}
     restart: unless-stopped
     stdin_open: true
     tty: true

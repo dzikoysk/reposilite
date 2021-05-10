@@ -17,46 +17,34 @@
 package org.panda_lang.reposilite.console;
 
 import org.panda_lang.reposilite.error.FailureService;
-import org.panda_lang.utilities.commons.collection.Pair;
 import picocli.CommandLine.Command;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
-@Command(name = "exceptions", description = "Display all recorded exceptions")
-final class ExceptionsCommand implements ReposiliteCommand {
+@Command(name = "failures", description = "Display all recorded exceptions")
+public final class FailuresCommand implements ReposiliteCommand {
 
     private final FailureService failureService;
 
-    ExceptionsCommand(FailureService failureService) {
+    FailuresCommand(FailureService failureService) {
         this.failureService = failureService;
     }
 
     @Override
     public boolean execute(List<String> output) {
-        Collection<? extends Pair<String, Throwable>> exceptions = failureService.getExceptions();
-
-        if (exceptions.isEmpty()) {
+        if (!failureService.hasFailures()) {
             output.add("No exception has occurred yet");
             return true;
         }
 
-        output.add("#");
-        output.add("# List of cached exceptions:");
-        output.add("#");
+        output.add("");
+        output.add("List of cached failures: " + "(" + failureService.getFailures().size() + ")");
+        output.add("");
 
-        int count = 0;
-
-        for (Pair<String, Throwable> exception : exceptions) {
-            output.add("Exception " + (++count) + " at " + exception.getKey());
-
-            StringWriter stringWriter = new StringWriter();
-            PrintWriter printWriter = new PrintWriter(stringWriter);
-            exception.getValue().printStackTrace(printWriter);
-            output.add(stringWriter.toString());
-        }
+        failureService.getFailures().stream()
+                .map(failure -> failure.split(System.lineSeparator()))
+                .forEach(lines -> Collections.addAll(output, lines));
 
         return true;
     }
