@@ -46,7 +46,7 @@
     "eslint-plugin-vue": "^7.4.1",
     "html-webpack-inline-source-plugin": "^0.0.10",
     "html-webpack-plugin": "^4.5.1",
-    "postcss": "^7.0.35",
+    "postcss": "^8.2.10",
     "pug": "^3.0.1",
     "pug-plain-loader": "^1.1.0",
     "purgecss": "^3.1.3",
