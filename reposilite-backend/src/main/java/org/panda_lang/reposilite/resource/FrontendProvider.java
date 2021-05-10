@@ -55,5 +55,4 @@ public final class FrontendProvider {
                 () -> formatter.format(FilesUtils.getResource("/static/js/app.js"))
         );
     }
-
 }

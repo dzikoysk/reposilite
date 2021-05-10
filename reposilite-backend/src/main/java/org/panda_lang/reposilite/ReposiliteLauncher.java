@@ -17,13 +17,13 @@
 package org.panda_lang.reposilite;
 
 import org.panda_lang.reposilite.utils.RunUtils;
-import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.console.Effect;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
-import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Optional;
 
 @Command(name = "reposilite", version = "Reposilite " + ReposiliteConstants.VERSION)
@@ -57,25 +57,28 @@ public final class ReposiliteLauncher {
         }
 
         if (launcher.versionInfoRequested) {
-            System.out.println("Reposilite " + ReposiliteConstants.VERSION);;
+            System.out.println("Reposilite " + ReposiliteConstants.VERSION);
             return Optional.empty();
         }
 
-        return Optional.of(create(launcher.configurationFile, launcher.workingDirectory, false, launcher.testEnv));
+        return Optional.of(create(launcher.workingDirectory, launcher.configurationFile, false, launcher.testEnv));
     }
 
-    public static Reposilite create(String configurationFile, String workingDirectory, boolean servlet, boolean testEnv) {
+    public static Reposilite create(String workingDirectoryString, String configurationFileName, boolean servlet, boolean testEnv) {
         Reposilite.getLogger().info("");
         Reposilite.getLogger().info(Effect.GREEN + "Reposilite " + Effect.RESET + ReposiliteConstants.VERSION);
         Reposilite.getLogger().info("");
 
-        if (StringUtils.isEmpty(workingDirectory)) {
-            workingDirectory = ".";
+        Path workingDirectory = Paths.get("");
+
+        if (workingDirectoryString != null && !workingDirectoryString.isEmpty()) {
+            workingDirectory = Paths.get(workingDirectoryString);
         }
 
-        if (StringUtils.isEmpty(configurationFile)) {
-            configurationFile = new File(workingDirectory, ReposiliteConstants.CONFIGURATION_FILE_NAME).getAbsolutePath();
-        }
+        Path configurationFile = workingDirectory.resolve(configurationFileName == null || configurationFileName.isEmpty()
+                ? ReposiliteConstants.CONFIGURATION_FILE_NAME
+                : configurationFileName
+        );
 
         return new Reposilite(configurationFile, workingDirectory, servlet, testEnv);
     }

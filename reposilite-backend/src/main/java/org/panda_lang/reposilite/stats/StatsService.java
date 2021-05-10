@@ -17,8 +17,10 @@
 package org.panda_lang.reposilite.stats;
 
 import org.panda_lang.reposilite.error.FailureService;
+import org.panda_lang.reposilite.storage.StorageProvider;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -29,23 +31,21 @@ public final class StatsService {
     private final StatsEntity instanceStats = new StatsEntity();
     private final StatsStorage statsStorage;
 
-    public StatsService(String workingDirectory, FailureService failureService, ExecutorService ioService, ScheduledExecutorService retryService) {
-        this.statsStorage = new StatsStorage(workingDirectory, failureService, ioService, retryService);
+    public StatsService(Path workingDirectory, FailureService failureService, StorageProvider storageProvider) {
+        this.statsStorage = new StatsStorage(workingDirectory, failureService, storageProvider);
     }
 
     public void record(String uri) {
         instanceStats.getRecords().merge(uri, 1, Integer::sum);
     }
 
-    public void saveStats() throws IOException, ExecutionException, InterruptedException {
+    public void saveStats() throws ExecutionException, InterruptedException {
         statsStorage.saveStats(loadAggregatedStats().get().getAggregatedStatsEntity());
     }
 
     public CompletableFuture<AggregatedStats> loadAggregatedStats() {
         return statsStorage.loadStoredStats().thenApply(aggregatedStats -> {
-            instanceStats.getRecords().forEach((key, value) -> {
-                aggregatedStats.getRecords().merge(key, value, Integer::sum);
-            });
+            instanceStats.getRecords().forEach((key, value) -> aggregatedStats.getRecords().merge(key, value, Integer::sum));
 
             return new AggregatedStats(aggregatedStats);
         });

@@ -62,7 +62,6 @@ public final class ReposiliteHttpServer {
                 reposilite.getFailureService());
 
         LookupApiEndpoint lookupApiEndpoint = new LookupApiEndpoint(
-                configuration.rewritePathsEnabled,
                 reposilite.getContextFactory(),
                 reposilite.getRepositoryAuthenticator(),
                 reposilite.getRepositoryService());
@@ -105,6 +104,7 @@ public final class ReposiliteHttpServer {
                 : Javalin.create(config -> configure(configuration, config));
     }
 
+    @SuppressWarnings("deprecation")
     private void configure(Configuration configuration, JavalinConfig config) {
         Server server = new Server();
 
@@ -112,7 +112,7 @@ public final class ReposiliteHttpServer {
             Reposilite.getLogger().info("Enabling SSL connector at ::" + configuration.sslPort);
 
             SslContextFactory sslContextFactory = new SslContextFactory.Server();
-            sslContextFactory.setKeyStorePath(configuration.keyStorePath.replace("${WORKING_DIRECTORY}", reposilite.getWorkingDirectory().getAbsolutePath()));
+            sslContextFactory.setKeyStorePath(configuration.keyStorePath.replace("${WORKING_DIRECTORY}", reposilite.getWorkingDirectory().toAbsolutePath().toString()));
             sslContextFactory.setKeyStorePassword(configuration.keyStorePassword);
 
             ServerConnector sslConnector = new ServerConnector(server, sslContextFactory);

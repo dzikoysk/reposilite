@@ -17,21 +17,16 @@
 package org.panda_lang.reposilite.repository;
 
 import org.jetbrains.annotations.NotNull;
-import org.panda_lang.reposilite.utils.FilesUtils;
-import org.panda_lang.utilities.commons.StringUtils;
 
-import java.io.File;
-import java.io.IOException;
 import java.io.Serializable;
-import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 
-final class FileDetailsDto implements Serializable, Comparable<FileDetailsDto> {
+public final class FileDetailsDto implements Serializable, Comparable<FileDetailsDto> {
 
     public static final String FILE = "file";
     public static final String DIRECTORY = "directory";
 
-    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd-MM-yyyy");
+    public static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd-MM-yyyy");
 
     private final String type;
     private final String name;
@@ -81,22 +76,4 @@ final class FileDetailsDto implements Serializable, Comparable<FileDetailsDto> {
     public String getType() {
         return type;
     }
-
-    public static FileDetailsDto of(File file) {
-        String date = StringUtils.EMPTY;
-        String contentType = FilesUtils.getMimeType(file.getAbsolutePath(), "application/octet-stream");
-
-        try {
-            date = DATE_FORMAT.format(Files.getLastModifiedTime(file.toPath()).toMillis());
-        }
-        catch (IOException ignored) { /* file does not exist */ }
-
-        return new FileDetailsDto(
-                file.isDirectory() ? DIRECTORY : FILE,
-                file.getName(),
-                date,
-                contentType,
-                file.isDirectory() ? -1 : file.length());
-    }
-
 }

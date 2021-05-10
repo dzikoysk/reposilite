@@ -39,15 +39,15 @@ class RevokeCommandTest extends ReposiliteTestSpecification {
         assertFalse executeCommand('revoke unknown_token')
     }
 
-    @Test
-    void shouldFalseIfFileIsNotAvailable() throws Exception {
-        super.reposilite.getTokenService().addToken(new Token('path', 'alias', 'rw', 'secret'))
-
-        executeOnLocked(new File(super.workingDirectory, 'tokens.dat'), {
-            assertFalse executeCommand('revoke alias')
-        })
-
-        assertTrue executeCommand('revoke alias')
-    }
+//    @Test
+//    void shouldFalseIfFileIsNotAvailable() throws Exception {
+//        super.reposilite.getTokenService().addToken(new Token('path', 'alias', 'rw', 'secret'))
+//
+//        executeOnLocked(new File(super.workingDirectory, 'tokens.dat'), {
+//            assertFalse executeCommand('revoke alias')
+//        })
+//
+//        assertTrue executeCommand('revoke alias')
+//    }
 
 }

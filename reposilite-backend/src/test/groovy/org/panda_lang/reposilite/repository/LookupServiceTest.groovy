@@ -21,6 +21,10 @@ import org.apache.http.HttpStatus
 import org.junit.jupiter.api.Test
 import org.panda_lang.reposilite.ReposiliteContext
 import org.panda_lang.reposilite.ReposiliteTestSpecification
+import org.panda_lang.reposilite.storage.FileSystemStorageProvider
+import org.panda_lang.reposilite.storage.StorageProvider
+
+import java.nio.file.Paths
 
 import static org.junit.jupiter.api.Assertions.assertEquals
 import static org.junit.jupiter.api.Assertions.assertTrue
@@ -29,20 +33,20 @@ import static org.junit.jupiter.api.Assertions.assertTrue
 class LookupServiceTest extends ReposiliteTestSpecification {
 
     @Test
-    void 'should return 203 for directory access' () {
+    void 'should return 305 for artifact not found' () {
         def context = new ReposiliteContext('/releases/org/panda-lang', 'GET', '', [:], {})
-        def result = super.reposilite.getLookupService().findLocal(context)
+        def result = super.reposilite.getLookupService().find(context)
         assertTrue result.isErr()
 
         def error = result.getError()
-        assertEquals 'Directory access', error.message
-        assertEquals HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, error.status
+        assertEquals 'Artifact panda-lang not found', error.message
+        assertEquals HttpStatus.SC_USE_PROXY, error.status
     }
 
     @Test
     void 'should return 404 for unauthorized request to snapshot metadata file' () {
         def context = new ReposiliteContext('/unauthorized_repository/1.0.0-SNAPSHOT/maven-metadata.xml', 'GET', '', [:], {})
-        def result = createLookupService().findLocal(context)
+        def result = createLookupService().find(context)
         assertTrue result.isErr()
 
         def error = result.getError()
@@ -52,7 +56,7 @@ class LookupServiceTest extends ReposiliteTestSpecification {
     @Test
     void 'should return 203 and repository not found message' () {
         def context = new ReposiliteContext('/invalid_repository/groupId/artifactId', 'GET', '', [:], {})
-        def result = createLookupService().findLocal(context)
+        def result = createLookupService().find(context)
         assertTrue result.isErr()
 
         def error = result.getError()
@@ -67,12 +71,10 @@ class LookupServiceTest extends ReposiliteTestSpecification {
                 super.reposilite.getRepositoryService())
 
         return new LookupService(
-                super.reposilite.getAuthenticator(),
-                repositoryAuthenticator,
-                super.reposilite.getMetadataService(),
-                super.reposilite.getRepositoryService(),
-                super.reposilite.ioService,
-                super.reposilite.getFailureService())
+                repositoryAuthenticator
+                ,
+                super.reposilite.getRepositoryService()
+        )
     }
 
 }

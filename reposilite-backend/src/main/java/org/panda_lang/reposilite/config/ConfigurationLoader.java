@@ -19,62 +19,59 @@ package org.panda_lang.reposilite.config;
 import net.dzikoysk.cdn.Cdn;
 import net.dzikoysk.cdn.CdnFactory;
 import org.panda_lang.reposilite.Reposilite;
-import org.panda_lang.reposilite.ReposiliteConstants;
 import org.panda_lang.reposilite.utils.FilesUtils;
 import org.panda_lang.utilities.commons.ClassUtils;
-import org.panda_lang.utilities.commons.FileUtils;
 import org.panda_lang.utilities.commons.StringUtils;
 
-import java.io.File;
 import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.Collection;
 
 public final class ConfigurationLoader {
 
-    public static Configuration tryLoad(String customConfigurationFile, String workingDirectory) {
+    public static Configuration tryLoad(Path customConfigurationFile) {
         try {
-            return load(customConfigurationFile, workingDirectory);
+            return load(customConfigurationFile);
         } catch (Exception exception) {
             throw new RuntimeException("Cannot load configuration", exception);
         }
     }
 
-    public static Configuration load(String customConfigurationFile, String workingDirectory) throws Exception {
-        File configurationFile = StringUtils.isEmpty(customConfigurationFile)
-            ? new File(workingDirectory, ReposiliteConstants.CONFIGURATION_FILE_NAME)
-            : new File(customConfigurationFile);
-
-        if (!FilesUtils.getExtension(configurationFile.getName()).equals("cdn")) {
+    public static Configuration load(Path configurationFile) throws Exception {
+        if (!FilesUtils.getExtension(configurationFile.getFileName().toString()).equals("cdn")) {
             throw new IllegalArgumentException("Custom configuration file does not have '.cdn' extension");
         }
 
         Cdn cdn = CdnFactory.createStandard();
 
-        Configuration configuration = configurationFile.exists()
-            ? cdn.load(configurationFile, Configuration.class)
+        Configuration configuration = Files.exists(configurationFile)
+            ? cdn.load(new String(Files.readAllBytes(configurationFile), StandardCharsets.UTF_8), Configuration.class)
             : createConfiguration(configurationFile);
 
         verifyBasePath(configuration);
         verifyProxied(configuration);
-        FileUtils.overrideFile(configurationFile, cdn.render(configuration));
+        Files.write(configurationFile, cdn.render(configuration).getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
         loadProperties(configuration);
 
         return configuration;
     }
 
-    private static Configuration createConfiguration(File configurationFile) throws Exception {
-        File legacyConfiguration = new File(configurationFile.getAbsolutePath().replace(".cdn", ".yml"));
+    private static Configuration createConfiguration(Path configurationFile) throws Exception {
+        Path legacyConfiguration = configurationFile.resolveSibling(configurationFile.getFileName().toString().replace(".cdn", ".yml"));
 
-        if (!legacyConfiguration.exists()) {
+        if (!Files.exists(legacyConfiguration)) {
             Reposilite.getLogger().info("Generating default configuration file.");
             return new Configuration();
         }
 
         Reposilite.getLogger().info("Legacy configuration file has been found");
-        Configuration configuration = CdnFactory.createYamlLike().load(legacyConfiguration, Configuration.class);
+        Configuration configuration = CdnFactory.createYamlLike().load(new String(Files.readAllBytes(configurationFile), StandardCharsets.UTF_8), Configuration.class);
         Reposilite.getLogger().info("YAML configuration has been converted to CDN format");
-        FileUtils.delete(legacyConfiguration);
+        Files.delete(legacyConfiguration);
 
         return configuration;
     }

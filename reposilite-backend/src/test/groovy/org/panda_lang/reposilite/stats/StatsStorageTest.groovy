@@ -21,8 +21,14 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.panda_lang.reposilite.ReposiliteConstants
 import org.panda_lang.reposilite.error.FailureService
+import org.panda_lang.reposilite.storage.FileSystemStorageProvider
 import org.panda_lang.utilities.commons.FileUtils
 
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
+import java.nio.file.StandardOpenOption
 import java.util.concurrent.Executors
 
 import static org.junit.jupiter.api.Assertions.assertEquals
@@ -32,18 +38,19 @@ import static org.junit.jupiter.api.Assertions.assertTrue
 final class StatsStorageTest {
 
     @TempDir
-    public File workingDirectory
+    public Path workingDirectory
 
     @Test
     void 'should convert old data file' () {
-        def statsStorage = new StatsStorage(workingDirectory.getAbsolutePath(), new FailureService(), Executors.newSingleThreadExecutor(), Executors.newSingleThreadScheduledExecutor())
+        def statsStorage = new StatsStorage(workingDirectory, new FailureService(), FileSystemStorageProvider.of(Paths.get(""), "10GB"))
 
-        FileUtils.overrideFile(new File(workingDirectory, 'stats.yml'), 'records: {}')
+        Files.write(workingDirectory.resolve("stats.yml"), 'records: {}'.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
+
         statsStorage.loadStoredStats().get()
 
-        def dataFile = new File(workingDirectory, ReposiliteConstants.STATS_FILE_NAME)
-        assertTrue dataFile.exists()
-        assertEquals 'records: {}', FileUtils.getContentOfFile(dataFile)
+        def dataFile = workingDirectory.resolve(ReposiliteConstants.STATS_FILE_NAME)
+        assertTrue Files.exists(dataFile)
+        assertEquals 'records: {}', new String(Files.readAllBytes(dataFile), StandardCharsets.UTF_8)
     }
 
 }
