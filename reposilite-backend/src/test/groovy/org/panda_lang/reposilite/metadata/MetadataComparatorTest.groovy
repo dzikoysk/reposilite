@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals
 @CompileStatic
 class MetadataComparatorTest {
 
-    private static final MetadataComparator<Pair<String[], String>> METADATA_COMPARATOR = new MetadataComparator<>(
+    private static final MetadataComparator<Pair<String[], String>> METADATA_COMPARATOR = new MetadataComparator<Pair<String[], String>>(
             { Pair<String[], String> pair -> pair.getValue() },
             { Pair<String[], String> pair -> pair.getKey() },
             { pair -> false }

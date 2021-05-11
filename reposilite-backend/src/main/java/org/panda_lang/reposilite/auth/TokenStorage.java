@@ -18,45 +18,54 @@ package org.panda_lang.reposilite.auth;
 
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.ReposiliteConstants;
-import org.panda_lang.reposilite.utils.FilesUtils;
+import org.panda_lang.reposilite.error.ErrorDto;
+import org.panda_lang.reposilite.storage.StorageProvider;
 import org.panda_lang.reposilite.utils.YamlUtils;
 import org.panda_lang.utilities.commons.function.Option;
+import org.panda_lang.utilities.commons.function.Result;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 
 public final class TokenStorage {
 
     private final TokenService tokenService;
-    private final File tokensFile;
+    private final Path tokensFile;
+    private final StorageProvider storageProvider;
 
-    public TokenStorage(TokenService tokenService, String workingDirectory) {
+    public TokenStorage(TokenService tokenService, Path workingDirectory, StorageProvider storageProvider) {
         this.tokenService = tokenService;
-        this.tokensFile = new File(workingDirectory, ReposiliteConstants.TOKENS_FILE_NAME);
+        this.tokensFile = workingDirectory.resolve(ReposiliteConstants.TOKENS_FILE_NAME);
+        this.storageProvider = storageProvider;
     }
 
     public void loadTokens() throws IOException {
-        if (!tokensFile.exists()) {
-            File legacyTokensFile = new File(tokensFile.getAbsolutePath().replace(".dat", ".yml"));
+        if (!storageProvider.exists(tokensFile)) {
+            Path legacyTokensFile = tokensFile.resolveSibling(tokensFile.getFileName().toString().replace(".dat", ".yml"));
 
-            if (legacyTokensFile.exists()) {
-                Files.move(legacyTokensFile.toPath(), tokensFile.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
-                Reposilite.getLogger().info("Legacy tokens file has been converted to dat file");
-            }
-            else {
+            if (storageProvider.exists(legacyTokensFile)) {
+                Result<byte[], ErrorDto> result = storageProvider.getFile(legacyTokensFile);
+
+                if (result.isOk()) {
+                    storageProvider.putFile(tokensFile, result.get());
+                    Reposilite.getLogger().info("Legacy tokens file has been converted to dat file");
+                } else {
+                    throw new IOException(result.getError().getMessage());
+                }
+            } else {
                 Reposilite.getLogger().info("Generating tokens data file...");
-                FilesUtils.copyResource("/" + ReposiliteConstants.TOKENS_FILE_NAME, tokensFile);
+                storageProvider.putFile(tokensFile, "!!org.panda_lang.reposilite.auth.TokenCollection\n\"tokens\": []".getBytes(StandardCharsets.UTF_8));
                 Reposilite.getLogger().info("Empty tokens file has been generated");
             }
-        }
-        else {
+        } else {
             Reposilite.getLogger().info("Using an existing tokens data file");
         }
 
-        TokenCollection tokenCollection = YamlUtils.load(tokensFile, TokenCollection.class);
+        TokenCollection tokenCollection = YamlUtils.load(storageProvider, tokensFile, TokenCollection.class);
 
         for (Token token : tokenCollection.getTokens()) {
             // Update missing default permissions of old tokens
@@ -76,7 +85,7 @@ public final class TokenStorage {
             tokenCollection.getTokens().add(token);
         }
 
-        YamlUtils.save(tokensFile, tokenCollection);
+        YamlUtils.save(storageProvider, tokenCollection, tokensFile);
         Reposilite.getLogger().info("Stored tokens: " + tokenCollection.getTokens().size());
     }
 

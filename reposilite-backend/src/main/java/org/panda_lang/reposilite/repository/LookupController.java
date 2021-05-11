@@ -18,12 +18,9 @@ package org.panda_lang.reposilite.repository;
 
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
-import io.javalin.plugin.openapi.annotations.ContentType;
-import io.javalin.plugin.openapi.annotations.OpenApi;
-import io.javalin.plugin.openapi.annotations.OpenApiContent;
-import io.javalin.plugin.openapi.annotations.OpenApiParam;
-import io.javalin.plugin.openapi.annotations.OpenApiResponse;
+import io.javalin.plugin.openapi.annotations.*;
 import org.apache.http.HttpStatus;
+import org.jetbrains.annotations.NotNull;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.ReposiliteContext;
 import org.panda_lang.reposilite.ReposiliteContextFactory;
@@ -34,7 +31,6 @@ import org.panda_lang.reposilite.utils.OutputUtils;
 import org.panda_lang.utilities.commons.function.Result;
 
 import java.io.IOException;
-import java.util.concurrent.CompletableFuture;
 
 public final class LookupController implements Handler {
 
@@ -84,31 +80,26 @@ public final class LookupController implements Handler {
             }
     )
     @Override
-    public void handle(Context ctx) {
+    public void handle(@NotNull Context ctx) {
         ReposiliteContext context = contextFactory.create(ctx);
         Reposilite.getLogger().debug("LOOKUP " + context.uri() + " from " + context.address());
 
-        Result<LookupResponse, ErrorDto> response = lookupService.findLocal(context);
+        Result<LookupResponse, ErrorDto> response;
 
-        if (isProxied(response)) {
-            if (hasProxied) {
-                handleProxied(ctx, context, proxyService.findProxied(context));
+        if (lookupService.exists(context)) {
+            try {
+                response = lookupService.find(context);
+            } catch (IOException e) {
+                e.printStackTrace();
                 return;
             }
-
-            if (isProxied(response)) {
-                response = response.mapErr(proxiedError -> new ErrorDto(HttpStatus.SC_NOT_FOUND, proxiedError.getMessage()));
-            }
+        } else if (this.hasProxied) {
+            response = proxyService.findProxied(context);
+        } else {
+            response = Result.error(new ErrorDto(HttpStatus.SC_NOT_FOUND, "File not found"));
         }
 
         handleResult(ctx, context, response);
-    }
-
-    private void handleProxied(Context ctx, ReposiliteContext context, Result<CompletableFuture<Result<LookupResponse, ErrorDto>>, ErrorDto> response) {
-        response
-            .map(task -> task.thenAccept(result -> handleResult(ctx, context, result)))
-            .peek(ctx::result)
-            .onError(error -> handleError(ctx, error));
     }
 
     private void handleResult(Context ctx, ReposiliteContext context, Result<LookupResponse, ErrorDto> result) {
@@ -148,9 +139,4 @@ public final class LookupController implements Handler {
                 .contentType("text/html")
                 .res.setCharacterEncoding("UTF-8");
     }
-
-    private boolean isProxied(Result<?, ErrorDto> lookupResponse) {
-        return lookupResponse.isErr() && lookupResponse.getError().getStatus() == HttpStatus.SC_USE_PROXY;
-    }
-
 }

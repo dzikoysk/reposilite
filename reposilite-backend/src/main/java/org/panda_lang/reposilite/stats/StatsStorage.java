@@ -18,33 +18,28 @@ package org.panda_lang.reposilite.stats;
 
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.ReposiliteConstants;
+import org.panda_lang.reposilite.error.ErrorDto;
 import org.panda_lang.reposilite.error.FailureService;
-import org.panda_lang.reposilite.utils.FilesUtils;
+import org.panda_lang.reposilite.storage.StorageProvider;
 import org.panda_lang.reposilite.utils.YamlUtils;
+import org.panda_lang.utilities.commons.function.Result;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 public final class StatsStorage {
-
-    private static final long RETRY_TIME = 1000L;
-
-    private final File statsFile;
+    private final Path statsFile;
     private final FailureService failureService;
-    private final ExecutorService ioService;
-    private final ScheduledExecutorService retryService;
+    private final StorageProvider storageProvider;
 
-    public StatsStorage(String workingDirectory, FailureService failureService, ExecutorService ioService, ScheduledExecutorService retryService) {
-        this.statsFile = new File(workingDirectory, ReposiliteConstants.STATS_FILE_NAME);
+    public StatsStorage(Path workingDirectory, FailureService failureService, StorageProvider storageProvider) {
+        this.statsFile = workingDirectory.resolve(ReposiliteConstants.STATS_FILE_NAME);
         this.failureService = failureService;
-        this.ioService = ioService;
-        this.retryService = retryService;
+        this.storageProvider = storageProvider;
     }
 
     CompletableFuture<StatsEntity> loadStoredStats() {
@@ -52,44 +47,38 @@ public final class StatsStorage {
     }
 
     CompletableFuture<StatsEntity> loadStoredStats(CompletableFuture<StatsEntity> loadTask) {
-        ioService.submit(() -> {
-            try {
-                File lockFile = new File(statsFile.getAbsolutePath() + ".lock");
+        try {
+            if (!storageProvider.exists(statsFile)) {
+                Path legacyStatsFile = statsFile.resolveSibling(statsFile.getFileName().toString().replace(".dat", ".yml"));
 
-                if (lockFile.exists()) {
-                    return retryService.schedule(() -> {
-                        ioService.submit(() -> {
-                            loadStoredStats(loadTask);
-                        });
-                    }, RETRY_TIME, TimeUnit.MILLISECONDS);
-                }
+                if (storageProvider.exists(legacyStatsFile)) {
+                    Result<byte[], ErrorDto> result = storageProvider.getFile(legacyStatsFile);
 
-                if (!statsFile.exists()) {
-                    File legacyStatsFile = new File(statsFile.getAbsolutePath().replace(".dat", ".yml"));
-
-                    if (legacyStatsFile.exists()) {
-                        Files.move(legacyStatsFile.toPath(), statsFile.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+                    if (result.isOk()) {
+                        storageProvider.putFile(statsFile, result.get());
                         Reposilite.getLogger().info("Legacy stats file has been converted to dat file");
-                    }
-                    else {
-                        Reposilite.getLogger().info("Generating stats data file...");
-                        FilesUtils.copyResource("/" + ReposiliteConstants.STATS_FILE_NAME, statsFile);
-                        Reposilite.getLogger().info("Empty stats file has been generated");
+                    } else {
+                        failureService.throwException("Cannot load legacy stats file: " + result.getError().getMessage(), new RuntimeException());
                     }
                 }
-
-                return loadTask.complete(YamlUtils.load(statsFile, StatsEntity.class));
-            } catch (Exception exception) {
-                failureService.throwException("Cannot load stats file", exception);
-                return loadTask.cancel(true);
+                else {
+                    Reposilite.getLogger().info("Generating stats data file...");
+                    storageProvider.putFile(this.statsFile, "!!org.panda_lang.reposilite.stats.StatsEntity\n\"records\": {}".getBytes(StandardCharsets.UTF_8));
+                    Reposilite.getLogger().info("Empty stats file has been generated");
+                }
             }
-        });
+
+            loadTask.complete(YamlUtils.load(storageProvider, statsFile, StatsEntity.class));
+        } catch (Exception exception) {
+            failureService.throwException("Cannot load stats file", exception);
+            loadTask.cancel(true);
+        }
 
         return loadTask;
     }
 
-    public void saveStats(StatsEntity entity) throws IOException {
-        YamlUtils.save(statsFile, entity);
+    public void saveStats(StatsEntity entity) {
+        YamlUtils.save(storageProvider, entity, statsFile);
         Reposilite.getLogger().info("Stored records: " + entity.getRecords().size());
     }
 

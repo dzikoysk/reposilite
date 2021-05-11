@@ -16,54 +16,62 @@
 
 package org.panda_lang.reposilite.repository;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.ReposiliteContext;
-import org.panda_lang.reposilite.auth.Authenticator;
 import org.panda_lang.reposilite.error.ErrorDto;
-import org.panda_lang.reposilite.error.FailureService;
 import org.panda_lang.reposilite.error.ResponseUtils;
-import org.panda_lang.reposilite.metadata.MetadataService;
 import org.panda_lang.reposilite.metadata.MetadataUtils;
 import org.panda_lang.reposilite.utils.ArrayUtils;
 import org.panda_lang.utilities.commons.collection.Pair;
 import org.panda_lang.utilities.commons.function.Result;
 
-import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.ExecutorService;
 
 public final class LookupService {
 
-    private final Authenticator authenticator;
     private final RepositoryAuthenticator repositoryAuthenticator;
-    private final MetadataService metadataService;
     private final RepositoryService repositoryService;
-    private final ExecutorService ioService;
-    private final FailureService failureService;
 
     public LookupService(
-            Authenticator authenticator,
             RepositoryAuthenticator repositoryAuthenticator,
-            MetadataService metadataService,
-            RepositoryService repositoryService,
-            ExecutorService ioService,
-            FailureService failureService) {
+            RepositoryService repositoryService) {
 
-        this.authenticator = authenticator;
         this.repositoryAuthenticator = repositoryAuthenticator;
-        this.metadataService = metadataService;
         this.repositoryService = repositoryService;
-        this.ioService = ioService;
-        this.failureService = failureService;
     }
 
-    Result<LookupResponse, ErrorDto> findLocal(ReposiliteContext context) {
+    boolean exists(ReposiliteContext context) {
         String uri = context.uri();
-        Result<Pair<String[], Repository>, ErrorDto> result = this.repositoryAuthenticator.authDefaultRepository(context.headers(), uri);
+        Result<Pair<Path, Repository>, ErrorDto> result = this.repositoryAuthenticator.authDefaultRepository(context.headers(), uri);
+
+        if (result.isErr()) {
+            // Maven requests maven-metadata.xml file during deploy for snapshot releases without specifying credentials
+            // https://github.com/dzikoysk/reposilite/issues/184
+            if (uri.contains("-SNAPSHOT") && uri.endsWith("maven-metadata.xml")) {
+                return false;
+            }
+
+            return false;
+        }
+
+        Path path = result.get().getKey();
+
+        // discard invalid requests (less than 'group/(artifact OR metadata)')
+        if (path.getNameCount() < 2) {
+            return false;
+        }
+
+        Repository repository = result.get().getValue();
+
+        return repository.exists(path);
+    }
+
+    Result<LookupResponse, ErrorDto> find(ReposiliteContext context) throws IOException {
+        String uri = context.uri();
+        Result<Pair<Path, Repository>, ErrorDto> result = this.repositoryAuthenticator.authDefaultRepository(context.headers(), uri);
 
         if (result.isErr()) {
             // Maven requests maven-metadata.xml file during deploy for snapshot releases without specifying credentials
@@ -75,66 +83,68 @@ public final class LookupService {
             return Result.error(result.getError());
         }
 
-        String[] path = result.get().getKey();
-        // remove repository name from path
-        String[] requestPath = Arrays.copyOfRange(path, 1, path.length);
+        Path path = result.get().getKey();
 
         // discard invalid requests (less than 'group/(artifact OR metadata)')
-        if (requestPath.length < 2) {
+        if (path.getNameCount() < 2) {
             return ResponseUtils.error(HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, "Missing artifact identifier");
         }
 
         Repository repository = result.get().getValue();
-        String requestedFileName = Objects.requireNonNull(ArrayUtils.getLast(requestPath));
+        String requestedFileName = path.getFileName().toString();
 
         if (requestedFileName.equals("maven-metadata.xml")) {
-            return metadataService
-                    .generateMetadata(repository, requestPath)
-                    .mapErr(error -> new ErrorDto(HttpStatus.SC_USE_PROXY, error))
-                    .map(metadataContent -> new LookupResponse("text/xml", metadataContent));
+            return repository.getFile(path).map(bytes -> new LookupResponse("text/xml", Arrays.toString(bytes)));
         }
 
         // resolve requests for latest version of artifact
         if (requestedFileName.equalsIgnoreCase("latest")) {
-            File requestDirectory = repository.getFile(requestPath).getParentFile();
-            File[] versions = MetadataUtils.toSortedVersions(requestDirectory);
-            File version = ArrayUtils.getFirst(versions);
+            Path requestDirectory = path.getParent();
+            Result<Path[], ErrorDto> versions = MetadataUtils.toSortedVersions(repository, requestDirectory);
+
+            if (versions.isErr()) return versions.map(p -> null);
+
+            Path version = ArrayUtils.getFirst(versions.get());
 
             if (version == null) {
                 return ResponseUtils.error(HttpStatus.SC_NOT_FOUND, "Latest version not found");
             }
 
-            return Result.ok(new LookupResponse("text/plain", version.getName()));
+            return Result.ok(new LookupResponse("text/plain", version.getFileName().toString()));
         }
 
         // resolve snapshot requests
         if (requestedFileName.contains("-SNAPSHOT")) {
-            repositoryService.resolveSnapshot(repository, requestPath);
-            // update requested file name in case of snapshot request
-            requestedFileName = requestPath[requestPath.length - 1];
+            path = repositoryService.resolveSnapshot(repository, path);
+
+            if (path == null) {
+                return Result.error(new ErrorDto(HttpStatus.SC_NOT_FOUND, "Latest version not found"));
+            }
         }
 
-        File repositoryFile = repository.getFile(requestPath);
-
-        if (repositoryFile.exists() && repositoryFile.isDirectory()) {
+        if (repository.isDirectory(path)) {
             return ResponseUtils.error(HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, "Directory access");
         }
 
-        Optional<Artifact> artifact = repository.find(requestPath);
+        Result<byte[], ErrorDto> bytes = repository.getFile(path);
 
-        if (!artifact.isPresent()) {
-            return ResponseUtils.error(HttpStatus.SC_USE_PROXY, "Artifact " + requestedFileName + " not found");
+        if (bytes.isErr()) {
+            return bytes.map(b -> null);
         }
 
-        File file = artifact.get().getFile(requestedFileName);
-        FileDetailsDto fileDetails = FileDetailsDto.of(file);
+        Result<FileDetailsDto, ErrorDto> fileDetailsResult = repository.getFileDetails(path);
 
-        if (!context.method().equals("HEAD")) {
-            context.result(outputStream -> FileUtils.copyFile(file, outputStream));
+        if (fileDetailsResult.isOk()) {
+            FileDetailsDto fileDetails = fileDetailsResult.get();
+
+            if (!context.method().equals("HEAD")) {
+                context.result(outputStream -> outputStream.write(bytes.get()));
+            }
+
+            Reposilite.getLogger().debug("RESOLVED " + path + "; mime: " + fileDetails.getContentType() + "; size: " + repository.getFileSize(path).get());
+            return Result.ok(new LookupResponse(fileDetails));
+        } else {
+            return Result.error(fileDetailsResult.getError());
         }
-
-        Reposilite.getLogger().debug("RESOLVED " + file.getPath() + "; mime: " + fileDetails.getContentType() + "; size: " + file.length());
-        return Result.ok(new LookupResponse(fileDetails));
     }
-
 }

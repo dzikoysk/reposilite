@@ -21,10 +21,9 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.panda_lang.reposilite.config.Configuration
-import org.panda_lang.reposilite.error.FailureService
 import org.panda_lang.reposilite.repository.RepositoryService
 
-import java.util.concurrent.Executors
+import java.nio.file.Path
 
 import static org.junit.jupiter.api.Assertions.assertEquals
 import static org.junit.jupiter.api.Assertions.assertTrue
@@ -33,42 +32,36 @@ import static org.junit.jupiter.api.Assertions.assertTrue
 class ReposiliteUtilsTest {
 
     @TempDir
-    protected static File WORKING_DIRECTORY
+    protected static Path WORKING_DIRECTORY
     private static RepositoryService REPOSITORY_SERVICE
 
     @BeforeAll
     static void prepare() {
-        REPOSITORY_SERVICE = new RepositoryService(
-                WORKING_DIRECTORY.getAbsolutePath(),
-                '0',
-                Executors.newSingleThreadExecutor(),
-                Executors.newSingleThreadScheduledExecutor(),
-                new FailureService(),
-        )
+        REPOSITORY_SERVICE = new RepositoryService()
 
         REPOSITORY_SERVICE.load(new Configuration())
     }
 
     @Test
     void 'should not interfere' () {
-        assertEquals "releases/without/repo-one/", ReposiliteUtils.normalizeUri(true, REPOSITORY_SERVICE, "releases/without/repo-one/").get()
+        assertEquals "releases/without/repo-one/", ReposiliteUtils.normalizeUri("releases/without/repo-one/").get()
     }
 
     @Test
     void 'should rewrite path' () {
-        assertEquals "releases/without/repo/", ReposiliteUtils.normalizeUri(true, REPOSITORY_SERVICE, "/without/repo/").get()
+        assertEquals "releases/without/repo/", ReposiliteUtils.normalizeUri("/without/repo/").get()
     }
 
     @Test
     void 'should not allow path escapes' () {
-        assertTrue ReposiliteUtils.normalizeUri(true, REPOSITORY_SERVICE, "~/home").isEmpty()
-        assertTrue ReposiliteUtils.normalizeUri(true, REPOSITORY_SERVICE, "../../../../monkas").isEmpty()
-        assertTrue ReposiliteUtils.normalizeUri(true, REPOSITORY_SERVICE, "C:\\").isEmpty()
+        assertTrue ReposiliteUtils.normalizeUri("~/home").isEmpty()
+        assertTrue ReposiliteUtils.normalizeUri("../../../../monkas").isEmpty()
+        assertTrue ReposiliteUtils.normalizeUri("C:\\").isEmpty()
     }
 
     @Test
     void 'should not rewrite paths' () {
-        assertEquals "without/repo/", ReposiliteUtils.normalizeUri(false, REPOSITORY_SERVICE, "without/repo/").get()
+        assertEquals "without/repo/", ReposiliteUtils.normalizeUri("without/repo/").get()
     }
 
 }

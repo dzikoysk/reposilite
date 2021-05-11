@@ -19,6 +19,7 @@ package org.panda_lang.reposilite.auth;
 import org.panda_lang.reposilite.repository.Repository;
 import org.panda_lang.utilities.commons.StringUtils;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,9 +28,9 @@ public final class Session {
     public static final String WILDCARD = "*";
 
     private final Token token;
-    private final List<Repository> repositories;
+    private final Collection<Repository> repositories;
 
-    public Session(Token token, List<Repository> repositories) {
+    public Session(Token token, Collection<Repository> repositories) {
         this.token = token;
         this.repositories = repositories;
     }
@@ -59,7 +60,7 @@ public final class Session {
         return path.startsWith(tokenPath) || path.startsWith(tokenPath + "/");
     }
 
-    public List<Repository> getRepositories() {
+    public Collection<Repository> getRepositories() {
         return repositories;
     }
 

@@ -31,37 +31,43 @@ public final class ReposiliteUtils {
      * <ul>
      *     <li>Remove root slash</li>
      *     <li>Remove illegal path modifiers like .. and ~</li>
-     *     <li>Insert repository name if missing</li>
      * </ul>
      *
-     * @param rewritePathsEnabled determines if path rewriting is enabled
      * @param uri the uri to process
      * @return the normalized uri
      */
-    public static Option<String> normalizeUri(boolean rewritePathsEnabled, RepositoryService repositoryService, String uri) {
-        if (uri.startsWith("/")) {
-            uri = uri.substring(1);
-        }
-
+    public static Option<String> normalizeUri(String uri) {
         if (uri.contains("..") || uri.contains("~") || uri.contains(":") || uri.contains("\\")) {
             return Option.none();
         }
 
-        if (!rewritePathsEnabled) {
-            return Option.of(uri);
+        if (uri.startsWith("/")) {
+            uri = uri.substring(1);
         }
 
-        if (StringUtils.countOccurrences(uri, "/") <= 1) {
-            return Option.of(uri);
+        return Option.of(uri);
+    }
+
+    public static Option<Repository> getRepository(boolean rewritePathsEnabled, RepositoryService repositoryService, String uri) {
+        String repositoryName = uri;
+
+        if (repositoryName.startsWith("/")) {
+            repositoryName = repositoryName.substring(1);
         }
 
-        for (Repository repository : repositoryService.getRepositories()) {
-            if (uri.startsWith(repository.getName())) {
-                return Option.of(uri);
-            }
+        if (repositoryName.contains("..") || repositoryName.contains("~") || repositoryName.contains(":") || repositoryName.contains("\\")) {
+            return Option.none();
         }
 
-        return Option.of(repositoryService.getPrimaryRepository().getName() + "/" + uri);
+        String repository = StringUtils.countOccurrences(repositoryName, "/") > 0
+                ? repositoryName.substring(0, repositoryName.indexOf('/'))
+                : repositoryName;
+
+        if (rewritePathsEnabled && repositoryService.getRepository(repository) == null) {
+            repository = repositoryService.getPrimaryRepository().getName();
+        }
+
+        return Option.of(repositoryService.getRepository(repository));
     }
 
 }
