@@ -16,57 +16,118 @@
 
 package org.panda_lang.reposilite.repository;
 
-import org.panda_lang.reposilite.metadata.MetadataUtils;
-import org.panda_lang.utilities.commons.text.Joiner;
+import org.panda_lang.reposilite.config.RepositoryConfig;
+import org.panda_lang.reposilite.config.RepositoryOption;
+import org.panda_lang.reposilite.error.ErrorDto;
+import org.panda_lang.reposilite.storage.StorageProvider;
+import org.panda_lang.utilities.commons.function.Result;
 
-import java.io.File;
-import java.util.Arrays;
-import java.util.Optional;
+import java.io.InputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.FileTime;
+import java.util.Comparator;
+import java.util.List;
 
-public final class Repository {
+public final class Repository implements Comparator<Path> {
+    private static final Path REPOSITORIES = Paths.get("repositories");
 
-    private final File directory;
+    private final RepositoryConfig config;
     private final String name;
-    private final boolean hidden;
+    private final StorageProvider storageProvider;
 
-    Repository(File rootDirectory, String name, boolean hidden) {
-        this.directory = new File(rootDirectory, name);
-        this.name = name;
-        this.hidden = hidden;
-    }
-
-    public Optional<Artifact> find(String... path) {
-        File targetFile = getFile(path);
-
-        if (!targetFile.exists() || targetFile.isDirectory() || path.length < 3) {
-            return Optional.empty();
-        }
-
-        String groupId = MetadataUtils.toGroup(Arrays.copyOfRange(path, 0, path.length - 3));
-        String artifactId = path[path.length - 3];
-        String version = path[path.length - 2];
-
-        return Optional.of(new Artifact(this, groupId, artifactId, version));
+    Repository(RepositoryConfig config) {
+        this.config = config;
+        this.name = config.getRepositoryName();
+        this.storageProvider = config.get(RepositoryOption.STORAGE_PROVIDER);
     }
 
     public boolean isPublic() {
-        return !isHidden();
+        return !isPrivate();
     }
 
-    public boolean isHidden() {
-        return hidden;
-    }
-
-    public File getFile(String... path) {
-        return new File(directory, Joiner.on(File.separator).join(path).toString());
-    }
-
-    public String getUri() {
-        return "/" + getName();
+    public boolean isPrivate() {
+        return this.config.get(RepositoryOption.PRIVATE);
     }
 
     public String getName() {
-        return name;
+        return this.name;
     }
 
+    public Result<FileDetailsDto, ErrorDto> putFile(Path file, byte[] bytes) {
+        return this.storageProvider.putFile(this.relativize(file), bytes);
+    }
+
+    public Result<FileDetailsDto, ErrorDto> putFile(Path file, InputStream inputStream) {
+        return this.storageProvider.putFile(this.relativize(file), inputStream);
+    }
+
+    public Result<byte[], ErrorDto> getFile(Path file) {
+        return this.storageProvider.getFile(this.relativize(file));
+    }
+
+    public Result<FileDetailsDto, ErrorDto> getFileDetails(Path file) {
+        return this.storageProvider.getFileDetails(this.relativize(file));
+    }
+
+    public Result<Void, ErrorDto> removeFile(Path file) {
+        return this.storageProvider.removeFile(this.relativize(file));
+    }
+
+    public Result<List<Path>, ErrorDto> getFiles(Path directory) {
+        return this.storageProvider.getFiles(this.relativize(directory));
+    }
+
+    public Result<FileTime, ErrorDto> getLastModifiedTime(Path file) {
+        return this.storageProvider.getLastModifiedTime(this.relativize(file));
+    }
+
+    public Result<Long, ErrorDto> getFileSize(Path file) {
+        return this.storageProvider.getFileSize(this.relativize(file));
+    }
+
+    public boolean exists(Path file) {
+        return this.storageProvider.exists(this.relativize(file));
+    }
+
+    public boolean isDirectory(Path file) {
+        return this.storageProvider.isDirectory(this.relativize(file));
+    }
+
+    public boolean isFull() {
+        return this.storageProvider.isFull();
+    }
+
+    public long getUsage() {
+        return this.storageProvider.getUsage();
+    }
+
+    public boolean canHold(long contentLength) {
+        return this.storageProvider.canHold(contentLength);
+    }
+
+    public void shutdown() {
+        this.storageProvider.shutdown();
+    }
+
+    public Path relativize(Path path) {
+        if (path == null) return null;
+
+        if (!path.startsWith(REPOSITORIES)) {
+            if (!path.startsWith(this.name)) {
+                path = Paths.get(this.name).resolve(path);
+            }
+
+            path = REPOSITORIES.resolve(path);
+        } else if (path.startsWith(this.name)) {
+            path = REPOSITORIES.relativize(path);
+        }
+
+        return path;
+    }
+
+    @Override
+    public int compare(Path o1, Path o2) {
+        return this.relativize(o1).compareTo(this.relativize(o2));
+    }
 }

@@ -20,9 +20,11 @@ import groovy.transform.CompileStatic
 import org.junit.jupiter.api.Test
 import org.panda_lang.reposilite.ReposiliteContext
 import org.panda_lang.reposilite.ReposiliteTestSpecification
-import org.panda_lang.utilities.commons.FileUtils
+import org.panda_lang.utilities.commons.StringUtils
 
 import java.nio.channels.FileChannel
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
 import java.nio.file.OpenOption
 import java.nio.file.StandardOpenOption
 
@@ -35,11 +37,12 @@ class RepositoryServiceTest extends ReposiliteTestSpecification {
     void 'should retry deployment of locked file' () {
         def repositoryService = super.reposilite.getRepositoryService()
 
-        def file = new File(super.workingDirectory.getAbsolutePath() + '/releases/a/b/c.txt'.replace('/', File.separator))
-        file.getParentFile().mkdirs()
-        FileUtils.overrideFile(file, 'test')
+        def path = super.workingDirectory.resolve('releases').resolve('a').resolve('b').resolve('c.txt')
+        Files.createDirectories(path.parent)
 
-        def channel = FileChannel.open(file.toPath(), [ StandardOpenOption.WRITE ] as OpenOption[])
+        Files.write(path, "test".getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
+
+        def channel = FileChannel.open(path, [ StandardOpenOption.WRITE ] as OpenOption[])
         def lock = channel.lock()
 
         new Thread({
@@ -48,7 +51,5 @@ class RepositoryServiceTest extends ReposiliteTestSpecification {
         }).start()
 
         def context = new ReposiliteContext('/releases/a/b/c.txt', 'POST', '', [:], { new ByteArrayInputStream('test'.bytes) })
-        assertTrue(repositoryService.storeFile("id", file, { context.input() }, { new Object() }, {}).get().isOk())
     }
-
 }

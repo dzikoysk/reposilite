@@ -26,11 +26,12 @@ import org.panda_lang.reposilite.auth.Session;
 import org.panda_lang.reposilite.error.ErrorDto;
 import org.panda_lang.reposilite.error.ResponseUtils;
 import org.panda_lang.reposilite.metadata.MetadataService;
+import org.panda_lang.utilities.commons.collection.Pair;
 import org.panda_lang.utilities.commons.function.Option;
 import org.panda_lang.utilities.commons.function.Result;
 
-import java.io.File;
-import java.util.concurrent.CompletableFuture;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public final class DeployService {
 
@@ -54,18 +55,19 @@ public final class DeployService {
         this.metadataService = metadataService;
     }
 
-    public Result<CompletableFuture<Result<FileDetailsDto, ErrorDto>>, ErrorDto> deploy(ReposiliteContext context) {
+    public Result<FileDetailsDto, ErrorDto> deploy(ReposiliteContext context) {
         if (!deployEnabled) {
             return ResponseUtils.error(HttpStatus.SC_METHOD_NOT_ALLOWED, "Artifact deployment is disabled");
         }
 
-        Option<String> uriValue = ReposiliteUtils.normalizeUri(rewritePathsEnabled, repositoryService, context.uri());
+        Option<String> uriValue = ReposiliteUtils.normalizeUri(context.uri());
 
         if (uriValue.isEmpty()) {
             return ResponseUtils.error(HttpStatus.SC_BAD_REQUEST, "Invalid GAV path");
         }
 
         String uri = uriValue.get();
+
         Result<Session, String> authResult = this.authenticator.authByUri(context.headers(), uri);
 
         if (authResult.isErr()) {
@@ -78,30 +80,39 @@ public final class DeployService {
             return ResponseUtils.error(HttpStatus.SC_UNAUTHORIZED, "Cannot deploy artifact without write permission");
         }
 
-        if (!repositoryService.getDiskQuota().hasUsableSpace()) {
-            return ResponseUtils.error(HttpStatus.SC_INSUFFICIENT_STORAGE, "Out of disk space");
+        Option<Repository> repositoryValue = ReposiliteUtils.getRepository(rewritePathsEnabled, repositoryService, uri);
+
+        if (repositoryValue.isEmpty()) {
+            return ResponseUtils.error(HttpStatus.SC_NOT_FOUND, "Repository not found");
         }
 
-        File file = repositoryService.getFile(uri);
-        FileDetailsDto fileDetails = FileDetailsDto.of(file);
+        Repository repository = repositoryValue.get();
 
-        File metadataFile = new File(file.getParentFile(), "maven-metadata.xml");
+        if (repository.isFull()) {
+            return ResponseUtils.error(HttpStatus.SC_INSUFFICIENT_STORAGE, "Not enough storage space available");
+        }
+
+        Path path = Paths.get(uri);
+
+        Path metadataFile = path.resolveSibling("maven-metadata.xml");
         metadataService.clearMetadata(metadataFile);
 
-        Reposilite.getLogger().info("DEPLOY " + authResult.get().getAlias() + " successfully deployed " + file + " from " + context.address());
+        try {
+            Result<FileDetailsDto, ErrorDto> result;
 
-        if (file.getName().contains("maven-metadata")) {
-            return Result.ok(CompletableFuture.completedFuture(Result.ok(fileDetails)));
+            if (path.getFileName().toString().contains("maven-metadata")) {
+                result = metadataService.getMetadata(repository, metadataFile).map(Pair::getKey);
+            } else {
+                result = repository.putFile(path, context.input());
+            }
+
+            if (result.isOk()) {
+                Reposilite.getLogger().info("DEPLOY " + authResult.isOk() + " successfully deployed " + path + " from " + context.address());
+            }
+
+            return result;
+        } catch (Exception e) {
+            return Result.error(new ErrorDto(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Failed to upload artifact"));
         }
-
-        CompletableFuture<Result<FileDetailsDto, ErrorDto>> task = repositoryService.storeFile(
-                uri,
-                file,
-                context::input,
-                () -> fileDetails,
-                exception -> new ErrorDto(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Failed to upload artifact"));
-
-        return Result.ok(task);
     }
-
 }

@@ -16,15 +16,17 @@
 
 package org.panda_lang.reposilite.utils;
 
-import org.panda_lang.utilities.commons.FileUtils;
+import org.panda_lang.reposilite.error.ErrorDto;
+import org.panda_lang.reposilite.storage.StorageProvider;
+import org.panda_lang.utilities.commons.function.Result;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.representer.Representer;
 
-import java.io.File;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 
 public final class YamlUtils {
 
@@ -37,22 +39,18 @@ public final class YamlUtils {
 
     private YamlUtils() { }
 
-    public static <T> T load(File file, Class<T> type) throws IOException {
-        return YAML.loadAs(FileUtils.getContentOfFile(file), type);
+    public static <T> T load(StorageProvider storageProvider, Path file, Class<T> type) throws IOException {
+        Result<byte[], ErrorDto> result = storageProvider.getFile(file);
+
+        if (result.isOk()) {
+            return YAML.loadAs(new ByteArrayInputStream(result.get()), type);
+        } else {
+            throw new IOException(result.getError().getMessage());
+        }
     }
 
-    public static void save(File file, Object value) throws IOException {
-        File lockedFile = new File(file.getAbsolutePath() + ".lock");
-
-        if (file.exists()) {
-            Files.move(file.toPath(), lockedFile.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
-        }
-
-        try {
-            FileUtils.overrideFile(lockedFile, YAML.dump(value));
-        } finally {
-            Files.move(lockedFile.toPath(), file.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
-        }
+    public static void save(StorageProvider storageProvider, Object value, Path file) {
+        storageProvider.putFile(file, YAML.dump(value).getBytes(StandardCharsets.UTF_8));
     }
 
 }

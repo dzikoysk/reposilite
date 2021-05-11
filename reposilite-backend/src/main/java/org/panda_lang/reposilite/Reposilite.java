@@ -28,13 +28,11 @@ import org.panda_lang.reposilite.error.FailureService;
 import org.panda_lang.reposilite.resource.FrontendProvider;
 import org.panda_lang.reposilite.metadata.MetadataConfiguration;
 import org.panda_lang.reposilite.metadata.MetadataService;
-import org.panda_lang.reposilite.repository.DeployService;
-import org.panda_lang.reposilite.repository.LookupService;
-import org.panda_lang.reposilite.repository.ProxyService;
-import org.panda_lang.reposilite.repository.RepositoryAuthenticator;
-import org.panda_lang.reposilite.repository.RepositoryService;
+import org.panda_lang.reposilite.repository.*;
 import org.panda_lang.reposilite.stats.StatsConfiguration;
 import org.panda_lang.reposilite.stats.StatsService;
+import org.panda_lang.reposilite.storage.FileSystemStorageProvider;
+import org.panda_lang.reposilite.storage.StorageProvider;
 import org.panda_lang.reposilite.utils.RunUtils;
 import org.panda_lang.reposilite.utils.TimeUtils;
 import org.panda_lang.utilities.commons.ValidationUtils;
@@ -42,14 +40,9 @@ import org.panda_lang.utilities.commons.function.ThrowingRunnable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public final class Reposilite {
@@ -58,11 +51,10 @@ public final class Reposilite {
 
     private final boolean servlet;
     private final AtomicBoolean alive;
-    private final ExecutorService ioService;
-    private final ScheduledExecutorService retryService;
-    private final File configurationFile;
-    private final File workingDirectory;
+    private final Path configurationFile;
+    private final Path workingDirectory;
     private final boolean testEnvEnabled;
+    private final FileSystemStorageProvider storageProvider;
     private final Configuration configuration;
     private final ReposiliteContextFactory contextFactory;
     private final ReposiliteExecutor executor;
@@ -83,33 +75,32 @@ public final class Reposilite {
     private final Thread shutdownHook;
     private long uptime;
 
-    Reposilite(String configurationFile, String workingDirectory, boolean servlet, boolean testEnv) {
+    Reposilite(Path configurationFile, Path workingDirectory, boolean servlet, boolean testEnv) {
         ValidationUtils.notNull(configurationFile, "Configuration file cannot be null. To use default configuration file, provide empty string");
         ValidationUtils.notNull(workingDirectory, "Working directory cannot be null. To use default working directory, provide empty string");
 
         this.servlet = servlet;
         this.alive = new AtomicBoolean(false);
-        this.ioService = new ThreadPoolExecutor(0, Integer.MAX_VALUE, 1, TimeUnit.SECONDS, new SynchronousQueue<>());
-        this.retryService = Executors.newSingleThreadScheduledExecutor();
-        this.configurationFile = new File(configurationFile);
-        this.workingDirectory = new File(workingDirectory);
+        this.configurationFile = configurationFile;
+        this.workingDirectory = workingDirectory;
         this.testEnvEnabled = testEnv;
 
-        this.configuration = ConfigurationLoader.tryLoad(configurationFile, workingDirectory);
+        this.configuration = ConfigurationLoader.tryLoad(configurationFile);
+        this.storageProvider = FileSystemStorageProvider.of(Paths.get(""), this.configuration.diskQuota);
         this.contextFactory = new ReposiliteContextFactory(configuration.forwardedIp);
         this.failureService = new FailureService();
         this.executor = new ReposiliteExecutor(testEnvEnabled, failureService);
-        this.tokenService = new TokenService(workingDirectory);
-        this.statsService = new StatsService(workingDirectory, failureService, ioService, retryService);
-        this.repositoryService = new RepositoryService(workingDirectory, configuration.diskQuota, ioService, retryService, failureService);
+        this.tokenService = new TokenService(workingDirectory, storageProvider);
+        this.statsService = new StatsService(workingDirectory, failureService, storageProvider);
+        this.repositoryService = new RepositoryService();
         this.metadataService = new MetadataService(failureService);
 
         this.authenticator = new Authenticator(repositoryService, tokenService);
         this.repositoryAuthenticator = new RepositoryAuthenticator(configuration.rewritePathsEnabled, authenticator, repositoryService);
         this.authService = new AuthService(authenticator);
         this.deployService = new DeployService(configuration.deployEnabled, configuration.rewritePathsEnabled, authenticator, repositoryService, metadataService);
-        this.lookupService = new LookupService(authenticator, repositoryAuthenticator, metadataService, repositoryService, ioService, failureService);
-        this.proxyService = new ProxyService(configuration.storeProxied, configuration.proxyPrivate, configuration.proxyConnectTimeout, configuration.proxyReadTimeout, configuration.rewritePathsEnabled, configuration.proxied, ioService, failureService, repositoryService);
+        this.lookupService = new LookupService(repositoryAuthenticator, repositoryService);
+        this.proxyService = new ProxyService(configuration.storeProxied, configuration.proxyPrivate, configuration.proxyConnectTimeout, configuration.proxyReadTimeout, configuration.proxied, repositoryService, failureService, storageProvider);
         this.frontend = FrontendProvider.load(configuration);
         this.reactiveHttpServer = new ReposiliteHttpServer(this, servlet);
         this.console = new Console(System.in, failureService);
@@ -138,8 +129,8 @@ public final class Reposilite {
         }
 
         getLogger().info("Platform: " + System.getProperty("java.version") + " (" + System.getProperty("os.name") + ")");
-        getLogger().info("Configuration: " + configurationFile.getAbsolutePath());
-        getLogger().info("Working directory: " + workingDirectory.getAbsolutePath());
+        getLogger().info("Configuration: " + configurationFile.toAbsolutePath());
+        getLogger().info("Working directory: " + workingDirectory.toAbsolutePath());
         getLogger().info("");
 
         this.alive.set(true);
@@ -202,8 +193,7 @@ public final class Reposilite {
 
         reactiveHttpServer.stop();
         statsService.saveStats();
-        ioService.shutdownNow();
-        retryService.shutdownNow();
+        storageProvider.shutdown();
         console.stop();
         executor.stop();
     }
@@ -288,15 +278,7 @@ public final class Reposilite {
         return executor;
     }
 
-    public ScheduledExecutorService getRetryService() {
-        return retryService;
-    }
-
-    public ExecutorService getIoService() {
-        return ioService;
-    }
-
-    public File getWorkingDirectory() {
+    public Path getWorkingDirectory() {
         return workingDirectory;
     }
 
@@ -304,4 +286,7 @@ public final class Reposilite {
         return LOGGER;
     }
 
+    public StorageProvider getStorageProvider() {
+        return storageProvider;
+    }
 }

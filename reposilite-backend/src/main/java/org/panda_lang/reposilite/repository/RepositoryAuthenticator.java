@@ -27,6 +27,8 @@ import org.panda_lang.utilities.commons.collection.Pair;
 import org.panda_lang.utilities.commons.function.Option;
 import org.panda_lang.utilities.commons.function.Result;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -42,15 +44,15 @@ public final class RepositoryAuthenticator {
         this.repositoryService = repositoryService;
     }
 
-    public Result<Pair<String[], Repository>, ErrorDto> authDefaultRepository(Map<String, String> headers, String uri) {
-        return ReposiliteUtils.normalizeUri(rewritePathsEnabled, repositoryService, uri)
+    public Result<Pair<Path, Repository>, ErrorDto> authDefaultRepository(Map<String, String> headers, String uri) {
+        return ReposiliteUtils.normalizeUri(uri)
                 .map(normalizedUri -> authRepository(headers, normalizedUri))
                 .orElseGet(() -> ResponseUtils.error(HttpStatus.SC_BAD_REQUEST, "Invalid GAV path"));
     }
 
-    public Result<Pair<String[], Repository>, ErrorDto> authRepository(Map<String, String> headers, String normalizedUri) {
-        String[] path = StringUtils.split(normalizedUri, "/");
-        String repositoryName = path[0];
+    public Result<Pair<Path, Repository>, ErrorDto> authRepository(Map<String, String> headers, String normalizedUri) {
+        String[] split = StringUtils.split(normalizedUri, "/");
+        String repositoryName = split[0];
 
         if (StringUtils.isEmpty(repositoryName)) {
             return ResponseUtils.error(HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, "Unsupported request");
@@ -59,11 +61,15 @@ public final class RepositoryAuthenticator {
         Repository repository = repositoryService.getRepository(repositoryName);
 
         if (repository == null) {
-            return ResponseUtils.error(HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, "Repository " + repositoryName  + " not found");
+            if (this.rewritePathsEnabled) {
+                repository = repositoryService.getPrimaryRepository();
+            } else {
+                return ResponseUtils.error(HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, "Repository " + repositoryName + " not found");
+            }
         }
 
         // auth hidden repositories
-        if (repository.isHidden()) {
+        if (repository.isPrivate()) {
             Result<Session, String> authResult = authenticator.authByUri(headers, normalizedUri);
 
             if (authResult.isErr()) {
@@ -71,16 +77,21 @@ public final class RepositoryAuthenticator {
             }
         }
 
+        Path path = Paths.get(split.length > 1 ? split[1] : "");
+
+        for (int i = 2; i < split.length; ++i) {
+            path = path.resolve(split[i]);
+        }
+
         return Result.ok(new Pair<>(path, repository));
     }
 
-    FileListDto findAvailableRepositories(Map<String, String> headers) {
+    ListDto<FileDetailsDto> findAvailableRepositories(Map<String, String> headers) {
         Option<Session> session = authenticator.authByHeader(headers).toOption();
 
-        return new FileListDto(repositoryService.getRepositories().stream()
+        return new ListDto<>(repositoryService.getRepositories().stream()
                 .filter(repository -> repository.isPublic() || session.map(value -> value.getRepositoryNames().contains(repository.getName())).orElseGet(false))
-                .map(Repository::getFile)
-                .map(FileDetailsDto::of)
+                .map(repository -> new FileDetailsDto(FileDetailsDto.DIRECTORY, repository.getName(), "", "application/octet-stream", 0))
                 .collect(Collectors.toList()));
     }
 

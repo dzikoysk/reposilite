@@ -22,7 +22,6 @@ import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestFactory;
 import com.google.api.client.http.HttpResponse;
 import com.google.api.client.http.javanet.NetHttpTransport;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpStatus;
 import org.panda_lang.reposilite.Reposilite;
@@ -31,16 +30,21 @@ import org.panda_lang.reposilite.ReposiliteException;
 import org.panda_lang.reposilite.error.ErrorDto;
 import org.panda_lang.reposilite.error.FailureService;
 import org.panda_lang.reposilite.error.ResponseUtils;
+import org.panda_lang.reposilite.storage.StorageProvider;
 import org.panda_lang.reposilite.utils.ArrayUtils;
 import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.function.Option;
 import org.panda_lang.utilities.commons.function.Result;
 
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.io.File;
 import java.net.SocketTimeoutException;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
 
 public final class ProxyService {
 
@@ -48,37 +52,34 @@ public final class ProxyService {
     private final boolean proxyPrivate;
     private final int proxyConnectTimeout;
     private final int proxyReadTimeout;
-    private final boolean rewritePathsEnabled;
     private final List<? extends String> proxied;
-    private final ExecutorService ioService;
     private final RepositoryService repositoryService;
     private final FailureService failureService;
     private final HttpRequestFactory httpRequestFactory;
+    private final StorageProvider storageProvider;
 
     public ProxyService(
             boolean storeProxied,
             boolean proxyPrivate,
             int proxyConnectTimeout,
             int proxyReadTimeout,
-            boolean rewritePathsEnabled,
             List<? extends String> proxied,
-            ExecutorService ioService,
+            RepositoryService repositoryService,
             FailureService failureService,
-            RepositoryService repositoryService) {
+            StorageProvider storageProvider) {
 
         this.storeProxied = storeProxied;
         this.proxyPrivate = proxyPrivate;
         this.proxyConnectTimeout = proxyConnectTimeout;
         this.proxyReadTimeout = proxyReadTimeout;
-        this.rewritePathsEnabled = rewritePathsEnabled;
         this.proxied = proxied;
-        this.ioService = ioService;
         this.repositoryService = repositoryService;
+        this.storageProvider = storageProvider;
         this.failureService = failureService;
         this.httpRequestFactory = new NetHttpTransport().createRequestFactory();
     }
 
-    protected Result<CompletableFuture<Result<LookupResponse, ErrorDto>>, ErrorDto> findProxied(ReposiliteContext context) {
+    protected Result<LookupResponse, ErrorDto> findProxied(ReposiliteContext context) {
         String uri = context.uri();
         Repository repository = repositoryService.getPrimaryRepository();
 
@@ -91,7 +92,7 @@ public final class ProxyService {
             }
         }
 
-        if (!proxyPrivate && repository.isHidden()) {
+        if (!proxyPrivate && repository.isPrivate()) {
             return Result.error(new ErrorDto(HttpStatus.SC_NOT_FOUND, "Proxying is disabled in private repositories"));
         }
 
@@ -101,47 +102,27 @@ public final class ProxyService {
         }
 
         String remoteUri = uri;
-        CompletableFuture<Result<LookupResponse, ErrorDto>> proxiedTask = new CompletableFuture<>();
+        List<CompletableFuture<Void>> list = new ArrayList<>();
+        List<HttpResponse> responses = Collections.synchronizedList(new ArrayList<>());
 
-        ioService.submit(() -> {
-            for (String proxied : proxied) {
+        for (String proxied : proxied) {
+            list.add(CompletableFuture.runAsync(() -> {
                 try {
                     HttpRequest remoteRequest = httpRequestFactory.buildGetRequest(new GenericUrl(proxied + remoteUri));
                     remoteRequest.setThrowExceptionOnExecuteError(false);
                     remoteRequest.setConnectTimeout(proxyConnectTimeout * 1000);
                     remoteRequest.setReadTimeout(proxyReadTimeout * 1000);
                     HttpResponse remoteResponse = remoteRequest.execute();
-
-                    if (!remoteResponse.isSuccessStatusCode()) {
-                        continue;
-                    }
-
                     HttpHeaders headers = remoteResponse.getHeaders();
 
                     if ("text/html".equals(headers.getContentType())) {
-                        continue;
+                        return;
                     }
 
-                    long contentLength = Option.of(headers.getContentLength()).orElseGet(0L);
-                    String[] path = remoteUri.split("/");
-
-                    FileDetailsDto fileDetails = new FileDetailsDto(FileDetailsDto.FILE, ArrayUtils.getLast(path), "", remoteResponse.getContentType(), contentLength);
-                    LookupResponse response = new LookupResponse(fileDetails);
-
-                    if (context.method().equals("HEAD")) {
-                        return proxiedTask.complete(Result.ok(response));
+                    if (remoteResponse.isSuccessStatusCode()) {
+                        responses.add(remoteResponse);
                     }
-
-                    if (!storeProxied) {
-                        context.result(outputStream -> IOUtils.copyLarge(remoteResponse.getContent(), outputStream));
-                        return proxiedTask.complete(Result.ok(response));
-                    }
-
-                    return store(context, remoteUri, remoteResponse, response)
-                            .onEmpty(() -> proxiedTask.complete(Result.ok(response)))
-                            .peek(task -> task.thenAccept(proxiedTask::complete));
-                }
-                catch (Exception exception) {
+                } catch (Exception exception) {
                     String message = "Proxied repository " + proxied + " is unavailable due to: " + exception.getMessage();
                     Reposilite.getLogger().error(message);
 
@@ -149,46 +130,61 @@ public final class ProxyService {
                         failureService.throwException(remoteUri, new ReposiliteException(message, exception));
                     }
                 }
+            }));
+        }
+
+        CompletableFuture.allOf(list.toArray(new CompletableFuture[0])).join();
+
+        if (!responses.isEmpty()) {
+            HttpResponse remoteResponse = responses.get(0);
+
+            long contentLength = Option.of(remoteResponse.getHeaders().getContentLength()).orElseGet(0L);
+            String[] path = remoteUri.split("/");
+
+            FileDetailsDto fileDetails = new FileDetailsDto(FileDetailsDto.FILE, ArrayUtils.getLast(path), "", remoteResponse.getContentType(), contentLength);
+            LookupResponse lookupResponse = new LookupResponse(fileDetails);
+
+            if (!context.method().equals("HEAD")) {
+                if (storeProxied) {
+                    return store(remoteUri, remoteResponse, context).map(details -> lookupResponse);
+                } else {
+                    context.result(outputStream -> IOUtils.copyLarge(remoteResponse.getContent(), outputStream));
+                }
             }
 
-            return proxiedTask.complete(ResponseUtils.error(HttpStatus.SC_NOT_FOUND, "Artifact not found in local and remote repository"));
-        });
-
-        return Result.ok(proxiedTask);
+            return Result.ok(lookupResponse);
+        } else {
+            return ResponseUtils.error(HttpStatus.SC_NOT_FOUND, "Artifact " + uri + " not found");
+        }
     }
 
-    private Option<CompletableFuture<Result<LookupResponse, ErrorDto>>> store(ReposiliteContext context, String uri, HttpResponse remoteResponse, LookupResponse response) {
-        DiskQuota diskQuota = repositoryService.getDiskQuota();
-
-        if (!diskQuota.hasUsableSpace()) {
-            Reposilite.getLogger().warn("Out of disk space - Cannot store proxied artifact " + uri);
-            return Option.none();
+    private Result<FileDetailsDto, ErrorDto> store(String uri, HttpResponse remoteResponse, ReposiliteContext context) {
+        if (storageProvider.isFull()) {
+            String error = "Not enough storage space available for " + uri;
+            Reposilite.getLogger().warn(error);
+            return Result.error(new ErrorDto(HttpStatus.SC_INSUFFICIENT_STORAGE, error));
         }
 
         String repositoryName = StringUtils.split(uri.substring(1), "/")[0]; // skip first path separator
         Repository repository = repositoryService.getRepository(repositoryName);
 
         if (repository == null) {
-            if (!rewritePathsEnabled) {
-                Option.none();
-            }
-
             uri = repositoryService.getPrimaryRepository().getName() + uri;
         }
 
-        File proxiedFile = repositoryService.getFile(uri);
+        Path proxiedFile = Paths.get(uri);
 
-        return Option.of(repositoryService.storeFile(
-                uri,
-                proxiedFile,
-                remoteResponse::getContent,
-                () -> {
-                    Reposilite.getLogger().info("Stored proxied " + proxiedFile + " from " + remoteResponse.getRequest().getUrl());
-                    context.result(outputStream -> FileUtils.copyFile(proxiedFile, outputStream));
-                    return response;
-                },
-                exception -> new ErrorDto(HttpStatus.SC_UNPROCESSABLE_ENTITY, "Cannot process artifact")));
+        try {
+            Result<FileDetailsDto, ErrorDto> result = this.storageProvider.putFile(proxiedFile, remoteResponse.getContent());
 
+            if (result.isOk()) {
+                Reposilite.getLogger().info("Stored proxied " + proxiedFile + " from " + remoteResponse.getRequest().getUrl());
+                context.result(output -> output.write(this.storageProvider.getFile(proxiedFile).get()));
+            }
+
+            return result;
+        } catch (IOException e) {
+            return Result.error(new ErrorDto(HttpStatus.SC_UNPROCESSABLE_ENTITY, "Cannot process artifact"));
+        }
     }
-
 }

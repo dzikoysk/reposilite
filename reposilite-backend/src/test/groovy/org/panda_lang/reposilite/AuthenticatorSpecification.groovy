@@ -21,23 +21,19 @@ import org.junit.jupiter.api.BeforeAll
 import org.panda_lang.reposilite.auth.Authenticator
 import org.panda_lang.reposilite.auth.Token
 import org.panda_lang.reposilite.auth.TokenService
-import org.panda_lang.reposilite.error.FailureService
 import org.panda_lang.reposilite.repository.RepositoryService
+import org.panda_lang.reposilite.storage.FileSystemStorageProvider
+import org.panda_lang.reposilite.storage.StorageProvider
 
-import java.util.concurrent.Executors
+import java.nio.file.Paths
 
 @CompileStatic
 class AuthenticatorSpecification {
 
-    static final RepositoryService REPOSITORY_SERVICE = new RepositoryService(
-            '.',
-            '0',
-            Executors.newSingleThreadExecutor(),
-            Executors.newSingleThreadScheduledExecutor(),
-            new FailureService(),
-    )
+    static final StorageProvider STORAGE_PROVIDER = FileSystemStorageProvider.of(Paths.get(""), "10GB")
+    static final RepositoryService REPOSITORY_SERVICE = new RepositoryService()
 
-    static final TokenService TOKEN_SERVICE = new TokenService('.')
+    static final TokenService TOKEN_SERVICE = new TokenService(Paths.get(""), STORAGE_PROVIDER)
     static final Token AUTH_TOKEN = new Token('/auth/test', 'alias', 'rw', TokenService.B_CRYPT_TOKENS_ENCODER.encode('secret'))
     static final String BASIC = 'Basic ' + Base64.getEncoder().encodeToString('alias:secret'.getBytes())
 

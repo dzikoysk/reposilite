@@ -21,10 +21,9 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.panda_lang.reposilite.config.Configuration
-import org.panda_lang.reposilite.error.FailureService
 import org.panda_lang.reposilite.repository.RepositoryService
 
-import java.util.concurrent.Executors
+import java.nio.file.Path
 
 import static org.junit.jupiter.api.Assertions.*
 
@@ -32,18 +31,12 @@ import static org.junit.jupiter.api.Assertions.*
 class SessionTest {
 
     @TempDir
-    protected static File WORKING_DIRECTORY
+    protected static Path WORKING_DIRECTORY
     protected static RepositoryService REPOSITORY_SERVICE
 
     @BeforeAll
     static void prepare () {
-        REPOSITORY_SERVICE = new RepositoryService(
-                WORKING_DIRECTORY.getAbsolutePath(),
-                '0',
-                Executors.newSingleThreadExecutor(),
-                Executors.newSingleThreadScheduledExecutor(),
-                new FailureService()
-        )
+        REPOSITORY_SERVICE = new RepositoryService()
 
         REPOSITORY_SERVICE.load(new Configuration())
     }

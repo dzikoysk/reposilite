@@ -20,6 +20,11 @@ import groovy.transform.CompileStatic
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import org.panda_lang.reposilite.storage.FileSystemStorageProvider
+import org.panda_lang.reposilite.storage.StorageProvider
+
+import java.nio.file.Path
+import java.nio.file.Paths
 
 import static org.junit.jupiter.api.Assertions.*
 
@@ -27,17 +32,19 @@ import static org.junit.jupiter.api.Assertions.*
 class TokenServiceTest {
 
     @TempDir
-    protected File workingDirectory
+    protected Path workingDirectory
     protected TokenService tokenService
+    protected StorageProvider storageProvider
 
     @BeforeEach
     void prepare() {
-        this.tokenService = new TokenService(workingDirectory.getAbsolutePath())
+        this.storageProvider = FileSystemStorageProvider.of(Paths.get(""), "10GB")
+        this.tokenService = new TokenService(workingDirectory, storageProvider)
     }
 
     @Test
     void 'should save and load' () {
-        def tempService = new TokenService(workingDirectory.getAbsolutePath())
+        def tempService = new TokenService(workingDirectory, storageProvider)
         tempService.createToken('path', 'alias', 'rw')
         tempService.saveTokens()
         tokenService.loadTokens() // uses the same file
