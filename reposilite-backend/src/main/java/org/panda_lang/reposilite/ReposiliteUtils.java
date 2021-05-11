@@ -41,6 +41,10 @@ public final class ReposiliteUtils {
             return Option.none();
         }
 
+        while (uri.contains("//")) {
+            uri = uri.replace("//", "/");
+        }
+  
         if (uri.startsWith("/")) {
             uri = uri.substring(1);
         }
@@ -49,8 +53,12 @@ public final class ReposiliteUtils {
     }
 
     public static Option<Repository> getRepository(boolean rewritePathsEnabled, RepositoryService repositoryService, String uri) {
+        while (uri.contains("//")) {
+            uri = uri.replace("//", "/");
+        }
+      
         String repositoryName = uri;
-
+      
         if (repositoryName.startsWith("/")) {
             repositoryName = repositoryName.substring(1);
         }
