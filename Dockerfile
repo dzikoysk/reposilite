@@ -1,7 +1,8 @@
 # Build stage
-FROM maven:3.6.3-openjdk-14-slim AS build
-COPY ./ /app/
-RUN mvn -f /app/pom.xml clean package
+FROM gradle:jdk14 AS build
+COPY --chown=gradle:gradle ./ /app/
+WORKDIR /home/gradle/src
+RUN gradle build --no-daemon
 
 # Build-time metadata stage
 ARG BUILD_DATE
@@ -23,5 +24,5 @@ RUN apk add --no-cache mailcap
 WORKDIR /app
 RUN mkdir -p /app/data
 VOLUME /app/data
-COPY --from=build /app/reposilite-backend/target/reposilite*.jar reposilite.jar
+COPY --from=build /app/reposilite-backend/build/libs/reposilite*.jar reposilite.jar
 ENTRYPOINT exec java $JAVA_OPTS -jar reposilite.jar -wd=/app/data $REPOSILITE_OPTS
