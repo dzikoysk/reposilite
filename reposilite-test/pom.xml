@@ -44,6 +44,13 @@
         </repository>
     </repositories>
 
+    <pluginRepositories>
+        <pluginRepository>
+            <id>panda-repository</id>
+            <url>https://repo.panda-lang.org/releases</url>
+        </pluginRepository>
+    </pluginRepositories>
+
     <dependencies>
         <dependency>
             <groupId>org.panda-lang</groupId>
