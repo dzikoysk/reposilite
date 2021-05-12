@@ -20,7 +20,6 @@ import io.javalin.websocket.WsConfig;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.ReposiliteContext;
 import org.panda_lang.reposilite.ReposiliteContextFactory;
-import org.panda_lang.reposilite.ReposiliteExecutor;
 import org.panda_lang.reposilite.ReposiliteWriter;
 import org.panda_lang.reposilite.auth.Authenticator;
 import org.panda_lang.reposilite.auth.Session;
@@ -34,18 +33,15 @@ public final class CliController implements Consumer<WsConfig> {
     private static final String AUTHORIZATION_PREFIX = "Authorization:";
 
     private final ReposiliteContextFactory contextFactory;
-    private final ReposiliteExecutor reposiliteExecutor;
     private final Authenticator authenticator;
     private final Console console;
 
     public CliController(
             ReposiliteContextFactory contextFactory,
-            ReposiliteExecutor reposiliteExecutor,
             Authenticator authenticator,
             Console console) {
 
         this.contextFactory = contextFactory;
-        this.reposiliteExecutor = reposiliteExecutor;
         this.authenticator = authenticator;
         this.console = console;
     }
@@ -85,7 +81,7 @@ public final class CliController implements Consumer<WsConfig> {
 
             wsConfig.onMessage(messageContext -> {
                 Reposilite.getLogger().info("CLI | " + username + "> " + messageContext.message());
-                reposiliteExecutor.schedule(() -> console.defaultExecute(messageContext.message()));
+                console.defaultExecute(messageContext.message());
             });
 
             for (String message : ReposiliteWriter.getCache()) {

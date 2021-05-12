@@ -37,6 +37,7 @@ import org.panda_lang.reposilite.repository.LookupApiEndpoint;
 import org.panda_lang.reposilite.repository.LookupController;
 import org.panda_lang.reposilite.resource.FrontendHandler;
 import org.panda_lang.reposilite.resource.WebJarsHandler;
+import org.panda_lang.reposilite.utils.TimeUtils;
 import org.panda_lang.utilities.commons.function.Option;
 
 public final class ReposiliteHttpServer {
@@ -50,7 +51,7 @@ public final class ReposiliteHttpServer {
         this.servlet = servlet;
     }
 
-    void start(Configuration configuration, Runnable onStart) {
+    void start(Configuration configuration) {
         DeployEndpoint deployEndpoint = new DeployEndpoint(reposilite.getContextFactory(), reposilite.getDeployService());
 
         LookupController lookupController = new LookupController(
@@ -68,7 +69,6 @@ public final class ReposiliteHttpServer {
 
         CliController cliController = new CliController(
                 reposilite.getContextFactory(),
-                reposilite.getExecutor(),
                 reposilite.getAuthenticator(),
                 reposilite.getConsole());
 
@@ -88,14 +88,24 @@ public final class ReposiliteHttpServer {
                 .after("/*", new PostAuthHandler())
                 .exception(Exception.class, new FailureHandler(reposilite.getFailureService()));
 
+        javalin.events(event -> {
+            event.serverStopping(() -> {
+                reposilite.getStorageProvider().shutdown();
+                reposilite.getStatsService().saveStats();
+            });
+            event.serverStopped(() -> {
+                Reposilite.getLogger().info("Bye! Uptime: " + reposilite.getPrettyUptime());
+                reposilite.getConsole().stop();
+            });
+        });
+
         if (!servlet) {
             javalin.start(configuration.hostname, configuration.port);
-            onStart.run();
         }
     }
 
-    void stop() {
-        getJavalin().peek(Javalin::stop);
+    Option<Javalin> stop() {
+        return getJavalin().map(Javalin::stop);
     }
 
     private Javalin create(Configuration configuration) {
@@ -104,7 +114,6 @@ public final class ReposiliteHttpServer {
                 : Javalin.create(config -> configure(configuration, config));
     }
 
-    @SuppressWarnings("deprecation")
     private void configure(Configuration configuration, JavalinConfig config) {
         Server server = new Server();
 

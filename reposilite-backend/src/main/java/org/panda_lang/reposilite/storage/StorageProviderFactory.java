@@ -24,9 +24,7 @@ public final class StorageProviderFactory {
     }
 
     private <CONFIGURATION extends Runnable> CONFIGURATION loadConfiguration(CONFIGURATION configuration, String description) {
-        CommandLine commandLine = new CommandLine(configuration);
-        commandLine.execute(description.split(" "));
-        return configuration;
+        return CommandLine.populateCommand(configuration, description.split(" "));
     }
 
 }

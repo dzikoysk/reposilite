@@ -36,13 +36,13 @@ import org.panda_lang.reposilite.storage.StorageProvider;
 import org.panda_lang.reposilite.utils.RunUtils;
 import org.panda_lang.reposilite.utils.TimeUtils;
 import org.panda_lang.utilities.commons.ValidationUtils;
-import org.panda_lang.utilities.commons.function.ThrowingRunnable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.concurrent.*;
+import java.util.Arrays;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public final class Reposilite {
@@ -57,7 +57,6 @@ public final class Reposilite {
     private final FileSystemStorageProvider storageProvider;
     private final Configuration configuration;
     private final ReposiliteContextFactory contextFactory;
-    private final ReposiliteExecutor executor;
     private final FailureService failureService;
     private final Authenticator authenticator;
     private final RepositoryAuthenticator repositoryAuthenticator;
@@ -70,7 +69,7 @@ public final class Reposilite {
     private final ProxyService proxyService;
     private final DeployService deployService;
     private final FrontendProvider frontend;
-    private final ReposiliteHttpServer reactiveHttpServer;
+    private final ReposiliteHttpServer httpServer;
     private final Console console;
     private final Thread shutdownHook;
     private long uptime;
@@ -89,7 +88,6 @@ public final class Reposilite {
         this.storageProvider = FileSystemStorageProvider.of(Paths.get(""), this.configuration.diskQuota);
         this.contextFactory = new ReposiliteContextFactory(configuration.forwardedIp);
         this.failureService = new FailureService();
-        this.executor = new ReposiliteExecutor(testEnvEnabled, failureService);
         this.tokenService = new TokenService(workingDirectory, storageProvider);
         this.statsService = new StatsService(workingDirectory, failureService, storageProvider);
         this.repositoryService = new RepositoryService();
@@ -102,7 +100,7 @@ public final class Reposilite {
         this.lookupService = new LookupService(repositoryAuthenticator, repositoryService);
         this.proxyService = new ProxyService(configuration.storeProxied, configuration.proxyPrivate, configuration.proxyConnectTimeout, configuration.proxyReadTimeout, configuration.proxied, repositoryService, failureService, storageProvider);
         this.frontend = FrontendProvider.load(configuration);
-        this.reactiveHttpServer = new ReposiliteHttpServer(this, servlet);
+        this.httpServer = new ReposiliteHttpServer(this, servlet);
         this.console = new Console(System.in, failureService);
         this.shutdownHook = new Thread(RunUtils.ofChecked(failureService, this::shutdown));
     }
@@ -133,9 +131,6 @@ public final class Reposilite {
         getLogger().info("Working directory: " + workingDirectory.toAbsolutePath());
         getLogger().info("");
 
-        this.alive.set(true);
-        Runtime.getRuntime().addShutdownHook(this.shutdownHook);
-
         getLogger().info("--- Loading data");
         tokenService.loadTokens();
 
@@ -144,66 +139,58 @@ public final class Reposilite {
         getLogger().info("");
 
         getLogger().info("--- Loading domain configurations");
-        for (ReposiliteConfiguration configuration : configurations()) {
-            configuration.configure(this);
-        }
+        Arrays.stream(configurations()).forEach(configuration -> configuration.configure(this));
     }
 
-    public void start() throws Exception {
-        getLogger().info("Binding server at " + configuration.hostname + "::" + configuration.port);
+    public Reposilite start() throws Exception {
+        this.alive.set(true);
+        Thread.currentThread().setName("Reposilite | Main Thread");
 
-        CountDownLatch latch = new CountDownLatch(1);
+        getLogger().info("Binding server at " + configuration.hostname + "::" + configuration.port);
         this.uptime = System.currentTimeMillis();
 
-        reactiveHttpServer.start(configuration, () -> {
-            getLogger().info("Done (" + TimeUtils.format(TimeUtils.getUptime(uptime)) + "s)!");
+        try {
+            httpServer.start(configuration);
+            Runtime.getRuntime().addShutdownHook(shutdownHook);
+        } catch (Exception exception) {
+            getLogger().error("Failed to start Reposilite", exception);
+            shutdown();
+            return this;
+        }
 
-            schedule(() -> {
-                console.defaultExecute("help");
+        getLogger().info("Done (" + TimeUtils.format(TimeUtils.getUptime(uptime)) + "s)!");
+        console.defaultExecute("help");
 
-                getLogger().info("Collecting status metrics...");
-                console.defaultExecute("status");
+        getLogger().info("Collecting status metrics...");
+        console.defaultExecute("status");
 
-                // disable console daemon in tests due to issues with coverage and interrupt method call
-                // https://github.com/jacoco/jacoco/issues/1066
-                if (!isTestEnvEnabled()) {
-                    console.hook();
-                }
-            });
+        // disable console daemon in tests due to issues with coverage and interrupt method call
+        // https://github.com/jacoco/jacoco/issues/1066
+        if (!isTestEnvEnabled()) {
+            console.hook();
+        }
 
-            latch.countDown();
-        });
-
-        latch.await();
-        executor.await(() -> getLogger().info("Bye! Uptime: " + TimeUtils.format(TimeUtils.getUptime(uptime) / 60) + "min"));
+        return this;
     }
 
-    public synchronized void forceShutdown() throws Exception {
-        Runtime.getRuntime().removeShutdownHook(shutdownHook);
-        shutdown();
-    }
-
-    public synchronized void shutdown() throws Exception {
+    public synchronized void shutdown() {
         if (!alive.get()) {
             return;
         }
 
         this.alive.set(false);
+        Runtime.getRuntime().removeShutdownHook(shutdownHook);
+
         getLogger().info("Shutting down " + configuration.hostname  + "::" + configuration.port + " ...");
-
-        reactiveHttpServer.stop();
-        statsService.saveStats();
-        storageProvider.shutdown();
-        console.stop();
-        executor.stop();
-    }
-
-    public void schedule(ThrowingRunnable<?> runnable) {
-        executor.schedule(runnable);
+        httpServer.stop();
     }
 
     public boolean isTestEnvEnabled() {
         return testEnvEnabled;
+    }
+
+    public String getPrettyUptime() {
+        return TimeUtils.format(TimeUtils.getUptime(uptime) / 60) + "min";
     }
 
     public long getUptime() {
@@ -211,7 +198,7 @@ public final class Reposilite {
     }
 
     public ReposiliteHttpServer getHttpServer() {
-        return reactiveHttpServer;
+        return httpServer;
     }
 
     public FrontendProvider getFrontendService() {
@@ -272,10 +259,6 @@ public final class Reposilite {
 
     public Console getConsole() {
         return console;
-    }
-
-    public ReposiliteExecutor getExecutor() {
-        return executor;
     }
 
     public Path getWorkingDirectory() {

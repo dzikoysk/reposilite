@@ -32,7 +32,11 @@ final class StopCommand implements ReposiliteCommand {
 
     @Override
     public boolean execute(List<String> output) {
-        reposilite.schedule(reposilite::forceShutdown);
+        try {
+            reposilite.shutdown();
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
         return true;
     }
 

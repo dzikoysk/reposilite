@@ -29,10 +29,11 @@ final class ConsoleThread extends Thread {
     private final FailureService failureService;
 
     ConsoleThread(Console console, InputStream source, FailureService failureService) {
+        this.setName("Reposilite | Console Thread");
+        this.setDaemon(true);
         this.console = console;
         this.source = source;
         this.failureService = failureService;
-        this.setDaemon(true);
     }
 
     @Override
