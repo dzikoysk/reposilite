@@ -1,3 +1,6 @@
+group = "org.panda-lang"
+version = "2.9.23-SNAPSHOT"
+
 plugins {
     groovy
     java
@@ -6,8 +9,10 @@ plugins {
     id("application")
 }
 
-group = "org.panda-lang"
-version = "2.9.23-SNAPSHOT"
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
 
 application {
     mainClass.set("org.panda_lang.reposilite.ReposiliteLauncher")
@@ -33,6 +38,7 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib"))
+    implementation("org.jetbrains.kotlin:kotlin-reflect:1.5.0")
 
     val awssdk = "2.15.15"
     implementation("software.amazon.awssdk:bom:$awssdk")
@@ -84,12 +90,6 @@ dependencies {
     testImplementation("org.codehaus.groovy:groovy-all:3.0.7")
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.1")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
-}
-
-
-java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
 }
 
 tasks.getByName<Test>("test") {

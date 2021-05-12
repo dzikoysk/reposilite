@@ -16,8 +16,6 @@
 
 package org.panda_lang.reposilite.repository;
 
-import org.panda_lang.reposilite.config.RepositoryConfig;
-import org.panda_lang.reposilite.config.RepositoryOption;
 import org.panda_lang.reposilite.error.ErrorDto;
 import org.panda_lang.reposilite.storage.StorageProvider;
 import org.panda_lang.utilities.commons.function.Result;
@@ -30,16 +28,23 @@ import java.util.Comparator;
 import java.util.List;
 
 public final class Repository implements Comparator<Path> {
+
     private static final Path REPOSITORIES = Paths.get("repositories");
 
-    private final RepositoryConfig config;
     private final String name;
+    private final RepositoryVisibility visibility;
     private final StorageProvider storageProvider;
+    private final boolean deployEnabled;
 
-    Repository(RepositoryConfig config) {
-        this.config = config;
-        this.name = config.getRepositoryName();
-        this.storageProvider = config.get(RepositoryOption.STORAGE_PROVIDER);
+    Repository(String name, RepositoryVisibility visibility, StorageProvider storageProvider, boolean deployEnabled) {
+        this.name = name;
+        this.visibility = visibility;
+        this.storageProvider = storageProvider;
+        this.deployEnabled = deployEnabled;
+    }
+
+    public boolean isDeployEnabled() {
+        return deployEnabled;
     }
 
     public boolean isPublic() {
@@ -47,7 +52,7 @@ public final class Repository implements Comparator<Path> {
     }
 
     public boolean isPrivate() {
-        return this.config.get(RepositoryOption.PRIVATE);
+        return this.visibility == RepositoryVisibility.PRIVATE;
     }
 
     public String getName() {
@@ -130,4 +135,5 @@ public final class Repository implements Comparator<Path> {
     public int compare(Path o1, Path o2) {
         return this.relativize(o1).compareTo(this.relativize(o2));
     }
+
 }
