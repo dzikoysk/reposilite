@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Reposilite" type="Application" factoryName="Application">
+  <configuration default="false" name="Reposilite" type="Application" factoryName="Application" singleton="false">
     <option name="MAIN_CLASS_NAME" value="org.panda_lang.reposilite.ReposiliteLauncher" />
     <module name="reposilite-parent.reposilite-backend.main" />
     <option name="VM_PARAMETERS" value="-Xmx14M -Dreposilite.debugEnabled=true -Dtinylog.writerActive.level=DEBUG" />
