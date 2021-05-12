@@ -35,20 +35,17 @@ import java.nio.file.Paths;
 
 public final class DeployService {
 
-    private final boolean deployEnabled;
     private final boolean rewritePathsEnabled;
     private final Authenticator authenticator;
     private final RepositoryService repositoryService;
     private final MetadataService metadataService;
 
     public DeployService(
-            boolean deployEnabled,
             boolean rewritePathsEnabled,
             Authenticator authenticator,
             RepositoryService repositoryService,
             MetadataService metadataService) {
 
-        this.deployEnabled = deployEnabled;
         this.rewritePathsEnabled = rewritePathsEnabled;
         this.authenticator = authenticator;
         this.repositoryService = repositoryService;
@@ -56,10 +53,6 @@ public final class DeployService {
     }
 
     public Result<FileDetailsDto, ErrorDto> deploy(ReposiliteContext context) {
-        if (!deployEnabled) {
-            return ResponseUtils.error(HttpStatus.SC_METHOD_NOT_ALLOWED, "Artifact deployment is disabled");
-        }
-
         Option<String> uriValue = ReposiliteUtils.normalizeUri(context.uri());
 
         if (uriValue.isEmpty()) {
@@ -87,6 +80,10 @@ public final class DeployService {
         }
 
         Repository repository = repositoryValue.get();
+
+        if (!repository.isDeployEnabled()) {
+            return ResponseUtils.error(HttpStatus.SC_METHOD_NOT_ALLOWED, "Artifact deployment is disabled");
+        }
 
         if (repository.isFull()) {
             return ResponseUtils.error(HttpStatus.SC_INSUFFICIENT_STORAGE, "Not enough storage space available");

@@ -16,12 +16,17 @@
 
 package org.panda_lang.reposilite.config;
 
+import net.dzikoysk.cdn.entity.Contextual;
 import net.dzikoysk.cdn.entity.Description;
+import org.panda_lang.reposilite.repository.RepositoryVisibility;
 
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public final class Configuration implements Serializable {
 
@@ -29,12 +34,13 @@ public final class Configuration implements Serializable {
     @Description("#       Reposilite       #")
     @Description("# ~~~~~~~~~~~~~~~~~~~~~~ #")
 
-    // Bind properties
+    /* General properties */
+
     @Description("")
     @Description("# Hostname")
     public String hostname = "0.0.0.0";
     @Description("# Port to bind")
-    public Integer port = 80;
+    public int port = 80;
     @Description("# Custom base path")
     public String basePath = "/";
     @Description("# Any kind of proxy services change real ip.")
@@ -44,57 +50,87 @@ public final class Configuration implements Serializable {
     @Description("# Popular: X-Real-IP")
     public String forwardedIp = "X-Forwarded-For";
     @Description("# Enable Swagger (/swagger-docs) and Swagger UI (/swagger)")
-    public Boolean swagger = false;
+    public boolean swagger = false;
     @Description("# Debug")
-    public Boolean debugEnabled = false;
+    public boolean debugEnabled = false;
 
-    // SSL
+    /* SSL */
+
     @Description("")
     @Description("# Support encrypted connections")
-    public Boolean sslEnabled = false;
+    public boolean sslEnabled = false;
     @Description("# SSL port to bind")
-    public Integer sslPort = 443;
+    public int sslPort = 443;
     @Description("# Key store file to use.")
     @Description("# You can specify absolute path to the given file or use ${WORKING_DIRECTORY} variable.")
     public String keyStorePath = "${WORKING_DIRECTORY}/keystore.jks";
     @Description("# Key store password to use")
     public String keyStorePassword = "";
     @Description("# Redirect http traffic to https")
-    public Boolean enforceSsl = false;
+    public boolean enforceSsl = false;
 
-    // Repository properties
+    /* Repository properties */
+
     @Description("")
+    @Description("# Allow to omit name of the main repository in request")
+    @Description("# e.g. /org/panda-lang/reposilite will be redirected to /releases/org/panda-lang/reposilite")
+    public boolean rewritePathsEnabled = true;
+    // TODO: Remove
     @Description("# Control the maximum amount of data assigned to Reposilite instance")
     @Description("# Supported formats: 90%, 500MB, 10GB")
     public String diskQuota = "10GB";
+
     @Description("# List of supported Maven repositories.")
     @Description("# First directory on the list is the main (primary) repository.")
     @Description("# Tu mark repository as private, add the \"--private\" flag")
-    public List<String> repositories = Arrays.asList("releases --no-redeploy", "snapshots");
-    @Description("# Allow to omit name of the main repository in request")
-    @Description("# e.g. /org/panda-lang/reposilite will be redirected to /releases/org/panda-lang/reposilite")
-    public Boolean rewritePathsEnabled = true;
-    @Description("# Accept deployment connections")
-    public Boolean deployEnabled = true;
+    public Map<String, RepositoryConfiguration> repositories = new LinkedHashMap<String, RepositoryConfiguration>() {{
+        put("releases", new RepositoryConfiguration());
+        put("snapshots", new RepositoryConfiguration());
 
-    // Proxy
+        RepositoryConfiguration privateConfiguration = new RepositoryConfiguration();
+        privateConfiguration.visibility = RepositoryVisibility.PRIVATE.name().toLowerCase();
+        put("private", privateConfiguration);
+    }};
+
+    @Contextual
+    public static class RepositoryConfiguration implements Serializable {
+
+        @Description("# Supported visibilities: public, hidden, private")
+        public String visibility = "public";
+        @Description("# Used storage type. Supported storage providers:")
+        @Description("# - fs")
+        @Description("# - s3 bucket-name region")
+        public String storageProvider = "fs";
+        @Description("# Control the maximum amount of data stored in this repository")
+        @Description("# Supported formats: 90%, 500MB, 10GB")
+        public String diskQuota = "10GB";
+        @Description("# Accept deployment connections")
+        public boolean deployEnabled = true;
+        @Description("# Does this repository accept redeployment of the same artifact version")
+        public boolean redeploy = false;
+
+    }
+
+    /* Proxy */
+
     @Description("")
     @Description("# List of proxied repositories.")
     @Description("# Reposilite will search for an artifact in remote repositories listed below,")
     @Description("# if the requested artifact was not found.")
     public List<String> proxied = Collections.emptyList();
     @Description("# Reposilite can store proxied artifacts locally to reduce response time and improve stability")
-    public Boolean storeProxied = true;
+    public boolean storeProxied = true;
     @Description("# Proxying is disabled by default in private repositories because of the security policy.")
     @Description("# Enabling this feature may expose private data like i.e. artifact name used in your company.")
-    public Boolean proxyPrivate = false;
+    public boolean proxyPrivate = false;
     @Description("# How long Reposilite can wait for establishing the connection with a remote host. (In seconds)")
-    public Integer proxyConnectTimeout = 3;
+    public int proxyConnectTimeout = 3;
     @Description("# How long Reposilite can read data from remote proxy. (In seconds)")
     @Description("# Increasing this value may be required in case of proxying slow remote repositories.")
-    public Integer proxyReadTimeout = 15;
+    public int proxyReadTimeout = 15;
 
-    // Frontend properties
+    /* Frontend properties */
+
     @Description("")
     @Description("# Title displayed by frontend")
     public String title = "#onlypanda";

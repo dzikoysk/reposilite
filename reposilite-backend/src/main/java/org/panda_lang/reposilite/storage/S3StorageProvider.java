@@ -22,12 +22,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class S3StorageProvider implements StorageProvider {
+
     private final S3Client s3;
     private final String bucket;
 
     public S3StorageProvider(String bucketName, String region) {
         this.bucket = bucketName;
-        this.s3 = S3Client.builder().region(Region.of(region)).credentialsProvider(AnonymousCredentialsProvider.create()).build();
+        this.s3 = S3Client.builder()
+                .region(Region.of(region))
+                .credentialsProvider(AnonymousCredentialsProvider.create())
+                .build();
     }
 
     @Override
@@ -50,7 +54,7 @@ public class S3StorageProvider implements StorageProvider {
             ));
         } catch (Exception e) {
             e.printStackTrace();
-            return Result.error(new ErrorDto(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Failed to write " + file.toString()));
+            return Result.error(new ErrorDto(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Failed to write " + file));
         }
     }
 
@@ -77,7 +81,7 @@ public class S3StorageProvider implements StorageProvider {
 
         } catch (IOException e) {
             e.printStackTrace();
-            return Result.error(new ErrorDto(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Failed to write " + file.toString()));
+            return Result.error(new ErrorDto(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Failed to write " + file));
         }
     }
 
@@ -97,7 +101,7 @@ public class S3StorageProvider implements StorageProvider {
 
             return Result.ok(bytes);
         } catch (NoSuchKeyException | IOException e) {
-            return Result.error(new ErrorDto(HttpStatus.SC_NOT_FOUND, "File not found: " + file.toString()));
+            return Result.error(new ErrorDto(HttpStatus.SC_NOT_FOUND, "File not found: " + file));
         }
     }
 

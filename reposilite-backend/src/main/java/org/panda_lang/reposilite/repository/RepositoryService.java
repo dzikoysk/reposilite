@@ -20,10 +20,10 @@ import org.jetbrains.annotations.Nullable;
 import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.auth.Token;
 import org.panda_lang.reposilite.config.Configuration;
-import org.panda_lang.reposilite.config.RepositoryConfig;
-import org.panda_lang.reposilite.config.RepositoryOption;
+import org.panda_lang.reposilite.config.Configuration.RepositoryConfiguration;
 import org.panda_lang.reposilite.error.ErrorDto;
 import org.panda_lang.reposilite.metadata.MetadataUtils;
+import org.panda_lang.reposilite.storage.StorageProviderFactory;
 import org.panda_lang.reposilite.utils.ArrayUtils;
 import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.function.Result;
@@ -31,29 +31,36 @@ import org.panda_lang.utilities.commons.function.Result;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.Map.Entry;
 
 public final class RepositoryService {
+
     private final Map<String, Repository> repositories = new LinkedHashMap<>(4);
     private Repository primaryRepository;
 
     public void load(Configuration configuration) {
         Reposilite.getLogger().info("--- Loading repositories");
+        StorageProviderFactory storageProviderFactory = new StorageProviderFactory();
 
-        for (String repositoryString : configuration.repositories) {
-            boolean primary = primaryRepository == null;
-            RepositoryConfig config = RepositoryConfig.parse(repositoryString);
+        for (Entry<String, RepositoryConfiguration> repositoryEntry : configuration.repositories.entrySet()) {
+            String repositoryName = repositoryEntry.getKey();
+            RepositoryConfiguration repositoryConfiguration = repositoryEntry.getValue();
 
             Repository repository = new Repository(
-                    config
+                    repositoryName,
+                    RepositoryVisibility.valueOf(repositoryConfiguration.visibility.toUpperCase()),
+                    storageProviderFactory.createStorageProvider(repositoryName, repositoryConfiguration.storageProvider),
+                    repositoryConfiguration.deployEnabled
             );
 
             repositories.put(repository.getName(), repository);
+            boolean primary = primaryRepository == null;
 
             if (primary) {
                 this.primaryRepository = repository;
             }
 
-            Reposilite.getLogger().info("+ " + (config.get(RepositoryOption.PRIVATE) ? " (hidden)" : "") + (primary ? " (primary)" : ""));
+            Reposilite.getLogger().info("+ " + repositoryName + (repository.isPrivate() ? " (private)" : "") + (primary ? " (primary)" : ""));
         }
 
         Reposilite.getLogger().info(repositories.size() + " repositories have been found");
@@ -126,4 +133,5 @@ public final class RepositoryService {
     public Repository getPrimaryRepository() {
         return this.primaryRepository;
     }
+
 }
