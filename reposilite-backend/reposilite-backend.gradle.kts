@@ -1,5 +1,5 @@
 group = "org.panda-lang"
-version = "2.9.23-SNAPSHOT"
+version = "3.0.0-SNAPSHOT"
 
 plugins {
     groovy
