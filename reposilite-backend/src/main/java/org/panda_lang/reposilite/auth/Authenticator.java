@@ -17,7 +17,6 @@
 package org.panda_lang.reposilite.auth;
 
 import org.jetbrains.annotations.Nullable;
-import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.repository.RepositoryService;
 import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.function.Option;
@@ -45,7 +44,7 @@ public final class Authenticator {
         Result<Session, String> authResult = authByHeader(header);
 
         if (authResult.isErr()) {
-            Reposilite.getLogger().debug(authResult.getError());
+            tokenService.getLogger().debug(authResult.getError());
             return authResult;
         }
 
@@ -55,16 +54,16 @@ public final class Authenticator {
             return Result.error("Unauthorized access attempt");
         }
 
-        Reposilite.getLogger().info("AUTH " + session.getToken().getAlias() + " accessed " + uri);
+        tokenService.getLogger().info("AUTH " + session.getToken().getAlias() + " accessed " + uri);
         return authResult;
     }
 
     public Result<Session, String> authByHeader(Map<String, String> header) {
         String authorization = header.get("Authorization");
-        Reposilite.getLogger().debug("Header ---");
+        tokenService.getLogger().debug("Header ---");
 
         header.forEach((key, value) -> {
-            Reposilite.getLogger().debug(key + ": " + value);
+            tokenService.getLogger().debug(key + ": " + value);
         });
 
         if (authorization == null) {

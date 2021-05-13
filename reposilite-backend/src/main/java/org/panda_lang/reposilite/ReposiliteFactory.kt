@@ -20,30 +20,30 @@ import java.nio.file.Paths
 class ReposiliteFactory {
 
     fun createReposilite(configurationFile: Path, workingDirectory: Path, testEnv: Boolean): Reposilite {
-        val configuration = ConfigurationLoader.tryLoad(configurationFile)
-
         val logger = AggregatedLogger(
             Slf4jLogger(LoggerFactory.getLogger(Reposilite::class.java))
         )
 
-        val contextFactory = ReposiliteContextFactory(configuration.forwardedIp)
-        val failureService = FailureService()
+        val configurationLoader = ConfigurationLoader(logger)
+        val configuration = configurationLoader.tryLoad(configurationFile)
 
+        val failureService = FailureService(logger)
         val storageProvider = FileSystemStorageProvider.of(Paths.get(""), configuration.diskQuota)
-        val tokenService = TokenService(workingDirectory, storageProvider)
+        val tokenService = TokenService(logger, workingDirectory, storageProvider)
 
-        val repositoryService = RepositoryService()
+        val repositoryService = RepositoryService(logger)
         val authenticator = Authenticator(repositoryService, tokenService)
         val repositoryAuthenticator = RepositoryAuthenticator(configuration.rewritePathsEnabled, authenticator, repositoryService)
         val metadataService = MetadataService(failureService)
 
         return Reposilite(
-            xlogger = logger,
+            logger = logger,
             configuration = configuration,
             workingDirectory = workingDirectory,
             testEnv = testEnv,
             failureService = failureService,
-            contextFactory = contextFactory,
+            console = Console(failureService, System.`in`),
+            contextFactory = ReposiliteContextFactory(logger, configuration.forwardedIp),
             authenticator = authenticator,
             authService = AuthService(authenticator),
             repositoryAuthenticator = repositoryAuthenticator,

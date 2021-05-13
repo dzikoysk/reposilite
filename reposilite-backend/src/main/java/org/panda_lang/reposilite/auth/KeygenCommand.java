@@ -16,7 +16,6 @@
 
 package org.panda_lang.reposilite.auth;
 
-import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.console.ReposiliteCommand;
 import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.collection.Pair;
@@ -57,7 +56,7 @@ final class KeygenCommand implements ReposiliteCommand {
         // ~ https://github.com/dzikoysk/reposilite/issues/351
         if (processedPath.endsWith("*")) {
             processedPath = processedPath.substring(0, processedPath.length() - 1);
-            Reposilite.getLogger().warn("Non-functional wildcard has been removed from the end of the given path");
+            response.add("(warn) Non-functional wildcard has been removed from the end of the given path");
         }
 
         if (StringUtils.isEmpty(permissions)) {

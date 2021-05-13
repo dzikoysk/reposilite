@@ -17,7 +17,6 @@
 package org.panda_lang.reposilite.repository;
 
 import org.apache.http.HttpStatus;
-import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.ReposiliteContext;
 import org.panda_lang.reposilite.error.ErrorDto;
 import org.panda_lang.reposilite.error.ResponseUtils;
@@ -141,7 +140,7 @@ public final class LookupService {
                 context.result(outputStream -> outputStream.write(bytes.get()));
             }
 
-            Reposilite.getLogger().debug("RESOLVED " + path + "; mime: " + fileDetails.getContentType() + "; size: " + repository.getFileSize(path).get());
+            context.getLogger().debug("RESOLVED " + path + "; mime: " + fileDetails.getContentType() + "; size: " + repository.getFileSize(path).get());
             return Result.ok(new LookupResponse(fileDetails));
         } else {
             return Result.error(fileDetailsResult.getError());

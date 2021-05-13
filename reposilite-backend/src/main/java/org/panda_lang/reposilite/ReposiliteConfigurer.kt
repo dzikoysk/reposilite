@@ -15,7 +15,7 @@
  */
 package org.panda_lang.reposilite
 
-interface ReposiliteConfiguration {
+interface ReposiliteConfigurer {
 
     fun configure(reposilite: Reposilite)
 

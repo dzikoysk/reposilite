@@ -16,7 +16,8 @@
 
 package org.panda_lang.reposilite.console;
 
-import org.panda_lang.reposilite.Reposilite;
+import net.dzikoysk.dynamiclogger.Journalist;
+import net.dzikoysk.dynamiclogger.Logger;
 import org.panda_lang.reposilite.ReposiliteConstants;
 import org.panda_lang.reposilite.error.FailureService;
 import org.panda_lang.utilities.commons.function.Result;
@@ -33,12 +34,14 @@ import java.util.List;
 import java.util.function.Consumer;
 
 @Command(name = "", version = "Reposilite " + ReposiliteConstants.VERSION)
-public final class Console {
+public final class Console implements Journalist {
 
+    private final FailureService failureService;
     private final ConsoleThread consoleThread;
     private final CommandLine commandExecutor;
 
-    public Console(InputStream source, FailureService failureService) {
+    public Console(FailureService failureService, InputStream source) {
+        this.failureService = failureService;
         this.consoleThread = new ConsoleThread(this, source, failureService);
         this.commandExecutor = new CommandLine(this);
     }
@@ -52,9 +55,9 @@ public final class Console {
     }
 
     public boolean defaultExecute(String command) {
-        Reposilite.getLogger().info("");
-        boolean status = execute(command, line -> Reposilite.getLogger().info(line));
-        Reposilite.getLogger().info("");
+        getLogger().info("");
+        boolean status = execute(command, line -> getLogger().info(line));
+        getLogger().info("");
 
         return status;
     }
@@ -109,6 +112,11 @@ public final class Console {
 
     protected CommandLine getCommandExecutor() {
         return commandExecutor;
+    }
+
+    @Override
+    public Logger getLogger() {
+        return failureService.getLogger();
     }
 
 }

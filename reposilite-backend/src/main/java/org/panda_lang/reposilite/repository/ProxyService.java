@@ -24,7 +24,6 @@ import com.google.api.client.http.HttpResponse;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpStatus;
-import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.ReposiliteContext;
 import org.panda_lang.reposilite.ReposiliteException;
 import org.panda_lang.reposilite.error.ErrorDto;
@@ -37,12 +36,11 @@ import org.panda_lang.utilities.commons.function.Option;
 import org.panda_lang.utilities.commons.function.Result;
 
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.io.File;
-import java.net.SocketTimeoutException;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -124,7 +122,7 @@ public final class ProxyService {
                     }
                 } catch (Exception exception) {
                     String message = "Proxied repository " + proxied + " is unavailable due to: " + exception.getMessage();
-                    Reposilite.getLogger().error(message);
+                    context.getLogger().error(message);
 
                     if (!(exception instanceof SocketTimeoutException)) {
                         failureService.throwException(remoteUri, new ReposiliteException(message, exception));
@@ -161,7 +159,7 @@ public final class ProxyService {
     private Result<FileDetailsDto, ErrorDto> store(String uri, HttpResponse remoteResponse, ReposiliteContext context) {
         if (storageProvider.isFull()) {
             String error = "Not enough storage space available for " + uri;
-            Reposilite.getLogger().warn(error);
+            context.getLogger().warn(error);
             return Result.error(new ErrorDto(HttpStatus.SC_INSUFFICIENT_STORAGE, error));
         }
 
@@ -178,7 +176,7 @@ public final class ProxyService {
             Result<FileDetailsDto, ErrorDto> result = this.storageProvider.putFile(proxiedFile, remoteResponse.getContent());
 
             if (result.isOk()) {
-                Reposilite.getLogger().info("Stored proxied " + proxiedFile + " from " + remoteResponse.getRequest().getUrl());
+                context.getLogger().info("Stored proxied " + proxiedFile + " from " + remoteResponse.getRequest().getUrl());
                 context.result(output -> output.write(this.storageProvider.getFile(proxiedFile).get()));
             }
 

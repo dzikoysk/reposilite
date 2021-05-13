@@ -24,7 +24,6 @@ import io.javalin.plugin.openapi.annotations.OpenApiContent;
 import io.javalin.plugin.openapi.annotations.OpenApiParam;
 import io.javalin.plugin.openapi.annotations.OpenApiResponse;
 import org.jetbrains.annotations.NotNull;
-import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.ReposiliteContext;
 import org.panda_lang.reposilite.ReposiliteContextFactory;
 import org.panda_lang.reposilite.error.ResponseUtils;
@@ -72,11 +71,11 @@ public final class DeployEndpoint implements Handler {
     @Override
     public void handle(@NotNull Context ctx) {
         ReposiliteContext context = contextFactory.create(ctx);
-        Reposilite.getLogger().info("DEPLOY " + context.uri() + " from " + context.address());
+        context.getLogger().info("DEPLOY " + context.uri() + " from " + context.address());
 
         deployService.deploy(context)
                     .map(ctx::json)
-                        .onError(error -> Reposilite.getLogger().debug("Cannot deploy artifact due to: " + error.getMessage()))
+                        .onError(error -> context.getLogger().debug("Cannot deploy artifact due to: " + error.getMessage()))
                         .mapErr(error -> ResponseUtils.errorResponse(ctx, error));
     }
 

@@ -41,8 +41,8 @@ final class ConsoleThread extends Thread {
         Scanner in = new Scanner(source);
 
         if (!in.hasNextLine()) {
-            Reposilite.getLogger().warn("Interactive CLI is not available in current environment.");
-            Reposilite.getLogger().warn("Solution for Docker users: https://docs.docker.com/engine/reference/run/#foreground");
+            console.getLogger().warn("Interactive CLI is not available in current environment.");
+            console.getLogger().warn("Solution for Docker users: https://docs.docker.com/engine/reference/run/#foreground");
             return;
         }
 

@@ -16,8 +16,9 @@
 
 package org.panda_lang.reposilite.repository;
 
+import net.dzikoysk.dynamiclogger.Journalist;
+import net.dzikoysk.dynamiclogger.Logger;
 import org.jetbrains.annotations.Nullable;
-import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.auth.Token;
 import org.panda_lang.reposilite.config.Configuration;
 import org.panda_lang.reposilite.config.Configuration.RepositoryConfiguration;
@@ -33,13 +34,18 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.Map.Entry;
 
-public final class RepositoryService {
+public final class RepositoryService implements Journalist {
 
+    private final Journalist journalist;
     private final Map<String, Repository> repositories = new LinkedHashMap<>(4);
     private Repository primaryRepository;
 
+    public RepositoryService(Journalist journalist) {
+        this.journalist = journalist;
+    }
+
     public void load(Configuration configuration) {
-        Reposilite.getLogger().info("--- Loading repositories");
+        getLogger().info("--- Loading repositories");
         StorageProviderFactory storageProviderFactory = new StorageProviderFactory();
 
         for (Entry<String, RepositoryConfiguration> repositoryEntry : configuration.repositories.entrySet()) {
@@ -60,10 +66,10 @@ public final class RepositoryService {
                 this.primaryRepository = repository;
             }
 
-            Reposilite.getLogger().info("+ " + repositoryName + (repository.isPrivate() ? " (private)" : "") + (primary ? " (primary)" : ""));
+            getLogger().info("+ " + repositoryName + (repository.isPrivate() ? " (private)" : "") + (primary ? " (primary)" : ""));
         }
 
-        Reposilite.getLogger().info(repositories.size() + " repositories have been found");
+        getLogger().info(repositories.size() + " repositories have been found");
     }
 
     public @Nullable Path resolveSnapshot(Repository repository, Path requestPath) {
@@ -132,6 +138,11 @@ public final class RepositoryService {
 
     public Repository getPrimaryRepository() {
         return this.primaryRepository;
+    }
+
+    @Override
+    public Logger getLogger() {
+        return journalist.getLogger();
     }
 
 }

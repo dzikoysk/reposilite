@@ -32,7 +32,7 @@ public final class ReposiliteServlet extends HttpServlet {
 
     @Override
     public void init() {
-        Reposilite.getLogger().info("Starting Reposilite servlet...");
+        reposilite.getLogger().info("Starting Reposilite servlet...");
 
         try {
             reposilite.load();
