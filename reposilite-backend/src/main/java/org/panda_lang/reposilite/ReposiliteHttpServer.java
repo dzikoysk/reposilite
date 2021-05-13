@@ -37,7 +37,6 @@ import org.panda_lang.reposilite.repository.LookupApiEndpoint;
 import org.panda_lang.reposilite.repository.LookupController;
 import org.panda_lang.reposilite.resource.FrontendHandler;
 import org.panda_lang.reposilite.resource.WebJarsHandler;
-import org.panda_lang.reposilite.utils.TimeUtils;
 import org.panda_lang.utilities.commons.function.Option;
 
 public final class ReposiliteHttpServer {
@@ -94,7 +93,7 @@ public final class ReposiliteHttpServer {
                 reposilite.getStatsService().saveStats();
             });
             event.serverStopped(() -> {
-                Reposilite.getLogger().info("Bye! Uptime: " + reposilite.getPrettyUptime());
+                reposilite.getLogger().info("Bye! Uptime: " + reposilite.getPrettyUptime());
                 reposilite.getConsole().stop();
             });
         });
@@ -118,7 +117,7 @@ public final class ReposiliteHttpServer {
         Server server = new Server();
 
         if (configuration.sslEnabled) {
-            Reposilite.getLogger().info("Enabling SSL connector at ::" + configuration.sslPort);
+            reposilite.getLogger().info("Enabling SSL connector at ::" + configuration.sslPort);
 
             SslContextFactory sslContextFactory = new SslContextFactory.Server();
             sslContextFactory.setKeyStorePath(configuration.keyStorePath.replace("${WORKING_DIRECTORY}", reposilite.getWorkingDirectory().toAbsolutePath().toString()));
@@ -158,7 +157,7 @@ public final class ReposiliteHttpServer {
         if (configuration.debugEnabled) {
             // config.requestCacheSize = FilesUtils.displaySizeToBytesCount(System.getProperty("reposilite.requestCacheSize", "8MB"));
             // Reposilite.getLogger().debug("requestCacheSize set to " + config.requestCacheSize + " bytes");
-            Reposilite.getLogger().info("Debug enabled");
+            reposilite.getLogger().info("Debug enabled");
             config.enableDevLogging();
         }
 

@@ -65,10 +65,6 @@ public final class ReposiliteLauncher {
     }
 
     public static Reposilite create(String workingDirectoryString, String configurationFileName, boolean servlet, boolean testEnv) {
-        Reposilite.getLogger().info("");
-        Reposilite.getLogger().info(Effect.GREEN + "Reposilite " + Effect.RESET + ReposiliteConstants.VERSION);
-        Reposilite.getLogger().info("");
-
         Path workingDirectory = Paths.get("");
 
         if (workingDirectoryString != null && !workingDirectoryString.isEmpty()) {
@@ -80,7 +76,8 @@ public final class ReposiliteLauncher {
                 : configurationFileName
         );
 
-        return new Reposilite(configurationFile, workingDirectory, servlet, testEnv);
+        ReposiliteFactory reposiliteFactory = new ReposiliteFactory();
+        return reposiliteFactory.createReposilite(configurationFile, workingDirectory, testEnv);
     }
 
 }

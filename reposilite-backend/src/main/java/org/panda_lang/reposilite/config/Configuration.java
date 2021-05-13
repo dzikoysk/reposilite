@@ -51,6 +51,8 @@ public final class Configuration implements Serializable {
     public String forwardedIp = "X-Forwarded-For";
     @Description("# Enable Swagger (/swagger-docs) and Swagger UI (/swagger)")
     public boolean swagger = false;
+    // @Description("# Run Reposilite using Jakarta Servlet server (not supported yet)")
+    // public boolean servlet = false;
     @Description("# Debug")
     public boolean debugEnabled = false;
 
