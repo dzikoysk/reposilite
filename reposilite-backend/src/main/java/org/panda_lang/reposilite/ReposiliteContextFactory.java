@@ -18,13 +18,16 @@ package org.panda_lang.reposilite;
 
 import io.javalin.http.Context;
 import io.javalin.websocket.WsContext;
+import net.dzikoysk.dynamiclogger.Journalist;
 import org.panda_lang.utilities.commons.StringUtils;
 
 public final class ReposiliteContextFactory {
 
+    private final Journalist journalist;
     private final String forwardedIpHeader;
 
-    ReposiliteContextFactory(String forwardedIpHeader) {
+    ReposiliteContextFactory(Journalist journalist, String forwardedIpHeader) {
+        this.journalist = journalist;
         this.forwardedIpHeader = forwardedIpHeader;
     }
 
@@ -33,6 +36,7 @@ public final class ReposiliteContextFactory {
         String address = StringUtils.isEmpty(realIp) ? context.req.getRemoteAddr() : realIp;
 
         return new ReposiliteContext(
+                journalist,
                 context.req.getRequestURI(),
                 context.method(),
                 address,
@@ -45,6 +49,7 @@ public final class ReposiliteContextFactory {
         String address = StringUtils.isEmpty(realIp) ? context.session.getRemoteAddress().toString() : realIp;
 
         return new ReposiliteContext(
+                journalist,
                 context.host(),
                 "WS",
                 address,

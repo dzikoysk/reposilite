@@ -16,6 +16,8 @@
 
 package org.panda_lang.reposilite;
 
+import net.dzikoysk.dynamiclogger.Journalist;
+import net.dzikoysk.dynamiclogger.Logger;
 import org.panda_lang.utilities.commons.function.Option;
 import org.panda_lang.utilities.commons.function.ThrowingConsumer;
 import org.panda_lang.utilities.commons.function.ThrowingSupplier;
@@ -25,8 +27,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
 
-public final class ReposiliteContext {
+public final class ReposiliteContext implements Journalist {
 
+    private final Journalist journalist;
     private final String uri;
     private final String method;
     private final String address;
@@ -35,12 +38,14 @@ public final class ReposiliteContext {
     private ThrowingConsumer<OutputStream, IOException> result;
 
     public ReposiliteContext(
+            Journalist journalist,
             String uri,
             String method,
             String address,
             Map<String, String> header,
             ThrowingSupplier<InputStream, IOException> input) {
 
+        this.journalist = journalist;
         this.uri = uri;
         this.method = method;
         this.address = address;
@@ -74,6 +79,11 @@ public final class ReposiliteContext {
 
     public String uri() {
         return uri;
+    }
+
+    @Override
+    public Logger getLogger() {
+        return journalist.getLogger();
     }
 
 }

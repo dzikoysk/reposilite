@@ -17,9 +17,9 @@
 package org.panda_lang.reposilite.metadata;
 
 import org.panda_lang.reposilite.Reposilite;
-import org.panda_lang.reposilite.ReposiliteConfiguration;
+import org.panda_lang.reposilite.ReposiliteConfigurer;
 
-public final class MetadataConfiguration implements ReposiliteConfiguration {
+public final class MetadataConfigurer implements ReposiliteConfigurer {
 
     @Override
     public void configure(Reposilite reposilite) {

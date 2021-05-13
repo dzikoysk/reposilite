@@ -16,7 +16,6 @@
 
 package org.panda_lang.reposilite.auth;
 
-import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.ReposiliteConstants;
 import org.panda_lang.reposilite.error.ErrorDto;
 import org.panda_lang.reposilite.storage.StorageProvider;
@@ -26,9 +25,7 @@ import org.panda_lang.utilities.commons.function.Result;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 
 public final class TokenStorage {
@@ -52,17 +49,17 @@ public final class TokenStorage {
 
                 if (result.isOk()) {
                     storageProvider.putFile(tokensFile, result.get());
-                    Reposilite.getLogger().info("Legacy tokens file has been converted to dat file");
+                    tokenService.getLogger().info("Legacy tokens file has been converted to dat file");
                 } else {
                     throw new IOException(result.getError().getMessage());
                 }
             } else {
-                Reposilite.getLogger().info("Generating tokens data file...");
+                tokenService.getLogger().info("Generating tokens data file...");
                 storageProvider.putFile(tokensFile, "!!org.panda_lang.reposilite.auth.TokenCollection\n\"tokens\": []".getBytes(StandardCharsets.UTF_8));
-                Reposilite.getLogger().info("Empty tokens file has been generated");
+                tokenService.getLogger().info("Empty tokens file has been generated");
             }
         } else {
-            Reposilite.getLogger().info("Using an existing tokens data file");
+            tokenService.getLogger().info("Using an existing tokens data file");
         }
 
         TokenCollection tokenCollection = YamlUtils.load(storageProvider, tokensFile, TokenCollection.class);
@@ -74,7 +71,7 @@ public final class TokenStorage {
             tokenService.addToken(token);
         }
 
-        Reposilite.getLogger().info("Tokens: " + tokenService.count());
+        tokenService.getLogger().info("Tokens: " + tokenService.count());
     }
 
     public void saveTokens() throws IOException {
@@ -86,7 +83,7 @@ public final class TokenStorage {
         }
 
         YamlUtils.save(storageProvider, tokenCollection, tokensFile);
-        Reposilite.getLogger().info("Stored tokens: " + tokenCollection.getTokens().size());
+        tokenService.getLogger().info("Stored tokens: " + tokenCollection.getTokens().size());
     }
 
 }

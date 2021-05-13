@@ -73,7 +73,7 @@ dependencies {
 
     /* Logging */
 
-    implementation("net.dzikoysk:dynamic-logger-slf4j:1.0.0")
+    implementation("net.dzikoysk:dynamic-logger-slf4j:1.0.1")
     implementation("org.fusesource.jansi:jansi:2.3.2")
 
     val tinylog = "2.3.1"

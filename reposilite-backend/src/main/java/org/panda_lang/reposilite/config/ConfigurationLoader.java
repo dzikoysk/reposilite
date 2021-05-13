@@ -18,7 +18,8 @@ package org.panda_lang.reposilite.config;
 
 import net.dzikoysk.cdn.Cdn;
 import net.dzikoysk.cdn.CdnFactory;
-import org.panda_lang.reposilite.Reposilite;
+import net.dzikoysk.dynamiclogger.Journalist;
+import net.dzikoysk.dynamiclogger.Logger;
 import org.panda_lang.reposilite.utils.FilesUtils;
 import org.panda_lang.utilities.commons.ClassUtils;
 import org.panda_lang.utilities.commons.StringUtils;
@@ -31,9 +32,15 @@ import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.Collection;
 
-public final class ConfigurationLoader {
+public final class ConfigurationLoader implements Journalist {
 
-    public static Configuration tryLoad(Path customConfigurationFile) {
+    private final Journalist journalist;
+
+    public ConfigurationLoader(Journalist journalist) {
+        this.journalist = journalist;
+    }
+
+    public Configuration tryLoad(Path customConfigurationFile) {
         try {
             return load(customConfigurationFile);
         } catch (Exception exception) {
@@ -41,7 +48,7 @@ public final class ConfigurationLoader {
         }
     }
 
-    public static Configuration load(Path configurationFile) throws Exception {
+    public Configuration load(Path configurationFile) throws Exception {
         if (!FilesUtils.getExtension(configurationFile.getFileName().toString()).equals("cdn")) {
             throw new IllegalArgumentException("Custom configuration file does not have '.cdn' extension");
         }
@@ -60,17 +67,17 @@ public final class ConfigurationLoader {
         return configuration;
     }
 
-    private static Configuration createConfiguration(Path configurationFile) throws Exception {
+    private Configuration createConfiguration(Path configurationFile) throws Exception {
         Path legacyConfiguration = configurationFile.resolveSibling(configurationFile.getFileName().toString().replace(".cdn", ".yml"));
 
         if (!Files.exists(legacyConfiguration)) {
-            Reposilite.getLogger().info("Generating default configuration file.");
+            getLogger().info("Generating default configuration file.");
             return new Configuration();
         }
 
-        Reposilite.getLogger().info("Legacy configuration file has been found");
+        getLogger().info("Legacy configuration file has been found");
         Configuration configuration = CdnFactory.createYamlLike().load(new String(Files.readAllBytes(configurationFile), StandardCharsets.UTF_8), Configuration.class);
-        Reposilite.getLogger().info("YAML configuration has been converted to CDN format");
+        getLogger().info("YAML configuration has been converted to CDN format");
         Files.delete(legacyConfiguration);
 
         return configuration;
@@ -92,7 +99,7 @@ public final class ConfigurationLoader {
         }
     }
 
-    private static void verifyProxied(Configuration configuration) {
+    private void verifyProxied(Configuration configuration) {
         for (int index = 0; index < configuration.proxied.size(); index++) {
             String proxied = configuration.proxied.get(index);
 
@@ -102,7 +109,7 @@ public final class ConfigurationLoader {
         }
     }
 
-    private static void loadProperties(Configuration configuration) {
+    private void loadProperties(Configuration configuration) {
         for (Field declaredField : configuration.getClass().getDeclaredFields()) {
             String custom = System.getProperty("reposilite." + declaredField.getName());
 
@@ -126,7 +133,7 @@ public final class ConfigurationLoader {
                 customValue = Arrays.asList(custom.split(","));
             }
             else {
-                Reposilite.getLogger().info("Unsupported type: " + type + " for " + custom);
+                getLogger().info("Unsupported type: " + type + " for " + custom);
                 continue;
             }
 
@@ -136,6 +143,11 @@ public final class ConfigurationLoader {
                 throw new RuntimeException("Cannot modify configuration value", e);
             }
         }
+    }
+
+    @Override
+    public Logger getLogger() {
+        return journalist.getLogger();
     }
 
 }

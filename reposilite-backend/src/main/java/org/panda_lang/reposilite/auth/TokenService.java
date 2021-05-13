@@ -16,6 +16,8 @@
 
 package org.panda_lang.reposilite.auth;
 
+import net.dzikoysk.dynamiclogger.Journalist;
+import net.dzikoysk.dynamiclogger.Logger;
 import org.panda_lang.reposilite.storage.StorageProvider;
 import org.panda_lang.utilities.commons.collection.Pair;
 import org.panda_lang.utilities.commons.function.Option;
@@ -31,15 +33,17 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
-public final class TokenService {
+public final class TokenService implements Journalist {
 
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
     public static final BCryptPasswordEncoder B_CRYPT_TOKENS_ENCODER = new BCryptPasswordEncoder();
 
+    private final Journalist journalist;
     private final Map<String, Token> tokens = new HashMap<>();
     private final TokenStorage database;
 
-    public TokenService(Path workingDirectory, StorageProvider storageProvider) {
+    public TokenService(Journalist journalist, Path workingDirectory, StorageProvider storageProvider) {
+        this.journalist = journalist;
         this.database = new TokenStorage(this, workingDirectory, storageProvider);
     }
 
@@ -97,6 +101,11 @@ public final class TokenService {
 
     Collection<Token> getTokens() {
         return tokens.values();
+    }
+
+    @Override
+    public Logger getLogger() {
+        return journalist.getLogger();
     }
 
 }

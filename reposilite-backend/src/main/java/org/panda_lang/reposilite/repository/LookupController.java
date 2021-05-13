@@ -82,7 +82,7 @@ public final class LookupController implements Handler {
     @Override
     public void handle(@NotNull Context ctx) {
         ReposiliteContext context = contextFactory.create(ctx);
-        Reposilite.getLogger().debug("LOOKUP " + context.uri() + " from " + context.address());
+        context.getLogger().debug("LOOKUP " + context.uri() + " from " + context.address());
 
         Result<LookupResponse, ErrorDto> response;
 

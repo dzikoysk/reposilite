@@ -1,13 +1,13 @@
 package org.panda_lang.reposilite
 
-import org.panda_lang.reposilite.auth.AuthenticationConfiguration
-import org.panda_lang.reposilite.console.ConsoleConfiguration
-import org.panda_lang.reposilite.metadata.MetadataConfiguration
-import org.panda_lang.reposilite.stats.StatsConfiguration
+import org.panda_lang.reposilite.auth.AuthenticationConfigurer
+import org.panda_lang.reposilite.console.ConsoleConfigurer
+import org.panda_lang.reposilite.metadata.MetadataConfigurer
+import org.panda_lang.reposilite.stats.StatsConfigurer
 
 fun configurations() = arrayOf(
-    AuthenticationConfiguration(),
-    ConsoleConfiguration(),
-    MetadataConfiguration(),
-    StatsConfiguration()
+    AuthenticationConfigurer(),
+    ConsoleConfigurer(),
+    MetadataConfigurer(),
+    StatsConfigurer()
 )

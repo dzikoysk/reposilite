@@ -24,7 +24,7 @@ import io.javalin.plugin.openapi.annotations.OpenApiContent;
 import io.javalin.plugin.openapi.annotations.OpenApiParam;
 import io.javalin.plugin.openapi.annotations.OpenApiResponse;
 import org.apache.http.HttpStatus;
-import org.panda_lang.reposilite.Reposilite;
+import org.jetbrains.annotations.NotNull;
 import org.panda_lang.reposilite.ReposiliteContext;
 import org.panda_lang.reposilite.ReposiliteContextFactory;
 import org.panda_lang.reposilite.auth.Authenticator;
@@ -74,9 +74,9 @@ public final class RemoteExecutionEndpoint implements Handler {
             }
     )
     @Override
-    public void handle(Context ctx) {
+    public void handle(@NotNull Context ctx) {
         ReposiliteContext context = contextFactory.create(ctx);
-        Reposilite.getLogger().info("REMOTE EXECUTION " + context.uri() + " from " + context.address());
+        console.getLogger().info("REMOTE EXECUTION " + context.uri() + " from " + context.address());
 
         Result<Session, String> authResult = authenticator.authByHeader(context.headers());
 
@@ -104,7 +104,7 @@ public final class RemoteExecutionEndpoint implements Handler {
             return;
         }
 
-        Reposilite.getLogger().info(session.getAlias() + " (" + context.address() + ") requested command: " + command);
+        console.getLogger().info(session.getAlias() + " (" + context.address() + ") requested command: " + command);
         Result<List<String>, List<String>> result = console.execute(command);
 
         ctx.json(new RemoteExecutionDto(result.isOk(), result.isOk() ? result.get() : result.getError()));

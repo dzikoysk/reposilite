@@ -16,7 +16,6 @@
 
 package org.panda_lang.reposilite.stats;
 
-import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.ReposiliteConstants;
 import org.panda_lang.reposilite.error.ErrorDto;
 import org.panda_lang.reposilite.error.FailureService;
@@ -24,14 +23,12 @@ import org.panda_lang.reposilite.storage.StorageProvider;
 import org.panda_lang.reposilite.utils.YamlUtils;
 import org.panda_lang.utilities.commons.function.Result;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.concurrent.CompletableFuture;
 
 public final class StatsStorage {
+
     private final Path statsFile;
     private final FailureService failureService;
     private final StorageProvider storageProvider;
@@ -56,15 +53,15 @@ public final class StatsStorage {
 
                     if (result.isOk()) {
                         storageProvider.putFile(statsFile, result.get());
-                        Reposilite.getLogger().info("Legacy stats file has been converted to dat file");
+                        failureService.getLogger().info("Legacy stats file has been converted to dat file");
                     } else {
                         failureService.throwException("Cannot load legacy stats file: " + result.getError().getMessage(), new RuntimeException());
                     }
                 }
                 else {
-                    Reposilite.getLogger().info("Generating stats data file...");
+                    failureService.getLogger().info("Generating stats data file...");
                     storageProvider.putFile(this.statsFile, "!!org.panda_lang.reposilite.stats.StatsEntity\n\"records\": {}".getBytes(StandardCharsets.UTF_8));
-                    Reposilite.getLogger().info("Empty stats file has been generated");
+                    failureService.getLogger().info("Empty stats file has been generated");
                 }
             }
 
@@ -79,7 +76,7 @@ public final class StatsStorage {
 
     public void saveStats(StatsEntity entity) {
         YamlUtils.save(storageProvider, entity, statsFile);
-        Reposilite.getLogger().info("Stored records: " + entity.getRecords().size());
+        failureService.getLogger().info("Stored records: " + entity.getRecords().size());
     }
 
 }

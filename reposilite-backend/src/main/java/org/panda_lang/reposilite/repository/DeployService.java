@@ -17,7 +17,6 @@
 package org.panda_lang.reposilite.repository;
 
 import org.apache.http.HttpStatus;
-import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.ReposiliteContext;
 import org.panda_lang.reposilite.ReposiliteUtils;
 import org.panda_lang.reposilite.auth.Authenticator;
@@ -104,7 +103,7 @@ public final class DeployService {
             }
 
             if (result.isOk()) {
-                Reposilite.getLogger().info("DEPLOY " + authResult.isOk() + " successfully deployed " + path + " from " + context.address());
+                context.getLogger().info("DEPLOY " + authResult.isOk() + " successfully deployed " + path + " from " + context.address());
             }
 
             return result;

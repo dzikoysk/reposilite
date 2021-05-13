@@ -14,16 +14,21 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.stats;
+package org.panda_lang.reposilite.console;
 
 import org.panda_lang.reposilite.Reposilite;
-import org.panda_lang.reposilite.ReposiliteConfiguration;
+import org.panda_lang.reposilite.ReposiliteConfigurer;
 
-public final class StatsConfiguration implements ReposiliteConfiguration {
+public final class ConsoleConfigurer implements ReposiliteConfigurer {
 
     @Override
     public void configure(Reposilite reposilite) {
-       reposilite.getConsole().registerCommand(new StatsCommand(reposilite.getStatsService()));
+        Console console = reposilite.getConsole();
+        console.registerCommand(new FailuresCommand(reposilite.getFailureService()));
+        console.registerCommand(new HelpCommand(console));
+        console.registerCommand(new StatusCommand(reposilite));
+        console.registerCommand(new StopCommand(reposilite));
+        console.registerCommand(new VersionCommand());
     }
 
 }

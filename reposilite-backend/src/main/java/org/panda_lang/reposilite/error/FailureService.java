@@ -16,8 +16,9 @@
 
 package org.panda_lang.reposilite.error;
 
+import net.dzikoysk.dynamiclogger.Journalist;
+import net.dzikoysk.dynamiclogger.Logger;
 import org.jetbrains.annotations.Nullable;
-import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.utilities.commons.ArrayUtils;
 import org.panda_lang.utilities.commons.StringUtils;
 
@@ -25,12 +26,18 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-public final class FailureService {
+public final class FailureService implements Journalist {
 
+    private final Journalist journalist;
     private final Set<String> exceptions = ConcurrentHashMap.newKeySet();
 
+    public FailureService(Journalist journalist) {
+        this.journalist = journalist;
+    }
+
     public void throwException(String id, Throwable throwable) {
-        Reposilite.getLogger().error(id, throwable);
+        getLogger().error(id);
+        getLogger().exception(throwable);
 
         exceptions.add(String.join(System.lineSeparator(),
                 "failure " + id,
@@ -52,6 +59,11 @@ public final class FailureService {
 
     public Collection<? extends String> getFailures() {
         return exceptions;
+    }
+
+    @Override
+    public Logger getLogger() {
+        return journalist.getLogger();
     }
 
 }

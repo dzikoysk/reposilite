@@ -15,8 +15,8 @@
  */
 package org.panda_lang.reposilite
 
+import net.dzikoysk.dynamiclogger.Journalist
 import net.dzikoysk.dynamiclogger.Logger
-import net.dzikoysk.dynamiclogger.LoggerHolder
 import org.panda_lang.reposilite.auth.AuthService
 import org.panda_lang.reposilite.auth.Authenticator
 import org.panda_lang.reposilite.auth.TokenService
@@ -30,17 +30,17 @@ import org.panda_lang.reposilite.stats.StatsService
 import org.panda_lang.reposilite.storage.StorageProvider
 import org.panda_lang.reposilite.utils.TimeUtils
 import org.panda_lang.utilities.commons.console.Effect
-import org.slf4j.LoggerFactory
 import java.nio.file.Path
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
 class Reposilite(
-    private val xlogger: Logger,
+    private val logger: Logger,
     val configuration: Configuration,
     val workingDirectory: Path,
     val testEnv: Boolean,
     val failureService: FailureService,
+    val console: Console,
     val contextFactory: ReposiliteContextFactory,
     val statsService: StatsService,
     val storageProvider: StorageProvider,
@@ -54,19 +54,13 @@ class Reposilite(
     val proxyService: ProxyService,
     val deployService: DeployService,
     val frontendService: FrontendProvider,
-) {
+) : Journalist {
 
     val httpServer = ReposiliteHttpServer(this, false)
-    val console = Console(System.`in`, failureService)
 
     private val alive = AtomicBoolean(false)
     private val shutdownHook = Thread { shutdown() }
-    private var uptime = 0L
-
-    companion object {
-        @JvmStatic
-        val logger: org.slf4j.Logger = LoggerFactory.getLogger("xxxx")
-    }
+    private var uptime = System.currentTimeMillis()
 
     fun launch() {
         load()
@@ -74,28 +68,28 @@ class Reposilite(
     }
 
     fun load() {
-        xlogger.info("")
-        xlogger.info("${Effect.GREEN}Reposilite${Effect.RESET}${ReposiliteConstants.VERSION}")
-        xlogger.info("")
-
-        xlogger.info("--- Environment")
+        logger.info("")
+        logger.info("${Effect.GREEN}Reposilite${Effect.RESET}${ReposiliteConstants.VERSION}")
+        logger.info("")
+        logger.info("--- Environment")
 
         if (testEnv) {
-            xlogger.info("Test environment enabled")
+            logger.info("Test environment enabled")
         }
 
-        xlogger.info("Platform: ${System.getProperty("java.version")} (${System.getProperty("os.name")})")
-        xlogger.info("Working directory: ${workingDirectory.toAbsolutePath()}")
-        xlogger.info("")
+        logger.info("Platform: ${System.getProperty("java.version")} (${System.getProperty("os.name")})")
+        logger.info("Working directory: ${workingDirectory.toAbsolutePath()}")
+        logger.info("")
 
-        xlogger.info("--- Loading data")
+        logger.info("--- Loading data")
         tokenService.loadTokens()
-        xlogger.info("")
-        repositoryService.load(configuration)
-        xlogger.info("")
 
-        xlogger.info("--- Loading domain configurations")
-        Arrays.stream(configurations()).forEach { configuration: ReposiliteConfiguration -> configuration.configure(this) }
+        logger.info("")
+        repositoryService.load(configuration)
+
+        logger.info("")
+        logger.info("--- Loading domain configurations")
+        Arrays.stream(configurations()).forEach { configurer: ReposiliteConfigurer -> configurer.configure(this) }
     }
 
     fun start(): Reposilite {
@@ -103,22 +97,20 @@ class Reposilite(
         Thread.currentThread().name = "Reposilite | Main Thread"
 
         try {
-            xlogger.info("Binding server at ${configuration.hostname}::${configuration.port}")
-            uptime = System.currentTimeMillis()
-
+            logger.info("Binding server at ${configuration.hostname}::${configuration.port}")
             httpServer.start(configuration)
             Runtime.getRuntime().addShutdownHook(shutdownHook)
         } catch (exception: Exception) {
-            xlogger.error("Failed to start Reposilite")
-            xlogger.exception(exception)
+            logger.error("Failed to start Reposilite")
+            logger.exception(exception)
             shutdown()
             return this
         }
 
-        xlogger.info("Done (" + TimeUtils.format(TimeUtils.getUptime(uptime)) + "s)!")
+        logger.info("Done (" + TimeUtils.format(TimeUtils.getUptime(uptime)) + "s)!")
         console.defaultExecute("help")
 
-        xlogger.info("Collecting status metrics...")
+        logger.info("Collecting status metrics...")
         console.defaultExecute("status")
 
         // disable console daemon in tests due to issues with coverage and interrupt method call
@@ -139,7 +131,7 @@ class Reposilite(
         alive.set(false)
         Runtime.getRuntime().removeShutdownHook(shutdownHook)
 
-        xlogger.info("Shutting down ${configuration.hostname}::${configuration.port} ...")
+        logger.info("Shutting down ${configuration.hostname}::${configuration.port} ...")
         httpServer.stop()
     }
 
@@ -148,5 +140,8 @@ class Reposilite(
 
     fun getUptime() =
         System.currentTimeMillis() - uptime
+
+    override fun getLogger() =
+        logger
 
 }

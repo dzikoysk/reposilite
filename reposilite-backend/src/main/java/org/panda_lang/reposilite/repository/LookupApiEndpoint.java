@@ -24,7 +24,6 @@ import io.javalin.plugin.openapi.annotations.OpenApiParam;
 import io.javalin.plugin.openapi.annotations.OpenApiResponse;
 import org.apache.http.HttpStatus;
 import org.jetbrains.annotations.NotNull;
-import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.ReposiliteContext;
 import org.panda_lang.reposilite.ReposiliteContextFactory;
 import org.panda_lang.reposilite.ReposiliteUtils;
@@ -33,12 +32,15 @@ import org.panda_lang.reposilite.error.ResponseUtils;
 import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.collection.Pair;
 import org.panda_lang.utilities.commons.function.Option;
-import org.panda_lang.utilities.commons.function.PandaStream;
 import org.panda_lang.utilities.commons.function.Result;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
 
 public final class LookupApiEndpoint implements Handler {
 
@@ -87,7 +89,7 @@ public final class LookupApiEndpoint implements Handler {
     @Override
     public void handle(@NotNull Context ctx) {
         ReposiliteContext context = contextFactory.create(ctx);
-        Reposilite.getLogger().info("API " + context.uri() + " from " + context.address());
+        context.getLogger().info("API " + context.uri() + " from " + context.address());
 
         Option<String> normalizedUri = ReposiliteUtils.normalizeUri(StringUtils.replaceFirst(context.uri(), "/api", ""));
 

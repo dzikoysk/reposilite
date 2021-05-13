@@ -14,21 +14,24 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.console;
+package org.panda_lang.reposilite.auth;
 
 import org.panda_lang.reposilite.Reposilite;
-import org.panda_lang.reposilite.ReposiliteConfiguration;
+import org.panda_lang.reposilite.ReposiliteConfigurer;
+import org.panda_lang.reposilite.console.Console;
 
-public final class ConsoleConfiguration implements ReposiliteConfiguration {
+public final class AuthenticationConfigurer implements ReposiliteConfigurer {
 
     @Override
     public void configure(Reposilite reposilite) {
+        TokenService tokenService = reposilite.getTokenService();
+
         Console console = reposilite.getConsole();
-        console.registerCommand(new FailuresCommand(reposilite.getFailureService()));
-        console.registerCommand(new HelpCommand(console));
-        console.registerCommand(new StatusCommand(reposilite));
-        console.registerCommand(new StopCommand(reposilite));
-        console.registerCommand(new VersionCommand());
+        console.registerCommand(new ChAliasCommand(tokenService));
+        console.registerCommand(new ChmodCommand(tokenService));
+        console.registerCommand(new KeygenCommand(tokenService));
+        console.registerCommand(new RevokeCommand(tokenService));
+        console.registerCommand(new TokensCommand(tokenService));
     }
 
 }

@@ -53,7 +53,7 @@ public final class CliController implements Consumer<WsConfig> {
             String authMessage = authContext.message();
 
             if (!authMessage.startsWith(AUTHORIZATION_PREFIX)) {
-                Reposilite.getLogger().info("CLI | Unauthorized CLI access request from " + context.address() + " (missing credentials)");
+                console.getLogger().info("CLI | Unauthorized CLI access request from " + context.address() + " (missing credentials)");
                 connectContext.send("Unauthorized connection request");
                 connectContext.session.disconnect();
                 return;
@@ -63,7 +63,7 @@ public final class CliController implements Consumer<WsConfig> {
             Result<Session, String> auth = authenticator.authByCredentials(credentials);
 
             if (!auth.isOk() || !auth.get().isManager()) {
-                Reposilite.getLogger().info("CLI | Unauthorized CLI access request from " + context.address());
+                console.getLogger().info("CLI | Unauthorized CLI access request from " + context.address());
                 connectContext.send("Unauthorized connection request");
                 connectContext.session.disconnect();
                 return;
@@ -72,15 +72,15 @@ public final class CliController implements Consumer<WsConfig> {
             String username = auth.get().getAlias() + "@" + context.address();
 
             wsConfig.onClose(closeContext -> {
-                Reposilite.getLogger().info("CLI | " + username + " closed connection");
+                console.getLogger().info("CLI | " + username + " closed connection");
                 ReposiliteWriter.getConsumers().remove(closeContext);
             });
 
             ReposiliteWriter.getConsumers().put(connectContext, connectContext::send);
-            Reposilite.getLogger().info("CLI | " + username + " accessed remote console");
+            console.getLogger().info("CLI | " + username + " accessed remote console");
 
             wsConfig.onMessage(messageContext -> {
-                Reposilite.getLogger().info("CLI | " + username + "> " + messageContext.message());
+                console.getLogger().info("CLI | " + username + "> " + messageContext.message());
                 console.defaultExecute(messageContext.message());
             });
 
