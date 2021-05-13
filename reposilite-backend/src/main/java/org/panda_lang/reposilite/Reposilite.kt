@@ -13,263 +13,140 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.panda_lang.reposilite
 
-package org.panda_lang.reposilite;
+import net.dzikoysk.dynamiclogger.Logger
+import net.dzikoysk.dynamiclogger.LoggerHolder
+import org.panda_lang.reposilite.auth.AuthService
+import org.panda_lang.reposilite.auth.Authenticator
+import org.panda_lang.reposilite.auth.TokenService
+import org.panda_lang.reposilite.config.Configuration
+import org.panda_lang.reposilite.console.Console
+import org.panda_lang.reposilite.error.FailureService
+import org.panda_lang.reposilite.metadata.MetadataService
+import org.panda_lang.reposilite.repository.*
+import org.panda_lang.reposilite.resource.FrontendProvider
+import org.panda_lang.reposilite.stats.StatsService
+import org.panda_lang.reposilite.storage.StorageProvider
+import org.panda_lang.reposilite.utils.TimeUtils
+import org.panda_lang.utilities.commons.console.Effect
+import org.slf4j.LoggerFactory
+import java.nio.file.Path
+import java.util.*
+import java.util.concurrent.atomic.AtomicBoolean
 
-import org.panda_lang.reposilite.auth.AuthService;
-import org.panda_lang.reposilite.auth.AuthenticationConfiguration;
-import org.panda_lang.reposilite.auth.Authenticator;
-import org.panda_lang.reposilite.auth.TokenService;
-import org.panda_lang.reposilite.config.Configuration;
-import org.panda_lang.reposilite.config.ConfigurationLoader;
-import org.panda_lang.reposilite.console.Console;
-import org.panda_lang.reposilite.console.ConsoleConfiguration;
-import org.panda_lang.reposilite.error.FailureService;
-import org.panda_lang.reposilite.resource.FrontendProvider;
-import org.panda_lang.reposilite.metadata.MetadataConfiguration;
-import org.panda_lang.reposilite.metadata.MetadataService;
-import org.panda_lang.reposilite.repository.*;
-import org.panda_lang.reposilite.stats.StatsConfiguration;
-import org.panda_lang.reposilite.stats.StatsService;
-import org.panda_lang.reposilite.storage.FileSystemStorageProvider;
-import org.panda_lang.reposilite.storage.StorageProvider;
-import org.panda_lang.reposilite.utils.RunUtils;
-import org.panda_lang.reposilite.utils.TimeUtils;
-import org.panda_lang.utilities.commons.ValidationUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+class Reposilite(
+    private val xlogger: Logger,
+    val configuration: Configuration,
+    val workingDirectory: Path,
+    val testEnv: Boolean,
+    val failureService: FailureService,
+    val contextFactory: ReposiliteContextFactory,
+    val statsService: StatsService,
+    val storageProvider: StorageProvider,
+    val repositoryService: RepositoryService,
+    val metadataService: MetadataService,
+    val tokenService: TokenService,
+    val authenticator: Authenticator,
+    val repositoryAuthenticator: RepositoryAuthenticator,
+    val authService: AuthService,
+    val lookupService: LookupService,
+    val proxyService: ProxyService,
+    val deployService: DeployService,
+    val frontendService: FrontendProvider,
+) {
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.atomic.AtomicBoolean;
+    val httpServer = ReposiliteHttpServer(this, false)
+    val console = Console(System.`in`, failureService)
 
-public final class Reposilite {
+    private val alive = AtomicBoolean(false)
+    private val shutdownHook = Thread { shutdown() }
+    private var uptime = 0L
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("Reposilite");
-
-    private final boolean servlet;
-    private final AtomicBoolean alive;
-    private final Path configurationFile;
-    private final Path workingDirectory;
-    private final boolean testEnvEnabled;
-    private final FileSystemStorageProvider storageProvider;
-    private final Configuration configuration;
-    private final ReposiliteContextFactory contextFactory;
-    private final FailureService failureService;
-    private final Authenticator authenticator;
-    private final RepositoryAuthenticator repositoryAuthenticator;
-    private final AuthService authService;
-    private final TokenService tokenService;
-    private final StatsService statsService;
-    private final RepositoryService repositoryService;
-    private final MetadataService metadataService;
-    private final LookupService lookupService;
-    private final ProxyService proxyService;
-    private final DeployService deployService;
-    private final FrontendProvider frontend;
-    private final ReposiliteHttpServer httpServer;
-    private final Console console;
-    private final Thread shutdownHook;
-    private long uptime;
-
-    Reposilite(Path configurationFile, Path workingDirectory, boolean servlet, boolean testEnv) {
-        ValidationUtils.notNull(configurationFile, "Configuration file cannot be null. To use default configuration file, provide empty string");
-        ValidationUtils.notNull(workingDirectory, "Working directory cannot be null. To use default working directory, provide empty string");
-
-        this.servlet = servlet;
-        this.alive = new AtomicBoolean(false);
-        this.configurationFile = configurationFile;
-        this.workingDirectory = workingDirectory;
-        this.testEnvEnabled = testEnv;
-
-        this.configuration = ConfigurationLoader.tryLoad(configurationFile);
-        this.storageProvider = FileSystemStorageProvider.of(Paths.get(""), this.configuration.diskQuota);
-        this.contextFactory = new ReposiliteContextFactory(configuration.forwardedIp);
-        this.failureService = new FailureService();
-        this.tokenService = new TokenService(workingDirectory, storageProvider);
-        this.statsService = new StatsService(workingDirectory, failureService, storageProvider);
-        this.repositoryService = new RepositoryService();
-        this.metadataService = new MetadataService(failureService);
-
-        this.authenticator = new Authenticator(repositoryService, tokenService);
-        this.repositoryAuthenticator = new RepositoryAuthenticator(configuration.rewritePathsEnabled, authenticator, repositoryService);
-        this.authService = new AuthService(authenticator);
-        this.deployService = new DeployService(configuration.rewritePathsEnabled, authenticator, repositoryService, metadataService);
-        this.lookupService = new LookupService(repositoryAuthenticator, repositoryService);
-        this.proxyService = new ProxyService(configuration.storeProxied, configuration.proxyPrivate, configuration.proxyConnectTimeout, configuration.proxyReadTimeout, configuration.proxied, repositoryService, failureService, storageProvider);
-        this.frontend = FrontendProvider.load(configuration);
-        this.httpServer = new ReposiliteHttpServer(this, servlet);
-        this.console = new Console(System.in, failureService);
-        this.shutdownHook = new Thread(RunUtils.ofChecked(failureService, this::shutdown));
+    companion object {
+        @JvmStatic
+        val logger: org.slf4j.Logger = LoggerFactory.getLogger("xxxx")
     }
 
-    public ReposiliteConfiguration[] configurations() {
-        return new ReposiliteConfiguration[] {
-                new AuthenticationConfiguration(),
-                new ConsoleConfiguration(),
-                new MetadataConfiguration(),
-                new StatsConfiguration()
-        };
+    fun launch() {
+        load()
+        start()
     }
 
-    public void launch() throws Exception {
-        load();
-        start();
-    }
+    fun load() {
+        xlogger.info("")
+        xlogger.info("${Effect.GREEN}Reposilite${Effect.RESET}${ReposiliteConstants.VERSION}")
+        xlogger.info("")
 
-    public void load() throws Exception {
-        getLogger().info("--- Environment");
+        xlogger.info("--- Environment")
 
-        if (isTestEnvEnabled()) {
-            getLogger().info("Test environment enabled");
+        if (testEnv) {
+            xlogger.info("Test environment enabled")
         }
 
-        getLogger().info("Platform: " + System.getProperty("java.version") + " (" + System.getProperty("os.name") + ")");
-        getLogger().info("Configuration: " + configurationFile.toAbsolutePath());
-        getLogger().info("Working directory: " + workingDirectory.toAbsolutePath());
-        getLogger().info("");
+        xlogger.info("Platform: ${System.getProperty("java.version")} (${System.getProperty("os.name")})")
+        xlogger.info("Working directory: ${workingDirectory.toAbsolutePath()}")
+        xlogger.info("")
 
-        getLogger().info("--- Loading data");
-        tokenService.loadTokens();
+        xlogger.info("--- Loading data")
+        tokenService.loadTokens()
+        xlogger.info("")
+        repositoryService.load(configuration)
+        xlogger.info("")
 
-        getLogger().info("");
-        repositoryService.load(configuration);
-        getLogger().info("");
-
-        getLogger().info("--- Loading domain configurations");
-        Arrays.stream(configurations()).forEach(configuration -> configuration.configure(this));
+        xlogger.info("--- Loading domain configurations")
+        Arrays.stream(configurations()).forEach { configuration: ReposiliteConfiguration -> configuration.configure(this) }
     }
 
-    public Reposilite start() throws Exception {
-        this.alive.set(true);
-        Thread.currentThread().setName("Reposilite | Main Thread");
-
-        getLogger().info("Binding server at " + configuration.hostname + "::" + configuration.port);
-        this.uptime = System.currentTimeMillis();
+    fun start(): Reposilite {
+        alive.set(true)
+        Thread.currentThread().name = "Reposilite | Main Thread"
 
         try {
-            httpServer.start(configuration);
-            Runtime.getRuntime().addShutdownHook(shutdownHook);
-        } catch (Exception exception) {
-            getLogger().error("Failed to start Reposilite", exception);
-            shutdown();
-            return this;
+            xlogger.info("Binding server at ${configuration.hostname}::${configuration.port}")
+            uptime = System.currentTimeMillis()
+
+            httpServer.start(configuration)
+            Runtime.getRuntime().addShutdownHook(shutdownHook)
+        } catch (exception: Exception) {
+            xlogger.error("Failed to start Reposilite")
+            xlogger.exception(exception)
+            shutdown()
+            return this
         }
 
-        getLogger().info("Done (" + TimeUtils.format(TimeUtils.getUptime(uptime)) + "s)!");
-        console.defaultExecute("help");
+        xlogger.info("Done (" + TimeUtils.format(TimeUtils.getUptime(uptime)) + "s)!")
+        console.defaultExecute("help")
 
-        getLogger().info("Collecting status metrics...");
-        console.defaultExecute("status");
+        xlogger.info("Collecting status metrics...")
+        console.defaultExecute("status")
 
         // disable console daemon in tests due to issues with coverage and interrupt method call
         // https://github.com/jacoco/jacoco/issues/1066
-        if (!isTestEnvEnabled()) {
-            console.hook();
+        if (!testEnv) {
+            console.hook()
         }
 
-        return this;
+        return this
     }
 
-    public synchronized void shutdown() {
+    @Synchronized
+    fun shutdown() {
         if (!alive.get()) {
-            return;
+            return
         }
 
-        this.alive.set(false);
-        Runtime.getRuntime().removeShutdownHook(shutdownHook);
+        alive.set(false)
+        Runtime.getRuntime().removeShutdownHook(shutdownHook)
 
-        getLogger().info("Shutting down " + configuration.hostname  + "::" + configuration.port + " ...");
-        httpServer.stop();
+        xlogger.info("Shutting down ${configuration.hostname}::${configuration.port} ...")
+        httpServer.stop()
     }
 
-    public boolean isTestEnvEnabled() {
-        return testEnvEnabled;
-    }
+    fun getPrettyUptime() =
+        TimeUtils.format(TimeUtils.getUptime(uptime) / 60) + "min"
 
-    public String getPrettyUptime() {
-        return TimeUtils.format(TimeUtils.getUptime(uptime) / 60) + "min";
-    }
+    fun getUptime() =
+        System.currentTimeMillis() - uptime
 
-    public long getUptime() {
-        return System.currentTimeMillis() - uptime;
-    }
-
-    public ReposiliteHttpServer getHttpServer() {
-        return httpServer;
-    }
-
-    public FrontendProvider getFrontendService() {
-        return frontend;
-    }
-
-    public ProxyService getProxyService() {
-        return proxyService;
-    }
-
-    public LookupService getLookupService() {
-        return lookupService;
-    }
-
-    public DeployService getDeployService() {
-        return deployService;
-    }
-
-    public RepositoryService getRepositoryService() {
-        return repositoryService;
-    }
-
-    public MetadataService getMetadataService() {
-        return metadataService;
-    }
-
-    public StatsService getStatsService() {
-        return statsService;
-    }
-
-    public TokenService getTokenService() {
-        return tokenService;
-    }
-
-    public AuthService getAuthService() {
-        return authService;
-    }
-
-    public RepositoryAuthenticator getRepositoryAuthenticator() {
-        return repositoryAuthenticator;
-    }
-
-    public Authenticator getAuthenticator() {
-        return authenticator;
-    }
-
-    public Configuration getConfiguration() {
-        return configuration;
-    }
-
-    public FailureService getFailureService() {
-        return failureService;
-    }
-
-    public ReposiliteContextFactory getContextFactory() {
-        return contextFactory;
-    }
-
-    public Console getConsole() {
-        return console;
-    }
-
-    public Path getWorkingDirectory() {
-        return workingDirectory;
-    }
-
-    public static Logger getLogger() {
-        return LOGGER;
-    }
-
-    public StorageProvider getStorageProvider() {
-        return storageProvider;
-    }
 }

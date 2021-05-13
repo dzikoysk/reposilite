@@ -37,7 +37,7 @@ final class StatusCommand implements ReposiliteCommand {
 
     @Override
     public boolean execute(List<String> response) {
-        String latestVersion = reposilite.isTestEnvEnabled() ? ReposiliteConstants.VERSION : getVersion();
+        String latestVersion = reposilite.getTestEnv() ? ReposiliteConstants.VERSION : getVersion();
 
         response.add("Reposilite " + ReposiliteConstants.VERSION + " Status");
         response.add("  Active: " + Effect.GREEN_BOLD + reposilite.getHttpServer().isAlive() + Effect.RESET);
