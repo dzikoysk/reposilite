@@ -13,140 +13,125 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.panda_lang.reposilite.utils
 
-package org.panda_lang.reposilite.utils;
+import com.google.common.hash.Hashing
+import org.panda_lang.reposilite.Reposilite
+import org.panda_lang.reposilite.maven.repository.Repository
+import org.panda_lang.utilities.commons.IOUtils
+import org.panda_lang.utilities.commons.StringUtils
+import java.io.Closeable
+import java.io.IOException
+import java.nio.file.Path
+import java.text.CharacterIterator
+import java.text.StringCharacterIterator
+import java.util.regex.Pattern
+import kotlin.math.abs
 
-import com.google.common.hash.Hashing;
-import org.panda_lang.reposilite.Reposilite;
-import org.panda_lang.reposilite.error.ErrorDto;
-import org.panda_lang.reposilite.repository.Repository;
-import org.panda_lang.utilities.commons.StringUtils;
-import org.panda_lang.utilities.commons.function.PandaStream;
-import org.panda_lang.utilities.commons.function.Result;
+object FilesUtils {
 
-import java.io.Closeable;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.text.CharacterIterator;
-import java.text.StringCharacterIterator;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+    private val DISPLAY_SIZE_PATTERN = Pattern.compile("([0-9]+)(([KkMmGg])[Bb])")
 
-public final class FilesUtils {
-    private final static long KB_FACTOR = 1024;
-    private final static long MB_FACTOR = 1024 * KB_FACTOR;
-    private final static long GB_FACTOR = 1024 * MB_FACTOR;
+    private const val KB_FACTOR: Long = 1024
+    private const val MB_FACTOR = 1024 * KB_FACTOR
+    private const val GB_FACTOR = 1024 * MB_FACTOR
 
-    private static final String[] READABLE_CONTENT = {
-            ".xml",
-            ".pom",
-            ".txt",
-            ".json",
-            ".cdn",
-            ".yaml",
-            ".yml"
-    };
+    private val READABLE_CONTENT = arrayOf(
+        ".xml",
+        ".pom",
+        ".txt",
+        ".json",
+        ".cdn",
+        ".yaml",
+        ".yml"
+    )
 
-    private FilesUtils() {}
-
-    @SuppressWarnings({ "UnstableApiUsage", "deprecation" })
-    public static void writeFileChecksums(Repository repository, Path path, byte[] bytes) throws IOException {
-        path = repository.relativize(path);
-        Path md5 = path.resolveSibling(path.getFileName() + ".md5");
-        Path sha1 = path.resolveSibling(path.getFileName() + ".sha1");
-        Path sha256 = path.resolveSibling(path.getFileName() + ".sha256");
-        Path sha512 = path.resolveSibling(path.getFileName() + ".sha512");
-
-        repository.putFile(md5, Hashing.md5().hashBytes(bytes).asBytes());
-        repository.putFile(sha1, Hashing.sha1().hashBytes(bytes).asBytes());
-        repository.putFile(sha256, Hashing.sha256().hashBytes(bytes).asBytes());
-        repository.putFile(sha512, Hashing.sha512().hashBytes(bytes).asBytes());
-    }
-
-    public static long displaySizeToBytesCount(String displaySize) {
-        Pattern pattern = Pattern.compile("([0-9]+)(([KkMmGg])[Bb])");
-        Matcher match = pattern.matcher(displaySize);
+    fun displaySizeToBytesCount(displaySize: String): Long {
+        val match = DISPLAY_SIZE_PATTERN.matcher(displaySize)
 
         if (!match.matches() || match.groupCount() != 3) {
-            return Long.parseLong(displaySize);
+            return displaySize.toLong()
         }
 
-        long value = Long.parseLong(match.group(1));
+        val value = match.group(1).toLong()
 
-        switch (match.group(2).toUpperCase()) {
-            case "GB":
-                return value * GB_FACTOR;
-            case "MB":
-                return value * MB_FACTOR;
-            case "KB":
-                return value * KB_FACTOR;
-            default:
-                throw new NumberFormatException("Wrong format");
+        return when (match.group(2).uppercase()) {
+            "GB" -> value * GB_FACTOR
+            "MB" -> value * MB_FACTOR
+            "KB" -> value * KB_FACTOR
+            else -> throw NumberFormatException("Wrong format")
         }
     }
 
     // Source
     // ~ https://stackoverflow.com/a/3758880/3426515
-    public static String humanReadableByteCount(long bytes) {
-        long absB = bytes == Long.MIN_VALUE ? Long.MAX_VALUE : Math.abs(bytes);
+    fun humanReadableByteCount(bytes: Long): String {
+        val absB =
+            if (bytes == Long.MIN_VALUE) Long.MAX_VALUE
+            else abs(bytes)
 
         if (absB < 1024) {
-            return bytes + " B";
+            return "$bytes B"
         }
 
-        long value = absB;
-        CharacterIterator ci = new StringCharacterIterator("KMGTPE");
+        var value = absB
+        val characterIterator: CharacterIterator = StringCharacterIterator("KMGTPE")
+        var i = 40
 
-        for (int i = 40; i >= 0 && absB > 0xfffccccccccccccL >> i; i -= 10) {
-            value >>= 10;
-            ci.next();
+        while (i >= 0 && absB > 0xfffccccccccccccL shr i) {
+            value = value shr 10
+            characterIterator.next()
+            i -= 10
         }
 
-        value *= Long.signum(bytes);
-        return String.format("%.1f %ciB", value / 1024.0, ci.current());
+        value *= java.lang.Long.signum(bytes).toLong()
+        return String.format("%.1f %ciB", value / 1024.0, characterIterator.current())
     }
 
-    public static boolean isReadable(String name) {
-        for (String extension : READABLE_CONTENT) {
-            if (name.endsWith(extension)) {
-                return true;
-            }
-        }
+    fun isReadable(name: String): Boolean =
+        READABLE_CONTENT.any { extension -> name.endsWith(extension) }
 
-        return false;
+    fun getMimeType(path: String, defaultType: String): String =
+        MimeTypes.getMimeType(getExtension(path), defaultType)
+
+    fun writeFileChecksums(repository: Repository, path: Path, bytes: ByteArray?) {
+        val relativePath = repository.relativize(path)
+
+        val md5 = relativePath.resolveSibling(relativePath.fileName.toString() + ".md5")
+        repository.putFile(md5, Hashing.md5().hashBytes(bytes).asBytes())
+
+        val sha1 = relativePath.resolveSibling(relativePath.fileName.toString() + ".sha1")
+        val sha256 = relativePath.resolveSibling(relativePath.fileName.toString() + ".sha256")
+        val sha512 = relativePath.resolveSibling(relativePath.fileName.toString() + ".sha512")
+        repository.putFile(sha1, Hashing.sha1().hashBytes(bytes).asBytes())
+        repository.putFile(sha256, Hashing.sha256().hashBytes(bytes).asBytes())
+        repository.putFile(sha512, Hashing.sha512().hashBytes(bytes).asBytes())
     }
 
-    public static String getMimeType(String path, String defaultType) {
-        return MimeTypes.getMimeType(getExtension(path), defaultType);
-    }
-
-    public static void close(Closeable closeable) {
+    fun close(closeable: Closeable?) {
         if (closeable != null) {
             try {
-                closeable.close();
-            } catch (IOException e) {
+                closeable.close()
+            } catch (ignored: IOException) {
                 // idc
             }
         }
     }
 
-    public static List<String> toNames(Path[] files) {
-        return PandaStream.of(files)
-                .map(path -> path.getFileName().toString())
-                .toList();
+    fun toNames(files: Array<Path>): List<String> =
+        files
+            .map { it.fileName.toString() }
+            .toList()
+
+    fun getExtension(name: String): String {
+        val occurrence = name.lastIndexOf(".")
+        return if (occurrence == -1) StringUtils.EMPTY else name.substring(occurrence + 1)
     }
 
-    public static String getExtension(String name) {
-        int occurrence = name.lastIndexOf(".");
-        return occurrence == -1 ? StringUtils.EMPTY : name.substring(occurrence + 1);
-    }
-
-    public static String getResource(String name) {
-        return org.panda_lang.utilities.commons.IOUtils.convertStreamToString(Reposilite.class.getResourceAsStream(name))
-                .orElseThrow(ioException -> {
-                    throw new RuntimeException("Cannot load resource " + name, ioException);
-                });
+    fun getResource(name: String): String {
+        return IOUtils
+            .convertStreamToString(Reposilite::class.java.getResourceAsStream(name))
+            .orElseThrow { RuntimeException("Cannot load resource $name", it) }
     }
 
 }

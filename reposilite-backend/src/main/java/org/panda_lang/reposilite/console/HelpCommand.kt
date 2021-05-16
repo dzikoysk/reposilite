@@ -13,65 +13,51 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.panda_lang.reposilite.console
 
-package org.panda_lang.reposilite.console;
+import org.panda_lang.reposilite.ReposiliteConstants
+import org.panda_lang.utilities.commons.text.Joiner
+import picocli.CommandLine
+import picocli.CommandLine.Command
+import picocli.CommandLine.Model.ArgSpec
+import picocli.CommandLine.Parameters
+import java.util.*
 
-import org.panda_lang.reposilite.ReposiliteConstants;
-import org.panda_lang.utilities.commons.text.Joiner;
-import picocli.CommandLine;
-import picocli.CommandLine.Command;
-import picocli.CommandLine.Model.ArgSpec;
-import picocli.CommandLine.Model.CommandSpec;
-import picocli.CommandLine.Parameters;
+@Command(name = "help", aliases = ["?"], helpCommand = true, description = ["List of available commands"])
+internal class HelpCommand(private val consoleFacade: ConsoleFacade) : ReposiliteCommand {
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+    @Parameters(index = "0", paramLabel = "[<command>]", description = ["display usage of the given command"], defaultValue = "")
+    private lateinit var requestedCommand: String
 
-@Command(name = "help", aliases = "?", helpCommand = true, description = "List of available commands")
-final class HelpCommand implements ReposiliteCommand {
+    override fun execute(output: MutableList<String>): Boolean {
+        val uniqueCommands: MutableSet<CommandLine> = TreeSet(Comparator.comparing { it.commandName })
 
-    @Parameters(index = "0", paramLabel = "[<command>]", description = "display usage of the given command", defaultValue = "")
-    private String requestedCommand;
-
-    private final Console console;
-
-    HelpCommand(Console console) {
-        this.console = console;
-    }
-
-    @Override
-    public boolean execute(List<String> response) {
-        Set<CommandLine> uniqueCommands = new TreeSet<>(Comparator.comparing(CommandLine::getCommandName));
-
-        if (!requestedCommand.isEmpty()) {
-            CommandLine requested = console.getCommandExecutor().getSubcommands().get(requestedCommand);
+        if (requestedCommand.isNotEmpty()) {
+            val requested: CommandLine? = console.commandExecutor.subcommands[requestedCommand]
 
             if (requested == null) {
-                response.add("Unknown command '" + requestedCommand + "'");
-                return false;
+                output.add("Unknown command '$requestedCommand'")
+                return false
             }
 
-            response.add(requested.getUsageMessage());
-            return true;
+            output.add(requested.usageMessage)
+            return true
         }
 
         if (uniqueCommands.isEmpty()) {
-            uniqueCommands.addAll(console.getCommandExecutor().getSubcommands().values());
+            uniqueCommands.addAll(console.commandExecutor.subcommands.values)
         }
 
-        response.add("Reposilite " + ReposiliteConstants.VERSION + " Commands:");
+        output.add("Reposilite ${ReposiliteConstants.VERSION} Commands:")
 
-        for (CommandLine command : uniqueCommands) {
-            CommandSpec specification = command.getCommandSpec();
+        for (command in uniqueCommands) {
+            val specification = command.commandSpec
 
-            response.add("  " + command.getCommandName()
-                    + " " + Joiner.on(" ").join(specification.args(), ArgSpec::paramLabel)
-                    + " - " + Joiner.on(". ").join(specification.usageMessage().description()));
+            output.add("  " + command.commandName
+                    + " " + Joiner.on(" ").join(specification.args()) { obj: ArgSpec -> obj.paramLabel() }
+                    + " - " + Joiner.on(". ").join(*specification.usageMessage().description()))
         }
 
-        return true;
+        return true
     }
-
 }

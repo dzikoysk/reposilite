@@ -13,31 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.panda_lang.reposilite.console
 
-package org.panda_lang.reposilite.console;
+import org.panda_lang.reposilite.Reposilite
+import picocli.CommandLine.Command
 
-import org.panda_lang.reposilite.Reposilite;
-import picocli.CommandLine.Command;
+@Command(name = "stop", aliases = ["shutdown"], description = ["Shutdown server"])
+internal class StopCommand(private val reposilite: Reposilite) : ReposiliteCommand {
 
-import java.util.List;
-
-@Command(name = "stop", aliases = "shutdown", description = "Shutdown server")
-final class StopCommand implements ReposiliteCommand {
-
-    private final Reposilite reposilite;
-
-    StopCommand(Reposilite reposilite) {
-        this.reposilite = reposilite;
-    }
-
-    @Override
-    public boolean execute(List<String> output) {
-        try {
-            reposilite.shutdown();
-        } catch (Exception exception) {
-            exception.printStackTrace();
-        }
-        return true;
+    override fun execute(output: MutableList<String>): Boolean {
+        reposilite.shutdown()
+        return true
     }
 
 }

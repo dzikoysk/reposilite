@@ -13,35 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.panda_lang.reposilite.console.api
 
-package org.panda_lang.reposilite.console;
+import com.google.api.client.util.Key
 
-import com.google.api.client.util.Key;
-
-import java.util.List;
-
-public final class RemoteExecutionDto {
-
+internal data class RemoteExecutionResponse(
     @Key
-    private boolean succeeded;
+    val isSucceeded: Boolean,
     @Key
-    private List<String> response;
-
-    public RemoteExecutionDto(boolean succeeded, List<String> response) {
-        this.succeeded = succeeded;
-        this.response = response;
-    }
-
-    public RemoteExecutionDto() {
-        // Jackson
-    }
-
-    public boolean isSucceeded() {
-        return succeeded;
-    }
-
-    public List<String> getResponse() {
-        return response;
-    }
-
-}
+    val response: List<String>
+)

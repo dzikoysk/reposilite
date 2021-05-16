@@ -13,77 +13,52 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.panda_lang.reposilite;
-
-import org.apache.commons.collections4.queue.CircularFifoQueue;
-import org.tinylog.core.LogEntry;
-import org.tinylog.core.LogEntryValue;
-import org.tinylog.writers.AbstractFormatPatternWriter;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
+package org.panda_lang.reposilite
 
 /**
  * dirty af
  */
-public final class ReposiliteWriter extends AbstractFormatPatternWriter {
-
-    public static final int CACHE_SIZE = 100;
-    private static final Queue<String> CACHE = new CircularFifoQueue<>(CACHE_SIZE);
-    private static final Map<Object, Consumer<String>> CONSUMERS = new ConcurrentHashMap<>();
-
-    public ReposiliteWriter(Map<String, String> properties) {
-        super(properties);
+/*
+class ReposiliteWriter(properties: Map<String?, String?>?) : AbstractFormatPatternWriter(properties) {
+    override fun write(logEntry: LogEntry) {
+        val message = render(logEntry)
+        CACHE.add(message)
+        CONSUMERS.forEach { (`object`: Any?, consumer: Consumer<String?>) -> consumer.accept(message) }
+        print(message)
     }
 
-    @Override
-    public void write(LogEntry logEntry) {
-        String message = render(logEntry);
-        CACHE.add(message);
-        CONSUMERS.forEach((object, consumer) -> consumer.accept(message));
-        System.out.print(message);
+    override fun flush() {}
+    override fun close() {
+        clear()
     }
 
-    @Override
-    public void flush() {
+    override fun getRequiredLogEntryValues(): Collection<LogEntryValue> {
+        val logEntryValues = super.getRequiredLogEntryValues()
+        logEntryValues.add(LEVEL)
+        return logEntryValues
     }
 
-    @Override
-    public void close() {
-        clear();
-    }
+    companion object {
+        const val CACHE_SIZE = 100
+        private val CACHE: Queue<String> = CircularFifoQueue(CACHE_SIZE)
+        private val CONSUMERS: MutableMap<Any, Consumer<String?>> = ConcurrentHashMap()
+        fun clear() {
+            CACHE.clear()
+            CONSUMERS.clear()
+        }
 
-    public static void clear() {
-        CACHE.clear();
-        CONSUMERS.clear();
-    }
+        operator fun contains(message: String?): Boolean {
+            return cache.stream()
+                .filter { obj: String? -> Objects.nonNull(obj) }
+                .anyMatch { line: String -> line.contains(message!!) }
+        }
 
-    public static boolean contains(String message) {
-        return getCache().stream()
-                .filter(Objects::nonNull)
-                .anyMatch(line -> line.contains(message));
+        @JvmStatic
+        val cache: List<String>
+            get() = ArrayList(CACHE)
+        @JvmStatic
+        val consumers: Map<Any, Consumer<String?>>
+            get() = CONSUMERS
     }
-
-    public static List<String> getCache() {
-        return new ArrayList<>(CACHE);
-    }
-
-    @Override
-    public Collection<LogEntryValue> getRequiredLogEntryValues() {
-        Collection<LogEntryValue> logEntryValues = super.getRequiredLogEntryValues();
-        logEntryValues.add(LogEntryValue.LEVEL);
-        return logEntryValues;
-    }
-
-    public static Map<Object, Consumer<String>> getConsumers() {
-        return CONSUMERS;
-    }
-
 }
+ */

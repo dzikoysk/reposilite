@@ -44,7 +44,7 @@ class KeygenCommandTest extends ReposiliteTestSpecification {
     @Test
     void 'should create token based on qualifier' () {
         assertTrue executeCommand('keygen org.panda-lang.reposilite reposilite rw')
-        assertEquals '*/org/panda-lang/reposilite', super.reposilite.getTokenService().getToken('reposilite').get().getPath()
+        assertEquals '*/org/panda-lang/reposilite', super.reposilite.getTokenService().getToken('reposilite').get().uri()
     }
 
 //    @Test

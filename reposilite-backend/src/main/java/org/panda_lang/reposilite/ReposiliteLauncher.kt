@@ -13,71 +13,77 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.panda_lang.reposilite
 
-package org.panda_lang.reposilite;
+import org.panda_lang.reposilite.ReposiliteFactory.createReposilite
+import org.panda_lang.reposilite.ReposiliteConstants
+import kotlin.jvm.JvmStatic
+import org.panda_lang.reposilite.ReposiliteLauncher
+import org.panda_lang.reposilite.Reposilite
+import org.panda_lang.reposilite.utils.RunUtils
+import org.panda_lang.reposilite.ReposiliteFactory
+import org.panda_lang.reposilite.ReposiliteLauncher.Companion
+import org.panda_lang.utilities.commons.function.ThrowingRunnable
+import picocli.CommandLine
+import picocli.CommandLine.Command
+import picocli.CommandLine.Option
+import java.nio.file.Paths
+import java.util.*
 
-import org.panda_lang.reposilite.utils.RunUtils;
-import org.panda_lang.utilities.commons.console.Effect;
-import picocli.CommandLine;
-import picocli.CommandLine.Command;
-import picocli.CommandLine.Option;
+@Command(name = "reposilite", version = ["Reposilite " + ReposiliteConstants.VERSION])
+class ReposiliteLauncher {
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Optional;
+    @Option(names = ["--help", "-H"], usageHelp = true, description = ["display help message"])
+    private val usageHelpRequested = false
 
-@Command(name = "reposilite", version = "Reposilite " + ReposiliteConstants.VERSION)
-public final class ReposiliteLauncher {
+    @Option(names = ["--version", "-V"], versionHelp = true, description = ["display current version of reposilite"])
+    private val versionInfoRequested = false
 
-    @Option(names = { "--help", "-H" }, usageHelp = true, description = "display help message")
-    private boolean usageHelpRequested;
+    @Option(names = ["--test-env", "-te"], description = ["enable test mode"])
+    private val testEnv = false
 
-    @Option(names = { "--version", "-V" }, versionHelp = true, description = "display current version of reposilite")
-    private boolean versionInfoRequested;
+    @Option(names = ["--working-directory", "-wd"], description = ["set custom working directory of application instance"])
+    private val workingDirectory: String? = null
 
-    @Option(names = { "--test-env", "-te" }, description = "enable test mode")
-    private boolean testEnv;
+    @Option(names = ["--config", "-cfg"], description = ["set custom location of configuration file"])
+    private val configurationFile: String? = null
 
-    @Option(names = { "--working-directory", "-wd" }, description = "set custom working directory of application instance")
-    private String workingDirectory;
+    companion object {
+        fun create(vararg args: String?): Optional<Reposilite> {
+            val launcher = CommandLine.populateCommand(ReposiliteLauncher(), *args)
 
-    @Option(names = { "--config", "-cfg" }, description = "set custom location of configuration file")
-    private String configurationFile;
+            if (launcher.usageHelpRequested) {
+                CommandLine.usage(launcher, System.out)
+                return Optional.empty()
+            }
 
-    public static void main(String... args) {
-        create(args).ifPresent(reposilite -> RunUtils.ofChecked(reposilite.getFailureService(), reposilite::launch).run());
-    }
+            if (launcher.versionInfoRequested) {
+                println("Reposilite " + ReposiliteConstants.VERSION)
+                return Optional.empty()
+            }
 
-    public static Optional<Reposilite> create(String... args) {
-        ReposiliteLauncher launcher = CommandLine.populateCommand(new ReposiliteLauncher(), args);
-
-        if (launcher.usageHelpRequested) {
-            CommandLine.usage(launcher, System.out);
-            return Optional.empty();
+            return Optional.of(create(launcher.workingDirectory, launcher.configurationFile, false, launcher.testEnv))
         }
 
-        if (launcher.versionInfoRequested) {
-            System.out.println("Reposilite " + ReposiliteConstants.VERSION);
-            return Optional.empty();
+        fun create(workingDirectoryString: String?, configurationFileName: String?, servlet: Boolean, testEnv: Boolean): Reposilite {
+            var workingDirectory = Paths.get("")
+
+            if (workingDirectoryString != null && !workingDirectoryString.isEmpty()) {
+                workingDirectory = Paths.get(workingDirectoryString)
+            }
+
+            val configurationFile = workingDirectory.resolve(
+                if (configurationFileName == null || configurationFileName.isEmpty()) ReposiliteConstants.CONFIGURATION_FILE_NAME else configurationFileName
+            )
+
+            val reposiliteFactory = ReposiliteFactory()
+            return reposiliteFactory.createReposilite(configurationFile, workingDirectory, testEnv)
         }
-
-        return Optional.of(create(launcher.workingDirectory, launcher.configurationFile, false, launcher.testEnv));
     }
+}
 
-    public static Reposilite create(String workingDirectoryString, String configurationFileName, boolean servlet, boolean testEnv) {
-        Path workingDirectory = Paths.get("");
-
-        if (workingDirectoryString != null && !workingDirectoryString.isEmpty()) {
-            workingDirectory = Paths.get(workingDirectoryString);
-        }
-
-        Path configurationFile = workingDirectory.resolve(configurationFileName == null || configurationFileName.isEmpty()
-                ? ReposiliteConstants.CONFIGURATION_FILE_NAME
-                : configurationFileName
-        );
-
-        ReposiliteFactory reposiliteFactory = new ReposiliteFactory();
-        return reposiliteFactory.createReposilite(configurationFile, workingDirectory, testEnv);
+fun main(args: Array<String>) {
+    ReposiliteLauncher.create(*args).ifPresent { reposilite: Reposilite ->
+        RunUtils.ofChecked(reposilite.getFailureService(), ThrowingRunnable { reposilite.launch() }).run()
     }
-
 }

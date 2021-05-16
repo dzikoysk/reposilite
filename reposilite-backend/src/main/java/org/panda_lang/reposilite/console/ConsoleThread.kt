@@ -13,49 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.panda_lang.reposilite.console
 
-package org.panda_lang.reposilite.console;
+import org.panda_lang.reposilite.failure.FailureFacade
+import java.io.InputStream
+import java.util.*
 
-import org.panda_lang.reposilite.Reposilite;
-import org.panda_lang.reposilite.error.FailureService;
+internal class ConsoleThread(
+    private val console: Console,
+    private val source: InputStream,
+    private val failureFacade: FailureFacade
+) : Thread() {
 
-import java.io.InputStream;
-import java.util.Scanner;
-
-final class ConsoleThread extends Thread {
-
-    private final Console console;
-    private final InputStream source;
-    private final FailureService failureService;
-
-    ConsoleThread(Console console, InputStream source, FailureService failureService) {
-        this.setName("Reposilite | Console Thread");
-        this.setDaemon(true);
-        this.console = console;
-        this.source = source;
-        this.failureService = failureService;
+    init {
+        name = "Reposilite | Console Thread"
+        isDaemon = true
     }
 
-    @Override
-    public void run() {
-        Scanner in = new Scanner(source);
+    override fun run() {
+        val input = Scanner(source)
 
-        if (!in.hasNextLine()) {
-            console.getLogger().warn("Interactive CLI is not available in current environment.");
-            console.getLogger().warn("Solution for Docker users: https://docs.docker.com/engine/reference/run/#foreground");
-            return;
+        if (!input.hasNextLine()) {
+            console.logger.warn("Interactive CLI is not available in current environment.")
+            console.logger.warn("Solution for Docker users: https://docs.docker.com/engine/reference/run/#foreground")
+            return
         }
 
         do {
-            String command = in.nextLine();
+            val command = input.nextLine()
 
             try {
-                console.defaultExecute(command);
-            } catch (Exception exception) {
-                failureService.throwException("Command: " + command, exception);
+                console.defaultExecute(command)
             }
-        }
-        while (!isInterrupted() && in.hasNextLine());
+            catch (exception: Exception) {
+                failureFacade.throwException("Command: $command", exception)
+            }
+        } while (!isInterrupted && input.hasNextLine())
     }
 
 }

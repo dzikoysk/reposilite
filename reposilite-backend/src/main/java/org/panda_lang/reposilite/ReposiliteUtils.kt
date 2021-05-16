@@ -13,69 +13,72 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.panda_lang.reposilite
 
-package org.panda_lang.reposilite;
+import org.panda_lang.reposilite.maven.repository.Repository
+import org.panda_lang.reposilite.maven.repository.RepositoryService
+import org.panda_lang.utilities.commons.StringUtils
+import org.panda_lang.utilities.commons.function.Option
 
-import org.panda_lang.reposilite.repository.Repository;
-import org.panda_lang.reposilite.repository.RepositoryService;
-import org.panda_lang.utilities.commons.StringUtils;
-import org.panda_lang.utilities.commons.function.Option;
-
-public final class ReposiliteUtils {
-
-    private ReposiliteUtils() { }
+object ReposiliteUtils {
 
     /**
      * Process uri applying following changes:
      *
-     * <ul>
-     *     <li>Remove root slash</li>
-     *     <li>Remove illegal path modifiers like .. and ~</li>
-     * </ul>
+     *
+     *  * Remove root slash
+     *  * Remove illegal path modifiers like .. and ~
+     *
      *
      * @param uri the uri to process
      * @return the normalized uri
      */
-    public static Option<String> normalizeUri(String uri) {
-        if (uri.contains("..") || uri.contains("~") || uri.contains(":") || uri.contains("\\")) {
-            return Option.none();
+    @JvmStatic
+    fun normalizeUri(uri: String): Option<String> {
+        var normalizedUri = uri
+
+        if (normalizedUri.contains("..") || normalizedUri.contains("~") || normalizedUri.contains(":") || normalizedUri.contains("\\")) {
+            return Option.none()
         }
 
-        while (uri.contains("//")) {
-            uri = uri.replace("//", "/");
-        }
-  
-        if (uri.startsWith("/")) {
-            uri = uri.substring(1);
+        while (normalizedUri.contains("//")) {
+            normalizedUri = normalizedUri.replace("//", "/")
         }
 
-        return Option.of(uri);
+        if (normalizedUri.startsWith("/")) {
+            normalizedUri = normalizedUri.substring(1)
+        }
+
+        return Option.of(normalizedUri)
     }
 
-    public static Option<Repository> getRepository(boolean rewritePathsEnabled, RepositoryService repositoryService, String uri) {
-        while (uri.contains("//")) {
-            uri = uri.replace("//", "/");
+    @JvmStatic
+    fun getRepository(rewritePathsEnabled: Boolean, repositoryService: RepositoryService, uri: String): Option<Repository> {
+        var normalizedUri = uri
+
+        while (normalizedUri.contains("//")) {
+            normalizedUri = normalizedUri.replace("//", "/")
         }
-      
-        String repositoryName = uri;
-      
+
+        var repositoryName = normalizedUri
+
         if (repositoryName.startsWith("/")) {
-            repositoryName = repositoryName.substring(1);
+            repositoryName = repositoryName.substring(1)
         }
 
         if (repositoryName.contains("..") || repositoryName.contains("~") || repositoryName.contains(":") || repositoryName.contains("\\")) {
-            return Option.none();
+            return Option.none()
         }
 
-        String repository = StringUtils.countOccurrences(repositoryName, "/") > 0
-                ? repositoryName.substring(0, repositoryName.indexOf('/'))
-                : repositoryName;
+        var repository: String =
+            if (StringUtils.countOccurrences(repositoryName, "/") > 0) repositoryName.substring(0, repositoryName.indexOf('/'))
+            else repositoryName
 
         if (rewritePathsEnabled && repositoryService.getRepository(repository) == null) {
-            repository = repositoryService.getPrimaryRepository().getName();
+            repository = repositoryService.primaryRepository.name
         }
 
-        return Option.of(repositoryService.getRepository(repository));
+        return Option.of(repositoryService.getRepository(repository))
     }
 
 }

@@ -13,110 +13,85 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.panda_lang.reposilite.console
 
-package org.panda_lang.reposilite.console;
+import net.dzikoysk.dynamiclogger.Journalist
+import net.dzikoysk.dynamiclogger.Logger
+import org.panda_lang.reposilite.ReposiliteConstants
+import org.panda_lang.reposilite.failure.FailureFacade
+import org.panda_lang.utilities.commons.function.Result
+import picocli.CommandLine
+import picocli.CommandLine.Command
+import picocli.CommandLine.MissingParameterException
+import picocli.CommandLine.UnmatchedArgumentException
+import java.io.InputStream
+import java.util.function.Consumer
 
-import net.dzikoysk.dynamiclogger.Journalist;
-import net.dzikoysk.dynamiclogger.Logger;
-import org.panda_lang.reposilite.ReposiliteConstants;
-import org.panda_lang.reposilite.error.FailureService;
-import org.panda_lang.utilities.commons.function.Result;
-import picocli.CommandLine;
-import picocli.CommandLine.Command;
-import picocli.CommandLine.MissingParameterException;
-import picocli.CommandLine.ParseResult;
-import picocli.CommandLine.UnmatchedArgumentException;
+@Command(name = "", version = ["Reposilite " + ReposiliteConstants.VERSION])
+internal class Console(
+    private val journalist: Journalist,
+    private val failureFacade: FailureFacade,
+    private val source: InputStream
+) : Journalist {
 
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.function.Consumer;
+    private val consoleThread = ConsoleThread(this, source, failureFacade)
+    private val commandExecutor = CommandLine(this)
 
-@Command(name = "", version = "Reposilite " + ReposiliteConstants.VERSION)
-public final class Console implements Journalist {
-
-    private final FailureService failureService;
-    private final ConsoleThread consoleThread;
-    private final CommandLine commandExecutor;
-
-    public Console(FailureService failureService, InputStream source) {
-        this.failureService = failureService;
-        this.consoleThread = new ConsoleThread(this, source, failureService);
-        this.commandExecutor = new CommandLine(this);
+    fun defaultExecute(command: String): Boolean {
+        logger.info("")
+        val status = execute(command) { line: String? -> logger.info(line) }
+        logger.info("")
+        return status
     }
 
-    public void hook() {
-        consoleThread.start();
-    }
-
-    public CommandLine registerCommand(ReposiliteCommand command) {
-        return commandExecutor.addSubcommand(command);
-    }
-
-    public boolean defaultExecute(String command) {
-        getLogger().info("");
-        boolean status = execute(command, line -> getLogger().info(line));
-        getLogger().info("");
-
-        return status;
-    }
-
-    public boolean execute(String command, Consumer<String> outputConsumer) {
-        Result<List<String>, List<String>> response = execute(command);
-
-        for (String entry : (response.isOk() ? response.get() : response.getError())) {
-            for (String line : entry.replace(System.lineSeparator(), "\n").split("\n")) {
-                outputConsumer.accept(line);
+    fun execute(command: String, outputConsumer: Consumer<String>): Boolean {
+        val response = execute(command)
+        for (entry in if (response.isOk) response.get() else response.error) {
+            for (line in entry.replace(System.lineSeparator(), "\n").split("\n").toTypedArray()) {
+                outputConsumer.accept(line)
             }
         }
-
-        return response.isOk();
+        return response.isOk
     }
 
-    public Result<List<String>, List<String>> execute(String command) {
-        command = command.trim();
+    fun execute(command: String): Result<List<String>, List<String>> {
+        val processedCommand = command.trim()
 
-        if (command.isEmpty()) {
-            return Result.error(Collections.emptyList());
+        if (processedCommand.isEmpty()) {
+            return Result.error(emptyList())
         }
 
-        List<String> response = new ArrayList<>();
+        val response: MutableList<String> = ArrayList()
 
-        try {
-            ParseResult result = commandExecutor.parseArgs(command.split(" "));
-            Object commandObject = result.subcommand().commandSpec().userObject();
+        return try {
+            val parseResult = commandExecutor.parseArgs(*processedCommand.split(" ").toTypedArray())
 
-            if (!(commandObject instanceof ReposiliteCommand)) {
-                return Result.error(Collections.singletonList(commandExecutor.getUsageMessage()));
-            }
+            val commandObject = parseResult.subcommand().commandSpec().userObject() as? ReposiliteCommand
+                ?: return Result.error(listOf(commandExecutor.usageMessage))
 
-            return ((ReposiliteCommand) commandObject).execute(response)
-                    ? Result.ok(response)
-                    : Result.error(response);
+            if (commandObject.execute(response)) Result.ok(response) else Result.error(response)
         }
-        catch (UnmatchedArgumentException unmatchedArgumentException) {
-            return Result.error(Collections.singletonList("Unknown command " + command));
+        catch (unmatchedArgumentException: UnmatchedArgumentException) {
+            Result.error(listOf("Unknown command $processedCommand"))
         }
-        catch (MissingParameterException missingParameterException) {
-            response.add(missingParameterException.getMessage());
-            response.add("");
-            response.add(missingParameterException.getCommandLine().getUsageMessage());
-            return Result.error(response);
+        catch (missingParameterException: MissingParameterException) {
+            response.add(missingParameterException.message.toString())
+            response.add("")
+            response.add(missingParameterException.commandLine.usageMessage)
+            Result.error(response)
         }
     }
 
-    public void stop() {
-        consoleThread.interrupt();
-    }
+    fun registerCommand(command: ReposiliteCommand): CommandLine =
+        commandExecutor.addSubcommand(command)
 
-    protected CommandLine getCommandExecutor() {
-        return commandExecutor;
-    }
+    fun hook() =
+        consoleThread.start()
 
-    @Override
-    public Logger getLogger() {
-        return failureService.getLogger();
-    }
+    fun stop() =
+        consoleThread.interrupt()
+
+    override fun getLogger(): Logger =
+        journalist.logger
 
 }

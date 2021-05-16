@@ -13,23 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.panda_lang.reposilite
 
-package org.panda_lang.reposilite;
+object ReposiliteConstants {
 
-public final class ReposiliteConstants {
+    const val NAME = "Reposilite"
 
-    public static final String NAME = "Reposilite";
+    const val VERSION = "3.0.0-SNAPSHOT"
 
-    public static final String VERSION = "3.0.0-SNAPSHOT";
+    const val REMOTE_VERSION = "https://repo.panda-lang.org/org/panda-lang/reposilite/latest"
 
-    public static final String REMOTE_VERSION = "https://repo.panda-lang.org/org/panda-lang/reposilite/latest";
-
-    public static final String CONFIGURATION_FILE_NAME = "reposilite.cdn";
-
-    public static final String TOKENS_FILE_NAME = "tokens.dat";
-
-    public static final String STATS_FILE_NAME = "stats.dat";
-
-    private ReposiliteConstants() { }
+    const val CONFIGURATION_FILE_NAME = "reposilite.cdn"
 
 }

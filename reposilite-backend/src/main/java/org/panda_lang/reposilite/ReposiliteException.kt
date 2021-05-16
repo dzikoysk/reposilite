@@ -13,13 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.panda_lang.reposilite
 
-package org.panda_lang.reposilite;
-
-public final class ReposiliteException extends RuntimeException {
-
-    public ReposiliteException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-}
+class ReposiliteException(message: String, cause: Throwable) : RuntimeException(message, cause)

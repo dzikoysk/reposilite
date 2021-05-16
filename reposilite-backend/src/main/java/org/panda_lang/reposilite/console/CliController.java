@@ -17,7 +17,6 @@
 package org.panda_lang.reposilite.console;
 
 import io.javalin.websocket.WsConfig;
-import org.panda_lang.reposilite.Reposilite;
 import org.panda_lang.reposilite.ReposiliteContext;
 import org.panda_lang.reposilite.ReposiliteContextFactory;
 import org.panda_lang.reposilite.ReposiliteWriter;
@@ -28,7 +27,7 @@ import org.panda_lang.utilities.commons.function.Result;
 
 import java.util.function.Consumer;
 
-public final class CliController implements Consumer<WsConfig> {
+final class CliController implements Consumer<WsConfig> {
 
     private static final String AUTHORIZATION_PREFIX = "Authorization:";
 

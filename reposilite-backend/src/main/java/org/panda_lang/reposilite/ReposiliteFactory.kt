@@ -2,14 +2,13 @@ package org.panda_lang.reposilite
 
 import net.dzikoysk.dynamiclogger.backend.AggregatedLogger
 import net.dzikoysk.dynamiclogger.slf4j.Slf4jLogger
-import org.panda_lang.reposilite.auth.AuthService
+import org.panda_lang.reposilite.auth.application.AuthenticationWebConfiguration
 import org.panda_lang.reposilite.auth.Authenticator
-import org.panda_lang.reposilite.auth.TokenService
 import org.panda_lang.reposilite.config.ConfigurationLoader
 import org.panda_lang.reposilite.console.Console
-import org.panda_lang.reposilite.error.FailureService
-import org.panda_lang.reposilite.metadata.MetadataService
-import org.panda_lang.reposilite.repository.*
+import org.panda_lang.reposilite.failure.FailureService
+import org.panda_lang.reposilite.maven.metadata.MetadataFacade
+import org.panda_lang.reposilite.maven.repository.*
 import org.panda_lang.reposilite.resource.FrontendProvider
 import org.panda_lang.reposilite.stats.StatsService
 import org.panda_lang.reposilite.storage.FileSystemStorageProvider
@@ -29,12 +28,13 @@ class ReposiliteFactory {
 
         val failureService = FailureService(logger)
         val storageProvider = FileSystemStorageProvider.of(Paths.get(""), configuration.diskQuota)
-        val tokenService = TokenService(logger, workingDirectory, storageProvider)
+
+        val authenticationFacade = AuthenticationWebConfiguration
 
         val repositoryService = RepositoryService(logger)
         val authenticator = Authenticator(repositoryService, tokenService)
         val repositoryAuthenticator = RepositoryAuthenticator(configuration.rewritePathsEnabled, authenticator, repositoryService)
-        val metadataService = MetadataService(failureService)
+        val metadataService = MetadataFacade(failureService)
 
         return Reposilite(
             logger = logger,

@@ -16,7 +16,7 @@
 
 package org.panda_lang.reposilite.utils;
 
-import org.panda_lang.reposilite.error.FailureService;
+import org.panda_lang.reposilite.failure.FailureService;
 import org.panda_lang.utilities.commons.function.ThrowingRunnable;
 
 import java.util.concurrent.ExecutorService;

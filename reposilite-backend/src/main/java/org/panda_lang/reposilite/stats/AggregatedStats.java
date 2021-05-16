@@ -23,7 +23,7 @@ import java.util.Map.Entry;
 import java.util.function.BiPredicate;
 import java.util.stream.Collectors;
 
-public final class AggregatedStats {
+final class AggregatedStats {
 
     private final StatsEntity aggregatedStats;
 
