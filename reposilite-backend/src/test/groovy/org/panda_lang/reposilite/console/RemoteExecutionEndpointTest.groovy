@@ -25,6 +25,7 @@ import org.apache.http.HttpStatus
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.panda_lang.reposilite.ReposiliteIntegrationTestSpecification
+import org.panda_lang.reposilite.console.api.RemoteExecutionResponse
 import org.panda_lang.utilities.commons.StringUtils
 import org.panda_lang.utilities.commons.collection.Pair
 
@@ -85,14 +86,14 @@ class RemoteExecutionEndpointTest extends ReposiliteIntegrationTestSpecification
         assertEquals HttpStatus.SC_BAD_REQUEST, response.getKey()
     }
 
-    private static Pair<Integer, RemoteExecutionDto> execute(String alias, String token, String command) {
+    private static Pair<Integer, RemoteExecutionResponse> execute(String alias, String token, String command) {
         def request = REQUEST_FACTORY.buildPostRequest(url('/api/execute'), ByteArrayContent.fromString("text/plain", command))
         request.setThrowExceptionOnExecuteError(false)
         request.headers.setBasicAuthentication(alias, token)
         request.setParser(PARSER)
 
         def response = request.execute()
-        return new Pair<>(response.statusCode, response.isSuccessStatusCode() ? response.parseAs(RemoteExecutionDto.class) : null)
+        return new Pair<>(response.statusCode, response.isSuccessStatusCode() ? response.parseAs(RemoteExecutionResponse.class) : null)
     }
 
 }

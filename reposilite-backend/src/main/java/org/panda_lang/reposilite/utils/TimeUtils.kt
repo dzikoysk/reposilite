@@ -13,22 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.panda_lang.reposilite.utils
 
-package org.panda_lang.reposilite.utils;
+import java.util.*
 
-import java.util.Locale;
+object TimeUtils {
 
-public final class TimeUtils {
-
-    private TimeUtils() { }
-
-    public static double getUptime(long uptime) {
-        long current = System.currentTimeMillis() - uptime;
-        return current / 1000D;
+    fun getUptime(uptime: Long): Double {
+        val current = System.currentTimeMillis() - uptime
+        return current / 1000.0
     }
 
-    public static String format(double time) {
-        return String.format(Locale.US, "%.2f", time);
+    @JvmStatic
+    fun format(time: Double): String {
+        return String.format(Locale.US, "%.2f", time)
     }
 
 }

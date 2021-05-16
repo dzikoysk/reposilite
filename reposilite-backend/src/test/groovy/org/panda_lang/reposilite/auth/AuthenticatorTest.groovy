@@ -19,6 +19,7 @@ package org.panda_lang.reposilite.auth
 import groovy.transform.CompileStatic
 import org.junit.jupiter.api.Test
 import org.panda_lang.reposilite.AuthenticatorSpecification
+import org.panda_lang.reposilite.token.AccessTokenFacade
 import org.panda_lang.utilities.commons.collection.Maps
 
 import static org.junit.jupiter.api.Assertions.assertTrue
@@ -57,7 +58,7 @@ class AuthenticatorTest extends AuthenticatorSpecification {
     void 'should not auth using invalid credentials' () {
         assertTrue AUTHENTICATOR.authByCredentials("admin:admin").isErr()
         assertTrue AUTHENTICATOR.authByCredentials("alias:another_secret").isErr()
-        assertTrue AUTHENTICATOR.authByCredentials("alias:" + TokenService.B_CRYPT_TOKENS_ENCODER.encode("secret")).isErr()
+        assertTrue AUTHENTICATOR.authByCredentials("alias:" + AccessTokenFacade.B_CRYPT_TOKENS_ENCODER.encode("secret")).isErr()
     }
 
     @Test

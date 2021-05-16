@@ -13,48 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.panda_lang.reposilite
 
-package org.panda_lang.reposilite;
+import io.javalin.http.Context
+import io.javalin.websocket.WsContext
+import net.dzikoysk.dynamiclogger.Journalist
 
-import io.javalin.http.Context;
-import io.javalin.websocket.WsContext;
-import net.dzikoysk.dynamiclogger.Journalist;
-import org.panda_lang.utilities.commons.StringUtils;
+@Suppress("MoveLambdaOutsideParentheses")
+class ReposiliteContextFactory internal constructor(
+    private val journalist: Journalist,
+    private val forwardedIpHeader: String
+) {
 
-public final class ReposiliteContextFactory {
-
-    private final Journalist journalist;
-    private final String forwardedIpHeader;
-
-    ReposiliteContextFactory(Journalist journalist, String forwardedIpHeader) {
-        this.journalist = journalist;
-        this.forwardedIpHeader = forwardedIpHeader;
+    fun create(context: Context): ReposiliteContext {
+        return ReposiliteContext(
+            journalist,
+            context.req.requestURI,
+            context.method(),
+            context.header(forwardedIpHeader) ?: context.req.remoteAddr,
+            context.headerMap(),
+            null,
+            { context.req.inputStream }
+        )
     }
 
-    public ReposiliteContext create(Context context) {
-        String realIp = context.header(forwardedIpHeader);
-        String address = StringUtils.isEmpty(realIp) ? context.req.getRemoteAddr() : realIp;
-
-        return new ReposiliteContext(
-                journalist,
-                context.req.getRequestURI(),
-                context.method(),
-                address,
-                context.headerMap(),
-                context.req::getInputStream);
-    }
-
-    public ReposiliteContext create(WsContext context) {
-        String realIp = context.header(forwardedIpHeader);
-        String address = StringUtils.isEmpty(realIp) ? context.session.getRemoteAddress().toString() : realIp;
-
-        return new ReposiliteContext(
-                journalist,
-                context.host(),
-                "WS",
-                address,
-                context.headerMap(),
-                () -> { throw new UnsupportedOperationException("WebSocket based context does not support input stream"); });
+    fun create(context: WsContext): ReposiliteContext {
+        return ReposiliteContext(
+            journalist,
+            context.host(),
+            "WS",
+            context.header(forwardedIpHeader) ?: context.session.remoteAddress.toString(),
+            context.headerMap(),
+            null,
+            { throw UnsupportedOperationException("WebSocket based context does not support input stream") }
+        )
     }
 
 }

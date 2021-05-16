@@ -1,56 +1,54 @@
-package org.panda_lang.reposilite.storage;
+package org.panda_lang.reposilite.storage
 
-import org.panda_lang.reposilite.error.ErrorDto;
-import org.panda_lang.reposilite.repository.FileDetailsDto;
-import org.panda_lang.utilities.commons.function.Result;
+import org.panda_lang.reposilite.failure.api.ErrorResponse
+import org.panda_lang.reposilite.maven.repository.api.FileDetailsResponse
+import org.panda_lang.utilities.commons.function.Result
+import java.io.InputStream
+import java.nio.file.Path
+import java.nio.file.attribute.FileTime
 
-import java.io.InputStream;
-import java.nio.file.Path;
-import java.nio.file.attribute.FileTime;
-import java.util.List;
+interface StorageProvider {
 
-public interface StorageProvider {
     /**
      * Writes the bytes to the path specified in storage.
      *
      * @param file  the path of the file to be written
      * @param bytes the bytes to write
-     * @return a {@link FileDetailsDto} object describing the file if successful, and an {@link ErrorDto} if not
+     * @return a [FileDetailsResponse] object describing the file if successful, and an [ErrorResponse] if not
      */
-    Result<FileDetailsDto, ErrorDto> putFile(Path file, byte[] bytes);
+    fun putFile(file: Path, bytes: ByteArray): Result<FileDetailsResponse, ErrorResponse>
 
     /**
-     * Writes the given {@link InputStream} to the path specified in storage.
+     * Writes the given [InputStream] to the path specified in storage.
      *
      * @param file  the path of the file to be written
      * @param inputStream the stream supplying the data to write
-     * @return a {@link FileDetailsDto} object describing the file if successful, and an {@link ErrorDto} if not
+     * @return a [FileDetailsResponse] object describing the file if successful, and an [ErrorResponse] if not
      */
-    Result<FileDetailsDto, ErrorDto> putFile(Path file, InputStream inputStream);
+    fun putFile(file: Path, inputStream: InputStream): Result<FileDetailsResponse, ErrorResponse>
 
-    Result<byte[], ErrorDto> getFile(Path file);
+    fun getFile(file: Path): Result<ByteArray, ErrorResponse>
 
-    Result<FileDetailsDto, ErrorDto> getFileDetails(Path file);
+    fun getFileDetails(file: Path): Result<FileDetailsResponse, ErrorResponse>
 
-    Result<Void, ErrorDto> removeFile(Path file);
+    fun removeFile(file: Path): Result<Void, ErrorResponse>
 
-    Result<List<Path>, ErrorDto> getFiles(Path directory);
+    fun getFiles(directory: Path): Result<List<Path>, ErrorResponse>
 
-    Result<FileTime, ErrorDto> getLastModifiedTime(Path file);
+    fun getLastModifiedTime(file: Path): Result<FileTime, ErrorResponse>
 
-    Result<Long, ErrorDto> getFileSize(Path file);
+    fun getFileSize(file: Path): Result<Long, ErrorResponse>
 
-    boolean exists(Path file);
+    fun exists(file: Path): Boolean
 
-    boolean isDirectory(Path file);
+    fun isDirectory(file: Path): Boolean
 
-    boolean isFull();
+    fun isFull(): Boolean
 
-    long getUsage();
+    fun usage(): Long
 
-    boolean canHold(long contentLength);
+    fun canHold(contentLength: Long): Boolean
 
-    default void shutdown() {
+    fun shutdown() {}
 
-    }
 }

@@ -13,141 +13,130 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.panda_lang.reposilite.config
 
-package org.panda_lang.reposilite.config;
+import net.dzikoysk.cdn.CdnFactory
+import net.dzikoysk.dynamiclogger.Journalist
+import net.dzikoysk.dynamiclogger.Logger
+import org.panda_lang.reposilite.utils.FilesUtils.getExtension
+import org.panda_lang.utilities.commons.ClassUtils
+import org.panda_lang.utilities.commons.StringUtils
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.StandardOpenOption.CREATE
+import java.nio.file.StandardOpenOption.TRUNCATE_EXISTING
 
-import net.dzikoysk.cdn.Cdn;
-import net.dzikoysk.cdn.CdnFactory;
-import net.dzikoysk.dynamiclogger.Journalist;
-import net.dzikoysk.dynamiclogger.Logger;
-import org.panda_lang.reposilite.utils.FilesUtils;
-import org.panda_lang.utilities.commons.ClassUtils;
-import org.panda_lang.utilities.commons.StringUtils;
+class ConfigurationLoader(private val journalist: Journalist) : Journalist {
 
-import java.lang.reflect.Field;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
-import java.util.Arrays;
-import java.util.Collection;
-
-public final class ConfigurationLoader implements Journalist {
-
-    private final Journalist journalist;
-
-    public ConfigurationLoader(Journalist journalist) {
-        this.journalist = journalist;
-    }
-
-    public Configuration tryLoad(Path customConfigurationFile) {
-        try {
-            return load(customConfigurationFile);
-        } catch (Exception exception) {
-            throw new RuntimeException("Cannot load configuration", exception);
+    fun tryLoad(customConfigurationFile: Path): Configuration {
+        return try {
+            load(customConfigurationFile)
+        } catch (exception: Exception) {
+            throw RuntimeException("Cannot load configuration", exception)
         }
     }
 
-    public Configuration load(Path configurationFile) throws Exception {
-        if (!FilesUtils.getExtension(configurationFile.getFileName().toString()).equals("cdn")) {
-            throw new IllegalArgumentException("Custom configuration file does not have '.cdn' extension");
-        }
+    fun load(configurationFile: Path): Configuration {
+        require(getExtension(configurationFile.fileName.toString()) == "cdn") { "Custom configuration file does not have '.cdn' extension" }
 
-        Cdn cdn = CdnFactory.createStandard();
+        val cdn = CdnFactory.createStandard()
 
-        Configuration configuration = Files.exists(configurationFile)
-            ? cdn.load(new String(Files.readAllBytes(configurationFile), StandardCharsets.UTF_8), Configuration.class)
-            : createConfiguration(configurationFile);
+        val configuration =
+            if (Files.exists(configurationFile))
+                cdn.load(
+                    String(Files.readAllBytes(configurationFile), StandardCharsets.UTF_8),
+                    Configuration::class.java
+                )
+            else createConfiguration(configurationFile)
 
-        verifyBasePath(configuration);
-        verifyProxied(configuration);
-        Files.write(configurationFile, cdn.render(configuration).getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-        loadProperties(configuration);
+        verifyBasePath(configuration)
+        verifyProxied(configuration)
+        Files.write(configurationFile, cdn.render(configuration).toByteArray(StandardCharsets.UTF_8), CREATE, TRUNCATE_EXISTING)
+        loadProperties(configuration)
 
-        return configuration;
+        return configuration
     }
 
-    private Configuration createConfiguration(Path configurationFile) throws Exception {
-        Path legacyConfiguration = configurationFile.resolveSibling(configurationFile.getFileName().toString().replace(".cdn", ".yml"));
+    private fun createConfiguration(configurationFile: Path): Configuration {
+        val legacyConfiguration = configurationFile.resolveSibling(configurationFile.fileName.toString().replace(".cdn", ".yml"))
 
         if (!Files.exists(legacyConfiguration)) {
-            getLogger().info("Generating default configuration file.");
-            return new Configuration();
+            logger.info("Generating default configuration file.")
+            return Configuration()
         }
 
-        getLogger().info("Legacy configuration file has been found");
-        Configuration configuration = CdnFactory.createYamlLike().load(new String(Files.readAllBytes(configurationFile), StandardCharsets.UTF_8), Configuration.class);
-        getLogger().info("YAML configuration has been converted to CDN format");
-        Files.delete(legacyConfiguration);
+        logger.info("Legacy configuration file has been found")
+        val configuration = CdnFactory.createYamlLike().load(String(Files.readAllBytes(configurationFile), StandardCharsets.UTF_8), Configuration::class.java)
+        logger.info("YAML configuration has been converted to CDN format")
+        Files.delete(legacyConfiguration)
 
-        return configuration;
+        return configuration
     }
 
-    private static void verifyBasePath(Configuration configuration) {
-        String basePath = configuration.basePath;
+    private fun verifyBasePath(configuration: Configuration) {
+        var basePath = configuration.basePath
 
         if (!StringUtils.isEmpty(basePath)) {
             if (!basePath.startsWith("/")) {
-                basePath = "/" + basePath;
+                basePath = "/$basePath"
             }
 
             if (!basePath.endsWith("/")) {
-                basePath += "/";
+                basePath += "/"
             }
 
-            configuration.basePath = basePath;
+            configuration.basePath = basePath
         }
     }
 
-    private void verifyProxied(Configuration configuration) {
-        for (int index = 0; index < configuration.proxied.size(); index++) {
-            String proxied = configuration.proxied.get(index);
+    private fun verifyProxied(configuration: Configuration) {
+        for (index in configuration.proxied.indices) {
+            val proxied = configuration.proxied[index]
 
             if (proxied.endsWith("/")) {
-                configuration.proxied.set(index, proxied.substring(0, proxied.length() - 1));
+                configuration.proxied[index] = proxied.substring(0, proxied.length - 1)
             }
         }
     }
 
-    private void loadProperties(Configuration configuration) {
-        for (Field declaredField : configuration.getClass().getDeclaredFields()) {
-            String custom = System.getProperty("reposilite." + declaredField.getName());
+    private fun loadProperties(configuration: Configuration) {
+        for (declaredField in configuration.javaClass.declaredFields) {
+            val custom = System.getProperty("reposilite." + declaredField.name)
 
             if (StringUtils.isEmpty(custom)) {
-                continue;
+                continue
             }
 
-            Class<?> type = ClassUtils.getNonPrimitiveClass(declaredField.getType());
-            Object customValue;
+            val type = ClassUtils.getNonPrimitiveClass(declaredField.type)
 
-            if (String.class == type) {
-                customValue = custom;
+            val customValue: Any? = if (String::class.java == type) {
+                custom
             }
-            else if (Integer.class == type) {
-                customValue = Integer.parseInt(custom);
+            else if (Int::class.java == type) {
+                custom.toInt()
             }
-            else if (Boolean.class == type) {
-                customValue = Boolean.parseBoolean(custom);
+            else if (Boolean::class.java == type) {
+                java.lang.Boolean.parseBoolean(custom)
             }
-            else if (Collection.class.isAssignableFrom(type)) {
-                customValue = Arrays.asList(custom.split(","));
+            else if (MutableCollection::class.java.isAssignableFrom(type)) {
+                listOf(*custom.split(",").toTypedArray())
             }
             else {
-                getLogger().info("Unsupported type: " + type + " for " + custom);
-                continue;
+                logger.info("Unsupported type: $type for $custom")
+                continue
             }
 
             try {
-                declaredField.set(configuration, customValue);
-            } catch (IllegalAccessException e) {
-                throw new RuntimeException("Cannot modify configuration value", e);
+                declaredField[configuration] = customValue
+            } catch (illegalAccessException: IllegalAccessException) {
+                throw RuntimeException("Cannot modify configuration value", illegalAccessException)
             }
         }
     }
 
-    @Override
-    public Logger getLogger() {
-        return journalist.getLogger();
-    }
+    override fun getLogger(): Logger =
+        journalist.logger
+
 
 }

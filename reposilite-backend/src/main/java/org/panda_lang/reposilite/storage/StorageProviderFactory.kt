@@ -1,30 +1,31 @@
-package org.panda_lang.reposilite.storage;
+package org.panda_lang.reposilite.storage
 
-import picocli.CommandLine;
+import picocli.CommandLine
+import java.nio.file.Paths
 
-import java.nio.file.Paths;
+class StorageProviderFactory {
 
-public final class StorageProviderFactory {
-
-    public StorageProvider createStorageProvider(String repositoryName, String storageDescription) {
+    fun createStorageProvider(repositoryName: String, storageDescription: String): StorageProvider {
         if (storageDescription.startsWith("fs")) {
-            return FileSystemStorageProvider.of(Paths.get("repositories").resolve(repositoryName), Long.MAX_VALUE); // TODO: Move quota's implementation to Repository level
+            return FileSystemStorageProvider.of(
+                Paths.get("repositories").resolve(repositoryName),
+                Long.MAX_VALUE // TODO: Move quota's implementation to Repository level
+            )
         }
 
         if (storageDescription.startsWith("s3")) {
-            S3StorageProviderSettings settings = loadConfiguration(new S3StorageProviderSettings(), storageDescription);
-            return new S3StorageProvider(settings.bucketName, settings.region);
+            val settings = loadConfiguration(S3StorageProviderSettings(), storageDescription)
+            return S3StorageProvider(settings.bucketName, settings.region)
         }
 
-        if (storageDescription.equalsIgnoreCase("rest")) {
+        if (storageDescription.equals("rest", ignoreCase = true)) {
             // TODO REST API storage endpoint
         }
 
-        throw new UnsupportedOperationException("Unknown storage provider: " + storageDescription);
+        throw UnsupportedOperationException("Unknown storage provider: $storageDescription")
     }
 
-    private <CONFIGURATION extends Runnable> CONFIGURATION loadConfiguration(CONFIGURATION configuration, String description) {
-        return CommandLine.populateCommand(configuration, description.split(" "));
-    }
+    private fun <CONFIGURATION : Runnable> loadConfiguration(configuration: CONFIGURATION, description: String): CONFIGURATION =
+        CommandLine.populateCommand(configuration, *description.split(" ").toTypedArray())
 
 }

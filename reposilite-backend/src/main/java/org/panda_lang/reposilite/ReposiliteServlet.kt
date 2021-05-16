@@ -13,45 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.panda_lang.reposilite
 
-package org.panda_lang.reposilite;
-
-import javax.servlet.ServletException;
-import javax.servlet.annotation.MultipartConfig;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import javax.servlet.annotation.MultipartConfig
+import javax.servlet.annotation.WebServlet
+import javax.servlet.http.HttpServlet
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
 @MultipartConfig
-@WebServlet(urlPatterns = "/*", name = "ReposiliteServlet", asyncSupported = true)
-public final class ReposiliteServlet extends HttpServlet {
+@WebServlet(urlPatterns = ["/*"], name = "ReposiliteServlet", asyncSupported = true)
+class ReposiliteServlet : HttpServlet() {
 
-    private final Reposilite reposilite = ReposiliteLauncher.create("", "", true, false);
+    private val reposilite = ReposiliteLauncher.create("", "", true, false)
 
-    @Override
-    public void init() {
-        reposilite.getLogger().info("Starting Reposilite servlet...");
+    override fun init() {
+        reposilite.logger.info("Starting Reposilite servlet...")
 
         try {
-            reposilite.load();
-        } catch (Exception exception) {
-            exception.printStackTrace();
+            reposilite.load()
+        } catch (exception: Exception) {
+            exception.printStackTrace()
         }
     }
 
-    @Override
-    protected void service(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
-        reposilite.getHttpServer().getJavalin().get().servlet().service(req, res);
+    override fun service(req: HttpServletRequest, res: HttpServletResponse) {
+        reposilite.httpServer.javalin.get().servlet().service(req, res)
     }
 
-    @Override
-    public void destroy() {
+    override fun destroy() {
         try {
-            reposilite.shutdown();
-        } catch (Exception exception) {
-            exception.printStackTrace();
+            reposilite.shutdown()
+        } catch (exception: Exception) {
+            exception.printStackTrace()
         }
     }
 

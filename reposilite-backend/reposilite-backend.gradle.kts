@@ -40,6 +40,11 @@ dependencies {
     implementation(kotlin("stdlib"))
     implementation("org.jetbrains.kotlin:kotlin-reflect:1.5.0")
 
+    val exposed = "0.31.1"
+    implementation("org.jetbrains.exposed:exposed-core:$exposed")
+    implementation("org.jetbrains.exposed:exposed-dao:$exposed")
+    implementation("org.jetbrains.exposed:exposed-jdbc:$exposed")
+
     val awssdk = "2.15.15"
     implementation("software.amazon.awssdk:bom:$awssdk")
     implementation("software.amazon.awssdk:s3:$awssdk")

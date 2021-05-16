@@ -18,12 +18,10 @@ package org.panda_lang.reposilite.config;
 
 import net.dzikoysk.cdn.entity.Contextual;
 import net.dzikoysk.cdn.entity.Description;
-import org.panda_lang.reposilite.repository.RepositoryVisibility;
+import org.panda_lang.reposilite.maven.repository.api.RepositoryVisibility;
 
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;

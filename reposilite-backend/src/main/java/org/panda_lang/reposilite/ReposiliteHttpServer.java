@@ -26,15 +26,9 @@ import io.swagger.v3.oas.models.info.Info;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
-import org.panda_lang.reposilite.auth.AuthEndpoint;
-import org.panda_lang.reposilite.auth.PostAuthHandler;
 import org.panda_lang.reposilite.config.Configuration;
-import org.panda_lang.reposilite.console.CliController;
-import org.panda_lang.reposilite.console.RemoteExecutionEndpoint;
-import org.panda_lang.reposilite.error.FailureHandler;
-import org.panda_lang.reposilite.repository.DeployEndpoint;
-import org.panda_lang.reposilite.repository.LookupApiEndpoint;
-import org.panda_lang.reposilite.repository.LookupController;
+import org.panda_lang.reposilite.console.infrastructure.RemoteExecutionEndpoint;
+import org.panda_lang.reposilite.failure.infrastructure.FailureHandler;
 import org.panda_lang.reposilite.resource.FrontendHandler;
 import org.panda_lang.reposilite.resource.WebJarsHandler;
 import org.panda_lang.utilities.commons.function.Option;
@@ -51,31 +45,11 @@ public final class ReposiliteHttpServer {
     }
 
     void start(Configuration configuration) {
-        DeployEndpoint deployEndpoint = new DeployEndpoint(reposilite.getContextFactory(), reposilite.getDeployService());
-
-        LookupController lookupController = new LookupController(
-                configuration.proxied.size() > 0,
-                reposilite.getContextFactory(),
-                reposilite.getFrontendService(),
-                reposilite.getLookupService(),
-                reposilite.getProxyService(),
-                reposilite.getFailureService());
-
-        LookupApiEndpoint lookupApiEndpoint = new LookupApiEndpoint(
-                reposilite.getContextFactory(),
-                reposilite.getRepositoryAuthenticator(),
-                reposilite.getRepositoryService());
-
-        CliController cliController = new CliController(
-                reposilite.getContextFactory(),
-                reposilite.getAuthenticator(),
-                reposilite.getConsole());
 
         this.javalin = create(configuration)
                 .before(ctx -> reposilite.getStatsService().record(ctx.req.getRequestURI()))
                 .get("/webjars/*", new WebJarsHandler())
                 .get("/js/app.js", new FrontendHandler(reposilite))
-                .get("/api/auth", new AuthEndpoint(reposilite.getAuthService()))
                 .post("/api/execute", new RemoteExecutionEndpoint(reposilite.getAuthenticator(), reposilite.getContextFactory(), reposilite.getConsole()))
                 .ws("/api/cli", cliController)
                 .get("/api", lookupApiEndpoint)
@@ -84,13 +58,11 @@ public final class ReposiliteHttpServer {
                 .head("/*", lookupController)
                 .put("/*", deployEndpoint)
                 .post("/*", deployEndpoint)
-                .after("/*", new PostAuthHandler())
                 .exception(Exception.class, new FailureHandler(reposilite.getFailureService()));
 
         javalin.events(event -> {
             event.serverStopping(() -> {
                 reposilite.getStorageProvider().shutdown();
-                reposilite.getStatsService().saveStats();
             });
             event.serverStopped(() -> {
                 reposilite.getLogger().info("Bye! Uptime: " + reposilite.getPrettyUptime());

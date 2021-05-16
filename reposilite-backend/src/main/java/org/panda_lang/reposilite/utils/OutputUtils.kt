@@ -13,24 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.panda_lang.reposilite.utils
 
-package org.panda_lang.reposilite.utils;
+import org.eclipse.jetty.server.HttpOutput
+import java.io.OutputStream
 
-import org.eclipse.jetty.server.HttpOutput;
+object OutputUtils {
 
-import java.io.OutputStream;
-
-public final class OutputUtils {
-
-    private OutputUtils() { }
-
-    public static boolean isProbablyOpen(OutputStream outputStream) {
-        if (outputStream instanceof HttpOutput) {
-            HttpOutput httpOutput = (HttpOutput) outputStream;
-            return !httpOutput.isClosed();
+    @JvmStatic
+    fun isProbablyOpen(outputStream: OutputStream): Boolean {
+        if (outputStream is HttpOutput) {
+            return !outputStream.isClosed
         }
-
-        return true;
+        return true
     }
 
 }

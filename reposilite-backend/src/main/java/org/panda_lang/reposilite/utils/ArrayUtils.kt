@@ -13,19 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.panda_lang.reposilite.utils
 
-package org.panda_lang.reposilite.utils;
+object ArrayUtils {
 
-public final class ArrayUtils {
+    @JvmStatic
+    fun <T> getFirst(elements: Array<T>): T? =
+        if (elements.isNotEmpty()) elements[0]
+        else null
 
-    private ArrayUtils() { }
-
-    public static <T> T getFirst(T[] elements) {
-        return elements.length > 0 ? elements[0] : null;
-    }
-
-    public static <T> T getLast(T[] elements) {
-        return  elements.length == 0 ? null : elements[elements.length - 1];
-    }
+    @JvmStatic
+    fun <T> getLast(elements: Array<T>): T? =
+        if (elements.isEmpty()) null
+        else elements[elements.size - 1]
 
 }

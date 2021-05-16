@@ -13,54 +13,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.panda_lang.reposilite.console
 
-package org.panda_lang.reposilite.console;
+import org.panda_lang.reposilite.Reposilite
+import org.panda_lang.reposilite.ReposiliteConstants
+import org.panda_lang.reposilite.utils.TimeUtils.format
+import org.panda_lang.utilities.commons.IOUtils
+import org.panda_lang.utilities.commons.console.Effect.GREEN
+import org.panda_lang.utilities.commons.console.Effect.GREEN_BOLD
+import org.panda_lang.utilities.commons.console.Effect.RED_UNDERLINED
+import org.panda_lang.utilities.commons.console.Effect.RESET
+import picocli.CommandLine.Command
+import java.io.IOException
 
-import org.panda_lang.reposilite.Reposilite;
-import org.panda_lang.reposilite.ReposiliteConstants;
-import org.panda_lang.reposilite.utils.FilesUtils;
-import org.panda_lang.reposilite.utils.TimeUtils;
-import org.panda_lang.utilities.commons.IOUtils;
-import org.panda_lang.utilities.commons.console.Effect;
-import picocli.CommandLine.Command;
+@Command(name = "status", description = ["Display summary status of app health"])
+internal class StatusCommand(private val reposilite: Reposilite) : ReposiliteCommand {
 
-import java.util.List;
+    override fun execute(output: MutableList<String>): Boolean {
+        val latestVersion =
+            if (reposilite.testEnv) ReposiliteConstants.VERSION
+            else getVersion()
 
-@Command(name = "status", description = "Display summary status of app health")
-final class StatusCommand implements ReposiliteCommand {
+        output.add("Reposilite ${ReposiliteConstants.VERSION} Status")
+        output.add("  Active: $GREEN_BOLD${reposilite.httpServer.isAlive}$RESET")
+        output.add("  Uptime: ${format(reposilite.getUptime() / 1000.0 / 60.0)}min")
+        output.add("  Memory usage of process: ${memoryUsage()}")
+        output.add("  Exceptions: ${reposilite.failureFacade.getFailures().size}")
+        output.add("  Latest version of reposilite: $latestVersion")
 
-    private final Reposilite reposilite;
-
-    StatusCommand(Reposilite reposilite) {
-        this.reposilite = reposilite;
+        return true
     }
 
-    @Override
-    public boolean execute(List<String> response) {
-        String latestVersion = reposilite.getTestEnv() ? ReposiliteConstants.VERSION : getVersion();
+    private fun getVersion(): String =
+        IOUtils
+            .fetchContent(ReposiliteConstants.REMOTE_VERSION)
+            .orElseGet { ioException: IOException -> ReposiliteConstants.REMOTE_VERSION + " is unavailable: " + ioException.message }
+            .let { (if (ReposiliteConstants.VERSION == it) GREEN else RED_UNDERLINED).toString() + it + RESET }
 
-        response.add("Reposilite " + ReposiliteConstants.VERSION + " Status");
-        response.add("  Active: " + Effect.GREEN_BOLD + reposilite.getHttpServer().isAlive() + Effect.RESET);
-        response.add("  Uptime: " + TimeUtils.format(reposilite.getUptime() / 1000.0 / 60.0) + "min");
-        response.add("  Memory usage of process: " + getMemoryUsage());
-        response.add("  Disk usage: " + FilesUtils.humanReadableByteCount(reposilite.getStorageProvider().getUsage()));
-        response.add("  Cached metadata: " + reposilite.getMetadataService().getCacheSize());
-        response.add("  Exceptions: " + reposilite.getFailureService().getFailures().size());
-        response.add("  Latest version of reposilite: " + latestVersion);
-
-        return true;
-    }
-
-    private String getVersion() {
-        String latest = IOUtils
-                .fetchContent(ReposiliteConstants.REMOTE_VERSION)
-                .orElseGet(ioException -> ReposiliteConstants.REMOTE_VERSION + " is unavailable: " + ioException.getMessage());
-
-        return (ReposiliteConstants.VERSION.equals(latest) ? Effect.GREEN : Effect.RED_UNDERLINED) + latest + Effect.RESET;
-    }
-
-    private String getMemoryUsage() {
-        return TimeUtils.format((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1024.0D / 1024.0D) + "M";
-    }
+    private fun memoryUsage(): String =
+        format((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1024.0 / 1024.0) + "M"
 
 }

@@ -17,21 +17,15 @@ package org.panda_lang.reposilite
 
 import net.dzikoysk.dynamiclogger.Journalist
 import net.dzikoysk.dynamiclogger.Logger
-import org.panda_lang.reposilite.auth.AuthService
-import org.panda_lang.reposilite.auth.Authenticator
-import org.panda_lang.reposilite.auth.TokenService
+import org.panda_lang.reposilite.auth.AuthenticationFacade
 import org.panda_lang.reposilite.config.Configuration
-import org.panda_lang.reposilite.console.Console
-import org.panda_lang.reposilite.error.FailureService
-import org.panda_lang.reposilite.metadata.MetadataService
-import org.panda_lang.reposilite.repository.*
-import org.panda_lang.reposilite.resource.FrontendProvider
-import org.panda_lang.reposilite.stats.StatsService
-import org.panda_lang.reposilite.storage.StorageProvider
+import org.panda_lang.reposilite.console.ConsoleFacade
+import org.panda_lang.reposilite.failure.FailureFacade
+import org.panda_lang.reposilite.maven.MavenFacade
+import org.panda_lang.reposilite.maven.repository.*
 import org.panda_lang.reposilite.utils.TimeUtils
 import org.panda_lang.utilities.commons.console.Effect
 import java.nio.file.Path
-import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
 class Reposilite(
@@ -39,21 +33,11 @@ class Reposilite(
     val configuration: Configuration,
     val workingDirectory: Path,
     val testEnv: Boolean,
-    val failureService: FailureService,
-    val console: Console,
     val contextFactory: ReposiliteContextFactory,
-    val statsService: StatsService,
-    val storageProvider: StorageProvider,
-    val repositoryService: RepositoryService,
-    val metadataService: MetadataService,
-    val tokenService: TokenService,
-    val authenticator: Authenticator,
-    val repositoryAuthenticator: RepositoryAuthenticator,
-    val authService: AuthService,
-    val lookupService: LookupService,
-    val proxyService: ProxyService,
-    val deployService: DeployService,
-    val frontendService: FrontendProvider,
+    val failureFacade: FailureFacade,
+    val authenticationFacade: AuthenticationFacade,
+    val mavenFacade: MavenFacade,
+    val consoleFacade: ConsoleFacade
 ) : Journalist {
 
     val httpServer = ReposiliteHttpServer(this, false)
@@ -81,15 +65,9 @@ class Reposilite(
         logger.info("Working directory: ${workingDirectory.toAbsolutePath()}")
         logger.info("")
 
-        logger.info("--- Loading data")
-        tokenService.loadTokens()
-
-        logger.info("")
-        repositoryService.load(configuration)
-
         logger.info("")
         logger.info("--- Loading domain configurations")
-        Arrays.stream(configurations()).forEach { configurer: ReposiliteConfigurer -> configurer.configure(this) }
+//         Arrays.stream(configurations()).forEach { domainConfigurer -> domainConfigurer.configure(this) }
     }
 
     fun start(): Reposilite {
@@ -108,10 +86,10 @@ class Reposilite(
         }
 
         logger.info("Done (" + TimeUtils.format(TimeUtils.getUptime(uptime)) + "s)!")
-        console.defaultExecute("help")
+        consoleFacade.defaultExecute("help")
 
         logger.info("Collecting status metrics...")
-        console.defaultExecute("status")
+        consoleFacade.defaultExecute("status")
 
         // disable console daemon in tests due to issues with coverage and interrupt method call
         // https://github.com/jacoco/jacoco/issues/1066

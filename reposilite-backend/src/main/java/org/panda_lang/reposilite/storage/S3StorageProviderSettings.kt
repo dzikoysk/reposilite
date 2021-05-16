@@ -1,21 +1,17 @@
-package org.panda_lang.reposilite.storage;
+package org.panda_lang.reposilite.storage
 
-import picocli.CommandLine.Command;
-import picocli.CommandLine.Option;
-import picocli.CommandLine.Parameters;
+import picocli.CommandLine.Command
+import picocli.CommandLine.Parameters
 
-@Command(name = "s3", description = "Amazon S3 storage provider settings")
-final class S3StorageProviderSettings implements Runnable {
+@Command(name = "s3", description = ["Amazon S3 storage provider settings"])
+internal class S3StorageProviderSettings : Runnable {
 
     @Parameters(index = "0", paramLabel = "<bucket-name>")
-    String bucketName;
+    lateinit var bucketName: String
 
     @Parameters(index = "1", paramLabel = "<region>")
-    String region;
+    lateinit var region: String
 
-    @Override
-    public void run() {
-        // validation
-    }
+    override fun run() { /* Validation */ }
 
 }

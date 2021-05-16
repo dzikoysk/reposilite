@@ -17,8 +17,8 @@
 package org.panda_lang.reposilite.stats;
 
 import org.panda_lang.reposilite.ReposiliteConstants;
-import org.panda_lang.reposilite.error.ErrorDto;
-import org.panda_lang.reposilite.error.FailureService;
+import org.panda_lang.reposilite.failure.api.ErrorResponse;
+import org.panda_lang.reposilite.failure.FailureService;
 import org.panda_lang.reposilite.storage.StorageProvider;
 import org.panda_lang.reposilite.utils.YamlUtils;
 import org.panda_lang.utilities.commons.function.Result;
@@ -27,7 +27,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 
-public final class StatsStorage {
+final class StatsStorage {
 
     private final Path statsFile;
     private final FailureService failureService;
@@ -49,7 +49,7 @@ public final class StatsStorage {
                 Path legacyStatsFile = statsFile.resolveSibling(statsFile.getFileName().toString().replace(".dat", ".yml"));
 
                 if (storageProvider.exists(legacyStatsFile)) {
-                    Result<byte[], ErrorDto> result = storageProvider.getFile(legacyStatsFile);
+                    Result<byte[], ErrorResponse> result = storageProvider.getFile(legacyStatsFile);
 
                     if (result.isOk()) {
                         storageProvider.putFile(statsFile, result.get());

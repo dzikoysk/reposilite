@@ -13,21 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.panda_lang.reposilite.console
 
-package org.panda_lang.reposilite.console;
+import org.panda_lang.reposilite.ReposiliteConstants
+import picocli.CommandLine.Command
 
-import org.panda_lang.reposilite.ReposiliteConstants;
-import picocli.CommandLine.Command;
+@Command(name = "version", description = ["Display current version of Reposilite"])
+internal class VersionCommand : ReposiliteCommand {
 
-import java.util.List;
-
-@Command(name = "version", description = "Display current version of Reposilite")
-final class VersionCommand implements ReposiliteCommand {
-
-    @Override
-    public boolean execute(List<String> response) {
-        response.add("Reposilite " + ReposiliteConstants.VERSION);
-        return true;
+    override fun execute(output: MutableList<String>): Boolean {
+        output.add("Reposilite " + ReposiliteConstants.VERSION)
+        return true
     }
 
 }

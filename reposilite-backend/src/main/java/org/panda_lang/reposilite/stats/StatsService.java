@@ -16,17 +16,14 @@
 
 package org.panda_lang.reposilite.stats;
 
-import org.panda_lang.reposilite.error.FailureService;
+import org.panda_lang.reposilite.failure.FailureService;
 import org.panda_lang.reposilite.storage.StorageProvider;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ScheduledExecutorService;
 
-public final class StatsService {
+final class StatsService {
 
     private final StatsEntity instanceStats = new StatsEntity();
     private final StatsStorage statsStorage;
