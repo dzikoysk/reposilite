@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Dzikoysk
+ * Copyright (c) 2021 dzikoysk
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,13 +39,14 @@ internal class Console(
 
     fun defaultExecute(command: String): Boolean {
         logger.info("")
-        val status = execute(command) { line: String? -> logger.info(line) }
+        val status = execute(command) { logger.info(it) }
         logger.info("")
         return status
     }
 
     fun execute(command: String, outputConsumer: Consumer<String>): Boolean {
-        val response = execute(command)
+        val response = executeCommand(command)
+
         for (entry in if (response.isOk) response.get() else response.error) {
             for (line in entry.replace(System.lineSeparator(), "\n").split("\n").toTypedArray()) {
                 outputConsumer.accept(line)
@@ -54,7 +55,7 @@ internal class Console(
         return response.isOk
     }
 
-    fun execute(command: String): Result<List<String>, List<String>> {
+    private fun executeCommand(command: String): Result<List<String>, List<String>> {
         val processedCommand = command.trim()
 
         if (processedCommand.isEmpty()) {
@@ -84,6 +85,9 @@ internal class Console(
 
     fun registerCommand(command: ReposiliteCommand): CommandLine =
         commandExecutor.addSubcommand(command)
+
+    fun getCommands(): Map<String, CommandLine> =
+        commandExecutor.subcommands
 
     fun hook() =
         consoleThread.start()

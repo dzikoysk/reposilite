@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Dzikoysk
+ * Copyright (c) 2021 dzikoysk
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,8 @@ import org.panda_lang.reposilite.failure.FailureService;
 import org.panda_lang.reposilite.maven.repository.LookupResponse;
 import org.panda_lang.reposilite.maven.repository.LookupService;
 import org.panda_lang.reposilite.maven.repository.ProxyService;
-import org.panda_lang.reposilite.resource.FrontendProvider;
-import org.panda_lang.reposilite.utils.OutputUtils;
+import org.panda_lang.reposilite.resource.ResourceFacade;
+import org.panda_lang.reposilite.shared.utils.OutputUtils;
 import org.panda_lang.utilities.commons.function.Result;
 
 import java.io.IOException;
@@ -38,7 +38,7 @@ final class LookupController implements Handler {
 
     private final boolean hasProxied;
     private final ReposiliteContextFactory contextFactory;
-    private final FrontendProvider frontend;
+    private final ResourceFacade frontend;
     private final LookupService lookupService;
     private final ProxyService proxyService;
     private final FailureService failureService;
@@ -46,14 +46,14 @@ final class LookupController implements Handler {
     public LookupController(
             boolean hasProxied,
             ReposiliteContextFactory contextFactory,
-            FrontendProvider frontendProvider,
+            ResourceFacade resourceFacade,
             LookupService lookupService,
             ProxyService proxyService,
             FailureService failureService) {
 
         this.hasProxied = hasProxied;
         this.contextFactory = contextFactory;
-        this.frontend = frontendProvider;
+        this.frontend = resourceFacade;
         this.lookupService = lookupService;
         this.proxyService = proxyService;
         this.failureService = failureService;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Dzikoysk
+ * Copyright (c) 2021 dzikoysk
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package org.panda_lang.reposilite.maven.repository.api
 
-import org.panda_lang.reposilite.utils.FilesUtils.isReadable
+import org.panda_lang.reposilite.shared.utils.FilesUtils.isReadable
 
 internal class LookupResponse(
     private val value: String? = null,

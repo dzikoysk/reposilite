@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Dzikoysk
+ * Copyright (c) 2021 dzikoysk
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,16 @@
 package org.panda_lang.reposilite.maven.repository
 
 import org.panda_lang.reposilite.maven.metadata.MetadataUtils.toSortedBuilds
-import org.panda_lang.reposilite.utils.ArrayUtils.getFirst
 import org.panda_lang.reposilite.maven.metadata.MetadataUtils.toIdentifier
 import org.panda_lang.reposilite.maven.metadata.MetadataUtils.toSortedVersions
 import net.dzikoysk.dynamiclogger.Journalist
 import net.dzikoysk.dynamiclogger.Logger
 import org.panda_lang.reposilite.config.Configuration
 import org.panda_lang.reposilite.storage.StorageProviderFactory
-import org.panda_lang.reposilite.config.Configuration.RepositoryConfiguration
 import org.panda_lang.reposilite.maven.repository.api.RepositoryVisibility
-import org.panda_lang.reposilite.maven.metadata.MetadataUtils
 import kotlin.Throws
 import java.io.IOException
 import org.panda_lang.reposilite.maven.repository.api.FileDetailsResponse
-import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.token.api.AccessToken
 import org.panda_lang.utilities.commons.StringUtils
 import java.nio.file.Path
@@ -39,12 +35,13 @@ class RepositoryService(private val journalist: Journalist) : Journalist {
 
     private val repositories: MutableMap<String, Repository> = LinkedHashMap(4)
 
-    var primaryRepository: Repository? = null
+    lateinit var primaryRepository: Repository
         private set
 
     fun load(configuration: Configuration) {
         logger.info("--- Loading repositories")
         val storageProviderFactory = StorageProviderFactory()
+
         for ((repositoryName, repositoryConfiguration) in configuration.repositories) {
             val repository = Repository(
                 repositoryName,
@@ -52,8 +49,10 @@ class RepositoryService(private val journalist: Journalist) : Journalist {
                 storageProviderFactory.createStorageProvider(repositoryName, repositoryConfiguration.storageProvider),
                 repositoryConfiguration.deployEnabled
             )
+
             repositories[repository.name] = repository
             val primary = primaryRepository == null
+
             if (primary) {
                 primaryRepository = repository
             }
@@ -64,7 +63,7 @@ class RepositoryService(private val journalist: Journalist) : Journalist {
 
     fun resolveSnapshot(repository: Repository, requestPath: Path): Path? {
         val artifactFile = repository.relativize(requestPath)
-        val versionDirectory = artifactFile!!.parent
+        val versionDirectory = artifactFile.parent
         val builds = toSortedBuilds(repository, versionDirectory).get()
         val latestBuild = builds.firstOrNull() ?: return null
         val version = StringUtils.replace(versionDirectory.fileName.toString(), "-SNAPSHOT", StringUtils.EMPTY)

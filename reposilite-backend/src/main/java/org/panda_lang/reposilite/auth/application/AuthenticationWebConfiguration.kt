@@ -1,47 +1,46 @@
+/*
+ * Copyright (c) 2021 dzikoysk
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.panda_lang.reposilite.auth.application
 
+import io.javalin.Javalin
 import net.dzikoysk.dynamiclogger.Journalist
-import org.panda_lang.reposilite.Reposilite
 import org.panda_lang.reposilite.auth.AuthenticationFacade
-import org.panda_lang.reposilite.auth.AuthenticationService
 import org.panda_lang.reposilite.auth.Authenticator
-import org.panda_lang.reposilite.auth.ChAliasCommand
-import org.panda_lang.reposilite.auth.ChmodCommand
-import org.panda_lang.reposilite.auth.KeygenCommand
-import org.panda_lang.reposilite.auth.RevokeCommand
 import org.panda_lang.reposilite.auth.SessionService
-import org.panda_lang.reposilite.auth.TokensCommand
 import org.panda_lang.reposilite.auth.infrastructure.AuthenticationEndpoint
 import org.panda_lang.reposilite.auth.infrastructure.PostAuthHandler
-import org.panda_lang.reposilite.console.ConsoleFacade
 import org.panda_lang.reposilite.maven.MavenFacade
 import org.panda_lang.reposilite.token.AccessTokenFacade
-import org.panda_lang.reposilite.token.infrastructure.SqlAccessTokenRepository
 
 object AuthenticationWebConfiguration {
 
-    fun create(journalist: Journalist, mavenFacade: MavenFacade): AuthenticationFacade {
-        val accessTokenFacade = AccessTokenFacade(journalist, SqlAccessTokenRepository())
+    fun createFacade(journalist: Journalist, accessTokenFacade: AccessTokenFacade, mavenFacade: MavenFacade): AuthenticationFacade {
         val authenticator = Authenticator(accessTokenFacade)
         val sessionService = SessionService(mavenFacade)
-        val authService = AuthenticationService(authenticator, sessionService)
 
-        return AuthenticationFacade(journalist, authService, accessTokenFacade)
+        return AuthenticationFacade(journalist, authenticator, sessionService)
     }
 
-    fun initialize(consoleFacade: ConsoleFacade, authenticationFacade: AuthenticationFacade) {
-        with(consoleFacade) {
-            registerCommand(ChAliasCommand(authenticationFacade.accessTokenFacade))
-            registerCommand(ChmodCommand(authenticationFacade.accessTokenFacade))
-            registerCommand(KeygenCommand(authenticationFacade.accessTokenFacade))
-            registerCommand(RevokeCommand(authenticationFacade.accessTokenFacade))
-            registerCommand(TokensCommand(authenticationFacade.accessTokenFacade))
-        }
+    fun initialize() {
+
     }
 
-    fun installRoutes(reposilite: Reposilite) =
-        reposilite.httpServer.javalin.get()
-                .get("/api/auth", AuthenticationEndpoint(reposilite.authenticationFacade))
-                .after("/*", PostAuthHandler())
+    fun installRoutes(javalin: Javalin, authenticationFacade: AuthenticationFacade) = javalin
+        .get("/api/auth", AuthenticationEndpoint(authenticationFacade))
+        .after("/*", PostAuthHandler())
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Dzikoysk
+ * Copyright (c) 2021 dzikoysk
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,6 @@ package org.panda_lang.reposilite.console.api
 import com.google.api.client.util.Key
 
 internal data class RemoteExecutionResponse(
-    @Key
-    val isSucceeded: Boolean,
-    @Key
-    val response: List<String>
+    @Key val isSucceeded: Boolean,
+    @Key val response: List<String>
 )

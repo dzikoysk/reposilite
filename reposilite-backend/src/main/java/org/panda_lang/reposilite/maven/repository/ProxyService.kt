@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Dzikoysk
+ * Copyright (c) 2021 dzikoysk
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ import com.google.api.client.http.GenericUrl
 import com.google.api.client.http.HttpRequestFactory
 import com.google.api.client.http.HttpResponse
 import com.google.api.client.http.javanet.NetHttpTransport
-import org.apache.commons.io.IOUtils
 import org.apache.http.HttpStatus
 import org.panda_lang.reposilite.ReposiliteContext
 import org.panda_lang.reposilite.ReposiliteException
@@ -120,7 +119,7 @@ internal class ProxyService(
                     ).map { lookupResponse }
                 }
                 else {
-                    context.result { outputStream: OutputStream ->
+                    context.output { outputStream: OutputStream ->
                         IOUtils.copyLarge(
                             remoteResponse.content,
                             outputStream
@@ -160,7 +159,7 @@ internal class ProxyService(
             if (result.isOk) {
                 context.logger.info("Stored proxied $proxiedFile from ${remoteResponse.request.url}")
 
-                context.result { output: OutputStream ->
+                context.output { output: OutputStream ->
                     output.write(
                         storageProvider.getFile(proxiedFile).get()
                     )

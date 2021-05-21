@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Dzikoysk
+ * Copyright (c) 2021 dzikoysk
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,6 @@ object ReposiliteUtils {
      * @param uri the uri to process
      * @return the normalized uri
      */
-    @JvmStatic
     fun normalizeUri(uri: String): Option<String> {
         var normalizedUri = uri
 
@@ -52,7 +51,6 @@ object ReposiliteUtils {
         return Option.of(normalizedUri)
     }
 
-    @JvmStatic
     fun getRepository(rewritePathsEnabled: Boolean, repositoryService: RepositoryService, uri: String): Option<Repository> {
         var normalizedUri = uri
 

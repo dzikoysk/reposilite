@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Dzikoysk
+ * Copyright (c) 2021 dzikoysk
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ package org.panda_lang.reposilite.console
 
 import org.panda_lang.reposilite.Reposilite
 import org.panda_lang.reposilite.ReposiliteConstants
-import org.panda_lang.reposilite.utils.TimeUtils.format
+import org.panda_lang.reposilite.shared.utils.TimeUtils.format
 import org.panda_lang.utilities.commons.IOUtils
 import org.panda_lang.utilities.commons.console.Effect.GREEN
 import org.panda_lang.utilities.commons.console.Effect.GREEN_BOLD
@@ -35,7 +35,7 @@ internal class StatusCommand(private val reposilite: Reposilite) : ReposiliteCom
             else getVersion()
 
         output.add("Reposilite ${ReposiliteConstants.VERSION} Status")
-        output.add("  Active: $GREEN_BOLD${reposilite.httpServer.isAlive}$RESET")
+        output.add("  Active: $GREEN_BOLD${reposilite.httpServer.isAlive()}$RESET")
         output.add("  Uptime: ${format(reposilite.getUptime() / 1000.0 / 60.0)}min")
         output.add("  Memory usage of process: ${memoryUsage()}")
         output.add("  Exceptions: ${reposilite.failureFacade.getFailures().size}")

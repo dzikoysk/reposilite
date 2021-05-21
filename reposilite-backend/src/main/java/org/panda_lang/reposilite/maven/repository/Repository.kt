@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Dzikoysk
+ * Copyright (c) 2021 dzikoysk
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,11 +31,14 @@ class Repository internal constructor(
     private val visibility: RepositoryVisibility,
     private val storageProvider: StorageProvider,
     val isDeployEnabled: Boolean
-) : Comparator<Path?> {
+) : Comparator<Path> {
 
     companion object {
         private val REPOSITORIES = Paths.get("repositories")
     }
+
+    override fun compare(path: Path, toPath: Path): Int =
+        relativize(path).compareTo(relativize(toPath))
 
     fun isPublic(): Boolean =
         !isPrivate()
@@ -43,45 +46,35 @@ class Repository internal constructor(
     fun isPrivate(): Boolean =
         visibility == PRIVATE
 
-    fun putFile(file: Path?, bytes: ByteArray?): Result<FileDetailsResponse, ErrorResponse> {
-        return storageProvider.putFile(relativize(file)!!, bytes!!)
-    }
+    fun putFile(file: Path, bytes: ByteArray): Result<FileDetailsResponse, ErrorResponse> =
+        storageProvider.putFile(relativize(file), bytes)
 
-    fun putFile(file: Path?, inputStream: InputStream?): Result<FileDetailsResponse, ErrorResponse> {
-        return storageProvider.putFile(relativize(file)!!, inputStream!!)
-    }
+    fun putFile(file: Path, inputStream: InputStream): Result<FileDetailsResponse, ErrorResponse> =
+        storageProvider.putFile(relativize(file), inputStream)
 
-    fun getFile(file: Path?): Result<ByteArray, ErrorResponse> {
-        return storageProvider.getFile(relativize(file)!!)
-    }
+    fun getFile(file: Path): Result<ByteArray, ErrorResponse> =
+        storageProvider.getFile(relativize(file))
 
-    fun getFileDetails(file: Path?): Result<FileDetailsResponse, ErrorResponse> {
-        return storageProvider.getFileDetails(relativize(file)!!)
-    }
+    fun getFileDetails(file: Path): Result<FileDetailsResponse, ErrorResponse> =
+        storageProvider.getFileDetails(relativize(file))
 
-    fun removeFile(file: Path?): Result<Void, ErrorResponse> {
-        return storageProvider.removeFile(relativize(file)!!)
-    }
+    fun removeFile(file: Path): Result<Void, ErrorResponse> =
+        storageProvider.removeFile(relativize(file))
 
-    fun getFiles(directory: Path?): Result<List<Path>, ErrorResponse> {
-        return storageProvider.getFiles(relativize(directory)!!)
-    }
+    fun getFiles(directory: Path): Result<List<Path>, ErrorResponse> =
+        storageProvider.getFiles(relativize(directory))
 
-    fun getLastModifiedTime(file: Path?): Result<FileTime, ErrorResponse> {
-        return storageProvider.getLastModifiedTime(relativize(file)!!)
-    }
+    fun getLastModifiedTime(file: Path): Result<FileTime, ErrorResponse> =
+        storageProvider.getLastModifiedTime(relativize(file))
 
-    fun getFileSize(file: Path?): Result<Long, ErrorResponse> {
-        return storageProvider.getFileSize(relativize(file)!!)
-    }
+    fun getFileSize(file: Path): Result<Long, ErrorResponse> =
+        storageProvider.getFileSize(relativize(file))
 
-    fun exists(file: Path?): Boolean {
-        return storageProvider.exists(relativize(file)!!)
-    }
+    fun exists(file: Path): Boolean =
+        storageProvider.exists(relativize(file))
 
-    fun isDirectory(file: Path?): Boolean {
-        return storageProvider.isDirectory(relativize(file)!!)
-    }
+    fun isDirectory(file: Path): Boolean =
+        storageProvider.isDirectory(relativize(file))
 
     fun isFull(): Boolean =
         storageProvider.isFull()
@@ -89,32 +82,27 @@ class Repository internal constructor(
     fun getUsage(): Long =
         storageProvider.usage()
 
-    fun canHold(contentLength: Long): Boolean {
-        return storageProvider.canHold(contentLength)
-    }
+    fun canHold(contentLength: Long): Boolean =
+        storageProvider.canHold(contentLength)
 
-    fun shutdown() {
+    fun shutdown() =
         storageProvider.shutdown()
-    }
 
-    fun relativize(path: Path?): Path? {
-        var path = path ?: return null
+    fun relativize(path: Path): Path {
+        var relativePath = path
 
-        if (!path.startsWith(REPOSITORIES)) {
-            if (!path.startsWith(name)) {
-                path = Paths.get(name).resolve(path)
+        if (!relativePath.startsWith(REPOSITORIES)) {
+            if (!relativePath.startsWith(name)) {
+                relativePath = Paths.get(name).resolve(relativePath)
             }
-            path = REPOSITORIES.resolve(path)
+
+            relativePath = REPOSITORIES.resolve(relativePath)
         }
-        else if (path.startsWith(name)) {
-            path = REPOSITORIES.relativize(path)
+        else if (relativePath.startsWith(name)) {
+            relativePath = REPOSITORIES.relativize(relativePath)
         }
 
-        return path
-    }
-
-    override fun compare(o1: Path?, o2: Path?): Int {
-        return relativize(o1)!!.compareTo(relativize(o2))
+        return relativePath
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Dzikoysk
+ * Copyright (c) 2021 dzikoysk
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import groovy.transform.CompileStatic
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.panda_lang.reposilite.ReposiliteConstants
-import org.panda_lang.reposilite.storage.FileSystemStorageProvider
+import org.panda_lang.reposilite.storage.infrastructure.FileSystemStorageProvider
 import org.panda_lang.reposilite.token.AccessTokenFacade
 import org.panda_lang.reposilite.token.TokenStorage
 

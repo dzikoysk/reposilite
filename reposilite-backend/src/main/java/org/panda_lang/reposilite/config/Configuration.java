@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Dzikoysk
+ * Copyright (c) 2021 dzikoysk
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,6 +51,8 @@ public final class Configuration implements Serializable {
     public boolean swagger = false;
     // @Description("# Run Reposilite using Jakarta Servlet server (not supported yet)")
     // public boolean servlet = false;
+    @Description("# Amount of messages stored in cached logger.")
+    public int cachedLogSize = 100;
     @Description("# Debug")
     public boolean debugEnabled = false;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Dzikoysk
+ * Copyright (c) 2021 dzikoysk
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import javax.servlet.http.HttpServletResponse
 @WebServlet(urlPatterns = ["/*"], name = "ReposiliteServlet", asyncSupported = true)
 class ReposiliteServlet : HttpServlet() {
 
-    private val reposilite = ReposiliteLauncher.create("", "", true, false)
+    private val reposilite = ReposiliteLauncher.create("", "", /* servlet = true */ false)
 
     override fun init() {
         reposilite.logger.info("Starting Reposilite servlet...")
@@ -38,7 +38,7 @@ class ReposiliteServlet : HttpServlet() {
     }
 
     override fun service(req: HttpServletRequest, res: HttpServletResponse) {
-        reposilite.httpServer.javalin.get().servlet().service(req, res)
+        reposilite.httpServer.javalin?.servlet()?.service(req, res)
     }
 
     override fun destroy() {

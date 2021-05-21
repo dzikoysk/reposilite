@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Dzikoysk
+ * Copyright (c) 2021 dzikoysk
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,9 @@ import io.javalin.http.Context
 import io.javalin.http.Handler
 import io.javalin.plugin.openapi.annotations.OpenApi
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
-import org.panda_lang.reposilite.resource.FrontendProvider
+import org.panda_lang.reposilite.resource.ResourceFacade
 
-internal class FrontendHandler(private val frontendProvider: FrontendProvider) : Handler {
+internal class FrontendHandler(private val resourceFacade: ResourceFacade) : Handler {
 
     @OpenApi(
         operationId = "getApp",
@@ -31,7 +31,7 @@ internal class FrontendHandler(private val frontendProvider: FrontendProvider) :
         responses = [ OpenApiResponse(status = "200", description = "Default response") ]
     )
     override fun handle(context: Context) {
-        with(context.result(frontendProvider.getApp())) {
+        with(context.result(resourceFacade.getApp())) {
             header("Content-Type", "application/javascript")
             res.characterEncoding = "UTF-8"
         }

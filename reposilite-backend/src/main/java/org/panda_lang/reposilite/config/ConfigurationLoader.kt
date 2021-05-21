@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Dzikoysk
+ * Copyright (c) 2021 dzikoysk
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package org.panda_lang.reposilite.config
 import net.dzikoysk.cdn.CdnFactory
 import net.dzikoysk.dynamiclogger.Journalist
 import net.dzikoysk.dynamiclogger.Logger
-import org.panda_lang.reposilite.utils.FilesUtils.getExtension
+import org.panda_lang.reposilite.shared.utils.FilesUtils.getExtension
 import org.panda_lang.utilities.commons.ClassUtils
 import org.panda_lang.utilities.commons.StringUtils
 import java.nio.charset.StandardCharsets
