@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Dzikoysk
+ * Copyright (c) 2021 dzikoysk
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import io.javalin.plugin.openapi.annotations.OpenApiParam
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
 import org.panda_lang.reposilite.auth.AuthenticationFacade
 import org.panda_lang.reposilite.auth.api.AuthenticationResponse
-import org.panda_lang.reposilite.failure.ResponseUtils
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 
 internal class AuthenticationEndpoint(private val authenticationFacade: AuthenticationFacade) : Handler {
@@ -48,7 +47,9 @@ internal class AuthenticationEndpoint(private val authenticationFacade: Authenti
         ]
     )
     override fun handle(ctx: Context) {
-        ResponseUtils.response(ctx, authenticationFacade.authenticateByHeader(ctx.headerMap()))
+        authenticationFacade.authenticateByHeader(ctx.headerMap())
+            .map { AuthenticationResponse(it.alias, it.permissions) }
+            .let { ctx.json(it.any) }
     }
 
 }

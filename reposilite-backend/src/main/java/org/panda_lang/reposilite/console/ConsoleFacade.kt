@@ -1,17 +1,40 @@
+/*
+ * Copyright (c) 2021 dzikoysk
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.panda_lang.reposilite.console
 
 import net.dzikoysk.dynamiclogger.Journalist
 import net.dzikoysk.dynamiclogger.Logger
+import picocli.CommandLine
 
 class ConsoleFacade internal constructor(
     private val journalist: Journalist,
-    private val console: Console
+    internal val console: Console
 ) : Journalist {
 
-    fun registerCommand(command: ReposiliteCommand) {
-        console.registerCommand(command)
-    }
+    fun executeCommand(command: String): Boolean =
+        console.defaultExecute(command)
 
-    override fun getLogger(): Logger = journalist.logger
+    fun registerCommand(command: ReposiliteCommand): CommandLine =
+        console.registerCommand(command)
+
+    fun getCommands(): Map<String, CommandLine> =
+        console.getCommands()
+
+    override fun getLogger(): Logger =
+        journalist.logger
 
 }

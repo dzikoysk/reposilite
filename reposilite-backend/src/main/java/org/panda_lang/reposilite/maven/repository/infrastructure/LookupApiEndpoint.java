@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Dzikoysk
+ * Copyright (c) 2021 dzikoysk
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,10 +30,10 @@ import org.panda_lang.reposilite.ReposiliteUtils;
 import org.panda_lang.reposilite.failure.api.ErrorResponse;
 import org.panda_lang.reposilite.failure.ResponseUtils;
 import org.panda_lang.reposilite.maven.repository.api.FileDetailsResponse;
-import org.panda_lang.reposilite.maven.repository.ListDto;
 import org.panda_lang.reposilite.maven.repository.Repository;
 import org.panda_lang.reposilite.maven.repository.RepositoryAuthenticator;
 import org.panda_lang.reposilite.maven.repository.RepositoryService;
+import org.panda_lang.reposilite.maven.repository.api.FileListResponse;
 import org.panda_lang.utilities.commons.StringUtils;
 import org.panda_lang.utilities.commons.collection.Pair;
 import org.panda_lang.utilities.commons.function.Option;
@@ -77,7 +77,7 @@ final class LookupApiEndpoint implements Handler {
                             description = "Returns document (different for directory and file) that describes requested resource",
                             content = {
                                     @OpenApiContent(from = FileDetailsResponse.class),
-                                    @OpenApiContent(from = ListDto.class)
+                                    @OpenApiContent(from = FileListResponse.class)
                             }
                     ),
                     @OpenApiResponse(
@@ -161,7 +161,7 @@ final class LookupApiEndpoint implements Handler {
 
         }
 
-        ctx.json(new ListDto<>(list));
+        ctx.json(new FileListResponse<>(list));
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Dzikoysk
+ * Copyright (c) 2021 dzikoysk
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ internal class HelpCommand(private val consoleFacade: ConsoleFacade) : Reposilit
         val uniqueCommands: MutableSet<CommandLine> = TreeSet(Comparator.comparing { it.commandName })
 
         if (requestedCommand.isNotEmpty()) {
-            val requested: CommandLine? = console.commandExecutor.subcommands[requestedCommand]
+            val requested: CommandLine? = consoleFacade.getCommands()[requestedCommand]
 
             if (requested == null) {
                 output.add("Unknown command '$requestedCommand'")
@@ -45,7 +45,7 @@ internal class HelpCommand(private val consoleFacade: ConsoleFacade) : Reposilit
         }
 
         if (uniqueCommands.isEmpty()) {
-            uniqueCommands.addAll(console.commandExecutor.subcommands.values)
+            uniqueCommands.addAll(consoleFacade.getCommands().values)
         }
 
         output.add("Reposilite ${ReposiliteConstants.VERSION} Commands:")
@@ -60,4 +60,5 @@ internal class HelpCommand(private val consoleFacade: ConsoleFacade) : Reposilit
 
         return true
     }
+
 }

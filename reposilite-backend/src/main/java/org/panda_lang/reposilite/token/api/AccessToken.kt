@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Dzikoysk
+ * Copyright (c) 2021 dzikoysk
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,11 @@
  */
 package org.panda_lang.reposilite.token.api
 
+import io.javalin.plugin.openapi.annotations.HttpMethod
+import io.javalin.plugin.openapi.annotations.HttpMethod.GET
+import io.javalin.plugin.openapi.annotations.HttpMethod.HEAD
+import io.javalin.plugin.openapi.annotations.HttpMethod.POST
+import io.javalin.plugin.openapi.annotations.HttpMethod.PUT
 import org.panda_lang.reposilite.token.api.RoutePermission.READ
 import java.io.Serializable
 
@@ -38,7 +43,7 @@ data class AccessToken internal constructor(
 
 enum class AccessTokenPermission(
     val symbol: String,
-    val isDefault: Boolean
+    val isDefault: Boolean,
 ) {
 
     MANAGER("m", false);
@@ -65,16 +70,20 @@ data class Route internal constructor(
 
 enum class RoutePermission(
     val symbol: String,
-    val isDefault: Boolean
+    val isDefault: Boolean,
+    val methods: Array<HttpMethod>
 ) {
 
-    WRITE("w", false),
-    READ("r", true);
+    WRITE("w", false, arrayOf(PUT, POST)),
+    READ("r", true, arrayOf(HEAD, GET));
 
     companion object {
 
         fun getDefaultPermissions(): Set<RoutePermission> =
             values().filter { it.isDefault }.toSet()
+
+        fun findByMethod(method: HttpMethod): RoutePermission? =
+            values().find { it.methods.contains(method) }
 
     }
 

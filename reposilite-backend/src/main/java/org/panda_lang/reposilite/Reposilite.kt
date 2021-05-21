@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Dzikoysk
+ * Copyright (c) 2021 dzikoysk
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,23 @@
  */
 package org.panda_lang.reposilite
 
+import net.dzikoysk.dynamiclogger.Channel
 import net.dzikoysk.dynamiclogger.Journalist
 import net.dzikoysk.dynamiclogger.Logger
+import net.dzikoysk.dynamiclogger.backend.AggregatedLogger
 import org.panda_lang.reposilite.auth.AuthenticationFacade
 import org.panda_lang.reposilite.config.Configuration
 import org.panda_lang.reposilite.console.ConsoleFacade
 import org.panda_lang.reposilite.failure.FailureFacade
 import org.panda_lang.reposilite.maven.MavenFacade
-import org.panda_lang.reposilite.maven.repository.*
-import org.panda_lang.reposilite.utils.TimeUtils
+import org.panda_lang.reposilite.shared.CachedLogger
+import org.panda_lang.reposilite.shared.utils.TimeUtils
 import org.panda_lang.utilities.commons.console.Effect
 import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicBoolean
 
 class Reposilite(
-    private val logger: Logger,
+    logger: Logger,
     val configuration: Configuration,
     val workingDirectory: Path,
     val testEnv: Boolean,
@@ -42,9 +44,12 @@ class Reposilite(
 
     val httpServer = ReposiliteHttpServer(this, false)
 
+    val cachedLogger = CachedLogger(Channel.ALL, configuration.cachedLogSize)
+    private val logger = AggregatedLogger(logger, cachedLogger)
+
     private val alive = AtomicBoolean(false)
     private val shutdownHook = Thread { shutdown() }
-    private var uptime = System.currentTimeMillis()
+    private val uptime = System.currentTimeMillis()
 
     fun launch() {
         load()
@@ -67,7 +72,7 @@ class Reposilite(
 
         logger.info("")
         logger.info("--- Loading domain configurations")
-//         Arrays.stream(configurations()).forEach { domainConfigurer -> domainConfigurer.configure(this) }
+        // Arrays.stream(configurations()).forEach { domainConfigurer -> domainConfigurer.configure(this) }
     }
 
     fun start(): Reposilite {
@@ -83,18 +88,6 @@ class Reposilite(
             logger.exception(exception)
             shutdown()
             return this
-        }
-
-        logger.info("Done (" + TimeUtils.format(TimeUtils.getUptime(uptime)) + "s)!")
-        consoleFacade.defaultExecute("help")
-
-        logger.info("Collecting status metrics...")
-        consoleFacade.defaultExecute("status")
-
-        // disable console daemon in tests due to issues with coverage and interrupt method call
-        // https://github.com/jacoco/jacoco/issues/1066
-        if (!testEnv) {
-            console.hook()
         }
 
         return this
@@ -113,13 +106,13 @@ class Reposilite(
         httpServer.stop()
     }
 
-    fun getPrettyUptime() =
-        TimeUtils.format(TimeUtils.getUptime(uptime) / 60) + "min"
-
-    fun getUptime() =
+    fun getUptime(): Long =
         System.currentTimeMillis() - uptime
 
-    override fun getLogger() =
+    fun getPrettyUptime(): String =
+        TimeUtils.format(TimeUtils.getUptime(uptime) / 60) + "min"
+
+    override fun getLogger(): Logger =
         logger
 
 }

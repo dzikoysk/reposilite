@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Dzikoysk
+ * Copyright (c) 2021 dzikoysk
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,12 @@
  */
 package org.panda_lang.reposilite.auth
 
-import org.panda_lang.reposilite.token.api.AccessToken
 import org.panda_lang.reposilite.token.AccessTokenFacade
+import org.panda_lang.reposilite.token.api.AccessToken
 import org.panda_lang.utilities.commons.StringUtils
 import org.panda_lang.utilities.commons.function.Result
+import org.panda_lang.utilities.commons.function.Result.error
+import org.panda_lang.utilities.commons.function.Result.ok
 import java.nio.charset.StandardCharsets
 import java.util.*
 
@@ -41,7 +43,7 @@ class Authenticator(private val accessTokenFacade: AccessTokenFacade) {
         val token = authResult.get()
 
         if (!token.hasPermissionTo(processedUri)) {
-            return Result.error("Unauthorized access attempt")
+            return error("Unauthorized access attempt")
         }
 
         accessTokenFacade.logger.info("AUTH $token accessed $processedUri")
@@ -55,11 +57,11 @@ class Authenticator(private val accessTokenFacade: AccessTokenFacade) {
         header.forEach { (key, value) -> accessTokenFacade.logger.debug("$key: $value") }
 
         if (authorization == null) {
-            return Result.error("Authorization credentials are not specified")
+            return error("Authorization credentials are not specified")
         }
 
         if (!authorization.startsWith("Basic")) {
-            return Result.error("Unsupported auth method")
+            return error("Unsupported auth method")
         }
 
         val base64Credentials = authorization.substring("Basic".length).trim()
@@ -70,29 +72,29 @@ class Authenticator(private val accessTokenFacade: AccessTokenFacade) {
 
     fun authByCredentials(credentials: String?): Result<AccessToken, String> {
         if (credentials == null) {
-            return Result.error("Authorization credentials are not specified")
+            return error("Authorization credentials are not specified")
         }
 
         val values = StringUtils.splitFirst(credentials, ":")
 
         if (values.size != 2) {
-            return Result.error("Invalid authorization credentials")
+            return error("Invalid authorization credentials")
         }
 
         val tokenValue = accessTokenFacade.getToken(values[0])
 
         if (tokenValue.isEmpty) {
-            return Result.error("Invalid authorization credentials")
+            return error("Invalid authorization credentials")
         }
 
         val token = tokenValue.get()
         val authorized = AccessTokenFacade.B_CRYPT_TOKENS_ENCODER.matches(values[1], token.secret)
 
         if (!authorized) {
-            return Result.error("Invalid authorization credentials")
+            return error("Invalid authorization credentials")
         }
 
-        return Result.ok(token)
+        return ok(token)
     }
 
 }

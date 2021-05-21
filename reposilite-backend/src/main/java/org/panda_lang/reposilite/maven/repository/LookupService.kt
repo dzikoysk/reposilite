@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Dzikoysk
+ * Copyright (c) 2021 dzikoysk
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -120,7 +120,7 @@ internal class LookupService(
             val fileDetails = fileDetailsResult.get()
 
             if (context.method != "HEAD") {
-                context.result { outputStream: OutputStream -> outputStream.write(bytes.get()) }
+                context.output { outputStream: OutputStream -> outputStream.write(bytes.get()) }
             }
 
             context.logger.debug("RESOLVED $path; mime: ${fileDetails.contentType}; size: ${repository.getFileSize(path).get()}")

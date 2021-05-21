@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Dzikoysk
+ * Copyright (c) 2021 dzikoysk
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import io.javalin.plugin.openapi.annotations.OpenApi
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
 import org.apache.http.HttpStatus
 import org.eclipse.jetty.util.resource.Resource
-import org.panda_lang.reposilite.utils.FilesUtils.getMimeType
+import org.panda_lang.reposilite.shared.utils.FilesUtils.getMimeType
 
 internal class WebJarsHandler : Handler {
 

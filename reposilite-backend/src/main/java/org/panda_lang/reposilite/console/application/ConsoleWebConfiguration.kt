@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Dzikoysk
+ * Copyright (c) 2021 dzikoysk
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package org.panda_lang.reposilite.console.application
 
+import io.javalin.Javalin
 import net.dzikoysk.dynamiclogger.Journalist
 import org.panda_lang.reposilite.Reposilite
 import org.panda_lang.reposilite.console.Console
@@ -23,9 +24,12 @@ import org.panda_lang.reposilite.console.HelpCommand
 import org.panda_lang.reposilite.console.StatusCommand
 import org.panda_lang.reposilite.console.StopCommand
 import org.panda_lang.reposilite.console.VersionCommand
+import org.panda_lang.reposilite.console.infrastructure.CliController
+import org.panda_lang.reposilite.console.infrastructure.RemoteExecutionEndpoint
 import org.panda_lang.reposilite.failure.FailureFacade
+import org.panda_lang.reposilite.shared.utils.TimeUtils
 
-class ConsoleWebConfiguration {
+object ConsoleWebConfiguration {
 
     fun createFacade(journalist: Journalist, failureFacade: FailureFacade): ConsoleFacade {
         val console = Console(journalist, failureFacade, System.`in`)
@@ -37,6 +41,28 @@ class ConsoleWebConfiguration {
         consoleFacade.registerCommand(StatusCommand(reposilite))
         consoleFacade.registerCommand(StopCommand(reposilite))
         consoleFacade.registerCommand(VersionCommand())
+
+        reposilite.logger.info("Done (" + TimeUtils.format(reposilite.getUptime() / 1000.0) + "s)!")
+        consoleFacade.executeCommand("help")
+
+        reposilite.logger.info("Collecting status metrics...")
+        consoleFacade.executeCommand("status")
+
+        // disable console daemon in tests due to issues with coverage and interrupt method call
+        // https://github.com/jacoco/jacoco/issues/1066
+        if (!reposilite.testEnv) {
+            consoleFacade.console.hook()
+        }
+    }
+
+    fun installRouting(javalin: Javalin, reposilite: Reposilite) {
+        javalin
+            .post("/api/execute", RemoteExecutionEndpoint(reposilite.contextFactory, reposilite.consoleFacade))
+            .ws("/api/cli", CliController(reposilite.contextFactory, reposilite.authenticationFacade, reposilite.consoleFacade, reposilite.cachedLogger))
+    }
+
+    fun dispose(consoleFacade: ConsoleFacade) {
+        consoleFacade.console.stop()
     }
 
 }

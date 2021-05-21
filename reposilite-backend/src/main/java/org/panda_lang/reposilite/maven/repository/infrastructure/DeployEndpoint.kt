@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Dzikoysk
+ * Copyright (c) 2021 dzikoysk
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,9 +24,8 @@ import io.javalin.plugin.openapi.annotations.OpenApiParam
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
 import org.panda_lang.reposilite.ReposiliteContextFactory
 import org.panda_lang.reposilite.failure.ResponseUtils
-import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.maven.repository.DeployService
-import org.panda_lang.reposilite.maven.repository.api.FileDetailsResponse
+import org.panda_lang.reposilite.shared.utils.reposiliteContext
 
 internal class DeployEndpoint(
     private val contextFactory: ReposiliteContextFactory,
@@ -59,14 +58,13 @@ internal class DeployEndpoint(
             )
         ]
     )
-    override fun handle(ctx: Context) {
-        val context = contextFactory.create(ctx)
-        context.logger.info("DEPLOY " + context.uri.toString() + " from " + context.address)
+    override fun handle(ctx: Context) = reposiliteContext(contextFactory, ctx) {
+        it.logger.info("DEPLOY ${it.uri} from ${it.address}")
 
-        deployService.deploy(context)
-            .map { obj: FileDetailsResponse? -> ctx.json(obj!!) }
-            .onError { (_, message) -> context.logger.debug("Cannot deploy artifact due to: $message") }
-            .mapErr { error: ErrorResponse? -> ResponseUtils.errorResponse(ctx, error) }
+        deployService.deploy(it)
+            .map { fileDetailsResponse -> ctx.json(fileDetailsResponse) }
+            .onError { error -> it.logger.debug("Cannot deploy artifact due to: ${error.message}") }
+            .mapErr { error -> ResponseUtils.errorResponse(ctx, error) }
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Dzikoysk
+ * Copyright (c) 2021 dzikoysk
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,8 @@ package org.panda_lang.reposilite
 import net.dzikoysk.dynamiclogger.Journalist
 import net.dzikoysk.dynamiclogger.Logger
 import org.panda_lang.reposilite.auth.Session
-import org.panda_lang.utilities.commons.function.Option
+import org.panda_lang.reposilite.failure.api.ErrorResponse
+import org.panda_lang.utilities.commons.function.Result
 import org.panda_lang.utilities.commons.function.ThrowingConsumer
 import org.panda_lang.utilities.commons.function.ThrowingSupplier
 import java.io.IOException
@@ -31,18 +32,11 @@ class ReposiliteContext(
     val method: String,
     val address: String,
     val header: Map<String, String>,
-    val session: Session?,
+    val session: Result<Session, ErrorResponse>,
     private val input: ThrowingSupplier<InputStream, IOException>
 ) : Journalist {
 
-    private var result: ThrowingConsumer<OutputStream, IOException>? = null
-
-    fun result(result: ThrowingConsumer<OutputStream, IOException>?) {
-        this.result = result
-    }
-
-    fun result(): Option<ThrowingConsumer<OutputStream, IOException>?> =
-        Option.of(result)
+    var output: ThrowingConsumer<OutputStream, IOException>? = null
 
     fun input(): InputStream =
         input.get()

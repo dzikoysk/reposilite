@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Dzikoysk
+ * Copyright (c) 2021 dzikoysk
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ package org.panda_lang.reposilite.maven.metadata
 
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.maven.repository.Repository
-import org.panda_lang.reposilite.utils.FilesUtils.getExtension
+import org.panda_lang.reposilite.shared.utils.FilesUtils.getExtension
 import org.panda_lang.utilities.commons.StringUtils
 import org.panda_lang.utilities.commons.function.Result
 import org.panda_lang.utilities.commons.text.Joiner

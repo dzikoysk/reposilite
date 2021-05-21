@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Dzikoysk
+ * Copyright (c) 2021 dzikoysk
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,21 @@
  */
 package org.panda_lang.reposilite.auth
 
+import io.javalin.plugin.openapi.annotations.HttpMethod
 import org.panda_lang.reposilite.token.api.AccessToken
 import org.panda_lang.reposilite.token.api.AccessTokenPermission.MANAGER
-import org.panda_lang.reposilite.token.api.RoutePermission.MANAGER
+import org.panda_lang.reposilite.token.api.RoutePermission
 
 class Session(
     val accessToken: AccessToken,
+    val path: String,
+    val method: HttpMethod
 ) {
 
+    fun isAuthenticated() =
+        accessToken.hasPermissionTo(path, RoutePermission.findByMethod(method)!!)
+
     fun isManager()=
-        accessToken.hasPermissionTo("", MANAGER)
+        accessToken.hasPermission(MANAGER)
 
 }
