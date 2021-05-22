@@ -16,26 +16,28 @@
 package org.panda_lang.reposilite.failure
 
 import org.panda_lang.reposilite.console.ReposiliteCommand
+import org.panda_lang.reposilite.console.Status
+import org.panda_lang.reposilite.console.Status.SUCCEEDED
 import picocli.CommandLine.Command
 
 @Command(name = "failures", description = ["Display all recorded exceptions"])
-internal class FailuresCommand(private val failureService: FailureService) : ReposiliteCommand {
+internal class FailuresCommand(private val failureFacade: FailureFacade) : ReposiliteCommand {
 
-    override fun execute(output: MutableList<String>): Boolean {
-        if (!failureService.hasFailures()) {
+    override fun execute(output: MutableList<String>): Status {
+        if (!failureFacade.hasFailures()) {
             output.add("No exception has occurred yet")
-            return true
+            return SUCCEEDED
         }
 
         output.add("")
-        output.add("List of cached failures: " + "(" + failureService.failures.size + ")")
+        output.add("List of cached failures: " + "(" + failureFacade.getFailures().size + ")")
         output.add("")
 
-        failureService.failures
+        failureFacade.getFailures()
             .map { it.split(System.lineSeparator()) }
             .forEach { output.addAll(it) }
 
-        return true
+        return SUCCEEDED
     }
 
 }

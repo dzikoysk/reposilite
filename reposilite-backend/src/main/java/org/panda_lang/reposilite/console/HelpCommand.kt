@@ -16,6 +16,8 @@
 package org.panda_lang.reposilite.console
 
 import org.panda_lang.reposilite.ReposiliteConstants
+import org.panda_lang.reposilite.console.Status.FAILED
+import org.panda_lang.reposilite.console.Status.SUCCEEDED
 import org.panda_lang.utilities.commons.text.Joiner
 import picocli.CommandLine
 import picocli.CommandLine.Command
@@ -29,7 +31,7 @@ internal class HelpCommand(private val consoleFacade: ConsoleFacade) : Reposilit
     @Parameters(index = "0", paramLabel = "[<command>]", description = ["display usage of the given command"], defaultValue = "")
     private lateinit var requestedCommand: String
 
-    override fun execute(output: MutableList<String>): Boolean {
+    override fun execute(output: MutableList<String>): Status {
         val uniqueCommands: MutableSet<CommandLine> = TreeSet(Comparator.comparing { it.commandName })
 
         if (requestedCommand.isNotEmpty()) {
@@ -37,11 +39,11 @@ internal class HelpCommand(private val consoleFacade: ConsoleFacade) : Reposilit
 
             if (requested == null) {
                 output.add("Unknown command '$requestedCommand'")
-                return false
+                return FAILED
             }
 
             output.add(requested.usageMessage)
-            return true
+            return SUCCEEDED
         }
 
         if (uniqueCommands.isEmpty()) {
@@ -58,7 +60,7 @@ internal class HelpCommand(private val consoleFacade: ConsoleFacade) : Reposilit
                     + " - " + Joiner.on(". ").join(*specification.usageMessage().description()))
         }
 
-        return true
+        return SUCCEEDED
     }
 
 }

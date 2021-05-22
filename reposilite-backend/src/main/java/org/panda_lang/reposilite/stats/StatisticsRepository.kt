@@ -22,4 +22,8 @@ interface StatisticsRepository {
 
     fun findRecordsByPhrase(type: RecordType, phrase: String): List<Record>
 
+    fun countUniqueRecords(): Long
+
+    fun countRecords(): Long
+
 }

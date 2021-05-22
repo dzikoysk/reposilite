@@ -72,7 +72,7 @@ internal class RemoteExecutionEndpoint(
                 }
 
                 context.logger.info("${accessToken.alias} (${context.address}) requested command: ${context.body.value}")
-                response = consoleFacade.executeRemoteCommand(context.body.value)
+                response = consoleFacade.executeCommand(context.body.value)
             }
         }
 

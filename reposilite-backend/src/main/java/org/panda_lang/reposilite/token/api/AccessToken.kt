@@ -42,16 +42,19 @@ data class AccessToken internal constructor(
 }
 
 enum class AccessTokenPermission(
-    val symbol: String,
+    val symbol: Char,
     val isDefault: Boolean,
 ) {
 
-    MANAGER("m", false);
+    MANAGER('m', false);
 
     companion object {
 
+        fun ofSymbols(permissions: String): Set<AccessTokenPermission> =
+            values().filter { permissions.contains(it.symbol) }.toSet()
+
         fun getDefaultPermissions(): Set<AccessTokenPermission> =
-            AccessTokenPermission.values().filter { it.isDefault }.toSet()
+            values().filter { it.isDefault }.toSet()
 
     }
 

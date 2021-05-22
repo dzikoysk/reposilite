@@ -24,9 +24,9 @@ import org.panda_lang.reposilite.console.application.ConsoleWebConfiguration
 import org.panda_lang.reposilite.failure.application.FailureWebConfiguration
 import org.panda_lang.reposilite.maven.application.MavenWebConfiguration
 import org.panda_lang.reposilite.resource.application.ResourceWebConfiguration
-import org.panda_lang.reposilite.web.ReposiliteContextFactory
 import org.panda_lang.reposilite.stats.application.StatsWebConfiguration
 import org.panda_lang.reposilite.token.application.AccessTokenWebConfiguration
+import org.panda_lang.reposilite.web.ReposiliteContextFactory
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
 
@@ -44,7 +44,7 @@ object ReposiliteFactory {
         val consoleFacade = ConsoleWebConfiguration.createFacade(logger, failureFacade)
         val mavenFacade = MavenWebConfiguration.createFacade(logger)
         val resourceFacade = ResourceWebConfiguration.createFacade(configuration)
-        val statisticFactory = StatsWebConfiguration.createFacade(logger, failureFacade)
+        val statisticFacade = StatsWebConfiguration.createFacade(logger)
         val accessTokenFacade = AccessTokenWebConfiguration.createFacade(logger)
         val authenticationFacade = AuthenticationWebConfiguration.createFacade(logger, accessTokenFacade, mavenFacade)
         val contextFactory = ReposiliteContextFactory(logger, configuration.forwardedIp, authenticationFacade)

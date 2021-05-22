@@ -17,6 +17,13 @@ package org.panda_lang.reposilite.console
 
 interface ReposiliteCommand {
 
-    fun execute(output: MutableList<String>): Boolean
+    fun execute(output: MutableList<String>): Status
+
+}
+
+enum class Status {
+
+    SUCCEEDED,
+    FAILED
 
 }

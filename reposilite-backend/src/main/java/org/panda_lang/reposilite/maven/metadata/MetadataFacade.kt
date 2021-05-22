@@ -24,6 +24,7 @@ import org.panda_lang.reposilite.maven.repository.api.FileDetailsResponse
 import org.panda_lang.reposilite.maven.repository.Repository
 import org.panda_lang.reposilite.shared.utils.ArrayUtils
 import org.panda_lang.reposilite.shared.utils.FilesUtils
+import org.panda_lang.reposilite.web.mapToError
 import org.panda_lang.utilities.commons.StringUtils
 import org.panda_lang.utilities.commons.collection.Pair
 import org.panda_lang.utilities.commons.function.Lazy
@@ -51,25 +52,25 @@ class MetadataFacade(private val failureFacade: FailureFacade) {
 
     fun getMetadata(repository: Repository, requested: Path): Result<Pair<FileDetailsResponse, String>, ErrorResponse> {
         if (requested.fileName.toString() != "maven-metadata.xml") {
-            return Result.error<Pair<FileDetailsResponse, String>?, ErrorResponse>(ErrorResponse(HttpStatus.SC_BAD_REQUEST, "Bad request"))
+            return Result.error(ErrorResponse(HttpStatus.SC_BAD_REQUEST, "Bad request"))
         }
 
         val cachedContent: Pair<FileDetailsResponse, String>? = metadataCache[requested]
 
         if (cachedContent != null) {
-            return Result.ok<Pair<FileDetailsResponse, String>?, ErrorResponse>(cachedContent)
+            return Result.ok(cachedContent)
         }
 
         val artifactDirectory = requested.parent
 
         if (repository.exists(artifactDirectory)) {
-            return Result.error<Pair<FileDetailsResponse, String>?, ErrorResponse>(ErrorResponse(HttpStatus.SC_BAD_REQUEST, "Bad request"))
+            return Result.error(ErrorResponse(HttpStatus.SC_BAD_REQUEST, "Bad request"))
         }
 
         val versions: Result<Array<Path>, ErrorResponse> = MetadataUtils.toSortedVersions(repository, artifactDirectory)
 
         if (versions.isErr) {
-            return versions.map { null } // ?
+            return versions.mapToError()
         }
 
         return if (versions.get().isNotEmpty()) {
@@ -95,6 +96,7 @@ class MetadataFacade(private val failureFacade: FailureFacade) {
             null,
             MetadataUtils.toUpdateTime(repository, latest)
         )
+
         val metadata = Metadata(groupId, artifactDirectory.fileName.toString(), null, versioning)
         return toMetadataFile(repository, metadataFile, metadata)
     }
@@ -109,7 +111,7 @@ class MetadataFacade(private val failureFacade: FailureFacade) {
         val builds: Result<Array<Path>, ErrorResponse> = MetadataUtils.toSortedBuilds(repository, versionDirectory)
 
         if (builds.isErr) {
-            return builds.map { null }
+            return builds.mapToError()
         }
 
         val latestBuild = ArrayUtils.getFirst(builds.get())
@@ -146,7 +148,8 @@ class MetadataFacade(private val failureFacade: FailureFacade) {
             }
 
             Versioning(null, null, null, snapshot, snapshotVersions, MetadataUtils.toUpdateTime(repository, latestBuild))
-        } else {
+        }
+        else {
             val fullVersion = "$version-SNAPSHOT"
             Versioning(fullVersion, fullVersion, listOf(fullVersion), null, null, MetadataUtils.toUpdateTime(repository, latestBuild))
         }
@@ -171,24 +174,20 @@ class MetadataFacade(private val failureFacade: FailureFacade) {
                     serializedMetadata
                 )
             }
-        } catch (ioException: IOException) {
+        }
+        catch (ioException: IOException) {
             failureFacade.throwException(metadataFile.toAbsolutePath().toString(), ioException)
             Result.error(ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Cannot generate metadata"))
         }
     }
 
-    fun clearMetadata(metadataFile: Path) {
+    fun clearMetadata(metadataFile: Path) =
         metadataCache.remove(metadataFile)
-    }
 
-    fun purgeCache(): Int {
-        val count = getCacheSize()
-        metadataCache.clear()
-        return count
-    }
+    fun purgeCache(): Int =
+        getCacheSize().also { metadataCache.clear() }
 
-    fun getCacheSize(): Int {
-        return metadataCache.size
-    }
+    fun getCacheSize(): Int =
+        metadataCache.size
 
 }

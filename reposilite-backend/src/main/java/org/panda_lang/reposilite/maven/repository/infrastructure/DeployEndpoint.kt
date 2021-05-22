@@ -22,10 +22,10 @@ import io.javalin.plugin.openapi.annotations.OpenApi
 import io.javalin.plugin.openapi.annotations.OpenApiContent
 import io.javalin.plugin.openapi.annotations.OpenApiParam
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
-import org.panda_lang.reposilite.web.ReposiliteContextFactory
 import org.panda_lang.reposilite.failure.ResponseUtils
 import org.panda_lang.reposilite.maven.repository.DeployService
-import org.panda_lang.reposilite.shared.utils.reposiliteContext
+import org.panda_lang.reposilite.web.ReposiliteContextFactory
+import org.panda_lang.reposilite.web.context
 
 internal class DeployEndpoint(
     private val contextFactory: ReposiliteContextFactory,
@@ -58,12 +58,12 @@ internal class DeployEndpoint(
             )
         ]
     )
-    override fun handle(ctx: Context) = reposiliteContext(contextFactory, ctx) {
-        it.logger.info("DEPLOY ${it.uri} from ${it.address}")
+    override fun handle(ctx: Context) = context(contextFactory, ctx) {
+        context.logger.info("DEPLOY ${context.uri} from ${context.address}")
 
-        deployService.deploy(it)
+        deployService.deploy(context)
             .map { fileDetailsResponse -> ctx.json(fileDetailsResponse) }
-            .onError { error -> it.logger.debug("Cannot deploy artifact due to: ${error.message}") }
+            .onError { error -> context.logger.debug("Cannot deploy artifact due to: ${error.message}") }
             .mapErr { error -> ResponseUtils.errorResponse(ctx, error) }
     }
 

@@ -23,6 +23,8 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.sum
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
 import org.panda_lang.reposilite.stats.Record
@@ -76,5 +78,20 @@ class SqlStatisticsRepository : StatisticsRepository {
             row[StatisticsTable.identifier],
             row[StatisticsTable.count]
         )
+
+    override fun countUniqueRecords(): Long = transaction {
+        StatisticsTable.selectAll().count()
+    }
+
+    override fun countRecords(): Long = transaction {
+        val countSum = StatisticsTable.count.sum()
+
+        StatisticsTable
+            .slice(countSum)
+            .selectAll()
+            .first()
+            .let { it[countSum] }
+            ?: 0
+    }
 
 }
