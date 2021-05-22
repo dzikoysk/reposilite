@@ -16,10 +16,10 @@
 package org.panda_lang.reposilite.maven.repository
 
 import org.apache.http.HttpStatus
-import org.panda_lang.reposilite.ReposiliteUtils.normalizeUri
-import org.panda_lang.reposilite.ReposiliteUtils.getRepository
+import org.panda_lang.reposilite.web.ReposiliteUtils.normalizeUri
+import org.panda_lang.reposilite.web.ReposiliteUtils.getRepository
 import org.panda_lang.reposilite.maven.metadata.MetadataFacade
-import org.panda_lang.reposilite.ReposiliteContext
+import org.panda_lang.reposilite.web.ReposiliteContext
 import org.panda_lang.reposilite.maven.repository.api.FileDetailsResponse
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.auth.Authenticator

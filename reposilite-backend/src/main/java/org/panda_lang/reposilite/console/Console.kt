@@ -37,7 +37,7 @@ internal class Console(
     private val consoleThread = ConsoleThread(this, source, failureFacade)
     private val commandExecutor = CommandLine(this)
 
-    fun defaultExecute(command: String): Boolean {
+    fun executeLocalCommand(command: String): Boolean {
         logger.info("")
         val status = execute(command) { logger.info(it) }
         logger.info("")

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.panda_lang.reposilite
+package org.panda_lang.reposilite.web
 
 import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.HttpMethod
@@ -22,7 +22,6 @@ import net.dzikoysk.dynamiclogger.Journalist
 import org.apache.http.HttpStatus
 import org.panda_lang.reposilite.auth.AuthenticationFacade
 import org.panda_lang.reposilite.failure.api.ErrorResponse
-import org.panda_lang.reposilite.shared.errorResponse
 import org.panda_lang.utilities.commons.function.Result
 import org.panda_lang.utilities.commons.function.Result.ok
 
@@ -42,7 +41,7 @@ class ReposiliteContextFactory internal constructor(
 
         val session = authenticationFacade.authenticateByHeader(context.headerMap())
             .map {
-                authenticationFacade.createSession(it, normalizedUri.get(), HttpMethod.valueOf(context.method().uppercase()))
+                authenticationFacade.createSession(it, normalizedUri.get(), HttpMethod.valueOf(context.method().toUpperCase()))
             }
 
         return ok(ReposiliteContext(
@@ -52,6 +51,7 @@ class ReposiliteContextFactory internal constructor(
             context.header(forwardedIpHeader) ?: context.req.remoteAddr,
             context.headerMap(),
             session,
+            lazy { context.body() },
             { context.req.inputStream }
         ))
     }
@@ -64,6 +64,7 @@ class ReposiliteContextFactory internal constructor(
             context.header(forwardedIpHeader) ?: context.session.remoteAddress.toString(),
             context.headerMap(),
             errorResponse(HttpStatus.SC_UNAUTHORIZED, "WebSocket based context does not support sessions"),
+            lazy { throw UnsupportedOperationException("WebSocket based context does not support input stream") },
             { throw UnsupportedOperationException("WebSocket based context does not support input stream") }
         )
     }

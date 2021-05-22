@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.panda_lang.reposilite
+package org.panda_lang.reposilite.web
 
+import org.panda_lang.reposilite.ReposiliteLauncher
 import javax.servlet.annotation.MultipartConfig
 import javax.servlet.annotation.WebServlet
 import javax.servlet.http.HttpServlet
@@ -23,7 +24,7 @@ import javax.servlet.http.HttpServletResponse
 
 @MultipartConfig
 @WebServlet(urlPatterns = ["/*"], name = "ReposiliteServlet", asyncSupported = true)
-class ReposiliteServlet : HttpServlet() {
+class HttpServletConfiguration : HttpServlet() {
 
     private val reposilite = ReposiliteLauncher.create("", "", /* servlet = true */ false)
 

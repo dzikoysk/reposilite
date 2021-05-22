@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.panda_lang.reposilite
+package org.panda_lang.reposilite.web
 
 import io.javalin.Javalin
 import io.javalin.core.JavalinConfig
@@ -25,9 +25,11 @@ import io.swagger.v3.oas.models.info.Info
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.util.ssl.SslContextFactory
+import org.panda_lang.reposilite.Reposilite
+import org.panda_lang.reposilite.ReposiliteConstants
 import org.panda_lang.reposilite.config.Configuration
 
-class ReposiliteHttpServer internal constructor(private val reposilite: Reposilite, private val servlet: Boolean) {
+class HttpServerConfiguration internal constructor(private val reposilite: Reposilite, private val servlet: Boolean) {
 
     var javalin: Javalin? = null
 

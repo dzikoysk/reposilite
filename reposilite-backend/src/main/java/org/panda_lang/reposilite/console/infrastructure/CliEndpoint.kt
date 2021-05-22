@@ -18,7 +18,7 @@ package org.panda_lang.reposilite.console.infrastructure
 import io.javalin.websocket.WsConfig
 import io.javalin.websocket.WsConnectContext
 import io.javalin.websocket.WsMessageContext
-import org.panda_lang.reposilite.ReposiliteContextFactory
+import org.panda_lang.reposilite.web.ReposiliteContextFactory
 import org.panda_lang.reposilite.auth.AuthenticationFacade
 import org.panda_lang.reposilite.console.ConsoleFacade
 import org.panda_lang.reposilite.shared.CachedLogger

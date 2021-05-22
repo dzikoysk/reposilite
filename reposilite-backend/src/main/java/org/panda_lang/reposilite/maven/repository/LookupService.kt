@@ -16,7 +16,7 @@
 package org.panda_lang.reposilite.maven.repository
 
 import org.apache.http.HttpStatus
-import org.panda_lang.reposilite.ReposiliteContext
+import org.panda_lang.reposilite.web.ReposiliteContext
 import org.panda_lang.reposilite.failure.ResponseUtils
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.maven.metadata.MetadataUtils.toSortedVersions

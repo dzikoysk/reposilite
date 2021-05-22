@@ -18,7 +18,7 @@ package org.panda_lang.reposilite.maven.repository
 
 import groovy.transform.CompileStatic
 import org.junit.jupiter.api.Test
-import org.panda_lang.reposilite.ReposiliteContext
+import org.panda_lang.reposilite.web.ReposiliteContext
 import org.panda_lang.reposilite.ReposiliteTestSpecification
 
 import java.nio.channels.FileChannel

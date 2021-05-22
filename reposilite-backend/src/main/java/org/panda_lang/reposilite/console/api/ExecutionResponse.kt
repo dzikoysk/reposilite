@@ -17,7 +17,7 @@ package org.panda_lang.reposilite.console.api
 
 import com.google.api.client.util.Key
 
-internal data class RemoteExecutionResponse(
+internal data class ExecutionResponse(
     @Key val isSucceeded: Boolean,
     @Key val response: List<String>
 )
