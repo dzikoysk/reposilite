@@ -18,7 +18,7 @@ group = "org.panda-lang"
 version = "3.0.0-SNAPSHOT"
 
 plugins {
-    groovy
+    // groovy
     java
     kotlin("jvm") version "1.5.0"
     `maven-publish`

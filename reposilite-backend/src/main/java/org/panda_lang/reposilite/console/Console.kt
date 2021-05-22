@@ -18,8 +18,9 @@ package org.panda_lang.reposilite.console
 import net.dzikoysk.dynamiclogger.Journalist
 import net.dzikoysk.dynamiclogger.Logger
 import org.panda_lang.reposilite.ReposiliteConstants
+import org.panda_lang.reposilite.console.Status.FAILED
+import org.panda_lang.reposilite.console.api.ExecutionResponse
 import org.panda_lang.reposilite.failure.FailureFacade
-import org.panda_lang.utilities.commons.function.Result
 import picocli.CommandLine
 import picocli.CommandLine.Command
 import picocli.CommandLine.MissingParameterException
@@ -30,56 +31,57 @@ import java.util.function.Consumer
 @Command(name = "", version = ["Reposilite " + ReposiliteConstants.VERSION])
 internal class Console(
     private val journalist: Journalist,
-    private val failureFacade: FailureFacade,
-    private val source: InputStream
+    failureFacade: FailureFacade,
+    source: InputStream
 ) : Journalist {
 
     private val consoleThread = ConsoleThread(this, source, failureFacade)
     private val commandExecutor = CommandLine(this)
 
-    fun executeLocalCommand(command: String): Boolean {
+    fun execute(command: String): ExecutionResponse {
         logger.info("")
-        val status = execute(command) { logger.info(it) }
+        val response = execute(command) { logger.info(it) }
         logger.info("")
-        return status
+        return response
     }
 
-    fun execute(command: String, outputConsumer: Consumer<String>): Boolean {
+    fun execute(command: String, outputConsumer: Consumer<String>): ExecutionResponse {
         val response = executeCommand(command)
 
-        for (entry in if (response.isOk) response.get() else response.error) {
-            for (line in entry.replace(System.lineSeparator(), "\n").split("\n").toTypedArray()) {
-                outputConsumer.accept(line)
+        response.response.forEach { message ->
+            message.replace(System.lineSeparator(), "\n").split("\n").toTypedArray().forEach {
+                outputConsumer.accept(it)
             }
         }
-        return response.isOk
+
+        return response
     }
 
-    private fun executeCommand(command: String): Result<List<String>, List<String>> {
+    fun executeCommand(command: String): ExecutionResponse {
         val processedCommand = command.trim()
 
         if (processedCommand.isEmpty()) {
-            return Result.error(emptyList())
+            return ExecutionResponse(FAILED, emptyList())
         }
 
         val response: MutableList<String> = ArrayList()
 
         return try {
             val parseResult = commandExecutor.parseArgs(*processedCommand.split(" ").toTypedArray())
-
             val commandObject = parseResult.subcommand().commandSpec().userObject() as? ReposiliteCommand
-                ?: return Result.error(listOf(commandExecutor.usageMessage))
 
-            if (commandObject.execute(response)) Result.ok(response) else Result.error(response)
+            commandObject
+                ?.let { ExecutionResponse(commandObject.execute(response), response) }
+                ?: ExecutionResponse(FAILED, listOf(commandExecutor.usageMessage))
         }
         catch (unmatchedArgumentException: UnmatchedArgumentException) {
-            Result.error(listOf("Unknown command $processedCommand"))
+            ExecutionResponse(FAILED, listOf("Unknown command $processedCommand"))
         }
         catch (missingParameterException: MissingParameterException) {
             response.add(missingParameterException.message.toString())
             response.add("")
             response.add(missingParameterException.commandLine.usageMessage)
-            Result.error(response)
+            ExecutionResponse(FAILED, response)
         }
     }
 

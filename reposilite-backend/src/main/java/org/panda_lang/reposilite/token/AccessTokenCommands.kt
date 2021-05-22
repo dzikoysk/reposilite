@@ -14,31 +14,31 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.auth
+package org.panda_lang.reposilite.token
 
 import org.panda_lang.reposilite.console.ReposiliteCommand
-import org.panda_lang.reposilite.token.AccessTokenFacade
-import org.panda_lang.reposilite.token.api.RoutePermission
-import org.panda_lang.utilities.commons.StringUtils
+import org.panda_lang.reposilite.console.Status
+import org.panda_lang.reposilite.console.Status.FAILED
+import org.panda_lang.reposilite.console.Status.SUCCEEDED
+import org.panda_lang.reposilite.token.api.AccessTokenPermission
 import picocli.CommandLine.Command
 import picocli.CommandLine.Parameters
-import java.io.IOException
 
 @Command(name = "tokens", description = ["List all generated tokens"])
 internal class TokensCommand(private val accessTokenFacade: AccessTokenFacade) : ReposiliteCommand {
 
-    override fun execute(response: MutableList<String>): Boolean {
-        response.add("Tokens (${accessTokenFacade.count()})")
+    override fun execute(output: MutableList<String>): Status {
+        output.add("Tokens (${accessTokenFacade.count()})")
 
         accessTokenFacade.getTokens().forEach {
-            response.add(it.alias + ":'")
+            output.add(it.alias + ":'")
 
             it.routes.forEach { route ->
-                response.add("  ${route.path} : ${route.permissions}")
+                output.add("  ${route.path} : ${route.permissions}")
             }
         }
 
-        return true
+        return SUCCEEDED
     }
 
 }
@@ -52,48 +52,32 @@ internal class KeygenCommand(private val accessTokenFacade: AccessTokenFacade) :
     @Parameters(
         index = "2",
         paramLabel = "[<permissions>]",
-        description = ["extra permissions: m - manager, w - write r - read (optional)"],
+        description = ["extra permissions: m - manager"],
         defaultValue = ""
     )
     private lateinit var permissions: String
 
-    override fun execute(response: MutableList<String>): Boolean {
-        var processedPath = path
+    override fun execute(output: MutableList<String>): Status {
+       // var processedPath = path
 
         // Support simplified artifact qualifier (x.y.z instead of /x/y/z)
         // ~ https://github.com/dzikoysk/reposilite/issues/145
-        if (path.contains(".") && !path.contains("/")) {
-            processedPath = "*/" + path.replace(".", "/")
-        }
+//        if (path.contains(".") && !path.contains("/")) {
+//            processedPath = "*/" + path.replace(".", "/")
+//        }
 
         // Fix non-functional wildcard usage
         // ~ https://github.com/dzikoysk/reposilite/issues/351
-        if (processedPath.endsWith("*")) {
-            processedPath = processedPath.substring(0, processedPath.length - 1)
-            response.add("(warn) Non-functional wildcard has been removed from the end of the given path")
-        }
+//        if (processedPath.endsWith("*")) {
+//            processedPath = processedPath.substring(0, processedPath.length - 1)
+//            response.add("(warn) Non-functional wildcard has been removed from the end of the given path")
+//        }
 
-        if (StringUtils.isEmpty(permissions)) {
-            permissions = RoutePermission.toString(RoutePermission.defaultRoutePermissions)
-            response.add("Added default permissions: $permissions")
-        }
+        val token = accessTokenFacade.createAccessToken(alias, AccessTokenPermission.ofSymbols(permissions))
+        output.add("Generated new access token for $alias with '$permissions' permissions")
+        output.add(token.key)
 
-        val previousToken = tokenService.getToken(alias)
-
-        return try {
-            val token = tokenService.createToken(processedPath, alias, permissions)
-            response.add("Generated new access token for $alias ($processedPath) with '$permissions' permissions")
-            response.add(token.key)
-            tokenService.saveTokens()
-            true
-        } catch (ioException: IOException) {
-            response.add("Cannot generate token due to: " + ioException.message)
-            previousToken.peek { token: Token? ->
-                tokenService.addToken(token)
-                response.add("The former token has been restored.")
-            }
-            false
-        }
+        return SUCCEEDED
     }
 }
 
@@ -101,20 +85,22 @@ internal class KeygenCommand(private val accessTokenFacade: AccessTokenFacade) :
 internal class ChAliasCommand(private val accessTokenFacade: AccessTokenFacade) : ReposiliteCommand {
 
     @Parameters(index = "0", paramLabel = "<alias>", description = ["alias to update"])
-    private val alias: String? = null
+    private lateinit var alias: String
 
     @Parameters(index = "1", paramLabel = "<new alias>", description = ["new token name"])
-    private val updatedAlias: String? = null
+    private lateinit var updatedAlias: String
 
-    override fun execute(output: MutableList<String>): Boolean {
-        return tokenService
-            .updateToken(alias) { token: Token ->
-                output.add("Token alias has been changed from '" + token.alias + "' to '" + updatedAlias + "'")
-                token.alias = updatedAlias
+    override fun execute(output: MutableList<String>): Status =
+        accessTokenFacade.getToken(alias)
+            .map {
+                accessTokenFacade.updateToken(it.copy(alias = updatedAlias))
+                output.add("Token alias has been changed from '$alias' to '$updatedAlias'")
+                SUCCEEDED
             }
-            .onError { e: String -> output.add(e) }
-            .isOk
-    }
+            .orElseGet {
+                output.add("Token '$alias' not found")
+                FAILED
+            }
 
 }
 
@@ -122,45 +108,35 @@ internal class ChAliasCommand(private val accessTokenFacade: AccessTokenFacade) 
 internal class ChmodCommand(private val accessTokenFacade: AccessTokenFacade) : ReposiliteCommand {
 
     @Parameters(index = "0", paramLabel = "<alias>", description = ["alias to update"])
-    private val alias: String? = null
+    private lateinit var alias: String
 
     @Parameters(index = "1", paramLabel = "<permissions>", description = ["new permissions"])
-    private val permissions: String? = null
+    private lateinit var permissions: String
 
-    override fun execute(output: MutableList<String>): Boolean {
-        return tokenService
-            .updateToken(alias) { token: Token ->
-                output.add("Permissions have been changed from '" + token.permissions + "' to '" + permissions + "'")
-                token.permissions = permissions
+    override fun execute(output: MutableList<String>): Status =
+        accessTokenFacade.getToken(alias)
+            .map {
+                accessTokenFacade.updateToken(it.copy(permissions = permissions))
+                output.add("Permissions have been changed from '${it.permissions}' to '$permissions'")
+                SUCCEEDED
             }
-            .onError { e: String -> output.add(e) }
-            .isOk
-    }
+            .orElseGet {
+                output.add("Token '$alias' not found")
+                FAILED
+            }
+
 }
 
 @Command(name = "revoke", description = ["Revoke token"])
 internal class RevokeCommand(private val accessTokenFacade: AccessTokenFacade) : ReposiliteCommand {
 
     @Parameters(index = "0", paramLabel = "<alias>", description = ["alias of token to revoke"])
-    private val alias: String? = null
+    private lateinit var alias: String
 
-    override fun execute(response: MutableList<String>): Boolean {
-        return tokenService.deleteToken(alias)
-            .map { token: Token? ->
-                try {
-                    tokenService.saveTokens()
-                    response.add("Token for '$alias' has been revoked")
-                    return@map true
-                } catch (ioException: IOException) {
-                    response.add("Cannot remove token due to: $ioException")
-                    response.add("Token has been restored.")
-                    tokenService.addToken(token)
-                    return@map false
-                }
-            }
-            .orElseGet {
-                response.add("Alias '$alias' not found")
-                false
-            }
+    override fun execute(output: MutableList<String>): Status {
+        accessTokenFacade.deleteToken(alias)
+        output.add("Token for '$alias' has been revoked")
+        return SUCCEEDED
     }
+
 }

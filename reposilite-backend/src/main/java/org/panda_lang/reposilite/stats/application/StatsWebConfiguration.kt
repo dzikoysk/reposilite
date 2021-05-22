@@ -19,7 +19,6 @@ package org.panda_lang.reposilite.stats.application
 import io.javalin.Javalin
 import net.dzikoysk.dynamiclogger.Journalist
 import org.panda_lang.reposilite.console.ConsoleFacade
-import org.panda_lang.reposilite.failure.FailureFacade
 import org.panda_lang.reposilite.stats.RecordType.REQUEST
 import org.panda_lang.reposilite.stats.StatisticsFacade
 import org.panda_lang.reposilite.stats.StatsCommand
@@ -27,8 +26,8 @@ import org.panda_lang.reposilite.stats.infrastructure.SqlStatisticsRepository
 
 object StatsWebConfiguration {
 
-    fun createFacade(journalist: Journalist, failureFacade: FailureFacade): StatisticsFacade {
-        return StatisticsFacade(journalist, failureFacade, SqlStatisticsRepository())
+    fun createFacade(journalist: Journalist): StatisticsFacade {
+        return StatisticsFacade(journalist, SqlStatisticsRepository())
     }
 
     fun configure(consoleFacade: ConsoleFacade, statisticsFacade: StatisticsFacade) {

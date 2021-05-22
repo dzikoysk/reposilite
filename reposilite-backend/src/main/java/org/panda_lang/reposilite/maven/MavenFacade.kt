@@ -26,8 +26,10 @@ class MavenFacade(
     internal val repositoryService: RepositoryService
 ) : Journalist {
 
-    fun getRepositories(): Collection<Repository> = repositoryService.repositories
+    fun getRepositories(): Collection<Repository> =
+        repositoryService.getRepositories()
 
-    override fun getLogger(): Logger = journalist.logger
+    override fun getLogger(): Logger =
+        journalist.logger
 
 }

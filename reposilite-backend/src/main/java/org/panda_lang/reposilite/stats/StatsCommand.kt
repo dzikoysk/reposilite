@@ -16,14 +16,13 @@
 package org.panda_lang.reposilite.stats
 
 import org.panda_lang.reposilite.console.ReposiliteCommand
-import org.panda_lang.utilities.commons.StringUtils
+import org.panda_lang.reposilite.console.Status
+import org.panda_lang.reposilite.console.Status.SUCCEEDED
+import org.panda_lang.reposilite.stats.RecordType.REQUEST
 import org.panda_lang.utilities.commons.console.Effect.BLACK_BOLD
 import org.panda_lang.utilities.commons.console.Effect.RESET
-import org.panda_lang.utilities.commons.function.Option
 import picocli.CommandLine.Command
 import picocli.CommandLine.Parameters
-import java.util.concurrent.CompletableFuture
-import java.util.function.BiPredicate
 
 private const val DEFAULT_TOP_SIZE = 20
 
@@ -33,21 +32,16 @@ internal class StatsCommand(private val statisticsFacade: StatisticsFacade) : Re
     @Parameters(index = "0", paramLabel = "[<filter>]", description = ["accepts string as pattern and int as limiter"], defaultValue = "-1")
     private lateinit var filter: String
 
-    override fun execute(output: MutableList<String>): Boolean {
-        return try {
-            loadAndProcessStats(output).get()
-            true
-        } catch (exception: Exception) {
-            exception.printStackTrace()
-            false
-        }
-    }
+    override fun execute(output: MutableList<String>): Status {
+        output.add("Statistics: ")
+        output.add("  Unique requests: " + statisticsFacade.countUniqueRecords() + " (count: " + statisticsFacade.countRecords() + ")")
 
-    private fun loadAndProcessStats(response: MutableList<String>): CompletableFuture<Void> {
-        return statisticsFacade.loadAggregatedStats().thenAccept { aggregatedStats: AggregatedStats ->
-            response.add("Statistics: ")
-            response.add("  Unique requests: " + aggregatedStats.countUniqueRecords() + " (count: " + aggregatedStats.countRecords() + ")")
+        val results = statisticsFacade.findRecordsByPhrase(REQUEST, filter) // TODO: Limiter
 
+        output.add("  Recorded: " + (if (results.isEmpty()) "[] " else "") + " (pattern: '${highlight(filter)}')")
+        results.forEachIndexed { order, record -> output.add("  ${order}. $record") }
+
+        /*
             val limiter = Option.attempt(NumberFormatException::class.java) { filter!!.toInt() }
                 .orElseGet(0)
 
@@ -61,22 +55,12 @@ internal class StatsCommand(private val statisticsFacade: StatisticsFacade) : Re
                 BiPredicate { uri: String, counts: Int? -> !uri.endsWith(".pom") },
                 BiPredicate { uri: String, counts: Int? -> !uri.endsWith("/js/app.js") }
             )
+         */
 
-            response.add("  Recorded: " + (if (stats.isEmpty()) "[] " else "") + " (limiter: " + highlight(limiter) + ", pattern: '" + highlight(pattern) + "')")
-
-            var order = 0
-
-            for ((key, value) in stats) {
-                response.add("    " + ++order + ". (" + value + ") " + key)
-
-                if (limiter == -1 && order == DEFAULT_TOP_SIZE) {
-                    break
-                }
-            }
-        }
+        return SUCCEEDED
     }
 
-    private fun highlight(value: Any): String {
-        return BLACK_BOLD.toString() + value.toString() + RESET
-    }
+    private fun highlight(value: Any): String =
+        BLACK_BOLD.toString() + value.toString() + RESET
+
 }

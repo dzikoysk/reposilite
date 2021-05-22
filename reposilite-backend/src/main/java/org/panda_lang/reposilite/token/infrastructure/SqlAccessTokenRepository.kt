@@ -23,6 +23,7 @@ import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.update
 import org.panda_lang.reposilite.token.AccessTokenRepository
 import org.panda_lang.reposilite.token.api.AccessToken
 import org.panda_lang.reposilite.token.api.Route
@@ -38,6 +39,16 @@ class SqlAccessTokenRepository : AccessTokenRepository {
     override fun createAccessToken(accessToken: AccessToken) {
         transaction {
             AccessTokenTable.insert {
+                it[alias] = accessToken.alias
+                it[secret] = accessToken.secret
+                it[permissions] = accessToken.permissions
+            }
+        }
+    }
+
+    override fun updateAccessToken(accessToken: AccessToken) {
+        transaction {
+            AccessTokenTable.update( { AccessTokenTable.id eq accessToken.id } ) {
                 it[alias] = accessToken.alias
                 it[secret] = accessToken.secret
                 it[permissions] = accessToken.permissions

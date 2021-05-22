@@ -16,8 +16,9 @@
 package org.panda_lang.reposilite.console.api
 
 import com.google.api.client.util.Key
+import org.panda_lang.reposilite.console.Status
 
-internal data class ExecutionResponse(
-    @Key val isSucceeded: Boolean,
+data class ExecutionResponse(
+    @Key val status: Status,
     @Key val response: List<String>
 )

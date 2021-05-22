@@ -16,14 +16,15 @@
 package org.panda_lang.reposilite.console
 
 import org.panda_lang.reposilite.Reposilite
+import org.panda_lang.reposilite.console.Status.SUCCEEDED
 import picocli.CommandLine.Command
 
 @Command(name = "stop", aliases = ["shutdown"], description = ["Shutdown server"])
 internal class StopCommand(private val reposilite: Reposilite) : ReposiliteCommand {
 
-    override fun execute(output: MutableList<String>): Boolean {
+    override fun execute(output: MutableList<String>): Status {
         reposilite.shutdown()
-        return true
+        return SUCCEEDED
     }
 
 }

@@ -25,6 +25,8 @@ internal interface AccessTokenRepository {
 
     fun createRoute(accessToken: AccessToken, route: Route)
 
+    fun updateAccessToken(accessToken: AccessToken)
+
     fun deleteAccessTokenByAlias(alias: String)
 
     fun deleteRoute(route: Route)

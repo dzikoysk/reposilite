@@ -16,16 +16,18 @@
 package org.panda_lang.reposilite.maven.metadata
 
 import org.panda_lang.reposilite.console.ReposiliteCommand
+import org.panda_lang.reposilite.console.Status
+import org.panda_lang.reposilite.console.Status.SUCCEEDED
 import picocli.CommandLine.Command
 
 @Command(name = "purge", description = ["Clear cache"])
 internal class PurgeCommand(private val metadataFacade: MetadataFacade) : ReposiliteCommand {
 
-    override fun execute(output: MutableList<String>): Boolean {
+    override fun execute(output: MutableList<String>): Status {
         val cacheSize = metadataFacade.getCacheSize()
         metadataFacade.purgeCache()
         output.add("Purged $cacheSize elements")
-        return true
+        return SUCCEEDED
     }
 
 }

@@ -17,12 +17,10 @@ package org.panda_lang.reposilite.stats
 
 import net.dzikoysk.dynamiclogger.Journalist
 import net.dzikoysk.dynamiclogger.Logger
-import org.panda_lang.reposilite.failure.FailureFacade
 import java.util.concurrent.ConcurrentHashMap
 
 class StatisticsFacade internal constructor(
     private val journalist: Journalist,
-    private val failureFacade: FailureFacade,
     private val statisticsRepository: StatisticsRepository
 ) : Journalist {
 
@@ -30,6 +28,15 @@ class StatisticsFacade internal constructor(
 
     fun increaseRecord(type: RecordType, uri: String) =
         recordsBulk.merge(Pair(type, uri), 1) { cached, value -> cached + value }
+
+    fun findRecordsByPhrase(type: RecordType, phrase: String): List<Record> =
+        statisticsRepository.findRecordsByPhrase(type, phrase)
+
+    fun countUniqueRecords(): Long =
+        statisticsRepository.countUniqueRecords()
+
+    fun countRecords(): Long =
+        statisticsRepository.countRecords()
 
     override fun getLogger(): Logger =
         journalist.logger

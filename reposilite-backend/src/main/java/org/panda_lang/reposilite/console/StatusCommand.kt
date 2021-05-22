@@ -17,6 +17,7 @@ package org.panda_lang.reposilite.console
 
 import org.panda_lang.reposilite.Reposilite
 import org.panda_lang.reposilite.ReposiliteConstants
+import org.panda_lang.reposilite.console.Status.SUCCEEDED
 import org.panda_lang.reposilite.shared.utils.TimeUtils.format
 import org.panda_lang.utilities.commons.IOUtils
 import org.panda_lang.utilities.commons.console.Effect.GREEN
@@ -29,7 +30,7 @@ import java.io.IOException
 @Command(name = "status", description = ["Display summary status of app health"])
 internal class StatusCommand(private val reposilite: Reposilite) : ReposiliteCommand {
 
-    override fun execute(output: MutableList<String>): Boolean {
+    override fun execute(output: MutableList<String>): Status {
         val latestVersion =
             if (reposilite.testEnv) ReposiliteConstants.VERSION
             else getVersion()
@@ -41,7 +42,7 @@ internal class StatusCommand(private val reposilite: Reposilite) : ReposiliteCom
         output.add("  Exceptions: ${reposilite.failureFacade.getFailures().size}")
         output.add("  Latest version of reposilite: $latestVersion")
 
-        return true
+        return SUCCEEDED
     }
 
     private fun getVersion(): String =
