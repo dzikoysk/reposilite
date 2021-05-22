@@ -24,6 +24,7 @@ import org.panda_lang.reposilite.console.application.ConsoleWebConfiguration
 import org.panda_lang.reposilite.failure.application.FailureWebConfiguration
 import org.panda_lang.reposilite.maven.application.MavenWebConfiguration
 import org.panda_lang.reposilite.resource.application.ResourceWebConfiguration
+import org.panda_lang.reposilite.web.ReposiliteContextFactory
 import org.panda_lang.reposilite.stats.application.StatsWebConfiguration
 import org.panda_lang.reposilite.token.application.AccessTokenWebConfiguration
 import org.slf4j.LoggerFactory

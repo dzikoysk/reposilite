@@ -19,21 +19,17 @@ import io.javalin.http.Context
 import io.javalin.http.Handler
 import io.javalin.plugin.openapi.annotations.HttpMethod.POST
 import io.javalin.plugin.openapi.annotations.OpenApi
-import org.panda_lang.reposilite.ReposiliteContextFactory
+import io.javalin.plugin.openapi.annotations.OpenApiContent
 import io.javalin.plugin.openapi.annotations.OpenApiParam
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
-import io.javalin.plugin.openapi.annotations.OpenApiContent
 import org.apache.http.HttpStatus
-import org.panda_lang.reposilite.console.api.RemoteExecutionResponse
-import org.panda_lang.reposilite.failure.api.ErrorResponse
-import org.panda_lang.reposilite.auth.Session
-import org.panda_lang.reposilite.console.Console
 import org.panda_lang.reposilite.console.ConsoleFacade
-import org.panda_lang.reposilite.failure.ResponseUtils
-import org.panda_lang.utilities.commons.StringUtils
-import org.panda_lang.utilities.commons.function.Result
-
-private const val MAX_COMMAND_LENGTH = 1024
+import org.panda_lang.reposilite.console.MAX_COMMAND_LENGTH
+import org.panda_lang.reposilite.console.api.ExecutionResponse
+import org.panda_lang.reposilite.failure.api.ErrorResponse
+import org.panda_lang.reposilite.web.ReposiliteContextFactory
+import org.panda_lang.reposilite.web.context
+import org.panda_lang.reposilite.web.errorResponse
 
 internal class RemoteExecutionEndpoint(
     private val contextFactory: ReposiliteContextFactory,
@@ -51,7 +47,7 @@ internal class RemoteExecutionEndpoint(
             OpenApiResponse(
                 status = "200",
                 description = "Status of the executed command",
-                content = [OpenApiContent(from = RemoteExecutionResponse::class)]
+                content = [OpenApiContent(from = ExecutionResponse::class)]
             ),
             OpenApiResponse(
                 status = "400",
@@ -65,45 +61,19 @@ internal class RemoteExecutionEndpoint(
             )
         ]
     )
-    override fun handle(ctx: Context) {
-        val context = contextFactory.create(ctx)
-        consoleFacade.logger.info("REMOTE EXECUTION ${context.uri} from ${context.address}")
+    override fun handle(ctx: Context) =
+        context(contextFactory, ctx) {
+            context.logger.info("REMOTE EXECUTION ${context.uri} from ${context.address}")
 
-        val authResult: Result<Session, String> = authenticator.authByHeader(context.header)
+            authenticated {
+                if (!isManager()) {
+                    response = errorResponse(HttpStatus.SC_UNAUTHORIZED, "Authenticated user is not a manager")
+                    return@authenticated
+                }
 
-        if (authResult.isErr) {
-            ResponseUtils.errorResponse(ctx, HttpStatus.SC_UNAUTHORIZED, authResult.error)
-            return
+                context.logger.info("${accessToken.alias} (${context.address}) requested command: ${context.body.value}")
+                response = consoleFacade.executeRemoteCommand(context.body.value)
+            }
         }
-
-        val session = authResult.get()
-
-        if (!session.isManager()) {
-            ResponseUtils.errorResponse(ctx, HttpStatus.SC_UNAUTHORIZED, "Authenticated user is not a manger")
-            return
-        }
-
-        val command = ctx.body()
-
-        if (StringUtils.isEmpty(command)) {
-            ResponseUtils.errorResponse(ctx, HttpStatus.SC_BAD_REQUEST, "Missing command")
-            return
-        }
-
-        if (command.length > MAX_COMMAND_LENGTH) {
-            ResponseUtils.errorResponse(
-                ctx,
-                HttpStatus.SC_BAD_REQUEST,
-                "The given command exceeds allowed length (${command.length} > $MAX_COMMAND_LENGTH)"
-            )
-
-            return
-        }
-
-        consoleFacade.logger.info("${session.accessToken.alias} (${context.address}) requested command: $command")
-
-        val result = consoleFacade.executeCommand(command)
-        ctx.json(RemoteExecutionResponse(result.isOk, if (result.isOk) result.get() else result.error))
-    }
 
 }

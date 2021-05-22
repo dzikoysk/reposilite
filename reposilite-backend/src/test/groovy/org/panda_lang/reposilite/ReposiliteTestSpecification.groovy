@@ -65,7 +65,7 @@ class ReposiliteTestSpecification extends ReposiliteTestSpecificationExtension {
     }
 
     protected boolean executeCommand(String name) {
-        return reposilite.getConsole().defaultExecute(name)
+        return reposilite.getConsole().executeLocalCommand(name)
     }
 
 }

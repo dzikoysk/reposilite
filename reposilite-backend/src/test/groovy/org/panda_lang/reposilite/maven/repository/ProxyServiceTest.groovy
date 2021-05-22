@@ -20,7 +20,7 @@ import groovy.transform.CompileStatic
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
-import org.panda_lang.reposilite.ReposiliteContext
+import org.panda_lang.reposilite.web.ReposiliteContext
 import org.panda_lang.reposilite.ReposiliteIntegrationTestSpecification
 import org.panda_lang.reposilite.error.FailureService
 import org.panda_lang.reposilite.storage.infrastructure.FileSystemStorageProvider

@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.panda_lang.reposilite.config.Configuration
 import org.panda_lang.reposilite.repository.RepositoryService
+import org.panda_lang.reposilite.web.ReposiliteUtils
 
 import java.nio.file.Path
 

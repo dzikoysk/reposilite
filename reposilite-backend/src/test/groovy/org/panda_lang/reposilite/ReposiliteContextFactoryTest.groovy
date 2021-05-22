@@ -23,6 +23,8 @@ import io.javalin.http.util.ContextUtil
 import org.eclipse.jetty.server.HttpInput
 import org.eclipse.jetty.server.HttpOutput
 import org.junit.jupiter.api.Test
+import org.panda_lang.reposilite.web.ReposiliteContext
+import org.panda_lang.reposilite.web.ReposiliteContextFactory
 
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse

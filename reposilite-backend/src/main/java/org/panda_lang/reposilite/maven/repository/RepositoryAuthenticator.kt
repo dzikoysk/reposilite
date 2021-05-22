@@ -16,10 +16,8 @@
 package org.panda_lang.reposilite.maven.repository
 
 import org.apache.http.HttpStatus
-import org.panda_lang.reposilite.ReposiliteUtils.normalizeUri
-import org.panda_lang.reposilite.maven.repository.RepositoryService
+import org.panda_lang.reposilite.web.ReposiliteUtils.normalizeUri
 import org.panda_lang.reposilite.failure.api.ErrorResponse
-import org.panda_lang.reposilite.ReposiliteUtils
 import org.panda_lang.reposilite.auth.Authenticator
 import org.panda_lang.reposilite.auth.Session
 import org.panda_lang.reposilite.failure.ResponseUtils

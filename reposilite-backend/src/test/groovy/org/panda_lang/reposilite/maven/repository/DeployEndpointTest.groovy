@@ -28,7 +28,7 @@ import org.apache.http.impl.auth.BasicScheme
 import org.apache.http.impl.client.HttpClients
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.panda_lang.reposilite.ReposiliteContext
+import org.panda_lang.reposilite.web.ReposiliteContext
 import org.panda_lang.reposilite.ReposiliteIntegrationTestSpecification
 import org.panda_lang.utilities.commons.IOUtils
 import org.panda_lang.utilities.commons.StringUtils

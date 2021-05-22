@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.panda_lang.reposilite
+package org.panda_lang.reposilite.web
 
 import net.dzikoysk.dynamiclogger.Journalist
 import net.dzikoysk.dynamiclogger.Logger
@@ -33,6 +33,7 @@ class ReposiliteContext(
     val address: String,
     val header: Map<String, String>,
     val session: Result<Session, ErrorResponse>,
+    val body: Lazy<String>,
     private val input: ThrowingSupplier<InputStream, IOException>
 ) : Journalist {
 

@@ -14,10 +14,43 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.shared
+package org.panda_lang.reposilite.web
 
+import io.javalin.http.Context
+import org.panda_lang.reposilite.auth.Session
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.utilities.commons.function.Result
+
+class ReposiliteContextDsl(
+    val ctx: Context,
+    val context: ReposiliteContext
+) {
+
+    var response: Result<out Any?, ErrorResponse>? = null
+
+    fun authenticated(init: Session.() -> Unit) {
+        context.session
+            .mapErr { ctx.json(it) }
+            .map { init.invoke(it) }
+    }
+
+    internal fun handleResult(result: Result<out Any?, ErrorResponse>?) {
+        result
+            ?.mapErr { ctx.json(it) }
+            ?.map { it?.let { ctx.json(it) } }
+    }
+
+}
+
+fun context(contextFactory: ReposiliteContextFactory, ctx: Context, init: ReposiliteContextDsl.() -> Unit) {
+    contextFactory.create(ctx)
+        .mapErr { ctx.json(it) }
+        .map { ReposiliteContextDsl(ctx, it) }
+        .map {
+            init.invoke(it)
+            it.handleResult(it.response)
+        }
+}
 
 fun <V, E, VE> Result<V, E>.mapToError(): Result<VE, E> =
     this.map { null }

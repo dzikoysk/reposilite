@@ -18,15 +18,35 @@ package org.panda_lang.reposilite.console
 
 import net.dzikoysk.dynamiclogger.Journalist
 import net.dzikoysk.dynamiclogger.Logger
+import org.apache.http.HttpStatus
+import org.panda_lang.reposilite.console.api.ExecutionResponse
+import org.panda_lang.reposilite.failure.api.ErrorResponse
+import org.panda_lang.reposilite.shared.errorResponse
+import org.panda_lang.utilities.commons.StringUtils
+import org.panda_lang.utilities.commons.function.Result
 import picocli.CommandLine
+
+const val MAX_COMMAND_LENGTH = 1024
 
 class ConsoleFacade internal constructor(
     private val journalist: Journalist,
     internal val console: Console
 ) : Journalist {
 
-    fun executeCommand(command: String): Boolean =
-        console.defaultExecute(command)
+    fun executeLocalCommand(command: String): Boolean =
+        console.executeLocalCommand(command)
+
+    fun executeRemoteCommand(command: String): Result<ExecutionResponse, ErrorResponse> {
+        if (StringUtils.isEmpty(command)) {
+            return errorResponse(HttpStatus.SC_BAD_REQUEST, "Missing command")
+        }
+
+        if (command.length > MAX_COMMAND_LENGTH) {
+            return errorResponse(HttpStatus.SC_BAD_REQUEST, "The given command exceeds allowed length (${command.length} > $MAX_COMMAND_LENGTH)")
+        }
+
+        return executeCommand(command)
+    }
 
     fun registerCommand(command: ReposiliteCommand): CommandLine =
         console.registerCommand(command)

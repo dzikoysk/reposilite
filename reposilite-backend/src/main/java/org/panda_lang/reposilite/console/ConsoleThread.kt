@@ -43,7 +43,7 @@ internal class ConsoleThread(
             val command = input.nextLine()
 
             try {
-                console.defaultExecute(command)
+                console.executeLocalCommand(command)
             }
             catch (exception: Exception) {
                 failureFacade.throwException("Command: $command", exception)

@@ -22,7 +22,7 @@ import io.javalin.plugin.openapi.annotations.OpenApi
 import io.javalin.plugin.openapi.annotations.OpenApiContent
 import io.javalin.plugin.openapi.annotations.OpenApiParam
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
-import org.panda_lang.reposilite.ReposiliteContextFactory
+import org.panda_lang.reposilite.web.ReposiliteContextFactory
 import org.panda_lang.reposilite.failure.ResponseUtils
 import org.panda_lang.reposilite.maven.repository.DeployService
 import org.panda_lang.reposilite.shared.utils.reposiliteContext
