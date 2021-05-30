@@ -67,7 +67,7 @@ class MetadataFacade(private val failureFacade: FailureFacade) {
             return Result.error(ErrorResponse(HttpStatus.SC_BAD_REQUEST, "Bad request"))
         }
 
-        val versions: Result<Array<Path>, ErrorResponse> = MetadataUtils.toSortedVersions(repository, artifactDirectory)
+        val versions: Result<List<Path>, ErrorResponse> = MetadataUtils.toSortedVersions(repository, artifactDirectory)
 
         if (versions.isErr) {
             return versions.mapToError()
@@ -84,7 +84,7 @@ class MetadataFacade(private val failureFacade: FailureFacade) {
         metadataFile: Path,
         groupId: String,
         artifactDirectory: Path,
-        versions: Array<Path>
+        versions: List<Path>
     ): Result<Pair<FileDetailsResponse, String>, ErrorResponse> {
         val latest = ArrayUtils.getFirst(versions)!!
 
@@ -120,8 +120,8 @@ class MetadataFacade(private val failureFacade: FailureFacade) {
         val name = artifactDirectory.fileName.toString()
         val version = StringUtils.replace(versionDirectory.fileName.toString(), "-SNAPSHOT", StringUtils.EMPTY)
         val identifiers = MetadataUtils.toSortedIdentifiers(repository, name, version, builds.get())
-        val latestIdentifier = Objects.requireNonNull(ArrayUtils.getFirst(identifiers))
-        val buildSeparatorIndex = latestIdentifier!!.lastIndexOf("-")
+        val latestIdentifier = identifiers.first()
+        val buildSeparatorIndex = latestIdentifier.lastIndexOf("-")
 
         // snapshot requests
         val versioning: Versioning = if (buildSeparatorIndex != -1) {

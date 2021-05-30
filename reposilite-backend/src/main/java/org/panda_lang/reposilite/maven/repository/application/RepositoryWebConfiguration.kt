@@ -17,7 +17,10 @@
 package org.panda_lang.reposilite.maven.repository.application
 
 import io.javalin.Javalin
+import org.panda_lang.reposilite.maven.repository.DeployService
 import org.panda_lang.reposilite.maven.repository.RepositoryService
+import org.panda_lang.reposilite.maven.repository.infrastructure.DeployEndpoint
+import org.panda_lang.reposilite.web.ReposiliteContextFactory
 
 object RepositoryWebConfiguration {
 
@@ -25,7 +28,9 @@ object RepositoryWebConfiguration {
         return RepositoryService()
     }
 
-    fun installRouting(javalin: Javalin) {
+    fun installRouting(javalin: Javalin, contextFactory: ReposiliteContextFactory, deployService: DeployService) {
+        val deployEndpoint = DeployEndpoint(contextFactory, deployService)
+
         javalin
             .get("/api", lookupApiEndpoint)
             .get("/api/*", lookupApiEndpoint)

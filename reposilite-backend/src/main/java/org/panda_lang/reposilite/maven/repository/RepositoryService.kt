@@ -56,6 +56,7 @@ class RepositoryService(private val journalist: Journalist) : Journalist {
             if (primary) {
                 primaryRepository = repository
             }
+
             logger.info("+ " + repositoryName + (if (repository.isPrivate()) " (private)" else "") + if (primary) " (primary)" else "")
         }
         logger.info(repositories.size.toString() + " repositories have been found")
