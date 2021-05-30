@@ -19,17 +19,19 @@ import io.javalin.plugin.openapi.annotations.HttpMethod
 import org.panda_lang.reposilite.token.api.AccessToken
 import org.panda_lang.reposilite.token.api.AccessTokenPermission.MANAGER
 import org.panda_lang.reposilite.token.api.RoutePermission
+import java.nio.file.Path
 
-class Session(
-    val accessToken: AccessToken,
+data class Session internal constructor(
     val path: String,
-    val method: HttpMethod
+    val method: HttpMethod,
+    val accessToken: AccessToken,
+    val availableResources: List<Path>
 ) {
 
     fun isAuthenticated() =
         accessToken.hasPermissionTo(path, RoutePermission.findByMethod(method)!!)
 
-    fun isManager()=
+    fun isManager() =
         accessToken.hasPermission(MANAGER)
 
 }

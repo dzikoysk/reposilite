@@ -65,7 +65,7 @@ dependencies {
     implementation("software.amazon.awssdk:bom:$awssdk")
     implementation("software.amazon.awssdk:s3:$awssdk")
 
-    val javalin = "4.0.0.ALPHA1"
+    val javalin = "4.0.0.ALPHA2"
     implementation("io.javalin:javalin-openapi:$javalin")
     implementation("io.javalin:javalin:$javalin")
 

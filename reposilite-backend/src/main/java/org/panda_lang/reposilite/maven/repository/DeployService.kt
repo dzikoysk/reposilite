@@ -25,6 +25,7 @@ import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.auth.Authenticator
 import org.panda_lang.reposilite.auth.Session
 import org.panda_lang.reposilite.failure.ResponseUtils
+import org.panda_lang.reposilite.token.api.AccessToken
 import org.panda_lang.reposilite.token.api.RoutePermission.WRITE
 import org.panda_lang.utilities.commons.function.Result
 import java.lang.Exception
@@ -45,11 +46,12 @@ internal class DeployService(
         }
 
         val uri = uriValue.get()
-        val authResult: Result<Session, String> = authenticator.authByUri(context.headers, uri)
+        val authResult: Result<AccessToken, String> = authenticator.authByUri(context.header, uri)
 
         if (authResult.isErr) {
             return ResponseUtils.error(HttpStatus.SC_UNAUTHORIZED, authResult.error)
         }
+
         val session = authResult.get()
 
         if (!session.hasPermission(WRITE) && !session.isManager()) {
@@ -92,7 +94,8 @@ internal class DeployService(
             }
 
             result
-        } catch (exception: Exception) {
+        }
+        catch (exception: Exception) {
             Result.error(ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Failed to upload artifact"))
         }
     }

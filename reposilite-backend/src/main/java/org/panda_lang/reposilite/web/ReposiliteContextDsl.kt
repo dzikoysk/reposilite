@@ -22,7 +22,7 @@ import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.utilities.commons.function.Result
 
 class ReposiliteContextDsl(
-    val ctx: Context,
+    private val ctx: Context,
     val context: ReposiliteContext
 ) {
 
