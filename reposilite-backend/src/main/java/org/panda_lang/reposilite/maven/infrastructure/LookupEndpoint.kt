@@ -16,7 +16,6 @@
 package org.panda_lang.reposilite.maven.infrastructure
 
 import io.javalin.http.Context
-import io.javalin.http.Handler
 import io.javalin.plugin.openapi.annotations.OpenApi
 import io.javalin.plugin.openapi.annotations.OpenApiContent
 import io.javalin.plugin.openapi.annotations.OpenApiParam
@@ -25,13 +24,20 @@ import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.maven.RepositoryService
 import org.panda_lang.reposilite.maven.api.FileDetailsResponse
 import org.panda_lang.reposilite.maven.api.FileListResponse
+import org.panda_lang.reposilite.shared.HttpMethod.GET
+import org.panda_lang.reposilite.shared.HttpMethod.HEAD
 import org.panda_lang.reposilite.web.ReposiliteContextFactory
+import org.panda_lang.reposilite.web.RouteHandler
 import org.panda_lang.reposilite.web.context
 
 internal class LookupEndpoint(
     private val contextFactory: ReposiliteContextFactory,
     private val repositoryService: RepositoryService
-) : Handler {
+) : RouteHandler {
+
+    override val route = "/*"
+
+    override val methods = listOf(HEAD, GET)
 
     @OpenApi(
         operationId = "repositoryApi",

@@ -19,8 +19,8 @@ import com.google.api.client.http.GenericUrl
 import com.google.api.client.http.HttpRequestFactory
 import com.google.api.client.http.HttpResponse
 import com.google.api.client.http.javanet.NetHttpTransport
+import org.apache.commons.io.IOUtils.copyLarge
 import org.apache.http.HttpStatus
-import org.panda_lang.reposilite.web.ReposiliteContext
 import org.panda_lang.reposilite.ReposiliteException
 import org.panda_lang.reposilite.failure.FailureFacade
 import org.panda_lang.reposilite.failure.ResponseUtils
@@ -28,6 +28,7 @@ import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.maven.api.FileDetailsResponse
 import org.panda_lang.reposilite.maven.api.LookupResponse
 import org.panda_lang.reposilite.storage.StorageProvider
+import org.panda_lang.reposilite.web.ReposiliteContext
 import org.panda_lang.utilities.commons.StringUtils
 import org.panda_lang.utilities.commons.function.Option
 import org.panda_lang.utilities.commons.function.Result
@@ -53,23 +54,27 @@ internal class ProxyService(
 
     fun findProxied(context: ReposiliteContext): Result<LookupResponse, ErrorResponse> {
         var uri = context.uri
-        var repository = repositoryService.primaryRepository
+        var repository: Repository? = null
 
-        // remove repository name if defined
-        for (localRepository in repositoryService.repositories) {
+        for (localRepository in repositoryService.getRepositories()) {
             if (uri.startsWith("/" + localRepository.name)) {
                 repository = localRepository
                 uri = uri.substring(1 + localRepository.name.length)
                 break
             }
         }
+
+        if (repository == null) {
+            return Result.error(ErrorResponse(HttpStatus.SC_NOT_FOUND, "Unknown repository"))
+        }
+
         if (!proxyPrivate && repository.isPrivate()) {
-            return Result.error<LookupResponse, ErrorResponse>(ErrorResponse(HttpStatus.SC_NOT_FOUND, "Proxying is disabled in private repositories"))
+            return Result.error(ErrorResponse(HttpStatus.SC_NOT_FOUND, "Proxying is disabled in private repositories"))
         }
 
         // /groupId/artifactId/<content>
         if (StringUtils.countOccurrences(uri, "/") < 3) {
-            return Result.error<LookupResponse, ErrorResponse>(ErrorResponse(HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, "Invalid proxied request"))
+            return Result.error(ErrorResponse(HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, "Invalid proxied request"))
         }
 
         val remoteUri = uri
@@ -85,15 +90,19 @@ internal class ProxyService(
                     remoteRequest.readTimeout = proxyReadTimeout * 1000
                     val remoteResponse = remoteRequest.execute()
                     val headers = remoteResponse.headers
+
                     if ("text/html" == headers.contentType) {
                         return@runAsync
                     }
+
                     if (remoteResponse.isSuccessStatusCode) {
                         responses.add(remoteResponse)
                     }
-                } catch (exception: Exception) {
+                }
+                catch (exception: Exception) {
                     val message = "Proxied repository " + proxied + " is unavailable due to: " + exception.message
-                    context.getLogger().error(message)
+                    context.logger.error(message)
+
                     if (exception !is SocketTimeoutException) {
                         failureFacade.throwException(remoteUri, ReposiliteException(message, exception))
                     }
@@ -110,21 +119,12 @@ internal class ProxyService(
             val fileDetails = FileDetailsResponse(FileDetailsResponse.FILE, path.last(), "", remoteResponse.contentType, contentLength)
             val lookupResponse = LookupResponse.of(fileDetails)
 
-            if (!context.method.equals("HEAD")) {
+            if (context.method != "HEAD") {
                 if (storeProxied) {
-                    return store(
-                        remoteUri,
-                        remoteResponse,
-                        context
-                    ).map { lookupResponse }
+                    return store(remoteUri, remoteResponse, context).map { lookupResponse }
                 }
                 else {
-                    context.output { outputStream: OutputStream ->
-                        IOUtils.copyLarge(
-                            remoteResponse.content,
-                            outputStream
-                        )
-                    }
+                    context.output { copyLarge(remoteResponse.content, it) }
                 }
             }
 
@@ -140,16 +140,14 @@ internal class ProxyService(
 
         if (storageProvider.isFull()) {
             val error = "Not enough storage space available for $uri"
-            context.getLogger().warn(error)
-            return Result.error<FileDetailsResponse, ErrorResponse>(ErrorResponse(HttpStatus.SC_INSUFFICIENT_STORAGE, error))
+            context.logger.warn(error)
+            return Result.error(ErrorResponse(HttpStatus.SC_INSUFFICIENT_STORAGE, error))
         }
 
         val repositoryName = StringUtils.split(uri.substring(1), "/")[0] // skip first path separator
-        val repository = repositoryService.getRepository(repositoryName)
 
-        if (repository == null) {
-            uri = repositoryService.primaryRepository.name + uri
-        }
+        val repository = repositoryService.getRepository(repositoryName)
+            ?: return Result.error(ErrorResponse(HttpStatus.SC_BAD_REQUEST, "Missing valid repository name"))
 
         val proxiedFile = Paths.get(uri)
 

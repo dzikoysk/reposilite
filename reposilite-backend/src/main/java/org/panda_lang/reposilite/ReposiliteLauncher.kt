@@ -59,7 +59,7 @@ class ReposiliteLauncher {
         fun create(workingDirectoryString: String?, configurationFileName: String?, testEnv: Boolean): Reposilite {
             var workingDirectory = Paths.get("")
 
-            if (workingDirectoryString != null && !workingDirectoryString.isEmpty()) {
+            if (workingDirectoryString != null && workingDirectoryString.isNotEmpty()) {
                 workingDirectory = Paths.get(workingDirectoryString)
             }
 

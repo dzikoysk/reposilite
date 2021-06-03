@@ -19,6 +19,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
 
+internal const val METADATA_FILE_NAME = "maven-metadata"
+internal const val METADATA_FILE = "$METADATA_FILE_NAME.xml"
+
 @JacksonXmlRootElement(localName = "metadata")
 internal data class Metadata(
     val groupId: String? = null,

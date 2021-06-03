@@ -19,6 +19,7 @@ package org.panda_lang.reposilite.maven
 import net.dzikoysk.dynamiclogger.Journalist
 import org.panda_lang.reposilite.config.Configuration.RepositoryConfiguration
 import org.panda_lang.reposilite.storage.StorageProviderFactory
+import org.panda_lang.reposilite.web.textIf
 
 internal class RepositoryServiceFactory(private val journalist: Journalist) {
 
@@ -31,21 +32,16 @@ internal class RepositoryServiceFactory(private val journalist: Journalist) {
         val repositoryFactory = RepositoryFactory(storageProviderFactory)
 
         val repositories: MutableMap<String, Repository> = LinkedHashMap(repositoriesConfigurations.size)
-        var primary: Repository? = null
 
         for ((repositoryName, repositoryConfiguration) in repositoriesConfigurations) {
             val repository = repositoryFactory.createRepository(repositoryName, repositoryConfiguration)
             repositories[repository.name] = repository
-            logger.info("+ " + repositoryName + (if (repository.isPrivate()) " (private)" else "") + if (primary == null) " (primary)" else "")
-
-            if (primary == null) {
-                primary = repository
-            }
+            logger.info("+ $repositoryName ${textIf(repository.isPrivate(), " (private)")}")
         }
 
         logger.info(repositories.size.toString() + " repositories have been found")
 
-        return RepositoryService(journalist, repositories, primary)
+        return RepositoryService(journalist, repositories)
     }
 
 }

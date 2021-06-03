@@ -16,6 +16,8 @@ basePath: /
 forwardedIp: X-Forwarded-For
 # Enable Swagger (/swagger-docs) and Swagger UI (/swagger)
 swagger: true
+# Amount of messages stored in cached logger.
+cachedLogSize: 100
 # Debug
 debugEnabled: false
 
@@ -30,13 +32,6 @@ keyStorePath: ${WORKING_DIRECTORY}/keystore.jks
 keyStorePassword: reposilite
 # Redirect http traffic to https
 enforceSsl: false
-
-# Allow to omit name of the main repository in request
-# e.g. /org/panda-lang/reposilite will be redirected to /releases/org/panda-lang/reposilite
-rewritePathsEnabled: true
-# Control the maximum amount of data assigned to Reposilite instance
-# Supported formats: 90%, 500MB, 10GB
-diskQuota: 85%
 # List of supported Maven repositories.
 # First directory on the list is the main (primary) repository.
 # Tu mark repository as private, add the "--private" flag

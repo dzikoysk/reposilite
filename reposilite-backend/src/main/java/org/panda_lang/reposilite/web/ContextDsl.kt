@@ -54,6 +54,12 @@ class ContextDsl(
         }
     }
 
+    fun wildcard(): String =
+        ctx.splat(0) ?: ""
+
+    fun parameter(name: String): String =
+        ctx.pathParam(name)
+
     internal fun handleResult(result: Result<out Any?, ErrorResponse>?) {
         result
             ?.mapErr { ctx.json(it) }

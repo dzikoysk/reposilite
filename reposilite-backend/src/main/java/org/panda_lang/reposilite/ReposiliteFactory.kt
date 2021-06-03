@@ -18,6 +18,7 @@ package org.panda_lang.reposilite
 
 import net.dzikoysk.dynamiclogger.backend.AggregatedLogger
 import net.dzikoysk.dynamiclogger.slf4j.Slf4jLogger
+import org.jetbrains.exposed.sql.Database
 import org.panda_lang.reposilite.auth.application.AuthenticationWebConfiguration
 import org.panda_lang.reposilite.config.ConfigurationLoader
 import org.panda_lang.reposilite.console.application.ConsoleWebConfiguration
@@ -39,6 +40,8 @@ object ReposiliteFactory {
 
         val configurationLoader = ConfigurationLoader(logger)
         val configuration = configurationLoader.tryLoad(configurationFile)
+
+        Database.connect("jdbc:h2:mem:test", driver = "org.h2.Driver") // TODO: SQL schemas requires connection at startup, somehow delegate it later
 
         val failureFacade = FailureWebConfiguration.createFacade(logger)
         val consoleFacade = ConsoleWebConfiguration.createFacade(logger, failureFacade)

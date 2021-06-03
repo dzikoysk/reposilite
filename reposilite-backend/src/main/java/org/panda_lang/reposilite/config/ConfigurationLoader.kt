@@ -108,15 +108,15 @@ class ConfigurationLoader(private val journalist: Journalist) : Journalist {
                 continue
             }
 
-            val type = ClassUtils.getNonPrimitiveClass(declaredField.type)
+            val type: Class<*> = ClassUtils.getNonPrimitiveClass(declaredField.type)
 
-            val customValue: Any? = if (String::class.java == type) {
+            val customValue: Any? = if (String::class.java.isAssignableFrom(type)) {
                 custom
             }
-            else if (Int::class.java == type) {
+            else if (Int::class.java.isAssignableFrom(type)) {
                 custom.toInt()
             }
-            else if (Boolean::class.java == type) {
+            else if (Boolean::class.java.isAssignableFrom(type)) {
                 java.lang.Boolean.parseBoolean(custom)
             }
             else if (MutableCollection::class.java.isAssignableFrom(type)) {
