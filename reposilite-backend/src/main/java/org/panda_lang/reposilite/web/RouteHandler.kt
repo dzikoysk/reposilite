@@ -17,9 +17,20 @@
 package org.panda_lang.reposilite.web
 
 import io.javalin.http.Handler
-import org.panda_lang.reposilite.shared.HttpMethod
 
 interface RouteHandler : Handler {
     val route: String
-    val methods: List<HttpMethod>
+    val methods: List<RouteMethod>
+}
+
+enum class RouteMethod {
+
+    HEAD,
+    GET,
+    PUT,
+    POST,
+    DELETE,
+    AFTER,
+    BEFORE
+
 }

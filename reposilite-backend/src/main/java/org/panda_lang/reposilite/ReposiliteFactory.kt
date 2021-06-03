@@ -52,7 +52,7 @@ object ReposiliteFactory {
         val authenticationFacade = AuthenticationWebConfiguration.createFacade(logger, accessTokenFacade, mavenFacade)
         val contextFactory = ReposiliteContextFactory(logger, configuration.forwardedIp, authenticationFacade)
 
-        val reposilite = Reposilite(
+        return Reposilite(
             logger = logger,
             configuration = configuration,
             workingDirectory = workingDirectory,
@@ -63,12 +63,6 @@ object ReposiliteFactory {
             mavenFacade = mavenFacade,
             consoleFacade = consoleFacade
         )
-
-        AuthenticationWebConfiguration.initialize()
-        FailureWebConfiguration.initialize(consoleFacade, failureFacade)
-        ConsoleWebConfiguration.initialize(consoleFacade, reposilite)
-
-        return reposilite
     }
 
 }

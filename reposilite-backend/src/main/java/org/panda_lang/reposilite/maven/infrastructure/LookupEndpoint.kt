@@ -24,10 +24,10 @@ import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.maven.RepositoryService
 import org.panda_lang.reposilite.maven.api.FileDetailsResponse
 import org.panda_lang.reposilite.maven.api.FileListResponse
-import org.panda_lang.reposilite.shared.HttpMethod.GET
-import org.panda_lang.reposilite.shared.HttpMethod.HEAD
 import org.panda_lang.reposilite.web.ReposiliteContextFactory
 import org.panda_lang.reposilite.web.RouteHandler
+import org.panda_lang.reposilite.web.RouteMethod.GET
+import org.panda_lang.reposilite.web.RouteMethod.HEAD
 import org.panda_lang.reposilite.web.context
 
 internal class LookupEndpoint(
@@ -36,7 +36,6 @@ internal class LookupEndpoint(
 ) : RouteHandler {
 
     override val route = "/*"
-
     override val methods = listOf(HEAD, GET)
 
     @OpenApi(

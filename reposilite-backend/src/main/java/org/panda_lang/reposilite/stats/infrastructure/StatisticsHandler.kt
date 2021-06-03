@@ -13,25 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.panda_lang.reposilite.auth.infrastructure
+
+package org.panda_lang.reposilite.stats.infrastructure
 
 import io.javalin.http.Context
-import org.apache.http.HttpStatus
+import org.panda_lang.reposilite.stats.StatisticsFacade
+import org.panda_lang.reposilite.stats.api.RecordType
 import org.panda_lang.reposilite.web.RouteHandler
-import org.panda_lang.reposilite.web.RouteMethod.AFTER
+import org.panda_lang.reposilite.web.RouteMethod.BEFORE
 
-private const val WWW_AUTHENTICATE = "www-authenticate"
-private const val WWW_BASIC_REALM = """Basic realm="Reposilite", charset="UTF-8" """
+internal class StatisticsHandler(private val statisticsFacade: StatisticsFacade) : RouteHandler {
 
-internal class PostAuthHandler : RouteHandler {
+    override val route = "*"
+    override val methods = listOf(BEFORE)
 
-    override val route = "/*"
-    override val methods = listOf(AFTER)
-
-    override fun handle(context: Context) {
-        if (context.status() == HttpStatus.SC_UNAUTHORIZED) {
-            context.header(WWW_AUTHENTICATE, WWW_BASIC_REALM)
-        }
+    override fun handle(ctx: Context) {
+        statisticsFacade.increaseRecord(RecordType.REQUEST, ctx.req.requestURI)
     }
 
 }

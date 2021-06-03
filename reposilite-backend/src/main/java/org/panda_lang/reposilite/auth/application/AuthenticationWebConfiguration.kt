@@ -16,7 +16,6 @@
 
 package org.panda_lang.reposilite.auth.application
 
-import io.javalin.Javalin
 import net.dzikoysk.dynamiclogger.Journalist
 import org.panda_lang.reposilite.auth.AuthenticationFacade
 import org.panda_lang.reposilite.auth.Authenticator
@@ -25,6 +24,7 @@ import org.panda_lang.reposilite.auth.infrastructure.AuthenticationEndpoint
 import org.panda_lang.reposilite.auth.infrastructure.PostAuthHandler
 import org.panda_lang.reposilite.maven.MavenFacade
 import org.panda_lang.reposilite.token.AccessTokenFacade
+import org.panda_lang.reposilite.web.RouteHandler
 
 internal object AuthenticationWebConfiguration {
 
@@ -35,12 +35,10 @@ internal object AuthenticationWebConfiguration {
         return AuthenticationFacade(journalist, authenticator, sessionService)
     }
 
-    fun initialize() {
-
-    }
-
-    fun installRoutes(javalin: Javalin, authenticationFacade: AuthenticationFacade) = javalin
-        .get("/api/auth", AuthenticationEndpoint(authenticationFacade))
-        .after("/*", PostAuthHandler())
+    fun installRoutes(authenticationFacade: AuthenticationFacade): List<RouteHandler> =
+        listOf(
+            AuthenticationEndpoint(authenticationFacade),
+            PostAuthHandler()
+        )
 
 }

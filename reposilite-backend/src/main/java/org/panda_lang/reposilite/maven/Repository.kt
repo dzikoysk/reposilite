@@ -30,7 +30,7 @@ import java.nio.file.attribute.FileTime
 
 class Repository internal constructor(
     val name: String,
-    private val visibility: RepositoryVisibility,
+    val visibility: RepositoryVisibility,
     private val storageProvider: StorageProvider,
     val isDeployEnabled: Boolean
 ) : Comparator<Path> {
@@ -60,7 +60,7 @@ class Repository internal constructor(
     fun getFileDetails(file: Path): Result<FileDetailsResponse, ErrorResponse> =
         storageProvider.getFileDetails(relativize(file))
 
-    fun removeFile(file: Path): Result<Void, ErrorResponse> =
+    fun removeFile(file: Path): Result<Unit, ErrorResponse> =
         storageProvider.removeFile(relativize(file))
 
     fun getFiles(directory: Path): Result<List<Path>, ErrorResponse> =

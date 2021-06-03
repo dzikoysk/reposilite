@@ -16,8 +16,7 @@
 package org.panda_lang.reposilite.console.infrastructure
 
 import io.javalin.http.Context
-import io.javalin.http.Handler
-import io.javalin.plugin.openapi.annotations.HttpMethod.POST
+import io.javalin.plugin.openapi.annotations.HttpMethod
 import io.javalin.plugin.openapi.annotations.OpenApi
 import io.javalin.plugin.openapi.annotations.OpenApiContent
 import io.javalin.plugin.openapi.annotations.OpenApiParam
@@ -29,16 +28,21 @@ import org.panda_lang.reposilite.console.api.ExecutionResponse
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.failure.api.errorResponse
 import org.panda_lang.reposilite.web.ReposiliteContextFactory
+import org.panda_lang.reposilite.web.RouteHandler
+import org.panda_lang.reposilite.web.RouteMethod.POST
 import org.panda_lang.reposilite.web.context
 
 internal class RemoteExecutionEndpoint(
     private val contextFactory: ReposiliteContextFactory,
     private val consoleFacade: ConsoleFacade
-) : Handler {
+) : RouteHandler {
+
+    override val route = "/api/execute"
+    override val methods = listOf(POST)
 
     @OpenApi(
         operationId = "cli",
-        method = POST,
+        method = HttpMethod.POST,
         summary = "Remote command execution",
         description = "Execute command using POST request. The commands are the same as in the console and can be listed using the 'help' command.",
         tags = ["Cli"],

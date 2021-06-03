@@ -23,10 +23,10 @@ import io.javalin.plugin.openapi.annotations.OpenApiParam
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
 import org.panda_lang.reposilite.maven.MavenFacade
 import org.panda_lang.reposilite.maven.api.DeployRequest
-import org.panda_lang.reposilite.shared.HttpMethod.POST
-import org.panda_lang.reposilite.shared.HttpMethod.PUT
 import org.panda_lang.reposilite.web.ReposiliteContextFactory
 import org.panda_lang.reposilite.web.RouteHandler
+import org.panda_lang.reposilite.web.RouteMethod.POST
+import org.panda_lang.reposilite.web.RouteMethod.PUT
 import org.panda_lang.reposilite.web.context
 
 internal class DeployEndpoint(
@@ -35,7 +35,6 @@ internal class DeployEndpoint(
 ) : RouteHandler {
 
     override val route = "/{repositoryName}/*"
-
     override val methods = listOf(POST, PUT)
 
     @OpenApi(

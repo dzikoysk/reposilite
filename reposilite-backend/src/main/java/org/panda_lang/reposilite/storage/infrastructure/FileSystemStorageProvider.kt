@@ -169,14 +169,14 @@ internal abstract class FileSystemStorageProvider private constructor(
         }
     }
 
-    override fun removeFile(file: Path): Result<Void, ErrorResponse> {
+    override fun removeFile(file: Path): Result<Unit, ErrorResponse> {
         return try {
             if (!Files.exists(file)) {
                 return Result.error(ErrorResponse(HttpStatus.SC_NOT_FOUND, "File not found: $file"))
             }
 
             Files.delete(file)
-            Result.ok(null)
+            Result.ok(Unit)
         } catch (ioException: IOException) {
             Result.error(ErrorResponse(500, ioException.localizedMessage))
         }
