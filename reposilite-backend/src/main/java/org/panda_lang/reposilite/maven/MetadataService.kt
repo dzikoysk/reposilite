@@ -21,9 +21,8 @@ import org.apache.http.HttpStatus
 import org.panda_lang.reposilite.failure.FailureFacade
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.maven.api.FileDetailsResponse
-import org.panda_lang.reposilite.shared.utils.ArrayUtils
 import org.panda_lang.reposilite.shared.utils.FilesUtils
-import org.panda_lang.reposilite.web.mapToError
+import org.panda_lang.reposilite.web.projectToError
 import org.panda_lang.utilities.commons.StringUtils
 import org.panda_lang.utilities.commons.collection.Pair
 import org.panda_lang.utilities.commons.function.Lazy
@@ -31,7 +30,6 @@ import org.panda_lang.utilities.commons.function.Result
 import java.io.IOException
 import java.nio.charset.StandardCharsets
 import java.nio.file.Path
-import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Supplier
 
@@ -69,13 +67,15 @@ internal class MetadataService(private val failureFacade: FailureFacade) {
         val versions: Result<List<Path>, ErrorResponse> = MetadataUtils.toSortedVersions(repository, artifactDirectory)
 
         if (versions.isErr) {
-            return versions.mapToError()
+            return versions.projectToError()
         }
 
         return if (versions.get().isNotEmpty()) {
             generateArtifactMetadata(repository, requested, MetadataUtils.toGroup(requested), artifactDirectory, versions.get())
         }
-        else generateBuildMetadata(repository, requested, MetadataUtils.toGroup(requested), artifactDirectory)
+        else {
+            generateBuildMetadata(repository, requested, MetadataUtils.toGroup(requested), artifactDirectory)
+        }
     }
 
     private fun generateArtifactMetadata(
@@ -85,7 +85,7 @@ internal class MetadataService(private val failureFacade: FailureFacade) {
         artifactDirectory: Path,
         versions: List<Path>
     ): Result<Pair<FileDetailsResponse, String>, ErrorResponse> {
-        val latest = ArrayUtils.getFirst(versions)!!
+        val latest = versions.first()
 
         val versioning = Versioning(
             latest.fileName.toString(),
@@ -110,10 +110,10 @@ internal class MetadataService(private val failureFacade: FailureFacade) {
         val builds: Result<Array<Path>, ErrorResponse> = MetadataUtils.toSortedBuilds(repository, versionDirectory)
 
         if (builds.isErr) {
-            return builds.mapToError()
+            return builds.projectToError()
         }
 
-        val latestBuild = ArrayUtils.getFirst(builds.get())
+        val latestBuild = builds.get().firstOrNull()
             ?: return Result.error(ErrorResponse(HttpStatus.SC_NOT_FOUND, "Latest build not found"))
 
         val name = artifactDirectory.fileName.toString()

@@ -37,7 +37,11 @@ class ReposiliteContext(
     private val input: ThrowingSupplier<InputStream, IOException>
 ) : Journalist {
 
-    var output: ThrowingConsumer<OutputStream, IOException>? = null
+    private var output: ThrowingConsumer<OutputStream, IOException>? = null
+
+    fun output(output: ThrowingConsumer<OutputStream, IOException>) {
+        this.output = output
+    }
 
     fun input(): InputStream =
         input.get()

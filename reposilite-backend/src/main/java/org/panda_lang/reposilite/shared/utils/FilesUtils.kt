@@ -56,7 +56,7 @@ object FilesUtils {
 
         val value = match.group(1).toLong()
 
-        return when (match.group(2).uppercase()) {
+        return when (match.group(2).toUpperCase()) {
             "GB" -> value * GB_FACTOR
             "MB" -> value * MB_FACTOR
             "KB" -> value * KB_FACTOR
@@ -119,20 +119,17 @@ object FilesUtils {
         }
     }
 
-    fun toNames(files: Array<Path>): List<String> =
-        files
-            .map { it.fileName.toString() }
-            .toList()
+    fun toNames(files: List<Path>): List<String> = files
+        .map { it.fileName.toString() }
+        .toList()
 
     fun getExtension(name: String): String {
         val occurrence = name.lastIndexOf(".")
         return if (occurrence == -1) StringUtils.EMPTY else name.substring(occurrence + 1)
     }
 
-    fun getResource(name: String): String {
-        return IOUtils
-            .convertStreamToString(Reposilite::class.java.getResourceAsStream(name))
+    fun getResource(name: String): String =
+        IOUtils.convertStreamToString(Reposilite::class.java.getResourceAsStream(name))
             .orElseThrow { RuntimeException("Cannot load resource $name", it) }
-    }
 
 }

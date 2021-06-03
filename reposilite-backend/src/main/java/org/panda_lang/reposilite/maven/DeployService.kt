@@ -23,7 +23,6 @@ import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.maven.api.DeployRequest
 import org.panda_lang.reposilite.maven.api.FileDetailsResponse
 import org.panda_lang.utilities.commons.function.Result
-import java.nio.file.Paths
 
 internal class DeployService(
     private val journalist: Journalist,
@@ -42,14 +41,13 @@ internal class DeployService(
             return ResponseUtils.error(HttpStatus.SC_INSUFFICIENT_STORAGE, "Not enough storage space available")
         }
 
-        repository.relativize(deployRequest.gav)
-        val path = Paths.get(deployRequest.path)
-        val metadataFile = path.resolveSibling("maven-metadata.xml")
+        val path = repository.relativize(deployRequest.gav) ?: return ResponseUtils.error(HttpStatus.SC_BAD_REQUEST, "Invalid GAV")
+        val metadataFile = path.resolveSibling(METADATA_FILE)
         metadataService.clearMetadata(metadataFile)
 
         return try {
             val result: Result<FileDetailsResponse, ErrorResponse> =
-                if (path.fileName.toString().contains("maven-metadata")) {
+                if (path.fileName.toString().contains(METADATA_FILE_NAME)) {
                     metadataService.getMetadata(repository, metadataFile).map { it.key }
                 }
                 else {

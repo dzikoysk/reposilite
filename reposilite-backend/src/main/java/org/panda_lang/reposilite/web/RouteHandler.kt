@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.shared
+package org.panda_lang.reposilite.web
 
 import io.javalin.http.Handler
+import org.panda_lang.reposilite.shared.HttpMethod
 
-data class Route(
-    val path: String,
-    val method: HttpMethod,
-    val handler: Handler
-)
+interface RouteHandler : Handler {
+    val route: String
+    val methods: List<HttpMethod>
+}

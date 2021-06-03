@@ -19,10 +19,10 @@ package org.panda_lang.reposilite.storage.infrastructure
 import org.apache.http.HttpStatus
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.maven.api.FileDetailsResponse
-import org.panda_lang.reposilite.storage.StorageProvider
-import org.panda_lang.reposilite.shared.utils.FilesUtils.getMimeType
 import org.panda_lang.reposilite.shared.MimeTypes.MIME_OCTET_STREAM
 import org.panda_lang.reposilite.shared.MimeTypes.MIME_PLAIN
+import org.panda_lang.reposilite.shared.utils.FilesUtils.getMimeType
+import org.panda_lang.reposilite.storage.StorageProvider
 import org.panda_lang.utilities.commons.function.Result
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider
 import software.amazon.awssdk.core.sync.RequestBody
@@ -40,6 +40,7 @@ import java.io.InputStream
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.attribute.FileTime
+import java.time.LocalDate
 
 internal class S3StorageProvider(private val bucket: String, region: String) : StorageProvider {
 
@@ -65,7 +66,7 @@ internal class S3StorageProvider(private val bucket: String, region: String) : S
                 FileDetailsResponse(
                     FileDetailsResponse.FILE,
                     file.fileName.toString(),
-                    FileDetailsResponse.DATE_FORMAT.format(System.currentTimeMillis()),
+                    FileDetailsResponse.DATE_FORMAT.format(LocalDate.now()),
                     getMimeType(file.fileName.toString(), MIME_OCTET_STREAM),
                     bytes.size.toLong()
                 )
@@ -96,7 +97,7 @@ internal class S3StorageProvider(private val bucket: String, region: String) : S
                 FileDetailsResponse(
                     FileDetailsResponse.FILE,
                     file.fileName.toString(),
-                    FileDetailsResponse.DATE_FORMAT.format(System.currentTimeMillis()),
+                    FileDetailsResponse.DATE_FORMAT.format(LocalDate.now()),
                     getMimeType(file.fileName.toString(), MIME_OCTET_STREAM),
                     length
                 )
@@ -149,7 +150,7 @@ internal class S3StorageProvider(private val bucket: String, region: String) : S
                 FileDetailsResponse(
                     FileDetailsResponse.FILE,
                     file.fileName.toString(),
-                    FileDetailsResponse.DATE_FORMAT.format(System.currentTimeMillis()),
+                    FileDetailsResponse.DATE_FORMAT.format(LocalDate.now()),
                     getMimeType(file.fileName.toString(), "application/octet-stream"),
                     response.contentLength()
                 )

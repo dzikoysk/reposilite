@@ -15,21 +15,11 @@
  */
 package org.panda_lang.reposilite.maven
 
-import org.apache.http.HttpStatus
-import org.panda_lang.reposilite.web.ReposiliteContext
-import org.panda_lang.reposilite.failure.ResponseUtils
-import org.panda_lang.reposilite.failure.api.ErrorResponse
-import org.panda_lang.reposilite.maven.MetadataUtils.toSortedVersions
-import org.panda_lang.reposilite.maven.api.LookupResponse
-import org.panda_lang.utilities.commons.function.Result
-import java.io.OutputStream
-import java.nio.file.Path
-import java.util.*
-
 internal class LookupService(
     private val repositoryService: RepositoryService
 ) {
 
+    /*
     fun exists(context: ReposiliteContext): Boolean {
         val uri: String = context.uri
         val result = repositoryAuthenticator.authDefaultRepository(context.header, uri)
@@ -37,7 +27,7 @@ internal class LookupService(
         if (result.isErr) {
             // Maven requests maven-metadata.xml file during deploy for snapshot releases without specifying credentials
             // https://github.com/dzikoysk/reposilite/issues/184
-            return if (uri.contains("-SNAPSHOT") && uri.endsWith("maven-metadata.xml")) {
+            return if (uri.contains("-SNAPSHOT") && uri.endsWith(METADATA_FILE)) {
                 false
             } else false
         }
@@ -60,7 +50,7 @@ internal class LookupService(
         if (result.isErr) {
             // Maven requests maven-metadata.xml file during deploy for snapshot releases without specifying credentials
             // https://github.com/dzikoysk/reposilite/issues/184
-            return if (uri.contains("-SNAPSHOT") && uri.endsWith("maven-metadata.xml")) {
+            return if (uri.contains("-SNAPSHOT") && uri.endsWith(METADATA_FILE)) {
                 ResponseUtils.error(HttpStatus.SC_NOT_FOUND, result.error.message)
             } else Result.error(result.error)
         }
@@ -119,7 +109,7 @@ internal class LookupService(
             val fileDetails = fileDetailsResult.get()
 
             if (context.method != "HEAD") {
-                context.output { outputStream: OutputStream -> outputStream.write(bytes.get()) }
+                context.output { it.write(bytes.get()) }
             }
 
             context.logger.debug("RESOLVED $path; mime: ${fileDetails.contentType}; size: ${repository.getFileSize(path).get()}")
@@ -129,4 +119,6 @@ internal class LookupService(
             Result.error(fileDetailsResult.error)
         }
     }
+    
+     */
 }

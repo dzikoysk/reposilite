@@ -50,12 +50,28 @@ fun normalizeUri(uri: String): Option<String> {
     return Option.of(normalizedUri)
 }
 
+/**
+ * Returns the given string only if the condition is true, otherwise returns empty string
+ */
+fun textIf(condition: Boolean, value: String): String =
+    if (condition) value else ""
+
+/**
+ * Extends Javalin's context with a support for [ErrorResponse] results
+ */
 fun Context.error(error: ErrorResponse): Context =
     this.status(error.status).json(error)
 
-fun <V, E, VE> Result<V, E>.mapToError(): Result<VE, E> =
-    this.map { null }
+/**
+ * Project non-existing value of errored [Result] to simplify error handling by convenient way to match expected signatures.
+ * This method throws [IllegalArgumentException] if the given [Result] does not contain error.
+ */
+fun <ANY_VALUE, REQUIRED_VALUE, ERROR> Result<ANY_VALUE, ERROR>.projectToError(): Result<REQUIRED_VALUE, ERROR> =
+    if (this.isErr) this.map { null } else throw IllegalArgumentException("")
 
+/**
+ * End [Result] based pipes with
+ */
 @Suppress("unused")
 fun <V, E> Result<V, E>.end(): Unit =
     Unit

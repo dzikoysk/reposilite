@@ -16,7 +16,6 @@
 package org.panda_lang.reposilite.maven.infrastructure
 
 import io.javalin.http.Context
-import io.javalin.http.Handler
 import io.javalin.plugin.openapi.annotations.ContentType.FORM_DATA_MULTIPART
 import io.javalin.plugin.openapi.annotations.OpenApi
 import io.javalin.plugin.openapi.annotations.OpenApiContent
@@ -24,14 +23,20 @@ import io.javalin.plugin.openapi.annotations.OpenApiParam
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
 import org.panda_lang.reposilite.maven.MavenFacade
 import org.panda_lang.reposilite.maven.api.DeployRequest
+import org.panda_lang.reposilite.shared.HttpMethod.POST
+import org.panda_lang.reposilite.shared.HttpMethod.PUT
 import org.panda_lang.reposilite.web.ReposiliteContextFactory
+import org.panda_lang.reposilite.web.RouteHandler
 import org.panda_lang.reposilite.web.context
-import org.panda_lang.reposilite.web.error
 
 internal class DeployEndpoint(
     private val contextFactory: ReposiliteContextFactory,
     private val mavenFacade: MavenFacade
-) : Handler {
+) : RouteHandler {
+
+    override val route = "/{repositoryName}/*"
+
+    override val methods = listOf(POST, PUT)
 
     @OpenApi(
         operationId = "repositoryDeploy",
@@ -60,15 +65,18 @@ internal class DeployEndpoint(
         ]
     )
     override fun handle(ctx: Context) = context(contextFactory, ctx) {
-        context.logger.info("DEPLOY ${context.uri} from ${context.address}")
+        context.logger.debug("DEPLOY ${context.uri} from ${context.address}")
 
         authorized {
-            mavenFacade.deployArtifact(DeployRequest(context.uri, getSessionIdentifier(), context.input()))
-                .map { fileDetailsResponse -> ctx.json(fileDetailsResponse) }
-                .onError {
-                    context.logger.debug("Cannot deploy artifact due to: ${it.message}")
-                    ctx.error(it)
-                }
+            val request = DeployRequest(
+                parameter("repositoryName"),
+                wildcard(),
+                getSessionIdentifier(),
+                context.input()
+            )
+
+            response = mavenFacade.deployArtifact(request)
+                .onError { context.logger.debug("Cannot deploy artifact due to: ${it.message}") }
         }
     }
 

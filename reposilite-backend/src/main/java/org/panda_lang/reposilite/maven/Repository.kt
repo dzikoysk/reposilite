@@ -19,7 +19,9 @@ import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.maven.api.FileDetailsResponse
 import org.panda_lang.reposilite.maven.api.RepositoryVisibility
 import org.panda_lang.reposilite.maven.api.RepositoryVisibility.PRIVATE
+import org.panda_lang.reposilite.maven.api.RepositoryVisibility.PUBLIC
 import org.panda_lang.reposilite.storage.StorageProvider
+import org.panda_lang.reposilite.web.normalizeUri
 import org.panda_lang.utilities.commons.function.Result
 import java.io.InputStream
 import java.nio.file.Path
@@ -34,14 +36,14 @@ class Repository internal constructor(
 ) : Comparator<Path> {
 
     companion object {
-        private val REPOSITORIES = Paths.get("repositories")
+        private val REPOSITORIES_PATH = Paths.get("repositories")
     }
 
     override fun compare(path: Path, toPath: Path): Int =
         relativize(path).compareTo(relativize(toPath))
 
     fun isPublic(): Boolean =
-        !isPrivate()
+        visibility == PUBLIC
 
     fun isPrivate(): Boolean =
         visibility == PRIVATE
@@ -88,21 +90,29 @@ class Repository internal constructor(
     fun shutdown() =
         storageProvider.shutdown()
 
+    /**
+     * Inserts repository name and repositories directory into the given path
+     */
     fun relativize(path: Path): Path {
         var relativePath = path
 
-        if (!relativePath.startsWith(REPOSITORIES)) {
+        if (!relativePath.startsWith(REPOSITORIES_PATH)) {
             if (!relativePath.startsWith(name)) {
                 relativePath = Paths.get(name).resolve(relativePath)
             }
 
-            relativePath = REPOSITORIES.resolve(relativePath)
+            relativePath = REPOSITORIES_PATH.resolve(relativePath)
         }
         else if (relativePath.startsWith(name)) {
-            relativePath = REPOSITORIES.relativize(relativePath)
+            relativePath = REPOSITORIES_PATH.relativize(relativePath)
         }
 
         return relativePath
     }
+
+    fun relativize(gav: String): Path? =
+        normalizeUri(gav)
+            .map { relativize(Paths.get(it)) }
+            .orNull
 
 }

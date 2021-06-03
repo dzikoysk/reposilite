@@ -28,7 +28,7 @@ import org.panda_lang.reposilite.token.AccessTokenRepository
 import org.panda_lang.reposilite.token.api.AccessToken
 import org.panda_lang.reposilite.token.api.Route
 
-class SqlAccessTokenRepository : AccessTokenRepository {
+internal class SqlAccessTokenRepository : AccessTokenRepository {
 
     init {
         transaction {
