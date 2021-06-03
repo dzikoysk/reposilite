@@ -73,15 +73,6 @@ public final class Configuration implements Serializable {
 
     /* Repository properties */
 
-    @Description("")
-    @Description("# Allow to omit name of the main repository in request")
-    @Description("# e.g. /org/panda-lang/reposilite will be redirected to /releases/org/panda-lang/reposilite")
-    public boolean rewritePathsEnabled = true;
-    // TODO: Remove
-    @Description("# Control the maximum amount of data assigned to Reposilite instance")
-    @Description("# Supported formats: 90%, 500MB, 10GB")
-    public String diskQuota = "10GB";
-
     @Description("# List of supported Maven repositories.")
     @Description("# First directory on the list is the main (primary) repository.")
     @Description("# Tu mark repository as private, add the \"--private\" flag")

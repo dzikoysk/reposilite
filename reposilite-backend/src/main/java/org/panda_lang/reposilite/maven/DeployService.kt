@@ -27,7 +27,6 @@ import java.nio.file.Paths
 
 internal class DeployService(
     private val journalist: Journalist,
-    private val rewritePathsEnabled: Boolean,
     private val repositoryService: RepositoryService,
     private val metadataService: MetadataService
 ) : Journalist {
