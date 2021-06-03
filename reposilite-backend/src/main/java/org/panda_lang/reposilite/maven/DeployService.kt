@@ -13,17 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.panda_lang.reposilite.maven.repository
+package org.panda_lang.reposilite.maven
 
 import org.apache.http.HttpStatus
 import org.panda_lang.reposilite.web.ReposiliteUtils.normalizeUri
 import org.panda_lang.reposilite.web.ReposiliteUtils.getRepository
-import org.panda_lang.reposilite.maven.metadata.MetadataFacade
 import org.panda_lang.reposilite.web.ReposiliteContext
-import org.panda_lang.reposilite.maven.repository.api.FileDetailsResponse
+import org.panda_lang.reposilite.maven.api.FileDetailsResponse
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.auth.Authenticator
-import org.panda_lang.reposilite.auth.Session
 import org.panda_lang.reposilite.failure.ResponseUtils
 import org.panda_lang.reposilite.token.api.AccessToken
 import org.panda_lang.reposilite.token.api.RoutePermission.WRITE
@@ -35,7 +33,7 @@ internal class DeployService(
     private val rewritePathsEnabled: Boolean,
     private val authenticator: Authenticator,
     private val repositoryService: RepositoryService,
-    private val metadataFacade: MetadataFacade
+    private val metadataService: MetadataService
 ) {
 
     fun deploy(context: ReposiliteContext): Result<FileDetailsResponse, ErrorResponse> {
@@ -78,12 +76,12 @@ internal class DeployService(
 
         val path = Paths.get(uri)
         val metadataFile = path.resolveSibling("maven-metadata.xml")
-        metadataFacade.clearMetadata(metadataFile)
+        metadataService.clearMetadata(metadataFile)
 
         return try {
             val result: Result<FileDetailsResponse, ErrorResponse> =
                 if (path.fileName.toString().contains("maven-metadata")) {
-                    metadataFacade.getMetadata(repository, metadataFile).map { it.key }
+                    metadataService.getMetadata(repository, metadataFile).map { it.key }
                 }
                 else {
                     repository.putFile(path, context.input())

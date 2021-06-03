@@ -14,21 +14,18 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.maven
+package org.panda_lang.reposilite.shared
 
-import net.dzikoysk.dynamiclogger.Journalist
-import net.dzikoysk.dynamiclogger.Logger
+enum class HttpMethod {
 
-class MavenFacade internal constructor(
-    internal val journalist: Journalist,
-    internal val repositoryService: RepositoryService,
-    internal val metadataService: MetadataService
-) : Journalist {
-
-    fun getRepositories(): Collection<Repository> =
-        repositoryService.getRepositories()
-
-    override fun getLogger(): Logger =
-        journalist.logger
+    GET,
+    HEAD,
+    POST,
+    PUT,
+    DELETE,
+    CONNECT,
+    OPTIONS,
+    TRACE,
+    PATCH
 
 }

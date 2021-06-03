@@ -16,13 +16,13 @@
 
 package org.panda_lang.reposilite.auth
 
-import io.javalin.plugin.openapi.annotations.HttpMethod
 import org.panda_lang.reposilite.maven.MavenFacade
+import org.panda_lang.reposilite.shared.HttpMethod
 import org.panda_lang.reposilite.token.api.AccessToken
 
 internal class SessionService(private val mavenFacade: MavenFacade) {
 
     fun createSession(accessToken: AccessToken, path: String, method: HttpMethod) =
-        Session(accessToken, path, method)
+        Session(path, method, accessToken, emptyList())
 
 }

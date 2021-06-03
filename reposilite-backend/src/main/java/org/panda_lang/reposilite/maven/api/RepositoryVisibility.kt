@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.maven.repository.api
+package org.panda_lang.reposilite.maven.api
 
 enum class RepositoryVisibility {
 

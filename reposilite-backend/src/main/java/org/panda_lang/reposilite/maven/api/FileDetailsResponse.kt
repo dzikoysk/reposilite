@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.panda_lang.reposilite.maven.repository.api
+package org.panda_lang.reposilite.maven.api
 
 import java.io.Serializable
 import java.text.SimpleDateFormat
@@ -27,9 +27,11 @@ data class FileDetailsResponse(
 ) : Serializable, Comparable<FileDetailsResponse> {
 
     companion object {
+
         const val FILE = "file"
         const val DIRECTORY = "directory"
         val DATE_FORMAT = SimpleDateFormat("dd-MM-yyyy")
+
     }
 
     override fun compareTo(other: FileDetailsResponse): Int {

@@ -13,11 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.panda_lang.reposilite.maven.repository
+package org.panda_lang.reposilite.maven
 
-internal data class Artifact(
-    val repository: Repository,
-    private val group: String,
-    private val artifact: String,
-    private val version: String
-)
+import net.dzikoysk.dynamiclogger.Journalist
+import net.dzikoysk.dynamiclogger.Logger
+
+internal class RepositoryService(
+    private val journalist: Journalist,
+    private val repositories: Map<String, Repository>,
+    private val primary: Repository?
+) : Journalist {
+
+    fun getRepositories(): Collection<Repository> =
+        repositories.values
+
+    override fun getLogger(): Logger =
+        journalist.logger
+
+}

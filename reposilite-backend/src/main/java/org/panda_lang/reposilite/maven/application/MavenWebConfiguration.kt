@@ -17,15 +17,45 @@
 package org.panda_lang.reposilite.maven.application
 
 import net.dzikoysk.dynamiclogger.Journalist
+import org.panda_lang.reposilite.config.Configuration.RepositoryConfiguration
+import org.panda_lang.reposilite.console.ConsoleFacade
+import org.panda_lang.reposilite.failure.FailureFacade
 import org.panda_lang.reposilite.maven.MavenFacade
-import org.panda_lang.reposilite.maven.repository.RepositoryService
+import org.panda_lang.reposilite.maven.MetadataService
+import org.panda_lang.reposilite.maven.RepositoryServiceFactory
+import org.panda_lang.reposilite.maven.infrastructure.DeployEndpoint
+import org.panda_lang.reposilite.maven.infrastructure.LookupEndpoint
+import org.panda_lang.reposilite.shared.HttpMethod.GET
+import org.panda_lang.reposilite.shared.HttpMethod.HEAD
+import org.panda_lang.reposilite.shared.HttpMethod.POST
+import org.panda_lang.reposilite.shared.HttpMethod.PUT
+import org.panda_lang.reposilite.shared.Route
+import org.panda_lang.reposilite.web.ReposiliteContextFactory
 
 object MavenWebConfiguration {
 
-    fun createFacade(journalist: Journalist): MavenFacade {
-        val repositoryService = RepositoryService(journalist)
+    fun createFacade(journalist: Journalist, failureFacade: FailureFacade, repositoriesConfiguration: Map<String, RepositoryConfiguration>): MavenFacade {
+        val repositoryService = RepositoryServiceFactory(journalist).createRepositoryService(repositoriesConfiguration)
+        val metadataService = MetadataService(failureFacade)
 
-        return MavenFacade(journalist, repositoryService)
+        return MavenFacade(journalist, repositoryService, metadataService)
+    }
+
+    fun configure(consoleFacade: ConsoleFacade) {
+    }
+
+    fun installRouting(contextFactory: ReposiliteContextFactory, mavenFacade: MavenFacade): List<Route>  {
+        val deployEndpoint = DeployEndpoint(contextFactory, mavenFacade.repositoryService)
+        val lookupEndpoint = LookupEndpoint(contextFactory, mavenFacade.repositoryService)
+
+        return listOf(
+            // Route("/api", HttpMethod.GET, lookupApiEndpoint),
+            // Route("/api/*", HttpMethod.GET, lookupApiEndpoint),
+            Route("/*", GET, lookupEndpoint),
+            Route("/*", HEAD, lookupEndpoint),
+            Route("/*", PUT, deployEndpoint),
+            Route("/*", POST, deployEndpoint)
+        )
     }
 
 }

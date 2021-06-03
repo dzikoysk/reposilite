@@ -17,7 +17,7 @@
 package org.panda_lang.reposilite.storage
 
 import org.panda_lang.reposilite.failure.api.ErrorResponse
-import org.panda_lang.reposilite.maven.repository.api.FileDetailsResponse
+import org.panda_lang.reposilite.maven.api.FileDetailsResponse
 import org.panda_lang.utilities.commons.function.Result
 import java.io.InputStream
 import java.nio.file.Path

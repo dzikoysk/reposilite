@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.panda_lang.reposilite.maven.repository.infrastructure
+package org.panda_lang.reposilite.maven.infrastructure
 
 import io.javalin.http.Context
 import io.javalin.http.Handler
@@ -22,13 +22,13 @@ import io.javalin.plugin.openapi.annotations.OpenApiContent
 import io.javalin.plugin.openapi.annotations.OpenApiParam
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
 import org.panda_lang.reposilite.failure.api.ErrorResponse
-import org.panda_lang.reposilite.maven.repository.RepositoryService
-import org.panda_lang.reposilite.maven.repository.api.FileDetailsResponse
-import org.panda_lang.reposilite.maven.repository.api.FileListResponse
+import org.panda_lang.reposilite.maven.RepositoryService
+import org.panda_lang.reposilite.maven.api.FileDetailsResponse
+import org.panda_lang.reposilite.maven.api.FileListResponse
 import org.panda_lang.reposilite.web.ReposiliteContextFactory
 import org.panda_lang.reposilite.web.context
 
-internal class IndexEndpoint(
+internal class LookupEndpoint(
     private val contextFactory: ReposiliteContextFactory,
     private val repositoryService: RepositoryService
 ) : Handler {

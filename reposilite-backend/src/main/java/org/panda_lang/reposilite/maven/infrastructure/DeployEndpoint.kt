@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.panda_lang.reposilite.maven.repository.infrastructure
+package org.panda_lang.reposilite.maven.infrastructure
 
 import io.javalin.http.Context
 import io.javalin.http.Handler
@@ -23,13 +23,13 @@ import io.javalin.plugin.openapi.annotations.OpenApiContent
 import io.javalin.plugin.openapi.annotations.OpenApiParam
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
 import org.panda_lang.reposilite.failure.ResponseUtils
-import org.panda_lang.reposilite.maven.repository.DeployService
+import org.panda_lang.reposilite.maven.RepositoryService
 import org.panda_lang.reposilite.web.ReposiliteContextFactory
 import org.panda_lang.reposilite.web.context
 
 internal class DeployEndpoint(
     private val contextFactory: ReposiliteContextFactory,
-    private val deployService: DeployService
+    private val repositoryService: RepositoryService
 ) : Handler {
 
     @OpenApi(

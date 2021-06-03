@@ -18,7 +18,7 @@ package org.panda_lang.reposilite.storage.infrastructure
 
 import org.apache.http.HttpStatus
 import org.panda_lang.reposilite.failure.api.ErrorResponse
-import org.panda_lang.reposilite.maven.repository.api.FileDetailsResponse
+import org.panda_lang.reposilite.maven.api.FileDetailsResponse
 import org.panda_lang.reposilite.storage.StorageProvider
 import org.panda_lang.reposilite.shared.utils.FilesUtils
 import org.panda_lang.reposilite.shared.utils.FilesUtils.getMimeType

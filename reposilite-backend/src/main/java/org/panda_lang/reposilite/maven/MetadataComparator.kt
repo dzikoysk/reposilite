@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.panda_lang.reposilite.maven.metadata
+package org.panda_lang.reposilite.maven
 
 import java.math.BigInteger
 import java.util.function.Function

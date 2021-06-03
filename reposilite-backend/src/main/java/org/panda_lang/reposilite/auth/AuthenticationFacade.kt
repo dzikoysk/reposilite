@@ -16,11 +16,11 @@
 
 package org.panda_lang.reposilite.auth
 
-import io.javalin.plugin.openapi.annotations.HttpMethod
 import net.dzikoysk.dynamiclogger.Journalist
 import net.dzikoysk.dynamiclogger.Logger
 import org.apache.http.HttpStatus
 import org.panda_lang.reposilite.failure.api.ErrorResponse
+import org.panda_lang.reposilite.shared.HttpMethod
 import org.panda_lang.reposilite.token.api.AccessToken
 import org.panda_lang.utilities.commons.function.Result
 

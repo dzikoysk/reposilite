@@ -15,7 +15,7 @@
  */
 package org.panda_lang.reposilite.auth
 
-import io.javalin.plugin.openapi.annotations.HttpMethod
+import org.panda_lang.reposilite.shared.HttpMethod
 import org.panda_lang.reposilite.token.api.AccessToken
 import org.panda_lang.reposilite.token.api.AccessTokenPermission.MANAGER
 import org.panda_lang.reposilite.token.api.RoutePermission

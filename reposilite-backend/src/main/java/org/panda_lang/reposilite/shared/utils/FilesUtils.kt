@@ -17,7 +17,7 @@ package org.panda_lang.reposilite.shared.utils
 
 import com.google.common.hash.Hashing
 import org.panda_lang.reposilite.Reposilite
-import org.panda_lang.reposilite.maven.repository.Repository
+import org.panda_lang.reposilite.maven.Repository
 import org.panda_lang.reposilite.shared.MimeTypes
 import org.panda_lang.utilities.commons.IOUtils
 import org.panda_lang.utilities.commons.StringUtils

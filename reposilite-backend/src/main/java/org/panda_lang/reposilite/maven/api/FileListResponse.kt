@@ -13,22 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.panda_lang.reposilite.maven.api
 
-package org.panda_lang.reposilite.maven
+import java.io.Serializable
 
-import net.dzikoysk.dynamiclogger.Journalist
-import net.dzikoysk.dynamiclogger.Logger
-
-class MavenFacade internal constructor(
-    internal val journalist: Journalist,
-    internal val repositoryService: RepositoryService,
-    internal val metadataService: MetadataService
-) : Journalist {
-
-    fun getRepositories(): Collection<Repository> =
-        repositoryService.getRepositories()
-
-    override fun getLogger(): Logger =
-        journalist.logger
-
-}
+data class FileListResponse<T : Serializable>(
+    val files: List<T>
+) : Serializable

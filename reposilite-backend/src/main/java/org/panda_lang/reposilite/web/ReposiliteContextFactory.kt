@@ -16,12 +16,12 @@
 package org.panda_lang.reposilite.web
 
 import io.javalin.http.Context
-import io.javalin.plugin.openapi.annotations.HttpMethod
 import io.javalin.websocket.WsContext
 import net.dzikoysk.dynamiclogger.Journalist
 import org.apache.http.HttpStatus
 import org.panda_lang.reposilite.auth.AuthenticationFacade
 import org.panda_lang.reposilite.failure.api.ErrorResponse
+import org.panda_lang.reposilite.shared.HttpMethod
 import org.panda_lang.utilities.commons.function.Result
 import org.panda_lang.utilities.commons.function.Result.ok
 

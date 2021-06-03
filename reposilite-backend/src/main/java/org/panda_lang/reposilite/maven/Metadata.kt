@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.panda_lang.reposilite.maven.metadata
+package org.panda_lang.reposilite.maven
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
-import java.io.Serializable
 
 @JacksonXmlRootElement(localName = "metadata")
 internal data class Metadata(
@@ -26,7 +25,7 @@ internal data class Metadata(
     val artifactId: String? = null,
     val version: String? = null,
     val versioning: Versioning? = Versioning()
-) : Serializable
+)
 
 @JacksonXmlRootElement(localName = "versioning")
 internal data class Versioning(
@@ -40,17 +39,17 @@ internal data class Versioning(
     @JacksonXmlProperty(localName = "snapshotVersion")
     val snapshotVersions: Collection<SnapshotVersion>? = emptyList(),
     val lastUpdated: String? = null
-) : Serializable
+)
 
 @JacksonXmlRootElement(localName = "snapshot")
 internal data class Snapshot(
     val timestamp: String? = null,
     val buildNumber: String? = null
-) : Serializable
+)
 
 @JacksonXmlRootElement(localName = "snapshotVersion")
 internal data class SnapshotVersion(
     val extension: String? = null,
     val value: String? = null,
     val updated: String? = null
-) : Serializable
+)
