@@ -24,5 +24,5 @@ RUN apk add --no-cache mailcap
 WORKDIR /app
 RUN mkdir -p /app/data
 VOLUME /app/data
-COPY --from=build /home/gradle/src/build/libs/*.jar reposilite.jar
+COPY --from=build /home/gradle/src/reposilite-backend/build/libs/*.jar reposilite.jar
 ENTRYPOINT exec java $JAVA_OPTS -jar reposilite.jar -wd=/app/data $REPOSILITE_OPTS
