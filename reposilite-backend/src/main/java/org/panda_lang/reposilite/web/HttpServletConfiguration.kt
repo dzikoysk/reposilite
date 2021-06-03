@@ -24,9 +24,9 @@ import javax.servlet.http.HttpServletResponse
 
 @MultipartConfig
 @WebServlet(urlPatterns = ["/*"], name = "ReposiliteServlet", asyncSupported = true)
-class HttpServletConfiguration : HttpServlet() {
+internal class HttpServletConfiguration : HttpServlet() {
 
-    private val reposilite = ReposiliteLauncher.create("", "", /* servlet = true */ false)
+    private val reposilite = ReposiliteLauncher.create("", "", /* servlet = true, */ false)
 
     override fun init() {
         reposilite.logger.info("Starting Reposilite servlet...")

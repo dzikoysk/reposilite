@@ -22,7 +22,7 @@ import org.panda_lang.reposilite.resource.ResourceFacade
 import org.panda_lang.reposilite.resource.infrastructure.FrontendHandler
 import org.panda_lang.reposilite.resource.infrastructure.WebJarsHandler
 
-object ResourceWebConfiguration {
+internal object ResourceWebConfiguration {
 
     fun createFacade(configuration: Configuration): ResourceFacade {
         return ResourceFacade.load(configuration)

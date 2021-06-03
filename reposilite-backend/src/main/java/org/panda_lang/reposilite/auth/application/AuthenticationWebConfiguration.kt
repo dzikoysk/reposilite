@@ -26,7 +26,7 @@ import org.panda_lang.reposilite.auth.infrastructure.PostAuthHandler
 import org.panda_lang.reposilite.maven.MavenFacade
 import org.panda_lang.reposilite.token.AccessTokenFacade
 
-object AuthenticationWebConfiguration {
+internal object AuthenticationWebConfiguration {
 
     fun createFacade(journalist: Journalist, accessTokenFacade: AccessTokenFacade, mavenFacade: MavenFacade): AuthenticationFacade {
         val authenticator = Authenticator(accessTokenFacade)

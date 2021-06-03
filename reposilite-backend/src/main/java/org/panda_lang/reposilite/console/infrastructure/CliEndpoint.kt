@@ -18,17 +18,17 @@ package org.panda_lang.reposilite.console.infrastructure
 import io.javalin.websocket.WsConfig
 import io.javalin.websocket.WsConnectContext
 import io.javalin.websocket.WsMessageContext
-import org.panda_lang.reposilite.web.ReposiliteContextFactory
 import org.panda_lang.reposilite.auth.AuthenticationFacade
 import org.panda_lang.reposilite.console.ConsoleFacade
 import org.panda_lang.reposilite.shared.CachedLogger
 import org.panda_lang.reposilite.token.api.AccessTokenPermission.MANAGER
+import org.panda_lang.reposilite.web.ReposiliteContextFactory
 import org.panda_lang.utilities.commons.StringUtils
 import java.util.function.Consumer
 
 private const val AUTHORIZATION_PREFIX = "Authorization:"
 
-internal class CliController(
+internal class CliEndpoint(
     private val contextFactory: ReposiliteContextFactory,
     private val authenticationFacade: AuthenticationFacade,
     private val consoleFacade: ConsoleFacade,
@@ -65,7 +65,7 @@ internal class CliController(
                     // remove listener
                 }
 
-                // TODO: Listen
+                // TOFIX: Listen
                 // ReposiliteWriter.getConsumers().put(connectContext, connectContext::send)
                 context.logger.info("CLI | $username accessed remote console")
 
@@ -75,7 +75,7 @@ internal class CliController(
                 }
 
                 for (message in cachedLogger.getAllLatestMessages()) {
-                    connectContext.send(message) // TODO: To JSON
+                    connectContext.send(message) // TOFIX: To JSON
                 }
             }
         }

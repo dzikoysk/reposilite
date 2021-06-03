@@ -16,9 +16,17 @@
 
 package org.panda_lang.reposilite.stats
 
-interface StatisticsRepository {
+import org.panda_lang.reposilite.stats.api.Record
+import org.panda_lang.reposilite.stats.api.RecordIdentifier
+import org.panda_lang.reposilite.stats.api.RecordType
 
-    fun incrementRecords(bulk: Map<Pair<RecordType, String>, Long>)
+internal interface StatisticsRepository {
+
+    fun createRecord(identifier: RecordIdentifier, initCount: Long)
+
+    fun incrementRecord(identifier: RecordIdentifier, count: Long)
+
+    fun findRecordByTypeAndIdentifier(identifier: RecordIdentifier): Record?
 
     fun findRecordsByPhrase(type: RecordType, phrase: String): List<Record>
 

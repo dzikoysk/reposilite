@@ -33,7 +33,7 @@ import java.nio.file.Path
 import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Supplier
 
-// TODO: Simplify this trash class
+// TOFIX: Simplify this trash class
 internal class MetadataService(private val failureFacade: FailureFacade) {
 
     private val metadataCache: MutableMap<Path, Pair<FileDetailsResponse, String>> = ConcurrentHashMap()

@@ -28,7 +28,7 @@ class StorageProviderFactory {
         if (storageDescription.startsWith("fs")) {
             return FileSystemStorageProvider.of(
                 Paths.get("repositories").resolve(repositoryName),
-                Long.MAX_VALUE // TODO: Move quota's implementation to Repository level
+                Long.MAX_VALUE // TOFIX: Move quota's implementation to Repository level
             )
         }
 
@@ -38,7 +38,7 @@ class StorageProviderFactory {
         }
 
         if (storageDescription.equals("rest", ignoreCase = true)) {
-            // TODO REST API storage endpoint
+            // TOFIX REST API storage endpoint
         }
 
         throw UnsupportedOperationException("Unknown storage provider: $storageDescription")

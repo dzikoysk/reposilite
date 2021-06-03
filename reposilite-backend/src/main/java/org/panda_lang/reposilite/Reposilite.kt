@@ -44,7 +44,7 @@ class Reposilite(
     val consoleFacade: ConsoleFacade
 ) : Journalist {
 
-    val httpServer = HttpServerConfiguration(this, false)
+    internal val httpServer = HttpServerConfiguration(this, false)
 
     val cachedLogger = CachedLogger(Channel.ALL, configuration.cachedLogSize)
     private val logger = AggregatedLogger(logger, cachedLogger)
