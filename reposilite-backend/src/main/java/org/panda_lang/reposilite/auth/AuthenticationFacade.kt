@@ -38,8 +38,8 @@ class AuthenticationFacade internal constructor(
         authenticator.authByCredentials(credentials)
             .mapErr { error -> ErrorResponse(HttpStatus.SC_UNAUTHORIZED, error) }
 
-    fun createSession(accessToken: AccessToken, path: String, method: HttpMethod): Session =
-        sessionService.createSession(accessToken, path, method)
+    fun createSession(path: String, method: HttpMethod, address: String, accessToken: AccessToken): Session =
+        sessionService.createSession(path, method, address, accessToken)
 
     override fun getLogger(): Logger =
         journalist.logger

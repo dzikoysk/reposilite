@@ -24,14 +24,18 @@ import java.nio.file.Path
 data class Session internal constructor(
     val path: String,
     val method: HttpMethod,
+    val address: String,
     val accessToken: AccessToken,
     val availableResources: List<Path>
 ) {
 
-    fun isAuthenticated() =
-        accessToken.hasPermissionTo(path, RoutePermission.findByMethod(method)!!)
+    fun isAuthorized() =
+        isManager() || accessToken.hasPermissionTo(path, RoutePermission.findByMethod(method)!!)
 
     fun isManager() =
         accessToken.hasPermission(MANAGER)
+
+    fun getSessionIdentifier() =
+        "${accessToken.alias}@$address"
 
 }

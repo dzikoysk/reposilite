@@ -19,9 +19,9 @@ package org.panda_lang.reposilite.storage.infrastructure
 import org.apache.http.HttpStatus
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.maven.api.FileDetailsResponse
-import org.panda_lang.reposilite.storage.StorageProvider
 import org.panda_lang.reposilite.shared.utils.FilesUtils
 import org.panda_lang.reposilite.shared.utils.FilesUtils.getMimeType
+import org.panda_lang.reposilite.storage.StorageProvider
 import org.panda_lang.utilities.commons.function.Result
 import org.panda_lang.utilities.commons.function.ThrowingBiFunction
 import org.panda_lang.utilities.commons.function.ThrowingFunction
@@ -35,6 +35,7 @@ import java.nio.file.Path
 import java.nio.file.StandardOpenOption.CREATE
 import java.nio.file.StandardOpenOption.WRITE
 import java.nio.file.attribute.FileTime
+import java.time.LocalDate
 import java.util.concurrent.atomic.AtomicLong
 import java.util.stream.Collectors
 
@@ -126,7 +127,7 @@ internal abstract class FileSystemStorageProvider private constructor(
                 FileDetailsResponse(
                     FileDetailsResponse.FILE,
                     file.fileName.toString(),
-                    FileDetailsResponse.DATE_FORMAT.format(System.currentTimeMillis()),
+                    FileDetailsResponse.DATE_FORMAT.format(LocalDate.now()),
                     getMimeType(file.toString(), "application/octet-stream"),
                     bytesWritten
                 )
@@ -158,9 +159,7 @@ internal abstract class FileSystemStorageProvider private constructor(
                 FileDetailsResponse(
                     if (Files.isDirectory(file)) FileDetailsResponse.DIRECTORY else FileDetailsResponse.FILE,
                     file.fileName.toString(),
-                    FileDetailsResponse.DATE_FORMAT.format(
-                        Files.getLastModifiedTime(file).toMillis()
-                    ),
+                    FileDetailsResponse.DATE_FORMAT.format(Files.getLastModifiedTime(file).toInstant()), // TODO: Verify if #toInstant() is the best way to do this
                     getMimeType(file.fileName.toString(), "application/octet-stream"),
                     Files.size(file)
                 )

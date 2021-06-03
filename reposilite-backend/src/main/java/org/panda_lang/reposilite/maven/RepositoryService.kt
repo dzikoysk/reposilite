@@ -21,8 +21,10 @@ import net.dzikoysk.dynamiclogger.Logger
 internal class RepositoryService(
     private val journalist: Journalist,
     private val repositories: Map<String, Repository>,
-    private val primary: Repository?
 ) : Journalist {
+
+    fun getRepository(name: String): Repository? =
+        repositories[name]
 
     fun getRepositories(): Collection<Repository> =
         repositories.values
