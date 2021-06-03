@@ -16,14 +16,19 @@
 package org.panda_lang.reposilite.resource.infrastructure
 
 import io.javalin.http.Context
-import io.javalin.http.Handler
 import io.javalin.plugin.openapi.annotations.OpenApi
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
 import org.apache.http.HttpStatus
 import org.eclipse.jetty.util.resource.Resource
+import org.panda_lang.reposilite.shared.MimeTypes
 import org.panda_lang.reposilite.shared.utils.FilesUtils.getMimeType
+import org.panda_lang.reposilite.web.RouteHandler
+import org.panda_lang.reposilite.web.RouteMethod.GET
 
-internal class WebJarsHandler : Handler {
+internal class WebJarsHandler : RouteHandler {
+
+    override val route = "/webjars/*"
+    override val methods = listOf(GET)
 
     @OpenApi(
         operationId = "getWebJars",
@@ -44,7 +49,7 @@ internal class WebJarsHandler : Handler {
         }
 
         with(context.result(resource.inputStream)) {
-            contentType(getMimeType(context.path(), "text/plain"))
+            contentType(getMimeType(context.path(), MimeTypes.MIME_PLAIN))
             res.characterEncoding = "UTF-8"
         }
     }

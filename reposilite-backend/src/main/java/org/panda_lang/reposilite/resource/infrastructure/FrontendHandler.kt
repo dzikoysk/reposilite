@@ -16,12 +16,16 @@
 package org.panda_lang.reposilite.resource.infrastructure
 
 import io.javalin.http.Context
-import io.javalin.http.Handler
 import io.javalin.plugin.openapi.annotations.OpenApi
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
 import org.panda_lang.reposilite.resource.ResourceFacade
+import org.panda_lang.reposilite.web.RouteHandler
+import org.panda_lang.reposilite.web.RouteMethod.GET
 
-internal class FrontendHandler(private val resourceFacade: ResourceFacade) : Handler {
+internal class FrontendHandler(private val resourceFacade: ResourceFacade) : RouteHandler {
+
+    override val route = "/js/app.js"
+    override val methods = listOf(GET)
 
     @OpenApi(
         operationId = "getApp",

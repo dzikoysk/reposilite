@@ -16,25 +16,26 @@
 
 package org.panda_lang.reposilite.stats.application
 
-import io.javalin.Javalin
 import net.dzikoysk.dynamiclogger.Journalist
 import org.panda_lang.reposilite.console.ConsoleFacade
 import org.panda_lang.reposilite.stats.StatisticsFacade
 import org.panda_lang.reposilite.stats.StatsCommand
-import org.panda_lang.reposilite.stats.api.RecordType
 import org.panda_lang.reposilite.stats.infrastructure.SqlStatisticsRepository
+import org.panda_lang.reposilite.stats.infrastructure.StatisticsHandler
+import org.panda_lang.reposilite.web.RouteHandler
 
 internal object StatsWebConfiguration {
 
-    fun createFacade(journalist: Journalist): StatisticsFacade {
-        return StatisticsFacade(journalist, SqlStatisticsRepository())
-    }
+    fun createFacade(journalist: Journalist): StatisticsFacade =
+        StatisticsFacade(journalist, SqlStatisticsRepository())
 
     fun configure(consoleFacade: ConsoleFacade, statisticsFacade: StatisticsFacade) {
         consoleFacade.registerCommand(StatsCommand(statisticsFacade))
     }
 
-    fun installRouting(javalin: Javalin, statisticsFacade: StatisticsFacade) =
-        javalin.before { ctx -> statisticsFacade.increaseRecord(RecordType.REQUEST, ctx.req.requestURI) }
+    fun installRouting(statisticsFacade: StatisticsFacade): List<RouteHandler> =
+        listOf(
+            StatisticsHandler(statisticsFacade)
+        )
 
 }

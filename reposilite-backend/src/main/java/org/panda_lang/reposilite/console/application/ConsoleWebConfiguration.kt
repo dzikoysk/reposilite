@@ -27,7 +27,7 @@ import org.panda_lang.reposilite.console.VersionCommand
 import org.panda_lang.reposilite.console.infrastructure.CliEndpoint
 import org.panda_lang.reposilite.console.infrastructure.RemoteExecutionEndpoint
 import org.panda_lang.reposilite.failure.FailureFacade
-import org.panda_lang.reposilite.shared.utils.TimeUtils
+import org.panda_lang.reposilite.web.RouteHandler
 
 internal object ConsoleWebConfiguration {
 
@@ -42,12 +42,6 @@ internal object ConsoleWebConfiguration {
         consoleFacade.registerCommand(StopCommand(reposilite))
         consoleFacade.registerCommand(VersionCommand())
 
-        reposilite.logger.info("Done (" + TimeUtils.format(reposilite.getUptime() / 1000.0) + "s)!")
-        consoleFacade.executeCommand("help")
-
-        reposilite.logger.info("Collecting status metrics...")
-        consoleFacade.executeCommand("status")
-
         // disable console daemon in tests due to issues with coverage and interrupt method call
         // https://github.com/jacoco/jacoco/issues/1066
         if (!reposilite.testEnv) {
@@ -55,10 +49,12 @@ internal object ConsoleWebConfiguration {
         }
     }
 
-    fun installRouting(javalin: Javalin, reposilite: Reposilite) {
-        javalin
-            .post("/api/execute", RemoteExecutionEndpoint(reposilite.contextFactory, reposilite.consoleFacade))
-            .ws("/api/cli", CliEndpoint(reposilite.contextFactory, reposilite.authenticationFacade, reposilite.consoleFacade, reposilite.cachedLogger))
+    fun installRouting(javalin: Javalin, reposilite: Reposilite): List<RouteHandler> {
+        javalin.ws("/api/cli", CliEndpoint(reposilite.contextFactory, reposilite.authenticationFacade, reposilite.consoleFacade, reposilite.cachedLogger))
+
+        return listOf(
+            RemoteExecutionEndpoint(reposilite.contextFactory, reposilite.consoleFacade)
+        )
     }
 
     fun dispose(consoleFacade: ConsoleFacade) {

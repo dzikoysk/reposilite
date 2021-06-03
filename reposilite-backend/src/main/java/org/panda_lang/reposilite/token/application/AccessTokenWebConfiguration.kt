@@ -22,8 +22,7 @@ import org.panda_lang.reposilite.token.infrastructure.SqlAccessTokenRepository
 
 internal object AccessTokenWebConfiguration {
 
-    fun createFacade(journalist: Journalist): AccessTokenFacade {
-        return AccessTokenFacade(journalist, SqlAccessTokenRepository())
-    }
+    fun createFacade(journalist: Journalist): AccessTokenFacade =
+        AccessTokenFacade(journalist, SqlAccessTokenRepository())
 
 }

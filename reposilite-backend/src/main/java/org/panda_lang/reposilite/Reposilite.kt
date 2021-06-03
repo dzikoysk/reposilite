@@ -22,7 +22,9 @@ import net.dzikoysk.dynamiclogger.backend.AggregatedLogger
 import org.panda_lang.reposilite.auth.AuthenticationFacade
 import org.panda_lang.reposilite.config.Configuration
 import org.panda_lang.reposilite.console.ConsoleFacade
+import org.panda_lang.reposilite.console.application.ConsoleWebConfiguration
 import org.panda_lang.reposilite.failure.FailureFacade
+import org.panda_lang.reposilite.failure.application.FailureWebConfiguration
 import org.panda_lang.reposilite.maven.MavenFacade
 import org.panda_lang.reposilite.shared.CachedLogger
 import org.panda_lang.reposilite.shared.utils.TimeUtils
@@ -60,7 +62,7 @@ class Reposilite(
 
     fun load() {
         logger.info("")
-        logger.info("${Effect.GREEN}Reposilite${Effect.RESET}${ReposiliteConstants.VERSION}")
+        logger.info("${Effect.GREEN}Reposilite ${Effect.RESET}${ReposiliteConstants.VERSION}")
         logger.info("")
         logger.info("--- Environment")
 
@@ -72,12 +74,19 @@ class Reposilite(
         logger.info("Working directory: ${workingDirectory.toAbsolutePath()}")
         logger.info("")
 
-        logger.info("")
         logger.info("--- Loading domain configurations")
         // Arrays.stream(configurations()).forEach { domainConfigurer -> domainConfigurer.configure(this) }
+        FailureWebConfiguration.initialize(consoleFacade, failureFacade)
+        ConsoleWebConfiguration.initialize(consoleFacade, this)
+        logger.info("")
+
+        logger.info("--- Repositories")
+        mavenFacade.getRepositories().forEach { logger.info("+ ${it.name} (${it.visibility.toString().toLowerCase()})") }
+        logger.info("${mavenFacade.getRepositories().size} repositories have been found")
+        logger.info("")
     }
 
-    fun start(): Reposilite {
+    private fun start(): Reposilite {
         alive.set(true)
         Thread.currentThread().name = "Reposilite | Main Thread"
 
@@ -85,6 +94,12 @@ class Reposilite(
             logger.info("Binding server at ${configuration.hostname}::${configuration.port}")
             httpServer.start(configuration)
             Runtime.getRuntime().addShutdownHook(shutdownHook)
+
+            logger.info("Done (" + TimeUtils.format(getUptime() / 1000.0) + "s)!")
+            consoleFacade.executeCommand("help")
+
+            logger.info("Collecting status metrics...")
+            consoleFacade.executeCommand("status")
         } catch (exception: Exception) {
             logger.error("Failed to start Reposilite")
             logger.exception(exception)

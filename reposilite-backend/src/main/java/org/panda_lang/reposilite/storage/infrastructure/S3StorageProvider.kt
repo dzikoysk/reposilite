@@ -18,6 +18,7 @@ package org.panda_lang.reposilite.storage.infrastructure
 
 import org.apache.http.HttpStatus
 import org.panda_lang.reposilite.failure.api.ErrorResponse
+import org.panda_lang.reposilite.failure.api.errorResponse
 import org.panda_lang.reposilite.maven.api.FileDetailsResponse
 import org.panda_lang.reposilite.shared.MimeTypes.MIME_OCTET_STREAM
 import org.panda_lang.reposilite.shared.MimeTypes.MIME_PLAIN
@@ -143,33 +144,26 @@ internal class S3StorageProvider(private val bucket: String, region: String) : S
             )
         }
 
-        val response = head(file)
-
-        return if (response != null) {
-            Result.ok(
+        return head(file)
+            ?.let {
                 FileDetailsResponse(
                     FileDetailsResponse.FILE,
                     file.fileName.toString(),
                     FileDetailsResponse.DATE_FORMAT.format(LocalDate.now()),
                     getMimeType(file.fileName.toString(), "application/octet-stream"),
-                    response.contentLength()
+                    it.contentLength()
                 )
-            )
-        }
-        else Result.error(
-            ErrorResponse(
-                HttpStatus.SC_NOT_FOUND,
-                "File not found: $file"
-            )
-        )
+            }
+            ?.let { Result.ok(it) }
+            ?: errorResponse(HttpStatus.SC_NOT_FOUND, "File not found: $file")
     }
 
-    override fun removeFile(file: Path): Result<Void, ErrorResponse> {
+    override fun removeFile(file: Path): Result<Unit, ErrorResponse> {
         val request = DeleteObjectRequest.builder()
         request.bucket(bucket)
         request.key(file.toString().replace('\\', '/'))
         s3.deleteObject(request.build())
-        return Result.ok(null)
+        return Result.ok(Unit)
     }
 
     override fun getFiles(directory: Path): Result<List<Path>, ErrorResponse> {
@@ -196,38 +190,18 @@ internal class S3StorageProvider(private val bucket: String, region: String) : S
         }
     }
 
-    override fun getLastModifiedTime(file: Path): Result<FileTime, ErrorResponse> {
-        val response = head(file)
+    override fun getLastModifiedTime(file: Path): Result<FileTime, ErrorResponse> =
+        head(file)
+            ?.let { Result.ok(FileTime.from(it.lastModified())) }
+            ?: getFiles(file)
+                .map { files -> files.firstOrNull() }
+                .mapErr { ErrorResponse(HttpStatus.SC_NOT_FOUND, "File not found: $file") }
+                .flatMap { getLastModifiedTime(file.resolve(it!!.getName(0))) }
 
-        return if (response != null) {
-            Result.ok(FileTime.from(response.lastModified()))
-        } else {
-            val result = getFiles(file)
-
-            if (result.isOk) {
-                for (path in result.get()) {
-                    return getLastModifiedTime(file.resolve(path.getName(0)))
-                }
-            }
-
-            Result.error(ErrorResponse(HttpStatus.SC_NOT_FOUND, "File not found: $file"))
-        }
-    }
-
-    override fun getFileSize(file: Path): Result<Long, ErrorResponse> {
-        val response = head(file)
-
-        return if (response != null) {
-            Result.ok(response.contentLength())
-        } else {
-            Result.error(
-                ErrorResponse(
-                    HttpStatus.SC_NOT_FOUND,
-                    "File not found: $file"
-                )
-            )
-        }
-    }
+    override fun getFileSize(file: Path): Result<Long, ErrorResponse> =
+        head(file)
+            ?.let { Result.ok(it.contentLength()) }
+            ?: Result.error(ErrorResponse(HttpStatus.SC_NOT_FOUND, "File not found: $file"))
 
     private fun head(file: Path): HeadObjectResponse? {
         try {
@@ -252,10 +226,10 @@ internal class S3StorageProvider(private val bucket: String, region: String) : S
         return response != null
     }
 
-    override fun isDirectory(file: Path): Boolean {
-        val files = getFiles(file)
-        return files.isOk && files.get().isNotEmpty() && !exists(file)
-    }
+    override fun isDirectory(file: Path): Boolean =
+        with(getFile(file)) {
+            isOk && get().isNotEmpty() && !exists(file)
+        }
 
     override fun isFull(): Boolean {
         TODO("Not yet implemented")

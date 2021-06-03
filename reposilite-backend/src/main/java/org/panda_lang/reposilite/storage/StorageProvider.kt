@@ -47,7 +47,7 @@ interface StorageProvider {
 
     fun getFileDetails(file: Path): Result<FileDetailsResponse, ErrorResponse>
 
-    fun removeFile(file: Path): Result<Void, ErrorResponse>
+    fun removeFile(file: Path): Result<Unit, ErrorResponse>
 
     fun getFiles(directory: Path): Result<List<Path>, ErrorResponse>
 

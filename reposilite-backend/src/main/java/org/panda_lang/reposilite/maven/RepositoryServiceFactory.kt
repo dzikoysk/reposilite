@@ -19,27 +19,17 @@ package org.panda_lang.reposilite.maven
 import net.dzikoysk.dynamiclogger.Journalist
 import org.panda_lang.reposilite.config.Configuration.RepositoryConfiguration
 import org.panda_lang.reposilite.storage.StorageProviderFactory
-import org.panda_lang.reposilite.web.textIf
 
 internal class RepositoryServiceFactory(private val journalist: Journalist) {
 
-    private val logger = journalist.logger
-
     fun createRepositoryService(repositoriesConfigurations: Map<String, RepositoryConfiguration>): RepositoryService {
-        logger.info("--- Loading repositories")
-
         val storageProviderFactory = StorageProviderFactory()
         val repositoryFactory = RepositoryFactory(storageProviderFactory)
-
         val repositories: MutableMap<String, Repository> = LinkedHashMap(repositoriesConfigurations.size)
 
         for ((repositoryName, repositoryConfiguration) in repositoriesConfigurations) {
-            val repository = repositoryFactory.createRepository(repositoryName, repositoryConfiguration)
-            repositories[repository.name] = repository
-            logger.info("+ $repositoryName ${textIf(repository.isPrivate(), " (private)")}")
+            repositories[repositoryName] = repositoryFactory.createRepository(repositoryName, repositoryConfiguration)
         }
-
-        logger.info(repositories.size.toString() + " repositories have been found")
 
         return RepositoryService(journalist, repositories)
     }

@@ -16,21 +16,21 @@
 
 package org.panda_lang.reposilite.resource.application
 
-import io.javalin.Javalin
 import org.panda_lang.reposilite.config.Configuration
 import org.panda_lang.reposilite.resource.ResourceFacade
 import org.panda_lang.reposilite.resource.infrastructure.FrontendHandler
 import org.panda_lang.reposilite.resource.infrastructure.WebJarsHandler
+import org.panda_lang.reposilite.web.RouteHandler
 
 internal object ResourceWebConfiguration {
 
-    fun createFacade(configuration: Configuration): ResourceFacade {
-        return ResourceFacade.load(configuration)
-    }
+    fun createFacade(configuration: Configuration): ResourceFacade =
+        ResourceFacade.load(configuration)
 
-    fun installRouting(javalin: Javalin, resourceFacade: ResourceFacade) =
-        javalin
-            .get("/webjars/*", WebJarsHandler())
-            .get("/js/app.js", FrontendHandler(resourceFacade))
+    fun installRouting(resourceFacade: ResourceFacade): List<RouteHandler> =
+        listOf(
+            WebJarsHandler(),
+            FrontendHandler(resourceFacade)
+        )
 
 }
