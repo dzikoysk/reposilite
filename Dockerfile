@@ -1,6 +1,6 @@
 # Build stage
 FROM gradle:jdk14 AS build
-COPY --chown=gradle:gradle ./ /app/
+COPY --chown=gradle:gradle . /home/gradle/src
 WORKDIR /home/gradle/src
 RUN gradle build --no-daemon
 
@@ -24,5 +24,5 @@ RUN apk add --no-cache mailcap
 WORKDIR /app
 RUN mkdir -p /app/data
 VOLUME /app/data
-COPY --from=build /app/reposilite-backend/build/libs/reposilite*.jar reposilite.jar
+COPY --from=build /home/gradle/src/build/libs/*.jar reposilite.jar
 ENTRYPOINT exec java $JAVA_OPTS -jar reposilite.jar -wd=/app/data $REPOSILITE_OPTS

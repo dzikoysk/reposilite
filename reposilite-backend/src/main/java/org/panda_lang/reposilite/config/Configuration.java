@@ -73,6 +73,7 @@ public final class Configuration implements Serializable {
 
     /* Repository properties */
 
+    @Description("")
     @Description("# List of supported Maven repositories.")
     @Description("# First directory on the list is the main (primary) repository.")
     @Description("# Tu mark repository as private, add the \"--private\" flag")

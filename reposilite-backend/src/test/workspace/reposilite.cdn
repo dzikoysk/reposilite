@@ -22,7 +22,7 @@ cachedLogSize: 100
 debugEnabled: false
 
 # Support encrypted connections
-sslEnabled: true
+sslEnabled: false
 # SSL port to bind
 sslPort: 443
 # Key store file to use.
@@ -32,6 +32,7 @@ keyStorePath: ${WORKING_DIRECTORY}/keystore.jks
 keyStorePassword: reposilite
 # Redirect http traffic to https
 enforceSsl: false
+
 # List of supported Maven repositories.
 # First directory on the list is the main (primary) repository.
 # Tu mark repository as private, add the "--private" flag
