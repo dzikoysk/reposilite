@@ -18,12 +18,20 @@ package org.panda_lang.reposilite.console
 import org.panda_lang.reposilite.Reposilite
 import org.panda_lang.reposilite.console.Status.SUCCEEDED
 import picocli.CommandLine.Command
+import java.util.*
 
 @Command(name = "stop", aliases = ["shutdown"], description = ["Shutdown server"])
 internal class StopCommand(private val reposilite: Reposilite) : ReposiliteCommand {
 
     override fun execute(output: MutableList<String>): Status {
-        reposilite.shutdown()
+        reposilite.logger.warn("The shutdown request has been sent")
+
+        Timer().schedule(object : TimerTask() {
+            override fun run() {
+                reposilite.shutdown()
+            }
+        }, 1000L)
+
         return SUCCEEDED
     }
 
