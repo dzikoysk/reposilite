@@ -22,14 +22,15 @@ import io.javalin.plugin.openapi.annotations.OpenApi
 import io.javalin.plugin.openapi.annotations.OpenApiContent
 import io.javalin.plugin.openapi.annotations.OpenApiParam
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
-import org.panda_lang.reposilite.failure.ResponseUtils
-import org.panda_lang.reposilite.maven.RepositoryService
+import org.panda_lang.reposilite.maven.MavenFacade
+import org.panda_lang.reposilite.maven.api.DeployRequest
 import org.panda_lang.reposilite.web.ReposiliteContextFactory
 import org.panda_lang.reposilite.web.context
+import org.panda_lang.reposilite.web.error
 
 internal class DeployEndpoint(
     private val contextFactory: ReposiliteContextFactory,
-    private val repositoryService: RepositoryService
+    private val mavenFacade: MavenFacade
 ) : Handler {
 
     @OpenApi(
@@ -61,10 +62,14 @@ internal class DeployEndpoint(
     override fun handle(ctx: Context) = context(contextFactory, ctx) {
         context.logger.info("DEPLOY ${context.uri} from ${context.address}")
 
-        deployService.deploy(context)
-            .map { fileDetailsResponse -> ctx.json(fileDetailsResponse) }
-            .onError { error -> context.logger.debug("Cannot deploy artifact due to: ${error.message}") }
-            .mapErr { error -> ResponseUtils.errorResponse(ctx, error) }
+        authorized {
+            mavenFacade.deployArtifact(DeployRequest(context.uri, getSessionIdentifier(), context.input()))
+                .map { fileDetailsResponse -> ctx.json(fileDetailsResponse) }
+                .onError {
+                    context.logger.debug("Cannot deploy artifact due to: ${it.message}")
+                    ctx.error(it)
+                }
+        }
     }
 
 }

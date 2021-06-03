@@ -15,56 +15,25 @@
  */
 package org.panda_lang.reposilite.maven
 
+import net.dzikoysk.dynamiclogger.Journalist
+import net.dzikoysk.dynamiclogger.Logger
 import org.apache.http.HttpStatus
-import org.panda_lang.reposilite.web.ReposiliteUtils.normalizeUri
-import org.panda_lang.reposilite.web.ReposiliteUtils.getRepository
-import org.panda_lang.reposilite.web.ReposiliteContext
-import org.panda_lang.reposilite.maven.api.FileDetailsResponse
-import org.panda_lang.reposilite.failure.api.ErrorResponse
-import org.panda_lang.reposilite.auth.Authenticator
 import org.panda_lang.reposilite.failure.ResponseUtils
-import org.panda_lang.reposilite.token.api.AccessToken
-import org.panda_lang.reposilite.token.api.RoutePermission.WRITE
+import org.panda_lang.reposilite.failure.api.ErrorResponse
+import org.panda_lang.reposilite.maven.api.DeployRequest
+import org.panda_lang.reposilite.maven.api.FileDetailsResponse
 import org.panda_lang.utilities.commons.function.Result
-import java.lang.Exception
 import java.nio.file.Paths
 
 internal class DeployService(
+    private val journalist: Journalist,
     private val rewritePathsEnabled: Boolean,
-    private val authenticator: Authenticator,
     private val repositoryService: RepositoryService,
     private val metadataService: MetadataService
-) {
+) : Journalist {
 
-    fun deploy(context: ReposiliteContext): Result<FileDetailsResponse, ErrorResponse> {
-        val uriValue = normalizeUri(context.uri)
-
-        if (uriValue.isEmpty) {
-            return ResponseUtils.error(HttpStatus.SC_BAD_REQUEST, "Invalid GAV path")
-        }
-
-        val uri = uriValue.get()
-        val authResult: Result<AccessToken, String> = authenticator.authByUri(context.header, uri)
-
-        if (authResult.isErr) {
-            return ResponseUtils.error(HttpStatus.SC_UNAUTHORIZED, authResult.error)
-        }
-
-        val session = authResult.get()
-
-        if (!session.hasPermission(WRITE) && !session.isManager()) {
-            return ResponseUtils.error(HttpStatus.SC_UNAUTHORIZED, "Cannot deploy artifact without write permission")
-        }
-
-        val repositoryValue = getRepository(
-            rewritePathsEnabled, repositoryService, uri
-        )
-
-        if (repositoryValue.isEmpty) {
-            return ResponseUtils.error(HttpStatus.SC_NOT_FOUND, "Repository not found")
-        }
-
-        val repository = repositoryValue.get()
+    fun deployArtifact(deployRequest: DeployRequest): Result<FileDetailsResponse, ErrorResponse> {
+        val repository = repositoryService.getRepository(deployRequest.repository) ?: return ResponseUtils.error(HttpStatus.SC_NOT_FOUND, "Repository not found")
 
         if (!repository.isDeployEnabled) {
             return ResponseUtils.error(HttpStatus.SC_METHOD_NOT_ALLOWED, "Artifact deployment is disabled")
@@ -74,7 +43,8 @@ internal class DeployService(
             return ResponseUtils.error(HttpStatus.SC_INSUFFICIENT_STORAGE, "Not enough storage space available")
         }
 
-        val path = Paths.get(uri)
+        repository.relativize(deployRequest.gav)
+        val path = Paths.get(deployRequest.path)
         val metadataFile = path.resolveSibling("maven-metadata.xml")
         metadataService.clearMetadata(metadataFile)
 
@@ -84,18 +54,17 @@ internal class DeployService(
                     metadataService.getMetadata(repository, metadataFile).map { it.key }
                 }
                 else {
-                    repository.putFile(path, context.input())
+                    repository.putFile(path, deployRequest.content)
                 }
 
-            if (result.isOk) {
-                context.logger.info("DEPLOY " + authResult.isOk + " successfully deployed " + path + " from " + context.address())
-            }
-
-            result
+            result.peek { logger.info("DEPLOY Artifact successfully deployed $path by ${deployRequest.by}") }
         }
         catch (exception: Exception) {
             Result.error(ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Failed to upload artifact"))
         }
     }
+
+    override fun getLogger(): Logger =
+        journalist.logger
 
 }

@@ -27,9 +27,9 @@ import org.panda_lang.reposilite.console.ConsoleFacade
 import org.panda_lang.reposilite.console.MAX_COMMAND_LENGTH
 import org.panda_lang.reposilite.console.api.ExecutionResponse
 import org.panda_lang.reposilite.failure.api.ErrorResponse
+import org.panda_lang.reposilite.failure.api.errorResponse
 import org.panda_lang.reposilite.web.ReposiliteContextFactory
 import org.panda_lang.reposilite.web.context
-import org.panda_lang.reposilite.web.errorResponse
 
 internal class RemoteExecutionEndpoint(
     private val contextFactory: ReposiliteContextFactory,

@@ -27,7 +27,6 @@ import java.nio.file.Path
 import java.util.*
 
 internal class LookupService(
-    private val repositoryAuthenticator: RepositoryAuthenticator,
     private val repositoryService: RepositoryService
 ) {
 

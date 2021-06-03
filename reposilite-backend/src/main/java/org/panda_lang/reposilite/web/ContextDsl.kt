@@ -17,21 +17,41 @@
 package org.panda_lang.reposilite.web
 
 import io.javalin.http.Context
+import org.apache.http.HttpStatus
 import org.panda_lang.reposilite.auth.Session
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.utilities.commons.function.Result
 
-class ReposiliteContextDsl(
+class ContextDsl(
     private val ctx: Context,
     val context: ReposiliteContext
 ) {
 
+    /**
+     * JSON response to send at the end of the dsl call
+     */
     var response: Result<out Any?, ErrorResponse>? = null
 
+    /**
+     * Request was created by valid access token
+     */
     fun authenticated(init: Session.() -> Unit) {
         context.session
-            .mapErr { ctx.json(it) }
-            .map { init.invoke(it) }
+            .onError { ctx.error(it) }
+            .peek { init.invoke(it) }
+    }
+
+    /**
+     * Request was created by valid access token and the token has access to the requested path
+     */
+    fun authorized(init: Session.() -> Unit) {
+        authenticated {
+            if (isAuthorized()) {
+                init.invoke(this)
+            } else {
+                ctx.error(ErrorResponse(HttpStatus.SC_UNAUTHORIZED, ""))
+            }
+        }
     }
 
     internal fun handleResult(result: Result<out Any?, ErrorResponse>?) {
@@ -42,18 +62,10 @@ class ReposiliteContextDsl(
 
 }
 
-fun context(contextFactory: ReposiliteContextFactory, ctx: Context, init: ReposiliteContextDsl.() -> Unit) {
+fun context(contextFactory: ReposiliteContextFactory, ctx: Context, init: ContextDsl.() -> Unit): Unit =
     contextFactory.create(ctx)
-        .mapErr { ctx.json(it) }
-        .map { ReposiliteContextDsl(ctx, it) }
-        .map {
-            init.invoke(it)
-            it.handleResult(it.response)
-        }
-}
-
-fun <V, E, VE> Result<V, E>.mapToError(): Result<VE, E> =
-    this.map { null }
-
-fun <V> errorResponse(status: Int, message: String): Result<V, ErrorResponse> =
-    Result.error(ErrorResponse(status, message))
+        .onError { ctx.json(it) }
+        .map { ContextDsl(ctx, it) }
+        .peek { init.invoke(it) }
+        .peek { it.handleResult(it.response) }
+        .end()

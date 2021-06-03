@@ -42,7 +42,7 @@ object ReposiliteFactory {
 
         val failureFacade = FailureWebConfiguration.createFacade(logger)
         val consoleFacade = ConsoleWebConfiguration.createFacade(logger, failureFacade)
-        val mavenFacade = MavenWebConfiguration.createFacade(logger)
+        val mavenFacade = MavenWebConfiguration.createFacade(logger, failureFacade, configuration.repositories)
         val resourceFacade = ResourceWebConfiguration.createFacade(configuration)
         val statisticFacade = StatsWebConfiguration.createFacade(logger)
         val accessTokenFacade = AccessTokenWebConfiguration.createFacade(logger)

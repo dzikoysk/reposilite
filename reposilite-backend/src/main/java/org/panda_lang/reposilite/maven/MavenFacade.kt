@@ -18,12 +18,20 @@ package org.panda_lang.reposilite.maven
 
 import net.dzikoysk.dynamiclogger.Journalist
 import net.dzikoysk.dynamiclogger.Logger
+import org.panda_lang.reposilite.failure.api.ErrorResponse
+import org.panda_lang.reposilite.maven.api.DeployRequest
+import org.panda_lang.reposilite.maven.api.FileDetailsResponse
+import org.panda_lang.utilities.commons.function.Result
 
 class MavenFacade internal constructor(
     internal val journalist: Journalist,
     internal val repositoryService: RepositoryService,
-    internal val metadataService: MetadataService
+    internal val metadataService: MetadataService,
+    internal val deployService: DeployService,
 ) : Journalist {
+
+    fun deployArtifact(deployRequest: DeployRequest): Result<FileDetailsResponse, ErrorResponse> =
+        deployService.deployArtifact(deployRequest)
 
     fun getRepositories(): Collection<Repository> =
         repositoryService.getRepositories()

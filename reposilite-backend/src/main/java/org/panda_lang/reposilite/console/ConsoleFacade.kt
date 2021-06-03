@@ -21,7 +21,7 @@ import net.dzikoysk.dynamiclogger.Logger
 import org.apache.http.HttpStatus
 import org.panda_lang.reposilite.console.api.ExecutionResponse
 import org.panda_lang.reposilite.failure.api.ErrorResponse
-import org.panda_lang.reposilite.web.errorResponse
+import org.panda_lang.reposilite.failure.api.errorResponse
 import org.panda_lang.utilities.commons.StringUtils
 import org.panda_lang.utilities.commons.function.Result
 import picocli.CommandLine

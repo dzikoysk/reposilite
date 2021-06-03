@@ -21,6 +21,7 @@ import net.dzikoysk.dynamiclogger.Journalist
 import org.apache.http.HttpStatus
 import org.panda_lang.reposilite.auth.AuthenticationFacade
 import org.panda_lang.reposilite.failure.api.ErrorResponse
+import org.panda_lang.reposilite.failure.api.errorResponse
 import org.panda_lang.reposilite.shared.HttpMethod
 import org.panda_lang.utilities.commons.function.Result
 import org.panda_lang.utilities.commons.function.Result.ok
@@ -33,22 +34,23 @@ class ReposiliteContextFactory internal constructor(
 ) {
 
     fun create(context: Context): Result<ReposiliteContext, ErrorResponse> {
-        val normalizedUri = ReposiliteUtils.normalizeUri(context.req.requestURI)
+        val normalizedUri = normalizeUri(context.req.requestURI)
 
         if (normalizedUri.isEmpty) {
             return errorResponse(HttpStatus.SC_BAD_REQUEST, "Invalid url");
         }
 
+        val host = context.header(forwardedIpHeader) ?: context.req.remoteAddr
         val session = authenticationFacade.authenticateByHeader(context.headerMap())
             .map {
-                authenticationFacade.createSession(it, normalizedUri.get(), HttpMethod.valueOf(context.method().toUpperCase()))
+                authenticationFacade.createSession(normalizedUri.get(), HttpMethod.valueOf(context.method().toUpperCase()), host, it)
             }
 
         return ok(ReposiliteContext(
             journalist,
             normalizedUri.get(),
             context.method(),
-            context.header(forwardedIpHeader) ?: context.req.remoteAddr,
+            host,
             context.headerMap(),
             session,
             lazy { context.body() },

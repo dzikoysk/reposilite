@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.auth
+package org.panda_lang.reposilite.maven.api
 
-import org.panda_lang.reposilite.maven.MavenFacade
-import org.panda_lang.reposilite.shared.HttpMethod
-import org.panda_lang.reposilite.token.api.AccessToken
+import java.io.InputStream
 
-internal class SessionService(private val mavenFacade: MavenFacade) {
-
-    fun createSession(path: String, method: HttpMethod, address: String, accessToken: AccessToken) =
-        Session(path, method, address, accessToken, emptyList())
-
-}
+data class DeployRequest(
+    val repository: String,
+    val gav: String,
+    val by: String,
+    val content: InputStream
+)

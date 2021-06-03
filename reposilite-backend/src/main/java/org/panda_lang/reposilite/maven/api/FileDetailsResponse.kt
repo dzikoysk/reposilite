@@ -16,7 +16,7 @@
 package org.panda_lang.reposilite.maven.api
 
 import java.io.Serializable
-import java.text.SimpleDateFormat
+import java.time.format.DateTimeFormatter
 
 data class FileDetailsResponse(
     val type: String,
@@ -30,7 +30,7 @@ data class FileDetailsResponse(
 
         const val FILE = "file"
         const val DIRECTORY = "directory"
-        val DATE_FORMAT = SimpleDateFormat("dd-MM-yyyy")
+        val DATE_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy")
 
     }
 

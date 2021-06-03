@@ -20,6 +20,7 @@ import net.dzikoysk.dynamiclogger.Journalist
 import org.panda_lang.reposilite.config.Configuration.RepositoryConfiguration
 import org.panda_lang.reposilite.console.ConsoleFacade
 import org.panda_lang.reposilite.failure.FailureFacade
+import org.panda_lang.reposilite.maven.DeployService
 import org.panda_lang.reposilite.maven.MavenFacade
 import org.panda_lang.reposilite.maven.MetadataService
 import org.panda_lang.reposilite.maven.RepositoryServiceFactory
@@ -37,15 +38,16 @@ object MavenWebConfiguration {
     fun createFacade(journalist: Journalist, failureFacade: FailureFacade, repositoriesConfiguration: Map<String, RepositoryConfiguration>): MavenFacade {
         val repositoryService = RepositoryServiceFactory(journalist).createRepositoryService(repositoriesConfiguration)
         val metadataService = MetadataService(failureFacade)
+        val deployService = DeployService(journalist, false, repositoryService, metadataService)
 
-        return MavenFacade(journalist, repositoryService, metadataService)
+        return MavenFacade(journalist, repositoryService, metadataService, deployService)
     }
 
     fun configure(consoleFacade: ConsoleFacade) {
     }
 
     fun installRouting(contextFactory: ReposiliteContextFactory, mavenFacade: MavenFacade): List<Route>  {
-        val deployEndpoint = DeployEndpoint(contextFactory, mavenFacade.repositoryService)
+        val deployEndpoint = DeployEndpoint(contextFactory, mavenFacade)
         val lookupEndpoint = LookupEndpoint(contextFactory, mavenFacade.repositoryService)
 
         return listOf(
