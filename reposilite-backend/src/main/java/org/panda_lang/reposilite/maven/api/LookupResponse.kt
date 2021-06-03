@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.panda_lang.reposilite.maven.repository.api
+package org.panda_lang.reposilite.maven.api
 
 import org.panda_lang.reposilite.shared.utils.FilesUtils.isReadable
 

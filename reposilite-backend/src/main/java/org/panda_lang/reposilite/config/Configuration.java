@@ -18,7 +18,7 @@ package org.panda_lang.reposilite.config;
 
 import net.dzikoysk.cdn.entity.Contextual;
 import net.dzikoysk.cdn.entity.Description;
-import org.panda_lang.reposilite.maven.repository.api.RepositoryVisibility;
+import org.panda_lang.reposilite.maven.api.RepositoryVisibility;
 
 import java.io.Serializable;
 import java.util.Collections;

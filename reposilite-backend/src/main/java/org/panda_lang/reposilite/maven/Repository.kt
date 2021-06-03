@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.panda_lang.reposilite.maven.repository
+package org.panda_lang.reposilite.maven
 
 import org.panda_lang.reposilite.failure.api.ErrorResponse
-import org.panda_lang.reposilite.maven.repository.api.FileDetailsResponse
-import org.panda_lang.reposilite.maven.repository.api.RepositoryVisibility
-import org.panda_lang.reposilite.maven.repository.api.RepositoryVisibility.PRIVATE
+import org.panda_lang.reposilite.maven.api.FileDetailsResponse
+import org.panda_lang.reposilite.maven.api.RepositoryVisibility
+import org.panda_lang.reposilite.maven.api.RepositoryVisibility.PRIVATE
 import org.panda_lang.reposilite.storage.StorageProvider
 import org.panda_lang.utilities.commons.function.Result
 import java.io.InputStream

@@ -15,8 +15,8 @@
  */
 package org.panda_lang.reposilite.web
 
-import org.panda_lang.reposilite.maven.repository.Repository
-import org.panda_lang.reposilite.maven.repository.RepositoryService
+import org.panda_lang.reposilite.maven.Repository
+import org.panda_lang.reposilite.maven.RepositoryService
 import org.panda_lang.utilities.commons.StringUtils
 import org.panda_lang.utilities.commons.function.Option
 

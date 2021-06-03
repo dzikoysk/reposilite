@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.panda_lang.reposilite.maven.repository
+package org.panda_lang.reposilite.maven
 
 import org.apache.http.HttpStatus
 import org.panda_lang.reposilite.web.ReposiliteContext
 import org.panda_lang.reposilite.failure.ResponseUtils
 import org.panda_lang.reposilite.failure.api.ErrorResponse
-import org.panda_lang.reposilite.maven.metadata.MetadataUtils.toSortedVersions
-import org.panda_lang.reposilite.maven.repository.api.LookupResponse
+import org.panda_lang.reposilite.maven.MetadataUtils.toSortedVersions
+import org.panda_lang.reposilite.maven.api.LookupResponse
 import org.panda_lang.utilities.commons.function.Result
 import java.io.OutputStream
 import java.nio.file.Path

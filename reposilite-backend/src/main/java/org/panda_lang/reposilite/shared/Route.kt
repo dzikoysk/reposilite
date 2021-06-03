@@ -13,10 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.panda_lang.reposilite.maven.repository.api
 
-import java.io.Serializable
+package org.panda_lang.reposilite.shared
 
-data class FileListResponse<T : Serializable>(
-    val files: List<T>
-) : Serializable
+import io.javalin.http.Handler
+
+data class Route(
+    val path: String,
+    val method: HttpMethod,
+    val handler: Handler
+)

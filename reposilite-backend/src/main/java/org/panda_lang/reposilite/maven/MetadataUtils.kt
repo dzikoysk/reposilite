@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.panda_lang.reposilite.maven.metadata
+package org.panda_lang.reposilite.maven
 
 import org.panda_lang.reposilite.failure.api.ErrorResponse
-import org.panda_lang.reposilite.maven.repository.Repository
 import org.panda_lang.reposilite.shared.utils.FilesUtils.getExtension
 import org.panda_lang.utilities.commons.StringUtils
 import org.panda_lang.utilities.commons.function.Result
@@ -28,7 +27,7 @@ import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.*
 
-object MetadataUtils {
+internal object MetadataUtils {
 
     private const val ESCAPE_DOT = "`.`"
 
@@ -68,8 +67,8 @@ object MetadataUtils {
     internal fun toSortedIdentifiers(repository: Repository, artifact: String, version: String, builds: Array<Path>): List<String> {
         return builds
             .sortedWith(repository)
-            .map { build: Path -> toIdentifier(artifact, version, build) }
-            .filterNot { text: String? -> StringUtils.isEmpty(text) }
+            .map { build -> toIdentifier(artifact, version, build) }
+            .filterNot { text -> StringUtils.isEmpty(text) }
             .distinct()
             .toList()
     }
@@ -83,9 +82,9 @@ object MetadataUtils {
 
     internal fun toBuildFiles(repository: Repository, directory: Path, identifier: String): List<Path> {
         return repository.getFiles(directory).get().asSequence()
-            .filter { path: Path -> path.parent == directory }
-            .filter { path: Path -> isNotChecksum(path, identifier) }
-            .filter { file: Path? -> repository.exists(file) }
+            .filter { path -> path.parent == directory }
+            .filter { path -> isNotChecksum(path, identifier) }
+            .filter { file -> repository.exists(file) }
             .sortedWith(repository)
             .toList()
     }

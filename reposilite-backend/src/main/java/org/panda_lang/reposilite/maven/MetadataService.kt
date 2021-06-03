@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.panda_lang.reposilite.maven.metadata
+package org.panda_lang.reposilite.maven
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import org.apache.http.HttpStatus
 import org.panda_lang.reposilite.failure.FailureFacade
 import org.panda_lang.reposilite.failure.api.ErrorResponse
-import org.panda_lang.reposilite.maven.repository.api.FileDetailsResponse
-import org.panda_lang.reposilite.maven.repository.Repository
+import org.panda_lang.reposilite.maven.api.FileDetailsResponse
 import org.panda_lang.reposilite.shared.utils.ArrayUtils
 import org.panda_lang.reposilite.shared.utils.FilesUtils
 import org.panda_lang.reposilite.web.mapToError
@@ -37,7 +36,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Supplier
 
 // TODO: Simplify this trash class
-class MetadataFacade(private val failureFacade: FailureFacade) {
+internal class MetadataService(private val failureFacade: FailureFacade) {
 
     private val metadataCache: MutableMap<Path, Pair<FileDetailsResponse, String>> = ConcurrentHashMap()
 

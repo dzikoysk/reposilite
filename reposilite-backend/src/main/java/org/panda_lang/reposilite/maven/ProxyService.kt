@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.panda_lang.reposilite.maven.repository
+package org.panda_lang.reposilite.maven
 
 import com.google.api.client.http.GenericUrl
 import com.google.api.client.http.HttpRequestFactory
@@ -25,8 +25,8 @@ import org.panda_lang.reposilite.ReposiliteException
 import org.panda_lang.reposilite.failure.FailureFacade
 import org.panda_lang.reposilite.failure.ResponseUtils
 import org.panda_lang.reposilite.failure.api.ErrorResponse
-import org.panda_lang.reposilite.maven.repository.api.FileDetailsResponse
-import org.panda_lang.reposilite.maven.repository.api.LookupResponse
+import org.panda_lang.reposilite.maven.api.FileDetailsResponse
+import org.panda_lang.reposilite.maven.api.LookupResponse
 import org.panda_lang.reposilite.storage.StorageProvider
 import org.panda_lang.utilities.commons.StringUtils
 import org.panda_lang.utilities.commons.function.Option

@@ -91,6 +91,7 @@ dependencies {
     implementation("commons-io:commons-io:2.8.0")
     implementation("org.yaml:snakeyaml:1.28")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.12.3")
+    implementation("org.apache.maven.indexer:maven-indexer:6.0.0")
 
     /* Logging */
 

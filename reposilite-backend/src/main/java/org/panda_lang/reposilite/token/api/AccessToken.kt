@@ -15,11 +15,7 @@
  */
 package org.panda_lang.reposilite.token.api
 
-import io.javalin.plugin.openapi.annotations.HttpMethod
-import io.javalin.plugin.openapi.annotations.HttpMethod.GET
-import io.javalin.plugin.openapi.annotations.HttpMethod.HEAD
-import io.javalin.plugin.openapi.annotations.HttpMethod.POST
-import io.javalin.plugin.openapi.annotations.HttpMethod.PUT
+import org.panda_lang.reposilite.shared.HttpMethod
 import org.panda_lang.reposilite.token.api.RoutePermission.READ
 import java.io.Serializable
 
@@ -77,8 +73,8 @@ enum class RoutePermission(
     val methods: Array<HttpMethod>
 ) {
 
-    WRITE("w", false, arrayOf(PUT, POST)),
-    READ("r", true, arrayOf(HEAD, GET));
+    WRITE("w", false, arrayOf(HttpMethod.PUT, HttpMethod.POST)),
+    READ("r", true, arrayOf(HttpMethod.HEAD, HttpMethod.GET));
 
     companion object {
 
