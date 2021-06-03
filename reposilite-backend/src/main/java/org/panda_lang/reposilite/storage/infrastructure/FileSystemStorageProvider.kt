@@ -159,7 +159,7 @@ internal abstract class FileSystemStorageProvider private constructor(
                 FileDetailsResponse(
                     if (Files.isDirectory(file)) FileDetailsResponse.DIRECTORY else FileDetailsResponse.FILE,
                     file.fileName.toString(),
-                    FileDetailsResponse.DATE_FORMAT.format(Files.getLastModifiedTime(file).toInstant()), // TODO: Verify if #toInstant() is the best way to do this
+                    FileDetailsResponse.DATE_FORMAT.format(Files.getLastModifiedTime(file).toInstant()), // TOFIX: Verify if #toInstant() is the best way to do this
                     getMimeType(file.fileName.toString(), "application/octet-stream"),
                     Files.size(file)
                 )

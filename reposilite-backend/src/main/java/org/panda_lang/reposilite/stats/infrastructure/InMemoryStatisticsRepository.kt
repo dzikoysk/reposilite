@@ -17,6 +17,44 @@
 package org.panda_lang.reposilite.stats.infrastructure
 
 import org.panda_lang.reposilite.stats.StatisticsRepository
+import org.panda_lang.reposilite.stats.api.Record
+import org.panda_lang.reposilite.stats.api.RecordIdentifier
+import org.panda_lang.reposilite.stats.api.RecordType
+import java.util.concurrent.ConcurrentHashMap
 
-abstract class InMemoryStatisticsRepository : StatisticsRepository {
+internal class InMemoryStatisticsRepository : StatisticsRepository {
+
+    private val records: MutableMap<Int, Record> = ConcurrentHashMap()
+
+    override fun createRecord(identifier: RecordIdentifier, initCount: Long) {
+        records[records.size] = Record(
+            id = records.size,
+            type = identifier.type,
+            identifier = identifier.identifier,
+            count = initCount
+        )
+    }
+
+    override fun incrementRecord(identifier: RecordIdentifier, count: Long) {
+        findRecordByTypeAndIdentifier(identifier)
+            ?.also { records[it.id] = it.copy(count = it.count + count) }
+            ?: createRecord(identifier, count)
+    }
+
+    override fun findRecordByTypeAndIdentifier(identifier: RecordIdentifier): Record? =
+        records.values.firstOrNull { it.type == identifier.type && it.identifier == identifier.identifier }
+
+    override fun findRecordsByPhrase(type: RecordType, phrase: String): List<Record> =
+        records.values
+            .filter { it.type == type }
+            .filter { it.identifier == phrase }
+
+    override fun countRecords(): Long =
+        records
+            .map { it.value.count }
+            .sum()
+
+    override fun countUniqueRecords(): Long =
+        records.size.toLong()
+
 }

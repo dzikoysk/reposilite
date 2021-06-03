@@ -22,7 +22,7 @@ import org.panda_lang.reposilite.auth.Session
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.utilities.commons.function.Result
 
-class ContextDsl(
+internal class ContextDsl(
     private val ctx: Context,
     val context: ReposiliteContext
 ) {
@@ -68,7 +68,7 @@ class ContextDsl(
 
 }
 
-fun context(contextFactory: ReposiliteContextFactory, ctx: Context, init: ContextDsl.() -> Unit): Unit =
+internal fun context(contextFactory: ReposiliteContextFactory, ctx: Context, init: ContextDsl.() -> Unit): Unit =
     contextFactory.create(ctx)
         .onError { ctx.json(it) }
         .map { ContextDsl(ctx, it) }

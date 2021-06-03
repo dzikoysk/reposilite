@@ -18,7 +18,7 @@ package org.panda_lang.reposilite.stats
 import org.panda_lang.reposilite.console.ReposiliteCommand
 import org.panda_lang.reposilite.console.Status
 import org.panda_lang.reposilite.console.Status.SUCCEEDED
-import org.panda_lang.reposilite.stats.RecordType.REQUEST
+import org.panda_lang.reposilite.stats.api.RecordType
 import org.panda_lang.utilities.commons.console.Effect.BLACK_BOLD
 import org.panda_lang.utilities.commons.console.Effect.RESET
 import picocli.CommandLine.Command
@@ -36,7 +36,7 @@ internal class StatsCommand(private val statisticsFacade: StatisticsFacade) : Re
         output.add("Statistics: ")
         output.add("  Unique requests: " + statisticsFacade.countUniqueRecords() + " (count: " + statisticsFacade.countRecords() + ")")
 
-        val results = statisticsFacade.findRecordsByPhrase(REQUEST, filter) // TODO: Limiter
+        val results = statisticsFacade.findRecordsByPhrase(RecordType.REQUEST, filter) // TOFIX: Limiter
 
         output.add("  Recorded: " + (if (results.isEmpty()) "[] " else "") + " (pattern: '${highlight(filter)}')")
         results.forEachIndexed { order, record -> output.add("  ${order}. $record") }

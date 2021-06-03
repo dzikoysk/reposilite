@@ -17,6 +17,42 @@
 package org.panda_lang.reposilite.token.infrastructure
 
 import org.panda_lang.reposilite.token.AccessTokenRepository
+import org.panda_lang.reposilite.token.api.AccessToken
+import org.panda_lang.reposilite.token.api.Route
+import java.util.concurrent.ConcurrentHashMap
 
-internal abstract class InMemoryAccessTokenRepository : AccessTokenRepository {
+internal class InMemoryAccessTokenRepository : AccessTokenRepository {
+
+    private val tokens: MutableMap<Int, AccessToken> = ConcurrentHashMap()
+    private val routes: MutableMap<Int, Route> = ConcurrentHashMap()
+
+    override fun createAccessToken(accessToken: AccessToken) {
+        tokens[accessToken.id] = accessToken
+    }
+
+    override fun createRoute(accessToken: AccessToken, route: Route) {
+        routes[route.id] = route
+    }
+
+    override fun updateAccessToken(accessToken: AccessToken) {
+        tokens[accessToken.id] = accessToken
+    }
+
+    override fun deleteAccessTokenByAlias(alias: String) {
+        tokens.filter { it.value.alias == alias }.forEach { tokens.remove(it.key) }
+    }
+
+    override fun deleteRoute(route: Route) {
+        routes.filter { it.value.id == route.id }.forEach { routes.remove(it.key) }
+    }
+
+    override fun findAccessTokenByAlias(alias: String): AccessToken? =
+        tokens.values.firstOrNull { it.alias == alias }
+
+    override fun findAll(): Collection<AccessToken> =
+        tokens.values
+
+    override fun countAccessTokens(): Long =
+        tokens.size.toLong()
+
 }

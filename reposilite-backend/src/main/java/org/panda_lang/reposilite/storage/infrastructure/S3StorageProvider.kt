@@ -118,7 +118,7 @@ internal class S3StorageProvider(private val bucket: String, region: String) : S
             val response = s3.getObject(request.build())
             val bytes = ByteArray(Math.toIntExact(response.response().contentLength()))
             val read = response.read(bytes)
-            // TODO: verify - read not used?
+            // TOFIX: verify - read not used?
 
             Result.ok(bytes)
         }

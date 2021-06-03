@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.stats
+package org.panda_lang.reposilite.stats.api
 
 data class Record(
     val id: Int = -1,
@@ -26,3 +26,8 @@ data class Record(
 enum class RecordType {
     REQUEST
 }
+
+data class RecordIdentifier(
+    val type: RecordType,
+    val identifier: String
+)

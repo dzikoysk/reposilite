@@ -19,12 +19,12 @@ package org.panda_lang.reposilite.stats.application
 import io.javalin.Javalin
 import net.dzikoysk.dynamiclogger.Journalist
 import org.panda_lang.reposilite.console.ConsoleFacade
-import org.panda_lang.reposilite.stats.RecordType.REQUEST
 import org.panda_lang.reposilite.stats.StatisticsFacade
 import org.panda_lang.reposilite.stats.StatsCommand
+import org.panda_lang.reposilite.stats.api.RecordType
 import org.panda_lang.reposilite.stats.infrastructure.SqlStatisticsRepository
 
-object StatsWebConfiguration {
+internal object StatsWebConfiguration {
 
     fun createFacade(journalist: Journalist): StatisticsFacade {
         return StatisticsFacade(journalist, SqlStatisticsRepository())
@@ -35,6 +35,6 @@ object StatsWebConfiguration {
     }
 
     fun installRouting(javalin: Javalin, statisticsFacade: StatisticsFacade) =
-        javalin.before { ctx -> statisticsFacade.increaseRecord(REQUEST, ctx.req.requestURI) }
+        javalin.before { ctx -> statisticsFacade.increaseRecord(RecordType.REQUEST, ctx.req.requestURI) }
 
 }

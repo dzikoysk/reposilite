@@ -27,11 +27,12 @@ import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.sum
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
-import org.panda_lang.reposilite.stats.Record
-import org.panda_lang.reposilite.stats.RecordType
 import org.panda_lang.reposilite.stats.StatisticsRepository
+import org.panda_lang.reposilite.stats.api.Record
+import org.panda_lang.reposilite.stats.api.RecordIdentifier
+import org.panda_lang.reposilite.stats.api.RecordType
 
-class SqlStatisticsRepository : StatisticsRepository {
+internal class SqlStatisticsRepository : StatisticsRepository {
 
     init {
         transaction {
@@ -39,30 +40,46 @@ class SqlStatisticsRepository : StatisticsRepository {
         }
     }
 
-    override fun incrementRecords(bulk: Map<Pair<RecordType, String>, Long>) {
+    override fun createRecord(identifier: RecordIdentifier, initCount: Long) {
         transaction {
-            bulk.forEach { (type, identifier), count ->
-                val id: Int? = StatisticsTable
-                    .select { Op.build { StatisticsTable.type eq type }.and { StatisticsTable.identifier eq identifier } }
-                    .map { it[StatisticsTable.id].value }
-                    .firstOrNull()
+            StatisticsTable.insert {
+                it[StatisticsTable.type] = identifier.type
+                it[StatisticsTable.identifier] = identifier.identifier
+                it[StatisticsTable.count] = initCount
+            }
+        }
+    }
 
-                if (id == null) {
-                    StatisticsTable.insert {
-                        it[StatisticsTable.type] = type
-                        it[StatisticsTable.identifier] = identifier
-                        it[StatisticsTable.count] = count
-                    }
+    override fun incrementRecord(identifier: RecordIdentifier, count: Long) {
+        transaction {
+            val id: Int? = StatisticsTable
+                .select { Op.build { StatisticsTable.type eq identifier.type }.and { StatisticsTable.identifier eq identifier.identifier } }
+                .map { it[StatisticsTable.id].value }
+                .firstOrNull()
+
+            if (id == null) {
+                StatisticsTable.insert {
+                    it[StatisticsTable.type] = identifier.type
+                    it[StatisticsTable.identifier] = identifier.identifier
+                    it[StatisticsTable.count] = count
                 }
-                else {
-                    StatisticsTable.update({ StatisticsTable.id eq id }) {
-                        with(SqlExpressionBuilder) {
-                            it[StatisticsTable.count] = StatisticsTable.count + count
-                        }
+            }
+            else {
+                StatisticsTable.update({ StatisticsTable.id eq id }) {
+                    with(SqlExpressionBuilder) {
+                        it[StatisticsTable.count] = StatisticsTable.count + count
                     }
                 }
             }
+
         }
+    }
+
+    override fun findRecordByTypeAndIdentifier(identifier: RecordIdentifier): Record? = transaction {
+        StatisticsTable
+            .select { Op.build { StatisticsTable.type eq identifier.type }.and { StatisticsTable.identifier eq identifier.identifier } }
+            .map { toRecord(it) }
+            .firstOrNull()
     }
 
     override fun findRecordsByPhrase(type: RecordType, phrase: String): List<Record> = transaction {

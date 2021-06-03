@@ -17,6 +17,9 @@ package org.panda_lang.reposilite.stats
 
 import net.dzikoysk.dynamiclogger.Journalist
 import net.dzikoysk.dynamiclogger.Logger
+import org.panda_lang.reposilite.stats.api.Record
+import org.panda_lang.reposilite.stats.api.RecordIdentifier
+import org.panda_lang.reposilite.stats.api.RecordType
 import java.util.concurrent.ConcurrentHashMap
 
 class StatisticsFacade internal constructor(
@@ -24,10 +27,10 @@ class StatisticsFacade internal constructor(
     private val statisticsRepository: StatisticsRepository
 ) : Journalist {
 
-    private val recordsBulk: ConcurrentHashMap<Pair<RecordType, String>, Int> = ConcurrentHashMap()
+    private val recordsBulk: ConcurrentHashMap<RecordIdentifier, Int> = ConcurrentHashMap()
 
     fun increaseRecord(type: RecordType, uri: String) =
-        recordsBulk.merge(Pair(type, uri), 1) { cached, value -> cached + value }
+        recordsBulk.merge(RecordIdentifier(type, uri), 1) { cached, value -> cached + value }
 
     fun findRecordsByPhrase(type: RecordType, phrase: String): List<Record> =
         statisticsRepository.findRecordsByPhrase(type, phrase)

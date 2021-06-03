@@ -29,7 +29,7 @@ import org.panda_lang.reposilite.Reposilite
 import org.panda_lang.reposilite.ReposiliteConstants
 import org.panda_lang.reposilite.config.Configuration
 
-class HttpServerConfiguration internal constructor(private val reposilite: Reposilite, private val servlet: Boolean) {
+internal class HttpServerConfiguration internal constructor(private val reposilite: Reposilite, private val servlet: Boolean) {
 
     var javalin: Javalin? = null
 

@@ -18,9 +18,9 @@ package org.panda_lang.reposilite.stats.infrastructure
 
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.Column
-import org.panda_lang.reposilite.stats.RecordType
+import org.panda_lang.reposilite.stats.api.RecordType
 
-object StatisticsTable : IntIdTable("statistics") {
+internal object StatisticsTable : IntIdTable("statistics") {
 
     val type: Column<RecordType> = enumeration("type", RecordType::class)
     val identifier: Column<String> = varchar("identifier", 2048)

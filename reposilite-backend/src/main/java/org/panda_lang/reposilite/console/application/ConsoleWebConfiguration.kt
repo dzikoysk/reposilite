@@ -24,12 +24,12 @@ import org.panda_lang.reposilite.console.HelpCommand
 import org.panda_lang.reposilite.console.StatusCommand
 import org.panda_lang.reposilite.console.StopCommand
 import org.panda_lang.reposilite.console.VersionCommand
-import org.panda_lang.reposilite.console.infrastructure.CliController
+import org.panda_lang.reposilite.console.infrastructure.CliEndpoint
 import org.panda_lang.reposilite.console.infrastructure.RemoteExecutionEndpoint
 import org.panda_lang.reposilite.failure.FailureFacade
 import org.panda_lang.reposilite.shared.utils.TimeUtils
 
-object ConsoleWebConfiguration {
+internal object ConsoleWebConfiguration {
 
     fun createFacade(journalist: Journalist, failureFacade: FailureFacade): ConsoleFacade {
         val console = Console(journalist, failureFacade, System.`in`)
@@ -58,7 +58,7 @@ object ConsoleWebConfiguration {
     fun installRouting(javalin: Javalin, reposilite: Reposilite) {
         javalin
             .post("/api/execute", RemoteExecutionEndpoint(reposilite.contextFactory, reposilite.consoleFacade))
-            .ws("/api/cli", CliController(reposilite.contextFactory, reposilite.authenticationFacade, reposilite.consoleFacade, reposilite.cachedLogger))
+            .ws("/api/cli", CliEndpoint(reposilite.contextFactory, reposilite.authenticationFacade, reposilite.consoleFacade, reposilite.cachedLogger))
     }
 
     fun dispose(consoleFacade: ConsoleFacade) {

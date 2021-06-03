@@ -23,7 +23,7 @@ import org.panda_lang.reposilite.failure.FailureFacade
 import org.panda_lang.reposilite.failure.FailuresCommand
 import org.panda_lang.reposilite.failure.infrastructure.FailureHandler
 
-object FailureWebConfiguration {
+internal object FailureWebConfiguration {
 
     fun createFacade(journalist: Journalist) =
         FailureFacade(journalist)

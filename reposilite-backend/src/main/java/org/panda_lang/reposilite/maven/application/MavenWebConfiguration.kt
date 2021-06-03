@@ -28,7 +28,7 @@ import org.panda_lang.reposilite.maven.infrastructure.LookupEndpoint
 import org.panda_lang.reposilite.web.ReposiliteContextFactory
 import org.panda_lang.reposilite.web.RouteHandler
 
-object MavenWebConfiguration {
+internal object MavenWebConfiguration {
 
     fun createFacade(journalist: Journalist, failureFacade: FailureFacade, repositoriesConfiguration: Map<String, RepositoryConfiguration>): MavenFacade {
         val repositoryService = RepositoryServiceFactory(journalist).createRepositoryService(repositoriesConfiguration)
