@@ -41,7 +41,7 @@ object ReposiliteFactory {
         val configurationLoader = ConfigurationLoader(logger)
         val configuration = configurationLoader.tryLoad(configurationFile)
 
-        Database.connect("jdbc:h2:mem:test", driver = "org.h2.Driver") // TOFIX: SQL schemas requires connection at startup, somehow delegate it later
+        Database.connect("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;mode=MySQL", driver = "org.h2.Driver") // TOFIX: SQL schemas requires connection at startup, somehow delegate it later
 
         val failureFacade = FailureWebConfiguration.createFacade(logger)
         val consoleFacade = ConsoleWebConfiguration.createFacade(logger, failureFacade)
@@ -61,7 +61,8 @@ object ReposiliteFactory {
             contextFactory = contextFactory,
             authenticationFacade = authenticationFacade,
             mavenFacade = mavenFacade,
-            consoleFacade = consoleFacade
+            consoleFacade = consoleFacade,
+            accessTokenFacade = accessTokenFacade
         )
     }
 

@@ -60,7 +60,7 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-core:$exposed")
     implementation("org.jetbrains.exposed:exposed-dao:$exposed")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposed")
-    implementation("com.h2database:h2:1.4.200")
+    implementation("com.h2database:h2:1.4.199")
 
     val awssdk = "2.15.15"
     implementation("software.amazon.awssdk:bom:$awssdk")

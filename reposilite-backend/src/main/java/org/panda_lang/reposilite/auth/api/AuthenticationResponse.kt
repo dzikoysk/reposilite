@@ -19,5 +19,5 @@ import java.io.Serializable
 
 data class AuthenticationResponse internal constructor(
     val path: String,
-    val permissions: String
+    val permissions: Collection<String>
 ) : Serializable

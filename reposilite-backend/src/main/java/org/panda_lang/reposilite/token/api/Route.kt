@@ -13,42 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.panda_lang.reposilite.token.api
 
 import org.panda_lang.reposilite.shared.sql.IdentifiableEntity
 import org.panda_lang.reposilite.shared.sql.UNINITIALIZED_ENTITY_ID
-import org.panda_lang.reposilite.token.api.Route.Companion.READ
 
-data class AccessToken internal constructor(
+data class Route internal constructor(
     override val id: Int = UNINITIALIZED_ENTITY_ID,
-    val alias: String,
-    val secret: String,
-    val permissions: Collection<Permission> = emptyList(),
-    val routes: Collection<Route> = emptyList()
+    val path: String,
+    val permissions: Collection<Permission>
 ) : IdentifiableEntity {
 
     companion object {
-        const val PERMISSION_TYPE = "access_token"
-        val MANAGER = Permission(PERMISSION_TYPE, "manager")
-        val PERMISSIONS = listOf(MANAGER)
+        const val PERMISSION_TYPE = "route"
+        val READ = Permission(PERMISSION_TYPE, "read")
+        val WRITE = Permission(PERMISSION_TYPE, "write")
+        val PERMISSIONS = listOf(READ, WRITE)
     }
 
-    fun addPermission(permission: Permission): AccessToken =
+    fun addPermission(permission: Permission): Route =
         copy(permissions = permissions + permission)
 
-    fun removePermission(permission: Permission): AccessToken =
+    fun removePermission(permission: Permission): Route =
         copy(permissions = permissions - permission)
 
-    fun hasPermission(permission: Permission): Boolean =
-        permissions.contains(permission)
-
-    fun addRoute(route: Route): AccessToken =
-        copy(routes = routes + route)
-
-    fun removeRoute(route: Route): AccessToken =
-        copy(routes = routes - route)
-
-    fun hasPermissionTo(toPath: String, routePermission: Permission = READ): Boolean =
-        routes.any { it.hasPermissionTo(toPath, routePermission) }
+    fun hasPermissionTo(toPath: String, routePermission: Permission): Boolean =
+        toPath.startsWith(path) && permissions.contains(routePermission)
 
 }

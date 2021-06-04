@@ -18,7 +18,7 @@ package org.panda_lang.reposilite.token
 import net.dzikoysk.dynamiclogger.Journalist
 import net.dzikoysk.dynamiclogger.Logger
 import org.panda_lang.reposilite.token.api.AccessToken
-import org.panda_lang.reposilite.token.api.AccessTokenPermission
+import org.panda_lang.reposilite.token.api.Permission
 import org.panda_lang.utilities.commons.collection.Pair
 import org.panda_lang.utilities.commons.function.Option
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
@@ -35,23 +35,23 @@ class AccessTokenFacade internal constructor(
         val B_CRYPT_TOKENS_ENCODER = BCryptPasswordEncoder()
     }
 
-    fun createAccessToken(alias: String, permissions: Set<AccessTokenPermission>): Pair<String, AccessToken> {
+    fun createAccessToken(alias: String, permissions: Collection<Permission> = emptyList()): Pair<String, AccessToken> {
         val randomBytes = ByteArray(48)
         SECURE_RANDOM.nextBytes(randomBytes)
         return createAccessToken(alias, Base64.getEncoder().encodeToString(randomBytes), permissions)
     }
 
-    private fun createAccessToken(alias: String, token: String, permissions: Set<AccessTokenPermission>): Pair<String, AccessToken> {
+    private fun createAccessToken(alias: String, token: String, permissions: Collection<Permission>): Pair<String, AccessToken> {
         val encodedToken = B_CRYPT_TOKENS_ENCODER.encode(token)
 
-        accessTokenRepository.createAccessToken(AccessToken(alias = alias, secret = encodedToken, permissions = permissions.joinToString { it.symbol.toString() }))
+        accessTokenRepository.saveAccessToken(AccessToken(alias = alias, secret = encodedToken, permissions = permissions, routes = emptyList()))
         val accessToken = accessTokenRepository.findAccessTokenByAlias(alias)
 
         return Pair(token, accessToken)
     }
 
     fun updateToken(accessToken: AccessToken) =
-        accessTokenRepository.updateAccessToken(accessToken)
+        accessTokenRepository.saveAccessToken(accessToken)
 
     fun deleteToken(alias: String) =
         accessTokenRepository.deleteAccessTokenByAlias(alias)

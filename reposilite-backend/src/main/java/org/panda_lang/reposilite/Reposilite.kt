@@ -28,6 +28,8 @@ import org.panda_lang.reposilite.failure.application.FailureWebConfiguration
 import org.panda_lang.reposilite.maven.MavenFacade
 import org.panda_lang.reposilite.shared.CachedLogger
 import org.panda_lang.reposilite.shared.utils.TimeUtils
+import org.panda_lang.reposilite.token.AccessTokenFacade
+import org.panda_lang.reposilite.token.application.AccessTokenWebConfiguration
 import org.panda_lang.reposilite.web.HttpServerConfiguration
 import org.panda_lang.reposilite.web.ReposiliteContextFactory
 import org.panda_lang.utilities.commons.console.Effect
@@ -43,7 +45,8 @@ class Reposilite(
     val failureFacade: FailureFacade,
     val authenticationFacade: AuthenticationFacade,
     val mavenFacade: MavenFacade,
-    val consoleFacade: ConsoleFacade
+    val consoleFacade: ConsoleFacade,
+    val accessTokenFacade: AccessTokenFacade
 ) : Journalist {
 
     internal val httpServer = HttpServerConfiguration(this, false)
@@ -78,6 +81,7 @@ class Reposilite(
         // Arrays.stream(configurations()).forEach { domainConfigurer -> domainConfigurer.configure(this) }
         FailureWebConfiguration.initialize(consoleFacade, failureFacade)
         ConsoleWebConfiguration.initialize(consoleFacade, this)
+        AccessTokenWebConfiguration.initialize(consoleFacade, accessTokenFacade)
         logger.info("")
 
         logger.info("--- Repositories")

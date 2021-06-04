@@ -20,14 +20,14 @@ import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.ReferenceOption.CASCADE
+import org.jetbrains.exposed.sql.Table
 
 typealias Id = EntityID<Int>
 
 object AccessTokenTable : IntIdTable("access_token") {
 
-    val alias: Column<String> = varchar("alias", 512).uniqueIndex()
+    val alias: Column<String> = varchar("alias", 256).uniqueIndex()
     val secret: Column<String> = varchar("secret", 512)
-    val permissions: Column<String> = varchar("permissions", 32)
 
 }
 
@@ -35,6 +35,13 @@ object RouteTable : IntIdTable("access_token_route") {
 
     val accessTokenId: Column<Id> = reference("access_token_id", AccessTokenTable.id, onDelete = CASCADE, onUpdate = CASCADE)
     val path: Column<String> = varchar("path", 2048)
-    val permissions: Column<String> = varchar("permissions", 32)
+
+}
+
+object PermissionsTable : Table("permissions") {
+
+    val ownerId: Column<Int> = integer("owner_id")
+    val type: Column<String> = varchar("type", 16)
+    val name: Column<String> = varchar("name", 32)
 
 }

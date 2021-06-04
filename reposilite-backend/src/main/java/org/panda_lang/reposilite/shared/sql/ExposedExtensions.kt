@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.shared
+package org.panda_lang.reposilite.shared.sql
 
-enum class HttpMethod {
+import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.Transaction
+import org.jetbrains.exposed.sql.transactions.transaction
 
-    GET,
-    HEAD,
-    POST,
-    PUT,
-    DELETE
-
+fun <T> transactionUnit(db: Database? = null, statement: Transaction.() -> T) {
+    transaction(db, statement)
 }
