@@ -55,7 +55,7 @@ internal class AuthenticationEndpoint(private val authenticationFacade: Authenti
     )
     override fun handle(ctx: Context) {
         authenticationFacade.authenticateByHeader(ctx.headerMap())
-            .map { AuthenticationResponse(it.alias, it.permissions) }
+            .map { AuthenticationResponse(it.alias, it.permissions.map { permission -> permission.toString() }) }
             .let { ctx.json(it.any) }
     }
 

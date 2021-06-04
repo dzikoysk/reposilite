@@ -20,7 +20,6 @@ import org.panda_lang.reposilite.console.ReposiliteCommand
 import org.panda_lang.reposilite.console.Status
 import org.panda_lang.reposilite.console.Status.FAILED
 import org.panda_lang.reposilite.console.Status.SUCCEEDED
-import org.panda_lang.reposilite.token.api.AccessTokenPermission
 import picocli.CommandLine.Command
 import picocli.CommandLine.Parameters
 
@@ -50,7 +49,7 @@ internal class KeygenCommand(private val accessTokenFacade: AccessTokenFacade) :
     private lateinit var alias: String
 
     @Parameters(
-        index = "2",
+        index = "1",
         paramLabel = "[<permissions>]",
         description = ["extra permissions: m - manager"],
         defaultValue = ""
@@ -58,25 +57,9 @@ internal class KeygenCommand(private val accessTokenFacade: AccessTokenFacade) :
     private lateinit var permissions: String
 
     override fun execute(output: MutableList<String>): Status {
-       // var processedPath = path
-
-        // Support simplified artifact qualifier (x.y.z instead of /x/y/z)
-        // ~ https://github.com/dzikoysk/reposilite/issues/145
-//        if (path.contains(".") && !path.contains("/")) {
-//            processedPath = "*/" + path.replace(".", "/")
-//        }
-
-        // Fix non-functional wildcard usage
-        // ~ https://github.com/dzikoysk/reposilite/issues/351
-//        if (processedPath.endsWith("*")) {
-//            processedPath = processedPath.substring(0, processedPath.length - 1)
-//            response.add("(warn) Non-functional wildcard has been removed from the end of the given path")
-//        }
-
-        val token = accessTokenFacade.createAccessToken(alias, AccessTokenPermission.ofSymbols(permissions))
+        val token = accessTokenFacade.createAccessToken(alias)
         output.add("Generated new access token for $alias with '$permissions' permissions")
         output.add(token.key)
-
         return SUCCEEDED
     }
 }
@@ -105,7 +88,7 @@ internal class ChAliasCommand(private val accessTokenFacade: AccessTokenFacade) 
 }
 
 @Command(name = "chmod", description = ["Change token permissions"])
-internal class ChmodCommand(private val accessTokenFacade: AccessTokenFacade) : ReposiliteCommand {
+internal class ChModCommand(private val accessTokenFacade: AccessTokenFacade) : ReposiliteCommand {
 
     @Parameters(index = "0", paramLabel = "<alias>", description = ["alias to update"])
     private lateinit var alias: String
@@ -116,7 +99,8 @@ internal class ChmodCommand(private val accessTokenFacade: AccessTokenFacade) : 
     override fun execute(output: MutableList<String>): Status =
         accessTokenFacade.getToken(alias)
             .map {
-                accessTokenFacade.updateToken(it.copy(permissions = permissions))
+                // TOFIX somehow map user input to permissions
+                // accessTokenFacade.updateToken(it.copy(permissions = permissions))
                 output.add("Permissions have been changed from '${it.permissions}' to '$permissions'")
                 SUCCEEDED
             }

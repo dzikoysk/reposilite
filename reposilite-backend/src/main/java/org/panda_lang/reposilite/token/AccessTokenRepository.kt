@@ -16,25 +16,41 @@
 
 package org.panda_lang.reposilite.token
 
+import org.panda_lang.reposilite.shared.sql.IdentifiableEntity
 import org.panda_lang.reposilite.token.api.AccessToken
+import org.panda_lang.reposilite.token.api.Permission
 import org.panda_lang.reposilite.token.api.Route
 
 internal interface AccessTokenRepository {
 
-    fun createAccessToken(accessToken: AccessToken)
-
-    fun createRoute(accessToken: AccessToken, route: Route)
-
-    fun updateAccessToken(accessToken: AccessToken)
+    fun saveAccessToken(accessToken: AccessToken)
 
     fun deleteAccessTokenByAlias(alias: String)
-
-    fun deleteRoute(route: Route)
 
     fun findAccessTokenByAlias(alias: String): AccessToken?
 
     fun findAll(): Collection<AccessToken>
 
     fun countAccessTokens(): Long
+
+}
+
+internal interface RouteRepository {
+
+    fun saveRoute(accessToken: AccessToken, route: Route)
+
+    fun findRoutesById(accessTokenId: Int): Collection<Route>
+
+    fun deleteRoute(route: Route)
+
+}
+
+internal interface PermissionRepository {
+
+    fun savePermission(entity: IdentifiableEntity, permission: Permission)
+
+    fun findPermissionsById(entityId: Int, type: String, permissionSource: Collection<Permission>): Collection<Permission>
+
+    fun deletePermissions(entityId: Int, type: String)
 
 }

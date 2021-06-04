@@ -14,14 +14,10 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.shared
+package org.panda_lang.reposilite.shared.sql
 
-enum class HttpMethod {
+const val UNINITIALIZED_ENTITY_ID = -1
 
-    GET,
-    HEAD,
-    POST,
-    PUT,
-    DELETE
-
+interface IdentifiableEntity {
+    val id: Int
 }

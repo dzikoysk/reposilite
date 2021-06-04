@@ -17,12 +17,32 @@
 package org.panda_lang.reposilite.token.application
 
 import net.dzikoysk.dynamiclogger.Journalist
+import org.panda_lang.reposilite.console.ConsoleFacade
 import org.panda_lang.reposilite.token.AccessTokenFacade
+import org.panda_lang.reposilite.token.ChAliasCommand
+import org.panda_lang.reposilite.token.ChModCommand
+import org.panda_lang.reposilite.token.KeygenCommand
+import org.panda_lang.reposilite.token.RevokeCommand
+import org.panda_lang.reposilite.token.TokensCommand
 import org.panda_lang.reposilite.token.infrastructure.SqlAccessTokenRepository
+import org.panda_lang.reposilite.token.infrastructure.SqlPermissionRepository
+import org.panda_lang.reposilite.token.infrastructure.SqlRouteRepository
 
 internal object AccessTokenWebConfiguration {
 
-    fun createFacade(journalist: Journalist): AccessTokenFacade =
-        AccessTokenFacade(journalist, SqlAccessTokenRepository())
+    fun createFacade(journalist: Journalist): AccessTokenFacade {
+        val permissionRepository = SqlPermissionRepository()
+        val routeRepository = SqlRouteRepository(permissionRepository)
+
+        return AccessTokenFacade(journalist, SqlAccessTokenRepository(routeRepository, permissionRepository))
+    }
+
+    fun initialize(consoleFacade: ConsoleFacade, accessTokenFacade: AccessTokenFacade) {
+        consoleFacade.registerCommand(TokensCommand(accessTokenFacade))
+        consoleFacade.registerCommand(KeygenCommand(accessTokenFacade))
+        consoleFacade.registerCommand(ChAliasCommand(accessTokenFacade))
+        consoleFacade.registerCommand(ChModCommand(accessTokenFacade))
+        consoleFacade.registerCommand(RevokeCommand(accessTokenFacade))
+    }
 
 }

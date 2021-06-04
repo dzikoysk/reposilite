@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.shared
+package org.panda_lang.reposilite.token.api
 
-enum class HttpMethod {
+data class Permission internal constructor(
+    val type: String,
+    val name: String,
+) {
 
-    GET,
-    HEAD,
-    POST,
-    PUT,
-    DELETE
+    override fun toString(): String =
+        "$type:$name"
 
 }
