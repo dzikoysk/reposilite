@@ -56,10 +56,11 @@ dependencies {
     implementation(kotlin("stdlib"))
     implementation("org.jetbrains.kotlin:kotlin-reflect:1.5.0")
 
-    val exposed = "0.31.1"
+    val exposed = "0.32.1"
     implementation("org.jetbrains.exposed:exposed-core:$exposed")
     implementation("org.jetbrains.exposed:exposed-dao:$exposed")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposed")
+    implementation("org.jetbrains.exposed:exposed-java-time:$exposed")
     implementation("com.h2database:h2:1.4.199")
 
     val awssdk = "2.15.15"
@@ -117,4 +118,42 @@ dependencies {
 
 tasks.getByName<Test>("test") {
     useJUnitPlatform()
+}
+
+tasks.register("depsize") {
+    description = "Prints dependencies for \"default\" configuration"
+    doLast { listConfigurationDependencies(configurations["default"])  }
+}
+
+tasks.register("depsize-all-configurations") {
+    description = "Prints dependencies for all available configurations"
+    doLast {
+        configurations
+            .filter { it.isCanBeResolved }
+            .forEach { listConfigurationDependencies(it) }
+    }
+}
+
+fun listConfigurationDependencies(configuration: Configuration ) {
+    val formatStr = "%,10.2f"
+    val size = configuration.sumOf { it.length() / (1024.0 * 1024.0) }
+    val out = StringBuffer()
+    out.append("\nConfiguration name: \"${configuration.name}\"\n")
+
+    if (size > 0) {
+        out.append("Total dependencies size:".padEnd(65))
+        out.append("${String.format(formatStr, size)} Mb\n\n")
+
+        configuration
+            .sortedBy { -it.length() }
+            .forEach {
+                out.append(it.name.padEnd(65))
+                out.append("${String.format(formatStr, (it.length() / 1024.0))} kb\n")
+            }
+    }
+    else {
+        out.append("No dependencies found")
+    }
+
+    println(out)
 }

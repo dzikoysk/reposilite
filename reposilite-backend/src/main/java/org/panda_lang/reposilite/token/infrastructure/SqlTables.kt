@@ -21,6 +21,8 @@ import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.ReferenceOption.CASCADE
 import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.`java-time`.date
+import java.time.LocalDate
 
 typealias Id = EntityID<Int>
 
@@ -28,6 +30,8 @@ object AccessTokenTable : IntIdTable("access_token") {
 
     val alias: Column<String> = varchar("alias", 255)
     val secret: Column<String> = varchar("secret", 512)
+    val createdAt: Column<LocalDate> = date("createdAt")
+    val description: Column<String> = text("description")
 
     init {
         uniqueIndex(alias)
