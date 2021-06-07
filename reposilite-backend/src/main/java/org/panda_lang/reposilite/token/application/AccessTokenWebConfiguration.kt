@@ -25,17 +25,11 @@ import org.panda_lang.reposilite.token.KeygenCommand
 import org.panda_lang.reposilite.token.RevokeCommand
 import org.panda_lang.reposilite.token.TokensCommand
 import org.panda_lang.reposilite.token.infrastructure.SqlAccessTokenRepository
-import org.panda_lang.reposilite.token.infrastructure.SqlPermissionRepository
-import org.panda_lang.reposilite.token.infrastructure.SqlRouteRepository
 
 internal object AccessTokenWebConfiguration {
 
-    fun createFacade(journalist: Journalist): AccessTokenFacade {
-        val permissionRepository = SqlPermissionRepository()
-        val routeRepository = SqlRouteRepository(permissionRepository)
-
-        return AccessTokenFacade(journalist, SqlAccessTokenRepository(routeRepository, permissionRepository))
-    }
+    fun createFacade(journalist: Journalist): AccessTokenFacade =
+        AccessTokenFacade(journalist, SqlAccessTokenRepository())
 
     fun initialize(consoleFacade: ConsoleFacade, accessTokenFacade: AccessTokenFacade) {
         consoleFacade.registerCommand(TokensCommand(accessTokenFacade))

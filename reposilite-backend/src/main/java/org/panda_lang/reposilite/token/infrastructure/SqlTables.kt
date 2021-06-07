@@ -26,22 +26,36 @@ typealias Id = EntityID<Int>
 
 object AccessTokenTable : IntIdTable("access_token") {
 
-    val alias: Column<String> = varchar("alias", 256).uniqueIndex()
+    val alias: Column<String> = varchar("alias", 255)
     val secret: Column<String> = varchar("secret", 512)
 
+    init {
+        uniqueIndex(alias)
+    }
+
 }
 
-object RouteTable : IntIdTable("access_token_route") {
+object PermissionToAccessTokenTable : Table("permission_access_token") {
 
     val accessTokenId: Column<Id> = reference("access_token_id", AccessTokenTable.id, onDelete = CASCADE, onUpdate = CASCADE)
-    val path: Column<String> = varchar("path", 2048)
+    val permission: Column<String> = varchar("permission", 64)
+
+    init {
+        index(columns = arrayOf(accessTokenId))
+        uniqueIndex(accessTokenId, permission)
+    }
 
 }
 
-object PermissionsTable : Table("permissions") {
+object PermissionToRouteTable : Table("permission_route") {
 
-    val ownerId: Column<Int> = integer("owner_id")
-    val type: Column<String> = varchar("type", 16)
-    val name: Column<String> = varchar("name", 32)
+    val accessTokenId: Column<Id> = reference("access_token_id", AccessTokenTable.id, onDelete = CASCADE, onUpdate = CASCADE)
+    val route: Column<String> = varchar("path", 2048)
+    val permission: Column<String> = varchar("permission", 64)
+
+    init {
+        index(columns = arrayOf(accessTokenId, route))
+        uniqueIndex(accessTokenId, route, permission)
+    }
 
 }

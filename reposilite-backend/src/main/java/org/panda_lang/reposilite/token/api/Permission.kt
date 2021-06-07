@@ -16,12 +16,28 @@
 
 package org.panda_lang.reposilite.token.api
 
-data class Permission internal constructor(
-    val type: String,
-    val name: String,
-) {
+import org.panda_lang.reposilite.token.api.PermissionType.ACCESS_TOKEN
+import org.panda_lang.reposilite.token.api.PermissionType.ROUTE
+
+enum class PermissionType {
+    ACCESS_TOKEN,
+    ROUTE
+}
+
+enum class Permission(val type: PermissionType, val identifier: String) {
+
+    MANAGER(ACCESS_TOKEN, "manager"),
+    READ(ROUTE, "read"),
+    WRITE(ROUTE, "write");
+
+    companion object {
+
+        fun of(type: PermissionType, identifier: String) =
+            values().first { type == it.type && identifier == it.identifier }
+
+    }
 
     override fun toString(): String =
-        "$type:$name"
+        "${type.name.toLowerCase()}:$name"
 
 }

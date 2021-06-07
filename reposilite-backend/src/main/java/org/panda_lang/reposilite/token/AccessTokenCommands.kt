@@ -75,12 +75,12 @@ internal class ChAliasCommand(private val accessTokenFacade: AccessTokenFacade) 
 
     override fun execute(output: MutableList<String>): Status =
         accessTokenFacade.getToken(alias)
-            .map {
+            ?.let {
                 accessTokenFacade.updateToken(it.copy(alias = updatedAlias))
                 output.add("Token alias has been changed from '$alias' to '$updatedAlias'")
                 SUCCEEDED
             }
-            .orElseGet {
+            ?: run {
                 output.add("Token '$alias' not found")
                 FAILED
             }
@@ -98,13 +98,13 @@ internal class ChModCommand(private val accessTokenFacade: AccessTokenFacade) : 
 
     override fun execute(output: MutableList<String>): Status =
         accessTokenFacade.getToken(alias)
-            .map {
+            ?.let {
                 // TOFIX somehow map user input to permissions
                 // accessTokenFacade.updateToken(it.copy(permissions = permissions))
                 output.add("Permissions have been changed from '${it.permissions}' to '$permissions'")
                 SUCCEEDED
             }
-            .orElseGet {
+            ?: run {
                 output.add("Token '$alias' not found")
                 FAILED
             }

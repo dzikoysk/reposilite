@@ -20,7 +20,6 @@ import net.dzikoysk.dynamiclogger.Logger
 import org.panda_lang.reposilite.token.api.AccessToken
 import org.panda_lang.reposilite.token.api.Permission
 import org.panda_lang.utilities.commons.collection.Pair
-import org.panda_lang.utilities.commons.function.Option
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import java.security.SecureRandom
 import java.util.*
@@ -53,11 +52,12 @@ class AccessTokenFacade internal constructor(
     fun updateToken(accessToken: AccessToken) =
         accessTokenRepository.saveAccessToken(accessToken)
 
-    fun deleteToken(alias: String) =
-        accessTokenRepository.deleteAccessTokenByAlias(alias)
+    fun deleteToken(alias: String): AccessToken? =
+        accessTokenRepository.findAccessTokenByAlias(alias)
+            ?.also { accessTokenRepository.deleteAccessToken(it) }
 
-    fun getToken(alias: String): Option<AccessToken> =
-        Option.of(accessTokenRepository.findAccessTokenByAlias(alias))
+    fun getToken(alias: String): AccessToken? =
+        accessTokenRepository.findAccessTokenByAlias(alias)
 
     fun getTokens(): Collection<AccessToken> =
         accessTokenRepository.findAll()
