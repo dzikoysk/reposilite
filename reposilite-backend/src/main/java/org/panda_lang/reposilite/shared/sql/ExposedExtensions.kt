@@ -17,9 +17,26 @@
 package org.panda_lang.reposilite.shared.sql
 
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.Op
+import org.jetbrains.exposed.sql.SqlExpressionBuilder
+import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.Transaction
+import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.update
 
 fun <T> transactionUnit(db: Database? = null, statement: Transaction.() -> T) {
     transaction(db, statement)
 }
+
+fun <TABLE : Table> TABLE.insertOrUpdate(identifiableEntity: IdentifiableEntity, where: (SqlExpressionBuilder.() -> Op<Boolean>)?, body: TABLE.(UpdateBuilder<Number>) -> Unit) {
+    when (identifiableEntity.id) {
+        UNINITIALIZED_ENTITY_ID -> insert(body)
+        else -> update(where = where, body = body)
+    }
+}
+
+inline fun <T, R> Iterable<T>.firstAndMap(transform: (T) -> R): R? =
+    this.firstOrNull()?.let(transform)
+

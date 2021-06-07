@@ -23,64 +23,65 @@ import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.jetbrains.exposed.sql.update
 import org.panda_lang.reposilite.shared.sql.UNINITIALIZED_ENTITY_ID
+import org.panda_lang.reposilite.shared.sql.firstAndMap
+import org.panda_lang.reposilite.shared.sql.transactionUnit
 import org.panda_lang.reposilite.token.AccessTokenRepository
-import org.panda_lang.reposilite.token.PermissionRepository
-import org.panda_lang.reposilite.token.RouteRepository
 import org.panda_lang.reposilite.token.api.AccessToken
+import org.panda_lang.reposilite.token.api.Permission
+import org.panda_lang.reposilite.token.api.PermissionType.ACCESS_TOKEN
+import org.panda_lang.reposilite.token.api.PermissionType.ROUTE
+import org.panda_lang.reposilite.token.api.Route
 
-internal class SqlAccessTokenRepository(
-    private val routeRepository: RouteRepository,
-    private val permissionRepository: PermissionRepository
-) : AccessTokenRepository {
+internal class SqlAccessTokenRepository : AccessTokenRepository {
 
     init {
         transaction {
-            SchemaUtils.create(AccessTokenTable)
+            SchemaUtils.create(AccessTokenTable, PermissionToAccessTokenTable, PermissionToRouteTable)
         }
     }
 
-    override fun saveAccessToken(accessToken: AccessToken) {
-        transaction {
-            if (accessToken.id == UNINITIALIZED_ENTITY_ID) {
-                AccessTokenTable.insert {
-                    it[alias] = accessToken.alias
-                    it[secret] = accessToken.secret
+    override fun saveAccessToken(accessToken: AccessToken) =
+        transactionUnit {
+            AccessTokenTable.deleteWhere { AccessTokenTable.id eq accessToken.id }
+
+            AccessTokenTable.insert {
+                if (accessToken.id != UNINITIALIZED_ENTITY_ID) {
+                    it[this.id] = accessToken.id
+                }
+
+                it[this.alias] = accessToken.alias
+                it[this.secret] = accessToken.secret
+            }
+
+            accessToken.permissions.forEach { permission ->
+                PermissionToAccessTokenTable.insert {
+                    it[this.accessTokenId] = accessToken.id
+                    it[this.permission] = permission.name
                 }
             }
-            else {
-                AccessTokenTable.update( { AccessTokenTable.id eq accessToken.id } ) {
-                    it[alias] = accessToken.alias
-                    it[secret] = accessToken.secret
+
+            accessToken.routes.forEach { route ->
+                PermissionToRouteTable.insert {
+                    it[this.accessTokenId] = accessToken.id
+                    it[this.route] = route.path
+                    it[this.permission] = permission.name
                 }
             }
         }
-    }
 
-    override fun deleteAccessTokenByAlias(alias: String) {
-        findAccessTokenByAlias(alias)?.also {
-            transaction {
-                AccessTokenTable.deleteWhere { AccessTokenTable.id eq it.id }
-                permissionRepository.deletePermissions(it.id, AccessToken.PERMISSION_TYPE)
-            }
-        }
-    }
+    override fun deleteAccessToken(accessToken: AccessToken) =
+        transactionUnit { AccessTokenTable.deleteWhere { AccessTokenTable.id eq accessToken.id } }
 
-    override fun findAccessTokenByAlias(alias: String): AccessToken? =
-        transaction {
-            AccessTokenTable
-                .select { AccessTokenTable.alias eq alias }
-                .map { toAccessToken(it) }
-                .firstOrNull()
-        }
+    private fun findAccessTokenPermissionsById(id: Int): Collection<Permission> =
+        PermissionToAccessTokenTable.select { PermissionToAccessTokenTable.accessTokenId eq id }
+            .map { Permission.of(ACCESS_TOKEN, it[PermissionToAccessTokenTable.permission]) }
 
-    override fun findAll(): Collection<AccessToken> =
-        transaction {
-            AccessTokenTable
-                .selectAll()
-                .map { toAccessToken(it) }
-        }
+    private fun findRoutesById(id: Int): Collection<Route> =
+        PermissionToRouteTable.select { PermissionToRouteTable.accessTokenId eq id }
+            .map { Pair(it[PermissionToRouteTable.route], it[PermissionToRouteTable.permission]) }
+            .groupBy { it.first }
+            .map { (route, permissions) -> Route(route, permissions.map { Permission.of(ROUTE, it.second) }) }
 
     private fun toAccessToken(result: ResultRow): AccessToken =
         result[AccessTokenTable.id].value.let { accessTokenId ->
@@ -88,14 +89,18 @@ internal class SqlAccessTokenRepository(
                 accessTokenId,
                 result[AccessTokenTable.alias],
                 result[AccessTokenTable.secret],
-                permissionRepository.findPermissionsById(accessTokenId, AccessToken.PERMISSION_TYPE, AccessToken.PERMISSIONS),
-                routeRepository.findRoutesById(accessTokenId)
+                findAccessTokenPermissionsById(accessTokenId),
+                findRoutesById(accessTokenId)
             )
         }
 
+    override fun findAccessTokenByAlias(alias: String): AccessToken? =
+        transaction { AccessTokenTable.select { AccessTokenTable.alias eq alias }.firstAndMap { toAccessToken(it) } }
+
+    override fun findAll(): Collection<AccessToken> =
+        transaction { AccessTokenTable.selectAll().map { toAccessToken(it) } }
+
     override fun countAccessTokens(): Long =
-        transaction {
-            AccessTokenTable.selectAll().count()
-        }
+        transaction { AccessTokenTable.selectAll().count() }
 
 }

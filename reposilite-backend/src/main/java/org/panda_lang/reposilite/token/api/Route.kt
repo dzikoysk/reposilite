@@ -16,27 +16,10 @@
 
 package org.panda_lang.reposilite.token.api
 
-import org.panda_lang.reposilite.shared.sql.IdentifiableEntity
-import org.panda_lang.reposilite.shared.sql.UNINITIALIZED_ENTITY_ID
-
 data class Route internal constructor(
-    override val id: Int = UNINITIALIZED_ENTITY_ID,
     val path: String,
     val permissions: Collection<Permission>
-) : IdentifiableEntity {
-
-    companion object {
-        const val PERMISSION_TYPE = "route"
-        val READ = Permission(PERMISSION_TYPE, "read")
-        val WRITE = Permission(PERMISSION_TYPE, "write")
-        val PERMISSIONS = listOf(READ, WRITE)
-    }
-
-    fun addPermission(permission: Permission): Route =
-        copy(permissions = permissions + permission)
-
-    fun removePermission(permission: Permission): Route =
-        copy(permissions = permissions - permission)
+) {
 
     fun hasPermissionTo(toPath: String, routePermission: Permission): Boolean =
         toPath.startsWith(path) && permissions.contains(routePermission)

@@ -17,6 +17,7 @@ package org.panda_lang.reposilite.auth
 
 import org.panda_lang.reposilite.token.AccessTokenFacade
 import org.panda_lang.reposilite.token.api.AccessToken
+import org.panda_lang.reposilite.token.api.Permission.READ
 import org.panda_lang.utilities.commons.StringUtils
 import org.panda_lang.utilities.commons.function.Result
 import org.panda_lang.utilities.commons.function.Result.error
@@ -42,7 +43,7 @@ class Authenticator(private val accessTokenFacade: AccessTokenFacade) {
 
         val token = authResult.get()
 
-        if (!token.hasPermissionTo(processedUri)) {
+        if (!token.hasPermissionTo(processedUri, READ)) {
             return error("Unauthorized access attempt")
         }
 
@@ -81,13 +82,9 @@ class Authenticator(private val accessTokenFacade: AccessTokenFacade) {
             return error("Invalid authorization credentials")
         }
 
-        val tokenValue = accessTokenFacade.getToken(values[0])
+        val token = accessTokenFacade.getToken(values[0])
+            ?: return error("Invalid authorization credentials")
 
-        if (tokenValue.isEmpty) {
-            return error("Invalid authorization credentials")
-        }
-
-        val token = tokenValue.get()
         val authorized = AccessTokenFacade.B_CRYPT_TOKENS_ENCODER.matches(values[1], token.secret)
 
         if (!authorized) {

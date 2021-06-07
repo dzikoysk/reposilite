@@ -17,8 +17,7 @@ package org.panda_lang.reposilite.auth
 
 import org.panda_lang.reposilite.shared.HttpMethod
 import org.panda_lang.reposilite.token.api.AccessToken
-import org.panda_lang.reposilite.token.api.AccessToken.Companion.MANAGER
-import org.panda_lang.reposilite.token.api.Route
+import org.panda_lang.reposilite.token.api.Permission
 import java.nio.file.Path
 
 data class Session internal constructor(
@@ -31,11 +30,11 @@ data class Session internal constructor(
 
     companion object {
         val METHOD_PERMISSIONS = mapOf(
-            HttpMethod.HEAD to Route.READ,
-            HttpMethod.GET to Route.READ,
-            HttpMethod.PUT to Route.WRITE,
-            HttpMethod.POST to Route.WRITE,
-            HttpMethod.DELETE to Route.WRITE
+            HttpMethod.HEAD to Permission.READ,
+            HttpMethod.GET to Permission.READ,
+            HttpMethod.PUT to Permission.WRITE,
+            HttpMethod.POST to Permission.WRITE,
+            HttpMethod.DELETE to Permission.WRITE
         )
     }
 
@@ -43,7 +42,7 @@ data class Session internal constructor(
         isManager() || accessToken.hasPermissionTo(path, METHOD_PERMISSIONS[method]!!)
 
     fun isManager() =
-        accessToken.hasPermission(MANAGER)
+        accessToken.hasPermission(Permission.MANAGER)
 
     fun getSessionIdentifier() =
         "${accessToken.alias}@$address"

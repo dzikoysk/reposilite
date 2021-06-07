@@ -20,7 +20,7 @@ import org.panda_lang.reposilite.token.AccessTokenRepository
 import org.panda_lang.reposilite.token.api.AccessToken
 import java.util.concurrent.ConcurrentHashMap
 
-internal abstract class InMemoryAccessTokenRepository : AccessTokenRepository {
+internal class InMemoryAccessTokenRepository : AccessTokenRepository {
 
     private val tokens: MutableMap<Int, AccessToken> = ConcurrentHashMap()
 
@@ -28,8 +28,8 @@ internal abstract class InMemoryAccessTokenRepository : AccessTokenRepository {
         tokens[accessToken.id] = accessToken
     }
 
-    override fun deleteAccessTokenByAlias(alias: String) {
-        tokens.filter { it.value.alias == alias }.forEach { tokens.remove(it.key) }
+    override fun deleteAccessToken(accessToken: AccessToken) {
+        tokens.remove(accessToken.id)
     }
 
     override fun findAccessTokenByAlias(alias: String): AccessToken? =
