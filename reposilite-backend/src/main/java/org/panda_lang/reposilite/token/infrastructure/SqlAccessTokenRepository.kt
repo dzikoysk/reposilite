@@ -89,6 +89,8 @@ internal class SqlAccessTokenRepository : AccessTokenRepository {
                 accessTokenId,
                 result[AccessTokenTable.alias],
                 result[AccessTokenTable.secret],
+                result[AccessTokenTable.createdAt],
+                result[AccessTokenTable.description],
                 findAccessTokenPermissionsById(accessTokenId),
                 findRoutesById(accessTokenId)
             )

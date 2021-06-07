@@ -17,11 +17,14 @@ package org.panda_lang.reposilite.token.api
 
 import org.panda_lang.reposilite.shared.sql.IdentifiableEntity
 import org.panda_lang.reposilite.shared.sql.UNINITIALIZED_ENTITY_ID
+import java.time.LocalDate
 
 data class AccessToken internal constructor(
     override val id: Int = UNINITIALIZED_ENTITY_ID,
     val alias: String,
     val secret: String,
+    val createdAt: LocalDate = LocalDate.now(),
+    val description: String = "",
     val permissions: Collection<Permission> = emptyList(),
     val routes: Collection<Route> = emptyList()
 ) : IdentifiableEntity {
