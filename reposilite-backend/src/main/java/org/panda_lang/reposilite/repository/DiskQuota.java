@@ -45,7 +45,7 @@ public final class DiskQuota {
     }
 
     static DiskQuota ofPercentage(File workingDirectory, long usage, int percentage) {
-        return new DiskQuota(Math.round(workingDirectory.getUsableSpace() * (percentage / 100D)), usage);
+        return new DiskQuota(Math.round(workingDirectory.getTotalSpace() * (percentage / 100D)), usage);
     }
 
     static DiskQuota ofSize(long usage, String size) {
