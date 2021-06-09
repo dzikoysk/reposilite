@@ -37,6 +37,5 @@ fun <TABLE : Table> TABLE.insertOrUpdate(identifiableEntity: IdentifiableEntity,
     }
 }
 
-inline fun <T, R> Iterable<T>.firstAndMap(transform: (T) -> R): R? =
+fun <T, R> Iterable<T>.firstAndMap(transform: (T) -> R): R? =
     this.firstOrNull()?.let(transform)
-

@@ -18,12 +18,16 @@ package org.panda_lang.reposilite.stats.infrastructure
 
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.Column
-import org.panda_lang.reposilite.stats.api.RecordType
 
 internal object StatisticsTable : IntIdTable("statistics") {
 
-    val type: Column<RecordType> = enumeration("type", RecordType::class)
+    val type: Column<String> = varchar("type", 32)
     val identifier: Column<String> = varchar("identifier", 2048)
     val count: Column<Long> = long("count")
+
+    init {
+        index(columns = arrayOf(type))
+        uniqueIndex(type, identifier)
+    }
 
 }

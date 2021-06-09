@@ -118,6 +118,8 @@ internal abstract class FileSystemStorageProvider private constructor(
             }
 
             val fileChannel = FileChannel.open(file, WRITE, CREATE)
+            // TOFIX: FS locks are not truly respected, it should be enhanced with .lock file to be sure if it's respected.
+            // ~ https://github.com/dzikoysk/reposilite/issues/264
             fileChannel.lock()
 
             val bytesWritten = writer.apply(input, fileChannel).toLong()

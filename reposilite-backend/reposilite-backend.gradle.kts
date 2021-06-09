@@ -110,8 +110,6 @@ dependencies {
     testImplementation("com.google.http-client:google-http-client-jackson2:1.39.2")
     testImplementation("org.mockito:mockito-inline:3.9.0")
     testImplementation("org.mockito:mockito-core:3.9.0")
-
-    testImplementation("org.codehaus.groovy:groovy-all:3.0.7")
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.1")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 }

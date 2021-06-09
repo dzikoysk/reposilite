@@ -16,16 +16,18 @@
 
 package org.panda_lang.reposilite.stats.api
 
-data class Record(
-    val id: Int = -1,
-    val type: RecordType,
-    val identifier: String,
-    val count: Long
-)
+import org.panda_lang.reposilite.shared.sql.UNINITIALIZED_ENTITY_ID
 
 enum class RecordType {
     REQUEST
 }
+
+data class Record(
+    val id: Int = UNINITIALIZED_ENTITY_ID,
+    val type: RecordType,
+    val identifier: String,
+    val count: Long
+)
 
 data class RecordIdentifier(
     val type: RecordType,
