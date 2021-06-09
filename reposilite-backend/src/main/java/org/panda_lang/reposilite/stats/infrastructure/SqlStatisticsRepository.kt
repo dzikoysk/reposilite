@@ -16,7 +16,7 @@
 
 package org.panda_lang.reposilite.stats.infrastructure
 
-import org.jetbrains.exposed.sql.Op
+import org.jetbrains.exposed.sql.Op.Companion.build
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.SqlExpressionBuilder
@@ -27,6 +27,8 @@ import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.sum
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
+import org.panda_lang.reposilite.shared.sql.firstAndMap
+import org.panda_lang.reposilite.shared.sql.transactionUnit
 import org.panda_lang.reposilite.stats.StatisticsRepository
 import org.panda_lang.reposilite.stats.api.Record
 import org.panda_lang.reposilite.stats.api.RecordIdentifier
@@ -40,28 +42,26 @@ internal class SqlStatisticsRepository : StatisticsRepository {
         }
     }
 
-    override fun createRecord(identifier: RecordIdentifier, initCount: Long) {
-        transaction {
+    override fun createRecord(identifier: RecordIdentifier, initCount: Long) =
+        transactionUnit {
             StatisticsTable.insert {
-                it[StatisticsTable.type] = identifier.type
-                it[StatisticsTable.identifier] = identifier.identifier
-                it[StatisticsTable.count] = initCount
+                it[this.type] = identifier.type.name
+                it[this.identifier] = identifier.identifier
+                it[this.count] = initCount
             }
         }
-    }
 
-    override fun incrementRecord(identifier: RecordIdentifier, count: Long) {
-        transaction {
-            val id: Int? = StatisticsTable
-                .select { Op.build { StatisticsTable.type eq identifier.type }.and { StatisticsTable.identifier eq identifier.identifier } }
-                .map { it[StatisticsTable.id].value }
-                .firstOrNull()
+    override fun incrementRecord(identifier: RecordIdentifier, count: Long) =
+        transactionUnit {
+            val id = StatisticsTable
+                .select { build { StatisticsTable.type eq identifier.type.name }.and { StatisticsTable.identifier eq identifier.identifier } }
+                .firstAndMap { it[StatisticsTable.id].value }
 
             if (id == null) {
                 StatisticsTable.insert {
-                    it[StatisticsTable.type] = identifier.type
-                    it[StatisticsTable.identifier] = identifier.identifier
-                    it[StatisticsTable.count] = count
+                    it[this.type] = identifier.type.name
+                    it[this.identifier] = identifier.identifier
+                    it[this.count] = count
                 }
             }
             else {
@@ -73,42 +73,40 @@ internal class SqlStatisticsRepository : StatisticsRepository {
             }
 
         }
-    }
-
-    override fun findRecordByTypeAndIdentifier(identifier: RecordIdentifier): Record? = transaction {
-        StatisticsTable
-            .select { Op.build { StatisticsTable.type eq identifier.type }.and { StatisticsTable.identifier eq identifier.identifier } }
-            .map { toRecord(it) }
-            .firstOrNull()
-    }
-
-    override fun findRecordsByPhrase(type: RecordType, phrase: String): List<Record> = transaction {
-        StatisticsTable
-            .select { Op.build { StatisticsTable.type eq type }.and { StatisticsTable.identifier like "%${phrase}%" }}
-            .map { toRecord(it) }
-    }
 
     private fun toRecord(row: ResultRow) =
         Record(
             row[StatisticsTable.id].value,
-            row[StatisticsTable.type],
+            RecordType.valueOf(row[StatisticsTable.type].toUpperCase()),
             row[StatisticsTable.identifier],
             row[StatisticsTable.count]
         )
 
-    override fun countUniqueRecords(): Long = transaction {
-        StatisticsTable.selectAll().count()
-    }
+    override fun findRecordByTypeAndIdentifier(identifier: RecordIdentifier): Record? =
+        transaction {
+            StatisticsTable.select { build { StatisticsTable.type eq identifier.type.name }.and { StatisticsTable.identifier eq identifier.identifier } }
+                .firstAndMap { toRecord(it) }
+        }
 
-    override fun countRecords(): Long = transaction {
-        val countSum = StatisticsTable.count.sum()
+    override fun findRecordsByPhrase(type: RecordType, phrase: String): List<Record> =
+        transaction {
+            StatisticsTable.select { build { StatisticsTable.type eq type.name }.and { StatisticsTable.identifier like "%${phrase}%" }}
+                .map { toRecord(it) }
+        }
 
-        StatisticsTable
-            .slice(countSum)
-            .selectAll()
-            .first()
-            .let { it[countSum] }
-            ?: 0
-    }
+    override fun countRecords(): Long =
+        transaction {
+            StatisticsTable.count.sum().let { countSum ->
+                StatisticsTable.slice(countSum).selectAll()
+                    .first()
+                    .let { it[countSum] }
+                    ?: 0
+            }
+        }
+
+    override fun countUniqueRecords(): Long =
+        transaction {
+            StatisticsTable.selectAll().count()
+        }
 
 }
