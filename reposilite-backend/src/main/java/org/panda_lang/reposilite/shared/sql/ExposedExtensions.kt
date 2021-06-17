@@ -16,6 +16,8 @@
 
 package org.panda_lang.reposilite.shared.sql
 
+import net.dzikoysk.exposed.shared.IdentifiableEntity
+import net.dzikoysk.exposed.shared.UNINITIALIZED_ENTITY_ID
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.SqlExpressionBuilder
