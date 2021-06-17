@@ -26,6 +26,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption.CREATE
 import java.nio.file.StandardOpenOption.TRUNCATE_EXISTING
+import kotlin.reflect.full.isSubclassOf
 
 class ConfigurationLoader(private val journalist: Journalist) : Journalist {
 
@@ -108,24 +109,25 @@ class ConfigurationLoader(private val journalist: Journalist) : Journalist {
                 continue
             }
 
-            val type: Class<*> = ClassUtils.getNonPrimitiveClass(declaredField.type)
+            val type = ClassUtils.getNonPrimitiveClass(declaredField.type).kotlin
 
-            val customValue: Any? = if (String::class.java.isAssignableFrom(type)) {
-                custom
-            }
-            else if (Int::class.java.isAssignableFrom(type)) {
-                custom.toInt()
-            }
-            else if (Boolean::class.java.isAssignableFrom(type)) {
-                java.lang.Boolean.parseBoolean(custom)
-            }
-            else if (MutableCollection::class.java.isAssignableFrom(type)) {
-                listOf(*custom.split(",").toTypedArray())
-            }
-            else {
-                logger.info("Unsupported type: $type for $custom")
-                continue
-            }
+            val customValue: Any? =
+                if (String::class == type) {
+                    custom
+                }
+                else if (Int::class == type) {
+                    custom.toInt()
+                }
+                else if (Boolean::class == type) {
+                    java.lang.Boolean.parseBoolean(custom)
+                }
+                else if (MutableCollection::class.isSubclassOf(type)) {
+                    listOf(*custom.split(",").toTypedArray())
+                }
+                else {
+                    logger.info("Unsupported type: $type for $custom")
+                    continue
+                }
 
             try {
                 declaredField[configuration] = customValue
@@ -137,6 +139,5 @@ class ConfigurationLoader(private val journalist: Journalist) : Journalist {
 
     override fun getLogger(): Logger =
         journalist.logger
-
 
 }
