@@ -16,6 +16,7 @@
 
 package org.panda_lang.reposilite.token.infrastructure
 
+import net.dzikoysk.exposed.shared.UNINITIALIZED_ENTITY_ID
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.deleteWhere
@@ -23,7 +24,6 @@ import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.panda_lang.reposilite.shared.sql.UNINITIALIZED_ENTITY_ID
 import org.panda_lang.reposilite.shared.sql.firstAndMap
 import org.panda_lang.reposilite.shared.sql.transactionUnit
 import org.panda_lang.reposilite.token.AccessTokenRepository

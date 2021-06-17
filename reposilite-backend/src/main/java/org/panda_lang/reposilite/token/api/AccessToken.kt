@@ -15,8 +15,8 @@
  */
 package org.panda_lang.reposilite.token.api
 
-import org.panda_lang.reposilite.shared.sql.IdentifiableEntity
-import org.panda_lang.reposilite.shared.sql.UNINITIALIZED_ENTITY_ID
+import net.dzikoysk.exposed.shared.IdentifiableEntity
+import net.dzikoysk.exposed.shared.UNINITIALIZED_ENTITY_ID
 import java.time.LocalDate
 
 data class AccessToken internal constructor(

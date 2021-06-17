@@ -16,18 +16,19 @@
 
 package org.panda_lang.reposilite.stats.api
 
-import org.panda_lang.reposilite.shared.sql.UNINITIALIZED_ENTITY_ID
+import net.dzikoysk.exposed.shared.IdentifiableEntity
+import net.dzikoysk.exposed.shared.UNINITIALIZED_ENTITY_ID
 
 enum class RecordType {
     REQUEST
 }
 
 data class Record(
-    val id: Int = UNINITIALIZED_ENTITY_ID,
+    override val id: Int = UNINITIALIZED_ENTITY_ID,
     val type: RecordType,
     val identifier: String,
     val count: Long
-)
+) : IdentifiableEntity
 
 data class RecordIdentifier(
     val type: RecordType,

@@ -61,6 +61,7 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-dao:$exposed")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposed")
     implementation("org.jetbrains.exposed:exposed-java-time:$exposed")
+    implementation("net.dzikoysk:exposed-upsert:1.0.0")
     implementation("com.h2database:h2:1.4.199")
 
     val awssdk = "2.15.15"
