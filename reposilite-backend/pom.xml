@@ -45,7 +45,7 @@
         <dependency>
             <groupId>io.javalin</groupId>
             <artifactId>javalin-openapi</artifactId>
-            <version>4.0.0.ALPHA1</version>
+            <version>4.0.0.ALPHA3</version>
             <exclusions>
                 <exclusion>
                     <artifactId>snakeyaml</artifactId>
