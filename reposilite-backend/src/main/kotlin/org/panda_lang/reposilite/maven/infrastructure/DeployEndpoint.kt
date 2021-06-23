@@ -15,12 +15,13 @@
  */
 package org.panda_lang.reposilite.maven.infrastructure
 
+import com.dzikoysk.openapi.annotations.HttpMethod
+import com.dzikoysk.openapi.annotations.OpenApi
+import com.dzikoysk.openapi.annotations.OpenApiContent
+import com.dzikoysk.openapi.annotations.OpenApiParam
+import com.dzikoysk.openapi.annotations.OpenApiResponse
 import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.ContentType.FORM_DATA_MULTIPART
-import io.javalin.plugin.openapi.annotations.OpenApi
-import io.javalin.plugin.openapi.annotations.OpenApiContent
-import io.javalin.plugin.openapi.annotations.OpenApiParam
-import io.javalin.plugin.openapi.annotations.OpenApiResponse
 import org.panda_lang.reposilite.maven.MavenFacade
 import org.panda_lang.reposilite.maven.api.DeployRequest
 import org.panda_lang.reposilite.web.ReposiliteContextFactory
@@ -29,15 +30,19 @@ import org.panda_lang.reposilite.web.RouteMethod.POST
 import org.panda_lang.reposilite.web.RouteMethod.PUT
 import org.panda_lang.reposilite.web.context
 
+private const val ROUTE = "/{repositoryName}/*"
+
 internal class DeployEndpoint(
     private val contextFactory: ReposiliteContextFactory,
     private val mavenFacade: MavenFacade
 ) : RouteHandler {
 
-    override val route = "/{repositoryName}/*"
+    override val route = ROUTE
     override val methods = listOf(POST, PUT)
 
     @OpenApi(
+        path = ROUTE,
+        method = HttpMethod.POST,
         operationId = "repositoryDeploy",
         summary = "Deploy artifact to the repository",
         description = "Deploy supports both, POST and PUT, methods and allows to deploy artifact builds",

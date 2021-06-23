@@ -18,11 +18,10 @@ group = "org.panda-lang"
 version = "3.0.0-SNAPSHOT"
 
 plugins {
-    // groovy
-    java
-    kotlin("jvm") version "1.5.0"
-    `maven-publish`
+    kotlin("jvm") version "1.5.10"
+    kotlin("kapt") version "1.5.10"
     id("application")
+    `maven-publish`
 }
 
 java {
@@ -54,7 +53,7 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib"))
-    implementation("org.jetbrains.kotlin:kotlin-reflect:1.5.0")
+    implementation("org.jetbrains.kotlin:kotlin-reflect:1.5.10")
 
     val exposed = "0.32.1"
     implementation("org.jetbrains.exposed:exposed-core:$exposed")
@@ -68,9 +67,13 @@ dependencies {
     implementation("software.amazon.awssdk:bom:$awssdk")
     implementation("software.amazon.awssdk:s3:$awssdk")
 
-    val javalin = "4.0.0.ALPHA2"
-    implementation("io.javalin:javalin-openapi:$javalin")
+    val javalin = "4.0.0.ALPHA3"
     implementation("io.javalin:javalin:$javalin")
+
+    val openapi = "1.0.5"
+    kapt("com.dzikoysk:openapi-processor:$openapi")
+    implementation("com.dzikoysk:openapi-processor:$openapi")
+    implementation("com.dzikoysk:openapi-javalin-plugin:$openapi")
 
     val jetty = "9.4.40.v20210413"
     implementation("org.eclipse.jetty:jetty-server:$jetty")
@@ -119,6 +122,7 @@ tasks.getByName<Test>("test") {
     useJUnitPlatform()
 }
 
+/*
 tasks.register("depsize") {
     description = "Prints dependencies for \"default\" configuration"
     doLast { listConfigurationDependencies(configurations["default"])  }
@@ -156,3 +160,4 @@ fun listConfigurationDependencies(configuration: Configuration ) {
 
     println(out)
 }
+ */

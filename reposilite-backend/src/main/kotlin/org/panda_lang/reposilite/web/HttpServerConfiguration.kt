@@ -15,13 +15,11 @@
  */
 package org.panda_lang.reposilite.web
 
+import com.dzikoysk.openapi.javalin.OpenApiConfiguration
+import com.dzikoysk.openapi.javalin.OpenApiPlugin
 import io.javalin.Javalin
 import io.javalin.core.JavalinConfig
 import io.javalin.core.event.EventListener
-import io.javalin.plugin.openapi.OpenApiOptions
-import io.javalin.plugin.openapi.OpenApiPlugin
-import io.javalin.plugin.openapi.ui.SwaggerOptions
-import io.swagger.v3.oas.models.info.Info
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.util.ssl.SslContextFactory
@@ -84,6 +82,7 @@ internal class HttpServerConfiguration internal constructor(private val reposili
         config.showJavalinBanner = false
 
         if (configuration.swagger) {
+            /*
             val applicationInfo = Info()
                 .description(ReposiliteConstants.NAME)
                 .version(ReposiliteConstants.VERSION)
@@ -96,6 +95,14 @@ internal class HttpServerConfiguration internal constructor(private val reposili
                 .swagger(swaggerOptions)
 
             config.registerPlugin(OpenApiPlugin(options))
+             */
+
+            val openApiConfiguration = OpenApiConfiguration()
+            openApiConfiguration.title = configuration.title
+            openApiConfiguration.description = configuration.description
+            openApiConfiguration.version = ReposiliteConstants.VERSION
+
+            config.registerPlugin(OpenApiPlugin(openApiConfiguration))
         }
 
         if (configuration.debugEnabled) {

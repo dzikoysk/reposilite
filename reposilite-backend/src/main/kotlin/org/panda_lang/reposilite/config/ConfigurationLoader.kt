@@ -130,6 +130,7 @@ class ConfigurationLoader(private val journalist: Journalist) : Journalist {
                 }
 
             try {
+                declaredField.isAccessible = true
                 declaredField[configuration] = customValue
             } catch (illegalAccessException: IllegalAccessException) {
                 throw RuntimeException("Cannot modify configuration value", illegalAccessException)
