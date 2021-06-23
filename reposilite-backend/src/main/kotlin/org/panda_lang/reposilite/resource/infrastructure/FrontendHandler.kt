@@ -15,9 +15,10 @@
  */
 package org.panda_lang.reposilite.resource.infrastructure
 
+import com.dzikoysk.openapi.annotations.HttpMethod
+import com.dzikoysk.openapi.annotations.OpenApi
+import com.dzikoysk.openapi.annotations.OpenApiResponse
 import io.javalin.http.Context
-import io.javalin.plugin.openapi.annotations.OpenApi
-import io.javalin.plugin.openapi.annotations.OpenApiResponse
 import org.panda_lang.reposilite.resource.ResourceFacade
 import org.panda_lang.reposilite.web.RouteHandler
 import org.panda_lang.reposilite.web.RouteMethod.GET
@@ -28,6 +29,8 @@ internal class FrontendHandler(private val resourceFacade: ResourceFacade) : Rou
     override val methods = listOf(GET)
 
     @OpenApi(
+        path = "/js/app.js",
+        method = HttpMethod.GET,
         operationId = "getApp",
         summary = "Get frontend application",
         description = "Returns Vue.js application wrapped into one app.js file",

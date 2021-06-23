@@ -15,25 +15,27 @@
  */
 package org.panda_lang.reposilite.auth.infrastructure
 
+import com.dzikoysk.openapi.annotations.HttpMethod
+import com.dzikoysk.openapi.annotations.OpenApi
+import com.dzikoysk.openapi.annotations.OpenApiContent
+import com.dzikoysk.openapi.annotations.OpenApiParam
+import com.dzikoysk.openapi.annotations.OpenApiResponse
 import io.javalin.http.Context
-import io.javalin.plugin.openapi.annotations.HttpMethod
-import io.javalin.plugin.openapi.annotations.OpenApi
-import io.javalin.plugin.openapi.annotations.OpenApiContent
-import io.javalin.plugin.openapi.annotations.OpenApiParam
-import io.javalin.plugin.openapi.annotations.OpenApiResponse
 import org.panda_lang.reposilite.auth.AuthenticationFacade
 import org.panda_lang.reposilite.auth.api.AuthenticationResponse
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.web.RouteHandler
 import org.panda_lang.reposilite.web.RouteMethod.GET
 
+private const val ROUTE = "/api/auth"
+
 internal class AuthenticationEndpoint(private val authenticationFacade: AuthenticationFacade) : RouteHandler {
 
-    override val route = "/api/auth"
-
+    override val route = ROUTE
     override val methods = listOf(GET)
 
     @OpenApi(
+        path = ROUTE,
         operationId = "auth",
         method = HttpMethod.GET,
         summary = "Get token details",

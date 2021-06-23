@@ -19,7 +19,6 @@ package org.panda_lang.reposilite.resource.application
 import org.panda_lang.reposilite.config.Configuration
 import org.panda_lang.reposilite.resource.ResourceFacade
 import org.panda_lang.reposilite.resource.infrastructure.FrontendHandler
-import org.panda_lang.reposilite.resource.infrastructure.WebJarsHandler
 import org.panda_lang.reposilite.web.RouteHandler
 
 internal object ResourceWebConfiguration {
@@ -29,7 +28,6 @@ internal object ResourceWebConfiguration {
 
     fun installRouting(resourceFacade: ResourceFacade): List<RouteHandler> =
         listOf(
-            WebJarsHandler(),
             FrontendHandler(resourceFacade)
         )
 

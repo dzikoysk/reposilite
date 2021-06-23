@@ -15,11 +15,12 @@
  */
 package org.panda_lang.reposilite.maven.infrastructure
 
+import com.dzikoysk.openapi.annotations.HttpMethod
+import com.dzikoysk.openapi.annotations.OpenApi
+import com.dzikoysk.openapi.annotations.OpenApiContent
+import com.dzikoysk.openapi.annotations.OpenApiParam
+import com.dzikoysk.openapi.annotations.OpenApiResponse
 import io.javalin.http.Context
-import io.javalin.plugin.openapi.annotations.OpenApi
-import io.javalin.plugin.openapi.annotations.OpenApiContent
-import io.javalin.plugin.openapi.annotations.OpenApiParam
-import io.javalin.plugin.openapi.annotations.OpenApiResponse
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.maven.RepositoryService
 import org.panda_lang.reposilite.maven.api.FileDetailsResponse
@@ -30,15 +31,19 @@ import org.panda_lang.reposilite.web.RouteMethod.GET
 import org.panda_lang.reposilite.web.RouteMethod.HEAD
 import org.panda_lang.reposilite.web.context
 
+private const val ROUTE = "/*"
+
 internal class LookupEndpoint(
     private val contextFactory: ReposiliteContextFactory,
     private val repositoryService: RepositoryService
 ) : RouteHandler {
 
-    override val route = "/*"
+    override val route = ROUTE
     override val methods = listOf(HEAD, GET)
 
     @OpenApi(
+        path = ROUTE,
+        method = HttpMethod.GET,
         operationId = "repositoryApi",
         summary = "Browse the contents of repositories using API",
         description = "Get details about the requested file as JSON response",

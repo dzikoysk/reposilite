@@ -15,12 +15,12 @@
  */
 package org.panda_lang.reposilite.console.infrastructure
 
+import com.dzikoysk.openapi.annotations.HttpMethod
+import com.dzikoysk.openapi.annotations.OpenApi
+import com.dzikoysk.openapi.annotations.OpenApiContent
+import com.dzikoysk.openapi.annotations.OpenApiParam
+import com.dzikoysk.openapi.annotations.OpenApiResponse
 import io.javalin.http.Context
-import io.javalin.plugin.openapi.annotations.HttpMethod
-import io.javalin.plugin.openapi.annotations.OpenApi
-import io.javalin.plugin.openapi.annotations.OpenApiContent
-import io.javalin.plugin.openapi.annotations.OpenApiParam
-import io.javalin.plugin.openapi.annotations.OpenApiResponse
 import org.apache.http.HttpStatus
 import org.panda_lang.reposilite.console.ConsoleFacade
 import org.panda_lang.reposilite.console.MAX_COMMAND_LENGTH
@@ -32,15 +32,18 @@ import org.panda_lang.reposilite.web.RouteHandler
 import org.panda_lang.reposilite.web.RouteMethod.POST
 import org.panda_lang.reposilite.web.context
 
+private const val ROUTE = "/api/execute"
+
 internal class RemoteExecutionEndpoint(
     private val contextFactory: ReposiliteContextFactory,
     private val consoleFacade: ConsoleFacade
 ) : RouteHandler {
 
-    override val route = "/api/execute"
+    override val route = ROUTE
     override val methods = listOf(POST)
 
     @OpenApi(
+        path = ROUTE,
         operationId = "cli",
         method = HttpMethod.POST,
         summary = "Remote command execution",
