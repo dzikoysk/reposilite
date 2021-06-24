@@ -22,11 +22,11 @@ import org.panda_lang.reposilite.stats.api.RecordType
 
 internal interface StatisticsRepository {
 
-    fun createRecord(identifier: RecordIdentifier, initCount: Long)
+    fun incrementRecords(bulk: Map<RecordIdentifier, Long>)
 
-    fun incrementRecord(identifier: RecordIdentifier, count: Long)
+    fun incrementRecord(record: RecordIdentifier, count: Long)
 
-    fun findRecordByTypeAndIdentifier(identifier: RecordIdentifier): Record?
+    fun findRecordByTypeAndIdentifier(record: RecordIdentifier): Record?
 
     fun findRecordsByPhrase(type: RecordType, phrase: String): List<Record>
 
