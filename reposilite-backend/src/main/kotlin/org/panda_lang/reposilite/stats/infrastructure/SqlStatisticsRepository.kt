@@ -28,8 +28,8 @@ import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.sum
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.panda_lang.reposilite.shared.sql.firstAndMap
-import org.panda_lang.reposilite.shared.sql.transactionUnit
+import org.panda_lang.reposilite.shared.firstAndMap
+import org.panda_lang.reposilite.shared.transactionUnit
 import org.panda_lang.reposilite.stats.StatisticsRepository
 import org.panda_lang.reposilite.stats.api.Record
 import org.panda_lang.reposilite.stats.api.RecordIdentifier

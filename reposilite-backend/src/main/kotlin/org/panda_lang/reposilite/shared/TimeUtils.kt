@@ -13,16 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.panda_lang.reposilite
+package org.panda_lang.reposilite.shared
 
-object ReposiliteConstants {
+import java.util.*
 
-    const val NAME = "Reposilite"
+object TimeUtils {
 
-    const val VERSION = "3.0.0-SNAPSHOT"
+    fun getUptime(uptime: Long): Double {
+        val current = System.currentTimeMillis() - uptime
+        return current / 1000.0
+    }
 
-    const val REMOTE_VERSION = "https://repo.panda-lang.org/org/panda-lang/reposilite/latest"
-
-    const val CONFIGURATION_FILE_NAME = "reposilite.cdn"
+    fun format(time: Double): String {
+        return String.format(Locale.US, "%.2f", time)
+    }
 
 }

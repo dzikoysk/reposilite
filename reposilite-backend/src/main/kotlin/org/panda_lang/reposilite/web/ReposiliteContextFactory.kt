@@ -17,12 +17,13 @@ package org.panda_lang.reposilite.web
 
 import io.javalin.http.Context
 import io.javalin.http.HttpCode
+import io.javalin.http.HttpCode.UNAUTHORIZED
 import io.javalin.websocket.WsContext
 import net.dzikoysk.dynamiclogger.Journalist
 import org.panda_lang.reposilite.auth.AuthenticationFacade
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.failure.api.errorResponse
-import org.panda_lang.reposilite.shared.HttpMethod
+import org.panda_lang.reposilite.auth.SessionMethod
 import org.panda_lang.utilities.commons.function.Result
 import org.panda_lang.utilities.commons.function.Result.ok
 
@@ -43,7 +44,7 @@ class ReposiliteContextFactory internal constructor(
         val host = context.header(forwardedIpHeader) ?: context.req.remoteAddr
         val session = authenticationFacade.authenticateByHeader(context.headerMap())
             .map {
-                authenticationFacade.createSession(normalizedUri.get(), HttpMethod.valueOf(context.method().toUpperCase()), host, it)
+                authenticationFacade.createSession(normalizedUri.get(), SessionMethod.valueOf(context.method().toUpperCase()), host, it)
             }
 
         return ok(ReposiliteContext(
@@ -65,7 +66,7 @@ class ReposiliteContextFactory internal constructor(
             "SOCKET",
             context.header(forwardedIpHeader) ?: context.session.remoteAddress.toString(),
             context.headerMap(),
-            errorResponse(HttpCode.UNAUTHORIZED, "WebSocket based context does not support sessions"),
+            errorResponse(UNAUTHORIZED, "WebSocket based context does not support sessions"),
             lazy { throw UnsupportedOperationException("WebSocket based context does not support input stream") },
             { throw UnsupportedOperationException("WebSocket based context does not support input stream") }
         )

@@ -20,8 +20,8 @@ import io.javalin.http.HttpCode
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.failure.api.errorResponse
 import org.panda_lang.reposilite.maven.api.FileDetailsResponse
-import org.panda_lang.reposilite.shared.utils.FilesUtils
-import org.panda_lang.reposilite.shared.utils.FilesUtils.getMimeType
+import org.panda_lang.reposilite.shared.FilesUtils
+import org.panda_lang.reposilite.shared.FilesUtils.getMimeType
 import org.panda_lang.reposilite.storage.StorageProvider
 import org.panda_lang.utilities.commons.function.Result
 import org.panda_lang.utilities.commons.function.ThrowingBiFunction

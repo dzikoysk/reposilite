@@ -22,7 +22,7 @@
 
     <servlet>
         <servlet-name>ReposiliteServlet</servlet-name>
-        <servlet-class>org.panda_lang.reposilite.web.HttpServletConfiguration</servlet-class>
+        <servlet-class>org.panda_lang.reposilite.web.application.HttpServletConfiguration</servlet-class>
     </servlet>
 
     <servlet-mapping>

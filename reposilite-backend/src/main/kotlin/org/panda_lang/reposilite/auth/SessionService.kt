@@ -17,12 +17,11 @@
 package org.panda_lang.reposilite.auth
 
 import org.panda_lang.reposilite.maven.MavenFacade
-import org.panda_lang.reposilite.shared.HttpMethod
 import org.panda_lang.reposilite.token.api.AccessToken
 
 internal class SessionService(private val mavenFacade: MavenFacade) {
 
-    fun createSession(path: String, method: HttpMethod, address: String, accessToken: AccessToken) =
+    fun createSession(path: String, method: SessionMethod, address: String, accessToken: AccessToken) =
         Session(path, method, address, accessToken, emptyList())
 
 }

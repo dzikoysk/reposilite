@@ -14,21 +14,12 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.resource.application
+package org.panda_lang.reposilite.auth
 
-import org.panda_lang.reposilite.config.Configuration
-import org.panda_lang.reposilite.resource.ResourceFacade
-import org.panda_lang.reposilite.resource.infrastructure.FrontendHandler
-import org.panda_lang.reposilite.web.RouteHandler
-
-internal object ResourceWebConfiguration {
-
-    fun createFacade(configuration: Configuration): ResourceFacade =
-        ResourceFacade.load(configuration)
-
-    fun installRouting(resourceFacade: ResourceFacade): List<RouteHandler> =
-        listOf(
-            FrontendHandler(resourceFacade)
-        )
-
+enum class SessionMethod {
+    GET,
+    HEAD,
+    POST,
+    PUT,
+    DELETE
 }

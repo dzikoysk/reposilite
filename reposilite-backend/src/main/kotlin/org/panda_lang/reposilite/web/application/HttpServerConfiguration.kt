@@ -13,47 +13,67 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.panda_lang.reposilite.web
+package org.panda_lang.reposilite.web.application
 
 import com.dzikoysk.openapi.javalin.OpenApiConfiguration
 import com.dzikoysk.openapi.javalin.OpenApiPlugin
 import io.javalin.Javalin
 import io.javalin.core.JavalinConfig
-import io.javalin.core.event.EventListener
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.util.ssl.SslContextFactory
 import org.panda_lang.reposilite.Reposilite
-import org.panda_lang.reposilite.ReposiliteConstants
+import org.panda_lang.reposilite.ReposiliteWebConfiguration
+import org.panda_lang.reposilite.VERSION
 import org.panda_lang.reposilite.config.Configuration
+import org.panda_lang.reposilite.web.RouteMethod.AFTER
+import org.panda_lang.reposilite.web.RouteMethod.BEFORE
+import org.panda_lang.reposilite.web.RouteMethod.DELETE
+import org.panda_lang.reposilite.web.RouteMethod.GET
+import org.panda_lang.reposilite.web.RouteMethod.HEAD
+import org.panda_lang.reposilite.web.RouteMethod.POST
+import org.panda_lang.reposilite.web.RouteMethod.PUT
 
-internal class HttpServerConfiguration internal constructor(private val reposilite: Reposilite, private val servlet: Boolean) {
+internal class HttpServerConfiguration internal constructor(
+    private val reposilite: Reposilite,
+    private val servlet: Boolean
+) {
 
     var javalin: Javalin? = null
+        private set
 
     fun start(configuration: Configuration) {
-        javalin = create(configuration)
+        val javalin = create(configuration)
+            .events { listener ->
+                listener.serverStopping { reposilite.logger.info("Server stopping...") }
+                listener.serverStopped { reposilite.logger.info("Bye! Uptime: " + reposilite.getPrettyUptime()) }
+            }
+            .also { this.javalin = it }
 
-        // install routes here
-        javalin!!.events { event: EventListener ->
-            event.serverStopping {}
-            event.serverStopped { reposilite.logger.info("Bye! Uptime: " + reposilite.getPrettyUptime()) }
+        ReposiliteWebConfiguration.routing(reposilite).forEach { handler ->
+            handler.methods.forEach { method ->
+                when (method) {
+                    HEAD -> javalin.head(handler.route, handler)
+                    GET -> javalin.get(handler.route, handler)
+                    PUT -> javalin.put(handler.route, handler)
+                    POST -> javalin.post(handler.route, handler)
+                    DELETE -> javalin.delete(handler.route, handler)
+                    AFTER -> javalin.after(handler.route, handler)
+                    BEFORE -> javalin.before(handler.route, handler)
+                }
+            }
         }
 
         if (!servlet) {
-            javalin!!.start(configuration.hostname, configuration.port)
+            javalin?.start(configuration.hostname, configuration.port)
         }
     }
 
-    private fun create(configuration: Configuration): Javalin {
-        return if (servlet) Javalin.createStandalone { config: JavalinConfig ->
-            configure(
-                configuration,
-                config
-            )
-        }
-        else Javalin.create { config: JavalinConfig -> configure(configuration, config) }
-    }
+    private fun create(configuration: Configuration): Javalin =
+        if (servlet)
+            Javalin.createStandalone { configure(configuration, it) }
+        else
+            Javalin.create { configure(configuration, it) }
 
     private fun configure(configuration: Configuration, config: JavalinConfig) {
         val server = Server()
@@ -82,26 +102,10 @@ internal class HttpServerConfiguration internal constructor(private val reposili
         config.showJavalinBanner = false
 
         if (configuration.swagger) {
-            /*
-            val applicationInfo = Info()
-                .description(ReposiliteConstants.NAME)
-                .version(ReposiliteConstants.VERSION)
-
-            val swaggerOptions = SwaggerOptions("/swagger")
-                .title("Reposilite API documentation")
-
-            val options = OpenApiOptions(applicationInfo)
-                .path("/swagger-docs") // .reDoc(new ReDocOptions("/redoc"))
-                .swagger(swaggerOptions)
-
-            config.registerPlugin(OpenApiPlugin(options))
-             */
-
             val openApiConfiguration = OpenApiConfiguration()
             openApiConfiguration.title = configuration.title
             openApiConfiguration.description = configuration.description
-            openApiConfiguration.version = ReposiliteConstants.VERSION
-
+            openApiConfiguration.version = VERSION
             config.registerPlugin(OpenApiPlugin(openApiConfiguration))
         }
 

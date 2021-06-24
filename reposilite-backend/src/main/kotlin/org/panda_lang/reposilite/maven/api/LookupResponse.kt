@@ -15,7 +15,7 @@
  */
 package org.panda_lang.reposilite.maven.api
 
-import org.panda_lang.reposilite.shared.utils.FilesUtils.isReadable
+import org.panda_lang.reposilite.shared.FilesUtils.isReadable
 
 internal class LookupResponse(
     private val value: String? = null,

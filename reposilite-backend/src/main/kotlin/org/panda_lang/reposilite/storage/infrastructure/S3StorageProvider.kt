@@ -20,9 +20,9 @@ import io.javalin.http.HttpCode
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.failure.api.errorResponse
 import org.panda_lang.reposilite.maven.api.FileDetailsResponse
-import org.panda_lang.reposilite.shared.MimeTypes.MIME_OCTET_STREAM
-import org.panda_lang.reposilite.shared.MimeTypes.MIME_PLAIN
-import org.panda_lang.reposilite.shared.utils.FilesUtils.getMimeType
+import org.panda_lang.reposilite.web.api.MimeTypes.MIME_OCTET_STREAM
+import org.panda_lang.reposilite.web.api.MimeTypes.MIME_PLAIN
+import org.panda_lang.reposilite.shared.FilesUtils.getMimeType
 import org.panda_lang.reposilite.storage.StorageProvider
 import org.panda_lang.utilities.commons.function.Result
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider

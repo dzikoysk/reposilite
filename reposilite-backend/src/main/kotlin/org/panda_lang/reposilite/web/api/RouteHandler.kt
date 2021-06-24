@@ -24,7 +24,6 @@ interface RouteHandler : Handler {
 }
 
 enum class RouteMethod {
-
     HEAD,
     GET,
     PUT,
@@ -32,5 +31,4 @@ enum class RouteMethod {
     DELETE,
     AFTER,
     BEFORE
-
 }

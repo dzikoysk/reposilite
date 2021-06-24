@@ -17,7 +17,7 @@ package org.panda_lang.reposilite.console
 
 import net.dzikoysk.dynamiclogger.Journalist
 import net.dzikoysk.dynamiclogger.Logger
-import org.panda_lang.reposilite.ReposiliteConstants
+import org.panda_lang.reposilite.VERSION
 import org.panda_lang.reposilite.console.Status.FAILED
 import org.panda_lang.reposilite.console.api.ExecutionResponse
 import org.panda_lang.reposilite.failure.FailureFacade
@@ -28,7 +28,7 @@ import picocli.CommandLine.UnmatchedArgumentException
 import java.io.InputStream
 import java.util.function.Consumer
 
-@Command(name = "", version = ["Reposilite " + ReposiliteConstants.VERSION])
+@Command(name = "", version = ["Reposilite $VERSION"])
 internal class Console(
     private val journalist: Journalist,
     failureFacade: FailureFacade,

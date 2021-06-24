@@ -22,7 +22,7 @@ import org.panda_lang.reposilite.failure.FailureFacade
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.failure.api.errorResponse
 import org.panda_lang.reposilite.maven.api.FileDetailsResponse
-import org.panda_lang.reposilite.shared.utils.FilesUtils
+import org.panda_lang.reposilite.shared.FilesUtils
 import org.panda_lang.reposilite.web.projectToError
 import org.panda_lang.utilities.commons.StringUtils
 import org.panda_lang.utilities.commons.collection.Pair

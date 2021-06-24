@@ -13,23 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.panda_lang.reposilite.resource
+package org.panda_lang.reposilite.frontend
 
 import org.panda_lang.reposilite.config.Configuration
-import org.panda_lang.reposilite.shared.utils.FilesUtils.getResource
+import org.panda_lang.reposilite.shared.FilesUtils.getResource
 import org.panda_lang.utilities.commons.StringUtils
 import org.panda_lang.utilities.commons.function.Lazy
 import org.panda_lang.utilities.commons.text.Formatter
 import java.util.function.Supplier
 
-class ResourceFacade internal constructor(index: Supplier<String>, app: Supplier<String>) {
+class FrontendFacade internal constructor(index: Supplier<String>, app: Supplier<String>) {
 
     private val index: Lazy<String> = Lazy(index)
     private val app: Lazy<String> = Lazy(app)
 
     companion object {
 
-        fun load(configuration: Configuration): ResourceFacade {
+        fun load(configuration: Configuration): FrontendFacade {
             val formatter = Formatter()
                 .register("{{REPOSILITE.BASE_PATH}}", configuration.basePath)
                 .register("{{REPOSILITE.VUE_BASE_PATH}}", configuration.basePath.substring(0, configuration.basePath.length - 1))
@@ -37,7 +37,7 @@ class ResourceFacade internal constructor(index: Supplier<String>, app: Supplier
                 .register("{{REPOSILITE.DESCRIPTION}}", configuration.description.replace("'", "\\'"))
                 .register("{{REPOSILITE.ACCENT_COLOR}}", configuration.accentColor)
 
-            return ResourceFacade(
+            return FrontendFacade(
                 { formatter.format(getResource("/static/index.html")) },
                 { formatter.format(getResource("/static/js/app.js")) }
             )

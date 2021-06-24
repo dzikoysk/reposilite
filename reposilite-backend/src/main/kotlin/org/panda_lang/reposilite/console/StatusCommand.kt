@@ -16,9 +16,9 @@
 package org.panda_lang.reposilite.console
 
 import org.panda_lang.reposilite.Reposilite
-import org.panda_lang.reposilite.ReposiliteConstants
+import org.panda_lang.reposilite.VERSION
 import org.panda_lang.reposilite.console.Status.SUCCEEDED
-import org.panda_lang.reposilite.shared.utils.TimeUtils.format
+import org.panda_lang.reposilite.shared.TimeUtils.format
 import org.panda_lang.utilities.commons.IOUtils
 import org.panda_lang.utilities.commons.console.Effect.GREEN
 import org.panda_lang.utilities.commons.console.Effect.GREEN_BOLD
@@ -28,14 +28,17 @@ import picocli.CommandLine.Command
 import java.io.IOException
 
 @Command(name = "status", description = ["Display summary status of app health"])
-internal class StatusCommand(private val reposilite: Reposilite) : ReposiliteCommand {
+internal class StatusCommand(
+    private val reposilite: Reposilite,
+    private val remoteVersionUrl: String,
+) : ReposiliteCommand {
 
     override fun execute(output: MutableList<String>): Status {
         val latestVersion =
-            if (reposilite.testEnv) ReposiliteConstants.VERSION
+            if (reposilite.testEnv) VERSION
             else getVersion()
 
-        output.add("Reposilite ${ReposiliteConstants.VERSION} Status")
+        output.add("Reposilite $VERSION Status")
         output.add("  Active: $GREEN_BOLD${reposilite.httpServer.isAlive()}$RESET")
         output.add("  Uptime: ${format(reposilite.getUptime() / 1000.0 / 60.0)}min")
         output.add("  Memory usage of process: ${memoryUsage()}")
@@ -46,10 +49,9 @@ internal class StatusCommand(private val reposilite: Reposilite) : ReposiliteCom
     }
 
     private fun getVersion(): String =
-        IOUtils
-            .fetchContent(ReposiliteConstants.REMOTE_VERSION)
-            .orElseGet { ioException: IOException -> ReposiliteConstants.REMOTE_VERSION + " is unavailable: " + ioException.message }
-            .let { (if (ReposiliteConstants.VERSION == it) GREEN else RED_UNDERLINED).toString() + it + RESET }
+        IOUtils.fetchContent(remoteVersionUrl)
+            .orElseGet { ioException: IOException -> "$remoteVersionUrl is unavailable: ${ioException.message}" }
+            .let { (if (VERSION == it) GREEN else RED_UNDERLINED).toString() + it + RESET }
 
     private fun memoryUsage(): String =
         format((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1024.0 / 1024.0) + "M"

@@ -20,7 +20,6 @@ import io.javalin.http.HttpCode
 import net.dzikoysk.dynamiclogger.Journalist
 import net.dzikoysk.dynamiclogger.Logger
 import org.panda_lang.reposilite.failure.api.ErrorResponse
-import org.panda_lang.reposilite.shared.HttpMethod
 import org.panda_lang.reposilite.token.api.AccessToken
 import org.panda_lang.utilities.commons.function.Result
 
@@ -38,7 +37,7 @@ class AuthenticationFacade internal constructor(
         authenticator.authByCredentials(credentials)
             .mapErr { error -> ErrorResponse(HttpCode.UNAUTHORIZED, error) }
 
-    fun createSession(path: String, method: HttpMethod, address: String, accessToken: AccessToken): Session =
+    fun createSession(path: String, method: SessionMethod, address: String, accessToken: AccessToken): Session =
         sessionService.createSession(path, method, address, accessToken)
 
     override fun getLogger(): Logger =

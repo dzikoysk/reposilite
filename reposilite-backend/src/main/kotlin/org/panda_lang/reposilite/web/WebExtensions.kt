@@ -51,12 +51,6 @@ fun normalizeUri(uri: String): Option<String> {
 }
 
 /**
- * Returns the given string only if the condition is true, otherwise returns empty string
- */
-fun textIf(condition: Boolean, value: String): String =
-    if (condition) value else ""
-
-/**
  * Extends Javalin's context with a support for [ErrorResponse] results
  */
 fun Context.error(error: ErrorResponse): Context =

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.panda_lang.reposilite.web
+package org.panda_lang.reposilite.web.application
 
 import org.panda_lang.reposilite.ReposiliteLauncher
 import javax.servlet.annotation.MultipartConfig
