@@ -16,7 +16,7 @@
 
 package org.panda_lang.reposilite.storage.infrastructure
 
-import org.apache.http.HttpStatus
+import io.javalin.http.HttpCode
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.failure.api.errorResponse
 import org.panda_lang.reposilite.maven.api.FileDetailsResponse
@@ -108,7 +108,7 @@ internal abstract class FileSystemStorageProvider private constructor(
             val size = measure.apply(input).toLong()
 
             if (!canHold(size)) {
-                return errorResponse(HttpStatus.SC_INSUFFICIENT_STORAGE, "Not enough storage space available")
+                return errorResponse(HttpCode.INSUFFICIENT_STORAGE, "Not enough storage space available")
             }
 
             if (file.parent != null && !Files.exists(file.parent)) {
@@ -138,25 +138,25 @@ internal abstract class FileSystemStorageProvider private constructor(
             )
         }
         catch (ioException: IOException) {
-            errorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, ioException.localizedMessage)
+            errorResponse(HttpCode.INTERNAL_SERVER_ERROR, ioException.localizedMessage)
         }
     }
 
     override fun getFile(file: Path): Result<ByteArray, ErrorResponse> {
         return if (!Files.exists(file) || Files.isDirectory(file)) {
-            errorResponse(HttpStatus.SC_NOT_FOUND, "File not found: $file")
+            errorResponse(HttpCode.NOT_FOUND, "File not found: $file")
         }
         else try {
             Result.ok(Files.readAllBytes(file))
         }
         catch (ioException: IOException) {
-            errorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, ioException.localizedMessage)
+            errorResponse(HttpCode.INTERNAL_SERVER_ERROR, ioException.localizedMessage)
         }
     }
 
     override fun getFileDetails(file: Path): Result<FileDetailsResponse, ErrorResponse> {
         return if (!Files.exists(file)) {
-            errorResponse(HttpStatus.SC_NOT_FOUND, "File not found: $file")
+            errorResponse(HttpCode.NOT_FOUND, "File not found: $file")
         }
         else try {
             Result.ok(
@@ -169,20 +169,20 @@ internal abstract class FileSystemStorageProvider private constructor(
                 )
             )
         } catch (ioException: IOException) {
-            errorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, ioException.localizedMessage)
+            errorResponse(HttpCode.INTERNAL_SERVER_ERROR, ioException.localizedMessage)
         }
     }
 
     override fun removeFile(file: Path): Result<Unit, ErrorResponse> {
         return try {
             if (!Files.exists(file)) {
-                return errorResponse(HttpStatus.SC_NOT_FOUND, "File not found: $file")
+                return errorResponse(HttpCode.NOT_FOUND, "File not found: $file")
             }
 
             Files.delete(file)
             Result.ok(Unit)
         } catch (ioException: IOException) {
-            errorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, ioException.localizedMessage)
+            errorResponse(HttpCode.INTERNAL_SERVER_ERROR, ioException.localizedMessage)
         }
     }
 
@@ -192,24 +192,24 @@ internal abstract class FileSystemStorageProvider private constructor(
                 .filter { path: Path -> path != directory }
                 .toList())
         } catch (ioException: IOException) {
-            errorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, ioException.localizedMessage)
+            errorResponse(HttpCode.INTERNAL_SERVER_ERROR, ioException.localizedMessage)
         }
     }
 
     override fun getLastModifiedTime(file: Path): Result<FileTime, ErrorResponse> {
         return try {
             if (!Files.exists(file)) {
-                errorResponse(HttpStatus.SC_NOT_FOUND, "File not found: $file")
+                errorResponse(HttpCode.NOT_FOUND, "File not found: $file")
             } else Result.ok(Files.getLastModifiedTime(file))
         } catch (ioException: IOException) {
-            errorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, ioException.localizedMessage)
+            errorResponse(HttpCode.INTERNAL_SERVER_ERROR, ioException.localizedMessage)
         }
     }
 
     override fun getFileSize(file: Path): Result<Long, ErrorResponse> {
         return try {
             if (!Files.exists(file)) {
-                return errorResponse(HttpStatus.SC_NOT_FOUND, "File not found: $file")
+                return errorResponse(HttpCode.NOT_FOUND, "File not found: $file")
             }
 
             var size: Long = 0
@@ -226,7 +226,7 @@ internal abstract class FileSystemStorageProvider private constructor(
             Result.ok(size)
         }
         catch (ioException: IOException) {
-            errorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, ioException.localizedMessage)
+            errorResponse(HttpCode.INTERNAL_SERVER_ERROR, ioException.localizedMessage)
         }
     }
 

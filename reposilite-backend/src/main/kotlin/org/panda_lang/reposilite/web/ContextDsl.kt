@@ -17,7 +17,7 @@
 package org.panda_lang.reposilite.web
 
 import io.javalin.http.Context
-import org.apache.http.HttpStatus
+import io.javalin.http.HttpCode
 import org.panda_lang.reposilite.auth.Session
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.utilities.commons.function.Result
@@ -49,7 +49,7 @@ internal class ContextDsl(
             if (isAuthorized()) {
                 init.invoke(this)
             } else {
-                ctx.error(ErrorResponse(HttpStatus.SC_UNAUTHORIZED, ""))
+                ctx.error(ErrorResponse(HttpCode.UNAUTHORIZED, ""))
             }
         }
     }

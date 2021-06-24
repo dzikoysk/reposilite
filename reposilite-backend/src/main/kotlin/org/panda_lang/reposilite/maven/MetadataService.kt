@@ -17,7 +17,7 @@ package org.panda_lang.reposilite.maven
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
-import org.apache.http.HttpStatus
+import io.javalin.http.HttpCode
 import org.panda_lang.reposilite.failure.FailureFacade
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.failure.api.errorResponse
@@ -50,7 +50,7 @@ internal class MetadataService(private val failureFacade: FailureFacade) {
 
     fun getMetadata(repository: Repository, requested: Path): Result<Pair<FileDetailsResponse, String>, ErrorResponse> {
         if (requested.fileName.toString() != "maven-metadata.xml") {
-            return errorResponse(HttpStatus.SC_BAD_REQUEST, "Bad request")
+            return errorResponse(HttpCode.BAD_REQUEST, "Bad request")
         }
 
         val cachedContent: Pair<FileDetailsResponse, String>? = metadataCache[requested]
@@ -62,7 +62,7 @@ internal class MetadataService(private val failureFacade: FailureFacade) {
         val artifactDirectory = requested.parent
 
         if (repository.exists(artifactDirectory)) {
-            return errorResponse(HttpStatus.SC_BAD_REQUEST, "Bad request")
+            return errorResponse(HttpCode.BAD_REQUEST, "Bad request")
         }
 
         val versions: Result<List<Path>, ErrorResponse> = MetadataUtils.toSortedVersions(repository, artifactDirectory)
@@ -115,7 +115,7 @@ internal class MetadataService(private val failureFacade: FailureFacade) {
         }
 
         val latestBuild = builds.get().firstOrNull()
-            ?: return errorResponse(HttpStatus.SC_NOT_FOUND, "Latest build not found")
+            ?: return errorResponse(HttpCode.NOT_FOUND, "Latest build not found")
 
         val name = artifactDirectory.fileName.toString()
         val version = StringUtils.replace(versionDirectory.fileName.toString(), "-SNAPSHOT", StringUtils.EMPTY)
@@ -177,7 +177,7 @@ internal class MetadataService(private val failureFacade: FailureFacade) {
         }
         catch (ioException: IOException) {
             failureFacade.throwException(metadataFile.toAbsolutePath().toString(), ioException)
-            errorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Cannot generate metadata")
+            errorResponse(HttpCode.INTERNAL_SERVER_ERROR, "Cannot generate metadata")
         }
     }
 
