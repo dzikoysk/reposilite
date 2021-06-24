@@ -15,7 +15,7 @@
  */
 package org.panda_lang.reposilite.console
 
-import org.panda_lang.reposilite.ReposiliteConstants
+import org.panda_lang.reposilite.VERSION
 import org.panda_lang.reposilite.console.Status.FAILED
 import org.panda_lang.reposilite.console.Status.SUCCEEDED
 import org.panda_lang.utilities.commons.text.Joiner
@@ -50,7 +50,7 @@ internal class HelpCommand(private val consoleFacade: ConsoleFacade) : Reposilit
             uniqueCommands.addAll(consoleFacade.getCommands().values)
         }
 
-        output.add("Reposilite ${ReposiliteConstants.VERSION} Commands:")
+        output.add("Reposilite $VERSION Commands:")
 
         for (command in uniqueCommands) {
             val specification = command.commandSpec

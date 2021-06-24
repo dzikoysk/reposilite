@@ -15,12 +15,20 @@
  */
 package org.panda_lang.reposilite
 
+import net.dzikoysk.dynamiclogger.backend.AggregatedLogger
+import net.dzikoysk.dynamiclogger.slf4j.Slf4jLogger
+import org.jetbrains.exposed.sql.Database
+import org.panda_lang.reposilite.config.ConfigurationLoader
+import org.slf4j.LoggerFactory
 import picocli.CommandLine
 import picocli.CommandLine.Command
 import picocli.CommandLine.Option
+import java.nio.file.Path
 import java.nio.file.Paths
 
-@Command(name = "reposilite", version = ["Reposilite " + ReposiliteConstants.VERSION])
+const val CONFIGURATION_FILE_NAME = "reposilite.cdn"
+
+@Command(name = "reposilite", version = ["Reposilite $VERSION"])
 class ReposiliteLauncher {
 
     @Option(names = ["--help", "-H"], usageHelp = true, description = ["display help message"])
@@ -49,7 +57,7 @@ class ReposiliteLauncher {
             }
 
             if (launcher.versionInfoRequested) {
-                println("Reposilite " + ReposiliteConstants.VERSION)
+                println("Reposilite $VERSION")
                 return null
             }
 
@@ -64,11 +72,24 @@ class ReposiliteLauncher {
             }
 
             val configurationFile = workingDirectory.resolve(
-                if (configurationFileName == null || configurationFileName.isEmpty()) ReposiliteConstants.CONFIGURATION_FILE_NAME
+                if (configurationFileName == null || configurationFileName.isEmpty()) CONFIGURATION_FILE_NAME
                 else configurationFileName
             )
 
-            return ReposiliteFactory.createReposilite(configurationFile, workingDirectory, testEnv)
+            return createReposilite(configurationFile, workingDirectory, testEnv)
+        }
+
+        private fun createReposilite(configurationFile: Path, workingDirectory: Path, testEnv: Boolean): Reposilite {
+            val logger = AggregatedLogger(
+                Slf4jLogger(LoggerFactory.getLogger(Reposilite::class.java))
+            )
+
+            val configurationLoader = ConfigurationLoader(logger)
+            val configuration = configurationLoader.tryLoad(configurationFile)
+
+            Database.connect("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;mode=MySQL", driver = "org.h2.Driver") // TOFIX: SQL schemas requires connection at startup, somehow delegate it later
+
+            return ReposiliteWebConfiguration.createReposilite(logger, configuration, workingDirectory, testEnv)
         }
     }
 

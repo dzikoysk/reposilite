@@ -30,7 +30,7 @@ import org.panda_lang.reposilite.web.RouteMethod.POST
 import org.panda_lang.reposilite.web.RouteMethod.PUT
 import org.panda_lang.reposilite.web.context
 
-private const val ROUTE = "/{repositoryName}/*"
+private const val ROUTE = "/:repositoryName/*"
 
 internal class DeployEndpoint(
     private val contextFactory: ReposiliteContextFactory,
@@ -68,18 +68,12 @@ internal class DeployEndpoint(
             )
         ]
     )
-    override fun handle(ctx: Context) = context(contextFactory, ctx) {
+    override fun handle(ctx: Context) =  context(contextFactory, ctx) {
         context.logger.debug("DEPLOY ${context.uri} from ${context.address}")
 
         authorized {
-            val request = DeployRequest(
-                parameter("repositoryName"),
-                wildcard(),
-                getSessionIdentifier(),
-                context.input()
-            )
-
-            response = mavenFacade.deployArtifact(request)
+            response = DeployRequest(parameter("repositoryName"), wildcard(), getSessionIdentifier(), context.input())
+                .let { mavenFacade.deployArtifact(it) }
                 .onError { context.logger.debug("Cannot deploy artifact due to: ${it.message}") }
         }
     }

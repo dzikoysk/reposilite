@@ -15,7 +15,7 @@
  */
 package org.panda_lang.reposilite.console
 
-import org.panda_lang.reposilite.ReposiliteConstants
+import org.panda_lang.reposilite.VERSION
 import org.panda_lang.reposilite.console.Status.SUCCEEDED
 import picocli.CommandLine.Command
 
@@ -23,7 +23,7 @@ import picocli.CommandLine.Command
 internal class VersionCommand : ReposiliteCommand {
 
     override fun execute(output: MutableList<String>): Status {
-        output.add("Reposilite " + ReposiliteConstants.VERSION)
+        output.add("Reposilite $VERSION")
         return SUCCEEDED
     }
 

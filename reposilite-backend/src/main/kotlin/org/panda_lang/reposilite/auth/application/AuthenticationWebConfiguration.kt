@@ -35,8 +35,8 @@ internal object AuthenticationWebConfiguration {
         return AuthenticationFacade(journalist, authenticator, sessionService)
     }
 
-    fun installRoutes(authenticationFacade: AuthenticationFacade): List<RouteHandler> =
-        listOf(
+    fun routing(authenticationFacade: AuthenticationFacade): Set<RouteHandler> =
+        setOf(
             AuthenticationEndpoint(authenticationFacade),
             PostAuthHandler()
         )

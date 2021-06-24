@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.panda_lang.reposilite.resource.infrastructure
+package org.panda_lang.reposilite.frontend.infrastructure
 
 import com.dzikoysk.openapi.annotations.HttpMethod
 import com.dzikoysk.openapi.annotations.OpenApi
 import com.dzikoysk.openapi.annotations.OpenApiResponse
 import io.javalin.http.Context
-import org.panda_lang.reposilite.resource.ResourceFacade
+import org.panda_lang.reposilite.frontend.FrontendFacade
 import org.panda_lang.reposilite.web.RouteHandler
 import org.panda_lang.reposilite.web.RouteMethod.GET
 
-internal class FrontendHandler(private val resourceFacade: ResourceFacade) : RouteHandler {
+internal class FrontendHandler(private val frontendFacade: FrontendFacade) : RouteHandler {
 
     override val route = "/js/app.js"
     override val methods = listOf(GET)
@@ -38,7 +38,7 @@ internal class FrontendHandler(private val resourceFacade: ResourceFacade) : Rou
         responses = [ OpenApiResponse(status = "200", description = "Default response") ]
     )
     override fun handle(context: Context) {
-        with(context.result(resourceFacade.getApp())) {
+        with(context.result(frontendFacade.getApp())) {
             header("Content-Type", "application/javascript")
             res.characterEncoding = "UTF-8"
         }

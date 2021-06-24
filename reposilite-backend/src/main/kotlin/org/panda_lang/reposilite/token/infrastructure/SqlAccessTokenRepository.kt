@@ -24,8 +24,8 @@ import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.panda_lang.reposilite.shared.sql.firstAndMap
-import org.panda_lang.reposilite.shared.sql.transactionUnit
+import org.panda_lang.reposilite.shared.firstAndMap
+import org.panda_lang.reposilite.shared.transactionUnit
 import org.panda_lang.reposilite.token.AccessTokenRepository
 import org.panda_lang.reposilite.token.api.AccessToken
 import org.panda_lang.reposilite.token.api.Permission

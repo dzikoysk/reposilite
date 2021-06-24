@@ -13,20 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.panda_lang.reposilite.shared.utils
 
-import java.util.*
+package org.panda_lang.reposilite.frontend.application
 
-object TimeUtils {
+import org.panda_lang.reposilite.config.Configuration
+import org.panda_lang.reposilite.frontend.FrontendFacade
+import org.panda_lang.reposilite.frontend.infrastructure.FrontendHandler
+import org.panda_lang.reposilite.web.RouteHandler
 
-    fun getUptime(uptime: Long): Double {
-        val current = System.currentTimeMillis() - uptime
-        return current / 1000.0
-    }
+internal object FrontendWebConfiguration {
 
-    @JvmStatic
-    fun format(time: Double): String {
-        return String.format(Locale.US, "%.2f", time)
-    }
+    fun createFacade(configuration: Configuration): FrontendFacade =
+        FrontendFacade.load(configuration)
+
+    fun routing(frontendFacade: FrontendFacade): List<RouteHandler> =
+        listOf(
+            FrontendHandler(frontendFacade)
+        )
 
 }

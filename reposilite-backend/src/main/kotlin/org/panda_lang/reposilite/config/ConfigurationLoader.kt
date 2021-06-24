@@ -18,7 +18,7 @@ package org.panda_lang.reposilite.config
 import net.dzikoysk.cdn.CdnFactory
 import net.dzikoysk.dynamiclogger.Journalist
 import net.dzikoysk.dynamiclogger.Logger
-import org.panda_lang.reposilite.shared.utils.FilesUtils.getExtension
+import org.panda_lang.reposilite.shared.FilesUtils.getExtension
 import org.panda_lang.utilities.commons.ClassUtils
 import org.panda_lang.utilities.commons.StringUtils
 import java.nio.charset.StandardCharsets

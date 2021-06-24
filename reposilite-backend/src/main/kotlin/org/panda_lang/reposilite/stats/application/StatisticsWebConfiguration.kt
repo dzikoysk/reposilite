@@ -26,19 +26,19 @@ import org.panda_lang.reposilite.web.RouteHandler
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit.MINUTES
 
-internal object StatsWebConfiguration {
+internal object StatisticsWebConfiguration {
 
     fun createFacade(journalist: Journalist): StatisticsFacade =
         StatisticsFacade(journalist, SqlStatisticsRepository())
 
-    fun configure(consoleFacade: ConsoleFacade, statisticsFacade: StatisticsFacade) {
+    fun initialize(statisticsFacade: StatisticsFacade, consoleFacade: ConsoleFacade) {
         val scheduler = Executors.newSingleThreadScheduledExecutor() // Maybe use some shared ThreadPool to avoid Thread creation
         scheduler.scheduleWithFixedDelay({ statisticsFacade.saveRecordsBulk() }, 1, 1, MINUTES)
 
         consoleFacade.registerCommand(StatsCommand(statisticsFacade))
     }
 
-    fun installRouting(statisticsFacade: StatisticsFacade): List<RouteHandler> =
+    fun routing(statisticsFacade: StatisticsFacade): List<RouteHandler> =
         listOf(
             StatisticsHandler(statisticsFacade)
         )

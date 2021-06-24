@@ -15,14 +15,13 @@
  */
 package org.panda_lang.reposilite.auth
 
-import org.panda_lang.reposilite.shared.HttpMethod
 import org.panda_lang.reposilite.token.api.AccessToken
 import org.panda_lang.reposilite.token.api.Permission
 import java.nio.file.Path
 
 data class Session internal constructor(
     val path: String,
-    val method: HttpMethod,
+    val method: SessionMethod,
     val address: String,
     val accessToken: AccessToken,
     val availableResources: List<Path>
@@ -30,11 +29,11 @@ data class Session internal constructor(
 
     companion object {
         val METHOD_PERMISSIONS = mapOf(
-            HttpMethod.HEAD to Permission.READ,
-            HttpMethod.GET to Permission.READ,
-            HttpMethod.PUT to Permission.WRITE,
-            HttpMethod.POST to Permission.WRITE,
-            HttpMethod.DELETE to Permission.WRITE
+            SessionMethod.HEAD to Permission.READ,
+            SessionMethod.GET to Permission.READ,
+            SessionMethod.PUT to Permission.WRITE,
+            SessionMethod.POST to Permission.WRITE,
+            SessionMethod.DELETE to Permission.WRITE
         )
     }
 

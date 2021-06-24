@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.panda_lang.reposilite.shared.utils
+package org.panda_lang.reposilite.shared
 
 import com.google.common.hash.Hashing
 import org.panda_lang.reposilite.Reposilite
 import org.panda_lang.reposilite.maven.Repository
-import org.panda_lang.reposilite.shared.MimeTypes
+import org.panda_lang.reposilite.web.api.MimeTypes
 import org.panda_lang.utilities.commons.IOUtils
 import org.panda_lang.utilities.commons.StringUtils
 import java.io.Closeable

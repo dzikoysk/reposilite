@@ -22,19 +22,21 @@ import net.dzikoysk.dynamiclogger.backend.AggregatedLogger
 import org.panda_lang.reposilite.auth.AuthenticationFacade
 import org.panda_lang.reposilite.config.Configuration
 import org.panda_lang.reposilite.console.ConsoleFacade
-import org.panda_lang.reposilite.console.application.ConsoleWebConfiguration
 import org.panda_lang.reposilite.failure.FailureFacade
-import org.panda_lang.reposilite.failure.application.FailureWebConfiguration
+import org.panda_lang.reposilite.frontend.FrontendFacade
 import org.panda_lang.reposilite.maven.MavenFacade
 import org.panda_lang.reposilite.shared.CachedLogger
-import org.panda_lang.reposilite.shared.utils.TimeUtils
+import org.panda_lang.reposilite.shared.TimeUtils
+import org.panda_lang.reposilite.stats.StatisticsFacade
 import org.panda_lang.reposilite.token.AccessTokenFacade
-import org.panda_lang.reposilite.token.application.AccessTokenWebConfiguration
-import org.panda_lang.reposilite.web.HttpServerConfiguration
+import org.panda_lang.reposilite.web.application.HttpServerConfiguration
 import org.panda_lang.reposilite.web.ReposiliteContextFactory
 import org.panda_lang.utilities.commons.console.Effect
 import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicBoolean
+
+const val NAME = "Reposilite"
+const val VERSION = "3.0.0-SNAPSHOT"
 
 class Reposilite(
     logger: Logger,
@@ -46,7 +48,9 @@ class Reposilite(
     val authenticationFacade: AuthenticationFacade,
     val mavenFacade: MavenFacade,
     val consoleFacade: ConsoleFacade,
-    val accessTokenFacade: AccessTokenFacade
+    val accessTokenFacade: AccessTokenFacade,
+    val frontendFacade: FrontendFacade,
+    val statisitcsFacade: StatisticsFacade,
 ) : Journalist {
 
     internal val httpServer = HttpServerConfiguration(this, false)
@@ -65,7 +69,7 @@ class Reposilite(
 
     fun load() {
         logger.info("")
-        logger.info("${Effect.GREEN}Reposilite ${Effect.RESET}${ReposiliteConstants.VERSION}")
+        logger.info("${Effect.GREEN}Reposilite ${Effect.RESET}$VERSION")
         logger.info("")
         logger.info("--- Environment")
 
@@ -78,10 +82,7 @@ class Reposilite(
         logger.info("")
 
         logger.info("--- Loading domain configurations")
-        // Arrays.stream(configurations()).forEach { domainConfigurer -> domainConfigurer.configure(this) }
-        FailureWebConfiguration.initialize(consoleFacade, failureFacade)
-        ConsoleWebConfiguration.initialize(consoleFacade, this)
-        AccessTokenWebConfiguration.initialize(consoleFacade, accessTokenFacade)
+        ReposiliteWebConfiguration.initialize(this)
         logger.info("")
 
         logger.info("--- Repositories")
@@ -124,6 +125,7 @@ class Reposilite(
         Runtime.getRuntime().removeShutdownHook(shutdownHook)
 
         logger.info("Shutting down ${configuration.hostname}::${configuration.port} ...")
+        ReposiliteWebConfiguration.dispose(this)
         httpServer.stop()
     }
 

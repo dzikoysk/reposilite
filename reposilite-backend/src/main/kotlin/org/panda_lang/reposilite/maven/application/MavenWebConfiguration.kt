@@ -38,7 +38,7 @@ internal object MavenWebConfiguration {
         return MavenFacade(journalist, repositoryService, metadataService, deployService)
     }
 
-    fun installRouting(contextFactory: ReposiliteContextFactory, mavenFacade: MavenFacade): List<RouteHandler> =
+    fun routing(contextFactory: ReposiliteContextFactory, mavenFacade: MavenFacade): List<RouteHandler> =
         listOf(
             // Route("/api", HttpMethod.GET, lookupApiEndpoint),
             // Route("/api/*", HttpMethod.GET, lookupApiEndpoint),

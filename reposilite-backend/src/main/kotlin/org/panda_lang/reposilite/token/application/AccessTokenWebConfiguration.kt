@@ -31,7 +31,7 @@ internal object AccessTokenWebConfiguration {
     fun createFacade(journalist: Journalist): AccessTokenFacade =
         AccessTokenFacade(journalist, SqlAccessTokenRepository())
 
-    fun initialize(consoleFacade: ConsoleFacade, accessTokenFacade: AccessTokenFacade) {
+    fun initialize(accessTokenFacade: AccessTokenFacade, consoleFacade: ConsoleFacade) {
         consoleFacade.registerCommand(TokensCommand(accessTokenFacade))
         consoleFacade.registerCommand(KeygenCommand(accessTokenFacade))
         consoleFacade.registerCommand(ChAliasCommand(accessTokenFacade))
