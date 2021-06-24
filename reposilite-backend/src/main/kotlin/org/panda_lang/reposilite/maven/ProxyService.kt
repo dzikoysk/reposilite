@@ -19,8 +19,8 @@ import com.google.api.client.http.GenericUrl
 import com.google.api.client.http.HttpRequestFactory
 import com.google.api.client.http.HttpResponse
 import com.google.api.client.http.javanet.NetHttpTransport
+import io.javalin.http.HttpCode
 import org.apache.commons.io.IOUtils.copyLarge
-import org.apache.http.HttpStatus
 import org.panda_lang.reposilite.ReposiliteException
 import org.panda_lang.reposilite.failure.FailureFacade
 import org.panda_lang.reposilite.failure.api.ErrorResponse
@@ -64,16 +64,16 @@ internal class ProxyService(
         }
 
         if (repository == null) {
-            return errorResponse(HttpStatus.SC_NOT_FOUND, "Unknown repository")
+            return errorResponse(HttpCode.NOT_FOUND, "Unknown repository")
         }
 
         if (!proxyPrivate && repository.isPrivate()) {
-            return errorResponse(HttpStatus.SC_NOT_FOUND, "Proxying is disabled in private repositories")
+            return errorResponse(HttpCode.NOT_FOUND, "Proxying is disabled in private repositories")
         }
 
         // /groupId/artifactId/<content>
         if (StringUtils.countOccurrences(uri, "/") < 3) {
-            return errorResponse(HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, "Invalid proxied request")
+            return errorResponse(HttpCode.NON_AUTHORITATIVE_INFORMATION, "Invalid proxied request")
         }
 
         val remoteUri = uri
@@ -129,7 +129,7 @@ internal class ProxyService(
 
             Result.ok(lookupResponse)
         }
-        else errorResponse(HttpStatus.SC_NOT_FOUND, "Artifact $uri not found")
+        else errorResponse(HttpCode.NOT_FOUND, "Artifact $uri not found")
     }
 
     private fun store(uri: String, remoteResponse: HttpResponse, context: ReposiliteContext): Result<FileDetailsResponse, ErrorResponse> {
@@ -138,13 +138,13 @@ internal class ProxyService(
         if (storageProvider.isFull()) {
             val error = "Not enough storage space available for $uri"
             context.logger.warn(error)
-            return errorResponse(HttpStatus.SC_INSUFFICIENT_STORAGE, error)
+            return errorResponse(HttpCode.INSUFFICIENT_STORAGE, error)
         }
 
         val repositoryName = StringUtils.split(uri.substring(1), "/")[0] // skip first path separator
 
         val repository = repositoryService.getRepository(repositoryName)
-            ?: return errorResponse(HttpStatus.SC_BAD_REQUEST, "Missing valid repository name")
+            ?: return errorResponse(HttpCode.BAD_REQUEST, "Missing valid repository name")
 
         val proxiedFile = Paths.get(uri)
 
@@ -158,7 +158,7 @@ internal class ProxyService(
             result
         }
         catch (ioException: IOException) {
-            errorResponse(HttpStatus.SC_UNPROCESSABLE_ENTITY, "Cannot process artifact")
+            errorResponse(HttpCode.UNPROCESSABLE_ENTITY, "Cannot process artifact")
         }
     }
 

@@ -16,9 +16,9 @@
 
 package org.panda_lang.reposilite.auth
 
+import io.javalin.http.HttpCode
 import net.dzikoysk.dynamiclogger.Journalist
 import net.dzikoysk.dynamiclogger.Logger
-import org.apache.http.HttpStatus
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.shared.HttpMethod
 import org.panda_lang.reposilite.token.api.AccessToken
@@ -32,11 +32,11 @@ class AuthenticationFacade internal constructor(
 
     fun authenticateByHeader(headers: Map<String, String>): Result<AccessToken, ErrorResponse> =
         authenticator.authByHeader(headers)
-            .mapErr { error -> ErrorResponse(HttpStatus.SC_UNAUTHORIZED, error) }
+            .mapErr { error -> ErrorResponse(HttpCode.UNAUTHORIZED, error) }
 
     fun authenticateByCredentials(credentials: String): Result<AccessToken, ErrorResponse> =
         authenticator.authByCredentials(credentials)
-            .mapErr { error -> ErrorResponse(HttpStatus.SC_UNAUTHORIZED, error) }
+            .mapErr { error -> ErrorResponse(HttpCode.UNAUTHORIZED, error) }
 
     fun createSession(path: String, method: HttpMethod, address: String, accessToken: AccessToken): Session =
         sessionService.createSession(path, method, address, accessToken)

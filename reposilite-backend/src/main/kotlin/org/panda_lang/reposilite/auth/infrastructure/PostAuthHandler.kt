@@ -16,7 +16,7 @@
 package org.panda_lang.reposilite.auth.infrastructure
 
 import io.javalin.http.Context
-import org.apache.http.HttpStatus
+import io.javalin.http.HttpCode
 import org.panda_lang.reposilite.web.RouteHandler
 import org.panda_lang.reposilite.web.RouteMethod.AFTER
 
@@ -29,7 +29,7 @@ internal class PostAuthHandler : RouteHandler {
     override val methods = listOf(AFTER)
 
     override fun handle(context: Context) {
-        if (context.status() == HttpStatus.SC_UNAUTHORIZED) {
+        if (context.status() == HttpCode.UNAUTHORIZED.status) {
             context.header(WWW_AUTHENTICATE, WWW_BASIC_REALM)
         }
     }

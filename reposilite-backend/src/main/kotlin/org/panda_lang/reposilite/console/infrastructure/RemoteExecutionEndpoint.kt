@@ -21,7 +21,7 @@ import com.dzikoysk.openapi.annotations.OpenApiContent
 import com.dzikoysk.openapi.annotations.OpenApiParam
 import com.dzikoysk.openapi.annotations.OpenApiResponse
 import io.javalin.http.Context
-import org.apache.http.HttpStatus
+import io.javalin.http.HttpCode
 import org.panda_lang.reposilite.console.ConsoleFacade
 import org.panda_lang.reposilite.console.MAX_COMMAND_LENGTH
 import org.panda_lang.reposilite.console.api.ExecutionResponse
@@ -74,7 +74,7 @@ internal class RemoteExecutionEndpoint(
 
             authenticated {
                 if (!isManager()) {
-                    response = errorResponse(HttpStatus.SC_UNAUTHORIZED, "Authenticated user is not a manager")
+                    response = errorResponse(HttpCode.UNAUTHORIZED, "Authenticated user is not a manager")
                     return@authenticated
                 }
 

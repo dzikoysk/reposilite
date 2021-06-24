@@ -16,7 +16,7 @@
 
 package org.panda_lang.reposilite.storage.infrastructure
 
-import org.apache.http.HttpStatus
+import io.javalin.http.HttpCode
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.failure.api.errorResponse
 import org.panda_lang.reposilite.maven.api.FileDetailsResponse
@@ -75,7 +75,7 @@ internal class S3StorageProvider(private val bucket: String, region: String) : S
         }
         catch (exception: Exception) {
             exception.printStackTrace()
-            errorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Failed to write $file")
+            errorResponse(HttpCode.INTERNAL_SERVER_ERROR, "Failed to write $file")
         }
     }
 
@@ -106,7 +106,7 @@ internal class S3StorageProvider(private val bucket: String, region: String) : S
         }
         catch (ioException: IOException) {
             ioException.printStackTrace()
-            errorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Failed to write $file")
+            errorResponse(HttpCode.INTERNAL_SERVER_ERROR, "Failed to write $file")
         }
     }
 
@@ -124,10 +124,10 @@ internal class S3StorageProvider(private val bucket: String, region: String) : S
             Result.ok(bytes)
         }
         catch (noSuchKeyException: NoSuchKeyException) {
-            errorResponse(HttpStatus.SC_NOT_FOUND, "File not found: $file")
+            errorResponse(HttpCode.NOT_FOUND, "File not found: $file")
         }
         catch (ioException: IOException) {
-            errorResponse(HttpStatus.SC_NOT_FOUND, "File not found: $file")
+            errorResponse(HttpCode.NOT_FOUND, "File not found: $file")
         }
     }
 
@@ -155,7 +155,7 @@ internal class S3StorageProvider(private val bucket: String, region: String) : S
                 )
             }
             ?.let { Result.ok(it) }
-            ?: errorResponse(HttpStatus.SC_NOT_FOUND, "File not found: $file")
+            ?: errorResponse(HttpCode.NOT_FOUND, "File not found: $file")
     }
 
     override fun removeFile(file: Path): Result<Unit, ErrorResponse> {
@@ -186,7 +186,7 @@ internal class S3StorageProvider(private val bucket: String, region: String) : S
             Result.ok(paths)
         }
         catch (exception: Exception) {
-            errorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, exception.localizedMessage)
+            errorResponse(HttpCode.INTERNAL_SERVER_ERROR, exception.localizedMessage)
         }
     }
 
@@ -195,13 +195,13 @@ internal class S3StorageProvider(private val bucket: String, region: String) : S
             ?.let { Result.ok(FileTime.from(it.lastModified())) }
             ?: getFiles(file)
                 .map { files -> files.firstOrNull() }
-                .mapErr { ErrorResponse(HttpStatus.SC_NOT_FOUND, "File not found: $file") }
+                .mapErr { ErrorResponse(HttpCode.NOT_FOUND, "File not found: $file") }
                 .flatMap { getLastModifiedTime(file.resolve(it!!.getName(0))) }
 
     override fun getFileSize(file: Path): Result<Long, ErrorResponse> =
         head(file)
             ?.let { Result.ok(it.contentLength()) }
-            ?: errorResponse(HttpStatus.SC_NOT_FOUND, "File not found: $file")
+            ?: errorResponse(HttpCode.NOT_FOUND, "File not found: $file")
 
     private fun head(file: Path): HeadObjectResponse? {
         try {
