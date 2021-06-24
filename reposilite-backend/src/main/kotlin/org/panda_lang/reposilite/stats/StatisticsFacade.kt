@@ -27,10 +27,16 @@ class StatisticsFacade internal constructor(
     private val statisticsRepository: StatisticsRepository
 ) : Journalist {
 
-    private val recordsBulk: ConcurrentHashMap<RecordIdentifier, Int> = ConcurrentHashMap()
+    private val recordsBulk: ConcurrentHashMap<RecordIdentifier, Long> = ConcurrentHashMap()
 
     fun increaseRecord(type: RecordType, uri: String) =
         recordsBulk.merge(RecordIdentifier(type, uri), 1) { cached, value -> cached + value }
+
+    internal fun saveRecordsBulk() =
+        recordsBulk.toMap().also {
+            recordsBulk.clear() // read doesn't lock, so there is a possibility of dropping a few records between toMap and clear. Might be improved in the future
+            statisticsRepository.incrementRecords(it)
+        }
 
     fun findRecordsByPhrase(type: RecordType, phrase: String): List<Record> =
         statisticsRepository.findRecordsByPhrase(type, phrase)

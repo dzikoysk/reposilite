@@ -23,6 +23,8 @@ import org.panda_lang.reposilite.stats.StatsCommand
 import org.panda_lang.reposilite.stats.infrastructure.SqlStatisticsRepository
 import org.panda_lang.reposilite.stats.infrastructure.StatisticsHandler
 import org.panda_lang.reposilite.web.RouteHandler
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit.MINUTES
 
 internal object StatsWebConfiguration {
 
@@ -30,6 +32,9 @@ internal object StatsWebConfiguration {
         StatisticsFacade(journalist, SqlStatisticsRepository())
 
     fun configure(consoleFacade: ConsoleFacade, statisticsFacade: StatisticsFacade) {
+        val scheduler = Executors.newSingleThreadScheduledExecutor() // Maybe use some shared ThreadPool to avoid Thread creation
+        scheduler.scheduleWithFixedDelay({ statisticsFacade.saveRecordsBulk() }, 1, 1, MINUTES)
+
         consoleFacade.registerCommand(StatsCommand(statisticsFacade))
     }
 

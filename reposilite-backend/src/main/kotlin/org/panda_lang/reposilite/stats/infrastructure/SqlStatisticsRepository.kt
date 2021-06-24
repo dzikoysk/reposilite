@@ -16,17 +16,18 @@
 
 package org.panda_lang.reposilite.stats.infrastructure
 
+import net.dzikoysk.exposed.shared.UNINITIALIZED_ENTITY_ID
+import net.dzikoysk.exposed.upsert.upsert
+import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.Op.Companion.build
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.SqlExpressionBuilder
 import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.sum
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.jetbrains.exposed.sql.update
 import org.panda_lang.reposilite.shared.sql.firstAndMap
 import org.panda_lang.reposilite.shared.sql.transactionUnit
 import org.panda_lang.reposilite.stats.StatisticsRepository
@@ -42,37 +43,37 @@ internal class SqlStatisticsRepository : StatisticsRepository {
         }
     }
 
-    override fun createRecord(identifier: RecordIdentifier, initCount: Long) =
+    override fun incrementRecord(record: RecordIdentifier, count: Long) =
         transactionUnit {
-            StatisticsTable.insert {
-                it[this.type] = identifier.type.name
-                it[this.identifier] = identifier.identifier
-                it[this.count] = initCount
-            }
+            rawIncrementRecord(record, count)
         }
 
-    override fun incrementRecord(identifier: RecordIdentifier, count: Long) =
+    override fun incrementRecords(bulk: Map<RecordIdentifier, Long>) =
         transactionUnit {
-            val id = StatisticsTable
-                .select { build { StatisticsTable.type eq identifier.type.name }.and { StatisticsTable.identifier eq identifier.identifier } }
-                .firstAndMap { it[StatisticsTable.id].value }
-
-            if (id == null) {
-                StatisticsTable.insert {
-                    it[this.type] = identifier.type.name
-                    it[this.identifier] = identifier.identifier
-                    it[this.count] = count
-                }
-            }
-            else {
-                StatisticsTable.update({ StatisticsTable.id eq id }) {
-                    with(SqlExpressionBuilder) {
-                        it[StatisticsTable.count] = StatisticsTable.count + count
-                    }
-                }
-            }
-
+            bulk.forEach { rawIncrementRecord(it.key, it.value) }
         }
+
+    private fun rawIncrementRecord(record: RecordIdentifier, count: Long) {
+        // We have to fetch current ID as
+        val id = StatisticsTable
+            .select { build { StatisticsTable.type eq record.type.name }.and { StatisticsTable.identifier eq record.identifier } }
+            .firstAndMap { it[StatisticsTable.id].value }
+            ?: UNINITIALIZED_ENTITY_ID
+
+        StatisticsTable.upsert(StatisticsTable.id,
+            insertBody = {
+                it[this.id] = EntityID(id, StatisticsTable)
+                it[this.type] = record.type.name
+                it[this.identifier] = record.identifier
+                it[this.count] = count
+            },
+            updateBody = {
+                with(SqlExpressionBuilder) {
+                    it[StatisticsTable.count] = StatisticsTable.count + count
+                }
+            }
+        )
+    }
 
     private fun toRecord(row: ResultRow) =
         Record(
@@ -82,9 +83,9 @@ internal class SqlStatisticsRepository : StatisticsRepository {
             row[StatisticsTable.count]
         )
 
-    override fun findRecordByTypeAndIdentifier(identifier: RecordIdentifier): Record? =
+    override fun findRecordByTypeAndIdentifier(record: RecordIdentifier): Record? =
         transaction {
-            StatisticsTable.select { build { StatisticsTable.type eq identifier.type.name }.and { StatisticsTable.identifier eq identifier.identifier } }
+            StatisticsTable.select { build { StatisticsTable.type eq record.type.name }.and { StatisticsTable.identifier eq record.identifier } }
                 .firstAndMap { toRecord(it) }
         }
 
@@ -96,12 +97,13 @@ internal class SqlStatisticsRepository : StatisticsRepository {
 
     override fun countRecords(): Long =
         transaction {
-            StatisticsTable.count.sum().let { countSum ->
-                StatisticsTable.slice(countSum).selectAll()
-                    .first()
-                    .let { it[countSum] }
-                    ?: 0
-            }
+            StatisticsTable.count.sum()
+                .let { countSum ->
+                    StatisticsTable.slice(countSum)
+                        .selectAll()
+                        .firstAndMap { it[countSum] }
+                }
+                ?: 0
         }
 
     override fun countUniqueRecords(): Long =

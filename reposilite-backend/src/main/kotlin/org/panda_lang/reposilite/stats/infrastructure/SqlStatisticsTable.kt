@@ -22,12 +22,11 @@ import org.jetbrains.exposed.sql.Column
 internal object StatisticsTable : IntIdTable("statistics") {
 
     val type: Column<String> = varchar("type", 32)
-    val identifier: Column<String> = varchar("identifier", 2048)
+    val identifier: Column<String> = varchar("identifier", 1024)
     val count: Column<Long> = long("count")
 
     init {
         index(columns = arrayOf(type))
-        uniqueIndex(type, identifier)
     }
 
 }
