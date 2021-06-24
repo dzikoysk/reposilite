@@ -23,8 +23,8 @@ import org.apache.commons.io.IOUtils.copyLarge
 import org.apache.http.HttpStatus
 import org.panda_lang.reposilite.ReposiliteException
 import org.panda_lang.reposilite.failure.FailureFacade
-import org.panda_lang.reposilite.failure.ResponseUtils
 import org.panda_lang.reposilite.failure.api.ErrorResponse
+import org.panda_lang.reposilite.failure.api.errorResponse
 import org.panda_lang.reposilite.maven.api.FileDetailsResponse
 import org.panda_lang.reposilite.maven.api.LookupResponse
 import org.panda_lang.reposilite.storage.StorageProvider
@@ -33,7 +33,6 @@ import org.panda_lang.utilities.commons.StringUtils
 import org.panda_lang.utilities.commons.function.Option
 import org.panda_lang.utilities.commons.function.Result
 import java.io.IOException
-import java.io.OutputStream
 import java.net.SocketTimeoutException
 import java.nio.file.Paths
 import java.util.*
@@ -65,20 +64,20 @@ internal class ProxyService(
         }
 
         if (repository == null) {
-            return Result.error(ErrorResponse(HttpStatus.SC_NOT_FOUND, "Unknown repository"))
+            return errorResponse(HttpStatus.SC_NOT_FOUND, "Unknown repository")
         }
 
         if (!proxyPrivate && repository.isPrivate()) {
-            return Result.error(ErrorResponse(HttpStatus.SC_NOT_FOUND, "Proxying is disabled in private repositories"))
+            return errorResponse(HttpStatus.SC_NOT_FOUND, "Proxying is disabled in private repositories")
         }
 
         // /groupId/artifactId/<content>
         if (StringUtils.countOccurrences(uri, "/") < 3) {
-            return Result.error(ErrorResponse(HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, "Invalid proxied request"))
+            return errorResponse(HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, "Invalid proxied request")
         }
 
         val remoteUri = uri
-        val list: MutableList<CompletableFuture<Void>> = ArrayList<CompletableFuture<Void>>()
+        val list: MutableList<CompletableFuture<Void>> = ArrayList()
         val responses = Collections.synchronizedList(ArrayList<HttpResponse>())
 
         for (proxied in proxied) {
@@ -130,9 +129,7 @@ internal class ProxyService(
 
             Result.ok(lookupResponse)
         }
-        else {
-            ResponseUtils.error(HttpStatus.SC_NOT_FOUND, "Artifact $uri not found")
-        }
+        else errorResponse(HttpStatus.SC_NOT_FOUND, "Artifact $uri not found")
     }
 
     private fun store(uri: String, remoteResponse: HttpResponse, context: ReposiliteContext): Result<FileDetailsResponse, ErrorResponse> {
@@ -141,13 +138,13 @@ internal class ProxyService(
         if (storageProvider.isFull()) {
             val error = "Not enough storage space available for $uri"
             context.logger.warn(error)
-            return Result.error(ErrorResponse(HttpStatus.SC_INSUFFICIENT_STORAGE, error))
+            return errorResponse(HttpStatus.SC_INSUFFICIENT_STORAGE, error)
         }
 
         val repositoryName = StringUtils.split(uri.substring(1), "/")[0] // skip first path separator
 
         val repository = repositoryService.getRepository(repositoryName)
-            ?: return Result.error(ErrorResponse(HttpStatus.SC_BAD_REQUEST, "Missing valid repository name"))
+            ?: return errorResponse(HttpStatus.SC_BAD_REQUEST, "Missing valid repository name")
 
         val proxiedFile = Paths.get(uri)
 
@@ -156,17 +153,12 @@ internal class ProxyService(
 
             if (result.isOk) {
                 context.logger.info("Stored proxied $proxiedFile from ${remoteResponse.request.url}")
-
-                context.output { output: OutputStream ->
-                    output.write(
-                        storageProvider.getFile(proxiedFile).get()
-                    )
-                }
+                context.output { it.write(storageProvider.getFile(proxiedFile).get()) }
             }
             result
         }
         catch (ioException: IOException) {
-            Result.error(ErrorResponse(HttpStatus.SC_UNPROCESSABLE_ENTITY, "Cannot process artifact"))
+            errorResponse(HttpStatus.SC_UNPROCESSABLE_ENTITY, "Cannot process artifact")
         }
     }
 

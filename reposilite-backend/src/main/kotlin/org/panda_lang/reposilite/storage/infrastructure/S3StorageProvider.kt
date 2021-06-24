@@ -75,7 +75,7 @@ internal class S3StorageProvider(private val bucket: String, region: String) : S
         }
         catch (exception: Exception) {
             exception.printStackTrace()
-            Result.error(ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Failed to write $file"))
+            errorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Failed to write $file")
         }
     }
 
@@ -106,7 +106,7 @@ internal class S3StorageProvider(private val bucket: String, region: String) : S
         }
         catch (ioException: IOException) {
             ioException.printStackTrace()
-            Result.error(ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Failed to write $file"))
+            errorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Failed to write $file")
         }
     }
 
@@ -124,10 +124,10 @@ internal class S3StorageProvider(private val bucket: String, region: String) : S
             Result.ok(bytes)
         }
         catch (noSuchKeyException: NoSuchKeyException) {
-            Result.error(ErrorResponse(HttpStatus.SC_NOT_FOUND, "File not found: $file"))
+            errorResponse(HttpStatus.SC_NOT_FOUND, "File not found: $file")
         }
         catch (ioException: IOException) {
-            Result.error(ErrorResponse(HttpStatus.SC_NOT_FOUND, "File not found: $file"))
+            errorResponse(HttpStatus.SC_NOT_FOUND, "File not found: $file")
         }
     }
 
@@ -186,7 +186,7 @@ internal class S3StorageProvider(private val bucket: String, region: String) : S
             Result.ok(paths)
         }
         catch (exception: Exception) {
-            Result.error(ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, exception.localizedMessage))
+            errorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, exception.localizedMessage)
         }
     }
 
@@ -201,7 +201,7 @@ internal class S3StorageProvider(private val bucket: String, region: String) : S
     override fun getFileSize(file: Path): Result<Long, ErrorResponse> =
         head(file)
             ?.let { Result.ok(it.contentLength()) }
-            ?: Result.error(ErrorResponse(HttpStatus.SC_NOT_FOUND, "File not found: $file"))
+            ?: errorResponse(HttpStatus.SC_NOT_FOUND, "File not found: $file")
 
     private fun head(file: Path): HeadObjectResponse? {
         try {
