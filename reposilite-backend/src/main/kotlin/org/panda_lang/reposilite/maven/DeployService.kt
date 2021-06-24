@@ -18,8 +18,8 @@ package org.panda_lang.reposilite.maven
 import net.dzikoysk.dynamiclogger.Journalist
 import net.dzikoysk.dynamiclogger.Logger
 import org.apache.http.HttpStatus
-import org.panda_lang.reposilite.failure.ResponseUtils
 import org.panda_lang.reposilite.failure.api.ErrorResponse
+import org.panda_lang.reposilite.failure.api.errorResponse
 import org.panda_lang.reposilite.maven.api.DeployRequest
 import org.panda_lang.reposilite.maven.api.FileDetailsResponse
 import org.panda_lang.utilities.commons.function.Result
@@ -31,17 +31,17 @@ internal class DeployService(
 ) : Journalist {
 
     fun deployArtifact(deployRequest: DeployRequest): Result<FileDetailsResponse, ErrorResponse> {
-        val repository = repositoryService.getRepository(deployRequest.repository) ?: return ResponseUtils.error(HttpStatus.SC_NOT_FOUND, "Repository not found")
+        val repository = repositoryService.getRepository(deployRequest.repository) ?: return errorResponse(HttpStatus.SC_NOT_FOUND, "Repository not found")
 
         if (!repository.isDeployEnabled) {
-            return ResponseUtils.error(HttpStatus.SC_METHOD_NOT_ALLOWED, "Artifact deployment is disabled")
+            return errorResponse(HttpStatus.SC_METHOD_NOT_ALLOWED, "Artifact deployment is disabled")
         }
 
         if (repository.isFull()) {
-            return ResponseUtils.error(HttpStatus.SC_INSUFFICIENT_STORAGE, "Not enough storage space available")
+            return errorResponse(HttpStatus.SC_INSUFFICIENT_STORAGE, "Not enough storage space available")
         }
 
-        val path = repository.relativize(deployRequest.gav) ?: return ResponseUtils.error(HttpStatus.SC_BAD_REQUEST, "Invalid GAV")
+        val path = repository.relativize(deployRequest.gav) ?: return errorResponse(HttpStatus.SC_BAD_REQUEST, "Invalid GAV")
         val metadataFile = path.resolveSibling(METADATA_FILE)
         metadataService.clearMetadata(metadataFile)
 
@@ -57,7 +57,7 @@ internal class DeployService(
             result.peek { logger.info("DEPLOY Artifact successfully deployed $path by ${deployRequest.by}") }
         }
         catch (exception: Exception) {
-            Result.error(ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Failed to upload artifact"))
+            errorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Failed to upload artifact")
         }
     }
 
