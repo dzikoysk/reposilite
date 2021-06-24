@@ -16,9 +16,9 @@
 
 package org.panda_lang.reposilite.console
 
+import io.javalin.http.HttpCode
 import net.dzikoysk.dynamiclogger.Journalist
 import net.dzikoysk.dynamiclogger.Logger
-import org.apache.http.HttpStatus
 import org.panda_lang.reposilite.console.api.ExecutionResponse
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.failure.api.errorResponse
@@ -35,11 +35,11 @@ class ConsoleFacade internal constructor(
 
     fun executeCommand(command: String): Result<ExecutionResponse, ErrorResponse> {
         if (StringUtils.isEmpty(command)) {
-            return errorResponse(HttpStatus.SC_BAD_REQUEST, "Missing command")
+            return errorResponse(HttpCode.BAD_REQUEST, "Missing command")
         }
 
         if (command.length > MAX_COMMAND_LENGTH) {
-            return errorResponse(HttpStatus.SC_BAD_REQUEST, "The given command exceeds allowed length (${command.length} > $MAX_COMMAND_LENGTH)")
+            return errorResponse(HttpCode.BAD_REQUEST, "The given command exceeds allowed length (${command.length} > $MAX_COMMAND_LENGTH)")
         }
 
         return Result.ok(console.execute(command))

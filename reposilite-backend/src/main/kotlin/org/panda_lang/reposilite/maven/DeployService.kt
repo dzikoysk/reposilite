@@ -15,9 +15,9 @@
  */
 package org.panda_lang.reposilite.maven
 
+import io.javalin.http.HttpCode
 import net.dzikoysk.dynamiclogger.Journalist
 import net.dzikoysk.dynamiclogger.Logger
-import org.apache.http.HttpStatus
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.failure.api.errorResponse
 import org.panda_lang.reposilite.maven.api.DeployRequest
@@ -31,17 +31,17 @@ internal class DeployService(
 ) : Journalist {
 
     fun deployArtifact(deployRequest: DeployRequest): Result<FileDetailsResponse, ErrorResponse> {
-        val repository = repositoryService.getRepository(deployRequest.repository) ?: return errorResponse(HttpStatus.SC_NOT_FOUND, "Repository not found")
+        val repository = repositoryService.getRepository(deployRequest.repository) ?: return errorResponse(HttpCode.NOT_FOUND, "Repository not found")
 
         if (!repository.isDeployEnabled) {
-            return errorResponse(HttpStatus.SC_METHOD_NOT_ALLOWED, "Artifact deployment is disabled")
+            return errorResponse(HttpCode.METHOD_NOT_ALLOWED, "Artifact deployment is disabled")
         }
 
         if (repository.isFull()) {
-            return errorResponse(HttpStatus.SC_INSUFFICIENT_STORAGE, "Not enough storage space available")
+            return errorResponse(HttpCode.INSUFFICIENT_STORAGE, "Not enough storage space available")
         }
 
-        val path = repository.relativize(deployRequest.gav) ?: return errorResponse(HttpStatus.SC_BAD_REQUEST, "Invalid GAV")
+        val path = repository.relativize(deployRequest.gav) ?: return errorResponse(HttpCode.BAD_REQUEST, "Invalid GAV")
         val metadataFile = path.resolveSibling(METADATA_FILE)
         metadataService.clearMetadata(metadataFile)
 
@@ -57,7 +57,7 @@ internal class DeployService(
             result.peek { logger.info("DEPLOY Artifact successfully deployed $path by ${deployRequest.by}") }
         }
         catch (exception: Exception) {
-            errorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Failed to upload artifact")
+            errorResponse(HttpCode.INTERNAL_SERVER_ERROR, "Failed to upload artifact")
         }
     }
 

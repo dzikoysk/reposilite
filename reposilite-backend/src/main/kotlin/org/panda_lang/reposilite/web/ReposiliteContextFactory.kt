@@ -16,9 +16,9 @@
 package org.panda_lang.reposilite.web
 
 import io.javalin.http.Context
+import io.javalin.http.HttpCode
 import io.javalin.websocket.WsContext
 import net.dzikoysk.dynamiclogger.Journalist
-import org.apache.http.HttpStatus
 import org.panda_lang.reposilite.auth.AuthenticationFacade
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.failure.api.errorResponse
@@ -37,7 +37,7 @@ class ReposiliteContextFactory internal constructor(
         val normalizedUri = normalizeUri(context.req.requestURI)
 
         if (normalizedUri.isEmpty) {
-            return errorResponse(HttpStatus.SC_BAD_REQUEST, "Invalid url");
+            return errorResponse(HttpCode.BAD_REQUEST, "Invalid url");
         }
 
         val host = context.header(forwardedIpHeader) ?: context.req.remoteAddr
@@ -65,7 +65,7 @@ class ReposiliteContextFactory internal constructor(
             "SOCKET",
             context.header(forwardedIpHeader) ?: context.session.remoteAddress.toString(),
             context.headerMap(),
-            errorResponse(HttpStatus.SC_UNAUTHORIZED, "WebSocket based context does not support sessions"),
+            errorResponse(HttpCode.UNAUTHORIZED, "WebSocket based context does not support sessions"),
             lazy { throw UnsupportedOperationException("WebSocket based context does not support input stream") },
             { throw UnsupportedOperationException("WebSocket based context does not support input stream") }
         )

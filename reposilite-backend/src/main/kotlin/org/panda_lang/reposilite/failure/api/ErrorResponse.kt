@@ -15,13 +15,18 @@
  */
 package org.panda_lang.reposilite.failure.api
 
+import io.javalin.http.HttpCode
 import org.panda_lang.utilities.commons.function.Result
 import java.io.Serializable
 
 data class ErrorResponse(
     val status: Int,
     val message: String
-) : Serializable
+) : Serializable {
 
-fun <V> errorResponse(status: Int, message: String): Result<V, ErrorResponse> =
-    Result.error(ErrorResponse(status, message))
+    constructor(code: HttpCode, message: String) : this(code.status, message)
+
+}
+
+fun <V> errorResponse(code: HttpCode, message: String): Result<V, ErrorResponse> =
+    Result.error(ErrorResponse(code.status, message))
