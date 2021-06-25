@@ -24,11 +24,11 @@ import java.util.concurrent.ConcurrentHashMap
 
 internal class InMemoryStatisticsRepository : StatisticsRepository {
 
-    private val records: MutableMap<Int, Record> = ConcurrentHashMap()
+    private val records: MutableMap<RecordIdentifier, Record> = ConcurrentHashMap()
 
     override fun incrementRecord(record: RecordIdentifier, count: Long) {
         findRecordByTypeAndIdentifier(record)
-            ?.also { records[it.id] = it.copy(count = it.count + count) }
+            ?.also { records[record] = it.copy(count = it.count + count) }
             ?: createRecord(record, count)
     }
 
@@ -37,8 +37,7 @@ internal class InMemoryStatisticsRepository : StatisticsRepository {
     }
 
     private fun createRecord(identifier: RecordIdentifier, initCount: Long) {
-        records[records.size] = Record(
-            id = records.size,
+        records[identifier] = Record(
             type = identifier.type,
             identifier = identifier.identifier,
             count = initCount
