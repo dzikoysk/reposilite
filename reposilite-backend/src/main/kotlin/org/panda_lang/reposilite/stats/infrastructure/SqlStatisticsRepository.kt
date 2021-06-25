@@ -31,6 +31,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.panda_lang.reposilite.shared.firstAndMap
 import org.panda_lang.reposilite.shared.transactionUnit
 import org.panda_lang.reposilite.stats.StatisticsRepository
+import org.panda_lang.reposilite.stats.api.MAX_IDENTIFIER_LENGTH
 import org.panda_lang.reposilite.stats.api.Record
 import org.panda_lang.reposilite.stats.api.RecordIdentifier
 import org.panda_lang.reposilite.stats.api.RecordType
@@ -54,15 +55,12 @@ internal class SqlStatisticsRepository : StatisticsRepository {
         }
 
     private fun rawIncrementRecord(record: RecordIdentifier, count: Long) {
-        // We have to fetch current ID as
-        val id = StatisticsTable
-            .select { build { StatisticsTable.type eq record.type.name }.and { StatisticsTable.identifier eq record.identifier } }
-            .firstAndMap { it[StatisticsTable.id].value }
-            ?: UNINITIALIZED_ENTITY_ID
+        if (record.identifier.length > MAX_IDENTIFIER_LENGTH) {
+            throw UnsupportedOperationException("Identifier '${record.identifier}' exceeds allowed length")
+        }
 
-        StatisticsTable.upsert(StatisticsTable.id,
+        StatisticsTable.upsert(conflictIndex = StatisticsTable.statisticsTypeWithIdentifierKey,
             insertBody = {
-                it[this.id] = EntityID(id, StatisticsTable)
                 it[this.type] = record.type.name
                 it[this.identifier] = record.identifier
                 it[this.count] = count
@@ -77,7 +75,6 @@ internal class SqlStatisticsRepository : StatisticsRepository {
 
     private fun toRecord(row: ResultRow) =
         Record(
-            row[StatisticsTable.id].value,
             RecordType.valueOf(row[StatisticsTable.type].toUpperCase()),
             row[StatisticsTable.identifier],
             row[StatisticsTable.count]
@@ -97,13 +94,10 @@ internal class SqlStatisticsRepository : StatisticsRepository {
 
     override fun countRecords(): Long =
         transaction {
-            StatisticsTable.count.sum()
-                .let { countSum ->
-                    StatisticsTable.slice(countSum)
-                        .selectAll()
-                        .firstAndMap { it[countSum] }
-                }
-                ?: 0
+            with (StatisticsTable.count.sum()) {
+                StatisticsTable.slice(this).selectAll().firstAndMap { it[this] }
+            }
+            ?: 0
         }
 
     override fun countUniqueRecords(): Long =

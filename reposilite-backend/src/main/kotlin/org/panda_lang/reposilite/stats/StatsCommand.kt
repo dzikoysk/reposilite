@@ -29,7 +29,7 @@ private const val DEFAULT_TOP_SIZE = 20
 @Command(name = "stats", description = ["Display collected metrics"])
 internal class StatsCommand(private val statisticsFacade: StatisticsFacade) : ReposiliteCommand {
 
-    @Parameters(index = "0", paramLabel = "[<filter>]", description = ["accepts string as pattern and int as limiter"], defaultValue = "-1")
+    @Parameters(index = "0", paramLabel = "[<filter>]", description = ["accepts string as pattern and int as limiter"], defaultValue = "")
     private lateinit var filter: String
 
     override fun execute(output: MutableList<String>): Status {
@@ -39,7 +39,7 @@ internal class StatsCommand(private val statisticsFacade: StatisticsFacade) : Re
         val results = statisticsFacade.findRecordsByPhrase(RecordType.REQUEST, filter) // TOFIX: Limiter
 
         output.add("  Recorded: " + (if (results.isEmpty()) "[] " else "") + " (pattern: '${highlight(filter)}')")
-        results.forEachIndexed { order, record -> output.add("  ${order}. $record") }
+        results.forEachIndexed { order, record -> output.add("  ${order}. ${record.identifier} (${record.count})") }
 
         /*
             val limiter = Option.attempt(NumberFormatException::class.java) { filter!!.toInt() }

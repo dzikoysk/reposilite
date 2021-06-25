@@ -16,17 +16,18 @@
 
 package org.panda_lang.reposilite.stats.infrastructure
 
-import org.jetbrains.exposed.dao.id.IntIdTable
+import net.dzikoysk.exposed.upsert.withUnique
 import org.jetbrains.exposed.sql.Column
+import org.jetbrains.exposed.sql.Table
+import org.panda_lang.reposilite.stats.api.MAX_IDENTIFIER_LENGTH
 
-internal object StatisticsTable : IntIdTable("statistics") {
+internal object StatisticsTable : Table("statistics") {
 
-    val type: Column<String> = varchar("type", 32)
-    val identifier: Column<String> = varchar("identifier", 1024)
+    val type: Column<String> = varchar("type", 24)
+    val identifier: Column<String> = varchar("identifier", MAX_IDENTIFIER_LENGTH)
     val count: Column<Long> = long("count")
 
-    init {
-        index(columns = arrayOf(type))
-    }
+    val statisticsTypeIdx = index("statistics_type_idx", columns = arrayOf(type))
+    val statisticsTypeWithIdentifierKey = withUnique("statistics_type_identifier_key", type, identifier)
 
 }
