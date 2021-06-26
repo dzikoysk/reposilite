@@ -19,7 +19,7 @@ package org.panda_lang.reposilite.storage.infrastructure
 import io.javalin.http.HttpCode
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.failure.api.errorResponse
-import org.panda_lang.reposilite.maven.api.FileDetailsResponse
+import org.panda_lang.reposilite.maven.api.FileDetails
 import org.panda_lang.reposilite.shared.FilesUtils
 import org.panda_lang.reposilite.shared.FilesUtils.getMimeType
 import org.panda_lang.reposilite.storage.StorageProvider
@@ -74,13 +74,13 @@ internal abstract class FileSystemStorageProvider private constructor(
         }
     }
 
-    override fun putFile(file: Path, bytes: ByteArray): Result<FileDetailsResponse, ErrorResponse> {
+    override fun putFile(file: Path, bytes: ByteArray): Result<FileDetails, ErrorResponse> {
         return this.putFile(file, bytes, { it.size }) { input, output ->
             output.write(ByteBuffer.wrap(input))
         }
     }
 
-    override fun putFile(file: Path, inputStream: InputStream): Result<FileDetailsResponse, ErrorResponse> {
+    override fun putFile(file: Path, inputStream: InputStream): Result<FileDetails, ErrorResponse> {
         return this.putFile(file, inputStream, { it.available() }) { input, output ->
             val buffer = ByteArrayOutputStream()
             var nRead: Int
@@ -102,7 +102,7 @@ internal abstract class FileSystemStorageProvider private constructor(
         input: T,
         measure: ThrowingFunction<T, Int, IOException>,
         writer: ThrowingBiFunction<T, FileChannel, Int, IOException>
-    ): Result<FileDetailsResponse, ErrorResponse> {
+    ): Result<FileDetails, ErrorResponse> {
         return try {
             val size = measure.apply(input).toLong()
 
@@ -127,10 +127,10 @@ internal abstract class FileSystemStorageProvider private constructor(
             fileChannel.close()
 
             Result.ok(
-                FileDetailsResponse(
-                    FileDetailsResponse.FILE,
+                FileDetails(
+                    FileDetails.FILE,
                     file.fileName.toString(),
-                    FileDetailsResponse.DATE_FORMAT.format(LocalDate.now()),
+                    FileDetails.DATE_FORMAT.format(LocalDate.now()),
                     getMimeType(file.toString(), "application/octet-stream"),
                     bytesWritten
                 )
@@ -153,16 +153,16 @@ internal abstract class FileSystemStorageProvider private constructor(
         }
     }
 
-    override fun getFileDetails(file: Path): Result<FileDetailsResponse, ErrorResponse> {
+    override fun getFileDetails(file: Path): Result<FileDetails, ErrorResponse> {
         return if (!Files.exists(file)) {
             errorResponse(HttpCode.NOT_FOUND, "File not found: $file")
         }
         else try {
             Result.ok(
-                FileDetailsResponse(
-                    if (Files.isDirectory(file)) FileDetailsResponse.DIRECTORY else FileDetailsResponse.FILE,
+                FileDetails(
+                    if (Files.isDirectory(file)) FileDetails.DIRECTORY else FileDetails.FILE,
                     file.fileName.toString(),
-                    FileDetailsResponse.DATE_FORMAT.format(Files.getLastModifiedTime(file).toInstant()), // TOFIX: Verify if #toInstant() is the best way to do this
+                    FileDetails.DATE_FORMAT.format(Files.getLastModifiedTime(file).toInstant()), // TOFIX: Verify if #toInstant() is the best way to do this
                     getMimeType(file.fileName.toString(), "application/octet-stream"),
                     Files.size(file)
                 )
@@ -187,9 +187,11 @@ internal abstract class FileSystemStorageProvider private constructor(
 
     override fun getFiles(directory: Path): Result<List<Path>, ErrorResponse> {
         return try {
-            Result.ok(Files.walk(directory, 1)
-                .filter { path: Path -> path != directory }
-                .toList())
+            Result.ok(
+                Files.walk(directory, 1)
+                    .filter { it != directory }
+                    .collect(Collectors.toList())
+            )
         } catch (ioException: IOException) {
             errorResponse(HttpCode.INTERNAL_SERVER_ERROR, ioException.localizedMessage)
         }

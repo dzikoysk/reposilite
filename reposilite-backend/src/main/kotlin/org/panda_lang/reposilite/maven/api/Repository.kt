@@ -13,19 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.panda_lang.reposilite.maven
+package org.panda_lang.reposilite.maven.api
 
 import io.javalin.http.HttpCode.NOT_FOUND
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.failure.api.errorResponse
-import org.panda_lang.reposilite.maven.api.FileDetailsResponse
-import org.panda_lang.reposilite.maven.api.RepositoryVisibility
+import org.panda_lang.reposilite.maven.MetadataUtils
 import org.panda_lang.reposilite.storage.StorageProvider
 import org.panda_lang.utilities.commons.function.Result
 import java.io.InputStream
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.attribute.FileTime
+
+enum class RepositoryVisibility {
+    PUBLIC,
+    HIDDEN,
+    PRIVATE
+}
 
 class Repository internal constructor(
     val name: String,
@@ -46,16 +51,16 @@ class Repository internal constructor(
     override fun compare(path: Path, toPath: Path): Int =
         relativize(path).compareTo(relativize(toPath))
 
-    fun putFile(file: String, bytes: ByteArray): Result<FileDetailsResponse, ErrorResponse> =
+    fun putFile(file: String, bytes: ByteArray): Result<FileDetails, ErrorResponse> =
         relativize(file) { putFile(it, bytes) }
 
-    fun putFile(file: Path, bytes: ByteArray): Result<FileDetailsResponse, ErrorResponse> =
+    fun putFile(file: Path, bytes: ByteArray): Result<FileDetails, ErrorResponse> =
         storageProvider.putFile(relativize(file), bytes)
 
-    fun putFile(file: String, inputStream: InputStream): Result<FileDetailsResponse, ErrorResponse> =
+    fun putFile(file: String, inputStream: InputStream): Result<FileDetails, ErrorResponse> =
         relativize(file) { putFile(it, inputStream) }
 
-    fun putFile(file: Path, inputStream: InputStream): Result<FileDetailsResponse, ErrorResponse> =
+    fun putFile(file: Path, inputStream: InputStream): Result<FileDetails, ErrorResponse> =
         storageProvider.putFile(relativize(file), inputStream)
 
     fun getFile(file: String): Result<InputStream, ErrorResponse> =
@@ -64,10 +69,10 @@ class Repository internal constructor(
     fun getFile(file: Path): Result<InputStream, ErrorResponse> =
         storageProvider.getFile(relativize(file))
 
-    fun getFileDetails(file: String): Result<FileDetailsResponse, ErrorResponse> =
+    fun getFileDetails(file: String): Result<FileDetails, ErrorResponse> =
         relativize(file) { getFileDetails(it) }
 
-    fun getFileDetails(file: Path): Result<FileDetailsResponse, ErrorResponse> =
+    fun getFileDetails(file: Path): Result<FileDetails, ErrorResponse> =
         storageProvider.getFileDetails(relativize(file))
 
     fun removeFile(file: String): Result<Unit, ErrorResponse> =

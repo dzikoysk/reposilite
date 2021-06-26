@@ -20,6 +20,7 @@ import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.failure.api.errorResponse
 import org.panda_lang.reposilite.maven.api.LookupRequest
 import org.panda_lang.reposilite.maven.api.LookupResponse
+import org.panda_lang.reposilite.maven.api.Repository
 import org.panda_lang.utilities.commons.function.Result
 
 internal class LookupService(
@@ -36,6 +37,9 @@ internal class LookupService(
             }
             .map { LookupResponse(it.first, it.second) }
     }
+
+    fun findAllRepositories(): Collection<Repository> =
+        repositoryService.getRepositories()
 
     /*
     fun exists(context: ReposiliteContext): Boolean {

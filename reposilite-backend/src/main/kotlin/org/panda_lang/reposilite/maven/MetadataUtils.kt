@@ -16,6 +16,7 @@
 package org.panda_lang.reposilite.maven
 
 import org.panda_lang.reposilite.failure.api.ErrorResponse
+import org.panda_lang.reposilite.maven.api.Repository
 import org.panda_lang.reposilite.shared.FilesUtils.getExtension
 import org.panda_lang.utilities.commons.StringUtils
 import org.panda_lang.utilities.commons.function.Result

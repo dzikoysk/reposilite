@@ -19,7 +19,7 @@ package org.panda_lang.reposilite.storage.infrastructure
 import io.javalin.http.HttpCode
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.failure.api.errorResponse
-import org.panda_lang.reposilite.maven.api.FileDetailsResponse
+import org.panda_lang.reposilite.maven.api.FileDetails
 import org.panda_lang.reposilite.shared.FilesUtils.getMimeType
 import org.panda_lang.reposilite.storage.StorageProvider
 import org.panda_lang.reposilite.web.api.MimeTypes.MIME_OCTET_STREAM
@@ -50,7 +50,7 @@ internal class S3StorageProvider(private val bucket: String, region: String) : S
         .credentialsProvider(AnonymousCredentialsProvider.create())
         .build()
 
-    override fun putFile(file: Path, bytes: ByteArray): Result<FileDetailsResponse, ErrorResponse> {
+    override fun putFile(file: Path, bytes: ByteArray): Result<FileDetails, ErrorResponse> {
         val builder = PutObjectRequest.builder()
         builder.bucket(bucket)
         builder.key(file.toString().replace('\\', '/'))
@@ -64,10 +64,10 @@ internal class S3StorageProvider(private val bucket: String, region: String) : S
             )
 
             Result.ok(
-                FileDetailsResponse(
-                    FileDetailsResponse.FILE,
+                FileDetails(
+                    FileDetails.FILE,
                     file.fileName.toString(),
-                    FileDetailsResponse.DATE_FORMAT.format(LocalDate.now()),
+                    FileDetails.DATE_FORMAT.format(LocalDate.now()),
                     getMimeType(file.fileName.toString(), MIME_OCTET_STREAM),
                     bytes.size.toLong()
                 )
@@ -79,7 +79,7 @@ internal class S3StorageProvider(private val bucket: String, region: String) : S
         }
     }
 
-    override fun putFile(file: Path, inputStream: InputStream): Result<FileDetailsResponse, ErrorResponse> {
+    override fun putFile(file: Path, inputStream: InputStream): Result<FileDetails, ErrorResponse> {
         return try {
             val builder = PutObjectRequest.builder()
             builder.bucket(bucket)
@@ -95,10 +95,10 @@ internal class S3StorageProvider(private val bucket: String, region: String) : S
             )
 
             Result.ok(
-                FileDetailsResponse(
-                    FileDetailsResponse.FILE,
+                FileDetails(
+                    FileDetails.FILE,
                     file.fileName.toString(),
-                    FileDetailsResponse.DATE_FORMAT.format(LocalDate.now()),
+                    FileDetails.DATE_FORMAT.format(LocalDate.now()),
                     getMimeType(file.fileName.toString(), MIME_OCTET_STREAM),
                     length
                 )
@@ -130,11 +130,11 @@ internal class S3StorageProvider(private val bucket: String, region: String) : S
         }
     }
 
-    override fun getFileDetails(file: Path): Result<FileDetailsResponse, ErrorResponse> {
+    override fun getFileDetails(file: Path): Result<FileDetails, ErrorResponse> {
         if (file.toString() == "") {
             return Result.ok(
-                FileDetailsResponse(
-                    FileDetailsResponse.DIRECTORY,
+                FileDetails(
+                    FileDetails.DIRECTORY,
                     "",
                     "WHATEVER",
                     "application/octet-stream",
@@ -145,10 +145,10 @@ internal class S3StorageProvider(private val bucket: String, region: String) : S
 
         return head(file)
             ?.let {
-                FileDetailsResponse(
-                    FileDetailsResponse.FILE,
+                FileDetails(
+                    FileDetails.FILE,
                     file.fileName.toString(),
-                    FileDetailsResponse.DATE_FORMAT.format(LocalDate.now()),
+                    FileDetails.DATE_FORMAT.format(LocalDate.now()),
                     getMimeType(file.fileName.toString(), "application/octet-stream"),
                     it.contentLength()
                 )

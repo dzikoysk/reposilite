@@ -17,12 +17,11 @@ package org.panda_lang.reposilite.failure.api
 
 import io.javalin.http.HttpCode
 import org.panda_lang.utilities.commons.function.Result
-import java.io.Serializable
 
 data class ErrorResponse(
     val status: Int,
     val message: String
-) : Serializable {
+) {
 
     constructor(code: HttpCode, message: String) : this(code.status, message)
 

@@ -17,6 +17,7 @@
 package org.panda_lang.reposilite.maven
 
 import org.panda_lang.reposilite.config.Configuration.RepositoryConfiguration
+import org.panda_lang.reposilite.maven.api.Repository
 import org.panda_lang.reposilite.maven.api.RepositoryVisibility
 import org.panda_lang.reposilite.storage.StorageProviderFactory
 

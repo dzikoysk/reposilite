@@ -18,7 +18,7 @@ package org.panda_lang.reposilite.web
 
 import io.javalin.http.Context
 import org.panda_lang.reposilite.failure.api.ErrorResponse
-import org.panda_lang.reposilite.maven.api.FileDetailsResponse
+import org.panda_lang.reposilite.maven.api.FileDetails
 import org.panda_lang.utilities.commons.function.Result
 import java.io.InputStream
 
@@ -34,7 +34,7 @@ fun Context.contentLength(length: Long): Context =
 fun Context.encoding(encoding: String): Context =
     also { res.characterEncoding = encoding }
 
-fun Context.resultAttachment(fileDetailsResponse: FileDetailsResponse, data: InputStream): Context =
+fun Context.resultAttachment(fileDetailsResponse: FileDetails, data: InputStream): Context =
     this.also {
             if (method() != "HEAD") data.transferTo(res.outputStream)
             else data.close()
