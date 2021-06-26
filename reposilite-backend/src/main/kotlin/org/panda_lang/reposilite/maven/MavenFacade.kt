@@ -21,14 +21,20 @@ import net.dzikoysk.dynamiclogger.Logger
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.maven.api.DeployRequest
 import org.panda_lang.reposilite.maven.api.FileDetailsResponse
+import org.panda_lang.reposilite.maven.api.LookupRequest
+import org.panda_lang.reposilite.maven.api.LookupResponse
 import org.panda_lang.utilities.commons.function.Result
 
 class MavenFacade internal constructor(
-    internal val journalist: Journalist,
-    internal val repositoryService: RepositoryService,
-    internal val metadataService: MetadataService,
-    internal val deployService: DeployService,
+    private val journalist: Journalist,
+    private val repositoryService: RepositoryService,
+    private val metadataService: MetadataService,
+    private val lookupService: LookupService,
+    private val deployService: DeployService,
 ) : Journalist {
+
+    fun lookup(lookupRequest: LookupRequest): Result<LookupResponse, ErrorResponse> =
+        lookupService.lookup(lookupRequest)
 
     fun deployArtifact(deployRequest: DeployRequest): Result<FileDetailsResponse, ErrorResponse> =
         deployService.deployArtifact(deployRequest)

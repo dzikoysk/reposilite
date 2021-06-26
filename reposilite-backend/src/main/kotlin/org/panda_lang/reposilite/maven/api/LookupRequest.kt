@@ -14,21 +14,13 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.stats.api
+package org.panda_lang.reposilite.maven.api
 
-const val MAX_IDENTIFIER_LENGTH = 768
+import org.panda_lang.reposilite.token.api.AccessToken
 
-data class Record(
-    val type: RecordType,
-    val identifier: String,
-    val count: Long
-)
-
-enum class RecordType {
-    REQUEST
-}
-
-data class RecordIdentifier(
-    val type: RecordType,
-    val identifier: String
+data class LookupRequest(
+    val repository: String,
+    val gav: String,
+    val by: String,
+    val accessToken: AccessToken?
 )

@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.stats.application
+package org.panda_lang.reposilite.statistics.application
 
 import net.dzikoysk.dynamiclogger.Journalist
 import org.panda_lang.reposilite.console.ConsoleFacade
-import org.panda_lang.reposilite.stats.StatisticsFacade
-import org.panda_lang.reposilite.stats.StatsCommand
-import org.panda_lang.reposilite.stats.infrastructure.SqlStatisticsRepository
-import org.panda_lang.reposilite.stats.infrastructure.StatisticsHandler
+import org.panda_lang.reposilite.statistics.StatisticsFacade
+import org.panda_lang.reposilite.statistics.StatsCommand
+import org.panda_lang.reposilite.statistics.infrastructure.SqlStatisticsRepository
+import org.panda_lang.reposilite.statistics.infrastructure.StatisticsHandler
 import org.panda_lang.reposilite.web.RouteHandler
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit.MINUTES

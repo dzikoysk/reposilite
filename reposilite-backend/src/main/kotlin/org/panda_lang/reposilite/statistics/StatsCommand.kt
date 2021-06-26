@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.panda_lang.reposilite.stats
+package org.panda_lang.reposilite.statistics
 
 import org.panda_lang.reposilite.console.ReposiliteCommand
 import org.panda_lang.reposilite.console.Status
 import org.panda_lang.reposilite.console.Status.SUCCEEDED
-import org.panda_lang.reposilite.stats.api.RecordType
+import org.panda_lang.reposilite.statistics.api.RecordType
 import org.panda_lang.utilities.commons.console.Effect.BLACK_BOLD
 import org.panda_lang.utilities.commons.console.Effect.RESET
 import picocli.CommandLine.Command

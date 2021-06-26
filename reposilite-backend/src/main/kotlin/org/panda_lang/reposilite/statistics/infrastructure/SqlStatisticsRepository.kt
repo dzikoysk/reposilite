@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.stats.infrastructure
+package org.panda_lang.reposilite.statistics.infrastructure
 
-import net.dzikoysk.exposed.shared.UNINITIALIZED_ENTITY_ID
 import net.dzikoysk.exposed.upsert.upsert
-import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.Op.Companion.build
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SchemaUtils
@@ -30,11 +28,11 @@ import org.jetbrains.exposed.sql.sum
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.panda_lang.reposilite.shared.firstAndMap
 import org.panda_lang.reposilite.shared.transactionUnit
-import org.panda_lang.reposilite.stats.StatisticsRepository
-import org.panda_lang.reposilite.stats.api.MAX_IDENTIFIER_LENGTH
-import org.panda_lang.reposilite.stats.api.Record
-import org.panda_lang.reposilite.stats.api.RecordIdentifier
-import org.panda_lang.reposilite.stats.api.RecordType
+import org.panda_lang.reposilite.statistics.StatisticsRepository
+import org.panda_lang.reposilite.statistics.api.MAX_IDENTIFIER_LENGTH
+import org.panda_lang.reposilite.statistics.api.Record
+import org.panda_lang.reposilite.statistics.api.RecordIdentifier
+import org.panda_lang.reposilite.statistics.api.RecordType
 
 internal class SqlStatisticsRepository : StatisticsRepository {
 

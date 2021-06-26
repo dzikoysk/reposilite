@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.stats.infrastructure
+package org.panda_lang.reposilite.statistics.infrastructure
 
 import net.dzikoysk.exposed.upsert.withUnique
 import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.Table
-import org.panda_lang.reposilite.stats.api.MAX_IDENTIFIER_LENGTH
+import org.panda_lang.reposilite.statistics.api.MAX_IDENTIFIER_LENGTH
 
 internal object StatisticsTable : Table("statistics") {
 

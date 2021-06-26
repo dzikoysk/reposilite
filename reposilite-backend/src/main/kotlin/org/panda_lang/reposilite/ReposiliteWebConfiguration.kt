@@ -23,7 +23,7 @@ import org.panda_lang.reposilite.console.application.ConsoleWebConfiguration
 import org.panda_lang.reposilite.failure.application.FailureWebConfiguration
 import org.panda_lang.reposilite.frontend.application.FrontendWebConfiguration
 import org.panda_lang.reposilite.maven.application.MavenWebConfiguration
-import org.panda_lang.reposilite.stats.application.StatisticsWebConfiguration
+import org.panda_lang.reposilite.statistics.application.StatisticsWebConfiguration
 import org.panda_lang.reposilite.token.application.AccessTokenWebConfiguration
 import org.panda_lang.reposilite.web.ReposiliteContextFactory
 import org.panda_lang.reposilite.web.RouteHandler

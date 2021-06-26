@@ -13,11 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.panda_lang.reposilite.maven.api
 
-import java.io.InputStream
+package org.panda_lang.reposilite.statistics.api
 
-class LookupResponse(
-    val fileDetails: FileDetailsResponse,
-    val data: InputStream
+const val MAX_IDENTIFIER_LENGTH = 768
+
+data class Record(
+    val type: RecordType,
+    val identifier: String,
+    val count: Long
+)
+
+enum class RecordType {
+    REQUEST
+}
+
+data class RecordIdentifier(
+    val type: RecordType,
+    val identifier: String
 )

@@ -25,7 +25,9 @@ import java.nio.file.Path
 import java.time.Instant
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
-import java.util.*
+import java.util.Arrays
+import java.util.Locale
+import java.util.TreeSet
 
 internal object MetadataUtils {
 
@@ -168,6 +170,35 @@ internal object MetadataUtils {
         }
 
         return true
+    }
+
+    /**
+     * Process uri applying following changes:
+     *
+     *
+     *  * Remove root slash
+     *  * Remove illegal path modifiers like .. and ~
+     *
+     *
+     * @param uri the uri to process
+     * @return the normalized uri
+     */
+    fun normalizeUri(uri: String): String? {
+        var normalizedUri = uri
+
+        if (normalizedUri.contains("..") || normalizedUri.contains("~") || normalizedUri.contains(":") || normalizedUri.contains("\\")) {
+            return null
+        }
+
+        while (normalizedUri.contains("//")) {
+            normalizedUri = normalizedUri.replace("//", "/")
+        }
+
+        if (normalizedUri.startsWith("/")) {
+            normalizedUri = normalizedUri.substring(1)
+        }
+
+        return normalizedUri
     }
 
 }

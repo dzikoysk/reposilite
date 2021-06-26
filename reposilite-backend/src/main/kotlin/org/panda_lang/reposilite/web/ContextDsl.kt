@@ -33,12 +33,19 @@ internal class ContextDsl(
     var response: Result<out Any?, ErrorResponse>? = null
 
     /**
+     * Request was created by either anonymous user or through authenticated token
+     */
+    fun accessed(init: Session?.() -> Unit) {
+        init(context.session.orElseGet { null })
+    }
+
+    /**
      * Request was created by valid access token
      */
     fun authenticated(init: Session.() -> Unit) {
         context.session
             .onError { ctx.error(it) }
-            .peek { init.invoke(it) }
+            .peek { init(it) }
     }
 
     /**
@@ -47,13 +54,16 @@ internal class ContextDsl(
     fun authorized(init: Session.() -> Unit) {
         authenticated {
             if (isAuthorized()) {
-                init.invoke(this)
+                init(this)
             } else {
                 ctx.error(ErrorResponse(HttpCode.UNAUTHORIZED, ""))
             }
         }
     }
 
+    /**
+     * Get first available splat or empty string
+     */
     fun wildcard(): String =
         ctx.splat(0) ?: ""
 
@@ -68,10 +78,10 @@ internal class ContextDsl(
 
 }
 
-internal fun context(contextFactory: ReposiliteContextFactory, ctx: Context, init: ContextDsl.() -> Unit): Unit =
+internal fun context(contextFactory: ReposiliteContextFactory, ctx: Context, init: ContextDsl.() -> Unit) {
     contextFactory.create(ctx)
         .onError { ctx.json(it) }
         .map { ContextDsl(ctx, it) }
-        .peek { init.invoke(it) }
+        .peek { init(it) }
         .peek { it.handleResult(it.response) }
-        .end()
+}

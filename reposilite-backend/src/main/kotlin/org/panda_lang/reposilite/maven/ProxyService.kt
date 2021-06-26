@@ -20,13 +20,13 @@ import com.google.api.client.http.HttpRequestFactory
 import com.google.api.client.http.HttpResponse
 import com.google.api.client.http.javanet.NetHttpTransport
 import io.javalin.http.HttpCode
-import org.apache.commons.io.IOUtils.copyLarge
 import org.panda_lang.reposilite.ReposiliteException
 import org.panda_lang.reposilite.failure.FailureFacade
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.failure.api.errorResponse
 import org.panda_lang.reposilite.maven.api.FileDetailsResponse
 import org.panda_lang.reposilite.maven.api.LookupResponse
+import org.panda_lang.reposilite.maven.api.RepositoryVisibility.PRIVATE
 import org.panda_lang.reposilite.storage.StorageProvider
 import org.panda_lang.reposilite.web.ReposiliteContext
 import org.panda_lang.utilities.commons.StringUtils
@@ -35,7 +35,7 @@ import org.panda_lang.utilities.commons.function.Result
 import java.io.IOException
 import java.net.SocketTimeoutException
 import java.nio.file.Paths
-import java.util.*
+import java.util.Collections
 import java.util.concurrent.CompletableFuture
 
 internal class ProxyService(
@@ -67,7 +67,7 @@ internal class ProxyService(
             return errorResponse(HttpCode.NOT_FOUND, "Unknown repository")
         }
 
-        if (!proxyPrivate && repository.isPrivate()) {
+        if (!proxyPrivate && repository.visibility == PRIVATE) {
             return errorResponse(HttpCode.NOT_FOUND, "Proxying is disabled in private repositories")
         }
 
@@ -113,26 +113,24 @@ internal class ProxyService(
 
         return if (responses.isNotEmpty()) {
             val remoteResponse = responses[0]
-            val contentLength = Option.of(remoteResponse.headers.contentLength).orElseGet(0L)
-            val path = remoteUri.split("/").toTypedArray()
-            val fileDetails = FileDetailsResponse(FileDetailsResponse.FILE, path.last(), "", remoteResponse.contentType, contentLength)
-            val lookupResponse = LookupResponse.of(fileDetails)
 
             if (context.method != "HEAD") {
                 if (storeProxied) {
-                    return store(remoteUri, remoteResponse, context).map { lookupResponse }
-                }
-                else {
-                    context.output { copyLarge(remoteResponse.content, it) }
+                    return store(remoteUri, remoteResponse, context)
                 }
             }
+
+            val contentLength = Option.of(remoteResponse.headers.contentLength).orElseGet(0L)
+            val path = remoteUri.split("/").toTypedArray()
+            val fileDetails = FileDetailsResponse(FileDetailsResponse.FILE, path.last(), "", remoteResponse.contentType, contentLength)
+            val lookupResponse = LookupResponse(fileDetails, remoteResponse.content)
 
             Result.ok(lookupResponse)
         }
         else errorResponse(HttpCode.NOT_FOUND, "Artifact $uri not found")
     }
 
-    private fun store(uri: String, remoteResponse: HttpResponse, context: ReposiliteContext): Result<FileDetailsResponse, ErrorResponse> {
+    private fun store(uri: String, remoteResponse: HttpResponse, context: ReposiliteContext): Result<LookupResponse, ErrorResponse> {
         var uri = uri
 
         if (storageProvider.isFull()) {
@@ -149,13 +147,11 @@ internal class ProxyService(
         val proxiedFile = Paths.get(uri)
 
         return try {
-            val result: Result<FileDetailsResponse, ErrorResponse> = storageProvider.putFile(proxiedFile, remoteResponse.content)
-
-            if (result.isOk) {
-                context.logger.info("Stored proxied $proxiedFile from ${remoteResponse.request.url}")
-                context.output { it.write(storageProvider.getFile(proxiedFile).get()) }
-            }
-            result
+            storageProvider.putFile(proxiedFile, remoteResponse.content)
+                .map {
+                    context.logger.info("Stored proxied $proxiedFile from ${remoteResponse.request.url}")
+                    LookupResponse(it, storageProvider.getFile(proxiedFile).get())
+                }
         }
         catch (ioException: IOException) {
             errorResponse(HttpCode.UNPROCESSABLE_ENTITY, "Cannot process artifact")

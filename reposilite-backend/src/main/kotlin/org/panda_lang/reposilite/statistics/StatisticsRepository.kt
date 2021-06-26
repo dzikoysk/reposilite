@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.stats
+package org.panda_lang.reposilite.statistics
 
-import org.panda_lang.reposilite.stats.api.Record
-import org.panda_lang.reposilite.stats.api.RecordIdentifier
-import org.panda_lang.reposilite.stats.api.RecordType
+import org.panda_lang.reposilite.statistics.api.Record
+import org.panda_lang.reposilite.statistics.api.RecordIdentifier
+import org.panda_lang.reposilite.statistics.api.RecordType
 
 internal interface StatisticsRepository {
 
