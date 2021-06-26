@@ -32,7 +32,7 @@ import org.panda_lang.reposilite.web.context
 
 private const val ROUTE = "/:repositoryName/*"
 
-internal class DeployEndpoint(
+internal class DeploymentEndpoint(
     private val contextFactory: ReposiliteContextFactory,
     private val mavenFacade: MavenFacade
 ) : RouteHandler {

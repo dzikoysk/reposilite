@@ -21,7 +21,8 @@ import io.javalin.http.HttpCode
 import org.panda_lang.reposilite.failure.FailureFacade
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.failure.api.errorResponse
-import org.panda_lang.reposilite.maven.api.FileDetailsResponse
+import org.panda_lang.reposilite.maven.api.FileDetails
+import org.panda_lang.reposilite.maven.api.Repository
 import org.panda_lang.reposilite.shared.FilesUtils
 import org.panda_lang.reposilite.web.projectToError
 import org.panda_lang.utilities.commons.StringUtils
@@ -37,7 +38,7 @@ import java.util.function.Supplier
 // TOFIX: Simplify this trash class
 internal class MetadataService(private val failureFacade: FailureFacade) {
 
-    private val metadataCache: MutableMap<Path, Pair<FileDetailsResponse, String>> = ConcurrentHashMap()
+    private val metadataCache: MutableMap<Path, Pair<FileDetails, String>> = ConcurrentHashMap()
 
     companion object {
         private val XML_MAPPER: Lazy<XmlMapper> = Lazy(Supplier {
@@ -48,12 +49,12 @@ internal class MetadataService(private val failureFacade: FailureFacade) {
         })
     }
 
-    fun getMetadata(repository: Repository, requested: Path): Result<Pair<FileDetailsResponse, String>, ErrorResponse> {
+    fun getMetadata(repository: Repository, requested: Path): Result<Pair<FileDetails, String>, ErrorResponse> {
         if (requested.fileName.toString() != "maven-metadata.xml") {
             return errorResponse(HttpCode.BAD_REQUEST, "Bad request")
         }
 
-        val cachedContent: Pair<FileDetailsResponse, String>? = metadataCache[requested]
+        val cachedContent: Pair<FileDetails, String>? = metadataCache[requested]
 
         if (cachedContent != null) {
             return Result.ok(cachedContent)
@@ -85,7 +86,7 @@ internal class MetadataService(private val failureFacade: FailureFacade) {
         groupId: String,
         artifactDirectory: Path,
         versions: List<Path>
-    ): Result<Pair<FileDetailsResponse, String>, ErrorResponse> {
+    ): Result<Pair<FileDetails, String>, ErrorResponse> {
         val latest = versions.first()
 
         val versioning = Versioning(
@@ -106,7 +107,7 @@ internal class MetadataService(private val failureFacade: FailureFacade) {
         metadataFile: Path,
         groupId: String,
         versionDirectory: Path
-    ): Result<Pair<FileDetailsResponse, String>, ErrorResponse> {
+    ): Result<Pair<FileDetails, String>, ErrorResponse> {
         val artifactDirectory = versionDirectory.parent
         val builds: Result<Array<Path>, ErrorResponse> = MetadataUtils.toSortedBuilds(repository, versionDirectory)
 
@@ -157,19 +158,19 @@ internal class MetadataService(private val failureFacade: FailureFacade) {
         return toMetadataFile(repository, metadataFile, Metadata(groupId, name, versionDirectory.fileName.toString(), versioning))
     }
 
-    private fun toMetadataFile(repository: Repository, metadataFile: Path, metadata: Metadata): Result<Pair<FileDetailsResponse, String>, ErrorResponse> {
+    private fun toMetadataFile(repository: Repository, metadataFile: Path, metadata: Metadata): Result<Pair<FileDetails, String>, ErrorResponse> {
         return try {
             val serializedMetadata: String = XML_MAPPER.get().writeValueAsString(metadata)
             val bytes = serializedMetadata.toByteArray(StandardCharsets.UTF_8)
-            val result: Result<FileDetailsResponse, ErrorResponse> = repository.putFile(metadataFile, bytes)
+            val result: Result<FileDetails, ErrorResponse> = repository.putFile(metadataFile, bytes)
 
             if (result.isOk) {
                 FilesUtils.writeFileChecksums(repository, metadataFile, bytes)
-                metadataCache[metadataFile] = Pair<FileDetailsResponse, String>(result.get(), serializedMetadata)
+                metadataCache[metadataFile] = Pair<FileDetails, String>(result.get(), serializedMetadata)
             }
 
-            result.map { fileDetailsResponse: FileDetailsResponse ->
-                Pair<FileDetailsResponse, String>(
+            result.map { fileDetailsResponse: FileDetails ->
+                Pair<FileDetails, String>(
                     fileDetailsResponse,
                     serializedMetadata
                 )

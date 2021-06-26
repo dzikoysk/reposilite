@@ -15,9 +15,7 @@
  */
 package org.panda_lang.reposilite.auth.api
 
-import java.io.Serializable
-
 data class AuthenticationResponse internal constructor(
     val path: String,
     val permissions: Collection<String>
-) : Serializable
+)

@@ -16,18 +16,21 @@
 package org.panda_lang.reposilite.maven.api
 
 import org.panda_lang.reposilite.shared.FilesUtils
-import java.io.Serializable
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-data class FileDetailsResponse(
+data class FileListResponse(
+    val files: List<FileDetails>
+)
+
+data class FileDetails(
     val type: String,
     val name: String,
     val date: String,
     val contentType: String,
     val contentLength: Long
-) : Serializable, Comparable<FileDetailsResponse> {
+) : Comparable<FileDetails> {
 
     companion object {
         const val FILE = "file"
@@ -38,7 +41,7 @@ data class FileDetailsResponse(
             .withZone(ZoneId.systemDefault())
     }
 
-    override fun compareTo(other: FileDetailsResponse): Int {
+    override fun compareTo(other: FileDetails): Int {
         var result = type.compareTo(other.type)
 
         if (result == 0) {

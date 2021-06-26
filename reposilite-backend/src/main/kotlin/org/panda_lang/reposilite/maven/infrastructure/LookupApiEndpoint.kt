@@ -23,7 +23,7 @@ import com.dzikoysk.openapi.annotations.OpenApiResponse
 import io.javalin.http.Context
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.maven.MavenFacade
-import org.panda_lang.reposilite.maven.api.FileDetailsResponse
+import org.panda_lang.reposilite.maven.api.FileDetails
 import org.panda_lang.reposilite.maven.api.FileListResponse
 import org.panda_lang.reposilite.maven.api.LookupRequest
 import org.panda_lang.reposilite.web.ReposiliteContextFactory
@@ -53,7 +53,7 @@ internal class IndexEndpoint(
         responses = [OpenApiResponse(
             status = "200",
             description = "Returns document (different for directory and file) that describes requested resource",
-            content = [OpenApiContent(from = FileDetailsResponse::class), OpenApiContent(from = FileListResponse::class)]
+            content = [OpenApiContent(from = FileDetails::class), OpenApiContent(from = FileListResponse::class)]
         ), OpenApiResponse(
             status = "401",
             description = "Returns 401 in case of unauthorized attempt of access to private repository",

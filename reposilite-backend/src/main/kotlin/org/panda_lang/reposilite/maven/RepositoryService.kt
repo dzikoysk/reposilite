@@ -17,6 +17,9 @@ package org.panda_lang.reposilite.maven
 
 import net.dzikoysk.dynamiclogger.Journalist
 import net.dzikoysk.dynamiclogger.Logger
+import org.panda_lang.reposilite.config.Configuration.RepositoryConfiguration
+import org.panda_lang.reposilite.maven.api.Repository
+import org.panda_lang.reposilite.storage.StorageProviderFactory
 
 internal class RepositoryService(
     private val journalist: Journalist,
@@ -31,5 +34,21 @@ internal class RepositoryService(
 
     override fun getLogger(): Logger =
         journalist.logger
+
+}
+
+internal object RepositoryServiceFactory {
+
+    fun createRepositoryService(journalist: Journalist, repositoriesConfigurations: Map<String, RepositoryConfiguration>): RepositoryService {
+        val storageProviderFactory = StorageProviderFactory()
+        val repositoryFactory = RepositoryFactory(storageProviderFactory)
+        val repositories: MutableMap<String, Repository> = LinkedHashMap(repositoriesConfigurations.size)
+
+        for ((repositoryName, repositoryConfiguration) in repositoriesConfigurations) {
+            repositories[repositoryName] = repositoryFactory.createRepository(repositoryName, repositoryConfiguration)
+        }
+
+        return RepositoryService(journalist, repositories)
+    }
 
 }

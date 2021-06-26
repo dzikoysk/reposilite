@@ -21,16 +21,16 @@ import net.dzikoysk.dynamiclogger.Logger
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.failure.api.errorResponse
 import org.panda_lang.reposilite.maven.api.DeployRequest
-import org.panda_lang.reposilite.maven.api.FileDetailsResponse
+import org.panda_lang.reposilite.maven.api.FileDetails
 import org.panda_lang.utilities.commons.function.Result
 
-internal class DeployService(
+internal class DeploymentService(
     private val journalist: Journalist,
     private val repositoryService: RepositoryService,
     private val metadataService: MetadataService
 ) : Journalist {
 
-    fun deployArtifact(deployRequest: DeployRequest): Result<FileDetailsResponse, ErrorResponse> {
+    fun deployArtifact(deployRequest: DeployRequest): Result<FileDetails, ErrorResponse> {
         val repository = repositoryService.getRepository(deployRequest.repository) ?: return errorResponse(HttpCode.NOT_FOUND, "Repository not found")
 
         if (!repository.isDeployEnabled) {
@@ -46,7 +46,7 @@ internal class DeployService(
         metadataService.clearMetadata(metadataFile)
 
         return try {
-            val result: Result<FileDetailsResponse, ErrorResponse> =
+            val result: Result<FileDetails, ErrorResponse> =
                 if (path.fileName.toString().contains(METADATA_FILE_NAME)) {
                     metadataService.getMetadata(repository, metadataFile).map { it.key }
                 }
