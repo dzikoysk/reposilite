@@ -27,9 +27,9 @@ import org.panda_lang.reposilite.maven.api.FileDetails
 import org.panda_lang.reposilite.maven.api.FileListResponse
 import org.panda_lang.reposilite.maven.api.LookupRequest
 import org.panda_lang.reposilite.web.ReposiliteContextFactory
-import org.panda_lang.reposilite.web.RouteHandler
-import org.panda_lang.reposilite.web.RouteMethod.GET
-import org.panda_lang.reposilite.web.RouteMethod.HEAD
+import org.panda_lang.reposilite.web.api.RouteHandler
+import org.panda_lang.reposilite.web.api.RouteMethod.GET
+import org.panda_lang.reposilite.web.api.RouteMethod.HEAD
 import org.panda_lang.reposilite.web.context
 
 private const val ROUTE = "/api/:repositoryName/*"

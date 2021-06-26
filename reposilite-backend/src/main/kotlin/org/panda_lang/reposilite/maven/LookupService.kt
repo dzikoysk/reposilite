@@ -16,26 +16,34 @@
 package org.panda_lang.reposilite.maven
 
 import io.javalin.http.HttpCode.NOT_FOUND
+import io.javalin.http.HttpCode.UNAUTHORIZED
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.failure.api.errorResponse
 import org.panda_lang.reposilite.maven.api.LookupRequest
 import org.panda_lang.reposilite.maven.api.LookupResponse
 import org.panda_lang.reposilite.maven.api.Repository
+import org.panda_lang.reposilite.web.orNull
 import org.panda_lang.utilities.commons.function.Result
+import java.nio.file.Path
 
 internal class LookupService(
-    private val repositoryService: RepositoryService
+    private val repositoryService: RepositoryService,
+    private val repositorySecurityProvider: RepositorySecurityProvider
 ) {
 
     fun lookup(lookupRequest: LookupRequest): Result<LookupResponse, ErrorResponse> {
         val repository = repositoryService.getRepository(lookupRequest.repository) ?: return errorResponse(NOT_FOUND, "Repository not found")
+        val gav = Path.of(lookupRequest.gav)
 
-        return repository.getFileDetails(lookupRequest.gav)
-            .flatMap {
-                repository.getFile(lookupRequest.gav)
-                    .map { data -> Pair(it, data) }
-            }
-            .map { LookupResponse(it.first, it.second) }
+        if (repository.isDirectory(gav) && repositorySecurityProvider.canBrowseResource(lookupRequest.accessToken, repository, gav).not()) {
+            return errorResponse(UNAUTHORIZED, "Unauthorized indexing request")
+        }
+        else if (repositorySecurityProvider.canAccessResource(lookupRequest.accessToken, repository, gav).not()) {
+            return errorResponse(UNAUTHORIZED, "Unauthorized access request")
+        }
+
+        return repository.getFileDetails(gav)
+            .map { LookupResponse(it, repository.getFile(lookupRequest.gav).orNull()) }
     }
 
     fun findAllRepositories(): Collection<Repository> =

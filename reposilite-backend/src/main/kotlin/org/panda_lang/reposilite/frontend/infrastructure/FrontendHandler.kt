@@ -20,8 +20,8 @@ import com.dzikoysk.openapi.annotations.OpenApi
 import com.dzikoysk.openapi.annotations.OpenApiResponse
 import io.javalin.http.Context
 import org.panda_lang.reposilite.frontend.FrontendFacade
-import org.panda_lang.reposilite.web.RouteHandler
-import org.panda_lang.reposilite.web.RouteMethod.GET
+import org.panda_lang.reposilite.web.api.RouteHandler
+import org.panda_lang.reposilite.web.api.RouteMethod.GET
 
 internal class FrontendHandler(private val frontendFacade: FrontendFacade) : RouteHandler {
 

@@ -28,8 +28,8 @@ import org.panda_lang.reposilite.console.api.ExecutionResponse
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.failure.api.errorResponse
 import org.panda_lang.reposilite.web.ReposiliteContextFactory
-import org.panda_lang.reposilite.web.RouteHandler
-import org.panda_lang.reposilite.web.RouteMethod.POST
+import org.panda_lang.reposilite.web.api.RouteHandler
+import org.panda_lang.reposilite.web.api.RouteMethod.POST
 import org.panda_lang.reposilite.web.context
 
 private const val ROUTE = "/api/execute"

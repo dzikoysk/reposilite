@@ -20,8 +20,8 @@ import io.javalin.http.Context
 import org.panda_lang.reposilite.statistics.StatisticsFacade
 import org.panda_lang.reposilite.statistics.api.MAX_IDENTIFIER_LENGTH
 import org.panda_lang.reposilite.statistics.api.RecordType
-import org.panda_lang.reposilite.web.RouteHandler
-import org.panda_lang.reposilite.web.RouteMethod.BEFORE
+import org.panda_lang.reposilite.web.api.RouteHandler
+import org.panda_lang.reposilite.web.api.RouteMethod.BEFORE
 
 internal class StatisticsHandler(private val statisticsFacade: StatisticsFacade) : RouteHandler {
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.web
+package org.panda_lang.reposilite.web.api
 
 import io.javalin.http.Handler
 

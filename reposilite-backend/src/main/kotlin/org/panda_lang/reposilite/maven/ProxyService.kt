@@ -25,6 +25,7 @@ import org.panda_lang.reposilite.failure.FailureFacade
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.failure.api.errorResponse
 import org.panda_lang.reposilite.maven.api.FileDetails
+import org.panda_lang.reposilite.maven.api.FileType
 import org.panda_lang.reposilite.maven.api.LookupResponse
 import org.panda_lang.reposilite.maven.api.Repository
 import org.panda_lang.reposilite.maven.api.RepositoryVisibility.PRIVATE
@@ -123,7 +124,7 @@ internal class ProxyService(
 
             val contentLength = Option.of(remoteResponse.headers.contentLength).orElseGet(0L)
             val path = remoteUri.split("/").toTypedArray()
-            val fileDetails = FileDetails(FileDetails.FILE, path.last(), "", remoteResponse.contentType, contentLength)
+            val fileDetails = FileDetails(FileType.FILE, path.last(), remoteResponse.contentType, contentLength)
             val lookupResponse = LookupResponse(fileDetails, remoteResponse.content)
 
             Result.ok(lookupResponse)

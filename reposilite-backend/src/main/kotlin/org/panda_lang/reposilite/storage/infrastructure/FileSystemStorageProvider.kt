@@ -20,6 +20,8 @@ import io.javalin.http.HttpCode
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.failure.api.errorResponse
 import org.panda_lang.reposilite.maven.api.FileDetails
+import org.panda_lang.reposilite.maven.api.FileType
+import org.panda_lang.reposilite.maven.api.FileType.FILE
 import org.panda_lang.reposilite.shared.FilesUtils
 import org.panda_lang.reposilite.shared.FilesUtils.getMimeType
 import org.panda_lang.reposilite.storage.StorageProvider
@@ -36,7 +38,6 @@ import java.nio.file.Path
 import java.nio.file.StandardOpenOption.CREATE
 import java.nio.file.StandardOpenOption.WRITE
 import java.nio.file.attribute.FileTime
-import java.time.LocalDate
 import java.util.concurrent.atomic.AtomicLong
 import java.util.stream.Collectors
 
@@ -128,9 +129,8 @@ internal abstract class FileSystemStorageProvider private constructor(
 
             Result.ok(
                 FileDetails(
-                    FileDetails.FILE,
+                    FILE,
                     file.fileName.toString(),
-                    FileDetails.DATE_FORMAT.format(LocalDate.now()),
                     getMimeType(file.toString(), "application/octet-stream"),
                     bytesWritten
                 )
@@ -158,13 +158,14 @@ internal abstract class FileSystemStorageProvider private constructor(
             errorResponse(HttpCode.NOT_FOUND, "File not found: $file")
         }
         else try {
+            val isDirectory = Files.isDirectory(file)
+
             Result.ok(
                 FileDetails(
-                    if (Files.isDirectory(file)) FileDetails.DIRECTORY else FileDetails.FILE,
+                    if (isDirectory) FileType.DIRECTORY else FileType.FILE,
                     file.fileName.toString(),
-                    FileDetails.DATE_FORMAT.format(Files.getLastModifiedTime(file).toInstant()), // TOFIX: Verify if #toInstant() is the best way to do this
-                    getMimeType(file.fileName.toString(), "application/octet-stream"),
-                    Files.size(file)
+                    if (isDirectory) null else getMimeType(file.fileName.toString(), "application/octet-stream"),
+                    if (isDirectory) null else Files.size(file)
                 )
             )
         } catch (ioException: IOException) {

@@ -1,24 +1,12 @@
-/*
- * Copyright (c) 2021 dzikoysk
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-package org.panda_lang.reposilite.web.application
+package org.panda_lang.reposilite.web.infrastructure
 
 import com.dzikoysk.openapi.javalin.OpenApiConfiguration
 import com.dzikoysk.openapi.javalin.OpenApiPlugin
+import com.fasterxml.jackson.annotation.JsonInclude.Include
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.javalin.Javalin
 import io.javalin.core.JavalinConfig
+import io.javalin.plugin.json.JavalinJackson
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.util.ssl.SslContextFactory
@@ -26,29 +14,30 @@ import org.panda_lang.reposilite.Reposilite
 import org.panda_lang.reposilite.ReposiliteWebConfiguration
 import org.panda_lang.reposilite.VERSION
 import org.panda_lang.reposilite.config.Configuration
-import org.panda_lang.reposilite.web.RouteMethod.AFTER
-import org.panda_lang.reposilite.web.RouteMethod.BEFORE
-import org.panda_lang.reposilite.web.RouteMethod.DELETE
-import org.panda_lang.reposilite.web.RouteMethod.GET
-import org.panda_lang.reposilite.web.RouteMethod.HEAD
-import org.panda_lang.reposilite.web.RouteMethod.POST
-import org.panda_lang.reposilite.web.RouteMethod.PUT
+import org.panda_lang.reposilite.web.WebServer
+import org.panda_lang.reposilite.web.api.RouteMethod.AFTER
+import org.panda_lang.reposilite.web.api.RouteMethod.BEFORE
+import org.panda_lang.reposilite.web.api.RouteMethod.DELETE
+import org.panda_lang.reposilite.web.api.RouteMethod.GET
+import org.panda_lang.reposilite.web.api.RouteMethod.HEAD
+import org.panda_lang.reposilite.web.api.RouteMethod.POST
+import org.panda_lang.reposilite.web.api.RouteMethod.PUT
 
-internal class HttpServerConfiguration internal constructor(
-    private val reposilite: Reposilite,
-    private val servlet: Boolean
-) {
+internal class JavalinWebServer : WebServer {
 
-    var javalin: Javalin? = null
-        private set
+    private val servlet = false
+    private var javalin: Javalin? = null
 
-    fun start(configuration: Configuration) {
-        val javalin = create(configuration)
+    override fun start(reposilite: Reposilite) {
+        val configuration = reposilite.configuration
+
+        val javalin = create(reposilite, configuration)
             .events { listener ->
                 listener.serverStopping { reposilite.logger.info("Server stopping...") }
                 listener.serverStopped { reposilite.logger.info("Bye! Uptime: " + reposilite.getPrettyUptime()) }
             }
-            .also { this.javalin = it }
+
+        ReposiliteWebConfiguration.javalin(reposilite, javalin)
 
         ReposiliteWebConfiguration.routing(reposilite).forEach { handler ->
             handler.methods.forEach { method ->
@@ -69,21 +58,38 @@ internal class HttpServerConfiguration internal constructor(
         }
     }
 
-    private fun create(configuration: Configuration): Javalin =
-        if (servlet)
-            Javalin.createStandalone { configure(configuration, it) }
-        else
-            Javalin.create { configure(configuration, it) }
 
-    private fun configure(configuration: Configuration, config: JavalinConfig) {
+    private fun create(reposilite: Reposilite, configuration: Configuration): Javalin =
+        if (servlet) {
+            Javalin.createStandalone { configure(reposilite, configuration, it) }
+        } else {
+            Javalin.create { configure(reposilite, configuration, it) }
+        }
+
+    private fun configure(reposilite: Reposilite, configuration: Configuration, config: JavalinConfig) {
         val server = Server()
 
+        configureJsonSerialization()
+        configureSSL(reposilite, configuration, config, server)
+        configureCors(config)
+        configureOpenApi(configuration, config)
+        configureDebug(reposilite, configuration, config)
+
+        config.server { server }
+    }
+
+    private fun configureJsonSerialization() {
+        val objectMapper = ObjectMapper()
+        objectMapper.setSerializationInclusion(Include.NON_NULL)
+        JavalinJackson.configure(objectMapper)
+    }
+
+    private fun configureSSL(reposilite: Reposilite, configuration: Configuration, config: JavalinConfig, server: Server) {
         if (configuration.sslEnabled) {
             reposilite.logger.info("Enabling SSL connector at ::" + configuration.sslPort)
 
             val sslContextFactory: SslContextFactory = SslContextFactory.Server()
-            sslContextFactory.keyStorePath =
-                configuration.keyStorePath.replace("\${WORKING_DIRECTORY}", reposilite.workingDirectory.toAbsolutePath().toString())
+            sslContextFactory.keyStorePath = configuration.keyStorePath.replace("\${WORKING_DIRECTORY}", reposilite.workingDirectory.toAbsolutePath().toString())
             sslContextFactory.setKeyStorePassword(configuration.keyStorePassword)
 
             val sslConnector = ServerConnector(server, sslContextFactory)
@@ -98,9 +104,13 @@ internal class HttpServerConfiguration internal constructor(
         }
 
         config.enforceSsl = configuration.enforceSsl
-        config.enableCorsForAllOrigins()
-        config.showJavalinBanner = false
+    }
 
+    private fun configureCors(config: JavalinConfig) {
+        config.enableCorsForAllOrigins()
+    }
+
+    private fun configureOpenApi(configuration: Configuration, config: JavalinConfig) {
         if (configuration.swagger) {
             val openApiConfiguration = OpenApiConfiguration()
             openApiConfiguration.title = configuration.title
@@ -108,21 +118,22 @@ internal class HttpServerConfiguration internal constructor(
             openApiConfiguration.version = VERSION
             config.registerPlugin(OpenApiPlugin(openApiConfiguration))
         }
+    }
 
+    private fun configureDebug(reposilite: Reposilite, configuration: Configuration, config: JavalinConfig) {
         if (configuration.debugEnabled) {
             // config.requestCacheSize = FilesUtils.displaySizeToBytesCount(System.getProperty("reposilite.requestCacheSize", "8MB"));
             // Reposilite.getLogger().debug("requestCacheSize set to " + config.requestCacheSize + " bytes");
             reposilite.logger.info("Debug enabled")
             config.enableDevLogging()
         }
-
-        config.server { server }
     }
 
-    fun stop(): Javalin? =
+    override fun stop() {
         javalin?.stop()
+    }
 
-    fun isAlive(): Boolean =
+    override fun isAlive(): Boolean =
         javalin?.server()?.server()?.isStarted ?: false
 
 }

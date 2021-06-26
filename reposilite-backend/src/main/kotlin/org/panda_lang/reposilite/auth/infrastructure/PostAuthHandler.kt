@@ -17,8 +17,8 @@ package org.panda_lang.reposilite.auth.infrastructure
 
 import io.javalin.http.Context
 import io.javalin.http.HttpCode
-import org.panda_lang.reposilite.web.RouteHandler
-import org.panda_lang.reposilite.web.RouteMethod.AFTER
+import org.panda_lang.reposilite.web.api.RouteHandler
+import org.panda_lang.reposilite.web.api.RouteMethod.AFTER
 
 private const val WWW_AUTHENTICATE = "www-authenticate"
 private const val WWW_BASIC_REALM = """Basic realm="Reposilite", charset="UTF-8" """

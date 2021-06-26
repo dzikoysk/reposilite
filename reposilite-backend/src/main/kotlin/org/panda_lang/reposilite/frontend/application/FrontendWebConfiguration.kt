@@ -19,7 +19,7 @@ package org.panda_lang.reposilite.frontend.application
 import org.panda_lang.reposilite.config.Configuration
 import org.panda_lang.reposilite.frontend.FrontendFacade
 import org.panda_lang.reposilite.frontend.infrastructure.FrontendHandler
-import org.panda_lang.reposilite.web.RouteHandler
+import org.panda_lang.reposilite.web.api.RouteHandler
 
 internal object FrontendWebConfiguration {
 

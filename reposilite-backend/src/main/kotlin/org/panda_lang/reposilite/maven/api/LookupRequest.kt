@@ -28,5 +28,5 @@ data class LookupRequest(
 
 class LookupResponse(
     val fileDetails: FileDetails,
-    val data: InputStream
+    val data: InputStream?
 )

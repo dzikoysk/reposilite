@@ -20,6 +20,8 @@ import io.javalin.http.HttpCode
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.failure.api.errorResponse
 import org.panda_lang.reposilite.maven.api.FileDetails
+import org.panda_lang.reposilite.maven.api.FileType.DIRECTORY
+import org.panda_lang.reposilite.maven.api.FileType.FILE
 import org.panda_lang.reposilite.shared.FilesUtils.getMimeType
 import org.panda_lang.reposilite.storage.StorageProvider
 import org.panda_lang.reposilite.web.api.MimeTypes.MIME_OCTET_STREAM
@@ -41,7 +43,6 @@ import java.io.InputStream
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.attribute.FileTime
-import java.time.LocalDate
 
 internal class S3StorageProvider(private val bucket: String, region: String) : StorageProvider {
 
@@ -65,9 +66,8 @@ internal class S3StorageProvider(private val bucket: String, region: String) : S
 
             Result.ok(
                 FileDetails(
-                    FileDetails.FILE,
+                    FILE,
                     file.fileName.toString(),
-                    FileDetails.DATE_FORMAT.format(LocalDate.now()),
                     getMimeType(file.fileName.toString(), MIME_OCTET_STREAM),
                     bytes.size.toLong()
                 )
@@ -96,9 +96,8 @@ internal class S3StorageProvider(private val bucket: String, region: String) : S
 
             Result.ok(
                 FileDetails(
-                    FileDetails.FILE,
+                    FILE,
                     file.fileName.toString(),
-                    FileDetails.DATE_FORMAT.format(LocalDate.now()),
                     getMimeType(file.fileName.toString(), MIME_OCTET_STREAM),
                     length
                 )
@@ -134,11 +133,8 @@ internal class S3StorageProvider(private val bucket: String, region: String) : S
         if (file.toString() == "") {
             return Result.ok(
                 FileDetails(
-                    FileDetails.DIRECTORY,
-                    "",
-                    "WHATEVER",
-                    "application/octet-stream",
-                    0
+                    DIRECTORY,
+                    file.fileName.toString(),
                 )
             )
         }
@@ -146,9 +142,8 @@ internal class S3StorageProvider(private val bucket: String, region: String) : S
         return head(file)
             ?.let {
                 FileDetails(
-                    FileDetails.FILE,
+                    FILE,
                     file.fileName.toString(),
-                    FileDetails.DATE_FORMAT.format(LocalDate.now()),
                     getMimeType(file.fileName.toString(), "application/octet-stream"),
                     it.contentLength()
                 )
@@ -227,7 +222,7 @@ internal class S3StorageProvider(private val bucket: String, region: String) : S
 
     override fun isDirectory(file: Path): Boolean =
         getFileDetails(file)
-            .map { it.isDirectory() }
+            .map { it.type == DIRECTORY }
             .orElseGet { false }
         /*
         with(getFile(file)) {

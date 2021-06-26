@@ -16,6 +16,7 @@
 
 package org.panda_lang.reposilite
 
+import io.javalin.Javalin
 import net.dzikoysk.dynamiclogger.Journalist
 import org.panda_lang.reposilite.auth.application.AuthenticationWebConfiguration
 import org.panda_lang.reposilite.config.Configuration
@@ -26,7 +27,8 @@ import org.panda_lang.reposilite.maven.application.MavenWebConfiguration
 import org.panda_lang.reposilite.statistics.application.StatisticsWebConfiguration
 import org.panda_lang.reposilite.token.application.AccessTokenWebConfiguration
 import org.panda_lang.reposilite.web.ReposiliteContextFactory
-import org.panda_lang.reposilite.web.RouteHandler
+import org.panda_lang.reposilite.web.api.RouteHandler
+import org.panda_lang.reposilite.web.application.WebConfiguration
 import java.nio.file.Path
 
 object ReposiliteWebConfiguration {
@@ -34,6 +36,7 @@ object ReposiliteWebConfiguration {
     fun createReposilite(journalist: Journalist, configuration: Configuration, workingDirectory: Path, testEnv: Boolean): Reposilite {
         val logger = journalist.logger
 
+        val webServer = WebConfiguration.createWebServer()
         val failureFacade = FailureWebConfiguration.createFacade(logger)
         val consoleFacade = ConsoleWebConfiguration.createFacade(logger, failureFacade)
         val mavenFacade = MavenWebConfiguration.createFacade(logger, failureFacade, configuration.repositories)
@@ -48,6 +51,7 @@ object ReposiliteWebConfiguration {
             configuration = configuration,
             workingDirectory = workingDirectory,
             testEnv = testEnv,
+            webServer = webServer,
             failureFacade = failureFacade,
             contextFactory = contextFactory,
             authenticationFacade = authenticationFacade,
@@ -55,7 +59,7 @@ object ReposiliteWebConfiguration {
             consoleFacade = consoleFacade,
             accessTokenFacade = accessTokenFacade,
             frontendFacade = frontendFacade,
-            statisitcsFacade = statisticFacade
+            statisticsFacade = statisticFacade
         )
     }
 
@@ -66,21 +70,27 @@ object ReposiliteWebConfiguration {
         // MavenWebConfiguration.initialize()
         // FrontendWebConfiguration.initialize()
         // MavenWebConfiguration.initialize()
-        StatisticsWebConfiguration.initialize(reposilite.statisitcsFacade, reposilite.consoleFacade)
+        StatisticsWebConfiguration.initialize(reposilite.statisticsFacade, reposilite.consoleFacade)
         AccessTokenWebConfiguration.initialize(reposilite.accessTokenFacade, reposilite.consoleFacade)
     }
 
     fun routing(reposilite: Reposilite): Collection<RouteHandler> =
         setOf(
             AuthenticationWebConfiguration.routing(reposilite.authenticationFacade),
-            ConsoleWebConfiguration.routing(reposilite.httpServer.javalin!!, reposilite),
-            FailureWebConfiguration.routing(reposilite.httpServer.javalin!!, reposilite.failureFacade),
+            ConsoleWebConfiguration.routing(reposilite),
+            FailureWebConfiguration.routing(),
             FrontendWebConfiguration.routing(reposilite.frontendFacade),
             MavenWebConfiguration.routing(reposilite.contextFactory, reposilite.mavenFacade),
-            StatisticsWebConfiguration.routing(reposilite.statisitcsFacade),
+            StatisticsWebConfiguration.routing(reposilite.statisticsFacade),
             // AccessTokenWebConfiguration.routing(),
         )
         .flatten()
+
+    // TOFIX: Remove dependency on infrastructure details
+    fun javalin(reposilite: Reposilite, javalin: Javalin) {
+        ConsoleWebConfiguration.javalin(javalin, reposilite)
+        FailureWebConfiguration.javalin(javalin, reposilite.failureFacade)
+    }
 
     fun dispose(reposilite: Reposilite) {
         ConsoleWebConfiguration.dispose(reposilite.consoleFacade)

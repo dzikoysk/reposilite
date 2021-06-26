@@ -15,31 +15,24 @@
  */
 package org.panda_lang.reposilite.maven.api
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import org.panda_lang.reposilite.shared.FilesUtils
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.util.Locale
+
+enum class FileType {
+    FILE,
+    DIRECTORY
+}
 
 data class FileListResponse(
     val files: List<FileDetails>
 )
 
 data class FileDetails(
-    val type: String,
+    val type: FileType,
     val name: String,
-    val date: String,
-    val contentType: String,
-    val contentLength: Long
+    val contentType: String? = null,
+    val contentLength: Long? = null
 ) : Comparable<FileDetails> {
-
-    companion object {
-        const val FILE = "file"
-        const val DIRECTORY = "directory"
-
-        val DATE_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy")
-            .withLocale(Locale.getDefault())
-            .withZone(ZoneId.systemDefault())
-    }
 
     override fun compareTo(other: FileDetails): Int {
         var result = type.compareTo(other.type)
@@ -51,10 +44,8 @@ data class FileDetails(
         return result
     }
 
+    @JsonIgnore
     fun isReadable(): Boolean =
         FilesUtils.isReadable(name)
-
-    fun isDirectory(): Boolean =
-        DIRECTORY == type
 
 }
