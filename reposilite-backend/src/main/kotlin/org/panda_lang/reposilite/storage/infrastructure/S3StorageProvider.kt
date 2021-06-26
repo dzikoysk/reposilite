@@ -20,10 +20,10 @@ import io.javalin.http.HttpCode
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.failure.api.errorResponse
 import org.panda_lang.reposilite.maven.api.FileDetailsResponse
-import org.panda_lang.reposilite.web.api.MimeTypes.MIME_OCTET_STREAM
-import org.panda_lang.reposilite.web.api.MimeTypes.MIME_PLAIN
 import org.panda_lang.reposilite.shared.FilesUtils.getMimeType
 import org.panda_lang.reposilite.storage.StorageProvider
+import org.panda_lang.reposilite.web.api.MimeTypes.MIME_OCTET_STREAM
+import org.panda_lang.reposilite.web.api.MimeTypes.MIME_PLAIN
 import org.panda_lang.utilities.commons.function.Result
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider
 import software.amazon.awssdk.core.sync.RequestBody
@@ -110,18 +110,17 @@ internal class S3StorageProvider(private val bucket: String, region: String) : S
         }
     }
 
-    override fun getFile(file: Path): Result<ByteArray, ErrorResponse> {
+    override fun getFile(file: Path): Result<InputStream, ErrorResponse> {
         return try {
             val request = GetObjectRequest.builder()
             request.bucket(bucket)
             request.key(file.toString().replace('\\', '/'))
 
             val response = s3.getObject(request.build())
-            val bytes = ByteArray(Math.toIntExact(response.response().contentLength()))
-            val read = response.read(bytes)
-            // TOFIX: verify - read not used?
+            // val bytes = ByteArray(Math.toIntExact(response.response().contentLength()))
+            // response.read(bytes)
 
-            Result.ok(bytes)
+            Result.ok(response)
         }
         catch (noSuchKeyException: NoSuchKeyException) {
             errorResponse(HttpCode.NOT_FOUND, "File not found: $file")
@@ -227,9 +226,14 @@ internal class S3StorageProvider(private val bucket: String, region: String) : S
     }
 
     override fun isDirectory(file: Path): Boolean =
+        getFileDetails(file)
+            .map { it.isDirectory() }
+            .orElseGet { false }
+        /*
         with(getFile(file)) {
-            isOk && get().isNotEmpty() && !exists(file)
+            isOk && get().available() > 0 && !exists(file)
         }
+         */
 
     override fun isFull(): Boolean {
         TODO("Not yet implemented")

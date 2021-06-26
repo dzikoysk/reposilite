@@ -43,7 +43,7 @@ interface StorageProvider {
      */
     fun putFile(file: Path, inputStream: InputStream): Result<FileDetailsResponse, ErrorResponse>
 
-    fun getFile(file: Path): Result<ByteArray, ErrorResponse>
+    fun getFile(file: Path): Result<InputStream, ErrorResponse>
 
     fun getFileDetails(file: Path): Result<FileDetailsResponse, ErrorResponse>
 

@@ -18,37 +18,9 @@ package org.panda_lang.reposilite.web
 
 import io.javalin.http.Context
 import org.panda_lang.reposilite.failure.api.ErrorResponse
-import org.panda_lang.utilities.commons.function.Option
+import org.panda_lang.reposilite.maven.api.FileDetailsResponse
 import org.panda_lang.utilities.commons.function.Result
-
-/**
- * Process uri applying following changes:
- *
- *
- *  * Remove root slash
- *  * Remove illegal path modifiers like .. and ~
- *
- *
- * @param uri the uri to process
- * @return the normalized uri
- */
-fun normalizeUri(uri: String): Option<String> {
-    var normalizedUri = uri
-
-    if (normalizedUri.contains("..") || normalizedUri.contains("~") || normalizedUri.contains(":") || normalizedUri.contains("\\")) {
-        return Option.none()
-    }
-
-    while (normalizedUri.contains("//")) {
-        normalizedUri = normalizedUri.replace("//", "/")
-    }
-
-    if (normalizedUri.startsWith("/")) {
-        normalizedUri = normalizedUri.substring(1)
-    }
-
-    return Option.of(normalizedUri)
-}
+import java.io.InputStream
 
 /**
  * Extends Javalin's context with a support for [ErrorResponse] results
@@ -56,16 +28,24 @@ fun normalizeUri(uri: String): Option<String> {
 fun Context.error(error: ErrorResponse): Context =
     this.status(error.status).json(error)
 
+fun Context.contentLength(length: Long): Context =
+    also { res.setContentLengthLong(length) }
+
+fun Context.encoding(encoding: String): Context =
+    also { res.characterEncoding = encoding }
+
+fun Context.resultAttachment(fileDetailsResponse: FileDetailsResponse, data: InputStream): Context =
+    this.also {
+            if (method() != "HEAD") data.transferTo(res.outputStream)
+            else data.close()
+        }
+        .contentType(fileDetailsResponse.contentType)
+        .contentLength(fileDetailsResponse.contentLength)
+        .header("Content-Disposition", if (fileDetailsResponse.isReadable()) "" else """"attachment; filename="${fileDetailsResponse.name}" """)
+
 /**
  * Project non-existing value of errored [Result] to simplify error handling by convenient way to match expected signatures.
  * This method throws [IllegalArgumentException] if the given [Result] does not contain error.
  */
 fun <ANY_VALUE, REQUIRED_VALUE, ERROR> Result<ANY_VALUE, ERROR>.projectToError(): Result<REQUIRED_VALUE, ERROR> =
     if (this.isErr) this.map { null } else throw IllegalArgumentException("")
-
-/**
- * End [Result] based pipes with
- */
-@Suppress("unused")
-fun <V, E> Result<V, E>.end(): Unit =
-    Unit

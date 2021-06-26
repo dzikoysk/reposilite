@@ -15,9 +15,27 @@
  */
 package org.panda_lang.reposilite.maven
 
+import io.javalin.http.HttpCode.NOT_FOUND
+import org.panda_lang.reposilite.failure.api.ErrorResponse
+import org.panda_lang.reposilite.failure.api.errorResponse
+import org.panda_lang.reposilite.maven.api.LookupRequest
+import org.panda_lang.reposilite.maven.api.LookupResponse
+import org.panda_lang.utilities.commons.function.Result
+
 internal class LookupService(
     private val repositoryService: RepositoryService
 ) {
+
+    fun lookup(lookupRequest: LookupRequest): Result<LookupResponse, ErrorResponse> {
+        val repository = repositoryService.getRepository(lookupRequest.repository) ?: return errorResponse(NOT_FOUND, "Repository not found")
+
+        return repository.getFileDetails(lookupRequest.gav)
+            .flatMap {
+                repository.getFile(lookupRequest.gav)
+                    .map { data -> Pair(it, data) }
+            }
+            .map { LookupResponse(it.first, it.second) }
+    }
 
     /*
     fun exists(context: ReposiliteContext): Boolean {
@@ -119,6 +137,6 @@ internal class LookupService(
             Result.error(fileDetailsResult.error)
         }
     }
-    
+
      */
 }

@@ -15,13 +15,12 @@
  */
 package org.panda_lang.reposilite.maven
 
+import io.javalin.http.HttpCode.NOT_FOUND
 import org.panda_lang.reposilite.failure.api.ErrorResponse
+import org.panda_lang.reposilite.failure.api.errorResponse
 import org.panda_lang.reposilite.maven.api.FileDetailsResponse
 import org.panda_lang.reposilite.maven.api.RepositoryVisibility
-import org.panda_lang.reposilite.maven.api.RepositoryVisibility.PRIVATE
-import org.panda_lang.reposilite.maven.api.RepositoryVisibility.PUBLIC
 import org.panda_lang.reposilite.storage.StorageProvider
-import org.panda_lang.reposilite.web.normalizeUri
 import org.panda_lang.utilities.commons.function.Result
 import java.io.InputStream
 import java.nio.file.Path
@@ -39,32 +38,52 @@ class Repository internal constructor(
         private val REPOSITORIES_PATH = Paths.get("repositories")
     }
 
+    private fun <R> relativize(file: String, consumer: (Path) -> Result<R, ErrorResponse>): Result<R, ErrorResponse> =
+        relativize(file)
+            ?.let { consumer(it) }
+            ?: errorResponse(NOT_FOUND, "Invalid GAV")
+
     override fun compare(path: Path, toPath: Path): Int =
         relativize(path).compareTo(relativize(toPath))
 
-    fun isPublic(): Boolean =
-        visibility == PUBLIC
-
-    fun isPrivate(): Boolean =
-        visibility == PRIVATE
+    fun putFile(file: String, bytes: ByteArray): Result<FileDetailsResponse, ErrorResponse> =
+        relativize(file) { putFile(it, bytes) }
 
     fun putFile(file: Path, bytes: ByteArray): Result<FileDetailsResponse, ErrorResponse> =
         storageProvider.putFile(relativize(file), bytes)
 
+    fun putFile(file: String, inputStream: InputStream): Result<FileDetailsResponse, ErrorResponse> =
+        relativize(file) { putFile(it, inputStream) }
+
     fun putFile(file: Path, inputStream: InputStream): Result<FileDetailsResponse, ErrorResponse> =
         storageProvider.putFile(relativize(file), inputStream)
 
-    fun getFile(file: Path): Result<ByteArray, ErrorResponse> =
+    fun getFile(file: String): Result<InputStream, ErrorResponse> =
+        relativize(file) { getFile(it) }
+
+    fun getFile(file: Path): Result<InputStream, ErrorResponse> =
         storageProvider.getFile(relativize(file))
+
+    fun getFileDetails(file: String): Result<FileDetailsResponse, ErrorResponse> =
+        relativize(file) { getFileDetails(it) }
 
     fun getFileDetails(file: Path): Result<FileDetailsResponse, ErrorResponse> =
         storageProvider.getFileDetails(relativize(file))
 
+    fun removeFile(file: String): Result<Unit, ErrorResponse> =
+        relativize(file) { removeFile(it) }
+
     fun removeFile(file: Path): Result<Unit, ErrorResponse> =
         storageProvider.removeFile(relativize(file))
 
+    fun getFiles(directory: String): Result<List<Path>, ErrorResponse> =
+        relativize(directory) { getFiles(directory) }
+
     fun getFiles(directory: Path): Result<List<Path>, ErrorResponse> =
         storageProvider.getFiles(relativize(directory))
+
+    fun getLastModifiedTime(file: String): Result<FileTime, ErrorResponse> =
+        relativize(file) { getLastModifiedTime(file) }
 
     fun getLastModifiedTime(file: Path): Result<FileTime, ErrorResponse> =
         storageProvider.getLastModifiedTime(relativize(file))
@@ -111,8 +130,6 @@ class Repository internal constructor(
     }
 
     fun relativize(gav: String): Path? =
-        normalizeUri(gav)
-            .map { relativize(Paths.get(it)) }
-            .orNull
+        MetadataUtils.normalizeUri(gav)?.let { relativize(Paths.get(it)) }
 
 }

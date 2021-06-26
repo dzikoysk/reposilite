@@ -15,8 +15,11 @@
  */
 package org.panda_lang.reposilite.maven.api
 
+import org.panda_lang.reposilite.shared.FilesUtils
 import java.io.Serializable
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 data class FileDetailsResponse(
     val type: String,
@@ -27,11 +30,12 @@ data class FileDetailsResponse(
 ) : Serializable, Comparable<FileDetailsResponse> {
 
     companion object {
-
         const val FILE = "file"
         const val DIRECTORY = "directory"
-        val DATE_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy")
 
+        val DATE_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy")
+            .withLocale(Locale.getDefault())
+            .withZone(ZoneId.systemDefault())
     }
 
     override fun compareTo(other: FileDetailsResponse): Int {
@@ -43,6 +47,9 @@ data class FileDetailsResponse(
 
         return result
     }
+
+    fun isReadable(): Boolean =
+        FilesUtils.isReadable(name)
 
     fun isDirectory(): Boolean =
         DIRECTORY == type

@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.stats.infrastructure
+package org.panda_lang.reposilite.statistics.infrastructure
 
 import io.javalin.http.Context
-import org.panda_lang.reposilite.stats.StatisticsFacade
-import org.panda_lang.reposilite.stats.api.MAX_IDENTIFIER_LENGTH
-import org.panda_lang.reposilite.stats.api.RecordType
+import org.panda_lang.reposilite.statistics.StatisticsFacade
+import org.panda_lang.reposilite.statistics.api.MAX_IDENTIFIER_LENGTH
+import org.panda_lang.reposilite.statistics.api.RecordType
 import org.panda_lang.reposilite.web.RouteHandler
 import org.panda_lang.reposilite.web.RouteMethod.BEFORE
 

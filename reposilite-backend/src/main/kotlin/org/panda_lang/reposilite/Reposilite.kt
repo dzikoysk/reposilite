@@ -27,7 +27,7 @@ import org.panda_lang.reposilite.frontend.FrontendFacade
 import org.panda_lang.reposilite.maven.MavenFacade
 import org.panda_lang.reposilite.shared.CachedLogger
 import org.panda_lang.reposilite.shared.TimeUtils
-import org.panda_lang.reposilite.stats.StatisticsFacade
+import org.panda_lang.reposilite.statistics.StatisticsFacade
 import org.panda_lang.reposilite.token.AccessTokenFacade
 import org.panda_lang.reposilite.web.application.HttpServerConfiguration
 import org.panda_lang.reposilite.web.ReposiliteContextFactory
@@ -35,7 +35,6 @@ import org.panda_lang.utilities.commons.console.Effect
 import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicBoolean
 
-const val NAME = "Reposilite"
 const val VERSION = "3.0.0-SNAPSHOT"
 
 class Reposilite(

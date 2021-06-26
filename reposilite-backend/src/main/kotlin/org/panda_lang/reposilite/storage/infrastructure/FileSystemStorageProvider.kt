@@ -39,7 +39,6 @@ import java.nio.file.attribute.FileTime
 import java.time.LocalDate
 import java.util.concurrent.atomic.AtomicLong
 import java.util.stream.Collectors
-import kotlin.streams.toList
 
 /**
  * @param rootDirectory root directory of storage space
@@ -142,12 +141,12 @@ internal abstract class FileSystemStorageProvider private constructor(
         }
     }
 
-    override fun getFile(file: Path): Result<ByteArray, ErrorResponse> {
+    override fun getFile(file: Path): Result<InputStream, ErrorResponse> {
         return if (!Files.exists(file) || Files.isDirectory(file)) {
             errorResponse(HttpCode.NOT_FOUND, "File not found: $file")
         }
         else try {
-            Result.ok(Files.readAllBytes(file))
+            Result.ok(Files.newInputStream(file))
         }
         catch (ioException: IOException) {
             errorResponse(HttpCode.INTERNAL_SERVER_ERROR, ioException.localizedMessage)

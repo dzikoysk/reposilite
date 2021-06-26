@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.panda_lang.reposilite.stats.infrastructure
+package org.panda_lang.reposilite.statistics.infrastructure
 
-import org.panda_lang.reposilite.stats.StatisticsRepository
-import org.panda_lang.reposilite.stats.api.Record
-import org.panda_lang.reposilite.stats.api.RecordIdentifier
-import org.panda_lang.reposilite.stats.api.RecordType
+import org.panda_lang.reposilite.statistics.StatisticsRepository
+import org.panda_lang.reposilite.statistics.api.Record
+import org.panda_lang.reposilite.statistics.api.RecordIdentifier
+import org.panda_lang.reposilite.statistics.api.RecordType
 import java.util.concurrent.ConcurrentHashMap
 
 internal class InMemoryStatisticsRepository : StatisticsRepository {

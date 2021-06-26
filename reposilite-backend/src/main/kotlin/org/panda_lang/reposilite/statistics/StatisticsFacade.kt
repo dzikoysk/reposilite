@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.panda_lang.reposilite.stats
+package org.panda_lang.reposilite.statistics
 
 import net.dzikoysk.dynamiclogger.Journalist
 import net.dzikoysk.dynamiclogger.Logger
-import org.panda_lang.reposilite.stats.api.Record
-import org.panda_lang.reposilite.stats.api.RecordIdentifier
-import org.panda_lang.reposilite.stats.api.RecordType
+import org.panda_lang.reposilite.statistics.api.Record
+import org.panda_lang.reposilite.statistics.api.RecordIdentifier
+import org.panda_lang.reposilite.statistics.api.RecordType
 import java.util.concurrent.ConcurrentHashMap
 
 class StatisticsFacade internal constructor(
