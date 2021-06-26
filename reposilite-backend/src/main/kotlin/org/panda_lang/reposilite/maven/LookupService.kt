@@ -23,8 +23,8 @@ import org.panda_lang.reposilite.maven.api.LookupRequest
 import org.panda_lang.reposilite.maven.api.LookupResponse
 import org.panda_lang.reposilite.maven.api.Repository
 import org.panda_lang.reposilite.web.orNull
+import org.panda_lang.reposilite.web.toPath
 import org.panda_lang.utilities.commons.function.Result
-import java.nio.file.Path
 
 internal class LookupService(
     private val repositoryService: RepositoryService,
@@ -33,7 +33,7 @@ internal class LookupService(
 
     fun lookup(lookupRequest: LookupRequest): Result<LookupResponse, ErrorResponse> {
         val repository = repositoryService.getRepository(lookupRequest.repository) ?: return errorResponse(NOT_FOUND, "Repository not found")
-        val gav = Path.of(lookupRequest.gav)
+        val gav = lookupRequest.gav.toPath()
 
         if (repository.isDirectory(gav) && repositorySecurityProvider.canBrowseResource(lookupRequest.accessToken, repository, gav).not()) {
             return errorResponse(UNAUTHORIZED, "Unauthorized indexing request")

@@ -24,6 +24,8 @@ import org.panda_lang.reposilite.maven.api.FileDetails
 import org.panda_lang.utilities.commons.function.Result
 import java.io.InputStream
 import java.io.OutputStream
+import java.nio.file.Path
+import java.nio.file.Paths
 
 /**
  * Extends Javalin's context with a support for [ErrorResponse] results
@@ -70,6 +72,9 @@ fun OutputStream.isProbablyOpen(): Boolean =
         is HttpOutput -> !isClosed
         else -> true
     }
+
+fun String.toPath(): Path =
+    Paths.get(this)
 
 /**
  * Project non-existing value of errored [Result] to simplify error handling by convenient way to match expected signatures.
