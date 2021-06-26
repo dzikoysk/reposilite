@@ -10,8 +10,8 @@ import io.javalin.http.Context
 import org.panda_lang.reposilite.maven.MavenFacade
 import org.panda_lang.reposilite.maven.api.LookupRequest
 import org.panda_lang.reposilite.web.ReposiliteContextFactory
-import org.panda_lang.reposilite.web.RouteHandler
-import org.panda_lang.reposilite.web.RouteMethod.GET
+import org.panda_lang.reposilite.web.api.RouteMethod.GET
+import org.panda_lang.reposilite.web.api.RouteHandler
 import org.panda_lang.reposilite.web.context
 import org.panda_lang.reposilite.web.resultAttachment
 import org.panda_lang.utilities.commons.function.Result
@@ -60,7 +60,11 @@ internal class LookupEndpoint(
             val request = LookupRequest(parameter("repositoryName"), wildcard(), this?.getSessionIdentifier() ?: context.address, this?.accessToken)
 
             mavenFacade.lookup(request)
-                .peek { ctx.resultAttachment(it.fileDetails, it.data) }
+                .peek {
+                    it.data?.let { data ->
+                        ctx.resultAttachment(it.fileDetails, data)
+                    }
+                }
                 .onError { response = Result.error(it) }
         }
     }

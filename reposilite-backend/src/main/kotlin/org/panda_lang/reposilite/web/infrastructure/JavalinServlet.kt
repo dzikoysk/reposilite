@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.panda_lang.reposilite.web.application
+package org.panda_lang.reposilite.web.infrastructure
 
 import org.panda_lang.reposilite.ReposiliteLauncher
 import javax.servlet.annotation.MultipartConfig
@@ -24,7 +24,7 @@ import javax.servlet.http.HttpServletResponse
 
 @MultipartConfig
 @WebServlet(urlPatterns = ["/*"], name = "ReposiliteServlet", asyncSupported = true)
-internal class HttpServletConfiguration : HttpServlet() {
+internal class JavalinServlet : HttpServlet() {
 
     private val reposilite = ReposiliteLauncher.create("", "", /* servlet = true, */ false)
 
@@ -39,7 +39,7 @@ internal class HttpServletConfiguration : HttpServlet() {
     }
 
     override fun service(req: HttpServletRequest, res: HttpServletResponse) {
-        reposilite.httpServer.javalin?.servlet()?.service(req, res)
+        // reposilite.httpServer.javalin?.servlet()?.service(req, res)
     }
 
     override fun destroy() {

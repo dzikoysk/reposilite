@@ -29,8 +29,8 @@ import org.panda_lang.reposilite.shared.CachedLogger
 import org.panda_lang.reposilite.shared.TimeUtils
 import org.panda_lang.reposilite.statistics.StatisticsFacade
 import org.panda_lang.reposilite.token.AccessTokenFacade
-import org.panda_lang.reposilite.web.application.HttpServerConfiguration
 import org.panda_lang.reposilite.web.ReposiliteContextFactory
+import org.panda_lang.reposilite.web.WebServer
 import org.panda_lang.utilities.commons.console.Effect
 import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicBoolean
@@ -42,6 +42,7 @@ class Reposilite(
     val configuration: Configuration,
     val workingDirectory: Path,
     val testEnv: Boolean,
+    val webServer: WebServer,
     val contextFactory: ReposiliteContextFactory,
     val failureFacade: FailureFacade,
     val authenticationFacade: AuthenticationFacade,
@@ -49,10 +50,8 @@ class Reposilite(
     val consoleFacade: ConsoleFacade,
     val accessTokenFacade: AccessTokenFacade,
     val frontendFacade: FrontendFacade,
-    val statisitcsFacade: StatisticsFacade,
+    val statisticsFacade: StatisticsFacade,
 ) : Journalist {
-
-    internal val httpServer = HttpServerConfiguration(this, false)
 
     val cachedLogger = CachedLogger(Channel.ALL, configuration.cachedLogSize)
     private val logger = AggregatedLogger(logger, cachedLogger)
@@ -96,7 +95,7 @@ class Reposilite(
 
         try {
             logger.info("Binding server at ${configuration.hostname}::${configuration.port}")
-            httpServer.start(configuration)
+            webServer.start(this)
             Runtime.getRuntime().addShutdownHook(shutdownHook)
 
             logger.info("Done (" + TimeUtils.format(getUptime() / 1000.0) + "s)!")
@@ -125,7 +124,7 @@ class Reposilite(
 
         logger.info("Shutting down ${configuration.hostname}::${configuration.port} ...")
         ReposiliteWebConfiguration.dispose(this)
-        httpServer.stop()
+        webServer.stop()
     }
 
     fun getUptime(): Long =

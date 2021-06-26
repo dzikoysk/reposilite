@@ -22,7 +22,7 @@ import org.panda_lang.reposilite.statistics.StatisticsFacade
 import org.panda_lang.reposilite.statistics.StatsCommand
 import org.panda_lang.reposilite.statistics.infrastructure.SqlStatisticsRepository
 import org.panda_lang.reposilite.statistics.infrastructure.StatisticsHandler
-import org.panda_lang.reposilite.web.RouteHandler
+import org.panda_lang.reposilite.web.api.RouteHandler
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit.MINUTES
 

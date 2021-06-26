@@ -22,10 +22,7 @@ import org.panda_lang.reposilite.auth.Session
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.utilities.commons.function.Result
 
-internal class ContextDsl(
-    private val ctx: Context,
-    val context: ReposiliteContext
-) {
+internal class ContextDsl(private val ctx: Context, val context: ReposiliteContext) {
 
     /**
      * JSON response to send at the end of the dsl call

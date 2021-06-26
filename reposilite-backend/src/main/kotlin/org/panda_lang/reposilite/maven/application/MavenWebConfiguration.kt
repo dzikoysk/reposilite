@@ -23,19 +23,20 @@ import org.panda_lang.reposilite.maven.DeploymentService
 import org.panda_lang.reposilite.maven.LookupService
 import org.panda_lang.reposilite.maven.MavenFacade
 import org.panda_lang.reposilite.maven.MetadataService
+import org.panda_lang.reposilite.maven.RepositorySecurityProvider
 import org.panda_lang.reposilite.maven.RepositoryServiceFactory
 import org.panda_lang.reposilite.maven.infrastructure.DeploymentEndpoint
 import org.panda_lang.reposilite.maven.infrastructure.IndexEndpoint
 import org.panda_lang.reposilite.maven.infrastructure.LookupEndpoint
 import org.panda_lang.reposilite.web.ReposiliteContextFactory
-import org.panda_lang.reposilite.web.RouteHandler
+import org.panda_lang.reposilite.web.api.RouteHandler
 
 internal object MavenWebConfiguration {
 
     fun createFacade(journalist: Journalist, failureFacade: FailureFacade, repositoriesConfiguration: Map<String, RepositoryConfiguration>): MavenFacade {
         val repositoryService = RepositoryServiceFactory.createRepositoryService(journalist, repositoriesConfiguration)
         val metadataService = MetadataService(failureFacade)
-        val lookupService = LookupService(repositoryService)
+        val lookupService = LookupService(repositoryService, RepositorySecurityProvider())
         val deployService = DeploymentService(journalist, repositoryService, metadataService)
 
         return MavenFacade(journalist, metadataService, lookupService, deployService)

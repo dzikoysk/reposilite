@@ -22,7 +22,7 @@ import org.panda_lang.reposilite.console.ConsoleFacade
 import org.panda_lang.reposilite.failure.FailureFacade
 import org.panda_lang.reposilite.failure.FailuresCommand
 import org.panda_lang.reposilite.failure.infrastructure.FailureHandler
-import org.panda_lang.reposilite.web.RouteHandler
+import org.panda_lang.reposilite.web.api.RouteHandler
 
 internal object FailureWebConfiguration {
 
@@ -33,9 +33,11 @@ internal object FailureWebConfiguration {
         consoleFacade.registerCommand(FailuresCommand(failureFacade))
     }
 
-    fun routing(javalin: Javalin, failureFacade: FailureFacade): List<RouteHandler> {
+    fun routing(): List<RouteHandler> =
+        listOf()
+
+    fun javalin(javalin: Javalin, failureFacade: FailureFacade) {
         javalin.exception(Exception::class.java, FailureHandler(failureFacade))
-        return emptyList()
     }
 
 }

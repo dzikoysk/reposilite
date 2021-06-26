@@ -25,9 +25,9 @@ import io.javalin.plugin.openapi.annotations.ContentType.FORM_DATA_MULTIPART
 import org.panda_lang.reposilite.maven.MavenFacade
 import org.panda_lang.reposilite.maven.api.DeployRequest
 import org.panda_lang.reposilite.web.ReposiliteContextFactory
-import org.panda_lang.reposilite.web.RouteHandler
-import org.panda_lang.reposilite.web.RouteMethod.POST
-import org.panda_lang.reposilite.web.RouteMethod.PUT
+import org.panda_lang.reposilite.web.api.RouteMethod.POST
+import org.panda_lang.reposilite.web.api.RouteMethod.PUT
+import org.panda_lang.reposilite.web.api.RouteHandler
 import org.panda_lang.reposilite.web.context
 
 private const val ROUTE = "/:repositoryName/*"
@@ -72,9 +72,12 @@ internal class DeploymentEndpoint(
         context.logger.debug("DEPLOY ${context.uri} from ${context.address}")
 
         authorized {
-            response = DeployRequest(parameter("repositoryName"), wildcard(), getSessionIdentifier(), context.input())
-                .let { mavenFacade.deployArtifact(it) }
-                .onError { context.logger.debug("Cannot deploy artifact due to: ${it.message}") }
+            val request = DeployRequest(parameter("repositoryName"), wildcard(), getSessionIdentifier(), context.input())
+
+            response = mavenFacade.deployArtifact(request)
+                .onError {
+                    context.logger.debug("Cannot deploy artifact due to: ${it.message}")
+                }
         }
     }
 

@@ -39,7 +39,7 @@ internal class StatusCommand(
             else getVersion()
 
         output.add("Reposilite $VERSION Status")
-        output.add("  Active: $GREEN_BOLD${reposilite.httpServer.isAlive()}$RESET")
+        output.add("  Active: $GREEN_BOLD${reposilite.webServer.isAlive()}$RESET")
         output.add("  Uptime: ${format(reposilite.getUptime() / 1000.0 / 60.0)}min")
         output.add("  Memory usage of process: ${memoryUsage()}")
         output.add("  Exceptions: ${reposilite.failureFacade.getFailures().size}")

@@ -24,7 +24,7 @@ import org.panda_lang.reposilite.auth.infrastructure.AuthenticationEndpoint
 import org.panda_lang.reposilite.auth.infrastructure.PostAuthHandler
 import org.panda_lang.reposilite.maven.MavenFacade
 import org.panda_lang.reposilite.token.AccessTokenFacade
-import org.panda_lang.reposilite.web.RouteHandler
+import org.panda_lang.reposilite.web.api.RouteHandler
 
 internal object AuthenticationWebConfiguration {
 
