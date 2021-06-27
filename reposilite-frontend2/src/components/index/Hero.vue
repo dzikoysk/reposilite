@@ -15,7 +15,7 @@
   -->
 
 <template>
-  <div class="bg-white dark:bg-black">
+  <div class="bg-gray-100 dark:bg-black">
     <div class="container mx-auto flex flex-row pt-17 pb-12">
       <div class="w-35">
         <img class="border-2 rounded-full dark:border-gray-700" src="https://avatars.githubusercontent.com/u/75123628?s=200&v=4">

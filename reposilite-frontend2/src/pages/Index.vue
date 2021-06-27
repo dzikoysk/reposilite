@@ -17,7 +17,7 @@
 <template>
   <div>
     <Header/>
-    <div>
+    <div class="bg-gray-100">
       <div class="container mx-auto">
         <tabs v-model="selectedMenuTab" >
           <tab
@@ -84,6 +84,7 @@ export default {
   @apply pb-1;
   @apply cursor-pointer;
   @apply text-gray-600 dark:text-gray-300;
+  @apply bg-gray-100;
 }
 
 .selected {
