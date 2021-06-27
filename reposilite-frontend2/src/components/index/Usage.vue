@@ -28,13 +28,11 @@ const configurations = [
   {
     type: 'Maven',
     snippet: `
-    <repositories>
-        <repository>
-            <name>${window.REPOSILITE_TITLE}</name>
-            <id>${window.REPOSILITE_ID}</id>
-            <url>${window.location}</url>
-        </repository>
-    </repositories>
+    <repository>
+        <name>${window.REPOSILITE_TITLE}</name>
+        <id>${window.REPOSILITE_ID}</id>
+        <url>${window.location}</url>
+    </repository>
     `
   },
   {

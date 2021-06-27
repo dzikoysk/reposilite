@@ -46,10 +46,14 @@ export default defineComponent({
 </script>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600&display=swap');
+
+html {
+  @apply bg-gray-100;
+}
 
 #app {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Open Sans', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -63,6 +67,6 @@ export default defineComponent({
 }
 
 .bg-default {
-  @apply bg-gray-50 dark:border-gray-900;
+  @apply bg-gray-100 dark:border-gray-900;
 }
 </style>

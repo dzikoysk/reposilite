@@ -15,18 +15,18 @@
   -->
 
 <template>
-  <header class="bg-white dark:bg-black dark:text-white">
+  <header class="bg-gray-100 dark:bg-black dark:text-white">
     <div class="container mx-auto flex flex-row py-10 justify-between">
       <h1 class="text-xl font-medium py-1">
         <router-link to="/">{{ title }}</router-link>
       </h1>
       <nav class="flex flex-row mt-0.5">
        <router-link to="/dashboard">
-          <div class="border rounded-full py-1 px-6 text-sm dark:border-gray-900">
+          <div class="py-1.5 rounded-full bg-white font-bold px-6 text-sm dark:border-gray-900">
             Dashboard
           </div>
         </router-link>
-        <div class="pl-6 py-1 cursor-pointer" v-on:click="toggleTheme()">
+        <div class="ml-4 pl-2 pr-1 py-0.9 cursor-pointer rounded-full bg-white" v-on:click="toggleTheme()">
           <SunIcon v-if="theme.isDark"/>
           <MoonIcon v-else/>
         </div>
