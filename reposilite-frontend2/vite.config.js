@@ -23,5 +23,8 @@ export default defineConfig({
   plugins: [
     vue(),
     WindiCSS()
-  ]
+  ],
+  build: {
+    outDir: '../reposilite-backend/src/main/resources/static'
+  }
 })
