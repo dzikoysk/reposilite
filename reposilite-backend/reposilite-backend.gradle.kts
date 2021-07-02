@@ -18,8 +18,8 @@ group = "org.panda-lang"
 version = "3.0.0-SNAPSHOT"
 
 plugins {
-    kotlin("jvm") version "1.5.10"
-    kotlin("kapt") version "1.5.10"
+    kotlin("jvm") version "1.5.20"
+    kotlin("kapt") version "1.5.20"
     id("application")
     `maven-publish`
 }
@@ -53,7 +53,7 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib"))
-    implementation("org.jetbrains.kotlin:kotlin-reflect:1.5.10")
+    implementation(kotlin("reflect"))
 
     val exposed = "0.32.1"
     implementation("org.jetbrains.exposed:exposed-core:$exposed")
@@ -70,19 +70,17 @@ dependencies {
     val javalin = "4.0.0.ALPHA3"
     implementation("io.javalin:javalin:$javalin")
 
-    val openapi = "1.0.5"
-    kapt("com.dzikoysk:openapi-processor:$openapi")
-    implementation("com.dzikoysk:openapi-processor:$openapi")
-    implementation("com.dzikoysk:openapi-javalin-plugin:$openapi")
+    val openapi = "1.0.8"
+    kapt("com.dzikoysk:openapi-annotation-processor:$openapi")
+    implementation("com.dzikoysk:javalin-openapi-plugin:$openapi")
 
-    val jetty = "9.4.40.v20210413"
+    val jetty = "9.4.42.v20210604"
     implementation("org.eclipse.jetty:jetty-server:$jetty")
     implementation("org.eclipse.jetty:jetty-webapp:$jetty")
     implementation("org.eclipse.jetty.websocket:websocket-server:$jetty")
 
     /* Web */
 
-    implementation("org.webjars:swagger-ui:3.25.2")
     implementation("com.google.http-client:google-http-client:1.39.2")
     implementation("org.apache.httpcomponents:httpclient:4.5.13")
     implementation("org.apache.httpcomponents:httpcore:4.4.14")
@@ -90,7 +88,7 @@ dependencies {
 
     /* Utilities */
 
-    implementation("net.dzikoysk:cdn:1.8.0")
+    implementation("net.dzikoysk:cdn:1.8.1")
     implementation("info.picocli:picocli:4.6.1")
     implementation("com.google.guava:guava:30.1.1-jre")
     implementation("org.apache.commons:commons-collections4:4.4")

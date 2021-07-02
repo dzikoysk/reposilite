@@ -1,7 +1,7 @@
 package org.panda_lang.reposilite.web.infrastructure
 
-import com.dzikoysk.openapi.javalin.OpenApiConfiguration
-import com.dzikoysk.openapi.javalin.OpenApiPlugin
+import com.dzikoysk.openapi.ktor.OpenApiConfiguration
+import com.dzikoysk.openapi.ktor.OpenApiPlugin
 import com.fasterxml.jackson.annotation.JsonInclude.Include
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.javalin.Javalin

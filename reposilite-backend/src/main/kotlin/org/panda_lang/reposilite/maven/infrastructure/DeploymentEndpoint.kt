@@ -24,6 +24,7 @@ import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.ContentType.FORM_DATA_MULTIPART
 import org.panda_lang.reposilite.maven.MavenFacade
 import org.panda_lang.reposilite.maven.api.DeployRequest
+import org.panda_lang.reposilite.token.infrastructure.AccessTokenTable.description
 import org.panda_lang.reposilite.web.ReposiliteContextFactory
 import org.panda_lang.reposilite.web.api.RouteMethod.POST
 import org.panda_lang.reposilite.web.api.RouteMethod.PUT
@@ -42,7 +43,7 @@ internal class DeploymentEndpoint(
 
     @OpenApi(
         path = ROUTE,
-        method = HttpMethod.POST,
+        methods = [HttpMethod.POST, HttpMethod.PUT],
         operationId = "repositoryDeploy",
         summary = "Deploy artifact to the repository",
         description = "Deploy supports both, POST and PUT, methods and allows to deploy artifact builds",

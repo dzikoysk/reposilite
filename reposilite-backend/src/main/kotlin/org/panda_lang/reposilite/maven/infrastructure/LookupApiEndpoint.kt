@@ -44,7 +44,7 @@ internal class IndexEndpoint(
 
     @OpenApi(
         path = ROUTE,
-        method = HttpMethod.GET,
+        methods = [HttpMethod.HEAD, HttpMethod.GET],
         operationId = "repositoryApi",
         summary = "Browse the contents of repositories using API",
         description = "Get details about the requested file as JSON response",
