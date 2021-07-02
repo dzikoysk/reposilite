@@ -73,6 +73,7 @@ dependencies {
     val openapi = "1.0.8"
     kapt("com.dzikoysk:openapi-annotation-processor:$openapi")
     implementation("com.dzikoysk:javalin-openapi-plugin:$openapi")
+    implementation("com.dzikoysk:javalin-swagger-plugin:$openapi")
 
     val jetty = "9.4.42.v20210604"
     implementation("org.eclipse.jetty:jetty-server:$jetty")

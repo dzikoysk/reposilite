@@ -2,6 +2,8 @@ package org.panda_lang.reposilite.web.infrastructure
 
 import com.dzikoysk.openapi.ktor.OpenApiConfiguration
 import com.dzikoysk.openapi.ktor.OpenApiPlugin
+import com.dzikoysk.openapi.ktor.swagger.SwaggerConfiguration
+import com.dzikoysk.openapi.ktor.swagger.SwaggerPlugin
 import com.fasterxml.jackson.annotation.JsonInclude.Include
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.javalin.Javalin
@@ -117,6 +119,10 @@ internal class JavalinWebServer : WebServer {
             openApiConfiguration.description = configuration.description
             openApiConfiguration.version = VERSION
             config.registerPlugin(OpenApiPlugin(openApiConfiguration))
+
+            val swaggerConfiguration = SwaggerConfiguration()
+            swaggerConfiguration.title = openApiConfiguration.title
+            config.registerPlugin(SwaggerPlugin(swaggerConfiguration))
         }
     }
 
