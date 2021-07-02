@@ -41,7 +41,7 @@ Users' stories
 * [x] Supports distributed environments like [K8s](https://github.com/dzikoysk/reposilite/issues/251#issuecomment-698974936)
 * [x] Multithreading
 * [x] Proxy of other remote repositories
-* [x] Supports requests to primary repository without its name in url
+* [x] Support requests to primary repository without its name in url
 * [x] Dashboard
   * [x] Customizable front page
   * [x] Command line interface
@@ -58,6 +58,7 @@ Users' stories
 Thanks to:
 
 * [zzmgck](https://github.com/zzmgck) with $191
+* Rob with $5
 * [milkyway0308](https://github.com/milkyway0308) with $5
 * ...
 

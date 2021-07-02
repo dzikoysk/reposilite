@@ -37,7 +37,7 @@ internal class AuthenticationEndpoint(private val authenticationFacade: Authenti
     @OpenApi(
         path = ROUTE,
         operationId = "auth",
-        method = HttpMethod.GET,
+        methods = [HttpMethod.GET],
         summary = "Get token details",
         description = "Returns details about the requested token",
         tags = [ "Auth" ],

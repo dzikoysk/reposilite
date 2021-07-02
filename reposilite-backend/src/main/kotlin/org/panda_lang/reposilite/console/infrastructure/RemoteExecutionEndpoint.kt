@@ -27,6 +27,7 @@ import org.panda_lang.reposilite.console.MAX_COMMAND_LENGTH
 import org.panda_lang.reposilite.console.api.ExecutionResponse
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.failure.api.errorResponse
+import org.panda_lang.reposilite.token.infrastructure.AccessTokenTable.description
 import org.panda_lang.reposilite.web.ReposiliteContextFactory
 import org.panda_lang.reposilite.web.api.RouteHandler
 import org.panda_lang.reposilite.web.api.RouteMethod.POST
@@ -45,7 +46,7 @@ internal class RemoteExecutionEndpoint(
     @OpenApi(
         path = ROUTE,
         operationId = "cli",
-        method = HttpMethod.POST,
+        methods = [HttpMethod.POST],
         summary = "Remote command execution",
         description = "Execute command using POST request. The commands are the same as in the console and can be listed using the 'help' command.",
         tags = ["Cli"],

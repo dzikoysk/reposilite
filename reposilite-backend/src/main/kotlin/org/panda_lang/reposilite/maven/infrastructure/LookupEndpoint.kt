@@ -10,8 +10,8 @@ import io.javalin.http.Context
 import org.panda_lang.reposilite.maven.MavenFacade
 import org.panda_lang.reposilite.maven.api.LookupRequest
 import org.panda_lang.reposilite.web.ReposiliteContextFactory
-import org.panda_lang.reposilite.web.api.RouteMethod.GET
 import org.panda_lang.reposilite.web.api.RouteHandler
+import org.panda_lang.reposilite.web.api.RouteMethod.GET
 import org.panda_lang.reposilite.web.context
 import org.panda_lang.reposilite.web.resultAttachment
 import org.panda_lang.utilities.commons.function.Result
@@ -28,7 +28,7 @@ internal class LookupEndpoint(
 
     @OpenApi(
         path = ROUTE,
-        method = HttpMethod.GET,
+        methods = [HttpMethod.GET],
         operationId = "repositoryLookup",
         summary = "Browse the contents of repositories",
         description = "The route may return various responses to properly handle Maven specification and frontend application using the same path.",
