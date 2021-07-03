@@ -35,7 +35,7 @@ internal class FrontendHandler(private val frontendFacade: FrontendFacade) : Rou
 
     @OpenApi(
         path = ROUTE,
-        methods = [HttpMethod.GET],
+        methods = [ HttpMethod.GET ],
         operationId = "frontend",
         summary = "Get frontend application",
         description = "Returns Vue.js application wrapped into one app.js file",
