@@ -16,7 +16,7 @@
 
 package org.panda_lang.reposilite.storage
 
-import org.panda_lang.reposilite.storage.infrastructure.FileSystemStorageProvider
+import org.panda_lang.reposilite.storage.infrastructure.FileSystemStorageProviderFactory
 import org.panda_lang.reposilite.storage.infrastructure.S3StorageProvider
 import org.panda_lang.reposilite.storage.infrastructure.S3StorageProviderSettings
 import picocli.CommandLine
@@ -26,7 +26,7 @@ class StorageProviderFactory {
 
     fun createStorageProvider(repositoryName: String, storageDescription: String): StorageProvider {
         if (storageDescription.startsWith("fs")) {
-            return FileSystemStorageProvider.of(
+            return FileSystemStorageProviderFactory.of(
                 Paths.get("repositories").resolve(repositoryName),
                 Long.MAX_VALUE // TOFIX: Move quota's implementation to Repository level
             )

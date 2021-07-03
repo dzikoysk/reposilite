@@ -22,7 +22,6 @@ import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.maven.api.DeployRequest
 import org.panda_lang.reposilite.maven.api.FileDetails
 import org.panda_lang.reposilite.maven.api.LookupRequest
-import org.panda_lang.reposilite.maven.api.LookupResponse
 import org.panda_lang.reposilite.maven.api.Repository
 import org.panda_lang.utilities.commons.function.Result
 
@@ -33,7 +32,7 @@ class MavenFacade internal constructor(
     private val deploymentService: DeploymentService,
 ) : Journalist {
 
-    fun lookup(lookupRequest: LookupRequest): Result<LookupResponse, ErrorResponse> =
+    fun lookup(lookupRequest: LookupRequest): Result<FileDetails, ErrorResponse> =
         lookupService.lookup(lookupRequest)
 
     fun deployArtifact(deployRequest: DeployRequest): Result<FileDetails, ErrorResponse> =

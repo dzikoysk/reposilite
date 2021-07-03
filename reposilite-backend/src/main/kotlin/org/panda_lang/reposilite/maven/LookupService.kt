@@ -19,10 +19,9 @@ import io.javalin.http.HttpCode.NOT_FOUND
 import io.javalin.http.HttpCode.UNAUTHORIZED
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.failure.api.errorResponse
+import org.panda_lang.reposilite.maven.api.FileDetails
 import org.panda_lang.reposilite.maven.api.LookupRequest
-import org.panda_lang.reposilite.maven.api.LookupResponse
 import org.panda_lang.reposilite.maven.api.Repository
-import org.panda_lang.reposilite.web.orNull
 import org.panda_lang.reposilite.web.toPath
 import org.panda_lang.utilities.commons.function.Result
 
@@ -31,7 +30,7 @@ internal class LookupService(
     private val repositorySecurityProvider: RepositorySecurityProvider
 ) {
 
-    fun lookup(lookupRequest: LookupRequest): Result<LookupResponse, ErrorResponse> {
+    fun lookup(lookupRequest: LookupRequest): Result<FileDetails, ErrorResponse> {
         val repository = repositoryService.getRepository(lookupRequest.repository) ?: return errorResponse(NOT_FOUND, "Repository not found")
         val gav = lookupRequest.gav.toPath()
 
@@ -43,7 +42,6 @@ internal class LookupService(
         }
 
         return repository.getFileDetails(gav)
-            .map { LookupResponse(it, repository.getFile(lookupRequest.gav).orNull()) }
     }
 
     fun findAllRepositories(): Collection<Repository> =

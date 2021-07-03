@@ -17,15 +17,18 @@
 package org.panda_lang.reposilite.storage.infrastructure
 
 import io.javalin.http.HttpCode
+import io.javalin.http.HttpCode.NOT_FOUND
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.failure.api.errorResponse
+import org.panda_lang.reposilite.maven.api.DirectoryInfo
+import org.panda_lang.reposilite.maven.api.DocumentInfo
 import org.panda_lang.reposilite.maven.api.FileDetails
 import org.panda_lang.reposilite.maven.api.FileType.DIRECTORY
-import org.panda_lang.reposilite.maven.api.FileType.FILE
 import org.panda_lang.reposilite.shared.FilesUtils.getMimeType
 import org.panda_lang.reposilite.storage.StorageProvider
-import org.panda_lang.reposilite.web.api.MimeTypes.MIME_OCTET_STREAM
-import org.panda_lang.reposilite.web.api.MimeTypes.MIME_PLAIN
+import org.panda_lang.reposilite.web.api.MimeTypes.OCTET_STREAM
+import org.panda_lang.reposilite.web.api.MimeTypes.PLAIN
+import org.panda_lang.reposilite.web.asResult
 import org.panda_lang.utilities.commons.function.Result
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider
 import software.amazon.awssdk.core.sync.RequestBody
@@ -51,40 +54,33 @@ internal class S3StorageProvider(private val bucket: String, region: String) : S
         .credentialsProvider(AnonymousCredentialsProvider.create())
         .build()
 
-    override fun putFile(file: Path, bytes: ByteArray): Result<FileDetails, ErrorResponse> {
-        val builder = PutObjectRequest.builder()
-        builder.bucket(bucket)
-        builder.key(file.toString().replace('\\', '/'))
-        builder.contentType(getMimeType(file.toString(), MIME_PLAIN))
-        builder.contentLength(bytes.size.toLong())
+    override fun putFile(file: Path, bytes: ByteArray): Result<FileDetails, ErrorResponse> =
+        try {
+            val builder = PutObjectRequest.builder()
+            builder.bucket(bucket)
+            builder.key(file.toString().replace('\\', '/'))
+            builder.contentType(getMimeType(file.toString(), PLAIN))
+            builder.contentLength(bytes.size.toLong())
+            s3.putObject(builder.build(), RequestBody.fromBytes(bytes))
 
-        return try {
-            s3.putObject(
-                builder.build(),
-                RequestBody.fromBytes(bytes)
-            )
-
-            Result.ok(
-                FileDetails(
-                    FILE,
-                    file.fileName.toString(),
-                    getMimeType(file.fileName.toString(), MIME_OCTET_STREAM),
-                    bytes.size.toLong()
-                )
-            )
+            DocumentInfo(
+                file.fileName.toString(),
+                getMimeType(file.fileName.toString(), OCTET_STREAM),
+                bytes.size.toLong(),
+                { getFile(file).get() }
+            ).asResult()
         }
         catch (exception: Exception) {
             exception.printStackTrace()
             errorResponse(HttpCode.INTERNAL_SERVER_ERROR, "Failed to write $file")
         }
-    }
 
-    override fun putFile(file: Path, inputStream: InputStream): Result<FileDetails, ErrorResponse> {
-        return try {
+    override fun putFile(file: Path, inputStream: InputStream): Result<FileDetails, ErrorResponse> =
+        try {
             val builder = PutObjectRequest.builder()
             builder.bucket(bucket)
             builder.key(file.toString().replace('\\', '/'))
-            builder.contentType(getMimeType(file.toString(), MIME_PLAIN))
+            builder.contentType(getMimeType(file.toString(), PLAIN))
 
             val length = inputStream.available().toLong()
             builder.contentLength(length)
@@ -94,74 +90,63 @@ internal class S3StorageProvider(private val bucket: String, region: String) : S
                 RequestBody.fromInputStream(inputStream, inputStream.available().toLong())
             )
 
-            Result.ok(
-                FileDetails(
-                    FILE,
-                    file.fileName.toString(),
-                    getMimeType(file.fileName.toString(), MIME_OCTET_STREAM),
-                    length
-                )
-            )
+            DocumentInfo(
+                file.fileName.toString(),
+                getMimeType(file.fileName.toString(), OCTET_STREAM),
+                length,
+                { inputStream }
+            ).asResult()
         }
         catch (ioException: IOException) {
             ioException.printStackTrace()
             errorResponse(HttpCode.INTERNAL_SERVER_ERROR, "Failed to write $file")
         }
-    }
 
-    override fun getFile(file: Path): Result<InputStream, ErrorResponse> {
-        return try {
+    override fun getFile(file: Path): Result<InputStream, ErrorResponse> =
+        try {
             val request = GetObjectRequest.builder()
             request.bucket(bucket)
             request.key(file.toString().replace('\\', '/'))
 
-            val response = s3.getObject(request.build())
+            s3.getObject(request.build()).asResult()
             // val bytes = ByteArray(Math.toIntExact(response.response().contentLength()))
             // response.read(bytes)
-
-            Result.ok(response)
         }
         catch (noSuchKeyException: NoSuchKeyException) {
-            errorResponse(HttpCode.NOT_FOUND, "File not found: $file")
+            errorResponse(NOT_FOUND, "File not found: $file")
         }
         catch (ioException: IOException) {
-            errorResponse(HttpCode.NOT_FOUND, "File not found: $file")
+            errorResponse(NOT_FOUND, "File not found: $file")
         }
-    }
 
-    override fun getFileDetails(file: Path): Result<FileDetails, ErrorResponse> {
+    override fun getFileDetails(file: Path): Result<FileDetails, ErrorResponse> =
         if (file.toString() == "") {
-            return Result.ok(
-                FileDetails(
-                    DIRECTORY,
+            DirectoryInfo(
+                file.fileName.toString(),
+                emptyList() // TOFIX
+            ).asResult()
+        }
+        else {
+            head(file)?.let {
+                DocumentInfo(
                     file.fileName.toString(),
-                )
-            )
+                    getMimeType(file.fileName.toString(), OCTET_STREAM),
+                    it.contentLength(),
+                    { getFile(file).get() }
+                ).asResult()
+            }
+            ?: errorResponse(NOT_FOUND, "File not found: $file")
         }
 
-        return head(file)
-            ?.let {
-                FileDetails(
-                    FILE,
-                    file.fileName.toString(),
-                    getMimeType(file.fileName.toString(), "application/octet-stream"),
-                    it.contentLength()
-                )
-            }
-            ?.let { Result.ok(it) }
-            ?: errorResponse(HttpCode.NOT_FOUND, "File not found: $file")
-    }
+    override fun removeFile(file: Path): Result<*, ErrorResponse> =
+        with(DeleteObjectRequest.builder()) {
+            bucket(bucket)
+            key(file.toString().replace('\\', '/'))
+            s3.deleteObject(build())
+        }.asResult()
 
-    override fun removeFile(file: Path): Result<Unit, ErrorResponse> {
-        val request = DeleteObjectRequest.builder()
-        request.bucket(bucket)
-        request.key(file.toString().replace('\\', '/'))
-        s3.deleteObject(request.build())
-        return Result.ok(Unit)
-    }
-
-    override fun getFiles(directory: Path): Result<List<Path>, ErrorResponse> {
-        return try {
+    override fun getFiles(directory: Path): Result<List<Path>, ErrorResponse> =
+        try {
             val request = ListObjectsRequest.builder()
             request.bucket(bucket)
 
@@ -177,48 +162,44 @@ internal class S3StorageProvider(private val bucket: String, region: String) : S
                 paths.add(Paths.get(sub))
             }
 
-            Result.ok(paths)
+            paths.asResult()
         }
         catch (exception: Exception) {
             errorResponse(HttpCode.INTERNAL_SERVER_ERROR, exception.localizedMessage)
         }
-    }
 
     override fun getLastModifiedTime(file: Path): Result<FileTime, ErrorResponse> =
         head(file)
-            ?.let { Result.ok(FileTime.from(it.lastModified())) }
+            ?.let { FileTime.from(it.lastModified()).asResult() }
             ?: getFiles(file)
                 .map { files -> files.firstOrNull() }
-                .mapErr { ErrorResponse(HttpCode.NOT_FOUND, "File not found: $file") }
+                .mapErr { ErrorResponse(NOT_FOUND, "File not found: $file") }
                 .flatMap { getLastModifiedTime(file.resolve(it!!.getName(0))) }
 
     override fun getFileSize(file: Path): Result<Long, ErrorResponse> =
         head(file)
-            ?.let { Result.ok(it.contentLength()) }
-            ?: errorResponse(HttpCode.NOT_FOUND, "File not found: $file")
+            ?.contentLength()
+            ?.asResult()
+            ?: errorResponse(NOT_FOUND, "File not found: $file")
 
-    private fun head(file: Path): HeadObjectResponse? {
+    private fun head(file: Path): HeadObjectResponse? =
         try {
             val request = HeadObjectRequest.builder()
             request.bucket(bucket)
             request.key(file.toString().replace('\\', '/'))
-
-            return s3.headObject(request.build())
+            s3.headObject(request.build())
         }
         catch (ignored: NoSuchKeyException) {
             // ignored
+            null
         }
         catch (exception: Exception) {
             exception.printStackTrace()
+            null
         }
 
-        return null
-    }
-
-    override fun exists(file: Path): Boolean {
-        val response = head(file)
-        return response != null
-    }
+    override fun exists(file: Path): Boolean =
+        head(file) != null
 
     override fun isDirectory(file: Path): Boolean =
         getFileDetails(file)
@@ -234,12 +215,11 @@ internal class S3StorageProvider(private val bucket: String, region: String) : S
         TODO("Not yet implemented")
     }
 
-    override fun usage(): Long {
+    override fun usage(): Result<Long, ErrorResponse> {
         TODO("Not yet implemented")
     }
 
-    override fun canHold(contentLength: Long): Boolean {
-        return true
-    }
+    override fun canHold(contentLength: Long): Result<*, ErrorResponse> =
+        true.asResult()
 
 }

@@ -17,16 +17,10 @@
 package org.panda_lang.reposilite.maven.api
 
 import org.panda_lang.reposilite.token.api.AccessToken
-import java.io.InputStream
 
 data class LookupRequest(
     val repository: String,
     val gav: String,
     val by: String,
     val accessToken: AccessToken?
-)
-
-class LookupResponse(
-    val fileDetails: FileDetails,
-    val data: InputStream?
 )

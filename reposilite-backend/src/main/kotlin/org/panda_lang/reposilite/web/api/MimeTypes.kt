@@ -17,12 +17,12 @@ package org.panda_lang.reposilite.web.api
 
 object MimeTypes {
 
-    const val MIME_PLAIN = "text/plain"
-    const val MIME_HTML = "text/html"
-    const val MIME_XML = "text/xml"
-    const val MIME_OCTET_STREAM = "application/octet-stream"
-    const val MIME_JAVASCRIPT = "application/javascript"
-    const val MIME_JSON = "application/json"
+    const val PLAIN = "text/plain"
+    const val HTML = "text/html"
+    const val XML = "text/xml"
+    const val OCTET_STREAM = "application/octet-stream"
+    const val JAVASCRIPT = "application/javascript"
+    const val JSON = "application/json"
 
     private val STANDARD_TYPES: MutableMap<String, String> = HashMap()
 
@@ -32,12 +32,12 @@ object MimeTypes {
 
         /* Text */
 
-        STANDARD_TYPES["txt"] = MIME_PLAIN
+        STANDARD_TYPES["txt"] = PLAIN
         STANDARD_TYPES["css"] = "text/css"
         STANDARD_TYPES["csv"] = "text/csv"
-        STANDARD_TYPES["htm"] = MIME_HTML
-        STANDARD_TYPES["html"] = MIME_HTML
-        STANDARD_TYPES["xml"] = MIME_PLAIN
+        STANDARD_TYPES["htm"] = HTML
+        STANDARD_TYPES["html"] = HTML
+        STANDARD_TYPES["xml"] = PLAIN
 
         /* Image */
 
@@ -55,13 +55,13 @@ object MimeTypes {
 
         /* Application */
 
-        STANDARD_TYPES["bin"] = MIME_OCTET_STREAM
+        STANDARD_TYPES["bin"] = OCTET_STREAM
         STANDARD_TYPES["bz"] = "application/x-bzip"
         STANDARD_TYPES["bz2"] = "application/x-bzip2"
         STANDARD_TYPES["cdn"] = "application/cdn"
         STANDARD_TYPES["gz"] = "application/gzip"
-        STANDARD_TYPES["js"] = MIME_JAVASCRIPT
-        STANDARD_TYPES["json"] = MIME_JSON
+        STANDARD_TYPES["js"] = JAVASCRIPT
+        STANDARD_TYPES["json"] = JSON
         STANDARD_TYPES["mpkg"] = "application/vnd.apple.installer+xml"
         STANDARD_TYPES["jar"] = "application/java-archive"
         STANDARD_TYPES["rar"] = "application/vnd.rar"

@@ -16,36 +16,39 @@
 package org.panda_lang.reposilite.maven.api
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import org.panda_lang.reposilite.maven.api.FileType.DIRECTORY
+import org.panda_lang.reposilite.maven.api.FileType.FILE
 import org.panda_lang.reposilite.shared.FilesUtils
+import java.io.InputStream
 
 enum class FileType {
     FILE,
     DIRECTORY
 }
 
-data class FileListResponse(
-    val files: List<FileDetails>
-)
-
-data class FileDetails(
+sealed class FileDetails(
     val type: FileType,
-    val name: String,
-    val contentType: String? = null,
-    val contentLength: Long? = null
+    val name: String
 ) : Comparable<FileDetails> {
 
-    override fun compareTo(other: FileDetails): Int {
-        var result = type.compareTo(other.type)
-
-        if (result == 0) {
-            result = name.compareTo(other.name)
-        }
-
-        return result
-    }
+    override fun compareTo(other: FileDetails): Int =
+        type.compareTo(other.type).takeIf { it != 0 } ?: name.compareTo(other.name)
 
     @JsonIgnore
     fun isReadable(): Boolean =
         FilesUtils.isReadable(name)
 
 }
+
+class DocumentInfo(
+    name: String,
+    val contentType: String,
+    val contentLength: Long,
+    @JsonIgnore
+    val content: () -> InputStream
+) : FileDetails(FILE, name)
+
+class DirectoryInfo(
+    name: String,
+    val files: List<FileDetails>
+) : FileDetails(DIRECTORY, name)

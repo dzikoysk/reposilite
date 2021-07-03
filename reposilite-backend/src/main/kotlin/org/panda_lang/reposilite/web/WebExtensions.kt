@@ -20,7 +20,7 @@ import io.javalin.http.Context
 import org.apache.commons.io.IOUtils
 import org.eclipse.jetty.server.HttpOutput
 import org.panda_lang.reposilite.failure.api.ErrorResponse
-import org.panda_lang.reposilite.maven.api.FileDetails
+import org.panda_lang.reposilite.maven.api.DocumentInfo
 import org.panda_lang.utilities.commons.function.Result
 import java.io.InputStream
 import java.io.OutputStream
@@ -42,7 +42,9 @@ fun Context.encoding(encoding: String): Context =
 fun Context.contentDisposition(disposition: String): Context =
     header("Content-Disposition", disposition)
 
-fun Context.resultAttachment(fileDetailsResponse: FileDetails, data: InputStream): Context {
+fun Context.resultAttachment(document: DocumentInfo): Context {
+    val data = document.content()
+
     if (method() != "HEAD") {
         data.transferLargeTo(res.outputStream)
     }
@@ -50,12 +52,12 @@ fun Context.resultAttachment(fileDetailsResponse: FileDetails, data: InputStream
         data.close()
     }
 
-    if (fileDetailsResponse.isReadable()) {
-        contentDisposition(""""attachment; filename="${fileDetailsResponse.name}" """)
+    if (document.isReadable()) {
+        contentDisposition(""""attachment; filename="${document.name}" """)
     }
 
-    fileDetailsResponse.contentType?.also { contentType(it) }
-    fileDetailsResponse.contentLength?.also { contentLength(it) }
+    contentType(document.contentType)
+    contentLength(document.contentLength)
 
     return this
 }
@@ -83,8 +85,11 @@ fun String.toPath(): Path =
 fun <ANY_VALUE, REQUIRED_VALUE, ERROR> Result<ANY_VALUE, ERROR>.projectToError(): Result<REQUIRED_VALUE, ERROR> =
     if (this.isErr) this.map { null } else throw IllegalArgumentException("")
 
+fun <VALUE, ERROR> Result<VALUE, ERROR>.filter(predicate: (VALUE) -> Boolean, error: () -> ERROR): Result<VALUE, ERROR> =
+    if (this.isOk && predicate(get())) this else Result.error(error())
+
 fun <VALUE> Result<VALUE, *>.orNull(): VALUE? =
     this.orElseGet { null }
 
-fun <VALUE, ERROR> VALUE.toOk(): Result<VALUE, ERROR> =
+fun <VALUE, ERROR> VALUE.asResult(): Result<VALUE, ERROR> =
     Result.ok(this)
