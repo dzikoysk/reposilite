@@ -41,25 +41,26 @@ internal class JavalinWebServer : WebServer {
 
         ReposiliteWebConfiguration.javalin(reposilite, javalin)
 
-        ReposiliteWebConfiguration.routing(reposilite).forEach { handler ->
-            handler.methods.forEach { method ->
-                when (method) {
-                    HEAD -> javalin.head(handler.route, handler)
-                    GET -> javalin.get(handler.route, handler)
-                    PUT -> javalin.put(handler.route, handler)
-                    POST -> javalin.post(handler.route, handler)
-                    DELETE -> javalin.delete(handler.route, handler)
-                    AFTER -> javalin.after(handler.route, handler)
-                    BEFORE -> javalin.before(handler.route, handler)
+        ReposiliteWebConfiguration.routing(reposilite)
+            .sortedByDescending { it.route.length }
+            .forEach { handler ->
+                handler.methods.forEach { method ->
+                    when (method) {
+                        HEAD -> javalin.head(handler.route, handler)
+                        GET -> javalin.get(handler.route, handler)
+                        PUT -> javalin.put(handler.route, handler)
+                        POST -> javalin.post(handler.route, handler)
+                        DELETE -> javalin.delete(handler.route, handler)
+                        AFTER -> javalin.after(handler.route, handler)
+                        BEFORE -> javalin.before(handler.route, handler)
+                    }
                 }
             }
-        }
 
         if (!servlet) {
             javalin?.start(configuration.hostname, configuration.port)
         }
     }
-
 
     private fun create(reposilite: Reposilite, configuration: Configuration): Javalin =
         if (servlet) {
@@ -71,7 +72,8 @@ internal class JavalinWebServer : WebServer {
     private fun configure(reposilite: Reposilite, configuration: Configuration, config: JavalinConfig) {
         val server = Server()
 
-        configureJsonSerialization()
+        configureJavalin(config)
+        configureJsonSerialization(config)
         configureSSL(reposilite, configuration, config, server)
         configureCors(config)
         configureOpenApi(configuration, config)
@@ -80,7 +82,11 @@ internal class JavalinWebServer : WebServer {
         config.server { server }
     }
 
-    private fun configureJsonSerialization() {
+    private fun configureJavalin(config: JavalinConfig) {
+        config.showJavalinBanner = false
+    }
+
+    private fun configureJsonSerialization(config: JavalinConfig) {
         val objectMapper = ObjectMapper()
         objectMapper.setSerializationInclusion(Include.NON_NULL)
         JavalinJackson.configure(objectMapper)
