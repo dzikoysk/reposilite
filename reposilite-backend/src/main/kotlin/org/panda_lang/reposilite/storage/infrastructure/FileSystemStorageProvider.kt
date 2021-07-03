@@ -19,12 +19,13 @@ package org.panda_lang.reposilite.storage.infrastructure
 import io.javalin.http.HttpCode
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.failure.api.errorResponse
+import org.panda_lang.reposilite.maven.api.DirectoryInfo
+import org.panda_lang.reposilite.maven.api.DocumentInfo
 import org.panda_lang.reposilite.maven.api.FileDetails
-import org.panda_lang.reposilite.maven.api.FileType
-import org.panda_lang.reposilite.maven.api.FileType.FILE
-import org.panda_lang.reposilite.shared.FilesUtils
 import org.panda_lang.reposilite.shared.FilesUtils.getMimeType
 import org.panda_lang.reposilite.storage.StorageProvider
+import org.panda_lang.reposilite.web.api.MimeTypes
+import org.panda_lang.reposilite.web.asResult
 import org.panda_lang.utilities.commons.function.Result
 import org.panda_lang.utilities.commons.function.ThrowingBiFunction
 import org.panda_lang.utilities.commons.function.ThrowingFunction
@@ -38,51 +39,40 @@ import java.nio.file.Path
 import java.nio.file.StandardOpenOption.CREATE
 import java.nio.file.StandardOpenOption.WRITE
 import java.nio.file.attribute.FileTime
-import java.util.concurrent.atomic.AtomicLong
 import java.util.stream.Collectors
+import kotlin.streams.toList
 
 /**
  * @param rootDirectory root directory of storage space
  */
-internal abstract class FileSystemStorageProvider private constructor(
-    protected val rootDirectory: Path
+internal abstract class FileSystemStorageProvider protected constructor(
+    val rootDirectory: Path
  ) : StorageProvider {
 
 
-    companion object {
-        fun of(rootDirectory: Path, quota: String): FileSystemStorageProvider {
-            return if (quota.endsWith("%")) {
-                of(rootDirectory, quota.substring(0, quota.length - 1).toInt() / 100.0)
+    private fun <VALUE> withFile(consumer: () -> Result<VALUE, ErrorResponse>): Result<VALUE, ErrorResponse> =
+        try {
+            consumer()
+        } catch (ioException: IOException) {
+            errorResponse(HttpCode.INTERNAL_SERVER_ERROR, ioException.localizedMessage)
+        }
+
+    private fun <VALUE> withExistingFile(file: Path, consumer: () -> Result<VALUE, ErrorResponse>): Result<VALUE, ErrorResponse> =
+        withFile {
+            if (Files.exists(file)) {
+                consumer()
             } else {
-                of(rootDirectory, FilesUtils.displaySizeToBytesCount(quota))
+                errorResponse(HttpCode.NOT_FOUND, "File not found: $file")
             }
         }
 
-        /**
-         * @param rootDirectory root directory of storage space
-         * @param maxSize the largest amount of storage available for use, in bytes
-         */
-        fun of(rootDirectory: Path, maxSize: Long): FileSystemStorageProvider {
-            return FixedQuota(rootDirectory, maxSize)
-        }
-
-        /**
-         * @param rootDirectory root directory of storage space
-         * @param maxPercentage the maximum percentage of the disk available for use
-         */
-        fun of(rootDirectory: Path, maxPercentage: Double): FileSystemStorageProvider {
-            return PercentageQuota(rootDirectory, maxPercentage)
-        }
-    }
-
-    override fun putFile(file: Path, bytes: ByteArray): Result<FileDetails, ErrorResponse> {
-        return this.putFile(file, bytes, { it.size }) { input, output ->
+    override fun putFile(file: Path, bytes: ByteArray): Result<FileDetails, ErrorResponse> =
+        putFile(file, bytes, { it.size }) { input, output ->
             output.write(ByteBuffer.wrap(input))
         }
-    }
 
-    override fun putFile(file: Path, inputStream: InputStream): Result<FileDetails, ErrorResponse> {
-        return this.putFile(file, inputStream, { it.available() }) { input, output ->
+    override fun putFile(file: Path, inputStream: InputStream): Result<FileDetails, ErrorResponse> =
+        putFile(file, inputStream, { it.available() }) { input, output ->
             val buffer = ByteArrayOutputStream()
             var nRead: Int
             val data = ByteArray(1024)
@@ -96,19 +86,18 @@ internal abstract class FileSystemStorageProvider private constructor(
             output.write(ByteBuffer.wrap(byteArray))
             byteArray.size
         }
-    }
 
     private fun <T> putFile(
         file: Path,
         input: T,
         measure: ThrowingFunction<T, Int, IOException>,
         writer: ThrowingBiFunction<T, FileChannel, Int, IOException>
-    ): Result<FileDetails, ErrorResponse> {
-        return try {
+    ): Result<FileDetails, ErrorResponse> =
+        withFile {
             val size = measure.apply(input).toLong()
 
-            if (!canHold(size)) {
-                return errorResponse(HttpCode.INSUFFICIENT_STORAGE, "Not enough storage space available")
+            if (canHold(size).isErr) {
+                return@withFile errorResponse(HttpCode.INSUFFICIENT_STORAGE, "Not enough storage space available")
             }
 
             if (file.parent != null && !Files.exists(file.parent)) {
@@ -120,193 +109,97 @@ internal abstract class FileSystemStorageProvider private constructor(
             }
 
             val fileChannel = FileChannel.open(file, WRITE, CREATE)
-            // TOFIX: FS locks are not truly respected, it should be enhanced with .lock file to be sure if it's respected.
+            // TOFIX: FS locks are not truly respected, there might be a need to enhanced it with .lock file to be sure if it's respected.
+            // In theory people should not really share the same FS through instances.
             // ~ https://github.com/dzikoysk/reposilite/issues/264
             fileChannel.lock()
 
             val bytesWritten = writer.apply(input, fileChannel).toLong()
             fileChannel.close()
 
-            Result.ok(
-                FileDetails(
-                    FILE,
-                    file.fileName.toString(),
-                    getMimeType(file.toString(), "application/octet-stream"),
-                    bytesWritten
-                )
-            )
+            DocumentInfo(file.fileName.toString(), getMimeType(file.toString(), MimeTypes.OCTET_STREAM), bytesWritten) {
+                Files.newInputStream(file)
+            }.asResult()
         }
-        catch (ioException: IOException) {
-            errorResponse(HttpCode.INTERNAL_SERVER_ERROR, ioException.localizedMessage)
-        }
-    }
 
-    override fun getFile(file: Path): Result<InputStream, ErrorResponse> {
-        return if (!Files.exists(file) || Files.isDirectory(file)) {
-            errorResponse(HttpCode.NOT_FOUND, "File not found: $file")
-        }
-        else try {
-            Result.ok(Files.newInputStream(file))
-        }
-        catch (ioException: IOException) {
-            errorResponse(HttpCode.INTERNAL_SERVER_ERROR, ioException.localizedMessage)
-        }
-    }
-
-    override fun getFileDetails(file: Path): Result<FileDetails, ErrorResponse> {
-        return if (!Files.exists(file)) {
-            errorResponse(HttpCode.NOT_FOUND, "File not found: $file")
-        }
-        else try {
-            val isDirectory = Files.isDirectory(file)
-
-            Result.ok(
-                FileDetails(
-                    if (isDirectory) FileType.DIRECTORY else FileType.FILE,
-                    file.fileName.toString(),
-                    if (isDirectory) null else getMimeType(file.fileName.toString(), "application/octet-stream"),
-                    if (isDirectory) null else Files.size(file)
-                )
-            )
-        } catch (ioException: IOException) {
-            errorResponse(HttpCode.INTERNAL_SERVER_ERROR, ioException.localizedMessage)
-        }
-    }
-
-    override fun removeFile(file: Path): Result<Unit, ErrorResponse> {
-        return try {
-            if (!Files.exists(file)) {
-                return errorResponse(HttpCode.NOT_FOUND, "File not found: $file")
-            }
-
-            Files.delete(file)
-            Result.ok(Unit)
-        } catch (ioException: IOException) {
-            errorResponse(HttpCode.INTERNAL_SERVER_ERROR, ioException.localizedMessage)
-        }
-    }
-
-    override fun getFiles(directory: Path): Result<List<Path>, ErrorResponse> {
-        return try {
-            Result.ok(
-                Files.walk(directory, 1)
-                    .filter { it != directory }
-                    .collect(Collectors.toList())
-            )
-        } catch (ioException: IOException) {
-            errorResponse(HttpCode.INTERNAL_SERVER_ERROR, ioException.localizedMessage)
-        }
-    }
-
-    override fun getLastModifiedTime(file: Path): Result<FileTime, ErrorResponse> {
-        return try {
-            if (!Files.exists(file)) {
-                errorResponse(HttpCode.NOT_FOUND, "File not found: $file")
-            } else Result.ok(Files.getLastModifiedTime(file))
-        } catch (ioException: IOException) {
-            errorResponse(HttpCode.INTERNAL_SERVER_ERROR, ioException.localizedMessage)
-        }
-    }
-
-    override fun getFileSize(file: Path): Result<Long, ErrorResponse> {
-        return try {
-            if (!Files.exists(file)) {
-                return errorResponse(HttpCode.NOT_FOUND, "File not found: $file")
-            }
-
-            var size: Long = 0
-
+    override fun getFile(file: Path): Result<InputStream, ErrorResponse> =
+        withExistingFile(file) {
             if (Files.isDirectory(file)) {
-                for (path in Files.walk(file).collect(Collectors.toList())) {
-                    size += Files.size(path)
-                }
+                errorResponse(HttpCode.NO_CONTENT, "Requested file is a directory")
             }
             else {
-                size = Files.size(file)
+                Files.newInputStream(file).asResult()
             }
-
-            Result.ok(size)
         }
-        catch (ioException: IOException) {
-            errorResponse(HttpCode.INTERNAL_SERVER_ERROR, ioException.localizedMessage)
+
+    override fun getFileDetails(file: Path): Result<FileDetails, ErrorResponse> =
+        withExistingFile(file) {
+            if (Files.isDirectory(file))
+                DirectoryInfo(
+                    file.fileName.toString(),
+                    Files.list(file)
+                        .map { getFileDetails(it) }
+                        .filter { it.isOk }
+                        .map { it.get() }
+                        .toList()
+                ).asResult()
+            else
+                DocumentInfo(
+                    file.fileName.toString(),
+                    getMimeType(file.fileName.toString(), MimeTypes.OCTET_STREAM),
+                    Files.size(file),
+                    { Files.newInputStream(file) }
+                ).asResult()
         }
-    }
 
-    override fun exists(file: Path): Boolean {
-        return Files.exists(file) && !Files.isDirectory(file)
-    }
+    override fun removeFile(file: Path): Result<*, ErrorResponse> =
+        withExistingFile(file) {
+            Files.delete(file).asResult()
+        }
 
-    override fun isDirectory(file: Path): Boolean {
-        return Files.isDirectory(file)
-    }
+    override fun getFiles(directory: Path): Result<List<Path>, ErrorResponse> =
+        withExistingFile(directory) {
+            Files.walk(directory, 1)
+                .filter { it != directory }
+                .collect(Collectors.toList())
+                .asResult()
+        }
 
-    override fun usage(): Long {
-            val usage = AtomicLong()
-            try {
-                Files.walk(rootDirectory).forEach { path: Path? ->
-                    if (Files.exists(path) && !Files.isDirectory(path)) {
-                        try {
-                            usage.set(usage.get() + Files.size(path))
-                        } catch (ignored: IOException) {
-                        }
-                    }
-                }
-            } catch (e: IOException) {
-                usage.set(-1L)
+    override fun getLastModifiedTime(file: Path): Result<FileTime, ErrorResponse> =
+        withExistingFile(file) {
+            Files.getLastModifiedTime(file).asResult()
+        }
+
+    override fun getFileSize(file: Path): Result<Long, ErrorResponse> =
+        withExistingFile(file) {
+            if (Files.isDirectory(file)) {
+                Files.walk(file)
+                    .mapToLong { Files.size(it) }
+                    .sum()
+                    .asResult()
+            } else {
+                Files.size(file).asResult()
             }
-
-            return usage.get()
         }
+
+    override fun exists(file: Path): Boolean =
+        Files.exists(file)
+
+    override fun isDirectory(file: Path): Boolean =
+        Files.isDirectory(file)
+
+    override fun usage(): Result<Long, ErrorResponse> =
+        withFile {
+            Files.walk(rootDirectory)
+                .filter { !Files.isDirectory(it) }
+                .mapToLong { Files.size(it) }
+                .sum()
+                .asResult()
+        }
+
+    override fun isFull(): Boolean =
+        canHold(0).isErr
 
     override fun shutdown() {}
-
-    private class FixedQuota(rootDirectory: Path, private val maxSize: Long) : FileSystemStorageProvider(rootDirectory) {
-
-        override fun isFull(): Boolean {
-            return !canHold(0)
-        }
-
-        override fun canHold(contentLength: Long): Boolean {
-            return usage() + contentLength < maxSize
-        }
-
-        /**
-         * @param rootDirectory root directory of storage space
-         * @param maxSize the largest amount of storage available for use, in bytes
-         */
-        init {
-            if (maxSize <= 0) {
-                throw RuntimeException()
-            }
-        }
-    }
-
-    private class PercentageQuota(rootDirectory: Path, private val maxPercentage: Double) : FileSystemStorageProvider(rootDirectory) {
-        override fun isFull(): Boolean {
-            return !canHold(0)
-        }
-
-        override fun canHold(contentLength: Long): Boolean {
-            try {
-                val newUsage = usage() + contentLength
-                val capacity = Files.getFileStore(rootDirectory).usableSpace.toDouble()
-                val percentage = newUsage / capacity
-                return percentage < maxPercentage
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-            return true
-        }
-
-        /**
-         * @param rootDirectory root directory of storage space
-         * @param maxPercentage the maximum percentage of the disk available for use
-         */
-        init {
-            if (maxPercentage > 1 || maxPercentage <= 0) {
-                throw RuntimeException()
-            }
-        }
-    }
 
 }

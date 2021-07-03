@@ -47,7 +47,7 @@ interface StorageProvider {
 
     fun getFileDetails(file: Path): Result<FileDetails, ErrorResponse>
 
-    fun removeFile(file: Path): Result<Unit, ErrorResponse>
+    fun removeFile(file: Path): Result<*, ErrorResponse>
 
     fun getFiles(directory: Path): Result<List<Path>, ErrorResponse>
 
@@ -61,9 +61,9 @@ interface StorageProvider {
 
     fun isFull(): Boolean
 
-    fun usage(): Long
+    fun usage(): Result<Long, ErrorResponse>
 
-    fun canHold(contentLength: Long): Boolean
+    fun canHold(contentLength: Long): Result<*, ErrorResponse>
 
     fun shutdown() {}
 

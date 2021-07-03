@@ -24,13 +24,13 @@ import org.panda_lang.reposilite.ReposiliteException
 import org.panda_lang.reposilite.failure.FailureFacade
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.failure.api.errorResponse
+import org.panda_lang.reposilite.maven.api.DocumentInfo
 import org.panda_lang.reposilite.maven.api.FileDetails
-import org.panda_lang.reposilite.maven.api.FileType
-import org.panda_lang.reposilite.maven.api.LookupResponse
 import org.panda_lang.reposilite.maven.api.Repository
 import org.panda_lang.reposilite.maven.api.RepositoryVisibility.PRIVATE
 import org.panda_lang.reposilite.storage.StorageProvider
 import org.panda_lang.reposilite.web.ReposiliteContext
+import org.panda_lang.reposilite.web.asResult
 import org.panda_lang.utilities.commons.StringUtils
 import org.panda_lang.utilities.commons.function.Option
 import org.panda_lang.utilities.commons.function.Result
@@ -53,7 +53,7 @@ internal class ProxyService(
 
     private val httpRequestFactory: HttpRequestFactory = NetHttpTransport().createRequestFactory()
 
-    fun findProxied(context: ReposiliteContext): Result<LookupResponse, ErrorResponse> {
+    fun findProxied(context: ReposiliteContext): Result<FileDetails, ErrorResponse> {
         var uri = context.uri
         var repository: Repository? = null
 
@@ -124,15 +124,15 @@ internal class ProxyService(
 
             val contentLength = Option.of(remoteResponse.headers.contentLength).orElseGet(0L)
             val path = remoteUri.split("/").toTypedArray()
-            val fileDetails = FileDetails(FileType.FILE, path.last(), remoteResponse.contentType, contentLength)
-            val lookupResponse = LookupResponse(fileDetails, remoteResponse.content)
 
-            Result.ok(lookupResponse)
+            DocumentInfo(path.last(), remoteResponse.contentType, contentLength) {
+                remoteResponse.content
+            }.asResult()
         }
         else errorResponse(HttpCode.NOT_FOUND, "Artifact $uri not found")
     }
 
-    private fun store(uri: String, remoteResponse: HttpResponse, context: ReposiliteContext): Result<LookupResponse, ErrorResponse> {
+    private fun store(uri: String, remoteResponse: HttpResponse, context: ReposiliteContext): Result<FileDetails, ErrorResponse> {
         var uri = uri
 
         if (storageProvider.isFull()) {
@@ -150,9 +150,8 @@ internal class ProxyService(
 
         return try {
             storageProvider.putFile(proxiedFile, remoteResponse.content)
-                .map {
+                .peek {
                     context.logger.info("Stored proxied $proxiedFile from ${remoteResponse.request.url}")
-                    LookupResponse(it, storageProvider.getFile(proxiedFile).get())
                 }
         }
         catch (ioException: IOException) {

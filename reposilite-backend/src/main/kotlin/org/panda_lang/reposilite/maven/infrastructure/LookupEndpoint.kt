@@ -7,12 +7,17 @@ import com.dzikoysk.openapi.annotations.OpenApiContent
 import com.dzikoysk.openapi.annotations.OpenApiParam
 import com.dzikoysk.openapi.annotations.OpenApiResponse
 import io.javalin.http.Context
+import io.javalin.http.HttpCode
+import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.maven.MavenFacade
+import org.panda_lang.reposilite.maven.api.DocumentInfo
+import org.panda_lang.reposilite.maven.api.FileType.FILE
 import org.panda_lang.reposilite.maven.api.LookupRequest
 import org.panda_lang.reposilite.web.ReposiliteContextFactory
 import org.panda_lang.reposilite.web.api.RouteHandler
 import org.panda_lang.reposilite.web.api.RouteMethod.GET
 import org.panda_lang.reposilite.web.context
+import org.panda_lang.reposilite.web.filter
 import org.panda_lang.reposilite.web.resultAttachment
 import org.panda_lang.utilities.commons.function.Result
 
@@ -33,21 +38,25 @@ internal class LookupEndpoint(
         summary = "Browse the contents of repositories",
         description = "The route may return various responses to properly handle Maven specification and frontend application using the same path.",
         tags = ["Repository"],
-        pathParams = [ OpenApiParam(
-            name = "*",
-            description = "Artifact path qualifier",
-            required = true,
-            allowEmptyValue = true
-            ), OpenApiParam(
-            name = "*/latest",
-            description = "[Optional] Artifact path qualifier with /latest at the end returns latest version of artifact as text/plain"
-        )],
+        pathParams = [
+            OpenApiParam(
+                name = "*",
+                description = "Artifact path qualifier",
+                required = true,
+                allowEmptyValue = true
+            ),
+            OpenApiParam(
+                name = "*/latest",
+                description = "[Optional] Artifact path qualifier with /latest at the end returns latest version of artifact as text/plain"
+            )
+        ],
         responses = [
             OpenApiResponse(
                 status = "200",
                 description = "Input stream of requested file",
                 content = [OpenApiContent(type = FORM_DATA_MULTIPART)]
-            ), OpenApiResponse(
+            ),
+            OpenApiResponse(
                 status = "404",
                 description = "Returns 404 (for Maven) with frontend (for user) as a response if requested resource is not located in the current repository"
             )
@@ -60,11 +69,9 @@ internal class LookupEndpoint(
             val request = LookupRequest(parameter("repositoryName"), wildcard(), this?.getSessionIdentifier() ?: context.address, this?.accessToken)
 
             mavenFacade.lookup(request)
-                .peek {
-                    it.data?.let { data ->
-                        ctx.resultAttachment(it.fileDetails, data)
-                    }
-                }
+                .filter({ it.type == FILE }, { ErrorResponse(HttpCode.NO_CONTENT, "Requested file is a directory") })
+                .map { it as DocumentInfo }
+                .map { ctx.resultAttachment(it) }
                 .onError { response = Result.error(it) }
         }
     }

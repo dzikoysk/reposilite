@@ -75,10 +75,10 @@ class Repository internal constructor(
     fun getFileDetails(file: Path): Result<FileDetails, ErrorResponse> =
         storageProvider.getFileDetails(relativize(file))
 
-    fun removeFile(file: String): Result<Unit, ErrorResponse> =
+    fun removeFile(file: String): Result<*, ErrorResponse> =
         relativize(file) { removeFile(it) }
 
-    fun removeFile(file: Path): Result<Unit, ErrorResponse> =
+    fun removeFile(file: Path): Result<*, ErrorResponse> =
         storageProvider.removeFile(relativize(file))
 
     fun getFiles(directory: String): Result<List<Path>, ErrorResponse> =
@@ -105,10 +105,10 @@ class Repository internal constructor(
     fun isFull(): Boolean =
         storageProvider.isFull()
 
-    fun getUsage(): Long =
+    fun getUsage(): Result<Long, ErrorResponse> =
         storageProvider.usage()
 
-    fun canHold(contentLength: Long): Boolean =
+    fun canHold(contentLength: Long): Result<*, ErrorResponse> =
         storageProvider.canHold(contentLength)
 
     fun shutdown() =
