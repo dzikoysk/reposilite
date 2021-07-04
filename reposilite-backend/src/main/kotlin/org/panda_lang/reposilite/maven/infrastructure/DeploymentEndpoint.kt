@@ -20,31 +20,19 @@ import com.dzikoysk.openapi.annotations.OpenApi
 import com.dzikoysk.openapi.annotations.OpenApiContent
 import com.dzikoysk.openapi.annotations.OpenApiParam
 import com.dzikoysk.openapi.annotations.OpenApiResponse
-import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.ContentType.FORM_DATA_MULTIPART
 import org.panda_lang.reposilite.maven.MavenFacade
 import org.panda_lang.reposilite.maven.api.DeployRequest
-import org.panda_lang.reposilite.token.infrastructure.AccessTokenTable.description
-import org.panda_lang.reposilite.web.ReposiliteContextFactory
+import org.panda_lang.reposilite.web.api.Route
 import org.panda_lang.reposilite.web.api.RouteMethod.POST
 import org.panda_lang.reposilite.web.api.RouteMethod.PUT
-import org.panda_lang.reposilite.web.api.RouteHandler
-import org.panda_lang.reposilite.web.context
+import org.panda_lang.reposilite.web.api.Routes
 
-private const val ROUTE = "/:repositoryName/*"
-
-internal class DeploymentEndpoint(
-    private val contextFactory: ReposiliteContextFactory,
-    private val mavenFacade: MavenFacade
-) : RouteHandler {
-
-    override val route = ROUTE
-    override val methods = listOf(POST, PUT)
+internal class DeploymentEndpoint(private val mavenFacade: MavenFacade) : Routes {
 
     @OpenApi(
-        path = ROUTE,
+        path = "/:repositoryName/*",
         methods = [HttpMethod.POST, HttpMethod.PUT],
-        operationId = "repositoryDeploy",
         summary = "Deploy artifact to the repository",
         description = "Deploy supports both, POST and PUT, methods and allows to deploy artifact builds",
         tags = [ "Repository" ],
@@ -69,7 +57,7 @@ internal class DeploymentEndpoint(
             )
         ]
     )
-    override fun handle(ctx: Context) =  context(contextFactory, ctx) {
+    private val deployArtifact = Route("/:repositoryName/*", POST, PUT) {
         context.logger.debug("DEPLOY ${context.uri} from ${context.address}")
 
         authorized {
@@ -81,5 +69,7 @@ internal class DeploymentEndpoint(
                 }
         }
     }
+
+    override val routes = setOf(deployArtifact)
 
 }

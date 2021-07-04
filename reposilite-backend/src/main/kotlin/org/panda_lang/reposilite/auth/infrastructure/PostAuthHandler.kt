@@ -15,23 +15,22 @@
  */
 package org.panda_lang.reposilite.auth.infrastructure
 
-import io.javalin.http.Context
 import io.javalin.http.HttpCode
-import org.panda_lang.reposilite.web.api.RouteHandler
+import org.panda_lang.reposilite.web.api.Route
 import org.panda_lang.reposilite.web.api.RouteMethod.AFTER
+import org.panda_lang.reposilite.web.api.Routes
 
 private const val WWW_AUTHENTICATE = "www-authenticate"
 private const val WWW_BASIC_REALM = """Basic realm="Reposilite", charset="UTF-8" """
 
-internal class PostAuthHandler : RouteHandler {
+internal class PostAuthHandler : Routes {
 
-    override val route = "/*"
-    override val methods = listOf(AFTER)
-
-    override fun handle(context: Context) {
-        if (context.status() == HttpCode.UNAUTHORIZED.status) {
-            context.header(WWW_AUTHENTICATE, WWW_BASIC_REALM)
+    private val realmDescription = Route("/*", AFTER) {
+        if (ctx.status() == HttpCode.UNAUTHORIZED.status) {
+            ctx.header(WWW_AUTHENTICATE, WWW_BASIC_REALM)
         }
     }
+
+    override val routes = setOf(realmDescription)
 
 }

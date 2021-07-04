@@ -19,14 +19,14 @@ package org.panda_lang.reposilite.frontend.application
 import org.panda_lang.reposilite.config.Configuration
 import org.panda_lang.reposilite.frontend.FrontendFacade
 import org.panda_lang.reposilite.frontend.infrastructure.FrontendHandler
-import org.panda_lang.reposilite.web.api.RouteHandler
+import org.panda_lang.reposilite.web.api.Routes
 
 internal object FrontendWebConfiguration {
 
     fun createFacade(configuration: Configuration): FrontendFacade =
         FrontendFacade.load(configuration)
 
-    fun routing(frontendFacade: FrontendFacade): List<RouteHandler> =
+    fun routing(frontendFacade: FrontendFacade): List<Routes> =
         listOf(
             FrontendHandler(frontendFacade)
         )

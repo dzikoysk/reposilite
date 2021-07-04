@@ -17,11 +17,9 @@
 package org.panda_lang.reposilite.web.api
 
 import io.javalin.http.Handler
-
-interface RouteHandler : Handler {
-    val route: String
-    val methods: List<RouteMethod>
-}
+import org.panda_lang.reposilite.web.ContextDsl
+import org.panda_lang.reposilite.web.ReposiliteContextFactory
+import org.panda_lang.reposilite.web.context
 
 enum class RouteMethod {
     HEAD,
@@ -31,4 +29,23 @@ enum class RouteMethod {
     DELETE,
     AFTER,
     BEFORE
+}
+
+class Route(
+    val path: String,
+    vararg val methods: RouteMethod,
+    private val handler: ContextDsl.() -> Unit
+) {
+
+    fun createHandler(reposiliteContextFactory: ReposiliteContextFactory): Handler =
+        Handler {
+            context(reposiliteContextFactory, it) {
+                handler(this)
+            }
+        }
+
+}
+
+interface Routes {
+    val routes: Set<Route>
 }

@@ -26,10 +26,8 @@ import org.panda_lang.reposilite.maven.MetadataService
 import org.panda_lang.reposilite.maven.RepositorySecurityProvider
 import org.panda_lang.reposilite.maven.RepositoryServiceFactory
 import org.panda_lang.reposilite.maven.infrastructure.DeploymentEndpoint
-import org.panda_lang.reposilite.maven.infrastructure.IndexEndpoint
 import org.panda_lang.reposilite.maven.infrastructure.LookupEndpoint
-import org.panda_lang.reposilite.web.ReposiliteContextFactory
-import org.panda_lang.reposilite.web.api.RouteHandler
+import org.panda_lang.reposilite.web.api.Routes
 
 internal object MavenWebConfiguration {
 
@@ -42,11 +40,10 @@ internal object MavenWebConfiguration {
         return MavenFacade(journalist, metadataService, lookupService, deployService)
     }
 
-    fun routing(contextFactory: ReposiliteContextFactory, mavenFacade: MavenFacade): List<RouteHandler> =
+    fun routing(mavenFacade: MavenFacade): List<Routes> =
         listOf(
-            IndexEndpoint(contextFactory, mavenFacade),
-            LookupEndpoint(contextFactory, mavenFacade),
-            DeploymentEndpoint(contextFactory, mavenFacade)
+            LookupEndpoint(mavenFacade),
+            DeploymentEndpoint(mavenFacade)
         )
 
 }

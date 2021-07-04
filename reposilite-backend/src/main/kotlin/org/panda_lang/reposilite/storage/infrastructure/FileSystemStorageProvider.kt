@@ -46,9 +46,8 @@ import kotlin.streams.toList
  * @param rootDirectory root directory of storage space
  */
 internal abstract class FileSystemStorageProvider protected constructor(
-    val rootDirectory: Path
+    private val rootDirectory: Path
  ) : StorageProvider {
-
 
     private fun <VALUE> withFile(consumer: () -> Result<VALUE, ErrorResponse>): Result<VALUE, ErrorResponse> =
         try {

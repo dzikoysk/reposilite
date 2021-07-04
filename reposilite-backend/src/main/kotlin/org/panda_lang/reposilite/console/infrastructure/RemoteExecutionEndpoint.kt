@@ -20,32 +20,22 @@ import com.dzikoysk.openapi.annotations.OpenApi
 import com.dzikoysk.openapi.annotations.OpenApiContent
 import com.dzikoysk.openapi.annotations.OpenApiParam
 import com.dzikoysk.openapi.annotations.OpenApiResponse
-import io.javalin.http.Context
 import io.javalin.http.HttpCode.UNAUTHORIZED
 import org.panda_lang.reposilite.console.ConsoleFacade
 import org.panda_lang.reposilite.console.MAX_COMMAND_LENGTH
 import org.panda_lang.reposilite.console.api.ExecutionResponse
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.failure.api.errorResponse
-import org.panda_lang.reposilite.token.infrastructure.AccessTokenTable.description
-import org.panda_lang.reposilite.web.ReposiliteContextFactory
-import org.panda_lang.reposilite.web.api.RouteHandler
+import org.panda_lang.reposilite.web.api.Route
 import org.panda_lang.reposilite.web.api.RouteMethod.POST
-import org.panda_lang.reposilite.web.context
+import org.panda_lang.reposilite.web.api.Routes
 
 private const val ROUTE = "/api/execute"
 
-internal class RemoteExecutionEndpoint(
-    private val contextFactory: ReposiliteContextFactory,
-    private val consoleFacade: ConsoleFacade
-) : RouteHandler {
-
-    override val route = ROUTE
-    override val methods = listOf(POST)
+internal class RemoteExecutionEndpoint(private val consoleFacade: ConsoleFacade) : Routes {
 
     @OpenApi(
         path = ROUTE,
-        operationId = "cli",
         methods = [HttpMethod.POST],
         summary = "Remote command execution",
         description = "Execute command using POST request. The commands are the same as in the console and can be listed using the 'help' command.",
@@ -69,19 +59,20 @@ internal class RemoteExecutionEndpoint(
             )
         ]
     )
-    override fun handle(ctx: Context) =
-        context(contextFactory, ctx) {
-            context.logger.info("REMOTE EXECUTION ${context.uri} from ${context.address}")
+    private val executeCommand = Route(ROUTE, POST) {
+        context.logger.info("REMOTE EXECUTION ${context.uri} from ${context.address}")
 
-            authenticated {
-                if (!isManager()) {
-                    response = errorResponse(UNAUTHORIZED, "Authenticated user is not a manager")
-                    return@authenticated
-                }
-
-                context.logger.info("${accessToken.alias} (${context.address}) requested command: ${context.body.value}")
-                response = consoleFacade.executeCommand(context.body.value)
+        authenticated {
+            if (!isManager()) {
+                response = errorResponse(UNAUTHORIZED, "Authenticated user is not a manager")
+                return@authenticated
             }
+
+            context.logger.info("${accessToken.alias} (${context.address}) requested command: ${context.body.value}")
+            response = consoleFacade.executeCommand(context.body.value)
         }
+    }
+
+    override val routes = setOf(executeCommand)
 
 }

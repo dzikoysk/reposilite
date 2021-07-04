@@ -27,7 +27,7 @@ import org.panda_lang.reposilite.maven.application.MavenWebConfiguration
 import org.panda_lang.reposilite.statistics.application.StatisticsWebConfiguration
 import org.panda_lang.reposilite.token.application.AccessTokenWebConfiguration
 import org.panda_lang.reposilite.web.ReposiliteContextFactory
-import org.panda_lang.reposilite.web.api.RouteHandler
+import org.panda_lang.reposilite.web.api.Routes
 import org.panda_lang.reposilite.web.application.WebConfiguration
 import java.nio.file.Path
 
@@ -74,13 +74,13 @@ object ReposiliteWebConfiguration {
         AccessTokenWebConfiguration.initialize(reposilite.accessTokenFacade, reposilite.consoleFacade)
     }
 
-    fun routing(reposilite: Reposilite): Collection<RouteHandler> =
+    fun routing(reposilite: Reposilite): Collection<Routes> =
         setOf(
             AuthenticationWebConfiguration.routing(reposilite.authenticationFacade),
             ConsoleWebConfiguration.routing(reposilite),
             FailureWebConfiguration.routing(),
             FrontendWebConfiguration.routing(reposilite.frontendFacade),
-            MavenWebConfiguration.routing(reposilite.contextFactory, reposilite.mavenFacade),
+            MavenWebConfiguration.routing(reposilite.mavenFacade),
             StatisticsWebConfiguration.routing(reposilite.statisticsFacade),
             // AccessTokenWebConfiguration.routing(),
         )

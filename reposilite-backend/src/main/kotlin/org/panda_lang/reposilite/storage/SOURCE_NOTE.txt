@@ -1,1 +1,0 @@
-Classes in this package are converted from Java to Kotlin and should be a little rewritten in Kotlin-like style to improve the readability

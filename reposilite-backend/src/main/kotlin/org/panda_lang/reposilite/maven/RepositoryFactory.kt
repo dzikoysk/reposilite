@@ -16,18 +16,19 @@
 
 package org.panda_lang.reposilite.maven
 
+import net.dzikoysk.dynamiclogger.Journalist
 import org.panda_lang.reposilite.config.Configuration.RepositoryConfiguration
 import org.panda_lang.reposilite.maven.api.Repository
 import org.panda_lang.reposilite.maven.api.RepositoryVisibility
 import org.panda_lang.reposilite.storage.StorageProviderFactory
 
-internal class RepositoryFactory(private val storageProviderFactory: StorageProviderFactory) {
+internal object RepositoryFactory {
 
-    fun createRepository(repositoryName: String, repositoryConfiguration: RepositoryConfiguration): Repository =
+    fun createRepository(journalist: Journalist, repositoryName: String, repositoryConfiguration: RepositoryConfiguration): Repository =
         Repository(
             repositoryName,
             RepositoryVisibility.valueOf(repositoryConfiguration.visibility.toUpperCase()),
-            storageProviderFactory.createStorageProvider(repositoryName, repositoryConfiguration.storageProvider),
+            StorageProviderFactory.createStorageProvider(journalist, repositoryName, repositoryConfiguration.storageProvider),
             repositoryConfiguration.deployEnabled
         )
 

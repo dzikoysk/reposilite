@@ -24,7 +24,7 @@ import org.panda_lang.reposilite.auth.infrastructure.AuthenticationEndpoint
 import org.panda_lang.reposilite.auth.infrastructure.PostAuthHandler
 import org.panda_lang.reposilite.maven.MavenFacade
 import org.panda_lang.reposilite.token.AccessTokenFacade
-import org.panda_lang.reposilite.web.api.RouteHandler
+import org.panda_lang.reposilite.web.api.Routes
 
 internal object AuthenticationWebConfiguration {
 
@@ -35,7 +35,7 @@ internal object AuthenticationWebConfiguration {
         return AuthenticationFacade(journalist, authenticator, sessionService)
     }
 
-    fun routing(authenticationFacade: AuthenticationFacade): Set<RouteHandler> =
+    fun routing(authenticationFacade: AuthenticationFacade): Set<Routes> =
         setOf(
             AuthenticationEndpoint(authenticationFacade),
             PostAuthHandler()
