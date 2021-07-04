@@ -3,7 +3,6 @@
 
     OpenApi(
         route = "xD"
-        operationId = "repositoryLookup",
         summary = "Browse the contents of repositories",
         description = "The route may return various responses to properly handle Maven specification and frontend application using the same path.",
         tags = ["Repository"],

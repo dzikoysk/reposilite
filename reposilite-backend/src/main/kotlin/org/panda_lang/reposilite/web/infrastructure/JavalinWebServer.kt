@@ -42,17 +42,19 @@ internal class JavalinWebServer : WebServer {
         ReposiliteWebConfiguration.javalin(reposilite, javalin)
 
         ReposiliteWebConfiguration.routing(reposilite)
-            .sortedByDescending { it.route.length }
-            .forEach { handler ->
-                handler.methods.forEach { method ->
+            .flatMap { it.routes }
+            .sortedByDescending { it.path.length }
+            .map { Pair(it, it.createHandler(reposilite.contextFactory)) }
+            .forEach { (route, handler) ->
+                route.methods.forEach { method ->
                     when (method) {
-                        HEAD -> javalin.head(handler.route, handler)
-                        GET -> javalin.get(handler.route, handler)
-                        PUT -> javalin.put(handler.route, handler)
-                        POST -> javalin.post(handler.route, handler)
-                        DELETE -> javalin.delete(handler.route, handler)
-                        AFTER -> javalin.after(handler.route, handler)
-                        BEFORE -> javalin.before(handler.route, handler)
+                        HEAD -> javalin.head(route.path, handler)
+                        GET -> javalin.get(route.path, handler)
+                        PUT -> javalin.put(route.path, handler)
+                        POST -> javalin.post(route.path, handler)
+                        DELETE -> javalin.delete(route.path, handler)
+                        AFTER -> javalin.after(route.path, handler)
+                        BEFORE -> javalin.before(route.path, handler)
                     }
                 }
             }

@@ -23,6 +23,7 @@ object MimeTypes {
     const val OCTET_STREAM = "application/octet-stream"
     const val JAVASCRIPT = "application/javascript"
     const val JSON = "application/json"
+    const val MULTIPART_FORM_DATA = "multipart/form-data"
 
     private val STANDARD_TYPES: MutableMap<String, String> = HashMap()
 
@@ -73,7 +74,7 @@ object MimeTypes {
         STANDARD_TYPES["7z"] = "application/x-7z-compressed"
     }
 
-    fun getMimeType(name: String, defaultTemplate: String) =
+    fun getMimeType(name: String, defaultTemplate: String = PLAIN) =
         STANDARD_TYPES.getOrDefault(name, defaultTemplate)
 
 }

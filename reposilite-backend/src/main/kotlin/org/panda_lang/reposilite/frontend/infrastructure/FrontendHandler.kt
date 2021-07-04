@@ -18,48 +18,38 @@ package org.panda_lang.reposilite.frontend.infrastructure
 import com.dzikoysk.openapi.annotations.HttpMethod
 import com.dzikoysk.openapi.annotations.OpenApi
 import com.dzikoysk.openapi.annotations.OpenApiResponse
-import io.javalin.http.Context
 import org.eclipse.jetty.http.HttpStatus
 import org.eclipse.jetty.http.MimeTypes
 import org.panda_lang.reposilite.frontend.FrontendFacade
-import org.panda_lang.reposilite.web.api.RouteHandler
+import org.panda_lang.reposilite.web.api.Route
 import org.panda_lang.reposilite.web.api.RouteMethod.GET
+import org.panda_lang.reposilite.web.api.Routes
 import org.panda_lang.reposilite.web.encoding
 
 private const val ROUTE = "/*"
 
-internal class FrontendHandler(private val frontendFacade: FrontendFacade) : RouteHandler {
-
-    override val route = ROUTE
-    override val methods = listOf(GET)
+internal class FrontendHandler(private val frontendFacade: FrontendFacade) : Routes {
 
     @OpenApi(
         path = ROUTE,
         methods = [ HttpMethod.GET ],
-        operationId = "frontend",
         summary = "Get frontend application",
         description = "Returns Vue.js application wrapped into one app.js file",
         tags = [ "Resource" ],
         responses = [ OpenApiResponse(status = "200", description = "Default response") ]
     )
-    override fun handle(context: Context) {
-        var qualifier = context.splat(0) ?: ""
+    private val frontend = Route(ROUTE, GET) {
+        val qualifier = wildcard(defaultValue = "index.html")
 
-        if (qualifier.isEmpty()) {
-            qualifier = "index.html"
-        }
-
-        val resource = FrontendFacade::class.java.getResourceAsStream("/static/$qualifier")
-
-        if (resource == null) {
-            context.status(HttpStatus.NOT_FOUND_404)
-            return
-        }
-
-        context
-            .result(resource)
-            .contentType(MimeTypes.getDefaultMimeByExtension(qualifier))
-            .encoding("UTF-8")
+        FrontendFacade::class.java.getResourceAsStream("/static/$qualifier")
+            ?.let {
+                ctx.result(it)
+                    .contentType(MimeTypes.getDefaultMimeByExtension(qualifier))
+                    .encoding("UTF-8")
+            }
+            ?: ctx.status(HttpStatus.NOT_FOUND_404)
     }
+
+    override val routes = setOf(frontend)
 
 }

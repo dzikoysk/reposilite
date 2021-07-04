@@ -18,6 +18,8 @@ package org.panda_lang.reposilite.storage.infrastructure
 
 import io.javalin.http.HttpCode
 import io.javalin.http.HttpCode.NOT_FOUND
+import net.dzikoysk.dynamiclogger.Journalist
+import net.dzikoysk.dynamiclogger.Logger
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.failure.api.errorResponse
 import org.panda_lang.reposilite.maven.api.DirectoryInfo
@@ -47,7 +49,11 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.attribute.FileTime
 
-internal class S3StorageProvider(private val bucket: String, region: String) : StorageProvider {
+internal class S3StorageProvider(
+    private val journalist: Journalist,
+    private val bucket: String,
+    region: String
+) : StorageProvider, Journalist {
 
     private val s3: S3Client = S3Client.builder()
         .region(Region.of(region))
@@ -71,7 +77,7 @@ internal class S3StorageProvider(private val bucket: String, region: String) : S
             ).asResult()
         }
         catch (exception: Exception) {
-            exception.printStackTrace()
+            logger.exception(exception)
             errorResponse(HttpCode.INTERNAL_SERVER_ERROR, "Failed to write $file")
         }
 
@@ -98,7 +104,7 @@ internal class S3StorageProvider(private val bucket: String, region: String) : S
             ).asResult()
         }
         catch (ioException: IOException) {
-            ioException.printStackTrace()
+            logger.exception(ioException)
             errorResponse(HttpCode.INTERNAL_SERVER_ERROR, "Failed to write $file")
         }
 
@@ -120,11 +126,10 @@ internal class S3StorageProvider(private val bucket: String, region: String) : S
         }
 
     override fun getFileDetails(file: Path): Result<FileDetails, ErrorResponse> =
-        if (file.toString() == "") {
-            DirectoryInfo(
-                file.fileName.toString(),
-                emptyList() // TOFIX
-            ).asResult()
+        if (file.toString() == "") { // why ""?
+            getFiles(file)
+                .map { it.map { path -> getFileDetails(path) } }
+                .map { DirectoryInfo(file.fileName.toString(), it.map { result -> result.get() /* We should somehow flat map these errors maybe */}) }
         }
         else {
             head(file)?.let {
@@ -221,5 +226,8 @@ internal class S3StorageProvider(private val bucket: String, region: String) : S
 
     override fun canHold(contentLength: Long): Result<*, ErrorResponse> =
         true.asResult()
+
+    override fun getLogger(): Logger =
+        journalist.logger
 
 }

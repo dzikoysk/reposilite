@@ -16,15 +16,16 @@
 
 package org.panda_lang.reposilite.storage
 
+import net.dzikoysk.dynamiclogger.Journalist
 import org.panda_lang.reposilite.storage.infrastructure.FileSystemStorageProviderFactory
 import org.panda_lang.reposilite.storage.infrastructure.S3StorageProvider
 import org.panda_lang.reposilite.storage.infrastructure.S3StorageProviderSettings
 import picocli.CommandLine
 import java.nio.file.Paths
 
-class StorageProviderFactory {
+internal object StorageProviderFactory {
 
-    fun createStorageProvider(repositoryName: String, storageDescription: String): StorageProvider {
+    fun createStorageProvider(journalist: Journalist, repositoryName: String, storageDescription: String): StorageProvider {
         if (storageDescription.startsWith("fs")) {
             return FileSystemStorageProviderFactory.of(
                 Paths.get("repositories").resolve(repositoryName),
@@ -34,7 +35,7 @@ class StorageProviderFactory {
 
         if (storageDescription.startsWith("s3")) {
             val settings = loadConfiguration(S3StorageProviderSettings(), storageDescription)
-            return S3StorageProvider(settings.bucketName, settings.region)
+            return S3StorageProvider(journalist, settings.bucketName, settings.region)
         }
 
         if (storageDescription.equals("rest", ignoreCase = true)) {

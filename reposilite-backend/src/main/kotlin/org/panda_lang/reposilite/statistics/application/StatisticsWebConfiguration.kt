@@ -22,7 +22,7 @@ import org.panda_lang.reposilite.statistics.StatisticsFacade
 import org.panda_lang.reposilite.statistics.StatsCommand
 import org.panda_lang.reposilite.statistics.infrastructure.SqlStatisticsRepository
 import org.panda_lang.reposilite.statistics.infrastructure.StatisticsHandler
-import org.panda_lang.reposilite.web.api.RouteHandler
+import org.panda_lang.reposilite.web.api.Routes
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit.MINUTES
 
@@ -38,8 +38,8 @@ internal object StatisticsWebConfiguration {
         consoleFacade.registerCommand(StatsCommand(statisticsFacade))
     }
 
-    fun routing(statisticsFacade: StatisticsFacade): List<RouteHandler> =
-        listOf(
+    fun routing(statisticsFacade: StatisticsFacade): Set<Routes> =
+        setOf(
             StatisticsHandler(statisticsFacade)
         )
 

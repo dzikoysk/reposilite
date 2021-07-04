@@ -1,6 +1,7 @@
 package org.panda_lang.reposilite.storage.infrastructure
 
 import io.javalin.http.HttpCode.INSUFFICIENT_STORAGE
+import net.dzikoysk.dynamiclogger.Journalist
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.web.filter
 import org.panda_lang.utilities.commons.function.Result
@@ -31,7 +32,11 @@ internal class FixedQuota(rootDirectory: Path, private val maxSize: Long) : File
  * @param rootDirectory root directory of storage space
  * @param maxPercentage the maximum percentage of the disk available for use
  */
-internal class PercentageQuota(rootDirectory: Path, private val maxPercentage: Double) : FileSystemStorageProvider(rootDirectory) {
+internal class PercentageQuota(
+    private val journalist: Journalist,
+    private val rootDirectory: Path,
+    private val maxPercentage: Double
+) : FileSystemStorageProvider(rootDirectory) {
 
     init {
         if (maxPercentage > 1 || maxPercentage <= 0) {
@@ -48,7 +53,7 @@ internal class PercentageQuota(rootDirectory: Path, private val maxPercentage: D
                     val percentage = newUsage / capacity
                     percentage < maxPercentage
                 } catch (ioException: IOException) {
-                    ioException.printStackTrace()
+                    journalist.logger.exception(ioException)
                     false
                 }
 

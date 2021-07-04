@@ -70,7 +70,7 @@ dependencies {
     val javalin = "4.0.0.ALPHA3"
     implementation("io.javalin:javalin:$javalin")
 
-    val openapi = "1.0.8"
+    val openapi = "1.0.9"
     kapt("com.dzikoysk:openapi-annotation-processor:$openapi")
     implementation("com.dzikoysk:javalin-openapi-plugin:$openapi")
     implementation("com.dzikoysk:javalin-swagger-plugin:$openapi")

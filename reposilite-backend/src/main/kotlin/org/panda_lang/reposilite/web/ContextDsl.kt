@@ -22,7 +22,7 @@ import org.panda_lang.reposilite.auth.Session
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.utilities.commons.function.Result
 
-internal class ContextDsl(private val ctx: Context, val context: ReposiliteContext) {
+class ContextDsl(val ctx: Context, val context: ReposiliteContext) {
 
     /**
      * JSON response to send at the end of the dsl call
@@ -61,8 +61,10 @@ internal class ContextDsl(private val ctx: Context, val context: ReposiliteConte
     /**
      * Get first available splat or empty string
      */
-    fun wildcard(): String =
-        ctx.splat(0) ?: ""
+    fun wildcard(defaultValue: String = ""): String =
+        ctx.splat(0)
+            .takeIf { it?.isNotEmpty() ?: false }
+            ?: defaultValue
 
     fun parameter(name: String): String =
         ctx.pathParam(name)
@@ -75,7 +77,7 @@ internal class ContextDsl(private val ctx: Context, val context: ReposiliteConte
 
 }
 
-internal fun context(contextFactory: ReposiliteContextFactory, ctx: Context, init: ContextDsl.() -> Unit) {
+fun context(contextFactory: ReposiliteContextFactory, ctx: Context, init: ContextDsl.() -> Unit) {
     contextFactory.create(ctx)
         .onError { ctx.json(it) }
         .map { ContextDsl(ctx, it) }

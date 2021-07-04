@@ -16,22 +16,21 @@
 
 package org.panda_lang.reposilite.statistics.infrastructure
 
-import io.javalin.http.Context
 import org.panda_lang.reposilite.statistics.StatisticsFacade
 import org.panda_lang.reposilite.statistics.api.MAX_IDENTIFIER_LENGTH
-import org.panda_lang.reposilite.statistics.api.RecordType
-import org.panda_lang.reposilite.web.api.RouteHandler
+import org.panda_lang.reposilite.statistics.api.RecordType.REQUEST
+import org.panda_lang.reposilite.web.api.Route
 import org.panda_lang.reposilite.web.api.RouteMethod.BEFORE
+import org.panda_lang.reposilite.web.api.Routes
 
-internal class StatisticsHandler(private val statisticsFacade: StatisticsFacade) : RouteHandler {
+internal class StatisticsHandler(private val statisticsFacade: StatisticsFacade) : Routes {
 
-    override val route = "*"
-    override val methods = listOf(BEFORE)
-
-    override fun handle(ctx: Context) {
+    private val collectRequests = Route("*", BEFORE) {
         if (ctx.req.requestURI.length < MAX_IDENTIFIER_LENGTH) {
-            statisticsFacade.increaseRecord(RecordType.REQUEST, ctx.req.requestURI)
+            statisticsFacade.increaseRecord(REQUEST, ctx.req.requestURI)
         }
     }
+
+    override val routes = setOf(collectRequests)
 
 }

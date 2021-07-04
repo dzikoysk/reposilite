@@ -27,7 +27,7 @@ import org.panda_lang.reposilite.console.VersionCommand
 import org.panda_lang.reposilite.console.infrastructure.CliEndpoint
 import org.panda_lang.reposilite.console.infrastructure.RemoteExecutionEndpoint
 import org.panda_lang.reposilite.failure.FailureFacade
-import org.panda_lang.reposilite.web.api.RouteHandler
+import org.panda_lang.reposilite.web.api.Routes
 
 private const val REMOTE_VERSION = "https://repo.panda-lang.org/org/panda-lang/reposilite/latest"
 
@@ -51,9 +51,9 @@ internal object ConsoleWebConfiguration {
         }
     }
 
-    fun routing(reposilite: Reposilite): List<RouteHandler> =
-        listOf(
-            RemoteExecutionEndpoint(reposilite.contextFactory, reposilite.consoleFacade)
+    fun routing(reposilite: Reposilite): Set<Routes> =
+        setOf(
+            RemoteExecutionEndpoint(reposilite.consoleFacade)
         )
 
     fun javalin(javalin: Javalin, reposilite: Reposilite) {

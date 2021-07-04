@@ -20,23 +20,19 @@ import com.dzikoysk.openapi.annotations.OpenApi
 import com.dzikoysk.openapi.annotations.OpenApiContent
 import com.dzikoysk.openapi.annotations.OpenApiParam
 import com.dzikoysk.openapi.annotations.OpenApiResponse
-import io.javalin.http.Context
 import org.panda_lang.reposilite.auth.AuthenticationFacade
 import org.panda_lang.reposilite.auth.api.AuthenticationResponse
 import org.panda_lang.reposilite.failure.api.ErrorResponse
-import org.panda_lang.reposilite.web.api.RouteHandler
+import org.panda_lang.reposilite.web.api.Route
 import org.panda_lang.reposilite.web.api.RouteMethod.GET
+import org.panda_lang.reposilite.web.api.Routes
 
 private const val ROUTE = "/api/auth"
 
-internal class AuthenticationEndpoint(private val authenticationFacade: AuthenticationFacade) : RouteHandler {
-
-    override val route = ROUTE
-    override val methods = listOf(GET)
+internal class AuthenticationEndpoint(private val authenticationFacade: AuthenticationFacade) : Routes {
 
     @OpenApi(
         path = ROUTE,
-        operationId = "auth",
         methods = [HttpMethod.GET],
         summary = "Get token details",
         description = "Returns details about the requested token",
@@ -55,10 +51,12 @@ internal class AuthenticationEndpoint(private val authenticationFacade: Authenti
             )
         ]
     )
-    override fun handle(ctx: Context) {
+    private val authInfo = Route(ROUTE, GET) {
         authenticationFacade.authenticateByHeader(ctx.headerMap())
             .map { AuthenticationResponse(it.alias, it.permissions.map { permission -> permission.toString() }) }
             .let { ctx.json(it.any) }
     }
+
+    override val routes = setOf(authInfo)
 
 }
