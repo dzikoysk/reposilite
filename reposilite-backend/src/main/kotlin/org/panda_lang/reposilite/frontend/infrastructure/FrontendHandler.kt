@@ -15,9 +15,7 @@
  */
 package org.panda_lang.reposilite.frontend.infrastructure
 
-import com.dzikoysk.openapi.annotations.HttpMethod
-import com.dzikoysk.openapi.annotations.OpenApi
-import com.dzikoysk.openapi.annotations.OpenApiResponse
+import io.javalin.http.Context
 import org.eclipse.jetty.http.HttpStatus
 import org.eclipse.jetty.http.MimeTypes
 import org.panda_lang.reposilite.frontend.FrontendFacade
@@ -26,30 +24,30 @@ import org.panda_lang.reposilite.web.api.RouteMethod.GET
 import org.panda_lang.reposilite.web.api.Routes
 import org.panda_lang.reposilite.web.encoding
 
-private const val ROUTE = "/*"
-
 internal class FrontendHandler(private val frontendFacade: FrontendFacade) : Routes {
 
-    @OpenApi(
-        path = ROUTE,
-        methods = [ HttpMethod.GET ],
-        summary = "Get frontend application",
-        description = "Returns Vue.js application wrapped into one app.js file",
-        tags = [ "Resource" ],
-        responses = [ OpenApiResponse(status = "200", description = "Default response") ]
-    )
-    private val frontend = Route(ROUTE, GET) {
-        val qualifier = wildcard(defaultValue = "index.html")
+    private val defaultHandler = Route("/", GET) {
+        bindResource(ctx, "index.html")
+    }
 
-        FrontendFacade::class.java.getResourceAsStream("/static/$qualifier")
+    private val indexHandler = Route("/index.html", GET) {
+        bindResource(ctx, "index.html")
+    }
+
+    private val assetsHandler = Route("/assets/*", GET) {
+        bindResource(ctx, "assets/${wildcard()}")
+    }
+
+    override val routes = setOf(defaultHandler, indexHandler, assetsHandler)
+
+    private fun bindResource(ctx: Context, uri: String) {
+        FrontendFacade::class.java.getResourceAsStream("/static/$uri")
             ?.let {
                 ctx.result(it)
-                    .contentType(MimeTypes.getDefaultMimeByExtension(qualifier))
+                    .contentType(MimeTypes.getDefaultMimeByExtension(uri))
                     .encoding("UTF-8")
             }
             ?: ctx.status(HttpStatus.NOT_FOUND_404)
     }
-
-    override val routes = setOf(frontend)
 
 }

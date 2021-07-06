@@ -41,11 +41,14 @@ internal class JavalinWebServer : WebServer {
 
         ReposiliteWebConfiguration.javalin(reposilite, javalin)
 
+        reposilite.logger.debug("--- Routes")
         ReposiliteWebConfiguration.routing(reposilite)
             .flatMap { it.routes }
-            .sortedByDescending { it.path.length }
+            .sorted()
             .map { Pair(it, it.createHandler(reposilite.contextFactory)) }
             .forEach { (route, handler) ->
+                reposilite.logger.debug("- ${route.path}")
+
                 route.methods.forEach { method ->
                     when (method) {
                         HEAD -> javalin.head(route.path, handler)
