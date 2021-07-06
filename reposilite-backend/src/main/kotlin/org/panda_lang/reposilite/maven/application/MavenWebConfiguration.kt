@@ -19,14 +19,11 @@ package org.panda_lang.reposilite.maven.application
 import net.dzikoysk.dynamiclogger.Journalist
 import org.panda_lang.reposilite.config.Configuration.RepositoryConfiguration
 import org.panda_lang.reposilite.failure.FailureFacade
-import org.panda_lang.reposilite.maven.DeploymentService
-import org.panda_lang.reposilite.maven.LookupService
 import org.panda_lang.reposilite.maven.MavenFacade
 import org.panda_lang.reposilite.maven.MetadataService
 import org.panda_lang.reposilite.maven.RepositorySecurityProvider
 import org.panda_lang.reposilite.maven.RepositoryServiceFactory
-import org.panda_lang.reposilite.maven.infrastructure.DeploymentEndpoint
-import org.panda_lang.reposilite.maven.infrastructure.LookupEndpoint
+import org.panda_lang.reposilite.maven.infrastructure.MavenFileEndpoint
 import org.panda_lang.reposilite.web.api.Routes
 
 internal object MavenWebConfiguration {
@@ -34,16 +31,13 @@ internal object MavenWebConfiguration {
     fun createFacade(journalist: Journalist, failureFacade: FailureFacade, repositoriesConfiguration: Map<String, RepositoryConfiguration>): MavenFacade {
         val repositoryService = RepositoryServiceFactory.createRepositoryService(journalist, repositoriesConfiguration)
         val metadataService = MetadataService(failureFacade)
-        val lookupService = LookupService(repositoryService, RepositorySecurityProvider())
-        val deployService = DeploymentService(journalist, repositoryService, metadataService)
 
-        return MavenFacade(journalist, metadataService, lookupService, deployService)
+        return MavenFacade(journalist, metadataService, RepositorySecurityProvider(), repositoryService)
     }
 
     fun routing(mavenFacade: MavenFacade): List<Routes> =
         listOf(
-            LookupEndpoint(mavenFacade),
-            DeploymentEndpoint(mavenFacade)
+            MavenFileEndpoint(mavenFacade),
         )
 
 }
