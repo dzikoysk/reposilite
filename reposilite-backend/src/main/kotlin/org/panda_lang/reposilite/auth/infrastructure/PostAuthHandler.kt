@@ -29,6 +29,8 @@ internal class PostAuthHandler : Routes {
         if (ctx.status() == HttpCode.UNAUTHORIZED.status) {
             ctx.header(WWW_AUTHENTICATE, WWW_BASIC_REALM)
         }
+
+        context.logger.info("Lookup API ${context.uri} from ${context.address}")
     }
 
     override val routes = setOf(realmDescription)

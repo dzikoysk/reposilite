@@ -21,6 +21,5 @@ import org.panda_lang.reposilite.token.api.AccessToken
 data class LookupRequest(
     val repository: String,
     val gav: String,
-    val by: String,
     val accessToken: AccessToken?
 )
