@@ -35,7 +35,7 @@ class Route(
     val path: String,
     vararg val methods: RouteMethod,
     private val handler: ContextDsl.() -> Unit
-) {
+) : Comparable<Route> {
 
     fun createHandler(reposiliteContextFactory: ReposiliteContextFactory): Handler =
         Handler {
@@ -43,6 +43,30 @@ class Route(
                 handler(this)
             }
         }
+
+    override fun compareTo(other: Route): Int {
+        val itPaths = path.split("/")
+        val toPaths = other.path.split("/")
+        var index = 0
+
+        while (true) {
+            if (index >= itPaths.size || index >= toPaths.size) {
+                break
+            }
+
+            val itPart = itPaths[index]
+            val toPart = toPaths[index]
+            val result = toPart.compareTo(itPart)
+
+            if (result != 0) {
+                return result
+            }
+
+            index++
+        }
+
+        return other.path.compareTo(path)
+    }
 
 }
 

@@ -25,6 +25,7 @@ export default defineConfig({
     WindiCSS()
   ],
   build: {
+    emptyOutDir: true,
     outDir: '../reposilite-backend/src/main/resources/static'
   }
 })

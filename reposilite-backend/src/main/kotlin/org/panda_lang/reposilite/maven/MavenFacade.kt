@@ -86,7 +86,7 @@ class MavenFacade internal constructor(
     }
 
     fun deleteFile(repositoryName: String, gav: String): Result<*, ErrorResponse> {
-        val repository = repositoryService.getRepository(repositoryName) ?: return errorResponse<Any>(NOT_FOUND, "xxx")
+        val repository = repositoryService.getRepository(repositoryName) ?: return errorResponse<Any>(NOT_FOUND, "Repository $repositoryName not found")
         return repository.removeFile(gav)
     }
 

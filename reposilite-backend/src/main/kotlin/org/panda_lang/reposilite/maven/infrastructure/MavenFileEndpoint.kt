@@ -28,7 +28,7 @@ import org.panda_lang.utilities.commons.function.Result
 internal class MavenFileEndpoint(private val mavenFacade: MavenFacade) : Routes {
 
     @OpenApi(
-        path = "/:repositoryName/*",
+        path = "/:repository-name/*",
         methods = [HttpMethod.GET],
         tags = ["Maven"],
         summary = "Browse the contents of repositories",
@@ -39,9 +39,9 @@ internal class MavenFileEndpoint(private val mavenFacade: MavenFacade) : Routes 
             OpenApiResponse(status = "404", description = "Returns 404 (for Maven) with frontend (for user) as a response if requested resource is not located in the current repository")
         ]
     )
-    val findFile = Route("/:repositoryName/*", GET) {
+    val findFile = Route("/:repository-name/*", GET) {
         accessed {
-            LookupRequest(parameter("repositoryName"), wildcard(), this?.accessToken)
+            LookupRequest(parameter("repository-name"), wildcard(), this?.accessToken)
                 .let { mavenFacade.findFile(it) }
                 .peek {
                     when (it) {
@@ -54,7 +54,7 @@ internal class MavenFileEndpoint(private val mavenFacade: MavenFacade) : Routes 
     }
 
     @OpenApi(
-        path = "/:repositoryName/*",
+        path = "/:repository-name/*",
         methods = [HttpMethod.POST, HttpMethod.PUT],
         summary = "Deploy artifact to the repository",
         description = "Deploy supports both, POST and PUT, methods and allows to deploy artifact builds",
@@ -76,7 +76,7 @@ internal class MavenFileEndpoint(private val mavenFacade: MavenFacade) : Routes 
     }
 
     @OpenApi(
-        path = "/:repositoryName/*",
+        path = "/:repository-name/*",
         summary = "Delete the given file from repository",
         methods = [HttpMethod.DELETE]
     )
@@ -87,7 +87,7 @@ internal class MavenFileEndpoint(private val mavenFacade: MavenFacade) : Routes 
     }
 
     @OpenApi(
-        path = "/api/maven/details/:repositoryName/*",
+        path = "/api/maven/details/:repository-name/*",
         methods = [HttpMethod.HEAD, HttpMethod.GET],
         summary = "Browse the contents of repositories using API",
         description = "Get details about the requested file as JSON response",
