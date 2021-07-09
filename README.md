@@ -58,8 +58,8 @@ Users' stories
 Thanks to:
 
 * [zzmgck](https://github.com/zzmgck) with $191
+* [milkyway0308](https://github.com/milkyway0308) with $15
 * Rob with $5
-* [milkyway0308](https://github.com/milkyway0308) with $5
 * ...
 
 Reposilite is an implicit part of [panda-lang](https://github.com/panda-lang) organization. 
