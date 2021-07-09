@@ -24,6 +24,7 @@ import org.panda_lang.reposilite.maven.api.DocumentInfo
 import org.panda_lang.utilities.commons.function.Result
 import java.io.InputStream
 import java.io.OutputStream
+import java.nio.charset.Charset
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -35,6 +36,9 @@ fun Context.error(error: ErrorResponse): Context =
 
 fun Context.contentLength(length: Long): Context =
     also { res.setContentLengthLong(length) }
+
+fun Context.encoding(encoding: Charset): Context =
+    encoding(encoding.name())
 
 fun Context.encoding(encoding: String): Context =
     also { res.characterEncoding = encoding }
