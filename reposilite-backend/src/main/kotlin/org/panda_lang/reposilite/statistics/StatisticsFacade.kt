@@ -32,7 +32,7 @@ class StatisticsFacade internal constructor(
     fun increaseRecord(type: RecordType, uri: String) =
         recordsBulk.merge(RecordIdentifier(type, uri), 1) { cached, value -> cached + value }
 
-    internal fun saveRecordsBulk() =
+    fun saveRecordsBulk() =
         recordsBulk.toMap().also {
             recordsBulk.clear() // read doesn't lock, so there is a possibility of dropping a few records between toMap and clear. Might be improved in the future
             statisticsRepository.incrementRecords(it)

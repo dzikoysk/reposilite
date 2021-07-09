@@ -44,8 +44,8 @@ internal class FrontendHandler(private val frontendFacade: FrontendFacade) : Rou
         FrontendFacade::class.java.getResourceAsStream("/static/$uri")
             ?.let {
                 ctx.result(it)
+                    .encoding(Charsets.UTF_8)
                     .contentType(MimeTypes.getDefaultMimeByExtension(uri))
-                    .encoding("UTF-8")
             }
             ?: ctx.status(HttpStatus.NOT_FOUND_404)
     }
