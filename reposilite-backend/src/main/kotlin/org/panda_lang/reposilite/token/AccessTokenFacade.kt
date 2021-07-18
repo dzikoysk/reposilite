@@ -19,8 +19,8 @@ import net.dzikoysk.dynamiclogger.Journalist
 import net.dzikoysk.dynamiclogger.Logger
 import org.panda_lang.reposilite.token.api.AccessToken
 import org.panda_lang.reposilite.token.api.Permission
-import org.panda_lang.utilities.commons.collection.Pair
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
+import panda.std.Pair
 import java.security.SecureRandom
 import java.util.*
 

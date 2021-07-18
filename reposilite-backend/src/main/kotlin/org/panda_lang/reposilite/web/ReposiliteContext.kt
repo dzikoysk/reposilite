@@ -19,9 +19,9 @@ import net.dzikoysk.dynamiclogger.Journalist
 import net.dzikoysk.dynamiclogger.Logger
 import org.panda_lang.reposilite.auth.Session
 import org.panda_lang.reposilite.failure.api.ErrorResponse
-import org.panda_lang.utilities.commons.function.Result
-import org.panda_lang.utilities.commons.function.ThrowingConsumer
-import org.panda_lang.utilities.commons.function.ThrowingSupplier
+import panda.std.Result
+import panda.std.function.ThrowingConsumer
+import panda.std.function.ThrowingSupplier
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream

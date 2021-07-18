@@ -23,7 +23,7 @@ import org.panda_lang.reposilite.web.api.RouteMethod.POST
 import org.panda_lang.reposilite.web.api.RouteMethod.PUT
 import org.panda_lang.reposilite.web.api.Routes
 import org.panda_lang.reposilite.web.resultAttachment
-import org.panda_lang.utilities.commons.function.Result
+import panda.std.Result
 
 internal class MavenFileEndpoint(private val mavenFacade: MavenFacade) : Routes {
 

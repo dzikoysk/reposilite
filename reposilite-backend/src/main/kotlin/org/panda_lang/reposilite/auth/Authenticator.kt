@@ -18,10 +18,10 @@ package org.panda_lang.reposilite.auth
 import org.panda_lang.reposilite.token.AccessTokenFacade
 import org.panda_lang.reposilite.token.api.AccessToken
 import org.panda_lang.reposilite.token.api.Permission.READ
-import org.panda_lang.utilities.commons.StringUtils
-import org.panda_lang.utilities.commons.function.Result
-import org.panda_lang.utilities.commons.function.Result.error
-import org.panda_lang.utilities.commons.function.Result.ok
+import panda.std.Result
+import panda.std.Result.error
+import panda.std.Result.ok
+import panda.utilities.StringUtils
 import java.nio.charset.StandardCharsets
 import java.util.*
 

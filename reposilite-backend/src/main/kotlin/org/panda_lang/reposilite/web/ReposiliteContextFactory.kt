@@ -25,8 +25,8 @@ import org.panda_lang.reposilite.auth.SessionMethod
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.failure.api.errorResponse
 import org.panda_lang.reposilite.maven.MetadataUtils
-import org.panda_lang.utilities.commons.function.Result
-import org.panda_lang.utilities.commons.function.Result.ok
+import panda.std.Result
+import panda.std.Result.ok
 
 @Suppress("MoveLambdaOutsideParentheses")
 class ReposiliteContextFactory internal constructor(
