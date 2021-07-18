@@ -18,7 +18,7 @@ package org.panda_lang.reposilite.console
 import org.panda_lang.reposilite.VERSION
 import org.panda_lang.reposilite.console.Status.FAILED
 import org.panda_lang.reposilite.console.Status.SUCCEEDED
-import org.panda_lang.utilities.commons.text.Joiner
+import panda.utilities.text.Joiner
 import picocli.CommandLine
 import picocli.CommandLine.Command
 import picocli.CommandLine.Model.ArgSpec

@@ -21,7 +21,7 @@ import net.dzikoysk.dynamiclogger.Journalist
 import net.dzikoysk.dynamiclogger.Logger
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.token.api.AccessToken
-import org.panda_lang.utilities.commons.function.Result
+import panda.std.Result
 
 class AuthenticationFacade internal constructor(
     private val journalist: Journalist,

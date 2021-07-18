@@ -19,8 +19,8 @@ import com.google.common.hash.Hashing
 import org.panda_lang.reposilite.Reposilite
 import org.panda_lang.reposilite.maven.api.Repository
 import org.panda_lang.reposilite.web.api.MimeTypes
-import org.panda_lang.utilities.commons.IOUtils
-import org.panda_lang.utilities.commons.StringUtils
+import panda.utilities.IOUtils
+import panda.utilities.StringUtils
 import java.io.Closeable
 import java.io.IOException
 import java.nio.file.Path

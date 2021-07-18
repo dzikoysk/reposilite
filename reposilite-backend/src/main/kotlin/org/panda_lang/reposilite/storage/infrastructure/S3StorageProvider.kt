@@ -31,7 +31,7 @@ import org.panda_lang.reposilite.storage.StorageProvider
 import org.panda_lang.reposilite.web.api.MimeTypes.OCTET_STREAM
 import org.panda_lang.reposilite.web.api.MimeTypes.PLAIN
 import org.panda_lang.reposilite.web.asResult
-import org.panda_lang.utilities.commons.function.Result
+import panda.std.Result
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider
 import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.regions.Region

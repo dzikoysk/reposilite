@@ -31,9 +31,9 @@ import org.panda_lang.reposilite.maven.api.RepositoryVisibility.PRIVATE
 import org.panda_lang.reposilite.storage.StorageProvider
 import org.panda_lang.reposilite.web.ReposiliteContext
 import org.panda_lang.reposilite.web.asResult
-import org.panda_lang.utilities.commons.StringUtils
-import org.panda_lang.utilities.commons.function.Option
-import org.panda_lang.utilities.commons.function.Result
+import panda.std.Option
+import panda.std.Result
+import panda.utilities.StringUtils
 import java.io.IOException
 import java.net.SocketTimeoutException
 import java.nio.file.Paths

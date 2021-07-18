@@ -21,7 +21,7 @@ import org.apache.commons.io.IOUtils
 import org.eclipse.jetty.server.HttpOutput
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.maven.api.DocumentInfo
-import org.panda_lang.utilities.commons.function.Result
+import panda.std.Result
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.charset.Charset

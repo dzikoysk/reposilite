@@ -31,7 +31,7 @@ import org.panda_lang.reposilite.maven.api.FileDetails
 import org.panda_lang.reposilite.maven.api.LookupRequest
 import org.panda_lang.reposilite.maven.api.Repository
 import org.panda_lang.reposilite.web.toPath
-import org.panda_lang.utilities.commons.function.Result
+import panda.std.Result
 
 class MavenFacade internal constructor(
     private val journalist: Journalist,
@@ -72,7 +72,7 @@ class MavenFacade internal constructor(
         return try {
             val result: Result<FileDetails, ErrorResponse> =
                 if (path.fileName.toString().contains(METADATA_FILE_NAME)) {
-                    metadataService.getMetadata(repository, metadataFile).map { it.key }
+                    metadataService.getMetadata(repository, metadataFile).map { it.first }
                 }
                 else {
                     repository.putFile(path, deployRequest.content)

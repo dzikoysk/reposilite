@@ -19,11 +19,11 @@ import org.panda_lang.reposilite.Reposilite
 import org.panda_lang.reposilite.VERSION
 import org.panda_lang.reposilite.console.Status.SUCCEEDED
 import org.panda_lang.reposilite.shared.TimeUtils.format
-import org.panda_lang.utilities.commons.IOUtils
-import org.panda_lang.utilities.commons.console.Effect.GREEN
-import org.panda_lang.utilities.commons.console.Effect.GREEN_BOLD
-import org.panda_lang.utilities.commons.console.Effect.RED_UNDERLINED
-import org.panda_lang.utilities.commons.console.Effect.RESET
+import panda.utilities.IOUtils
+import panda.utilities.console.Effect.GREEN
+import panda.utilities.console.Effect.GREEN_BOLD
+import panda.utilities.console.Effect.RED_UNDERLINED
+import panda.utilities.console.Effect.RESET
 import picocli.CommandLine.Command
 import java.io.IOException
 

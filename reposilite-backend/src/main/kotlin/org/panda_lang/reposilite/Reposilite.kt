@@ -31,7 +31,7 @@ import org.panda_lang.reposilite.statistics.StatisticsFacade
 import org.panda_lang.reposilite.token.AccessTokenFacade
 import org.panda_lang.reposilite.web.ReposiliteContextFactory
 import org.panda_lang.reposilite.web.WebServer
-import org.panda_lang.utilities.commons.console.Effect
+import panda.utilities.console.Effect
 import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicBoolean
 

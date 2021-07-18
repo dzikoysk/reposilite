@@ -19,8 +19,8 @@ import org.panda_lang.reposilite.console.ReposiliteCommand
 import org.panda_lang.reposilite.console.Status
 import org.panda_lang.reposilite.console.Status.SUCCEEDED
 import org.panda_lang.reposilite.statistics.api.RecordType
-import org.panda_lang.utilities.commons.console.Effect.BLACK_BOLD
-import org.panda_lang.utilities.commons.console.Effect.RESET
+import panda.utilities.console.Effect.BLACK_BOLD
+import panda.utilities.console.Effect.RESET
 import picocli.CommandLine.Command
 import picocli.CommandLine.Parameters
 

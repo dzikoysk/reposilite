@@ -23,7 +23,7 @@ import org.panda_lang.reposilite.console.ConsoleFacade
 import org.panda_lang.reposilite.shared.CachedLogger
 import org.panda_lang.reposilite.token.api.Permission.MANAGER
 import org.panda_lang.reposilite.web.ReposiliteContextFactory
-import org.panda_lang.utilities.commons.StringUtils
+import panda.utilities.StringUtils
 import java.util.function.Consumer
 
 private const val AUTHORIZATION_PREFIX = "Authorization:"

@@ -4,7 +4,7 @@ import io.javalin.http.HttpCode.INSUFFICIENT_STORAGE
 import net.dzikoysk.dynamiclogger.Journalist
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.web.filter
-import org.panda_lang.utilities.commons.function.Result
+import panda.std.Result
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
