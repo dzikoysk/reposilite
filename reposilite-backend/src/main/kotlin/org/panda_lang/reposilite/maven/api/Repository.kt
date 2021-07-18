@@ -20,7 +20,7 @@ import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.failure.api.errorResponse
 import org.panda_lang.reposilite.maven.MetadataUtils
 import org.panda_lang.reposilite.storage.StorageProvider
-import org.panda_lang.utilities.commons.function.Result
+import panda.std.Result
 import java.io.InputStream
 import java.nio.file.Path
 import java.nio.file.Paths

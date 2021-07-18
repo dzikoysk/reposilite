@@ -16,7 +16,7 @@
 package org.panda_lang.reposilite.failure.api
 
 import io.javalin.http.HttpCode
-import org.panda_lang.utilities.commons.function.Result
+import panda.std.Result
 
 data class ErrorResponse(
     val status: Int,

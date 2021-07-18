@@ -89,7 +89,7 @@ dependencies {
 
     /* Utilities */
 
-    implementation("net.dzikoysk:cdn:1.8.1")
+    implementation("net.dzikoysk:cdn:1.9.0")
     implementation("info.picocli:picocli:4.6.1")
     implementation("com.google.guava:guava:30.1.1-jre")
     implementation("org.apache.commons:commons-collections4:4.4")

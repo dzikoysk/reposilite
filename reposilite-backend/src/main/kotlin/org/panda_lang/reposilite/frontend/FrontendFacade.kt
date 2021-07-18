@@ -17,9 +17,9 @@ package org.panda_lang.reposilite.frontend
 
 import org.panda_lang.reposilite.config.Configuration
 import org.panda_lang.reposilite.shared.FilesUtils.getResource
-import org.panda_lang.utilities.commons.StringUtils
-import org.panda_lang.utilities.commons.function.Lazy
-import org.panda_lang.utilities.commons.text.Formatter
+import panda.std.Lazy
+import panda.utilities.StringUtils
+import panda.utilities.text.Formatter
 import java.util.function.Supplier
 
 class FrontendFacade internal constructor(index: Supplier<String>, app: Supplier<String>) {

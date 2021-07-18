@@ -22,8 +22,8 @@ import net.dzikoysk.dynamiclogger.Logger
 import org.panda_lang.reposilite.console.api.ExecutionResponse
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.failure.api.errorResponse
-import org.panda_lang.utilities.commons.StringUtils
-import org.panda_lang.utilities.commons.function.Result
+import panda.utilities.StringUtils
+import panda.std.Result
 import picocli.CommandLine
 
 const val MAX_COMMAND_LENGTH = 1024

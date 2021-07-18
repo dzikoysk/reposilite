@@ -20,7 +20,7 @@ import io.javalin.http.Context
 import io.javalin.http.HttpCode
 import org.panda_lang.reposilite.auth.Session
 import org.panda_lang.reposilite.failure.api.ErrorResponse
-import org.panda_lang.utilities.commons.function.Result
+import panda.std.Result
 
 class ContextDsl(val ctx: Context, val context: ReposiliteContext) {
 

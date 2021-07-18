@@ -25,10 +25,10 @@ import org.panda_lang.reposilite.maven.api.FileDetails
 import org.panda_lang.reposilite.maven.api.Repository
 import org.panda_lang.reposilite.shared.FilesUtils
 import org.panda_lang.reposilite.web.projectToError
-import org.panda_lang.utilities.commons.StringUtils
-import org.panda_lang.utilities.commons.collection.Pair
-import org.panda_lang.utilities.commons.function.Lazy
-import org.panda_lang.utilities.commons.function.Result
+import panda.std.Lazy
+import panda.std.Pair
+import panda.std.Result
+import panda.utilities.StringUtils
 import java.io.IOException
 import java.nio.charset.StandardCharsets
 import java.nio.file.Path

@@ -26,9 +26,9 @@ import org.panda_lang.reposilite.shared.FilesUtils.getMimeType
 import org.panda_lang.reposilite.storage.StorageProvider
 import org.panda_lang.reposilite.web.api.MimeTypes
 import org.panda_lang.reposilite.web.asResult
-import org.panda_lang.utilities.commons.function.Result
-import org.panda_lang.utilities.commons.function.ThrowingBiFunction
-import org.panda_lang.utilities.commons.function.ThrowingFunction
+import panda.std.Result
+import panda.std.function.ThrowingBiFunction
+import panda.std.function.ThrowingFunction
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.InputStream

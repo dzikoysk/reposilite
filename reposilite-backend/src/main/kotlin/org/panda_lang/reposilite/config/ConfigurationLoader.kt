@@ -19,8 +19,8 @@ import net.dzikoysk.cdn.CdnFactory
 import net.dzikoysk.dynamiclogger.Journalist
 import net.dzikoysk.dynamiclogger.Logger
 import org.panda_lang.reposilite.shared.FilesUtils.getExtension
-import org.panda_lang.utilities.commons.ClassUtils
-import org.panda_lang.utilities.commons.StringUtils
+import panda.utilities.ClassUtils
+import panda.utilities.StringUtils
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
