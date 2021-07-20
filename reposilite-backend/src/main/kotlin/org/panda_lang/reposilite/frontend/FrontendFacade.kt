@@ -49,8 +49,4 @@ class FrontendFacade internal constructor(index: Supplier<String>, app: Supplier
         return StringUtils.replace(index.get(), "{{REPOSILITE.MESSAGE}}", message)
     }
 
-    fun getApp(): String {
-        return app.get()
-    }
-
 }

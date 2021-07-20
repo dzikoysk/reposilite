@@ -50,7 +50,7 @@ internal class InMemoryStatisticsRepository : StatisticsRepository {
     override fun findRecordsByPhrase(type: RecordType, phrase: String): List<Record> =
         records.values
             .filter { it.type == type }
-            .filter { it.identifier == phrase }
+            .filter { it.identifier.contains(phrase) }
 
     override fun countRecords(): Long =
         records
