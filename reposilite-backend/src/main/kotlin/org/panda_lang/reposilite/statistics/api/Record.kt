@@ -25,7 +25,8 @@ data class Record(
 )
 
 enum class RecordType {
-    REQUEST
+    REQUEST,
+    UNKNOWN
 }
 
 data class RecordIdentifier(

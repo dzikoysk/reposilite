@@ -24,7 +24,6 @@ import org.panda_lang.reposilite.failure.api.errorResponse
 import org.panda_lang.reposilite.maven.api.FileDetails
 import org.panda_lang.reposilite.maven.api.Repository
 import org.panda_lang.reposilite.shared.FilesUtils
-import org.panda_lang.reposilite.web.projectToError
 import panda.std.Lazy
 import panda.std.Pair
 import panda.std.Result

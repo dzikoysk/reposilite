@@ -82,18 +82,10 @@ fun OutputStream.isProbablyOpen(): Boolean =
 fun String.toPath(): Path =
     Paths.get(this)
 
-/**
- * Project non-existing value of errored [Result] to simplify error handling by convenient way to match expected signatures.
- * This method throws [IllegalArgumentException] if the given [Result] does not contain error.
- */
-fun <ANY_VALUE, REQUIRED_VALUE, ERROR> Result<ANY_VALUE, ERROR>.projectToError(): Result<REQUIRED_VALUE, ERROR> =
-    if (this.isErr) this.map { null } else throw IllegalArgumentException("")
-
-fun <VALUE, ERROR> Result<VALUE, ERROR>.filter(predicate: (VALUE) -> Boolean, error: () -> ERROR): Result<VALUE, ERROR> =
-    if (this.isOk && predicate(get())) this else Result.error(error())
-
-fun <VALUE> Result<VALUE, *>.orNull(): VALUE? =
-    this.orElseGet { null }
+fun <ANY> ANY.alsoIf(condition: Boolean, block: (ANY) -> Unit): ANY {
+    if (condition) block(this)
+    return this;
+}
 
 fun <VALUE, ERROR> VALUE.asResult(): Result<VALUE, ERROR> =
     Result.ok(this)
