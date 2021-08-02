@@ -73,15 +73,17 @@ internal class SqlAccessTokenRepository : AccessTokenRepository {
     override fun deleteAccessToken(accessToken: AccessToken) =
         transactionUnit { AccessTokenTable.deleteWhere { AccessTokenTable.id eq accessToken.id } }
 
-    private fun findAccessTokenPermissionsById(id: Int): Collection<Permission> =
+    private fun findAccessTokenPermissionsById(id: Int): Set<Permission> =
         PermissionToAccessTokenTable.select { PermissionToAccessTokenTable.accessTokenId eq id }
             .map { Permission.of(ACCESS_TOKEN, it[PermissionToAccessTokenTable.permission]) }
+            .toSet()
 
-    private fun findRoutesById(id: Int): Collection<Route> =
+    private fun findRoutesById(id: Int): Set<Route> =
         PermissionToRouteTable.select { PermissionToRouteTable.accessTokenId eq id }
             .map { Pair(it[PermissionToRouteTable.route], it[PermissionToRouteTable.permission]) }
             .groupBy { it.first }
             .map { (route, permissions) -> Route(route, permissions.map { Permission.of(ROUTE, it.second) }) }
+            .toSet()
 
     private fun toAccessToken(result: ResultRow): AccessToken =
         result[AccessTokenTable.id].value.let { accessTokenId ->
