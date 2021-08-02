@@ -58,8 +58,8 @@ internal class KeygenCommand(private val accessTokenFacade: AccessTokenFacade) :
 
     override fun execute(output: MutableList<String>): Status {
         val token = accessTokenFacade.createAccessToken(alias)
-        output.add("Generated new access token for $alias with '$permissions' permissions")
-        output.add(token.first)
+        output.add("Generated new access token for $alias with '$permissions' permissions. Secret:")
+        output.add(token.secret)
         return SUCCEEDED
     }
 }

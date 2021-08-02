@@ -25,8 +25,8 @@ data class AccessToken internal constructor(
     val secret: String,
     val createdAt: LocalDate = LocalDate.now(),
     val description: String = "",
-    val permissions: Collection<Permission> = emptyList(),
-    val routes: Collection<Route> = emptyList()
+    val permissions: Set<Permission> = emptySet(),
+    val routes: Set<Route> = emptySet()
 ) : IdentifiableEntity {
 
     fun hasPermission(permission: Permission): Boolean =
