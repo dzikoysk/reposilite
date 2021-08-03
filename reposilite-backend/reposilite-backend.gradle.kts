@@ -89,7 +89,7 @@ dependencies {
 
     /* Utilities */
 
-    implementation("net.dzikoysk:cdn:1.9.0")
+    implementation("net.dzikoysk:cdn:1.9.1")
     implementation("org.panda-lang:expressible:1.0.2")
     implementation("info.picocli:picocli:4.6.1")
     implementation("com.google.guava:guava:30.1.1-jre")
@@ -114,6 +114,7 @@ dependencies {
     testImplementation("com.google.http-client:google-http-client-jackson2:1.39.2")
     testImplementation("org.mockito:mockito-inline:3.9.0")
     testImplementation("org.mockito:mockito-core:3.9.0")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.7.1")
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.1")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 }

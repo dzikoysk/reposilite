@@ -25,11 +25,12 @@ import org.panda_lang.reposilite.maven.RepositorySecurityProvider
 import org.panda_lang.reposilite.maven.RepositoryServiceFactory
 import org.panda_lang.reposilite.maven.infrastructure.MavenFileEndpoint
 import org.panda_lang.reposilite.web.api.Routes
+import java.nio.file.Path
 
 internal object MavenWebConfiguration {
 
-    fun createFacade(journalist: Journalist, failureFacade: FailureFacade, repositoriesConfiguration: Map<String, RepositoryConfiguration>): MavenFacade {
-        val repositoryService = RepositoryServiceFactory.createRepositoryService(journalist, repositoriesConfiguration)
+    fun createFacade(journalist: Journalist, failureFacade: FailureFacade, workingDirectory: Path, repositoriesConfiguration: Map<String, RepositoryConfiguration>): MavenFacade {
+        val repositoryService = RepositoryServiceFactory.createRepositoryService(journalist, workingDirectory, repositoriesConfiguration)
         val metadataService = MetadataService(failureFacade)
 
         return MavenFacade(journalist, metadataService, RepositorySecurityProvider(), repositoryService)

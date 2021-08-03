@@ -84,7 +84,7 @@ class Reposilite(
         logger.info("")
 
         logger.info("--- Repositories")
-        mavenFacade.getRepositories().forEach { logger.info("+ ${it.name} (${it.visibility.toString().toLowerCase()})") }
+        mavenFacade.getRepositories().forEach { logger.info("+ ${it.name} (${it.visibility.toString().lowercase()})") }
         logger.info("${mavenFacade.getRepositories().size} repositories have been found")
         logger.info("")
     }

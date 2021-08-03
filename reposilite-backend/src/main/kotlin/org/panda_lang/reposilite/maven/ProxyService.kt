@@ -133,8 +133,6 @@ internal class ProxyService(
     }
 
     private fun store(uri: String, remoteResponse: HttpResponse, context: ReposiliteContext): Result<FileDetails, ErrorResponse> {
-        var uri = uri
-
         if (storageProvider.isFull()) {
             val error = "Not enough storage space available for $uri"
             context.logger.warn(error)

@@ -19,6 +19,7 @@ import net.dzikoysk.dynamiclogger.Journalist
 import net.dzikoysk.dynamiclogger.Logger
 import org.panda_lang.reposilite.config.Configuration.RepositoryConfiguration
 import org.panda_lang.reposilite.maven.api.Repository
+import java.nio.file.Path
 
 internal class RepositoryService(
     private val journalist: Journalist,
@@ -38,11 +39,11 @@ internal class RepositoryService(
 
 internal object RepositoryServiceFactory {
 
-    fun createRepositoryService(journalist: Journalist, repositoriesConfigurations: Map<String, RepositoryConfiguration>): RepositoryService {
+    fun createRepositoryService(journalist: Journalist, workingDirectory: Path, repositoriesConfigurations: Map<String, RepositoryConfiguration>): RepositoryService {
         val repositories: MutableMap<String, Repository> = LinkedHashMap(repositoriesConfigurations.size)
 
         for ((repositoryName, repositoryConfiguration) in repositoriesConfigurations) {
-            repositories[repositoryName] = RepositoryFactory.createRepository(journalist, repositoryName, repositoryConfiguration)
+            repositories[repositoryName] = RepositoryFactory.createRepository(journalist, workingDirectory, repositoryName, repositoryConfiguration)
         }
 
         return RepositoryService(journalist, repositories)

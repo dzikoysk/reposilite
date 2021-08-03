@@ -30,7 +30,7 @@ internal object JavalinWebServerConfiguration {
         val server = Server()
 
         configureJavalin(config)
-        configureJsonSerialization(config)
+        configureJsonSerialization()
         configureSSL(reposilite, configuration, config, server)
         configureCors(config)
         configureOpenApi(configuration, config)
@@ -43,7 +43,7 @@ internal object JavalinWebServerConfiguration {
         config.showJavalinBanner = false
     }
 
-    private fun configureJsonSerialization(config: JavalinConfig) {
+    private fun configureJsonSerialization() {
         val objectMapper = ObjectMapper()
         objectMapper.setSerializationInclusion(Include.NON_NULL)
         JavalinJackson.configure(objectMapper)

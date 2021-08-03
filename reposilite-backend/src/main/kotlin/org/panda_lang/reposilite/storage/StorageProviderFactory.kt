@@ -17,23 +17,26 @@
 package org.panda_lang.reposilite.storage
 
 import net.dzikoysk.dynamiclogger.Journalist
+import org.panda_lang.reposilite.maven.api.Repository
 import org.panda_lang.reposilite.storage.infrastructure.FileSystemStorageProviderFactory
 import org.panda_lang.reposilite.storage.infrastructure.S3StorageProvider
 import org.panda_lang.reposilite.storage.infrastructure.S3StorageProviderSettings
 import picocli.CommandLine
-import java.nio.file.Paths
+import java.nio.file.Files
+import java.nio.file.Path
 
 internal object StorageProviderFactory {
 
-    fun createStorageProvider(journalist: Journalist, repositoryName: String, storageDescription: String): StorageProvider {
+    fun createStorageProvider(journalist: Journalist, workingDirectory: Path, repositoryName: String, storageDescription: String, quota: String): StorageProvider {
         if (storageDescription.startsWith("fs")) {
-            return FileSystemStorageProviderFactory.of(
-                Paths.get("repositories").resolve(repositoryName),
-                Long.MAX_VALUE // TOFIX: Move quota's implementation to Repository level
-            )
+            val repositoryDirectory = workingDirectory.resolve(Repository.REPOSITORIES_PATH).resolve(repositoryName)
+            Files.createDirectories(repositoryDirectory)
+
+            return FileSystemStorageProviderFactory.of(journalist, repositoryDirectory, quota)
         }
 
         if (storageDescription.startsWith("s3")) {
+            // Implement quota
             val settings = loadConfiguration(S3StorageProviderSettings(), storageDescription)
             return S3StorageProvider(journalist, settings.bucketName, settings.region)
         }
