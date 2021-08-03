@@ -17,6 +17,7 @@
 package org.panda_lang.reposilite.storage
 
 import org.panda_lang.reposilite.failure.api.ErrorResponse
+import org.panda_lang.reposilite.maven.api.DocumentInfo
 import org.panda_lang.reposilite.maven.api.FileDetails
 import panda.std.Result
 import java.io.InputStream
@@ -30,22 +31,22 @@ interface StorageProvider {
      *
      * @param file  the path of the file to be written
      * @param bytes the bytes to write
-     * @return a [FileDetails] object describing the file if successful, and an [ErrorResponse] if not
+     * @return a [DocumentInfo] object describing the file if successful, and an [ErrorResponse] if not
      */
-    fun putFile(file: Path, bytes: ByteArray): Result<FileDetails, ErrorResponse>
+    fun putFile(file: Path, bytes: ByteArray): Result<DocumentInfo, ErrorResponse>
 
     /**
      * Writes the given [InputStream] to the path specified in storage.
      *
      * @param file  the path of the file to be written
      * @param inputStream the stream supplying the data to write
-     * @return a [FileDetails] object describing the file if successful, and an [ErrorResponse] if not
+     * @return a [DocumentInfo] object describing the file if successful, and an [ErrorResponse] if not
      */
-    fun putFile(file: Path, inputStream: InputStream): Result<FileDetails, ErrorResponse>
+    fun putFile(file: Path, inputStream: InputStream): Result<DocumentInfo, ErrorResponse>
 
     fun getFile(file: Path): Result<InputStream, ErrorResponse>
 
-    fun getFileDetails(file: Path): Result<FileDetails, ErrorResponse>
+    fun getFileDetails(file: Path): Result<out FileDetails, ErrorResponse>
 
     fun removeFile(file: Path): Result<*, ErrorResponse>
 

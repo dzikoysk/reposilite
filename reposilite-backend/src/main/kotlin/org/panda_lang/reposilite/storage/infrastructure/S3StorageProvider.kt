@@ -25,7 +25,7 @@ import org.panda_lang.reposilite.failure.api.errorResponse
 import org.panda_lang.reposilite.maven.api.DirectoryInfo
 import org.panda_lang.reposilite.maven.api.DocumentInfo
 import org.panda_lang.reposilite.maven.api.FileDetails
-import org.panda_lang.reposilite.maven.api.FileType.DIRECTORY
+import org.panda_lang.reposilite.shared.FileType.DIRECTORY
 import org.panda_lang.reposilite.shared.FilesUtils.getMimeType
 import org.panda_lang.reposilite.storage.StorageProvider
 import org.panda_lang.reposilite.web.api.MimeTypes.OCTET_STREAM
@@ -60,7 +60,7 @@ internal class S3StorageProvider(
         .credentialsProvider(AnonymousCredentialsProvider.create())
         .build()
 
-    override fun putFile(file: Path, bytes: ByteArray): Result<FileDetails, ErrorResponse> =
+    override fun putFile(file: Path, bytes: ByteArray): Result<DocumentInfo, ErrorResponse> =
         try {
             val builder = PutObjectRequest.builder()
             builder.bucket(bucket)
@@ -81,7 +81,7 @@ internal class S3StorageProvider(
             errorResponse(HttpCode.INTERNAL_SERVER_ERROR, "Failed to write $file")
         }
 
-    override fun putFile(file: Path, inputStream: InputStream): Result<FileDetails, ErrorResponse> =
+    override fun putFile(file: Path, inputStream: InputStream): Result<DocumentInfo, ErrorResponse> =
         try {
             val builder = PutObjectRequest.builder()
             builder.bucket(bucket)

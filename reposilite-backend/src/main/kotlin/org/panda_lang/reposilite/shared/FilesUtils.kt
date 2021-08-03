@@ -15,7 +15,7 @@
  */
 package org.panda_lang.reposilite.shared
 
-import com.google.common.hash.Hashing
+import org.apache.commons.codec.digest.DigestUtils
 import org.panda_lang.reposilite.Reposilite
 import org.panda_lang.reposilite.maven.api.Repository
 import org.panda_lang.reposilite.web.api.MimeTypes
@@ -96,17 +96,15 @@ object FilesUtils {
         MimeTypes.getMimeType(getExtension(path), defaultType)
 
     fun writeFileChecksums(repository: Repository, path: Path, bytes: ByteArray) {
-        val relativePath = repository.relativize(path)
+        val md5 = path.resolveSibling(path.getSimpleName() + ".md5")
+        repository.putFile(md5, DigestUtils.md5(bytes))
 
-        val md5 = relativePath.resolveSibling(relativePath.fileName.toString() + ".md5")
-        repository.putFile(md5, Hashing.md5().hashBytes(bytes).asBytes())
-
-        val sha1 = relativePath.resolveSibling(relativePath.fileName.toString() + ".sha1")
-        val sha256 = relativePath.resolveSibling(relativePath.fileName.toString() + ".sha256")
-        val sha512 = relativePath.resolveSibling(relativePath.fileName.toString() + ".sha512")
-        repository.putFile(sha1, Hashing.sha1().hashBytes(bytes).asBytes())
-        repository.putFile(sha256, Hashing.sha256().hashBytes(bytes).asBytes())
-        repository.putFile(sha512, Hashing.sha512().hashBytes(bytes).asBytes())
+        val sha1 = path.resolveSibling(path.getSimpleName() + ".sha1")
+        val sha256 = path.resolveSibling(path.getSimpleName() + ".sha256")
+        val sha512 = path.resolveSibling(path.getSimpleName() + ".sha512")
+        repository.putFile(sha1, DigestUtils.sha1(bytes))
+        repository.putFile(sha256, DigestUtils.sha256(bytes))
+        repository.putFile(sha512, DigestUtils.sha512(bytes))
     }
 
     fun close(closeable: Closeable?) {
@@ -120,7 +118,7 @@ object FilesUtils {
     }
 
     fun toNames(files: List<Path>): List<String> = files
-        .map { it.fileName.toString() }
+        .map { it.getSimpleName() }
         .toList()
 
     fun getExtension(name: String): String {
@@ -131,5 +129,8 @@ object FilesUtils {
     fun getResource(name: String): String =
         IOUtils.convertStreamToString(Reposilite::class.java.getResourceAsStream(name))
             .orElseThrow { RuntimeException("Cannot load resource $name", it) }
+
+    fun Path.getSimpleName(): String =
+        this.fileName.toString()
 
 }

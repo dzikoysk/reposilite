@@ -18,15 +18,15 @@ package org.panda_lang.reposilite.maven
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.maven.api.Repository
 import org.panda_lang.reposilite.shared.FilesUtils.getExtension
-import panda.utilities.StringUtils
+import org.panda_lang.reposilite.web.toPath
 import panda.std.Result
+import panda.utilities.StringUtils
 import panda.utilities.text.Joiner
 import java.io.IOException
 import java.nio.file.Path
 import java.time.Instant
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
-import java.util.Arrays
 import java.util.Locale
 import java.util.TreeSet
 
@@ -43,7 +43,7 @@ internal object MetadataUtils {
         val result = repository.getFiles(directory)
 
         if (result.isOk) {
-            val paths: MutableCollection<Path> = TreeSet(repository)
+            val paths: MutableCollection<Path> = TreeSet() // Path comparator may be needed
 
             for (path in result.get()) {
                 paths.add(directory.resolve(path.getName(0)))
@@ -56,50 +56,45 @@ internal object MetadataUtils {
     }
 
     @JvmStatic
-    fun toSortedVersions(repository: Repository, directory: Path): Result<List<Path>, ErrorResponse> {
-        return repository.getFiles(directory)
+    fun toSortedVersions(repository: Repository, directory: Path): Result<List<Path>, ErrorResponse> =
+        repository.getFiles(directory)
             .map { list ->
                 list
                 .filter { path: Path -> path.parent.endsWith(directory) }
                 .filter { file: Path -> repository.isDirectory(file) }
-                .sortedWith(repository)
+                .sorted()
                 .toList()
-        }
-    }
+            }
 
-    internal fun toSortedIdentifiers(repository: Repository, artifact: String, version: String, builds: Array<Path>): List<String> {
-        return builds
-            .sortedWith(repository)
+    internal fun toSortedIdentifiers(artifact: String, version: String, builds: Array<Path>): List<String> =
+        builds
+            .sorted()
             .map { build -> toIdentifier(artifact, version, build) }
             .filterNot { text -> StringUtils.isEmpty(text) }
             .distinct()
             .toList()
-    }
 
-    internal fun isNotChecksum(path: Path, identifier: String): Boolean {
-        val name = path.fileName.toString()
-        return (!name.endsWith(".md5")
-                && !name.endsWith(".sha1")
-                && (name.contains("$identifier.") || name.contains("$identifier-")))
-    }
+    internal fun isNotChecksum(path: Path, identifier: String): Boolean =
+        path.fileName.toString()
+            .takeUnless { it.endsWith(".md5") }
+            ?.takeUnless { it.endsWith(".sha1") }
+            ?.takeIf { it.contains("$identifier.") || it.contains("$identifier-") } != null
 
-    internal fun toBuildFiles(repository: Repository, directory: Path, identifier: String): List<Path> {
-        return repository.getFiles(directory).get().asSequence()
+    internal fun toBuildFiles(repository: Repository, directory: Path, identifier: String): List<Path> =
+        repository.getFiles(directory).get().asSequence()
             .filter { path -> path.parent == directory }
             .filter { path -> isNotChecksum(path, identifier) }
             .filter { file -> repository.exists(file) }
-            .sortedWith(repository)
+            .sorted()
             .toList()
-    }
 
     @JvmStatic
-    fun toIdentifier(artifact: String, version: String, build: Path): String {
-        var identifier = build.fileName.toString()
-        identifier = StringUtils.replace(identifier, "." + getExtension(identifier), StringUtils.EMPTY)
-        identifier = StringUtils.replace(identifier, "$artifact-", StringUtils.EMPTY)
-        identifier = StringUtils.replace(identifier, "$version-", StringUtils.EMPTY)
-        return declassifyIdentifier(identifier)
-    }
+    fun toIdentifier(artifact: String, version: String, build: Path): String =
+        build.fileName.toString()
+            .let { it.replace("." + getExtension(it), StringUtils.EMPTY) }
+            .replace("$artifact-", StringUtils.EMPTY)
+            .replace("$version-", StringUtils.EMPTY)
+            .let { declassifyIdentifier(it) }
 
     private fun declassifyIdentifier(identifier: String): String {
         val occurrences = StringUtils.countOccurrences(identifier, "-")
@@ -133,19 +128,16 @@ internal object MetadataUtils {
         }
     }
 
-    fun toGroup(elements: Array<String>): String {
-        return Joiner.on(".")
-            .join(Arrays.copyOfRange(elements, 0, elements.size)) { value: String -> if (value.contains(".")) value.replace(".", ESCAPE_DOT) else value }
+    fun toGroup(elements: Array<String>): String =
+        Joiner.on(".")
+            .join(elements.copyOfRange(0, elements.size)) { value: String -> if (value.contains(".")) value.replace(".", ESCAPE_DOT) else value }
             .toString()
-    }
 
-    internal fun toGroup(elements: Array<String>, toShrink: Int): String {
-        return toGroup(shrinkGroup(elements, toShrink)).replace(ESCAPE_DOT, ".")
-    }
+    internal fun toGroup(elements: Array<String>, toShrink: Int): String =
+        toGroup(shrinkGroup(elements, toShrink)).replace(ESCAPE_DOT, ".")
 
-    private fun shrinkGroup(elements: Array<String>, toShrink: Int): Array<String> {
-        return Arrays.copyOfRange(elements, 0, elements.size - toShrink)
-    }
+    private fun shrinkGroup(elements: Array<String>, toShrink: Int): Array<String> =
+        elements.copyOfRange(0, elements.size - toShrink)
 
     fun toGroup(metadataFilePath: Path): String {
         val builder = StringBuilder()
@@ -163,15 +155,10 @@ internal object MetadataUtils {
         return builder.toString()
     }
 
-    private fun isBuildNumber(content: String): Boolean {
-        for (character in content.toCharArray()) {
-            if (!Character.isDigit(character)) {
-                return false
-            }
-        }
-
-        return true
-    }
+    private fun isBuildNumber(content: String): Boolean =
+        content
+            .any { !Character.isDigit(it) }
+            .not()
 
     /**
      * Process uri applying following changes:
@@ -201,5 +188,8 @@ internal object MetadataUtils {
 
         return normalizedUri
     }
+
+    fun String.toNormalizedPath(): Path? =
+        normalizeUri(this)?.toPath()
 
 }

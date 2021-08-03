@@ -14,7 +14,6 @@ import java.nio.file.Path
  */
 internal class FixedQuota(rootDirectory: Path, private val maxSize: Long) : FileSystemStorageProvider(rootDirectory) {
 
-
     init {
         if (maxSize <= 0) {
             throw IllegalArgumentException("Max size parameter has to be a value greater than 0")
@@ -25,6 +24,7 @@ internal class FixedQuota(rootDirectory: Path, private val maxSize: Long) : File
         usage()
             .map { it + contentLength }
             .filter({ it < maxSize }, { ErrorResponse(INSUFFICIENT_STORAGE, "Repository cannot hold the given file") })
+
 }
 
 /**

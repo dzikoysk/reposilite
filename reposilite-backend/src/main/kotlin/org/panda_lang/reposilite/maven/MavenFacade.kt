@@ -26,12 +26,16 @@ import net.dzikoysk.dynamiclogger.Journalist
 import net.dzikoysk.dynamiclogger.Logger
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.failure.api.errorResponse
+import org.panda_lang.reposilite.maven.MetadataUtils.toNormalizedPath
 import org.panda_lang.reposilite.maven.api.DeployRequest
+import org.panda_lang.reposilite.maven.api.DocumentInfo
 import org.panda_lang.reposilite.maven.api.FileDetails
 import org.panda_lang.reposilite.maven.api.LookupRequest
 import org.panda_lang.reposilite.maven.api.Repository
 import org.panda_lang.reposilite.web.toPath
 import panda.std.Result
+import java.nio.file.Path
+import java.nio.file.Paths
 
 class MavenFacade internal constructor(
     private val journalist: Journalist,
@@ -40,7 +44,11 @@ class MavenFacade internal constructor(
     private val repositoryService: RepositoryService
 ) : Journalist {
 
-    fun findFile(lookupRequest: LookupRequest): Result<FileDetails, ErrorResponse> {
+    companion object {
+        val REPOSITORIES: Path = Paths.get("repositories")
+    }
+
+    fun findFile(lookupRequest: LookupRequest): Result<out FileDetails, ErrorResponse> {
         val repository = repositoryService.getRepository(lookupRequest.repository) ?: return errorResponse(NOT_FOUND, "Repository not found")
         val gav = lookupRequest.gav.toPath()
 
@@ -54,7 +62,7 @@ class MavenFacade internal constructor(
         return repository.getFileDetails(gav)
     }
 
-    fun deployFile(deployRequest: DeployRequest): Result<FileDetails, ErrorResponse> {
+    fun deployFile(deployRequest: DeployRequest): Result<DocumentInfo, ErrorResponse> {
         val repository = repositoryService.getRepository(deployRequest.repository) ?: return errorResponse(NOT_FOUND, "Repository not found")
 
         if (!repository.isDeployEnabled) {
@@ -65,14 +73,12 @@ class MavenFacade internal constructor(
             return errorResponse(INSUFFICIENT_STORAGE, "Not enough storage space available")
         }
 
-        val path = repository.relativize(deployRequest.gav) ?: return errorResponse(BAD_REQUEST, "Invalid GAV")
-        val metadataFile = path.resolveSibling(METADATA_FILE)
-        metadataService.clearMetadata(metadataFile)
+        val path = deployRequest.gav.toNormalizedPath() ?: return errorResponse(BAD_REQUEST, "Invalid GAV")
 
         return try {
-            val result: Result<FileDetails, ErrorResponse> =
+            val result: Result<DocumentInfo, ErrorResponse> =
                 if (path.fileName.toString().contains(METADATA_FILE_NAME)) {
-                    metadataService.getMetadata(repository, metadataFile).map { it.first }
+                    metadataService.getMetadata(repository, path).map { it.first }
                 }
                 else {
                     repository.putFile(path, deployRequest.content)
@@ -87,7 +93,9 @@ class MavenFacade internal constructor(
 
     fun deleteFile(repositoryName: String, gav: String): Result<*, ErrorResponse> {
         val repository = repositoryService.getRepository(repositoryName) ?: return errorResponse<Any>(NOT_FOUND, "Repository $repositoryName not found")
-        return repository.removeFile(gav)
+        val path = gav.toNormalizedPath() ?: return errorResponse<Any>(NOT_FOUND, "Invalid GAV")
+
+        return repository.removeFile(path)
     }
 
     fun getRepositories(): Collection<Repository> =
