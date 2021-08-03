@@ -89,3 +89,4 @@ fun <ANY> ANY.alsoIf(condition: Boolean, block: (ANY) -> Unit): ANY {
 
 fun <VALUE, ERROR> VALUE.asResult(): Result<VALUE, ERROR> =
     Result.ok(this)
+

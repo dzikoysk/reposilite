@@ -25,7 +25,6 @@ import org.panda_lang.reposilite.failure.FailureFacade
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.failure.api.errorResponse
 import org.panda_lang.reposilite.maven.api.DocumentInfo
-import org.panda_lang.reposilite.maven.api.FileDetails
 import org.panda_lang.reposilite.maven.api.Repository
 import org.panda_lang.reposilite.maven.api.RepositoryVisibility.PRIVATE
 import org.panda_lang.reposilite.storage.StorageProvider
@@ -53,7 +52,7 @@ internal class ProxyService(
 
     private val httpRequestFactory: HttpRequestFactory = NetHttpTransport().createRequestFactory()
 
-    fun findProxied(context: ReposiliteContext): Result<FileDetails, ErrorResponse> {
+    fun findProxied(context: ReposiliteContext): Result<DocumentInfo, ErrorResponse> {
         var uri = context.uri
         var repository: Repository? = null
 
@@ -132,7 +131,7 @@ internal class ProxyService(
         else errorResponse(HttpCode.NOT_FOUND, "Artifact $uri not found")
     }
 
-    private fun store(uri: String, remoteResponse: HttpResponse, context: ReposiliteContext): Result<FileDetails, ErrorResponse> {
+    private fun store(uri: String, remoteResponse: HttpResponse, context: ReposiliteContext): Result<DocumentInfo, ErrorResponse> {
         if (storageProvider.isFull()) {
             val error = "Not enough storage space available for $uri"
             context.logger.warn(error)

@@ -19,13 +19,20 @@ package org.panda_lang.reposilite.storage.infrastructure
 import io.javalin.http.HttpCode
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.failure.api.errorResponse
-import org.panda_lang.reposilite.maven.api.DirectoryInfo
 import org.panda_lang.reposilite.maven.api.DocumentInfo
 import org.panda_lang.reposilite.maven.api.FileDetails
-import org.panda_lang.reposilite.shared.FilesUtils.getMimeType
+import org.panda_lang.reposilite.maven.api.toDocumentInfo
+import org.panda_lang.reposilite.maven.api.toFileDetails
+import org.panda_lang.reposilite.shared.FileType.DIRECTORY
+import org.panda_lang.reposilite.shared.catchIOException
+import org.panda_lang.reposilite.shared.delete
+import org.panda_lang.reposilite.shared.exists
+import org.panda_lang.reposilite.shared.getLastModifiedTime
+import org.panda_lang.reposilite.shared.inputStream
+import org.panda_lang.reposilite.shared.listFiles
+import org.panda_lang.reposilite.shared.size
+import org.panda_lang.reposilite.shared.type
 import org.panda_lang.reposilite.storage.StorageProvider
-import org.panda_lang.reposilite.web.api.MimeTypes
-import org.panda_lang.reposilite.web.asResult
 import panda.std.Result
 import panda.std.function.ThrowingBiFunction
 import panda.std.function.ThrowingFunction
@@ -39,8 +46,6 @@ import java.nio.file.Path
 import java.nio.file.StandardOpenOption.CREATE
 import java.nio.file.StandardOpenOption.WRITE
 import java.nio.file.attribute.FileTime
-import java.util.stream.Collectors
-import kotlin.streams.toList
 
 /**
  * @param rootDirectory root directory of storage space
@@ -49,28 +54,10 @@ internal abstract class FileSystemStorageProvider protected constructor(
     private val rootDirectory: Path
  ) : StorageProvider {
 
-    private fun <VALUE> withFile(consumer: () -> Result<VALUE, ErrorResponse>): Result<VALUE, ErrorResponse> =
-        try {
-            consumer()
-        } catch (ioException: IOException) {
-            errorResponse(HttpCode.INTERNAL_SERVER_ERROR, ioException.localizedMessage)
-        }
+    override fun putFile(file: Path, bytes: ByteArray): Result<DocumentInfo, ErrorResponse> =
+        putFile(file, bytes, { it.size }, { input, output -> output.write(ByteBuffer.wrap(input)) })
 
-    private fun <VALUE> withExistingFile(file: Path, consumer: () -> Result<VALUE, ErrorResponse>): Result<VALUE, ErrorResponse> =
-        withFile {
-            if (Files.exists(file)) {
-                consumer()
-            } else {
-                errorResponse(HttpCode.NOT_FOUND, "File not found: $file")
-            }
-        }
-
-    override fun putFile(file: Path, bytes: ByteArray): Result<FileDetails, ErrorResponse> =
-        putFile(file, bytes, { it.size }) { input, output ->
-            output.write(ByteBuffer.wrap(input))
-        }
-
-    override fun putFile(file: Path, inputStream: InputStream): Result<FileDetails, ErrorResponse> =
+    override fun putFile(file: Path, inputStream: InputStream): Result<DocumentInfo, ErrorResponse> =
         putFile(file, inputStream, { it.available() }) { input, output ->
             val buffer = ByteArrayOutputStream()
             var nRead: Int
@@ -91,114 +78,70 @@ internal abstract class FileSystemStorageProvider protected constructor(
         input: T,
         measure: ThrowingFunction<T, Int, IOException>,
         writer: ThrowingBiFunction<T, FileChannel, Int, IOException>
-    ): Result<FileDetails, ErrorResponse> =
-        withFile {
-            val size = measure.apply(input).toLong()
+    ): Result<DocumentInfo, ErrorResponse> =
+        catchIOException {
+            resolved(file)
+                .let { file ->
+                    val size = measure.apply(input).toLong()
 
-            if (canHold(size).isErr) {
-                return@withFile errorResponse(HttpCode.INSUFFICIENT_STORAGE, "Not enough storage space available")
-            }
+                    if (canHold(size).isErr) {
+                        return@catchIOException errorResponse(HttpCode.INSUFFICIENT_STORAGE, "Not enough storage space available")
+                    }
 
-            if (file.parent != null && !Files.exists(file.parent)) {
-                Files.createDirectories(file.parent)
-            }
+                    if (file.parent != null && !Files.exists(file.parent)) {
+                        Files.createDirectories(file.parent)
+                    }
 
-            if (!Files.exists(file)) {
-                Files.createFile(file)
-            }
+                    if (!Files.exists(file)) {
+                        Files.createFile(file)
+                    }
 
-            val fileChannel = FileChannel.open(file, WRITE, CREATE)
-            // TOFIX: FS locks are not truly respected, there might be a need to enhanced it with .lock file to be sure if it's respected.
-            // In theory people should not really share the same FS through instances.
-            // ~ https://github.com/dzikoysk/reposilite/issues/264
-            fileChannel.lock()
+                    val fileChannel = FileChannel.open(file, WRITE, CREATE)
+                    // TOFIX: FS locks are not truly respected, there might be a need to enhanced it with .lock file to be sure if it's respected.
+                    // In theory people should not really share the same FS through instances.
+                    // ~ https://github.com/dzikoysk/reposilite/issues/264
+                    fileChannel.lock()
 
-            val bytesWritten = writer.apply(input, fileChannel).toLong()
-            fileChannel.close()
+                    val bytesWritten = writer.apply(input, fileChannel).toLong()
+                    fileChannel.close()
 
-            DocumentInfo(file.fileName.toString(), getMimeType(file.toString(), MimeTypes.OCTET_STREAM), bytesWritten) {
-                Files.newInputStream(file)
-            }.asResult()
+                    toDocumentInfo(file)
+                }
         }
 
     override fun getFile(file: Path): Result<InputStream, ErrorResponse> =
-        withExistingFile(file) {
-            if (Files.isDirectory(file)) {
-                errorResponse(HttpCode.NO_CONTENT, "Requested file is a directory")
-            }
-            else {
-                Files.newInputStream(file).asResult()
-            }
-        }
+        resolved(file).inputStream()
 
-    override fun getFileDetails(file: Path): Result<FileDetails, ErrorResponse> =
-        withExistingFile(file) {
-            if (Files.isDirectory(file))
-                DirectoryInfo(
-                    file.fileName.toString(),
-                    Files.list(file)
-                        .map { getFileDetails(it) }
-                        .filter { it.isOk }
-                        .map { it.get() }
-                        .toList()
-                ).asResult()
-            else
-                DocumentInfo(
-                    file.fileName.toString(),
-                    getMimeType(file.fileName.toString(), MimeTypes.OCTET_STREAM),
-                    Files.size(file),
-                    { Files.newInputStream(file) }
-                ).asResult()
-        }
+    override fun getFileDetails(file: Path): Result<out FileDetails, ErrorResponse> =
+        toFileDetails(resolved(file))
 
     override fun removeFile(file: Path): Result<*, ErrorResponse> =
-        withExistingFile(file) {
-            Files.delete(file).asResult()
-        }
+        resolved(file).delete()
 
     override fun getFiles(directory: Path): Result<List<Path>, ErrorResponse> =
-        withExistingFile(directory) {
-            Files.walk(directory, 1)
-                .filter { it != directory }
-                .collect(Collectors.toList())
-                .asResult()
-        }
+        resolved(directory).listFiles()
 
     override fun getLastModifiedTime(file: Path): Result<FileTime, ErrorResponse> =
-        withExistingFile(file) {
-            Files.getLastModifiedTime(file).asResult()
-        }
+        resolved(file).getLastModifiedTime()
 
     override fun getFileSize(file: Path): Result<Long, ErrorResponse> =
-        withExistingFile(file) {
-            if (Files.isDirectory(file)) {
-                Files.walk(file)
-                    .mapToLong { Files.size(it) }
-                    .sum()
-                    .asResult()
-            } else {
-                Files.size(file).asResult()
-            }
-        }
+        resolved(file).size()
 
     override fun exists(file: Path): Boolean =
-        Files.exists(file)
+        resolved(file).exists().isOk
 
     override fun isDirectory(file: Path): Boolean =
-        Files.isDirectory(file)
+        resolved(file).type() == DIRECTORY
 
     override fun usage(): Result<Long, ErrorResponse> =
-        withFile {
-            Files.walk(rootDirectory)
-                .filter { !Files.isDirectory(it) }
-                .mapToLong { Files.size(it) }
-                .sum()
-                .asResult()
-        }
+        rootDirectory.size()
 
     override fun isFull(): Boolean =
         canHold(0).isErr
 
     override fun shutdown() {}
+
+    private fun resolved(file: Path): Path =
+        rootDirectory.resolve(file)
 
 }

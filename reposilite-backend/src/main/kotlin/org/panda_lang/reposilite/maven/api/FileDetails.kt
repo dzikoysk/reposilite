@@ -16,15 +16,23 @@
 package org.panda_lang.reposilite.maven.api
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import org.panda_lang.reposilite.maven.api.FileType.DIRECTORY
-import org.panda_lang.reposilite.maven.api.FileType.FILE
+import org.panda_lang.reposilite.failure.api.ErrorResponse
+import org.panda_lang.reposilite.shared.FileType
+import org.panda_lang.reposilite.shared.FileType.DIRECTORY
+import org.panda_lang.reposilite.shared.FileType.FILE
 import org.panda_lang.reposilite.shared.FilesUtils
+import org.panda_lang.reposilite.shared.FilesUtils.getSimpleName
+import org.panda_lang.reposilite.shared.catchIOException
+import org.panda_lang.reposilite.shared.exists
+import org.panda_lang.reposilite.shared.type
+import org.panda_lang.reposilite.web.api.MimeTypes.OCTET_STREAM
+import org.panda_lang.reposilite.web.asResult
+import panda.std.Result
+import java.io.IOException
 import java.io.InputStream
-
-enum class FileType {
-    FILE,
-    DIRECTORY
-}
+import java.nio.file.Files
+import java.nio.file.Path
+import kotlin.streams.toList
 
 sealed class FileDetails(
     val type: FileType,
@@ -48,7 +56,50 @@ class DocumentInfo(
     val content: () -> InputStream
 ) : FileDetails(FILE, name)
 
+sealed class AbstractSimpleDirectoryInfo(
+    name: String,
+) : FileDetails(DIRECTORY, name)
+
+class SimpleDirectoryInfo(
+    name: String,
+) : AbstractSimpleDirectoryInfo(name)
+
 class DirectoryInfo(
     name: String,
     val files: List<FileDetails>
-) : FileDetails(DIRECTORY, name)
+) : AbstractSimpleDirectoryInfo(name)
+
+fun toFileDetails(file: Path): Result<out FileDetails, ErrorResponse> =
+    file.exists()
+        .flatMap {
+            when (it.type()) {
+                FILE -> toDocumentInfo(it)
+                DIRECTORY -> toDirectoryInfo(it)
+            }
+        }
+
+fun toDocumentInfo(file: Path): Result<DocumentInfo, ErrorResponse> =
+    catchIOException {
+        DocumentInfo(
+            file.getSimpleName(),
+            FilesUtils.getMimeType(file.getSimpleName(), OCTET_STREAM),
+            Files.size(file),
+            { Files.newInputStream(file) }
+        ).asResult()
+    }
+
+private fun toDirectoryInfo(directory: Path): Result<DirectoryInfo, ErrorResponse> =
+    catchIOException {
+        DirectoryInfo(
+            directory.getSimpleName(),
+            Files.list(directory)
+                .map { toSimpleFileDetails(it).orElseThrow { error -> IOException(error.message) } }
+                .toList()
+        ).asResult()
+    }
+
+private fun toSimpleFileDetails(file: Path): Result<out FileDetails, ErrorResponse> =
+    when (file.type()) {
+        FILE -> toDocumentInfo(file)
+        DIRECTORY -> SimpleDirectoryInfo(file.getSimpleName()).asResult()
+    }

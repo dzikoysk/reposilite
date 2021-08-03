@@ -7,8 +7,8 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.panda_lang.reposilite.config.Configuration.RepositoryConfiguration
 import org.panda_lang.reposilite.maven.api.DeployRequest
-import org.panda_lang.reposilite.maven.api.FileType.FILE
 import org.panda_lang.reposilite.maven.api.RepositoryVisibility
+import org.panda_lang.reposilite.shared.FileType.FILE
 
 internal class MavenFacadeTest : MavenSpec() {
 

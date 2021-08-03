@@ -17,7 +17,6 @@
 package org.panda_lang.reposilite.storage
 
 import net.dzikoysk.dynamiclogger.Journalist
-import org.panda_lang.reposilite.maven.api.Repository
 import org.panda_lang.reposilite.storage.infrastructure.FileSystemStorageProviderFactory
 import org.panda_lang.reposilite.storage.infrastructure.S3StorageProvider
 import org.panda_lang.reposilite.storage.infrastructure.S3StorageProviderSettings
@@ -27,26 +26,21 @@ import java.nio.file.Path
 
 internal object StorageProviderFactory {
 
-    fun createStorageProvider(journalist: Journalist, workingDirectory: Path, repositoryName: String, storageDescription: String, quota: String): StorageProvider {
+    fun createStorageProvider(journalist: Journalist, workingDirectory: Path, storageDescription: String, quota: String): StorageProvider =
         if (storageDescription.startsWith("fs")) {
-            val repositoryDirectory = workingDirectory.resolve(Repository.REPOSITORIES_PATH).resolve(repositoryName)
-            Files.createDirectories(repositoryDirectory)
-
-            return FileSystemStorageProviderFactory.of(journalist, repositoryDirectory, quota)
+            Files.createDirectories(workingDirectory)
+            FileSystemStorageProviderFactory.of(journalist, workingDirectory, quota)
         }
-
-        if (storageDescription.startsWith("s3")) {
+        else if (storageDescription.startsWith("s3")) {
             // Implement quota
             val settings = loadConfiguration(S3StorageProviderSettings(), storageDescription)
-            return S3StorageProvider(journalist, settings.bucketName, settings.region)
+            S3StorageProvider(journalist, settings.bucketName, settings.region)
         }
-
-        if (storageDescription.equals("rest", ignoreCase = true)) {
-            // TOFIX REST API storage endpoint
-        }
-
-        throw UnsupportedOperationException("Unknown storage provider: $storageDescription")
-    }
+        // else if (storageDescription.equals("rest", ignoreCase = true)) {
+        // TOFIX REST API storage endpoint
+        //    null
+        //}
+        else throw UnsupportedOperationException("Unknown storage provider: $storageDescription")
 
     private fun <CONFIGURATION : Runnable> loadConfiguration(configuration: CONFIGURATION, description: String): CONFIGURATION =
         CommandLine.populateCommand(configuration, *description.split(" ").toTypedArray())

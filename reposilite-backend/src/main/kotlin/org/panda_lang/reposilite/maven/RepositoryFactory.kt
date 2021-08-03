@@ -18,8 +18,9 @@ package org.panda_lang.reposilite.maven
 
 import net.dzikoysk.dynamiclogger.Journalist
 import org.panda_lang.reposilite.config.Configuration.RepositoryConfiguration
+import org.panda_lang.reposilite.maven.MavenFacade.Companion.REPOSITORIES
 import org.panda_lang.reposilite.maven.api.Repository
-import org.panda_lang.reposilite.storage.StorageProviderFactory
+import org.panda_lang.reposilite.storage.StorageProviderFactory.createStorageProvider
 import java.nio.file.Path
 
 internal object RepositoryFactory {
@@ -28,7 +29,12 @@ internal object RepositoryFactory {
         Repository(
             repositoryName,
             repositoryConfiguration.visibility,
-            StorageProviderFactory.createStorageProvider(journalist, workingDirectory, repositoryName, repositoryConfiguration.storageProvider, repositoryConfiguration.diskQuota),
+            createStorageProvider(
+                journalist,
+                workingDirectory.resolve(REPOSITORIES).resolve(repositoryName),
+                repositoryConfiguration.storageProvider,
+                repositoryConfiguration.diskQuota
+            ),
             repositoryConfiguration.deployEnabled
         )
 
