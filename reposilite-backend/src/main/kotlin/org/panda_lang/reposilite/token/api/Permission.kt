@@ -38,6 +38,6 @@ enum class Permission(val type: PermissionType, val identifier: String) {
     }
 
     override fun toString(): String =
-        "${type.name.toLowerCase()}:$name"
+        "${type.name.lowercase()}:$name"
 
 }

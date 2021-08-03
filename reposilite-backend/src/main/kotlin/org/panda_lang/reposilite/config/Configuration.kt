@@ -17,6 +17,7 @@ package org.panda_lang.reposilite.config
 
 import net.dzikoysk.cdn.entity.Contextual
 import net.dzikoysk.cdn.entity.Description
+import org.panda_lang.reposilite.maven.api.RepositoryVisibility
 import org.panda_lang.reposilite.maven.api.RepositoryVisibility.PRIVATE
 import java.io.Serializable
 
@@ -107,7 +108,7 @@ class Configuration : Serializable {
     var repositories: Map<String, RepositoryConfiguration> = mutableMapOf(
         "releases" to RepositoryConfiguration(),
         "snapshots" to RepositoryConfiguration(),
-        "private" to RepositoryConfiguration().also { it.visibility = PRIVATE.name.toLowerCase() }
+        "private" to RepositoryConfiguration().also { it.visibility = PRIVATE }
     )
 
     @Contextual
@@ -115,7 +116,7 @@ class Configuration : Serializable {
 
         @Description("# Supported visibilities: public, hidden, private")
         @JvmField
-        var visibility = "public"
+        var visibility = RepositoryVisibility.PUBLIC
 
         @Description(
             "# Used storage type. Supported storage providers:",

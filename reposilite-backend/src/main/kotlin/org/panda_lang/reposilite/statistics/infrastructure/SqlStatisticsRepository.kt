@@ -73,7 +73,7 @@ internal class SqlStatisticsRepository : StatisticsRepository {
 
     private fun toRecord(row: ResultRow) =
         Record(
-            RecordType.valueOf(row[StatisticsTable.type].toUpperCase()),
+            RecordType.valueOf(row[StatisticsTable.type].uppercase()),
             row[StatisticsTable.identifier],
             row[StatisticsTable.count]
         )

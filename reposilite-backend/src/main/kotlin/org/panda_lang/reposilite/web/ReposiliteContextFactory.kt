@@ -41,7 +41,7 @@ class ReposiliteContextFactory internal constructor(
 
         val session = authenticationFacade.authenticateByHeader(context.headerMap())
             .map {
-                authenticationFacade.createSession(normalizedUri, SessionMethod.valueOf(context.method().toUpperCase()), host, it)
+                authenticationFacade.createSession(normalizedUri, SessionMethod.valueOf(context.method().uppercase()), host, it)
             }
 
         return ok(ReposiliteContext(

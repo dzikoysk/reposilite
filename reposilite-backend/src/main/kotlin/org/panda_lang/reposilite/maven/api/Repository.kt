@@ -40,7 +40,7 @@ class Repository internal constructor(
 ) : Comparator<Path> {
 
     companion object {
-        private val REPOSITORIES_PATH = Paths.get("repositories")
+        val REPOSITORIES_PATH = Paths.get("repositories")
     }
 
     private fun <R> relativize(file: String, consumer: (Path) -> Result<R, ErrorResponse>): Result<R, ErrorResponse> =

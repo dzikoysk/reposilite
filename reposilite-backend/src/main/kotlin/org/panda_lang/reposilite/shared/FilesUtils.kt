@@ -56,7 +56,7 @@ object FilesUtils {
 
         val value = match.group(1).toLong()
 
-        return when (match.group(2).toUpperCase()) {
+        return when (match.group(2).uppercase()) {
             "GB" -> value * GB_FACTOR
             "MB" -> value * MB_FACTOR
             "KB" -> value * KB_FACTOR
@@ -95,7 +95,7 @@ object FilesUtils {
     fun getMimeType(path: String, defaultType: String): String =
         MimeTypes.getMimeType(getExtension(path), defaultType)
 
-    fun writeFileChecksums(repository: Repository, path: Path, bytes: ByteArray?) {
+    fun writeFileChecksums(repository: Repository, path: Path, bytes: ByteArray) {
         val relativePath = repository.relativize(path)
 
         val md5 = relativePath.resolveSibling(relativePath.fileName.toString() + ".md5")

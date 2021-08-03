@@ -39,7 +39,7 @@ enforceSsl: false
 repositories {
   releases {
     # Supported visibilities: public, hidden, private
-    visibility: public
+    visibility: PUBLIC
     # Used storage type. Supported storage providers:
     # - fs
     # - s3 bucket-name region
@@ -54,7 +54,7 @@ repositories {
   }
   snapshots {
     # Supported visibilities: public, hidden, private
-    visibility: public
+    visibility: PUBLIC
     # Used storage type. Supported storage providers:
     # - fs
     # - s3 bucket-name region
@@ -69,7 +69,7 @@ repositories {
   }
   private {
     # Supported visibilities: public, hidden, private
-    visibility: private
+    visibility: PRIVATE
     # Used storage type. Supported storage providers:
     # - fs
     # - s3 bucket-name region
