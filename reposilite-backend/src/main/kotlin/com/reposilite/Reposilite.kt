@@ -15,10 +15,6 @@
  */
 package com.reposilite
 
-import net.dzikoysk.dynamiclogger.Channel
-import net.dzikoysk.dynamiclogger.Journalist
-import net.dzikoysk.dynamiclogger.Logger
-import net.dzikoysk.dynamiclogger.backend.AggregatedLogger
 import com.reposilite.auth.AuthenticationFacade
 import com.reposilite.config.Configuration
 import com.reposilite.console.ConsoleFacade
@@ -31,8 +27,13 @@ import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.web.ReposiliteContextFactory
 import com.reposilite.web.WebServer
+import net.dzikoysk.dynamiclogger.Channel
+import net.dzikoysk.dynamiclogger.Journalist
+import net.dzikoysk.dynamiclogger.Logger
+import net.dzikoysk.dynamiclogger.backend.AggregatedLogger
 import panda.utilities.console.Effect
 import java.nio.file.Path
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicBoolean
 
 const val VERSION = "3.0.0-SNAPSHOT"
@@ -101,8 +102,10 @@ class Reposilite(
             logger.info("Done (" + TimeUtils.format(getUptime() / 1000.0) + "s)!")
             consoleFacade.executeCommand("help")
 
-            logger.info("Collecting status metrics...")
-            consoleFacade.executeCommand("status")
+            CompletableFuture.runAsync {
+                logger.info("Collecting status metrics...")
+                consoleFacade.executeCommand("status")
+            }
         } catch (exception: Exception) {
             logger.error("Failed to start Reposilite")
             logger.exception(exception)

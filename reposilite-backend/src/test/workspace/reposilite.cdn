@@ -48,9 +48,9 @@ repositories {
     # Supported formats: 90%, 500MB, 10GB
     diskQuota: 10GB
     # Accept deployment connections
-    deployEnabled: true
+    deployment: true
     # Does this repository accept redeployment of the same artifact version
-    redeploy: false
+    redeployment: false
   }
   snapshots {
     # Supported visibilities: public, hidden, private
@@ -63,9 +63,9 @@ repositories {
     # Supported formats: 90%, 500MB, 10GB
     diskQuota: 10GB
     # Accept deployment connections
-    deployEnabled: true
+    deployment: true
     # Does this repository accept redeployment of the same artifact version
-    redeploy: false
+    redeployment: false
   }
   private {
     # Supported visibilities: public, hidden, private
@@ -78,9 +78,9 @@ repositories {
     # Supported formats: 90%, 500MB, 10GB
     diskQuota: 10GB
     # Accept deployment connections
-    deployEnabled: true
+    deployment: true
     # Does this repository accept redeployment of the same artifact version
-    redeploy: false
+    redeployment: false
   }
 }
 
