@@ -1,5 +1,14 @@
 package com.reposilite.maven
 
+import com.reposilite.config.Configuration.RepositoryConfiguration
+import com.reposilite.maven.api.DeployRequest
+import com.reposilite.maven.api.DocumentInfo
+import com.reposilite.maven.api.LookupRequest
+import com.reposilite.maven.api.RepositoryVisibility
+import com.reposilite.shared.FileType.FILE
+import com.reposilite.token.api.AccessToken
+import com.reposilite.token.api.Route
+import com.reposilite.token.api.RoutePermission.READ
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -7,14 +16,6 @@ import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
-import com.reposilite.config.Configuration.RepositoryConfiguration
-import com.reposilite.maven.api.DeployRequest
-import com.reposilite.maven.api.DocumentInfo
-import com.reposilite.maven.api.RepositoryVisibility
-import com.reposilite.shared.FileType.FILE
-import com.reposilite.token.api.AccessToken
-import com.reposilite.token.api.Route
-import com.reposilite.token.api.RoutePermission.READ
 import panda.utilities.IOUtils
 
 internal class MavenFacadeTest : MavenSpec() {
@@ -35,7 +36,7 @@ internal class MavenFacadeTest : MavenSpec() {
     @EnumSource(RepositoryVisibility::class)
     fun `should deploy file under the given path`(visibility: RepositoryVisibility) {
         // given: an uri and file to store
-        val fileSpec = FileSpec(visibility.name.lowercase(), "/org/panda-lang/reposilite/3.0.0/reposilite-3.0.0.jar", "content")
+        val fileSpec = FileSpec(visibility.name.lowercase(), "/com/reposilite/3.0.0/reposilite-3.0.0.jar", "content")
         val by = "dzikoysk@127.0.0.1"
 
         // when: the following file is deployed
@@ -50,13 +51,12 @@ internal class MavenFacadeTest : MavenSpec() {
 
     @ParameterizedTest
     @EnumSource(value = RepositoryVisibility::class, names = [ "PUBLIC", "HIDDEN" ])
-    fun `should find requested file without credentials in public and hidden repository`(visibility: RepositoryVisibility) {
+    fun `should find requested file without credentials in public and hidden repositories`(visibility: RepositoryVisibility) {
         // given: a repository with a file
         val fileSpec = addFileToRepository(FileSpec(visibility.name.lowercase(), "gav/file.pom", "content"))
-        val authentication = null
 
         // when: the given file is requested
-        val fileDetails = mavenFacade.findFile(fileSpec.toLookupRequest(authentication))
+        val fileDetails = mavenFacade.findFile(fileSpec.toLookupRequest(UNAUTHORIZED))
             .orElseThrow { fail { it.toString() } }
 
         // then: result is a proper file
@@ -72,7 +72,7 @@ internal class MavenFacadeTest : MavenSpec() {
         // given: a repository with file and request without credentials
         val repository = RepositoryVisibility.PRIVATE.name.lowercase()
         val fileSpec = addFileToRepository(FileSpec(repository, "gav/file.pom", "content"))
-        var authentication: AccessToken? = null
+        var authentication = UNAUTHORIZED
 
         // when: the given file is requested
         val errorResponse = mavenFacade.findFile(fileSpec.toLookupRequest(authentication))
@@ -89,6 +89,19 @@ internal class MavenFacadeTest : MavenSpec() {
 
         // then: response contains file details
         assertTrue(fileDetails.isOk)
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = RepositoryVisibility::class, names = [ "HIDDEN", "PRIVATE" ])
+    fun `should restrict directory indexing in hidden and private repositories `(visibility: RepositoryVisibility) {
+        // given: a repository with a file
+        val fileSpec = addFileToRepository(FileSpec(visibility.name.lowercase(), "gav/file.pom", "content"))
+
+        // when: the given directory is requested
+        val directoryInfo = mavenFacade.findFile(LookupRequest(fileSpec.repository, "gav", UNAUTHORIZED))
+
+        // then: response contains error
+        assertTrue(directoryInfo.isErr)
     }
 
 }

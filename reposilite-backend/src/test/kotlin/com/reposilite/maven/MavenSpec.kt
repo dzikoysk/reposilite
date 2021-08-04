@@ -1,18 +1,22 @@
 package com.reposilite.maven
 
-import net.dzikoysk.dynamiclogger.backend.InMemoryLogger
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.io.TempDir
 import com.reposilite.config.Configuration.RepositoryConfiguration
 import com.reposilite.failure.FailureFacade
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.shared.append
 import com.reposilite.token.api.AccessToken
+import net.dzikoysk.dynamiclogger.backend.InMemoryLogger
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.io.TempDir
 import java.io.File
 import java.nio.file.Files
 
 @Suppress("LeakingThis")
 internal abstract class MavenSpec {
+
+    protected companion object {
+        val UNAUTHORIZED: AccessToken? = null
+    }
 
     @TempDir
     @JvmField
