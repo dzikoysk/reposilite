@@ -15,38 +15,6 @@
  */
 package com.reposilite.frontend
 
-import com.reposilite.config.Configuration
-import com.reposilite.shared.FilesUtils.getResource
-import panda.std.Lazy
-import panda.utilities.StringUtils
-import panda.utilities.text.Formatter
-import java.util.function.Supplier
-
-class FrontendFacade internal constructor(index: Supplier<String>, app: Supplier<String>) {
-
-    private val index: Lazy<String> = Lazy(index)
-    private val app: Lazy<String> = Lazy(app)
-
-    companion object {
-
-        fun load(configuration: Configuration): FrontendFacade {
-            val formatter = Formatter()
-                .register("{{REPOSILITE.BASE_PATH}}", configuration.basePath)
-                .register("{{REPOSILITE.VUE_BASE_PATH}}", configuration.basePath.substring(0, configuration.basePath.length - 1))
-                .register("{{REPOSILITE.TITLE}}", configuration.title.replace("'", "\\'"))
-                .register("{{REPOSILITE.DESCRIPTION}}", configuration.description.replace("'", "\\'"))
-                .register("{{REPOSILITE.ACCENT_COLOR}}", configuration.accentColor)
-
-            return FrontendFacade(
-                { formatter.format(getResource("/static/index.html")) },
-                { formatter.format(getResource("/static/js/app.js")) }
-            )
-        }
-
-    }
-
-    fun forMessage(message: String): String {
-        return StringUtils.replace(index.get(), "{{REPOSILITE.MESSAGE}}", message)
-    }
+class FrontendFacade internal constructor() {
 
 }

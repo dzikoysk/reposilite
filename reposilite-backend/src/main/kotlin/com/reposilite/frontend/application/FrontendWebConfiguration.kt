@@ -16,19 +16,26 @@
 
 package com.reposilite.frontend.application
 
-import com.reposilite.config.Configuration
 import com.reposilite.frontend.FrontendFacade
-import com.reposilite.frontend.infrastructure.FrontendHandler
+import com.reposilite.frontend.infrastructure.CustomFrontendHandler
+import com.reposilite.frontend.infrastructure.ResourcesFrontendHandler
 import com.reposilite.web.api.Routes
+import java.nio.file.Path
+import kotlin.io.path.exists
 
 internal object FrontendWebConfiguration {
 
-    fun createFacade(configuration: Configuration): FrontendFacade =
-        FrontendFacade.load(configuration)
+    private const val CUSTOM_FRONTEND_DIRECTORY = "frontend"
 
-    fun routing(frontendFacade: FrontendFacade): List<Routes> =
+    fun createFacade(): FrontendFacade =
+        FrontendFacade()
+
+    fun routing(frontendFacade: FrontendFacade, workingDirectory: Path): List<Routes> =
         listOf(
-            FrontendHandler(frontendFacade)
+            workingDirectory.resolve(CUSTOM_FRONTEND_DIRECTORY)
+                .takeIf { it.exists() }
+                ?.let { CustomFrontendHandler(frontendFacade, workingDirectory.resolve(CUSTOM_FRONTEND_DIRECTORY)) }
+                ?: ResourcesFrontendHandler(frontendFacade)
         )
 
 }
