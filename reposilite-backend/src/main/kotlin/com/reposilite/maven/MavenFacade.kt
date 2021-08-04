@@ -16,6 +16,17 @@
 
 package com.reposilite.maven
 
+import com.reposilite.failure.api.ErrorResponse
+import com.reposilite.failure.api.errorResponse
+import com.reposilite.maven.api.DeployRequest
+import com.reposilite.maven.api.DocumentInfo
+import com.reposilite.maven.api.FileDetails
+import com.reposilite.maven.api.LookupRequest
+import com.reposilite.maven.api.Repository
+import com.reposilite.shared.FilesUtils.getSimpleName
+import com.reposilite.shared.toNormalizedPath
+import com.reposilite.web.toPath
+import io.javalin.http.HttpCode
 import io.javalin.http.HttpCode.BAD_REQUEST
 import io.javalin.http.HttpCode.INSUFFICIENT_STORAGE
 import io.javalin.http.HttpCode.INTERNAL_SERVER_ERROR
@@ -24,15 +35,6 @@ import io.javalin.http.HttpCode.NOT_FOUND
 import io.javalin.http.HttpCode.UNAUTHORIZED
 import net.dzikoysk.dynamiclogger.Journalist
 import net.dzikoysk.dynamiclogger.Logger
-import com.reposilite.failure.api.ErrorResponse
-import com.reposilite.failure.api.errorResponse
-import com.reposilite.maven.api.DeployRequest
-import com.reposilite.maven.api.DocumentInfo
-import com.reposilite.maven.api.FileDetails
-import com.reposilite.maven.api.LookupRequest
-import com.reposilite.maven.api.Repository
-import com.reposilite.shared.toNormalizedPath
-import com.reposilite.web.toPath
 import panda.std.Result
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -65,7 +67,7 @@ class MavenFacade internal constructor(
     fun deployFile(deployRequest: DeployRequest): Result<DocumentInfo, ErrorResponse> {
         val repository = repositoryService.getRepository(deployRequest.repository) ?: return errorResponse(NOT_FOUND, "Repository not found")
 
-        if (!repository.isDeployEnabled) {
+        if (!repository.deployment) {
             return errorResponse(METHOD_NOT_ALLOWED, "Artifact deployment is disabled")
         }
 
@@ -75,16 +77,16 @@ class MavenFacade internal constructor(
 
         val path = deployRequest.gav.toNormalizedPath().orNull() ?: return errorResponse(BAD_REQUEST, "Invalid GAV")
 
-        return try {
-            val result: Result<DocumentInfo, ErrorResponse> =
-                if (path.fileName.toString().contains(METADATA_FILE_NAME)) {
-                    metadataService.getMetadata(repository, path).map { it.first }
-                }
-                else {
-                    repository.putFile(path, deployRequest.content)
-                }
+        if (repository.redeployment.not() && path.getSimpleName().contains(METADATA_FILE_NAME).not() && repository.exists(path)) {
+            return errorResponse(HttpCode.CONFLICT, "Redeployment is not allowed")
+        }
 
-            result.peek { logger.info("DEPLOY Artifact successfully deployed $path by ${deployRequest.by}") }
+        return try {
+//            if (path.getSimpleName().contains(METADATA_FILE_NAME)) {
+//                metadataService.getMetadata(repository, path).map { it.first }
+//            }
+            repository.putFile(path, deployRequest.content)
+                .peek { logger.info("DEPLOY Artifact successfully deployed $path by ${deployRequest.by}") }
         }
         catch (exception: Exception) {
             errorResponse(INTERNAL_SERVER_ERROR, "Failed to upload artifact")

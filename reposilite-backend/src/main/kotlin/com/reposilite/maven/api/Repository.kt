@@ -32,7 +32,8 @@ class Repository internal constructor(
     val name: String,
     val visibility: RepositoryVisibility,
     private val storageProvider: StorageProvider,
-    val isDeployEnabled: Boolean
+    val deployment: Boolean,
+    val redeployment: Boolean
 ) {
 
     fun putFile(file: Path, bytes: ByteArray): Result<DocumentInfo, ErrorResponse> =
