@@ -90,7 +90,7 @@ dependencies {
     /* Utilities */
 
     implementation("net.dzikoysk:cdn:1.9.1")
-    implementation("org.panda-lang:expressible:1.0.2")
+    implementation("org.panda-lang:expressible:1.0.3")
     implementation("info.picocli:picocli:4.6.1")
     implementation("com.google.guava:guava:30.1.1-jre")
     implementation("org.apache.commons:commons-collections4:4.4")

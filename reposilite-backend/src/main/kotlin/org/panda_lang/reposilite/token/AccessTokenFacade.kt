@@ -18,8 +18,8 @@ package org.panda_lang.reposilite.token
 import net.dzikoysk.dynamiclogger.Journalist
 import net.dzikoysk.dynamiclogger.Logger
 import org.panda_lang.reposilite.token.api.AccessToken
+import org.panda_lang.reposilite.token.api.AccessTokenPermission
 import org.panda_lang.reposilite.token.api.CreateAccessTokenResponse
-import org.panda_lang.reposilite.token.api.Permission
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import java.security.SecureRandom
 import java.util.Base64
@@ -34,13 +34,13 @@ class AccessTokenFacade internal constructor(
         val B_CRYPT_TOKENS_ENCODER = BCryptPasswordEncoder()
     }
 
-    fun createAccessToken(alias: String, permissions: Set<Permission> = emptySet()): CreateAccessTokenResponse {
+    fun createAccessToken(alias: String, permissions: Set<AccessTokenPermission> = emptySet()): CreateAccessTokenResponse {
         val randomBytes = ByteArray(48)
         SECURE_RANDOM.nextBytes(randomBytes)
         return createAccessToken(alias, Base64.getEncoder().encodeToString(randomBytes), permissions)
     }
 
-    private fun createAccessToken(alias: String, token: String, permissions: Set<Permission>): CreateAccessTokenResponse {
+    private fun createAccessToken(alias: String, token: String, permissions: Set<AccessTokenPermission>): CreateAccessTokenResponse {
         val encodedToken = B_CRYPT_TOKENS_ENCODER.encode(token)
 
         accessTokenRepository.saveAccessToken(AccessToken(alias = alias, secret = encodedToken, permissions = permissions))

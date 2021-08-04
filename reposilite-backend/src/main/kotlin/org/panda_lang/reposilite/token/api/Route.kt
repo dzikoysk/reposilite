@@ -18,10 +18,18 @@ package org.panda_lang.reposilite.token.api
 
 data class Route internal constructor(
     val path: String,
-    val permissions: Collection<Permission>
+    val permissions: Set<RoutePermission>
 ) {
 
-    fun hasPermissionTo(toPath: String, routePermission: Permission): Boolean =
+    fun hasPermissionTo(toPath: String, routePermission: RoutePermission): Boolean =
         toPath.startsWith(path) && permissions.contains(routePermission)
 
 }
+
+enum class RoutePermission(val identifier: String) {
+    READ("route:read"),
+    WRITE("route:write");
+}
+
+fun findRoutePermissionByIdentifier(identifier: String): RoutePermission =
+    RoutePermission.values().first { it.identifier == identifier }

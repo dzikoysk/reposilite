@@ -17,13 +17,13 @@ package org.panda_lang.reposilite.auth
 
 import org.panda_lang.reposilite.token.AccessTokenFacade
 import org.panda_lang.reposilite.token.api.AccessToken
-import org.panda_lang.reposilite.token.api.Permission.READ
+import org.panda_lang.reposilite.token.api.RoutePermission.READ
 import panda.std.Result
 import panda.std.Result.error
 import panda.std.Result.ok
 import panda.utilities.StringUtils
 import java.nio.charset.StandardCharsets
-import java.util.*
+import java.util.Base64
 
 class Authenticator(private val accessTokenFacade: AccessTokenFacade) {
 

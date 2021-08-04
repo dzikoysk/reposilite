@@ -24,7 +24,7 @@ import org.panda_lang.reposilite.auth.AuthenticationFacade
 import org.panda_lang.reposilite.auth.SessionMethod
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.failure.api.errorResponse
-import org.panda_lang.reposilite.maven.MetadataUtils
+import org.panda_lang.reposilite.shared.normalizedAsUri
 import panda.std.Result
 import panda.std.Result.ok
 
@@ -36,7 +36,7 @@ class ReposiliteContextFactory internal constructor(
 ) {
 
     fun create(context: Context): Result<ReposiliteContext, ErrorResponse> {
-        val normalizedUri = MetadataUtils.normalizeUri(context.req.requestURI) ?: return errorResponse(HttpCode.BAD_REQUEST, "Invalid url")
+        val normalizedUri = context.req.requestURI.normalizedAsUri().orNull() ?: return errorResponse(HttpCode.BAD_REQUEST, "Invalid url")
         val host = context.header(forwardedIpHeader) ?: context.req.remoteAddr
 
         val session = authenticationFacade.authenticateByHeader(context.headerMap())

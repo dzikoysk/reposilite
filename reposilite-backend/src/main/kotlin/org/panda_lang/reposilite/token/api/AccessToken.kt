@@ -25,14 +25,21 @@ data class AccessToken internal constructor(
     val secret: String,
     val createdAt: LocalDate = LocalDate.now(),
     val description: String = "",
-    val permissions: Set<Permission> = emptySet(),
+    val permissions: Set<AccessTokenPermission> = emptySet(),
     val routes: Set<Route> = emptySet()
 ) : IdentifiableEntity {
 
-    fun hasPermission(permission: Permission): Boolean =
+    fun hasPermission(permission: AccessTokenPermission): Boolean =
         permissions.contains(permission)
 
-    fun hasPermissionTo(toPath: String, routePermission: Permission): Boolean =
+    fun hasPermissionTo(toPath: String, routePermission: RoutePermission): Boolean =
         routes.any { it.hasPermissionTo(toPath, routePermission) }
 
 }
+
+enum class AccessTokenPermission(val identifier: String) {
+    MANAGER("access-token:manager");
+}
+
+fun findAccessTokenPermissionByIdentifier(identifier: String): AccessTokenPermission =
+    AccessTokenPermission.values().first { it.identifier == identifier }
