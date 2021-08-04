@@ -19,3 +19,10 @@ For instance, if you use Cloudflare, you can set `Cache Level` to `Bypass` throu
 **Q:** Artifacts fail to deploy and I see ``Body already consumed, and was too big to cache. Adjust cache size with `config.requestCacheSize = newMaxSize;` `` in the log <br>
 **A:** If you have `debugEnabled`, this can happen with very large artifacts. You can try to tune this by setting the system property `reposilite.requestCacheSize` (defaults to 8MB) to the maximum artifact size. e.g.
 `-Dreposilite.requestCacheSize=20MB`. See using [system properties](./configuration#system-properties) for more information on setting this.
+
+**Q:** How to create a valid keystore file
+**A:** JKS stands for Java KeyStore format. In most cases people does not really use SSL directly in Reposilite, because they serve it behind some proxy services like Nginx anyway.
+The keystore.jks is just the most popular name referenced in JKS resources. You may find various resources related to this topic. Take a look at e.g. on Jenkov's blog or directly in Javalin's/Jetty examples:
+
+* http://tutorials.jenkov.com/java-cryptography/keytool.html
+* https://github.com/tipsy/javalin-http2-example
