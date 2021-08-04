@@ -16,11 +16,11 @@
 
 package com.reposilite.maven
 
-import net.dzikoysk.dynamiclogger.Journalist
 import com.reposilite.config.Configuration.RepositoryConfiguration
 import com.reposilite.maven.MavenFacade.Companion.REPOSITORIES
 import com.reposilite.maven.api.Repository
 import com.reposilite.storage.StorageProviderFactory.createStorageProvider
+import net.dzikoysk.dynamiclogger.Journalist
 import java.nio.file.Path
 
 internal object RepositoryFactory {
@@ -35,7 +35,8 @@ internal object RepositoryFactory {
                 repositoryConfiguration.storageProvider,
                 repositoryConfiguration.diskQuota
             ),
-            repositoryConfiguration.deployEnabled
+            repositoryConfiguration.deployment,
+            repositoryConfiguration.redeployment
         )
 
 }

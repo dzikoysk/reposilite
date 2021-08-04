@@ -15,10 +15,10 @@
  */
 package com.reposilite.config
 
-import net.dzikoysk.cdn.entity.Contextual
-import net.dzikoysk.cdn.entity.Description
 import com.reposilite.maven.api.RepositoryVisibility
 import com.reposilite.maven.api.RepositoryVisibility.PRIVATE
+import net.dzikoysk.cdn.entity.Contextual
+import net.dzikoysk.cdn.entity.Description
 import java.io.Serializable
 
 class Configuration : Serializable {
@@ -135,11 +135,11 @@ class Configuration : Serializable {
 
         @Description("# Accept deployment connections")
         @JvmField
-        var deployEnabled = true
+        var deployment = true
 
         @Description("# Does this repository accept redeployment of the same artifact version")
         @JvmField
-        var redeploy = false
+        var redeployment = false
 
     }
 
