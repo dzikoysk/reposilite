@@ -1,12 +1,12 @@
 package com.reposilite.shared
 
-import io.javalin.http.HttpCode
-import io.javalin.http.HttpCode.NOT_FOUND
 import com.reposilite.failure.api.ErrorResponse
 import com.reposilite.failure.api.errorResponse
 import com.reposilite.shared.FileType.DIRECTORY
 import com.reposilite.shared.FileType.FILE
 import com.reposilite.web.toPath
+import io.javalin.http.HttpCode
+import io.javalin.http.HttpCode.NOT_FOUND
 import panda.std.Result
 import panda.std.Result.error
 import panda.std.Result.ok
@@ -65,10 +65,10 @@ fun Path.size(): Result<Long, ErrorResponse> =
     }
 
 fun Path.append(path: String): Result<Path, IOException> =
-    path.toNormalizedPath().map { this.resolve(it) }
+    path.toNormalizedPath().map { this.resolve(it).normalize() }
 
 fun String.toNormalizedPath(): Result<Path, IOException> =
-    normalizedAsUri().map { it.toPath() }
+    normalizedAsUri().map { it.toPath().normalize() }
 
 /**
  * Process uri applying following changes:
@@ -83,7 +83,7 @@ fun String.toNormalizedPath(): Result<Path, IOException> =
 fun String.normalizedAsUri(): Result<String, IOException> {
     var normalizedUri = this
 
-    if (normalizedUri.contains("..") || normalizedUri.contains("~") || normalizedUri.contains(":") || normalizedUri.contains("\\")) {
+    if (normalizedUri.contains("..") || normalizedUri.contains(":") || normalizedUri.contains("\\")) {
         return error(IOException("Illegal path operator in URI"))
     }
 
