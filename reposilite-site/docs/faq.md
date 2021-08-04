@@ -26,3 +26,6 @@ The keystore.jks is just the most popular name referenced in JKS resources. You 
 
 * http://tutorials.jenkov.com/java-cryptography/keytool.html
 * https://github.com/tipsy/javalin-http2-example
+
+**Q:** Migrating from Nexus to Reposilite
+**A:** Since Nexus 3, repositories are stored in a non-browsable way by filesystem. To migrate these files to Reposilite you have to unpack it using an external tool. You can use e.g. [nexus3-export](https://github.com/lbar/nexus3-export) to extract data and then you should be able to import its output as a repository in Reposilite.
