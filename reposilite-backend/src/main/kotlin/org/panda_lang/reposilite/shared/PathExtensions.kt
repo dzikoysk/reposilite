@@ -6,7 +6,10 @@ import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.failure.api.errorResponse
 import org.panda_lang.reposilite.shared.FileType.DIRECTORY
 import org.panda_lang.reposilite.shared.FileType.FILE
+import org.panda_lang.reposilite.web.toPath
 import panda.std.Result
+import panda.std.Result.error
+import panda.std.Result.ok
 import java.io.IOException
 import java.io.InputStream
 import java.nio.file.Files
@@ -60,6 +63,40 @@ fun Path.size(): Result<Long, ErrorResponse> =
             }
         }
     }
+
+fun Path.append(path: String): Result<Path, IOException> =
+    path.toNormalizedPath().map { this.resolve(it) }
+
+fun String.toNormalizedPath(): Result<Path, IOException> =
+    normalizedAsUri().map { it.toPath() }
+
+/**
+ * Process uri applying following changes:
+ *
+ *
+ *  * Remove root slash
+ *  * Remove illegal path modifiers like .. and ~
+ *
+ *
+ * @return the normalized uri
+ */
+fun String.normalizedAsUri(): Result<String, IOException> {
+    var normalizedUri = this
+
+    if (normalizedUri.contains("..") || normalizedUri.contains("~") || normalizedUri.contains(":") || normalizedUri.contains("\\")) {
+        return error(IOException("Illegal path operator in URI"))
+    }
+
+    while (normalizedUri.contains("//")) {
+        normalizedUri = normalizedUri.replace("//", "/")
+    }
+
+    if (normalizedUri.startsWith("/")) {
+        normalizedUri = normalizedUri.substring(1)
+    }
+
+    return ok(normalizedUri)
+}
 
 fun <VALUE> catchIOException(consumer: () -> Result<VALUE, ErrorResponse>): Result<VALUE, ErrorResponse> =
     try {

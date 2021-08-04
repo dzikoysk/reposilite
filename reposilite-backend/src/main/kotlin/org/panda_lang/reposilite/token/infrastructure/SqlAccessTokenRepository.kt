@@ -28,10 +28,10 @@ import org.panda_lang.reposilite.shared.firstAndMap
 import org.panda_lang.reposilite.shared.transactionUnit
 import org.panda_lang.reposilite.token.AccessTokenRepository
 import org.panda_lang.reposilite.token.api.AccessToken
-import org.panda_lang.reposilite.token.api.Permission
-import org.panda_lang.reposilite.token.api.PermissionType.ACCESS_TOKEN
-import org.panda_lang.reposilite.token.api.PermissionType.ROUTE
+import org.panda_lang.reposilite.token.api.AccessTokenPermission
 import org.panda_lang.reposilite.token.api.Route
+import org.panda_lang.reposilite.token.api.findAccessTokenPermissionByIdentifier
+import org.panda_lang.reposilite.token.api.findRoutePermissionByIdentifier
 
 internal class SqlAccessTokenRepository : AccessTokenRepository {
 
@@ -73,16 +73,18 @@ internal class SqlAccessTokenRepository : AccessTokenRepository {
     override fun deleteAccessToken(accessToken: AccessToken) =
         transactionUnit { AccessTokenTable.deleteWhere { AccessTokenTable.id eq accessToken.id } }
 
-    private fun findAccessTokenPermissionsById(id: Int): Set<Permission> =
+    private fun findAccessTokenPermissionsById(id: Int): Set<AccessTokenPermission> =
         PermissionToAccessTokenTable.select { PermissionToAccessTokenTable.accessTokenId eq id }
-            .map { Permission.of(ACCESS_TOKEN, it[PermissionToAccessTokenTable.permission]) }
+            .map { findAccessTokenPermissionByIdentifier(it[PermissionToAccessTokenTable.permission]) }
             .toSet()
 
     private fun findRoutesById(id: Int): Set<Route> =
         PermissionToRouteTable.select { PermissionToRouteTable.accessTokenId eq id }
             .map { Pair(it[PermissionToRouteTable.route], it[PermissionToRouteTable.permission]) }
             .groupBy { it.first }
-            .map { (route, permissions) -> Route(route, permissions.map { Permission.of(ROUTE, it.second) }) }
+            .map { (route, permissions) ->
+                Route(route, permissions.map { findRoutePermissionByIdentifier(it.second) }.toSet())
+            }
             .toSet()
 
     private fun toAccessToken(result: ResultRow): AccessToken =

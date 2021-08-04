@@ -26,12 +26,12 @@ import net.dzikoysk.dynamiclogger.Journalist
 import net.dzikoysk.dynamiclogger.Logger
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.failure.api.errorResponse
-import org.panda_lang.reposilite.maven.MetadataUtils.toNormalizedPath
 import org.panda_lang.reposilite.maven.api.DeployRequest
 import org.panda_lang.reposilite.maven.api.DocumentInfo
 import org.panda_lang.reposilite.maven.api.FileDetails
 import org.panda_lang.reposilite.maven.api.LookupRequest
 import org.panda_lang.reposilite.maven.api.Repository
+import org.panda_lang.reposilite.shared.toNormalizedPath
 import org.panda_lang.reposilite.web.toPath
 import panda.std.Result
 import java.nio.file.Path
@@ -73,7 +73,7 @@ class MavenFacade internal constructor(
             return errorResponse(INSUFFICIENT_STORAGE, "Not enough storage space available")
         }
 
-        val path = deployRequest.gav.toNormalizedPath() ?: return errorResponse(BAD_REQUEST, "Invalid GAV")
+        val path = deployRequest.gav.toNormalizedPath().orNull() ?: return errorResponse(BAD_REQUEST, "Invalid GAV")
 
         return try {
             val result: Result<DocumentInfo, ErrorResponse> =
@@ -93,7 +93,7 @@ class MavenFacade internal constructor(
 
     fun deleteFile(repositoryName: String, gav: String): Result<*, ErrorResponse> {
         val repository = repositoryService.getRepository(repositoryName) ?: return errorResponse<Any>(NOT_FOUND, "Repository $repositoryName not found")
-        val path = gav.toNormalizedPath() ?: return errorResponse<Any>(NOT_FOUND, "Invalid GAV")
+        val path = gav.toNormalizedPath().orNull() ?: return errorResponse<Any>(NOT_FOUND, "Invalid GAV")
 
         return repository.removeFile(path)
     }

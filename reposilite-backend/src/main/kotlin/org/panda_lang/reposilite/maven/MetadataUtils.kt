@@ -18,7 +18,6 @@ package org.panda_lang.reposilite.maven
 import org.panda_lang.reposilite.failure.api.ErrorResponse
 import org.panda_lang.reposilite.maven.api.Repository
 import org.panda_lang.reposilite.shared.FilesUtils.getExtension
-import org.panda_lang.reposilite.web.toPath
 import panda.std.Result
 import panda.utilities.StringUtils
 import panda.utilities.text.Joiner
@@ -159,37 +158,5 @@ internal object MetadataUtils {
         content
             .any { !Character.isDigit(it) }
             .not()
-
-    /**
-     * Process uri applying following changes:
-     *
-     *
-     *  * Remove root slash
-     *  * Remove illegal path modifiers like .. and ~
-     *
-     *
-     * @param uri the uri to process
-     * @return the normalized uri
-     */
-    fun normalizeUri(uri: String): String? {
-        var normalizedUri = uri
-
-        if (normalizedUri.contains("..") || normalizedUri.contains("~") || normalizedUri.contains(":") || normalizedUri.contains("\\")) {
-            return null
-        }
-
-        while (normalizedUri.contains("//")) {
-            normalizedUri = normalizedUri.replace("//", "/")
-        }
-
-        if (normalizedUri.startsWith("/")) {
-            normalizedUri = normalizedUri.substring(1)
-        }
-
-        return normalizedUri
-    }
-
-    fun String.toNormalizedPath(): Path? =
-        normalizeUri(this)?.toPath()
 
 }
