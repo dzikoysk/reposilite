@@ -16,8 +16,6 @@
 
 package com.reposilite
 
-import io.javalin.Javalin
-import net.dzikoysk.dynamiclogger.Journalist
 import com.reposilite.auth.application.AuthenticationWebConfiguration
 import com.reposilite.config.Configuration
 import com.reposilite.console.application.ConsoleWebConfiguration
@@ -29,6 +27,8 @@ import com.reposilite.token.application.AccessTokenWebConfiguration
 import com.reposilite.web.ReposiliteContextFactory
 import com.reposilite.web.api.Routes
 import com.reposilite.web.application.WebConfiguration
+import io.javalin.Javalin
+import net.dzikoysk.dynamiclogger.Journalist
 import java.nio.file.Path
 
 object ReposiliteWebConfiguration {
@@ -40,7 +40,7 @@ object ReposiliteWebConfiguration {
         val failureFacade = FailureWebConfiguration.createFacade(logger)
         val consoleFacade = ConsoleWebConfiguration.createFacade(logger, failureFacade)
         val mavenFacade = MavenWebConfiguration.createFacade(logger, failureFacade, workingDirectory, configuration.repositories)
-        val frontendFacade = FrontendWebConfiguration.createFacade(configuration)
+        val frontendFacade = FrontendWebConfiguration.createFacade()
         val statisticFacade = StatisticsWebConfiguration.createFacade(logger)
         val accessTokenFacade = AccessTokenWebConfiguration.createFacade(logger)
         val authenticationFacade = AuthenticationWebConfiguration.createFacade(logger, accessTokenFacade, mavenFacade)
@@ -79,7 +79,7 @@ object ReposiliteWebConfiguration {
             AuthenticationWebConfiguration.routing(reposilite.authenticationFacade),
             ConsoleWebConfiguration.routing(reposilite),
             FailureWebConfiguration.routing(),
-            FrontendWebConfiguration.routing(reposilite.frontendFacade),
+            FrontendWebConfiguration.routing(reposilite.frontendFacade, reposilite.workingDirectory),
             MavenWebConfiguration.routing(reposilite.mavenFacade),
             StatisticsWebConfiguration.routing(reposilite.statisticsFacade),
             // AccessTokenWebConfiguration.routing(),
