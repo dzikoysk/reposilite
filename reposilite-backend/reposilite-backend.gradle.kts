@@ -14,23 +14,41 @@
  * limitations under the License.
  */
 
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+import org.gradle.api.tasks.testing.logging.TestLogEvent.FAILED
+import org.gradle.api.tasks.testing.logging.TestLogEvent.PASSED
+import org.gradle.api.tasks.testing.logging.TestLogEvent.SKIPPED
+import org.gradle.api.tasks.testing.logging.TestLogEvent.STARTED
+
 group = "org.panda-lang"
 version = "3.0.0-SNAPSHOT"
 
 plugins {
     kotlin("jvm") version "1.5.20"
     kotlin("kapt") version "1.5.20"
-    id("application")
+    application
+    jacoco
     `maven-publish`
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
-}
-
-application {
-    mainClass.set("org.panda_lang.reposilite.ReposiliteLauncher")
+publishing {
+    repositories {
+        maven {
+            credentials {
+                username = property("mavenUser") as String
+                password = property("mavenPassword") as String
+            }
+            name = "panda-repository"
+            url = uri("https://repo.panda-lang.org/releases")
+        }
+    }
+    publications {
+        create<MavenPublication>("library") {
+            groupId = "org.panda-lang"
+            artifactId = "reposilite"
+            from(components.getByName("java"))
+        }
+    }
 }
 
 repositories {
@@ -119,8 +137,89 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 }
 
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+application {
+    mainClass.set("com.reposilite.ReposiliteLauncher")
+}
+
+jacoco {
+    toolVersion = "0.8.7"
+}
+
 tasks.getByName<Test>("test") {
     useJUnitPlatform()
+}
+
+tasks.withType<Test> {
+    testLogging {
+        events(STARTED, PASSED, FAILED, SKIPPED)
+        exceptionFormat = FULL
+        showExceptions = true
+        showCauses = true
+        showStackTraces = true
+    }
+    useJUnitPlatform()
+}
+
+tasks.test {
+    extensions.configure(JacocoTaskExtension::class) {
+        setDestinationFile(file("$buildDir/jacoco/jacoco.exec"))
+    }
+
+    finalizedBy("jacocoTestReport")
+}
+
+tasks.jacocoTestReport {
+    reports {
+        html.required.set(false)
+        csv.required.set(false)
+
+        csv.required.set(true)
+        xml.outputLocation.set(file("$buildDir/reports/jacoco/report.xml"))
+    }
+
+    finalizedBy("jacocoTestCoverageVerification")
+}
+
+tasks.jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                minimum = "0.10".toBigDecimal()
+            }
+        }
+        rule {
+            enabled = true
+            element = "CLASS"
+            limit {
+                counter = "BRANCH"
+                value = "COVEREDRATIO"
+                minimum = "0.0".toBigDecimal()
+            }
+            limit {
+                counter = "LINE"
+                value = "COVEREDRATIO"
+                minimum = "0.0".toBigDecimal()
+            }
+            excludes = listOf()
+        }
+    }
+}
+
+val testCoverage by tasks.registering {
+    group = "verification"
+    description = "Runs the unit tests with coverage"
+
+    dependsOn(":test",
+        ":jacocoTestReport",
+        ":jacocoTestCoverageVerification")
+
+    tasks["jacocoTestReport"].mustRunAfter(tasks["test"])
+    tasks["jacocoTestCoverageVerification"].mustRunAfter(tasks["jacocoTestReport"])
 }
 
 /*
