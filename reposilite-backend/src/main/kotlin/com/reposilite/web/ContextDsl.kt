@@ -16,10 +16,10 @@
 
 package com.reposilite.web
 
-import io.javalin.http.Context
-import io.javalin.http.HttpCode
 import com.reposilite.auth.Session
 import com.reposilite.failure.api.ErrorResponse
+import io.javalin.http.Context
+import io.javalin.http.HttpCode
 import panda.std.Result
 
 class ContextDsl(val ctx: Context, val context: ReposiliteContext) {
@@ -57,14 +57,6 @@ class ContextDsl(val ctx: Context, val context: ReposiliteContext) {
             }
         }
     }
-
-    /**
-     * Get first available splat or empty string
-     */
-    fun wildcard(defaultValue: String = ""): String =
-        ctx.splat(0)
-            .takeIf { it?.isNotEmpty() ?: false }
-            ?: defaultValue
 
     fun parameter(name: String): String =
         ctx.pathParam(name)

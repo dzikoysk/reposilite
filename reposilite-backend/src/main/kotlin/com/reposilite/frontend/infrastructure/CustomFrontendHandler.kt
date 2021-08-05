@@ -15,8 +15,8 @@ internal class CustomFrontendHandler(frontendFacade: FrontendFacade, directory: 
     override val routes: Set<Route> = Files.list(directory)
         .map {
             if (it.isDirectory())
-                Route("/${it.getSimpleName()}/*", GET) {
-                    respondWithFile(ctx, it.getSimpleName(), it.resolve(ctx.splat(0) ?: "").inputStream().orNull())
+                Route("/${it.getSimpleName()}/<path>", GET) {
+                    respondWithFile(ctx, it.getSimpleName(), it.resolve(ctx.pathParam("path")).inputStream().orNull())
                 }
             else
                 Route("/${it.getSimpleName()}", GET) {

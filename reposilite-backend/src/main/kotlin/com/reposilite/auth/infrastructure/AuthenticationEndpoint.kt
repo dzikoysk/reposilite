@@ -15,24 +15,22 @@
  */
 package com.reposilite.auth.infrastructure
 
-import com.dzikoysk.openapi.annotations.HttpMethod
-import com.dzikoysk.openapi.annotations.OpenApi
-import com.dzikoysk.openapi.annotations.OpenApiContent
-import com.dzikoysk.openapi.annotations.OpenApiParam
-import com.dzikoysk.openapi.annotations.OpenApiResponse
 import com.reposilite.auth.AuthenticationFacade
 import com.reposilite.auth.api.AuthenticationResponse
 import com.reposilite.failure.api.ErrorResponse
 import com.reposilite.web.api.Route
 import com.reposilite.web.api.RouteMethod.GET
 import com.reposilite.web.api.Routes
-
-private const val ROUTE = "/api/auth"
+import io.javalin.openapi.HttpMethod
+import io.javalin.openapi.OpenApi
+import io.javalin.openapi.OpenApiContent
+import io.javalin.openapi.OpenApiParam
+import io.javalin.openapi.OpenApiResponse
 
 internal class AuthenticationEndpoint(private val authenticationFacade: AuthenticationFacade) : Routes {
 
     @OpenApi(
-        path = ROUTE,
+        path = "/api/auth",
         methods = [HttpMethod.GET],
         summary = "Get token details",
         description = "Returns details about the requested token",
@@ -51,7 +49,7 @@ internal class AuthenticationEndpoint(private val authenticationFacade: Authenti
             )
         ]
     )
-    private val authInfo = Route(ROUTE, GET) {
+    private val authInfo = Route("/api/auth", GET) {
         authenticationFacade.authenticateByHeader(ctx.headerMap())
             .map { AuthenticationResponse(it.alias, it.permissions.map { permission -> permission.toString() }) }
             .let { ctx.json(it.any) }

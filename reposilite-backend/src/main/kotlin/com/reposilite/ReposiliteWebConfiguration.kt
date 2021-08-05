@@ -94,6 +94,7 @@ object ReposiliteWebConfiguration {
 
     fun dispose(reposilite: Reposilite) {
         ConsoleWebConfiguration.dispose(reposilite.consoleFacade)
+        StatisticsWebConfiguration.dispose()
     }
 
 }

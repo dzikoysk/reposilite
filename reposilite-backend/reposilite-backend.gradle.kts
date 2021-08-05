@@ -85,13 +85,13 @@ dependencies {
     implementation("software.amazon.awssdk:bom:$awssdk")
     implementation("software.amazon.awssdk:s3:$awssdk")
 
-    val javalin = "4.0.0.ALPHA3"
+    val javalin = "4.0.0.RC0"
     implementation("io.javalin:javalin:$javalin")
 
-    val openapi = "1.0.9"
-    kapt("com.dzikoysk:openapi-annotation-processor:$openapi")
-    implementation("com.dzikoysk:javalin-openapi-plugin:$openapi")
-    implementation("com.dzikoysk:javalin-swagger-plugin:$openapi")
+    val openapi = "1.1.0"
+    kapt("io.javalin-rfc:openapi-annotation-processor:$openapi")
+    implementation("io.javalin-rfc:javalin-openapi-plugin:$openapi")
+    implementation("io.javalin-rfc:javalin-swagger-plugin:$openapi")
 
     val jetty = "9.4.42.v20210604"
     implementation("org.eclipse.jetty:jetty-server:$jetty")

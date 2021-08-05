@@ -16,25 +16,25 @@
 
 package com.reposilite.statistics.application
 
-import net.dzikoysk.dynamiclogger.Journalist
 import com.reposilite.console.ConsoleFacade
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.statistics.StatsCommand
 import com.reposilite.statistics.infrastructure.SqlStatisticsRepository
 import com.reposilite.statistics.infrastructure.StatisticsHandler
 import com.reposilite.web.api.Routes
+import net.dzikoysk.dynamiclogger.Journalist
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit.MINUTES
 
 internal object StatisticsWebConfiguration {
 
+    private val scheduler = Executors.newSingleThreadScheduledExecutor() // Maybe use some shared ThreadPool to avoid Thread creation
+
     fun createFacade(journalist: Journalist): StatisticsFacade =
         StatisticsFacade(journalist, SqlStatisticsRepository())
 
     fun initialize(statisticsFacade: StatisticsFacade, consoleFacade: ConsoleFacade) {
-        val scheduler = Executors.newSingleThreadScheduledExecutor() // Maybe use some shared ThreadPool to avoid Thread creation
         scheduler.scheduleWithFixedDelay({ statisticsFacade.saveRecordsBulk() }, 1, 1, MINUTES)
-
         consoleFacade.registerCommand(StatsCommand(statisticsFacade))
     }
 
@@ -42,5 +42,9 @@ internal object StatisticsWebConfiguration {
         setOf(
             StatisticsHandler(statisticsFacade)
         )
+
+    fun dispose() {
+        scheduler.shutdown()
+    }
 
 }

@@ -1,17 +1,7 @@
 package com.reposilite.web.infrastructure
 
-import com.dzikoysk.openapi.ktor.OpenApiConfiguration
-import com.dzikoysk.openapi.ktor.OpenApiPlugin
-import com.dzikoysk.openapi.ktor.swagger.SwaggerConfiguration
-import com.dzikoysk.openapi.ktor.swagger.SwaggerPlugin
 import com.fasterxml.jackson.annotation.JsonInclude.Include
 import com.fasterxml.jackson.databind.ObjectMapper
-import io.javalin.Javalin
-import io.javalin.core.JavalinConfig
-import io.javalin.plugin.json.JavalinJackson
-import org.eclipse.jetty.server.Server
-import org.eclipse.jetty.server.ServerConnector
-import org.eclipse.jetty.util.ssl.SslContextFactory
 import com.reposilite.Reposilite
 import com.reposilite.ReposiliteWebConfiguration
 import com.reposilite.VERSION
@@ -23,6 +13,16 @@ import com.reposilite.web.api.RouteMethod.GET
 import com.reposilite.web.api.RouteMethod.HEAD
 import com.reposilite.web.api.RouteMethod.POST
 import com.reposilite.web.api.RouteMethod.PUT
+import io.javalin.Javalin
+import io.javalin.core.JavalinConfig
+import io.javalin.openapi.plugin.OpenApiConfiguration
+import io.javalin.openapi.plugin.OpenApiPlugin
+import io.javalin.openapi.plugin.swagger.SwaggerConfiguration
+import io.javalin.openapi.plugin.swagger.SwaggerPlugin
+import io.javalin.plugin.json.JavalinJackson
+import org.eclipse.jetty.server.Server
+import org.eclipse.jetty.server.ServerConnector
+import org.eclipse.jetty.util.ssl.SslContextFactory
 
 internal object JavalinWebServerConfiguration {
 
@@ -30,7 +30,7 @@ internal object JavalinWebServerConfiguration {
         val server = Server()
 
         configureJavalin(config)
-        configureJsonSerialization()
+        configureJsonSerialization(config)
         configureSSL(reposilite, configuration, config, server)
         configureCors(config)
         configureOpenApi(configuration, config)
@@ -43,10 +43,10 @@ internal object JavalinWebServerConfiguration {
         config.showJavalinBanner = false
     }
 
-    private fun configureJsonSerialization() {
+    private fun configureJsonSerialization(config: JavalinConfig) {
         val objectMapper = ObjectMapper()
         objectMapper.setSerializationInclusion(Include.NON_NULL)
-        JavalinJackson.configure(objectMapper)
+        config.jsonMapper(JavalinJackson(objectMapper))
     }
 
     private fun configureSSL(reposilite: Reposilite, configuration: Configuration, config: JavalinConfig, server: Server) {

@@ -16,10 +16,13 @@
 
 package com.reposilite.web.api
 
-import io.javalin.http.Handler
 import com.reposilite.web.ContextDsl
 import com.reposilite.web.ReposiliteContextFactory
 import com.reposilite.web.context
+import io.javalin.http.Handler
+import java.text.Collator
+import java.text.RuleBasedCollator
+import java.util.Locale
 
 enum class RouteMethod {
     HEAD,
@@ -36,6 +39,12 @@ class Route(
     vararg val methods: RouteMethod,
     private val handler: ContextDsl.() -> Unit
 ) : Comparable<Route> {
+
+    private companion object {
+
+        private val routesRule = RuleBasedCollator((Collator.getInstance(Locale.US) as RuleBasedCollator).rules.toString() + "& Z < '{' < '<'")
+
+    }
 
     fun createHandler(reposiliteContextFactory: ReposiliteContextFactory): Handler =
         Handler {
@@ -56,7 +65,8 @@ class Route(
 
             val itPart = itPaths[index]
             val toPart = toPaths[index]
-            val result = toPart.compareTo(itPart)
+
+            val result = routesRule.compare(itPart, toPart)
 
             if (result != 0) {
                 return result
@@ -65,7 +75,7 @@ class Route(
             index++
         }
 
-        return other.path.compareTo(path)
+        return routesRule.compare(path, other.path)
     }
 
 }
