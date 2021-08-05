@@ -25,7 +25,7 @@ import com.reposilite.web.api.Routes
 
 internal class StatisticsHandler(private val statisticsFacade: StatisticsFacade) : Routes {
 
-    private val collectRequests = Route("/*", BEFORE) {
+    private val collectRequests = Route("/<*>", BEFORE) {
         if (ctx.req.requestURI.length < MAX_IDENTIFIER_LENGTH) {
             statisticsFacade.increaseRecord(REQUEST, ctx.req.requestURI)
         }

@@ -15,12 +15,6 @@
  */
 package com.reposilite.console.infrastructure
 
-import com.dzikoysk.openapi.annotations.HttpMethod
-import com.dzikoysk.openapi.annotations.OpenApi
-import com.dzikoysk.openapi.annotations.OpenApiContent
-import com.dzikoysk.openapi.annotations.OpenApiParam
-import com.dzikoysk.openapi.annotations.OpenApiResponse
-import io.javalin.http.HttpCode.UNAUTHORIZED
 import com.reposilite.console.ConsoleFacade
 import com.reposilite.console.MAX_COMMAND_LENGTH
 import com.reposilite.console.api.ExecutionResponse
@@ -29,13 +23,17 @@ import com.reposilite.failure.api.errorResponse
 import com.reposilite.web.api.Route
 import com.reposilite.web.api.RouteMethod.POST
 import com.reposilite.web.api.Routes
-
-private const val ROUTE = "/api/execute"
+import io.javalin.http.HttpCode.UNAUTHORIZED
+import io.javalin.openapi.HttpMethod
+import io.javalin.openapi.OpenApi
+import io.javalin.openapi.OpenApiContent
+import io.javalin.openapi.OpenApiParam
+import io.javalin.openapi.OpenApiResponse
 
 internal class RemoteExecutionEndpoint(private val consoleFacade: ConsoleFacade) : Routes {
 
     @OpenApi(
-        path = ROUTE,
+        path = "/api/execute",
         methods = [HttpMethod.POST],
         summary = "Remote command execution",
         description = "Execute command using POST request. The commands are the same as in the console and can be listed using the 'help' command.",
@@ -59,7 +57,7 @@ internal class RemoteExecutionEndpoint(private val consoleFacade: ConsoleFacade)
             )
         ]
     )
-    private val executeCommand = Route(ROUTE, POST) {
+    private val executeCommand = Route("/api/execute", POST) {
         context.logger.info("REMOTE EXECUTION ${context.uri} from ${context.address}")
 
         authenticated {

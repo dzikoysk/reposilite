@@ -30,8 +30,8 @@ internal class ResourcesFrontendHandler(frontendFacade: FrontendFacade) : Fronte
         respondWithResource(ctx, "index.html")
     }
 
-    private val assetsHandler = Route("/assets/*", GET) {
-        respondWithResource(ctx, "assets/${wildcard()}")
+    private val assetsHandler = Route("/assets/<path>", GET) {
+        respondWithResource(ctx, "assets/${ctx.pathParam("path")}")
     }
 
     private fun respondWithResource(ctx: Context, uri: String) {

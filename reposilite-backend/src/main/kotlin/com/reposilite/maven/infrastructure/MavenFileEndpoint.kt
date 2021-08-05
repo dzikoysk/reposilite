@@ -1,15 +1,9 @@
 package com.reposilite.maven.infrastructure
 
-import com.dzikoysk.openapi.annotations.HttpMethod
-import com.dzikoysk.openapi.annotations.OpenApi
-import com.dzikoysk.openapi.annotations.OpenApiContent
-import com.dzikoysk.openapi.annotations.OpenApiParam
-import com.dzikoysk.openapi.annotations.OpenApiResponse
 import com.reposilite.failure.api.ErrorResponse
 import com.reposilite.failure.api.errorResponse
 import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.api.DeployRequest
-import com.reposilite.maven.api.DirectoryInfo
 import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.maven.api.FileDetails
 import com.reposilite.maven.api.LookupRequest
@@ -23,30 +17,37 @@ import com.reposilite.web.api.RouteMethod.PUT
 import com.reposilite.web.api.Routes
 import com.reposilite.web.resultAttachment
 import io.javalin.http.HttpCode.NO_CONTENT
+import io.javalin.openapi.HttpMethod
+import io.javalin.openapi.OpenApi
+import io.javalin.openapi.OpenApiContent
+import io.javalin.openapi.OpenApiParam
+import io.javalin.openapi.OpenApiResponse
 import panda.std.Result
 
 internal class MavenFileEndpoint(private val mavenFacade: MavenFacade) : Routes {
 
     @OpenApi(
-        path = "/:repository-name/*",
+        path = "/{repository}/*",
         methods = [HttpMethod.GET],
         tags = ["Maven"],
         summary = "Browse the contents of repositories",
         description = "The route may return various responses to properly handle Maven specification and frontend application using the same path.",
-        pathParams = [OpenApiParam(name = "*", description = "Artifact path qualifier", required = true, allowEmptyValue = true)],
+        pathParams = [
+            OpenApiParam(name = "*", description = "Artifact path qualifier", required = true, allowEmptyValue = true)
+        ],
         responses = [
             OpenApiResponse(status = "200", description = "Input stream of requested file", content = [OpenApiContent(type = MULTIPART_FORM_DATA)]),
             OpenApiResponse(status = "404", description = "Returns 404 (for Maven) with frontend (for user) as a response if requested resource is not located in the current repository")
         ]
     )
-    val findFile = Route("/:repository-name/*", GET) {
+    val findFile = Route("/{repository}/<gav>", GET) {
         accessed {
-            LookupRequest(parameter("repository-name"), wildcard(), this?.accessToken)
+            LookupRequest(parameter("repository"), parameter("gav"), this?.accessToken)
                 .let { mavenFacade.findFile(it) }
                 .peek {
                     when (it) {
                         is DocumentInfo -> ctx.resultAttachment(it)
-                        is DirectoryInfo -> response = errorResponse(NO_CONTENT, "Requested file is a directory")
+                        else -> response = errorResponse(NO_CONTENT, "Requested file is a directory")
                     }
                 }
                 .onError { response = Result.error(it) }
@@ -54,12 +55,14 @@ internal class MavenFileEndpoint(private val mavenFacade: MavenFacade) : Routes 
     }
 
     @OpenApi(
-        path = "/:repository-name/*",
+        path = "/{repository}/*",
         methods = [HttpMethod.POST, HttpMethod.PUT],
         summary = "Deploy artifact to the repository",
         description = "Deploy supports both, POST and PUT, methods and allows to deploy artifact builds",
         tags = [ "Maven" ],
-        pathParams = [ OpenApiParam(name = "*", description = "Artifact path qualifier", required = true) ],
+        pathParams = [
+            OpenApiParam(name = "*", description = "Artifact path qualifier", required = true)
+        ],
         responses = [
             OpenApiResponse(status = "200", description = "Input stream of requested file", content = [OpenApiContent(type = MULTIPART_FORM_DATA)]),
             OpenApiResponse(status = "401", description = "Returns 401 for invalid credentials"),
@@ -67,32 +70,34 @@ internal class MavenFileEndpoint(private val mavenFacade: MavenFacade) : Routes 
             OpenApiResponse(status = "507", description = "Returns 507 if Reposilite does not have enough disk space to store the uploaded file")
         ]
     )
-    private val deployFile = Route("/:repository-name/*", POST, PUT) {
+    private val deployFile = Route("/{repository}/<gav>", POST, PUT) {
         authorized {
-            response = DeployRequest(parameter("repository-name"), wildcard(), getSessionIdentifier(), context.input())
+            response = DeployRequest(parameter("repository"), parameter("gav"), getSessionIdentifier(), context.input())
                 .let { mavenFacade.deployFile(it) }
                 .onError { context.logger.debug("Cannot deploy artifact due to: ${it.message}") }
         }
     }
 
     @OpenApi(
-        path = "/:repository-name/*",
+        path = "/{repository}/<gav>",
         summary = "Delete the given file from repository",
         methods = [HttpMethod.DELETE]
     )
-    private val deleteFile = Route("/:repository-name/*", DELETE) {
+    private val deleteFile = Route("/{repository}/<gav>", DELETE) {
         authorized {
-            response = mavenFacade.deleteFile(parameter("repository-name"), wildcard())
+            response = mavenFacade.deleteFile(parameter("repository"), parameter("gav"))
         }
     }
 
     @OpenApi(
-        path = "/api/maven/details/:repository-name/*",
+        path = "/api/maven/details/{repository}/<gav>",
         methods = [HttpMethod.HEAD, HttpMethod.GET],
         summary = "Browse the contents of repositories using API",
         description = "Get details about the requested file as JSON response",
         tags = ["Maven"],
-        pathParams = [OpenApiParam(name = "*", description = "Artifact path qualifier", required = true, allowEmptyValue = true)],
+        pathParams = [
+            OpenApiParam(name = "*", description = "Artifact path qualifier", required = true, allowEmptyValue = true)
+        ],
         responses = [
             OpenApiResponse(
                 status = "200",
@@ -110,9 +115,9 @@ internal class MavenFileEndpoint(private val mavenFacade: MavenFacade) : Routes 
             )
         ]
     )
-    val findFileDetails = Route("/api/maven/details/:repository-name/*", HEAD, GET) {
+    val findFileDetails = Route("/api/maven/details/{repository}/<gav>", HEAD, GET) {
         accessed {
-            response = LookupRequest(parameter("repository-name"), wildcard(), this?.accessToken)
+            response = LookupRequest(parameter("repository"), parameter("gav"), this?.accessToken)
                 .let { mavenFacade.findFile(it) }
         }
     }
