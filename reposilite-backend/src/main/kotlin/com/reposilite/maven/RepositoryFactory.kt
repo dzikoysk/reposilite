@@ -35,7 +35,6 @@ internal object RepositoryFactory {
                 repositoryConfiguration.storageProvider,
                 repositoryConfiguration.diskQuota
             ),
-            repositoryConfiguration.deployment,
             repositoryConfiguration.redeployment
         )
 

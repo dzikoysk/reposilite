@@ -133,48 +133,44 @@ class Configuration : Serializable {
         @JvmField
         var diskQuota = "10GB"
 
-        @Description("# Accept deployment connections")
-        @JvmField
-        var deployment = true
-
         @Description("# Does this repository accept redeployment of the same artifact version")
         @JvmField
         var redeployment = false
 
+        /* Proxy */
+
+        @Description(
+            "",
+            "# List of proxied repositories.",
+            "# Reposilite will search for an artifact in remote repositories listed below,",
+            "# if the requested artifact was not found."
+        )
+        @JvmField
+        var proxied = mutableListOf<String>()
+
+        @Description("# Reposilite can store proxied artifacts locally to reduce response time and improve stability")
+        @JvmField
+        var storeProxied = true
+
+        @Description(
+            "# Proxying is disabled by default in private repositories because of the security policy.",
+            "# Enabling this feature may expose private data like i.e. artifact name used in your company."
+        )
+        @JvmField
+        var proxyPrivate = false
+
+        @Description("# How long Reposilite can wait for establishing the connection with a remote host. (In seconds)")
+        @JvmField
+        var proxyConnectTimeout = 3
+
+        @Description(
+            "# How long Reposilite can read data from remote proxy. (In seconds)",
+            "# Increasing this value may be required in case of proxying slow remote repositories."
+        )
+        @JvmField
+        var proxyReadTimeout = 15
+
     }
-
-    /* Proxy */
-
-    @Description(
-        "",
-        "# List of proxied repositories.",
-        "# Reposilite will search for an artifact in remote repositories listed below,",
-        "# if the requested artifact was not found."
-    )
-    @JvmField
-    var proxied = mutableListOf<String>()
-
-    @Description("# Reposilite can store proxied artifacts locally to reduce response time and improve stability")
-    @JvmField
-    var storeProxied = true
-
-    @Description(
-        "# Proxying is disabled by default in private repositories because of the security policy.",
-        "# Enabling this feature may expose private data like i.e. artifact name used in your company."
-    )
-    @JvmField
-    var proxyPrivate = false
-
-    @Description("# How long Reposilite can wait for establishing the connection with a remote host. (In seconds)")
-    @JvmField
-    var proxyConnectTimeout = 3
-
-    @Description(
-        "# How long Reposilite can read data from remote proxy. (In seconds)",
-        "# Increasing this value may be required in case of proxying slow remote repositories."
-    )
-    @JvmField
-    var proxyReadTimeout = 15
 
     /* Frontend properties */
 
@@ -188,9 +184,5 @@ class Configuration : Serializable {
     @Description("# Description displayed by frontend")
     @JvmField
     var description = "Public Maven repository hosted through the Reposilite"
-
-    @Description("# Accent color used by frontend")
-    @JvmField
-    var accentColor = "#2fd4aa"
 
 }
