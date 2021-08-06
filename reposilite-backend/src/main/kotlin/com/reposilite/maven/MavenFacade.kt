@@ -30,7 +30,6 @@ import io.javalin.http.HttpCode
 import io.javalin.http.HttpCode.BAD_REQUEST
 import io.javalin.http.HttpCode.INSUFFICIENT_STORAGE
 import io.javalin.http.HttpCode.INTERNAL_SERVER_ERROR
-import io.javalin.http.HttpCode.METHOD_NOT_ALLOWED
 import io.javalin.http.HttpCode.NOT_FOUND
 import io.javalin.http.HttpCode.UNAUTHORIZED
 import net.dzikoysk.dynamiclogger.Journalist
@@ -66,19 +65,14 @@ class MavenFacade internal constructor(
 
     fun deployFile(deployRequest: DeployRequest): Result<DocumentInfo, ErrorResponse> {
         val repository = repositoryService.getRepository(deployRequest.repository) ?: return errorResponse(NOT_FOUND, "Repository not found")
-
-        if (!repository.deployment) {
-            return errorResponse(METHOD_NOT_ALLOWED, "Artifact deployment is disabled")
-        }
-
-        if (repository.isFull()) {
-            return errorResponse(INSUFFICIENT_STORAGE, "Not enough storage space available")
-        }
-
         val path = deployRequest.gav.toNormalizedPath().orNull() ?: return errorResponse(BAD_REQUEST, "Invalid GAV")
 
         if (repository.redeployment.not() && path.getSimpleName().contains(METADATA_FILE_NAME).not() && repository.exists(path)) {
             return errorResponse(HttpCode.CONFLICT, "Redeployment is not allowed")
+        }
+
+        if (repository.isFull()) {
+            return errorResponse(INSUFFICIENT_STORAGE, "Not enough storage space available")
         }
 
         return try {

@@ -15,10 +15,10 @@
  */
 package com.reposilite.config
 
+import com.reposilite.shared.FilesUtils.getExtension
 import net.dzikoysk.cdn.CdnFactory
 import net.dzikoysk.dynamiclogger.Journalist
 import net.dzikoysk.dynamiclogger.Logger
-import com.reposilite.shared.FilesUtils.getExtension
 import panda.utilities.ClassUtils
 import panda.utilities.StringUtils
 import java.nio.charset.StandardCharsets
@@ -52,7 +52,7 @@ class ConfigurationLoader(private val journalist: Journalist) : Journalist {
             else createConfiguration(configurationFile)
 
         verifyBasePath(configuration)
-        verifyProxied(configuration)
+        // verifyProxied(configuration)
         Files.write(configurationFile, cdn.render(configuration).toByteArray(StandardCharsets.UTF_8), CREATE, TRUNCATE_EXISTING)
         loadProperties(configuration)
 
@@ -91,15 +91,15 @@ class ConfigurationLoader(private val journalist: Journalist) : Journalist {
         }
     }
 
-    private fun verifyProxied(configuration: Configuration) {
-        for (index in configuration.proxied.indices) {
-            val proxied = configuration.proxied[index]
-
-            if (proxied.endsWith("/")) {
-                configuration.proxied[index] = proxied.substring(0, proxied.length - 1)
-            }
-        }
-    }
+//    private fun verifyProxied(configuration: Configuration) {
+//        for (index in configuration.proxied.indices) {
+//            val proxied = configuration.proxied[index]
+//
+//            if (proxied.endsWith("/")) {
+//                configuration.proxied[index] = proxied.substring(0, proxied.length - 1)
+//            }
+//        }
+//    }
 
     private fun loadProperties(configuration: Configuration) {
         for (declaredField in configuration.javaClass.declaredFields) {
