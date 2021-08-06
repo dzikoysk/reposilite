@@ -18,7 +18,7 @@ package com.reposilite.maven
 import net.dzikoysk.dynamiclogger.Journalist
 import net.dzikoysk.dynamiclogger.Logger
 import com.reposilite.config.Configuration.RepositoryConfiguration
-import com.reposilite.maven.api.Repository
+import com.reposilite.maven.Repository
 import java.nio.file.Path
 
 internal class RepositoryService(

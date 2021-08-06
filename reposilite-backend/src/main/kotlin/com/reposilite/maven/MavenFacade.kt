@@ -18,11 +18,11 @@ package com.reposilite.maven
 
 import com.reposilite.failure.api.ErrorResponse
 import com.reposilite.failure.api.errorResponse
+import com.reposilite.maven.api.DeleteRequest
 import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.maven.api.FileDetails
 import com.reposilite.maven.api.LookupRequest
-import com.reposilite.maven.api.Repository
 import com.reposilite.shared.FilesUtils.getSimpleName
 import com.reposilite.shared.toNormalizedPath
 import com.reposilite.web.toPath
@@ -93,9 +93,13 @@ class MavenFacade internal constructor(
         }
     }
 
-    fun deleteFile(repositoryName: String, gav: String): Result<*, ErrorResponse> {
-        val repository = repositoryService.getRepository(repositoryName) ?: return errorResponse<Any>(NOT_FOUND, "Repository $repositoryName not found")
-        val path = gav.toNormalizedPath().orNull() ?: return errorResponse<Any>(NOT_FOUND, "Invalid GAV")
+    fun deleteFile(deleteRequest: DeleteRequest): Result<*, ErrorResponse> {
+        val repository = repositoryService.getRepository(deleteRequest.repository) ?: return errorResponse<Any>(NOT_FOUND, "Repository ${deleteRequest.repository} not found")
+        val path = deleteRequest.gav.toNormalizedPath().orNull() ?: return errorResponse<Any>(NOT_FOUND, "Invalid GAV")
+
+        if (repositorySecurityProvider.canModifyResource(deleteRequest.accessToken, repository, path).not()) {
+            return errorResponse<Any>(UNAUTHORIZED, "Unauthorized access request")
+        }
 
         return repository.removeFile(path)
     }

@@ -16,7 +16,7 @@
     "vue": "^3.0.11",
     "vue-axios": "^3.2.4",
     "vue-router": "^4.0.6",
-    "vue3-tabs": "^0.1.9"
+    "vue3-tabs": "^0.1.12"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^1.2.1",

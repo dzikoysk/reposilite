@@ -18,7 +18,7 @@ package com.reposilite.maven
 
 import com.reposilite.config.Configuration.RepositoryConfiguration
 import com.reposilite.maven.MavenFacade.Companion.REPOSITORIES
-import com.reposilite.maven.api.Repository
+import com.reposilite.maven.Repository
 import com.reposilite.storage.StorageProviderFactory.createStorageProvider
 import net.dzikoysk.dynamiclogger.Journalist
 import java.nio.file.Path

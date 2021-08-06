@@ -13,20 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.reposilite.maven.api
+package com.reposilite.maven
 
 import com.reposilite.failure.api.ErrorResponse
+import com.reposilite.maven.api.DocumentInfo
+import com.reposilite.maven.api.FileDetails
+import com.reposilite.maven.api.RepositoryVisibility
 import com.reposilite.storage.StorageProvider
 import panda.std.Result
 import java.io.InputStream
 import java.nio.file.Path
 import java.nio.file.attribute.FileTime
-
-enum class RepositoryVisibility {
-    PUBLIC,
-    HIDDEN,
-    PRIVATE
-}
 
 class Repository internal constructor(
     val name: String,

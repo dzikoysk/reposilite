@@ -1,14 +1,14 @@
 package com.reposilite.maven
 
 import com.reposilite.config.Configuration.RepositoryConfiguration
+import com.reposilite.maven.api.DeleteRequest
 import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.RepositoryVisibility
 import com.reposilite.shared.FileType.FILE
-import com.reposilite.token.api.AccessToken
-import com.reposilite.token.api.Route
 import com.reposilite.token.api.RoutePermission.READ
+import com.reposilite.token.api.RoutePermission.WRITE
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -81,8 +81,7 @@ internal class MavenFacadeTest : MavenSpec() {
         assertTrue(errorResponse.isErr)
 
         // given: access token with access to the repository
-        val routes = setOf(Route("/$repository", setOf(READ)))
-        authentication = AccessToken(alias = "alias", secret = "secret", routes = routes)
+        authentication = createAccessToken("alias", "secret", repository, "", READ)
 
         // when: the given file is requested with valid credentials
         val fileDetails = mavenFacade.findFile(fileSpec.toLookupRequest(authentication))
@@ -102,6 +101,28 @@ internal class MavenFacadeTest : MavenSpec() {
 
         // then: response contains error
         assertTrue(directoryInfo.isErr)
+    }
+
+    @Test
+    fun `should delete file` () {
+        // given: a repository with a file
+        val fileSpec = addFileToRepository(FileSpec(RepositoryVisibility.PUBLIC.name.lowercase(), "gav/file.pom", "content"))
+        var authentication = createAccessToken("invalid", "invalid", "invalid", "invalid", WRITE)
+
+        // when: the given file is deleted with invalid credentials
+        val errorResponse = mavenFacade.deleteFile(DeleteRequest(authentication, fileSpec.repository, fileSpec.gav))
+
+        // then: response contains error
+        assertTrue(errorResponse.isErr)
+
+        // given: a valid credentials
+        authentication = createAccessToken("alias", "secret", "public", "gav", WRITE)
+
+        // when: the given file is deleted with valid credentials
+        val response = mavenFacade.deleteFile(DeleteRequest(authentication, fileSpec.repository, fileSpec.gav))
+
+        // then: file has been deleted
+        assertTrue(response.isOk)
     }
 
 }
