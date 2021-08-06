@@ -3,6 +3,7 @@ package com.reposilite.maven.infrastructure
 import com.reposilite.failure.api.ErrorResponse
 import com.reposilite.failure.api.errorResponse
 import com.reposilite.maven.MavenFacade
+import com.reposilite.maven.api.DeleteRequest
 import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.maven.api.FileDetails
@@ -85,7 +86,7 @@ internal class MavenFileEndpoint(private val mavenFacade: MavenFacade) : Routes 
     )
     private val deleteFile = Route("/{repository}/<gav>", DELETE) {
         authorized {
-            response = mavenFacade.deleteFile(parameter("repository"), parameter("gav"))
+            response = mavenFacade.deleteFile(DeleteRequest(accessToken, parameter("repository"), parameter("gav")))
         }
     }
 

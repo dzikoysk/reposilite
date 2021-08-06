@@ -24,7 +24,7 @@ import com.reposilite.failure.FailureFacade
 import com.reposilite.failure.api.ErrorResponse
 import com.reposilite.failure.api.errorResponse
 import com.reposilite.maven.api.DocumentInfo
-import com.reposilite.maven.api.Repository
+import com.reposilite.maven.Repository
 import com.reposilite.maven.api.RepositoryVisibility.PRIVATE
 import com.reposilite.storage.StorageProvider
 import com.reposilite.web.ReposiliteContext

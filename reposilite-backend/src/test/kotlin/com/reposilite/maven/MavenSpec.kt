@@ -5,6 +5,8 @@ import com.reposilite.failure.FailureFacade
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.shared.append
 import com.reposilite.token.api.AccessToken
+import com.reposilite.token.api.Route
+import com.reposilite.token.api.RoutePermission
 import net.dzikoysk.dynamiclogger.backend.InMemoryLogger
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
@@ -60,6 +62,11 @@ internal abstract class MavenSpec {
             .get()
 
         return fileSpec
+    }
+
+    fun createAccessToken(alias: String, secret: String, repository: String, gav: String, permission: RoutePermission): AccessToken {
+        val routes = setOf(Route("/$repository/$gav", setOf(permission)))
+        return AccessToken(alias = alias, secret = secret, routes = routes)
     }
 
 }

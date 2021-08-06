@@ -17,7 +17,7 @@ package com.reposilite.shared
 
 import org.apache.commons.codec.digest.DigestUtils
 import com.reposilite.Reposilite
-import com.reposilite.maven.api.Repository
+import com.reposilite.maven.Repository
 import com.reposilite.web.api.MimeTypes
 import panda.utilities.IOUtils
 import panda.utilities.StringUtils
