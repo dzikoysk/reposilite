@@ -21,7 +21,6 @@ import com.reposilite.console.ConsoleFacade
 import com.reposilite.failure.FailureFacade
 import com.reposilite.frontend.FrontendFacade
 import com.reposilite.maven.MavenFacade
-import com.reposilite.shared.CachedLogger
 import com.reposilite.shared.TimeUtils
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.token.AccessTokenFacade
@@ -31,6 +30,7 @@ import net.dzikoysk.dynamiclogger.Channel
 import net.dzikoysk.dynamiclogger.Journalist
 import net.dzikoysk.dynamiclogger.Logger
 import net.dzikoysk.dynamiclogger.backend.AggregatedLogger
+import net.dzikoysk.dynamiclogger.backend.CachedLogger
 import panda.utilities.console.Effect
 import java.nio.file.Path
 import java.util.concurrent.CompletableFuture

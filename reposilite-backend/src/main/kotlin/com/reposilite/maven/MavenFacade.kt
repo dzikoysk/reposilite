@@ -29,7 +29,6 @@ import com.reposilite.web.toPath
 import io.javalin.http.HttpCode
 import io.javalin.http.HttpCode.BAD_REQUEST
 import io.javalin.http.HttpCode.INSUFFICIENT_STORAGE
-import io.javalin.http.HttpCode.INTERNAL_SERVER_ERROR
 import io.javalin.http.HttpCode.NOT_FOUND
 import io.javalin.http.HttpCode.UNAUTHORIZED
 import net.dzikoysk.dynamiclogger.Journalist
@@ -75,16 +74,8 @@ class MavenFacade internal constructor(
             return errorResponse(INSUFFICIENT_STORAGE, "Not enough storage space available")
         }
 
-        return try {
-//            if (path.getSimpleName().contains(METADATA_FILE_NAME)) {
-//                metadataService.getMetadata(repository, path).map { it.first }
-//            }
-            repository.putFile(path, deployRequest.content)
-                .peek { logger.info("DEPLOY Artifact successfully deployed $path by ${deployRequest.by}") }
-        }
-        catch (exception: Exception) {
-            errorResponse(INTERNAL_SERVER_ERROR, "Failed to upload artifact")
-        }
+        return repository.putFile(path, deployRequest.content)
+            .peek { logger.info("DEPLOY Artifact successfully deployed $path by ${deployRequest.by}") }
     }
 
     fun deleteFile(deleteRequest: DeleteRequest): Result<*, ErrorResponse> {

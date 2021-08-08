@@ -17,13 +17,10 @@ package com.reposilite.maven
 
 import net.dzikoysk.dynamiclogger.Journalist
 import net.dzikoysk.dynamiclogger.Logger
-import com.reposilite.config.Configuration.RepositoryConfiguration
-import com.reposilite.maven.Repository
-import java.nio.file.Path
 
 internal class RepositoryService(
     private val journalist: Journalist,
-    private val repositories: Map<String, Repository>,
+    private val repositories: Map<String, Repository>
 ) : Journalist {
 
     fun getRepository(name: String): Repository? =
@@ -34,19 +31,5 @@ internal class RepositoryService(
 
     override fun getLogger(): Logger =
         journalist.logger
-
-}
-
-internal object RepositoryServiceFactory {
-
-    fun createRepositoryService(journalist: Journalist, workingDirectory: Path, repositoriesConfigurations: Map<String, RepositoryConfiguration>): RepositoryService {
-        val repositories: MutableMap<String, Repository> = LinkedHashMap(repositoriesConfigurations.size)
-
-        for ((repositoryName, repositoryConfiguration) in repositoriesConfigurations) {
-            repositories[repositoryName] = RepositoryFactory.createRepository(journalist, workingDirectory, repositoryName, repositoryConfiguration)
-        }
-
-        return RepositoryService(journalist, repositories)
-    }
 
 }

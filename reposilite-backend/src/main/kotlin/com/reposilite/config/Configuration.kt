@@ -19,6 +19,8 @@ import com.reposilite.maven.api.RepositoryVisibility
 import com.reposilite.maven.api.RepositoryVisibility.PRIVATE
 import net.dzikoysk.cdn.entity.Contextual
 import net.dzikoysk.cdn.entity.Description
+import picocli.CommandLine.Command
+import picocli.CommandLine.Option
 import java.io.Serializable
 
 class Configuration : Serializable {
@@ -137,38 +139,36 @@ class Configuration : Serializable {
         @JvmField
         var redeployment = false
 
-        /* Proxy */
-
         @Description(
-            "",
-            "# List of proxied repositories.",
-            "# Reposilite will search for an artifact in remote repositories listed below,",
-            "# if the requested artifact was not found."
+            "# List of proxied repositories associated with this repository.",
+            "# Reposilite will search for a requested artifact in remote repositories listed below.",
+            "# Supported flags:",
+            "# --store - Reposilite can store proxied artifacts locally to reduce response time and improve stability",
+            "# --connectTimeout=<seconds> - How long Reposilite can wait for establishing the connection with a remote host (default: 3s)",
+            "# --readTimeout=<seconds> - How long Reposilite can read data from remote proxy. (default: 15s)",
+            "# Example usage:",
+            "# proxied [",
+            "#   https://repo.panda-lang.org --store --connectTimeout=3 --readTimeout=15",
+            "# ]"
         )
         @JvmField
         var proxied = mutableListOf<String>()
 
-        @Description("# Reposilite can store proxied artifacts locally to reduce response time and improve stability")
-        @JvmField
-        var storeProxied = true
+        @Command(description = ["An entry representing one proxied host and its configuration"])
+        class ProxyConfiguration : Runnable {
 
-        @Description(
-            "# Proxying is disabled by default in private repositories because of the security policy.",
-            "# Enabling this feature may expose private data like i.e. artifact name used in your company."
-        )
-        @JvmField
-        var proxyPrivate = false
+            @Option(names = ["--store"])
+            var store = false
 
-        @Description("# How long Reposilite can wait for establishing the connection with a remote host. (In seconds)")
-        @JvmField
-        var proxyConnectTimeout = 3
+            @Option(names = ["--connectTimeout"])
+            var connectTimeout = 3
 
-        @Description(
-            "# How long Reposilite can read data from remote proxy. (In seconds)",
-            "# Increasing this value may be required in case of proxying slow remote repositories."
-        )
-        @JvmField
-        var proxyReadTimeout = 15
+            @Option(names = ["--readTimeout"])
+            var readTimeout = 15
+
+            override fun run() { }
+
+        }
 
     }
 

@@ -15,20 +15,27 @@
  */
 package com.reposilite.config
 
-import com.reposilite.shared.FilesUtils.getExtension
 import net.dzikoysk.cdn.CdnFactory
 import net.dzikoysk.dynamiclogger.Journalist
 import net.dzikoysk.dynamiclogger.Logger
 import panda.utilities.ClassUtils
 import panda.utilities.StringUtils
-import java.nio.charset.StandardCharsets
-import java.nio.file.Files
+import picocli.CommandLine
 import java.nio.file.Path
-import java.nio.file.StandardOpenOption.CREATE
-import java.nio.file.StandardOpenOption.TRUNCATE_EXISTING
 import kotlin.reflect.full.isSubclassOf
 
 class ConfigurationLoader(private val journalist: Journalist) : Journalist {
+
+    companion object {
+
+        fun <CONFIGURATION : Runnable> loadConfiguration(configuration: CONFIGURATION, description: String): Pair<String, CONFIGURATION> =
+            description.split(" ", limit = 1)
+                .let { Pair(it[0], it[1]) }
+                .also { CommandLine.populateCommand(configuration, *it.second.split(" ").toTypedArray()) }
+                .let { Pair(it.first, configuration) }
+                .also { it.second.run() }
+
+    }
 
     fun tryLoad(customConfigurationFile: Path): Configuration {
         return try {
@@ -38,42 +45,15 @@ class ConfigurationLoader(private val journalist: Journalist) : Journalist {
         }
     }
 
-    fun load(configurationFile: Path): Configuration {
-        require(getExtension(configurationFile.fileName.toString()) == "cdn") { "Custom configuration file does not have '.cdn' extension" }
-
-        val cdn = CdnFactory.createStandard()
-
-        val configuration =
-            if (Files.exists(configurationFile))
-                cdn.load(
-                    String(Files.readAllBytes(configurationFile), StandardCharsets.UTF_8),
-                    Configuration::class.java
-                )
-            else createConfiguration(configurationFile)
-
-        verifyBasePath(configuration)
-        // verifyProxied(configuration)
-        Files.write(configurationFile, cdn.render(configuration).toByteArray(StandardCharsets.UTF_8), CREATE, TRUNCATE_EXISTING)
-        loadProperties(configuration)
-
-        return configuration
-    }
-
-    private fun createConfiguration(configurationFile: Path): Configuration {
-        val legacyConfiguration = configurationFile.resolveSibling(configurationFile.fileName.toString().replace(".cdn", ".yml"))
-
-        if (!Files.exists(legacyConfiguration)) {
-            logger.info("Generating default configuration file.")
-            return Configuration()
+    private fun load(configurationFile: Path): Configuration =
+        CdnFactory.createStandard().let { cdn ->
+            cdn.load(configurationFile.toFile(), Configuration::class.java).also {
+                verifyBasePath(it)
+                // verifyProxied(configuration)
+                cdn.render(it, configurationFile.toFile())
+                loadProperties(it)
+            }
         }
-
-        logger.info("Legacy configuration file has been found")
-        val configuration = CdnFactory.createYamlLike().load(String(Files.readAllBytes(configurationFile), StandardCharsets.UTF_8), Configuration::class.java)
-        logger.info("YAML configuration has been converted to CDN format")
-        Files.delete(legacyConfiguration)
-
-        return configuration
-    }
 
     private fun verifyBasePath(configuration: Configuration) {
         var basePath = configuration.basePath

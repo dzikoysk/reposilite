@@ -22,6 +22,7 @@ import io.javalin.http.Context
 import org.apache.commons.io.IOUtils
 import org.eclipse.jetty.server.HttpOutput
 import panda.std.Result
+import panda.std.Result.ok
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.charset.Charset
@@ -90,3 +91,23 @@ fun <ANY> ANY.alsoIf(condition: Boolean, block: (ANY) -> Unit): ANY {
 fun <VALUE, ERROR> VALUE.asResult(): Result<VALUE, ERROR> =
     Result.ok(this)
 
+fun <VALUE, ERROR, REQUIRED_ERROR> Result<VALUE, ERROR>.projectToValue(): Result<VALUE, REQUIRED_ERROR> {
+    if (isErr) {
+        throw IllegalStateException("Cannot project result with error to value")
+    }
+
+    return ok(this.get())
+}
+
+fun <VALUE, ERROR, MAPPED_ERROR> Sequence<Result<VALUE, ERROR>>.firstSuccessOr(elseValue: () -> Result<VALUE, MAPPED_ERROR>): Result<VALUE, MAPPED_ERROR> =
+    this.firstOrNull { it.isOk }
+        ?.projectToValue()
+        ?: elseValue()
+
+fun <VALUE, ERROR> Sequence<Result<VALUE, ERROR>>.firstOrErrors(): Result<VALUE, Collection<ERROR>> {
+    val collection: MutableCollection<ERROR> = ArrayList()
+
+    return this
+        .map { result -> result.onError { collection.add(it) } }
+        .firstSuccessOr { Result.error(collection) }
+}

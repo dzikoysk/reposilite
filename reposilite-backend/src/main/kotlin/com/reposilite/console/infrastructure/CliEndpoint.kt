@@ -15,14 +15,14 @@
  */
 package com.reposilite.console.infrastructure
 
+import com.reposilite.auth.AuthenticationFacade
+import com.reposilite.console.ConsoleFacade
+import com.reposilite.token.api.AccessTokenPermission.MANAGER
+import com.reposilite.web.ReposiliteContextFactory
 import io.javalin.websocket.WsConfig
 import io.javalin.websocket.WsConnectContext
 import io.javalin.websocket.WsMessageContext
-import com.reposilite.auth.AuthenticationFacade
-import com.reposilite.console.ConsoleFacade
-import com.reposilite.shared.CachedLogger
-import com.reposilite.token.api.AccessTokenPermission.MANAGER
-import com.reposilite.web.ReposiliteContextFactory
+import net.dzikoysk.dynamiclogger.backend.CachedLogger
 import panda.utilities.StringUtils
 import java.util.function.Consumer
 
@@ -74,7 +74,7 @@ internal class CliEndpoint(
                     consoleFacade.executeCommand(messageContext.message())
                 }
 
-                for (message in cachedLogger.getAllLatestMessages()) {
+                for (message in cachedLogger.messages) {
                     connectContext.send(message) // TOFIX: To JSON
                 }
             }

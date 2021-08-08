@@ -20,15 +20,19 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent.PASSED
 import org.gradle.api.tasks.testing.logging.TestLogEvent.SKIPPED
 import org.gradle.api.tasks.testing.logging.TestLogEvent.STARTED
 
-group = "org.panda-lang"
-version = "3.0.0-SNAPSHOT"
-
 plugins {
     kotlin("jvm") version "1.5.20"
     kotlin("kapt") version "1.5.20"
     application
     jacoco
     `maven-publish`
+}
+
+group = "org.panda-lang"
+version = "3.0.0-SNAPSHOT"
+
+application {
+    mainClass.set("com.reposilite.ReposiliteLauncher")
 }
 
 publishing {
@@ -73,6 +77,10 @@ dependencies {
     implementation(kotlin("stdlib"))
     implementation(kotlin("reflect"))
 
+    val awssdk = "2.15.15"
+    implementation("software.amazon.awssdk:bom:$awssdk")
+    implementation("software.amazon.awssdk:s3:$awssdk")
+
     val exposed = "0.32.1"
     implementation("org.jetbrains.exposed:exposed-core:$exposed")
     implementation("org.jetbrains.exposed:exposed-dao:$exposed")
@@ -81,57 +89,38 @@ dependencies {
     implementation("net.dzikoysk:exposed-upsert:1.0.0")
     implementation("com.h2database:h2:1.4.199")
 
-    val awssdk = "2.15.15"
-    implementation("software.amazon.awssdk:bom:$awssdk")
-    implementation("software.amazon.awssdk:s3:$awssdk")
-
-    val javalin = "4.0.0.RC0"
-    implementation("io.javalin:javalin:$javalin")
-
     val openapi = "1.1.0"
     kapt("io.javalin-rfc:openapi-annotation-processor:$openapi")
     implementation("io.javalin-rfc:javalin-openapi-plugin:$openapi")
     implementation("io.javalin-rfc:javalin-swagger-plugin:$openapi")
 
-    val jetty = "9.4.42.v20210604"
-    implementation("org.eclipse.jetty:jetty-server:$jetty")
-    implementation("org.eclipse.jetty:jetty-webapp:$jetty")
-    implementation("org.eclipse.jetty.websocket:websocket-server:$jetty")
+    val javalin = "4.0.0.RC0"
+    implementation("io.javalin:javalin:$javalin")
 
-    /* Web */
+    val picocli = "4.6.1"
+    kapt("info.picocli:picocli-codegen:$picocli")
+    implementation("info.picocli:picocli:$picocli")
 
-    implementation("com.google.http-client:google-http-client:1.39.2")
-    implementation("org.apache.httpcomponents:httpclient:4.5.13")
-    implementation("org.apache.httpcomponents:httpcore:4.4.14")
-    implementation("org.springframework.security:spring-security-crypto:5.4.6")
-
-    /* Utilities */
-
-    implementation("net.dzikoysk:cdn:1.9.1")
-    implementation("org.panda-lang:expressible:1.0.3")
-    implementation("info.picocli:picocli:4.6.1")
-    implementation("com.google.guava:guava:30.1.1-jre")
-    implementation("org.apache.commons:commons-collections4:4.4")
-    implementation("commons-io:commons-io:2.8.0")
-    implementation("org.yaml:snakeyaml:1.28")
-    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.12.3")
-    implementation("org.apache.maven.indexer:maven-indexer:6.0.0")
-
-    /* Logging */
-
-    implementation("net.dzikoysk:dynamic-logger-slf4j:1.0.1")
-    implementation("org.fusesource.jansi:jansi:2.3.2")
+    val dynamicLogger = "1.0.2"
+    implementation("net.dzikoysk:dynamic-logger:$dynamicLogger")
+    implementation("net.dzikoysk:dynamic-logger-slf4j:$dynamicLogger")
 
     val tinylog = "2.3.1"
     implementation("org.tinylog:slf4j-tinylog:$tinylog")
     implementation("org.tinylog:tinylog-api:$tinylog")
     implementation("org.tinylog:tinylog-impl:$tinylog")
 
+    implementation("net.dzikoysk:cdn:1.9.1")
+    implementation("org.panda-lang:expressible:1.0.3")
+    implementation("com.google.http-client:google-http-client:1.39.2")
+    implementation("org.springframework.security:spring-security-crypto:5.4.6")
+    implementation("commons-io:commons-io:2.8.0")
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.12.3")
+    implementation("org.fusesource.jansi:jansi:2.3.2")
+
     /* Tests */
 
     testImplementation("com.google.http-client:google-http-client-jackson2:1.39.2")
-    testImplementation("org.mockito:mockito-inline:3.9.0")
-    testImplementation("org.mockito:mockito-core:3.9.0")
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.7.1")
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.1")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
@@ -142,8 +131,10 @@ java {
     targetCompatibility = JavaVersion.VERSION_1_8
 }
 
-application {
-    mainClass.set("com.reposilite.ReposiliteLauncher")
+kapt {
+    arguments {
+        arg("project", "${project.group}/${project.name}")
+    }
 }
 
 jacoco {
