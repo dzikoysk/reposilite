@@ -17,15 +17,23 @@
 package com.reposilite.maven
 
 import com.reposilite.config.Configuration.RepositoryConfiguration
+import com.reposilite.config.Configuration.RepositoryConfiguration.ProxyConfiguration
+import com.reposilite.config.ConfigurationLoader
 import com.reposilite.maven.MavenFacade.Companion.REPOSITORIES
-import com.reposilite.maven.Repository
+import com.reposilite.shared.RemoteClient
 import com.reposilite.storage.StorageProviderFactory.createStorageProvider
 import net.dzikoysk.dynamiclogger.Journalist
 import java.nio.file.Path
+import java.util.concurrent.ExecutorService
 
-internal object RepositoryFactory {
+internal class RepositoryFactory(
+    private val journalist: Journalist,
+    private val workingDirectory: Path,
+    private val ioService: ExecutorService,
+    private val remoteClient: RemoteClient
+) {
 
-    fun createRepository(journalist: Journalist, workingDirectory: Path, repositoryName: String, repositoryConfiguration: RepositoryConfiguration): Repository =
+    fun createRepository(repositoryName: String, repositoryConfiguration: RepositoryConfiguration): Repository =
         Repository(
             repositoryName,
             repositoryConfiguration.visibility,
@@ -35,6 +43,7 @@ internal object RepositoryFactory {
                 repositoryConfiguration.storageProvider,
                 repositoryConfiguration.diskQuota
             ),
+            ProxyClient(repositoryConfiguration.proxied.associate { ConfigurationLoader.loadConfiguration(ProxyConfiguration(), it) }, ioService, remoteClient),
             repositoryConfiguration.redeployment
         )
 

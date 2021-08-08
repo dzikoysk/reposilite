@@ -17,6 +17,7 @@ package com.reposilite.failure.api
 
 import io.javalin.http.HttpCode
 import panda.std.Result
+import java.lang.System.lineSeparator
 
 data class ErrorResponse(
     val status: Int,
@@ -25,7 +26,20 @@ data class ErrorResponse(
 
     constructor(code: HttpCode, message: String) : this(code.status, message)
 
+    fun updateMessage(transform: (String) -> String): ErrorResponse =
+        ErrorResponse(status, transform(message))
+
 }
 
 fun <V> errorResponse(code: HttpCode, message: String): Result<V, ErrorResponse> =
     Result.error(ErrorResponse(code.status, message))
+
+fun aggregatedError(code: HttpCode, errors: Collection<ErrorResponse>): ErrorResponse =
+    ErrorResponse(
+        code,
+        code.asString() + " - Aggregated error" + lineSeparator() + errors.joinToString { lineSeparator() }
+    )
+
+
+fun HttpCode.asString() =
+    this.status.toString() + ": " + this.message

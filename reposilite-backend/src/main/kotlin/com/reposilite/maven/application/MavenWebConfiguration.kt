@@ -16,24 +16,30 @@
 
 package com.reposilite.maven.application
 
-import net.dzikoysk.dynamiclogger.Journalist
 import com.reposilite.config.Configuration.RepositoryConfiguration
 import com.reposilite.failure.FailureFacade
 import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.MetadataService
+import com.reposilite.maven.RepositoryFactory
 import com.reposilite.maven.RepositorySecurityProvider
-import com.reposilite.maven.RepositoryServiceFactory
+import com.reposilite.maven.RepositoryService
 import com.reposilite.maven.infrastructure.MavenFileEndpoint
+import com.reposilite.shared.HttpRemoteClient
 import com.reposilite.web.api.Routes
+import net.dzikoysk.dynamiclogger.Journalist
 import java.nio.file.Path
+import java.util.concurrent.Executors
 
 internal object MavenWebConfiguration {
 
-    fun createFacade(journalist: Journalist, failureFacade: FailureFacade, workingDirectory: Path, repositoriesConfiguration: Map<String, RepositoryConfiguration>): MavenFacade {
-        val repositoryService = RepositoryServiceFactory.createRepositoryService(journalist, workingDirectory, repositoriesConfiguration)
-        val metadataService = MetadataService(failureFacade)
+    fun createFacade(journalist: Journalist, failureFacade: FailureFacade, workingDirectory: Path, repositories: Map<String, RepositoryConfiguration>): MavenFacade {
+        val repositoryFactory = RepositoryFactory(journalist, workingDirectory, Executors.newCachedThreadPool(), HttpRemoteClient())
 
-        return MavenFacade(journalist, metadataService, RepositorySecurityProvider(), repositoryService)
+        val repositoryService = repositories
+            .mapValues { (repositoryName, repositoryConfiguration) -> repositoryFactory.createRepository(repositoryName, repositoryConfiguration) }
+            .let { RepositoryService(journalist, it) }
+
+        return MavenFacade(journalist, MetadataService(failureFacade), RepositorySecurityProvider(), repositoryService)
     }
 
     fun routing(mavenFacade: MavenFacade): List<Routes> =

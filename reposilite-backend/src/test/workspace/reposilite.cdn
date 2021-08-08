@@ -47,10 +47,19 @@ repositories {
     # Control the maximum amount of data stored in this repository
     # Supported formats: 90%, 500MB, 10GB
     diskQuota: 10GB
-    # Accept deployment connections
-    deployment: true
     # Does this repository accept redeployment of the same artifact version
     redeployment: false
+    # List of proxied repositories associated with this repository.
+    # Reposilite will search for a requested artifact in remote repositories listed below.
+    # Supported flags:
+    # --store - Reposilite can store proxied artifacts locally to reduce response time and improve stability
+    # --connectTimeout=<seconds> - How long Reposilite can wait for establishing the connection with a remote host (default: 3s)
+    # --readTimeout=<seconds> - How long Reposilite can read data from remote proxy. (default: 15s)
+    # Example usage:
+    # proxied [
+    #   https://repo.panda-lang.org --store --connectTimeout=3 --readTimeout=15
+    # ]
+    proxied: []
   }
   snapshots {
     # Supported visibilities: public, hidden, private
@@ -62,10 +71,19 @@ repositories {
     # Control the maximum amount of data stored in this repository
     # Supported formats: 90%, 500MB, 10GB
     diskQuota: 10GB
-    # Accept deployment connections
-    deployment: true
     # Does this repository accept redeployment of the same artifact version
     redeployment: false
+    # List of proxied repositories associated with this repository.
+    # Reposilite will search for a requested artifact in remote repositories listed below.
+    # Supported flags:
+    # --store - Reposilite can store proxied artifacts locally to reduce response time and improve stability
+    # --connectTimeout=<seconds> - How long Reposilite can wait for establishing the connection with a remote host (default: 3s)
+    # --readTimeout=<seconds> - How long Reposilite can read data from remote proxy. (default: 15s)
+    # Example usage:
+    # proxied [
+    #   https://repo.panda-lang.org --store --connectTimeout=3 --readTimeout=15
+    # ]
+    proxied: []
   }
   private {
     # Supported visibilities: public, hidden, private
@@ -77,36 +95,23 @@ repositories {
     # Control the maximum amount of data stored in this repository
     # Supported formats: 90%, 500MB, 10GB
     diskQuota: 10GB
-    # Accept deployment connections
-    deployment: true
     # Does this repository accept redeployment of the same artifact version
     redeployment: false
+    # List of proxied repositories associated with this repository.
+    # Reposilite will search for a requested artifact in remote repositories listed below.
+    # Supported flags:
+    # --store - Reposilite can store proxied artifacts locally to reduce response time and improve stability
+    # --connectTimeout=<seconds> - How long Reposilite can wait for establishing the connection with a remote host (default: 3s)
+    # --readTimeout=<seconds> - How long Reposilite can read data from remote proxy. (default: 15s)
+    # Example usage:
+    # proxied [
+    #   https://repo.panda-lang.org --store --connectTimeout=3 --readTimeout=15
+    # ]
+    proxied: []
   }
 }
-
-# List of proxied repositories.
-# Reposilite will search for an artifact in remote repositories listed below,
-# if the requested artifact was not found.
-proxied [
-  https://repo.panda-lang.org
-  https://jcenter.bintray.com
-  https://repo.maven.apache.org/maven2
-  https://hephaestus.dev/release
-]
-# Reposilite can store proxied artifacts locally to reduce response time and improve stability
-storeProxied: true
-# Proxying is disabled by default in private repositories because of the security policy.
-# Enabling this feature may expose private data like i.e. artifact name used in your company.
-proxyPrivate: false
-# How long Reposilite can wait for establishing the connection with a remote host. (In seconds)
-proxyConnectTimeout: 3
-# How long Reposilite can read data from remote proxy. (In seconds)
-# Increasing this value may be required in case of proxying slow remote repositories.
-proxyReadTimeout: 15
 
 # Title displayed by frontend
 title: #onlypanda
 # Description displayed by frontend
 description: Public Maven repository hosted through the Reposilite
-# Accent color used by frontend
-accentColor: #2fd4aa

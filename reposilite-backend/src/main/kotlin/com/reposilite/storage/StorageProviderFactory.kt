@@ -16,11 +16,11 @@
 
 package com.reposilite.storage
 
-import net.dzikoysk.dynamiclogger.Journalist
+import com.reposilite.config.ConfigurationLoader
 import com.reposilite.storage.infrastructure.FileSystemStorageProviderFactory
 import com.reposilite.storage.infrastructure.S3StorageProvider
 import com.reposilite.storage.infrastructure.S3StorageProviderSettings
-import picocli.CommandLine
+import net.dzikoysk.dynamiclogger.Journalist
 import java.nio.file.Files
 import java.nio.file.Path
 
@@ -33,7 +33,7 @@ internal object StorageProviderFactory {
         }
         else if (storageDescription.startsWith("s3")) {
             // Implement quota
-            val settings = loadConfiguration(S3StorageProviderSettings(), storageDescription)
+            val settings = ConfigurationLoader.loadConfiguration(S3StorageProviderSettings(), storageDescription).second
             S3StorageProvider(journalist, settings.bucketName, settings.region)
         }
         // else if (storageDescription.equals("rest", ignoreCase = true)) {
@@ -41,8 +41,5 @@ internal object StorageProviderFactory {
         //    null
         //}
         else throw UnsupportedOperationException("Unknown storage provider: $storageDescription")
-
-    private fun <CONFIGURATION : Runnable> loadConfiguration(configuration: CONFIGURATION, description: String): CONFIGURATION =
-        CommandLine.populateCommand(configuration, *description.split(" ").toTypedArray())
 
 }

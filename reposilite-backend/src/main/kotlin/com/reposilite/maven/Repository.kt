@@ -29,6 +29,7 @@ class Repository internal constructor(
     val name: String,
     val visibility: RepositoryVisibility,
     private val storageProvider: StorageProvider,
+    private val proxyClient: ProxyClient,
     val redeployment: Boolean
 ) {
 
