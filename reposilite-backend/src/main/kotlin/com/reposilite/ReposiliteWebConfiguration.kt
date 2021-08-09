@@ -22,6 +22,7 @@ import com.reposilite.console.application.ConsoleWebConfiguration
 import com.reposilite.failure.application.FailureWebConfiguration
 import com.reposilite.frontend.application.FrontendWebConfiguration
 import com.reposilite.maven.application.MavenWebConfiguration
+import com.reposilite.shared.HttpRemoteClient
 import com.reposilite.statistics.application.StatisticsWebConfiguration
 import com.reposilite.token.application.AccessTokenWebConfiguration
 import com.reposilite.web.ReposiliteContextFactory
@@ -39,7 +40,7 @@ object ReposiliteWebConfiguration {
         val webServer = WebConfiguration.createWebServer()
         val failureFacade = FailureWebConfiguration.createFacade(logger)
         val consoleFacade = ConsoleWebConfiguration.createFacade(logger, failureFacade)
-        val mavenFacade = MavenWebConfiguration.createFacade(logger, failureFacade, workingDirectory, configuration.repositories)
+        val mavenFacade = MavenWebConfiguration.createFacade(logger, failureFacade, workingDirectory, HttpRemoteClient(), configuration.repositories)
         val frontendFacade = FrontendWebConfiguration.createFacade()
         val statisticFacade = StatisticsWebConfiguration.createFacade(logger)
         val accessTokenFacade = AccessTokenWebConfiguration.createFacade(logger)

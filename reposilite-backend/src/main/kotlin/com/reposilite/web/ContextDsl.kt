@@ -18,6 +18,7 @@ package com.reposilite.web
 
 import com.reposilite.auth.Session
 import com.reposilite.failure.api.ErrorResponse
+import com.reposilite.shared.error
 import io.javalin.http.Context
 import io.javalin.http.HttpCode
 import panda.std.Result

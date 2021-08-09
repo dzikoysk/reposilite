@@ -4,7 +4,7 @@ import com.reposilite.Reposilite
 import com.reposilite.ReposiliteWebConfiguration
 import com.reposilite.config.Configuration
 import com.reposilite.web.WebServer
-import com.reposilite.web.alsoIf
+import com.reposilite.shared.alsoIf
 import io.javalin.Javalin
 
 internal class JavalinWebServer : WebServer {

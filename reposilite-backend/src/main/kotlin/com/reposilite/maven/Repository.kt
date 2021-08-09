@@ -15,6 +15,7 @@
  */
 package com.reposilite.maven
 
+import com.reposilite.config.Configuration.RepositoryConfiguration.ProxiedHostConfiguration
 import com.reposilite.failure.api.ErrorResponse
 import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.maven.api.FileDetails
@@ -28,8 +29,8 @@ import java.nio.file.attribute.FileTime
 class Repository internal constructor(
     val name: String,
     val visibility: RepositoryVisibility,
+    val proxiedHosts: Map<String, ProxiedHostConfiguration>,
     private val storageProvider: StorageProvider,
-    private val proxyClient: ProxyClient,
     val redeployment: Boolean
 ) {
 

@@ -30,7 +30,7 @@ import com.reposilite.shared.FilesUtils.getMimeType
 import com.reposilite.storage.StorageProvider
 import com.reposilite.web.api.MimeTypes.OCTET_STREAM
 import com.reposilite.web.api.MimeTypes.PLAIN
-import com.reposilite.web.asResult
+import com.reposilite.shared.asResult
 import panda.std.Result
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider
 import software.amazon.awssdk.core.sync.RequestBody

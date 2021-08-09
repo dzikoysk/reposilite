@@ -8,6 +8,7 @@ import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.maven.api.FileDetails
 import com.reposilite.maven.api.LookupRequest
+import com.reposilite.shared.resultAttachment
 import com.reposilite.web.api.MimeTypes.MULTIPART_FORM_DATA
 import com.reposilite.web.api.Route
 import com.reposilite.web.api.RouteMethod.DELETE
@@ -16,13 +17,13 @@ import com.reposilite.web.api.RouteMethod.HEAD
 import com.reposilite.web.api.RouteMethod.POST
 import com.reposilite.web.api.RouteMethod.PUT
 import com.reposilite.web.api.Routes
-import com.reposilite.web.resultAttachment
 import io.javalin.http.HttpCode.NO_CONTENT
 import io.javalin.openapi.HttpMethod
 import io.javalin.openapi.OpenApi
 import io.javalin.openapi.OpenApiContent
 import io.javalin.openapi.OpenApiParam
 import io.javalin.openapi.OpenApiResponse
+import kotlinx.coroutines.runBlocking
 import panda.std.Result
 
 internal class MavenFileEndpoint(private val mavenFacade: MavenFacade) : Routes {
@@ -44,7 +45,7 @@ internal class MavenFileEndpoint(private val mavenFacade: MavenFacade) : Routes 
     val findFile = Route("/{repository}/<gav>", GET) {
         accessed {
             LookupRequest(parameter("repository"), parameter("gav"), this?.accessToken)
-                .let { mavenFacade.findFile(it) }
+                .let { runBlocking { mavenFacade.findFile(it) }}
                 .peek {
                     when (it) {
                         is DocumentInfo -> ctx.resultAttachment(it)
@@ -119,7 +120,7 @@ internal class MavenFileEndpoint(private val mavenFacade: MavenFacade) : Routes 
     val findFileDetails = Route("/api/maven/details/{repository}/<gav>", HEAD, GET) {
         accessed {
             response = LookupRequest(parameter("repository"), parameter("gav"), this?.accessToken)
-                .let { mavenFacade.findFile(it) }
+                .let { runBlocking { mavenFacade.findFile(it) } }
         }
     }
 

@@ -15,30 +15,7 @@
  */
 package com.reposilite.maven
 
-import com.google.api.client.http.GenericUrl
-import com.google.api.client.http.HttpRequestFactory
-import com.google.api.client.http.HttpResponse
-import com.google.api.client.http.javanet.NetHttpTransport
-import com.reposilite.ReposiliteException
-import com.reposilite.failure.FailureFacade
-import com.reposilite.failure.api.ErrorResponse
-import com.reposilite.failure.api.errorResponse
-import com.reposilite.maven.api.DocumentInfo
-import com.reposilite.maven.Repository
-import com.reposilite.maven.api.RepositoryVisibility.PRIVATE
-import com.reposilite.storage.StorageProvider
-import com.reposilite.web.ReposiliteContext
-import com.reposilite.web.asResult
-import io.javalin.http.HttpCode
-import panda.std.Option
-import panda.std.Result
-import panda.utilities.StringUtils
-import java.io.IOException
-import java.net.SocketTimeoutException
-import java.nio.file.Paths
-import java.util.Collections
-import java.util.concurrent.CompletableFuture
-
+/*
 internal class ProxyService(
     private val storeProxied: Boolean,
     private val proxyPrivate: Boolean,
@@ -157,3 +134,4 @@ internal class ProxyService(
     }
 
 }
+ */
