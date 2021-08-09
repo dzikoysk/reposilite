@@ -4,7 +4,7 @@ import com.reposilite.failure.api.ErrorResponse
 import com.reposilite.failure.api.errorResponse
 import com.reposilite.shared.FileType.DIRECTORY
 import com.reposilite.shared.FileType.FILE
-import com.reposilite.web.toPath
+import com.reposilite.shared.toPath
 import io.javalin.http.HttpCode
 import io.javalin.http.HttpCode.NOT_FOUND
 import panda.std.Result

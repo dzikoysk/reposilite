@@ -25,7 +25,8 @@ import com.reposilite.maven.api.FileDetails
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.shared.FilesUtils.getSimpleName
 import com.reposilite.shared.toNormalizedPath
-import com.reposilite.web.toPath
+import com.reposilite.shared.toPath
+import com.reposilite.shared.toPath
 import io.javalin.http.HttpCode
 import io.javalin.http.HttpCode.BAD_REQUEST
 import io.javalin.http.HttpCode.INSUFFICIENT_STORAGE
@@ -41,22 +42,28 @@ class MavenFacade internal constructor(
     private val journalist: Journalist,
     private val metadataService: MetadataService,
     private val repositorySecurityProvider: RepositorySecurityProvider,
-    private val repositoryService: RepositoryService
+    private val repositoryService: RepositoryService,
+    private val proxyClient: ProxyClient
 ) : Journalist {
 
     companion object {
         val REPOSITORIES: Path = Paths.get("repositories")
     }
 
-    fun findFile(lookupRequest: LookupRequest): Result<out FileDetails, ErrorResponse> {
+    suspend fun findFile(lookupRequest: LookupRequest): Result<out FileDetails, ErrorResponse> {
         val repository = repositoryService.getRepository(lookupRequest.repository) ?: return errorResponse(NOT_FOUND, "Repository not found")
         val gav = lookupRequest.gav.toPath()
 
+        if (repositorySecurityProvider.canAccessResource(lookupRequest.accessToken, repository, gav).not()) {
+            return errorResponse(UNAUTHORIZED, "Unauthorized access request")
+        }
+
+        if (repository.exists(gav).not()) {
+            return proxyClient.findFile(repository, lookupRequest.gav)
+        }
+
         if (repository.isDirectory(gav) && repositorySecurityProvider.canBrowseResource(lookupRequest.accessToken, repository, gav).not()) {
             return errorResponse(UNAUTHORIZED, "Unauthorized indexing request")
-        }
-        else if (repositorySecurityProvider.canAccessResource(lookupRequest.accessToken, repository, gav).not()) {
-            return errorResponse(UNAUTHORIZED, "Unauthorized access request")
         }
 
         return repository.getFileDetails(gav)

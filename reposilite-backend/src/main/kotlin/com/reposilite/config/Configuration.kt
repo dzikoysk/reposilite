@@ -155,7 +155,7 @@ class Configuration : Serializable {
         var proxied = mutableListOf<String>()
 
         @Command(description = ["An entry representing one proxied host and its configuration"])
-        class ProxyConfiguration : Runnable {
+        class ProxiedHostConfiguration : Runnable {
 
             @Option(names = ["--store"])
             var store = false

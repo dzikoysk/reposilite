@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
-package com.reposilite.web
+package com.reposilite.shared
 
 import com.reposilite.failure.api.ErrorResponse
 import com.reposilite.maven.api.DocumentInfo
 import io.javalin.http.Context
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
 import org.apache.commons.io.IOUtils
 import org.eclipse.jetty.server.HttpOutput
 import panda.std.Result
@@ -99,12 +102,12 @@ fun <VALUE, ERROR, REQUIRED_ERROR> Result<VALUE, ERROR>.projectToValue(): Result
     return ok(this.get())
 }
 
-fun <VALUE, ERROR, MAPPED_ERROR> Sequence<Result<VALUE, ERROR>>.firstSuccessOr(elseValue: () -> Result<VALUE, MAPPED_ERROR>): Result<VALUE, MAPPED_ERROR> =
+suspend fun <VALUE, ERROR, MAPPED_ERROR> Flow<Result<out VALUE, ERROR>>.firstSuccessOr(elseValue: suspend () -> Result<out VALUE, MAPPED_ERROR>): Result<out VALUE, MAPPED_ERROR> =
     this.firstOrNull { it.isOk }
         ?.projectToValue()
         ?: elseValue()
 
-fun <VALUE, ERROR> Sequence<Result<VALUE, ERROR>>.firstOrErrors(): Result<VALUE, Collection<ERROR>> {
+suspend fun <VALUE, ERROR> Flow<Result<out VALUE, ERROR>>.firstOrErrors(): Result<out VALUE, Collection<ERROR>> {
     val collection: MutableCollection<ERROR> = ArrayList()
 
     return this

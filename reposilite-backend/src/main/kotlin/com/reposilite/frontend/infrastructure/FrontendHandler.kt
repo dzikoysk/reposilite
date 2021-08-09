@@ -1,8 +1,9 @@
 package com.reposilite.frontend.infrastructure
 
 import com.reposilite.frontend.FrontendFacade
+import com.reposilite.shared.encoding
 import com.reposilite.web.api.Routes
-import com.reposilite.web.encoding
+import com.reposilite.shared.encoding
 import io.javalin.http.Context
 import org.eclipse.jetty.http.HttpStatus
 import org.eclipse.jetty.http.MimeTypes
@@ -13,7 +14,7 @@ internal abstract class FrontendHandler(protected val frontendFacade: FrontendFa
     protected fun respondWithFile(ctx: Context, uri: String, inputStream: InputStream?) {
         inputStream
             ?.let {
-                ctx.result(it)
+                ctx.result(it) // -> ctx.result(it.readBytes().decodeToString())
                     .encoding(Charsets.UTF_8)
                     .contentType(MimeTypes.getDefaultMimeByExtension(uri))
             }

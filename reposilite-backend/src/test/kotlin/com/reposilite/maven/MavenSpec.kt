@@ -4,6 +4,7 @@ import com.reposilite.config.Configuration.RepositoryConfiguration
 import com.reposilite.failure.FailureFacade
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.application.MavenWebConfiguration
+import com.reposilite.shared.HttpRemoteClient
 import com.reposilite.shared.append
 import com.reposilite.token.api.AccessToken
 import com.reposilite.token.api.Route
@@ -32,7 +33,7 @@ internal abstract class MavenSpec {
     private fun initializeFacade() {
         val logger = InMemoryLogger()
         val failureFacade = FailureFacade(logger)
-        this.mavenFacade = MavenWebConfiguration.createFacade(logger, failureFacade, workingDirectory!!.toPath(), repositories())
+        this.mavenFacade = MavenWebConfiguration.createFacade(logger, failureFacade, workingDirectory!!.toPath(), HttpRemoteClient(), repositories())
     }
 
     data class FileSpec(

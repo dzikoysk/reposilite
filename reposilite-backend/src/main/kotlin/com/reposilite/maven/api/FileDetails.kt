@@ -26,7 +26,7 @@ import com.reposilite.shared.catchIOException
 import com.reposilite.shared.exists
 import com.reposilite.shared.type
 import com.reposilite.web.api.MimeTypes.OCTET_STREAM
-import com.reposilite.web.asResult
+import com.reposilite.shared.asResult
 import panda.std.Result
 import java.io.IOException
 import java.io.InputStream

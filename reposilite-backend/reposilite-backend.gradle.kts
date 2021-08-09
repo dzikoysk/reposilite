@@ -76,6 +76,7 @@ repositories {
 dependencies {
     implementation(kotlin("stdlib"))
     implementation(kotlin("reflect"))
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.1")
 
     val awssdk = "2.15.15"
     implementation("software.amazon.awssdk:bom:$awssdk")
@@ -88,6 +89,10 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-java-time:$exposed")
     implementation("net.dzikoysk:exposed-upsert:1.0.0")
     implementation("com.h2database:h2:1.4.199")
+
+    val fuel = "2.3.1"
+    implementation("com.github.kittinunf.fuel:fuel:$fuel")
+    implementation("com.github.kittinunf.fuel:fuel-coroutines:$fuel")
 
     val openapi = "1.1.0"
     kapt("io.javalin-rfc:openapi-annotation-processor:$openapi")

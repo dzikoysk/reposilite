@@ -9,6 +9,7 @@ import com.reposilite.maven.api.RepositoryVisibility
 import com.reposilite.shared.FileType.FILE
 import com.reposilite.token.api.RoutePermission.READ
 import com.reposilite.token.api.RoutePermission.WRITE
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -51,7 +52,7 @@ internal class MavenFacadeTest : MavenSpec() {
 
     @ParameterizedTest
     @EnumSource(value = RepositoryVisibility::class, names = [ "PUBLIC", "HIDDEN" ])
-    fun `should find requested file without credentials in public and hidden repositories`(visibility: RepositoryVisibility) {
+    fun `should find requested file without credentials in public and hidden repositories`(visibility: RepositoryVisibility) = runBlocking {
         // given: a repository with a file
         val fileSpec = addFileToRepository(FileSpec(visibility.name.lowercase(), "gav/file.pom", "content"))
 
@@ -68,7 +69,7 @@ internal class MavenFacadeTest : MavenSpec() {
     }
 
     @Test
-    fun `should require authentication to access file in private repository`() {
+    fun `should require authentication to access file in private repository`() = runBlocking {
         // given: a repository with file and request without credentials
         val repository = RepositoryVisibility.PRIVATE.name.lowercase()
         val fileSpec = addFileToRepository(FileSpec(repository, "gav/file.pom", "content"))
@@ -92,7 +93,7 @@ internal class MavenFacadeTest : MavenSpec() {
 
     @ParameterizedTest
     @EnumSource(value = RepositoryVisibility::class, names = [ "HIDDEN", "PRIVATE" ])
-    fun `should restrict directory indexing in hidden and private repositories `(visibility: RepositoryVisibility) {
+    fun `should restrict directory indexing in hidden and private repositories `(visibility: RepositoryVisibility) = runBlocking {
         // given: a repository with a file
         val fileSpec = addFileToRepository(FileSpec(visibility.name.lowercase(), "gav/file.pom", "content"))
 

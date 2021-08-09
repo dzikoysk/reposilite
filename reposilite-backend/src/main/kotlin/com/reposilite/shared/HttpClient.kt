@@ -1,52 +1,61 @@
 package com.reposilite.shared
 
-import com.google.api.client.http.GenericUrl
-import com.google.api.client.http.javanet.NetHttpTransport
+import com.github.kittinunf.fuel.Fuel
+import com.github.kittinunf.fuel.core.isSuccessful
+import com.github.kittinunf.fuel.coroutines.awaitByteArrayResponseResult
 import com.reposilite.failure.api.ErrorResponse
 import com.reposilite.failure.api.errorResponse
+import com.reposilite.maven.api.DocumentInfo
+import com.reposilite.shared.FilesUtils.getExtension
+import com.reposilite.shared.FilesUtils.getSimpleName
 import com.reposilite.web.api.MimeTypes
-import io.javalin.http.HttpCode.INTERNAL_SERVER_ERROR
+import io.javalin.http.HttpCode.BAD_REQUEST
 import io.javalin.http.HttpCode.NOT_ACCEPTABLE
-import io.javalin.http.HttpCode.REQUEST_TIMEOUT
+import org.eclipse.jetty.http.HttpHeader
 import panda.std.Result
-import java.io.InputStream
-import java.net.SocketTimeoutException
 
 interface RemoteClient {
 
-    fun get(uri: String, connectTimeout: Int, readTimeout: Int): Result<InputStream, ErrorResponse>
+    suspend fun get(uri: String, connectTimeout: Int, readTimeout: Int): Result<DocumentInfo, ErrorResponse>
 
 }
 
 class HttpRemoteClient : RemoteClient {
 
-    private val httpRequestFactory = NetHttpTransport().createRequestFactory()
+    override suspend fun get(uri: String, connectTimeout: Int, readTimeout: Int): Result<DocumentInfo, ErrorResponse> =
+        Fuel.get("uri")
+            .timeout(connectTimeout * 1000)
+            .timeoutRead(readTimeout * 1000)
+            .awaitByteArrayResponseResult()
+            .let { (_, response, result) ->
+                result.fold(
+                    { data ->
+                        val contentType = response.header(HttpHeader.CONTENT_TYPE.asString()).firstOrNull() ?: MimeTypes.getMimeType(getExtension(uri))
 
-    override fun get(uri: String, connectTimeout: Int, readTimeout: Int): Result<InputStream, ErrorResponse> {
-        try {
-            val remoteRequest = httpRequestFactory.buildGetRequest(GenericUrl(uri))
-            remoteRequest.throwExceptionOnExecuteError = false
-            remoteRequest.connectTimeout = connectTimeout * 1000
-            remoteRequest.readTimeout = readTimeout * 1000
-
-            val remoteResponse = remoteRequest.execute()
-
-            return when {
-                remoteResponse.headers.contentType == MimeTypes.HTML -> errorResponse(NOT_ACCEPTABLE, "...")
-                remoteResponse.isSuccessStatusCode.not() -> errorResponse(NOT_ACCEPTABLE, "...")
-                else -> errorResponse(NOT_ACCEPTABLE, "...")
+                        when {
+                            contentType == MimeTypes.HTML -> errorResponse(NOT_ACCEPTABLE, "Illegal file type")
+                            response.isSuccessful.not() -> errorResponse(NOT_ACCEPTABLE, "Unsuccessful request")
+                            else -> {
+                                DocumentInfo(
+                                    uri.toNormalizedPath().get().getSimpleName(),
+                                    MimeTypes.OCTET_STREAM,
+                                    response.contentLength,
+                                    { data.inputStream() }
+                                ).asResult()
+                            }
+                        }
+                    },
+                    { error -> errorResponse(BAD_REQUEST, "An error of type ${error.exception} happened: ${error.message}")}
+                )
             }
-        } catch (exception: Exception) {
-            return if (exception is SocketTimeoutException) {
-                errorResponse(REQUEST_TIMEOUT, "Host $uri is unavailable due to: ${exception.message}")
-            } else {
-                errorResponse(INTERNAL_SERVER_ERROR, "Proxy exception: ${exception.message}")
-            }
-        }
-    }
 
 }
 
-abstract class StubRemoteClient : RemoteClient {
+class FakeRemoteClient(
+    private val handler: suspend (String, Int, Int) -> Result<DocumentInfo, ErrorResponse>
+) : RemoteClient {
+
+    override suspend fun get(uri: String, connectTimeout: Int, readTimeout: Int): Result<DocumentInfo, ErrorResponse> =
+        handler(uri, connectTimeout, readTimeout)
 
 }
