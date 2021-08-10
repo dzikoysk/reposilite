@@ -15,8 +15,6 @@
  */
 package com.reposilite.console.application
 
-import io.javalin.Javalin
-import net.dzikoysk.dynamiclogger.Journalist
 import com.reposilite.Reposilite
 import com.reposilite.console.Console
 import com.reposilite.console.ConsoleFacade
@@ -27,7 +25,9 @@ import com.reposilite.console.VersionCommand
 import com.reposilite.console.infrastructure.CliEndpoint
 import com.reposilite.console.infrastructure.RemoteExecutionEndpoint
 import com.reposilite.failure.FailureFacade
-import com.reposilite.web.api.Routes
+import com.reposilite.web.ReposiliteRoutes
+import io.javalin.Javalin
+import net.dzikoysk.dynamiclogger.Journalist
 
 private const val REMOTE_VERSION = "https://repo.panda-lang.org/org/panda-lang/reposilite/latest"
 
@@ -51,7 +51,7 @@ internal object ConsoleWebConfiguration {
         }
     }
 
-    fun routing(reposilite: Reposilite): Set<Routes> =
+    fun routing(reposilite: Reposilite): Set<ReposiliteRoutes> =
         setOf(
             RemoteExecutionEndpoint(reposilite.consoleFacade)
         )

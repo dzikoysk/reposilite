@@ -3,17 +3,8 @@ package com.reposilite.web.infrastructure
 import com.fasterxml.jackson.annotation.JsonInclude.Include
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.reposilite.Reposilite
-import com.reposilite.ReposiliteWebConfiguration
 import com.reposilite.VERSION
 import com.reposilite.config.Configuration
-import com.reposilite.web.api.RouteMethod.AFTER
-import com.reposilite.web.api.RouteMethod.BEFORE
-import com.reposilite.web.api.RouteMethod.DELETE
-import com.reposilite.web.api.RouteMethod.GET
-import com.reposilite.web.api.RouteMethod.HEAD
-import com.reposilite.web.api.RouteMethod.POST
-import com.reposilite.web.api.RouteMethod.PUT
-import io.javalin.Javalin
 import io.javalin.core.JavalinConfig
 import io.javalin.openapi.plugin.OpenApiConfiguration
 import io.javalin.openapi.plugin.OpenApiPlugin
@@ -96,29 +87,6 @@ internal object JavalinWebServerConfiguration {
             reposilite.logger.info("Debug enabled")
             config.enableDevLogging()
         }
-    }
-
-    internal fun routing(reposilite: Reposilite, javalin: Javalin) {
-        ReposiliteWebConfiguration.routing(reposilite)
-            .flatMap { it.routes }
-            .sorted()
-            .map { Pair(it, it.createHandler(reposilite.contextFactory)) }
-            .also { reposilite.logger.debug("--- Routes") }
-            .forEach { (route, handler) ->
-                route.methods.forEach { method ->
-                    when (method) {
-                        HEAD -> javalin.head(route.path, handler)
-                        GET -> javalin.get(route.path, handler)
-                        PUT -> javalin.put(route.path, handler)
-                        POST -> javalin.post(route.path, handler)
-                        DELETE -> javalin.delete(route.path, handler)
-                        AFTER -> javalin.after(route.path, handler)
-                        BEFORE -> javalin.before(route.path, handler)
-                    }
-
-                    reposilite.logger.debug("- $method ${route.path}")
-                }
-            }
     }
 
 }

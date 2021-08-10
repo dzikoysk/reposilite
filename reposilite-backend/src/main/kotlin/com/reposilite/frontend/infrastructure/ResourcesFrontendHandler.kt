@@ -16,21 +16,21 @@
 package com.reposilite.frontend.infrastructure
 
 import com.reposilite.frontend.FrontendFacade
-import com.reposilite.web.api.Route
-import com.reposilite.web.api.RouteMethod.GET
+import com.reposilite.web.ReposiliteRoute
+import com.reposilite.web.routing.RouteMethod.GET
 import io.javalin.http.Context
 
 internal class ResourcesFrontendHandler(frontendFacade: FrontendFacade) : FrontendHandler(frontendFacade) {
 
-    private val defaultHandler = Route("/", GET) {
+    private val defaultHandler = ReposiliteRoute("/", GET) {
         respondWithResource(ctx, "index.html")
     }
 
-    private val indexHandler = Route("/index.html", GET) {
+    private val indexHandler = ReposiliteRoute("/index.html", GET) {
         respondWithResource(ctx, "index.html")
     }
 
-    private val assetsHandler = Route("/assets/<path>", GET) {
+    private val assetsHandler = ReposiliteRoute("/assets/<path>", GET) {
         respondWithResource(ctx, "assets/${ctx.pathParam("path")}")
     }
 

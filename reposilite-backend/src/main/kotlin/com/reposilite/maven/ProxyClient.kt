@@ -1,13 +1,13 @@
 package com.reposilite.maven
 
 import com.reposilite.config.Configuration.RepositoryConfiguration.ProxiedHostConfiguration
-import com.reposilite.failure.api.ErrorResponse
-import com.reposilite.failure.api.aggregatedError
 import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.maven.api.FileDetails
 import com.reposilite.shared.RemoteClient
-import com.reposilite.shared.firstOrErrors
 import com.reposilite.shared.toPath
+import com.reposilite.web.coroutines.firstOrErrors
+import com.reposilite.web.error.ErrorResponse
+import com.reposilite.web.error.aggregatedError
 import io.javalin.http.HttpCode.NOT_FOUND
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.map

@@ -16,7 +16,6 @@
 
 package com.reposilite.auth.application
 
-import net.dzikoysk.dynamiclogger.Journalist
 import com.reposilite.auth.AuthenticationFacade
 import com.reposilite.auth.Authenticator
 import com.reposilite.auth.SessionService
@@ -24,7 +23,8 @@ import com.reposilite.auth.infrastructure.AuthenticationEndpoint
 import com.reposilite.auth.infrastructure.PostAuthHandler
 import com.reposilite.maven.MavenFacade
 import com.reposilite.token.AccessTokenFacade
-import com.reposilite.web.api.Routes
+import com.reposilite.web.ReposiliteRoutes
+import net.dzikoysk.dynamiclogger.Journalist
 
 internal object AuthenticationWebConfiguration {
 
@@ -35,10 +35,11 @@ internal object AuthenticationWebConfiguration {
         return AuthenticationFacade(journalist, authenticator, sessionService)
     }
 
-    fun routing(authenticationFacade: AuthenticationFacade): Set<Routes> =
+    fun routing(authenticationFacade: AuthenticationFacade): Set<ReposiliteRoutes> =
         setOf(
             AuthenticationEndpoint(authenticationFacade),
             PostAuthHandler()
         )
+
 
 }

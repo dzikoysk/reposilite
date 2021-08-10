@@ -1,10 +1,9 @@
 package com.reposilite.shared
 
-import com.reposilite.failure.api.ErrorResponse
-import com.reposilite.failure.api.errorResponse
 import com.reposilite.shared.FileType.DIRECTORY
 import com.reposilite.shared.FileType.FILE
-import com.reposilite.shared.toPath
+import com.reposilite.web.error.ErrorResponse
+import com.reposilite.web.error.errorResponse
 import io.javalin.http.HttpCode
 import io.javalin.http.HttpCode.NOT_FOUND
 import panda.std.Result
@@ -14,6 +13,7 @@ import java.io.IOException
 import java.io.InputStream
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.nio.file.attribute.FileTime
 import kotlin.io.path.isDirectory
 import kotlin.streams.toList
@@ -23,6 +23,9 @@ enum class FileType {
     FILE,
     DIRECTORY
 }
+
+fun String.toPath(): Path =
+    Paths.get(this)
 
 fun Path.exists(): Result<Path, ErrorResponse> =
     once(Files.exists(this), this, ErrorResponse(NOT_FOUND, "File not found: $this"))
@@ -66,6 +69,10 @@ fun Path.size(): Result<Long, ErrorResponse> =
 
 fun Path.append(path: String): Result<Path, IOException> =
     path.toNormalizedPath().map { this.resolve(it).normalize() }
+
+
+fun Path.getSimpleName(): String =
+    this.fileName.toString()
 
 fun String.toNormalizedPath(): Result<Path, IOException> =
     normalizedAsUri().map { it.toPath().normalize() }

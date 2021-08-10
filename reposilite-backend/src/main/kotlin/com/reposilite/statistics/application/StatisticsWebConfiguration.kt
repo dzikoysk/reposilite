@@ -21,7 +21,7 @@ import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.statistics.StatsCommand
 import com.reposilite.statistics.infrastructure.SqlStatisticsRepository
 import com.reposilite.statistics.infrastructure.StatisticsHandler
-import com.reposilite.web.api.Routes
+import com.reposilite.web.ReposiliteRoutes
 import net.dzikoysk.dynamiclogger.Journalist
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit.MINUTES
@@ -38,7 +38,7 @@ internal object StatisticsWebConfiguration {
         consoleFacade.registerCommand(StatsCommand(statisticsFacade))
     }
 
-    fun routing(statisticsFacade: StatisticsFacade): Set<Routes> =
+    fun routing(statisticsFacade: StatisticsFacade): Set<ReposiliteRoutes> =
         setOf(
             StatisticsHandler(statisticsFacade)
         )

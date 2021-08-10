@@ -1,22 +1,22 @@
 package com.reposilite.maven.infrastructure
 
-import com.reposilite.failure.api.ErrorResponse
-import com.reposilite.failure.api.errorResponse
 import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.api.DeleteRequest
 import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.maven.api.FileDetails
 import com.reposilite.maven.api.LookupRequest
-import com.reposilite.shared.resultAttachment
+import com.reposilite.web.ReposiliteRoute
+import com.reposilite.web.ReposiliteRoutes
 import com.reposilite.web.api.MimeTypes.MULTIPART_FORM_DATA
-import com.reposilite.web.api.Route
-import com.reposilite.web.api.RouteMethod.DELETE
-import com.reposilite.web.api.RouteMethod.GET
-import com.reposilite.web.api.RouteMethod.HEAD
-import com.reposilite.web.api.RouteMethod.POST
-import com.reposilite.web.api.RouteMethod.PUT
-import com.reposilite.web.api.Routes
+import com.reposilite.web.context.resultAttachment
+import com.reposilite.web.error.ErrorResponse
+import com.reposilite.web.error.errorResponse
+import com.reposilite.web.routing.RouteMethod.DELETE
+import com.reposilite.web.routing.RouteMethod.GET
+import com.reposilite.web.routing.RouteMethod.HEAD
+import com.reposilite.web.routing.RouteMethod.POST
+import com.reposilite.web.routing.RouteMethod.PUT
 import io.javalin.http.HttpCode.NO_CONTENT
 import io.javalin.openapi.HttpMethod
 import io.javalin.openapi.OpenApi
@@ -26,7 +26,7 @@ import io.javalin.openapi.OpenApiResponse
 import kotlinx.coroutines.runBlocking
 import panda.std.Result
 
-internal class MavenFileEndpoint(private val mavenFacade: MavenFacade) : Routes {
+internal class MavenFileEndpoint(private val mavenFacade: MavenFacade) : ReposiliteRoutes {
 
     @OpenApi(
         path = "/{repository}/*",
@@ -42,13 +42,13 @@ internal class MavenFileEndpoint(private val mavenFacade: MavenFacade) : Routes 
             OpenApiResponse(status = "404", description = "Returns 404 (for Maven) with frontend (for user) as a response if requested resource is not located in the current repository")
         ]
     )
-    val findFile = Route("/{repository}/<gav>", GET) {
+    val findFile = ReposiliteRoute("/{repository}/<gav>", GET) {
         accessed {
             LookupRequest(parameter("repository"), parameter("gav"), this?.accessToken)
                 .let { runBlocking { mavenFacade.findFile(it) }}
                 .peek {
                     when (it) {
-                        is DocumentInfo -> ctx.resultAttachment(it)
+                        is DocumentInfo -> ctx.resultAttachment(it.name, it.contentType, it.contentLength, it.content())
                         else -> response = errorResponse(NO_CONTENT, "Requested file is a directory")
                     }
                 }
@@ -72,7 +72,7 @@ internal class MavenFileEndpoint(private val mavenFacade: MavenFacade) : Routes 
             OpenApiResponse(status = "507", description = "Returns 507 if Reposilite does not have enough disk space to store the uploaded file")
         ]
     )
-    private val deployFile = Route("/{repository}/<gav>", POST, PUT) {
+    private val deployFile = ReposiliteRoute("/{repository}/<gav>", POST, PUT) {
         authorized {
             response = DeployRequest(parameter("repository"), parameter("gav"), getSessionIdentifier(), context.input())
                 .let { mavenFacade.deployFile(it) }
@@ -85,7 +85,7 @@ internal class MavenFileEndpoint(private val mavenFacade: MavenFacade) : Routes 
         summary = "Delete the given file from repository",
         methods = [HttpMethod.DELETE]
     )
-    private val deleteFile = Route("/{repository}/<gav>", DELETE) {
+    private val deleteFile = ReposiliteRoute("/{repository}/<gav>", DELETE) {
         authorized {
             response = mavenFacade.deleteFile(DeleteRequest(accessToken, parameter("repository"), parameter("gav")))
         }
@@ -117,7 +117,7 @@ internal class MavenFileEndpoint(private val mavenFacade: MavenFacade) : Routes 
             )
         ]
     )
-    val findFileDetails = Route("/api/maven/details/{repository}/<gav>", HEAD, GET) {
+    val findFileDetails = ReposiliteRoute("/api/maven/details/{repository}/<gav>", HEAD, GET) {
         accessed {
             response = LookupRequest(parameter("repository"), parameter("gav"), this?.accessToken)
                 .let { runBlocking { mavenFacade.findFile(it) } }

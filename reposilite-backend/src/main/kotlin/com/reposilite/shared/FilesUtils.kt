@@ -15,10 +15,10 @@
  */
 package com.reposilite.shared
 
-import org.apache.commons.codec.digest.DigestUtils
 import com.reposilite.Reposilite
 import com.reposilite.maven.Repository
 import com.reposilite.web.api.MimeTypes
+import org.apache.commons.codec.digest.DigestUtils
 import panda.utilities.IOUtils
 import panda.utilities.StringUtils
 import java.io.Closeable
@@ -32,6 +32,14 @@ import kotlin.math.abs
 object FilesUtils {
 
     private val DISPLAY_SIZE_PATTERN = Pattern.compile("([0-9]+)(([KkMmGg])[Bb])")
+
+    const val PLAIN = "text/plain"
+    const val HTML = "text/html"
+    const val XML = "text/xml"
+    const val OCTET_STREAM = "application/octet-stream"
+    const val JAVASCRIPT = "application/javascript"
+    const val JSON = "application/json"
+    const val MULTIPART_FORM_DATA = "multipart/form-data"
 
     private const val KB_FACTOR: Long = 1024
     private const val MB_FACTOR = 1024 * KB_FACTOR
@@ -129,8 +137,5 @@ object FilesUtils {
     fun getResource(name: String): String =
         IOUtils.convertStreamToString(Reposilite::class.java.getResourceAsStream(name))
             .orElseThrow { RuntimeException("Cannot load resource $name", it) }
-
-    fun Path.getSimpleName(): String =
-        this.fileName.toString()
 
 }

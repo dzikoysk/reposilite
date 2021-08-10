@@ -15,17 +15,17 @@
  */
 package com.reposilite.auth.infrastructure
 
-import com.reposilite.web.api.Route
-import com.reposilite.web.api.RouteMethod.AFTER
-import com.reposilite.web.api.Routes
+import com.reposilite.web.ReposiliteRoute
+import com.reposilite.web.ReposiliteRoutes
+import com.reposilite.web.routing.RouteMethod.AFTER
 import io.javalin.http.HttpCode
 
 private const val WWW_AUTHENTICATE = "www-authenticate"
 private const val WWW_BASIC_REALM = """Basic realm="Reposilite", charset="UTF-8" """
 
-internal class PostAuthHandler : Routes {
+internal class PostAuthHandler : ReposiliteRoutes {
 
-    private val realmDescription = Route("/<*>", AFTER) {
+    private val realmDescription = ReposiliteRoute("/<*>", AFTER) {
         if (ctx.status() == HttpCode.UNAUTHORIZED.status) {
             ctx.header(WWW_AUTHENTICATE, WWW_BASIC_REALM)
         }

@@ -26,7 +26,7 @@ import com.reposilite.shared.HttpRemoteClient
 import com.reposilite.statistics.application.StatisticsWebConfiguration
 import com.reposilite.token.application.AccessTokenWebConfiguration
 import com.reposilite.web.ReposiliteContextFactory
-import com.reposilite.web.api.Routes
+import com.reposilite.web.ReposiliteRoutes
 import com.reposilite.web.application.WebConfiguration
 import io.javalin.Javalin
 import net.dzikoysk.dynamiclogger.Journalist
@@ -75,7 +75,7 @@ object ReposiliteWebConfiguration {
         AccessTokenWebConfiguration.initialize(reposilite.accessTokenFacade, reposilite.consoleFacade)
     }
 
-    fun routing(reposilite: Reposilite): Collection<Routes> =
+    fun routing(reposilite: Reposilite): Array<ReposiliteRoutes> =
         setOf(
             AuthenticationWebConfiguration.routing(reposilite.authenticationFacade),
             ConsoleWebConfiguration.routing(reposilite),
@@ -83,9 +83,10 @@ object ReposiliteWebConfiguration {
             FrontendWebConfiguration.routing(reposilite.frontendFacade, reposilite.workingDirectory),
             MavenWebConfiguration.routing(reposilite.mavenFacade),
             StatisticsWebConfiguration.routing(reposilite.statisticsFacade),
-            // AccessTokenWebConfiguration.routing(),
+            AccessTokenWebConfiguration.routing(),
         )
         .flatten()
+        .toTypedArray()
 
     // TOFIX: Remove dependency on infrastructure details
     fun javalin(reposilite: Reposilite, javalin: Javalin) {

@@ -17,13 +17,13 @@
 package com.reposilite.web
 
 import com.reposilite.auth.Session
-import com.reposilite.failure.api.ErrorResponse
-import com.reposilite.shared.error
+import com.reposilite.web.context.error
+import com.reposilite.web.error.ErrorResponse
 import io.javalin.http.Context
 import io.javalin.http.HttpCode
 import panda.std.Result
 
-class ContextDsl(val ctx: Context, val context: ReposiliteContext) {
+class DslContext(val ctx: Context, val context: ReposiliteContext) {
 
     /**
      * JSON response to send at the end of the dsl call
@@ -70,10 +70,8 @@ class ContextDsl(val ctx: Context, val context: ReposiliteContext) {
 
 }
 
-fun context(contextFactory: ReposiliteContextFactory, ctx: Context, init: ContextDsl.() -> Unit) {
-    contextFactory.create(ctx)
-        .onError { ctx.json(it) }
-        .map { ContextDsl(ctx, it) }
-        .peek { init(it) }
-        .peek { it.handleResult(it.response) }
+fun context(contextFactory: ReposiliteContextFactory, ctx: Context, init: DslContext.() -> Unit) {
+    DslContext(ctx, contextFactory.create(ctx))
+        .also { init(it) }
+        .also { it.handleResult(it.response) }
 }

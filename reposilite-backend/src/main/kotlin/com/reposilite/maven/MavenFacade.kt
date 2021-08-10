@@ -16,17 +16,16 @@
 
 package com.reposilite.maven
 
-import com.reposilite.failure.api.ErrorResponse
-import com.reposilite.failure.api.errorResponse
 import com.reposilite.maven.api.DeleteRequest
 import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.maven.api.FileDetails
 import com.reposilite.maven.api.LookupRequest
-import com.reposilite.shared.FilesUtils.getSimpleName
+import com.reposilite.shared.getSimpleName
 import com.reposilite.shared.toNormalizedPath
 import com.reposilite.shared.toPath
-import com.reposilite.shared.toPath
+import com.reposilite.web.error.ErrorResponse
+import com.reposilite.web.error.errorResponse
 import io.javalin.http.HttpCode
 import io.javalin.http.HttpCode.BAD_REQUEST
 import io.javalin.http.HttpCode.INSUFFICIENT_STORAGE

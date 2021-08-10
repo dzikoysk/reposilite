@@ -20,8 +20,8 @@ import io.javalin.http.HttpCode
 import net.dzikoysk.dynamiclogger.Journalist
 import net.dzikoysk.dynamiclogger.Logger
 import com.reposilite.console.api.ExecutionResponse
-import com.reposilite.failure.api.ErrorResponse
-import com.reposilite.failure.api.errorResponse
+import com.reposilite.web.error.ErrorResponse
+import com.reposilite.web.error.errorResponse
 import panda.utilities.StringUtils
 import panda.std.Result
 import picocli.CommandLine

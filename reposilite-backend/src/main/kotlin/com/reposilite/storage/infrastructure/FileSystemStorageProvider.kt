@@ -16,8 +16,6 @@
 
 package com.reposilite.storage.infrastructure
 
-import com.reposilite.failure.api.ErrorResponse
-import com.reposilite.failure.api.errorResponse
 import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.maven.api.FileDetails
 import com.reposilite.maven.api.toDocumentInfo
@@ -32,6 +30,8 @@ import com.reposilite.shared.listFiles
 import com.reposilite.shared.size
 import com.reposilite.shared.type
 import com.reposilite.storage.StorageProvider
+import com.reposilite.web.error.ErrorResponse
+import com.reposilite.web.error.errorResponse
 import io.javalin.http.HttpCode
 import panda.std.Result
 import panda.std.function.ThrowingBiFunction
@@ -102,7 +102,7 @@ internal abstract class FileSystemStorageProvider protected constructor(
                     // ~ https://github.com/dzikoysk/reposilite/issues/264
                     fileChannel.lock()
 
-                    val bytesWritten = writer.apply(input, fileChannel).toLong() // do we need this result
+                    /*val bytesWritten =*/ writer.apply(input, fileChannel).toLong() // do we need this result
                     fileChannel.close()
 
                     toDocumentInfo(file)
