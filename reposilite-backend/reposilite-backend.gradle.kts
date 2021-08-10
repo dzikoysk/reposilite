@@ -57,26 +57,17 @@ publishing {
 
 repositories {
     mavenCentral()
-    maven {
-        name = "panda-repository"
-        url = uri("https://repo.panda-lang.org/releases")
-        mavenContent {
-            releasesOnly()
-        }
-    }
-    maven {
-        name = "panda-repository"
-        url = uri("https://repo.panda-lang.org/snapshots")
-        mavenContent {
-            snapshotsOnly()
-        }
-    }
+    maven { url = uri("https://repo.panda-lang.org/releases") }
 }
 
 dependencies {
     implementation(kotlin("stdlib"))
     implementation(kotlin("reflect"))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.1")
+
+    val expressible = "1.0.5"
+    implementation("org.panda-lang:expressible:$expressible")
+    implementation("org.panda-lang:expressible-kt:$expressible")
 
     val awssdk = "2.15.15"
     implementation("software.amazon.awssdk:bom:$awssdk")
@@ -99,6 +90,14 @@ dependencies {
     implementation("io.javalin-rfc:javalin-openapi-plugin:$openapi")
     implementation("io.javalin-rfc:javalin-swagger-plugin:$openapi")
 
+    val javalinRfcs = "1.0.1"
+    implementation("com.reposilite.javalin-rfcs:javalin-context:$javalinRfcs")
+    implementation("com.reposilite.javalin-rfcs:javalin-coroutines:$javalinRfcs")
+    implementation("com.reposilite.javalin-rfcs:javalin-error:$javalinRfcs")
+    implementation("com.reposilite.javalin-rfcs:javalin-mimetypes:$javalinRfcs")
+    implementation("com.reposilite.javalin-rfcs:javalin-openapi:$javalinRfcs")
+    implementation("com.reposilite.javalin-rfcs:javalin-routing:$javalinRfcs")
+
     val javalin = "4.0.0.RC0"
     implementation("io.javalin:javalin:$javalin")
 
@@ -116,7 +115,6 @@ dependencies {
     implementation("org.tinylog:tinylog-impl:$tinylog")
 
     implementation("net.dzikoysk:cdn:1.9.1")
-    implementation("org.panda-lang:expressible:1.0.3")
     implementation("com.google.http-client:google-http-client:1.39.2")
     implementation("org.springframework.security:spring-security-crypto:5.4.6")
     implementation("commons-io:commons-io:2.8.0")

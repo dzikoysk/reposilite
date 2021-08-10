@@ -16,7 +16,6 @@
 
 package com.reposilite.token.application
 
-import net.dzikoysk.dynamiclogger.Journalist
 import com.reposilite.console.ConsoleFacade
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.ChAliasCommand
@@ -25,6 +24,8 @@ import com.reposilite.token.KeygenCommand
 import com.reposilite.token.RevokeCommand
 import com.reposilite.token.TokensCommand
 import com.reposilite.token.infrastructure.SqlAccessTokenRepository
+import com.reposilite.web.ReposiliteRoutes
+import net.dzikoysk.dynamiclogger.Journalist
 
 internal object AccessTokenWebConfiguration {
 
@@ -38,5 +39,7 @@ internal object AccessTokenWebConfiguration {
         consoleFacade.registerCommand(ChModCommand(accessTokenFacade))
         consoleFacade.registerCommand(RevokeCommand(accessTokenFacade))
     }
+
+    fun routing(): Set<ReposiliteRoutes> = emptySet()
 
 }

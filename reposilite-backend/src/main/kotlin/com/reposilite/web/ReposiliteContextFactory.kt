@@ -15,18 +15,13 @@
  */
 package com.reposilite.web
 
+import com.reposilite.auth.AuthenticationFacade
+import com.reposilite.auth.SessionMethod
+import com.reposilite.web.error.errorResponse
 import io.javalin.http.Context
-import io.javalin.http.HttpCode
 import io.javalin.http.HttpCode.UNAUTHORIZED
 import io.javalin.websocket.WsContext
 import net.dzikoysk.dynamiclogger.Journalist
-import com.reposilite.auth.AuthenticationFacade
-import com.reposilite.auth.SessionMethod
-import com.reposilite.failure.api.ErrorResponse
-import com.reposilite.failure.api.errorResponse
-import com.reposilite.shared.normalizedAsUri
-import panda.std.Result
-import panda.std.Result.ok
 
 @Suppress("MoveLambdaOutsideParentheses")
 class ReposiliteContextFactory internal constructor(
@@ -35,25 +30,25 @@ class ReposiliteContextFactory internal constructor(
     private val authenticationFacade: AuthenticationFacade
 ) {
 
-    fun create(context: Context): Result<ReposiliteContext, ErrorResponse> {
-        val normalizedUri = context.req.requestURI.normalizedAsUri().orNull() ?: return errorResponse(HttpCode.BAD_REQUEST, "Invalid url")
+    fun create(context: Context): ReposiliteContext {
+        val uri = context.req.requestURI
         val host = context.header(forwardedIpHeader) ?: context.req.remoteAddr
 
         val session = authenticationFacade.authenticateByHeader(context.headerMap())
             .map {
-                authenticationFacade.createSession(normalizedUri, SessionMethod.valueOf(context.method().uppercase()), host, it)
+                authenticationFacade.createSession(uri, SessionMethod.valueOf(context.method().uppercase()), host, it)
             }
 
-        return ok(ReposiliteContext(
+        return ReposiliteContext(
             journalist,
-            normalizedUri,
+            uri,
             context.method(),
             host,
             context.headerMap(),
             session,
             lazy { context.body() },
             { context.req.inputStream }
-        ))
+        )
     }
 
     fun create(context: WsContext): ReposiliteContext {

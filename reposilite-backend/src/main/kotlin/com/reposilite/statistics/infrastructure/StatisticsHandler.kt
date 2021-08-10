@@ -19,13 +19,13 @@ package com.reposilite.statistics.infrastructure
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.statistics.api.MAX_IDENTIFIER_LENGTH
 import com.reposilite.statistics.api.RecordType.REQUEST
-import com.reposilite.web.api.Route
-import com.reposilite.web.api.RouteMethod.BEFORE
-import com.reposilite.web.api.Routes
+import com.reposilite.web.ReposiliteRoute
+import com.reposilite.web.ReposiliteRoutes
+import com.reposilite.web.routing.RouteMethod.BEFORE
 
-internal class StatisticsHandler(private val statisticsFacade: StatisticsFacade) : Routes {
+internal class StatisticsHandler(private val statisticsFacade: StatisticsFacade) : ReposiliteRoutes {
 
-    private val collectRequests = Route("/<*>", BEFORE) {
+    private val collectRequests = ReposiliteRoute("/<*>", BEFORE) {
         if (ctx.req.requestURI.length < MAX_IDENTIFIER_LENGTH) {
             statisticsFacade.increaseRecord(REQUEST, ctx.req.requestURI)
         }

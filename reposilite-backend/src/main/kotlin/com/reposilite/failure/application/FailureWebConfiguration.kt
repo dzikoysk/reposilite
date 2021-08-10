@@ -16,13 +16,13 @@
 
 package com.reposilite.failure.application
 
-import io.javalin.Javalin
-import net.dzikoysk.dynamiclogger.Journalist
 import com.reposilite.console.ConsoleFacade
 import com.reposilite.failure.FailureFacade
 import com.reposilite.failure.FailuresCommand
 import com.reposilite.failure.infrastructure.FailureHandler
-import com.reposilite.web.api.Routes
+import com.reposilite.web.ReposiliteRoutes
+import io.javalin.Javalin
+import net.dzikoysk.dynamiclogger.Journalist
 
 internal object FailureWebConfiguration {
 
@@ -33,8 +33,8 @@ internal object FailureWebConfiguration {
         consoleFacade.registerCommand(FailuresCommand(failureFacade))
     }
 
-    fun routing(): List<Routes> =
-        listOf()
+    fun routing(): Set<ReposiliteRoutes> =
+        emptySet()
 
     fun javalin(javalin: Javalin, failureFacade: FailureFacade) {
         javalin.exception(Exception::class.java, FailureHandler(failureFacade))

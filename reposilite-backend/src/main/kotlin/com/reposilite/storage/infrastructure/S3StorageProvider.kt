@@ -16,22 +16,24 @@
 
 package com.reposilite.storage.infrastructure
 
-import io.javalin.http.HttpCode
-import io.javalin.http.HttpCode.NOT_FOUND
-import net.dzikoysk.dynamiclogger.Journalist
-import net.dzikoysk.dynamiclogger.Logger
-import com.reposilite.failure.api.ErrorResponse
-import com.reposilite.failure.api.errorResponse
 import com.reposilite.maven.api.DirectoryInfo
 import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.maven.api.FileDetails
 import com.reposilite.shared.FileType.DIRECTORY
 import com.reposilite.shared.FilesUtils.getMimeType
+import com.reposilite.shared.getSimpleName
 import com.reposilite.storage.StorageProvider
-import com.reposilite.web.api.MimeTypes.OCTET_STREAM
 import com.reposilite.web.api.MimeTypes.PLAIN
-import com.reposilite.shared.asResult
+import com.reposilite.web.error.ErrorResponse
+import com.reposilite.web.error.errorResponse
+import com.reposilite.web.mimetypes.ContentType
+import com.reposilite.web.mimetypes.ContentType.BIN
+import io.javalin.http.HttpCode
+import io.javalin.http.HttpCode.NOT_FOUND
+import net.dzikoysk.dynamiclogger.Journalist
+import net.dzikoysk.dynamiclogger.Logger
 import panda.std.Result
+import panda.std.asSuccess
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider
 import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.regions.Region
@@ -71,10 +73,10 @@ internal class S3StorageProvider(
 
             DocumentInfo(
                 file.fileName.toString(),
-                getMimeType(file.fileName.toString(), OCTET_STREAM),
+                ContentType.getContentType(file.getSimpleName()) ?: BIN,
                 bytes.size.toLong(),
                 { getFile(file).get() }
-            ).asResult()
+            ).asSuccess()
         }
         catch (exception: Exception) {
             logger.exception(exception)
@@ -97,11 +99,11 @@ internal class S3StorageProvider(
             )
 
             DocumentInfo(
-                file.fileName.toString(),
-                getMimeType(file.fileName.toString(), OCTET_STREAM),
+                file.getSimpleName(),
+                ContentType.getContentType(file.getSimpleName()) ?: BIN,
                 length,
                 { inputStream }
-            ).asResult()
+            ).asSuccess()
         }
         catch (ioException: IOException) {
             logger.exception(ioException)
@@ -114,7 +116,7 @@ internal class S3StorageProvider(
             request.bucket(bucket)
             request.key(file.toString().replace('\\', '/'))
 
-            s3.getObject(request.build()).asResult()
+            s3.getObject(request.build()).asSuccess()
             // val bytes = ByteArray(Math.toIntExact(response.response().contentLength()))
             // response.read(bytes)
         }
@@ -135,10 +137,10 @@ internal class S3StorageProvider(
             head(file)?.let {
                 DocumentInfo(
                     file.fileName.toString(),
-                    getMimeType(file.fileName.toString(), OCTET_STREAM),
+                    ContentType.getContentType(file.getSimpleName()) ?: BIN,
                     it.contentLength(),
                     { getFile(file).get() }
-                ).asResult()
+                ).asSuccess()
             }
             ?: errorResponse(NOT_FOUND, "File not found: $file")
         }
@@ -148,7 +150,7 @@ internal class S3StorageProvider(
             bucket(bucket)
             key(file.toString().replace('\\', '/'))
             s3.deleteObject(build())
-        }.asResult()
+        }.asSuccess()
 
     override fun getFiles(directory: Path): Result<List<Path>, ErrorResponse> =
         try {
@@ -167,7 +169,7 @@ internal class S3StorageProvider(
                 paths.add(Paths.get(sub))
             }
 
-            paths.asResult()
+            paths.asSuccess()
         }
         catch (exception: Exception) {
             errorResponse(HttpCode.INTERNAL_SERVER_ERROR, exception.localizedMessage)
@@ -175,7 +177,7 @@ internal class S3StorageProvider(
 
     override fun getLastModifiedTime(file: Path): Result<FileTime, ErrorResponse> =
         head(file)
-            ?.let { FileTime.from(it.lastModified()).asResult() }
+            ?.let { FileTime.from(it.lastModified()).asSuccess() }
             ?: getFiles(file)
                 .map { files -> files.firstOrNull() }
                 .mapErr { ErrorResponse(NOT_FOUND, "File not found: $file") }
@@ -184,7 +186,7 @@ internal class S3StorageProvider(
     override fun getFileSize(file: Path): Result<Long, ErrorResponse> =
         head(file)
             ?.contentLength()
-            ?.asResult()
+            ?.asSuccess()
             ?: errorResponse(NOT_FOUND, "File not found: $file")
 
     private fun head(file: Path): HeadObjectResponse? =
@@ -225,7 +227,7 @@ internal class S3StorageProvider(
     }
 
     override fun canHold(contentLength: Long): Result<*, ErrorResponse> =
-        true.asResult()
+        true.asSuccess()
 
     override fun getLogger(): Logger =
         journalist.logger

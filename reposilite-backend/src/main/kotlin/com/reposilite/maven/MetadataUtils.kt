@@ -15,9 +15,8 @@
  */
 package com.reposilite.maven
 
-import com.reposilite.failure.api.ErrorResponse
-import com.reposilite.maven.Repository
 import com.reposilite.shared.FilesUtils.getExtension
+import com.reposilite.web.error.ErrorResponse
 import panda.std.Result
 import panda.utilities.StringUtils
 import panda.utilities.text.Joiner

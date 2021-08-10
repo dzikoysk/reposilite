@@ -20,12 +20,11 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import io.javalin.http.HttpCode
 import io.javalin.http.HttpCode.BAD_REQUEST
 import com.reposilite.failure.FailureFacade
-import com.reposilite.failure.api.ErrorResponse
-import com.reposilite.failure.api.errorResponse
 import com.reposilite.maven.api.DocumentInfo
-import com.reposilite.maven.Repository
 import com.reposilite.shared.FilesUtils
-import com.reposilite.shared.FilesUtils.getSimpleName
+import com.reposilite.shared.getSimpleName
+import com.reposilite.web.error.ErrorResponse
+import com.reposilite.web.error.errorResponse
 import panda.std.Lazy
 import panda.std.Pair
 import panda.std.Result

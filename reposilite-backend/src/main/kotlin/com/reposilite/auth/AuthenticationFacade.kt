@@ -16,11 +16,12 @@
 
 package com.reposilite.auth
 
+import com.reposilite.token.api.AccessToken
+import com.reposilite.web.error.ErrorResponse
 import io.javalin.http.HttpCode
+import io.javalin.http.HttpCode.UNAUTHORIZED
 import net.dzikoysk.dynamiclogger.Journalist
 import net.dzikoysk.dynamiclogger.Logger
-import com.reposilite.failure.api.ErrorResponse
-import com.reposilite.token.api.AccessToken
 import panda.std.Result
 
 class AuthenticationFacade internal constructor(
@@ -31,7 +32,7 @@ class AuthenticationFacade internal constructor(
 
     fun authenticateByHeader(headers: Map<String, String>): Result<AccessToken, ErrorResponse> =
         authenticator.authByHeader(headers)
-            .mapErr { error -> ErrorResponse(HttpCode.UNAUTHORIZED, error) }
+            .mapErr { error -> ErrorResponse(UNAUTHORIZED, error) }
 
     fun authenticateByCredentials(credentials: String): Result<AccessToken, ErrorResponse> =
         authenticator.authByCredentials(credentials)

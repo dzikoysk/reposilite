@@ -16,18 +16,18 @@
 package com.reposilite.maven.api
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.reposilite.failure.api.ErrorResponse
 import com.reposilite.shared.FileType
 import com.reposilite.shared.FileType.DIRECTORY
 import com.reposilite.shared.FileType.FILE
 import com.reposilite.shared.FilesUtils
-import com.reposilite.shared.FilesUtils.getSimpleName
 import com.reposilite.shared.catchIOException
 import com.reposilite.shared.exists
+import com.reposilite.shared.getSimpleName
 import com.reposilite.shared.type
-import com.reposilite.web.api.MimeTypes.OCTET_STREAM
-import com.reposilite.shared.asResult
+import com.reposilite.web.error.ErrorResponse
+import com.reposilite.web.mimetypes.ContentType
 import panda.std.Result
+import panda.std.asSuccess
 import java.io.IOException
 import java.io.InputStream
 import java.nio.file.Files
@@ -50,7 +50,7 @@ sealed class FileDetails(
 
 class DocumentInfo(
     name: String,
-    val contentType: String,
+    val contentType: ContentType,
     val contentLength: Long,
     @JsonIgnore
     val content: () -> InputStream
@@ -82,10 +82,10 @@ fun toDocumentInfo(file: Path): Result<DocumentInfo, ErrorResponse> =
     catchIOException {
         DocumentInfo(
             file.getSimpleName(),
-            FilesUtils.getMimeType(file.getSimpleName(), OCTET_STREAM),
+            ContentType.BIN, // ContentType.getMimeType(file.getSimpleName(), OCTET_STREAM),
             Files.size(file),
             { Files.newInputStream(file) }
-        ).asResult()
+        ).asSuccess()
     }
 
 private fun toDirectoryInfo(directory: Path): Result<DirectoryInfo, ErrorResponse> =
@@ -95,11 +95,11 @@ private fun toDirectoryInfo(directory: Path): Result<DirectoryInfo, ErrorRespons
             Files.list(directory)
                 .map { toSimpleFileDetails(it).orElseThrow { error -> IOException(error.message) } }
                 .toList()
-        ).asResult()
+        ).asSuccess()
     }
 
 private fun toSimpleFileDetails(file: Path): Result<out FileDetails, ErrorResponse> =
     when (file.type()) {
         FILE -> toDocumentInfo(file)
-        DIRECTORY -> SimpleDirectoryInfo(file.getSimpleName()).asResult()
+        DIRECTORY -> SimpleDirectoryInfo(file.getSimpleName()).asSuccess()
     }

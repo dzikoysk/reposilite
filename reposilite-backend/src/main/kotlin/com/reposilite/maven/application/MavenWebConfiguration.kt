@@ -26,7 +26,7 @@ import com.reposilite.maven.RepositorySecurityProvider
 import com.reposilite.maven.RepositoryService
 import com.reposilite.maven.infrastructure.MavenFileEndpoint
 import com.reposilite.shared.RemoteClient
-import com.reposilite.web.api.Routes
+import com.reposilite.web.ReposiliteRoutes
 import net.dzikoysk.dynamiclogger.Journalist
 import java.nio.file.Path
 
@@ -42,7 +42,7 @@ internal object MavenWebConfiguration {
         return MavenFacade(journalist, MetadataService(failureFacade), RepositorySecurityProvider(), repositoryService, ProxyClient(remoteClient))
     }
 
-    fun routing(mavenFacade: MavenFacade): List<Routes> =
+    fun routing(mavenFacade: MavenFacade): List<ReposiliteRoutes> =
         listOf(
             MavenFileEndpoint(mavenFacade),
         )

@@ -3,9 +3,11 @@ package com.reposilite.web.infrastructure
 import com.reposilite.Reposilite
 import com.reposilite.ReposiliteWebConfiguration
 import com.reposilite.config.Configuration
+import com.reposilite.web.DslContext
 import com.reposilite.web.WebServer
-import com.reposilite.shared.alsoIf
+import com.reposilite.web.routing.RoutingPlugin
 import io.javalin.Javalin
+import io.javalin.core.JavalinConfig
 
 internal class JavalinWebServer : WebServer {
 
@@ -20,20 +22,30 @@ internal class JavalinWebServer : WebServer {
                 listener.serverStopping { reposilite.logger.info("Server stopping...") }
                 listener.serverStopped { reposilite.logger.info("Bye! Uptime: " + reposilite.getPrettyUptime()) }
             }
-            .also {
-                ReposiliteWebConfiguration.javalin(reposilite, it)
-                JavalinWebServerConfiguration.routing(reposilite, it)
-            }
-            .alsoIf(!servlet) {
-                it.start(configuration.hostname, configuration.port)
-            }
+            .also { ReposiliteWebConfiguration.javalin(reposilite, it) }
+
+        if (!servlet) {
+            javalin!!.start(configuration.hostname, configuration.port)
+        }
     }
 
     private fun createJavalin(reposilite: Reposilite, configuration: Configuration): Javalin =
         if (servlet)
-            Javalin.createStandalone { JavalinWebServerConfiguration.configure(reposilite, configuration, it) }
+            Javalin.createStandalone { configureServer(reposilite, configuration, it) }
         else
-            Javalin.create { JavalinWebServerConfiguration.configure(reposilite, configuration, it) }
+            Javalin.create { configureServer(reposilite, configuration, it) }
+
+    private fun configureServer(reposilite: Reposilite, configuration: Configuration, serverConfig: JavalinConfig) {
+        JavalinWebServerConfiguration.configure(reposilite, configuration, serverConfig)
+
+        RoutingPlugin { DslContext(it, reposilite.contextFactory.create(it)) }
+            .also { plugin ->
+                ReposiliteWebConfiguration.routing(reposilite).forEach {
+                    plugin.registerRoutes(it)
+                }
+            }
+            .also { serverConfig.registerPlugin(it) }
+    }
 
     override fun stop() {
         javalin?.stop()

@@ -3,16 +3,17 @@ package com.reposilite.shared
 import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.fuel.core.isSuccessful
 import com.github.kittinunf.fuel.coroutines.awaitByteArrayResponseResult
-import com.reposilite.failure.api.ErrorResponse
-import com.reposilite.failure.api.errorResponse
 import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.shared.FilesUtils.getExtension
-import com.reposilite.shared.FilesUtils.getSimpleName
 import com.reposilite.web.api.MimeTypes
+import com.reposilite.web.error.ErrorResponse
+import com.reposilite.web.error.errorResponse
+import com.reposilite.web.mimetypes.ContentType.BIN
 import io.javalin.http.HttpCode.BAD_REQUEST
 import io.javalin.http.HttpCode.NOT_ACCEPTABLE
 import org.eclipse.jetty.http.HttpHeader
 import panda.std.Result
+import panda.std.asSuccess
 
 interface RemoteClient {
 
@@ -38,10 +39,10 @@ class HttpRemoteClient : RemoteClient {
                             else -> {
                                 DocumentInfo(
                                     uri.toNormalizedPath().get().getSimpleName(),
-                                    MimeTypes.OCTET_STREAM,
+                                    BIN,
                                     response.contentLength,
                                     { data.inputStream() }
-                                ).asResult()
+                                ).asSuccess()
                             }
                         }
                     },
