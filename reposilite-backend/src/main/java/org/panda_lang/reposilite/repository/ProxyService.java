@@ -123,8 +123,14 @@ public final class ProxyService {
                     }
 
                     long contentLength = Option.of(headers.getContentLength()).orElseGet(0L);
-                    String[] path = remoteUri.split("/");
 
+                    // Nexus can send misleading for client content-length of chunked responses
+                    // ~ https://github.com/dzikoysk/reposilite/issues/549
+                    if ("gzip".equals(remoteResponse.getContentEncoding())) {
+                        contentLength = 0; // remove content-length header
+                    }
+
+                    String[] path = remoteUri.split("/");
                     FileDetailsDto fileDetails = new FileDetailsDto(FileDetailsDto.FILE, ArrayUtils.getLast(path), "", remoteResponse.getContentType(), contentLength);
                     LookupResponse response = new LookupResponse(fileDetails);
 
@@ -137,7 +143,7 @@ public final class ProxyService {
                         return proxiedTask.complete(Result.ok(response));
                     }
 
-                    return store(context, remoteUri, remoteResponse, response)
+                    return store(context, remoteUri, remoteResponse)
                             .onEmpty(() -> proxiedTask.complete(Result.ok(response)))
                             .peek(task -> task.thenAccept(proxiedTask::complete));
                 }
@@ -157,7 +163,7 @@ public final class ProxyService {
         return Result.ok(proxiedTask);
     }
 
-    private Option<CompletableFuture<Result<LookupResponse, ErrorDto>>> store(ReposiliteContext context, String uri, HttpResponse remoteResponse, LookupResponse response) {
+    private Option<CompletableFuture<Result<LookupResponse, ErrorDto>>> store(ReposiliteContext context, String uri, HttpResponse remoteResponse) {
         DiskQuota diskQuota = repositoryService.getDiskQuota();
 
         if (!diskQuota.hasUsableSpace()) {
@@ -170,7 +176,7 @@ public final class ProxyService {
 
         if (repository == null) {
             if (!rewritePathsEnabled) {
-                Option.none();
+                return Option.none();
             }
 
             uri = repositoryService.getPrimaryRepository().getName() + uri;
@@ -185,7 +191,7 @@ public final class ProxyService {
                 () -> {
                     Reposilite.getLogger().info("Stored proxied " + proxiedFile + " from " + remoteResponse.getRequest().getUrl());
                     context.result(outputStream -> FileUtils.copyFile(proxiedFile, outputStream));
-                    return response;
+                    return new LookupResponse(FileDetailsDto.of(proxiedFile));
                 },
                 exception -> new ErrorDto(HttpStatus.SC_UNPROCESSABLE_ENTITY, "Cannot process artifact")));
 

@@ -120,7 +120,7 @@ public final class LookupController implements Handler {
     private void handleResult(Context ctx, ReposiliteContext context, LookupResponse response) {
         response.getFileDetails().peek(details -> {
             if (details.getContentLength() > 0) {
-                ctx.res.setContentLengthLong(details.getContentLength());
+                //ctx.res.setContentLengthLong(details.getContentLength());
             }
 
             if (response.isAttachment()) {

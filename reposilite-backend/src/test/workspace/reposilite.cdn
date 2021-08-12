@@ -52,13 +52,9 @@ deployEnabled: true
 # Reposilite will search for an artifact in remote repositories listed below,
 # if the requested artifact was not found.
 proxied [
-  https://repo.panda-lang.org
-  https://repo.insertt.dev
-  https://jcenter.bintray.com
-  https://repo.maven.apache.org/maven2
 ]
 # Reposilite can store proxied artifacts locally to reduce response time and improve stability
-storeProxied: true
+storeProxied: false
 # Proxying is disabled by default in private repositories because of the security policy.
 # Enabling this feature may expose private data like i.e. artifact name used in your company.
 proxyPrivate: false
