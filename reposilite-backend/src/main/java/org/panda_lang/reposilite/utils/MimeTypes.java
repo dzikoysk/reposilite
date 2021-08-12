@@ -28,12 +28,12 @@ public final class MimeTypes {
     static {
         /* Text */
 
-        STANDARD_TYPES.put("txt", " text/plain");
-        STANDARD_TYPES.put("css", " text/css");
-        STANDARD_TYPES.put("csv", " text/csv");
-        STANDARD_TYPES.put("htm", " text/html");
-        STANDARD_TYPES.put("html", " text/html");
-        STANDARD_TYPES.put("xml", " text/xml");
+        STANDARD_TYPES.put("txt", "text/plain");
+        STANDARD_TYPES.put("css", "text/css");
+        STANDARD_TYPES.put("csv", "text/csv");
+        STANDARD_TYPES.put("htm", "text/html");
+        STANDARD_TYPES.put("html", "text/html");
+        STANDARD_TYPES.put("xml", "text/xml");
 
         /* Image */
 
