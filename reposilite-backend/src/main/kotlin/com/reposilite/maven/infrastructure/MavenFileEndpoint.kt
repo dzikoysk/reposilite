@@ -33,6 +33,7 @@ internal class MavenFileEndpoint(private val mavenFacade: MavenFacade) : Reposil
         summary = "Browse the contents of repositories",
         description = "The route may return various responses to properly handle Maven specification and frontend application using the same path.",
         pathParams = [
+            OpenApiParam(name = "repository", description = "Destination repository", required = true),
             OpenApiParam(name = "*", description = "Artifact path qualifier", required = true, allowEmptyValue = true)
         ],
         responses = [
@@ -61,6 +62,7 @@ internal class MavenFileEndpoint(private val mavenFacade: MavenFacade) : Reposil
         description = "Deploy supports both, POST and PUT, methods and allows to deploy artifact builds",
         tags = [ "Maven" ],
         pathParams = [
+            OpenApiParam(name = "repository", description = "Destination repository", required = true),
             OpenApiParam(name = "*", description = "Artifact path qualifier", required = true)
         ],
         responses = [
@@ -81,7 +83,12 @@ internal class MavenFileEndpoint(private val mavenFacade: MavenFacade) : Reposil
     @OpenApi(
         path = "/{repository}/<gav>",
         summary = "Delete the given file from repository",
-        methods = [HttpMethod.DELETE]
+        methods = [HttpMethod.DELETE],
+        tags = ["Maven"],
+        pathParams = [
+            OpenApiParam(name = "repository", description = "Destination repository", required = true),
+            OpenApiParam(name = "*", description = "Artifact path qualifier", required = true)
+        ]
     )
     private val deleteFile = ReposiliteRoute("/{repository}/<gav>", DELETE) {
         authorized {
@@ -96,6 +103,7 @@ internal class MavenFileEndpoint(private val mavenFacade: MavenFacade) : Reposil
         description = "Get details about the requested file as JSON response",
         tags = ["Maven"],
         pathParams = [
+            OpenApiParam(name = "repository", description = "Destination repository", required = true),
             OpenApiParam(name = "*", description = "Artifact path qualifier", required = true, allowEmptyValue = true)
         ],
         responses = [

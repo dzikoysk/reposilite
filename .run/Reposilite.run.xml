@@ -4,7 +4,7 @@
     <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
     <option name="MAIN_CLASS_NAME" value="com.reposilite.ReposiliteLauncherKt" />
     <module name="reposilite-parent.reposilite-backend.main" />
-    <option name="VM_PARAMETERS" value="-Xmx16M -Dreposilite.debugEnabled=true -Dtinylog.writerActive.level=DEBUG" />
+    <option name="VM_PARAMETERS" value="-Xmx12M -Dreposilite.debugEnabled=true -Dtinylog.writerActive.level=DEBUG" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/reposilite-backend/src/test/workspace" />
     <method v="2">
       <option name="Make" enabled="true" />
