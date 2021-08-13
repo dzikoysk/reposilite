@@ -2,16 +2,22 @@ package com.reposilite.maven
 
 import com.reposilite.config.Configuration.RepositoryConfiguration
 import com.reposilite.failure.FailureFacade
+import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.maven.api.LookupRequest
+import com.reposilite.maven.api.UNKNOWN_LENGTH
 import com.reposilite.maven.application.MavenWebConfiguration
-import com.reposilite.shared.HttpRemoteClient
+import com.reposilite.shared.FakeRemoteClient
 import com.reposilite.shared.append
+import com.reposilite.shared.getSimpleName
+import com.reposilite.shared.toPath
 import com.reposilite.token.api.AccessToken
 import com.reposilite.token.api.Route
 import com.reposilite.token.api.RoutePermission
+import com.reposilite.web.http.ContentType
 import net.dzikoysk.dynamiclogger.backend.InMemoryLogger
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
+import panda.std.asSuccess
 import java.io.File
 import java.nio.file.Files
 
@@ -20,6 +26,8 @@ internal abstract class MavenSpec {
 
     protected companion object {
         val UNAUTHORIZED: AccessToken? = null
+        val REMOTE_REPOSITORY = "https://domain.com/releases"
+        val REMOTE_CONTENT = "content"
     }
 
     @TempDir
@@ -33,7 +41,15 @@ internal abstract class MavenSpec {
     private fun initializeFacade() {
         val logger = InMemoryLogger()
         val failureFacade = FailureFacade(logger)
-        this.mavenFacade = MavenWebConfiguration.createFacade(logger, failureFacade, workingDirectory!!.toPath(), HttpRemoteClient(), repositories())
+        val remoteClient = FakeRemoteClient { uri, connectTimeout, readTimeout ->
+            DocumentInfo(
+                uri.toPath().getSimpleName(),
+                ContentType.TEXT_XML,
+                UNKNOWN_LENGTH,
+                { REMOTE_CONTENT.byteInputStream() }
+            ).asSuccess()
+        }
+        this.mavenFacade = MavenWebConfiguration.createFacade(logger, failureFacade, workingDirectory!!.toPath(), remoteClient, repositories())
     }
 
     data class FileSpec(
@@ -46,6 +62,9 @@ internal abstract class MavenSpec {
             LookupRequest(repository, gav, authentication)
 
     }
+
+    fun createRepository(name: String, initializer: RepositoryConfiguration.() -> Unit): Pair<String, RepositoryConfiguration> =
+        Pair(name, RepositoryConfiguration().also { initializer(it) })
 
     fun addFileToRepository(fileSpec: FileSpec): FileSpec {
         workingDirectory!!.toPath()

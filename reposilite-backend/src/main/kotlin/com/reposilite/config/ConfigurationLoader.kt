@@ -30,8 +30,12 @@ class ConfigurationLoader(private val journalist: Journalist) : Journalist {
 
         fun <CONFIGURATION : Runnable> loadConfiguration(configuration: CONFIGURATION, description: String): Pair<String, CONFIGURATION> =
             description.split(" ", limit = 1)
-                .let { Pair(it[0], it[1]) }
-                .also { CommandLine.populateCommand(configuration, *it.second.split(" ").toTypedArray()) }
+                .let { Pair(it[0], it.getOrNull(1) ?: "") }
+                .also {
+                    val commandLine = CommandLine(configuration)
+                    commandLine.isToggleBooleanFlags = true
+                    commandLine.execute(*(if (it.second.isEmpty()) arrayOf() else { it.second.split(" ").toTypedArray() }))
+                }
                 .let { Pair(it.first, configuration) }
                 .also { it.second.run() }
 

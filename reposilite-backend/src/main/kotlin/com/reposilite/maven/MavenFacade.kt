@@ -42,7 +42,7 @@ class MavenFacade internal constructor(
     private val metadataService: MetadataService,
     private val repositorySecurityProvider: RepositorySecurityProvider,
     private val repositoryService: RepositoryService,
-    private val proxyClient: ProxyClient
+    private val proxyService: ProxyService
 ) : Journalist {
 
     companion object {
@@ -58,7 +58,7 @@ class MavenFacade internal constructor(
         }
 
         if (repository.exists(gav).not()) {
-            return proxyClient.findFile(repository, lookupRequest.gav)
+            return proxyService.findFile(repository, lookupRequest.gav)
         }
 
         if (repository.isDirectory(gav) && repositorySecurityProvider.canBrowseResource(lookupRequest.accessToken, repository, gav).not()) {
