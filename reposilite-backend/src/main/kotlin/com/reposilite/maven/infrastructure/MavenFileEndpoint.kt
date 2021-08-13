@@ -6,27 +6,25 @@ import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.maven.api.FileDetails
 import com.reposilite.maven.api.LookupRequest
-import com.reposilite.web.ReposiliteRoute
-import com.reposilite.web.ReposiliteRoutes
-import com.reposilite.web.api.MimeTypes.MULTIPART_FORM_DATA
-import com.reposilite.web.context.resultAttachment
-import com.reposilite.web.error.ErrorResponse
-import com.reposilite.web.error.errorResponse
+import com.reposilite.web.api.ReposiliteRoute
+import com.reposilite.web.api.ReposiliteRoutes
+import com.reposilite.web.http.ErrorResponse
+import com.reposilite.web.http.resultAttachment
 import com.reposilite.web.routing.RouteMethod.DELETE
 import com.reposilite.web.routing.RouteMethod.GET
 import com.reposilite.web.routing.RouteMethod.HEAD
 import com.reposilite.web.routing.RouteMethod.POST
 import com.reposilite.web.routing.RouteMethod.PUT
 import io.javalin.http.HttpCode.NO_CONTENT
+import io.javalin.openapi.ContentType.FORM_DATA_MULTIPART
 import io.javalin.openapi.HttpMethod
 import io.javalin.openapi.OpenApi
 import io.javalin.openapi.OpenApiContent
 import io.javalin.openapi.OpenApiParam
 import io.javalin.openapi.OpenApiResponse
 import kotlinx.coroutines.runBlocking
-import panda.std.Result
 
-internal class MavenFileEndpoint(private val mavenFacade: MavenFacade) : ReposiliteRoutes {
+internal class MavenFileEndpoint(private val mavenFacade: MavenFacade) : ReposiliteRoutes() {
 
     @OpenApi(
         path = "/{repository}/*",
@@ -38,7 +36,7 @@ internal class MavenFileEndpoint(private val mavenFacade: MavenFacade) : Reposil
             OpenApiParam(name = "*", description = "Artifact path qualifier", required = true, allowEmptyValue = true)
         ],
         responses = [
-            OpenApiResponse(status = "200", description = "Input stream of requested file", content = [OpenApiContent(type = MULTIPART_FORM_DATA)]),
+            OpenApiResponse(status = "200", description = "Input stream of requested file", content = [OpenApiContent(type = FORM_DATA_MULTIPART)]),
             OpenApiResponse(status = "404", description = "Returns 404 (for Maven) with frontend (for user) as a response if requested resource is not located in the current repository")
         ]
     )
@@ -49,10 +47,10 @@ internal class MavenFileEndpoint(private val mavenFacade: MavenFacade) : Reposil
                 .peek {
                     when (it) {
                         is DocumentInfo -> ctx.resultAttachment(it.name, it.contentType, it.contentLength, it.content())
-                        else -> response = errorResponse(NO_CONTENT, "Requested file is a directory")
+                        else -> response = ErrorResponse(NO_CONTENT, "Requested file is a directory")
                     }
                 }
-                .onError { response = Result.error(it) }
+                .onError { response = it }
         }
     }
 
@@ -66,7 +64,7 @@ internal class MavenFileEndpoint(private val mavenFacade: MavenFacade) : Reposil
             OpenApiParam(name = "*", description = "Artifact path qualifier", required = true)
         ],
         responses = [
-            OpenApiResponse(status = "200", description = "Input stream of requested file", content = [OpenApiContent(type = MULTIPART_FORM_DATA)]),
+            OpenApiResponse(status = "200", description = "Input stream of requested file", content = [OpenApiContent(type = FORM_DATA_MULTIPART)]),
             OpenApiResponse(status = "401", description = "Returns 401 for invalid credentials"),
             OpenApiResponse(status = "405", description = "Returns 405 if deployment is disabled in configuration"),
             OpenApiResponse(status = "507", description = "Returns 507 if Reposilite does not have enough disk space to store the uploaded file")

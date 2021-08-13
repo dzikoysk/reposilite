@@ -31,6 +31,7 @@ import net.dzikoysk.dynamiclogger.Journalist
 import net.dzikoysk.dynamiclogger.Logger
 import net.dzikoysk.dynamiclogger.backend.AggregatedLogger
 import net.dzikoysk.dynamiclogger.backend.CachedLogger
+import org.eclipse.jetty.util.thread.QueuedThreadPool
 import panda.utilities.console.Effect
 import java.nio.file.Path
 import java.util.concurrent.CompletableFuture
@@ -43,6 +44,7 @@ class Reposilite(
     val configuration: Configuration,
     val workingDirectory: Path,
     val testEnv: Boolean,
+    val coreThreadPool: QueuedThreadPool,
     val webServer: WebServer,
     val contextFactory: ReposiliteContextFactory,
     val failureFacade: FailureFacade,

@@ -16,27 +16,28 @@
 package com.reposilite.frontend.infrastructure
 
 import com.reposilite.frontend.FrontendFacade
-import com.reposilite.web.ReposiliteRoute
+import com.reposilite.web.api.ReposiliteRoute
+import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.routing.RouteMethod.GET
 import io.javalin.http.Context
+import panda.std.Result
 
 internal class ResourcesFrontendHandler(frontendFacade: FrontendFacade) : FrontendHandler(frontendFacade) {
 
     private val defaultHandler = ReposiliteRoute("/", GET) {
-        respondWithResource(ctx, "index.html")
+        response = respondWithResource(ctx, "index.html")
     }
 
     private val indexHandler = ReposiliteRoute("/index.html", GET) {
-        respondWithResource(ctx, "index.html")
+        response = respondWithResource(ctx, "index.html")
     }
 
     private val assetsHandler = ReposiliteRoute("/assets/<path>", GET) {
-        respondWithResource(ctx, "assets/${ctx.pathParam("path")}")
+        response = respondWithResource(ctx, "assets/${ctx.pathParam("path")}")
     }
 
-    private fun respondWithResource(ctx: Context, uri: String) {
+    private fun respondWithResource(ctx: Context, uri: String): Result<String, ErrorResponse> =
         respondWithFile(ctx, uri, FrontendFacade::class.java.getResourceAsStream("/static/$uri"))
-    }
 
     override val routes = setOf(defaultHandler, indexHandler, assetsHandler)
 

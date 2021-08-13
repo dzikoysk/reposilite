@@ -21,7 +21,7 @@ import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.statistics.StatsCommand
 import com.reposilite.statistics.infrastructure.SqlStatisticsRepository
 import com.reposilite.statistics.infrastructure.StatisticsHandler
-import com.reposilite.web.ReposiliteRoutes
+import com.reposilite.web.api.ReposiliteRoutes
 import net.dzikoysk.dynamiclogger.Journalist
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit.MINUTES

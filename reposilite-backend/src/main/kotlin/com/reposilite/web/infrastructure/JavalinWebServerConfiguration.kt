@@ -18,7 +18,8 @@ import org.eclipse.jetty.util.ssl.SslContextFactory
 internal object JavalinWebServerConfiguration {
 
     internal fun configure(reposilite: Reposilite, configuration: Configuration, config: JavalinConfig) {
-        val server = Server()
+        val server = Server(reposilite.coreThreadPool)
+        config.server { server }
 
         configureJavalin(config)
         configureJsonSerialization(config)
@@ -26,8 +27,6 @@ internal object JavalinWebServerConfiguration {
         configureCors(config)
         configureOpenApi(configuration, config)
         configureDebug(reposilite, configuration, config)
-
-        config.server { server }
     }
 
     private fun configureJavalin(config: JavalinConfig) {

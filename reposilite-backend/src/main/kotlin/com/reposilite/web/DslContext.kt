@@ -17,18 +17,17 @@
 package com.reposilite.web
 
 import com.reposilite.auth.Session
-import com.reposilite.web.context.error
-import com.reposilite.web.error.ErrorResponse
+import com.reposilite.web.http.ErrorResponse
+import com.reposilite.web.http.error
 import io.javalin.http.Context
 import io.javalin.http.HttpCode
-import panda.std.Result
 
 class DslContext(val ctx: Context, val context: ReposiliteContext) {
 
     /**
-     * JSON response to send at the end of the dsl call
+     * Response to send at the end of the dsl call
      */
-    var response: Result<out Any?, ErrorResponse>? = null
+    var response: Any? = null
 
     /**
      * Request was created by either anonymous user or through authenticated token
@@ -62,16 +61,11 @@ class DslContext(val ctx: Context, val context: ReposiliteContext) {
     fun parameter(name: String): String =
         ctx.pathParam(name)
 
-    internal fun handleResult(result: Result<out Any?, ErrorResponse>?) {
-        result
-            ?.mapErr { ctx.json(it) }
-            ?.map { it?.let { ctx.json(it) } }
+    fun respond(result: Any) {
+        this.response = result
     }
 
 }
 
-fun context(contextFactory: ReposiliteContextFactory, ctx: Context, init: DslContext.() -> Unit) {
-    DslContext(ctx, contextFactory.create(ctx))
-        .also { init(it) }
-        .also { it.handleResult(it.response) }
-}
+suspend fun context(contextFactory: ReposiliteContextFactory, ctx: Context, init: suspend DslContext.() -> Unit): DslContext =
+    DslContext(ctx, contextFactory.create(ctx)).also { init(it) }

@@ -2,8 +2,9 @@ package com.reposilite.shared
 
 import com.reposilite.shared.FileType.DIRECTORY
 import com.reposilite.shared.FileType.FILE
-import com.reposilite.web.error.ErrorResponse
-import com.reposilite.web.error.errorResponse
+import com.reposilite.shared.FilesUtils.getExtension
+import com.reposilite.web.http.ErrorResponse
+import com.reposilite.web.http.errorResponse
 import io.javalin.http.HttpCode
 import io.javalin.http.HttpCode.NOT_FOUND
 import panda.std.Result
@@ -70,6 +71,8 @@ fun Path.size(): Result<Long, ErrorResponse> =
 fun Path.append(path: String): Result<Path, IOException> =
     path.toNormalizedPath().map { this.resolve(it).normalize() }
 
+fun Path.getExtension(): String =
+    getSimpleName().getExtension()
 
 fun Path.getSimpleName(): String =
     this.fileName.toString()

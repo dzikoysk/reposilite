@@ -17,10 +17,8 @@ package com.reposilite.shared
 
 import com.reposilite.Reposilite
 import com.reposilite.maven.Repository
-import com.reposilite.web.api.MimeTypes
 import org.apache.commons.codec.digest.DigestUtils
 import panda.utilities.IOUtils
-import panda.utilities.StringUtils
 import java.io.Closeable
 import java.io.IOException
 import java.nio.file.Path
@@ -33,27 +31,9 @@ object FilesUtils {
 
     private val DISPLAY_SIZE_PATTERN = Pattern.compile("([0-9]+)(([KkMmGg])[Bb])")
 
-    const val PLAIN = "text/plain"
-    const val HTML = "text/html"
-    const val XML = "text/xml"
-    const val OCTET_STREAM = "application/octet-stream"
-    const val JAVASCRIPT = "application/javascript"
-    const val JSON = "application/json"
-    const val MULTIPART_FORM_DATA = "multipart/form-data"
-
     private const val KB_FACTOR: Long = 1024
     private const val MB_FACTOR = 1024 * KB_FACTOR
     private const val GB_FACTOR = 1024 * MB_FACTOR
-
-    private val READABLE_CONTENT = arrayOf(
-        ".xml",
-        ".pom",
-        ".txt",
-        ".json",
-        ".cdn",
-        ".yaml",
-        ".yml"
-    )
 
     fun displaySizeToBytesCount(displaySize: String): Long {
         val match = DISPLAY_SIZE_PATTERN.matcher(displaySize)
@@ -97,12 +77,6 @@ object FilesUtils {
         return String.format("%.1f %ciB", value / 1024.0, characterIterator.current())
     }
 
-    fun isReadable(name: String): Boolean =
-        READABLE_CONTENT.any { extension -> name.endsWith(extension) }
-
-    fun getMimeType(path: String, defaultType: String): String =
-        MimeTypes.getMimeType(getExtension(path), defaultType)
-
     fun writeFileChecksums(repository: Repository, path: Path, bytes: ByteArray) {
         val md5 = path.resolveSibling(path.getSimpleName() + ".md5")
         repository.putFile(md5, DigestUtils.md5(bytes))
@@ -129,10 +103,11 @@ object FilesUtils {
         .map { it.getSimpleName() }
         .toList()
 
-    fun getExtension(name: String): String {
-        val occurrence = name.lastIndexOf(".")
-        return if (occurrence == -1) StringUtils.EMPTY else name.substring(occurrence + 1)
-    }
+    fun String.getExtension(): String =
+        lastIndexOf(".")
+            .takeIf { it != -1 }
+            ?.let { substring(it + 1) }
+            ?: ""
 
     fun getResource(name: String): String =
         IOUtils.convertStreamToString(Reposilite::class.java.getResourceAsStream(name))

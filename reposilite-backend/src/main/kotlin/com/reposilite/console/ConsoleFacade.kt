@@ -16,14 +16,15 @@
 
 package com.reposilite.console
 
-import io.javalin.http.HttpCode
+import com.reposilite.console.api.ExecutionResponse
+import com.reposilite.web.http.ErrorResponse
+import com.reposilite.web.http.errorResponse
+import io.javalin.http.HttpCode.BAD_REQUEST
 import net.dzikoysk.dynamiclogger.Journalist
 import net.dzikoysk.dynamiclogger.Logger
-import com.reposilite.console.api.ExecutionResponse
-import com.reposilite.web.error.ErrorResponse
-import com.reposilite.web.error.errorResponse
-import panda.utilities.StringUtils
 import panda.std.Result
+import panda.std.asSuccess
+import panda.utilities.StringUtils
 import picocli.CommandLine
 
 const val MAX_COMMAND_LENGTH = 1024
@@ -35,14 +36,14 @@ class ConsoleFacade internal constructor(
 
     fun executeCommand(command: String): Result<ExecutionResponse, ErrorResponse> {
         if (StringUtils.isEmpty(command)) {
-            return errorResponse(HttpCode.BAD_REQUEST, "Missing command")
+            return errorResponse(BAD_REQUEST, "Missing command")
         }
 
         if (command.length > MAX_COMMAND_LENGTH) {
-            return errorResponse(HttpCode.BAD_REQUEST, "The given command exceeds allowed length (${command.length} > $MAX_COMMAND_LENGTH)")
+            return errorResponse(BAD_REQUEST, "The given command exceeds allowed length (${command.length} > $MAX_COMMAND_LENGTH)")
         }
 
-        return Result.ok(console.execute(command))
+        return console.execute(command).asSuccess()
     }
 
     fun registerCommand(command: ReposiliteCommand): CommandLine =

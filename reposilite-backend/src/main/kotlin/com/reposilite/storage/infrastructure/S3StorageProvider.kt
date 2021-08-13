@@ -20,14 +20,14 @@ import com.reposilite.maven.api.DirectoryInfo
 import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.maven.api.FileDetails
 import com.reposilite.shared.FileType.DIRECTORY
-import com.reposilite.shared.FilesUtils.getMimeType
+import com.reposilite.shared.getExtension
 import com.reposilite.shared.getSimpleName
 import com.reposilite.storage.StorageProvider
-import com.reposilite.web.api.MimeTypes.PLAIN
-import com.reposilite.web.error.ErrorResponse
-import com.reposilite.web.error.errorResponse
-import com.reposilite.web.mimetypes.ContentType
-import com.reposilite.web.mimetypes.ContentType.BIN
+import com.reposilite.web.http.ContentType
+import com.reposilite.web.http.ContentType.APPLICATION_OCTET_STREAM
+import com.reposilite.web.http.ContentType.Companion.OCTET_STREAM
+import com.reposilite.web.http.ErrorResponse
+import com.reposilite.web.http.errorResponse
 import io.javalin.http.HttpCode
 import io.javalin.http.HttpCode.NOT_FOUND
 import net.dzikoysk.dynamiclogger.Journalist
@@ -67,13 +67,13 @@ internal class S3StorageProvider(
             val builder = PutObjectRequest.builder()
             builder.bucket(bucket)
             builder.key(file.toString().replace('\\', '/'))
-            builder.contentType(getMimeType(file.toString(), PLAIN))
+            builder.contentType(ContentType.getMimeTypeByExtension(file.getExtension()) ?: OCTET_STREAM)
             builder.contentLength(bytes.size.toLong())
             s3.putObject(builder.build(), RequestBody.fromBytes(bytes))
 
             DocumentInfo(
-                file.fileName.toString(),
-                ContentType.getContentType(file.getSimpleName()) ?: BIN,
+                file.getSimpleName(),
+                ContentType.getContentTypeByExtension(file.getExtension()) ?: ContentType.APPLICATION_OCTET_STREAM,
                 bytes.size.toLong(),
                 { getFile(file).get() }
             ).asSuccess()
@@ -88,7 +88,7 @@ internal class S3StorageProvider(
             val builder = PutObjectRequest.builder()
             builder.bucket(bucket)
             builder.key(file.toString().replace('\\', '/'))
-            builder.contentType(getMimeType(file.toString(), PLAIN))
+            builder.contentType(ContentType.getMimeTypeByExtension(file.getExtension()) ?: OCTET_STREAM)
 
             val length = inputStream.available().toLong()
             builder.contentLength(length)
@@ -100,7 +100,7 @@ internal class S3StorageProvider(
 
             DocumentInfo(
                 file.getSimpleName(),
-                ContentType.getContentType(file.getSimpleName()) ?: BIN,
+                ContentType.getContentTypeByExtension(file.getExtension()) ?: APPLICATION_OCTET_STREAM,
                 length,
                 { inputStream }
             ).asSuccess()
@@ -137,7 +137,7 @@ internal class S3StorageProvider(
             head(file)?.let {
                 DocumentInfo(
                     file.fileName.toString(),
-                    ContentType.getContentType(file.getSimpleName()) ?: BIN,
+                    ContentType.getContentTypeByExtension(file.getExtension()) ?: APPLICATION_OCTET_STREAM,
                     it.contentLength(),
                     { getFile(file).get() }
                 ).asSuccess()

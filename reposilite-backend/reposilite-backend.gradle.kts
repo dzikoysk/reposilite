@@ -65,9 +65,10 @@ dependencies {
     implementation(kotlin("reflect"))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.1")
 
-    val expressible = "1.0.5"
+    val expressible = "1.0.6"
     implementation("org.panda-lang:expressible:$expressible")
     implementation("org.panda-lang:expressible-kt:$expressible")
+    testImplementation("org.panda-lang:expressible-junit:$expressible")
 
     val awssdk = "2.15.15"
     implementation("software.amazon.awssdk:bom:$awssdk")
@@ -90,13 +91,9 @@ dependencies {
     implementation("io.javalin-rfc:javalin-openapi-plugin:$openapi")
     implementation("io.javalin-rfc:javalin-swagger-plugin:$openapi")
 
-    val javalinRfcs = "1.0.1"
+    val javalinRfcs = "1.0.6"
     implementation("com.reposilite.javalin-rfcs:javalin-context:$javalinRfcs")
-    implementation("com.reposilite.javalin-rfcs:javalin-coroutines:$javalinRfcs")
-    implementation("com.reposilite.javalin-rfcs:javalin-error:$javalinRfcs")
-    implementation("com.reposilite.javalin-rfcs:javalin-mimetypes:$javalinRfcs")
-    implementation("com.reposilite.javalin-rfcs:javalin-openapi:$javalinRfcs")
-    implementation("com.reposilite.javalin-rfcs:javalin-routing:$javalinRfcs")
+    implementation("com.reposilite.javalin-rfcs:javalin-reactive-routing:$javalinRfcs")
 
     val javalin = "4.0.0.RC0"
     implementation("io.javalin:javalin:$javalin")

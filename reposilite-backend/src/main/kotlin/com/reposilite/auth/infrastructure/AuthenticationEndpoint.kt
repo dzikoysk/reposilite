@@ -17,9 +17,9 @@ package com.reposilite.auth.infrastructure
 
 import com.reposilite.auth.AuthenticationFacade
 import com.reposilite.auth.api.AuthenticationResponse
-import com.reposilite.web.ReposiliteRoute
-import com.reposilite.web.ReposiliteRoutes
-import com.reposilite.web.error.ErrorResponse
+import com.reposilite.web.api.ReposiliteRoute
+import com.reposilite.web.api.ReposiliteRoutes
+import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.routing.RouteMethod.GET
 import io.javalin.openapi.HttpMethod
 import io.javalin.openapi.OpenApi
@@ -27,7 +27,7 @@ import io.javalin.openapi.OpenApiContent
 import io.javalin.openapi.OpenApiParam
 import io.javalin.openapi.OpenApiResponse
 
-internal class AuthenticationEndpoint(private val authenticationFacade: AuthenticationFacade) : ReposiliteRoutes {
+internal class AuthenticationEndpoint(private val authenticationFacade: AuthenticationFacade) : ReposiliteRoutes() {
 
     @OpenApi(
         path = "/api/auth",
@@ -51,7 +51,12 @@ internal class AuthenticationEndpoint(private val authenticationFacade: Authenti
     )
     private val authInfo = ReposiliteRoute("/api/auth", GET) {
         authenticationFacade.authenticateByHeader(ctx.headerMap())
-            .map { AuthenticationResponse(it.alias, it.permissions.map { permission -> permission.toString() }) }
+            .map {
+                AuthenticationResponse(
+                    it.alias,
+                    it.permissions.map { permission -> permission.toString() }
+                )
+            }
             .let { ctx.json(it.any) }
     }
 

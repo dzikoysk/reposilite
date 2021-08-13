@@ -19,13 +19,14 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.reposilite.shared.FileType
 import com.reposilite.shared.FileType.DIRECTORY
 import com.reposilite.shared.FileType.FILE
-import com.reposilite.shared.FilesUtils
 import com.reposilite.shared.catchIOException
 import com.reposilite.shared.exists
+import com.reposilite.shared.getExtension
 import com.reposilite.shared.getSimpleName
 import com.reposilite.shared.type
-import com.reposilite.web.error.ErrorResponse
-import com.reposilite.web.mimetypes.ContentType
+import com.reposilite.web.http.ContentType
+import com.reposilite.web.http.ContentType.APPLICATION_OCTET_STREAM
+import com.reposilite.web.http.ErrorResponse
 import panda.std.Result
 import panda.std.asSuccess
 import java.io.IOException
@@ -42,9 +43,9 @@ sealed class FileDetails(
     override fun compareTo(other: FileDetails): Int =
         type.compareTo(other.type).takeIf { it != 0 } ?: name.compareTo(other.name)
 
-    @JsonIgnore
-    fun isReadable(): Boolean =
-        FilesUtils.isReadable(name)
+//    @JsonIgnore
+//    fun isReadable(): Boolean =
+//        FilesUtils.isReadable(name)
 
 }
 
@@ -82,7 +83,7 @@ fun toDocumentInfo(file: Path): Result<DocumentInfo, ErrorResponse> =
     catchIOException {
         DocumentInfo(
             file.getSimpleName(),
-            ContentType.BIN, // ContentType.getMimeType(file.getSimpleName(), OCTET_STREAM),
+            ContentType.getContentTypeByExtension(file.getExtension()) ?: APPLICATION_OCTET_STREAM,
             Files.size(file),
             { Files.newInputStream(file) }
         ).asSuccess()

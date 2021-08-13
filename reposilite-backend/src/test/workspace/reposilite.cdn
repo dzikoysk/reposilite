@@ -3,7 +3,7 @@
 # ~~~~~~~~~~~~~~~~~~~~~~ #
 
 # Hostname
-hostname: ""
+hostname: 127.0.0.1
 # Port to bind
 port: 80
 # Custom base path
@@ -16,10 +16,6 @@ basePath: /
 forwardedIp: X-Forwarded-For
 # Enable Swagger (/swagger-docs) and Swagger UI (/swagger)
 swagger: true
-# Amount of messages stored in cached logger.
-cachedLogSize: 100
-# Debug
-debugEnabled: false
 
 # Support encrypted connections
 sslEnabled: false
@@ -115,3 +111,16 @@ repositories {
 title: #onlypanda
 # Description displayed by frontend
 description: Public Maven repository hosted through the Reposilite
+
+# Note: It might be hard to estimate the best amount of threads for your use case,
+# but you can safely increase amount of threads if needed and Reposilite will create only as much as it needs.
+# This option might be more useful to limit available resources to minimum (1 thread requires ~1MB of memory)
+
+# Max amount of threads used by core thread pool
+coreThreadPool: 8
+# Max amount of threads used by io thread pool.
+ioThreadPool: 8
+# Amount of messages stored in cached logger.
+cachedLogSize: 100
+# Debug mode
+debugEnabled: false

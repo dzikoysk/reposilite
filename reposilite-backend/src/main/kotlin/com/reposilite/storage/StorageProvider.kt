@@ -18,7 +18,7 @@ package com.reposilite.storage
 
 import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.maven.api.FileDetails
-import com.reposilite.web.error.ErrorResponse
+import com.reposilite.web.http.ErrorResponse
 import panda.std.Result
 import java.io.InputStream
 import java.nio.file.Path

@@ -35,7 +35,7 @@ class Configuration : Serializable {
         "# Hostname"
     )
     @JvmField
-    var hostname = "0.0.0.0"
+    var hostname = "127.0.0.1"
 
     @Description("# Port to bind")
     @JvmField
@@ -61,14 +61,6 @@ class Configuration : Serializable {
 
     // @Description("# Run Reposilite using Jakarta Servlet server (not supported yet)")
     // public boolean servlet = false;
-
-    @Description("# Amount of messages stored in cached logger.")
-    @JvmField
-    var cachedLogSize = 100
-
-    @Description("# Debug")
-    @JvmField
-    var debugEnabled = false
 
     /* SSL */
 
@@ -184,5 +176,26 @@ class Configuration : Serializable {
     @Description("# Description displayed by frontend")
     @JvmField
     var description = "Public Maven repository hosted through the Reposilite"
+
+    /* Performance & Debug */
+
+    @Description(
+        "",
+        "# Note: It might be hard to estimate the best amount of threads for your use case,",
+        "# but you can safely increase amount of threads if needed and Reposilite will create only as much as it needs.",
+        "# This option might be more useful to limit available memory resources to minimum (1 thread requires ~1MB of memory)",
+        "",
+        "# Max amount of threads used by core thread pool (min: 4)",
+    )
+    @JvmField
+    var coreThreadPool = 8
+
+    @Description("# Amount of messages stored in cached logger.")
+    @JvmField
+    var cachedLogSize = 100
+
+    @Description("# Debug mode")
+    @JvmField
+    var debugEnabled = false
 
 }

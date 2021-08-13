@@ -6,8 +6,8 @@ import com.reposilite.maven.api.FileDetails
 import com.reposilite.shared.RemoteClient
 import com.reposilite.shared.toPath
 import com.reposilite.web.coroutines.firstOrErrors
-import com.reposilite.web.error.ErrorResponse
-import com.reposilite.web.error.aggregatedError
+import com.reposilite.web.http.ErrorResponse
+import com.reposilite.web.http.aggregatedError
 import io.javalin.http.HttpCode.NOT_FOUND
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.map

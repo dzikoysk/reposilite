@@ -23,8 +23,8 @@ import com.reposilite.failure.FailureFacade
 import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.shared.FilesUtils
 import com.reposilite.shared.getSimpleName
-import com.reposilite.web.error.ErrorResponse
-import com.reposilite.web.error.errorResponse
+import com.reposilite.web.http.ErrorResponse
+import com.reposilite.web.http.errorResponse
 import panda.std.Lazy
 import panda.std.Pair
 import panda.std.Result
