@@ -49,6 +49,8 @@ sealed class FileDetails(
 
 }
 
+const val UNKNOWN_LENGTH = -1L
+
 class DocumentInfo(
     name: String,
     val contentType: ContentType,
