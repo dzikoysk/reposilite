@@ -18,10 +18,9 @@ package com.reposilite.console.infrastructure
 import com.reposilite.console.ConsoleFacade
 import com.reposilite.console.MAX_COMMAND_LENGTH
 import com.reposilite.console.api.ExecutionResponse
-import com.reposilite.web.ReposiliteRoute
-import com.reposilite.web.ReposiliteRoutes
-import com.reposilite.web.error.ErrorResponse
-import com.reposilite.web.error.errorResponse
+import com.reposilite.web.api.ReposiliteRoute
+import com.reposilite.web.api.ReposiliteRoutes
+import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.routing.RouteMethod.POST
 import io.javalin.http.HttpCode.UNAUTHORIZED
 import io.javalin.openapi.HttpMethod
@@ -30,7 +29,7 @@ import io.javalin.openapi.OpenApiContent
 import io.javalin.openapi.OpenApiParam
 import io.javalin.openapi.OpenApiResponse
 
-internal class RemoteExecutionEndpoint(private val consoleFacade: ConsoleFacade) : ReposiliteRoutes {
+internal class RemoteExecutionEndpoint(private val consoleFacade: ConsoleFacade) : ReposiliteRoutes() {
 
     @OpenApi(
         path = "/api/execute",
@@ -62,7 +61,7 @@ internal class RemoteExecutionEndpoint(private val consoleFacade: ConsoleFacade)
 
         authenticated {
             if (!isManager()) {
-                response = errorResponse(UNAUTHORIZED, "Authenticated user is not a manager")
+                response = ErrorResponse(UNAUTHORIZED, "Authenticated user is not a manager")
                 return@authenticated
             }
 

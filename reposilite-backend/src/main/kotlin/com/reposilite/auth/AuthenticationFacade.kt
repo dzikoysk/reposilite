@@ -17,8 +17,7 @@
 package com.reposilite.auth
 
 import com.reposilite.token.api.AccessToken
-import com.reposilite.web.error.ErrorResponse
-import io.javalin.http.HttpCode
+import com.reposilite.web.http.ErrorResponse
 import io.javalin.http.HttpCode.UNAUTHORIZED
 import net.dzikoysk.dynamiclogger.Journalist
 import net.dzikoysk.dynamiclogger.Logger
@@ -36,7 +35,7 @@ class AuthenticationFacade internal constructor(
 
     fun authenticateByCredentials(credentials: String): Result<AccessToken, ErrorResponse> =
         authenticator.authByCredentials(credentials)
-            .mapErr { error -> ErrorResponse(HttpCode.UNAUTHORIZED, error) }
+            .mapErr { error -> ErrorResponse(UNAUTHORIZED, error) }
 
     fun createSession(path: String, method: SessionMethod, address: String, accessToken: AccessToken): Session =
         sessionService.createSession(path, method, address, accessToken)

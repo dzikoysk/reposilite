@@ -1,14 +1,14 @@
 package com.reposilite.shared
 
 import com.github.kittinunf.fuel.Fuel
+import com.github.kittinunf.fuel.core.Response
 import com.github.kittinunf.fuel.core.isSuccessful
 import com.github.kittinunf.fuel.coroutines.awaitByteArrayResponseResult
 import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.shared.FilesUtils.getExtension
-import com.reposilite.web.api.MimeTypes
-import com.reposilite.web.error.ErrorResponse
-import com.reposilite.web.error.errorResponse
-import com.reposilite.web.mimetypes.ContentType.BIN
+import com.reposilite.web.http.ContentType
+import com.reposilite.web.http.ErrorResponse
+import com.reposilite.web.http.errorResponse
 import io.javalin.http.HttpCode.BAD_REQUEST
 import io.javalin.http.HttpCode.NOT_ACCEPTABLE
 import org.eclipse.jetty.http.HttpHeader
@@ -30,25 +30,33 @@ class HttpRemoteClient : RemoteClient {
             .awaitByteArrayResponseResult()
             .let { (_, response, result) ->
                 result.fold(
-                    { data ->
-                        val contentType = response.header(HttpHeader.CONTENT_TYPE.asString()).firstOrNull() ?: MimeTypes.getMimeType(getExtension(uri))
-
-                        when {
-                            contentType == MimeTypes.HTML -> errorResponse(NOT_ACCEPTABLE, "Illegal file type")
-                            response.isSuccessful.not() -> errorResponse(NOT_ACCEPTABLE, "Unsuccessful request")
-                            else -> {
-                                DocumentInfo(
-                                    uri.toNormalizedPath().get().getSimpleName(),
-                                    BIN,
-                                    response.contentLength,
-                                    { data.inputStream() }
-                                ).asSuccess()
-                            }
-                        }
-                    },
+                    { data -> get(uri, response, data) },
                     { error -> errorResponse(BAD_REQUEST, "An error of type ${error.exception} happened: ${error.message}")}
                 )
             }
+
+    private fun get(uri: String, response: Response, data: ByteArray): Result<DocumentInfo, ErrorResponse> {
+        val contentType = response.header(HttpHeader.CONTENT_TYPE.asString())
+            .firstOrNull()
+            ?.let { ContentType.getContentType(it) }
+            ?: ContentType.getContentTypeByExtension(uri.getExtension())
+            ?: ContentType.APPLICATION_OCTET_STREAM
+
+        val contentLength = response.contentLength
+
+        return when {
+            contentType == ContentType.TEXT_HTML -> errorResponse(NOT_ACCEPTABLE, "Illegal file type")
+            response.isSuccessful.not() -> errorResponse(NOT_ACCEPTABLE, "Unsuccessful request")
+            else -> {
+                DocumentInfo(
+                    uri.toNormalizedPath().get().getSimpleName(),
+                    contentType,
+                    contentLength,
+                    { data.inputStream() }
+                ).asSuccess()
+            }
+        }
+    }
 
 }
 

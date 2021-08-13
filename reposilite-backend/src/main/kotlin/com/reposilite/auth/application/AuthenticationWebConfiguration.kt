@@ -23,7 +23,7 @@ import com.reposilite.auth.infrastructure.AuthenticationEndpoint
 import com.reposilite.auth.infrastructure.PostAuthHandler
 import com.reposilite.maven.MavenFacade
 import com.reposilite.token.AccessTokenFacade
-import com.reposilite.web.ReposiliteRoutes
+import com.reposilite.web.api.ReposiliteRoutes
 import net.dzikoysk.dynamiclogger.Journalist
 
 internal object AuthenticationWebConfiguration {

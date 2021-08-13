@@ -16,9 +16,11 @@
 package com.reposilite.maven
 
 import com.reposilite.shared.FilesUtils.getExtension
-import com.reposilite.web.error.ErrorResponse
+import com.reposilite.shared.getSimpleName
+import com.reposilite.web.http.ErrorResponse
 import panda.std.Result
 import panda.utilities.StringUtils
+import panda.utilities.StringUtils.EMPTY
 import panda.utilities.text.Joiner
 import java.io.IOException
 import java.nio.file.Path
@@ -73,7 +75,7 @@ internal object MetadataUtils {
             .toList()
 
     internal fun isNotChecksum(path: Path, identifier: String): Boolean =
-        path.fileName.toString()
+        path.getSimpleName()
             .takeUnless { it.endsWith(".md5") }
             ?.takeUnless { it.endsWith(".sha1") }
             ?.takeIf { it.contains("$identifier.") || it.contains("$identifier-") } != null
@@ -88,10 +90,10 @@ internal object MetadataUtils {
 
     @JvmStatic
     fun toIdentifier(artifact: String, version: String, build: Path): String =
-        build.fileName.toString()
-            .let { it.replace("." + getExtension(it), StringUtils.EMPTY) }
-            .replace("$artifact-", StringUtils.EMPTY)
-            .replace("$version-", StringUtils.EMPTY)
+        build.getSimpleName()
+            .let { it.replace("." + it.getExtension(), EMPTY) }
+            .replace("$artifact-", EMPTY)
+            .replace("$version-", EMPTY)
             .let { declassifyIdentifier(it) }
 
     private fun declassifyIdentifier(identifier: String): String {

@@ -5,9 +5,14 @@ import com.reposilite.ReposiliteWebConfiguration
 import com.reposilite.config.Configuration
 import com.reposilite.web.DslContext
 import com.reposilite.web.WebServer
-import com.reposilite.web.routing.RoutingPlugin
+import com.reposilite.web.context
+import com.reposilite.web.http.response
+import com.reposilite.web.routing.ReactiveRoutingPlugin
 import io.javalin.Javalin
 import io.javalin.core.JavalinConfig
+import io.ktor.util.DispatcherWithShutdown
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.asCoroutineDispatcher
 
 internal class JavalinWebServer : WebServer {
 
@@ -16,35 +21,55 @@ internal class JavalinWebServer : WebServer {
 
     override fun start(reposilite: Reposilite) {
         val configuration = reposilite.configuration
+        val dispatcher = DispatcherWithShutdown(reposilite.coreThreadPool.asCoroutineDispatcher())
 
-        this.javalin = createJavalin(reposilite, configuration)
+        this.javalin = createJavalin(reposilite, configuration, dispatcher)
             .events { listener ->
-                listener.serverStopping { reposilite.logger.info("Server stopping...") }
-                listener.serverStopped { reposilite.logger.info("Bye! Uptime: " + reposilite.getPrettyUptime()) }
+                listener.serverStopping {
+                    reposilite.logger.info("Server stopping...")
+                    dispatcher.prepareShutdown()
+                }
+                listener.serverStopped {
+                    dispatcher.completeShutdown()
+                    reposilite.logger.info("Bye! Uptime: " + reposilite.getPrettyUptime())
+                }
             }
-            .also { ReposiliteWebConfiguration.javalin(reposilite, it) }
+            .also {
+                ReposiliteWebConfiguration.javalin(reposilite, it)
+                reposilite.coreThreadPool.start()
+            }
 
         if (!servlet) {
             javalin!!.start(configuration.hostname, configuration.port)
         }
     }
 
-    private fun createJavalin(reposilite: Reposilite, configuration: Configuration): Javalin =
-        if (servlet)
-            Javalin.createStandalone { configureServer(reposilite, configuration, it) }
-        else
-            Javalin.create { configureServer(reposilite, configuration, it) }
+    private fun createJavalin(reposilite: Reposilite, configuration: Configuration, dispatcher: CoroutineDispatcher): Javalin =
+        if (servlet) {
+            Javalin.createStandalone { configureServer(reposilite, configuration, dispatcher, it) }
+        } else {
+            Javalin.create { configureServer(reposilite, configuration, dispatcher, it) }
+        }
 
-    private fun configureServer(reposilite: Reposilite, configuration: Configuration, serverConfig: JavalinConfig) {
+    private fun configureServer(reposilite: Reposilite, configuration: Configuration, dispatcher: CoroutineDispatcher, serverConfig: JavalinConfig) {
         JavalinWebServerConfiguration.configure(reposilite, configuration, serverConfig)
 
-        RoutingPlugin { DslContext(it, reposilite.contextFactory.create(it)) }
-            .also { plugin ->
-                ReposiliteWebConfiguration.routing(reposilite).forEach {
-                    plugin.registerRoutes(it)
-                }
+        val plugin = ReactiveRoutingPlugin<DslContext, Unit>(
+            errorConsumer = { name, error -> reposilite.logger.error("Coroutine $name failed to execute task", error) },
+            dispatcher = dispatcher,
+            syncHandler = { ctx, route ->
+                val dsl = context(reposilite.contextFactory, ctx, route.handler)
+                dsl.response?.also { ctx.response(it) }
+            },
+            asyncHandler = { ctx, route, result ->
+                val dsl = context(reposilite.contextFactory, ctx, route.handler)
+                dsl.response?.also { ctx.response(it) }
+                result.complete(Unit)
             }
-            .also { serverConfig.registerPlugin(it) }
+        )
+
+        ReposiliteWebConfiguration.routing(reposilite).forEach { plugin.registerRoutes(it) }
+        serverConfig.registerPlugin(plugin)
     }
 
     override fun stop() {

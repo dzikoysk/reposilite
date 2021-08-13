@@ -17,7 +17,7 @@ package com.reposilite.web
 
 import com.reposilite.auth.AuthenticationFacade
 import com.reposilite.auth.SessionMethod
-import com.reposilite.web.error.errorResponse
+import com.reposilite.web.http.errorResponse
 import io.javalin.http.Context
 import io.javalin.http.HttpCode.UNAUTHORIZED
 import io.javalin.websocket.WsContext
@@ -35,9 +35,7 @@ class ReposiliteContextFactory internal constructor(
         val host = context.header(forwardedIpHeader) ?: context.req.remoteAddr
 
         val session = authenticationFacade.authenticateByHeader(context.headerMap())
-            .map {
-                authenticationFacade.createSession(uri, SessionMethod.valueOf(context.method().uppercase()), host, it)
-            }
+            .map { authenticationFacade.createSession(uri, SessionMethod.valueOf(context.method().uppercase()), host, it) }
 
         return ReposiliteContext(
             journalist,

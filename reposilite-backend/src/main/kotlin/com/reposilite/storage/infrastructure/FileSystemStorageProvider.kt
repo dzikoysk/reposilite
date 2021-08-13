@@ -30,8 +30,8 @@ import com.reposilite.shared.listFiles
 import com.reposilite.shared.size
 import com.reposilite.shared.type
 import com.reposilite.storage.StorageProvider
-import com.reposilite.web.error.ErrorResponse
-import com.reposilite.web.error.errorResponse
+import com.reposilite.web.http.ErrorResponse
+import com.reposilite.web.http.errorResponse
 import io.javalin.http.HttpCode
 import panda.std.Result
 import panda.std.function.ThrowingBiFunction

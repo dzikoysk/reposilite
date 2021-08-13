@@ -24,8 +24,8 @@ import com.reposilite.maven.api.LookupRequest
 import com.reposilite.shared.getSimpleName
 import com.reposilite.shared.toNormalizedPath
 import com.reposilite.shared.toPath
-import com.reposilite.web.error.ErrorResponse
-import com.reposilite.web.error.errorResponse
+import com.reposilite.web.http.ErrorResponse
+import com.reposilite.web.http.errorResponse
 import io.javalin.http.HttpCode
 import io.javalin.http.HttpCode.BAD_REQUEST
 import io.javalin.http.HttpCode.INSUFFICIENT_STORAGE
