@@ -24,7 +24,7 @@ import io.javalin.openapi.OpenApiParam
 import io.javalin.openapi.OpenApiResponse
 import kotlinx.coroutines.runBlocking
 
-internal class MavenFileEndpoint(private val mavenFacade: MavenFacade) : ReposiliteRoutes() {
+internal class MavenEndpoint(private val mavenFacade: MavenFacade) : ReposiliteRoutes() {
 
     @OpenApi(
         path = "/{repository}/*",
