@@ -1,34 +1,44 @@
 package com.reposilite.maven
 
-import com.reposilite.config.Configuration.RepositoryConfiguration
 import com.reposilite.maven.api.DeleteRequest
 import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.RepositoryVisibility
+import com.reposilite.maven.api.RepositoryVisibility.HIDDEN
+import com.reposilite.maven.api.RepositoryVisibility.PRIVATE
+import com.reposilite.maven.api.RepositoryVisibility.PUBLIC
 import com.reposilite.shared.FileType.FILE
 import com.reposilite.token.api.RoutePermission.READ
 import com.reposilite.token.api.RoutePermission.WRITE
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
+import panda.std.ResultAssertions.assertError
+import panda.std.ResultAssertions.assertOk
 import panda.utilities.IOUtils
 
 internal class MavenFacadeTest : MavenSpec() {
 
     override fun repositories() = mapOf(
-        "public" to RepositoryConfiguration().also {
-            it.visibility = RepositoryVisibility.PUBLIC
+        createRepository("private") {
+            visibility = PRIVATE
         },
-        "hidden" to RepositoryConfiguration().also {
-            it.visibility = RepositoryVisibility.HIDDEN
+        createRepository("hidden") {
+            visibility = HIDDEN
         },
-        "private" to RepositoryConfiguration().also {
-            it.visibility = RepositoryVisibility.PRIVATE
+        createRepository("public") {
+            visibility = PUBLIC
+        },
+        createRepository("proxied") {
+            visibility = PUBLIC
+            proxied = mutableListOf(
+                "public",
+                "$REMOTE_REPOSITORY --store true"
+            )
         }
     )
 
@@ -70,7 +80,7 @@ internal class MavenFacadeTest : MavenSpec() {
     @Test
     fun `should require authentication to access file in private repository`() = runBlocking {
         // given: a repository with file and request without credentials
-        val repository = RepositoryVisibility.PRIVATE.name.lowercase()
+        val repository = PRIVATE.name.lowercase()
         val fileSpec = addFileToRepository(FileSpec(repository, "gav/file.pom", "content"))
         var authentication = UNAUTHORIZED
 
@@ -78,7 +88,7 @@ internal class MavenFacadeTest : MavenSpec() {
         val errorResponse = mavenFacade.findFile(fileSpec.toLookupRequest(authentication))
 
         // then: the response contains error
-        assertTrue(errorResponse.isErr)
+        assertError(errorResponse)
 
         // given: access token with access to the repository
         authentication = createAccessToken("alias", "secret", repository, "", READ)
@@ -87,7 +97,7 @@ internal class MavenFacadeTest : MavenSpec() {
         val fileDetails = mavenFacade.findFile(fileSpec.toLookupRequest(authentication))
 
         // then: response contains file details
-        assertTrue(fileDetails.isOk)
+        assertOk(fileDetails)
     }
 
     @ParameterizedTest
@@ -100,20 +110,20 @@ internal class MavenFacadeTest : MavenSpec() {
         val directoryInfo = mavenFacade.findFile(LookupRequest(fileSpec.repository, "gav", UNAUTHORIZED))
 
         // then: response contains error
-        assertTrue(directoryInfo.isErr)
+        assertError(directoryInfo)
     }
 
     @Test
     fun `should delete file` () {
         // given: a repository with a file
-        val fileSpec = addFileToRepository(FileSpec(RepositoryVisibility.PUBLIC.name.lowercase(), "gav/file.pom", "content"))
+        val fileSpec = addFileToRepository(FileSpec(PUBLIC.name.lowercase(), "gav/file.pom", "content"))
         var authentication = createAccessToken("invalid", "invalid", "invalid", "invalid", WRITE)
 
         // when: the given file is deleted with invalid credentials
         val errorResponse = mavenFacade.deleteFile(DeleteRequest(authentication, fileSpec.repository, fileSpec.gav))
 
         // then: response contains error
-        assertTrue(errorResponse.isErr)
+        assertError(errorResponse)
 
         // given: a valid credentials
         authentication = createAccessToken("alias", "secret", "public", "gav", WRITE)
@@ -122,7 +132,25 @@ internal class MavenFacadeTest : MavenSpec() {
         val response = mavenFacade.deleteFile(DeleteRequest(authentication, fileSpec.repository, fileSpec.gav))
 
         // then: file has been deleted
-        assertTrue(response.isOk)
+        assertOk(response)
+    }
+
+    @Test
+    fun `should serve proxied file from remote host and store it in local repository` () = runBlocking {
+        // given: a file available in remote repository
+        val fileSpec = FileSpec("proxied", "/gav/file.pom", REMOTE_CONTENT)
+
+        // when: a remote file is requested through proxied repository
+        val response = mavenFacade.findFile(fileSpec.toLookupRequest(UNAUTHORIZED))
+
+        // then: the file has been properly proxied
+        assertOk(response)
+        assertEquals(REMOTE_CONTENT, (response.get() as DocumentInfo).content().readBytes().decodeToString())
+
+        // might not be the best option, but leave it now to simply check if FS works atm
+        // whatever, flags in picocli does not work
+        // TODO: Fix ProxiedHostConfiguration
+        // assertTrue(File(workingDirectory, "/repositories/proxied/gav/file.pom".replace("/", File.pathSeparator)).exists())
     }
 
 }

@@ -1,137 +1,41 @@
-/*
- * Copyright (c) 2021 dzikoysk
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.reposilite.maven
 
-/*
-internal class ProxyService(
-    private val storeProxied: Boolean,
-    private val proxyPrivate: Boolean,
-    private val proxyConnectTimeout: Int,
-    private val proxyReadTimeout: Int,
-    private val proxied: List<String>,
-    private val repositoryService: RepositoryService,
-    private val failureFacade: FailureFacade,
-    private val storageProvider: StorageProvider
-) {
+import com.reposilite.config.Configuration.RepositoryConfiguration.ProxiedHostConfiguration
+import com.reposilite.maven.api.DocumentInfo
+import com.reposilite.maven.api.FileDetails
+import com.reposilite.shared.RemoteClient
+import com.reposilite.shared.toPath
+import com.reposilite.web.coroutines.firstOrErrors
+import com.reposilite.web.http.ErrorResponse
+import com.reposilite.web.http.aggregatedError
+import io.javalin.http.HttpCode.NOT_FOUND
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.map
+import panda.std.Result
+import panda.std.Result.ok
 
-    private val httpRequestFactory: HttpRequestFactory = NetHttpTransport().createRequestFactory()
+internal class ProxyService(private val remoteClient: RemoteClient) {
 
-    fun findProxied(context: ReposiliteContext): Result<DocumentInfo, ErrorResponse> {
-        var uri = context.uri
-        var repository: Repository? = null
+    suspend fun findFile(repository: Repository, gav: String): Result<out FileDetails, ErrorResponse> =
+        repository.proxiedHosts
+            .asSequence()
+            .asFlow()
+            .map { (host, configuration) -> findFile(repository, host, gav, configuration) }
+            .firstOrErrors()
+            .mapErr { aggregatedError(NOT_FOUND, it) }
 
-        for (localRepository in repositoryService.getRepositories()) {
-            if (uri.startsWith("/" + localRepository.name)) {
-                repository = localRepository
-                uri = uri.substring(1 + localRepository.name.length)
-                break
-            }
+    private suspend fun findFile(repository: Repository, host: String, gav: String, configuration: ProxiedHostConfiguration): Result<out FileDetails, ErrorResponse> =
+        findFile(host, configuration, gav).flatMap { document ->
+            if (configuration.store) storeFile(repository, gav, document) else ok<FileDetails, ErrorResponse>(document)
         }
 
-        if (repository == null) {
-            return errorResponse(HttpCode.NOT_FOUND, "Unknown repository")
-        }
+    private fun storeFile(repository: Repository, gav: String, document: DocumentInfo): Result<out FileDetails, ErrorResponse> =
+        repository
+            .putFile(gav.toPath(), document.content())
+            .flatMap { repository.getFileDetails(gav.toPath()) }
 
-        if (!proxyPrivate && repository.visibility == PRIVATE) {
-            return errorResponse(HttpCode.NOT_FOUND, "Proxying is disabled in private repositories")
-        }
-
-        // /groupId/artifactId/<content>
-        if (StringUtils.countOccurrences(uri, "/") < 3) {
-            return errorResponse(HttpCode.NON_AUTHORITATIVE_INFORMATION, "Invalid proxied request")
-        }
-
-        val remoteUri = uri
-        val list: MutableList<CompletableFuture<Void>> = ArrayList()
-        val responses = Collections.synchronizedList(ArrayList<HttpResponse>())
-
-        for (proxied in proxied) {
-            list.add(CompletableFuture.runAsync {
-                try {
-                    val remoteRequest = httpRequestFactory.buildGetRequest(GenericUrl(proxied + remoteUri))
-                    remoteRequest.throwExceptionOnExecuteError = false
-                    remoteRequest.connectTimeout = proxyConnectTimeout * 1000
-                    remoteRequest.readTimeout = proxyReadTimeout * 1000
-                    val remoteResponse = remoteRequest.execute()
-                    val headers = remoteResponse.headers
-
-                    if ("text/html" == headers.contentType) {
-                        return@runAsync
-                    }
-
-                    if (remoteResponse.isSuccessStatusCode) {
-                        responses.add(remoteResponse)
-                    }
-                }
-                catch (exception: Exception) {
-                    val message = "Proxied repository " + proxied + " is unavailable due to: " + exception.message
-                    context.logger.error(message)
-
-                    if (exception !is SocketTimeoutException) {
-                        failureFacade.throwException(remoteUri, ReposiliteException(message, exception))
-                    }
-                }
-            })
-        }
-
-        CompletableFuture.allOf(*list.toTypedArray<CompletableFuture<*>>()).join()
-
-        return if (responses.isNotEmpty()) {
-            val remoteResponse = responses[0]
-
-            if (context.method != "HEAD") {
-                if (storeProxied) {
-                    return store(remoteUri, remoteResponse, context)
-                }
-            }
-
-            val contentLength = Option.of(remoteResponse.headers.contentLength).orElseGet(0L)
-            val path = remoteUri.split("/").toTypedArray()
-
-            DocumentInfo(path.last(), remoteResponse.contentType, contentLength) {
-                remoteResponse.content
-            }.asResult()
-        }
-        else errorResponse(HttpCode.NOT_FOUND, "Artifact $uri not found")
-    }
-
-    private fun store(uri: String, remoteResponse: HttpResponse, context: ReposiliteContext): Result<DocumentInfo, ErrorResponse> {
-        if (storageProvider.isFull()) {
-            val error = "Not enough storage space available for $uri"
-            context.logger.warn(error)
-            return errorResponse(HttpCode.INSUFFICIENT_STORAGE, error)
-        }
-
-        val repositoryName = StringUtils.split(uri.substring(1), "/")[0] // skip first path separator
-
-        /* val repository = */ repositoryService.getRepository(repositoryName)
-            ?: return errorResponse(HttpCode.BAD_REQUEST, "Missing valid repository name")
-
-        val proxiedFile = Paths.get(uri)
-
-        return try {
-            storageProvider.putFile(proxiedFile, remoteResponse.content)
-                .peek {
-                    context.logger.info("Stored proxied $proxiedFile from ${remoteResponse.request.url}")
-                }
-        }
-        catch (ioException: IOException) {
-            errorResponse(HttpCode.UNPROCESSABLE_ENTITY, "Cannot process artifact")
-        }
-    }
+    private suspend fun findFile(host: String, configuration: ProxiedHostConfiguration, gav: String): Result<DocumentInfo, ErrorResponse> =
+        remoteClient.get("$host/$gav", configuration.connectTimeout, configuration.readTimeout)
+            .mapErr { error -> error.updateMessage { "$host: $it" } }
 
 }
- */

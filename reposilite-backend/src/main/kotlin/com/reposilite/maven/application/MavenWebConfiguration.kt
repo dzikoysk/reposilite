@@ -20,7 +20,7 @@ import com.reposilite.config.Configuration.RepositoryConfiguration
 import com.reposilite.failure.FailureFacade
 import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.MetadataService
-import com.reposilite.maven.ProxyClient
+import com.reposilite.maven.ProxyService
 import com.reposilite.maven.RepositoryFactory
 import com.reposilite.maven.RepositorySecurityProvider
 import com.reposilite.maven.RepositoryService
@@ -39,7 +39,7 @@ internal object MavenWebConfiguration {
             .mapValues { (repositoryName, repositoryConfiguration) -> repositoryFactory.createRepository(repositoryName, repositoryConfiguration) }
             .let { RepositoryService(journalist, it) }
 
-        return MavenFacade(journalist, MetadataService(failureFacade), RepositorySecurityProvider(), repositoryService, ProxyClient(remoteClient))
+        return MavenFacade(journalist, MetadataService(failureFacade), RepositorySecurityProvider(), repositoryService, ProxyService(remoteClient))
     }
 
     fun routing(mavenFacade: MavenFacade): List<ReposiliteRoutes> =
