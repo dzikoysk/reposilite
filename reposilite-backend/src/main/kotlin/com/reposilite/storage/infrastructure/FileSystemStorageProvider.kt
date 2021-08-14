@@ -37,6 +37,7 @@ import panda.std.Result
 import panda.std.function.ThrowingBiFunction
 import panda.std.function.ThrowingFunction
 import java.io.ByteArrayOutputStream
+import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.nio.ByteBuffer
@@ -142,6 +143,13 @@ internal abstract class FileSystemStorageProvider protected constructor(
     override fun shutdown() {}
 
     private fun resolved(file: Path): Path =
-        rootDirectory.resolve(file)
+        rootDirectory.resolve(
+            file.toString().let {
+                if (it.startsWith(File.separator))
+                    it.substring(File.separator.length)
+                else
+                    it
+            }
+        )
 
 }

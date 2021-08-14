@@ -13,6 +13,7 @@ import com.reposilite.token.api.RoutePermission.READ
 import com.reposilite.token.api.RoutePermission.WRITE
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -20,6 +21,7 @@ import org.junit.jupiter.params.provider.EnumSource
 import panda.std.ResultAssertions.assertError
 import panda.std.ResultAssertions.assertOk
 import panda.utilities.IOUtils
+import java.io.File
 
 internal class MavenFacadeTest : MavenSpec() {
 
@@ -37,7 +39,7 @@ internal class MavenFacadeTest : MavenSpec() {
             visibility = PUBLIC
             proxied = mutableListOf(
                 "public",
-                "$REMOTE_REPOSITORY --store true"
+                "$REMOTE_REPOSITORY --readTimeout=1 --store"
             )
         }
     )
@@ -146,11 +148,7 @@ internal class MavenFacadeTest : MavenSpec() {
         // then: the file has been properly proxied
         assertOk(response)
         assertEquals(REMOTE_CONTENT, (response.get() as DocumentInfo).content().readBytes().decodeToString())
-
-        // might not be the best option, but leave it now to simply check if FS works atm
-        // whatever, flags in picocli does not work
-        // TODO: Fix ProxiedHostConfiguration
-        // assertTrue(File(workingDirectory, "/repositories/proxied/gav/file.pom".replace("/", File.pathSeparator)).exists())
+        assertTrue(File(workingDirectory, "/repositories/proxied/gav/file.pom").exists())
     }
 
 }
