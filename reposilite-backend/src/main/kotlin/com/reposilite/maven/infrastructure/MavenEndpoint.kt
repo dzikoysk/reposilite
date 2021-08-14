@@ -22,14 +22,13 @@ import io.javalin.openapi.OpenApi
 import io.javalin.openapi.OpenApiContent
 import io.javalin.openapi.OpenApiParam
 import io.javalin.openapi.OpenApiResponse
-import kotlinx.coroutines.runBlocking
 
 internal class MavenEndpoint(private val mavenFacade: MavenFacade) : ReposiliteRoutes() {
 
     @OpenApi(
+        tags = ["Maven"],
         path = "/{repository}/*",
         methods = [HttpMethod.GET],
-        tags = ["Maven"],
         summary = "Browse the contents of repositories",
         description = "The route may return various responses to properly handle Maven specification and frontend application using the same path.",
         pathParams = [
@@ -44,7 +43,7 @@ internal class MavenEndpoint(private val mavenFacade: MavenFacade) : ReposiliteR
     val findFile = ReposiliteRoute("/{repository}/<gav>", GET) {
         accessed {
             LookupRequest(parameter("repository"), parameter("gav"), this?.accessToken)
-                .let { runBlocking { mavenFacade.findFile(it) }}
+                .let { mavenFacade.findFile(it) }
                 .peek {
                     when (it) {
                         is DocumentInfo -> ctx.resultAttachment(it.name, it.contentType, it.contentLength, it.content())
@@ -56,11 +55,11 @@ internal class MavenEndpoint(private val mavenFacade: MavenFacade) : ReposiliteR
     }
 
     @OpenApi(
+        tags = [ "Maven" ],
         path = "/{repository}/*",
         methods = [HttpMethod.POST, HttpMethod.PUT],
         summary = "Deploy artifact to the repository",
         description = "Deploy supports both, POST and PUT, methods and allows to deploy artifact builds",
-        tags = [ "Maven" ],
         pathParams = [
             OpenApiParam(name = "repository", description = "Destination repository", required = true),
             OpenApiParam(name = "*", description = "Artifact path qualifier", required = true)
@@ -81,10 +80,10 @@ internal class MavenEndpoint(private val mavenFacade: MavenFacade) : ReposiliteR
     }
 
     @OpenApi(
-        path = "/{repository}/<gav>",
+        tags = ["Maven"],
+        path = "/{repository}/*",
         summary = "Delete the given file from repository",
         methods = [HttpMethod.DELETE],
-        tags = ["Maven"],
         pathParams = [
             OpenApiParam(name = "repository", description = "Destination repository", required = true),
             OpenApiParam(name = "*", description = "Artifact path qualifier", required = true)
@@ -97,11 +96,11 @@ internal class MavenEndpoint(private val mavenFacade: MavenFacade) : ReposiliteR
     }
 
     @OpenApi(
-        path = "/api/maven/details/{repository}/<gav>",
+        tags = ["Maven"],
+        path = "/api/maven/details/{repository}/*",
         methods = [HttpMethod.HEAD, HttpMethod.GET],
         summary = "Browse the contents of repositories using API",
         description = "Get details about the requested file as JSON response",
-        tags = ["Maven"],
         pathParams = [
             OpenApiParam(name = "repository", description = "Destination repository", required = true),
             OpenApiParam(name = "*", description = "Artifact path qualifier", required = true, allowEmptyValue = true)
@@ -125,11 +124,25 @@ internal class MavenEndpoint(private val mavenFacade: MavenFacade) : ReposiliteR
     )
     val findFileDetails = ReposiliteRoute("/api/maven/details/{repository}/<gav>", HEAD, GET) {
         accessed {
-            response = LookupRequest(parameter("repository"), parameter("gav"), this?.accessToken)
-                .let { runBlocking { mavenFacade.findFile(it) } }
+            response = mavenFacade.findFile(LookupRequest(parameter("repository"), parameter("gav"), this?.accessToken))
         }
     }
 
-    override val routes = setOf(findFile, deployFile, deleteFile, findFileDetails)
+    @OpenApi(
+        tags = ["Maven"],
+        path = "/api/maven/latest/{repository}/*",
+        methods = [HttpMethod.GET],
+        pathParams = [
+            OpenApiParam(name = "repository", description = "Destination repository", required = true),
+            OpenApiParam(name = "*", description = "Artifact path qualifier", required = true, allowEmptyValue = true)
+        ],
+    )
+    val findLatest = ReposiliteRoute("/api/maven/latest/{repository}/<gav>", GET) {
+        accessed {
+            response = mavenFacade.findLatest(LookupRequest(parameter("repository"), parameter("gav"), this?.accessToken))
+        }
+    }
+
+    override val routes = setOf(findFile, deployFile, deleteFile, findFileDetails, findLatest)
 
 }

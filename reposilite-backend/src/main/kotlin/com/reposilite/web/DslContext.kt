@@ -32,23 +32,25 @@ class DslContext(val ctx: Context, val context: ReposiliteContext) {
     /**
      * Request was created by either anonymous user or through authenticated token
      */
-    fun accessed(init: Session?.() -> Unit) {
+    suspend fun accessed(init: suspend Session?.() -> Unit) {
         init(context.session.orElseGet { null })
     }
 
     /**
      * Request was created by valid access token
      */
-    fun authenticated(init: Session.() -> Unit) {
+    suspend fun authenticated(init: suspend Session.() -> Unit) {
         context.session
             .onError { ctx.error(it) }
-            .peek { init(it) }
+            .also {
+                if (it.isOk) init(it.get()) // no suspend support in Result#peek
+            }
     }
 
     /**
      * Request was created by valid access token and the token has access to the requested path
      */
-    fun authorized(init: Session.() -> Unit) {
+    suspend fun authorized(init: suspend Session.() -> Unit) {
         authenticated {
             if (isAuthorized()) {
                 init(this)

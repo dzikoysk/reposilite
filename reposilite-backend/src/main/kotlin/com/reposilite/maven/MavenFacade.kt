@@ -68,6 +68,12 @@ class MavenFacade internal constructor(
         return repository.getFileDetails(gav)
     }
 
+
+    suspend fun findLatest(lookupRequest: LookupRequest): Result<out FileDetails, ErrorResponse> {
+        val repository = repositoryService.getRepository(lookupRequest.repository) ?: return errorResponse(NOT_FOUND, "Repository not found")
+        return errorResponse(NOT_FOUND, "Not implemented")
+    }
+
     fun deployFile(deployRequest: DeployRequest): Result<DocumentInfo, ErrorResponse> {
         val repository = repositoryService.getRepository(deployRequest.repository) ?: return errorResponse(NOT_FOUND, "Repository not found")
         val path = deployRequest.gav.toNormalizedPath().orNull() ?: return errorResponse(BAD_REQUEST, "Invalid GAV")
