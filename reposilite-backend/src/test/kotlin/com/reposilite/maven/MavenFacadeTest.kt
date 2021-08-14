@@ -37,10 +37,7 @@ internal class MavenFacadeTest : MavenSpec() {
         },
         createRepository("proxied") {
             visibility = PUBLIC
-            proxied = mutableListOf(
-                "public",
-                "$REMOTE_REPOSITORY --readTimeout=1 --store"
-            )
+            proxied = mutableListOf("$REMOTE_REPOSITORY --store --auth $REMOTE_AUTH")
         }
     )
 
