@@ -17,6 +17,7 @@ package com.reposilite.maven
 
 import com.reposilite.shared.FilesUtils.getExtension
 import com.reposilite.shared.getSimpleName
+import com.reposilite.shared.safeResolve
 import com.reposilite.web.http.ErrorResponse
 import panda.std.Result
 import panda.utilities.StringUtils
@@ -46,7 +47,7 @@ internal object MetadataUtils {
             val paths: MutableCollection<Path> = TreeSet() // Path comparator may be needed
 
             for (path in result.get()) {
-                paths.add(directory.resolve(path.getName(0)))
+                paths.add(directory.safeResolve(path.getName(0)))
             }
 
             return Result.ok(paths.toTypedArray())

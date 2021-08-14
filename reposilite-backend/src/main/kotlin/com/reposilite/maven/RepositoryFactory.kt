@@ -20,6 +20,7 @@ import com.reposilite.config.Configuration.RepositoryConfiguration
 import com.reposilite.config.Configuration.RepositoryConfiguration.ProxiedHostConfiguration
 import com.reposilite.config.ConfigurationLoader
 import com.reposilite.maven.MavenFacade.Companion.REPOSITORIES
+import com.reposilite.shared.safeResolve
 import com.reposilite.storage.StorageProviderFactory.createStorageProvider
 import net.dzikoysk.dynamiclogger.Journalist
 import java.nio.file.Path
@@ -36,7 +37,7 @@ internal class RepositoryFactory(
             repositoryConfiguration.proxied.associate { ConfigurationLoader.loadConfiguration(ProxiedHostConfiguration(), it) },
             createStorageProvider(
                 journalist,
-                workingDirectory.resolve(REPOSITORIES).resolve(repositoryName),
+                workingDirectory.safeResolve(REPOSITORIES).safeResolve(repositoryName),
                 repositoryConfiguration.storageProvider,
                 repositoryConfiguration.diskQuota
             ),

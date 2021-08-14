@@ -19,6 +19,7 @@ import net.dzikoysk.dynamiclogger.backend.AggregatedLogger
 import net.dzikoysk.dynamiclogger.slf4j.Slf4jLogger
 import org.jetbrains.exposed.sql.Database
 import com.reposilite.config.ConfigurationLoader
+import com.reposilite.shared.safeResolve
 import org.slf4j.LoggerFactory
 import picocli.CommandLine
 import picocli.CommandLine.Command
@@ -71,7 +72,7 @@ class ReposiliteLauncher {
                 workingDirectory = Paths.get(workingDirectoryString)
             }
 
-            val configurationFile = workingDirectory.resolve(
+            val configurationFile = workingDirectory.safeResolve(
                 if (configurationFileName == null || configurationFileName.isEmpty()) CONFIGURATION_FILE_NAME
                 else configurationFileName
             )
