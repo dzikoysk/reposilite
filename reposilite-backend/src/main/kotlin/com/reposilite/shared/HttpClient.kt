@@ -4,6 +4,7 @@ import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.fuel.core.Headers.Companion.CONTENT_ENCODING
 import com.github.kittinunf.fuel.core.Headers.Companion.CONTENT_TYPE
 import com.github.kittinunf.fuel.core.Response
+import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.core.isSuccessful
 import com.github.kittinunf.fuel.coroutines.awaitByteArrayResponseResult
 import com.reposilite.maven.api.DocumentInfo
@@ -19,14 +20,26 @@ import panda.std.asSuccess
 
 interface RemoteClient {
 
-    suspend fun get(uri: String, connectTimeout: Int, readTimeout: Int): Result<DocumentInfo, ErrorResponse>
+    /**
+     * @param uri - full remote host address with a gav
+     * @param credentials - basic credentials in user:password format
+     * @param connectTimeout - connection establishment timeout in seconds
+     * @param readTimeout - connection read timeout in seconds
+     */
+    suspend fun get(uri: String, credentials: String?, connectTimeout: Int, readTimeout: Int): Result<DocumentInfo, ErrorResponse>
 
 }
 
 class HttpRemoteClient : RemoteClient {
 
-    override suspend fun get(uri: String, connectTimeout: Int, readTimeout: Int): Result<DocumentInfo, ErrorResponse> =
+    override suspend fun get(uri: String, credentials: String?, connectTimeout: Int, readTimeout: Int): Result<DocumentInfo, ErrorResponse> =
         Fuel.get("uri")
+            .also {
+                if (credentials != null) {
+                    val (username, password) = credentials.split(":", limit = 2)
+                    it.authentication().basic(username, password)
+                }
+            }
             .timeout(connectTimeout * 1000)
             .timeoutRead(readTimeout * 1000)
             .awaitByteArrayResponseResult()
@@ -71,10 +84,10 @@ class HttpRemoteClient : RemoteClient {
 }
 
 class FakeRemoteClient(
-    private val handler: suspend (String, Int, Int) -> Result<DocumentInfo, ErrorResponse>
+    private val handler: suspend (String, String?, Int, Int) -> Result<DocumentInfo, ErrorResponse>
 ) : RemoteClient {
 
-    override suspend fun get(uri: String, connectTimeout: Int, readTimeout: Int): Result<DocumentInfo, ErrorResponse> =
-        handler(uri, connectTimeout, readTimeout)
+    override suspend fun get(uri: String, credentials: String?, connectTimeout: Int, readTimeout: Int): Result<DocumentInfo, ErrorResponse> =
+        handler(uri, credentials, connectTimeout, readTimeout)
 
 }

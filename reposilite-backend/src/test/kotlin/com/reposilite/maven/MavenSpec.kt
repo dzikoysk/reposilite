@@ -28,8 +28,9 @@ internal abstract class MavenSpec {
 
     protected companion object {
         val UNAUTHORIZED: AccessToken? = null
-        val REMOTE_REPOSITORY = "https://domain.com/releases"
-        val REMOTE_CONTENT = "content"
+        const val REMOTE_REPOSITORY = "https://domain.com/releases"
+        const val REMOTE_AUTH = "panda@secret"
+        const val REMOTE_CONTENT = "content"
     }
 
     @TempDir
@@ -43,8 +44,8 @@ internal abstract class MavenSpec {
     private fun initializeFacade() {
         val logger = InMemoryLogger()
         val failureFacade = FailureFacade(logger)
-        val remoteClient = FakeRemoteClient { uri, connectTimeout, readTimeout ->
-            if (uri.startsWith(REMOTE_REPOSITORY))
+        val remoteClient = FakeRemoteClient { uri, credentials, connectTimeout, readTimeout ->
+            if (uri.startsWith(REMOTE_REPOSITORY) && REMOTE_AUTH == credentials)
                 DocumentInfo(
                     uri.replace(":", "").toPath().getSimpleName(),
                     ContentType.TEXT_XML,

@@ -35,7 +35,7 @@ internal class ProxyService(private val remoteClient: RemoteClient) {
             .flatMap { repository.getFileDetails(gav.toPath()) }
 
     private suspend fun findFile(host: String, configuration: ProxiedHostConfiguration, gav: String): Result<DocumentInfo, ErrorResponse> =
-        remoteClient.get("$host$gav", configuration.connectTimeout, configuration.readTimeout)
+        remoteClient.get("$host$gav", configuration.authorization, configuration.connectTimeout, configuration.readTimeout)
             .mapErr { error -> error.updateMessage { "$host: $it" } }
 
 }
