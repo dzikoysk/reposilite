@@ -9,6 +9,7 @@ import com.reposilite.maven.application.MavenWebConfiguration
 import com.reposilite.shared.FakeRemoteClient
 import com.reposilite.shared.append
 import com.reposilite.shared.getSimpleName
+import com.reposilite.shared.safeResolve
 import com.reposilite.shared.toPath
 import com.reposilite.token.api.AccessToken
 import com.reposilite.token.api.Route
@@ -74,8 +75,8 @@ internal abstract class MavenSpec {
 
     fun addFileToRepository(fileSpec: FileSpec): FileSpec {
         workingDirectory!!.toPath()
-            .resolve("repositories")
-            .resolve(fileSpec.repository)
+            .safeResolve("repositories")
+            .safeResolve(fileSpec.repository)
             .append(fileSpec.gav)
             .peek {
                 Files.createDirectories(it.parent)

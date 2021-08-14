@@ -59,18 +59,18 @@ class DocumentInfo(
     val content: () -> InputStream
 ) : FileDetails(FILE, name)
 
-sealed class AbstractSimpleDirectoryInfo(
+sealed class AbstractDirectoryInfo(
     name: String,
 ) : FileDetails(DIRECTORY, name)
 
 class SimpleDirectoryInfo(
     name: String,
-) : AbstractSimpleDirectoryInfo(name)
+) : AbstractDirectoryInfo(name)
 
 class DirectoryInfo(
     name: String,
     val files: List<FileDetails>
-) : AbstractSimpleDirectoryInfo(name)
+) : AbstractDirectoryInfo(name)
 
 fun toFileDetails(file: Path): Result<out FileDetails, ErrorResponse> =
     file.exists()

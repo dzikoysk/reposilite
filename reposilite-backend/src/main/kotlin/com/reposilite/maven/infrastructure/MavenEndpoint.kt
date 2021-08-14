@@ -1,6 +1,7 @@
 package com.reposilite.maven.infrastructure
 
 import com.reposilite.maven.MavenFacade
+import com.reposilite.maven.api.AbstractDirectoryInfo
 import com.reposilite.maven.api.DeleteRequest
 import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.DocumentInfo
@@ -42,15 +43,10 @@ internal class MavenEndpoint(private val mavenFacade: MavenFacade) : ReposiliteR
     )
     val findFile = ReposiliteRoute("/{repository}/<gav>", GET) {
         accessed {
-            LookupRequest(parameter("repository"), parameter("gav"), this?.accessToken)
-                .let { mavenFacade.findFile(it) }
-                .peek {
-                    when (it) {
-                        is DocumentInfo -> ctx.resultAttachment(it.name, it.contentType, it.contentLength, it.content())
-                        else -> response = ErrorResponse(NO_CONTENT, "Requested file is a directory")
-                    }
-                }
-                .onError { response = it }
+            response = mavenFacade.findFile(LookupRequest(parameter("repository"), parameter("gav"), this?.accessToken))
+                .filter({ it is AbstractDirectoryInfo }, { ErrorResponse(NO_CONTENT, "Requested file is a directory")})
+                .map { it as DocumentInfo }
+                .peek { ctx.resultAttachment(it.name, it.contentType, it.contentLength, it.content()) }
         }
     }
 
@@ -73,8 +69,7 @@ internal class MavenEndpoint(private val mavenFacade: MavenFacade) : ReposiliteR
     )
     private val deployFile = ReposiliteRoute("/{repository}/<gav>", POST, PUT) {
         authorized {
-            response = DeployRequest(parameter("repository"), parameter("gav"), getSessionIdentifier(), context.input())
-                .let { mavenFacade.deployFile(it) }
+            response = mavenFacade.deployFile(DeployRequest(parameter("repository"), parameter("gav"), getSessionIdentifier(), context.input()))
                 .onError { context.logger.debug("Cannot deploy artifact due to: ${it.message}") }
         }
     }

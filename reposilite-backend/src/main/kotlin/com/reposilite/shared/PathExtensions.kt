@@ -10,6 +10,7 @@ import io.javalin.http.HttpCode.NOT_FOUND
 import panda.std.Result
 import panda.std.Result.error
 import panda.std.Result.ok
+import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.nio.file.Files
@@ -69,7 +70,19 @@ fun Path.size(): Result<Long, ErrorResponse> =
     }
 
 fun Path.append(path: String): Result<Path, IOException> =
-    path.toNormalizedPath().map { this.resolve(it).normalize() }
+    path.toNormalizedPath()
+        .map { this.safeResolve(it).normalize() }
+
+fun Path.safeResolve(file: Path): Path =
+    safeResolve(file.toString())
+
+fun Path.safeResolve(file: String): Path =
+    resolve(
+        if (file.startsWith(File.separator))
+            file.substring(File.separator.length)
+        else
+            file
+    )
 
 fun Path.getExtension(): String =
     getSimpleName().getExtension()

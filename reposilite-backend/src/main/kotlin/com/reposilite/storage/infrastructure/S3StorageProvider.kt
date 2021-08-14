@@ -22,6 +22,7 @@ import com.reposilite.maven.api.FileDetails
 import com.reposilite.shared.FileType.DIRECTORY
 import com.reposilite.shared.getExtension
 import com.reposilite.shared.getSimpleName
+import com.reposilite.shared.safeResolve
 import com.reposilite.storage.StorageProvider
 import com.reposilite.web.http.ContentType
 import com.reposilite.web.http.ContentType.APPLICATION_OCTET_STREAM
@@ -181,7 +182,7 @@ internal class S3StorageProvider(
             ?: getFiles(file)
                 .map { files -> files.firstOrNull() }
                 .mapErr { ErrorResponse(NOT_FOUND, "File not found: $file") }
-                .flatMap { getLastModifiedTime(file.resolve(it!!.getName(0))) }
+                .flatMap { getLastModifiedTime(file.safeResolve(it!!.getName(0))) }
 
     override fun getFileSize(file: Path): Result<Long, ErrorResponse> =
         head(file)
