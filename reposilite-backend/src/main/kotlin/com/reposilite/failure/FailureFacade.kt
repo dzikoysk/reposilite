@@ -18,11 +18,8 @@ package com.reposilite.failure
 
 import net.dzikoysk.dynamiclogger.Journalist
 import net.dzikoysk.dynamiclogger.Logger
-import panda.std.function.ThrowingRunnable
-import panda.utilities.ArrayUtils
 import panda.utilities.StringUtils
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.ExecutorService
 
 class FailureFacade internal constructor(private val journalist: Journalist) : Journalist {
 
@@ -32,13 +29,14 @@ class FailureFacade internal constructor(private val journalist: Journalist) : J
         logger.error(id)
         logger.exception(throwable)
 
-        exceptions
-            .add(arrayOf(
+        exceptions.add(
+            arrayOf(
                 "failure $id",
                 throwException(throwable)
             )
-            .joinToString { System.lineSeparator() }
-            .trim())
+            .joinToString(separator = System.lineSeparator())
+            .trim()
+        )
     }
 
     private fun throwException(throwable: Throwable?): String {
@@ -48,27 +46,9 @@ class FailureFacade internal constructor(private val journalist: Journalist) : J
 
         return arrayOf(
             "  by ${throwable.javaClass.simpleName}: ${throwable.message}",
-            "  at " + ArrayUtils.get(throwable.stackTrace, 0)
-                .map { it.toString() }
-                .orElseGet("<unknown stacktrace>"),
+            "  at " + (throwable.stackTrace.getOrNull(0) ?: "<unknown stacktrace>"),
             throwException(throwable.cause)
-        ).joinToString { System.lineSeparator() }
-    }
-
-    fun <E : Exception?> ofChecked(runnable: ThrowingRunnable<E>): Runnable {
-        return Runnable { run(runnable) }
-    }
-
-    fun <E : Exception?> executeChecked(service: ExecutorService, runnable: ThrowingRunnable<E>) {
-        service.execute { run(runnable) }
-    }
-
-    private fun run(runnable: ThrowingRunnable<*>) {
-        try {
-            runnable.run()
-        } catch (exception: Exception) {
-            throwException("Exception occurred during the task execution", exception)
-        }
+        ).joinToString(separator = System.lineSeparator())
     }
 
     fun hasFailures() =
