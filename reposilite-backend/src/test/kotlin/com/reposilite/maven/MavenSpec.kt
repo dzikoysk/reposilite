@@ -14,6 +14,8 @@ import com.reposilite.token.api.AccessToken
 import com.reposilite.token.api.Route
 import com.reposilite.token.api.RoutePermission
 import com.reposilite.web.http.ContentType
+import com.reposilite.web.http.errorResponse
+import io.javalin.http.HttpCode.NOT_FOUND
 import net.dzikoysk.dynamiclogger.backend.InMemoryLogger
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
@@ -42,12 +44,15 @@ internal abstract class MavenSpec {
         val logger = InMemoryLogger()
         val failureFacade = FailureFacade(logger)
         val remoteClient = FakeRemoteClient { uri, connectTimeout, readTimeout ->
-            DocumentInfo(
-                uri.toPath().getSimpleName(),
-                ContentType.TEXT_XML,
-                UNKNOWN_LENGTH,
-                { REMOTE_CONTENT.byteInputStream() }
-            ).asSuccess()
+            if (uri.startsWith(REMOTE_REPOSITORY))
+                DocumentInfo(
+                    uri.replace(":", "").toPath().getSimpleName(),
+                    ContentType.TEXT_XML,
+                    UNKNOWN_LENGTH,
+                    { REMOTE_CONTENT.byteInputStream() }
+                ).asSuccess()
+            else
+                errorResponse(NOT_FOUND, "Not found")
         }
         this.mavenFacade = MavenWebConfiguration.createFacade(logger, failureFacade, workingDirectory!!.toPath(), remoteClient, repositories())
     }
