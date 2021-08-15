@@ -39,10 +39,10 @@ import java.nio.file.Paths
 
 class MavenFacade internal constructor(
     private val journalist: Journalist,
-    private val metadataService: MetadataService,
     private val repositorySecurityProvider: RepositorySecurityProvider,
     private val repositoryService: RepositoryService,
-    private val proxyService: ProxyService
+    private val proxyService: ProxyService,
+    private val metadataService: MetadataService
 ) : Journalist {
 
     companion object {
@@ -68,11 +68,11 @@ class MavenFacade internal constructor(
         return repository.getFileDetails(gav)
     }
 
+    suspend fun findVersions(lookupRequest: LookupRequest): Result<out FileDetails, ErrorResponse> =
+        metadataService.findVersions(lookupRequest)
 
-    suspend fun findLatest(lookupRequest: LookupRequest): Result<out FileDetails, ErrorResponse> {
-        val repository = repositoryService.getRepository(lookupRequest.repository) ?: return errorResponse(NOT_FOUND, "Repository not found")
-        return errorResponse(NOT_FOUND, "Not implemented")
-    }
+    suspend fun findLatest(lookupRequest: LookupRequest): Result<out FileDetails, ErrorResponse> =
+        metadataService.findLatest(lookupRequest)
 
     fun deployFile(deployRequest: DeployRequest): Result<DocumentInfo, ErrorResponse> {
         val repository = repositoryService.getRepository(deployRequest.repository) ?: return errorResponse(NOT_FOUND, "Repository not found")
@@ -185,28 +185,6 @@ class MavenFacade internal constructor(
 
         if (repository.isDirectory(path)) {
             return ResponseUtils.error(HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, "Directory access")
-        }
-
-        val bytes = repository.getFile(path)
-
-        if (bytes.isErr) {
-            return bytes.map { null }
-        }
-
-        val fileDetailsResult = repository.getFileDetails(path)
-
-        return if (fileDetailsResult.isOk) {
-            val fileDetails = fileDetailsResult.get()
-
-            if (context.method != "HEAD") {
-                context.output { it.write(bytes.get()) }
-            }
-
-            context.logger.debug("RESOLVED $path; mime: ${fileDetails.contentType}; size: ${repository.getFileSize(path).get()}")
-            Result.ok(LookupResponse.of(fileDetails))
-        }
-        else {
-            Result.error(fileDetailsResult.error)
         }
     }
 
