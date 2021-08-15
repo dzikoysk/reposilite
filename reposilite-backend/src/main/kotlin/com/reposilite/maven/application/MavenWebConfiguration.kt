@@ -39,7 +39,13 @@ internal object MavenWebConfiguration {
             .mapValues { (repositoryName, repositoryConfiguration) -> repositoryFactory.createRepository(repositoryName, repositoryConfiguration) }
             .let { RepositoryService(journalist, it) }
 
-        return MavenFacade(journalist, MetadataService(failureFacade), RepositorySecurityProvider(), repositoryService, ProxyService(remoteClient))
+        return MavenFacade(
+            journalist,
+            RepositorySecurityProvider(),
+            repositoryService,
+            ProxyService(remoteClient),
+            MetadataService(repositoryService)
+        )
     }
 
     fun routing(mavenFacade: MavenFacade): List<ReposiliteRoutes> =

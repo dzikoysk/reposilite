@@ -25,7 +25,6 @@ import panda.utilities.console.Effect.GREEN_BOLD
 import panda.utilities.console.Effect.RED_UNDERLINED
 import panda.utilities.console.Effect.RESET
 import picocli.CommandLine.Command
-import java.io.IOException
 
 @Command(name = "status", description = ["Display summary status of app health"])
 internal class StatusCommand(
@@ -50,7 +49,7 @@ internal class StatusCommand(
 
     private fun getVersion(): String =
         IOUtils.fetchContent(remoteVersionUrl)
-            .orElseGet { ioException: IOException -> "$remoteVersionUrl is unavailable: ${ioException.message}" }
+            .orElseGet { "$remoteVersionUrl is unavailable: ${it.message}" }
             .let { (if (VERSION == it) GREEN else RED_UNDERLINED).toString() + it + RESET }
 
     private fun memoryUsage(): String =

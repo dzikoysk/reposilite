@@ -125,6 +125,21 @@ internal class MavenEndpoint(private val mavenFacade: MavenFacade) : ReposiliteR
 
     @OpenApi(
         tags = ["Maven"],
+        path = "/api/maven/versions/{repository}/*",
+        methods = [HttpMethod.GET],
+        pathParams = [
+            OpenApiParam(name = "repository", description = "Destination repository", required = true),
+            OpenApiParam(name = "*", description = "Artifact path qualifier", required = true, allowEmptyValue = true)
+        ],
+    )
+    val findVersions = ReposiliteRoute("/api/maven/versions/{repository}/<gav>", GET) {
+        accessed {
+            response = mavenFacade.findVersions(LookupRequest(parameter("repository"), parameter("gav"), this?.accessToken))
+        }
+    }
+
+    @OpenApi(
+        tags = ["Maven"],
         path = "/api/maven/latest/{repository}/*",
         methods = [HttpMethod.GET],
         pathParams = [
@@ -138,6 +153,6 @@ internal class MavenEndpoint(private val mavenFacade: MavenFacade) : ReposiliteR
         }
     }
 
-    override val routes = setOf(findFile, deployFile, deleteFile, findFileDetails, findLatest)
+    override val routes = setOf(findFile, deployFile, deleteFile, findFileDetails, findVersions, findLatest)
 
 }

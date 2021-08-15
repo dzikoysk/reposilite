@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.reposilite.maven
+package com.reposilite.maven.metadata_old
 
 import java.math.BigInteger
 import java.util.function.Function
 import java.util.function.Predicate
 import kotlin.math.max
 
+@Deprecated("")
 internal class MetadataComparator<T>(
     private val originalValue: Function<T, String>,
     private val cachedValue: Function<T, Array<String>>,

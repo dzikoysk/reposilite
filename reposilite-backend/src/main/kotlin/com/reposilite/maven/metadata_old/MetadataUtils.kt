@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.reposilite.maven
+package com.reposilite.maven.metadata_old
 
+import com.reposilite.maven.Repository
 import com.reposilite.shared.FilesUtils.getExtension
 import com.reposilite.shared.getSimpleName
 import com.reposilite.shared.safeResolve
@@ -31,6 +32,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import java.util.TreeSet
 
+@Deprecated("")
 internal object MetadataUtils {
 
     private const val ESCAPE_DOT = "`.`"
