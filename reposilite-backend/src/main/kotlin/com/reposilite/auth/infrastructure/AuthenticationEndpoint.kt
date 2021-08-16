@@ -30,7 +30,7 @@ import io.javalin.openapi.OpenApiResponse
 internal class AuthenticationEndpoint(private val authenticationFacade: AuthenticationFacade) : ReposiliteRoutes() {
 
     @OpenApi(
-        path = "/api/auth",
+        path = "/api/auth/me",
         methods = [HttpMethod.GET],
         summary = "Get token details",
         description = "Returns details about the requested token",
@@ -49,15 +49,14 @@ internal class AuthenticationEndpoint(private val authenticationFacade: Authenti
             )
         ]
     )
-    private val authInfo = ReposiliteRoute("/api/auth", GET) {
-        authenticationFacade.authenticateByHeader(ctx.headerMap())
+    private val authInfo = ReposiliteRoute("/api/auth/me", GET) {
+        response = authenticationFacade.authenticateByHeader(ctx.headerMap())
             .map {
                 AuthenticationResponse(
                     it.alias,
                     it.permissions.map { permission -> permission.toString() }
                 )
             }
-            .let { ctx.json(it.any) }
     }
 
     override val routes = setOf(authInfo)
