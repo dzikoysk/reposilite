@@ -17,19 +17,19 @@ package com.reposilite.maven.metadata_old
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
-import io.javalin.http.HttpCode
-import io.javalin.http.HttpCode.BAD_REQUEST
 import com.reposilite.failure.FailureFacade
-import com.reposilite.maven.Metadata
 import com.reposilite.maven.Repository
-import com.reposilite.maven.Snapshot
-import com.reposilite.maven.SnapshotVersion
-import com.reposilite.maven.Versioning
 import com.reposilite.maven.api.DocumentInfo
+import com.reposilite.maven.api.Metadata
+import com.reposilite.maven.api.Snapshot
+import com.reposilite.maven.api.SnapshotVersion
+import com.reposilite.maven.api.Versioning
 import com.reposilite.shared.FilesUtils
 import com.reposilite.shared.getSimpleName
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
+import io.javalin.http.HttpCode
+import io.javalin.http.HttpCode.BAD_REQUEST
 import panda.std.Lazy
 import panda.std.Pair
 import panda.std.Result
@@ -41,7 +41,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 // TOFIX: Simplify this trash class
 @Deprecated("")
-internal class MetadataService(private val failureFacade: FailureFacade) {
+internal class ExMetadataService(private val failureFacade: FailureFacade) {
 
     private val metadataCache: MutableMap<Path, Pair<DocumentInfo, String>> = ConcurrentHashMap()
 
@@ -73,17 +73,17 @@ internal class MetadataService(private val failureFacade: FailureFacade) {
             return errorResponse(BAD_REQUEST, "Bad request")
         }
 
-        val versions = MetadataUtils.toSortedVersions(repository, artifactDirectory)
+        val versions = ExMetadataUtils.toSortedVersions(repository, artifactDirectory)
 
         if (versions.isErr) {
             return versions.projectToError()
         }
 
         return if (versions.get().isNotEmpty()) {
-            generateArtifactMetadata(repository, requested, MetadataUtils.toGroup(requested), artifactDirectory, versions.get())
+            generateArtifactMetadata(repository, requested, ExMetadataUtils.toGroup(requested), artifactDirectory, versions.get())
         }
         else {
-            generateBuildMetadata(repository, requested, MetadataUtils.toGroup(requested), artifactDirectory)
+            generateBuildMetadata(repository, requested, ExMetadataUtils.toGroup(requested), artifactDirectory)
         }
     }
 
@@ -102,10 +102,10 @@ internal class MetadataService(private val failureFacade: FailureFacade) {
             FilesUtils.toNames(versions),
             null,
             null,
-            MetadataUtils.toUpdateTime(repository, latest)
+            ExMetadataUtils.toUpdateTime(repository, latest)
         )
 
-        val metadata = Metadata(groupId, artifactDirectory.getSimpleName(), null, versioning)
+        val metadata = Metadata(groupId = groupId, artifactId = artifactDirectory.getSimpleName(), version = null, versioning = versioning)
         return toMetadataFile(repository, metadataFile, metadata)
     }
 
@@ -116,7 +116,7 @@ internal class MetadataService(private val failureFacade: FailureFacade) {
         versionDirectory: Path
     ): Result<Pair<DocumentInfo, String>, ErrorResponse> {
         val artifactDirectory = versionDirectory.parent
-        val builds = MetadataUtils.toSortedBuilds(repository, versionDirectory)
+        val builds = ExMetadataUtils.toSortedBuilds(repository, versionDirectory)
 
         if (builds.isErr) {
             return builds.projectToError()
@@ -127,7 +127,7 @@ internal class MetadataService(private val failureFacade: FailureFacade) {
 
         val name = artifactDirectory.fileName.toString()
         val version = StringUtils.replace(versionDirectory.fileName.toString(), "-SNAPSHOT", StringUtils.EMPTY)
-        val identifiers = MetadataUtils.toSortedIdentifiers(name, version, builds.get())
+        val identifiers = ExMetadataUtils.toSortedIdentifiers(name, version, builds.get())
         val latestIdentifier = identifiers.first()
         val buildSeparatorIndex = latestIdentifier.lastIndexOf("-")
 
@@ -140,12 +140,12 @@ internal class MetadataService(private val failureFacade: FailureFacade) {
             val snapshotVersions: MutableCollection<SnapshotVersion> = ArrayList(builds.get().size)
 
             for (identifier in identifiers) {
-                val buildFiles = MetadataUtils.toBuildFiles(repository, versionDirectory, identifier)
+                val buildFiles = ExMetadataUtils.toBuildFiles(repository, versionDirectory, identifier)
 
                 for (buildFile in buildFiles) {
                     val fileName = buildFile.getSimpleName()
                     val value = "$version-$identifier"
-                    val updated = MetadataUtils.toUpdateTime(repository, buildFile)
+                    val updated = ExMetadataUtils.toUpdateTime(repository, buildFile)
                     val extension = fileName
                         .replace("$name-", StringUtils.EMPTY)
                         .replace("$value.", StringUtils.EMPTY)
@@ -155,14 +155,14 @@ internal class MetadataService(private val failureFacade: FailureFacade) {
                 }
             }
 
-            Versioning(null, null, null, snapshot, snapshotVersions, MetadataUtils.toUpdateTime(repository, latestBuild))
+            Versioning(null, null, null, snapshot, snapshotVersions, ExMetadataUtils.toUpdateTime(repository, latestBuild))
         }
         else {
             val fullVersion = "$version-SNAPSHOT"
-            Versioning(fullVersion, fullVersion, listOf(fullVersion), null, null, MetadataUtils.toUpdateTime(repository, latestBuild))
+            Versioning(fullVersion, fullVersion, listOf(fullVersion), null, null, ExMetadataUtils.toUpdateTime(repository, latestBuild))
         }
 
-        return toMetadataFile(repository, metadataFile, Metadata(groupId, name, versionDirectory.getSimpleName(), versioning))
+        return toMetadataFile(repository, metadataFile, Metadata(groupId, name, versionDirectory.getSimpleName(), versioning = versioning))
     }
 
     private fun toMetadataFile(repository: Repository, metadataFile: Path, metadata: Metadata): Result<Pair<DocumentInfo, String>, ErrorResponse> {

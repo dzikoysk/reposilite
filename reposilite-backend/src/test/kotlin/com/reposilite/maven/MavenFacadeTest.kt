@@ -4,10 +4,12 @@ import com.reposilite.maven.api.DeleteRequest
 import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.maven.api.LookupRequest
+import com.reposilite.maven.api.Metadata
 import com.reposilite.maven.api.RepositoryVisibility
 import com.reposilite.maven.api.RepositoryVisibility.HIDDEN
 import com.reposilite.maven.api.RepositoryVisibility.PRIVATE
 import com.reposilite.maven.api.RepositoryVisibility.PUBLIC
+import com.reposilite.maven.api.Versioning
 import com.reposilite.shared.FileType.FILE
 import com.reposilite.token.api.RoutePermission.READ
 import com.reposilite.token.api.RoutePermission.WRITE
@@ -26,13 +28,13 @@ import java.io.File
 internal class MavenFacadeTest : MavenSpec() {
 
     override fun repositories() = mapOf(
-        createRepository("private") {
+        createRepository(PRIVATE.name) {
             visibility = PRIVATE
         },
-        createRepository("hidden") {
+        createRepository(HIDDEN.name) {
             visibility = HIDDEN
         },
-        createRepository("public") {
+        createRepository(PUBLIC.name) {
             visibility = PUBLIC
         },
         createRepository("proxied") {
@@ -45,7 +47,7 @@ internal class MavenFacadeTest : MavenSpec() {
     @EnumSource(RepositoryVisibility::class)
     fun `should deploy file under the given path`(visibility: RepositoryVisibility) {
         // given: an uri and file to store
-        val fileSpec = FileSpec(visibility.name.lowercase(), "/com/reposilite/3.0.0/reposilite-3.0.0.jar", "content")
+        val fileSpec = FileSpec(visibility.name, "/com/reposilite/3.0.0/reposilite-3.0.0.jar", "content")
         val by = "dzikoysk@127.0.0.1"
 
         // when: the following file is deployed
@@ -62,7 +64,7 @@ internal class MavenFacadeTest : MavenSpec() {
     @EnumSource(value = RepositoryVisibility::class, names = [ "PUBLIC", "HIDDEN" ])
     fun `should find requested file without credentials in public and hidden repositories`(visibility: RepositoryVisibility) = runBlocking {
         // given: a repository with a file
-        val fileSpec = addFileToRepository(FileSpec(visibility.name.lowercase(), "gav/file.pom", "content"))
+        val fileSpec = addFileToRepository(FileSpec(visibility.name, "/gav/file.pom", "content"))
 
         // when: the given file is requested
         val fileDetails = mavenFacade.findFile(fileSpec.toLookupRequest(UNAUTHORIZED))
@@ -79,8 +81,8 @@ internal class MavenFacadeTest : MavenSpec() {
     @Test
     fun `should require authentication to access file in private repository`() = runBlocking {
         // given: a repository with file and request without credentials
-        val repository = PRIVATE.name.lowercase()
-        val fileSpec = addFileToRepository(FileSpec(repository, "gav/file.pom", "content"))
+        val repository = PRIVATE.name
+        val fileSpec = addFileToRepository(FileSpec(repository, "/gav/file.pom", "content"))
         var authentication = UNAUTHORIZED
 
         // when: the given file is requested
@@ -103,7 +105,7 @@ internal class MavenFacadeTest : MavenSpec() {
     @EnumSource(value = RepositoryVisibility::class, names = [ "HIDDEN", "PRIVATE" ])
     fun `should restrict directory indexing in hidden and private repositories `(visibility: RepositoryVisibility) = runBlocking {
         // given: a repository with a file
-        val fileSpec = addFileToRepository(FileSpec(visibility.name.lowercase(), "gav/file.pom", "content"))
+        val fileSpec = addFileToRepository(FileSpec(visibility.name, "/gav/file.pom", "content"))
 
         // when: the given directory is requested
         val directoryInfo = mavenFacade.findFile(LookupRequest(fileSpec.repository, "gav", UNAUTHORIZED))
@@ -115,7 +117,7 @@ internal class MavenFacadeTest : MavenSpec() {
     @Test
     fun `should delete file` () {
         // given: a repository with a file
-        val fileSpec = addFileToRepository(FileSpec(PUBLIC.name.lowercase(), "gav/file.pom", "content"))
+        val fileSpec = addFileToRepository(FileSpec(PUBLIC.name, "/gav/file.pom", "content"))
         var authentication = createAccessToken("invalid", "invalid", "invalid", "invalid", WRITE)
 
         // when: the given file is deleted with invalid credentials
@@ -125,7 +127,7 @@ internal class MavenFacadeTest : MavenSpec() {
         assertError(errorResponse)
 
         // given: a valid credentials
-        authentication = createAccessToken("alias", "secret", "public", "gav", WRITE)
+        authentication = createAccessToken("alias", "secret", PUBLIC.name, "gav", WRITE)
 
         // when: the given file is deleted with valid credentials
         val response = mavenFacade.deleteFile(DeleteRequest(authentication, fileSpec.repository, fileSpec.gav))
@@ -146,6 +148,35 @@ internal class MavenFacadeTest : MavenSpec() {
         assertOk(response)
         assertEquals(REMOTE_CONTENT, (response.get() as DocumentInfo).content().readBytes().decodeToString())
         assertTrue(File(workingDirectory, "/repositories/proxied/gav/file.pom").exists())
+    }
+
+    @Test
+    fun `should find latest version` () {
+        // given: an artifact with metadata file
+        val repository = PUBLIC.name
+        val artifact = "/gav"
+        mavenFacade.saveMetadata(repository, artifact, Metadata(versioning = Versioning(_versions = listOf("1.0.1", "1.0.2", "1.0.0"))))
+
+        // when: latest version is requested
+        val response = mavenFacade.findLatest(LookupRequest(repository, artifact, UNAUTHORIZED))
+
+        // then: should return the latest version
+        assertOk("1.0.2", response)
+        // assertArrayEquals(arrayOf("1.0.0", "1.0.1"), response.get())
+    }
+
+    @Test
+    fun `should find all versions of the given artifact` () {
+        // given: an artifact with metadata file
+        val repository = PUBLIC.name
+        val artifact = "/gav"
+        mavenFacade.saveMetadata(repository, artifact, Metadata(versioning = Versioning(_versions = listOf("1.0.1", "1.0.2", "1.0.0"))))
+
+        // when: latest version is requested
+        val response = mavenFacade.findVersions(LookupRequest(repository, artifact, UNAUTHORIZED))
+
+        // then: should return the latest version
+        assertOk(listOf("1.0.0", "1.0.1", "1.0.2"), response)
     }
 
 }
