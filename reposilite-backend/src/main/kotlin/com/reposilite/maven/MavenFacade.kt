@@ -21,6 +21,8 @@ import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.maven.api.FileDetails
 import com.reposilite.maven.api.LookupRequest
+import com.reposilite.maven.api.METADATA_FILE
+import com.reposilite.maven.api.Metadata
 import com.reposilite.shared.getSimpleName
 import com.reposilite.shared.toNormalizedPath
 import com.reposilite.shared.toPath
@@ -68,17 +70,20 @@ class MavenFacade internal constructor(
         return repository.getFileDetails(gav)
     }
 
-    suspend fun findVersions(lookupRequest: LookupRequest): Result<out FileDetails, ErrorResponse> =
+    internal fun saveMetadata(repository: String, gav: String, metadata: Metadata) =
+        metadataService.saveMetadata(repository, gav, metadata)
+
+    fun findVersions(lookupRequest: LookupRequest): Result<Collection<String>, ErrorResponse> =
         metadataService.findVersions(lookupRequest)
 
-    suspend fun findLatest(lookupRequest: LookupRequest): Result<out FileDetails, ErrorResponse> =
+    fun findLatest(lookupRequest: LookupRequest): Result<String, ErrorResponse> =
         metadataService.findLatest(lookupRequest)
 
     fun deployFile(deployRequest: DeployRequest): Result<DocumentInfo, ErrorResponse> {
         val repository = repositoryService.getRepository(deployRequest.repository) ?: return errorResponse(NOT_FOUND, "Repository not found")
         val path = deployRequest.gav.toNormalizedPath().orNull() ?: return errorResponse(BAD_REQUEST, "Invalid GAV")
 
-        if (repository.redeployment.not() && path.getSimpleName().contains(METADATA_FILE_NAME).not() && repository.exists(path)) {
+        if (repository.redeployment.not() && path.getSimpleName().contains(METADATA_FILE).not() && repository.exists(path)) {
             return errorResponse(HttpCode.CONFLICT, "Redeployment is not allowed")
         }
 

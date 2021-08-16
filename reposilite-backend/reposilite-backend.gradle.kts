@@ -23,6 +23,7 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent.STARTED
 plugins {
     kotlin("jvm") version "1.5.20"
     kotlin("kapt") version "1.5.20"
+    kotlin("plugin.serialization") version "1.5.20"
     application
     jacoco
     `maven-publish`
@@ -58,6 +59,8 @@ publishing {
 repositories {
     mavenCentral()
     maven { url = uri("https://repo.panda-lang.org/releases") }
+    maven { url = uri("https://jitpack.io") }
+    maven { url = uri("https://s01.oss.sonatype.org/content/repositories/releases/") }
 }
 
 dependencies {
@@ -96,11 +99,20 @@ dependencies {
     implementation("com.reposilite.javalin-rfcs:javalin-reactive-routing:$javalinRfcs")
 
     val javalin = "4.0.0.RC0"
-    implementation("io.javalin:javalin:$javalin")
+    //implementation("io.javalin:javalin:$javalin")
+    implementation("com.github.tipsy:javalin:master-SNAPSHOT")
 
     val picocli = "4.6.1"
     kapt("info.picocli:picocli-codegen:$picocli")
     implementation("info.picocli:picocli:$picocli")
+
+    val xmlutil = "0.82.0"
+    implementation("io.github.pdvrieze.xmlutil:core-jvm:$xmlutil")
+    implementation("io.github.pdvrieze.xmlutil:serialization-jvm:$xmlutil")
+
+    val jackson = "2.12.4"
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jackson")
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jackson")
 
     val dynamicLogger = "1.0.2"
     implementation("net.dzikoysk:dynamic-logger:$dynamicLogger")
@@ -115,7 +127,6 @@ dependencies {
     implementation("com.google.http-client:google-http-client:1.39.2")
     implementation("org.springframework.security:spring-security-crypto:5.4.6")
     implementation("commons-io:commons-io:2.8.0")
-    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.12.3")
     implementation("org.fusesource.jansi:jansi:2.3.2")
 
     /* Tests */

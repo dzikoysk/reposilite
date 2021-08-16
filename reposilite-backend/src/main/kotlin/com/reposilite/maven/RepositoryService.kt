@@ -15,13 +15,21 @@
  */
 package com.reposilite.maven
 
+import com.reposilite.web.http.ErrorResponse
+import com.reposilite.web.http.errorResponse
+import io.javalin.http.HttpCode.NOT_FOUND
 import net.dzikoysk.dynamiclogger.Journalist
 import net.dzikoysk.dynamiclogger.Logger
+import panda.std.Result
+import panda.std.asSuccess
 
 internal class RepositoryService(
     private val journalist: Journalist,
     private val repositories: Map<String, Repository>
 ) : Journalist {
+
+    fun findRepository(name: String): Result<Repository, ErrorResponse> =
+        getRepository(name)?.asSuccess() ?: errorResponse(NOT_FOUND, "Repository $name not found")
 
     fun getRepository(name: String): Repository? =
         repositories[name]

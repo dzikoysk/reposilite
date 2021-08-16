@@ -33,7 +33,7 @@ import java.util.Locale
 import java.util.TreeSet
 
 @Deprecated("")
-internal object MetadataUtils {
+internal object ExMetadataUtils {
 
     private const val ESCAPE_DOT = "`.`"
 

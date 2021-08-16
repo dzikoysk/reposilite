@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.reposilite.maven
+package com.reposilite.maven.api
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
+import kotlinx.serialization.Serializable
 
-internal const val METADATA_FILE_NAME = "maven-metadata"
-internal const val METADATA_FILE = "$METADATA_FILE_NAME.xml"
+internal const val METADATA_FILE = "maven-metadata.xml"
 
 @JacksonXmlRootElement(localName = "metadata")
 internal data class Metadata(
@@ -34,15 +35,30 @@ internal data class Metadata(
 internal data class Versioning(
     val release: String? = null,
     val latest: String? = null,
-    @JacksonXmlElementWrapper(localName = "versions")
-    @JacksonXmlProperty(localName = "version")
-    val versions: Collection<String>? = emptyList(),
+    private var _versions: Collection<String>? = emptyList(),
     val snapshot: Snapshot? = null,
-    @JacksonXmlElementWrapper(localName = "snapshotVersions")
-    @JacksonXmlProperty(localName = "snapshotVersion")
-    val snapshotVersions: Collection<SnapshotVersion>? = emptyList(),
+    private var _snapshotVersions: Collection<SnapshotVersion>? = emptyList(),
     val lastUpdated: String? = null
-)
+) {
+
+    /*
+     * Jackson Bug with ElementWrapper
+     * ~ https://github.com/FasterXML/jackson-module-kotlin/issues/153
+     */
+
+    @get:JacksonXmlElementWrapper(localName = "versions")
+    @get:JacksonXmlProperty(localName = "version")
+    var versions: Collection<String>?
+        set(value) { _versions = value }
+        get() = _versions
+
+    @get:JacksonXmlElementWrapper(localName = "snapshotVersions")
+    @get:JsonProperty("snapshotVersion")
+    var snapshotVersions: Collection<SnapshotVersion>?
+        set(value) { _snapshotVersions = value }
+        get() = _snapshotVersions
+
+}
 
 @JacksonXmlRootElement(localName = "snapshot")
 internal data class Snapshot(
@@ -50,6 +66,7 @@ internal data class Snapshot(
     val buildNumber: String? = null
 )
 
+@Serializable
 @JacksonXmlRootElement(localName = "snapshotVersion")
 internal data class SnapshotVersion(
     val extension: String? = null,
