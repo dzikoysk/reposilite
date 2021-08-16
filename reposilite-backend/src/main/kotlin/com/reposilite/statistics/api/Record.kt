@@ -18,18 +18,21 @@ package com.reposilite.statistics.api
 
 const val MAX_IDENTIFIER_LENGTH = 768
 
-data class Record(
-    val type: RecordType,
-    val identifier: String,
-    val count: Long
-)
-
 enum class RecordType {
     REQUEST,
     UNKNOWN
 }
 
+fun findRecordTypeByName(name: String) : RecordType? =
+    RecordType.values().find { it.name.equals(name, ignoreCase = true) }
+
 data class RecordIdentifier(
     val type: RecordType,
     val identifier: String
+)
+
+data class Record(
+    val type: RecordType,
+    val identifier: String,
+    val count: Long
 )

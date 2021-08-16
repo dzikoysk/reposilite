@@ -20,6 +20,7 @@ import com.reposilite.console.ConsoleFacade
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.statistics.StatsCommand
 import com.reposilite.statistics.infrastructure.SqlStatisticsRepository
+import com.reposilite.statistics.infrastructure.StatisticsEndpoint
 import com.reposilite.statistics.infrastructure.StatisticsHandler
 import com.reposilite.web.api.ReposiliteRoutes
 import net.dzikoysk.dynamiclogger.Journalist
@@ -40,7 +41,8 @@ internal object StatisticsWebConfiguration {
 
     fun routing(statisticsFacade: StatisticsFacade): Set<ReposiliteRoutes> =
         setOf(
-            StatisticsHandler(statisticsFacade)
+            StatisticsEndpoint(statisticsFacade),
+            StatisticsHandler(statisticsFacade),
         )
 
     fun dispose() {

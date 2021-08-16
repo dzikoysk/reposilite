@@ -15,11 +15,17 @@
  */
 package com.reposilite.statistics
 
-import net.dzikoysk.dynamiclogger.Journalist
-import net.dzikoysk.dynamiclogger.Logger
 import com.reposilite.statistics.api.Record
 import com.reposilite.statistics.api.RecordIdentifier
 import com.reposilite.statistics.api.RecordType
+import com.reposilite.statistics.api.findRecordTypeByName
+import com.reposilite.web.http.ErrorResponse
+import com.reposilite.web.http.errorResponse
+import io.javalin.http.HttpCode.BAD_REQUEST
+import net.dzikoysk.dynamiclogger.Journalist
+import net.dzikoysk.dynamiclogger.Logger
+import panda.std.Result
+import panda.std.asSuccess
 import java.util.concurrent.ConcurrentHashMap
 
 class StatisticsFacade internal constructor(
@@ -38,6 +44,11 @@ class StatisticsFacade internal constructor(
             statisticsRepository.incrementRecords(it)
             logger.debug("[Statistics] Saved bulk with ${it.size} records")
         }
+
+    fun findRecordsByPhrase(type: String, phrase: String): Result<List<Record>, ErrorResponse> =
+        findRecordTypeByName(type)
+            ?.let { findRecordsByPhrase(it, phrase).asSuccess() }
+            ?: errorResponse(BAD_REQUEST, "Unknown record type $type}")
 
     fun findRecordsByPhrase(type: RecordType, phrase: String): List<Record> =
         statisticsRepository.findRecordsByPhrase(type, phrase)
