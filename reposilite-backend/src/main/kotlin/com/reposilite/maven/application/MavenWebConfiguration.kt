@@ -17,7 +17,6 @@
 package com.reposilite.maven.application
 
 import com.reposilite.config.Configuration.RepositoryConfiguration
-import com.reposilite.failure.FailureFacade
 import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.MetadataService
 import com.reposilite.maven.ProxyService
@@ -32,7 +31,7 @@ import java.nio.file.Path
 
 internal object MavenWebConfiguration {
 
-    fun createFacade(journalist: Journalist, failureFacade: FailureFacade, workingDirectory: Path, remoteClient: RemoteClient, repositories: Map<String, RepositoryConfiguration>): MavenFacade {
+    fun createFacade(journalist: Journalist, workingDirectory: Path, remoteClient: RemoteClient, repositories: Map<String, RepositoryConfiguration>): MavenFacade {
         val repositoryFactory = RepositoryFactory(journalist, workingDirectory)
 
         val repositoryService = repositories

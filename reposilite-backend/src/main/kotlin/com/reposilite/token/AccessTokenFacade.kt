@@ -15,11 +15,11 @@
  */
 package com.reposilite.token
 
-import net.dzikoysk.dynamiclogger.Journalist
-import net.dzikoysk.dynamiclogger.Logger
 import com.reposilite.token.api.AccessToken
 import com.reposilite.token.api.AccessTokenPermission
 import com.reposilite.token.api.CreateAccessTokenResponse
+import net.dzikoysk.dynamiclogger.Journalist
+import net.dzikoysk.dynamiclogger.Logger
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import java.security.SecureRandom
 import java.util.Base64
@@ -30,23 +30,22 @@ class AccessTokenFacade internal constructor(
 ) : Journalist {
 
     companion object {
-        val SECURE_RANDOM = SecureRandom()
         val B_CRYPT_TOKENS_ENCODER = BCryptPasswordEncoder()
+
+        private val SECRET_GENERATOR: () -> String = {
+            val secret = ByteArray(48)
+            SecureRandom().nextBytes(secret)
+            Base64.getEncoder().encodeToString(secret)
+        }
     }
 
-    fun createAccessToken(alias: String, permissions: Set<AccessTokenPermission> = emptySet()): CreateAccessTokenResponse {
-        val randomBytes = ByteArray(48)
-        SECURE_RANDOM.nextBytes(randomBytes)
-        return createAccessToken(alias, Base64.getEncoder().encodeToString(randomBytes), permissions)
-    }
-
-    private fun createAccessToken(alias: String, token: String, permissions: Set<AccessTokenPermission>): CreateAccessTokenResponse {
-        val encodedToken = B_CRYPT_TOKENS_ENCODER.encode(token)
+    fun createAccessToken(alias: String, secret: String = SECRET_GENERATOR(), permissions: Set<AccessTokenPermission> = emptySet()): CreateAccessTokenResponse {
+        val encodedToken = B_CRYPT_TOKENS_ENCODER.encode(secret)
 
         accessTokenRepository.saveAccessToken(AccessToken(alias = alias, secret = encodedToken, permissions = permissions))
         val accessToken = accessTokenRepository.findAccessTokenByAlias(alias)
 
-        return CreateAccessTokenResponse(accessToken!!, token)
+        return CreateAccessTokenResponse(accessToken!!, secret)
     }
 
     fun updateToken(accessToken: AccessToken) =

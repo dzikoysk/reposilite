@@ -42,11 +42,11 @@ object ReposiliteWebConfiguration {
         val webServer = WebConfiguration.createWebServer()
         val failureFacade = FailureWebConfiguration.createFacade(logger)
         val consoleFacade = ConsoleWebConfiguration.createFacade(logger, failureFacade)
-        val mavenFacade = MavenWebConfiguration.createFacade(logger, failureFacade, workingDirectory, HttpRemoteClient(), configuration.repositories)
+        val mavenFacade = MavenWebConfiguration.createFacade(logger, workingDirectory, HttpRemoteClient(), configuration.repositories)
         val frontendFacade = FrontendWebConfiguration.createFacade()
         val statisticFacade = StatisticsWebConfiguration.createFacade(logger)
         val accessTokenFacade = AccessTokenWebConfiguration.createFacade(logger)
-        val authenticationFacade = AuthenticationWebConfiguration.createFacade(logger, accessTokenFacade, mavenFacade)
+        val authenticationFacade = AuthenticationWebConfiguration.createFacade(logger, accessTokenFacade)
         val contextFactory = ReposiliteContextFactory(logger, configuration.forwardedIp, authenticationFacade)
 
         return Reposilite(

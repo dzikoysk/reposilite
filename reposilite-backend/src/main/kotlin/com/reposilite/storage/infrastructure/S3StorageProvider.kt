@@ -24,9 +24,9 @@ import com.reposilite.shared.getExtension
 import com.reposilite.shared.getSimpleName
 import com.reposilite.shared.safeResolve
 import com.reposilite.storage.StorageProvider
-import com.reposilite.web.http.ContentType
-import com.reposilite.web.http.ContentType.APPLICATION_OCTET_STREAM
-import com.reposilite.web.http.ContentType.Companion.OCTET_STREAM
+import io.javalin.http.ContentType
+import io.javalin.http.ContentType.APPLICATION_OCTET_STREAM
+import io.javalin.http.ContentType.Companion.OCTET_STREAM
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
 import io.javalin.http.HttpCode

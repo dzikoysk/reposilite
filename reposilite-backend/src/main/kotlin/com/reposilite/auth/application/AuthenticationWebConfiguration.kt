@@ -21,16 +21,15 @@ import com.reposilite.auth.Authenticator
 import com.reposilite.auth.SessionService
 import com.reposilite.auth.infrastructure.AuthenticationEndpoint
 import com.reposilite.auth.infrastructure.PostAuthHandler
-import com.reposilite.maven.MavenFacade
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.web.ReposiliteRoutes
 import net.dzikoysk.dynamiclogger.Journalist
 
 internal object AuthenticationWebConfiguration {
 
-    fun createFacade(journalist: Journalist, accessTokenFacade: AccessTokenFacade, mavenFacade: MavenFacade): AuthenticationFacade {
+    fun createFacade(journalist: Journalist, accessTokenFacade: AccessTokenFacade): AuthenticationFacade {
         val authenticator = Authenticator(accessTokenFacade)
-        val sessionService = SessionService(mavenFacade)
+        val sessionService = SessionService()
 
         return AuthenticationFacade(journalist, authenticator, sessionService)
     }

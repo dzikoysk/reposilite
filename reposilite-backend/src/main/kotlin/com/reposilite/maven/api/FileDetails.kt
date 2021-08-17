@@ -24,8 +24,8 @@ import com.reposilite.shared.exists
 import com.reposilite.shared.getExtension
 import com.reposilite.shared.getSimpleName
 import com.reposilite.shared.type
-import com.reposilite.web.http.ContentType
-import com.reposilite.web.http.ContentType.APPLICATION_OCTET_STREAM
+import io.javalin.http.ContentType
+import io.javalin.http.ContentType.APPLICATION_OCTET_STREAM
 import com.reposilite.web.http.ErrorResponse
 import panda.std.Result
 import panda.std.asSuccess
