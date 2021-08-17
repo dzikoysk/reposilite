@@ -7,8 +7,8 @@ import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.maven.api.FileDetails
 import com.reposilite.maven.api.LookupRequest
-import com.reposilite.web.api.ReposiliteRoute
-import com.reposilite.web.api.ReposiliteRoutes
+import com.reposilite.web.ReposiliteRoute
+import com.reposilite.web.ReposiliteRoutes
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.resultAttachment
 import com.reposilite.web.routing.RouteMethod.DELETE

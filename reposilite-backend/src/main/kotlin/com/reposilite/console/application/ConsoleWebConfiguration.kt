@@ -25,7 +25,7 @@ import com.reposilite.console.VersionCommand
 import com.reposilite.console.infrastructure.CliEndpoint
 import com.reposilite.console.infrastructure.RemoteExecutionEndpoint
 import com.reposilite.failure.FailureFacade
-import com.reposilite.web.api.ReposiliteRoutes
+import com.reposilite.web.ReposiliteRoutes
 import io.javalin.Javalin
 import net.dzikoysk.dynamiclogger.Journalist
 

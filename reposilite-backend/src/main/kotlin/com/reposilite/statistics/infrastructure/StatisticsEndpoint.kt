@@ -1,8 +1,8 @@
 package com.reposilite.statistics.infrastructure
 
 import com.reposilite.statistics.StatisticsFacade
-import com.reposilite.web.api.ReposiliteRoute
-import com.reposilite.web.api.ReposiliteRoutes
+import com.reposilite.web.ReposiliteRoute
+import com.reposilite.web.ReposiliteRoutes
 import com.reposilite.web.routing.RouteMethod.GET
 import io.javalin.openapi.HttpMethod
 import io.javalin.openapi.OpenApi

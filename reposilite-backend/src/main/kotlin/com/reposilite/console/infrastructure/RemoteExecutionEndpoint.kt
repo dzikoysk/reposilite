@@ -18,8 +18,8 @@ package com.reposilite.console.infrastructure
 import com.reposilite.console.ConsoleFacade
 import com.reposilite.console.MAX_COMMAND_LENGTH
 import com.reposilite.console.api.ExecutionResponse
-import com.reposilite.web.api.ReposiliteRoute
-import com.reposilite.web.api.ReposiliteRoutes
+import com.reposilite.web.ReposiliteRoute
+import com.reposilite.web.ReposiliteRoutes
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.routing.RouteMethod.POST
 import io.javalin.http.HttpCode.UNAUTHORIZED

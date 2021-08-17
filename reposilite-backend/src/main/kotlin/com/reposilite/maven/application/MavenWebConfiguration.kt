@@ -26,7 +26,7 @@ import com.reposilite.maven.RepositorySecurityProvider
 import com.reposilite.maven.RepositoryService
 import com.reposilite.maven.infrastructure.MavenEndpoint
 import com.reposilite.shared.RemoteClient
-import com.reposilite.web.api.ReposiliteRoutes
+import com.reposilite.web.ReposiliteRoutes
 import net.dzikoysk.dynamiclogger.Journalist
 import java.nio.file.Path
 

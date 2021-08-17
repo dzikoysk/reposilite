@@ -3,7 +3,7 @@ package com.reposilite.web.infrastructure
 import com.reposilite.Reposilite
 import com.reposilite.ReposiliteWebConfiguration
 import com.reposilite.config.Configuration
-import com.reposilite.web.DslContext
+import com.reposilite.web.ReposiliteWebDsl
 import com.reposilite.web.WebServer
 import com.reposilite.web.context
 import com.reposilite.web.http.response
@@ -54,7 +54,7 @@ internal class JavalinWebServer : WebServer {
     private fun configureServer(reposilite: Reposilite, configuration: Configuration, dispatcher: CoroutineDispatcher, serverConfig: JavalinConfig) {
         JavalinWebServerConfiguration.configure(reposilite, configuration, serverConfig)
 
-        val plugin = ReactiveRoutingPlugin<DslContext, Unit>(
+        val plugin = ReactiveRoutingPlugin<ReposiliteWebDsl, Unit>(
             errorConsumer = { name, error -> reposilite.logger.error("Coroutine $name failed to execute task", error) },
             dispatcher = dispatcher,
             syncHandler = { ctx, route ->
