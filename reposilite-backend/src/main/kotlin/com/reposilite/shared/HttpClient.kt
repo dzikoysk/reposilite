@@ -10,7 +10,7 @@ import com.github.kittinunf.fuel.coroutines.awaitByteArrayResponseResult
 import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.maven.api.UNKNOWN_LENGTH
 import com.reposilite.shared.FilesUtils.getExtension
-import com.reposilite.web.http.ContentType
+import io.javalin.http.ContentType
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
 import io.javalin.http.HttpCode.BAD_REQUEST

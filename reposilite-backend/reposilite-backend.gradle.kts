@@ -59,7 +59,6 @@ publishing {
 repositories {
     mavenCentral()
     maven { url = uri("https://repo.panda-lang.org/releases") }
-    maven { url = uri("https://jitpack.io") }
     maven { url = uri("https://s01.oss.sonatype.org/content/repositories/releases/") }
 }
 
@@ -82,7 +81,7 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-dao:$exposed")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposed")
     implementation("org.jetbrains.exposed:exposed-java-time:$exposed")
-    implementation("net.dzikoysk:exposed-upsert:1.0.0")
+    implementation("net.dzikoysk:exposed-upsert:1.0.1")
     implementation("com.h2database:h2:1.4.199")
 
     val fuel = "2.3.1"
@@ -94,13 +93,12 @@ dependencies {
     implementation("io.javalin-rfc:javalin-openapi-plugin:$openapi")
     implementation("io.javalin-rfc:javalin-swagger-plugin:$openapi")
 
-    val javalinRfcs = "1.0.6"
+    val javalinRfcs = "1.0.7"
     implementation("com.reposilite.javalin-rfcs:javalin-context:$javalinRfcs")
     implementation("com.reposilite.javalin-rfcs:javalin-reactive-routing:$javalinRfcs")
 
-    val javalin = "4.0.0.RC0"
-    //implementation("io.javalin:javalin:$javalin")
-    implementation("com.github.tipsy:javalin:master-SNAPSHOT")
+    val javalin = "4.0.0.RC1"
+    implementation("io.javalin:javalin:$javalin")
 
     val picocli = "4.6.1"
     kapt("info.picocli:picocli-codegen:$picocli")

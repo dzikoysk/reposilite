@@ -16,11 +16,12 @@
 package com.reposilite.auth
 
 import com.reposilite.token.AccessTokenFacade
+import com.reposilite.token.AccessTokenFacade.Companion.B_CRYPT_TOKENS_ENCODER
 import com.reposilite.token.api.AccessToken
 import com.reposilite.token.api.RoutePermission.READ
 import panda.std.Result
 import panda.std.Result.error
-import panda.std.Result.ok
+import panda.std.asSuccess
 import panda.utilities.StringUtils
 import java.nio.charset.StandardCharsets
 import java.util.Base64
@@ -82,16 +83,18 @@ class Authenticator(private val accessTokenFacade: AccessTokenFacade) {
             return error("Invalid authorization credentials")
         }
 
-        val token = accessTokenFacade.getToken(values[0])
-            ?: return error("Invalid authorization credentials")
+        return authByCredentials(values[0], values[1])
+    }
 
-        val authorized = AccessTokenFacade.B_CRYPT_TOKENS_ENCODER.matches(values[1], token.secret)
+    fun authByCredentials(alias: String, secret: String): Result<AccessToken, String> {
+        val accessToken = accessTokenFacade.getToken(alias) ?: return error("Invalid authorization credentials")
+        val authorized = B_CRYPT_TOKENS_ENCODER.matches(secret, accessToken.secret)
 
         if (!authorized) {
             return error("Invalid authorization credentials")
         }
 
-        return ok(token)
+        return accessToken.asSuccess()
     }
 
 }

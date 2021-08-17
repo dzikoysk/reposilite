@@ -3,10 +3,10 @@ package com.reposilite.frontend.infrastructure
 import com.reposilite.frontend.FrontendFacade
 import com.reposilite.shared.FilesUtils.getExtension
 import com.reposilite.web.ReposiliteRoutes
-import com.reposilite.web.http.ContentType
-import com.reposilite.web.http.ContentType.Companion.PLAIN
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.encoding
+import io.javalin.http.ContentType
+import io.javalin.http.ContentType.Companion.PLAIN
 import io.javalin.http.Context
 import io.javalin.http.HttpCode.NOT_FOUND
 import panda.std.Result

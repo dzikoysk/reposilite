@@ -16,10 +16,9 @@
 
 package com.reposilite.auth
 
-import com.reposilite.maven.MavenFacade
 import com.reposilite.token.api.AccessToken
 
-internal class SessionService(private val mavenFacade: MavenFacade) {
+internal class SessionService {
 
     fun createSession(path: String, method: SessionMethod, address: String, accessToken: AccessToken) =
         Session(path, method, address, accessToken, emptyList())
