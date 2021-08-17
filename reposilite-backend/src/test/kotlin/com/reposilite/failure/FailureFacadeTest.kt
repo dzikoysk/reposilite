@@ -1,12 +1,9 @@
 package com.reposilite.failure
 
-import net.dzikoysk.dynamiclogger.backend.InMemoryLogger
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
-internal class FailureFacadeTest {
-
-    private val failureFacade = FailureFacade(InMemoryLogger())
+internal class FailureFacadeTest : FailureSpec() {
 
     @Test
     fun `should store failure`() {
