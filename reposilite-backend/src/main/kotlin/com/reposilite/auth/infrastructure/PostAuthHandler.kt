@@ -15,8 +15,8 @@
  */
 package com.reposilite.auth.infrastructure
 
-import com.reposilite.web.api.ReposiliteRoute
-import com.reposilite.web.api.ReposiliteRoutes
+import com.reposilite.web.ReposiliteRoute
+import com.reposilite.web.ReposiliteRoutes
 import com.reposilite.web.routing.RouteMethod.AFTER
 import io.javalin.http.HttpCode.UNAUTHORIZED
 

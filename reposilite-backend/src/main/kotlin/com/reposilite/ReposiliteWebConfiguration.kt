@@ -26,7 +26,7 @@ import com.reposilite.shared.HttpRemoteClient
 import com.reposilite.statistics.application.StatisticsWebConfiguration
 import com.reposilite.token.application.AccessTokenWebConfiguration
 import com.reposilite.web.ReposiliteContextFactory
-import com.reposilite.web.api.ReposiliteRoutes
+import com.reposilite.web.ReposiliteRoutes
 import com.reposilite.web.application.WebConfiguration
 import io.javalin.Javalin
 import net.dzikoysk.dynamiclogger.Journalist

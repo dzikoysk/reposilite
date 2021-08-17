@@ -19,10 +19,21 @@ package com.reposilite.web
 import com.reposilite.auth.Session
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.error
+import com.reposilite.web.routing.Route
+import com.reposilite.web.routing.RouteMethod
+import com.reposilite.web.routing.Routes
 import io.javalin.http.Context
 import io.javalin.http.HttpCode
 
-class DslContext(val ctx: Context, val context: ReposiliteContext) {
+abstract class ReposiliteRoutes : Routes<ReposiliteWebDsl, Unit>
+
+class ReposiliteRoute(
+    path: String,
+    vararg methods: RouteMethod,
+    handler: suspend ReposiliteWebDsl.() -> Unit
+) : Route<ReposiliteWebDsl, Unit>(path = path, methods = methods, handler = handler)
+
+class ReposiliteWebDsl(val ctx: Context, val context: ReposiliteContext) {
 
     /**
      * Response to send at the end of the dsl call
@@ -69,5 +80,5 @@ class DslContext(val ctx: Context, val context: ReposiliteContext) {
 
 }
 
-suspend fun context(contextFactory: ReposiliteContextFactory, ctx: Context, init: suspend DslContext.() -> Unit): DslContext =
-    DslContext(ctx, contextFactory.create(ctx)).also { init(it) }
+suspend fun context(contextFactory: ReposiliteContextFactory, ctx: Context, init: suspend ReposiliteWebDsl.() -> Unit): ReposiliteWebDsl =
+    ReposiliteWebDsl(ctx, contextFactory.create(ctx)).also { init(it) }

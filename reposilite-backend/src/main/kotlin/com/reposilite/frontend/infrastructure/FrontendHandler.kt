@@ -2,7 +2,7 @@ package com.reposilite.frontend.infrastructure
 
 import com.reposilite.frontend.FrontendFacade
 import com.reposilite.shared.FilesUtils.getExtension
-import com.reposilite.web.api.ReposiliteRoutes
+import com.reposilite.web.ReposiliteRoutes
 import com.reposilite.web.http.ContentType
 import com.reposilite.web.http.ContentType.Companion.PLAIN
 import com.reposilite.web.http.ErrorResponse

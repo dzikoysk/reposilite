@@ -16,7 +16,7 @@
 package com.reposilite.frontend.infrastructure
 
 import com.reposilite.frontend.FrontendFacade
-import com.reposilite.web.api.ReposiliteRoute
+import com.reposilite.web.ReposiliteRoute
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.routing.RouteMethod.GET
 import io.javalin.http.Context

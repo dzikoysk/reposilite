@@ -20,7 +20,7 @@ import com.reposilite.frontend.FrontendFacade
 import com.reposilite.frontend.infrastructure.CustomFrontendHandler
 import com.reposilite.frontend.infrastructure.ResourcesFrontendHandler
 import com.reposilite.shared.safeResolve
-import com.reposilite.web.api.ReposiliteRoutes
+import com.reposilite.web.ReposiliteRoutes
 import java.nio.file.Path
 import kotlin.io.path.exists
 

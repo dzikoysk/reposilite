@@ -4,7 +4,7 @@ import com.reposilite.frontend.FrontendFacade
 import com.reposilite.shared.getSimpleName
 import com.reposilite.shared.inputStream
 import com.reposilite.shared.safeResolve
-import com.reposilite.web.api.ReposiliteRoute
+import com.reposilite.web.ReposiliteRoute
 import com.reposilite.web.routing.RouteMethod.GET
 import java.nio.file.Files
 import java.nio.file.Path
