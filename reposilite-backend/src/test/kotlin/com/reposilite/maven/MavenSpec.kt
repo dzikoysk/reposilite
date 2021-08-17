@@ -1,7 +1,6 @@
 package com.reposilite.maven
 
 import com.reposilite.config.Configuration.RepositoryConfiguration
-import com.reposilite.failure.FailureFacade
 import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.UNKNOWN_LENGTH
@@ -14,7 +13,7 @@ import com.reposilite.shared.toPath
 import com.reposilite.token.api.AccessToken
 import com.reposilite.token.api.Route
 import com.reposilite.token.api.RoutePermission
-import com.reposilite.web.http.ContentType
+import io.javalin.http.ContentType
 import com.reposilite.web.http.errorResponse
 import io.javalin.http.HttpCode.NOT_FOUND
 import net.dzikoysk.dynamiclogger.backend.InMemoryLogger
@@ -44,8 +43,7 @@ internal abstract class MavenSpec {
     @BeforeEach
     private fun initializeFacade() {
         val logger = InMemoryLogger()
-        val failureFacade = FailureFacade(logger)
-        val remoteClient = FakeRemoteClient { uri, credentials, connectTimeout, readTimeout ->
+        val remoteClient = FakeRemoteClient { uri, credentials, _, _ ->
             if (uri.startsWith(REMOTE_REPOSITORY) && REMOTE_AUTH == credentials)
                 DocumentInfo(
                     uri.replace(":", "").toPath().getSimpleName(),
@@ -56,7 +54,7 @@ internal abstract class MavenSpec {
             else
                 errorResponse(NOT_FOUND, "Not found")
         }
-        this.mavenFacade = MavenWebConfiguration.createFacade(logger, failureFacade, workingDirectory!!.toPath(), remoteClient, repositories())
+        this.mavenFacade = MavenWebConfiguration.createFacade(logger, workingDirectory!!.toPath(), remoteClient, repositories())
     }
 
     data class FileSpec(
