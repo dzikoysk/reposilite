@@ -27,7 +27,7 @@ import java.io.File
 
 internal class MavenFacadeTest : MavenSpec() {
 
-    override fun repositories() = mapOf(
+    override fun repositories() = linkedMapOf(
         createRepository(PRIVATE.name) {
             visibility = PRIVATE
         },
@@ -37,11 +37,29 @@ internal class MavenFacadeTest : MavenSpec() {
         createRepository(PUBLIC.name) {
             visibility = PUBLIC
         },
-        createRepository("proxied") {
+        createRepository("PROXIED") {
             visibility = PUBLIC
             proxied = mutableListOf("$REMOTE_REPOSITORY --store --auth $REMOTE_AUTH")
         }
     )
+
+    @Test
+    fun `should list available repositories`() = runBlocking {
+        // when: repositories are requested without any credentials
+        var availableRepositories = findRepositories(UNAUTHORIZED)
+
+        // then: response contains only public repositories
+        assertEquals(listOf(PUBLIC.name, "PROXIED"), availableRepositories)
+
+        // given: a token with access to private repository
+        val accessToken = createAccessToken("alias", "secret", PRIVATE.name, "gav", WRITE)
+
+        // when: repositories are requested with valid credentials
+        availableRepositories = findRepositories(accessToken)
+
+        // then: response contains authorized repositories
+        assertEquals(listOf(PRIVATE.name, PUBLIC.name, "PROXIED"), availableRepositories)
+    }
 
     @ParameterizedTest
     @EnumSource(RepositoryVisibility::class)
@@ -57,7 +75,6 @@ internal class MavenFacadeTest : MavenSpec() {
         // then: file has been successfully stored
         assertEquals(FILE, fileDetails.type)
         assertEquals("reposilite-3.0.0.jar", fileDetails.name)
-        // assertFalse(fileDetails.isReadable())
     }
 
     @ParameterizedTest
@@ -139,7 +156,7 @@ internal class MavenFacadeTest : MavenSpec() {
     @Test
     fun `should serve proxied file from remote host and store it in local repository` () = runBlocking {
         // given: a file available in remote repository
-        val fileSpec = FileSpec("proxied", "/gav/file.pom", REMOTE_CONTENT)
+        val fileSpec = FileSpec("PROXIED", "/gav/file.pom", REMOTE_CONTENT)
 
         // when: a remote file is requested through proxied repository
         val response = mavenFacade.findFile(fileSpec.toLookupRequest(UNAUTHORIZED))

@@ -15,10 +15,10 @@
   -->
 
 <template>
-  <div class="container mx-auto pt-10 px-6">
-    <div v-for="entry in configurations" :key="entry.type">
+  <div class="container mx-auto pt-10 pb-6 px-6 flex flex-wrap justify-center">
+    <div v-for="entry in configurations" :key="entry.type" class="min-w-1/4 w-1/2 px-7">
       <h1 class="text-lg font-bold">{{entry.type}}</h1>
-      <pre class="my-5 py-5 px-6 rounded-lg shadow-md bg-gray-50 dark:bg-gray-900">{{trim(entry.snippet)}}</pre>
+      <pre class="my-4 py-4 px-6 rounded-lg shadow-md text-sm h-130px bg-gray-50 dark:bg-gray-900 justify-items-center">{{trim(entry.snippet)}}</pre>
     </div>
   </div>
 </template>
@@ -51,6 +51,7 @@ const configurations = [
     }
     `
   },
+  /*
   {
     type: 'Panda',
     snippet: `
@@ -59,6 +60,7 @@ const configurations = [
     ]
     `
   },
+  */
   {
     type: 'SBT',
     snippet: `

@@ -9,7 +9,6 @@ import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.reposilite.maven.api.DocumentInfo
-import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.METADATA_FILE
 import com.reposilite.maven.api.Metadata
 import com.reposilite.shared.safeResolve
@@ -36,16 +35,16 @@ internal class MetadataService(
             .flatMap { it.putFile(gav.toPath().safeResolve(METADATA_FILE), xml.writeValueAsBytes(metadata)) }
     }
 
-    fun findVersions(lookupRequest: LookupRequest): Result<Collection<String>, ErrorResponse> =
-        repositoryService.findRepository(lookupRequest.repository)
-            .flatMap { it.getFileDetails(lookupRequest.gav.toPath().safeResolve(METADATA_FILE)) }
+    fun findVersions(repository: Repository, gav: String): Result<List<String>, ErrorResponse> =
+        repository.getFileDetails(gav.toPath().safeResolve(METADATA_FILE))
             .filter({ it is DocumentInfo }, { ErrorResponse(NOT_ACCEPTABLE, "Maven metadata file cannot be directory") })
             .map { it as DocumentInfo }
             .map { xml.readValue<Metadata>(it.content()) }
             .map { it.versioning?.versions ?: emptyList() }
             .map { VersionComparator.sortStrings(it) }
 
-    fun findLatest(lookupRequest: LookupRequest): Result<String, ErrorResponse> =
-        findVersions(lookupRequest).map { it.last() }
+    fun findLatest(repository: Repository, gav: String): Result<String, ErrorResponse> =
+        findVersions(repository, gav)
+            .map { it.last() }
 
 }

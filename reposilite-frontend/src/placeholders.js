@@ -20,3 +20,12 @@ window.REPOSILITE_BASE_PATH = available ? '{{REPOSILITE.BASE_PATH}}' : '/'
 window.REPOSILITE_ID = available ? '{{REPOSILITE.ID}}' : 'reposilite-repository'
 window.REPOSILITE_TITLE = available ? '{{REPOSILITE.TITLE}}' : 'Reposilite Repository'
 window.REPOSILITE_DESCRIPTION = available ? '{{REPOSILITE.DESCRIPTION}}' : 'Default description'
+
+/**
+ * Get Reposilite base url
+ */
+  function baseUrl () {
+  return process.env.NODE_ENV === 'production'
+    ? Vue.prototype.$reposilite.basePath
+    : 'http://localhost:80/'
+}

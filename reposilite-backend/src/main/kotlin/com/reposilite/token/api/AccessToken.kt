@@ -29,6 +29,9 @@ data class AccessToken internal constructor(
     val routes: Set<Route> = emptySet()
 ) : IdentifiableEntity {
 
+    fun canSee(routeFragment: String): Boolean =
+        routes.any { it.path.startsWith("$routeFragment/", ignoreCase = true) }
+
     fun hasPermission(permission: AccessTokenPermission): Boolean =
         permissions.contains(permission)
 

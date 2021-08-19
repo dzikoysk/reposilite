@@ -15,8 +15,12 @@
  */
 package com.reposilite.maven
 
+import com.reposilite.maven.api.DirectoryInfo
+import com.reposilite.maven.api.SimpleDirectoryInfo
+import com.reposilite.token.api.AccessToken
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
+import io.javalin.http.HttpCode.BAD_REQUEST
 import io.javalin.http.HttpCode.NOT_FOUND
 import net.dzikoysk.dynamiclogger.Journalist
 import net.dzikoysk.dynamiclogger.Logger
@@ -25,14 +29,26 @@ import panda.std.asSuccess
 
 internal class RepositoryService(
     private val journalist: Journalist,
-    private val repositories: Map<String, Repository>
+    private val repositories: Map<String, Repository>,
+    private val securityProvider: RepositorySecurityProvider
 ) : Journalist {
 
-    fun findRepository(name: String): Result<Repository, ErrorResponse> =
-        getRepository(name)?.asSuccess() ?: errorResponse(NOT_FOUND, "Repository $name not found")
+    fun findRepository(name: String?): Result<Repository, ErrorResponse> =
+        name?.let {
+            getRepository(it)
+                ?.asSuccess()
+                ?: errorResponse(NOT_FOUND, "Repository $name not found")
+        }
+        ?: errorResponse(BAD_REQUEST, "")
 
     fun getRepository(name: String): Repository? =
         repositories[name]
+
+    fun getRootDirectory(accessToken: AccessToken?): DirectoryInfo =
+        getRepositories()
+            .filter { securityProvider.canAccessRepository(accessToken, it) }
+            .map { SimpleDirectoryInfo(it.name) }
+            .let { DirectoryInfo("/", it) }
 
     fun getRepositories(): Collection<Repository> =
         repositories.values

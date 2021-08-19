@@ -18,6 +18,7 @@ package com.reposilite.maven
 
 import com.reposilite.maven.api.DeleteRequest
 import com.reposilite.maven.api.DeployRequest
+import com.reposilite.maven.api.DirectoryInfo
 import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.maven.api.FileDetails
 import com.reposilite.maven.api.LookupRequest
@@ -26,6 +27,7 @@ import com.reposilite.maven.api.Metadata
 import com.reposilite.shared.getSimpleName
 import com.reposilite.shared.toNormalizedPath
 import com.reposilite.shared.toPath
+import com.reposilite.token.api.AccessToken
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
 import io.javalin.http.HttpCode
@@ -36,6 +38,7 @@ import io.javalin.http.HttpCode.UNAUTHORIZED
 import net.dzikoysk.dynamiclogger.Journalist
 import net.dzikoysk.dynamiclogger.Logger
 import panda.std.Result
+import panda.std.asSuccess
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -52,6 +55,10 @@ class MavenFacade internal constructor(
     }
 
     suspend fun findFile(lookupRequest: LookupRequest): Result<out FileDetails, ErrorResponse> {
+        if (lookupRequest.repository == null) {
+            return findRepositories(lookupRequest.accessToken).asSuccess()
+        }
+
         val repository = repositoryService.getRepository(lookupRequest.repository) ?: return errorResponse(NOT_FOUND, "Repository not found")
         val gav = lookupRequest.gav.toPath()
 
@@ -73,11 +80,13 @@ class MavenFacade internal constructor(
     internal fun saveMetadata(repository: String, gav: String, metadata: Metadata) =
         metadataService.saveMetadata(repository, gav, metadata)
 
-    fun findVersions(lookupRequest: LookupRequest): Result<Collection<String>, ErrorResponse> =
-        metadataService.findVersions(lookupRequest)
+    fun findVersions(lookupRequest: LookupRequest): Result<List<String>, ErrorResponse> =
+        repositoryService.findRepository(lookupRequest.repository)
+            .flatMap { metadataService.findVersions(it, lookupRequest.gav) }
 
     fun findLatest(lookupRequest: LookupRequest): Result<String, ErrorResponse> =
-        metadataService.findLatest(lookupRequest)
+        repositoryService.findRepository(lookupRequest.repository)
+            .flatMap { metadataService.findLatest(it, lookupRequest.gav) }
 
     fun deployFile(deployRequest: DeployRequest): Result<DocumentInfo, ErrorResponse> {
         val repository = repositoryService.getRepository(deployRequest.repository) ?: return errorResponse(NOT_FOUND, "Repository not found")
@@ -106,6 +115,9 @@ class MavenFacade internal constructor(
         return repository.removeFile(path)
     }
 
+    fun findRepositories(accessToken: AccessToken?): DirectoryInfo =
+        repositoryService.getRootDirectory(accessToken)
+
     fun getRepositories(): Collection<Repository> =
         repositoryService.getRepositories()
 
@@ -113,84 +125,3 @@ class MavenFacade internal constructor(
         journalist.logger
 
 }
-
-/*
-    fun exists(context: ReposiliteContext): Boolean {
-        val uri: String = context.uri
-        val result = repositoryAuthenticator.authDefaultRepository(context.header, uri)
-
-        if (result.isErr) {
-            // Maven requests maven-metadata.xml file during deploy for snapshot releases without specifying credentials
-            // https://github.com/dzikoysk/reposilite/issues/184
-            return if (uri.contains("-SNAPSHOT") && uri.endsWith(METADATA_FILE)) {
-                false
-            } else false
-        }
-
-        val path = result.get().key
-
-        // discard invalid requests (less than 'group/(artifact OR metadata)')
-        if (path.nameCount < 2) {
-            return false
-        }
-
-        val repository = result.get().value
-        return repository.exists(path)
-    }
-
-    fun find(context: ReposiliteContext): Result<LookupResponse, ErrorResponse> {
-        val uri: String = context.uri
-        val result = repositoryAuthenticator.authDefaultRepository(context.header, uri)
-
-        if (result.isErr) {
-            // Maven requests maven-metadata.xml file during deploy for snapshot releases without specifying credentials
-            // https://github.com/dzikoysk/reposilite/issues/184
-            return if (uri.contains("-SNAPSHOT") && uri.endsWith(METADATA_FILE)) {
-                ResponseUtils.error(HttpStatus.SC_NOT_FOUND, result.error.message)
-            } else Result.error(result.error)
-        }
-
-        var path = result.get().key
-
-        // discard invalid requests (less than 'group/(artifact OR metadata)')
-        if (path!!.nameCount < 2) {
-            return ResponseUtils.error(HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, "Missing artifact identifier")
-        }
-
-        val repository = result.get().value
-        val requestedFileName = path.fileName.toString()
-
-        if (requestedFileName == "maven-metadata.xml") {
-            return repository.getFile(path).map { LookupResponse.of("text/xml", Arrays.toString(it)) }
-        }
-
-        // resolve requests for latest version of artifact
-        if (requestedFileName.equals("latest", ignoreCase = true)) {
-            val requestDirectory = path.parent
-            val versions: Result<List<Path>, ErrorResponse> = toSortedVersions(repository, requestDirectory)
-
-            if (versions.isErr) {
-                return versions.map { null }
-            }
-
-            val version = versions.get().firstOrNull()
-                ?: return ResponseUtils.error(HttpStatus.SC_NOT_FOUND, "Latest version not found")
-
-            return Result.ok(LookupResponse.of("text/plain", version.fileName.toString()))
-        }
-
-        // resolve snapshot requests
-        if (requestedFileName.contains("-SNAPSHOT")) {
-            path = repositoryService.resolveSnapshot(repository, path)
-
-            if (path == null) {
-                return Result.error(ErrorResponse(HttpStatus.SC_NOT_FOUND, "Latest version not found"))
-            }
-        }
-
-        if (repository.isDirectory(path)) {
-            return ResponseUtils.error(HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, "Directory access")
-        }
-    }
-
-     */

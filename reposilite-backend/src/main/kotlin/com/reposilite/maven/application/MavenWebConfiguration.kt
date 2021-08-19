@@ -33,14 +33,15 @@ internal object MavenWebConfiguration {
 
     fun createFacade(journalist: Journalist, workingDirectory: Path, remoteClient: RemoteClient, repositories: Map<String, RepositoryConfiguration>): MavenFacade {
         val repositoryFactory = RepositoryFactory(journalist, workingDirectory)
+        val securityProvider = RepositorySecurityProvider()
 
         val repositoryService = repositories
             .mapValues { (repositoryName, repositoryConfiguration) -> repositoryFactory.createRepository(repositoryName, repositoryConfiguration) }
-            .let { RepositoryService(journalist, it) }
+            .let { RepositoryService(journalist, it, securityProvider) }
 
         return MavenFacade(
             journalist,
-            RepositorySecurityProvider(),
+            securityProvider,
             repositoryService,
             ProxyService(remoteClient),
             MetadataService(repositoryService)

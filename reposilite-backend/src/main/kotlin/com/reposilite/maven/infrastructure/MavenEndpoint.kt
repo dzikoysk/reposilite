@@ -4,6 +4,7 @@ import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.api.AbstractDirectoryInfo
 import com.reposilite.maven.api.DeleteRequest
 import com.reposilite.maven.api.DeployRequest
+import com.reposilite.maven.api.DirectoryInfo
 import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.maven.api.FileDetails
 import com.reposilite.maven.api.LookupRequest
@@ -41,7 +42,7 @@ internal class MavenEndpoint(private val mavenFacade: MavenFacade) : ReposiliteR
             OpenApiResponse(status = "404", description = "Returns 404 (for Maven) with frontend (for user) as a response if requested resource is not located in the current repository")
         ]
     )
-    val findFile = ReposiliteRoute("/{repository}/<gav>", GET) {
+    private val findFile = ReposiliteRoute("/{repository}/<gav>", HEAD, GET) {
         accessed {
             response = mavenFacade.findFile(LookupRequest(parameter("repository"), parameter("gav"), this?.accessToken))
                 .filter({ it is AbstractDirectoryInfo }, { ErrorResponse(NO_CONTENT, "Requested file is a directory")})
@@ -92,8 +93,27 @@ internal class MavenEndpoint(private val mavenFacade: MavenFacade) : ReposiliteR
 
     @OpenApi(
         tags = ["Maven"],
+        path = "/api/maven/details",
+        methods = [HttpMethod.GET],
+        summary = "Get list of available repositories",
+        responses = [
+            OpenApiResponse(
+                status = "200",
+                description = "Returns list of available repositories",
+                content = [OpenApiContent(from = DirectoryInfo::class)]
+            )
+        ]
+    )
+    private val findRepositories = ReposiliteRoute("/api/maven/details", GET) {
+        accessed {
+            response = mavenFacade.findFile(LookupRequest(null, "", this?.accessToken))
+        }
+    }
+
+    @OpenApi(
+        tags = ["Maven"],
         path = "/api/maven/details/{repository}/*",
-        methods = [HttpMethod.HEAD, HttpMethod.GET],
+        methods = [HttpMethod.GET],
         summary = "Browse the contents of repositories using API",
         description = "Get details about the requested file as JSON response",
         pathParams = [
@@ -117,7 +137,7 @@ internal class MavenEndpoint(private val mavenFacade: MavenFacade) : ReposiliteR
             )
         ]
     )
-    val findFileDetails = ReposiliteRoute("/api/maven/details/{repository}/<gav>", HEAD, GET) {
+    private val findFileDetails = ReposiliteRoute("/api/maven/details/{repository}/<gav>", GET) {
         accessed {
             response = mavenFacade.findFile(LookupRequest(parameter("repository"), parameter("gav"), this?.accessToken))
         }
@@ -132,7 +152,7 @@ internal class MavenEndpoint(private val mavenFacade: MavenFacade) : ReposiliteR
             OpenApiParam(name = "*", description = "Artifact path qualifier", required = true, allowEmptyValue = true)
         ],
     )
-    val findVersions = ReposiliteRoute("/api/maven/versions/{repository}/<gav>", GET) {
+    private val findVersions = ReposiliteRoute("/api/maven/versions/{repository}/<gav>", GET) {
         accessed {
             response = mavenFacade.findVersions(LookupRequest(parameter("repository"), parameter("gav"), this?.accessToken))
         }
@@ -147,12 +167,12 @@ internal class MavenEndpoint(private val mavenFacade: MavenFacade) : ReposiliteR
             OpenApiParam(name = "*", description = "Artifact path qualifier", required = true, allowEmptyValue = true)
         ],
     )
-    val findLatest = ReposiliteRoute("/api/maven/latest/{repository}/<gav>", GET) {
+    private val findLatest = ReposiliteRoute("/api/maven/latest/{repository}/<gav>", GET) {
         accessed {
             response = mavenFacade.findLatest(LookupRequest(parameter("repository"), parameter("gav"), this?.accessToken))
         }
     }
 
-    override val routes = setOf(findFile, deployFile, deleteFile, findFileDetails, findVersions, findLatest)
+    override val routes = setOf(findFile, deployFile, deleteFile, findRepositories, findFileDetails, findVersions, findLatest)
 
 }
