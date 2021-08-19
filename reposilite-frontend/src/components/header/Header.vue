@@ -22,27 +22,30 @@
       </h1>
       <nav class="flex flex-row mt-0.5">
        <router-link to="/dashboard">
-          <div class="py-1.5 rounded-full bg-white font-bold px-6 text-sm dark:border-gray-900">
+          <div class="py-1.5 rounded-full bg-white dark:bg-gray-900 font-bold px-6 text-sm">
             Dashboard
           </div>
         </router-link>
-        <div class="ml-4 pl-2 pr-1 py-0.9 cursor-pointer rounded-full bg-white" v-on:click="toggleTheme()">
+        <div class="ml-4 pl-2 pr-1.5 py-0.9 cursor-pointer rounded-full bg-white dark:bg-gray-900" v-on:click="toggleTheme()">
           <SunIcon v-if="theme.isDark"/>
           <MoonIcon v-else/>
         </div>
       </nav>
     </div>
+    <Hero class="pt-2 pb-11" />
   </header>
 </template>
 
 <script>
-import MoonIcon from './icons/MoonIcon.vue'
-import SunIcon from './icons/SunIcon.vue'
-import useTheme from "../store/theme"
+import Hero from './Hero.vue'
+import MoonIcon from '../icons/MoonIcon.vue'
+import SunIcon from '../icons/SunIcon.vue'
+import useTheme from "../../store/theme"
 
 export default {
   name: 'Index',
   components: {
+    Hero,
     MoonIcon,
     SunIcon
   },

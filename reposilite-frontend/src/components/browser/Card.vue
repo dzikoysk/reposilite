@@ -15,7 +15,7 @@
   -->
 
 <template>
-  <div class="bg-white dark:bg-black shadow-lg p-7 border rounded-lg border-gray-100 dark:border-gray-900">
+  <div class="bg-white dark:bg-gray-900 shadow-lg p-7 border rounded-xl border-gray-100 dark:border-gray-900">
     <div class="flex flex-row justify-between">
       <h1 class="font-bold">Artifact details</h1>
       <!-- <button class="bg-black dark:bg-white text-white dark:text-black px-6 py-1 rounded">Download</button> -->
@@ -37,7 +37,7 @@
         :key="`tp${i}`"
         :val="entry.name"
       >
-        <div class="mt-6 p-4 mr-1 rounded-lg bg-gray-100 dark:bg-hex-090909">
+        <div class="mt-6 p-4 mr-1 rounded-lg bg-gray-100 dark:bg-gray-900">
           <pre class="text-sm max-w-21">{{entry.value.trim()}}</pre>
         </div>
       </tab-panel>
@@ -60,8 +60,8 @@ const tabs = [
   },
   { name: 'Gradle Groovy', value: `implementation "{groupId}:{artifactId}:{version}"` }, 
   { name: 'Gradle Kotlin', value: `implementation("{groupId}:{artifactId}:{version}")` },
-  { name: 'Panda', value: `maven:{groupId}/{artifactId}@{version}` },
-  { name: 'SBT', value: `libraryDependencies  += "{groupId}" %% "{artifactId}" %% "{version}"` }
+  // { name: 'Panda', value: `maven:{groupId}/{artifactId}@{version}` },
+  { name: 'SBT', value: `"{groupId}" %% "{artifactId}" %% "{version}"` }
 ]
 
 export default {

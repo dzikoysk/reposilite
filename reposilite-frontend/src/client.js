@@ -1,0 +1,7 @@
+const client = {
+  maven: {
+    details() {
+      
+    }
+  }
+}

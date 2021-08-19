@@ -51,7 +51,6 @@ export default defineComponent({
 html {
   @apply bg-gray-100;
 }
-
 #app {
   font-family: 'Open Sans', sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -61,11 +60,9 @@ html {
 .container {
   @apply px-10;
 }
-
 .active {
   @apply dark:border-white;
 }
-
 .bg-default {
   @apply bg-gray-100 dark:border-gray-900;
 }

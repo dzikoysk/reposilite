@@ -17,9 +17,9 @@
 <template>
   <div>
     <Header/>
-    <div class="bg-gray-100">
+    <div class="bg-gray-100 dark:bg-black">
       <div class="container mx-auto">
-        <tabs v-model="selectedMenuTab" >
+        <tabs v-model="selectedMenuTab">
           <tab
             v-for="(tab, i) in menuTabs"
             class="item font-normal"
@@ -31,7 +31,7 @@
         </tabs>
       </div>
       <hr class="dark:border-gray-700">
-      <div>
+      <div class="overflow-auto">
         <tab-panels v-model="selectedMenuTab" :animate="true">
           <tab-panel :val="'Overview'">
             <Overview/>
@@ -50,7 +50,7 @@
 
 <script>
 import { reactive, toRefs } from 'vue'
-import Header from '../components/Header.vue'
+import Header from '../components/header/Header.vue'
 import Overview from '../components/index/Overview.vue'
 import Usage from '../components/index/Usage.vue'
 import Endpoints from '../components/index/Endpoints.vue'
@@ -84,7 +84,7 @@ export default {
   @apply pb-1;
   @apply cursor-pointer;
   @apply text-gray-600 dark:text-gray-300;
-  @apply bg-gray-100;
+  @apply bg-gray-100 dark:bg-black;
 }
 
 .selected {

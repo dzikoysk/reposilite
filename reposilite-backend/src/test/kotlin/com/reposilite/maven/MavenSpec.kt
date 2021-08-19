@@ -13,8 +13,8 @@ import com.reposilite.shared.toPath
 import com.reposilite.token.api.AccessToken
 import com.reposilite.token.api.Route
 import com.reposilite.token.api.RoutePermission
-import io.javalin.http.ContentType
 import com.reposilite.web.http.errorResponse
+import io.javalin.http.ContentType
 import io.javalin.http.HttpCode.NOT_FOUND
 import net.dzikoysk.dynamiclogger.backend.InMemoryLogger
 import org.junit.jupiter.api.BeforeEach
@@ -70,6 +70,9 @@ internal abstract class MavenSpec {
 
     fun createRepository(name: String, initializer: RepositoryConfiguration.() -> Unit): Pair<String, RepositoryConfiguration> =
         Pair(name, RepositoryConfiguration().also { initializer(it) })
+
+    fun findRepositories(accessToken: AccessToken?): Collection<String> =
+        mavenFacade.findRepositories(accessToken).files.map { it.name }
 
     fun addFileToRepository(fileSpec: FileSpec): FileSpec {
         workingDirectory!!.toPath()

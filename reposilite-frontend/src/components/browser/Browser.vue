@@ -18,17 +18,16 @@
   <div class="bg-gray-100">
     <div class="bg-gray-100 dark:bg-black">
       <div class="container mx-auto">
-        <p class="py-4 font-semibold">Index of / <span class="font-normal text-xl text-gray-500"> ⤴ </span></p>
+        <p class="pt-7 pb-3 pl-2 font-semibold">Index of / <span class="font-normal text-xl text-gray-500"> ⤴ </span></p>
       </div>
     </div>
-    <hr class="border-gray-100 dark:border-gray-900">
-    <div>
+    <div class="dark:bg-black">
       <div class="container mx-auto relative">
-        <div class="lg:absolute pt-5 -top-24.5 right-8">
+        <div class="lg:absolute pt-5 -top-15 right-8">
           <Card/>
         </div>
-        <div class="pt-2">
-          <div v-for="file in files" v-bind:key="file" class="flex flex-row mb-1.5 py-3 rounded-full bg-white max-w-2/5 cursor-pointer">
+        <div class="pt-4">
+          <div v-for="file in files" v-bind:key="file" class="flex flex-row mb-1.5 py-3 rounded-full bg-white dark:bg-gray-900 max-w-1/2 cursor-pointer">
             <div class="text-xm px-6 pt-1.75">⚫</div>
             <div class="font-semibold">{{file}}</div>
           </div>

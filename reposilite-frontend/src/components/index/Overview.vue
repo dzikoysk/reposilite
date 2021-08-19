@@ -15,12 +15,11 @@
   -->
 
 <template>
-  <Hero />
   <Browser ref=""/>
 </template>
 
 <script>
-import Hero from './Hero.vue'
+import Hero from '../header/Hero.vue'
 import Browser from '../browser/Browser.vue'
 
 export default {

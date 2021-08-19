@@ -24,9 +24,9 @@ import com.reposilite.shared.exists
 import com.reposilite.shared.getExtension
 import com.reposilite.shared.getSimpleName
 import com.reposilite.shared.type
+import com.reposilite.web.http.ErrorResponse
 import io.javalin.http.ContentType
 import io.javalin.http.ContentType.APPLICATION_OCTET_STREAM
-import com.reposilite.web.http.ErrorResponse
 import panda.std.Result
 import panda.std.asSuccess
 import java.io.IOException
@@ -37,15 +37,11 @@ import kotlin.streams.toList
 
 sealed class FileDetails(
     val type: FileType,
-    val name: String
+    val name: String,
 ) : Comparable<FileDetails> {
 
     override fun compareTo(other: FileDetails): Int =
         type.compareTo(other.type).takeIf { it != 0 } ?: name.compareTo(other.name)
-
-//    @JsonIgnore
-//    fun isReadable(): Boolean =
-//        FilesUtils.isReadable(name)
 
 }
 
@@ -70,7 +66,12 @@ class SimpleDirectoryInfo(
 class DirectoryInfo(
     name: String,
     val files: List<FileDetails>
-) : AbstractDirectoryInfo(name)
+) : AbstractDirectoryInfo(name) {
+
+    fun filter(predicate: (FileDetails) -> Boolean): DirectoryInfo =
+        DirectoryInfo(name, files.filter { predicate(it) })
+
+}
 
 fun toFileDetails(file: Path): Result<out FileDetails, ErrorResponse> =
     file.exists()
