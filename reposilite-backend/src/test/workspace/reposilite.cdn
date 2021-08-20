@@ -51,8 +51,7 @@ deployEnabled: true
 # List of proxied repositories.
 # Reposilite will search for an artifact in remote repositories listed below,
 # if the requested artifact was not found.
-proxied [
-]
+proxied: []
 # Reposilite can store proxied artifacts locally to reduce response time and improve stability
 storeProxied: false
 # Proxying is disabled by default in private repositories because of the security policy.

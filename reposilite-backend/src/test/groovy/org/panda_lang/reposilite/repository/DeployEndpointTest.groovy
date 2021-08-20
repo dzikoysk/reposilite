@@ -23,20 +23,27 @@ import org.apache.http.auth.AuthenticationException
 import org.apache.http.auth.UsernamePasswordCredentials
 import org.apache.http.client.HttpClient
 import org.apache.http.client.methods.HttpPut
+import org.apache.http.entity.InputStreamEntity
 import org.apache.http.entity.StringEntity
 import org.apache.http.impl.auth.BasicScheme
 import org.apache.http.impl.client.HttpClients
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
 import org.panda_lang.reposilite.ReposiliteContext
 import org.panda_lang.reposilite.ReposiliteIntegrationTestSpecification
 import org.panda_lang.utilities.commons.IOUtils
 import org.panda_lang.utilities.commons.StringUtils
 
+import java.nio.channels.Channels
+
 import static org.junit.jupiter.api.Assertions.*
 
 @CompileStatic
 class DeployEndpointTest extends ReposiliteIntegrationTestSpecification {
+
+    @TempDir
+    public File clientWorkingDirectory
 
     private final HttpClient client = HttpClients.createDefault()
 
@@ -103,6 +110,17 @@ class DeployEndpointTest extends ReposiliteIntegrationTestSpecification {
         httpPut.setEntity(new StringEntity(content))
         httpPut.addHeader(new BasicScheme().authenticate(new UsernamePasswordCredentials(username, password), httpPut, null))
         return client.execute(httpPut)
+    }
+
+    @Test
+    void 'should deploy huge file'() {
+        RandomAccessFile hugeFile = new RandomAccessFile(new File(clientWorkingDirectory, "test.txt"), "rw")
+        hugeFile.setLength(200 * 1024 * 1024) // 200MB
+
+        def httpPut = new HttpPut(url("/releases/auth/test.txt").toString())
+        httpPut.setEntity(new InputStreamEntity(Channels.newInputStream(hugeFile.getChannel())))
+        httpPut.addHeader(new BasicScheme().authenticate(new UsernamePasswordCredentials("authtest", "secure"), httpPut, null))
+        assertEquals 200, client.execute(httpPut).getStatusLine().statusCode
     }
 
 }
