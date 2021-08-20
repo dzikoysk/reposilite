@@ -25,7 +25,17 @@ import router from './router'
 import './placeholders.js'
 import 'virtual:windi.css'
 
-createApp(App)
+const app = createApp(App)
+
+app.config.globalProperties.append = (path, pathToAppend) =>
+  path + (path.endsWith('/') ? '' : '/') + pathToAppend
+
+app.config.globalProperties.drop = (path) =>
+  (path.endsWith('/') ? path.slice(0, -1) : path).split("/")
+    .slice(0, -1)
+    .join('/')
+
+app
   .use(createHead())
   .use(VueAxios, axios)
   .use(Tabs)

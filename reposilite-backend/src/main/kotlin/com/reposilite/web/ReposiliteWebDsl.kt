@@ -71,6 +71,9 @@ class ReposiliteWebDsl(val ctx: Context, val context: ReposiliteContext) {
         }
     }
 
+    fun wildcard(name: String): String =
+        ctx.pathParamMap()[name] ?: ""
+
     fun parameter(name: String): String =
         ctx.pathParam(name)
 

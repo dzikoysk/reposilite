@@ -18,19 +18,27 @@
   <div class="bg-gray-100">
     <div class="bg-gray-100 dark:bg-black">
       <div class="container mx-auto">
-        <p class="pt-7 pb-3 pl-2 font-semibold">Index of / <span class="font-normal text-xl text-gray-500"> ⤴ </span></p>
+        <p class="pt-7 pb-3 pl-2 font-semibold">
+          Index of {{ $route.path }}
+          <router-link :to="parentPath">
+            <span class="font-normal text-xl text-gray-500"> ⤴ </span>
+          </router-link>
+        </p>
       </div>
     </div>
     <div class="dark:bg-black">
       <div class="container mx-auto relative">
-        <div class="lg:absolute pt-5 -top-15 right-8">
+        <div class="lg:absolute pt-5 -top-5 right-8">
           <Card/>
         </div>
         <div class="pt-4">
-          <div v-for="file in files" v-bind:key="file" class="flex flex-row mb-1.5 py-3 rounded-full bg-white dark:bg-gray-900 max-w-1/2 cursor-pointer">
-            <div class="text-xm px-6 pt-1.75">⚫</div>
-            <div class="font-semibold">{{file}}</div>
-          </div>
+          <router-link v-for="file in files" v-bind:key="file" :to="append($route.path, file.name)">
+            <div class="flex flex-row mb-1.5 py-3 rounded-full bg-white dark:bg-gray-900 xl:max-w-1/2 cursor-pointer">
+              <div v-if="file.type == 'DIRECTORY'" class="text-xm px-6 pt-1.75">⚫</div>
+              <div v-else class="text-xm px-6 pt-1.75">⚪</div>
+              <div class="font-semibold">{{file.name}}</div>
+            </div>
+          </router-link>
         </div>
       </div>
     </div>
@@ -38,15 +46,42 @@
 </template>
 
 <script>
+import { useRouter, useRoute } from 'vue-router'
+import { ref, watch } from 'vue'
+
+import client from '../../client'
 import Card from './Card.vue'
 
 export default {
   components: {
     Card
   },
-  data() {
+  setup() {
+    const router = useRouter()
+    const route = useRoute()
+
+    const parentPath = ref('xyz')
+    const files = ref([])
+
+    const drop = (path) => (path.endsWith('/') ? path.slice(0, -1) : path).split("/")
+      .slice(0, -1)
+      .join('/') || '/'
+
+    watch(
+      () => route.params.qualifier,
+      async newGav => {
+        parentPath.value = drop(`/${newGav}`)
+
+        client.maven.details(newGav)
+          .then(response => files.value = response.data.files)
+          .catch(error => console.log(error))
+      },
+      { immediate: true }
+    )
+
     return {
-      files: [ 'releases', 'snapshot' ],
+      parentPath,
+      files
     }
   }
 }

@@ -10,6 +10,7 @@ import com.reposilite.maven.api.FileDetails
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.web.ReposiliteRoute
 import com.reposilite.web.ReposiliteRoutes
+import com.reposilite.web.ReposiliteWebDsl
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.resultAttachment
 import com.reposilite.web.routing.RouteMethod.DELETE
@@ -137,11 +138,14 @@ internal class MavenEndpoint(private val mavenFacade: MavenFacade) : ReposiliteR
             )
         ]
     )
-    private val findFileDetails = ReposiliteRoute("/api/maven/details/{repository}/<gav>", GET) {
+    private val findFileDetails: suspend ReposiliteWebDsl.() -> Unit = {
         accessed {
-            response = mavenFacade.findFile(LookupRequest(parameter("repository"), parameter("gav"), this?.accessToken))
+            response = mavenFacade.findFile(LookupRequest(parameter("repository"), wildcard("gav"), this?.accessToken))
         }
     }
+
+    private val findFileDetailsWithoutGav = ReposiliteRoute("/api/maven/details/{repository}", GET, handler = findFileDetails)
+    private val findFileDetailsWithGav = ReposiliteRoute("/api/maven/details/{repository}/<gav>", GET, handler = findFileDetails)
 
     @OpenApi(
         tags = ["Maven"],
@@ -173,6 +177,6 @@ internal class MavenEndpoint(private val mavenFacade: MavenFacade) : ReposiliteR
         }
     }
 
-    override val routes = setOf(findFile, deployFile, deleteFile, findRepositories, findFileDetails, findVersions, findLatest)
+    override val routes = setOf(findFile, deployFile, deleteFile, findRepositories, findFileDetailsWithoutGav, findFileDetailsWithGav, findVersions, findLatest)
 
 }
