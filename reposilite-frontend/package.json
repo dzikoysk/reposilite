@@ -5,7 +5,8 @@
     "dev": "vite",
     "build": "vite build",
     "serve": "vite preview",
-    "full": "concurrently -k \"json-server --port 80 --watch data/db.json\" \"vite\""
+    "stub": "nodemon stub/stub-api.js",
+    "full": "concurrently -k \"npm run stub\" \"vite\""
   },
   "dependencies": {
     "@vueuse/head": "^0.6.0",
@@ -24,7 +25,9 @@
     "@vitejs/plugin-vue": "^1.4.0",
     "@vue/compiler-sfc": "^3.2.4",
     "concurrently": "^6.2.1",
+    "express": "^4.17.1",
     "json-server": "^0.16.3",
+    "nodemon": "^2.0.12",
     "vite": "^2.5.0",
     "vite-plugin-windicss": "^1.2.7",
     "windicss": "^3.1.7"
