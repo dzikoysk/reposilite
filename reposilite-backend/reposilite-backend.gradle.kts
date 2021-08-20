@@ -60,6 +60,7 @@ repositories {
     mavenCentral()
     maven { url = uri("https://repo.panda-lang.org/releases") }
     maven { url = uri("https://s01.oss.sonatype.org/content/repositories/releases/") }
+    maven { url = uri("https://jitpack.io") }
 }
 
 dependencies {
@@ -99,6 +100,7 @@ dependencies {
 
     val javalin = "4.0.0.RC1"
     implementation("io.javalin:javalin:$javalin")
+    //implementation("com.github.tipsy:javalin:master-SNAPSHOT")
 
     val picocli = "4.6.1"
     kapt("info.picocli:picocli-codegen:$picocli")

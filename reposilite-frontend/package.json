@@ -1,10 +1,11 @@
 {
-  "name": "reposilite-frontend2",
-  "version": "0.0.0",
+  "name": "reposilite-frontend",
+  "version": "3.0.0",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "serve": "vite preview"
+    "serve": "vite preview",
+    "full": "concurrently -k \"json-server --port 80 --watch data/db.json\" \"vite\""
   },
   "dependencies": {
     "@vueuse/head": "^0.6.0",
@@ -22,6 +23,8 @@
   "devDependencies": {
     "@vitejs/plugin-vue": "^1.4.0",
     "@vue/compiler-sfc": "^3.2.4",
+    "concurrently": "^6.2.1",
+    "json-server": "^0.16.3",
     "vite": "^2.5.0",
     "vite-plugin-windicss": "^1.2.7",
     "windicss": "^3.1.7"

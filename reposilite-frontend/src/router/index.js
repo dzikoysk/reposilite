@@ -14,26 +14,25 @@
  * limitations under the License.
  */
 
-import { createWebHistory, createRouter } from "vue-router"
+import { createWebHistory, createWebHashHistory, createRouter } from "vue-router"
 import Index from "../pages/Index.vue"
 import Dashboard from "../pages/Dashboard.vue"
 
-const routes = [
-  {
-    path: "/",
-    name: "Index",
-    component: Index,
-  },
-  {
-    path: "/dashboard",
-    name: "Dashboard",
-    component: Dashboard,
-  }
-]
-
 const router = createRouter({
-  history: createWebHistory(),
-  routes,
+  history: createWebHashHistory(),
+  // history: createWebHistory(),
+  routes: [
+    {
+      path: "/:qualifier(.*)",
+      name: "Index",
+      component: Index,
+    },
+    {
+      path: "/dashboard",
+      name: "Dashboard",
+      component: Dashboard,
+    }
+  ]
 })
 
 export default router
