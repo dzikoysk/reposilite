@@ -15,7 +15,6 @@ import com.reposilite.token.api.RoutePermission.READ
 import com.reposilite.token.api.RoutePermission.WRITE
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -23,7 +22,6 @@ import org.junit.jupiter.params.provider.EnumSource
 import panda.std.ResultAssertions.assertError
 import panda.std.ResultAssertions.assertOk
 import panda.utilities.IOUtils
-import java.io.File
 
 internal class MavenFacadeTest : MavenSpec() {
 

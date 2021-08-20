@@ -15,6 +15,7 @@
  */
 package com.reposilite.token.api
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import net.dzikoysk.exposed.shared.IdentifiableEntity
 import net.dzikoysk.exposed.shared.UNINITIALIZED_ENTITY_ID
 import java.time.LocalDate
@@ -22,6 +23,7 @@ import java.time.LocalDate
 data class AccessToken internal constructor(
     override val id: Int = UNINITIALIZED_ENTITY_ID,
     val alias: String,
+    @Transient @JsonIgnore
     val secret: String,
     val createdAt: LocalDate = LocalDate.now(),
     val description: String = "",
