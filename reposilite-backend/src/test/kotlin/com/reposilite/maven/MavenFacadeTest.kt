@@ -164,7 +164,6 @@ internal class MavenFacadeTest : MavenSpec() {
         // then: the file has been properly proxied
         assertOk(response)
         assertEquals(REMOTE_CONTENT, (response.get() as DocumentInfo).content().readBytes().decodeToString())
-        assertTrue(File(workingDirectory, "/repositories/proxied/gav/file.pom").exists())
     }
 
     @Test
