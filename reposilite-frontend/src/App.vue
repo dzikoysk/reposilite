@@ -24,6 +24,7 @@
 import { defineComponent, onMounted } from 'vue'
 import { useHead } from '@vueuse/head'
 import useTheme from "./store/theme"
+import useSession from "./store/session"
 
 export default defineComponent({
   setup() {
@@ -33,9 +34,11 @@ export default defineComponent({
     })
 
     const { theme, fetchTheme } = useTheme()
+    const { fetchSession } = useSession()
 
     onMounted(() => {
       fetchTheme()
+      fetchSession()
     })
 
     return {

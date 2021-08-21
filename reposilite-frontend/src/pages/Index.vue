@@ -55,17 +55,11 @@ import Overview from '../components/index/Overview.vue'
 import Usage from '../components/index/Usage.vue'
 import Endpoints from '../components/index/Endpoints.vue'
 
-const menuTabs = [ 'Overview', 'Usage', 'Endpoints' ]
-
 export default {
-  name: 'Index',
-  components: {
-    Header,
-    Overview,
-    Usage,
-    Endpoints
-  },
+  components: { Header, Overview, Usage, Endpoints },
   setup() {
+    const menuTabs = [ 'Overview', 'Usage', 'Endpoints' ]
+
     const state = reactive({
       selectedMenuTab: menuTabs[0]
     })

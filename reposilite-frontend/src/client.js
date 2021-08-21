@@ -7,6 +7,16 @@ const baseUrl = () => {
 }
 
 const client = {
+  auth: {
+    me(alias, token) {
+      return axios.get(baseUrl() + "/auth/me", {
+        auth: {
+          username: alias,
+          password: token
+        }
+      })
+    }
+  },
   maven: {
     details(gav) {
       return axios.get(baseUrl() + "/api/maven/details/" + (gav || ""))

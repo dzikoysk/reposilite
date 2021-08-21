@@ -4,7 +4,7 @@ const respond = (response) =>
   (_, res) => res.send(response)
 
 const basicAuth = (req) => {
-  const b64auth = (req.headers.authorization || '').split(' ')[1] || ''
+  const b64auth = (req.get('Authorization') || '').split(' ')[1] || ''
   return Buffer.from(b64auth, 'base64').toString().split(':')
 }
 
@@ -20,13 +20,14 @@ express()
   )
   .use((_, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*')
+    res.setHeader('Access-Control-Allow-Headers', '*')
     next()
   })
   .get('/auth/me', (req, res) => {
     const [login, password] = basicAuth(req)
-    
+
     if (login != 'alias' || password != 'secret') {
-      res.status(401)
+      res.status(401).send('Invalid credentials')
       return
     }
 
