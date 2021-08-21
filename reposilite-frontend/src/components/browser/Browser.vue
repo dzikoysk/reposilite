@@ -53,9 +53,7 @@ import client from '../../client'
 import Card from './Card.vue'
 
 export default {
-  components: {
-    Card
-  },
+  components: { Card },
   setup() {
     const router = useRouter()
     const route = useRoute()

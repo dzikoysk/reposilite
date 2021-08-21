@@ -24,55 +24,55 @@
 </template>
 
 <script>
-const configurations = [
-  {
-    type: 'Maven',
-    snippet: `
-    <repository>
-        <name>${window.REPOSILITE_TITLE}</name>
-        <id>${window.REPOSILITE_ID}</id>
-        <url>${window.location}</url>
-    </repository>
-    `
-  },
-  {
-    type: 'Gradle Groovy',
-    snippet: `
-    maven {
-        url "${window.location}"
-    }
-    `
-  },
-  {
-    type: 'Gradle Kotlin',
-    snippet: `
-    maven {
-        url = uri("${window.location}")
-    }
-    `
-  },
-  {
-    type: 'SBT',
-    snippet: `
-    resolvers += "${window.REPOSILITE_TITLE}" at "${window.location}"
-    `
-  }
-]
-
 export default {
   setup() {
-    return {
-      configurations
-    }
-  },
-  methods: {
-    trim(snippet) {
+    const trim = (snippet) => {
       const indentation = snippet.length - snippet.trimStart().length - 1
       
       return snippet.split('\n')
         .map(line => line.substring(indentation))
         .join('\n')
         .trim()
+    }
+
+    const configurations = [
+      {
+        type: 'Maven',
+        snippet: `
+        <repository>
+            <name>${window.REPOSILITE_TITLE}</name>
+            <id>${window.REPOSILITE_ID}</id>
+            <url>${window.location}</url>
+        </repository>
+        `
+      },
+      {
+        type: 'Gradle Groovy',
+        snippet: `
+        maven {
+            url "${window.location}"
+        }
+        `
+      },
+      {
+        type: 'Gradle Kotlin',
+        snippet: `
+        maven {
+            url = uri("${window.location}")
+        }
+        `
+      },
+      {
+        type: 'SBT',
+        snippet: `
+        resolvers += "${window.REPOSILITE_TITLE}" at "${window.location}"
+        `
+      }
+    ]
+
+    return {
+      configurations,
+      trim
     }
   }
 }

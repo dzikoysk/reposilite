@@ -17,42 +17,66 @@
 <template>
   <div>
     <Header/>
-    <div class="container mx-auto pt-10 px-6 flex justify-center">
-      <div class="border border-gray-100 dark:border-gray-700 m-w-20 p-10 rounded-2xl shadow-md text-center">
-        <h1 class="font-bold text-xl pb-4">Login</h1>
-        <form class="flex flex-col w-96">
-          <input placeholder="Alias" type="text" class="input"/>
-          <input placeholder="Token" type="password" class="input"/>
-          <div class="text-right mt-1">
-            <router-link to="/" class="text-blue-400 text-xs">← Back to index</router-link>
-          </div>
-          <div class="bg-gray-100 dark:bg-gray-900 py-2 my-3 cursor-pointer" v-bind:click="login">Sign in</div>
-        </form>
+    <div class="bg-gray-100 dark:bg-black">
+      <div class="container mx-auto">
+        <tabs v-model="selectedMenuTab">
+          <tab
+            v-for="(tab, i) in menuTabs"
+            class="item font-normal"
+            :key="`menu${i}`"
+            :val="tab"
+            :label="tab"
+            :indicator="true"
+          />
+        </tabs>
+      </div>
+      <hr class="dark:border-gray-700">
+      <div class="overflow-auto">
+        <tab-panels v-model="selectedMenuTab" :animate="true">
+          <tab-panel :val="'Endpoints'">
+            <div class="container mx-auto flex flex-row py-10 justify-between">
+              <div>Dashboard</div>
+            </div>
+          </tab-panel>
+        </tab-panels>
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import { reactive, toRefs } from 'vue'
 import Header from '../components/header/Header.vue'
 
-export default {
-  name: 'Index',
-  components: {
-    Header
-  },
-  methods: {
-    login() {
+const menuTabs = [ 'Dashboard' ]
 
+export default {
+  components: { Header },
+  setup() {
+    const state = reactive({
+      selectedMenuTab: menuTabs[0]
+    })
+
+    return {
+      menuTabs,
+      ...toRefs(state)
     }
   }
 }
 </script>
 
 <style scoped>
-.input {
-  @apply p-2;
-  @apply my-1;
-  @apply bg-gray-50 dark:bg-gray-900;
+.item {
+  @apply px-1;
+  @apply pb-1;
+  @apply cursor-pointer;
+  @apply text-gray-600 dark:text-gray-300;
+  @apply bg-gray-100 dark:bg-black;
+}
+
+.selected {
+  @apply border-b-2;
+  @apply border-black dark:border-white;
+  @apply text-black dark:text-white;
 }
 </style>

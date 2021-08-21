@@ -158,6 +158,7 @@ internal class MavenEndpoint(private val mavenFacade: MavenFacade) : ReposiliteR
     )
     private val findVersions = ReposiliteRoute("/api/maven/versions/{repository}/<gav>", GET) {
         accessed {
+            val int = ctx.pathParamAsClass<Int>("value")
             response = mavenFacade.findVersions(LookupRequest(parameter("repository"), parameter("gav"), this?.accessToken))
         }
     }

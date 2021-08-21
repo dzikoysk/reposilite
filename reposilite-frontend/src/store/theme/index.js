@@ -16,10 +16,11 @@
 
 import { reactive, toRef, toRefs } from "vue"
 
-const themeKey = 'dark-theme'
 const theme = reactive({
   isDark: false
 })
+
+const themeKey = 'dark-theme'
 
 export default function useTheme() {
   const fetchTheme = () => {

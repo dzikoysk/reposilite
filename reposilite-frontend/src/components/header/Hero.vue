@@ -37,8 +37,6 @@
 import GlobeIcon from '../icons/GlobeIcon.vue'
 
 export default {
-  components: {
-    GlobeIcon
-  }
+  components: { GlobeIcon }
 }
 </script>
