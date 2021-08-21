@@ -46,17 +46,18 @@
 </template>
 
 <script>
-import { useRouter, useRoute } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { ref, watch } from 'vue'
-
-import client from '../../client'
+import useSession from '../../store/session'
+import useClient from '../../store/client'
 import Card from './Card.vue'
 
 export default {
   components: { Card },
   setup() {
-    const router = useRouter()
     const route = useRoute()
+    const { session } = useSession()
+    const { client } = useClient(session.alias, session.token)
 
     const parentPath = ref('xyz')
     const files = ref([])

@@ -20,54 +20,23 @@
       <h1 class="text-xl font-medium py-1">
         <router-link to="/">{{ title }}</router-link>
       </h1>
-      <nav class="flex flex-row mt-0.5">
-       <router-link :to="isLogged() ? '/dashboard' : '/login'">
-          <div class="mx-2 py-1.5 rounded-full bg-white dark:bg-gray-900 font-bold px-6 text-sm">
-            Dashboard
-          </div>
-        </router-link>
-        <div v-if="isLogged()" @click="signout()" class="ml-2 mr-4 py-1.5 rounded-full bg-white dark:bg-gray-900 font-bold px-6 text-sm cursor-pointer">
-            Logout
-          </div>
-        <div class="pl-2 pr-1.5 py-0.9 cursor-pointer rounded-full bg-white dark:bg-gray-900" @click="toggleTheme()">
-          <SunIcon v-if="theme.isDark"/>
-          <MoonIcon v-else/>
-        </div>
-      </nav>
+      <Menu class="mt-0.5"/>
     </div>
     <Hero class="pt-2 pb-11" />
   </header>
 </template>
 
 <script>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-
 import Hero from './Hero.vue'
-import MoonIcon from '../icons/MoonIcon.vue'
-import SunIcon from '../icons/SunIcon.vue'
-import useTheme from "../../store/theme"
-import useSession from '../../store/session'
+import Menu from './Menu.vue'
 
 export default {
-  components: { Hero, MoonIcon, SunIcon },
+  components: { Hero, Menu },
   setup() {
-    const router = useRouter()
-    const { session, isLogged, logout } = useSession()
-    const { theme, toggleTheme } = useTheme()
-    const title = ref(window.REPOSILITE_TITLE)
-
-    const signout = () => {
-      logout()
-      router.push('/')
-    }
+    const title = window.REPOSILITE_TITLE
 
     return {
-      title,
-      theme,
-      toggleTheme,
-      isLogged,
-      signout
+      title
     }
   }
 }

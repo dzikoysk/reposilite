@@ -22,7 +22,7 @@ import Tabs from 'vue3-tabs'
 import App from './App.vue'
 import router from './router'
 
-import './placeholders.js'
+import './store/placeholders.js'
 import 'virtual:windi.css'
 
 const app = createApp(App)

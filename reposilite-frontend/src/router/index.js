@@ -16,8 +16,6 @@
 
 import { createWebHashHistory, createRouter } from "vue-router"
 import Index from "../pages/Index.vue"
-import Login from "../pages/Login.vue"
-import Dashboard from "../pages/Dashboard.vue"
 
 const router = createRouter({
   history: createWebHashHistory(),
@@ -26,16 +24,6 @@ const router = createRouter({
       path: "/:qualifier(.*)",
       name: "Index",
       component: Index,
-    },
-    {
-      path: "/login",
-      name: "Login",
-      component: Login,
-    },
-    {
-      path: "/dashboard",
-      name: "Dashboard",
-      component: Dashboard,
     }
   ]
 })
