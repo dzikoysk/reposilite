@@ -1,53 +1,59 @@
 const express = require('express')
 
-const respond = (response) =>
-  (_, res) => res.send(response)
-
-const basicAuth = (req) => {
-  const b64auth = (req.get('Authorization') || '').split(' ')[1] || ''
-  return Buffer.from(b64auth, 'base64').toString().split(':')
-}
-
-const createFileDetails = (name) =>
-  ({ type: 'FILE', name })
-
-const createDirectoryDetails = (name, files) =>
-  ({ type: 'DIRECTORY', name, files })
+const [
+  respond,
+  basicAuth,
+  authorized,
+  invalidCredentials,
+  createFileDetails,
+  createDirectoryDetails
+] = require('./extensions')
 
 express()
   .get('/', (req, res) =>
     res.send('Reposilite stub API')
   )
-  .use((_, res, next) => {
+  .use((req, res, next) => {
+    console.log('Requested fake ' + req.url)
     res.setHeader('Access-Control-Allow-Origin', '*')
     res.setHeader('Access-Control-Allow-Headers', '*')
     next()
   })
   .get('/auth/me', (req, res) => {
-    const [login, password] = basicAuth(req)
-
-    if (login != 'alias' || password != 'secret') {
-      res.status(401).send('Invalid credentials')
-      return
-    }
-
-    res.send({
-      id: 1,
-      alias: 'alias',
-      createdAt: Date.now(),
-      permissions: ['access-token:manager'],
-      routes: [{ path: '/', permissions: [ 'route:read', 'route:write' ] }]
-    })
-  })
-  .get('/api/maven/details', respond(
-    createDirectoryDetails('/', [
+    authorized(req,
+      () => res.send({
+        id: 1,
+        alias: 'alias',
+        createdAt: Date.now(),
+        permissions: ['access-token:manager'],
+        routes: [{ path: '/', permissions: [ 'route:read', 'route:write' ] }]
+      }),
+      () => invalidCredentials(res)
+    )
+   })
+  .get('/api/maven/details', (req, res) => {
+    const repositories = createDirectoryDetails('/', [
       createDirectoryDetails('releases'),
       createDirectoryDetails('snapshots')
     ])
-  ))
+
+    authorized(req,
+      () => repositories.files.push(createDirectoryDetails('private'))
+    )
+    
+    res.send(repositories)
+  })
   .get('/api/maven/details/snapshots', respond(
     createDirectoryDetails('/snapshot', [])
   ))
+  .get('/api/maven/details/private', (req, res) => {
+    authorized(req,
+      () => res.send(createDirectoryDetails('/private', [
+        createDirectoryDetails("something")
+      ])),
+      () => invalidCredentials(res)
+    )
+  })
   .get('/api/maven/details/releases', respond(
     createDirectoryDetails('/releases', [
       createDirectoryDetails('gav')
