@@ -34,7 +34,7 @@
       <div class="overflow-auto">
         <tab-panels v-model="selectedMenuTab" :animate="true">
           <tab-panel :val="'Overview'">
-            <Overview/>
+            <Browser :qualifier="qualifier" ref=""/>
           </tab-panel>
           <tab-panel :val="'Usage'">
             <Usage/>
@@ -51,21 +51,29 @@
 <script>
 import { reactive, toRefs } from 'vue'
 import Header from '../components/header/Header.vue'
-import Overview from '../components/index/Overview.vue'
+import Browser from '../components/browser/Browser.vue'
 import Usage from '../components/index/Usage.vue'
 import Endpoints from '../components/index/Endpoints.vue'
 
 export default {
-  components: { Header, Overview, Usage, Endpoints },
-  setup() {
+  components: { Header, Browser, Usage, Endpoints },
+  props: {
+    qualifier: {
+      type: Object,
+      required: true
+    }
+  },
+  setup(props) {
+    const qualifier = props.qualifier
     const menuTabs = [ 'Overview', 'Usage', 'Endpoints' ]
-
+    
     const state = reactive({
       selectedMenuTab: menuTabs[0]
     })
 
     return {
       menuTabs,
+      qualifier,
       ...toRefs(state)
     }
   }
