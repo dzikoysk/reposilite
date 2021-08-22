@@ -16,7 +16,10 @@
 
 <template>
   <div v-bind:class="{ 'dark': theme.isDark }">
-    <router-view class="min-h-screen dark:bg-black dark:text-white"/>
+    <router-view 
+      class="min-h-screen dark:bg-black dark:text-white"
+      :qualifier="qualifier"
+    />
   </div>
 </template>
 
@@ -25,6 +28,7 @@ import { defineComponent, onMounted } from 'vue'
 import { useHead } from '@vueuse/head'
 import useTheme from "./store/theme"
 import useSession from "./store/session"
+import useQualifier from "./store/qualifier"
 
 export default defineComponent({
   setup() {
@@ -34,7 +38,8 @@ export default defineComponent({
     })
 
     const { theme, fetchTheme } = useTheme()
-    const { fetchSession } = useSession()
+    const { session, fetchSession } = useSession()
+    const { qualifier } = useQualifier(session)
 
     onMounted(() => {
       fetchTheme()
@@ -42,7 +47,8 @@ export default defineComponent({
     })
 
     return {
-      theme
+      theme,
+      qualifier
     }
   }
 })

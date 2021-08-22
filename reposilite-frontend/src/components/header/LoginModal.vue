@@ -37,7 +37,6 @@ export default {
   inheritAttrs: false,
   components: { VueFinalModal, ModalsContainer },
   setup() {
-    const router = useRouter()
     const { login } = useSession()
     const { client } = useClient()
     const showLogin = ref(false)
@@ -49,12 +48,19 @@ export default {
 
     const signin = (alias, token) => {
       client.auth.me(alias, token)
-        .then(_ => createToast(`Dashboard accessed as ${alias}`, { position: 'bottom-right' }))
+        .then(_ => {
+          try {
+            createToast(`Dashboard accessed as ${alias}`, { position: 'bottom-right' })
+          } catch(ignored) { /* bug */ }
+        })
         .then(_ => login(alias, token))
-        .then(_ => router.go('/'))
-        .catch(error => createToast(`${error.response.status}: ${error.response.data}`, {
-          type: 'danger'
-        }))
+        .then(_ => close())
+        .catch(error => {
+          console.log(error)
+          createToast(`${error.response.status}: ${error.response.data}`, {
+           type: 'danger'
+          })
+        })
     }
 
     return {

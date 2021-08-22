@@ -18,7 +18,6 @@ export default function useClient(defaultAlias, defaultToken) {
   
   const get = (endpoint, credentials) => {
     credentials = credentials || defaultAuthorization()
-    console.log(credentials)
     return axios.get(baseUrl() + endpoint, { ...credentials })
   }
 

@@ -41,7 +41,7 @@ export default {
 
     const signout = () => {
       logout()
-      router.go('/')
+//      router.to('/')
     }
 
     return {
