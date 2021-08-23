@@ -17,6 +17,7 @@
 package com.reposilite.maven.application
 
 import com.reposilite.config.Configuration.RepositoryConfiguration
+import com.reposilite.frontend.FrontendFacade
 import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.MetadataService
 import com.reposilite.maven.ProxyService
@@ -48,9 +49,9 @@ internal object MavenWebConfiguration {
         )
     }
 
-    fun routing(mavenFacade: MavenFacade): List<ReposiliteRoutes> =
+    fun routing(mavenFacade: MavenFacade, frontendFacade: FrontendFacade): List<ReposiliteRoutes> =
         listOf(
-            MavenEndpoint(mavenFacade),
+            MavenEndpoint(mavenFacade, frontendFacade),
         )
 
 }

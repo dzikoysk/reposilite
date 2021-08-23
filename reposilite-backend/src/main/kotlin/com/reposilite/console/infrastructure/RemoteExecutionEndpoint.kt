@@ -37,7 +37,7 @@ internal class RemoteExecutionEndpoint(private val consoleFacade: ConsoleFacade)
         summary = "Remote command execution",
         description = "Execute command using POST request. The commands are the same as in the console and can be listed using the 'help' command.",
         tags = ["Cli"],
-        headers = [OpenApiParam(name = "Authorization", description = "Alias and token provided as basic auth credentials", required = true)],
+        headers = [OpenApiParam(name = "Authorization", description = "Name and secret provided as basic auth credentials", required = true)],
         responses = [
             OpenApiResponse(
                 status = "200",
@@ -65,7 +65,7 @@ internal class RemoteExecutionEndpoint(private val consoleFacade: ConsoleFacade)
                 return@authenticated
             }
 
-            context.logger.info("${accessToken.alias} (${context.address}) requested command: ${context.body.value}")
+            context.logger.info("${accessToken.name} (${context.address}) requested command: ${context.body.value}")
             response = consoleFacade.executeCommand(context.body.value)
         }
     }

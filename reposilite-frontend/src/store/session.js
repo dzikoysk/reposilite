@@ -1,21 +1,21 @@
-import { reactive, toRef, toRefs } from "vue"
+import { reactive } from "vue"
 
 const defaultValue = ''
 
-const session = reactive({
-  alias: defaultValue,
-  token: defaultValue
+const token = reactive({
+  name: defaultValue,
+  secret: defaultValue
 })
 
-const aliasKey = 'alias'
-const tokenKey = 'token'
+const nameKey = 'session-token-name'
+const secretKey = 'session-token-secret'
 
 export default function useSession() {
-  const login = (alias, token) => {
-    localStorage.setItem(aliasKey, alias)
-    session.alias = alias
-    localStorage.setItem(tokenKey, token)
-    session.token = token
+  const login = (name, secret) => {
+    localStorage.setItem(nameKey, name)
+    token.name = name
+    localStorage.setItem(secretKey, secret)
+    token.secret = secret
   }
 
   const logout = () => {
@@ -24,16 +24,16 @@ export default function useSession() {
 
   const fetchSession = () => {
     login(
-      localStorage.getItem(aliasKey),
-      localStorage.getItem(tokenKey)
+      localStorage.getItem(nameKey),
+      localStorage.getItem(secretKey)
     )
   }
 
   const isLogged = () =>
-    session.alias != defaultValue
+    token.name != defaultValue
 
   return {
-    session,
+    token,
     login,
     logout,
     fetchSession,

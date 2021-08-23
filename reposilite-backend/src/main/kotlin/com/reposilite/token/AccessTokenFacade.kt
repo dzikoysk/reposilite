@@ -39,11 +39,11 @@ class AccessTokenFacade internal constructor(
         }
     }
 
-    fun createAccessToken(alias: String, secret: String = SECRET_GENERATOR(), permissions: Set<AccessTokenPermission> = emptySet()): CreateAccessTokenResponse {
+    fun createAccessToken(name: String, secret: String = SECRET_GENERATOR(), permissions: Set<AccessTokenPermission> = emptySet()): CreateAccessTokenResponse {
         val encodedToken = B_CRYPT_TOKENS_ENCODER.encode(secret)
 
-        accessTokenRepository.saveAccessToken(AccessToken(alias = alias, secret = encodedToken, permissions = permissions))
-        val accessToken = accessTokenRepository.findAccessTokenByAlias(alias)
+        accessTokenRepository.saveAccessToken(AccessToken(name = name, secret = encodedToken, permissions = permissions))
+        val accessToken = accessTokenRepository.findAccessTokenByName(name)
 
         return CreateAccessTokenResponse(accessToken!!, secret)
     }
@@ -51,12 +51,12 @@ class AccessTokenFacade internal constructor(
     fun updateToken(accessToken: AccessToken) =
         accessTokenRepository.saveAccessToken(accessToken)
 
-    fun deleteToken(alias: String): AccessToken? =
-        accessTokenRepository.findAccessTokenByAlias(alias)
+    fun deleteToken(name: String): AccessToken? =
+        accessTokenRepository.findAccessTokenByName(name)
             ?.also { accessTokenRepository.deleteAccessToken(it) }
 
-    fun getToken(alias: String): AccessToken? =
-        accessTokenRepository.findAccessTokenByAlias(alias)
+    fun getToken(name: String): AccessToken? =
+        accessTokenRepository.findAccessTokenByName(name)
 
     fun getTokens(): Collection<AccessToken> =
         accessTokenRepository.findAll()

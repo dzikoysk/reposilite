@@ -1,30 +1,36 @@
 import axios from 'axios'
 
-export default function useClient(defaultAlias, defaultToken) {
-  const baseUrl = () =>
-    process.env.NODE_ENV === 'production'
-      ? Vue.prototype.$reposilite.basePath
-      : 'http://localhost:80'
+const production = () =>
+  window.location.protocol + '//' + location.host + window.REPOSILITE_BASE_PATH
 
+const baseUrl = () =>
+  process.env.NODE_ENV === 'production'
+    ? (production().endsWith('/') ? production().slice(0, -1) : production())
+    : 'http://localhost:80'
+
+const createURL = (endpoint) =>
+  baseUrl() + endpoint
+
+const useClient = (defaultName, defaultSecret) => {
   const defaultAuthorization = () =>
-    (defaultAlias && defaultToken) ? authorization(defaultAlias, defaultToken) : {}
+    (defaultName && defaultSecret) ? authorization(defaultName, defaultSecret) : {}
 
-  const authorization = (alias, token) => ({
+  const authorization = (name, secret) => ({
     auth: {
-      username: alias,
-      password: token
+      username: name,
+      password: secret
     }
   })
   
   const get = (endpoint, credentials) => {
     credentials = credentials || defaultAuthorization()
-    return axios.get(baseUrl() + endpoint, { ...credentials })
+    return axios.get(createURL(endpoint), { ...credentials })
   }
 
   const client = {
     auth: {
-      me(alias, token) {
-        return get("/auth/me", authorization(alias, token))
+      me(name, secret) {
+        return get("/api/auth/me", authorization(name, secret))
       }
     },
     maven: {
@@ -35,6 +41,12 @@ export default function useClient(defaultAlias, defaultToken) {
   }
 
   return {
+    createURL,
     client
   }
+}
+
+export {
+  createURL,
+  useClient
 }

@@ -14,16 +14,16 @@ express()
     res.send('Reposilite stub API')
   )
   .use((req, res, next) => {
-    console.log('Requested fake ' + req.url)
+    console.log('Requested fake ' + req.method + ' ' + req.url)
     res.setHeader('Access-Control-Allow-Origin', '*')
     res.setHeader('Access-Control-Allow-Headers', '*')
     next()
   })
-  .get('/auth/me', (req, res) => {
+  .get('/api/auth/me', (req, res) => {
     authorized(req,
       () => res.send({
         id: 1,
-        alias: 'alias',
+        name: 'name',
         createdAt: Date.now(),
         permissions: ['access-token:manager'],
         routes: [{ path: '/', permissions: [ 'route:read', 'route:write' ] }]
@@ -64,6 +64,11 @@ express()
       createFileDetails('gav.jar')
     ])
   ))
+  .get('/releases/gav/gav.jar', respond('content'))
+  .get('*', (req, res) => res.status(404).send({
+    status: 404,
+    message: 'Not found'
+  }))
   .listen(80)
 
 console.log('Reposilite stub API started on port 80')

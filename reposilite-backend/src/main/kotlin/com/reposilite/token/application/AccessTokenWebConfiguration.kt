@@ -18,7 +18,7 @@ package com.reposilite.token.application
 
 import com.reposilite.console.ConsoleFacade
 import com.reposilite.token.AccessTokenFacade
-import com.reposilite.token.ChAliasCommand
+import com.reposilite.token.ChNameCommand
 import com.reposilite.token.ChModCommand
 import com.reposilite.token.KeygenCommand
 import com.reposilite.token.RevokeCommand
@@ -35,7 +35,7 @@ internal object AccessTokenWebConfiguration {
     fun initialize(accessTokenFacade: AccessTokenFacade, consoleFacade: ConsoleFacade) {
         consoleFacade.registerCommand(TokensCommand(accessTokenFacade))
         consoleFacade.registerCommand(KeygenCommand(accessTokenFacade))
-        consoleFacade.registerCommand(ChAliasCommand(accessTokenFacade))
+        consoleFacade.registerCommand(ChNameCommand(accessTokenFacade))
         consoleFacade.registerCommand(ChModCommand(accessTokenFacade))
         consoleFacade.registerCommand(RevokeCommand(accessTokenFacade))
     }

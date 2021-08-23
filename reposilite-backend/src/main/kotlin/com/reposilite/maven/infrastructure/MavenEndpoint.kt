@@ -1,7 +1,7 @@
 package com.reposilite.maven.infrastructure
 
+import com.reposilite.frontend.FrontendFacade
 import com.reposilite.maven.MavenFacade
-import com.reposilite.maven.api.AbstractDirectoryInfo
 import com.reposilite.maven.api.DeleteRequest
 import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.DirectoryInfo
@@ -26,7 +26,10 @@ import io.javalin.openapi.OpenApiContent
 import io.javalin.openapi.OpenApiParam
 import io.javalin.openapi.OpenApiResponse
 
-internal class MavenEndpoint(private val mavenFacade: MavenFacade) : ReposiliteRoutes() {
+internal class MavenEndpoint(
+    private val mavenFacade: MavenFacade,
+    private val frontendFacade: FrontendFacade
+) : ReposiliteRoutes() {
 
     @OpenApi(
         tags = ["Maven"],
@@ -46,9 +49,10 @@ internal class MavenEndpoint(private val mavenFacade: MavenFacade) : ReposiliteR
     private val findFile = ReposiliteRoute("/{repository}/<gav>", HEAD, GET) {
         accessed {
             response = mavenFacade.findFile(LookupRequest(parameter("repository"), parameter("gav"), this?.accessToken))
-                .filter({ it is AbstractDirectoryInfo }, { ErrorResponse(NO_CONTENT, "Requested file is a directory")})
+                .filter({ it is DocumentInfo }, { ErrorResponse(NO_CONTENT, "Requested file is a directory")})
                 .map { it as DocumentInfo }
                 .peek { ctx.resultAttachment(it.name, it.contentType, it.contentLength, it.content()) }
+                .onError { ctx.html(frontendFacade.createNotFoundPage(context.uri)) }
         }
     }
 

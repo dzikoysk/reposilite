@@ -52,8 +52,8 @@
 import { reactive, toRefs } from 'vue'
 import Header from '../components/header/Header.vue'
 import Browser from '../components/browser/Browser.vue'
-import Usage from '../components/index/Usage.vue'
-import Endpoints from '../components/index/Endpoints.vue'
+import Usage from '../components/Usage.vue'
+import Endpoints from '../components/Endpoints.vue'
 
 export default {
   components: { Header, Browser, Usage, Endpoints },

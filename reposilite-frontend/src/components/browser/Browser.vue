@@ -19,9 +19,10 @@
     <div class="bg-gray-100 dark:bg-black">
       <div class="container mx-auto">
         <p class="pt-7 pb-3 pl-2 font-semibold">
-          Index of {{ $route.path }}
+          <span class="select-none">Index of </span>
+          <span class="select-text">{{ $route.path }}</span>
           <router-link :to="parentPath">
-            <span class="font-normal text-xl text-gray-500"> ⤴ </span>
+            <span class="font-normal text-xl text-gray-500 select-none"> ⤴ </span>
           </router-link>
         </p>
       </div>
@@ -32,13 +33,20 @@
           <Card/>
         </div>
         <div class="pt-4">
-          <router-link v-for="file in files" v-bind:key="file" :to="append($route.path, file.name)">
-            <div class="flex flex-row mb-1.5 py-3 rounded-full bg-white dark:bg-gray-900 xl:max-w-1/2 cursor-pointer">
-              <div v-if="file.type == 'DIRECTORY'" class="text-xm px-6 pt-1.75">⚫</div>
-              <div v-else class="text-xm px-6 pt-1.75">⚪</div>
-              <div class="font-semibold">{{file.name}}</div>
-            </div>
-          </router-link>
+          <div v-for="file in files" v-bind:key="file">
+            <router-link v-if="isDirectory(file)" :to="append($route.path, file.name)">
+              <Entry :file="file"/>
+            </router-link>
+            <a v-else :href="createURL($route.path + '/' + file.name)" target="_blank">
+              <Entry :file="file"/>
+            </a>
+          </div>
+          <div v-if="isEmpty">
+            <p>Directory is empty</p>
+          </div>
+          <div v-if="isErrored">
+            <p>Directory not found</p>
+          </div>
         </div>
       </div>
     </div>
@@ -47,12 +55,15 @@
 
 <script>
 import { ref, watch } from 'vue'
+import { createToast } from 'mosha-vue-toastify'
+import 'mosha-vue-toastify/dist/style.css'
 import useSession from '../../store/session'
-import useClient from '../../store/client'
+import { createURL, useClient } from '../../store/client'
 import Card from './Card.vue'
+import Entry from './Entry.vue'
 
 export default {
-  components: { Card },
+  components: { Card, Entry },
   props: {
     qualifier: {
       type: Object,
@@ -62,32 +73,48 @@ export default {
   setup(props) {
     const qualifier = props.qualifier
     const parentPath = ref('')
-    const files = ref([])
 
     const drop = (path) => (path.endsWith('/') ? path.slice(0, -1) : path).split("/")
       .slice(0, -1)
       .join('/') || '/'
 
+    const files = ref([])
+    const isEmpty = ref(false)
+    const isErrored = ref(undefined)
+    const isDirectory = (file) => file.type == 'DIRECTORY'
+
     watch(
       () => qualifier.watchable,
-      async newQualifier => {
-        const newGav = qualifier.path
-        parentPath.value = drop(`/${newGav}`)
-        
-        const { session } = useSession()
-        const { client } = useClient(session.alias, session.token)
+      async (_) => {            
+        const { token } = useSession()
+        const { client } = useClient(token.name, token.secret)
 
-        client.maven.details(newGav)
-          .then(response => files.value = response.data.files)
-          .catch(error => console.log(error))
-          // TODO: notification on error
+        client.maven.details(qualifier.path)
+          .then(response => {
+            files.value = response.data.files
+            isEmpty.value = files.value.length == 0
+            isErrored.value = undefined
+          })
+          .catch(error => {
+            createToast(`${error.response.status}: ${error.response.data.message}`, {
+              type: 'danger'
+            })
+            console.log(error)
+            isErrored.value = error
+          })
+
+        parentPath.value = drop(`/${qualifier.path}`)
       },
       { immediate: true }
     )
 
     return {
       parentPath,
-      files
+      files,
+      isEmpty,
+      isErrored,
+      isDirectory,
+      createURL
     }
   }
 }

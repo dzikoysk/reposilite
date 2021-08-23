@@ -15,6 +15,80 @@
  */
 package com.reposilite.frontend
 
-class FrontendFacade internal constructor() {
+import org.intellij.lang.annotations.Language
+
+class FrontendFacade internal constructor(
+    private val basePath: String,
+    private val id: String,
+    private val title: String,
+    private val description: String,
+    private val cacheContent: Boolean
+) {
+
+    private val resources = HashMap<String, String>(0)
+
+    fun resolve(uri: String, source: () -> String?): String? =
+        resources[uri]
+            .takeIf { cacheContent }
+            ?: source()
+                ?.let { resolvePlaceholders(it) }
+                ?.also { resources[uri] = it }
+
+    private fun resolvePlaceholders(source: String): String =
+        source
+            .replace("{{REPOSILITE.BASE_PATH}}", basePath)
+            .replace("{{REPOSILITE.ID}}", id)
+            .replace("{{REPOSILITE.TITLE}}", title)
+            .replace("{{REPOSILITE.DESCRIPTION}}", description)
+
+    fun createNotFoundPage(uri: String): String {
+        @Language("html")
+        val response = """
+        <html lang="en">
+            <head>
+              <meta charset="UTF-8" />
+              <title>Reposilite - 404 Not Found</title>
+            </head>
+            <style>
+              body {
+                height: calc(100vh - 170px);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                font-family: Arial, Helvetica, sans-serif;
+              }
+            
+              .error-view {
+                text-align: center;
+                width: 100vh;
+                height: 100px;
+              }
+            
+              .spooky p {
+                margin-top: 0;
+                margin-bottom: 0;
+                font-size: 1.2rem;
+                font-weight: lighter;
+              }
+            </style>
+            <body>
+              <div class='error-view'>
+                <h1 style="font-size: 1.8rem">
+                  <span style="color: gray;">404︱</span>Not found
+                </h1>
+                <p>Looking for a dashboard?</p>
+                <div class="spooky">
+                  <p>{\__/}</p>
+                  <p>(●ᴗ●)</p>
+                  <p>( >🥕</p>
+                </div>
+                <p>Visit <a href="/#${uri}" style="text-decoration: none;">/#${uri}</a></p>
+              </div>
+            </body>
+        </html>
+        """
+
+        return response.trimIndent()
+    }
 
 }

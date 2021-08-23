@@ -2,7 +2,7 @@
   <nav class="flex flex-row">
     <div v-if="isLogged()" class="pt-1.1 px-2">
       Welcome 
-      <span class="font-bold underline">{{ session.alias }}</span>
+      <span class="font-bold underline">{{ token.name }}</span>
     </div>
     <LoginModal>
       <template v-slot:button>
@@ -23,7 +23,6 @@
 
 <script>
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
 import MenuButton from './MenuButton.vue'
 import LoginModal from './LoginModal.vue'
 import MoonIcon from '../icons/MoonIcon.vue'
@@ -34,23 +33,19 @@ import useSession from '../../store/session'
 export default {
   components: { MenuButton, LoginModal, MoonIcon, SunIcon },
   setup() {
-    const router = useRouter()
-    const { session, isLogged, logout } = useSession()
+    const { token, isLogged, logout } = useSession()
+    const signout = () => logout()
+
     const { theme, toggleTheme } = useTheme()
     const title = ref(window.REPOSILITE_TITLE)
 
-    const signout = () => {
-      logout()
-//      router.to('/')
-    }
-
     return {
+      isLogged,
+      signout,
+      token,
       title,
       theme,
       toggleTheme,
-      isLogged,
-      signout,
-      session
     }
   },
 }

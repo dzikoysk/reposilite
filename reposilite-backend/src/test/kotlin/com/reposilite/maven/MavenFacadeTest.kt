@@ -50,7 +50,7 @@ internal class MavenFacadeTest : MavenSpec() {
         assertEquals(listOf(PUBLIC.name, "PROXIED"), availableRepositories)
 
         // given: a token with access to private repository
-        val accessToken = createAccessToken("alias", "secret", PRIVATE.name, "gav", WRITE)
+        val accessToken = createAccessToken("name", "secret", PRIVATE.name, "gav", WRITE)
 
         // when: repositories are requested with valid credentials
         availableRepositories = findRepositories(accessToken)
@@ -107,7 +107,7 @@ internal class MavenFacadeTest : MavenSpec() {
         assertError(errorResponse)
 
         // given: access token with access to the repository
-        authentication = createAccessToken("alias", "secret", repository, "", READ)
+        authentication = createAccessToken("name", "secret", repository, "", READ)
 
         // when: the given file is requested with valid credentials
         val fileDetails = mavenFacade.findFile(fileSpec.toLookupRequest(authentication))
@@ -142,7 +142,7 @@ internal class MavenFacadeTest : MavenSpec() {
         assertError(errorResponse)
 
         // given: a valid credentials
-        authentication = createAccessToken("alias", "secret", PUBLIC.name, "gav", WRITE)
+        authentication = createAccessToken("name", "secret", PUBLIC.name, "gav", WRITE)
 
         // when: the given file is deleted with valid credentials
         val response = mavenFacade.deleteFile(DeleteRequest(authentication, fileSpec.repository, fileSpec.gav))

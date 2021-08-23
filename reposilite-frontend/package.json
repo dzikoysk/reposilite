@@ -14,7 +14,7 @@
     "axios": "^0.21.1",
     "downloadjs": "^1.4.7",
     "mime-types": "^2.1.32",
-    "mosha-vue-toastify": "^1.0.19",
+    "mosha-vue-toastify": "^1.0.20",
     "pretty-bytes": "^5.6.0",
     "simple-syntax-highlighter": "^2.0.6",
     "vue": "^3.0.11",

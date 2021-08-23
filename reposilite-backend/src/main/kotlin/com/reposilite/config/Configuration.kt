@@ -41,54 +41,34 @@ class Configuration : Serializable {
     @JvmField
     var port = 80
 
-    @Description("# Custom base path")
+    // @Description("# Run Reposilite using Jakarta Servlet server (not supported yet)")
+    // public boolean servlet = false;
+
+    /* Frontend properties */
+
+    @Description("", "# Custom base path")
     @JvmField
     var basePath = "/"
 
-    @Description(
-        "# Any kind of proxy services change real ip.",
-        "# The origin ip should be available in one of the headers.",
-        "# Nginx: X-Forwarded-For",
-        "# Cloudflare: CF-Connecting-IP",
-        "# Popular: X-Real-IP"
-    )
+    @Description("# Repository id used in Maven repository configuration")
     @JvmField
-    var forwardedIp = "X-Forwarded-For"
+    var id = "reposilite-repository"
+
+    @Description("# Title displayed by frontend")
+    @JvmField
+    var title = "Reposilite"
+
+    @Description("# Description displayed by frontend")
+    @JvmField
+    var description = "Public Maven repository hosted through the Reposilite"
 
     @Description("# Enable Swagger (/swagger-docs) and Swagger UI (/swagger)")
     @JvmField
     var swagger = false
 
-    // @Description("# Run Reposilite using Jakarta Servlet server (not supported yet)")
-    // public boolean servlet = false;
-
-    /* SSL */
-
-    @Description(
-        "",
-        "# Support encrypted connections"
-    )
+    @Description("# Keep processed frontend files in memory to improve response time")
     @JvmField
-    var sslEnabled = false
-
-    @Description("# SSL port to bind")
-    @JvmField
-    var sslPort = 443
-
-    @Description(
-        "# Key store file to use.",
-        "# You can specify absolute path to the given file or use \${WORKING_DIRECTORY} variable."
-    )
-    @JvmField
-    var keyStorePath = "\${WORKING_DIRECTORY}/keystore.jks"
-
-    @Description("# Key store password to use")
-    @JvmField
-    var keyStorePassword = ""
-
-    @Description("# Redirect http traffic to https")
-    @JvmField
-    var enforceSsl = false
+    var cacheContent = true
 
     /* Repository properties */
 
@@ -167,20 +147,35 @@ class Configuration : Serializable {
 
     }
 
-    /* Frontend properties */
+    /* SSL */
 
     @Description(
         "",
-        "# Title displayed by frontend"
+        "# Support encrypted connections"
     )
     @JvmField
-    var title = "#onlypanda"
+    var sslEnabled = false
 
-    @Description("# Description displayed by frontend")
+    @Description("# SSL port to bind")
     @JvmField
-    var description = "Public Maven repository hosted through the Reposilite"
+    var sslPort = 443
 
-    /* Performance & Debug */
+    @Description(
+        "# Key store file to use.",
+        "# You can specify absolute path to the given file or use \${WORKING_DIRECTORY} variable."
+    )
+    @JvmField
+    var keyStorePath = "\${WORKING_DIRECTORY}/keystore.jks"
+
+    @Description("# Key store password to use")
+    @JvmField
+    var keyStorePassword = ""
+
+    @Description("# Redirect http traffic to https")
+    @JvmField
+    var enforceSsl = false
+
+    /* Performance */
 
     @Description(
         "",
@@ -196,6 +191,18 @@ class Configuration : Serializable {
     @Description("# Amount of messages stored in cached logger.")
     @JvmField
     var cachedLogSize = 100
+
+    /* Logging */
+
+    @Description(
+        "# Any kind of proxy services change real ip.",
+        "# The origin ip should be available in one of the headers.",
+        "# Nginx: X-Forwarded-For",
+        "# Cloudflare: CF-Connecting-IP",
+        "# Popular: X-Real-IP"
+    )
+    @JvmField
+    var forwardedIp = "X-Forwarded-For"
 
     @Description("# Debug mode")
     @JvmField
