@@ -21,10 +21,10 @@ internal abstract class AuthenticationSpec {
         SessionService()
     )
 
-    protected fun createToken(alias: String): CreateAccessTokenResponse =
-        accessTokenFacade.createAccessToken(alias)
+    protected fun createToken(name: String): CreateAccessTokenResponse =
+        accessTokenFacade.createAccessToken(name)
 
-    protected fun createToken(alias: String, secret: String): AccessToken =
-        accessTokenFacade.createAccessToken(alias, secret).accessToken
+    protected fun createToken(name: String, secret: String): AccessToken =
+        accessTokenFacade.createAccessToken(name, secret).accessToken
 
 }

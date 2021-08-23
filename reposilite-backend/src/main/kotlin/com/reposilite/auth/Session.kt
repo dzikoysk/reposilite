@@ -45,6 +45,6 @@ data class Session internal constructor(
         accessToken.hasPermission(AccessTokenPermission.MANAGER)
 
     fun getSessionIdentifier() =
-        "${accessToken.alias}@$address"
+        "${accessToken.name}@$address"
 
 }

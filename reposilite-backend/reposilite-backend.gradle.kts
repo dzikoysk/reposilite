@@ -94,7 +94,7 @@ dependencies {
     implementation("io.javalin-rfc:javalin-openapi-plugin:$openapi")
     implementation("io.javalin-rfc:javalin-swagger-plugin:$openapi")
 
-    val javalinRfcs = "1.0.7"
+    val javalinRfcs = "1.0.8"
     implementation("com.reposilite.javalin-rfcs:javalin-context:$javalinRfcs")
     implementation("com.reposilite.javalin-rfcs:javalin-reactive-routing:$javalinRfcs")
 

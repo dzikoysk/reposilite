@@ -6,28 +6,19 @@
 hostname: 127.0.0.1
 # Port to bind
 port: 80
+
 # Custom base path
 basePath: /
-# Any kind of proxy services change real ip.
-# The origin ip should be available in one of the headers.
-# Nginx: X-Forwarded-For
-# Cloudflare: CF-Connecting-IP
-# Popular: X-Real-IP
-forwardedIp: X-Forwarded-For
+# Repository id used in Maven repository configuration
+id: reposilite-repository
+# Title displayed by frontend
+title: #onlypanda
+# Description displayed by frontend
+description: Public Maven repository hosted through the Reposilite
 # Enable Swagger (/swagger-docs) and Swagger UI (/swagger)
 swagger: true
-
-# Support encrypted connections
-sslEnabled: false
-# SSL port to bind
-sslPort: 443
-# Key store file to use.
-# You can specify absolute path to the given file or use ${WORKING_DIRECTORY} variable.
-keyStorePath: ${WORKING_DIRECTORY}/keystore.jks
-# Key store password to use
-keyStorePassword: reposilite
-# Redirect http traffic to https
-enforceSsl: false
+# Keep processed frontend files in memory to improve response time
+cacheContent: true
 
 # List of supported Maven repositories.
 # First directory on the list is the main (primary) repository.
@@ -107,10 +98,17 @@ repositories {
   }
 }
 
-# Title displayed by frontend
-title: #onlypanda
-# Description displayed by frontend
-description: Public Maven repository hosted through the Reposilite
+# Support encrypted connections
+sslEnabled: false
+# SSL port to bind
+sslPort: 443
+# Key store file to use.
+# You can specify absolute path to the given file or use ${WORKING_DIRECTORY} variable.
+keyStorePath: ${WORKING_DIRECTORY}/keystore.jks
+# Key store password to use
+keyStorePassword: reposilite
+# Redirect http traffic to https
+enforceSsl: false
 
 # Note: It might be hard to estimate the best amount of threads for your use case,
 # but you can safely increase amount of threads if needed and Reposilite will create only as much as it needs.
@@ -120,5 +118,11 @@ description: Public Maven repository hosted through the Reposilite
 coreThreadPool: 8
 # Amount of messages stored in cached logger.
 cachedLogSize: 100
+# Any kind of proxy services change real ip.
+# The origin ip should be available in one of the headers.
+# Nginx: X-Forwarded-For
+# Cloudflare: CF-Connecting-IP
+# Popular: X-Real-IP
+forwardedIp: X-Forwarded-For
 # Debug mode
 debugEnabled: false

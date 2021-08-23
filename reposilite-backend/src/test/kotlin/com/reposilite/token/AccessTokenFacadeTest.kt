@@ -10,15 +10,15 @@ internal class AccessTokenFacadeTest : AccessTokenSpec() {
 
     @Test
     fun `should create token`() {
-        // given: an alias and associated secret to register
-        val alias = "reposilite"
+        // given: a name and associated secret to register
+        val name = "reposilite"
 
-        // when: token is created with the given alias
-        val accessTokenDetails = accessTokenFacade.createAccessToken(alias)
+        // when: token is created with the given name
+        val accessTokenDetails = accessTokenFacade.createAccessToken(name)
 
         // then: valid token should be created
         val accessToken = accessTokenDetails.accessToken
-        assertEquals(alias, accessToken.alias)
+        assertEquals(name, accessToken.name)
         assertTrue(LocalDate.now().isEqual(accessToken.createdAt))
     }
 
@@ -26,37 +26,37 @@ internal class AccessTokenFacadeTest : AccessTokenSpec() {
     fun `should update token` () {
         // given: an existing token and its updated version
         val token = accessTokenFacade.createAccessToken("nanomaven").accessToken
-        val updatedToken = token.copy(alias = "reposilite")
+        val updatedToken = token.copy(name = "reposilite")
 
         // when: token is updated
         accessTokenFacade.updateToken(updatedToken)
 
         // then: stored token should be updated
         val storedToken = accessTokenFacade.getToken("reposilite")!!
-        assertEquals("reposilite", storedToken.alias)
+        assertEquals("reposilite", storedToken.name)
     }
 
     @Test
     fun `should delete token`() {
         // given: an existing token
         val token = accessTokenFacade.createAccessToken("reposilite").accessToken
-        val alias = token.alias
+        val name = token.name
 
         // when: token is deleted
-        val deletedToken = accessTokenFacade.deleteToken(alias)
+        val deletedToken = accessTokenFacade.deleteToken(name)
 
         // then: proper token has been deleted, and it is no longer available
         assertEquals(token, deletedToken)
-        assertNull(accessTokenFacade.getToken(alias))
+        assertNull(accessTokenFacade.getToken(name))
     }
 
     @Test
-    fun `should find token by given alias`() {
+    fun `should find token by given name`() {
         // given: an existing token
         val token = accessTokenFacade.createAccessToken("reposilite").accessToken
 
         // when: token is requested by its name
-        val foundToken = accessTokenFacade.getToken(token.alias)
+        val foundToken = accessTokenFacade.getToken(token.name)
 
         // then: proper token has been found
         assertEquals(token, foundToken)

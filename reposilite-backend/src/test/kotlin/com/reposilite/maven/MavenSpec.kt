@@ -89,9 +89,9 @@ internal abstract class MavenSpec {
         return fileSpec
     }
 
-    fun createAccessToken(alias: String, secret: String, repository: String, gav: String, permission: RoutePermission): AccessToken {
+    fun createAccessToken(name: String, secret: String, repository: String, gav: String, permission: RoutePermission): AccessToken {
         val routes = setOf(Route("/$repository/$gav", setOf(permission)))
-        return AccessToken(alias = alias, secret = secret, routes = routes)
+        return AccessToken(name = name, secret = secret, routes = routes)
     }
 
 }

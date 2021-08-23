@@ -58,7 +58,7 @@ internal class CliEndpoint(
                     return@onMessage
                 }
 
-                val username = "${auth.get().alias}@${context.address}"
+                val username = "${auth.get().name}@${context.address}"
 
                 wsConfig.onClose {
                     context.logger.info("CLI | $username closed connection")

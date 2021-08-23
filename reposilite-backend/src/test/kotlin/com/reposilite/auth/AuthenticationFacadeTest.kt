@@ -11,11 +11,11 @@ internal class AuthenticationFacadeTest : AuthenticationSpec() {
     @Test
     fun `should reject authentication request with invalid credentials`() {
         // given: an existing token with unknown secret
-        val alias = "alias"
-        createToken(alias)
+        val name = "name"
+        createToken(name)
 
         // when: an authentication is requested with invalid credentials
-        val response = authenticationFacade.authenticateByCredentials("$alias:invalid-secret")
+        val response = authenticationFacade.authenticateByCredentials("$name:invalid-secret")
 
         // then: the request has been rejected
         assertError(ErrorResponse(UNAUTHORIZED, "Invalid authorization credentials"), response)
@@ -24,12 +24,12 @@ internal class AuthenticationFacadeTest : AuthenticationSpec() {
     @Test
     fun `should authenticate by valid credentials`() {
         // given: a credentials to the existing token
-        val alias = "alias"
+        val name = "name"
         val secret = "secret"
-        val accessToken = createToken(alias, secret)
+        val accessToken = createToken(name, secret)
 
         // when: an authentication is requested with valid credentials
-        val response = authenticationFacade.authenticateByCredentials("$alias:$secret")
+        val response = authenticationFacade.authenticateByCredentials("$name:$secret")
 
         // then: the request has been authorized
         assertOk(accessToken, response)

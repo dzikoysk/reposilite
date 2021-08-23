@@ -59,6 +59,9 @@ fun Path.inputStream(): Result<InputStream, ErrorResponse> =
             .map { Files.newInputStream(it) }
     }
 
+fun Path.decodeToString(): Result<String, ErrorResponse> =
+    inputStream().map { it.readBytes().decodeToString() }
+
 fun Path.size(): Result<Long, ErrorResponse> =
     catchIOException {
         exists().map {

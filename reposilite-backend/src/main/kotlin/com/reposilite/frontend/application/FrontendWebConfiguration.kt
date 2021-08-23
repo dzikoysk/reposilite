@@ -16,11 +16,14 @@
 
 package com.reposilite.frontend.application
 
+import com.reposilite.config.Configuration
 import com.reposilite.frontend.FrontendFacade
 import com.reposilite.frontend.infrastructure.CustomFrontendHandler
 import com.reposilite.frontend.infrastructure.ResourcesFrontendHandler
 import com.reposilite.shared.safeResolve
 import com.reposilite.web.ReposiliteRoutes
+import io.javalin.Javalin
+import io.javalin.http.NotFoundResponse
 import java.nio.file.Path
 import kotlin.io.path.exists
 
@@ -28,8 +31,14 @@ internal object FrontendWebConfiguration {
 
     private const val CUSTOM_FRONTEND_DIRECTORY = "frontend"
 
-    fun createFacade(): FrontendFacade =
-        FrontendFacade()
+    fun createFacade(configuration: Configuration): FrontendFacade =
+        FrontendFacade(
+            configuration.basePath,
+            configuration.id,
+            configuration.title,
+            configuration.description,
+            configuration.cacheContent
+        )
 
     fun routing(frontendFacade: FrontendFacade, workingDirectory: Path): Set<ReposiliteRoutes> =
         setOf(
@@ -38,5 +47,10 @@ internal object FrontendWebConfiguration {
                 ?.let { CustomFrontendHandler(frontendFacade, workingDirectory.safeResolve(CUSTOM_FRONTEND_DIRECTORY)) }
                 ?: ResourcesFrontendHandler(frontendFacade)
         )
+
+    fun javalin(app: Javalin, frontendFacade: FrontendFacade) {
+        app.exception(NotFoundResponse::class.java, NotFoundHandler(frontendFacade))
+        app.error(404, NotFoundHandler(frontendFacade))
+    }
 
 }

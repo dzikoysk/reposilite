@@ -16,14 +16,6 @@
 
 package com.reposilite.token.infrastructure
 
-import net.dzikoysk.exposed.shared.UNINITIALIZED_ENTITY_ID
-import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.select
-import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.transactions.transaction
 import com.reposilite.shared.firstAndMap
 import com.reposilite.shared.transactionUnit
 import com.reposilite.token.AccessTokenRepository
@@ -32,6 +24,14 @@ import com.reposilite.token.api.AccessTokenPermission
 import com.reposilite.token.api.Route
 import com.reposilite.token.api.findAccessTokenPermissionByIdentifier
 import com.reposilite.token.api.findRoutePermissionByIdentifier
+import net.dzikoysk.exposed.shared.UNINITIALIZED_ENTITY_ID
+import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.SchemaUtils
+import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.transactions.transaction
 
 internal class SqlAccessTokenRepository : AccessTokenRepository {
 
@@ -50,7 +50,7 @@ internal class SqlAccessTokenRepository : AccessTokenRepository {
                     it[this.id] = accessToken.id
                 }
 
-                it[this.alias] = accessToken.alias
+                it[this.name] = accessToken.name
                 it[this.secret] = accessToken.secret
             }
 
@@ -91,7 +91,7 @@ internal class SqlAccessTokenRepository : AccessTokenRepository {
         result[AccessTokenTable.id].value.let { accessTokenId ->
             AccessToken(
                 accessTokenId,
-                result[AccessTokenTable.alias],
+                result[AccessTokenTable.name],
                 result[AccessTokenTable.secret],
                 result[AccessTokenTable.createdAt],
                 result[AccessTokenTable.description],
@@ -100,8 +100,8 @@ internal class SqlAccessTokenRepository : AccessTokenRepository {
             )
         }
 
-    override fun findAccessTokenByAlias(alias: String): AccessToken? =
-        transaction { AccessTokenTable.select { AccessTokenTable.alias eq alias }.firstAndMap { toAccessToken(it) } }
+    override fun findAccessTokenByName(name: String): AccessToken? =
+        transaction { AccessTokenTable.select { AccessTokenTable.name eq name }.firstAndMap { toAccessToken(it) } }
 
     override fun findAll(): Collection<AccessToken> =
         transaction { AccessTokenTable.selectAll().map { toAccessToken(it) } }

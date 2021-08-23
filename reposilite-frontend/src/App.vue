@@ -38,8 +38,8 @@ export default defineComponent({
     })
 
     const { theme, fetchTheme } = useTheme()
-    const { session, fetchSession } = useSession()
-    const { qualifier } = useQualifier(session)
+    const { token, fetchSession } = useSession()
+    const { qualifier } = useQualifier(token)
 
     onMounted(() => {
       fetchTheme()

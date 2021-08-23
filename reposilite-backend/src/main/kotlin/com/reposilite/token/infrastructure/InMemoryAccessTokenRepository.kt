@@ -32,8 +32,8 @@ internal class InMemoryAccessTokenRepository : AccessTokenRepository {
         tokens.remove(accessToken.id)
     }
 
-    override fun findAccessTokenByAlias(alias: String): AccessToken? =
-        tokens.values.firstOrNull { it.alias == alias }
+    override fun findAccessTokenByName(name: String): AccessToken? =
+        tokens.values.firstOrNull { it.name == name }
 
     override fun findAll(): Collection<AccessToken> =
         tokens.values

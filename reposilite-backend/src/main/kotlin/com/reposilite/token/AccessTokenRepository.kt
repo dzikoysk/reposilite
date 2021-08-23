@@ -24,7 +24,7 @@ internal interface AccessTokenRepository {
 
     fun deleteAccessToken(accessToken: AccessToken)
 
-    fun findAccessTokenByAlias(alias: String): AccessToken?
+    fun findAccessTokenByName(name: String): AccessToken?
 
     fun findAll(): Collection<AccessToken>
 

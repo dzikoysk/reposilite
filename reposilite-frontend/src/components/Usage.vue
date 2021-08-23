@@ -32,8 +32,11 @@ export default {
       return snippet.split('\n')
         .map(line => line.substring(indentation))
         .join('\n')
+        .replace('#/', '')
         .trim()
     }
+
+    const domain = location.protocol + '//' + location.host
 
     const configurations = [
       {
@@ -42,7 +45,7 @@ export default {
         <repository>
             <name>${window.REPOSILITE_TITLE}</name>
             <id>${window.REPOSILITE_ID}</id>
-            <url>${window.location}</url>
+            <url>${domain}</url>
         </repository>
         `
       },
@@ -50,7 +53,7 @@ export default {
         type: 'Gradle Groovy',
         snippet: `
         maven {
-            url "${window.location}"
+            url "${domain}"
         }
         `
       },
@@ -58,14 +61,14 @@ export default {
         type: 'Gradle Kotlin',
         snippet: `
         maven {
-            url = uri("${window.location}")
+            url = uri("${domain}")
         }
         `
       },
       {
         type: 'SBT',
         snippet: `
-        resolvers += "${window.REPOSILITE_TITLE}" at "${window.location}"
+        resolvers += "${window.REPOSILITE_TITLE}" at "${domain}"
         `
       }
     ]

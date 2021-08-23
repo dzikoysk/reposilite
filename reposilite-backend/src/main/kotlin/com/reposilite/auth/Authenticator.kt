@@ -86,8 +86,8 @@ class Authenticator(private val accessTokenFacade: AccessTokenFacade) {
         return authByCredentials(values[0], values[1])
     }
 
-    fun authByCredentials(alias: String, secret: String): Result<AccessToken, String> {
-        val accessToken = accessTokenFacade.getToken(alias) ?: return error("Invalid authorization credentials")
+    fun authByCredentials(name: String, secret: String): Result<AccessToken, String> {
+        val accessToken = accessTokenFacade.getToken(name) ?: return error("Invalid authorization credentials")
         val authorized = B_CRYPT_TOKENS_ENCODER.matches(secret, accessToken.secret)
 
         if (!authorized) {

@@ -43,7 +43,7 @@ object ReposiliteWebConfiguration {
         val failureFacade = FailureWebConfiguration.createFacade(logger)
         val consoleFacade = ConsoleWebConfiguration.createFacade(logger, failureFacade)
         val mavenFacade = MavenWebConfiguration.createFacade(logger, workingDirectory, HttpRemoteClient(), configuration.repositories)
-        val frontendFacade = FrontendWebConfiguration.createFacade()
+        val frontendFacade = FrontendWebConfiguration.createFacade(configuration)
         val statisticFacade = StatisticsWebConfiguration.createFacade(logger)
         val accessTokenFacade = AccessTokenWebConfiguration.createFacade(logger)
         val authenticationFacade = AuthenticationWebConfiguration.createFacade(logger, accessTokenFacade)
@@ -84,7 +84,7 @@ object ReposiliteWebConfiguration {
             ConsoleWebConfiguration.routing(reposilite),
             FailureWebConfiguration.routing(),
             FrontendWebConfiguration.routing(reposilite.frontendFacade, reposilite.workingDirectory),
-            MavenWebConfiguration.routing(reposilite.mavenFacade),
+            MavenWebConfiguration.routing(reposilite.mavenFacade, reposilite.frontendFacade),
             StatisticsWebConfiguration.routing(reposilite.statisticsFacade),
             AccessTokenWebConfiguration.routing(),
         )
@@ -95,6 +95,7 @@ object ReposiliteWebConfiguration {
     fun javalin(reposilite: Reposilite, javalin: Javalin) {
         ConsoleWebConfiguration.javalin(javalin, reposilite)
         FailureWebConfiguration.javalin(javalin, reposilite.failureFacade)
+        FrontendWebConfiguration.javalin(javalin, reposilite.frontendFacade)
     }
 
     fun dispose(reposilite: Reposilite) {

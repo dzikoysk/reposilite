@@ -6,7 +6,7 @@ const qualifier = reactive({
   path: ''
 })
 
-export default function useQualifier(session) {
+export default function useQualifier(token) {
   const route = useRoute()
 
   watch(
@@ -19,7 +19,7 @@ export default function useQualifier(session) {
   )
 
   watch(
-    () => session.alias,
+    () => token.name,
     async newSession => {
       qualifier.watchable++
     }

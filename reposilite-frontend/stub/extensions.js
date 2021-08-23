@@ -9,7 +9,7 @@ const basicAuth = (req) => {
 const authorized = (req, success, failure) => {
   const [login, password] = basicAuth(req)
 
-  if (login == 'alias' && password == 'secret') {
+  if (login == 'name' && password == 'secret') {
     console.log('Authorization successful for request ' + req.url)
     success()
   } else failure && failure()

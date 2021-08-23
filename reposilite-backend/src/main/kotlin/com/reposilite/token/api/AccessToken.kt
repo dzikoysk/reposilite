@@ -22,7 +22,7 @@ import java.time.LocalDate
 
 data class AccessToken internal constructor(
     override val id: Int = UNINITIALIZED_ENTITY_ID,
-    val alias: String,
+    val name: String,
     @Transient @JsonIgnore
     val secret: String,
     val createdAt: LocalDate = LocalDate.now(),
