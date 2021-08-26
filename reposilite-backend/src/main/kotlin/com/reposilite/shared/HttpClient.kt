@@ -10,9 +10,9 @@ import com.github.kittinunf.fuel.coroutines.awaitByteArrayResponseResult
 import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.maven.api.UNKNOWN_LENGTH
 import com.reposilite.shared.FilesUtils.getExtension
-import io.javalin.http.ContentType
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
+import io.javalin.http.ContentType
 import io.javalin.http.HttpCode.BAD_REQUEST
 import io.javalin.http.HttpCode.NOT_ACCEPTABLE
 import panda.std.Result
@@ -33,7 +33,7 @@ interface RemoteClient {
 class HttpRemoteClient : RemoteClient {
 
     override suspend fun get(uri: String, credentials: String?, connectTimeout: Int, readTimeout: Int): Result<DocumentInfo, ErrorResponse> =
-        Fuel.get("uri")
+        Fuel.get(uri)
             .also {
                 if (credentials != null) {
                     val (username, password) = credentials.split(":", limit = 2)

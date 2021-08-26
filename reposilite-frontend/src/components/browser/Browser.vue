@@ -96,10 +96,10 @@ export default {
             isErrored.value = undefined
           })
           .catch(error => {
+            console.log(error)
             createToast(`${error.response.status}: ${error.response.data.message}`, {
               type: 'danger'
             })
-            console.log(error)
             isErrored.value = error
           })
 

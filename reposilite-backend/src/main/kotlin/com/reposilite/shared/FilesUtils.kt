@@ -15,12 +15,8 @@
  */
 package com.reposilite.shared
 
-import com.reposilite.Reposilite
 import com.reposilite.maven.Repository
 import org.apache.commons.codec.digest.DigestUtils
-import panda.utilities.IOUtils
-import java.io.Closeable
-import java.io.IOException
 import java.nio.file.Path
 import java.text.CharacterIterator
 import java.text.StringCharacterIterator
@@ -89,28 +85,10 @@ object FilesUtils {
         repository.putFile(sha512, DigestUtils.sha512(bytes))
     }
 
-    fun close(closeable: Closeable?) {
-        if (closeable != null) {
-            try {
-                closeable.close()
-            } catch (ignored: IOException) {
-                // idc
-            }
-        }
-    }
-
-    fun toNames(files: List<Path>): List<String> = files
-        .map { it.getSimpleName() }
-        .toList()
-
     fun String.getExtension(): String =
         lastIndexOf(".")
             .takeIf { it != -1 }
             ?.let { substring(it + 1) }
             ?: ""
-
-    fun getResource(name: String): String =
-        IOUtils.convertStreamToString(Reposilite::class.java.getResourceAsStream(name))
-            .orElseThrow { RuntimeException("Cannot load resource $name", it) }
 
 }

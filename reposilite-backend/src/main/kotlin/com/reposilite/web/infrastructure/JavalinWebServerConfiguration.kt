@@ -44,7 +44,7 @@ internal object JavalinWebServerConfiguration {
             reposilite.logger.info("Enabling SSL connector at ::" + configuration.sslPort)
 
             val sslContextFactory: SslContextFactory = SslContextFactory.Server()
-            sslContextFactory.keyStorePath = configuration.keyStorePath.replace("\${WORKING_DIRECTORY}", reposilite.workingDirectory.toAbsolutePath().toString())
+            sslContextFactory.keyStorePath = configuration.keyStorePath.replace("\${WORKING_DIRECTORY}", reposilite.parameters.workingDirectory.toAbsolutePath().toString())
             sslContextFactory.setKeyStorePassword(configuration.keyStorePassword)
 
             val sslConnector = ServerConnector(server, sslContextFactory)

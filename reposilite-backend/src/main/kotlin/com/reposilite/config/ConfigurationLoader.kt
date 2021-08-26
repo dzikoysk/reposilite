@@ -18,11 +18,11 @@ package com.reposilite.config
 import net.dzikoysk.cdn.CdnFactory
 import net.dzikoysk.dynamiclogger.Journalist
 import net.dzikoysk.dynamiclogger.Logger
-import panda.utilities.ClassUtils
 import panda.utilities.StringUtils
 import picocli.CommandLine
 import java.nio.file.Path
-import kotlin.reflect.full.isSubclassOf
+
+const val DEFAULT_CONFIGURATION_FILE = "reposilite.cdn"
 
 class ConfigurationLoader(private val journalist: Journalist) : Journalist {
 
@@ -61,7 +61,7 @@ class ConfigurationLoader(private val journalist: Journalist) : Journalist {
                 verifyBasePath(it)
                 // verifyProxied(configuration)
                 cdn.render(it, configurationFile.toFile())
-                loadProperties(it)
+                // loadProperties(it)
             }
         }
 
@@ -78,53 +78,6 @@ class ConfigurationLoader(private val journalist: Journalist) : Journalist {
             }
 
             configuration.basePath = basePath
-        }
-    }
-
-//    private fun verifyProxied(configuration: Configuration) {
-//        for (index in configuration.proxied.indices) {
-//            val proxied = configuration.proxied[index]
-//
-//            if (proxied.endsWith("/")) {
-//                configuration.proxied[index] = proxied.substring(0, proxied.length - 1)
-//            }
-//        }
-//    }
-
-    private fun loadProperties(configuration: Configuration) {
-        for (declaredField in configuration.javaClass.declaredFields) {
-            val custom = System.getProperty("reposilite." + declaredField.name)
-
-            if (StringUtils.isEmpty(custom)) {
-                continue
-            }
-
-            val type = ClassUtils.getNonPrimitiveClass(declaredField.type).kotlin
-
-            val customValue: Any? =
-                if (String::class == type) {
-                    custom
-                }
-                else if (Int::class == type) {
-                    custom.toInt()
-                }
-                else if (Boolean::class == type) {
-                    java.lang.Boolean.parseBoolean(custom)
-                }
-                else if (MutableCollection::class.isSubclassOf(type)) {
-                    listOf(*custom.split(",").toTypedArray())
-                }
-                else {
-                    logger.info("Unsupported type: $type for $custom")
-                    continue
-                }
-
-            try {
-                declaredField.isAccessible = true
-                declaredField[configuration] = customValue
-            } catch (illegalAccessException: IllegalAccessException) {
-                throw RuntimeException("Cannot modify configuration value", illegalAccessException)
-            }
         }
     }
 

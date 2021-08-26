@@ -15,17 +15,23 @@
  */
 package com.reposilite.shared
 
-import java.util.*
+import java.util.Locale
 
 object TimeUtils {
 
-    fun getUptime(uptime: Long): Double {
-        val current = System.currentTimeMillis() - uptime
-        return current / 1000.0
-    }
+    fun getUptimeInSeconds(uptime: Long): Double =
+        getUptime(uptime) / 1000.0
 
-    fun format(time: Double): String {
-        return String.format(Locale.US, "%.2f", time)
-    }
+    fun getUptime(startTime: Long): Long =
+        System.currentTimeMillis() - startTime
+
+    fun getPrettyUptimeInSeconds(startTime: Long): String =
+        format(getUptimeInSeconds(startTime)) + "s"
+
+    fun getPrettyUptimeInMinutes(startTime: Long): String =
+        format(getUptimeInSeconds(startTime) / 60) + "min"
+
+    fun format(time: Double): String =
+        String.format(Locale.US, "%.2f", time)
 
 }

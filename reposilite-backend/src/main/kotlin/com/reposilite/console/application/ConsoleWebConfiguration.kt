@@ -46,7 +46,7 @@ internal object ConsoleWebConfiguration {
 
         // disable console daemon in tests due to issues with coverage and interrupt method call
         // https://github.com/jacoco/jacoco/issues/1066
-        if (!reposilite.testEnv) {
+        if (!reposilite.parameters.testEnv) {
             consoleFacade.console.hook()
         }
     }

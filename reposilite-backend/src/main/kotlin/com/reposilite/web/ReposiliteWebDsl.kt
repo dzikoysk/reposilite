@@ -19,13 +19,13 @@ package com.reposilite.web
 import com.reposilite.auth.Session
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.error
+import com.reposilite.web.routing.AbstractRoutes
 import com.reposilite.web.routing.Route
 import com.reposilite.web.routing.RouteMethod
-import com.reposilite.web.routing.Routes
 import io.javalin.http.Context
 import io.javalin.http.HttpCode
 
-abstract class ReposiliteRoutes : Routes<ReposiliteWebDsl, Unit>
+abstract class ReposiliteRoutes : AbstractRoutes<ReposiliteWebDsl, Unit>()
 
 class ReposiliteRoute(
     path: String,

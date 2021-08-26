@@ -20,7 +20,6 @@ import com.reposilite.maven.api.SimpleDirectoryInfo
 import com.reposilite.token.api.AccessToken
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
-import io.javalin.http.HttpCode.BAD_REQUEST
 import io.javalin.http.HttpCode.NOT_FOUND
 import net.dzikoysk.dynamiclogger.Journalist
 import net.dzikoysk.dynamiclogger.Logger
@@ -34,14 +33,11 @@ internal class RepositoryService(
 ) : Journalist {
 
     fun findRepository(name: String?): Result<Repository, ErrorResponse> =
-        name?.let {
-            getRepository(it)
-                ?.asSuccess()
-                ?: errorResponse(NOT_FOUND, "Repository $name not found")
-        }
-        ?: errorResponse(BAD_REQUEST, "")
+        getRepository(name)
+            ?.asSuccess()
+            ?: errorResponse(NOT_FOUND, "Repository $name not found")
 
-    fun getRepository(name: String): Repository? =
+    fun getRepository(name: String?): Repository? =
         repositories[name]
 
     fun getRootDirectory(accessToken: AccessToken?): DirectoryInfo =

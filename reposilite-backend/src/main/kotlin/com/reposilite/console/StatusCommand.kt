@@ -18,7 +18,8 @@ package com.reposilite.console
 import com.reposilite.Reposilite
 import com.reposilite.VERSION
 import com.reposilite.console.Status.SUCCEEDED
-import com.reposilite.shared.TimeUtils.format
+import com.reposilite.shared.TimeUtils
+import com.reposilite.shared.TimeUtils.getPrettyUptimeInMinutes
 import panda.utilities.IOUtils
 import panda.utilities.console.Effect.GREEN
 import panda.utilities.console.Effect.GREEN_BOLD
@@ -34,12 +35,12 @@ internal class StatusCommand(
 
     override fun execute(output: MutableList<String>): Status {
         val latestVersion =
-            if (reposilite.testEnv) VERSION
+            if (reposilite.parameters.testEnv) VERSION
             else getVersion()
 
         output.add("Reposilite $VERSION Status")
         output.add("  Active: $GREEN_BOLD${reposilite.webServer.isAlive()}$RESET")
-        output.add("  Uptime: ${format(reposilite.getUptime() / 1000.0 / 60.0)}min")
+        output.add("  Uptime: ${getPrettyUptimeInMinutes(reposilite.startTime)}min")
         output.add("  Memory usage of process: ${memoryUsage()}")
         output.add("  Exceptions: ${reposilite.failureFacade.getFailures().size}")
         output.add("  Latest version of reposilite: $latestVersion")
@@ -53,6 +54,6 @@ internal class StatusCommand(
             .let { (if (VERSION == it) GREEN else RED_UNDERLINED).toString() + it + RESET }
 
     private fun memoryUsage(): String =
-        format((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1024.0 / 1024.0) + "M"
+        TimeUtils.format((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1024.0 / 1024.0) + "M"
 
 }

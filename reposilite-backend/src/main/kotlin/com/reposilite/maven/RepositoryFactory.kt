@@ -34,7 +34,7 @@ internal class RepositoryFactory(
         Repository(
             repositoryName,
             repositoryConfiguration.visibility,
-            repositoryConfiguration.proxied.associate { ConfigurationLoader.loadConfiguration(ProxiedHostConfiguration(), it) },
+            repositoryConfiguration.proxied.associate { createProxiedHostConfiguration(it) },
             createStorageProvider(
                 journalist,
                 workingDirectory.safeResolve(REPOSITORIES).safeResolve(repositoryName),
@@ -43,5 +43,13 @@ internal class RepositoryFactory(
             ),
             repositoryConfiguration.redeployment
         )
+
+    private fun createProxiedHostConfiguration(configuration: String): Pair<String, ProxiedHostConfiguration> =
+        with(ConfigurationLoader.loadConfiguration(ProxiedHostConfiguration(), configuration)) {
+            if (first.endsWith("/"))
+                Pair(first.substring(0, first.length - 1), second)
+            else
+                this
+        }
 
 }

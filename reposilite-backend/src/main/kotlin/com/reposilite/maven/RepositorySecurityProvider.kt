@@ -41,9 +41,7 @@ internal class RepositorySecurityProvider {
 
     fun filterFile(accessToken: AccessToken?, fileDetails: FileDetails): FileDetails =
         when(fileDetails) {
-            is DirectoryInfo -> {
-                fileDetails.filter { accessToken?.canSee(it.name) ?: false }
-            }
+            is DirectoryInfo -> fileDetails.filter { accessToken?.canSee(it.name) ?: false }
             else -> fileDetails
         }
 
