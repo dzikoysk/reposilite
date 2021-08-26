@@ -23,7 +23,6 @@ import io.javalin.http.HttpCode.UNAUTHORIZED
 import io.javalin.websocket.WsContext
 import net.dzikoysk.dynamiclogger.Journalist
 
-@Suppress("MoveLambdaOutsideParentheses")
 class ReposiliteContextFactory internal constructor(
     private val journalist: Journalist,
     private val forwardedIpHeader: String,

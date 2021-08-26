@@ -17,7 +17,6 @@
 package com.reposilite.auth.application
 
 import com.reposilite.auth.AuthenticationFacade
-import com.reposilite.auth.Authenticator
 import com.reposilite.auth.SessionService
 import com.reposilite.auth.infrastructure.AuthenticationEndpoint
 import com.reposilite.auth.infrastructure.PostAuthHandler
@@ -27,18 +26,12 @@ import net.dzikoysk.dynamiclogger.Journalist
 
 internal object AuthenticationWebConfiguration {
 
-    fun createFacade(journalist: Journalist, accessTokenFacade: AccessTokenFacade): AuthenticationFacade {
-        val authenticator = Authenticator(accessTokenFacade)
-        val sessionService = SessionService()
+    fun createFacade(journalist: Journalist, accessTokenFacade: AccessTokenFacade): AuthenticationFacade =
+        AuthenticationFacade(journalist, accessTokenFacade, SessionService())
 
-        return AuthenticationFacade(journalist, authenticator, sessionService)
-    }
-
-    fun routing(authenticationFacade: AuthenticationFacade): Set<ReposiliteRoutes> =
-        setOf(
-            AuthenticationEndpoint(authenticationFacade),
-            PostAuthHandler()
-        )
-
+    fun routing(authenticationFacade: AuthenticationFacade): Set<ReposiliteRoutes> = setOf(
+        AuthenticationEndpoint(authenticationFacade),
+        PostAuthHandler()
+    )
 
 }

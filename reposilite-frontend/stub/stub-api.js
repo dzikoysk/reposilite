@@ -1,4 +1,5 @@
 const express = require('express')
+const ws = require('ws')
 
 const [
   respond,
@@ -8,6 +9,24 @@ const [
   createFileDetails,
   createDirectoryDetails
 ] = require('./extensions')
+
+const wsServer = new ws.Server({ noServer: true });
+
+wsServer.on('connection', socket => {
+  let authenticated = false
+
+  socket.on('message', message => {
+    if (message == 'Authorization:name:secret') {
+      authenticated = true
+    }
+
+    if (!authenticated) {
+      socket.close()
+    }
+
+    socket.send('Response: ' + message)
+  })
+});
 
 express()
   .get('/', (req, res) =>
@@ -69,6 +88,11 @@ express()
     status: 404,
     message: 'Not found'
   }))
+  .on('upgrade', (request, socket, head) => {
+    wsServer.handleUpgrade(request, socket, head, socket => {
+      wsServer.emit('connection', socket, request);
+    });
+  })
   .listen(80)
 
 console.log('Reposilite stub API started on port 80')

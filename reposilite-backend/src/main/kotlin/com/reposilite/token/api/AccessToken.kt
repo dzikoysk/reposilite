@@ -16,6 +16,7 @@
 package com.reposilite.token.api
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import io.javalin.openapi.OpenApiIgnore
 import net.dzikoysk.exposed.shared.IdentifiableEntity
 import net.dzikoysk.exposed.shared.UNINITIALIZED_ENTITY_ID
 import java.time.LocalDate
@@ -23,7 +24,7 @@ import java.time.LocalDate
 data class AccessToken internal constructor(
     override val id: Int = UNINITIALIZED_ENTITY_ID,
     val name: String,
-    @Transient @JsonIgnore
+    @Transient @JsonIgnore @get:OpenApiIgnore
     val secret: String,
     val createdAt: LocalDate = LocalDate.now(),
     val description: String = "",
@@ -43,7 +44,7 @@ data class AccessToken internal constructor(
 }
 
 enum class AccessTokenPermission(val identifier: String) {
-    MANAGER("access-token:manager");
+    MANAGER("access-token:manager")
 }
 
 fun findAccessTokenPermissionByIdentifier(identifier: String): AccessTokenPermission =

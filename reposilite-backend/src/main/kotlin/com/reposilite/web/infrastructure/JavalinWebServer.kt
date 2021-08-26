@@ -3,6 +3,7 @@ package com.reposilite.web.infrastructure
 import com.reposilite.Reposilite
 import com.reposilite.ReposiliteWebConfiguration
 import com.reposilite.config.Configuration
+import com.reposilite.shared.TimeUtils
 import com.reposilite.web.ReposiliteWebDsl
 import com.reposilite.web.WebServer
 import com.reposilite.web.context
@@ -32,7 +33,7 @@ internal class JavalinWebServer : WebServer {
                 listener.serverStopped {
                     dispatcher.completeShutdown()
                     reposilite.coreThreadPool.stop()
-                    reposilite.logger.info("Bye! Uptime: " + reposilite.getPrettyUptime())
+                    reposilite.logger.info("Bye! Uptime: " + TimeUtils.getPrettyUptimeInMinutes(reposilite.startTime))
                 }
             }
             .also {
@@ -41,7 +42,7 @@ internal class JavalinWebServer : WebServer {
             }
 
         if (!servlet) {
-            javalin!!.start(configuration.hostname, configuration.port)
+            javalin!!.start(reposilite.parameters.hostname, reposilite.parameters.port)
         }
     }
 

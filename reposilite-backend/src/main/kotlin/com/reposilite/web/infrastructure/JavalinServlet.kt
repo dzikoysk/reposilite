@@ -15,7 +15,8 @@
  */
 package com.reposilite.web.infrastructure
 
-import com.reposilite.ReposiliteLauncher
+import com.reposilite.ReposiliteParameters
+import com.reposilite.ReposiliteWebConfiguration
 import javax.servlet.annotation.MultipartConfig
 import javax.servlet.annotation.WebServlet
 import javax.servlet.http.HttpServlet
@@ -26,7 +27,7 @@ import javax.servlet.http.HttpServletResponse
 @WebServlet(urlPatterns = ["/*"], name = "ReposiliteServlet", asyncSupported = true)
 internal class JavalinServlet : HttpServlet() {
 
-    private val reposilite = ReposiliteLauncher.create("", "", /* servlet = true, */ false)
+    private val reposilite = ReposiliteWebConfiguration.createReposilite(ReposiliteParameters())
 
     override fun init() {
         reposilite.logger.info("Starting Reposilite servlet...")

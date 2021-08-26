@@ -43,7 +43,7 @@ export default defineComponent({
 
     onMounted(() => {
       fetchTheme()
-      fetchSession()
+      fetchSession().catch(_ => {})
     })
 
     return {

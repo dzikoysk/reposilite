@@ -42,6 +42,9 @@
           <tab-panel :val="'Endpoints'">
             <Endpoints/>
           </tab-panel>
+          <tab-panel :val="'Console'" v-if="isManager()">
+            <div>Console</div>
+          </tab-panel>
         </tab-panels>
       </div>
     </div>
@@ -49,11 +52,12 @@
 </template>
 
 <script>
-import { reactive, toRefs } from 'vue'
+import { reactive, ref, toRefs, watch } from 'vue'
 import Header from '../components/header/Header.vue'
 import Browser from '../components/browser/Browser.vue'
 import Usage from '../components/Usage.vue'
 import Endpoints from '../components/Endpoints.vue'
+import useSession from '../store/session'
 
 export default {
   components: { Header, Browser, Usage, Endpoints },
@@ -65,8 +69,17 @@ export default {
   },
   setup(props) {
     const qualifier = props.qualifier
-    const menuTabs = [ 'Overview', 'Usage', 'Endpoints' ]
-    
+    const { isManager } = useSession()
+
+    const menuTabs = [ 
+      { name: 'Overview' },
+      { name: 'Usage' }, 
+      { name: 'Endpoints' },
+      { name: 'Conole', manager: true }
+    ]
+    .filter(entry => !entry?.manager || isManager())
+    .map(entry => entry.name)
+
     const state = reactive({
       selectedMenuTab: menuTabs[0]
     })
@@ -74,6 +87,7 @@ export default {
     return {
       menuTabs,
       qualifier,
+      isManager,
       ...toRefs(state)
     }
   }

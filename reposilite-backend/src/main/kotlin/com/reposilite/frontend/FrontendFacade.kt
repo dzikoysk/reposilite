@@ -29,7 +29,7 @@ class FrontendFacade internal constructor(
 
     fun resolve(uri: String, source: () -> String?): String? =
         resources[uri]
-            .takeIf { cacheContent }
+            ?.takeIf { cacheContent }
             ?: source()
                 ?.let { resolvePlaceholders(it) }
                 ?.also { resources[uri] = it }
@@ -70,11 +70,15 @@ class FrontendFacade internal constructor(
                 font-size: 1.2rem;
                 font-weight: lighter;
               }
+              
+              a:link, a:visited {
+                color: rebeccapurple;
+              }
             </style>
             <body>
               <div class='error-view'>
-                <h1 style="font-size: 1.8rem">
-                  <span style="color: gray;">404︱</span>Not found
+                <h1 style="font-size: 1.5rem">
+                  <span style="color: gray;">404︱</span>Resource not found
                 </h1>
                 <p>Looking for a dashboard?</p>
                 <div class="spooky">
@@ -82,7 +86,7 @@ class FrontendFacade internal constructor(
                   <p>(●ᴗ●)</p>
                   <p>( >🥕</p>
                 </div>
-                <p>Visit <a href="/#${uri}" style="text-decoration: none;">/#${uri}</a></p>
+                <p>Visit <a href="/#${uri}" style="color: rebeccapurple; text-decoration: none;">/#${uri}</a></p>
               </div>
             </body>
         </html>

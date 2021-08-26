@@ -18,6 +18,7 @@ package com.reposilite
 
 import com.reposilite.auth.application.AuthenticationWebConfiguration
 import com.reposilite.config.Configuration
+import com.reposilite.config.ConfigurationLoader
 import com.reposilite.console.application.ConsoleWebConfiguration
 import com.reposilite.failure.application.FailureWebConfiguration
 import com.reposilite.frontend.application.FrontendWebConfiguration
@@ -30,12 +31,29 @@ import com.reposilite.web.ReposiliteRoutes
 import com.reposilite.web.application.WebConfiguration
 import io.javalin.Javalin
 import net.dzikoysk.dynamiclogger.Journalist
+import net.dzikoysk.dynamiclogger.backend.AggregatedLogger
+import net.dzikoysk.dynamiclogger.slf4j.Slf4jLogger
 import org.eclipse.jetty.util.thread.QueuedThreadPool
+import org.jetbrains.exposed.sql.Database
+import org.slf4j.LoggerFactory
 import java.nio.file.Path
 
-object ReposiliteWebConfiguration {
+internal object ReposiliteWebConfiguration {
 
-    fun createReposilite(journalist: Journalist, configuration: Configuration, workingDirectory: Path, testEnv: Boolean): Reposilite {
+    fun createReposilite(parameters: ReposiliteParameters): Reposilite {
+        val logger = AggregatedLogger(Slf4jLogger(LoggerFactory.getLogger(Reposilite::class.java)))
+
+        val configurationLoader = ConfigurationLoader(logger)
+        val configuration = configurationLoader.tryLoad(parameters.configurationFile)
+        parameters.applyLoadedConfiguration(configuration)
+
+        // TOFIX: SQL schemas requires connection at startup, somehow delegate it later
+        Database.connect("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;mode=MySQL", driver = "org.h2.Driver")
+
+        return createReposilite(parameters, logger, configuration, parameters.workingDirectory, parameters.testEnv)
+    }
+
+    private fun createReposilite(parameters: ReposiliteParameters, journalist: Journalist, configuration: Configuration, workingDirectory: Path, testEnv: Boolean): Reposilite {
         val logger = journalist.logger
         val coreThreadPool = QueuedThreadPool(configuration.coreThreadPool, 2)
 
@@ -51,9 +69,8 @@ object ReposiliteWebConfiguration {
 
         return Reposilite(
             logger = logger,
+            parameters = parameters,
             configuration = configuration,
-            workingDirectory = workingDirectory,
-            testEnv = testEnv,
             coreThreadPool = coreThreadPool,
             webServer = webServer,
             failureFacade = failureFacade,
@@ -83,7 +100,7 @@ object ReposiliteWebConfiguration {
             AuthenticationWebConfiguration.routing(reposilite.authenticationFacade),
             ConsoleWebConfiguration.routing(reposilite),
             FailureWebConfiguration.routing(),
-            FrontendWebConfiguration.routing(reposilite.frontendFacade, reposilite.workingDirectory),
+            FrontendWebConfiguration.routing(reposilite.frontendFacade, reposilite.parameters.workingDirectory),
             MavenWebConfiguration.routing(reposilite.mavenFacade, reposilite.frontendFacade),
             StatisticsWebConfiguration.routing(reposilite.statisticsFacade),
             AccessTokenWebConfiguration.routing(),

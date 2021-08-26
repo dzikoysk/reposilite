@@ -21,7 +21,7 @@ import com.reposilite.console.ConsoleFacade
 import com.reposilite.failure.FailureFacade
 import com.reposilite.frontend.FrontendFacade
 import com.reposilite.maven.MavenFacade
-import com.reposilite.shared.TimeUtils
+import com.reposilite.shared.TimeUtils.getPrettyUptimeInSeconds
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.web.ReposiliteContextFactory
@@ -33,7 +33,6 @@ import net.dzikoysk.dynamiclogger.backend.AggregatedLogger
 import net.dzikoysk.dynamiclogger.backend.CachedLogger
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 import panda.utilities.console.Effect
-import java.nio.file.Path
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -41,9 +40,8 @@ const val VERSION = "3.0.0-SNAPSHOT"
 
 class Reposilite(
     logger: Logger,
+    val parameters: ReposiliteParameters,
     val configuration: Configuration,
-    val workingDirectory: Path,
-    val testEnv: Boolean,
     val coreThreadPool: QueuedThreadPool,
     val webServer: WebServer,
     val contextFactory: ReposiliteContextFactory,
@@ -61,7 +59,7 @@ class Reposilite(
 
     private val alive = AtomicBoolean(false)
     private val shutdownHook = Thread { shutdown() }
-    private val uptime = System.currentTimeMillis()
+    val startTime = System.currentTimeMillis()
 
     fun launch() {
         load()
@@ -74,12 +72,12 @@ class Reposilite(
         logger.info("")
         logger.info("--- Environment")
 
-        if (testEnv) {
+        if (parameters.testEnv) {
             logger.info("Test environment enabled")
         }
 
         logger.info("Platform: ${System.getProperty("java.version")} (${System.getProperty("os.name")})")
-        logger.info("Working directory: ${workingDirectory.toAbsolutePath()}")
+        logger.info("Working directory: ${parameters.workingDirectory.toAbsolutePath()}")
         logger.info("")
 
         logger.info("--- Loading domain configurations")
@@ -101,10 +99,10 @@ class Reposilite(
             webServer.start(this)
             Runtime.getRuntime().addShutdownHook(shutdownHook)
 
-            logger.info("Done (" + TimeUtils.format(getUptime() / 1000.0) + "s)!")
+            logger.info("Done (${getPrettyUptimeInSeconds(startTime)})!")
             consoleFacade.executeCommand("help")
 
-            CompletableFuture.runAsync {
+            CompletableFuture.runAsync { // TOFIX: Replace runAsync with shared coroutines dispatcher to limit used IO services
                 logger.info("Collecting status metrics...")
                 consoleFacade.executeCommand("status")
             }
@@ -131,12 +129,6 @@ class Reposilite(
         ReposiliteWebConfiguration.dispose(this)
         webServer.stop()
     }
-
-    fun getUptime(): Long =
-        System.currentTimeMillis() - uptime
-
-    fun getPrettyUptime(): String =
-        TimeUtils.format(TimeUtils.getUptime(uptime) / 60) + "min"
 
     override fun getLogger(): Logger =
         logger
