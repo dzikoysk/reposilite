@@ -15,7 +15,7 @@ internal class AuthenticationFacadeTest : AuthenticationSpec() {
         createToken(name)
 
         // when: an authentication is requested with invalid credentials
-        val response = authenticationFacade.authenticateByCredentials("$name:invalid-secret")
+        val response = authenticationFacade.authenticateByCredentials(name, "invalid-secret")
 
         // then: the request has been rejected
         assertError(ErrorResponse(UNAUTHORIZED, "Invalid authorization credentials"), response)
@@ -29,7 +29,7 @@ internal class AuthenticationFacadeTest : AuthenticationSpec() {
         val accessToken = createToken(name, secret)
 
         // when: an authentication is requested with valid credentials
-        val response = authenticationFacade.authenticateByCredentials("$name:$secret")
+        val response = authenticationFacade.authenticateByCredentials(name, secret)
 
         // then: the request has been authorized
         assertOk(accessToken, response)

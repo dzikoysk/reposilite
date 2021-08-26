@@ -17,7 +17,7 @@ internal abstract class AuthenticationSpec {
 
     protected val authenticationFacade = AuthenticationFacade(
         logger,
-        Authenticator(accessTokenFacade),
+        accessTokenFacade,
         SessionService()
     )
 

@@ -36,7 +36,6 @@ import net.dzikoysk.dynamiclogger.slf4j.Slf4jLogger
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 import org.jetbrains.exposed.sql.Database
 import org.slf4j.LoggerFactory
-import java.nio.file.Path
 
 internal object ReposiliteWebConfiguration {
 
@@ -50,17 +49,17 @@ internal object ReposiliteWebConfiguration {
         // TOFIX: SQL schemas requires connection at startup, somehow delegate it later
         Database.connect("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;mode=MySQL", driver = "org.h2.Driver")
 
-        return createReposilite(parameters, logger, configuration, parameters.workingDirectory, parameters.testEnv)
+        return createReposilite(parameters, logger, configuration)
     }
 
-    private fun createReposilite(parameters: ReposiliteParameters, journalist: Journalist, configuration: Configuration, workingDirectory: Path, testEnv: Boolean): Reposilite {
+    private fun createReposilite(parameters: ReposiliteParameters, journalist: Journalist, configuration: Configuration): Reposilite {
         val logger = journalist.logger
         val coreThreadPool = QueuedThreadPool(configuration.coreThreadPool, 2)
 
         val webServer = WebConfiguration.createWebServer()
         val failureFacade = FailureWebConfiguration.createFacade(logger)
         val consoleFacade = ConsoleWebConfiguration.createFacade(logger, failureFacade)
-        val mavenFacade = MavenWebConfiguration.createFacade(logger, workingDirectory, HttpRemoteClient(), configuration.repositories)
+        val mavenFacade = MavenWebConfiguration.createFacade(logger, parameters.workingDirectory, HttpRemoteClient(), configuration.repositories)
         val frontendFacade = FrontendWebConfiguration.createFacade(configuration)
         val statisticFacade = StatisticsWebConfiguration.createFacade(logger)
         val accessTokenFacade = AccessTokenWebConfiguration.createFacade(logger)

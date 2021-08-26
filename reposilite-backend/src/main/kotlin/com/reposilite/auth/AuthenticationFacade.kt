@@ -17,7 +17,6 @@
 package com.reposilite.auth
 
 import com.reposilite.shared.extractFromBase64
-import com.reposilite.shared.extractFromHeader
 import com.reposilite.shared.extractFromHeaders
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.AccessTokenFacade.Companion.B_CRYPT_TOKENS_ENCODER
@@ -40,15 +39,11 @@ class AuthenticationFacade internal constructor(
         extractFromHeaders(headers)
             .flatMap { (name, secret) -> authenticateByCredentials(name, secret) }
 
-    fun authenticateByHeader(authorizationHeader: String): Result<AccessToken, ErrorResponse> =
-        extractFromHeader(authorizationHeader)
-            .flatMap { (name, secret) -> authenticateByCredentials(name, secret) }
-
     fun authenticateByCredentials(credentials: String): Result<AccessToken, ErrorResponse> =
         extractFromBase64(credentials)
             .flatMap { (name, secret) -> authenticateByCredentials(name, secret) }
 
-    private fun authenticateByCredentials(name: String, secret: String): Result<AccessToken, ErrorResponse> =
+    fun authenticateByCredentials(name: String, secret: String): Result<AccessToken, ErrorResponse> =
         accessTokenFacade.getToken(name)
             ?.takeIf { B_CRYPT_TOKENS_ENCODER.matches(secret, it.secret) }
             ?.asSuccess()
