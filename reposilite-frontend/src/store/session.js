@@ -1,4 +1,4 @@
-import { reactive, ref } from "vue"
+import { isRef, reactive, ref } from "vue"
 import { useClient } from './client'
 
 const defaultValue = ''
@@ -13,17 +13,16 @@ const token = reactive({
   secret: defaultValue
 })
 
-const tokenInfo = ref({
+const defaultTokenInfo = {
   id: defaultValue,
   name: defaultValue,
   createdAt: defaultValue,
   permissions: [],
   routes: []
-})
+}
 
 const session = reactive({
-  token,
-  tokenInfo
+  tokenInfo: defaultTokenInfo
 })
 
 export default function useSession() {
@@ -36,6 +35,7 @@ export default function useSession() {
 
   const logout = () => {
     updateToken(defaultValue, defaultValue)
+    session.tokenInfo = defaultTokenInfo
   }
 
   const login = async (name, secret) => {
@@ -48,8 +48,8 @@ export default function useSession() {
 
       const response = await client.auth.me(name, secret)
       updateToken(name, secret)
-      tokenInfo.value = response.data
-      return { token, tokenInfo }
+      session.tokenInfo = response.data
+      return { token, session }
     } catch (error) {
       logout()
       throw error
@@ -66,12 +66,11 @@ export default function useSession() {
   const isLogged = () =>
     token.name != defaultValue
 
-  const isManager = () =>
-    tokenInfo.value.permissions.includes(managerPermission)
+  const isManager = (tokenInfo) =>
+    tokenInfo?.permissions?.includes(managerPermission)
   
   return {
     token,
-    tokenInfo,
     session,
     login,
     logout,
