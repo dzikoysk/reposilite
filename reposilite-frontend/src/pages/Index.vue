@@ -42,8 +42,8 @@
           <tab-panel :val="'Endpoints'">
             <Endpoints/>
           </tab-panel>
-          <tab-panel :val="'Console'" v-if="isManager()">
-            <div>Console</div>
+          <tab-panel :val="'Console'" v-if="consoleEnabled">
+            <Console/>
           </tab-panel>
         </tab-panels>
       </div>
@@ -57,37 +57,56 @@ import Header from '../components/header/Header.vue'
 import Browser from '../components/browser/Browser.vue'
 import Usage from '../components/Usage.vue'
 import Endpoints from '../components/Endpoints.vue'
+import Console from '../components/Console.vue'
 import useSession from '../store/session'
 
 export default {
-  components: { Header, Browser, Usage, Endpoints },
+  components: { Header, Browser, Usage, Endpoints, Console },
   props: {
     qualifier: {
+      type: Object,
+      required: true
+    },
+    session: {
       type: Object,
       required: true
     }
   },
   setup(props) {
     const qualifier = props.qualifier
+    const session = props.session
     const { isManager } = useSession()
 
-    const menuTabs = [ 
-      { name: 'Overview' },
-      { name: 'Usage' }, 
-      { name: 'Endpoints' },
-      { name: 'Conole', manager: true }
-    ]
-    .filter(entry => !entry?.manager || isManager())
-    .map(entry => entry.name)
+    const menuTabs = ref([])
+    const consoleEnabled = ref(false)
 
+    watch(
+      () => session.tokenInfo, 
+      async newTokenInfo => {
+        menuTabs.value = [ 
+          { name: 'Overview' },
+          { name: 'Usage' }, 
+          { name: 'Endpoints' },
+          { name: 'Console', manager: true }
+        ]
+        .filter(entry => !entry?.manager || isManager(newTokenInfo))
+        .map(entry => entry.name)
+
+        consoleEnabled.value = menuTabs.value.find(element => element === 'Console')
+      },
+      { immediate: true }
+    )
+  
+  
     const state = reactive({
       selectedMenuTab: menuTabs[0]
     })
 
     return {
-      menuTabs,
       qualifier,
       isManager,
+      menuTabs,
+      consoleEnabled,
       ...toRefs(state)
     }
   }

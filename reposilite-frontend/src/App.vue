@@ -19,6 +19,7 @@
     <router-view 
       class="min-h-screen dark:bg-black dark:text-white"
       :qualifier="qualifier"
+      :session="session"
     />
   </div>
 </template>
@@ -38,17 +39,16 @@ export default defineComponent({
     })
 
     const { theme, fetchTheme } = useTheme()
-    const { token, fetchSession } = useSession()
+    const { fetchSession, token, session } = useSession()
     const { qualifier } = useQualifier(token)
 
-    onMounted(() => {
-      fetchTheme()
-      fetchSession().catch(_ => {})
-    })
-
+    fetchTheme()
+    fetchSession().catch(_ => {})
+        
     return {
       theme,
-      qualifier
+      qualifier,
+      session
     }
   }
 })

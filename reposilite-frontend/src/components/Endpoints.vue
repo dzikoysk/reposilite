@@ -15,7 +15,7 @@
   -->
 
 <template>
-  <div class="container mx-auto pt-10 px-6">
+  <div class="container mx-auto pt-10 px-15">
     <i>Endpoints :: soon™</i>
   </div>
 </template>
