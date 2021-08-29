@@ -14,7 +14,7 @@ internal class AccessTokenFacadeTest : AccessTokenSpec() {
         val name = "reposilite"
 
         // when: token is created with the given name
-        val accessTokenDetails = accessTokenFacade.createAccessToken(name)
+        val accessTokenDetails = createToken(name)
 
         // then: valid token should be created
         val accessToken = accessTokenDetails.accessToken
@@ -25,7 +25,7 @@ internal class AccessTokenFacadeTest : AccessTokenSpec() {
     @Test
     fun `should update token` () {
         // given: an existing token and its updated version
-        val token = accessTokenFacade.createAccessToken("nanomaven").accessToken
+        val token = createToken("nanomaven").accessToken
         val updatedToken = token.copy(name = "reposilite")
 
         // when: token is updated
@@ -39,7 +39,7 @@ internal class AccessTokenFacadeTest : AccessTokenSpec() {
     @Test
     fun `should delete token`() {
         // given: an existing token
-        val token = accessTokenFacade.createAccessToken("reposilite").accessToken
+        val token = createToken("reposilite").accessToken
         val name = token.name
 
         // when: token is deleted
@@ -53,7 +53,7 @@ internal class AccessTokenFacadeTest : AccessTokenSpec() {
     @Test
     fun `should find token by given name`() {
         // given: an existing token
-        val token = accessTokenFacade.createAccessToken("reposilite").accessToken
+        val token = createToken("reposilite").accessToken
 
         // when: token is requested by its name
         val foundToken = accessTokenFacade.getToken(token.name)
