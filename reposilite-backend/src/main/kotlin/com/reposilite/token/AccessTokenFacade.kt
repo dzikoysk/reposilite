@@ -15,56 +15,57 @@
  */
 package com.reposilite.token
 
+import com.reposilite.token.AccessTokenSecurityProvider.B_CRYPT_TOKENS_ENCODER
+import com.reposilite.token.AccessTokenSecurityProvider.generateSecret
 import com.reposilite.token.api.AccessToken
 import com.reposilite.token.api.AccessTokenPermission
+import com.reposilite.token.api.AccessTokenType
+import com.reposilite.token.api.AccessTokenType.PERSISTENT
+import com.reposilite.token.api.AccessTokenType.TEMPORARY
+import com.reposilite.token.api.CreateAccessTokenRequest
 import com.reposilite.token.api.CreateAccessTokenResponse
-import net.dzikoysk.dynamiclogger.Journalist
-import net.dzikoysk.dynamiclogger.Logger
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
-import java.security.SecureRandom
-import java.util.Base64
 
 class AccessTokenFacade internal constructor(
-    private val journalist: Journalist,
-    private val accessTokenRepository: AccessTokenRepository
-) : Journalist {
+    private val temporaryRepository: AccessTokenRepository,
+    private val persistentRepository: AccessTokenRepository
+) {
 
-    companion object {
-        val B_CRYPT_TOKENS_ENCODER = BCryptPasswordEncoder()
+    fun createTemporaryAccessToken(request: CreateAccessTokenRequest): CreateAccessTokenResponse =
+        createAccessToken(temporaryRepository, TEMPORARY, request.name, request.secret ?: generateSecret(), request.permissions)
 
-        private val SECRET_GENERATOR: () -> String = {
-            val secret = ByteArray(48)
-            SecureRandom().nextBytes(secret)
-            Base64.getEncoder().encodeToString(secret)
-        }
-    }
+    fun createAccessToken(request: CreateAccessTokenRequest): CreateAccessTokenResponse =
+        createAccessToken(persistentRepository, PERSISTENT, request.name, request.secret ?: generateSecret(), request.permissions)
 
-    fun createAccessToken(name: String, secret: String = SECRET_GENERATOR(), permissions: Set<AccessTokenPermission> = emptySet()): CreateAccessTokenResponse {
-        val encodedToken = B_CRYPT_TOKENS_ENCODER.encode(secret)
+    private fun createAccessToken(
+        repository: AccessTokenRepository,
+        type: AccessTokenType,
+        name: String,
+        secret: String,
+        permissions: Set<AccessTokenPermission>
+    ): CreateAccessTokenResponse {
+        val encodedSecret = B_CRYPT_TOKENS_ENCODER.encode(secret)
+        val accessToken = AccessToken(type = type, name = name, secret = encodedSecret, permissions = permissions)
+        repository.saveAccessToken(accessToken)
 
-        accessTokenRepository.saveAccessToken(AccessToken(name = name, secret = encodedToken, permissions = permissions))
-        val accessToken = accessTokenRepository.findAccessTokenByName(name)
-
-        return CreateAccessTokenResponse(accessToken!!, secret)
+        return CreateAccessTokenResponse(repository.findAccessTokenByName(name)!!, secret)
     }
 
     fun updateToken(accessToken: AccessToken) =
-        accessTokenRepository.saveAccessToken(accessToken)
+        persistentRepository.saveAccessToken(accessToken)
 
     fun deleteToken(name: String): AccessToken? =
-        accessTokenRepository.findAccessTokenByName(name)
-            ?.also { accessTokenRepository.deleteAccessToken(it) }
+        deleteToken(temporaryRepository, name) ?: deleteToken(persistentRepository, name)
+
+    private fun deleteToken(repository: AccessTokenRepository, name: String): AccessToken? =
+        repository.findAccessTokenByName(name)?.also { persistentRepository.deleteAccessToken(it) }
 
     fun getToken(name: String): AccessToken? =
-        accessTokenRepository.findAccessTokenByName(name)
+        temporaryRepository.findAccessTokenByName(name) ?: persistentRepository.findAccessTokenByName(name)
 
     fun getTokens(): Collection<AccessToken> =
-        accessTokenRepository.findAll()
+        temporaryRepository.findAll() + persistentRepository.findAll()
 
     fun count(): Long =
-        accessTokenRepository.countAccessTokens()
-
-    override fun getLogger(): Logger =
-        journalist.logger
+        temporaryRepository.countAccessTokens() + persistentRepository.countAccessTokens()
 
 }

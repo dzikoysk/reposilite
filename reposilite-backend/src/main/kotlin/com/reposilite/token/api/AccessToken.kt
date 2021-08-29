@@ -15,7 +15,9 @@
  */
 package com.reposilite.token.api
 
+import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.reposilite.token.api.AccessTokenType.PERSISTENT
 import io.javalin.openapi.OpenApiIgnore
 import net.dzikoysk.exposed.shared.IdentifiableEntity
 import net.dzikoysk.exposed.shared.UNINITIALIZED_ENTITY_ID
@@ -23,6 +25,7 @@ import java.time.LocalDate
 
 data class AccessToken internal constructor(
     override val id: Int = UNINITIALIZED_ENTITY_ID,
+    val type: AccessTokenType = PERSISTENT,
     val name: String,
     @Transient @JsonIgnore @get:OpenApiIgnore
     val secret: String,
@@ -43,9 +46,23 @@ data class AccessToken internal constructor(
 
 }
 
-enum class AccessTokenPermission(val identifier: String) {
-    MANAGER("access-token:manager")
+enum class AccessTokenType {
+    PERSISTENT,
+    TEMPORARY
 }
 
-fun findAccessTokenPermissionByIdentifier(identifier: String): AccessTokenPermission =
-    AccessTokenPermission.values().first { it.identifier == identifier }
+@JsonFormat(shape = JsonFormat.Shape.OBJECT)
+enum class AccessTokenPermission(val identifier: String) {
+
+    MANAGER("access-token:manager");
+
+    companion object {
+
+        fun findAccessTokenPermissionByIdentifier(identifier: String): AccessTokenPermission =
+            values().first { it.identifier == identifier }
+
+    }
+
+}
+
+

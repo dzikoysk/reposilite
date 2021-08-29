@@ -16,6 +16,8 @@
 
 package com.reposilite.token.api
 
+import com.fasterxml.jackson.annotation.JsonFormat
+
 data class Route internal constructor(
     val path: String,
     val permissions: Set<RoutePermission>
@@ -26,10 +28,17 @@ data class Route internal constructor(
 
 }
 
+@JsonFormat(shape = JsonFormat.Shape.OBJECT)
 enum class RoutePermission(val identifier: String) {
+
     READ("route:read"),
     WRITE("route:write");
-}
 
-fun findRoutePermissionByIdentifier(identifier: String): RoutePermission =
-    RoutePermission.values().first { it.identifier == identifier }
+    companion object {
+
+        fun findRoutePermissionByIdentifier(identifier: String): RoutePermission =
+            values().first { it.identifier == identifier }
+
+    }
+
+}

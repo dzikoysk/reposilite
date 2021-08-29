@@ -29,10 +29,10 @@ import io.javalin.openapi.OpenApiContent
 import io.javalin.openapi.OpenApiParam
 import io.javalin.openapi.OpenApiResponse
 
-internal class RemoteExecutionEndpoint(private val consoleFacade: ConsoleFacade) : ReposiliteRoutes() {
+internal class ConsoleEndpoint(private val consoleFacade: ConsoleFacade) : ReposiliteRoutes() {
 
     @OpenApi(
-        path = "/api/execute",
+        path = "/api/console/execute",
         methods = [HttpMethod.POST],
         summary = "Remote command execution",
         description = "Execute command using POST request. The commands are the same as in the console and can be listed using the 'help' command.",
@@ -56,7 +56,7 @@ internal class RemoteExecutionEndpoint(private val consoleFacade: ConsoleFacade)
             )
         ]
     )
-    private val executeCommand = ReposiliteRoute("/api/execute", POST) {
+    private val executeCommand = ReposiliteRoute("/api/console/execute", POST) {
         context.logger.info("REMOTE EXECUTION ${context.uri} from ${context.address}")
 
         authenticated {

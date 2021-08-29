@@ -80,9 +80,9 @@ class Reposilite(
         logger.info("Working directory: ${parameters.workingDirectory.toAbsolutePath()}")
         logger.info("")
 
-        logger.info("--- Loading domain configurations")
+        // logger.info("--- Loading domain configurations")
         ReposiliteWebConfiguration.initialize(this)
-        logger.info("")
+        // logger.info("")
 
         logger.info("--- Repositories")
         mavenFacade.getRepositories().forEach { logger.info("+ ${it.name} (${it.visibility.toString().lowercase()})") }

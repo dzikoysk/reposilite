@@ -1,34 +1,21 @@
 const express = require('express')
 const ws = require('ws')
+var expressWs = require('express-ws')
 
 const [
   respond,
   basicAuth,
   authorized,
   invalidCredentials,
+  sendMessage,
   createFileDetails,
   createDirectoryDetails
 ] = require('./extensions')
 
-const wsServer = new ws.Server({ noServer: true });
+const application = express()
+expressWs(application)
 
-wsServer.on('connection', socket => {
-  let authenticated = false
-
-  socket.on('message', message => {
-    if (message == 'Authorization:name:secret') {
-      authenticated = true
-    }
-
-    if (!authenticated) {
-      socket.close()
-    }
-
-    socket.send('Response: ' + message)
-  })
-});
-
-express()
+application
   .get('/', (req, res) =>
     res.send('Reposilite stub API')
   )
@@ -49,7 +36,25 @@ express()
       }),
       () => invalidCredentials(res)
     )
-   })
+  })
+  .ws('/api/console/sock', (connection, req) => {
+    let authenticated = false
+
+    connection.on('message', message => {
+      if (message == 'Authorization:name:secret') {
+        sendMessage(connection, 'Authorized')
+        authenticated = true
+      }
+      
+      if (!authenticated || message == 'stop') {
+        sendMessage(connection, 'Connection closed')
+        connection.close()
+        return
+      }
+  
+      sendMessage(connection, 'Response: ' + message)
+    })
+  })
   .get('/api/maven/details', (req, res) => {
     const repositories = createDirectoryDetails('/', [
       createDirectoryDetails('releases'),
@@ -88,11 +93,6 @@ express()
     status: 404,
     message: 'Not found'
   }))
-  .on('upgrade', (request, socket, head) => {
-    wsServer.handleUpgrade(request, socket, head, socket => {
-      wsServer.emit('connection', socket, request);
-    });
-  })
   .listen(80)
 
 console.log('Reposilite stub API started on port 80')

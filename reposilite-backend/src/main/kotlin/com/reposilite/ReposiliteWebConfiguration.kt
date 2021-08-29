@@ -62,7 +62,7 @@ internal object ReposiliteWebConfiguration {
         val mavenFacade = MavenWebConfiguration.createFacade(logger, parameters.workingDirectory, HttpRemoteClient(), configuration.repositories)
         val frontendFacade = FrontendWebConfiguration.createFacade(configuration)
         val statisticFacade = StatisticsWebConfiguration.createFacade(logger)
-        val accessTokenFacade = AccessTokenWebConfiguration.createFacade(logger)
+        val accessTokenFacade = AccessTokenWebConfiguration.createFacade()
         val authenticationFacade = AuthenticationWebConfiguration.createFacade(logger, accessTokenFacade)
         val contextFactory = ReposiliteContextFactory(logger, configuration.forwardedIp, authenticationFacade)
 
@@ -91,7 +91,7 @@ internal object ReposiliteWebConfiguration {
         // FrontendWebConfiguration.initialize()
         // MavenWebConfiguration.initialize()
         StatisticsWebConfiguration.initialize(reposilite.statisticsFacade, reposilite.consoleFacade)
-        AccessTokenWebConfiguration.initialize(reposilite.accessTokenFacade, reposilite.consoleFacade)
+        AccessTokenWebConfiguration.initialize(reposilite.accessTokenFacade, reposilite.parameters.tokens, reposilite.consoleFacade)
     }
 
     fun routing(reposilite: Reposilite): Array<ReposiliteRoutes> =

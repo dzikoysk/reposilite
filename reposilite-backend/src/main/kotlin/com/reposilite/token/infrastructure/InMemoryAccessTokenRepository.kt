@@ -18,11 +18,10 @@ package com.reposilite.token.infrastructure
 
 import com.reposilite.token.AccessTokenRepository
 import com.reposilite.token.api.AccessToken
-import java.util.concurrent.ConcurrentHashMap
 
 internal class InMemoryAccessTokenRepository : AccessTokenRepository {
 
-    private val tokens: MutableMap<Int, AccessToken> = ConcurrentHashMap()
+    private val tokens: MutableMap<Int, AccessToken> = HashMap(1)
 
     override fun saveAccessToken(accessToken: AccessToken) {
         tokens[accessToken.id] = accessToken

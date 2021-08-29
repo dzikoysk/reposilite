@@ -49,7 +49,7 @@ internal class AuthenticationEndpoint(private val authenticationFacade: Authenti
         ]
     )
     private val authInfo = route("/api/auth/me", GET) {
-        response = authenticationFacade.authenticateByHeader(ctx.headerMap())
+        response = context.session.map { it.accessToken }
     }
 
     override val routes = setOf(authInfo)
