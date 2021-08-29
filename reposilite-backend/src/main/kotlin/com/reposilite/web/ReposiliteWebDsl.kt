@@ -44,7 +44,7 @@ class ReposiliteWebDsl(val ctx: Context, val context: ReposiliteContext) {
      * Request was created by either anonymous user or through authenticated token
      */
     suspend fun accessed(init: suspend Session?.() -> Unit) {
-        init(context.session.orElseGet { null })
+        init(context.session.orNull())
     }
 
     /**
@@ -66,7 +66,7 @@ class ReposiliteWebDsl(val ctx: Context, val context: ReposiliteContext) {
             if (isAuthorized()) {
                 init(this)
             } else {
-                ctx.error(ErrorResponse(HttpCode.UNAUTHORIZED, ""))
+                ctx.error(ErrorResponse(HttpCode.UNAUTHORIZED, "Invalid credentials"))
             }
         }
     }
@@ -77,11 +77,4 @@ class ReposiliteWebDsl(val ctx: Context, val context: ReposiliteContext) {
     fun parameter(name: String): String =
         ctx.pathParam(name)
 
-    fun respond(result: Any) {
-        this.response = result
-    }
-
 }
-
-suspend fun context(contextFactory: ReposiliteContextFactory, ctx: Context, init: suspend ReposiliteWebDsl.() -> Unit): ReposiliteWebDsl =
-    ReposiliteWebDsl(ctx, contextFactory.create(ctx)).also { init(it) }

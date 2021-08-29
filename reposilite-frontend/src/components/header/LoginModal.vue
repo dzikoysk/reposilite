@@ -45,9 +45,8 @@ export default {
     const close = () => 
       (showLogin.value = false)
 
-    const signin = (name, secret) => {
-      client.auth.me(name, secret)
-        .then(_ => login(name, secret))
+    const signin = (name, secret) => {      
+      login(name, secret)
         .then(_ => createToast(`Dashboard accessed as ${name}`, { position: 'bottom-right' }))
         .then(_ => close())
         .catch(error => {

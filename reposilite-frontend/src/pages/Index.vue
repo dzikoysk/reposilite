@@ -19,7 +19,7 @@
     <Header/>
     <div class="bg-gray-100 dark:bg-black">
       <div class="container mx-auto">
-        <tabs v-model="selectedMenuTab">
+        <tabs v-model="selectedTab.value">
           <tab
             v-for="(tab, i) in menuTabs"
             class="item font-normal"
@@ -32,7 +32,7 @@
       </div>
       <hr class="dark:border-gray-700">
       <div class="overflow-auto">
-        <tab-panels v-model="selectedMenuTab" :animate="true">
+        <tab-panels v-model="selectedTab.value" :animate="true">
           <tab-panel :val="'Overview'">
             <Browser :qualifier="qualifier" ref=""/>
           </tab-panel>
@@ -43,7 +43,7 @@
             <Endpoints/>
           </tab-panel>
           <tab-panel :val="'Console'" v-if="consoleEnabled">
-            <Console/>
+            <Console :selectedTab="selectedTab" />
           </tab-panel>
         </tab-panels>
       </div>
@@ -79,6 +79,9 @@ export default {
 
     const menuTabs = ref([])
     const consoleEnabled = ref(false)
+    const selectedTab = reactive({
+      value: 'Overview'
+    })
 
     watch(
       () => session.tokenInfo, 
@@ -96,18 +99,13 @@ export default {
       },
       { immediate: true }
     )
-  
-  
-    const state = reactive({
-      selectedMenuTab: menuTabs[0]
-    })
-
+      
     return {
       qualifier,
       isManager,
       menuTabs,
       consoleEnabled,
-      ...toRefs(state)
+      selectedTab
     }
   }
 }

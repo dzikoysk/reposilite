@@ -2,5 +2,6 @@
   "editor.quickSuggestions": {
     "strings": true
   },
-  "css.validate": false
+  "css.validate": false,
+  "css.lint.unknownProperties": "ignore"
 }

@@ -18,21 +18,29 @@ package com.reposilite.token.application
 
 import com.reposilite.console.ConsoleFacade
 import com.reposilite.token.AccessTokenFacade
-import com.reposilite.token.ChNameCommand
 import com.reposilite.token.ChModCommand
+import com.reposilite.token.ChNameCommand
 import com.reposilite.token.KeygenCommand
 import com.reposilite.token.RevokeCommand
 import com.reposilite.token.TokensCommand
+import com.reposilite.token.api.CreateAccessTokenRequest
+import com.reposilite.token.infrastructure.InMemoryAccessTokenRepository
 import com.reposilite.token.infrastructure.SqlAccessTokenRepository
 import com.reposilite.web.ReposiliteRoutes
-import net.dzikoysk.dynamiclogger.Journalist
 
 internal object AccessTokenWebConfiguration {
 
-    fun createFacade(journalist: Journalist): AccessTokenFacade =
-        AccessTokenFacade(journalist, SqlAccessTokenRepository())
+    fun createFacade(): AccessTokenFacade =
+        AccessTokenFacade(
+            temporaryRepository = InMemoryAccessTokenRepository(),
+            persistentRepository = SqlAccessTokenRepository()
+        )
 
-    fun initialize(accessTokenFacade: AccessTokenFacade, consoleFacade: ConsoleFacade) {
+    fun initialize(accessTokenFacade: AccessTokenFacade, temporaryTokens: Collection<CreateAccessTokenRequest>, consoleFacade: ConsoleFacade) {
+        temporaryTokens.forEach {
+            accessTokenFacade.createTemporaryAccessToken(it)
+        }
+
         consoleFacade.registerCommand(TokensCommand(accessTokenFacade))
         consoleFacade.registerCommand(KeygenCommand(accessTokenFacade))
         consoleFacade.registerCommand(ChNameCommand(accessTokenFacade))

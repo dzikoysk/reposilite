@@ -16,10 +16,10 @@
 
 package com.reposilite.auth
 
-import com.reposilite.shared.extractFromBase64
 import com.reposilite.shared.extractFromHeaders
+import com.reposilite.shared.extractFromString
 import com.reposilite.token.AccessTokenFacade
-import com.reposilite.token.AccessTokenFacade.Companion.B_CRYPT_TOKENS_ENCODER
+import com.reposilite.token.AccessTokenSecurityProvider.B_CRYPT_TOKENS_ENCODER
 import com.reposilite.token.api.AccessToken
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
@@ -40,7 +40,7 @@ class AuthenticationFacade internal constructor(
             .flatMap { (name, secret) -> authenticateByCredentials(name, secret) }
 
     fun authenticateByCredentials(credentials: String): Result<AccessToken, ErrorResponse> =
-        extractFromBase64(credentials)
+        extractFromString(credentials)
             .flatMap { (name, secret) -> authenticateByCredentials(name, secret) }
 
     fun authenticateByCredentials(name: String, secret: String): Result<AccessToken, ErrorResponse> =

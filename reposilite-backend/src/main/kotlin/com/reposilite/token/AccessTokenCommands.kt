@@ -20,6 +20,8 @@ import com.reposilite.console.ReposiliteCommand
 import com.reposilite.console.Status
 import com.reposilite.console.Status.FAILED
 import com.reposilite.console.Status.SUCCEEDED
+import com.reposilite.token.api.AccessTokenPermission
+import com.reposilite.token.api.CreateAccessTokenRequest
 import picocli.CommandLine.Command
 import picocli.CommandLine.Parameters
 
@@ -27,13 +29,18 @@ import picocli.CommandLine.Parameters
 internal class TokensCommand(private val accessTokenFacade: AccessTokenFacade) : ReposiliteCommand {
 
     override fun execute(output: MutableList<String>): Status {
+        output.add("")
         output.add("Tokens (${accessTokenFacade.count()})")
 
         accessTokenFacade.getTokens().forEach {
-            output.add(it.name + ":'")
+            output.add("- ${it.name}:")
 
             it.routes.forEach { route ->
-                output.add("  ${route.path} : ${route.permissions}")
+                output.add("  > ${route.path} : ${route.permissions}")
+            }
+
+            if (it.routes.isEmpty()) {
+                output.add("  > ~ no routes ~")
             }
         }
 
@@ -56,8 +63,17 @@ internal class KeygenCommand(private val accessTokenFacade: AccessTokenFacade) :
     )
     private lateinit var permissions: String
 
+    private val permissionMap = mapOf(
+        'm' to AccessTokenPermission.MANAGER
+    )
+
     override fun execute(output: MutableList<String>): Status {
-        val token = accessTokenFacade.createAccessToken(name)
+        val token = accessTokenFacade.createAccessToken(CreateAccessTokenRequest(
+            name,
+            permissions = permissions.toCharArray()
+                .map { permissionMap[it]!! }
+                .toSet()
+        ))
         output.add("Generated new access token for $name with '$permissions' permissions. Secret:")
         output.add(token.secret)
         return SUCCEEDED

@@ -40,10 +40,11 @@ internal class StatusCommand(
 
         output.add("Reposilite $VERSION Status")
         output.add("  Active: $GREEN_BOLD${reposilite.webServer.isAlive()}$RESET")
-        output.add("  Uptime: ${getPrettyUptimeInMinutes(reposilite.startTime)}min")
+        output.add("  Uptime: ${getPrettyUptimeInMinutes(reposilite.startTime)}")
         output.add("  Memory usage of process: ${memoryUsage()}")
-        output.add("  Exceptions: ${reposilite.failureFacade.getFailures().size}")
-        output.add("  Latest version of reposilite: $latestVersion")
+        output.add("  Active threads in group: ${threadGroupUsage()}")
+        output.add("  Recorded failures: ${reposilite.failureFacade.getFailures().size}")
+        output.add("  Latest version of Reposilite: $latestVersion")
 
         return SUCCEEDED
     }
@@ -55,5 +56,8 @@ internal class StatusCommand(
 
     private fun memoryUsage(): String =
         TimeUtils.format((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1024.0 / 1024.0) + "M"
+
+    private fun threadGroupUsage(): String =
+        Thread.activeCount().toString()
 
 }

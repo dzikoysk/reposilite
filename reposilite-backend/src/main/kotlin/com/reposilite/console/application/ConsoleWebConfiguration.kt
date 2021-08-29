@@ -23,7 +23,7 @@ import com.reposilite.console.StatusCommand
 import com.reposilite.console.StopCommand
 import com.reposilite.console.VersionCommand
 import com.reposilite.console.infrastructure.CliEndpoint
-import com.reposilite.console.infrastructure.RemoteExecutionEndpoint
+import com.reposilite.console.infrastructure.ConsoleEndpoint
 import com.reposilite.failure.FailureFacade
 import com.reposilite.web.ReposiliteRoutes
 import io.javalin.Javalin
@@ -51,13 +51,12 @@ internal object ConsoleWebConfiguration {
         }
     }
 
-    fun routing(reposilite: Reposilite): Set<ReposiliteRoutes> =
-        setOf(
-            RemoteExecutionEndpoint(reposilite.consoleFacade)
-        )
+    fun routing(reposilite: Reposilite): Set<ReposiliteRoutes> = setOf(
+        ConsoleEndpoint(reposilite.consoleFacade)
+    )
 
     fun javalin(javalin: Javalin, reposilite: Reposilite) {
-        javalin.ws("/api/cli", CliEndpoint(reposilite.contextFactory, reposilite.authenticationFacade, reposilite.consoleFacade, reposilite.cachedLogger))
+        javalin.ws("/api/console/sock", CliEndpoint(reposilite.contextFactory, reposilite.authenticationFacade, reposilite.consoleFacade, reposilite.cachedLogger))
     }
 
     fun dispose(consoleFacade: ConsoleFacade) {

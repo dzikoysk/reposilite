@@ -3,6 +3,8 @@ package com.reposilite
 import com.reposilite.config.Configuration
 import com.reposilite.config.DEFAULT_CONFIGURATION_FILE
 import com.reposilite.shared.safeResolve
+import com.reposilite.token.api.AccessTokenPermission.MANAGER
+import com.reposilite.token.api.CreateAccessTokenRequest
 import picocli.CommandLine.Command
 import picocli.CommandLine.Option
 import java.nio.file.Path
@@ -31,12 +33,19 @@ class ReposiliteParameters : Runnable {
     @Option(names = ["--port", "-p"], description = ["override port from configuration"])
     var port = -1
 
+    @Option(names = ["--token", "-t"], description = ["create temporary token with the given credentials in name:secret format", "Created token has all permissions"])
+    private lateinit var tokenEntries: Array<String>
+    lateinit var tokens: Collection<CreateAccessTokenRequest>
+
     @Option(names = ["--test-env", "--debug", "-d"], description = ["enable test mode"])
     var testEnv = false
 
     override fun run() {
         this.workingDirectory = Paths.get(workingDirectoryName)
         this.configurationFile = workingDirectory.safeResolve(configurationFileName.ifEmpty { DEFAULT_CONFIGURATION_FILE })
+        this.tokens = tokenEntries
+            .map { it.split(":", limit = 2) }
+            .map { (name, secret) -> CreateAccessTokenRequest(name, secret, setOf(MANAGER)) }
     }
 
     fun applyLoadedConfiguration(configuration: Configuration) {

@@ -6,7 +6,7 @@ const production = () =>
 const baseUrl = () =>
   process.env.NODE_ENV === 'production'
     ? (production().endsWith('/') ? production().slice(0, -1) : production())
-    : 'http://localhost:80'
+    : 'http://localhost'
 
 const createURL = (endpoint) =>
   baseUrl() + endpoint
@@ -32,6 +32,8 @@ const useClient = (defaultName, defaultSecret) => {
       me(name, secret) {
         return get("/api/auth/me", authorization(name, secret))
       }
+    },
+    console: {
     },
     maven: {
       details(gav) {

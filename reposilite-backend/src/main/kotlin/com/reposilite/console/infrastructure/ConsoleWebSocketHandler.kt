@@ -19,6 +19,8 @@ import com.reposilite.auth.AuthenticationFacade
 import com.reposilite.console.ConsoleFacade
 import com.reposilite.token.api.AccessTokenPermission.MANAGER
 import com.reposilite.web.ReposiliteContextFactory
+import io.javalin.openapi.HttpMethod
+import io.javalin.openapi.OpenApi
 import io.javalin.websocket.WsConfig
 import io.javalin.websocket.WsConnectContext
 import io.javalin.websocket.WsMessageContext
@@ -35,6 +37,10 @@ internal class CliEndpoint(
     private val cachedLogger: CachedLogger
 ) : Consumer<WsConfig> {
 
+    @OpenApi(
+        path = "/api/console/sock",
+        methods = [HttpMethod.PATCH]
+    )
     override fun accept(wsConfig: WsConfig) {
         wsConfig.onConnect { connectContext: WsConnectContext ->
             wsConfig.onMessage { authContext: WsMessageContext ->

@@ -94,7 +94,7 @@ dependencies {
     implementation("io.javalin-rfc:javalin-openapi-plugin:$openapi")
     implementation("io.javalin-rfc:javalin-swagger-plugin:$openapi")
 
-    val javalinRfcs = "1.0.8"
+    val javalinRfcs = "1.0.9"
     implementation("com.reposilite.javalin-rfcs:javalin-context:$javalinRfcs")
     implementation("com.reposilite.javalin-rfcs:javalin-reactive-routing:$javalinRfcs")
 
@@ -112,6 +112,8 @@ dependencies {
 
     val jackson = "2.12.4"
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jackson")
+    // implementation("com.fasterxml.jackson.module:jackson-module-parameter-names:$jackson")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jackson")
 
     val dynamicLogger = "1.0.2"
@@ -130,6 +132,11 @@ dependencies {
     implementation("org.fusesource.jansi:jansi:2.3.2")
 
     /* Tests */
+
+    val testcontainers = "1.15.3"
+    testImplementation("org.testcontainers:mariadb:$testcontainers")
+    testImplementation("org.testcontainers:testcontainers:$testcontainers")
+    testImplementation("org.testcontainers:junit-jupiter:$testcontainers")
 
     testImplementation("com.google.http-client:google-http-client-jackson2:1.39.2")
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.7.1")

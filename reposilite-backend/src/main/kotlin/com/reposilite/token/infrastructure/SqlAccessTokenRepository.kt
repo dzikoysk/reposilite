@@ -21,9 +21,10 @@ import com.reposilite.shared.transactionUnit
 import com.reposilite.token.AccessTokenRepository
 import com.reposilite.token.api.AccessToken
 import com.reposilite.token.api.AccessTokenPermission
+import com.reposilite.token.api.AccessTokenPermission.Companion.findAccessTokenPermissionByIdentifier
+import com.reposilite.token.api.AccessTokenType
 import com.reposilite.token.api.Route
-import com.reposilite.token.api.findAccessTokenPermissionByIdentifier
-import com.reposilite.token.api.findRoutePermissionByIdentifier
+import com.reposilite.token.api.RoutePermission.Companion.findRoutePermissionByIdentifier
 import net.dzikoysk.exposed.shared.UNINITIALIZED_ENTITY_ID
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SchemaUtils
@@ -41,9 +42,11 @@ internal class SqlAccessTokenRepository : AccessTokenRepository {
         }
     }
 
-    override fun saveAccessToken(accessToken: AccessToken) =
-        transactionUnit {
-            AccessTokenTable.deleteWhere { AccessTokenTable.id eq accessToken.id }
+    override fun saveAccessToken(accessToken: AccessToken) {
+        transaction {
+            // Make sure to remove an existing token with the same name
+            var id = getIdByName(accessToken.name)
+            AccessTokenTable.deleteWhere { AccessTokenTable.id eq id }
 
             AccessTokenTable.insert {
                 if (accessToken.id != UNINITIALIZED_ENTITY_ID) {
@@ -54,21 +57,34 @@ internal class SqlAccessTokenRepository : AccessTokenRepository {
                 it[this.secret] = accessToken.secret
             }
 
+            // Fetch new id
+            id = getIdByName(accessToken.name)
+
             accessToken.permissions.forEach { permission ->
                 PermissionToAccessTokenTable.insert {
-                    it[this.accessTokenId] = accessToken.id
-                    it[this.permission] = permission.name
+                    it[this.accessTokenId] = id
+                    it[this.permission] = permission.identifier
                 }
             }
 
             accessToken.routes.forEach { route ->
-                PermissionToRouteTable.insert {
-                    it[this.accessTokenId] = accessToken.id
-                    it[this.route] = route.path
-                    it[this.permission] = permission.name
+                route.permissions.forEach { permission ->
+                    PermissionToRouteTable.insert {
+                        it[this.accessTokenId] = id
+                        it[this.permission] = permission.identifier
+                        it[this.route] = route.path
+                    }
                 }
             }
         }
+    }
+
+    private fun getIdByName(name: String): Int =
+        AccessTokenTable.select { AccessTokenTable.name eq name }
+            .map { it[AccessTokenTable.id] }
+            .firstOrNull()
+            ?.value
+            ?: UNINITIALIZED_ENTITY_ID
 
     override fun deleteAccessToken(accessToken: AccessToken) =
         transactionUnit { AccessTokenTable.deleteWhere { AccessTokenTable.id eq accessToken.id } }
@@ -91,6 +107,7 @@ internal class SqlAccessTokenRepository : AccessTokenRepository {
         result[AccessTokenTable.id].value.let { accessTokenId ->
             AccessToken(
                 accessTokenId,
+                AccessTokenType.PERSISTENT,
                 result[AccessTokenTable.name],
                 result[AccessTokenTable.secret],
                 result[AccessTokenTable.createdAt],

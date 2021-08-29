@@ -4,13 +4,14 @@ import com.reposilite.Reposilite
 import com.reposilite.ReposiliteWebConfiguration
 import com.reposilite.config.Configuration
 import com.reposilite.shared.TimeUtils
+import com.reposilite.web.ReposiliteContextFactory
 import com.reposilite.web.ReposiliteWebDsl
 import com.reposilite.web.WebServer
-import com.reposilite.web.context
 import com.reposilite.web.http.response
 import com.reposilite.web.routing.ReactiveRoutingPlugin
 import io.javalin.Javalin
 import io.javalin.core.JavalinConfig
+import io.javalin.http.Context
 import io.ktor.util.DispatcherWithShutdown
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -60,12 +61,12 @@ internal class JavalinWebServer : WebServer {
             errorConsumer = { name, error -> reposilite.logger.error("Coroutine $name failed to execute task", error) },
             dispatcher = dispatcher,
             syncHandler = { ctx, route ->
-                val dsl = context(reposilite.contextFactory, ctx, route.handler)
-                dsl.response?.also { ctx.response(it) }
+                val resultDsl = callWithContext(reposilite.contextFactory, ctx, route.handler)
+                resultDsl.response?.also { ctx.response(it) }
             },
             asyncHandler = { ctx, route, result ->
-                val dsl = context(reposilite.contextFactory, ctx, route.handler)
-                dsl.response?.also { ctx.response(it) }
+                val resultDsl = callWithContext(reposilite.contextFactory, ctx, route.handler)
+                resultDsl.response?.also { ctx.response(it) }
                 result.complete(Unit)
             }
         )
@@ -73,6 +74,10 @@ internal class JavalinWebServer : WebServer {
         ReposiliteWebConfiguration.routing(reposilite).forEach { plugin.registerRoutes(it) }
         serverConfig.registerPlugin(plugin)
     }
+
+    suspend fun callWithContext(contextFactory: ReposiliteContextFactory, ctx: Context, init: suspend ReposiliteWebDsl.() -> Unit): ReposiliteWebDsl =
+        ReposiliteWebDsl(ctx, contextFactory.create(ctx))
+            .also { init(it) }
 
     override fun stop() {
         javalin?.stop()
