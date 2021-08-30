@@ -1,8 +1,8 @@
 package com.reposilite.storage.infrastructure
 
+import com.reposilite.journalist.Journalist
 import com.reposilite.web.http.ErrorResponse
 import io.javalin.http.HttpCode.INSUFFICIENT_STORAGE
-import net.dzikoysk.dynamiclogger.Journalist
 import panda.std.Result
 import java.io.IOException
 import java.nio.file.Files

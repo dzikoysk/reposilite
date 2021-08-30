@@ -18,6 +18,7 @@ package com.reposilite.maven.application
 
 import com.reposilite.config.Configuration.RepositoryConfiguration
 import com.reposilite.frontend.FrontendFacade
+import com.reposilite.journalist.Journalist
 import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.MetadataService
 import com.reposilite.maven.ProxyService
@@ -27,7 +28,6 @@ import com.reposilite.maven.RepositoryService
 import com.reposilite.maven.infrastructure.MavenEndpoint
 import com.reposilite.shared.RemoteClient
 import com.reposilite.web.ReposiliteRoutes
-import net.dzikoysk.dynamiclogger.Journalist
 import java.nio.file.Path
 
 internal object MavenWebConfiguration {

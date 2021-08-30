@@ -1,8 +1,8 @@
 package com.reposilite.statistics
 
+import com.reposilite.journalist.backend.InMemoryLogger
 import com.reposilite.statistics.api.RecordType
 import com.reposilite.statistics.infrastructure.InMemoryStatisticsRepository
-import net.dzikoysk.dynamiclogger.backend.InMemoryLogger
 
 internal open class StatisticsSpec {
 

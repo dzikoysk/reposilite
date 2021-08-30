@@ -17,11 +17,11 @@ package com.reposilite.web
 
 import com.reposilite.auth.AuthenticationFacade
 import com.reposilite.auth.SessionMethod
+import com.reposilite.journalist.Journalist
 import com.reposilite.web.http.errorResponse
 import io.javalin.http.Context
 import io.javalin.http.HttpCode.UNAUTHORIZED
 import io.javalin.websocket.WsContext
-import net.dzikoysk.dynamiclogger.Journalist
 
 class ReposiliteContextFactory internal constructor(
     private val journalist: Journalist,

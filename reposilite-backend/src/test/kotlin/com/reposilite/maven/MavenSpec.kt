@@ -1,6 +1,7 @@
 package com.reposilite.maven
 
 import com.reposilite.config.Configuration.RepositoryConfiguration
+import com.reposilite.journalist.backend.InMemoryLogger
 import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.UNKNOWN_LENGTH
@@ -16,7 +17,6 @@ import com.reposilite.token.api.RoutePermission
 import com.reposilite.web.http.errorResponse
 import io.javalin.http.ContentType
 import io.javalin.http.HttpCode.NOT_FOUND
-import net.dzikoysk.dynamiclogger.backend.InMemoryLogger
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
 import panda.std.asSuccess

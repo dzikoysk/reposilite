@@ -17,10 +17,10 @@
 package com.reposilite.storage
 
 import com.reposilite.config.ConfigurationLoader
+import com.reposilite.journalist.Journalist
 import com.reposilite.storage.infrastructure.FileSystemStorageProviderFactory
 import com.reposilite.storage.infrastructure.S3StorageProvider
 import com.reposilite.storage.infrastructure.S3StorageProviderSettings
-import net.dzikoysk.dynamiclogger.Journalist
 import java.nio.file.Files
 import java.nio.file.Path
 

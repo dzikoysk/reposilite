@@ -17,13 +17,13 @@
 package com.reposilite.statistics.application
 
 import com.reposilite.console.ConsoleFacade
+import com.reposilite.journalist.Journalist
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.statistics.StatsCommand
 import com.reposilite.statistics.infrastructure.SqlStatisticsRepository
 import com.reposilite.statistics.infrastructure.StatisticsEndpoint
 import com.reposilite.statistics.infrastructure.StatisticsHandler
 import com.reposilite.web.ReposiliteRoutes
-import net.dzikoysk.dynamiclogger.Journalist
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit.MINUTES
 

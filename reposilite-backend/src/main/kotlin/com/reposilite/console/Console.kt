@@ -15,12 +15,12 @@
  */
 package com.reposilite.console
 
-import net.dzikoysk.dynamiclogger.Journalist
-import net.dzikoysk.dynamiclogger.Logger
 import com.reposilite.VERSION
 import com.reposilite.console.Status.FAILED
 import com.reposilite.console.api.ExecutionResponse
 import com.reposilite.failure.FailureFacade
+import com.reposilite.journalist.Journalist
+import com.reposilite.journalist.Logger
 import picocli.CommandLine
 import picocli.CommandLine.Command
 import picocli.CommandLine.MissingParameterException

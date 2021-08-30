@@ -22,6 +22,9 @@ import com.reposilite.config.ConfigurationLoader
 import com.reposilite.console.application.ConsoleWebConfiguration
 import com.reposilite.failure.application.FailureWebConfiguration
 import com.reposilite.frontend.application.FrontendWebConfiguration
+import com.reposilite.journalist.Journalist
+import com.reposilite.journalist.backend.AggregatedLogger
+import com.reposilite.journalist.slf4j.Slf4jLogger
 import com.reposilite.maven.application.MavenWebConfiguration
 import com.reposilite.shared.HttpRemoteClient
 import com.reposilite.statistics.application.StatisticsWebConfiguration
@@ -30,9 +33,6 @@ import com.reposilite.web.ReposiliteContextFactory
 import com.reposilite.web.ReposiliteRoutes
 import com.reposilite.web.application.WebConfiguration
 import io.javalin.Javalin
-import net.dzikoysk.dynamiclogger.Journalist
-import net.dzikoysk.dynamiclogger.backend.AggregatedLogger
-import net.dzikoysk.dynamiclogger.slf4j.Slf4jLogger
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 import org.jetbrains.exposed.sql.Database
 import org.slf4j.LoggerFactory

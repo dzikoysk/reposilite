@@ -1,6 +1,6 @@
 package com.reposilite.failure
 
-import net.dzikoysk.dynamiclogger.backend.InMemoryLogger
+import com.reposilite.journalist.backend.InMemoryLogger
 
 internal abstract class FailureSpec {
 

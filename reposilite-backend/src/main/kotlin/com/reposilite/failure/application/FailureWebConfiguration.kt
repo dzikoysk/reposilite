@@ -20,9 +20,9 @@ import com.reposilite.console.ConsoleFacade
 import com.reposilite.failure.FailureFacade
 import com.reposilite.failure.FailuresCommand
 import com.reposilite.failure.infrastructure.FailureHandler
+import com.reposilite.journalist.Journalist
 import com.reposilite.web.ReposiliteRoutes
 import io.javalin.Javalin
-import net.dzikoysk.dynamiclogger.Journalist
 
 internal object FailureWebConfiguration {
 

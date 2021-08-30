@@ -1,6 +1,6 @@
 package com.reposilite.storage.infrastructure
 
-import net.dzikoysk.dynamiclogger.Journalist
+import com.reposilite.journalist.Journalist
 import com.reposilite.shared.FilesUtils
 import java.nio.file.Path
 

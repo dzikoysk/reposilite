@@ -17,6 +17,7 @@ package com.reposilite.console.infrastructure
 
 import com.reposilite.auth.AuthenticationFacade
 import com.reposilite.console.ConsoleFacade
+import com.reposilite.journalist.backend.CachedLogger
 import com.reposilite.token.api.AccessTokenPermission.MANAGER
 import com.reposilite.web.ReposiliteContextFactory
 import io.javalin.openapi.HttpMethod
@@ -24,7 +25,6 @@ import io.javalin.openapi.OpenApi
 import io.javalin.websocket.WsConfig
 import io.javalin.websocket.WsConnectContext
 import io.javalin.websocket.WsMessageContext
-import net.dzikoysk.dynamiclogger.backend.CachedLogger
 import panda.utilities.StringUtils
 import java.util.function.Consumer
 
