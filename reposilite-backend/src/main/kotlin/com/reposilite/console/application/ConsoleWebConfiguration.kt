@@ -25,9 +25,9 @@ import com.reposilite.console.VersionCommand
 import com.reposilite.console.infrastructure.CliEndpoint
 import com.reposilite.console.infrastructure.ConsoleEndpoint
 import com.reposilite.failure.FailureFacade
+import com.reposilite.journalist.Journalist
 import com.reposilite.web.ReposiliteRoutes
 import io.javalin.Javalin
-import net.dzikoysk.dynamiclogger.Journalist
 
 private const val REMOTE_VERSION = "https://repo.panda-lang.org/org/panda-lang/reposilite/latest"
 

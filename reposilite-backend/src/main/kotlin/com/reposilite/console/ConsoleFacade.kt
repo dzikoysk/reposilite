@@ -17,11 +17,11 @@
 package com.reposilite.console
 
 import com.reposilite.console.api.ExecutionResponse
+import com.reposilite.journalist.Journalist
+import com.reposilite.journalist.Logger
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
 import io.javalin.http.HttpCode.BAD_REQUEST
-import net.dzikoysk.dynamiclogger.Journalist
-import net.dzikoysk.dynamiclogger.Logger
 import panda.std.Result
 import panda.std.asSuccess
 import panda.utilities.StringUtils

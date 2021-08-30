@@ -16,6 +16,8 @@
 
 package com.reposilite.maven
 
+import com.reposilite.journalist.Journalist
+import com.reposilite.journalist.Logger
 import com.reposilite.maven.api.DeleteRequest
 import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.DirectoryInfo
@@ -35,8 +37,6 @@ import io.javalin.http.HttpCode.BAD_REQUEST
 import io.javalin.http.HttpCode.INSUFFICIENT_STORAGE
 import io.javalin.http.HttpCode.NOT_FOUND
 import io.javalin.http.HttpCode.UNAUTHORIZED
-import net.dzikoysk.dynamiclogger.Journalist
-import net.dzikoysk.dynamiclogger.Logger
 import panda.std.Result
 import panda.std.asSuccess
 import java.nio.file.Path

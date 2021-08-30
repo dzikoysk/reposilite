@@ -16,8 +16,8 @@
 
 package com.reposilite.failure
 
-import net.dzikoysk.dynamiclogger.Journalist
-import net.dzikoysk.dynamiclogger.Logger
+import com.reposilite.journalist.Journalist
+import com.reposilite.journalist.Logger
 import panda.utilities.StringUtils
 import java.util.concurrent.ConcurrentHashMap
 

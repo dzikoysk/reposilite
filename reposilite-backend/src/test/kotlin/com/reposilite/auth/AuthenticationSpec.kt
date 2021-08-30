@@ -1,7 +1,7 @@
 package com.reposilite.auth
 
+import com.reposilite.journalist.backend.InMemoryLogger
 import com.reposilite.token.AccessTokenSpec
-import net.dzikoysk.dynamiclogger.backend.InMemoryLogger
 
 internal abstract class AuthenticationSpec : AccessTokenSpec() {
 

@@ -20,9 +20,9 @@ import com.reposilite.auth.AuthenticationFacade
 import com.reposilite.auth.SessionService
 import com.reposilite.auth.infrastructure.AuthenticationEndpoint
 import com.reposilite.auth.infrastructure.PostAuthHandler
+import com.reposilite.journalist.Journalist
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.web.ReposiliteRoutes
-import net.dzikoysk.dynamiclogger.Journalist
 
 internal object AuthenticationWebConfiguration {
 

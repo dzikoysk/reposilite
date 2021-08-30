@@ -15,9 +15,9 @@
  */
 package com.reposilite.web
 
-import net.dzikoysk.dynamiclogger.Journalist
-import net.dzikoysk.dynamiclogger.Logger
 import com.reposilite.auth.Session
+import com.reposilite.journalist.Journalist
+import com.reposilite.journalist.Logger
 import com.reposilite.web.http.ErrorResponse
 import panda.std.Result
 import panda.std.function.ThrowingConsumer

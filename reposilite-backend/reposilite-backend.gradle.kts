@@ -116,9 +116,9 @@ dependencies {
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jackson")
 
-    val dynamicLogger = "1.0.2"
-    implementation("net.dzikoysk:dynamic-logger:$dynamicLogger")
-    implementation("net.dzikoysk:dynamic-logger-slf4j:$dynamicLogger")
+    val journalist = "1.0.4"
+    implementation("com.reposilite:journalist:$journalist")
+    implementation("com.reposilite:journalist-slf4j:$journalist")
 
     val tinylog = "2.3.1"
     implementation("org.tinylog:slf4j-tinylog:$tinylog")

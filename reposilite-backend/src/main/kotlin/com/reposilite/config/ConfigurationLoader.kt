@@ -15,9 +15,9 @@
  */
 package com.reposilite.config
 
+import com.reposilite.journalist.Journalist
+import com.reposilite.journalist.Logger
 import net.dzikoysk.cdn.CdnFactory
-import net.dzikoysk.dynamiclogger.Journalist
-import net.dzikoysk.dynamiclogger.Logger
 import panda.utilities.StringUtils
 import picocli.CommandLine
 import java.nio.file.Path

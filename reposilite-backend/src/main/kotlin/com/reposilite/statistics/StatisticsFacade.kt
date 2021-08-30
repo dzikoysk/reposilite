@@ -15,6 +15,8 @@
  */
 package com.reposilite.statistics
 
+import com.reposilite.journalist.Journalist
+import com.reposilite.journalist.Logger
 import com.reposilite.statistics.api.Record
 import com.reposilite.statistics.api.RecordIdentifier
 import com.reposilite.statistics.api.RecordType
@@ -22,8 +24,6 @@ import com.reposilite.statistics.api.findRecordTypeByName
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
 import io.javalin.http.HttpCode.BAD_REQUEST
-import net.dzikoysk.dynamiclogger.Journalist
-import net.dzikoysk.dynamiclogger.Logger
 import panda.std.Result
 import panda.std.asSuccess
 import java.util.concurrent.ConcurrentHashMap
