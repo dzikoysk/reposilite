@@ -22,9 +22,9 @@ import com.reposilite.config.ConfigurationLoader
 import com.reposilite.console.application.ConsoleWebConfiguration
 import com.reposilite.failure.application.FailureWebConfiguration
 import com.reposilite.frontend.application.FrontendWebConfiguration
+import com.reposilite.journalist.Channel
 import com.reposilite.journalist.Journalist
-import com.reposilite.journalist.backend.AggregatedLogger
-import com.reposilite.journalist.slf4j.Slf4jLogger
+import com.reposilite.journalist.backend.PrintStreamLogger
 import com.reposilite.maven.application.MavenWebConfiguration
 import com.reposilite.shared.HttpRemoteClient
 import com.reposilite.statistics.application.StatisticsWebConfiguration
@@ -35,12 +35,11 @@ import com.reposilite.web.application.WebConfiguration
 import io.javalin.Javalin
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 import org.jetbrains.exposed.sql.Database
-import org.slf4j.LoggerFactory
 
 internal object ReposiliteWebConfiguration {
 
     fun createReposilite(parameters: ReposiliteParameters): Reposilite {
-        val logger = AggregatedLogger(Slf4jLogger(LoggerFactory.getLogger(Reposilite::class.java)))
+        val logger = PrintStreamLogger(System.out, System.err, Channel.ALL, false)
 
         val configurationLoader = ConfigurationLoader(logger)
         val configuration = configurationLoader.tryLoad(parameters.configurationFile)
@@ -53,7 +52,7 @@ internal object ReposiliteWebConfiguration {
     }
 
     private fun createReposilite(parameters: ReposiliteParameters, journalist: Journalist, configuration: Configuration): Reposilite {
-        val logger = journalist.logger
+        val logger = ReposiliteJournalist(journalist, configuration.cachedLogSize)
         val coreThreadPool = QueuedThreadPool(configuration.coreThreadPool, 2)
 
         val webServer = WebConfiguration.createWebServer()
@@ -67,7 +66,7 @@ internal object ReposiliteWebConfiguration {
         val contextFactory = ReposiliteContextFactory(logger, configuration.forwardedIp, authenticationFacade)
 
         return Reposilite(
-            logger = logger,
+            journalist = logger,
             parameters = parameters,
             configuration = configuration,
             coreThreadPool = coreThreadPool,

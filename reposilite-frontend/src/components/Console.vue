@@ -1,8 +1,8 @@
 <template>
   <div class="container mx-auto pt-10 px-15 text-xs">
     <div class="bg-white dark:bg-gray-900 rounded-lg">
-      <div id="console" class="overflow-y-scroll h-144 px-4">
-        <p v-for="entry in log" :key="entry.id" v-html="entry.message"/>
+      <div id="console" class="overflow-scroll h-144 px-4">
+        <p v-for="entry in log" :key="entry.id" v-html="entry.message" class="whitespace-nowrap"/>
       </div>
       <hr class="dark:border-dark-300">
       <input
@@ -79,6 +79,7 @@ export default {
           const { token } = useSession()
 
           connection.value.onopen = () => {
+            log.value = []
             connection.value.send(`Authorization:${token.name}:${token.secret}`)
           }
 
@@ -89,6 +90,10 @@ export default {
             const message = event.data
               .replaceAll('<', '&lt;')
               .replaceAll('>', '&gt;')
+
+            if (message == 'keep-alive') {
+              return
+            }
 
             log.value.push({ id: id.value++, message: convert.toHtml(message) })
             nextTick(() => scrollToEnd())
@@ -101,6 +106,10 @@ export default {
             createToast('Connection with console has been lost', {
               type: 'danger'
             })
+
+          setInterval(() => {
+            connection?.value?.send('keep-alive')
+          }, 1000 * 60)
         } catch (error) {
           console.log(error)
           createToast(`${error.response.status}: ${error.response.data}`, {

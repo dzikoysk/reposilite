@@ -56,7 +56,7 @@ internal object ConsoleWebConfiguration {
     )
 
     fun javalin(javalin: Javalin, reposilite: Reposilite) {
-        javalin.ws("/api/console/sock", CliEndpoint(reposilite.contextFactory, reposilite.authenticationFacade, reposilite.consoleFacade, reposilite.cachedLogger))
+        javalin.ws("/api/console/sock", CliEndpoint(reposilite.contextFactory, reposilite.authenticationFacade, reposilite.consoleFacade, reposilite.journalist.cachedLogger))
     }
 
     fun dispose(consoleFacade: ConsoleFacade) {

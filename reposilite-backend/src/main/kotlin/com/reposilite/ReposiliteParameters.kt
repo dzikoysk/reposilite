@@ -14,10 +14,10 @@ import java.nio.file.Paths
 class ReposiliteParameters : Runnable {
 
     @Option(names = ["--help"], usageHelp = true, description = ["display help message"])
-    internal var usageHelpRequested = false
+    var usageHelpRequested = false
 
     @Option(names = ["--version", "-v"], versionHelp = true, description = ["display current version of reposilite"])
-    internal var versionInfoRequested = false
+    var versionInfoRequested = false
 
     @Option(names = ["--working-directory", "-wd"], description = ["set custom working directory of application instance"], defaultValue = "")
     private lateinit var workingDirectoryName: String

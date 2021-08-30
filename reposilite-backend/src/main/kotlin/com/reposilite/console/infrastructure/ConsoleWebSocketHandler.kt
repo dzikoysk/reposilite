@@ -34,7 +34,7 @@ internal class CliEndpoint(
     private val contextFactory: ReposiliteContextFactory,
     private val authenticationFacade: AuthenticationFacade,
     private val consoleFacade: ConsoleFacade,
-    private val cachedLogger: CachedLogger
+    private val cachedLogger: CachedLogger,
 ) : Consumer<WsConfig> {
 
     @OpenApi(
@@ -76,12 +76,17 @@ internal class CliEndpoint(
                 context.logger.info("CLI | $username accessed remote console")
 
                 wsConfig.onMessage { messageContext: WsMessageContext ->
-                    context.logger.info("CLI | " + username + "> " + messageContext.message())
-                    consoleFacade.executeCommand(messageContext.message())
+                    val message = messageContext.message()
+                    context.logger.info("CLI | $username> $message")
+
+                    when(messageContext.message()) {
+                        "keep-alive" -> messageContext.send("keep-alive")
+                        else -> consoleFacade.executeCommand(message)
+                    }
                 }
 
                 for (message in cachedLogger.messages) {
-                    connectContext.send(message) // TOFIX: To JSON
+                    connectContext.send(message.value)
                 }
             }
         }
