@@ -42,7 +42,7 @@ class StatisticsFacade internal constructor(
         recordsBulk.toMap().also {
             recordsBulk.clear() // read doesn't lock, so there is a possibility of dropping a few records between toMap and clear. Might be improved in the future
             statisticsRepository.incrementRecords(it)
-            logger.debug("[Statistics] Saved bulk with ${it.size} records")
+            logger.debug("Statistics | Saved bulk with ${it.size} records")
         }
 
     fun findRecordsByPhrase(type: String, phrase: String): Result<List<Record>, ErrorResponse> =

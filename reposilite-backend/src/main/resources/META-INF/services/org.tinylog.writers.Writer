@@ -14,4 +14,4 @@
 # limitations under the License.
 #
 
-com.reposilite.ReposiliteWriter
+com.reposilite.journalist.tinylog.TinyLogWriter

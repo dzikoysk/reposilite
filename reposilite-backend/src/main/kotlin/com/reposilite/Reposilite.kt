@@ -20,13 +20,11 @@ import com.reposilite.config.Configuration
 import com.reposilite.console.ConsoleFacade
 import com.reposilite.failure.FailureFacade
 import com.reposilite.frontend.FrontendFacade
-import com.reposilite.journalist.Channel
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
-import com.reposilite.journalist.backend.AggregatedLogger
-import com.reposilite.journalist.backend.CachedLogger
 import com.reposilite.maven.MavenFacade
 import com.reposilite.shared.TimeUtils.getPrettyUptimeInSeconds
+import com.reposilite.shared.peek
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.web.ReposiliteContextFactory
@@ -39,9 +37,10 @@ import java.util.concurrent.atomic.AtomicBoolean
 const val VERSION = "3.0.0-SNAPSHOT"
 
 class Reposilite(
-    logger: Logger,
+    val journalist: ReposiliteJournalist,
     val parameters: ReposiliteParameters,
     val configuration: Configuration,
+    val startTime: Long = System.currentTimeMillis(),
     val coreThreadPool: QueuedThreadPool,
     val webServer: WebServer,
     val contextFactory: ReposiliteContextFactory,
@@ -54,12 +53,11 @@ class Reposilite(
     val statisticsFacade: StatisticsFacade,
 ) : Journalist {
 
-    val cachedLogger = CachedLogger(Channel.ALL, configuration.cachedLogSize)
-    private val logger = AggregatedLogger(logger, cachedLogger)
-
     private val alive = AtomicBoolean(false)
-    private val shutdownHook = Thread { shutdown() }
-    val startTime = System.currentTimeMillis()
+
+    private val shutdownHook = Thread {
+        alive.peek { shutdown() }
+    }
 
     fun launch() {
         load()
@@ -117,20 +115,15 @@ class Reposilite(
     }
 
     @Synchronized
-    fun shutdown() {
-        if (!alive.get()) {
-            return
+    fun shutdown() =
+        alive.peek {
+            alive.set(false)
+            logger.info("Shutting down ${configuration.hostname}::${configuration.port}...")
+            ReposiliteWebConfiguration.dispose(this@Reposilite)
+            webServer.stop()
         }
 
-        alive.set(false)
-        Runtime.getRuntime().removeShutdownHook(shutdownHook)
-
-        logger.info("Shutting down ${configuration.hostname}::${configuration.port} ...")
-        ReposiliteWebConfiguration.dispose(this)
-        webServer.stop()
-    }
-
     override fun getLogger(): Logger =
-        logger
+        journalist.logger
 
 }

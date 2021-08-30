@@ -116,9 +116,10 @@ dependencies {
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jackson")
 
-    val journalist = "1.0.4"
+    val journalist = "1.0.8"
     implementation("com.reposilite:journalist:$journalist")
     implementation("com.reposilite:journalist-slf4j:$journalist")
+    implementation("com.reposilite:journalist-tinylog:$journalist")
 
     val tinylog = "2.3.1"
     implementation("org.tinylog:slf4j-tinylog:$tinylog")

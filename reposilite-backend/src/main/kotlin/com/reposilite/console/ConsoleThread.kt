@@ -17,7 +17,7 @@ package com.reposilite.console
 
 import com.reposilite.failure.FailureFacade
 import java.io.InputStream
-import java.util.*
+import java.util.Scanner
 
 internal class ConsoleThread(
     private val console: Console,
@@ -44,8 +44,7 @@ internal class ConsoleThread(
 
             try {
                 console.execute(command)
-            }
-            catch (exception: Exception) {
+            } catch (exception: Exception) {
                 failureFacade.throwException("Command: $command", exception)
             }
         } while (!isInterrupted && input.hasNextLine())
