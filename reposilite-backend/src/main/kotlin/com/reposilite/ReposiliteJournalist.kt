@@ -5,9 +5,12 @@ import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
 import com.reposilite.journalist.backend.AggregatedLogger
 import com.reposilite.journalist.backend.CachedLogger
+import com.reposilite.journalist.backend.PublisherLogger
 import com.reposilite.journalist.slf4j.Slf4jLogger
 import com.reposilite.journalist.tinylog.TinyLogLogger
 import org.slf4j.LoggerFactory
+import panda.std.Subscriber
+import kotlin.collections.MutableMap.MutableEntry
 
 /**
  * Initializes quite complicated flow of logging used in Reposilite.
@@ -28,12 +31,19 @@ class ReposiliteJournalist(
     val cachedLogger = CachedLogger(Channel.ALL, cachedLogSize)
 
     private val mainLogger = Slf4jLogger(LoggerFactory.getLogger(Reposilite::class.java))
-    private val visibleLogger = visibleJournalist.logger
+    private val publisherLogger = PublisherLogger(Channel.ALL)
+    private val visibleLogger = AggregatedLogger(visibleJournalist.logger, publisherLogger)
     private val redirectedLogger = AggregatedLogger(cachedLogger, visibleLogger)
 
     init {
         TinyLogLogger(Channel.ALL, redirectedLogger) // Redirect TinyLog output to redirected loggers
     }
+
+    fun subscribe(subscriber: Subscriber<MutableEntry<Channel, String>>): Int =
+        publisherLogger.subscribe(subscriber)
+
+    fun unsubscribe(subscriberId: Int): Boolean =
+        publisherLogger.unsubscribe(subscriberId)
 
     fun setVisibleThreshold(channel: Channel) {
         visibleLogger.setThreshold(channel)
