@@ -90,6 +90,7 @@ export default {
             const message = event.data
               .replaceAll('<', '&lt;')
               .replaceAll('>', '&gt;')
+              .replaceAll(' ', '&nbsp;')
 
             if (message == 'keep-alive') {
               return
@@ -109,7 +110,7 @@ export default {
 
           setInterval(() => {
             connection?.value?.send('keep-alive')
-          }, 1000 * 60)
+          }, 1000 * 10)
         } catch (error) {
           console.log(error)
           createToast(`${error.response.status}: ${error.response.data}`, {

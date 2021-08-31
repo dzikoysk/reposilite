@@ -15,16 +15,20 @@
  */
 package com.reposilite.console.infrastructure
 
+import com.reposilite.ReposiliteJournalist
 import com.reposilite.auth.AuthenticationFacade
 import com.reposilite.console.ConsoleFacade
-import com.reposilite.journalist.backend.CachedLogger
 import com.reposilite.token.api.AccessTokenPermission.MANAGER
+import com.reposilite.web.ReposiliteContext
 import com.reposilite.web.ReposiliteContextFactory
 import io.javalin.openapi.HttpMethod
 import io.javalin.openapi.OpenApi
 import io.javalin.websocket.WsConfig
-import io.javalin.websocket.WsConnectContext
+import io.javalin.websocket.WsContext
 import io.javalin.websocket.WsMessageContext
+import panda.std.Result
+import panda.std.Result.error
+import panda.std.Result.ok
 import panda.utilities.StringUtils
 import java.util.function.Consumer
 
@@ -34,61 +38,72 @@ internal class CliEndpoint(
     private val contextFactory: ReposiliteContextFactory,
     private val authenticationFacade: AuthenticationFacade,
     private val consoleFacade: ConsoleFacade,
-    private val cachedLogger: CachedLogger,
+    private val reposiliteJournalist: ReposiliteJournalist
 ) : Consumer<WsConfig> {
 
     @OpenApi(
         path = "/api/console/sock",
         methods = [HttpMethod.PATCH]
     )
-    override fun accept(wsConfig: WsConfig) {
-        wsConfig.onConnect { connectContext: WsConnectContext ->
-            wsConfig.onMessage { authContext: WsMessageContext ->
-                val context = contextFactory.create(authContext)
-                val authMessage = authContext.message()
+    override fun accept(ws: WsConfig) {
+        ws.onConnect { connection ->
+            ws.onMessage { messageContext ->
+                val context = contextFactory.create(connection)
 
-                if (!authMessage.startsWith(AUTHORIZATION_PREFIX)) {
-                    context.logger.info("CLI | Unauthorized CLI access request from ${context.address} (missing credentials)")
-                    connectContext.send("Unauthorized connection request")
-                    connectContext.session.disconnect()
-                    return@onMessage
-                }
-
-                val credentials = StringUtils.replaceFirst(authMessage, AUTHORIZATION_PREFIX, "")
-                val auth = authenticationFacade.authenticateByCredentials(credentials)
-
-                if (!auth.isOk || !auth.get().hasPermission(MANAGER)) {
-                    context.logger.info("CLI | Unauthorized CLI access request from " + context.address)
-                    connectContext.send("Unauthorized connection request")
-                    connectContext.session.disconnect()
-                    return@onMessage
-                }
-
-                val username = "${auth.get().name}@${context.address}"
-
-                wsConfig.onClose {
-                    context.logger.info("CLI | $username closed connection")
-                    // remove listener
-                }
-
-                // TOFIX: Listen
-                // ReposiliteWriter.getConsumers().put(connectContext, connectContext::send)
-                context.logger.info("CLI | $username accessed remote console")
-
-                wsConfig.onMessage { messageContext: WsMessageContext ->
-                    val message = messageContext.message()
-                    context.logger.info("CLI | $username> $message")
-
-                    when(messageContext.message()) {
-                        "keep-alive" -> messageContext.send("keep-alive")
-                        else -> consoleFacade.executeCommand(message)
+                authenticateContext(context, messageContext)
+                    .peek {
+                        context.logger.info("CLI | $it accessed remote console")
+                        initializeAuthenticatedContext(ws, connection, context, it)
                     }
-                }
+                    .onError {
+                        connection.send(it)
+                        connection.session.disconnect()
+                    }
+            }
+        }
+    }
 
-                for (message in cachedLogger.messages) {
-                    connectContext.send(message.value)
+    private fun authenticateContext(context: ReposiliteContext, connection: WsMessageContext): Result<String, String> {
+        val authMessage = connection.message()
+
+        if (!authMessage.startsWith(AUTHORIZATION_PREFIX)) {
+            context.logger.info("CLI | Unauthorized CLI access request from ${context.address} (missing credentials)")
+            return error("Unauthorized connection request")
+        }
+
+        val credentials = StringUtils.replaceFirst(authMessage, AUTHORIZATION_PREFIX, "")
+        val auth = authenticationFacade.authenticateByCredentials(credentials)
+
+        if (!auth.isOk || !auth.get().hasPermission(MANAGER)) {
+            context.logger.info("CLI | Unauthorized CLI access request from " + context.address)
+            return error("Unauthorized connection request")
+        }
+
+        return ok("${auth.get().name}@${context.address}")
+    }
+
+    private fun initializeAuthenticatedContext(ws: WsConfig, connection: WsContext, context: ReposiliteContext, session: String) {
+        ws.onMessage {
+            when(val message = it.message()) {
+                "keep-alive" -> connection.send("keep-alive")
+                else -> {
+                    context.logger.info("CLI | $session> $message")
+                    consoleFacade.executeCommand(message)
                 }
             }
+        }
+
+        val subscriberId = reposiliteJournalist.subscribe {
+            connection.send(it.value)
+        }
+
+        ws.onClose {
+            context.logger.info("CLI | $session closed connection")
+            reposiliteJournalist.unsubscribe(subscriberId)
+        }
+
+        for (message in reposiliteJournalist.cachedLogger.messages) {
+            connection.send(message.value)
         }
     }
 
