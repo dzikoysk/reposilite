@@ -19,6 +19,7 @@ import com.reposilite.Reposilite
 import com.reposilite.console.Console
 import com.reposilite.console.ConsoleFacade
 import com.reposilite.console.HelpCommand
+import com.reposilite.console.LevelCommand
 import com.reposilite.console.StatusCommand
 import com.reposilite.console.StopCommand
 import com.reposilite.console.VersionCommand
@@ -40,6 +41,7 @@ internal object ConsoleWebConfiguration {
 
     fun initialize(consoleFacade: ConsoleFacade, reposilite: Reposilite) {
         consoleFacade.registerCommand(HelpCommand(consoleFacade))
+        consoleFacade.registerCommand(LevelCommand(reposilite.journalist))
         consoleFacade.registerCommand(StatusCommand(reposilite, REMOTE_VERSION))
         consoleFacade.registerCommand(StopCommand(reposilite))
         consoleFacade.registerCommand(VersionCommand())
