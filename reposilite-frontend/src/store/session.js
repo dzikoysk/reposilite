@@ -49,7 +49,6 @@ export default function useSession() {
       const response = await client.auth.me(name, secret)
       updateToken(name, secret)
       session.tokenInfo = response.data
-      console.log(session.tokenInfo)
       return { token, session }
     } catch (error) {
       logout()

@@ -31,8 +31,18 @@ application
         id: 1,
         name: 'name',
         createdAt: Date.now(),
-        permissions: ['access-token:manager'],
-        routes: [{ path: '/', permissions: [ 'route:read', 'route:write' ] }]
+        permissions: [
+          { identifier: 'access-token:manager' }
+        ],
+        routes: [
+          {
+            path: '/',
+            permissions: [
+              { identifier: 'route:read' },
+              { identifier: 'route:write' }
+            ]
+          }
+        ]
       }),
       () => invalidCredentials(res)
     )
@@ -42,7 +52,7 @@ application
 
     connection.on('message', message => {
       if (message == 'Authorization:name:secret') {
-        sendMessage(connection, 'Authorized')
+        sendMessage(connection, 'DEBUG | Authorized')
         authenticated = true
       }
       
@@ -52,7 +62,7 @@ application
         return
       }
   
-      sendMessage(connection, 'Response: ' + message)
+      sendMessage(connection, 'INFO | Response: ' + message)
     })
   })
   .get('/api/maven/details', (req, res) => {
