@@ -21,9 +21,8 @@ import com.reposilite.console.Status.SUCCEEDED
 import panda.utilities.text.Joiner
 import picocli.CommandLine
 import picocli.CommandLine.Command
-import picocli.CommandLine.Model.ArgSpec
 import picocli.CommandLine.Parameters
-import java.util.*
+import java.util.TreeSet
 
 @Command(name = "help", aliases = ["?"], helpCommand = true, description = ["List of available commands"])
 internal class HelpCommand(private val consoleFacade: ConsoleFacade) : ReposiliteCommand {
@@ -56,7 +55,7 @@ internal class HelpCommand(private val consoleFacade: ConsoleFacade) : Reposilit
             val specification = command.commandSpec
 
             output.add("  " + command.commandName
-                    + " " + Joiner.on(" ").join(specification.args()) { obj: ArgSpec -> obj.paramLabel() }
+                    + " " + Joiner.on(" ").join(specification.args()) { obj -> obj.paramLabel() }
                     + " - " + Joiner.on(". ").join(*specification.usageMessage().description()))
         }
 

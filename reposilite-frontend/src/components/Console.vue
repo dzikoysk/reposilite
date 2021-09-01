@@ -1,5 +1,18 @@
 <template>
   <div class="container mx-auto pt-10 px-15 text-xs">
+    <div class="flex text-sm flex-col xl:flex-row w-full py-2 justify-between">
+      <input placeholder="Filter" v-model="filter" class="w-full xl:w-1/2 mr-5 py-1 px-4 rounded-lg bg-white dark:bg-gray-900" />
+      <div class="flex flex-row justify-around w-full xl:w-1/2">
+        <div v-for="level in levels" :key="level.name" class="pt-1.9 xl:pt-0.8 font-sans">
+          <input
+            type="checkbox" 
+            :checked="level.enabled" 
+            @change="level.enabled = !level.enabled"
+          >
+          <span class="pl-2 pr-4">{{ level.name }} ({{ level.count }})</span>
+        </div>
+      </div>
+    </div>
     <div class="bg-white dark:bg-gray-900 rounded-lg">
       <div id="console" class="overflow-scroll h-144 px-4">
         <p v-for="entry in log" :key="entry.id" v-html="entry.message" class="whitespace-nowrap"/>
@@ -7,7 +20,7 @@
       <hr class="dark:border-dark-300">
       <input
         placeholder="Type command or '?' to get help"
-        class="w-full pb-3 pt-2 px-4 rounded-b-lg bg-white dark:bg-gray-900 dark:text-white"
+        class="w-full py-2 px-4 rounded-b-lg bg-white dark:bg-gray-900 dark:text-white"
         v-model="command"
         @keyup.enter="execute()"
       />
@@ -19,9 +32,9 @@
 import { ref, watch, onUnmounted, nextTick } from 'vue'
 import { createToast } from 'mosha-vue-toastify'
 import 'mosha-vue-toastify/dist/style.css'
-import Convert from 'ansi-to-html'
 import useSession from '../store/session'
-import { createURL } from '../store/client'
+import useLog from '../store/log'
+import useConsole from '../store/console'
 
 export default {
   props: {
@@ -36,96 +49,64 @@ export default {
 
     watch(
       () => selectedTab.value,
-      newTab => {
-        console.log('Watch: ' + newTab)
-        active.value = (newTab == 'Console')
-      },
+      newTab => (active.value = (newTab == 'Console')),
       { immediate: true }
     )
 
-    const connection = ref({})
-    const log = ref([])
-    const command = ref('')
+    const { levels, log, logMessage, filter } = useLog()
 
-    const execute = () => {
-      connection.value.send(command.value)
-      command.value = ''
+    const { 
+      onOpen, onMessage, onClose, onError, 
+      connect,
+      close,
+      command,
+      execute 
+    } = useConsole()
+
+    onUnmounted(() => close())
+
+    const scrollToEnd = () => {
+      const console = document.getElementById('console')
+      console.scrollTop = console.scrollHeight
+    }
+
+    const setupConnection = () => {
+      createToast('Connecting to the remote console', { type: 'info', })
+      const { token } = useSession()
+
+      onOpen.value = () => 
+        (log.value = [])
+
+      onMessage.value = message => {
+        logMessage(message)
+        nextTick(() => scrollToEnd())
+      }
+
+      onError.value = error =>
+        createToast(`${error} || ''}`, {
+          type: 'danger'
+        })
+
+      onClose.value = () =>
+        createToast('Connection with console has been lost', {
+          type: 'danger'
+        })
+
+      connect(token)
     }
 
     watch(
       () => active.value,
-      isActive => {
-        if (!isActive) {
-          connection?.value?.close()
-          return
-        }
-
-        createToast('Connecting to the remote console', {
-          type: 'info',
-          transition: 'zoom'
-        })
-
-        try {
-          const scrollToEnd = () => {
-            const console = document.getElementById('console')
-            console.scrollTop = console.scrollHeight
-          }
-
-          const consoleAddress = createURL('/api/console/sock')
-            .replace('https', 'wss')
-            .replace('http', 'ws')
-
-          connection.value = new WebSocket(consoleAddress)
-          const { token } = useSession()
-
-          connection.value.onopen = () => {
-            log.value = []
-            connection.value.send(`Authorization:${token.name}:${token.secret}`)
-          }
-
-          const id = ref(0)
-          const convert = new Convert()
-
-          connection.value.onmessage = event => {
-            const message = event.data
-              .replaceAll('<', '&lt;')
-              .replaceAll('>', '&gt;')
-              .replaceAll(' ', '&nbsp;')
-
-            if (message == 'keep-alive') {
-              return
-            }
-
-            log.value.push({ id: id.value++, message: convert.toHtml(message) })
-            nextTick(() => scrollToEnd())
-          }
-
-          connection.value.onerror = error =>
-            createToast(`Cli error ${error.data}`, { type: 'danger' })
-
-          connection.value.onclose = () =>
-            createToast('Connection with console has been lost', {
-              type: 'danger'
-            })
-
-          setInterval(() => {
-            connection?.value?.send('keep-alive')
-          }, 1000 * 10)
-        } catch (error) {
-          console.log(error)
-          createToast(`${error.response.status}: ${error.response.data}`, {
-            type: 'danger'
-          })
-        }
-      }
+      isActive => isActive ? setupConnection() : close(),
+      { immediate: true }
     )
-
-    onUnmounted(() => connection?.value?.close())
 
     return {
       log,
       command,
-      execute
+      execute,
+      levels,
+      filter
     }
   }
 }

@@ -80,8 +80,14 @@ export default {
     const menuTabs = ref([])
     const consoleEnabled = ref(false)
     const selectedTab = reactive({
-      value: 'Overview'
+      value: localStorage.getItem('selectedTab') || 'Overview'
     })
+
+    watch(
+      () => selectedTab.value,
+      newTab => localStorage.setItem('selectedTab', newTab),
+      { immediate: true }
+    )
 
     watch(
       () => session.tokenInfo, 
