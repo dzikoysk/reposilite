@@ -47,6 +47,8 @@ import java.nio.file.Path
 import java.nio.file.StandardOpenOption.CREATE
 import java.nio.file.StandardOpenOption.WRITE
 import java.nio.file.attribute.FileTime
+import kotlin.io.path.absolutePathString
+import kotlin.io.path.fileSize
 
 /**
  * @param rootDirectory root directory of storage space
@@ -87,6 +89,9 @@ internal abstract class FileSystemStorageProvider protected constructor(
                     val spaceResponse = canHold(size)
 
                     if (spaceResponse.isErr) {
+                        Files.walk(rootDirectory).forEach {
+                            println(it.absolutePathString() + " | " + it.fileSize())
+                        }
                         return@catchIOException errorResponse(HttpCode.INSUFFICIENT_STORAGE, "Not enough storage space available: " + spaceResponse.error.message)
                     }
 
