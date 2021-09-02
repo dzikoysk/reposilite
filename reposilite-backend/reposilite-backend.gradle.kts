@@ -21,8 +21,8 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent.SKIPPED
 import org.gradle.api.tasks.testing.logging.TestLogEvent.STARTED
 
 plugins {
-    kotlin("jvm") version "1.5.20"
-    kotlin("kapt") version "1.5.20"
+    kotlin("jvm") version "1.5.30"
+    kotlin("kapt") version "1.5.30"
     kotlin("plugin.serialization") version "1.5.20"
     application
     jacoco
@@ -68,7 +68,7 @@ dependencies {
     implementation(kotlin("reflect"))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.1")
 
-    val expressible = "1.0.6"
+    val expressible = "1.0.7"
     implementation("org.panda-lang:expressible:$expressible")
     implementation("org.panda-lang:expressible-kt:$expressible")
     testImplementation("org.panda-lang:expressible-junit:$expressible")
