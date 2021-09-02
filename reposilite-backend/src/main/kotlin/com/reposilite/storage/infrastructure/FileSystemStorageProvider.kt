@@ -84,9 +84,10 @@ internal abstract class FileSystemStorageProvider protected constructor(
             resolved(file)
                 .let { file ->
                     val size = measure.apply(input).toLong()
+                    val spaceResponse = canHold(size)
 
-                    if (canHold(size).isErr) {
-                        return@catchIOException errorResponse(HttpCode.INSUFFICIENT_STORAGE, "Not enough storage space available")
+                    if (spaceResponse.isErr) {
+                        return@catchIOException errorResponse(HttpCode.INSUFFICIENT_STORAGE, "Not enough storage space available: " + spaceResponse.error.status)
                     }
 
                     if (file.parent != null && !Files.exists(file.parent)) {
