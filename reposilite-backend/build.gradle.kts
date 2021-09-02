@@ -43,7 +43,7 @@ publishing {
 
 dependencies {
     implementation(kotlin("reflect"))
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
 
     val expressible = "1.0.9"
     implementation("org.panda-lang:expressible:$expressible")
