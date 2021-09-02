@@ -107,7 +107,7 @@ dependencies {
     implementation("com.google.http-client:google-http-client:1.39.2")
     implementation("org.springframework.security:spring-security-crypto:5.4.6")
     implementation("commons-io:commons-io:2.8.0")
-    implementation("org.fusesource.jansi:jansi:2.3.2")
+    implementation("org.fusesource.jansi:jansi:2.3.4")
 
     /* Tests */
 
