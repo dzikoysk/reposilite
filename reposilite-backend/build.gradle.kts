@@ -14,39 +14,23 @@
  * limitations under the License.
  */
 
-import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
 import org.gradle.api.tasks.testing.logging.TestLogEvent.FAILED
 import org.gradle.api.tasks.testing.logging.TestLogEvent.PASSED
 import org.gradle.api.tasks.testing.logging.TestLogEvent.SKIPPED
 import org.gradle.api.tasks.testing.logging.TestLogEvent.STARTED
 
 plugins {
-    kotlin("jvm") version "1.5.21"
-    kotlin("kapt") version "1.5.21"
-    kotlin("plugin.serialization") version "1.5.20"
+    kotlin("kapt")
+    kotlin("plugin.serialization") version "1.5.21"
     application
     jacoco
-    `maven-publish`
 }
-
-group = "org.panda-lang"
-version = "3.0.0-SNAPSHOT"
 
 application {
     mainClass.set("com.reposilite.ReposiliteLauncher")
 }
 
 publishing {
-    repositories {
-        maven {
-            credentials {
-                username = property("mavenUser") as String
-                password = property("mavenPassword") as String
-            }
-            name = "panda-repository"
-            url = uri("https://repo.panda-lang.org/releases")
-        }
-    }
     publications {
         create<MavenPublication>("library") {
             groupId = "org.panda-lang"
@@ -56,19 +40,11 @@ publishing {
     }
 }
 
-repositories {
-    mavenCentral()
-    maven { url = uri("https://repo.panda-lang.org/releases") }
-    maven { url = uri("https://s01.oss.sonatype.org/content/repositories/releases/") }
-    maven { url = uri("https://jitpack.io") }
-}
-
 dependencies {
-    implementation(kotlin("stdlib"))
     implementation(kotlin("reflect"))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.1")
 
-    val expressible = "1.0.7"
+    val expressible = "1.0.8"
     implementation("org.panda-lang:expressible:$expressible")
     implementation("org.panda-lang:expressible-kt:$expressible")
     testImplementation("org.panda-lang:expressible-junit:$expressible")
@@ -148,11 +124,6 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
-}
-
 kapt {
     arguments {
         arg("project", "${project.group}/${project.name}")
@@ -176,8 +147,13 @@ tasks {
         useJUnitPlatform()
 
         testLogging {
-            events(STARTED, PASSED, FAILED, SKIPPED)
-            exceptionFormat = FULL
+            events(
+                STARTED,
+                PASSED,
+                FAILED,
+                SKIPPED
+            )
+            exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
             showExceptions = true
             showCauses = true
             showStackTraces = true
