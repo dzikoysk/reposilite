@@ -23,7 +23,7 @@ internal class FixedQuota(rootDirectory: Path, private val maxSize: Long) : File
     override fun canHold(contentLength: Long): Result<*, ErrorResponse> =
         usage()
             .map { it + contentLength }
-            .filter({ it <= maxSize }, { ErrorResponse(INSUFFICIENT_STORAGE, "Repository cannot hold the given file") })
+            .filter({ it <= maxSize }, { ErrorResponse(INSUFFICIENT_STORAGE, "Repository cannot hold the given file ($it + $contentLength > $maxSize)") })
 
 }
 
