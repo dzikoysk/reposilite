@@ -19,7 +19,7 @@
     "simple-syntax-highlighter": "^2.0.6",
     "vue": "^3.0.11",
     "vue-axios": "^3.2.5",
-    "vue-final-modal": "^3.4.0",
+    "vue-final-modal": "^3.4.1",
     "vue-router": "^4.0.6",
     "vue3-tabs": "^0.1.12"
   },
