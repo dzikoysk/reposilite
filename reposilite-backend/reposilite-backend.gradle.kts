@@ -21,8 +21,8 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent.SKIPPED
 import org.gradle.api.tasks.testing.logging.TestLogEvent.STARTED
 
 plugins {
-    kotlin("jvm") version "1.5.30"
-    kotlin("kapt") version "1.5.30"
+    kotlin("jvm") version "1.5.21"
+    kotlin("kapt") version "1.5.21"
     kotlin("plugin.serialization") version "1.5.20"
     application
     jacoco
@@ -163,62 +163,69 @@ jacoco {
     toolVersion = "0.8.7"
 }
 
-tasks.getByName<Test>("test") {
-    useJUnitPlatform()
-}
-
-tasks.withType<Test> {
-    testLogging {
-        events(STARTED, PASSED, FAILED, SKIPPED)
-        exceptionFormat = FULL
-        showExceptions = true
-        showCauses = true
-        showStackTraces = true
-    }
-    useJUnitPlatform()
-}
-
-tasks.test {
-    extensions.configure(JacocoTaskExtension::class) {
-        setDestinationFile(file("$buildDir/jacoco/jacoco.exec"))
+tasks {
+    // Enable KAPT processing on JDK16
+    // ~ # https://youtrack.jetbrains.com/issue/KT-45545#focus=Comments-27-4773544.0-0
+    withType<JavaCompile> {
+        options.fork(mapOf(Pair("jvmArgs", listOf("--add-opens", "jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED"))))
     }
 
-    finalizedBy("jacocoTestReport")
-}
+    /* Configure integration of JUnit platform with JaCoCo */
 
-tasks.jacocoTestReport {
-    reports {
-        html.required.set(false)
-        csv.required.set(false)
+    withType<Test> {
+        useJUnitPlatform()
 
-        csv.required.set(true)
-        xml.outputLocation.set(file("$buildDir/reports/jacoco/report.xml"))
-    }
-
-    finalizedBy("jacocoTestCoverageVerification")
-}
-
-tasks.jacocoTestCoverageVerification {
-    violationRules {
-        rule {
-            limit {
-                minimum = "0.0".toBigDecimal()
-            }
+        testLogging {
+            events(STARTED, PASSED, FAILED, SKIPPED)
+            exceptionFormat = FULL
+            showExceptions = true
+            showCauses = true
+            showStackTraces = true
         }
-        rule {
-            enabled = true
-            element = "CLASS"
-            limit {
-                counter = "BRANCH"
-                value = "COVEREDRATIO"
-                minimum = "0.0".toBigDecimal()
+    }
+
+    test {
+        extensions.configure(JacocoTaskExtension::class) {
+            setDestinationFile(file("$buildDir/jacoco/jacoco.exec"))
+        }
+
+        finalizedBy("jacocoTestReport")
+    }
+
+    jacocoTestReport {
+        reports {
+            html.required.set(false)
+            csv.required.set(false)
+
+            csv.required.set(true)
+            xml.outputLocation.set(file("$buildDir/reports/jacoco/report.xml"))
+        }
+
+        finalizedBy("jacocoTestCoverageVerification")
+    }
+
+    jacocoTestCoverageVerification {
+        violationRules {
+            rule {
+                limit {
+                    minimum = "0.0".toBigDecimal()
+                }
             }
-            limit {
-                counter = "LINE"
-                value = "COVEREDRATIO"
-                minimum = "0.0".toBigDecimal()
+            rule {
+                enabled = true
+                element = "CLASS"
+                limit {
+                    counter = "BRANCH"
+                    value = "COVEREDRATIO"
+                    minimum = "0.0".toBigDecimal()
+                }
+                limit {
+                    counter = "LINE"
+                    value = "COVEREDRATIO"
+                    minimum = "0.0".toBigDecimal()
+                }
+                excludes = listOf()
             }
-            excludes = listOf()
         }
     }
 }

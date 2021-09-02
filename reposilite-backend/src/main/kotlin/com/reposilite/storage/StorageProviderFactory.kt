@@ -16,11 +16,11 @@
 
 package com.reposilite.storage
 
+import com.reposilite.config.Configuration.RepositoryConfiguration.S3StorageProviderSettings
 import com.reposilite.journalist.Journalist
 import com.reposilite.shared.loadCommandBasedConfiguration
 import com.reposilite.storage.infrastructure.FileSystemStorageProviderFactory
 import com.reposilite.storage.infrastructure.S3StorageProvider
-import com.reposilite.storage.infrastructure.S3StorageProviderSettings
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3Client
