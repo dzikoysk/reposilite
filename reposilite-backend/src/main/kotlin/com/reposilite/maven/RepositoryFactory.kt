@@ -18,9 +18,9 @@ package com.reposilite.maven
 
 import com.reposilite.config.Configuration.RepositoryConfiguration
 import com.reposilite.config.Configuration.RepositoryConfiguration.ProxiedHostConfiguration
-import com.reposilite.config.ConfigurationLoader
 import com.reposilite.journalist.Journalist
 import com.reposilite.maven.MavenFacade.Companion.REPOSITORIES
+import com.reposilite.shared.loadCommandBasedConfiguration
 import com.reposilite.shared.safeResolve
 import com.reposilite.storage.StorageProviderFactory.createStorageProvider
 import java.nio.file.Path
@@ -45,7 +45,7 @@ internal class RepositoryFactory(
         )
 
     private fun createProxiedHostConfiguration(configuration: String): Pair<String, ProxiedHostConfiguration> =
-        with(ConfigurationLoader.loadConfiguration(ProxiedHostConfiguration(), configuration)) {
+        with(loadCommandBasedConfiguration(ProxiedHostConfiguration(), configuration)) {
             if (first.endsWith("/"))
                 Pair(first.substring(0, first.length - 1), second)
             else

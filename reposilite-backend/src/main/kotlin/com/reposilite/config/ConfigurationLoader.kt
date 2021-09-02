@@ -19,33 +19,11 @@ import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
 import net.dzikoysk.cdn.CdnFactory
 import panda.utilities.StringUtils
-import picocli.CommandLine
 import java.nio.file.Path
 
 const val DEFAULT_CONFIGURATION_FILE = "reposilite.cdn"
 
 class ConfigurationLoader(private val journalist: Journalist) : Journalist {
-
-    companion object {
-
-        fun <CONFIGURATION : Runnable> loadConfiguration(configuration: CONFIGURATION, description: String): Pair<String, CONFIGURATION> =
-            description.split(" ", limit = 2)
-                .let { Pair(it[0], it.getOrNull(1) ?: "") }
-                .also {
-                    val commandLine = CommandLine(configuration)
-
-                    val args =
-                        if (it.second.isEmpty())
-                            arrayOf()
-                        else
-                            it.second.split(" ").toTypedArray()
-
-                    commandLine.execute(*args)
-                }
-                .let { Pair(it.first, configuration) }
-                .also { it.second.run() }
-
-    }
 
     fun tryLoad(customConfigurationFile: Path): Configuration {
         return try {

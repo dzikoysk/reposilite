@@ -73,11 +73,11 @@ dependencies {
     implementation("org.panda-lang:expressible-kt:$expressible")
     testImplementation("org.panda-lang:expressible-junit:$expressible")
 
-    val awssdk = "2.15.15"
+    val awssdk = "2.17.31"
     implementation("software.amazon.awssdk:bom:$awssdk")
     implementation("software.amazon.awssdk:s3:$awssdk")
 
-    val exposed = "0.32.1"
+    val exposed = "0.34.1"
     implementation("org.jetbrains.exposed:exposed-core:$exposed")
     implementation("org.jetbrains.exposed:exposed-dao:$exposed")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposed")
@@ -134,10 +134,13 @@ dependencies {
 
     /* Tests */
 
-    val testcontainers = "1.15.3"
+    val testcontainers = "1.16.0"
     testImplementation("org.testcontainers:mariadb:$testcontainers")
     testImplementation("org.testcontainers:testcontainers:$testcontainers")
     testImplementation("org.testcontainers:junit-jupiter:$testcontainers")
+    testImplementation("org.testcontainers:localstack:$testcontainers")
+
+    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.59")
 
     testImplementation("com.google.http-client:google-http-client-jackson2:1.39.2")
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.7.1")
