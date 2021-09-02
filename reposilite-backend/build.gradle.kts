@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
 import org.gradle.api.tasks.testing.logging.TestLogEvent.FAILED
 import org.gradle.api.tasks.testing.logging.TestLogEvent.PASSED
 import org.gradle.api.tasks.testing.logging.TestLogEvent.SKIPPED
@@ -153,10 +154,11 @@ tasks {
                 FAILED,
                 SKIPPED
             )
-            exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+            exceptionFormat = FULL
             showExceptions = true
             showCauses = true
             showStackTraces = true
+            showStandardStreams = true
         }
     }
 
