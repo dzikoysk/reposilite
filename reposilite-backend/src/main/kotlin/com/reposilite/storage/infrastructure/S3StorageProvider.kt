@@ -26,19 +26,18 @@ import com.reposilite.shared.getExtension
 import com.reposilite.shared.getSimpleName
 import com.reposilite.shared.safeResolve
 import com.reposilite.storage.StorageProvider
+import com.reposilite.web.http.ErrorResponse
+import com.reposilite.web.http.errorResponse
 import io.javalin.http.ContentType
 import io.javalin.http.ContentType.APPLICATION_OCTET_STREAM
 import io.javalin.http.ContentType.Companion.OCTET_STREAM
-import com.reposilite.web.http.ErrorResponse
-import com.reposilite.web.http.errorResponse
 import io.javalin.http.HttpCode
 import io.javalin.http.HttpCode.NOT_FOUND
 import panda.std.Result
 import panda.std.asSuccess
-import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider
 import software.amazon.awssdk.core.sync.RequestBody
-import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3Client
+import software.amazon.awssdk.services.s3.model.BucketAlreadyExistsException
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest
 import software.amazon.awssdk.services.s3.model.GetObjectRequest
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest
@@ -54,14 +53,19 @@ import java.nio.file.attribute.FileTime
 
 internal class S3StorageProvider(
     private val journalist: Journalist,
+    private val s3: S3Client,
     private val bucket: String,
-    region: String
 ) : StorageProvider, Journalist {
 
-    private val s3: S3Client = S3Client.builder()
-        .region(Region.of(region))
-        .credentialsProvider(AnonymousCredentialsProvider.create())
-        .build()
+    init {
+        try {
+            s3.createBucket {
+                it.bucket(bucket)
+            }
+        } catch (bucketExists: BucketAlreadyExistsException) {
+            // ignored
+        }
+    }
 
     override fun putFile(file: Path, bytes: ByteArray): Result<DocumentInfo, ErrorResponse> =
         try {

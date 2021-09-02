@@ -16,11 +16,14 @@
 
 package com.reposilite.storage
 
-import com.reposilite.config.ConfigurationLoader
 import com.reposilite.journalist.Journalist
+import com.reposilite.shared.loadCommandBasedConfiguration
 import com.reposilite.storage.infrastructure.FileSystemStorageProviderFactory
 import com.reposilite.storage.infrastructure.S3StorageProvider
 import com.reposilite.storage.infrastructure.S3StorageProviderSettings
+import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider
+import software.amazon.awssdk.regions.Region
+import software.amazon.awssdk.services.s3.S3Client
 import java.nio.file.Files
 import java.nio.file.Path
 
@@ -33,13 +36,19 @@ internal object StorageProviderFactory {
         }
         else if (storageDescription.startsWith("s3")) {
             // Implement quota
-            val settings = ConfigurationLoader.loadConfiguration(S3StorageProviderSettings(), storageDescription).second
-            S3StorageProvider(journalist, settings.bucketName, settings.region)
+            val settings = loadCommandBasedConfiguration(S3StorageProviderSettings(), storageDescription).second
+            S3StorageProvider(journalist, createUnauthenticatedS3Client(settings.region), settings.bucketName)
         }
         // else if (storageDescription.equals("rest", ignoreCase = true)) {
         // TOFIX REST API storage endpoint
         //    null
         //}
         else throw UnsupportedOperationException("Unknown storage provider: $storageDescription")
+
+    private fun createUnauthenticatedS3Client(region: String): S3Client =
+         S3Client.builder()
+            .region(Region.of(region))
+            .credentialsProvider(AnonymousCredentialsProvider.create())
+            .build()
 
 }

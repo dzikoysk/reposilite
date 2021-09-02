@@ -22,7 +22,7 @@ import com.reposilite.journalist.Channel
 import picocli.CommandLine.Command
 import picocli.CommandLine.Parameters
 
-@Command(name = "version", description = ["Change current level of visible logging"])
+@Command(name = "level", description = ["Change current level of visible logging"])
 internal class LevelCommand(private val journalist: ReposiliteJournalist) : ReposiliteCommand {
 
     @Parameters(index = "0", paramLabel = "<level>", description = ["the new threshold"], defaultValue = "info")
