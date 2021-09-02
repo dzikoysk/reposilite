@@ -17,6 +17,8 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.attribute.FileTime
+import kotlin.io.path.absolutePathString
+import kotlin.io.path.fileSize
 import kotlin.io.path.isDirectory
 import kotlin.streams.toList
 import panda.std.Result.`when` as once
@@ -67,7 +69,10 @@ fun Path.size(): Result<Long, ErrorResponse> =
         exists().map {
             when (type()) {
                 FILE -> Files.size(this)
-                DIRECTORY -> Files.walk(this).mapToLong { Files.size(it) }.sum()
+                DIRECTORY -> Files.walk(this).mapToLong {
+                    println(it.absolutePathString() + " | " + it.fileSize())
+                    Files.size(it)
+                }.sum()
             }
         }
     }
