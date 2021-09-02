@@ -21,6 +21,7 @@ import net.dzikoysk.cdn.entity.Contextual
 import net.dzikoysk.cdn.entity.Description
 import picocli.CommandLine.Command
 import picocli.CommandLine.Option
+import picocli.CommandLine.Parameters
 import java.io.Serializable
 
 class Configuration : Serializable {
@@ -95,10 +96,29 @@ class Configuration : Serializable {
         @Description(
             "# Used storage type. Supported storage providers:",
             "# - fs",
-            "# - s3 bucket-name region"
+            "# - s3 accessKey secretKey region bucket-name"
         )
         @JvmField
         var storageProvider = "fs"
+
+        @Command(name = "s3", description = ["Amazon S3 storage provider settings"])
+        internal class S3StorageProviderSettings : Runnable {
+
+            @Parameters(index = "0", paramLabel = "<access-key>")
+            lateinit var accessKey: String
+
+            @Parameters(index = "1", paramLabel = "<secret-key>")
+            lateinit var secretKey: String
+
+            @Parameters(index = "2", paramLabel = "<region>")
+            lateinit var region: String
+
+            @Parameters(index = "3", paramLabel = "<bucket-name>")
+            lateinit var bucketName: String
+
+            override fun run() { /* Validation */ }
+
+        }
 
         @Description(
             "# Control the maximum amount of data stored in this repository",
