@@ -67,7 +67,9 @@ fun Path.size(): Result<Long, ErrorResponse> =
         exists().map {
             when (type()) {
                 FILE -> Files.size(this)
-                DIRECTORY -> Files.walk(this).mapToLong { Files.size(it) }.sum()
+                DIRECTORY -> Files.walk(this)
+                    .mapToLong { Files.size(it) }
+                    .sum()
             }
         }
     }
