@@ -87,7 +87,7 @@ dependencies {
     implementation("io.github.pdvrieze.xmlutil:core-jvm:$xmlutil")
     implementation("io.github.pdvrieze.xmlutil:serialization-jvm:$xmlutil")
 
-    val jackson = "2.12.4"
+    val jackson = "2.12.5"
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jackson")
     // implementation("com.fasterxml.jackson.module:jackson-module-parameter-names:$jackson")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson")
