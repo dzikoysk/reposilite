@@ -1,7 +1,7 @@
 version: 2
 updates:
   - package-ecosystem: "gradle"
-    directory: "/"
+    directory: "/reposilite-backend"
     schedule:
       interval: "daily"
       time: "16:15"
