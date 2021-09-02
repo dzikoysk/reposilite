@@ -12,7 +12,7 @@ internal class FileSystemStorageProviderTest : StorageProviderTest() {
 
     @BeforeEach
     fun setup() {
-        super.storageProvider = FileSystemStorageProviderFactory.of(rootDirectory.toPath(), 1000L)
+        super.storageProvider = FileSystemStorageProviderFactory.of(rootDirectory.toPath(), 1024 * 1024)
     }
 
 }
