@@ -96,7 +96,7 @@ export default {
 
     const menuTabs = computed(() => {
         return tabs
-        // .filter(entry => !entry?.manager || isManager(session.tokenInfo))
+        .filter(entry => !entry?.manager || isManager(session.tokenInfo))
         .map(entry => entry.name)
     })
 
