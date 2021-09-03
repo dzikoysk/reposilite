@@ -37,8 +37,13 @@
         :key="`tp${i}`"
         :val="entry.name"
       >
-        <div class="mt-6 p-4 mr-1 rounded-lg bg-gray-100 dark:bg-gray-900">
-          <pre class="text-sm max-w-21">{{entry.value.trim()}}</pre>
+        <div class="relative h-33 mt-6 p-4 mr-1 rounded-lg bg-gray-100 dark:bg-gray-900">
+          <prism-editor 
+            class="snippet absolute text-sm" 
+            v-model="entry.value" 
+            :highlight="highlighter" 
+            readonly
+          />
         </div>
       </tab-panel>
     </tab-panels>
@@ -48,32 +53,54 @@
 <script>
 import { reactive, toRefs } from 'vue'
 
-const tabs = [
-  { 
-    name: 'Maven', 
-    value: `
+import { PrismEditor } from 'vue-prism-editor'
+import 'vue-prism-editor/dist/prismeditor.min.css' // import the styles somewhere
+import prism from "prismjs"
+import "prismjs/themes/prism-coy.css"
+
+export default {
+  components: {
+    PrismEditor
+  },
+  setup() {
+    const tabs = [
+      { 
+        name: 'Maven', 
+        value: `
 <dependency>
     <groupId>{groupId}</groupId>
     <artifactId>{artifactId}</artifactId>
     <version>{version}</version>
-</dependency>`
-  },
-  { name: 'Gradle Groovy', value: `implementation "{groupId}:{artifactId}:{version}"` }, 
-  { name: 'Gradle Kotlin', value: `implementation("{groupId}:{artifactId}:{version}")` },
-  // { name: 'Panda', value: `maven:{groupId}/{artifactId}@{version}` },
-  { name: 'SBT', value: `"{groupId}" %% "{artifactId}" %% "{version}"` }
-]
+</dependency>`.trim()
+      },
+      { name: 'Gradle Groovy', value: `implementation "{groupId}:{artifactId}:{version}"` }, 
+      { name: 'Gradle Kotlin', value: `implementation("{groupId}:{artifactId}:{version}")` },
+      { name: 'SBT', value: `"{groupId}" %% "{artifactId}" %% "{version}"` }
+    ]
 
-export default {
-  setup() {
     const state = reactive({
       selectedTab: tabs[0].name
     })
 
+    const highlighter = (code) =>
+      code.includes('<dependency>') 
+        ? prism.highlight(code, prism.languages.xml) 
+        : prism.highlight(code, prism.languages.js)
+
     return {
       tabs,
+      highlighter,
       ...toRefs(state)
     }
   }
 }
 </script>
+
+<style>
+.snippet {
+    font-family: 'Consolas', 'monospace';
+}
+.token.tag {
+  color: purple;
+}
+</style>
