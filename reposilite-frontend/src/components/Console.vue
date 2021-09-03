@@ -45,15 +45,8 @@ export default {
   },
   setup(props) {    
     const selectedTab = props.selectedTab
-    const active = ref(false)
 
-    watch(
-      () => selectedTab.value,
-      newTab => (active.value = (newTab == 'Console')),
-      { immediate: true }
-    )
-
-    const { levels, log, logMessage, filter } = useLog()
+    const { levels, log, logMessage, filter, clearLog } = useLog()
 
     const { 
       onOpen, onMessage, onClose, onError, 
@@ -74,16 +67,14 @@ export default {
       createToast('Connecting to the remote console', { type: 'info', })
       const { token } = useSession()
 
-      onOpen.value = () => 
-        (log.value = [])
-
+      onOpen.value = () => clearLog()
       onMessage.value = message => {
         logMessage(message)
         nextTick(() => scrollToEnd())
       }
 
       onError.value = error =>
-        createToast(`${error} || ''}`, {
+        createToast(`${error || ''}`, {
           type: 'danger'
         })
 
@@ -96,8 +87,8 @@ export default {
     }
 
     watch(
-      () => active.value,
-      isActive => isActive ? setupConnection() : close(),
+      () => selectedTab.value,
+      selectedTab => selectedTab === 'Console' ? setupConnection() : close(),
       { immediate: true }
     )
 
