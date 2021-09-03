@@ -1,21 +1,15 @@
 import { computed, ref, watch, watchEffect, reactive } from 'vue'
 import Convert from 'ansi-to-html'
 
-const levelNames = ['Trace', 'Debug', 'Info', 'Warn', 'Error']
+const levelNames = ['Other', 'Trace', 'Debug', 'Info', 'Warn', 'Error']
 const levels  = reactive({})
 const filter = ref('')
 const id = ref(0)
 const rawLog = reactive([])
 const convert = new Convert()
 
-const getLevel = message => {
-  for (const level of levelNames) {
-    // NOTE: If the message starts with following prefix, then use startsWith
-    if (message.includes(`&nbsp;|&nbsp;${level.toUpperCase()}&nbsp;|&nbsp;`)) {
-      return level
-    }
-  }
-}
+const getLevel = message =>
+  levelNames.find(level => message.includes(` | ${level.toUpperCase()} | `)) || 'Other'
 
 const sanitizeMessage = (message) => convert.toHtml(
   message
@@ -25,13 +19,13 @@ const sanitizeMessage = (message) => convert.toHtml(
 )
 
 export default function useLog() {
-  for (const level of levelNames) {
+  levelNames.forEach(level => {
     levels[level] = {
       name: level,
       enabled: true,
       count: computed(() => rawLog.reduce((accumulator, entry) => accumulator + (entry.level === level), 0))
     }
-  }
+  })
 
   const log = computed(() => {
     return rawLog
