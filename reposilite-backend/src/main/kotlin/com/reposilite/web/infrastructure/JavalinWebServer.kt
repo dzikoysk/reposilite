@@ -34,7 +34,6 @@ internal class JavalinWebServer : WebServer {
                 }
                 listener.serverStopped {
                     dispatcher.completeShutdown()
-                    reposilite.scheduler.shutdownNow()
                     reposilite.coreThreadPool.stop()
                     reposilite.logger.info("Bye! Uptime: " + TimeUtils.getPrettyUptimeInMinutes(reposilite.startTime))
                 }

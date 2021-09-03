@@ -60,7 +60,7 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposed")
     implementation("org.jetbrains.exposed:exposed-java-time:$exposed")
     implementation("net.dzikoysk:exposed-upsert:1.0.1")
-    implementation("com.h2database:h2:1.4.199")
+    implementation("com.h2database:h2:1.4.199") // 1.4.200 is broken
 
     val fuel = "2.3.1"
     implementation("com.github.kittinunf.fuel:fuel:$fuel")
@@ -75,7 +75,7 @@ dependencies {
     implementation("com.reposilite.javalin-rfcs:javalin-context:$javalinRfcs")
     implementation("com.reposilite.javalin-rfcs:javalin-reactive-routing:$javalinRfcs")
 
-    val javalin = "4.0.0.RC1"
+    val javalin = "4.0.0.RC2"
     implementation("io.javalin:javalin:$javalin")
     //implementation("com.github.tipsy:javalin:master-SNAPSHOT")
 
@@ -98,15 +98,15 @@ dependencies {
     implementation("com.reposilite:journalist-slf4j:$journalist")
     implementation("com.reposilite:journalist-tinylog:$journalist")
 
-    val tinylog = "2.3.1"
+    val tinylog = "2.3.2"
     implementation("org.tinylog:slf4j-tinylog:$tinylog")
     implementation("org.tinylog:tinylog-api:$tinylog")
     implementation("org.tinylog:tinylog-impl:$tinylog")
 
     implementation("net.dzikoysk:cdn:1.9.1")
-    implementation("com.google.http-client:google-http-client:1.39.2")
-    implementation("org.springframework.security:spring-security-crypto:5.4.6")
-    implementation("commons-io:commons-io:2.11.0")
+    implementation("com.google.http-client:google-http-client:1.40.0")
+    implementation("org.springframework.security:spring-security-crypto:5.5.1")
+    implementation("commons-io:commons-io:20030203.000550")
     implementation("org.fusesource.jansi:jansi:2.3.4")
 
     /* Tests */
@@ -118,11 +118,12 @@ dependencies {
     testImplementation("org.testcontainers:localstack:$testcontainers")
 
     testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.59")
-
     testImplementation("com.google.http-client:google-http-client-jackson2:1.40.0")
-    testImplementation("org.junit.jupiter:junit-jupiter-params:5.7.1")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.1")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+
+    val junit = "5.7.2"
+    testImplementation("org.junit.jupiter:junit-jupiter-params:$junit")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:$junit")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junit")
 }
 
 kapt {
@@ -136,12 +137,6 @@ jacoco {
 }
 
 tasks {
-    // Enable KAPT processing on JDK16
-    // ~ # https://youtrack.jetbrains.com/issue/KT-45545#focus=Comments-27-4773544.0-0
-    withType<JavaCompile> {
-        options.fork(mapOf(Pair("jvmArgs", listOf("--add-opens", "jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED"))))
-    }
-
     /* Configure integration of JUnit platform with JaCoCo */
 
     withType<Test> {

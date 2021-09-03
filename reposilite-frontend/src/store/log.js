@@ -9,7 +9,7 @@ const rawLog = reactive([])
 const convert = new Convert()
 
 const getLevel = message =>
-  levelNames.find(level => message.includes(` | ${level.toUpperCase()} | `)) || 'Other'
+  levelNames.find(level => message.includes(` | ${level.toUpperCase()} | `)) ?? 'Other'
 
 const sanitizeMessage = (message) => convert.toHtml(
   message
