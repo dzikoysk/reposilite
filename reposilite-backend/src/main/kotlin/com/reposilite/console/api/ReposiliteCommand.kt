@@ -13,18 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.reposilite.console
+package com.reposilite.console.api
 
-import com.reposilite.VERSION
-import com.reposilite.console.Status.SUCCEEDED
-import picocli.CommandLine.Command
+import com.reposilite.console.CommandContext
 
-@Command(name = "version", description = ["Display current version of Reposilite"])
-internal class VersionCommand : ReposiliteCommand {
+interface ReposiliteCommand {
 
-    override fun execute(output: MutableList<String>): Status {
-        output.add("Reposilite $VERSION")
-        return SUCCEEDED
-    }
+    fun execute(context: CommandContext)
 
 }

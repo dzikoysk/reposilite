@@ -15,9 +15,8 @@
  */
 package com.reposilite.statistics
 
-import com.reposilite.console.ReposiliteCommand
-import com.reposilite.console.Status
-import com.reposilite.console.Status.SUCCEEDED
+import com.reposilite.console.CommandContext
+import com.reposilite.console.api.ReposiliteCommand
 import com.reposilite.statistics.api.RecordType
 import panda.utilities.console.Effect.BLACK_BOLD
 import panda.utilities.console.Effect.RESET
@@ -32,14 +31,14 @@ internal class StatsCommand(private val statisticsFacade: StatisticsFacade) : Re
     @Parameters(index = "0", paramLabel = "[<filter>]", description = ["accepts string as pattern and int as limiter"], defaultValue = "")
     private lateinit var filter: String
 
-    override fun execute(output: MutableList<String>): Status {
-        output.add("Statistics: ")
-        output.add("  Unique requests: " + statisticsFacade.countUniqueRecords() + " (count: " + statisticsFacade.countRecords() + ")")
+    override fun execute(context: CommandContext) {
+        context.append("Statistics: ")
+        context.append("  Unique requests: " + statisticsFacade.countUniqueRecords() + " (count: " + statisticsFacade.countRecords() + ")")
 
         val results = statisticsFacade.findRecordsByPhrase(RecordType.REQUEST, filter) // TOFIX: Limiter
 
-        output.add("  Recorded: " + (if (results.isEmpty()) "[] " else "") + " (pattern: '${highlight(filter)}')")
-        results.forEachIndexed { order, record -> output.add("  ${order}. ${record.identifier} (${record.count})") }
+        context.append("  Recorded: " + (if (results.isEmpty()) "[] " else "") + " (pattern: '${highlight(filter)}')")
+        results.forEachIndexed { order, record -> context.append("  ${order}. ${record.identifier} (${record.count})") }
 
         /*
             val limiter = Option.attempt(NumberFormatException::class.java) { filter!!.toInt() }
@@ -56,8 +55,6 @@ internal class StatsCommand(private val statisticsFacade: StatisticsFacade) : Re
                 BiPredicate { uri: String, counts: Int? -> !uri.endsWith("/js/app.js") }
             )
          */
-
-        return SUCCEEDED
     }
 
     private fun highlight(value: Any): String =

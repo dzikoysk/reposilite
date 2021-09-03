@@ -35,6 +35,7 @@ import com.reposilite.web.application.WebConfiguration
 import io.javalin.Javalin
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 import org.jetbrains.exposed.sql.Database
+import java.util.concurrent.Executors
 
 internal object ReposiliteWebConfiguration {
 
@@ -54,6 +55,7 @@ internal object ReposiliteWebConfiguration {
     private fun createReposilite(parameters: ReposiliteParameters, journalist: Journalist, configuration: Configuration): Reposilite {
         val logger = ReposiliteJournalist(journalist, configuration.cachedLogSize)
         val coreThreadPool = QueuedThreadPool(configuration.coreThreadPool, 2)
+        val scheduler = Executors.newSingleThreadScheduledExecutor()
 
         val webServer = WebConfiguration.createWebServer()
         val failureFacade = FailureWebConfiguration.createFacade(logger)
@@ -70,6 +72,7 @@ internal object ReposiliteWebConfiguration {
             parameters = parameters,
             configuration = configuration,
             coreThreadPool = coreThreadPool,
+            scheduler = scheduler,
             webServer = webServer,
             failureFacade = failureFacade,
             contextFactory = contextFactory,
@@ -89,7 +92,7 @@ internal object ReposiliteWebConfiguration {
         // MavenWebConfiguration.initialize()
         // FrontendWebConfiguration.initialize()
         // MavenWebConfiguration.initialize()
-        StatisticsWebConfiguration.initialize(reposilite.statisticsFacade, reposilite.consoleFacade)
+        StatisticsWebConfiguration.initialize(reposilite.statisticsFacade, reposilite.consoleFacade, reposilite.scheduler)
         AccessTokenWebConfiguration.initialize(reposilite.accessTokenFacade, reposilite.parameters.tokens, reposilite.consoleFacade)
     }
 
@@ -115,7 +118,6 @@ internal object ReposiliteWebConfiguration {
 
     fun dispose(reposilite: Reposilite) {
         ConsoleWebConfiguration.dispose(reposilite.consoleFacade)
-        StatisticsWebConfiguration.dispose()
     }
 
 }

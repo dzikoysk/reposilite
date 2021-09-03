@@ -29,10 +29,12 @@ internal class JavalinWebServer : WebServer {
             .events { listener ->
                 listener.serverStopping {
                     reposilite.logger.info("Server stopping...")
+                    reposilite.scheduler.shutdown()
                     dispatcher.prepareShutdown()
                 }
                 listener.serverStopped {
                     dispatcher.completeShutdown()
+                    reposilite.scheduler.shutdownNow()
                     reposilite.coreThreadPool.stop()
                     reposilite.logger.info("Bye! Uptime: " + TimeUtils.getPrettyUptimeInMinutes(reposilite.startTime))
                 }

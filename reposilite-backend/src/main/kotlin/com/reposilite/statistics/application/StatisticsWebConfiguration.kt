@@ -24,17 +24,15 @@ import com.reposilite.statistics.infrastructure.SqlStatisticsRepository
 import com.reposilite.statistics.infrastructure.StatisticsEndpoint
 import com.reposilite.statistics.infrastructure.StatisticsHandler
 import com.reposilite.web.ReposiliteRoutes
-import java.util.concurrent.Executors
+import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit.MINUTES
 
 internal object StatisticsWebConfiguration {
 
-    private val scheduler = Executors.newSingleThreadScheduledExecutor() // Maybe use some shared ThreadPool to avoid Thread creation
-
     fun createFacade(journalist: Journalist): StatisticsFacade =
         StatisticsFacade(journalist, SqlStatisticsRepository())
 
-    fun initialize(statisticsFacade: StatisticsFacade, consoleFacade: ConsoleFacade) {
+    fun initialize(statisticsFacade: StatisticsFacade, consoleFacade: ConsoleFacade, scheduler: ScheduledExecutorService) {
         scheduler.scheduleWithFixedDelay({ statisticsFacade.saveRecordsBulk() }, 1, 1, MINUTES)
         consoleFacade.registerCommand(StatsCommand(statisticsFacade))
     }
@@ -44,9 +42,5 @@ internal object StatisticsWebConfiguration {
             StatisticsEndpoint(statisticsFacade),
             StatisticsHandler(statisticsFacade),
         )
-
-    fun dispose() {
-        scheduler.shutdown()
-    }
 
 }

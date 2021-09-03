@@ -16,8 +16,9 @@
 package com.reposilite.console
 
 import com.reposilite.VERSION
-import com.reposilite.console.Status.FAILED
+import com.reposilite.console.CommandStatus.FAILED
 import com.reposilite.console.api.ExecutionResponse
+import com.reposilite.console.api.ReposiliteCommand
 import com.reposilite.failure.FailureFacade
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
@@ -57,7 +58,7 @@ internal class Console(
         return response
     }
 
-    fun executeCommand(command: String): ExecutionResponse {
+    private fun executeCommand(command: String): ExecutionResponse {
         val processedCommand = command.trim()
 
         if (processedCommand.isEmpty()) {
@@ -71,7 +72,11 @@ internal class Console(
             val commandObject = parseResult.subcommand().commandSpec().userObject() as? ReposiliteCommand
 
             commandObject
-                ?.let { ExecutionResponse(commandObject.execute(response), response) }
+                ?.let {
+                    val context = CommandContext()
+                    commandObject.execute(context)
+                    ExecutionResponse(context.status, context.output())
+                }
                 ?: ExecutionResponse(FAILED, listOf(commandExecutor.usageMessage))
         }
         catch (unmatchedArgumentException: UnmatchedArgumentException) {

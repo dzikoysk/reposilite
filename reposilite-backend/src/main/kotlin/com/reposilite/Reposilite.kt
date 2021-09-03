@@ -32,6 +32,7 @@ import com.reposilite.web.WebServer
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 import panda.utilities.console.Effect
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.atomic.AtomicBoolean
 
 const val VERSION = "3.0.0-SNAPSHOT"
@@ -42,6 +43,7 @@ class Reposilite(
     val configuration: Configuration,
     val startTime: Long = System.currentTimeMillis(),
     val coreThreadPool: QueuedThreadPool,
+    val scheduler: ScheduledExecutorService,
     val webServer: WebServer,
     val contextFactory: ReposiliteContextFactory,
     val failureFacade: FailureFacade,

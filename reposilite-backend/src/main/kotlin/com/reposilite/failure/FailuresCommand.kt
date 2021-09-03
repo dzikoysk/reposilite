@@ -15,29 +15,26 @@
  */
 package com.reposilite.failure
 
-import com.reposilite.console.ReposiliteCommand
-import com.reposilite.console.Status
-import com.reposilite.console.Status.SUCCEEDED
+import com.reposilite.console.CommandContext
+import com.reposilite.console.api.ReposiliteCommand
 import picocli.CommandLine.Command
 
 @Command(name = "failures", description = ["Display all recorded exceptions"])
 internal class FailuresCommand(private val failureFacade: FailureFacade) : ReposiliteCommand {
 
-    override fun execute(output: MutableList<String>): Status {
+    override fun execute(context: CommandContext) {
         if (!failureFacade.hasFailures()) {
-            output.add("No exception has occurred yet")
-            return SUCCEEDED
+            context.append("No exception has occurred yet")
+            return
         }
 
-        output.add("")
-        output.add("List of cached failures: " + "(" + failureFacade.getFailures().size + ")")
-        output.add("")
+        context.append("")
+        context.append("List of cached failures: " + "(" + failureFacade.getFailures().size + ")")
+        context.append("")
 
         failureFacade.getFailures()
             .map { it.split(System.lineSeparator()) }
-            .forEach { output.addAll(it) }
-
-        return SUCCEEDED
+            .forEach { context.appendAll(it) }
     }
 
 }

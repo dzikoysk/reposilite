@@ -22,7 +22,6 @@ import com.reposilite.console.HelpCommand
 import com.reposilite.console.LevelCommand
 import com.reposilite.console.StatusCommand
 import com.reposilite.console.StopCommand
-import com.reposilite.console.VersionCommand
 import com.reposilite.console.infrastructure.CliEndpoint
 import com.reposilite.console.infrastructure.ConsoleEndpoint
 import com.reposilite.failure.FailureFacade
@@ -44,7 +43,6 @@ internal object ConsoleWebConfiguration {
         consoleFacade.registerCommand(LevelCommand(reposilite.journalist))
         consoleFacade.registerCommand(StatusCommand(reposilite, REMOTE_VERSION))
         consoleFacade.registerCommand(StopCommand(reposilite))
-        consoleFacade.registerCommand(VersionCommand())
 
         // disable console daemon in tests due to issues with coverage and interrupt method call
         // https://github.com/jacoco/jacoco/issues/1066
