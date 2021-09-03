@@ -52,7 +52,7 @@
 </template>
 
 <script>
-import { reactive, ref, toRefs, watch } from 'vue'
+import { computed, reactive, ref, toRefs, watch } from 'vue'
 import Header from '../components/header/Header.vue'
 import Browser from '../components/browser/Browser.vue'
 import Usage from '../components/Usage.vue'
@@ -77,8 +77,6 @@ export default {
     const session = props.session
     const { isManager } = useSession()
 
-    const menuTabs = ref([])
-    const consoleEnabled = ref(false)
     const selectedTab = reactive({
       value: localStorage.getItem('selectedTab') || 'Overview'
     })
@@ -89,23 +87,21 @@ export default {
       { immediate: true }
     )
 
-    watch(
-      () => session.tokenInfo, 
-      async newTokenInfo => {
-        menuTabs.value = [ 
-          { name: 'Overview' },
-          { name: 'Usage' }, 
-          { name: 'Endpoints' },
-          { name: 'Console', manager: true }
-        ]
-        .filter(entry => !entry?.manager || isManager(newTokenInfo))
-        .map(entry => entry.name)
+    const tabs = [ 
+      { name: 'Overview' },
+      { name: 'Usage' }, 
+      { name: 'Endpoints' },
+      { name: 'Console', manager: true }
+    ]
 
-        consoleEnabled.value = menuTabs.value.find(element => element === 'Console')
-      },
-      { immediate: true }
-    )
-      
+    const menuTabs = computed(() => {
+        return tabs
+        .filter(entry => !entry?.manager || isManager(session.tokenInfo))
+        .map(entry => entry.name)
+    })
+
+    const consoleEnabled = computed(() => menuTabs.value.some(element => element === 'Console'))
+
     return {
       qualifier,
       isManager,
