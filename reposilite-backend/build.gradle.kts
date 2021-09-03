@@ -75,7 +75,7 @@ dependencies {
     implementation("com.reposilite.javalin-rfcs:javalin-context:$javalinRfcs")
     implementation("com.reposilite.javalin-rfcs:javalin-reactive-routing:$javalinRfcs")
 
-    val javalin = "4.0.0.RC1"
+    val javalin = "4.0.0.RC2"
     implementation("io.javalin:javalin:$javalin")
     //implementation("com.github.tipsy:javalin:master-SNAPSHOT")
 
