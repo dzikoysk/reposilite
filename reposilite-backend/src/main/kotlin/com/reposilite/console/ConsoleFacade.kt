@@ -17,6 +17,7 @@
 package com.reposilite.console
 
 import com.reposilite.console.api.ExecutionResponse
+import com.reposilite.console.api.ReposiliteCommand
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
 import com.reposilite.web.http.ErrorResponse

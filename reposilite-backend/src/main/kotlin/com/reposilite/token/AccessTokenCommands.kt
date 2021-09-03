@@ -16,10 +16,9 @@
 
 package com.reposilite.token
 
-import com.reposilite.console.ReposiliteCommand
-import com.reposilite.console.Status
-import com.reposilite.console.Status.FAILED
-import com.reposilite.console.Status.SUCCEEDED
+import com.reposilite.console.CommandContext
+import com.reposilite.console.CommandStatus.FAILED
+import com.reposilite.console.api.ReposiliteCommand
 import com.reposilite.token.api.AccessTokenPermission
 import com.reposilite.token.api.CreateAccessTokenRequest
 import picocli.CommandLine.Command
@@ -28,23 +27,20 @@ import picocli.CommandLine.Parameters
 @Command(name = "tokens", description = ["List all generated tokens"])
 internal class TokensCommand(private val accessTokenFacade: AccessTokenFacade) : ReposiliteCommand {
 
-    override fun execute(output: MutableList<String>): Status {
-        output.add("")
-        output.add("Tokens (${accessTokenFacade.count()})")
+    override fun execute(context: CommandContext) {
+        context.append("Tokens (${accessTokenFacade.count()})")
 
         accessTokenFacade.getTokens().forEach {
-            output.add("- ${it.name}:")
+            context.append("- ${it.name}:")
 
             it.routes.forEach { route ->
-                output.add("  > ${route.path} : ${route.permissions}")
+                context.append("  > ${route.path} : ${route.permissions}")
             }
 
             if (it.routes.isEmpty()) {
-                output.add("  > ~ no routes ~")
+                context.append("  > ~ no routes ~")
             }
         }
-
-        return SUCCEEDED
     }
 
 }
@@ -55,28 +51,19 @@ internal class KeygenCommand(private val accessTokenFacade: AccessTokenFacade) :
     @Parameters(index = "0", paramLabel = "<name>", description = ["access token name"])
     private lateinit var name: String
 
-    @Parameters(
-        index = "1",
-        paramLabel = "[<permissions>]",
-        description = ["extra permissions: m - manager"],
-        defaultValue = ""
-    )
+    @Parameters(index = "1", paramLabel = "[<permissions>]", description = ["extra permissions: m - manager"], defaultValue = "")
     private lateinit var permissions: String
 
-    private val permissionMap = mapOf(
-        'm' to AccessTokenPermission.MANAGER
-    )
-
-    override fun execute(output: MutableList<String>): Status {
+    override fun execute(context: CommandContext) {
         val token = accessTokenFacade.createAccessToken(CreateAccessTokenRequest(
             name,
             permissions = permissions.toCharArray()
-                .map { permissionMap[it]!! }
+                .map { AccessTokenPermission.findAccessTokenPermissionByShortcut(it.toString()) }
                 .toSet()
         ))
-        output.add("Generated new access token for $name with '$permissions' permissions. Secret:")
-        output.add(token.secret)
-        return SUCCEEDED
+
+        context.append("Generated new access token for $name with '$permissions' permissions. Secret:")
+        context.append(token.secret)
     }
 }
 
@@ -89,17 +76,17 @@ internal class ChNameCommand(private val accessTokenFacade: AccessTokenFacade) :
     @Parameters(index = "1", paramLabel = "<new name>", description = ["new token name"])
     private lateinit var updatedName: String
 
-    override fun execute(output: MutableList<String>): Status =
+    override fun execute(context: CommandContext) {
         accessTokenFacade.getToken(name)
             ?.let {
                 accessTokenFacade.updateToken(it.copy(name = updatedName))
-                output.add("Token name has been changed from '$name' to '$updatedName'")
-                SUCCEEDED
+                context.append("Token name has been changed from '$name' to '$updatedName'")
             }
             ?: run {
-                output.add("Token '$name' not found")
-                FAILED
+                context.status = FAILED
+                context.append("Token '$name' not found")
             }
+    }
 
 }
 
@@ -112,18 +99,21 @@ internal class ChModCommand(private val accessTokenFacade: AccessTokenFacade) : 
     @Parameters(index = "1", paramLabel = "<permissions>", description = ["new permissions"])
     private lateinit var permissions: String
 
-    override fun execute(output: MutableList<String>): Status =
+    override fun execute(context: CommandContext) {
         accessTokenFacade.getToken(token)
             ?.let {
-                // TOFIX somehow map user input to permissions
-                // accessTokenFacade.updateToken(it.copy(permissions = permissions))
-                output.add("Permissions have been changed from '${it.permissions}' to '$permissions'")
-                SUCCEEDED
+                accessTokenFacade.updateToken(it.copy(
+                    permissions = permissions.toCharArray()
+                        .map { AccessTokenPermission.findAccessTokenPermissionByShortcut(it.toString()) }
+                        .toSet()
+                ))
+                context.append("Permissions have been changed from '${it.permissions}' to '$permissions'")
             }
             ?: run {
-                output.add("Token '$token' not found")
-                FAILED
+                context.status = FAILED
+                context.append("Token '$token' not found")
             }
+    }
 
 }
 
@@ -133,10 +123,9 @@ internal class RevokeCommand(private val accessTokenFacade: AccessTokenFacade) :
     @Parameters(index = "0", paramLabel = "<name>", description = ["name of token to revoke"])
     private lateinit var name: String
 
-    override fun execute(output: MutableList<String>): Status {
+    override fun execute(context: CommandContext) {
         accessTokenFacade.deleteToken(name)
-        output.add("Token for '$name' has been revoked")
-        return SUCCEEDED
+        context.append("Token for '$name' has been revoked")
     }
 
 }

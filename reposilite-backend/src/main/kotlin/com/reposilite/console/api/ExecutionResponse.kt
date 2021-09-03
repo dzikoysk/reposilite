@@ -15,10 +15,9 @@
  */
 package com.reposilite.console.api
 
-import com.google.api.client.util.Key
-import com.reposilite.console.Status
+import com.reposilite.console.CommandStatus
 
 data class ExecutionResponse(
-    @Key val status: Status,
-    @Key val response: List<String>
+    val status: CommandStatus,
+    val response: List<String>
 )

@@ -1,6 +1,7 @@
-package com.reposilite.storage
+package com.reposilite.storage.spec
 
 import com.reposilite.journalist.backend.InMemoryLogger
+import com.reposilite.storage.StorageProviderTest
 import com.reposilite.storage.infrastructure.S3StorageProvider
 import org.junit.jupiter.api.BeforeEach
 import org.testcontainers.containers.localstack.LocalStackContainer
@@ -14,7 +15,7 @@ import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3Client
 
 @Testcontainers
-internal class S3StorageProviderTest : StorageProviderTest() {
+internal class S3StorageProviderIntegrationTest : StorageProviderTest() {
 
     @Container
     val localstack: LocalStackContainer = LocalStackContainer(DockerImageName.parse("localstack/localstack:0.12.17"))

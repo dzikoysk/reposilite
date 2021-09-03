@@ -52,14 +52,17 @@ enum class AccessTokenType {
 }
 
 @JsonFormat(shape = JsonFormat.Shape.OBJECT)
-enum class AccessTokenPermission(val identifier: String) {
+enum class AccessTokenPermission(val identifier: String, val shortcut: String) {
 
-    MANAGER("access-token:manager");
+    MANAGER("access-token:manager", "m");
 
     companion object {
 
         fun findAccessTokenPermissionByIdentifier(identifier: String): AccessTokenPermission =
             values().first { it.identifier == identifier }
+
+        fun findAccessTokenPermissionByShortcut(shortcut: String): AccessTokenPermission =
+            values().first { it.shortcut == shortcut }
 
     }
 
