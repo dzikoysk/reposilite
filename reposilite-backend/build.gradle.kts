@@ -105,7 +105,7 @@ dependencies {
 
     implementation("net.dzikoysk:cdn:1.9.1")
     implementation("com.google.http-client:google-http-client:1.40.0")
-    implementation("org.springframework.security:spring-security-crypto:5.5.1")
+    implementation("org.springframework.security:spring-security-crypto:5.5.2")
     implementation("commons-io:commons-io:20030203.000550")
     implementation("org.fusesource.jansi:jansi:2.3.4")
 
