@@ -95,10 +95,25 @@ application
   ))
   .get('/api/maven/details/releases/gav', respond(
     createDirectoryDetails('/releases/gav', [
-      createFileDetails('gav.jar')
+      createDirectoryDetails('1.0.0'),
+      createFileDetails('maven-metadata.xml', 'text/xml', 4096)
     ])
   ))
-  .get('/releases/gav/gav.jar', respond('content'))
+  .get('/api/maven/details/releases/gav/1.0.0', respond(
+    createDirectoryDetails('/releases/gav/1.0.0', [
+      createFileDetails('gav-1.0.0.jar', 'application/jar-archive', 1337)
+    ])
+  ))
+  .get('/releases/gav/1.0.0/gav-1.0.0.jar', respond('content'))
+  .get('/releases/gav/maven-metadata.xml', respond(`
+  <metadata>
+    <groupId>g.a.v</groupId>
+    <artifactId>gav</artifactId>
+    <versioning>
+      <release>1.0.0</release>
+    </versioning>
+  </metadata>
+  `))
   .get('*', (req, res) => res.status(404).send({
     status: 404,
     message: 'Not found'

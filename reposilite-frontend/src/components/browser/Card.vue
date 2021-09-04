@@ -23,7 +23,7 @@
     <tabs v-model="selectedTab" class="pt-3">
       <tab
         class="buildtool py-1 px-2 cursor-pointer"
-        v-for="(entry, i) in tabs"
+        v-for="(entry, i) in configurations"
         :key="`t${i}`"
         :val="entry.name"
         :label="entry.name"
@@ -33,16 +33,17 @@
     <hr class="dark:border-gray-800">
     <tab-panels v-model="selectedTab" :animate="true">
       <tab-panel 
-        v-for="(entry, i) in tabs"
+        v-for="(entry, i) in configurations"
         :key="`tp${i}`"
         :val="entry.name"
       >
-        <div class="relative h-33 mt-6 p-4 mr-1 rounded-lg bg-gray-100 dark:bg-gray-900">
+        <div class="relative h-33 mt-6 p-4 mr-1 rounded-lg bg-gray-100 dark:bg-gray-800">
           <prism-editor 
             class="snippet absolute text-sm" 
             v-model="entry.value" 
             :highlight="highlighter" 
             readonly
+            line-numbers
           />
         </div>
       </tab-panel>
@@ -52,35 +53,36 @@
 
 <script>
 import { reactive, toRefs } from 'vue'
-
 import { PrismEditor } from 'vue-prism-editor'
 import 'vue-prism-editor/dist/prismeditor.min.css' // import the styles somewhere
 import prism from "prismjs"
 import "prismjs/themes/prism-coy.css"
+import useArtifacts from '../../store/maven/artifact'
 
 export default {
-  components: {
-    PrismEditor
+  components: { PrismEditor },
+  props: {
+    qualifier: {
+      type: Object,
+      required: true
+    },
+    session: {
+      type: Object,
+      required: true
+    }
   },
   setup() {
-    const tabs = [
-      { 
-        name: 'Maven', 
-        value: `
-<dependency>
-    <groupId>{groupId}</groupId>
-    <artifactId>{artifactId}</artifactId>
-    <version>{version}</version>
-</dependency>`.trim()
-      },
-      { name: 'Gradle Groovy', value: `implementation "{groupId}:{artifactId}:{version}"` }, 
-      { name: 'Gradle Kotlin', value: `implementation("{groupId}:{artifactId}:{version}")` },
-      { name: 'SBT', value: `"{groupId}" %% "{artifactId}" %% "{version}"` }
-    ]
+    const { configurations } = useArtifacts()
 
     const state = reactive({
-      selectedTab: tabs[0].name
+      selectedTab: configurations[0].name
     })
+
+    // TODO:
+    // 1. Check if gave enough lngth to be an artifact
+    //   1.1 check if gav is an artifact (fetch and process metadata file)
+    // 2. If not display repository credentials if at least GAV has one element
+    // 3. If GAV is empty display ??? (maybe generic snippet to repository like domain.com/{repository})
 
     const highlighter = (code) =>
       code.includes('<dependency>') 
@@ -88,7 +90,7 @@ export default {
         : prism.highlight(code, prism.languages.js)
 
     return {
-      tabs,
+      configurations,
       highlighter,
       ...toRefs(state)
     }
@@ -101,6 +103,15 @@ export default {
     font-family: 'Consolas', 'monospace';
 }
 .token.tag {
-  color: purple;
+  color: mediumpurple;
+}
+.token.operator {
+  background: none;
+}
+.token.function {
+  @apply text-black dark:text-white;
+}
+.token.string {
+    color: mediumpurple;
 }
 </style>

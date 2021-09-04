@@ -5,8 +5,8 @@
     "dev": "vite",
     "build": "vite build",
     "serve": "vite preview",
-    "stub": "nodemon stub/stub-api.js",
-    "full": "concurrently -k \"npm run stub\" \"vite\""
+    "fake-api": "nodemon fake-api/fake-reposilite-backend.js",
+    "full": "concurrently -k \"npm run fake-api\" \"vite\""
   },
   "dependencies": {
     "@vueuse/head": "^0.6.0",

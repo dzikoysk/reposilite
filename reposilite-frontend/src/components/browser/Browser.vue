@@ -28,9 +28,9 @@
       </div>
     </div>
     <div class="dark:bg-black">
-      <div class="container mx-auto relative">
+      <div class="container mx-auto relative min-h-320px">
         <div class="lg:absolute pt-5 -top-5 right-8">
-          <Card/>
+          <Card :qualifier="qualifier" :session="session"/>
         </div>
         <div class="pt-4">
           <div v-for="file in files" v-bind:key="file">
@@ -58,7 +58,7 @@ import { ref, watch } from 'vue'
 import { createToast } from 'mosha-vue-toastify'
 import 'mosha-vue-toastify/dist/style.css'
 import useSession from '../../store/session'
-import { createURL, useClient } from '../../store/client'
+import { createURL, createClient } from '../../store/client'
 import Card from './Card.vue'
 import Entry from './Entry.vue'
 
@@ -68,10 +68,15 @@ export default {
     qualifier: {
       type: Object,
       required: true
+    },
+    session: {
+      type: Object,
+      required: true
     }
   },
   setup(props) {
     const qualifier = props.qualifier
+    const session = props.session
     const parentPath = ref('')
 
     const drop = (path) => (path.endsWith('/') ? path.slice(0, -1) : path).split("/")
@@ -86,8 +91,8 @@ export default {
     watch(
       () => qualifier.watchable,
       async (_) => {            
-        const { token } = useSession()
-        const { client } = useClient(token.name, token.secret)
+        const { name, secret } = session.tokenInfo
+        const { client } = createClient(name, secret)
 
         client.maven.details(qualifier.path)
           .then(response => {
@@ -109,6 +114,8 @@ export default {
     )
 
     return {
+      qualifier,
+      session,
       parentPath,
       files,
       isEmpty,

@@ -1,5 +1,5 @@
 import { isRef, reactive, ref } from "vue"
-import { useClient } from './client'
+import { createClient } from './client'
 
 const defaultValue = ''
 const nameKey = 'session-token-name'
@@ -40,7 +40,7 @@ export default function useSession() {
 
   const login = async (name, secret) => {
     try {
-      const { client } = useClient()
+      const { client } = createClient()
 
       if (name == defaultValue) {
         throw new Error("Missing credentials")

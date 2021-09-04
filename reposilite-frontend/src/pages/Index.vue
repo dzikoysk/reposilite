@@ -34,10 +34,7 @@
       <div class="overflow-auto">
         <tab-panels v-model="selectedTab.value" :animate="true">
           <tab-panel :val="'Overview'">
-            <Browser :qualifier="qualifier" ref=""/>
-          </tab-panel>
-          <tab-panel :val="'Usage'">
-            <Usage/>
+            <Browser :qualifier="qualifier" :session="session" ref=""/>
           </tab-panel>
           <tab-panel :val="'Endpoints'">
             <Endpoints/>
@@ -52,16 +49,15 @@
 </template>
 
 <script>
-import { computed, reactive, ref, toRefs, watch } from 'vue'
+import { computed, reactive, ref, toRefs, watch, watchEffect } from 'vue'
 import Header from '../components/header/Header.vue'
 import Browser from '../components/browser/Browser.vue'
-import Usage from '../components/Usage.vue'
 import Endpoints from '../components/Endpoints.vue'
 import Console from '../components/Console.vue'
 import useSession from '../store/session'
 
 export default {
-  components: { Header, Browser, Usage, Endpoints, Console },
+  components: { Header, Browser, Endpoints, Console },
   props: {
     qualifier: {
       type: Object,
@@ -81,29 +77,25 @@ export default {
       value: localStorage.getItem('selectedTab') || 'Overview'
     })
 
-    watch(
-      () => selectedTab.value,
-      newTab => localStorage.setItem('selectedTab', newTab),
-      { immediate: true }
-    )
+    watchEffect(() => localStorage.setItem('selectedTab', selectedTab.value))
 
     const tabs = [ 
       { name: 'Overview' },
-      { name: 'Usage' }, 
       { name: 'Endpoints' },
       { name: 'Console', manager: true }
     ]
 
-    const menuTabs = computed(() => {
-        return tabs
+    const menuTabs = computed(() =>
+      tabs
         .filter(entry => !entry?.manager || isManager(session.tokenInfo))
         .map(entry => entry.name)
-    })
+    )
 
-    const consoleEnabled = computed(() => menuTabs.value.some(element => element === 'Console'))
+    const consoleEnabled = computed(() => menuTabs.value.some(element => element == 'Console'))
 
     return {
       qualifier,
+      session,
       isManager,
       menuTabs,
       consoleEnabled,
