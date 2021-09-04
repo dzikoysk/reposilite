@@ -33,8 +33,8 @@ import { ref, watch, onUnmounted, nextTick } from 'vue'
 import { createToast } from 'mosha-vue-toastify'
 import 'mosha-vue-toastify/dist/style.css'
 import useSession from '../store/session'
-import useLog from '../store/log'
-import useConsole from '../store/console'
+import useLog from '../store/console/log'
+import useConsole from '../store/console/connection'
 
 export default {
   props: {

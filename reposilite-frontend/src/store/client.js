@@ -11,7 +11,7 @@ const baseUrl = () =>
 const createURL = (endpoint) =>
   baseUrl() + endpoint
 
-const useClient = (defaultName, defaultSecret) => {
+const createClient = (defaultName, defaultSecret) => {
   const defaultAuthorization = () =>
     (defaultName && defaultSecret) ? authorization(defaultName, defaultSecret) : {}
 
@@ -36,8 +36,11 @@ const useClient = (defaultName, defaultSecret) => {
     console: {
     },
     maven: {
+      content(gav) {
+        return get(`/${gav}`)
+      },
       details(gav) {
-        return get("/api/maven/details/" + (gav || ''))
+        return get(`/api/maven/details/${gav || ''}`)
       }
     }
   }
@@ -50,5 +53,5 @@ const useClient = (defaultName, defaultSecret) => {
 
 export {
   createURL,
-  useClient
+  createClient
 }

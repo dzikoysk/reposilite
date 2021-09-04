@@ -21,8 +21,8 @@ const invalidCredentials = (res) =>
 const sendMessage = (connection, message) =>
   connection.send(new Date().toDateString() + " | " + message)
 
-const createFileDetails = (name) =>
-  ({ type: 'FILE', name })
+const createFileDetails = (name, contentType, contentLength) =>
+  ({ type: 'FILE', name, contentType, contentLength })
 
 const createDirectoryDetails = (name, files) =>
   ({ type: 'DIRECTORY', name, files })

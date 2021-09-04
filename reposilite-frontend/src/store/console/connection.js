@@ -1,5 +1,5 @@
 import { ref, watch, onUnmounted, nextTick } from 'vue'
-import { createURL } from './client'
+import { createURL } from '../client'
 
 const connection = ref()
 const command = ref('')
