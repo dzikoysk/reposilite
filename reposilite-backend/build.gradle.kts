@@ -186,7 +186,8 @@ tasks.jacocoTestReport {
         html.isEnabled = false
         csv.isEnabled = false
         xml.isEnabled = true
-        xml.destination = file("$buildDir/reports/jacoco/report.xml")
+        xml.destination = file("../reposilite-backend-report.xml")
+        println(xml.destination)
     }
 
     finalizedBy("jacocoTestCoverageVerification")
