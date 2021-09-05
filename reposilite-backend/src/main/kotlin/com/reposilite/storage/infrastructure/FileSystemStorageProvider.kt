@@ -105,8 +105,8 @@ internal abstract class FileSystemStorageProvider protected constructor(
                     val lock = fileChannel.lock()
 
                     /*val bytesWritten =*/ writer.apply(input, fileChannel).toLong() // do we need this result
-                    fileChannel.close()
                     lock.release()
+                    fileChannel.close()
 
                     toDocumentInfo(file)
                 }
