@@ -62,7 +62,7 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposed")
     implementation("org.jetbrains.exposed:exposed-java-time:$exposed")
     implementation("net.dzikoysk:exposed-upsert:1.0.1")
-    implementation("com.h2database:h2:1.4.199") // 1.4.200 is broken
+    implementation("com.h2database:h2:1.4.200") // 1.4.200 is broken
 
     val fuel = "2.3.1"
     implementation("com.github.kittinunf.fuel:fuel:$fuel")
