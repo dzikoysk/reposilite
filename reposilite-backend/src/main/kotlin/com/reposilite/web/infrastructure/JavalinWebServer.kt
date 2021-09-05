@@ -66,9 +66,13 @@ internal class JavalinWebServer : WebServer {
                 resultDsl.response?.also { ctx.response(it) }
             },
             asyncHandler = { ctx, route, result ->
-                val resultDsl = callWithContext(reposilite.contextFactory, ctx, route.handler)
-                resultDsl.response?.also { ctx.response(it) }
-                result.complete(Unit)
+                try {
+                    val resultDsl = callWithContext(reposilite.contextFactory, ctx, route.handler)
+                    resultDsl.response?.also { ctx.response(it) }
+                    result.complete(Unit)
+                } catch (throwable: Throwable) {
+                    throwable.printStackTrace()
+                }
             }
         )
 

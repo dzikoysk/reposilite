@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { reactive, toRef, toRefs } from "vue"
+import { reactive } from 'vue'
 
 const theme = reactive({
   isDark: false

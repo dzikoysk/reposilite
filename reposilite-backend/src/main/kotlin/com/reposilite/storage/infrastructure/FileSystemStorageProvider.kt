@@ -102,10 +102,11 @@ internal abstract class FileSystemStorageProvider protected constructor(
                     // TOFIX: FS locks are not truly respected, there might be a need to enhanced it with .lock file to be sure if it's respected.
                     // In theory people should not really share the same FS through instances.
                     // ~ https://github.com/dzikoysk/reposilite/issues/264
-                    fileChannel.lock()
+                    val lock = fileChannel.lock()
 
                     /*val bytesWritten =*/ writer.apply(input, fileChannel).toLong() // do we need this result
                     fileChannel.close()
+                    lock.release()
 
                     toDocumentInfo(file)
                 }

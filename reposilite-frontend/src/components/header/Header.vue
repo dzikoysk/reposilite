@@ -18,7 +18,7 @@
   <header class="bg-gray-100 dark:bg-black dark:text-white">
     <div class="container mx-auto flex flex-row py-10 justify-between">
       <h1 class="text-xl font-medium py-1">
-        <router-link to="/">{{ title }}</router-link>
+        <router-link :to="'/'">{{ title }}</router-link>
       </h1>
       <Menu class="mt-0.5"/>
     </div>

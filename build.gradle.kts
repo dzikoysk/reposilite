@@ -23,7 +23,6 @@ allprojects {
     group = "org.panda-lang"
     version = "3.0.0-SNAPSHOT"
 
-    apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "maven-publish")
 
     publishing {
@@ -44,12 +43,5 @@ allprojects {
         maven { url = uri("https://repo.panda-lang.org/releases") }
         maven { url = uri("https://s01.oss.sonatype.org/content/repositories/releases/") }
         maven { url = uri("https://jitpack.io") }
-    }
-
-    java {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-        withJavadocJar()
-        withSourcesJar()
     }
 }
