@@ -85,7 +85,7 @@ dependencies {
     kapt("info.picocli:picocli-codegen:$picocli")
     implementation("info.picocli:picocli:$picocli")
 
-    val xmlutil = "0.82.0"
+    val xmlutil = "0.83.0"
     implementation("io.github.pdvrieze.xmlutil:core-jvm:$xmlutil")
     implementation("io.github.pdvrieze.xmlutil:serialization-jvm:$xmlutil")
 
