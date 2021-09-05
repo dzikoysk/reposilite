@@ -124,12 +124,6 @@ java {
     withSourcesJar()
 }
 
-kapt {
-    arguments {
-        arg("project", "${project.group}/${project.name}")
-    }
-}
-
 jacoco {
     toolVersion = "0.8.7"
 }
@@ -150,10 +144,6 @@ tasks.withType<Test> {
     }
 
     useJUnitPlatform()
-}
-
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    kotlinOptions.jvmTarget = "1.8"
 }
 
 tasks.withType<Test> {
@@ -183,11 +173,10 @@ tasks.test {
 
 tasks.jacocoTestReport {
     reports {
-        html.isEnabled = false
-        csv.isEnabled = false
-        xml.isEnabled = true
-        xml.destination = file("../build/reports/jacoco/reposilite-backend-report.xml")
-        println(xml.destination)
+        html.required.set(false)
+        csv.required.set(false)
+        xml.required.set(true)
+        xml.outputLocation.set(file("../build/reports/jacoco/reposilite-backend-report.xml"))
     }
 
     finalizedBy("jacocoTestCoverageVerification")
