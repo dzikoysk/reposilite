@@ -14,18 +14,10 @@
  * limitations under the License.
  */
 
-import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
-import org.gradle.api.tasks.testing.logging.TestLogEvent.FAILED
-import org.gradle.api.tasks.testing.logging.TestLogEvent.PASSED
-import org.gradle.api.tasks.testing.logging.TestLogEvent.SKIPPED
-import org.gradle.api.tasks.testing.logging.TestLogEvent.STARTED
-
 plugins {
     kotlin("jvm")
     kotlin("kapt")
-    kotlin("plugin.serialization") version "1.5.21"
     application
-    jacoco
 }
 
 application {
@@ -85,10 +77,6 @@ dependencies {
     kapt("info.picocli:picocli-codegen:$picocli")
     implementation("info.picocli:picocli:$picocli")
 
-    val xmlutil = "0.83.0"
-    implementation("io.github.pdvrieze.xmlutil:core-jvm:$xmlutil")
-    implementation("io.github.pdvrieze.xmlutil:serialization-jvm:$xmlutil")
-
     val jackson = "2.12.5"
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jackson")
     // implementation("com.fasterxml.jackson.module:jackson-module-parameter-names:$jackson")
@@ -140,126 +128,3 @@ kapt {
         arg("project", "${project.group}/${project.name}")
     }
 }
-
-jacoco {
-    toolVersion = "0.8.7"
-}
-
-tasks {
-    /* Configure integration of JUnit platform with JaCoCo */
-
-    withType<Test> {
-        useJUnitPlatform()
-
-        testLogging {
-            events(
-                STARTED,
-                PASSED,
-                FAILED,
-                SKIPPED
-            )
-            exceptionFormat = FULL
-            showExceptions = true
-            showCauses = true
-            showStackTraces = true
-            showStandardStreams = true
-        }
-    }
-
-    test {
-        extensions.configure(JacocoTaskExtension::class) {
-            setDestinationFile(file("$buildDir/jacoco/jacoco.exec"))
-        }
-
-        finalizedBy("jacocoTestReport")
-    }
-
-    jacocoTestReport {
-        reports {
-            html.required.set(false)
-            csv.required.set(false)
-
-            csv.required.set(true)
-            xml.outputLocation.set(file("$buildDir/reports/jacoco/report.xml"))
-        }
-
-        finalizedBy("jacocoTestCoverageVerification")
-    }
-
-    jacocoTestCoverageVerification {
-        violationRules {
-            rule {
-                limit {
-                    minimum = "0.0".toBigDecimal()
-                }
-            }
-            rule {
-                enabled = true
-                element = "CLASS"
-                limit {
-                    counter = "BRANCH"
-                    value = "COVEREDRATIO"
-                    minimum = "0.0".toBigDecimal()
-                }
-                limit {
-                    counter = "LINE"
-                    value = "COVEREDRATIO"
-                    minimum = "0.0".toBigDecimal()
-                }
-                excludes = listOf()
-            }
-        }
-    }
-}
-
-val testCoverage by tasks.registering {
-    group = "verification"
-    description = "Runs the unit tests with coverage"
-
-    dependsOn(":test",
-        ":jacocoTestReport",
-        ":jacocoTestCoverageVerification")
-
-    tasks["jacocoTestReport"].mustRunAfter(tasks["test"])
-    tasks["jacocoTestCoverageVerification"].mustRunAfter(tasks["jacocoTestReport"])
-}
-
-/*
-tasks.register("depsize") {
-    description = "Prints dependencies for \"default\" configuration"
-    doLast { listConfigurationDependencies(configurations["default"])  }
-}
-
-tasks.register("depsize-all-configurations") {
-    description = "Prints dependencies for all available configurations"
-    doLast {
-        configurations
-            .filter { it.isCanBeResolved }
-            .forEach { listConfigurationDependencies(it) }
-    }
-}
-
-fun listConfigurationDependencies(configuration: Configuration ) {
-    val formatStr = "%,10.2f"
-    val size = configuration.sumOf { it.length() / (1024.0 * 1024.0) }
-    val out = StringBuffer()
-    out.append("\nConfiguration name: \"${configuration.name}\"\n")
-
-    if (size > 0) {
-        out.append("Total dependencies size:".padEnd(65))
-        out.append("${String.format(formatStr, size)} Mb\n\n")
-
-        configuration
-            .sortedBy { -it.length() }
-            .forEach {
-                out.append(it.name.padEnd(65))
-                out.append("${String.format(formatStr, (it.length() / 1024.0))} kb\n")
-            }
-    }
-    else {
-        out.append("No dependencies found")
-    }
-
-    println(out)
-}
- */
