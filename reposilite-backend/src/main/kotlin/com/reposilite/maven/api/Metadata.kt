@@ -19,7 +19,6 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
-import kotlinx.serialization.Serializable
 
 internal const val METADATA_FILE = "maven-metadata.xml"
 
@@ -66,7 +65,6 @@ internal data class Snapshot(
     val buildNumber: String? = null
 )
 
-@Serializable
 @JacksonXmlRootElement(localName = "snapshotVersion")
 internal data class SnapshotVersion(
     val extension: String? = null,
