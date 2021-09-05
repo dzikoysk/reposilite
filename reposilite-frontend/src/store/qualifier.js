@@ -1,4 +1,4 @@
-import { ref, watch, reactive } from 'vue'
+import { watch, reactive } from 'vue'
 import { useRoute } from 'vue-router'
 
 const qualifier = reactive({
@@ -11,7 +11,7 @@ export default function useQualifier(token) {
 
   watch(
     () => route.params.qualifier,
-    async newQualifier => {
+    newQualifier => {
       qualifier.path = newQualifier
       qualifier.watchable++
     },
@@ -20,9 +20,7 @@ export default function useQualifier(token) {
 
   watch(
     () => token.name,
-    async newSession => {
-      qualifier.watchable++
-    }
+    _ => qualifier.watchable++
   )
 
   return {

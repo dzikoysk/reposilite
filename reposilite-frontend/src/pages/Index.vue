@@ -49,7 +49,7 @@
 </template>
 
 <script>
-import { computed, reactive, ref, toRefs, watch, watchEffect } from 'vue'
+import { computed, reactive, watchEffect } from 'vue'
 import Header from '../components/header/Header.vue'
 import Browser from '../components/browser/Browser.vue'
 import Endpoints from '../components/Endpoints.vue'

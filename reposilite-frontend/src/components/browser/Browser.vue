@@ -57,7 +57,6 @@
 import { ref, watch } from 'vue'
 import { createToast } from 'mosha-vue-toastify'
 import 'mosha-vue-toastify/dist/style.css'
-import useSession from '../../store/session'
 import { createURL, createClient } from '../../store/client'
 import Card from './Card.vue'
 import Entry from './Entry.vue'

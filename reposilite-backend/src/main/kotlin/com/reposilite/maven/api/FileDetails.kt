@@ -33,7 +33,7 @@ import java.io.IOException
 import java.io.InputStream
 import java.nio.file.Files
 import java.nio.file.Path
-import kotlin.streams.toList
+import java.util.stream.Collectors
 
 sealed class FileDetails(
     val type: FileType,
@@ -98,7 +98,7 @@ private fun toDirectoryInfo(directory: Path): Result<DirectoryInfo, ErrorRespons
             directory.getSimpleName(),
             Files.list(directory)
                 .map { toSimpleFileDetails(it).orElseThrow { error -> IOException(error.message) } }
-                .toList()
+                .collect(Collectors.toList())
         ).asSuccess()
     }
 

@@ -1,20 +1,33 @@
-export default function useArtifact(qualifier) {
-  const configurations = [
+export default function useArtifact() {
+  const createSnippets = (groupId, artifactId, version) => [
     { 
-      name: 'Maven', 
-      value: `
+      name: 'Maven',
+      lang: 'xml',
+      snippet: `
 <dependency>
-  <groupId>{groupId}</groupId>
-  <artifactId>{artifactId}</artifactId>
-  <version>{version}</version>
+  <groupId>${groupId}</groupId>
+  <artifactId>${artifactId}</artifactId>
+  <version>${version}</version>
 </dependency>`.trim()
     },
-    { name: 'Gradle Groovy', value: `implementation "{groupId}:{artifactId}:{version}"` }, 
-    { name: 'Gradle Kotlin', value: `implementation("{groupId}:{artifactId}:{version}")` },
-    { name: 'SBT', value: `"{groupId}" %% "{artifactId}" %% "{version}"` }
+    {
+      name: 'Gradle Groovy',
+      lang: 'xml',
+      snippet: `implementation "${groupId}:${artifactId}:${version}"`
+    },
+    {
+      name: 'Gradle Kotlin',
+      lang: 'kotlin',
+      snippet: `implementation("${groupId}:${artifactId}:${version}")`
+    },
+    {
+      name: 'SBT',
+      lang: 'scala',
+      snippet: `"${groupId}" %% "${artifactId}" %% "${version}"`
+    }
   ]
 
   return {
-    configurations
+    createSnippets
   }
 }

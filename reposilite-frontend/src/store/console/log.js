@@ -1,4 +1,4 @@
-import { computed, ref, watch, watchEffect, reactive } from 'vue'
+import { computed, ref, reactive } from 'vue'
 import Convert from 'ansi-to-html'
 
 const levelNames = ['Other', 'Trace', 'Debug', 'Info', 'Warn', 'Error']

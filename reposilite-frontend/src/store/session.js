@@ -1,4 +1,4 @@
-import { isRef, reactive, ref } from "vue"
+import { reactive } from "vue"
 import { createClient } from './client'
 
 const defaultValue = ''
@@ -26,6 +26,7 @@ const session = reactive({
 })
 
 export default function useSession() {
+  // move to session
   const updateToken = (name, secret) => {
     localStorage.setItem(nameKey, name)
     token.name = name

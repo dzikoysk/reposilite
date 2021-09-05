@@ -1,53 +1,41 @@
-export default function useRepository(qualifier) {
-  const trim = (snippet) => {
-    const indentation = snippet.length - snippet.trimStart().length - 1
-    
-    return snippet.split('\n')
-      .map(line => line.substring(indentation))
-      .join('\n')
-      .replace('#/', '')
-      .trim()
+import { computed } from 'vue'
+
+export default function useRepository() {
+  const createRepositories = (qualifier) => {
+    const repository = computed(() => qualifier.path.split('/')[0])
+    const domain = location.protocol + '//' + location.host + (qualifier.path ? `/${repository.value}` : '/{repository}')
+
+    return [
+      {
+      name: 'Maven',
+        lang: 'xml',
+          snippet: `
+<repository>
+  <name>${window.REPOSILITE_TITLE}</name>
+  <id>${window.REPOSILITE_ID}</id>
+  <url>${domain}</url>
+</repository>
+        `.trim()
+    },
+    {
+      name: 'Gradle Groovy',
+        lang: 'groovy',
+          snippet: `maven {\n    url "${domain}"\n }`.trim()
+    },
+    {
+      name: 'Gradle Kotlin',
+        lang: 'kotlin',
+          snippet: `maven {\n    url = uri("${domain}")\n}`
+    },
+    {
+      name: 'SBT',
+        lang: 'scala',
+          snippet: `resolvers += "${window.REPOSILITE_ID}" at "${domain}"`
+    }
+    ]
   }
 
-  const domain = location.protocol + '//' + location.host
-
-  const configurations = [
-    {
-      type: 'Maven',
-      snippet: `
-      <repository>
-          <name>${window.REPOSILITE_TITLE}</name>
-          <id>${window.REPOSILITE_ID}</id>
-          <url>${domain}</url>
-      </repository>
-      `
-    },
-    {
-      type: 'Gradle Groovy',
-      snippet: `
-      maven {
-          url "${domain}"
-      }
-      `
-    },
-    {
-      type: 'Gradle Kotlin',
-      snippet: `
-      maven {
-          url = uri("${domain}")
-      }
-      `
-    },
-    {
-      type: 'SBT',
-      snippet: `
-      resolvers += "${window.REPOSILITE_TITLE}" at "${domain}"
-      `
-    }
-  ]
-
   return {
-    configurations,
-    trim
+    createRepositories
   }
 }

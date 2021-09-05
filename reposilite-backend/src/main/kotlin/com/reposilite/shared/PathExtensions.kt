@@ -17,8 +17,8 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.attribute.FileTime
+import java.util.stream.Collectors
 import kotlin.io.path.isDirectory
-import kotlin.streams.toList
 import panda.std.Result.`when` as once
 
 enum class FileType {
@@ -48,7 +48,9 @@ fun Path.getLastModifiedTime(): Result<FileTime, ErrorResponse> =
 fun Path.listFiles(): Result<List<Path>, ErrorResponse> =
     catchIOException {
         exists().map {
-            Files.walk(this, 1).filter { it != this }.toList()
+            Files.walk(this, 1)
+                .filter { it != this }
+                .collect(Collectors.toList())
         }
     }
 
