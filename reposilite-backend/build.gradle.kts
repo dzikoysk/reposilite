@@ -52,7 +52,7 @@ dependencies {
     implementation("org.panda-lang:expressible-kt:$expressible")
     testImplementation("org.panda-lang:expressible-junit:$expressible")
 
-    val awssdk = "2.17.33"
+    val awssdk = "2.17.34"
     implementation("software.amazon.awssdk:bom:$awssdk")
     implementation("software.amazon.awssdk:s3:$awssdk")
 
@@ -85,7 +85,7 @@ dependencies {
     kapt("info.picocli:picocli-codegen:$picocli")
     implementation("info.picocli:picocli:$picocli")
 
-    val xmlutil = "0.82.0"
+    val xmlutil = "0.83.0"
     implementation("io.github.pdvrieze.xmlutil:core-jvm:$xmlutil")
     implementation("io.github.pdvrieze.xmlutil:serialization-jvm:$xmlutil")
 
@@ -119,7 +119,7 @@ dependencies {
     testImplementation("org.testcontainers:junit-jupiter:$testcontainers")
     testImplementation("org.testcontainers:localstack:$testcontainers")
 
-    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.59")
+    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.62")
     testImplementation("com.google.http-client:google-http-client-jackson2:1.40.0")
 
     val junit = "5.7.2"
