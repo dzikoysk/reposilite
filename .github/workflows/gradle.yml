@@ -24,9 +24,10 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
     - name: Build with Gradle
-      run: ./gradlew build
+      run: ./gradlew clean build
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v2
       with:
-        files: ./reposilite-backend/reports/jacoco/report.xml
+        directory: ./reposilite-backend/reports/jacoco/
+        files: ./report.xml
         fail_ci_if_error: false
