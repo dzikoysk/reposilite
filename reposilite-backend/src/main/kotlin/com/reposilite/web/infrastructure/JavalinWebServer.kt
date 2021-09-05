@@ -72,6 +72,7 @@ internal class JavalinWebServer : WebServer {
                     result.complete(Unit)
                 } catch (throwable: Throwable) {
                     throwable.printStackTrace()
+                    result.completeExceptionally(throwable)
                 }
             }
         )
