@@ -1,3 +1,5 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 /*
  * Copyright (c) 2021 dzikoysk
  *
@@ -17,12 +19,13 @@
 plugins {
     kotlin("jvm")
     kotlin("kapt")
+    id("com.github.johnrengelman.shadow") version "7.0.0"
     application
     jacoco
 }
 
 application {
-    mainClass.set("com.reposilite.ReposiliteLauncher")
+    mainClass.set("com.reposilite.ReposiliteLauncherKt")
 }
 
 publishing {
@@ -115,6 +118,11 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junit")
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junit")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junit")
+}
+
+tasks.withType<ShadowJar> {
+    archiveFileName.set("reposilite-${archiveVersion.get()}.jar")
+    mergeServiceFiles()
 }
 
 java {

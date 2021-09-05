@@ -19,12 +19,12 @@ class ReposiliteParameters : Runnable {
     @Option(names = ["--version", "-v"], versionHelp = true, description = ["display current version of reposilite"])
     var versionInfoRequested = false
 
-    @Option(names = ["--working-directory", "-wd"], description = ["set custom working directory of application instance"], defaultValue = "")
-    private lateinit var workingDirectoryName: String
+    @Option(names = ["--working-directory", "-wd"], description = ["set custom working directory of application instance"])
+    private var workingDirectoryName = ""
     lateinit var workingDirectory: Path
 
-    @Option(names = ["--configuration", "--config", "-cfg"], description = ["set custom location of configuration file"], defaultValue = DEFAULT_CONFIGURATION_FILE)
-    private lateinit var configurationFileName: String
+    @Option(names = ["--configuration", "--config", "-cfg"], description = ["set custom location of configuration file"])
+    private var configurationFileName = DEFAULT_CONFIGURATION_FILE
     lateinit var configurationFile: Path
 
     @Option(names = ["--hostname", "-h"], description = ["override hostname from configuration"])
@@ -34,7 +34,7 @@ class ReposiliteParameters : Runnable {
     var port = -1
 
     @Option(names = ["--token", "-t"], description = ["create temporary token with the given credentials in name:secret format", "Created token has all permissions"])
-    private lateinit var tokenEntries: Array<String>
+    private var tokenEntries = arrayOf<String>()
     lateinit var tokens: Collection<CreateAccessTokenRequest>
 
     @Option(names = ["--test-env", "--debug", "-d"], description = ["enable test mode"])
