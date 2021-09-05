@@ -29,6 +29,8 @@ server {
     access_log /var/log/nginx/reverse-access.log;                                                                                                             
     error_log /var/log/nginx/reverse-error.log;
 
+    client_max_body_size 50m; # maximum artifact upload size
+
     location / {
         proxy_pass http://reposilite;
         proxy_set_header   Host              $host;

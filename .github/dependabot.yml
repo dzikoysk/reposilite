@@ -1,12 +1,12 @@
 version: 2
 updates:
-- package-ecosystem: maven
-  directory: "/"
-  schedule:
-    interval: daily
-    time: "04:00"
-  open-pull-requests-limit: 10
-  ignore:
-  - dependency-name: org.webjars:swagger-ui
-    versions:
-    - "> 3.25.2"
+  - package-ecosystem: "gradle"
+    directory: "/reposilite-backend"
+    schedule:
+      interval: "daily"
+      time: "16:15"
+  - package-ecosystem: "npm"
+    directory: "/reposilite-frontend"
+    schedule:
+      interval: "daily"
+      time: "16:15"

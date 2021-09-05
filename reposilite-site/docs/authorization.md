@@ -10,16 +10,16 @@ Reposilite uses path based token system.
 ## Access token
 The access token consists of four elements:
 
-* Path - the path covered by the token
-* Alias - the short form associated with token
+* Name - the short name associated with token
+* Secret - generated secret token used to access associated path
 * Permissions - the permissions associated with token
-* Token - generated secret token used to access associated path
+* Routes - list of paths and their permissions covered by the current token
 
 ### Generate token
 Tokens are generated using the `keygen` command in Reposilite CLI:
 
 ```log
-$ keygen <path> <alias> [<permissions>]
+$ keygen <name> [<permissions>]
 ```
 
 As an example, we can generate access token for `root` and standard `user`:
@@ -41,8 +41,9 @@ $ keygen com.example.project user w
 ### Permission
 Currently supported permissions:
 
-* `w` - allows to write *(deploy)* using this token
-* `m` - marks token as manager token *(full access)*
+* `r` - allows to read repository content *(default)*
+* `w` - allows to write *(deploy)* artifacts using this token
+* `m` - marks token as manager's *(admin)* token, grants full access to any path in the repository and allows you to access remote CLI through the dashboard
 
 ### Path
 
