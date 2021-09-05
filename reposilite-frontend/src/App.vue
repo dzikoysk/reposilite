@@ -1,5 +1,5 @@
 <!--
-  - Copyright (c) 2020 Dzikoysk
+  - Copyright (c) 2021 dzikoysk
   -
   - Licensed under the Apache License, Version 2.0 (the "License");
   - you may not use this file except in compliance with the License.
@@ -14,32 +14,65 @@
   - limitations under the License.
   -->
 
-<template lang="pug">
-  router-view
+<template>
+  <div v-bind:class="{ 'dark': theme.isDark }">
+    <router-view 
+      class="min-h-screen dark:bg-black dark:text-white"
+      :qualifier="qualifier"
+      :session="session"
+    />
+  </div>
 </template>
 
 <script>
-import Vue from 'vue'
+import { defineComponent, onMounted } from 'vue'
+import { useHead } from '@vueuse/head'
+import useTheme from "./store/theme"
+import useSession from "./store/session"
+import useQualifier from "./store/qualifier"
 
-export default {
-  name: 'App',
-  data () {
+export default defineComponent({
+  setup() {
+    useHead({
+      title: window.REPOSILITE_TITLE,
+      description: window.REPOSILITE_DESCRIPTION
+    })
+
+    const { theme, fetchTheme } = useTheme()
+    const { fetchSession, token, session } = useSession()
+    const { qualifier } = useQualifier(token)
+
+    fetchTheme()
+    fetchSession().catch(_ => {})
+        
     return {
-      reposilite: Vue.prototype.$reposilite
+      theme,
+      qualifier,
+      session
     }
-  },
-  metaInfo () {
-    return {
-      title: this.reposilite.title
-    }
-  },
-  mounted () {
-    console.log('REPOSILITE_MESSAGE: ' + this.reposilite.message)
-    console.log('REPOSILITE_BASE_PATH: ' + this.reposilite.basePath)
-    console.log('REPOSILITE_VUE_BASE_PATH: ' + this.reposilite.vueBasePath)
-    console.log('REPOSILITE_TITLE: ' + this.reposilite.title)
-    console.log('REPOSILITE_DESCRIPTION: ' + this.reposilite.description)
-    console.log('REPOSILITE_ACCENT_COLOR: ' + this.reposilite.accentColor)
   }
-}
+})
 </script>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600&display=swap');
+
+html {
+  @apply bg-gray-100;
+}
+#app {
+  font-family: 'Open Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.container {
+  @apply px-10;
+}
+.active {
+  @apply dark:border-white;
+}
+.bg-default {
+  @apply bg-gray-100 dark:border-gray-900;
+}
+</style>

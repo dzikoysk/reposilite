@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Dzikoysk
+ * Copyright (c) 2021 dzikoysk
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,38 +14,30 @@
  * limitations under the License.
  */
 
-import './assets/tailwind.css'
-
-import Vue from 'vue'
+import { createApp } from 'vue'
+import { createHead } from '@vueuse/head'
+import axios from 'axios'
+import VueAxios from 'vue-axios'
+import Tabs from 'vue3-tabs'
 import App from './App.vue'
-import Axios from 'axios'
 import router from './router'
-import Notifications from 'vue-notification'
-import Meta from 'vue-meta'
-import uri from './mixins/uri'
-import orDefault from './mixins/default'
 
-Vue.config.productionTip = false
-Vue.prototype.$http = Axios
+import './store/placeholders.js'
+import 'virtual:windi.css'
 
-// Map placeholders into Vue configuration object
-Vue.prototype.$reposilite = {
-  message: orDefault(window.REPOSILITE_MESSAGE, 'unknown message'),
-  basePath: orDefault(window.REPOSILITE_BASE_PATH, '/'),
-  vueBasePath: orDefault(window.REPOSILITE_VUE_BASE_PATH, ''),
-  title: orDefault(window.REPOSILITE_TITLE, 'Reposilite'),
-  description: orDefault(
-    window.REPOSILITE_DESCRIPTION,
-    'Reposilite description'
-  ),
-  accentColor: orDefault(window.REPOSILITE_ACCENT_COLOR, '#000000')
-}
+const app = createApp(App)
 
-Vue.use(Notifications)
-Vue.use(Meta)
-Vue.mixin(uri)
+app.config.globalProperties.append = (path, pathToAppend) =>
+  path + (path.endsWith('/') ? '' : '/') + pathToAppend
 
-new Vue({
-  router,
-  render: h => h(App)
-}).$mount('#app')
+app.config.globalProperties.drop = (path) =>
+  (path.endsWith('/') ? path.slice(0, -1) : path).split("/")
+    .slice(0, -1)
+    .join('/')
+
+app
+  .use(createHead())
+  .use(VueAxios, axios)
+  .use(Tabs)
+  .use(router)
+  .mount('#app')
