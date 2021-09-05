@@ -28,5 +28,5 @@ jobs:
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v2
       with:
-        files: ./reposilite-backend-report.xml
+        files: ./build/reports/jacoco/reposilite-backend-report.xml
         fail_ci_if_error: false
