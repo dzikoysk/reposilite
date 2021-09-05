@@ -23,7 +23,7 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent.STARTED
 plugins {
     kotlin("jvm")
     kotlin("kapt")
-    kotlin("plugin.serialization") version "1.5.21"
+    kotlin("plugin.serialization") version "1.5.30"
     application
     jacoco
 }
