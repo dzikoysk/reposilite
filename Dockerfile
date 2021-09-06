@@ -1,8 +1,7 @@
 # Build stage
-FROM openjdk:16 AS build
+FROM openjdk:11 AS build
 COPY . /home/reposilite-build
 WORKDIR /home/reposilite-build
-RUN apk add binutils
 RUN chmod +x gradlew
 RUN ./gradlew -Djdk.lang.Process.launchMechanism=fork shadowJar --no-daemon --stacktrace
 
