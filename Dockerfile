@@ -20,7 +20,25 @@ WORKDIR /home/reposilite-build
 #                   -Duser.country \
 #                   -Duser.language=en \
 #                   -Duser.variant"
-RUN chmod +x gradlew && ./gradlew shadowJar --no-daemon --stacktrace --debug
+RUN chmod +x gradlew && ./gradlew \
+                    --add-opens java.base/java.util=ALL-UNNAMED \
+                    --add-opens java.base/java.lang=ALL-UNNAMED \
+                    --add-opens java.base/java.lang.invoke=ALL-UNNAMED \
+                    --add-opens java.base/java.util=ALL-UNNAMED \
+                    --add-opens java.prefs/java.util.prefs=ALL-UNNAMED \
+                    --add-opens java.prefs/java.util.prefs=ALL-UNNAMED \
+                    --add-opens java.base/java.nio.charset=ALL-UNNAMED \
+                    --add-opens java.base/java.net=ALL-UNNAMED \
+                    --add-opens java.base/java.util.concurrent.atomic=ALL-UNNAMED \
+                    -XX:MaxMetaspaceSize=256m \
+                    -XX:+HeapDumpOnOutOfMemoryError \
+                    -Xms256m \
+                    -Xmx512m \
+                    -Dfile.encoding=UTF-8 \
+                    -Duser.country \
+                    -Duser.language=en \
+                    -Duser.variant \
+                    shadowJar --no-daemon --stacktrace --debug
 
 # Build-time metadata stage
 
