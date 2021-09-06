@@ -21,7 +21,7 @@ ENV GRADLE_OPTS = "\
     -Duser.country \
     -Duser.language=en \
     -Duser.variant"
-RUN chmod +x gradlew && ./gradlew shadowJar --no-daemon --stacktrace
+RUN chmod +x gradlew && ./gradlew shadowJar --no-daemon --stacktrace --debug
 
 # Build-time metadata stage
 
