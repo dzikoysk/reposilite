@@ -1,6 +1,6 @@
 # Build stage
 
-FROM openjdk:11 AS build
+FROM openjdk:16 AS build
 COPY . /home/reposilite-build
 WORKDIR /home/reposilite-build
 ENV GRADLE_OPTS = "\
