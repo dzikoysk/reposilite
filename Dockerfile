@@ -3,7 +3,7 @@ FROM openjdk:11 AS build
 COPY . /home/reposilite-build
 WORKDIR /home/reposilite-build
 RUN chmod +x gradlew
-RUN ./gradlew shadowJar --stacktrace
+RUN ./gradlew shadowJar --no-daemon --debug --stacktrace
 
 # Build-time metadata stage
 ARG BUILD_DATE
