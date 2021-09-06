@@ -2,9 +2,9 @@
 FROM openjdk:16 AS build
 COPY . /home/reposilite-build
 WORKDIR /home/reposilite-build
-RUN yum install binutils
+RUN apk add binutils
 RUN chmod +x gradlew
-RUN ./gradlew shadowJar --no-daemon --stacktrace
+RUN ./gradlew -Djdk.lang.Process.launchMechanism=fork shadowJar --no-daemon --stacktrace
 
 # Build-time metadata stage
 ARG BUILD_DATE
