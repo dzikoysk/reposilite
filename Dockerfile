@@ -1,6 +1,6 @@
 # Build stage
 
-FROM adoptopenjdk:jdk16u-ubuntu-nightly AS build
+FROM adoptopenjdk/openjdk16:jdk16u-ubuntu-nightly AS build
 COPY . /home/reposilite-build
 WORKDIR /home/reposilite-build
 RUN chmod +x gradlew && ./gradlew shadowJar --no-daemon --stacktrace
@@ -22,7 +22,7 @@ LABEL org.label-schema.build-date=$BUILD_DATE \
 
 # Run stage
 
-FROM adoptopenjdk:jdk16u-ubuntu-nightly
+FROM adoptopenjdk/openjdk16:jdk16u-ubuntu-nightly
 WORKDIR /app
 RUN mkdir -p /app/data
 VOLUME /app/data
