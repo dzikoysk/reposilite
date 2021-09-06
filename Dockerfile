@@ -1,8 +1,8 @@
 # Build stage
-FROM gradle:7.2.0-jdk16 AS build
-COPY --chown=gradle:gradle . /home/gradle/src
-WORKDIR /home/gradle/src
-RUN gradle shadowJar --no-daemon --stacktrace
+FROM openjdk:16 AS build
+COPY . /home/reposilite-build
+WORKDIR /home/reposilite-build
+RUN ./gradlew shadowJar --no-daemon --stacktrace
 
 # Build-time metadata stage
 ARG BUILD_DATE
@@ -23,5 +23,5 @@ FROM openjdk:16-slim
 WORKDIR /app
 RUN mkdir -p /app/data
 VOLUME /app/data
-COPY --from=build /home/gradle/src/reposilite-backend/build/libs/*.jar reposilite.jar
+COPY /home/reposilite-build/reposilite-backend/build/libs/*.jar ./reposilite.jar
 ENTRYPOINT exec java $JAVA_OPTS -jar reposilite.jar -wd=/app/data $REPOSILITE_OPTS
