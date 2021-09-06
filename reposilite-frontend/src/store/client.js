@@ -1,7 +1,10 @@
 import axios from 'axios'
+import usePlaceholders from './placeholders'
+
+const { basePath } = usePlaceholders()
 
 const production = () =>
-  window.location.protocol + '//' + location.host + window.REPOSILITE_BASE_PATH
+  window.location.protocol + '//' + location.host + basePath
 
 const baseUrl = () =>
   process.env.NODE_ENV === 'production'

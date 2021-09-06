@@ -37,6 +37,9 @@ internal object FrontendWebConfiguration {
             configuration.id,
             configuration.title,
             configuration.description,
+            configuration.organizationWebsite,
+            configuration.organizationLogo,
+            configuration.icpLicense,
             configuration.cacheContent
         )
 

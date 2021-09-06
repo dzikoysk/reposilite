@@ -29,6 +29,7 @@ import MoonIcon from '../icons/MoonIcon.vue'
 import SunIcon from '../icons/SunIcon.vue'
 import useTheme from "../../store/theme"
 import useSession from '../../store/session'
+import usePlaceholders from '../../store/placeholders'
 
 export default {
   components: { MenuButton, LoginModal, MoonIcon, SunIcon },
@@ -37,7 +38,7 @@ export default {
     const signout = () => logout()
 
     const { theme, toggleTheme } = useTheme()
-    const title = ref(window.REPOSILITE_TITLE)
+    const { title } = usePlaceholders()
 
     return {
       isLogged,

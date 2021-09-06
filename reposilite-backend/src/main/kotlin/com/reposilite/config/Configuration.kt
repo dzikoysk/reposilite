@@ -45,31 +45,41 @@ class Configuration : Serializable {
     // @Description("# Run Reposilite using Jakarta Servlet server (not supported yet)")
     // public boolean servlet = false;
 
-    /* Frontend properties */
-
-    @Description("", "# Custom base path")
+    @Description("# Custom base path")
     @JvmField
     var basePath = "/"
 
-    @Description("# Repository id used in Maven repository configuration")
+    @Description("", "# Repository id used in Maven repository configuration")
     @JvmField
     var id = "reposilite-repository"
 
-    @Description("# Title displayed by frontend")
+    @Description("# Repository title")
     @JvmField
-    var title = "Reposilite"
+    var title = "Reposilite Repository"
 
-    @Description("# Description displayed by frontend")
+    @Description("# Repository description")
     @JvmField
     var description = "Public Maven repository hosted through the Reposilite"
+
+    @Description("# Link to organization's website")
+    @JvmField
+    var organizationWebsite = "https://reposilite.com"
+
+    @Description("# Link to organization's logo")
+    @JvmField
+    var organizationLogo = "https://avatars.githubusercontent.com/u/88636591"
+
+    @Description(
+        "# The Internet Content Provider License (also known as Bei'An)",
+        "# Web services in China require ICP license, a permit issued by the Chinese government to permit China-based websites to operate in China.",
+        "# In order to fulfill the conditions, you should apply for ICP license from your service provider and fill in this parameter.",
+    )
+    @JvmField
+    var icpLicense = ""
 
     @Description("# Enable Swagger (/swagger-docs) and Swagger UI (/swagger)")
     @JvmField
     var swagger = false
-
-    @Description("# Keep processed frontend files in memory to improve response time")
-    @JvmField
-    var cacheContent = true
 
     /* Repository properties */
 
@@ -211,6 +221,10 @@ class Configuration : Serializable {
     @Description("# Amount of messages stored in cached logger.")
     @JvmField
     var cachedLogSize = 100
+
+    @Description("# Keep processed files in memory to improve response time")
+    @JvmField
+    var cacheContent = true
 
     /* Logging */
 

@@ -18,15 +18,15 @@
   <div class="bg-gray-100 dark:bg-black">
     <div class="container mx-auto flex flex-row">
       <div class="w-35">
-        <img class="border-2 rounded-full dark:border-gray-700" src="https://avatars.githubusercontent.com/u/75123628?s=200&v=4">
+        <img class="border-2 rounded-full dark:border-gray-700" :src="organizationLogo">
       </div>
       <div class="flex flex-col justify-center px-10">
         <div>
-          <p>Public Maven repository for Bookkity organization</p>
+          <p>{{description}}</p>
         </div>
         <div class="flex flex-row py-2">
           <GlobeIcon />
-          <a class="px-3 text-gray-500" href="https://github.com/bookkity">https://github.com/bookkity</a>
+          <a class="px-3 text-gray-500" :href="organizationWebsite">{{organizationWebsite}}</a>
         </div>
       </div>
     </div>
@@ -35,8 +35,18 @@
 
 <script>
 import GlobeIcon from '../icons/GlobeIcon.vue'
+import usePlaceholders from '../../store/placeholders'
 
 export default {
-  components: { GlobeIcon }
+  components: { GlobeIcon },
+  setup() {
+    const { description, organizationWebsite, organizationLogo } = usePlaceholders()
+
+    return {
+      description,
+      organizationWebsite,
+      organizationLogo
+    }
+  }
 }
 </script>
