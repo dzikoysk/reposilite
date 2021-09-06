@@ -1,8 +1,8 @@
 # Build stage
-FROM gradle:7.0.2-jdk16 AS build
+FROM gradle:7.2.0-jdk16 AS build
 COPY --chown=gradle:gradle . /home/gradle/src
 WORKDIR /home/gradle/src
-RUN gradle build --no-daemon
+RUN gradle shadowJar --no-daemon
 
 # Build-time metadata stage
 ARG BUILD_DATE
@@ -19,7 +19,7 @@ LABEL org.label-schema.build-date=$BUILD_DATE \
       org.label-schema.schema-version="1.0"
 
 # Run stage
-FROM openjdk:16-alpine
+FROM openjdk:16-slim
 RUN apk add --no-cache mailcap
 WORKDIR /app
 RUN mkdir -p /app/data
