@@ -1,4 +1,6 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 /*
  * Copyright (c) 2021 dzikoysk
@@ -33,6 +35,7 @@ publishing {
         create<MavenPublication>("library") {
             groupId = "org.panda-lang"
             artifactId = "reposilite"
+            shadow.component(this)
             from(components.getByName("java"))
         }
     }
@@ -57,7 +60,7 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-dao:$exposed")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposed")
     implementation("org.jetbrains.exposed:exposed-java-time:$exposed")
-    implementation("net.dzikoysk:exposed-upsert:1.0.1")
+    implementation("net.dzikoysk:exposed-upsert:1.0.3")
     implementation("com.h2database:h2:1.4.199") // 1.4.200 is broken
 
     val fuel = "2.3.1"
@@ -75,7 +78,6 @@ dependencies {
 
     val javalin = "4.0.0.RC3"
     implementation("io.javalin:javalin:$javalin")
-    //implementation("com.github.tipsy:javalin:master-SNAPSHOT")
 
     val picocli = "4.6.1"
     kapt("info.picocli:picocli-codegen:$picocli")
@@ -83,7 +85,6 @@ dependencies {
 
     val jackson = "2.12.5"
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jackson")
-    // implementation("com.fasterxml.jackson.module:jackson-module-parameter-names:$jackson")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jackson")
 
@@ -123,6 +124,18 @@ dependencies {
 tasks.withType<ShadowJar> {
     archiveFileName.set("reposilite-${archiveVersion.get()}.jar")
     mergeServiceFiles()
+    minimize {
+        exclude(dependency("org.eclipse.jetty:.*"))
+        exclude(dependency("org.eclipse.jetty.websocket:.*"))
+        exclude(dependency("com.fasterxml.woodstox:woodstox-core:.*"))
+        exclude(dependency("commons-logging:commons-logging:.*"))
+        exclude(dependency("org.jetbrains.kotlin:kotlin-reflect:.*"))
+        exclude(dependency("org.jetbrains.exposed:.*"))
+        exclude(dependency("org.h2:.*"))
+        exclude(dependency("com.h2database:.*"))
+        exclude(dependency("org.tinylog:.*"))
+        exclude(dependency("org.slf4j:.*"))
+    }
 }
 
 java {
@@ -139,12 +152,12 @@ jacoco {
 tasks.withType<Test> {
     testLogging {
         events(
-            org.gradle.api.tasks.testing.logging.TestLogEvent.STARTED,
-            org.gradle.api.tasks.testing.logging.TestLogEvent.PASSED,
-            org.gradle.api.tasks.testing.logging.TestLogEvent.FAILED,
-            org.gradle.api.tasks.testing.logging.TestLogEvent.SKIPPED
+            TestLogEvent.STARTED,
+            TestLogEvent.PASSED,
+            TestLogEvent.FAILED,
+            TestLogEvent.SKIPPED
         )
-        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        exceptionFormat = TestExceptionFormat.FULL
         showExceptions = true
         showCauses = true
         showStackTraces = true
@@ -157,12 +170,12 @@ tasks.withType<Test> {
 tasks.withType<Test> {
     testLogging {
         events(
-            org.gradle.api.tasks.testing.logging.TestLogEvent.STARTED,
-            org.gradle.api.tasks.testing.logging.TestLogEvent.PASSED,
-            org.gradle.api.tasks.testing.logging.TestLogEvent.FAILED,
-            org.gradle.api.tasks.testing.logging.TestLogEvent.SKIPPED
+            TestLogEvent.STARTED,
+            TestLogEvent.PASSED,
+            TestLogEvent.FAILED,
+            TestLogEvent.SKIPPED
         )
-        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        exceptionFormat = TestExceptionFormat.FULL
         showExceptions = true
         showCauses = true
         showStackTraces = true

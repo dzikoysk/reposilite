@@ -145,7 +145,6 @@ internal class MavenEndpoint(
     private val findFileDetails: suspend ReposiliteWebDsl.() -> Unit = {
         accessed {
             response = mavenFacade.findFile(LookupRequest(parameter("repository"), wildcard("gav"), this?.accessToken))
-            println(response)
         }
     }
 

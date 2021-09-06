@@ -24,7 +24,7 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
     - name: Build with Gradle
-      run: ./gradlew clean build
+      run: ./gradlew clean test shadowJar
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v2
       with:
