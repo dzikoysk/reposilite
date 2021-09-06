@@ -3,7 +3,7 @@
 FROM adoptopenjdk/openjdk16:jdk16u-ubuntu-nightly AS build
 COPY . /home/reposilite-build
 WORKDIR /home/reposilite-build
-RUN chmod +x gradlew && ./gradlew shadowJar --no-daemon --stacktrace --debug
+RUN ls /opt/java/openjdk/bin/java && chmod +x gradlew && ./gradlew shadowJar --no-daemon --stacktrace --debug
 
 # Build-time metadata stage
 
