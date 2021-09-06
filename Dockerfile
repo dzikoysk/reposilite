@@ -2,7 +2,7 @@
 FROM gradle:7.2.0-jdk16 AS build
 COPY --chown=gradle:gradle . /home/gradle/src
 WORKDIR /home/gradle/src
-RUN gradle -Djdk.lang.Process.launchMechanism=vfork shadowJar --no-daemon --stacktrace
+RUN gradle shadowJar --no-daemon --stacktrace
 
 # Build-time metadata stage
 ARG BUILD_DATE
