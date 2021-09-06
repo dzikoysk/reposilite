@@ -14,9 +14,24 @@
  * limitations under the License.
  */
 
-const available = !'{{REPOSILITE.BASE_PATH}}'.includes('REPOSILITE.BASE_PATH')
+export default function usePlaceholders() {
+  const available = !'{{REPOSILITE.BASE_PATH}}'.includes('REPOSILITE.BASE_PATH')
+  const basePath = available ? '{{REPOSILITE.BASE_PATH}}' : '/'
+  const id = available ? '{{REPOSILITE.ID}}' : 'reposilite-repository'
+  const title = available ? '{{REPOSILITE.TITLE}}' : 'Reposilite Repository'
+  const description = available ? '{{REPOSILITE.DESCRIPTION}}' : 'Public Maven repository hosted through the Reposilite'
+  const organizationWebsite = available ? '{{REPOSILITE.ORGANIZATION_WEBSITE}}' : location.protocol + '//' + location.host + basePath
+  const organizationLogo = available ? '{{REPOSILITE.ORGANIZATION_LOGO}}' : 'https://avatars.githubusercontent.com/u/75123628?s=200&v=4'
+  const icpLicense = available ? '{{REPOSILITE.ICP_LICENSE}}' : '国ICP备000000000号'
 
-window.REPOSILITE_BASE_PATH = available ? '{{REPOSILITE.BASE_PATH}}' : '/'
-window.REPOSILITE_ID = available ? '{{REPOSILITE.ID}}' : 'reposilite-repository'
-window.REPOSILITE_TITLE = available ? '{{REPOSILITE.TITLE}}' : 'Reposilite Repository'
-window.REPOSILITE_DESCRIPTION = available ? '{{REPOSILITE.DESCRIPTION}}' : 'Default description'
+  return {
+    available,
+    basePath,
+    id,
+    title,
+    description,
+    organizationWebsite,
+    organizationLogo,
+    icpLicense
+  }
+}

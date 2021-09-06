@@ -1,6 +1,9 @@
 import { computed } from 'vue'
+import usePlaceholders from '../placeholders'
 
 export default function useRepository() {
+  const { id, title } = usePlaceholders()
+
   const createRepositories = (qualifier) => {
     const repository = computed(() => qualifier.path.split('/')[0])
     const domain = location.protocol + '//' + location.host + (qualifier.path ? `/${repository.value}` : '/{repository}')
@@ -11,8 +14,8 @@ export default function useRepository() {
         lang: 'xml',
           snippet: `
 <repository>
-  <name>${window.REPOSILITE_TITLE}</name>
-  <id>${window.REPOSILITE_ID}</id>
+  <id>${id}</id>
+  <name>${title}</name>
   <url>${domain}</url>
 </repository>
         `.trim()
@@ -30,7 +33,7 @@ export default function useRepository() {
     {
       name: 'SBT',
         lang: 'scala',
-          snippet: `resolvers += "${window.REPOSILITE_ID}" at "${domain}"`
+          snippet: `resolvers += "${id}" at "${domain}"`
     }
     ]
   }

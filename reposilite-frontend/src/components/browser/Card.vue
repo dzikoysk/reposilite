@@ -95,7 +95,7 @@ export default {
     }
 
     const displayArtifact = (metadataSource) => {
-      const metadata = parseMetadata(response.data)
+      const metadata = parseMetadata(metadataSource)
       configurations.value = createSnippets(groupId(metadata), artifactId(metadata), versions(metadata)[0])
       title.value = 'Artifact details'
     }

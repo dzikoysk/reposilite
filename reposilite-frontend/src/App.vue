@@ -21,6 +21,9 @@
       :qualifier="qualifier"
       :session="session"
     />
+    <div v-if="icpLicense" class="absolute bottom-4 w-full text-center text-xs">
+      <a href="https://beian.miit.gov.cn" target="_blank">{{icpLicense}}</a>
+    </div>
   </div>
 </template>
 
@@ -30,12 +33,15 @@ import { useHead } from '@vueuse/head'
 import useTheme from "./store/theme"
 import useSession from "./store/session"
 import useQualifier from "./store/qualifier"
+import usePlaceholders from './store/placeholders'
 
 export default defineComponent({
   setup() {
+    const { title, description, organizationLogo, icpLicense } = usePlaceholders()
+
     useHead({
-      title: window.REPOSILITE_TITLE,
-      description: window.REPOSILITE_DESCRIPTION
+      title,
+      description
     })
 
     const { theme, fetchTheme } = useTheme()
@@ -48,7 +54,8 @@ export default defineComponent({
     return {
       theme,
       qualifier,
-      session
+      session,
+      icpLicense
     }
   }
 })

@@ -22,6 +22,9 @@ class FrontendFacade internal constructor(
     private val id: String,
     private val title: String,
     private val description: String,
+    private var organizationWebsite: String,
+    private var organizationLogo: String,
+    private var icpLicense: String,
     private val cacheContent: Boolean
 ) {
 
@@ -40,6 +43,9 @@ class FrontendFacade internal constructor(
             .replace("{{REPOSILITE.ID}}", id)
             .replace("{{REPOSILITE.TITLE}}", title)
             .replace("{{REPOSILITE.DESCRIPTION}}", description)
+            .replace("{{REPOSILITE.ORGANIZATION_WEBSITE}}", organizationWebsite)
+            .replace("{{REPOSILITE.ORGANIZATION_LOGO}}", organizationLogo)
+            .replace("{{REPOSILITE.ICP_LICENSE}}", icpLicense)
 
     fun createNotFoundPage(uri: String): String {
         @Language("html")

@@ -27,13 +27,14 @@
 </template>
 
 <script>
+import usePlaceholders from '../../store/placeholders'
 import Hero from './Hero.vue'
 import Menu from './Menu.vue'
 
 export default {
   components: { Hero, Menu },
   setup() {
-    const title = window.REPOSILITE_TITLE
+    const { title } = usePlaceholders()
 
     return {
       title
