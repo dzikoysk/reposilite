@@ -1,25 +1,8 @@
 # Build stage
 
-FROM openjdk:11 AS build
+FROM adoptopenjdk:jdk16u-ubuntu-nightly AS build
 COPY . /home/reposilite-build
 WORKDIR /home/reposilite-build
-#ENV GRADLE_OPTS = "--add-opens java.base/java.util=ALL-UNNAMED \
-#                   --add-opens java.base/java.lang=ALL-UNNAMED \
-#                   --add-opens java.base/java.lang.invoke=ALL-UNNAMED \
-#                   --add-opens java.base/java.util=ALL-UNNAMED \
-#                   --add-opens java.prefs/java.util.prefs=ALL-UNNAMED \
-#                   --add-opens java.prefs/java.util.prefs=ALL-UNNAMED \
-#                   --add-opens java.base/java.nio.charset=ALL-UNNAMED \
-#                   --add-opens java.base/java.net=ALL-UNNAMED \
-#                   --add-opens java.base/java.util.concurrent.atomic=ALL-UNNAMED \
-#                   -XX:MaxMetaspaceSize=256m \
-#                   -XX:+HeapDumpOnOutOfMemoryError \
-#                   -Xms256m \
-#                   -Xmx512m \
-#                   -Dfile.encoding=UTF-8 \
-#                   -Duser.country \
-#                   -Duser.language=en \
-#                   -Duser.variant"
 RUN chmod +x gradlew && ./gradlew shadowJar --no-daemon --stacktrace
 
 # Build-time metadata stage
@@ -39,7 +22,7 @@ LABEL org.label-schema.build-date=$BUILD_DATE \
 
 # Run stage
 
-FROM openjdk:16-slim
+FROM adoptopenjdk:jdk16u-ubuntu-nightly
 WORKDIR /app
 RUN mkdir -p /app/data
 VOLUME /app/data
