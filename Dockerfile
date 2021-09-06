@@ -20,7 +20,6 @@ LABEL org.label-schema.build-date=$BUILD_DATE \
 
 # Run stage
 FROM openjdk:16-slim
-RUN apk add --no-cache mailcap
 WORKDIR /app
 RUN mkdir -p /app/data
 VOLUME /app/data
