@@ -20,8 +20,7 @@ WORKDIR /home/reposilite-build
 #                   -Duser.country \
 #                   -Duser.language=en \
 #                   -Duser.variant"
-RUN chmod +x gradlew
-RUN ./gradlew shadowJar --no-daemon --stacktrace --debug
+RUN chmod +x gradlew && ./gradlew shadowJar --no-daemon --stacktrace --debug
 
 # Build-time metadata stage
 
