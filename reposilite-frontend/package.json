@@ -11,7 +11,7 @@
   "dependencies": {
     "@vueuse/head": "^0.6.0",
     "ansi-to-html": "^0.7.1",
-    "axios": "^0.21.3",
+    "axios": "^0.21.4",
     "downloadjs": "^1.4.7",
     "mime-types": "^2.1.32",
     "mosha-vue-toastify": "^1.0.21",
