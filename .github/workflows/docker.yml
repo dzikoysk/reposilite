@@ -23,4 +23,4 @@ jobs:
         with:
           push: true
           tags: dzikoysk/reposilite:nightly
-          platforms: linux/amd64,linux/arm64/v8
+          platforms: linux/arm64/v8
