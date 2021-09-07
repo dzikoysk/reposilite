@@ -60,8 +60,6 @@ interface StorageProvider {
 
     fun isDirectory(file: Path): Boolean
 
-    fun isFull(): Boolean
-
     fun usage(): Result<Long, ErrorResponse>
 
     fun canHold(contentLength: Long): Result<*, ErrorResponse>
