@@ -10,6 +10,7 @@ import com.reposilite.maven.api.RepositoryVisibility.HIDDEN
 import com.reposilite.maven.api.RepositoryVisibility.PRIVATE
 import com.reposilite.maven.api.RepositoryVisibility.PUBLIC
 import com.reposilite.maven.api.Versioning
+import com.reposilite.maven.spec.MavenSpec
 import com.reposilite.shared.FileType.FILE
 import com.reposilite.token.api.RoutePermission.READ
 import com.reposilite.token.api.RoutePermission.WRITE
