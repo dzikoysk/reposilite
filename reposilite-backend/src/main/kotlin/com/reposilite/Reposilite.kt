@@ -30,6 +30,7 @@ import com.reposilite.token.AccessTokenFacade
 import com.reposilite.web.ReposiliteContextFactory
 import com.reposilite.web.WebServer
 import org.eclipse.jetty.util.thread.QueuedThreadPool
+import org.jetbrains.exposed.sql.Database
 import panda.utilities.console.Effect
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ScheduledExecutorService
@@ -44,6 +45,7 @@ class Reposilite(
     val startTime: Long = System.currentTimeMillis(),
     val coreThreadPool: QueuedThreadPool,
     val scheduler: ScheduledExecutorService,
+    val database: Database,
     val webServer: WebServer,
     val contextFactory: ReposiliteContextFactory,
     val failureFacade: FailureFacade,
@@ -58,7 +60,11 @@ class Reposilite(
     private val alive = AtomicBoolean(false)
 
     private val shutdownHook = Thread {
-        alive.peek { shutdown() }
+        alive.peek {
+            coreThreadPool.execute {
+                shutdown()
+            }
+        }
     }
 
     fun launch() {

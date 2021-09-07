@@ -44,12 +44,12 @@ internal class RepositoryFactory(
             repositoryConfiguration.redeployment
         )
 
-    private fun createProxiedHostConfiguration(configuration: String): Pair<String, ProxiedHostConfiguration> =
-        with(loadCommandBasedConfiguration(ProxiedHostConfiguration(), configuration)) {
-            if (first.endsWith("/"))
-                Pair(first.substring(0, first.length - 1), second)
+    private fun createProxiedHostConfiguration(configurationSource: String): Pair<String, ProxiedHostConfiguration> =
+        with(loadCommandBasedConfiguration(ProxiedHostConfiguration(), configurationSource)) {
+            if (name.endsWith("/"))
+                Pair(name.substring(0, name.length - 1), configuration)
             else
-                this
+                Pair(name, configuration)
         }
 
 }

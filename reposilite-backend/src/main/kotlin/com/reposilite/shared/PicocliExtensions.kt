@@ -3,26 +3,27 @@ package com.reposilite.shared
 import com.reposilite.VERSION
 import panda.std.Result
 import panda.std.asSuccess
-import panda.utilities.text.Joiner
 import picocli.CommandLine
 import java.util.TreeSet
 
-fun <CONFIGURATION : Runnable> loadCommandBasedConfiguration(configuration: CONFIGURATION, description: String): Pair<String, CONFIGURATION> =
+abstract class Validator : Runnable {
+    override fun run() { }
+}
+
+data class CommandConfiguration<VALUE>(
+    val name: String,
+    val configuration: VALUE
+)
+
+fun <CONFIGURATION : Runnable> loadCommandBasedConfiguration(configuration: CONFIGURATION, description: String): CommandConfiguration<CONFIGURATION> =
     description.split(" ", limit = 2)
-        .let { Pair(it[0], it.getOrNull(1) ?: "") }
-        .also {
-            val commandLine = CommandLine(configuration)
+        .let { CommandConfiguration(it[0], it.getOrElse(1, { "" })) }
+        .also { CommandLine(configuration).execute(*splitArguments(it.configuration)) }
+        .let { CommandConfiguration(it.name, configuration) }
+        .also { it.configuration.run() }
 
-            val args =
-                if (it.second.isEmpty())
-                    arrayOf()
-                else
-                    it.second.split(" ").toTypedArray()
-
-            commandLine.execute(*args)
-        }
-        .let { Pair(it.first, configuration) }
-        .also { it.second.run() }
+private fun splitArguments(args: String): Array<String> =
+    if (args.isEmpty()) arrayOf() else args.split(" ").toTypedArray()
 
 fun createCommandHelp(commands: Map<String, CommandLine>, requestedCommand: String): Result<List<String>, String> {
     if (requestedCommand.isNotEmpty()) {
@@ -36,13 +37,16 @@ fun createCommandHelp(commands: Map<String, CommandLine>, requestedCommand: Stri
 
     val response = mutableListOf("Reposilite $VERSION Commands:")
 
-    for (command in uniqueCommands) {
-        val specification = command.commandSpec
+    uniqueCommands
+        .forEach { command ->
+            val specification = command.commandSpec
 
-        response.add("  " + command.commandName
-                + " " + Joiner.on(" ").join(specification.args()) { obj -> obj.paramLabel() }
-                + " - " + Joiner.on(". ").join(*specification.usageMessage().description()))
-    }
+            response.add("  " + command.commandName
+                    + (if (specification.args().isEmpty()) "" else " ")
+                    + specification.args().joinToString(separator = " ", transform = { it.paramLabel() })
+                    + " - ${specification.usageMessage().description().joinToString(". ")}"
+            )
+        }
 
     return response.asSuccess()
 }

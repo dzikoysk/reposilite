@@ -35,13 +35,12 @@ internal object StorageProviderFactory {
             FileSystemStorageProviderFactory.of(journalist, workingDirectory, quota)
         }
         else if (storageDescription.startsWith("s3")) {
-            // Implement quota
-            val settings = loadCommandBasedConfiguration(S3StorageProviderSettings(), storageDescription).second
+            // Implement quota?
+            val settings = loadCommandBasedConfiguration(S3StorageProviderSettings(), storageDescription).configuration
             S3StorageProvider(journalist, createUnauthenticatedS3Client(settings.region), settings.bucketName)
         }
         // else if (storageDescription.equals("rest", ignoreCase = true)) {
         // TOFIX REST API storage endpoint
-        //    null
         //}
         else throw UnsupportedOperationException("Unknown storage provider: $storageDescription")
 
