@@ -1,7 +1,8 @@
-package com.reposilite.maven
+package com.reposilite.maven.spec
 
 import com.reposilite.config.Configuration.RepositoryConfiguration
 import com.reposilite.journalist.backend.InMemoryLogger
+import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.UNKNOWN_LENGTH

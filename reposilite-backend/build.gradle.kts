@@ -106,6 +106,10 @@ dependencies {
 
     /* Tests */
 
+    val unirest = "3.11.13"
+    testImplementation("com.konghq:unirest-java:$unirest")
+    testImplementation("com.konghq:unirest-objectmapper-jackson:$unirest")
+
     val testcontainers = "1.16.0"
     testImplementation("org.testcontainers:mariadb:$testcontainers")
     testImplementation("org.testcontainers:testcontainers:$testcontainers")
