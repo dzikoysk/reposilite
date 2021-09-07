@@ -11,7 +11,9 @@ import com.reposilite.web.http.response
 import com.reposilite.web.routing.ReactiveRoutingPlugin
 import io.javalin.Javalin
 import io.javalin.core.JavalinConfig
+import io.javalin.core.util.JavalinLogger
 import io.javalin.http.Context
+import io.javalin.jetty.JettyUtil
 import io.ktor.util.DispatcherWithShutdown
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -25,6 +27,9 @@ internal class JavalinWebServer : WebServer {
         val configuration = reposilite.configuration
         val dispatcher = DispatcherWithShutdown(reposilite.coreThreadPool.asCoroutineDispatcher())
 
+        JavalinLogger.enabled = false
+        JettyUtil.disableJettyLogger()
+
         this.javalin = createJavalin(reposilite, configuration, dispatcher)
             .events { listener ->
                 listener.serverStopping {
@@ -36,6 +41,7 @@ internal class JavalinWebServer : WebServer {
                     dispatcher.completeShutdown()
                     reposilite.coreThreadPool.stop()
                     reposilite.logger.info("Bye! Uptime: " + TimeUtils.getPrettyUptimeInMinutes(reposilite.startTime))
+                    reposilite.journalist.shutdown()
                 }
             }
             .also {
@@ -46,6 +52,9 @@ internal class JavalinWebServer : WebServer {
         if (!servlet) {
             javalin!!.start(reposilite.parameters.hostname, reposilite.parameters.port)
         }
+
+        JavalinLogger.enabled = true
+        JettyUtil.reEnableJettyLogger()
     }
 
     private fun createJavalin(reposilite: Reposilite, configuration: Configuration, dispatcher: CoroutineDispatcher): Javalin =

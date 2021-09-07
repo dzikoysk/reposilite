@@ -17,6 +17,7 @@ package com.reposilite.config
 
 import com.reposilite.maven.api.RepositoryVisibility
 import com.reposilite.maven.api.RepositoryVisibility.PRIVATE
+import com.reposilite.shared.Validator
 import net.dzikoysk.cdn.entity.Contextual
 import net.dzikoysk.cdn.entity.Description
 import picocli.CommandLine.Command
@@ -41,6 +42,43 @@ class Configuration : Serializable {
     @Description("# Port to bind")
     @JvmField
     var port = 80
+
+    @Description(
+        "# Database. Supported storage providers:",
+        "# - sqlite reposilite.db",
+        "# - sqlite --in-memory",
+        "# - mysql localhost:3306 database user password"
+    )
+    @JvmField
+    var database = "sqlite reposilite.db"
+
+    @Command(name = "sqlite")
+    internal class SQLiteDatabaseSettings : Validator() {
+
+        @Parameters(index = "0", paramLabel = "<file-name>")
+        var fileName: String = ""
+
+        @Option(names = ["--in-memory"])
+        var inMemory = false
+
+    }
+
+    @Command(name = "mysql")
+    internal class MySqlDatabaseSettings : Validator() {
+
+        @Parameters(index = "0", paramLabel = "<host>")
+        lateinit var host: String
+
+        @Parameters(index = "1", paramLabel = "<database>")
+        lateinit var database: String
+
+        @Parameters(index = "2", paramLabel = "<user>")
+        lateinit var user: String
+
+        @Parameters(index = "3", paramLabel = "<password>")
+        lateinit var password: String
+
+    }
 
     // @Description("# Run Reposilite using Jakarta Servlet server (not supported yet)")
     // public boolean servlet = false;
@@ -112,7 +150,7 @@ class Configuration : Serializable {
         var storageProvider = "fs"
 
         @Command(name = "s3", description = ["Amazon S3 storage provider settings"])
-        internal class S3StorageProviderSettings : Runnable {
+        internal class S3StorageProviderSettings : Validator() {
 
             @Parameters(index = "0", paramLabel = "<access-key>")
             lateinit var accessKey: String
@@ -125,8 +163,6 @@ class Configuration : Serializable {
 
             @Parameters(index = "3", paramLabel = "<bucket-name>")
             lateinit var bucketName: String
-
-            override fun run() { /* Validation */ }
 
         }
 
@@ -157,7 +193,7 @@ class Configuration : Serializable {
         var proxied = mutableListOf<String>()
 
         @Command(description = ["An entry representing one proxied host and its configuration"])
-        class ProxiedHostConfiguration : Runnable {
+        class ProxiedHostConfiguration : Validator() {
 
             @Option(names = ["--store"])
             var store = false
@@ -170,8 +206,6 @@ class Configuration : Serializable {
 
             @Option(names = ["--authorization", "--auth"])
             var authorization: String? = null
-
-            override fun run() { }
 
         }
 

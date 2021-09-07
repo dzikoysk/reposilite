@@ -132,6 +132,5 @@ fun <VALUE> catchIOException(consumer: () -> Result<VALUE, ErrorResponse>): Resu
     try {
         consumer()
     } catch (ioException: IOException) {
-        @Suppress("UNNECESSARY_SAFE_CALL")
-        errorResponse(HttpCode.INTERNAL_SERVER_ERROR, ioException?.message ?: "<no message>")
+        errorResponse(HttpCode.INTERNAL_SERVER_ERROR, ioException.message ?: "<no message>")
     }

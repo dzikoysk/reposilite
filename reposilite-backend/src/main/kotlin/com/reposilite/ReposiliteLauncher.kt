@@ -31,7 +31,7 @@ fun createWithParameters(vararg args: String): Reposilite? {
         return null
     }
 
-    return ReposiliteWebConfiguration.createReposilite(parameters)
+    return ReposiliteFactory.createReposilite(parameters)
 }
 
 fun main(args: Array<String>) {

@@ -46,7 +46,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.5.21")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
 
-    val expressible = "1.0.9"
+    val expressible = "1.0.10"
     implementation("org.panda-lang:expressible:$expressible")
     implementation("org.panda-lang:expressible-kt:$expressible")
     testImplementation("org.panda-lang:expressible-junit:$expressible")
@@ -60,8 +60,9 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-dao:$exposed")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposed")
     implementation("org.jetbrains.exposed:exposed-java-time:$exposed")
+
     implementation("net.dzikoysk:exposed-upsert:1.0.3")
-    implementation("com.h2database:h2:1.4.199") // 1.4.200 is broken
+    implementation("org.xerial:sqlite-jdbc:3.36.0.3")
 
     val fuel = "2.3.1"
     implementation("com.github.kittinunf.fuel:fuel:$fuel")
