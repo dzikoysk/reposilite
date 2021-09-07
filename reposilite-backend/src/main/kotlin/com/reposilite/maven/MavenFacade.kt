@@ -34,7 +34,6 @@ import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
 import io.javalin.http.HttpCode
 import io.javalin.http.HttpCode.BAD_REQUEST
-import io.javalin.http.HttpCode.INSUFFICIENT_STORAGE
 import io.javalin.http.HttpCode.NOT_FOUND
 import io.javalin.http.HttpCode.UNAUTHORIZED
 import panda.std.Result
@@ -94,10 +93,6 @@ class MavenFacade internal constructor(
 
         if (repository.redeployment.not() && path.getSimpleName().contains(METADATA_FILE).not() && repository.exists(path)) {
             return errorResponse(HttpCode.CONFLICT, "Redeployment is not allowed")
-        }
-
-        if (repository.isFull()) {
-            return errorResponse(INSUFFICIENT_STORAGE, "Not enough storage space available")
         }
 
         return repository.putFile(path, deployRequest.content)

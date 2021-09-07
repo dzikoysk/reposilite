@@ -64,9 +64,6 @@ class Repository internal constructor(
     fun isDirectory(file: Path): Boolean =
         storageProvider.isDirectory(file)
 
-    fun isFull(): Boolean =
-        storageProvider.isFull()
-
     fun getUsage(): Result<Long, ErrorResponse> =
         storageProvider.usage()
 

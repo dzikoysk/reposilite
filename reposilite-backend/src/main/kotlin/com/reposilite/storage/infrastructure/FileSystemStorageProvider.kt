@@ -139,9 +139,6 @@ internal abstract class FileSystemStorageProvider protected constructor(
     override fun usage(): Result<Long, ErrorResponse> =
         rootDirectory.size()
 
-    override fun isFull(): Boolean =
-        canHold(0).isErr
-
     override fun shutdown() {}
 
     private fun resolved(file: Path): Path =

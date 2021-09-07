@@ -34,6 +34,7 @@ import io.javalin.http.ContentType.Companion.OCTET_STREAM
 import io.javalin.http.HttpCode
 import io.javalin.http.HttpCode.NOT_FOUND
 import panda.std.Result
+import panda.std.Result.ok
 import panda.std.asSuccess
 import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.services.s3.S3Client
@@ -223,16 +224,11 @@ internal class S3StorageProvider(
         }
          */
 
-    override fun isFull(): Boolean {
-        TODO("Not yet implemented")
-    }
-
-    override fun usage(): Result<Long, ErrorResponse> {
-        TODO("Not yet implemented")
-    }
+    override fun usage(): Result<Long, ErrorResponse> =
+        ok(-1)
 
     override fun canHold(contentLength: Long): Result<*, ErrorResponse> =
-        true.asSuccess()
+        ok(true)
 
     override fun getLogger(): Logger =
         journalist.logger
