@@ -30,13 +30,13 @@ class AccessTokenFacade internal constructor(
     private val persistentRepository: AccessTokenRepository
 ) {
 
-    fun createTemporaryAccessToken(request: CreateAccessTokenRequest): CreateAccessTokenResponse =
+    suspend fun createTemporaryAccessToken(request: CreateAccessTokenRequest): CreateAccessTokenResponse =
         createAccessToken(temporaryRepository, TEMPORARY, request.name, request.secret ?: generateSecret(), request.permissions)
 
-    fun createAccessToken(request: CreateAccessTokenRequest): CreateAccessTokenResponse =
+    suspend fun createAccessToken(request: CreateAccessTokenRequest): CreateAccessTokenResponse =
         createAccessToken(persistentRepository, PERSISTENT, request.name, request.secret ?: generateSecret(), request.permissions)
 
-    private fun createAccessToken(
+    private suspend fun createAccessToken(
         repository: AccessTokenRepository,
         type: AccessTokenType,
         name: String,
@@ -50,22 +50,22 @@ class AccessTokenFacade internal constructor(
         return CreateAccessTokenResponse(repository.findAccessTokenByName(name)!!, secret)
     }
 
-    fun updateToken(accessToken: AccessToken) =
+    suspend fun updateToken(accessToken: AccessToken) =
         persistentRepository.saveAccessToken(accessToken)
 
-    fun deleteToken(name: String): AccessToken? =
+    suspend fun deleteToken(name: String): AccessToken? =
         deleteToken(temporaryRepository, name) ?: deleteToken(persistentRepository, name)
 
-    private fun deleteToken(repository: AccessTokenRepository, name: String): AccessToken? =
+    private suspend fun deleteToken(repository: AccessTokenRepository, name: String): AccessToken? =
         repository.findAccessTokenByName(name)?.also { persistentRepository.deleteAccessToken(it) }
 
-    fun getToken(name: String): AccessToken? =
+    suspend fun getToken(name: String): AccessToken? =
         temporaryRepository.findAccessTokenByName(name) ?: persistentRepository.findAccessTokenByName(name)
 
-    fun getTokens(): Collection<AccessToken> =
+    suspend fun getTokens(): Collection<AccessToken> =
         temporaryRepository.findAll() + persistentRepository.findAll()
 
-    fun count(): Long =
+    suspend fun count(): Long =
         temporaryRepository.countAccessTokens() + persistentRepository.countAccessTokens()
 
 }

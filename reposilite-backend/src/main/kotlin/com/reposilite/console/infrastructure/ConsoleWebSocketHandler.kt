@@ -26,6 +26,7 @@ import io.javalin.openapi.OpenApi
 import io.javalin.websocket.WsConfig
 import io.javalin.websocket.WsContext
 import io.javalin.websocket.WsMessageContext
+import kotlinx.coroutines.CoroutineDispatcher
 import panda.std.Result
 import panda.std.Result.error
 import panda.std.Result.ok
@@ -35,6 +36,7 @@ import java.util.function.Consumer
 private const val AUTHORIZATION_PREFIX = "Authorization:"
 
 internal class CliEndpoint(
+    private val dispatcher: CoroutineDispatcher,
     private val contextFactory: ReposiliteContextFactory,
     private val authenticationFacade: AuthenticationFacade,
     private val consoleFacade: ConsoleFacade,
@@ -50,20 +52,22 @@ internal class CliEndpoint(
             ws.onMessage { messageContext ->
                 val context = contextFactory.create(connection)
 
-                authenticateContext(context, messageContext)
-                    .peek {
-                        context.logger.info("CLI | $it accessed remote console")
-                        initializeAuthenticatedContext(ws, connection, context, it)
-                    }
-                    .onError {
-                        connection.send(it)
-                        connection.session.disconnect()
-                    }
+                context.async {
+                    authenticateContext(context, messageContext)
+                        .peek {
+                            context.logger.info("CLI | $it accessed remote console")
+                            initializeAuthenticatedContext(ws, connection, context, it)
+                        }
+                        .onError {
+                            connection.send(it)
+                            connection.session.disconnect()
+                        }
+                }
             }
         }
     }
 
-    private fun authenticateContext(context: ReposiliteContext, connection: WsMessageContext): Result<String, String> {
+    private suspend fun authenticateContext(context: ReposiliteContext, connection: WsMessageContext): Result<String, String> {
         val authMessage = connection.message()
 
         if (!authMessage.startsWith(AUTHORIZATION_PREFIX)) {
@@ -87,8 +91,10 @@ internal class CliEndpoint(
             when(val message = it.message()) {
                 "keep-alive" -> connection.send("keep-alive")
                 else -> {
-                    context.logger.info("CLI | $session> $message")
-                    consoleFacade.executeCommand(message)
+                    context.async {
+                        context.logger.info("CLI | $session> $message")
+                        consoleFacade.executeCommand(message)
+                    }
                 }
             }
         }

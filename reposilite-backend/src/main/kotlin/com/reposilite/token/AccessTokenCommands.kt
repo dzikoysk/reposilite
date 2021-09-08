@@ -27,7 +27,7 @@ import picocli.CommandLine.Parameters
 @Command(name = "tokens", description = ["List all generated tokens"])
 internal class TokensCommand(private val accessTokenFacade: AccessTokenFacade) : ReposiliteCommand {
 
-    override fun execute(context: CommandContext) {
+    override suspend fun execute(context: CommandContext) {
         context.append("Tokens (${accessTokenFacade.count()})")
 
         accessTokenFacade.getTokens().forEach {
@@ -54,7 +54,7 @@ internal class KeygenCommand(private val accessTokenFacade: AccessTokenFacade) :
     @Parameters(index = "1", paramLabel = "[<permissions>]", description = ["extra permissions: m - manager"], defaultValue = "")
     private lateinit var permissions: String
 
-    override fun execute(context: CommandContext) {
+    override suspend fun execute(context: CommandContext) {
         val token = accessTokenFacade.createAccessToken(CreateAccessTokenRequest(
             name,
             permissions = permissions.toCharArray()
@@ -76,7 +76,7 @@ internal class ChNameCommand(private val accessTokenFacade: AccessTokenFacade) :
     @Parameters(index = "1", paramLabel = "<new name>", description = ["new token name"])
     private lateinit var updatedName: String
 
-    override fun execute(context: CommandContext) {
+    override suspend fun execute(context: CommandContext) {
         accessTokenFacade.getToken(name)
             ?.let {
                 accessTokenFacade.updateToken(it.copy(name = updatedName))
@@ -99,7 +99,7 @@ internal class ChModCommand(private val accessTokenFacade: AccessTokenFacade) : 
     @Parameters(index = "1", paramLabel = "<permissions>", description = ["new permissions"])
     private lateinit var permissions: String
 
-    override fun execute(context: CommandContext) {
+    override suspend fun execute(context: CommandContext) {
         accessTokenFacade.getToken(token)
             ?.let {
                 accessTokenFacade.updateToken(it.copy(
@@ -123,7 +123,7 @@ internal class RevokeCommand(private val accessTokenFacade: AccessTokenFacade) :
     @Parameters(index = "0", paramLabel = "<name>", description = ["name of token to revoke"])
     private lateinit var name: String
 
-    override fun execute(context: CommandContext) {
+    override suspend fun execute(context: CommandContext) {
         accessTokenFacade.deleteToken(name)
         context.append("Token for '$name' has been revoked")
     }

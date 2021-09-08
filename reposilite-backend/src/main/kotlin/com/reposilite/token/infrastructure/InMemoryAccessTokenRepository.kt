@@ -23,21 +23,21 @@ internal class InMemoryAccessTokenRepository : AccessTokenRepository {
 
     private val tokens: MutableMap<Int, AccessToken> = HashMap(1)
 
-    override fun saveAccessToken(accessToken: AccessToken) {
+    override suspend fun saveAccessToken(accessToken: AccessToken) {
         tokens[accessToken.id] = accessToken
     }
 
-    override fun deleteAccessToken(accessToken: AccessToken) {
+    override suspend fun deleteAccessToken(accessToken: AccessToken) {
         tokens.remove(accessToken.id)
     }
 
-    override fun findAccessTokenByName(name: String): AccessToken? =
+    override suspend fun findAccessTokenByName(name: String): AccessToken? =
         tokens.values.firstOrNull { it.name == name }
 
-    override fun findAll(): Collection<AccessToken> =
+    override suspend fun findAll(): Collection<AccessToken> =
         tokens.values
 
-    override fun countAccessTokens(): Long =
+    override suspend fun countAccessTokens(): Long =
         tokens.size.toLong()
 
 }

@@ -22,6 +22,7 @@ import com.reposilite.console.api.ReposiliteCommand
 import com.reposilite.failure.FailureFacade
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
+import kotlinx.coroutines.CoroutineDispatcher
 import picocli.CommandLine
 import picocli.CommandLine.Command
 import picocli.CommandLine.MissingParameterException
@@ -32,33 +33,27 @@ import java.util.function.Consumer
 @Command(name = "", version = ["Reposilite $VERSION"])
 internal class Console(
     private val journalist: Journalist,
+    dispatcher: CoroutineDispatcher,
     failureFacade: FailureFacade,
     source: InputStream
 ) : Journalist {
 
-    private val consoleThread = ConsoleThread(this, source, failureFacade)
+    private val consoleThread = ConsoleThread(this, source, dispatcher, failureFacade)
     private val commandExecutor = CommandLine(this)
 
-    fun execute(command: String): ExecutionResponse {
-        logger.info("")
-        val response = execute(command) { logger.info(it) }
-        logger.info("")
-        return response
-    }
+    suspend fun execute(command: String): ExecutionResponse =
+        execute(command) { logger.info(it) }
 
-    fun execute(command: String, outputConsumer: Consumer<String>): ExecutionResponse {
-        val response = executeCommand(command)
-
-        response.response.forEach { message ->
-            message.replace(System.lineSeparator(), "\n").split("\n").toTypedArray().forEach {
-                outputConsumer.accept(it)
+    suspend fun execute(command: String, outputConsumer: Consumer<String>): ExecutionResponse =
+        executeCommand(command).also {
+            it.response.forEach { message ->
+                message.replace(System.lineSeparator(), "\n").split("\n").toTypedArray().forEach { line ->
+                    outputConsumer.accept(line)
+                }
             }
         }
 
-        return response
-    }
-
-    private fun executeCommand(command: String): ExecutionResponse {
+    private suspend fun executeCommand(command: String): ExecutionResponse {
         val processedCommand = command.trim()
 
         if (processedCommand.isEmpty()) {

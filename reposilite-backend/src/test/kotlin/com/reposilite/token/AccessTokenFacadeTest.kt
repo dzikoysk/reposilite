@@ -1,5 +1,6 @@
 package com.reposilite.token
 
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -9,7 +10,7 @@ import java.time.LocalDate
 internal class AccessTokenFacadeTest : AccessTokenSpec() {
 
     @Test
-    fun `should create token`() {
+    fun `should create token`() = runBlocking {
         // given: a name and associated secret to register
         val name = "reposilite"
 
@@ -23,7 +24,7 @@ internal class AccessTokenFacadeTest : AccessTokenSpec() {
     }
 
     @Test
-    fun `should update token` () {
+    fun `should update token` () = runBlocking {
         // given: an existing token and its updated version
         val token = createToken("nanomaven").accessToken
         val updatedToken = token.copy(name = "reposilite")
@@ -37,7 +38,7 @@ internal class AccessTokenFacadeTest : AccessTokenSpec() {
     }
 
     @Test
-    fun `should delete token`() {
+    fun `should delete token`() = runBlocking {
         // given: an existing token
         val token = createToken("reposilite").accessToken
         val name = token.name
@@ -51,7 +52,7 @@ internal class AccessTokenFacadeTest : AccessTokenSpec() {
     }
 
     @Test
-    fun `should find token by given name`() {
+    fun `should find token by given name`() = runBlocking {
         // given: an existing token
         val token = createToken("reposilite").accessToken
 

@@ -38,25 +38,25 @@ class StatisticsFacade internal constructor(
     fun increaseRecord(type: RecordType, uri: String) =
         recordsBulk.merge(RecordIdentifier(type, uri), 1) { cached, value -> cached + value }
 
-    fun saveRecordsBulk() =
+    suspend fun saveRecordsBulk() =
         recordsBulk.toMap().also {
             recordsBulk.clear() // read doesn't lock, so there is a possibility of dropping a few records between toMap and clear. Might be improved in the future
             statisticsRepository.incrementRecords(it)
             logger.debug("Statistics | Saved bulk with ${it.size} records")
         }
 
-    fun findRecordsByPhrase(type: String, phrase: String): Result<List<Record>, ErrorResponse> =
+    suspend fun findRecordsByPhrase(type: String, phrase: String): Result<List<Record>, ErrorResponse> =
         findRecordTypeByName(type)
             ?.let { findRecordsByPhrase(it, phrase).asSuccess() }
             ?: errorResponse(BAD_REQUEST, "Unknown record type $type}")
 
-    fun findRecordsByPhrase(type: RecordType, phrase: String): List<Record> =
+    suspend fun findRecordsByPhrase(type: RecordType, phrase: String): List<Record> =
         statisticsRepository.findRecordsByPhrase(type, phrase)
 
-    fun countUniqueRecords(): Long =
+    suspend fun countUniqueRecords(): Long =
         statisticsRepository.countUniqueRecords()
 
-    fun countRecords(): Long =
+    suspend fun countRecords(): Long =
         statisticsRepository.countRecords()
 
     override fun getLogger(): Logger =

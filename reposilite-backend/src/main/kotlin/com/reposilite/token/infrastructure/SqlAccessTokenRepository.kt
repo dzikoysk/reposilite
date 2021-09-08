@@ -17,7 +17,6 @@
 package com.reposilite.token.infrastructure
 
 import com.reposilite.shared.firstAndMap
-import com.reposilite.shared.transactionUnit
 import com.reposilite.token.AccessTokenRepository
 import com.reposilite.token.api.AccessToken
 import com.reposilite.token.api.AccessTokenPermission
@@ -25,16 +24,59 @@ import com.reposilite.token.api.AccessTokenPermission.Companion.findAccessTokenP
 import com.reposilite.token.api.AccessTokenType
 import com.reposilite.token.api.Route
 import com.reposilite.token.api.RoutePermission.Companion.findRoutePermissionByIdentifier
+import kotlinx.coroutines.CoroutineDispatcher
 import net.dzikoysk.exposed.shared.UNINITIALIZED_ENTITY_ID
+import org.jetbrains.exposed.dao.id.EntityID
+import org.jetbrains.exposed.dao.id.IntIdTable
+import org.jetbrains.exposed.sql.Column
+import org.jetbrains.exposed.sql.ReferenceOption.CASCADE
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SchemaUtils
+import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.`java-time`.date
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.time.LocalDate
 
-internal class SqlAccessTokenRepository : AccessTokenRepository {
+typealias Id = EntityID<Int>
+
+object AccessTokenTable : IntIdTable("access_token") {
+    val name: Column<String> = varchar("name", 255)
+    val secret: Column<String> = varchar("secret", 512)
+    val createdAt: Column<LocalDate> = date("createdAt")
+    val description: Column<String> = text("description")
+
+    init {
+        uniqueIndex(name)
+    }
+}
+
+object PermissionToAccessTokenTable : Table("permission_access_token") {
+    val accessTokenId: Column<Id> = reference("access_token_id", AccessTokenTable.id, onDelete = CASCADE, onUpdate = CASCADE)
+    val permission: Column<String> = varchar("permission", 64)
+
+    init {
+        index(columns = arrayOf(accessTokenId))
+        uniqueIndex(accessTokenId, permission)
+    }
+}
+
+object PermissionToRouteTable : Table("permission_route") {
+    val accessTokenId: Column<Id> = reference("access_token_id", AccessTokenTable.id, onDelete = CASCADE, onUpdate = CASCADE)
+    val route: Column<String> = varchar("path", 2048)
+    val permission: Column<String> = varchar("permission", 64)
+
+    init {
+        index(columns = arrayOf(accessTokenId, route))
+        uniqueIndex(accessTokenId, route, permission)
+    }
+}
+
+internal class SqlAccessTokenRepository(private val dispatcher: CoroutineDispatcher) : AccessTokenRepository {
 
     init {
         transaction {
@@ -42,8 +84,8 @@ internal class SqlAccessTokenRepository : AccessTokenRepository {
         }
     }
 
-    override fun saveAccessToken(accessToken: AccessToken) {
-        transaction {
+    override suspend fun saveAccessToken(accessToken: AccessToken) {
+        newSuspendedTransaction(dispatcher) {
             // Make sure to remove an existing token with the same name
             var id = getIdByName(accessToken.name)
             AccessTokenTable.deleteWhere { AccessTokenTable.id eq id }
@@ -86,8 +128,11 @@ internal class SqlAccessTokenRepository : AccessTokenRepository {
             ?.value
             ?: UNINITIALIZED_ENTITY_ID
 
-    override fun deleteAccessToken(accessToken: AccessToken) =
-        transactionUnit { AccessTokenTable.deleteWhere { AccessTokenTable.id eq accessToken.id } }
+    override suspend fun deleteAccessToken(accessToken: AccessToken) {
+        newSuspendedTransaction(dispatcher) {
+            AccessTokenTable.deleteWhere { AccessTokenTable.id eq accessToken.id }
+        }
+    }
 
     private fun findAccessTokenPermissionsById(id: Int): Set<AccessTokenPermission> =
         PermissionToAccessTokenTable.select { PermissionToAccessTokenTable.accessTokenId eq id }
@@ -117,13 +162,19 @@ internal class SqlAccessTokenRepository : AccessTokenRepository {
             )
         }
 
-    override fun findAccessTokenByName(name: String): AccessToken? =
-        transaction { AccessTokenTable.select { AccessTokenTable.name eq name }.firstAndMap { toAccessToken(it) } }
+    override suspend fun findAccessTokenByName(name: String): AccessToken? =
+        newSuspendedTransaction(dispatcher) {
+            AccessTokenTable.select { AccessTokenTable.name eq name }.firstAndMap { toAccessToken(it) }
+        }
 
-    override fun findAll(): Collection<AccessToken> =
-        transaction { AccessTokenTable.selectAll().map { toAccessToken(it) } }
+    override suspend fun findAll(): Collection<AccessToken> =
+        newSuspendedTransaction(dispatcher) {
+            AccessTokenTable.selectAll().map { toAccessToken(it) }
+        }
 
-    override fun countAccessTokens(): Long =
-        transaction { AccessTokenTable.selectAll().count() }
+    override suspend fun countAccessTokens(): Long =
+        newSuspendedTransaction(dispatcher) {
+            AccessTokenTable.selectAll().count()
+        }
 
 }

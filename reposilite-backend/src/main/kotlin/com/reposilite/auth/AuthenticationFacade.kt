@@ -28,6 +28,7 @@ import com.reposilite.web.http.errorResponse
 import io.javalin.http.HttpCode.UNAUTHORIZED
 import panda.std.Result
 import panda.std.asSuccess
+import panda.std.coroutines.rxFlatMap
 
 class AuthenticationFacade internal constructor(
     private val journalist: Journalist,
@@ -35,15 +36,15 @@ class AuthenticationFacade internal constructor(
     private val sessionService: SessionService
 ) : Journalist {
 
-    fun authenticateByHeader(headers: Map<String, String>): Result<AccessToken, ErrorResponse> =
+    suspend fun authenticateByHeader(headers: Map<String, String>): Result<AccessToken, ErrorResponse> =
         extractFromHeaders(headers)
-            .flatMap { (name, secret) -> authenticateByCredentials(name, secret) }
+            .rxFlatMap { (name, secret) -> authenticateByCredentials(name, secret) }
 
-    fun authenticateByCredentials(credentials: String): Result<AccessToken, ErrorResponse> =
+    suspend fun authenticateByCredentials(credentials: String): Result<AccessToken, ErrorResponse> =
         extractFromString(credentials)
-            .flatMap { (name, secret) -> authenticateByCredentials(name, secret) }
+            .rxFlatMap { (name, secret) -> authenticateByCredentials(name, secret) }
 
-    fun authenticateByCredentials(name: String, secret: String): Result<AccessToken, ErrorResponse> =
+    suspend fun authenticateByCredentials(name: String, secret: String): Result<AccessToken, ErrorResponse> =
         accessTokenFacade.getToken(name)
             ?.takeIf { B_CRYPT_TOKENS_ENCODER.matches(secret, it.secret) }
             ?.asSuccess()

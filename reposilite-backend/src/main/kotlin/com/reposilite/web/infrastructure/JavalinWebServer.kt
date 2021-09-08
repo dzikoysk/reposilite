@@ -14,39 +14,28 @@ import io.javalin.core.JavalinConfig
 import io.javalin.core.util.JavalinLogger
 import io.javalin.http.Context
 import io.javalin.jetty.JettyUtil
-import io.ktor.util.DispatcherWithShutdown
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.asCoroutineDispatcher
+import org.eclipse.jetty.util.thread.ThreadPool
 
-internal class JavalinWebServer : WebServer {
+internal class JavalinWebServer(private val threadPool: ThreadPool) : WebServer {
 
     private val servlet = false
     private var javalin: Javalin? = null
 
     override fun start(reposilite: Reposilite) {
         val configuration = reposilite.configuration
-        val dispatcher = DispatcherWithShutdown(reposilite.coreThreadPool.asCoroutineDispatcher())
+        val dispatcher = reposilite.dispatcher
 
         JavalinLogger.enabled = false
         JettyUtil.disableJettyLogger()
 
-        this.javalin = createJavalin(reposilite, configuration, dispatcher)
+        this.javalin = createJavalin(reposilite, configuration, threadPool, dispatcher)
             .events { listener ->
-                listener.serverStopping {
-                    reposilite.logger.info("Server stopping...")
-                    reposilite.scheduler.shutdown()
-                    dispatcher.prepareShutdown()
-                }
-                listener.serverStopped {
-                    dispatcher.completeShutdown()
-                    reposilite.coreThreadPool.stop()
-                    reposilite.logger.info("Bye! Uptime: " + TimeUtils.getPrettyUptimeInMinutes(reposilite.startTime))
-                    reposilite.journalist.shutdown()
-                }
+                listener.serverStopping { reposilite.logger.info("Server stopping...") }
+                listener.serverStopped { reposilite.logger.info("Bye! Uptime: " + TimeUtils.getPrettyUptimeInMinutes(reposilite.startTime)) }
             }
             .also {
                 ReposiliteWebConfiguration.javalin(reposilite, it)
-                reposilite.coreThreadPool.start()
             }
 
         if (!servlet) {
@@ -57,15 +46,15 @@ internal class JavalinWebServer : WebServer {
         JettyUtil.reEnableJettyLogger()
     }
 
-    private fun createJavalin(reposilite: Reposilite, configuration: Configuration, dispatcher: CoroutineDispatcher): Javalin =
+    private fun createJavalin(reposilite: Reposilite, configuration: Configuration, threadPool: ThreadPool, dispatcher: CoroutineDispatcher): Javalin =
         if (servlet) {
-            Javalin.createStandalone { configureServer(reposilite, configuration, dispatcher, it) }
+            Javalin.createStandalone { configureServer(reposilite, configuration, threadPool, dispatcher, it) }
         } else {
-            Javalin.create { configureServer(reposilite, configuration, dispatcher, it) }
+            Javalin.create { configureServer(reposilite, configuration, threadPool, dispatcher, it) }
         }
 
-    private fun configureServer(reposilite: Reposilite, configuration: Configuration, dispatcher: CoroutineDispatcher, serverConfig: JavalinConfig) {
-        JavalinWebServerConfiguration.configure(reposilite, configuration, serverConfig)
+    private fun configureServer(reposilite: Reposilite, configuration: Configuration, threadPool: ThreadPool, dispatcher: CoroutineDispatcher, serverConfig: JavalinConfig) {
+        JavalinWebServerConfiguration.configure(reposilite, threadPool, configuration, serverConfig)
 
         val plugin = ReactiveRoutingPlugin<ReposiliteWebDsl, Unit>(
             errorConsumer = { name, error -> reposilite.logger.error("Coroutine $name failed to execute task", error) },
@@ -76,8 +65,8 @@ internal class JavalinWebServer : WebServer {
             },
             asyncHandler = { ctx, route, result ->
                 try {
-                    val resultDsl = callWithContext(reposilite.contextFactory, ctx, route.handler)
-                    resultDsl.response?.also { ctx.response(it) }
+                    val dsl = callWithContext(reposilite.contextFactory, ctx, route.handler)
+                    dsl.response?.also { ctx.response(it) }
                     result.complete(Unit)
                 } catch (throwable: Throwable) {
                     throwable.printStackTrace()
@@ -90,9 +79,8 @@ internal class JavalinWebServer : WebServer {
         serverConfig.registerPlugin(plugin)
     }
 
-    suspend fun callWithContext(contextFactory: ReposiliteContextFactory, ctx: Context, init: suspend ReposiliteWebDsl.() -> Unit): ReposiliteWebDsl =
-        ReposiliteWebDsl(ctx, contextFactory.create(ctx))
-            .also { init(it) }
+    suspend fun callWithContext(contextFactory: ReposiliteContextFactory, ctx: Context, consumer: suspend ReposiliteWebDsl.() -> Unit): ReposiliteWebDsl =
+        ReposiliteWebDsl(ctx, contextFactory.create(ctx)).also { consumer(it) }
 
     override fun stop() {
         javalin?.stop()

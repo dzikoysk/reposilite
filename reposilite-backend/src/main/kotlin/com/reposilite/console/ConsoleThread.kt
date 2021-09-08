@@ -16,12 +16,15 @@
 package com.reposilite.console
 
 import com.reposilite.failure.FailureFacade
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.runBlocking
 import java.io.InputStream
 import java.util.Scanner
 
 internal class ConsoleThread(
     private val console: Console,
     private val source: InputStream,
+    private val dispatcher: CoroutineDispatcher,
     private val failureFacade: FailureFacade
 ) : Thread() {
 
@@ -40,12 +43,20 @@ internal class ConsoleThread(
         }
 
         do {
-            val command = input.nextLine()
+            val command = input.nextLine().trim()
 
-            try {
-                console.execute(command)
-            } catch (exception: Exception) {
-                failureFacade.throwException("Command: $command", exception)
+            if (command.isEmpty()) {
+                continue
+            }
+
+            runCatching {
+                runBlocking {
+                    console.logger.info("")
+                    console.execute(command)
+                    console.logger.info("")
+                }
+            }.onFailure {
+                failureFacade.throwException("Command: $command", it)
             }
         } while (!isInterrupted && input.hasNextLine())
     }

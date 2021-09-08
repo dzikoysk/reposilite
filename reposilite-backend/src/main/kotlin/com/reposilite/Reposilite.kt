@@ -29,10 +29,11 @@ import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.web.ReposiliteContextFactory
 import com.reposilite.web.WebServer
+import io.ktor.util.DispatcherWithShutdown
+import kotlinx.coroutines.withContext
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 import org.jetbrains.exposed.sql.Database
 import panda.utilities.console.Effect
-import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -43,7 +44,8 @@ class Reposilite(
     val parameters: ReposiliteParameters,
     val configuration: Configuration,
     val startTime: Long = System.currentTimeMillis(),
-    val coreThreadPool: QueuedThreadPool,
+    private val threadPool: QueuedThreadPool,
+    val dispatcher: DispatcherWithShutdown,
     val scheduler: ScheduledExecutorService,
     val database: Database,
     val webServer: WebServer,
@@ -60,14 +62,10 @@ class Reposilite(
     private val alive = AtomicBoolean(false)
 
     private val shutdownHook = Thread {
-        alive.peek {
-            coreThreadPool.execute {
-                shutdown()
-            }
-        }
+        alive.peek { shutdown() }
     }
 
-    fun launch() {
+    suspend fun launch() {
         load()
         start()
     }
@@ -96,21 +94,28 @@ class Reposilite(
         logger.info("")
     }
 
-    private fun start(): Reposilite {
+    private suspend fun start(): Reposilite {
         alive.set(true)
         Thread.currentThread().name = "Reposilite | Main Thread"
 
         try {
+
             logger.info("Binding server at ${configuration.hostname}::${configuration.port}")
+
+            threadPool.start()
             webServer.start(this)
             Runtime.getRuntime().addShutdownHook(shutdownHook)
 
             logger.info("Done (${getPrettyUptimeInSeconds(startTime)})!")
+            logger.info("")
             consoleFacade.executeCommand("help")
 
-            CompletableFuture.runAsync { // TOFIX: Replace runAsync with shared coroutines dispatcher to limit used IO services
+            withContext(dispatcher) {
+                logger.info("")
                 logger.info("Collecting status metrics...")
+                logger.info("")
                 consoleFacade.executeCommand("status")
+                logger.info("")
             }
         } catch (exception: Exception) {
             logger.error("Failed to start Reposilite")
@@ -127,8 +132,15 @@ class Reposilite(
         alive.peek {
             alive.set(false)
             logger.info("Shutting down ${configuration.hostname}::${configuration.port}...")
+
+            scheduler.shutdown()
+            dispatcher.prepareShutdown()
             ReposiliteWebConfiguration.dispose(this@Reposilite)
             webServer.stop()
+            scheduler.shutdownNow()
+            threadPool.stop()
+            dispatcher.completeShutdown()
+            journalist.shutdown()
         }
 
     override fun getLogger(): Logger =

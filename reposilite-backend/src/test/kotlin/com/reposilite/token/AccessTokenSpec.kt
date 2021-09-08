@@ -9,10 +9,10 @@ internal open class AccessTokenSpec {
 
     protected val accessTokenFacade = AccessTokenFacade(InMemoryAccessTokenRepository(), InMemoryAccessTokenRepository())
 
-    protected fun createToken(name: String): CreateAccessTokenResponse =
+    protected suspend fun createToken(name: String): CreateAccessTokenResponse =
         accessTokenFacade.createAccessToken(CreateAccessTokenRequest(name))
 
-    protected fun createToken(name: String, secret: String): AccessToken =
+    protected suspend fun createToken(name: String, secret: String): AccessToken =
         accessTokenFacade.createAccessToken(CreateAccessTokenRequest(name, secret)).accessToken
 
 }
