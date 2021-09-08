@@ -19,6 +19,9 @@ import com.reposilite.auth.Session
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
 import com.reposilite.web.http.ErrorResponse
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import panda.std.Result
 import panda.std.function.ThrowingConsumer
 import panda.std.function.ThrowingSupplier
@@ -28,6 +31,7 @@ import java.io.OutputStream
 
 class ReposiliteContext(
     private val journalist: Journalist,
+    val dispatcher: CoroutineDispatcher,
     val uri: String,
     val method: String,
     val address: String,
@@ -38,6 +42,14 @@ class ReposiliteContext(
 ) : Journalist {
 
     private var output: ThrowingConsumer<OutputStream, IOException>? = null
+
+    fun async(block: suspend () -> Unit) {
+        runBlocking {
+            withContext (dispatcher) {
+                block()
+            }
+        }
+    }
 
     fun output(output: ThrowingConsumer<OutputStream, IOException>) {
         this.output = output

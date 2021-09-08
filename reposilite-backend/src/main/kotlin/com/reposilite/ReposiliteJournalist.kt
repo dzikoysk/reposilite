@@ -9,8 +9,8 @@ import com.reposilite.journalist.backend.PublisherLogger
 import com.reposilite.journalist.slf4j.Slf4jLogger
 import com.reposilite.journalist.tinylog.TinyLogLogger
 import com.reposilite.journalist.tinylog.TinyLogWriter
-import org.eclipse.jetty.util.log.Log
 import org.slf4j.LoggerFactory
+import org.tinylog.provider.ProviderRegistry
 import panda.std.Subscriber
 import kotlin.collections.MutableMap.MutableEntry
 
@@ -59,6 +59,7 @@ class ReposiliteJournalist(
 
     fun shutdown() {
         TinyLogWriter.unsubscribe(tinyLog.subscriberId)
+        ProviderRegistry.getLoggingProvider().shutdown()
     }
 
     override fun getLogger(): Logger =

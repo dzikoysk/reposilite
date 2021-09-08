@@ -1,5 +1,7 @@
 package com.reposilite.console
 
+import com.github.kittinunf.fuel.Fuel
+import com.github.kittinunf.fuel.coroutines.awaitStringResult
 import com.reposilite.Reposilite
 import com.reposilite.ReposiliteJournalist
 import com.reposilite.VERSION
@@ -9,7 +11,6 @@ import com.reposilite.journalist.Channel
 import com.reposilite.shared.TimeUtils
 import com.reposilite.shared.createCommandHelp
 import panda.std.Option.ofOptional
-import panda.utilities.IOUtils
 import panda.utilities.console.Effect.GREEN
 import panda.utilities.console.Effect.GREEN_BOLD
 import panda.utilities.console.Effect.RED_UNDERLINED
@@ -24,7 +25,7 @@ internal class HelpCommand(private val consoleFacade: ConsoleFacade) : Reposilit
     @Parameters(index = "0", paramLabel = "[<command>]", description = ["display usage of the given command"], defaultValue = "")
     private lateinit var requestedCommand: String
 
-    override fun execute(context: CommandContext) {
+    override suspend fun execute(context: CommandContext) {
         createCommandHelp(consoleFacade.getCommands(), requestedCommand)
             .peek { context.appendAll(it) }
             .onError {
@@ -39,7 +40,7 @@ internal class HelpCommand(private val consoleFacade: ConsoleFacade) : Reposilit
 @Command(name = "stop", aliases = ["shutdown"], description = ["Shutdown server"])
 internal class StopCommand(private val reposilite: Reposilite) : ReposiliteCommand {
 
-    override fun execute(context: CommandContext) {
+    override suspend fun execute(context: CommandContext) {
         reposilite.logger.warn("The shutdown request has been sent")
         reposilite.scheduler.schedule({ reposilite.shutdown() }, 1, SECONDS)
     }
@@ -52,7 +53,7 @@ internal class StatusCommand(
     private val remoteVersionUrl: String,
 ) : ReposiliteCommand {
 
-    override fun execute(context: CommandContext) {
+    override suspend fun execute(context: CommandContext) {
         val latestVersion =
             if (reposilite.parameters.testEnv) VERSION
             else getVersion()
@@ -66,10 +67,13 @@ internal class StatusCommand(
         context.append("  Latest version of Reposilite: $latestVersion")
     }
 
-    private fun getVersion(): String =
-        IOUtils.fetchContent(remoteVersionUrl)
-            .orElseGet { "$remoteVersionUrl is unavailable: ${it.message}" }
-            .let { (if (VERSION == it) GREEN else RED_UNDERLINED).toString() + it + RESET }
+    private suspend fun getVersion(): String =
+        Fuel.get(remoteVersionUrl)
+            .awaitStringResult()
+            .fold(
+                success = { (if (VERSION == it) GREEN else RED_UNDERLINED).toString() + it + RESET },
+                failure = { if (it.message?.contains("java.security.NoSuchAlgorithmException") == true) "Cannot load SSL context for HTTPS request due to the lack of available memory" else "$remoteVersionUrl is unavailable: ${it.message}" }
+            )
 
     private fun memoryUsage(): String =
         TimeUtils.format((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1024.0 / 1024.0) + "M"
@@ -85,7 +89,7 @@ internal class LevelCommand(private val journalist: ReposiliteJournalist) : Repo
     @Parameters(index = "0", paramLabel = "<level>", description = ["the new threshold"], defaultValue = "info")
     private lateinit var level: String
 
-    override fun execute(context: CommandContext) {
+    override suspend fun execute(context: CommandContext) {
         ofOptional(Channel.of(level))
             .onEmpty {
                 context.status = FAILED

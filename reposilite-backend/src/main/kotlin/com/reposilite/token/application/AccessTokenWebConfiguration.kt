@@ -27,18 +27,22 @@ import com.reposilite.token.api.CreateAccessTokenRequest
 import com.reposilite.token.infrastructure.InMemoryAccessTokenRepository
 import com.reposilite.token.infrastructure.SqlAccessTokenRepository
 import com.reposilite.web.ReposiliteRoutes
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.runBlocking
 
 internal object AccessTokenWebConfiguration {
 
-    fun createFacade(): AccessTokenFacade =
+    fun createFacade(dispatcher: CoroutineDispatcher): AccessTokenFacade =
         AccessTokenFacade(
             temporaryRepository = InMemoryAccessTokenRepository(),
-            persistentRepository = SqlAccessTokenRepository()
+            persistentRepository = SqlAccessTokenRepository(dispatcher)
         )
 
     fun initialize(accessTokenFacade: AccessTokenFacade, temporaryTokens: Collection<CreateAccessTokenRequest>, consoleFacade: ConsoleFacade) {
         temporaryTokens.forEach {
-            accessTokenFacade.createTemporaryAccessToken(it)
+            runBlocking {
+                accessTokenFacade.createTemporaryAccessToken(it)
+            }
         }
 
         consoleFacade.registerCommand(TokensCommand(accessTokenFacade))

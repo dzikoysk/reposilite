@@ -19,6 +19,6 @@ import com.reposilite.console.CommandContext
 
 interface ReposiliteCommand {
 
-    fun execute(context: CommandContext)
+    suspend fun execute(context: CommandContext)
 
 }

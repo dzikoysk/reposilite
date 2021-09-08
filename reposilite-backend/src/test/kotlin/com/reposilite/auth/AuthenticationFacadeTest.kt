@@ -2,6 +2,7 @@ package com.reposilite.auth
 
 import com.reposilite.web.http.ErrorResponse
 import io.javalin.http.HttpCode.UNAUTHORIZED
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import panda.std.ResultAssertions.assertError
 import panda.std.ResultAssertions.assertOk
@@ -9,7 +10,7 @@ import panda.std.ResultAssertions.assertOk
 internal class AuthenticationFacadeTest : AuthenticationSpec() {
 
     @Test
-    fun `should reject authentication request with invalid credentials`() {
+    fun `should reject authentication request with invalid credentials`() = runBlocking {
         // given: an existing token with unknown secret
         val name = "name"
         createToken(name)
@@ -22,7 +23,7 @@ internal class AuthenticationFacadeTest : AuthenticationSpec() {
     }
 
     @Test
-    fun `should authenticate by valid credentials`() {
+    fun `should authenticate by valid credentials`() = runBlocking {
         // given: a credentials to the existing token
         val name = "name"
         val secret = "secret"

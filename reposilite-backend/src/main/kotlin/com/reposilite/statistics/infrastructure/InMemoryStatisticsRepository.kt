@@ -26,13 +26,13 @@ internal class InMemoryStatisticsRepository : StatisticsRepository {
 
     private val records: MutableMap<RecordIdentifier, Record> = ConcurrentHashMap()
 
-    override fun incrementRecord(record: RecordIdentifier, count: Long) {
+    override suspend fun incrementRecord(record: RecordIdentifier, count: Long) {
         findRecordByTypeAndIdentifier(record)
             ?.also { records[record] = it.copy(count = it.count + count) }
             ?: createRecord(record, count)
     }
 
-    override fun incrementRecords(bulk: Map<RecordIdentifier, Long>) {
+    override suspend fun incrementRecords(bulk: Map<RecordIdentifier, Long>) {
         bulk.forEach { incrementRecord(it.key, it.value) }
     }
 
@@ -44,20 +44,20 @@ internal class InMemoryStatisticsRepository : StatisticsRepository {
         )
     }
 
-    override fun findRecordByTypeAndIdentifier(record: RecordIdentifier): Record? =
+    override suspend fun findRecordByTypeAndIdentifier(record: RecordIdentifier): Record? =
         records.values.firstOrNull { it.type == record.type && it.identifier == record.identifier }
 
-    override fun findRecordsByPhrase(type: RecordType, phrase: String): List<Record> =
+    override suspend fun findRecordsByPhrase(type: RecordType, phrase: String): List<Record> =
         records.values
             .filter { it.type == type }
             .filter { it.identifier.contains(phrase) }
 
-    override fun countRecords(): Long =
+    override suspend fun countRecords(): Long =
         records
             .map { it.value.count }
             .sum()
 
-    override fun countUniqueRecords(): Long =
+    override suspend fun countUniqueRecords(): Long =
         records.size.toLong()
 
 }

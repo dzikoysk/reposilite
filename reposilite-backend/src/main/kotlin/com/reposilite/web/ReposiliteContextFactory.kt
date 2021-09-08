@@ -22,14 +22,16 @@ import com.reposilite.web.http.errorResponse
 import io.javalin.http.Context
 import io.javalin.http.HttpCode.UNAUTHORIZED
 import io.javalin.websocket.WsContext
+import kotlinx.coroutines.CoroutineDispatcher
 
 class ReposiliteContextFactory internal constructor(
     private val journalist: Journalist,
+    private val dispatcher: CoroutineDispatcher,
     private val forwardedIpHeader: String,
     private val authenticationFacade: AuthenticationFacade
 ) {
 
-    fun create(context: Context): ReposiliteContext {
+    suspend fun create(context: Context): ReposiliteContext {
         val uri = context.req.requestURI
         val host = context.header(forwardedIpHeader) ?: context.req.remoteAddr
 
@@ -38,6 +40,7 @@ class ReposiliteContextFactory internal constructor(
 
         return ReposiliteContext(
             journalist,
+            dispatcher,
             uri,
             context.method(),
             host,
@@ -51,6 +54,7 @@ class ReposiliteContextFactory internal constructor(
     fun create(context: WsContext): ReposiliteContext {
         return ReposiliteContext(
             journalist,
+            dispatcher,
             context.host(),
             "SOCKET",
             context.header(forwardedIpHeader) ?: context.session.remoteAddress.toString(),

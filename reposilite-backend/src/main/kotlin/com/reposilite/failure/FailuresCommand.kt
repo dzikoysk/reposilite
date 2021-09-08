@@ -22,7 +22,7 @@ import picocli.CommandLine.Command
 @Command(name = "failures", description = ["Display all recorded exceptions"])
 internal class FailuresCommand(private val failureFacade: FailureFacade) : ReposiliteCommand {
 
-    override fun execute(context: CommandContext) {
+    override suspend fun execute(context: CommandContext) {
         if (!failureFacade.hasFailures()) {
             context.append("No exception has occurred yet")
             return

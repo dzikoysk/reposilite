@@ -1,14 +1,15 @@
 package com.reposilite.statistics
 
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Test
 import com.reposilite.statistics.api.RecordType.REQUEST
 import com.reposilite.statistics.api.RecordType.UNKNOWN
+import kotlinx.coroutines.runBlocking
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
 
 internal class StatisticsFacadeTest : StatisticsSpec() {
 
     @Test
-    fun `should increase records after saving the bulk`() {
+    fun `should increase records after saving the bulk`() = runBlocking {
         // given: an uri to request
         val uri = "/panda-lang/reposilite"
 
@@ -23,7 +24,7 @@ internal class StatisticsFacadeTest : StatisticsSpec() {
     }
 
     @Test
-    fun `should find record by given phrase`() {
+    fun `should find record by given phrase`() = runBlocking {
         // given: a requested uri and a phrase to search for
         val uri = "/panda-lang/reposilite"
         val phrase = "reposilite"
@@ -38,7 +39,7 @@ internal class StatisticsFacadeTest : StatisticsSpec() {
     }
 
     @Test
-    fun `should properly count records and unique records`() {
+    fun `should properly count records and unique records`() = runBlocking {
         // given: two different identifiers
         val first = "/first"
         val second = "/first/second"

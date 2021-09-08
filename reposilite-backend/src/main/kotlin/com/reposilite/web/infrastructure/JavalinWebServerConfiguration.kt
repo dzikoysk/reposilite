@@ -15,11 +15,12 @@ import io.javalin.plugin.json.JavalinJackson
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.util.ssl.SslContextFactory
+import org.eclipse.jetty.util.thread.ThreadPool
 
 internal object JavalinWebServerConfiguration {
 
-    internal fun configure(reposilite: Reposilite, configuration: Configuration, config: JavalinConfig) {
-        val server = Server(reposilite.coreThreadPool)
+    internal fun configure(reposilite: Reposilite, threadPool: ThreadPool, configuration: Configuration, config: JavalinConfig) {
+        val server = Server(threadPool)
         config.server { server }
 
         configureJavalin(config)

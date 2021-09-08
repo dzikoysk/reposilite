@@ -24,17 +24,27 @@ import com.reposilite.statistics.infrastructure.SqlStatisticsRepository
 import com.reposilite.statistics.infrastructure.StatisticsEndpoint
 import com.reposilite.statistics.infrastructure.StatisticsHandler
 import com.reposilite.web.ReposiliteRoutes
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit.MINUTES
 
 internal object StatisticsWebConfiguration {
 
-    fun createFacade(journalist: Journalist): StatisticsFacade =
-        StatisticsFacade(journalist, SqlStatisticsRepository())
+    fun createFacade(journalist: Journalist, dispatcher :CoroutineDispatcher): StatisticsFacade =
+        StatisticsFacade(journalist, SqlStatisticsRepository(dispatcher))
 
-    fun initialize(statisticsFacade: StatisticsFacade, consoleFacade: ConsoleFacade, scheduler: ScheduledExecutorService) {
-        scheduler.scheduleWithFixedDelay({ statisticsFacade.saveRecordsBulk() }, 1, 1, MINUTES)
+    fun initialize(statisticsFacade: StatisticsFacade, consoleFacade: ConsoleFacade, scheduler: ScheduledExecutorService, dispatcher: CoroutineDispatcher) {
         consoleFacade.registerCommand(StatsCommand(statisticsFacade))
+
+        scheduler.scheduleWithFixedDelay({
+            runBlocking {
+                withContext(dispatcher) {
+                    statisticsFacade.saveRecordsBulk()
+                }
+            }
+        }, 1, 1, MINUTES)
     }
 
     fun routing(statisticsFacade: StatisticsFacade): Set<ReposiliteRoutes> =

@@ -28,13 +28,14 @@ import com.reposilite.failure.FailureFacade
 import com.reposilite.journalist.Journalist
 import com.reposilite.web.ReposiliteRoutes
 import io.javalin.Javalin
+import kotlinx.coroutines.CoroutineDispatcher
 
 private const val REMOTE_VERSION = "https://repo.panda-lang.org/org/panda-lang/reposilite/latest"
 
 internal object ConsoleWebConfiguration {
 
-    fun createFacade(journalist: Journalist, failureFacade: FailureFacade): ConsoleFacade {
-        val console = Console(journalist, failureFacade, System.`in`)
+    fun createFacade(journalist: Journalist, dispatcher: CoroutineDispatcher, failureFacade: FailureFacade): ConsoleFacade {
+        val console = Console(journalist, dispatcher, failureFacade, System.`in`)
         return ConsoleFacade(journalist, console)
     }
 
@@ -56,7 +57,7 @@ internal object ConsoleWebConfiguration {
     )
 
     fun javalin(javalin: Javalin, reposilite: Reposilite) {
-        javalin.ws("/api/console/sock", CliEndpoint(reposilite.contextFactory, reposilite.authenticationFacade, reposilite.consoleFacade, reposilite.journalist))
+        javalin.ws("/api/console/sock", CliEndpoint(reposilite.dispatcher, reposilite.contextFactory, reposilite.authenticationFacade, reposilite.consoleFacade, reposilite.journalist))
     }
 
     fun dispose(consoleFacade: ConsoleFacade) {
