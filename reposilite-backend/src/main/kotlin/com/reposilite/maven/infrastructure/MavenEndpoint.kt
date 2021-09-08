@@ -51,7 +51,7 @@ internal class MavenEndpoint(
             response = mavenFacade.findFile(LookupRequest(parameter("repository"), parameter("gav"), this?.accessToken))
                 .filter({ it is DocumentInfo }, { ErrorResponse(NO_CONTENT, "Requested file is a directory")})
                 .map { it as DocumentInfo }
-                .peek { ctx.resultAttachment(it.name, it.contentType, it.contentLength, it.content()) }
+                .map { ctx.resultAttachment(it.name, it.contentType, it.contentLength, it.content()) }
                 .onError { ctx.html(frontendFacade.createNotFoundPage(context.uri)) }
         }
     }
