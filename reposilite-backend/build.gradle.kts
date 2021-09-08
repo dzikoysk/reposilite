@@ -137,6 +137,8 @@ tasks.withType<ShadowJar> {
         exclude(dependency("commons-logging:commons-logging:.*"))
         exclude(dependency("org.jetbrains.kotlin:kotlin-reflect:.*"))
         exclude(dependency("org.jetbrains.exposed:.*"))
+        exclude(dependency("org.xerial:sqlite-jdbc.*"))
+        exclude(dependency("org.sqlite:.*"))
         exclude(dependency("org.h2:.*"))
         exclude(dependency("com.h2database:.*"))
         exclude(dependency("org.tinylog:.*"))
