@@ -27,7 +27,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^1.6.2",
-    "@vue/compiler-sfc": "^3.2.10",
+    "@vue/compiler-sfc": "^3.2.11",
     "concurrently": "^6.2.1",
     "express": "^4.17.1",
     "express-ws": "^5.0.2",
