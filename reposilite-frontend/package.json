@@ -37,6 +37,6 @@
     "vite": "^2.5.6",
     "vite-plugin-windicss": "^1.4.2",
     "windicss": "^3.1.7",
-    "ws": "^8.2.1"
+    "ws": "^8.2.2"
   }
 }
