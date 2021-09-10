@@ -32,12 +32,12 @@ internal class RepositoryService(
     private val securityProvider: RepositorySecurityProvider
 ) : Journalist {
 
-    fun findRepository(name: String?): Result<Repository, ErrorResponse> =
+    fun findRepository(name: String): Result<Repository, ErrorResponse> =
         getRepository(name)
             ?.asSuccess()
             ?: errorResponse(NOT_FOUND, "Repository $name not found")
 
-    fun getRepository(name: String?): Repository? =
+    fun getRepository(name: String): Repository? =
         repositories[name]
 
     fun getRootDirectory(accessToken: AccessToken?): DirectoryInfo =

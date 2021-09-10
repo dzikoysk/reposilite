@@ -29,13 +29,14 @@ import com.reposilite.token.infrastructure.SqlAccessTokenRepository
 import com.reposilite.web.ReposiliteRoutes
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.exposed.sql.Database
 
 internal object AccessTokenWebConfiguration {
 
-    fun createFacade(dispatcher: CoroutineDispatcher): AccessTokenFacade =
+    fun createFacade(dispatcher: CoroutineDispatcher, database: Database): AccessTokenFacade =
         AccessTokenFacade(
             temporaryRepository = InMemoryAccessTokenRepository(),
-            persistentRepository = SqlAccessTokenRepository(dispatcher)
+            persistentRepository = SqlAccessTokenRepository(dispatcher, database)
         )
 
     fun initialize(accessTokenFacade: AccessTokenFacade, temporaryTokens: Collection<CreateAccessTokenRequest>, consoleFacade: ConsoleFacade) {

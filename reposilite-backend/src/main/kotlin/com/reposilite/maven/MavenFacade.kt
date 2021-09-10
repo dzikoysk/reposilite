@@ -27,17 +27,19 @@ import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.METADATA_FILE
 import com.reposilite.maven.api.Metadata
 import com.reposilite.shared.getSimpleName
+import com.reposilite.shared.notFound
+import com.reposilite.shared.notFoundError
 import com.reposilite.shared.toNormalizedPath
 import com.reposilite.shared.toPath
+import com.reposilite.shared.unauthorized
+import com.reposilite.shared.unauthorizedError
 import com.reposilite.token.api.AccessToken
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
 import io.javalin.http.HttpCode
 import io.javalin.http.HttpCode.BAD_REQUEST
-import io.javalin.http.HttpCode.NOT_FOUND
-import io.javalin.http.HttpCode.UNAUTHORIZED
 import panda.std.Result
-import panda.std.asSuccess
+import panda.std.asError
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -54,15 +56,11 @@ class MavenFacade internal constructor(
     }
 
     suspend fun findFile(lookupRequest: LookupRequest): Result<out FileDetails, ErrorResponse> {
-        if (lookupRequest.repository == null) {
-            return findRepositories(lookupRequest.accessToken).asSuccess()
-        }
-
-        val repository = repositoryService.getRepository(lookupRequest.repository) ?: return errorResponse(NOT_FOUND, "Repository not found")
+        val repository = repositoryService.getRepository(lookupRequest.repository) ?: return notFound("Repository not found").asError()
         val gav = lookupRequest.gav.toPath()
 
         if (repositorySecurityProvider.canAccessResource(lookupRequest.accessToken, repository, gav).not()) {
-            return errorResponse(UNAUTHORIZED, "Unauthorized access request")
+            return unauthorized().asError()
         }
 
         if (repository.exists(gav).not()) {
@@ -70,7 +68,7 @@ class MavenFacade internal constructor(
         }
 
         if (repository.isDirectory(gav) && repositorySecurityProvider.canBrowseResource(lookupRequest.accessToken, repository, gav).not()) {
-            return errorResponse(UNAUTHORIZED, "Unauthorized indexing request")
+            return unauthorizedError("Unauthorized indexing request")
         }
 
         return repository.getFileDetails(gav)
@@ -81,14 +79,16 @@ class MavenFacade internal constructor(
 
     fun findVersions(lookupRequest: LookupRequest): Result<List<String>, ErrorResponse> =
         repositoryService.findRepository(lookupRequest.repository)
+            .filter({ repositorySecurityProvider.canAccessResource(lookupRequest.accessToken, it, lookupRequest.gav.toPath())}, { unauthorized() })
             .flatMap { metadataService.findVersions(it, lookupRequest.gav) }
 
     fun findLatest(lookupRequest: LookupRequest): Result<String, ErrorResponse> =
         repositoryService.findRepository(lookupRequest.repository)
+            .filter({ repositorySecurityProvider.canAccessResource(lookupRequest.accessToken, it, lookupRequest.gav.toPath())}, { unauthorized() })
             .flatMap { metadataService.findLatest(it, lookupRequest.gav) }
 
     fun deployFile(deployRequest: DeployRequest): Result<DocumentInfo, ErrorResponse> {
-        val repository = repositoryService.getRepository(deployRequest.repository) ?: return errorResponse(NOT_FOUND, "Repository not found")
+        val repository = repositoryService.getRepository(deployRequest.repository) ?: return notFoundError("Repository not found")
         val path = deployRequest.gav.toNormalizedPath().orNull() ?: return errorResponse(BAD_REQUEST, "Invalid GAV")
 
         if (repository.redeployment.not() && path.getSimpleName().contains(METADATA_FILE).not() && repository.exists(path)) {
@@ -100,11 +100,11 @@ class MavenFacade internal constructor(
     }
 
     fun deleteFile(deleteRequest: DeleteRequest): Result<*, ErrorResponse> {
-        val repository = repositoryService.getRepository(deleteRequest.repository) ?: return errorResponse<Any>(NOT_FOUND, "Repository ${deleteRequest.repository} not found")
-        val path = deleteRequest.gav.toNormalizedPath().orNull() ?: return errorResponse<Any>(NOT_FOUND, "Invalid GAV")
+        val repository = repositoryService.getRepository(deleteRequest.repository) ?: return notFoundError<Any>("Repository ${deleteRequest.repository} not found")
+        val path = deleteRequest.gav.toNormalizedPath().orNull() ?: return notFoundError<Any>("Invalid GAV")
 
         if (repositorySecurityProvider.canModifyResource(deleteRequest.accessToken, repository, path).not()) {
-            return errorResponse<Any>(UNAUTHORIZED, "Unauthorized access request")
+            return unauthorizedError<Any>("Unauthorized access request")
         }
 
         return repository.removeFile(path)

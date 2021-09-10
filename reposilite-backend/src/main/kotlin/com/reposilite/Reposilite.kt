@@ -131,7 +131,7 @@ class Reposilite(
     fun shutdown() =
         alive.peek {
             alive.set(false)
-            logger.info("Shutting down ${configuration.hostname}::${configuration.port}...")
+            logger.info("Shutting down ${parameters.hostname}::${parameters.port}...")
 
             scheduler.shutdown()
             dispatcher.prepareShutdown()

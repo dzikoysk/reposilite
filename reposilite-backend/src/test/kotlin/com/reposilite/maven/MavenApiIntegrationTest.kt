@@ -18,12 +18,12 @@ internal class MavenApiIntegrationTest : MavenIntegrationSpec() {
         "/api/maven/details/private/gav/artifact.jar",
     ])
     @ParameterizedTest
-    fun `should respond with protected file details only for authenticated requests`(uri: String) = runBlocking {
+    fun `should respond with protected file details only for authenticated requests`(endpoint: String) = runBlocking {
         // given: a private repository with some artifact
         useDocument("private", "gav", "artifact.jar", store = true)
 
         // when: user requests private resource without valid credentials
-        val unauthorizedResponse = get("$base$uri")
+        val unauthorizedResponse = get("$base$endpoint")
             .basicAuth("invalid", "invalid-secret")
             .asString()
 
@@ -31,14 +31,44 @@ internal class MavenApiIntegrationTest : MavenIntegrationSpec() {
         assertEquals(UNAUTHORIZED.status, unauthorizedResponse.status)
 
         // given: valid credentials
-        val (name, secret) = useAuth("name", "secret", routes = mapOf(uri.replace("/api/maven/details", "") to READ))
+        val (name, secret) = useAuth("name", "secret", routes = mapOf(endpoint.replace("/api/maven/details", "") to READ))
 
         // when: user requests private resource with valid credentials
-        val response = get("$base$uri")
+        val response = get("$base$endpoint")
             .basicAuth(name, secret)
             .asString()
 
         // then: service responds with file details
+        assertTrue(response.isSuccess)
+    }
+
+    @ValueSource(strings = [
+        "api/maven/latest",
+        "api/maven/versions",
+    ])
+    @ParameterizedTest
+    fun `should find latest version`(endpoint: String) = runBlocking {
+        // given: a path to the existing artifact
+        useMetadata("private", "com", "reposilite", versions = listOf("1.0.1", "1.0.2", "1.0.3"))
+        val artifactPath = "private/com/reposilite"
+        val apiPath = "$base/$endpoint/$artifactPath"
+
+        // when: user requests the latest version with invalid credentials
+        val unauthorizedResponse = get(apiPath)
+            .basicAuth("invalid", "invalid-secret")
+            .asString()
+
+        // then: service rejects request
+        assertEquals(UNAUTHORIZED.status, unauthorizedResponse.status)
+
+        val (name, secret) = useAuth("name", "secret", routes = mapOf("/$artifactPath" to READ))
+
+        // when: user requests the latest version with invalid credentials
+        val response = get(apiPath)
+            .basicAuth(name, secret)
+            .asString()
+
+        // then: the request should succeed
         assertTrue(response.isSuccess)
     }
 

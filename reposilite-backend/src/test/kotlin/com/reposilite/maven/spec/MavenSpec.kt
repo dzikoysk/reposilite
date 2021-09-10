@@ -65,7 +65,7 @@ internal abstract class MavenSpec {
     ) {
 
         fun toLookupRequest(authentication: AccessToken?): LookupRequest =
-            LookupRequest(repository, gav, authentication)
+            LookupRequest(authentication, repository, gav)
 
     }
 
