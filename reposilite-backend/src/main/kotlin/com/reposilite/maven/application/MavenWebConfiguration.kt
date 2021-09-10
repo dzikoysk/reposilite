@@ -25,7 +25,8 @@ import com.reposilite.maven.ProxyService
 import com.reposilite.maven.RepositoryFactory
 import com.reposilite.maven.RepositorySecurityProvider
 import com.reposilite.maven.RepositoryService
-import com.reposilite.maven.infrastructure.MavenEndpoint
+import com.reposilite.maven.infrastructure.MavenApiEndpoints
+import com.reposilite.maven.infrastructure.MavenEndpoints
 import com.reposilite.shared.RemoteClient
 import com.reposilite.web.ReposiliteRoutes
 import java.nio.file.Path
@@ -51,7 +52,8 @@ internal object MavenWebConfiguration {
 
     fun routing(mavenFacade: MavenFacade, frontendFacade: FrontendFacade): List<ReposiliteRoutes> =
         listOf(
-            MavenEndpoint(mavenFacade, frontendFacade),
+            MavenEndpoints(mavenFacade, frontendFacade),
+            MavenApiEndpoints(mavenFacade)
         )
 
 }

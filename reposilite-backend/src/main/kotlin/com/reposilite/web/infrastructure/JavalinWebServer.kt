@@ -15,6 +15,7 @@ import io.javalin.core.util.JavalinLogger
 import io.javalin.http.Context
 import io.javalin.jetty.JettyUtil
 import kotlinx.coroutines.CoroutineDispatcher
+import org.eclipse.jetty.io.EofException
 import org.eclipse.jetty.util.thread.ThreadPool
 
 internal class JavalinWebServer(private val threadPool: ThreadPool) : WebServer {
@@ -30,6 +31,7 @@ internal class JavalinWebServer(private val threadPool: ThreadPool) : WebServer 
         JettyUtil.disableJettyLogger()
 
         this.javalin = createJavalin(reposilite, configuration, threadPool, dispatcher)
+            .exception(EofException::class.java, { exception, ctx -> reposilite.logger.warn("Client closed connection") })
             .events { listener ->
                 listener.serverStopping { reposilite.logger.info("Server stopping...") }
                 listener.serverStopped { reposilite.logger.info("Bye! Uptime: " + TimeUtils.getPrettyUptimeInMinutes(reposilite.startTime)) }
@@ -68,7 +70,8 @@ internal class JavalinWebServer(private val threadPool: ThreadPool) : WebServer 
                     val dsl = callWithContext(reposilite.contextFactory, ctx, route.handler)
                     dsl.response?.also { ctx.response(it) }
                     result.complete(Unit)
-                } catch (throwable: Throwable) {
+                }
+                catch (throwable: Throwable) {
                     throwable.printStackTrace()
                     result.completeExceptionally(throwable)
                 }
@@ -79,7 +82,7 @@ internal class JavalinWebServer(private val threadPool: ThreadPool) : WebServer 
         serverConfig.registerPlugin(plugin)
     }
 
-    suspend fun callWithContext(contextFactory: ReposiliteContextFactory, ctx: Context, consumer: suspend ReposiliteWebDsl.() -> Unit): ReposiliteWebDsl =
+    private suspend fun callWithContext(contextFactory: ReposiliteContextFactory, ctx: Context, consumer: suspend ReposiliteWebDsl.() -> Unit): ReposiliteWebDsl =
         ReposiliteWebDsl(ctx, contextFactory.create(ctx)).also { consumer(it) }
 
     override fun stop() {
