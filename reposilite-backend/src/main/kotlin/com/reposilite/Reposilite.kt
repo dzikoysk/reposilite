@@ -100,7 +100,7 @@ class Reposilite(
 
         try {
 
-            logger.info("Binding server at ${configuration.hostname}::${configuration.port}")
+            logger.info("Binding server at ${parameters.hostname}::${parameters.port}")
 
             threadPool.start()
             webServer.start(this)

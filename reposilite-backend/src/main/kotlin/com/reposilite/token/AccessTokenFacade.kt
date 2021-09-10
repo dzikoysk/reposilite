@@ -45,12 +45,11 @@ class AccessTokenFacade internal constructor(
     ): CreateAccessTokenResponse {
         val encodedSecret = B_CRYPT_TOKENS_ENCODER.encode(secret)
         val accessToken = AccessToken(type = type, name = name, secret = encodedSecret, permissions = permissions)
-        repository.saveAccessToken(accessToken)
 
-        return CreateAccessTokenResponse(repository.findAccessTokenByName(name)!!, secret)
+        return CreateAccessTokenResponse(repository.saveAccessToken(accessToken), secret)
     }
 
-    suspend fun updateToken(accessToken: AccessToken) =
+    suspend fun updateToken(accessToken: AccessToken): AccessToken =
         persistentRepository.saveAccessToken(accessToken)
 
     suspend fun deleteToken(name: String): AccessToken? =

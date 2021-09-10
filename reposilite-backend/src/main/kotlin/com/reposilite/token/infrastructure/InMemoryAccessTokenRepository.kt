@@ -18,13 +18,22 @@ package com.reposilite.token.infrastructure
 
 import com.reposilite.token.AccessTokenRepository
 import com.reposilite.token.api.AccessToken
+import net.dzikoysk.exposed.shared.UNINITIALIZED_ENTITY_ID
+import java.util.concurrent.atomic.AtomicInteger
 
 internal class InMemoryAccessTokenRepository : AccessTokenRepository {
 
     private val tokens: MutableMap<Int, AccessToken> = HashMap(1)
+    private val id = AtomicInteger()
 
-    override suspend fun saveAccessToken(accessToken: AccessToken) {
-        tokens[accessToken.id] = accessToken
+    override suspend fun saveAccessToken(accessToken: AccessToken): AccessToken {
+        val initializedAccessToken = when (accessToken.id) {
+            UNINITIALIZED_ENTITY_ID -> accessToken.copy(id = id.incrementAndGet())
+            else -> accessToken
+        }
+
+        tokens[initializedAccessToken.id] = initializedAccessToken
+        return initializedAccessToken
     }
 
     override suspend fun deleteAccessToken(accessToken: AccessToken) {

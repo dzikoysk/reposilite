@@ -36,6 +36,9 @@ data class AccessToken internal constructor(
     val routes: Set<Route> = emptySet()
 ) : IdentifiableEntity {
 
+    fun withRoute(route: Route): AccessToken =
+        copy(routes = routes.toMutableSet().also { it.add(route) })
+
     fun hasPermission(permission: AccessTokenPermission): Boolean =
         permissions.contains(permission)
 

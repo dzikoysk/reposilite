@@ -40,6 +40,7 @@ import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.update
 import java.time.LocalDate
 
 typealias Id = EntityID<Int>
@@ -84,38 +85,62 @@ internal class SqlAccessTokenRepository(private val dispatcher: CoroutineDispatc
         }
     }
 
-    override suspend fun saveAccessToken(accessToken: AccessToken) {
+    override suspend fun saveAccessToken(accessToken: AccessToken): AccessToken =
         newSuspendedTransaction(dispatcher) {
-            // Make sure to remove an existing token with the same name
-            var id = getIdByName(accessToken.name)
-            AccessTokenTable.deleteWhere { AccessTokenTable.id eq id }
-
-            AccessTokenTable.insert {
-                if (accessToken.id != UNINITIALIZED_ENTITY_ID) {
-                    it[this.id] = accessToken.id
-                }
-
-                it[this.name] = accessToken.name
-                it[this.secret] = accessToken.secret
+            when(getIdByName(accessToken.name)) {
+                UNINITIALIZED_ENTITY_ID -> createAccessToken(accessToken)
+                else -> updateAccessToken(accessToken)
             }
+        }
 
-            // Fetch new id
-            id = getIdByName(accessToken.name)
+    private fun createAccessToken(accessToken: AccessToken): AccessToken {
+        AccessTokenTable.insert {
+            it[this.name] = accessToken.name
+            it[this.secret] = accessToken.secret
+            it[this.createdAt] = accessToken.createdAt
+            it[this.description] = accessToken.description
+        }
 
-            accessToken.permissions.forEach { permission ->
-                PermissionToAccessTokenTable.insert {
-                    it[this.accessTokenId] = id
+        val createdAccessToken = accessToken.copy(id = getIdByName(accessToken.name))
+        createPermissions(createdAccessToken)
+        createRoutes(createdAccessToken)
+
+        return createdAccessToken
+    }
+
+    private fun updateAccessToken(accessToken: AccessToken): AccessToken {
+        AccessTokenTable.update({ AccessTokenTable.id eq accessToken.id }, body = {
+            it[this.name] = accessToken.name
+            it[this.secret] = accessToken.secret
+            it[this.createdAt] = accessToken.createdAt
+            it[this.description] = accessToken.description
+        })
+
+        PermissionToAccessTokenTable.deleteWhere { PermissionToAccessTokenTable.accessTokenId eq accessToken.id }
+        createPermissions(accessToken)
+
+        PermissionToRouteTable.deleteWhere { PermissionToRouteTable.accessTokenId eq accessToken.id }
+        createRoutes(accessToken)
+
+        return accessToken
+    }
+
+    private fun createPermissions(accessToken: AccessToken) {
+        accessToken.permissions.forEach { permission ->
+            PermissionToAccessTokenTable.insert {
+                it[this.accessTokenId] = accessToken.id
+                it[this.permission] = permission.identifier
+            }
+        }
+    }
+
+    private fun createRoutes(accessToken: AccessToken) {
+        accessToken.routes.forEach { route ->
+            route.permissions.forEach { permission ->
+                PermissionToRouteTable.insert {
+                    it[this.accessTokenId] = accessToken.id
                     it[this.permission] = permission.identifier
-                }
-            }
-
-            accessToken.routes.forEach { route ->
-                route.permissions.forEach { permission ->
-                    PermissionToRouteTable.insert {
-                        it[this.accessTokenId] = id
-                        it[this.permission] = permission.identifier
-                        it[this.route] = route.path
-                    }
+                    it[this.route] = route.path
                 }
             }
         }
