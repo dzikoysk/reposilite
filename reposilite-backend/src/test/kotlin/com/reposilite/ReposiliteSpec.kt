@@ -1,5 +1,6 @@
 package com.reposilite
 
+import com.reposilite.journalist.Channel
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -13,11 +14,13 @@ internal abstract class ReposiliteSpec {
     companion object {
         const val NAME = "name"
         const val SECRET = "secret"
+
+        fun useAuth(): Pair<String, String> = Pair(NAME, SECRET)
     }
 
     @TempDir
     lateinit var reposiliteWorkingDirectory: File
-    private lateinit var reposilite: Reposilite
+    protected lateinit var reposilite: Reposilite
 
     private var port: Int = -1
     protected val base: String
@@ -50,7 +53,6 @@ internal abstract class ReposiliteSpec {
 
     private suspend fun createReposilite() {
         port = ThreadLocalRandom.current().nextInt(1025, MAX_VALUE - 1025)
-        println("Used port: $port")
 
         val parameters = ReposiliteParameters()
         parameters.testEnv = true
@@ -60,6 +62,7 @@ internal abstract class ReposiliteSpec {
         parameters.run()
 
         reposilite = ReposiliteFactory.createReposilite(parameters)
+        reposilite.journalist.setVisibleThreshold(Channel.WARN)
         reposilite.launch()
     }
 

@@ -21,6 +21,7 @@ internal object JavalinWebServerConfiguration {
 
     internal fun configure(reposilite: Reposilite, threadPool: ThreadPool, configuration: Configuration, config: JavalinConfig) {
         val server = Server(threadPool)
+        config.asyncRequestTimeout = Long.MAX_VALUE
         config.server { server }
 
         configureJavalin(config)

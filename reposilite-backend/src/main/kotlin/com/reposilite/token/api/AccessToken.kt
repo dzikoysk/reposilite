@@ -17,6 +17,7 @@ package com.reposilite.token.api
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.reposilite.token.api.AccessTokenPermission.MANAGER
 import com.reposilite.token.api.AccessTokenType.PERSISTENT
 import io.javalin.openapi.OpenApiIgnore
 import net.dzikoysk.exposed.shared.IdentifiableEntity
@@ -35,14 +36,17 @@ data class AccessToken internal constructor(
     val routes: Set<Route> = emptySet()
 ) : IdentifiableEntity {
 
-    fun canSee(routeFragment: String): Boolean =
-        routes.any { it.path.startsWith("$routeFragment/", ignoreCase = true) }
-
     fun hasPermission(permission: AccessTokenPermission): Boolean =
         permissions.contains(permission)
 
+    private fun isManager(): Boolean =
+        hasPermission(MANAGER)
+
     fun hasPermissionTo(toPath: String, routePermission: RoutePermission): Boolean =
-        routes.any { it.hasPermissionTo(toPath, routePermission) }
+        isManager() || routes.any { it.hasPermissionTo(toPath, routePermission) }
+
+    fun canSee(routeFragment: String): Boolean =
+        isManager() || routes.any { it.path.startsWith("$routeFragment/", ignoreCase = true) }
 
 }
 
