@@ -3,6 +3,7 @@ package com.reposilite.maven
 import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.maven.spec.MavenIntegrationSpec
 import com.reposilite.web.http.ErrorResponse
+import io.javalin.http.HttpCode.NOT_FOUND
 import io.javalin.http.HttpCode.UNAUTHORIZED
 import kong.unirest.HeaderNames.CONTENT_LENGTH
 import kong.unirest.Unirest.delete
@@ -113,6 +114,19 @@ internal class MavenIntegrationTest : MavenIntegrationSpec() {
         // then: service rejects request and file still exists
         assertTrue(response.isSuccess)
         assertFalse(get(address).asEmpty().isSuccess)
+    }
+
+    @Test
+    fun `should respond with custom 404 page`() {
+        // given: an address to the non-existing resource
+        val address = "$base/unknown-repository/unknown-gav/unknown-file"
+
+        // when: unauthorized client tries to delete existing file
+        val response = get(address).asString()
+
+        // then: service responds with custom 404 page
+        assertEquals(NOT_FOUND.status, response.status)
+        assertTrue(response.body.contains("Reposilite - 404 Not Found"))
     }
 
 }

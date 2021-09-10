@@ -20,7 +20,7 @@ import com.reposilite.token.api.AccessToken
 
 internal interface AccessTokenRepository {
 
-    suspend fun saveAccessToken(accessToken: AccessToken)
+    suspend fun saveAccessToken(accessToken: AccessToken): AccessToken
 
     suspend fun deleteAccessToken(accessToken: AccessToken)
 

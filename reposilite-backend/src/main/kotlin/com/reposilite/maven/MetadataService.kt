@@ -30,10 +30,10 @@ internal class MetadataService(
         .configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true)
         .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
-    fun saveMetadata(repository: String, gav: String, metadata: Metadata) {
+    fun saveMetadata(repository: String, gav: String, metadata: Metadata): Result<Metadata, ErrorResponse> =
         repositoryService.findRepository(repository)
             .flatMap { it.putFile(gav.toPath().safeResolve(METADATA_FILE), xml.writeValueAsBytes(metadata)) }
-    }
+            .map { metadata }
 
     fun findVersions(repository: Repository, gav: String): Result<List<String>, ErrorResponse> =
         repository.getFileDetails(gav.toPath().safeResolve(METADATA_FILE))

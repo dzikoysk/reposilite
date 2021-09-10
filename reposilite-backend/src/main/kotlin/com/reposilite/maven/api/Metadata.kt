@@ -26,7 +26,7 @@ internal const val METADATA_FILE = "maven-metadata.xml"
 internal data class Metadata(
     val groupId: String? = null,
     val artifactId: String? = null,
-    val version: String? = null,
+    val version: String? = null, // snapshot only
     val versioning: Versioning? = Versioning()
 )
 

@@ -76,7 +76,7 @@ class MavenFacade internal constructor(
         return repository.getFileDetails(gav)
     }
 
-    internal fun saveMetadata(repository: String, gav: String, metadata: Metadata) =
+    internal fun saveMetadata(repository: String, gav: String, metadata: Metadata): Result<Metadata, ErrorResponse> =
         metadataService.saveMetadata(repository, gav, metadata)
 
     fun findVersions(lookupRequest: LookupRequest): Result<List<String>, ErrorResponse> =

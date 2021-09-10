@@ -1,7 +1,6 @@
 package com.reposilite.maven.infrastructure
 
 import com.reposilite.maven.MavenFacade
-import com.reposilite.maven.api.DirectoryInfo
 import com.reposilite.maven.api.FileDetails
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.web.ReposiliteRoute
@@ -16,25 +15,6 @@ import io.javalin.openapi.OpenApiParam
 import io.javalin.openapi.OpenApiResponse
 
 class MavenApiEndpoints(private val mavenFacade: MavenFacade) : ReposiliteRoutes() {
-
-    @OpenApi(
-        tags = ["Maven"],
-        path = "/api/maven/details",
-        methods = [HttpMethod.GET],
-        summary = "Get list of available repositories",
-        responses = [
-            OpenApiResponse(
-                status = "200",
-                description = "Returns list of available repositories",
-                content = [OpenApiContent(from = DirectoryInfo::class)]
-            )
-        ]
-    )
-    private val findRepositories = ReposiliteRoute("/api/maven/details", GET) {
-        accessed {
-            response = mavenFacade.findFile(LookupRequest(null, "", this?.accessToken))
-        }
-    }
 
     @OpenApi(
         tags = ["Maven"],
@@ -65,12 +45,13 @@ class MavenApiEndpoints(private val mavenFacade: MavenFacade) : ReposiliteRoutes
     )
     private val findFileDetails: suspend ReposiliteWebDsl.() -> Unit = {
         accessed {
-            response = mavenFacade.findFile(LookupRequest(parameter("repository"), wildcard("gav"), this?.accessToken))
+            response = mavenFacade.findFile(LookupRequest(parameter("repository"), wildcard("gav") ?: "", this?.accessToken))
         }
     }
 
-    private val findFileDetailsWithoutGav = ReposiliteRoute("/api/maven/details/{repository}", GET, handler = findFileDetails)
-    private val findFileDetailsWithGav = ReposiliteRoute("/api/maven/details/{repository}/<gav>", GET, handler = findFileDetails)
+    private val findRepositories = ReposiliteRoute("/api/maven/details", GET, handler = findFileDetails)
+    private val findRepository = ReposiliteRoute("/api/maven/details/{repository}", GET, handler = findFileDetails)
+    private val findInRepository = ReposiliteRoute("/api/maven/details/{repository}/<gav>", GET, handler = findFileDetails)
 
     @OpenApi(
         tags = ["Maven"],
@@ -83,7 +64,7 @@ class MavenApiEndpoints(private val mavenFacade: MavenFacade) : ReposiliteRoutes
     )
     private val findVersions = ReposiliteRoute("/api/maven/versions/{repository}/<gav>", GET) {
         accessed {
-            response = mavenFacade.findVersions(LookupRequest(parameter("repository"), parameter("gav"), this?.accessToken))
+            response = mavenFacade.findVersions(LookupRequest(requireParameter("repository"), requireParameter("gav"), this?.accessToken))
         }
     }
 
@@ -98,10 +79,10 @@ class MavenApiEndpoints(private val mavenFacade: MavenFacade) : ReposiliteRoutes
     )
     private val findLatest = ReposiliteRoute("/api/maven/latest/{repository}/<gav>", GET) {
         accessed {
-            response = mavenFacade.findLatest(LookupRequest(parameter("repository"), parameter("gav"), this?.accessToken))
+            response = mavenFacade.findLatest(LookupRequest(requireParameter("repository"), requireParameter("gav"), this?.accessToken))
         }
     }
 
-    override val routes = setOf(findRepositories, findFileDetailsWithoutGav, findFileDetailsWithGav, findVersions, findLatest)
+    override val routes = setOf(findRepositories, findRepository, findInRepository, findVersions, findLatest)
 
 }
