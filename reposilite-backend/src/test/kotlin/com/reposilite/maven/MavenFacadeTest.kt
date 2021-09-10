@@ -95,7 +95,7 @@ internal class MavenFacadeTest : MavenSpec() {
     }
 
     @Test
-    fun `should require authentication to access file in private repository`() = runBlocking {
+    fun `should require authentication to access file in private repository`(): Unit = runBlocking {
         // given: a repository with file and request without credentials
         val repository = PRIVATE.name
         val fileSpec = addFileToRepository(FileSpec(repository, "/gav/file.pom", "content"))
@@ -119,12 +119,12 @@ internal class MavenFacadeTest : MavenSpec() {
 
     @ParameterizedTest
     @EnumSource(value = RepositoryVisibility::class, names = [ "HIDDEN", "PRIVATE" ])
-    fun `should restrict directory indexing in hidden and private repositories `(visibility: RepositoryVisibility) = runBlocking {
+    fun `should restrict directory indexing in hidden and private repositories `(visibility: RepositoryVisibility): Unit = runBlocking {
         // given: a repository with a file
         val fileSpec = addFileToRepository(FileSpec(visibility.name, "/gav/file.pom", "content"))
 
         // when: the given directory is requested
-        val directoryInfo = mavenFacade.findFile(LookupRequest(fileSpec.repository, "gav", UNAUTHORIZED))
+        val directoryInfo = mavenFacade.findFile(LookupRequest(UNAUTHORIZED, fileSpec.repository, "gav"))
 
         // then: response contains error
         assertError(directoryInfo)
@@ -173,7 +173,7 @@ internal class MavenFacadeTest : MavenSpec() {
         mavenFacade.saveMetadata(repository, artifact, Metadata(versioning = Versioning(_versions = listOf("1.0.1", "1.0.2", "1.0.0"))))
 
         // when: latest version is requested
-        val response = mavenFacade.findLatest(LookupRequest(repository, artifact, UNAUTHORIZED))
+        val response = mavenFacade.findLatest(LookupRequest(UNAUTHORIZED, repository, artifact))
 
         // then: should return the latest version
         assertOk("1.0.2", response)
@@ -188,7 +188,7 @@ internal class MavenFacadeTest : MavenSpec() {
         mavenFacade.saveMetadata(repository, artifact, Metadata(versioning = Versioning(_versions = listOf("1.0.1", "1.0.2", "1.0.0"))))
 
         // when: latest version is requested
-        val response = mavenFacade.findVersions(LookupRequest(repository, artifact, UNAUTHORIZED))
+        val response = mavenFacade.findVersions(LookupRequest(UNAUTHORIZED, repository, artifact))
 
         // then: should return the latest version
         assertOk(listOf("1.0.0", "1.0.1", "1.0.2"), response)

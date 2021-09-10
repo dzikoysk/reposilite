@@ -45,7 +45,9 @@ class MavenApiEndpoints(private val mavenFacade: MavenFacade) : ReposiliteRoutes
     )
     private val findFileDetails: suspend ReposiliteWebDsl.() -> Unit = {
         accessed {
-            response = mavenFacade.findFile(LookupRequest(parameter("repository"), wildcard("gav") ?: "", this?.accessToken))
+            response = parameter("repository")
+                ?.let { repository -> mavenFacade.findFile(LookupRequest(this?.accessToken, repository, wildcard("gav") ?: "", )) }
+                ?: mavenFacade.findRepositories(this?.accessToken)
         }
     }
 
@@ -64,7 +66,7 @@ class MavenApiEndpoints(private val mavenFacade: MavenFacade) : ReposiliteRoutes
     )
     private val findVersions = ReposiliteRoute("/api/maven/versions/{repository}/<gav>", GET) {
         accessed {
-            response = mavenFacade.findVersions(LookupRequest(requireParameter("repository"), requireParameter("gav"), this?.accessToken))
+            response = mavenFacade.findVersions(LookupRequest(this?.accessToken, requireParameter("repository"), requireParameter("gav")))
         }
     }
 
@@ -79,7 +81,7 @@ class MavenApiEndpoints(private val mavenFacade: MavenFacade) : ReposiliteRoutes
     )
     private val findLatest = ReposiliteRoute("/api/maven/latest/{repository}/<gav>", GET) {
         accessed {
-            response = mavenFacade.findLatest(LookupRequest(requireParameter("repository"), requireParameter("gav"), this?.accessToken))
+            response = mavenFacade.findLatest(LookupRequest(this?.accessToken, requireParameter("repository"), requireParameter("gav")))
         }
     }
 

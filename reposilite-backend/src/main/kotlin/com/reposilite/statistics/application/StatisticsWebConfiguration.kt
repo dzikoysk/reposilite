@@ -27,13 +27,14 @@ import com.reposilite.web.ReposiliteRoutes
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import org.jetbrains.exposed.sql.Database
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit.MINUTES
 
 internal object StatisticsWebConfiguration {
 
-    fun createFacade(journalist: Journalist, dispatcher :CoroutineDispatcher): StatisticsFacade =
-        StatisticsFacade(journalist, SqlStatisticsRepository(dispatcher))
+    fun createFacade(journalist: Journalist, dispatcher: CoroutineDispatcher, database: Database): StatisticsFacade =
+        StatisticsFacade(journalist, SqlStatisticsRepository(dispatcher, database))
 
     fun initialize(statisticsFacade: StatisticsFacade, consoleFacade: ConsoleFacade, scheduler: ScheduledExecutorService, dispatcher: CoroutineDispatcher) {
         consoleFacade.registerCommand(StatsCommand(statisticsFacade))

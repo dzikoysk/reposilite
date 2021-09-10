@@ -29,6 +29,7 @@ import net.dzikoysk.exposed.shared.UNINITIALIZED_ENTITY_ID
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.Column
+import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.ReferenceOption.CASCADE
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SchemaUtils
@@ -77,16 +78,16 @@ object PermissionToRouteTable : Table("permission_route") {
     }
 }
 
-internal class SqlAccessTokenRepository(private val dispatcher: CoroutineDispatcher) : AccessTokenRepository {
+internal class SqlAccessTokenRepository(private val dispatcher: CoroutineDispatcher, private val database: Database) : AccessTokenRepository {
 
     init {
-        transaction {
+        transaction(database) {
             SchemaUtils.create(AccessTokenTable, PermissionToAccessTokenTable, PermissionToRouteTable)
         }
     }
 
     override suspend fun saveAccessToken(accessToken: AccessToken): AccessToken =
-        newSuspendedTransaction(dispatcher) {
+        newSuspendedTransaction(dispatcher, database) {
             when(getIdByName(accessToken.name)) {
                 UNINITIALIZED_ENTITY_ID -> createAccessToken(accessToken)
                 else -> updateAccessToken(accessToken)
@@ -154,7 +155,7 @@ internal class SqlAccessTokenRepository(private val dispatcher: CoroutineDispatc
             ?: UNINITIALIZED_ENTITY_ID
 
     override suspend fun deleteAccessToken(accessToken: AccessToken) {
-        newSuspendedTransaction(dispatcher) {
+        newSuspendedTransaction(dispatcher, database) {
             AccessTokenTable.deleteWhere { AccessTokenTable.id eq accessToken.id }
         }
     }
@@ -188,17 +189,17 @@ internal class SqlAccessTokenRepository(private val dispatcher: CoroutineDispatc
         }
 
     override suspend fun findAccessTokenByName(name: String): AccessToken? =
-        newSuspendedTransaction(dispatcher) {
+        newSuspendedTransaction(dispatcher, database) {
             AccessTokenTable.select { AccessTokenTable.name eq name }.firstAndMap { toAccessToken(it) }
         }
 
     override suspend fun findAll(): Collection<AccessToken> =
-        newSuspendedTransaction(dispatcher) {
+        newSuspendedTransaction(dispatcher, database) {
             AccessTokenTable.selectAll().map { toAccessToken(it) }
         }
 
     override suspend fun countAccessTokens(): Long =
-        newSuspendedTransaction(dispatcher) {
+        newSuspendedTransaction(dispatcher, database) {
             AccessTokenTable.selectAll().count()
         }
 

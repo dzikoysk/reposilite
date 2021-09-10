@@ -56,6 +56,7 @@ internal object ReposiliteFactory {
         Log.getProperties().setProperty("org.eclipse.jetty.util.log.announce", "false")
         val threadPool = QueuedThreadPool(configuration.coreThreadPool, 2)
         val dispatcher = DispatcherWithShutdown(threadPool.asCoroutineDispatcher())
+        threadPool.start()
 
         val scheduler = Executors.newSingleThreadScheduledExecutor()
         val database = DatabaseSourceConfiguration.createConnection(parameters.workingDirectory, configuration.database)
@@ -64,8 +65,8 @@ internal object ReposiliteFactory {
         val consoleFacade = ConsoleWebConfiguration.createFacade(logger, dispatcher, failureFacade)
         val mavenFacade = MavenWebConfiguration.createFacade(logger, parameters.workingDirectory, HttpRemoteClient(), configuration.repositories)
         val frontendFacade = FrontendWebConfiguration.createFacade(configuration)
-        val statisticFacade = StatisticsWebConfiguration.createFacade(logger, dispatcher)
-        val accessTokenFacade = AccessTokenWebConfiguration.createFacade(dispatcher)
+        val statisticFacade = StatisticsWebConfiguration.createFacade(logger, dispatcher, database)
+        val accessTokenFacade = AccessTokenWebConfiguration.createFacade(dispatcher, database)
         val authenticationFacade = AuthenticationWebConfiguration.createFacade(logger, accessTokenFacade)
         val contextFactory = ReposiliteContextFactory(logger, dispatcher, configuration.forwardedIp, authenticationFacade)
 

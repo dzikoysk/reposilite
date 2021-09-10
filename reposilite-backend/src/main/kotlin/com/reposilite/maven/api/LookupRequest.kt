@@ -19,7 +19,7 @@ package com.reposilite.maven.api
 import com.reposilite.token.api.AccessToken
 
 data class LookupRequest(
-    val repository: String?,
+    val accessToken: AccessToken?,
+    val repository: String,
     val gav: String,
-    val accessToken: AccessToken?
 )

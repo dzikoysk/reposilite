@@ -9,10 +9,13 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
-import java.util.concurrent.ThreadLocalRandom
-import kotlin.Short.Companion.MAX_VALUE
+import java.util.concurrent.atomic.AtomicInteger
 
 internal abstract class ReposiliteSpec {
+
+    companion object {
+        val portAssigner = AtomicInteger(1025)
+    }
 
     @TempDir
     lateinit var reposiliteWorkingDirectory: File
@@ -25,32 +28,12 @@ internal abstract class ReposiliteSpec {
 
     @BeforeEach
     protected fun bootApplication() = runBlocking {
-        System.setProperty("tinylog.writerFile.level", "off") // disable log.txt to avoid conflicts with parallel testing
-        tryCreateReposilite()
-    }
+        // disable log.txt to avoid conflicts with parallel testing
+        System.setProperty("tinylog.writerFile.level", "off")
 
-    @AfterEach
-    protected fun shutdownApplication() {
-        reposilite.shutdown()
-    }
-
-    private suspend fun tryCreateReposilite() {
-        try {
-            createReposilite()
-        } catch (portUnavailable : RuntimeException) {
-            if (portUnavailable.message?.contains("port") == true) {
-                tryCreateReposilite()
-            }
-            else {
-                portUnavailable.printStackTrace()
-            }
-        }
-    }
-
-    private suspend fun createReposilite() {
         val parameters = ReposiliteParameters()
 
-        port = ThreadLocalRandom.current().nextInt(1025, MAX_VALUE - 1025)
+        port = portAssigner.incrementAndGet()
         parameters.port = port
 
         val (name, secret) = useAuth()
@@ -61,8 +44,13 @@ internal abstract class ReposiliteSpec {
         parameters.run()
 
         reposilite = ReposiliteFactory.createReposilite(parameters)
-        reposilite.journalist.setVisibleThreshold(Channel.DEBUG)
+        reposilite.journalist.setVisibleThreshold(Channel.WARN)
         reposilite.launch()
+    }
+
+    @AfterEach
+    protected fun shutdownApplication() {
+        reposilite.shutdown()
     }
 
     fun useAuth(): Pair<String, String> =
