@@ -27,8 +27,8 @@ import com.reposilite.shared.TimeUtils.getPrettyUptimeInSeconds
 import com.reposilite.shared.peek
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.token.AccessTokenFacade
-import com.reposilite.web.ReposiliteContextFactory
-import com.reposilite.web.WebServer
+import com.reposilite.web.JavalinWebServer
+import io.javalin.Javalin
 import io.ktor.util.DispatcherWithShutdown
 import kotlinx.coroutines.withContext
 import org.eclipse.jetty.util.thread.QueuedThreadPool
@@ -48,8 +48,7 @@ class Reposilite(
     val dispatcher: DispatcherWithShutdown,
     val scheduler: ScheduledExecutorService,
     val database: Database,
-    val webServer: WebServer,
-    val contextFactory: ReposiliteContextFactory,
+    val webServer: JavalinWebServer,
     val failureFacade: FailureFacade,
     val authenticationFacade: AuthenticationFacade,
     val mavenFacade: MavenFacade,

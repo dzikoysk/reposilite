@@ -30,8 +30,7 @@ import com.reposilite.maven.application.MavenWebConfiguration
 import com.reposilite.shared.HttpRemoteClient
 import com.reposilite.statistics.application.StatisticsWebConfiguration
 import com.reposilite.token.application.AccessTokenWebConfiguration
-import com.reposilite.web.ReposiliteContextFactory
-import com.reposilite.web.application.WebConfiguration
+import com.reposilite.web.JavalinWebServer
 import io.ktor.util.DispatcherWithShutdown
 import kotlinx.coroutines.asCoroutineDispatcher
 import org.eclipse.jetty.util.log.Log
@@ -60,7 +59,7 @@ internal object ReposiliteFactory {
 
         val scheduler = Executors.newSingleThreadScheduledExecutor()
         val database = DatabaseSourceConfiguration.createConnection(parameters.workingDirectory, configuration.database)
-        val webServer = WebConfiguration.createWebServer(threadPool)
+        val webServer = JavalinWebServer(threadPool)
         val failureFacade = FailureWebConfiguration.createFacade(logger)
         val consoleFacade = ConsoleWebConfiguration.createFacade(logger, dispatcher, failureFacade)
         val mavenFacade = MavenWebConfiguration.createFacade(logger, parameters.workingDirectory, HttpRemoteClient(), configuration.repositories)
@@ -68,7 +67,6 @@ internal object ReposiliteFactory {
         val statisticFacade = StatisticsWebConfiguration.createFacade(logger, dispatcher, database)
         val accessTokenFacade = AccessTokenWebConfiguration.createFacade(dispatcher, database)
         val authenticationFacade = AuthenticationWebConfiguration.createFacade(logger, accessTokenFacade)
-        val contextFactory = ReposiliteContextFactory(logger, dispatcher, configuration.forwardedIp, authenticationFacade)
 
         return Reposilite(
             journalist = logger,
@@ -80,7 +78,6 @@ internal object ReposiliteFactory {
             database = database,
             webServer = webServer,
             failureFacade = failureFacade,
-            contextFactory = contextFactory,
             authenticationFacade = authenticationFacade,
             mavenFacade = mavenFacade,
             consoleFacade = consoleFacade,

@@ -16,24 +16,36 @@
 
 package com.reposilite.web
 
-import com.reposilite.auth.Session
+import com.reposilite.journalist.Logger
+import com.reposilite.shared.uri
+import com.reposilite.token.api.AccessToken
+import com.reposilite.token.api.AccessTokenPermission
+import com.reposilite.token.api.RoutePermission
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.error
-import com.reposilite.web.routing.AbstractRoutes
-import com.reposilite.web.routing.Route
-import com.reposilite.web.routing.RouteMethod
 import io.javalin.http.Context
 import io.javalin.http.HttpCode
+import panda.std.Result
 
-abstract class ReposiliteRoutes : AbstractRoutes<ReposiliteWebDsl, Unit>()
+class ContextDsl(
+    val logger: Logger,
+    val ctx: Context,
+    val authenticationResult: Result<AccessToken, ErrorResponse>
+) {
 
-class ReposiliteRoute(
-    path: String,
-    vararg methods: RouteMethod,
-    handler: suspend ReposiliteWebDsl.() -> Unit
-) : Route<ReposiliteWebDsl, Unit>(path = path, methods = methods, handler = handler)
+    companion object {
 
-class ReposiliteWebDsl(val ctx: Context, val context: ReposiliteContext) {
+        private val METHOD_PERMISSIONS = mapOf(
+            "HEAD" to RoutePermission.READ,
+            "GET" to RoutePermission.READ,
+            "PUT" to RoutePermission.WRITE,
+            "POST" to RoutePermission.WRITE,
+            "DELETE" to RoutePermission.WRITE
+        )
+
+    }
+
+    val uri = ctx.uri()
 
     /**
      * Response to send at the end of the dsl call
@@ -43,15 +55,15 @@ class ReposiliteWebDsl(val ctx: Context, val context: ReposiliteContext) {
     /**
      * Request was created by either anonymous user or through authenticated token
      */
-    suspend fun accessed(init: suspend Session?.() -> Unit) {
-        init(context.session.orNull())
+    suspend fun accessed(init: suspend AccessToken?.() -> Unit) {
+        init(authenticationResult.orNull())
     }
 
     /**
      * Request was created by valid access token
      */
-    suspend fun authenticated(init: suspend Session.() -> Unit) {
-        context.session
+    suspend fun authenticated(init: suspend AccessToken.() -> Unit) {
+        authenticationResult
             .onError { ctx.error(it) }
             .also {
                 if (it.isOk) init(it.get()) // no suspend support in Result#peek
@@ -61,7 +73,7 @@ class ReposiliteWebDsl(val ctx: Context, val context: ReposiliteContext) {
     /**
      * Request was created by valid access token and the token has access to the requested path
      */
-    suspend fun authorized(init: suspend Session.() -> Unit) {
+    suspend fun authorized(init: suspend AccessToken.() -> Unit) {
         authenticated {
             if (isAuthorized()) {
                 init(this)
@@ -79,5 +91,14 @@ class ReposiliteWebDsl(val ctx: Context, val context: ReposiliteContext) {
 
     fun parameter(name: String): String? =
         ctx.pathParamMap()[name]
+
+    fun isAuthorized(): Boolean =
+        isManager() || authenticationResult.fold({ it.hasPermissionTo(ctx.path(), METHOD_PERMISSIONS[ctx.method()]!!) }, { false })
+
+    fun isManager(): Boolean =
+        authenticationResult.fold({ it.hasPermission(AccessTokenPermission.MANAGER) }, { false })
+
+    fun getSessionIdentifier(): String =
+        authenticationResult.fold({ "${it.name}@${ctx.ip()}" }, { ctx.ip() })
 
 }

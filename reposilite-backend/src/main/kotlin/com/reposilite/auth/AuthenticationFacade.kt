@@ -32,8 +32,7 @@ import panda.std.coroutines.rxFlatMap
 
 class AuthenticationFacade internal constructor(
     private val journalist: Journalist,
-    private val accessTokenFacade: AccessTokenFacade,
-    private val sessionService: SessionService
+    private val accessTokenFacade: AccessTokenFacade
 ) : Journalist {
 
     suspend fun authenticateByHeader(headers: Map<String, String>): Result<AccessToken, ErrorResponse> =
@@ -49,9 +48,6 @@ class AuthenticationFacade internal constructor(
             ?.takeIf { B_CRYPT_TOKENS_ENCODER.matches(secret, it.secret) }
             ?.asSuccess()
             ?: errorResponse(UNAUTHORIZED, "Invalid authorization credentials")
-
-    fun createSession(path: String, method: SessionMethod, address: String, accessToken: AccessToken): Session =
-        sessionService.createSession(path, method, address, accessToken)
 
     override fun getLogger(): Logger =
         journalist.logger
