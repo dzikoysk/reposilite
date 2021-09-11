@@ -19,14 +19,13 @@ import com.reposilite.ReposiliteJournalist
 import com.reposilite.auth.AuthenticationFacade
 import com.reposilite.console.ConsoleFacade
 import com.reposilite.token.api.AccessTokenPermission.MANAGER
-import com.reposilite.web.ReposiliteContext
-import com.reposilite.web.ReposiliteContextFactory
 import io.javalin.openapi.HttpMethod
 import io.javalin.openapi.OpenApi
 import io.javalin.websocket.WsConfig
 import io.javalin.websocket.WsContext
 import io.javalin.websocket.WsMessageContext
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.runBlocking
 import panda.std.Result
 import panda.std.Result.error
 import panda.std.Result.ok
@@ -37,10 +36,10 @@ private const val AUTHORIZATION_PREFIX = "Authorization:"
 
 internal class CliEndpoint(
     private val dispatcher: CoroutineDispatcher,
-    private val contextFactory: ReposiliteContextFactory,
+    private val journalist: ReposiliteJournalist,
     private val authenticationFacade: AuthenticationFacade,
     private val consoleFacade: ConsoleFacade,
-    private val reposiliteJournalist: ReposiliteJournalist
+    private val forwardedIp: String
 ) : Consumer<WsConfig> {
 
     @OpenApi(
@@ -50,13 +49,11 @@ internal class CliEndpoint(
     override fun accept(ws: WsConfig) {
         ws.onConnect { connection ->
             ws.onMessage { messageContext ->
-                val context = contextFactory.create(connection)
-
-                context.async {
-                    authenticateContext(context, messageContext)
+                runBlocking {
+                    authenticateContext(messageContext)
                         .peek {
-                            context.logger.info("CLI | $it accessed remote console")
-                            initializeAuthenticatedContext(ws, connection, context, it)
+                            journalist.logger.info("CLI | $it accessed remote console")
+                            initializeAuthenticatedContext(ws, connection, it)
                         }
                         .onError {
                             connection.send(it)
@@ -67,11 +64,11 @@ internal class CliEndpoint(
         }
     }
 
-    private suspend fun authenticateContext(context: ReposiliteContext, connection: WsMessageContext): Result<String, String> {
+    private suspend fun authenticateContext(connection: WsMessageContext): Result<String, String> {
         val authMessage = connection.message()
 
         if (!authMessage.startsWith(AUTHORIZATION_PREFIX)) {
-            context.logger.info("CLI | Unauthorized CLI access request from ${context.address} (missing credentials)")
+            journalist.logger.info("CLI | Unauthorized CLI access request from ${address(connection)} (missing credentials)")
             return error("Unauthorized connection request")
         }
 
@@ -79,38 +76,41 @@ internal class CliEndpoint(
         val auth = authenticationFacade.authenticateByCredentials(credentials)
 
         if (!auth.isOk || !auth.get().hasPermission(MANAGER)) {
-            context.logger.info("CLI | Unauthorized CLI access request from " + context.address)
+            journalist.logger.info("CLI | Unauthorized CLI access request from ${address(connection)}")
             return error("Unauthorized connection request")
         }
 
-        return ok("${auth.get().name}@${context.address}")
+        return ok("${auth.get().name}@${address(connection)}")
     }
 
-    private fun initializeAuthenticatedContext(ws: WsConfig, connection: WsContext, context: ReposiliteContext, session: String) {
+    private fun initializeAuthenticatedContext(ws: WsConfig, connection: WsContext, session: String) {
         ws.onMessage {
             when(val message = it.message()) {
                 "keep-alive" -> connection.send("keep-alive")
                 else -> {
-                    context.async {
-                        context.logger.info("CLI | $session> $message")
+                    runBlocking {
+                        journalist.logger.info("CLI | $session> $message")
                         consoleFacade.executeCommand(message)
                     }
                 }
             }
         }
 
-        val subscriberId = reposiliteJournalist.subscribe {
+        val subscriberId = journalist.subscribe {
             connection.send(it.value)
         }
 
         ws.onClose {
-            context.logger.info("CLI | $session closed connection")
-            reposiliteJournalist.unsubscribe(subscriberId)
+            journalist.logger.info("CLI | $session closed connection")
+            journalist.unsubscribe(subscriberId)
         }
 
-        for (message in reposiliteJournalist.cachedLogger.messages) {
+        for (message in journalist.cachedLogger.messages) {
             connection.send(message.value)
         }
     }
+
+    private fun address(context: WsContext): String =
+        context.header(forwardedIp) ?: context.session.remoteAddress.toString()
 
 }

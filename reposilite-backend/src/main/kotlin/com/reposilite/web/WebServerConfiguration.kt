@@ -1,4 +1,4 @@
-package com.reposilite.web.infrastructure
+package com.reposilite.web
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include
 import com.fasterxml.jackson.databind.json.JsonMapper
@@ -17,14 +17,13 @@ import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.util.ssl.SslContextFactory
 import org.eclipse.jetty.util.thread.ThreadPool
 
-internal object JavalinWebServerConfiguration {
+internal object WebServerConfiguration {
 
     internal fun configure(reposilite: Reposilite, threadPool: ThreadPool, configuration: Configuration, config: JavalinConfig) {
         val server = Server(threadPool)
-        config.asyncRequestTimeout = Long.MAX_VALUE
         config.server { server }
 
-        configureJavalin(config)
+        configureJavalin(config, configuration)
         configureJsonSerialization(config)
         configureSSL(reposilite, configuration, config, server)
         configureCors(config)
@@ -32,8 +31,12 @@ internal object JavalinWebServerConfiguration {
         configureDebug(reposilite, configuration, config)
     }
 
-    private fun configureJavalin(config: JavalinConfig) {
+    private fun configureJavalin(config: JavalinConfig, configuration: Configuration) {
         config.showJavalinBanner = false
+        config.asyncRequestTimeout = 1000L * 60 * 60 * 10 // 10min
+        config.contextResolvers {
+            it.ip = { ctx -> ctx.header(configuration.forwardedIp) ?: ctx.req.remoteAddr }
+        }
     }
 
     private fun configureJsonSerialization(config: JavalinConfig) {

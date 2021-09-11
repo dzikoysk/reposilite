@@ -45,12 +45,12 @@ internal class MavenEndpoints(
     )
     private val findFile = ReposiliteRoute("/{repository}/<gav>", HEAD, GET) {
         accessed {
-            mavenFacade.findFile(LookupRequest(this?.accessToken, requireParameter("repository"), requireParameter("gav")))
+            mavenFacade.findFile(LookupRequest(this, requireParameter("repository"), requireParameter("gav")))
                 .`is`(DocumentInfo::class.java, { ErrorResponse(NO_CONTENT, "Requested file is a directory")})
                 .peek { ctx.resultAttachment(it.name, it.contentType, it.contentLength, it.content())  }
                 .onError {
                     ctx.status(it.status)
-                    ctx.html(frontendFacade.createNotFoundPage(context.uri))
+                    ctx.html(frontendFacade.createNotFoundPage(uri))
                 }
         }
     }
@@ -74,8 +74,8 @@ internal class MavenEndpoints(
     )
     private val deployFile = ReposiliteRoute("/{repository}/<gav>", POST, PUT) {
         authorized {
-            response = mavenFacade.deployFile(DeployRequest(requireParameter("repository"), requireParameter("gav"), getSessionIdentifier(), context.input()))
-                .onError { context.logger.debug("Cannot deploy artifact due to: ${it.message}") }
+            response = mavenFacade.deployFile(DeployRequest(requireParameter("repository"), requireParameter("gav"), getSessionIdentifier(), ctx.bodyAsInputStream()))
+                .onError { logger.debug("Cannot deploy artifact due to: ${it.message}") }
         }
     }
 
@@ -91,7 +91,7 @@ internal class MavenEndpoints(
     )
     private val deleteFile = ReposiliteRoute("/{repository}/<gav>", DELETE) {
         authorized {
-            response = mavenFacade.deleteFile(DeleteRequest(accessToken, requireParameter("repository"), requireParameter("gav")))
+            response = mavenFacade.deleteFile(DeleteRequest(this, requireParameter("repository"), requireParameter("gav")))
         }
     }
 

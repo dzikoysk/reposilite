@@ -3,9 +3,9 @@ package com.reposilite.maven.infrastructure
 import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.api.FileDetails
 import com.reposilite.maven.api.LookupRequest
+import com.reposilite.web.ContextDsl
 import com.reposilite.web.ReposiliteRoute
 import com.reposilite.web.ReposiliteRoutes
-import com.reposilite.web.ReposiliteWebDsl
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.routing.RouteMethod.GET
 import io.javalin.openapi.HttpMethod
@@ -43,11 +43,11 @@ class MavenApiEndpoints(private val mavenFacade: MavenFacade) : ReposiliteRoutes
             )
         ]
     )
-    private val findFileDetails: suspend ReposiliteWebDsl.() -> Unit = {
+    private val findFileDetails: suspend ContextDsl.() -> Unit = {
         accessed {
             response = parameter("repository")
-                ?.let { repository -> mavenFacade.findFile(LookupRequest(this?.accessToken, repository, wildcard("gav") ?: "", )) }
-                ?: mavenFacade.findRepositories(this?.accessToken)
+                ?.let { repository -> mavenFacade.findFile(LookupRequest(this, repository, wildcard("gav") ?: "", )) }
+                ?: mavenFacade.findRepositories(this)
         }
     }
 
@@ -66,7 +66,7 @@ class MavenApiEndpoints(private val mavenFacade: MavenFacade) : ReposiliteRoutes
     )
     private val findVersions = ReposiliteRoute("/api/maven/versions/{repository}/<gav>", GET) {
         accessed {
-            response = mavenFacade.findVersions(LookupRequest(this?.accessToken, requireParameter("repository"), requireParameter("gav")))
+            response = mavenFacade.findVersions(LookupRequest(this, requireParameter("repository"), requireParameter("gav")))
         }
     }
 
@@ -81,7 +81,7 @@ class MavenApiEndpoints(private val mavenFacade: MavenFacade) : ReposiliteRoutes
     )
     private val findLatest = ReposiliteRoute("/api/maven/latest/{repository}/<gav>", GET) {
         accessed {
-            response = mavenFacade.findLatest(LookupRequest(this?.accessToken, requireParameter("repository"), requireParameter("gav")))
+            response = mavenFacade.findLatest(LookupRequest(this, requireParameter("repository"), requireParameter("gav")))
         }
     }
 

@@ -22,7 +22,7 @@
 
     <servlet>
         <servlet-name>ReposiliteServlet</servlet-name>
-        <servlet-class>com.reposilite.web.infrastructure.JavalinServlet</servlet-class>
+        <servlet-class>com.reposilite.web.JavalinServlet</servlet-class>
     </servlet>
 
     <servlet-mapping>

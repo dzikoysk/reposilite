@@ -57,7 +57,7 @@ internal class ConsoleEndpoint(private val consoleFacade: ConsoleFacade) : Repos
         ]
     )
     private val executeCommand = ReposiliteRoute("/api/console/execute", POST) {
-        context.logger.info("REMOTE EXECUTION ${context.uri} from ${context.address}")
+        logger.info("REMOTE EXECUTION $uri from ${ctx.ip()}")
 
         authenticated {
             if (!isManager()) {
@@ -65,8 +65,8 @@ internal class ConsoleEndpoint(private val consoleFacade: ConsoleFacade) : Repos
                 return@authenticated
             }
 
-            context.logger.info("${accessToken.name} (${context.address}) requested command: ${context.body.value}")
-            response = consoleFacade.executeCommand(context.body.value)
+            logger.info("$name (${ctx.ip()}) requested command: ${ctx.body()}")
+            response = consoleFacade.executeCommand(ctx.body())
         }
     }
 
