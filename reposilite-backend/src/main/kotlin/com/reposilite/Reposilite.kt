@@ -28,10 +28,8 @@ import com.reposilite.shared.peek
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.web.JavalinWebServer
-import io.javalin.Javalin
-import io.ktor.util.DispatcherWithShutdown
+import com.reposilite.web.coroutines.ExclusiveDispatcher
 import kotlinx.coroutines.withContext
-import org.eclipse.jetty.util.thread.QueuedThreadPool
 import org.jetbrains.exposed.sql.Database
 import panda.utilities.console.Effect
 import java.util.concurrent.ScheduledExecutorService
@@ -44,8 +42,7 @@ class Reposilite(
     val parameters: ReposiliteParameters,
     val configuration: Configuration,
     val startTime: Long = System.currentTimeMillis(),
-    private val threadPool: QueuedThreadPool,
-    val dispatcher: DispatcherWithShutdown,
+    val ioDispatcher: ExclusiveDispatcher,
     val scheduler: ScheduledExecutorService,
     val database: Database,
     val webServer: JavalinWebServer,
@@ -100,8 +97,6 @@ class Reposilite(
         try {
 
             logger.info("Binding server at ${parameters.hostname}::${parameters.port}")
-
-            threadPool.start()
             webServer.start(this)
             Runtime.getRuntime().addShutdownHook(shutdownHook)
 
@@ -109,7 +104,7 @@ class Reposilite(
             logger.info("")
             consoleFacade.executeCommand("help")
 
-            withContext(dispatcher) {
+            withContext(ioDispatcher) {
                 logger.info("")
                 logger.info("Collecting status metrics...")
                 logger.info("")
@@ -126,19 +121,17 @@ class Reposilite(
         return this
     }
 
-    @Synchronized
     fun shutdown() =
         alive.peek {
             alive.set(false)
             logger.info("Shutting down ${parameters.hostname}::${parameters.port}...")
 
             scheduler.shutdown()
-            dispatcher.prepareShutdown()
+            ioDispatcher.prepareShutdown()
             ReposiliteWebConfiguration.dispose(this@Reposilite)
             webServer.stop()
             scheduler.shutdownNow()
-            threadPool.stop()
-            dispatcher.completeShutdown()
+            ioDispatcher.completeShutdown()
             journalist.shutdown()
         }
 

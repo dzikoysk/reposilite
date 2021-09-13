@@ -17,15 +17,16 @@
 package com.reposilite.web
 
 import com.reposilite.journalist.Logger
-import com.reposilite.shared.uri
 import com.reposilite.token.api.AccessToken
 import com.reposilite.token.api.AccessTokenPermission
 import com.reposilite.token.api.RoutePermission
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.error
+import com.reposilite.web.http.uri
 import io.javalin.http.Context
 import io.javalin.http.HttpCode
 import panda.std.Result
+import panda.std.coroutines.rxPeek
 
 class ContextDsl(
     val logger: Logger,
@@ -65,9 +66,7 @@ class ContextDsl(
     suspend fun authenticated(init: suspend AccessToken.() -> Unit) {
         authenticationResult
             .onError { ctx.error(it) }
-            .also {
-                if (it.isOk) init(it.get()) // no suspend support in Result#peek
-            }
+            .rxPeek { init(it) }
     }
 
     /**
@@ -75,11 +74,10 @@ class ContextDsl(
      */
     suspend fun authorized(init: suspend AccessToken.() -> Unit) {
         authenticated {
-            if (isAuthorized()) {
+            if (isAuthorized())
                 init(this)
-            } else {
-                ctx.error(ErrorResponse(HttpCode.UNAUTHORIZED, "Invalid credentials"))
-            }
+            else
+                ctx.error(HttpCode.UNAUTHORIZED, "Invalid credentials")
         }
     }
 

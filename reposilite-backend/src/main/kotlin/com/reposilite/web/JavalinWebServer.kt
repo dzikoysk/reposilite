@@ -4,21 +4,25 @@ import com.reposilite.Reposilite
 import com.reposilite.ReposiliteWebConfiguration
 import com.reposilite.config.Configuration
 import com.reposilite.shared.TimeUtils
-import com.reposilite.shared.runWithDisabledLogging
 import io.javalin.Javalin
 import io.javalin.core.JavalinConfig
 import kotlinx.coroutines.CoroutineDispatcher
 import org.eclipse.jetty.io.EofException
+import org.eclipse.jetty.util.thread.QueuedThreadPool
 import org.eclipse.jetty.util.thread.ThreadPool
 
-class JavalinWebServer(private val threadPool: ThreadPool) {
+class JavalinWebServer {
 
     private val servlet = false
     private var javalin: Javalin? = null
+    private var webThreadPool: QueuedThreadPool? = null
 
     fun start(reposilite: Reposilite) =
         runWithDisabledLogging {
-            this.javalin = createJavalin(reposilite, reposilite.configuration, threadPool, reposilite.dispatcher)
+            this.webThreadPool = QueuedThreadPool(reposilite.configuration.webThreadPool, 2)
+            webThreadPool?.start()
+
+            this.javalin = createJavalin(reposilite, reposilite.configuration, webThreadPool!!, reposilite.ioDispatcher)
                 .exception(EofException::class.java, { _, _ -> reposilite.logger.warn("Client closed connection") })
                 .events { listener ->
                     listener.serverStopping { reposilite.logger.info("Server stopping...") }
@@ -44,8 +48,10 @@ class JavalinWebServer(private val threadPool: ThreadPool) {
         serverConfig.registerPlugin(createReactiveRouting(reposilite))
     }
 
-    fun stop() =
+    fun stop() {
+        webThreadPool?.stop()
         javalin?.stop()
+    }
 
     fun isAlive(): Boolean =
         javalin?.jettyServer()?.server()?.isStarted ?: false

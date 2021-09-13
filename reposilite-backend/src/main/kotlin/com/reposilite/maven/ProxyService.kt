@@ -5,7 +5,6 @@ import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.maven.api.FileDetails
 import com.reposilite.shared.RemoteClient
 import com.reposilite.shared.toPath
-import com.reposilite.web.coroutines.firstOrErrors
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.aggregatedError
 import io.javalin.http.HttpCode.NOT_FOUND
@@ -13,6 +12,7 @@ import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.map
 import panda.std.Result
 import panda.std.Result.ok
+import panda.std.coroutines.firstOrErrors
 
 internal class ProxyService(private val remoteClient: RemoteClient) {
 
