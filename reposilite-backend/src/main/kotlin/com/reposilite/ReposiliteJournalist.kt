@@ -5,10 +5,12 @@ import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
 import com.reposilite.journalist.backend.AggregatedLogger
 import com.reposilite.journalist.backend.CachedLogger
+import com.reposilite.journalist.backend.InMemoryLogger
 import com.reposilite.journalist.backend.PublisherLogger
 import com.reposilite.journalist.slf4j.Slf4jLogger
 import com.reposilite.journalist.tinylog.TinyLogLogger
 import com.reposilite.journalist.tinylog.TinyLogWriter
+import org.eclipse.jetty.util.log.Log
 import org.slf4j.LoggerFactory
 import org.tinylog.provider.ProviderRegistry
 import panda.std.Subscriber
@@ -27,7 +29,8 @@ import kotlin.collections.MutableMap.MutableEntry
  */
 class ReposiliteJournalist(
     visibleJournalist: Journalist,
-    cachedLogSize: Int
+    cachedLogSize: Int,
+    testEnv: Boolean
 ) : Journalist {
 
     val cachedLogger = CachedLogger(Channel.ALL, cachedLogSize)
@@ -44,7 +47,8 @@ class ReposiliteJournalist(
         val redirectedLogger = AggregatedLogger(cachedLogger, visibleLogger)
         this.tinyLog = TinyLogLogger(Channel.ALL, redirectedLogger) // Redirect TinyLog output to redirected loggers
 
-        this.mainLogger = Slf4jLogger(LoggerFactory.getLogger(Reposilite::class.java))
+        Log.getProperties().setProperty("org.eclipse.jetty.util.log.announce", "false")
+        this.mainLogger = if (testEnv) InMemoryLogger() else Slf4jLogger(LoggerFactory.getLogger(Reposilite::class.java))
     }
 
     fun subscribe(subscriber: Subscriber<MutableEntry<Channel, String>>): Int =

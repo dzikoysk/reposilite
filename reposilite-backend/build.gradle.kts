@@ -46,7 +46,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.5.21")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
 
-    val expressible = "1.0.13"
+    val expressible = "1.0.15"
     implementation("org.panda-lang:expressible:$expressible")
     implementation("org.panda-lang:expressible-kt:$expressible")
     implementation("org.panda-lang:expressible-kt-coroutines:$expressible")
@@ -74,12 +74,13 @@ dependencies {
     implementation("io.javalin-rfc:javalin-openapi-plugin:$openapi")
     implementation("io.javalin-rfc:javalin-swagger-plugin:$openapi")
 
-    val javalinRfcs = "1.0.10"
+    val javalinRfcs = "4.0.11"
     implementation("com.reposilite.javalin-rfcs:javalin-context:$javalinRfcs")
     implementation("com.reposilite.javalin-rfcs:javalin-reactive-routing:$javalinRfcs")
 
     val javalin = "4.0.0.RC3"
     implementation("io.javalin:javalin:$javalin")
+    implementation("org.eclipse.jetty:jetty-server:9.4.43.v20210629")
 
     val picocli = "4.6.1"
     kapt("info.picocli:picocli-codegen:$picocli")

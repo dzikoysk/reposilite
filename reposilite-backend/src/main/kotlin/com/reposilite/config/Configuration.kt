@@ -245,12 +245,20 @@ class Configuration : Serializable {
         "",
         "# Note: It might be hard to estimate the best amount of threads for your use case,",
         "# but you can safely increase amount of threads if needed and Reposilite will create only as much as it needs.",
-        "# This option might be more useful to limit available memory resources to minimum (1 thread requires ~1MB of memory)",
+        "# This option might be more useful to limit available memory resources to minimum (1 thread requires around 200kb to 1MB of memory)",
         "",
         "# Max amount of threads used by core thread pool (min: 4)",
+        "# The web thread pool handles first few steps of incoming http connections, as soon as possible all tasks are redirected to IO thread pool."
     )
     @JvmField
-    var coreThreadPool = 8
+    var webThreadPool = 8
+
+    @Description(
+        "# IO thread pool handles all tasks that may benefit from non-blocking IO (min: 4)",
+        "# Because most of tasks are redirected to IO thread pool, it might be a good idea to keep it at least equal to web thread pool."
+    )
+    @JvmField
+    var ioThreadPool = 16
 
     @Description("# Amount of messages stored in cached logger.")
     @JvmField

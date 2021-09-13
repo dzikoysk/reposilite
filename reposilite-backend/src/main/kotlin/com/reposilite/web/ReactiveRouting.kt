@@ -24,7 +24,7 @@ fun createReactiveRouting(reposilite: Reposilite): ReactiveRoutingPlugin<Context
 
     val plugin = ReactiveRoutingPlugin<ContextDsl, Unit>(
         errorConsumer = { name, error -> reposilite.logger.error("Coroutine $name failed to execute task", error) },
-        dispatcher = reposilite.dispatcher,
+        dispatcher = reposilite.ioDispatcher,
         syncHandler = { ctx, route ->
             val resultDsl = callWithContext(reposilite, authenticationFacade, ctx, route.handler)
             resultDsl.response?.also { ctx.response(it) }

@@ -16,7 +16,6 @@
 
 package com.reposilite.statistics.infrastructure
 
-import com.reposilite.shared.uri
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.statistics.api.MAX_IDENTIFIER_LENGTH
 import com.reposilite.statistics.api.RecordType.REQUEST
@@ -27,7 +26,7 @@ import com.reposilite.web.routing.RouteMethod.BEFORE
 internal class StatisticsHandler(private val statisticsFacade: StatisticsFacade) : ReposiliteRoutes() {
 
     private val collectRequests = ReposiliteRoute("/<*>", BEFORE) {
-        logger.debug(ctx.method() + " " + uri + " from " + ctx.ip())
+        logger.debug("${ctx.method()} $uri from ${ctx.ip()}")
 
         if (uri.length < MAX_IDENTIFIER_LENGTH) {
             statisticsFacade.increaseRecord(REQUEST, uri)

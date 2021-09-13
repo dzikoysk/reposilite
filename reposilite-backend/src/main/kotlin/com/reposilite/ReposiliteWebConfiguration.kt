@@ -19,7 +19,7 @@ object ReposiliteWebConfiguration {
         // MavenWebConfiguration.initialize()
         // FrontendWebConfiguration.initialize()
         // MavenWebConfiguration.initialize()
-        StatisticsWebConfiguration.initialize(reposilite.statisticsFacade, reposilite.consoleFacade, reposilite.scheduler, reposilite.dispatcher)
+        StatisticsWebConfiguration.initialize(reposilite.statisticsFacade, reposilite.consoleFacade, reposilite.scheduler, reposilite.ioDispatcher)
         AccessTokenWebConfiguration.initialize(reposilite.accessTokenFacade, reposilite.parameters.tokens, reposilite.consoleFacade)
     }
 

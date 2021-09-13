@@ -31,11 +31,11 @@ import com.reposilite.shared.HttpRemoteClient
 import com.reposilite.statistics.application.StatisticsWebConfiguration
 import com.reposilite.token.application.AccessTokenWebConfiguration
 import com.reposilite.web.JavalinWebServer
-import io.ktor.util.DispatcherWithShutdown
-import kotlinx.coroutines.asCoroutineDispatcher
-import org.eclipse.jetty.util.log.Log
-import org.eclipse.jetty.util.thread.QueuedThreadPool
+import com.reposilite.web.coroutines.ExclusiveDispatcher
 import java.util.concurrent.Executors
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.TimeUnit.MILLISECONDS
 
 internal object ReposiliteFactory {
 
@@ -50,30 +50,24 @@ internal object ReposiliteFactory {
     }
 
     private fun createReposilite(parameters: ReposiliteParameters, journalist: Journalist, configuration: Configuration): Reposilite {
-        val logger = ReposiliteJournalist(journalist, configuration.cachedLogSize)
-
-        Log.getProperties().setProperty("org.eclipse.jetty.util.log.announce", "false")
-        val threadPool = QueuedThreadPool(configuration.coreThreadPool, 2)
-        val dispatcher = DispatcherWithShutdown(threadPool.asCoroutineDispatcher())
-        threadPool.start()
-
+        val webServer = JavalinWebServer()
+        val logger = ReposiliteJournalist(journalist, configuration.cachedLogSize, parameters.testEnv)
+        val ioDispatcher = ExclusiveDispatcher(ThreadPoolExecutor(2, configuration.ioThreadPool, 0L, MILLISECONDS, LinkedBlockingQueue()))
         val scheduler = Executors.newSingleThreadScheduledExecutor()
         val database = DatabaseSourceConfiguration.createConnection(parameters.workingDirectory, configuration.database)
-        val webServer = JavalinWebServer(threadPool)
         val failureFacade = FailureWebConfiguration.createFacade(logger)
-        val consoleFacade = ConsoleWebConfiguration.createFacade(logger, dispatcher, failureFacade)
+        val consoleFacade = ConsoleWebConfiguration.createFacade(logger, ioDispatcher, failureFacade)
         val mavenFacade = MavenWebConfiguration.createFacade(logger, parameters.workingDirectory, HttpRemoteClient(), configuration.repositories)
         val frontendFacade = FrontendWebConfiguration.createFacade(configuration)
-        val statisticFacade = StatisticsWebConfiguration.createFacade(logger, dispatcher, database)
-        val accessTokenFacade = AccessTokenWebConfiguration.createFacade(dispatcher, database)
+        val statisticFacade = StatisticsWebConfiguration.createFacade(logger, ioDispatcher, database)
+        val accessTokenFacade = AccessTokenWebConfiguration.createFacade(ioDispatcher, database)
         val authenticationFacade = AuthenticationWebConfiguration.createFacade(logger, accessTokenFacade)
 
         return Reposilite(
             journalist = logger,
             parameters = parameters,
             configuration = configuration,
-            threadPool= threadPool,
-            dispatcher = dispatcher,
+            ioDispatcher = ioDispatcher,
             scheduler = scheduler,
             database = database,
             webServer = webServer,
