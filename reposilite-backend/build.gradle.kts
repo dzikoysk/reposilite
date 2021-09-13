@@ -52,7 +52,7 @@ dependencies {
     implementation("org.panda-lang:expressible-kt-coroutines:$expressible")
     testImplementation("org.panda-lang:expressible-junit:$expressible")
 
-    val awssdk = "2.17.37"
+    val awssdk = "2.17.38"
     implementation("software.amazon.awssdk:bom:$awssdk")
     implementation("software.amazon.awssdk:s3:$awssdk")
 
@@ -80,7 +80,7 @@ dependencies {
 
     val javalin = "4.0.0.RC3"
     implementation("io.javalin:javalin:$javalin")
-    implementation("org.eclipse.jetty:jetty-server:9.4.43.v20210629")
+    implementation("org.eclipse.jetty:jetty-server:10.0.6")
 
     val picocli = "4.6.1"
     kapt("info.picocli:picocli-codegen:$picocli")
