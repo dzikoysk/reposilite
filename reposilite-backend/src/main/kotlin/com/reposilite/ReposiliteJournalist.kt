@@ -30,7 +30,7 @@ import kotlin.collections.MutableMap.MutableEntry
 class ReposiliteJournalist(
     visibleJournalist: Journalist,
     cachedLogSize: Int,
-    testEnv: Boolean
+    private val testEnv: Boolean
 ) : Journalist {
 
     val cachedLogger = CachedLogger(Channel.ALL, cachedLogSize)
@@ -43,6 +43,10 @@ class ReposiliteJournalist(
     init {
         this.visibleLogger = AggregatedLogger(visibleJournalist.logger, publisherLogger)
         setVisibleThreshold(Channel.INFO)
+
+        if (!testEnv) {
+            System.setProperty("tinylog.autoshutdown", "false")
+        }
 
         val redirectedLogger = AggregatedLogger(cachedLogger, visibleLogger)
         this.tinyLog = TinyLogLogger(Channel.ALL, redirectedLogger) // Redirect TinyLog output to redirected loggers
@@ -63,7 +67,10 @@ class ReposiliteJournalist(
 
     fun shutdown() {
         TinyLogWriter.unsubscribe(tinyLog.subscriberId)
-        ProviderRegistry.getLoggingProvider().shutdown()
+
+        if (!testEnv) {
+            ProviderRegistry.getLoggingProvider().shutdown()
+        }
     }
 
     override fun getLogger(): Logger =
