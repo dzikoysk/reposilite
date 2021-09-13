@@ -79,7 +79,8 @@ dependencies {
     implementation("com.reposilite.javalin-rfcs:javalin-reactive-routing:$javalinRfcs")
 
     val javalin = "4.0.0.RC3"
-    implementation("io.javalin:javalin:$javalin")
+    // implementation("io.javalin:javalin:$javalin")
+    implementation("com.github.tipsy:javalin:master-SNAPSHOT")
     implementation("org.eclipse.jetty:jetty-server:9.4.43.v20210629")
 
     val picocli = "4.6.1"
