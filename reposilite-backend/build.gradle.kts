@@ -122,7 +122,7 @@ dependencies {
     testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.66")
     testImplementation("com.google.http-client:google-http-client-jackson2:1.40.0")
 
-    val junit = "5.7.2"
+    val junit = "5.8.0"
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junit")
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junit")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junit")
