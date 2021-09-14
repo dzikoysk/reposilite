@@ -1,6 +1,6 @@
 package com.reposilite.maven
 
-import com.reposilite.maven.spec.MavenIntegrationSpec
+import com.reposilite.maven.specification.MavenIntegrationSpecification
 import com.reposilite.token.api.RoutePermission.READ
 import io.javalin.http.HttpCode.UNAUTHORIZED
 import kong.unirest.Unirest.get
@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 
-internal class MavenApiIntegrationTest : MavenIntegrationSpec() {
+internal abstract class MavenApiIntegrationTest : MavenIntegrationSpecification() {
 
     @ValueSource(strings = [
         "/api/maven/details/private",

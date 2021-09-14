@@ -4,7 +4,7 @@ import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.shared.FileType.FILE
 import com.reposilite.shared.getSimpleName
 import com.reposilite.shared.toPath
-import com.reposilite.storage.spec.StorageProviderSpec
+import com.reposilite.storage.specification.StorageProviderSpecification
 import io.javalin.http.ContentType.APPLICATION_JAR
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test
 import panda.std.ResultAssertions.assertError
 import panda.std.ResultAssertions.assertOk
 
-internal abstract class StorageProviderTest : StorageProviderSpec() {
+internal abstract class StorageProviderTest : StorageProviderSpecification() {
 
     @Test
     fun `should store and return valid resource` () {

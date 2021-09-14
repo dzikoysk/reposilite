@@ -1,6 +1,6 @@
-package com.reposilite.maven.spec
+package com.reposilite.maven.specification
 
-import com.reposilite.ReposiliteSpec
+import com.reposilite.ReposiliteSpecification
 import com.reposilite.maven.VersionComparator
 import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.Metadata
@@ -16,7 +16,7 @@ internal data class UseDocument(
     val content: String
 )
 
-internal abstract class MavenIntegrationSpec : ReposiliteSpec() {
+internal abstract class MavenIntegrationSpecification : ReposiliteSpecification() {
 
     @TempDir
     lateinit var clientWorkingDirectory: File
