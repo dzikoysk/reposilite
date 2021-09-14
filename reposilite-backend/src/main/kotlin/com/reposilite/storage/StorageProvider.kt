@@ -26,22 +26,6 @@ import java.nio.file.attribute.FileTime
 
 interface StorageProvider {
 
-    /**
-     * Writes the bytes to the path specified in storage.
-     *
-     * @param file  the path of the file to be written
-     * @param bytes the bytes to write
-     * @return a [DocumentInfo] object describing the file if successful, and an [ErrorResponse] if not
-     */
-    fun putFile(file: Path, bytes: ByteArray): Result<DocumentInfo, ErrorResponse>
-
-    /**
-     * Writes the given [InputStream] to the path specified in storage.
-     *
-     * @param file  the path of the file to be written
-     * @param inputStream the stream supplying the data to write
-     * @return a [DocumentInfo] object describing the file if successful, and an [ErrorResponse] if not
-     */
     fun putFile(file: Path, inputStream: InputStream): Result<DocumentInfo, ErrorResponse>
 
     fun getFile(file: Path): Result<InputStream, ErrorResponse>

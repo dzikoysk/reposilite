@@ -21,9 +21,11 @@ import com.reposilite.journalist.Journalist
 import com.reposilite.shared.loadCommandBasedConfiguration
 import com.reposilite.storage.infrastructure.FileSystemStorageProviderFactory
 import com.reposilite.storage.infrastructure.S3StorageProvider
-import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3Client
+import java.net.URI
 import java.nio.file.Files
 import java.nio.file.Path
 
@@ -37,17 +39,21 @@ internal object StorageProviderFactory {
         else if (storageDescription.startsWith("s3")) {
             // Implement quota?
             val settings = loadCommandBasedConfiguration(S3StorageProviderSettings(), storageDescription).configuration
-            S3StorageProvider(journalist, createUnauthenticatedS3Client(settings.region), settings.bucketName)
+
+            val client = S3Client.builder()
+                // .credentialsProvider(AnonymousCredentialsProvider.create())
+                .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(settings.accessKey, settings.secretKey)))
+                .region(Region.of(settings.region))
+
+            if (settings.endpoint.isNotEmpty()) {
+                client.endpointOverride(URI.create(settings.endpoint))
+            }
+
+            S3StorageProvider(journalist, client.build(), settings.bucketName)
         }
         // else if (storageDescription.equals("rest", ignoreCase = true)) {
         // TOFIX REST API storage endpoint
         //}
         else throw UnsupportedOperationException("Unknown storage provider: $storageDescription")
-
-    private fun createUnauthenticatedS3Client(region: String): S3Client =
-         S3Client.builder()
-            .region(Region.of(region))
-            .credentialsProvider(AnonymousCredentialsProvider.create())
-            .build()
 
 }

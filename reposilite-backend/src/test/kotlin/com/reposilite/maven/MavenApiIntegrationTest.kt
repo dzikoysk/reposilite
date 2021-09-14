@@ -39,6 +39,7 @@ internal abstract class MavenApiIntegrationTest : MavenIntegrationSpecification(
             .asString()
 
         // then: service responds with file details
+        println(response.body)
         assertTrue(response.isSuccess)
     }
 

@@ -46,7 +46,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.5.21")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
 
-    val expressible = "1.0.15"
+    val expressible = "1.0.16"
     implementation("org.panda-lang:expressible:$expressible")
     implementation("org.panda-lang:expressible-kt:$expressible")
     implementation("org.panda-lang:expressible-kt-coroutines:$expressible")
@@ -64,6 +64,8 @@ dependencies {
 
     implementation("net.dzikoysk:exposed-upsert:1.0.3")
     implementation("org.xerial:sqlite-jdbc:3.36.0.3")
+    implementation("mysql:mysql-connector-java:8.0.25")
+    implementation("org.mariadb.jdbc:mariadb-java-client:2.7.3")
 
     val fuel = "2.3.1"
     implementation("com.github.kittinunf.fuel:fuel:$fuel")
@@ -143,6 +145,7 @@ tasks.withType<ShadowJar> {
         exclude(dependency("org.jetbrains.exposed:.*"))
         exclude(dependency("org.xerial:sqlite-jdbc.*"))
         exclude(dependency("org.sqlite:.*"))
+        exclude(dependency("mysql:.*"))
         exclude(dependency("org.h2:.*"))
         exclude(dependency("com.h2database:.*"))
         exclude(dependency("org.tinylog:.*"))

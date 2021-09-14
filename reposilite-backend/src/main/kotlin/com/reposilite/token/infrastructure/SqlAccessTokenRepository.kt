@@ -69,7 +69,7 @@ object PermissionToAccessTokenTable : Table("permission_access_token") {
 
 object PermissionToRouteTable : Table("permission_route") {
     val accessTokenId: Column<Id> = reference("access_token_id", AccessTokenTable.id, onDelete = CASCADE, onUpdate = CASCADE)
-    val route: Column<String> = varchar("path", 2048)
+    val route: Column<String> = varchar("path", 512)
     val permission: Column<String> = varchar("permission", 64)
 
     init {

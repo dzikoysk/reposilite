@@ -55,9 +55,6 @@ internal abstract class FileSystemStorageProvider protected constructor(
     private val rootDirectory: Path
  ) : StorageProvider {
 
-    override fun putFile(file: Path, bytes: ByteArray): Result<DocumentInfo, ErrorResponse> =
-        putFile(file, bytes, { it.size }, { input, output -> output.write(ByteBuffer.wrap(input)) })
-
     override fun putFile(file: Path, inputStream: InputStream): Result<DocumentInfo, ErrorResponse> =
         putFile(file, inputStream, { it.available() }) { input, output ->
             val buffer = ByteArrayOutputStream()

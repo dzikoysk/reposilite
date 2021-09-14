@@ -21,6 +21,7 @@ import com.reposilite.journalist.Logger
 import com.reposilite.maven.api.DirectoryInfo
 import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.maven.api.FileDetails
+import com.reposilite.maven.api.SimpleDirectoryInfo
 import com.reposilite.shared.FileType.DIRECTORY
 import com.reposilite.shared.getExtension
 import com.reposilite.shared.getSimpleName
@@ -28,10 +29,11 @@ import com.reposilite.shared.safeResolve
 import com.reposilite.storage.StorageProvider
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
+import com.reposilite.web.http.transferLargeTo
 import io.javalin.http.ContentType
 import io.javalin.http.ContentType.APPLICATION_OCTET_STREAM
 import io.javalin.http.ContentType.Companion.OCTET_STREAM
-import io.javalin.http.HttpCode
+import io.javalin.http.HttpCode.INTERNAL_SERVER_ERROR
 import io.javalin.http.HttpCode.NOT_FOUND
 import panda.std.Result
 import panda.std.Result.ok
@@ -46,6 +48,7 @@ import software.amazon.awssdk.services.s3.model.HeadObjectResponse
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException
 import software.amazon.awssdk.services.s3.model.PutObjectRequest
+import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.nio.file.Path
@@ -68,27 +71,6 @@ internal class S3StorageProvider(
         }
     }
 
-    override fun putFile(file: Path, bytes: ByteArray): Result<DocumentInfo, ErrorResponse> =
-        try {
-            val builder = PutObjectRequest.builder()
-            builder.bucket(bucket)
-            builder.key(file.toString().replace('\\', '/'))
-            builder.contentType(ContentType.getMimeTypeByExtension(file.getExtension()) ?: OCTET_STREAM)
-            builder.contentLength(bytes.size.toLong())
-            s3.putObject(builder.build(), RequestBody.fromBytes(bytes))
-
-            DocumentInfo(
-                file.getSimpleName(),
-                ContentType.getContentTypeByExtension(file.getExtension()) ?: ContentType.APPLICATION_OCTET_STREAM,
-                bytes.size.toLong(),
-                { getFile(file).get() }
-            ).asSuccess()
-        }
-        catch (exception: Exception) {
-            logger.exception(exception)
-            errorResponse(HttpCode.INTERNAL_SERVER_ERROR, "Failed to write $file")
-        }
-
     override fun putFile(file: Path, inputStream: InputStream): Result<DocumentInfo, ErrorResponse> =
         try {
             val builder = PutObjectRequest.builder()
@@ -96,24 +78,30 @@ internal class S3StorageProvider(
             builder.key(file.toString().replace('\\', '/'))
             builder.contentType(ContentType.getMimeTypeByExtension(file.getExtension()) ?: OCTET_STREAM)
 
-            val length = inputStream.available().toLong()
-            builder.contentLength(length)
+            // So... S3 API is disabled and requires content-length of every inserted object.
+            // It means we're pretty doomed if we'd like to re-stream large artifacts that size is unknown.
+            // To avoid 'Out of Memory' scenario of in-memory rewrite by S3 client, it's just safer to redistribute content from temp file.
+            // Few unresolved issues addressing this case:
+            // ~ https://github.com/aws/aws-sdk-java/issues/474
+            // ~ https://github.com/aws/aws-sdk-java-v2/issues/37
+            val tempFile = File.createTempFile("reposilite-", "-deploy")
+            inputStream.transferLargeTo(tempFile.outputStream())
+            val contentLength = tempFile.length()
+            builder.contentLength(contentLength)
 
-            s3.putObject(
-                builder.build(),
-                RequestBody.fromInputStream(inputStream, inputStream.available().toLong())
-            )
+            s3.putObject(builder.build(), RequestBody.fromFile(tempFile))
+            tempFile.delete()
 
             DocumentInfo(
                 file.getSimpleName(),
                 ContentType.getContentTypeByExtension(file.getExtension()) ?: APPLICATION_OCTET_STREAM,
-                length,
+                contentLength,
                 { inputStream }
             ).asSuccess()
         }
         catch (ioException: IOException) {
             logger.exception(ioException)
-            errorResponse(HttpCode.INTERNAL_SERVER_ERROR, "Failed to write $file")
+            errorResponse(INTERNAL_SERVER_ERROR, "Failed to write $file")
         }
 
     override fun getFile(file: Path): Result<InputStream, ErrorResponse> =
@@ -134,22 +122,30 @@ internal class S3StorageProvider(
         }
 
     override fun getFileDetails(file: Path): Result<FileDetails, ErrorResponse> =
-        if (file.toString() == "") { // why ""?
-            getFiles(file)
-                .map { it.map { path -> getFileDetails(path) } }
-                .map { DirectoryInfo(file.fileName.toString(), it.map { result -> result.get() /* We should somehow flat map these errors maybe */}) }
-        }
-        else {
-            head(file)?.let {
-                DocumentInfo(
-                    file.fileName.toString(),
-                    ContentType.getContentTypeByExtension(file.getExtension()) ?: APPLICATION_OCTET_STREAM,
-                    it.contentLength(),
-                    { getFile(file).get() }
-                ).asSuccess()
-            }
-            ?: errorResponse(NOT_FOUND, "File not found: $file")
-        }
+        head(file)
+            .map { toDocumentInfo(file, it) }
+            .flatMapErr { getFiles(file).map { toDirectoryInfo(file, it) } }
+
+    private fun getSimplifiedFileDetails(file: Path): FileDetails =
+        head(file)
+            .fold(
+                { toDocumentInfo(file, it) },
+                { SimpleDirectoryInfo(file.getSimpleName()) }
+            )
+
+    private fun toDocumentInfo(file: Path, head: HeadObjectResponse): FileDetails =
+        DocumentInfo(
+            file.getSimpleName(),
+            ContentType.getContentTypeByExtension(file.getExtension()) ?: APPLICATION_OCTET_STREAM,
+            head.contentLength(),
+            { getFile(file).get() }
+        )
+
+    private fun toDirectoryInfo(file: Path, files: List<Path>): DirectoryInfo =
+        DirectoryInfo(
+            file.getSimpleName(),
+            files.map { getSimplifiedFileDetails(it) }
+        )
 
     override fun removeFile(file: Path): Result<*, ErrorResponse> =
         with(DeleteObjectRequest.builder()) {
@@ -163,57 +159,63 @@ internal class S3StorageProvider(
             val request = ListObjectsRequest.builder()
             request.bucket(bucket)
 
-            val directoryString = directory.toString().replace('\\', '/')
+            val directoryString =directory.toString().replace('\\', '/')
             request.prefix(directoryString)
-            //            request.delimiter("/");
 
-            val response = s3.listObjects(request.build())
-            val paths: MutableList<Path> = ArrayList()
+            val paths = s3.listObjects(request.build())
+                .contents().asSequence()
+                // .map { it.key().substring(directoryString.length) }
+                // .map { it.split('/', limit = 2).firstOrNull() ?: it }
+                // .map { Paths.get(it) }
+                .map { Paths.get(it.key()) }
+                .toList()
 
-            for (content in response.contents()) {
-                val sub = content.key().substring(directoryString.length)
-                paths.add(Paths.get(sub))
+            if (paths.isEmpty()) {
+                errorResponse(NOT_FOUND, "Directory not found or is empty")
             }
-
-            paths.asSuccess()
+            else {
+                paths.asSuccess()
+            }
         }
         catch (exception: Exception) {
-            errorResponse(HttpCode.INTERNAL_SERVER_ERROR, exception.localizedMessage)
+            errorResponse(INTERNAL_SERVER_ERROR, exception.localizedMessage)
         }
 
     override fun getLastModifiedTime(file: Path): Result<FileTime, ErrorResponse> =
         head(file)
-            ?.let { FileTime.from(it.lastModified()).asSuccess() }
-            ?: getFiles(file)
-                .map { files -> files.firstOrNull() }
-                .mapErr { ErrorResponse(NOT_FOUND, "File not found: $file") }
-                .flatMap { getLastModifiedTime(file.safeResolve(it!!.getName(0))) }
+            .map { FileTime.from(it.lastModified()) }
+            .flatMapErr {
+                getFiles(file)
+                    .map { files -> files.firstOrNull() }
+                    .mapErr { ErrorResponse(NOT_FOUND, "File not found: $file") }
+                    .flatMap { getLastModifiedTime(file.safeResolve(it!!.getName(0))) }
+            }
 
     override fun getFileSize(file: Path): Result<Long, ErrorResponse> =
         head(file)
-            ?.contentLength()
-            ?.asSuccess()
-            ?: errorResponse(NOT_FOUND, "File not found: $file")
+            .map { it.contentLength() }
 
-    private fun head(file: Path): HeadObjectResponse? =
+    private fun head(file: Path): Result<HeadObjectResponse, ErrorResponse> =
         try {
             val request = HeadObjectRequest.builder()
             request.bucket(bucket)
             request.key(file.toString().replace('\\', '/'))
-            s3.headObject(request.build())
+            s3.headObject(request.build()).asSuccess()
         }
         catch (ignored: NoSuchKeyException) {
-            // ignored
-            null
+            errorResponse(NOT_FOUND, ignored.message ?: "File not found")
         }
         catch (exception: Exception) {
-            exception.printStackTrace()
-            null
+            errorResponse(INTERNAL_SERVER_ERROR, exception.message ?: "Generic exception")
         }
 
     override fun exists(file: Path): Boolean =
-        head(file) != null
+        head(file).fold(
+            { true },
+            { getFiles(file).isOk }
+        )
 
+    // TOFIX: Provide simplified version based on metadata, maybe reverse it with isDocument based on head
     override fun isDirectory(file: Path): Boolean =
         getFileDetails(file)
             .map { it.type == DIRECTORY }

@@ -32,7 +32,7 @@ internal class MetadataService(
 
     fun saveMetadata(repository: String, gav: String, metadata: Metadata): Result<Metadata, ErrorResponse> =
         repositoryService.findRepository(repository)
-            .flatMap { it.putFile(gav.toPath().safeResolve(METADATA_FILE), xml.writeValueAsBytes(metadata)) }
+            .flatMap { it.putFile(gav.toPath().safeResolve(METADATA_FILE), xml.writeValueAsBytes(metadata).inputStream()) }
             .map { metadata }
 
     fun findVersions(repository: Repository, gav: String): Result<List<String>, ErrorResponse> =

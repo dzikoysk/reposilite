@@ -24,13 +24,7 @@ internal class S3StorageProviderIntegrationTest : StorageProviderTest() {
     fun setup() {
         val s3 = S3Client.builder()
             .endpointOverride(localstack.getEndpointOverride(S3))
-            .credentialsProvider(
-                StaticCredentialsProvider.create(
-                    AwsBasicCredentials.create(
-                        localstack.accessKey, localstack.secretKey
-                    )
-                )
-            )
+            .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(localstack.accessKey, localstack.secretKey)))
             .region(Region.of(localstack.region))
             .build()
 
