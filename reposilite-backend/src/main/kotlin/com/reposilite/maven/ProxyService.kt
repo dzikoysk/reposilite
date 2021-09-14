@@ -6,7 +6,6 @@ import com.reposilite.maven.api.FileDetails
 import com.reposilite.shared.RemoteClient
 import com.reposilite.shared.toPath
 import com.reposilite.web.http.ErrorResponse
-import com.reposilite.web.http.aggregatedError
 import io.javalin.http.HttpCode.NOT_FOUND
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.map
@@ -17,16 +16,18 @@ import panda.std.coroutines.firstOrErrors
 internal class ProxyService(private val remoteClient: RemoteClient) {
 
     suspend fun findFile(repository: Repository, gav: String): Result<out FileDetails, ErrorResponse> =
-        repository.proxiedHosts
-            .asSequence()
+        repository.proxiedHosts.asSequence()
             .asFlow()
             .map { (host, configuration) -> findFile(repository, host, gav, configuration) }
             .firstOrErrors()
-            .mapErr { aggregatedError(NOT_FOUND, it) }
+            .mapErr { ErrorResponse(NOT_FOUND, it.joinToString("; ")) }
 
     private suspend fun findFile(repository: Repository, host: String, gav: String, configuration: ProxiedHostConfiguration): Result<out FileDetails, ErrorResponse> =
         findFile(host, configuration, gav).flatMap { document ->
-            if (configuration.store) storeFile(repository, gav, document) else ok<FileDetails, ErrorResponse>(document)
+            if (configuration.store)
+                storeFile(repository, gav, document)
+            else
+                ok<FileDetails, ErrorResponse>(document)
         }
 
     private fun storeFile(repository: Repository, gav: String, document: DocumentInfo): Result<out FileDetails, ErrorResponse> =

@@ -75,14 +75,14 @@ object FilesUtils {
 
     fun writeFileChecksums(repository: Repository, path: Path, bytes: ByteArray) {
         val md5 = path.resolveSibling(path.getSimpleName() + ".md5")
-        repository.putFile(md5, DigestUtils.md5(bytes))
+        repository.putFile(md5, DigestUtils.md5(bytes).inputStream())
 
         val sha1 = path.resolveSibling(path.getSimpleName() + ".sha1")
         val sha256 = path.resolveSibling(path.getSimpleName() + ".sha256")
         val sha512 = path.resolveSibling(path.getSimpleName() + ".sha512")
-        repository.putFile(sha1, DigestUtils.sha1(bytes))
-        repository.putFile(sha256, DigestUtils.sha256(bytes))
-        repository.putFile(sha512, DigestUtils.sha512(bytes))
+        repository.putFile(sha1, DigestUtils.sha1(bytes).inputStream())
+        repository.putFile(sha256, DigestUtils.sha256(bytes).inputStream())
+        repository.putFile(sha512, DigestUtils.sha512(bytes).inputStream())
     }
 
     fun String.getExtension(): String =

@@ -1,9 +1,7 @@
 package com.reposilite.storage.infrastructure
 
-import com.reposilite.ReposiliteLocalIntegrationJunitExtension
 import com.reposilite.storage.StorageProviderTest
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
 

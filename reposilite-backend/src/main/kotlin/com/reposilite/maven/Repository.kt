@@ -34,9 +34,6 @@ class Repository internal constructor(
     val redeployment: Boolean
 ) {
 
-    fun putFile(file: Path, bytes: ByteArray): Result<DocumentInfo, ErrorResponse> =
-        storageProvider.putFile(file, bytes)
-
     fun putFile(file: Path, inputStream: InputStream): Result<DocumentInfo, ErrorResponse> =
         storageProvider.putFile(file, inputStream)
 

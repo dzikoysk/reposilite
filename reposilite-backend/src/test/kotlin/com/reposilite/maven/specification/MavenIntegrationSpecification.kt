@@ -21,9 +21,9 @@ internal abstract class MavenIntegrationSpecification : ReposiliteSpecification(
     @TempDir
     lateinit var clientWorkingDirectory: File
 
-    protected fun useDocument(repository: String, gav: String, file: String, content: String = "", store: Boolean = false): UseDocument {
+    protected fun useDocument(repository: String, gav: String, file: String, content: String = "test-content", store: Boolean = false): UseDocument {
         if (store) {
-            reposilite.mavenFacade.deployFile(DeployRequest(repository, "$gav/$file", "unknown", content.byteInputStream()))
+            reposilite.mavenFacade.deployFile(DeployRequest(repository, "$gav/$file", "junit", content.byteInputStream()))
         }
 
         return UseDocument(repository, gav, file, content)

@@ -1,9 +1,8 @@
 package com.reposilite.storage.specification
 
-import com.reposilite.ReposiliteSpecification
 import com.reposilite.storage.StorageProvider
 
-internal abstract class StorageProviderSpecification : ReposiliteSpecification() {
+internal abstract class StorageProviderSpecification {
 
     protected lateinit var storageProvider: StorageProvider
 

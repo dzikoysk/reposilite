@@ -22,7 +22,7 @@ internal abstract class StorageProviderTest : StorageProviderSpecification() {
         val content = "content".toByteArray()
 
         // when: resource is put in storage and then requested
-        val putResponse = storageProvider.putFile(path, content)
+        val putResponse = storageProvider.putFile(path, content.inputStream())
 
         // then: put request should succeed
         assertOk(putResponse)
@@ -53,7 +53,7 @@ internal abstract class StorageProviderTest : StorageProviderSpecification() {
         // given: a destination path to the resource and its content
         val path = "/directory/file.jar".toPath()
         val content = "content".toByteArray()
-        storageProvider.putFile(path, content)
+        storageProvider.putFile(path, content.inputStream())
 
         // when: file details are requested
         val response = storageProvider.getFileDetails(path)

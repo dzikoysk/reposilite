@@ -152,6 +152,9 @@ class Configuration : Serializable {
         @Command(name = "s3", description = ["Amazon S3 storage provider settings"])
         internal class S3StorageProviderSettings : Validator() {
 
+            @Option(names = ["-e", "--endpoint"], defaultValue = "")
+            lateinit var endpoint: String
+
             @Parameters(index = "0", paramLabel = "<access-key>")
             lateinit var accessKey: String
 
