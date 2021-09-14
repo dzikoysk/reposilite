@@ -1,8 +1,7 @@
-package com.reposilite.storage.spec
+package com.reposilite.storage.infrastructure
 
 import com.reposilite.journalist.backend.InMemoryLogger
 import com.reposilite.storage.StorageProviderTest
-import com.reposilite.storage.infrastructure.S3StorageProvider
 import org.junit.jupiter.api.BeforeEach
 import org.testcontainers.containers.localstack.LocalStackContainer
 import org.testcontainers.containers.localstack.LocalStackContainer.Service.S3

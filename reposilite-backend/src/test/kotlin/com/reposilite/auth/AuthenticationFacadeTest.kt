@@ -1,5 +1,6 @@
 package com.reposilite.auth
 
+import com.reposilite.auth.specification.AuthenticationSpecification
 import com.reposilite.web.http.ErrorResponse
 import io.javalin.http.HttpCode.UNAUTHORIZED
 import kotlinx.coroutines.runBlocking
@@ -7,7 +8,7 @@ import org.junit.jupiter.api.Test
 import panda.std.ResultAssertions.assertError
 import panda.std.ResultAssertions.assertOk
 
-internal class AuthenticationFacadeTest : AuthenticationSpec() {
+internal class AuthenticationFacadeTest : AuthenticationSpecification() {
 
     @Test
     fun `should reject authentication request with invalid credentials`() = runBlocking {

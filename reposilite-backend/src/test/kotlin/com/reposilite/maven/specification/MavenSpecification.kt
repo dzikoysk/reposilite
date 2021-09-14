@@ -1,4 +1,4 @@
-package com.reposilite.maven.spec
+package com.reposilite.maven.specification
 
 import com.reposilite.config.Configuration.RepositoryConfiguration
 import com.reposilite.journalist.backend.InMemoryLogger
@@ -25,7 +25,7 @@ import java.io.File
 import java.nio.file.Files
 
 @Suppress("LeakingThis")
-internal abstract class MavenSpec {
+internal abstract class MavenSpecification {
 
     protected companion object {
         val UNAUTHORIZED: AccessToken? = null

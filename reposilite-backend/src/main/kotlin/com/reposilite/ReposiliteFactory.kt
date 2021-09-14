@@ -37,19 +37,18 @@ import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit.MILLISECONDS
 
-internal object ReposiliteFactory {
+object ReposiliteFactory {
 
     fun createReposilite(parameters: ReposiliteParameters): Reposilite {
         val logger = PrintStreamLogger(System.out, System.err, Channel.ALL, false)
-
-        val configurationLoader = ConfigurationLoader(logger)
-        val configuration = configurationLoader.tryLoad(parameters.configurationFile)
-        parameters.applyLoadedConfiguration(configuration)
+        val configuration = ConfigurationLoader(logger).tryLoad(parameters.configurationFile)
 
         return createReposilite(parameters, logger, configuration)
     }
 
-    private fun createReposilite(parameters: ReposiliteParameters, journalist: Journalist, configuration: Configuration): Reposilite {
+    fun createReposilite(parameters: ReposiliteParameters, journalist: Journalist, configuration: Configuration): Reposilite {
+        parameters.applyLoadedConfiguration(configuration)
+
         val webServer = JavalinWebServer()
         val logger = ReposiliteJournalist(journalist, configuration.cachedLogSize, parameters.testEnv)
         val ioDispatcher = ExclusiveDispatcher(ThreadPoolExecutor(2, configuration.ioThreadPool, 0L, MILLISECONDS, LinkedBlockingQueue()))

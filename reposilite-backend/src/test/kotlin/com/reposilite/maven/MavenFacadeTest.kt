@@ -10,7 +10,7 @@ import com.reposilite.maven.api.RepositoryVisibility.HIDDEN
 import com.reposilite.maven.api.RepositoryVisibility.PRIVATE
 import com.reposilite.maven.api.RepositoryVisibility.PUBLIC
 import com.reposilite.maven.api.Versioning
-import com.reposilite.maven.spec.MavenSpec
+import com.reposilite.maven.specification.MavenSpecification
 import com.reposilite.shared.FileType.FILE
 import com.reposilite.token.api.RoutePermission.READ
 import com.reposilite.token.api.RoutePermission.WRITE
@@ -24,7 +24,7 @@ import panda.std.ResultAssertions.assertError
 import panda.std.ResultAssertions.assertOk
 import panda.utilities.IOUtils
 
-internal class MavenFacadeTest : MavenSpec() {
+internal class MavenFacadeTest : MavenSpecification() {
 
     override fun repositories() = linkedMapOf(
         createRepository(PRIVATE.name) {

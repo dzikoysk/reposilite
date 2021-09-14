@@ -1,7 +1,7 @@
 package com.reposilite.maven
 
 import com.reposilite.maven.api.DocumentInfo
-import com.reposilite.maven.spec.MavenIntegrationSpec
+import com.reposilite.maven.specification.MavenIntegrationSpecification
 import com.reposilite.web.http.ErrorResponse
 import io.javalin.http.HttpCode.NOT_FOUND
 import io.javalin.http.HttpCode.UNAUTHORIZED
@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.nio.channels.Channels
 
-internal class MavenIntegrationTest : MavenIntegrationSpec() {
+internal class MavenIntegrationTest : MavenIntegrationSpecification() {
 
     @Test
     fun `should support head requests`() {
