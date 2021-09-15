@@ -65,7 +65,7 @@ dependencies {
     implementation("net.dzikoysk:exposed-upsert:1.0.3")
     implementation("org.xerial:sqlite-jdbc:3.36.0.3")
     implementation("mysql:mysql-connector-java:8.0.26")
-    implementation("org.mariadb.jdbc:mariadb-java-client:2.7.3")
+    implementation("org.mariadb.jdbc:mariadb-java-client:2.7.4")
 
     val fuel = "2.3.1"
     implementation("com.github.kittinunf.fuel:fuel:$fuel")
