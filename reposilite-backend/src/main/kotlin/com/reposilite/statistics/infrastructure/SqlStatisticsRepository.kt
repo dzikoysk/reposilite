@@ -18,14 +18,12 @@ package com.reposilite.statistics.infrastructure
 
 import com.reposilite.shared.firstAndMap
 import com.reposilite.statistics.StatisticsRepository
-import com.reposilite.statistics.api.MAX_IDENTIFIER_LENGTH
 import com.reposilite.statistics.api.Record
 import com.reposilite.statistics.api.RecordIdentifier
 import com.reposilite.statistics.api.RecordType
 import kotlinx.coroutines.CoroutineDispatcher
 import net.dzikoysk.exposed.upsert.upsert
 import net.dzikoysk.exposed.upsert.withUnique
-import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.Op.Companion.build
 import org.jetbrains.exposed.sql.ResultRow
@@ -38,16 +36,17 @@ import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.sum
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.util.UUID
+
+const val MAX_IDENTIFIER_LENGTH = 1024
 
 internal object StatisticsTable : Table("statistics") {
+    val type = varchar("type", 16).index("idx_type")
+    val identifier_id = uuid("identifier_id").index("idx_identifier_id")
+    val identifier = varchar("identifier", MAX_IDENTIFIER_LENGTH)
+    val count = long("count")
 
-    val type: Column<String> = varchar("type", 24)
-    val identifier: Column<String> = varchar("identifier", MAX_IDENTIFIER_LENGTH)
-    val count: Column<Long> = long("count")
-
-    val statisticsTypeIdx = index("statistics_type_idx", columns = arrayOf(type))
-    val statisticsTypeWithIdentifierKey = withUnique("statistics_type_identifier_key", type, identifier)
-
+    val statisticsTypeWithIdentifierKey = withUnique("uq_type_identifier_id", type, identifier_id)
 }
 
 internal class SqlStatisticsRepository(private val dispatcher: CoroutineDispatcher, private val database: Database) : StatisticsRepository {
@@ -76,6 +75,7 @@ internal class SqlStatisticsRepository(private val dispatcher: CoroutineDispatch
         StatisticsTable.upsert(conflictIndex = StatisticsTable.statisticsTypeWithIdentifierKey,
             insertBody = {
                 it[this.type] = record.type.name
+                it[this.identifier_id] = UUID.nameUUIDFromBytes(record.identifier.toByteArray())
                 it[this.identifier] = record.identifier
                 it[this.count] = count
             },

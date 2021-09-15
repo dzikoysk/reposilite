@@ -26,9 +26,9 @@ import com.reposilite.token.api.Route
 import com.reposilite.token.api.RoutePermission.Companion.findRoutePermissionByIdentifier
 import kotlinx.coroutines.CoroutineDispatcher
 import net.dzikoysk.exposed.shared.UNINITIALIZED_ENTITY_ID
-import org.jetbrains.exposed.dao.id.EntityID
+import net.dzikoysk.exposed.upsert.withIndex
+import net.dzikoysk.exposed.upsert.withUnique
 import org.jetbrains.exposed.dao.id.IntIdTable
-import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.ReferenceOption.CASCADE
 import org.jetbrains.exposed.sql.ResultRow
@@ -42,39 +42,36 @@ import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
-import java.time.LocalDate
+import java.util.UUID
 
-typealias Id = EntityID<Int>
+const val MAX_ROUTE_LENGTH = 1024
 
 object AccessTokenTable : IntIdTable("access_token") {
-    val name: Column<String> = varchar("name", 255)
-    val secret: Column<String> = varchar("secret", 512)
-    val createdAt: Column<LocalDate> = date("createdAt")
-    val description: Column<String> = text("description")
-
-    init {
-        uniqueIndex(name)
-    }
+    val name = varchar("name", 255).uniqueIndex("uq_name")
+    val secret = varchar("secret", 512)
+    val createdAt = date("createdAt")
+    val description = text("description")
 }
 
 object PermissionToAccessTokenTable : Table("permission_access_token") {
-    val accessTokenId: Column<Id> = reference("access_token_id", AccessTokenTable.id, onDelete = CASCADE, onUpdate = CASCADE)
-    val permission: Column<String> = varchar("permission", 64)
+    val accessTokenId = reference("access_token_id", AccessTokenTable.id, onDelete = CASCADE, onUpdate = CASCADE)
+    val permission = varchar("permission", 48)
 
     init {
-        index(columns = arrayOf(accessTokenId))
-        uniqueIndex(accessTokenId, permission)
+        withIndex("index_access_token_id", columns = arrayOf(accessTokenId))
+        withUnique("unique_access_token_id_permission", accessTokenId, permission)
     }
 }
 
 object PermissionToRouteTable : Table("permission_route") {
-    val accessTokenId: Column<Id> = reference("access_token_id", AccessTokenTable.id, onDelete = CASCADE, onUpdate = CASCADE)
-    val route: Column<String> = varchar("path", 512)
-    val permission: Column<String> = varchar("permission", 64)
+    val accessTokenId = reference("access_token_id", AccessTokenTable.id, onDelete = CASCADE, onUpdate = CASCADE)
+    val routeId = uuid("route_id")
+    val route = varchar("route", MAX_ROUTE_LENGTH)
+    val permission = varchar("permission", 48)
 
     init {
-        index(columns = arrayOf(accessTokenId, route))
-        uniqueIndex(accessTokenId, route, permission)
+        withIndex("index_access_token_id_route_id", columns = arrayOf(accessTokenId, routeId))
+        withUnique("unique_access_token_id_route_id_permission", accessTokenId, routeId, permission)
     }
 }
 
@@ -140,8 +137,9 @@ internal class SqlAccessTokenRepository(private val dispatcher: CoroutineDispatc
             route.permissions.forEach { permission ->
                 PermissionToRouteTable.insert {
                     it[this.accessTokenId] = accessToken.id
-                    it[this.permission] = permission.identifier
+                    it[this.routeId] = UUID.nameUUIDFromBytes(route.path.toByteArray())
                     it[this.route] = route.path
+                    it[this.permission] = permission.identifier
                 }
             }
         }
