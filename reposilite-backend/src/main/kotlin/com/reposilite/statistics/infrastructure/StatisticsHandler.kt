@@ -17,7 +17,6 @@
 package com.reposilite.statistics.infrastructure
 
 import com.reposilite.statistics.StatisticsFacade
-import com.reposilite.statistics.api.MAX_IDENTIFIER_LENGTH
 import com.reposilite.statistics.api.RecordType.REQUEST
 import com.reposilite.web.ReposiliteRoute
 import com.reposilite.web.ReposiliteRoutes

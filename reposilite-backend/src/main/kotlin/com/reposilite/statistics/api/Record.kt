@@ -16,8 +16,6 @@
 
 package com.reposilite.statistics.api
 
-const val MAX_IDENTIFIER_LENGTH = 768
-
 enum class RecordType {
     REQUEST,
     UNKNOWN
