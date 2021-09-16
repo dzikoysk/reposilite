@@ -42,6 +42,27 @@ internal class ConsoleThread(
             return
         }
 
+        /*
+        val reader = LineReaderBuilder.builder().build();
+        val prompt = "$"
+
+        while (!isInterrupted && input.hasNextLine()) {
+            try {
+                val line = reader.readLine(prompt)
+
+                runBlocking {
+                    console.logger.info("")
+                    console.execute(line)
+                    console.logger.info("")
+                }
+            } catch (e: UserInterruptException) {
+                // Ignore
+            } catch (e: EndOfFileException) {
+                return
+            }
+        }
+        */
+
         do {
             val command = input.nextLine().trim()
 

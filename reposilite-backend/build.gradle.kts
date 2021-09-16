@@ -110,6 +110,8 @@ dependencies {
     implementation("com.google.http-client:google-http-client:1.40.0")
     implementation("org.springframework.security:spring-security-crypto:5.5.2")
     implementation("commons-io:commons-io:20030203.000550")
+
+    implementation("org.jline:jline:3.20.0")
     implementation("org.fusesource.jansi:jansi:2.3.4")
 
     /* Tests */
@@ -150,6 +152,7 @@ tasks.withType<ShadowJar> {
         exclude(dependency("com.h2database:.*"))
         exclude(dependency("org.tinylog:.*"))
         exclude(dependency("org.slf4j:.*"))
+        exclude(dependency("software.amazon.awssdk:.*"))
     }
 }
 

@@ -80,6 +80,7 @@ internal class SqlAccessTokenRepository(private val dispatcher: CoroutineDispatc
     init {
         transaction(database) {
             SchemaUtils.create(AccessTokenTable, PermissionToAccessTokenTable, PermissionToRouteTable)
+            SchemaUtils.createMissingTablesAndColumns(AccessTokenTable, PermissionToAccessTokenTable, PermissionToRouteTable)
         }
     }
 

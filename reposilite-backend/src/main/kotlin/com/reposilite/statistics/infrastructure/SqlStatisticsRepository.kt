@@ -54,6 +54,7 @@ internal class SqlStatisticsRepository(private val dispatcher: CoroutineDispatch
     init {
         transaction(database) {
             SchemaUtils.create(StatisticsTable)
+            SchemaUtils.addMissingColumnsStatements(StatisticsTable)
         }
     }
 
