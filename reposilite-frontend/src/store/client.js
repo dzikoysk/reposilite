@@ -19,9 +19,8 @@ const createClient = (defaultName, defaultSecret) => {
     (defaultName && defaultSecret) ? authorization(defaultName, defaultSecret) : {}
 
   const authorization = (name, secret) => ({
-    auth: {
-      username: name,
-      password: secret
+    headers: {
+      Authorization: `xBasic ${btoa(`${name}:${secret}`)}`
     }
   })
   

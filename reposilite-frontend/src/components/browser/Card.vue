@@ -52,7 +52,7 @@
 </template>
 
 <script>
-import { computed, reactive, ref, watchEffect } from 'vue'
+import { ref, watchEffect } from 'vue'
 import { PrismEditor } from 'vue-prism-editor'
 import 'vue-prism-editor/dist/prismeditor.min.css' // import the styles somewhere
 import prism from "prismjs"
@@ -143,6 +143,28 @@ export default {
 <style>
 .snippet {
     font-family: 'Consolas', 'monospace';
+}
+::-webkit-scrollbar {
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: rgba(155, 155, 155, 0.4);
+  border-radius: 20px;
+  border: transparent;
+  margin-top: 10px;
+}
+.prism-editor-wrapper .prism-editor__container {
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-track-color: transparent;
+  margin-right: 27px;
+}
+.prism-editor-wrapper .prism-editor__editor, .prism-editor-wrapper .prism-editor__textarea {
+  white-space: pre !important;
+  min-height: 100px;
 }
 .token.tag {
   color: mediumpurple;
