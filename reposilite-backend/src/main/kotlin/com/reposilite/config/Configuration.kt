@@ -55,7 +55,7 @@ class Configuration : Serializable {
     @Command(name = "sqlite")
     internal class SQLiteDatabaseSettings : Validator() {
 
-        @Parameters(index = "0", paramLabel = "<file-name>")
+        @Parameters(index = "0", paramLabel = "<file-name>", defaultValue = "")
         var fileName: String = ""
 
         @Option(names = ["--in-memory"])
