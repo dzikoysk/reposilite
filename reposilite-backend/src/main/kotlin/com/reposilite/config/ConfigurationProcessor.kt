@@ -16,31 +16,31 @@
 package com.reposilite.config
 
 import com.reposilite.journalist.Journalist
-import com.reposilite.journalist.Logger
 import net.dzikoysk.cdn.CdnFactory
 import panda.utilities.StringUtils
 import java.nio.file.Path
 
 const val DEFAULT_CONFIGURATION_FILE = "reposilite.cdn"
 
-class ConfigurationLoader(private val journalist: Journalist) : Journalist {
+object ConfigurationProcessor {
 
-    fun tryLoad(customConfigurationFile: Path): Configuration {
-        return try {
-            load(customConfigurationFile)
-        } catch (exception: Exception) {
-            throw RuntimeException("Cannot load configuration", exception)
-        }
-    }
+    fun tryLoad(journalist: Journalist, workingDirectory: Path, configurationPath: Path, mode: String): Configuration =
+        try {
+            val cdn = CdnFactory.createStandard()
+            val configuration = cdn.load(configurationPath.toFile(), Configuration::class.java)
+            verifyBasePath(configuration)
 
-    private fun load(configurationFile: Path): Configuration =
-        CdnFactory.createStandard().let { cdn ->
-            cdn.load(configurationFile.toFile(), Configuration::class.java).also {
-                verifyBasePath(it)
-                // verifyProxied(configuration)
-                cdn.render(it, configurationFile.toFile())
-                // loadProperties(it)
+            when (mode.lowercase()) {
+                "auto" -> cdn.render(configuration, configurationPath.toFile())
+                "copy" -> cdn.render(configuration, workingDirectory.resolve(DEFAULT_CONFIGURATION_FILE).toFile())
+                "print" -> println(cdn.render(configuration))
+                "none" -> {}
+                else -> journalist.logger.error("Unknown configuration mode: $mode")
             }
+
+            configuration
+        } catch (exception: Exception) {
+            throw IllegalArgumentException("Cannot load configuration", exception)
         }
 
     private fun verifyBasePath(configuration: Configuration) {
@@ -58,8 +58,5 @@ class ConfigurationLoader(private val journalist: Journalist) : Journalist {
             configuration.basePath = basePath
         }
     }
-
-    override fun getLogger(): Logger =
-        journalist.logger
 
 }
