@@ -1,10 +1,11 @@
-package com.reposilite.statistics
+package com.reposilite.statistics.specification
 
 import com.reposilite.journalist.backend.InMemoryLogger
+import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.statistics.api.RecordType
 import com.reposilite.statistics.infrastructure.InMemoryStatisticsRepository
 
-internal open class StatisticsSpec {
+internal open class StatisticsSpecification {
 
     private val logger = InMemoryLogger()
     protected val statisticsFacade = StatisticsFacade(logger, InMemoryStatisticsRepository())

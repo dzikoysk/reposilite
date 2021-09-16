@@ -20,8 +20,10 @@ internal class StatisticsEndpoint(private val statisticsFacade: StatisticsFacade
         ],
     )
     val findCount = ReposiliteRoute("/api/statistics/count/{type}/<identifier>", GET) {
-        response = statisticsFacade.findRecordsByPhrase(requireParameter("type"), requireParameter("identifier"))
-            .map { records -> records.sumOf { it.count } }
+        authorized("/${requireParameter("identifier")}") {
+            response = statisticsFacade.findRecordsByPhrase(requireParameter("type"), "/${requireParameter("identifier")}")
+                .map { records -> records.sumOf { it.count } }
+        }
     }
 
     override val routes = setOf(findCount)
