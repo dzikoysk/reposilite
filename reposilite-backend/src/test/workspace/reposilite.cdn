@@ -46,9 +46,8 @@ repositories {
     # --quota 10GB = control the maximum amount of data stored in this repository. (Supported formats: 90%, 500MB, 10GB)
     # Example usage:
     # storageProvider: fs --quota 50GB
-    #
     # > S3 provider. Supported flags:
-    # --endpoint = the custom endpoint with which the S3 provider should communicate (optional)
+    # --endpoint = custom endpoint with which the S3 provider should communicate (optional)
     # Example usage:
     # storageProvider: s3 --endpoint custom.endpoint.com accessKey secretKey region bucket-name
     storageProvider: fs
@@ -76,9 +75,8 @@ repositories {
     # --quota 10GB = control the maximum amount of data stored in this repository. (Supported formats: 90%, 500MB, 10GB)
     # Example usage:
     # storageProvider: fs --quota 50GB
-    #
     # > S3 provider. Supported flags:
-    # --endpoint = the custom endpoint with which the S3 provider should communicate (optional)
+    # --endpoint = custom endpoint with which the S3 provider should communicate (optional)
     # Example usage:
     # storageProvider: s3 --endpoint custom.endpoint.com accessKey secretKey region bucket-name
     storageProvider: fs
@@ -106,9 +104,8 @@ repositories {
     # --quota 10GB = control the maximum amount of data stored in this repository. (Supported formats: 90%, 500MB, 10GB)
     # Example usage:
     # storageProvider: fs --quota 50GB
-    #
     # > S3 provider. Supported flags:
-    # --endpoint = the custom endpoint with which the S3 provider should communicate (optional)
+    # --endpoint = custom endpoint with which the S3 provider should communicate (optional)
     # Example usage:
     # storageProvider: s3 --endpoint custom.endpoint.com accessKey secretKey region bucket-name
     storageProvider: fs

@@ -18,7 +18,7 @@ package com.reposilite
 
 import com.reposilite.auth.application.AuthenticationWebConfiguration
 import com.reposilite.config.Configuration
-import com.reposilite.config.ConfigurationLoader
+import com.reposilite.config.ConfigurationProcessor
 import com.reposilite.config.DatabaseSourceConfiguration
 import com.reposilite.console.application.ConsoleWebConfiguration
 import com.reposilite.failure.application.FailureWebConfiguration
@@ -41,7 +41,7 @@ object ReposiliteFactory {
 
     fun createReposilite(parameters: ReposiliteParameters): Reposilite {
         val logger = PrintStreamLogger(System.out, System.err, Channel.ALL, false)
-        val configuration = ConfigurationLoader(logger).tryLoad(parameters.configurationFile)
+        val configuration = ConfigurationProcessor.tryLoad(logger, parameters.workingDirectory, parameters.configurationFile, parameters.configurationMode)
 
         return createReposilite(parameters, logger, configuration)
     }

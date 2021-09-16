@@ -26,6 +26,15 @@ class ReposiliteParameters : Runnable {
     internal var configurationFileName = DEFAULT_CONFIGURATION_FILE
     lateinit var configurationFile: Path
 
+    @Option(names = ["--configuration-mode", "-cm"], description = [
+        "Supported configuration modes:",
+        "auto - process and override main configuration file (default)",
+        "copy - load mounted configuration and save processed output (in case of detected changes) in working directory",
+        "print - load mounted configuration and print processed output (in case of detected changes) in the console",
+        "none - disable automatic updates of configuration file"
+    ])
+    var configurationMode = "auto"
+
     @Option(names = ["--hostname", "-h"], description = ["override hostname from configuration"])
     var hostname = ""
 
