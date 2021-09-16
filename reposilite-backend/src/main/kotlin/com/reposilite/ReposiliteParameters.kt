@@ -2,7 +2,6 @@ package com.reposilite
 
 import com.reposilite.config.Configuration
 import com.reposilite.config.DEFAULT_CONFIGURATION_FILE
-import com.reposilite.shared.safeResolve
 import com.reposilite.token.api.AccessTokenPermission.MANAGER
 import com.reposilite.token.api.CreateAccessTokenRequest
 import picocli.CommandLine.Command
@@ -42,7 +41,7 @@ class ReposiliteParameters : Runnable {
 
     override fun run() {
         this.workingDirectory = Paths.get(workingDirectoryName)
-        this.configurationFile = workingDirectory.safeResolve(configurationFileName.ifEmpty { DEFAULT_CONFIGURATION_FILE })
+        this.configurationFile = workingDirectory.resolve(configurationFileName.ifEmpty { DEFAULT_CONFIGURATION_FILE })
         this.tokens = tokenEntries
             .map { it.split(":", limit = 2) }
             .map { (name, secret) -> CreateAccessTokenRequest(name, secret, setOf(MANAGER)) }

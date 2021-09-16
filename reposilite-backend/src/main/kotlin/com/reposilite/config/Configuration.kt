@@ -153,7 +153,7 @@ class Configuration : Serializable {
             "# Example usage:",
             "# storageProvider: fs --quota 50GB",
             "# > S3 provider. Supported flags:",
-            "# --endpoint = the custom endpoint with which the S3 provider should communicate (optional)",
+            "# --endpoint = custom endpoint with which the S3 provider should communicate (optional)",
             "# Example usage:",
             "# storageProvider: s3 --endpoint custom.endpoint.com accessKey secretKey region bucket-name"
         )
