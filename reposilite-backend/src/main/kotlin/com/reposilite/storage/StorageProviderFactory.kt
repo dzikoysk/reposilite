@@ -16,6 +16,7 @@
 
 package com.reposilite.storage
 
+import com.reposilite.config.Configuration.RepositoryConfiguration.FSStorageProviderSettings
 import com.reposilite.config.Configuration.RepositoryConfiguration.S3StorageProviderSettings
 import com.reposilite.journalist.Journalist
 import com.reposilite.shared.loadCommandBasedConfiguration
@@ -31,17 +32,16 @@ import java.nio.file.Path
 
 internal object StorageProviderFactory {
 
-    fun createStorageProvider(journalist: Journalist, workingDirectory: Path, storageDescription: String, quota: String): StorageProvider =
+    fun createStorageProvider(journalist: Journalist, workingDirectory: Path, storageDescription: String): StorageProvider =
         if (storageDescription.startsWith("fs")) {
+            val settings = loadCommandBasedConfiguration(FSStorageProviderSettings(), storageDescription).configuration
             Files.createDirectories(workingDirectory)
-            FileSystemStorageProviderFactory.of(journalist, workingDirectory, quota)
+            FileSystemStorageProviderFactory.of(journalist, workingDirectory, settings.quota)
         }
         else if (storageDescription.startsWith("s3")) {
-            // Implement quota?
             val settings = loadCommandBasedConfiguration(S3StorageProviderSettings(), storageDescription).configuration
 
             val client = S3Client.builder()
-                // .credentialsProvider(AnonymousCredentialsProvider.create())
                 .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(settings.accessKey, settings.secretKey)))
                 .region(Region.of(settings.region))
 
@@ -51,9 +51,6 @@ internal object StorageProviderFactory {
 
             S3StorageProvider(journalist, client.build(), settings.bucketName)
         }
-        // else if (storageDescription.equals("rest", ignoreCase = true)) {
-        // TOFIX REST API storage endpoint
-        //}
         else throw UnsupportedOperationException("Unknown storage provider: $storageDescription")
 
 }
