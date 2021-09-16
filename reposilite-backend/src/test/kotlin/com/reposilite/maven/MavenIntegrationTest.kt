@@ -64,7 +64,7 @@ internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
     fun `should accept deploy request with valid credentials` () {
         // given: file to upload and valid credentials
         val (repository, gav, file) = useDocument("releases", "gav", "artifact.jar")
-        val (name, secret) = useAuth()
+        val (name, secret) = usePredefinedTemporaryAuth()
         val content = useFile(file, 512)
 
         try {
@@ -104,7 +104,7 @@ internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
         // given: the details about an existing in repository file
         val (repository, gav, file) = useDocument("releases", "gav", "artifact.jar", "content", true)
         val address = "$base/$repository/$gav/$file"
-        val (name, secret) = useAuth()
+        val (name, secret) = usePredefinedTemporaryAuth()
 
         // when: unauthorized client tries to delete existing file
         val response = delete(address)

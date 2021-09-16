@@ -1,9 +1,10 @@
 package com.reposilite.failure
 
+import com.reposilite.failure.specification.FailureSpecification
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
-internal class FailureFacadeTest : FailureSpec() {
+internal class FailureFacadeTest : FailureSpecification() {
 
     @Test
     fun `should store failure`() {

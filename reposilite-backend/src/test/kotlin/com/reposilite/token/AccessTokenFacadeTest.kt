@@ -1,5 +1,6 @@
 package com.reposilite.token
 
+import com.reposilite.token.specification.AccessTokenSpecification
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
@@ -7,7 +8,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
-internal class AccessTokenFacadeTest : AccessTokenSpec() {
+internal class AccessTokenFacadeTest : AccessTokenSpecification() {
 
     @Test
     fun `should create token`() = runBlocking {

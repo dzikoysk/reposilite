@@ -18,6 +18,7 @@ package com.reposilite.statistics
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
 import com.reposilite.statistics.api.Record
+import com.reposilite.statistics.api.RecordCountResponse
 import com.reposilite.statistics.api.RecordIdentifier
 import com.reposilite.statistics.api.RecordType
 import com.reposilite.statistics.api.findRecordTypeByName
@@ -45,13 +46,14 @@ class StatisticsFacade internal constructor(
             logger.debug("Statistics | Saved bulk with ${it.size} records")
         }
 
-    suspend fun findRecordsByPhrase(type: String, phrase: String): Result<List<Record>, ErrorResponse> =
+    suspend fun findRecordsByPhrase(type: String, phrase: String): Result<RecordCountResponse, ErrorResponse> =
         findRecordTypeByName(type)
             ?.let { findRecordsByPhrase(it, phrase).asSuccess() }
             ?: errorResponse(BAD_REQUEST, "Unknown record type $type}")
 
-    suspend fun findRecordsByPhrase(type: RecordType, phrase: String): List<Record> =
+    suspend fun findRecordsByPhrase(type: RecordType, phrase: String): RecordCountResponse =
         statisticsRepository.findRecordsByPhrase(type, phrase)
+            .let { RecordCountResponse(it.sumOf(Record::count), it) }
 
     suspend fun countUniqueRecords(): Long =
         statisticsRepository.countUniqueRecords()

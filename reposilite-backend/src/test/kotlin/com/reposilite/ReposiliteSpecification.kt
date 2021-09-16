@@ -9,7 +9,7 @@ internal abstract class ReposiliteSpecification : ReposiliteRunner() {
     val base: String
         get() = "http://localhost:$port"
 
-    fun useAuth(): Pair<String, String> =
+    fun usePredefinedTemporaryAuth(): Pair<String, String> =
         Pair("manager", "manager-secret")
 
     suspend fun useAuth(name: String, secret: String, routes: Map<String, RoutePermission> = emptyMap()): Pair<String, String> {

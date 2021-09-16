@@ -2,9 +2,9 @@ package com.reposilite.auth.specification
 
 import com.reposilite.auth.AuthenticationFacade
 import com.reposilite.journalist.backend.InMemoryLogger
-import com.reposilite.token.AccessTokenSpec
+import com.reposilite.token.specification.AccessTokenSpecification
 
-internal abstract class AuthenticationSpecification : AccessTokenSpec() {
+internal abstract class AuthenticationSpecification : AccessTokenSpecification() {
 
     private val logger = InMemoryLogger()
 
