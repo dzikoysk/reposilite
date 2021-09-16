@@ -38,8 +38,7 @@ internal class RepositoryFactory(
             createStorageProvider(
                 journalist,
                 workingDirectory.safeResolve(REPOSITORIES).safeResolve(repositoryName),
-                repositoryConfiguration.storageProvider,
-                repositoryConfiguration.diskQuota
+                repositoryConfiguration.storageProvider
             ),
             repositoryConfiguration.redeployment
         )

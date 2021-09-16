@@ -38,15 +38,21 @@ repositories {
   releases {
     # Supported visibilities: public, hidden, private
     visibility: PUBLIC
-    # Used storage type. Supported storage providers:
-    # - fs
-    # - s3 accessKey secretKey region bucket-name
-    storageProvider: fs
-    # Control the maximum amount of data stored in this repository
-    # Supported formats: 90%, 500MB, 10GB
-    diskQuota: 10GB
     # Does this repository accept redeployment of the same artifact version
     redeployment: false
+    
+    # Used storage type. Supported storage providers:
+    # > File system (local) provider. Supported flags:
+    # --quota 10GB = control the maximum amount of data stored in this repository. (Supported formats: 90%, 500MB, 10GB)
+    # Example usage:
+    # storageProvider: fs --quota 50GB
+    #
+    # > S3 provider. Supported flags:
+    # --endpoint = the custom endpoint with which the S3 provider should communicate (optional)
+    # Example usage:
+    # storageProvider: s3 --endpoint custom.endpoint.com accessKey secretKey region bucket-name
+    storageProvider: fs
+    
     # List of proxied repositories associated with this repository.
     # Reposilite will search for a requested artifact in remote repositories listed below.
     # Supported flags:
@@ -62,15 +68,21 @@ repositories {
   snapshots {
     # Supported visibilities: public, hidden, private
     visibility: PUBLIC
-    # Used storage type. Supported storage providers:
-    # - fs
-    # - s3 accessKey secretKey region bucket-name
-    storageProvider: fs
-    # Control the maximum amount of data stored in this repository
-    # Supported formats: 90%, 500MB, 10GB
-    diskQuota: 10GB
     # Does this repository accept redeployment of the same artifact version
     redeployment: false
+    
+    # Used storage type. Supported storage providers:
+    # > File system (local) provider. Supported flags:
+    # --quota 10GB = control the maximum amount of data stored in this repository. (Supported formats: 90%, 500MB, 10GB)
+    # Example usage:
+    # storageProvider: fs --quota 50GB
+    #
+    # > S3 provider. Supported flags:
+    # --endpoint = the custom endpoint with which the S3 provider should communicate (optional)
+    # Example usage:
+    # storageProvider: s3 --endpoint custom.endpoint.com accessKey secretKey region bucket-name
+    storageProvider: fs
+    
     # List of proxied repositories associated with this repository.
     # Reposilite will search for a requested artifact in remote repositories listed below.
     # Supported flags:
@@ -86,15 +98,21 @@ repositories {
   private {
     # Supported visibilities: public, hidden, private
     visibility: PRIVATE
-    # Used storage type. Supported storage providers:
-    # - fs
-    # - s3 accessKey secretKey region bucket-name
-    storageProvider: fs
-    # Control the maximum amount of data stored in this repository
-    # Supported formats: 90%, 500MB, 10GB
-    diskQuota: 10GB
     # Does this repository accept redeployment of the same artifact version
     redeployment: false
+    
+    # Used storage type. Supported storage providers:
+    # > File system (local) provider. Supported flags:
+    # --quota 10GB = control the maximum amount of data stored in this repository. (Supported formats: 90%, 500MB, 10GB)
+    # Example usage:
+    # storageProvider: fs --quota 50GB
+    #
+    # > S3 provider. Supported flags:
+    # --endpoint = the custom endpoint with which the S3 provider should communicate (optional)
+    # Example usage:
+    # storageProvider: s3 --endpoint custom.endpoint.com accessKey secretKey region bucket-name
+    storageProvider: fs
+    
     # List of proxied repositories associated with this repository.
     # Reposilite will search for a requested artifact in remote repositories listed below.
     # Supported flags:

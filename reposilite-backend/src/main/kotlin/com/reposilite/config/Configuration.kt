@@ -141,13 +141,32 @@ class Configuration : Serializable {
         @JvmField
         var visibility = RepositoryVisibility.PUBLIC
 
+        @Description("# Does this repository accept redeployment of the same artifact version")
+        @JvmField
+        var redeployment = false
+
         @Description(
+            "",
             "# Used storage type. Supported storage providers:",
-            "# - fs",
-            "# - s3 accessKey secretKey region bucket-name"
+            "# > File system (local) provider. Supported flags:",
+            "# --quota 10GB = control the maximum amount of data stored in this repository. (Supported formats: 90%, 500MB, 10GB)",
+            "# Example usage:",
+            "# storageProvider: fs --quota 50GB",
+            "# > S3 provider. Supported flags:",
+            "# --endpoint = the custom endpoint with which the S3 provider should communicate (optional)",
+            "# Example usage:",
+            "# storageProvider: s3 --endpoint custom.endpoint.com accessKey secretKey region bucket-name"
         )
         @JvmField
-        var storageProvider = "fs"
+        var storageProvider = "fs --quota 100%"
+
+        @Command(name = "fs", description = ["Local file system (disk) storage provider settings"])
+        internal class FSStorageProviderSettings : Validator() {
+
+            @Option(names = ["-q", "--quota"], defaultValue = "100%")
+            lateinit var quota: String
+
+        }
 
         @Command(name = "s3", description = ["Amazon S3 storage provider settings"])
         internal class S3StorageProviderSettings : Validator() {
@@ -170,17 +189,7 @@ class Configuration : Serializable {
         }
 
         @Description(
-            "# Control the maximum amount of data stored in this repository",
-            "# Supported formats: 90%, 500MB, 10GB"
-        )
-        @JvmField
-        var diskQuota = "10GB"
-
-        @Description("# Does this repository accept redeployment of the same artifact version")
-        @JvmField
-        var redeployment = false
-
-        @Description(
+            "",
             "# List of proxied repositories associated with this repository.",
             "# Reposilite will search for a requested artifact in remote repositories listed below.",
             "# Supported flags:",

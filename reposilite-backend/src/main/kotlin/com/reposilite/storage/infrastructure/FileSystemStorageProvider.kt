@@ -34,6 +34,7 @@ import com.reposilite.storage.StorageProvider
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
 import io.javalin.http.HttpCode
+import io.javalin.http.HttpCode.INSUFFICIENT_STORAGE
 import panda.std.Result
 import panda.std.function.ThrowingBiFunction
 import panda.std.function.ThrowingFunction
@@ -84,7 +85,7 @@ internal abstract class FileSystemStorageProvider protected constructor(
                     val spaceResponse = canHold(size)
 
                     if (spaceResponse.isErr) {
-                        return@catchIOException errorResponse(HttpCode.INSUFFICIENT_STORAGE, "Not enough storage space available: " + spaceResponse.error.message)
+                        return@catchIOException errorResponse(INSUFFICIENT_STORAGE, "Not enough storage space available: " + spaceResponse.error.message)
                     }
 
                     if (file.parent != null && !Files.exists(file.parent)) {

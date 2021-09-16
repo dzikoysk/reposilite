@@ -35,10 +35,10 @@ internal class StatsCommand(private val statisticsFacade: StatisticsFacade) : Re
         context.append("Statistics: ")
         context.append("  Unique requests: " + statisticsFacade.countUniqueRecords() + " (count: " + statisticsFacade.countRecords() + ")")
 
-        val results = statisticsFacade.findRecordsByPhrase(RecordType.REQUEST, filter) // TOFIX: Limiter
+        val response = statisticsFacade.findRecordsByPhrase(RecordType.REQUEST, filter) // TOFIX: Limiter
 
-        context.append("  Recorded: " + (if (results.isEmpty()) "[] " else "") + " (pattern: '${highlight(filter)}')")
-        results.forEachIndexed { order, record -> context.append("  ${order}. ${record.identifier} (${record.count})") }
+        context.append("  Recorded: " + (if (response.count == 0L) "[] " else "") + " (pattern: '${highlight(filter)}')")
+        response.records.forEachIndexed { order, record -> context.append("  ${order}. ${record.identifier} (${record.count})") }
 
         /*
             val limiter = Option.attempt(NumberFormatException::class.java) { filter!!.toInt() }
