@@ -72,9 +72,9 @@ class ContextDsl(
     /**
      * Request was created by valid access token and the token has access to the requested path
      */
-    suspend fun authorized(init: suspend AccessToken.() -> Unit) {
+    suspend fun authorized(to: String = ctx.uri(), init: suspend AccessToken.() -> Unit) {
         authenticated {
-            if (isAuthorized())
+            if (isAuthorized(to))
                 init(this)
             else
                 ctx.error(HttpCode.UNAUTHORIZED, "Invalid credentials")
@@ -90,8 +90,8 @@ class ContextDsl(
     fun parameter(name: String): String? =
         ctx.pathParamMap()[name]
 
-    fun isAuthorized(): Boolean =
-        isManager() || authenticationResult.fold({ it.hasPermissionTo(ctx.path(), METHOD_PERMISSIONS[ctx.method()]!!) }, { false })
+    fun isAuthorized(to: String): Boolean =
+        isManager() || authenticationResult.fold({ it.hasPermissionTo(to, METHOD_PERMISSIONS[ctx.method()]!!) }, { false })
 
     fun isManager(): Boolean =
         authenticationResult.fold({ it.hasPermission(AccessTokenPermission.MANAGER) }, { false })

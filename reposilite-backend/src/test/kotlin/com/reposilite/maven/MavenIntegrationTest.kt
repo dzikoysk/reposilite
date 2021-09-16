@@ -13,12 +13,10 @@ import kong.unirest.Unirest.put
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.nio.channels.Channels
 
-@Disabled
-internal class MavenIntegrationTest : MavenIntegrationSpecification() {
+internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
 
     @Test
     fun `should support head requests`() {
@@ -67,12 +65,12 @@ internal class MavenIntegrationTest : MavenIntegrationSpecification() {
         // given: file to upload and valid credentials
         val (repository, gav, file) = useDocument("releases", "gav", "artifact.jar")
         val (name, secret) = useAuth()
-        val content = useFile(file, 100)
+        val content = useFile(file, 512)
 
         try {
             // when: client wants to upload artifact
             val response = put("$base/$repository/$gav/$file")
-                .body(Channels.newInputStream(content.channel).readBytes()) // move to InputStream when: https://github.com/Kong/unirest-java/issues/411
+                .body(Channels.newInputStream(content.channel))
                 .basicAuth(name, secret)
                 .asObject(DocumentInfo::class.java)
 

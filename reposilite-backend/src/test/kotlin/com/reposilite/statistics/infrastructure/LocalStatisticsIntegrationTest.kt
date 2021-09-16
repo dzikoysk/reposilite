@@ -1,0 +1,8 @@
+package com.reposilite.statistics.infrastructure
+
+import com.reposilite.ReposiliteLocalIntegrationJunitExtension
+import com.reposilite.statistics.StatisticsIntegrationTest
+import org.junit.jupiter.api.extension.ExtendWith
+
+@ExtendWith(ReposiliteLocalIntegrationJunitExtension::class)
+internal class LocalStatisticsIntegrationTest : StatisticsIntegrationTest()

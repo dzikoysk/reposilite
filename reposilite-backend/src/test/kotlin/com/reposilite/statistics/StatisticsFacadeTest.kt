@@ -2,11 +2,12 @@ package com.reposilite.statistics
 
 import com.reposilite.statistics.api.RecordType.REQUEST
 import com.reposilite.statistics.api.RecordType.UNKNOWN
+import com.reposilite.statistics.specification.StatisticsSpecification
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
-internal class StatisticsFacadeTest : StatisticsSpec() {
+internal class StatisticsFacadeTest : StatisticsSpecification() {
 
     @Test
     fun `should increase records after saving the bulk`() = runBlocking {
