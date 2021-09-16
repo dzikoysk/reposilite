@@ -29,8 +29,8 @@ class ReposiliteParameters : Runnable {
     @Option(names = ["--configuration-mode", "-cm"], description = [
         "Supported configuration modes:",
         "auto - process and override main configuration file (default)",
-        "copy - load mounted configuration and save processed output (in case of detected changes) in working directory",
-        "print - load mounted configuration and print processed output (in case of detected changes) in the console",
+        "copy - load mounted configuration and save processed output in working directory",
+        "print - load mounted configuration and print processed output in the console",
         "none - disable automatic updates of configuration file"
     ])
     var configurationMode = "auto"
