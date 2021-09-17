@@ -128,7 +128,7 @@ class Configuration : Serializable {
         "# Tu mark repository as private, add the \"--private\" flag"
     )
     @JvmField
-    var repositories: Map<String, RepositoryConfiguration> = mutableMapOf(
+    var repositories = mutableMapOf<String, RepositoryConfiguration>(
         "releases" to RepositoryConfiguration(),
         "snapshots" to RepositoryConfiguration(),
         "private" to RepositoryConfiguration().also { it.visibility = PRIVATE }

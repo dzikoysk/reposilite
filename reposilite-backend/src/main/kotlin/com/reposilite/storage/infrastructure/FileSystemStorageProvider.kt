@@ -25,6 +25,7 @@ import com.reposilite.shared.catchIOException
 import com.reposilite.shared.delete
 import com.reposilite.shared.exists
 import com.reposilite.shared.getLastModifiedTime
+import com.reposilite.shared.getSimpleName
 import com.reposilite.shared.inputStream
 import com.reposilite.shared.listFiles
 import com.reposilite.shared.safeResolve
@@ -33,13 +34,8 @@ import com.reposilite.shared.type
 import com.reposilite.storage.StorageProvider
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
-import io.javalin.http.HttpCode
 import io.javalin.http.HttpCode.INSUFFICIENT_STORAGE
 import panda.std.Result
-import panda.std.function.ThrowingBiFunction
-import panda.std.function.ThrowingFunction
-import java.io.ByteArrayOutputStream
-import java.io.IOException
 import java.io.InputStream
 import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
@@ -56,37 +52,17 @@ internal abstract class FileSystemStorageProvider protected constructor(
     private val rootDirectory: Path
  ) : StorageProvider {
 
-    override fun putFile(file: Path, inputStream: InputStream): Result<DocumentInfo, ErrorResponse> =
-        putFile(file, inputStream, { it.available() }) { input, output ->
-            val buffer = ByteArrayOutputStream()
-            var nRead: Int
-            val data = ByteArray(1024)
-
-            while (input.read(data, 0, data.size).also { nRead = it } != -1) {
-                buffer.write(data, 0, nRead)
-            }
-
-            buffer.flush()
-            val byteArray = buffer.toByteArray()
-            output.write(ByteBuffer.wrap(byteArray))
-            byteArray.size
-        }
-
-    private fun <T> putFile(
-        file: Path,
-        input: T,
-        measure: ThrowingFunction<T, Int, IOException>,
-        writer: ThrowingBiFunction<T, FileChannel, Int, IOException>
-    ): Result<DocumentInfo, ErrorResponse> =
+    override fun putFile(file: Path, input: InputStream): Result<DocumentInfo, ErrorResponse> =
         catchIOException {
             resolved(file)
                 .let { file ->
-                    val size = measure.apply(input).toLong()
-                    val spaceResponse = canHold(size)
+                    val spaceResponse = canHold(0)
 
                     if (spaceResponse.isErr) {
-                        return@catchIOException errorResponse(INSUFFICIENT_STORAGE, "Not enough storage space available: " + spaceResponse.error.message)
+                        return@catchIOException errorResponse(INSUFFICIENT_STORAGE, "Not enough storage space available: ${spaceResponse.error.message}")
                     }
+
+                    val available = spaceResponse.get()
 
                     if (file.parent != null && !Files.exists(file.parent)) {
                         Files.createDirectories(file.parent)
@@ -101,10 +77,32 @@ internal abstract class FileSystemStorageProvider protected constructor(
                     // In theory people should not really share the same FS through instances.
                     // ~ https://github.com/dzikoysk/reposilite/issues/264
                     val lock = fileChannel.lock()
+                    var rollback = false
 
-                    /*val bytesWritten =*/ writer.apply(input, fileChannel).toLong() // do we need this result
-                    lock.release()
-                    fileChannel.close()
+                    try {
+                        val data = ByteArray(8096)
+                        var size: Long = 0
+                        var read: Int
+
+                        while (input.read(data, 0, data.size).also { read = it } != -1) {
+                            size += read.toLong()
+
+                            if (available < size) {
+                                rollback = true
+                                return@catchIOException errorResponse(INSUFFICIENT_STORAGE, "Not enough storage space available for file ${file.getSimpleName()} ($size > $available)")
+                            }
+
+                            fileChannel.write(ByteBuffer.wrap(data, 0, read))
+                        }
+
+                    } finally {
+                        lock.release()
+                        fileChannel.close()
+
+                        if (rollback) {
+                            file.delete()
+                        }
+                    }
 
                     toDocumentInfo(file)
                 }

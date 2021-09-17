@@ -229,8 +229,8 @@ internal class S3StorageProvider(
     override fun usage(): Result<Long, ErrorResponse> =
         ok(-1)
 
-    override fun canHold(contentLength: Long): Result<*, ErrorResponse> =
-        ok(true)
+    override fun canHold(contentLength: Long): Result<Long, ErrorResponse> =
+        ok(Long.MAX_VALUE)
 
     override fun getLogger(): Logger =
         journalist.logger

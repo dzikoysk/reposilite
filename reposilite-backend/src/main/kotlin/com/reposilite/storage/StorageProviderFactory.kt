@@ -36,7 +36,7 @@ internal object StorageProviderFactory {
         if (storageDescription.startsWith("fs")) {
             val settings = loadCommandBasedConfiguration(FSStorageProviderSettings(), storageDescription).configuration
             Files.createDirectories(workingDirectory)
-            FileSystemStorageProviderFactory.of(journalist, workingDirectory, settings.quota)
+            FileSystemStorageProviderFactory.of(workingDirectory, settings.quota)
         }
         else if (storageDescription.startsWith("s3")) {
             val settings = loadCommandBasedConfiguration(S3StorageProviderSettings(), storageDescription).configuration

@@ -16,11 +16,9 @@
 
 package com.reposilite.storage.infrastructure
 
-import com.reposilite.journalist.Journalist
 import com.reposilite.web.http.ErrorResponse
 import io.javalin.http.HttpCode.INSUFFICIENT_STORAGE
 import panda.std.Result
-import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 
@@ -36,10 +34,10 @@ internal class FixedQuota(rootDirectory: Path, private val maxSize: Long) : File
         }
     }
 
-    override fun canHold(contentLength: Long): Result<*, ErrorResponse> =
+    override fun canHold(contentLength: Long): Result<Long, ErrorResponse> =
         usage()
-            .map { it + contentLength }
-            .filter({ it <= maxSize }, { ErrorResponse(INSUFFICIENT_STORAGE, "Repository cannot hold the given file ($it + $contentLength > $maxSize)") })
+            .map { usage -> maxSize - usage }
+            .filter({ available -> contentLength <= available }, { ErrorResponse(INSUFFICIENT_STORAGE, "Repository cannot hold the given file (${maxSize - it} + $contentLength > $maxSize)") })
 
 }
 
@@ -48,7 +46,6 @@ internal class FixedQuota(rootDirectory: Path, private val maxSize: Long) : File
  * @param maxPercentage the maximum percentage of the disk available for use
  */
 internal class PercentageQuota(
-    private val journalist: Journalist,
     private val rootDirectory: Path,
     private val maxPercentage: Double
 ) : FileSystemStorageProvider(rootDirectory) {
@@ -59,19 +56,13 @@ internal class PercentageQuota(
         }
     }
 
-    override fun canHold(contentLength: Long): Result<*, ErrorResponse> =
+    override fun canHold(contentLength: Long): Result<Long, ErrorResponse> =
         usage()
-            .map { it + contentLength }
-            .filter({ newUsage ->
-                try {
-                    val capacity = Files.getFileStore(rootDirectory).usableSpace.toDouble()
-                    val percentage = newUsage / capacity
-                    percentage < maxPercentage
-                } catch (ioException: IOException) {
-                    journalist.logger.exception(ioException)
-                    false
-                }
-
-            }, { ErrorResponse(INSUFFICIENT_STORAGE, "Repository cannot hold the given file") })
+            .map { usage ->
+                val capacity = Files.getFileStore(rootDirectory).usableSpace
+                val max = capacity * maxPercentage
+                max.toLong() - usage
+            }
+            .filter({ available -> contentLength <= available }, { ErrorResponse(INSUFFICIENT_STORAGE, "Repository cannot hold the given file ($contentLength too much for $maxPercentage%)") })
 
 }

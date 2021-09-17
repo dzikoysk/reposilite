@@ -46,7 +46,7 @@ interface StorageProvider {
 
     fun usage(): Result<Long, ErrorResponse>
 
-    fun canHold(contentLength: Long): Result<*, ErrorResponse>
+    fun canHold(contentLength: Long): Result<Long, ErrorResponse>
 
     fun shutdown() {}
 

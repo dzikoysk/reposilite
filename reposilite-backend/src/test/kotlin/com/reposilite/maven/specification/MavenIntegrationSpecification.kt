@@ -21,9 +21,12 @@ import com.reposilite.maven.VersionComparator
 import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.Metadata
 import com.reposilite.maven.api.Versioning
+import io.javalin.Javalin
+import kotlinx.coroutines.Job
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
 import java.io.RandomAccessFile
+
 
 internal data class UseDocument(
     val repository: String,
@@ -45,10 +48,10 @@ internal abstract class MavenIntegrationSpecification : ReposiliteSpecification(
         return UseDocument(repository, gav, file, content)
     }
 
-    protected fun useFile(name: String, size: Long): RandomAccessFile {
+    protected fun useFile(name: String, size: Long): Pair<RandomAccessFile, Long> {
         val hugeFile = RandomAccessFile(File(clientWorkingDirectory, name), "rw")
         hugeFile.setLength(size * 1024 * 1024)
-        return hugeFile
+        return Pair(hugeFile, hugeFile.length())
     }
 
     protected fun useMetadata(repository: String, groupId: String, artifactId: String, versions: List<String>): Metadata {
@@ -57,6 +60,19 @@ internal abstract class MavenIntegrationSpecification : ReposiliteSpecification(
         val metadata = Metadata(groupId, artifactId, versioning = versioning)
 
         return reposilite.mavenFacade.saveMetadata(repository, "$groupId.$artifactId".replace(".", "/"), metadata).get()
+    }
+
+    protected suspend fun useProxiedHost(repository: String, gav: String, content: String, block: (String, String) -> Unit) {
+        val serverStartedJob = Job()
+
+        val application = Javalin.create()
+            .events { it.serverStarted { serverStartedJob.complete() } }
+            .get("/$repository/$gav") { ctx -> ctx.result(content) }
+            .start(proxiedPort)
+
+        serverStartedJob.join()
+        block(gav, content)
+        application.stop()
     }
 
 }
