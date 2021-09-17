@@ -46,7 +46,7 @@ class Configuration : Serializable {
     @Description(
         "# Database. Supported storage providers:",
         "# - sqlite reposilite.db",
-        "# - sqlite --in-memory",
+        "# - sqlite --temporary",
         "# - mysql localhost:3306 database user password"
     )
     @JvmField
@@ -58,8 +58,8 @@ class Configuration : Serializable {
         @Parameters(index = "0", paramLabel = "<file-name>", defaultValue = "")
         var fileName: String = ""
 
-        @Option(names = ["--in-memory"])
-        var inMemory = false
+        @Option(names = ["--temporary", "--temp", "-t"])
+        var temporary = false
 
     }
 
