@@ -14,30 +14,27 @@
  * limitations under the License.
  */
 
-package com.reposilite.failure.application
+package com.reposilite.status.application
 
-import com.reposilite.console.ConsoleFacade
-import com.reposilite.failure.FailureFacade
-import com.reposilite.failure.FailuresCommand
-import com.reposilite.failure.infrastructure.FailureHandler
+import com.reposilite.Reposilite
 import com.reposilite.journalist.Journalist
-import com.reposilite.web.ReposiliteRoutes
+import com.reposilite.status.FailureFacade
+import com.reposilite.status.FailuresCommand
+import com.reposilite.status.infrastructure.FailureHandler
+import com.reposilite.web.WebConfiguration
 import io.javalin.Javalin
 
-internal object FailureWebConfiguration {
+internal object FailureWebConfiguration : WebConfiguration {
 
     fun createFacade(journalist: Journalist) =
         FailureFacade(journalist)
 
-    fun initialize(consoleFacade: ConsoleFacade, failureFacade: FailureFacade) {
-        consoleFacade.registerCommand(FailuresCommand(failureFacade))
+    override fun initialize(reposilite: Reposilite) {
+        reposilite.consoleFacade.registerCommand(FailuresCommand(reposilite.failureFacade))
     }
 
-    fun routing(): Set<ReposiliteRoutes> =
-        emptySet()
-
-    fun javalin(javalin: Javalin, failureFacade: FailureFacade) {
-        javalin.exception(Exception::class.java, FailureHandler(failureFacade))
+    override fun javalin(reposilite: Reposilite, javalin: Javalin) {
+        javalin.exception(Exception::class.java, FailureHandler(reposilite.failureFacade))
     }
 
 }

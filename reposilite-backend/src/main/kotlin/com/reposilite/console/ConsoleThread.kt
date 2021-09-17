@@ -15,14 +15,14 @@
  */
 package com.reposilite.console
 
-import com.reposilite.failure.FailureFacade
+import com.reposilite.status.FailureFacade
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.runBlocking
 import java.io.InputStream
 import java.util.Scanner
 
 internal class ConsoleThread(
-    private val console: Console,
+    private val commandExecutor: CommandExecutor,
     private val source: InputStream,
     private val dispatcher: CoroutineDispatcher,
     private val failureFacade: FailureFacade
@@ -37,8 +37,8 @@ internal class ConsoleThread(
         val input = Scanner(source)
 
         if (!input.hasNextLine()) {
-            console.logger.warn("Interactive CLI is not available in current environment.")
-            console.logger.warn("Solution for Docker users: https://docs.docker.com/engine/reference/run/#foreground")
+            commandExecutor.logger.warn("Interactive CLI is not available in current environment.")
+            commandExecutor.logger.warn("Solution for Docker users: https://docs.docker.com/engine/reference/run/#foreground")
             return
         }
 
@@ -72,9 +72,9 @@ internal class ConsoleThread(
 
             runCatching {
                 runBlocking {
-                    console.logger.info("")
-                    console.execute(command)
-                    console.logger.info("")
+                    commandExecutor.logger.info("")
+                    commandExecutor.execute(command)
+                    commandExecutor.logger.info("")
                 }
             }.onFailure {
                 failureFacade.throwException("Command: $command", it)

@@ -16,20 +16,22 @@
 
 package com.reposilite.auth.application
 
+import com.reposilite.Reposilite
 import com.reposilite.auth.AuthenticationFacade
 import com.reposilite.auth.infrastructure.AuthenticationEndpoint
 import com.reposilite.auth.infrastructure.PostAuthHandler
 import com.reposilite.journalist.Journalist
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.web.ReposiliteRoutes
+import com.reposilite.web.WebConfiguration
 
-internal object AuthenticationWebConfiguration {
+internal object AuthenticationWebConfiguration : WebConfiguration {
 
     fun createFacade(journalist: Journalist, accessTokenFacade: AccessTokenFacade): AuthenticationFacade =
         AuthenticationFacade(journalist, accessTokenFacade)
 
-    fun routing(authenticationFacade: AuthenticationFacade): Set<ReposiliteRoutes> = setOf(
-        AuthenticationEndpoint(authenticationFacade),
+    override fun routing(reposilite: Reposilite): Set<ReposiliteRoutes> = setOf(
+        AuthenticationEndpoint(reposilite.authenticationFacade),
         PostAuthHandler()
     )
 

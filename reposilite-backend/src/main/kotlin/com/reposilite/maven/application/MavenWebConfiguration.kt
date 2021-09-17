@@ -16,8 +16,8 @@
 
 package com.reposilite.maven.application
 
+import com.reposilite.Reposilite
 import com.reposilite.config.Configuration.RepositoryConfiguration
-import com.reposilite.frontend.FrontendFacade
 import com.reposilite.journalist.Journalist
 import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.MetadataService
@@ -29,9 +29,10 @@ import com.reposilite.maven.infrastructure.MavenApiEndpoints
 import com.reposilite.maven.infrastructure.MavenEndpoints
 import com.reposilite.shared.RemoteClient
 import com.reposilite.web.ReposiliteRoutes
+import com.reposilite.web.WebConfiguration
 import java.nio.file.Path
 
-internal object MavenWebConfiguration {
+internal object MavenWebConfiguration : WebConfiguration {
 
     fun createFacade(journalist: Journalist, workingDirectory: Path, remoteClient: RemoteClient, repositories: Map<String, RepositoryConfiguration>): MavenFacade {
         val repositoryFactory = RepositoryFactory(journalist, workingDirectory)
@@ -50,10 +51,9 @@ internal object MavenWebConfiguration {
         )
     }
 
-    fun routing(mavenFacade: MavenFacade, frontendFacade: FrontendFacade): List<ReposiliteRoutes> =
-        listOf(
-            MavenEndpoints(mavenFacade, frontendFacade),
-            MavenApiEndpoints(mavenFacade)
-        )
+    override fun routing(reposilite: Reposilite): Set<ReposiliteRoutes> = setOf(
+        MavenEndpoints(reposilite.mavenFacade, reposilite.frontendFacade),
+        MavenApiEndpoints(reposilite.mavenFacade)
+    )
 
 }

@@ -16,52 +16,50 @@
 package com.reposilite.console.application
 
 import com.reposilite.Reposilite
-import com.reposilite.console.Console
+import com.reposilite.console.CommandExecutor
 import com.reposilite.console.ConsoleFacade
 import com.reposilite.console.HelpCommand
 import com.reposilite.console.LevelCommand
-import com.reposilite.console.StatusCommand
 import com.reposilite.console.StopCommand
 import com.reposilite.console.infrastructure.CliEndpoint
 import com.reposilite.console.infrastructure.ConsoleEndpoint
-import com.reposilite.failure.FailureFacade
 import com.reposilite.journalist.Journalist
+import com.reposilite.status.FailureFacade
 import com.reposilite.web.ReposiliteRoutes
+import com.reposilite.web.WebConfiguration
 import io.javalin.Javalin
 import kotlinx.coroutines.CoroutineDispatcher
 
-private const val REMOTE_VERSION = "https://repo.panda-lang.org/org/panda-lang/reposilite/latest"
-
-internal object ConsoleWebConfiguration {
+internal object ConsoleWebConfiguration : WebConfiguration {
 
     fun createFacade(journalist: Journalist, dispatcher: CoroutineDispatcher, failureFacade: FailureFacade): ConsoleFacade {
-        val console = Console(journalist, dispatcher, failureFacade, System.`in`)
-        return ConsoleFacade(journalist, console)
+        val commandExecutor = CommandExecutor(journalist, dispatcher, failureFacade, System.`in`)
+        return ConsoleFacade(journalist, commandExecutor)
     }
 
-    fun initialize(consoleFacade: ConsoleFacade, reposilite: Reposilite) {
+    override fun initialize(reposilite: Reposilite) {
+        val consoleFacade = reposilite.consoleFacade
         consoleFacade.registerCommand(HelpCommand(consoleFacade))
         consoleFacade.registerCommand(LevelCommand(reposilite.journalist))
-        consoleFacade.registerCommand(StatusCommand(reposilite, REMOTE_VERSION))
         consoleFacade.registerCommand(StopCommand(reposilite))
 
         // disable console daemon in tests due to issues with coverage and interrupt method call
         // https://github.com/jacoco/jacoco/issues/1066
         if (!reposilite.parameters.testEnv) {
-            consoleFacade.console.hook()
+            consoleFacade.commandExecutor.hook()
         }
     }
 
-    fun routing(reposilite: Reposilite): Set<ReposiliteRoutes> = setOf(
+    override fun routing(reposilite: Reposilite): Set<ReposiliteRoutes> = setOf(
         ConsoleEndpoint(reposilite.consoleFacade)
     )
 
-    fun javalin(javalin: Javalin, reposilite: Reposilite) {
+    override fun javalin(reposilite: Reposilite, javalin: Javalin) {
         javalin.ws("/api/console/sock", CliEndpoint(reposilite.ioDispatcher, reposilite.journalist, reposilite.authenticationFacade, reposilite.consoleFacade, reposilite.configuration.forwardedIp))
     }
 
-    fun dispose(consoleFacade: ConsoleFacade) {
-        consoleFacade.console.stop()
+    override fun dispose(reposilite: Reposilite) {
+        reposilite.consoleFacade.commandExecutor.stop()
     }
 
 }

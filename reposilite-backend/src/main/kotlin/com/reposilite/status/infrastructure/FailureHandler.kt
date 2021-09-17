@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.reposilite.failure.infrastructure
+package com.reposilite.status.infrastructure
 
+import com.reposilite.status.FailureFacade
 import io.javalin.http.Context
 import io.javalin.http.ExceptionHandler
-import com.reposilite.failure.FailureFacade
 
 internal class FailureHandler(private val failureFacade: FailureFacade) : ExceptionHandler<Exception> {
 

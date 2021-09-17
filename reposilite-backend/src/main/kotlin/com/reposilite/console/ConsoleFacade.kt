@@ -32,7 +32,7 @@ const val MAX_COMMAND_LENGTH = 1024
 
 class ConsoleFacade internal constructor(
     private val journalist: Journalist,
-    internal val console: Console
+    internal val commandExecutor: CommandExecutor
 ) : Journalist {
 
     suspend fun executeCommand(command: String): Result<ExecutionResponse, ErrorResponse> {
@@ -44,14 +44,14 @@ class ConsoleFacade internal constructor(
             return errorResponse(BAD_REQUEST, "The given command exceeds allowed length (${command.length} > $MAX_COMMAND_LENGTH)")
         }
 
-        return console.execute(command).asSuccess()
+        return commandExecutor.execute(command).asSuccess()
     }
 
     fun registerCommand(command: ReposiliteCommand): CommandLine =
-        console.registerCommand(command)
+        commandExecutor.registerCommand(command)
 
     fun getCommands(): Map<String, CommandLine> =
-        console.getCommands()
+        commandExecutor.getCommands()
 
     override fun getLogger(): Logger =
         journalist.logger
