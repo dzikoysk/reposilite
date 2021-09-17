@@ -17,6 +17,7 @@
 package com.reposilite
 
 import com.reposilite.config.Configuration
+import com.reposilite.config.Configuration.RepositoryConfiguration
 import com.reposilite.journalist.Channel
 import com.reposilite.journalist.backend.PrintStreamLogger
 import kotlinx.coroutines.runBlocking
@@ -44,6 +45,7 @@ internal abstract class ReposiliteRunner {
     var _storageProvider = ""
 
     protected var port: Int = PORT_ASSIGNER.incrementAndGet()
+    protected var proxiedPort: Int = PORT_ASSIGNER.incrementAndGet()
     protected lateinit var reposilite: Reposilite
 
     @BeforeEach
@@ -65,6 +67,10 @@ internal abstract class ReposiliteRunner {
 
         val configuration = Configuration()
         configuration.database = _database
+
+        val proxiedConfiguration = RepositoryConfiguration()
+        proxiedConfiguration.proxied = mutableListOf("http://localhost:$proxiedPort/releases")
+        configuration.repositories["proxied"] = proxiedConfiguration
 
         configuration.repositories.forEach { (repositoryName, repositoryConfiguration) ->
             repositoryConfiguration.storageProvider = _storageProvider.replace("{repository}", repositoryName)

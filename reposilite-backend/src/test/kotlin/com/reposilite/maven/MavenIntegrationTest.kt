@@ -26,6 +26,7 @@ import kong.unirest.Unirest.delete
 import kong.unirest.Unirest.get
 import kong.unirest.Unirest.head
 import kong.unirest.Unirest.put
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -70,7 +71,6 @@ internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
             .body(content)
             .basicAuth("name", "invalid-secret")
             .asObject(ErrorResponse::class.java)
-            .body
 
         // then: service should reject the request
         assertEquals(UNAUTHORIZED.status, response.status)
@@ -81,7 +81,7 @@ internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
         // given: file to upload and valid credentials
         val (repository, gav, file) = useDocument("releases", "gav", "artifact.jar")
         val (name, secret) = usePredefinedTemporaryAuth()
-        val content = useFile(file, 512)
+        val (content, length) = useFile(file, 128)
 
         try {
             // when: client wants to upload artifact
@@ -93,7 +93,7 @@ internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
             // then: service properly accepts connection and deploys file
             assertTrue(response.isSuccess)
             assertEquals(file, response.body.name)
-            assertEquals(content.length(), response.body.contentLength)
+            assertEquals(length, response.body.contentLength)
         } finally {
             content.channel.close()
         }
@@ -108,7 +108,7 @@ internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
         // when: unauthorized client tries to delete existing file
         val response = delete(address)
             .basicAuth("name", "invalid-secret")
-            .asString()
+            .asObject(ErrorResponse::class.java)
 
         // then: service rejects request and file still exists
         assertFalse(response.isSuccess)
@@ -143,6 +143,25 @@ internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
         // then: service responds with custom 404 page
         assertEquals(NOT_FOUND.status, response.status)
         assertTrue(response.body.contains("Reposilite - 404 Not Found"))
+    }
+
+    @Test
+    fun `should proxy remote file`() = runBlocking {
+        // given: a remote server and artifact
+        useProxiedHost("releases", "com/reposilite/remote.file", "content") { gav, content ->
+            // when: non-existing file is requested
+            val notFoundResponse = get("$base/proxied/not/found.file").asString()
+
+            // then: service responds with 404 status page
+            assertFalse(notFoundResponse.isSuccess)
+
+            // when: file that exists in remote repository is requested
+            val response = get("$base/proxied/$gav").asString()
+
+            // then: service responds with its content
+            assertTrue(response.isSuccess)
+            assertEquals(content, response.body)
+        }
     }
 
 }
