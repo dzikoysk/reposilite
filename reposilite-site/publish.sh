@@ -17,7 +17,7 @@
 #
 
 cd website || exit
-yarn build
+npm run build
 
 rm -rf ../../docs
 mkdir ../../docs
