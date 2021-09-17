@@ -198,7 +198,7 @@ class Configuration : Serializable {
             "# --readTimeout=<seconds> - How long Reposilite can read data from remote proxy. (default: 15s)",
             "# Example usage:",
             "# proxied [",
-            "#   https://repo.panda-lang.org --store --connectTimeout=3 --readTimeout=15 --auth user:token",
+            "#   https://repo.panda-lang.org/releases --store --connectTimeout=3 --readTimeout=15 --auth user:token",
             "# ]"
         )
         @JvmField
