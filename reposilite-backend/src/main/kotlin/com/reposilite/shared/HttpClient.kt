@@ -85,7 +85,7 @@ class HttpRemoteClient : RemoteClient {
             response.isSuccessful.not() -> errorResponse(NOT_ACCEPTABLE, "Unsuccessful request")
             else -> {
                 DocumentInfo(
-                    uri.toNormalizedPath().get().getSimpleName(),
+                    uri.replace("://", "").toPath().getSimpleName(),
                     contentType,
                     contentLength,
                     { data.inputStream() }
