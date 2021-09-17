@@ -21,6 +21,7 @@ import com.reposilite.config.Configuration.SQLiteDatabaseSettings
 import com.reposilite.shared.loadCommandBasedConfiguration
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.transactions.TransactionManager
+import java.io.File
 import java.nio.file.Path
 import java.sql.Connection
 
@@ -32,10 +33,13 @@ object DatabaseSourceConfiguration {
                 val settings = loadCommandBasedConfiguration(SQLiteDatabaseSettings(), databaseConfiguration).configuration
 
                 val database =
-                    if (settings.inMemory)
-                        Database.connect("jdbc:sqlite:file:test?mode=memory&cache=shared", "org.sqlite.JDBC")
-                    else
+                    if (settings.temporary) {
+                        val temporaryDatabase = File.createTempFile("reposilite-database", ".db")
+                        temporaryDatabase.deleteOnExit()
+                        Database.connect("jdbc:sqlite:${temporaryDatabase.absolutePath}", "org.sqlite.JDBC")
+                    } else {
                         Database.connect("jdbc:sqlite:${workingDirectory.resolve(settings.fileName)}", "org.sqlite.JDBC")
+                    }
 
                 TransactionManager.manager.defaultIsolationLevel = Connection.TRANSACTION_SERIALIZABLE
                 database

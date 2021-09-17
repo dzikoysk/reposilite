@@ -8,9 +8,9 @@ hostname: 0.0.0.0
 port: 80
 # Database. Supported storage providers:
 # - sqlite reposilite.db
-# - sqlite --in-memory
+# - sqlite --temporary
 # - mysql localhost:3306 database user password
-database: sqlite reposilite.db
+database: sqlite --temporary reposilite.db
 # Custom base path
 basePath: /
 
