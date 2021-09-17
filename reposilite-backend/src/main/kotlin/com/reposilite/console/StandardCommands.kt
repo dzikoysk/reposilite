@@ -1,20 +1,28 @@
+/*
+ * Copyright (c) 2021 dzikoysk
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.reposilite.console
 
-import com.github.kittinunf.fuel.Fuel
-import com.github.kittinunf.fuel.coroutines.awaitStringResult
 import com.reposilite.Reposilite
 import com.reposilite.ReposiliteJournalist
-import com.reposilite.VERSION
 import com.reposilite.console.CommandStatus.FAILED
 import com.reposilite.console.api.ReposiliteCommand
 import com.reposilite.journalist.Channel
-import com.reposilite.shared.TimeUtils
 import com.reposilite.shared.createCommandHelp
 import panda.std.Option.ofOptional
-import panda.utilities.console.Effect.GREEN
-import panda.utilities.console.Effect.GREEN_BOLD
-import panda.utilities.console.Effect.RED_UNDERLINED
-import panda.utilities.console.Effect.RESET
 import picocli.CommandLine.Command
 import picocli.CommandLine.Parameters
 import java.util.concurrent.TimeUnit.SECONDS
@@ -36,7 +44,6 @@ internal class HelpCommand(private val consoleFacade: ConsoleFacade) : Reposilit
 
 }
 
-
 @Command(name = "stop", aliases = ["shutdown"], description = ["Shutdown server"])
 internal class StopCommand(private val reposilite: Reposilite) : ReposiliteCommand {
 
@@ -44,42 +51,6 @@ internal class StopCommand(private val reposilite: Reposilite) : ReposiliteComma
         reposilite.logger.warn("The shutdown request has been sent")
         reposilite.scheduler.schedule({ reposilite.shutdown() }, 1, SECONDS)
     }
-
-}
-
-@Command(name = "status", description = ["Display summary status of app health"])
-internal class StatusCommand(
-    private val reposilite: Reposilite,
-    private val remoteVersionUrl: String,
-) : ReposiliteCommand {
-
-    override suspend fun execute(context: CommandContext) {
-        val latestVersion =
-            if (reposilite.parameters.testEnv) VERSION
-            else getVersion()
-
-        context.append("Reposilite $VERSION Status")
-        context.append("  Active: $GREEN_BOLD${reposilite.webServer.isAlive()}$RESET")
-        context.append("  Uptime: ${TimeUtils.getPrettyUptimeInMinutes(reposilite.startTime)}")
-        context.append("  Memory usage of process: ${memoryUsage()}")
-        context.append("  Active threads in group: ${threadGroupUsage()}")
-        context.append("  Recorded failures: ${reposilite.failureFacade.getFailures().size}")
-        context.append("  Latest version of Reposilite: $latestVersion")
-    }
-
-    private suspend fun getVersion(): String =
-        Fuel.get(remoteVersionUrl)
-            .awaitStringResult()
-            .fold(
-                success = { (if (VERSION == it) GREEN else RED_UNDERLINED).toString() + it + RESET },
-                failure = { if (it.message?.contains("java.security.NoSuchAlgorithmException") == true) "Cannot load SSL context for HTTPS request due to the lack of available memory" else "$remoteVersionUrl is unavailable: ${it.message}" }
-            )
-
-    private fun memoryUsage(): String =
-        TimeUtils.format((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1024.0 / 1024.0) + "M"
-
-    private fun threadGroupUsage(): String =
-        Thread.activeCount().toString()
 
 }
 

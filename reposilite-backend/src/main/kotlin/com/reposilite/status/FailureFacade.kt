@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.reposilite.failure
+package com.reposilite.status
 
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
@@ -23,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 class FailureFacade internal constructor(private val journalist: Journalist) : Journalist {
 
-    private val exceptions: MutableSet<String> = ConcurrentHashMap.newKeySet()
+    private val exceptions = ConcurrentHashMap.newKeySet<String>()
 
     fun throwException(id: String, throwable: Throwable) {
         logger.error(id)

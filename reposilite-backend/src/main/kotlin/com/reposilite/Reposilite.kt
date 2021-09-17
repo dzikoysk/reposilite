@@ -18,7 +18,6 @@ package com.reposilite
 import com.reposilite.auth.AuthenticationFacade
 import com.reposilite.config.Configuration
 import com.reposilite.console.ConsoleFacade
-import com.reposilite.failure.FailureFacade
 import com.reposilite.frontend.FrontendFacade
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
@@ -26,8 +25,11 @@ import com.reposilite.maven.MavenFacade
 import com.reposilite.shared.TimeUtils.getPrettyUptimeInSeconds
 import com.reposilite.shared.peek
 import com.reposilite.statistics.StatisticsFacade
+import com.reposilite.status.FailureFacade
+import com.reposilite.status.StatusFacade
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.web.JavalinWebServer
+import com.reposilite.web.WebConfiguration
 import com.reposilite.web.coroutines.ExclusiveDispatcher
 import kotlinx.coroutines.withContext
 import org.jetbrains.exposed.sql.Database
@@ -41,11 +43,12 @@ class Reposilite(
     val journalist: ReposiliteJournalist,
     val parameters: ReposiliteParameters,
     val configuration: Configuration,
-    val startTime: Long = System.currentTimeMillis(),
     val ioDispatcher: ExclusiveDispatcher,
     val scheduler: ScheduledExecutorService,
     val database: Database,
     val webServer: JavalinWebServer,
+    val webs: Collection<WebConfiguration>,
+    val statusFacade: StatusFacade,
     val failureFacade: FailureFacade,
     val authenticationFacade: AuthenticationFacade,
     val mavenFacade: MavenFacade,
@@ -80,9 +83,10 @@ class Reposilite(
         logger.info("Working directory: ${parameters.workingDirectory.toAbsolutePath()}")
         logger.info("")
 
-        // logger.info("--- Loading domain configurations")
-        ReposiliteWebConfiguration.initialize(this)
-        // logger.info("")
+        logger.info("--- Loading domain configurations")
+        webs.forEach { it.initialize(this) }
+        logger.info("Loaded ${webs.size} web configurations")
+        logger.info("")
 
         logger.info("--- Repositories")
         mavenFacade.getRepositories().forEach { logger.info("+ ${it.name} (${it.visibility.toString().lowercase()})") }
@@ -100,7 +104,7 @@ class Reposilite(
             webServer.start(this)
             Runtime.getRuntime().addShutdownHook(shutdownHook)
 
-            logger.info("Done (${getPrettyUptimeInSeconds(startTime)})!")
+            logger.info("Done (${getPrettyUptimeInSeconds(statusFacade.startTime)})!")
             logger.info("")
             consoleFacade.executeCommand("help")
 
@@ -125,10 +129,9 @@ class Reposilite(
         alive.peek {
             alive.set(false)
             logger.info("Shutting down ${parameters.hostname}::${parameters.port}...")
-
             scheduler.shutdown()
             ioDispatcher.prepareShutdown()
-            ReposiliteWebConfiguration.dispose(this@Reposilite)
+            webs.forEach { it.dispose(this@Reposilite) }
             webServer.stop()
             scheduler.shutdownNow()
             ioDispatcher.completeShutdown()

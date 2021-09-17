@@ -16,18 +16,19 @@
 
 package com.reposilite.frontend.application
 
+import com.reposilite.Reposilite
 import com.reposilite.config.Configuration
 import com.reposilite.frontend.FrontendFacade
 import com.reposilite.frontend.infrastructure.CustomFrontendHandler
 import com.reposilite.frontend.infrastructure.ResourcesFrontendHandler
 import com.reposilite.shared.safeResolve
 import com.reposilite.web.ReposiliteRoutes
+import com.reposilite.web.WebConfiguration
 import io.javalin.Javalin
 import io.javalin.http.NotFoundResponse
-import java.nio.file.Path
 import kotlin.io.path.exists
 
-internal object FrontendWebConfiguration {
+internal object FrontendWebConfiguration : WebConfiguration {
 
     private const val CUSTOM_FRONTEND_DIRECTORY = "frontend"
 
@@ -43,17 +44,19 @@ internal object FrontendWebConfiguration {
             configuration.cacheContent
         )
 
-    fun routing(frontendFacade: FrontendFacade, workingDirectory: Path): Set<ReposiliteRoutes> =
+    override fun routing(reposilite: Reposilite): Set<ReposiliteRoutes> =
         setOf(
-            workingDirectory.safeResolve(CUSTOM_FRONTEND_DIRECTORY)
-                .takeIf { it.exists() }
-                ?.let { CustomFrontendHandler(frontendFacade, workingDirectory.safeResolve(CUSTOM_FRONTEND_DIRECTORY)) }
-                ?: ResourcesFrontendHandler(frontendFacade)
+            with(reposilite.parameters.workingDirectory.safeResolve(CUSTOM_FRONTEND_DIRECTORY)) {
+                if (exists())
+                    CustomFrontendHandler(reposilite.frontendFacade, this)
+                else
+                    ResourcesFrontendHandler(reposilite.frontendFacade)
+            }
         )
 
-    fun javalin(app: Javalin, frontendFacade: FrontendFacade) {
-        app.exception(NotFoundResponse::class.java, NotFoundHandler(frontendFacade))
-        app.error(404, NotFoundHandler(frontendFacade))
+    override fun javalin(reposilite: Reposilite, javalin: Javalin) {
+        javalin.exception(NotFoundResponse::class.java, NotFoundHandler(reposilite.frontendFacade))
+        javalin.error(404, NotFoundHandler(reposilite.frontendFacade))
     }
 
 }

@@ -16,7 +16,7 @@
 
 package com.reposilite.statistics.application
 
-import com.reposilite.console.ConsoleFacade
+import com.reposilite.Reposilite
 import com.reposilite.journalist.Journalist
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.statistics.StatsCommand
@@ -24,34 +24,37 @@ import com.reposilite.statistics.infrastructure.SqlStatisticsRepository
 import com.reposilite.statistics.infrastructure.StatisticsEndpoint
 import com.reposilite.statistics.infrastructure.StatisticsHandler
 import com.reposilite.web.ReposiliteRoutes
+import com.reposilite.web.WebConfiguration
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.jetbrains.exposed.sql.Database
-import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit.MINUTES
 
-internal object StatisticsWebConfiguration {
+internal object StatisticsWebConfiguration : WebConfiguration {
 
     fun createFacade(journalist: Journalist, dispatcher: CoroutineDispatcher, database: Database): StatisticsFacade =
         StatisticsFacade(journalist, SqlStatisticsRepository(dispatcher, database))
 
-    fun initialize(statisticsFacade: StatisticsFacade, consoleFacade: ConsoleFacade, scheduler: ScheduledExecutorService, dispatcher: CoroutineDispatcher) {
+    override fun initialize(reposilite: Reposilite) {
+        val consoleFacade = reposilite.consoleFacade
+        val statisticsFacade = reposilite.statisticsFacade
+
         consoleFacade.registerCommand(StatsCommand(statisticsFacade))
 
-        scheduler.scheduleWithFixedDelay({
+        reposilite.scheduler.scheduleWithFixedDelay({
             runBlocking {
-                withContext(dispatcher) {
+                withContext(reposilite.ioDispatcher) {
                     statisticsFacade.saveRecordsBulk()
                 }
             }
         }, 1, 1, MINUTES)
     }
 
-    fun routing(statisticsFacade: StatisticsFacade): Set<ReposiliteRoutes> =
+    override fun routing(reposilite: Reposilite): Set<ReposiliteRoutes> =
         setOf(
-            StatisticsEndpoint(statisticsFacade),
-            StatisticsHandler(statisticsFacade),
+            StatisticsEndpoint(reposilite.statisticsFacade),
+            StatisticsHandler(reposilite.statisticsFacade),
         )
 
 }

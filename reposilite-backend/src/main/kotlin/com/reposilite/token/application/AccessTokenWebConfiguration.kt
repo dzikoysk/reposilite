@@ -16,22 +16,21 @@
 
 package com.reposilite.token.application
 
-import com.reposilite.console.ConsoleFacade
+import com.reposilite.Reposilite
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.ChModCommand
 import com.reposilite.token.ChNameCommand
 import com.reposilite.token.KeygenCommand
 import com.reposilite.token.RevokeCommand
 import com.reposilite.token.TokensCommand
-import com.reposilite.token.api.CreateAccessTokenRequest
 import com.reposilite.token.infrastructure.InMemoryAccessTokenRepository
 import com.reposilite.token.infrastructure.SqlAccessTokenRepository
-import com.reposilite.web.ReposiliteRoutes
+import com.reposilite.web.WebConfiguration
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.sql.Database
 
-internal object AccessTokenWebConfiguration {
+internal object AccessTokenWebConfiguration : WebConfiguration {
 
     fun createFacade(dispatcher: CoroutineDispatcher, database: Database): AccessTokenFacade =
         AccessTokenFacade(
@@ -39,20 +38,21 @@ internal object AccessTokenWebConfiguration {
             persistentRepository = SqlAccessTokenRepository(dispatcher, database)
         )
 
-    fun initialize(accessTokenFacade: AccessTokenFacade, temporaryTokens: Collection<CreateAccessTokenRequest>, consoleFacade: ConsoleFacade) {
-        temporaryTokens.forEach {
+    override fun initialize(reposilite: Reposilite) {
+        val accessTokenFacade = reposilite.accessTokenFacade
+
+        reposilite.parameters.tokens.forEach {
             runBlocking {
                 accessTokenFacade.createTemporaryAccessToken(it)
             }
         }
 
+        val consoleFacade = reposilite.consoleFacade
         consoleFacade.registerCommand(TokensCommand(accessTokenFacade))
         consoleFacade.registerCommand(KeygenCommand(accessTokenFacade))
         consoleFacade.registerCommand(ChNameCommand(accessTokenFacade))
         consoleFacade.registerCommand(ChModCommand(accessTokenFacade))
         consoleFacade.registerCommand(RevokeCommand(accessTokenFacade))
     }
-
-    fun routing(): Set<ReposiliteRoutes> = emptySet()
 
 }

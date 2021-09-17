@@ -19,9 +19,9 @@ import com.reposilite.VERSION
 import com.reposilite.console.CommandStatus.FAILED
 import com.reposilite.console.api.ExecutionResponse
 import com.reposilite.console.api.ReposiliteCommand
-import com.reposilite.failure.FailureFacade
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
+import com.reposilite.status.FailureFacade
 import kotlinx.coroutines.CoroutineDispatcher
 import picocli.CommandLine
 import picocli.CommandLine.Command
@@ -31,7 +31,7 @@ import java.io.InputStream
 import java.util.function.Consumer
 
 @Command(name = "", version = ["Reposilite $VERSION"])
-internal class Console(
+internal class CommandExecutor(
     private val journalist: Journalist,
     dispatcher: CoroutineDispatcher,
     failureFacade: FailureFacade,
