@@ -28,7 +28,7 @@ private const val DEFAULT_TOP_SIZE = 20
 @Command(name = "stats", description = ["Display collected metrics"])
 internal class StatsCommand(private val statisticsFacade: StatisticsFacade) : ReposiliteCommand {
 
-    @Parameters(index = "0", paramLabel = "[<filter>]", description = ["accepts string as pattern and int as limiter"], defaultValue = "")
+    @Parameters(index = "0", paramLabel = "[<filter>]", description = ["Accepts string as pattern and int as limiter"], defaultValue = "")
     private lateinit var filter: String
 
     override suspend fun execute(context: CommandContext) {

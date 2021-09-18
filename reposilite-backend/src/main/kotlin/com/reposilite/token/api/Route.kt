@@ -29,15 +29,18 @@ data class Route internal constructor(
 }
 
 @JsonFormat(shape = JsonFormat.Shape.OBJECT)
-enum class RoutePermission(val identifier: String) {
+enum class RoutePermission(val identifier: String, val shortcut: String) {
 
-    READ("route:read"),
-    WRITE("route:write");
+    READ("route:read", "r"),
+    WRITE("route:write", "w");
 
     companion object {
 
         fun findRoutePermissionByIdentifier(identifier: String): RoutePermission =
             values().first { it.identifier == identifier }
+
+        fun findRoutePermissionByShortcut(shortcut: String): RoutePermission =
+            values().first { it.shortcut == shortcut }
 
     }
 

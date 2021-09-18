@@ -28,17 +28,17 @@ import java.nio.file.Paths
 @Command(name = "reposilite", version = ["Reposilite $VERSION"])
 class ReposiliteParameters : Runnable {
 
-    @Option(names = ["--help"], usageHelp = true, description = ["display help message"])
+    @Option(names = ["--help"], usageHelp = true, description = ["Display help message"])
     var usageHelpRequested = false
 
-    @Option(names = ["--version", "-v"], versionHelp = true, description = ["display current version of reposilite"])
+    @Option(names = ["--version", "-v"], versionHelp = true, description = ["Display current version of reposilite"])
     var versionInfoRequested = false
 
-    @Option(names = ["--working-directory", "-wd"], description = ["set custom working directory of application instance"])
+    @Option(names = ["--working-directory", "-wd"], description = ["Set custom working directory of application instance"])
     internal var workingDirectoryName = ""
     lateinit var workingDirectory: Path
 
-    @Option(names = ["--configuration", "--config", "-cfg"], description = ["set custom location of configuration file"])
+    @Option(names = ["--configuration", "--config", "-cfg"], description = ["Set custom location of configuration file"])
     internal var configurationFileName = DEFAULT_CONFIGURATION_FILE
     lateinit var configurationFile: Path
 
@@ -51,17 +51,17 @@ class ReposiliteParameters : Runnable {
     ])
     var configurationMode = "auto"
 
-    @Option(names = ["--hostname", "-h"], description = ["override hostname from configuration"])
+    @Option(names = ["--hostname", "-h"], description = ["Override hostname from configuration"])
     var hostname = ""
 
-    @Option(names = ["--port", "-p"], description = ["override port from configuration"])
+    @Option(names = ["--port", "-p"], description = ["Override port from configuration"])
     var port = -1
 
-    @Option(names = ["--token", "-t"], description = ["create temporary token with the given credentials in name:secret format", "Created token has all permissions"])
+    @Option(names = ["--token", "-t"], description = ["Create temporary token with the given credentials in name:secret format", "Created token has all permissions"])
     internal var tokenEntries = arrayOf<String>()
     lateinit var tokens: Collection<CreateAccessTokenRequest>
 
-    @Option(names = ["--test-env", "--debug", "-d"], description = ["enable test mode"])
+    @Option(names = ["--test-env", "--debug", "-d"], description = ["Enable test mode"])
     var testEnv = false
 
     override fun run() {

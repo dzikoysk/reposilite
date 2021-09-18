@@ -50,7 +50,10 @@ class AccessTokenFacade internal constructor(
     }
 
     suspend fun updateToken(accessToken: AccessToken): AccessToken =
-        persistentRepository.saveAccessToken(accessToken)
+        when(accessToken.type) {
+            PERSISTENT -> persistentRepository.saveAccessToken(accessToken)
+            TEMPORARY -> temporaryRepository.saveAccessToken(accessToken)
+        }
 
     suspend fun deleteToken(name: String): AccessToken? =
         deleteToken(temporaryRepository, name) ?: deleteToken(persistentRepository, name)

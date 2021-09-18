@@ -22,6 +22,8 @@ import com.reposilite.token.ChModCommand
 import com.reposilite.token.ChNameCommand
 import com.reposilite.token.KeygenCommand
 import com.reposilite.token.RevokeCommand
+import com.reposilite.token.RouteAdd
+import com.reposilite.token.RouteRemove
 import com.reposilite.token.TokensCommand
 import com.reposilite.token.infrastructure.InMemoryAccessTokenRepository
 import com.reposilite.token.infrastructure.SqlAccessTokenRepository
@@ -53,6 +55,8 @@ internal object AccessTokenWebConfiguration : WebConfiguration {
         consoleFacade.registerCommand(ChNameCommand(accessTokenFacade))
         consoleFacade.registerCommand(ChModCommand(accessTokenFacade))
         consoleFacade.registerCommand(RevokeCommand(accessTokenFacade))
+        consoleFacade.registerCommand(RouteAdd(accessTokenFacade))
+        consoleFacade.registerCommand(RouteRemove(accessTokenFacade))
     }
 
 }

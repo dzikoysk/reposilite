@@ -45,13 +45,16 @@ internal class TokensCommand(private val accessTokenFacade: AccessTokenFacade) :
 
 }
 
-@Command(name = "keygen", description = ["Generate a new access token"])
+@Command(name = "token-generate", description = ["Generate a new access token"])
 internal class KeygenCommand(private val accessTokenFacade: AccessTokenFacade) : ReposiliteCommand {
 
-    @Parameters(index = "0", paramLabel = "<name>", description = ["access token name"])
+    @Parameters(index = "0", paramLabel = "<name>", description = ["Access token name"])
     private lateinit var name: String
 
-    @Parameters(index = "1", paramLabel = "[<permissions>]", description = ["extra permissions: m - manager"], defaultValue = "")
+    @Parameters(index = "1", paramLabel = "[<permissions>]", defaultValue = "", description = [
+        "Access token permissions, e.g. m, optional. Available permissions",
+        "m - marks token as management token and grants access to all features and paths by default (access_token:manager)"
+    ])
     private lateinit var permissions: String
 
     override suspend fun execute(context: CommandContext) {
@@ -65,15 +68,16 @@ internal class KeygenCommand(private val accessTokenFacade: AccessTokenFacade) :
         context.append("Generated new access token for $name with '$permissions' permissions. Secret:")
         context.append(token.secret)
     }
+
 }
 
-@Command(name = "chname", description = ["Change token name"])
+@Command(name = "token-rename", description = ["Change token name"])
 internal class ChNameCommand(private val accessTokenFacade: AccessTokenFacade) : ReposiliteCommand {
 
-    @Parameters(index = "0", paramLabel = "<name>", description = ["name of token to update"])
+    @Parameters(index = "0", paramLabel = "<name>", description = ["Name of token to update"])
     private lateinit var name: String
 
-    @Parameters(index = "1", paramLabel = "<new name>", description = ["new token name"])
+    @Parameters(index = "1", paramLabel = "<new name>", description = ["New token name"])
     private lateinit var updatedName: String
 
     override suspend fun execute(context: CommandContext) {
@@ -90,13 +94,13 @@ internal class ChNameCommand(private val accessTokenFacade: AccessTokenFacade) :
 
 }
 
-@Command(name = "chmod", description = ["Change token permissions"])
+@Command(name = "token-modify", description = ["Change token permissions"])
 internal class ChModCommand(private val accessTokenFacade: AccessTokenFacade) : ReposiliteCommand {
 
-    @Parameters(index = "0", paramLabel = "<name>", description = ["name of token to update"])
+    @Parameters(index = "0", paramLabel = "<name>", description = ["Name of token to update"])
     private lateinit var token: String
 
-    @Parameters(index = "1", paramLabel = "<permissions>", description = ["new permissions"])
+    @Parameters(index = "1", paramLabel = "<permissions>", description = ["New permissions"])
     private lateinit var permissions: String
 
     override suspend fun execute(context: CommandContext) {
@@ -117,10 +121,10 @@ internal class ChModCommand(private val accessTokenFacade: AccessTokenFacade) : 
 
 }
 
-@Command(name = "revoke", description = ["Revoke token"])
+@Command(name = "token-revoke", description = ["Revoke token"])
 internal class RevokeCommand(private val accessTokenFacade: AccessTokenFacade) : ReposiliteCommand {
 
-    @Parameters(index = "0", paramLabel = "<name>", description = ["name of token to revoke"])
+    @Parameters(index = "0", paramLabel = "<name>", description = ["Name of token to revoke"])
     private lateinit var name: String
 
     override suspend fun execute(context: CommandContext) {
