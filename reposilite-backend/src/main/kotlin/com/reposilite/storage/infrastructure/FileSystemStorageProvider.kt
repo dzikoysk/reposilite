@@ -52,7 +52,7 @@ internal abstract class FileSystemStorageProvider protected constructor(
     private val rootDirectory: Path
  ) : StorageProvider {
 
-    override fun putFile(file: Path, input: InputStream): Result<DocumentInfo, ErrorResponse> =
+    override fun putFile(file: Path, inputStream: InputStream): Result<DocumentInfo, ErrorResponse> =
         catchIOException {
             resolved(file)
                 .let { file ->
@@ -84,7 +84,7 @@ internal abstract class FileSystemStorageProvider protected constructor(
                         var size: Long = 0
                         var read: Int
 
-                        while (input.read(data, 0, data.size).also { read = it } != -1) {
+                        while (inputStream.read(data, 0, data.size).also { read = it } != -1) {
                             size += read.toLong()
 
                             if (available < size) {

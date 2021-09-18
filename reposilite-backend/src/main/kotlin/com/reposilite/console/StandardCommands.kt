@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit.SECONDS
 @Command(name = "help", aliases = ["?"], helpCommand = true, description = ["List of available commands"])
 internal class HelpCommand(private val consoleFacade: ConsoleFacade) : ReposiliteCommand {
 
-    @Parameters(index = "0", paramLabel = "[<command>]", description = ["display usage of the given command"], defaultValue = "")
+    @Parameters(index = "0", paramLabel = "[<command>]", description = ["Display usage of the given command"], defaultValue = "")
     private lateinit var requestedCommand: String
 
     override suspend fun execute(context: CommandContext) {
@@ -57,7 +57,7 @@ internal class StopCommand(private val reposilite: Reposilite) : ReposiliteComma
 @Command(name = "level", description = ["Change current level of visible logging"])
 internal class LevelCommand(private val journalist: ReposiliteJournalist) : ReposiliteCommand {
 
-    @Parameters(index = "0", paramLabel = "<level>", description = ["the new threshold"], defaultValue = "info")
+    @Parameters(index = "0", paramLabel = "<level>", description = ["The new threshold"], defaultValue = "info")
     private lateinit var level: String
 
     override suspend fun execute(context: CommandContext) {
