@@ -1,6 +1,6 @@
 {
   "name": "reposilite-frontend",
-  "version": "3.0.0",
+  "version": "3.0.0-alpha.1",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
