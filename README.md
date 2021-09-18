@@ -1,28 +1,69 @@
-# Reposilite [![Docker Pulls](https://img.shields.io/docker/pulls/dzikoysk/reposilite.svg?label=pulls&logo=docker)](https://hub.docker.com/r/dzikoysk/reposilite) [![Reposilite CI](https://github.com/dzikoysk/reposilite/actions/workflows/gradle.yml/badge.svg)](https://github.com/dzikoysk/reposilite/actions/workflows/gradle.yml) [![codecov](https://codecov.io/gh/dzikoysk/reposilite/branch/main/graph/badge.svg?token=9flNHTSJpp)](https://codecov.io/gh/dzikoysk/reposilite) [![CodeFactor](https://www.codefactor.io/repository/github/dzikoysk/reposilite/badge/main)](https://www.codefactor.io/repository/github/dzikoysk/reposilite/overview/main) [![Discord Online](https://img.shields.io/discord/204728244434501632.svg)](https://discord.gg/qGRqmGjUFX) [![Discord](https://img.shields.io/badge/discord-reposilite-738bd7.svg?style=square)](https://discord.gg/qGRqmGjUFX)
+<div align="center">
+ <h1>Reposilite</h1>
+ <div>
+  <a href="https://github.com/dzikoysk/reposilite/actions/workflows/gradle.yml">
+   <img alt="Reposilite CI" src="https://github.com/dzikoysk/reposilite/actions/workflows/gradle.yml/badge.svg" />
+  </a>
+  <a href="https://hub.docker.com/r/dzikoysk/reposilite">
+   <img alt="Docker Pulls" src="https://img.shields.io/docker/pulls/dzikoysk/reposilite.svg?label=pulls&logo=docker" />
+  </a>
+  <a href="https://codecov.io/gh/dzikoysk/reposilite">
+   <img alt="CodeCov" src="https://codecov.io/gh/dzikoysk/reposilite/branch/main/graph/badge.svg?token=9flNHTSJpp" />
+  </a>
+  <a href="(https://www.codefactor.io/repository/github/dzikoysk/reposilite/overview/main">
+   <img alt="CodeFactor" src="https://www.codefactor.io/repository/github/dzikoysk/reposilite/badge/main" />
+  </a>
+  <a href="https://discord.gg/qGRqmGjUFX">
+   <img alt="Discord Online" src="https://img.shields.io/discord/204728244434501632.svg" />
+  </a>
+  <a href="https://discord.gg/qGRqmGjUFX">
+   <img alt="Discord" src="https://img.shields.io/badge/discord-reposilite-738bd7.svg?style=square" />
+  </a>
+ </div>
+ <br>
+ <div>
+  Lightweight and easy-to-use repository manager for Maven based artifacts in JVM ecosystem. 
+It is a simple self-hosted solution to replace managers like Nexus, Archiva or Artifactory with reduced resources consumption. 
+ </div>
+ <br>
+ <div>
+  <a href="https://reposilite.com">Website</a>
+  |
+  <a href="https://reposilite.com/docs/about">Official Gude</a>
+  |
+  <a href="https://github.com/dzikoysk/reposilite/releases">GitHub Releases</a>
+  |
+  <a href="https://hub.docker.com/r/dzikoysk/reposilite">DockerHub Images</a>
+  |
+  <a href="https://panda-lang.org/support">Support</a>
+  |
+  <a href="https://repo.panda-lang.org">Demo</a>
+ </div>
+ <br>
+ <img alt="Preview" src="https://user-images.githubusercontent.com/4235722/133891983-966e5c6d-97b1-48cc-b754-6e88117ee4f7.png" />
+ <br>
+ <br>
+ <strong>
+  ⛔ Main sources reffers to the alpha version of Reposilite 3.x that is under heavy development.
+  <br>
+  If you're looking for docs and sources of Reposilite 2.x, visit 2.x branch: <a href="https://github.com/dzikoysk/reposilite/tree/2.x">Reposilite 2.x</a>
+ </strong>
+</div>
 
-[Reposilite](https://reposilite.com) *(formerly NanoMaven)* - lightweight repository manager for Maven based artifacts. 
-It is a simple solution to replace managers like Nexus, Archiva or Artifactory. 
+### Installation
+To run Reposilite you need at least 16MB of RAM and Java 8+ installed. 
 
-![Preview](https://user-images.githubusercontent.com/4235722/83757901-7c96e300-a671-11ea-9881-f0b85f058a6c.png)
+```bash
+# Using a standalone JAR file
+$ java -Xmx16M -jar reposilite-3.0.0-ALPHA1.jar
 
-#### Installation
-Website: [Reposilite](https://reposilite.com) <br>
-Releases: [GitHub Downloads](https://github.com/dzikoysk/reposilite/releases) <br>
-Docker Images: [DockerHub Repository](https://hub.docker.com/r/dzikoysk/reposilite) <br>
-Demo: [repo.panda-lang.org](https://repo.panda-lang.org) <br>
+# Using a Docker
+$ docker pull dzikoysk/reposilite:3.0.0-ALPHA1
+```
 
-Requirements: 
-* Java 8+
-* RAM 16MB+
+Visit official guide to read more about extra parameters and configuration details.
 
-| Amount | Description |
-|:------:|-------------|
-| *16MB* | Tiny repository for personal projects |
-| *16MB* - *32MB* | *--------------------^------------------* + CI + Proxy |
-| *48MB - 128MB* | Tiny public repository *(recommended)* |
-| *128MB+* | Public repository | 
-
-#### Publications
+### Publications
 * [Reposilite - Official Guide](https://reposilite.com/docs/about)
 * [Publishing your artifacts to the Reposilite - a new self-hosted repository manager ](https://dev.to/dzikoysk/publishing-your-artifacts-to-the-reposilite-a-new-self-hosted-repository-manager-3n0h)
 
@@ -31,44 +72,36 @@ Users' stories
 * [Reposilite - Reddit Thread](https://www.reddit.com/r/java/comments/k8i2m0/reposilite_alternative_lightweight_maven/)
 * [Looking for simple repository manager by David Kihato](https://kihats.medium.com/custom-self-hosted-maven-repository-cbb778031f68)
 
-#### Features
-* [x] Working Maven repository manager *(example: [repo.panda-lang.org](https://repo.panda-lang.org))*
-* [x] Support Maven, Gradle and SBT build tools
-* [x] Docker image *(repository: [dzikoysk/reposilite](https://hub.docker.com/r/dzikoysk/reposilite))*
-* [x] Authorization *(deploy and downloads)*
-* [x] Deploy *(using tokens and BCrypt)*
-* [x] [dependabot](https://dependabot.com/) supported
-* [x] Supports distributed environments like [K8s](https://github.com/dzikoysk/reposilite/issues/251#issuecomment-698974936)
-* [x] Multithreading
-* [x] Proxy of other remote repositories
-* [x] Support requests to primary repository without its name in url
-* [x] Dashboard
-  * [x] Customizable front page
-  * [x] Command line interface
-  * [x] Repository browser
-  * [x] Admin panel
-* [x] Snapshots
-* [x] Statistics
-* [x] REST API
-* [x] [OpenAPI with Swagger UI](https://repo.panda-lang.org/swagger)
-* [x] 90%+ test coverage
-* [x] Documentation
-
-#### Supporters
-Thanks to:
+### Supporters
+Thanks to all contributors and people that decided to donate the project:
 
 * [zzmgck](https://github.com/zzmgck) with $191
 * [milkyway0308](https://github.com/milkyway0308) with $15
 * Rob with $5
-* ...
+* `maybe someday... you will \(^-^)/`
 
 Reposilite is an implicit part of [panda-lang](https://github.com/panda-lang) organization. 
-To make a donation, visit [panda-lang.org/support](https://panda-lang.org/support) and use 'Reposilite' keyword in payment description ❤️.
+To make a donation, visit [panda-lang.org/support](https://panda-lang.org/support) and use 'Reposilite' keyword in payment description if possible ❤️
+
+### For developers
+
+Recommended tool to develop backend module is IntelliJ IDE, for frontend it might be e.g. VSC. 
+
+```bash
+# Run only backend through CLI
+$ ./gradlew run
+
+# Run only frontend
+$ cd reposilite-frontend && npm run i && npm run full
+
+# Run only Reposilite site
+$ cd reposilite-site/website && npm run i && npm run start
+```
 
 #### Stack
 
 Reposilite 3.x
-* Reposilite Backend: Kotlin + Javalin + Exposed + JUnit + _(DDD + Hexagonal Architecture)_
+* Reposilite Backend: Kotlin with Coroutines + Javalin + Exposed + JUnit + _(DDD + Hexagonal Architecture)_
 * Reposilite Frontend: Vue3 + Vite + Windicss
 * Reposilite Site: React.js + Docusaurus
 
@@ -78,4 +111,4 @@ Reposilite 2.x
 * Reposilite Site: React.js + Docusaurus 
 
 Reposilite 1.x
-* Reposilite: Java + NanoHTTPD _(and that's literally all)_
+* Reposilite: Java + NanoHTTPD
