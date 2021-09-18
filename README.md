@@ -23,7 +23,7 @@
  <br>
  <div>
   Lightweight and easy-to-use repository manager for Maven based artifacts in JVM ecosystem. 
-It is a simple self-hosted solution to replace managers like Nexus, Archiva or Artifactory with reduced resources consumption. 
+It is a simple and scaling self-hosted solution to replace managers like Nexus, Archiva or Artifactory with reduced resources consumption. 
  </div>
  <br>
  <div>
@@ -51,10 +51,11 @@ It is a simple self-hosted solution to replace managers like Nexus, Archiva or A
 </div>
 
 ### Installation
-To run Reposilite you need at least 16MB of RAM and Java 8+ installed. 
+To run Reposilite for your personal needs you should assign around 16MB of RAM and at least Java 8+ installed. <br>
+For huge public repositories you can adjust memory limit and even size of used thread pools in the configuration.
 
 ```bash
-# Using a standalone JAR file
+# Launching a standalone JAR file
 $ java -Xmx16M -jar reposilite-3.0.0-ALPHA1.jar
 
 # Using a Docker
