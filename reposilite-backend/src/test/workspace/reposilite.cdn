@@ -145,7 +145,7 @@ enforceSsl: false
 # Max amount of threads used by core thread pool (min: 4)
 # The web thread pool handles first few steps of incoming http connections, as soon as possible all tasks are redirected to IO thread pool.
 webThreadPool: 8
-# IO thread pool handles all tasks that may benefit from non-blocking IO (min: 4)
+# IO thread pool handles all tasks that may benefit from non-blocking IO (min: 2)
 # Because most of tasks are redirected to IO thread pool, it might be a good idea to keep it at least equal to web thread pool.
 ioThreadPool: 16
 # Amount of messages stored in cached logger.

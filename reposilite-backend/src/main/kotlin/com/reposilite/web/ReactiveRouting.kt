@@ -17,14 +17,14 @@
 package com.reposilite.web
 
 import com.reposilite.Reposilite
-import com.reposilite.auth.AuthenticationFacade
-import com.reposilite.journalist.Journalist
+import com.reposilite.web.http.errorResponse
 import com.reposilite.web.http.response
+import com.reposilite.web.http.uri
 import com.reposilite.web.routing.AbstractRoutes
 import com.reposilite.web.routing.ReactiveRoutingPlugin
 import com.reposilite.web.routing.Route
 import com.reposilite.web.routing.RouteMethod
-import io.javalin.http.Context
+import io.javalin.http.HttpCode.INTERNAL_SERVER_ERROR
 import kotlinx.coroutines.CoroutineDispatcher
 
 abstract class ReposiliteRoutes : AbstractRoutes<ContextDsl, Unit>()
@@ -36,24 +36,34 @@ class ReposiliteRoute(
 ) : Route<ContextDsl, Unit>(path = path, methods = methods, handler = handler)
 
 fun createReactiveRouting(reposilite: Reposilite, dispatcher: CoroutineDispatcher): ReactiveRoutingPlugin<ContextDsl, Unit> {
+    val failureFacade = reposilite.failureFacade
     val authenticationFacade = reposilite.authenticationFacade
 
     val plugin = ReactiveRoutingPlugin<ContextDsl, Unit>(
         errorConsumer = { name, error -> reposilite.logger.error("Coroutine $name failed to execute task", error) },
         dispatcher = dispatcher,
         syncHandler = { ctx, route ->
-            val resultDsl = callWithContext(reposilite, authenticationFacade, ctx, route.handler)
-            resultDsl.response?.also { ctx.response(it) }
+            try {
+                val dsl = ContextDsl(reposilite.logger, ctx, errorResponse(INTERNAL_SERVER_ERROR, "Unsupported sync auth"))
+                route.handler(dsl)
+                dsl.response?.also { ctx.response(it) }
+            } catch (throwable: Throwable) {
+                throwable.printStackTrace()
+                failureFacade.throwException(ctx.uri(), throwable)
+            }
         },
         asyncHandler = { ctx, route, result ->
             try {
-                val dsl = callWithContext(reposilite, authenticationFacade, ctx, route.handler)
+                val authenticationResult = authenticationFacade.authenticateByHeader(ctx.headerMap())
+                val dsl = ContextDsl(reposilite.logger, ctx, authenticationResult)
+                route.handler(dsl)
                 dsl.response?.also { ctx.response(it) }
                 result.complete(Unit)
             }
             catch (throwable: Throwable) {
-                throwable.printStackTrace()
                 result.completeExceptionally(throwable)
+                throwable.printStackTrace()
+                failureFacade.throwException(ctx.uri(), throwable)
             }
         }
     )
@@ -65,11 +75,4 @@ fun createReactiveRouting(reposilite: Reposilite, dispatcher: CoroutineDispatche
     }
 
     return plugin
-}
-
-private suspend fun callWithContext(journalist: Journalist, authenticationFacade: AuthenticationFacade, ctx: Context, handler: suspend ContextDsl.() -> Unit): ContextDsl {
-    val authenticationResult = authenticationFacade.authenticateByHeader(ctx.headerMap())
-    val dsl = ContextDsl(journalist.logger, ctx, authenticationResult)
-    handler(dsl)
-    return dsl
 }

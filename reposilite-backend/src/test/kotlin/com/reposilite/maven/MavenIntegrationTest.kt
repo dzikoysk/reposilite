@@ -82,7 +82,7 @@ internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
         val (repository, gav, file) = useDocument("releases", "net/dzikoysk/funnyguilds/plugin/4.10.0", "plugin-4.10.0.jar")
         val (name, secret) = usePredefinedTemporaryAuth()
 
-        repeat((reposilite.configuration.ioThreadPool * 2) + 1){ idx ->
+        repeat((reposilite.configuration.ioThreadPool * 2) + 1) {
             val (content, length) = useFile(file, 1)
 
             try {
@@ -93,7 +93,6 @@ internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
                     .asObject(DocumentInfo::class.java)
 
                 // then: service properly accepts connection and deploys file
-                println(idx)
                 assertTrue(response.isSuccess)
                 assertEquals(file, response.body.name)
                 assertEquals(length, response.body.contentLength)
