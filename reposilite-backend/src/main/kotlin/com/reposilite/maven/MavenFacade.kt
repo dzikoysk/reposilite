@@ -99,12 +99,12 @@ class MavenFacade internal constructor(
             .peek { logger.info("DEPLOY Artifact successfully deployed $path by ${deployRequest.by}") }
     }
 
-    fun deleteFile(deleteRequest: DeleteRequest): Result<*, ErrorResponse> {
-        val repository = repositoryService.getRepository(deleteRequest.repository) ?: return notFoundError<Any>("Repository ${deleteRequest.repository} not found")
-        val path = deleteRequest.gav.toNormalizedPath().orNull() ?: return notFoundError<Any>("Invalid GAV")
+    fun deleteFile(deleteRequest: DeleteRequest): Result<Unit, ErrorResponse> {
+        val repository = repositoryService.getRepository(deleteRequest.repository) ?: return notFoundError("Repository ${deleteRequest.repository} not found")
+        val path = deleteRequest.gav.toNormalizedPath().orNull() ?: return notFoundError("Invalid GAV")
 
         if (repositorySecurityProvider.canModifyResource(deleteRequest.accessToken, repository, path).not()) {
-            return unauthorizedError<Any>("Unauthorized access request")
+            return unauthorizedError("Unauthorized access request")
         }
 
         return repository.removeFile(path)

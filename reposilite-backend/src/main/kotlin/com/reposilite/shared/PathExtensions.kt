@@ -51,7 +51,7 @@ fun Path.exists(): Result<Path, ErrorResponse> =
 fun Path.type(): FileType =
     if (this.isDirectory()) DIRECTORY else FILE
 
-fun Path.delete(): Result<*, ErrorResponse> =
+fun Path.delete(): Result<Unit, ErrorResponse> =
     catchIOException {
         exists().map { Files.delete(this) }
     }

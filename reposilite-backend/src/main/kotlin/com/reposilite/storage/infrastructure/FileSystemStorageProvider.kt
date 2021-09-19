@@ -32,6 +32,7 @@ import com.reposilite.shared.safeResolve
 import com.reposilite.shared.size
 import com.reposilite.shared.type
 import com.reposilite.storage.StorageProvider
+import com.reposilite.storage.StorageProvider.Companion.DEFAULT_STORAGE_PROVIDER_BUFFER_SIZE
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
 import io.javalin.http.HttpCode.INSUFFICIENT_STORAGE
@@ -80,7 +81,7 @@ internal abstract class FileSystemStorageProvider protected constructor(
                     var rollback = false
 
                     try {
-                        val data = ByteArray(8096)
+                        val data = ByteArray(DEFAULT_STORAGE_PROVIDER_BUFFER_SIZE)
                         var size: Long = 0
                         var read: Int
 
@@ -114,7 +115,7 @@ internal abstract class FileSystemStorageProvider protected constructor(
     override fun getFileDetails(file: Path): Result<out FileDetails, ErrorResponse> =
         toFileDetails(resolved(file))
 
-    override fun removeFile(file: Path): Result<*, ErrorResponse> =
+    override fun removeFile(file: Path): Result<Unit, ErrorResponse> =
         resolved(file).delete()
 
     override fun getFiles(directory: Path): Result<List<Path>, ErrorResponse> =

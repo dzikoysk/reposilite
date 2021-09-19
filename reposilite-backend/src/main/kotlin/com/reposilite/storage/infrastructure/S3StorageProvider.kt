@@ -27,9 +27,9 @@ import com.reposilite.shared.getExtension
 import com.reposilite.shared.getSimpleName
 import com.reposilite.shared.safeResolve
 import com.reposilite.storage.StorageProvider
+import com.reposilite.storage.StorageProvider.Companion.DEFAULT_STORAGE_PROVIDER_BUFFER_SIZE
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
-import com.reposilite.web.http.transferLargeTo
 import io.javalin.http.ContentType
 import io.javalin.http.ContentType.APPLICATION_OCTET_STREAM
 import io.javalin.http.ContentType.Companion.OCTET_STREAM
@@ -85,7 +85,7 @@ internal class S3StorageProvider(
             // ~ https://github.com/aws/aws-sdk-java/issues/474
             // ~ https://github.com/aws/aws-sdk-java-v2/issues/37
             val tempFile = File.createTempFile("reposilite-", "-deploy")
-            inputStream.transferLargeTo(tempFile.outputStream())
+            inputStream.copyTo(tempFile.outputStream(), DEFAULT_STORAGE_PROVIDER_BUFFER_SIZE)
             val contentLength = tempFile.length()
             builder.contentLength(contentLength)
 
@@ -147,11 +147,12 @@ internal class S3StorageProvider(
             files.map { getSimplifiedFileDetails(it) }
         )
 
-    override fun removeFile(file: Path): Result<*, ErrorResponse> =
+    override fun removeFile(file: Path): Result<Unit, ErrorResponse> =
         with(DeleteObjectRequest.builder()) {
             bucket(bucket)
             key(file.toString().replace('\\', '/'))
             s3.deleteObject(build())
+            Unit
         }.asSuccess()
 
     override fun getFiles(directory: Path): Result<List<Path>, ErrorResponse> =

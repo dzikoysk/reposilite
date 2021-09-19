@@ -26,13 +26,17 @@ import java.nio.file.attribute.FileTime
 
 interface StorageProvider {
 
+    companion object {
+        const val DEFAULT_STORAGE_PROVIDER_BUFFER_SIZE = 1024 * 64 // 64kb
+    }
+
     fun putFile(file: Path, inputStream: InputStream): Result<DocumentInfo, ErrorResponse>
 
     fun getFile(file: Path): Result<InputStream, ErrorResponse>
 
     fun getFileDetails(file: Path): Result<out FileDetails, ErrorResponse>
 
-    fun removeFile(file: Path): Result<*, ErrorResponse>
+    fun removeFile(file: Path): Result<Unit, ErrorResponse>
 
     fun getFiles(directory: Path): Result<List<Path>, ErrorResponse>
 

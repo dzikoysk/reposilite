@@ -43,7 +43,7 @@ class Repository internal constructor(
     fun getFileDetails(file: Path): Result<out FileDetails, ErrorResponse> =
         storageProvider.getFileDetails(file)
 
-    fun removeFile(file: Path): Result<*, ErrorResponse> =
+    fun removeFile(file: Path): Result<Unit, ErrorResponse> =
         storageProvider.removeFile(file)
 
     fun getFiles(directory: Path): Result<List<Path>, ErrorResponse> =
