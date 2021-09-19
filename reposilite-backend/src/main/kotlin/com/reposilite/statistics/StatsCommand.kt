@@ -23,7 +23,7 @@ import panda.utilities.console.Effect.RESET
 import picocli.CommandLine.Command
 import picocli.CommandLine.Parameters
 
-private const val DEFAULT_TOP_SIZE = 20
+private const val DEFAULT_TOP_LIMIT = 20
 
 @Command(name = "stats", description = ["Display collected metrics"])
 internal class StatsCommand(private val statisticsFacade: StatisticsFacade) : ReposiliteCommand {
@@ -35,7 +35,7 @@ internal class StatsCommand(private val statisticsFacade: StatisticsFacade) : Re
         context.append("Statistics: ")
         context.append("  Unique requests: " + statisticsFacade.countUniqueRecords() + " (count: " + statisticsFacade.countRecords() + ")")
 
-        val response = statisticsFacade.findRecordsByPhrase(RecordType.REQUEST, filter) // TOFIX: Limiter
+        val response = statisticsFacade.findRecordsByPhrase(RecordType.REQUEST, filter, DEFAULT_TOP_LIMIT) // TOFIX: Limiter
 
         context.append("  Recorded: " + (if (response.count == 0L) "[] " else "") + " (pattern: '${highlight(filter)}')")
         response.records.forEachIndexed { order, record -> context.append("  ${order}. ${record.identifier} (${record.count})") }

@@ -101,9 +101,11 @@ internal class SqlStatisticsRepository(private val dispatcher: CoroutineDispatch
                 .firstAndMap { toRecord(it) }
         }
 
-    override suspend fun findRecordsByPhrase(type: RecordType, phrase: String): List<Record> =
+    override suspend fun findRecordsByPhrase(type: RecordType, phrase: String, limit: Int): List<Record> =
         newSuspendedTransaction(dispatcher, database) {
             StatisticsTable.select { build { StatisticsTable.type eq type.name }.and { StatisticsTable.identifier like "%${phrase}%" }}
+                .orderBy(StatisticsTable.count)
+                .limit(limit)
                 .map { toRecord(it) }
         }
 

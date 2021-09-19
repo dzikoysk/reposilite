@@ -39,7 +39,7 @@ repositories {
     # Supported visibilities: public, hidden, private
     visibility: PUBLIC
     # Does this repository accept redeployment of the same artifact version
-    redeployment: false
+    redeployment: true
     
     # Used storage type. Supported storage providers:
     # > File system (local) provider. Supported flags:

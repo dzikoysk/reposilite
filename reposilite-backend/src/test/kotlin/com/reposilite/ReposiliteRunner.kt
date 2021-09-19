@@ -73,6 +73,7 @@ internal abstract class ReposiliteRunner {
         configuration.repositories["proxied"] = proxiedConfiguration
 
         configuration.repositories.forEach { (repositoryName, repositoryConfiguration) ->
+            repositoryConfiguration.redeployment = true
             repositoryConfiguration.storageProvider = _storageProvider.replace("{repository}", repositoryName)
         }
 

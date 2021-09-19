@@ -266,7 +266,7 @@ class Configuration : Serializable {
     var webThreadPool = 8
 
     @Description(
-        "# IO thread pool handles all tasks that may benefit from non-blocking IO (min: 4)",
+        "# IO thread pool handles all tasks that may benefit from non-blocking IO (min: 2)",
         "# Because most of tasks are redirected to IO thread pool, it might be a good idea to keep it at least equal to web thread pool."
     )
     @JvmField

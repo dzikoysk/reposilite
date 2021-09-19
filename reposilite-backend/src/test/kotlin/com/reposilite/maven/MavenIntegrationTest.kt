@@ -79,23 +79,27 @@ internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
     @Test
     fun `should accept deploy request with valid credentials` () {
         // given: file to upload and valid credentials
-        val (repository, gav, file) = useDocument("releases", "gav", "artifact.jar")
+        val (repository, gav, file) = useDocument("releases", "net/dzikoysk/funnyguilds/plugin/4.10.0", "plugin-4.10.0.jar")
         val (name, secret) = usePredefinedTemporaryAuth()
-        val (content, length) = useFile(file, 101)
 
-        try {
-            // when: client wants to upload artifact
-            val response = put("$base/$repository/$gav/$file")
-                .body(Channels.newInputStream(content.channel).readBytes())
-                .basicAuth(name, secret)
-                .asObject(DocumentInfo::class.java)
+        repeat((reposilite.configuration.ioThreadPool * 2) + 1){ idx ->
+            val (content, length) = useFile(file, 1)
 
-            // then: service properly accepts connection and deploys file
-            assertTrue(response.isSuccess)
-            assertEquals(file, response.body.name)
-            assertEquals(length, response.body.contentLength)
-        } finally {
-            content.channel.close()
+            try {
+                // when: client wants to upload artifact
+                val response = put("$base/$repository/$gav/$file")
+                    .body(Channels.newInputStream(content.channel).readBytes())
+                    .basicAuth(name, secret)
+                    .asObject(DocumentInfo::class.java)
+
+                // then: service properly accepts connection and deploys file
+                println(idx)
+                assertTrue(response.isSuccess)
+                assertEquals(file, response.body.name)
+                assertEquals(length, response.body.contentLength)
+            } finally {
+                content.channel.close()
+            }
         }
     }
 
