@@ -37,6 +37,7 @@ internal object WebServerConfiguration {
 
     internal fun configure(reposilite: Reposilite, webThreadPool: ThreadPool, configuration: Configuration, config: JavalinConfig) {
         val server = Server(webThreadPool)
+        config.asyncRequestTimeout = 1000 * 60L // 1min
         config.server { server }
 
         configureJavalin(config, configuration)

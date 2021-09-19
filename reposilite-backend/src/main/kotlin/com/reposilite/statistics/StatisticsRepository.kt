@@ -28,7 +28,7 @@ internal interface StatisticsRepository {
 
     suspend fun findRecordByTypeAndIdentifier(record: RecordIdentifier): Record?
 
-    suspend fun findRecordsByPhrase(type: RecordType, phrase: String): List<Record>
+    suspend fun findRecordsByPhrase(type: RecordType, phrase: String, limit: Int): List<Record>
 
     suspend fun countUniqueRecords(): Long
 

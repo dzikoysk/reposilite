@@ -46,13 +46,13 @@ class StatisticsFacade internal constructor(
             logger.debug("Statistics | Saved bulk with ${it.size} records")
         }
 
-    suspend fun findRecordsByPhrase(type: String, phrase: String): Result<RecordCountResponse, ErrorResponse> =
+    suspend fun findRecordsByPhrase(type: String, phrase: String, limit: Int = Int.MAX_VALUE): Result<RecordCountResponse, ErrorResponse> =
         findRecordTypeByName(type)
-            ?.let { findRecordsByPhrase(it, phrase).asSuccess() }
+            ?.let { findRecordsByPhrase(it, phrase, limit).asSuccess() }
             ?: errorResponse(BAD_REQUEST, "Unknown record type $type}")
 
-    suspend fun findRecordsByPhrase(type: RecordType, phrase: String): RecordCountResponse =
-        statisticsRepository.findRecordsByPhrase(type, phrase)
+    suspend fun findRecordsByPhrase(type: RecordType, phrase: String, limit: Int = Int.MAX_VALUE): RecordCountResponse =
+        statisticsRepository.findRecordsByPhrase(type, phrase, limit)
             .let { RecordCountResponse(it.sumOf(Record::count), it) }
 
     suspend fun countUniqueRecords(): Long =

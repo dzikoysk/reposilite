@@ -96,7 +96,7 @@ class MavenFacade internal constructor(
         }
 
         return repository.putFile(path, deployRequest.content)
-            .peek { logger.info("DEPLOY Artifact successfully deployed $path by ${deployRequest.by}") }
+            .peek { logger.info("DEPLOY | Artifact $path successfully deployed to ${repository.name} by ${deployRequest.by}") }
     }
 
     fun deleteFile(deleteRequest: DeleteRequest): Result<Unit, ErrorResponse> {

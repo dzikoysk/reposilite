@@ -47,10 +47,13 @@ internal class InMemoryStatisticsRepository : StatisticsRepository {
     override suspend fun findRecordByTypeAndIdentifier(record: RecordIdentifier): Record? =
         records.values.firstOrNull { it.type == record.type && it.identifier == record.identifier }
 
-    override suspend fun findRecordsByPhrase(type: RecordType, phrase: String): List<Record> =
-        records.values
+    override suspend fun findRecordsByPhrase(type: RecordType, phrase: String, limit: Int): List<Record> =
+        records.values.asSequence()
             .filter { it.type == type }
             .filter { it.identifier.contains(phrase) }
+            .take(limit)
+            .sortedBy { it.count }
+            .toList()
 
     override suspend fun countRecords(): Long =
         records
