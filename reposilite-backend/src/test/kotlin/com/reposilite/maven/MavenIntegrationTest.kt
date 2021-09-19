@@ -81,12 +81,12 @@ internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
         // given: file to upload and valid credentials
         val (repository, gav, file) = useDocument("releases", "gav", "artifact.jar")
         val (name, secret) = usePredefinedTemporaryAuth()
-        val (content, length) = useFile(file, 128)
+        val (content, length) = useFile(file, 101)
 
         try {
             // when: client wants to upload artifact
             val response = put("$base/$repository/$gav/$file")
-                .body(Channels.newInputStream(content.channel))
+                .body(Channels.newInputStream(content.channel).readBytes())
                 .basicAuth(name, secret)
                 .asObject(DocumentInfo::class.java)
 

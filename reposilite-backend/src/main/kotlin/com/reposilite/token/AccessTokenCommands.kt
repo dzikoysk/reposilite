@@ -22,6 +22,7 @@ import com.reposilite.console.api.ReposiliteCommand
 import com.reposilite.token.api.AccessTokenPermission
 import com.reposilite.token.api.CreateAccessTokenRequest
 import picocli.CommandLine.Command
+import picocli.CommandLine.Option
 import picocli.CommandLine.Parameters
 
 @Command(name = "tokens", description = ["List all generated tokens"])
@@ -48,6 +49,9 @@ internal class TokensCommand(private val accessTokenFacade: AccessTokenFacade) :
 @Command(name = "token-generate", description = ["Generate a new access token"])
 internal class KeygenCommand(private val accessTokenFacade: AccessTokenFacade) : ReposiliteCommand {
 
+    @Option(names = ["--secret", "-s"], description = ["Override generated token with custom secret"])
+    var secret: String? = null
+
     @Parameters(index = "0", paramLabel = "<name>", description = ["Access token name"])
     private lateinit var name: String
 
@@ -58,15 +62,16 @@ internal class KeygenCommand(private val accessTokenFacade: AccessTokenFacade) :
     private lateinit var permissions: String
 
     override suspend fun execute(context: CommandContext) {
-        val token = accessTokenFacade.createAccessToken(CreateAccessTokenRequest(
+        val response = accessTokenFacade.createAccessToken(CreateAccessTokenRequest(
             name,
+            secret,
             permissions = permissions.toCharArray()
                 .map { AccessTokenPermission.findAccessTokenPermissionByShortcut(it.toString()) }
                 .toSet()
         ))
 
         context.append("Generated new access token for $name with '$permissions' permissions. Secret:")
-        context.append(token.secret)
+        context.append(response.secret)
     }
 
 }

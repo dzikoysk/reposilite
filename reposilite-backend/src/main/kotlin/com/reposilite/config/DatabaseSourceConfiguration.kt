@@ -23,7 +23,7 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.transactions.TransactionManager
 import java.io.File
 import java.nio.file.Path
-import java.sql.Connection
+import java.sql.Connection.TRANSACTION_SERIALIZABLE
 
 object DatabaseSourceConfiguration {
 
@@ -41,7 +41,7 @@ object DatabaseSourceConfiguration {
                         Database.connect("jdbc:sqlite:${workingDirectory.resolve(settings.fileName)}", "org.sqlite.JDBC")
                     }
 
-                TransactionManager.manager.defaultIsolationLevel = Connection.TRANSACTION_SERIALIZABLE
+                TransactionManager.manager.defaultIsolationLevel = TRANSACTION_SERIALIZABLE
                 database
             }
             databaseConfiguration.startsWith("mysql") -> {
@@ -49,7 +49,7 @@ object DatabaseSourceConfiguration {
 
                 Database.connect(
                     url = "jdbc:mysql://${settings.host}/${settings.database}",
-                    driver = "com.mysql.jdbc.Driver",
+                    driver = "com.mysql.cj.jdbc.Driver",
                     user = settings.user,
                     password = settings.password
                 )
