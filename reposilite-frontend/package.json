@@ -26,7 +26,7 @@
     "vue3-tabs": "^0.1.12"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^1.6.2",
+    "@vitejs/plugin-vue": "^1.8.1",
     "@vue/compiler-sfc": "^3.2.12",
     "concurrently": "^6.2.1",
     "express": "^4.17.1",
