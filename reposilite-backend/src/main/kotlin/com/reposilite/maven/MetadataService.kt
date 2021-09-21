@@ -55,7 +55,7 @@ internal class MetadataService(
         repository.getFileDetails(gav.toPath().safeResolve(METADATA_FILE))
             .filter({ it is DocumentInfo }, { ErrorResponse(NOT_ACCEPTABLE, "Maven metadata file cannot be directory") })
             .map { it as DocumentInfo }
-            .map { xml.readValue<Metadata>(it.content()) }
+            .map { xml.readValue<Metadata>(it.content()) } // closes input automatically
             .map { it.versioning?.versions ?: emptyList() }
             .map { VersionComparator.sortStrings(it) }
 

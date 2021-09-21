@@ -35,6 +35,7 @@ import com.reposilite.storage.StorageProvider
 import com.reposilite.storage.StorageProvider.Companion.DEFAULT_STORAGE_PROVIDER_BUFFER_SIZE
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
+import com.reposilite.web.silentClose
 import io.javalin.http.HttpCode.INSUFFICIENT_STORAGE
 import panda.std.Result
 import java.io.InputStream
@@ -97,12 +98,10 @@ internal abstract class FileSystemStorageProvider protected constructor(
                         }
 
                     } finally {
+                        inputStream.silentClose()
                         lock.release()
-                        fileChannel.close()
-
-                        if (rollback) {
-                            file.delete()
-                        }
+                        fileChannel.silentClose()
+                        file.takeIf { rollback }?.delete()
                     }
 
                     toDocumentInfo(file)
