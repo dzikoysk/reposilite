@@ -22,6 +22,7 @@ export default function useRepository() {
 
   const createRepositories = (qualifier) => {
     const repository = computed(() => qualifier.path.split('/')[0])
+    const repoId = id + (qualifier.path ? `-${repository.value}` : '')
     const domain = location.protocol + '//' + location.host + (qualifier.path ? `/${repository.value}` : '/{repository}')
 
     return [
@@ -30,7 +31,7 @@ export default function useRepository() {
         lang: 'xml',
           snippet: `
 <repository>
-  <id>${id}</id>
+  <id>${repoId}</id>
   <name>${title}</name>
   <url>${domain}</url>
 </repository>
@@ -49,7 +50,7 @@ export default function useRepository() {
     {
       name: 'SBT',
         lang: 'scala',
-          snippet: `resolvers += "${id}" at "${domain}"`
+          snippet: `resolvers += "${repoId}" at "${domain}"`
     }
     ]
   }
