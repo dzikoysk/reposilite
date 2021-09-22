@@ -16,6 +16,8 @@
 package com.reposilite.maven.api
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.reposilite.maven.FilesComparator
+import com.reposilite.maven.VersionComparator.Companion.asVersion
 import com.reposilite.shared.FileType
 import com.reposilite.shared.FileType.DIRECTORY
 import com.reposilite.shared.FileType.FILE
@@ -33,7 +35,7 @@ import java.io.IOException
 import java.io.InputStream
 import java.nio.file.Files
 import java.nio.file.Path
-import java.util.stream.Collectors
+import kotlin.streams.asSequence
 
 sealed class FileDetails(
     val type: FileType,
@@ -96,9 +98,10 @@ private fun toDirectoryInfo(directory: Path): Result<DirectoryInfo, ErrorRespons
     catchIOException {
         DirectoryInfo(
             directory.getSimpleName(),
-            Files.list(directory)
+            Files.list(directory).asSequence()
                 .map { toSimpleFileDetails(it).orElseThrow { error -> IOException(error.message) } }
-                .collect(Collectors.toList())
+                .sortedWith(FilesComparator({ asVersion(it.name) }, { it.type == DIRECTORY }))
+                .toList()
         ).asSuccess()
     }
 

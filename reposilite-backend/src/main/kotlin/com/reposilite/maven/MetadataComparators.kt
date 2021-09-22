@@ -41,16 +41,21 @@ internal open class VersionComparator<T>(
 ) : Comparator<T> {
 
     companion object {
-        internal val DEFAULT_VERSION_PATTERN = Pattern.compile("[-._]")
+
+        private val DEFAULT_VERSION_PATTERN = Pattern.compile("[-._]")
+
+        fun asVersion(value: String): Array<String> =
+            DEFAULT_VERSION_PATTERN.split(value)
 
         fun sortStrings(collection: Collection<String>): List<String> =
             sortWithCache(collection, Function.identity())
 
         private fun <T> sortWithCache(collection: Collection<T>, nameMapper: Function<T, String>): List<T> =
             collection
-                .map { Pair(it, DEFAULT_VERSION_PATTERN.split(nameMapper.apply(it))) }
+                .map { Pair(it, asVersion(nameMapper.apply(it))) }
                 .sortedWith(VersionComparator { cache -> cache.second })
                 .map { it.first }
+
     }
 
     override fun compare(version: T, toVersion: T): Int =

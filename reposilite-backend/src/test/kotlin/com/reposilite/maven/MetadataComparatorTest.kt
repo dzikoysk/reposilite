@@ -16,45 +16,42 @@
 
 package com.reposilite.maven
 
+import com.reposilite.maven.specification.MetadataComparatorSpecification
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
-internal class MetadataComparatorTest {
-
-    private data class FileInfo(
-        val name: String,
-        val isDirectory: Boolean
-    )
-
-    private val comparator = FilesComparator<FileInfo>(
-        { file -> VersionComparator.DEFAULT_VERSION_PATTERN.split(file.name) },
-        { it.isDirectory }
-    )
+internal class MetadataComparatorTest : MetadataComparatorSpecification() {
 
     @Test
     fun `should sort versions in ascending order`() {
         // given: an unordered list of files
         val files = listOf(
-            FileInfo("Reposilite", false),
-            FileInfo("1.0.3", false),
-            FileInfo("1.0.3", true),
-            FileInfo("1.0.2", true),
-            FileInfo("1.0.1", true)
+            file("Apposite"),
+            file("Lolita"),
+            directory("Reposilite"),
+            directory("Zeolite"),
+            file("1.0.3"),
+            file("1.0.2"),
+            directory("1.0.2"),
+            directory("1.0.1")
         )
 
         // when: an unordered list is sorted
-        val result = files.sortedWith(comparator)
+        val sortedResult = files.sortedWith(filesComparator)
 
         // then: sorted list matches expected rules
         assertEquals(
             listOf(
-                FileInfo("1.0.1", true),
-                FileInfo("1.0.2", true),
-                FileInfo("1.0.3", true),
-                FileInfo("1.0.3", false),
-                FileInfo("Reposilite", false)
+                directory("1.0.1"),
+                directory("1.0.2"),
+                directory("Reposilite"),
+                directory("Zeolite"),
+                file("1.0.2"),
+                file("1.0.3"),
+                file("Apposite"),
+                file("Lolita"),
             ),
-            result
+            sortedResult
         )
     }
 
