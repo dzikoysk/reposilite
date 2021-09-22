@@ -82,7 +82,8 @@ dependencies {
 
     //val javalin = "4.0.0.RC3"
     // implementation("io.javalin:javalin:$javalin")
-    implementation("com.github.tipsy.javalin:javalin:-SNAPSHOT")
+    // implementation("com.github.tipsy.javalin:javalin:-SNAPSHOT")
+    implementation("com.github.dzikoysk.javalin:javalin:b8a6641c81")
 
     @Suppress("GradlePackageUpdate")
     implementation("org.eclipse.jetty:jetty-server:9.4.43.v20210629")
