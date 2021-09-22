@@ -16,28 +16,31 @@
 
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- Reposilite Description -->
-    <title>{{REPOSILITE.TITLE}}</title>
-    <meta name="description" content="{{REPOSILITE.DESCRIPTION}}">
-    <!-- Twitter -->
-    <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="{{REPOSILITE.TITLE}}">
-    <meta name="twitter:description" content="{{REPOSILITE.DESCRIPTION}}">
-    <!-- OpenGraph -->
-    <meta property="og:title" content="{{REPOSILITE.TITLE}}">
-    <meta property="og:site_name" content="{{REPOSILITE.TITLE}}">
-    <meta property="og:type" content="website">
-    <meta property="og:description" content="{{REPOSILITE.DESCRIPTION}}">
-    <script type="module" crossorigin src="/assets/index.f688a2ff.js"></script>
-    <link rel="modulepreload" href="/assets/vendor.f618f56f.js">
-    <link rel="stylesheet" href="/assets/index.b132e526.css">
-  </head>
-  <body>
-    <div id="app"></div>
-    
-  </body>
+    <head>
+        <meta charset="utf-8">
+        <title>{{REPOSILITE.TITLE}}</title>
+        <style>
+            html, body {
+                padding: 0;
+                margin: 0;
+                width: 100%;
+                height: 100%;
+                background-color: #0f0f0f;
+            }
+            body {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                text-align: center;
+                color: white;
+                font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+            }
+        </style>
+    </head>
+    <body>
+        <main>
+            <h1>{{REPOSILITE.TITLE}}</h1>
+            <p>~ {{REPOSILITE.DESCRIPTION}} ~</p>
+        </main>
+    </body>
 </html>

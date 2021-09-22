@@ -52,7 +52,7 @@ internal sealed class FrontendHandler(protected val frontendFacade: FrontendFaca
 
 }
 
-internal class ResourcesFrontendHandler(frontendFacade: FrontendFacade) : FrontendHandler(frontendFacade) {
+internal class ResourcesFrontendHandler(frontendFacade: FrontendFacade, val resourcesDirectory: String) : FrontendHandler(frontendFacade) {
 
     private val defaultHandler = ReposiliteRoute("/", GET) {
         response = respondWithResource(ctx, "index.html")
@@ -67,7 +67,7 @@ internal class ResourcesFrontendHandler(frontendFacade: FrontendFacade) : Fronte
     }
 
     private fun respondWithResource(ctx: Context, uri: String): Result<String, ErrorResponse> =
-        respondWithFile(ctx, uri, { FrontendFacade::class.java.getResourceAsStream("/static/$uri")?.readBytes()?.decodeToString() })
+        respondWithFile(ctx, uri, { FrontendFacade::class.java.getResourceAsStream("/$resourcesDirectory/$uri")?.readBytes()?.decodeToString() })
 
     override val routes =
         setOf(defaultHandler, indexHandler, assetsHandler)
