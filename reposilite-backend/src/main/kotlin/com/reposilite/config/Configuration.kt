@@ -83,10 +83,6 @@ class Configuration : Serializable {
     // @Description("# Run Reposilite using Jakarta Servlet server (not supported yet)")
     // public boolean servlet = false;
 
-    @Description("# Custom base path")
-    @JvmField
-    var basePath = "/"
-
     @Description("", "# Repository id used in Maven repository configuration")
     @JvmField
     var id = "reposilite-repository"
@@ -115,6 +111,18 @@ class Configuration : Serializable {
     @JvmField
     var icpLicense = ""
 
+    @Description("# Enable default frontend with dashboard")
+    @JvmField
+    var frontend = true
+
+    @Description("# Custom base path")
+    @JvmField
+    var basePath = "/"
+
+    @Description("# Keep processed frontend files in memory to improve response time")
+    @JvmField
+    var cacheContent = true
+
     @Description("# Enable Swagger (/swagger-docs) and Swagger UI (/swagger)")
     @JvmField
     var swagger = false
@@ -128,7 +136,7 @@ class Configuration : Serializable {
         "# Tu mark repository as private, add the \"--private\" flag"
     )
     @JvmField
-    var repositories = mutableMapOf<String, RepositoryConfiguration>(
+    var repositories = mutableMapOf(
         "releases" to RepositoryConfiguration(),
         "snapshots" to RepositoryConfiguration(),
         "private" to RepositoryConfiguration().also { it.visibility = PRIVATE }
@@ -272,15 +280,11 @@ class Configuration : Serializable {
     @JvmField
     var ioThreadPool = 16
 
+    /* Logging */
+
     @Description("# Amount of messages stored in cached logger.")
     @JvmField
     var cachedLogSize = 100
-
-    @Description("# Keep processed files in memory to improve response time")
-    @JvmField
-    var cacheContent = true
-
-    /* Logging */
 
     @Description(
         "# Any kind of proxy services change real ip.",

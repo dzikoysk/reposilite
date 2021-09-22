@@ -11,8 +11,6 @@ port: 80
 # - sqlite --temporary
 # - mysql localhost:3306 database user password
 database: sqlite --temporary reposilite.db
-# Custom base path
-basePath: /
 
 # Repository id used in Maven repository configuration
 id: reposilite-repository
@@ -28,6 +26,12 @@ organizationLogo: https://avatars.githubusercontent.com/u/88636591
 # Web services in China require ICP license, a permit issued by the Chinese government to permit China-based websites to operate in China.
 # In order to fulfill the conditions, you should apply for ICP license from your service provider and fill in this parameter.
 icpLicense: ""
+# Enable default frontend with dashboard
+frontend: true
+# Custom base path
+basePath: /
+# Keep processed frontend files in memory to improve response time
+cacheContent: true
 # Enable Swagger (/swagger-docs) and Swagger UI (/swagger)
 swagger: true
 
@@ -150,8 +154,6 @@ webThreadPool: 8
 ioThreadPool: 16
 # Amount of messages stored in cached logger.
 cachedLogSize: 100
-# Keep processed files in memory to improve response time
-cacheContent: true
 # Any kind of proxy services change real ip.
 # The origin ip should be available in one of the headers.
 # Nginx: X-Forwarded-For

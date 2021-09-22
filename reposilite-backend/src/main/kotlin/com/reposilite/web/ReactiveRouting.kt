@@ -68,11 +68,12 @@ fun createReactiveRouting(reposilite: Reposilite, dispatcher: CoroutineDispatche
         }
     )
 
-    reposilite.webs.forEach { web ->
-        web.routing(reposilite).forEach {
-            plugin.registerRoutes(it)
-        }
-    }
+    reposilite.webs.asSequence()
+        .flatMap { it.routing(reposilite) }
+        .flatMap { it.routes }
+        .distinctBy { it.methods.joinToString(";") + ":" + it.path }
+        .toSet()
+        .let { plugin.registerRoutes(it) }
 
     return plugin
 }

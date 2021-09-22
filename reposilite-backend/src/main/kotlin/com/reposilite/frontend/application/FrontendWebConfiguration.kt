@@ -21,16 +21,18 @@ import com.reposilite.config.Configuration
 import com.reposilite.frontend.FrontendFacade
 import com.reposilite.frontend.infrastructure.CustomFrontendHandler
 import com.reposilite.frontend.infrastructure.ResourcesFrontendHandler
-import com.reposilite.shared.safeResolve
 import com.reposilite.web.ReposiliteRoutes
 import com.reposilite.web.WebConfiguration
 import io.javalin.Javalin
 import io.javalin.http.NotFoundResponse
+import java.nio.file.Files
+import java.nio.file.Path
 import kotlin.io.path.exists
 
 internal object FrontendWebConfiguration : WebConfiguration {
 
-    private const val CUSTOM_FRONTEND_DIRECTORY = "frontend"
+    private const val STATIC_DIRECTORY = "static"
+    private const val FRONTEND_DIRECTORY = "reposilite-frontend"
 
     fun createFacade(configuration: Configuration): FrontendFacade =
         FrontendFacade(
@@ -44,19 +46,29 @@ internal object FrontendWebConfiguration : WebConfiguration {
             configuration.cacheContent
         )
 
-    override fun routing(reposilite: Reposilite): Set<ReposiliteRoutes> =
-        setOf(
-            with(reposilite.parameters.workingDirectory.safeResolve(CUSTOM_FRONTEND_DIRECTORY)) {
-                if (exists())
-                    CustomFrontendHandler(reposilite.frontendFacade, this)
-                else
-                    ResourcesFrontendHandler(reposilite.frontendFacade)
+    override fun initialize(reposilite: Reposilite) {
+        with (staticDirectory(reposilite)) {
+            if (exists().not()) {
+                Files.createDirectory(this)
+                Files.copy(Reposilite::class.java.getResourceAsStream("/$STATIC_DIRECTORY/index.html")!!, resolve("index.html"))
             }
-        )
+        }
+    }
+
+    override fun routing(reposilite: Reposilite): Set<ReposiliteRoutes> = mutableSetOf<ReposiliteRoutes>().also {
+        if (reposilite.configuration.frontend) {
+            it.add(ResourcesFrontendHandler(reposilite.frontendFacade, FRONTEND_DIRECTORY))
+        }
+
+        it.add(CustomFrontendHandler(reposilite.frontendFacade, staticDirectory(reposilite)))
+    }
 
     override fun javalin(reposilite: Reposilite, javalin: Javalin) {
         javalin.exception(NotFoundResponse::class.java, NotFoundHandler(reposilite.frontendFacade))
         javalin.error(404, NotFoundHandler(reposilite.frontendFacade))
     }
+
+    private fun staticDirectory(reposilite: Reposilite): Path =
+        reposilite.parameters.workingDirectory.resolve(STATIC_DIRECTORY)
 
 }
