@@ -44,7 +44,7 @@ It is a simple and scaling self-hosted solution to replace managers like Nexus, 
  <br>
  <br>
  <strong>
-  ⛔ Main sources reffers to the alpha version of Reposilite 3.x that is under heavy development.
+  ⛔ Main sources refers to the alpha version of Reposilite 3.x that is under heavy development.
   <br>
   If you're looking for docs and sources of Reposilite 2.x, visit 2.x branch: <a href="https://github.com/dzikoysk/reposilite/tree/2.x">Reposilite 2.x</a>
  </strong>
