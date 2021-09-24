@@ -28,6 +28,7 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.Op.Companion.build
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SchemaUtils
+import org.jetbrains.exposed.sql.SortOrder.DESC
 import org.jetbrains.exposed.sql.SqlExpressionBuilder
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.and
@@ -104,8 +105,8 @@ internal class SqlStatisticsRepository(private val dispatcher: CoroutineDispatch
     override suspend fun findRecordsByPhrase(type: RecordType, phrase: String, limit: Int): List<Record> =
         newSuspendedTransaction(dispatcher, database) {
             StatisticsTable.select { build { StatisticsTable.type eq type.name }.and { StatisticsTable.identifier like "%${phrase}%" }}
-                .orderBy(StatisticsTable.count)
                 .limit(limit)
+                .orderBy(StatisticsTable.count, order = DESC)
                 .map { toRecord(it) }
         }
 

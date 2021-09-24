@@ -10,7 +10,7 @@ port: 80
 # - sqlite reposilite.db
 # - sqlite --temporary
 # - mysql localhost:3306 database user password
-database: sqlite --temporary reposilite.db
+database: sqlite reposilite.db
 
 # Repository id used in Maven repository configuration
 id: reposilite-repository
