@@ -10,8 +10,8 @@ services:
     env_file:
       - .env
     environment:
-      - JAVA_OPTS=-Xmx${MEMORY} -Dreposilite.port=${PORT} ${JAVA_COMPOSE_OPTS}
-      - REPOSILITE_OPTS=${REPOSILITE_COMPOSE_OPTS}
+      - JAVA_OPTS=-Xmx${MEMORY} ${JAVA_COMPOSE_OPTS}
+      - REPOSILITE_OPTS=--port ${PORT} ${REPOSILITE_COMPOSE_OPTS}
     volumes:
       - reposilite-data:/app/data
     restart: unless-stopped

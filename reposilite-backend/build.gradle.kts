@@ -18,28 +18,21 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 
+group = "org.panda-lang"
+version = "3.0.0-alpha.1"
+
 plugins {
     `java-library`
-    kotlin("jvm")
-    kotlin("kapt")
+    kotlin("jvm") version "1.5.21"
+    kotlin("kapt") version "1.5.21"
     id("com.github.johnrengelman.shadow") version "7.0.0"
+    `maven-publish`
     application
     jacoco
 }
 
 application {
     mainClass.set("com.reposilite.ReposiliteLauncherKt")
-}
-
-publishing {
-    publications {
-        create<MavenPublication>("library") {
-            groupId = "org.panda-lang"
-            artifactId = "reposilite"
-            shadow.component(this)
-            from(components.getByName("java"))
-        }
-    }
 }
 
 dependencies {
@@ -137,6 +130,33 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junit")
 }
 
+repositories {
+    mavenCentral()
+    maven { url = uri("https://repo.panda-lang.org/releases") }
+    maven { url = uri("https://s01.oss.sonatype.org/content/repositories/releases/") }
+    maven { url = uri("https://jitpack.io") }
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("library") {
+            artifactId = "reposilite"
+            shadow.component(this)
+            from(components.getByName("java"))
+        }
+    }
+    repositories {
+        maven {
+            credentials {
+                username = property("mavenUser") as String
+                password = property("mavenPassword") as String
+            }
+            name = "panda-repository"
+            url = uri("https://repo.panda-lang.org/releases")
+        }
+    }
+}
+
 tasks.withType<ShadowJar> {
     archiveFileName.set("reposilite-${archiveVersion.get()}.jar")
     mergeServiceFiles()
@@ -223,7 +243,7 @@ tasks.jacocoTestReport {
         html.required.set(false)
         csv.required.set(false)
         xml.required.set(true)
-        xml.outputLocation.set(file("../build/reports/jacoco/reposilite-backend-report.xml"))
+        xml.outputLocation.set(file("./build/reports/jacoco/reposilite-backend-report.xml"))
     }
 
     finalizedBy("jacocoTestCoverageVerification")
