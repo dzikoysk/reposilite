@@ -1,0 +1,15 @@
+name: Feature Request
+description: Request a new feature or an enhancement to the existing one
+labels: ["feature"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this form :)
+  - type: textarea
+    id: request-details
+    attributes:
+      label: Request details
+      description: Try to precisly explain your request and how it may improve Reposilite
+    validations:
+      required: true
