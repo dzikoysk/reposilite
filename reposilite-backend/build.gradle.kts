@@ -35,6 +35,13 @@ application {
     mainClass.set("com.reposilite.ReposiliteLauncherKt")
 }
 
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+    withJavadocJar()
+    withSourcesJar()
+}
+
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect:1.5.21")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.5.21")
@@ -47,7 +54,7 @@ dependencies {
     testImplementation("org.panda-lang:expressible-junit:$expressible")
 
     val awssdk = "2.17.45"
-    implementation("software.amazon.awssdk:bom:$awssdk")
+    implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
 
     val exposed = "0.35.1"
@@ -137,14 +144,8 @@ repositories {
     maven { url = uri("https://jitpack.io") }
 }
 
+
 publishing {
-    publications {
-        create<MavenPublication>("library") {
-            artifactId = "reposilite"
-            shadow.component(this)
-            from(components.getByName("java"))
-        }
-    }
     repositories {
         maven {
             credentials {
@@ -153,6 +154,24 @@ publishing {
             }
             name = "panda-repository"
             url = uri("https://repo.panda-lang.org/releases")
+        }
+    }
+    publications {
+        create<MavenPublication>("library") {
+            from(components.getByName("java"))
+            artifactId = "reposilite"
+            // Gradle generator does not support <repositories> section from Maven specification.
+            // ~ https://github.com/gradle/gradle/issues/15932
+            pom.withXml {
+                val repositories = asNode().appendNode("repositories")
+                project.repositories.findAll(closureOf<Any> {
+                    if (this is MavenArtifactRepository && this.url.toString().startsWith("https")) {
+                        val repository = repositories.appendNode("repository")
+                        repository.appendNode("id", this.name)
+                        repository.appendNode("url", this.url.toString())
+                    }
+                })
+            }
         }
     }
 }
@@ -176,13 +195,6 @@ tasks.withType<ShadowJar> {
         exclude(dependency("org.slf4j:.*"))
         exclude(dependency("software.amazon.awssdk:.*"))
     }
-}
-
-java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
-    withJavadocJar()
-    withSourcesJar()
 }
 
 kapt {
