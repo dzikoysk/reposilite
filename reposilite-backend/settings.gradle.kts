@@ -14,6 +14,4 @@
  * limitations under the License.
  */
 
-rootProject.name = "reposilite-parent"
-
-include("reposilite-backend")
+rootProject.name = "reposilite-backend"

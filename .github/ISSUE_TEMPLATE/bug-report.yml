@@ -1,11 +1,7 @@
 name: Bug Report
-description: File a bug report
+description: Report a bug or a problem you've found in Reposilite
 labels: ["bug"]
 body:
-  - type: markdown
-    attributes:
-      value: |
-        Thanks for taking the time to fill out this bug report :)
   - type: textarea
     id: what-happened
     attributes:
@@ -17,6 +13,7 @@ body:
     id: version
     attributes:
       label: Reposilite version
+      description: Remember that Reposilite 2.x may receive only major security updates, because the currently developed version is 3.x
       options:
         - 3.x
         - 2.x
