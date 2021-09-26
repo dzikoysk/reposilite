@@ -19,7 +19,7 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 group = "org.panda-lang"
-version = "3.0.0-alpha.1"
+version = "3.0.0-alpha.1-SNAPSHOT"
 
 plugins {
     `java-library`
@@ -153,7 +153,7 @@ publishing {
                 password = property("mavenPassword") as String
             }
             name = "panda-repository"
-            url = uri("https://repo.panda-lang.org/releases")
+            url = uri("https://repo.panda-lang.org/${if (version.toString().endsWith("-SNAPSHOT")) "snapshots" else "releases"}")
         }
     }
     publications {

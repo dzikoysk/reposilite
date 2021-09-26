@@ -37,7 +37,7 @@ import panda.utilities.console.Effect
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.atomic.AtomicBoolean
 
-const val VERSION = "3.0.0-alpha.1"
+const val VERSION = "3.0.0-alpha.1-SNAPSHOT"
 
 class Reposilite(
     val journalist: ReposiliteJournalist,
