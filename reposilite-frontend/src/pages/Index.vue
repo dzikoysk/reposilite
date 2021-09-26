@@ -16,7 +16,7 @@
 
 <template>
   <div>
-    <Header/>
+    <Header :token="token" />
     <div class="bg-gray-100 dark:bg-black">
       <div class="container mx-auto">
         <tabs v-model="selectedTab.value">
@@ -34,7 +34,7 @@
       <div class="overflow-auto">
         <tab-panels v-model="selectedTab.value" :animate="true">
           <tab-panel :val="'Overview'">
-            <Browser :qualifier="qualifier" :session="session" ref=""/>
+            <Browser :qualifier="qualifier" :token="token" ref=""/>
           </tab-panel>
           <tab-panel :val="'Endpoints'">
             <Endpoints/>
@@ -63,6 +63,10 @@ export default {
       type: Object,
       required: true
     },
+    token: {
+      type: Object,
+      required: true
+    },
     session: {
       type: Object,
       required: true
@@ -70,6 +74,7 @@ export default {
   },
   setup(props) {
     const qualifier = props.qualifier
+    const token = props.token
     const session = props.session
     const { isManager } = useSession()
 
@@ -87,7 +92,7 @@ export default {
 
     const menuTabs = computed(() =>
       tabs
-        .filter(entry => !entry?.manager || isManager(session.tokenInfo))
+        .filter(entry => !entry?.manager || isManager(session.details))
         .map(entry => entry.name)
     )
 
@@ -95,7 +100,7 @@ export default {
 
     return {
       qualifier,
-      session,
+      token,
       isManager,
       menuTabs,
       consoleEnabled,

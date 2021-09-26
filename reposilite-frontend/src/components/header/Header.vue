@@ -20,7 +20,7 @@
       <h1 class="text-xl font-medium py-1">
         <router-link :to="'/'">{{ title }}</router-link>
       </h1>
-      <Menu class="mt-0.5"/>
+      <Menu :token="token" class="mt-0.5"/>
     </div>
     <Hero class="pt-2 pb-11" />
   </header>
@@ -33,10 +33,18 @@ import Menu from './Menu.vue'
 
 export default {
   components: { Hero, Menu },
-  setup() {
+  props: {
+    token: {
+      type: Object,
+      required: true
+    }
+  },
+  setup(props) {
+    const token = props.token
     const { title } = usePlaceholders()
 
     return {
+      token,
       title
     }
   }

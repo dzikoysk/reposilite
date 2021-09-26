@@ -46,14 +46,12 @@ import { VueFinalModal, ModalsContainer } from 'vue-final-modal'
 import { createToast } from 'mosha-vue-toastify'
 import 'mosha-vue-toastify/dist/style.css'
 import useSession from '../../store/session'
-import { createClient } from '../../store/client'
 
 export default {
   inheritAttrs: false,
   components: { VueFinalModal, ModalsContainer },
   setup() {
     const { login } = useSession()
-    const { client } = createClient()
     const showLogin = ref(false)
     const name = ref('')
     const secret = ref('')

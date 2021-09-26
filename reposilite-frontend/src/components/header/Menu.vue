@@ -16,18 +16,18 @@
 
 <template>
   <nav class="flex flex-row">
-    <div v-if="isLogged()" class="pt-1.1 px-2">
+    <div v-if="logged" class="pt-1.1 px-2">
       Welcome 
       <span class="font-bold underline">{{ token.name }}</span>
     </div>
     <LoginModal>
       <template v-slot:button>
-      <MenuButton v-if="!isLogged()">
+      <MenuButton v-if="!logged">
         Sign in
       </MenuButton>
       </template>
     </LoginModal>
-    <MenuButton v-if="isLogged()" @click="signout()">
+    <MenuButton v-if="logged" @click="signout()">
       Logout
     </MenuButton>
     <div class="pl-2 pt-1.3 cursor-pointer rounded-full bg-white dark:bg-gray-900" @click="toggleTheme()">
@@ -38,7 +38,7 @@
 </template>
 
 <script>
-import { ref } from 'vue'
+import { computed } from 'vue'
 import MenuButton from './MenuButton.vue'
 import LoginModal from './LoginModal.vue'
 import MoonIcon from '../icons/MoonIcon.vue'
@@ -49,18 +49,26 @@ import usePlaceholders from '../../store/placeholders'
 
 export default {
   components: { MenuButton, LoginModal, MoonIcon, SunIcon },
-  setup() {
-    const { token, isLogged, logout } = useSession()
-    const signout = () => logout()
-
+  props: {
+    token: {
+      type: Object,
+      required: true
+    }
+  },
+  setup(props) {
     const { theme, toggleTheme } = useTheme()
     const { title } = usePlaceholders()
 
+    const { isLogged, logout } = useSession()
+    const token = props.token
+    const logged = computed(() => isLogged(token))
+    const signout = () => logout()
+
     return {
-      isLogged,
-      signout,
       token,
       title,
+      logged,
+      signout,
       theme,
       toggleTheme,
     }

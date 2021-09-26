@@ -19,6 +19,7 @@
     <router-view 
       class="min-h-screen dark:bg-black dark:text-white"
       :qualifier="qualifier"
+      :token="token"
       :session="session"
     />
     <div v-if="icpLicense" class="absolute bottom-4 w-full text-center text-xs">
@@ -28,7 +29,7 @@
 </template>
 
 <script>
-import { defineComponent, onMounted } from 'vue'
+import { defineComponent } from 'vue'
 import { useHead } from '@vueuse/head'
 import useTheme from "./store/theme"
 import useSession from "./store/session"
@@ -54,6 +55,7 @@ export default defineComponent({
     return {
       theme,
       qualifier,
+      token,
       session,
       icpLicense
     }

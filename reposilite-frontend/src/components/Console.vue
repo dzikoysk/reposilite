@@ -45,7 +45,7 @@
 </template>
 
 <script>
-import { ref, watch, onUnmounted, nextTick } from 'vue'
+import { watch, onUnmounted, nextTick } from 'vue'
 import { createToast } from 'mosha-vue-toastify'
 import 'mosha-vue-toastify/dist/style.css'
 import useSession from '../store/session'
@@ -61,7 +61,6 @@ export default {
   },
   setup(props) {    
     const selectedTab = props.selectedTab
-
     const { levels, log, logMessage, filter, clearLog } = useLog()
 
     const { 
