@@ -30,7 +30,7 @@
     <div class="dark:bg-black">
       <div class="container mx-auto relative min-h-320px">
         <div class="lg:absolute pt-5 -top-5 right-8">
-          <Card :qualifier="qualifier" :session="session"/>
+          <Card :qualifier="qualifier" :token="token"/>
         </div>
         <div class="pt-4">
           <div v-for="file in files" v-bind:key="file">
@@ -68,30 +68,28 @@ export default {
       type: Object,
       required: true
     },
-    session: {
+    token: {
       type: Object,
       required: true
     }
   },
   setup(props) {
     const qualifier = props.qualifier
-    const session = props.session
+    const token = props.token
     const parentPath = ref('')
-
-    const drop = (path) => (path.endsWith('/') ? path.slice(0, -1) : path).split("/")
-      .slice(0, -1)
-      .join('/') || '/'
-
     const files = ref([])
     const isEmpty = ref(false)
     const isErrored = ref(undefined)
     const isDirectory = (file) => file.type == 'DIRECTORY'
 
+    const drop = (path) => (path.endsWith('/') ? path.slice(0, -1) : path).split("/")
+      .slice(0, -1)
+      .join('/') || '/'
+
     watch(
       () => qualifier.watchable,
       async (_) => {            
-        const { name, secret } = session.tokenInfo
-        const { client } = createClient(name, secret)
+        const { client } = createClient(token.name, token.secret)
 
         client.maven.details(qualifier.path)
           .then(response => {
@@ -114,7 +112,7 @@ export default {
 
     return {
       qualifier,
-      session,
+      token,
       parentPath,
       files,
       isEmpty,

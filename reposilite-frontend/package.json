@@ -3,7 +3,7 @@
   "version": "3.0.0-alpha.1",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && git add --all ../reposilite-backend/src/main/resources/reposilite-frontend/",
     "serve": "vite preview",
     "fake-api": "nodemon fake-api/fake-reposilite-backend.js",
     "full": "concurrently -k \"npm run fake-api\" \"vite\""

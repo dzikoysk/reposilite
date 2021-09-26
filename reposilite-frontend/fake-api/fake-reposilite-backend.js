@@ -86,11 +86,9 @@ application
       createDirectoryDetails('releases'),
       createDirectoryDetails('snapshots')
     ])
-
     authorized(req,
       () => repositories.files.push(createDirectoryDetails('private'))
     )
-    
     res.send(repositories)
   })
   .get('/api/maven/details/snapshots', respond(

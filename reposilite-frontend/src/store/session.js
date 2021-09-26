@@ -21,15 +21,13 @@ const defaultValue = ''
 const nameKey = 'session-token-name'
 const secretKey = 'session-token-secret'
 const managerPermission = 'access-token:manager'
-const readPermission = 'route:read'
-const writePermission = 'route:write'
 
 const token = reactive({
   name: defaultValue,
   secret: defaultValue
 })
 
-const defaultTokenInfo = {
+const defaultDetails = {
   id: defaultValue,
   name: defaultValue,
   createdAt: defaultValue,
@@ -38,7 +36,7 @@ const defaultTokenInfo = {
 }
 
 const session = reactive({
-  tokenInfo: defaultTokenInfo
+  details: defaultDetails
 })
 
 export default function useSession() {
@@ -52,7 +50,7 @@ export default function useSession() {
 
   const logout = () => {
     updateToken(defaultValue, defaultValue)
-    session.tokenInfo = defaultTokenInfo
+    session.details = defaultDetails
   }
 
   const login = async (name, secret) => {
@@ -65,7 +63,7 @@ export default function useSession() {
 
       const response = await client.auth.me(name, secret)
       updateToken(name, secret)
-      session.tokenInfo = response.data
+      session.details = response.data
       return { token, session }
     } catch (error) {
       logout()
@@ -80,11 +78,11 @@ export default function useSession() {
     )
   }
 
-  const isLogged = () =>
-    token.name != defaultValue
+  const isLogged = (token) =>
+    token?.name != defaultValue
 
-  const isManager = (tokenInfo) =>
-    tokenInfo?.permissions?.find(entry => entry.identifier == managerPermission)
+  const isManager = (details) =>
+    details?.permissions?.find(entry => entry.identifier == managerPermission)
   
   return {
     token,

@@ -69,26 +69,24 @@ export default {
       type: Object,
       required: true
     },
-    session: {
+    token: {
       type: Object,
       required: true
     }
   },
   setup(props) {
     const qualifier = props.qualifier
-    const session = props.session
-
-    const cardTabKey = 'card-tab'
-    const selectedTab = ref(localStorage.getItem(cardTabKey) || 'Maven')
-    watchEffect(() => localStorage.setItem(cardTabKey, selectedTab.value))
-    
+    const token = props.token
     const title = ref('')
     const configurations = ref([])
     const { createRepositories } = useRepository()
     const { createSnippets } = useArtifacts()
     const { parseMetadata, groupId, artifactId, versions } = useMetadata()
-    const { client } = createClient(session.tokenInfo.name, session.tokenInfo.secret)
+    const { client } = createClient(token.name, token.secret)
 
+    const selectedTab = ref(localStorage.getItem('card-tab') || 'Maven')
+    watchEffect(() => localStorage.setItem('card-tab', selectedTab.value))
+    
     const displayRepository = () => {
       configurations.value = createRepositories(qualifier)
       title.value = 'Repository details'
