@@ -97,4 +97,4 @@ internal open class VersionComparator<T>(
 }
 
 private fun String.isDigit(): Boolean =
-    !this.toCharArray().any { !Character.isDigit(it) }
+    isNotEmpty() && !this.toCharArray().any { !Character.isDigit(it) }
