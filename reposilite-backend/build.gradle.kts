@@ -23,7 +23,7 @@ version = "3.0.0-alpha.1-SNAPSHOT"
 
 plugins {
     `java-library`
-    kotlin("jvm") version "1.5.21"
+    kotlin("jvm") version "1.5.31"
     kotlin("kapt") version "1.5.21"
     id("com.github.johnrengelman.shadow") version "7.0.0"
     `maven-publish`
@@ -77,7 +77,7 @@ dependencies {
     implementation("io.javalin-rfc:javalin-openapi-plugin:$openapi")
     implementation("io.javalin-rfc:javalin-swagger-plugin:$openapi")
 
-    val javalinRfcs = "4.0.21"
+    val javalinRfcs = "4.0.22"
     implementation("com.reposilite.javalin-rfcs:javalin-context:$javalinRfcs")
     implementation("com.reposilite.javalin-rfcs:javalin-reactive-routing:$javalinRfcs")
 
