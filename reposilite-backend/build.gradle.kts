@@ -24,7 +24,7 @@ version = "3.0.0-alpha.1-SNAPSHOT"
 plugins {
     `java-library`
     kotlin("jvm") version "1.5.21"
-    kotlin("kapt") version "1.5.21"
+    kotlin("kapt") version "1.5.31"
     id("com.github.johnrengelman.shadow") version "7.0.0"
     `maven-publish`
     application
@@ -53,7 +53,7 @@ dependencies {
     implementation("org.panda-lang:expressible-kt-coroutines:$expressible")
     testImplementation("org.panda-lang:expressible-junit:$expressible")
 
-    val awssdk = "2.17.45"
+    val awssdk = "2.17.46"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
 
