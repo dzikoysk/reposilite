@@ -53,7 +53,7 @@ dependencies {
     implementation("org.panda-lang:expressible-kt-coroutines:$expressible")
     testImplementation("org.panda-lang:expressible-junit:$expressible")
 
-    val awssdk = "2.17.47"
+    val awssdk = "2.17.48"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
 
