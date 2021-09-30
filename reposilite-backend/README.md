@@ -47,6 +47,6 @@ You can run Reposilite in various ways, it depends what you expect:
 * Run classes that end with `*Test.kt` to launch simple unit tests without launching Reposilite
 * Run classes that end with `*InfrastructureTest.kt` to launch infrastructure tests that run Reposilite with required dependencies in Docker image
 * Run Reposilite in test workspace with predefined configuration for IntelliJ - [Reposilite.run.xml](https://github.com/dzikoysk/reposilite/blob/main/.run/Reposilite.run.xml)
-* Run all tests with Gradle - `gradle test`
-* Build final fat JAR - `gradle clean build shadowJar`
-* Build final fat JAR without tests - `gradle -x test clean build shadowJar`
+* Run all tests with Gradle - `gradlew test`
+* Build final fat JAR - `gradlew clean build shadowJar`
+* Build final fat JAR without tests - `gradlew -x test clean build shadowJar`
