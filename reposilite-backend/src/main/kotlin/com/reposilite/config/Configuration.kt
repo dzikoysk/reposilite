@@ -34,10 +34,13 @@ class Configuration : Serializable {
         "#       Reposilite       #",
         "# ~~~~~~~~~~~~~~~~~~~~~~ #",
         "",
-        "# Hostname"
+        "# Hostname",
+        "# The hostname can be used to limit which connections are accepted.",
+        "# Use 0.0.0.0 to accept connections from anywhere." ,
+        "# 127.0.0.1 will only allow connections from localhost. "
     )
     @JvmField
-    var hostname = "127.0.0.1"
+    var hostname = "0.0.0.0"
 
     @Description("# Port to bind")
     @JvmField
