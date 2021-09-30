@@ -34,10 +34,13 @@ class Configuration : Serializable {
         "#       Reposilite       #",
         "# ~~~~~~~~~~~~~~~~~~~~~~ #",
         "",
-        "# Hostname"
+        "# Hostname",
+        "# The hostname can be used to limit which connections are accepted.",
+        "# Use 0.0.0.0 to accept connections from anywhere." ,
+        "# 127.0.0.1 will only allow connections from localhost. "
     )
     @JvmField
-    var hostname = "127.0.0.1"
+    var hostname = "0.0.0.0"
 
     @Description("# Port to bind")
     @JvmField
@@ -133,7 +136,7 @@ class Configuration : Serializable {
         "",
         "# List of supported Maven repositories.",
         "# First directory on the list is the main (primary) repository.",
-        "# Tu mark repository as private, add the \"--private\" flag"
+        "# To mark a repository as private, add the \"--private\" flag"
     )
     @JvmField
     var repositories = mutableMapOf(
