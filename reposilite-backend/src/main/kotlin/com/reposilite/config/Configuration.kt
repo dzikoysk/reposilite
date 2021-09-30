@@ -136,7 +136,7 @@ class Configuration : Serializable {
         "",
         "# List of supported Maven repositories.",
         "# First directory on the list is the main (primary) repository.",
-        "# Tu mark repository as private, add the \"--private\" flag"
+        "# To mark a repository as private, add the \"--private\" flag"
     )
     @JvmField
     var repositories = mutableMapOf(
