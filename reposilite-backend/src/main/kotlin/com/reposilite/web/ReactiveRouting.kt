@@ -17,14 +17,12 @@
 package com.reposilite.web
 
 import com.reposilite.Reposilite
-import com.reposilite.web.http.errorResponse
 import com.reposilite.web.http.response
 import com.reposilite.web.http.uri
 import com.reposilite.web.routing.AbstractRoutes
 import com.reposilite.web.routing.ReactiveRoutingPlugin
 import com.reposilite.web.routing.Route
 import com.reposilite.web.routing.RouteMethod
-import io.javalin.http.HttpCode.INTERNAL_SERVER_ERROR
 import kotlinx.coroutines.CoroutineDispatcher
 
 abstract class ReposiliteRoutes : AbstractRoutes<ContextDsl, Unit>()
@@ -40,11 +38,14 @@ fun createReactiveRouting(reposilite: Reposilite, dispatcher: CoroutineDispatche
     val authenticationFacade = reposilite.authenticationFacade
 
     val plugin = ReactiveRoutingPlugin<ContextDsl, Unit>(
+        name = "reposilite-reactive-routing",
+        coroutinesEnabled = reposilite.configuration.reactiveMode,
         errorConsumer = { name, error -> reposilite.logger.error("Coroutine $name failed to execute task", error) },
         dispatcher = dispatcher,
         syncHandler = { ctx, route ->
             try {
-                val dsl = ContextDsl(reposilite.logger, ctx, errorResponse(INTERNAL_SERVER_ERROR, "Unsupported sync auth"))
+                val authenticationResult = authenticationFacade.authenticateByHeader(ctx.headerMap())
+                val dsl = ContextDsl(reposilite.logger, ctx, authenticationResult)
                 route.handler(dsl)
                 dsl.response?.also { ctx.response(it) }
             } catch (throwable: Throwable) {

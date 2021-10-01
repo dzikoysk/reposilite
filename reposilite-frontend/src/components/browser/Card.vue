@@ -17,7 +17,10 @@
 <template>
   <div class="bg-white dark:bg-gray-900 shadow-lg p-7 rounded-xl border-gray-100 dark:border-black">
     <div class="flex flex-row justify-between">
-      <h1 class="font-bold">{{title}}</h1>
+      <h1 class="font-bold flex items-center w-full">
+        {{title}}
+        <span v-if="isCopySupported" @click="copy" class="ml-auto cursor-pointer"><copy-icon /></span>
+      </h1>
       <!-- <button class="bg-black dark:bg-white text-white dark:text-black px-6 py-1 rounded">Download</button> -->
     </div>
     <div class="flex">
@@ -61,9 +64,12 @@ import useArtifacts from '../../store/maven/artifact'
 import useRepository from '../../store/maven/repository'
 import { createClient } from '../../store/client'
 import useMetadata from '../../store/maven/metadata'
+import { useClipboard } from '@vueuse/core'
+import CopyIcon from '../icons/CopyIcon.vue'
+import { createToast } from 'mosha-vue-toastify'
 
 export default {
-  components: { PrismEditor },
+  components: { PrismEditor, CopyIcon },
   props: {
     qualifier: {
       type: Object,
@@ -83,6 +89,7 @@ export default {
     const { createSnippets } = useArtifacts()
     const { parseMetadata, groupId, artifactId, versions } = useMetadata()
     const { client } = createClient(token.name, token.secret)
+    const { copy: copyText, isSupported: isCopySupported } = useClipboard()
 
     const selectedTab = ref(localStorage.getItem('card-tab') || 'Maven')
     watchEffect(() => localStorage.setItem('card-tab', selectedTab.value))
@@ -135,12 +142,21 @@ export default {
       const fromIndex = configurations.value.findIndex(entry => entry.name === from)
       transitionName.value = toIndex - fromIndex < 0 ? 'slide-left' : 'slide-right'
     })
+    
+    const copy = async () => {
+      const { snippet } = configurations.value.find(entry => entry.name === selectedTab.value)
+
+      await copyText(snippet)
+      return createToast('Copied snippet', { type: 'info' })
+    }
 
     return {
       title,
       configurations,
       selectedTab,
-      transitionName
+      transitionName,
+      copy,
+      isCopySupported
     }
   }
 }

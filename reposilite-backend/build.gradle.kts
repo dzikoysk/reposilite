@@ -17,6 +17,7 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 group = "org.panda-lang"
 version = "3.0.0-alpha.1-SNAPSHOT"
@@ -40,6 +41,12 @@ java {
     targetCompatibility = JavaVersion.VERSION_1_8
     withJavadocJar()
     withSourcesJar()
+}
+
+tasks.withType<KotlinCompile>().configureEach {
+    kotlinOptions {
+        languageVersion = "1.5"
+    }
 }
 
 dependencies {
@@ -84,7 +91,7 @@ dependencies {
     // val javalin = "4.0.0.RC3"
     // implementation("io.javalin:javalin:$javalin")
     // implementation("com.github.tipsy.javalin:javalin:-SNAPSHOT")
-    implementation("com.github.dzikoysk.javalin:javalin:90381e8e35")
+    implementation("com.github.dzikoysk.javalin:javalin:90381e8e35") // 7f3cc2f63c
 
     @Suppress("GradlePackageUpdate")
     implementation("org.eclipse.jetty:jetty-server:9.4.44.v20210927")
@@ -143,7 +150,6 @@ repositories {
     maven { url = uri("https://s01.oss.sonatype.org/content/repositories/releases/") }
     maven { url = uri("https://jitpack.io") }
 }
-
 
 publishing {
     repositories {

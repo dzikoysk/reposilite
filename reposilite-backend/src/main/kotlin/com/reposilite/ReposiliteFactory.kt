@@ -54,15 +54,19 @@ object ReposiliteFactory {
 
         val webServer = JavalinWebServer()
         val logger = ReposiliteJournalist(journalist, configuration.cachedLogSize, parameters.testEnv)
-        val ioDispatcher = ExclusiveDispatcher(ThreadPoolExecutor(2, configuration.ioThreadPool, 0L, MILLISECONDS, LinkedBlockingQueue()))
         val scheduler = Executors.newSingleThreadScheduledExecutor()
         val database = DatabaseSourceConfiguration.createConnection(parameters.workingDirectory, configuration.database)
 
-        val webs = mutableListOf<WebConfiguration>()
+        val ioDispatcher =
+            if (configuration.reactiveMode)
+                ExclusiveDispatcher(ThreadPoolExecutor(2, configuration.ioThreadPool, 0L, MILLISECONDS, LinkedBlockingQueue()))
+            else
+                null
 
+        val webs = mutableListOf<WebConfiguration>()
         val statusFacade = web(webs, StatusWebConfiguration) { createFacade(parameters.testEnv, webServer) }
         val failureFacade = web(webs, FailureWebConfiguration) { createFacade(logger) }
-        val consoleFacade = web(webs, ConsoleWebConfiguration) { createFacade(logger, ioDispatcher, failureFacade) }
+        val consoleFacade = web(webs, ConsoleWebConfiguration) { createFacade(logger, failureFacade) }
         val mavenFacade = web(webs, MavenWebConfiguration) { createFacade(logger, parameters.workingDirectory, HttpRemoteClient(logger), configuration.repositories) }
         val frontendFacade = web(webs, FrontendWebConfiguration) { createFacade(configuration) }
         val statisticFacade = web(webs, StatisticsWebConfiguration) { createFacade(logger, ioDispatcher, database) }

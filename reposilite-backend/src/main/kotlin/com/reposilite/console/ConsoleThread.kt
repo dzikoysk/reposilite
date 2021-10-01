@@ -24,7 +24,6 @@ import java.util.Scanner
 internal class ConsoleThread(
     private val commandExecutor: CommandExecutor,
     private val source: InputStream,
-    private val dispatcher: CoroutineDispatcher,
     private val failureFacade: FailureFacade
 ) : Thread() {
 

@@ -9,6 +9,7 @@
     "full": "concurrently -k \"npm run fake-api\" \"vite\""
   },
   "dependencies": {
+    "@vueuse/core": "^6.5.3",
     "@vueuse/head": "^0.6.0",
     "ansi-to-html": "^0.7.1",
     "axios": "^0.22.0",
