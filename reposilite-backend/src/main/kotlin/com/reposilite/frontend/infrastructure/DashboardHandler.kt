@@ -67,7 +67,11 @@ internal class ResourcesFrontendHandler(frontendFacade: FrontendFacade, val reso
     }
 
     private fun respondWithResource(ctx: Context, uri: String): Result<String, ErrorResponse> =
-        respondWithFile(ctx, uri, { FrontendFacade::class.java.getResourceAsStream("/$resourcesDirectory/$uri")?.readBytes()?.decodeToString() })
+        respondWithFile(ctx, uri) {
+            FrontendFacade::class.java.getResourceAsStream("/$resourcesDirectory/$uri")?.use {
+                it.readBytes().decodeToString()
+            }
+        }
 
     override val routes =
         setOf(defaultHandler, indexHandler, assetsHandler)

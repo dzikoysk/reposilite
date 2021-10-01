@@ -78,7 +78,8 @@ fun Path.inputStream(): Result<InputStream, ErrorResponse> =
     }
 
 fun Path.decodeToString(): Result<String, ErrorResponse> =
-    inputStream().map { it.readBytes().decodeToString() }
+    inputStream()
+        .map { it.use { input -> input.readBytes().decodeToString() } }
 
 fun Path.size(): Result<Long, ErrorResponse> =
     catchIOException {
