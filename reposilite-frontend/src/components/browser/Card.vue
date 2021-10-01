@@ -154,6 +154,12 @@ export default {
   border: transparent;
   margin-top: 10px;
 }
+.prism-editor__textarea {
+  display: none;
+}
+.prism-editor-wrapper .prism-editor__editor {
+  pointer-events: auto !important;
+}
 .prism-editor-wrapper .prism-editor__container {
   overflow: auto;
   scrollbar-width: thin;
