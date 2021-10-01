@@ -17,6 +17,7 @@
 package com.reposilite.token.infrastructure
 
 import com.reposilite.shared.firstAndMap
+import com.reposilite.shared.launchTransaction
 import com.reposilite.token.AccessTokenRepository
 import com.reposilite.token.api.AccessToken
 import com.reposilite.token.api.AccessTokenPermission
@@ -39,7 +40,6 @@ import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.javatime.date
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
 import java.util.UUID
@@ -75,7 +75,7 @@ object PermissionToRouteTable : Table("permission_route") {
     }
 }
 
-internal class SqlAccessTokenRepository(private val dispatcher: CoroutineDispatcher, private val database: Database) : AccessTokenRepository {
+internal class SqlAccessTokenRepository(private val dispatcher: CoroutineDispatcher?, private val database: Database) : AccessTokenRepository {
 
     init {
         transaction(database) {
@@ -85,7 +85,7 @@ internal class SqlAccessTokenRepository(private val dispatcher: CoroutineDispatc
     }
 
     override suspend fun saveAccessToken(accessToken: AccessToken): AccessToken =
-        newSuspendedTransaction(dispatcher, database) {
+        launchTransaction(dispatcher, database) {
             when(getIdByName(accessToken.name)) {
                 UNINITIALIZED_ENTITY_ID -> createAccessToken(accessToken)
                 else -> updateAccessToken(accessToken)
@@ -154,7 +154,7 @@ internal class SqlAccessTokenRepository(private val dispatcher: CoroutineDispatc
             ?: UNINITIALIZED_ENTITY_ID
 
     override suspend fun deleteAccessToken(accessToken: AccessToken) {
-        newSuspendedTransaction(dispatcher, database) {
+        launchTransaction(dispatcher, database) {
             AccessTokenTable.deleteWhere { AccessTokenTable.id eq accessToken.id }
         }
     }
@@ -188,17 +188,17 @@ internal class SqlAccessTokenRepository(private val dispatcher: CoroutineDispatc
         }
 
     override suspend fun findAccessTokenByName(name: String): AccessToken? =
-        newSuspendedTransaction(dispatcher, database) {
+        launchTransaction(dispatcher, database) {
             AccessTokenTable.select { AccessTokenTable.name eq name }.firstAndMap { toAccessToken(it) }
         }
 
     override suspend fun findAll(): Collection<AccessToken> =
-        newSuspendedTransaction(dispatcher, database) {
+        launchTransaction(dispatcher, database) {
             AccessTokenTable.selectAll().map { toAccessToken(it) }
         }
 
     override suspend fun countAccessTokens(): Long =
-        newSuspendedTransaction(dispatcher, database) {
+        launchTransaction(dispatcher, database) {
             AccessTokenTable.selectAll().count()
         }
 
