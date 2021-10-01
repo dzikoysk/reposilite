@@ -65,7 +65,7 @@ export default {
         .then(_ => close())
         .catch(error => {
           console.log(error)
-          createToast(`${error.response.status}: ${error.response.data}`, {
+          createToast(`${error.response.status}: ${error.response.data.message}`, {
            type: 'danger'
           })
         })
