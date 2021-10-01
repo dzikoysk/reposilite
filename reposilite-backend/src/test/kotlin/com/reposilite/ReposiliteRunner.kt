@@ -77,6 +77,9 @@ internal abstract class ReposiliteRunner {
             repositoryConfiguration.storageProvider = _storageProvider.replace("{repository}", repositoryName)
         }
 
+        configuration.webThreadPool = 4
+        configuration.ioThreadPool = 2
+
         reposilite = ReposiliteFactory.createReposilite(parameters, logger, configuration)
         reposilite.journalist.setVisibleThreshold(Channel.WARN)
         reposilite.launch()

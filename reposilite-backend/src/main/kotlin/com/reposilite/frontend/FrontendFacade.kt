@@ -47,7 +47,7 @@ class FrontendFacade internal constructor(
             .replace("{{REPOSILITE.ORGANIZATION_LOGO}}", organizationLogo)
             .replace("{{REPOSILITE.ICP_LICENSE}}", icpLicense)
 
-    fun createNotFoundPage(uri: String): String {
+    fun createNotFoundPage(uri: String, details: String): String {
         @Language("html")
         val response = """
         <html lang="en">
@@ -86,6 +86,7 @@ class FrontendFacade internal constructor(
                 <h1 style="font-size: 1.5rem">
                   <span style="color: gray;">404︱</span>Resource not found
                 </h1>
+                ${if (details.isEmpty()) "" else "<p><i>$details</i></p>" }
                 <p>Looking for a dashboard?</p>
                 <div class="spooky">
                   <p>{\__/}</p>

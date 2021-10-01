@@ -18,6 +18,7 @@ package com.reposilite.maven
 
 import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.maven.specification.MavenIntegrationSpecification
+import com.reposilite.storage.StorageProvider.Companion.DEFAULT_STORAGE_PROVIDER_BUFFER_SIZE
 import com.reposilite.web.http.ErrorResponse
 import io.javalin.http.HttpCode.NOT_FOUND
 import io.javalin.http.HttpCode.UNAUTHORIZED
@@ -32,6 +33,8 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.nio.channels.Channels
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CountDownLatch
 
 internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
 
@@ -78,28 +81,35 @@ internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
 
     @Test
     fun `should accept deploy request with valid credentials` () {
-        // given: file to upload and valid credentials
-        val (repository, gav, file) = useDocument("releases", "net/dzikoysk/funnyguilds/plugin/4.10.0", "plugin-4.10.0.jar")
-        val (name, secret) = usePredefinedTemporaryAuth()
+        val calls = reposilite.configuration.webThreadPool * 3
+        val completed = CountDownLatch(calls)
 
-        repeat((reposilite.configuration.ioThreadPool * 2) + 1) {
-            val (content, length) = useFile(file, 1)
+        repeat(calls) { idx ->
+            CompletableFuture.runAsync {
+                try {
+                    // given: file to upload and valid credentials
+                    val (repository, gav, file) = useDocument("releases", "com/reposilite", "$idx.jar")
+                    val (name, secret) = usePredefinedTemporaryAuth()
+                    val (content, length) = useFile(file, 8)
 
-            try {
-                // when: client wants to upload artifact
-                val response = put("$base/$repository/$gav/$file")
-                    .body(Channels.newInputStream(content.channel).readBytes())
-                    .basicAuth(name, secret)
-                    .asObject(DocumentInfo::class.java)
+                    // when: client wants to upload artifact
+                    val response = put("$base/$repository/$gav/$file")
+                        .body(content.inputStream())
+                        .basicAuth(name, secret)
+                        .asObject(DocumentInfo::class.java)
 
-                // then: service properly accepts connection and deploys file
-                assertTrue(response.isSuccess)
-                assertEquals(file, response.body.name)
-                assertEquals(length, response.body.contentLength)
-            } finally {
-                content.channel.close()
+                    // then: service properly accepts connection and deploys file
+                    assertTrue(response.isSuccess)
+                    assertEquals(file, response.body.name)
+                    assertEquals(length, response.body.contentLength)
+                    assertTrue(get("$base/$repository/$gav/$file").asString().isSuccess)
+                } finally {
+                    completed.countDown()
+                }
             }
         }
+
+        completed.await()
     }
 
     @Test

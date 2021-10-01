@@ -27,7 +27,7 @@ internal class NotFoundHandler(private val frontendFacade: FrontendFacade) : Han
 
     private val handler: (Context) -> Unit = { ctx ->
         if (ctx.resultString() == null && ctx.resultStream() == null && ctx.resultStream() == null) {
-            ctx.html(frontendFacade.createNotFoundPage(ctx.req.requestURI)).status(NOT_FOUND)
+            ctx.status(NOT_FOUND).html(frontendFacade.createNotFoundPage(ctx.req.requestURI, ""))
         }
     }
 

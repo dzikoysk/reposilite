@@ -67,7 +67,7 @@ repositories {
     #   https://repo.panda-lang.org/releases --store --connectTimeout=3 --readTimeout=15 --auth user:token
     # ]
     proxied [
-      https://repo.panda-lang.org/releases
+      https://repo.aikar.co/content/groups/aikar/
     ]
   }
   snapshots {

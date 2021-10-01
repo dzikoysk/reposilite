@@ -63,7 +63,7 @@ object ReposiliteFactory {
         val statusFacade = web(webs, StatusWebConfiguration) { createFacade(parameters.testEnv, webServer) }
         val failureFacade = web(webs, FailureWebConfiguration) { createFacade(logger) }
         val consoleFacade = web(webs, ConsoleWebConfiguration) { createFacade(logger, ioDispatcher, failureFacade) }
-        val mavenFacade = web(webs, MavenWebConfiguration) { createFacade(logger, parameters.workingDirectory, HttpRemoteClient(), configuration.repositories) }
+        val mavenFacade = web(webs, MavenWebConfiguration) { createFacade(logger, parameters.workingDirectory, HttpRemoteClient(logger), configuration.repositories) }
         val frontendFacade = web(webs, FrontendWebConfiguration) { createFacade(configuration) }
         val statisticFacade = web(webs, StatisticsWebConfiguration) { createFacade(logger, ioDispatcher, database) }
         val accessTokenFacade = web(webs, AccessTokenWebConfiguration) { createFacade(ioDispatcher, database) }

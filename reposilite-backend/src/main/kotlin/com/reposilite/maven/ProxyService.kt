@@ -32,11 +32,10 @@ import panda.std.coroutines.firstOrErrors
 internal class ProxyService(private val remoteClient: RemoteClient) {
 
     suspend fun findFile(repository: Repository, gav: String): Result<out FileDetails, ErrorResponse> =
-        repository.proxiedHosts.asSequence()
-            .asFlow()
+        repository.proxiedHosts.asSequence().asFlow()
             .map { (host, configuration) -> findFile(repository, host, gav, configuration) }
             .firstOrErrors()
-            .mapErr { ErrorResponse(NOT_FOUND, it.joinToString("; ")) }
+            .mapErr { errors -> ErrorResponse(NOT_FOUND, errors.joinToString(" -> ") { "(${it.status}: ${it.message})" }) }
 
     private suspend fun findFile(repository: Repository, host: String, gav: String, configuration: ProxiedHostConfiguration): Result<out FileDetails, ErrorResponse> =
         findFile(host, configuration, gav).flatMap { document ->

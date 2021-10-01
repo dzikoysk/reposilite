@@ -25,8 +25,6 @@ import io.javalin.Javalin
 import kotlinx.coroutines.Job
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
-import java.io.RandomAccessFile
-
 
 internal data class UseDocument(
     val repository: String,
@@ -48,9 +46,9 @@ internal abstract class MavenIntegrationSpecification : ReposiliteSpecification(
         return UseDocument(repository, gav, file, content)
     }
 
-    protected fun useFile(name: String, size: Long): Pair<RandomAccessFile, Long> {
-        val hugeFile = RandomAccessFile(File(clientWorkingDirectory, name), "rw")
-        hugeFile.setLength(size * 1024 * 1024)
+    protected fun useFile(name: String, sizeInMb: Int): Pair<File, Long> {
+        val hugeFile = File(clientWorkingDirectory, name)
+        hugeFile.writeBytes(ByteArray(sizeInMb * 1024 * 1024))
         return Pair(hugeFile, hugeFile.length())
     }
 
