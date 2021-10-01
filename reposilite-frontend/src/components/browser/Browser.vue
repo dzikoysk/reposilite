@@ -120,9 +120,9 @@ export default {
     const breadcrumbs = computed(() => {
       const crumbs = route.path.split('/')
 
-      return crumbs.map((name, i) => ({
-        link: crumbs.slice(0, i + 1).join('/') || '/',
-        name: i === crumbs.length - 1 ? name : name + '/'
+      return crumbs.map((name, index) => ({
+        link: crumbs.slice(0, index + 1).join('/') || '/',
+        name: index === crumbs.length - 1 ? name : name + '/'
       }))
     })
 
