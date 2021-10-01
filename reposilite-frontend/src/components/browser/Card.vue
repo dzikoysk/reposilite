@@ -20,39 +20,39 @@
       <h1 class="font-bold">{{title}}</h1>
       <!-- <button class="bg-black dark:bg-white text-white dark:text-black px-6 py-1 rounded">Download</button> -->
     </div>
-    <tabs v-model="selectedTab" class="pt-3">
-      <tab
-        class="buildtool py-1 px-2 cursor-pointer"
-        v-for="(entry, i) in configurations"
-        :key="`t${i}`"
-        :val="entry.name"
-        :label="entry.name"
-        :indicator="true"
-      />
-    </tabs>
-    <hr class="dark:border-gray-800">
-    <tab-panels v-model="selectedTab" :animate="true">
-      <tab-panel 
-        v-for="(entry, i) in configurations"
-        :key="`tp${i}`"
-        :val="entry.name"
+    <div class="flex">
+      <div 
+        v-for="entry in configurations" 
+        :key="entry.name" 
+        @click="selectedTab = entry.name"
+        class="py-4 px-7 flex-grow text-center border-b-2 cursor-pointer border-transparent"
+        :class="{ '!border-gray-800': entry.name === selectedTab }"
       >
-        <div class="relative h-33 mt-6 p-4 mr-1 rounded-lg bg-gray-100 dark:bg-gray-800">
-          <prism-editor 
-            class="snippet absolute text-sm" 
-            v-model="entry.snippet" 
-            :highlight="entry.highlighter" 
-            readonly
-            line-numbers
-          />
+        {{ entry.name }}
+      </div>
+    </div>
+    <hr class="dark:border-gray-800">
+    <div class="overflow-hidden">
+      <transition :name="transitionName" mode="out-in">
+        <div :key="selectedTab" class="relative h-33 mt-6 p-4 mr-1 rounded-lg bg-gray-100 dark:bg-gray-800">
+          <template v-for="entry in configurations"> 
+            <prism-editor 
+              v-if="entry.name === selectedTab"
+              class="snippet absolute text-sm" 
+              v-model="entry.snippet" 
+              :highlight="entry.highlighter" 
+              readonly
+              line-numbers
+            />
+          </template>
         </div>
-      </tab-panel>
-    </tab-panels>
+      </transition>
+    </div>
   </div>
 </template>
 
 <script>
-import { ref, watchEffect } from 'vue'
+import { ref, watchEffect, watch } from 'vue'
 import { PrismEditor } from 'vue-prism-editor'
 import 'vue-prism-editor/dist/prismeditor.min.css' // import the styles somewhere
 import prism from "prismjs"
@@ -129,16 +129,43 @@ export default {
       })
     })
 
+    const transitionName = ref('slide-right')
+    watch(selectedTab, (to, from) => {
+      const toIndex = configurations.value.findIndex(entry => entry.name === to)
+      const fromIndex = configurations.value.findIndex(entry => entry.name === from)
+      transitionName.value = toIndex - fromIndex < 0 ? 'slide-left' : 'slide-right'
+    })
+
     return {
       title,
       configurations,
-      selectedTab
+      selectedTab,
+      transitionName
     }
   }
 }
 </script>
 
 <style>
+.slide-right-enter-active,
+.slide-right-leave-active,
+.slide-left-enter-active,
+.slide-left-leave-active {
+  transition: opacity .1s ease, transform .1s ease;
+}
+
+.slide-right-leave-to,
+.slide-left-enter-from {
+  opacity: 0;
+  transform: translateX(60px);
+}
+
+.slide-right-enter-from,
+.slide-left-leave-to {
+  opacity: 0;
+  transform: translateX(-60px);
+}
+
 .snippet {
     font-family: 'Consolas', 'monospace';
 }
