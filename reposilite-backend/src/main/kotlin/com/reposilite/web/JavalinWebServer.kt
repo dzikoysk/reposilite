@@ -22,6 +22,7 @@ import com.reposilite.shared.TimeUtils
 import io.javalin.Javalin
 import io.javalin.core.JavalinConfig
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import org.eclipse.jetty.io.EofException
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 import org.eclipse.jetty.util.thread.ThreadPool
@@ -37,8 +38,8 @@ class JavalinWebServer {
             this.webThreadPool = QueuedThreadPool(reposilite.configuration.webThreadPool, 2)
             webThreadPool?.start()
 
-            this.javalin = createJavalin(reposilite, reposilite.configuration, webThreadPool!!, reposilite.ioDispatcher)
-                .exception(EofException::class.java, { _, _ -> reposilite.logger.warn("Client closed connection") })
+            this.javalin = createJavalin(reposilite, reposilite.configuration, webThreadPool!!, reposilite.ioDispatcher ?: Dispatchers.Default)
+                .exception(EofException::class.java) { _, _ -> reposilite.logger.warn("Client closed connection") }
                 .events { listener ->
                     listener.serverStopping { reposilite.logger.info("Server stopping...") }
                     listener.serverStopped { reposilite.logger.info("Bye! Uptime: " + TimeUtils.getPrettyUptimeInMinutes(reposilite.statusFacade.startTime)) }

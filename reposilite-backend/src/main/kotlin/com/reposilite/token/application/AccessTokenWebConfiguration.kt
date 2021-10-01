@@ -34,7 +34,7 @@ import org.jetbrains.exposed.sql.Database
 
 internal object AccessTokenWebConfiguration : WebConfiguration {
 
-    fun createFacade(dispatcher: CoroutineDispatcher, database: Database): AccessTokenFacade =
+    fun createFacade(dispatcher: CoroutineDispatcher?, database: Database): AccessTokenFacade =
         AccessTokenFacade(
             temporaryRepository = InMemoryAccessTokenRepository(),
             persistentRepository = SqlAccessTokenRepository(dispatcher, database)

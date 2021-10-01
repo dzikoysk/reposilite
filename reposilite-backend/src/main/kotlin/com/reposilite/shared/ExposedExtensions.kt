@@ -16,28 +16,17 @@
 
 package com.reposilite.shared
 
-import net.dzikoysk.exposed.shared.IdentifiableEntity
-import net.dzikoysk.exposed.shared.UNINITIALIZED_ENTITY_ID
+import kotlinx.coroutines.CoroutineDispatcher
 import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.Op
-import org.jetbrains.exposed.sql.SqlExpressionBuilder
-import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.Transaction
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.statements.UpdateBuilder
+import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.jetbrains.exposed.sql.update
-
-fun <T> transactionUnit(db: Database? = null, statement: Transaction.() -> T) {
-    transaction(db, statement)
-}
-
-fun <TABLE : Table> TABLE.insertOrUpdate(identifiableEntity: IdentifiableEntity, where: (SqlExpressionBuilder.() -> Op<Boolean>)?, body: TABLE.(UpdateBuilder<Number>) -> Unit) {
-    when (identifiableEntity.id) {
-        UNINITIALIZED_ENTITY_ID -> insert(body)
-        else -> update(where = where, body = body)
-    }
-}
 
 fun <T, R> Iterable<T>.firstAndMap(transform: (T) -> R): R? =
     this.firstOrNull()?.let(transform)
+
+suspend fun <T> launchTransaction(dispatcher: CoroutineDispatcher?, database: Database, statement: Transaction.() -> T): T =
+    if (dispatcher != null)
+        newSuspendedTransaction(dispatcher, database) { statement(this) }
+    else
+        transaction(database) { statement(this) }

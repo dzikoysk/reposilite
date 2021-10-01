@@ -31,9 +31,11 @@ import com.reposilite.token.AccessTokenFacade
 import com.reposilite.web.JavalinWebServer
 import com.reposilite.web.WebConfiguration
 import com.reposilite.web.coroutines.ExclusiveDispatcher
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.jetbrains.exposed.sql.Database
 import panda.utilities.console.Effect
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -43,7 +45,7 @@ class Reposilite(
     val journalist: ReposiliteJournalist,
     val parameters: ReposiliteParameters,
     val configuration: Configuration,
-    val ioDispatcher: ExclusiveDispatcher,
+    val ioDispatcher: ExclusiveDispatcher?,
     val scheduler: ScheduledExecutorService,
     val database: Database,
     val webServer: JavalinWebServer,
@@ -108,13 +110,17 @@ class Reposilite(
             logger.info("")
             consoleFacade.executeCommand("help")
 
-            withContext(ioDispatcher) {
+            val task = suspend {
                 logger.info("")
                 logger.info("Collecting status metrics...")
                 logger.info("")
                 consoleFacade.executeCommand("status")
                 logger.info("")
             }
+
+            ioDispatcher
+                ?.also { withContext(ioDispatcher) { task() } }
+                ?: CompletableFuture.runAsync { runBlocking { task() } }
         } catch (exception: Exception) {
             logger.error("Failed to start Reposilite")
             logger.exception(exception)
@@ -130,11 +136,11 @@ class Reposilite(
             alive.set(false)
             logger.info("Shutting down ${parameters.hostname}::${parameters.port}...")
             scheduler.shutdown()
-            ioDispatcher.prepareShutdown()
+            ioDispatcher?.prepareShutdown()
             webs.forEach { it.dispose(this@Reposilite) }
             webServer.stop()
             scheduler.shutdownNow()
-            ioDispatcher.completeShutdown()
+            ioDispatcher?.completeShutdown()
             journalist.shutdown()
         }
 

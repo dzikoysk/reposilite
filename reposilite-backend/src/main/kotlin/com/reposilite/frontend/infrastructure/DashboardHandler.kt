@@ -39,7 +39,7 @@ import java.util.stream.Collectors
 import kotlin.io.path.isDirectory
 import kotlin.text.Charsets.UTF_8
 
-internal sealed class FrontendHandler(protected val frontendFacade: FrontendFacade) : ReposiliteRoutes() {
+internal sealed class FrontendHandler(private val frontendFacade: FrontendFacade) : ReposiliteRoutes() {
 
     protected fun respondWithFile(ctx: Context, uri: String, source: () -> String?): Result<String, ErrorResponse> =
         frontendFacade.resolve(uri, source)
@@ -68,9 +68,9 @@ internal class ResourcesFrontendHandler(frontendFacade: FrontendFacade, val reso
 
     private fun respondWithResource(ctx: Context, uri: String): Result<String, ErrorResponse> =
         respondWithFile(ctx, uri) {
-            FrontendFacade::class.java.getResourceAsStream("/$resourcesDirectory/$uri")?.use {
-                it.readBytes().decodeToString()
-            }
+            FrontendFacade::class.java.getResourceAsStream("/$resourcesDirectory/$uri")
+                ?.use { it.readBytes().decodeToString() }
+                ?: ""
         }
 
     override val routes =

@@ -33,7 +33,7 @@ import java.util.concurrent.TimeUnit.MINUTES
 
 internal object StatisticsWebConfiguration : WebConfiguration {
 
-    fun createFacade(journalist: Journalist, dispatcher: CoroutineDispatcher, database: Database): StatisticsFacade =
+    fun createFacade(journalist: Journalist, dispatcher: CoroutineDispatcher?, database: Database): StatisticsFacade =
         StatisticsFacade(journalist, SqlStatisticsRepository(dispatcher, database))
 
     override fun initialize(reposilite: Reposilite) {
@@ -44,8 +44,13 @@ internal object StatisticsWebConfiguration : WebConfiguration {
 
         reposilite.scheduler.scheduleWithFixedDelay({
             runBlocking {
-                withContext(reposilite.ioDispatcher) {
+                if (reposilite.ioDispatcher == null) {
                     statisticsFacade.saveRecordsBulk()
+                }
+                else {
+                    withContext(reposilite.ioDispatcher) {
+                        statisticsFacade.saveRecordsBulk()
+                    }
                 }
             }
         }, 1, 1, MINUTES)

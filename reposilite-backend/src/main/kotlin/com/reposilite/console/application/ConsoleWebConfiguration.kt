@@ -28,12 +28,11 @@ import com.reposilite.status.FailureFacade
 import com.reposilite.web.ReposiliteRoutes
 import com.reposilite.web.WebConfiguration
 import io.javalin.Javalin
-import kotlinx.coroutines.CoroutineDispatcher
 
 internal object ConsoleWebConfiguration : WebConfiguration {
 
-    fun createFacade(journalist: Journalist, dispatcher: CoroutineDispatcher, failureFacade: FailureFacade): ConsoleFacade {
-        val commandExecutor = CommandExecutor(journalist, dispatcher, failureFacade, System.`in`)
+    fun createFacade(journalist: Journalist, failureFacade: FailureFacade): ConsoleFacade {
+        val commandExecutor = CommandExecutor(journalist, failureFacade, System.`in`)
         return ConsoleFacade(journalist, commandExecutor)
     }
 
@@ -55,7 +54,7 @@ internal object ConsoleWebConfiguration : WebConfiguration {
     )
 
     override fun javalin(reposilite: Reposilite, javalin: Javalin) {
-        javalin.ws("/api/console/sock", CliEndpoint(reposilite.ioDispatcher, reposilite.journalist, reposilite.authenticationFacade, reposilite.consoleFacade, reposilite.configuration.forwardedIp))
+        javalin.ws("/api/console/sock", CliEndpoint(reposilite.journalist, reposilite.authenticationFacade, reposilite.consoleFacade, reposilite.configuration.forwardedIp))
     }
 
     override fun dispose(reposilite: Reposilite) {

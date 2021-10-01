@@ -33,12 +33,11 @@ import java.util.function.Consumer
 @Command(name = "", version = ["Reposilite $VERSION"])
 internal class CommandExecutor(
     private val journalist: Journalist,
-    dispatcher: CoroutineDispatcher,
     failureFacade: FailureFacade,
     source: InputStream
 ) : Journalist {
 
-    private val consoleThread = ConsoleThread(this, source, dispatcher, failureFacade)
+    private val consoleThread = ConsoleThread(this, source, failureFacade)
     private val commandExecutor = CommandLine(this)
 
     suspend fun execute(command: String): ExecutionResponse =
