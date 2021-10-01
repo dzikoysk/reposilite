@@ -15,7 +15,7 @@
   -->
 
 <template>
-  <div class="bg-white dark:bg-gray-900 shadow-lg p-7 dark:border-4 rounded-xl border-gray-100 dark:border-black">
+  <div class="bg-white dark:bg-gray-900 shadow-lg p-7 rounded-xl border-gray-100 dark:border-black">
     <div class="flex flex-row justify-between">
       <h1 class="font-bold">{{title}}</h1>
       <!-- <button class="bg-black dark:bg-white text-white dark:text-black px-6 py-1 rounded">Download</button> -->
