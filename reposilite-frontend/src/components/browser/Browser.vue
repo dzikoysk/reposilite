@@ -28,7 +28,7 @@
       </div>
     </div>
     <div class="dark:bg-black">
-      <div class="container mx-auto relative min-h-320px">
+      <div class="container mx-auto relative min-h-320px mb-32">
         <div class="lg:absolute pt-5 -top-5 right-8">
           <Card :qualifier="qualifier" :token="token"/>
         </div>
