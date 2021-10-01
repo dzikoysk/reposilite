@@ -23,11 +23,14 @@ import com.github.kittinunf.fuel.core.Response
 import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.core.isSuccessful
 import com.github.kittinunf.fuel.coroutines.awaitByteArrayResponseResult
+import com.reposilite.journalist.Channel
+import com.reposilite.journalist.Journalist
 import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.maven.api.UNKNOWN_LENGTH
 import com.reposilite.shared.FilesUtils.getExtension
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
+import com.reposilite.web.silentClose
 import io.javalin.http.ContentType
 import io.javalin.http.HttpCode.BAD_REQUEST
 import io.javalin.http.HttpCode.NOT_ACCEPTABLE
@@ -46,7 +49,7 @@ interface RemoteClient {
 
 }
 
-class HttpRemoteClient : RemoteClient {
+class HttpRemoteClient(private val journalist: Journalist) : RemoteClient {
 
     override suspend fun get(uri: String, credentials: String?, connectTimeout: Int, readTimeout: Int): Result<DocumentInfo, ErrorResponse> =
         Fuel.get(uri)
@@ -62,7 +65,13 @@ class HttpRemoteClient : RemoteClient {
             .let { (_, response, result) ->
                 result.fold(
                     { data -> get(uri, response, data) },
-                    { error -> errorResponse(BAD_REQUEST, "An error of type ${error.exception} happened: ${error.message}")}
+                    { error ->
+                        journalist.logger.debug("Cannot get $uri")
+                        val output = journalist.logger.toPrintStream(Channel.DEBUG)
+                        error.exception.printStackTrace(output)
+                        output.silentClose()
+                        errorResponse(BAD_REQUEST, "An error of type ${error.exception.javaClass} happened: ${error.message}"
+                    )}
                 )
             }
 
