@@ -17,6 +17,7 @@
 package com.reposilite.statistics.infrastructure
 
 import com.reposilite.shared.firstAndMap
+import com.reposilite.shared.launchTransaction
 import com.reposilite.statistics.StatisticsRepository
 import com.reposilite.statistics.api.Record
 import com.reposilite.statistics.api.RecordIdentifier
@@ -35,7 +36,6 @@ import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.sum
-import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.UUID
 
@@ -50,7 +50,7 @@ internal object StatisticsTable : Table("statistics") {
     val statisticsTypeWithIdentifierKey = withUnique("uq_type_identifier_id", type, identifier_id)
 }
 
-internal class SqlStatisticsRepository(private val dispatcher: CoroutineDispatcher, private val database: Database) : StatisticsRepository {
+internal class SqlStatisticsRepository(private val dispatcher: CoroutineDispatcher?, private val database: Database) : StatisticsRepository {
 
     init {
         transaction(database) {
@@ -60,12 +60,12 @@ internal class SqlStatisticsRepository(private val dispatcher: CoroutineDispatch
     }
 
     override suspend fun incrementRecord(record: RecordIdentifier, count: Long) =
-        newSuspendedTransaction(dispatcher, database) {
+        launchTransaction(dispatcher, database) {
             rawIncrementRecord(record, count)
         }
 
     override suspend fun incrementRecords(bulk: Map<RecordIdentifier, Long>) =
-        newSuspendedTransaction(dispatcher, database) {
+        launchTransaction(dispatcher, database) {
             bulk.forEach { rawIncrementRecord(it.key, it.value) }
         }
 
@@ -97,13 +97,13 @@ internal class SqlStatisticsRepository(private val dispatcher: CoroutineDispatch
         )
 
     override suspend fun findRecordByTypeAndIdentifier(record: RecordIdentifier): Record? =
-        newSuspendedTransaction(dispatcher, database) {
+        launchTransaction(dispatcher, database) {
             StatisticsTable.select { build { StatisticsTable.type eq record.type.name }.and { StatisticsTable.identifier eq record.identifier } }
                 .firstAndMap { toRecord(it) }
         }
 
     override suspend fun findRecordsByPhrase(type: RecordType, phrase: String, limit: Int): List<Record> =
-        newSuspendedTransaction(dispatcher, database) {
+        launchTransaction(dispatcher, database) {
             StatisticsTable.select { build { StatisticsTable.type eq type.name }.and { StatisticsTable.identifier like "%${phrase}%" }}
                 .limit(limit)
                 .orderBy(StatisticsTable.count, order = DESC)
@@ -111,7 +111,7 @@ internal class SqlStatisticsRepository(private val dispatcher: CoroutineDispatch
         }
 
     override suspend fun countRecords(): Long =
-        newSuspendedTransaction(dispatcher, database) {
+        launchTransaction(dispatcher, database) {
             with (StatisticsTable.count.sum()) {
                 StatisticsTable.slice(this).selectAll().firstAndMap { it[this] }
             }
@@ -119,7 +119,7 @@ internal class SqlStatisticsRepository(private val dispatcher: CoroutineDispatch
         }
 
     override suspend fun countUniqueRecords(): Long =
-        newSuspendedTransaction(dispatcher, database) {
+        launchTransaction(dispatcher, database) {
             StatisticsTable.selectAll().count()
         }
 

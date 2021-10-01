@@ -24,7 +24,6 @@ import io.javalin.openapi.OpenApi
 import io.javalin.websocket.WsConfig
 import io.javalin.websocket.WsContext
 import io.javalin.websocket.WsMessageContext
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.runBlocking
 import panda.std.Result
 import panda.std.Result.error
@@ -35,7 +34,6 @@ import java.util.function.Consumer
 private const val AUTHORIZATION_PREFIX = "Authorization:"
 
 internal class CliEndpoint(
-    private val dispatcher: CoroutineDispatcher,
     private val journalist: ReposiliteJournalist,
     private val authenticationFacade: AuthenticationFacade,
     private val consoleFacade: ConsoleFacade,
