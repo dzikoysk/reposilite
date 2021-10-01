@@ -20,7 +20,12 @@
       <div class="container mx-auto">
         <p class="pt-7 pb-3 pl-2 font-semibold">
           <span class="select-none">Index of </span>
-          <span class="select-text">{{ $route.path }}</span>
+          <span class="select-text">
+            <router-link v-for="crumb of breadcrumbs" :key="crumb.link" :to="crumb.link">
+              {{ crumb.name }}
+            </router-link>
+          </span>
+
           <router-link :to="parentPath">
             <span class="font-normal text-xl text-gray-500 select-none"> ⤴ </span>
           </router-link>
@@ -54,12 +59,13 @@
 </template>
 
 <script>
-import { ref, watch } from 'vue'
+import { ref, watch, computed, watchEffect } from 'vue'
 import { createToast } from 'mosha-vue-toastify'
 import 'mosha-vue-toastify/dist/style.css'
 import { createURL, createClient } from '../../store/client'
 import Card from './Card.vue'
 import Entry from './Entry.vue'
+import { useRoute } from 'vue-router'
 
 export default {
   components: { Card, Entry },
@@ -81,6 +87,7 @@ export default {
     const isEmpty = ref(false)
     const isErrored = ref(undefined)
     const isDirectory = (file) => file.type == 'DIRECTORY'
+    const route = useRoute()
 
     const drop = (path) => (path.endsWith('/') ? path.slice(0, -1) : path).split("/")
       .slice(0, -1)
@@ -110,6 +117,15 @@ export default {
       { immediate: true }
     )
 
+    const breadcrumbs = computed(() => {
+      const crumbs = route.path.split('/')
+
+      return crumbs.map((name, i) => ({
+        link: crumbs.slice(0, i + 1).join('/') || '/',
+        name: i === crumbs.length - 1 ? name : name + '/'
+      }))
+    })
+
     return {
       qualifier,
       token,
@@ -118,7 +134,8 @@ export default {
       isEmpty,
       isErrored,
       isDirectory,
-      createURL
+      createURL,
+      breadcrumbs
     }
   }
 }
