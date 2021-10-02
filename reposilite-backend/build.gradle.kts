@@ -84,14 +84,14 @@ dependencies {
     implementation("io.javalin-rfc:javalin-openapi-plugin:$openapi")
     implementation("io.javalin-rfc:javalin-swagger-plugin:$openapi")
 
-    val javalinRfcs = "4.0.22"
+    val javalinRfcs = "4.0.23"
     implementation("com.reposilite.javalin-rfcs:javalin-context:$javalinRfcs")
     implementation("com.reposilite.javalin-rfcs:javalin-reactive-routing:$javalinRfcs")
 
     // val javalin = "4.0.0.RC3"
     // implementation("io.javalin:javalin:$javalin")
     // implementation("com.github.tipsy.javalin:javalin:-SNAPSHOT")
-    implementation("com.github.dzikoysk.javalin:javalin:90381e8e35") // 7f3cc2f63c
+    implementation("com.github.dzikoysk.javalin:javalin:d2e02a25b0")
 
     @Suppress("GradlePackageUpdate")
     implementation("org.eclipse.jetty:jetty-server:9.4.44.v20210927")
