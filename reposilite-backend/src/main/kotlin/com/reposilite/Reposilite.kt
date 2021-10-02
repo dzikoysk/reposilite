@@ -83,6 +83,7 @@ class Reposilite(
 
         logger.info("Platform: ${System.getProperty("java.version")} (${System.getProperty("os.name")})")
         logger.info("Working directory: ${parameters.workingDirectory.toAbsolutePath()}")
+        logger.info("Mode: ${if (configuration.reactiveMode) "Reactive" else "Blocking"}")
         logger.info("")
 
         logger.info("--- Loading domain configurations")
