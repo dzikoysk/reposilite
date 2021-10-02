@@ -152,7 +152,7 @@ enforceSsl: false
 # By default, Reposilite 3.x uses experimental reactive mode to maximize performance of each spawned thread.
 # If you've noticed various unresolved behaviours like freezing and deadlocking, you can switch to the standard blocking mode.
 # Remember: Blocking mode requires more resources (threads) to handle the same throughput. 
-reactiveMode: false
+reactiveMode: true
 # Max amount of threads used by core thread pool (min: 4)
 # The web thread pool handles first few steps of incoming http connections, as soon as possible all tasks are redirected to IO thread pool.
 webThreadPool: 8
