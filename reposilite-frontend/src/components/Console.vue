@@ -35,6 +35,7 @@
       </div>
       <hr class="dark:border-dark-300">
       <input
+        id="consoleInput"
         placeholder="Type command or '?' to get help"
         class="w-full py-2 px-4 rounded-b-lg bg-white dark:bg-gray-900 dark:text-white"
         v-model="command"
@@ -99,6 +100,9 @@ export default {
         })
 
       connect(token)
+      nextTick(() => {
+        setTimeout(() => document.getElementById('consoleInput').focus(), 200)
+      })
     }
 
     watch(
