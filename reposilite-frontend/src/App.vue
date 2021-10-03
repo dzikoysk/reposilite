@@ -22,7 +22,7 @@
       :token="token"
       :session="session"
     />
-    <div v-if="icpLicense" class="relative h-3 pt-1.5 pb-1.5 w-full text-center text-xs">
+    <div v-if="icpLicense" class="absolute h-3 pt-1.5 pb-1.5 w-full text-center text-xs">
       <a href="https://beian.miit.gov.cn" target="_blank">{{icpLicense}}</a>
     </div>
   </div>
