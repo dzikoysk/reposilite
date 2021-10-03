@@ -24,7 +24,7 @@ import com.reposilite.web.WebConfiguration
 
 object StatusWebConfiguration : WebConfiguration {
 
-    private const val REMOTE_VERSION = "https://repo.panda-lang.org/org/panda-lang/reposilite/latest"
+    private const val REMOTE_VERSION = "https://repo.panda-lang.org/api/maven/latest/releases/org/panda-lang/reposilite"
 
     fun createFacade(testEnv: Boolean, webServer: JavalinWebServer): StatusFacade {
         return StatusFacade(testEnv, status = { webServer.isAlive() }, remoteVersionUrl = REMOTE_VERSION)
