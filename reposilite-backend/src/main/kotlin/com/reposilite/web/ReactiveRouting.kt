@@ -23,6 +23,7 @@ import com.reposilite.web.routing.AbstractRoutes
 import com.reposilite.web.routing.ReactiveRoutingPlugin
 import com.reposilite.web.routing.Route
 import com.reposilite.web.routing.RouteMethod
+import io.javalin.http.Context
 import kotlinx.coroutines.CoroutineDispatcher
 
 abstract class ReposiliteRoutes : AbstractRoutes<ContextDsl, Unit>()
@@ -35,7 +36,6 @@ class ReposiliteRoute(
 
 fun createReactiveRouting(reposilite: Reposilite, dispatcher: CoroutineDispatcher): ReactiveRoutingPlugin<ContextDsl, Unit> {
     val failureFacade = reposilite.failureFacade
-    val authenticationFacade = reposilite.authenticationFacade
 
     val plugin = ReactiveRoutingPlugin<ContextDsl, Unit>(
         name = "reposilite-reactive-routing",
@@ -44,10 +44,7 @@ fun createReactiveRouting(reposilite: Reposilite, dispatcher: CoroutineDispatche
         dispatcher = dispatcher,
         syncHandler = { ctx, route ->
             try {
-                val authenticationResult = authenticationFacade.authenticateByHeader(ctx.headerMap())
-                val dsl = ContextDsl(reposilite.logger, ctx, authenticationResult)
-                route.handler(dsl)
-                dsl.response?.also { ctx.response(it) }
+                handle(reposilite, ctx, route)
             } catch (throwable: Throwable) {
                 throwable.printStackTrace()
                 failureFacade.throwException(ctx.uri(), throwable)
@@ -55,16 +52,13 @@ fun createReactiveRouting(reposilite: Reposilite, dispatcher: CoroutineDispatche
         },
         asyncHandler = { ctx, route, result ->
             try {
-                val authenticationResult = authenticationFacade.authenticateByHeader(ctx.headerMap())
-                val dsl = ContextDsl(reposilite.logger, ctx, authenticationResult)
-                route.handler(dsl)
-                dsl.response?.also { ctx.response(it) }
+                handle(reposilite, ctx, route)
                 result.complete(Unit)
             }
             catch (throwable: Throwable) {
-                result.completeExceptionally(throwable)
                 throwable.printStackTrace()
                 failureFacade.throwException(ctx.uri(), throwable)
+                result.completeExceptionally(throwable)
             }
         }
     )
@@ -77,4 +71,11 @@ fun createReactiveRouting(reposilite: Reposilite, dispatcher: CoroutineDispatche
         .let { plugin.registerRoutes(it) }
 
     return plugin
+}
+
+private suspend fun handle(reposilite: Reposilite, ctx: Context, route: Route<ContextDsl, Unit>) {
+    val authenticationResult = reposilite.authenticationFacade.authenticateByHeader(ctx.headerMap())
+    val dsl = ContextDsl(reposilite.logger, ctx, authenticationResult)
+    route.handler(dsl)
+    dsl.response?.also { ctx.response(it) }
 }

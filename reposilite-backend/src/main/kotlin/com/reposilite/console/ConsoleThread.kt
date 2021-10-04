@@ -16,7 +16,6 @@
 package com.reposilite.console
 
 import com.reposilite.status.FailureFacade
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.runBlocking
 import java.io.InputStream
 import java.util.Scanner
