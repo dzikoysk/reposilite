@@ -26,7 +26,7 @@ plugins {
     `java-library`
     kotlin("jvm") version "1.5.21"
     kotlin("kapt") version "1.5.21"
-    id("com.github.johnrengelman.shadow") version "7.0.0"
+    id("com.github.johnrengelman.shadow") version "7.1.0"
     `maven-publish`
     application
     jacoco
@@ -60,7 +60,7 @@ dependencies {
     implementation("org.panda-lang:expressible-kt-coroutines:$expressible")
     testImplementation("org.panda-lang:expressible-junit:$expressible")
 
-    val awssdk = "2.17.50"
+    val awssdk = "2.17.51"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
 
@@ -135,7 +135,7 @@ dependencies {
     testImplementation("org.testcontainers:junit-jupiter:$testcontainers")
     testImplementation("org.testcontainers:localstack:$testcontainers")
 
-    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.78")
+    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.79")
     testImplementation("com.google.http-client:google-http-client-jackson2:1.40.0")
 
     val junit = "5.8.1"
