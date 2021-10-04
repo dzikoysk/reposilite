@@ -20,7 +20,7 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 group = "org.panda-lang"
-version = "3.0.0-alpha.2"
+version = "3.0.0-alpha.3"
 
 plugins {
     `java-library`
@@ -84,7 +84,7 @@ dependencies {
     implementation("io.javalin-rfc:javalin-openapi-plugin:$openapi")
     implementation("io.javalin-rfc:javalin-swagger-plugin:$openapi")
 
-    val javalinRfcs = "4.0.24"
+    val javalinRfcs = "4.0.27"
     implementation("com.reposilite.javalin-rfcs:javalin-context:$javalinRfcs")
     implementation("com.reposilite.javalin-rfcs:javalin-reactive-routing:$javalinRfcs")
 
@@ -145,9 +145,11 @@ dependencies {
 }
 
 repositories {
-    mavenCentral()
+//    maven {
+//        url = uri("http://localhost/releases")
+//        isAllowInsecureProtocol = true
+//    }
     maven { url = uri("https://repo.panda-lang.org/releases") }
-    maven { url = uri("https://s01.oss.sonatype.org/content/repositories/releases/") }
     maven { url = uri("https://jitpack.io") }
 }
 
