@@ -41,6 +41,7 @@ import panda.std.asSuccess
 import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.model.BucketAlreadyExistsException
+import software.amazon.awssdk.services.s3.model.BucketAlreadyOwnedByYouException
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest
 import software.amazon.awssdk.services.s3.model.GetObjectRequest
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest
@@ -67,6 +68,8 @@ internal class S3StorageProvider(
                 it.bucket(bucket)
             }
         } catch (bucketExists: BucketAlreadyExistsException) {
+            // ignored
+        } catch (buckedOwned: BucketAlreadyOwnedByYouException) {
             // ignored
         }
     }
