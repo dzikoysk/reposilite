@@ -23,7 +23,7 @@
       </h1>
       <!-- <button class="bg-black dark:bg-white text-white dark:text-black px-6 py-1 rounded">Download</button> -->
     </div>
-    <div class="flex config-selector-tab">
+    <div class="flex <sm:(hidden)">
       <div 
         v-for="entry in configurations" 
         :key="entry.name" 
@@ -34,28 +34,28 @@
         {{ entry.name }}
       </div>
     </div>
-    <div class="config-dropdown">
+    <div class="hidden flex-col items-center mt-24px <sm:(flex)">
       <div
-          class="selected-config"
-          @click="toggleConfigDropdown()">
+          class="w-full box-border py-5px p-2 rounded-lg border-1 border-true-gray-200 dark:border-dark-300"
+          @click="dropdownOpen = !dropdownOpen">
         {{ selectedTab }}
-        <div class="dropdown-icon">
+        <div class="w-20px h-25px float-right m-auto flex items-center">
           <down-icon/>
         </div>
       </div>
-      <ul class="rounded-lg">
+      <ul v-if="!dropdownOpen" class="rounded-lg w-full box-border p-2 bg-true-gray-100 dark:bg-dark-600">
         <li
             v-for="entry in configurations"
             :key="entry.name"
-            @click="selectedTab = entry.name; toggleConfigDropdown()"
-            class="dropdown mb-1.5"
+            @click="selectedTab = entry.name; dropdownOpen = !dropdownOpen"
+            class="dropdown py-1"
             :class="{ 'hidden': entry.name === selectedTab }">
           {{ entry.name }}
         </li>
       </ul>
     </div>
 
-    <hr class="dark:border-gray-800">
+    <hr class="dark:border-gray-800 <sm:(hidden)">
     <div class="overflow-hidden">
       <transition :name="transitionName" mode="out-in">
         <div :key="selectedTab" class="relative h-33 mt-6 p-4 mr-1 rounded-lg bg-gray-100 dark:bg-gray-800">
@@ -113,9 +113,11 @@ export default {
     const { client } = createClient(token.name, token.secret)
     const { copy: copyText, isSupported: isCopySupported } = useClipboard()
 
-    let dropdownOpen = false
+
     const selectedTab = ref(localStorage.getItem('card-tab') || 'Maven')
+    const dropdownOpen = ref(localStorage.getItem('dropdown-open') || false)
     watchEffect(() => localStorage.setItem('card-tab', selectedTab.value))
+    watchEffect(() => localStorage.setItem('dropdown-open', dropdownOpen.value))
     
     const displayRepository = () => {
       configurations.value = createRepositories(qualifier)
@@ -173,11 +175,6 @@ export default {
       return createToast('Copied snippet', { type: 'info' })
     }
 
-    const toggleConfigDropdown = () => {
-      document.querySelector(".config-dropdown ul").style.display = dropdownOpen ? 'none' : 'block';
-      dropdownOpen = !dropdownOpen;
-    }
-
     return {
       title,
       configurations,
@@ -185,7 +182,7 @@ export default {
       transitionName,
       copy,
       isCopySupported,
-      toggleConfigDropdown
+      dropdownOpen
     }
   }
 }
@@ -254,41 +251,4 @@ export default {
 .token.string {
     color: mediumpurple;
 }
-.config-dropdown {
-  display: none;
-  flex-direction: column;
-  align-items: center;
-  margin: 24px 0;
-}
-.config-dropdown ul {
-  display: none;
-  width: 100%;
-  box-sizing: border-box;
-  padding: 10px;
-  background-color: #e5e5e56e;
-}
-.selected-config {
-  width: 100%;
-  padding: 5px 10px;
-  border-radius: 8px;
-  border: 1px solid #e5e5e5;
-  box-sizing: border-box;
-}
-.dropdown-icon {
-  width: 20px;
-  height: 25px;
-  float: right;
-  margin: auto;
-  display: flex;
-  align-items: center;
-}
-@media screen and (max-width: 576px ) {
-  .config-selector-tab {
-    display: none !important;
-  }
-  .config-dropdown {
-    display: flex;
-  }
-}
-
 </style>
