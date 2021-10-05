@@ -26,7 +26,7 @@ internal class InMemoryAccessTokenRepository : AccessTokenRepository {
     private val tokens: MutableMap<Int, AccessToken> = HashMap(1)
     private val id = AtomicInteger()
 
-    override suspend fun saveAccessToken(accessToken: AccessToken): AccessToken {
+    override fun saveAccessToken(accessToken: AccessToken): AccessToken {
         val initializedAccessToken = when (accessToken.id) {
             UNINITIALIZED_ENTITY_ID -> accessToken.copy(id = id.incrementAndGet())
             else -> accessToken
@@ -36,17 +36,17 @@ internal class InMemoryAccessTokenRepository : AccessTokenRepository {
         return initializedAccessToken
     }
 
-    override suspend fun deleteAccessToken(accessToken: AccessToken) {
+    override fun deleteAccessToken(accessToken: AccessToken) {
         tokens.remove(accessToken.id)
     }
 
-    override suspend fun findAccessTokenByName(name: String): AccessToken? =
+    override fun findAccessTokenByName(name: String): AccessToken? =
         tokens.values.firstOrNull { it.name == name }
 
-    override suspend fun findAll(): Collection<AccessToken> =
+    override fun findAll(): Collection<AccessToken> =
         tokens.values
 
-    override suspend fun countAccessTokens(): Long =
+    override fun countAccessTokens(): Long =
         tokens.size.toLong()
 
 }

@@ -26,7 +26,6 @@ import com.reposilite.web.http.uri
 import io.javalin.http.Context
 import io.javalin.http.HttpCode
 import panda.std.Result
-import panda.std.coroutines.rxPeek
 
 class ContextDsl(
     val logger: Logger,
@@ -56,23 +55,23 @@ class ContextDsl(
     /**
      * Request was created by either anonymous user or through authenticated token
      */
-    suspend fun accessed(init: suspend AccessToken?.() -> Unit) {
+    fun accessed(init: AccessToken?.() -> Unit) {
         init(authenticationResult.orNull())
     }
 
     /**
      * Request was created by valid access token
      */
-    suspend fun authenticated(init: suspend AccessToken.() -> Unit) {
+    fun authenticated(init: AccessToken.() -> Unit) {
         authenticationResult
             .onError { ctx.error(it) }
-            .rxPeek { init(it) }
+            .peek { init(it) }
     }
 
     /**
      * Request was created by valid access token and the token has access to the requested path
      */
-    suspend fun authorized(to: String = ctx.uri(), init: suspend AccessToken.() -> Unit) {
+    fun authorized(to: String = ctx.uri(), init: AccessToken.() -> Unit) {
         authenticated {
             if (isAuthorized(to))
                 init(this)

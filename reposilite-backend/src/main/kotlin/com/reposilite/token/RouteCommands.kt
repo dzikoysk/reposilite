@@ -40,7 +40,7 @@ internal class RouteAdd(private val accessTokenFacade: AccessTokenFacade) : Repo
     ])
     private lateinit var permissions: String
 
-    override suspend fun execute(context: CommandContext) {
+    override fun execute(context: CommandContext) {
         with(accessTokenFacade) {
             getToken(name)
                 ?.let {
@@ -71,7 +71,7 @@ internal class RouteRemove(private val accessTokenFacade: AccessTokenFacade) : R
     @Parameters(index = "1", paramLabel = "<path>", description = ["Path of route to remove"])
     private lateinit var path: String
 
-    override suspend fun execute(context: CommandContext) {
+    override fun execute(context: CommandContext) {
         with(accessTokenFacade) {
             getToken(name)
                 ?.let {

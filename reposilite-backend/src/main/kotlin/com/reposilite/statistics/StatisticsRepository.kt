@@ -22,16 +22,16 @@ import com.reposilite.statistics.api.RecordType
 
 internal interface StatisticsRepository {
 
-    suspend fun incrementRecords(bulk: Map<RecordIdentifier, Long>)
+    fun incrementRecords(bulk: Map<RecordIdentifier, Long>)
 
-    suspend fun incrementRecord(record: RecordIdentifier, count: Long)
+    fun incrementRecord(record: RecordIdentifier, count: Long)
 
-    suspend fun findRecordByTypeAndIdentifier(record: RecordIdentifier): Record?
+    fun findRecordByTypeAndIdentifier(record: RecordIdentifier): Record?
 
-    suspend fun findRecordsByPhrase(type: RecordType, phrase: String, limit: Int): List<Record>
+    fun findRecordsByPhrase(type: RecordType, phrase: String, limit: Int): List<Record>
 
-    suspend fun countUniqueRecords(): Long
+    fun countUniqueRecords(): Long
 
-    suspend fun countRecords(): Long
+    fun countRecords(): Long
 
 }

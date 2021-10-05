@@ -55,7 +55,7 @@ class MavenFacade internal constructor(
         val REPOSITORIES: Path = Paths.get("repositories")
     }
 
-    suspend fun findFile(lookupRequest: LookupRequest): Result<out FileDetails, ErrorResponse> {
+    fun findFile(lookupRequest: LookupRequest): Result<out FileDetails, ErrorResponse> {
         val repository = repositoryService.getRepository(lookupRequest.repository) ?: return notFound("Repository not found").asError()
         val gav = lookupRequest.gav.toPath()
 

@@ -17,7 +17,6 @@
 package com.reposilite.status
 
 import com.github.kittinunf.fuel.Fuel
-import com.github.kittinunf.fuel.coroutines.awaitStringResult
 import com.reposilite.VERSION
 import com.reposilite.shared.TimeUtils
 import panda.utilities.console.Effect.GREEN
@@ -43,15 +42,20 @@ class StatusFacade(
     internal fun threadGroupUsage(): String =
         Thread.activeCount().toString()
 
-    internal suspend fun getVersion(): String =
+    internal fun getVersion(): String =
         if (testEnv)
             "<unknown>"
         else
             Fuel.get(remoteVersionUrl)
-                .awaitStringResult()
-                .fold(
-                    success = { (if (VERSION == it) GREEN else RED_UNDERLINED).toString() + it + RESET },
-                    failure = { if (it.message?.contains("java.security.NoSuchAlgorithmException") == true) "Cannot load SSL context for HTTPS request due to the lack of available memory" else "$remoteVersionUrl is unavailable: ${it.message}" }
+                .responseString()
+                .third.fold(
+                    success = { "${if (VERSION == it) GREEN else RED_UNDERLINED}$it$RESET" },
+                    failure = {
+                        return when (it.message?.contains("java.security.NoSuchAlgorithmException")) {
+                            true -> "Cannot load SSL context for HTTPS request due to the lack of available memory"
+                            else -> "$remoteVersionUrl is unavailable: ${it.message}"
+                        }
+                    }
                 )
 
 }

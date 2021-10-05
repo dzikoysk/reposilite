@@ -24,7 +24,6 @@ import io.javalin.openapi.OpenApi
 import io.javalin.websocket.WsConfig
 import io.javalin.websocket.WsContext
 import io.javalin.websocket.WsMessageContext
-import kotlinx.coroutines.runBlocking
 import panda.std.Result
 import panda.std.Result.error
 import panda.std.Result.ok
@@ -47,22 +46,20 @@ internal class CliEndpoint(
     override fun accept(ws: WsConfig) {
         ws.onConnect { connection ->
             ws.onMessage { messageContext ->
-                runBlocking {
-                    authenticateContext(messageContext)
-                        .peek {
-                            journalist.logger.info("CLI | $it accessed remote console")
-                            initializeAuthenticatedContext(ws, connection, it)
-                        }
-                        .onError {
-                            connection.send(it)
-                            connection.session.disconnect()
-                        }
-                }
+                authenticateContext(messageContext)
+                    .peek {
+                        journalist.logger.info("CLI | $it accessed remote console")
+                        initializeAuthenticatedContext(ws, connection, it)
+                    }
+                    .onError {
+                        connection.send(it)
+                        connection.session.disconnect()
+                    }
             }
         }
     }
 
-    private suspend fun authenticateContext(connection: WsMessageContext): Result<String, String> {
+    private fun authenticateContext(connection: WsMessageContext): Result<String, String> {
         val authMessage = connection.message()
 
         if (!authMessage.startsWith(AUTHORIZATION_PREFIX)) {
@@ -86,10 +83,8 @@ internal class CliEndpoint(
             when(val message = it.message()) {
                 "keep-alive" -> connection.send("keep-alive")
                 else -> {
-                    runBlocking {
-                        journalist.logger.info("CLI | $session> $message")
-                        consoleFacade.executeCommand(message)
-                    }
+                    journalist.logger.info("CLI | $session> $message")
+                    consoleFacade.executeCommand(message)
                 }
             }
         }
