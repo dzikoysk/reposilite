@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.reposilite.web
+package com.reposilite.web.application
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include
 import com.fasterxml.jackson.databind.json.JsonMapper

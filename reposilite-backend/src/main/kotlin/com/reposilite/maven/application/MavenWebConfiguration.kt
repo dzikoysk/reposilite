@@ -28,8 +28,8 @@ import com.reposilite.maven.RepositoryService
 import com.reposilite.maven.infrastructure.MavenApiEndpoints
 import com.reposilite.maven.infrastructure.MavenEndpoints
 import com.reposilite.shared.RemoteClient
-import com.reposilite.web.ReposiliteRoutes
 import com.reposilite.web.WebConfiguration
+import com.reposilite.web.application.ReposiliteRoutes
 import java.nio.file.Path
 
 internal object MavenWebConfiguration : WebConfiguration {

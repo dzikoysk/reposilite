@@ -283,7 +283,7 @@ class Configuration : Serializable {
         "# The web thread pool handles first few steps of incoming http connections, as soon as possible all tasks are redirected to IO thread pool."
     )
     @JvmField
-    var webThreadPool = 8
+    var webThreadPool = 32
 
     @Description(
         "# IO thread pool handles all tasks that may benefit from non-blocking IO (min: 2)",

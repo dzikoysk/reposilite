@@ -30,7 +30,7 @@ import panda.std.Result
 class ContextDsl(
     val logger: Logger,
     val ctx: Context,
-    val authenticationResult: Result<AccessToken, ErrorResponse>
+    val authenticationResult: Lazy<Result<AccessToken, ErrorResponse>>
 ) {
 
     companion object {
@@ -56,14 +56,14 @@ class ContextDsl(
      * Request was created by either anonymous user or through authenticated token
      */
     fun accessed(init: AccessToken?.() -> Unit) {
-        init(authenticationResult.orNull())
+        init(authenticationResult.value.orNull())
     }
 
     /**
      * Request was created by valid access token
      */
     fun authenticated(init: AccessToken.() -> Unit) {
-        authenticationResult
+        authenticationResult.value
             .onError { ctx.error(it) }
             .peek { init(it) }
     }
@@ -90,12 +90,12 @@ class ContextDsl(
         ctx.pathParamMap()[name]
 
     fun isAuthorized(to: String): Boolean =
-        isManager() || authenticationResult.fold({ it.hasPermissionTo(to, METHOD_PERMISSIONS[ctx.method()]!!) }, { false })
+        isManager() || authenticationResult.value.fold({ it.hasPermissionTo(to, METHOD_PERMISSIONS[ctx.method()]!!) }, { false })
 
     fun isManager(): Boolean =
-        authenticationResult.fold({ it.hasPermission(AccessTokenPermission.MANAGER) }, { false })
+        authenticationResult.value.fold({ it.hasPermission(AccessTokenPermission.MANAGER) }, { false })
 
     fun getSessionIdentifier(): String =
-        authenticationResult.fold({ "${it.name}@${ctx.ip()}" }, { ctx.ip() })
+        authenticationResult.value.fold({ "${it.name}@${ctx.ip()}" }, { ctx.ip() })
 
 }

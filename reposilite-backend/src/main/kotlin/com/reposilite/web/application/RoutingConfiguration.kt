@@ -14,18 +14,16 @@
  * limitations under the License.
  */
 
-package com.reposilite.web
+package com.reposilite.web.application
 
 import com.reposilite.Reposilite
+import com.reposilite.web.ContextDsl
 import com.reposilite.web.http.response
 import com.reposilite.web.http.uri
 import com.reposilite.web.routing.AbstractRoutes
 import com.reposilite.web.routing.Route
 import com.reposilite.web.routing.RouteMethod
 import com.reposilite.web.routing.RoutingPlugin
-import io.javalin.http.Context
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.withTimeout
 
 abstract class ReposiliteRoutes : AbstractRoutes<ContextDsl, Unit>()
 
@@ -41,8 +39,7 @@ fun createReactiveRouting(reposilite: Reposilite): RoutingPlugin<ContextDsl, Uni
     val plugin = RoutingPlugin<ContextDsl, Unit>(
         handler = { ctx, route ->
             try {
-                val authenticationResult = reposilite.authenticationFacade.authenticateByHeader(ctx.headerMap())
-                val dsl = ContextDsl(reposilite.logger, ctx, authenticationResult)
+                val dsl = ContextDsl(reposilite.logger, ctx, lazy { reposilite.authenticationFacade.authenticateByHeader(ctx.headerMap()) })
                 route.handler(dsl)
                 dsl.response?.also { ctx.response(it) }
             } catch (throwable: Throwable) {
