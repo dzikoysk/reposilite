@@ -23,7 +23,7 @@
       </h1>
       <!-- <button class="bg-black dark:bg-white text-white dark:text-black px-6 py-1 rounded">Download</button> -->
     </div>
-    <div class="flex">
+    <div class="flex config-selector-tab">
       <div 
         v-for="entry in configurations" 
         :key="entry.name" 
@@ -34,6 +34,27 @@
         {{ entry.name }}
       </div>
     </div>
+    <div class="config-dropdown">
+      <div
+          class="selected-config"
+          @click="toggleConfigDropdown()">
+        {{ selectedTab }}
+        <div class="dropdown-icon">
+          <down-icon/>
+        </div>
+      </div>
+      <ul class="rounded-lg">
+        <li
+            v-for="entry in configurations"
+            :key="entry.name"
+            @click="selectedTab = entry.name; toggleConfigDropdown()"
+            class="dropdown mb-1.5"
+            :class="{ 'hidden': entry.name === selectedTab }">
+          {{ entry.name }}
+        </li>
+      </ul>
+    </div>
+
     <hr class="dark:border-gray-800">
     <div class="overflow-hidden">
       <transition :name="transitionName" mode="out-in">
@@ -66,10 +87,11 @@ import { createClient } from '../../store/client'
 import useMetadata from '../../store/maven/metadata'
 import { useClipboard } from '@vueuse/core'
 import CopyIcon from '../icons/CopyIcon.vue'
+import DownIcon from '../icons/DownIcon.vue'
 import { createToast } from 'mosha-vue-toastify'
 
 export default {
-  components: { PrismEditor, CopyIcon },
+  components: { PrismEditor, CopyIcon, DownIcon },
   props: {
     qualifier: {
       type: Object,
@@ -91,6 +113,7 @@ export default {
     const { client } = createClient(token.name, token.secret)
     const { copy: copyText, isSupported: isCopySupported } = useClipboard()
 
+    let dropdownOpen = false
     const selectedTab = ref(localStorage.getItem('card-tab') || 'Maven')
     watchEffect(() => localStorage.setItem('card-tab', selectedTab.value))
     
@@ -150,13 +173,19 @@ export default {
       return createToast('Copied snippet', { type: 'info' })
     }
 
+    const toggleConfigDropdown = () => {
+      document.querySelector(".config-dropdown ul").style.display = dropdownOpen ? 'none' : 'block';
+      dropdownOpen = !dropdownOpen;
+    }
+
     return {
       title,
       configurations,
       selectedTab,
       transitionName,
       copy,
-      isCopySupported
+      isCopySupported,
+      toggleConfigDropdown
     }
   }
 }
@@ -225,4 +254,41 @@ export default {
 .token.string {
     color: mediumpurple;
 }
+.config-dropdown {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  margin: 24px 0;
+}
+.config-dropdown ul {
+  display: none;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+  background-color: #e5e5e56e;
+}
+.selected-config {
+  width: 100%;
+  padding: 5px 10px;
+  border-radius: 8px;
+  border: 1px solid #e5e5e5;
+  box-sizing: border-box;
+}
+.dropdown-icon {
+  width: 20px;
+  height: 25px;
+  float: right;
+  margin: auto;
+  display: flex;
+  align-items: center;
+}
+@media screen and (max-width: 576px ) {
+  .config-selector-tab {
+    display: none !important;
+  }
+  .config-dropdown {
+    display: flex;
+  }
+}
+
 </style>
