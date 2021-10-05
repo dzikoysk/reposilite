@@ -17,12 +17,10 @@
 package com.reposilite.statistics.infrastructure
 
 import com.reposilite.shared.firstAndMap
-import com.reposilite.shared.launchTransaction
 import com.reposilite.statistics.StatisticsRepository
 import com.reposilite.statistics.api.Record
 import com.reposilite.statistics.api.RecordIdentifier
 import com.reposilite.statistics.api.RecordType
-import kotlinx.coroutines.CoroutineDispatcher
 import net.dzikoysk.exposed.upsert.upsert
 import net.dzikoysk.exposed.upsert.withUnique
 import org.jetbrains.exposed.sql.Database
@@ -50,7 +48,7 @@ internal object StatisticsTable : Table("statistics") {
     val statisticsTypeWithIdentifierKey = withUnique("uq_type_identifier_id", type, identifier_id)
 }
 
-internal class SqlStatisticsRepository(private val dispatcher: CoroutineDispatcher?, private val database: Database) : StatisticsRepository {
+internal class SqlStatisticsRepository(private val database: Database) : StatisticsRepository {
 
     init {
         transaction(database) {
@@ -59,13 +57,13 @@ internal class SqlStatisticsRepository(private val dispatcher: CoroutineDispatch
         }
     }
 
-    override suspend fun incrementRecord(record: RecordIdentifier, count: Long) =
-        launchTransaction(dispatcher, database) {
+    override  fun incrementRecord(record: RecordIdentifier, count: Long) =
+        transaction(database) {
             rawIncrementRecord(record, count)
         }
 
-    override suspend fun incrementRecords(bulk: Map<RecordIdentifier, Long>) =
-        launchTransaction(dispatcher, database) {
+    override fun incrementRecords(bulk: Map<RecordIdentifier, Long>) =
+        transaction(database) {
             bulk.forEach { rawIncrementRecord(it.key, it.value) }
         }
 
@@ -96,30 +94,30 @@ internal class SqlStatisticsRepository(private val dispatcher: CoroutineDispatch
             row[StatisticsTable.count]
         )
 
-    override suspend fun findRecordByTypeAndIdentifier(record: RecordIdentifier): Record? =
-        launchTransaction(dispatcher, database) {
+    override fun findRecordByTypeAndIdentifier(record: RecordIdentifier): Record? =
+        transaction(database) {
             StatisticsTable.select { build { StatisticsTable.type eq record.type.name }.and { StatisticsTable.identifier eq record.identifier } }
                 .firstAndMap { toRecord(it) }
         }
 
-    override suspend fun findRecordsByPhrase(type: RecordType, phrase: String, limit: Int): List<Record> =
-        launchTransaction(dispatcher, database) {
+    override fun findRecordsByPhrase(type: RecordType, phrase: String, limit: Int): List<Record> =
+        transaction(database) {
             StatisticsTable.select { build { StatisticsTable.type eq type.name }.and { StatisticsTable.identifier like "%${phrase}%" }}
                 .limit(limit)
                 .orderBy(StatisticsTable.count, order = DESC)
                 .map { toRecord(it) }
         }
 
-    override suspend fun countRecords(): Long =
-        launchTransaction(dispatcher, database) {
+    override fun countRecords(): Long =
+        transaction(database) {
             with (StatisticsTable.count.sum()) {
                 StatisticsTable.slice(this).selectAll().firstAndMap { it[this] }
             }
             ?: 0
         }
 
-    override suspend fun countUniqueRecords(): Long =
-        launchTransaction(dispatcher, database) {
+    override fun countUniqueRecords(): Long =
+        transaction(database) {
             StatisticsTable.selectAll().count()
         }
 

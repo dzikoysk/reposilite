@@ -33,7 +33,7 @@ internal class HelpCommand(private val consoleFacade: ConsoleFacade) : Reposilit
     @Parameters(index = "0", paramLabel = "[<command>]", description = ["Display usage of the given command"], defaultValue = "")
     private lateinit var requestedCommand: String
 
-    override suspend fun execute(context: CommandContext) {
+    override fun execute(context: CommandContext) {
         createCommandHelp(consoleFacade.getCommands(), requestedCommand)
             .peek { context.appendAll(it) }
             .onError {
@@ -47,7 +47,7 @@ internal class HelpCommand(private val consoleFacade: ConsoleFacade) : Reposilit
 @Command(name = "stop", aliases = ["shutdown"], description = ["Shutdown server"])
 internal class StopCommand(private val reposilite: Reposilite) : ReposiliteCommand {
 
-    override suspend fun execute(context: CommandContext) {
+    override fun execute(context: CommandContext) {
         reposilite.logger.warn("The shutdown request has been sent")
         reposilite.scheduler.schedule({ reposilite.shutdown() }, 1, SECONDS)
     }
@@ -60,7 +60,7 @@ internal class LevelCommand(private val journalist: ReposiliteJournalist) : Repo
     @Parameters(index = "0", paramLabel = "<level>", description = ["The new threshold"], defaultValue = "info")
     private lateinit var level: String
 
-    override suspend fun execute(context: CommandContext) {
+    override fun execute(context: CommandContext) {
         ofOptional(Channel.of(level))
             .onEmpty {
                 context.status = FAILED

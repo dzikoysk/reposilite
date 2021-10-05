@@ -46,13 +46,13 @@ interface RemoteClient {
      * @param connectTimeout - connection establishment timeout in seconds
      * @param readTimeout - connection read timeout in seconds
      */
-    suspend fun get(uri: String, credentials: String?, connectTimeout: Int, readTimeout: Int): Result<DocumentInfo, ErrorResponse>
+    fun get(uri: String, credentials: String?, connectTimeout: Int, readTimeout: Int): Result<DocumentInfo, ErrorResponse>
 
 }
 
 class HttpRemoteClient(private val journalist: Journalist) : RemoteClient {
 
-    override suspend fun get(uri: String, credentials: String?, connectTimeout: Int, readTimeout: Int): Result<DocumentInfo, ErrorResponse> =
+    override fun get(uri: String, credentials: String?, connectTimeout: Int, readTimeout: Int): Result<DocumentInfo, ErrorResponse> =
         Fuel.head(uri)
             .authenticateWith(credentials)
             .timeout(connectTimeout * 1000)
@@ -115,10 +115,10 @@ class HttpRemoteClient(private val journalist: Journalist) : RemoteClient {
 }
 
 class FakeRemoteClient(
-    private val handler: suspend (String, String?, Int, Int) -> Result<DocumentInfo, ErrorResponse>
+    private val handler: (String, String?, Int, Int) -> Result<DocumentInfo, ErrorResponse>
 ) : RemoteClient {
 
-    override suspend fun get(uri: String, credentials: String?, connectTimeout: Int, readTimeout: Int): Result<DocumentInfo, ErrorResponse> =
+    override fun get(uri: String, credentials: String?, connectTimeout: Int, readTimeout: Int): Result<DocumentInfo, ErrorResponse> =
         handler(uri, credentials, connectTimeout, readTimeout)
 
 }

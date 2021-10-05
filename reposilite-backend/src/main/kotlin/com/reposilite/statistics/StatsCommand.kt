@@ -31,7 +31,7 @@ internal class StatsCommand(private val statisticsFacade: StatisticsFacade) : Re
     @Parameters(index = "0", paramLabel = "[<filter>]", description = ["Accepts string as pattern and int as limiter"], defaultValue = "")
     private lateinit var filter: String
 
-    override suspend fun execute(context: CommandContext) {
+    override fun execute(context: CommandContext) {
         context.append("Statistics: ")
         context.append("  Unique requests: " + statisticsFacade.countUniqueRecords() + " (count: " + statisticsFacade.countRecords() + ")")
 

@@ -30,22 +30,19 @@ import com.reposilite.status.StatusFacade
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.web.JavalinWebServer
 import com.reposilite.web.WebConfiguration
-import com.reposilite.web.coroutines.ExclusiveDispatcher
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import org.jetbrains.exposed.sql.Database
 import panda.utilities.console.Effect
-import java.util.concurrent.CompletableFuture
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.atomic.AtomicBoolean
 
-const val VERSION = "3.0.0-alpha.3"
+const val VERSION = "3.0.0-alpha.4"
 
 class Reposilite(
     val journalist: ReposiliteJournalist,
     val parameters: ReposiliteParameters,
     val configuration: Configuration,
-    val ioDispatcher: ExclusiveDispatcher?,
+    val ioService: ExecutorService,
     val scheduler: ScheduledExecutorService,
     val database: Database,
     val webServer: JavalinWebServer,
@@ -66,7 +63,7 @@ class Reposilite(
         alive.peek { shutdown() }
     }
 
-    suspend fun launch() {
+    fun launch() {
         load()
         start()
     }
@@ -83,7 +80,7 @@ class Reposilite(
 
         logger.info("Platform: ${System.getProperty("java.version")} (${System.getProperty("os.name")})")
         logger.info("Working directory: ${parameters.workingDirectory.toAbsolutePath()}")
-        logger.info("Mode: ${if (configuration.reactiveMode) "Reactive" else "Blocking"}")
+        logger.info("Threads: ${configuration.webThreadPool} WEB / ${configuration.ioThreadPool} IO")
         logger.info("")
 
         logger.info("--- Loading domain configurations")
@@ -97,7 +94,7 @@ class Reposilite(
         logger.info("")
     }
 
-    private suspend fun start(): Reposilite {
+    private fun start(): Reposilite {
         alive.set(true)
         Thread.currentThread().name = "Reposilite | Main Thread"
 
@@ -111,17 +108,13 @@ class Reposilite(
             logger.info("")
             consoleFacade.executeCommand("help")
 
-            val task = suspend {
+            ioService.execute {
                 logger.info("")
                 logger.info("Collecting status metrics...")
                 logger.info("")
                 consoleFacade.executeCommand("status")
                 logger.info("")
             }
-
-            ioDispatcher
-                ?.also { withContext(ioDispatcher) { task() } }
-                ?: CompletableFuture.runAsync { runBlocking { task() } }
         } catch (exception: Exception) {
             logger.error("Failed to start Reposilite")
             logger.exception(exception)
@@ -137,11 +130,11 @@ class Reposilite(
             alive.set(false)
             logger.info("Shutting down ${parameters.hostname}::${parameters.port}...")
             scheduler.shutdown()
-            ioDispatcher?.prepareShutdown()
+            ioService.shutdown()
             webs.forEach { it.dispose(this@Reposilite) }
             webServer.stop()
             scheduler.shutdownNow()
-            ioDispatcher?.completeShutdown()
+            ioService.shutdownNow()
             journalist.shutdown()
         }
 
