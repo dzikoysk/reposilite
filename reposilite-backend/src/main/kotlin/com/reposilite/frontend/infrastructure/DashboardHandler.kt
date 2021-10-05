@@ -21,8 +21,8 @@ import com.reposilite.shared.FilesUtils.getExtension
 import com.reposilite.shared.decodeToString
 import com.reposilite.shared.getSimpleName
 import com.reposilite.shared.safeResolve
-import com.reposilite.web.ReposiliteRoute
-import com.reposilite.web.ReposiliteRoutes
+import com.reposilite.web.application.ReposiliteRoute
+import com.reposilite.web.application.ReposiliteRoutes
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.encoding
 import com.reposilite.web.http.errorResponse

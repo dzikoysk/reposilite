@@ -17,6 +17,7 @@
 package com.reposilite.web
 
 import com.reposilite.Reposilite
+import com.reposilite.web.application.ReposiliteRoutes
 import io.javalin.Javalin
 
 interface WebConfiguration {

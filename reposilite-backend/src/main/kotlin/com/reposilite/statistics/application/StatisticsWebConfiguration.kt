@@ -23,8 +23,8 @@ import com.reposilite.statistics.StatsCommand
 import com.reposilite.statistics.infrastructure.SqlStatisticsRepository
 import com.reposilite.statistics.infrastructure.StatisticsEndpoint
 import com.reposilite.statistics.infrastructure.StatisticsHandler
-import com.reposilite.web.ReposiliteRoutes
 import com.reposilite.web.WebConfiguration
+import com.reposilite.web.application.ReposiliteRoutes
 import org.jetbrains.exposed.sql.Database
 import java.util.concurrent.TimeUnit.MINUTES
 
