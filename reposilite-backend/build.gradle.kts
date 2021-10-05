@@ -89,8 +89,7 @@ dependencies {
     implementation("com.reposilite.javalin-rfcs:javalin-routing:$javalinRfcs")
     //implementation("com.reposilite.javalin-rfcs:javalin-reactive-routing:$javalinRfcs")
 
-    // val javalin = "4.0.0.RC3"
-    // implementation("io.javalin:javalin:$javalin")
+    // implementation("io.javalin:javalin:4.1.0")
     // implementation("com.github.tipsy.javalin:javalin:-SNAPSHOT")
     implementation("com.github.dzikoysk.javalin:javalin:d2e02a25b0")
 

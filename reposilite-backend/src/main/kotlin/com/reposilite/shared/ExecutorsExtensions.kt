@@ -24,8 +24,8 @@ fun newFixedThreadPool(min: Int, max: Int, prefix: String): ExecutorService =
         min, max,
         0L, MILLISECONDS,
         LinkedBlockingQueue(),
-        NamedThreadFactory("$prefix ({$max}) - ")
+        NamedThreadFactory("$prefix ($max) - ")
     )
 
 fun newSingleThreadScheduledExecutor(prefix: String): ScheduledExecutorService =
-     ScheduledThreadPoolExecutor(1, NamedThreadFactory("$prefix (1) - 1"))
+     ScheduledThreadPoolExecutor(1, NamedThreadFactory("$prefix (1) - "))
