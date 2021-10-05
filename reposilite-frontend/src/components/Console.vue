@@ -15,7 +15,7 @@
   -->
 
 <template>
-  <div class="container mx-auto pt-10 px-15 text-xs">
+  <div class="container mx-auto pt-10 px-15 pb-10 text-xs">
     <div class="flex text-sm flex-col xl:flex-row w-full py-2 justify-between">
       <input placeholder="Filter" v-model="filter" class="w-full xl:w-1/2 mr-5 py-1 px-4 rounded-lg bg-white dark:bg-gray-900" />
       <div class="flex flex-row justify-around w-full xl:w-1/2">
@@ -100,9 +100,8 @@ export default {
         })
 
       connect(token)
-      nextTick(() => {
-        setTimeout(() => document.getElementById('consoleInput').focus(), 200)
-      })
+
+      nextTick(() => setTimeout(() => document.getElementById('consoleInput').focus(), 1000))
     }
 
     watch(

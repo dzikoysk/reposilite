@@ -70,7 +70,7 @@ repositories {
     #   https://repo.panda-lang.org/releases --store --connectTimeout=3 --readTimeout=15 --auth user:token
     # ]
     proxied [
-      https://repo.panda-lang.org/releases --store
+      https://repo.panda-lang.org/releases
       https://repo.aikar.co/content/groups/aikar/
     ]
   }
@@ -145,6 +145,7 @@ keyStorePath: ${WORKING_DIRECTORY}/keystore.jks
 keyStorePassword: reposilite
 # Redirect http traffic to https
 enforceSsl: false
+
 # Max amount of threads used by core thread pool (min: 4)
 # The web thread pool handles first few steps of incoming http connections, as soon as possible all tasks are redirected to IO thread pool.
 webThreadPool: 4
