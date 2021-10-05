@@ -20,13 +20,13 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 group = "org.panda-lang"
-version = "3.0.0-alpha.1-SNAPSHOT"
+version = "3.0.0-alpha.3"
 
 plugins {
     `java-library`
     kotlin("jvm") version "1.5.21"
     kotlin("kapt") version "1.5.21"
-    id("com.github.johnrengelman.shadow") version "7.0.0"
+    id("com.github.johnrengelman.shadow") version "7.1.0"
     `maven-publish`
     application
     jacoco
@@ -54,13 +54,13 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.5.21")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
 
-    val expressible = "1.0.16"
+    val expressible = "1.0.17"
     implementation("org.panda-lang:expressible:$expressible")
     implementation("org.panda-lang:expressible-kt:$expressible")
     implementation("org.panda-lang:expressible-kt-coroutines:$expressible")
     testImplementation("org.panda-lang:expressible-junit:$expressible")
 
-    val awssdk = "2.17.50"
+    val awssdk = "2.17.51"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
 
@@ -84,7 +84,7 @@ dependencies {
     implementation("io.javalin-rfc:javalin-openapi-plugin:$openapi")
     implementation("io.javalin-rfc:javalin-swagger-plugin:$openapi")
 
-    val javalinRfcs = "4.0.23"
+    val javalinRfcs = "4.0.27"
     implementation("com.reposilite.javalin-rfcs:javalin-context:$javalinRfcs")
     implementation("com.reposilite.javalin-rfcs:javalin-reactive-routing:$javalinRfcs")
 
@@ -135,7 +135,7 @@ dependencies {
     testImplementation("org.testcontainers:junit-jupiter:$testcontainers")
     testImplementation("org.testcontainers:localstack:$testcontainers")
 
-    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.78")
+    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.79")
     testImplementation("com.google.http-client:google-http-client-jackson2:1.40.0")
 
     val junit = "5.8.1"
@@ -145,9 +145,11 @@ dependencies {
 }
 
 repositories {
-    mavenCentral()
+//    maven {
+//        url = uri("http://localhost/releases")
+//        isAllowInsecureProtocol = true
+//    }
     maven { url = uri("https://repo.panda-lang.org/releases") }
-    maven { url = uri("https://s01.oss.sonatype.org/content/repositories/releases/") }
     maven { url = uri("https://jitpack.io") }
 }
 

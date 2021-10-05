@@ -30,6 +30,7 @@ import com.reposilite.storage.StorageProvider
 import com.reposilite.storage.StorageProvider.Companion.DEFAULT_STORAGE_PROVIDER_BUFFER_SIZE
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
+import com.reposilite.web.silentClose
 import io.javalin.http.ContentType
 import io.javalin.http.ContentType.APPLICATION_OCTET_STREAM
 import io.javalin.http.ContentType.Companion.OCTET_STREAM
@@ -41,6 +42,7 @@ import panda.std.asSuccess
 import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.model.BucketAlreadyExistsException
+import software.amazon.awssdk.services.s3.model.BucketAlreadyOwnedByYouException
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest
 import software.amazon.awssdk.services.s3.model.GetObjectRequest
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest
@@ -68,6 +70,8 @@ internal class S3StorageProvider(
             }
         } catch (bucketExists: BucketAlreadyExistsException) {
             // ignored
+        } catch (buckedOwned: BucketAlreadyOwnedByYouException) {
+            // ignored
         }
     }
 
@@ -86,6 +90,7 @@ internal class S3StorageProvider(
             // ~ https://github.com/aws/aws-sdk-java-v2/issues/37
             val tempFile = File.createTempFile("reposilite-", "-deploy")
             inputStream.copyTo(tempFile.outputStream(), DEFAULT_STORAGE_PROVIDER_BUFFER_SIZE)
+
             val contentLength = tempFile.length()
             builder.contentLength(contentLength)
 
@@ -96,12 +101,15 @@ internal class S3StorageProvider(
                 file.getSimpleName(),
                 ContentType.getContentTypeByExtension(file.getExtension()) ?: APPLICATION_OCTET_STREAM,
                 contentLength,
-                { inputStream }
+                { throw UnsupportedOperationException("Cannot fetch body of already stored object") }
             ).asSuccess()
         }
         catch (ioException: IOException) {
             logger.exception(ioException)
             errorResponse(INTERNAL_SERVER_ERROR, "Failed to write $file")
+        }
+        finally {
+            inputStream.silentClose()
         }
 
     override fun getFile(file: Path): Result<InputStream, ErrorResponse> =
@@ -109,7 +117,6 @@ internal class S3StorageProvider(
             val request = GetObjectRequest.builder()
             request.bucket(bucket)
             request.key(file.toString().replace('\\', '/'))
-
             s3.getObject(request.build()).asSuccess()
             // val bytes = ByteArray(Math.toIntExact(response.response().contentLength()))
             // response.read(bytes)

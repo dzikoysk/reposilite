@@ -35,7 +35,7 @@ const invalidCredentials = (res) =>
   res.status(401).send('Invalid credentials')
 
 const sendMessage = (connection, message) =>
-  connection.send(new Date().toDateString() + " | " + message)
+  connection.send(`${new Date().toDateString()} ${message}`)
 
 const createFileDetails = (name, contentType, contentLength) =>
   ({ type: 'FILE', name, contentType, contentLength })
