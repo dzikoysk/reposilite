@@ -30,7 +30,7 @@
     <MenuButton v-if="logged" @click="signout()">
       Logout
     </MenuButton>
-    <div class="pl-2 pt-1.3 cursor-pointer rounded-full bg-white dark:bg-gray-900" @click="toggleTheme()">
+    <div class="pl-2 pt-1.3 cursor-pointer rounded-full bg-white dark:bg-gray-900 max-h-33px" @click="toggleTheme()">
       <SunIcon class="mr-1.9" v-if="theme.isDark"/>
       <MoonIcon class="mr-1.5" v-else/>
     </div>
