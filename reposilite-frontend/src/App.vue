@@ -17,12 +17,12 @@
 <template>
   <div v-bind:class="{ 'dark': theme.isDark }">
     <router-view 
-      class="min-h-screen dark:bg-black dark:text-white"
+      class="dark:bg-black dark:text-white"
       :qualifier="qualifier"
       :token="token"
       :session="session"
     />
-    <div v-if="icpLicense" class="absolute bottom-4 w-full text-center text-xs">
+    <div v-if="icpLicense" class="absolute h-3 pt-1.5 pb-1.5 w-full text-center text-xs">
       <a href="https://beian.miit.gov.cn" target="_blank">{{icpLicense}}</a>
     </div>
   </div>
