@@ -15,10 +15,16 @@
   -->
 
 <template>
-  <svg viewBox="0 0 100 100" width="15" height="15">
-    <defs>
-      <image  width="77" height="51" id="img1" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAE0AAAAzCAMAAADl/3UzAAAAAXNSR0IB2cksfwAAAD9QTFRFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAsyWCLwAAABV0Uk5TABCP799vz/+fYIC/8JDQMCBQcKDgzmeILAAAATlJREFUeJyt19GSgyAMBdBYrQHX1nbt/3/r0nFtFRLIRfMYvGdGZSQSrdVc2u5KcF279tIk3abnUA7F3DvVx9yCwZxbUhG3YswewYY1teO+GMT5b2rDbTGA89vUz6ftmCs4v0+tTzzCjJyPU07GTFyCLdyQtg2cgDEPRJ3UL3Eixh3RKC7kORnjkegmr+Q4BeNb2Gx3lNOw+3sHa1w7ydiUw1BuarMYxhUxhDNggVP2ScyZsHCZidOwMb4HC2fGLByAlTkIK3EgluHCG3ugmM71zf7oMGEZrgbTuSoM44oY0dOulTH9Y5iU7dw1ctaZwMTZ5xUDh8xSRQ4azEochhU4FMtyOJbhajCVq8OUEeW3EiOaU2yuxgTuCJZwx7CIO4rtuOPYhjsD+3DnYP/cWVj4p3i9htMwc/0ByI4x8MjWouIAAAAASUVORK5CYII="/>
-    </defs>
-    <use  href="#img1" x="13" y="27" />
+  <!-- Source: https://heroicons.dev/ -->
+  <svg class="w-6 h-6"
+       fill="none"
+       stroke="currentColor"
+       viewBox="0 0 24 24"
+       xmlns="http://www.w3.org/2000/svg">
+    <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M19 9l-7 7-7-7"></path>
   </svg>
 </template>
