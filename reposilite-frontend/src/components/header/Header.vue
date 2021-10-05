@@ -16,13 +16,13 @@
 
 <template>
   <header class="bg-gray-100 dark:bg-black dark:text-white">
-    <div class="container mx-auto flex flex-row py-10 justify-between">
+    <div class="container mx-auto flex flex-row py-10 justify-between <sm:pb-2">
       <h1 class="text-xl font-medium py-1">
         <router-link :to="'/'">{{ title }}</router-link>
       </h1>
       <Menu :token="token" class="mt-0.5"/>
     </div>
-    <Hero class="pt-2 pb-11" />
+    <Hero class="pt-2 pb-11 <sm:pb-4" />
   </header>
 </template>
 
