@@ -15,7 +15,6 @@
  */
 package com.reposilite
 
-import kotlinx.coroutines.runBlocking
 import picocli.CommandLine
 
 fun createWithParameters(vararg args: String): Reposilite? {
@@ -35,6 +34,6 @@ fun createWithParameters(vararg args: String): Reposilite? {
     return ReposiliteFactory.createReposilite(parameters)
 }
 
-fun main(args: Array<String>): Unit = runBlocking {
+fun main(args: Array<String>) {
     createWithParameters(*args)?.launch()
 }

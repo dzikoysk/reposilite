@@ -28,7 +28,7 @@ internal abstract class ReposiliteSpecification : ReposiliteRunner() {
     fun usePredefinedTemporaryAuth(): Pair<String, String> =
         Pair("manager", "manager-secret")
 
-    suspend fun useAuth(name: String, secret: String, routes: Map<String, RoutePermission> = emptyMap()): Pair<String, String> {
+    fun useAuth(name: String, secret: String, routes: Map<String, RoutePermission> = emptyMap()): Pair<String, String> {
         val accessTokenFacade = reposilite.accessTokenFacade
         var accessToken = accessTokenFacade.createAccessToken(CreateAccessTokenRequest(name, secret)).accessToken
 

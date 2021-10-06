@@ -22,7 +22,6 @@ import com.reposilite.console.api.ReposiliteCommand
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
 import com.reposilite.status.FailureFacade
-import kotlinx.coroutines.CoroutineDispatcher
 import picocli.CommandLine
 import picocli.CommandLine.Command
 import picocli.CommandLine.MissingParameterException
@@ -40,10 +39,10 @@ internal class CommandExecutor(
     private val consoleThread = ConsoleThread(this, source, failureFacade)
     private val commandExecutor = CommandLine(this)
 
-    suspend fun execute(command: String): ExecutionResponse =
+    fun execute(command: String): ExecutionResponse =
         execute(command) { logger.info(it) }
 
-    suspend fun execute(command: String, outputConsumer: Consumer<String>): ExecutionResponse =
+    fun execute(command: String, outputConsumer: Consumer<String>): ExecutionResponse =
         executeCommand(command).also {
             it.response.forEach { message ->
                 message.replace(System.lineSeparator(), "\n").split("\n").toTypedArray().forEach { line ->
@@ -52,7 +51,7 @@ internal class CommandExecutor(
             }
         }
 
-    private suspend fun executeCommand(command: String): ExecutionResponse {
+    private fun executeCommand(command: String): ExecutionResponse {
         val processedCommand = command.trim()
 
         if (processedCommand.isEmpty()) {

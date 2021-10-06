@@ -124,9 +124,9 @@ export default {
       title.value = 'Repository details'
     }
 
-    const displayArtifact = (metadataSource) => {
+    const displayArtifact = (metadataSource, version) => {
       const metadata = parseMetadata(metadataSource)
-      configurations.value = createSnippets(groupId(metadata), artifactId(metadata), versions(metadata)[0])
+      configurations.value = createSnippets(groupId(metadata), artifactId(metadata), versions(metadata)[version ? versions(metadata).indexOf(version) : 0])
       title.value = 'Artifact details'
     }
 
@@ -145,11 +145,15 @@ export default {
 
       client.maven.content(`${qualifier.path}/maven-metadata.xml`)
         .then(response => displayArtifact(response.data))
-        .catch(error => {
-          if (error.message !== 'Request failed with status code 404') {
-            console.log(error)
-          }
-          displayRepository()
+        .catch(_ => {
+          client.maven.content(`${qualifier.path.substring(0, qualifier.path.indexOf(elements[elements.length-1])-1)}/maven-metadata.xml`)
+            .then(response => displayArtifact(response.data, elements[elements.length-1]))
+            .catch(error => {
+              if (error.message !== 'Request failed with status code 404') {
+                console.log(error)
+              }
+              displayRepository()
+            })
         })
     })
 

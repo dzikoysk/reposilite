@@ -264,25 +264,26 @@ class Configuration : Serializable {
 
     /* Performance */
 
-    @Description(
-        "",
-        "# Note: It might be hard to estimate the best amount of threads for your use case,",
-        "# but you can safely increase amount of threads if needed and Reposilite will create only as much as it needs.",
-        "# This option might be more useful to limit available memory resources to minimum (1 thread requires around 200kb to 1MB of memory)",
-        "",
-        "# By default, Reposilite 3.x uses experimental reactive mode to maximize performance of each spawned thread.",
-        "# If you've noticed various unresolved behaviours like freezing and deadlocking, you can switch to the standard blocking mode.",
-        "# Remember: Blocking mode requires more resources (threads) to handle the same throughput. "
-    )
-    @JvmField
-    var reactiveMode = true
+//    @Description(
+//        "",
+//        "# Note: It might be hard to estimate the best amount of threads for your use case,",
+//        "# but you can safely increase amount of threads if needed and Reposilite will create only as much as it needs.",
+//        "# This option might be more useful to limit available memory resources to minimum (1 thread requires around 200kb to 1MB of memory)",
+//        "",
+//        "# By default, Reposilite 3.x uses experimental reactive mode to maximize performance of each spawned thread.",
+//        "# If you've noticed various unresolved behaviours like freezing and deadlocking, you can switch to the standard blocking mode.",
+//        "# Remember: Blocking mode requires more resources (threads) to handle the same throughput. "
+//    )
+//    @JvmField
+//    var reactiveMode = true
 
     @Description(
+        "",
         "# Max amount of threads used by core thread pool (min: 4)",
         "# The web thread pool handles first few steps of incoming http connections, as soon as possible all tasks are redirected to IO thread pool."
     )
     @JvmField
-    var webThreadPool = 8
+    var webThreadPool = 32
 
     @Description(
         "# IO thread pool handles all tasks that may benefit from non-blocking IO (min: 2)",

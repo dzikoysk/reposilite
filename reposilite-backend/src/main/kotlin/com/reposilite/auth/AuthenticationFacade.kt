@@ -28,22 +28,21 @@ import com.reposilite.web.http.extractFromString
 import io.javalin.http.HttpCode.UNAUTHORIZED
 import panda.std.Result
 import panda.std.asSuccess
-import panda.std.coroutines.rxFlatMap
 
 class AuthenticationFacade internal constructor(
     private val journalist: Journalist,
     private val accessTokenFacade: AccessTokenFacade
 ) : Journalist {
 
-    suspend fun authenticateByHeader(headers: Map<String, String>): Result<AccessToken, ErrorResponse> =
+    fun authenticateByHeader(headers: Map<String, String>): Result<AccessToken, ErrorResponse> =
         extractFromHeaders(headers)
-            .rxFlatMap { (name, secret) -> authenticateByCredentials(name, secret) }
+            .flatMap { (name, secret) -> authenticateByCredentials(name, secret) }
 
-    suspend fun authenticateByCredentials(credentials: String): Result<AccessToken, ErrorResponse> =
+    fun authenticateByCredentials(credentials: String): Result<AccessToken, ErrorResponse> =
         extractFromString(credentials)
-            .rxFlatMap { (name, secret) -> authenticateByCredentials(name, secret) }
+            .flatMap { (name, secret) -> authenticateByCredentials(name, secret) }
 
-    suspend fun authenticateByCredentials(name: String, secret: String): Result<AccessToken, ErrorResponse> =
+    fun authenticateByCredentials(name: String, secret: String): Result<AccessToken, ErrorResponse> =
         accessTokenFacade.getToken(name)
             ?.takeIf { B_CRYPT_TOKENS_ENCODER.matches(secret, it.secret) }
             ?.asSuccess()

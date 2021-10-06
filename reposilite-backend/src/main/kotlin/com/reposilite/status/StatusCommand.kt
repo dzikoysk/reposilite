@@ -29,7 +29,7 @@ internal class StatusCommand(
     private val failureFacade: FailureFacade
 ) : ReposiliteCommand {
 
-    override suspend fun execute(context: CommandContext) {
+    override fun execute(context: CommandContext) {
         context.append("Reposilite $VERSION Status")
         context.append("  Active: $GREEN_BOLD${statusFacade.isAlive()}$RESET")
         context.append("  Uptime: ${statusFacade.uptime()}")

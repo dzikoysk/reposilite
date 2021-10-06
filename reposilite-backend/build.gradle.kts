@@ -20,7 +20,7 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 group = "org.panda-lang"
-version = "3.0.0-alpha.3"
+version = "3.0.0-alpha.4"
 
 plugins {
     `java-library`
@@ -52,7 +52,7 @@ tasks.withType<KotlinCompile>().configureEach {
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect:1.5.21")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.5.21")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
+    // implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
 
     val expressible = "1.0.17"
     implementation("org.panda-lang:expressible:$expressible")
@@ -60,7 +60,7 @@ dependencies {
     implementation("org.panda-lang:expressible-kt-coroutines:$expressible")
     testImplementation("org.panda-lang:expressible-junit:$expressible")
 
-    val awssdk = "2.17.51"
+    val awssdk = "2.17.53"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
 
@@ -84,12 +84,12 @@ dependencies {
     implementation("io.javalin-rfc:javalin-openapi-plugin:$openapi")
     implementation("io.javalin-rfc:javalin-swagger-plugin:$openapi")
 
-    val javalinRfcs = "4.0.27"
+    val javalinRfcs = "4.1.0"
     implementation("com.reposilite.javalin-rfcs:javalin-context:$javalinRfcs")
-    implementation("com.reposilite.javalin-rfcs:javalin-reactive-routing:$javalinRfcs")
+    implementation("com.reposilite.javalin-rfcs:javalin-routing:$javalinRfcs")
+    //implementation("com.reposilite.javalin-rfcs:javalin-reactive-routing:$javalinRfcs")
 
-    // val javalin = "4.0.0.RC3"
-    // implementation("io.javalin:javalin:$javalin")
+    // implementation("io.javalin:javalin:4.1.0")
     // implementation("com.github.tipsy.javalin:javalin:-SNAPSHOT")
     implementation("com.github.dzikoysk.javalin:javalin:d2e02a25b0")
 
@@ -135,7 +135,7 @@ dependencies {
     testImplementation("org.testcontainers:junit-jupiter:$testcontainers")
     testImplementation("org.testcontainers:localstack:$testcontainers")
 
-    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.80")
+    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.81")
     testImplementation("com.google.http-client:google-http-client-jackson2:1.40.0")
 
     val junit = "5.8.1"

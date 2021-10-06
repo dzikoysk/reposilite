@@ -19,10 +19,10 @@ package com.reposilite.web
 import com.reposilite.Reposilite
 import com.reposilite.config.Configuration
 import com.reposilite.shared.TimeUtils
+import com.reposilite.web.application.WebServerConfiguration
+import com.reposilite.web.application.createReactiveRouting
 import io.javalin.Javalin
 import io.javalin.core.JavalinConfig
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import org.eclipse.jetty.io.EofException
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 import org.eclipse.jetty.util.thread.ThreadPool
@@ -35,10 +35,12 @@ class JavalinWebServer {
 
     fun start(reposilite: Reposilite) =
         runWithDisabledLogging {
-            this.webThreadPool = QueuedThreadPool(reposilite.configuration.webThreadPool, 2)
-            webThreadPool?.start()
+            this.webThreadPool = QueuedThreadPool(reposilite.configuration.webThreadPool, 2).also {
+                it.name = "Reposilite | Web (${it.maxThreads}) -"
+                it.start()
+            }
 
-            this.javalin = createJavalin(reposilite, reposilite.configuration, webThreadPool!!, reposilite.ioDispatcher ?: Dispatchers.Default)
+            this.javalin = createJavalin(reposilite, reposilite.configuration, webThreadPool!!)
                 .exception(EofException::class.java) { _, _ -> reposilite.logger.warn("Client closed connection") }
                 .events { listener ->
                     listener.serverStopping { reposilite.logger.info("Server stopping...") }
@@ -53,15 +55,15 @@ class JavalinWebServer {
             }
         }
 
-    private fun createJavalin(reposilite: Reposilite, configuration: Configuration, webThreadPool: ThreadPool, dispatcher: CoroutineDispatcher): Javalin =
+    private fun createJavalin(reposilite: Reposilite, configuration: Configuration, webThreadPool: ThreadPool): Javalin =
         if (servlet)
-            Javalin.createStandalone { configureServer(reposilite, configuration, webThreadPool, dispatcher, it) }
+            Javalin.createStandalone { configureServer(reposilite, configuration, webThreadPool, it) }
         else
-            Javalin.create { configureServer(reposilite, configuration, webThreadPool, dispatcher, it) }
+            Javalin.create { configureServer(reposilite, configuration, webThreadPool, it) }
 
-    private fun configureServer(reposilite: Reposilite, configuration: Configuration, webThreadPool: ThreadPool, dispatcher: CoroutineDispatcher, serverConfig: JavalinConfig) {
+    private fun configureServer(reposilite: Reposilite, configuration: Configuration, webThreadPool: ThreadPool, serverConfig: JavalinConfig) {
         WebServerConfiguration.configure(reposilite, webThreadPool, configuration, serverConfig)
-        serverConfig.registerPlugin(createReactiveRouting(reposilite, dispatcher))
+        serverConfig.registerPlugin(createReactiveRouting(reposilite))
     }
 
     fun stop() {

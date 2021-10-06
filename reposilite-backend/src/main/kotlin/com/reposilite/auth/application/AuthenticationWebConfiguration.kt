@@ -22,8 +22,8 @@ import com.reposilite.auth.infrastructure.AuthenticationEndpoint
 import com.reposilite.auth.infrastructure.PostAuthHandler
 import com.reposilite.journalist.Journalist
 import com.reposilite.token.AccessTokenFacade
-import com.reposilite.web.ReposiliteRoutes
 import com.reposilite.web.WebConfiguration
+import com.reposilite.web.application.ReposiliteRoutes
 
 internal object AuthenticationWebConfiguration : WebConfiguration {
 

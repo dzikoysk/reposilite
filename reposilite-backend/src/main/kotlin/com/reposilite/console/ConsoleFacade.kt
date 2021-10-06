@@ -35,7 +35,7 @@ class ConsoleFacade internal constructor(
     internal val commandExecutor: CommandExecutor
 ) : Journalist {
 
-    suspend fun executeCommand(command: String): Result<ExecutionResponse, ErrorResponse> {
+    fun executeCommand(command: String): Result<ExecutionResponse, ErrorResponse> {
         if (StringUtils.isEmpty(command)) {
             return errorResponse(BAD_REQUEST, "Missing command")
         }

@@ -21,8 +21,8 @@ import com.reposilite.config.Configuration
 import com.reposilite.frontend.FrontendFacade
 import com.reposilite.frontend.infrastructure.CustomFrontendHandler
 import com.reposilite.frontend.infrastructure.ResourcesFrontendHandler
-import com.reposilite.web.ReposiliteRoutes
 import com.reposilite.web.WebConfiguration
+import com.reposilite.web.application.ReposiliteRoutes
 import io.javalin.Javalin
 import io.javalin.http.NotFoundResponse
 import java.nio.file.Files

@@ -27,18 +27,15 @@ import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.backend.PrintStreamLogger
 import com.reposilite.maven.application.MavenWebConfiguration
 import com.reposilite.shared.HttpRemoteClient
+import com.reposilite.shared.newFixedThreadPool
+import com.reposilite.shared.newSingleThreadScheduledExecutor
 import com.reposilite.statistics.application.StatisticsWebConfiguration
 import com.reposilite.status.application.FailureWebConfiguration
 import com.reposilite.status.application.StatusWebConfiguration
 import com.reposilite.token.application.AccessTokenWebConfiguration
 import com.reposilite.web.JavalinWebServer
 import com.reposilite.web.WebConfiguration
-import com.reposilite.web.coroutines.ExclusiveDispatcher
 import com.reposilite.web.web
-import java.util.concurrent.Executors
-import java.util.concurrent.LinkedBlockingQueue
-import java.util.concurrent.ThreadPoolExecutor
-import java.util.concurrent.TimeUnit.MILLISECONDS
 
 object ReposiliteFactory {
 
@@ -51,33 +48,29 @@ object ReposiliteFactory {
 
     fun createReposilite(parameters: ReposiliteParameters, journalist: Journalist, configuration: Configuration): Reposilite {
         parameters.applyLoadedConfiguration(configuration)
-
-        val webServer = JavalinWebServer()
         val logger = ReposiliteJournalist(journalist, configuration.cachedLogSize, parameters.testEnv)
-        val scheduler = Executors.newSingleThreadScheduledExecutor()
+
+        val scheduler = newSingleThreadScheduledExecutor("Reposilite | Scheduler")
+        val ioService = newFixedThreadPool(2, configuration.ioThreadPool, "Reposilite | IO")
         val database = DatabaseSourceConfiguration.createConnection(parameters.workingDirectory, configuration.database)
 
-        val ioDispatcher =
-            if (configuration.reactiveMode)
-                ExclusiveDispatcher(ThreadPoolExecutor(2, configuration.ioThreadPool, 0L, MILLISECONDS, LinkedBlockingQueue()))
-            else
-                null
-
+        val webServer = JavalinWebServer()
         val webs = mutableListOf<WebConfiguration>()
+
         val statusFacade = web(webs, StatusWebConfiguration) { createFacade(parameters.testEnv, webServer) }
         val failureFacade = web(webs, FailureWebConfiguration) { createFacade(logger) }
         val consoleFacade = web(webs, ConsoleWebConfiguration) { createFacade(logger, failureFacade) }
         val mavenFacade = web(webs, MavenWebConfiguration) { createFacade(logger, parameters.workingDirectory, HttpRemoteClient(logger), configuration.repositories) }
         val frontendFacade = web(webs, FrontendWebConfiguration) { createFacade(configuration) }
-        val statisticFacade = web(webs, StatisticsWebConfiguration) { createFacade(logger, ioDispatcher, database) }
-        val accessTokenFacade = web(webs, AccessTokenWebConfiguration) { createFacade(ioDispatcher, database) }
+        val statisticFacade = web(webs, StatisticsWebConfiguration) { createFacade(logger, database) }
+        val accessTokenFacade = web(webs, AccessTokenWebConfiguration) { createFacade(database) }
         val authenticationFacade = web(webs, AuthenticationWebConfiguration) { createFacade(logger, accessTokenFacade) }
 
         return Reposilite(
             journalist = logger,
             parameters = parameters,
             configuration = configuration,
-            ioDispatcher = ioDispatcher,
+            ioService = ioService,
             scheduler = scheduler,
             database = database,
             webServer = webServer,

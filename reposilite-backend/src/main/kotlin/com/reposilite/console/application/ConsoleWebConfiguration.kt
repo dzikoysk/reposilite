@@ -25,8 +25,8 @@ import com.reposilite.console.infrastructure.CliEndpoint
 import com.reposilite.console.infrastructure.ConsoleEndpoint
 import com.reposilite.journalist.Journalist
 import com.reposilite.status.FailureFacade
-import com.reposilite.web.ReposiliteRoutes
 import com.reposilite.web.WebConfiguration
+import com.reposilite.web.application.ReposiliteRoutes
 import io.javalin.Javalin
 
 internal object ConsoleWebConfiguration : WebConfiguration {

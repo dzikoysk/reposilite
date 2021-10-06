@@ -26,12 +26,11 @@ import com.reposilite.web.http.uri
 import io.javalin.http.Context
 import io.javalin.http.HttpCode
 import panda.std.Result
-import panda.std.coroutines.rxPeek
 
 class ContextDsl(
     val logger: Logger,
     val ctx: Context,
-    val authenticationResult: Result<AccessToken, ErrorResponse>
+    val authenticationResult: Lazy<Result<AccessToken, ErrorResponse>>
 ) {
 
     companion object {
@@ -56,23 +55,23 @@ class ContextDsl(
     /**
      * Request was created by either anonymous user or through authenticated token
      */
-    suspend fun accessed(init: suspend AccessToken?.() -> Unit) {
-        init(authenticationResult.orNull())
+    fun accessed(init: AccessToken?.() -> Unit) {
+        init(authenticationResult.value.orNull())
     }
 
     /**
      * Request was created by valid access token
      */
-    suspend fun authenticated(init: suspend AccessToken.() -> Unit) {
-        authenticationResult
+    fun authenticated(init: AccessToken.() -> Unit) {
+        authenticationResult.value
             .onError { ctx.error(it) }
-            .rxPeek { init(it) }
+            .peek { init(it) }
     }
 
     /**
      * Request was created by valid access token and the token has access to the requested path
      */
-    suspend fun authorized(to: String = ctx.uri(), init: suspend AccessToken.() -> Unit) {
+    fun authorized(to: String = ctx.uri(), init: AccessToken.() -> Unit) {
         authenticated {
             if (isAuthorized(to))
                 init(this)
@@ -91,12 +90,12 @@ class ContextDsl(
         ctx.pathParamMap()[name]
 
     fun isAuthorized(to: String): Boolean =
-        isManager() || authenticationResult.fold({ it.hasPermissionTo(to, METHOD_PERMISSIONS[ctx.method()]!!) }, { false })
+        isManager() || authenticationResult.value.fold({ it.hasPermissionTo(to, METHOD_PERMISSIONS[ctx.method()]!!) }, { false })
 
     fun isManager(): Boolean =
-        authenticationResult.fold({ it.hasPermission(AccessTokenPermission.MANAGER) }, { false })
+        authenticationResult.value.fold({ it.hasPermission(AccessTokenPermission.MANAGER) }, { false })
 
     fun getSessionIdentifier(): String =
-        authenticationResult.fold({ "${it.name}@${ctx.ip()}" }, { ctx.ip() })
+        authenticationResult.value.fold({ "${it.name}@${ctx.ip()}" }, { ctx.ip() })
 
 }

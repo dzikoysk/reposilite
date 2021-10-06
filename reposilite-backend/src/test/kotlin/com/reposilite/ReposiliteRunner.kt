@@ -20,7 +20,6 @@ import com.reposilite.config.Configuration
 import com.reposilite.config.Configuration.RepositoryConfiguration
 import com.reposilite.journalist.Channel
 import com.reposilite.journalist.backend.PrintStreamLogger
-import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
@@ -49,7 +48,7 @@ internal abstract class ReposiliteRunner {
     protected lateinit var reposilite: Reposilite
 
     @BeforeEach
-    protected fun bootApplication() = runBlocking {
+    protected fun bootApplication() {
         if (!_extensionInitialized) {
             throw IllegalStateException("Missing Reposilite extension on integration test")
         }
