@@ -159,7 +159,7 @@ internal class SqlAccessTokenRepository(private val database: Database) : Access
 
     private fun findAccessTokenPermissionsById(id: Int): Set<AccessTokenPermission> =
         PermissionToAccessTokenTable.select { PermissionToAccessTokenTable.accessTokenId eq id }
-            .map { findAccessTokenPermissionByIdentifier(it[PermissionToAccessTokenTable.permission]) }
+            .map { findAccessTokenPermissionByIdentifier(it[PermissionToAccessTokenTable.permission])!! }
             .toSet()
 
     private fun findRoutesById(id: Int): Set<Route> =

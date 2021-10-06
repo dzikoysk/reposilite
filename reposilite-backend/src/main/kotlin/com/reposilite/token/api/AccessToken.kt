@@ -64,15 +64,15 @@ enum class AccessTokenPermission(val identifier: String, val shortcut: String) {
     MANAGER("access-token:manager", "m");
 
     companion object {
+        fun findAccessTokenPermissionByIdentifier(identifier: String) =
+            values().firstOrNull { it.identifier == identifier }
 
-        fun findAccessTokenPermissionByIdentifier(identifier: String): AccessTokenPermission =
-            values().first { it.identifier == identifier }
+        fun findAccessTokenPermissionByShortcut(shortcut: String) =
+            values().firstOrNull { it.shortcut == shortcut }
 
-        fun findAccessTokenPermissionByShortcut(shortcut: String): AccessTokenPermission =
-            values().first { it.shortcut == shortcut }
-
+        fun findByAll(permission: String) =
+            findAccessTokenPermissionByIdentifier(permission) ?: findAccessTokenPermissionByShortcut(permission)
     }
-
 }
 
 
