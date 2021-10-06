@@ -66,7 +66,7 @@ internal class KeygenCommand(private val accessTokenFacade: AccessTokenFacade) :
             name,
             secret,
             permissions = permissions.toCharArray()
-                .map { AccessTokenPermission.findAccessTokenPermissionByShortcut(it.toString()) }
+                .map { AccessTokenPermission.findAccessTokenPermissionByShortcut(it.toString())!! }
                 .toSet()
         ))
 
@@ -113,7 +113,7 @@ internal class ChModCommand(private val accessTokenFacade: AccessTokenFacade) : 
             ?.let {
                 accessTokenFacade.updateToken(it.copy(
                     permissions = permissions.toCharArray()
-                        .map { AccessTokenPermission.findAccessTokenPermissionByShortcut(it.toString()) }
+                        .map { p -> AccessTokenPermission.findAccessTokenPermissionByShortcut(p.toString())!! }
                         .toSet()
                 ))
                 context.append("Permissions have been changed from '${it.permissions}' to '$permissions'")

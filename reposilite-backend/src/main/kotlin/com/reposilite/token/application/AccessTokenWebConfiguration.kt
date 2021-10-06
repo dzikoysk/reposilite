@@ -25,6 +25,7 @@ import com.reposilite.token.RevokeCommand
 import com.reposilite.token.RouteAdd
 import com.reposilite.token.RouteRemove
 import com.reposilite.token.TokensCommand
+import com.reposilite.token.infrastructure.AccessTokenApiEndpoints
 import com.reposilite.token.infrastructure.InMemoryAccessTokenRepository
 import com.reposilite.token.infrastructure.SqlAccessTokenRepository
 import com.reposilite.web.WebConfiguration
@@ -55,4 +56,7 @@ internal object AccessTokenWebConfiguration : WebConfiguration {
         consoleFacade.registerCommand(RouteRemove(accessTokenFacade))
     }
 
+    override fun routing(reposilite: Reposilite) = setOf(
+        AccessTokenApiEndpoints(reposilite.accessTokenFacade)
+    )
 }
