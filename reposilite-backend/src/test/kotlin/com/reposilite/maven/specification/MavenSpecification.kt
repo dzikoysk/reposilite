@@ -31,9 +31,8 @@ import com.reposilite.shared.toPath
 import com.reposilite.token.api.AccessToken
 import com.reposilite.token.api.Route
 import com.reposilite.token.api.RoutePermission
-import com.reposilite.web.http.errorResponse
+import com.reposilite.web.http.notFoundError
 import io.javalin.http.ContentType
-import io.javalin.http.HttpCode.NOT_FOUND
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
 import panda.std.asSuccess
@@ -60,17 +59,25 @@ internal abstract class MavenSpecification {
     @BeforeEach
     private fun initializeFacade() {
         val logger = InMemoryLogger()
-        val remoteClient = FakeRemoteClient { uri, credentials, _, _ ->
-            if (uri.startsWith(REMOTE_REPOSITORY) && REMOTE_AUTH == credentials)
-                DocumentInfo(
-                    uri.replace(":", "").toPath().getSimpleName(),
-                    ContentType.TEXT_XML,
-                    UNKNOWN_LENGTH,
-                    { REMOTE_CONTENT.byteInputStream() }
-                ).asSuccess()
-            else
-                errorResponse(NOT_FOUND, "Not found")
-        }
+        val remoteClient = FakeRemoteClient(
+            headHandler = { uri, credentials, _, _ ->
+                if (uri.startsWith(REMOTE_REPOSITORY) && REMOTE_AUTH == credentials)
+                    DocumentInfo(
+                        uri.replace(":", "").toPath().getSimpleName(),
+                        ContentType.TEXT_XML,
+                        UNKNOWN_LENGTH,
+                    ).asSuccess()
+                else
+                    notFoundError("Not found")
+            },
+            getHandler = { uri, credentials, _, _ ->
+                if (uri.startsWith(REMOTE_REPOSITORY) && REMOTE_AUTH == credentials)
+                    REMOTE_CONTENT.byteInputStream().asSuccess()
+                else
+                    notFoundError("Not found")
+            }
+        )
+
         this.mavenFacade = MavenWebConfiguration.createFacade(logger, workingDirectory!!.toPath(), remoteClient, repositories())
     }
 

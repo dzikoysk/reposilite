@@ -56,4 +56,10 @@ internal object MavenWebConfiguration : WebConfiguration {
         MavenApiEndpoints(reposilite.mavenFacade)
     )
 
+    override fun dispose(reposilite: Reposilite) {
+        reposilite.mavenFacade.getRepositories().forEach {
+            it.shutdown()
+        }
+    }
+
 }

@@ -40,3 +40,6 @@ fun <VALUE, ERROR> Sequence<Result<out VALUE, ERROR>>.firstOrErrors(): Result<ou
         .map { result -> result.onError { collection.add(it) } }
         .firstSuccessOr { Result.error(collection) }
 }
+
+fun <VALUE> Result<VALUE, *>.`when`(condition: (VALUE) -> Boolean): Boolean =
+    fold({ condition(it) }, { false })

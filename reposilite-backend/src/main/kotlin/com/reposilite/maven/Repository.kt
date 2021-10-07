@@ -16,7 +16,6 @@
 package com.reposilite.maven
 
 import com.reposilite.config.Configuration.RepositoryConfiguration.ProxiedHostConfiguration
-import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.maven.api.FileDetails
 import com.reposilite.maven.api.RepositoryVisibility
 import com.reposilite.storage.StorageProvider
@@ -34,7 +33,7 @@ class Repository internal constructor(
     val redeployment: Boolean
 ) {
 
-    fun putFile(file: Path, inputStream: InputStream): Result<DocumentInfo, ErrorResponse> =
+    fun putFile(file: Path, inputStream: InputStream): Result<Unit, ErrorResponse> =
         storageProvider.putFile(file, inputStream)
 
     fun getFile(file: Path): Result<InputStream, ErrorResponse> =
@@ -57,9 +56,6 @@ class Repository internal constructor(
 
     fun exists(file: Path): Boolean =
         storageProvider.exists(file)
-
-    fun isDirectory(file: Path): Boolean =
-        storageProvider.isDirectory(file)
 
     fun getUsage(): Result<Long, ErrorResponse> =
         storageProvider.usage()

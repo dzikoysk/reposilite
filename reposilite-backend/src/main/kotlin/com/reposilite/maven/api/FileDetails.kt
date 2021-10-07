@@ -15,7 +15,6 @@
  */
 package com.reposilite.maven.api
 
-import com.fasterxml.jackson.annotation.JsonIgnore
 import com.reposilite.maven.FilesComparator
 import com.reposilite.maven.VersionComparator.Companion.asVersion
 import com.reposilite.shared.FileType
@@ -32,7 +31,6 @@ import io.javalin.http.ContentType.APPLICATION_OCTET_STREAM
 import panda.std.Result
 import panda.std.asSuccess
 import java.io.IOException
-import java.io.InputStream
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.streams.asSequence
@@ -53,8 +51,6 @@ class DocumentInfo(
     name: String,
     val contentType: ContentType,
     val contentLength: Long,
-    @JsonIgnore
-    val content: () -> InputStream
 ) : FileDetails(FILE, name)
 
 sealed class AbstractDirectoryInfo(
@@ -89,8 +85,7 @@ fun toDocumentInfo(file: Path): Result<DocumentInfo, ErrorResponse> =
         DocumentInfo(
             file.getSimpleName(),
             ContentType.getContentTypeByExtension(file.getExtension()) ?: APPLICATION_OCTET_STREAM,
-            Files.size(file),
-            { Files.newInputStream(file) }
+            Files.size(file)
         ).asSuccess()
     }
 
