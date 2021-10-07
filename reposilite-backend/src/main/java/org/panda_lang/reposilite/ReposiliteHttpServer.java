@@ -54,7 +54,6 @@ public final class ReposiliteHttpServer {
         DeployEndpoint deployEndpoint = new DeployEndpoint(reposilite.getContextFactory(), reposilite.getDeployService());
 
         LookupController lookupController = new LookupController(
-                configuration.proxied.size() > 0,
                 reposilite.getContextFactory(),
                 reposilite.getFrontendService(),
                 reposilite.getLookupService(),

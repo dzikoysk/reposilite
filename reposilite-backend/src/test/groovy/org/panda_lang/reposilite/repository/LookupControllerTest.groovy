@@ -119,18 +119,18 @@ class LookupControllerTest extends ReposiliteIntegrationTestSpecification {
     @Test
     void 'should return 200 and proxied file' () {
         def proxyPort = String.valueOf(Integer.parseInt(PORT) + 1)
-        super.reposilite.getConfiguration().proxied = Collections.singletonList("http://localhost:" + proxyPort)
+        super.reposilite.getConfiguration().proxied.add("http://localhost:" + proxyPort + "/releases")
 
         try {
             def proxiedReposilite = super.reposilite(proxyPort, proxiedWorkingDirectory)
             proxiedReposilite.launch()
 
-            def proxiedFile = new File(proxiedWorkingDirectory, "/repositories/releases/proxiedGroup/proxiedArtifact/proxied.txt")
+            def proxiedFile = new File(proxiedWorkingDirectory, "/repositories/releases/proxiedGroup/proxiedArtifact/proxied.jar")
             proxiedFile.getParentFile().mkdirs()
             proxiedFile.createNewFile()
             FileUtils.overrideFile(proxiedFile, "proxied content")
 
-            def response = getRequest("/releases/proxiedGroup/proxiedArtifact/proxied.txt")
+            def response = getRequest("/releases/proxiedGroup/proxiedArtifact/proxied.jar")
             assertEquals HttpStatus.SC_OK, response.getStatusCode()
 
             def content = response.parseAsString()

@@ -19,6 +19,7 @@ package org.panda_lang.reposilite.config;
 import net.dzikoysk.cdn.entity.Description;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -82,7 +83,7 @@ public final class Configuration implements Serializable {
     @Description("# List of proxied repositories.")
     @Description("# Reposilite will search for an artifact in remote repositories listed below,")
     @Description("# if the requested artifact was not found.")
-    public List<String> proxied = Collections.emptyList();
+    public List<String> proxied = new ArrayList<>(0);
     @Description("# Reposilite can store proxied artifacts locally to reduce response time and improve stability")
     public Boolean storeProxied = true;
     @Description("# Proxying is disabled by default in private repositories because of the security policy.")

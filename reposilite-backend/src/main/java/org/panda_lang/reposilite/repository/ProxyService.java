@@ -197,4 +197,8 @@ public final class ProxyService {
 
     }
 
+    public boolean hasProxied() {
+        return !proxied.isEmpty();
+    }
+
 }

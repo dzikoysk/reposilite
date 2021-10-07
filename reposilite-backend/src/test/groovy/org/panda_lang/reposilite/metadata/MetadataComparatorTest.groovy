@@ -28,7 +28,7 @@ class MetadataComparatorTest {
     private static final MetadataComparator<Pair<String[], String>> METADATA_COMPARATOR = new MetadataComparator<Pair<String[], String>>(
             { Pair<String[], String> pair -> pair.getValue() },
             { Pair<String[], String> pair -> pair.getKey() },
-            { Pair<String[], String> pair -> false.toString() }
+            { pair -> false }
     )
 
     private static final String[] VERSIONS = [
