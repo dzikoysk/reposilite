@@ -107,7 +107,7 @@ public final class LookupController implements Handler {
     private void handleProxied(Context ctx, ReposiliteContext context, Result<CompletableFuture<Result<LookupResponse, ErrorDto>>, ErrorDto> response) {
         response
             .map(task -> task.thenAccept(result -> handleResult(ctx, context, result)))
-            .peek(ctx::result)
+            .peek(ctx::future)
             .onError(error -> handleError(ctx, error));
     }
 

@@ -18,7 +18,7 @@ package org.panda_lang.reposilite;
 
 import io.javalin.Javalin;
 import io.javalin.core.JavalinConfig;
-import io.javalin.core.JavalinServer;
+import io.javalin.jetty.JettyServer;
 import io.javalin.plugin.openapi.OpenApiOptions;
 import io.javalin.plugin.openapi.OpenApiPlugin;
 import io.javalin.plugin.openapi.ui.SwaggerOptions;
@@ -158,8 +158,8 @@ public final class ReposiliteHttpServer {
 
     public boolean isAlive() {
         return getJavalin()
-                .map(Javalin::server)
-                .map(JavalinServer::server)
+                .map(Javalin::jettyServer)
+                .map(JettyServer::server)
                 .map(Server::isStarted)
                 .orElseGet(false);
     }
