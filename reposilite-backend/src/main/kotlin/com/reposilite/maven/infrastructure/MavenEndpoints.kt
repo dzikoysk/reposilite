@@ -22,10 +22,10 @@ import com.reposilite.maven.api.DeleteRequest
 import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.maven.api.LookupRequest
+import com.reposilite.shared.resultAttachment
 import com.reposilite.web.application.ReposiliteRoute
 import com.reposilite.web.application.ReposiliteRoutes
 import com.reposilite.web.http.ErrorResponse
-import com.reposilite.web.http.resultAttachment
 import com.reposilite.web.routing.RouteMethod.DELETE
 import com.reposilite.web.routing.RouteMethod.GET
 import com.reposilite.web.routing.RouteMethod.HEAD
