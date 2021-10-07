@@ -40,6 +40,7 @@ class FrontendFacade internal constructor(
     private fun resolvePlaceholders(source: String): String =
         source
             .replace("{{REPOSILITE.BASE_PATH}}", basePath)
+            .replace("{{REPOSILITE.VITE_BASE_PATH}}", if (basePath == "" || basePath == "/") "." else basePath.replace(Regex("^/|/$"), ""))
             .replace("{{REPOSILITE.ID}}", id)
             .replace("{{REPOSILITE.TITLE}}", title)
             .replace("{{REPOSILITE.DESCRIPTION}}", description)
