@@ -20,7 +20,7 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 group = "org.panda-lang"
-version = "3.0.0-alpha.4"
+version = "3.0.0-alpha.5"
 
 plugins {
     `java-library`
@@ -89,9 +89,9 @@ dependencies {
     implementation("com.reposilite.javalin-rfcs:javalin-routing:$javalinRfcs")
     //implementation("com.reposilite.javalin-rfcs:javalin-reactive-routing:$javalinRfcs")
 
-    // implementation("io.javalin:javalin:4.1.0")
+    implementation("io.javalin:javalin:4.0.0")
     // implementation("com.github.tipsy.javalin:javalin:-SNAPSHOT")
-    implementation("com.github.dzikoysk.javalin:javalin:d2e02a25b0")
+    // implementation("com.github.dzikoysk.javalin:javalin:d2e02a25b0")
 
     @Suppress("GradlePackageUpdate")
     implementation("org.eclipse.jetty:jetty-server:9.4.44.v20210927")

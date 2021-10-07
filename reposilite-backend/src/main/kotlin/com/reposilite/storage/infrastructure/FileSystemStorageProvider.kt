@@ -16,35 +16,26 @@
 
 package com.reposilite.storage.infrastructure
 
-import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.maven.api.FileDetails
-import com.reposilite.maven.api.toDocumentInfo
 import com.reposilite.maven.api.toFileDetails
-import com.reposilite.shared.FileType.DIRECTORY
 import com.reposilite.shared.catchIOException
 import com.reposilite.shared.delete
 import com.reposilite.shared.exists
 import com.reposilite.shared.getLastModifiedTime
-import com.reposilite.shared.getSimpleName
 import com.reposilite.shared.inputStream
 import com.reposilite.shared.listFiles
 import com.reposilite.shared.safeResolve
 import com.reposilite.shared.size
-import com.reposilite.shared.type
 import com.reposilite.storage.StorageProvider
-import com.reposilite.storage.StorageProvider.Companion.DEFAULT_STORAGE_PROVIDER_BUFFER_SIZE
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
-import com.reposilite.web.silentClose
 import io.javalin.http.HttpCode.INSUFFICIENT_STORAGE
 import panda.std.Result
+import panda.std.Result.ok
+import java.io.File
 import java.io.InputStream
-import java.nio.ByteBuffer
-import java.nio.channels.FileChannel
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.StandardOpenOption.CREATE
-import java.nio.file.StandardOpenOption.WRITE
 import java.nio.file.attribute.FileTime
 
 /**
@@ -54,83 +45,61 @@ internal abstract class FileSystemStorageProvider protected constructor(
     private val rootDirectory: Path
  ) : StorageProvider {
 
-    override fun putFile(file: Path, inputStream: InputStream): Result<DocumentInfo, ErrorResponse> =
+    override fun putFile(path: Path, inputStream: InputStream): Result<Unit, ErrorResponse> =
         catchIOException {
-            resolved(file)
-                .let { file ->
-                    val spaceResponse = canHold(0)
+            inputStream.use { data ->
+                val spaceResponse = canHold(data.available().toLong()) // we don't really care about edge scenarios, so we don't really need precise quotas
 
-                    if (spaceResponse.isErr) {
-                        return@catchIOException errorResponse(INSUFFICIENT_STORAGE, "Not enough storage space available: ${spaceResponse.error.message}")
-                    }
-
-                    val available = spaceResponse.get()
-
-                    if (file.parent != null && !Files.exists(file.parent)) {
-                        Files.createDirectories(file.parent)
-                    }
-
-                    if (!Files.exists(file)) {
-                        Files.createFile(file)
-                    }
-
-                    val fileChannel = FileChannel.open(file, WRITE, CREATE)
-                    // TOFIX: FS locks are not truly respected, there might be a need to enhanced it with .lock file to be sure if it's respected.
-                    // In theory people should not really share the same FS through instances.
-                    // ~ https://github.com/dzikoysk/reposilite/issues/264
-                    val lock = fileChannel.lock()
-                    var rollback = false
-
-                    try {
-                        val data = ByteArray(DEFAULT_STORAGE_PROVIDER_BUFFER_SIZE)
-                        var size: Long = 0
-                        var read: Int
-
-                        while (inputStream.read(data, 0, data.size).also { read = it } != -1) {
-                            size += read.toLong()
-
-                            if (available < size) {
-                                rollback = true
-                                return@catchIOException errorResponse(INSUFFICIENT_STORAGE, "Not enough storage space available for file ${file.getSimpleName()} ($size > $available)")
-                            }
-
-                            fileChannel.write(ByteBuffer.wrap(data, 0, read))
-                        }
-
-                    } finally {
-                        inputStream.silentClose()
-                        lock.release()
-                        fileChannel.silentClose()
-                        file.takeIf { rollback }?.delete()
-                    }
-
-                    toDocumentInfo(file)
+                if (spaceResponse.isErr) {
+                    return@catchIOException errorResponse(INSUFFICIENT_STORAGE, "Not enough storage space available: ${spaceResponse.error.message}")
                 }
+
+                val file = resolved(path)
+
+                if (file.parent != null && !Files.exists(file.parent)) {
+                    Files.createDirectories(file.parent)
+                }
+
+                if (!Files.exists(file)) {
+                    Files.createFile(file)
+                }
+
+                // TOFIX: FS locks are not truly respected, there might be a need to enhanced it with .lock file to be sure if it's respected.
+                // In theory people shouldn't redeploy multiple times the same file, but who knows.
+                // Let's try with temporary files.
+                // ~ https://github.com/dzikoysk/reposilite/issues/264
+
+                val temporaryFile = File.createTempFile("reposilite-", "-fs-put")
+
+                temporaryFile.outputStream().use { destination ->
+                    data.copyTo(destination)
+                }
+
+                temporaryFile.renameTo(file.toFile())
+                ok(Unit)
+            }
         }
 
-    override fun getFile(file: Path): Result<InputStream, ErrorResponse> =
-        resolved(file).inputStream()
+    override fun getFile(path: Path): Result<InputStream, ErrorResponse> =
+        resolved(path).inputStream()
 
-    override fun getFileDetails(file: Path): Result<out FileDetails, ErrorResponse> =
-        toFileDetails(resolved(file))
+    override fun getFileDetails(path: Path): Result<out FileDetails, ErrorResponse> =
+        toFileDetails(resolved(path))
 
-    override fun removeFile(file: Path): Result<Unit, ErrorResponse> =
-        resolved(file).delete()
+    override fun removeFile(path: Path): Result<Unit, ErrorResponse> =
+        resolved(path).delete()
 
-    override fun getFiles(directory: Path): Result<List<Path>, ErrorResponse> =
-        resolved(directory).listFiles()
+    override fun getFiles(path: Path): Result<List<Path>, ErrorResponse> =
+        resolved(path).listFiles()
 
-    override fun getLastModifiedTime(file: Path): Result<FileTime, ErrorResponse> =
-        resolved(file).getLastModifiedTime()
+    override fun getLastModifiedTime(path: Path): Result<FileTime, ErrorResponse> =
+        resolved(path).getLastModifiedTime()
 
-    override fun getFileSize(file: Path): Result<Long, ErrorResponse> =
-        resolved(file).size()
+    override fun getFileSize(path: Path): Result<Long, ErrorResponse> =
+        resolved(path).size()
 
     override fun exists(file: Path): Boolean =
         resolved(file).exists().isOk
-
-    override fun isDirectory(file: Path): Boolean =
-        resolved(file).type() == DIRECTORY
 
     override fun usage(): Result<Long, ErrorResponse> =
         rootDirectory.size()

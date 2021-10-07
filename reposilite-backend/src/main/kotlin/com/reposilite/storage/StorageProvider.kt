@@ -16,7 +16,6 @@
 
 package com.reposilite.storage
 
-import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.maven.api.FileDetails
 import com.reposilite.web.http.ErrorResponse
 import panda.std.Result
@@ -27,26 +26,24 @@ import java.nio.file.attribute.FileTime
 interface StorageProvider {
 
     companion object {
-        const val DEFAULT_STORAGE_PROVIDER_BUFFER_SIZE = 1024 * 64 // 64kb
+        const val DEFAULT_STORAGE_PROVIDER_BUFFER_SIZE = 1024 * 32 // 64kb
     }
 
-    fun putFile(file: Path, inputStream: InputStream): Result<DocumentInfo, ErrorResponse>
+    fun putFile(path: Path, inputStream: InputStream): Result<Unit, ErrorResponse>
 
-    fun getFile(file: Path): Result<InputStream, ErrorResponse>
+    fun getFile(path: Path): Result<InputStream, ErrorResponse>
 
-    fun getFileDetails(file: Path): Result<out FileDetails, ErrorResponse>
+    fun getFileDetails(path: Path): Result<out FileDetails, ErrorResponse>
 
-    fun removeFile(file: Path): Result<Unit, ErrorResponse>
+    fun removeFile(path: Path): Result<Unit, ErrorResponse>
 
-    fun getFiles(directory: Path): Result<List<Path>, ErrorResponse>
+    fun getFiles(path: Path): Result<List<Path>, ErrorResponse>
 
-    fun getLastModifiedTime(file: Path): Result<FileTime, ErrorResponse>
+    fun getLastModifiedTime(path: Path): Result<FileTime, ErrorResponse>
 
-    fun getFileSize(file: Path): Result<Long, ErrorResponse>
+    fun getFileSize(path: Path): Result<Long, ErrorResponse>
 
     fun exists(file: Path): Boolean
-
-    fun isDirectory(file: Path): Boolean
 
     fun usage(): Result<Long, ErrorResponse>
 

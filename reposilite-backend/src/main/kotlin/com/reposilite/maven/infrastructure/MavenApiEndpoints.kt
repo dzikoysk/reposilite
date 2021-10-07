@@ -62,7 +62,7 @@ class MavenApiEndpoints(private val mavenFacade: MavenFacade) : ReposiliteRoutes
     private val findFileDetails: ContextDsl.() -> Unit = {
         accessed {
             response = parameter("repository")
-                ?.let { repository -> mavenFacade.findFile(LookupRequest(this, repository, wildcard("gav") ?: "", )) }
+                ?.let { repository -> mavenFacade.findDetails(LookupRequest(this, repository, wildcard("gav") ?: "", )) }
                 ?: mavenFacade.findRepositories(this)
         }
     }
