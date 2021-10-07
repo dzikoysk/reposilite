@@ -75,10 +75,6 @@ dependencies {
     implementation("mysql:mysql-connector-java:8.0.26")
     implementation("org.mariadb.jdbc:mariadb-java-client:2.7.4")
 
-    val fuel = "2.3.1"
-    implementation("com.github.kittinunf.fuel:fuel:$fuel")
-    implementation("com.github.kittinunf.fuel:fuel-coroutines:$fuel")
-
     val openapi = "1.1.1"
     kapt("io.javalin-rfc:openapi-annotation-processor:$openapi")
     implementation("io.javalin-rfc:javalin-openapi-plugin:$openapi")
