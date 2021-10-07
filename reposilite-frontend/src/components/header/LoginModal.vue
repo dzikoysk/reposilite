@@ -23,13 +23,14 @@
     >
       <div class="relative border bg-white dark:bg-gray-900 border-gray-100 dark:border-black m-w-20 py-5 px-10 rounded-2xl shadow-xl text-center">
         <p class="font-bold text-xl pb-4">Login with access token</p>
-        <form class="flex flex-col w-96" @submit.prevent="signin(name, secret)">
+        <form class="flex flex-col w-96 <sm:w-auto" @submit.prevent="signin(name, secret)">
           <input placeholder="Name" v-model="name" type="text" class="input"/>
           <input placeholder="Secret" v-model="secret" type="password" class="input"/>
           <div class="text-right mt-1">
             <button @click="close()" class="text-blue-400 text-xs">← Back to index</button>
           </div>
-          <div class="bg-gray-100 dark:bg-gray-800 py-2 my-3 rounded-md cursor-pointer" @click="signin(name, secret)">Sign in</div>
+          <button class="bg-gray-100 dark:bg-gray-800 py-2 my-3 rounded-md cursor-pointer"
+                  @click="signin(name, secret)">Sign in</button>
         </form>
         <button class="absolute top-0 right-0 mt-5 mr-5" @click="close()">🗙</button>
       </div>
