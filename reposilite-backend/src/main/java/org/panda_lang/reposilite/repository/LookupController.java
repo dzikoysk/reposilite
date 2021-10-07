@@ -38,7 +38,6 @@ import java.util.concurrent.CompletableFuture;
 
 public final class LookupController implements Handler {
 
-    private final boolean hasProxied;
     private final ReposiliteContextFactory contextFactory;
     private final FrontendProvider frontend;
     private final LookupService lookupService;
@@ -46,14 +45,12 @@ public final class LookupController implements Handler {
     private final FailureService failureService;
 
     public LookupController(
-            boolean hasProxied,
             ReposiliteContextFactory contextFactory,
             FrontendProvider frontendProvider,
             LookupService lookupService,
             ProxyService proxyService,
             FailureService failureService) {
 
-        this.hasProxied = hasProxied;
         this.contextFactory = contextFactory;
         this.frontend = frontendProvider;
         this.lookupService = lookupService;
@@ -91,7 +88,7 @@ public final class LookupController implements Handler {
         Result<LookupResponse, ErrorDto> response = lookupService.findLocal(context);
 
         if (isProxied(response)) {
-            if (hasProxied) {
+            if (proxyService.hasProxied()) {
                 handleProxied(ctx, context, proxyService.findProxied(context));
                 return;
             }
@@ -107,7 +104,7 @@ public final class LookupController implements Handler {
     private void handleProxied(Context ctx, ReposiliteContext context, Result<CompletableFuture<Result<LookupResponse, ErrorDto>>, ErrorDto> response) {
         response
             .map(task -> task.thenAccept(result -> handleResult(ctx, context, result)))
-            .peek(ctx::result)
+            .peek(ctx::future)
             .onError(error -> handleError(ctx, error));
     }
 

@@ -43,7 +43,7 @@ public final class ReposiliteServlet extends HttpServlet {
 
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
-        reposilite.getHttpServer().getJavalin().get().servlet().service(req, res);
+        reposilite.getHttpServer().getJavalin().get().javalinServlet().service(req, res);
     }
 
     @Override
