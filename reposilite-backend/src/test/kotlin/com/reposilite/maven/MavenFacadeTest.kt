@@ -87,7 +87,8 @@ internal class MavenFacadeTest : MavenSpecification() {
         assertOk(deployResult)
 
         // when: the deployed file is requested
-        val deployedFileResult = mavenFacade.findDetails(LookupRequest(null, fileSpec.repository, fileSpec.gav))
+        val accessToken = createAccessToken("name", "secret", fileSpec.repository, "/", READ)
+        val deployedFileResult = mavenFacade.findDetails(LookupRequest(accessToken, fileSpec.repository, fileSpec.gav))
 
         // then: the result file matches deployed file
         val deployedFile = assertOk(deployedFileResult)
