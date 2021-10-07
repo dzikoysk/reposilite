@@ -14,20 +14,7 @@
  * limitations under the License.
  */
 
+
 package com.reposilite.token.api
 
-data class CreateAccessTokenRequest(
-    val name: String,
-    val secret: String? = null,
-    val permissions: Set<AccessTokenPermission> = emptySet()
-)
-
-data class CreateAccessTokenWithNoNameRequest(
-    val secret: String? = null,
-    val permissions: Set<String> = emptySet()
-)
-
-data class CreateAccessTokenResponse(
-    val accessToken: AccessToken,
-    val secret: String,
-)
+data class TokensResponse(val tokens: Collection<AccessToken>)

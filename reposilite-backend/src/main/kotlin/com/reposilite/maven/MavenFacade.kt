@@ -21,11 +21,12 @@ import com.reposilite.journalist.Logger
 import com.reposilite.maven.api.DeleteRequest
 import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.DirectoryInfo
-import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.maven.api.FileDetails
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.METADATA_FILE
 import com.reposilite.maven.api.Metadata
+import com.reposilite.shared.FileType.DIRECTORY
+import com.reposilite.shared.`when`
 import com.reposilite.shared.getSimpleName
 import com.reposilite.shared.toNormalizedPath
 import com.reposilite.shared.toPath
@@ -40,6 +41,7 @@ import io.javalin.http.HttpCode
 import io.javalin.http.HttpCode.BAD_REQUEST
 import panda.std.Result
 import panda.std.asError
+import java.io.InputStream
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -55,7 +57,30 @@ class MavenFacade internal constructor(
         val REPOSITORIES: Path = Paths.get("repositories")
     }
 
-    fun findFile(lookupRequest: LookupRequest): Result<out FileDetails, ErrorResponse> {
+    fun findDetails(lookupRequest: LookupRequest): Result<out FileDetails, ErrorResponse> =
+        resolve(lookupRequest) { repository, gav ->
+            if (repository.exists(gav).not()) {
+                return@resolve proxyService.findRemoteDetails(repository, lookupRequest.gav)
+            }
+
+            val details = repository.getFileDetails(gav)
+
+            if (details.`when` { it.type == DIRECTORY } && repositorySecurityProvider.canBrowseResource(lookupRequest.accessToken, repository, gav).not()) {
+                return@resolve unauthorizedError("Unauthorized indexing request")
+            }
+
+            details
+        }
+
+    fun findFile(lookupRequest: LookupRequest): Result<out InputStream, ErrorResponse> =
+        resolve(lookupRequest) { repository, gav ->
+            if (repository.exists(gav))
+                repository.getFile(gav)
+            else
+                proxyService.findRemoteFile(repository, lookupRequest.gav)
+        }
+
+    private fun <T> resolve(lookupRequest: LookupRequest, block: (Repository, Path) -> Result<out T, ErrorResponse>): Result<out T, ErrorResponse> {
         val repository = repositoryService.getRepository(lookupRequest.repository) ?: return notFound("Repository not found").asError()
         val gav = lookupRequest.gav.toPath()
 
@@ -63,15 +88,7 @@ class MavenFacade internal constructor(
             return unauthorized().asError()
         }
 
-        if (repository.exists(gav).not()) {
-            return proxyService.findFile(repository, lookupRequest.gav)
-        }
-
-        if (repository.isDirectory(gav) && repositorySecurityProvider.canBrowseResource(lookupRequest.accessToken, repository, gav).not()) {
-            return unauthorizedError("Unauthorized indexing request")
-        }
-
-        return repository.getFileDetails(gav)
+        return block(repository, gav)
     }
 
     internal fun saveMetadata(repository: String, gav: String, metadata: Metadata): Result<Metadata, ErrorResponse> =
@@ -87,7 +104,7 @@ class MavenFacade internal constructor(
             .filter({ repositorySecurityProvider.canAccessResource(lookupRequest.accessToken, it, lookupRequest.gav.toPath())}, { unauthorized() })
             .flatMap { metadataService.findLatest(it, lookupRequest.gav) }
 
-    fun deployFile(deployRequest: DeployRequest): Result<DocumentInfo, ErrorResponse> {
+    fun deployFile(deployRequest: DeployRequest): Result<Unit, ErrorResponse> {
         val repository = repositoryService.getRepository(deployRequest.repository) ?: return notFoundError("Repository not found")
         val path = deployRequest.gav.toNormalizedPath().orNull() ?: return errorResponse(BAD_REQUEST, "Invalid GAV")
 

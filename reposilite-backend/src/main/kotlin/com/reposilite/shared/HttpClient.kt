@@ -16,17 +16,14 @@
 
 package com.reposilite.shared
 
-import com.github.kittinunf.fuel.Fuel
-import com.github.kittinunf.fuel.core.Headers.Companion.CONTENT_ENCODING
-import com.github.kittinunf.fuel.core.Headers.Companion.CONTENT_TYPE
-import com.github.kittinunf.fuel.core.Request
-import com.github.kittinunf.fuel.core.Response
-import com.github.kittinunf.fuel.core.extensions.authentication
-import com.github.kittinunf.fuel.core.isSuccessful
-import com.github.kittinunf.fuel.core.responseUnit
+import com.google.api.client.http.GenericUrl
+import com.google.api.client.http.HttpMethods
+import com.google.api.client.http.HttpRequest
+import com.google.api.client.http.javanet.NetHttpTransport
 import com.reposilite.journalist.Channel
 import com.reposilite.journalist.Journalist
 import com.reposilite.maven.api.DocumentInfo
+import com.reposilite.maven.api.FileDetails
 import com.reposilite.maven.api.UNKNOWN_LENGTH
 import com.reposilite.shared.FilesUtils.getExtension
 import com.reposilite.web.http.ErrorResponse
@@ -38,6 +35,7 @@ import panda.std.Result
 import panda.std.asSuccess
 import java.io.InputStream
 
+
 interface RemoteClient {
 
     /**
@@ -46,79 +44,99 @@ interface RemoteClient {
      * @param connectTimeout - connection establishment timeout in seconds
      * @param readTimeout - connection read timeout in seconds
      */
-    fun get(uri: String, credentials: String?, connectTimeout: Int, readTimeout: Int): Result<DocumentInfo, ErrorResponse>
+    fun head(uri: String, credentials: String?, connectTimeout: Int, readTimeout: Int): Result<FileDetails, ErrorResponse>
+
+    /**
+     * @param uri - full remote host address with a gav
+     * @param credentials - basic credentials in user:password format
+     * @param connectTimeout - connection establishment timeout in seconds
+     * @param readTimeout - connection read timeout in seconds
+     */
+    fun get(uri: String, credentials: String?, connectTimeout: Int, readTimeout: Int): Result<InputStream, ErrorResponse>
 
 }
 
 class HttpRemoteClient(private val journalist: Journalist) : RemoteClient {
 
-    override fun get(uri: String, credentials: String?, connectTimeout: Int, readTimeout: Int): Result<DocumentInfo, ErrorResponse> =
-        Fuel.head(uri)
-            .authenticateWith(credentials)
-            .timeout(connectTimeout * 1000)
-            .timeoutRead(readTimeout * 1000)
-            .responseUnit()
-            .let { (_, response, result) ->
-                result.fold(
-                    { get(uri, credentials, response) },
-                    { error ->
-                        journalist.logger.debug("Cannot get $uri")
-                        journalist.logger.exception(Channel.DEBUG, error.exception)
-                        errorResponse(BAD_REQUEST, "An error of type ${error.exception.javaClass} happened: ${error.message}"
-                    )}
-                )
+    private val requestFactory = NetHttpTransport().createRequestFactory()
+
+    override fun head(uri: String, credentials: String?, connectTimeout: Int, readTimeout: Int): Result<FileDetails, ErrorResponse> =
+        try {
+            val request = createRequest(HttpMethods.HEAD, uri, credentials, connectTimeout, readTimeout)
+            val response = request.execute()
+
+            when {
+                response.contentType == ContentType.HTML -> errorResponse(NOT_ACCEPTABLE, "Illegal file type")
+                response.isSuccessStatusCode.not() -> errorResponse(NOT_ACCEPTABLE, "Unsuccessful request")
+                else -> {
+                    val headers = response.headers
+
+                    // Nexus can send misleading for client content-length of chunked responses
+                    // ~ https://github.com/dzikoysk/reposilite/issues/549
+                    val contentLength =
+                        if ("gzip" == headers.contentEncoding)
+                            UNKNOWN_LENGTH // remove content-length header
+                        else
+                            headers.contentLength
+
+                    val contentType = headers.contentType
+                        ?.let { ContentType.getContentType(it) }
+                        ?: ContentType.getContentTypeByExtension(uri.getExtension())
+                        ?: ContentType.APPLICATION_OCTET_STREAM
+
+                    DocumentInfo(
+                        uri.toPath().getSimpleName(),
+                        contentType,
+                        contentLength
+                    ).asSuccess()
+                }
             }
-
-    private fun get(uri: String, credentials: String?, response: Response): Result<DocumentInfo, ErrorResponse> {
-        val contentType = response.findHeader(CONTENT_TYPE)
-            ?.let { ContentType.getContentType(it) }
-            ?: ContentType.getContentTypeByExtension(uri.getExtension())
-            ?: ContentType.APPLICATION_OCTET_STREAM
-
-        // Nexus can send misleading for client content-length of chunked responses
-        // ~ https://github.com/dzikoysk/reposilite/issues/549
-        val contentLength =
-            if ("gzip" == response.findHeader(CONTENT_ENCODING))
-                UNKNOWN_LENGTH // remove content-length header
-            else
-                response.contentLength
-
-        return when {
-            contentType == ContentType.TEXT_HTML -> errorResponse(NOT_ACCEPTABLE, "Illegal file type")
-            response.isSuccessful.not() -> errorResponse(NOT_ACCEPTABLE, "Unsuccessful request")
-            else ->
-                DocumentInfo(
-                    response.url.path.toPath().getSimpleName(),
-                    contentType,
-                    contentLength,
-                    { getInputStream(uri, credentials) }
-                ).asSuccess()
+        } catch (exception: Exception) {
+            createErrorResponse(uri, exception)
         }
+
+    override fun get(uri: String, credentials: String?, connectTimeout: Int, readTimeout: Int): Result<InputStream, ErrorResponse> =
+        try {
+            val request = createRequest(HttpMethods.GET, uri, credentials, connectTimeout, readTimeout)
+            val response = request.execute()
+            response.content.asSuccess()
+        } catch (exception: Exception) {
+            createErrorResponse(uri, exception)
+        }
+
+    private fun createRequest(method: String, uri: String, credentials: String?, connectTimeout: Int, readTimeout: Int): HttpRequest {
+        val request = requestFactory.buildRequest(method, GenericUrl(uri), null)
+        request.throwExceptionOnExecuteError = false
+        request.connectTimeout = connectTimeout * 1000
+        request.readTimeout = readTimeout * 1000
+        request.authenticateWith(credentials)
+        return request
     }
 
-    private fun getInputStream(uri: String, credentials: String?): InputStream =
-        Fuel.get(uri)
-            .authenticateWith(credentials)
-            .responseUnit()
-            .second.body().toStream()
+    private fun <V> createErrorResponse(uri: String, exception: Exception): Result<V, ErrorResponse> {
+        journalist.logger.debug("Cannot get $uri")
+        journalist.logger.exception(Channel.DEBUG, exception)
+        return errorResponse(BAD_REQUEST, "An error of type ${exception.javaClass} happened: ${exception.message}")
+    }
 
-    private fun Request.authenticateWith(credentials: String?): Request = also {
+    private fun HttpRequest.authenticateWith(credentials: String?): HttpRequest = also {
         if (credentials != null) {
             val (username, password) = credentials.split(":", limit = 2)
-            it.authentication().basic(username, password)
+            it.headers.setBasicAuthentication(username, password)
         }
     }
-
-    private fun Response.findHeader(value: String): String? =
-        headers[value].lastOrNull()
 
 }
 
 class FakeRemoteClient(
-    private val handler: (String, String?, Int, Int) -> Result<DocumentInfo, ErrorResponse>
+    private val headHandler: (String, String?, Int, Int) -> Result<FileDetails, ErrorResponse>,
+    private val getHandler: (String, String?, Int, Int) -> Result<InputStream, ErrorResponse>
 ) : RemoteClient {
 
-    override fun get(uri: String, credentials: String?, connectTimeout: Int, readTimeout: Int): Result<DocumentInfo, ErrorResponse> =
-        handler(uri, credentials, connectTimeout, readTimeout)
+    override fun head(uri: String, credentials: String?, connectTimeout: Int, readTimeout: Int): Result<FileDetails, ErrorResponse> =
+        headHandler(uri, credentials, connectTimeout, readTimeout)
+
+    override fun get(uri: String, credentials: String?, connectTimeout: Int, readTimeout: Int): Result<InputStream, ErrorResponse> =
+        getHandler(uri, credentials, connectTimeout, readTimeout)
 
 }

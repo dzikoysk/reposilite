@@ -18,12 +18,12 @@ import { computed } from 'vue'
 import usePlaceholders from '../placeholders'
 
 export default function useRepository() {
-  const { id, title } = usePlaceholders()
+  const { basePath, id, title } = usePlaceholders()
 
   const createRepositories = (qualifier) => {
     const repository = computed(() => qualifier.path.split('/')[0])
     const repoId = id + (qualifier.path ? `-${repository.value}` : '')
-    const domain = location.protocol + '//' + location.host + (qualifier.path ? `/${repository.value}` : '/{repository}')
+    const domain = location.protocol + '//' + location.host + basePath + (basePath.endsWith('/') ? '' : '/') + (qualifier.path ? `${repository.value}` : '{repository}')
 
     return [
       {
