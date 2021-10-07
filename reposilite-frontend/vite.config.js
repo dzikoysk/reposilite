@@ -24,6 +24,10 @@ export default defineConfig({
     vue(),
     WindiCSS()
   ],
+  base:
+    process.env.NODE_ENV === 'production'
+      ? '{{REPOSILITE.VITE_BASE_PATH}}'
+      : '/',
   build: {
     emptyOutDir: true,
     outDir: '../reposilite-backend/src/main/resources/reposilite-frontend'
