@@ -13,12 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.reposilite.console.api
 
-import com.reposilite.console.CommandContext
 
-interface ReposiliteCommand {
+package com.reposilite.token.api
 
-    fun execute(context: CommandContext)
-
-}
+data class TokensResponse(val tokens: Collection<AccessToken>)

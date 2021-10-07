@@ -15,8 +15,8 @@
   -->
 
 <template>
-  <nav class="flex flex-row">
-    <div v-if="logged" class="pt-1.1 px-2">
+  <nav class="flex flex-row <sm:(max-w-100px flex-wrap flex-1 justify-end min-w-1/2)">
+    <div v-if="logged" class="pt-1.1 px-2 <sm:(py-2 max-w-full truncate)">
       Welcome 
       <span class="font-bold underline">{{ token.name }}</span>
     </div>
@@ -27,10 +27,14 @@
       </MenuButton>
       </template>
     </LoginModal>
-    <MenuButton v-if="logged" @click="signout()">
+    <MenuButton v-if="logged" @click="signout()" class="<sm:hidden">
       Logout
     </MenuButton>
-    <div class="pl-2 pt-1.3 cursor-pointer rounded-full bg-white dark:bg-gray-900" @click="toggleTheme()">
+    <div v-if="logged"
+         class="hidden px-2.7 pt-0.8 mr-1.5 cursor-pointer rounded-full bg-white dark:bg-gray-900 max-h-35px <sm:(block)">
+      <LogoutIcon @click="signout()"/>
+    </div>
+    <div class="pl-2 pt-1.3 cursor-pointer rounded-full bg-white dark:bg-gray-900 max-h-35px" @click="toggleTheme()">
       <SunIcon class="mr-1.9" v-if="theme.isDark"/>
       <MoonIcon class="mr-1.5" v-else/>
     </div>
@@ -43,12 +47,13 @@ import MenuButton from './MenuButton.vue'
 import LoginModal from './LoginModal.vue'
 import MoonIcon from '../icons/MoonIcon.vue'
 import SunIcon from '../icons/SunIcon.vue'
+import LogoutIcon from '../icons/LogoutIcon.vue'
 import useTheme from "../../store/theme"
 import useSession from '../../store/session'
 import usePlaceholders from '../../store/placeholders'
 
 export default {
-  components: { MenuButton, LoginModal, MoonIcon, SunIcon },
+  components: {LogoutIcon, MenuButton, LoginModal, MoonIcon, SunIcon },
   props: {
     token: {
       type: Object,

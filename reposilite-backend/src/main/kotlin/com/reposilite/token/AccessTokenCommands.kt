@@ -28,7 +28,7 @@ import picocli.CommandLine.Parameters
 @Command(name = "tokens", description = ["List all generated tokens"])
 internal class TokensCommand(private val accessTokenFacade: AccessTokenFacade) : ReposiliteCommand {
 
-    override suspend fun execute(context: CommandContext) {
+    override fun execute(context: CommandContext) {
         context.append("Tokens (${accessTokenFacade.count()})")
 
         accessTokenFacade.getTokens().forEach {
@@ -61,12 +61,12 @@ internal class KeygenCommand(private val accessTokenFacade: AccessTokenFacade) :
     ])
     private lateinit var permissions: String
 
-    override suspend fun execute(context: CommandContext) {
+    override fun execute(context: CommandContext) {
         val response = accessTokenFacade.createAccessToken(CreateAccessTokenRequest(
             name,
             secret,
             permissions = permissions.toCharArray()
-                .map { AccessTokenPermission.findAccessTokenPermissionByShortcut(it.toString()) }
+                .map { AccessTokenPermission.findAccessTokenPermissionByShortcut(it.toString())!! }
                 .toSet()
         ))
 
@@ -85,7 +85,7 @@ internal class ChNameCommand(private val accessTokenFacade: AccessTokenFacade) :
     @Parameters(index = "1", paramLabel = "<new name>", description = ["New token name"])
     private lateinit var updatedName: String
 
-    override suspend fun execute(context: CommandContext) {
+    override fun execute(context: CommandContext) {
         accessTokenFacade.getToken(name)
             ?.let {
                 accessTokenFacade.updateToken(it.copy(name = updatedName))
@@ -108,12 +108,12 @@ internal class ChModCommand(private val accessTokenFacade: AccessTokenFacade) : 
     @Parameters(index = "1", paramLabel = "<permissions>", description = ["New permissions"])
     private lateinit var permissions: String
 
-    override suspend fun execute(context: CommandContext) {
+    override fun execute(context: CommandContext) {
         accessTokenFacade.getToken(token)
             ?.let {
                 accessTokenFacade.updateToken(it.copy(
                     permissions = permissions.toCharArray()
-                        .map { AccessTokenPermission.findAccessTokenPermissionByShortcut(it.toString()) }
+                        .map { p -> AccessTokenPermission.findAccessTokenPermissionByShortcut(p.toString())!! }
                         .toSet()
                 ))
                 context.append("Permissions have been changed from '${it.permissions}' to '$permissions'")
@@ -132,7 +132,7 @@ internal class RevokeCommand(private val accessTokenFacade: AccessTokenFacade) :
     @Parameters(index = "0", paramLabel = "<name>", description = ["Name of token to revoke"])
     private lateinit var name: String
 
-    override suspend fun execute(context: CommandContext) {
+    override fun execute(context: CommandContext) {
         accessTokenFacade.deleteToken(name)
         context.append("Token for '$name' has been revoked")
     }

@@ -23,35 +23,25 @@ import com.reposilite.statistics.StatsCommand
 import com.reposilite.statistics.infrastructure.SqlStatisticsRepository
 import com.reposilite.statistics.infrastructure.StatisticsEndpoint
 import com.reposilite.statistics.infrastructure.StatisticsHandler
-import com.reposilite.web.ReposiliteRoutes
 import com.reposilite.web.WebConfiguration
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
+import com.reposilite.web.application.ReposiliteRoutes
 import org.jetbrains.exposed.sql.Database
 import java.util.concurrent.TimeUnit.MINUTES
 
 internal object StatisticsWebConfiguration : WebConfiguration {
 
-    fun createFacade(journalist: Journalist, dispatcher: CoroutineDispatcher?, database: Database): StatisticsFacade =
-        StatisticsFacade(journalist, SqlStatisticsRepository(dispatcher, database))
+    fun createFacade(journalist: Journalist, database: Database): StatisticsFacade =
+        StatisticsFacade(journalist, SqlStatisticsRepository(database))
 
     override fun initialize(reposilite: Reposilite) {
-        val consoleFacade = reposilite.consoleFacade
         val statisticsFacade = reposilite.statisticsFacade
 
+        val consoleFacade = reposilite.consoleFacade
         consoleFacade.registerCommand(StatsCommand(statisticsFacade))
 
         reposilite.scheduler.scheduleWithFixedDelay({
-            runBlocking {
-                if (reposilite.ioDispatcher == null) {
-                    statisticsFacade.saveRecordsBulk()
-                }
-                else {
-                    withContext(reposilite.ioDispatcher) {
-                        statisticsFacade.saveRecordsBulk()
-                    }
-                }
+            reposilite.ioService.execute {
+                statisticsFacade.saveRecordsBulk()
             }
         }, 1, 1, MINUTES)
     }

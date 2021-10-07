@@ -18,7 +18,7 @@
   <div>
     <Header :token="token" />
     <div class="bg-gray-100 dark:bg-black">
-      <div class="container mx-auto">
+      <div class="container mx-auto <sm:px-0">
         <tabs v-model="selectedTab.value">
           <tab
             v-for="(tab, i) in menuTabs"

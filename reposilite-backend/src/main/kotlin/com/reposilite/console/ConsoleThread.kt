@@ -16,7 +16,6 @@
 package com.reposilite.console
 
 import com.reposilite.status.FailureFacade
-import kotlinx.coroutines.runBlocking
 import java.io.InputStream
 import java.util.Scanner
 
@@ -40,27 +39,6 @@ internal class ConsoleThread(
             return
         }
 
-        /*
-        val reader = LineReaderBuilder.builder().build();
-        val prompt = "$"
-
-        while (!isInterrupted && input.hasNextLine()) {
-            try {
-                val line = reader.readLine(prompt)
-
-                runBlocking {
-                    console.logger.info("")
-                    console.execute(line)
-                    console.logger.info("")
-                }
-            } catch (e: UserInterruptException) {
-                // Ignore
-            } catch (e: EndOfFileException) {
-                return
-            }
-        }
-        */
-
         do {
             val command = input.nextLine().trim()
 
@@ -69,11 +47,9 @@ internal class ConsoleThread(
             }
 
             runCatching {
-                runBlocking {
-                    commandExecutor.logger.info("")
-                    commandExecutor.execute(command)
-                    commandExecutor.logger.info("")
-                }
+                commandExecutor.logger.info("")
+                commandExecutor.execute(command)
+                commandExecutor.logger.info("")
             }.onFailure {
                 failureFacade.throwException("Command: $command", it)
             }

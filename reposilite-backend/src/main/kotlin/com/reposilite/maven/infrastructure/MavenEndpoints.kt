@@ -22,8 +22,8 @@ import com.reposilite.maven.api.DeleteRequest
 import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.maven.api.LookupRequest
-import com.reposilite.web.ReposiliteRoute
-import com.reposilite.web.ReposiliteRoutes
+import com.reposilite.web.application.ReposiliteRoute
+import com.reposilite.web.application.ReposiliteRoutes
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.resultAttachment
 import com.reposilite.web.routing.RouteMethod.DELETE
@@ -61,10 +61,13 @@ internal class MavenEndpoints(
     )
     private val findFile = ReposiliteRoute("/{repository}/<gav>", HEAD, GET) {
         accessed {
-            mavenFacade.findFile(LookupRequest(this, requireParameter("repository"), requireParameter("gav")))
-                .`is`(DocumentInfo::class.java) { ErrorResponse(NO_CONTENT, "Requested file is a directory") }
-                .peek { ctx.resultAttachment(it.name, it.contentType, it.contentLength, it.content()) }
-                .onError { ctx.status(it.status).html(frontendFacade.createNotFoundPage(uri, it.message)) }
+            LookupRequest(this, requireParameter("repository"), requireParameter("gav")).let { request ->
+                mavenFacade.findDetails(request)
+                    .`is`(DocumentInfo::class.java) { ErrorResponse(NO_CONTENT, "Requested file is a directory") }
+                    .flatMap { details -> mavenFacade.findFile(request).map { Pair(details, it) } }
+                    .peek { (details, file) -> ctx.resultAttachment(details.name, details.contentType, details.contentLength, file) }
+                    .onError { ctx.status(it.status).html(frontendFacade.createNotFoundPage(uri, it.message)) }
+            }
         }
     }
 

@@ -17,6 +17,7 @@
 package com.reposilite.shared
 
 import com.github.kittinunf.fuel.Fuel
+import com.github.kittinunf.fuel.core.FuelError
 import com.github.kittinunf.fuel.core.Headers.Companion.CONTENT_ENCODING
 import com.github.kittinunf.fuel.core.Headers.Companion.CONTENT_TYPE
 import com.github.kittinunf.fuel.core.Request
@@ -27,6 +28,7 @@ import com.github.kittinunf.fuel.core.responseUnit
 import com.reposilite.journalist.Channel
 import com.reposilite.journalist.Journalist
 import com.reposilite.maven.api.DocumentInfo
+import com.reposilite.maven.api.FileDetails
 import com.reposilite.maven.api.UNKNOWN_LENGTH
 import com.reposilite.shared.FilesUtils.getExtension
 import com.reposilite.web.http.ErrorResponse
@@ -46,13 +48,21 @@ interface RemoteClient {
      * @param connectTimeout - connection establishment timeout in seconds
      * @param readTimeout - connection read timeout in seconds
      */
-    suspend fun get(uri: String, credentials: String?, connectTimeout: Int, readTimeout: Int): Result<DocumentInfo, ErrorResponse>
+    fun head(uri: String, credentials: String?, connectTimeout: Int, readTimeout: Int): Result<FileDetails, ErrorResponse>
+
+    /**
+     * @param uri - full remote host address with a gav
+     * @param credentials - basic credentials in user:password format
+     * @param connectTimeout - connection establishment timeout in seconds
+     * @param readTimeout - connection read timeout in seconds
+     */
+    fun get(uri: String, credentials: String?, connectTimeout: Int, readTimeout: Int): Result<InputStream, ErrorResponse>
 
 }
 
 class HttpRemoteClient(private val journalist: Journalist) : RemoteClient {
 
-    override suspend fun get(uri: String, credentials: String?, connectTimeout: Int, readTimeout: Int): Result<DocumentInfo, ErrorResponse> =
+    override fun head(uri: String, credentials: String?, connectTimeout: Int, readTimeout: Int): Result<FileDetails, ErrorResponse> =
         Fuel.head(uri)
             .authenticateWith(credentials)
             .timeout(connectTimeout * 1000)
@@ -60,16 +70,12 @@ class HttpRemoteClient(private val journalist: Journalist) : RemoteClient {
             .responseUnit()
             .let { (_, response, result) ->
                 result.fold(
-                    { get(uri, credentials, response) },
-                    { error ->
-                        journalist.logger.debug("Cannot get $uri")
-                        journalist.logger.exception(Channel.DEBUG, error.exception)
-                        errorResponse(BAD_REQUEST, "An error of type ${error.exception.javaClass} happened: ${error.message}"
-                    )}
+                    success = { createHeadResponse(uri, response) },
+                    failure = { error -> createErrorResponse(uri, error) }
                 )
             }
 
-    private fun get(uri: String, credentials: String?, response: Response): Result<DocumentInfo, ErrorResponse> {
+    private fun createHeadResponse(uri: String, response: Response): Result<FileDetails, ErrorResponse> {
         val contentType = response.findHeader(CONTENT_TYPE)
             ?.let { ContentType.getContentType(it) }
             ?: ContentType.getContentTypeByExtension(uri.getExtension())
@@ -90,17 +96,27 @@ class HttpRemoteClient(private val journalist: Journalist) : RemoteClient {
                 DocumentInfo(
                     response.url.path.toPath().getSimpleName(),
                     contentType,
-                    contentLength,
-                    { getInputStream(uri, credentials) }
+                    contentLength
                 ).asSuccess()
         }
     }
 
-    private fun getInputStream(uri: String, credentials: String?): InputStream =
+    override fun get(uri: String, credentials: String?, connectTimeout: Int, readTimeout: Int): Result<InputStream, ErrorResponse> =
         Fuel.get(uri)
             .authenticateWith(credentials)
             .responseUnit()
-            .second.body().toStream()
+            .let { (_, response, result) ->
+                result.fold(
+                    success = { response.body().toStream().asSuccess() },
+                    failure = { error -> createErrorResponse(uri, error) }
+                )
+            }
+
+    private fun <V> createErrorResponse(uri: String, error: FuelError): Result<V, ErrorResponse> {
+        journalist.logger.debug("Cannot get $uri")
+        journalist.logger.exception(Channel.DEBUG, error.exception)
+        return errorResponse(BAD_REQUEST, "An error of type ${error.exception.javaClass} happened: ${error.message}")
+    }
 
     private fun Request.authenticateWith(credentials: String?): Request = also {
         if (credentials != null) {
@@ -115,10 +131,14 @@ class HttpRemoteClient(private val journalist: Journalist) : RemoteClient {
 }
 
 class FakeRemoteClient(
-    private val handler: suspend (String, String?, Int, Int) -> Result<DocumentInfo, ErrorResponse>
+    private val headHandler: (String, String?, Int, Int) -> Result<FileDetails, ErrorResponse>,
+    private val getHandler: (String, String?, Int, Int) -> Result<InputStream, ErrorResponse>
 ) : RemoteClient {
 
-    override suspend fun get(uri: String, credentials: String?, connectTimeout: Int, readTimeout: Int): Result<DocumentInfo, ErrorResponse> =
-        handler(uri, credentials, connectTimeout, readTimeout)
+    override fun head(uri: String, credentials: String?, connectTimeout: Int, readTimeout: Int): Result<FileDetails, ErrorResponse> =
+        headHandler(uri, credentials, connectTimeout, readTimeout)
+
+    override fun get(uri: String, credentials: String?, connectTimeout: Int, readTimeout: Int): Result<InputStream, ErrorResponse> =
+        getHandler(uri, credentials, connectTimeout, readTimeout)
 
 }

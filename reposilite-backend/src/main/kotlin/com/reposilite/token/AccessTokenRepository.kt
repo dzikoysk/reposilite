@@ -20,14 +20,14 @@ import com.reposilite.token.api.AccessToken
 
 internal interface AccessTokenRepository {
 
-    suspend fun saveAccessToken(accessToken: AccessToken): AccessToken
+    fun saveAccessToken(accessToken: AccessToken): AccessToken
 
-    suspend fun deleteAccessToken(accessToken: AccessToken)
+    fun deleteAccessToken(accessToken: AccessToken)
 
-    suspend fun findAccessTokenByName(name: String): AccessToken?
+    fun findAccessTokenByName(name: String): AccessToken?
 
-    suspend fun findAll(): Collection<AccessToken>
+    fun findAll(): Collection<AccessToken>
 
-    suspend fun countAccessTokens(): Long
+    fun countAccessTokens(): Long
 
 }

@@ -24,19 +24,36 @@ import com.reposilite.token.api.AccessTokenType.PERSISTENT
 import com.reposilite.token.api.AccessTokenType.TEMPORARY
 import com.reposilite.token.api.CreateAccessTokenRequest
 import com.reposilite.token.api.CreateAccessTokenResponse
+import com.reposilite.token.api.TokensResponse
+import com.reposilite.web.http.ErrorResponse
+import com.reposilite.web.http.errorResponse
+import io.javalin.http.HttpCode.BAD_REQUEST
+import panda.std.Result
+import panda.std.asSuccess
 
 class AccessTokenFacade internal constructor(
     private val temporaryRepository: AccessTokenRepository,
     private val persistentRepository: AccessTokenRepository
 ) {
+    fun createTemporaryAccessToken(request: CreateAccessTokenRequest): CreateAccessTokenResponse =
+        createAccessToken(
+            temporaryRepository,
+            TEMPORARY,
+            request.name,
+            request.secret ?: generateSecret(),
+            request.permissions
+        )
 
-    suspend fun createTemporaryAccessToken(request: CreateAccessTokenRequest): CreateAccessTokenResponse =
-        createAccessToken(temporaryRepository, TEMPORARY, request.name, request.secret ?: generateSecret(), request.permissions)
+    fun createAccessToken(request: CreateAccessTokenRequest): CreateAccessTokenResponse =
+        createAccessToken(
+            persistentRepository,
+            PERSISTENT,
+            request.name,
+            request.secret ?: generateSecret(),
+            request.permissions
+        )
 
-    suspend fun createAccessToken(request: CreateAccessTokenRequest): CreateAccessTokenResponse =
-        createAccessToken(persistentRepository, PERSISTENT, request.name, request.secret ?: generateSecret(), request.permissions)
-
-    private suspend fun createAccessToken(
+    private fun createAccessToken(
         repository: AccessTokenRepository,
         type: AccessTokenType,
         name: String,
@@ -49,25 +66,45 @@ class AccessTokenFacade internal constructor(
         return CreateAccessTokenResponse(repository.saveAccessToken(accessToken), secret)
     }
 
-    suspend fun updateToken(accessToken: AccessToken): AccessToken =
-        when(accessToken.type) {
+    fun updateToken(accessToken: AccessToken): AccessToken =
+        when (accessToken.type) {
             PERSISTENT -> persistentRepository.saveAccessToken(accessToken)
             TEMPORARY -> temporaryRepository.saveAccessToken(accessToken)
         }
 
-    suspend fun deleteToken(name: String): AccessToken? =
+    fun deleteToken(name: String): AccessToken? =
         deleteToken(temporaryRepository, name) ?: deleteToken(persistentRepository, name)
 
-    private suspend fun deleteToken(repository: AccessTokenRepository, name: String): AccessToken? =
+    private fun deleteToken(repository: AccessTokenRepository, name: String): AccessToken? =
         repository.findAccessTokenByName(name)?.also { persistentRepository.deleteAccessToken(it) }
 
-    suspend fun getToken(name: String): AccessToken? =
+    fun getToken(name: String): AccessToken? =
         temporaryRepository.findAccessTokenByName(name) ?: persistentRepository.findAccessTokenByName(name)
 
-    suspend fun getTokens(): Collection<AccessToken> =
+    fun getTokens(): Collection<AccessToken> =
         temporaryRepository.findAll() + persistentRepository.findAll()
 
-    suspend fun count(): Long =
+    fun count(): Long =
         temporaryRepository.countAccessTokens() + persistentRepository.countAccessTokens()
 
+    fun getTokensResponse(): Result<TokensResponse, ErrorResponse> =
+        TokensResponse(getTokens()).asSuccess()
+
+    fun getTokenResponse(name: String): Result<AccessToken, ErrorResponse> =
+        getToken(name)?.asSuccess() ?: errorResponse(BAD_REQUEST, "The token requested does not exist!")
+
+    fun deleteTokenWithResponse(name: String): Result<AccessToken, ErrorResponse> {
+        return deleteToken(name)?.asSuccess() ?: errorResponse(
+            BAD_REQUEST,
+            "Could not find a token to delete!"
+        )
+    }
+
+    fun createOrUpdateToken(request: CreateAccessTokenRequest): Result<CreateAccessTokenResponse, ErrorResponse> {
+        getToken(request.name)?.let {
+            deleteToken(it.name)
+        }.let {
+            return createAccessToken(request).asSuccess()
+        }
+    }
 }

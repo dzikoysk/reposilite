@@ -110,6 +110,7 @@ application
   .get('/api/maven/details/releases/gav', respond(
     createDirectoryDetails('/releases/gav', [
       createDirectoryDetails('1.0.0'),
+      createDirectoryDetails('0.1.0'),
       createFileDetails('maven-metadata.xml', 'text/xml', 4096)
     ])
   ))
@@ -118,13 +119,20 @@ application
       createFileDetails('gav-1.0.0.jar', 'application/jar-archive', 1337)
     ])
   ))
+  .get('/api/maven/details/releases/gav/0.1.0', respond(
+    createDirectoryDetails('/releases/gav/0.1.0', [
+      createFileDetails('gav-0.1.0.jar', 'application/jar-archive', 1337)
+    ])
+  ))
   .get('/releases/gav/1.0.0/gav-1.0.0.jar', respond('content'))
+  .get('/releases/gav/0.1.0/gav-0.1.0.jar', respond('content'))
   .get('/releases/gav/maven-metadata.xml', respond(`
   <metadata>
     <groupId>g.a.v</groupId>
     <artifactId>gav</artifactId>
     <versioning>
       <release>1.0.0</release>
+      <release>0.1.0</release>
     </versioning>
   </metadata>
   `))

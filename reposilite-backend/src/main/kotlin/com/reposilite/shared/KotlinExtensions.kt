@@ -16,6 +16,7 @@
 
 package com.reposilite.shared
 
+import panda.std.Result
 import java.util.concurrent.atomic.AtomicBoolean
 
 fun AtomicBoolean.peek(block: () -> Unit) {
@@ -23,3 +24,22 @@ fun AtomicBoolean.peek(block: () -> Unit) {
         block()
     }
 }
+
+fun <T, R> Iterable<T>.firstAndMap(transform: (T) -> R): R? =
+    this.firstOrNull()?.let(transform)
+
+fun <VALUE, ERROR, MAPPED_ERROR> Sequence<Result<out VALUE, ERROR>>.firstSuccessOr(elseValue: () -> Result<out VALUE, MAPPED_ERROR>): Result<out VALUE, MAPPED_ERROR> =
+    this.firstOrNull { it.isOk }
+        ?.projectToValue()
+        ?: elseValue()
+
+fun <VALUE, ERROR> Sequence<Result<out VALUE, ERROR>>.firstOrErrors(): Result<out VALUE, Collection<ERROR>> {
+    val collection: MutableCollection<ERROR> = ArrayList()
+
+    return this
+        .map { result -> result.onError { collection.add(it) } }
+        .firstSuccessOr { Result.error(collection) }
+}
+
+fun <VALUE> Result<VALUE, *>.`when`(condition: (VALUE) -> Boolean): Boolean =
+    fold({ condition(it) }, { false })

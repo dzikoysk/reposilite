@@ -17,7 +17,6 @@
 package com.reposilite.token.infrastructure
 
 import com.reposilite.shared.firstAndMap
-import com.reposilite.shared.launchTransaction
 import com.reposilite.token.AccessTokenRepository
 import com.reposilite.token.api.AccessToken
 import com.reposilite.token.api.AccessTokenPermission
@@ -25,7 +24,6 @@ import com.reposilite.token.api.AccessTokenPermission.Companion.findAccessTokenP
 import com.reposilite.token.api.AccessTokenType
 import com.reposilite.token.api.Route
 import com.reposilite.token.api.RoutePermission.Companion.findRoutePermissionByIdentifier
-import kotlinx.coroutines.CoroutineDispatcher
 import net.dzikoysk.exposed.shared.UNINITIALIZED_ENTITY_ID
 import net.dzikoysk.exposed.upsert.withIndex
 import net.dzikoysk.exposed.upsert.withUnique
@@ -75,7 +73,7 @@ object PermissionToRouteTable : Table("permission_route") {
     }
 }
 
-internal class SqlAccessTokenRepository(private val dispatcher: CoroutineDispatcher?, private val database: Database) : AccessTokenRepository {
+internal class SqlAccessTokenRepository(private val database: Database) : AccessTokenRepository {
 
     init {
         transaction(database) {
@@ -84,8 +82,8 @@ internal class SqlAccessTokenRepository(private val dispatcher: CoroutineDispatc
         }
     }
 
-    override suspend fun saveAccessToken(accessToken: AccessToken): AccessToken =
-        launchTransaction(dispatcher, database) {
+    override fun saveAccessToken(accessToken: AccessToken): AccessToken =
+        transaction(database) {
             when(getIdByName(accessToken.name)) {
                 UNINITIALIZED_ENTITY_ID -> createAccessToken(accessToken)
                 else -> updateAccessToken(accessToken)
@@ -153,15 +151,15 @@ internal class SqlAccessTokenRepository(private val dispatcher: CoroutineDispatc
             ?.value
             ?: UNINITIALIZED_ENTITY_ID
 
-    override suspend fun deleteAccessToken(accessToken: AccessToken) {
-        launchTransaction(dispatcher, database) {
+    override fun deleteAccessToken(accessToken: AccessToken) {
+        transaction(database) {
             AccessTokenTable.deleteWhere { AccessTokenTable.id eq accessToken.id }
         }
     }
 
     private fun findAccessTokenPermissionsById(id: Int): Set<AccessTokenPermission> =
         PermissionToAccessTokenTable.select { PermissionToAccessTokenTable.accessTokenId eq id }
-            .map { findAccessTokenPermissionByIdentifier(it[PermissionToAccessTokenTable.permission]) }
+            .map { findAccessTokenPermissionByIdentifier(it[PermissionToAccessTokenTable.permission])!! }
             .toSet()
 
     private fun findRoutesById(id: Int): Set<Route> =
@@ -187,18 +185,18 @@ internal class SqlAccessTokenRepository(private val dispatcher: CoroutineDispatc
             )
         }
 
-    override suspend fun findAccessTokenByName(name: String): AccessToken? =
-        launchTransaction(dispatcher, database) {
+    override fun findAccessTokenByName(name: String): AccessToken? =
+        transaction(database) {
             AccessTokenTable.select { AccessTokenTable.name eq name }.firstAndMap { toAccessToken(it) }
         }
 
-    override suspend fun findAll(): Collection<AccessToken> =
-        launchTransaction(dispatcher, database) {
+    override fun findAll(): Collection<AccessToken> =
+        transaction(database) {
             AccessTokenTable.selectAll().map { toAccessToken(it) }
         }
 
-    override suspend fun countAccessTokens(): Long =
-        launchTransaction(dispatcher, database) {
+    override fun countAccessTokens(): Long =
+        transaction(database) {
             AccessTokenTable.selectAll().count()
         }
 

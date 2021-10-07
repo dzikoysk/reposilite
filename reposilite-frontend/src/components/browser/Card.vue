@@ -23,7 +23,7 @@
       </h1>
       <!-- <button class="bg-black dark:bg-white text-white dark:text-black px-6 py-1 rounded">Download</button> -->
     </div>
-    <div class="flex">
+    <div class="flex <sm:(hidden)">
       <div 
         v-for="entry in configurations" 
         :key="entry.name" 
@@ -34,7 +34,28 @@
         {{ entry.name }}
       </div>
     </div>
-    <hr class="dark:border-gray-800">
+    <div class="hidden flex-col items-center mt-24px <sm:(flex)">
+      <div
+          class="w-full box-border py-5px p-2 rounded-lg border-1 border-true-gray-200 dark:border-dark-300"
+          @click="dropdownOpen = !dropdownOpen">
+        {{ selectedTab }}
+        <div class="w-20px h-25px float-right m-auto flex items-center">
+          <down-icon/>
+        </div>
+      </div>
+      <ul v-if="!dropdownOpen" class="rounded-lg w-full box-border p-2 bg-true-gray-100 dark:bg-dark-600">
+        <li
+            v-for="entry in configurations"
+            :key="entry.name"
+            @click="selectedTab = entry.name; dropdownOpen = !dropdownOpen"
+            class="dropdown py-1"
+            :class="{ 'hidden': entry.name === selectedTab }">
+          {{ entry.name }}
+        </li>
+      </ul>
+    </div>
+
+    <hr class="dark:border-gray-800 <sm:(hidden)">
     <div class="overflow-hidden">
       <transition :name="transitionName" mode="out-in">
         <div :key="selectedTab" class="relative h-33 mt-6 p-4 mr-1 rounded-lg bg-gray-100 dark:bg-gray-800">
@@ -66,10 +87,11 @@ import { createClient } from '../../store/client'
 import useMetadata from '../../store/maven/metadata'
 import { useClipboard } from '@vueuse/core'
 import CopyIcon from '../icons/CopyIcon.vue'
+import DownIcon from '../icons/DownIcon.vue'
 import { createToast } from 'mosha-vue-toastify'
 
 export default {
-  components: { PrismEditor, CopyIcon },
+  components: { PrismEditor, CopyIcon, DownIcon },
   props: {
     qualifier: {
       type: Object,
@@ -91,17 +113,20 @@ export default {
     const { client } = createClient(token.name, token.secret)
     const { copy: copyText, isSupported: isCopySupported } = useClipboard()
 
+
     const selectedTab = ref(localStorage.getItem('card-tab') || 'Maven')
+    const dropdownOpen = ref(localStorage.getItem('dropdown-open') || false)
     watchEffect(() => localStorage.setItem('card-tab', selectedTab.value))
+    watchEffect(() => localStorage.setItem('dropdown-open', dropdownOpen.value))
     
     const displayRepository = () => {
       configurations.value = createRepositories(qualifier)
       title.value = 'Repository details'
     }
 
-    const displayArtifact = (metadataSource) => {
+    const displayArtifact = (metadataSource, version) => {
       const metadata = parseMetadata(metadataSource)
-      configurations.value = createSnippets(groupId(metadata), artifactId(metadata), versions(metadata)[0])
+      configurations.value = createSnippets(groupId(metadata), artifactId(metadata), versions(metadata)[version ? versions(metadata).indexOf(version) : 0])
       title.value = 'Artifact details'
     }
 
@@ -120,11 +145,15 @@ export default {
 
       client.maven.content(`${qualifier.path}/maven-metadata.xml`)
         .then(response => displayArtifact(response.data))
-        .catch(error => {
-          if (error.message !== 'Request failed with status code 404') {
-            console.log(error)
-          }
-          displayRepository()
+        .catch(_ => {
+          client.maven.content(`${qualifier.path.substring(0, qualifier.path.indexOf(elements[elements.length-1])-1)}/maven-metadata.xml`)
+            .then(response => displayArtifact(response.data, elements[elements.length-1]))
+            .catch(error => {
+              if (error.message !== 'Request failed with status code 404') {
+                console.log(error)
+              }
+              displayRepository()
+            })
         })
     })
 
@@ -156,7 +185,8 @@ export default {
       selectedTab,
       transitionName,
       copy,
-      isCopySupported
+      isCopySupported,
+      dropdownOpen
     }
   }
 }

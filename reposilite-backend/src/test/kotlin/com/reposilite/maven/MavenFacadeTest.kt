@@ -18,7 +18,6 @@ package com.reposilite.maven
 
 import com.reposilite.maven.api.DeleteRequest
 import com.reposilite.maven.api.DeployRequest
-import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.Metadata
 import com.reposilite.maven.api.RepositoryVisibility
@@ -32,13 +31,11 @@ import com.reposilite.token.api.RoutePermission.READ
 import com.reposilite.token.api.RoutePermission.WRITE
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import panda.std.ResultAssertions.assertError
 import panda.std.ResultAssertions.assertOk
-import panda.utilities.IOUtils
 
 internal class MavenFacadeTest : MavenSpecification() {
 
@@ -84,30 +81,34 @@ internal class MavenFacadeTest : MavenSpecification() {
         val by = "dzikoysk@127.0.0.1"
 
         // when: the following file is deployed
-        val fileDetails = mavenFacade.deployFile(DeployRequest(fileSpec.repository, fileSpec.gav, by, fileSpec.content.byteInputStream()))
-            .orElseThrow { fail { it.toString() } }
+        val deployResult = mavenFacade.deployFile(DeployRequest(fileSpec.repository, fileSpec.gav, by, fileSpec.content.byteInputStream()))
 
         // then: file has been successfully stored
-        assertEquals(FILE, fileDetails.type)
-        assertEquals("reposilite-3.0.0.jar", fileDetails.name)
+        assertOk(deployResult)
+
+        // when: the deployed file is requested
+        val accessToken = createAccessToken("name", "secret", fileSpec.repository, "/", READ)
+        val deployedFileResult = mavenFacade.findDetails(LookupRequest(accessToken, fileSpec.repository, fileSpec.gav))
+
+        // then: the result file matches deployed file
+        val deployedFile = assertOk(deployedFileResult)
+        assertEquals(FILE, deployedFile.type)
+        assertEquals("reposilite-3.0.0.jar", deployedFile.name)
     }
 
     @ParameterizedTest
     @EnumSource(value = RepositoryVisibility::class, names = [ "PUBLIC", "HIDDEN" ])
-    fun `should find requested file without credentials in public and hidden repositories`(visibility: RepositoryVisibility) = runBlocking {
+    fun `should find requested details without credentials in public and hidden repositories`(visibility: RepositoryVisibility) = runBlocking {
         // given: a repository with a file
         val fileSpec = addFileToRepository(FileSpec(visibility.name, "/gav/file.pom", "content"))
 
         // when: the given file is requested
-        val fileDetails = mavenFacade.findFile(fileSpec.toLookupRequest(UNAUTHORIZED))
-            .orElseThrow { fail { it.toString() } }
+        val detailsResult = mavenFacade.findDetails(fileSpec.toLookupRequest(UNAUTHORIZED))
 
         // then: result is a proper file
+        val fileDetails = assertOk(detailsResult)
         assertEquals("file.pom", fileDetails.name)
-        // assertTrue(fileDetails.isReadable())
         assertEquals(FILE, fileDetails.type)
-        val documentInfo = fileDetails as DocumentInfo
-        assertEquals(fileSpec.content, IOUtils.convertStreamToString(documentInfo.content()).get())
     }
 
     @Test
@@ -118,7 +119,7 @@ internal class MavenFacadeTest : MavenSpecification() {
         var authentication = UNAUTHORIZED
 
         // when: the given file is requested
-        val errorResponse = mavenFacade.findFile(fileSpec.toLookupRequest(authentication))
+        val errorResponse = mavenFacade.findDetails(fileSpec.toLookupRequest(authentication))
 
         // then: the response contains error
         assertError(errorResponse)
@@ -127,7 +128,7 @@ internal class MavenFacadeTest : MavenSpecification() {
         authentication = createAccessToken("name", "secret", repository, "", READ)
 
         // when: the given file is requested with valid credentials
-        val fileDetails = mavenFacade.findFile(fileSpec.toLookupRequest(authentication))
+        val fileDetails = mavenFacade.findDetails(fileSpec.toLookupRequest(authentication))
 
         // then: response contains file details
         assertOk(fileDetails)
@@ -140,7 +141,7 @@ internal class MavenFacadeTest : MavenSpecification() {
         val fileSpec = addFileToRepository(FileSpec(visibility.name, "/gav/file.pom", "content"))
 
         // when: the given directory is requested
-        val directoryInfo = mavenFacade.findFile(LookupRequest(UNAUTHORIZED, fileSpec.repository, "gav"))
+        val directoryInfo = mavenFacade.findDetails(LookupRequest(UNAUTHORIZED, fileSpec.repository, "gav"))
 
         // then: response contains error
         assertError(directoryInfo)
@@ -177,8 +178,8 @@ internal class MavenFacadeTest : MavenSpecification() {
         val response = mavenFacade.findFile(fileSpec.toLookupRequest(UNAUTHORIZED))
 
         // then: the file has been properly proxied
-        assertOk(response)
-        assertEquals(REMOTE_CONTENT, (response.get() as DocumentInfo).content().readBytes().decodeToString())
+        val data = assertOk(response)
+        assertEquals(REMOTE_CONTENT, data.readBytes().decodeToString())
     }
 
     @Test

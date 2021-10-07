@@ -17,41 +17,40 @@
 package com.reposilite.maven
 
 import com.reposilite.config.Configuration.RepositoryConfiguration.ProxiedHostConfiguration
-import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.maven.api.FileDetails
 import com.reposilite.shared.RemoteClient
+import com.reposilite.shared.firstOrErrors
 import com.reposilite.shared.toPath
 import com.reposilite.web.http.ErrorResponse
 import io.javalin.http.HttpCode.NOT_FOUND
-import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.map
 import panda.std.Result
 import panda.std.Result.ok
-import panda.std.coroutines.firstOrErrors
+import java.io.InputStream
+import java.nio.file.Path
 
 internal class ProxyService(private val remoteClient: RemoteClient) {
 
-    suspend fun findFile(repository: Repository, gav: String): Result<out FileDetails, ErrorResponse> =
-        repository.proxiedHosts.asSequence().asFlow()
-            .map { (host, configuration) -> findFile(repository, host, gav, configuration) }
+    fun findRemoteDetails(repository: Repository, gav: String): Result<out FileDetails, ErrorResponse> =
+        searchInRemoteRepositories(repository) { host, config ->
+            remoteClient.head("$host/$gav", config.authorization, config.connectTimeout, config.readTimeout)
+        }
+
+    fun findRemoteFile(repository: Repository, gav: String): Result<out InputStream, ErrorResponse> =
+        searchInRemoteRepositories(repository) { host, config ->
+            remoteClient.get("$host/$gav", config.authorization, config.connectTimeout, config.readTimeout)
+                .flatMap { data -> if (config.store) storeFile(repository, gav.toPath(), data) else ok(data) }
+                .mapErr { error -> error.updateMessage { "$host: $it" } }
+        }
+
+    private fun <V> searchInRemoteRepositories(repository: Repository, fetch: (String, ProxiedHostConfiguration) -> Result<out V, ErrorResponse>): Result<out V, ErrorResponse> =
+        repository.proxiedHosts.asSequence()
+            .map { (host, config) -> fetch(host, config) }
             .firstOrErrors()
             .mapErr { errors -> ErrorResponse(NOT_FOUND, errors.joinToString(" -> ") { "(${it.status}: ${it.message})" }) }
 
-    private suspend fun findFile(repository: Repository, host: String, gav: String, configuration: ProxiedHostConfiguration): Result<out FileDetails, ErrorResponse> =
-        findFile(host, configuration, gav).flatMap { document ->
-            if (configuration.store)
-                storeFile(repository, gav, document)
-            else
-                ok<FileDetails, ErrorResponse>(document)
-        }
-
-    private fun storeFile(repository: Repository, gav: String, document: DocumentInfo): Result<out FileDetails, ErrorResponse> =
+    private fun storeFile(repository: Repository, gav: Path, data: InputStream): Result<InputStream, ErrorResponse> =
         repository
-            .putFile(gav.toPath(), document.content())
-            .flatMap { repository.getFileDetails(gav.toPath()) }
-
-    private suspend fun findFile(host: String, configuration: ProxiedHostConfiguration, gav: String): Result<DocumentInfo, ErrorResponse> =
-        remoteClient.get("$host/$gav", configuration.authorization, configuration.connectTimeout, configuration.readTimeout)
-            .mapErr { error -> error.updateMessage { "$host: $it" } }
+            .putFile(gav, data)
+            .flatMap { repository.getFile(gav) }
 
 }

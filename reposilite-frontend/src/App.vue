@@ -16,14 +16,16 @@
 
 <template>
   <div v-bind:class="{ 'dark': theme.isDark }">
-    <router-view 
-      class="min-h-screen dark:bg-black dark:text-white"
-      :qualifier="qualifier"
-      :token="token"
-      :session="session"
-    />
-    <div v-if="icpLicense" class="absolute bottom-4 w-full text-center text-xs">
-      <a href="https://beian.miit.gov.cn" target="_blank">{{icpLicense}}</a>
+    <div class="min-h-screen dark:bg-black dark:text-white">
+      <router-view 
+        class="router-view-full "
+        :qualifier="qualifier"
+        :token="token"
+        :session="session"
+      />
+      <div v-if="icpLicense" class="absolute h-8 pb-2 w-full text-center text-xs dark:bg-black dark:text-white">
+        <a href="https://beian.miit.gov.cn" target="_blank">{{icpLicense}}</a>
+      </div>
     </div>
   </div>
 </template>
@@ -66,15 +68,17 @@ export default defineComponent({
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600&display=swap');
 
-html {
-  @apply bg-gray-100;
+html, body {
+  @apply bg-gray-100 dark:bg-black;
 }
 #app {
   font-family: 'Open Sans', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-
+.router-view-full {
+  min-height: calc(100vh - 2rem);
+}
 .container {
   @apply px-10;
 }

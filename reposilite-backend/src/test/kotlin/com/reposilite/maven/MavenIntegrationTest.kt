@@ -18,7 +18,6 @@ package com.reposilite.maven
 
 import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.maven.specification.MavenIntegrationSpecification
-import com.reposilite.storage.StorageProvider.Companion.DEFAULT_STORAGE_PROVIDER_BUFFER_SIZE
 import com.reposilite.web.http.ErrorResponse
 import io.javalin.http.HttpCode.NOT_FOUND
 import io.javalin.http.HttpCode.UNAUTHORIZED
@@ -32,7 +31,6 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import java.nio.channels.Channels
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
 

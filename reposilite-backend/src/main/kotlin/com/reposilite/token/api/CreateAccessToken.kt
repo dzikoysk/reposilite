@@ -22,6 +22,11 @@ data class CreateAccessTokenRequest(
     val permissions: Set<AccessTokenPermission> = emptySet()
 )
 
+data class CreateAccessTokenWithNoNameRequest(
+    val secret: String? = null,
+    val permissions: Set<String> = emptySet()
+)
+
 data class CreateAccessTokenResponse(
     val accessToken: AccessToken,
     val secret: String,

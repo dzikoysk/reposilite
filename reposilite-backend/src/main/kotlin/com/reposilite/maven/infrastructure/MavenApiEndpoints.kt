@@ -20,8 +20,8 @@ import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.api.FileDetails
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.web.ContextDsl
-import com.reposilite.web.ReposiliteRoute
-import com.reposilite.web.ReposiliteRoutes
+import com.reposilite.web.application.ReposiliteRoute
+import com.reposilite.web.application.ReposiliteRoutes
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.routing.RouteMethod.GET
 import io.javalin.openapi.HttpMethod
@@ -59,10 +59,10 @@ class MavenApiEndpoints(private val mavenFacade: MavenFacade) : ReposiliteRoutes
             )
         ]
     )
-    private val findFileDetails: suspend ContextDsl.() -> Unit = {
+    private val findFileDetails: ContextDsl.() -> Unit = {
         accessed {
             response = parameter("repository")
-                ?.let { repository -> mavenFacade.findFile(LookupRequest(this, repository, wildcard("gav") ?: "", )) }
+                ?.let { repository -> mavenFacade.findDetails(LookupRequest(this, repository, wildcard("gav") ?: "", )) }
                 ?: mavenFacade.findRepositories(this)
         }
     }

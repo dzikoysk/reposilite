@@ -5,7 +5,7 @@
     <option name="MAIN_CLASS_NAME" value="com.reposilite.ReposiliteLauncherKt" />
     <module name="reposilite-backend.main" />
     <option name="PROGRAM_PARAMETERS" value="--token name:secret" />
-    <option name="VM_PARAMETERS" value="-Xmx32M" />
+    <option name="VM_PARAMETERS" value="-Xmx64M" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/reposilite-backend/src/test/workspace" />
     <method v="2">
       <option name="Make" enabled="true" />

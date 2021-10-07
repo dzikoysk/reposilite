@@ -24,22 +24,18 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.maven.api.METADATA_FILE
 import com.reposilite.maven.api.Metadata
 import com.reposilite.shared.safeResolve
 import com.reposilite.shared.toPath
 import com.reposilite.web.http.ErrorResponse
-import io.javalin.http.HttpCode.NOT_ACCEPTABLE
 import panda.std.Result
 
 internal class MetadataService(
     private val repositoryService: RepositoryService
 ) {
 
-    private val xml = XmlMapper(JacksonXmlModule().apply {
-            setDefaultUseWrapper(false)
-        })
+    private val xml = XmlMapper(JacksonXmlModule().apply { setDefaultUseWrapper(false) })
         .configure(ToXmlGenerator.Feature.WRITE_XML_DECLARATION, true)
         .enable(INDENT_OUTPUT)
         .registerKotlinModule()
@@ -52,10 +48,8 @@ internal class MetadataService(
             .map { metadata }
 
     fun findVersions(repository: Repository, gav: String): Result<List<String>, ErrorResponse> =
-        repository.getFileDetails(gav.toPath().safeResolve(METADATA_FILE))
-            .filter({ it is DocumentInfo }, { ErrorResponse(NOT_ACCEPTABLE, "Maven metadata file cannot be directory") })
-            .map { it as DocumentInfo }
-            .map { xml.readValue<Metadata>(it.content()) } // closes input automatically
+        repository.getFile(gav.toPath().safeResolve(METADATA_FILE))
+            .map { it.use { data -> xml.readValue<Metadata>(data) } }
             .map { it.versioning?.versions ?: emptyList() }
             .map { VersionComparator.sortStrings(it) }
 

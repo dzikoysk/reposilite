@@ -17,7 +17,7 @@ package com.reposilite.auth.infrastructure
 
 import com.reposilite.auth.AuthenticationFacade
 import com.reposilite.token.api.AccessToken
-import com.reposilite.web.ReposiliteRoutes
+import com.reposilite.web.application.ReposiliteRoutes
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.routing.RouteMethod.GET
 import io.javalin.openapi.HttpMethod
@@ -49,7 +49,7 @@ internal class AuthenticationEndpoint(private val authenticationFacade: Authenti
         ]
     )
     private val authInfo = route("/api/auth/me", GET) {
-        response = authenticationResult
+        response = authenticationResult.value
     }
 
     override val routes = setOf(authInfo)
