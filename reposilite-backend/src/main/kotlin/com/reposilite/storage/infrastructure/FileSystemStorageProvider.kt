@@ -36,6 +36,7 @@ import java.io.File
 import java.io.InputStream
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.StandardCopyOption
 import java.nio.file.attribute.FileTime
 
 /**
@@ -60,10 +61,6 @@ internal abstract class FileSystemStorageProvider protected constructor(
                     Files.createDirectories(file.parent)
                 }
 
-                if (!Files.exists(file)) {
-                    Files.createFile(file)
-                }
-
                 // TOFIX: FS locks are not truly respected, there might be a need to enhanced it with .lock file to be sure if it's respected.
                 // In theory people shouldn't redeploy multiple times the same file, but who knows.
                 // Let's try with temporary files.
@@ -75,7 +72,7 @@ internal abstract class FileSystemStorageProvider protected constructor(
                     data.copyTo(destination)
                 }
 
-                temporaryFile.renameTo(file.toFile())
+                Files.move(temporaryFile.toPath(), file, StandardCopyOption.REPLACE_EXISTING)
                 ok(Unit)
             }
         }
