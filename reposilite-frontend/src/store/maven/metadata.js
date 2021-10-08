@@ -32,14 +32,11 @@ export default function useMetadata() {
       ?.firstChild
       ?.nodeValue
   
-  const versions = (metadata) =>
-    Array.from(
-      metadata
-        ?.getElementsByTagName('versioning')
-        ?.at(-1)
-        ?.children)
+  const versions = (metadata) => {
+    return [...metadata.querySelector('versioning versions').children]
       ?.map(node => node.firstChild.nodeValue)
       ?? ['{unknown}']
+  }
 
   return {
     parseMetadata,

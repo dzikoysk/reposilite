@@ -132,7 +132,10 @@ application
     <artifactId>gav</artifactId>
     <versioning>
       <release>1.0.0</release>
-      <release>0.1.0</release>
+      <versions>
+        <version>0.1.0</version>
+        <version>1.0.0</version>
+      </versions>
     </versioning>
   </metadata>
   `))

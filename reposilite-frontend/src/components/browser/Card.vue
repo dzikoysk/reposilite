@@ -125,9 +125,14 @@ export default {
     }
 
     const displayArtifact = (metadataSource, version) => {
-      const metadata = parseMetadata(metadataSource)
-      configurations.value = createSnippets(groupId(metadata), artifactId(metadata), versions(metadata)[version ? versions(metadata).indexOf(version) : 0])
       title.value = 'Artifact details'
+      const metadata = parseMetadata(metadataSource)
+      const availableVersions = versions(metadata)
+      configurations.value = createSnippets(
+        groupId(metadata),
+        artifactId(metadata),
+        availableVersions[version ? availableVersions.indexOf(version) : availableVersions.length - 1]
+      )
     }
 
     watchEffect(() => {
