@@ -30,7 +30,7 @@
       </div>
     </div>
     <div class="bg-white dark:bg-gray-900 rounded-lg">
-      <div id="console" class="overflow-scroll h-144 px-4">
+      <div id="console" class="overflow-scroll h-144 px-4 whitespace-pre-wrap font-mono text-xs">
         <p v-for="entry in log" :key="entry.id" v-html="entry.message" class="whitespace-nowrap"/>
       </div>
       <hr class="dark:border-dark-300">
@@ -120,11 +120,3 @@ export default {
   }
 }
 </script>
-
-<style>
-#console {
-  white-space: pre-wrap;
-  font-family: 'Consolas', 'monospace';
-  font-size: 12px;
-}
-</style>

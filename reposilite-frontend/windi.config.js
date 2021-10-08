@@ -31,6 +31,9 @@ module.exports = {
       },
       fontSize: {
         xm: ['0.625rem', { lineHeight: '0.75rem' }],
+      },
+      fontFamily: {
+        mono: ['Consolas', 'Monaco', 'monospace']
       }
     }
   }
