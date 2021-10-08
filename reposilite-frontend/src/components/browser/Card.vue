@@ -62,7 +62,7 @@
           <template v-for="entry in configurations"> 
             <prism-editor 
               v-if="entry.name === selectedTab"
-              class="snippet absolute text-sm" 
+              class="font-mono absolute text-sm"
               v-model="entry.snippet" 
               :highlight="entry.highlighter" 
               readonly
@@ -212,9 +212,6 @@ export default {
   transform: translateX(-60px);
 }
 
-.snippet {
-    font-family: 'Consolas', 'monospace';
-}
 ::-webkit-scrollbar {
   height: 6px;
 }
