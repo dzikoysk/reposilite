@@ -23,7 +23,7 @@
     >
       <div class="relative border bg-white dark:bg-gray-900 border-gray-100 dark:border-black m-w-20 py-5 px-10 rounded-2xl shadow-xl text-center">
         <p class="font-bold text-xl pb-4">Login with access token</p>
-        <form class="flex flex-col w-96 <sm:w-auto" @submit.prevent="signin(name, secret)">
+        <form class="flex flex-col w-96 <sm:w-65" @submit.prevent="signin(name, secret)">
           <input placeholder="Name" v-model="name" type="text" class="input"/>
           <input placeholder="Secret" v-model="secret" type="password" class="input"/>
           <div class="text-right mt-1">
