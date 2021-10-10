@@ -85,9 +85,9 @@ dependencies {
     implementation("com.reposilite.javalin-rfcs:javalin-routing:$javalinRfcs")
     //implementation("com.reposilite.javalin-rfcs:javalin-reactive-routing:$javalinRfcs")
 
-    implementation("io.javalin:javalin:4.0.0")
-    // implementation("com.github.tipsy.javalin:javalin:-SNAPSHOT")
-    // implementation("com.github.dzikoysk.javalin:javalin:d2e02a25b0")
+    //implementation("io.javalin:javalin:4.1.1")
+    //implementation("com.github.tipsy.javalin:javalin:-SNAPSHOT")
+    implementation("com.github.dzikoysk.javalin:javalin:760159a7c4")
 
     @Suppress("GradlePackageUpdate")
     implementation("org.eclipse.jetty:jetty-server:9.4.44.v20210927")
