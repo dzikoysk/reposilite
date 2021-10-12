@@ -126,6 +126,6 @@ $ tokens
 ### Revoke tokens
 You can revoke token using the `token revoke <alias>` command in Reposilite CLI.
 ```bash
-$token revoke root
+$ token revoke root
 14:20:03.834 INFO | Token for 'root' has been revoked
 ```
