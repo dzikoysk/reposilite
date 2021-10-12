@@ -50,27 +50,28 @@ by default it is a place where you've launched it.
 user@host ~/workspace: java -jar reposilite.jar
 ```
 
-```bash
+```
 ~workspace/
 +--repositories/        The root directory for all declared repositories
-   +--/releases         Default repository for releases
-   +--/snapshots        Default repository for snapshot releases
+   +--private/          Default private repository
+   +--releases/         Default repository for releases
+   +--snapshots/        Default repository for snapshot releases
++--static/              Static website content
 +--log.txt              Mirror of log from CLI
 +--reposilite.jar       Application file
 +--reposilite.cdn       Configuration file
-+--stats.yml            Data file containing stats records
-+--tokens.yml           Data file containing stored tokens
++--reposilite.db        Data file containing stats and tokens (only if sqlite is used as database)
 ```
 
 To separate data files and configuration from application, use [parameters](configuration#parameters).
 
 ### Interface
 If Reposilite has been launched properly,
-you should be able to see its frontend located under the default http://localhost:80 address:
+you should be able to see its frontend located under the default http://localhost:80/#/ address:
 
 ![Preview](/img/about-preview.png)
 
-To access dashboard visit http://localhost:80/dashboard or click on the feather icon.
+To access the console, sign in using the button in the upper right corner.
 
 ### Further reading
 
