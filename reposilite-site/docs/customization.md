@@ -21,14 +21,18 @@ basePath: "/repo"
 Header content might be modified using the following properties:
 
 ```properties
-# Title displayed by frontend
-title: "#onlypanda"
-# Description displayed by frontend
-description: "Public Maven repository hosted through the Reposilite"
-# Accent color used by frontend
-accentColor: "#2fd4aa"
+# Repository id used in Maven repository configuration
+id: reposilite-repository
+# Repository title
+title: Reposilite Repository
+# Repository description
+description: Public Maven repository hosted through the Reposilite
+# Link to organization's website
+organizationWebsite: https://reposilite.com
+# Link to organization's logo
+organizationLogo: https://avatars.githubusercontent.com/u/88636591
 ```
 
 As a result of these cosmetic changes, we can see:
 
-![Customization old](/img/customization-old.png)
+![Customization new](/img/customization-new.png)
