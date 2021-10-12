@@ -94,7 +94,7 @@ class FrontendFacade internal constructor(
                   <p>(●ᴗ●)</p>
                   <p>( >🥕</p>
                 </div>
-                <p>Visit <a href="/#${uri}" style="color: rebeccapurple; text-decoration: none;">/#${uri}</a></p>
+                <p>Visit <a href="${basePath + (if (basePath.endsWith("/")) "" else "/")}#${uri}" style="color: rebeccapurple; text-decoration: none;">${basePath + (if (basePath.endsWith("/")) "" else "/")}#${uri}</a></p>
               </div>
             </body>
         </html>
