@@ -13,36 +13,29 @@ The access token consists of four elements:
 * Name - the short name associated with token
 * Secret - generated secret token used to access associated path
 * Permissions - the permissions associated with token
-* Routes - list of paths and their permissions covered by the current token
 
 ### Generate token
-Tokens are generated using the `keygen` command in Reposilite CLI:
+Tokens are generated using the `token-generate` command in Reposilite CLI:
 
 ```log
-$ keygen <name> [<permissions>]
+$ token-generate <secret> <name> [<permissions>]
 ```
 
-As an example, we can generate access token for `root` and standard `user`:
-
+As an example, we can generate access token for `root`:
 ```bash
-$ keygen / root m
-19:55:20.692 INFO | Generated new access token for root (/) with 'm' permissions
-19:55:20.692 INFO | AW7-kaXSSXTRVL_Ip9v7ruIiqe56gh96o1XdSrqZCyTX2vUsrZU3roVOfF-YYF-y
-19:55:20.723 INFO | Stored tokens: 1
+$ token-generate -s=my-secret-token root m
+14:11:49.872 INFO | Generated new access token for root with 'm' permissions. Secret:
+14:11:49.872 INFO | my-secret-token
 
-$ keygen com.example.project user w
-19:55:20.692 INFO | Generated new access token for user (*/com/example/project) with 'w' permissions
-19:55:20.692 INFO | AW7-kaXSSXTRVL_Ip9v7ruIiqe56gh96o1XdSrqZCyTX2vUsrZU3roVOfF-YYF-y
-19:55:20.723 INFO | Stored tokens: 2
+$ token-generate root m
+14:17:57.400 INFO | Generated new access token for root with 'm' permissions. Secret:
+14:17:57.400 INFO | klRvqUGjxCAPnKpmmKCLlXnQhm4w06/aYQSFFgvjUjPkjG+HpwMAokO7BL+sIvJb
 ```
 
 ## Properties
 
 ### Permission
 Currently supported permissions:
-
-* `r` - allows to read repository content *(default)*
-* `w` - allows to write *(deploy)* artifacts using this token
 * `m` - marks token as manager's *(admin)* token, grants full access to any path in the repository and allows you to access remote CLI through the dashboard
 
 ### Path
@@ -123,10 +116,16 @@ To display list of all generated tokens, just use `tokens` command in Reposilite
 
 ```bash
 $ tokens
-23:48:57.880 INFO | Tokens (2)
-23:48:57.880 INFO | /releases/auth/test as authtest
-23:48:57.880 INFO | / as admin
+14:13:41.456 INFO | Tokens (2)
+14:13:41.456 INFO | - root:
+14:13:41.456 INFO |   > ~ no routes ~
+14:13:41.456 INFO | - root1:
+14:13:41.456 INFO |   > ~ no routes ~
 ```
 
 ### Revoke tokens
-You can revoke token using the `revoke <alias>` command in Reposilite CLI.
+You can revoke token using the `token revoke <alias>` command in Reposilite CLI.
+```bash
+$token revoke root
+14:20:03.834 INFO | Token for 'root' has been revoked
+```
