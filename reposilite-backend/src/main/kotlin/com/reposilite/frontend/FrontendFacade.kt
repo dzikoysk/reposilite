@@ -49,6 +49,7 @@ class FrontendFacade internal constructor(
             .replace("{{REPOSILITE.ICP_LICENSE}}", icpLicense)
 
     fun createNotFoundPage(uri: String, details: String): String {
+        val dashboardURI = basePath + (if (basePath.endsWith("/")) "" else "/") + "#" + uri
         @Language("html")
         val response = """
         <html lang="en">
@@ -94,7 +95,7 @@ class FrontendFacade internal constructor(
                   <p>(●ᴗ●)</p>
                   <p>( >🥕</p>
                 </div>
-                <p>Visit <a href="/#${uri}" style="color: rebeccapurple; text-decoration: none;">/#${uri}</a></p>
+                <p>Visit <a href="$dashboardURI" style="color: rebeccapurple; text-decoration: none;">$dashboardURI</a></p>
               </div>
             </body>
         </html>
