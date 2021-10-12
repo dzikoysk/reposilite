@@ -112,8 +112,7 @@ alias: khaleesi
 ## Other commands
 
 ### List tokens
-To display list of all generated tokens, just use `tokens` command in Reposilite CLI:
-
+To display list of all generated tokens, just use `tokens` command in Reposilite CLI.
 ```bash
 $ tokens
 14:13:41.456 INFO | Tokens (2)
@@ -126,6 +125,19 @@ $ tokens
 ### Revoke tokens
 You can revoke token using the `token revoke <alias>` command in Reposilite CLI.
 ```bash
-$ token revoke root
+$ token-revoke root
 14:20:03.834 INFO | Token for 'root' has been revoked
+```
+### Renaming tokens
+You can rename token using the `token-rename <name> <new name>` command in Reposilite CLI.
+```bash
+$ token-rename root super-user
+14:28:47.502 INFO | Token name has been changed from 'root' to 'super-user'
+```
+
+### Modifying tokens permissions
+You can change tokens permissions using the `token-modify <name> <permissions>' command in Reposilite CLI.
+```bash
+$ token-modify super-user m
+14:30:26.320 INFO | Permissions have been changed from '[]' to 'm'
 ```
