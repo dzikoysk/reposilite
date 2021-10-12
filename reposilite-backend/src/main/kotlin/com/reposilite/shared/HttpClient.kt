@@ -19,6 +19,7 @@ package com.reposilite.shared
 import com.google.api.client.http.GenericUrl
 import com.google.api.client.http.HttpMethods
 import com.google.api.client.http.HttpRequest
+import com.google.api.client.http.HttpResponse
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.reposilite.journalist.Channel
 import com.reposilite.journalist.Journalist
@@ -61,48 +62,33 @@ class HttpRemoteClient(private val journalist: Journalist) : RemoteClient {
     private val requestFactory = NetHttpTransport().createRequestFactory()
 
     override fun head(uri: String, credentials: String?, connectTimeout: Int, readTimeout: Int): Result<FileDetails, ErrorResponse> =
-        try {
-            val request = createRequest(HttpMethods.HEAD, uri, credentials, connectTimeout, readTimeout)
-            val response = request.execute()
+        createRequest(HttpMethods.HEAD, uri, credentials, connectTimeout, readTimeout)
+            .execute {
+                val headers = it.headers
 
-            when {
-                response.contentType == ContentType.HTML -> errorResponse(NOT_ACCEPTABLE, "Illegal file type")
-                response.isSuccessStatusCode.not() -> errorResponse(NOT_ACCEPTABLE, "Unsuccessful request")
-                else -> {
-                    val headers = response.headers
+                // Nexus can send misleading for client content-length of chunked responses
+                // ~ https://github.com/dzikoysk/reposilite/issues/549
+                val contentLength =
+                    if ("gzip" == headers.contentEncoding)
+                        UNKNOWN_LENGTH // remove content-length header
+                    else
+                        headers.contentLength
 
-                    // Nexus can send misleading for client content-length of chunked responses
-                    // ~ https://github.com/dzikoysk/reposilite/issues/549
-                    val contentLength =
-                        if ("gzip" == headers.contentEncoding)
-                            UNKNOWN_LENGTH // remove content-length header
-                        else
-                            headers.contentLength
+                val contentType = headers.contentType
+                    ?.let { ContentType.getContentType(it) }
+                    ?: ContentType.getContentTypeByExtension(uri.getExtension())
+                    ?: ContentType.APPLICATION_OCTET_STREAM
 
-                    val contentType = headers.contentType
-                        ?.let { ContentType.getContentType(it) }
-                        ?: ContentType.getContentTypeByExtension(uri.getExtension())
-                        ?: ContentType.APPLICATION_OCTET_STREAM
-
-                    DocumentInfo(
-                        uri.toPath().getSimpleName(),
-                        contentType,
-                        contentLength
-                    ).asSuccess()
-                }
+                DocumentInfo(
+                    uri.toPath().getSimpleName(),
+                    contentType,
+                    contentLength
+                ).asSuccess()
             }
-        } catch (exception: Exception) {
-            createErrorResponse(uri, exception)
-        }
 
     override fun get(uri: String, credentials: String?, connectTimeout: Int, readTimeout: Int): Result<InputStream, ErrorResponse> =
-        try {
-            val request = createRequest(HttpMethods.GET, uri, credentials, connectTimeout, readTimeout)
-            val response = request.execute()
-            response.content.asSuccess()
-        } catch (exception: Exception) {
-            createErrorResponse(uri, exception)
-        }
+        createRequest(HttpMethods.GET, uri, credentials, connectTimeout, readTimeout)
+            .execute { it.content.asSuccess() }
 
     private fun createRequest(method: String, uri: String, credentials: String?, connectTimeout: Int, readTimeout: Int): HttpRequest {
         val request = requestFactory.buildRequest(method, GenericUrl(uri), null)
@@ -113,17 +99,29 @@ class HttpRemoteClient(private val journalist: Journalist) : RemoteClient {
         return request
     }
 
-    private fun <V> createErrorResponse(uri: String, exception: Exception): Result<V, ErrorResponse> {
-        journalist.logger.debug("Cannot get $uri")
-        journalist.logger.exception(Channel.DEBUG, exception)
-        return errorResponse(BAD_REQUEST, "An error of type ${exception.javaClass} happened: ${exception.message}")
-    }
+    private fun <R> HttpRequest.execute(block: (HttpResponse) -> Result<R, ErrorResponse>): Result<R, ErrorResponse> =
+        try {
+            val response = this.execute()
+            when {
+                response.contentType == ContentType.HTML -> errorResponse(NOT_ACCEPTABLE, "Illegal file type")
+                response.isSuccessStatusCode.not() -> errorResponse(NOT_ACCEPTABLE, "Unsuccessful request")
+                else -> block(response)
+            }
+        } catch (exception: Exception) {
+            createErrorResponse(this.url.toString(), exception)
+        }
 
     private fun HttpRequest.authenticateWith(credentials: String?): HttpRequest = also {
         if (credentials != null) {
             val (username, password) = credentials.split(":", limit = 2)
             it.headers.setBasicAuthentication(username, password)
         }
+    }
+
+    private fun <V> createErrorResponse(uri: String, exception: Exception): Result<V, ErrorResponse> {
+        journalist.logger.debug("Cannot get $uri")
+        journalist.logger.exception(Channel.DEBUG, exception)
+        return errorResponse(BAD_REQUEST, "An error of type ${exception.javaClass} happened: ${exception.message}")
     }
 
 }
