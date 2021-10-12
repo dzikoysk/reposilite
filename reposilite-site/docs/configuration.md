@@ -64,93 +64,93 @@ swagger: false
 # First directory on the list is the main (primary) repository.
 # To mark a repository as private, add the "--private" flag
 repositories {
-releases {
-# Supported visibilities: public, hidden, private
-visibility: PUBLIC
-# Does this repository accept redeployment of the same artifact version
-redeployment: false
+  releases {
+    # Supported visibilities: public, hidden, private
+    visibility: PUBLIC
+    # Does this repository accept redeployment of the same artifact version
+    redeployment: false
 
-# Used storage type. Supported storage providers:
-# > File system (local) provider. Supported flags:
-# --quota 10GB = control the maximum amount of data stored in this repository. (Supported formats: 90%, 500MB, 10GB)
-# Example usage:
-# storageProvider: fs --quota 50GB
-# > S3 provider. Supported flags:
-# --endpoint = custom endpoint with which the S3 provider should communicate (optional)
-# Example usage:
-# storageProvider: s3 --endpoint custom.endpoint.com accessKey secretKey region bucket-name
-storageProvider: fs --quota 100%
+    # Used storage type. Supported storage providers:
+    # > File system (local) provider. Supported flags:
+    # --quota 10GB = control the maximum amount of data stored in this repository. (Supported formats: 90%, 500MB, 10GB)
+    # Example usage:
+    # storageProvider: fs --quota 50GB
+    # > S3 provider. Supported flags:
+    # --endpoint = custom endpoint with which the S3 provider should communicate (optional)
+    # Example usage:
+    # storageProvider: s3 --endpoint custom.endpoint.com accessKey secretKey region bucket-name
+    storageProvider: fs --quota 100%
 
-# List of proxied repositories associated with this repository.
-# Reposilite will search for a requested artifact in remote repositories listed below.
-# Supported flags:
-# --store - Reposilite can store proxied artifacts locally to reduce response time and improve stability
-# --connectTimeout=<seconds> - How long Reposilite can wait for establishing the connection with a remote host (default: 3s)
-# --readTimeout=<seconds> - How long Reposilite can read data from remote proxy. (default: 15s)
-# Example usage:
-# proxied [
-#   https://repo.panda-lang.org/releases --store --connectTimeout=3 --readTimeout=15 --auth user:token
-# ]
-proxied: []
-}
-snapshots {
-# Supported visibilities: public, hidden, private
-visibility: PUBLIC
-# Does this repository accept redeployment of the same artifact version
-redeployment: false
+    # List of proxied repositories associated with this repository.
+    # Reposilite will search for a requested artifact in remote repositories listed below.
+    # Supported flags:
+    # --store - Reposilite can store proxied artifacts locally to reduce response time and improve stability
+    # --connectTimeout=<seconds> - How long Reposilite can wait for establishing the connection with a remote host (default: 3s)
+    # --readTimeout=<seconds> - How long Reposilite can read data from remote proxy. (default: 15s)
+    # Example usage:
+    # proxied [
+    #   https://repo.panda-lang.org/releases --store --connectTimeout=3 --readTimeout=15 --auth user:token
+    # ]
+    proxied: []
+  }
+  snapshots {
+    # Supported visibilities: public, hidden, private
+    visibility: PUBLIC
+    # Does this repository accept redeployment of the same artifact version
+    redeployment: false
 
-# Used storage type. Supported storage providers:
-# > File system (local) provider. Supported flags:
-# --quota 10GB = control the maximum amount of data stored in this repository. (Supported formats: 90%, 500MB, 10GB)
-# Example usage:
-# storageProvider: fs --quota 50GB
-# > S3 provider. Supported flags:
-# --endpoint = custom endpoint with which the S3 provider should communicate (optional)
-# Example usage:
-# storageProvider: s3 --endpoint custom.endpoint.com accessKey secretKey region bucket-name
-storageProvider: fs --quota 100%
+    # Used storage type. Supported storage providers:
+    # > File system (local) provider. Supported flags:
+    # --quota 10GB = control the maximum amount of data stored in this repository. (Supported formats: 90%, 500MB, 10GB)
+    # Example usage:
+    # storageProvider: fs --quota 50GB
+    # > S3 provider. Supported flags:
+    # --endpoint = custom endpoint with which the S3 provider should communicate (optional)
+    # Example usage:
+    # storageProvider: s3 --endpoint custom.endpoint.com accessKey secretKey region bucket-name
+    storageProvider: fs --quota 100%
 
-# List of proxied repositories associated with this repository.
-# Reposilite will search for a requested artifact in remote repositories listed below.
-# Supported flags:
-# --store - Reposilite can store proxied artifacts locally to reduce response time and improve stability
-# --connectTimeout=<seconds> - How long Reposilite can wait for establishing the connection with a remote host (default: 3s)
-# --readTimeout=<seconds> - How long Reposilite can read data from remote proxy. (default: 15s)
-# Example usage:
-# proxied [
-#   https://repo.panda-lang.org/releases --store --connectTimeout=3 --readTimeout=15 --auth user:token
-# ]
-proxied: []
-}
-private {
-# Supported visibilities: public, hidden, private
-visibility: PRIVATE
-# Does this repository accept redeployment of the same artifact version
-redeployment: false
+    # List of proxied repositories associated with this repository.
+    # Reposilite will search for a requested artifact in remote repositories listed below.
+    # Supported flags:
+    # --store - Reposilite can store proxied artifacts locally to reduce response time and improve stability
+    # --connectTimeout=<seconds> - How long Reposilite can wait for establishing the connection with a remote host (default: 3s)
+    # --readTimeout=<seconds> - How long Reposilite can read data from remote proxy. (default: 15s)
+    # Example usage:
+    # proxied [
+    #   https://repo.panda-lang.org/releases --store --connectTimeout=3 --readTimeout=15 --auth user:token
+    # ]
+    proxied: []
+  }
+  private {
+    # Supported visibilities: public, hidden, private
+    visibility: PRIVATE
+    # Does this repository accept redeployment of the same artifact version
+    redeployment: false
 
-# Used storage type. Supported storage providers:
-# > File system (local) provider. Supported flags:
-# --quota 10GB = control the maximum amount of data stored in this repository. (Supported formats: 90%, 500MB, 10GB)
-# Example usage:
-# storageProvider: fs --quota 50GB
-# > S3 provider. Supported flags:
-# --endpoint = custom endpoint with which the S3 provider should communicate (optional)
-# Example usage:
-# storageProvider: s3 --endpoint custom.endpoint.com accessKey secretKey region bucket-name
-storageProvider: fs --quota 100%
+    # Used storage type. Supported storage providers:
+    # > File system (local) provider. Supported flags:
+    # --quota 10GB = control the maximum amount of data stored in this repository. (Supported formats: 90%, 500MB, 10GB)
+    # Example usage:
+    # storageProvider: fs --quota 50GB
+    # > S3 provider. Supported flags:
+    # --endpoint = custom endpoint with which the S3 provider should communicate (optional)
+    # Example usage:
+    # storageProvider: s3 --endpoint custom.endpoint.com accessKey secretKey region bucket-name
+    storageProvider: fs --quota 100%
 
-# List of proxied repositories associated with this repository.
-# Reposilite will search for a requested artifact in remote repositories listed below.
-# Supported flags:
-# --store - Reposilite can store proxied artifacts locally to reduce response time and improve stability
-# --connectTimeout=<seconds> - How long Reposilite can wait for establishing the connection with a remote host (default: 3s)
-# --readTimeout=<seconds> - How long Reposilite can read data from remote proxy. (default: 15s)
-# Example usage:
-# proxied [
-#   https://repo.panda-lang.org/releases --store --connectTimeout=3 --readTimeout=15 --auth user:token
-# ]
-proxied: []
-}
+    # List of proxied repositories associated with this repository.
+    # Reposilite will search for a requested artifact in remote repositories listed below.
+    # Supported flags:
+    # --store - Reposilite can store proxied artifacts locally to reduce response time and improve stability
+    # --connectTimeout=<seconds> - How long Reposilite can wait for establishing the connection with a remote host (default: 3s)
+    # --readTimeout=<seconds> - How long Reposilite can read data from remote proxy. (default: 15s)
+    # Example usage:
+    # proxied [
+    #   https://repo.panda-lang.org/releases --store --connectTimeout=3 --readTimeout=15 --auth user:token
+    # ]
+    proxied: []
+  }
 }
 
 # Support encrypted connections
