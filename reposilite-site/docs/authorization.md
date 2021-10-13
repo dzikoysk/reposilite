@@ -18,18 +18,18 @@ The access token consists of four elements:
 Tokens are generated using the `token-generate` command in Reposilite CLI:
 
 ```log
-$ token-generate <secret> <name> [<permissions>]
+$ token-generate [--secret=<secret>] <name> [<permissions>]
 ```
 
 As an example, we can generate access token for `root`:
 ```bash
-$ token-generate -s=my-secret-token root m
-14:11:49.872 INFO | Generated new access token for root with 'm' permissions. Secret:
-14:11:49.872 INFO | my-secret-token
-
 $ token-generate root m
 14:17:57.400 INFO | Generated new access token for root with 'm' permissions. Secret:
 14:17:57.400 INFO | klRvqUGjxCAPnKpmmKCLlXnQhm4w06/aYQSFFgvjUjPkjG+HpwMAokO7BL+sIvJb
+
+$ token-generate --secret=my-secret-token root m
+14:11:49.872 INFO | Generated new access token for root with 'm' permissions. Secret:
+14:11:49.872 INFO | my-secret-token
 ```
 
 ## Properties
@@ -123,7 +123,7 @@ $ tokens
 ```
 
 ### Revoke tokens
-You can revoke token using the `token revoke <alias>` command in Reposilite CLI.
+You can revoke token using the `token-revoke <alias>` command in Reposilite CLI.
 ```bash
 $ token-revoke root
 14:20:03.834 INFO | Token for 'root' has been revoked
