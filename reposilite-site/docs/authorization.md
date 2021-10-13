@@ -122,6 +122,8 @@ $ token-modify super-user m
 14:30:26.320 INFO | Permissions have been changed from '[]' to 'm'
 ```
 
+## Routes
+
 ### Adding access to route
 You can add access to specified route for token using the `route-add <name> <path> <permissions>` command in Reposilite CLI.
 ```bash
@@ -129,7 +131,7 @@ $ route-add reposilite-publisher /releases/com/reposilite w
 11:53:15.880 INFO | Route Route(path=/releases/com/reposilite, permissions=[WRITE]) has been added to token reposilite-publisher
 ```
 
-### Permission
+#### Permission
 Currently supported permissions:
 * `r` - allows token to read resources under the associated path
 * `w` - allows token to write (deploy) resources under the associated path
