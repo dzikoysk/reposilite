@@ -15,35 +15,29 @@ The access token consists of four elements:
 * Permissions - the permissions associated with token
 * Routes - list of paths and their permissions covered by the current token
 
+### Permission
+Currently supported permissions:
+* `m` - marks token as manager's *(admin)* token, grants full access to any path in the repository and allows you to access remote CLI through the dashboard
+
 ### Generate token
-Tokens are generated using the `keygen` command in Reposilite CLI:
+Tokens are generated using the `token-generate` command in Reposilite CLI:
 
 ```log
-$ keygen <name> [<permissions>]
+$ token-generate [--secret=<secret>] <name> [<permissions>]
 ```
 
-As an example, we can generate access token for `root` and standard `user`:
-
+As an example, we can generate access token for `root`:
 ```bash
-$ keygen / root m
-19:55:20.692 INFO | Generated new access token for root (/) with 'm' permissions
-19:55:20.692 INFO | AW7-kaXSSXTRVL_Ip9v7ruIiqe56gh96o1XdSrqZCyTX2vUsrZU3roVOfF-YYF-y
-19:55:20.723 INFO | Stored tokens: 1
+$ token-generate root m
+14:17:57.400 INFO | Generated new access token for root with 'm' permissions. Secret:
+14:17:57.400 INFO | klRvqUGjxCAPnKpmmKCLlXnQhm4w06/aYQSFFgvjUjPkjG+HpwMAokO7BL+sIvJb
 
-$ keygen com.example.project user w
-19:55:20.692 INFO | Generated new access token for user (*/com/example/project) with 'w' permissions
-19:55:20.692 INFO | AW7-kaXSSXTRVL_Ip9v7ruIiqe56gh96o1XdSrqZCyTX2vUsrZU3roVOfF-YYF-y
-19:55:20.723 INFO | Stored tokens: 2
+$ token-generate --secret=my-secret-token root m
+14:11:49.872 INFO | Generated new access token for root with 'm' permissions. Secret:
+14:11:49.872 INFO | my-secret-token
 ```
 
 ## Properties
-
-### Permission
-Currently supported permissions:
-
-* `r` - allows to read repository content *(default)*
-* `w` - allows to write *(deploy)* artifacts using this token
-* `m` - marks token as manager's *(admin)* token, grants full access to any path in the repository and allows you to access remote CLI through the dashboard
 
 ### Path
 
@@ -58,17 +52,6 @@ Some examples:
 | /releases | /releases/* | Ok |
 | /releases/abc | /releases/abc* | Ok |
 | /snapshots | /snapshots/* | Ok |
-| / | /releases/* | Ok (if `rewrite-paths` enabled) |
-| */ | /* | Ok |
-
-As an example, we can imagine we have several projects located in our repository. 
-In most cases, the administrator want to have permission to whole repository, so the credentials for us should look like this:
-
-```properties
-path: */
-alias: admin
-permissions: m
-```
 
 Access to requested paths is resolved by comparing the access token path with the beginning of current uri. Our `admin` user associated with `*/` has access to all paths, because all of requests starts with this path separator:
 
@@ -106,27 +89,56 @@ alias: got
 alias: got_khaleesi
 ```
 
-Finally, we can also grant access to multiple repositories using `*` wildcard operator.
-As you can see, we have to provide the repository name in access token path. 
-In a various situations, we want to maintain `releases` and `snapshots` repositories for the same project.
-Instead of generating separate access token, we can just replace repository name with wildcard operator:
-
-```properties
-path: */com/hbo/got
-alias: khaleesi
-```
-
 ## Other commands
 
 ### List tokens
-To display list of all generated tokens, just use `tokens` command in Reposilite CLI:
-
+To display list of all generated tokens, just use `tokens` command in Reposilite CLI.
 ```bash
 $ tokens
-23:48:57.880 INFO | Tokens (2)
-23:48:57.880 INFO | /releases/auth/test as authtest
-23:48:57.880 INFO | / as admin
+14:13:41.456 INFO | Tokens (2)
+14:13:41.456 INFO | - root:
+14:13:41.456 INFO |   > ~ no routes ~
+14:13:41.456 INFO | - root1:
+14:13:41.456 INFO |   > ~ no routes ~
 ```
 
 ### Revoke tokens
-You can revoke token using the `revoke <alias>` command in Reposilite CLI.
+You can revoke token using the `token-revoke <alias>` command in Reposilite CLI.
+```bash
+$ token-revoke root
+14:20:03.834 INFO | Token for 'root' has been revoked
+```
+### Renaming tokens
+You can rename token using the `token-rename <name> <new name>` command in Reposilite CLI.
+```bash
+$ token-rename root super-user
+14:28:47.502 INFO | Token name has been changed from 'root' to 'super-user'
+```
+
+### Modifying tokens permissions
+You can change tokens permissions using the `token-modify <name> <permissions>' command in Reposilite CLI.
+```bash
+$ token-modify super-user m
+14:30:26.320 INFO | Permissions have been changed from '[]' to 'm'
+```
+
+## Routes
+
+### Adding access to route
+You can add access to specified route for token using the `route-add <name> <path> <permissions>` command in Reposilite CLI.
+```bash
+$ route-add reposilite-publisher /releases/com/reposilite w
+11:53:15.880 INFO | Route Route(path=/releases/com/reposilite, permissions=[WRITE]) has been added to token reposilite-publisher
+```
+
+#### Permission
+Currently supported permissions:
+* `r` - allows token to read resources under the associated path
+* `w` - allows token to write (deploy) resources under the associated path
+
+### Removing access to route
+You can remove access to specified route for token using the `route-remove <name> <path>` command in Reposilite CLI.
+```bash
+$ route-remove reposilite-publisher /releases/com/reposilite
+11:57:38.289 INFO | Token reposilite-publisher has been updated, new routes: []
+```
