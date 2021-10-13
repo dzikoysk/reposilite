@@ -13,6 +13,11 @@ The access token consists of four elements:
 * Name - the short name associated with token
 * Secret - generated secret token used to access associated path
 * Permissions - the permissions associated with token
+* Routes - list of paths and their permissions covered by the current token
+
+### Permission
+Currently supported permissions:
+* `m` - marks token as manager's *(admin)* token, grants full access to any path in the repository and allows you to access remote CLI through the dashboard
 
 ### Generate token
 Tokens are generated using the `token-generate` command in Reposilite CLI:
@@ -33,10 +38,6 @@ $ token-generate --secret=my-secret-token root m
 ```
 
 ## Properties
-
-### Permission
-Currently supported permissions:
-* `m` - marks token as manager's *(admin)* token, grants full access to any path in the repository and allows you to access remote CLI through the dashboard
 
 ### Path
 
