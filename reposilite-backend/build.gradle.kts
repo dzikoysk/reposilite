@@ -20,12 +20,12 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 group = "org.panda-lang"
-version = "3.0.0-alpha.6"
+version = "3.0.0-alpha.7"
 
 plugins {
     `java-library`
-    kotlin("jvm") version "1.5.21"
-    kotlin("kapt") version "1.5.21"
+    kotlin("jvm") version "1.6.0-RC"
+    kotlin("kapt") version "1.6.0-RC"
     id("com.github.johnrengelman.shadow") version "7.1.0"
     `maven-publish`
     application
@@ -50,8 +50,8 @@ tasks.withType<KotlinCompile>().configureEach {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-reflect:1.5.21")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.5.21")
+    implementation("org.jetbrains.kotlin:kotlin-reflect:1.6.0-RC")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.0-RC")
     // implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
 
     val expressible = "1.0.18"
