@@ -51,17 +51,6 @@ Some examples:
 | /releases | /releases/* | Ok |
 | /releases/abc | /releases/abc* | Ok |
 | /snapshots | /snapshots/* | Ok |
-| / | /releases/* | Ok (if `rewrite-paths` enabled) |
-| */ | /* | Ok |
-
-As an example, we can imagine we have several projects located in our repository. 
-In most cases, the administrator want to have permission to whole repository, so the credentials for us should look like this:
-
-```properties
-path: */
-alias: admin
-permissions: m
-```
 
 Access to requested paths is resolved by comparing the access token path with the beginning of current uri. Our `admin` user associated with `*/` has access to all paths, because all of requests starts with this path separator:
 
@@ -97,16 +86,6 @@ it might be a good idea to use project name as an alias and distribute shared ac
 alias: got
 # or mixed solution to increase traffic control
 alias: got_khaleesi
-```
-
-Finally, we can also grant access to multiple repositories using `*` wildcard operator.
-As you can see, we have to provide the repository name in access token path. 
-In a various situations, we want to maintain `releases` and `snapshots` repositories for the same project.
-Instead of generating separate access token, we can just replace repository name with wildcard operator:
-
-```properties
-path: */com/hbo/got
-alias: khaleesi
 ```
 
 ## Other commands
