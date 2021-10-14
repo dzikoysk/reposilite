@@ -23,7 +23,7 @@
     "vue-axios": "^3.3.7",
     "vue-final-modal": "^3.4.2",
     "vue-prism-editor": "^2.0.0-alpha.2",
-    "vue-router": "^4.0.6",
+    "vue-router": "^4.0.12",
     "vue3-tabs": "^0.1.12"
   },
   "devDependencies": {
