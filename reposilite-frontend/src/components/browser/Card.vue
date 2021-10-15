@@ -232,6 +232,9 @@ export default {
 .prism-editor__textarea {
   display: none;
 }
+.prism-editor__line-numbers {
+  user-select: none;
+}
 .prism-editor-wrapper .prism-editor__editor {
   pointer-events: auto !important;
 }
