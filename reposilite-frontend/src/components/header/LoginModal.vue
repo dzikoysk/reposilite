@@ -29,8 +29,7 @@
           <div class="text-right mt-1">
             <button @click="close()" class="text-blue-400 text-xs">← Back to index</button>
           </div>
-          <button class="bg-gray-100 dark:bg-gray-800 py-2 my-3 rounded-md cursor-pointer"
-                  @click="signin(name, secret)">Sign in</button>
+          <button class="bg-gray-100 dark:bg-gray-800 py-2 my-3 rounded-md cursor-pointer">Sign in</button>
         </form>
         <button class="absolute top-0 right-0 mt-5 mr-5" @click="close()">🗙</button>
       </div>
