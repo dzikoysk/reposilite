@@ -5,7 +5,7 @@
 # Hostname
 # The hostname can be used to limit which connections are accepted.
 # Use 0.0.0.0 to accept connections from anywhere.
-# 127.0.0.1 will only allow connections from localhost. 
+# 127.0.0.1 will only allow connections from localhost.
 hostname: 0.0.0.0
 # Port to bind
 port: 80
@@ -38,9 +38,7 @@ cacheContent: true
 # Enable Swagger (/swagger-docs) and Swagger UI (/swagger)
 swagger: true
 
-# List of supported Maven repositories.
-# First directory on the list is the main (primary) repository.
-# To mark a repository as private, add the "--private" flag
+# List of supported Maven repositories
 repositories {
   releases {
     # Supported visibilities: public, hidden, private
@@ -50,7 +48,8 @@ repositories {
     
     # Used storage type. Supported storage providers:
     # > File system (local) provider. Supported flags:
-    # --quota 10GB = control the maximum amount of data stored in this repository. (Supported formats: 90%, 500MB, 10GB)
+    # --quota 10GB = control the maximum amount of data stored in this repository. Supported formats: 90%, 500MB, 10GB (optional, by default: unlimited)
+    # --mount /mnt/releases = use custom directory to locate the repository data (optional, by default repositories are stored in repositories/{name} directory)
     # Example usage:
     # storageProvider: fs --quota 50GB
     # > S3 provider. Supported flags:
@@ -82,7 +81,8 @@ repositories {
     
     # Used storage type. Supported storage providers:
     # > File system (local) provider. Supported flags:
-    # --quota 10GB = control the maximum amount of data stored in this repository. (Supported formats: 90%, 500MB, 10GB)
+    # --quota 10GB = control the maximum amount of data stored in this repository. Supported formats: 90%, 500MB, 10GB (optional, by default: unlimited)
+    # --mount /mnt/releases = use custom directory to locate the repository data (optional, by default repositories are stored in repositories/{name} directory)
     # Example usage:
     # storageProvider: fs --quota 50GB
     # > S3 provider. Supported flags:
@@ -111,7 +111,8 @@ repositories {
     
     # Used storage type. Supported storage providers:
     # > File system (local) provider. Supported flags:
-    # --quota 10GB = control the maximum amount of data stored in this repository. (Supported formats: 90%, 500MB, 10GB)
+    # --quota 10GB = control the maximum amount of data stored in this repository. Supported formats: 90%, 500MB, 10GB (optional, by default: unlimited)
+    # --mount /mnt/releases = use custom directory to locate the repository data (optional, by default repositories are stored in repositories/{name} directory)
     # Example usage:
     # storageProvider: fs --quota 50GB
     # > S3 provider. Supported flags:

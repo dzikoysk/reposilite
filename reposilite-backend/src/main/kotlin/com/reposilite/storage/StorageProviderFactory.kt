@@ -20,6 +20,7 @@ import com.reposilite.config.Configuration.RepositoryConfiguration.FSStorageProv
 import com.reposilite.config.Configuration.RepositoryConfiguration.S3StorageProviderSettings
 import com.reposilite.journalist.Journalist
 import com.reposilite.shared.loadCommandBasedConfiguration
+import com.reposilite.storage.infrastructure.FileSystemStorageProvider
 import com.reposilite.storage.infrastructure.FileSystemStorageProviderFactory
 import com.reposilite.storage.infrastructure.S3StorageProvider
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
@@ -32,25 +33,38 @@ import java.nio.file.Path
 
 internal object StorageProviderFactory {
 
-    fun createStorageProvider(journalist: Journalist, workingDirectory: Path, storageDescription: String): StorageProvider =
-        if (storageDescription.startsWith("fs")) {
-            val settings = loadCommandBasedConfiguration(FSStorageProviderSettings(), storageDescription).configuration
-            Files.createDirectories(workingDirectory)
-            FileSystemStorageProviderFactory.of(workingDirectory, settings.quota)
+    fun createStorageProvider(journalist: Journalist, workingDirectory: Path, repositoryName: String, storageDescription: String): StorageProvider =
+        when {
+            storageDescription.startsWith("fs") -> createFileSystemStorageProvider(workingDirectory, repositoryName, storageDescription)
+            storageDescription.startsWith("s3") -> createS3StorageProvider(journalist, storageDescription)
+            else -> throw UnsupportedOperationException("Unknown storage provider: $storageDescription")
         }
-        else if (storageDescription.startsWith("s3")) {
-            val settings = loadCommandBasedConfiguration(S3StorageProviderSettings(), storageDescription).configuration
 
-            val client = S3Client.builder()
-                .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(settings.accessKey, settings.secretKey)))
-                .region(Region.of(settings.region))
+    private fun createFileSystemStorageProvider(workingDirectory: Path, repositoryName: String, storageDescription: String): FileSystemStorageProvider {
+        val settings = loadCommandBasedConfiguration(FSStorageProviderSettings(), storageDescription).configuration
 
-            if (settings.endpoint.isNotEmpty()) {
-                client.endpointOverride(URI.create(settings.endpoint))
-            }
+        val repositoryDirectory =
+            if (settings.mount.isEmpty())
+                workingDirectory.resolve(repositoryName)
+            else
+                workingDirectory.resolve(settings.mount)
 
-            S3StorageProvider(journalist, client.build(), settings.bucketName)
+        Files.createDirectories(repositoryDirectory)
+        return FileSystemStorageProviderFactory.of(repositoryDirectory, settings.quota)
+    }
+
+    private fun createS3StorageProvider(journalist: Journalist, storageDescription: String): S3StorageProvider {
+        val settings = loadCommandBasedConfiguration(S3StorageProviderSettings(), storageDescription).configuration
+
+        val client = S3Client.builder()
+            .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(settings.accessKey, settings.secretKey)))
+            .region(Region.of(settings.region))
+
+        if (settings.endpoint.isNotEmpty()) {
+            client.endpointOverride(URI.create(settings.endpoint))
         }
-        else throw UnsupportedOperationException("Unknown storage provider: $storageDescription")
+
+        return S3StorageProvider(journalist, client.build(), settings.bucketName)
+    }
 
 }
