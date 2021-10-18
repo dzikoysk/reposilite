@@ -53,10 +53,6 @@ class MavenFacade internal constructor(
     private val metadataService: MetadataService
 ) : Journalist {
 
-    companion object {
-        val REPOSITORIES: Path = Paths.get("repositories")
-    }
-
     fun findDetails(lookupRequest: LookupRequest): Result<out FileDetails, ErrorResponse> =
         resolve(lookupRequest) { repository, gav ->
             if (repository.exists(gav).not()) {

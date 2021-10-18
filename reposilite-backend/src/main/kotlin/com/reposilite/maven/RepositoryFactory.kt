@@ -19,27 +19,24 @@ package com.reposilite.maven
 import com.reposilite.config.Configuration.RepositoryConfiguration
 import com.reposilite.config.Configuration.RepositoryConfiguration.ProxiedHostConfiguration
 import com.reposilite.journalist.Journalist
-import com.reposilite.maven.MavenFacade.Companion.REPOSITORIES
 import com.reposilite.shared.loadCommandBasedConfiguration
-import com.reposilite.shared.safeResolve
 import com.reposilite.storage.StorageProviderFactory.createStorageProvider
 import java.nio.file.Path
+import java.nio.file.Paths
 
 internal class RepositoryFactory(
     private val journalist: Journalist,
     private val workingDirectory: Path,
 ) {
 
+    private val repositories = Paths.get("repositories")
+
     fun createRepository(repositoryName: String, repositoryConfiguration: RepositoryConfiguration): Repository =
         Repository(
             repositoryName,
             repositoryConfiguration.visibility,
             repositoryConfiguration.proxied.associate { createProxiedHostConfiguration(it) },
-            createStorageProvider(
-                journalist,
-                workingDirectory.safeResolve(REPOSITORIES).safeResolve(repositoryName),
-                repositoryConfiguration.storageProvider
-            ),
+            createStorageProvider(journalist, workingDirectory.resolve(repositories), repositoryName, repositoryConfiguration.storageProvider),
             repositoryConfiguration.redeployment
         )
 

@@ -29,16 +29,14 @@ class Configuration : Serializable {
 
     /* General */
 
-    @Description(
-        "# ~~~~~~~~~~~~~~~~~~~~~~ #",
-        "#       Reposilite       #",
-        "# ~~~~~~~~~~~~~~~~~~~~~~ #",
-        "",
-        "# Hostname",
-        "# The hostname can be used to limit which connections are accepted.",
-        "# Use 0.0.0.0 to accept connections from anywhere." ,
-        "# 127.0.0.1 will only allow connections from localhost. "
-    )
+    @Description("# ~~~~~~~~~~~~~~~~~~~~~~ #")
+    @Description("#       Reposilite       #")
+    @Description("# ~~~~~~~~~~~~~~~~~~~~~~ #")
+    @Description("")
+    @Description("# Hostname")
+    @Description("# The hostname can be used to limit which connections are accepted.")
+    @Description("# Use 0.0.0.0 to accept connections from anywhere." )
+    @Description("# 127.0.0.1 will only allow connections from localhost.")
     @JvmField
     var hostname = "0.0.0.0"
 
@@ -46,12 +44,10 @@ class Configuration : Serializable {
     @JvmField
     var port = 80
 
-    @Description(
-        "# Database. Supported storage providers:",
-        "# - sqlite reposilite.db",
-        "# - sqlite --temporary",
-        "# - mysql localhost:3306 database user password"
-    )
+    @Description("# Database. Supported storage providers:")
+    @Description("# - sqlite reposilite.db")
+    @Description("# - sqlite --temporary")
+    @Description("# - mysql localhost:3306 database user password")
     @JvmField
     var database = "sqlite reposilite.db"
 
@@ -83,10 +79,8 @@ class Configuration : Serializable {
 
     }
 
-    // @Description("# Run Reposilite using Jakarta Servlet server (not supported yet)")
-    // public boolean servlet = false;
-
-    @Description("", "# Repository id used in Maven repository configuration")
+    @Description("")
+    @Description("# Repository id used in Maven repository configuration")
     @JvmField
     var id = "reposilite-repository"
 
@@ -106,11 +100,9 @@ class Configuration : Serializable {
     @JvmField
     var organizationLogo = "https://avatars.githubusercontent.com/u/88636591"
 
-    @Description(
-        "# The Internet Content Provider License (also known as Bei'An)",
-        "# Web services in China require ICP license, a permit issued by the Chinese government to permit China-based websites to operate in China.",
-        "# In order to fulfill the conditions, you should apply for ICP license from your service provider and fill in this parameter.",
-    )
+    @Description("# The Internet Content Provider License (also known as Bei'An)")
+    @Description("# Web services in China require ICP license, a permit issued by the Chinese government to permit China-based websites to operate in China.")
+    @Description("# In order to fulfill the conditions, you should apply for ICP license from your service provider and fill in this parameter.")
     @JvmField
     var icpLicense = ""
 
@@ -132,10 +124,8 @@ class Configuration : Serializable {
 
     /* Repository properties */
 
-    @Description(
-        "",
-        "# List of supported Maven repositories"
-    )
+    @Description("")
+    @Description("# List of supported Maven repositories")
     @JvmField
     var repositories = mutableMapOf(
         "releases" to RepositoryConfiguration(),
@@ -158,7 +148,8 @@ class Configuration : Serializable {
             "",
             "# Used storage type. Supported storage providers:",
             "# > File system (local) provider. Supported flags:",
-            "# --quota 10GB = control the maximum amount of data stored in this repository. (Supported formats: 90%, 500MB, 10GB)",
+            "# --quota 10GB = control the maximum amount of data stored in this repository. Supported formats: 90%, 500MB, 10GB (optional, by default: unlimited)",
+            "# --mount /mnt/releases = use custom directory to locate the repository data (optional, by default repositories are stored in repositories/{name} directory)",
             "# Example usage:",
             "# storageProvider: fs --quota 50GB",
             "# > S3 provider. Supported flags:",
@@ -174,6 +165,9 @@ class Configuration : Serializable {
 
             @Option(names = ["-q", "--quota"], defaultValue = "100%")
             lateinit var quota: String
+
+            @Option(names = ["-m", "--mount"], defaultValue = "")
+            lateinit var mount: String
 
         }
 
@@ -234,10 +228,8 @@ class Configuration : Serializable {
 
     /* SSL */
 
-    @Description(
-        "",
-        "# Support encrypted connections"
-    )
+    @Description("")
+    @Description("# Support encrypted connections")
     @JvmField
     var sslEnabled = false
 
@@ -245,10 +237,8 @@ class Configuration : Serializable {
     @JvmField
     var sslPort = 443
 
-    @Description(
-        "# Key store file to use.",
-        "# You can specify absolute path to the given file or use \${WORKING_DIRECTORY} variable."
-    )
+    @Description("# Key store file to use.")
+    @Description("# You can specify absolute path to the given file or use \${WORKING_DIRECTORY} variable.")
     @JvmField
     var keyStorePath = "\${WORKING_DIRECTORY}/keystore.jks"
 
@@ -275,18 +265,14 @@ class Configuration : Serializable {
 //    @JvmField
 //    var reactiveMode = true
 
-    @Description(
-        "",
-        "# Max amount of threads used by core thread pool (min: 4)",
-        "# The web thread pool handles first few steps of incoming http connections, as soon as possible all tasks are redirected to IO thread pool."
-    )
+    @Description("")
+    @Description("# Max amount of threads used by core thread pool (min: 4)")
+    @Description("# The web thread pool handles first few steps of incoming http connections, as soon as possible all tasks are redirected to IO thread pool.")
     @JvmField
     var webThreadPool = 32
 
-    @Description(
-        "# IO thread pool handles all tasks that may benefit from non-blocking IO (min: 2)",
-        "# Because most of tasks are redirected to IO thread pool, it might be a good idea to keep it at least equal to web thread pool."
-    )
+    @Description("# IO thread pool handles all tasks that may benefit from non-blocking IO (min: 2)")
+    @Description("# Because most of tasks are redirected to IO thread pool, it might be a good idea to keep it at least equal to web thread pool.")
     @JvmField
     var ioThreadPool = 16
 
