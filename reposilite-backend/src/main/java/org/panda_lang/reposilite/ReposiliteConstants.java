@@ -20,7 +20,7 @@ public final class ReposiliteConstants {
 
     public static final String NAME = "Reposilite";
 
-    public static final String VERSION = "2.9.25";
+    public static final String VERSION = "2.9.26";
 
     public static final String REMOTE_VERSION = "https://repo.panda-lang.org/org/panda-lang/reposilite/latest";
 
