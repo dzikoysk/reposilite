@@ -37,18 +37,15 @@ class Configuration : Serializable {
     @Description("# The hostname can be used to limit which connections are accepted.")
     @Description("# Use 0.0.0.0 to accept connections from anywhere." )
     @Description("# 127.0.0.1 will only allow connections from localhost.")
-    @JvmField
     var hostname = "0.0.0.0"
 
     @Description("# Port to bind")
-    @JvmField
     var port = 80
 
     @Description("# Database. Supported storage providers:")
     @Description("# - sqlite reposilite.db")
     @Description("# - sqlite --temporary")
     @Description("# - mysql localhost:3306 database user password")
-    @JvmField
     var database = "sqlite reposilite.db"
 
     @Command(name = "sqlite")
@@ -81,52 +78,41 @@ class Configuration : Serializable {
 
     @Description("")
     @Description("# Repository id used in Maven repository configuration")
-    @JvmField
     var id = "reposilite-repository"
 
     @Description("# Repository title")
-    @JvmField
     var title = "Reposilite Repository"
 
     @Description("# Repository description")
-    @JvmField
     var description = "Public Maven repository hosted through the Reposilite"
 
     @Description("# Link to organization's website")
-    @JvmField
     var organizationWebsite = "https://reposilite.com"
 
     @Description("# Link to organization's logo")
-    @JvmField
     var organizationLogo = "https://avatars.githubusercontent.com/u/88636591"
 
     @Description("# The Internet Content Provider License (also known as Bei'An)")
     @Description("# Web services in China require ICP license, a permit issued by the Chinese government to permit China-based websites to operate in China.")
     @Description("# In order to fulfill the conditions, you should apply for ICP license from your service provider and fill in this parameter.")
-    @JvmField
     var icpLicense = ""
 
     @Description("# Enable default frontend with dashboard")
-    @JvmField
     var frontend = true
 
     @Description("# Custom base path")
-    @JvmField
     var basePath = "/"
 
     @Description("# Keep processed frontend files in memory to improve response time")
-    @JvmField
     var cacheContent = true
 
     @Description("# Enable Swagger (/swagger-docs) and Swagger UI (/swagger)")
-    @JvmField
     var swagger = false
 
     /* Repository properties */
 
     @Description("")
     @Description("# List of supported Maven repositories")
-    @JvmField
     var repositories = mutableMapOf(
         "releases" to RepositoryConfiguration(),
         "snapshots" to RepositoryConfiguration(),
@@ -137,11 +123,9 @@ class Configuration : Serializable {
     class RepositoryConfiguration : Serializable {
 
         @Description("# Supported visibilities: public, hidden, private")
-        @JvmField
         var visibility = RepositoryVisibility.PUBLIC
 
         @Description("# Does this repository accept redeployment of the same artifact version")
-        @JvmField
         var redeployment = false
 
         @Description(
@@ -157,7 +141,6 @@ class Configuration : Serializable {
             "# Example usage:",
             "# storageProvider: s3 --endpoint custom.endpoint.com accessKey secretKey region bucket-name"
         )
-        @JvmField
         var storageProvider = "fs --quota 100%"
 
         @Command(name = "fs", description = ["Local file system (disk) storage provider settings"])
@@ -204,7 +187,6 @@ class Configuration : Serializable {
             "#   https://repo.panda-lang.org/releases --store --connectTimeout=3 --readTimeout=15 --auth user:token",
             "# ]"
         )
-        @JvmField
         var proxied = mutableListOf<String>()
 
         @Command(description = ["An entry representing one proxied host and its configuration"])
@@ -230,24 +212,19 @@ class Configuration : Serializable {
 
     @Description("")
     @Description("# Support encrypted connections")
-    @JvmField
     var sslEnabled = false
 
     @Description("# SSL port to bind")
-    @JvmField
     var sslPort = 443
 
     @Description("# Key store file to use.")
     @Description("# You can specify absolute path to the given file or use \${WORKING_DIRECTORY} variable.")
-    @JvmField
     var keyStorePath = "\${WORKING_DIRECTORY}/keystore.jks"
 
     @Description("# Key store password to use")
-    @JvmField
     var keyStorePassword = ""
 
     @Description("# Redirect http traffic to https")
-    @JvmField
     var enforceSsl = false
 
     /* Performance */
@@ -262,24 +239,20 @@ class Configuration : Serializable {
 //        "# If you've noticed various unresolved behaviours like freezing and deadlocking, you can switch to the standard blocking mode.",
 //        "# Remember: Blocking mode requires more resources (threads) to handle the same throughput. "
 //    )
-//    @JvmField
 //    var reactiveMode = true
 
     @Description("")
     @Description("# Max amount of threads used by core thread pool (min: 4)")
     @Description("# The web thread pool handles first few steps of incoming http connections, as soon as possible all tasks are redirected to IO thread pool.")
-    @JvmField
     var webThreadPool = 32
 
     @Description("# IO thread pool handles all tasks that may benefit from non-blocking IO (min: 2)")
     @Description("# Because most of tasks are redirected to IO thread pool, it might be a good idea to keep it at least equal to web thread pool.")
-    @JvmField
     var ioThreadPool = 16
 
     /* Logging */
 
     @Description("", "# Amount of messages stored in cached logger.")
-    @JvmField
     var cachedLogSize = 100
 
     @Description(
@@ -289,11 +262,9 @@ class Configuration : Serializable {
         "# Cloudflare: CF-Connecting-IP",
         "# Popular: X-Real-IP"
     )
-    @JvmField
     var forwardedIp = "X-Forwarded-For"
 
     @Description("# Debug mode")
-    @JvmField
     var debugEnabled = false
 
 }

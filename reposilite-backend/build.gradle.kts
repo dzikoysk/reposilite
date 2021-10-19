@@ -88,7 +88,6 @@ dependencies {
     //implementation("io.javalin:javalin:4.1.1")
     //implementation("com.github.tipsy.javalin:javalin:-SNAPSHOT")
     implementation("com.github.dzikoysk.javalin:javalin:760159a7c4")
-
     @Suppress("GradlePackageUpdate")
     implementation("org.eclipse.jetty:jetty-server:9.4.44.v20210927")
 
@@ -111,7 +110,7 @@ dependencies {
     implementation("org.tinylog:tinylog-api:$tinylog")
     implementation("org.tinylog:tinylog-impl:$tinylog")
 
-    implementation("net.dzikoysk:cdn:1.9.5")
+    implementation("net.dzikoysk:cdn:1.10.0")
     implementation("com.google.http-client:google-http-client:1.40.0")
     implementation("org.springframework.security:spring-security-crypto:5.5.2")
     implementation("commons-io:commons-io:20030203.000550")
