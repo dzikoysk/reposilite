@@ -1,12 +1,5 @@
-# ~~~~~~~~~~~~~~~~~~~~~~ #
-#       Reposilite       #
-# ~~~~~~~~~~~~~~~~~~~~~~ #
-
-# Hostname
-# The hostname can be used to limit which connections are accepted.
-# Use 0.0.0.0 to accept connections from anywhere.
-# 127.0.0.1 will only allow connections from localhost.
-hostname: 0.0.0.0
+# Repository id used in Maven repository configuration
+id: reposilite-repository
 # Port to bind
 port: 80
 # Database. Supported storage providers:
@@ -15,36 +8,15 @@ port: 80
 # - mysql localhost:3306 database user password
 database: sqlite reposilite.db
 
-# Repository id used in Maven repository configuration
-id: reposilite-repository
-# Repository title
-title: Reposilite Repository
-# Repository description
-description: Public Maven repository hosted through the Reposilite
-# Link to organization's website
-organizationWebsite: https://reposilite.com
-# Link to organization's logo
-organizationLogo: https://avatars.githubusercontent.com/u/88636591
-# The Internet Content Provider License (also known as Bei'An)
-# Web services in China require ICP license, a permit issued by the Chinese government to permit China-based websites to operate in China.
-# In order to fulfill the conditions, you should apply for ICP license from your service provider and fill in this parameter.
-icpLicense: ""
-# Enable default frontend with dashboard
-frontend: true
-# Custom base path
-basePath: /
-# Keep processed frontend files in memory to improve response time
-cacheContent: true
-# Enable Swagger (/swagger-docs) and Swagger UI (/swagger)
-swagger: true
+# Max amount of threads used by core thread pool (min: 4)
+# The web thread pool handles first few steps of incoming http connections, as soon as possible all tasks are redirected to IO thread pool.
+webThreadPool: 4
 
 # List of supported Maven repositories
 repositories {
   releases {
     # Supported visibilities: public, hidden, private
     visibility: PUBLIC
-    # Does this repository accept redeployment of the same artifact version
-    redeployment: true
     
     # Used storage type. Supported storage providers:
     # > File system (local) provider. Supported flags:
@@ -72,12 +44,12 @@ repositories {
       https://repo.panda-lang.org/releases
       https://repo.aikar.co/content/groups/aikar/
     ]
+    # Does this repository accept redeployment of the same artifact version
+    redeployment: true
   }
   snapshots {
     # Supported visibilities: public, hidden, private
     visibility: PUBLIC
-    # Does this repository accept redeployment of the same artifact version
-    redeployment: false
     
     # Used storage type. Supported storage providers:
     # > File system (local) provider. Supported flags:
@@ -102,12 +74,12 @@ repositories {
     #   https://repo.panda-lang.org/releases --store --connectTimeout=3 --readTimeout=15 --auth user:token
     # ]
     proxied: []
+    # Does this repository accept redeployment of the same artifact version
+    redeployment: false
   }
   private {
     # Supported visibilities: public, hidden, private
     visibility: PRIVATE
-    # Does this repository accept redeployment of the same artifact version
-    redeployment: false
     
     # Used storage type. Supported storage providers:
     # > File system (local) provider. Supported flags:
@@ -132,35 +104,62 @@ repositories {
     #   https://repo.panda-lang.org/releases --store --connectTimeout=3 --readTimeout=15 --auth user:token
     # ]
     proxied: []
+    # Does this repository accept redeployment of the same artifact version
+    redeployment: false
   }
 }
+# IO thread pool handles all tasks that may benefit from non-blocking IO (min: 2)
+# Because most of tasks are redirected to IO thread pool, it might be a good idea to keep it at least equal to web thread pool.
+ioThreadPool: 2
+# ~~~~~~~~~~~~~~~~~~~~~~ #
+#       Reposilite       #
+# ~~~~~~~~~~~~~~~~~~~~~~ #
+
+# Hostname
+# The hostname can be used to limit which connections are accepted.
+# Use 0.0.0.0 to accept connections from anywhere.
+# 127.0.0.1 will only allow connections from localhost.
+hostname: 0.0.0.0
+# Repository description
+description: Public Maven repository hosted through the Reposilite
+# Enable Swagger (/swagger-docs) and Swagger UI (/swagger)
+swagger: true
+# Keep processed frontend files in memory to improve response time
+cacheContent: true
+# Repository title
+title: Reposilite Repository
+# Enable default frontend with dashboard
+frontend: true
+# Custom base path
+basePath: /
+# The Internet Content Provider License (also known as Bei'An)
+# Web services in China require ICP license, a permit issued by the Chinese government to permit China-based websites to operate in China.
+# In order to fulfill the conditions, you should apply for ICP license from your service provider and fill in this parameter.
+icpLicense: ""
 
 # Support encrypted connections
 sslEnabled: false
 # SSL port to bind
 sslPort: 443
-# Key store file to use.
-# You can specify absolute path to the given file or use ${WORKING_DIRECTORY} variable.
-keyStorePath: ${WORKING_DIRECTORY}/keystore.jks
-# Key store password to use
-keyStorePassword: reposilite
-# Redirect http traffic to https
-enforceSsl: false
-
-# Max amount of threads used by core thread pool (min: 4)
-# The web thread pool handles first few steps of incoming http connections, as soon as possible all tasks are redirected to IO thread pool.
-webThreadPool: 4
-# IO thread pool handles all tasks that may benefit from non-blocking IO (min: 2)
-# Because most of tasks are redirected to IO thread pool, it might be a good idea to keep it at least equal to web thread pool.
-ioThreadPool: 2
-
-# Amount of messages stored in cached logger.
-cachedLogSize: 100
 # Any kind of proxy services change real ip.
 # The origin ip should be available in one of the headers.
 # Nginx: X-Forwarded-For
 # Cloudflare: CF-Connecting-IP
 # Popular: X-Real-IP
 forwardedIp: X-Forwarded-For
+# Key store file to use.
+# You can specify absolute path to the given file or use ${WORKING_DIRECTORY} variable.
+keyStorePath: ${WORKING_DIRECTORY}/keystore.jks
 # Debug mode
 debugEnabled: false
+
+# Amount of messages stored in cached logger.
+cachedLogSize: 100
+# Redirect http traffic to https
+enforceSsl: false
+# Link to organization's website
+organizationWebsite: https://reposilite.com
+# Link to organization's logo
+organizationLogo: https://avatars.githubusercontent.com/u/88636591
+# Key store password to use
+keyStorePassword: reposilite

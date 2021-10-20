@@ -29,23 +29,23 @@ class Configuration : Serializable {
 
     /* General */
 
-    @Description("# ~~~~~~~~~~~~~~~~~~~~~~ #")
-    @Description("#       Reposilite       #")
-    @Description("# ~~~~~~~~~~~~~~~~~~~~~~ #")
-    @Description("")
-    @Description("# Hostname")
-    @Description("# The hostname can be used to limit which connections are accepted.")
-    @Description("# Use 0.0.0.0 to accept connections from anywhere." )
-    @Description("# 127.0.0.1 will only allow connections from localhost.")
+    @get:Description("# ~~~~~~~~~~~~~~~~~~~~~~ #")
+    @get:Description("#       Reposilite       #")
+    @get:Description("# ~~~~~~~~~~~~~~~~~~~~~~ #")
+    @get:Description("")
+    @get:Description("# Hostname")
+    @get:Description("# The hostname can be used to limit which connections are accepted.")
+    @get:Description("# Use 0.0.0.0 to accept connections from anywhere." )
+    @get:Description("# 127.0.0.1 will only allow connections from localhost.")
     var hostname = "0.0.0.0"
 
-    @Description("# Port to bind")
+    @get:Description("# Port to bind")
     var port = 80
 
-    @Description("# Database. Supported storage providers:")
-    @Description("# - sqlite reposilite.db")
-    @Description("# - sqlite --temporary")
-    @Description("# - mysql localhost:3306 database user password")
+    @get:Description("# Database. Supported storage providers:")
+    @get:Description("# - sqlite reposilite.db")
+    @get:Description("# - sqlite --temporary")
+    @get:Description("# - mysql localhost:3306 database user password")
     var database = "sqlite reposilite.db"
 
     @Command(name = "sqlite")
@@ -76,43 +76,43 @@ class Configuration : Serializable {
 
     }
 
-    @Description("")
-    @Description("# Repository id used in Maven repository configuration")
+    @get:Description("")
+    @get:Description("# Repository id used in Maven repository configuration")
     var id = "reposilite-repository"
 
-    @Description("# Repository title")
+    @get:Description("# Repository title")
     var title = "Reposilite Repository"
 
-    @Description("# Repository description")
+    @get:Description("# Repository description")
     var description = "Public Maven repository hosted through the Reposilite"
 
-    @Description("# Link to organization's website")
+    @get:Description("# Link to organization's website")
     var organizationWebsite = "https://reposilite.com"
 
-    @Description("# Link to organization's logo")
+    @get:Description("# Link to organization's logo")
     var organizationLogo = "https://avatars.githubusercontent.com/u/88636591"
 
-    @Description("# The Internet Content Provider License (also known as Bei'An)")
-    @Description("# Web services in China require ICP license, a permit issued by the Chinese government to permit China-based websites to operate in China.")
-    @Description("# In order to fulfill the conditions, you should apply for ICP license from your service provider and fill in this parameter.")
+    @get:Description("# The Internet Content Provider License (also known as Bei'An)")
+    @get:Description("# Web services in China require ICP license, a permit issued by the Chinese government to permit China-based websites to operate in China.")
+    @get:Description("# In order to fulfill the conditions, you should apply for ICP license from your service provider and fill in this parameter.")
     var icpLicense = ""
 
-    @Description("# Enable default frontend with dashboard")
+    @get:Description("# Enable default frontend with dashboard")
     var frontend = true
 
-    @Description("# Custom base path")
+    @get:Description("# Custom base path")
     var basePath = "/"
 
-    @Description("# Keep processed frontend files in memory to improve response time")
+    @get:Description("# Keep processed frontend files in memory to improve response time")
     var cacheContent = true
 
-    @Description("# Enable Swagger (/swagger-docs) and Swagger UI (/swagger)")
+    @get:Description("# Enable Swagger (/swagger-docs) and Swagger UI (/swagger)")
     var swagger = false
 
     /* Repository properties */
 
-    @Description("")
-    @Description("# List of supported Maven repositories")
+    @get:Description("")
+    @get:Description("# List of supported Maven repositories")
     var repositories = mutableMapOf(
         "releases" to RepositoryConfiguration(),
         "snapshots" to RepositoryConfiguration(),
@@ -122,13 +122,13 @@ class Configuration : Serializable {
     @Contextual
     class RepositoryConfiguration : Serializable {
 
-        @Description("# Supported visibilities: public, hidden, private")
+        @get:Description("# Supported visibilities: public, hidden, private")
         var visibility = RepositoryVisibility.PUBLIC
 
-        @Description("# Does this repository accept redeployment of the same artifact version")
+        @get:Description("# Does this repository accept redeployment of the same artifact version")
         var redeployment = false
 
-        @Description(
+        @get:Description(
             "",
             "# Used storage type. Supported storage providers:",
             "# > File system (local) provider. Supported flags:",
@@ -174,7 +174,7 @@ class Configuration : Serializable {
 
         }
 
-        @Description(
+        @get:Description(
             "",
             "# List of proxied repositories associated with this repository.",
             "# Reposilite will search for a requested artifact in remote repositories listed below.",
@@ -210,26 +210,26 @@ class Configuration : Serializable {
 
     /* SSL */
 
-    @Description("")
-    @Description("# Support encrypted connections")
+    @get:Description("")
+    @get:Description("# Support encrypted connections")
     var sslEnabled = false
 
-    @Description("# SSL port to bind")
+    @get:Description("# SSL port to bind")
     var sslPort = 443
 
-    @Description("# Key store file to use.")
-    @Description("# You can specify absolute path to the given file or use \${WORKING_DIRECTORY} variable.")
+    @get:Description("# Key store file to use.")
+    @get:Description("# You can specify absolute path to the given file or use \${WORKING_DIRECTORY} variable.")
     var keyStorePath = "\${WORKING_DIRECTORY}/keystore.jks"
 
-    @Description("# Key store password to use")
+    @get:Description("# Key store password to use")
     var keyStorePassword = ""
 
-    @Description("# Redirect http traffic to https")
+    @get:Description("# Redirect http traffic to https")
     var enforceSsl = false
 
     /* Performance */
 
-//    @Description(
+//    @get:Description(
 //        "",
 //        "# Note: It might be hard to estimate the best amount of threads for your use case,",
 //        "# but you can safely increase amount of threads if needed and Reposilite will create only as much as it needs.",
@@ -241,21 +241,21 @@ class Configuration : Serializable {
 //    )
 //    var reactiveMode = true
 
-    @Description("")
-    @Description("# Max amount of threads used by core thread pool (min: 4)")
-    @Description("# The web thread pool handles first few steps of incoming http connections, as soon as possible all tasks are redirected to IO thread pool.")
+    @get:Description("")
+    @get:Description("# Max amount of threads used by core thread pool (min: 4)")
+    @get:Description("# The web thread pool handles first few steps of incoming http connections, as soon as possible all tasks are redirected to IO thread pool.")
     var webThreadPool = 32
 
-    @Description("# IO thread pool handles all tasks that may benefit from non-blocking IO (min: 2)")
-    @Description("# Because most of tasks are redirected to IO thread pool, it might be a good idea to keep it at least equal to web thread pool.")
+    @get:Description("# IO thread pool handles all tasks that may benefit from non-blocking IO (min: 2)")
+    @get:Description("# Because most of tasks are redirected to IO thread pool, it might be a good idea to keep it at least equal to web thread pool.")
     var ioThreadPool = 16
 
     /* Logging */
 
-    @Description("", "# Amount of messages stored in cached logger.")
+    @get:Description("", "# Amount of messages stored in cached logger.")
     var cachedLogSize = 100
 
-    @Description(
+    @get:Description(
         "# Any kind of proxy services change real ip.",
         "# The origin ip should be available in one of the headers.",
         "# Nginx: X-Forwarded-For",
@@ -264,7 +264,7 @@ class Configuration : Serializable {
     )
     var forwardedIp = "X-Forwarded-For"
 
-    @Description("# Debug mode")
+    @get:Description("# Debug mode")
     var debugEnabled = false
 
 }
