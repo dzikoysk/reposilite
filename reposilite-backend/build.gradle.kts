@@ -111,7 +111,7 @@ dependencies {
     implementation("org.tinylog:tinylog-api:$tinylog")
     implementation("org.tinylog:tinylog-impl:$tinylog")
 
-    implementation("net.dzikoysk:cdn:1.10.0")
+    implementation("net.dzikoysk:cdn:1.10.1")
     implementation("com.google.http-client:google-http-client:1.40.0")
     implementation("org.springframework.security:spring-security-crypto:5.5.2")
     implementation("commons-io:commons-io:20030203.000550")
