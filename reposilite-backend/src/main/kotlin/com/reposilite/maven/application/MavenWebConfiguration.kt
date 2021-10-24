@@ -17,30 +17,28 @@
 package com.reposilite.maven.application
 
 import com.reposilite.Reposilite
-import com.reposilite.config.Configuration.RepositoryConfiguration
 import com.reposilite.journalist.Journalist
 import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.MetadataService
 import com.reposilite.maven.ProxyService
-import com.reposilite.maven.RepositoryFactory
+import com.reposilite.maven.RepositoryProvider
 import com.reposilite.maven.RepositorySecurityProvider
 import com.reposilite.maven.RepositoryService
 import com.reposilite.maven.infrastructure.MavenApiEndpoints
 import com.reposilite.maven.infrastructure.MavenEndpoints
+import com.reposilite.settings.SharedConfiguration.RepositoryConfiguration
 import com.reposilite.shared.RemoteClient
 import com.reposilite.web.WebConfiguration
 import com.reposilite.web.application.ReposiliteRoutes
+import net.dzikoysk.cdn.model.MutableReference
 import java.nio.file.Path
 
 internal object MavenWebConfiguration : WebConfiguration {
 
-    fun createFacade(journalist: Journalist, workingDirectory: Path, remoteClient: RemoteClient, repositories: Map<String, RepositoryConfiguration>): MavenFacade {
-        val repositoryFactory = RepositoryFactory(journalist, workingDirectory)
+    fun createFacade(journalist: Journalist, workingDirectory: Path, remoteClient: RemoteClient, repositories: MutableReference<Map<String, RepositoryConfiguration>>): MavenFacade {
+        val repositoryProvider = RepositoryProvider(journalist, workingDirectory, repositories)
         val securityProvider = RepositorySecurityProvider()
-
-        val repositoryService = repositories
-            .mapValues { (repositoryName, repositoryConfiguration) -> repositoryFactory.createRepository(repositoryName, repositoryConfiguration) }
-            .let { RepositoryService(journalist, it, securityProvider) }
+        val repositoryService = RepositoryService(journalist, repositoryProvider, securityProvider)
 
         return MavenFacade(
             journalist,

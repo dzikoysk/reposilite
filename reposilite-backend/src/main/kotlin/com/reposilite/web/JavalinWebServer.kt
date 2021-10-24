@@ -17,7 +17,6 @@
 package com.reposilite.web
 
 import com.reposilite.Reposilite
-import com.reposilite.config.Configuration
 import com.reposilite.shared.TimeUtils
 import com.reposilite.web.application.WebServerConfiguration
 import com.reposilite.web.application.createReactiveRouting
@@ -35,12 +34,12 @@ class JavalinWebServer {
 
     fun start(reposilite: Reposilite) =
         runWithDisabledLogging {
-            this.webThreadPool = QueuedThreadPool(reposilite.configuration.webThreadPool, 2).also {
+            this.webThreadPool = QueuedThreadPool(reposilite.localConfiguration.webThreadPool, 2).also {
                 it.name = "Reposilite | Web (${it.maxThreads}) -"
                 it.start()
             }
 
-            this.javalin = createJavalin(reposilite, reposilite.configuration, webThreadPool!!)
+            this.javalin = createJavalin(reposilite, webThreadPool!!)
                 .exception(EofException::class.java) { _, _ -> reposilite.logger.warn("Client closed connection") }
                 .events { listener ->
                     listener.serverStopping { reposilite.logger.info("Server stopping...") }
@@ -55,14 +54,14 @@ class JavalinWebServer {
             }
         }
 
-    private fun createJavalin(reposilite: Reposilite, configuration: Configuration, webThreadPool: ThreadPool): Javalin =
+    private fun createJavalin(reposilite: Reposilite, webThreadPool: ThreadPool): Javalin =
         if (servlet)
-            Javalin.createStandalone { configureServer(reposilite, configuration, webThreadPool, it) }
+            Javalin.createStandalone { configureServer(reposilite, webThreadPool, it) }
         else
-            Javalin.create { configureServer(reposilite, configuration, webThreadPool, it) }
+            Javalin.create { configureServer(reposilite, webThreadPool, it) }
 
-    private fun configureServer(reposilite: Reposilite, configuration: Configuration, webThreadPool: ThreadPool, serverConfig: JavalinConfig) {
-        WebServerConfiguration.configure(reposilite, webThreadPool, configuration, serverConfig)
+    private fun configureServer(reposilite: Reposilite, webThreadPool: ThreadPool, serverConfig: JavalinConfig) {
+        WebServerConfiguration.configure(reposilite, webThreadPool, serverConfig)
         serverConfig.registerPlugin(createReactiveRouting(reposilite))
     }
 

@@ -16,7 +16,7 @@
 
 package com.reposilite.maven.specification
 
-import com.reposilite.config.Configuration.RepositoryConfiguration
+import com.reposilite.settings.LocalConfiguration.RepositoryConfiguration
 import com.reposilite.journalist.backend.InMemoryLogger
 import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.api.DocumentInfo

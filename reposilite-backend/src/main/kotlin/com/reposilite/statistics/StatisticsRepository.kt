@@ -22,6 +22,10 @@ import com.reposilite.statistics.api.RecordType
 
 internal interface StatisticsRepository {
 
+    companion object {
+        const val MAX_IDENTIFIER_LENGTH = 1024
+    }
+
     fun incrementRecords(bulk: Map<RecordIdentifier, Long>)
 
     fun incrementRecord(record: RecordIdentifier, count: Long)

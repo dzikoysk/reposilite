@@ -21,7 +21,9 @@ import com.fasterxml.jackson.databind.json.JsonMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.reposilite.Reposilite
 import com.reposilite.VERSION
-import com.reposilite.config.Configuration
+import com.reposilite.journalist.Journalist
+import com.reposilite.settings.LocalConfiguration
+import com.reposilite.settings.SharedConfiguration
 import io.javalin.core.JavalinConfig
 import io.javalin.openapi.plugin.OpenApiConfiguration
 import io.javalin.openapi.plugin.OpenApiPlugin
@@ -35,23 +37,26 @@ import org.eclipse.jetty.util.thread.ThreadPool
 
 internal object WebServerConfiguration {
 
-    internal fun configure(reposilite: Reposilite, webThreadPool: ThreadPool, configuration: Configuration, config: JavalinConfig) {
+    internal fun configure(reposilite: Reposilite, webThreadPool: ThreadPool, config: JavalinConfig) {
         val server = Server(webThreadPool)
         config.server { server }
 
-        configureJavalin(config, configuration)
+        val localConfiguration = reposilite.localConfiguration
+        val sharedConfiguration = reposilite.sharedConfiguration
+
+        configureJavalin(config, sharedConfiguration)
         configureJsonSerialization(config)
-        configureSSL(reposilite, configuration, config, server)
+        configureSSL(reposilite, localConfiguration, config, server)
         configureCors(config)
-        configureOpenApi(configuration, config)
-        configureDebug(reposilite, configuration, config)
+        configureOpenApi(sharedConfiguration, config)
+        configureDebug(reposilite, localConfiguration, config)
     }
 
-    private fun configureJavalin(config: JavalinConfig, configuration: Configuration) {
+    private fun configureJavalin(config: JavalinConfig, sharedConfiguration: SharedConfiguration) {
         config.showJavalinBanner = false
         config.asyncRequestTimeout = 1000L * 60 * 60 * 10 // 10min
         config.contextResolvers {
-            it.ip = { ctx -> ctx.header(configuration.forwardedIp) ?: ctx.req.remoteAddr }
+            it.ip = { ctx -> ctx.header(sharedConfiguration.forwardedIp) ?: ctx.req.remoteAddr }
         }
     }
 
@@ -64,37 +69,37 @@ internal object WebServerConfiguration {
         config.jsonMapper(JavalinJackson(objectMapper))
     }
 
-    private fun configureSSL(reposilite: Reposilite, configuration: Configuration, config: JavalinConfig, server: Server) {
-        if (configuration.sslEnabled) {
-            reposilite.logger.info("Enabling SSL connector at ::" + configuration.sslPort)
+    private fun configureSSL(reposilite: Reposilite, localConfiguration: LocalConfiguration, config: JavalinConfig, server: Server) {
+        if (localConfiguration.sslEnabled) {
+            reposilite.logger.info("Enabling SSL connector at ::" + localConfiguration.sslPort)
 
             val sslContextFactory: SslContextFactory = SslContextFactory.Server()
-            sslContextFactory.keyStorePath = configuration.keyStorePath.replace("\${WORKING_DIRECTORY}", reposilite.parameters.workingDirectory.toAbsolutePath().toString())
-            sslContextFactory.setKeyStorePassword(configuration.keyStorePassword)
+            sslContextFactory.keyStorePath = localConfiguration.keyStorePath.replace("\${WORKING_DIRECTORY}", reposilite.parameters.workingDirectory.toAbsolutePath().toString())
+            sslContextFactory.setKeyStorePassword(localConfiguration.keyStorePassword)
 
             val sslConnector = ServerConnector(server, sslContextFactory)
-            sslConnector.port = configuration.sslPort
+            sslConnector.port = localConfiguration.sslPort
             server.addConnector(sslConnector)
 
-            if (!configuration.enforceSsl) {
+            if (!localConfiguration.enforceSsl) {
                 val standardConnector = ServerConnector(server)
-                standardConnector.port = configuration.port
+                standardConnector.port = localConfiguration.port
                 server.addConnector(standardConnector)
             }
         }
 
-        config.enforceSsl = configuration.enforceSsl
+        config.enforceSsl = localConfiguration.enforceSsl
     }
 
     private fun configureCors(config: JavalinConfig) {
         config.enableCorsForAllOrigins()
     }
 
-    private fun configureOpenApi(configuration: Configuration, config: JavalinConfig) {
-        if (configuration.swagger) {
+    private fun configureOpenApi(sharedConfiguration: SharedConfiguration, config: JavalinConfig) {
+        if (sharedConfiguration.swagger) {
             val openApiConfiguration = OpenApiConfiguration()
-            openApiConfiguration.title = configuration.title
-            openApiConfiguration.description = configuration.description
+            openApiConfiguration.title = sharedConfiguration.title
+            openApiConfiguration.description = sharedConfiguration.description
             openApiConfiguration.version = VERSION
             config.registerPlugin(OpenApiPlugin(openApiConfiguration))
 
@@ -104,11 +109,11 @@ internal object WebServerConfiguration {
         }
     }
 
-    private fun configureDebug(reposilite: Reposilite, configuration: Configuration, config: JavalinConfig) {
-        if (configuration.debugEnabled) {
+    private fun configureDebug(journalist: Journalist, localConfiguration: LocalConfiguration, config: JavalinConfig) {
+        if (localConfiguration.debugEnabled) {
             // config.requestCacheSize = FilesUtils.displaySizeToBytesCount(System.getProperty("reposilite.requestCacheSize", "8MB"));
             // Reposilite.getLogger().debug("requestCacheSize set to " + config.requestCacheSize + " bytes");
-            reposilite.logger.info("Debug enabled")
+            journalist.logger.info("Debug enabled")
             config.enableDevLogging()
         }
     }

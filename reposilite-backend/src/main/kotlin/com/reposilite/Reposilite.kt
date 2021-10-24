@@ -16,7 +16,8 @@
 package com.reposilite
 
 import com.reposilite.auth.AuthenticationFacade
-import com.reposilite.config.Configuration
+import com.reposilite.settings.LocalConfiguration
+import com.reposilite.settings.SharedConfiguration
 import com.reposilite.console.ConsoleFacade
 import com.reposilite.frontend.FrontendFacade
 import com.reposilite.journalist.Journalist
@@ -41,7 +42,8 @@ const val VERSION = "3.0.0-alpha.7"
 class Reposilite(
     val journalist: ReposiliteJournalist,
     val parameters: ReposiliteParameters,
-    val configuration: Configuration,
+    val localConfiguration: LocalConfiguration,
+    val sharedConfiguration: SharedConfiguration,
     val ioService: ExecutorService,
     val scheduler: ScheduledExecutorService,
     val database: Database,
@@ -80,7 +82,7 @@ class Reposilite(
 
         logger.info("Platform: ${System.getProperty("java.version")} (${System.getProperty("os.name")})")
         logger.info("Working directory: ${parameters.workingDirectory.toAbsolutePath()}")
-        logger.info("Threads: ${configuration.webThreadPool} WEB / ${configuration.ioThreadPool} IO")
+        logger.info("Threads: ${localConfiguration.webThreadPool} WEB / ${localConfiguration.ioThreadPool} IO")
         logger.info("")
 
         logger.info("--- Loading domain configurations")

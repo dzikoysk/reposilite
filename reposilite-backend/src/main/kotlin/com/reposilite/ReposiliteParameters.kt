@@ -16,8 +16,8 @@
 
 package com.reposilite
 
-import com.reposilite.config.Configuration
-import com.reposilite.config.DEFAULT_CONFIGURATION_FILE
+import com.reposilite.settings.LocalConfiguration
+import com.reposilite.settings.application.SettingsWebConfiguration.LOCAL_CONFIGURATION_FILE
 import com.reposilite.token.api.AccessTokenPermission.MANAGER
 import com.reposilite.token.api.CreateAccessTokenRequest
 import picocli.CommandLine.Command
@@ -39,7 +39,7 @@ class ReposiliteParameters : Runnable {
     lateinit var workingDirectory: Path
 
     @Option(names = ["--configuration", "--config", "-cfg"], description = ["Set custom location of configuration file"])
-    internal var configurationFileName = DEFAULT_CONFIGURATION_FILE
+    internal var configurationFileName = LOCAL_CONFIGURATION_FILE
     lateinit var configurationFile: Path
 
     @Option(names = ["--configuration-mode", "-cm"], description = [
@@ -66,19 +66,19 @@ class ReposiliteParameters : Runnable {
 
     override fun run() {
         this.workingDirectory = Paths.get(workingDirectoryName)
-        this.configurationFile = workingDirectory.resolve(configurationFileName.ifEmpty { DEFAULT_CONFIGURATION_FILE })
+        this.configurationFile = workingDirectory.resolve(configurationFileName.ifEmpty { LOCAL_CONFIGURATION_FILE })
         this.tokens = tokenEntries
             .map { it.split(":", limit = 2) }
             .map { (name, secret) -> CreateAccessTokenRequest(name, secret, setOf(MANAGER)) }
     }
 
-    fun applyLoadedConfiguration(configuration: Configuration) {
+    fun applyLoadedConfiguration(localConfiguration: LocalConfiguration) {
         if (hostname.isEmpty()) {
-            this.hostname = configuration.hostname
+            this.hostname = localConfiguration.hostname
         }
 
         if (port == -1) {
-            this.port = configuration.port
+            this.port = localConfiguration.port
         }
     }
 

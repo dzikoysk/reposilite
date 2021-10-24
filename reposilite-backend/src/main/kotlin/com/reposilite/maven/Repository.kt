@@ -15,9 +15,9 @@
  */
 package com.reposilite.maven
 
-import com.reposilite.config.Configuration.RepositoryConfiguration.ProxiedHostConfiguration
 import com.reposilite.maven.api.FileDetails
 import com.reposilite.maven.api.RepositoryVisibility
+import com.reposilite.settings.SharedConfiguration.RepositoryConfiguration.ProxiedHostConfiguration
 import com.reposilite.storage.StorageProvider
 import com.reposilite.web.http.ErrorResponse
 import panda.std.Result

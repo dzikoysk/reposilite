@@ -17,15 +17,14 @@
 package com.reposilite
 
 import com.reposilite.auth.application.AuthenticationWebConfiguration
-import com.reposilite.config.Configuration
-import com.reposilite.config.ConfigurationProcessor
-import com.reposilite.config.DatabaseSourceConfiguration
 import com.reposilite.console.application.ConsoleWebConfiguration
 import com.reposilite.frontend.application.FrontendWebConfiguration
 import com.reposilite.journalist.Channel
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.backend.PrintStreamLogger
 import com.reposilite.maven.application.MavenWebConfiguration
+import com.reposilite.settings.DatabaseSourceFactory
+import com.reposilite.settings.application.SettingsWebConfiguration
 import com.reposilite.shared.HttpRemoteClient
 import com.reposilite.shared.newFixedThreadPool
 import com.reposilite.shared.newSingleThreadScheduledExecutor
@@ -39,29 +38,30 @@ import com.reposilite.web.web
 
 object ReposiliteFactory {
 
-    fun createReposilite(parameters: ReposiliteParameters): Reposilite {
-        val logger = PrintStreamLogger(System.out, System.err, Channel.ALL, false)
-        val configuration = ConfigurationProcessor.tryLoad(logger, parameters.workingDirectory, parameters.configurationFile, parameters.configurationMode)
+    fun createReposilite(parameters: ReposiliteParameters): Reposilite =
+        createReposilite(parameters, PrintStreamLogger(System.out, System.err, Channel.ALL, false))
 
-        return createReposilite(parameters, logger, configuration)
-    }
+    fun createReposilite(parameters: ReposiliteParameters, journalist: Journalist): Reposilite {
+        val localConfiguration = SettingsWebConfiguration.createLocalConfiguration(journalist, parameters)
 
-    fun createReposilite(parameters: ReposiliteParameters, journalist: Journalist, configuration: Configuration): Reposilite {
-        parameters.applyLoadedConfiguration(configuration)
-        val logger = ReposiliteJournalist(journalist, configuration.cachedLogSize, parameters.testEnv)
+        parameters.applyLoadedConfiguration(localConfiguration)
+        val logger = ReposiliteJournalist(journalist, localConfiguration.cachedLogSize, parameters.testEnv)
 
         val scheduler = newSingleThreadScheduledExecutor("Reposilite | Scheduler")
-        val ioService = newFixedThreadPool(2, configuration.ioThreadPool, "Reposilite | IO")
-        val database = DatabaseSourceConfiguration.createConnection(parameters.workingDirectory, configuration.database)
+        val ioService = newFixedThreadPool(2, localConfiguration.ioThreadPool, "Reposilite | IO")
+        val database = DatabaseSourceFactory.createConnection(parameters.workingDirectory, localConfiguration.database)
 
         val webServer = JavalinWebServer()
         val webs = mutableListOf<WebConfiguration>()
 
+        val configFacade = web(webs, SettingsWebConfiguration) { createFacade(journalist, parameters) }
+        val sharedConfiguration = configFacade.loadSharedConfiguration()
+
         val statusFacade = web(webs, StatusWebConfiguration) { createFacade(parameters.testEnv, webServer) }
         val failureFacade = web(webs, FailureWebConfiguration) { createFacade(logger) }
         val consoleFacade = web(webs, ConsoleWebConfiguration) { createFacade(logger, failureFacade) }
-        val mavenFacade = web(webs, MavenWebConfiguration) { createFacade(logger, parameters.workingDirectory, HttpRemoteClient(logger), configuration.repositories) }
-        val frontendFacade = web(webs, FrontendWebConfiguration) { createFacade(configuration) }
+        val mavenFacade = web(webs, MavenWebConfiguration) { createFacade(logger, parameters.workingDirectory, HttpRemoteClient(logger), sharedConfiguration.repositories) }
+        val frontendFacade = web(webs, FrontendWebConfiguration) { createFacade(localConfiguration, sharedConfiguration) }
         val statisticFacade = web(webs, StatisticsWebConfiguration) { createFacade(logger, database) }
         val accessTokenFacade = web(webs, AccessTokenWebConfiguration) { createFacade(database) }
         val authenticationFacade = web(webs, AuthenticationWebConfiguration) { createFacade(logger, accessTokenFacade) }
@@ -69,7 +69,8 @@ object ReposiliteFactory {
         return Reposilite(
             journalist = logger,
             parameters = parameters,
-            configuration = configuration,
+            localConfiguration = localConfiguration,
+            sharedConfiguration = sharedConfiguration,
             ioService = ioService,
             scheduler = scheduler,
             database = database,

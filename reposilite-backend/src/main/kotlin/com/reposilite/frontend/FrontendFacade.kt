@@ -18,6 +18,7 @@ package com.reposilite.frontend
 import org.intellij.lang.annotations.Language
 
 class FrontendFacade internal constructor(
+    private val cacheContent: Boolean,
     private val basePath: String,
     private val id: String,
     private val title: String,
@@ -25,7 +26,6 @@ class FrontendFacade internal constructor(
     private var organizationWebsite: String,
     private var organizationLogo: String,
     private var icpLicense: String,
-    private val cacheContent: Boolean
 ) {
 
     private val resources = HashMap<String, String>(0)

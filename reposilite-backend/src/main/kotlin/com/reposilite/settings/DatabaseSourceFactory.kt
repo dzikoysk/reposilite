@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.reposilite.config
+package com.reposilite.settings
 
-import com.reposilite.config.Configuration.MySqlDatabaseSettings
-import com.reposilite.config.Configuration.SQLiteDatabaseSettings
+import com.reposilite.settings.LocalConfiguration.MySqlDatabaseSettings
+import com.reposilite.settings.LocalConfiguration.SQLiteDatabaseSettings
 import com.reposilite.shared.loadCommandBasedConfiguration
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.transactions.TransactionManager
@@ -25,7 +25,7 @@ import java.io.File
 import java.nio.file.Path
 import java.sql.Connection.TRANSACTION_SERIALIZABLE
 
-object DatabaseSourceConfiguration {
+internal object DatabaseSourceFactory {
 
     fun createConnection(workingDirectory: Path, databaseConfiguration: String): Database {
         return when {

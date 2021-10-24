@@ -16,8 +16,8 @@
 
 package com.reposilite.maven
 
-import com.reposilite.config.Configuration.RepositoryConfiguration.ProxiedHostConfiguration
 import com.reposilite.maven.api.FileDetails
+import com.reposilite.settings.SharedConfiguration.RepositoryConfiguration.ProxiedHostConfiguration
 import com.reposilite.shared.RemoteClient
 import com.reposilite.shared.firstOrErrors
 import com.reposilite.shared.toPath
