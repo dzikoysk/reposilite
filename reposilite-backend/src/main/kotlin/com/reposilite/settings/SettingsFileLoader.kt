@@ -11,14 +11,14 @@ internal object SettingsFileLoader {
     fun <C> initializeAndLoad(journalist: Journalist, mode: String, configurationFile: Path, workingDirectory: Path, defaultFileName: String, configuration: C): C =
         try {
             val cdn = CdnFactory.createStandard()
-            val localConfiguration = cdn.load(Source.of(configurationFile), LocalConfiguration())
+            cdn.load(Source.of(configurationFile), configuration)
 
             when (mode) {
                 "none" -> {}
-                "copy" -> cdn.render(localConfiguration, workingDirectory.resolve(defaultFileName))
-                "auto" -> cdn.render(localConfiguration, configurationFile)
+                "copy" -> cdn.render(configuration, workingDirectory.resolve(defaultFileName))
+                "auto" -> cdn.render(configuration, configurationFile)
                 "print" -> {
-                    val generatedConfiguration = cdn.render(localConfiguration)
+                    val generatedConfiguration = cdn.render(configuration)
 
                     if (configurationFile.readText().trim() != generatedConfiguration.trim()) {
                         println("#")

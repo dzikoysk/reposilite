@@ -16,10 +16,13 @@ import java.io.Serializable
 
 class SharedConfiguration : Serializable, DeserializationHandler<SharedConfiguration> {
 
+    @Description("# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #")
+    @Description("#      Reposilite :: Shared      #")
+    @Description("# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #")
     @Description("")
     @Description("# Repository id used in Maven repository configuration")
     @JvmField
-    val id = "reposilite-repository"
+    var id = "reposilite-repository"
 
     @Description("# Repository title")
     @JvmField
@@ -60,7 +63,7 @@ class SharedConfiguration : Serializable, DeserializationHandler<SharedConfigura
     @Description("")
     @Description("# List of supported Maven repositories")
     @JvmField
-    val repositories: MutableReference<Map<String, RepositoryConfiguration>> = mutable(mapOf(
+    var repositories: MutableReference<Map<String, RepositoryConfiguration>> = mutable(mapOf(
         "releases" to RepositoryConfiguration(),
         "snapshots" to RepositoryConfiguration(),
         "private" to RepositoryConfiguration().also { it.visibility = PRIVATE }

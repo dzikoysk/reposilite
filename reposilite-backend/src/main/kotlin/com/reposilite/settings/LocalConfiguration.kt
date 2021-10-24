@@ -26,9 +26,9 @@ class LocalConfiguration : Serializable {
 
     /* General */
 
-    @Description("# ~~~~~~~~~~~~~~~~~~~~~~ #")
-    @Description("#       Reposilite       #")
-    @Description("# ~~~~~~~~~~~~~~~~~~~~~~ #")
+    @Description("# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #")
+    @Description("#       Reposilite :: Local       #")
+    @Description("# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #")
     @Description("")
     @Description("# Hostname")
     @Description("# The hostname can be used to limit which connections are accepted.")
