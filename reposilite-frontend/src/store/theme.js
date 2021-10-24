@@ -24,7 +24,9 @@ const themeKey = 'dark-theme'
 
 export default function useTheme() {
   const fetchTheme = () => {
-    theme.isDark = (localStorage.getItem(themeKey) === 'true')
+    localStorage.getItem(themeKey) === null ?
+        theme.isDark = window.matchMedia("(prefers-color-scheme: dark)").matches :
+        theme.isDark = (localStorage.getItem(themeKey) === 'true')
   }
 
   const toggleTheme = () => {
