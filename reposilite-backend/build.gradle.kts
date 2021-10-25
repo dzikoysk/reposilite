@@ -60,6 +60,10 @@ dependencies {
     implementation("org.panda-lang:expressible-kt-coroutines:$expressible")
     testImplementation("org.panda-lang:expressible-junit:$expressible")
 
+    val cdn = "1.11.4"
+    implementation("net.dzikoysk:cdn:$cdn")
+    implementation("net.dzikoysk:cdn-kt:$cdn")
+
     val awssdk = "2.17.66"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
@@ -110,13 +114,12 @@ dependencies {
     implementation("org.tinylog:tinylog-api:$tinylog")
     implementation("org.tinylog:tinylog-impl:$tinylog")
 
-    implementation("net.dzikoysk:cdn:1.11.0")
-    implementation("com.google.http-client:google-http-client:1.40.0")
+    implementation("com.google.http-client:google-http-client:1.40.1")
     implementation("org.springframework.security:spring-security-crypto:5.5.2")
     implementation("commons-io:commons-io:20030203.000550")
 
     implementation("org.jline:jline:3.20.0")
-    implementation("org.fusesource.jansi:jansi:2.3.4")
+    implementation("org.fusesource.jansi:jansi:2.4.0")
 
     /* Tests */
 
@@ -146,6 +149,7 @@ repositories {
 //    }
     maven { url = uri("https://repo.panda-lang.org/releases") }
     maven { url = uri("https://jitpack.io") }
+//    mavenCentral()
 }
 
 publishing {

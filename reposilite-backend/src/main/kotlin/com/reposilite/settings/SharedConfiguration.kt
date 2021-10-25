@@ -7,7 +7,7 @@ import net.dzikoysk.cdn.entity.Contextual
 import net.dzikoysk.cdn.entity.Description
 import net.dzikoysk.cdn.entity.DeserializationHandler
 import net.dzikoysk.cdn.model.MutableReference
-import net.dzikoysk.cdn.model.MutableReference.mutable
+import net.dzikoysk.cdn.model.mutableReference
 import panda.utilities.StringUtils
 import picocli.CommandLine.Command
 import picocli.CommandLine.Option
@@ -63,7 +63,7 @@ class SharedConfiguration : Serializable, DeserializationHandler<SharedConfigura
     @Description("")
     @Description("# List of supported Maven repositories")
     @JvmField
-    var repositories: MutableReference<Map<String, RepositoryConfiguration>> = mutable(mapOf(
+    var repositories: MutableReference<Map<String, RepositoryConfiguration>> = mutableReference(mapOf(
         "releases" to RepositoryConfiguration(),
         "snapshots" to RepositoryConfiguration(),
         "private" to RepositoryConfiguration().also { it.visibility = PRIVATE }

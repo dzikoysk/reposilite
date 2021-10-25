@@ -1,4 +1,10 @@
 package com.reposilite.settings.infrastructure
 
-internal class SettingsEndpoints {
+import com.reposilite.web.application.ReposiliteRoute
+import com.reposilite.web.application.ReposiliteRoutes
+
+internal class SettingsEndpoints : ReposiliteRoutes() {
+
+    override val routes = emptySet<ReposiliteRoute>()
+
 }

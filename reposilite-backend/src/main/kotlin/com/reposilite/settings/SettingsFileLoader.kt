@@ -2,7 +2,7 @@ package com.reposilite.settings
 
 import com.reposilite.journalist.Journalist
 import net.dzikoysk.cdn.CdnFactory
-import net.dzikoysk.cdn.shared.source.Source
+import net.dzikoysk.cdn.source.Source
 import java.nio.file.Path
 import kotlin.io.path.readText
 
