@@ -16,13 +16,13 @@
 
 package com.reposilite.maven.specification
 
-import com.reposilite.settings.LocalConfiguration.RepositoryConfiguration
 import com.reposilite.journalist.backend.InMemoryLogger
 import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.UNKNOWN_LENGTH
 import com.reposilite.maven.application.MavenWebConfiguration
+import com.reposilite.settings.SharedConfiguration.RepositoryConfiguration
 import com.reposilite.shared.FakeRemoteClient
 import com.reposilite.shared.append
 import com.reposilite.shared.getSimpleName
@@ -33,6 +33,7 @@ import com.reposilite.token.api.Route
 import com.reposilite.token.api.RoutePermission
 import com.reposilite.web.http.notFoundError
 import io.javalin.http.ContentType
+import net.dzikoysk.cdn.model.mutableReference
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
 import panda.std.asSuccess
@@ -78,7 +79,7 @@ internal abstract class MavenSpecification {
             }
         )
 
-        this.mavenFacade = MavenWebConfiguration.createFacade(logger, workingDirectory!!.toPath(), remoteClient, repositories())
+        this.mavenFacade = MavenWebConfiguration.createFacade(logger, workingDirectory!!.toPath(), remoteClient, mutableReference(repositories()))
     }
 
     data class FileSpec(
