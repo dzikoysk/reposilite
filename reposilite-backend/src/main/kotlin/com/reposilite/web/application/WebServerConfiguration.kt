@@ -97,7 +97,7 @@ internal object WebServerConfiguration {
 
     private fun configureOpenApi(sharedConfiguration: SharedConfiguration, config: JavalinConfig) {
         if (sharedConfiguration.swagger.get()) {
-            val openApiConfiguration = OpenApiConfiguration() // TODO: Support dynamic configuration of Swagger integration
+            val openApiConfiguration = OpenApiConfiguration() // TOFIX: Support dynamic configuration of Swagger integration
             openApiConfiguration.title = sharedConfiguration.title.get()
             openApiConfiguration.description = sharedConfiguration.description.get()
             openApiConfiguration.version = VERSION

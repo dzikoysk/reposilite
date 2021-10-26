@@ -25,9 +25,9 @@ class FrontendFacade internal constructor(
     private val id: Reference<String>,
     private val title: Reference<String>,
     private val description: Reference<String>,
-    private var organizationWebsite: Reference<String>,
-    private var organizationLogo: Reference<String>,
-    private var icpLicense: Reference<String>,
+    private val organizationWebsite: Reference<String>,
+    private val organizationLogo: Reference<String>,
+    private val icpLicense: Reference<String>,
 ) {
 
     private val resources = HashMap<String, String>(0)

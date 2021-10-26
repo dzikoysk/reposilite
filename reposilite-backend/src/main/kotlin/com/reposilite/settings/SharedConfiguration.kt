@@ -150,7 +150,7 @@ class SharedConfiguration : Serializable, DeserializationHandler<SharedConfigura
     @Description("# Cloudflare: CF-Connecting-IP")
     @Description("# Popular: X-Real-IP")
     @JvmField
-    var forwardedIp = "X-Forwarded-For"
+    val forwardedIp = mutableReference("X-Forwarded-For")
 
     override fun handle(sharedConfiguration: SharedConfiguration): SharedConfiguration {
         var formattedBasePath = basePath.get()
