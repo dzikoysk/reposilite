@@ -33,10 +33,10 @@ import com.reposilite.token.api.Route
 import com.reposilite.token.api.RoutePermission
 import com.reposilite.web.http.notFoundError
 import io.javalin.http.ContentType
-import net.dzikoysk.cdn.model.mutableReference
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
 import panda.std.asSuccess
+import panda.std.reactive.mutableReference
 import java.io.File
 import java.nio.file.Files
 
