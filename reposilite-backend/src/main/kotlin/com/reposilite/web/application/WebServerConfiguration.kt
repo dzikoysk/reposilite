@@ -56,7 +56,7 @@ internal object WebServerConfiguration {
         config.showJavalinBanner = false
         config.asyncRequestTimeout = 1000L * 60 * 60 * 10 // 10min
         config.contextResolvers {
-            it.ip = { ctx -> ctx.header(sharedConfiguration.forwardedIp) ?: ctx.req.remoteAddr }
+            it.ip = { ctx -> ctx.header(sharedConfiguration.forwardedIp.get()) ?: ctx.req.remoteAddr }
         }
     }
 

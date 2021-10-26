@@ -24,6 +24,7 @@ import io.javalin.openapi.OpenApi
 import io.javalin.websocket.WsConfig
 import io.javalin.websocket.WsContext
 import io.javalin.websocket.WsMessageContext
+import net.dzikoysk.cdn.model.Reference
 import panda.std.Result
 import panda.std.Result.error
 import panda.std.Result.ok
@@ -36,7 +37,7 @@ internal class CliEndpoint(
     private val journalist: ReposiliteJournalist,
     private val authenticationFacade: AuthenticationFacade,
     private val consoleFacade: ConsoleFacade,
-    private val forwardedIp: String
+    private val forwardedIp: Reference<String>
 ) : Consumer<WsConfig> {
 
     @OpenApi(
@@ -104,6 +105,6 @@ internal class CliEndpoint(
     }
 
     private fun address(context: WsContext): String =
-        context.header(forwardedIp) ?: context.session.remoteAddress.toString()
+        context.header(forwardedIp.get()) ?: context.session.remoteAddress.toString()
 
 }
