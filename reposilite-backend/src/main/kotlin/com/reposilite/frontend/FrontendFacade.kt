@@ -15,41 +15,48 @@
  */
 package com.reposilite.frontend
 
+import com.reposilite.shared.computed
+import net.dzikoysk.cdn.model.Reference
 import org.intellij.lang.annotations.Language
 
 class FrontendFacade internal constructor(
-    private val cacheContent: Boolean,
-    private val basePath: String,
-    private val id: String,
-    private val title: String,
-    private val description: String,
-    private var organizationWebsite: String,
-    private var organizationLogo: String,
-    private var icpLicense: String,
+    private val cacheContent: Reference<Boolean>,
+    private val basePath: Reference<String>,
+    private val id: Reference<String>,
+    private val title: Reference<String>,
+    private val description: Reference<String>,
+    private var organizationWebsite: Reference<String>,
+    private var organizationLogo: Reference<String>,
+    private var icpLicense: Reference<String>,
 ) {
 
     private val resources = HashMap<String, String>(0)
 
+    init {
+        computed(cacheContent, basePath, id, title, description, organizationWebsite, organizationLogo, icpLicense) {
+            resources.clear()
+        }
+    }
+
     fun resolve(uri: String, source: () -> String?): String? =
-        resources[uri]
-            ?.takeIf { cacheContent }
-            ?: source()
-                ?.let { resolvePlaceholders(it) }
-                ?.also { resources[uri] = it }
+        resources[uri] ?: source()
+            ?.let { resolvePlaceholders(it) }
+            ?.also { if (cacheContent.get()) resources[uri] = it }
 
     private fun resolvePlaceholders(source: String): String =
         source
-            .replace("{{REPOSILITE.BASE_PATH}}", basePath)
-            .replace("{{REPOSILITE.VITE_BASE_PATH}}", if (basePath == "" || basePath == "/") "." else basePath.replace(Regex("^/|/$"), ""))
-            .replace("{{REPOSILITE.ID}}", id)
-            .replace("{{REPOSILITE.TITLE}}", title)
-            .replace("{{REPOSILITE.DESCRIPTION}}", description)
-            .replace("{{REPOSILITE.ORGANIZATION_WEBSITE}}", organizationWebsite)
-            .replace("{{REPOSILITE.ORGANIZATION_LOGO}}", organizationLogo)
-            .replace("{{REPOSILITE.ICP_LICENSE}}", icpLicense)
+            .replace("{{REPOSILITE.BASE_PATH}}", basePath.get())
+            .replace("{{REPOSILITE.VITE_BASE_PATH}}", basePath.get().takeUnless { it == "" || it == "/" }?.replace(Regex("^/|/$"), "") ?: ".")
+            .replace("{{REPOSILITE.ID}}", id.get())
+            .replace("{{REPOSILITE.TITLE}}", title.get())
+            .replace("{{REPOSILITE.DESCRIPTION}}", description.get())
+            .replace("{{REPOSILITE.ORGANIZATION_WEBSITE}}", organizationWebsite.get())
+            .replace("{{REPOSILITE.ORGANIZATION_LOGO}}", organizationLogo.get())
+            .replace("{{REPOSILITE.ICP_LICENSE}}", icpLicense.get())
 
     fun createNotFoundPage(uri: String, details: String): String {
-        val dashboardURI = basePath + (if (basePath.endsWith("/")) "" else "/") + "#" + uri
+        val dashboardURI = basePath.get() + (if (basePath.get().endsWith("/")) "" else "/") + "#" + uri
+
         @Language("html")
         val response = """
         <html lang="en">

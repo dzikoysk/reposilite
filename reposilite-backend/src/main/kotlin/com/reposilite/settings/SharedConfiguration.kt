@@ -6,8 +6,8 @@ import com.reposilite.shared.Validator
 import net.dzikoysk.cdn.entity.Contextual
 import net.dzikoysk.cdn.entity.Description
 import net.dzikoysk.cdn.entity.DeserializationHandler
-import net.dzikoysk.cdn.model.MutableReference
 import net.dzikoysk.cdn.model.mutableReference
+import net.dzikoysk.cdn.model.reference
 import panda.utilities.StringUtils
 import picocli.CommandLine.Command
 import picocli.CommandLine.Option
@@ -22,48 +22,48 @@ class SharedConfiguration : Serializable, DeserializationHandler<SharedConfigura
     @Description("")
     @Description("# Repository id used in Maven repository configuration")
     @JvmField
-    var id = "reposilite-repository"
+    val id = mutableReference("reposilite-repository")
 
     @Description("# Repository title")
     @JvmField
-    var title = "Reposilite Repository"
+    val title = mutableReference("Reposilite Repository")
 
     @Description("# Repository description")
     @JvmField
-    var description = "Public Maven repository hosted through the Reposilite"
+    val description = mutableReference("Public Maven repository hosted through the Reposilite")
 
     @Description("# Link to organization's website")
     @JvmField
-    var organizationWebsite = "https://reposilite.com"
+    val organizationWebsite = mutableReference("https://reposilite.com")
 
     @Description("# Link to organization's logo")
     @JvmField
-    var organizationLogo = "https://avatars.githubusercontent.com/u/88636591"
+    val organizationLogo = mutableReference("https://avatars.githubusercontent.com/u/88636591")
 
     @Description("# The Internet Content Provider License (also known as Bei'An)")
     @Description("# Web services in China require ICP license, a permit issued by the Chinese government to permit China-based websites to operate in China.")
     @Description("# In order to fulfill the conditions, you should apply for ICP license from your service provider and fill in this parameter.")
     @JvmField
-    var icpLicense = ""
+    val icpLicense = mutableReference("")
 
     @Description("# Enable default frontend with dashboard")
     @JvmField
-    var frontend = true
+    val frontend = reference(true)
 
     @Description("# Enable Swagger (/swagger-docs) and Swagger UI (/swagger)")
     @JvmField
-    var swagger = false
+    val swagger = reference(false)
 
     @Description("# Custom base path")
     @JvmField
-    var basePath = "/"
+    val basePath = mutableReference("/")
 
     /* Repository properties */
 
     @Description("")
     @Description("# List of supported Maven repositories")
     @JvmField
-    var repositories: MutableReference<Map<String, RepositoryConfiguration>> = mutableReference(mapOf(
+    val repositories = mutableReference(mapOf(
         "releases" to RepositoryConfiguration(),
         "snapshots" to RepositoryConfiguration(),
         "private" to RepositoryConfiguration().also { it.visibility = PRIVATE }
@@ -153,10 +153,10 @@ class SharedConfiguration : Serializable, DeserializationHandler<SharedConfigura
     var forwardedIp = "X-Forwarded-For"
 
     override fun handle(sharedConfiguration: SharedConfiguration): SharedConfiguration {
-        // verify base path
-        if (!StringUtils.isEmpty(basePath)) {
-            var formattedBasePath = basePath
+        var formattedBasePath = basePath.get()
 
+        // verify base path
+        if (!StringUtils.isEmpty(formattedBasePath)) {
             if (!formattedBasePath.startsWith("/")) {
                 formattedBasePath = "/$formattedBasePath"
             }
@@ -165,7 +165,7 @@ class SharedConfiguration : Serializable, DeserializationHandler<SharedConfigura
                 formattedBasePath += "/"
             }
 
-            this.basePath = formattedBasePath
+            this.basePath.update(formattedBasePath)
         }
 
         return this

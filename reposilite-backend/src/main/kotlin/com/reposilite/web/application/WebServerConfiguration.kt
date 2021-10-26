@@ -96,10 +96,10 @@ internal object WebServerConfiguration {
     }
 
     private fun configureOpenApi(sharedConfiguration: SharedConfiguration, config: JavalinConfig) {
-        if (sharedConfiguration.swagger) {
-            val openApiConfiguration = OpenApiConfiguration()
-            openApiConfiguration.title = sharedConfiguration.title
-            openApiConfiguration.description = sharedConfiguration.description
+        if (sharedConfiguration.swagger.get()) {
+            val openApiConfiguration = OpenApiConfiguration() // TODO: Support dynamic configuration of Swagger integration
+            openApiConfiguration.title = sharedConfiguration.title.get()
+            openApiConfiguration.description = sharedConfiguration.description.get()
             openApiConfiguration.version = VERSION
             config.registerPlugin(OpenApiPlugin(openApiConfiguration))
 

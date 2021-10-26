@@ -37,7 +37,7 @@ internal object FrontendWebConfiguration : WebConfiguration {
 
     fun createFacade(localConfiguration: LocalConfiguration, sharedConfiguration: SharedConfiguration): FrontendFacade =
         FrontendFacade(
-            localConfiguration.cacheContent.get(),
+            localConfiguration.cacheContent,
             sharedConfiguration.basePath,
             sharedConfiguration.id,
             sharedConfiguration.title,
@@ -57,7 +57,7 @@ internal object FrontendWebConfiguration : WebConfiguration {
     }
 
     override fun routing(reposilite: Reposilite): Set<ReposiliteRoutes> = mutableSetOf<ReposiliteRoutes>().also {
-        if (reposilite.sharedConfiguration.frontend) {
+        if (reposilite.sharedConfiguration.frontend.get()) {
             it.add(ResourcesFrontendHandler(reposilite.frontendFacade, FRONTEND_DIRECTORY))
         }
 
