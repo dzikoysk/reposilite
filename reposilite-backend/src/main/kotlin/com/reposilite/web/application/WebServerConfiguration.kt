@@ -70,25 +70,25 @@ internal object WebServerConfiguration {
     }
 
     private fun configureSSL(reposilite: Reposilite, localConfiguration: LocalConfiguration, config: JavalinConfig, server: Server) {
-        if (localConfiguration.sslEnabled) {
+        if (localConfiguration.sslEnabled.get()) {
             reposilite.logger.info("Enabling SSL connector at ::" + localConfiguration.sslPort)
 
             val sslContextFactory: SslContextFactory = SslContextFactory.Server()
-            sslContextFactory.keyStorePath = localConfiguration.keyStorePath.replace("\${WORKING_DIRECTORY}", reposilite.parameters.workingDirectory.toAbsolutePath().toString())
-            sslContextFactory.setKeyStorePassword(localConfiguration.keyStorePassword)
+            sslContextFactory.keyStorePath = localConfiguration.keyStorePath.get().replace("\${WORKING_DIRECTORY}", reposilite.parameters.workingDirectory.toAbsolutePath().toString())
+            sslContextFactory.setKeyStorePassword(localConfiguration.keyStorePassword.get())
 
             val sslConnector = ServerConnector(server, sslContextFactory)
-            sslConnector.port = localConfiguration.sslPort
+            sslConnector.port = localConfiguration.sslPort.get()
             server.addConnector(sslConnector)
 
-            if (!localConfiguration.enforceSsl) {
+            if (!localConfiguration.enforceSsl.get()) {
                 val standardConnector = ServerConnector(server)
-                standardConnector.port = localConfiguration.port
+                standardConnector.port = localConfiguration.port.get()
                 server.addConnector(standardConnector)
             }
         }
 
-        config.enforceSsl = localConfiguration.enforceSsl
+        config.enforceSsl = localConfiguration.enforceSsl.get()
     }
 
     private fun configureCors(config: JavalinConfig) {
@@ -110,7 +110,7 @@ internal object WebServerConfiguration {
     }
 
     private fun configureDebug(journalist: Journalist, localConfiguration: LocalConfiguration, config: JavalinConfig) {
-        if (localConfiguration.debugEnabled) {
+        if (localConfiguration.debugEnabled.get()) {
             // config.requestCacheSize = FilesUtils.displaySizeToBytesCount(System.getProperty("reposilite.requestCacheSize", "8MB"));
             // Reposilite.getLogger().debug("requestCacheSize set to " + config.requestCacheSize + " bytes");
             journalist.logger.info("Debug enabled")

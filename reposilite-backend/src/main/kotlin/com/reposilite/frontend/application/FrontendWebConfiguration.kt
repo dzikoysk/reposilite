@@ -37,7 +37,7 @@ internal object FrontendWebConfiguration : WebConfiguration {
 
     fun createFacade(localConfiguration: LocalConfiguration, sharedConfiguration: SharedConfiguration): FrontendFacade =
         FrontendFacade(
-            localConfiguration.cacheContent,
+            localConfiguration.cacheContent.get(),
             sharedConfiguration.basePath,
             sharedConfiguration.id,
             sharedConfiguration.title,

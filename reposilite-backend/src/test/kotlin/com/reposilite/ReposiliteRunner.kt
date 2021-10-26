@@ -24,6 +24,7 @@ import com.reposilite.settings.SharedConfiguration.RepositoryConfiguration
 import com.reposilite.settings.application.SettingsWebConfiguration.LOCAL_CONFIGURATION_FILE
 import com.reposilite.settings.application.SettingsWebConfiguration.SHARED_CONFIGURATION_FILE
 import net.dzikoysk.cdn.CdnFactory
+import net.dzikoysk.cdn.model.ReferenceUtils
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
@@ -71,9 +72,9 @@ internal abstract class ReposiliteRunner {
         val cdn = CdnFactory.createStandard()
 
         val localConfiguration = LocalConfiguration().also {
-            it.database = _database
-            it.webThreadPool = 4
-            it.ioThreadPool = 2
+            ReferenceUtils.setValue(it.database, _database)
+            ReferenceUtils.setValue(it.webThreadPool, 4)
+            ReferenceUtils.setValue(it.ioThreadPool, 2)
         }
 
         cdn.render(localConfiguration, reposiliteWorkingDirectory.resolve(LOCAL_CONFIGURATION_FILE))

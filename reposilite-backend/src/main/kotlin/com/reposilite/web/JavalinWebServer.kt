@@ -34,7 +34,7 @@ class JavalinWebServer {
 
     fun start(reposilite: Reposilite) =
         runWithDisabledLogging {
-            this.webThreadPool = QueuedThreadPool(reposilite.localConfiguration.webThreadPool, 2).also {
+            this.webThreadPool = QueuedThreadPool(reposilite.localConfiguration.webThreadPool.get(), 2).also {
                 it.name = "Reposilite | Web (${it.maxThreads}) -"
                 it.start()
             }

@@ -17,6 +17,7 @@ package com.reposilite.settings
 
 import com.reposilite.shared.Validator
 import net.dzikoysk.cdn.entity.Description
+import net.dzikoysk.cdn.model.reference
 import picocli.CommandLine.Command
 import picocli.CommandLine.Option
 import picocli.CommandLine.Parameters
@@ -35,11 +36,11 @@ class LocalConfiguration : Serializable {
     @Description("# Use 0.0.0.0 to accept connections from anywhere." )
     @Description("# 127.0.0.1 will only allow connections from localhost.")
     @JvmField
-    var hostname = "0.0.0.0"
+    val hostname = reference("0.0.0.0")
 
     @Description("# Port to bind")
     @JvmField
-    var port = 80
+    val port = reference(80)
 
     /* Database */
 
@@ -48,7 +49,7 @@ class LocalConfiguration : Serializable {
     @Description("# - sqlite --temporary")
     @Description("# - mysql localhost:3306 database user password")
     @JvmField
-    var database = "sqlite reposilite.db"
+    val database = reference("sqlite reposilite.db")
 
     @Command(name = "sqlite")
     internal class SQLiteDatabaseSettings : Validator() {
@@ -75,24 +76,24 @@ class LocalConfiguration : Serializable {
     @Description("")
     @Description("# Support encrypted connections")
     @JvmField
-    var sslEnabled = false
+    val sslEnabled = reference(false)
 
     @Description("# SSL port to bind")
     @JvmField
-    var sslPort = 443
+    val sslPort = reference(443)
 
     @Description("# Key store file to use.")
     @Description("# You can specify absolute path to the given file or use \${WORKING_DIRECTORY} variable.")
     @JvmField
-    var keyStorePath = "\${WORKING_DIRECTORY}/keystore.jks"
+    val keyStorePath = reference("\${WORKING_DIRECTORY}/keystore.jks")
 
     @Description("# Key store password to use")
     @JvmField
-    var keyStorePassword = ""
+    val keyStorePassword = reference("")
 
     @Description("# Redirect http traffic to https")
     @JvmField
-    var enforceSsl = false
+    val enforceSsl = reference(false)
 
     /* Performance */
 
@@ -112,23 +113,23 @@ class LocalConfiguration : Serializable {
     @Description("# Max amount of threads used by core thread pool (min: 4)")
     @Description("# The web thread pool handles first few steps of incoming http connections, as soon as possible all tasks are redirected to IO thread pool.")
     @JvmField
-    var webThreadPool = 32
+    val webThreadPool = reference(32)
 
     @Description("# IO thread pool handles all tasks that may benefit from non-blocking IO (min: 2)")
     @Description("# Because most of tasks are redirected to IO thread pool, it might be a good idea to keep it at least equal to web thread pool.")
     @JvmField
-    var ioThreadPool = 16
+    val ioThreadPool = reference(16)
 
     @Description("", "# Amount of messages stored in cached logger.")
     @JvmField
-    var cachedLogSize = 100
+    val cachedLogSize = reference(100)
 
     @Description("# Keep processed frontend files in memory to improve response time")
     @JvmField
-    var cacheContent = true
+    val cacheContent = reference(true)
 
     @Description("# Debug mode")
     @JvmField
-    var debugEnabled = false
+    val debugEnabled = reference(false)
 
 }

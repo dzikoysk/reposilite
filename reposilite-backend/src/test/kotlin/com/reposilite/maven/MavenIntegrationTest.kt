@@ -79,7 +79,7 @@ internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
 
     @Test
     fun `should accept deploy request with valid credentials` () {
-        val calls = reposilite.localConfiguration.webThreadPool * 3
+        val calls = reposilite.localConfiguration.webThreadPool.get() * 3
         val completed = CountDownLatch(calls)
 
         repeat(calls) { idx ->

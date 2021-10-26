@@ -74,11 +74,11 @@ class ReposiliteParameters : Runnable {
 
     fun applyLoadedConfiguration(localConfiguration: LocalConfiguration) {
         if (hostname.isEmpty()) {
-            this.hostname = localConfiguration.hostname
+            this.hostname = localConfiguration.hostname.get()
         }
 
         if (port == -1) {
-            this.port = localConfiguration.port
+            this.port = localConfiguration.port.get()
         }
     }
 

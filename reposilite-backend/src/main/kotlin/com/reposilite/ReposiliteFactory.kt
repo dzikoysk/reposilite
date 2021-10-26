@@ -45,11 +45,11 @@ object ReposiliteFactory {
         val localConfiguration = SettingsWebConfiguration.createLocalConfiguration(journalist, parameters)
 
         parameters.applyLoadedConfiguration(localConfiguration)
-        val logger = ReposiliteJournalist(journalist, localConfiguration.cachedLogSize, parameters.testEnv)
+        val logger = ReposiliteJournalist(journalist, localConfiguration.cachedLogSize.get(), parameters.testEnv)
 
         val scheduler = newSingleThreadScheduledExecutor("Reposilite | Scheduler")
-        val ioService = newFixedThreadPool(2, localConfiguration.ioThreadPool, "Reposilite | IO")
-        val database = DatabaseSourceFactory.createConnection(parameters.workingDirectory, localConfiguration.database)
+        val ioService = newFixedThreadPool(2, localConfiguration.ioThreadPool.get(), "Reposilite | IO")
+        val database = DatabaseSourceFactory.createConnection(parameters.workingDirectory, localConfiguration.database.get())
 
         val webServer = JavalinWebServer()
         val webs = mutableListOf<WebConfiguration>()
