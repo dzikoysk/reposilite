@@ -30,7 +30,7 @@ import com.reposilite.settings.SharedConfiguration.RepositoryConfiguration
 import com.reposilite.shared.RemoteClient
 import com.reposilite.web.WebConfiguration
 import com.reposilite.web.application.ReposiliteRoutes
-import net.dzikoysk.cdn.model.MutableReference
+import panda.std.reactive.MutableReference
 import java.nio.file.Path
 
 internal object MavenWebConfiguration : WebConfiguration {

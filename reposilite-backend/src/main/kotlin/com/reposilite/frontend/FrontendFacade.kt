@@ -15,9 +15,9 @@
  */
 package com.reposilite.frontend
 
-import com.reposilite.shared.computed
-import net.dzikoysk.cdn.model.Reference
 import org.intellij.lang.annotations.Language
+import panda.std.reactive.Reference
+import panda.std.reactive.computed
 
 class FrontendFacade internal constructor(
     private val cacheContent: Reference<Boolean>,

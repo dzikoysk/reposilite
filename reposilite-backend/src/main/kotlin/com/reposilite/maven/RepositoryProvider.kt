@@ -2,7 +2,7 @@ package com.reposilite.maven
 
 import com.reposilite.journalist.Journalist
 import com.reposilite.settings.SharedConfiguration.RepositoryConfiguration
-import net.dzikoysk.cdn.model.Reference
+import panda.std.reactive.Reference
 import java.nio.file.Path
 
 internal class RepositoryProvider(

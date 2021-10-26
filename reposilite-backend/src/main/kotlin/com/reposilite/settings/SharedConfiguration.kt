@@ -6,8 +6,8 @@ import com.reposilite.shared.Validator
 import net.dzikoysk.cdn.entity.Contextual
 import net.dzikoysk.cdn.entity.Description
 import net.dzikoysk.cdn.entity.DeserializationHandler
-import net.dzikoysk.cdn.model.mutableReference
-import net.dzikoysk.cdn.model.reference
+import panda.std.reactive.mutableReference
+import panda.std.reactive.reference
 import panda.utilities.StringUtils
 import picocli.CommandLine.Command
 import picocli.CommandLine.Option

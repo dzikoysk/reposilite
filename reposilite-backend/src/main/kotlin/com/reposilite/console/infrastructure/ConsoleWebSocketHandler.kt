@@ -24,10 +24,10 @@ import io.javalin.openapi.OpenApi
 import io.javalin.websocket.WsConfig
 import io.javalin.websocket.WsContext
 import io.javalin.websocket.WsMessageContext
-import net.dzikoysk.cdn.model.Reference
 import panda.std.Result
 import panda.std.Result.error
 import panda.std.Result.ok
+import panda.std.reactive.Reference
 import panda.utilities.StringUtils
 import java.util.function.Consumer
 

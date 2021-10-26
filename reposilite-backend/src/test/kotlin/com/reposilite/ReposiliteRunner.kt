@@ -24,10 +24,10 @@ import com.reposilite.settings.SharedConfiguration.RepositoryConfiguration
 import com.reposilite.settings.application.SettingsWebConfiguration.LOCAL_CONFIGURATION_FILE
 import com.reposilite.settings.application.SettingsWebConfiguration.SHARED_CONFIGURATION_FILE
 import net.dzikoysk.cdn.CdnFactory
-import net.dzikoysk.cdn.model.ReferenceUtils
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
+import panda.std.reactive.ReferenceUtils
 import java.io.File
 import java.util.concurrent.atomic.AtomicInteger
 
