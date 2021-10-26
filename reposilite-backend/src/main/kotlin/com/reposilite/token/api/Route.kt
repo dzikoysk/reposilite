@@ -37,10 +37,12 @@ enum class RoutePermission(val identifier: String, val shortcut: String) {
     companion object {
 
         fun findRoutePermissionByIdentifier(identifier: String): RoutePermission =
-            values().first { it.identifier == identifier }
+            values().firstOrNull { it.identifier == identifier }
+                ?: error("Unknown permission identifier ($identifier) available options (${values().joinToString { it.identifier }})")
 
         fun findRoutePermissionByShortcut(shortcut: String): RoutePermission =
-            values().first { it.shortcut == shortcut }
+            values().firstOrNull { it.shortcut == shortcut }
+                ?: error("Unknown permission shortcut ($shortcut) available options (${values().joinToString { it.shortcut }})")
 
     }
 
