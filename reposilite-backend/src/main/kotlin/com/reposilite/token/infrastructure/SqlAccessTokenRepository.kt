@@ -167,7 +167,7 @@ internal class SqlAccessTokenRepository(private val database: Database) : Access
             .map { Pair(it[PermissionToRouteTable.route], it[PermissionToRouteTable.permission]) }
             .groupBy { it.first }
             .map { (route, permissions) ->
-                Route(route, permissions.map { findRoutePermissionByIdentifier(it.second) }.toSet())
+                Route(route, permissions.map { findRoutePermissionByIdentifier(it.second).get() }.toSet())
             }
             .toSet()
 

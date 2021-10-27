@@ -17,6 +17,7 @@
 package com.reposilite.token.api
 
 import com.fasterxml.jackson.annotation.JsonFormat
+import panda.std.Result
 
 data class Route internal constructor(
     val path: String,
@@ -36,13 +37,13 @@ enum class RoutePermission(val identifier: String, val shortcut: String) {
 
     companion object {
 
-        fun findRoutePermissionByIdentifier(identifier: String): RoutePermission =
-            values().firstOrNull { it.identifier == identifier }
-                ?: error("Unknown permission identifier ($identifier) available options (${values().joinToString { it.identifier }})")
+        fun findRoutePermissionByIdentifier(identifier: String): Result<RoutePermission, String> =
+            Result.ok(values().firstOrNull { it.identifier == identifier })
+                ?: Result.error("Unknown permission identifier ($identifier) available options (${values().joinToString { it.identifier }})")
 
-        fun findRoutePermissionByShortcut(shortcut: String): RoutePermission =
-            values().firstOrNull { it.shortcut == shortcut }
-                ?: error("Unknown permission shortcut ($shortcut) available options (${values().joinToString { it.shortcut }})")
+        fun findRoutePermissionByShortcut(shortcut: String): Result<RoutePermission, String> =
+            Result.ok(values().firstOrNull { it.shortcut == shortcut })
+                ?: Result.error("Unknown permission shortcut ($shortcut) available options (${values().joinToString { it.shortcut }})")
 
     }
 

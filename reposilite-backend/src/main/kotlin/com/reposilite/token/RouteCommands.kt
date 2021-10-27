@@ -48,12 +48,14 @@ internal class RouteAdd(private val accessTokenFacade: AccessTokenFacade) : Repo
                         ?: let {
                             context.status = FAILED
                             context.append(
-                                "Unknown permission shortcuts ($permissions) available options (${
+                                "Unknown permission shortcuts (${
+                                    permissions.toCharArray().joinToString()
+                                }) available options (${
                                     RoutePermission.values().joinToString { perm -> perm.shortcut }
                                 })"
                             )
                             return
-                    }
+                        }
 
                     val route = Route(route, mappedPermissions)
                     val updatedToken = updateToken(it.withRoute(route))
@@ -68,7 +70,7 @@ internal class RouteAdd(private val accessTokenFacade: AccessTokenFacade) : Repo
 
     private fun mapPermissions(): Set<RoutePermission>? =
         permissions.toCharArray()
-            .map { runCatching { RoutePermission.findRoutePermissionByShortcut(it.toString()) }.getOrNull() }
+            .map { RoutePermission.findRoutePermissionByShortcut(it.toString()).orNull() }
             .filterNotNull()
             .toSet()
             .takeIf { it.isNotEmpty() }
