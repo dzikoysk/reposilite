@@ -65,8 +65,8 @@ object ReposiliteFactory {
         val webServer = JavalinWebServer()
         val webs = mutableListOf<WebConfiguration>()
 
-        val configFacade = web(webs, SettingsWebConfiguration) { createFacade(journalist, parameters, database) }
-        val sharedConfiguration = configFacade.loadSharedConfiguration()
+        val settingsFacade = web(webs, SettingsWebConfiguration) { createFacade(journalist, parameters, database) }
+        val sharedConfiguration = settingsFacade.loadSharedConfiguration()
 
         val statusFacade = web(webs, StatusWebConfiguration) { createFacade(parameters.testEnv, webServer) }
         val failureFacade = web(webs, FailureWebConfiguration) { createFacade(journalist) }
@@ -87,6 +87,7 @@ object ReposiliteFactory {
             database = database,
             webServer = webServer,
             webs = webs,
+            settingsFacade = settingsFacade,
             statusFacade = statusFacade,
             failureFacade = failureFacade,
             authenticationFacade = authenticationFacade,

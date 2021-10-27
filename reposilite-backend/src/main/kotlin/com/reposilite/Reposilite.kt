@@ -22,6 +22,7 @@ import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
 import com.reposilite.maven.MavenFacade
 import com.reposilite.settings.LocalConfiguration
+import com.reposilite.settings.SettingsFacade
 import com.reposilite.settings.SharedConfiguration
 import com.reposilite.shared.TimeUtils.getPrettyUptimeInSeconds
 import com.reposilite.shared.peek
@@ -48,6 +49,7 @@ class Reposilite(
     val database: Database,
     val webServer: JavalinWebServer,
     val webs: Collection<WebConfiguration>,
+    val settingsFacade: SettingsFacade,
     val statusFacade: StatusFacade,
     val failureFacade: FailureFacade,
     val authenticationFacade: AuthenticationFacade,
