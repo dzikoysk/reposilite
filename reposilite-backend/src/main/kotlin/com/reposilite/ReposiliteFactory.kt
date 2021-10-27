@@ -35,17 +35,28 @@ import com.reposilite.token.application.AccessTokenWebConfiguration
 import com.reposilite.web.JavalinWebServer
 import com.reposilite.web.WebConfiguration
 import com.reposilite.web.web
+import panda.utilities.console.Effect
 
 object ReposiliteFactory {
 
     fun createReposilite(parameters: ReposiliteParameters): Reposilite =
         createReposilite(parameters, PrintStreamLogger(System.out, System.err, Channel.ALL, false))
 
-    fun createReposilite(parameters: ReposiliteParameters, journalist: Journalist): Reposilite {
-        val localConfiguration = SettingsWebConfiguration.createLocalConfiguration(journalist, parameters)
-
+    fun createReposilite(parameters: ReposiliteParameters, rootJournalist: Journalist): Reposilite {
+        val localConfiguration = SettingsWebConfiguration.createLocalConfiguration(rootJournalist, parameters)
         parameters.applyLoadedConfiguration(localConfiguration)
-        val logger = ReposiliteJournalist(journalist, localConfiguration.cachedLogSize.get(), parameters.testEnv)
+
+        val journalist = ReposiliteJournalist(rootJournalist, localConfiguration.cachedLogSize.get(), parameters.testEnv)
+        journalist.logger.info("")
+        journalist.logger.info("${Effect.GREEN}Reposilite ${Effect.RESET}$VERSION")
+        journalist.logger.info("")
+        journalist.logger.info("--- Environment")
+        journalist.logger.info("Platform: ${System.getProperty("java.version")} (${System.getProperty("os.name")})")
+        journalist.logger.info("Working directory: ${parameters.workingDirectory.toAbsolutePath()}")
+        journalist.logger.info("Threads: ${localConfiguration.webThreadPool.get()} WEB / ${localConfiguration.ioThreadPool.get()} IO")
+        if (parameters.testEnv) journalist.logger.info("Test environment enabled")
+        journalist.logger.info("")
+        journalist.logger.info("--- Initializing context")
 
         val scheduler = newSingleThreadScheduledExecutor("Reposilite | Scheduler")
         val ioService = newFixedThreadPool(2, localConfiguration.ioThreadPool.get(), "Reposilite | IO")
@@ -54,20 +65,20 @@ object ReposiliteFactory {
         val webServer = JavalinWebServer()
         val webs = mutableListOf<WebConfiguration>()
 
-        val configFacade = web(webs, SettingsWebConfiguration) { createFacade(journalist, parameters) }
+        val configFacade = web(webs, SettingsWebConfiguration) { createFacade(journalist, parameters, database) }
         val sharedConfiguration = configFacade.loadSharedConfiguration()
 
         val statusFacade = web(webs, StatusWebConfiguration) { createFacade(parameters.testEnv, webServer) }
-        val failureFacade = web(webs, FailureWebConfiguration) { createFacade(logger) }
-        val consoleFacade = web(webs, ConsoleWebConfiguration) { createFacade(logger, failureFacade) }
-        val mavenFacade = web(webs, MavenWebConfiguration) { createFacade(logger, parameters.workingDirectory, HttpRemoteClient(logger), sharedConfiguration.repositories) }
+        val failureFacade = web(webs, FailureWebConfiguration) { createFacade(journalist) }
+        val consoleFacade = web(webs, ConsoleWebConfiguration) { createFacade(journalist, failureFacade) }
+        val mavenFacade = web(webs, MavenWebConfiguration) { createFacade(journalist, parameters.workingDirectory, HttpRemoteClient(journalist), sharedConfiguration.repositories) }
         val frontendFacade = web(webs, FrontendWebConfiguration) { createFacade(localConfiguration, sharedConfiguration) }
-        val statisticFacade = web(webs, StatisticsWebConfiguration) { createFacade(logger, database) }
+        val statisticFacade = web(webs, StatisticsWebConfiguration) { createFacade(journalist, database) }
         val accessTokenFacade = web(webs, AccessTokenWebConfiguration) { createFacade(database) }
-        val authenticationFacade = web(webs, AuthenticationWebConfiguration) { createFacade(logger, accessTokenFacade) }
+        val authenticationFacade = web(webs, AuthenticationWebConfiguration) { createFacade(journalist, accessTokenFacade) }
 
         return Reposilite(
-            journalist = logger,
+            journalist = journalist,
             parameters = parameters,
             localConfiguration = localConfiguration,
             sharedConfiguration = sharedConfiguration,

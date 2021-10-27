@@ -4,10 +4,10 @@ import java.time.Instant
 
 internal interface SettingsRepository {
 
-    fun saveSharedConfiguration(configuration: String)
+    fun saveConfiguration(name: String, configuration: String)
 
-    fun findSharedConfiguration(): String
+    fun findConfiguration(name: String): String?
 
-    fun findSharedConfigurationUpdateDate(): Instant
+    fun findConfigurationUpdateDate(name: String): Instant?
 
 }

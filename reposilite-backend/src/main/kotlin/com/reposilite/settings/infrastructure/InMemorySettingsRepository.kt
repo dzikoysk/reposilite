@@ -5,17 +5,16 @@ import java.time.Instant
 
 internal class InMemorySettingsRepository : SettingsRepository {
 
-    private var configuration: String = ""
-    private var updateDate: Instant = Instant.ofEpochMilli(0)
+    private val settings = HashMap<String, Pair<Instant, String>>()
 
-    override fun saveSharedConfiguration(configuration: String) {
-        this.configuration = configuration
+    override fun saveConfiguration(name: String, configuration: String) {
+        settings[name] = Pair(Instant.now(), configuration)
     }
 
-    override fun findSharedConfiguration(): String =
-        configuration
+    override fun findConfiguration(name: String): String? =
+        settings[name]?.second
 
-    override fun findSharedConfigurationUpdateDate(): Instant =
-        updateDate
+    override fun findConfigurationUpdateDate(name: String): Instant? =
+        settings[name]?.first
 
 }

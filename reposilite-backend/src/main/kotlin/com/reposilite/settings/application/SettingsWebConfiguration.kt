@@ -6,10 +6,11 @@ import com.reposilite.journalist.Journalist
 import com.reposilite.settings.LocalConfiguration
 import com.reposilite.settings.SettingsFacade
 import com.reposilite.settings.SettingsFileLoader
-import com.reposilite.settings.infrastructure.InMemorySettingsRepository
 import com.reposilite.settings.infrastructure.SettingsEndpoints
+import com.reposilite.settings.infrastructure.SqlSettingsRepository
 import com.reposilite.web.WebConfiguration
 import com.reposilite.web.application.ReposiliteRoutes
+import org.jetbrains.exposed.sql.Database
 
 internal object SettingsWebConfiguration : WebConfiguration {
 
@@ -26,8 +27,8 @@ internal object SettingsWebConfiguration : WebConfiguration {
             LocalConfiguration()
         )
 
-    fun createFacade(journalist: Journalist, parameters: ReposiliteParameters): SettingsFacade {
-        return SettingsFacade(journalist, parameters.workingDirectory, InMemorySettingsRepository())
+    fun createFacade(journalist: Journalist, parameters: ReposiliteParameters, database: Database): SettingsFacade {
+        return SettingsFacade(journalist, parameters.workingDirectory, SqlSettingsRepository(database))
     }
 
     override fun routing(reposilite: Reposilite): Set<ReposiliteRoutes> = setOf(
