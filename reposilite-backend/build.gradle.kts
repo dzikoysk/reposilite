@@ -54,7 +54,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.0-RC")
     // implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
 
-    val expressible = "1.0.18"
+    val expressible = "1.1.1"
     implementation("org.panda-lang:expressible:$expressible")
     implementation("org.panda-lang:expressible-kt:$expressible")
     implementation("org.panda-lang:expressible-kt-coroutines:$expressible")
