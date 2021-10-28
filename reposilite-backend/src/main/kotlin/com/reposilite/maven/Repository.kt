@@ -28,9 +28,9 @@ import java.nio.file.attribute.FileTime
 class Repository internal constructor(
     val name: String,
     val visibility: RepositoryVisibility,
+    val redeployment: Boolean,
     val proxiedHosts: Map<String, ProxiedHostConfiguration>,
     private val storageProvider: StorageProvider,
-    val redeployment: Boolean
 ) {
 
     fun putFile(file: Path, inputStream: InputStream): Result<Unit, ErrorResponse> =

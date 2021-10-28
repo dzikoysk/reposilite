@@ -15,7 +15,11 @@ internal class RepositoryProvider(
 
     init {
         this.repositories = createRepositories(repositoriesSource.get())
-        repositoriesSource.subscribe { this.repositories = createRepositories(it) }
+
+        repositoriesSource.subscribe {
+            repositories.forEach { (_, repository) -> repository.shutdown() }
+            this.repositories = createRepositories(it)
+        }
     }
 
     private fun createRepositories(repositoriesConfiguration: Map<String, RepositoryConfiguration>): Map<String, Repository> =

@@ -35,9 +35,9 @@ internal class RepositoryFactory(
         Repository(
             repositoryName,
             repositoryConfiguration.visibility,
+            repositoryConfiguration.redeployment,
             repositoryConfiguration.proxied.associate { createProxiedHostConfiguration(it) },
             createStorageProvider(journalist, workingDirectory.resolve(repositories), repositoryName, repositoryConfiguration.storageProvider),
-            repositoryConfiguration.redeployment
         )
 
     private fun createProxiedHostConfiguration(configurationSource: String): Pair<String, ProxiedHostConfiguration> =
