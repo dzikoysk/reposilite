@@ -170,8 +170,8 @@ internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
             val response = get("$base/proxied/$gav").asString()
 
             // then: service responds with its content
-            assertTrue(response.isSuccess)
             assertEquals(content, response.body)
+            assertTrue(response.isSuccess)
         }
     }
 

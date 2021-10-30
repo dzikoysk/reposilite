@@ -65,6 +65,7 @@ internal abstract class MavenIntegrationSpecification : ReposiliteSpecification(
 
         val application = Javalin.create()
             .events { it.serverStarted { serverStartedJob.complete() } }
+            .head("/$repository/$gav") { ctx -> ctx.result(content) }
             .get("/$repository/$gav") { ctx -> ctx.result(content) }
             .start(proxiedPort)
 
