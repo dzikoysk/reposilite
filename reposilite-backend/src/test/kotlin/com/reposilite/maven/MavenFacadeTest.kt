@@ -31,6 +31,7 @@ import com.reposilite.token.api.RoutePermission.READ
 import com.reposilite.token.api.RoutePermission.WRITE
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
@@ -51,7 +52,10 @@ internal class MavenFacadeTest : MavenSpecification() {
         },
         createRepository("PROXIED") {
             visibility = PUBLIC
-            proxied = mutableListOf("$REMOTE_REPOSITORY --store --auth $REMOTE_AUTH")
+            proxied = mutableListOf(
+                "$REMOTE_REPOSITORY --store --auth $REMOTE_AUTH",
+                "$REMOTE_ALLOWLISTED_REPOSITORY --allow=do.allow"
+            )
         }
     )
 
@@ -209,6 +213,31 @@ internal class MavenFacadeTest : MavenSpecification() {
 
         // then: should return the latest version
         assertOk(listOf("1.0.0", "1.0.1", "1.0.2"), response)
+    }
+
+    @Test
+    fun `should not find an artifact that is not allowed` () {
+        // given: an artifact that is available, but not allowed
+        val file = FileSpec("PROXIED", "/dont/allow", REMOTE_CONTENT)
+
+        // when: the file is requested
+        val response = mavenFacade.findFile(file.toLookupRequest(UNAUTHORIZED))
+
+        // then: no file is found
+        assertTrue(response.isErr)
+    }
+
+    @Test
+    fun `should find allowed artifact in remote repository` () {
+        // given: an artifact that is  both available and allowed
+        val file = FileSpec("PROXIED", "/do/allow", REMOTE_CONTENT)
+
+        // when: the file is requested
+        val response = mavenFacade.findFile(file.toLookupRequest(UNAUTHORIZED))
+
+        // then: the file is found
+        val data = assertOk(response)
+        assertEquals(REMOTE_CONTENT, data.readBytes().decodeToString())
     }
 
 }
