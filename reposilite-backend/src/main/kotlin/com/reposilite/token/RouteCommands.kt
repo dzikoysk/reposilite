@@ -44,7 +44,20 @@ internal class RouteAdd(private val accessTokenFacade: AccessTokenFacade) : Repo
         with(accessTokenFacade) {
             getToken(name)
                 ?.let {
-                    val route = Route(route, mapPermissions())
+                    val mappedPermissions = mapPermissions()
+                        ?: let {
+                            context.status = FAILED
+                            context.append(
+                                "Unknown permission shortcuts (${
+                                    permissions.toCharArray().joinToString()
+                                }) available options (${
+                                    RoutePermission.values().joinToString { perm -> perm.shortcut }
+                                })"
+                            )
+                            return
+                        }
+
+                    val route = Route(route, mappedPermissions)
                     val updatedToken = updateToken(it.withRoute(route))
                     context.append("Route $route has been added to token ${updatedToken.name}")
                 }
@@ -55,11 +68,12 @@ internal class RouteAdd(private val accessTokenFacade: AccessTokenFacade) : Repo
         }
     }
 
-    private fun mapPermissions(): Set<RoutePermission> =
+    private fun mapPermissions(): Set<RoutePermission>? =
         permissions.toCharArray()
-            .map { RoutePermission.findRoutePermissionByShortcut(it.toString()) }
+            .map { RoutePermission.findRoutePermissionByShortcut(it.toString()).orNull() }
+            .filterNotNull()
             .toSet()
-
+            .takeIf { it.isNotEmpty() }
 }
 
 @Command(name = "route-remove", description = ["Remove route from access token"])
