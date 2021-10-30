@@ -42,7 +42,7 @@ internal object SettingsWebConfiguration : WebConfiguration {
     }
 
     override fun routing(reposilite: Reposilite): Set<ReposiliteRoutes> = setOf(
-        SettingsEndpoints()
+        SettingsEndpoints(reposilite.settingsFacade )
     )
 
 }

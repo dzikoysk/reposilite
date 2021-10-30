@@ -32,7 +32,9 @@ internal class ProxyService(private val remoteClient: RemoteClient) {
 
     fun findRemoteDetails(repository: Repository, gav: String): Result<out FileDetails, ErrorResponse> =
         searchInRemoteRepositories(repository) { host, config ->
-            remoteClient.head("$host/$gav", config.authorization, config.connectTimeout, config.readTimeout)
+            val response = remoteClient.head("$host/$gav", config.authorization, config.connectTimeout, config.readTimeout)
+
+            response
         }
 
     fun findRemoteFile(repository: Repository, gav: String): Result<out InputStream, ErrorResponse> =

@@ -15,7 +15,7 @@ internal class SharedConfigurationService(
     private val settingsRepository: SettingsRepository
 ) {
 
-    private val sharedConfiguration = SharedConfiguration()
+    internal val sharedConfiguration = SharedConfiguration()
     private var fileUpdateTime = Instant.ofEpochMilli(0)
     private var databaseUpdateTime = Instant.ofEpochMilli(0)
 

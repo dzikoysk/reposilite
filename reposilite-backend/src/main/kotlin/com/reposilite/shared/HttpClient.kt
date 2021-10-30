@@ -80,7 +80,7 @@ class HttpRemoteClient(private val journalist: Journalist) : RemoteClient {
                     ?: ContentType.APPLICATION_OCTET_STREAM
 
                 DocumentInfo(
-                    uri.toPath().getSimpleName(),
+                    uri.substring(uri.lastIndexOf('/') + 1),
                     contentType,
                     contentLength
                 ).asSuccess()

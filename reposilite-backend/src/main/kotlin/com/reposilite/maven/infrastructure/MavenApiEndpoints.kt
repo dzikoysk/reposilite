@@ -82,7 +82,7 @@ class MavenApiEndpoints(private val mavenFacade: MavenFacade) : ReposiliteRoutes
     )
     private val findVersions = ReposiliteRoute("/api/maven/versions/{repository}/<gav>", GET) {
         accessed {
-            response = mavenFacade.findVersions(LookupRequest(this, requireParameter("repository"), requireParameter("gav")))
+            response = mavenFacade.findVersions(LookupRequest(this, requiredParameter("repository"), requiredParameter("gav")))
         }
     }
 
@@ -97,7 +97,7 @@ class MavenApiEndpoints(private val mavenFacade: MavenFacade) : ReposiliteRoutes
     )
     private val findLatest = ReposiliteRoute("/api/maven/latest/{repository}/<gav>", GET) {
         accessed {
-            response = mavenFacade.findLatest(LookupRequest(this, requireParameter("repository"), requireParameter("gav")))
+            response = mavenFacade.findLatest(LookupRequest(this, requiredParameter("repository"), requiredParameter("gav")))
         }
     }
 
