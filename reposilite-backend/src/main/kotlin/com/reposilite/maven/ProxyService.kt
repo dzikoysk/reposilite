@@ -22,6 +22,8 @@ import com.reposilite.shared.RemoteClient
 import com.reposilite.shared.firstOrErrors
 import com.reposilite.shared.toPath
 import com.reposilite.web.http.ErrorResponse
+import com.reposilite.web.http.errorResponse
+import io.javalin.http.HttpCode.FORBIDDEN
 import io.javalin.http.HttpCode.NOT_FOUND
 import panda.std.Result
 import panda.std.Result.ok
@@ -31,21 +33,21 @@ import java.nio.file.Path
 internal class ProxyService(private val remoteClient: RemoteClient) {
 
     fun findRemoteDetails(repository: Repository, gav: String): Result<out FileDetails, ErrorResponse> =
-        searchInRemoteRepositories(repository) { host, config ->
-            val response = remoteClient.head("$host/$gav", config.authorization, config.connectTimeout, config.readTimeout)
-
-            response
+        searchInRemoteRepositories(repository, gav) { host, config ->
+            remoteClient.head("$host/$gav", config.authorization, config.connectTimeout, config.readTimeout)
         }
 
     fun findRemoteFile(repository: Repository, gav: String): Result<out InputStream, ErrorResponse> =
-        searchInRemoteRepositories(repository) { host, config ->
+        searchInRemoteRepositories(repository, gav) { host, config ->
             remoteClient.get("$host/$gav", config.authorization, config.connectTimeout, config.readTimeout)
                 .flatMap { data -> if (config.store) storeFile(repository, gav.toPath(), data) else ok(data) }
                 .mapErr { error -> error.updateMessage { "$host: $it" } }
         }
 
-    private fun <V> searchInRemoteRepositories(repository: Repository, fetch: (String, ProxiedHostConfiguration) -> Result<out V, ErrorResponse>): Result<out V, ErrorResponse> =
+    private fun <V> searchInRemoteRepositories(repository: Repository, gav: String, fetch: (String, ProxiedHostConfiguration) -> Result<out V, ErrorResponse>): Result<out V, ErrorResponse> =
         repository.proxiedHosts.asSequence()
+            .filter {(_, config) -> config.allowedGroups.isEmpty() ||
+                    config.allowedGroups.map{ it.replace('.','/') }.any { gav.startsWith("/$it") }}
             .map { (host, config) -> fetch(host, config) }
             .firstOrErrors()
             .mapErr { errors -> ErrorResponse(NOT_FOUND, errors.joinToString(" -> ") { "(${it.status}: ${it.message})" }) }

@@ -46,6 +46,7 @@ internal abstract class MavenSpecification {
     protected companion object {
         val UNAUTHORIZED: AccessToken? = null
         const val REMOTE_REPOSITORY = "https://domain.com/releases"
+        const val REMOTE_ALLOWLISTED_REPOSITORY = "https://example.com/allowrepo"
         const val REMOTE_AUTH = "panda@secret"
         const val REMOTE_CONTENT = "content"
     }
@@ -62,7 +63,13 @@ internal abstract class MavenSpecification {
         val logger = InMemoryLogger()
         val remoteClient = FakeRemoteClient(
             headHandler = { uri, credentials, _, _ ->
-                if (uri.startsWith(REMOTE_REPOSITORY) && REMOTE_AUTH == credentials)
+                if (uri.startsWith(REMOTE_REPOSITORY) && REMOTE_AUTH == credentials && !uri.endsWith("/allow"))
+                    DocumentInfo(
+                        uri.replace(":", "").toPath().getSimpleName(),
+                        ContentType.TEXT_XML,
+                        UNKNOWN_LENGTH,
+                    ).asSuccess()
+                else if (uri.startsWith(REMOTE_ALLOWLISTED_REPOSITORY) && uri.endsWith("/allow"))
                     DocumentInfo(
                         uri.replace(":", "").toPath().getSimpleName(),
                         ContentType.TEXT_XML,
@@ -72,7 +79,9 @@ internal abstract class MavenSpecification {
                     notFoundError("Not found")
             },
             getHandler = { uri, credentials, _, _ ->
-                if (uri.startsWith(REMOTE_REPOSITORY) && REMOTE_AUTH == credentials)
+                if (uri.startsWith(REMOTE_REPOSITORY) && REMOTE_AUTH == credentials && !uri.endsWith("/allow"))
+                    REMOTE_CONTENT.byteInputStream().asSuccess()
+                else if (uri.startsWith(REMOTE_ALLOWLISTED_REPOSITORY) && uri.endsWith("/allow"))
                     REMOTE_CONTENT.byteInputStream().asSuccess()
                 else
                     notFoundError("Not found")
