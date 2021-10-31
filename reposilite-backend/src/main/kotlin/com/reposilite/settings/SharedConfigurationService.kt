@@ -42,17 +42,17 @@ internal class SharedConfigurationService(
 
     fun resolveConfiguration(name: String): Result<SettingsResponse, ErrorResponse> =
         when (name) {
-            "shared.configuration.cdn" -> SettingsResponse(APPLICATION_CDN, standard.render(sharedConfiguration)).asSuccess()
-            "shared.configuration.json" -> SettingsResponse(APPLICATION_JSON, CdnFactory.createJsonLike().render(sharedConfiguration)).asSuccess()
-            "shared.configuration.yaml" -> SettingsResponse(APPLICATION_YAML, CdnFactory.createYamlLike().render(sharedConfiguration)).asSuccess()
+            "configuration.shared.cdn" -> SettingsResponse(APPLICATION_CDN, standard.render(sharedConfiguration)).asSuccess()
+            "configuration.shared.json" -> SettingsResponse(APPLICATION_JSON, CdnFactory.createJsonLike().render(sharedConfiguration)).asSuccess()
+            "configuration.shared.yaml" -> SettingsResponse(APPLICATION_YAML, CdnFactory.createYamlLike().render(sharedConfiguration)).asSuccess()
             else -> notFoundError("Unsupported configuration $name")
         }
 
     fun updateConfiguration(request: SettingsUpdateRequest): Result<Unit, ErrorResponse> =
         when (request.name) {
-            "shared.configuration.cdn" -> standard.validateAndLoad(request.content, SharedConfiguration(), sharedConfiguration)
-            "shared.configuration.json" -> CdnFactory.createJsonLike().validateAndLoad(request.content, SharedConfiguration(), sharedConfiguration)
-            "shared.configuration.yaml" -> CdnFactory.createYamlLike().validateAndLoad(request.content, SharedConfiguration(), sharedConfiguration)
+            "configuration.shared.cdn" -> standard.validateAndLoad(request.content, SharedConfiguration(), sharedConfiguration)
+            "configuration.shared.json" -> CdnFactory.createJsonLike().validateAndLoad(request.content, SharedConfiguration(), sharedConfiguration)
+            "configuration.shared.yaml" -> CdnFactory.createYamlLike().validateAndLoad(request.content, SharedConfiguration(), sharedConfiguration)
             else -> notFoundError("Unsupported configuration ${request.name}")
         }.peek {
             updateSources()

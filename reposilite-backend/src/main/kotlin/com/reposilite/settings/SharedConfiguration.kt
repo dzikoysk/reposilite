@@ -84,7 +84,7 @@ class SharedConfiguration : Serializable, DeserializationHandler<SharedConfigura
         @Description("# Used storage type. Supported storage providers:")
         @Description("# > File system (local) provider. Supported flags:")
         @Description("# --quota 10GB = control the maximum amount of data stored in this repository. Supported formats: 90%, 500MB, 10GB (optional, by default: unlimited)")
-        @Description("# --mount /mnt/releases = use custom directory to locate the repository data (optional, by default repositories are stored in repositories/{name} directory)")
+        @Description("# --mount /mnt/releases = use custom directory to locate the repository data (optional, by default it's './repositories/{name}')")
         @Description("# Example usage:")
         @Description("# storageProvider: fs --quota 50GB")
         @Description("# > S3 provider. Supported flags:")

@@ -31,6 +31,15 @@ const [
 const application = express()
 expressWs(application)
 
+let sharedConfiguration = `
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+#      Reposilite :: Shared      #
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+# Repository id used in Maven repository configuration
+id: reposilite-repository
+`.trim()
+
 application
   .get('/', (req, res) =>
     res.send('Reposilite stub API')
@@ -39,7 +48,72 @@ application
     console.log('Requested fake ' + req.method + ' ' + req.url)
     res.setHeader('Access-Control-Allow-Origin', '*')
     res.setHeader('Access-Control-Allow-Headers', '*')
+    res.setHeader('Access-Control-Allow-Methods', 'PUT, POST, GET, HEAD, DELETE, OPTIONS');
     next()
+  })
+  .use(express.text())
+  .get('/api/maven/details/snapshots', respond(
+    createDirectoryDetails('/snapshot', [])
+  ))
+  .get('/api/maven/details/private', (req, res) => {
+    authorized(req,
+      () => res.send(createDirectoryDetails('/private', [
+        createDirectoryDetails("something")
+      ])),
+      () => invalidCredentials(res)
+    )
+  })
+  .get('/api/maven/details/releases', respond(
+    createDirectoryDetails('/releases', [
+      createDirectoryDetails('gav')
+    ])
+  ))
+  .get('/api/maven/details/releases/gav', respond(
+    createDirectoryDetails('/releases/gav', [
+      createDirectoryDetails('1.0.0'),
+      createDirectoryDetails('0.1.0'),
+      createFileDetails('maven-metadata.xml', 'text/xml', 4096)
+    ])
+  ))
+  .get('/api/maven/details/releases/gav/1.0.0', respond(
+    createDirectoryDetails('/releases/gav/1.0.0', [
+      createFileDetails('gav-1.0.0.jar', 'application/jar-archive', 1337)
+    ])
+  ))
+  .get('/api/maven/details/releases/gav/0.1.0', respond(
+    createDirectoryDetails('/releases/gav/0.1.0', [
+      createFileDetails('gav-0.1.0.jar', 'application/jar-archive', 1337)
+    ])
+  ))
+  .get('/releases/gav/1.0.0/gav-1.0.0.jar', respond('content'))
+  .get('/releases/gav/0.1.0/gav-0.1.0.jar', respond('content'))
+  .get('/releases/gav/maven-metadata.xml', respond(`
+  <metadata>
+    <groupId>g.a.v</groupId>
+    <artifactId>gav</artifactId>
+    <versioning>
+      <release>1.0.0</release>
+      <versions>
+        <version>0.1.0</version>
+        <version>1.0.0</version>
+      </versions>
+    </versioning>
+  </metadata>
+  `))
+  .get('/api/settings/content/configuration.shared.cdn', (req, res) => {
+    authorized(req,
+      () => res.send(sharedConfiguration),
+      () => invalidCredentials(res)
+    )
+  })
+  .put('/api/settings/content/configuration.shared.cdn', (req, res) => {
+    authorized(req,
+      () => {
+        sharedConfiguration = req.body
+        res.send('Success')
+      },
+      () => invalidCredentials(res)
+    )
   })
   .get('/api/auth/me', (req, res) => {
     authorized(req,
@@ -91,54 +165,6 @@ application
     )
     res.send(repositories)
   })
-  .get('/api/maven/details/snapshots', respond(
-    createDirectoryDetails('/snapshot', [])
-  ))
-  .get('/api/maven/details/private', (req, res) => {
-    authorized(req,
-      () => res.send(createDirectoryDetails('/private', [
-        createDirectoryDetails("something")
-      ])),
-      () => invalidCredentials(res)
-    )
-  })
-  .get('/api/maven/details/releases', respond(
-    createDirectoryDetails('/releases', [
-      createDirectoryDetails('gav')
-    ])
-  ))
-  .get('/api/maven/details/releases/gav', respond(
-    createDirectoryDetails('/releases/gav', [
-      createDirectoryDetails('1.0.0'),
-      createDirectoryDetails('0.1.0'),
-      createFileDetails('maven-metadata.xml', 'text/xml', 4096)
-    ])
-  ))
-  .get('/api/maven/details/releases/gav/1.0.0', respond(
-    createDirectoryDetails('/releases/gav/1.0.0', [
-      createFileDetails('gav-1.0.0.jar', 'application/jar-archive', 1337)
-    ])
-  ))
-  .get('/api/maven/details/releases/gav/0.1.0', respond(
-    createDirectoryDetails('/releases/gav/0.1.0', [
-      createFileDetails('gav-0.1.0.jar', 'application/jar-archive', 1337)
-    ])
-  ))
-  .get('/releases/gav/1.0.0/gav-1.0.0.jar', respond('content'))
-  .get('/releases/gav/0.1.0/gav-0.1.0.jar', respond('content'))
-  .get('/releases/gav/maven-metadata.xml', respond(`
-  <metadata>
-    <groupId>g.a.v</groupId>
-    <artifactId>gav</artifactId>
-    <versioning>
-      <release>1.0.0</release>
-      <versions>
-        <version>0.1.0</version>
-        <version>1.0.0</version>
-      </versions>
-    </versioning>
-  </metadata>
-  `))
   .get('*', (req, res) => res.status(404).send({
     status: 404,
     message: 'Not found'

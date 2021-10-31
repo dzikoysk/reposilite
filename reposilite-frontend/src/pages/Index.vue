@@ -39,8 +39,11 @@
           <tab-panel :val="'Endpoints'">
             <Endpoints/>
           </tab-panel>
-          <tab-panel :val="'Console'" v-if="consoleEnabled">
+          <tab-panel :val="'Console'" v-if="isManager">
             <Console :selectedTab="selectedTab" />
+          </tab-panel>
+           <tab-panel :val="'Configuration'" v-if="isManager">
+            <Configuration :selectedTab="selectedTab" :token="token" />
           </tab-panel>
         </tab-panels>
       </div>
@@ -53,11 +56,12 @@ import { computed, reactive, watchEffect } from 'vue'
 import Header from '../components/header/Header.vue'
 import Browser from '../components/browser/Browser.vue'
 import Endpoints from '../components/Endpoints.vue'
+import Configuration from '../components/Configuration.vue'
 import Console from '../components/Console.vue'
 import useSession from '../store/session'
 
 export default {
-  components: { Header, Browser, Endpoints, Console },
+  components: { Header, Browser, Endpoints, Console, Configuration },
   props: {
     qualifier: {
       type: Object,
@@ -76,34 +80,34 @@ export default {
     const qualifier = props.qualifier
     const token = props.token
     const session = props.session
-    const { isManager } = useSession()
 
-    const selectedTab = reactive({
-      value: localStorage.getItem('selectedTab') || 'Overview'
-    })
-
-    watchEffect(() => localStorage.setItem('selectedTab', selectedTab.value))
+    const { hasManagerPermission } = useSession()
+    const isManager = computed(() => hasManagerPermission(session.details))
 
     const tabs = [ 
       { name: 'Overview' },
       { name: 'Endpoints' },
-      { name: 'Console', manager: true }
+      { name: 'Console', manager: true },
+      { name: 'Configuration', manager: true },
     ]
+
+    const selectedTab = reactive({
+      value: localStorage.getItem('selectedTab') || 'Overview'
+    })
+    
+    watchEffect(() => localStorage.setItem('selectedTab', selectedTab.value))
 
     const menuTabs = computed(() =>
       tabs
-        .filter(entry => !entry?.manager || isManager(session.details))
+        .filter(entry => !entry?.manager || hasManagerPermission(session.details))
         .map(entry => entry.name)
     )
-
-    const consoleEnabled = computed(() => menuTabs.value.some(element => element == 'Console'))
 
     return {
       qualifier,
       token,
-      isManager,
       menuTabs,
-      consoleEnabled,
+      isManager,
       selectedTab
     }
   }

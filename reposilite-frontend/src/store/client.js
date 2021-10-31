@@ -40,10 +40,16 @@ const createClient = (defaultName, defaultSecret) => {
     }
   })
   
-  const get = (endpoint, credentials) => {
-    credentials = credentials || defaultAuthorization()
-    return axios.get(createURL(endpoint), { ...credentials })
-  }
+  const get = (endpoint, credentials) =>
+    axios.get(createURL(endpoint), { ...(credentials || defaultAuthorization()) })
+
+  const put = (endpoint, content, credentials) =>
+    axios.put(createURL(endpoint), content, {
+      headers: {
+        'Content-Type': 'text/plain',
+        ...(credentials || defaultAuthorization()).headers
+      },
+    })
 
   const client = {
     auth: {
@@ -59,6 +65,14 @@ const createClient = (defaultName, defaultSecret) => {
       },
       details(gav) {
         return get(`/api/maven/details/${gav || ''}`)
+      }
+    },
+    settings: {
+      content(name) {
+        return get(`/api/settings/content/${name}`)
+      },
+      updateContent(name, content) {
+        return put(`/api/settings/content/${name}`, content)
       }
     }
   }
