@@ -65,14 +65,12 @@ object ReposiliteFactory {
         val webServer = JavalinWebServer()
         val webs = mutableListOf<WebConfiguration>()
 
-        val settingsFacade = web(webs, SettingsWebConfiguration) { createFacade(journalist, parameters, database) }
-        val sharedConfiguration = settingsFacade.loadSharedConfiguration()
-
+        val settingsFacade = web(webs, SettingsWebConfiguration) { createFacade(journalist, parameters, localConfiguration, database) }
         val statusFacade = web(webs, StatusWebConfiguration) { createFacade(parameters.testEnv, webServer) }
         val failureFacade = web(webs, FailureWebConfiguration) { createFacade(journalist) }
         val consoleFacade = web(webs, ConsoleWebConfiguration) { createFacade(journalist, failureFacade) }
-        val mavenFacade = web(webs, MavenWebConfiguration) { createFacade(journalist, parameters.workingDirectory, HttpRemoteClient(journalist), sharedConfiguration.repositories) }
-        val frontendFacade = web(webs, FrontendWebConfiguration) { createFacade(localConfiguration, sharedConfiguration) }
+        val mavenFacade = web(webs, MavenWebConfiguration) { createFacade(journalist, parameters.workingDirectory, HttpRemoteClient(journalist), settingsFacade.sharedConfiguration.repositories) }
+        val frontendFacade = web(webs, FrontendWebConfiguration) { createFacade(localConfiguration, settingsFacade) }
         val statisticFacade = web(webs, StatisticsWebConfiguration) { createFacade(journalist, database) }
         val accessTokenFacade = web(webs, AccessTokenWebConfiguration) { createFacade(database) }
         val authenticationFacade = web(webs, AuthenticationWebConfiguration) { createFacade(journalist, accessTokenFacade) }
@@ -80,8 +78,6 @@ object ReposiliteFactory {
         return Reposilite(
             journalist = journalist,
             parameters = parameters,
-            localConfiguration = localConfiguration,
-            sharedConfiguration = sharedConfiguration,
             ioService = ioService,
             scheduler = scheduler,
             database = database,

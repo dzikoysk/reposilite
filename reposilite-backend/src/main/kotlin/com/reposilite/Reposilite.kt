@@ -42,8 +42,6 @@ const val VERSION = "3.0.0-alpha.7"
 class Reposilite(
     val journalist: ReposiliteJournalist,
     val parameters: ReposiliteParameters,
-    val localConfiguration: LocalConfiguration,
-    val sharedConfiguration: SharedConfiguration,
     val ioService: ExecutorService,
     val scheduler: ScheduledExecutorService,
     val database: Database,

@@ -41,8 +41,8 @@ internal object WebServerConfiguration {
         val server = Server(webThreadPool)
         config.server { server }
 
-        val localConfiguration = reposilite.localConfiguration
-        val sharedConfiguration = reposilite.sharedConfiguration
+        val localConfiguration = reposilite.settingsFacade.localConfiguration
+        val sharedConfiguration = reposilite.settingsFacade.sharedConfiguration
 
         configureJavalin(config, sharedConfiguration)
         configureJsonSerialization(config)

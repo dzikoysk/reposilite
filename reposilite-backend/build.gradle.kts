@@ -36,19 +36,6 @@ application {
     mainClass.set("com.reposilite.ReposiliteLauncherKt")
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
-    withJavadocJar()
-    withSourcesJar()
-}
-
-tasks.withType<KotlinCompile>().configureEach {
-    kotlinOptions {
-        languageVersion = "1.6"
-    }
-}
-
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect:1.6.0-RC")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.0-RC")
@@ -143,13 +130,28 @@ dependencies {
 }
 
 repositories {
-//    maven {
-//        url = uri("http://localhost/releases")
-//        isAllowInsecureProtocol = true
-//    }
+    // maven {
+    //     url = uri("http://localhost/releases")
+    //     isAllowInsecureProtocol = true
+    // }
+    // mavenCentral()
     maven { url = uri("https://repo.panda-lang.org/releases") }
     maven { url = uri("https://jitpack.io") }
-//    mavenCentral()
+    mavenCentral()
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+
+    withJavadocJar()
+    withSourcesJar()
+}
+
+tasks.withType<KotlinCompile>().configureEach {
+    kotlinOptions {
+        languageVersion = "1.6"
+    }
 }
 
 publishing {
@@ -210,10 +212,6 @@ kapt {
     }
 }
 
-jacoco {
-    toolVersion = "0.8.7"
-}
-
 tasks.withType<Test> {
     testLogging {
         events(
@@ -247,6 +245,10 @@ tasks.withType<Test> {
     }
 
     useJUnitPlatform()
+}
+
+jacoco {
+    toolVersion = "0.8.7"
 }
 
 tasks.test {

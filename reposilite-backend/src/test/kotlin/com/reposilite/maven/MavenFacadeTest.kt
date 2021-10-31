@@ -54,7 +54,7 @@ internal class MavenFacadeTest : MavenSpecification() {
             visibility = PUBLIC
             proxied = mutableListOf(
                 "$REMOTE_REPOSITORY --store --auth $REMOTE_AUTH",
-                "$REMOTE_ALLOWLISTED_REPOSITORY --allow=do.allow"
+                "$REMOTE_REPOSITORY_WITH_WHITELIST --allow=do.allow"
             )
         }
     )

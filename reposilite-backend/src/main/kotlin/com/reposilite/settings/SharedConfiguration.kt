@@ -123,9 +123,10 @@ class SharedConfiguration : Serializable, DeserializationHandler<SharedConfigura
         @Description("# --store - Reposilite can store proxied artifacts locally to reduce response time and improve stability")
         @Description("# --connectTimeout=<seconds> - How long Reposilite can wait for establishing the connection with a remote host (default: 3s)")
         @Description("# --readTimeout=<seconds> - How long Reposilite can read data from remote proxy. (default: 15s)")
+        @Description("# --allow=<group prefix> - An allowed artifact group. Can be specified multiple times. If none are given, all artifacts can be obtained from this proxy.")
         @Description("# Example usage:")
         @Description("# proxied [")
-        @Description("#   https://repo.panda-lang.org/releases --store --connectTimeout=3 --readTimeout=15 --auth user:token")
+        @Description("#   https://repo.panda-lang.org/releases --store --connectTimeout=3 --readTimeout=15 --auth user:token --allow=com.reposilite")
         @Description("# ]")
         @JvmField
         var proxied = mutableListOf<String>()
@@ -140,6 +141,8 @@ class SharedConfiguration : Serializable, DeserializationHandler<SharedConfigura
             var readTimeout = 15
             @Option(names = ["--authorization", "--auth"])
             var authorization: String? = null
+            @Option(names = ["--allow", "--allowGroup"], arity = "0..*")
+            var allowedGroups = emptyArray<String>()
         }
 
     }

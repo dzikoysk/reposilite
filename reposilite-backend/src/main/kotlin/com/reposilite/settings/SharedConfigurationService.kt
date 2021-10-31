@@ -1,8 +1,20 @@
 package com.reposilite.settings
 
 import com.reposilite.journalist.Journalist
-import com.reposilite.settings.application.SettingsWebConfiguration
+import com.reposilite.settings.SettingsFileLoader.validateAndLoad
+import com.reposilite.settings.api.SettingsResponse
+import com.reposilite.settings.api.SettingsUpdateRequest
+import com.reposilite.settings.application.SettingsWebConfiguration.SHARED_CONFIGURATION_FILE
+import com.reposilite.web.http.ErrorResponse
+import com.reposilite.web.http.notFoundError
+import io.javalin.http.ContentType.APPLICATION_CDN
+import io.javalin.http.ContentType.APPLICATION_JSON
+import io.javalin.http.ContentType.APPLICATION_YAML
+import net.dzikoysk.cdn.Cdn
 import net.dzikoysk.cdn.CdnFactory
+import net.dzikoysk.cdn.source.Source
+import panda.std.Result
+import panda.std.asSuccess
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption.TRUNCATE_EXISTING
@@ -11,71 +23,72 @@ import java.time.Instant
 
 internal class SharedConfigurationService(
     private val journalist: Journalist,
+    private val settingsRepository: SettingsRepository,
     private val workingDirectory: Path,
-    private val settingsRepository: SettingsRepository
+    private val sharedFile: Path = workingDirectory.resolve(SHARED_CONFIGURATION_FILE),
+    private val standard: Cdn = CdnFactory.createStandard(),
+    internal val sharedConfiguration: SharedConfiguration = SharedConfiguration()
 ) {
 
-    internal val sharedConfiguration = SharedConfiguration()
-    private var fileUpdateTime = Instant.ofEpochMilli(0)
     private var databaseUpdateTime = Instant.ofEpochMilli(0)
 
-    fun verifySharedConfiguration() {
-        val remoteUpdateTime = settingsRepository.findConfigurationUpdateDate(SettingsWebConfiguration.SHARED_CONFIGURATION_FILE)
+    fun synchronizeSharedConfiguration() =
+        settingsRepository.findConfigurationUpdateDate(SHARED_CONFIGURATION_FILE)
+            ?.takeIf { it.isAfter(databaseUpdateTime) }
+            ?.run {
+                databaseUpdateTime = this
+                loadAndUpdate(fromFile = false)
+            }
 
-        if (remoteUpdateTime?.isAfter(databaseUpdateTime) == true) {
-            this.databaseUpdateTime = remoteUpdateTime
-            loadSharedConfigurationFromDatabase()
+    fun resolveConfiguration(name: String): Result<SettingsResponse, ErrorResponse> =
+        when (name) {
+            "shared.configuration.cdn" -> SettingsResponse(APPLICATION_CDN, standard.render(sharedConfiguration)).asSuccess()
+            "shared.configuration.json" -> SettingsResponse(APPLICATION_JSON, CdnFactory.createJsonLike().render(sharedConfiguration)).asSuccess()
+            "shared.configuration.yaml" -> SettingsResponse(APPLICATION_YAML, CdnFactory.createYamlLike().render(sharedConfiguration)).asSuccess()
+            else -> notFoundError("Unsupported configuration $name")
         }
+
+    fun updateConfiguration(request: SettingsUpdateRequest): Result<Unit, ErrorResponse> =
+        when (request.name) {
+            "shared.configuration.cdn" -> standard.validateAndLoad(request.content, SharedConfiguration(), sharedConfiguration)
+            "shared.configuration.json" -> CdnFactory.createJsonLike().validateAndLoad(request.content, SharedConfiguration(), sharedConfiguration)
+            "shared.configuration.yaml" -> CdnFactory.createYamlLike().validateAndLoad(request.content, SharedConfiguration(), sharedConfiguration)
+            else -> notFoundError("Unsupported configuration ${request.name}")
+        }.peek {
+            updateSources()
+        }
+
+    private fun updateSources() {
+        standard.render(sharedConfiguration)
+            .takeIf { it != settingsRepository.findConfiguration(SHARED_CONFIGURATION_FILE) }
+            ?.run { settingsRepository.saveConfiguration(SHARED_CONFIGURATION_FILE, this) }
+
+        standard.render(sharedConfiguration)
+            .takeIf { it != Files.readAllBytes(sharedFile).toString() }
+            ?.run { Files.write(sharedFile, toByteArray(), WRITE, TRUNCATE_EXISTING) }
     }
 
     fun loadSharedConfiguration(): SharedConfiguration =
         sharedConfiguration.also {
-            val sharedConfigurationFile = workingDirectory.resolve(SettingsWebConfiguration.SHARED_CONFIGURATION_FILE)
-            this.fileUpdateTime = Files.getLastModifiedTime(sharedConfigurationFile).toInstant()
-            this.databaseUpdateTime = settingsRepository.findConfigurationUpdateDate(SettingsWebConfiguration.SHARED_CONFIGURATION_FILE) ?: Instant.ofEpochMilli(0)
-
-            if (databaseUpdateTime?.isBefore(fileUpdateTime) == true) {
-                loadSharedConfigurationFromFile()
-            } else try {
-                loadSharedConfigurationFromDatabase()
-            } catch (exception: Exception) {
-                journalist.logger.error("Cannot load configuration from database")
-                journalist.logger.exception(exception)
-                journalist.logger.error("Restoring shared configuration from local filesystem")
-                loadSharedConfigurationFromFile()
-            }
+            val sharedConfigurationFile = workingDirectory.resolve(SHARED_CONFIGURATION_FILE)
+            val fileUpdateTime = Files.getLastModifiedTime(sharedConfigurationFile).toInstant()
+            this.databaseUpdateTime = settingsRepository.findConfigurationUpdateDate(SHARED_CONFIGURATION_FILE) ?: Instant.ofEpochMilli(0)
+            loadAndUpdate(fromFile = databaseUpdateTime?.isBefore(fileUpdateTime) == true)
         }
 
-    private fun loadSharedConfigurationFromFile() {
+    private fun loadAndUpdate(fromFile: Boolean) {
+        if (fromFile) loadFromFile() else loadFromDatabase()
+        updateSources()
+    }
+
+    private fun loadFromFile() {
         journalist.logger.info("Loading shared configuration from local file")
-
-        SettingsFileLoader.initializeAndLoad(
-            journalist,
-            "copy",
-            getSharedFile(),
-            workingDirectory,
-            SettingsWebConfiguration.SHARED_CONFIGURATION_FILE,
-            sharedConfiguration
-        )
-
-        CdnFactory.createStandard().render(sharedConfiguration)
-            .takeIf { it != settingsRepository.findConfiguration(SettingsWebConfiguration.SHARED_CONFIGURATION_FILE) }
-            ?.run { settingsRepository.saveConfiguration(SettingsWebConfiguration.SHARED_CONFIGURATION_FILE, this) }
+        SettingsFileLoader.initializeAndLoad(journalist, "copy", sharedFile, workingDirectory, SHARED_CONFIGURATION_FILE, sharedConfiguration)
     }
 
-    private fun loadSharedConfigurationFromDatabase() {
-        val sharedConfigurationFile = getSharedFile()
-        val standard = CdnFactory.createStandard()
-
+    private fun loadFromDatabase() {
         journalist.logger.info("Loading shared configuration from database")
-        standard.load({ settingsRepository.findConfiguration(SettingsWebConfiguration.SHARED_CONFIGURATION_FILE)!! }, sharedConfiguration)
-
-        standard.render(sharedConfiguration)
-            .takeIf { it != Files.readAllBytes(sharedConfigurationFile).toString() }
-            ?.run { Files.write(sharedConfigurationFile, this.toByteArray(), WRITE, TRUNCATE_EXISTING) }
+        standard.load(Source.of(settingsRepository.findConfiguration(SHARED_CONFIGURATION_FILE)), sharedConfiguration)
     }
-
-    private fun getSharedFile(): Path =
-        workingDirectory.resolve(SettingsWebConfiguration.SHARED_CONFIGURATION_FILE)
 
 }

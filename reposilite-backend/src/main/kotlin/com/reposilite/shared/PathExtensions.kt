@@ -42,26 +42,26 @@ enum class FileType {
     DIRECTORY
 }
 
-fun String.toPath(): Path =
+internal fun String.toPath(): Path =
     Paths.get(this)
 
-fun Path.exists(): Result<Path, ErrorResponse> =
+internal fun Path.exists(): Result<Path, ErrorResponse> =
     once(Files.exists(this), this, ErrorResponse(NOT_FOUND, "File not found: $this"))
 
-fun Path.type(): FileType =
+internal fun Path.type(): FileType =
     if (this.isDirectory()) DIRECTORY else FILE
 
-fun Path.delete(): Result<Unit, ErrorResponse> =
+internal fun Path.delete(): Result<Unit, ErrorResponse> =
     catchIOException {
         exists().map { Files.delete(this) }
     }
 
-fun Path.getLastModifiedTime(): Result<FileTime, ErrorResponse> =
+internal fun Path.getLastModifiedTime(): Result<FileTime, ErrorResponse> =
     catchIOException {
         exists().map { Files.getLastModifiedTime(this) }
     }
 
-fun Path.listFiles(): Result<List<Path>, ErrorResponse> =
+internal fun Path.listFiles(): Result<List<Path>, ErrorResponse> =
     catchIOException {
         exists().map {
             Files.walk(this, 1)
@@ -70,18 +70,18 @@ fun Path.listFiles(): Result<List<Path>, ErrorResponse> =
         }
     }
 
-fun Path.inputStream(): Result<InputStream, ErrorResponse> =
+internal fun Path.inputStream(): Result<InputStream, ErrorResponse> =
     catchIOException {
         exists()
             .filter({ it.isDirectory().not() }, { ErrorResponse(HttpCode.NO_CONTENT, "Requested file is a directory") })
             .map { Files.newInputStream(it) }
     }
 
-fun Path.decodeToString(): Result<String, ErrorResponse> =
+internal fun Path.decodeToString(): Result<String, ErrorResponse> =
     inputStream()
         .map { it.use { input -> input.readBytes().decodeToString() } }
 
-fun Path.size(): Result<Long, ErrorResponse> =
+internal fun Path.size(): Result<Long, ErrorResponse> =
     catchIOException {
         exists().map {
             when (type()) {
@@ -93,14 +93,14 @@ fun Path.size(): Result<Long, ErrorResponse> =
         }
     }
 
-fun Path.append(path: String): Result<Path, IOException> =
+internal fun Path.append(path: String): Result<Path, IOException> =
     path.toNormalizedPath()
         .map { this.safeResolve(it).normalize() }
 
-fun Path.safeResolve(file: Path): Path =
+internal fun Path.safeResolve(file: Path): Path =
     safeResolve(file.toString())
 
-fun Path.safeResolve(file: String): Path =
+internal fun Path.safeResolve(file: String): Path =
     resolve(
         if (file.startsWith(File.separator))
             file.substring(File.separator.length)
@@ -108,13 +108,16 @@ fun Path.safeResolve(file: String): Path =
             file
     )
 
-fun Path.getExtension(): String =
+internal fun Path.getExtension(): String =
     getSimpleName().getExtension()
 
-fun Path.getSimpleName(): String =
+internal fun Path.getSimpleName(): String =
     this.fileName.toString()
 
-fun String.toNormalizedPath(): Result<Path, IOException> =
+internal fun String.getSimpleNameFromUri(): String =
+    this.substring(this.lastIndexOf('/') + 1)
+
+internal fun String.toNormalizedPath(): Result<Path, IOException> =
     normalizedAsUri().map { it.toPath().normalize() }
 
 /**
@@ -127,7 +130,7 @@ fun String.toNormalizedPath(): Result<Path, IOException> =
  *
  * @return the normalized uri
  */
-fun String.normalizedAsUri(): Result<String, IOException> {
+internal fun String.normalizedAsUri(): Result<String, IOException> {
     var normalizedUri = this
 
     if (normalizedUri.contains("..") || normalizedUri.contains(":") || normalizedUri.contains("\\")) {
@@ -145,7 +148,7 @@ fun String.normalizedAsUri(): Result<String, IOException> {
     return ok(normalizedUri)
 }
 
-fun <VALUE> catchIOException(consumer: () -> Result<VALUE, ErrorResponse>): Result<VALUE, ErrorResponse> =
+internal fun <VALUE> catchIOException(consumer: () -> Result<VALUE, ErrorResponse>): Result<VALUE, ErrorResponse> =
     try {
         consumer()
     } catch (ioException: IOException) {

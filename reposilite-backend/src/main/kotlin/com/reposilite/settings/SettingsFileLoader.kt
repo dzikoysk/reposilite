@@ -1,8 +1,13 @@
 package com.reposilite.settings
 
 import com.reposilite.journalist.Journalist
+import com.reposilite.web.http.ErrorResponse
+import com.reposilite.web.http.errorResponse
+import io.javalin.http.HttpCode.BAD_REQUEST
+import net.dzikoysk.cdn.Cdn
 import net.dzikoysk.cdn.CdnFactory
 import net.dzikoysk.cdn.source.Source
+import panda.std.Result
 import java.nio.file.Path
 import kotlin.io.path.readText
 
@@ -33,6 +38,15 @@ internal object SettingsFileLoader {
             configuration
         } catch (exception: Exception) {
             throw IllegalStateException("Cannot load configuration", exception)
+        }
+
+    fun Cdn.validateAndLoad(source: String, testConfiguration: Any, configuration: Any): Result<Unit, ErrorResponse> =
+        try {
+            load(Source.of(source), testConfiguration) // validate
+            load(Source.of(source), configuration)
+            Result.ok(Unit)
+        } catch (exception: Exception) {
+            errorResponse(BAD_REQUEST, "Cannot load configuration: ${exception.message}")
         }
 
 }
