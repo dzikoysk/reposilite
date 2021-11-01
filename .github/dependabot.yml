@@ -3,10 +3,8 @@ updates:
   - package-ecosystem: "gradle"
     directory: "/reposilite-backend"
     schedule:
-      interval: "daily"
-      time: "16:15"
+      interval: "weekly"
   - package-ecosystem: "npm"
     directory: "/reposilite-frontend"
     schedule:
-      interval: "daily"
-      time: "16:15"
+      interval: "weekly"
