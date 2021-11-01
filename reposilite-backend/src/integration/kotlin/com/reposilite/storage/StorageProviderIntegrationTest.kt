@@ -29,7 +29,7 @@ import org.junit.jupiter.api.Test
 import panda.std.ResultAssertions.assertError
 import panda.std.ResultAssertions.assertOk
 
-internal abstract class StorageProviderTest : StorageProviderSpecification() {
+internal abstract class StorageProviderIntegrationTest : StorageProviderSpecification() {
 
     @Test
     fun `should store and return valid resource` () {

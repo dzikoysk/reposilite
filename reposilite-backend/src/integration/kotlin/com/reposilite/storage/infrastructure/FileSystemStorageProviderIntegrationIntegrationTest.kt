@@ -16,19 +16,21 @@
 
 package com.reposilite.storage.infrastructure
 
-import com.reposilite.storage.StorageProviderTest
+import com.reposilite.journalist.backend.InMemoryLogger
+import com.reposilite.storage.StorageProviderFactory
+import com.reposilite.storage.StorageProviderIntegrationTest
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
 
-internal class FileSystemStorageProviderIntegrationTest : StorageProviderTest() {
+internal class FileSystemStorageProviderIntegrationIntegrationTest : StorageProviderIntegrationTest() {
 
     @TempDir
     lateinit var rootDirectory: File
 
     @BeforeEach
     fun setup() {
-        super.storageProvider = FileSystemStorageProviderFactory.of(rootDirectory.toPath(), 1024L * 1024L)
+        super.storageProvider = StorageProviderFactory.createStorageProvider(InMemoryLogger(), rootDirectory.toPath(), "test-storage", "--quota 1MB")
     }
 
 }

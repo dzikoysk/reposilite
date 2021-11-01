@@ -54,7 +54,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.attribute.FileTime
 
-internal class S3StorageProvider(
+class S3StorageProvider(
     private val journalist: Journalist,
     private val s3: S3Client,
     private val bucket: String,

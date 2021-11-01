@@ -35,11 +35,11 @@ class ReposiliteParameters : Runnable {
     var versionInfoRequested = false
 
     @Option(names = ["--working-directory", "-wd"], description = ["Set custom working directory of application instance"])
-    internal var workingDirectoryName = ""
+    var workingDirectoryName = ""
     lateinit var workingDirectory: Path
 
     @Option(names = ["--configuration", "--config", "-cfg"], description = ["Set custom location of configuration file"])
-    internal var configurationFileName = LOCAL_CONFIGURATION_FILE
+    var configurationFileName = LOCAL_CONFIGURATION_FILE
     lateinit var configurationFile: Path
 
     @Option(names = ["--configuration-mode", "-cm"], description = [
@@ -58,7 +58,7 @@ class ReposiliteParameters : Runnable {
     var port = -1
 
     @Option(names = ["--token", "-t"], description = ["Create temporary token with the given credentials in name:secret format", "Created token has all permissions"])
-    internal var tokenEntries = arrayOf<String>()
+    var tokenEntries = arrayOf<String>()
     lateinit var tokens: Collection<CreateAccessTokenRequest>
 
     @Option(names = ["--test-env", "--debug", "-d"], description = ["Enable test mode"])

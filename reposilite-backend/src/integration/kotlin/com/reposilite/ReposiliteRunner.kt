@@ -21,8 +21,6 @@ import com.reposilite.journalist.backend.PrintStreamLogger
 import com.reposilite.settings.LocalConfiguration
 import com.reposilite.settings.SharedConfiguration
 import com.reposilite.settings.SharedConfiguration.RepositoryConfiguration
-import com.reposilite.settings.application.SettingsWebConfiguration.LOCAL_CONFIGURATION_FILE
-import com.reposilite.settings.application.SettingsWebConfiguration.SHARED_CONFIGURATION_FILE
 import net.dzikoysk.cdn.CdnFactory
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -77,7 +75,7 @@ internal abstract class ReposiliteRunner {
             ReferenceUtils.setValue(it.ioThreadPool, 2)
         }
 
-        cdn.render(localConfiguration, reposiliteWorkingDirectory.resolve(LOCAL_CONFIGURATION_FILE))
+        cdn.render(localConfiguration, reposiliteWorkingDirectory.resolve("configuration.local.cdn"))
 
         val sharedConfiguration = SharedConfiguration().also {
             val proxiedConfiguration = RepositoryConfiguration()
@@ -93,7 +91,7 @@ internal abstract class ReposiliteRunner {
             }
         }
 
-        cdn.render(sharedConfiguration, reposiliteWorkingDirectory.resolve(SHARED_CONFIGURATION_FILE))
+        cdn.render(sharedConfiguration, reposiliteWorkingDirectory.resolve("configuration.shared.cdn"))
 
         reposilite = ReposiliteFactory.createReposilite(parameters, logger)
         reposilite.journalist.setVisibleThreshold(Channel.WARN)

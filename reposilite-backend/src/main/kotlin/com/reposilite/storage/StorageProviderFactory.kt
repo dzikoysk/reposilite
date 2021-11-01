@@ -31,7 +31,7 @@ import java.net.URI
 import java.nio.file.Files
 import java.nio.file.Path
 
-internal object StorageProviderFactory {
+object StorageProviderFactory {
 
     fun createStorageProvider(journalist: Journalist, workingDirectory: Path, repositoryName: String, storageDescription: String): StorageProvider =
         when {

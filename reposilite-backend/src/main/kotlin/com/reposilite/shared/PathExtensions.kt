@@ -42,7 +42,7 @@ enum class FileType {
     DIRECTORY
 }
 
-internal fun String.toPath(): Path =
+/* internal */ fun String.toPath(): Path =
     Paths.get(this)
 
 internal fun Path.exists(): Result<Path, ErrorResponse> =
@@ -111,7 +111,7 @@ internal fun Path.safeResolve(file: String): Path =
 internal fun Path.getExtension(): String =
     getSimpleName().getExtension()
 
-internal fun Path.getSimpleName(): String =
+/* internal */ fun Path.getSimpleName(): String =
     this.fileName.toString()
 
 internal fun String.getSimpleNameFromUri(): String =
