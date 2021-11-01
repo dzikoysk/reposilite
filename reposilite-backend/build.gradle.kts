@@ -63,7 +63,7 @@ dependencies {
 
     implementation("net.dzikoysk:exposed-upsert:1.0.3")
     implementation("org.xerial:sqlite-jdbc:3.36.0.3")
-    implementation("mysql:mysql-connector-java:8.0.26")
+    implementation("mysql:mysql-connector-java:8.0.27")
     implementation("org.mariadb.jdbc:mariadb-java-client:2.7.4")
 
     val openapi = "1.1.1"
