@@ -29,7 +29,7 @@ import org.testcontainers.utility.DockerImageName
 import java.io.File
 
 @Testcontainers
-internal class S3StorageProviderIntegrationIntegrationTest : StorageProviderIntegrationTest() {
+internal class S3StorageProviderIntegrationTest : StorageProviderIntegrationTest() {
 
     @TempDir
     lateinit var rootDirectory: File
@@ -44,7 +44,7 @@ internal class S3StorageProviderIntegrationIntegrationTest : StorageProviderInte
             InMemoryLogger(),
             rootDirectory.toPath(),
             "test-repository",
-            "--endpoint ${localstack.getEndpointOverride(S3).toASCIIString()} ${localstack.accessKey} ${localstack.secretKey} ${localstack.region} test-repository"
+            "s3 --endpoint ${localstack.getEndpointOverride(S3).toURL()} ${localstack.accessKey} ${localstack.secretKey} ${localstack.region} test-repository"
         )
     }
 
