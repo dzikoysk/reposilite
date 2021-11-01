@@ -34,7 +34,7 @@ repositories {
     # Used storage type. Supported storage providers:
     # > File system (local) provider. Supported flags:
     # --quota 10GB = control the maximum amount of data stored in this repository. Supported formats: 90%, 500MB, 10GB (optional, by default: unlimited)
-    # --mount /mnt/releases = use custom directory to locate the repository data (optional, by default repositories are stored in repositories/{name} directory)
+    # --mount /mnt/releases = use custom directory to locate the repository data (optional, by default it's './repositories/{name}')
     # Example usage:
     # storageProvider: fs --quota 50GB
     # > S3 provider. Supported flags:
@@ -65,7 +65,7 @@ repositories {
     # Used storage type. Supported storage providers:
     # > File system (local) provider. Supported flags:
     # --quota 10GB = control the maximum amount of data stored in this repository. Supported formats: 90%, 500MB, 10GB (optional, by default: unlimited)
-    # --mount /mnt/releases = use custom directory to locate the repository data (optional, by default repositories are stored in repositories/{name} directory)
+    # --mount /mnt/releases = use custom directory to locate the repository data (optional, by default it's './repositories/{name}')
     # Example usage:
     # storageProvider: fs --quota 50GB
     # > S3 provider. Supported flags:
@@ -96,7 +96,7 @@ repositories {
     # Used storage type. Supported storage providers:
     # > File system (local) provider. Supported flags:
     # --quota 10GB = control the maximum amount of data stored in this repository. Supported formats: 90%, 500MB, 10GB (optional, by default: unlimited)
-    # --mount /mnt/releases = use custom directory to locate the repository data (optional, by default repositories are stored in repositories/{name} directory)
+    # --mount /mnt/releases = use custom directory to locate the repository data (optional, by default it's './repositories/{name}')
     # Example usage:
     # storageProvider: fs --quota 50GB
     # > S3 provider. Supported flags:

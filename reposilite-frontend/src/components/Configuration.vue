@@ -70,7 +70,7 @@ export default {
 
     const fetchConfiguration = () => 
       client.settings.content(configurationName)
-        .then(response => configuration.value = response.data)
+        .then(response => configuration.value = response.data.content)
         .catch(error => createToast(error, { type: 'error' }))
 
     const updateConfiguration = () =>
@@ -78,7 +78,7 @@ export default {
         .then(response => {
           createToast('Configuration has been deployed, fetching...', { type: 'info' })
           fetchConfiguration()
-            .then(fetchResponse => createToast('Configuration reloaded', { type: 'success' }))
+            .then(fetchResponse => createToast('Configuration reloaded, refresh page to see changes', { type: 'success' }))
         })
         .catch(error => createToast(error, { type: 'error' }))
 

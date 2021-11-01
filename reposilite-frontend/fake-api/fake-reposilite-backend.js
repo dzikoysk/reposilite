@@ -102,7 +102,10 @@ application
   `))
   .get('/api/settings/content/configuration.shared.cdn', (req, res) => {
     authorized(req,
-      () => res.send(sharedConfiguration),
+      () => res.send({
+        type: 'application/cdn',
+        content: sharedConfiguration
+      }),
       () => invalidCredentials(res)
     )
   })
