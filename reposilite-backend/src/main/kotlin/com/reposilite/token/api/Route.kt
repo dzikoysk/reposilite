@@ -19,7 +19,7 @@ package com.reposilite.token.api
 import com.fasterxml.jackson.annotation.JsonFormat
 import panda.std.Result
 
-data class Route internal constructor(
+data class Route(
     val path: String,
     val permissions: Set<RoutePermission>
 ) {

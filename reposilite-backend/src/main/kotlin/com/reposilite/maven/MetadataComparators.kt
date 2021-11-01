@@ -21,7 +21,7 @@ import java.util.function.Predicate
 import java.util.regex.Pattern
 import kotlin.math.max
 
-internal class FilesComparator<T>(
+class FilesComparator<T>(
     cachedValue: Function<T, Array<String>>,
     private val isDirectory: Predicate<T>
 ) : VersionComparator<T>(cachedValue) {
@@ -36,7 +36,7 @@ internal class FilesComparator<T>(
 
 }
 
-internal open class VersionComparator<T>(
+open class VersionComparator<T>(
     private val versionMapper: Function<T, Array<String>>,
 ) : Comparator<T> {
 

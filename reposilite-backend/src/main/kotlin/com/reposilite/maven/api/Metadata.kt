@@ -23,7 +23,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
 internal const val METADATA_FILE = "maven-metadata.xml"
 
 @JacksonXmlRootElement(localName = "metadata")
-internal data class Metadata(
+data class Metadata(
     val groupId: String? = null,
     val artifactId: String? = null,
     val version: String? = null, // snapshot only
@@ -31,7 +31,7 @@ internal data class Metadata(
 )
 
 @JacksonXmlRootElement(localName = "versioning")
-internal data class Versioning(
+data class Versioning(
     val release: String? = null,
     val latest: String? = null,
     private var _versions: Collection<String>? = emptyList(),
@@ -60,13 +60,13 @@ internal data class Versioning(
 }
 
 @JacksonXmlRootElement(localName = "snapshot")
-internal data class Snapshot(
+data class Snapshot(
     val timestamp: String? = null,
     val buildNumber: String? = null
 )
 
 @JacksonXmlRootElement(localName = "snapshotVersion")
-internal data class SnapshotVersion(
+data class SnapshotVersion(
     val extension: String? = null,
     val value: String? = null,
     val updated: String? = null

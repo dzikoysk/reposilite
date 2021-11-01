@@ -43,7 +43,6 @@ import panda.std.Result
 import panda.std.asError
 import java.io.InputStream
 import java.nio.file.Path
-import java.nio.file.Paths
 
 class MavenFacade internal constructor(
     private val journalist: Journalist,
@@ -87,7 +86,7 @@ class MavenFacade internal constructor(
         return block(repository, gav)
     }
 
-    internal fun saveMetadata(repository: String, gav: String, metadata: Metadata): Result<Metadata, ErrorResponse> =
+    fun saveMetadata(repository: String, gav: String, metadata: Metadata): Result<Metadata, ErrorResponse> =
         metadataService.saveMetadata(repository, gav, metadata)
 
     fun findVersions(lookupRequest: LookupRequest): Result<List<String>, ErrorResponse> =
