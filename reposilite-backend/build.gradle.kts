@@ -110,7 +110,7 @@ dependencies {
 
     /* Tests */
 
-    val unirest = "3.13.2"
+    val unirest = "3.13.3"
     testImplementation("com.konghq:unirest-java:$unirest")
     testImplementation("com.konghq:unirest-objectmapper-jackson:$unirest")
 
