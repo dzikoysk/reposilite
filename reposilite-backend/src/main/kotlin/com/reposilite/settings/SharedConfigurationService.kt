@@ -36,6 +36,7 @@ internal class SharedConfigurationService(
         settingsRepository.findConfigurationUpdateDate(SHARED_CONFIGURATION_FILE)
             ?.takeIf { it.isAfter(databaseUpdateTime) }
             ?.run {
+                journalist.logger.info("Propagation | Shared configuration has been changed in remote source, updating current instance...")
                 databaseUpdateTime = this
                 loadAndUpdate(fromFile = false)
             }
@@ -55,17 +56,26 @@ internal class SharedConfigurationService(
             "configuration.shared.yaml" -> CdnFactory.createYamlLike().validateAndLoad(request.content, SharedConfiguration(), sharedConfiguration)
             else -> notFoundError("Unsupported configuration ${request.name}")
         }.peek {
+            journalist.logger.info("Propagation | Shared configuration has updated, updating sources...")
             updateSources()
+            journalist.logger.info("Propagation | Sources have been updated successfully")
         }
 
     private fun updateSources() {
         standard.render(sharedConfiguration)
             .takeIf { it != settingsRepository.findConfiguration(SHARED_CONFIGURATION_FILE) }
-            ?.run { settingsRepository.saveConfiguration(SHARED_CONFIGURATION_FILE, this) }
+            ?.run {
+                journalist.logger.info("Updating shared configuration in remote source")
+                settingsRepository.saveConfiguration(SHARED_CONFIGURATION_FILE, this)
+                databaseUpdateTime = Instant.now()
+            }
 
         standard.render(sharedConfiguration)
-            .takeIf { it != Files.readAllBytes(sharedFile).toString() }
-            ?.run { Files.write(sharedFile, toByteArray(), WRITE, TRUNCATE_EXISTING) }
+            .takeIf { it != Files.readAllBytes(sharedFile).decodeToString() }
+            ?.run {
+                journalist.logger.info("Updating shared configuration in local source")
+                Files.write(sharedFile, toByteArray(), WRITE, TRUNCATE_EXISTING)
+            }
     }
 
     fun loadSharedConfiguration(): SharedConfiguration =
@@ -84,11 +94,13 @@ internal class SharedConfigurationService(
     private fun loadFromFile() {
         journalist.logger.info("Loading shared configuration from local file")
         SettingsFileLoader.initializeAndLoad(journalist, "copy", sharedFile, workingDirectory, SHARED_CONFIGURATION_FILE, sharedConfiguration)
+        journalist.logger.info("Shared configuration has been loaded from local file")
     }
 
     private fun loadFromDatabase() {
         journalist.logger.info("Loading shared configuration from database")
         standard.load(Source.of(settingsRepository.findConfiguration(SHARED_CONFIGURATION_FILE)), sharedConfiguration)
+        journalist.logger.info("Shared configuration has been loaded from database")
     }
 
 }
