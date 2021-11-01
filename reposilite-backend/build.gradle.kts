@@ -121,7 +121,7 @@ dependencies {
     testImplementation("org.testcontainers:localstack:$testcontainers")
 
     testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.98")
-    testImplementation("com.google.http-client:google-http-client-jackson2:1.40.0")
+    testImplementation("com.google.http-client:google-http-client-jackson2:1.40.1")
 
     val junit = "5.8.1"
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junit")
