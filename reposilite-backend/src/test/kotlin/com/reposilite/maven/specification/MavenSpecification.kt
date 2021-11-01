@@ -16,18 +16,17 @@
 
 package com.reposilite.maven.specification
 
-import com.reposilite.config.Configuration.RepositoryConfiguration
 import com.reposilite.journalist.backend.InMemoryLogger
 import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.UNKNOWN_LENGTH
 import com.reposilite.maven.application.MavenWebConfiguration
+import com.reposilite.settings.SharedConfiguration.RepositoryConfiguration
 import com.reposilite.shared.FakeRemoteClient
 import com.reposilite.shared.append
-import com.reposilite.shared.getSimpleName
+import com.reposilite.shared.getSimpleNameFromUri
 import com.reposilite.shared.safeResolve
-import com.reposilite.shared.toPath
 import com.reposilite.token.api.AccessToken
 import com.reposilite.token.api.Route
 import com.reposilite.token.api.RoutePermission
@@ -36,6 +35,7 @@ import io.javalin.http.ContentType
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
 import panda.std.asSuccess
+import panda.std.reactive.mutableReference
 import java.io.File
 import java.nio.file.Files
 
@@ -45,7 +45,7 @@ internal abstract class MavenSpecification {
     protected companion object {
         val UNAUTHORIZED: AccessToken? = null
         const val REMOTE_REPOSITORY = "https://domain.com/releases"
-        const val REMOTE_ALLOWLISTED_REPOSITORY = "https://example.com/allowrepo"
+        const val REMOTE_REPOSITORY_WITH_WHITELIST = "https://example.com/whitelist"
         const val REMOTE_AUTH = "panda@secret"
         const val REMOTE_CONTENT = "content"
     }
@@ -62,15 +62,15 @@ internal abstract class MavenSpecification {
         val logger = InMemoryLogger()
         val remoteClient = FakeRemoteClient(
             headHandler = { uri, credentials, _, _ ->
-                if (uri.startsWith(REMOTE_REPOSITORY) && REMOTE_AUTH == credentials && !uri.endsWith("/allow"))
+                if (uri.startsWith(REMOTE_REPOSITORY) && REMOTE_AUTH == credentials && !uri.isAllowed())
                     DocumentInfo(
-                        uri.replace(":", "").toPath().getSimpleName(),
+                        uri.getSimpleNameFromUri(),
                         ContentType.TEXT_XML,
                         UNKNOWN_LENGTH,
                     ).asSuccess()
-                else if (uri.startsWith(REMOTE_ALLOWLISTED_REPOSITORY) && uri.endsWith("/allow"))
+                else if (uri.startsWith(REMOTE_REPOSITORY_WITH_WHITELIST) && uri.isAllowed())
                     DocumentInfo(
-                        uri.replace(":", "").toPath().getSimpleName(),
+                        uri.getSimpleNameFromUri(),
                         ContentType.TEXT_XML,
                         UNKNOWN_LENGTH,
                     ).asSuccess()
@@ -78,16 +78,16 @@ internal abstract class MavenSpecification {
                     notFoundError("Not found")
             },
             getHandler = { uri, credentials, _, _ ->
-                if (uri.startsWith(REMOTE_REPOSITORY) && REMOTE_AUTH == credentials && !uri.endsWith("/allow"))
+                if (uri.startsWith(REMOTE_REPOSITORY) && REMOTE_AUTH == credentials && !uri.isAllowed())
                     REMOTE_CONTENT.byteInputStream().asSuccess()
-                else if (uri.startsWith(REMOTE_ALLOWLISTED_REPOSITORY) && uri.endsWith("/allow"))
+                else if (uri.startsWith(REMOTE_REPOSITORY_WITH_WHITELIST) && uri.isAllowed())
                     REMOTE_CONTENT.byteInputStream().asSuccess()
                 else
                     notFoundError("Not found")
             }
         )
 
-        this.mavenFacade = MavenWebConfiguration.createFacade(logger, workingDirectory!!.toPath(), remoteClient, repositories())
+        this.mavenFacade = MavenWebConfiguration.createFacade(logger, workingDirectory!!.toPath(), remoteClient, mutableReference(repositories()))
     }
 
     data class FileSpec(
@@ -126,5 +126,8 @@ internal abstract class MavenSpecification {
         val routes = setOf(Route("/$repository/$gav", setOf(permission)))
         return AccessToken(name = name, secret = secret, routes = routes)
     }
+
+    fun String.isAllowed(): Boolean =
+        this.endsWith("/allow")
 
 }

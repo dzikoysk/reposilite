@@ -28,7 +28,7 @@ import panda.std.asSuccess
 
 internal class RepositoryService(
     private val journalist: Journalist,
-    private val repositories: Map<String, Repository>,
+    private val repositoryProvider: RepositoryProvider,
     private val securityProvider: RepositorySecurityProvider
 ) : Journalist {
 
@@ -38,7 +38,7 @@ internal class RepositoryService(
             ?: errorResponse(NOT_FOUND, "Repository $name not found")
 
     fun getRepository(name: String): Repository? =
-        repositories[name]
+        repositoryProvider.getRepositories()[name]
 
     fun getRootDirectory(accessToken: AccessToken?): DirectoryInfo =
         getRepositories()
@@ -47,7 +47,7 @@ internal class RepositoryService(
             .let { DirectoryInfo("/", it) }
 
     fun getRepositories(): Collection<Repository> =
-        repositories.values
+        repositoryProvider.getRepositories().values
 
     override fun getLogger(): Logger =
         journalist.logger

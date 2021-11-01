@@ -16,13 +16,18 @@
 
 package com.reposilite
 
-import com.reposilite.config.Configuration
-import com.reposilite.config.Configuration.RepositoryConfiguration
 import com.reposilite.journalist.Channel
 import com.reposilite.journalist.backend.PrintStreamLogger
+import com.reposilite.settings.LocalConfiguration
+import com.reposilite.settings.SharedConfiguration
+import com.reposilite.settings.SharedConfiguration.RepositoryConfiguration
+import com.reposilite.settings.application.SettingsWebConfiguration.LOCAL_CONFIGURATION_FILE
+import com.reposilite.settings.application.SettingsWebConfiguration.SHARED_CONFIGURATION_FILE
+import net.dzikoysk.cdn.CdnFactory
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
+import panda.std.reactive.ReferenceUtils
 import java.io.File
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -64,22 +69,33 @@ internal abstract class ReposiliteRunner {
         parameters.testEnv = true
         parameters.run()
 
-        val configuration = Configuration()
-        configuration.database = _database
+        val cdn = CdnFactory.createStandard()
 
-        val proxiedConfiguration = RepositoryConfiguration()
-        proxiedConfiguration.proxied = mutableListOf("http://localhost:$proxiedPort/releases")
-        configuration.repositories["proxied"] = proxiedConfiguration
-
-        configuration.repositories.forEach { (repositoryName, repositoryConfiguration) ->
-            repositoryConfiguration.redeployment = true
-            repositoryConfiguration.storageProvider = _storageProvider.replace("{repository}", repositoryName)
+        val localConfiguration = LocalConfiguration().also {
+            ReferenceUtils.setValue(it.database, _database)
+            ReferenceUtils.setValue(it.webThreadPool, 4)
+            ReferenceUtils.setValue(it.ioThreadPool, 2)
         }
 
-        configuration.webThreadPool = 4
-        configuration.ioThreadPool = 2
+        cdn.render(localConfiguration, reposiliteWorkingDirectory.resolve(LOCAL_CONFIGURATION_FILE))
 
-        reposilite = ReposiliteFactory.createReposilite(parameters, logger, configuration)
+        val sharedConfiguration = SharedConfiguration().also {
+            val proxiedConfiguration = RepositoryConfiguration()
+            proxiedConfiguration.proxied = mutableListOf("http://localhost:$proxiedPort/releases")
+
+            val updatedRepositories = it.repositories.get().toMutableMap()
+            updatedRepositories["proxied"] = proxiedConfiguration
+            it.repositories.update(updatedRepositories)
+
+            it.repositories.get().forEach { (repositoryName, repositoryConfiguration) ->
+                repositoryConfiguration.redeployment = true
+                repositoryConfiguration.storageProvider = _storageProvider.replace("{repository}", repositoryName)
+            }
+        }
+
+        cdn.render(sharedConfiguration, reposiliteWorkingDirectory.resolve(SHARED_CONFIGURATION_FILE))
+
+        reposilite = ReposiliteFactory.createReposilite(parameters, logger)
         reposilite.journalist.setVisibleThreshold(Channel.WARN)
         reposilite.launch()
     }

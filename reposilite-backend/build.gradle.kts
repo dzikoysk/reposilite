@@ -36,29 +36,20 @@ application {
     mainClass.set("com.reposilite.ReposiliteLauncherKt")
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
-    withJavadocJar()
-    withSourcesJar()
-}
-
-tasks.withType<KotlinCompile>().configureEach {
-    kotlinOptions {
-        languageVersion = "1.6"
-    }
-}
-
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect:1.6.0-RC")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.0-RC")
     // implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
 
-    val expressible = "1.0.18"
+    val expressible = "1.1.1"
     implementation("org.panda-lang:expressible:$expressible")
     implementation("org.panda-lang:expressible-kt:$expressible")
     implementation("org.panda-lang:expressible-kt-coroutines:$expressible")
     testImplementation("org.panda-lang:expressible-junit:$expressible")
+
+    val cdn = "1.11.6"
+    implementation("net.dzikoysk:cdn:$cdn")
+    implementation("net.dzikoysk:cdn-kt:$cdn")
 
     val awssdk = "2.17.70"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
@@ -88,7 +79,6 @@ dependencies {
     //implementation("io.javalin:javalin:4.1.1")
     //implementation("com.github.tipsy.javalin:javalin:-SNAPSHOT")
     implementation("com.github.dzikoysk.javalin:javalin:760159a7c4")
-
     @Suppress("GradlePackageUpdate")
     implementation("org.eclipse.jetty:jetty-server:9.4.44.v20210927")
 
@@ -101,7 +91,7 @@ dependencies {
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jackson")
 
-    val journalist = "1.0.9"
+    val journalist = "1.0.10"
     implementation("com.reposilite:journalist:$journalist")
     implementation("com.reposilite:journalist-slf4j:$journalist")
     implementation("com.reposilite:journalist-tinylog:$journalist")
@@ -111,13 +101,12 @@ dependencies {
     implementation("org.tinylog:tinylog-api:$tinylog")
     implementation("org.tinylog:tinylog-impl:$tinylog")
 
-    implementation("net.dzikoysk:cdn:1.10.1")
-    implementation("com.google.http-client:google-http-client:1.40.0")
+    implementation("com.google.http-client:google-http-client:1.40.1")
     implementation("org.springframework.security:spring-security-crypto:5.5.2")
     implementation("commons-io:commons-io:20030203.000550")
 
     implementation("org.jline:jline:3.20.0")
-    implementation("org.fusesource.jansi:jansi:2.3.4")
+    implementation("org.fusesource.jansi:jansi:2.4.0")
 
     /* Tests */
 
@@ -141,12 +130,28 @@ dependencies {
 }
 
 repositories {
-//    maven {
-//        url = uri("http://localhost/releases")
-//        isAllowInsecureProtocol = true
-//    }
+    // maven {
+    //     url = uri("http://localhost/releases")
+    //     isAllowInsecureProtocol = true
+    // }
+    // mavenCentral()
     maven { url = uri("https://repo.panda-lang.org/releases") }
     maven { url = uri("https://jitpack.io") }
+    mavenCentral()
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+
+    withJavadocJar()
+    withSourcesJar()
+}
+
+tasks.withType<KotlinCompile>().configureEach {
+    kotlinOptions {
+        languageVersion = "1.6"
+    }
 }
 
 publishing {
@@ -207,10 +212,6 @@ kapt {
     }
 }
 
-jacoco {
-    toolVersion = "0.8.7"
-}
-
 tasks.withType<Test> {
     testLogging {
         events(
@@ -244,6 +245,10 @@ tasks.withType<Test> {
     }
 
     useJUnitPlatform()
+}
+
+jacoco {
+    toolVersion = "0.8.7"
 }
 
 tasks.test {

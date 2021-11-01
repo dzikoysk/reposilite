@@ -16,14 +16,12 @@
 
 package com.reposilite.maven
 
-import com.reposilite.config.Configuration.RepositoryConfiguration.ProxiedHostConfiguration
 import com.reposilite.maven.api.FileDetails
+import com.reposilite.settings.SharedConfiguration.RepositoryConfiguration.ProxiedHostConfiguration
 import com.reposilite.shared.RemoteClient
 import com.reposilite.shared.firstOrErrors
 import com.reposilite.shared.toPath
 import com.reposilite.web.http.ErrorResponse
-import com.reposilite.web.http.errorResponse
-import io.javalin.http.HttpCode.FORBIDDEN
 import io.javalin.http.HttpCode.NOT_FOUND
 import panda.std.Result
 import panda.std.Result.ok
@@ -46,11 +44,16 @@ internal class ProxyService(private val remoteClient: RemoteClient) {
 
     private fun <V> searchInRemoteRepositories(repository: Repository, gav: String, fetch: (String, ProxiedHostConfiguration) -> Result<out V, ErrorResponse>): Result<out V, ErrorResponse> =
         repository.proxiedHosts.asSequence()
-            .filter {(_, config) -> config.allowedGroups.isEmpty() ||
-                    config.allowedGroups.map{ it.replace('.','/') }.any { gav.startsWith("/$it") }}
+            .filter {(_, config) -> isAllowed(config, gav) }
             .map { (host, config) -> fetch(host, config) }
             .firstOrErrors()
             .mapErr { errors -> ErrorResponse(NOT_FOUND, errors.joinToString(" -> ") { "(${it.status}: ${it.message})" }) }
+
+    private fun isAllowed(config: ProxiedHostConfiguration, gav: String): Boolean =
+        config.allowedGroups.isEmpty() ||
+                config.allowedGroups
+                    .map { it.replace('.','/') }
+                    .any { gav.startsWith("/$it") }
 
     private fun storeFile(repository: Repository, gav: Path, data: InputStream): Result<InputStream, ErrorResponse> =
         repository

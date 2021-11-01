@@ -1,0 +1,42 @@
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+#       Reposilite :: Local       #
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+# Hostname
+# The hostname can be used to limit which connections are accepted.
+# Use 0.0.0.0 to accept connections from anywhere.
+# 127.0.0.1 will only allow connections from localhost.
+hostname: 0.0.0.0
+# Port to bind
+port: 80
+# Database. Supported storage providers:
+# - sqlite reposilite.db
+# - sqlite --temporary
+# - mysql localhost:3306 database user password
+database: sqlite reposilite.db
+
+# Support encrypted connections
+sslEnabled: false
+# SSL port to bind
+sslPort: 443
+# Key store file to use.
+# You can specify absolute path to the given file or use ${WORKING_DIRECTORY} variable.
+keyStorePath: ${WORKING_DIRECTORY}/keystore.jks
+# Key store password to use
+keyStorePassword: ""
+# Redirect http traffic to https
+enforceSsl: false
+
+# Max amount of threads used by core thread pool (min: 4)
+# The web thread pool handles first few steps of incoming http connections, as soon as possible all tasks are redirected to IO thread pool.
+webThreadPool: 32
+# IO thread pool handles all tasks that may benefit from non-blocking IO (min: 2)
+# Because most of tasks are redirected to IO thread pool, it might be a good idea to keep it at least equal to web thread pool.
+ioThreadPool: 16
+
+# Amount of messages stored in cached logger.
+cachedLogSize: 100
+# Keep processed frontend files in memory to improve response time
+cacheContent: true
+# Debug mode
+debugEnabled: false

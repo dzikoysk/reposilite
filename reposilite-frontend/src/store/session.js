@@ -81,7 +81,7 @@ export default function useSession() {
   const isLogged = (token) =>
     token?.name != defaultValue
 
-  const isManager = (details) =>
+  const hasManagerPermission = (details) =>
     details?.permissions?.find(entry => entry.identifier == managerPermission)
   
   return {
@@ -91,6 +91,6 @@ export default function useSession() {
     logout,
     fetchSession,
     isLogged,
-    isManager
+    hasManagerPermission
   }
 }

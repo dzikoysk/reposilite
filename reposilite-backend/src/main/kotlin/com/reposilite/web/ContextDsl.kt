@@ -22,6 +22,7 @@ import com.reposilite.token.api.AccessTokenPermission
 import com.reposilite.token.api.RoutePermission
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.error
+import com.reposilite.web.http.unauthorizedError
 import com.reposilite.web.http.uri
 import io.javalin.http.Context
 import io.javalin.http.HttpCode
@@ -80,10 +81,23 @@ class ContextDsl(
         }
     }
 
+    /**
+     * Request was created with manager access token
+     */
+    fun managerOnly(block: AccessToken.() -> Unit) {
+        authenticated {
+            if (isManager()) {
+                block(this)
+            } else {
+                response = unauthorizedError<Nothing>("Only manager can access this endpoint")
+            }
+        }
+    }
+
     fun wildcard(name: String): String? =
         ctx.pathParamMap()[name]
 
-    fun requireParameter(name: String): String =
+    fun requiredParameter(name: String): String =
         parameter(name)!!
 
     fun parameter(name: String): String? =

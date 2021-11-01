@@ -16,12 +16,14 @@
 package com.reposilite
 
 import com.reposilite.auth.AuthenticationFacade
-import com.reposilite.config.Configuration
 import com.reposilite.console.ConsoleFacade
 import com.reposilite.frontend.FrontendFacade
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
 import com.reposilite.maven.MavenFacade
+import com.reposilite.settings.LocalConfiguration
+import com.reposilite.settings.SettingsFacade
+import com.reposilite.settings.SharedConfiguration
 import com.reposilite.shared.TimeUtils.getPrettyUptimeInSeconds
 import com.reposilite.shared.peek
 import com.reposilite.statistics.StatisticsFacade
@@ -31,7 +33,6 @@ import com.reposilite.token.AccessTokenFacade
 import com.reposilite.web.JavalinWebServer
 import com.reposilite.web.WebConfiguration
 import org.jetbrains.exposed.sql.Database
-import panda.utilities.console.Effect
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.atomic.AtomicBoolean
@@ -41,12 +42,12 @@ const val VERSION = "3.0.0-alpha.7"
 class Reposilite(
     val journalist: ReposiliteJournalist,
     val parameters: ReposiliteParameters,
-    val configuration: Configuration,
     val ioService: ExecutorService,
     val scheduler: ScheduledExecutorService,
     val database: Database,
     val webServer: JavalinWebServer,
     val webs: Collection<WebConfiguration>,
+    val settingsFacade: SettingsFacade,
     val statusFacade: StatusFacade,
     val failureFacade: FailureFacade,
     val authenticationFacade: AuthenticationFacade,
@@ -70,19 +71,6 @@ class Reposilite(
 
     fun load() {
         logger.info("")
-        logger.info("${Effect.GREEN}Reposilite ${Effect.RESET}$VERSION")
-        logger.info("")
-        logger.info("--- Environment")
-
-        if (parameters.testEnv) {
-            logger.info("Test environment enabled")
-        }
-
-        logger.info("Platform: ${System.getProperty("java.version")} (${System.getProperty("os.name")})")
-        logger.info("Working directory: ${parameters.workingDirectory.toAbsolutePath()}")
-        logger.info("Threads: ${configuration.webThreadPool} WEB / ${configuration.ioThreadPool} IO")
-        logger.info("")
-
         logger.info("--- Loading domain configurations")
         webs.forEach { it.initialize(this) }
         logger.info("Loaded ${webs.size} web configurations")

@@ -15,9 +15,9 @@
  */
 package com.reposilite.maven
 
-import com.reposilite.config.Configuration.RepositoryConfiguration.ProxiedHostConfiguration
 import com.reposilite.maven.api.FileDetails
 import com.reposilite.maven.api.RepositoryVisibility
+import com.reposilite.settings.SharedConfiguration.RepositoryConfiguration.ProxiedHostConfiguration
 import com.reposilite.storage.StorageProvider
 import com.reposilite.web.http.ErrorResponse
 import panda.std.Result
@@ -28,9 +28,9 @@ import java.nio.file.attribute.FileTime
 class Repository internal constructor(
     val name: String,
     val visibility: RepositoryVisibility,
+    val redeployment: Boolean,
     val proxiedHosts: Map<String, ProxiedHostConfiguration>,
     private val storageProvider: StorageProvider,
-    val redeployment: Boolean
 ) {
 
     fun putFile(file: Path, inputStream: InputStream): Result<Unit, ErrorResponse> =

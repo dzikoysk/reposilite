@@ -80,7 +80,7 @@ class HttpRemoteClient(private val journalist: Journalist) : RemoteClient {
                     ?: ContentType.APPLICATION_OCTET_STREAM
 
                 DocumentInfo(
-                    uri.toPath().getSimpleName(),
+                    uri.getSimpleNameFromUri(),
                     contentType,
                     contentLength
                 ).asSuccess()
@@ -103,8 +103,8 @@ class HttpRemoteClient(private val journalist: Journalist) : RemoteClient {
         try {
             val response = this.execute()
             when {
-                response.contentType == ContentType.HTML -> errorResponse(NOT_ACCEPTABLE, "Illegal file type")
-                response.isSuccessStatusCode.not() -> errorResponse(NOT_ACCEPTABLE, "Unsuccessful request")
+                response.contentType == ContentType.HTML -> errorResponse(NOT_ACCEPTABLE, "Illegal file type (${response.contentType})")
+                response.isSuccessStatusCode.not() -> errorResponse(NOT_ACCEPTABLE, "Unsuccessful request (${response.statusCode})")
                 else -> block(response)
             }
         } catch (exception: Exception) {

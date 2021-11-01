@@ -2,6 +2,9 @@
   <configuration default="false" name="Reposilite" type="Application" factoryName="Application" singleton="false">
     <option name="ALTERNATIVE_JRE_PATH" value="8" />
     <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+    <envs>
+      <env name="GRADLE_OPS" value="--warning-mode all" />
+    </envs>
     <option name="MAIN_CLASS_NAME" value="com.reposilite.ReposiliteLauncherKt" />
     <module name="reposilite-backend.main" />
     <option name="PROGRAM_PARAMETERS" value="--token name:secret" />

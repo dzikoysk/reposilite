@@ -22,8 +22,8 @@ import com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT
 import com.fasterxml.jackson.dataformat.xml.JacksonXmlModule
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator
+import com.fasterxml.jackson.module.kotlin.kotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.reposilite.maven.api.METADATA_FILE
 import com.reposilite.maven.api.Metadata
 import com.reposilite.shared.safeResolve
@@ -35,12 +35,14 @@ internal class MetadataService(
     private val repositoryService: RepositoryService
 ) {
 
-    private val xml = XmlMapper(JacksonXmlModule().apply { setDefaultUseWrapper(false) })
+    private val xml = XmlMapper.xmlBuilder()
+        .addModules(JacksonXmlModule(), kotlinModule())
         .configure(ToXmlGenerator.Feature.WRITE_XML_DECLARATION, true)
-        .enable(INDENT_OUTPUT)
-        .registerKotlinModule()
         .configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true)
         .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+        .defaultUseWrapper(false)
+        .enable(INDENT_OUTPUT)
+        .build()
 
     fun saveMetadata(repository: String, gav: String, metadata: Metadata): Result<Metadata, ErrorResponse> =
         repositoryService.findRepository(repository)
