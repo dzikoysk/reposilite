@@ -105,7 +105,7 @@ dependencies {
     implementation("org.springframework.security:spring-security-crypto:5.5.2")
     implementation("commons-io:commons-io:20030203.000550")
 
-    implementation("org.jline:jline:3.20.0")
+    implementation("org.jline:jline:3.21.0")
     implementation("org.fusesource.jansi:jansi:2.4.0")
 
     /* Tests */
