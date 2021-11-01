@@ -102,7 +102,7 @@ dependencies {
     implementation("org.tinylog:tinylog-impl:$tinylog")
 
     implementation("com.google.http-client:google-http-client:1.40.1")
-    implementation("org.springframework.security:spring-security-crypto:5.5.2")
+    implementation("org.springframework.security:spring-security-crypto:5.5.3")
     implementation("commons-io:commons-io:20030203.000550")
 
     implementation("org.jline:jline:3.21.0")
