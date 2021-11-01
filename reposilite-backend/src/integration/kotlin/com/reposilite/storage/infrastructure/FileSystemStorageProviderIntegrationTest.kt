@@ -23,14 +23,14 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
 
-internal class FileSystemStorageProviderIntegrationIntegrationTest : StorageProviderIntegrationTest() {
+internal class FileSystemStorageProviderIntegrationTest : StorageProviderIntegrationTest() {
 
     @TempDir
     lateinit var rootDirectory: File
 
     @BeforeEach
     fun setup() {
-        super.storageProvider = StorageProviderFactory.createStorageProvider(InMemoryLogger(), rootDirectory.toPath(), "test-storage", "--quota 1MB")
+        super.storageProvider = StorageProviderFactory.createStorageProvider(InMemoryLogger(), rootDirectory.toPath(), "test-storage", "fs --quota 1MB")
     }
 
 }
