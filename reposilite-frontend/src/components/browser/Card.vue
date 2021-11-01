@@ -59,10 +59,10 @@
     <div class="overflow-hidden">
       <transition :name="transitionName" mode="out-in">
         <div :key="selectedTab" class="relative h-33 mt-6 p-4 mr-1 rounded-lg bg-gray-100 dark:bg-gray-800">
-          <template v-for="entry in configurations"> 
-            <prism-editor 
+          <template v-for="entry in configurations" :key="entry.name"> 
+            <prism-editor
               v-if="entry.name === selectedTab"
-              class="font-mono absolute text-sm"
+              class="card-editor font-mono absolute text-sm"
               v-model="entry.snippet" 
               :highlight="entry.highlighter" 
               readonly
@@ -229,22 +229,23 @@ export default {
   border: transparent;
   margin-top: 10px;
 }
-.prism-editor__textarea {
+.card-editor .card-editor.prism-editor__textarea {
   display: none;
 }
-.prism-editor__line-numbers {
+.card-editor .prism-editor__line-numbers {
   user-select: none;
 }
-.prism-editor-wrapper .prism-editor__editor {
+.card-editor .prism-editor-wrapper .prism-editor__editor {
   pointer-events: auto !important;
 }
-.prism-editor-wrapper .prism-editor__container {
+.card-editor .prism-editor-wrapper .prism-editor__container {
   overflow: auto;
   scrollbar-width: thin;
   scrollbar-track-color: transparent;
   margin-right: 27px;
 }
-.prism-editor-wrapper .prism-editor__editor, .prism-editor-wrapper .prism-editor__textarea {
+.card-editor .prism-editor-wrapper .prism-editor__editor, 
+.card-editor .prism-editor-wrapper .prism-editor__textarea {
   white-space: pre !important;
   min-height: 100px;
 }

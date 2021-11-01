@@ -29,7 +29,7 @@ import com.reposilite.journalist.tinylog.TinyLogWriter
 import org.eclipse.jetty.util.log.Log
 import org.slf4j.LoggerFactory
 import org.tinylog.provider.ProviderRegistry
-import panda.std.Subscriber
+import panda.std.reactive.Subscriber
 import kotlin.collections.MutableMap.MutableEntry
 
 /**

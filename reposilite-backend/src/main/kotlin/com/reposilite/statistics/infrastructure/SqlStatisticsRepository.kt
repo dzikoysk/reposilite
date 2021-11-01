@@ -18,6 +18,7 @@ package com.reposilite.statistics.infrastructure
 
 import com.reposilite.shared.firstAndMap
 import com.reposilite.statistics.StatisticsRepository
+import com.reposilite.statistics.StatisticsRepository.Companion.MAX_IDENTIFIER_LENGTH
 import com.reposilite.statistics.api.Record
 import com.reposilite.statistics.api.RecordIdentifier
 import com.reposilite.statistics.api.RecordType
@@ -37,18 +38,16 @@ import org.jetbrains.exposed.sql.sum
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.UUID
 
-const val MAX_IDENTIFIER_LENGTH = 1024
-
-internal object StatisticsTable : Table("statistics") {
-    val type = varchar("type", 16).index("idx_type")
-    val identifier_id = uuid("identifier_id").index("idx_identifier_id")
-    val identifier = varchar("identifier", MAX_IDENTIFIER_LENGTH)
-    val count = long("count")
-
-    val statisticsTypeWithIdentifierKey = withUnique("uq_type_identifier_id", type, identifier_id)
-}
-
 internal class SqlStatisticsRepository(private val database: Database) : StatisticsRepository {
+
+    internal object StatisticsTable : Table("statistics") {
+        val type = varchar("type", 16).index("idx_type")
+        val identifier_id = uuid("identifier_id").index("idx_identifier_id")
+        val identifier = varchar("identifier", MAX_IDENTIFIER_LENGTH)
+        val count = long("count")
+
+        val statisticsTypeWithIdentifierKey = withUnique("uq_type_identifier_id", type, identifier_id)
+    }
 
     init {
         transaction(database) {

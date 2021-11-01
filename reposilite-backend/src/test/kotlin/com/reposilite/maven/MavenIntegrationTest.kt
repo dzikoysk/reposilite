@@ -79,7 +79,7 @@ internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
 
     @Test
     fun `should accept deploy request with valid credentials` () {
-        val calls = reposilite.configuration.webThreadPool * 3
+        val calls = reposilite.settingsFacade.localConfiguration.webThreadPool.get() * 3
         val completed = CountDownLatch(calls)
 
         repeat(calls) { idx ->
@@ -170,8 +170,8 @@ internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
             val response = get("$base/proxied/$gav").asString()
 
             // then: service responds with its content
-            assertTrue(response.isSuccess)
             assertEquals(content, response.body)
+            assertTrue(response.isSuccess)
         }
     }
 

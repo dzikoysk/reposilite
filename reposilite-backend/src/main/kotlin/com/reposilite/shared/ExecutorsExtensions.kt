@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger
 
 class NamedThreadFactory(private val prefix: String) : ThreadFactory {
 
-    private val group: ThreadGroup = System.getSecurityManager()?.threadGroup ?: Thread.currentThread().threadGroup
+    private val group = Thread.currentThread().threadGroup
     private val threadCount = AtomicInteger(0)
 
     override fun newThread(runnalbe: Runnable): Thread =

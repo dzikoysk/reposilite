@@ -16,9 +16,9 @@
 
 package com.reposilite.maven
 
-import com.reposilite.config.Configuration.RepositoryConfiguration
-import com.reposilite.config.Configuration.RepositoryConfiguration.ProxiedHostConfiguration
 import com.reposilite.journalist.Journalist
+import com.reposilite.settings.SharedConfiguration.RepositoryConfiguration
+import com.reposilite.settings.SharedConfiguration.RepositoryConfiguration.ProxiedHostConfiguration
 import com.reposilite.shared.loadCommandBasedConfiguration
 import com.reposilite.storage.StorageProviderFactory.createStorageProvider
 import java.nio.file.Path
@@ -35,9 +35,9 @@ internal class RepositoryFactory(
         Repository(
             repositoryName,
             repositoryConfiguration.visibility,
+            repositoryConfiguration.redeployment,
             repositoryConfiguration.proxied.associate { createProxiedHostConfiguration(it) },
             createStorageProvider(journalist, workingDirectory.resolve(repositories), repositoryName, repositoryConfiguration.storageProvider),
-            repositoryConfiguration.redeployment
         )
 
     private fun createProxiedHostConfiguration(configurationSource: String): Pair<String, ProxiedHostConfiguration> =

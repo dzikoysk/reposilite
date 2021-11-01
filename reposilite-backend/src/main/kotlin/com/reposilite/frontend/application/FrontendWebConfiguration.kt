@@ -17,10 +17,11 @@
 package com.reposilite.frontend.application
 
 import com.reposilite.Reposilite
-import com.reposilite.config.Configuration
 import com.reposilite.frontend.FrontendFacade
 import com.reposilite.frontend.infrastructure.CustomFrontendHandler
 import com.reposilite.frontend.infrastructure.ResourcesFrontendHandler
+import com.reposilite.settings.LocalConfiguration
+import com.reposilite.settings.SettingsFacade
 import com.reposilite.web.WebConfiguration
 import com.reposilite.web.application.ReposiliteRoutes
 import io.javalin.Javalin
@@ -34,17 +35,19 @@ internal object FrontendWebConfiguration : WebConfiguration {
     private const val STATIC_DIRECTORY = "static"
     private const val FRONTEND_DIRECTORY = "reposilite-frontend"
 
-    fun createFacade(configuration: Configuration): FrontendFacade =
-        FrontendFacade(
-            configuration.basePath,
-            configuration.id,
-            configuration.title,
-            configuration.description,
-            configuration.organizationWebsite,
-            configuration.organizationLogo,
-            configuration.icpLicense,
-            configuration.cacheContent
-        )
+    fun createFacade(localConfiguration: LocalConfiguration, settingsFacade: SettingsFacade): FrontendFacade =
+        settingsFacade.sharedConfiguration.let {
+            FrontendFacade(
+                localConfiguration.cacheContent,
+                it.basePath,
+                it.id,
+                it.title,
+                it.description,
+                it.organizationWebsite,
+                it.organizationLogo,
+                it.icpLicense
+            )
+        }
 
     override fun initialize(reposilite: Reposilite) {
         with (staticDirectory(reposilite)) {
@@ -56,7 +59,7 @@ internal object FrontendWebConfiguration : WebConfiguration {
     }
 
     override fun routing(reposilite: Reposilite): Set<ReposiliteRoutes> = mutableSetOf<ReposiliteRoutes>().also {
-        if (reposilite.configuration.frontend) {
+        if (reposilite.settingsFacade.sharedConfiguration.frontend.get()) {
             it.add(ResourcesFrontendHandler(reposilite.frontendFacade, FRONTEND_DIRECTORY))
         }
 
