@@ -28,9 +28,9 @@ internal class StatisticsHandler(private val statisticsFacade: StatisticsFacade)
     private val collectRequests = ReposiliteRoute("/<*>", BEFORE) {
         logger.debug("${ctx.method()} $uri from ${ctx.ip()}")
 
-        if (uri.length < MAX_IDENTIFIER_LENGTH) {
-            statisticsFacade.increaseRecord(REQUEST, uri)
-        }
+        uri.takeIf { it.length < MAX_IDENTIFIER_LENGTH }
+            // ?.takeIf { ignoredExtensions.none { extension -> it.endsWith(extension) } }
+            ?.let { statisticsFacade.increaseRecord(REQUEST, it) }
     }
 
     override val routes = setOf(collectRequests)

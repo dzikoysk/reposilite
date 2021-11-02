@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.reposilite.token.api.AccessTokenPermission.MANAGER
 import com.reposilite.token.api.AccessTokenType.PERSISTENT
+import com.reposilite.token.application.AccessTokenWebConfiguration.MAX_TOKEN_NAME
 import io.javalin.openapi.OpenApiIgnore
 import net.dzikoysk.exposed.shared.IdentifiableEntity
 import net.dzikoysk.exposed.shared.UNINITIALIZED_ENTITY_ID
@@ -35,6 +36,12 @@ data class AccessToken internal constructor(
     val permissions: Set<AccessTokenPermission> = emptySet(),
     val routes: Set<Route> = emptySet()
 ) : IdentifiableEntity {
+
+    init {
+        if (name.length > MAX_TOKEN_NAME) {
+            throw IllegalStateException("Name is too long (${name.length} > $MAX_TOKEN_NAME)")
+        }
+    }
 
     fun withRoute(route: Route): AccessToken =
         copy(routes = routes.toMutableSet().also { it.add(route) })

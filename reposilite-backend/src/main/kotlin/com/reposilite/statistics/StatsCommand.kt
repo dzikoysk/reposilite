@@ -31,6 +31,13 @@ internal class StatsCommand(private val statisticsFacade: StatisticsFacade) : Re
     @Parameters(index = "0", paramLabel = "[<filter>]", description = ["Accepts string as pattern and int as limiter"], defaultValue = "")
     private lateinit var filter: String
 
+    private val ignoredExtensions = listOf(
+        ".md5",
+        ".sha1",
+        ".sha256",
+        ".sha512",
+    )
+
     override fun execute(context: CommandContext) {
         context.append("Statistics: ")
         context.append("  Unique requests: " + statisticsFacade.countUniqueRecords() + " (count: " + statisticsFacade.countRecords() + ")")
@@ -38,7 +45,9 @@ internal class StatsCommand(private val statisticsFacade: StatisticsFacade) : Re
         val response = statisticsFacade.findRecordsByPhrase(RecordType.REQUEST, filter, DEFAULT_TOP_LIMIT) // TOFIX: Limiter
 
         context.append("  Recorded: " + (if (response.count == 0L) "[] " else "") + " (pattern: '${highlight(filter)}')")
-        response.records.forEachIndexed { order, record -> context.append("  ${order}. ${record.identifier} (${record.count})") }
+        response.records.asSequence()
+            .filter { ignoredExtensions.none { extension -> it.identifier.endsWith(extension) } }
+            .forEachIndexed { order, record -> context.append("  ${order}. ${record.identifier} (${record.count})") }
 
         /*
             val limiter = Option.attempt(NumberFormatException::class.java) { filter!!.toInt() }

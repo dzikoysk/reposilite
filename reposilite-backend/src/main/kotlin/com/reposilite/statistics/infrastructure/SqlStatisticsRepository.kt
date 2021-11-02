@@ -19,105 +19,121 @@ package com.reposilite.statistics.infrastructure
 import com.reposilite.shared.firstAndMap
 import com.reposilite.statistics.StatisticsRepository
 import com.reposilite.statistics.StatisticsRepository.Companion.MAX_IDENTIFIER_LENGTH
-import com.reposilite.statistics.api.Record
-import com.reposilite.statistics.api.RecordIdentifier
-import com.reposilite.statistics.api.RecordType
+import com.reposilite.token.application.AccessTokenWebConfiguration.MAX_TOKEN_NAME
 import net.dzikoysk.exposed.upsert.upsert
 import net.dzikoysk.exposed.upsert.withUnique
+import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.Op.Companion.build
-import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.ReferenceOption.CASCADE
 import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.SortOrder.DESC
 import org.jetbrains.exposed.sql.SqlExpressionBuilder
 import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.javatime.date
+import org.jetbrains.exposed.sql.javatime.datetime
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.sum
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.UUID
 
+@Suppress("RemoveRedundantQualifierName")
 internal class SqlStatisticsRepository(private val database: Database) : StatisticsRepository {
 
-    internal object StatisticsTable : Table("statistics") {
-        val type = varchar("type", 16).index("idx_type")
-        val identifier_id = uuid("identifier_id").index("idx_identifier_id")
+    companion object {
+        const val INET6_ADDRESS_LENGTH = 45
+    }
+
+    internal object StatisticsIdentifierTable : Table("statistics_identifier") {
+        val id = uuid("identifier_id")
         val identifier = varchar("identifier", MAX_IDENTIFIER_LENGTH)
+
+        override val primaryKey = PrimaryKey(id)
+    }
+
+    internal object StatisticsIdentifierResolvedTable : IntIdTable("statistics_identifier_resolved") {
+        val identifierId = reference("identifier_id", StatisticsIdentifierTable.id, onDelete = CASCADE, onUpdate = CASCADE)
+        val date = date("date")
         val count = long("count")
 
-        val statisticsTypeWithIdentifierKey = withUnique("uq_type_identifier_id", type, identifier_id)
+        val uniqueIdentifierIdWithDate = withUnique("uq_identifier_id_date", identifierId, date)
+    }
+
+    internal object StatisticsIdentifierDeployedTable : IntIdTable("statistics_identifier_deployed") {
+        val identifierId = reference("identifier_id", StatisticsIdentifierTable.id, onDelete = CASCADE, onUpdate = CASCADE)
+        val date = datetime("time")
+        val by = varchar("by", MAX_TOKEN_NAME + INET6_ADDRESS_LENGTH + 1)
     }
 
     init {
         transaction(database) {
-            SchemaUtils.create(StatisticsTable)
-            SchemaUtils.addMissingColumnsStatements(StatisticsTable)
+            SchemaUtils.create(StatisticsIdentifierTable, StatisticsIdentifierResolvedTable, StatisticsIdentifierDeployedTable)
+            SchemaUtils.addMissingColumnsStatements(StatisticsIdentifierTable, StatisticsIdentifierResolvedTable, StatisticsIdentifierDeployedTable)
         }
     }
 
-    override  fun incrementRecord(record: RecordIdentifier, count: Long) =
+    override fun incrementResolved(identifier: String, count: Long) =
         transaction(database) {
-            rawIncrementRecord(record, count)
-        }
-
-    override fun incrementRecords(bulk: Map<RecordIdentifier, Long>) =
-        transaction(database) {
-            bulk.forEach { rawIncrementRecord(it.key, it.value) }
-        }
-
-    private fun rawIncrementRecord(record: RecordIdentifier, count: Long) {
-        if (record.identifier.length > MAX_IDENTIFIER_LENGTH) {
-            throw UnsupportedOperationException("Identifier '${record.identifier}' exceeds allowed length")
-        }
-
-        StatisticsTable.upsert(conflictIndex = StatisticsTable.statisticsTypeWithIdentifierKey,
-            insertBody = {
-                it[this.type] = record.type.name
-                it[this.identifier_id] = UUID.nameUUIDFromBytes(record.identifier.toByteArray())
-                it[this.identifier] = record.identifier
-                it[this.count] = count
-            },
-            updateBody = {
-                with(SqlExpressionBuilder) {
-                    it[StatisticsTable.count] = StatisticsTable.count + count
+            StatisticsIdentifierResolvedTable.upsert(conflictIndex = StatisticsIdentifierResolvedTable.uniqueIdentifierIdWithDate,
+                insertBody = {
+                    it[StatisticsIdentifierResolvedTable.identifierId] = findOrCreateIdentifierId(identifier)
+                    it[StatisticsIdentifierResolvedTable.date] = LocalDate.now()
+                    it[StatisticsIdentifierResolvedTable.count] = count
+                },
+                updateBody = {
+                    with(SqlExpressionBuilder) {
+                        it[StatisticsIdentifierResolvedTable.count] = StatisticsIdentifierResolvedTable.count + count
+                    }
                 }
-            }
-        )
-    }
-
-    private fun toRecord(row: ResultRow) =
-        Record(
-            RecordType.valueOf(row[StatisticsTable.type].uppercase()),
-            row[StatisticsTable.identifier],
-            row[StatisticsTable.count]
-        )
-
-    override fun findRecordByTypeAndIdentifier(record: RecordIdentifier): Record? =
-        transaction(database) {
-            StatisticsTable.select { build { StatisticsTable.type eq record.type.name }.and { StatisticsTable.identifier eq record.identifier } }
-                .firstAndMap { toRecord(it) }
+            )
         }
 
-    override fun findRecordsByPhrase(type: RecordType, phrase: String, limit: Int): List<Record> =
+    override fun recordDeployed(identifier: String, by: String) {
         transaction(database) {
-            StatisticsTable.select { build { StatisticsTable.type eq type.name }.and { StatisticsTable.identifier like "%${phrase}%" }}
-                .limit(limit)
-                .orderBy(StatisticsTable.count, order = DESC)
-                .map { toRecord(it) }
+            StatisticsIdentifierDeployedTable.insert {
+                it[StatisticsIdentifierDeployedTable.identifierId] = findOrCreateIdentifierId(identifier)
+                it[StatisticsIdentifierDeployedTable.date] = LocalDateTime.now()
+                it[StatisticsIdentifierDeployedTable.by] = by
+            }
+        }
+    }
+
+    private fun findOrCreateIdentifierId(identifier: String): UUID =
+        findIdentifier(identifier) ?: createIdentifier(identifier)
+
+    private fun createIdentifier(identifier: String): UUID  =
+        identifier.toUUID().also { id ->
+            StatisticsIdentifierTable.insert {
+                it[StatisticsIdentifierTable.id] = id
+                it[StatisticsIdentifierTable.identifier] = identifier
+            }
+        }
+
+    private fun findIdentifier(identifier: String): UUID? =
+        with(identifier.toUUID()) {
+            StatisticsIdentifierTable.select { StatisticsIdentifierTable.id eq this@with }
+                .firstOrNull()
+                ?.let { it[StatisticsIdentifierTable.id] }
         }
 
     override fun countRecords(): Long =
         transaction(database) {
-            with (StatisticsTable.count.sum()) {
-                StatisticsTable.slice(this).selectAll().firstAndMap { it[this] }
+            with (StatisticsIdentifierResolvedTable.count.sum()) {
+                StatisticsIdentifierResolvedTable.slice(this).selectAll().firstAndMap { it[this] }
             }
             ?: 0
         }
 
     override fun countUniqueRecords(): Long =
         transaction(database) {
-            StatisticsTable.selectAll().count()
+            StatisticsIdentifierResolvedTable.selectAll()
+                .groupBy(StatisticsIdentifierResolvedTable.identifierId)
+                .count()
         }
+
+    private fun String.toUUID(): UUID =
+        UUID.nameUUIDFromBytes(this.encodeToByteArray())
 
 }

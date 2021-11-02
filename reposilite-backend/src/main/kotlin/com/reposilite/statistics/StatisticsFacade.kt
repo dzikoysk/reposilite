@@ -36,8 +36,8 @@ class StatisticsFacade internal constructor(
 
     private val recordsBulk: ConcurrentHashMap<RecordIdentifier, Long> = ConcurrentHashMap()
 
-    fun increaseRecord(type: RecordType, uri: String) =
-        recordsBulk.merge(RecordIdentifier(type, uri), 1) { cached, value -> cached + value }
+    fun increaseRecord(type: RecordType, identifier: String) =
+        recordsBulk.merge(RecordIdentifier(type, identifier), 1) { cached, value -> cached + value }
 
     fun saveRecordsBulk() =
         recordsBulk.toMap().also {

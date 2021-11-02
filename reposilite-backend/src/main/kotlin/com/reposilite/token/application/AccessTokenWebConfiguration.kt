@@ -33,6 +33,9 @@ import org.jetbrains.exposed.sql.Database
 
 internal object AccessTokenWebConfiguration : WebConfiguration {
 
+    const val MAX_TOKEN_NAME = 255
+    const val MAX_ROUTE_LENGTH = 1024
+
     fun createFacade(database: Database): AccessTokenFacade =
         AccessTokenFacade(
             temporaryRepository = InMemoryAccessTokenRepository(),
