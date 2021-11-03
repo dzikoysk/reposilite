@@ -16,21 +16,7 @@
 
 package com.reposilite.statistics.api
 
-enum class RecordType {
-    REQUEST,
-    UNKNOWN
-}
-
-fun findRecordTypeByName(name: String) : RecordType? =
-    RecordType.values().find { it.name.equals(name, ignoreCase = true) }
-
-data class RecordIdentifier(
-    val type: RecordType,
-    val identifier: String
-)
-
-data class Record(
-    val type: RecordType,
-    val identifier: String,
-    val count: Long
+data class ResolvedCountResponse(
+    val sum: Long,
+    val records: List<Record>
 )

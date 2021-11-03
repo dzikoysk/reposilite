@@ -16,7 +16,7 @@
 
 package com.reposilite.statistics
 
-import com.reposilite.statistics.api.RecordCountResponse
+import com.reposilite.statistics.api.ResolvedCountResponse
 import com.reposilite.statistics.specification.StatisticsIntegrationSpecification
 import com.reposilite.token.api.RoutePermission.READ
 import io.javalin.http.HttpCode.UNAUTHORIZED
@@ -46,11 +46,11 @@ internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecifi
         // when: service is requested with valid credentials
         val response = get(endpoint)
             .basicAuth(name, secret)
-            .asObject(RecordCountResponse::class.java)
+            .asObject(ResolvedCountResponse::class.java)
 
         // then: service responds with valid stats data
         assertTrue(response.isSuccess)
-        assertEquals(1, response.body.count)
+        assertEquals(1, response.body.sum)
         assertEquals(route, response.body.records[0].identifier)
     }
 

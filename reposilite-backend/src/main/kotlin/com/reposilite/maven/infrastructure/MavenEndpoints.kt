@@ -31,7 +31,7 @@ import com.reposilite.web.routing.RouteMethod.GET
 import com.reposilite.web.routing.RouteMethod.HEAD
 import com.reposilite.web.routing.RouteMethod.POST
 import com.reposilite.web.routing.RouteMethod.PUT
-import io.javalin.http.HttpCode.NO_CONTENT
+import io.javalin.http.HttpCode.NOT_FOUND
 import io.javalin.openapi.ContentType.FORM_DATA_MULTIPART
 import io.javalin.openapi.HttpMethod
 import io.javalin.openapi.OpenApi
@@ -63,7 +63,7 @@ internal class MavenEndpoints(
         accessed {
             LookupRequest(this, requiredParameter("repository"), requiredParameter("gav")).let { request ->
                 mavenFacade.findDetails(request)
-                    .`is`(DocumentInfo::class.java) { ErrorResponse(NO_CONTENT, "Requested file is a directory") }
+                    .`is`(DocumentInfo::class.java) { ErrorResponse(NOT_FOUND, "Requested file is a directory") }
                     .flatMap { details -> mavenFacade.findFile(request).map { Pair(details, it) } }
                     .peek { (details, file) -> ctx.resultAttachment(details.name, details.contentType, details.contentLength, file) }
                     .onError { ctx.status(it.status).html(frontendFacade.createNotFoundPage(uri, it.message)) }

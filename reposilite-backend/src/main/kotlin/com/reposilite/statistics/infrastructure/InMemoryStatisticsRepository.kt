@@ -55,12 +55,12 @@ internal class InMemoryStatisticsRepository : StatisticsRepository {
             .sortedByDescending { it.count }
             .toList()
 
-    override fun countRecords(): Long =
+    override fun countResolvedRecords(): Long =
         records
             .map { it.value.count }
             .sum()
 
-    override fun countUniqueRecords(): Long =
+    override fun countUniqueResolvedRequests(): Long =
         records.size.toLong()
 
 }

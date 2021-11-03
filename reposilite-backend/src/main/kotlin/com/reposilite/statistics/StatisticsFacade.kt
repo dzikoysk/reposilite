@@ -17,11 +17,9 @@ package com.reposilite.statistics
 
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
-import com.reposilite.statistics.api.Record
-import com.reposilite.statistics.api.RecordCountResponse
-import com.reposilite.statistics.api.RecordIdentifier
-import com.reposilite.statistics.api.RecordType
-import com.reposilite.statistics.api.findRecordTypeByName
+import com.reposilite.statistics.api.Identifier
+import com.reposilite.statistics.api.IncrementResolvedRequest
+import com.reposilite.statistics.api.ResolvedCountResponse
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
 import io.javalin.http.HttpCode.BAD_REQUEST
@@ -34,32 +32,32 @@ class StatisticsFacade internal constructor(
     private val statisticsRepository: StatisticsRepository
 ) : Journalist {
 
-    private val recordsBulk: ConcurrentHashMap<RecordIdentifier, Long> = ConcurrentHashMap()
+    private val resolvedRequestsBulk: ConcurrentHashMap<Identifier, Long> = ConcurrentHashMap()
 
-    fun increaseRecord(type: RecordType, identifier: String) =
-        recordsBulk.merge(RecordIdentifier(type, identifier), 1) { cached, value -> cached + value }
+    fun incrementResolvedRequest(incrementResolvedRequest: IncrementResolvedRequest) =
+        resolvedRequestsBulk.merge(incrementResolvedRequest.identifier, incrementResolvedRequest.count) { cached, value -> cached + value }
 
     fun saveRecordsBulk() =
-        recordsBulk.toMap().also {
-            recordsBulk.clear() // read doesn't lock, so there is a possibility of dropping a few records between toMap and clear. Might be improved in the future
-            statisticsRepository.incrementRecords(it)
+        resolvedRequestsBulk.toMap().also {
+            resolvedRequestsBulk.clear() // read doesn't lock, so there is a possibility of dropping a few records between toMap and clear. Might be improved in the future
+            statisticsRepository.incrementResolvedRequests(it)
             logger.debug("Statistics | Saved bulk with ${it.size} records")
         }
 
-    fun findRecordsByPhrase(type: String, phrase: String, limit: Int = Int.MAX_VALUE): Result<RecordCountResponse, ErrorResponse> =
-        findRecordTypeByName(type)
-            ?.let { findRecordsByPhrase(it, phrase, limit).asSuccess() }
+    fun findResolvedRequestsByPhrase(type: String, phrase: String, limit: Int = Int.MAX_VALUE): Result<ResolvedCountResponse, ErrorResponse> =
+        findResolvedRequestsByPhrase(type)
+            ?.let { findResolvedRequestsByPhrase(it, phrase, limit).asSuccess() }
             ?: errorResponse(BAD_REQUEST, "Unknown record type $type}")
 
-    fun findRecordsByPhrase(type: RecordType, phrase: String, limit: Int = Int.MAX_VALUE): RecordCountResponse =
+    fun findResolvedRequestsByPhrase(identifier: Identifier: Identifier, phrase: String, limit: Int = Int.MAX_VALUE): ResolvedCountResponse =
         statisticsRepository.findRecordsByPhrase(type, phrase, limit)
-            .let { RecordCountResponse(it.sumOf(Record::count), it) }
+            .let { ResolvedCountResponse(it.sumOf(Record::count), it) }
 
     fun countUniqueRecords(): Long =
-        statisticsRepository.countUniqueRecords()
+        statisticsRepository.countUniqueResolvedRequests()
 
     fun countRecords(): Long =
-        statisticsRepository.countRecords()
+        statisticsRepository.countResolvedRecords()
 
     override fun getLogger(): Logger =
         journalist.logger

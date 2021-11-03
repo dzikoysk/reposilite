@@ -16,18 +16,21 @@
 
 package com.reposilite.statistics
 
+import com.reposilite.statistics.api.Identifier
+import kotlin.Int.Companion.MAX_VALUE
+
 internal interface StatisticsRepository {
 
     companion object {
         const val MAX_IDENTIFIER_LENGTH = 1024
     }
 
-    fun incrementResolved(identifier: String, count: Long)
+    fun incrementResolvedRequests(requests: Map<Identifier, Long>)
 
-    fun recordDeployed(identifier: String, by: String)
+    fun findResolvedRequestsByPhrase(repository: String, phrase: String, limit: Int = MAX_VALUE): List<Identifier>
 
-    fun countUniqueRecords(): Long
+    fun countUniqueResolvedRequests(): Long
 
-    fun countRecords(): Long
+    fun countResolvedRecords(): Long
 
 }

@@ -42,7 +42,7 @@ internal class StatsCommand(private val statisticsFacade: StatisticsFacade) : Re
         context.append("Statistics: ")
         context.append("  Unique requests: " + statisticsFacade.countUniqueRecords() + " (count: " + statisticsFacade.countRecords() + ")")
 
-        val response = statisticsFacade.findRecordsByPhrase(RecordType.REQUEST, filter, DEFAULT_TOP_LIMIT) // TOFIX: Limiter
+        val response = statisticsFacade.findResolvedRequestsByPhrase(RecordType.REQUEST, filter, DEFAULT_TOP_LIMIT) // TOFIX: Limiter
 
         context.append("  Recorded: " + (if (response.count == 0L) "[] " else "") + " (pattern: '${highlight(filter)}')")
         response.records.asSequence()

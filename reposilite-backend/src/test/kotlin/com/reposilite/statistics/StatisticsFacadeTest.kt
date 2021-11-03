@@ -32,7 +32,7 @@ internal class StatisticsFacadeTest : StatisticsSpecification() {
         val (type, uri) = useRecordedIdentifier(REQUEST, "/panda-lang/reposilite", 2)
 
         // when: the given phrase is requested
-        val result = statisticsFacade.findRecordsByPhrase(type.name, uri)
+        val result = statisticsFacade.findResolvedRequestsByPhrase(type.name, uri)
 
         // then: it should be properly stored in repository as a single record
         val response = assertOk(result)
@@ -48,7 +48,7 @@ internal class StatisticsFacadeTest : StatisticsSpecification() {
         val phrase = "reposilite"
 
         // when: the given phrase is requested
-        val result = statisticsFacade.findRecordsByPhrase(type.name, phrase)
+        val result = statisticsFacade.findResolvedRequestsByPhrase(type.name, phrase)
 
         // then: the phrase should be found
         val response = assertOk(result)
