@@ -16,8 +16,6 @@
 
 package com.reposilite.statistics
 
-import com.reposilite.statistics.api.RecordType.REQUEST
-import com.reposilite.statistics.api.RecordType.UNKNOWN
 import com.reposilite.statistics.specification.StatisticsSpecification
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -29,39 +27,40 @@ internal class StatisticsFacadeTest : StatisticsSpecification() {
     @Test
     fun `should increase records after saving the bulk`() = runBlocking {
         // given: an uri to stored request
-        val (type, uri) = useRecordedIdentifier(REQUEST, "/panda-lang/reposilite", 2)
+        val (identifier, count) = useResolvedIdentifier("releases", "/panda-lang/reposilite", 2)
+        val (repository, gav) = identifier
 
         // when: the given phrase is requested
-        val result = statisticsFacade.findResolvedRequestsByPhrase(type.name, uri)
+        val result = statisticsFacade.findResolvedRequestsByPhrase(repository, gav)
 
         // then: it should be properly stored in repository as a single record
         val response = assertOk(result)
-        assertEquals(2, response.count)
+        assertEquals(count, response.sum)
         assertEquals(1, response.requests.size)
-        assertEquals(uri, response.requests[0].identifier)
+        assertEquals(identifier, response.requests[0].identifier)
     }
 
     @Test
     fun `should find record by given phrase`() = runBlocking {
         // given: a requested uri and a phrase to search for
-        val (type, uri) = useRecordedIdentifier(REQUEST, "/panda-lang/reposilite")
+        val (identifier, count) = useResolvedIdentifier("releases", "/panda-lang/reposilite")
         val phrase = "reposilite"
 
         // when: the given phrase is requested
-        val result = statisticsFacade.findResolvedRequestsByPhrase(type.name, phrase)
+        val result = statisticsFacade.findResolvedRequestsByPhrase(identifier.repository, identifier.gav)
 
         // then: the phrase should be found
         val response = assertOk(result)
-        assertEquals(1, response.count)
-        assertEquals(uri, response.requests[0].identifier)
+        assertEquals(count, response.sum)
+        assertEquals(identifier, response.requests[0].identifier)
     }
 
     @Test
     fun `should properly count records and unique records`() = runBlocking {
         // given: two different identifiers
-        useRecordedIdentifier(REQUEST, "/first", 2)
-        useRecordedIdentifier(REQUEST, "/first/second")
-        useRecordedIdentifier(UNKNOWN, "/first/second")
+        useResolvedIdentifier("releases", "/first", 2)
+        useResolvedIdentifier("releases", "/first/second")
+        useResolvedIdentifier("snapshots", "/first/second")
 
         // then: count should properly respect criteria of uniqueness (type & identifier)
         assertEquals(4, statisticsFacade.countRecords())

@@ -27,6 +27,8 @@ import com.reposilite.shared.FakeRemoteClient
 import com.reposilite.shared.append
 import com.reposilite.shared.getSimpleNameFromUri
 import com.reposilite.shared.safeResolve
+import com.reposilite.statistics.StatisticsFacade
+import com.reposilite.statistics.infrastructure.InMemoryStatisticsRepository
 import com.reposilite.token.api.AccessToken
 import com.reposilite.token.api.Route
 import com.reposilite.token.api.RoutePermission
@@ -87,7 +89,13 @@ internal abstract class MavenSpecification {
             }
         )
 
-        this.mavenFacade = MavenWebConfiguration.createFacade(logger, workingDirectory!!.toPath(), remoteClient, mutableReference(repositories()))
+        this.mavenFacade = MavenWebConfiguration.createFacade(
+            logger,
+            workingDirectory!!.toPath(),
+            remoteClient,
+            mutableReference(repositories()),
+            StatisticsFacade(logger, InMemoryStatisticsRepository())
+        )
     }
 
     data class FileSpec(

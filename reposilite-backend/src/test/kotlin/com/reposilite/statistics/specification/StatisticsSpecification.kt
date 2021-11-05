@@ -18,7 +18,8 @@ package com.reposilite.statistics.specification
 
 import com.reposilite.journalist.backend.InMemoryLogger
 import com.reposilite.statistics.StatisticsFacade
-import com.reposilite.statistics.api.RecordType
+import com.reposilite.statistics.api.Identifier
+import com.reposilite.statistics.api.IncrementResolvedRequest
 import com.reposilite.statistics.infrastructure.InMemoryStatisticsRepository
 
 internal open class StatisticsSpecification {
@@ -26,16 +27,14 @@ internal open class StatisticsSpecification {
     private val logger = InMemoryLogger()
     protected val statisticsFacade = StatisticsFacade(logger, InMemoryStatisticsRepository())
 
-    protected fun useRecordedIdentifier(type: RecordType, identifier: String, times: Int = 1): Pair<RecordType, String> {
-        repeat(times) {
-            increaseAndSave(type, identifier)
-        }
-
-        return Pair(type, identifier)
+    protected fun useResolvedIdentifier(repository: String, gav: String, count: Long = 1): Pair<Identifier, Long> {
+        val identifier = Identifier(repository, gav)
+        increaseAndSave(identifier, count)
+        return Pair(identifier, count)
     }
 
-    protected fun increaseAndSave(type: RecordType, identifier: String) {
-        statisticsFacade.increaseRecord(type, identifier)
+    private fun increaseAndSave(identifier: Identifier, count: Long) {
+        statisticsFacade.incrementResolvedRequest(IncrementResolvedRequest(identifier, count))
         statisticsFacade.saveRecordsBulk()
     }
 

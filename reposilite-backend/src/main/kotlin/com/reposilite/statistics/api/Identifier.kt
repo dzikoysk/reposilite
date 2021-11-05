@@ -2,7 +2,7 @@ package com.reposilite.statistics.api
 
 import java.util.UUID
 
-class Identifier(
+data class Identifier(
     val repository: String,
     val gav: String
 ) {
@@ -11,6 +11,6 @@ class Identifier(
         UUID.nameUUIDFromBytes(toString().encodeToByteArray())
 
     override fun toString(): String =
-        "$repository/$gav"
+        "/$repository/$gav"
 
 }
