@@ -17,6 +17,7 @@
 package com.reposilite.statistics
 
 import com.reposilite.statistics.api.Identifier
+import com.reposilite.statistics.api.ResolvedRequestCount
 import kotlin.Int.Companion.MAX_VALUE
 
 internal interface StatisticsRepository {
@@ -27,7 +28,7 @@ internal interface StatisticsRepository {
 
     fun incrementResolvedRequests(requests: Map<Identifier, Long>)
 
-    fun findResolvedRequestsByPhrase(repository: String, phrase: String, limit: Int = MAX_VALUE): List<Identifier>
+    fun findResolvedRequestsByPhrase(repository: String, phrase: String, limit: Int = MAX_VALUE): List<ResolvedRequestCount>
 
     fun countUniqueResolvedRequests(): Long
 

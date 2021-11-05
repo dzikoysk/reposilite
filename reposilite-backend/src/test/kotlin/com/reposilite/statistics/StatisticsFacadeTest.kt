@@ -37,8 +37,8 @@ internal class StatisticsFacadeTest : StatisticsSpecification() {
         // then: it should be properly stored in repository as a single record
         val response = assertOk(result)
         assertEquals(2, response.count)
-        assertEquals(1, response.records.size)
-        assertEquals(uri, response.records[0].identifier)
+        assertEquals(1, response.requests.size)
+        assertEquals(uri, response.requests[0].identifier)
     }
 
     @Test
@@ -53,7 +53,7 @@ internal class StatisticsFacadeTest : StatisticsSpecification() {
         // then: the phrase should be found
         val response = assertOk(result)
         assertEquals(1, response.count)
-        assertEquals(uri, response.records[0].identifier)
+        assertEquals(uri, response.requests[0].identifier)
     }
 
     @Test

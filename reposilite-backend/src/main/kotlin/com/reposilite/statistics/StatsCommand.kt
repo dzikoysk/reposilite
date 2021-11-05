@@ -16,8 +16,10 @@
 package com.reposilite.statistics
 
 import com.reposilite.console.CommandContext
+import com.reposilite.console.CommandStatus.FAILED
 import com.reposilite.console.api.ReposiliteCommand
-import com.reposilite.statistics.api.RecordType
+import com.reposilite.shared.take
+import panda.std.Option
 import panda.utilities.console.Effect.BLACK_BOLD
 import panda.utilities.console.Effect.RESET
 import picocli.CommandLine.Command
@@ -28,42 +30,34 @@ private const val DEFAULT_TOP_LIMIT = 20
 @Command(name = "stats", description = ["Display collected metrics"])
 internal class StatsCommand(private val statisticsFacade: StatisticsFacade) : ReposiliteCommand {
 
-    @Parameters(index = "0", paramLabel = "[<filter>]", description = ["Accepts string as pattern and int as limiter"], defaultValue = "")
-    private lateinit var filter: String
+    @Parameters(index = "0", paramLabel = "[<repository>]", description = ["Repository to search in"], defaultValue = "releases")
+    private lateinit var repository: String
 
-    private val ignoredExtensions = listOf(
-        ".md5",
-        ".sha1",
-        ".sha256",
-        ".sha512",
-    )
+    @Parameters(index = "1", paramLabel = "[<filter>]", description = ["Accepts string as pattern and int as limiter"], defaultValue = "")
+    private lateinit var filter: String
 
     override fun execute(context: CommandContext) {
         context.append("Statistics: ")
-        context.append("  Unique requests: " + statisticsFacade.countUniqueRecords() + " (count: " + statisticsFacade.countRecords() + ")")
+        context.append("  Unique resolved requests: ${statisticsFacade.countUniqueRecords()}")
+        context.append("  All resolved requests: ${statisticsFacade.countRecords()}")
 
-        val response = statisticsFacade.findResolvedRequestsByPhrase(RecordType.REQUEST, filter, DEFAULT_TOP_LIMIT) // TOFIX: Limiter
+        val limiter = Option.attempt(NumberFormatException::class.java) { filter.toInt() }.orElseGet(DEFAULT_TOP_LIMIT)
+        val phrase = take(limiter != DEFAULT_TOP_LIMIT, "", filter)
 
-        context.append("  Recorded: " + (if (response.count == 0L) "[] " else "") + " (pattern: '${highlight(filter)}')")
-        response.records.asSequence()
-            .filter { ignoredExtensions.none { extension -> it.identifier.endsWith(extension) } }
-            .forEachIndexed { order, record -> context.append("  ${order}. ${record.identifier} (${record.count})") }
-
-        /*
-            val limiter = Option.attempt(NumberFormatException::class.java) { filter!!.toInt() }
-                .orElseGet(0)
-
-            val pattern = if (limiter != 0) StringUtils.EMPTY else filter!!
-
-            val stats = aggregatedStats.fetchStats(
-                BiPredicate { uri: String?, counts: Int -> counts >= limiter },
-                BiPredicate { uri: String, counts: Int? -> uri.contains(pattern) },
-                BiPredicate { uri: String, counts: Int? -> !uri.endsWith(".md5") },
-                BiPredicate { uri: String, counts: Int? -> !uri.endsWith(".sha1") },
-                BiPredicate { uri: String, counts: Int? -> !uri.endsWith(".pom") },
-                BiPredicate { uri: String, counts: Int? -> !uri.endsWith("/js/app.js") }
-            )
-         */
+        statisticsFacade.findResolvedRequestsByPhrase(repository, phrase, limiter)
+            .peek { response ->
+                context.append("Search results:")
+                context.append("  Filter: '${highlight(phrase)}'")
+                context.append("  In repository: $repository")
+                context.append("  Matched requests: ${response.sum}")
+                context.append("  Records:")
+                response.requests.forEachIndexed { order, request -> context.append("    ${order + 1}. /${request.identifier.gav} (${request.count})") }
+                if (response.requests.isEmpty()) context.append("    ~ Matching records not found ~")
+            }
+            .onError {
+                context.append("Cannot fetch statistics: $it")
+                context.status = FAILED
+            }
     }
 
     private fun highlight(value: Any): String =

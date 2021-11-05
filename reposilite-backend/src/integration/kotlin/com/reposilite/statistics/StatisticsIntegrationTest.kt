@@ -51,7 +51,7 @@ internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecifi
         // then: service responds with valid stats data
         assertTrue(response.isSuccess)
         assertEquals(1, response.body.sum)
-        assertEquals(route, response.body.records[0].identifier)
+        assertEquals(route, response.body.requests[0].identifier)
     }
 
 }

@@ -27,6 +27,8 @@ import panda.std.Result
 import panda.std.asSuccess
 import java.util.concurrent.ConcurrentHashMap
 
+const val MAX_PAGE_SIZE = 100
+
 class StatisticsFacade internal constructor(
     private val journalist: Journalist,
     private val statisticsRepository: StatisticsRepository
@@ -44,14 +46,17 @@ class StatisticsFacade internal constructor(
             logger.debug("Statistics | Saved bulk with ${it.size} records")
         }
 
-    fun findResolvedRequestsByPhrase(type: String, phrase: String, limit: Int = Int.MAX_VALUE): Result<ResolvedCountResponse, ErrorResponse> =
-        findResolvedRequestsByPhrase(type)
-            ?.let { findResolvedRequestsByPhrase(it, phrase, limit).asSuccess() }
-            ?: errorResponse(BAD_REQUEST, "Unknown record type $type}")
-
-    fun findResolvedRequestsByPhrase(identifier: Identifier: Identifier, phrase: String, limit: Int = Int.MAX_VALUE): ResolvedCountResponse =
-        statisticsRepository.findRecordsByPhrase(type, phrase, limit)
-            .let { ResolvedCountResponse(it.sumOf(Record::count), it) }
+    fun findResolvedRequestsByPhrase(repository: String = "", phrase: String, limit: Int = MAX_PAGE_SIZE): Result<ResolvedCountResponse, ErrorResponse> =
+        limit.takeIf { it <= MAX_PAGE_SIZE }
+            ?.let {
+                statisticsRepository.findResolvedRequestsByPhrase(repository, phrase, limit).let {
+                    ResolvedCountResponse(
+                        it.sumOf { resolved -> resolved.count },
+                        it
+                    ).asSuccess()
+                }
+            }
+            ?: errorResponse(BAD_REQUEST, "Requested too many records ($limit > $MAX_PAGE_SIZE)")
 
     fun countUniqueRecords(): Long =
         statisticsRepository.countUniqueResolvedRequests()

@@ -23,6 +23,7 @@ import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.shared.resultAttachment
+import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.web.application.ReposiliteRoute
 import com.reposilite.web.application.ReposiliteRoutes
 import com.reposilite.web.http.ErrorResponse
@@ -41,7 +42,8 @@ import io.javalin.openapi.OpenApiResponse
 
 internal class MavenEndpoints(
     private val mavenFacade: MavenFacade,
-    private val frontendFacade: FrontendFacade
+    private val frontendFacade: FrontendFacade,
+    private val statisticsFacade: StatisticsFacade
 ) : ReposiliteRoutes() {
 
     @OpenApi(

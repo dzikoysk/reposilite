@@ -24,8 +24,8 @@ version = "3.0.0-alpha.7"
 
 plugins {
     `java-library`
-    kotlin("jvm") version "1.6.0-RC"
-    kotlin("kapt") version "1.6.0-RC"
+    kotlin("jvm") version "1.6.0-RC2"
+    kotlin("kapt") version "1.6.0-RC2"
     id("com.github.johnrengelman.shadow") version "7.1.0"
     id("com.coditory.integration-test") version "1.3.0"
     `maven-publish`
@@ -39,8 +39,8 @@ application {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-reflect:1.6.0-RC")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.0-RC")
+    implementation("org.jetbrains.kotlin:kotlin-reflect:1.6.0-RC2")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.0-RC2")
     // implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
 
     val expressible = "1.1.1"

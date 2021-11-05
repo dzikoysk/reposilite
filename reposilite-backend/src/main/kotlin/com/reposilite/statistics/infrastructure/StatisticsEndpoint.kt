@@ -16,6 +16,7 @@
 
 package com.reposilite.statistics.infrastructure
 
+import com.reposilite.statistics.MAX_PAGE_SIZE
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.web.application.ReposiliteRoute
 import com.reposilite.web.application.ReposiliteRoutes
@@ -28,16 +29,17 @@ internal class StatisticsEndpoint(private val statisticsFacade: StatisticsFacade
 
     @OpenApi(
         tags = ["Maven"],
-        path = "/api/statistics/count/{type}/*",
+        path = "/api/statistics/resolved/{limit}/{repository}/*",
         methods = [HttpMethod.GET],
         pathParams = [
-            OpenApiParam(name = "type", description = "Record type", required = true),
-            OpenApiParam(name = "*", description = "Record identifier", required = true, allowEmptyValue = true)
+            OpenApiParam(name = "limit", description = "Amount of records to find (Maximum: $MAX_PAGE_SIZE", required = true),
+            OpenApiParam(name = "repository", description = "Repository to search in", required = true),
+            OpenApiParam(name = "*", description = "Phrase to search for", required = true, allowEmptyValue = true)
         ],
     )
-    val findCount = ReposiliteRoute("/api/statistics/count/{type}/<identifier>", GET) {
+    val findCount = ReposiliteRoute("/api/statistics/resolved/{limit}/{repository}/<gav>", GET) {
         authorized("/${requiredParameter("identifier")}") {
-            response = statisticsFacade.findResolvedRequestsByPhrase(requiredParameter("type"), "/${requiredParameter("identifier")}", 1)
+            response = statisticsFacade.findResolvedRequestsByPhrase(requiredParameter("repository"), requiredParameter("gav"), 1)
         }
     }
 

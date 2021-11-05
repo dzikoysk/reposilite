@@ -16,7 +16,12 @@
 
 package com.reposilite.statistics.api
 
+data class ResolvedRequestCount(
+    val identifier: Identifier,
+    val count: Long
+)
+
 data class ResolvedCountResponse(
     val sum: Long,
-    val records: List<Record>
+    val requests: List<ResolvedRequestCount>
 )

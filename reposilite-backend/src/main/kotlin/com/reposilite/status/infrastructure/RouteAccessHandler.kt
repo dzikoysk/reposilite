@@ -14,23 +14,16 @@
  * limitations under the License.
  */
 
-package com.reposilite.statistics.infrastructure
+package com.reposilite.status.infrastructure
 
-import com.reposilite.statistics.StatisticsFacade
-import com.reposilite.statistics.StatisticsRepository.Companion.MAX_IDENTIFIER_LENGTH
-import com.reposilite.statistics.api.RecordType.REQUEST
 import com.reposilite.web.application.ReposiliteRoute
 import com.reposilite.web.application.ReposiliteRoutes
 import com.reposilite.web.routing.RouteMethod.BEFORE
 
-internal class StatisticsHandler(private val statisticsFacade: StatisticsFacade) : ReposiliteRoutes() {
+internal class RouteAccessHandler : ReposiliteRoutes() {
 
     private val collectRequests = ReposiliteRoute("/<*>", BEFORE) {
         logger.debug("${ctx.method()} $uri from ${ctx.ip()}")
-
-        uri.takeIf { it.length < MAX_IDENTIFIER_LENGTH }
-            // ?.takeIf { ignoredExtensions.none { extension -> it.endsWith(extension) } }
-            ?.let { statisticsFacade.increaseRecord(REQUEST, it) }
     }
 
     override val routes = setOf(collectRequests)

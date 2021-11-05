@@ -43,3 +43,6 @@ fun <VALUE, ERROR> Sequence<Result<out VALUE, ERROR>>.firstOrErrors(): Result<ou
 
 fun <VALUE> Result<VALUE, *>.`when`(condition: (VALUE) -> Boolean): Boolean =
     fold({ condition(it) }, { false })
+
+fun <T> take(condition: Boolean, ifTrue: T, ifFalse: T): T =
+    if (condition) ifTrue else ifFalse

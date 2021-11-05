@@ -16,11 +16,12 @@
 
 package com.reposilite.statistics.infrastructure
 
+import com.reposilite.shared.and
 import com.reposilite.shared.firstAndMap
 import com.reposilite.statistics.StatisticsRepository
 import com.reposilite.statistics.StatisticsRepository.Companion.MAX_IDENTIFIER_LENGTH
 import com.reposilite.statistics.api.Identifier
-import com.reposilite.statistics.api.IncrementResolvedRequest
+import com.reposilite.statistics.api.ResolvedRequestCount
 import net.dzikoysk.exposed.upsert.upsert
 import net.dzikoysk.exposed.upsert.withUnique
 import org.jetbrains.exposed.dao.id.IntIdTable
@@ -31,6 +32,7 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.javatime.date
+import org.jetbrains.exposed.sql.leftJoin
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.sum
@@ -47,7 +49,7 @@ internal class SqlStatisticsRepository(private val database: Database) : Statist
 
     internal object StatisticsIdentifierTable : Table("statistics_identifier") {
         val id = uuid("identifier_id")
-        val repository = varchar("repository", 100)
+        val repository = varchar("repository", 64).index("idx_repository")
         val gav = varchar("gav", MAX_IDENTIFIER_LENGTH)
         override val primaryKey = PrimaryKey(id)
     }
@@ -124,8 +126,24 @@ internal class SqlStatisticsRepository(private val database: Database) : Statist
                 ?.let { it[StatisticsIdentifierTable.id] }
         }
 
-    override fun findResolvedRequestsByPhrase(repository: String, phrase: String, limit: Int): List<Identifier> =
-        transaction(database) {  }
+    override fun findResolvedRequestsByPhrase(repository: String, phrase: String, limit: Int): List<ResolvedRequestCount> =
+        transaction(database) {
+            StatisticsIdentifierTable.leftJoin(StatisticsIdentifierResolvedTable, { StatisticsIdentifierTable.id }, { StatisticsIdentifierResolvedTable.identifierId })
+                .select {
+                    and(
+                        { StatisticsIdentifierTable.repository eq repository },
+                        { StatisticsIdentifierTable.gav like "%${phrase}%" }
+                    )
+                }
+                .orderBy(StatisticsIdentifierResolvedTable.count)
+                .limit(limit)
+                .map {
+                    ResolvedRequestCount(
+                        Identifier(it[StatisticsIdentifierTable.repository], it[StatisticsIdentifierTable.gav]),
+                        it[StatisticsIdentifierResolvedTable.count]
+                    )
+                }
+        }
 
     override fun countResolvedRecords(): Long =
         transaction(database) {

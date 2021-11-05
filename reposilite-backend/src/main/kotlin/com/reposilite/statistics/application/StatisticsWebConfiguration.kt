@@ -22,11 +22,10 @@ import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.statistics.StatsCommand
 import com.reposilite.statistics.infrastructure.SqlStatisticsRepository
 import com.reposilite.statistics.infrastructure.StatisticsEndpoint
-import com.reposilite.statistics.infrastructure.StatisticsHandler
 import com.reposilite.web.WebConfiguration
 import com.reposilite.web.application.ReposiliteRoutes
 import org.jetbrains.exposed.sql.Database
-import java.util.concurrent.TimeUnit.MINUTES
+import java.util.concurrent.TimeUnit.SECONDS
 
 internal object StatisticsWebConfiguration : WebConfiguration {
 
@@ -43,13 +42,11 @@ internal object StatisticsWebConfiguration : WebConfiguration {
             reposilite.ioService.execute {
                 statisticsFacade.saveRecordsBulk()
             }
-        }, 1, 1, MINUTES)
+        }, 10, 10, SECONDS)
     }
 
-    override fun routing(reposilite: Reposilite): Set<ReposiliteRoutes> =
-        setOf(
-            StatisticsEndpoint(reposilite.statisticsFacade),
-            StatisticsHandler(reposilite.statisticsFacade),
-        )
+    override fun routing(reposilite: Reposilite): Set<ReposiliteRoutes> = setOf(
+        StatisticsEndpoint(reposilite.statisticsFacade)
+    )
 
 }
