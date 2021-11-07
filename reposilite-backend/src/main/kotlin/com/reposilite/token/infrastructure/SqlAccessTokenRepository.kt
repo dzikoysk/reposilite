@@ -16,7 +16,7 @@
 
 package com.reposilite.token.infrastructure
 
-import com.reposilite.shared.firstAndMap
+import com.reposilite.shared.extensions.firstAndMap
 import com.reposilite.token.AccessTokenRepository
 import com.reposilite.token.api.AccessToken
 import com.reposilite.token.api.AccessTokenPermission

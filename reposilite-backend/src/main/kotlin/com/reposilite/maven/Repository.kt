@@ -15,19 +15,20 @@
  */
 package com.reposilite.maven
 
-import com.reposilite.maven.api.FileDetails
+import com.reposilite.maven.api.REPOSITORY_NAME_MAX_LENGTH
 import com.reposilite.maven.api.RepositoryVisibility
 import com.reposilite.settings.SharedConfiguration.RepositoryConfiguration.ProxiedHostConfiguration
+import com.reposilite.shared.fs.FileDetails
+import com.reposilite.shared.fs.getSimpleName
 import com.reposilite.storage.StorageProvider
 import com.reposilite.web.http.ErrorResponse
+import org.apache.commons.codec.digest.DigestUtils
 import panda.std.Result
 import java.io.InputStream
 import java.nio.file.Path
 import java.nio.file.attribute.FileTime
 
-const val REPOSITORY_NAME_MAX_LENGTH = 32
-
-class Repository internal constructor(
+internal class Repository internal constructor(
     val name: String,
     val visibility: RepositoryVisibility,
     val redeployment: Boolean,
@@ -39,6 +40,19 @@ class Repository internal constructor(
         if (name.length > REPOSITORY_NAME_MAX_LENGTH) {
             throw IllegalStateException("Repository name cannot exceed $REPOSITORY_NAME_MAX_LENGTH characters")
         }
+    }
+
+    @Suppress("unused")
+    private fun writeFileChecksums(path: Path, bytes: ByteArray) {
+        val md5 = path.resolveSibling(path.getSimpleName() + ".md5")
+        putFile(md5, DigestUtils.md5(bytes).inputStream())
+
+        val sha1 = path.resolveSibling(path.getSimpleName() + ".sha1")
+        val sha256 = path.resolveSibling(path.getSimpleName() + ".sha256")
+        val sha512 = path.resolveSibling(path.getSimpleName() + ".sha512")
+        putFile(sha1, DigestUtils.sha1(bytes).inputStream())
+        putFile(sha256, DigestUtils.sha256(bytes).inputStream())
+        putFile(sha512, DigestUtils.sha512(bytes).inputStream())
     }
 
     fun putFile(file: Path, inputStream: InputStream): Result<Unit, ErrorResponse> =

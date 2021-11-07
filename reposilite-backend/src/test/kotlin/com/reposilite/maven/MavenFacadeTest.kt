@@ -26,7 +26,7 @@ import com.reposilite.maven.api.RepositoryVisibility.PRIVATE
 import com.reposilite.maven.api.RepositoryVisibility.PUBLIC
 import com.reposilite.maven.api.Versioning
 import com.reposilite.maven.specification.MavenSpecification
-import com.reposilite.shared.FileType.FILE
+import com.reposilite.shared.fs.FileType.FILE
 import com.reposilite.token.api.RoutePermission.READ
 import com.reposilite.token.api.RoutePermission.WRITE
 import kotlinx.coroutines.runBlocking

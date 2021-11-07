@@ -20,9 +20,9 @@ import com.reposilite.frontend.FrontendFacade
 import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.api.DeleteRequest
 import com.reposilite.maven.api.DeployRequest
-import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.maven.api.LookupRequest
-import com.reposilite.shared.resultAttachment
+import com.reposilite.shared.extensions.resultAttachment
+import com.reposilite.shared.fs.DocumentInfo
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.web.application.ReposiliteRoute
 import com.reposilite.web.application.ReposiliteRoutes

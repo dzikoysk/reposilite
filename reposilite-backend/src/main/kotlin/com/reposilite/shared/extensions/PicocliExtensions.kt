@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.reposilite.shared
+package com.reposilite.shared.extensions
 
 import com.reposilite.VERSION
 import panda.std.Result
@@ -26,12 +26,12 @@ abstract class Validator : Runnable {
     override fun run() { }
 }
 
-data class CommandConfiguration<VALUE>(
+internal data class CommandConfiguration<VALUE>(
     val name: String,
     val configuration: VALUE
 )
 
-fun <CONFIGURATION : Runnable> loadCommandBasedConfiguration(configuration: CONFIGURATION, description: String): CommandConfiguration<CONFIGURATION> =
+internal fun <CONFIGURATION : Runnable> loadCommandBasedConfiguration(configuration: CONFIGURATION, description: String): CommandConfiguration<CONFIGURATION> =
     description.split(" ", limit = 2)
         .let { CommandConfiguration(it[0], it.getOrElse(1, { "" })) }
         .also { CommandLine(configuration).execute(*splitArguments(it.configuration)) }
@@ -41,7 +41,7 @@ fun <CONFIGURATION : Runnable> loadCommandBasedConfiguration(configuration: CONF
 private fun splitArguments(args: String): Array<String> =
     if (args.isEmpty()) arrayOf() else args.split(" ").toTypedArray()
 
-fun createCommandHelp(commands: Map<String, CommandLine>, requestedCommand: String): Result<List<String>, String> {
+internal fun createCommandHelp(commands: Map<String, CommandLine>, requestedCommand: String): Result<List<String>, String> {
     if (requestedCommand.isNotEmpty()) {
         return commands[requestedCommand]
             ?.let { listOf(it.usageMessage).asSuccess() }

@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package com.reposilite.shared
+package com.reposilite.shared.fs
 
-import com.reposilite.shared.FileType.DIRECTORY
-import com.reposilite.shared.FileType.FILE
-import com.reposilite.shared.FilesUtils.getExtension
+import com.reposilite.shared.fs.FileType.DIRECTORY
+import com.reposilite.shared.fs.FileType.FILE
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
 import io.javalin.http.HttpCode
 import io.javalin.http.HttpCode.NOT_FOUND
+import io.javalin.http.HttpCode.NO_CONTENT
 import panda.std.Result
 import panda.std.Result.error
 import panda.std.Result.ok
@@ -73,7 +73,7 @@ internal fun Path.listFiles(): Result<List<Path>, ErrorResponse> =
 internal fun Path.inputStream(): Result<InputStream, ErrorResponse> =
     catchIOException {
         exists()
-            .filter({ it.isDirectory().not() }, { ErrorResponse(HttpCode.NO_CONTENT, "Requested file is a directory") })
+            .filter({ it.isDirectory().not() }, { ErrorResponse(NO_CONTENT, "Requested file is a directory") })
             .map { Files.newInputStream(it) }
     }
 

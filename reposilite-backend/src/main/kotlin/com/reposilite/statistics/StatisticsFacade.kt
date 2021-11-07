@@ -17,7 +17,7 @@ package com.reposilite.statistics
 
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
-import com.reposilite.statistics.api.Identifier
+import com.reposilite.maven.api.Identifier
 import com.reposilite.statistics.api.IncrementResolvedRequest
 import com.reposilite.statistics.api.ResolvedCountResponse
 import com.reposilite.web.http.ErrorResponse

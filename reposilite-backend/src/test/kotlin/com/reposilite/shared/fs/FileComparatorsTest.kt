@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package com.reposilite.maven
+package com.reposilite.shared.fs
 
-import com.reposilite.maven.specification.MetadataComparatorSpecification
+import com.reposilite.shared.fs.specification.FileComparatorsSpecification
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
-internal class MetadataComparatorTest : MetadataComparatorSpecification() {
+internal class FileComparatorsTest : FileComparatorsSpecification() {
 
     @Test
     fun `should sort versions in ascending order`() {

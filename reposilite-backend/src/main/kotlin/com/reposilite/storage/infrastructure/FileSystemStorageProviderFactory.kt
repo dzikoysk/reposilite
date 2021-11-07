@@ -16,7 +16,7 @@
 
 package com.reposilite.storage.infrastructure
 
-import com.reposilite.shared.FilesUtils
+import com.reposilite.shared.fs.FilesUtils
 import java.nio.file.Path
 
 internal object FileSystemStorageProviderFactory {

@@ -17,7 +17,7 @@
 package com.reposilite.status
 
 import com.reposilite.VERSION
-import com.reposilite.shared.TimeUtils
+import com.reposilite.shared.extensions.TimeUtils
 import panda.utilities.IOUtils
 import panda.utilities.console.Effect.GREEN
 import panda.utilities.console.Effect.RED_UNDERLINED

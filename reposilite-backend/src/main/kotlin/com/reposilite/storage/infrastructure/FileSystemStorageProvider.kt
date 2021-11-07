@@ -16,16 +16,16 @@
 
 package com.reposilite.storage.infrastructure
 
-import com.reposilite.maven.api.FileDetails
-import com.reposilite.maven.api.toFileDetails
-import com.reposilite.shared.catchIOException
-import com.reposilite.shared.delete
-import com.reposilite.shared.exists
-import com.reposilite.shared.getLastModifiedTime
-import com.reposilite.shared.inputStream
-import com.reposilite.shared.listFiles
-import com.reposilite.shared.safeResolve
-import com.reposilite.shared.size
+import com.reposilite.shared.fs.FileDetails
+import com.reposilite.shared.fs.catchIOException
+import com.reposilite.shared.fs.delete
+import com.reposilite.shared.fs.exists
+import com.reposilite.shared.fs.getLastModifiedTime
+import com.reposilite.shared.fs.inputStream
+import com.reposilite.shared.fs.listFiles
+import com.reposilite.shared.fs.safeResolve
+import com.reposilite.shared.fs.size
+import com.reposilite.shared.fs.toFileDetails
 import com.reposilite.storage.StorageProvider
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
@@ -36,7 +36,7 @@ import java.io.File
 import java.io.InputStream
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.StandardCopyOption
+import java.nio.file.StandardCopyOption.REPLACE_EXISTING
 import java.nio.file.attribute.FileTime
 
 /**
@@ -72,7 +72,7 @@ internal abstract class FileSystemStorageProvider protected constructor(
                     data.copyTo(destination)
                 }
 
-                Files.move(temporaryFile.toPath(), file, StandardCopyOption.REPLACE_EXISTING)
+                Files.move(temporaryFile.toPath(), file, REPLACE_EXISTING)
                 ok(Unit)
             }
         }

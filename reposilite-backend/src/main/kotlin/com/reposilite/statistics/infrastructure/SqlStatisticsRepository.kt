@@ -16,20 +16,22 @@
 
 package com.reposilite.statistics.infrastructure
 
-import com.reposilite.maven.REPOSITORY_NAME_MAX_LENGTH
-import com.reposilite.shared.and
-import com.reposilite.shared.firstAndMap
+import com.reposilite.maven.api.GAV_MAX_LENGTH
+import com.reposilite.maven.api.Identifier
+import com.reposilite.maven.api.REPOSITORY_NAME_MAX_LENGTH
+import com.reposilite.shared.extensions.and
+import com.reposilite.shared.extensions.firstAndMap
 import com.reposilite.statistics.StatisticsRepository
-import com.reposilite.statistics.api.GAV_MAX_LENGTH
-import com.reposilite.statistics.api.Identifier
-import com.reposilite.statistics.api.ResolvedRequestCount
+import com.reposilite.statistics.api.ResolvedEntry
 import net.dzikoysk.exposed.upsert.upsert
 import net.dzikoysk.exposed.upsert.withUnique
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.ReferenceOption.CASCADE
 import org.jetbrains.exposed.sql.SchemaUtils
+import org.jetbrains.exposed.sql.SortOrder.DESC
 import org.jetbrains.exposed.sql.SqlExpressionBuilder
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.like
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.count
 import org.jetbrains.exposed.sql.insert
@@ -105,28 +107,24 @@ internal class SqlStatisticsRepository(private val database: Database) : Statist
                 ?.let { it[IdentifierTable.id] }
         }
 
-    override fun findResolvedRequestsByPhrase(repository: String, phrase: String, limit: Int): List<ResolvedRequestCount> =
+    override fun findResolvedRequestsByPhrase(repository: String, phrase: String, limit: Int): List<ResolvedEntry> =
         transaction(database) {
             val resolvedCount = ResolvedTable.count.count()
+            val whereCriteria =
+                if (repository.isEmpty())
+                    { IdentifierTable.gav like "%${phrase}%" }
+                else
+                    and({ IdentifierTable.repository eq repository }, { IdentifierTable.gav like "%${phrase}%" })
 
             IdentifierTable.leftJoin(ResolvedTable, { IdentifierTable.id }, { ResolvedTable.identifierId })
-                .slice(IdentifierTable.repository, IdentifierTable.gav, resolvedCount)
-                .select {
-                    and(
-                        { IdentifierTable.repository eq repository },
-                        { IdentifierTable.gav like "%${phrase}%" }
-                    )
-                }
+                .slice(IdentifierTable.gav, resolvedCount)
+                .select(whereCriteria)
                 .groupBy(ResolvedTable.id)
-                .orderBy(resolvedCount)
+                .having { resolvedCount greater 0 }
+                .orderBy(resolvedCount, DESC)
                 .limit(limit)
                 .filter { it.getOrNull(resolvedCount) != null }
-                .map {
-                    ResolvedRequestCount(
-                        Identifier(it[IdentifierTable.repository], it[IdentifierTable.gav]),
-                        it[resolvedCount]
-                    )
-                }
+                .map { ResolvedEntry(it[IdentifierTable.gav], it[resolvedCount]) }
         }
 
     override fun countResolvedRecords(): Long =

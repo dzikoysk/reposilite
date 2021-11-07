@@ -16,15 +16,15 @@
 
 package com.reposilite.statistics
 
-import com.reposilite.statistics.api.Identifier
-import com.reposilite.statistics.api.ResolvedRequestCount
+import com.reposilite.maven.api.Identifier
+import com.reposilite.statistics.api.ResolvedEntry
 import kotlin.Int.Companion.MAX_VALUE
 
 internal interface StatisticsRepository {
 
     fun incrementResolvedRequests(requests: Map<Identifier, Long>)
 
-    fun findResolvedRequestsByPhrase(repository: String, phrase: String, limit: Int = MAX_VALUE): List<ResolvedRequestCount>
+    fun findResolvedRequestsByPhrase(repository: String, phrase: String, limit: Int = MAX_VALUE): List<ResolvedEntry>
 
     fun countUniqueResolvedRequests(): Long
 

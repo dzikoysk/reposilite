@@ -37,7 +37,7 @@ internal class StatisticsFacadeTest : StatisticsSpecification() {
         val response = assertOk(result)
         assertEquals(count, response.sum)
         assertEquals(1, response.requests.size)
-        assertEquals(identifier, response.requests[0].identifier)
+        assertEquals(gav, response.requests[0].gav)
     }
 
     @Test
@@ -52,7 +52,7 @@ internal class StatisticsFacadeTest : StatisticsSpecification() {
         // then: the phrase should be found
         val response = assertOk(result)
         assertEquals(count, response.sum)
-        assertEquals(identifier, response.requests[0].identifier)
+        assertEquals(identifier.gav, response.requests[0].gav)
     }
 
     @Test

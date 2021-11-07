@@ -15,7 +15,7 @@
  */
 package com.reposilite.settings
 
-import com.reposilite.shared.Validator
+import com.reposilite.shared.extensions.Validator
 import net.dzikoysk.cdn.entity.Description
 import panda.std.reactive.reference
 import picocli.CommandLine.Command

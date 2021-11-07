@@ -19,7 +19,7 @@ package com.reposilite.maven
 import com.reposilite.journalist.Journalist
 import com.reposilite.settings.SharedConfiguration.RepositoryConfiguration
 import com.reposilite.settings.SharedConfiguration.RepositoryConfiguration.ProxiedHostConfiguration
-import com.reposilite.shared.loadCommandBasedConfiguration
+import com.reposilite.shared.extensions.loadCommandBasedConfiguration
 import com.reposilite.storage.StorageProviderFactory.createStorageProvider
 import java.nio.file.Path
 import java.nio.file.Paths

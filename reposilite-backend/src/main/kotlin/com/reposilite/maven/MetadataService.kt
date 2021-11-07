@@ -26,8 +26,9 @@ import com.fasterxml.jackson.module.kotlin.kotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.reposilite.maven.api.METADATA_FILE
 import com.reposilite.maven.api.Metadata
-import com.reposilite.shared.safeResolve
-import com.reposilite.shared.toPath
+import com.reposilite.shared.fs.VersionComparator
+import com.reposilite.shared.fs.safeResolve
+import com.reposilite.shared.fs.toPath
 import com.reposilite.web.http.ErrorResponse
 import panda.std.Result
 

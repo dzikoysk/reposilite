@@ -17,8 +17,8 @@
 package com.reposilite.statistics.specification
 
 import com.reposilite.journalist.backend.InMemoryLogger
+import com.reposilite.maven.api.Identifier
 import com.reposilite.statistics.StatisticsFacade
-import com.reposilite.statistics.api.Identifier
 import com.reposilite.statistics.api.IncrementResolvedRequest
 import com.reposilite.statistics.infrastructure.InMemoryStatisticsRepository
 

@@ -18,22 +18,22 @@ package com.reposilite.maven.specification
 
 import com.reposilite.journalist.backend.InMemoryLogger
 import com.reposilite.maven.MavenFacade
-import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.maven.api.LookupRequest
-import com.reposilite.maven.api.UNKNOWN_LENGTH
 import com.reposilite.maven.application.MavenWebConfiguration
 import com.reposilite.settings.SharedConfiguration.RepositoryConfiguration
 import com.reposilite.shared.FakeRemoteClient
-import com.reposilite.shared.append
-import com.reposilite.shared.getSimpleNameFromUri
-import com.reposilite.shared.safeResolve
+import com.reposilite.shared.fs.DocumentInfo
+import com.reposilite.shared.fs.UNKNOWN_LENGTH
+import com.reposilite.shared.fs.append
+import com.reposilite.shared.fs.getSimpleNameFromUri
+import com.reposilite.shared.fs.safeResolve
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.statistics.infrastructure.InMemoryStatisticsRepository
 import com.reposilite.token.api.AccessToken
 import com.reposilite.token.api.Route
 import com.reposilite.token.api.RoutePermission
 import com.reposilite.web.http.notFoundError
-import io.javalin.http.ContentType
+import io.javalin.http.ContentType.TEXT_XML
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
 import panda.std.asSuccess
@@ -67,13 +67,13 @@ internal abstract class MavenSpecification {
                 if (uri.startsWith(REMOTE_REPOSITORY) && REMOTE_AUTH == credentials && !uri.isAllowed())
                     DocumentInfo(
                         uri.getSimpleNameFromUri(),
-                        ContentType.TEXT_XML,
+                        TEXT_XML,
                         UNKNOWN_LENGTH,
                     ).asSuccess()
                 else if (uri.startsWith(REMOTE_REPOSITORY_WITH_WHITELIST) && uri.isAllowed())
                     DocumentInfo(
                         uri.getSimpleNameFromUri(),
-                        ContentType.TEXT_XML,
+                        TEXT_XML,
                         UNKNOWN_LENGTH,
                     ).asSuccess()
                 else

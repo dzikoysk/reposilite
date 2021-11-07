@@ -16,9 +16,9 @@
 
 package com.reposilite.statistics.infrastructure
 
+import com.reposilite.maven.api.Identifier
 import com.reposilite.statistics.StatisticsRepository
-import com.reposilite.statistics.api.Identifier
-import com.reposilite.statistics.api.ResolvedRequestCount
+import com.reposilite.statistics.api.ResolvedEntry
 import java.util.concurrent.ConcurrentHashMap
 
 internal class InMemoryStatisticsRepository : StatisticsRepository {
@@ -30,12 +30,12 @@ internal class InMemoryStatisticsRepository : StatisticsRepository {
             resolvedRequests.merge(identifier, count) { oldCount, value -> oldCount + value }
         }
 
-    override fun findResolvedRequestsByPhrase(repository: String, phrase: String, limit: Int): List<ResolvedRequestCount> =
+    override fun findResolvedRequestsByPhrase(repository: String, phrase: String, limit: Int): List<ResolvedEntry> =
         resolvedRequests.asSequence()
             .filter { (identifier) -> identifier.toString().contains(phrase) }
             .sortedByDescending { (_, count) -> count }
             .take(limit)
-            .map { (identifier, count) -> ResolvedRequestCount(identifier, count) }
+            .map { (identifier, count) -> ResolvedEntry(identifier.gav, count) }
             .toList()
 
     override fun countUniqueResolvedRequests(): Long =

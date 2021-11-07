@@ -26,8 +26,8 @@ import com.reposilite.maven.application.MavenWebConfiguration
 import com.reposilite.settings.DatabaseSourceFactory
 import com.reposilite.settings.application.SettingsWebConfiguration
 import com.reposilite.shared.HttpRemoteClient
-import com.reposilite.shared.newFixedThreadPool
-import com.reposilite.shared.newSingleThreadScheduledExecutor
+import com.reposilite.shared.extensions.newFixedThreadPool
+import com.reposilite.shared.extensions.newSingleThreadScheduledExecutor
 import com.reposilite.statistics.application.StatisticsWebConfiguration
 import com.reposilite.status.application.FailureWebConfiguration
 import com.reposilite.status.application.StatusWebConfiguration

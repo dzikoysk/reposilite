@@ -17,9 +17,9 @@
 package com.reposilite.storage
 
 import com.reposilite.maven.api.DocumentInfo
-import com.reposilite.shared.FileType.FILE
-import com.reposilite.shared.getSimpleName
-import com.reposilite.shared.toPath
+import com.reposilite.shared.fs.FileType.FILE
+import com.reposilite.shared.fs.getSimpleName
+import com.reposilite.shared.fs.toPath
 import com.reposilite.storage.specification.StorageProviderSpecification
 import io.javalin.http.ContentType.APPLICATION_JAR
 import org.junit.jupiter.api.Assertions.assertArrayEquals

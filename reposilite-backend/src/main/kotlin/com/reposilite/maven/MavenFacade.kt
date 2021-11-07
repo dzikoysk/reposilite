@@ -20,19 +20,18 @@ import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
 import com.reposilite.maven.api.DeleteRequest
 import com.reposilite.maven.api.DeployRequest
-import com.reposilite.maven.api.DirectoryInfo
-import com.reposilite.maven.api.DocumentInfo
-import com.reposilite.maven.api.FileDetails
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.METADATA_FILE
 import com.reposilite.maven.api.Metadata
-import com.reposilite.shared.FileType.DIRECTORY
-import com.reposilite.shared.`when`
-import com.reposilite.shared.getSimpleName
-import com.reposilite.shared.toNormalizedPath
-import com.reposilite.shared.toPath
+import com.reposilite.shared.extensions.`when`
+import com.reposilite.shared.fs.DirectoryInfo
+import com.reposilite.shared.fs.DocumentInfo
+import com.reposilite.shared.fs.FileDetails
+import com.reposilite.shared.fs.FileType.DIRECTORY
+import com.reposilite.shared.fs.getSimpleName
+import com.reposilite.shared.fs.toNormalizedPath
+import com.reposilite.shared.fs.toPath
 import com.reposilite.statistics.StatisticsFacade
-import com.reposilite.statistics.api.Identifier
 import com.reposilite.statistics.api.IncrementResolvedRequest
 import com.reposilite.token.api.AccessToken
 import com.reposilite.web.http.ErrorResponse
@@ -86,8 +85,7 @@ class MavenFacade internal constructor(
             details.toOption()
                 .`is`(DocumentInfo::class.java)
                 .filter { ignoredExtensions.none { extension -> it.name.endsWith(extension) } }
-                .map { Identifier(repository.name, lookupRequest.gav) }
-                .peek { statisticsFacade.incrementResolvedRequest(IncrementResolvedRequest(it)) }
+                .peek { statisticsFacade.incrementResolvedRequest(IncrementResolvedRequest(lookupRequest.toIdentifier())) }
 
             details
         }
@@ -150,7 +148,7 @@ class MavenFacade internal constructor(
     fun findRepositories(accessToken: AccessToken?): DirectoryInfo =
         repositoryService.getRootDirectory(accessToken)
 
-    fun getRepositories(): Collection<Repository> =
+    internal fun getRepositories(): Collection<Repository> =
         repositoryService.getRepositories()
 
     override fun getLogger(): Logger =

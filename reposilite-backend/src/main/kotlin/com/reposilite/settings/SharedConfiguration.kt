@@ -2,7 +2,7 @@ package com.reposilite.settings
 
 import com.reposilite.maven.api.RepositoryVisibility
 import com.reposilite.maven.api.RepositoryVisibility.PRIVATE
-import com.reposilite.shared.Validator
+import com.reposilite.shared.extensions.Validator
 import net.dzikoysk.cdn.entity.Contextual
 import net.dzikoysk.cdn.entity.Description
 import net.dzikoysk.cdn.entity.DeserializationHandler
