@@ -31,6 +31,7 @@ import org.jetbrains.exposed.sql.ReferenceOption.CASCADE
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.SqlExpressionBuilder
 import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.count
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.javatime.date
 import org.jetbrains.exposed.sql.leftJoin
@@ -106,20 +107,24 @@ internal class SqlStatisticsRepository(private val database: Database) : Statist
 
     override fun findResolvedRequestsByPhrase(repository: String, phrase: String, limit: Int): List<ResolvedRequestCount> =
         transaction(database) {
+            val resolvedCount = ResolvedTable.count.count()
+
             IdentifierTable.leftJoin(ResolvedTable, { IdentifierTable.id }, { ResolvedTable.identifierId })
+                .slice(IdentifierTable.repository, IdentifierTable.gav, resolvedCount)
                 .select {
                     and(
                         { IdentifierTable.repository eq repository },
                         { IdentifierTable.gav like "%${phrase}%" }
                     )
                 }
-                .orderBy(ResolvedTable.count)
+                .groupBy(ResolvedTable.id)
+                .orderBy(resolvedCount)
                 .limit(limit)
-                .filter { it.getOrNull(ResolvedTable.count) != null }
+                .filter { it.getOrNull(resolvedCount) != null }
                 .map {
                     ResolvedRequestCount(
                         Identifier(it[IdentifierTable.repository], it[IdentifierTable.gav]),
-                        it[ResolvedTable.count]
+                        it[resolvedCount]
                     )
                 }
         }
