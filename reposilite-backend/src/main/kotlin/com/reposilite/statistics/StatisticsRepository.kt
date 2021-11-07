@@ -22,10 +22,6 @@ import kotlin.Int.Companion.MAX_VALUE
 
 internal interface StatisticsRepository {
 
-    companion object {
-        const val MAX_IDENTIFIER_LENGTH = 1024
-    }
-
     fun incrementResolvedRequests(requests: Map<Identifier, Long>)
 
     fun findResolvedRequestsByPhrase(repository: String, phrase: String, limit: Int = MAX_VALUE): List<ResolvedRequestCount>

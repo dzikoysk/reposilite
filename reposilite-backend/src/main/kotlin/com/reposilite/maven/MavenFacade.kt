@@ -58,12 +58,17 @@ class MavenFacade internal constructor(
 ) : Journalist {
 
     private val ignoredExtensions = listOf(
-        ".pom",
-        ".xml",
+        // Checksums
         ".md5",
         ".sha1",
         ".sha256",
         ".sha512",
+        // Artifact descriptions
+        ".pom",
+        ".xml",
+        // Artifact extensions
+        "-sources.jar",
+        "-javadoc.jar",
     )
 
     fun findDetails(lookupRequest: LookupRequest): Result<out FileDetails, ErrorResponse> =

@@ -25,6 +25,8 @@ import java.io.InputStream
 import java.nio.file.Path
 import java.nio.file.attribute.FileTime
 
+const val REPOSITORY_NAME_MAX_LENGTH = 32
+
 class Repository internal constructor(
     val name: String,
     val visibility: RepositoryVisibility,
@@ -32,6 +34,12 @@ class Repository internal constructor(
     val proxiedHosts: Map<String, ProxiedHostConfiguration>,
     private val storageProvider: StorageProvider,
 ) {
+
+    init {
+        if (name.length > REPOSITORY_NAME_MAX_LENGTH) {
+            throw IllegalStateException("Repository name cannot exceed $REPOSITORY_NAME_MAX_LENGTH characters")
+        }
+    }
 
     fun putFile(file: Path, inputStream: InputStream): Result<Unit, ErrorResponse> =
         storageProvider.putFile(file, inputStream)

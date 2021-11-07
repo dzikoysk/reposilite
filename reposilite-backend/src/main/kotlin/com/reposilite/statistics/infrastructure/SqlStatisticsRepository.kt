@@ -16,10 +16,11 @@
 
 package com.reposilite.statistics.infrastructure
 
+import com.reposilite.maven.REPOSITORY_NAME_MAX_LENGTH
 import com.reposilite.shared.and
 import com.reposilite.shared.firstAndMap
 import com.reposilite.statistics.StatisticsRepository
-import com.reposilite.statistics.StatisticsRepository.Companion.MAX_IDENTIFIER_LENGTH
+import com.reposilite.statistics.api.GAV_MAX_LENGTH
 import com.reposilite.statistics.api.Identifier
 import com.reposilite.statistics.api.ResolvedRequestCount
 import net.dzikoysk.exposed.upsert.upsert
@@ -43,124 +44,99 @@ import java.util.UUID
 @Suppress("RemoveRedundantQualifierName")
 internal class SqlStatisticsRepository(private val database: Database) : StatisticsRepository {
 
-    companion object {
-        const val INET6_ADDRESS_LENGTH = 45
-    }
-
-    internal object StatisticsIdentifierTable : Table("statistics_identifier") {
+    private object IdentifierTable : Table("statistics_identifier") {
         val id = uuid("identifier_id")
-        val repository = varchar("repository", 64).index("idx_repository")
-        val gav = varchar("gav", MAX_IDENTIFIER_LENGTH)
+        val repository = varchar("repository", REPOSITORY_NAME_MAX_LENGTH).index("idx_statistics_identifier_repository")
+        val gav = varchar("gav", GAV_MAX_LENGTH)
+
         override val primaryKey = PrimaryKey(id)
     }
 
-    internal object StatisticsIdentifierResolvedTable : IntIdTable("statistics_identifier_resolved") {
-        val identifierId = reference("identifier_id", StatisticsIdentifierTable.id, onDelete = CASCADE, onUpdate = CASCADE)
+    private object ResolvedTable : IntIdTable("statistics_resolved_identifier") {
+        val identifierId = reference("identifier_id", IdentifierTable.id, onDelete = CASCADE, onUpdate = CASCADE)
         val date = date("date")
         val count = long("count")
 
-        val uniqueIdentifierIdWithDate = withUnique("uq_identifier_id_date", identifierId, date)
+        val uniqueIdentifierIdWithDate = withUnique("uq_statistics_resolved_identifier_identifier_id_date", identifierId, date)
     }
-
-    /*
-    internal object StatisticsIdentifierDeployedTable : IntIdTable("statistics_identifier_deployed") {
-        val identifierId = reference("identifier_id", StatisticsIdentifierTable.id, onDelete = CASCADE, onUpdate = CASCADE)
-        val date = datetime("time")
-        val by = varchar("by", MAX_TOKEN_NAME + INET6_ADDRESS_LENGTH + 1)
-    }
-     */
 
     init {
         transaction(database) {
-            SchemaUtils.create(StatisticsIdentifierTable, StatisticsIdentifierResolvedTable, /* StatisticsIdentifierDeployedTable */)
-            SchemaUtils.addMissingColumnsStatements(StatisticsIdentifierTable, StatisticsIdentifierResolvedTable, /* StatisticsIdentifierDeployedTable */)
+            SchemaUtils.create(IdentifierTable, ResolvedTable)
+            SchemaUtils.addMissingColumnsStatements(IdentifierTable, ResolvedTable)
         }
     }
 
     override fun incrementResolvedRequests(requests: Map<Identifier, Long>) =
         transaction(database) {
             requests.forEach { (identifier, count) ->
-                StatisticsIdentifierResolvedTable.upsert(conflictIndex = StatisticsIdentifierResolvedTable.uniqueIdentifierIdWithDate,
+                ResolvedTable.upsert(conflictIndex = ResolvedTable.uniqueIdentifierIdWithDate,
                     insertBody = {
-                        it[StatisticsIdentifierResolvedTable.identifierId] = findOrCreateIdentifierId(identifier)
-                        it[StatisticsIdentifierResolvedTable.date] = LocalDate.now()
-                        it[StatisticsIdentifierResolvedTable.count] = count
+                        it[ResolvedTable.identifierId] = findOrCreateIdentifierId(identifier)
+                        it[ResolvedTable.date] = LocalDate.now()
+                        it[ResolvedTable.count] = count
                     },
                     updateBody = {
                         with(SqlExpressionBuilder) {
-                            it[StatisticsIdentifierResolvedTable.count] = StatisticsIdentifierResolvedTable.count + count
+                            it[ResolvedTable.count] = ResolvedTable.count + count
                         }
                     }
                 )
             }
         }
 
-    /*
-    override fun recordDeployed(identifier: String, by: String) {
-        transaction(database) {
-            StatisticsIdentifierDeployedTable.insert {
-                it[StatisticsIdentifierDeployedTable.identifierId] = findOrCreateIdentifierId(identifier)
-                it[StatisticsIdentifierDeployedTable.date] = LocalDateTime.now()
-                it[StatisticsIdentifierDeployedTable.by] = by
-            }
-        }
-    }
-     */
-
     private fun findOrCreateIdentifierId(identifier: Identifier): UUID =
         findIdentifier(identifier) ?: createIdentifier(identifier)
 
     private fun createIdentifier(identifier: Identifier): UUID  =
         identifier.toUUID().also { id ->
-            StatisticsIdentifierTable.insert {
-                it[StatisticsIdentifierTable.id] = id
-                it[StatisticsIdentifierTable.repository] = identifier.repository
-                it[StatisticsIdentifierTable.gav] = identifier.gav
+            IdentifierTable.insert {
+                it[IdentifierTable.id] = id
+                it[IdentifierTable.repository] = identifier.repository
+                it[IdentifierTable.gav] = identifier.gav
             }
         }
 
     private fun findIdentifier(identifier: Identifier): UUID? =
         with(identifier.toUUID()) {
-            StatisticsIdentifierTable.select { StatisticsIdentifierTable.id eq this@with }
+            IdentifierTable.select { IdentifierTable.id eq this@with }
                 .firstOrNull()
-                ?.let { it[StatisticsIdentifierTable.id] }
+                ?.let { it[IdentifierTable.id] }
         }
 
     override fun findResolvedRequestsByPhrase(repository: String, phrase: String, limit: Int): List<ResolvedRequestCount> =
         transaction(database) {
-            StatisticsIdentifierTable.leftJoin(StatisticsIdentifierResolvedTable, { StatisticsIdentifierTable.id }, { StatisticsIdentifierResolvedTable.identifierId })
+            IdentifierTable.leftJoin(ResolvedTable, { IdentifierTable.id }, { ResolvedTable.identifierId })
                 .select {
                     and(
-                        { StatisticsIdentifierTable.repository eq repository },
-                        { StatisticsIdentifierTable.gav like "%${phrase}%" }
+                        { IdentifierTable.repository eq repository },
+                        { IdentifierTable.gav like "%${phrase}%" }
                     )
                 }
-                .orderBy(StatisticsIdentifierResolvedTable.count)
+                .orderBy(ResolvedTable.count)
                 .limit(limit)
+                .filter { it.getOrNull(ResolvedTable.count) != null }
                 .map {
                     ResolvedRequestCount(
-                        Identifier(it[StatisticsIdentifierTable.repository], it[StatisticsIdentifierTable.gav]),
-                        it[StatisticsIdentifierResolvedTable.count]
+                        Identifier(it[IdentifierTable.repository], it[IdentifierTable.gav]),
+                        it[ResolvedTable.count]
                     )
                 }
         }
 
     override fun countResolvedRecords(): Long =
         transaction(database) {
-            with (StatisticsIdentifierResolvedTable.count.sum()) {
-                StatisticsIdentifierResolvedTable.slice(this).selectAll().firstAndMap { it[this] }
+            with (ResolvedTable.count.sum()) {
+                ResolvedTable.slice(this).selectAll().firstAndMap { it[this] }
             }
             ?: 0
         }
 
     override fun countUniqueResolvedRequests(): Long =
         transaction(database) {
-            StatisticsIdentifierResolvedTable.selectAll()
-                .groupBy(StatisticsIdentifierResolvedTable.identifierId)
+            ResolvedTable.selectAll()
+                .groupBy(ResolvedTable.identifierId)
                 .count()
         }
-
-    private fun String.toUUID(): UUID =
-        UUID.nameUUIDFromBytes(this.encodeToByteArray())
 
 }
