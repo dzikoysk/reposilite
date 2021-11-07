@@ -163,7 +163,7 @@ class SharedConfiguration : Serializable, DeserializationHandler<SharedConfigura
         @Description("# It's not that important for small repos with low traffic, but public instances should not use daily interval.")
         @Description("# Available modes: daily, weekly, monthly, yearly")
         @JvmField
-        val resolvedRequestsInterval = "monthly"
+        var resolvedRequestsInterval = "monthly"
 
     }
 
