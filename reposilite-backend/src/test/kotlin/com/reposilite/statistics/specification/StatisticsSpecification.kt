@@ -18,14 +18,16 @@ package com.reposilite.statistics.specification
 
 import com.reposilite.journalist.backend.InMemoryLogger
 import com.reposilite.maven.api.Identifier
+import com.reposilite.statistics.DailyDateIntervalProvider
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.statistics.api.IncrementResolvedRequest
 import com.reposilite.statistics.infrastructure.InMemoryStatisticsRepository
+import panda.std.reactive.toReference
 
 internal open class StatisticsSpecification {
 
     private val logger = InMemoryLogger()
-    protected val statisticsFacade = StatisticsFacade(logger, InMemoryStatisticsRepository())
+    protected val statisticsFacade = StatisticsFacade(logger, DailyDateIntervalProvider.toReference(), InMemoryStatisticsRepository())
 
     protected fun useResolvedIdentifier(repository: String, gav: String, count: Long = 1): Pair<Identifier, Long> {
         val identifier = Identifier(repository, gav)

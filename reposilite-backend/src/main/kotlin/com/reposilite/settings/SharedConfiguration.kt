@@ -147,6 +147,29 @@ class SharedConfiguration : Serializable, DeserializationHandler<SharedConfigura
 
     }
 
+    /* Statistics */
+
+    @Description("")
+    @Description("# Statistics module configuration")
+    @JvmField
+    val statistics = reference(StatisticsConfiguration())
+
+    @Contextual
+    class StatisticsConfiguration : Serializable {
+
+        @Description("")
+        @Description("# How often Reposilite should divide recorded requests into separated groups.")
+        @Description("# With higher precision you can get more detailed timestamps, but it'll increase database size.")
+        @Description("# It's not that important for small repos with low traffic, but public instances should not use daily interval.")
+        @Description("# Available modes: daily, weekly, monthly, yearly")
+        @JvmField
+        val resolvedRequestsInterval = "monthly"
+
+    }
+
+    /* Utilities */
+
+    @Description("")
     @Description("# Any kind of proxy services change real ip.")
     @Description("# The origin ip should be available in one of the headers.")
     @Description("# Nginx: X-Forwarded-For")

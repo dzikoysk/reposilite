@@ -19,13 +19,14 @@ package com.reposilite.statistics.infrastructure
 import com.reposilite.maven.api.Identifier
 import com.reposilite.statistics.StatisticsRepository
 import com.reposilite.statistics.api.ResolvedEntry
+import java.time.LocalDate
 import java.util.concurrent.ConcurrentHashMap
 
 internal class InMemoryStatisticsRepository : StatisticsRepository {
 
     private val resolvedRequests = ConcurrentHashMap<Identifier, Long>()
 
-    override fun incrementResolvedRequests(requests: Map<Identifier, Long>) =
+    override fun incrementResolvedRequests(requests: Map<Identifier, Long>, date: LocalDate) =
         requests.forEach { (identifier, count) ->
             resolvedRequests.merge(identifier, count) { oldCount, value -> oldCount + value }
         }

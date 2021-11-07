@@ -119,6 +119,17 @@ repositories {
     proxied: []
   }
 }
+
+# Statistics module configuration
+statistics {
+  
+  # How often Reposilite should divide recorded requests into separated groups.
+  # With higher precision you can get more detailed timestamps, but it'll increase database size.
+  # It's not that important for small repos with low traffic, but public instances should not use daily interval.
+  # Available modes: daily, weekly, monthly, yearly
+  resolvedRequestsInterval: monthly
+}
+
 # Any kind of proxy services change real ip.
 # The origin ip should be available in one of the headers.
 # Nginx: X-Forwarded-For

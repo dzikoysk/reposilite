@@ -69,7 +69,7 @@ object ReposiliteFactory {
         val statusFacade = web(webs, StatusWebConfiguration) { createFacade(parameters.testEnv, webServer) }
         val failureFacade = web(webs, FailureWebConfiguration) { createFacade(journalist) }
         val consoleFacade = web(webs, ConsoleWebConfiguration) { createFacade(journalist, failureFacade) }
-        val statisticFacade = web(webs, StatisticsWebConfiguration) { createFacade(journalist, database) }
+        val statisticFacade = web(webs, StatisticsWebConfiguration) { createFacade(journalist, database, settingsFacade) }
         val frontendFacade = web(webs, FrontendWebConfiguration) { createFacade(localConfiguration, settingsFacade) }
         val accessTokenFacade = web(webs, AccessTokenWebConfiguration) { createFacade(database) }
         val authenticationFacade = web(webs, AuthenticationWebConfiguration) { createFacade(journalist, accessTokenFacade) }

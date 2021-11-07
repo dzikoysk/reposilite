@@ -16,7 +16,7 @@
 
 package com.reposilite.storage
 
-import com.reposilite.maven.api.DocumentInfo
+import com.reposilite.shared.fs.DocumentInfo
 import com.reposilite.shared.fs.FileType.FILE
 import com.reposilite.shared.fs.getSimpleName
 import com.reposilite.shared.fs.toPath

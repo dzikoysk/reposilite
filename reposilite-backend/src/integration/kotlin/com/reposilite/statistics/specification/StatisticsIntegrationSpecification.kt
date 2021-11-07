@@ -17,7 +17,7 @@
 package com.reposilite.statistics.specification
 
 import com.reposilite.ReposiliteSpecification
-import com.reposilite.statistics.api.Identifier
+import com.reposilite.maven.api.Identifier
 import kong.unirest.Unirest.get
 import kong.unirest.Unirest.put
 import org.junit.jupiter.api.Assertions.assertTrue

@@ -70,13 +70,13 @@ internal class SqlStatisticsRepository(private val database: Database) : Statist
         }
     }
 
-    override fun incrementResolvedRequests(requests: Map<Identifier, Long>) =
+    override fun incrementResolvedRequests(requests: Map<Identifier, Long>, date: LocalDate) =
         transaction(database) {
             requests.forEach { (identifier, count) ->
                 ResolvedTable.upsert(conflictIndex = ResolvedTable.uniqueIdentifierIdWithDate,
                     insertBody = {
                         it[ResolvedTable.identifierId] = findOrCreateIdentifierId(identifier)
-                        it[ResolvedTable.date] = LocalDate.now()
+                        it[ResolvedTable.date] = date
                         it[ResolvedTable.count] = count
                     },
                     updateBody = {

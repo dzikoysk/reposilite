@@ -18,11 +18,12 @@ package com.reposilite.statistics
 
 import com.reposilite.maven.api.Identifier
 import com.reposilite.statistics.api.ResolvedEntry
+import java.time.LocalDate
 import kotlin.Int.Companion.MAX_VALUE
 
 internal interface StatisticsRepository {
 
-    fun incrementResolvedRequests(requests: Map<Identifier, Long>)
+    fun incrementResolvedRequests(requests: Map<Identifier, Long>, date: LocalDate)
 
     fun findResolvedRequestsByPhrase(repository: String, phrase: String, limit: Int = MAX_VALUE): List<ResolvedEntry>
 

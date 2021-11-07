@@ -25,12 +25,14 @@ import com.reposilite.web.http.errorResponse
 import io.javalin.http.HttpCode.BAD_REQUEST
 import panda.std.Result
 import panda.std.asSuccess
+import panda.std.reactive.Reference
 import java.util.concurrent.ConcurrentHashMap
 
 const val MAX_PAGE_SIZE = 100
 
 class StatisticsFacade internal constructor(
     private val journalist: Journalist,
+    private val dateIntervalProvider: Reference<DateIntervalProvider>,
     private val statisticsRepository: StatisticsRepository
 ) : Journalist {
 
@@ -42,7 +44,7 @@ class StatisticsFacade internal constructor(
     fun saveRecordsBulk() =
         resolvedRequestsBulk.toMap().also {
             resolvedRequestsBulk.clear() // read doesn't lock, so there is a possibility of dropping a few records between toMap and clear. Might be improved in the future
-            statisticsRepository.incrementResolvedRequests(it)
+            statisticsRepository.incrementResolvedRequests(it, dateIntervalProvider.get().createDate())
             logger.debug("Statistics | Saved bulk with ${it.size} records")
         }
 

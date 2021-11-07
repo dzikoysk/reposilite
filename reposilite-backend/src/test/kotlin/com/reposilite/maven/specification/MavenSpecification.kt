@@ -27,6 +27,7 @@ import com.reposilite.shared.fs.UNKNOWN_LENGTH
 import com.reposilite.shared.fs.append
 import com.reposilite.shared.fs.getSimpleNameFromUri
 import com.reposilite.shared.fs.safeResolve
+import com.reposilite.statistics.DailyDateIntervalProvider
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.statistics.infrastructure.InMemoryStatisticsRepository
 import com.reposilite.token.api.AccessToken
@@ -38,6 +39,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
 import panda.std.asSuccess
 import panda.std.reactive.mutableReference
+import panda.std.reactive.toReference
 import java.io.File
 import java.nio.file.Files
 
@@ -94,7 +96,7 @@ internal abstract class MavenSpecification {
             workingDirectory!!.toPath(),
             remoteClient,
             mutableReference(repositories()),
-            StatisticsFacade(logger, InMemoryStatisticsRepository())
+            StatisticsFacade(logger, DailyDateIntervalProvider.toReference(), InMemoryStatisticsRepository())
         )
     }
 
