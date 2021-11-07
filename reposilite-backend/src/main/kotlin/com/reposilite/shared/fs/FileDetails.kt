@@ -13,18 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.reposilite.maven.api
+package com.reposilite.shared.fs
 
-import com.reposilite.maven.FilesComparator
-import com.reposilite.maven.VersionComparator.Companion.asVersion
-import com.reposilite.shared.FileType
-import com.reposilite.shared.FileType.DIRECTORY
-import com.reposilite.shared.FileType.FILE
-import com.reposilite.shared.catchIOException
-import com.reposilite.shared.exists
-import com.reposilite.shared.getExtension
-import com.reposilite.shared.getSimpleName
-import com.reposilite.shared.type
+import com.reposilite.shared.fs.FileType.DIRECTORY
+import com.reposilite.shared.fs.FileType.FILE
+import com.reposilite.shared.fs.VersionComparator.Companion.asVersion
 import com.reposilite.web.http.ErrorResponse
 import io.javalin.http.ContentType
 import io.javalin.http.ContentType.APPLICATION_OCTET_STREAM

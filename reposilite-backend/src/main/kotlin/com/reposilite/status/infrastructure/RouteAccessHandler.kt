@@ -14,23 +14,18 @@
  * limitations under the License.
  */
 
-package com.reposilite.statistics.api
+package com.reposilite.status.infrastructure
 
-enum class RecordType {
-    REQUEST,
-    UNKNOWN
+import com.reposilite.web.application.ReposiliteRoute
+import com.reposilite.web.application.ReposiliteRoutes
+import com.reposilite.web.routing.RouteMethod.BEFORE
+
+internal class RouteAccessHandler : ReposiliteRoutes() {
+
+    private val collectRequests = ReposiliteRoute("/<*>", BEFORE) {
+        logger.debug("${ctx.method()} $uri from ${ctx.ip()}")
+    }
+
+    override val routes = setOf(collectRequests)
+
 }
-
-fun findRecordTypeByName(name: String) : RecordType? =
-    RecordType.values().find { it.name.equals(name, ignoreCase = true) }
-
-data class RecordIdentifier(
-    val type: RecordType,
-    val identifier: String
-)
-
-data class Record(
-    val type: RecordType,
-    val identifier: String,
-    val count: Long
-)

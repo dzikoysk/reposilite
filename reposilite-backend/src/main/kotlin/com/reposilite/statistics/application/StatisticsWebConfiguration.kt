@@ -18,20 +18,30 @@ package com.reposilite.statistics.application
 
 import com.reposilite.Reposilite
 import com.reposilite.journalist.Journalist
+import com.reposilite.settings.SettingsFacade
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.statistics.StatsCommand
+import com.reposilite.statistics.createDateIntervalProvider
 import com.reposilite.statistics.infrastructure.SqlStatisticsRepository
 import com.reposilite.statistics.infrastructure.StatisticsEndpoint
-import com.reposilite.statistics.infrastructure.StatisticsHandler
 import com.reposilite.web.WebConfiguration
 import com.reposilite.web.application.ReposiliteRoutes
 import org.jetbrains.exposed.sql.Database
-import java.util.concurrent.TimeUnit.MINUTES
+import panda.std.reactive.computed
+import java.util.concurrent.TimeUnit.SECONDS
 
 internal object StatisticsWebConfiguration : WebConfiguration {
 
-    fun createFacade(journalist: Journalist, database: Database): StatisticsFacade =
-        StatisticsFacade(journalist, SqlStatisticsRepository(database))
+    fun createFacade(journalist: Journalist, database: Database, settingsFacade: SettingsFacade): StatisticsFacade =
+        StatisticsFacade(
+            journalist,
+            computed(settingsFacade.sharedConfiguration.statistics) {
+                settingsFacade.sharedConfiguration.statistics.map {
+                    createDateIntervalProvider(it.resolvedRequestsInterval)
+                }
+            },
+            SqlStatisticsRepository(database)
+        )
 
     override fun initialize(reposilite: Reposilite) {
         val statisticsFacade = reposilite.statisticsFacade
@@ -43,13 +53,11 @@ internal object StatisticsWebConfiguration : WebConfiguration {
             reposilite.ioService.execute {
                 statisticsFacade.saveRecordsBulk()
             }
-        }, 1, 1, MINUTES)
+        }, 10, 10, SECONDS)
     }
 
-    override fun routing(reposilite: Reposilite): Set<ReposiliteRoutes> =
-        setOf(
-            StatisticsEndpoint(reposilite.statisticsFacade),
-            StatisticsHandler(reposilite.statisticsFacade),
-        )
+    override fun routing(reposilite: Reposilite): Set<ReposiliteRoutes> = setOf(
+        StatisticsEndpoint(reposilite.statisticsFacade)
+    )
 
 }

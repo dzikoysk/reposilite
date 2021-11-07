@@ -14,26 +14,26 @@
  * limitations under the License.
  */
 
-package com.reposilite.shared
+package com.reposilite.shared.extensions
 
 import panda.std.Result
 import java.util.concurrent.atomic.AtomicBoolean
 
-fun AtomicBoolean.peek(block: () -> Unit) {
+internal fun AtomicBoolean.peek(block: () -> Unit) {
     if (this.get()) {
         block()
     }
 }
 
-fun <T, R> Iterable<T>.firstAndMap(transform: (T) -> R): R? =
+internal fun <T, R> Iterable<T>.firstAndMap(transform: (T) -> R): R? =
     this.firstOrNull()?.let(transform)
 
-fun <VALUE, ERROR, MAPPED_ERROR> Sequence<Result<out VALUE, ERROR>>.firstSuccessOr(elseValue: () -> Result<out VALUE, MAPPED_ERROR>): Result<out VALUE, MAPPED_ERROR> =
+internal fun <VALUE, ERROR, MAPPED_ERROR> Sequence<Result<out VALUE, ERROR>>.firstSuccessOr(elseValue: () -> Result<out VALUE, MAPPED_ERROR>): Result<out VALUE, MAPPED_ERROR> =
     this.firstOrNull { it.isOk }
         ?.projectToValue()
         ?: elseValue()
 
-fun <VALUE, ERROR> Sequence<Result<out VALUE, ERROR>>.firstOrErrors(): Result<out VALUE, Collection<ERROR>> {
+internal fun <VALUE, ERROR> Sequence<Result<out VALUE, ERROR>>.firstOrErrors(): Result<out VALUE, Collection<ERROR>> {
     val collection: MutableCollection<ERROR> = ArrayList()
 
     return this
@@ -41,5 +41,8 @@ fun <VALUE, ERROR> Sequence<Result<out VALUE, ERROR>>.firstOrErrors(): Result<ou
         .firstSuccessOr { Result.error(collection) }
 }
 
-fun <VALUE> Result<VALUE, *>.`when`(condition: (VALUE) -> Boolean): Boolean =
+internal fun <VALUE> Result<VALUE, *>.`when`(condition: (VALUE) -> Boolean): Boolean =
     fold({ condition(it) }, { false })
+
+internal fun <T> take(condition: Boolean, ifTrue: T, ifFalse: T): T =
+    if (condition) ifTrue else ifFalse

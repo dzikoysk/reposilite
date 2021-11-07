@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.reposilite.maven
+package com.reposilite.shared.fs
 
 import java.math.BigInteger
 import java.util.function.Function

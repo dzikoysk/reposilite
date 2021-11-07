@@ -16,11 +16,11 @@
 
 package com.reposilite.maven
 
-import com.reposilite.maven.api.FileDetails
 import com.reposilite.settings.SharedConfiguration.RepositoryConfiguration.ProxiedHostConfiguration
 import com.reposilite.shared.RemoteClient
-import com.reposilite.shared.firstOrErrors
-import com.reposilite.shared.toPath
+import com.reposilite.shared.extensions.firstOrErrors
+import com.reposilite.shared.fs.FileDetails
+import com.reposilite.shared.fs.toPath
 import com.reposilite.web.http.ErrorResponse
 import io.javalin.http.HttpCode.NOT_FOUND
 import panda.std.Result

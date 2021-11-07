@@ -16,51 +16,33 @@
 
 package com.reposilite.statistics.infrastructure
 
+import com.reposilite.maven.api.Identifier
 import com.reposilite.statistics.StatisticsRepository
-import com.reposilite.statistics.api.Record
-import com.reposilite.statistics.api.RecordIdentifier
-import com.reposilite.statistics.api.RecordType
+import com.reposilite.statistics.api.ResolvedEntry
+import java.time.LocalDate
 import java.util.concurrent.ConcurrentHashMap
 
 internal class InMemoryStatisticsRepository : StatisticsRepository {
 
-    private val records: MutableMap<RecordIdentifier, Record> = ConcurrentHashMap()
+    private val resolvedRequests = ConcurrentHashMap<Identifier, Long>()
 
-    override fun incrementRecord(record: RecordIdentifier, count: Long) {
-        findRecordByTypeAndIdentifier(record)
-            ?.also { records[record] = it.copy(count = it.count + count) }
-            ?: createRecord(record, count)
-    }
+    override fun incrementResolvedRequests(requests: Map<Identifier, Long>, date: LocalDate) =
+        requests.forEach { (identifier, count) ->
+            resolvedRequests.merge(identifier, count) { oldCount, value -> oldCount + value }
+        }
 
-    override fun incrementRecords(bulk: Map<RecordIdentifier, Long>) {
-        bulk.forEach { incrementRecord(it.key, it.value) }
-    }
-
-    private fun createRecord(identifier: RecordIdentifier, initCount: Long) {
-        records[identifier] = Record(
-            type = identifier.type,
-            identifier = identifier.identifier,
-            count = initCount
-        )
-    }
-
-    override fun findRecordByTypeAndIdentifier(record: RecordIdentifier): Record? =
-        records.values.firstOrNull { it.type == record.type && it.identifier == record.identifier }
-
-    override fun findRecordsByPhrase(type: RecordType, phrase: String, limit: Int): List<Record> =
-        records.values.asSequence()
-            .filter { it.type == type }
-            .filter { it.identifier.contains(phrase) }
+    override fun findResolvedRequestsByPhrase(repository: String, phrase: String, limit: Int): List<ResolvedEntry> =
+        resolvedRequests.asSequence()
+            .filter { (identifier) -> identifier.toString().contains(phrase) }
+            .sortedByDescending { (_, count) -> count }
             .take(limit)
-            .sortedByDescending { it.count }
+            .map { (identifier, count) -> ResolvedEntry(identifier.gav, count) }
             .toList()
 
-    override fun countRecords(): Long =
-        records
-            .map { it.value.count }
-            .sum()
+    override fun countUniqueResolvedRequests(): Long =
+        resolvedRequests.size.toLong()
 
-    override fun countUniqueRecords(): Long =
-        records.size.toLong()
+    override fun countResolvedRecords(): Long =
+        resolvedRequests.map { it.value }.sum()
 
 }

@@ -28,6 +28,7 @@ import com.reposilite.maven.infrastructure.MavenApiEndpoints
 import com.reposilite.maven.infrastructure.MavenEndpoints
 import com.reposilite.settings.SharedConfiguration.RepositoryConfiguration
 import com.reposilite.shared.RemoteClient
+import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.web.WebConfiguration
 import com.reposilite.web.application.ReposiliteRoutes
 import panda.std.reactive.MutableReference
@@ -35,7 +36,13 @@ import java.nio.file.Path
 
 internal object MavenWebConfiguration : WebConfiguration {
 
-    fun createFacade(journalist: Journalist, workingDirectory: Path, remoteClient: RemoteClient, repositories: MutableReference<Map<String, RepositoryConfiguration>>): MavenFacade {
+    fun createFacade(
+        journalist: Journalist,
+        workingDirectory: Path,
+        remoteClient: RemoteClient,
+        repositories: MutableReference<Map<String, RepositoryConfiguration>>,
+        statisticsFacade: StatisticsFacade
+    ): MavenFacade {
         val repositoryProvider = RepositoryProvider(journalist, workingDirectory, repositories)
         val securityProvider = RepositorySecurityProvider()
         val repositoryService = RepositoryService(journalist, repositoryProvider, securityProvider)
@@ -45,12 +52,13 @@ internal object MavenWebConfiguration : WebConfiguration {
             securityProvider,
             repositoryService,
             ProxyService(remoteClient),
-            MetadataService(repositoryService)
+            MetadataService(repositoryService),
+            statisticsFacade
         )
     }
 
     override fun routing(reposilite: Reposilite): Set<ReposiliteRoutes> = setOf(
-        MavenEndpoints(reposilite.mavenFacade, reposilite.frontendFacade),
+        MavenEndpoints(reposilite.mavenFacade, reposilite.frontendFacade, reposilite.statisticsFacade ),
         MavenApiEndpoints(reposilite.mavenFacade)
     )
 

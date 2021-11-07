@@ -17,10 +17,10 @@
 package com.reposilite.frontend.infrastructure
 
 import com.reposilite.frontend.FrontendFacade
-import com.reposilite.shared.FilesUtils.getExtension
-import com.reposilite.shared.decodeToString
-import com.reposilite.shared.getSimpleName
-import com.reposilite.shared.safeResolve
+import com.reposilite.shared.fs.decodeToString
+import com.reposilite.shared.fs.getExtension
+import com.reposilite.shared.fs.getSimpleName
+import com.reposilite.shared.fs.safeResolve
 import com.reposilite.web.application.ReposiliteRoute
 import com.reposilite.web.application.ReposiliteRoutes
 import com.reposilite.web.http.ErrorResponse

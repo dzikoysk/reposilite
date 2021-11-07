@@ -20,18 +20,21 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 group = "org.panda-lang"
-version = "3.0.0-alpha.7"
+version = "3.0.0-alpha.8"
 
 plugins {
     `java-library`
-    kotlin("jvm") version "1.6.0-RC"
-    kotlin("kapt") version "1.6.0-RC"
-    id("com.github.johnrengelman.shadow") version "7.1.0"
-    id("com.coditory.integration-test") version "1.3.0"
     `maven-publish`
     application
     jacoco
     idea
+
+    val kotlinVersion = "1.6.0-RC2"
+    kotlin("jvm") version kotlinVersion
+    kotlin("kapt") version kotlinVersion
+
+    id("com.github.johnrengelman.shadow") version "7.1.0"
+    id("com.coditory.integration-test") version "1.3.0"
 }
 
 application {
@@ -39,9 +42,9 @@ application {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-reflect:1.6.0-RC")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.0-RC")
-    // implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
+    val kotlin = "1.6.0-RC2"
+    implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin")
 
     val expressible = "1.1.1"
     implementation("org.panda-lang:expressible:$expressible")
@@ -56,6 +59,7 @@ dependencies {
     val awssdk = "2.17.72"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
+    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.100")
 
     val exposed = "0.36.1"
     implementation("org.jetbrains.exposed:exposed-core:$exposed")
@@ -68,6 +72,9 @@ dependencies {
     implementation("mysql:mysql-connector-java:8.0.27")
     implementation("org.mariadb.jdbc:mariadb-java-client:2.7.4")
 
+    val springSecurityCrypto = "5.5.3"
+    implementation("org.springframework.security:spring-security-crypto:$springSecurityCrypto")
+
     val openapi = "1.1.1"
     kapt("io.javalin-rfc:openapi-annotation-processor:$openapi")
     implementation("io.javalin-rfc:javalin-openapi-plugin:$openapi")
@@ -76,10 +83,8 @@ dependencies {
     val javalinRfcs = "4.1.0"
     implementation("com.reposilite.javalin-rfcs:javalin-context:$javalinRfcs")
     implementation("com.reposilite.javalin-rfcs:javalin-routing:$javalinRfcs")
-    //implementation("com.reposilite.javalin-rfcs:javalin-reactive-routing:$javalinRfcs")
 
     //implementation("io.javalin:javalin:4.1.1")
-    //implementation("com.github.tipsy.javalin:javalin:-SNAPSHOT")
     implementation("com.github.dzikoysk.javalin:javalin:760159a7c4")
     @Suppress("GradlePackageUpdate")
     implementation("org.eclipse.jetty:jetty-server:9.4.44.v20210927")
@@ -93,6 +98,19 @@ dependencies {
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jackson")
 
+    val httpClient = "1.40.1"
+    implementation("com.google.http-client:google-http-client:$httpClient")
+    testImplementation("com.google.http-client:google-http-client-jackson2:$httpClient")
+
+    val commonsIO = "20030203.000550"
+    implementation("commons-io:commons-io:$commonsIO")
+
+    val jline = "3.21.0"
+    implementation("org.jline:jline:$jline")
+
+    val jansi = "2.4.0"
+    implementation("org.fusesource.jansi:jansi:$jansi")
+
     val journalist = "1.0.10"
     implementation("com.reposilite:journalist:$journalist")
     implementation("com.reposilite:journalist-slf4j:$journalist")
@@ -103,15 +121,6 @@ dependencies {
     implementation("org.tinylog:tinylog-api:$tinylog")
     implementation("org.tinylog:tinylog-impl:$tinylog")
 
-    implementation("com.google.http-client:google-http-client:1.40.1")
-    implementation("org.springframework.security:spring-security-crypto:5.5.3")
-    implementation("commons-io:commons-io:20030203.000550")
-
-    implementation("org.jline:jline:3.21.0")
-    implementation("org.fusesource.jansi:jansi:2.4.0")
-
-    /* Tests */
-
     val unirest = "3.13.3"
     testImplementation("com.konghq:unirest-java:$unirest")
     testImplementation("com.konghq:unirest-objectmapper-jackson:$unirest")
@@ -121,9 +130,6 @@ dependencies {
     testImplementation("org.testcontainers:testcontainers:$testcontainers")
     testImplementation("org.testcontainers:junit-jupiter:$testcontainers")
     testImplementation("org.testcontainers:localstack:$testcontainers")
-
-    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.100")
-    testImplementation("com.google.http-client:google-http-client-jackson2:1.40.1")
 
     val junit = "5.8.1"
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junit")

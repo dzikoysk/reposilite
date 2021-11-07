@@ -14,9 +14,27 @@
  * limitations under the License.
  */
 
-package com.reposilite.statistics.api
+package com.reposilite.shared.fs.specification
 
-data class RecordCountResponse(
-    val count: Long,
-    val records: List<Record>
-)
+import com.reposilite.shared.fs.FilesComparator
+import com.reposilite.shared.fs.VersionComparator
+
+internal abstract class FileComparatorsSpecification {
+
+    val filesComparator = FilesComparator<FileInfo>(
+        { VersionComparator.asVersion(it.name) },
+        { it.isDirectory }
+    )
+
+    data class FileInfo(
+        val name: String,
+        val isDirectory: Boolean
+    )
+
+    fun file(name: String): FileInfo =
+        FileInfo(name, false)
+
+    fun directory(name: String): FileInfo =
+        FileInfo(name, true)
+
+}

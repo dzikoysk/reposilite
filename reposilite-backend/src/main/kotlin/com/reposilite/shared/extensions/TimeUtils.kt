@@ -13,28 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.reposilite.shared.extensions
 
-package com.reposilite.maven.specification
+import java.util.Locale
 
-import com.reposilite.maven.FilesComparator
-import com.reposilite.maven.VersionComparator
+internal object TimeUtils {
 
-internal abstract class MetadataComparatorSpecification {
+    fun getUptimeInSeconds(uptime: Long): Double =
+        getUptime(uptime) / 1000.0
 
-    val filesComparator = FilesComparator<FileInfo>(
-        { VersionComparator.asVersion(it.name) },
-        { it.isDirectory }
-    )
+    fun getUptime(startTime: Long): Long =
+        System.currentTimeMillis() - startTime
 
-    data class FileInfo(
-        val name: String,
-        val isDirectory: Boolean
-    )
+    fun getPrettyUptimeInSeconds(startTime: Long): String =
+        format(getUptimeInSeconds(startTime)) + "s"
 
-    fun file(name: String): FileInfo =
-        FileInfo(name, false)
+    fun getPrettyUptimeInMinutes(startTime: Long): String =
+        format(getUptimeInSeconds(startTime) / 60) + "min"
 
-    fun directory(name: String): FileInfo =
-        FileInfo(name, true)
+    fun format(time: Double): String =
+        String.format(Locale.US, "%.2f", time)
 
 }

@@ -17,49 +17,54 @@ package com.reposilite.statistics
 
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
-import com.reposilite.statistics.api.Record
-import com.reposilite.statistics.api.RecordCountResponse
-import com.reposilite.statistics.api.RecordIdentifier
-import com.reposilite.statistics.api.RecordType
-import com.reposilite.statistics.api.findRecordTypeByName
+import com.reposilite.maven.api.Identifier
+import com.reposilite.statistics.api.IncrementResolvedRequest
+import com.reposilite.statistics.api.ResolvedCountResponse
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
 import io.javalin.http.HttpCode.BAD_REQUEST
 import panda.std.Result
 import panda.std.asSuccess
+import panda.std.reactive.Reference
 import java.util.concurrent.ConcurrentHashMap
+
+const val MAX_PAGE_SIZE = 100
 
 class StatisticsFacade internal constructor(
     private val journalist: Journalist,
+    private val dateIntervalProvider: Reference<DateIntervalProvider>,
     private val statisticsRepository: StatisticsRepository
 ) : Journalist {
 
-    private val recordsBulk: ConcurrentHashMap<RecordIdentifier, Long> = ConcurrentHashMap()
+    private val resolvedRequestsBulk: ConcurrentHashMap<Identifier, Long> = ConcurrentHashMap()
 
-    fun increaseRecord(type: RecordType, uri: String) =
-        recordsBulk.merge(RecordIdentifier(type, uri), 1) { cached, value -> cached + value }
+    fun incrementResolvedRequest(incrementResolvedRequest: IncrementResolvedRequest) =
+        resolvedRequestsBulk.merge(incrementResolvedRequest.identifier, incrementResolvedRequest.count) { cached, value -> cached + value }
 
     fun saveRecordsBulk() =
-        recordsBulk.toMap().also {
-            recordsBulk.clear() // read doesn't lock, so there is a possibility of dropping a few records between toMap and clear. Might be improved in the future
-            statisticsRepository.incrementRecords(it)
+        resolvedRequestsBulk.toMap().also {
+            resolvedRequestsBulk.clear() // read doesn't lock, so there is a possibility of dropping a few records between toMap and clear. Might be improved in the future
+            statisticsRepository.incrementResolvedRequests(it, dateIntervalProvider.get().createDate())
             logger.debug("Statistics | Saved bulk with ${it.size} records")
         }
 
-    fun findRecordsByPhrase(type: String, phrase: String, limit: Int = Int.MAX_VALUE): Result<RecordCountResponse, ErrorResponse> =
-        findRecordTypeByName(type)
-            ?.let { findRecordsByPhrase(it, phrase, limit).asSuccess() }
-            ?: errorResponse(BAD_REQUEST, "Unknown record type $type}")
-
-    fun findRecordsByPhrase(type: RecordType, phrase: String, limit: Int = Int.MAX_VALUE): RecordCountResponse =
-        statisticsRepository.findRecordsByPhrase(type, phrase, limit)
-            .let { RecordCountResponse(it.sumOf(Record::count), it) }
+    fun findResolvedRequestsByPhrase(repository: String = "", phrase: String, limit: Int = MAX_PAGE_SIZE): Result<ResolvedCountResponse, ErrorResponse> =
+        limit.takeIf { it <= MAX_PAGE_SIZE }
+            ?.let {
+                statisticsRepository.findResolvedRequestsByPhrase(repository, phrase, limit).let {
+                    ResolvedCountResponse(
+                        it.sumOf { resolved -> resolved.count },
+                        it
+                    ).asSuccess()
+                }
+            }
+            ?: errorResponse(BAD_REQUEST, "Requested too many records ($limit > $MAX_PAGE_SIZE)")
 
     fun countUniqueRecords(): Long =
-        statisticsRepository.countUniqueRecords()
+        statisticsRepository.countUniqueResolvedRequests()
 
     fun countRecords(): Long =
-        statisticsRepository.countRecords()
+        statisticsRepository.countResolvedRecords()
 
     override fun getLogger(): Logger =
         journalist.logger

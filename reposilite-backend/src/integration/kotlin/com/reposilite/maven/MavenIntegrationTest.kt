@@ -16,8 +16,8 @@
 
 package com.reposilite.maven
 
-import com.reposilite.maven.api.DocumentInfo
 import com.reposilite.maven.specification.MavenIntegrationSpecification
+import com.reposilite.shared.fs.DocumentInfo
 import com.reposilite.web.http.ErrorResponse
 import io.javalin.http.HttpCode.NOT_FOUND
 import io.javalin.http.HttpCode.UNAUTHORIZED

@@ -16,7 +16,7 @@
 
 package com.reposilite.token.infrastructure
 
-import com.reposilite.shared.firstAndMap
+import com.reposilite.shared.extensions.firstAndMap
 import com.reposilite.token.AccessTokenRepository
 import com.reposilite.token.api.AccessToken
 import com.reposilite.token.api.AccessTokenPermission
@@ -24,6 +24,8 @@ import com.reposilite.token.api.AccessTokenPermission.Companion.findAccessTokenP
 import com.reposilite.token.api.AccessTokenType
 import com.reposilite.token.api.Route
 import com.reposilite.token.api.RoutePermission.Companion.findRoutePermissionByIdentifier
+import com.reposilite.token.application.AccessTokenWebConfiguration.MAX_ROUTE_LENGTH
+import com.reposilite.token.application.AccessTokenWebConfiguration.MAX_TOKEN_NAME
 import net.dzikoysk.exposed.shared.UNINITIALIZED_ENTITY_ID
 import net.dzikoysk.exposed.upsert.withIndex
 import net.dzikoysk.exposed.upsert.withUnique
@@ -42,10 +44,8 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
 import java.util.UUID
 
-const val MAX_ROUTE_LENGTH = 1024
-
 object AccessTokenTable : IntIdTable("access_token") {
-    val name = varchar("name", 255).uniqueIndex("uq_name")
+    val name = varchar("name", MAX_TOKEN_NAME).uniqueIndex("uq_name")
     val secret = varchar("secret", 512)
     val createdAt = date("createdAt")
     val description = text("description")

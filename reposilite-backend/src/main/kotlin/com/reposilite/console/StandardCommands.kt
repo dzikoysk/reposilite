@@ -21,7 +21,7 @@ import com.reposilite.ReposiliteJournalist
 import com.reposilite.console.CommandStatus.FAILED
 import com.reposilite.console.api.ReposiliteCommand
 import com.reposilite.journalist.Channel
-import com.reposilite.shared.createCommandHelp
+import com.reposilite.shared.extensions.createCommandHelp
 import panda.std.Option.ofOptional
 import picocli.CommandLine.Command
 import picocli.CommandLine.Parameters
