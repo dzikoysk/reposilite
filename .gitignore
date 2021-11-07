@@ -3,6 +3,9 @@ stats.yml
 stats.dat
 reposilite.db
 maven-metadata.xml*
+latest.log
+./logs/
+log_*.txt
 
 ### Maven ###
 build/
