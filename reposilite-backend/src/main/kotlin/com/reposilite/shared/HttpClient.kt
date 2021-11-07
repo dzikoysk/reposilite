@@ -23,10 +23,11 @@ import com.google.api.client.http.HttpResponse
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.reposilite.journalist.Channel
 import com.reposilite.journalist.Journalist
-import com.reposilite.maven.api.DocumentInfo
-import com.reposilite.maven.api.FileDetails
-import com.reposilite.maven.api.UNKNOWN_LENGTH
-import com.reposilite.shared.FilesUtils.getExtension
+import com.reposilite.shared.fs.DocumentInfo
+import com.reposilite.shared.fs.FileDetails
+import com.reposilite.shared.fs.UNKNOWN_LENGTH
+import com.reposilite.shared.fs.getExtension
+import com.reposilite.shared.fs.getSimpleNameFromUri
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
 import io.javalin.http.ContentType
@@ -35,7 +36,6 @@ import io.javalin.http.HttpCode.NOT_ACCEPTABLE
 import panda.std.Result
 import panda.std.asSuccess
 import java.io.InputStream
-
 
 interface RemoteClient {
 

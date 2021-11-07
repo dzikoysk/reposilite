@@ -1,4 +1,4 @@
-package com.reposilite.shared
+package com.reposilite.shared.extensions
 
 import com.reposilite.web.http.acceptsBody
 import com.reposilite.web.http.contentDisposition
@@ -8,7 +8,7 @@ import io.javalin.http.ContentType
 import io.javalin.http.Context
 import java.io.InputStream
 
-fun Context.resultAttachment(name: String, contentType: ContentType, contentLength: Long, data: InputStream): Context {
+internal fun Context.resultAttachment(name: String, contentType: ContentType, contentLength: Long, data: InputStream): Context {
     contentType(contentType)
 
     if (contentLength > 0) {

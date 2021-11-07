@@ -22,4 +22,9 @@ data class LookupRequest(
     val accessToken: AccessToken?,
     val repository: String,
     val gav: String,
-)
+) {
+
+    fun toIdentifier(): Identifier =
+        Identifier(repository, gav)
+
+}

@@ -18,13 +18,13 @@ package com.reposilite.storage.infrastructure
 
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
-import com.reposilite.maven.api.DirectoryInfo
-import com.reposilite.maven.api.DocumentInfo
-import com.reposilite.maven.api.FileDetails
-import com.reposilite.maven.api.SimpleDirectoryInfo
-import com.reposilite.shared.getExtension
-import com.reposilite.shared.getSimpleName
-import com.reposilite.shared.safeResolve
+import com.reposilite.shared.fs.DirectoryInfo
+import com.reposilite.shared.fs.DocumentInfo
+import com.reposilite.shared.fs.FileDetails
+import com.reposilite.shared.fs.SimpleDirectoryInfo
+import com.reposilite.shared.fs.getExtension
+import com.reposilite.shared.fs.getSimpleName
+import com.reposilite.shared.fs.safeResolve
 import com.reposilite.storage.StorageProvider
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse

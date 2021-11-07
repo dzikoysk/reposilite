@@ -17,7 +17,7 @@
 package com.reposilite.web
 
 import com.reposilite.Reposilite
-import com.reposilite.shared.TimeUtils
+import com.reposilite.shared.extensions.TimeUtils
 import com.reposilite.web.application.WebServerConfiguration
 import com.reposilite.web.application.createReactiveRouting
 import io.javalin.Javalin

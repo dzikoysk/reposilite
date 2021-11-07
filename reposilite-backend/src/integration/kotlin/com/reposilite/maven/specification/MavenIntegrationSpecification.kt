@@ -17,10 +17,10 @@
 package com.reposilite.maven.specification
 
 import com.reposilite.ReposiliteSpecification
-import com.reposilite.maven.VersionComparator
 import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.Metadata
 import com.reposilite.maven.api.Versioning
+import com.reposilite.shared.fs.VersionComparator
 import io.javalin.Javalin
 import kotlinx.coroutines.Job
 import org.junit.jupiter.api.io.TempDir

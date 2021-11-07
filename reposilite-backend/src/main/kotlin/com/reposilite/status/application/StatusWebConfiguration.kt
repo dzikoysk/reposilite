@@ -19,8 +19,10 @@ package com.reposilite.status.application
 import com.reposilite.Reposilite
 import com.reposilite.status.StatusCommand
 import com.reposilite.status.StatusFacade
+import com.reposilite.status.infrastructure.RouteAccessHandler
 import com.reposilite.web.JavalinWebServer
 import com.reposilite.web.WebConfiguration
+import com.reposilite.web.application.ReposiliteRoutes
 
 object StatusWebConfiguration : WebConfiguration {
 
@@ -33,5 +35,9 @@ object StatusWebConfiguration : WebConfiguration {
     override fun initialize(reposilite: Reposilite) {
         reposilite.consoleFacade.registerCommand(StatusCommand(reposilite.statusFacade, reposilite.failureFacade))
     }
+
+    override fun routing(reposilite: Reposilite): Set<ReposiliteRoutes> = setOf(
+        RouteAccessHandler()
+    )
 
 }

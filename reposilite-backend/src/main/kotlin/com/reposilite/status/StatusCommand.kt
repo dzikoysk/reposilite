@@ -19,9 +19,11 @@ package com.reposilite.status
 import com.reposilite.VERSION
 import com.reposilite.console.CommandContext
 import com.reposilite.console.api.ReposiliteCommand
+import com.sun.management.UnixOperatingSystemMXBean
 import panda.utilities.console.Effect.GREEN_BOLD
 import panda.utilities.console.Effect.RESET
 import picocli.CommandLine.Command
+import java.lang.management.ManagementFactory
 
 @Command(name = "status", description = ["Display summary status of app health"])
 internal class StatusCommand(
@@ -37,6 +39,12 @@ internal class StatusCommand(
         context.append("  Active threads in group: ${statusFacade.threadGroupUsage()}")
         context.append("  Recorded failures: ${failureFacade.getFailures().size}")
         context.append("  Latest version of Reposilite: ${statusFacade.getVersion()}")
+
+        val os = ManagementFactory.getOperatingSystemMXBean()
+
+        if (os is UnixOperatingSystemMXBean) {
+            context.append("  Number of open fd: ${os.openFileDescriptorCount}/${os.maxFileDescriptorCount}")
+        }
     }
 
 }

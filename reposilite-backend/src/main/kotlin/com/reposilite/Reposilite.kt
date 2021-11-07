@@ -21,11 +21,9 @@ import com.reposilite.frontend.FrontendFacade
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
 import com.reposilite.maven.MavenFacade
-import com.reposilite.settings.LocalConfiguration
 import com.reposilite.settings.SettingsFacade
-import com.reposilite.settings.SharedConfiguration
-import com.reposilite.shared.TimeUtils.getPrettyUptimeInSeconds
-import com.reposilite.shared.peek
+import com.reposilite.shared.extensions.TimeUtils.getPrettyUptimeInSeconds
+import com.reposilite.shared.extensions.peek
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.status.FailureFacade
 import com.reposilite.status.StatusFacade
@@ -37,7 +35,7 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.atomic.AtomicBoolean
 
-const val VERSION = "3.0.0-alpha.7"
+const val VERSION = "3.0.0-alpha.8"
 
 class Reposilite(
     val journalist: ReposiliteJournalist,

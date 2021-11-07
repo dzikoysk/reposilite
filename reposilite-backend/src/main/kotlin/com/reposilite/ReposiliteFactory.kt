@@ -26,8 +26,8 @@ import com.reposilite.maven.application.MavenWebConfiguration
 import com.reposilite.settings.DatabaseSourceFactory
 import com.reposilite.settings.application.SettingsWebConfiguration
 import com.reposilite.shared.HttpRemoteClient
-import com.reposilite.shared.newFixedThreadPool
-import com.reposilite.shared.newSingleThreadScheduledExecutor
+import com.reposilite.shared.extensions.newFixedThreadPool
+import com.reposilite.shared.extensions.newSingleThreadScheduledExecutor
 import com.reposilite.statistics.application.StatisticsWebConfiguration
 import com.reposilite.status.application.FailureWebConfiguration
 import com.reposilite.status.application.StatusWebConfiguration
@@ -69,11 +69,20 @@ object ReposiliteFactory {
         val statusFacade = web(webs, StatusWebConfiguration) { createFacade(parameters.testEnv, webServer) }
         val failureFacade = web(webs, FailureWebConfiguration) { createFacade(journalist) }
         val consoleFacade = web(webs, ConsoleWebConfiguration) { createFacade(journalist, failureFacade) }
-        val mavenFacade = web(webs, MavenWebConfiguration) { createFacade(journalist, parameters.workingDirectory, HttpRemoteClient(journalist), settingsFacade.sharedConfiguration.repositories) }
+        val statisticFacade = web(webs, StatisticsWebConfiguration) { createFacade(journalist, database, settingsFacade) }
         val frontendFacade = web(webs, FrontendWebConfiguration) { createFacade(localConfiguration, settingsFacade) }
-        val statisticFacade = web(webs, StatisticsWebConfiguration) { createFacade(journalist, database) }
         val accessTokenFacade = web(webs, AccessTokenWebConfiguration) { createFacade(database) }
         val authenticationFacade = web(webs, AuthenticationWebConfiguration) { createFacade(journalist, accessTokenFacade) }
+
+        val mavenFacade = web(webs, MavenWebConfiguration) {
+            createFacade(
+                journalist,
+                parameters.workingDirectory,
+                HttpRemoteClient(journalist),
+                settingsFacade.sharedConfiguration.repositories,
+                statisticFacade
+            )
+        }
 
         return Reposilite(
             journalist = journalist,

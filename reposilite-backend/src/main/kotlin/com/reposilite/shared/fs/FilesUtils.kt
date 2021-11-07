@@ -13,17 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.reposilite.shared
+package com.reposilite.shared.fs
 
-import com.reposilite.maven.Repository
-import org.apache.commons.codec.digest.DigestUtils
-import java.nio.file.Path
 import java.text.CharacterIterator
 import java.text.StringCharacterIterator
 import java.util.regex.Pattern
 import kotlin.math.abs
 
-object FilesUtils {
+internal object FilesUtils {
 
     private val DISPLAY_SIZE_PATTERN = Pattern.compile("([0-9]+)(([KkMmGg])[Bb])")
 
@@ -73,22 +70,10 @@ object FilesUtils {
         return String.format("%.1f %ciB", value / 1024.0, characterIterator.current())
     }
 
-    fun writeFileChecksums(repository: Repository, path: Path, bytes: ByteArray) {
-        val md5 = path.resolveSibling(path.getSimpleName() + ".md5")
-        repository.putFile(md5, DigestUtils.md5(bytes).inputStream())
-
-        val sha1 = path.resolveSibling(path.getSimpleName() + ".sha1")
-        val sha256 = path.resolveSibling(path.getSimpleName() + ".sha256")
-        val sha512 = path.resolveSibling(path.getSimpleName() + ".sha512")
-        repository.putFile(sha1, DigestUtils.sha1(bytes).inputStream())
-        repository.putFile(sha256, DigestUtils.sha256(bytes).inputStream())
-        repository.putFile(sha512, DigestUtils.sha512(bytes).inputStream())
-    }
-
-    fun String.getExtension(): String =
-        lastIndexOf(".")
-            .takeIf { it != -1 }
-            ?.let { substring(it + 1) }
-            ?: ""
-
 }
+
+fun String.getExtension(): String =
+    lastIndexOf(".")
+        .takeIf { it != -1 }
+        ?.let { substring(it + 1) }
+        ?: ""

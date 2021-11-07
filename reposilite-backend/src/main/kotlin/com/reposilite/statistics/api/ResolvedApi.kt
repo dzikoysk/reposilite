@@ -13,25 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.reposilite.shared
 
-import java.util.Locale
+package com.reposilite.statistics.api
 
-object TimeUtils {
+import com.reposilite.maven.api.Identifier
 
-    fun getUptimeInSeconds(uptime: Long): Double =
-        getUptime(uptime) / 1000.0
+data class IncrementResolvedRequest(
+    val identifier: Identifier,
+    val count: Long = 1
+)
 
-    fun getUptime(startTime: Long): Long =
-        System.currentTimeMillis() - startTime
+data class ResolvedCountResponse(
+    val sum: Long,
+    val requests: List<ResolvedEntry>
+)
 
-    fun getPrettyUptimeInSeconds(startTime: Long): String =
-        format(getUptimeInSeconds(startTime)) + "s"
-
-    fun getPrettyUptimeInMinutes(startTime: Long): String =
-        format(getUptimeInSeconds(startTime) / 60) + "min"
-
-    fun format(time: Double): String =
-        String.format(Locale.US, "%.2f", time)
-
-}
+data class ResolvedEntry(
+    val gav: String,
+    val count: Long
+)

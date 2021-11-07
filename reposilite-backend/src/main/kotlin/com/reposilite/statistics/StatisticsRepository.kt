@@ -16,26 +16,19 @@
 
 package com.reposilite.statistics
 
-import com.reposilite.statistics.api.Record
-import com.reposilite.statistics.api.RecordIdentifier
-import com.reposilite.statistics.api.RecordType
+import com.reposilite.maven.api.Identifier
+import com.reposilite.statistics.api.ResolvedEntry
+import java.time.LocalDate
+import kotlin.Int.Companion.MAX_VALUE
 
 internal interface StatisticsRepository {
 
-    companion object {
-        const val MAX_IDENTIFIER_LENGTH = 1024
-    }
+    fun incrementResolvedRequests(requests: Map<Identifier, Long>, date: LocalDate)
 
-    fun incrementRecords(bulk: Map<RecordIdentifier, Long>)
+    fun findResolvedRequestsByPhrase(repository: String, phrase: String, limit: Int = MAX_VALUE): List<ResolvedEntry>
 
-    fun incrementRecord(record: RecordIdentifier, count: Long)
+    fun countUniqueResolvedRequests(): Long
 
-    fun findRecordByTypeAndIdentifier(record: RecordIdentifier): Record?
-
-    fun findRecordsByPhrase(type: RecordType, phrase: String, limit: Int): List<Record>
-
-    fun countUniqueRecords(): Long
-
-    fun countRecords(): Long
+    fun countResolvedRecords(): Long
 
 }

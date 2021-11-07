@@ -17,14 +17,32 @@
 package com.reposilite.statistics.specification
 
 import com.reposilite.ReposiliteSpecification
+import com.reposilite.maven.api.Identifier
 import kong.unirest.Unirest.get
+import kong.unirest.Unirest.put
+import org.junit.jupiter.api.Assertions.assertTrue
+import panda.std.Mono
 
 internal abstract class StatisticsIntegrationSpecification : ReposiliteSpecification() {
 
-    fun useRecordedRecord(uri: String): String {
-        get("$base$uri").asEmpty()
+    fun useResolvedRequest(repository: String, gav: String, content: String): Mono<Identifier> {
+        val uri = "$base/$repository/$gav"
+        val (token, secret) = usePredefinedTemporaryAuth()
+
+        val putResponse = put(uri)
+            .basicAuth(token, secret)
+            .body(content)
+            .asEmpty()
+
+        assertTrue(putResponse.isSuccess)
+
+        val getResponse = get(uri)
+            .asEmpty()
+
+        assertTrue(getResponse.isSuccess)
+
         reposilite.statisticsFacade.saveRecordsBulk()
-        return uri
+        return Mono(Identifier(repository, gav))
     }
 
 }

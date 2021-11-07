@@ -17,8 +17,8 @@ package com.reposilite.maven
 
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
-import com.reposilite.maven.api.DirectoryInfo
-import com.reposilite.maven.api.SimpleDirectoryInfo
+import com.reposilite.shared.fs.DirectoryInfo
+import com.reposilite.shared.fs.SimpleDirectoryInfo
 import com.reposilite.token.api.AccessToken
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse

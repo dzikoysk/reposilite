@@ -18,7 +18,7 @@ package com.reposilite.settings
 
 import com.reposilite.settings.LocalConfiguration.MySqlDatabaseSettings
 import com.reposilite.settings.LocalConfiguration.SQLiteDatabaseSettings
-import com.reposilite.shared.loadCommandBasedConfiguration
+import com.reposilite.shared.extensions.loadCommandBasedConfiguration
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.transactions.TransactionManager
 import java.io.File
