@@ -20,7 +20,7 @@
     "prismjs": "^1.25.0",
     "simple-syntax-highlighter": "^2.2.0",
     "vue": "^3.2.20",
-    "vue-axios": "^3.3.7",
+    "vue-axios": "^3.4.0",
     "vue-final-modal": "^3.4.3",
     "vue-prism-editor": "^2.0.0-alpha.2",
     "vue-router": "^4.0.12",
