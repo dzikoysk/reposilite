@@ -19,8 +19,12 @@ package com.reposilite.maven
 import com.reposilite.journalist.Journalist
 import com.reposilite.settings.SharedConfiguration.RepositoryConfiguration
 import com.reposilite.settings.SharedConfiguration.RepositoryConfiguration.ProxiedHostConfiguration
+import com.reposilite.shared.HttpRemoteClient
 import com.reposilite.shared.extensions.loadCommandBasedConfiguration
 import com.reposilite.storage.StorageProviderFactory.createStorageProvider
+import java.net.InetSocketAddress
+import java.net.Proxy
+import java.net.Proxy.Type.HTTP
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -31,21 +35,33 @@ internal class RepositoryFactory(
 
     private val repositories = Paths.get("repositories")
 
-    fun createRepository(repositoryName: String, repositoryConfiguration: RepositoryConfiguration): Repository =
+    fun createRepository(repositoryName: String, configuration: RepositoryConfiguration): Repository =
         Repository(
             repositoryName,
-            repositoryConfiguration.visibility,
-            repositoryConfiguration.redeployment,
-            repositoryConfiguration.proxied.associate { createProxiedHostConfiguration(it) },
-            createStorageProvider(journalist, workingDirectory.resolve(repositories), repositoryName, repositoryConfiguration.storageProvider),
+            configuration.visibility,
+            configuration.redeployment,
+            configuration.proxied.map { createProxiedHostConfiguration(it) },
+            createStorageProvider(journalist, workingDirectory.resolve(repositories), repositoryName, configuration.storageProvider),
         )
 
-    private fun createProxiedHostConfiguration(configurationSource: String): Pair<String, ProxiedHostConfiguration> =
-        with(loadCommandBasedConfiguration(ProxiedHostConfiguration(), configurationSource)) {
+    private fun createProxiedHostConfiguration(configurationSource: String): ProxiedHost {
+        val (name, configuration) = loadCommandBasedConfiguration(ProxiedHostConfiguration(), configurationSource)
+
+        val host =
             if (name.endsWith("/"))
-                Pair(name.substring(0, name.length - 1), configuration)
+                name.substring(0, name.length - 1)
             else
-                Pair(name, configuration)
-        }
+                name
+
+        val proxy = configuration.proxy
+            .takeIf { it.isNotEmpty() }
+            ?.let { Proxy(HTTP, InetSocketAddress(it.substringBeforeLast(":"), it.substringAfterLast(":").toInt())) }
+
+        return ProxiedHost(
+            host,
+            configuration,
+            HttpRemoteClient(journalist, proxy)
+        )
+    }
 
 }

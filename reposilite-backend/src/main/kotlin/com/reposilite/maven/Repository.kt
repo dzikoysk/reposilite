@@ -32,7 +32,7 @@ internal class Repository internal constructor(
     val name: String,
     val visibility: RepositoryVisibility,
     val redeployment: Boolean,
-    val proxiedHosts: Map<String, ProxiedHostConfiguration>,
+    val proxiedHosts: List<ProxiedHost>,
     private val storageProvider: StorageProvider,
 ) {
 

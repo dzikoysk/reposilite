@@ -52,7 +52,7 @@ repositories {
     # --allow=<group prefix> - An allowed artifact group. Can be specified multiple times. If none are given, all artifacts can be obtained from this proxy.
     # Example usage:
     # proxied [
-    #   https://repo.panda-lang.org/releases --store --connectTimeout=3 --readTimeout=15 --auth user:token --allow=com.reposilite
+    #   https://repo.panda-lang.org/releases --store --connectTimeout=3 --readTimeout=15 --auth user:token --allow=com.reposilite  --proxy host:ip
     # ]
     proxied: []
   }
@@ -83,7 +83,7 @@ repositories {
     # --allow=<group prefix> - An allowed artifact group. Can be specified multiple times. If none are given, all artifacts can be obtained from this proxy.
     # Example usage:
     # proxied [
-    #   https://repo.panda-lang.org/releases --store --connectTimeout=3 --readTimeout=15 --auth user:token --allow=com.reposilite
+    #   https://repo.panda-lang.org/releases --store --connectTimeout=3 --readTimeout=15 --auth user:token --allow=com.reposilite  --proxy host:ip
     # ]
     proxied: []
   }
@@ -114,7 +114,7 @@ repositories {
     # --allow=<group prefix> - An allowed artifact group. Can be specified multiple times. If none are given, all artifacts can be obtained from this proxy.
     # Example usage:
     # proxied [
-    #   https://repo.panda-lang.org/releases --store --connectTimeout=3 --readTimeout=15 --auth user:token --allow=com.reposilite
+    #   https://repo.panda-lang.org/releases --store --connectTimeout=3 --readTimeout=15 --auth user:token --allow=com.reposilite  --proxy host:ip
     # ]
     proxied: []
   }
