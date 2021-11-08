@@ -40,8 +40,9 @@ const createClient = (defaultName, defaultSecret) => {
     }
   })
   
-  const get = (endpoint, credentials) =>
-    axios.get(createURL(endpoint), { ...(credentials || defaultAuthorization()) })
+  const get = (endpoint, credentials) => {
+    return axios.get(createURL(endpoint), { ...(credentials || defaultAuthorization()) })
+  }
 
   const put = (endpoint, content, credentials) =>
     axios.put(createURL(endpoint), content, {
@@ -65,6 +66,12 @@ const createClient = (defaultName, defaultSecret) => {
       },
       details(gav) {
         return get(`/api/maven/details/${gav || ''}`)
+      },
+      download(gav) {
+        return get(`/${gav}`, {
+          responseType: 'blob',
+          ...defaultAuthorization()
+        })
       }
     },
     settings: {

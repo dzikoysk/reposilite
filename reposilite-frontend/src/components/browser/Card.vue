@@ -113,7 +113,6 @@ export default {
     const { client } = createClient(token.name, token.secret)
     const { copy: copyText, isSupported: isCopySupported } = useClipboard()
 
-
     const selectedTab = ref(localStorage.getItem('card-tab') || 'Maven')
     const dropdownOpen = ref(localStorage.getItem('dropdown-open') || false)
     watchEffect(() => localStorage.setItem('card-tab', selectedTab.value))
