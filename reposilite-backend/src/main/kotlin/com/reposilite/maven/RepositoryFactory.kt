@@ -19,7 +19,7 @@ package com.reposilite.maven
 import com.reposilite.journalist.Journalist
 import com.reposilite.settings.SharedConfiguration.RepositoryConfiguration
 import com.reposilite.settings.SharedConfiguration.RepositoryConfiguration.ProxiedHostConfiguration
-import com.reposilite.shared.HttpRemoteClient
+import com.reposilite.shared.RemoteClientProvider
 import com.reposilite.shared.extensions.loadCommandBasedConfiguration
 import com.reposilite.storage.StorageProviderFactory.createStorageProvider
 import java.net.InetSocketAddress
@@ -31,6 +31,7 @@ import java.nio.file.Paths
 internal class RepositoryFactory(
     private val journalist: Journalist,
     private val workingDirectory: Path,
+    private val remoteClientProvider: RemoteClientProvider
 ) {
 
     private val repositories = Paths.get("repositories")
@@ -60,7 +61,7 @@ internal class RepositoryFactory(
         return ProxiedHost(
             host,
             configuration,
-            HttpRemoteClient(journalist, proxy)
+            remoteClientProvider.createClient(journalist, proxy)
         )
     }
 

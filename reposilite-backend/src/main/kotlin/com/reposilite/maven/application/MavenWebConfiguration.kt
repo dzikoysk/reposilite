@@ -27,7 +27,7 @@ import com.reposilite.maven.RepositoryService
 import com.reposilite.maven.infrastructure.MavenApiEndpoints
 import com.reposilite.maven.infrastructure.MavenEndpoints
 import com.reposilite.settings.SharedConfiguration.RepositoryConfiguration
-import com.reposilite.shared.RemoteClient
+import com.reposilite.shared.RemoteClientProvider
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.web.WebConfiguration
 import com.reposilite.web.application.ReposiliteRoutes
@@ -39,10 +39,11 @@ internal object MavenWebConfiguration : WebConfiguration {
     fun createFacade(
         journalist: Journalist,
         workingDirectory: Path,
+        remoteClientProvider: RemoteClientProvider,
         repositories: MutableReference<Map<String, RepositoryConfiguration>>,
         statisticsFacade: StatisticsFacade
     ): MavenFacade {
-        val repositoryProvider = RepositoryProvider(journalist, workingDirectory, repositories)
+        val repositoryProvider = RepositoryProvider(journalist, workingDirectory, remoteClientProvider, repositories)
         val securityProvider = RepositorySecurityProvider()
         val repositoryService = RepositoryService(journalist, repositoryProvider, securityProvider)
 
