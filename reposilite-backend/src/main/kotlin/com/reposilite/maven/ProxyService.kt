@@ -17,7 +17,6 @@
 package com.reposilite.maven
 
 import com.reposilite.settings.SharedConfiguration.RepositoryConfiguration.ProxiedHostConfiguration
-import com.reposilite.shared.RemoteClient
 import com.reposilite.shared.extensions.firstOrErrors
 import com.reposilite.shared.fs.FileDetails
 import com.reposilite.shared.fs.toPath
@@ -28,24 +27,24 @@ import panda.std.Result.ok
 import java.io.InputStream
 import java.nio.file.Path
 
-internal class ProxyService(private val remoteClient: RemoteClient) {
+internal class ProxyService {
 
     fun findRemoteDetails(repository: Repository, gav: String): Result<out FileDetails, ErrorResponse> =
-        searchInRemoteRepositories(repository, gav) { host, config ->
-            remoteClient.head("$host/$gav", config.authorization, config.connectTimeout, config.readTimeout)
+        searchInRemoteRepositories(repository, gav) { (host, config, client) ->
+            client.head("$host/$gav", config.authorization, config.connectTimeout, config.readTimeout)
         }
 
     fun findRemoteFile(repository: Repository, gav: String): Result<out InputStream, ErrorResponse> =
-        searchInRemoteRepositories(repository, gav) { host, config ->
-            remoteClient.get("$host/$gav", config.authorization, config.connectTimeout, config.readTimeout)
+        searchInRemoteRepositories(repository, gav) { (host, config, client) ->
+            client.get("$host/$gav", config.authorization, config.connectTimeout, config.readTimeout)
                 .flatMap { data -> if (config.store) storeFile(repository, gav.toPath(), data) else ok(data) }
                 .mapErr { error -> error.updateMessage { "$host: $it" } }
         }
 
-    private fun <V> searchInRemoteRepositories(repository: Repository, gav: String, fetch: (String, ProxiedHostConfiguration) -> Result<out V, ErrorResponse>): Result<out V, ErrorResponse> =
+    private fun <V> searchInRemoteRepositories(repository: Repository, gav: String, fetch: (ProxiedHost) -> Result<out V, ErrorResponse>): Result<out V, ErrorResponse> =
         repository.proxiedHosts.asSequence()
             .filter {(_, config) -> isAllowed(config, gav) }
-            .map { (host, config) -> fetch(host, config) }
+            .map { fetch(it) }
             .firstOrErrors()
             .mapErr { errors -> ErrorResponse(NOT_FOUND, errors.joinToString(" -> ") { "(${it.status}: ${it.message})" }) }
 

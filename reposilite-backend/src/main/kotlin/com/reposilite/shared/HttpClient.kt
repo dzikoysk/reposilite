@@ -36,6 +36,8 @@ import io.javalin.http.HttpCode.NOT_ACCEPTABLE
 import panda.std.Result
 import panda.std.asSuccess
 import java.io.InputStream
+import java.net.Proxy
+
 
 interface RemoteClient {
 
@@ -57,9 +59,12 @@ interface RemoteClient {
 
 }
 
-class HttpRemoteClient(private val journalist: Journalist) : RemoteClient {
+class HttpRemoteClient(private val journalist: Journalist, proxy: Proxy?) : RemoteClient {
 
-    private val requestFactory = NetHttpTransport().createRequestFactory()
+    private val requestFactory = NetHttpTransport.Builder()
+        .setProxy(proxy)
+        .build()
+        .createRequestFactory()
 
     override fun head(uri: String, credentials: String?, connectTimeout: Int, readTimeout: Int): Result<FileDetails, ErrorResponse> =
         createRequest(HttpMethods.HEAD, uri, credentials, connectTimeout, readTimeout)

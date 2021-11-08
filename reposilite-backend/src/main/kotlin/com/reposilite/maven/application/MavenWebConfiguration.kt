@@ -39,7 +39,6 @@ internal object MavenWebConfiguration : WebConfiguration {
     fun createFacade(
         journalist: Journalist,
         workingDirectory: Path,
-        remoteClient: RemoteClient,
         repositories: MutableReference<Map<String, RepositoryConfiguration>>,
         statisticsFacade: StatisticsFacade
     ): MavenFacade {
@@ -51,7 +50,7 @@ internal object MavenWebConfiguration : WebConfiguration {
             journalist,
             securityProvider,
             repositoryService,
-            ProxyService(remoteClient),
+            ProxyService(),
             MetadataService(repositoryService),
             statisticsFacade
         )

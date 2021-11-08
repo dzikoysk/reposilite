@@ -126,7 +126,7 @@ class SharedConfiguration : Serializable, DeserializationHandler<SharedConfigura
         @Description("# --allow=<group prefix> - An allowed artifact group. Can be specified multiple times. If none are given, all artifacts can be obtained from this proxy.")
         @Description("# Example usage:")
         @Description("# proxied [")
-        @Description("#   https://repo.panda-lang.org/releases --store --connectTimeout=3 --readTimeout=15 --auth user:token --allow=com.reposilite")
+        @Description("#   https://repo.panda-lang.org/releases --store --connectTimeout=3 --readTimeout=15 --auth user:token --allow=com.reposilite  --proxy host:ip")
         @Description("# ]")
         @JvmField
         var proxied = mutableListOf<String>()
@@ -143,6 +143,8 @@ class SharedConfiguration : Serializable, DeserializationHandler<SharedConfigura
             var authorization: String? = null
             @Option(names = ["--allow", "--allowGroup"], arity = "0..*")
             var allowedGroups = emptyArray<String>()
+            @Option(names = ["--proxy"])
+            var proxy = ""
         }
 
     }
