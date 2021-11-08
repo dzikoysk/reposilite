@@ -19,7 +19,11 @@
     <div class="bg-gray-100 dark:bg-black">
       <div class="container mx-auto">
         <p class="pt-7 pb-3 pl-2 font-semibold">
-          <span class="select-none">Index of </span>
+          <span class="select-none">
+            <router-link to="/">
+              Index of 
+            </router-link>
+          </span>
           <span class="select-text">
             <router-link v-for="crumb of breadcrumbs" :key="crumb.link" :to="crumb.link">
               {{ crumb.name }}
@@ -42,7 +46,7 @@
             <router-link v-if="isDirectory(file)" :to="append($route.path, file.name)">
               <Entry :file="file"/>
             </router-link>
-            <a v-else :href="createURL($route.path + '/' + file.name)" target="_blank">
+            <a v-else @click.left.prevent="downloadHandler($route.path, file.name)" :href="$route.path + '/' + file.name" target="_blank">
               <Entry :file="file"/>
             </a>
           </div>
@@ -59,13 +63,15 @@
 </template>
 
 <script>
-import { ref, watch, computed, watchEffect } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { createToast } from 'mosha-vue-toastify'
 import 'mosha-vue-toastify/dist/style.css'
 import { createURL, createClient } from '../../store/client'
 import Card from './Card.vue'
 import Entry from './Entry.vue'
 import { useRoute } from 'vue-router'
+import download from 'downloadjs'
+import mime from 'mime-types'
 
 export default {
   components: { Card, Entry },
@@ -82,6 +88,7 @@ export default {
   setup(props) {
     const qualifier = props.qualifier
     const token = props.token
+    const { client } = createClient(token.name, token.secret)
     const parentPath = ref('')
     const files = ref([])
     const isEmpty = ref(false)
@@ -96,7 +103,7 @@ export default {
     watch(
       () => qualifier.watchable,
       async (_) => {            
-        const { client } = createClient(token.name, token.secret)
+//        const { client } = createClient(token.name, token.secret)
 
         client.maven.details(qualifier.path)
           .then(response => {
@@ -126,6 +133,17 @@ export default {
       }))
     })
 
+    const downloadHandler = (path, name) => {
+      client.maven.download(path.substring(1) + '/' + name)
+        .then(response => download(response.data, name, response.headers['content-type']))
+        .catch(err => {
+          console.log(err)
+          createToast(`Cannot download file - ${error.response.status}: ${error.response.data.message}`, {
+            type: 'danger'
+          })
+        })
+    }
+
     return {
       qualifier,
       token,
@@ -135,7 +153,8 @@ export default {
       isErrored,
       isDirectory,
       createURL,
-      breadcrumbs
+      breadcrumbs,
+      downloadHandler
     }
   }
 }

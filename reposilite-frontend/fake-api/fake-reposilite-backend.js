@@ -58,8 +58,25 @@ application
   .get('/api/maven/details/private', (req, res) => {
     authorized(req,
       () => res.send(createDirectoryDetails('/private', [
-        createDirectoryDetails("something")
+        createDirectoryDetails("1.0.0")
       ])),
+      () => invalidCredentials(res)
+    )
+  })
+  .get('/private/maven-metadata.xml', (req, res) => {
+    authorized(req,
+      () => res.send(`
+      <metadata>
+        <groupId>default</groupId>
+        <artifactId>private</artifactId>
+        <versioning>
+          <release>1.0.0</release>
+          <versions>
+            <version>1.0.0</version>
+          </versions>
+        </versioning>
+      </metadata>
+      `),
       () => invalidCredentials(res)
     )
   })

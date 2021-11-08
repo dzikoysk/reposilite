@@ -23,8 +23,8 @@ const secretKey = 'session-token-secret'
 const managerPermission = 'access-token:manager'
 
 const token = reactive({
-  name: defaultValue,
-  secret: defaultValue
+  name: localStorage.getItem(nameKey) || defaultValue,
+  secret: localStorage.getItem(secretKey) || defaultValue
 })
 
 const defaultDetails = {
