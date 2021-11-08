@@ -1,6 +1,7 @@
 package com.reposilite.settings
 
 import com.reposilite.journalist.Journalist
+import com.reposilite.shared.fs.getSimpleName
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
 import io.javalin.http.HttpCode.BAD_REQUEST
@@ -15,7 +16,15 @@ internal object SettingsFileLoader {
 
     fun <C> initializeAndLoad(journalist: Journalist, mode: String, configurationFile: Path, workingDirectory: Path, defaultFileName: String, configuration: C): C =
         try {
-            val cdn = CdnFactory.createStandard()
+            val fileName = configurationFile.getSimpleName()
+
+            val cdn = when {
+                fileName.endsWith(".cdn") -> CdnFactory.createStandard()
+                fileName.endsWith(".yml") || fileName.endsWith(".yaml") -> CdnFactory.createYamlLike()
+                fileName.endsWith(".json") -> CdnFactory.createJsonLike()
+                else -> throw IllegalStateException("Unknown format: $fileName")
+
+            }
             cdn.load(Source.of(configurationFile), configuration)
 
             when (mode) {
