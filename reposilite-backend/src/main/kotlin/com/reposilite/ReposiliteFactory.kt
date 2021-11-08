@@ -25,6 +25,7 @@ import com.reposilite.journalist.backend.PrintStreamLogger
 import com.reposilite.maven.application.MavenWebConfiguration
 import com.reposilite.settings.DatabaseSourceFactory
 import com.reposilite.settings.application.SettingsWebConfiguration
+import com.reposilite.shared.HttpRemoteClientProvider
 import com.reposilite.shared.extensions.newFixedThreadPool
 import com.reposilite.shared.extensions.newSingleThreadScheduledExecutor
 import com.reposilite.statistics.application.StatisticsWebConfiguration
@@ -77,6 +78,7 @@ object ReposiliteFactory {
             createFacade(
                 journalist,
                 parameters.workingDirectory,
+                HttpRemoteClientProvider,
                 settingsFacade.sharedConfiguration.repositories,
                 statisticFacade
             )

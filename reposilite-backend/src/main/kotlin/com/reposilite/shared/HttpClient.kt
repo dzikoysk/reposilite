@@ -38,7 +38,6 @@ import panda.std.asSuccess
 import java.io.InputStream
 import java.net.Proxy
 
-
 interface RemoteClient {
 
     /**
@@ -56,6 +55,19 @@ interface RemoteClient {
      * @param readTimeout - connection read timeout in seconds
      */
     fun get(uri: String, credentials: String?, connectTimeout: Int, readTimeout: Int): Result<InputStream, ErrorResponse>
+
+}
+
+interface RemoteClientProvider {
+
+    fun createClient(journalist: Journalist, proxy: Proxy?): RemoteClient
+
+}
+
+object HttpRemoteClientProvider : RemoteClientProvider {
+
+    override fun createClient(journalist: Journalist, proxy: Proxy?): RemoteClient =
+        HttpRemoteClient(journalist, proxy)
 
 }
 
@@ -131,10 +143,17 @@ class HttpRemoteClient(private val journalist: Journalist, proxy: Proxy?) : Remo
 
 }
 
-class FakeRemoteClient(
-    private val headHandler: (String, String?, Int, Int) -> Result<FileDetails, ErrorResponse>,
-    private val getHandler: (String, String?, Int, Int) -> Result<InputStream, ErrorResponse>
-) : RemoteClient {
+private typealias HeadHandler = (String, String?, Int, Int) -> Result<FileDetails, ErrorResponse>
+private typealias GetHandler = (String, String?, Int, Int) -> Result<InputStream, ErrorResponse>
+
+class FakeRemoteClientProvider(private val headHandler: HeadHandler, private val getHandler: GetHandler) : RemoteClientProvider {
+
+    override fun createClient(journalist: Journalist, proxy: Proxy?): RemoteClient =
+        FakeRemoteClient(headHandler, getHandler)
+
+}
+
+class FakeRemoteClient(private val headHandler: HeadHandler, private val getHandler: GetHandler) : RemoteClient {
 
     override fun head(uri: String, credentials: String?, connectTimeout: Int, readTimeout: Int): Result<FileDetails, ErrorResponse> =
         headHandler(uri, credentials, connectTimeout, readTimeout)

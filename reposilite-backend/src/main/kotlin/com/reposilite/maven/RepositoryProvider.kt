@@ -2,12 +2,14 @@ package com.reposilite.maven
 
 import com.reposilite.journalist.Journalist
 import com.reposilite.settings.SharedConfiguration.RepositoryConfiguration
+import com.reposilite.shared.RemoteClientProvider
 import panda.std.reactive.Reference
 import java.nio.file.Path
 
 internal class RepositoryProvider(
     private val journalist: Journalist,
     private val workingDirectory: Path,
+    private val remoteClientProvider: RemoteClientProvider,
     repositoriesSource: Reference<Map<String, RepositoryConfiguration>>,
 ) {
 
@@ -23,7 +25,7 @@ internal class RepositoryProvider(
     }
 
     private fun createRepositories(repositoriesConfiguration: Map<String, RepositoryConfiguration>): Map<String, Repository> =
-        RepositoryFactory(journalist, workingDirectory).let { factory ->
+        RepositoryFactory(journalist, workingDirectory, remoteClientProvider).let { factory ->
             repositoriesConfiguration.mapValues { (repositoryName, repositoryConfiguration) ->
                 factory.createRepository(repositoryName, repositoryConfiguration)
             }

@@ -21,7 +21,7 @@ import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.application.MavenWebConfiguration
 import com.reposilite.settings.SharedConfiguration.RepositoryConfiguration
-import com.reposilite.shared.FakeRemoteClient
+import com.reposilite.shared.FakeRemoteClientProvider
 import com.reposilite.shared.fs.DocumentInfo
 import com.reposilite.shared.fs.UNKNOWN_LENGTH
 import com.reposilite.shared.fs.append
@@ -64,7 +64,7 @@ internal abstract class MavenSpecification {
     @BeforeEach
     private fun initializeFacade() {
         val logger = InMemoryLogger()
-        val remoteClient = FakeRemoteClient(
+        val remoteClientProvider = FakeRemoteClientProvider(
             headHandler = { uri, credentials, _, _ ->
                 if (uri.startsWith(REMOTE_REPOSITORY) && REMOTE_AUTH == credentials && !uri.isAllowed())
                     DocumentInfo(
@@ -94,7 +94,7 @@ internal abstract class MavenSpecification {
         this.mavenFacade = MavenWebConfiguration.createFacade(
             logger,
             workingDirectory!!.toPath(),
-            remoteClient,
+            remoteClientProvider,
             mutableReference(repositories()),
             StatisticsFacade(logger, DailyDateIntervalProvider.toReference(), InMemoryStatisticsRepository())
         )

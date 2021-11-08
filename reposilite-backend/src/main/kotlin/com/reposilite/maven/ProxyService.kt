@@ -51,7 +51,7 @@ internal class ProxyService {
     private fun isAllowed(config: ProxiedHostConfiguration, gav: String): Boolean =
         config.allowedGroups.isEmpty() ||
                 config.allowedGroups
-                    .map { it.replace('.','/') }
+                    .map { it.replace('.', '/') }
                     .any { gav.startsWith("/$it") }
 
     private fun storeFile(repository: Repository, gav: Path, data: InputStream): Result<InputStream, ErrorResponse> =
