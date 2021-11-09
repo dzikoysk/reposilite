@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+@file:Suppress("FunctionName")
+
 package com.reposilite.statistics
 
 import com.reposilite.statistics.api.ResolvedCountResponse

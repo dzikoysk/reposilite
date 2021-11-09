@@ -134,7 +134,7 @@ internal abstract class MavenSpecification {
 
     fun createAccessToken(name: String, secret: String, repository: String, gav: String, permission: RoutePermission): AccessToken {
         val routes = setOf(Route("/$repository/$gav", setOf(permission)))
-        return AccessToken(name = name, secret = secret, routes = routes)
+        return AccessToken(name = name, encryptedSecret = secret, routes = routes)
     }
 
     fun String.isAllowed(): Boolean =

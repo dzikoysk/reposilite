@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+@file:Suppress("FunctionName")
+
 package com.reposilite.maven
 
 import com.reposilite.maven.specification.MavenIntegrationSpecification

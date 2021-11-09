@@ -15,6 +15,7 @@
  */
 package com.reposilite.token.api
 
+import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.reposilite.token.api.AccessTokenPermission.MANAGER
@@ -30,7 +31,7 @@ data class AccessToken internal constructor(
     val type: AccessTokenType = PERSISTENT,
     val name: String,
     @Transient @JsonIgnore @get:OpenApiIgnore
-    val secret: String,
+    val encryptedSecret: String = "",
     val createdAt: LocalDate = LocalDate.now(),
     val description: String = "",
     val permissions: Set<AccessTokenPermission> = emptySet(),
@@ -71,6 +72,7 @@ enum class AccessTokenPermission(val identifier: String, val shortcut: String) {
     MANAGER("access-token:manager", "m");
 
     companion object {
+
         fun findAccessTokenPermissionByIdentifier(identifier: String) =
             values().firstOrNull { it.identifier == identifier }
 
@@ -79,7 +81,14 @@ enum class AccessTokenPermission(val identifier: String, val shortcut: String) {
 
         fun findByAll(permission: String) =
             findAccessTokenPermissionByIdentifier(permission) ?: findAccessTokenPermissionByShortcut(permission)
+
+        @JsonCreator
+        @JvmStatic
+        fun fromObject(data: Map<String, String>): AccessTokenPermission =
+            findAccessTokenPermissionByIdentifier(data["identifier"]!!)!!
+
     }
+
 }
 
 

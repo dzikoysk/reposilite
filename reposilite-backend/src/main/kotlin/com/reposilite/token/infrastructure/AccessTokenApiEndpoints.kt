@@ -23,7 +23,8 @@ import com.reposilite.token.api.CreateAccessTokenRequest
 import com.reposilite.token.api.CreateAccessTokenWithNoNameRequest
 import com.reposilite.web.application.ReposiliteRoute
 import com.reposilite.web.application.ReposiliteRoutes
-import com.reposilite.web.http.unauthorizedError
+import com.reposilite.web.http.notFound
+import com.reposilite.web.http.unauthorized
 import com.reposilite.web.routing.RouteMethod
 import io.javalin.openapi.HttpMethod
 import io.javalin.openapi.OpenApi
@@ -32,6 +33,7 @@ import io.javalin.openapi.OpenApiParam
 import io.javalin.openapi.OpenApiRequestBody
 
 internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessTokenFacade) : ReposiliteRoutes() {
+
     @OpenApi(
         tags = ["Access Tokens"],
         path = "/api/tokens",
@@ -40,7 +42,7 @@ internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessToke
     )
     val tokens = ReposiliteRoute("/api/tokens", RouteMethod.GET) {
         managerOnly {
-            accessTokenFacade.getTokensResponse()
+            response = accessTokenFacade.getTokens()
         }
     }
 
@@ -53,13 +55,9 @@ internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessToke
     )
     val token = ReposiliteRoute("/api/tokens/{name}", RouteMethod.GET) {
         authenticated {
-            val tokenName = requiredParameter("name")
-            val token = accessTokenFacade.getToken(tokenName)
-            response = if (isManager() || secret == token?.secret) {
-                accessTokenFacade.getTokenResponse(tokenName)
-            } else {
-                unauthorizedError("You must be the token owner or a manager to access this!")
-            }
+            response = accessTokenFacade.getToken(requiredParameter("name"))
+                ?.takeIf { isManager() || name == it.name }
+                ?: unauthorized("You must be the token owner or a manager to access this!")
         }
     }
 
@@ -78,8 +76,8 @@ internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessToke
     val createOrUpdateToken = ReposiliteRoute("/api/tokens/{name}", RouteMethod.PUT) {
         managerOnly {
             response = runCatching { ctx.bodyAsClass<CreateAccessTokenWithNoNameRequest>() }
-                .onSuccess { body ->
-                    accessTokenFacade.createOrUpdateToken(
+                .map { body ->
+                    accessTokenFacade.createAccessToken(
                         CreateAccessTokenRequest(
                             requiredParameter("name"),
                             body.secret,
@@ -87,8 +85,8 @@ internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessToke
                         )
                     )
                 }
-                .onFailure {
-                    unauthorizedError<Nothing>("Failed to parse body, make sure you've followed the specification!")
+                .getOrElse {
+                    unauthorized("Failed to read body")
                 }
         }
     }
@@ -102,7 +100,7 @@ internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessToke
     )
     val deleteToken = ReposiliteRoute("/api/tokens/{name}", RouteMethod.DELETE) {
         managerOnly {
-            response = accessTokenFacade.deleteTokenWithResponse(requiredParameter("name"))
+            response = accessTokenFacade.deleteToken(requiredParameter("name")) ?: notFound("Token not found")
         }
     }
 
