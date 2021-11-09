@@ -22,7 +22,7 @@
       </h1>
       <Menu :token="token" class="mt-0.5"/>
     </div>
-    <Hero class="pt-2 pb-11 <sm:pb-4" />
+    <Hero class="pt-2 pb-10 <sm:pb-4" />
   </header>
 </template>
 

@@ -41,7 +41,7 @@
         <div class="lg:absolute pt-5 -top-5 right-8">
           <Card :qualifier="qualifier" :token="token"/>
         </div>
-        <div class="pt-4">
+        <div id="browser-list" class="pt-4">
           <div v-for="file in files" v-bind:key="file">
             <router-link v-if="isDirectory(file)" :to="append($route.path, file.name)">
               <Entry :file="file"/>

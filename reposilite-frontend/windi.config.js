@@ -27,7 +27,10 @@ module.exports = {
     },
     extend: {
       colors: {
-        gray: colors.trueGray
+        gray: {
+          150: '#ececec',
+          ...colors.trueGray
+        }
       },
       fontSize: {
         xm: ['0.625rem', { lineHeight: '0.75rem' }],

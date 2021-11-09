@@ -23,7 +23,7 @@
       </h1>
       <!-- <button class="bg-black dark:bg-white text-white dark:text-black px-6 py-1 rounded">Download</button> -->
     </div>
-    <div class="flex <sm:(hidden)">
+    <div id="card-menu" class="flex mt-2 <sm:(hidden)">
       <div 
         v-for="entry in configurations" 
         :key="entry.name" 
@@ -178,9 +178,8 @@ export default {
     
     const copy = async () => {
       const { snippet } = configurations.value.find(entry => entry.name === selectedTab.value)
-
       await copyText(snippet)
-      return createToast('Copied snippet', { type: 'info' })
+      return createToast('Snippet copied', { type: 'info', timeout: '2000' })
     }
 
     return {
@@ -197,6 +196,15 @@ export default {
 </script>
 
 <style>
+#card-menu div {
+  border-top-left-radius: 10%;
+  border-top-right-radius: 10%;
+}
+#card-menu div:hover {
+  @apply bg-gray-100 dark:bg-gray-800;
+  transition: background-color 0.5s;
+}
+
 .slide-right-enter-active,
 .slide-right-leave-active,
 .slide-left-enter-active,

@@ -15,7 +15,7 @@
   -->
 
 <template>
-  <div>
+  <div id="login-modal">
     <vue-final-modal
       v-model="showLogin"
       v-bind="$attrs"
@@ -88,5 +88,9 @@ export default {
   @apply my-1;
   @apply bg-gray-50 dark:bg-gray-800;
   @apply rounded-md;
+}
+#login-modal button:hover {
+  @apply bg-gray-200 dark:bg-gray-700;
+  transition: background-color 0.5s;
 }
 </style>
