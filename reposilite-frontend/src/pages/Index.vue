@@ -118,14 +118,22 @@ export default {
 .item {
   @apply px-1;
   @apply pb-1;
+  @apply pt-1.5;
   @apply cursor-pointer;
   @apply text-gray-600 dark:text-gray-300;
   @apply bg-gray-100 dark:bg-black;
 }
-
 .selected {
   @apply border-b-2;
   @apply border-black dark:border-white;
   @apply text-black dark:text-white;
+}
+.tabs .item {
+  border-top-left-radius: 10%;
+  border-top-right-radius: 10%;
+}
+.tabs .item:hover {
+  @apply bg-gray-150 dark:bg-gray-900;
+  transition: background-color 0.5s;
 }
 </style>
