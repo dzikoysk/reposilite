@@ -44,7 +44,7 @@ class AuthenticationFacade internal constructor(
 
     fun authenticateByCredentials(name: String, secret: String): Result<AccessToken, ErrorResponse> =
         accessTokenFacade.getToken(name)
-            ?.takeIf { B_CRYPT_TOKENS_ENCODER.matches(secret, it.secret) }
+            ?.takeIf { B_CRYPT_TOKENS_ENCODER.matches(secret, it.encryptedSecret) }
             ?.asSuccess()
             ?: errorResponse(UNAUTHORIZED, "Invalid authorization credentials")
 

@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+@file:Suppress("FunctionName")
+
 package com.reposilite.storage
 
 import com.reposilite.shared.fs.DocumentInfo

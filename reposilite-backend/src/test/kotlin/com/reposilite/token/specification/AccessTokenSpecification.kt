@@ -22,7 +22,7 @@ import com.reposilite.token.api.CreateAccessTokenRequest
 import com.reposilite.token.api.CreateAccessTokenResponse
 import com.reposilite.token.infrastructure.InMemoryAccessTokenRepository
 
-internal open class AccessTokenSpecification {
+internal abstract class AccessTokenSpecification {
 
     protected val accessTokenFacade = AccessTokenFacade(InMemoryAccessTokenRepository(), InMemoryAccessTokenRepository())
 

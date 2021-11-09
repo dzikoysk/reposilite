@@ -24,17 +24,12 @@ import com.reposilite.token.api.AccessTokenType.PERSISTENT
 import com.reposilite.token.api.AccessTokenType.TEMPORARY
 import com.reposilite.token.api.CreateAccessTokenRequest
 import com.reposilite.token.api.CreateAccessTokenResponse
-import com.reposilite.token.api.TokensResponse
-import com.reposilite.web.http.ErrorResponse
-import com.reposilite.web.http.errorResponse
-import io.javalin.http.HttpCode.BAD_REQUEST
-import panda.std.Result
-import panda.std.asSuccess
 
 class AccessTokenFacade internal constructor(
     private val temporaryRepository: AccessTokenRepository,
     private val persistentRepository: AccessTokenRepository
 ) {
+
     fun createTemporaryAccessToken(request: CreateAccessTokenRequest): CreateAccessTokenResponse =
         createAccessToken(
             temporaryRepository,
@@ -61,8 +56,9 @@ class AccessTokenFacade internal constructor(
         permissions: Set<AccessTokenPermission>
     ): CreateAccessTokenResponse {
         val encodedSecret = B_CRYPT_TOKENS_ENCODER.encode(secret)
-        val accessToken = AccessToken(type = type, name = name, secret = encodedSecret, permissions = permissions)
+        val accessToken = AccessToken(type = type, name = name, encryptedSecret = encodedSecret, permissions = permissions)
 
+        deleteToken(name)
         return CreateAccessTokenResponse(repository.saveAccessToken(accessToken), secret)
     }
 
@@ -87,24 +83,4 @@ class AccessTokenFacade internal constructor(
     fun count(): Long =
         temporaryRepository.countAccessTokens() + persistentRepository.countAccessTokens()
 
-    fun getTokensResponse(): Result<TokensResponse, ErrorResponse> =
-        TokensResponse(getTokens()).asSuccess()
-
-    fun getTokenResponse(name: String): Result<AccessToken, ErrorResponse> =
-        getToken(name)?.asSuccess() ?: errorResponse(BAD_REQUEST, "The token requested does not exist!")
-
-    fun deleteTokenWithResponse(name: String): Result<AccessToken, ErrorResponse> {
-        return deleteToken(name)?.asSuccess() ?: errorResponse(
-            BAD_REQUEST,
-            "Could not find a token to delete!"
-        )
-    }
-
-    fun createOrUpdateToken(request: CreateAccessTokenRequest): Result<CreateAccessTokenResponse, ErrorResponse> {
-        getToken(request.name)?.let {
-            deleteToken(it.name)
-        }.let {
-            return createAccessToken(request).asSuccess()
-        }
-    }
 }

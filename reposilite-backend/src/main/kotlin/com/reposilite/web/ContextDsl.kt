@@ -22,10 +22,9 @@ import com.reposilite.token.api.AccessTokenPermission
 import com.reposilite.token.api.RoutePermission
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.error
-import com.reposilite.web.http.unauthorizedError
+import com.reposilite.web.http.unauthorized
 import com.reposilite.web.http.uri
 import io.javalin.http.Context
-import io.javalin.http.HttpCode
 import panda.std.Result
 
 class ContextDsl(
@@ -77,7 +76,7 @@ class ContextDsl(
             if (isAuthorized(to))
                 init(this)
             else
-                ctx.error(HttpCode.UNAUTHORIZED, "Invalid credentials")
+                response = unauthorized("Invalid credentials")
         }
     }
 
@@ -86,11 +85,10 @@ class ContextDsl(
      */
     fun managerOnly(block: AccessToken.() -> Unit) {
         authenticated {
-            if (isManager()) {
+            if (isManager())
                 block(this)
-            } else {
-                response = unauthorizedError<Nothing>("Only manager can access this endpoint")
-            }
+            else
+                response = unauthorized("Only manager can access this endpoint")
         }
     }
 

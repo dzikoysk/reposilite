@@ -16,11 +16,28 @@
 
 package com.reposilite
 
+import com.fasterxml.jackson.databind.json.JsonMapper
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.reposilite.token.api.CreateAccessTokenRequest
 import com.reposilite.token.api.Route
 import com.reposilite.token.api.RoutePermission
+import io.javalin.http.HttpCode
+import kong.unirest.HttpRequest
+import kong.unirest.HttpResponse
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
+import kotlin.reflect.KClass
 
 internal abstract class ReposiliteSpecification : ReposiliteRunner() {
+
+    private val jacksonMapper by lazy {
+        JsonMapper.builder()
+            .addModule(JavaTimeModule())
+            .build()
+            .registerKotlinModule()
+    }
 
     val base: String
         get() = "http://localhost:$port"
@@ -37,6 +54,24 @@ internal abstract class ReposiliteSpecification : ReposiliteRunner() {
         }
 
         return Pair(name, secret)
+    }
+
+    fun <T : Any> HttpRequest<*>.asJacksonObject(type: KClass<T>): HttpResponse<T> =
+        this.asObject { jacksonMapper.readValue(it.contentAsString, type.java) }
+
+    fun assertStatus(expectedCode: HttpCode, value: Int) {
+        assertEquals(expectedCode.status, value)
+    }
+
+    fun assertErrorResponse(expectedCode: HttpCode, response: HttpResponse<*>) {
+        assertStatus(expectedCode, response.status)
+        assertFalse(response.isSuccess)
+    }
+
+    fun <T> assertSuccessResponse(expectedCode: HttpCode, response: HttpResponse<T>, block: (T) -> Unit = {}): T {
+        assertStatus(expectedCode, response.status)
+        assertTrue(response.isSuccess)
+        return response.body.also { block(it) }
     }
 
 }

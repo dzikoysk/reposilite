@@ -19,6 +19,7 @@ package com.reposilite.web.application
 import com.fasterxml.jackson.annotation.JsonInclude.Include
 import com.fasterxml.jackson.databind.json.JsonMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.reposilite.Reposilite
 import com.reposilite.VERSION
 import com.reposilite.journalist.Journalist
@@ -64,6 +65,7 @@ internal object WebServerConfiguration {
         val objectMapper = JsonMapper.builder()
             .addModule(JavaTimeModule())
             .build()
+            .registerKotlinModule()
             .setSerializationInclusion(Include.NON_NULL)
 
         config.jsonMapper(JavalinJackson(objectMapper))

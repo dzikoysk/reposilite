@@ -93,7 +93,7 @@ internal class SqlAccessTokenRepository(private val database: Database) : Access
     private fun createAccessToken(accessToken: AccessToken): AccessToken {
         AccessTokenTable.insert {
             it[this.name] = accessToken.name
-            it[this.secret] = accessToken.secret
+            it[this.secret] = accessToken.encryptedSecret
             it[this.createdAt] = accessToken.createdAt
             it[this.description] = accessToken.description
         }
@@ -108,7 +108,7 @@ internal class SqlAccessTokenRepository(private val database: Database) : Access
     private fun updateAccessToken(accessToken: AccessToken): AccessToken {
         AccessTokenTable.update({ AccessTokenTable.id eq accessToken.id }, body = {
             it[this.name] = accessToken.name
-            it[this.secret] = accessToken.secret
+            it[this.secret] = accessToken.encryptedSecret
             it[this.createdAt] = accessToken.createdAt
             it[this.description] = accessToken.description
         })
