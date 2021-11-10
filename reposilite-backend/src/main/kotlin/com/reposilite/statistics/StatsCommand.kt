@@ -47,9 +47,9 @@ internal class StatsCommand(private val statisticsFacade: StatisticsFacade) : Re
         statisticsFacade.findResolvedRequestsByPhrase(repository, phrase, limiter)
             .peek { response ->
                 context.append("Search results:")
-                context.append("  Filter: '${highlight(phrase)}'")
+                context.append("  Filter: '${highlight(phrase)}' / Limit: $limiter")
                 if (repository.isNotEmpty()) context.append("  In repository: $repository")
-                context.append("  Matched requests: ${response.sum}")
+                context.append("  Sum of matched requests: ${response.sum}")
                 context.append("  Records:")
                 response.requests.forEachIndexed { order, request -> context.append("    ${order + 1}. /${request.gav} (${request.count})") }
                 if (response.requests.isEmpty()) context.append("    ~ Matching records not found ~")

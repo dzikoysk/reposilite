@@ -64,7 +64,7 @@ class StatisticsFacade internal constructor(
         statisticsRepository.countUniqueResolvedRequests()
 
     fun countRecords(): Long =
-        statisticsRepository.countResolvedRecords()
+        statisticsRepository.countResolvedRequests()
 
     override fun getLogger(): Logger =
         journalist.logger

@@ -42,7 +42,7 @@ internal class InMemoryStatisticsRepository : StatisticsRepository {
     override fun countUniqueResolvedRequests(): Long =
         resolvedRequests.size.toLong()
 
-    override fun countResolvedRecords(): Long =
+    override fun countResolvedRequests(): Long =
         resolvedRequests.map { it.value }.sum()
 
 }

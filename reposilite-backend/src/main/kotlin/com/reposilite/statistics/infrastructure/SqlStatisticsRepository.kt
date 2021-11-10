@@ -33,7 +33,6 @@ import org.jetbrains.exposed.sql.SortOrder.DESC
 import org.jetbrains.exposed.sql.SqlExpressionBuilder
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.like
 import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.count
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.javatime.date
 import org.jetbrains.exposed.sql.leftJoin
@@ -109,7 +108,7 @@ internal class SqlStatisticsRepository(private val database: Database) : Statist
 
     override fun findResolvedRequestsByPhrase(repository: String, phrase: String, limit: Int): List<ResolvedEntry> =
         transaction(database) {
-            val resolvedCount = ResolvedTable.count.count()
+            val resolvedSum = ResolvedTable.count.sum()
             val whereCriteria =
                 if (repository.isEmpty())
                     { IdentifierTable.gav like "%${phrase}%" }
@@ -117,22 +116,14 @@ internal class SqlStatisticsRepository(private val database: Database) : Statist
                     and({ IdentifierTable.repository eq repository }, { IdentifierTable.gav like "%${phrase}%" })
 
             IdentifierTable.leftJoin(ResolvedTable, { IdentifierTable.id }, { ResolvedTable.identifierId })
-                .slice(IdentifierTable.gav, resolvedCount)
+                .slice(IdentifierTable.gav, resolvedSum)
                 .select(whereCriteria)
                 .groupBy(ResolvedTable.id)
-                .having { resolvedCount greater 0 }
-                .orderBy(resolvedCount, DESC)
+                .having { resolvedSum greater 0L }
+                .orderBy(resolvedSum, DESC)
                 .limit(limit)
-                .filter { it.getOrNull(resolvedCount) != null }
-                .map { ResolvedEntry(it[IdentifierTable.gav], it[resolvedCount]) }
-        }
-
-    override fun countResolvedRecords(): Long =
-        transaction(database) {
-            with (ResolvedTable.count.sum()) {
-                ResolvedTable.slice(this).selectAll().firstAndMap { it[this] }
-            }
-            ?: 0
+                .filter { (it.getOrNull(resolvedSum) ?: 0) > 0 }
+                .map { ResolvedEntry(it[IdentifierTable.gav], it[resolvedSum] ?: 0) }
         }
 
     override fun countUniqueResolvedRequests(): Long =
@@ -140,6 +131,14 @@ internal class SqlStatisticsRepository(private val database: Database) : Statist
             ResolvedTable.selectAll()
                 .groupBy(ResolvedTable.identifierId)
                 .count()
+        }
+
+    override fun countResolvedRequests(): Long =
+        transaction(database) {
+            with (ResolvedTable.count.sum()) {
+                ResolvedTable.slice(this).selectAll().firstAndMap { it[this] }
+            }
+            ?: 0
         }
 
 }

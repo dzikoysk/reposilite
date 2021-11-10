@@ -29,6 +29,6 @@ internal interface StatisticsRepository {
 
     fun countUniqueResolvedRequests(): Long
 
-    fun countResolvedRecords(): Long
+    fun countResolvedRequests(): Long
 
 }
