@@ -81,7 +81,7 @@ internal class SharedConfigurationService(
     fun loadSharedConfiguration(): SharedConfiguration =
         sharedConfiguration.also {
             val sharedConfigurationFile = workingDirectory.resolve(SHARED_CONFIGURATION_FILE)
-            val fileUpdateTime = Files.getLastModifiedTime(sharedConfigurationFile).toInstant()
+            val fileUpdateTime = if (Files.exists(sharedConfigurationFile)) Files.getLastModifiedTime(sharedConfigurationFile).toInstant() else Instant.ofEpochMilli(1)
             this.databaseUpdateTime = settingsRepository.findConfigurationUpdateDate(SHARED_CONFIGURATION_FILE) ?: Instant.ofEpochMilli(0)
             loadAndUpdate(fromFile = databaseUpdateTime?.isBefore(fileUpdateTime) == true)
         }
