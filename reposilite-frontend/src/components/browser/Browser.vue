@@ -88,7 +88,6 @@ export default {
   setup(props) {
     const qualifier = props.qualifier
     const token = props.token
-    const { client } = createClient(token.name, token.secret)
     const parentPath = ref('')
     const files = ref([])
     const isEmpty = ref(false)
@@ -103,7 +102,7 @@ export default {
     watch(
       () => qualifier.watchable,
       async (_) => {            
-//        const { client } = createClient(token.name, token.secret)
+        const { client } = createClient(token.name, token.secret)
 
         client.maven.details(qualifier.path)
           .then(response => {
@@ -134,6 +133,7 @@ export default {
     })
 
     const downloadHandler = (path, name) => {
+      const { client } = createClient(token.name, token.secret)
       client.maven.download(path.substring(1) + '/' + name)
         .then(response => download(response.data, name, response.headers['content-type']))
         .catch(err => {
