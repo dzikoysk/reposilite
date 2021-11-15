@@ -42,7 +42,7 @@ application {
 }
 
 dependencies {
-    val kotlin = "1.6.0-RC2"
+    val kotlin = "1.6.0"
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin")
 
