@@ -9,12 +9,12 @@
     "full": "concurrently -k \"npm run fake-api\" \"vite\""
   },
   "dependencies": {
-    "@vueuse/core": "^6.8.0",
+    "@vueuse/core": "^6.9.1",
     "@vueuse/head": "^0.6.0",
     "ansi-to-html": "^0.7.2",
     "axios": "^0.24.0",
     "downloadjs": "^1.4.7",
-    "mime-types": "^2.1.33",
+    "mime-types": "^2.1.34",
     "mosha-vue-toastify": "^1.0.23",
     "pretty-bytes": "^5.6.0",
     "prismjs": "^1.25.0",
