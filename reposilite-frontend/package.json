@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@vueuse/core": "^6.9.1",
-    "@vueuse/head": "^0.6.0",
+    "@vueuse/head": "^0.7.2",
     "ansi-to-html": "^0.7.2",
     "axios": "^0.24.0",
     "downloadjs": "^1.4.7",
