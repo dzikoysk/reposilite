@@ -57,8 +57,15 @@ object StorageProviderFactory {
         val settings = loadCommandBasedConfiguration(S3StorageProviderSettings(), storageDescription).configuration
 
         val client = S3Client.builder()
-            .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(settings.accessKey, settings.secretKey)))
-            .region(Region.of(settings.region))
+
+        if (settings.accessKey.isNotEmpty() && settings.secretKey.isNotEmpty()) {
+            client.credentialsProvider(StaticCredentialsProvider
+                    .create(AwsBasicCredentials.create(settings.accessKey, settings.secretKey)))
+        }
+
+        if (settings.region.isNotEmpty()) {
+            client.region(Region.of(settings.region))
+        }
 
         if (settings.endpoint.isNotEmpty()) {
             client.endpointOverride(URI.create(settings.endpoint))

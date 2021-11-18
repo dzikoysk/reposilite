@@ -106,13 +106,13 @@ class SharedConfiguration : Serializable, DeserializationHandler<SharedConfigura
         internal class S3StorageProviderSettings : Validator() {
             @Option(names = ["-e", "--endpoint"], defaultValue = "")
             lateinit var endpoint: String
-            @Parameters(index = "0", paramLabel = "<access-key>")
+            @Option(names = ["-a", "--access-key"], defaultValue = "")
             lateinit var accessKey: String
-            @Parameters(index = "1", paramLabel = "<secret-key>")
+            @Option(names = ["-s", "--secret-key"], defaultValue = "")
             lateinit var secretKey: String
-            @Parameters(index = "2", paramLabel = "<region>")
+            @Option(names = ["-r", "--region"], defaultValue = "")
             lateinit var region: String
-            @Parameters(index = "3", paramLabel = "<bucket-name>")
+            @Parameters(index = "0", paramLabel = "<bucket-name>")
             lateinit var bucketName: String
         }
 
