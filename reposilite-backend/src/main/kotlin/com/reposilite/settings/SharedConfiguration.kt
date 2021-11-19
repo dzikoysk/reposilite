@@ -104,6 +104,8 @@ class SharedConfiguration : Serializable, DeserializationHandler<SharedConfigura
 
         @Command(name = "s3", description = ["Amazon S3 storage provider settings"])
         internal class S3StorageProviderSettings : Validator() {
+            @Parameters(index = "0", paramLabel = "<bucket-name>")
+            lateinit var bucketName: String
             @Option(names = ["-e", "--endpoint"], defaultValue = "")
             lateinit var endpoint: String
             @Option(names = ["-a", "--access-key"], defaultValue = "")
@@ -112,8 +114,6 @@ class SharedConfiguration : Serializable, DeserializationHandler<SharedConfigura
             lateinit var secretKey: String
             @Option(names = ["-r", "--region"], defaultValue = "")
             lateinit var region: String
-            @Parameters(index = "0", paramLabel = "<bucket-name>")
-            lateinit var bucketName: String
         }
 
         @Description("")
