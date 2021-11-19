@@ -42,7 +42,7 @@ application {
 }
 
 dependencies {
-    val kotlin = "1.6.0-RC2"
+    val kotlin = "1.6.0"
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin")
 
@@ -56,12 +56,12 @@ dependencies {
     implementation("net.dzikoysk:cdn:$cdn")
     implementation("net.dzikoysk:cdn-kt:$cdn")
 
-    val awssdk = "2.17.76"
+    val awssdk = "2.17.81"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
-    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.105")
+    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.110")
 
-    val exposed = "0.36.1"
+    val exposed = "0.36.2"
     implementation("org.jetbrains.exposed:exposed-core:$exposed")
     implementation("org.jetbrains.exposed:exposed-dao:$exposed")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposed")
