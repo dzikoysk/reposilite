@@ -22,8 +22,12 @@ internal object SettingsWebConfiguration : WebConfiguration {
         SettingsFacade.createLocalConfiguration(journalist, parameters)
 
     fun createFacade(journalist: Journalist, parameters: ReposiliteParameters, localConfiguration: LocalConfiguration, database: Database): SettingsFacade {
-        val sharedConfigurationService = SharedConfigurationService(journalist, SqlSettingsRepository(database), parameters.workingDirectory)
-        sharedConfigurationService.loadSharedConfiguration()
+        val sharedConfigurationService = SharedConfigurationService(
+            journalist = journalist,
+            settingsRepository = SqlSettingsRepository(database),
+            workingDirectory = parameters.workingDirectory,
+            sharedConfigurationMode = parameters.sharedConfigurationMode
+        ).also { it.loadSharedConfiguration() }
 
         return SettingsFacade(localConfiguration, sharedConfigurationService)
     }
