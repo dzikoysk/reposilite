@@ -25,6 +25,7 @@ internal object SettingsFileLoader {
                 else -> throw IllegalStateException("Unknown format: $fileName")
 
             }
+
             cdn.load(Source.of(configurationFile), configuration)
 
             when (mode) {

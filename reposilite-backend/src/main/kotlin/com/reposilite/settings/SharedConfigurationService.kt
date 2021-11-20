@@ -25,7 +25,8 @@ internal class SharedConfigurationService(
     private val journalist: Journalist,
     private val settingsRepository: SettingsRepository,
     private val workingDirectory: Path,
-    private val sharedFile: Path = workingDirectory.resolve(SHARED_CONFIGURATION_FILE),
+    private val sharedConfigurationFile: Path = workingDirectory.resolve(SHARED_CONFIGURATION_FILE),
+    private val sharedConfigurationMode: String,
     private val standard: Cdn = CdnFactory.createStandard(),
     internal val sharedConfiguration: SharedConfiguration = SharedConfiguration()
 ) {
@@ -62,20 +63,18 @@ internal class SharedConfigurationService(
         }
 
     private fun updateSources() {
-        standard.render(sharedConfiguration)
-            .takeIf { it != settingsRepository.findConfiguration(SHARED_CONFIGURATION_FILE) }
-            ?.run {
+        standard.render(sharedConfiguration).also { render ->
+            if (render != settingsRepository.findConfiguration(SHARED_CONFIGURATION_FILE)) {
                 journalist.logger.info("Updating shared configuration in remote source")
-                settingsRepository.saveConfiguration(SHARED_CONFIGURATION_FILE, this)
+                settingsRepository.saveConfiguration(SHARED_CONFIGURATION_FILE, render)
                 databaseUpdateTime = Instant.now()
             }
 
-        standard.render(sharedConfiguration)
-            .takeIf { it != Files.readAllBytes(sharedFile).decodeToString() }
-            ?.run {
+            if (Files.exists(sharedConfigurationFile) && Files.readAllBytes(sharedConfigurationFile).decodeToString() != render) {
                 journalist.logger.info("Updating shared configuration in local source")
-                Files.write(sharedFile, toByteArray(), WRITE, TRUNCATE_EXISTING)
+                Files.write(sharedConfigurationFile, render.toByteArray(), WRITE, TRUNCATE_EXISTING)
             }
+        }
     }
 
     fun loadSharedConfiguration(): SharedConfiguration =
@@ -83,7 +82,7 @@ internal class SharedConfigurationService(
             val sharedConfigurationFile = workingDirectory.resolve(SHARED_CONFIGURATION_FILE)
             val fileUpdateTime = if (Files.exists(sharedConfigurationFile)) Files.getLastModifiedTime(sharedConfigurationFile).toInstant() else Instant.ofEpochMilli(1)
             this.databaseUpdateTime = settingsRepository.findConfigurationUpdateDate(SHARED_CONFIGURATION_FILE) ?: Instant.ofEpochMilli(0)
-            loadAndUpdate(fromFile = databaseUpdateTime?.isBefore(fileUpdateTime) == true)
+            loadAndUpdate(fromFile = sharedConfigurationMode != "none" && databaseUpdateTime?.isBefore(fileUpdateTime) == true)
         }
 
     private fun loadAndUpdate(fromFile: Boolean) {
@@ -93,7 +92,7 @@ internal class SharedConfigurationService(
 
     private fun loadFromFile() {
         journalist.logger.info("Loading shared configuration from local file")
-        SettingsFileLoader.initializeAndLoad(journalist, "copy", sharedFile, workingDirectory, SHARED_CONFIGURATION_FILE, sharedConfiguration)
+        SettingsFileLoader.initializeAndLoad(journalist, sharedConfigurationMode, sharedConfigurationFile, workingDirectory, SHARED_CONFIGURATION_FILE, sharedConfiguration)
         journalist.logger.info("Shared configuration has been loaded from local file")
     }
 
