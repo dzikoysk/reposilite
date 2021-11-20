@@ -98,7 +98,7 @@ internal class SharedConfigurationService(
 
     private fun loadFromDatabase() {
         journalist.logger.info("Loading shared configuration from database")
-        standard.load(Source.of(settingsRepository.findConfiguration(SHARED_CONFIGURATION_FILE)), sharedConfiguration)
+        standard.load(Source.of(settingsRepository.findConfiguration(SHARED_CONFIGURATION_FILE) ?: ""), sharedConfiguration)
         journalist.logger.info("Shared configuration has been loaded from database")
     }
 
