@@ -74,15 +74,21 @@ Users' stories
 * [Looking for simple repository manager by David Kihato](https://kihats.medium.com/custom-self-hosted-maven-repository-cbb778031f68)
 
 ### Supporters
-Thanks to all contributors and people that decided to donate the project:
+Thanks to all contributors and people that decided to donate the project ❤️
 
-* [zzmgck](https://github.com/zzmgck) with $191
-* [milkyway0308](https://github.com/milkyway0308) with $15
-* Rob with $5
-* `maybe someday... you will \(^-^)/`
-
-Reposilite is an implicit part of [panda-lang](https://github.com/panda-lang) organization. 
-To make a donation, visit [panda-lang.org/support](https://panda-lang.org/support) and use 'Reposilite' keyword in payment description if possible ❤️
+<table>
+ <tr><td>Monthly</td><td><a href="https://github.com/sponsors/dzikoysk">GitHub Sponsors</a></td></tr>
+ <tr>
+  <td>One time</td>
+  <td>
+   <a href="https://github.com/zzmgck">zzmgck</a> with $190,<br>
+   <a href="https://github.com/alexwhb">alexwhb</a> with $15, <br>
+   <a href="https://github.com/milkyway0308">milkyway0308</a> with $15, <br>
+   Rob with $5 <br>
+   <code>maybe someday... also you will \(^-^)/</code>
+  </td>
+ </tr>
+</table>
 
 ### For developers
 
