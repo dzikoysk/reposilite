@@ -6,7 +6,7 @@ import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
 import io.javalin.http.HttpCode.BAD_REQUEST
 import net.dzikoysk.cdn.Cdn
-import net.dzikoysk.cdn.CdnFactory
+import net.dzikoysk.cdn.KCdnFactory
 import net.dzikoysk.cdn.source.Source
 import panda.std.Result
 import java.nio.file.Path
@@ -14,14 +14,14 @@ import kotlin.io.path.readText
 
 internal object SettingsFileLoader {
 
-    fun <C> initializeAndLoad(journalist: Journalist, mode: String, configurationFile: Path, workingDirectory: Path, defaultFileName: String, configuration: C): C =
+    fun <C : Any> initializeAndLoad(journalist: Journalist, mode: String, configurationFile: Path, workingDirectory: Path, defaultFileName: String, configuration: C): C =
         try {
             val fileName = configurationFile.getSimpleName()
 
             val cdn = when {
-                fileName.endsWith(".cdn") -> CdnFactory.createStandard()
-                fileName.endsWith(".yml") || fileName.endsWith(".yaml") -> CdnFactory.createYamlLike()
-                fileName.endsWith(".json") -> CdnFactory.createJsonLike()
+                fileName.endsWith(".cdn") -> KCdnFactory.createStandard()
+                fileName.endsWith(".yml") || fileName.endsWith(".yaml") -> KCdnFactory.createYamlLike()
+                fileName.endsWith(".json") -> KCdnFactory.createJsonLike()
                 else -> throw IllegalStateException("Unknown format: $fileName")
 
             }
