@@ -61,6 +61,7 @@ internal abstract class ReposiliteRunner {
         val logger = PrintStreamLogger(System.out, System.err, Channel.ALL, false)
 
         val parameters = ReposiliteParameters()
+        parameters.sharedConfigurationMode = "copy"
         parameters.tokenEntries = arrayOf("${DEFAULT_TOKEN.first}:${DEFAULT_TOKEN.second}")
         parameters.workingDirectoryName = reposiliteWorkingDirectory.absolutePath
         parameters.port = port
