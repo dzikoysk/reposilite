@@ -35,8 +35,8 @@ import io.javalin.openapi.OpenApiRequestBody
 internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessTokenFacade) : ReposiliteRoutes() {
 
     @OpenApi(
-        tags = ["Access Tokens"],
         path = "/api/tokens",
+        tags = ["tokens"],
         summary = "Returns all existing tokens and data such as their permissions. Note: Requires Manager",
         methods = [HttpMethod.GET]
     )
@@ -47,8 +47,8 @@ internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessToke
     }
 
     @OpenApi(
-        tags = ["Access Tokens"],
         path = "/api/tokens/{name}",
+        tags = ["tokens"],
         summary = "Returns data about the token given via it's name. Note: Requires manager or you must be the token owner",
         pathParams = [OpenApiParam(name = "name", description = "Name of the token to be deleted", required = true)],
         methods = [HttpMethod.GET]
@@ -62,8 +62,8 @@ internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessToke
     }
 
     @OpenApi(
-        tags = ["Access Tokens"],
         path = "/api/tokens/{name}",
+        tags = ["tokens"],
         summary = "Creates / Updates a token via the specified body. Note: Requires Manager",
         requestBody = OpenApiRequestBody(
             content = [OpenApiContent(CreateAccessTokenWithNoNameRequest::class)],
@@ -92,8 +92,8 @@ internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessToke
     }
 
     @OpenApi(
-        tags = ["Access Tokens"],
         path = "/api/tokens/{name}",
+        tags = ["tokens"],
         summary = "Deletes the token specified via it's name. Note: Requires Manager",
         pathParams = [OpenApiParam(name = "name", description = "Name of the token to be deleted", required = true)],
         methods = [HttpMethod.DELETE]

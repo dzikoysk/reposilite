@@ -16,6 +16,7 @@
 package com.reposilite
 
 import com.reposilite.auth.AuthenticationFacade
+import com.reposilite.badge.BadgeFacade
 import com.reposilite.console.ConsoleFacade
 import com.reposilite.frontend.FrontendFacade
 import com.reposilite.journalist.Journalist
@@ -54,6 +55,7 @@ class Reposilite(
     val accessTokenFacade: AccessTokenFacade,
     val frontendFacade: FrontendFacade,
     val statisticsFacade: StatisticsFacade,
+    val badgeFacade: BadgeFacade
 ) : Journalist {
 
     private val alive = AtomicBoolean(false)
