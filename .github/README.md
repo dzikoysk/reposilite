@@ -1,17 +1,17 @@
 <div align="center">
  <h1>Reposilite</h1>
  <div>
-  <a href="https://g">
-   <img src="https://repo.panda-lang.org/api/badge/latest/releases/org/panda-lang/reposilite?color=4c1&name=Reposilite" />
-  </a>
   <a href="https://github.com/dzikoysk/reposilite/actions/workflows/gradle.yml">
    <img alt="Reposilite CI" src="https://github.com/dzikoysk/reposilite/actions/workflows/gradle.yml/badge.svg" />
   </a>
-  <a href="https://hub.docker.com/r/dzikoysk/reposilite">
-   <img alt="Docker Pulls" src="https://img.shields.io/docker/pulls/dzikoysk/reposilite.svg?label=pulls&logo=docker" />
+  <a href="https://github.com/dzikoysk/reposilite/releases">
+   <img src="https://repo.panda-lang.org/api/badge/latest/releases/org/panda-lang/reposilite?color=38c14a&name=Reposilite&prefix=v" />
   </a>
   <a href="https://codecov.io/gh/dzikoysk/reposilite">
    <img alt="CodeCov" src="https://codecov.io/gh/dzikoysk/reposilite/branch/main/graph/badge.svg?token=9flNHTSJpp" />
+  </a>
+  <a href="https://hub.docker.com/r/dzikoysk/reposilite">
+   <img alt="Docker Pulls" src="https://img.shields.io/docker/pulls/dzikoysk/reposilite.svg?label=pulls&logo=docker" />
   </a>
   <!--
   <a href="(https://www.codefactor.io/repository/github/dzikoysk/reposilite/overview/main">
@@ -19,10 +19,10 @@
   </a>
   -->
   <a href="https://discord.gg/qGRqmGjUFX">
-   <img alt="Discord Online" src="https://img.shields.io/discord/204728244434501632.svg" />
+   <img alt="Discord" src="https://img.shields.io/badge/discord-reposilite-738bd7.svg?style=square" />
   </a>
   <a href="https://discord.gg/qGRqmGjUFX">
-   <img alt="Discord" src="https://img.shields.io/badge/discord-reposilite-738bd7.svg?style=square" />
+   <img alt="Discord Online" src="https://img.shields.io/discord/204728244434501632.svg" />
   </a>
  </div>
  <br>
