@@ -17,6 +17,7 @@
 package com.reposilite
 
 import com.reposilite.auth.application.AuthenticationWebConfiguration
+import com.reposilite.badge.application.BadgeWebConfiguration
 import com.reposilite.console.application.ConsoleWebConfiguration
 import com.reposilite.frontend.application.FrontendWebConfiguration
 import com.reposilite.journalist.Channel
@@ -84,6 +85,8 @@ object ReposiliteFactory {
             )
         }
 
+        val badgeFacade = web(webs, BadgeWebConfiguration) { createFacade(settingsFacade, mavenFacade) }
+
         return Reposilite(
             journalist = journalist,
             parameters = parameters,
@@ -100,7 +103,8 @@ object ReposiliteFactory {
             consoleFacade = consoleFacade,
             accessTokenFacade = accessTokenFacade,
             frontendFacade = frontendFacade,
-            statisticsFacade = statisticFacade
+            statisticsFacade = statisticFacade,
+            badgeFacade = badgeFacade
         )
     }
 
