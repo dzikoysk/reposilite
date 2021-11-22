@@ -1,6 +1,9 @@
 <div align="center">
  <h1>Reposilite</h1>
  <div>
+  <a href="https://g">
+   <img src="https://repo.panda-lang.org/api/badge/latest/releases/org/panda-lang/reposilite?color=4c1&name=Reposilite" />
+  </a>
   <a href="https://github.com/dzikoysk/reposilite/actions/workflows/gradle.yml">
    <img alt="Reposilite CI" src="https://github.com/dzikoysk/reposilite/actions/workflows/gradle.yml/badge.svg" />
   </a>
@@ -10,9 +13,11 @@
   <a href="https://codecov.io/gh/dzikoysk/reposilite">
    <img alt="CodeCov" src="https://codecov.io/gh/dzikoysk/reposilite/branch/main/graph/badge.svg?token=9flNHTSJpp" />
   </a>
+  <!--
   <a href="(https://www.codefactor.io/repository/github/dzikoysk/reposilite/overview/main">
    <img alt="CodeFactor" src="https://www.codefactor.io/repository/github/dzikoysk/reposilite/badge/main" />
   </a>
+  -->
   <a href="https://discord.gg/qGRqmGjUFX">
    <img alt="Discord Online" src="https://img.shields.io/discord/204728244434501632.svg" />
   </a>
