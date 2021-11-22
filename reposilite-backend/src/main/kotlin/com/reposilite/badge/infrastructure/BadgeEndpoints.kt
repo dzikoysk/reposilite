@@ -1,6 +1,7 @@
 package com.reposilite.badge.infrastructure
 
 import com.reposilite.badge.BadgeFacade
+import com.reposilite.badge.api.LatestBadgeRequest
 import com.reposilite.web.application.ReposiliteRoute
 import com.reposilite.web.application.ReposiliteRoutes
 import com.reposilite.web.routing.RouteMethod.GET
@@ -20,7 +21,14 @@ internal class BadgeEndpoints(badgeFacade: BadgeFacade) : ReposiliteRoutes() {
         methods = [HttpMethod.GET]
     )
     val latestBadge = ReposiliteRoute("/api/badge/latest/{repository}/<gav>", GET) {
-        response = badgeFacade.findLatestBadge(requiredParameter("repository"), requiredParameter("gav"))
+        response = LatestBadgeRequest(
+                repository = requiredParameter("repository"),
+                gav = requiredParameter("gav"),
+                name = ctx.queryParam("name"),
+                color = ctx.queryParam("color"),
+                prefix = ctx.queryParam("prefix")
+            )
+            .let { badgeFacade.findLatestBadge(it) }
             .peek { ctx.contentType("image/svg+xml") }
     }
 
