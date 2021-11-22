@@ -32,11 +32,11 @@ class BadgeFacade(
         val textPadding = 110
 
         val nameShortCharacters = name.countShortCharacters()
-        val nameWidth = name.length * 6 - nameShortCharacters * 1 + (2 * padding)
+        val nameWidth = name.length * 6 - nameShortCharacters * 1 + 2 * padding
         val nameTextLength = name.length * 60 - nameShortCharacters * 10
 
         val valueShortCharacters = value.countShortCharacters()
-        val valueWidth = value.length * 6 - valueShortCharacters * 1 + (2 * padding)
+        val valueWidth = value.length * 6 - valueShortCharacters * 1 + 2 * padding
         val valueTextLength = value.length * 60 - valueShortCharacters * 10
 
         val fullWidth = valueWidth + nameWidth
@@ -63,10 +63,10 @@ class BadgeFacade(
                         <text x="${textPadding + nameTextLength / 2}" y="140" transform="scale(.1)" fill="#fff" textLength="$nameTextLength">
                             $name
                         </text>
-                        <text aria-hidden="true" x="${nameTextLength + (valueTextLength / 2) + 3 * textPadding}" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="$valueTextLength">
+                        <text aria-hidden="true" x="${nameTextLength + valueTextLength / 2 + 3 * textPadding}" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="$valueTextLength">
                             $value
                         </text>
-                        <text x="${nameTextLength + (valueTextLength / 2) + 3 * textPadding}" y="140" transform="scale(.1)" fill="#fff" textLength="$valueTextLength">
+                        <text x="${nameTextLength + valueTextLength / 2 + 3 * textPadding}" y="140" transform="scale(.1)" fill="#fff" textLength="$valueTextLength">
                             $value
                         </text>
                     </g>
