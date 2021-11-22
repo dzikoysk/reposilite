@@ -4,8 +4,11 @@ import com.reposilite.badge.api.LatestBadgeRequest
 import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.web.http.ErrorResponse
+import com.reposilite.web.http.errorResponse
+import io.javalin.http.HttpCode.BAD_REQUEST
 import org.intellij.lang.annotations.Language
 import panda.std.Result
+import panda.std.asSuccess
 import panda.std.reactive.Reference
 
 class BadgeFacade(
@@ -14,10 +17,20 @@ class BadgeFacade(
 ) {
 
     /**
+     * Just in case, mostly to avoid issues with XML based template
+     */
+    private val supportedCharacters = Regex("[\\sa-zA-Z0-9:\\-.,+=()\\[\\]]+")
+    /**
      * Badges use non-monospaced font, so we need to trim short chars to estimate real width of text
      */
     private val shortCharacters = listOf('i', 'I', 'f', 'j', 'l', '.', '-', '1')
+    /**
+     * Standard blue color used by well-known badges on GitHub
+     */
     private val colorBlue = "007ec6"
+    /**
+     * Standard green color used by well-known badges on GitHub
+     */
     private val colorGreen = "4c1"
 
     private fun String.countShortCharacters(): Int =
@@ -25,9 +38,13 @@ class BadgeFacade(
 
     fun findLatestBadge(request: LatestBadgeRequest): Result<String, ErrorResponse> =
         mavenFacade.findLatest(LookupRequest(null, request.repository, request.gav))
-            .map { generateSvg(request.name ?: repositoryId.get(), (request.prefix ?: "") + it, request.color ?: colorBlue) }
+            .flatMap { generateSvg(request.name ?: repositoryId.get(), (request.prefix ?: "") + it, request.color ?: colorBlue) }
 
-    private fun generateSvg(name: String, value: String, color: String): String {
+    private fun generateSvg(name: String, value: String, color: String): Result<String, ErrorResponse> {
+        if (!(name + value + color).matches(supportedCharacters)) {
+            return errorResponse(BAD_REQUEST, "Request contains invalid characters")
+        }
+
         val padding = 11
         val textPadding = 110
 
@@ -73,7 +90,7 @@ class BadgeFacade(
                 </svg>
                 """
 
-        return badge
+        return badge.asSuccess()
     }
 
 }
