@@ -38,18 +38,27 @@ class ReposiliteParameters : Runnable {
     var workingDirectoryName = ""
     lateinit var workingDirectory: Path
 
-    @Option(names = ["--configuration", "--config", "-cfg"], description = ["Set custom location of configuration file"])
-    var configurationFileName = LOCAL_CONFIGURATION_FILE
-    lateinit var configurationFile: Path
+    @Option(names = ["--local-configuration", "--local-config", "-lc"], description = ["Set custom location of configuration file"])
+    var localConfigurationFile = LOCAL_CONFIGURATION_FILE
+    lateinit var localConfigurationPath: Path
 
-    @Option(names = ["--configuration-mode", "-cm"], description = [
+    @Option(names = ["--local-configuration-mode", "--local-config-mode", "-lcm"], description = [
         "Supported configuration modes:",
-        "auto - process and override main configuration file (default)",
-        "copy - load mounted configuration and save processed output in working directory",
+        "auto - process and override main configuration file",
+        "copy - load mounted configuration and save processed output in working directory (default)",
         "print - load mounted configuration and print processed output in the console",
         "none - disable automatic updates of configuration file"
     ])
-    var configurationMode = "auto"
+    var localConfigurationMode = "copy"
+
+    @Option(names = ["--shared-configuration-mode", "--shared-config", "-scm"], description = [
+        "Supported configuration modes:",
+        "auto - process and override main configuration file",
+        "copy - load mounted configuration and save processed output in working directory",
+        "print - load mounted configuration and print processed output in the console",
+        "none - disable automatic updates of configuration file (none)"
+    ])
+    var sharedConfigurationMode = "none"
 
     @Option(names = ["--hostname", "-h"], description = ["Override hostname from configuration"])
     var hostname = ""
@@ -66,7 +75,7 @@ class ReposiliteParameters : Runnable {
 
     override fun run() {
         this.workingDirectory = Paths.get(workingDirectoryName)
-        this.configurationFile = workingDirectory.resolve(configurationFileName.ifEmpty { LOCAL_CONFIGURATION_FILE })
+        this.localConfigurationPath = workingDirectory.resolve(localConfigurationFile.ifEmpty { LOCAL_CONFIGURATION_FILE })
         this.tokens = tokenEntries
             .map { it.split(":", limit = 2) }
             .map { (name, secret) -> CreateAccessTokenRequest(name, secret, setOf(MANAGER)) }
