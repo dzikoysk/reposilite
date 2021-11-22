@@ -30,8 +30,8 @@ class SettingsFacade internal constructor(
         fun createLocalConfiguration(journalist: Journalist, parameters: ReposiliteParameters): LocalConfiguration =
             SettingsFileLoader.initializeAndLoad(
                 journalist,
-                parameters.configurationMode,
-                parameters.configurationFile,
+                parameters.localConfigurationMode,
+                parameters.localConfigurationPath,
                 parameters.workingDirectory,
                 SettingsWebConfiguration.LOCAL_CONFIGURATION_FILE,
                 LocalConfiguration()
