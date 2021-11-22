@@ -88,9 +88,13 @@ class SharedConfiguration : Serializable, DeserializationHandler<SharedConfigura
         @Description("# Example usage:")
         @Description("# storageProvider: fs --quota 50GB")
         @Description("# > S3 provider. Supported flags:")
-        @Description("# --endpoint = custom endpoint with which the S3 provider should communicate (optional)")
+        @Description("# --endpoint = overwrite the AWS endpoint (optional)")
+        @Description("# --access-key = overwrite AWS access-key used to authenticate (optional)")
+        @Description("# --secret-key = overwrite AWS secret-key used to authenticate (optional)")
+        @Description("# --region = overwrite AWS region (optional)")
+        @Description("# See software.amazon.awssdk.services.s3.S3Client for default values")
         @Description("# Example usage:")
-        @Description("# storageProvider: s3 --endpoint custom.endpoint.com accessKey secretKey region bucket-name")
+        @Description("# storageProvider: s3 bucket-name --endpoint custom.endpoint.com --access-key accessKey --secret-key secretKey --region region")
         @JvmField
         var storageProvider = "fs --quota 100%"
 
@@ -104,16 +108,16 @@ class SharedConfiguration : Serializable, DeserializationHandler<SharedConfigura
 
         @Command(name = "s3", description = ["Amazon S3 storage provider settings"])
         internal class S3StorageProviderSettings : Validator() {
+            @Parameters(index = "0", paramLabel = "<bucket-name>")
+            lateinit var bucketName: String
             @Option(names = ["-e", "--endpoint"], defaultValue = "")
             lateinit var endpoint: String
-            @Parameters(index = "0", paramLabel = "<access-key>")
+            @Option(names = ["-a", "--access-key"], defaultValue = "")
             lateinit var accessKey: String
-            @Parameters(index = "1", paramLabel = "<secret-key>")
+            @Option(names = ["-s", "--secret-key"], defaultValue = "")
             lateinit var secretKey: String
-            @Parameters(index = "2", paramLabel = "<region>")
+            @Option(names = ["-r", "--region"], defaultValue = "")
             lateinit var region: String
-            @Parameters(index = "3", paramLabel = "<bucket-name>")
-            lateinit var bucketName: String
         }
 
         @Description("")

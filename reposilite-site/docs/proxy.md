@@ -31,9 +31,13 @@ Caching may allocate thousands of artifacts, especially at the beginning - for t
 # Example usage:
 # storageProvider: fs --quota 50GB
 # > S3 provider. Supported flags:
-# --endpoint = custom endpoint with which the S3 provider should communicate (optional)
+# --endpoint = overwrite the AWS endpoint (optional)
+# --access-key = overwrite AWS access-key used to authenticate (optional)
+# --secret-key = overwrite AWS secret-key used to authenticate (optional)
+# --region = overwrite AWS region (optional)
+# See software.amazon.awssdk.services.s3.S3Client for default values
 # Example usage:
-# storageProvider: s3 --endpoint custom.endpoint.com accessKey secretKey region bucket-name
+# storageProvider: s3 bucket-name --endpoint custom.endpoint.com --access-key accessKey --secret-key secretKey --region region
 storageProvider: fs --quota 85%
 ```
 
