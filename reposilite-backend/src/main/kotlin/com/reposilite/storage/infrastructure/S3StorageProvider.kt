@@ -18,13 +18,7 @@ package com.reposilite.storage.infrastructure
 
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
-import com.reposilite.shared.fs.DirectoryInfo
-import com.reposilite.shared.fs.DocumentInfo
-import com.reposilite.shared.fs.FileDetails
-import com.reposilite.shared.fs.SimpleDirectoryInfo
-import com.reposilite.shared.fs.getExtension
-import com.reposilite.shared.fs.getSimpleName
-import com.reposilite.shared.fs.safeResolve
+import com.reposilite.shared.fs.*
 import com.reposilite.storage.StorageProvider
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
@@ -38,15 +32,7 @@ import panda.std.Result.ok
 import panda.std.asSuccess
 import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.services.s3.S3Client
-import software.amazon.awssdk.services.s3.model.BucketAlreadyExistsException
-import software.amazon.awssdk.services.s3.model.BucketAlreadyOwnedByYouException
-import software.amazon.awssdk.services.s3.model.DeleteObjectRequest
-import software.amazon.awssdk.services.s3.model.GetObjectRequest
-import software.amazon.awssdk.services.s3.model.HeadObjectRequest
-import software.amazon.awssdk.services.s3.model.HeadObjectResponse
-import software.amazon.awssdk.services.s3.model.ListObjectsRequest
-import software.amazon.awssdk.services.s3.model.NoSuchKeyException
-import software.amazon.awssdk.services.s3.model.PutObjectRequest
+import software.amazon.awssdk.services.s3.model.*
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
@@ -61,14 +47,18 @@ class S3StorageProvider(
 ) : StorageProvider, Journalist {
 
     init {
+        val headBucketRequest = HeadBucketRequest.builder().bucket(bucket).build()
+
         try {
-            s3.createBucket {
-                it.bucket(bucket)
+            s3.headBucket(headBucketRequest)
+        } catch (noSuchBucket: NoSuchBucketException) {
+            try {
+                s3.createBucket { it.bucket(bucket) }
+            } catch (bucketExists: BucketAlreadyExistsException) {
+                // ignored
+            } catch (buckedOwned: BucketAlreadyOwnedByYouException) {
+                // ignored
             }
-        } catch (bucketExists: BucketAlreadyExistsException) {
-            // ignored
-        } catch (buckedOwned: BucketAlreadyOwnedByYouException) {
-            // ignored
         }
     }
 
