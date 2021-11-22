@@ -44,7 +44,7 @@ internal class S3StorageProviderIntegrationTest : StorageProviderIntegrationTest
             InMemoryLogger(),
             rootDirectory.toPath(),
             "test-repository",
-            "s3 --endpoint ${localstack.getEndpointOverride(S3).toURL()} ${localstack.accessKey} ${localstack.secretKey} ${localstack.region} test-repository"
+            "s3 test-repository --endpoint ${localstack.getEndpointOverride(S3).toURL()} --access-key ${localstack.accessKey} --secret-key ${localstack.secretKey} --region ${localstack.region}"
         )
     }
 

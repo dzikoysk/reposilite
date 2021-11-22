@@ -88,9 +88,13 @@ class SharedConfiguration : Serializable, DeserializationHandler<SharedConfigura
         @Description("# Example usage:")
         @Description("# storageProvider: fs --quota 50GB")
         @Description("# > S3 provider. Supported flags:")
-        @Description("# --endpoint = custom endpoint with which the S3 provider should communicate (optional)")
+        @Description("# --endpoint = overwrite the AWS endpoint (optional)")
+        @Description("# --access-key = overwrite AWS access-key used to authenticate (optional)")
+        @Description("# --secret-key = overwrite AWS secret-key used to authenticate (optional)")
+        @Description("# --region = overwrite AWS region (optional)")
+        @Description("# See software.amazon.awssdk.services.s3.S3Client for default values")
         @Description("# Example usage:")
-        @Description("# storageProvider: s3 --endpoint custom.endpoint.com accessKey secretKey region bucket-name")
+        @Description("# storageProvider: s3 bucket-name --endpoint custom.endpoint.com --access-key accessKey --secret-key secretKey --region region")
         @JvmField
         var storageProvider = "fs --quota 100%"
 
