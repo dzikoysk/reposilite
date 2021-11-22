@@ -1,6 +1,6 @@
 {
   "name": "reposilite-frontend",
-  "version": "3.0.0-alpha.8",
+  "version": "3.0.0-alpha.9",
   "scripts": {
     "dev": "vite",
     "build": "vite build && git add --all ../reposilite-backend/src/main/resources/reposilite-frontend/",
@@ -27,7 +27,7 @@
     "vue3-tabs": "^0.1.12"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^1.9.4",
+    "@vitejs/plugin-vue": "^1.10.0",
     "@vue/compiler-sfc": "^3.2.22",
     "concurrently": "^6.4.0",
     "express": "^4.17.1",
