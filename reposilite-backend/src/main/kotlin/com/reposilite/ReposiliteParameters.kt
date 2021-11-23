@@ -56,7 +56,7 @@ class ReposiliteParameters : Runnable {
     var sharedConfigurationFile = SHARED_CONFIGURATION_FILE
     lateinit var sharedConfigurationPath: Path
 
-    @Option(names = ["--shared-configuration-mode", "--shared-config", "-scm"], description = [
+    @Option(names = ["--shared-configuration-mode", "--shared-config-mode", "-scm"], description = [
         "Supported configuration modes:",
         "auto - process and override main configuration file",
         "copy - load mounted configuration and save processed output in working directory",
