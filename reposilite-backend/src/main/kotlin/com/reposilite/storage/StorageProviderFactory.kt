@@ -55,12 +55,10 @@ object StorageProviderFactory {
 
     private fun createS3StorageProvider(journalist: Journalist, storageDescription: String): S3StorageProvider {
         val settings = loadCommandBasedConfiguration(S3StorageProviderSettings(), storageDescription).configuration
-
         val client = S3Client.builder()
 
         if (settings.accessKey.isNotEmpty() && settings.secretKey.isNotEmpty()) {
-            client.credentialsProvider(StaticCredentialsProvider
-                    .create(AwsBasicCredentials.create(settings.accessKey, settings.secretKey)))
+            client.credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(settings.accessKey, settings.secretKey)))
         }
 
         if (settings.region.isNotEmpty()) {

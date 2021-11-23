@@ -18,6 +18,7 @@ package com.reposilite
 
 import com.reposilite.settings.LocalConfiguration
 import com.reposilite.settings.application.SettingsWebConfiguration.LOCAL_CONFIGURATION_FILE
+import com.reposilite.settings.application.SettingsWebConfiguration.SHARED_CONFIGURATION_FILE
 import com.reposilite.token.api.AccessTokenPermission.MANAGER
 import com.reposilite.token.api.CreateAccessTokenRequest
 import picocli.CommandLine.Command
@@ -38,18 +39,22 @@ class ReposiliteParameters : Runnable {
     var workingDirectoryName = ""
     lateinit var workingDirectory: Path
 
-    @Option(names = ["--local-configuration", "--local-config", "-lc"], description = ["Set custom location of configuration file"])
+    @Option(names = ["--local-configuration", "--local-config", "-lc"], description = ["Set custom location of local configuration file"])
     var localConfigurationFile = LOCAL_CONFIGURATION_FILE
     lateinit var localConfigurationPath: Path
 
     @Option(names = ["--local-configuration-mode", "--local-config-mode", "-lcm"], description = [
-        "Supported configuration modes:",
+        "Supported local configuration modes:",
         "auto - process and override main configuration file",
         "copy - load mounted configuration and save processed output in working directory (default)",
         "print - load mounted configuration and print processed output in the console",
         "none - disable automatic updates of configuration file"
     ])
     var localConfigurationMode = "copy"
+
+    @Option(names = ["--shared-configuration", "--shared-config", "-sc"], description = ["Set custom location of shared configuration file"])
+    var sharedConfigurationFile = SHARED_CONFIGURATION_FILE
+    lateinit var sharedConfigurationPath: Path
 
     @Option(names = ["--shared-configuration-mode", "--shared-config", "-scm"], description = [
         "Supported configuration modes:",
@@ -75,7 +80,10 @@ class ReposiliteParameters : Runnable {
 
     override fun run() {
         this.workingDirectory = Paths.get(workingDirectoryName)
+
         this.localConfigurationPath = workingDirectory.resolve(localConfigurationFile.ifEmpty { LOCAL_CONFIGURATION_FILE })
+        this.sharedConfigurationPath = workingDirectory.resolve(sharedConfigurationFile.ifEmpty { SHARED_CONFIGURATION_FILE })
+
         this.tokens = tokenEntries
             .map { it.split(":", limit = 2) }
             .map { (name, secret) -> CreateAccessTokenRequest(name, secret, setOf(MANAGER)) }

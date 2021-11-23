@@ -26,6 +26,7 @@ internal object SettingsWebConfiguration : WebConfiguration {
             journalist = journalist,
             settingsRepository = SqlSettingsRepository(database),
             workingDirectory = parameters.workingDirectory,
+            sharedConfigurationFile = parameters.sharedConfigurationPath,
             sharedConfigurationMode = parameters.sharedConfigurationMode
         ).also { it.loadSharedConfiguration() }
 
