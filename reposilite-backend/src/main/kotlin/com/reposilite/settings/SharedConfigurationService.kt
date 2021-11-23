@@ -11,7 +11,7 @@ import io.javalin.http.ContentType.APPLICATION_CDN
 import io.javalin.http.ContentType.APPLICATION_JSON
 import io.javalin.http.ContentType.APPLICATION_YAML
 import net.dzikoysk.cdn.Cdn
-import net.dzikoysk.cdn.CdnFactory
+import net.dzikoysk.cdn.KCdnFactory
 import net.dzikoysk.cdn.source.Source
 import panda.std.Result
 import panda.std.asSuccess
@@ -25,9 +25,9 @@ internal class SharedConfigurationService(
     private val journalist: Journalist,
     private val settingsRepository: SettingsRepository,
     private val workingDirectory: Path,
-    private val sharedConfigurationFile: Path = workingDirectory.resolve(SHARED_CONFIGURATION_FILE),
+    private val sharedConfigurationFile: Path,
     private val sharedConfigurationMode: String,
-    private val standard: Cdn = CdnFactory.createStandard(),
+    private val standard: Cdn = KCdnFactory.createStandard(),
     internal val sharedConfiguration: SharedConfiguration = SharedConfiguration()
 ) {
 
@@ -45,16 +45,16 @@ internal class SharedConfigurationService(
     fun resolveConfiguration(name: String): Result<SettingsResponse, ErrorResponse> =
         when (name) {
             "configuration.shared.cdn" -> SettingsResponse(APPLICATION_CDN, standard.render(sharedConfiguration)).asSuccess()
-            "configuration.shared.json" -> SettingsResponse(APPLICATION_JSON, CdnFactory.createJsonLike().render(sharedConfiguration)).asSuccess()
-            "configuration.shared.yaml" -> SettingsResponse(APPLICATION_YAML, CdnFactory.createYamlLike().render(sharedConfiguration)).asSuccess()
+            "configuration.shared.json" -> SettingsResponse(APPLICATION_JSON, KCdnFactory.createJsonLike().render(sharedConfiguration)).asSuccess()
+            "configuration.shared.yaml" -> SettingsResponse(APPLICATION_YAML, KCdnFactory.createYamlLike().render(sharedConfiguration)).asSuccess()
             else -> notFoundError("Unsupported configuration $name")
         }
 
     fun updateConfiguration(request: SettingsUpdateRequest): Result<Unit, ErrorResponse> =
         when (request.name) {
             "configuration.shared.cdn" -> standard.validateAndLoad(request.content, SharedConfiguration(), sharedConfiguration)
-            "configuration.shared.json" -> CdnFactory.createJsonLike().validateAndLoad(request.content, SharedConfiguration(), sharedConfiguration)
-            "configuration.shared.yaml" -> CdnFactory.createYamlLike().validateAndLoad(request.content, SharedConfiguration(), sharedConfiguration)
+            "configuration.shared.json" -> KCdnFactory.createJsonLike().validateAndLoad(request.content, SharedConfiguration(), sharedConfiguration)
+            "configuration.shared.yaml" -> KCdnFactory.createYamlLike().validateAndLoad(request.content, SharedConfiguration(), sharedConfiguration)
             else -> notFoundError("Unsupported configuration ${request.name}")
         }.peek {
             journalist.logger.info("Propagation | Shared configuration has updated, updating sources...")

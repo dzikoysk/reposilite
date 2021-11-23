@@ -21,7 +21,7 @@ import com.reposilite.journalist.backend.PrintStreamLogger
 import com.reposilite.settings.LocalConfiguration
 import com.reposilite.settings.SharedConfiguration
 import com.reposilite.settings.SharedConfiguration.RepositoryConfiguration
-import net.dzikoysk.cdn.CdnFactory
+import net.dzikoysk.cdn.KCdnFactory
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
@@ -68,7 +68,7 @@ internal abstract class ReposiliteRunner {
         parameters.testEnv = true
         parameters.run()
 
-        val cdn = CdnFactory.createStandard()
+        val cdn = KCdnFactory.createStandard()
 
         val localConfiguration = LocalConfiguration().also {
             ReferenceUtils.setValue(it.database, _database)
