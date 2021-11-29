@@ -9,7 +9,7 @@
     "full": "concurrently -k \"npm run fake-api\" \"vite\""
   },
   "dependencies": {
-    "@vueuse/core": "^7.0.1",
+    "@vueuse/core": "^7.1.2",
     "@vueuse/head": "^0.7.2",
     "ansi-to-html": "^0.7.2",
     "axios": "^0.24.0",
@@ -19,7 +19,7 @@
     "pretty-bytes": "^5.6.0",
     "prismjs": "^1.25.0",
     "simple-syntax-highlighter": "^2.2.0",
-    "vue": "^3.2.22",
+    "vue": "^3.2.23",
     "vue-axios": "^3.4.0",
     "vue-final-modal": "^3.4.3",
     "vue-prism-editor": "^2.0.0-alpha.2",
@@ -38,6 +38,6 @@
     "vite": "^2.6.14",
     "vite-plugin-windicss": "^1.5.1",
     "windicss": "^3.2.1",
-    "ws": "^8.2.3"
+    "ws": "^8.3.0"
   }
 }
