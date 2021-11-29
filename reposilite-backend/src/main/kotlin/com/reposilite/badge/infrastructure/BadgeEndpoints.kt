@@ -29,7 +29,12 @@ internal class BadgeEndpoints(badgeFacade: BadgeFacade) : ReposiliteRoutes() {
                 prefix = ctx.queryParam("prefix")
             )
             .let { badgeFacade.findLatestBadge(it) }
-            .peek { ctx.contentType("image/svg+xml") }
+            .peek { ctx.run {
+                contentType("image/svg+xml")
+                header("pragma", "no-cache")
+                header("expires", "0")
+                header("cache-control", "no-cache, no-store, must-revalidate, max-age=0")
+            }}
     }
 
     override val routes = setOf(latestBadge)
