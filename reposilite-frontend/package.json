@@ -19,7 +19,7 @@
     "pretty-bytes": "^5.6.0",
     "prismjs": "^1.25.0",
     "simple-syntax-highlighter": "^2.2.0",
-    "vue": "^3.2.22",
+    "vue": "^3.2.23",
     "vue-axios": "^3.4.0",
     "vue-final-modal": "^3.4.3",
     "vue-prism-editor": "^2.0.0-alpha.2",
