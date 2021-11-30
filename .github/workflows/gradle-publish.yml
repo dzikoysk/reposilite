@@ -10,8 +10,10 @@ jobs:
         with:
           java-version: 16
       - name: Grant execute permission for gradlew
+        working-directory: reposilite-backend
         run: chmod +x gradlew
       - name: Publish with Gradle
+        working-directory: reposilite-backend
         run: ./gradlew clean build shadowJar publish
         env:
           MAVEN_NAME: ${{ secrets.MAVEN_NAME }}
