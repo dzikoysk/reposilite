@@ -18,10 +18,17 @@ package com.reposilite.storage.infrastructure
 
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
-import com.reposilite.shared.fs.*
+import com.reposilite.shared.fs.DirectoryInfo
+import com.reposilite.shared.fs.DocumentInfo
+import com.reposilite.shared.fs.FileDetails
+import com.reposilite.shared.fs.SimpleDirectoryInfo
+import com.reposilite.shared.fs.getExtension
+import com.reposilite.shared.fs.getSimpleName
+import com.reposilite.shared.fs.safeResolve
 import com.reposilite.storage.StorageProvider
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
+import com.reposilite.web.http.notFoundError
 import io.javalin.http.ContentType
 import io.javalin.http.ContentType.APPLICATION_OCTET_STREAM
 import io.javalin.http.ContentType.Companion.OCTET_STREAM
@@ -32,7 +39,17 @@ import panda.std.Result.ok
 import panda.std.asSuccess
 import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.services.s3.S3Client
-import software.amazon.awssdk.services.s3.model.*
+import software.amazon.awssdk.services.s3.model.BucketAlreadyExistsException
+import software.amazon.awssdk.services.s3.model.BucketAlreadyOwnedByYouException
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest
+import software.amazon.awssdk.services.s3.model.GetObjectRequest
+import software.amazon.awssdk.services.s3.model.HeadBucketRequest
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest
+import software.amazon.awssdk.services.s3.model.HeadObjectResponse
+import software.amazon.awssdk.services.s3.model.ListObjectsRequest
+import software.amazon.awssdk.services.s3.model.NoSuchBucketException
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException
+import software.amazon.awssdk.services.s3.model.PutObjectRequest
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
@@ -168,11 +185,9 @@ class S3StorageProvider(
     override fun getLastModifiedTime(path: Path): Result<FileTime, ErrorResponse> =
         head(path)
             .map { FileTime.from(it.lastModified()) }
-            .flatMapErr {
-                getFiles(path)
-                    .map { files -> files.firstOrNull() }
-                    .mapErr { ErrorResponse(NOT_FOUND, "File not found: $path") }
-                    .flatMap { getLastModifiedTime(path.safeResolve(it!!.getName(0))) }
+            .flatMapErr { getFiles(path)
+                .flatMap { files -> files.firstOrNull()?.asSuccess() ?: notFoundError("File not found: $path") }
+                .flatMap { getLastModifiedTime(path.safeResolve(it.getName(0))) }
             }
 
     override fun getFileSize(path: Path): Result<Long, ErrorResponse> =

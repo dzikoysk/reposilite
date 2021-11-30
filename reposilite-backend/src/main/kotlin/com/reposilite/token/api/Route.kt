@@ -18,6 +18,7 @@ package com.reposilite.token.api
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import panda.std.Result
+import panda.std.asSuccess
 
 data class Route(
     val path: String,
@@ -38,11 +39,15 @@ enum class RoutePermission(val identifier: String, val shortcut: String) {
     companion object {
 
         fun findRoutePermissionByIdentifier(identifier: String): Result<RoutePermission, String> =
-            Result.ok(values().firstOrNull { it.identifier == identifier })
+            values()
+                .firstOrNull { it.identifier == identifier }
+                ?.asSuccess()
                 ?: Result.error("Unknown permission identifier ($identifier) available options (${values().joinToString { it.identifier }})")
 
         fun findRoutePermissionByShortcut(shortcut: String): Result<RoutePermission, String> =
-            Result.ok(values().firstOrNull { it.shortcut == shortcut })
+            values()
+                .firstOrNull { it.shortcut == shortcut }
+                ?.asSuccess()
                 ?: Result.error("Unknown permission shortcut ($shortcut) available options (${values().joinToString { it.shortcut }})")
 
     }
