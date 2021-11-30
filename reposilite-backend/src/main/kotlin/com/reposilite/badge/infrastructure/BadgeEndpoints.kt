@@ -4,6 +4,7 @@ import com.reposilite.badge.BadgeFacade
 import com.reposilite.badge.api.LatestBadgeRequest
 import com.reposilite.web.application.ReposiliteRoute
 import com.reposilite.web.application.ReposiliteRoutes
+import com.reposilite.web.http.contentDisposition
 import com.reposilite.web.routing.RouteMethod.GET
 import io.javalin.openapi.HttpMethod
 import io.javalin.openapi.OpenApi
@@ -34,6 +35,7 @@ internal class BadgeEndpoints(badgeFacade: BadgeFacade) : ReposiliteRoutes() {
                 header("pragma", "no-cache")
                 header("expires", "0")
                 header("cache-control", "no-cache, no-store, must-revalidate, max-age=0")
+                contentDisposition("inline; filename=\"latest-badge.svg\"")
             }}
     }
 
