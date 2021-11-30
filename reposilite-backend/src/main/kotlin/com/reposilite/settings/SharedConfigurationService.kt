@@ -10,11 +10,12 @@ import com.reposilite.web.http.notFoundError
 import io.javalin.http.ContentType.APPLICATION_CDN
 import io.javalin.http.ContentType.APPLICATION_JSON
 import io.javalin.http.ContentType.APPLICATION_YAML
+import io.javalin.http.HttpCode.INTERNAL_SERVER_ERROR
 import net.dzikoysk.cdn.Cdn
 import net.dzikoysk.cdn.KCdnFactory
 import net.dzikoysk.cdn.source.Source
 import panda.std.Result
-import panda.std.asSuccess
+import panda.std.Unit
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption.TRUNCATE_EXISTING
@@ -42,13 +43,13 @@ internal class SharedConfigurationService(
                 loadAndUpdate(fromFile = false)
             }
 
-    fun resolveConfiguration(name: String): Result<SettingsResponse, ErrorResponse> =
+    fun findConfiguration(name: String): Result<SettingsResponse, ErrorResponse> =
         when (name) {
-            "configuration.shared.cdn" -> SettingsResponse(APPLICATION_CDN, standard.render(sharedConfiguration)).asSuccess()
-            "configuration.shared.json" -> SettingsResponse(APPLICATION_JSON, KCdnFactory.createJsonLike().render(sharedConfiguration)).asSuccess()
-            "configuration.shared.yaml" -> SettingsResponse(APPLICATION_YAML, KCdnFactory.createYamlLike().render(sharedConfiguration)).asSuccess()
-            else -> notFoundError("Unsupported configuration $name")
-        }
+            "configuration.shared.cdn" -> standard.render(sharedConfiguration).map { SettingsResponse(APPLICATION_CDN, it) }
+            "configuration.shared.json" -> KCdnFactory.createJsonLike().render(sharedConfiguration).map { SettingsResponse(APPLICATION_JSON, it) }
+            "configuration.shared.yaml" -> KCdnFactory.createYamlLike().render(sharedConfiguration).map { SettingsResponse(APPLICATION_YAML, it) }
+            else -> Result.error<SettingsResponse, Exception>(UnsupportedOperationException("Unsupported configuration $name"))
+        }.mapErr { ErrorResponse(INTERNAL_SERVER_ERROR, "Cannot load configuration: ${it.message}") }
 
     fun updateConfiguration(request: SettingsUpdateRequest): Result<Unit, ErrorResponse> =
         when (request.name) {
@@ -63,18 +64,20 @@ internal class SharedConfigurationService(
         }
 
     private fun updateSources() {
-        standard.render(sharedConfiguration).also { render ->
-            if (render != settingsRepository.findConfiguration(SHARED_CONFIGURATION_FILE)) {
-                journalist.logger.info("Updating shared configuration in remote source")
-                settingsRepository.saveConfiguration(SHARED_CONFIGURATION_FILE, render)
-                databaseUpdateTime = Instant.now()
-            }
+        standard.render(sharedConfiguration)
+            .orElseThrow { throw it }
+            .let { render ->
+                if (render != settingsRepository.findConfiguration(SHARED_CONFIGURATION_FILE)) {
+                    journalist.logger.info("Updating shared configuration in remote source")
+                    settingsRepository.saveConfiguration(SHARED_CONFIGURATION_FILE, render)
+                    databaseUpdateTime = Instant.now()
+                }
 
-            if (Files.exists(sharedConfigurationFile) && Files.readAllBytes(sharedConfigurationFile).decodeToString() != render) {
-                journalist.logger.info("Updating shared configuration in local source")
-                Files.write(sharedConfigurationFile, render.toByteArray(), WRITE, TRUNCATE_EXISTING)
+                if (Files.exists(sharedConfigurationFile) && Files.readAllBytes(sharedConfigurationFile).decodeToString() != render) {
+                    journalist.logger.info("Updating shared configuration in local source")
+                    Files.write(sharedConfigurationFile, render.toByteArray(), WRITE, TRUNCATE_EXISTING)
+                }
             }
-        }
     }
 
     fun loadSharedConfiguration(): SharedConfiguration =
@@ -92,7 +95,7 @@ internal class SharedConfigurationService(
 
     private fun loadFromFile() {
         journalist.logger.info("Loading shared configuration from local file")
-        SettingsFileLoader.initializeAndLoad(journalist, sharedConfigurationMode, sharedConfigurationFile, workingDirectory, SHARED_CONFIGURATION_FILE, sharedConfiguration)
+        SettingsFileLoader.initializeAndLoad(sharedConfigurationMode, sharedConfigurationFile, workingDirectory, SHARED_CONFIGURATION_FILE, sharedConfiguration)
         journalist.logger.info("Shared configuration has been loaded from local file")
     }
 

@@ -22,6 +22,7 @@ import com.reposilite.settings.LocalConfiguration
 import com.reposilite.settings.SharedConfiguration
 import com.reposilite.settings.SharedConfiguration.RepositoryConfiguration
 import net.dzikoysk.cdn.KCdnFactory
+import net.dzikoysk.cdn.source.Source
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
@@ -29,6 +30,12 @@ import panda.std.reactive.ReferenceUtils
 import java.io.File
 import java.util.concurrent.atomic.AtomicInteger
 
+/**
+ * This is a dirty launcher of Reposilite instance for integration tests.
+ * Every integration test is launched twice, with local and remote integrations, through dedicated extensions:
+ * - [ReposiliteLocalIntegrationJunitExtension]
+ * - [ReposiliteRemoteIntegrationJunitExtension]
+ */
 @Suppress("PropertyName")
 internal abstract class ReposiliteRunner {
 
@@ -76,7 +83,7 @@ internal abstract class ReposiliteRunner {
             ReferenceUtils.setValue(it.ioThreadPool, 2)
         }
 
-        cdn.render(localConfiguration, reposiliteWorkingDirectory.resolve("configuration.local.cdn"))
+        cdn.render(localConfiguration, Source.of(reposiliteWorkingDirectory.resolve("configuration.local.cdn")))
 
         val sharedConfiguration = SharedConfiguration().also {
             val proxiedConfiguration = RepositoryConfiguration()
@@ -92,7 +99,7 @@ internal abstract class ReposiliteRunner {
             }
         }
 
-        cdn.render(sharedConfiguration, reposiliteWorkingDirectory.resolve("configuration.shared.cdn"))
+        cdn.render(sharedConfiguration, Source.of(reposiliteWorkingDirectory.resolve("configuration.shared.cdn")))
 
         reposilite = ReposiliteFactory.createReposilite(parameters, logger)
         reposilite.journalist.setVisibleThreshold(Channel.WARN)

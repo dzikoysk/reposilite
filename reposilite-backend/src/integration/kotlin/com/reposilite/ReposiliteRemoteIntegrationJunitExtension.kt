@@ -27,6 +27,11 @@ import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import org.testcontainers.utility.DockerImageName
 
+/**
+ * Integrations used in remote stack:
+ * - MariaDB
+ * - AWS S3 through LocalStack
+ */
 @Testcontainers
 internal class ReposiliteRemoteIntegrationJunitExtension : Extension, BeforeEachCallback, AfterEachCallback {
 

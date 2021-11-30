@@ -1,6 +1,6 @@
 {
   "name": "reposilite-frontend",
-  "version": "3.0.0-alpha.9",
+  "version": "3.0.0-alpha.10",
   "scripts": {
     "dev": "vite",
     "build": "vite build && git add --all ../reposilite-backend/src/main/resources/reposilite-frontend/",

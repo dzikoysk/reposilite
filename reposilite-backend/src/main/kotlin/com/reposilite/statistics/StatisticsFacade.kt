@@ -45,7 +45,7 @@ class StatisticsFacade internal constructor(
         resolvedRequestsBulk.toMap().also {
             resolvedRequestsBulk.clear() // read doesn't lock, so there is a possibility of dropping a few records between toMap and clear. Might be improved in the future
             statisticsRepository.incrementResolvedRequests(it, dateIntervalProvider.get().createDate())
-            logger.debug("Statistics | Saved bulk with ${it.size} records")
+            if (it.isNotEmpty()) logger.debug("Statistics | Saved bulk with ${it.size} records")
         }
 
     fun findResolvedRequestsByPhrase(repository: String = "", phrase: String, limit: Int = MAX_PAGE_SIZE): Result<ResolvedCountResponse, ErrorResponse> =
