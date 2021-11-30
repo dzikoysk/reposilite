@@ -165,12 +165,12 @@ tasks.withType<KotlinCompile>().configureEach {
 publishing {
     repositories {
         maven {
-            credentials {
-                username = property("mavenUser") as String
-                password = property("mavenPassword") as String
-            }
             name = "panda-repository"
             url = uri("https://repo.panda-lang.org/${if (version.toString().endsWith("-SNAPSHOT")) "snapshots" else "releases"}")
+            credentials {
+                username = System.getenv("MAVEN_NAME") ?: ""
+                password = System.getenv("MAVEN_TOKEN") ?: ""
+            }
         }
     }
     publications {
