@@ -163,7 +163,6 @@ class SharedConfiguration : Serializable, DeserializationHandler<SharedConfigura
     @Contextual
     class StatisticsConfiguration : Serializable {
 
-        @Description("")
         @Description("# How often Reposilite should divide recorded requests into separated groups.")
         @Description("# With higher precision you can get more detailed timestamps, but it'll increase database size.")
         @Description("# It's not that important for small repos with low traffic, but public instances should not use daily interval.")

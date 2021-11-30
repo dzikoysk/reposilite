@@ -7,6 +7,7 @@ import com.reposilite.settings.api.SettingsUpdateRequest
 import com.reposilite.settings.application.SettingsWebConfiguration
 import com.reposilite.web.http.ErrorResponse
 import panda.std.Result
+import panda.std.Unit
 
 class SettingsFacade internal constructor(
     val localConfiguration: LocalConfiguration,
@@ -20,7 +21,7 @@ class SettingsFacade internal constructor(
         sharedConfigurationService.synchronizeSharedConfiguration()
 
     fun resolveConfiguration(name: String): Result<SettingsResponse, ErrorResponse> =
-        sharedConfigurationService.resolveConfiguration(name)
+        sharedConfigurationService.findConfiguration(name)
 
     fun updateConfiguration(request: SettingsUpdateRequest): Result<Unit, ErrorResponse> =
         sharedConfigurationService.updateConfiguration(request)
@@ -29,13 +30,14 @@ class SettingsFacade internal constructor(
 
         fun createLocalConfiguration(journalist: Journalist, parameters: ReposiliteParameters): LocalConfiguration =
             SettingsFileLoader.initializeAndLoad(
-                journalist,
                 parameters.localConfigurationMode,
                 parameters.localConfigurationPath,
                 parameters.workingDirectory,
                 SettingsWebConfiguration.LOCAL_CONFIGURATION_FILE,
                 LocalConfiguration()
-            )
+            ).orElseThrow { exception ->
+                throw exception
+            }
 
     }
 

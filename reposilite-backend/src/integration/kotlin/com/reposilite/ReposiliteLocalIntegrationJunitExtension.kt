@@ -20,6 +20,11 @@ import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.Extension
 import org.junit.jupiter.api.extension.ExtensionContext
 
+/**
+ * Integrations used in local stack:
+ * - SQLite
+ * - Local file system
+ */
 internal class ReposiliteLocalIntegrationJunitExtension : Extension, BeforeEachCallback {
 
     override fun beforeEach(context: ExtensionContext?) {
