@@ -1,4 +1,4 @@
-package com.reposilite.settings
+package com.reposilite.settings.api
 
 import com.reposilite.maven.api.RepositoryVisibility
 import com.reposilite.maven.api.RepositoryVisibility.PRIVATE

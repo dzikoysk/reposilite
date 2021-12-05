@@ -23,8 +23,8 @@ import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.reposilite.Reposilite
 import com.reposilite.VERSION
 import com.reposilite.journalist.Journalist
-import com.reposilite.settings.LocalConfiguration
-import com.reposilite.settings.SharedConfiguration
+import com.reposilite.settings.api.LocalConfiguration
+import com.reposilite.settings.api.SharedConfiguration
 import io.javalin.core.JavalinConfig
 import io.javalin.openapi.plugin.OpenApiConfiguration
 import io.javalin.openapi.plugin.OpenApiPlugin

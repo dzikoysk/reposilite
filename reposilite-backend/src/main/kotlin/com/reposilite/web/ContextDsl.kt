@@ -33,18 +33,6 @@ class ContextDsl(
     val authenticationResult: Lazy<Result<AccessToken, ErrorResponse>>
 ) {
 
-    companion object {
-
-        private val METHOD_PERMISSIONS = mapOf(
-            "HEAD" to RoutePermission.READ,
-            "GET" to RoutePermission.READ,
-            "PUT" to RoutePermission.WRITE,
-            "POST" to RoutePermission.WRITE,
-            "DELETE" to RoutePermission.WRITE
-        )
-
-    }
-
     val uri = ctx.uri()
 
     /**
@@ -109,5 +97,15 @@ class ContextDsl(
 
     fun getSessionIdentifier(): String =
         authenticationResult.value.fold({ "${it.name}@${ctx.ip()}" }, { ctx.ip() })
+
+    private companion object {
+        private val METHOD_PERMISSIONS = mapOf(
+            "HEAD" to RoutePermission.READ,
+            "GET" to RoutePermission.READ,
+            "PUT" to RoutePermission.WRITE,
+            "POST" to RoutePermission.WRITE,
+            "DELETE" to RoutePermission.WRITE
+        )
+    }
 
 }

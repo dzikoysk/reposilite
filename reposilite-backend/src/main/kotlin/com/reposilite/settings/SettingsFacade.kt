@@ -1,44 +1,33 @@
 package com.reposilite.settings
 
-import com.reposilite.ReposiliteParameters
-import com.reposilite.journalist.Journalist
+import com.reposilite.settings.api.LocalConfiguration
 import com.reposilite.settings.api.SettingsResponse
 import com.reposilite.settings.api.SettingsUpdateRequest
-import com.reposilite.settings.application.SettingsWebConfiguration
+import com.reposilite.settings.api.SharedConfiguration
 import com.reposilite.web.http.ErrorResponse
 import panda.std.Result
 import panda.std.Unit
+import java.util.concurrent.ScheduledExecutorService
 
 class SettingsFacade internal constructor(
     val localConfiguration: LocalConfiguration,
-    private val sharedConfigurationService: SharedConfigurationService
+    private val sharedConfigurationProvider: ConfigurationProvider<SharedConfiguration>
 ) {
 
-    val sharedConfiguration: SharedConfiguration
-        get() = sharedConfigurationService.sharedConfiguration
+    val sharedConfiguration: SharedConfiguration // expose it directly for easier calls
+        get() = sharedConfigurationProvider.configuration
 
-    fun synchronizeConfigurations() =
-        sharedConfigurationService.synchronizeSharedConfiguration()
+    fun registerWatchers(scheduler: ScheduledExecutorService) =
+        sharedConfigurationProvider.registerWatcher(scheduler)
 
     fun resolveConfiguration(name: String): Result<SettingsResponse, ErrorResponse> =
-        sharedConfigurationService.findConfiguration(name)
+        sharedConfigurationProvider.resolve(name)
 
     fun updateConfiguration(request: SettingsUpdateRequest): Result<Unit, ErrorResponse> =
-        sharedConfigurationService.updateConfiguration(request)
+        sharedConfigurationProvider.update(request)
 
-    companion object {
-
-        fun createLocalConfiguration(journalist: Journalist, parameters: ReposiliteParameters): LocalConfiguration =
-            SettingsFileLoader.initializeAndLoad(
-                parameters.localConfigurationMode,
-                parameters.localConfigurationPath,
-                parameters.workingDirectory,
-                SettingsWebConfiguration.LOCAL_CONFIGURATION_FILE,
-                LocalConfiguration()
-            ).orElseThrow { exception ->
-                throw exception
-            }
-
+    fun shutdownProviders() {
+        sharedConfigurationProvider.shutdown()
     }
 
 }

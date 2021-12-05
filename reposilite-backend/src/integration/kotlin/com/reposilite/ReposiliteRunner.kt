@@ -18,9 +18,9 @@ package com.reposilite
 
 import com.reposilite.journalist.Channel
 import com.reposilite.journalist.backend.PrintStreamLogger
-import com.reposilite.settings.LocalConfiguration
-import com.reposilite.settings.SharedConfiguration
-import com.reposilite.settings.SharedConfiguration.RepositoryConfiguration
+import com.reposilite.settings.api.LocalConfiguration
+import com.reposilite.settings.api.SharedConfiguration
+import com.reposilite.settings.api.SharedConfiguration.RepositoryConfiguration
 import net.dzikoysk.cdn.KCdnFactory
 import net.dzikoysk.cdn.source.Source
 import org.junit.jupiter.api.AfterEach

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.reposilite.settings
+package com.reposilite.settings.api
 
 import com.reposilite.shared.extensions.Validator
 import net.dzikoysk.cdn.entity.Description
@@ -35,11 +35,9 @@ class LocalConfiguration : Serializable {
     @Description("# The hostname can be used to limit which connections are accepted.")
     @Description("# Use 0.0.0.0 to accept connections from anywhere." )
     @Description("# 127.0.0.1 will only allow connections from localhost.")
-    @JvmField
     val hostname = reference("0.0.0.0")
 
     @Description("# Port to bind")
-    @JvmField
     val port = reference(80)
 
     /* Database */
@@ -48,7 +46,6 @@ class LocalConfiguration : Serializable {
     @Description("# - sqlite reposilite.db")
     @Description("# - sqlite --temporary")
     @Description("# - mysql localhost:3306 database user password")
-    @JvmField
     val database = reference("sqlite reposilite.db")
 
     @Command(name = "sqlite")
@@ -75,24 +72,19 @@ class LocalConfiguration : Serializable {
 
     @Description("")
     @Description("# Support encrypted connections")
-    @JvmField
     val sslEnabled = reference(false)
 
     @Description("# SSL port to bind")
-    @JvmField
     val sslPort = reference(443)
 
     @Description("# Key store file to use.")
     @Description("# You can specify absolute path to the given file or use \${WORKING_DIRECTORY} variable.")
-    @JvmField
     val keyStorePath = reference("\${WORKING_DIRECTORY}/keystore.jks")
 
     @Description("# Key store password to use")
-    @JvmField
     val keyStorePassword = reference("")
 
     @Description("# Redirect http traffic to https")
-    @JvmField
     val enforceSsl = reference(false)
 
     /* Performance */
@@ -112,24 +104,19 @@ class LocalConfiguration : Serializable {
     @Description("")
     @Description("# Max amount of threads used by core thread pool (min: 4)")
     @Description("# The web thread pool handles first few steps of incoming http connections, as soon as possible all tasks are redirected to IO thread pool.")
-    @JvmField
     val webThreadPool = reference(32)
 
     @Description("# IO thread pool handles all tasks that may benefit from non-blocking IO (min: 2)")
     @Description("# Because most of tasks are redirected to IO thread pool, it might be a good idea to keep it at least equal to web thread pool.")
-    @JvmField
     val ioThreadPool = reference(16)
 
     @Description("", "# Amount of messages stored in cached logger.")
-    @JvmField
     val cachedLogSize = reference(100)
 
     @Description("# Keep processed frontend files in memory to improve response time")
-    @JvmField
     val cacheContent = reference(true)
 
     @Description("# Debug mode")
-    @JvmField
     val debugEnabled = reference(false)
 
 }
