@@ -22,7 +22,7 @@ internal object SettingsWebConfiguration : WebConfiguration {
     fun createLocalConfiguration(journalist: Journalist, parameters: ReposiliteParameters): LocalConfiguration =
         FileSystemConfigurationProvider(
             "Local configuration",
-            journalist,
+            null,
             parameters.workingDirectory,
             LOCAL_CONFIGURATION_FILE,
             parameters.localConfigurationMode,

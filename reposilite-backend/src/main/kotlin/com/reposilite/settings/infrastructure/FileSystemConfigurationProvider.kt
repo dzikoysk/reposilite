@@ -25,7 +25,7 @@ import kotlin.io.path.readText
 
 internal class FileSystemConfigurationProvider<C : Any>(
     override val displayName: String,
-    private val journalist: Journalist,
+    private val journalist: Journalist?,
     private val workingDirectory: Path,
     private val defaultFileName: String,
     private val mode: String,
@@ -38,10 +38,10 @@ internal class FileSystemConfigurationProvider<C : Any>(
         .orElseThrow(ThrowingFunction.identity())
 
     override fun initialize() {
-        journalist.logger.info("Loading ${displayName.lowercase()} from local file")
+        journalist?.logger?.info("Loading ${displayName.lowercase()} from local file")
 
         load(Source.of(configurationFile))
-            .peek { journalist.logger.info("File ${displayName.lowercase()} has been loaded from local file") }
+            .peek { journalist?.logger?.info("$displayName has been loaded from local file") }
             .orElseThrow()
     }
 
@@ -82,7 +82,7 @@ internal class FileSystemConfigurationProvider<C : Any>(
     override fun update(request: SettingsUpdateRequest): Result<Unit, ErrorResponse> =
         when (request.name) {
             defaultFileName -> load(Source.of(request.content))
-                .peek { journalist.logger.info("Updating ${displayName.lowercase()} in local source") }
+                .peek { journalist?.logger?.info("Updating ${displayName.lowercase()} in local source") }
                 .mapToUnit()
                 .mapErr { ErrorResponse(INTERNAL_SERVER_ERROR, "Cannot load configuration") }
             else -> errorResponse(BAD_REQUEST, "Unknown ${displayName.lowercase()}: ${request.name}")
