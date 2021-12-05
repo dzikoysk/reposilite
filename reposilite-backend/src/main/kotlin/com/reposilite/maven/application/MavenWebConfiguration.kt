@@ -26,7 +26,7 @@ import com.reposilite.maven.RepositorySecurityProvider
 import com.reposilite.maven.RepositoryService
 import com.reposilite.maven.infrastructure.MavenApiEndpoints
 import com.reposilite.maven.infrastructure.MavenEndpoints
-import com.reposilite.settings.SharedConfiguration.RepositoryConfiguration
+import com.reposilite.settings.api.SharedConfiguration.RepositoryConfiguration
 import com.reposilite.shared.RemoteClientProvider
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.web.WebConfiguration

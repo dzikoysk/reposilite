@@ -17,8 +17,8 @@
 package com.reposilite.storage
 
 import com.reposilite.journalist.Journalist
-import com.reposilite.settings.SharedConfiguration.RepositoryConfiguration.FSStorageProviderSettings
-import com.reposilite.settings.SharedConfiguration.RepositoryConfiguration.S3StorageProviderSettings
+import com.reposilite.settings.api.SharedConfiguration.RepositoryConfiguration.FSStorageProviderSettings
+import com.reposilite.settings.api.SharedConfiguration.RepositoryConfiguration.S3StorageProviderSettings
 import com.reposilite.shared.extensions.loadCommandBasedConfiguration
 import com.reposilite.storage.infrastructure.FileSystemStorageProvider
 import com.reposilite.storage.infrastructure.FileSystemStorageProviderFactory

@@ -17,8 +17,8 @@
 package com.reposilite.maven
 
 import com.reposilite.journalist.Journalist
-import com.reposilite.settings.SharedConfiguration.RepositoryConfiguration
-import com.reposilite.settings.SharedConfiguration.RepositoryConfiguration.ProxiedHostConfiguration
+import com.reposilite.settings.api.SharedConfiguration.RepositoryConfiguration
+import com.reposilite.settings.api.SharedConfiguration.RepositoryConfiguration.ProxiedHostConfiguration
 import com.reposilite.shared.RemoteClientProvider
 import com.reposilite.shared.extensions.loadCommandBasedConfiguration
 import com.reposilite.storage.StorageProviderFactory.createStorageProvider

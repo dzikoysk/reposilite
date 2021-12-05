@@ -41,6 +41,10 @@ internal fun <VALUE, ERROR> Sequence<Result<out VALUE, ERROR>>.firstOrErrors(): 
         .firstSuccessOr { Result.error(collection) }
 }
 
+internal fun <ERROR : Exception> Result<*, ERROR>.orElseThrow() {
+    orElseThrow { it -> it }
+}
+
 internal fun <VALUE> Result<VALUE, *>.`when`(condition: (VALUE) -> Boolean): Boolean =
     fold({ condition(it) }, { false })
 

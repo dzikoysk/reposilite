@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.reposilite.settings
+package com.reposilite.settings.application
 
-import com.reposilite.settings.LocalConfiguration.MySqlDatabaseSettings
-import com.reposilite.settings.LocalConfiguration.SQLiteDatabaseSettings
+import com.reposilite.settings.api.LocalConfiguration.MySqlDatabaseSettings
+import com.reposilite.settings.api.LocalConfiguration.SQLiteDatabaseSettings
 import com.reposilite.shared.extensions.loadCommandBasedConfiguration
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.transactions.TransactionManager

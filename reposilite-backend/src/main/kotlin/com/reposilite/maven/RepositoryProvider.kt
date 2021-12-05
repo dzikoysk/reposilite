@@ -1,7 +1,7 @@
 package com.reposilite.maven
 
 import com.reposilite.journalist.Journalist
-import com.reposilite.settings.SharedConfiguration.RepositoryConfiguration
+import com.reposilite.settings.api.SharedConfiguration.RepositoryConfiguration
 import com.reposilite.shared.RemoteClientProvider
 import panda.std.reactive.Reference
 import java.nio.file.Path

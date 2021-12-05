@@ -20,7 +20,7 @@ import com.reposilite.Reposilite
 import com.reposilite.frontend.FrontendFacade
 import com.reposilite.frontend.infrastructure.CustomFrontendHandler
 import com.reposilite.frontend.infrastructure.ResourcesFrontendHandler
-import com.reposilite.settings.LocalConfiguration
+import com.reposilite.settings.api.LocalConfiguration
 import com.reposilite.settings.SettingsFacade
 import com.reposilite.web.WebConfiguration
 import com.reposilite.web.application.ReposiliteRoutes

@@ -20,7 +20,7 @@ import com.reposilite.journalist.backend.InMemoryLogger
 import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.application.MavenWebConfiguration
-import com.reposilite.settings.SharedConfiguration.RepositoryConfiguration
+import com.reposilite.settings.api.SharedConfiguration.RepositoryConfiguration
 import com.reposilite.shared.FakeRemoteClientProvider
 import com.reposilite.shared.fs.DocumentInfo
 import com.reposilite.shared.fs.UNKNOWN_LENGTH
