@@ -36,7 +36,7 @@
     "nodemon": "^2.0.15",
     "stylelint-config-standard": "^24.0.0",
     "vite": "^2.6.14",
-    "vite-plugin-windicss": "^1.5.3",
+    "vite-plugin-windicss": "^1.5.4",
     "windicss": "^3.2.1",
     "ws": "^8.3.0"
   }
