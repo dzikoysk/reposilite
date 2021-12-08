@@ -23,7 +23,7 @@ sslPort: 443
 # You can specify absolute path to the given file or use ${WORKING_DIRECTORY} variable.
 keyStorePath: ${WORKING_DIRECTORY}/keystore.jks
 # Key store password to use
-keyStorePassword: ""
+keyStorePassword: reposilite
 # Redirect http traffic to https
 enforceSsl: false
 
