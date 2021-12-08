@@ -73,9 +73,9 @@ internal object WebServerConfiguration {
 
     private fun configureSSL(reposilite: Reposilite, localConfiguration: LocalConfiguration, config: JavalinConfig, server: Server) {
         if (localConfiguration.sslEnabled.get()) {
-            reposilite.logger.info("Enabling SSL connector at ::" + localConfiguration.sslPort)
+            reposilite.logger.info("Enabling SSL connector at ::" + localConfiguration.sslPort.get())
 
-            val sslContextFactory: SslContextFactory = SslContextFactory.Server()
+            val sslContextFactory = SslContextFactory.Server()
             sslContextFactory.keyStorePath = localConfiguration.keyStorePath.get().replace("\${WORKING_DIRECTORY}", reposilite.parameters.workingDirectory.toAbsolutePath().toString())
             sslContextFactory.setKeyStorePassword(localConfiguration.keyStorePassword.get())
 
