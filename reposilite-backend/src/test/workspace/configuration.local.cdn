@@ -33,10 +33,15 @@ webThreadPool: 32
 # IO thread pool handles all tasks that may benefit from non-blocking IO (min: 2)
 # Because most of tasks are redirected to IO thread pool, it might be a good idea to keep it at least equal to web thread pool.
 ioThreadPool: 16
+# Select compression strategy used by this instance.
+# Using 'none' reduces usage of CPU & memory, but ends up with higher transfer usage.
+# GZIP is better option if you're not limiting resources that much to increase overall request times.
+# Available strategies: none, gzip
+compressionStrategy: none
 
-# Amount of messages stored in cached logger.
-cachedLogSize: 100
 # Keep processed frontend files in memory to improve response time
 cacheContent: true
+# Amount of messages stored in cached logger.
+cachedLogSize: 100
 # Debug mode
 debugEnabled: false

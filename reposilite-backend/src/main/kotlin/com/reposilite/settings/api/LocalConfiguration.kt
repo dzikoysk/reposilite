@@ -110,11 +110,17 @@ class LocalConfiguration : Serializable {
     @Description("# Because most of tasks are redirected to IO thread pool, it might be a good idea to keep it at least equal to web thread pool.")
     val ioThreadPool = reference(16)
 
-    @Description("", "# Amount of messages stored in cached logger.")
-    val cachedLogSize = reference(100)
+    @Description("# Select compression strategy used by this instance.")
+    @Description("# Using 'none' reduces usage of CPU & memory, but ends up with higher transfer usage.")
+    @Description("# GZIP is better option if you're not limiting resources that much to increase overall request times.")
+    @Description("# Available strategies: none, gzip")
+    val compressionStrategy = reference("none")
 
-    @Description("# Keep processed frontend files in memory to improve response time")
+    @Description("", "# Keep processed frontend files in memory to improve response time")
     val cacheContent = reference(true)
+
+    @Description("# Amount of messages stored in cached logger.")
+    val cachedLogSize = reference(100)
 
     @Description("# Debug mode")
     val debugEnabled = reference(false)
