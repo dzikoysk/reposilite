@@ -58,7 +58,7 @@ internal object MavenWebConfiguration : WebConfiguration {
     }
 
     override fun routing(reposilite: Reposilite): Set<ReposiliteRoutes> = setOf(
-        MavenEndpoints(reposilite.mavenFacade, reposilite.frontendFacade, reposilite.statisticsFacade ),
+        MavenEndpoints(reposilite.mavenFacade, reposilite.frontendFacade, reposilite.statisticsFacade, reposilite.settingsFacade),
         MavenApiEndpoints(reposilite.mavenFacade)
     )
 

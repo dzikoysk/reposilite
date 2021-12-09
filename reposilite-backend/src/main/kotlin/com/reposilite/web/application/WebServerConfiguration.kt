@@ -26,6 +26,7 @@ import com.reposilite.journalist.Journalist
 import com.reposilite.settings.api.LocalConfiguration
 import com.reposilite.settings.api.SharedConfiguration
 import io.javalin.core.JavalinConfig
+import io.javalin.core.compression.CompressionStrategy
 import io.javalin.openapi.plugin.OpenApiConfiguration
 import io.javalin.openapi.plugin.OpenApiPlugin
 import io.javalin.openapi.plugin.swagger.SwaggerConfiguration
@@ -45,7 +46,7 @@ internal object WebServerConfiguration {
         val localConfiguration = reposilite.settingsFacade.localConfiguration
         val sharedConfiguration = reposilite.settingsFacade.sharedConfiguration
 
-        configureJavalin(config, sharedConfiguration)
+        configureJavalin(config, localConfiguration, sharedConfiguration)
         configureJsonSerialization(config)
         configureSSL(reposilite, localConfiguration, config, server)
         configureCors(config)
@@ -53,11 +54,17 @@ internal object WebServerConfiguration {
         configureDebug(reposilite, localConfiguration, config)
     }
 
-    private fun configureJavalin(config: JavalinConfig, sharedConfiguration: SharedConfiguration) {
+    private fun configureJavalin(config: JavalinConfig, localConfiguration: LocalConfiguration, sharedConfiguration: SharedConfiguration) {
         config.showJavalinBanner = false
         config.asyncRequestTimeout = 1000L * 60 * 60 * 10 // 10min
         config.contextResolvers {
             it.ip = { ctx -> ctx.header(sharedConfiguration.forwardedIp.get()) ?: ctx.req.remoteAddr }
+        }
+
+        when(localConfiguration.compressionStrategy.get().lowercase()) {
+            "none" -> config.compressionStrategy(CompressionStrategy.NONE)
+            "gzip" -> config.compressionStrategy(CompressionStrategy.GZIP)
+            else -> throw IllegalStateException("Unknown compression strategy ${localConfiguration.compressionStrategy.get()}")
         }
     }
 

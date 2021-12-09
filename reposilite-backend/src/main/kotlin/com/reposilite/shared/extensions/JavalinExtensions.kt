@@ -8,15 +8,19 @@ import io.javalin.http.ContentType
 import io.javalin.http.Context
 import java.io.InputStream
 
-internal fun Context.resultAttachment(name: String, contentType: ContentType, contentLength: Long, data: InputStream): Context {
-    contentType(contentType)
-
-    if (contentLength > 0) {
-        contentLength(contentLength)
-    }
-
+internal fun Context.resultAttachment(
+    name: String,
+    contentType: ContentType,
+    contentLength: Long,
+    compressionStrategy: String,
+    data: InputStream
+): Context {
     if (!contentType.isHumanReadable) {
         contentDisposition(""""attachment; filename="$name" """)
+    }
+
+    if (compressionStrategy == "none" && contentLength > 0) {
+        contentLength(contentLength) // Using this with GZIP ends up with "Premature end of Content-Length delimited message body".
     }
 
     if (acceptsBody()) {
@@ -25,13 +29,6 @@ internal fun Context.resultAttachment(name: String, contentType: ContentType, co
         data.silentClose()
     }
 
-    /*
-    data.use {
-        if (acceptsBody()) {
-            it.copyTo(output())
-        }
-    }
-     */
-
+    contentType(contentType)
     return this
 }
