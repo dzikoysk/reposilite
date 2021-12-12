@@ -24,11 +24,11 @@ import com.reposilite.journalist.Channel
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.backend.PrintStreamLogger
 import com.reposilite.maven.application.MavenWebConfiguration
-import com.reposilite.settings.application.SettingsWebConfiguration
 import com.reposilite.settings.application.DatabaseSourceFactory
-import com.reposilite.shared.HttpRemoteClientProvider
+import com.reposilite.settings.application.SettingsWebConfiguration
 import com.reposilite.shared.extensions.newFixedThreadPool
 import com.reposilite.shared.extensions.newSingleThreadScheduledExecutor
+import com.reposilite.shared.http.HttpRemoteClientProvider
 import com.reposilite.statistics.application.StatisticsWebConfiguration
 import com.reposilite.status.application.FailureWebConfiguration
 import com.reposilite.status.application.StatusWebConfiguration
@@ -44,7 +44,7 @@ object ReposiliteFactory {
         createReposilite(parameters, PrintStreamLogger(System.out, System.err, Channel.ALL, false))
 
     fun createReposilite(parameters: ReposiliteParameters, rootJournalist: Journalist): Reposilite {
-        val localConfiguration = SettingsWebConfiguration.createLocalConfiguration(rootJournalist, parameters)
+        val localConfiguration = SettingsWebConfiguration.createLocalConfiguration(parameters)
         parameters.applyLoadedConfiguration(localConfiguration)
 
         val journalist = ReposiliteJournalist(rootJournalist, localConfiguration.cachedLogSize.get(), parameters.testEnv)

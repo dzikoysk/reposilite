@@ -22,29 +22,29 @@ class SharedConfiguration : Serializable, DeserializationHandler<SharedConfigura
     @Description("")
     @Description("# Repository id used in Maven repository configuration")
     @JvmField
-    val id = mutableReference("reposilite-repository")
+    val id = reference("reposilite-repository")
 
     @Description("# Repository title")
     @JvmField
-    val title = mutableReference("Reposilite Repository")
+    val title = reference("Reposilite Repository")
 
     @Description("# Repository description")
     @JvmField
-    val description = mutableReference("Public Maven repository hosted through the Reposilite")
+    val description = reference("Public Maven repository hosted through the Reposilite")
 
     @Description("# Link to organization's website")
     @JvmField
-    val organizationWebsite = mutableReference("https://reposilite.com")
+    val organizationWebsite = reference("https://reposilite.com")
 
     @Description("# Link to organization's logo")
     @JvmField
-    val organizationLogo = mutableReference("https://avatars.githubusercontent.com/u/88636591")
+    val organizationLogo = reference("https://avatars.githubusercontent.com/u/88636591")
 
     @Description("# The Internet Content Provider License (also known as Bei'An)")
     @Description("# Web services in China require ICP license, a permit issued by the Chinese government to permit China-based websites to operate in China.")
     @Description("# In order to fulfill the conditions, you should apply for ICP license from your service provider and fill in this parameter.")
     @JvmField
-    val icpLicense = mutableReference("")
+    val icpLicense = reference("")
 
     @Description("# Enable default frontend with dashboard")
     @JvmField
@@ -63,7 +63,7 @@ class SharedConfiguration : Serializable, DeserializationHandler<SharedConfigura
     @Description("")
     @Description("# List of supported Maven repositories")
     @JvmField
-    val repositories = mutableReference(mapOf(
+    val repositories = reference(mapOf(
         "releases" to RepositoryConfiguration(),
         "snapshots" to RepositoryConfiguration(),
         "private" to RepositoryConfiguration().also { it.visibility = PRIVATE }
@@ -131,6 +131,7 @@ class SharedConfiguration : Serializable, DeserializationHandler<SharedConfigura
         @Description("# Example usage:")
         @Description("# proxied [")
         @Description("#   https://repo.panda-lang.org/releases --store --connectTimeout=3 --readTimeout=15 --auth user:token --allow=com.reposilite  --proxy host:ip")
+        @Description("#   local-repository-name")
         @Description("# ]")
         @JvmField
         var proxied = mutableListOf<String>()
@@ -181,7 +182,7 @@ class SharedConfiguration : Serializable, DeserializationHandler<SharedConfigura
     @Description("# Cloudflare: CF-Connecting-IP")
     @Description("# Popular: X-Real-IP")
     @JvmField
-    val forwardedIp = mutableReference("X-Forwarded-For")
+    val forwardedIp = reference("X-Forwarded-For")
 
     override fun handle(sharedConfiguration: SharedConfiguration): SharedConfiguration {
         var formattedBasePath = basePath.get()

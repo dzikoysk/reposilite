@@ -19,7 +19,7 @@ internal object SettingsWebConfiguration : WebConfiguration {
     const val LOCAL_CONFIGURATION_FILE = "configuration.local.cdn"
     const val SHARED_CONFIGURATION_FILE = "configuration.shared.cdn"
 
-    fun createLocalConfiguration(journalist: Journalist, parameters: ReposiliteParameters): LocalConfiguration =
+    fun createLocalConfiguration(parameters: ReposiliteParameters): LocalConfiguration =
         FileSystemConfigurationProvider(
             "Local configuration",
             null,
