@@ -63,7 +63,7 @@ class SharedConfiguration : Serializable, DeserializationHandler<SharedConfigura
     @Description("")
     @Description("# List of supported Maven repositories")
     @JvmField
-    val repositories = reference(mapOf(
+    val repositories = mutableReference(mapOf(
         "releases" to RepositoryConfiguration(),
         "snapshots" to RepositoryConfiguration(),
         "private" to RepositoryConfiguration().also { it.visibility = PRIVATE }
