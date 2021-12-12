@@ -1,6 +1,7 @@
 package com.reposilite.maven
 
 import com.reposilite.shared.fs.FileDetails
+import com.reposilite.shared.fs.toPath
 import com.reposilite.shared.http.RemoteClient
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.notFound
@@ -18,6 +19,6 @@ internal class RepositoryLoopbackClient(private val repository: Lazy<Repository>
         repository.value.getFile(toGav(uri))
 
     private fun toGav(uri: String): Path =
-        Path.of(uri.substring(repository.value.name.length + 1))
+        uri.substring(repository.value.name.length + 1).toPath()
 
 }
