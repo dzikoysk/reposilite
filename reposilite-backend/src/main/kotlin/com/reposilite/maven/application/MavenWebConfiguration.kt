@@ -27,11 +27,11 @@ import com.reposilite.maven.RepositoryService
 import com.reposilite.maven.infrastructure.MavenApiEndpoints
 import com.reposilite.maven.infrastructure.MavenEndpoints
 import com.reposilite.settings.api.SharedConfiguration.RepositoryConfiguration
-import com.reposilite.shared.RemoteClientProvider
+import com.reposilite.shared.http.RemoteClientProvider
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.web.WebConfiguration
 import com.reposilite.web.application.ReposiliteRoutes
-import panda.std.reactive.MutableReference
+import panda.std.reactive.Reference
 import java.nio.file.Path
 
 internal object MavenWebConfiguration : WebConfiguration {
@@ -40,7 +40,7 @@ internal object MavenWebConfiguration : WebConfiguration {
         journalist: Journalist,
         workingDirectory: Path,
         remoteClientProvider: RemoteClientProvider,
-        repositories: MutableReference<Map<String, RepositoryConfiguration>>,
+        repositories: Reference<Map<String, RepositoryConfiguration>>,
         statisticsFacade: StatisticsFacade
     ): MavenFacade {
         val repositoryProvider = RepositoryProvider(journalist, workingDirectory, remoteClientProvider, repositories)

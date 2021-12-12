@@ -1,20 +1,4 @@
-/*
- * Copyright (c) 2021 dzikoysk
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-package com.reposilite.shared
+package com.reposilite.shared.http
 
 import com.google.api.client.http.GenericUrl
 import com.google.api.client.http.HttpMethods
@@ -37,26 +21,6 @@ import panda.std.Result
 import panda.std.asSuccess
 import java.io.InputStream
 import java.net.Proxy
-
-interface RemoteClient {
-
-    /**
-     * @param uri - full remote host address with a gav
-     * @param credentials - basic credentials in user:password format
-     * @param connectTimeout - connection establishment timeout in seconds
-     * @param readTimeout - connection read timeout in seconds
-     */
-    fun head(uri: String, credentials: String?, connectTimeout: Int, readTimeout: Int): Result<FileDetails, ErrorResponse>
-
-    /**
-     * @param uri - full remote host address with a gav
-     * @param credentials - basic credentials in user:password format
-     * @param connectTimeout - connection establishment timeout in seconds
-     * @param readTimeout - connection read timeout in seconds
-     */
-    fun get(uri: String, credentials: String?, connectTimeout: Int, readTimeout: Int): Result<InputStream, ErrorResponse>
-
-}
 
 interface RemoteClientProvider {
 
@@ -140,25 +104,5 @@ class HttpRemoteClient(private val journalist: Journalist, proxy: Proxy?) : Remo
         journalist.logger.exception(Channel.DEBUG, exception)
         return errorResponse(BAD_REQUEST, "An error of type ${exception.javaClass} happened: ${exception.message}")
     }
-
-}
-
-private typealias HeadHandler = (String, String?, Int, Int) -> Result<FileDetails, ErrorResponse>
-private typealias GetHandler = (String, String?, Int, Int) -> Result<InputStream, ErrorResponse>
-
-class FakeRemoteClientProvider(private val headHandler: HeadHandler, private val getHandler: GetHandler) : RemoteClientProvider {
-
-    override fun createClient(journalist: Journalist, proxy: Proxy?): RemoteClient =
-        FakeRemoteClient(headHandler, getHandler)
-
-}
-
-class FakeRemoteClient(private val headHandler: HeadHandler, private val getHandler: GetHandler) : RemoteClient {
-
-    override fun head(uri: String, credentials: String?, connectTimeout: Int, readTimeout: Int): Result<FileDetails, ErrorResponse> =
-        headHandler(uri, credentials, connectTimeout, readTimeout)
-
-    override fun get(uri: String, credentials: String?, connectTimeout: Int, readTimeout: Int): Result<InputStream, ErrorResponse> =
-        getHandler(uri, credentials, connectTimeout, readTimeout)
 
 }

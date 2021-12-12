@@ -21,12 +21,12 @@ import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.application.MavenWebConfiguration
 import com.reposilite.settings.api.SharedConfiguration.RepositoryConfiguration
-import com.reposilite.shared.FakeRemoteClientProvider
 import com.reposilite.shared.fs.DocumentInfo
 import com.reposilite.shared.fs.UNKNOWN_LENGTH
 import com.reposilite.shared.fs.append
 import com.reposilite.shared.fs.getSimpleNameFromUri
 import com.reposilite.shared.fs.safeResolve
+import com.reposilite.shared.http.FakeRemoteClientProvider
 import com.reposilite.statistics.DailyDateIntervalProvider
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.statistics.infrastructure.InMemoryStatisticsRepository
