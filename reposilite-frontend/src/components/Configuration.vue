@@ -32,6 +32,7 @@
     </div>
     <div class="border-1 rounded p-4 dark:border-gray-700">
       <prism-editor
+        v-if="configurationInitialized"
         class="configuration-editor font-mono text-xs"
         v-model="configuration" 
         :highlight="highlighter" 
@@ -66,7 +67,8 @@ export default {
       prism.highlight(code, prism.languages.js)
 
     const configurationName = "configuration.shared.cdn"
-    const configuration = ref()
+    const configuration = ref('')
+    const configurationInitialized = ref(false)
 
     const fetchConfiguration = () => 
       client.settings.content(configurationName)
@@ -83,12 +85,14 @@ export default {
         .catch(error => createToast(error, { type: 'error' }))
 
     fetchConfiguration()
+      .then(() => configurationInitialized.value = true)
 
     return {
       configuration,
+      configurationInitialized,
       fetchConfiguration,
       updateConfiguration,
-      highlighter,
+      highlighter
     }
   }
 }
