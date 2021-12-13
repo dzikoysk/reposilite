@@ -201,7 +201,7 @@ internal class MavenFacadeTest : MavenSpecification() {
         assertOk("1.0.2", response)
         // assertArrayEquals(arrayOf("1.0.0", "1.0.1"), response.get())
     }
-    
+
     @Test
     fun `should find latest version with specific prefix` () {
         // given: an artifact with metadata file
@@ -209,10 +209,10 @@ internal class MavenFacadeTest : MavenSpecification() {
         val artifact = "/gav"
         mavenFacade.saveMetadata(repository, artifact, Metadata(versioning = Versioning(_versions = listOf("2.0.1", "1.0.1", "1.0.2", "1.0.0", "2.0.0", "1.1.0"))))
         val filter = "1.0."
-        
+
         // when: latest version that starts with "1.0." is requested
         val response = mavenFacade.findLatest(VersionLookupRequest(UNAUTHORIZED, repository, artifact, filter))
-        
+
         // then: should return the latest version that starts with "1.0."
         assertOk("1.0.2", response)
     }
@@ -230,7 +230,7 @@ internal class MavenFacadeTest : MavenSpecification() {
         // then: should return all versions of the artifact
         assertOk(listOf("1.0.0", "1.0.1", "1.0.2"), response)
     }
-    
+
     @Test
     fun `should find all versions with specific prefix of the given artifact` () {
         // given: an artifact with metadata file
@@ -238,10 +238,10 @@ internal class MavenFacadeTest : MavenSpecification() {
         val artifact = "/gav"
         mavenFacade.saveMetadata(repository, artifact, Metadata(versioning = Versioning(_versions = listOf("2.0.1", "1.0.1", "1.0.2", "1.0.0", "2.0.0", "1.1.0"))))
         val filter = "1.0."
-        
+
         // when: versions that start with "1.0." of the artifact are requested
         val response = mavenFacade.findVersions(VersionLookupRequest(UNAUTHORIZED, repository, artifact, filter))
-        
+
         // then: should return all versions that start with "1.0." of the artifact
         assertOk(listOf("1.0.0", "1.0.1", "1.0.2"), response)
     }
