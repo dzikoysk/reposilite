@@ -25,6 +25,7 @@ import com.reposilite.maven.api.RepositoryVisibility.HIDDEN
 import com.reposilite.maven.api.RepositoryVisibility.PRIVATE
 import com.reposilite.maven.api.RepositoryVisibility.PUBLIC
 import com.reposilite.maven.api.Versioning
+import com.reposilite.maven.api.VersionLookupRequest
 import com.reposilite.maven.specification.MavenSpecification
 import com.reposilite.shared.fs.FileType.FILE
 import com.reposilite.token.api.RoutePermission.READ
@@ -194,11 +195,26 @@ internal class MavenFacadeTest : MavenSpecification() {
         mavenFacade.saveMetadata(repository, artifact, Metadata(versioning = Versioning(_versions = listOf("1.0.1", "1.0.2", "1.0.0"))))
 
         // when: latest version is requested
-        val response = mavenFacade.findLatest(LookupRequest(UNAUTHORIZED, repository, artifact))
+        val response = mavenFacade.findLatest(VersionLookupRequest(UNAUTHORIZED, repository, artifact, null))
 
         // then: should return the latest version
         assertOk("1.0.2", response)
         // assertArrayEquals(arrayOf("1.0.0", "1.0.1"), response.get())
+    }
+    
+    @Test
+    fun `should find latest version with specific prefix` () {
+        // given: an artifact with metadata file
+        val repository = PUBLIC.name
+        val artifact = "/gav"
+        mavenFacade.saveMetadata(repository, artifact, Metadata(versioning = Versioning(_versions = listOf("2.0.1", "1.0.1", "1.0.2", "1.0.0", "2.0.0", "1.1.0"))))
+        val filter = "1.0."
+        
+        // when: latest version that starts with "1.0." is requested
+        val response = mavenFacade.findLatest(VersionLookupRequest(UNAUTHORIZED, repository, artifact, filter))
+        
+        // then: should return the latest version that starts with "1.0."
+        assertOk("1.0.2", response)
     }
 
     @Test
@@ -208,10 +224,25 @@ internal class MavenFacadeTest : MavenSpecification() {
         val artifact = "/gav"
         mavenFacade.saveMetadata(repository, artifact, Metadata(versioning = Versioning(_versions = listOf("1.0.1", "1.0.2", "1.0.0"))))
 
-        // when: latest version is requested
-        val response = mavenFacade.findVersions(LookupRequest(UNAUTHORIZED, repository, artifact))
+        // when: versions of the artifact are requested
+        val response = mavenFacade.findVersions(VersionLookupRequest(UNAUTHORIZED, repository, artifact, null))
 
-        // then: should return the latest version
+        // then: should return all versions of the artifact
+        assertOk(listOf("1.0.0", "1.0.1", "1.0.2"), response)
+    }
+    
+    @Test
+    fun `should find all versions with specific prefix of the given artifact` () {
+        // given: an artifact with metadata file
+        val repository = PUBLIC.name
+        val artifact = "/gav"
+        mavenFacade.saveMetadata(repository, artifact, Metadata(versioning = Versioning(_versions = listOf("2.0.1", "1.0.1", "1.0.2", "1.0.0", "2.0.0", "1.1.0"))))
+        val filter = "1.0."
+        
+        // when: versions that start with "1.0." of the artifact are requested
+        val response = mavenFacade.findVersions(VersionLookupRequest(UNAUTHORIZED, repository, artifact, filter))
+        
+        // then: should return all versions that start with "1.0." of the artifact
         assertOk(listOf("1.0.0", "1.0.1", "1.0.2"), response)
     }
 
