@@ -38,7 +38,7 @@ class BadgeFacade(
 
     fun findLatestBadge(request: LatestBadgeRequest): Result<String, ErrorResponse> =
         mavenFacade.findLatest(VersionLookupRequest(null, request.repository, request.gav, request.filter))
-            .flatMap { generateSvg(request.name ?: repositoryId.get(), (request.prefix ?: "") + it, request.color ?: colorBlue) }
+            .flatMap { generateSvg(request.name ?: repositoryId.get(), (request.prefix ?: "") + it.version, request.color ?: colorBlue) }
 
     private fun generateSvg(name: String, value: String, color: String): Result<String, ErrorResponse> {
         if (!(name + value + color).matches(supportedCharacters)) {
