@@ -50,14 +50,15 @@ internal class MetadataService(
             .flatMap { it.putFile(gav.toPath().safeResolve(METADATA_FILE), xml.writeValueAsBytes(metadata).inputStream()) }
             .map { metadata }
 
-    fun findVersions(repository: Repository, gav: String): Result<List<String>, ErrorResponse> =
+    fun findVersions(repository: Repository, gav: String, filter: String?): Result<List<String>, ErrorResponse> =
         repository.getFile(gav.toPath().safeResolve(METADATA_FILE))
             .map { it.use { data -> xml.readValue<Metadata>(data) } }
             .map { it.versioning?.versions ?: emptyList() }
+            .map { if (filter != null) it.filter { version -> version.startsWith(filter) } else it }
             .map { VersionComparator.sortStrings(it) }
 
-    fun findLatest(repository: Repository, gav: String): Result<String, ErrorResponse> =
-        findVersions(repository, gav)
+    fun findLatest(repository: Repository, gav: String, filter: String?): Result<String, ErrorResponse> =
+        findVersions(repository, gav, filter)
             .map { it.last() }
 
 }

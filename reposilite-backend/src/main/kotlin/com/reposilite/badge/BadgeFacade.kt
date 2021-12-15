@@ -2,7 +2,7 @@ package com.reposilite.badge
 
 import com.reposilite.badge.api.LatestBadgeRequest
 import com.reposilite.maven.MavenFacade
-import com.reposilite.maven.api.LookupRequest
+import com.reposilite.maven.api.VersionLookupRequest
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
 import io.javalin.http.HttpCode.BAD_REQUEST
@@ -37,7 +37,7 @@ class BadgeFacade(
         shortCharacters.sumOf { this.count { char -> char == it } }
 
     fun findLatestBadge(request: LatestBadgeRequest): Result<String, ErrorResponse> =
-        mavenFacade.findLatest(LookupRequest(null, request.repository, request.gav))
+        mavenFacade.findLatest(VersionLookupRequest(null, request.repository, request.gav, request.filter))
             .flatMap { generateSvg(request.name ?: repositoryId.get(), (request.prefix ?: "") + it, request.color ?: colorBlue) }
 
     private fun generateSvg(name: String, value: String, color: String): Result<String, ErrorResponse> {

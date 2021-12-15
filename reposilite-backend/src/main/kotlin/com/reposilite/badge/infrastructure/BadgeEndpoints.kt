@@ -27,7 +27,8 @@ internal class BadgeEndpoints(badgeFacade: BadgeFacade) : ReposiliteRoutes() {
                 gav = requiredParameter("gav"),
                 name = ctx.queryParam("name"),
                 color = ctx.queryParam("color"),
-                prefix = ctx.queryParam("prefix")
+                prefix = ctx.queryParam("prefix"),
+                filter = ctx.queryParam("filter")
             )
             .let { badgeFacade.findLatestBadge(it) }
             .peek { ctx.run {
