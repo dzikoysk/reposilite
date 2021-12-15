@@ -20,7 +20,7 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 group = "org.panda-lang"
-version = "3.0.0-alpha.12"
+version = "3.0.0-alpha.13"
 
 plugins {
     `java-library`
@@ -29,11 +29,11 @@ plugins {
     jacoco
     idea
 
-    val kotlinVersion = "1.6.0"
+    val kotlinVersion = "1.6.10"
     kotlin("jvm") version kotlinVersion
     kotlin("kapt") version kotlinVersion
 
-    id("com.github.johnrengelman.shadow") version "7.1.0"
+    id("com.github.johnrengelman.shadow") version "7.1.1"
     id("com.coditory.integration-test") version "1.3.0"
 }
 
@@ -42,7 +42,7 @@ application {
 }
 
 dependencies {
-    val kotlin = "1.6.0"
+    val kotlin = "1.6.10"
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin")
 
@@ -59,7 +59,7 @@ dependencies {
     val awssdk = "2.17.99"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
-    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.128")
+    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.129")
 
     val exposed = "0.36.2"
     implementation("org.jetbrains.exposed:exposed-core:$exposed")
