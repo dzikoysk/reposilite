@@ -26,6 +26,7 @@ import com.reposilite.maven.RepositorySecurityProvider
 import com.reposilite.maven.RepositoryService
 import com.reposilite.maven.infrastructure.MavenApiEndpoints
 import com.reposilite.maven.infrastructure.MavenEndpoints
+import com.reposilite.maven.infrastructure.MavenLatestApiEndpoints
 import com.reposilite.settings.api.SharedConfiguration.RepositoryConfiguration
 import com.reposilite.shared.http.RemoteClientProvider
 import com.reposilite.statistics.StatisticsFacade
@@ -58,8 +59,9 @@ internal object MavenWebConfiguration : WebConfiguration {
     }
 
     override fun routing(reposilite: Reposilite): Set<ReposiliteRoutes> = setOf(
-        MavenEndpoints(reposilite.mavenFacade, reposilite.frontendFacade, reposilite.statisticsFacade, reposilite.settingsFacade),
-        MavenApiEndpoints(reposilite.mavenFacade)
+        MavenEndpoints(reposilite.mavenFacade, reposilite.frontendFacade, reposilite.settingsFacade),
+        MavenApiEndpoints(reposilite.mavenFacade),
+        MavenLatestApiEndpoints(reposilite.mavenFacade)
     )
 
     override fun dispose(reposilite: Reposilite) {

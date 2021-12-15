@@ -47,7 +47,7 @@ internal class StatisticsFacadeTest : StatisticsSpecification() {
         val phrase = "reposilite"
 
         // when: the given phrase is requested
-        val result = statisticsFacade.findResolvedRequestsByPhrase(identifier.repository, identifier.gav)
+        val result = statisticsFacade.findResolvedRequestsByPhrase(identifier.repository, phrase)
 
         // then: the phrase should be found
         val response = assertOk(result)

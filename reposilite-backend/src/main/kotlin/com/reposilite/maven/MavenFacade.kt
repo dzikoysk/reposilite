@@ -24,6 +24,8 @@ import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.METADATA_FILE
 import com.reposilite.maven.api.Metadata
 import com.reposilite.maven.api.VersionLookupRequest
+import com.reposilite.maven.api.VersionResponse
+import com.reposilite.maven.api.VersionsResponse
 import com.reposilite.shared.extensions.`when`
 import com.reposilite.shared.fs.DirectoryInfo
 import com.reposilite.shared.fs.DocumentInfo
@@ -113,12 +115,12 @@ class MavenFacade internal constructor(
     fun saveMetadata(repository: String, gav: String, metadata: Metadata): Result<Metadata, ErrorResponse> =
         metadataService.saveMetadata(repository, gav, metadata)
 
-    fun findVersions(lookupRequest: VersionLookupRequest): Result<List<String>, ErrorResponse> =
+    fun findVersions(lookupRequest: VersionLookupRequest): Result<VersionsResponse, ErrorResponse> =
         repositoryService.findRepository(lookupRequest.repository)
             .filter({ repositorySecurityProvider.canAccessResource(lookupRequest.accessToken, it, lookupRequest.gav.toPath())}, { unauthorized() })
             .flatMap { metadataService.findVersions(it, lookupRequest.gav, lookupRequest.filter) }
 
-    fun findLatest(lookupRequest: VersionLookupRequest): Result<String, ErrorResponse> =
+    fun findLatest(lookupRequest: VersionLookupRequest): Result<VersionResponse, ErrorResponse> =
         repositoryService.findRepository(lookupRequest.repository)
             .filter({ repositorySecurityProvider.canAccessResource(lookupRequest.accessToken, it, lookupRequest.gav.toPath())}, { unauthorized() })
             .flatMap { metadataService.findLatest(it, lookupRequest.gav, lookupRequest.filter) }

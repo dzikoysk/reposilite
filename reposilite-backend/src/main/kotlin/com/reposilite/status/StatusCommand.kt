@@ -36,7 +36,7 @@ internal class StatusCommand(
         context.append("  Memory usage of process: ${statusFacade.memoryUsage()}")
         context.append("  Active threads in group: ${statusFacade.threadGroupUsage()}")
         context.append("  Recorded failures: ${failureFacade.getFailures().size}")
-        context.append("  Latest version of Reposilite: ${statusFacade.getVersion()}")
+        context.append("  Latest version of Reposilite: ${statusFacade.getLatestVersion()}")
     }
 
 }

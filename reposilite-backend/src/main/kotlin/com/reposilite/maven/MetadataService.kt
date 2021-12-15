@@ -26,10 +26,13 @@ import com.fasterxml.jackson.module.kotlin.kotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.reposilite.maven.api.METADATA_FILE
 import com.reposilite.maven.api.Metadata
+import com.reposilite.maven.api.VersionResponse
+import com.reposilite.maven.api.VersionsResponse
 import com.reposilite.shared.fs.VersionComparator
 import com.reposilite.shared.fs.safeResolve
 import com.reposilite.shared.fs.toPath
 import com.reposilite.web.http.ErrorResponse
+import com.reposilite.web.http.notFound
 import panda.std.Result
 
 internal class MetadataService(
@@ -50,15 +53,18 @@ internal class MetadataService(
             .flatMap { it.putFile(gav.toPath().safeResolve(METADATA_FILE), xml.writeValueAsBytes(metadata).inputStream()) }
             .map { metadata }
 
-    fun findVersions(repository: Repository, gav: String, filter: String?): Result<List<String>, ErrorResponse> =
+    fun findVersions(repository: Repository, gav: String, filter: String?): Result<VersionsResponse, ErrorResponse> =
         repository.getFile(gav.toPath().safeResolve(METADATA_FILE))
             .map { it.use { data -> xml.readValue<Metadata>(data) } }
             .map { it.versioning?.versions ?: emptyList() }
             .map { if (filter != null) it.filter { version -> version.startsWith(filter) } else it }
             .map { VersionComparator.sortStrings(it) }
+            .map { VersionsResponse(it) }
 
-    fun findLatest(repository: Repository, gav: String, filter: String?): Result<String, ErrorResponse> =
+    fun findLatest(repository: Repository, gav: String, filter: String?): Result<VersionResponse, ErrorResponse> =
         findVersions(repository, gav, filter)
-            .map { it.last() }
+            .filter({ it.versions.isNotEmpty() }, { notFound("Given artifact does not have any declared version") })
+            .map { it.versions.last() }
+            .map { VersionResponse(it) }
 
 }

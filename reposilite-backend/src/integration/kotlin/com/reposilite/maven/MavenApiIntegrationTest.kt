@@ -62,13 +62,18 @@ internal abstract class MavenApiIntegrationTest : MavenIntegrationSpecification(
     }
 
     @ValueSource(strings = [
-        "api/maven/latest",
         "api/maven/versions",
+        "api/maven/latest/version",
+        "api/maven/latest/details",
+        "api/maven/latest/file",
     ])
     @ParameterizedTest
     fun `should find latest version`(endpoint: String) = runBlocking {
         // given: a path to the existing artifact
-        useMetadata("private", "com", "reposilite", versions = listOf("1.0.1", "1.0.2", "1.0.3"))
+        val latestVersion = "1.0.3"
+        val (repository, metadata) = useMetadata("private", "com", "reposilite", versions = listOf("1.0.1", "1.0.2", latestVersion))
+        useDocument(repository, "${metadata.groupId}/${metadata.artifactId}/$latestVersion", "${metadata.artifactId}-$latestVersion.jar", "content", true)
+
         val artifactPath = "private/com/reposilite"
         val apiPath = "$base/$endpoint/$artifactPath"
 

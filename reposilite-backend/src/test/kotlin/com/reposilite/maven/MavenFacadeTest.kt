@@ -24,8 +24,8 @@ import com.reposilite.maven.api.RepositoryVisibility
 import com.reposilite.maven.api.RepositoryVisibility.HIDDEN
 import com.reposilite.maven.api.RepositoryVisibility.PRIVATE
 import com.reposilite.maven.api.RepositoryVisibility.PUBLIC
-import com.reposilite.maven.api.Versioning
 import com.reposilite.maven.api.VersionLookupRequest
+import com.reposilite.maven.api.Versioning
 import com.reposilite.maven.specification.MavenSpecification
 import com.reposilite.shared.fs.FileType.FILE
 import com.reposilite.token.api.RoutePermission.READ
@@ -198,7 +198,7 @@ internal class MavenFacadeTest : MavenSpecification() {
         val response = mavenFacade.findLatest(VersionLookupRequest(UNAUTHORIZED, repository, artifact, null))
 
         // then: should return the latest version
-        assertOk("1.0.2", response)
+        assertOk("1.0.2", response.map { it.version })
         // assertArrayEquals(arrayOf("1.0.0", "1.0.1"), response.get())
     }
 
@@ -214,7 +214,7 @@ internal class MavenFacadeTest : MavenSpecification() {
         val response = mavenFacade.findLatest(VersionLookupRequest(UNAUTHORIZED, repository, artifact, filter))
 
         // then: should return the latest version that starts with "1.0."
-        assertOk("1.0.2", response)
+        assertOk("1.0.2", response.map { it.version })
     }
 
     @Test
@@ -228,7 +228,7 @@ internal class MavenFacadeTest : MavenSpecification() {
         val response = mavenFacade.findVersions(VersionLookupRequest(UNAUTHORIZED, repository, artifact, null))
 
         // then: should return all versions of the artifact
-        assertOk(listOf("1.0.0", "1.0.1", "1.0.2"), response)
+        assertOk(listOf("1.0.0", "1.0.1", "1.0.2"), response.map { it.versions })
     }
 
     @Test
@@ -243,7 +243,7 @@ internal class MavenFacadeTest : MavenSpecification() {
         val response = mavenFacade.findVersions(VersionLookupRequest(UNAUTHORIZED, repository, artifact, filter))
 
         // then: should return all versions that start with "1.0." of the artifact
-        assertOk(listOf("1.0.0", "1.0.1", "1.0.2"), response)
+        assertOk(listOf("1.0.0", "1.0.1", "1.0.2"), response.map { it.versions })
     }
 
     @Test
