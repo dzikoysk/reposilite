@@ -18,6 +18,7 @@ package com.reposilite.maven.infrastructure
 
 import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.api.LookupRequest
+import com.reposilite.maven.api.VersionLookupRequest
 import com.reposilite.shared.fs.FileDetails
 import com.reposilite.web.ContextDsl
 import com.reposilite.web.application.ReposiliteRoute
@@ -82,7 +83,7 @@ internal class MavenApiEndpoints(private val mavenFacade: MavenFacade) : Reposil
     )
     private val findVersions = ReposiliteRoute("/api/maven/versions/{repository}/<gav>", GET) {
         accessed {
-            response = mavenFacade.findVersions(LookupRequest(this, requiredParameter("repository"), requiredParameter("gav")))
+            response = mavenFacade.findVersions(VersionLookupRequest(this, requiredParameter("repository"), requiredParameter("gav"), ctx.queryParam("filter")))
         }
     }
 
@@ -97,7 +98,7 @@ internal class MavenApiEndpoints(private val mavenFacade: MavenFacade) : Reposil
     )
     private val findLatest = ReposiliteRoute("/api/maven/latest/{repository}/<gav>", GET) {
         accessed {
-            response = mavenFacade.findLatest(LookupRequest(this, requiredParameter("repository"), requiredParameter("gav")))
+            response = mavenFacade.findLatest(VersionLookupRequest(this, requiredParameter("repository"), requiredParameter("gav"), ctx.queryParam("filter")))
         }
     }
 
