@@ -28,3 +28,18 @@ data class LookupRequest(
         Identifier(repository, gav)
 
 }
+
+data class VersionLookupRequest(
+    val accessToken: AccessToken?,
+    val repository: String,
+    val gav: String,
+    val filter: String?
+)
+
+data class VersionResponse(
+    val version: String
+)
+
+data class VersionsResponse(
+    val versions: List<String>
+)

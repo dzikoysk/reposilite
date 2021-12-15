@@ -42,7 +42,7 @@ class StatusFacade(
     internal fun threadGroupUsage(): String =
         Thread.activeCount().toString()
 
-    internal fun getVersion(): String =
+    internal fun getLatestVersion(): String =
         if (testEnv)
             "<unknown>"
         else

@@ -52,12 +52,12 @@ internal abstract class MavenIntegrationSpecification : ReposiliteSpecification(
         return Pair(hugeFile, hugeFile.length())
     }
 
-    protected fun useMetadata(repository: String, groupId: String, artifactId: String, versions: List<String>): Metadata {
+    protected fun useMetadata(repository: String, groupId: String, artifactId: String, versions: List<String>): Pair<String, Metadata> {
         val sortedVersions = VersionComparator.sortStrings(versions)
         val versioning = Versioning(latest = sortedVersions.firstOrNull(), _versions = sortedVersions)
         val metadata = Metadata(groupId, artifactId, versioning = versioning)
 
-        return reposilite.mavenFacade.saveMetadata(repository, "$groupId.$artifactId".replace(".", "/"), metadata).get()
+        return Pair(repository, reposilite.mavenFacade.saveMetadata(repository, "$groupId.$artifactId".replace(".", "/"), metadata).get())
     }
 
     protected suspend fun useProxiedHost(repository: String, gav: String, content: String, block: (String, String) -> Unit) {

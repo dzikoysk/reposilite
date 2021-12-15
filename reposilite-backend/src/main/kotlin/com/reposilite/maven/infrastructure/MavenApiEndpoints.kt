@@ -80,6 +80,9 @@ internal class MavenApiEndpoints(private val mavenFacade: MavenFacade) : Reposil
             OpenApiParam(name = "repository", description = "Destination repository", required = true),
             OpenApiParam(name = "*", description = "Artifact path qualifier", required = true, allowEmptyValue = true)
         ],
+        queryParams = [
+            OpenApiParam(name = "filter", description = "Version (prefix) filter to apply", required = false),
+        ]
     )
     private val findVersions = ReposiliteRoute("/api/maven/versions/{repository}/<gav>", GET) {
         accessed {
@@ -87,21 +90,6 @@ internal class MavenApiEndpoints(private val mavenFacade: MavenFacade) : Reposil
         }
     }
 
-    @OpenApi(
-        tags = ["Maven"],
-        path = "/api/maven/latest/{repository}/*",
-        methods = [HttpMethod.GET],
-        pathParams = [
-            OpenApiParam(name = "repository", description = "Destination repository", required = true),
-            OpenApiParam(name = "*", description = "Artifact path qualifier", required = true, allowEmptyValue = true)
-        ],
-    )
-    private val findLatest = ReposiliteRoute("/api/maven/latest/{repository}/<gav>", GET) {
-        accessed {
-            response = mavenFacade.findLatest(VersionLookupRequest(this, requiredParameter("repository"), requiredParameter("gav"), ctx.queryParam("filter")))
-        }
-    }
-
-    override val routes = setOf(findRepositories, findRepository, findInRepository, findVersions, findLatest)
+    override val routes = setOf(findRepositories, findRepository, findInRepository, findVersions)
 
 }
