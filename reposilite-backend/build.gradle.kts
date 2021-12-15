@@ -236,23 +236,7 @@ tasks.withType<Test> {
     }
 
     useJUnitPlatform()
-}
-
-tasks.withType<Test> {
-    testLogging {
-        events(
-            TestLogEvent.STARTED,
-            TestLogEvent.PASSED,
-            TestLogEvent.FAILED,
-            TestLogEvent.SKIPPED
-        )
-        exceptionFormat = TestExceptionFormat.FULL
-        showExceptions = true
-        showCauses = true
-        showStackTraces = true
-    }
-
-    useJUnitPlatform()
+    maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).takeIf { it > 0 } ?: 1
 }
 
 jacoco {
