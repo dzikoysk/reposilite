@@ -28,10 +28,9 @@ import com.reposilite.token.TokensCommand
 import com.reposilite.token.infrastructure.AccessTokenApiEndpoints
 import com.reposilite.token.infrastructure.InMemoryAccessTokenRepository
 import com.reposilite.token.infrastructure.SqlAccessTokenRepository
-import com.reposilite.web.WebConfiguration
 import org.jetbrains.exposed.sql.Database
 
-internal object AccessTokenWebConfiguration : WebConfiguration {
+internal object AccessTokenWebConfiguration : DomainComponent {
 
     const val MAX_TOKEN_NAME = 255
     const val MAX_ROUTE_LENGTH = 1024

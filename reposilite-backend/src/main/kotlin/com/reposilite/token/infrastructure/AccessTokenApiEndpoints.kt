@@ -21,11 +21,12 @@ import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.api.AccessTokenPermission
 import com.reposilite.token.api.CreateAccessTokenRequest
 import com.reposilite.token.api.CreateAccessTokenWithNoNameRequest
-import com.reposilite.web.application.ReposiliteRoute
-import com.reposilite.web.application.ReposiliteRoutes
+import com.reposilite.web.api.ReposiliteRoute
+import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.http.notFound
 import com.reposilite.web.http.unauthorized
 import com.reposilite.web.routing.RouteMethod
+import com.reposilite.web.routing.RouteMethod.GET
 import io.javalin.openapi.HttpMethod
 import io.javalin.openapi.OpenApi
 import io.javalin.openapi.OpenApiContent
@@ -40,7 +41,7 @@ internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessToke
         summary = "Returns all existing tokens and data such as their permissions. Note: Requires Manager",
         methods = [HttpMethod.GET]
     )
-    val tokens = ReposiliteRoute("/api/tokens", RouteMethod.GET) {
+    val tokens = ReposiliteRoute("/api/tokens", GET) {
         managerOnly {
             response = accessTokenFacade.getTokens()
         }

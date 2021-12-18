@@ -16,8 +16,7 @@
 
 package com.reposilite.maven.application
 
-import com.reposilite.Reposilite
-import com.reposilite.journalist.Journalist
+import com.reposilite.frontend.FrontendFacade
 import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.MetadataService
 import com.reposilite.maven.ProxyService
@@ -27,47 +26,55 @@ import com.reposilite.maven.RepositoryService
 import com.reposilite.maven.infrastructure.MavenApiEndpoints
 import com.reposilite.maven.infrastructure.MavenEndpoints
 import com.reposilite.maven.infrastructure.MavenLatestApiEndpoints
-import com.reposilite.settings.api.SharedConfiguration.RepositoryConfiguration
-import com.reposilite.shared.http.RemoteClientProvider
+import com.reposilite.plugin.ReposilitePlugin
+import com.reposilite.plugin.api.Plugin
+import com.reposilite.plugin.api.ReposiliteDisposeEvent
+import com.reposilite.plugin.api.ReposilitePostInitializeEvent
+import com.reposilite.settings.SettingsFacade
+import com.reposilite.shared.http.HttpRemoteClientProvider
 import com.reposilite.statistics.StatisticsFacade
-import com.reposilite.web.WebConfiguration
-import com.reposilite.web.application.ReposiliteRoutes
-import panda.std.reactive.Reference
-import java.nio.file.Path
+import com.reposilite.web.api.RoutingSetupEvent
 
-internal object MavenWebConfiguration : WebConfiguration {
+@Plugin(name = "maven", dependencies = ["settings", "statistics", "frontend"])
+internal class MavenWebConfiguration : ReposilitePlugin() {
 
-    fun createFacade(
-        journalist: Journalist,
-        workingDirectory: Path,
-        remoteClientProvider: RemoteClientProvider,
-        repositories: Reference<Map<String, RepositoryConfiguration>>,
-        statisticsFacade: StatisticsFacade
-    ): MavenFacade {
-        val repositoryProvider = RepositoryProvider(journalist, workingDirectory, remoteClientProvider, repositories)
+    override fun initialize(): MavenFacade {
+        val settingsFacade = facade<SettingsFacade>()
+        val statisticsFacade = facade<StatisticsFacade>()
+        val frontendFacade = facade<FrontendFacade>()
+
+        val repositoryProvider = RepositoryProvider(this, extensions.parameters.workingDirectory, HttpRemoteClientProvider, settingsFacade.sharedConfiguration.repositories)
         val securityProvider = RepositorySecurityProvider()
-        val repositoryService = RepositoryService(journalist, repositoryProvider, securityProvider)
+        val repositoryService = RepositoryService(this, repositoryProvider, securityProvider)
 
-        return MavenFacade(
-            journalist,
+        val mavenFacade = MavenFacade(
+            this,
             securityProvider,
             repositoryService,
             ProxyService(),
             MetadataService(repositoryService),
             statisticsFacade
         )
-    }
 
-    override fun routing(reposilite: Reposilite): Set<ReposiliteRoutes> = setOf(
-        MavenEndpoints(reposilite.mavenFacade, reposilite.frontendFacade, reposilite.settingsFacade),
-        MavenApiEndpoints(reposilite.mavenFacade),
-        MavenLatestApiEndpoints(reposilite.mavenFacade)
-    )
-
-    override fun dispose(reposilite: Reposilite) {
-        reposilite.mavenFacade.getRepositories().forEach {
-            it.shutdown()
+        event { _: ReposilitePostInitializeEvent ->
+            logger.info("--- Repositories")
+            mavenFacade.getRepositories().forEach { logger.info("+ ${it.name} (${it.visibility.toString().lowercase()})") }
+            logger.info("${mavenFacade.getRepositories().size} repositories have been found")
+            logger.info("")
         }
-    }
 
+        event { event: RoutingSetupEvent ->
+            event.registerRoutes(MavenEndpoints(mavenFacade, frontendFacade, settingsFacade))
+            event.registerRoutes(MavenApiEndpoints(mavenFacade))
+            event.registerRoutes(MavenLatestApiEndpoints(mavenFacade))
+        }
+
+        event { _: ReposiliteDisposeEvent ->
+            mavenFacade.getRepositories().forEach {
+                it.shutdown()
+            }
+        }
+
+        return mavenFacade
+    }
 }

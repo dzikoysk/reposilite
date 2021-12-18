@@ -24,13 +24,12 @@ import com.reposilite.statistics.StatsCommand
 import com.reposilite.statistics.createDateIntervalProvider
 import com.reposilite.statistics.infrastructure.SqlStatisticsRepository
 import com.reposilite.statistics.infrastructure.StatisticsEndpoint
-import com.reposilite.web.WebConfiguration
-import com.reposilite.web.application.ReposiliteRoutes
+import com.reposilite.web.api.ReposiliteRoutes
 import org.jetbrains.exposed.sql.Database
 import panda.std.reactive.computed
 import java.util.concurrent.TimeUnit.SECONDS
 
-internal object StatisticsWebConfiguration : WebConfiguration {
+internal object StatisticsWebConfiguration : DomainComponent {
 
     fun createFacade(journalist: Journalist, database: Database, settingsFacade: SettingsFacade): StatisticsFacade =
         StatisticsFacade(

@@ -24,8 +24,8 @@ import com.reposilite.maven.api.LookupRequest
 import com.reposilite.settings.SettingsFacade
 import com.reposilite.shared.extensions.resultAttachment
 import com.reposilite.shared.fs.DocumentInfo
-import com.reposilite.web.application.ReposiliteRoute
-import com.reposilite.web.application.ReposiliteRoutes
+import com.reposilite.web.api.ReposiliteRoute
+import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.routing.RouteMethod.DELETE
 import com.reposilite.web.routing.RouteMethod.GET

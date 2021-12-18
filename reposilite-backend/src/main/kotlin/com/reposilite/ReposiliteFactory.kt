@@ -16,9 +16,8 @@
 
 package com.reposilite
 
-import com.reposilite.auth.application.AuthenticationWebConfiguration
-import com.reposilite.badge.application.BadgeWebConfiguration
-import com.reposilite.console.application.ConsoleWebConfiguration
+import com.reposilite.auth.application.AuthenticationPlugin
+import com.reposilite.console.application.ConsolePlugin
 import com.reposilite.frontend.application.FrontendWebConfiguration
 import com.reposilite.journalist.Channel
 import com.reposilite.journalist.Journalist
@@ -33,9 +32,7 @@ import com.reposilite.statistics.application.StatisticsWebConfiguration
 import com.reposilite.status.application.FailureWebConfiguration
 import com.reposilite.status.application.StatusWebConfiguration
 import com.reposilite.token.application.AccessTokenWebConfiguration
-import com.reposilite.web.JavalinWebServer
-import com.reposilite.web.WebConfiguration
-import com.reposilite.web.web
+import com.reposilite.web.HttpServer
 import panda.utilities.console.Effect
 
 object ReposiliteFactory {
@@ -62,20 +59,18 @@ object ReposiliteFactory {
         val scheduler = newSingleThreadScheduledExecutor("Reposilite | Scheduler")
         val ioService = newFixedThreadPool(2, localConfiguration.ioThreadPool.get(), "Reposilite | IO")
         val database = DatabaseSourceFactory.createConnection(parameters.workingDirectory, localConfiguration.database.get())
+        val webServer = HttpServer()
 
-        val webServer = JavalinWebServer()
-        val webs = mutableListOf<WebConfiguration>()
-
-        val settingsFacade = web(webs, SettingsWebConfiguration) { createFacade(journalist, parameters, localConfiguration, database) }
-        val statusFacade = web(webs, StatusWebConfiguration) { createFacade(parameters.testEnv, webServer) }
-        val failureFacade = web(webs, FailureWebConfiguration) { createFacade(journalist) }
-        val consoleFacade = web(webs, ConsoleWebConfiguration) { createFacade(journalist, failureFacade) }
-        val statisticFacade = web(webs, StatisticsWebConfiguration) { createFacade(journalist, database, settingsFacade) }
-        val frontendFacade = web(webs, FrontendWebConfiguration) { createFacade(localConfiguration, settingsFacade) }
-        val accessTokenFacade = web(webs, AccessTokenWebConfiguration) { createFacade(database) }
-        val authenticationFacade = web(webs, AuthenticationWebConfiguration) { createFacade(journalist, accessTokenFacade) }
-
-        val mavenFacade = web(webs, MavenWebConfiguration) {
+        val domains = mutableListOf<DomainComponent>()
+        val settingsFacade = domain(domains, SettingsWebConfiguration) { createFacade(journalist, parameters, localConfiguration, database) }
+        val statusFacade = domain(domains, StatusWebConfiguration) { createFacade(parameters.testEnv, webServer) }
+        val failureFacade = domain(domains, FailureWebConfiguration) { createFacade(journalist) }
+        val consoleFacade = domain(domains, ConsolePlugin) { createFacade(journalist, failureFacade) }
+        val statisticFacade = domain(domains, StatisticsWebConfiguration) { createFacade(journalist, database, settingsFacade) }
+        val frontendFacade = domain(domains, FrontendWebConfiguration) { createFacade(localConfiguration, settingsFacade) }
+        val accessTokenFacade = domain(domains, AccessTokenWebConfiguration) { createFacade(database) }
+        val authenticationFacade = domain(domains, AuthenticationPlugin) { createFacade(journalist, accessTokenFacade) }
+        val mavenFacade = domain(domains, MavenWebConfiguration) {
             createFacade(
                 journalist,
                 parameters.workingDirectory,
@@ -84,8 +79,7 @@ object ReposiliteFactory {
                 statisticFacade
             )
         }
-
-        val badgeFacade = web(webs, BadgeWebConfiguration) { createFacade(settingsFacade, mavenFacade) }
+        val badgeFacade = domain(domains, BadgeWebConfiguration) { createFacade(settingsFacade, mavenFacade) }
 
         return Reposilite(
             journalist = journalist,
@@ -93,19 +87,13 @@ object ReposiliteFactory {
             ioService = ioService,
             scheduler = scheduler,
             database = database,
-            webServer = webServer,
-            webs = webs,
-            settingsFacade = settingsFacade,
-            statusFacade = statusFacade,
-            failureFacade = failureFacade,
-            authenticationFacade = authenticationFacade,
-            mavenFacade = mavenFacade,
-            consoleFacade = consoleFacade,
-            accessTokenFacade = accessTokenFacade,
-            frontendFacade = frontendFacade,
-            statisticsFacade = statisticFacade,
-            badgeFacade = badgeFacade
+            webServer = webServer
         )
+    }
+
+    private fun <COMPONENT : DomainComponent, FACADE> domain(domains: MutableCollection<DomainComponent>, domain: COMPONENT, block: COMPONENT.() -> FACADE): FACADE {
+        domains.add(domain)
+        return block(domain)
     }
 
 }

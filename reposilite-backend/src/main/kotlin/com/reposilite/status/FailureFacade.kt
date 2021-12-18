@@ -18,10 +18,11 @@ package com.reposilite.status
 
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
+import com.reposilite.plugin.api.Facade
 import panda.utilities.StringUtils
 import java.util.concurrent.ConcurrentHashMap
 
-class FailureFacade internal constructor(private val journalist: Journalist) : Journalist {
+class FailureFacade internal constructor(private val journalist: Journalist) : Journalist, Facade {
 
     private val exceptions = ConcurrentHashMap.newKeySet<String>()
 

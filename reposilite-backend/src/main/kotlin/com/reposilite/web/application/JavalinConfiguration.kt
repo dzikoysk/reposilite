@@ -25,6 +25,10 @@ import com.reposilite.VERSION
 import com.reposilite.journalist.Journalist
 import com.reposilite.settings.api.LocalConfiguration
 import com.reposilite.settings.api.SharedConfiguration
+import com.reposilite.shared.ContextDsl
+import com.reposilite.web.http.response
+import com.reposilite.web.http.uri
+import com.reposilite.web.routing.RoutingPlugin
 import io.javalin.core.JavalinConfig
 import io.javalin.core.compression.CompressionStrategy
 import io.javalin.openapi.plugin.OpenApiConfiguration
@@ -37,7 +41,7 @@ import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.util.ssl.SslContextFactory
 import org.eclipse.jetty.util.thread.ThreadPool
 
-internal object WebServerConfiguration {
+internal object JavalinConfiguration {
 
     internal fun configure(reposilite: Reposilite, webThreadPool: ThreadPool, config: JavalinConfig) {
         val server = Server(webThreadPool)
@@ -52,6 +56,7 @@ internal object WebServerConfiguration {
         configureCors(config)
         configureOpenApi(sharedConfiguration, config)
         configureDebug(reposilite, localConfiguration, config)
+        configureReactiveRoutingPlugin(config, reposilite)
     }
 
     private fun configureJavalin(config: JavalinConfig, localConfiguration: LocalConfiguration, sharedConfiguration: SharedConfiguration) {
@@ -66,6 +71,32 @@ internal object WebServerConfiguration {
             "gzip" -> config.compressionStrategy(CompressionStrategy.GZIP)
             else -> throw IllegalStateException("Unknown compression strategy ${localConfiguration.compressionStrategy.get()}")
         }
+    }
+
+    private fun configureReactiveRoutingPlugin(config: JavalinConfig, reposilite: Reposilite) {
+        val failureFacade = reposilite.failureFacade
+
+        val plugin = RoutingPlugin<ContextDsl, Unit>(
+            handler = { ctx, route ->
+                try {
+                    val dsl = ContextDsl(reposilite.logger, ctx, lazy { reposilite.authenticationFacade.authenticateByHeader(ctx.headerMap()) })
+                    route.handler(dsl)
+                    dsl.response?.also { ctx.response(it) }
+                } catch (throwable: Throwable) {
+                    throwable.printStackTrace()
+                    failureFacade.throwException(ctx.uri(), throwable)
+                }
+            }
+        )
+
+        reposilite.webs.asSequence()
+            .flatMap { it.routing(reposilite) }
+            .flatMap { it.routes }
+            .distinctBy { it.methods.joinToString(";") + ":" + it.path }
+            .toSet()
+            .let { plugin.registerRoutes(it) }
+
+        config.registerPlugin(plugin)
     }
 
     private fun configureJsonSerialization(config: JavalinConfig) {

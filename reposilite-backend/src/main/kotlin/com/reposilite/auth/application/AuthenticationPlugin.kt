@@ -16,23 +16,28 @@
 
 package com.reposilite.auth.application
 
-import com.reposilite.Reposilite
 import com.reposilite.auth.AuthenticationFacade
 import com.reposilite.auth.infrastructure.AuthenticationEndpoint
 import com.reposilite.auth.infrastructure.PostAuthHandler
-import com.reposilite.journalist.Journalist
+import com.reposilite.plugin.ReposilitePlugin
+import com.reposilite.plugin.api.Facade
+import com.reposilite.plugin.api.Plugin
 import com.reposilite.token.AccessTokenFacade
-import com.reposilite.web.WebConfiguration
-import com.reposilite.web.application.ReposiliteRoutes
+import com.reposilite.web.api.RoutingSetupEvent
 
-internal object AuthenticationWebConfiguration : WebConfiguration {
+@Plugin(name = "authentication", dependencies = ["access-token"])
+internal class AuthenticationPlugin : ReposilitePlugin() {
 
-    fun createFacade(journalist: Journalist, accessTokenFacade: AccessTokenFacade): AuthenticationFacade =
-        AuthenticationFacade(journalist, accessTokenFacade)
+    override fun initialize(): Facade {
+        val accessTokenFacade = facade<AccessTokenFacade>()
+        val authenticationFacade = AuthenticationFacade(this, accessTokenFacade)
 
-    override fun routing(reposilite: Reposilite): Set<ReposiliteRoutes> = setOf(
-        AuthenticationEndpoint(reposilite.authenticationFacade),
-        PostAuthHandler()
-    )
+        extensions.registerEvent { event: RoutingSetupEvent ->
+            event.registerRoutes(AuthenticationEndpoint(authenticationFacade))
+            event.registerRoutes(PostAuthHandler())
+        }
+
+        return authenticationFacade
+    }
 
 }

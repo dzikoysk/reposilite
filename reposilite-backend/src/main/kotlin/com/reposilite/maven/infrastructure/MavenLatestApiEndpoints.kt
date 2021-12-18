@@ -7,9 +7,9 @@ import com.reposilite.maven.api.VersionResponse
 import com.reposilite.shared.fs.DocumentInfo
 import com.reposilite.shared.fs.FileDetails
 import com.reposilite.token.api.AccessToken
-import com.reposilite.web.ContextDsl
-import com.reposilite.web.application.ReposiliteRoute
-import com.reposilite.web.application.ReposiliteRoutes
+import com.reposilite.shared.ContextDsl
+import com.reposilite.web.api.ReposiliteRoute
+import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.routing.RouteMethod.GET
 import io.javalin.http.ContentType

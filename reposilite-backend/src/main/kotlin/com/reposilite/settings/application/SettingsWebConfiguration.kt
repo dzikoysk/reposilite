@@ -10,11 +10,10 @@ import com.reposilite.settings.infrastructure.FileSystemConfigurationProvider
 import com.reposilite.settings.infrastructure.SettingsEndpoints
 import com.reposilite.settings.infrastructure.SqlConfigurationProvider
 import com.reposilite.settings.infrastructure.SqlSettingsRepository
-import com.reposilite.web.WebConfiguration
-import com.reposilite.web.application.ReposiliteRoutes
+import com.reposilite.web.api.ReposiliteRoutes
 import org.jetbrains.exposed.sql.Database
 
-internal object SettingsWebConfiguration : WebConfiguration {
+internal object SettingsWebConfiguration : DomainComponent {
 
     const val LOCAL_CONFIGURATION_FILE = "configuration.local.cdn"
     const val SHARED_CONFIGURATION_FILE = "configuration.shared.cdn"

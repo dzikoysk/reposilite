@@ -2,8 +2,8 @@ package com.reposilite.badge.infrastructure
 
 import com.reposilite.badge.BadgeFacade
 import com.reposilite.badge.api.LatestBadgeRequest
-import com.reposilite.web.application.ReposiliteRoute
-import com.reposilite.web.application.ReposiliteRoutes
+import com.reposilite.web.api.ReposiliteRoute
+import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.http.contentDisposition
 import com.reposilite.web.routing.RouteMethod.GET
 import io.javalin.openapi.HttpMethod

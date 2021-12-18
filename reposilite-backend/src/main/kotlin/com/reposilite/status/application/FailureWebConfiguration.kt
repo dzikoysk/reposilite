@@ -21,17 +21,13 @@ import com.reposilite.journalist.Journalist
 import com.reposilite.status.FailureFacade
 import com.reposilite.status.FailuresCommand
 import com.reposilite.status.infrastructure.FailureHandler
-import com.reposilite.web.WebConfiguration
 import io.javalin.Javalin
 
-internal object FailureWebConfiguration : WebConfiguration {
+internal object FailureWebConfiguration : DomainComponent {
 
     fun createFacade(journalist: Journalist) =
         FailureFacade(journalist)
 
-    override fun initialize(reposilite: Reposilite) {
-        reposilite.consoleFacade.registerCommand(FailuresCommand(reposilite.failureFacade))
-    }
 
     override fun javalin(reposilite: Reposilite, javalin: Javalin) {
         javalin.exception(Exception::class.java, FailureHandler(reposilite.failureFacade))

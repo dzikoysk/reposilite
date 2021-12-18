@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-package com.reposilite.status.infrastructure
+package com.reposilite.web.api
 
-import com.reposilite.web.api.ReposiliteRoute
-import com.reposilite.web.api.ReposiliteRoutes
-import com.reposilite.web.routing.RouteMethod.BEFORE
+import com.reposilite.shared.ContextDsl
+import com.reposilite.web.routing.AbstractRoutes
+import com.reposilite.web.routing.Route
+import com.reposilite.web.routing.RouteMethod
 
-internal class RouteAccessHandler : ReposiliteRoutes() {
+abstract class ReposiliteRoutes : AbstractRoutes<ContextDsl, Unit>()
 
-    private val collectRequests = ReposiliteRoute("/<*>", BEFORE) {
-        logger.debug("${ctx.method()} $uri from ${ctx.ip()}")
-    }
-
-    override val routes = setOf(collectRequests)
-
-}
+class ReposiliteRoute(
+    path: String,
+    vararg methods: RouteMethod,
+    handler: ContextDsl.() -> Unit
+) : Route<ContextDsl, Unit>(path = path, methods = methods, handler = handler)

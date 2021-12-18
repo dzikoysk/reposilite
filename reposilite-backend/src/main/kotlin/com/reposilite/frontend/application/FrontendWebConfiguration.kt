@@ -20,55 +20,63 @@ import com.reposilite.Reposilite
 import com.reposilite.frontend.FrontendFacade
 import com.reposilite.frontend.infrastructure.CustomFrontendHandler
 import com.reposilite.frontend.infrastructure.ResourcesFrontendHandler
-import com.reposilite.settings.api.LocalConfiguration
+import com.reposilite.plugin.ReposilitePlugin
+import com.reposilite.plugin.api.Plugin
+import com.reposilite.plugin.api.ReposiliteInitializeEvent
 import com.reposilite.settings.SettingsFacade
-import com.reposilite.web.WebConfiguration
-import com.reposilite.web.application.ReposiliteRoutes
-import io.javalin.Javalin
+import com.reposilite.web.api.HttpServerInitializationEvent
+import com.reposilite.web.api.ReposiliteRoutes
+import com.reposilite.web.api.RoutingSetupEvent
 import io.javalin.http.NotFoundResponse
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.exists
 
-internal object FrontendWebConfiguration : WebConfiguration {
+@Plugin(name = "frontend", dependencies = ["settings"])
+internal class FrontendWebConfiguration : ReposilitePlugin() {
 
-    private const val STATIC_DIRECTORY = "static"
-    private const val FRONTEND_DIRECTORY = "reposilite-frontend"
+    private val STATIC_DIRECTORY = "static"
+    private val FRONTEND_DIRECTORY = "reposilite-frontend"
 
-    fun createFacade(localConfiguration: LocalConfiguration, settingsFacade: SettingsFacade): FrontendFacade =
-        settingsFacade.sharedConfiguration.let {
+    override fun initialize(): FrontendFacade {
+        val settingsFacade = facade<SettingsFacade>()
+
+        val frontendFacade = with(settingsFacade.sharedConfiguration) {
             FrontendFacade(
-                localConfiguration.cacheContent,
-                it.basePath,
-                it.id,
-                it.title,
-                it.description,
-                it.organizationWebsite,
-                it.organizationLogo,
-                it.icpLicense
+                settingsFacade.localConfiguration.cacheContent,
+                basePath,
+                id,
+                title,
+                description,
+                organizationWebsite,
+                organizationLogo,
+                icpLicense
             )
         }
 
-    override fun initialize(reposilite: Reposilite) {
-        with (staticDirectory(reposilite)) {
-            if (exists().not()) {
+        event { event: ReposiliteInitializeEvent -> staticDirectory(event.reposilite)
+            .takeIf { it.exists().not() }
+            ?.run {
                 Files.createDirectory(this)
                 Files.copy(Reposilite::class.java.getResourceAsStream("/$STATIC_DIRECTORY/index.html")!!, resolve("index.html"))
             }
         }
-    }
 
-    override fun routing(reposilite: Reposilite): Set<ReposiliteRoutes> = mutableSetOf<ReposiliteRoutes>().also {
-        if (reposilite.settingsFacade.sharedConfiguration.frontend.get()) {
-            it.add(ResourcesFrontendHandler(reposilite.frontendFacade, FRONTEND_DIRECTORY))
+        event { event: RoutingSetupEvent -> event.registerRoutes(
+            mutableSetOf<ReposiliteRoutes>().also {
+                if (settingsFacade.sharedConfiguration.frontend.get()) {
+                    it.add(ResourcesFrontendHandler(frontendFacade, FRONTEND_DIRECTORY))
+                }
+                it.add(CustomFrontendHandler(frontendFacade, staticDirectory(event.reposilite)))
+            }
+        )}
+
+        event { event: HttpServerInitializationEvent ->
+            event.javalin.exception(NotFoundResponse::class.java, NotFoundHandler(frontendFacade))
+            event.javalin.error(404, NotFoundHandler(frontendFacade))
         }
 
-        it.add(CustomFrontendHandler(reposilite.frontendFacade, staticDirectory(reposilite)))
-    }
-
-    override fun javalin(reposilite: Reposilite, javalin: Javalin) {
-        javalin.exception(NotFoundResponse::class.java, NotFoundHandler(reposilite.frontendFacade))
-        javalin.error(404, NotFoundHandler(reposilite.frontendFacade))
+        return frontendFacade
     }
 
     private fun staticDirectory(reposilite: Reposilite): Path =
