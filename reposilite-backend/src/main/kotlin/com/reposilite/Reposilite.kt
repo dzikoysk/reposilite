@@ -21,7 +21,7 @@ import com.reposilite.plugin.ExtensionsManagement
 import com.reposilite.plugin.api.ReposiliteDisposeEvent
 import com.reposilite.plugin.api.ReposiliteInitializeEvent
 import com.reposilite.plugin.api.ReposilitePostInitializeEvent
-import com.reposilite.shared.extensions.TimeUtils.getPrettyUptimeInSeconds
+import com.reposilite.plugin.api.ReposiliteStartedEvent
 import com.reposilite.shared.extensions.peek
 import com.reposilite.web.HttpServer
 import org.jetbrains.exposed.sql.Database
@@ -48,32 +48,21 @@ class Reposilite(
     }
 
     fun launch() {
-        logger.info("")
-        logger.info("--- Loading domain configurations")
-        extensionsManagement.notifyListeners(ReposiliteInitializeEvent())
-        logger.info("Loaded ${extensionsManagement.getPlugins().size} plugins")
-        logger.info("")
-
-        extensionsManagement.notifyListeners(ReposilitePostInitializeEvent())
-        alive.set(true)
-        Thread.currentThread().name = "Reposilite | Main Thread"
-
         try {
+            logger.info("")
+            logger.info("--- Loading domain configurations")
+            extensionsManagement.notifyListeners(ReposiliteInitializeEvent(this))
+            logger.info("Loaded ${extensionsManagement.getPlugins().size} plugins")
+            logger.info("")
+
+            extensionsManagement.notifyListeners(ReposilitePostInitializeEvent(this))
+            alive.set(true)
+            Thread.currentThread().name = "Reposilite | Main Thread"
+
             logger.info("Binding server at ${parameters.hostname}::${parameters.port}")
             webServer.start(this)
             Runtime.getRuntime().addShutdownHook(shutdownHook)
-
-            logger.info("Done (${getPrettyUptimeInSeconds(statusFacade.startTime)})!")
-            logger.info("")
-            consoleFacade.executeCommand("help")
-
-            ioService.execute {
-                logger.info("")
-                logger.info("Collecting status metrics...")
-                logger.info("")
-                consoleFacade.executeCommand("status")
-                logger.info("")
-            }
+            extensionsManagement.notifyListeners(ReposiliteStartedEvent(this))
         } catch (exception: Exception) {
             logger.error("Failed to start Reposilite")
             logger.exception(exception)
@@ -87,7 +76,7 @@ class Reposilite(
             logger.info("Shutting down ${parameters.hostname}::${parameters.port}...")
             scheduler.shutdown()
             ioService.shutdown()
-            extensionsManagement.notifyListeners(ReposiliteDisposeEvent())
+            extensionsManagement.notifyListeners(ReposiliteDisposeEvent(this))
             webServer.stop()
             scheduler.shutdownNow()
             ioService.shutdownNow()

@@ -24,8 +24,8 @@ import com.reposilite.token.api.AccessTokenPermission.Companion.findAccessTokenP
 import com.reposilite.token.api.AccessTokenType
 import com.reposilite.token.api.Route
 import com.reposilite.token.api.RoutePermission.Companion.findRoutePermissionByIdentifier
-import com.reposilite.token.application.AccessTokenWebConfiguration.MAX_ROUTE_LENGTH
-import com.reposilite.token.application.AccessTokenWebConfiguration.MAX_TOKEN_NAME
+import com.reposilite.token.application.AccessTokenWebConfiguration.Companion.MAX_ROUTE_LENGTH
+import com.reposilite.token.application.AccessTokenWebConfiguration.Companion.MAX_TOKEN_NAME
 import net.dzikoysk.exposed.shared.UNINITIALIZED_ENTITY_ID
 import net.dzikoysk.exposed.upsert.withIndex
 import net.dzikoysk.exposed.upsert.withUnique

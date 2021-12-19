@@ -17,7 +17,9 @@
 package com.reposilite.web
 
 import com.reposilite.Reposilite
-import com.reposilite.shared.extensions.TimeUtils
+import com.reposilite.settings.SettingsFacade
+import com.reposilite.web.api.HttpServerInitializationEvent
+import com.reposilite.web.api.HttpServerStoppedEvent
 import com.reposilite.web.application.JavalinConfiguration
 import io.javalin.Javalin
 import org.eclipse.jetty.io.EofException
@@ -32,7 +34,10 @@ class HttpServer {
 
     fun start(reposilite: Reposilite) =
         runWithDisabledLogging {
-            this.webThreadPool = QueuedThreadPool(reposilite.settingsFacade.localConfiguration.webThreadPool.get(), 2).also {
+            val extensionsManagement = reposilite.extensionsManagement
+            val settingsFacade = extensionsManagement.facade<SettingsFacade>()
+
+            this.webThreadPool = QueuedThreadPool(settingsFacade.localConfiguration.webThreadPool.get(), 2).also {
                 it.name = "Reposilite | Web (${it.maxThreads}) -"
                 it.start()
             }
@@ -41,10 +46,10 @@ class HttpServer {
                 .exception(EofException::class.java) { _, _ -> reposilite.logger.warn("Client closed connection") }
                 .events { listener ->
                     listener.serverStopping { reposilite.logger.info("Server stopping...") }
-                    listener.serverStopped { reposilite.logger.info("Bye! Uptime: " + TimeUtils.getPrettyUptimeInMinutes(reposilite.statusFacade.startTime)) }
+                    listener.serverStopped { extensionsManagement.notifyListeners(HttpServerStoppedEvent()) }
                 }
                 .also {
-                    reposilite.webs.forEach { web -> web.javalin(reposilite, it) }
+                    reposilite.extensionsManagement.notifyListeners(HttpServerInitializationEvent(reposilite, it))
                 }
 
             if (!servlet) {

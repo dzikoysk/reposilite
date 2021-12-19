@@ -1,8 +1,9 @@
 package com.reposilite.web.api
 
 import com.reposilite.Reposilite
+import com.reposilite.plugin.api.Event
 
-class RoutingSetupEvent(val reposilite: Reposilite) {
+class RoutingSetupEvent(val reposilite: Reposilite) : Event {
 
     private val routes: MutableSet<ReposiliteRoutes> = mutableSetOf()
 

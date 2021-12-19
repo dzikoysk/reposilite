@@ -22,10 +22,14 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.reposilite.Reposilite
 import com.reposilite.VERSION
+import com.reposilite.auth.AuthenticationFacade
 import com.reposilite.journalist.Journalist
+import com.reposilite.settings.SettingsFacade
 import com.reposilite.settings.api.LocalConfiguration
 import com.reposilite.settings.api.SharedConfiguration
 import com.reposilite.shared.ContextDsl
+import com.reposilite.status.FailureFacade
+import com.reposilite.web.api.RoutingSetupEvent
 import com.reposilite.web.http.response
 import com.reposilite.web.http.uri
 import com.reposilite.web.routing.RoutingPlugin
@@ -47,8 +51,9 @@ internal object JavalinConfiguration {
         val server = Server(webThreadPool)
         config.server { server }
 
-        val localConfiguration = reposilite.settingsFacade.localConfiguration
-        val sharedConfiguration = reposilite.settingsFacade.sharedConfiguration
+        val settingsFacade = reposilite.extensionsManagement.facade<SettingsFacade>()
+        val localConfiguration = settingsFacade.localConfiguration
+        val sharedConfiguration = settingsFacade.sharedConfiguration
 
         configureJavalin(config, localConfiguration, sharedConfiguration)
         configureJsonSerialization(config)
@@ -74,12 +79,14 @@ internal object JavalinConfiguration {
     }
 
     private fun configureReactiveRoutingPlugin(config: JavalinConfig, reposilite: Reposilite) {
-        val failureFacade = reposilite.failureFacade
+        val extensionManager = reposilite.extensionsManagement
+        val failureFacade = extensionManager.facade<FailureFacade>()
+        val authenticationFacade = extensionManager.facade<AuthenticationFacade>()
 
         val plugin = RoutingPlugin<ContextDsl, Unit>(
             handler = { ctx, route ->
                 try {
-                    val dsl = ContextDsl(reposilite.logger, ctx, lazy { reposilite.authenticationFacade.authenticateByHeader(ctx.headerMap()) })
+                    val dsl = ContextDsl(reposilite.logger, ctx, lazy { authenticationFacade.authenticateByHeader(ctx.headerMap()) })
                     route.handler(dsl)
                     dsl.response?.also { ctx.response(it) }
                 } catch (throwable: Throwable) {
@@ -89,8 +96,8 @@ internal object JavalinConfiguration {
             }
         )
 
-        reposilite.webs.asSequence()
-            .flatMap { it.routing(reposilite) }
+        extensionManager.notifyListeners(RoutingSetupEvent(reposilite))
+            .getRoutes().asSequence()
             .flatMap { it.routes }
             .distinctBy { it.methods.joinToString(";") + ":" + it.path }
             .toSet()

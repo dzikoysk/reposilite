@@ -28,6 +28,7 @@ import com.reposilite.plugin.api.Facade
 import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposiliteDisposeEvent
 import com.reposilite.plugin.api.ReposiliteInitializeEvent
+import com.reposilite.plugin.api.ReposiliteStartedEvent
 import com.reposilite.settings.SettingsFacade
 import com.reposilite.status.FailureFacade
 import com.reposilite.web.api.HttpServerInitializationEvent
@@ -44,7 +45,7 @@ internal class ConsolePlugin : ReposilitePlugin() {
         val commandExecutor = CommandExecutor(this, failureFacade, System.`in`)
         val consoleFacade = ConsoleFacade(this, commandExecutor)
 
-        extensions.registerEvent { event: ReposiliteInitializeEvent ->
+        event { event: ReposiliteInitializeEvent ->
             consoleFacade.registerCommand(HelpCommand(consoleFacade))
             consoleFacade.registerCommand(LevelCommand(event.reposilite.journalist))
             consoleFacade.registerCommand(StopCommand(event.reposilite))
@@ -56,18 +57,29 @@ internal class ConsolePlugin : ReposilitePlugin() {
             }
         }
 
-        extensions.registerEvent { event: RoutingSetupEvent ->
+        event { event: RoutingSetupEvent ->
             event.registerRoutes(ConsoleEndpoint(consoleFacade))
         }
 
-        extensions.registerEvent { event: HttpServerInitializationEvent ->
+        event { event: HttpServerInitializationEvent ->
             event.javalin.ws(
                 "/api/console/sock",
                 CliEndpoint(event.reposilite.journalist, authenticationFacade, consoleFacade, settingsFacade.sharedConfiguration.forwardedIp)
             )
         }
 
-        extensions.registerEvent { _: ReposiliteDisposeEvent ->
+        event { event: ReposiliteStartedEvent ->
+            event.reposilite.ioService.execute {
+                consoleFacade.executeCommand("help")
+                logger.info("")
+                logger.info("Collecting status metrics...")
+                logger.info("")
+                consoleFacade.executeCommand("status")
+                logger.info("")
+            }
+        }
+
+        event { _: ReposiliteDisposeEvent ->
             consoleFacade.commandExecutor.stop()
         }
 

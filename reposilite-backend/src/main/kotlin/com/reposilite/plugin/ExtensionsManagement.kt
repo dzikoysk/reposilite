@@ -6,8 +6,15 @@ import com.reposilite.journalist.Logger
 import com.reposilite.plugin.api.Event
 import com.reposilite.plugin.api.EventListener
 import com.reposilite.plugin.api.Facade
+import com.reposilite.settings.api.LocalConfiguration
+import org.jetbrains.exposed.sql.Database
 
-class ExtensionsManagement(private val journalist: Journalist, val parameters: ReposiliteParameters) : Journalist {
+class ExtensionsManagement(
+    private val journalist: Journalist,
+    val parameters: ReposiliteParameters,
+    val localConfiguration: LocalConfiguration,
+    val database: Database
+) : Journalist {
 
     private val plugins: MutableList<ReposilitePlugin> = mutableListOf()
     private val facades: MutableList<Facade> = mutableListOf()
@@ -23,18 +30,19 @@ class ExtensionsManagement(private val journalist: Journalist, val parameters: R
         listeners.sortedBy { it.priority() }
     }
 
-    fun notifyListeners(event: Event) {
+    fun <E : Event> notifyListeners(event: E): E {
         events[event.javaClass]?.forEach { it.onCall(event) }
+        return event
     }
 
-    inline fun <reified F : Facade> findFacade(): F? =
-        getFacades().find { it is F } as? F
+    inline fun <reified F : Facade> facade(): F =
+        getFacades().find { it is F } as F
 
     fun getFacades(): Collection<Facade> =
         facades
 
-    inline fun <reified P : ReposilitePlugin> findPlugin(): P? =
-        getPlugins().find { it is P } as? P
+    inline fun <reified P : ReposilitePlugin> plugin(): P =
+        getPlugins().find { it is P } as P
 
     fun getPlugins(): Collection<ReposilitePlugin> =
         plugins

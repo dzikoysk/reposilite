@@ -16,47 +16,52 @@
 
 package com.reposilite.statistics.application
 
-import com.reposilite.Reposilite
-import com.reposilite.journalist.Journalist
+import com.reposilite.console.ConsoleFacade
+import com.reposilite.plugin.ReposilitePlugin
+import com.reposilite.plugin.api.Plugin
+import com.reposilite.plugin.api.ReposiliteInitializeEvent
 import com.reposilite.settings.SettingsFacade
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.statistics.StatsCommand
 import com.reposilite.statistics.createDateIntervalProvider
 import com.reposilite.statistics.infrastructure.SqlStatisticsRepository
 import com.reposilite.statistics.infrastructure.StatisticsEndpoint
-import com.reposilite.web.api.ReposiliteRoutes
-import org.jetbrains.exposed.sql.Database
+import com.reposilite.web.api.RoutingSetupEvent
 import panda.std.reactive.computed
 import java.util.concurrent.TimeUnit.SECONDS
 
-internal object StatisticsWebConfiguration : DomainComponent {
+@Plugin(name = "statistics", dependencies = ["settings", "console"])
+internal class StatisticsWebConfiguration : ReposilitePlugin() {
 
-    fun createFacade(journalist: Journalist, database: Database, settingsFacade: SettingsFacade): StatisticsFacade =
-        StatisticsFacade(
-            journalist,
+    override fun initialize(): StatisticsFacade {
+        val settingsFacade = facade<SettingsFacade>()
+        val consoleFacade = facade<ConsoleFacade>()
+
+        val statisticsFacade = StatisticsFacade(
+            this,
             computed(settingsFacade.sharedConfiguration.statistics) {
                 settingsFacade.sharedConfiguration.statistics.map {
                     createDateIntervalProvider(it.resolvedRequestsInterval)
                 }
             },
-            SqlStatisticsRepository(database)
+            SqlStatisticsRepository(extensions.database)
         )
 
-    override fun initialize(reposilite: Reposilite) {
-        val statisticsFacade = reposilite.statisticsFacade
-
-        val consoleFacade = reposilite.consoleFacade
         consoleFacade.registerCommand(StatsCommand(statisticsFacade))
 
-        reposilite.scheduler.scheduleWithFixedDelay({
-            reposilite.ioService.execute {
-                statisticsFacade.saveRecordsBulk()
-            }
-        }, 10, 10, SECONDS)
-    }
+        event { event: ReposiliteInitializeEvent ->
+            event.reposilite.scheduler.scheduleWithFixedDelay({
+                event.reposilite.ioService.execute {
+                    statisticsFacade.saveRecordsBulk()
+                }
+            }, 10, 10, SECONDS)
+        }
 
-    override fun routing(reposilite: Reposilite): Set<ReposiliteRoutes> = setOf(
-        StatisticsEndpoint(reposilite.statisticsFacade)
-    )
+        event { event: RoutingSetupEvent ->
+            event.registerRoutes(StatisticsEndpoint(statisticsFacade))
+        }
+
+        return statisticsFacade
+    }
 
 }

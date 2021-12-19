@@ -16,7 +16,9 @@
 
 package com.reposilite.token.application
 
-import com.reposilite.Reposilite
+import com.reposilite.console.ConsoleFacade
+import com.reposilite.plugin.ReposilitePlugin
+import com.reposilite.plugin.api.Plugin
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.ChModCommand
 import com.reposilite.token.ChNameCommand
@@ -28,27 +30,27 @@ import com.reposilite.token.TokensCommand
 import com.reposilite.token.infrastructure.AccessTokenApiEndpoints
 import com.reposilite.token.infrastructure.InMemoryAccessTokenRepository
 import com.reposilite.token.infrastructure.SqlAccessTokenRepository
-import org.jetbrains.exposed.sql.Database
+import com.reposilite.web.api.RoutingSetupEvent
 
-internal object AccessTokenWebConfiguration : DomainComponent {
+@Plugin(name = "access-token", dependencies = ["console"])
+internal class AccessTokenWebConfiguration : ReposilitePlugin() {
 
-    const val MAX_TOKEN_NAME = 255
-    const val MAX_ROUTE_LENGTH = 1024
+    companion object {
+        const val MAX_TOKEN_NAME = 255
+        const val MAX_ROUTE_LENGTH = 1024
+    }
 
-    fun createFacade(database: Database): AccessTokenFacade =
-        AccessTokenFacade(
+    override fun initialize(): AccessTokenFacade {
+        val accessTokenFacade = AccessTokenFacade(
             temporaryRepository = InMemoryAccessTokenRepository(),
-            persistentRepository = SqlAccessTokenRepository(database)
+            persistentRepository = SqlAccessTokenRepository(extensions.database)
         )
 
-    override fun initialize(reposilite: Reposilite) {
-        val accessTokenFacade = reposilite.accessTokenFacade
-
-        reposilite.parameters.tokens.forEach {
+        extensions.parameters.tokens.forEach {
             accessTokenFacade.createTemporaryAccessToken(it)
         }
 
-        val consoleFacade = reposilite.consoleFacade
+        val consoleFacade = facade<ConsoleFacade>()
         consoleFacade.registerCommand(TokensCommand(accessTokenFacade))
         consoleFacade.registerCommand(KeygenCommand(accessTokenFacade))
         consoleFacade.registerCommand(ChNameCommand(accessTokenFacade))
@@ -56,9 +58,12 @@ internal object AccessTokenWebConfiguration : DomainComponent {
         consoleFacade.registerCommand(RevokeCommand(accessTokenFacade))
         consoleFacade.registerCommand(RouteAdd(accessTokenFacade))
         consoleFacade.registerCommand(RouteRemove(accessTokenFacade))
+
+        event { event: RoutingSetupEvent ->
+            event.registerRoutes(AccessTokenApiEndpoints(accessTokenFacade))
+        }
+
+        return accessTokenFacade
     }
 
-    override fun routing(reposilite: Reposilite) = setOf(
-        AccessTokenApiEndpoints(reposilite.accessTokenFacade)
-    )
 }

@@ -6,4 +6,6 @@ class ReposiliteInitializeEvent(val reposilite: Reposilite) : Event
 
 class ReposilitePostInitializeEvent(val reposilite: Reposilite) : Event
 
+class ReposiliteStartedEvent(val reposilite: Reposilite) : Event
+
 class ReposiliteDisposeEvent(val reposilite: Reposilite) : Event

@@ -16,10 +16,10 @@ abstract class ReposilitePlugin : Journalist {
         extensions.registerEvent(listener)
 
     internal inline fun <reified F : Facade> facade(): F =
-        extensions.findFacade()!!
+        extensions.facade()
 
     internal inline fun <reified P : ReposilitePlugin> plugin(): P =
-        extensions.findPlugin()!!
+        extensions.plugin()
 
     override fun getLogger(): Logger =
         extensions.logger
