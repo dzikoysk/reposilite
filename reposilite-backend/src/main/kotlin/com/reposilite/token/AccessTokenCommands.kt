@@ -63,8 +63,8 @@ internal class KeygenCommand(private val accessTokenFacade: AccessTokenFacade) :
 
     override fun execute(context: CommandContext) {
         val mappedPermissions = permissions.toCharArray()
-            .map { AccessTokenPermission.findAccessTokenPermissionByShortcut(it.toString()) } // TODO
-            .takeIf { it.any { element -> element == null } }
+            .map { AccessTokenPermission.findAccessTokenPermissionByShortcut(it.toString()) }
+            .takeIf { it.none { element -> element == null } }
             ?.filterNotNull()
             ?.toSet()
 

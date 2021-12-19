@@ -19,7 +19,7 @@ package com.reposilite.maven.specification
 import com.reposilite.journalist.backend.InMemoryLogger
 import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.api.LookupRequest
-import com.reposilite.maven.application.MavenWebConfiguration
+import com.reposilite.maven.application.MavenPlugin
 import com.reposilite.settings.api.SharedConfiguration.RepositoryConfiguration
 import com.reposilite.shared.fs.DocumentInfo
 import com.reposilite.shared.fs.UNKNOWN_LENGTH
@@ -91,7 +91,7 @@ internal abstract class MavenSpecification {
             }
         )
 
-        this.mavenFacade = MavenWebConfiguration.createFacade(
+        this.mavenFacade = MavenPlugin.createFacade(
             logger,
             workingDirectory!!.toPath(),
             remoteClientProvider,

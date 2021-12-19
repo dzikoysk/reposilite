@@ -33,7 +33,7 @@ import java.nio.file.Path
 import kotlin.io.path.exists
 
 @Plugin(name = "frontend", dependencies = ["settings"])
-internal class FrontendWebConfiguration : ReposilitePlugin() {
+internal class FrontendPlugin : ReposilitePlugin() {
 
     private val STATIC_DIRECTORY = "static"
     private val FRONTEND_DIRECTORY = "reposilite-frontend"

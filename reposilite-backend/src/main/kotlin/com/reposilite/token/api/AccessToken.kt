@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.reposilite.token.api.AccessTokenPermission.MANAGER
 import com.reposilite.token.api.AccessTokenType.PERSISTENT
-import com.reposilite.token.application.AccessTokenWebConfiguration.Companion.MAX_TOKEN_NAME
+import com.reposilite.token.application.AccessTokenPlugin.Companion.MAX_TOKEN_NAME
 import io.javalin.openapi.OpenApiIgnore
 import net.dzikoysk.exposed.shared.IdentifiableEntity
 import net.dzikoysk.exposed.shared.UNINITIALIZED_ENTITY_ID

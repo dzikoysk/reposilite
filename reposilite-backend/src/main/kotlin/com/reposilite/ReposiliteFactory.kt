@@ -16,14 +16,24 @@
 
 package com.reposilite
 
+import com.reposilite.auth.application.AuthenticationPlugin
+import com.reposilite.badge.application.BadgePlugin
+import com.reposilite.console.application.ConsolePlugin
+import com.reposilite.frontend.application.FrontendPlugin
 import com.reposilite.journalist.Channel
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.backend.PrintStreamLogger
+import com.reposilite.maven.application.MavenPlugin
 import com.reposilite.plugin.ExtensionsManagement
 import com.reposilite.settings.application.DatabaseSourceFactory
 import com.reposilite.settings.application.LocalConfigurationFactory
+import com.reposilite.settings.application.SettingsPlugin
 import com.reposilite.shared.extensions.newFixedThreadPool
 import com.reposilite.shared.extensions.newSingleThreadScheduledExecutor
+import com.reposilite.statistics.application.StatisticsPlugin
+import com.reposilite.status.application.FailurePlugin
+import com.reposilite.status.application.StatusPlugin
+import com.reposilite.token.application.AccessTokenPlugin
 import com.reposilite.web.HttpServer
 import panda.utilities.console.Effect
 
@@ -53,6 +63,21 @@ object ReposiliteFactory {
         val ioService = newFixedThreadPool(2, localConfiguration.ioThreadPool.get(), "Reposilite | IO")
         val database = DatabaseSourceFactory.createConnection(parameters.workingDirectory, localConfiguration.database.get())
         val extensionsManagement = ExtensionsManagement(journalist, parameters, localConfiguration, database)
+
+        listOf(
+            AuthenticationPlugin(),
+            BadgePlugin(),
+            ConsolePlugin(),
+            FrontendPlugin(),
+            MavenPlugin(),
+            SettingsPlugin(),
+            StatisticsPlugin(),
+            StatusPlugin(),
+            FailurePlugin(),
+            AccessTokenPlugin()
+        ).forEach {
+            extensionsManagement.registerPlugin(it)
+        }
 
         return Reposilite(
             journalist = journalist,

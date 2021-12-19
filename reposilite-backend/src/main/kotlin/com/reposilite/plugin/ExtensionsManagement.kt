@@ -20,6 +20,10 @@ class ExtensionsManagement(
     private val facades: MutableList<Facade> = mutableListOf()
     private val events: MutableMap<Class<*>, MutableList<EventListener<Event>>> = mutableMapOf()
 
+    fun registerPlugin(plugin: ReposilitePlugin) {
+        plugins.add(plugin)
+    }
+
     inline fun <reified EVENT : Event> registerEvent(listener: EventListener<EVENT>) =
         registerEvent(EVENT::class.java, listener)
 

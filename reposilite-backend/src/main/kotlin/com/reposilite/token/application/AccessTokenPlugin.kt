@@ -33,7 +33,7 @@ import com.reposilite.token.infrastructure.SqlAccessTokenRepository
 import com.reposilite.web.api.RoutingSetupEvent
 
 @Plugin(name = "access-token", dependencies = ["console"])
-internal class AccessTokenWebConfiguration : ReposilitePlugin() {
+internal class AccessTokenPlugin : ReposilitePlugin() {
 
     companion object {
         const val MAX_TOKEN_NAME = 255

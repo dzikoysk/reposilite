@@ -36,7 +36,7 @@ import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.web.api.RoutingSetupEvent
 
 @Plugin(name = "maven", dependencies = ["settings", "statistics", "frontend"])
-internal class MavenWebConfiguration : ReposilitePlugin() {
+internal class MavenPlugin : ReposilitePlugin() {
 
     override fun initialize(): MavenFacade {
         val settingsFacade = facade<SettingsFacade>()

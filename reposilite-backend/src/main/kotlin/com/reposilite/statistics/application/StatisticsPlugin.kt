@@ -31,7 +31,7 @@ import panda.std.reactive.computed
 import java.util.concurrent.TimeUnit.SECONDS
 
 @Plugin(name = "statistics", dependencies = ["settings", "console"])
-internal class StatisticsWebConfiguration : ReposilitePlugin() {
+internal class StatisticsPlugin : ReposilitePlugin() {
 
     override fun initialize(): StatisticsFacade {
         val settingsFacade = facade<SettingsFacade>()
