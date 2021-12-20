@@ -18,6 +18,7 @@ package com.reposilite.statistics.specification
 
 import com.reposilite.ReposiliteSpecification
 import com.reposilite.maven.api.Identifier
+import com.reposilite.statistics.StatisticsFacade
 import kong.unirest.Unirest.get
 import kong.unirest.Unirest.put
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -41,7 +42,7 @@ internal abstract class StatisticsIntegrationSpecification : ReposiliteSpecifica
 
         assertTrue(getResponse.isSuccess)
 
-        reposilite.statisticsFacade.saveRecordsBulk()
+        useFacade<StatisticsFacade>().saveRecordsBulk()
         return Mono(Identifier(repository, gav))
     }
 

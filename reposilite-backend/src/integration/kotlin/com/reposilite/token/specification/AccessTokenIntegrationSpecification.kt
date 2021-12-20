@@ -1,6 +1,7 @@
 package com.reposilite.token.specification
 
 import com.reposilite.ReposiliteSpecification
+import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.api.AccessTokenPermission
 import com.reposilite.token.api.CreateAccessTokenRequest
 
@@ -8,7 +9,7 @@ internal abstract class AccessTokenIntegrationSpecification : ReposiliteSpecific
 
     protected fun useToken(name: String, secret: String) =
         Pair(
-            reposilite.accessTokenFacade.createAccessToken(CreateAccessTokenRequest(name, secret)).accessToken,
+            useFacade<AccessTokenFacade>().createAccessToken(CreateAccessTokenRequest(name, secret)).accessToken,
             secret
         )
 
