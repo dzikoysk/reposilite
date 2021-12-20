@@ -16,9 +16,10 @@
 
 package com.reposilite.token.application
 
-import com.reposilite.console.ConsoleFacade
-import com.reposilite.plugin.ReposilitePlugin
+import com.reposilite.console.api.CommandsSetupEvent
 import com.reposilite.plugin.api.Plugin
+import com.reposilite.plugin.api.ReposilitePlugin
+import com.reposilite.plugin.event
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.ChModCommand
 import com.reposilite.token.ChNameCommand
@@ -32,7 +33,7 @@ import com.reposilite.token.infrastructure.InMemoryAccessTokenRepository
 import com.reposilite.token.infrastructure.SqlAccessTokenRepository
 import com.reposilite.web.api.RoutingSetupEvent
 
-@Plugin(name = "access-token", dependencies = ["console"])
+@Plugin(name = "access-token")
 internal class AccessTokenPlugin : ReposilitePlugin() {
 
     companion object {
@@ -43,21 +44,26 @@ internal class AccessTokenPlugin : ReposilitePlugin() {
     override fun initialize(): AccessTokenFacade {
         val accessTokenFacade = AccessTokenFacade(
             temporaryRepository = InMemoryAccessTokenRepository(),
-            persistentRepository = SqlAccessTokenRepository(extensions.database)
+            persistentRepository = SqlAccessTokenRepository(extensionsManagement.database)
         )
 
-        extensions.parameters.tokens.forEach {
+        extensionsManagement.parameters.tokens.forEach {
             accessTokenFacade.createTemporaryAccessToken(it)
         }
 
-        val consoleFacade = facade<ConsoleFacade>()
-        consoleFacade.registerCommand(TokensCommand(accessTokenFacade))
-        consoleFacade.registerCommand(KeygenCommand(accessTokenFacade))
-        consoleFacade.registerCommand(ChNameCommand(accessTokenFacade))
-        consoleFacade.registerCommand(ChModCommand(accessTokenFacade))
-        consoleFacade.registerCommand(RevokeCommand(accessTokenFacade))
-        consoleFacade.registerCommand(RouteAdd(accessTokenFacade))
-        consoleFacade.registerCommand(RouteRemove(accessTokenFacade))
+        event { event: CommandsSetupEvent ->
+            event.registerCommand(TokensCommand(accessTokenFacade))
+            event.registerCommand(KeygenCommand(accessTokenFacade))
+            event.registerCommand(ChNameCommand(accessTokenFacade))
+            event.registerCommand(ChModCommand(accessTokenFacade))
+            event.registerCommand(RevokeCommand(accessTokenFacade))
+            event.registerCommand(RouteAdd(accessTokenFacade))
+            event.registerCommand(RouteRemove(accessTokenFacade))
+        }
+
+        if (accessTokenFacade.count() == 0L) {
+            // TODO: Display some notification on how to generate commands
+        }
 
         event { event: RoutingSetupEvent ->
             event.registerRoutes(AccessTokenApiEndpoints(accessTokenFacade))

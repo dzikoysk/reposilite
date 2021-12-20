@@ -16,8 +16,9 @@
 
 package com.reposilite.status.application
 
-import com.reposilite.plugin.ReposilitePlugin
 import com.reposilite.plugin.api.Plugin
+import com.reposilite.plugin.api.ReposilitePlugin
+import com.reposilite.plugin.event
 import com.reposilite.status.FailureFacade
 import com.reposilite.status.infrastructure.FailureHandler
 import com.reposilite.web.api.HttpServerInitializationEvent

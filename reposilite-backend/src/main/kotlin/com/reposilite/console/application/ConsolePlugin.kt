@@ -21,14 +21,17 @@ import com.reposilite.console.ConsoleFacade
 import com.reposilite.console.HelpCommand
 import com.reposilite.console.LevelCommand
 import com.reposilite.console.StopCommand
+import com.reposilite.console.api.CommandsSetupEvent
 import com.reposilite.console.infrastructure.CliEndpoint
 import com.reposilite.console.infrastructure.ConsoleEndpoint
-import com.reposilite.plugin.ReposilitePlugin
 import com.reposilite.plugin.api.Facade
 import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposiliteDisposeEvent
 import com.reposilite.plugin.api.ReposiliteInitializeEvent
+import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.api.ReposiliteStartedEvent
+import com.reposilite.plugin.event
+import com.reposilite.plugin.facade
 import com.reposilite.settings.SettingsFacade
 import com.reposilite.status.FailureFacade
 import com.reposilite.web.api.HttpServerInitializationEvent
@@ -49,6 +52,9 @@ internal class ConsolePlugin : ReposilitePlugin() {
             consoleFacade.registerCommand(HelpCommand(consoleFacade))
             consoleFacade.registerCommand(LevelCommand(event.reposilite.journalist))
             consoleFacade.registerCommand(StopCommand(event.reposilite))
+
+            val setup = extensionsManagement.emitEvent(CommandsSetupEvent())
+            setup.getCommands().forEach { consoleFacade.registerCommand(it) }
 
             // disable console daemon in tests due to issues with coverage and interrupt method call
             // https://github.com/jacoco/jacoco/issues/1066

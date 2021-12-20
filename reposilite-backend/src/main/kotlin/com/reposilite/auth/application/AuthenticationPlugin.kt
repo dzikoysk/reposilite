@@ -19,9 +19,11 @@ package com.reposilite.auth.application
 import com.reposilite.auth.AuthenticationFacade
 import com.reposilite.auth.infrastructure.AuthenticationEndpoint
 import com.reposilite.auth.infrastructure.PostAuthHandler
-import com.reposilite.plugin.ReposilitePlugin
 import com.reposilite.plugin.api.Facade
 import com.reposilite.plugin.api.Plugin
+import com.reposilite.plugin.api.ReposilitePlugin
+import com.reposilite.plugin.event
+import com.reposilite.plugin.facade
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.web.api.RoutingSetupEvent
 
@@ -32,7 +34,7 @@ internal class AuthenticationPlugin : ReposilitePlugin() {
         val accessTokenFacade = facade<AccessTokenFacade>()
         val authenticationFacade = AuthenticationFacade(this, accessTokenFacade)
 
-        extensions.registerEvent { event: RoutingSetupEvent ->
+        event { event: RoutingSetupEvent ->
             event.registerRoutes(AuthenticationEndpoint(authenticationFacade))
             event.registerRoutes(PostAuthHandler())
         }

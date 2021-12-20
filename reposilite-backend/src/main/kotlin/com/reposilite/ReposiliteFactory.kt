@@ -25,6 +25,7 @@ import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.backend.PrintStreamLogger
 import com.reposilite.maven.application.MavenPlugin
 import com.reposilite.plugin.ExtensionsManagement
+import com.reposilite.plugin.PluginLoader
 import com.reposilite.settings.application.DatabaseSourceFactory
 import com.reposilite.settings.application.LocalConfigurationFactory
 import com.reposilite.settings.application.SettingsPlugin
@@ -55,14 +56,14 @@ object ReposiliteFactory {
         journalist.logger.info("Working directory: ${parameters.workingDirectory.toAbsolutePath()}")
         journalist.logger.info("Threads: ${localConfiguration.webThreadPool.get()} WEB / ${localConfiguration.ioThreadPool.get()} IO")
         if (parameters.testEnv) journalist.logger.info("Test environment enabled")
-        journalist.logger.info("")
-        journalist.logger.info("--- Initializing context")
 
         val webServer = HttpServer()
         val scheduler = newSingleThreadScheduledExecutor("Reposilite | Scheduler")
         val ioService = newFixedThreadPool(2, localConfiguration.ioThreadPool.get(), "Reposilite | IO")
         val database = DatabaseSourceFactory.createConnection(parameters.workingDirectory, localConfiguration.database.get())
+
         val extensionsManagement = ExtensionsManagement(journalist, parameters, localConfiguration, database)
+        val pluginLoader = PluginLoader(extensionsManagement)
 
         listOf(
             AuthenticationPlugin(),
@@ -76,8 +77,10 @@ object ReposiliteFactory {
             FailurePlugin(),
             AccessTokenPlugin()
         ).forEach {
-            extensionsManagement.registerPlugin(it)
+            pluginLoader.registerPlugin(it)
         }
+
+        pluginLoader.initialize()
 
         return Reposilite(
             journalist = journalist,

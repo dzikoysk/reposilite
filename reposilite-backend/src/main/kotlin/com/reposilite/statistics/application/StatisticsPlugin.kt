@@ -17,9 +17,11 @@
 package com.reposilite.statistics.application
 
 import com.reposilite.console.ConsoleFacade
-import com.reposilite.plugin.ReposilitePlugin
+import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposiliteInitializeEvent
+import com.reposilite.plugin.event
+import com.reposilite.plugin.facade
 import com.reposilite.settings.SettingsFacade
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.statistics.StatsCommand
@@ -44,7 +46,7 @@ internal class StatisticsPlugin : ReposilitePlugin() {
                     createDateIntervalProvider(it.resolvedRequestsInterval)
                 }
             },
-            SqlStatisticsRepository(extensions.database)
+            SqlStatisticsRepository(extensionsManagement.database)
         )
 
         consoleFacade.registerCommand(StatsCommand(statisticsFacade))

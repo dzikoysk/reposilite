@@ -17,10 +17,12 @@
 package com.reposilite.status.application
 
 import com.reposilite.console.ConsoleFacade
-import com.reposilite.plugin.ReposilitePlugin
 import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposiliteInitializeEvent
+import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.api.ReposiliteStartedEvent
+import com.reposilite.plugin.event
+import com.reposilite.plugin.facade
 import com.reposilite.shared.extensions.TimeUtils
 import com.reposilite.status.FailureFacade
 import com.reposilite.status.FailuresCommand
@@ -43,7 +45,7 @@ internal class StatusPlugin : ReposilitePlugin() {
         val webServer = Completable<HttpServer>()
 
         val statusFacade = StatusFacade(
-            testEnv = extensions.parameters.testEnv,
+            testEnv = extensionsManagement.parameters.testEnv,
             status = { if (webServer.isReady) webServer.get().isAlive() else false },
             remoteVersionUrl = REMOTE_VERSION
         )

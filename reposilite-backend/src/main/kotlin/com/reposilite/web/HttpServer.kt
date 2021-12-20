@@ -46,10 +46,10 @@ class HttpServer {
                 .exception(EofException::class.java) { _, _ -> reposilite.logger.warn("Client closed connection") }
                 .events { listener ->
                     listener.serverStopping { reposilite.logger.info("Server stopping...") }
-                    listener.serverStopped { extensionsManagement.notifyListeners(HttpServerStoppedEvent()) }
+                    listener.serverStopped { extensionsManagement.emitEvent(HttpServerStoppedEvent()) }
                 }
                 .also {
-                    reposilite.extensionsManagement.notifyListeners(HttpServerInitializationEvent(reposilite, it))
+                    reposilite.extensionsManagement.emitEvent(HttpServerInitializationEvent(reposilite, it))
                 }
 
             if (!servlet) {

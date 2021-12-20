@@ -26,10 +26,11 @@ import com.reposilite.maven.RepositoryService
 import com.reposilite.maven.infrastructure.MavenApiEndpoints
 import com.reposilite.maven.infrastructure.MavenEndpoints
 import com.reposilite.maven.infrastructure.MavenLatestApiEndpoints
-import com.reposilite.plugin.ReposilitePlugin
 import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposiliteDisposeEvent
-import com.reposilite.plugin.api.ReposilitePostInitializeEvent
+import com.reposilite.plugin.api.ReposilitePlugin
+import com.reposilite.plugin.event
+import com.reposilite.plugin.facade
 import com.reposilite.settings.SettingsFacade
 import com.reposilite.shared.http.HttpRemoteClientProvider
 import com.reposilite.statistics.StatisticsFacade
@@ -43,7 +44,12 @@ internal class MavenPlugin : ReposilitePlugin() {
         val statisticsFacade = facade<StatisticsFacade>()
         val frontendFacade = facade<FrontendFacade>()
 
-        val repositoryProvider = RepositoryProvider(this, extensions.parameters.workingDirectory, HttpRemoteClientProvider, settingsFacade.sharedConfiguration.repositories)
+        val repositoryProvider = RepositoryProvider(
+            this,
+            extensionsManagement.parameters.workingDirectory,
+            HttpRemoteClientProvider,
+            settingsFacade.sharedConfiguration.repositories
+        )
         val securityProvider = RepositorySecurityProvider()
         val repositoryService = RepositoryService(this, repositoryProvider, securityProvider)
 
@@ -56,12 +62,10 @@ internal class MavenPlugin : ReposilitePlugin() {
             statisticsFacade
         )
 
-        event { _: ReposilitePostInitializeEvent ->
-            logger.info("--- Repositories")
-            mavenFacade.getRepositories().forEach { logger.info("+ ${it.name} (${it.visibility.toString().lowercase()})") }
-            logger.info("${mavenFacade.getRepositories().size} repositories have been found")
-            logger.info("")
-        }
+        logger.info("")
+        logger.info("--- Repositories")
+        mavenFacade.getRepositories().forEach { logger.info("+ ${it.name} (${it.visibility.toString().lowercase()})") }
+        logger.info("${mavenFacade.getRepositories().size} repositories have been found")
 
         event { event: RoutingSetupEvent ->
             event.registerRoutes(MavenEndpoints(mavenFacade, frontendFacade, settingsFacade))

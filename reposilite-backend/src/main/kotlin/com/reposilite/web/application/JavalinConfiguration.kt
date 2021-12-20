@@ -96,7 +96,7 @@ internal object JavalinConfiguration {
             }
         )
 
-        extensionManager.notifyListeners(RoutingSetupEvent(reposilite))
+        extensionManager.emitEvent(RoutingSetupEvent(reposilite))
             .getRoutes().asSequence()
             .flatMap { it.routes }
             .distinctBy { it.methods.joinToString(";") + ":" + it.path }

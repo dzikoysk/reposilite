@@ -20,9 +20,11 @@ import com.reposilite.Reposilite
 import com.reposilite.frontend.FrontendFacade
 import com.reposilite.frontend.infrastructure.CustomFrontendHandler
 import com.reposilite.frontend.infrastructure.ResourcesFrontendHandler
-import com.reposilite.plugin.ReposilitePlugin
+import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposiliteInitializeEvent
+import com.reposilite.plugin.event
+import com.reposilite.plugin.facade
 import com.reposilite.settings.SettingsFacade
 import com.reposilite.web.api.HttpServerInitializationEvent
 import com.reposilite.web.api.ReposiliteRoutes

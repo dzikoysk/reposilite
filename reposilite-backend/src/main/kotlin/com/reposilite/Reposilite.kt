@@ -49,20 +49,15 @@ class Reposilite(
 
     fun launch() {
         try {
-            logger.info("")
-            logger.info("--- Loading domain configurations")
-            extensionsManagement.notifyListeners(ReposiliteInitializeEvent(this))
-            logger.info("Loaded ${extensionsManagement.getPlugins().size} plugins")
-            logger.info("")
-
-            extensionsManagement.notifyListeners(ReposilitePostInitializeEvent(this))
+            extensionsManagement.emitEvent(ReposiliteInitializeEvent(this))
+            extensionsManagement.emitEvent(ReposilitePostInitializeEvent(this))
             alive.set(true)
             Thread.currentThread().name = "Reposilite | Main Thread"
-
+            logger.info("")
             logger.info("Binding server at ${parameters.hostname}::${parameters.port}")
             webServer.start(this)
             Runtime.getRuntime().addShutdownHook(shutdownHook)
-            extensionsManagement.notifyListeners(ReposiliteStartedEvent(this))
+            extensionsManagement.emitEvent(ReposiliteStartedEvent(this))
         } catch (exception: Exception) {
             logger.error("Failed to start Reposilite")
             logger.exception(exception)
@@ -76,7 +71,7 @@ class Reposilite(
             logger.info("Shutting down ${parameters.hostname}::${parameters.port}...")
             scheduler.shutdown()
             ioService.shutdown()
-            extensionsManagement.notifyListeners(ReposiliteDisposeEvent(this))
+            extensionsManagement.emitEvent(ReposiliteDisposeEvent(this))
             webServer.stop()
             scheduler.shutdownNow()
             ioService.shutdownNow()

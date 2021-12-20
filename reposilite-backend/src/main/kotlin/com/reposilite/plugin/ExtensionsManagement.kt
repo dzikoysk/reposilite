@@ -16,12 +16,11 @@ class ExtensionsManagement(
     val database: Database
 ) : Journalist {
 
-    private val plugins: MutableList<ReposilitePlugin> = mutableListOf()
-    private val facades: MutableList<Facade> = mutableListOf()
     private val events: MutableMap<Class<*>, MutableList<EventListener<Event>>> = mutableMapOf()
+    private val facades: MutableList<Facade> = mutableListOf()
 
-    fun registerPlugin(plugin: ReposilitePlugin) {
-        plugins.add(plugin)
+    fun registerFacade(facade: Facade) {
+        facades.add(facade)
     }
 
     inline fun <reified EVENT : Event> registerEvent(listener: EventListener<EVENT>) =
@@ -34,7 +33,7 @@ class ExtensionsManagement(
         listeners.sortedBy { it.priority() }
     }
 
-    fun <E : Event> notifyListeners(event: E): E {
+    fun <E : Event> emitEvent(event: E): E {
         events[event.javaClass]?.forEach { it.onCall(event) }
         return event
     }
@@ -44,12 +43,6 @@ class ExtensionsManagement(
 
     fun getFacades(): Collection<Facade> =
         facades
-
-    inline fun <reified P : ReposilitePlugin> plugin(): P =
-        getPlugins().find { it is P } as P
-
-    fun getPlugins(): Collection<ReposilitePlugin> =
-        plugins
 
     override fun getLogger(): Logger =
         journalist.logger
