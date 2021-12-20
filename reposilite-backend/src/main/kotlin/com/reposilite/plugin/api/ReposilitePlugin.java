@@ -12,6 +12,13 @@ public abstract class ReposilitePlugin implements Journalist {
 
     public abstract @Nullable Facade initialize();
 
+    public void setExtensionsManagement(ExtensionsManagement extensionsManagement) {
+        if (extensionsManagement == null) {
+            throw new IllegalStateException("Plugin has been already initialized with ExtensionManagement");
+        }
+        this.extensionsManagement = extensionsManagement;
+    }
+
     public ExtensionsManagement getExtensionsManagement() {
         return extensionsManagement;
     }

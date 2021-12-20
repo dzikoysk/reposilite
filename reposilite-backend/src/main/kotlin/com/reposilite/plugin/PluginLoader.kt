@@ -32,8 +32,4 @@ internal class PluginLoader(private val extensionsManagement: ExtensionsManageme
         plugins.add(PluginEntry(plugin::class.findAnnotation()!!, plugin))
     }
 
-    fun registerPluginsFromFile() {
-
-    }
-
 }

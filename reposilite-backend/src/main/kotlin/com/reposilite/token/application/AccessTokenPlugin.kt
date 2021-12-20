@@ -18,6 +18,7 @@ package com.reposilite.token.application
 
 import com.reposilite.console.api.CommandsSetupEvent
 import com.reposilite.plugin.api.Plugin
+import com.reposilite.plugin.api.ReposiliteInitializeEvent
 import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
 import com.reposilite.token.AccessTokenFacade
@@ -61,12 +62,20 @@ internal class AccessTokenPlugin : ReposilitePlugin() {
             event.registerCommand(RouteRemove(accessTokenFacade))
         }
 
-        if (accessTokenFacade.count() == 0L) {
-            // TODO: Display some notification on how to generate commands
-        }
-
         event { event: RoutingSetupEvent ->
             event.registerRoutes(AccessTokenApiEndpoints(accessTokenFacade))
+        }
+
+        event { _: ReposiliteInitializeEvent ->
+            if (accessTokenFacade.count() == 0L) {
+                logger.info("")
+                logger.info("--- Access Tokens")
+                logger.info("Your instance does not have any access tokens yet.")
+                logger.info("To generate token, you can use --token flag to create temporary token:")
+                logger.info("$ java -jar reposilite.jar --token name:secret")
+                logger.info("Or using command in this terminal/through web dashboard:")
+                logger.info("$ help token-generate")
+            }
         }
 
         return accessTokenFacade
