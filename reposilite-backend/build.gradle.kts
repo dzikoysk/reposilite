@@ -20,7 +20,7 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 group = "org.panda-lang"
-version = "3.0.0-alpha.13"
+version = "3.0.0-alpha.14"
 
 plugins {
     `java-library`
@@ -163,6 +163,10 @@ java {
 tasks.withType<KotlinCompile>().configureEach {
     kotlinOptions {
         languageVersion = "1.6"
+        jvmTarget = "1.8"
+
+        // For generating default methods in interfaces
+        freeCompilerArgs = listOf("-Xjvm-default=all")
     }
 }
 

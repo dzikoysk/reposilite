@@ -2,6 +2,7 @@ package com.reposilite.plugin.api
 
 interface Event
 
+@FunctionalInterface
 fun interface EventListener<E : Event> {
 
     fun onCall(event: E)
@@ -12,8 +13,8 @@ fun interface EventListener<E : Event> {
 
 object Priorities {
 
-    val HIGH = 0.0
-    val DEFAULT = 1.0
-    val LOW = 2.0
+    const val HIGH = 0.0
+    const val DEFAULT = 1.0
+    const val LOW = 2.0
 
 }

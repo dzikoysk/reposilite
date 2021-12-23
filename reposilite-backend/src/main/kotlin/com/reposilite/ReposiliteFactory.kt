@@ -63,7 +63,7 @@ object ReposiliteFactory {
         val database = DatabaseSourceFactory.createConnection(parameters.workingDirectory, localConfiguration.database.get())
 
         val extensionsManagement = ExtensionsManagement(journalist, parameters, localConfiguration, database)
-        val pluginLoader = PluginLoader(extensionsManagement)
+        val pluginLoader = PluginLoader(parameters.workingDirectory.resolve("plugins"), extensionsManagement)
 
         listOf(
             AuthenticationPlugin(),
@@ -80,6 +80,7 @@ object ReposiliteFactory {
             pluginLoader.registerPlugin(it)
         }
 
+        pluginLoader.loadExternalPlugins()
         pluginLoader.initialize()
 
         return Reposilite(

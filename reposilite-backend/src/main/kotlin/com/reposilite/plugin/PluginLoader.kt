@@ -2,6 +2,12 @@ package com.reposilite.plugin
 
 import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposilitePlugin
+import com.reposilite.shared.fs.getSimpleName
+import java.net.URLClassLoader
+import java.nio.file.Files
+import java.nio.file.Path
+import java.util.ServiceLoader
+import java.util.stream.Collectors
 import kotlin.reflect.full.findAnnotation
 
 private data class PluginEntry(
@@ -9,7 +15,10 @@ private data class PluginEntry(
     val plugin: ReposilitePlugin
 )
 
-internal class PluginLoader(private val extensionsManagement: ExtensionsManagement) {
+internal class PluginLoader(
+    private val pluginDirectory: Path,
+    private val extensionsManagement: ExtensionsManagement
+) {
 
     private val plugins: MutableList<PluginEntry> = mutableListOf()
 
@@ -21,7 +30,7 @@ internal class PluginLoader(private val extensionsManagement: ExtensionsManageme
         .also {
             extensionsManagement.logger.info("")
             extensionsManagement.logger.info("--- Loading plugins (${it.size}):")
-            extensionsManagement.logger.info(it.joinToString(", ", transform = { (metadata, _) -> metadata.name}))
+            extensionsManagement.logger.info(it.joinToString(", ", transform = { (metadata, _) -> metadata.name }))
         }
         .forEach { (_, plugin) -> plugin.initialize()?.apply { extensionsManagement.registerFacade(this) } }
 
@@ -29,7 +38,25 @@ internal class PluginLoader(private val extensionsManagement: ExtensionsManageme
         val field = plugin::class.java.superclass.getDeclaredField("extensionsManagement")
         field.isAccessible = true
         field.set(plugin, extensionsManagement)
-        plugins.add(PluginEntry(plugin::class.findAnnotation()!!, plugin))
+        plugins.add(PluginEntry(plugin::class.findAnnotation() ?: throw IllegalStateException("Plugin ${plugin::class} does not have @Plugin annotation"), plugin))
+    }
+
+    fun loadExternalPlugins() {
+        if (Files.notExists(pluginDirectory)) {
+            Files.createDirectories(pluginDirectory)
+        }
+
+        if (!Files.isDirectory(pluginDirectory)) {
+            throw IllegalStateException("The path is not a directory")
+        }
+
+        Files.list(pluginDirectory)
+            .collect(Collectors.toList())
+            .filter { it.getSimpleName().endsWith(".jar") }
+            .map { it.toUri().toURL() }
+            .let { URLClassLoader(it.toTypedArray()) }
+            .let { ServiceLoader.load(ReposilitePlugin::class.java, it) }
+            .forEach { registerPlugin(it) }
     }
 
 }
