@@ -26,6 +26,7 @@ import com.reposilite.maven.api.Metadata
 import com.reposilite.maven.api.VersionLookupRequest
 import com.reposilite.maven.api.VersionResponse
 import com.reposilite.maven.api.VersionsResponse
+import com.reposilite.plugin.api.Facade
 import com.reposilite.shared.extensions.`when`
 import com.reposilite.shared.fs.DirectoryInfo
 import com.reposilite.shared.fs.DocumentInfo
@@ -57,7 +58,7 @@ class MavenFacade internal constructor(
     private val proxyService: ProxyService,
     private val metadataService: MetadataService,
     private val statisticsFacade: StatisticsFacade
-) : Journalist {
+) : Journalist, Facade {
 
     private val ignoredExtensions = listOf(
         // Checksums

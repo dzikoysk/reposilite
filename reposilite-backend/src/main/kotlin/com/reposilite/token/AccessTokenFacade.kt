@@ -15,6 +15,7 @@
  */
 package com.reposilite.token
 
+import com.reposilite.plugin.api.Facade
 import com.reposilite.token.AccessTokenSecurityProvider.B_CRYPT_TOKENS_ENCODER
 import com.reposilite.token.AccessTokenSecurityProvider.generateSecret
 import com.reposilite.token.api.AccessToken
@@ -28,7 +29,7 @@ import com.reposilite.token.api.CreateAccessTokenResponse
 class AccessTokenFacade internal constructor(
     private val temporaryRepository: AccessTokenRepository,
     private val persistentRepository: AccessTokenRepository
-) {
+) : Facade {
 
     fun createTemporaryAccessToken(request: CreateAccessTokenRequest): CreateAccessTokenResponse =
         createAccessToken(

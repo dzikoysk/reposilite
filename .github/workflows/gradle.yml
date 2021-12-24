@@ -21,11 +21,9 @@ jobs:
       with:
         java-version: ${{ matrix.jdk }}
     - name: Grant execute permission for gradlew
-      working-directory: reposilite-backend
       run: chmod +x gradlew
     - name: Build with Gradle
-      working-directory: reposilite-backend
-      run: ./gradlew clean testAll shadowJar
+      run: ./gradlew :reposilite-backend:testAll :reposilite-backend:shadowJar
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v2
       with:

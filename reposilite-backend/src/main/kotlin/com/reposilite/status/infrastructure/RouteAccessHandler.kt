@@ -16,8 +16,8 @@
 
 package com.reposilite.status.infrastructure
 
-import com.reposilite.web.application.ReposiliteRoute
-import com.reposilite.web.application.ReposiliteRoutes
+import com.reposilite.web.api.ReposiliteRoute
+import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.routing.RouteMethod.BEFORE
 
 internal class RouteAccessHandler : ReposiliteRoutes() {

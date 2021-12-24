@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.reposilite.web
+package com.reposilite.shared
 
 import com.reposilite.journalist.Logger
 import com.reposilite.token.api.AccessToken

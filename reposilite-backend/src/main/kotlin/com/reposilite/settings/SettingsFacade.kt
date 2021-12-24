@@ -1,5 +1,6 @@
 package com.reposilite.settings
 
+import com.reposilite.plugin.api.Facade
 import com.reposilite.settings.api.LocalConfiguration
 import com.reposilite.settings.api.SettingsResponse
 import com.reposilite.settings.api.SettingsUpdateRequest
@@ -12,7 +13,7 @@ import java.util.concurrent.ScheduledExecutorService
 class SettingsFacade internal constructor(
     val localConfiguration: LocalConfiguration,
     private val sharedConfigurationProvider: ConfigurationProvider<SharedConfiguration>
-) {
+) : Facade {
 
     val sharedConfiguration: SharedConfiguration // expose it directly for easier calls
         get() = sharedConfigurationProvider.configuration

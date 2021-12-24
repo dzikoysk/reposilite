@@ -16,25 +16,24 @@
 
 package com.reposilite.status.application
 
-import com.reposilite.Reposilite
-import com.reposilite.journalist.Journalist
+import com.reposilite.plugin.api.Plugin
+import com.reposilite.plugin.api.ReposilitePlugin
+import com.reposilite.plugin.event
 import com.reposilite.status.FailureFacade
-import com.reposilite.status.FailuresCommand
 import com.reposilite.status.infrastructure.FailureHandler
-import com.reposilite.web.WebConfiguration
-import io.javalin.Javalin
+import com.reposilite.web.api.HttpServerInitializationEvent
 
-internal object FailureWebConfiguration : WebConfiguration {
+@Plugin(name = "failure")
+internal class FailurePlugin : ReposilitePlugin() {
 
-    fun createFacade(journalist: Journalist) =
-        FailureFacade(journalist)
+    override fun initialize(): FailureFacade {
+        val failureFacade = FailureFacade(this)
 
-    override fun initialize(reposilite: Reposilite) {
-        reposilite.consoleFacade.registerCommand(FailuresCommand(reposilite.failureFacade))
-    }
+        event { event: HttpServerInitializationEvent ->
+            event.javalin.exception(Exception::class.java, FailureHandler(failureFacade))
+        }
 
-    override fun javalin(reposilite: Reposilite, javalin: Javalin) {
-        javalin.exception(Exception::class.java, FailureHandler(reposilite.failureFacade))
+        return failureFacade
     }
 
 }

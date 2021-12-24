@@ -18,6 +18,7 @@ package com.reposilite.statistics
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
 import com.reposilite.maven.api.Identifier
+import com.reposilite.plugin.api.Facade
 import com.reposilite.statistics.api.IncrementResolvedRequest
 import com.reposilite.statistics.api.ResolvedCountResponse
 import com.reposilite.web.http.ErrorResponse
@@ -34,7 +35,7 @@ class StatisticsFacade internal constructor(
     private val journalist: Journalist,
     private val dateIntervalProvider: Reference<DateIntervalProvider>,
     private val statisticsRepository: StatisticsRepository
-) : Journalist {
+) : Journalist, Facade {
 
     private val resolvedRequestsBulk: ConcurrentHashMap<Identifier, Long> = ConcurrentHashMap()
 

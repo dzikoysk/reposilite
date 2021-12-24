@@ -16,26 +16,26 @@
 
 package com.reposilite
 
-import com.reposilite.auth.application.AuthenticationWebConfiguration
-import com.reposilite.badge.application.BadgeWebConfiguration
-import com.reposilite.console.application.ConsoleWebConfiguration
-import com.reposilite.frontend.application.FrontendWebConfiguration
+import com.reposilite.auth.application.AuthenticationPlugin
+import com.reposilite.badge.application.BadgePlugin
+import com.reposilite.console.application.ConsolePlugin
+import com.reposilite.frontend.application.FrontendPlugin
 import com.reposilite.journalist.Channel
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.backend.PrintStreamLogger
-import com.reposilite.maven.application.MavenWebConfiguration
+import com.reposilite.maven.application.MavenPlugin
+import com.reposilite.plugin.Extensions
+import com.reposilite.plugin.PluginLoader
 import com.reposilite.settings.application.DatabaseSourceFactory
-import com.reposilite.settings.application.SettingsWebConfiguration
+import com.reposilite.settings.application.LocalConfigurationFactory
+import com.reposilite.settings.application.SettingsPlugin
 import com.reposilite.shared.extensions.newFixedThreadPool
 import com.reposilite.shared.extensions.newSingleThreadScheduledExecutor
-import com.reposilite.shared.http.HttpRemoteClientProvider
-import com.reposilite.statistics.application.StatisticsWebConfiguration
-import com.reposilite.status.application.FailureWebConfiguration
-import com.reposilite.status.application.StatusWebConfiguration
-import com.reposilite.token.application.AccessTokenWebConfiguration
-import com.reposilite.web.JavalinWebServer
-import com.reposilite.web.WebConfiguration
-import com.reposilite.web.web
+import com.reposilite.statistics.application.StatisticsPlugin
+import com.reposilite.status.application.FailurePlugin
+import com.reposilite.status.application.StatusPlugin
+import com.reposilite.token.application.AccessTokenPlugin
+import com.reposilite.web.HttpServer
 import panda.utilities.console.Effect
 
 object ReposiliteFactory {
@@ -44,7 +44,7 @@ object ReposiliteFactory {
         createReposilite(parameters, PrintStreamLogger(System.out, System.err, Channel.ALL, false))
 
     fun createReposilite(parameters: ReposiliteParameters, rootJournalist: Journalist): Reposilite {
-        val localConfiguration = SettingsWebConfiguration.createLocalConfiguration(parameters)
+        val localConfiguration = LocalConfigurationFactory.createLocalConfiguration(parameters)
         parameters.applyLoadedConfiguration(localConfiguration)
 
         val journalist = ReposiliteJournalist(rootJournalist, localConfiguration.cachedLogSize.get(), parameters.testEnv)
@@ -56,36 +56,32 @@ object ReposiliteFactory {
         journalist.logger.info("Working directory: ${parameters.workingDirectory.toAbsolutePath()}")
         journalist.logger.info("Threads: ${localConfiguration.webThreadPool.get()} WEB / ${localConfiguration.ioThreadPool.get()} IO")
         if (parameters.testEnv) journalist.logger.info("Test environment enabled")
-        journalist.logger.info("")
-        journalist.logger.info("--- Initializing context")
 
+        val webServer = HttpServer()
         val scheduler = newSingleThreadScheduledExecutor("Reposilite | Scheduler")
         val ioService = newFixedThreadPool(2, localConfiguration.ioThreadPool.get(), "Reposilite | IO")
         val database = DatabaseSourceFactory.createConnection(parameters.workingDirectory, localConfiguration.database.get())
 
-        val webServer = JavalinWebServer()
-        val webs = mutableListOf<WebConfiguration>()
+        val extensions = Extensions(journalist, parameters, localConfiguration, database)
+        val pluginLoader = PluginLoader(parameters.workingDirectory.resolve("plugins"), extensions)
 
-        val settingsFacade = web(webs, SettingsWebConfiguration) { createFacade(journalist, parameters, localConfiguration, database) }
-        val statusFacade = web(webs, StatusWebConfiguration) { createFacade(parameters.testEnv, webServer) }
-        val failureFacade = web(webs, FailureWebConfiguration) { createFacade(journalist) }
-        val consoleFacade = web(webs, ConsoleWebConfiguration) { createFacade(journalist, failureFacade) }
-        val statisticFacade = web(webs, StatisticsWebConfiguration) { createFacade(journalist, database, settingsFacade) }
-        val frontendFacade = web(webs, FrontendWebConfiguration) { createFacade(localConfiguration, settingsFacade) }
-        val accessTokenFacade = web(webs, AccessTokenWebConfiguration) { createFacade(database) }
-        val authenticationFacade = web(webs, AuthenticationWebConfiguration) { createFacade(journalist, accessTokenFacade) }
-
-        val mavenFacade = web(webs, MavenWebConfiguration) {
-            createFacade(
-                journalist,
-                parameters.workingDirectory,
-                HttpRemoteClientProvider,
-                settingsFacade.sharedConfiguration.repositories,
-                statisticFacade
-            )
+        listOf(
+            AuthenticationPlugin(),
+            BadgePlugin(),
+            ConsolePlugin(),
+            FrontendPlugin(),
+            MavenPlugin(),
+            SettingsPlugin(),
+            StatisticsPlugin(),
+            StatusPlugin(),
+            FailurePlugin(),
+            AccessTokenPlugin()
+        ).forEach {
+            pluginLoader.registerPlugin(it)
         }
 
-        val badgeFacade = web(webs, BadgeWebConfiguration) { createFacade(settingsFacade, mavenFacade) }
+        pluginLoader.loadExternalPlugins()
+        pluginLoader.initialize()
 
         return Reposilite(
             journalist = journalist,
@@ -94,17 +90,7 @@ object ReposiliteFactory {
             scheduler = scheduler,
             database = database,
             webServer = webServer,
-            webs = webs,
-            settingsFacade = settingsFacade,
-            statusFacade = statusFacade,
-            failureFacade = failureFacade,
-            authenticationFacade = authenticationFacade,
-            mavenFacade = mavenFacade,
-            consoleFacade = consoleFacade,
-            accessTokenFacade = accessTokenFacade,
-            frontendFacade = frontendFacade,
-            statisticsFacade = statisticFacade,
-            badgeFacade = badgeFacade
+            extensions = extensions
         )
     }
 

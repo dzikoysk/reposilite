@@ -17,16 +17,16 @@
 package com.reposilite.web
 
 import com.reposilite.Reposilite
-import com.reposilite.shared.extensions.TimeUtils
-import com.reposilite.web.application.WebServerConfiguration
-import com.reposilite.web.application.createReactiveRouting
+import com.reposilite.settings.SettingsFacade
+import com.reposilite.web.api.HttpServerInitializationEvent
+import com.reposilite.web.api.HttpServerStoppedEvent
+import com.reposilite.web.application.JavalinConfiguration
 import io.javalin.Javalin
-import io.javalin.core.JavalinConfig
 import org.eclipse.jetty.io.EofException
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 import org.eclipse.jetty.util.thread.ThreadPool
 
-class JavalinWebServer {
+class HttpServer {
 
     private val servlet = false
     private var javalin: Javalin? = null
@@ -34,7 +34,10 @@ class JavalinWebServer {
 
     fun start(reposilite: Reposilite) =
         runWithDisabledLogging {
-            this.webThreadPool = QueuedThreadPool(reposilite.settingsFacade.localConfiguration.webThreadPool.get(), 2).also {
+            val extensionsManagement = reposilite.extensions
+            val settingsFacade = extensionsManagement.facade<SettingsFacade>()
+
+            this.webThreadPool = QueuedThreadPool(settingsFacade.localConfiguration.webThreadPool.get(), 2).also {
                 it.name = "Reposilite | Web (${it.maxThreads}) -"
                 it.start()
             }
@@ -43,10 +46,10 @@ class JavalinWebServer {
                 .exception(EofException::class.java) { _, _ -> reposilite.logger.warn("Client closed connection") }
                 .events { listener ->
                     listener.serverStopping { reposilite.logger.info("Server stopping...") }
-                    listener.serverStopped { reposilite.logger.info("Bye! Uptime: " + TimeUtils.getPrettyUptimeInMinutes(reposilite.statusFacade.startTime)) }
+                    listener.serverStopped { extensionsManagement.emitEvent(HttpServerStoppedEvent()) }
                 }
                 .also {
-                    reposilite.webs.forEach { web -> web.javalin(reposilite, it) }
+                    reposilite.extensions.emitEvent(HttpServerInitializationEvent(reposilite, it))
                 }
 
             if (!servlet) {
@@ -56,14 +59,9 @@ class JavalinWebServer {
 
     private fun createJavalin(reposilite: Reposilite, webThreadPool: ThreadPool): Javalin =
         if (servlet)
-            Javalin.createStandalone { configureServer(reposilite, webThreadPool, it) }
+            Javalin.createStandalone { JavalinConfiguration.configure(reposilite, webThreadPool, it) }
         else
-            Javalin.create { configureServer(reposilite, webThreadPool, it) }
-
-    private fun configureServer(reposilite: Reposilite, webThreadPool: ThreadPool, serverConfig: JavalinConfig) {
-        WebServerConfiguration.configure(reposilite, webThreadPool, serverConfig)
-        serverConfig.registerPlugin(createReactiveRouting(reposilite))
-    }
+            Javalin.create {  JavalinConfiguration.configure(reposilite, webThreadPool, it) }
 
     fun stop() {
         webThreadPool?.stop()

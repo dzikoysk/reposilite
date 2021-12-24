@@ -62,12 +62,22 @@ internal class KeygenCommand(private val accessTokenFacade: AccessTokenFacade) :
     private lateinit var permissions: String
 
     override fun execute(context: CommandContext) {
+        val mappedPermissions = permissions.toCharArray()
+            .map { AccessTokenPermission.findAccessTokenPermissionByShortcut(it.toString()) }
+            .takeIf { it.none { element -> element == null } }
+            ?.filterNotNull()
+            ?.toSet()
+
+        if (mappedPermissions == null) {
+            context.status = FAILED
+            context.append("Unknown permissions '$permissions'. Type 'help token-generate' to display supported permissions")
+            return
+        }
+
         val response = accessTokenFacade.createAccessToken(CreateAccessTokenRequest(
             name,
             secret,
-            permissions = permissions.toCharArray()
-                .map { AccessTokenPermission.findAccessTokenPermissionByShortcut(it.toString())!! }
-                .toSet()
+            permissions = mappedPermissions
         ))
 
         context.append("Generated new access token for $name with '$permissions' permissions. Secret:")

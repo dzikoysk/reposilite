@@ -3,6 +3,7 @@ package com.reposilite.badge
 import com.reposilite.badge.api.LatestBadgeRequest
 import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.api.VersionLookupRequest
+import com.reposilite.plugin.api.Facade
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
 import io.javalin.http.HttpCode.BAD_REQUEST
@@ -14,7 +15,7 @@ import panda.std.reactive.Reference
 class BadgeFacade(
     private val repositoryId: Reference<out String>,
     private val mavenFacade: MavenFacade
-) {
+) : Facade {
 
     /**
      * Just in case, mostly to avoid issues with XML based template

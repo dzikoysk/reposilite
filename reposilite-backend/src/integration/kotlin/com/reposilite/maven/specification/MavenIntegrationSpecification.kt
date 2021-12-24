@@ -17,6 +17,7 @@
 package com.reposilite.maven.specification
 
 import com.reposilite.ReposiliteSpecification
+import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.Metadata
 import com.reposilite.maven.api.Versioning
@@ -40,7 +41,7 @@ internal abstract class MavenIntegrationSpecification : ReposiliteSpecification(
 
     protected fun useDocument(repository: String, gav: String, file: String, content: String = "test-content", store: Boolean = false): UseDocument {
         if (store) {
-            reposilite.mavenFacade.deployFile(DeployRequest(repository, "$gav/$file", "junit", content.byteInputStream()))
+            useFacade<MavenFacade>().deployFile(DeployRequest(repository, "$gav/$file", "junit", content.byteInputStream()))
         }
 
         return UseDocument(repository, gav, file, content)
@@ -57,7 +58,7 @@ internal abstract class MavenIntegrationSpecification : ReposiliteSpecification(
         val versioning = Versioning(latest = sortedVersions.firstOrNull(), _versions = sortedVersions)
         val metadata = Metadata(groupId, artifactId, versioning = versioning)
 
-        return Pair(repository, reposilite.mavenFacade.saveMetadata(repository, "$groupId.$artifactId".replace(".", "/"), metadata).get())
+        return Pair(repository, useFacade<MavenFacade>().saveMetadata(repository, "$groupId.$artifactId".replace(".", "/"), metadata).get())
     }
 
     protected suspend fun useProxiedHost(repository: String, gav: String, content: String, block: (String, String) -> Unit) {
