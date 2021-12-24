@@ -45,10 +45,10 @@ internal class AccessTokenPlugin : ReposilitePlugin() {
     override fun initialize(): AccessTokenFacade {
         val accessTokenFacade = AccessTokenFacade(
             temporaryRepository = InMemoryAccessTokenRepository(),
-            persistentRepository = SqlAccessTokenRepository(extensionsManagement.database)
+            persistentRepository = SqlAccessTokenRepository(extensions().database)
         )
 
-        extensionsManagement.parameters.tokens.forEach {
+        extensions().parameters.tokens.forEach {
             accessTokenFacade.createTemporaryAccessToken(it)
         }
 

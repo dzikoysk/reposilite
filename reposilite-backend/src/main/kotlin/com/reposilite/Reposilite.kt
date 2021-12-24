@@ -17,7 +17,7 @@ package com.reposilite
 
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
-import com.reposilite.plugin.ExtensionsManagement
+import com.reposilite.plugin.Extensions
 import com.reposilite.plugin.api.ReposiliteDisposeEvent
 import com.reposilite.plugin.api.ReposiliteInitializeEvent
 import com.reposilite.plugin.api.ReposilitePostInitializeEvent
@@ -38,7 +38,7 @@ class Reposilite(
     val scheduler: ScheduledExecutorService,
     val database: Database,
     val webServer: HttpServer,
-    val extensionsManagement: ExtensionsManagement
+    val extensions: Extensions
 ) : Journalist {
 
     private val alive = AtomicBoolean(false)
@@ -49,15 +49,15 @@ class Reposilite(
 
     fun launch() {
         try {
-            extensionsManagement.emitEvent(ReposiliteInitializeEvent(this))
-            extensionsManagement.emitEvent(ReposilitePostInitializeEvent(this))
+            extensions.emitEvent(ReposiliteInitializeEvent(this))
+            extensions.emitEvent(ReposilitePostInitializeEvent(this))
             alive.set(true)
             Thread.currentThread().name = "Reposilite | Main Thread"
             logger.info("")
             logger.info("Binding server at ${parameters.hostname}::${parameters.port}")
             webServer.start(this)
             Runtime.getRuntime().addShutdownHook(shutdownHook)
-            extensionsManagement.emitEvent(ReposiliteStartedEvent(this))
+            extensions.emitEvent(ReposiliteStartedEvent(this))
         } catch (exception: Exception) {
             logger.error("Failed to start Reposilite")
             logger.exception(exception)
@@ -71,7 +71,7 @@ class Reposilite(
             logger.info("Shutting down ${parameters.hostname}::${parameters.port}...")
             scheduler.shutdown()
             ioService.shutdown()
-            extensionsManagement.emitEvent(ReposiliteDisposeEvent(this))
+            extensions.emitEvent(ReposiliteDisposeEvent(this))
             webServer.stop()
             scheduler.shutdownNow()
             ioService.shutdownNow()

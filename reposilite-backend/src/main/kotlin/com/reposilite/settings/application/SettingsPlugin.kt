@@ -22,12 +22,12 @@ internal class SettingsPlugin : ReposilitePlugin() {
     }
 
     override fun initialize(): SettingsFacade {
-        val sharedConfigurationProvider = with(extensionsManagement.parameters) {
+        val sharedConfigurationProvider = with(extensions().parameters) {
             if (sharedConfigurationMode == "none")
                 SqlConfigurationProvider(
                     displayName = "Shared configuration",
                     journalist = this@SettingsPlugin,
-                    settingsRepository = SqlSettingsRepository(extensionsManagement.database),
+                    settingsRepository = SqlSettingsRepository(extensions().database),
                     name = SHARED_CONFIGURATION_FILE,
                     configuration = SharedConfiguration()
                 )
@@ -48,7 +48,7 @@ internal class SettingsPlugin : ReposilitePlugin() {
             it.initialize()
         }
 
-        val settingsFacade = SettingsFacade(extensionsManagement.localConfiguration, sharedConfigurationProvider)
+        val settingsFacade = SettingsFacade(extensions().localConfiguration, sharedConfigurationProvider)
 
         event { event: ReposiliteInitializeEvent ->
             settingsFacade.registerWatchers(event.reposilite.scheduler)

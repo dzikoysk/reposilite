@@ -1,4 +1,4 @@
-group = "com.reposilite"
+group = "com.reposilite.plugins"
 version = "3.0.0-alpha.14"
 
 plugins {
@@ -25,5 +25,5 @@ java {
 
 tasks.withType(Jar::class.java) {
     destinationDirectory.set(file("$rootDir/reposilite-backend/src/test/workspace/plugins"))
-    archiveFileName.set("test-plugin.jar")
+    archiveFileName.set("example-plugin.jar")
 }

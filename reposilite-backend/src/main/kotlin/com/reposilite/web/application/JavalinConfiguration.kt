@@ -51,7 +51,7 @@ internal object JavalinConfiguration {
         val server = Server(webThreadPool)
         config.server { server }
 
-        val settingsFacade = reposilite.extensionsManagement.facade<SettingsFacade>()
+        val settingsFacade = reposilite.extensions.facade<SettingsFacade>()
         val localConfiguration = settingsFacade.localConfiguration
         val sharedConfiguration = settingsFacade.sharedConfiguration
 
@@ -79,7 +79,7 @@ internal object JavalinConfiguration {
     }
 
     private fun configureReactiveRoutingPlugin(config: JavalinConfig, reposilite: Reposilite) {
-        val extensionManager = reposilite.extensionsManagement
+        val extensionManager = reposilite.extensions
         val failureFacade = extensionManager.facade<FailureFacade>()
         val authenticationFacade = extensionManager.facade<AuthenticationFacade>()
 

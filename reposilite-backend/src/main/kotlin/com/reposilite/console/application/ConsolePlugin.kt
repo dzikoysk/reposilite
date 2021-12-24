@@ -53,7 +53,7 @@ internal class ConsolePlugin : ReposilitePlugin() {
             consoleFacade.registerCommand(LevelCommand(event.reposilite.journalist))
             consoleFacade.registerCommand(StopCommand(event.reposilite))
 
-            val setup = extensionsManagement.emitEvent(CommandsSetupEvent())
+            val setup = extensions().emitEvent(CommandsSetupEvent())
             setup.getCommands().forEach { consoleFacade.registerCommand(it) }
 
             // disable console daemon in tests due to issues with coverage and interrupt method call

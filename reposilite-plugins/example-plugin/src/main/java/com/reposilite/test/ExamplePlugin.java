@@ -6,15 +6,15 @@ import com.reposilite.plugin.api.ReposiliteInitializeEvent;
 import com.reposilite.plugin.api.ReposilitePlugin;
 import org.jetbrains.annotations.Nullable;
 
-@Plugin(name = "test")
-public final class TestPlugin extends ReposilitePlugin {
+@Plugin(name = "example")
+public final class ExamplePlugin extends ReposilitePlugin {
 
     @Override
     public @Nullable Facade initialize() {
-        getExtensionsManagement().registerEvent(ReposiliteInitializeEvent.class, event -> {
+        extensions().registerEvent(ReposiliteInitializeEvent.class, event -> {
             getLogger().info("");
-            getLogger().info("--- Test plugin");
-            getLogger().info("Test plugin has been properly loaded");
+            getLogger().info("--- Example plugin");
+            getLogger().info("Example plugin has been properly loaded");
         });
         return null;
     }

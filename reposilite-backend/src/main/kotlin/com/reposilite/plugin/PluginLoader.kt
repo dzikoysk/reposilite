@@ -17,7 +17,7 @@ private data class PluginEntry(
 
 internal class PluginLoader(
     private val pluginDirectory: Path,
-    private val extensionsManagement: ExtensionsManagement
+    private val extensions: Extensions
 ) {
 
     private val plugins: MutableList<PluginEntry> = mutableListOf()
@@ -28,16 +28,16 @@ internal class PluginLoader(
         .let { toFlattenedDependencyGraph(it) }
         .map { plugins.first { plugin -> plugin.metadata.name == it } }
         .also {
-            extensionsManagement.logger.info("")
-            extensionsManagement.logger.info("--- Loading plugins (${it.size}):")
-            extensionsManagement.logger.info(it.joinToString(", ", transform = { (metadata, _) -> metadata.name }))
+            extensions.logger.info("")
+            extensions.logger.info("--- Loading plugins (${it.size}):")
+            extensions.logger.info(it.joinToString(", ", transform = { (metadata, _) -> metadata.name }))
         }
-        .forEach { (_, plugin) -> plugin.initialize()?.apply { extensionsManagement.registerFacade(this) } }
+        .forEach { (_, plugin) -> plugin.initialize()?.apply { extensions.registerFacade(this) } }
 
     fun registerPlugin(plugin: ReposilitePlugin) {
-        val field = plugin::class.java.superclass.getDeclaredField("extensionsManagement")
+        val field = plugin::class.java.superclass.getDeclaredField("extensions")
         field.isAccessible = true
-        field.set(plugin, extensionsManagement)
+        field.set(plugin, extensions)
         plugins.add(PluginEntry(plugin::class.findAnnotation() ?: throw IllegalStateException("Plugin ${plugin::class} does not have @Plugin annotation"), plugin))
     }
 

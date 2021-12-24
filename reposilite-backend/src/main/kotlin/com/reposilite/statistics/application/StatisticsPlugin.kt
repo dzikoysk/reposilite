@@ -46,7 +46,7 @@ internal class StatisticsPlugin : ReposilitePlugin() {
                     createDateIntervalProvider(it.resolvedRequestsInterval)
                 }
             },
-            SqlStatisticsRepository(extensionsManagement.database)
+            SqlStatisticsRepository(extensions().database)
         )
 
         consoleFacade.registerCommand(StatsCommand(statisticsFacade))

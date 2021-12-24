@@ -59,7 +59,7 @@ internal abstract class ReposiliteSpecification : ReposiliteRunner() {
     }
 
     inline fun <reified F : Facade> useFacade(): F =
-        reposilite.extensionsManagement.facade()
+        reposilite.extensions.facade()
 
     fun <T : Any> HttpRequest<*>.asJacksonObject(type: KClass<T>): HttpResponse<T> =
         this.asObject { jacksonMapper.readValue(it.contentAsString, type.java) }

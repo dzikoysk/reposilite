@@ -34,7 +34,7 @@ class HttpServer {
 
     fun start(reposilite: Reposilite) =
         runWithDisabledLogging {
-            val extensionsManagement = reposilite.extensionsManagement
+            val extensionsManagement = reposilite.extensions
             val settingsFacade = extensionsManagement.facade<SettingsFacade>()
 
             this.webThreadPool = QueuedThreadPool(settingsFacade.localConfiguration.webThreadPool.get(), 2).also {
@@ -49,7 +49,7 @@ class HttpServer {
                     listener.serverStopped { extensionsManagement.emitEvent(HttpServerStoppedEvent()) }
                 }
                 .also {
-                    reposilite.extensionsManagement.emitEvent(HttpServerInitializationEvent(reposilite, it))
+                    reposilite.extensions.emitEvent(HttpServerInitializationEvent(reposilite, it))
                 }
 
             if (!servlet) {

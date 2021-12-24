@@ -6,7 +6,7 @@ import com.reposilite.plugin.api.Facade
 import com.reposilite.plugin.api.ReposilitePlugin
 
 inline fun <reified EVENT : Event> ReposilitePlugin.event(listener: EventListener<EVENT>) =
-    extensionsManagement.registerEvent(listener)
+    extensions().registerEvent(listener)
 
 inline fun <reified F : Facade> ReposilitePlugin.facade(): F =
-    extensionsManagement.facade()
+    extensions().facade()

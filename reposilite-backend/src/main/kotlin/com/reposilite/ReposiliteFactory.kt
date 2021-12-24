@@ -24,7 +24,7 @@ import com.reposilite.journalist.Channel
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.backend.PrintStreamLogger
 import com.reposilite.maven.application.MavenPlugin
-import com.reposilite.plugin.ExtensionsManagement
+import com.reposilite.plugin.Extensions
 import com.reposilite.plugin.PluginLoader
 import com.reposilite.settings.application.DatabaseSourceFactory
 import com.reposilite.settings.application.LocalConfigurationFactory
@@ -62,8 +62,8 @@ object ReposiliteFactory {
         val ioService = newFixedThreadPool(2, localConfiguration.ioThreadPool.get(), "Reposilite | IO")
         val database = DatabaseSourceFactory.createConnection(parameters.workingDirectory, localConfiguration.database.get())
 
-        val extensionsManagement = ExtensionsManagement(journalist, parameters, localConfiguration, database)
-        val pluginLoader = PluginLoader(parameters.workingDirectory.resolve("plugins"), extensionsManagement)
+        val extensions = Extensions(journalist, parameters, localConfiguration, database)
+        val pluginLoader = PluginLoader(parameters.workingDirectory.resolve("plugins"), extensions)
 
         listOf(
             AuthenticationPlugin(),
@@ -90,7 +90,7 @@ object ReposiliteFactory {
             scheduler = scheduler,
             database = database,
             webServer = webServer,
-            extensionsManagement = extensionsManagement
+            extensions = extensions
         )
     }
 

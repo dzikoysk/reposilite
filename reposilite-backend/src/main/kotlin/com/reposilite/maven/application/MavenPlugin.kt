@@ -46,7 +46,7 @@ internal class MavenPlugin : ReposilitePlugin() {
 
         val repositoryProvider = RepositoryProvider(
             this,
-            extensionsManagement.parameters.workingDirectory,
+            extensions().parameters.workingDirectory,
             HttpRemoteClientProvider,
             settingsFacade.sharedConfiguration.repositories
         )

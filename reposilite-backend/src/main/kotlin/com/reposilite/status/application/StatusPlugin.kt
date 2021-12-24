@@ -45,7 +45,7 @@ internal class StatusPlugin : ReposilitePlugin() {
         val webServer = Completable<HttpServer>()
 
         val statusFacade = StatusFacade(
-            testEnv = extensionsManagement.parameters.testEnv,
+            testEnv = extensions().parameters.testEnv,
             status = { if (webServer.isReady) webServer.get().isAlive() else false },
             remoteVersionUrl = REMOTE_VERSION
         )

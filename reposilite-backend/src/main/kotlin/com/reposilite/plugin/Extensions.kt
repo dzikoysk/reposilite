@@ -9,7 +9,7 @@ import com.reposilite.plugin.api.Facade
 import com.reposilite.settings.api.LocalConfiguration
 import org.jetbrains.exposed.sql.Database
 
-class ExtensionsManagement(
+class Extensions(
     private val journalist: Journalist,
     val parameters: ReposiliteParameters,
     val localConfiguration: LocalConfiguration,
