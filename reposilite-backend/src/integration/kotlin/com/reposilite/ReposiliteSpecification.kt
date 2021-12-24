@@ -19,6 +19,8 @@ package com.reposilite
 import com.fasterxml.jackson.databind.json.JsonMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import com.reposilite.plugin.api.Facade
+import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.api.CreateAccessTokenRequest
 import com.reposilite.token.api.Route
 import com.reposilite.token.api.RoutePermission
@@ -46,7 +48,7 @@ internal abstract class ReposiliteSpecification : ReposiliteRunner() {
         Pair("manager", "manager-secret")
 
     fun useAuth(name: String, secret: String, routes: Map<String, RoutePermission> = emptyMap()): Pair<String, String> {
-        val accessTokenFacade = reposilite.accessTokenFacade
+        val accessTokenFacade = useFacade<AccessTokenFacade>()
         var accessToken = accessTokenFacade.createAccessToken(CreateAccessTokenRequest(name, secret)).accessToken
 
         routes.forEach { (route, permission) ->
@@ -55,6 +57,9 @@ internal abstract class ReposiliteSpecification : ReposiliteRunner() {
 
         return Pair(name, secret)
     }
+
+    inline fun <reified F : Facade> useFacade(): F =
+        reposilite.extensions.facade()
 
     fun <T : Any> HttpRequest<*>.asJacksonObject(type: KClass<T>): HttpResponse<T> =
         this.asObject { jacksonMapper.readValue(it.contentAsString, type.java) }

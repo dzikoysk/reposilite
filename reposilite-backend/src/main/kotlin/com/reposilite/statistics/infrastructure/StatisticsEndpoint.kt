@@ -18,8 +18,8 @@ package com.reposilite.statistics.infrastructure
 
 import com.reposilite.statistics.MAX_PAGE_SIZE
 import com.reposilite.statistics.StatisticsFacade
-import com.reposilite.web.application.ReposiliteRoute
-import com.reposilite.web.application.ReposiliteRoutes
+import com.reposilite.web.api.ReposiliteRoute
+import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.routing.RouteMethod.GET
 import io.javalin.openapi.HttpMethod
 import io.javalin.openapi.OpenApi

@@ -1,8 +1,8 @@
 # Build stage
 FROM openjdk:16-slim AS build
 COPY . /home/reposilite-build
-WORKDIR /home/reposilite-build/reposilite-backend
-RUN export GRADLE_OPTS="-Djdk.lang.Process.launchMechanism=vfork" && chmod +x gradlew && ./gradlew shadowJar --no-daemon --stacktrace
+WORKDIR /home/reposilite-build
+RUN export GRADLE_OPTS="-Djdk.lang.Process.launchMechanism=vfork" && chmod +x gradlew && ./gradlew :reposilite-backend:shadowJar --no-daemon --stacktrace
 
 # Build-time metadata stage
 ARG BUILD_DATE

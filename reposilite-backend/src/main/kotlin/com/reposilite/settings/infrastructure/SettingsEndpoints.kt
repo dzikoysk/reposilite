@@ -3,8 +3,8 @@ package com.reposilite.settings.infrastructure
 import com.reposilite.settings.SettingsFacade
 import com.reposilite.settings.api.SettingsResponse
 import com.reposilite.settings.api.SettingsUpdateRequest
-import com.reposilite.web.application.ReposiliteRoute
-import com.reposilite.web.application.ReposiliteRoutes
+import com.reposilite.web.api.ReposiliteRoute
+import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.routing.RouteMethod.GET
 import com.reposilite.web.routing.RouteMethod.PUT
 import io.javalin.openapi.HttpMethod

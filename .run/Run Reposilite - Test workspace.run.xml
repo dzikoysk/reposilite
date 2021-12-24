@@ -1,12 +1,12 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Reposilite" type="Application" factoryName="Application" singleton="false">
-    <option name="ALTERNATIVE_JRE_PATH" value="8" />
+  <configuration default="false" name="Run Reposilite - Test workspace" type="Application" factoryName="Application" singleton="false">
+    <option name="ALTERNATIVE_JRE_PATH" value="16" />
     <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
     <envs>
       <env name="GRADLE_OPS" value="--warning-mode all" />
     </envs>
     <option name="MAIN_CLASS_NAME" value="com.reposilite.ReposiliteLauncherKt" />
-    <module name="reposilite-backend.main" />
+    <module name="reposilite-parent.reposilite-backend.main" />
     <option name="PROGRAM_PARAMETERS" value="--token name:secret" />
     <option name="VM_PARAMETERS" value="-Xmx32M" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/reposilite-backend/src/test/workspace" />

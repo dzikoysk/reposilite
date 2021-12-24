@@ -20,6 +20,7 @@ import com.reposilite.console.api.ExecutionResponse
 import com.reposilite.console.api.ReposiliteCommand
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
+import com.reposilite.plugin.api.Facade
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
 import io.javalin.http.HttpCode.BAD_REQUEST
@@ -33,7 +34,7 @@ const val MAX_COMMAND_LENGTH = 1024
 class ConsoleFacade internal constructor(
     private val journalist: Journalist,
     internal val commandExecutor: CommandExecutor
-) : Journalist {
+) : Journalist, Facade {
 
     fun executeCommand(command: String): Result<ExecutionResponse, ErrorResponse> {
         if (StringUtils.isEmpty(command)) {

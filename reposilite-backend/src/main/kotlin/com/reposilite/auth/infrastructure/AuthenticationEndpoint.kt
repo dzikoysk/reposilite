@@ -17,7 +17,7 @@ package com.reposilite.auth.infrastructure
 
 import com.reposilite.auth.AuthenticationFacade
 import com.reposilite.token.api.AccessToken
-import com.reposilite.web.application.ReposiliteRoutes
+import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.routing.RouteMethod.GET
 import io.javalin.openapi.HttpMethod

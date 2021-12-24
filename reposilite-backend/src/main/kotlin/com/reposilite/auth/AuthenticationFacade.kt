@@ -18,6 +18,7 @@ package com.reposilite.auth
 
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
+import com.reposilite.plugin.api.Facade
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.AccessTokenSecurityProvider.B_CRYPT_TOKENS_ENCODER
 import com.reposilite.token.api.AccessToken
@@ -32,7 +33,7 @@ import panda.std.asSuccess
 class AuthenticationFacade internal constructor(
     private val journalist: Journalist,
     private val accessTokenFacade: AccessTokenFacade
-) : Journalist {
+) : Journalist, Facade {
 
     fun authenticateByHeader(headers: Map<String, String>): Result<AccessToken, ErrorResponse> =
         extractFromHeaders(headers)

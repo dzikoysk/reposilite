@@ -18,8 +18,12 @@ package com.reposilite.maven.specification
 
 import com.reposilite.journalist.backend.InMemoryLogger
 import com.reposilite.maven.MavenFacade
+import com.reposilite.maven.MetadataService
+import com.reposilite.maven.ProxyService
+import com.reposilite.maven.RepositoryProvider
+import com.reposilite.maven.RepositorySecurityProvider
+import com.reposilite.maven.RepositoryService
 import com.reposilite.maven.api.LookupRequest
-import com.reposilite.maven.application.MavenWebConfiguration
 import com.reposilite.settings.api.SharedConfiguration.RepositoryConfiguration
 import com.reposilite.shared.fs.DocumentInfo
 import com.reposilite.shared.fs.UNKNOWN_LENGTH
@@ -91,11 +95,19 @@ internal abstract class MavenSpecification {
             }
         )
 
-        this.mavenFacade = MavenWebConfiguration.createFacade(
+        val workingDirectoryPath = workingDirectory!!.toPath()
+        val repositories = mutableReference(repositories())
+
+        val securityProvider = RepositorySecurityProvider()
+        val repositoryProvider = RepositoryProvider(logger, workingDirectoryPath, remoteClientProvider, repositories)
+        val repositoryService = RepositoryService(logger, repositoryProvider, securityProvider)
+
+        this.mavenFacade = MavenFacade(
             logger,
-            workingDirectory!!.toPath(),
-            remoteClientProvider,
-            mutableReference(repositories()),
+            securityProvider,
+            RepositoryService(logger, repositoryProvider, securityProvider),
+            ProxyService(),
+            MetadataService(repositoryService),
             StatisticsFacade(logger, DailyDateIntervalProvider.toReference(), InMemoryStatisticsRepository())
         )
     }

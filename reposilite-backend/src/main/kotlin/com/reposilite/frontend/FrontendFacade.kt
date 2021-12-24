@@ -15,6 +15,7 @@
  */
 package com.reposilite.frontend
 
+import com.reposilite.plugin.api.Facade
 import org.intellij.lang.annotations.Language
 import panda.std.reactive.Reference
 import panda.std.reactive.computed
@@ -28,7 +29,7 @@ class FrontendFacade internal constructor(
     private val organizationWebsite: Reference<String>,
     private val organizationLogo: Reference<String>,
     private val icpLicense: Reference<String>,
-) {
+) : Facade {
 
     private val resources = HashMap<String, String>(0)
 

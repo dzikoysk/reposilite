@@ -17,6 +17,7 @@
 package com.reposilite.status
 
 import com.reposilite.VERSION
+import com.reposilite.plugin.api.Facade
 import com.reposilite.shared.extensions.TimeUtils
 import panda.utilities.IOUtils
 import panda.utilities.console.Effect.GREEN
@@ -28,7 +29,7 @@ class StatusFacade(
     val startTime: Long = System.currentTimeMillis(),
     private val status: () -> Boolean,
     private val remoteVersionUrl: String
-) {
+) : Facade {
 
     fun isAlive(): Boolean =
         status()
