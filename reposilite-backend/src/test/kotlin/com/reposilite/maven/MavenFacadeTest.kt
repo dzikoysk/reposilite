@@ -20,10 +20,9 @@ import com.reposilite.maven.api.DeleteRequest
 import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.Metadata
-import com.reposilite.maven.api.RepositoryVisibility
-import com.reposilite.maven.api.RepositoryVisibility.HIDDEN
-import com.reposilite.maven.api.RepositoryVisibility.PRIVATE
-import com.reposilite.maven.api.RepositoryVisibility.PUBLIC
+import com.reposilite.maven.RepositoryVisibility.HIDDEN
+import com.reposilite.maven.RepositoryVisibility.PRIVATE
+import com.reposilite.maven.RepositoryVisibility.PUBLIC
 import com.reposilite.maven.api.VersionLookupRequest
 import com.reposilite.maven.api.Versioning
 import com.reposilite.maven.specification.MavenSpecification

@@ -19,6 +19,7 @@ package com.reposilite.maven
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
 import com.reposilite.maven.api.DeleteRequest
+import com.reposilite.maven.api.DeployEvent
 import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.METADATA_FILE
@@ -26,6 +27,7 @@ import com.reposilite.maven.api.Metadata
 import com.reposilite.maven.api.VersionLookupRequest
 import com.reposilite.maven.api.VersionResponse
 import com.reposilite.maven.api.VersionsResponse
+import com.reposilite.plugin.Extensions
 import com.reposilite.plugin.api.Facade
 import com.reposilite.shared.extensions.`when`
 import com.reposilite.shared.fs.DirectoryInfo
@@ -57,6 +59,7 @@ class MavenFacade internal constructor(
     private val repositoryService: RepositoryService,
     private val proxyService: ProxyService,
     private val metadataService: MetadataService,
+    private val extensions: Extensions,
     private val statisticsFacade: StatisticsFacade
 ) : Journalist, Facade {
 
@@ -136,6 +139,7 @@ class MavenFacade internal constructor(
 
         return repository.putFile(path, deployRequest.content)
             .peek { logger.info("DEPLOY | Artifact $path successfully deployed to ${repository.name} by ${deployRequest.by}") }
+            .peek { extensions.emitEvent(DeployEvent(deployRequest, repository, path)) }
     }
 
     fun deleteFile(deleteRequest: DeleteRequest): Result<Unit, ErrorResponse> {
