@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.reposilite.maven.api
+package com.reposilite.maven
 
 enum class RepositoryVisibility {
     PUBLIC,

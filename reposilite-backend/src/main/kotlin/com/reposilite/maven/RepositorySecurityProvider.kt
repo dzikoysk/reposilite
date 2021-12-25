@@ -16,9 +16,9 @@
 
 package com.reposilite.maven
 
-import com.reposilite.maven.api.RepositoryVisibility.HIDDEN
-import com.reposilite.maven.api.RepositoryVisibility.PRIVATE
-import com.reposilite.maven.api.RepositoryVisibility.PUBLIC
+import com.reposilite.maven.RepositoryVisibility.HIDDEN
+import com.reposilite.maven.RepositoryVisibility.PRIVATE
+import com.reposilite.maven.RepositoryVisibility.PUBLIC
 import com.reposilite.token.api.AccessToken
 import com.reposilite.token.api.RoutePermission
 import com.reposilite.token.api.RoutePermission.READ
