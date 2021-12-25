@@ -4,10 +4,10 @@ import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.VersionLookupRequest
 import com.reposilite.maven.api.VersionResponse
+import com.reposilite.shared.ContextDsl
 import com.reposilite.shared.fs.DocumentInfo
 import com.reposilite.shared.fs.FileDetails
 import com.reposilite.token.api.AccessToken
-import com.reposilite.shared.ContextDsl
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.http.ErrorResponse
@@ -65,7 +65,7 @@ internal class MavenLatestApiEndpoints(private val mavenFacade: MavenFacade) : R
             OpenApiParam(name = "*", description = "Artifact path qualifier", required = true, allowEmptyValue = true)
         ],
         queryParams = [ OpenApiParam(name = "filter", description = "Version (prefix) filter to apply", required = false) ],
-        responses = [ OpenApiResponse("200", content = [OpenApiContent(from = FileDetails::class)]) ]
+        responses = [ OpenApiResponse("200", description = "Details about the given file", content = [OpenApiContent(from = FileDetails::class)]) ]
     )
     private val findLatestDetails = ReposiliteRoute("/api/maven/latest/details/{repository}/<gav>", GET) {
         accessed {

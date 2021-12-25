@@ -28,7 +28,7 @@
  <br>
  <div>
   Lightweight and easy-to-use repository manager for Maven based artifacts in JVM ecosystem. 
-It is a simple and scaling self-hosted solution to replace managers like Nexus, Archiva or Artifactory with reduced resources consumption. 
+This is simple, extensible and scaling self-hosted solution to replace managers like Nexus, Archiva or Artifactory, with reduced resources consumption. 
  </div>
  <br>
  <div>
