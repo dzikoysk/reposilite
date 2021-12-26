@@ -100,10 +100,13 @@ class MavenFacade internal constructor(
 
     fun findFile(lookupRequest: LookupRequest): Result<out InputStream, ErrorResponse> =
         resolve(lookupRequest) { repository, gav ->
-            if (repository.exists(gav))
+            if (repository.exists(gav)) {
+                logger.debug("Gav $gav found in ${repository.name} repository")
                 repository.getFile(gav)
-            else
+            } else {
+                logger.debug("Cannot find $gav in ${repository.name} repository, requesting proxied repositories")
                 proxyService.findRemoteFile(repository, lookupRequest.gav)
+            }
         }
 
     private fun <T> resolve(lookupRequest: LookupRequest, block: (Repository, Path) -> Result<out T, ErrorResponse>): Result<out T, ErrorResponse> {
@@ -111,6 +114,7 @@ class MavenFacade internal constructor(
         val gav = lookupRequest.gav.toPath()
 
         if (repositorySecurityProvider.canAccessResource(lookupRequest.accessToken, repository, gav).not()) {
+            logger.debug("Unauthorized attempt of access (token: ${lookupRequest.accessToken}) to $gav from ${repository.name}")
             return unauthorized().asError()
         }
 

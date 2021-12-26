@@ -7,6 +7,7 @@ import com.google.api.client.http.HttpResponse
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.reposilite.journalist.Channel
 import com.reposilite.journalist.Journalist
+import com.reposilite.journalist.Logger
 import com.reposilite.shared.fs.DocumentInfo
 import com.reposilite.shared.fs.FileDetails
 import com.reposilite.shared.fs.UNKNOWN_LENGTH
@@ -35,7 +36,7 @@ object HttpRemoteClientProvider : RemoteClientProvider {
 
 }
 
-class HttpRemoteClient(private val journalist: Journalist, proxy: Proxy?) : RemoteClient {
+class HttpRemoteClient(private val journalist: Journalist, proxy: Proxy?) : RemoteClient, Journalist {
 
     private val requestFactory = NetHttpTransport.Builder()
         .setProxy(proxy)
@@ -83,13 +84,15 @@ class HttpRemoteClient(private val journalist: Journalist, proxy: Proxy?) : Remo
     private fun <R> HttpRequest.execute(block: (HttpResponse) -> Result<R, ErrorResponse>): Result<R, ErrorResponse> =
         try {
             val response = this.execute()
+            logger.debug("HttpRemoteClient | $url responded with ${response.statusCode} (Content-Type: ${response.contentType})")
+
             when {
                 response.contentType == ContentType.HTML -> errorResponse(NOT_ACCEPTABLE, "Illegal file type (${response.contentType})")
                 response.isSuccessStatusCode.not() -> errorResponse(NOT_ACCEPTABLE, "Unsuccessful request (${response.statusCode})")
                 else -> block(response)
             }
         } catch (exception: Exception) {
-            createErrorResponse(this.url.toString(), exception)
+            createExceptionResponse(this.url.toString(), exception)
         }
 
     private fun HttpRequest.authenticateWith(credentials: String?): HttpRequest = also {
@@ -99,10 +102,13 @@ class HttpRemoteClient(private val journalist: Journalist, proxy: Proxy?) : Remo
         }
     }
 
-    private fun <V> createErrorResponse(uri: String, exception: Exception): Result<V, ErrorResponse> {
-        journalist.logger.debug("Cannot get $uri")
-        journalist.logger.exception(Channel.DEBUG, exception)
+    private fun <V> createExceptionResponse(uri: String, exception: Exception): Result<V, ErrorResponse> {
+        logger.debug("HttpRemoteClient | Cannot get $uri")
+        logger.exception(Channel.DEBUG, exception)
         return errorResponse(BAD_REQUEST, "An error of type ${exception.javaClass} happened: ${exception.message}")
     }
+
+    override fun getLogger(): Logger =
+        journalist.logger
 
 }

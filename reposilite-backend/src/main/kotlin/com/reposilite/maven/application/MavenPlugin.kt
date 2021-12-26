@@ -57,7 +57,7 @@ internal class MavenPlugin : ReposilitePlugin() {
             this,
             securityProvider,
             repositoryService,
-            ProxyService(),
+            ProxyService(this),
             MetadataService(repositoryService),
             extensions(),
             statisticsFacade,
