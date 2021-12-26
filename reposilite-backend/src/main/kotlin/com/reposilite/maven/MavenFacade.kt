@@ -24,6 +24,7 @@ import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.METADATA_FILE
 import com.reposilite.maven.api.Metadata
+import com.reposilite.maven.api.ResolveEvent
 import com.reposilite.maven.api.VersionLookupRequest
 import com.reposilite.maven.api.VersionResponse
 import com.reposilite.maven.api.VersionsResponse
@@ -113,6 +114,7 @@ class MavenFacade internal constructor(
             return unauthorized().asError()
         }
 
+        extensions.emitEvent(ResolveEvent(lookupRequest, repository, gav))
         return block(repository, gav)
     }
 
