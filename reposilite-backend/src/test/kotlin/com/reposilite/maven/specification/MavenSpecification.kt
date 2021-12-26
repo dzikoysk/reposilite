@@ -110,7 +110,7 @@ internal abstract class MavenSpecification {
             logger,
             securityProvider,
             RepositoryService(logger, repositoryProvider, securityProvider),
-            ProxyService(),
+            ProxyService(logger),
             MetadataService(repositoryService),
             Extensions(logger, parameters, LocalConfiguration()),
             StatisticsFacade(logger, DailyDateIntervalProvider.toReference(), InMemoryStatisticsRepository())

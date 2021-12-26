@@ -16,6 +16,8 @@
 
 package com.reposilite.maven
 
+import com.reposilite.journalist.Journalist
+import com.reposilite.journalist.Logger
 import com.reposilite.settings.api.SharedConfiguration.RepositoryConfiguration.ProxiedHostConfiguration
 import com.reposilite.shared.extensions.firstOrErrors
 import com.reposilite.shared.fs.FileDetails
@@ -27,7 +29,7 @@ import panda.std.Result.ok
 import java.io.InputStream
 import java.nio.file.Path
 
-internal class ProxyService {
+internal class ProxyService(private val journalist: Journalist): Journalist {
 
     fun findRemoteDetails(repository: Repository, gav: String): Result<out FileDetails, ErrorResponse> =
         searchInRemoteRepositories(repository, gav) { (host, config, client) ->
@@ -58,5 +60,8 @@ internal class ProxyService {
         repository
             .putFile(gav, data)
             .flatMap { repository.getFile(gav) }
+
+    override fun getLogger(): Logger =
+        journalist.logger
 
 }
