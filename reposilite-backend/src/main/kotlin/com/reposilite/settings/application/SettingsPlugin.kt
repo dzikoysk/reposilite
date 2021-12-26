@@ -50,7 +50,7 @@ internal class SettingsPlugin : ReposilitePlugin() {
             it.initialize()
         }
 
-        val settingsFacade = SettingsFacade(extensions().localConfiguration, database, sharedConfigurationProvider)
+        val settingsFacade = SettingsFacade(extensions().localConfiguration, lazy { database }, sharedConfigurationProvider)
 
         event { event: ReposiliteInitializeEvent ->
             settingsFacade.registerWatchers(event.reposilite.scheduler)
