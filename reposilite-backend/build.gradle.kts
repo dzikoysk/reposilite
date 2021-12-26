@@ -122,6 +122,12 @@ dependencies {
     testImplementation("com.konghq:unirest-java:$unirest")
     testImplementation("com.konghq:unirest-objectmapper-jackson:$unirest")
 
+    val testcontainers = "1.16.2"
+    testImplementation("org.testcontainers:mariadb:$testcontainers")
+    testImplementation("org.testcontainers:testcontainers:$testcontainers")
+    testImplementation("org.testcontainers:junit-jupiter:$testcontainers")
+    testImplementation("org.testcontainers:localstack:$testcontainers")
+
     val junit = "5.8.2"
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junit")
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junit")
