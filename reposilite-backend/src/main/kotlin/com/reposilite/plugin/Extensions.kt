@@ -7,13 +7,11 @@ import com.reposilite.plugin.api.Event
 import com.reposilite.plugin.api.EventListener
 import com.reposilite.plugin.api.Facade
 import com.reposilite.settings.api.LocalConfiguration
-import org.jetbrains.exposed.sql.Database
 
 class Extensions(
     private val journalist: Journalist,
     val parameters: ReposiliteParameters,
-    val localConfiguration: LocalConfiguration,
-    val database: Database
+    val localConfiguration: LocalConfiguration
 ) : Journalist {
 
     private val events: MutableMap<Class<*>, MutableList<EventListener<Event>>> = mutableMapOf()

@@ -27,8 +27,8 @@ import java.sql.Connection.TRANSACTION_SERIALIZABLE
 
 internal object DatabaseSourceFactory {
 
-    fun createConnection(workingDirectory: Path, databaseConfiguration: String): Database {
-        return when {
+    fun createConnection(workingDirectory: Path, databaseConfiguration: String): Database =
+        when {
             databaseConfiguration.startsWith("sqlite") -> {
                 val settings = loadCommandBasedConfiguration(SQLiteDatabaseSettings(), databaseConfiguration).configuration
 
@@ -56,6 +56,5 @@ internal object DatabaseSourceFactory {
             }
             else -> throw RuntimeException("Unknown database: $databaseConfiguration")
         }
-    }
 
 }

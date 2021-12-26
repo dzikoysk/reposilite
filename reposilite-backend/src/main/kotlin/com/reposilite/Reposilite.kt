@@ -24,7 +24,6 @@ import com.reposilite.plugin.api.ReposilitePostInitializeEvent
 import com.reposilite.plugin.api.ReposiliteStartedEvent
 import com.reposilite.shared.extensions.peek
 import com.reposilite.web.HttpServer
-import org.jetbrains.exposed.sql.Database
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.atomic.AtomicBoolean
@@ -36,7 +35,6 @@ class Reposilite(
     val parameters: ReposiliteParameters,
     val ioService: ExecutorService,
     val scheduler: ScheduledExecutorService,
-    val database: Database,
     val webServer: HttpServer,
     val extensions: Extensions
 ) : Journalist {
