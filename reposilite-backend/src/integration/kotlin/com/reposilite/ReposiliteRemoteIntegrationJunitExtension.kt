@@ -38,10 +38,10 @@ internal class ReposiliteRemoteIntegrationJunitExtension : Extension, BeforeEach
     private class SpecifiedMariaDBContainer(image: String) : MariaDBContainer<SpecifiedMariaDBContainer>(DockerImageName.parse(image))
 
     @Container
-    private val mariaDb = SpecifiedMariaDBContainer("mariadb:10.6.1")
+    private val mariaDb = SpecifiedMariaDBContainer("mariadb:10.7.1")
 
     @Container
-    private val localstack: LocalStackContainer = LocalStackContainer(DockerImageName.parse("localstack/localstack:0.12.17"))
+    private val localstack: LocalStackContainer = LocalStackContainer(DockerImageName.parse("localstack/localstack:0.13.2"))
         .withServices(S3)
 
     override fun beforeEach(context: ExtensionContext?) {
