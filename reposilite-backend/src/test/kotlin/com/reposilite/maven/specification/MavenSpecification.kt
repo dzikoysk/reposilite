@@ -16,6 +16,7 @@
 
 package com.reposilite.maven.specification
 
+import com.reposilite.ReposiliteParameters
 import com.reposilite.journalist.backend.InMemoryLogger
 import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.MetadataService
@@ -24,6 +25,8 @@ import com.reposilite.maven.RepositoryProvider
 import com.reposilite.maven.RepositorySecurityProvider
 import com.reposilite.maven.RepositoryService
 import com.reposilite.maven.api.LookupRequest
+import com.reposilite.plugin.Extensions
+import com.reposilite.settings.api.LocalConfiguration
 import com.reposilite.settings.api.SharedConfiguration.RepositoryConfiguration
 import com.reposilite.shared.fs.DocumentInfo
 import com.reposilite.shared.fs.UNKNOWN_LENGTH
@@ -96,6 +99,7 @@ internal abstract class MavenSpecification {
         )
 
         val workingDirectoryPath = workingDirectory!!.toPath()
+        val parameters = ReposiliteParameters().also { it.workingDirectory = workingDirectoryPath }
         val repositories = mutableReference(repositories())
 
         val securityProvider = RepositorySecurityProvider()
@@ -108,6 +112,7 @@ internal abstract class MavenSpecification {
             RepositoryService(logger, repositoryProvider, securityProvider),
             ProxyService(),
             MetadataService(repositoryService),
+            Extensions(logger, parameters, LocalConfiguration()),
             StatisticsFacade(logger, DailyDateIntervalProvider.toReference(), InMemoryStatisticsRepository())
         )
     }
@@ -149,7 +154,7 @@ internal abstract class MavenSpecification {
         return AccessToken(name = name, encryptedSecret = secret, routes = routes)
     }
 
-    fun String.isAllowed(): Boolean =
+    private fun String.isAllowed(): Boolean =
         this.endsWith("/allow")
 
 }

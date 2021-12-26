@@ -6,13 +6,15 @@ import com.reposilite.settings.api.SettingsResponse
 import com.reposilite.settings.api.SettingsUpdateRequest
 import com.reposilite.settings.api.SharedConfiguration
 import com.reposilite.web.http.ErrorResponse
+import org.jetbrains.exposed.sql.Database
 import panda.std.Result
 import panda.std.Unit
 import java.util.concurrent.ScheduledExecutorService
 
 class SettingsFacade internal constructor(
     val localConfiguration: LocalConfiguration,
-    private val sharedConfigurationProvider: ConfigurationProvider<SharedConfiguration>
+    val database: Database,
+    private val sharedConfigurationProvider: ConfigurationProvider<SharedConfiguration>,
 ) : Facade {
 
     val sharedConfiguration: SharedConfiguration // expose it directly for easier calls

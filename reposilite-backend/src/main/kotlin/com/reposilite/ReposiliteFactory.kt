@@ -16,25 +16,15 @@
 
 package com.reposilite
 
-import com.reposilite.auth.application.AuthenticationPlugin
-import com.reposilite.badge.application.BadgePlugin
-import com.reposilite.console.application.ConsolePlugin
-import com.reposilite.frontend.application.FrontendPlugin
 import com.reposilite.journalist.Channel
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.backend.PrintStreamLogger
-import com.reposilite.maven.application.MavenPlugin
 import com.reposilite.plugin.Extensions
 import com.reposilite.plugin.PluginLoader
 import com.reposilite.settings.application.DatabaseSourceFactory
 import com.reposilite.settings.application.LocalConfigurationFactory
-import com.reposilite.settings.application.SettingsPlugin
 import com.reposilite.shared.extensions.newFixedThreadPool
 import com.reposilite.shared.extensions.newSingleThreadScheduledExecutor
-import com.reposilite.statistics.application.StatisticsPlugin
-import com.reposilite.status.application.FailurePlugin
-import com.reposilite.status.application.StatusPlugin
-import com.reposilite.token.application.AccessTokenPlugin
 import com.reposilite.web.HttpServer
 import panda.utilities.console.Effect
 
@@ -60,26 +50,9 @@ object ReposiliteFactory {
         val webServer = HttpServer()
         val scheduler = newSingleThreadScheduledExecutor("Reposilite | Scheduler")
         val ioService = newFixedThreadPool(2, localConfiguration.ioThreadPool.get(), "Reposilite | IO")
-        val database = DatabaseSourceFactory.createConnection(parameters.workingDirectory, localConfiguration.database.get())
 
-        val extensions = Extensions(journalist, parameters, localConfiguration, database)
+        val extensions = Extensions(journalist, parameters, localConfiguration)
         val pluginLoader = PluginLoader(parameters.workingDirectory.resolve("plugins"), extensions)
-
-        listOf(
-            AuthenticationPlugin(),
-            BadgePlugin(),
-            ConsolePlugin(),
-            FrontendPlugin(),
-            MavenPlugin(),
-            SettingsPlugin(),
-            StatisticsPlugin(),
-            StatusPlugin(),
-            FailurePlugin(),
-            AccessTokenPlugin()
-        ).forEach {
-            pluginLoader.registerPlugin(it)
-        }
-
         pluginLoader.loadExternalPlugins()
         pluginLoader.initialize()
 
@@ -88,7 +61,6 @@ object ReposiliteFactory {
             parameters = parameters,
             ioService = ioService,
             scheduler = scheduler,
-            database = database,
             webServer = webServer,
             extensions = extensions
         )
