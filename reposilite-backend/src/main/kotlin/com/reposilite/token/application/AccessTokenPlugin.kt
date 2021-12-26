@@ -49,7 +49,7 @@ internal class AccessTokenPlugin : ReposilitePlugin() {
 
         val accessTokenFacade = AccessTokenFacade(
             temporaryRepository = InMemoryAccessTokenRepository(),
-            persistentRepository = SqlAccessTokenRepository(settingsFacade.database)
+            persistentRepository = SqlAccessTokenRepository(settingsFacade.database.value)
         )
 
         extensions().parameters.tokens.forEach {

@@ -13,7 +13,7 @@ import java.util.concurrent.ScheduledExecutorService
 
 class SettingsFacade internal constructor(
     val localConfiguration: LocalConfiguration,
-    val database: Database,
+    val database: Lazy<Database>,
     private val sharedConfigurationProvider: ConfigurationProvider<SharedConfiguration>,
 ) : Facade {
 

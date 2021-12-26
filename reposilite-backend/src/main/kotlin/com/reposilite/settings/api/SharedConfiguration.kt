@@ -21,37 +21,29 @@ class SharedConfiguration : Serializable, DeserializationHandler<SharedConfigura
     @Description("# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #")
     @Description("")
     @Description("# Repository id used in Maven repository configuration")
-    @JvmField
     val id = reference("reposilite-repository")
 
     @Description("# Repository title")
-    @JvmField
     val title = reference("Reposilite Repository")
 
     @Description("# Repository description")
-    @JvmField
     val description = reference("Public Maven repository hosted through the Reposilite")
 
     @Description("# Link to organization's website")
-    @JvmField
     val organizationWebsite = reference("https://reposilite.com")
 
     @Description("# Link to organization's logo")
-    @JvmField
     val organizationLogo = reference("https://avatars.githubusercontent.com/u/88636591")
 
     @Description("# The Internet Content Provider License (also known as Bei'An)")
     @Description("# Web services in China require ICP license, a permit issued by the Chinese government to permit China-based websites to operate in China.")
     @Description("# In order to fulfill the conditions, you should apply for ICP license from your service provider and fill in this parameter.")
-    @JvmField
     val icpLicense = reference("")
 
     @Description("# Enable default frontend with dashboard")
-    @JvmField
     val frontend = reference(true)
 
     @Description("# Enable Swagger (/swagger-docs) and Swagger UI (/swagger)")
-    @JvmField
     val swagger = reference(false)
 
     @Description("# Custom base path")
