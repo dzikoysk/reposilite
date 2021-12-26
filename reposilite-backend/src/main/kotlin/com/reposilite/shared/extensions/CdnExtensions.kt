@@ -6,7 +6,6 @@ import net.dzikoysk.cdn.Cdn
 import net.dzikoysk.cdn.KCdnFactory
 import net.dzikoysk.cdn.source.Source
 import panda.std.Result
-import panda.std.Unit
 import panda.std.asError
 import panda.std.asSuccess
 
@@ -18,8 +17,7 @@ fun String.createCdnByExtension(): Result<Cdn, Exception> =
         else -> UnsupportedOperationException("Unknown format: $this").asError()
     }
 
-fun Cdn.validateAndLoad(source: String, testConfiguration: Any, configuration: Any): Result<Unit, ErrorResponse> =
+fun <T : Any> Cdn.validateAndLoad(source: String, testConfiguration: T, configuration: T): Result<T, ErrorResponse> =
     load(Source.of(source), testConfiguration) // validate
         .flatMap { load(Source.of(source), configuration) }
-        .mapToUnit()
         .mapErr { ErrorResponse(BAD_REQUEST, "Cannot load configuration: ${it.message}") }
