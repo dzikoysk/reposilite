@@ -7,15 +7,13 @@ with a couple of extensions developed within [Reposilite Playground](https://git
 Main libraries used by project:
 
 * [Javalin](https://javalin.io/) - HTTP server based on [Jetty](https://www.eclipse.org/jetty/)
-* [Coroutines](https://kotlinlang.org/docs/coroutines-overview.html) - Reactive approach to handle async request and future responses
 * [Exposed](https://github.com/JetBrains/Exposed) - SQLite, MySQL DSL support
 * [AWS S3 Client](https://github.com/aws/aws-sdk-java-v2) - Remote file storage
-* [Fuel](https://github.com/kittinunf/fuel) - Reactive HTTP client
 * [Expressible](https://github.com/panda-lang/expressible) - Functional programming extensions, mostly used to work around `Result<Value, Error>` pattern
 * [Picocli](https://picocli.info/) - Command line and command-like configuration properties support
-* [JUnit 5](https://junit.org/junit5/) - Unit tests
+* [JUnit 5](https://junit.org/junit5/) - Unit & integration tests
 * [Testcontainers](https://www.testcontainers.org/) - Integration test, requires Docker (for Windows you need Docker Desktop). 
-  Don't worry if you're not able to run these tests locally - you can always make PR and we'll run it through GitHub Actions automatically :)
+  Don't worry if you're not able to run these tests locally - you can always make PR, and we'll run it through GitHub Actions automatically :)
 * See [build.gradle.kts](https://github.com/dzikoysk/reposilite/blob/main/reposilite-backend/build.gradle.kts) for more
 
 Since 3.x Reposilite supports multiple infrastructure targets, it's written using design patterns known as 
@@ -30,7 +28,7 @@ com.reposilite
     api/                             # Public API exposed by 'feature' domain
       ResponseDto.kt                 # E.g. a DTO with a response returned by FeatureFacade
     application/                     # Application layer classes that somehow configures the given domain
-      FeatureWebConfiguration.kt     # Main configuration class used to register domain in Reposilite app
+      FeaturePlugin.kt               # Main configuration class used to register plugin-like domain in Reposilite app
     infrastructure/                  # Infrastructure dependent implementations
       SQLRepository.kt               # E.g. an implementation based on SQL
     Repository.kt                    # Some abstract components to implement by various infrastructure impls
@@ -38,11 +36,11 @@ com.reposilite
 ```
 
 When you're trying to add something to Reposilite, try to think about every domain as a standalone module and follow this pattern :)
-If you want learn more about it, visit some great dedicated articles, like e.g. [Organizing Layers Using Hexagonal Architecture, DDD, and Spring](https://www.baeldung.com/hexagonal-architecture-ddd-spring)
+If you want to learn more about it, visit some great dedicated articles, like e.g. [Organizing Layers Using Hexagonal Architecture, DDD, and Spring](https://www.baeldung.com/hexagonal-architecture-ddd-spring)
 
 ### Running 
 
-You can run Reposilite in various ways, it depends what you expect:
+You can run Reposilite in various ways, it depends on what you expect:
 
 * Run classes that end with `*Test.kt` to launch simple unit tests without launching Reposilite
 * Run classes that end with `*InfrastructureTest.kt` to launch infrastructure tests that run Reposilite with required dependencies in Docker image

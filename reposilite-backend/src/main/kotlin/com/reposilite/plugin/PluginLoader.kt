@@ -15,14 +15,16 @@ private data class PluginEntry(
     val plugin: ReposilitePlugin
 )
 
-internal class PluginLoader(
-    private val pluginDirectory: Path,
-    private val extensions: Extensions
+class PluginLoader(
+    val pluginDirectory: Path,
+    val extensions: Extensions
 ) {
 
     private val plugins: MutableList<PluginEntry> = mutableListOf()
 
-    fun initialize() = plugins.asSequence()
+    fun initialize() = plugins.toList()
+        .forEach { it.plugin.load(this) }
+        .let { plugins.asSequence() }
         .map { it.metadata }
         .associateBy({ it.name }, { it.dependencies.toList() })
         .let { toFlattenedDependencyGraph(it) }
@@ -41,22 +43,22 @@ internal class PluginLoader(
         plugins.add(PluginEntry(plugin::class.findAnnotation() ?: throw IllegalStateException("Plugin ${plugin::class} does not have @Plugin annotation"), plugin))
     }
 
-    fun loadExternalPlugins() {
-        if (Files.notExists(pluginDirectory)) {
-            Files.createDirectories(pluginDirectory)
-        }
+}
 
-        if (!Files.isDirectory(pluginDirectory)) {
-            throw IllegalStateException("The path is not a directory")
-        }
-
-        Files.list(pluginDirectory)
-            .collect(Collectors.toList())
-            .filter { it.getSimpleName().endsWith(".jar") }
-            .map { it.toUri().toURL() }
-            .let { URLClassLoader(it.toTypedArray()) }
-            .let { ServiceLoader.load(ReposilitePlugin::class.java, it) }
-            .forEach { registerPlugin(it) }
+internal fun PluginLoader.loadExternalPlugins() {
+    if (Files.notExists(pluginDirectory)) {
+        Files.createDirectories(pluginDirectory)
     }
 
+    if (!Files.isDirectory(pluginDirectory)) {
+        throw IllegalStateException("The path is not a directory")
+    }
+
+    Files.list(pluginDirectory)
+        .collect(Collectors.toList())
+        .filter { it.getSimpleName().endsWith(".jar") }
+        .map { it.toUri().toURL() }
+        .let { URLClassLoader(it.toTypedArray()) }
+        .let { ServiceLoader.load(ReposilitePlugin::class.java, it) }
+        .forEach { registerPlugin(it) }
 }

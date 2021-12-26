@@ -26,15 +26,16 @@ Every pull request will be considered :)
 
 ### How to increase the chance of having your PR merged
 
-1. If related issue does not exists, create a new one to start a discussion aobut it
+1. If related issue does not exist, create a new one to start a discussion aobut it
 2. Try to write some tests for your change. There are a lot of examples in the `test` dir.
-3. Format your code so it looks somewhat like the rest of the source, don't make any extra changes like refactor that is not related to the subject of your PR.
+3. Format your code, so it looks somewhat like the rest of the source, don't make any extra changes like refactor that is not related to the subject of your PR.
 
 ## Running
 
 Reposilite has 3 modules that use different tech stack. 
 Visit README.md of each module to see details about how to run specific module and work with it:
 
-* [Reposilite :: Backend](https://github.com/dzikoysk/reposilite/tree/main/reposilite-backend)
-* [Reposilite :: Frontend](https://github.com/dzikoysk/reposilite/tree/main/reposilite-frontend)
-* [Reposilite :: Site](https://github.com/dzikoysk/reposilite/tree/main/reposilite-site)
+* [Reposilite :: Backend](https://github.com/dzikoysk/reposilite/tree/main/reposilite-backend) - Sources of main Reposilite application
+  *  [Reposilite :: Plugins](https://github.com/dzikoysk/reposilite/tree/main/reposilite-plugins) - Plugin system related subprojects
+* [Reposilite :: Frontend](https://github.com/dzikoysk/reposilite/tree/main/reposilite-frontend) - Sources of default Reposilite frontend in Vue
+* [Reposilite :: Site](https://github.com/dzikoysk/reposilite/tree/main/reposilite-site) - Sources of [reposilite.com](https://reposilite.com/) website
