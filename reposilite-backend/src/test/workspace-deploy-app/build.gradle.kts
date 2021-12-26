@@ -7,7 +7,7 @@ plugins {
     `maven-publish`
 }
 
-group = "com.reposilite.test"
+group = "com.reposilite.plugin.test"
 version = "1.0.0"
 
 application {

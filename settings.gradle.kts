@@ -18,5 +18,6 @@ rootProject.name = "reposilite-parent"
 
 include(
     "reposilite-backend",
-    "reposilite-plugins:example-plugin"
+    "reposilite-plugins:example-plugin",
+    "reposilite-plugins:groovy-plugin"
 )

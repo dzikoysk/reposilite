@@ -21,7 +21,7 @@ import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.backend.PrintStreamLogger
 import com.reposilite.plugin.Extensions
 import com.reposilite.plugin.PluginLoader
-import com.reposilite.settings.application.DatabaseSourceFactory
+import com.reposilite.plugin.loadExternalPlugins
 import com.reposilite.settings.application.LocalConfigurationFactory
 import com.reposilite.shared.extensions.newFixedThreadPool
 import com.reposilite.shared.extensions.newSingleThreadScheduledExecutor

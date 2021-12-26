@@ -3,7 +3,7 @@ plugins {
     application
 }
 
-group = "com.reposilite.test"
+group = "com.reposilite.plugin.test"
 version = "1.0.0"
 
 application {
@@ -20,5 +20,5 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib"))
-    implementation("com.reposilite.test:workspace-deploy-app:1.0.0")
+    implementation("com.reposilite.plugin.test:workspace-deploy-app:1.0.0")
 }

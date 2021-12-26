@@ -20,20 +20,11 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 group = "org.panda-lang"
-version = "3.0.0-alpha.14"
 
 plugins {
-    `java-library`
-    `maven-publish`
-    application
     jacoco
-    idea
-
-    val kotlinVersion = "1.6.10"
-    kotlin("jvm") version kotlinVersion
-    kotlin("kapt") version kotlinVersion
-
-    id("com.github.johnrengelman.shadow") version "7.1.1"
+    kotlin("jvm")
+    kotlin("kapt")
     id("com.coditory.integration-test") version "1.3.0"
 }
 
@@ -41,15 +32,21 @@ application {
     mainClass.set("com.reposilite.ReposiliteLauncherKt")
 }
 
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
 dependencies {
     val kotlin = "1.6.10"
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin")
+    api("org.jetbrains:annotations:23.0.0")
 
     val expressible = "1.1.9"
-    implementation("org.panda-lang:expressible:$expressible")
-    implementation("org.panda-lang:expressible-kt:$expressible")
-    implementation("org.panda-lang:expressible-kt-coroutines:$expressible")
+    api("org.panda-lang:expressible:$expressible")
+    api("org.panda-lang:expressible-kt:$expressible")
+    api("org.panda-lang:expressible-kt-coroutines:$expressible")
     testImplementation("org.panda-lang:expressible-junit:$expressible")
 
     val cdn = "1.13.3"
@@ -59,7 +56,7 @@ dependencies {
     val awssdk = "2.17.100"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
-    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.129")
+    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.130")
 
     val exposed = "0.36.2"
     implementation("org.jetbrains.exposed:exposed-core:$exposed")
@@ -81,17 +78,17 @@ dependencies {
     implementation("io.javalin-rfc:javalin-swagger-plugin:$openapi")
 
     val javalinRfcs = "4.1.0"
-    implementation("com.reposilite.javalin-rfcs:javalin-context:$javalinRfcs")
-    implementation("com.reposilite.javalin-rfcs:javalin-routing:$javalinRfcs")
+    api("com.reposilite.javalin-rfcs:javalin-context:$javalinRfcs")
+    api("com.reposilite.javalin-rfcs:javalin-routing:$javalinRfcs")
 
     //implementation("io.javalin:javalin:4.1.1")
-    implementation("com.github.dzikoysk.javalin:javalin:2a5c2bfd94")
+    api("com.github.dzikoysk.javalin:javalin:2a5c2bfd94")
     @Suppress("GradlePackageUpdate")
     implementation("org.eclipse.jetty:jetty-server:9.4.44.v20210927")
 
     val picocli = "4.6.2"
     kapt("info.picocli:picocli-codegen:$picocli")
-    implementation("info.picocli:picocli:$picocli")
+    api("info.picocli:picocli:$picocli")
 
     val jackson = "2.13.1"
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jackson")
@@ -112,7 +109,7 @@ dependencies {
     implementation("org.fusesource.jansi:jansi:$jansi")
 
     val journalist = "1.0.10"
-    implementation("com.reposilite:journalist:$journalist")
+    api("com.reposilite:journalist:$journalist")
     implementation("com.reposilite:journalist-slf4j:$journalist")
     implementation("com.reposilite:journalist-tinylog:$journalist")
 
@@ -125,39 +122,14 @@ dependencies {
     testImplementation("com.konghq:unirest-java:$unirest")
     testImplementation("com.konghq:unirest-objectmapper-jackson:$unirest")
 
-    val testcontainers = "1.16.2"
-    testImplementation("org.testcontainers:mariadb:$testcontainers")
-    testImplementation("org.testcontainers:testcontainers:$testcontainers")
-    testImplementation("org.testcontainers:junit-jupiter:$testcontainers")
-    testImplementation("org.testcontainers:localstack:$testcontainers")
-
     val junit = "5.8.2"
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junit")
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junit")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junit")
 }
 
-repositories {
-    // maven {
-    //     url = uri("http://localhost/releases")
-    //     isAllowInsecureProtocol = true
-    // }
-    // mavenCentral()
-    maven { url = uri("https://repo.panda-lang.org/releases") }
-    maven { url = uri("https://jitpack.io") }
-    mavenCentral()
-}
-
 sourceSets.main {
     java.srcDirs("src/main/kotlin")
-}
-
-java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
-
-    withJavadocJar()
-    withSourcesJar()
 }
 
 tasks.withType<KotlinCompile>().configureEach {
@@ -171,16 +143,6 @@ tasks.withType<KotlinCompile>().configureEach {
 }
 
 publishing {
-    repositories {
-        maven {
-            name = "panda-repository"
-            url = uri("https://repo.panda-lang.org/${if (version.toString().endsWith("-SNAPSHOT")) "snapshots" else "releases"}")
-            credentials {
-                username = System.getenv("MAVEN_NAME") ?: ""
-                password = System.getenv("MAVEN_TOKEN") ?: ""
-            }
-        }
-    }
     publications {
         create<MavenPublication>("library") {
             from(components.getByName("java"))
