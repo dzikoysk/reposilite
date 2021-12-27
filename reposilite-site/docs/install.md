@@ -39,8 +39,8 @@ Type `help` and learn more about available commands.
 
 ![Interactive CLI](https://user-images.githubusercontent.com/4235722/93831263-aac91e80-fc72-11ea-8316-50b1e37cf16f.gif)
 
-**Note**: Your first access token has to be generated through the terminal. 
-Read more about tokens and keygen command here: [Authorization](authorization#generate-token).
+**Note**: Your first access token has to be generated through the terminal or provided as a command line argument.  
+Read more about tokens and token management commands here: [Authorization](authorization#generate-token).
 
 ### Structure
 Reposilite stores data in current [working directory](#working-directory),
