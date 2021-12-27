@@ -26,8 +26,7 @@ const siteConfig = {
 
   headerLinks: [
     { doc: 'about', label: 'Guide' },
-    { page: 'help', label: 'Help' },
-    { href: 'https://panda-lang.org/support', label: 'Support' },
+    { page: 'support', label: 'Support' },
     { href: 'https://github.com/dzikoysk/reposilite', label: 'GitHub' }
   ],
 
@@ -36,7 +35,7 @@ const siteConfig = {
   favicon: 'img/favicon.png',
 
   colors: {
-    primaryColor: '#101357',
+    primaryColor: '#202499',
     secondaryColor: '#fff'
   },
 

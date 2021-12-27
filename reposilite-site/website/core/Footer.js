@@ -44,13 +44,15 @@ class Footer extends React.Component {
             <a href={this.docUrl('indexing', this.props.language)}>
               Developer API
             </a>
+            <a href={this.docUrl('faq', this.props.language)}>
+              FAQ
+            </a>
           </div>
           <div>
             <h5>Community</h5>
-            <a href="https://github.com/dzikoysk/reposilite/issues" target="_blank">
-              Report Issue
-            </a>
+            <a href="https://github.com/dzikoysk/reposilite/issues" target="_blank">Report Issue</a>
             <a href="https://github.com/dzikoysk/reposilite" target="_blank">Star Reposilite</a>
+            <a href="https://discord.gg/qGRqmGjUFX" target="_blank">Join Discord</a>
             <a href="https://twitter.com/dzikoysk" target="_blank">Follow @dzikoysk</a>
           </div>
         </section>

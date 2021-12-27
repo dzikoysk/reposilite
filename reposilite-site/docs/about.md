@@ -18,7 +18,7 @@ In case of any problems or feature requests, report the issue here:
 
 ### Support ❤️
 
-The project is indirectly a part of the `panda-lang` organization 
-and if you want to support this initiative, visit:
+If you want to support this project financially, visit:
 
-* [panda-lang.org/support](https://panda-lang.org/support/)
+* [github.com/sponsors/dzikoysk](https://github.com/sponsors/dzikoysk) - monthly, one-time
+* [panda-lang.org/support](https://panda-lang.org/support/) - one-time
