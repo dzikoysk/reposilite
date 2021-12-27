@@ -76,7 +76,7 @@ internal class RouteAdd(private val accessTokenFacade: AccessTokenFacade) : Repo
 @Command(name = "route-remove", description = ["Remove route from access token"])
 internal class RouteRemove(private val accessTokenFacade: AccessTokenFacade) : ReposiliteCommand {
 
-    @Parameters(index = "0", paramLabel = "<to>", description = ["Name of access token to modify"])
+    @Parameters(index = "0", paramLabel = "<access_token>", description = ["Name of access token to modify"])
     private lateinit var name: String
 
     @Parameters(index = "1", paramLabel = "<path>", description = ["Path of route to remove"])

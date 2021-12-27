@@ -142,3 +142,10 @@ You can remove access to specified route for token using the `route-remove <name
 $ route-remove reposilite-publisher /releases/com/reposilite
 11:57:38.289 INFO | Token reposilite-publisher has been updated, new routes: []
 ```
+
+## Temporary Manager Tokens
+
+For bootstrapping your permissions setup (or fixing a broken one) you might have to use a temporary manager token.
+Via the `--token tempRoot:my-secret-token` command line option you can create a manager token named `tempRoot` with 
+the secret `my-secret-token`. This token will not be persisted in the database and cease to exist if the Reposilite
+process is restarted without the command line option.
