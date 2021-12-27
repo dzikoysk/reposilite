@@ -37,30 +37,13 @@ class HomeSplash extends React.Component {
       </div>
     )
 
-    const ProjectTitle = props => (
-      <div>
-        <h2 className='projectTitle' style={{ color: 'black', paddingTop: '60px' }}>
-          {props.title}
-        </h2>
-        <small>{props.tagline} 📦</small>
-      </div>
-    )
-
-    const PromoSection = props => (
-      <div className='section promoSection'>
-        <div className='promoRow'>
-          <div className='pluginRowBlock'>{props.children}</div>
-        </div>
-      </div>
-    )
-
     const Button = props => (
       <div className='pluginWrapper buttonWrapper'>
         <a
           className='button'
           style={{
             width: '250px',
-            background: '#101357',
+            background: '#1d1d1d',
             'marginTop': '15px',
             'border': 'none',
             'borderRadius': '20px',
@@ -78,12 +61,24 @@ class HomeSplash extends React.Component {
 
     return (
       <SplashContainer>
-        <div className='inner'>
-          <ProjectTitle tagline={siteConfig.tagline} title={siteConfig.title} />
-          <PromoSection>
-            <Button href={docUrl('about')}>Get started</Button>
-            <Button href={docUrl('install')}>Download Reposilite</Button>
-          </PromoSection> 
+        <div className='inner' style={{ width: '70%', margin: 'auto' }}>
+          <h2 className='projectTitle' style={{ color: 'black', paddingTop: '50px', paddingBottom: '10px' }}>
+            {siteConfig.title}
+          </h2>
+          <small>
+            Lightweight and easy-to-use repository manager for Maven based artifacts in JVM ecosystem.
+            This is simple, extensible and scalable self-hosted solution to replace managers like
+            Nexus, Archiva or Artifactory, with reduced resources consumption. 📦
+          </small>
+          <img src="/img/preview.png" style={{ paddingTop: '30px', paddingBottom: '5px' }} />
+          <div className='section promoSection'>
+            <div className='promoRow'>
+              <div className='pluginRowBlock'>
+                <Button href={docUrl('about')}>Get started</Button>
+                <Button href={docUrl('install')}>Download Reposilite</Button>
+              </div>
+            </div>
+          </div>
         </div>
       </SplashContainer>
     )
@@ -96,7 +91,6 @@ class Index extends React.Component {
 
     const Block = props => (
       <Container
-        padding={['bottom', 'top']}
         id={props.id}
         style={props.style}>
         <GridBlock
@@ -108,62 +102,71 @@ class Index extends React.Component {
       </Container>
     )
 
-    const WhatIs = () => (
-      <div id='whatis' layout='twoColumn' style={{
-        display: 'flex',
-        justifyContent: 'center',
-        paddingTop: '20px',
-        paddingBottom: '20px',
-        flexWrap: 'wrap'
-      }}>
-        <div>
-          <h2># What is Reposilite?</h2>
-          <ul>
-            <li>Repository manager for Maven artifacts</li>
-            <li>Replaces managers like Nexus, Archiva or Artifactory</li>
-            <li>Open source project</li>
-          </ul>
-        </div>
-        <div>
-          <h2># Why?</h2>
-          <ul>
-            <li>Reduce usage of your resources to even 8MB of RAM</li>
-            <li>95%+ test coverage</li>
-            <li>Easy to use</li>
-          </ul>
-        </div>
-      </div>
-    )
-
-    const Features = () => (
-      <Block layout='fourColumn'>
-        {[
-          {
-            title: 'Authorization',
-            content: 'Token based authorization for indexing and deploy'
-          },
-          {
-            title: 'Docker 🐋',
-            content: 'Available docker images [docker.com/reposilite](https://hub.docker.com/r/dzikoysk/reposilite)',
-          },
-          {
-            title: 'Dashboard',
-            content: 'Simple repository browser with admin panel'
-          },
-          {
-            title: 'API',
-            content: 'Provided REST API to communicate with repository',
-          }
-        ]}
-      </Block>
-    )
-
     return (
       <div style={{ color: 'black' }}>
         <HomeSplash siteConfig={siteConfig} language={language} />
         <div className='mainContainer'>
-          <WhatIs />
-          <Features />
+          <div id='whatis' layout='twoColumn' style={{
+            display: 'flex',
+            justifyContent: 'center',
+            paddingTop: '10px',
+            paddingBottom: '10px',
+            flexWrap: 'wrap',
+            background: '#f2f2f2'
+          }}>
+            <div>
+              <h2>~ What is Reposilite? ~</h2>
+              <ul>
+                <li>Repository manager for Maven artifacts</li>
+                <li>Alternative to managers like Nexus, Archiva or Artifactory</li>
+                <li>Fully open source project</li>
+              </ul>
+            </div>
+            <div>
+              <h2>~ Why? ~</h2>
+              <ul>
+                <li>Reduce usage of your resources to 16MB of RAM</li>
+                <li>Covered with unit & integration tests</li>
+                <li>Easy to use</li>
+              </ul>
+            </div>
+          </div>
+          <Block layout='fourColumn'>
+            {[
+              {
+                title: 'Authorization',
+                content: 'Personal access-token based authorization with configurable routes and permissions'
+              },
+              {
+                title: 'Docker 🐋',
+                content: 'Available docker images [docker.com/reposilite](https://hub.docker.com/r/dzikoysk/reposilite)',
+              },
+              {
+                title: 'Dashboard',
+                content: 'Simple dashboard with repository browser and management panel'
+              },
+              {
+                title: 'API Endpoints',
+                content: 'Exposes dedicated REST API to communicate with repository using external tools',
+              },
+              {
+                title: 'Plugin system',
+                content: 'Extend your instance with personalized extensions in Java, Kotlin or Groovy',
+              },
+              {
+                title: 'Storage providers',
+                content: 'Store artifacts locally or integrate your instance with cloud object storage like AWS S3',
+              },
+              {
+                title: 'Proxy',
+                content: 'Link other Maven repositories and redirect all traffic through your instance',
+              },
+              {
+                title: 'And...',
+                content: 'Much more, take a look at <i>Guide</i> section to learn more!',
+              }
+            ]}
+          </Block>
         </div>
       </div>
     )

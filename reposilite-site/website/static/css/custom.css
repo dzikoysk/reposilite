@@ -40,15 +40,13 @@
 .slidingNav ul li a {
   line-height: 1.1em !important;
 }
-#whatis {
-  background: #f2f2f2;
-}
 #whatis div {
   border-radius: 15px;
   padding: 15px 40px 40px 40px;
-  border: 1px solid lightgrayxxx;
-  /* background-color: #f59d98; */
   margin: 20px 40px;
+}
+.container .wrapper .gridBlock {
+  padding-top: 30px;
 }
 .blockElement {
   padding-bottom: 20px;
@@ -56,10 +54,13 @@
   border-radius: 5px;
 }
 .blockElement a {
-  color: #101357;
+  color: #202499;
+}
+.blockElement a:visited {
+  color: #202499;
 }
 .nav-footer {
-  background-color: #101357;
+  background-color: #000000;
 }
 .navGroupCategoryTitle {
   font-size: 18px !important;

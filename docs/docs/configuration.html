@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Configuration · Reposilite</title><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta name="generator" content="Docusaurus"/><meta name="description" content="There are two ways to pass custom properties to your Reposilite instance:"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Configuration · Reposilite"/><meta property="og:type" content="website"/><meta property="og:url" content="https://reposilite.com/"/><meta property="og:description" content="There are two ways to pass custom properties to your Reposilite instance:"/><meta property="og:image" content="https://reposilite.com/img/undraw_online.svg"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://reposilite.com/img/undraw_tweetstorm.svg"/><link rel="shortcut icon" href="/img/favicon.png"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/idea.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script src="/js/scrollSpy.js"></script><link rel="stylesheet" href="/css/main.css"/><script src="/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/"><h2 class="headerTitle">Reposilite</h2></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class="siteNavGroupActive"><a href="/docs/about" target="_self">Guide</a></li><li class=""><a href="/help" target="_self">Help</a></li><li class=""><a href="https://panda-lang.org/support" target="_self">Support</a></li><li class=""><a href="https://github.com/dzikoysk/reposilite" target="_self">GitHub</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="docsNavContainer" id="docsNav"><nav class="toc"><div class="toggleNav"><section class="navWrapper wrapper"><div class="navBreadcrumb wrapper"><div class="navToggle" id="navToggler"><div class="hamburger-menu"><div class="line1"></div><div class="line2"></div><div class="line3"></div></div></div><h2><i>›</i><span>Settings</span></h2><div class="tocToggler" id="tocToggler"><i class="icon-toc"></i></div></div><div class="navGroups"><div class="navGroup"><h3 class="navGroupCategoryTitle">Introduction</h3><ul class=""><li class="navListItem"><a class="navItem" href="/docs/about">About</a></li><li class="navListItem"><a class="navItem" href="/docs/install">Installation</a></li><li class="navListItem"><a class="navItem" href="/docs/authorization">Authorization</a></li><li class="navListItem"><a class="navItem" href="/docs/deploy">Deploy</a></li><li class="navListItem"><a class="navItem" href="/docs/faq">FAQ</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Services</h3><ul class=""><li class="navListItem"><a class="navItem" href="/docs/docker">Docker</a></li><li class="navListItem"><a class="navItem" href="/docs/cdn">CDN</a></li><li class="navListItem"><a class="navItem" href="/docs/reverse-proxy">Reverse proxy</a></li><li class="navListItem"><a class="navItem" href="/docs/systemd">Systemd</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Settings</h3><ul class=""><li class="navListItem navListItemActive"><a class="navItem" href="/docs/configuration">Configuration</a></li><li class="navListItem"><a class="navItem" href="/docs/repositories">Repositories</a></li><li class="navListItem"><a class="navItem" href="/docs/proxy">Proxy and caching</a></li><li class="navListItem"><a class="navItem" href="/docs/customization">Customization</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Dashboard</h3><ul class=""><li class="navListItem"><a class="navItem" href="/docs/file-browser">File browser</a></li><li class="navListItem"><a class="navItem" href="/docs/remote-cli">Remote CLI</a></li><li class="navListItem"><a class="navItem" href="/docs/manual-deploy">Manual deploy</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Developers</h3><ul class=""><li class="navListItem"><a class="navItem" href="/docs/indexing">Indexing</a></li><li class="navListItem"><a class="navItem" href="/docs/remote-execution">Remote execution</a></li></ul></div></div></section></div><script>
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Configuration · Reposilite</title><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta name="generator" content="Docusaurus"/><meta name="description" content="There are two ways to pass custom properties to your Reposilite instance:"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Configuration · Reposilite"/><meta property="og:type" content="website"/><meta property="og:url" content="https://reposilite.com/"/><meta property="og:description" content="There are two ways to pass custom properties to your Reposilite instance:"/><meta property="og:image" content="https://reposilite.com/img/undraw_online.svg"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://reposilite.com/img/undraw_tweetstorm.svg"/><link rel="shortcut icon" href="/img/favicon.png"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/idea.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script src="/js/scrollSpy.js"></script><link rel="stylesheet" href="/css/main.css"/><script src="/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/"><h2 class="headerTitle">Reposilite</h2></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class="siteNavGroupActive"><a href="/docs/about" target="_self">Guide</a></li><li class=""><a href="/support" target="_self">Support</a></li><li class=""><a href="https://github.com/dzikoysk/reposilite" target="_self">GitHub</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="docsNavContainer" id="docsNav"><nav class="toc"><div class="toggleNav"><section class="navWrapper wrapper"><div class="navBreadcrumb wrapper"><div class="navToggle" id="navToggler"><div class="hamburger-menu"><div class="line1"></div><div class="line2"></div><div class="line3"></div></div></div><h2><i>›</i><span>Settings</span></h2><div class="tocToggler" id="tocToggler"><i class="icon-toc"></i></div></div><div class="navGroups"><div class="navGroup"><h3 class="navGroupCategoryTitle">Introduction</h3><ul class=""><li class="navListItem"><a class="navItem" href="/docs/about">About</a></li><li class="navListItem"><a class="navItem" href="/docs/install">Installation</a></li><li class="navListItem"><a class="navItem" href="/docs/authorization">Authorization</a></li><li class="navListItem"><a class="navItem" href="/docs/deploy">Deploy</a></li><li class="navListItem"><a class="navItem" href="/docs/faq">FAQ</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Services</h3><ul class=""><li class="navListItem"><a class="navItem" href="/docs/docker">Docker</a></li><li class="navListItem"><a class="navItem" href="/docs/cdn">CDN</a></li><li class="navListItem"><a class="navItem" href="/docs/reverse-proxy">Reverse proxy</a></li><li class="navListItem"><a class="navItem" href="/docs/systemd">Systemd</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Settings</h3><ul class=""><li class="navListItem navListItemActive"><a class="navItem" href="/docs/configuration">Configuration</a></li><li class="navListItem"><a class="navItem" href="/docs/repositories">Repositories</a></li><li class="navListItem"><a class="navItem" href="/docs/proxy">Proxy and caching</a></li><li class="navListItem"><a class="navItem" href="/docs/customization">Customization</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Dashboard</h3><ul class=""><li class="navListItem"><a class="navItem" href="/docs/file-browser">File browser</a></li><li class="navListItem"><a class="navItem" href="/docs/remote-cli">Remote CLI</a></li><li class="navListItem"><a class="navItem" href="/docs/manual-deploy">Manual deploy</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Developers</h3><ul class=""><li class="navListItem"><a class="navItem" href="/docs/indexing">Indexing</a></li><li class="navListItem"><a class="navItem" href="/docs/remote-execution">Remote execution</a></li></ul></div></div></section></div><script>
             var coll = document.getElementsByClassName('collapsible');
             var checkActiveCategory = true;
             for (var i = 0; i < coll.length; i++) {
@@ -74,68 +74,171 @@ by Reposilite during your first start and it should look like this:</p>
 <span class="hljs-comment"># ~~~~~~~~~~~~~~~~~~~~~~ #</span>
 
 <span class="hljs-comment"># Hostname</span>
-<span class="hljs-attr">hostname:</span> 
+<span class="hljs-comment"># The hostname can be used to limit which connections are accepted.</span>
+<span class="hljs-comment"># Use 0.0.0.0 to accept connections from anywhere.</span>
+<span class="hljs-comment"># 127.0.0.1 will only allow connections from localhost.</span>
+<span class="hljs-attr">hostname:</span> <span class="hljs-number">0.0</span><span class="hljs-number">.0</span><span class="hljs-number">.0</span>
 <span class="hljs-comment"># Port to bind</span>
 <span class="hljs-attr">port:</span> <span class="hljs-number">80</span>
+<span class="hljs-comment"># Database. Supported storage providers:</span>
+<span class="hljs-comment"># - sqlite reposilite.db</span>
+<span class="hljs-comment"># - sqlite --temporary</span>
+<span class="hljs-comment"># - mysql localhost:3306 database user password</span>
+<span class="hljs-attr">database:</span> <span class="hljs-string">sqlite</span> <span class="hljs-string">reposilite.db</span>
+
+<span class="hljs-comment"># Repository id used in Maven repository configuration</span>
+<span class="hljs-attr">id:</span> <span class="hljs-string">reposilite-repository</span>
+<span class="hljs-comment"># Repository title</span>
+<span class="hljs-attr">title:</span> <span class="hljs-string">Reposilite</span> <span class="hljs-string">Repository</span>
+<span class="hljs-comment"># Repository description</span>
+<span class="hljs-attr">description:</span> <span class="hljs-string">Public</span> <span class="hljs-string">Maven</span> <span class="hljs-string">repository</span> <span class="hljs-string">hosted</span> <span class="hljs-string">through</span> <span class="hljs-string">the</span> <span class="hljs-string">Reposilite</span>
+<span class="hljs-comment"># Link to organization's website</span>
+<span class="hljs-attr">organizationWebsite:</span> <span class="hljs-string">https://reposilite.com</span>
+<span class="hljs-comment"># Link to organization's logo</span>
+<span class="hljs-attr">organizationLogo:</span> <span class="hljs-string">https://avatars.githubusercontent.com/u/88636591</span>
+<span class="hljs-comment"># The Internet Content Provider License (also known as Bei'An)</span>
+<span class="hljs-comment"># Web services in China require ICP license, a permit issued by the Chinese government to permit China-based websites to operate in China.</span>
+<span class="hljs-comment"># In order to fulfill the conditions, you should apply for ICP license from your service provider and fill in this parameter.</span>
+<span class="hljs-attr">icpLicense:</span> <span class="hljs-string">""</span>
+<span class="hljs-comment"># Enable default frontend with dashboard</span>
+<span class="hljs-attr">frontend:</span> <span class="hljs-literal">true</span>
 <span class="hljs-comment"># Custom base path</span>
 <span class="hljs-attr">basePath:</span> <span class="hljs-string">/</span>
-<span class="hljs-comment"># Any kind of proxy services change real ip.</span>
-<span class="hljs-comment"># The origin ip should be available in one of the headers.</span>
-<span class="hljs-comment"># Nginx: X-Forwarded-For</span>
-<span class="hljs-comment"># Cloudflare: CF-Connecting-IP</span>
-<span class="hljs-comment"># Popular: X-Real-IP</span>
-<span class="hljs-attr">forwardedIp:</span> <span class="hljs-string">X-Forwarded-For</span>
-<span class="hljs-comment"># Debug</span>
-<span class="hljs-attr">debugEnabled:</span> <span class="hljs-literal">false</span>
+<span class="hljs-comment"># Keep processed frontend files in memory to improve response time</span>
+<span class="hljs-attr">cacheContent:</span> <span class="hljs-literal">true</span>
+<span class="hljs-comment"># Enable Swagger (/swagger-docs) and Swagger UI (/swagger)</span>
+<span class="hljs-attr">swagger:</span> <span class="hljs-literal">false</span>
+
+<span class="hljs-comment"># List of supported Maven repositories.</span>
+<span class="hljs-comment"># First directory on the list is the main (primary) repository.</span>
+<span class="hljs-comment"># To mark a repository as private, add the "--private" flag</span>
+<span class="hljs-string">repositories</span> <span class="hljs-string">{</span>
+  <span class="hljs-string">releases</span> <span class="hljs-string">{</span>
+    <span class="hljs-comment"># Supported visibilities: public, hidden, private</span>
+    <span class="hljs-attr">visibility:</span> <span class="hljs-string">PUBLIC</span>
+    <span class="hljs-comment"># Does this repository accept redeployment of the same artifact version</span>
+    <span class="hljs-attr">redeployment:</span> <span class="hljs-literal">false</span>
+
+    <span class="hljs-comment"># Used storage type. Supported storage providers:</span>
+    <span class="hljs-comment"># &gt; File system (local) provider. Supported flags:</span>
+    <span class="hljs-comment"># --quota 10GB = control the maximum amount of data stored in this repository. (Supported formats: 90%, 500MB, 10GB)</span>
+    <span class="hljs-comment"># Example usage:</span>
+    <span class="hljs-comment"># storageProvider: fs --quota 50GB</span>
+    <span class="hljs-comment"># &gt; S3 provider. Supported flags:</span>
+    <span class="hljs-comment"># --endpoint = overwrite the AWS endpoint (optional)</span>
+    <span class="hljs-comment"># --access-key = overwrite AWS access-key used to authenticate (optional)</span>
+    <span class="hljs-comment"># --secret-key = overwrite AWS secret-key used to authenticate (optional)</span>
+    <span class="hljs-comment"># --region = overwrite AWS region (optional)</span>
+    <span class="hljs-comment"># See software.amazon.awssdk.services.s3.S3Client for default values</span>
+    <span class="hljs-comment"># Example usage:</span>
+    <span class="hljs-comment"># storageProvider: s3 bucket-name --endpoint custom.endpoint.com --access-key accessKey --secret-key secretKey --region region</span>
+    <span class="hljs-attr">storageProvider:</span> <span class="hljs-string">fs</span> <span class="hljs-string">--quota</span> <span class="hljs-number">100</span><span class="hljs-string">%</span>
+
+    <span class="hljs-comment"># List of proxied repositories associated with this repository.</span>
+    <span class="hljs-comment"># Reposilite will search for a requested artifact in remote repositories listed below.</span>
+    <span class="hljs-comment"># Supported flags:</span>
+    <span class="hljs-comment"># --store - Reposilite can store proxied artifacts locally to reduce response time and improve stability</span>
+    <span class="hljs-comment"># --connectTimeout=&lt;seconds&gt; - How long Reposilite can wait for establishing the connection with a remote host (default: 3s)</span>
+    <span class="hljs-comment"># --readTimeout=&lt;seconds&gt; - How long Reposilite can read data from remote proxy. (default: 15s)</span>
+    <span class="hljs-comment"># Example usage:</span>
+    <span class="hljs-comment"># proxied [</span>
+    <span class="hljs-comment">#   https://repo.panda-lang.org/releases --store --connectTimeout=3 --readTimeout=15 --auth user:token</span>
+    <span class="hljs-comment"># ]</span>
+    <span class="hljs-attr">proxied:</span> <span class="hljs-string">[]</span>
+  <span class="hljs-string">}</span>
+  <span class="hljs-string">snapshots</span> <span class="hljs-string">{</span>
+    <span class="hljs-comment"># Supported visibilities: public, hidden, private</span>
+    <span class="hljs-attr">visibility:</span> <span class="hljs-string">PUBLIC</span>
+    <span class="hljs-comment"># Does this repository accept redeployment of the same artifact version</span>
+    <span class="hljs-attr">redeployment:</span> <span class="hljs-literal">false</span>
+
+    <span class="hljs-comment"># Used storage type. Supported storage providers:</span>
+    <span class="hljs-comment"># &gt; File system (local) provider. Supported flags:</span>
+    <span class="hljs-comment"># --quota 10GB = control the maximum amount of data stored in this repository. (Supported formats: 90%, 500MB, 10GB)</span>
+    <span class="hljs-comment"># Example usage:</span>
+    <span class="hljs-comment"># storageProvider: fs --quota 50GB</span>
+    <span class="hljs-comment"># &gt; S3 provider. Supported flags:</span>
+    <span class="hljs-comment"># --endpoint = overwrite the AWS endpoint (optional)</span>
+    <span class="hljs-comment"># --access-key = overwrite AWS access-key used to authenticate (optional)</span>
+    <span class="hljs-comment"># --secret-key = overwrite AWS secret-key used to authenticate (optional)</span>
+    <span class="hljs-comment"># --region = overwrite AWS region (optional)</span>
+    <span class="hljs-comment"># See software.amazon.awssdk.services.s3.S3Client for default values</span>
+    <span class="hljs-comment"># Example usage:</span>
+    <span class="hljs-comment"># storageProvider: s3 bucket-name --endpoint custom.endpoint.com --access-key accessKey --secret-key secretKey --region region</span>
+    <span class="hljs-attr">storageProvider:</span> <span class="hljs-string">fs</span> <span class="hljs-string">--quota</span> <span class="hljs-number">100</span><span class="hljs-string">%</span>
+
+    <span class="hljs-comment"># List of proxied repositories associated with this repository.</span>
+    <span class="hljs-comment"># Reposilite will search for a requested artifact in remote repositories listed below.</span>
+    <span class="hljs-comment"># Supported flags:</span>
+    <span class="hljs-comment"># --store - Reposilite can store proxied artifacts locally to reduce response time and improve stability</span>
+    <span class="hljs-comment"># --connectTimeout=&lt;seconds&gt; - How long Reposilite can wait for establishing the connection with a remote host (default: 3s)</span>
+    <span class="hljs-comment"># --readTimeout=&lt;seconds&gt; - How long Reposilite can read data from remote proxy. (default: 15s)</span>
+    <span class="hljs-comment"># Example usage:</span>
+    <span class="hljs-comment"># proxied [</span>
+    <span class="hljs-comment">#   https://repo.panda-lang.org/releases --store --connectTimeout=3 --readTimeout=15 --auth user:token</span>
+    <span class="hljs-comment"># ]</span>
+    <span class="hljs-attr">proxied:</span> <span class="hljs-string">[]</span>
+  <span class="hljs-string">}</span>
+  <span class="hljs-string">private</span> <span class="hljs-string">{</span>
+    <span class="hljs-comment"># Supported visibilities: public, hidden, private</span>
+    <span class="hljs-attr">visibility:</span> <span class="hljs-string">PRIVATE</span>
+    <span class="hljs-comment"># Does this repository accept redeployment of the same artifact version</span>
+    <span class="hljs-attr">redeployment:</span> <span class="hljs-literal">false</span>
+
+    <span class="hljs-comment"># Used storage type. Supported storage providers:</span>
+    <span class="hljs-comment"># &gt; File system (local) provider. Supported flags:</span>
+    <span class="hljs-comment"># --quota 10GB = control the maximum amount of data stored in this repository. (Supported formats: 90%, 500MB, 10GB)</span>
+    <span class="hljs-comment"># Example usage:</span>
+    <span class="hljs-comment"># storageProvider: fs --quota 50GB</span>
+    <span class="hljs-comment"># &gt; S3 provider. Supported flags:</span>
+    <span class="hljs-comment"># --endpoint = custom endpoint with which the S3 provider should communicate (optional)</span>
+    <span class="hljs-comment"># Example usage:</span>
+    <span class="hljs-comment"># storageProvider: s3 --endpoint custom.endpoint.com accessKey secretKey region bucket-name</span>
+    <span class="hljs-attr">storageProvider:</span> <span class="hljs-string">fs</span> <span class="hljs-string">--quota</span> <span class="hljs-number">100</span><span class="hljs-string">%</span>
+
+    <span class="hljs-comment"># List of proxied repositories associated with this repository.</span>
+    <span class="hljs-comment"># Reposilite will search for a requested artifact in remote repositories listed below.</span>
+    <span class="hljs-comment"># Supported flags:</span>
+    <span class="hljs-comment"># --store - Reposilite can store proxied artifacts locally to reduce response time and improve stability</span>
+    <span class="hljs-comment"># --connectTimeout=&lt;seconds&gt; - How long Reposilite can wait for establishing the connection with a remote host (default: 3s)</span>
+    <span class="hljs-comment"># --readTimeout=&lt;seconds&gt; - How long Reposilite can read data from remote proxy. (default: 15s)</span>
+    <span class="hljs-comment"># Example usage:</span>
+    <span class="hljs-comment"># proxied [</span>
+    <span class="hljs-comment">#   https://repo.panda-lang.org/releases --store --connectTimeout=3 --readTimeout=15 --auth user:token</span>
+    <span class="hljs-comment"># ]</span>
+    <span class="hljs-attr">proxied:</span> <span class="hljs-string">[]</span>
+  <span class="hljs-string">}</span>
+<span class="hljs-string">}</span>
 
 <span class="hljs-comment"># Support encrypted connections</span>
-<span class="hljs-attr">sslEnabled:</span> <span class="hljs-literal">true</span>
+<span class="hljs-attr">sslEnabled:</span> <span class="hljs-literal">false</span>
 <span class="hljs-comment"># SSL port to bind</span>
 <span class="hljs-attr">sslPort:</span> <span class="hljs-number">443</span>
 <span class="hljs-comment"># Key store file to use.</span>
 <span class="hljs-comment"># You can specify absolute path to the given file or use ${WORKING_DIRECTORY} variable.</span>
 <span class="hljs-attr">keyStorePath:</span> <span class="hljs-string">${WORKING_DIRECTORY}/keystore.jks</span>
 <span class="hljs-comment"># Key store password to use</span>
-<span class="hljs-attr">keyStorePassword:</span> <span class="hljs-string">reposilite</span>
+<span class="hljs-attr">keyStorePassword:</span> <span class="hljs-string">""</span>
 <span class="hljs-comment"># Redirect http traffic to https</span>
 <span class="hljs-attr">enforceSsl:</span> <span class="hljs-literal">false</span>
 
-<span class="hljs-comment"># Control the maximum amount of data assigned to Reposilite instance</span>
-<span class="hljs-comment"># Supported formats: 90%, 500MB, 10GB</span>
-<span class="hljs-attr">diskQuota:</span> <span class="hljs-number">85</span><span class="hljs-string">%</span>
-<span class="hljs-comment"># List of supported Maven repositories.</span>
-<span class="hljs-comment"># First directory on the list is the main (primary) repository.</span>
-<span class="hljs-string">repositories</span> <span class="hljs-string">{</span>
-  <span class="hljs-string">releases</span>
-  <span class="hljs-string">snapshots</span>
-  <span class="hljs-string">.private</span>
-<span class="hljs-string">}</span>
-<span class="hljs-comment"># Allow to omit name of the main repository in request</span>
-<span class="hljs-comment"># e.g. /org/panda-lang/reposilite will be redirected to /releases/org/panda-lang/reposilite</span>
-<span class="hljs-attr">rewritePathsEnabled:</span> <span class="hljs-literal">true</span>
+<span class="hljs-comment"># Max amount of threads used by core thread pool (min: 4)</span>
+<span class="hljs-comment"># The web thread pool handles first few steps of incoming http connections, as soon as possible all tasks are redirected to IO thread pool.</span>
+<span class="hljs-attr">webThreadPool:</span> <span class="hljs-number">32</span>
+<span class="hljs-comment"># IO thread pool handles all tasks that may benefit from non-blocking IO (min: 2)</span>
+<span class="hljs-comment"># Because most of tasks are redirected to IO thread pool, it might be a good idea to keep it at least equal to web thread pool.</span>
+<span class="hljs-attr">ioThreadPool:</span> <span class="hljs-number">16</span>
 
-<span class="hljs-comment"># List of proxied repositories.</span>
-<span class="hljs-comment"># Reposilite will search for an artifact in remote repositories listed below, if the requested artifact was not found.</span>
-<span class="hljs-string">proxied</span> <span class="hljs-string">{</span>
-  <span class="hljs-comment"># https://repo.panda-lang.org</span>
-<span class="hljs-string">}</span>
-<span class="hljs-comment"># Reposilite can store proxied artifacts locally to reduce response time and improve stability</span>
-<span class="hljs-attr">storeProxied:</span> <span class="hljs-literal">true</span>
-
-<span class="hljs-comment"># Accept deployment connections</span>
-<span class="hljs-attr">deployEnabled:</span> <span class="hljs-literal">true</span>
-<span class="hljs-comment"># List of management tokens used by dashboard to access extra options.</span>
-<span class="hljs-comment"># (By default, people are allowed to use standard dashboard options related to the associated path)</span>
-<span class="hljs-string">managers</span> <span class="hljs-string">{</span>
-  <span class="hljs-comment"># root</span>
-<span class="hljs-string">}</span>
-
-<span class="hljs-comment"># Title displayed by frontend</span>
-<span class="hljs-attr">title:</span> <span class="hljs-string">"Your company"</span>
-<span class="hljs-comment"># Description displayed by frontend</span>
-<span class="hljs-attr">description:</span> <span class="hljs-string">"Definitely not Reposilite"</span>
-<span class="hljs-comment"># Accent color used by frontend</span>
-<span class="hljs-attr">accentColor:</span> <span class="hljs-string">"#2fd4aa"</span>
+<span class="hljs-comment"># Amount of messages stored in cached logger.</span>
+<span class="hljs-attr">cachedLogSize:</span> <span class="hljs-number">100</span>
+<span class="hljs-comment"># Any kind of proxy services change real ip.</span>
+<span class="hljs-comment"># The origin ip should be available in one of the headers.</span>
+<span class="hljs-comment"># Nginx: X-Forwarded-For</span>
+<span class="hljs-comment"># Cloudflare: CF-Connecting-IP</span>
+<span class="hljs-comment"># Popular: X-Real-IP</span>
+<span class="hljs-attr">forwardedIp:</span> <span class="hljs-string">X-Forwarded-For</span>
+<span class="hljs-comment"># Debug mode</span>
+<span class="hljs-attr">debugEnabled:</span> <span class="hljs-literal">false</span>
 </code></pre>
 <p>Customized version of configuration file can be found in test workspace: <a href="https://github.com/dzikoysk/reposilite/blob/master/reposilite-backend/src/test/workspace/reposilite.cdn">reposilite.cdn</a></p>
 <h2><a class="anchor" aria-hidden="true" id="system-properties"></a><a href="#system-properties" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>System properties</h2>
@@ -170,4 +273,4 @@ See <a href="./configuration#system-properties">configuration#system-properties<
 To change location of log file, use <a href="https://tinylog.org/v2/configuration/#configuration">system properties</a>:</p>
 <pre><code class="hljs css language-console"><span class="hljs-meta">$</span><span class="bash"> java -Dtinylog.writerFile.file=/etc/reposilite/log.txt -jar reposilite.jar</span>
 </code></pre>
-</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/docs/systemd"><span class="arrow-prev">← </span><span>Systemd</span></a><a class="docs-next button" href="/docs/repositories"><span>Repositories</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#default-configuration">Default configuration</a></li><li><a href="#system-properties">System properties</a></li><li><a href="#parameters">Parameters</a><ul class="toc-headings"><li><a href="#working-directory">Working directory</a></li><li><a href="#configuration-file">Configuration file</a></li><li><a href="#properties">Properties</a></li><li><a href="#log-file">Log file</a></li></ul></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap center"><div><h5>Guide</h5><a href="/docs/about">Getting Started</a><a href="/docs/install">Installation</a><a href="/docs/indexing">Developer API</a></div><div><h5>Community</h5><a href="https://github.com/dzikoysk/reposilite/issues" target="_blank">Report Issue</a><a href="https://github.com/dzikoysk/reposilite" target="_blank">Star Reposilite</a><a href="https://twitter.com/dzikoysk" target="_blank">Follow @dzikoysk</a></div></section><section class="copyright">Copyright © 2021 dzikoysk with ❤ panda-lang</section></footer></div><script>window.twttr=(function(d,s, id){var js,fjs=d.getElementsByTagName(s)[0],t=window.twttr||{};if(d.getElementById(id))return t;js=d.createElement(s);js.id=id;js.src='https://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js, fjs);t._e = [];t.ready = function(f) {t._e.push(f);};return t;}(document, 'script', 'twitter-wjs'));</script></body></html>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/docs/systemd"><span class="arrow-prev">← </span><span>Systemd</span></a><a class="docs-next button" href="/docs/repositories"><span>Repositories</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#default-configuration">Default configuration</a></li><li><a href="#system-properties">System properties</a></li><li><a href="#parameters">Parameters</a><ul class="toc-headings"><li><a href="#working-directory">Working directory</a></li><li><a href="#configuration-file">Configuration file</a></li><li><a href="#properties">Properties</a></li><li><a href="#log-file">Log file</a></li></ul></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap center"><div><h5>Guide</h5><a href="/docs/about">Getting Started</a><a href="/docs/install">Installation</a><a href="/docs/indexing">Developer API</a><a href="/docs/faq">FAQ</a></div><div><h5>Community</h5><a href="https://github.com/dzikoysk/reposilite/issues" target="_blank">Report Issue</a><a href="https://github.com/dzikoysk/reposilite" target="_blank">Star Reposilite</a><a href="https://discord.gg/qGRqmGjUFX" target="_blank">Join Discord</a><a href="https://twitter.com/dzikoysk" target="_blank">Follow @dzikoysk</a></div></section><section class="copyright">Copyright © 2021 dzikoysk with ❤ panda-lang</section></footer></div><script>window.twttr=(function(d,s, id){var js,fjs=d.getElementsByTagName(s)[0],t=window.twttr||{};if(d.getElementById(id))return t;js=d.createElement(s);js.id=id;js.src='https://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js, fjs);t._e = [];t.ready = function(f) {t._e.push(f);};return t;}(document, 'script', 'twitter-wjs'));</script></body></html>
