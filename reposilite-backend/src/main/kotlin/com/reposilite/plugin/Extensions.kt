@@ -37,7 +37,11 @@ class Extensions(
     }
 
     inline fun <reified F : Facade> facade(): F =
-        getFacades().find { it is F } as F
+        facade(F::class.java)
+
+    @Suppress("UNCHECKED_CAST")
+    fun <F : Facade> facade(type: Class<F>): F =
+        getFacades().find { type.isInstance(it) }!! as F
 
     fun getFacades(): Collection<Facade> =
         facades
