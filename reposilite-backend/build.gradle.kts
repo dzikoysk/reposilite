@@ -82,7 +82,7 @@ dependencies {
     api("com.reposilite.javalin-rfcs:javalin-routing:$javalinRfcs")
 
     //implementation("io.javalin:javalin:4.1.1")
-    api("com.github.dzikoysk.javalin:javalin:2a5c2bfd94")
+    api("com.github.dzikoysk.javalin:javalin:ded7a51aa4")
     @Suppress("GradlePackageUpdate")
     implementation("org.eclipse.jetty:jetty-server:9.4.44.v20210927")
 
