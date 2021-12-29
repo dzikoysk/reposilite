@@ -1,7 +1,7 @@
 ---
-id: nginx-ssl
-title: Nginx with SSL
-sidebar_label: Nginx with SSL
+id: reverse-proxy-ssl
+title: Reverse proxy ssl
+sidebar_label: Reverse proxy ssl
 ---
 
 Lots of people like to use a reverse proxy like nginx with reposilite. This is a page on

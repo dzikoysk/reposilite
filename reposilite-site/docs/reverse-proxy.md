@@ -11,7 +11,7 @@ Proxing such a connection through services like [Nginx](https://www.nginx.com/) 
 Related GitHub Issue: [#346](https://github.com/dzikoysk/reposilite/issues/346)
 
 ## Nginx
-Note: You can also use Nginx with SSL on [this page](nginx-ssl)
+Note: You can also use Nginx with SSL on [this page](reverse-proxy-ssl)
 
 ```conf
 map $http_upgrade $connection_upgrade {
