@@ -17,6 +17,7 @@
 #
 
 cd website || exit
+npm i 
 npm run build
 
 rm -rf ../../docs
