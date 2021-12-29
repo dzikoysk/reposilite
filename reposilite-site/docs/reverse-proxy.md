@@ -7,9 +7,11 @@ sidebar_label: Reverse proxy
 Reposilite uses websocket connection to provide remote CLI functionality. 
 Proxing such a connection through services like [Nginx](https://www.nginx.com/) or [Apache](https://httpd.apache.org/) requires additional configuration. 
 
+
 Related GitHub Issue: [#346](https://github.com/dzikoysk/reposilite/issues/346)
 
 ## Nginx
+Note: You can also use Nginx with SSL on [this page](reverse-proxy-ssl)
 
 ```conf
 map $http_upgrade $connection_upgrade {
