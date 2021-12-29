@@ -7,12 +7,12 @@ sidebar_label: Reverse proxy ssl
 Lots of people like to use a reverse proxy like nginx with reposilite. This is a page on
 how to setup Nginx with SSL.
 
-Source: <https://gist.github.com/Saladoc/8c17bda7b131c4fade9b2189ea5050d8>
-
 ## Step 1
 First, install and setup Reposilite. Make sure to setup Reposilite to listen on port 8080 (or anything other than 80 and 443).
 
-Then, install nginx, openssl, and certbot [using snapd](https://snapcraft.io/docs/installing-snapd/) `sudo snap install certbot --classic` and `sudo ln -s /snap/bin/certbot /usr/bin/certbot`
+Then, install nginx, openssl, and certbot [using snapd*](https://snapcraft.io/docs/installing-snapd/) `sudo snap install certbot --classic` and `sudo ln -s /snap/bin/certbot /usr/bin/certbot`
+
+*[snapd is reccomended by certbot](https://certbot.eff.org/instructions?ws=other&os=ubuntufocal)
 
 ## Step 2
 Next you have to generate your certificates. To do this you will need a valid domain name and have your server pointed at it. 
