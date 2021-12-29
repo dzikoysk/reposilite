@@ -1,0 +1,72 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Reverse proxy ssl · Reposilite</title><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta name="generator" content="Docusaurus"/><meta name="description" content="Lots of people like to use a reverse proxy like nginx with reposilite. This is a page on"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Reverse proxy ssl · Reposilite"/><meta property="og:type" content="website"/><meta property="og:url" content="https://reposilite.com/"/><meta property="og:description" content="Lots of people like to use a reverse proxy like nginx with reposilite. This is a page on"/><meta property="og:image" content="https://reposilite.com/img/undraw_online.svg"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://reposilite.com/img/undraw_tweetstorm.svg"/><link rel="shortcut icon" href="/img/favicon.png"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/idea.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script src="/js/scrollSpy.js"></script><link rel="stylesheet" href="/css/main.css"/><script src="/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/"><h2 class="headerTitle">Reposilite</h2></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class=""><a href="/docs/about" target="_self">Guide</a></li><li class=""><a href="/support" target="_self">Support</a></li><li class=""><a href="https://github.com/dzikoysk/reposilite" target="_self">GitHub</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"><h1 id="__docusaurus" class="postHeaderTitle">Reverse proxy ssl</h1></header><article><div><span><p>Lots of people like to use a reverse proxy like nginx with reposilite. This is a page on
+how to setup Nginx with SSL.</p>
+<h2><a class="anchor" aria-hidden="true" id="step-1"></a><a href="#step-1" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Step 1</h2>
+<p>First, install and setup Reposilite. Make sure to setup Reposilite to listen on port 8080 (or anything other than 80 and 443).</p>
+<p>Then, install nginx, openssl, and certbot <a href="https://snapcraft.io/docs/installing-snapd/">using snapd*</a> <code>sudo snap install certbot --classic</code> and <code>sudo ln -s /snap/bin/certbot /usr/bin/certbot</code></p>
+<p>*<a href="https://certbot.eff.org/instructions?ws=other&amp;os=ubuntufocal">snapd is reccomended by certbot</a></p>
+<h2><a class="anchor" aria-hidden="true" id="step-2"></a><a href="#step-2" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Step 2</h2>
+<p>Next you have to generate your certificates. To do this you will need a valid domain name and have your server pointed at it.
+Run <code>sudo certbot certonly --standalone</code> and follow the instructions.
+Then, run <code>sudo mkdir /etc/nginx/ssl</code> and <code>sudo openssl dhparam -out /etc/nginx/ssl/dhparam.pem 2048</code> (also make sure www-data can read the file) This will take a while.</p>
+<h2><a class="anchor" aria-hidden="true" id="step-3"></a><a href="#step-3" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Step 3</h2>
+<p>Create these files (replace repo.example.com with your domain):</p>
+<p>/etc/nginx/sites-available/reposilite-proxy.conf</p>
+<pre><code class="hljs css language-conf"><span class="hljs-comment"># Prepare easy to use header value for websocket connections - needs to be outside server block</span>
+
+<span class="hljs-keyword">map</span> $http_upgrade $connection_upgrade {
+        default upgrade;
+        <span class="hljs-string">''</span> <span class="hljs-keyword">close</span>;
+}
+
+server {
+
+        server_name repo.example.com;
+
+        <span class="hljs-keyword">listen</span> <span class="hljs-number">443</span> ssl http2;
+        <span class="hljs-keyword">listen</span> [::]:<span class="hljs-number">443</span> ssl http2;
+
+        include /etc/nginx/custom-snippets/ssl.conf;
+
+        location / {
+                proxy_pass http:<span class="hljs-regexp">//localhost</span>:<span class="hljs-number">8080</span>/;  <span class="hljs-comment"># 8080 is the port reposilite is running on (change this to your port)</span>
+                proxy_http_version <span class="hljs-number">1.1</span>;
+                proxy_set_header Upgrade $http_upgrade;
+                proxy_set_header Connection $connection_upgrade;
+                proxy_set_header Host $host;
+        }
+
+    ssl_certificate /etc/letsencrypt/live/repo.example.com/fullchain.pem; <span class="hljs-comment"># managed by Certbot</span>
+    ssl_certificate_key /etc/letsencrypt/live/repo.example.com/privkey.pem; <span class="hljs-comment"># managed by Certbot</span>
+}
+
+<span class="hljs-comment"># Redirect all http requests to https</span>
+
+server {
+        <span class="hljs-keyword">listen</span> <span class="hljs-number">80</span> default_server;
+        <span class="hljs-keyword">listen</span> [::]:<span class="hljs-number">80</span> default_server;
+        <span class="hljs-keyword">return</span> <span class="hljs-number">301</span> https:<span class="hljs-regexp">//</span>$host$request_uri;
+}
+</code></pre>
+<p>/etc/nginx/custom-snippets/ssl.conf
+HINT: <code>sudo mkdir /etc/nginx/custom-snippets</code> The contents of this file can also be inlined in place of the include directive, but it's handy to keep them in a separate file so that it's reusable.</p>
+<pre><code class="hljs css language-conf"><span class="hljs-comment"># Protocols</span>
+<span class="hljs-attribute">ssl_protocols</span> TLSv1.<span class="hljs-number">2</span> TLSv1.<span class="hljs-number">3</span>;
+<span class="hljs-comment"># Ciphers</span>
+<span class="hljs-attribute">ssl_ciphers</span> EECDH+AESGCM:EECDH+AES256;
+
+<span class="hljs-attribute">ssl_prefer_server_ciphers</span> <span class="hljs-literal">on</span>;
+<span class="hljs-attribute">ssl_session_cache</span> shared:SSL:<span class="hljs-number">10m</span>;
+
+<span class="hljs-comment"># Diffie-Hellman key exchange with better parameters</span>
+<span class="hljs-attribute">ssl_dhparam</span> /etc/nginx/ssl/dhparam.pem;    <span class="hljs-comment"># Needs to be created via openssl dhparam -out /etc/nginx/ssl/dhparam.pem 2048 </span>
+<span class="hljs-attribute">ssl_ecdh_curve</span> secp384r1;
+
+
+<span class="hljs-comment"># HTTP Strict Transport Security</span>
+
+<span class="hljs-attribute">add_header</span> Strict-Transport-Security <span class="hljs-string">"max-age=63072000;includeSubdomains;"</span>;
+</code></pre>
+<h2><a class="anchor" aria-hidden="true" id="step-4"></a><a href="#step-4" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Step 4</h2>
+<p>Finally, run <code>sudo nginx -t</code> to verify the config and <code>sudo systemctl restart nginx</code> to restart nginx.
+This config also works with cloudflare.</p>
+</span></div></article></div><div class="docs-prevnext"></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#step-1">Step 1</a></li><li><a href="#step-2">Step 2</a></li><li><a href="#step-3">Step 3</a></li><li><a href="#step-4">Step 4</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap center"><div><h5>Guide</h5><a href="/docs/about">Getting Started</a><a href="/docs/install">Installation</a><a href="/docs/indexing">Developer API</a><a href="/docs/faq">FAQ</a></div><div><h5>Community</h5><a href="https://github.com/dzikoysk/reposilite/issues" target="_blank">Report Issue</a><a href="https://github.com/dzikoysk/reposilite" target="_blank">Star Reposilite</a><a href="https://discord.gg/qGRqmGjUFX" target="_blank">Join Discord</a><a href="https://twitter.com/dzikoysk" target="_blank">Follow @dzikoysk</a></div></section><section class="copyright">Copyright © 2021 dzikoysk with ❤ panda-lang</section></footer></div><script>window.twttr=(function(d,s, id){var js,fjs=d.getElementsByTagName(s)[0],t=window.twttr||{};if(d.getElementById(id))return t;js=d.createElement(s);js.id=id;js.src='https://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js, fjs);t._e = [];t.ready = function(f) {t._e.push(f);};return t;}(document, 'script', 'twitter-wjs'));</script></body></html>
