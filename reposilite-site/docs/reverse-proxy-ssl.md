@@ -62,6 +62,7 @@ server {
 ```
 
 /etc/nginx/custom-snippets/ssl.conf
+HINT: `sudo mkdir /etc/nginx/custom-snippets` The contents of this file can also be inlined in place of the include directive, but it's handy to keep them in a separate file so that it's reusable. 
 ```conf
 # Protocols
 ssl_protocols TLSv1.2 TLSv1.3;
