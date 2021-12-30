@@ -45,8 +45,9 @@ class HttpRemoteClient(private val journalist: Journalist, proxy: Proxy?) : Remo
 
     override fun head(uri: String, credentials: String?, connectTimeout: Int, readTimeout: Int): Result<FileDetails, ErrorResponse> =
         createRequest(HttpMethods.HEAD, uri, credentials, connectTimeout, readTimeout)
-            .execute {
-                val headers = it.headers
+            .execute { response ->
+                response.disconnect()
+                val headers = response.headers
 
                 // Nexus can send misleading for client content-length of chunked responses
                 // ~ https://github.com/dzikoysk/reposilite/issues/549
@@ -81,7 +82,7 @@ class HttpRemoteClient(private val journalist: Journalist, proxy: Proxy?) : Remo
         return request
     }
 
-    private fun <R> HttpRequest.execute(block: (HttpResponse) -> Result<R, ErrorResponse>): Result<R, ErrorResponse> =
+    private fun <R> HttpRequest.execute(consumer: (HttpResponse) -> Result<R, ErrorResponse>): Result<R, ErrorResponse> =
         try {
             val response = this.execute()
             logger.debug("HttpRemoteClient | $url responded with ${response.statusCode} (Content-Type: ${response.contentType})")
@@ -89,8 +90,9 @@ class HttpRemoteClient(private val journalist: Journalist, proxy: Proxy?) : Remo
             when {
                 response.contentType == ContentType.HTML -> errorResponse(NOT_ACCEPTABLE, "Illegal file type (${response.contentType})")
                 response.isSuccessStatusCode.not() -> errorResponse(NOT_ACCEPTABLE, "Unsuccessful request (${response.statusCode})")
-                else -> block(response)
+                else -> consumer(response)
             }
+            .onError { response.disconnect() }
         } catch (exception: Exception) {
             createExceptionResponse(this.url.toString(), exception)
         }
