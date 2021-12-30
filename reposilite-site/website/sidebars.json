@@ -11,6 +11,7 @@
       "docker", 
       "cdn",
       "reverse-proxy",
+      "reverse-proxy-ssl",
       "systemd"
     ],
     "Settings": [
