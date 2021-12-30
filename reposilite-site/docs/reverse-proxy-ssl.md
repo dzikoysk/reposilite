@@ -1,7 +1,7 @@
 ---
 id: reverse-proxy-ssl
-title: Reverse proxy ssl
-sidebar_label: Reverse proxy ssl
+title: Reverse proxy SSL
+sidebar_label: Reverse proxy SSL
 ---
 
 Lots of people like to use a reverse proxy like nginx with reposilite. This is a page on
@@ -12,7 +12,7 @@ First, install and setup Reposilite. Make sure to setup Reposilite to listen on 
 
 Then, install nginx, openssl, and certbot [using snapd*](https://snapcraft.io/docs/installing-snapd/) `sudo snap install certbot --classic` and `sudo ln -s /snap/bin/certbot /usr/bin/certbot`
 
-*[snapd is reccomended by certbot](https://certbot.eff.org/instructions?ws=other&os=ubuntufocal)
+*[snapd is recommended by certbot](https://certbot.eff.org/instructions?ws=other&os=ubuntufocal)
 
 ## Step 2
 Next you have to generate your certificates. To do this you will need a valid domain name and have your server pointed at it. 
@@ -62,7 +62,7 @@ server {
 ```
 
 /etc/nginx/custom-snippets/ssl.conf
-HINT: `sudo mkdir /etc/nginx/custom-snippets` The contents of this file can also be inlined in place of the include directive, but it's handy to keep them in a separate file so that it's reusable. 
+HINT: `sudo mkdir /etc/nginx/custom-snippets` The contents of this file can also be inlined in place of the included directive, but it's handy to keep them in a separate file so that it's reusable. 
 ```conf
 # Protocols
 ssl_protocols TLSv1.2 TLSv1.3;
