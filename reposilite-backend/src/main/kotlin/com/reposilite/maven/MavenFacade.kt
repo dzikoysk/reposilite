@@ -21,12 +21,12 @@ import com.reposilite.journalist.Logger
 import com.reposilite.maven.api.DeleteRequest
 import com.reposilite.maven.api.DeployEvent
 import com.reposilite.maven.api.DeployRequest
+import com.reposilite.maven.api.LatestVersionResponse
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.METADATA_FILE
 import com.reposilite.maven.api.Metadata
 import com.reposilite.maven.api.ResolveEvent
 import com.reposilite.maven.api.VersionLookupRequest
-import com.reposilite.maven.api.VersionResponse
 import com.reposilite.maven.api.VersionsResponse
 import com.reposilite.plugin.Extensions
 import com.reposilite.plugin.api.Facade
@@ -130,7 +130,7 @@ class MavenFacade internal constructor(
             .filter({ repositorySecurityProvider.canAccessResource(lookupRequest.accessToken, it, lookupRequest.gav.toPath())}, { unauthorized() })
             .flatMap { metadataService.findVersions(it, lookupRequest.gav, lookupRequest.filter) }
 
-    fun findLatest(lookupRequest: VersionLookupRequest): Result<VersionResponse, ErrorResponse> =
+    fun findLatest(lookupRequest: VersionLookupRequest): Result<LatestVersionResponse, ErrorResponse> =
         repositoryService.findRepository(lookupRequest.repository)
             .filter({ repositorySecurityProvider.canAccessResource(lookupRequest.accessToken, it, lookupRequest.gav.toPath())}, { unauthorized() })
             .flatMap { metadataService.findLatest(it, lookupRequest.gav, lookupRequest.filter) }

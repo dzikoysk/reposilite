@@ -24,10 +24,11 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator
 import com.fasterxml.jackson.module.kotlin.kotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.reposilite.maven.api.LatestVersionResponse
 import com.reposilite.maven.api.METADATA_FILE
 import com.reposilite.maven.api.Metadata
-import com.reposilite.maven.api.VersionResponse
 import com.reposilite.maven.api.VersionsResponse
+import com.reposilite.shared.extensions.letIf
 import com.reposilite.shared.fs.VersionComparator
 import com.reposilite.shared.fs.safeResolve
 import com.reposilite.shared.fs.toPath
@@ -53,18 +54,27 @@ internal class MetadataService(
             .flatMap { it.putFile(gav.toPath().safeResolve(METADATA_FILE), xml.writeValueAsBytes(metadata).inputStream()) }
             .map { metadata }
 
+    fun findLatest(repository: Repository, gav: String, filter: String?): Result<LatestVersionResponse, ErrorResponse> =
+        findVersions(repository, gav, filter)
+            .filter({ it.versions.isNotEmpty() }, { notFound("Given artifact does not have any declared version") })
+            .map { (isSnapshot, versions) -> LatestVersionResponse(isSnapshot, versions.last()) }
+
     fun findVersions(repository: Repository, gav: String, filter: String?): Result<VersionsResponse, ErrorResponse> =
         repository.getFile(gav.toPath().safeResolve(METADATA_FILE))
             .map { it.use { data -> xml.readValue<Metadata>(data) } }
-            .map { it.versioning?.versions ?: emptyList() }
-            .map { if (filter != null) it.filter { version -> version.startsWith(filter) } else it }
-            .map { VersionComparator.sortStrings(it) }
-            .map { VersionsResponse(it) }
+            .map { extractVersions(it) }
+            .map { (isSnapshot, versions) ->
+                versions
+                    .letIf(filter != null) { it.filter { version -> version.startsWith(filter!!) } }
+                    .let { VersionComparator.sortStrings(it) }
+                    .let { VersionsResponse(isSnapshot, it.toList()) }
+            }
 
-    fun findLatest(repository: Repository, gav: String, filter: String?): Result<VersionResponse, ErrorResponse> =
-        findVersions(repository, gav, filter)
-            .filter({ it.versions.isNotEmpty() }, { notFound("Given artifact does not have any declared version") })
-            .map { it.versions.last() }
-            .map { VersionResponse(it) }
+    private data class VersionSequence(val isSnapshot: Boolean = false, val versions: Sequence<String>)
+
+    private fun extractVersions(metadata: Metadata): VersionSequence =
+        (metadata.versioning?.versions?.asSequence()?.let { VersionSequence(false, it) }
+            ?: metadata.versioning?.snapshotVersions?.asSequence()?.map { it.value }?.filterNotNull()?.let { VersionSequence(true, it) })
+            ?: VersionSequence(false, emptySequence())
 
 }

@@ -34,9 +34,9 @@ data class Metadata(
 data class Versioning(
     val release: String? = null,
     val latest: String? = null,
-    private var _versions: Collection<String>? = emptyList(),
+    private var _versions: Collection<String>? = null,
     val snapshot: Snapshot? = null,
-    private var _snapshotVersions: Collection<SnapshotVersion>? = emptyList(),
+    private var _snapshotVersions: Collection<SnapshotVersion>? = null,
     val lastUpdated: String? = null
 ) {
 

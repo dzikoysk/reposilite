@@ -1,9 +1,9 @@
 package com.reposilite.maven.infrastructure
 
 import com.reposilite.maven.MavenFacade
+import com.reposilite.maven.api.LatestVersionResponse
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.VersionLookupRequest
-import com.reposilite.maven.api.VersionResponse
 import com.reposilite.shared.ContextDsl
 import com.reposilite.shared.fs.DocumentInfo
 import com.reposilite.shared.fs.FileDetails
@@ -38,7 +38,7 @@ internal class MavenLatestApiEndpoints(private val mavenFacade: MavenFacade) : R
             OpenApiParam(name = "type", description = "Format of expected response type: empty (default) for json; 'raw' for plain text", required = false),
         ],
         responses = [
-            OpenApiResponse("200", content = [OpenApiContent(from = VersionResponse::class)], description = "default response"),
+            OpenApiResponse("200", content = [OpenApiContent(from = LatestVersionResponse::class)], description = "default response"),
             OpenApiResponse("200", content = [OpenApiContent(from = String::class, type = ContentType.PLAIN)], description = ""),
         ]
     )
@@ -102,8 +102,13 @@ internal class MavenLatestApiEndpoints(private val mavenFacade: MavenFacade) : R
 
         return VersionLookupRequest(accessToken, repository, gav, context.ctx.queryParam("filter"))
             .let { mavenFacade.findLatest(it) }
-            .map { LookupRequest(accessToken, repository, "$gav/${it.version}/${gav.substringAfterLast("/", gav)}-${it.version}.jar") }
-            .flatMap { request(it) }
+            .map {
+                if (it.isSnapshot)
+                    "$gav/${gav.substringBeforeLast("/", "").substringAfterLast("/", "")}-${it.version}.jar"
+                else
+                    "$gav/${it.version}/${gav.substringAfterLast("/", "")}-${it.version}.jar"
+            }
+            .flatMap { request(LookupRequest(accessToken, repository, it)) }
     }
 
     override val routes = setOf(findLatestVersion, findLatestDetails, findLatestFile)
