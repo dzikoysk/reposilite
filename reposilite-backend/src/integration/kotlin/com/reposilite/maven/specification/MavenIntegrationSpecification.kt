@@ -54,7 +54,7 @@ internal abstract class MavenIntegrationSpecification : ReposiliteSpecification(
     }
 
     protected fun useMetadata(repository: String, groupId: String, artifactId: String, versions: List<String>): Pair<String, Metadata> {
-        val sortedVersions = VersionComparator.sortStrings(versions)
+        val sortedVersions = VersionComparator.sortStrings(versions.asSequence()).toList()
         val versioning = Versioning(latest = sortedVersions.firstOrNull(), _versions = sortedVersions)
         val metadata = Metadata(groupId, artifactId, versioning = versioning)
 

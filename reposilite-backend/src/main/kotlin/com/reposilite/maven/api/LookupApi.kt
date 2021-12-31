@@ -39,11 +39,13 @@ data class VersionLookupRequest(
     val filter: String?
 )
 
-data class VersionResponse(
-    val version: String
+data class LatestVersionResponse(
+    val isSnapshot: Boolean,
+    val version: String,
 )
 
 data class VersionsResponse(
+    val isSnapshot: Boolean,
     val versions: List<String>
 )
 

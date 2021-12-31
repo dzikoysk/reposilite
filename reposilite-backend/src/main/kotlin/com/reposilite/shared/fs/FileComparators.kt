@@ -47,12 +47,9 @@ open class VersionComparator<T>(
         fun asVersion(value: String): Array<String> =
             DEFAULT_VERSION_PATTERN.split(value)
 
-        fun sortStrings(collection: Collection<String>): List<String> =
-            sortWithCache(collection, Function.identity())
-
-        private fun <T> sortWithCache(collection: Collection<T>, nameMapper: Function<T, String>): List<T> =
-            collection
-                .map { Pair(it, asVersion(nameMapper.apply(it))) }
+        fun sortStrings(sequence: Sequence<String>): Sequence<String> =
+            sequence
+                .map { Pair(it, asVersion(it)) }
                 .sortedWith(VersionComparator { cache -> cache.second })
                 .map { it.first }
 

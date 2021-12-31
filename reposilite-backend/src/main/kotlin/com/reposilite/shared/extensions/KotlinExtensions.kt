@@ -19,6 +19,9 @@ package com.reposilite.shared.extensions
 import panda.std.Result
 import java.util.concurrent.atomic.AtomicBoolean
 
+internal fun <T> T.letIf(condition: Boolean, block: (T) -> T) =
+    if (condition) block(this) else this
+
 internal fun AtomicBoolean.peek(block: () -> Unit) {
     if (this.get()) {
         block()
@@ -42,7 +45,7 @@ internal fun <VALUE, ERROR> Sequence<Result<out VALUE, ERROR>>.firstOrErrors(): 
 }
 
 internal fun <ERROR : Exception> Result<*, ERROR>.orElseThrow() {
-    orElseThrow { it -> it }
+    orElseThrow { it }
 }
 
 internal fun <VALUE> Result<VALUE, *>.`when`(condition: (VALUE) -> Boolean): Boolean =
