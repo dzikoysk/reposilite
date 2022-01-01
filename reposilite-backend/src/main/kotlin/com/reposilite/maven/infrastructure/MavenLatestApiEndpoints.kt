@@ -6,6 +6,7 @@ import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.VersionLookupRequest
 import com.reposilite.settings.SettingsFacade
 import com.reposilite.shared.ContextDsl
+import com.reposilite.shared.extensions.letIf
 import com.reposilite.shared.extensions.resultAttachment
 import com.reposilite.shared.fs.DocumentInfo
 import com.reposilite.shared.fs.FileDetails
@@ -24,6 +25,8 @@ import io.javalin.openapi.OpenApiResponse
 import panda.std.Result
 import panda.std.asError
 import panda.std.asSuccess
+
+private typealias RequestFunction<T> = (LookupRequest) -> Result<T, ErrorResponse>
 
 internal class MavenLatestApiEndpoints(
     private val mavenFacade: MavenFacade,
@@ -103,20 +106,26 @@ internal class MavenLatestApiEndpoints(
         }
     }
 
-    private fun <T> resolveLatestArtifact(context: ContextDsl, accessToken: AccessToken?, request: (LookupRequest) -> Result<T, ErrorResponse>): Result<T, ErrorResponse> {
-        val repository = context.requiredParameter("repository")
-        val gav = context.requiredParameter("gav")
+    private fun <T> resolveLatestArtifact(context: ContextDsl, accessToken: AccessToken?, request: RequestFunction<T>): Result<T, ErrorResponse> =
+        resolveLatestArtifact(context.requiredParameter("repository"), context.requiredParameter("gav"), context.ctx.queryParam("filter"), accessToken, request)
 
-        return VersionLookupRequest(accessToken, repository, gav, context.ctx.queryParam("filter"))
+    private fun <T> resolveLatestArtifact(repository: String, gav: String, filter: String?, accessToken: AccessToken?, request: RequestFunction<T>): Result<T, ErrorResponse> =
+        VersionLookupRequest(accessToken, repository, gav, filter)
             .let { mavenFacade.findLatest(it) }
-            .map {
-                if (it.isSnapshot)
-                    "$gav/${gav.substringBeforeLast("/", "").substringAfterLast("/", "")}-${it.version}.jar"
-                else
-                    "$gav/${it.version}/${gav.substringAfterLast("/", "")}-${it.version}.jar"
+            .flatMap { (isSnapshot, version) ->
+                LookupRequest(
+                    accessToken,
+                    repository,
+                    if (isSnapshot)
+                        "$gav/${gav.substringBeforeLast("/", "").substringAfterLast("/", "")}-$version.jar"
+                    else
+                        "$gav/$version/${gav.substringAfterLast("/", "")}-$version.jar"
+                )
+                .let { request(it) }
+                .letIf({ it.isErr && version.contains("-SNAPSHOT", ignoreCase = true) }) {
+                    resolveLatestArtifact(repository, "$gav/$version", filter, accessToken, request)
+                }
             }
-            .flatMap { request(LookupRequest(accessToken, repository, it)) }
-    }
 
     override val routes = setOf(findLatestVersion, findLatestDetails, findLatestFile)
 
