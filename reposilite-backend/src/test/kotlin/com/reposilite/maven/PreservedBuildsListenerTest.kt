@@ -1,5 +1,6 @@
 package com.reposilite.maven
 
+import com.reposilite.assertCollectionsEquals
 import com.reposilite.maven.RepositoryVisibility.PUBLIC
 import com.reposilite.maven.api.DeployEvent
 import com.reposilite.maven.api.Metadata
@@ -61,7 +62,7 @@ internal class PreservedBuildsListenerTest : MavenSpecification() {
         assertEquals(listOf("$prefix-20220101213702-3.jar", "$prefix-20220101213702-3.pom", "$versionId/maven-metadata.xml").map { it.toPath().toString() }, files)
 
         val metadata = assertOk(mavenFacade.findMetadata(repositoryName, versionId))
-        assertEquals(listOf("1.0.0-20220101213702-3", "1.0.0-20220101213702-4"), metadata.versioning!!.snapshotVersions!!.map { it.value })
+        assertCollectionsEquals(listOf("1.0.0-20220101213702-3", "1.0.0-20220101213702-4"), metadata.versioning!!.snapshotVersions!!.map { it.value })
     }
 
 }
