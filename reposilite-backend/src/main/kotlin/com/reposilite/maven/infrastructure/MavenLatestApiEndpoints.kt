@@ -4,7 +4,9 @@ import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.api.LatestVersionResponse
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.VersionLookupRequest
+import com.reposilite.settings.SettingsFacade
 import com.reposilite.shared.ContextDsl
+import com.reposilite.shared.extensions.resultAttachment
 import com.reposilite.shared.fs.DocumentInfo
 import com.reposilite.shared.fs.FileDetails
 import com.reposilite.token.api.AccessToken
@@ -23,7 +25,12 @@ import panda.std.Result
 import panda.std.asError
 import panda.std.asSuccess
 
-internal class MavenLatestApiEndpoints(private val mavenFacade: MavenFacade) : ReposiliteRoutes() {
+internal class MavenLatestApiEndpoints(
+    private val mavenFacade: MavenFacade,
+    settingsFacade: SettingsFacade
+) : ReposiliteRoutes() {
+
+    private val compressionStrategy = settingsFacade.localConfiguration.compressionStrategy
 
     @OpenApi(
         tags = ["Maven"],
@@ -87,11 +94,12 @@ internal class MavenLatestApiEndpoints(private val mavenFacade: MavenFacade) : R
     )
     private val findLatestFile = ReposiliteRoute("/api/maven/latest/file/{repository}/<gav>", GET) {
         accessed {
-            response = resolveLatestArtifact(this@ReposiliteRoute, this) { lookupRequest ->
+            resolveLatestArtifact(this@ReposiliteRoute, this) { lookupRequest ->
                 mavenFacade.findDetails(lookupRequest)
                     .`is`(DocumentInfo::class.java) { ErrorResponse(BAD_REQUEST, "Requested file is a directory") }
-                    .peek { ctx.contentType(it.contentType) }
-                    .flatMap { mavenFacade.findFile(lookupRequest) }
+                    .flatMap { mavenFacade.findFile(lookupRequest).map { data -> Pair(it, data) } }
+                    .peek { (details, file) -> ctx.resultAttachment(details.name, details.contentType, details.contentLength, compressionStrategy.get(), file) }
+                    .onError { response = it }
             }
         }
     }
