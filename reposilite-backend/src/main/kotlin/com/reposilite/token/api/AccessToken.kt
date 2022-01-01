@@ -57,7 +57,7 @@ data class AccessToken internal constructor(
         isManager() || routes.any { it.hasPermissionTo(toPath, routePermission) }
 
     fun canSee(routeFragment: String): Boolean =
-        isManager() || routes.any { it.path.startsWith("$routeFragment/", ignoreCase = true) }
+        isManager() || routes.any { it.path.startsWith(routeFragment, ignoreCase = true) }
 
 }
 
