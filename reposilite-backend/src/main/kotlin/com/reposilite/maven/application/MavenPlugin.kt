@@ -71,7 +71,7 @@ internal class MavenPlugin : ReposilitePlugin() {
         event { event: RoutingSetupEvent ->
             event.registerRoutes(MavenEndpoints(mavenFacade, frontendFacade, settingsFacade))
             event.registerRoutes(MavenApiEndpoints(mavenFacade))
-            event.registerRoutes(MavenLatestApiEndpoints(mavenFacade))
+            event.registerRoutes(MavenLatestApiEndpoints(mavenFacade, settingsFacade))
         }
 
         event { _: ReposiliteDisposeEvent ->
