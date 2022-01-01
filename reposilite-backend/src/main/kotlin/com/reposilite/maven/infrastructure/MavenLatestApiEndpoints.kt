@@ -94,12 +94,11 @@ internal class MavenLatestApiEndpoints(
     )
     private val findLatestFile = ReposiliteRoute("/api/maven/latest/file/{repository}/<gav>", GET) {
         accessed {
-            resolveLatestArtifact(this@ReposiliteRoute, this) { lookupRequest ->
+            response = resolveLatestArtifact(this@ReposiliteRoute, this) { lookupRequest ->
                 mavenFacade.findDetails(lookupRequest)
                     .`is`(DocumentInfo::class.java) { ErrorResponse(BAD_REQUEST, "Requested file is a directory") }
                     .flatMap { mavenFacade.findFile(lookupRequest).map { data -> Pair(it, data) } }
-                    .peek { (details, file) -> ctx.resultAttachment(details.name, details.contentType, details.contentLength, compressionStrategy.get(), file) }
-                    .onError { response = it }
+                    .map { (details, file) -> ctx.resultAttachment(details.name, details.contentType, details.contentLength, compressionStrategy.get(), file) }
             }
         }
     }
