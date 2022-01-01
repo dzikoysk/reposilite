@@ -54,6 +54,11 @@ internal class MetadataService(
             .flatMap { it.putFile(gav.toPath().safeResolve(METADATA_FILE), xml.writeValueAsBytes(metadata).inputStream()) }
             .map { metadata }
 
+    fun findMetadata(repository: String, gav: String): Result<Metadata, ErrorResponse> =
+        repositoryService.findRepository(repository)
+            .flatMap { it.getFile(gav.toPath().safeResolve(METADATA_FILE)) }
+            .map { it.use { data -> xml.readValue<Metadata>(data) } }
+
     fun findLatest(repository: Repository, gav: String, filter: String?): Result<LatestVersionResponse, ErrorResponse> =
         findVersions(repository, gav, filter)
             .filter({ it.versions.isNotEmpty() }, { notFound("Given artifact does not have any declared version") })

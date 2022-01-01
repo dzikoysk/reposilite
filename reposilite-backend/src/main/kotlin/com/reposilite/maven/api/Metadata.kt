@@ -27,8 +27,17 @@ data class Metadata(
     val groupId: String? = null,
     val artifactId: String? = null,
     val version: String? = null, // snapshot only
-    val versioning: Versioning? = Versioning()
-)
+    val versioning: Versioning? = Versioning(),
+    private var _plugins: Collection<Plugin>? = null,
+) {
+
+    @get:JacksonXmlElementWrapper(localName = "plugins")
+    @get:JacksonXmlProperty(localName = "plugin")
+    var plugins: Collection<Plugin>?
+        set(value) { _plugins = value }
+        get() = _plugins
+
+}
 
 @JacksonXmlRootElement(localName = "versioning")
 data class Versioning(
@@ -62,7 +71,8 @@ data class Versioning(
 @JacksonXmlRootElement(localName = "snapshot")
 data class Snapshot(
     val timestamp: String? = null,
-    val buildNumber: String? = null
+    val buildNumber: Int? = null,
+    val localCopy: Boolean? = null
 )
 
 @JacksonXmlRootElement(localName = "snapshotVersion")
@@ -70,4 +80,11 @@ data class SnapshotVersion(
     val extension: String? = null,
     val value: String? = null,
     val updated: String? = null
+)
+
+@JacksonXmlRootElement(localName = "plugin")
+data class Plugin(
+    val name: String? = null,
+    val prefix: String? = null,
+    val artifactId: String? = null
 )

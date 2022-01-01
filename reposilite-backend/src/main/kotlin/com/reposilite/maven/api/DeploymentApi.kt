@@ -28,8 +28,11 @@ data class DeployRequest(
     val content: InputStream
 )
 
+/**
+ * Called when deployed file has been successfully stored in repository
+ */
 class DeployEvent(
-    val deployRequest: DeployRequest,
     val repository: Repository,
-    val path: Path
+    val gav: Path,
+    val by: String
 ) : Event

@@ -87,7 +87,11 @@ internal abstract class FileSystemStorageProvider protected constructor(
         resolved(path).delete()
 
     override fun getFiles(path: Path): Result<List<Path>, ErrorResponse> =
-        resolved(path).listFiles()
+        resolved(path)
+            .listFiles()
+            .map { it.map { path ->
+                rootDirectory.relativize(path)
+            } }
 
     override fun getLastModifiedTime(path: Path): Result<FileTime, ErrorResponse> =
         resolved(path).getLastModifiedTime()

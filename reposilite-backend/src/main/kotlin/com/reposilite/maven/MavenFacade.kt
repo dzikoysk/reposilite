@@ -47,7 +47,6 @@ import com.reposilite.web.http.notFound
 import com.reposilite.web.http.notFoundError
 import com.reposilite.web.http.unauthorized
 import com.reposilite.web.http.unauthorizedError
-import io.javalin.http.HttpCode
 import io.javalin.http.HttpCode.BAD_REQUEST
 import panda.std.Result
 import panda.std.asError
@@ -125,6 +124,9 @@ class MavenFacade internal constructor(
     fun saveMetadata(repository: String, gav: String, metadata: Metadata): Result<Metadata, ErrorResponse> =
         metadataService.saveMetadata(repository, gav, metadata)
 
+    fun findMetadata(repository: String, gav: String): Result<Metadata, ErrorResponse> =
+        metadataService.findMetadata(repository, gav)
+
     fun findVersions(lookupRequest: VersionLookupRequest): Result<VersionsResponse, ErrorResponse> =
         repositoryService.findRepository(lookupRequest.repository)
             .filter({ repositorySecurityProvider.canAccessResource(lookupRequest.accessToken, it, lookupRequest.gav.toPath())}, { unauthorized() })
@@ -140,12 +142,12 @@ class MavenFacade internal constructor(
         val path = deployRequest.gav.toNormalizedPath().orNull() ?: return errorResponse(BAD_REQUEST, "Invalid GAV")
 
         if (repository.redeployment.not() && path.getSimpleName().contains(METADATA_FILE).not() && repository.exists(path)) {
-            return errorResponse(HttpCode.CONFLICT, "Redeployment is not allowed")
+            return errorResponse(BAD_REQUEST, "Redeployment is not allowed")
         }
 
         return repository.putFile(path, deployRequest.content)
             .peek { logger.info("DEPLOY | Artifact $path successfully deployed to ${repository.name} by ${deployRequest.by}") }
-            .peek { extensions.emitEvent(DeployEvent(deployRequest, repository, path)) }
+            .peek { extensions.emitEvent(DeployEvent(repository, path, deployRequest.by)) }
     }
 
     fun deleteFile(deleteRequest: DeleteRequest): Result<Unit, ErrorResponse> {
@@ -161,6 +163,9 @@ class MavenFacade internal constructor(
 
     fun findRepositories(accessToken: AccessToken?): DirectoryInfo =
         repositoryService.getRootDirectory(accessToken)
+
+    fun getRepository(name: String) =
+        repositoryService.getRepository(name)
 
     internal fun getRepositories(): Collection<Repository> =
         repositoryService.getRepositories()
