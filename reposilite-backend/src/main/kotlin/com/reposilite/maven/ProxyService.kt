@@ -48,7 +48,7 @@ internal class ProxyService(private val journalist: Journalist): Journalist {
             .filter {(_, config) -> isAllowed(config, gav) }
             .map { fetch(it) }
             .firstOrErrors()
-            .mapErr { errors -> ErrorResponse(NOT_FOUND, errors.joinToString(" -> ") { "(${it.status}: ${it.message})" }) }
+            .mapErr { errors -> ErrorResponse(NOT_FOUND, if (errors.isEmpty()) "Cannot find $gav" else errors.joinToString(" -> ") { "(${it.status}: ${it.message})" }) }
 
     private fun isAllowed(config: ProxiedHostConfiguration, gav: String): Boolean =
         config.allowedGroups.isEmpty() ||
