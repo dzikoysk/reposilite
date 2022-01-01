@@ -32,6 +32,7 @@ class FrontendFacade internal constructor(
 ) : Facade {
 
     private val resources = HashMap<String, String>(0)
+    private val uriFormatter = Regex("/+") // exclude common typos from URI
 
     init {
         computed(cacheContent, basePath, id, title, description, organizationWebsite, organizationLogo, icpLicense) {
@@ -55,7 +56,8 @@ class FrontendFacade internal constructor(
             .replace("{{REPOSILITE.ORGANIZATION_LOGO}}", organizationLogo.get())
             .replace("{{REPOSILITE.ICP_LICENSE}}", icpLicense.get())
 
-    fun createNotFoundPage(uri: String, details: String): String {
+    fun createNotFoundPage(originUri: String, details: String): String {
+        val uri = originUri.replace(uriFormatter, "/")
         val dashboardURI = basePath.get() + (if (basePath.get().endsWith("/")) "" else "/") + "#" + uri
 
         @Language("html")
