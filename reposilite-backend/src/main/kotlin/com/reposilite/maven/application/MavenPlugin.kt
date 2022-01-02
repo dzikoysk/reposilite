@@ -45,6 +45,8 @@ internal class MavenPlugin : ReposilitePlugin() {
 
     override fun initialize(): MavenFacade {
         val settingsFacade = facade<SettingsFacade>()
+        val sharedConfiguration = settingsFacade.sharedConfiguration
+
         val statisticsFacade = facade<StatisticsFacade>()
         val frontendFacade = facade<FrontendFacade>()
 
@@ -52,13 +54,14 @@ internal class MavenPlugin : ReposilitePlugin() {
             this,
             extensions().parameters.workingDirectory,
             HttpRemoteClientProvider,
-            settingsFacade.sharedConfiguration.repositories
+            sharedConfiguration.repositories
         )
         val securityProvider = RepositorySecurityProvider()
         val repositoryService = RepositoryService(this, repositoryProvider, securityProvider)
 
         val mavenFacade = MavenFacade(
             this,
+            sharedConfiguration.id,
             securityProvider,
             repositoryService,
             ProxyService(this),

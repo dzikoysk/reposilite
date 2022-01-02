@@ -1,21 +1,13 @@
-package com.reposilite.badge
+package com.reposilite.shared
 
-import com.reposilite.badge.api.LatestBadgeRequest
-import com.reposilite.maven.MavenFacade
-import com.reposilite.maven.api.VersionLookupRequest
-import com.reposilite.plugin.api.Facade
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
 import io.javalin.http.HttpCode.BAD_REQUEST
 import org.intellij.lang.annotations.Language
 import panda.std.Result
 import panda.std.asSuccess
-import panda.std.reactive.Reference
 
-class BadgeFacade(
-    private val repositoryId: Reference<out String>,
-    private val mavenFacade: MavenFacade
-) : Facade {
+object BadgeGenerator {
 
     /**
      * Just in case, mostly to avoid issues with XML based template
@@ -28,20 +20,18 @@ class BadgeFacade(
     /**
      * Standard blue color used by well-known badges on GitHub
      */
-    private val colorBlue = "007ec6"
+    private const val colorBlue = "007ec6"
     /**
      * Standard green color used by well-known badges on GitHub
      */
-    private val colorGreen = "4c1"
+    private const val colorGreen = "4c1"
 
     private fun String.countShortCharacters(): Int =
         shortCharacters.sumOf { this.count { char -> char == it } }
 
-    fun findLatestBadge(request: LatestBadgeRequest): Result<String, ErrorResponse> =
-        mavenFacade.findLatest(VersionLookupRequest(null, request.repository, request.gav, request.filter))
-            .flatMap { generateSvg(request.name ?: repositoryId.get(), (request.prefix ?: "") + it.version, request.color ?: colorBlue) }
+    fun generateSvg(name: String, value: String, optionalColor: String?): Result<String, ErrorResponse> {
+        val color = optionalColor ?: colorBlue
 
-    private fun generateSvg(name: String, value: String, color: String): Result<String, ErrorResponse> {
         if (!(name + value + color).matches(supportedCharacters)) {
             return errorResponse(BAD_REQUEST, "Request contains invalid characters")
         }
@@ -61,7 +51,7 @@ class BadgeFacade(
 
         @Language("xml")
         val badge = """
-                <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="$fullWidth" height="20" role="img" aria-label="$name: $value">
+                <svg xmlns="http://www.w3.org/2000/svg" width="$fullWidth" height="20" role="img" aria-label="$name: $value">
                     <title>$name: $value</title>
                     <linearGradient id="s" x2="0" y2="100%">
                         <stop offset="0" stop-color="#bbb" stop-opacity=".1"/><stop offset="1" stop-opacity=".1"/>
@@ -71,17 +61,17 @@ class BadgeFacade(
                     </clipPath>
                     <g clip-path="url(#r)">
                         <rect width="$nameWidth" height="20" fill="#555"/>
-                        <rect x="$nameWidth" width="$valueWidth" height="20" fill="#$color"/>
+                        <rect x="$nameWidth" width="$valueWidth" height="20" fill="#$optionalColor"/>
                         <rect width="$fullWidth" height="20" fill="url(#s)"/>
                     </g>
                     <g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" text-rendering="geometricPrecision" font-size="110"> 
-                        <text aria-hidden="true" x="${textPadding + nameTextLength / 2}" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="$nameTextLength">
+                        <text x="${textPadding + nameTextLength / 2}" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="$nameTextLength">
                             $name
                         </text>
                         <text x="${textPadding + nameTextLength / 2}" y="140" transform="scale(.1)" fill="#fff" textLength="$nameTextLength">
                             $name
                         </text>
-                        <text aria-hidden="true" x="${nameTextLength + valueTextLength / 2 + 3 * textPadding}" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="$valueTextLength">
+                        <text x="${nameTextLength + valueTextLength / 2 + 3 * textPadding}" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="$valueTextLength">
                             $value
                         </text>
                         <text x="${nameTextLength + valueTextLength / 2 + 3 * textPadding}" y="140" transform="scale(.1)" fill="#fff" textLength="$valueTextLength">
