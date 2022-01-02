@@ -28,7 +28,7 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.atomic.AtomicBoolean
 
-const val VERSION = "3.0.0-alpha.16"
+const val VERSION = "3.0.0-alpha.17"
 
 class Reposilite(
     val journalist: ReposiliteJournalist,
