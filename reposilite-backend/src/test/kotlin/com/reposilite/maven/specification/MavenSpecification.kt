@@ -49,6 +49,7 @@ import org.junit.jupiter.api.io.TempDir
 import panda.std.Quad
 import panda.std.asSuccess
 import panda.std.reactive.mutableReference
+import panda.std.reactive.reference
 import panda.std.reactive.toReference
 import java.io.File
 import java.nio.file.Files
@@ -111,6 +112,7 @@ internal abstract class MavenSpecification {
 
         this.mavenFacade = MavenFacade(
             logger,
+            reference("repository-id"),
             securityProvider,
             RepositoryService(logger, repositoryProvider, securityProvider),
             ProxyService(logger),
