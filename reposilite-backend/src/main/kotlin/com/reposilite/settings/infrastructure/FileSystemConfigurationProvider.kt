@@ -6,7 +6,7 @@ import com.reposilite.settings.api.SettingsResponse
 import com.reposilite.settings.api.SettingsUpdateRequest
 import com.reposilite.shared.extensions.createCdnByExtension
 import com.reposilite.shared.extensions.orElseThrow
-import com.reposilite.shared.fs.getSimpleName
+import com.reposilite.storage.getSimpleName
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
 import io.javalin.http.ContentType.APPLICATION_CDN

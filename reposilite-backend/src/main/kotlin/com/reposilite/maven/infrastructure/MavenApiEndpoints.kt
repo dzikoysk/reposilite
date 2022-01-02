@@ -19,8 +19,9 @@ package com.reposilite.maven.infrastructure
 import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.VersionLookupRequest
-import com.reposilite.shared.fs.FileDetails
 import com.reposilite.shared.ContextDsl
+import com.reposilite.storage.api.FileDetails
+import com.reposilite.storage.toLocation
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.http.ErrorResponse
@@ -63,7 +64,7 @@ internal class MavenApiEndpoints(private val mavenFacade: MavenFacade) : Reposil
     private val findFileDetails: ContextDsl.() -> Unit = {
         accessed {
             response = parameter("repository")
-                ?.let { repository -> mavenFacade.findDetails(LookupRequest(this, repository, wildcard("gav") ?: "")) }
+                ?.let { repository -> mavenFacade.findDetails(LookupRequest(this, repository, wildcard("gav").toLocation())) }
                 ?: mavenFacade.findRepositories(this)
         }
     }
@@ -86,7 +87,7 @@ internal class MavenApiEndpoints(private val mavenFacade: MavenFacade) : Reposil
     )
     private val findVersions = ReposiliteRoute("/api/maven/versions/{repository}/<gav>", GET) {
         accessed {
-            response = mavenFacade.findVersions(VersionLookupRequest(this, requiredParameter("repository"), requiredParameter("gav"), ctx.queryParam("filter")))
+            response = mavenFacade.findVersions(VersionLookupRequest(this, requireParameter("repository"), requireParameter("gav").toLocation(), ctx.queryParam("filter")))
         }
     }
 

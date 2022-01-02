@@ -1,13 +1,13 @@
 package com.reposilite.maven
 
-import com.reposilite.shared.fs.FileDetails
-import com.reposilite.shared.fs.toPath
 import com.reposilite.shared.http.RemoteClient
+import com.reposilite.storage.Location
+import com.reposilite.storage.api.FileDetails
+import com.reposilite.storage.toLocation
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.notFound
 import panda.std.Result
 import java.io.InputStream
-import java.nio.file.Path
 
 internal class RepositoryLoopbackClient(private val repository: Lazy<Repository>) : RemoteClient {
 
@@ -18,7 +18,7 @@ internal class RepositoryLoopbackClient(private val repository: Lazy<Repository>
     override fun get(uri: String, credentials: String?, connectTimeout: Int, readTimeout: Int): Result<InputStream, ErrorResponse> =
         repository.value.getFile(toGav(uri))
 
-    private fun toGav(uri: String): Path =
-        uri.substring(repository.value.name.length + 1).toPath()
+    private fun toGav(uri: String): Location =
+        uri.substring(repository.value.name.length + 1).toLocation()
 
 }

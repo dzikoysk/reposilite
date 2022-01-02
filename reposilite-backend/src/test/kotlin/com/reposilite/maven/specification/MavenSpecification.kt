@@ -30,15 +30,14 @@ import com.reposilite.maven.api.Versioning
 import com.reposilite.plugin.Extensions
 import com.reposilite.settings.api.LocalConfiguration
 import com.reposilite.settings.api.SharedConfiguration.RepositoryConfiguration
-import com.reposilite.shared.fs.DocumentInfo
-import com.reposilite.shared.fs.UNKNOWN_LENGTH
-import com.reposilite.shared.fs.append
-import com.reposilite.shared.fs.getSimpleNameFromUri
-import com.reposilite.shared.fs.safeResolve
 import com.reposilite.shared.http.FakeRemoteClientProvider
 import com.reposilite.statistics.DailyDateIntervalProvider
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.statistics.infrastructure.InMemoryStatisticsRepository
+import com.reposilite.storage.Location
+import com.reposilite.storage.api.DocumentInfo
+import com.reposilite.storage.api.UNKNOWN_LENGTH
+import com.reposilite.storage.toLocation
 import com.reposilite.token.api.AccessToken
 import com.reposilite.token.api.Route
 import com.reposilite.token.api.RoutePermission
@@ -79,13 +78,13 @@ internal abstract class MavenSpecification {
             headHandler = { uri, credentials, _, _ ->
                 if (uri.startsWith(REMOTE_REPOSITORY) && REMOTE_AUTH == credentials && !uri.isAllowed())
                     DocumentInfo(
-                        uri.getSimpleNameFromUri(),
+                        uri.toLocation().getSimpleName(),
                         TEXT_XML,
                         UNKNOWN_LENGTH,
                     ).asSuccess()
                 else if (uri.startsWith(REMOTE_REPOSITORY_WITH_WHITELIST) && uri.isAllowed())
                     DocumentInfo(
-                        uri.getSimpleNameFromUri(),
+                        uri.toLocation().getSimpleName(),
                         TEXT_XML,
                         UNKNOWN_LENGTH,
                     ).asSuccess()
@@ -129,7 +128,10 @@ internal abstract class MavenSpecification {
     ) {
 
         fun toLookupRequest(authentication: AccessToken?): LookupRequest =
-            LookupRequest(authentication, repository, gav)
+            LookupRequest(authentication, repository, gav.toLocation())
+
+        fun gav(): Location =
+            gav.toLocation()
 
     }
 
@@ -141,15 +143,14 @@ internal abstract class MavenSpecification {
 
     protected fun addFileToRepository(fileSpec: FileSpec): FileSpec {
         workingDirectory!!.toPath()
-            .safeResolve("repositories")
-            .safeResolve(fileSpec.repository)
-            .append(fileSpec.gav)
-            .peek {
+            .resolve("repositories")
+            .resolve(fileSpec.repository)
+            .resolve(fileSpec.gav.toLocation().toPath().get())
+            .also {
                 Files.createDirectories(it.parent)
                 Files.createFile(it)
                 Files.write(it, fileSpec.content.toByteArray())
             }
-            .get()
 
         return fileSpec
     }
@@ -162,11 +163,11 @@ internal abstract class MavenSpecification {
     private fun String.isAllowed(): Boolean =
         this.endsWith("/allow")
 
-    protected fun useMetadata(repository: String, gav: String, versioning: List<String>, filter: String? = null): Quad<String, String, Metadata, String> =
+    protected fun useMetadata(repository: String, gav: String, versioning: List<String>, filter: String? = null): Quad<String, Location, Metadata, String> =
         Quad(
             repository,
-            gav,
-            mavenFacade.saveMetadata(repository, gav, Metadata(versioning = Versioning(_versions = versioning))).get(),
+            gav.toLocation(),
+            mavenFacade.saveMetadata(repository, gav.toLocation(), Metadata(versioning = Versioning(_versions = versioning))).get(),
             filter
         )
 

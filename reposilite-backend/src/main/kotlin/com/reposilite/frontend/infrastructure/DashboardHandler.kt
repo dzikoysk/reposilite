@@ -17,10 +17,10 @@
 package com.reposilite.frontend.infrastructure
 
 import com.reposilite.frontend.FrontendFacade
-import com.reposilite.shared.fs.decodeToString
-import com.reposilite.shared.fs.getExtension
-import com.reposilite.shared.fs.getSimpleName
-import com.reposilite.shared.fs.safeResolve
+import com.reposilite.storage.getExtension
+import com.reposilite.storage.getSimpleName
+import com.reposilite.storage.inputStream
+import com.reposilite.storage.toLocation
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.http.ErrorResponse
@@ -35,6 +35,7 @@ import panda.std.Result
 import panda.std.Result.ok
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.stream.Collectors
 import kotlin.io.path.isDirectory
 import kotlin.text.Charsets.UTF_8
@@ -83,8 +84,8 @@ internal class CustomFrontendHandler(frontendFacade: FrontendFacade, directory: 
     override val routes: Set<ReposiliteRoute> = run {
         val routes = Files.list(directory)
             .map {
-                if (it.isDirectory()) ReposiliteRoute("/${it.getSimpleName()}/<path>", GET) {
-                    response = respondWithFile(ctx, it.getSimpleName()) { it.safeResolve(ctx.pathParam("path")).decodeToString().orNull() }
+                if (it.isDirectory()) ReposiliteRoute("/${it.fileName}/<path>", GET) {
+                    response = respondWithFile(ctx, it.getSimpleName()) { it.resolve(ctx.pathParam("path").toLocation().toPath().orElseGet { Paths.get("") }).decodeToString().orNull() }
                 }
                 else ReposiliteRoute("/${it.getSimpleName()}", GET) {
                     response = respondWithFile(ctx, it.getSimpleName()) { it.decodeToString().orNull() }
@@ -93,10 +94,14 @@ internal class CustomFrontendHandler(frontendFacade: FrontendFacade, directory: 
             .collect(Collectors.toSet())
 
         routes.add(ReposiliteRoute("/", GET) {
-            response = respondWithFile(ctx, "index.html") { directory.safeResolve("index.html").decodeToString().orNull() }
+            response = respondWithFile(ctx, "index.html") { directory.resolve("index.html").decodeToString().orNull() }
         })
 
         routes
     }
+
+    private fun Path.decodeToString(): Result<String, ErrorResponse> =
+        inputStream()
+            .map { it.use { input -> input.readBytes().decodeToString() } }
 
 }
