@@ -1,4 +1,4 @@
-package com.reposilite.badge.api
+package com.reposilite.maven.api
 
 class LatestBadgeRequest(
     val repository: String,

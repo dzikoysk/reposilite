@@ -25,10 +25,10 @@ import java.util.concurrent.TimeUnit
 import kotlin.reflect.full.createInstance
 
 internal class SqlConfigurationProvider<C : Any>(
+    override val name: String,
     override val displayName: String,
     private val journalist: Journalist,
     private val settingsRepository: SettingsRepository,
-    private val name: String,
     override val configuration: C
 ) : ConfigurationProvider<C> {
 

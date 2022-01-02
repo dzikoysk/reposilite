@@ -24,10 +24,10 @@ import kotlin.io.path.readText
 
 
 internal class FileSystemConfigurationProvider<C : Any>(
+    override val name: String,
     override val displayName: String,
     private val journalist: Journalist?,
     private val workingDirectory: Path,
-    private val defaultFileName: String,
     private val mode: String,
     private val configurationFile: Path,
     override val configuration: C
@@ -59,7 +59,7 @@ internal class FileSystemConfigurationProvider<C : Any>(
     fun render(): Result<String, CdnException> =
         when (mode) {
             "none" -> ok("")
-            "copy" -> cdn.render(configuration, Source.of(workingDirectory.resolve(defaultFileName)))
+            "copy" -> cdn.render(configuration, Source.of(workingDirectory.resolve(name)))
             "auto" -> cdn.render(configuration, Source.of(configurationFile))
             "print" -> cdn.render(configuration).peek { output -> printConfiguration(configurationFile, output) }
             else -> error(UnsupportedOperationException("Unknown configuration mode: $mode"))
@@ -81,7 +81,7 @@ internal class FileSystemConfigurationProvider<C : Any>(
 
     override fun update(request: SettingsUpdateRequest): Result<Unit, ErrorResponse> =
         when (request.name) {
-            defaultFileName -> load(Source.of(request.content))
+            name -> load(Source.of(request.content))
                 .peek { journalist?.logger?.info("Updating ${displayName.lowercase()} in local source") }
                 .mapToUnit()
                 .mapErr { ErrorResponse(INTERNAL_SERVER_ERROR, "Cannot load configuration") }

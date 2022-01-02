@@ -1,6 +1,7 @@
 package com.reposilite.maven.infrastructure
 
 import com.reposilite.maven.MavenFacade
+import com.reposilite.maven.api.LatestBadgeRequest
 import com.reposilite.maven.api.LatestVersionResponse
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.VersionLookupRequest
@@ -14,6 +15,7 @@ import com.reposilite.token.api.AccessToken
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.http.ErrorResponse
+import com.reposilite.web.http.contentDisposition
 import com.reposilite.web.routing.RouteMethod.GET
 import io.javalin.http.ContentType
 import io.javalin.http.HttpCode.BAD_REQUEST
@@ -127,6 +129,35 @@ internal class MavenLatestApiEndpoints(
                 }
             }
 
-    override val routes = setOf(findLatestVersion, findLatestDetails, findLatestFile)
+    @OpenApi(
+        path = "/api/badge/latest/{repository}/{gav}", // Rename 'badge/latest' to 'maven/latest/badge'?
+        tags = ["badge"],
+        pathParams = [
+            OpenApiParam(name = "repository", description = "Artifact's repository", required = true),
+            OpenApiParam(name = "gav", description = "Artifacts' GAV", required = true)
+        ],
+        methods = [HttpMethod.GET]
+    )
+    val latestBadge = ReposiliteRoute("/api/badge/latest/{repository}/<gav>", GET) {
+        response = mavenFacade.findLatestBadge(
+                LatestBadgeRequest(
+                    repository = requiredParameter("repository"),
+                    gav = requiredParameter("gav"),
+                    name = ctx.queryParam("name"),
+                    color = ctx.queryParam("color"),
+                    prefix = ctx.queryParam("prefix"),
+                    filter = ctx.queryParam("filter")
+                )
+            )
+            .peek { ctx.run {
+                contentType("image/svg+xml")
+                header("pragma", "no-cache")
+                header("expires", "0")
+                header("cache-control", "no-cache, no-store, must-revalidate, max-age=0")
+                contentDisposition("inline; filename=\"latest-badge.svg\"")
+            }}
+    }
+
+    override val routes = setOf(findLatestVersion, findLatestDetails, findLatestFile, latestBadge)
 
 }

@@ -21,6 +21,7 @@ import com.reposilite.journalist.Logger
 import com.reposilite.maven.api.DeleteRequest
 import com.reposilite.maven.api.DeployEvent
 import com.reposilite.maven.api.DeployRequest
+import com.reposilite.maven.api.LatestBadgeRequest
 import com.reposilite.maven.api.LatestVersionResponse
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.METADATA_FILE
@@ -30,6 +31,7 @@ import com.reposilite.maven.api.VersionLookupRequest
 import com.reposilite.maven.api.VersionsResponse
 import com.reposilite.plugin.Extensions
 import com.reposilite.plugin.api.Facade
+import com.reposilite.shared.BadgeGenerator
 import com.reposilite.shared.extensions.`when`
 import com.reposilite.shared.fs.DirectoryInfo
 import com.reposilite.shared.fs.DocumentInfo
@@ -50,11 +52,13 @@ import com.reposilite.web.http.unauthorizedError
 import io.javalin.http.HttpCode.BAD_REQUEST
 import panda.std.Result
 import panda.std.asError
+import panda.std.reactive.Reference
 import java.io.InputStream
 import java.nio.file.Path
 
 class MavenFacade internal constructor(
     private val journalist: Journalist,
+    private val repositoryId: Reference<out String>,
     private val repositorySecurityProvider: RepositorySecurityProvider,
     private val repositoryService: RepositoryService,
     private val proxyService: ProxyService,
@@ -136,6 +140,10 @@ class MavenFacade internal constructor(
         repositoryService.findRepository(lookupRequest.repository)
             .filter({ repositorySecurityProvider.canAccessResource(lookupRequest.accessToken, it, lookupRequest.gav.toPath())}, { unauthorized() })
             .flatMap { metadataService.findLatest(it, lookupRequest.gav, lookupRequest.filter) }
+
+    fun findLatestBadge(request: LatestBadgeRequest): Result<String, ErrorResponse> =
+        findLatest(VersionLookupRequest(null, request.repository, request.gav, request.filter))
+            .flatMap { BadgeGenerator.generateSvg(request.name ?: repositoryId.get(), (request.prefix ?: "") + it.version, request.color) }
 
     fun deployFile(deployRequest: DeployRequest): Result<Unit, ErrorResponse> {
         val repository = repositoryService.getRepository(deployRequest.repository) ?: return notFoundError("Repository not found")
