@@ -29,7 +29,7 @@
   "devDependencies": {
     "@vitejs/plugin-vue": "^2.0.1",
     "@vue/compiler-sfc": "^3.2.22",
-    "concurrently": "^6.5.1",
+    "concurrently": "^7.0.0",
     "express": "^4.17.2",
     "express-ws": "^5.0.2",
     "json-server": "^0.17.0",
