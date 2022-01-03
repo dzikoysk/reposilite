@@ -16,30 +16,29 @@
 
 package com.reposilite.storage
 
-import com.reposilite.shared.fs.FileDetails
+import com.reposilite.storage.api.FileDetails
 import com.reposilite.web.http.ErrorResponse
 import panda.std.Result
 import java.io.InputStream
-import java.nio.file.Path
 import java.nio.file.attribute.FileTime
 
 interface StorageProvider {
 
-    fun putFile(path: Path, inputStream: InputStream): Result<Unit, ErrorResponse>
+    fun putFile(location: Location, inputStream: InputStream): Result<Unit, ErrorResponse>
 
-    fun getFile(path: Path): Result<InputStream, ErrorResponse>
+    fun getFile(location: Location): Result<InputStream, ErrorResponse>
 
-    fun getFileDetails(path: Path): Result<out FileDetails, ErrorResponse>
+    fun getFileDetails(location: Location): Result<out FileDetails, ErrorResponse>
 
-    fun removeFile(path: Path): Result<Unit, ErrorResponse>
+    fun removeFile(location: Location): Result<Unit, ErrorResponse>
 
-    fun getFiles(path: Path): Result<List<Path>, ErrorResponse>
+    fun getFiles(location: Location): Result<List<Location>, ErrorResponse>
 
-    fun getLastModifiedTime(path: Path): Result<FileTime, ErrorResponse>
+    fun getLastModifiedTime(location: Location): Result<FileTime, ErrorResponse>
 
-    fun getFileSize(path: Path): Result<Long, ErrorResponse>
+    fun getFileSize(location: Location): Result<Long, ErrorResponse>
 
-    fun exists(file: Path): Boolean
+    fun exists(location: Location): Boolean
 
     fun usage(): Result<Long, ErrorResponse>
 

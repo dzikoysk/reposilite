@@ -16,28 +16,36 @@
 
 package com.reposilite.storage.infrastructure
 
-import com.reposilite.shared.fs.FileDetails
-import com.reposilite.shared.fs.catchIOException
-import com.reposilite.shared.fs.delete
-import com.reposilite.shared.fs.exists
-import com.reposilite.shared.fs.getLastModifiedTime
-import com.reposilite.shared.fs.inputStream
-import com.reposilite.shared.fs.listFiles
-import com.reposilite.shared.fs.safeResolve
-import com.reposilite.shared.fs.size
-import com.reposilite.shared.fs.toFileDetails
+import com.reposilite.storage.FilesComparator
+import com.reposilite.storage.Location
 import com.reposilite.storage.StorageProvider
+import com.reposilite.storage.VersionComparator
+import com.reposilite.storage.api.DirectoryInfo
+import com.reposilite.storage.api.DocumentInfo
+import com.reposilite.storage.api.FileDetails
+import com.reposilite.storage.api.FileType.DIRECTORY
+import com.reposilite.storage.api.FileType.FILE
+import com.reposilite.storage.api.SimpleDirectoryInfo
+import com.reposilite.storage.getExtension
+import com.reposilite.storage.getSimpleName
+import com.reposilite.storage.inputStream
+import com.reposilite.storage.type
 import com.reposilite.web.http.ErrorResponse
-import com.reposilite.web.http.errorResponse
+import com.reposilite.web.http.notFound
+import io.javalin.http.ContentType
+import io.javalin.http.ContentType.APPLICATION_OCTET_STREAM
+import io.javalin.http.HttpCode.BAD_REQUEST
 import io.javalin.http.HttpCode.INSUFFICIENT_STORAGE
 import panda.std.Result
-import panda.std.Result.ok
+import panda.std.asSuccess
 import java.io.File
+import java.io.IOException
 import java.io.InputStream
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption.REPLACE_EXISTING
 import java.nio.file.attribute.FileTime
+import kotlin.streams.asSequence
 
 /**
  * @param rootDirectory root directory of storage space
@@ -46,68 +54,118 @@ internal abstract class FileSystemStorageProvider protected constructor(
     private val rootDirectory: Path
  ) : StorageProvider {
 
-    override fun putFile(path: Path, inputStream: InputStream): Result<Unit, ErrorResponse> =
-        catchIOException {
-            inputStream.use { data ->
-                val spaceResponse = canHold(data.available().toLong()) // we don't really care about edge scenarios, so we don't really need precise quotas
-
-                if (spaceResponse.isErr) {
-                    return@catchIOException errorResponse(INSUFFICIENT_STORAGE, "Not enough storage space available: ${spaceResponse.error.message}")
-                }
-
-                val file = resolved(path)
-
-                if (file.parent != null && !Files.exists(file.parent)) {
-                    Files.createDirectories(file.parent)
-                }
-
-                // TOFIX: FS locks are not truly respected, there might be a need to enhanced it with .lock file to be sure if it's respected.
-                // In theory people shouldn't redeploy multiple times the same file, but who knows.
-                // Let's try with temporary files.
-                // ~ https://github.com/dzikoysk/reposilite/issues/264
-
-                val temporaryFile = File.createTempFile("reposilite-", "-fs-put")
-
-                temporaryFile.outputStream().use { destination ->
-                    data.copyTo(destination)
-                }
-
-                Files.move(temporaryFile.toPath(), file, REPLACE_EXISTING)
-                ok(Unit)
-            }
-        }
-
-    override fun getFile(path: Path): Result<InputStream, ErrorResponse> =
-        resolved(path).inputStream()
-
-    override fun getFileDetails(path: Path): Result<out FileDetails, ErrorResponse> =
-        toFileDetails(resolved(path))
-
-    override fun removeFile(path: Path): Result<Unit, ErrorResponse> =
-        resolved(path).delete()
-
-    override fun getFiles(path: Path): Result<List<Path>, ErrorResponse> =
-        resolved(path)
-            .listFiles()
-            .map { it.map { path ->
-                rootDirectory.relativize(path)
-            } }
-
-    override fun getLastModifiedTime(path: Path): Result<FileTime, ErrorResponse> =
-        resolved(path).getLastModifiedTime()
-
-    override fun getFileSize(path: Path): Result<Long, ErrorResponse> =
-        resolved(path).size()
-
-    override fun exists(file: Path): Boolean =
-        resolved(file).exists().isOk
-
-    override fun usage(): Result<Long, ErrorResponse> =
-        rootDirectory.size()
-
     override fun shutdown() {}
 
-    private fun resolved(file: Path): Path =
-        rootDirectory.safeResolve(file)
+    override fun putFile(location: Location, inputStream: InputStream): Result<Unit, ErrorResponse> =
+        inputStream.use { data ->
+            canHold(data.available().toLong())
+                .mapErr { ErrorResponse(INSUFFICIENT_STORAGE, "Not enough storage space available: ${it.message}") }
+                .flatMap { location.resolveWithRootDirectory() }
+                .map { file ->
+                    if (file.parent != null && !Files.exists(file.parent)) {
+                        Files.createDirectories(file.parent)
+                    }
+
+                    // TOFIX: FS locks are not truly respected, there might be a need to enhanced it with .lock file to be sure if it's respected.
+                    // In theory people shouldn't redeploy multiple times the same file, but who knows.
+                    // Let's try with temporary files.
+                    // ~ https://github.com/dzikoysk/reposilite/issues/264
+
+                    val temporaryFile = File.createTempFile("reposilite-", "-fs-put")
+
+                    temporaryFile.outputStream().use { destination ->
+                        data.copyTo(destination)
+                    }
+
+                    Files.move(temporaryFile.toPath(), file, REPLACE_EXISTING)
+                    Unit
+                }
+        }
+
+    override fun getFile(location: Location): Result<InputStream, ErrorResponse> =
+        location.resolveWithRootDirectory()
+            .exists()
+            .flatMap { it.inputStream() }
+
+    override fun getFileDetails(location: Location): Result<out FileDetails, ErrorResponse> =
+        location.resolveWithRootDirectory()
+            .exists()
+            .flatMap { toFileDetails(it) }
+
+    private fun toFileDetails(file: Path): Result<out FileDetails, ErrorResponse> =
+        Result.`when`(Files.exists(file), file, notFound("File not found"))
+            .flatMap {
+                when (it.type()) {
+                    FILE -> toDocumentInfo(it)
+                    DIRECTORY -> toDirectoryInfo(it)
+                }
+            }
+
+    private fun toDocumentInfo(file: Path): Result<DocumentInfo, ErrorResponse> =
+        DocumentInfo(
+            file.getSimpleName(),
+            ContentType.getContentTypeByExtension(file.getExtension()) ?: APPLICATION_OCTET_STREAM,
+            Files.size(file)
+        ).asSuccess()
+
+    private fun toDirectoryInfo(directory: Path): Result<DirectoryInfo, ErrorResponse> =
+        DirectoryInfo(
+            directory.getSimpleName(),
+            Files.list(directory).asSequence()
+                .map { toSimpleFileDetails(it).orElseThrow { error -> IOException(error.message) } }
+                .sortedWith(FilesComparator({ VersionComparator.asVersion(it.name) }, { it.type == DIRECTORY }))
+                .toList()
+        ).asSuccess()
+
+    private fun toSimpleFileDetails(file: Path): Result<out FileDetails, ErrorResponse> =
+        when (file.type()) {
+            FILE -> toDocumentInfo(file)
+            DIRECTORY -> SimpleDirectoryInfo(file.getSimpleName()).asSuccess()
+        }
+
+    override fun removeFile(location: Location): Result<Unit, ErrorResponse> =
+        location.resolveWithRootDirectory()
+            .map { Files.delete(it) }
+
+    override fun getFiles(location: Location): Result<List<Location>, ErrorResponse> =
+        location.resolveWithRootDirectory()
+            .exists()
+            .map {
+                Files.walk(it, 1).asSequence()
+                    .filter { path -> path != it }
+                    .map { path -> Location.of(rootDirectory, path) }
+                    .toList()
+            }
+
+    override fun getLastModifiedTime(location: Location): Result<FileTime, ErrorResponse> =
+        location.resolveWithRootDirectory()
+            .exists()
+            .map { Files.getLastModifiedTime(it) }
+
+    override fun getFileSize(location: Location): Result<Long, ErrorResponse> =
+        location.resolveWithRootDirectory()
+            .exists()
+            .map {
+                when (it.type()) {
+                    FILE -> Files.size(it)
+                    DIRECTORY -> -1
+                }
+            }
+
+    override fun exists(location: Location): Boolean =
+        location.resolveWithRootDirectory()
+            .exists()
+            .fold({ true }, { false })
+
+    override fun usage(): Result<Long, ErrorResponse> =
+        getFileSize(Location.empty())
+
+    private fun Result<Path, ErrorResponse>.exists(): Result<Path, ErrorResponse> =
+        filter({ Files.exists(it) }) { notFound("File not found") }
+
+    private fun Location.resolveWithRootDirectory(): Result<Path, ErrorResponse> =
+        toPath()
+            .map { rootDirectory.resolve(it) }
+            .mapErr { ErrorResponse(BAD_REQUEST, it) }
 
 }

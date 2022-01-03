@@ -83,7 +83,7 @@ class ContextDsl(
     fun wildcard(name: String): String? =
         ctx.pathParamMap()[name]
 
-    fun requiredParameter(name: String): String =
+    fun requireParameter(name: String): String =
         parameter(name)!!
 
     fun parameter(name: String): String? =

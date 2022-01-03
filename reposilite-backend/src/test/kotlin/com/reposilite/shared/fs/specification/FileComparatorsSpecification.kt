@@ -16,8 +16,8 @@
 
 package com.reposilite.shared.fs.specification
 
-import com.reposilite.shared.fs.FilesComparator
-import com.reposilite.shared.fs.VersionComparator
+import com.reposilite.storage.FilesComparator
+import com.reposilite.storage.VersionComparator
 
 internal abstract class FileComparatorsSpecification {
 

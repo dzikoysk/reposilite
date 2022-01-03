@@ -4,7 +4,7 @@ import com.reposilite.plugin.PluginLoader
 import com.reposilite.plugin.api.Facade
 import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposilitePlugin
-import com.reposilite.shared.fs.getSimpleName
+import com.reposilite.storage.getSimpleName
 import groovy.lang.GroovyClassLoader
 import java.nio.file.Files
 

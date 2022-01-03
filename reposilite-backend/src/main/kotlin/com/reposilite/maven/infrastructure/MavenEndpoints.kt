@@ -23,7 +23,8 @@ import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.settings.SettingsFacade
 import com.reposilite.shared.extensions.resultAttachment
-import com.reposilite.shared.fs.DocumentInfo
+import com.reposilite.storage.api.DocumentInfo
+import com.reposilite.storage.toLocation
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.http.ErrorResponse
@@ -65,7 +66,7 @@ internal class MavenEndpoints(
     )
     private val findFile = ReposiliteRoute("/{repository}/<gav>", HEAD, GET) {
         accessed {
-            LookupRequest(this, requiredParameter("repository"), requiredParameter("gav")).let { request ->
+            LookupRequest(this, requireParameter("repository"), requireParameter("gav").toLocation()).let { request ->
                 mavenFacade.findDetails(request)
                     .`is`(DocumentInfo::class.java) { ErrorResponse(NOT_FOUND, "Requested file is a directory") }
                     .flatMap { details -> mavenFacade.findFile(request).map { Pair(details, it) } }
@@ -94,7 +95,7 @@ internal class MavenEndpoints(
     )
     private val deployFile = ReposiliteRoute("/{repository}/<gav>", POST, PUT) {
         authorized {
-            response = mavenFacade.deployFile(DeployRequest(requiredParameter("repository"), requiredParameter("gav"), getSessionIdentifier(), ctx.bodyAsInputStream()))
+            response = mavenFacade.deployFile(DeployRequest(requireParameter("repository"), requireParameter("gav").toLocation(), getSessionIdentifier(), ctx.bodyAsInputStream()))
                 .onError { logger.debug("Cannot deploy artifact due to: ${it.message}") }
         }
     }
@@ -111,7 +112,7 @@ internal class MavenEndpoints(
     )
     private val deleteFile = ReposiliteRoute("/{repository}/<gav>", DELETE) {
         authorized {
-            response = mavenFacade.deleteFile(DeleteRequest(this, requiredParameter("repository"), requiredParameter("gav")))
+            response = mavenFacade.deleteFile(DeleteRequest(this, requireParameter("repository"), requireParameter("gav").toLocation()))
         }
     }
 
