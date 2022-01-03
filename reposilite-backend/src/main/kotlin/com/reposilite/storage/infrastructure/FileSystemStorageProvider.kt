@@ -16,17 +16,16 @@
 
 package com.reposilite.storage.infrastructure
 
-import com.reposilite.maven.FilesComparator
-import com.reposilite.maven.VersionComparator
+import com.reposilite.storage.FilesComparator
 import com.reposilite.storage.Location
 import com.reposilite.storage.StorageProvider
+import com.reposilite.storage.VersionComparator
 import com.reposilite.storage.api.DirectoryInfo
 import com.reposilite.storage.api.DocumentInfo
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.FileType.DIRECTORY
 import com.reposilite.storage.api.FileType.FILE
 import com.reposilite.storage.api.SimpleDirectoryInfo
-import com.reposilite.storage.catchIOException
 import com.reposilite.storage.getExtension
 import com.reposilite.storage.getSimpleName
 import com.reposilite.storage.inputStream
@@ -103,24 +102,20 @@ internal abstract class FileSystemStorageProvider protected constructor(
             }
 
     private fun toDocumentInfo(file: Path): Result<DocumentInfo, ErrorResponse> =
-        catchIOException {
-            DocumentInfo(
-                file.getSimpleName(),
-                ContentType.getContentTypeByExtension(file.getExtension()) ?: APPLICATION_OCTET_STREAM,
-                Files.size(file)
-            ).asSuccess()
-        }
+        DocumentInfo(
+            file.getSimpleName(),
+            ContentType.getContentTypeByExtension(file.getExtension()) ?: APPLICATION_OCTET_STREAM,
+            Files.size(file)
+        ).asSuccess()
 
     private fun toDirectoryInfo(directory: Path): Result<DirectoryInfo, ErrorResponse> =
-        catchIOException {
-            DirectoryInfo(
-                directory.getSimpleName(),
-                Files.list(directory).asSequence()
-                    .map { toSimpleFileDetails(it).orElseThrow { error -> IOException(error.message) } }
-                    .sortedWith(FilesComparator({ VersionComparator.asVersion(it.name) }, { it.type == DIRECTORY }))
-                    .toList()
-            ).asSuccess()
-        }
+        DirectoryInfo(
+            directory.getSimpleName(),
+            Files.list(directory).asSequence()
+                .map { toSimpleFileDetails(it).orElseThrow { error -> IOException(error.message) } }
+                .sortedWith(FilesComparator({ VersionComparator.asVersion(it.name) }, { it.type == DIRECTORY }))
+                .toList()
+        ).asSuccess()
 
     private fun toSimpleFileDetails(file: Path): Result<out FileDetails, ErrorResponse> =
         when (file.type()) {

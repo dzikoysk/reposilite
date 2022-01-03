@@ -13,39 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.reposilite.maven
+package com.reposilite.storage
 
 import java.math.BigInteger
-import java.util.function.Function
-import java.util.function.Predicate
-import java.util.regex.Pattern
 import kotlin.math.max
 
 class FilesComparator<T>(
-    cachedValue: Function<T, Array<String>>,
-    private val isDirectory: Predicate<T>
+    cachedValue: (T) -> List<String>,
+    private val isDirectory: (T) -> Boolean
 ) : VersionComparator<T>(cachedValue) {
 
-    override fun compare(version: T, toVersion: T): Int {
-        if (isDirectory.test(version) != isDirectory.test(toVersion)) {
-            return if(isDirectory.test(toVersion)) 1 else -1
+    override fun compare(version: T, toVersion: T): Int =
+        when {
+            isDirectory(version) == isDirectory(toVersion) -> super.compare(version, toVersion)
+            isDirectory(toVersion) -> 1
+            else -> -1
         }
-
-        return super.compare(version, toVersion)
-    }
 
 }
 
 open class VersionComparator<T>(
-    private val versionMapper: Function<T, Array<String>>,
+    private val versionMapper: (T) -> List<String>,
 ) : Comparator<T> {
 
     companion object {
 
-        private val DEFAULT_VERSION_PATTERN = Pattern.compile("[-._]")
+        private val defaultVersionPattern = Regex("[-._]")
 
-        fun asVersion(value: String): Array<String> =
-            DEFAULT_VERSION_PATTERN.split(value)
+        fun asVersion(value: String): List<String> =
+            defaultVersionPattern.split(value)
 
         fun sortStrings(sequence: Sequence<String>): Sequence<String> =
             sequence
@@ -56,9 +52,9 @@ open class VersionComparator<T>(
     }
 
     override fun compare(version: T, toVersion: T): Int =
-        compareVersions(versionMapper.apply(version), versionMapper.apply(toVersion))
+        compareVersions(versionMapper(version), versionMapper(toVersion))
 
-    private fun compareVersions(version: Array<String>, toVersion: Array<String>): Int {
+    private fun compareVersions(version: List<String>, toVersion: List<String>): Int {
         for (index in 0 until max(version.size, toVersion.size)) {
             val fragment = version.getOrElse(index) { "0" }
             val baseIsDigit = fragment.isDigit()
@@ -69,8 +65,7 @@ open class VersionComparator<T>(
                 if (baseIsDigit && toFragment.isDigit()) {
                     try {
                         fragment.toLong().compareTo(toFragment.toLong())
-                    }
-                    catch (numberFormatException: NumberFormatException) {
+                    } catch (numberFormatException: NumberFormatException) {
                         BigInteger(fragment).compareTo(BigInteger(toFragment))
                     }
                 }
@@ -94,4 +89,4 @@ open class VersionComparator<T>(
 }
 
 private fun String.isDigit(): Boolean =
-    isNotEmpty() && !this.toCharArray().any { !Character.isDigit(it) }
+    isNotEmpty() && !toCharArray().any { !Character.isDigit(it) }

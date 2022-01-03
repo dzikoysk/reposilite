@@ -20,20 +20,13 @@ import com.reposilite.storage.api.FileType
 import com.reposilite.storage.api.FileType.DIRECTORY
 import com.reposilite.storage.api.FileType.FILE
 import com.reposilite.web.http.ErrorResponse
-import com.reposilite.web.http.errorResponse
 import com.reposilite.web.http.notFound
-import io.javalin.http.HttpCode.INTERNAL_SERVER_ERROR
 import io.javalin.http.HttpCode.NO_CONTENT
 import panda.std.Result
-import java.io.IOException
 import java.io.InputStream
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.Paths
 import kotlin.io.path.isDirectory
-
-private fun String.toPath(): Path =
-    Paths.get(this)
 
 fun Path.type(): FileType =
     if (this.isDirectory()) DIRECTORY else FILE
@@ -47,14 +40,7 @@ internal fun Path.getExtension(): String =
     getSimpleName().getExtension()
 
 fun Path.getSimpleName(): String =
-    this.fileName.toString()
-
-internal fun <VALUE> catchIOException(consumer: () -> Result<VALUE, ErrorResponse>): Result<VALUE, ErrorResponse> =
-    try {
-        consumer()
-    } catch (ioException: IOException) {
-        errorResponse(INTERNAL_SERVER_ERROR, ioException.message ?: "<no message>")
-    }
+    fileName.toString()
 
 fun String.getExtension(): String =
     lastIndexOf(".")
