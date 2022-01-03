@@ -29,7 +29,7 @@ internal class SettingsEndpoints(private val settingsFacade: SettingsFacade) : R
     )
     private val findConfiguration = ReposiliteRoute("/api/settings/content/{name}", GET) {
         managerOnly {
-            response = settingsFacade.resolveConfiguration(requiredParameter("name"))
+            response = settingsFacade.resolveConfiguration(requireParameter("name"))
         }
     }
 
@@ -47,7 +47,7 @@ internal class SettingsEndpoints(private val settingsFacade: SettingsFacade) : R
     )
     private val updateConfiguration = ReposiliteRoute("/api/settings/content/{name}", PUT) {
         managerOnly {
-            response = settingsFacade.updateConfiguration(SettingsUpdateRequest(requiredParameter("name"), ctx.body()))
+            response = settingsFacade.updateConfiguration(SettingsUpdateRequest(requireParameter("name"), ctx.body()))
                 .map { "Success" }
         }
     }

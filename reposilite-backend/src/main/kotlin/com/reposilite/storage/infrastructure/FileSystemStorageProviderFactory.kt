@@ -16,16 +16,25 @@
 
 package com.reposilite.storage.infrastructure
 
-import com.reposilite.shared.fs.FilesUtils
 import java.nio.file.Path
+import java.util.regex.Pattern
 
 internal object FileSystemStorageProviderFactory {
 
+    private val DISPLAY_SIZE_PATTERN = Pattern.compile("([0-9]+)(([KkMmGg])[Bb])")
+    private const val KB_FACTOR: Long = 1024
+    private const val MB_FACTOR = 1024 * KB_FACTOR
+    private const val GB_FACTOR = 1024 * MB_FACTOR
+
+    /**
+     * @param rootDirectory root directory of storage space
+     * @param quota quota to use as % or in bytes
+     */
     fun of(rootDirectory: Path, quota: String): FileSystemStorageProvider =
         if (quota.endsWith("%")) {
             of(rootDirectory, quota.substring(0, quota.length - 1).toInt() / 100.0)
         } else {
-            of(rootDirectory, FilesUtils.displaySizeToBytesCount(quota))
+            of(rootDirectory, displaySizeToBytesCount(quota))
         }
 
     /**
@@ -41,5 +50,22 @@ internal object FileSystemStorageProviderFactory {
      */
     fun of(rootDirectory: Path, maxPercentage: Double): FileSystemStorageProvider =
         PercentageQuota(rootDirectory, maxPercentage)
+
+    private fun displaySizeToBytesCount(displaySize: String): Long {
+        val match = DISPLAY_SIZE_PATTERN.matcher(displaySize)
+
+        if (!match.matches() || match.groupCount() != 3) {
+            return displaySize.toLong()
+        }
+
+        val value = match.group(1).toLong()
+
+        return when (match.group(2).uppercase()) {
+            "GB" -> value * GB_FACTOR
+            "MB" -> value * MB_FACTOR
+            "KB" -> value * KB_FACTOR
+            else -> throw NumberFormatException("Wrong format")
+        }
+    }
 
 }

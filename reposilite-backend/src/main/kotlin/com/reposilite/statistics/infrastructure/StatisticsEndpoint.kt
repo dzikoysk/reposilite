@@ -38,8 +38,8 @@ internal class StatisticsEndpoint(private val statisticsFacade: StatisticsFacade
         ],
     )
     val findCount = ReposiliteRoute("/api/statistics/resolved/{limit}/{repository}/<gav>", GET) {
-        authorized("/${requiredParameter("repository")}/${requiredParameter("gav")}") {
-            response = statisticsFacade.findResolvedRequestsByPhrase(requiredParameter("repository"), requiredParameter("gav"), 1)
+        authorized("/${requireParameter("repository")}/${requireParameter("gav")}") {
+            response = statisticsFacade.findResolvedRequestsByPhrase(requireParameter("repository"), requireParameter("gav"), 1)
         }
     }
 

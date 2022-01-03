@@ -56,7 +56,7 @@ internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessToke
     )
     val token = ReposiliteRoute("/api/tokens/{name}", RouteMethod.GET) {
         authenticated {
-            response = accessTokenFacade.getToken(requiredParameter("name"))
+            response = accessTokenFacade.getToken(requireParameter("name"))
                 ?.takeIf { isManager() || name == it.name }
                 ?: unauthorized("You must be the token owner or a manager to access this!")
         }
@@ -80,7 +80,7 @@ internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessToke
                 .map { body ->
                     accessTokenFacade.createAccessToken(
                         CreateAccessTokenRequest(
-                            requiredParameter("name"),
+                            requireParameter("name"),
                             body.secret,
                             body.permissions.mapNotNull { AccessTokenPermission.findByAll(it) }.toSet()
                         )
@@ -101,7 +101,7 @@ internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessToke
     )
     val deleteToken = ReposiliteRoute("/api/tokens/{name}", RouteMethod.DELETE) {
         managerOnly {
-            response = accessTokenFacade.deleteToken(requiredParameter("name")) ?: notFound("Token not found")
+            response = accessTokenFacade.deleteToken(requireParameter("name")) ?: notFound("Token not found")
         }
     }
 

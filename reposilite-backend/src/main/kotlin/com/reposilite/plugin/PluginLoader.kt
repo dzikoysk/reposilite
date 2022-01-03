@@ -2,7 +2,7 @@ package com.reposilite.plugin
 
 import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposilitePlugin
-import com.reposilite.shared.fs.getSimpleName
+import com.reposilite.storage.getSimpleName
 import java.net.URLClassLoader
 import java.nio.file.Files
 import java.nio.file.Path

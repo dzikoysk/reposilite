@@ -21,7 +21,8 @@ import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.Metadata
 import com.reposilite.maven.api.Versioning
-import com.reposilite.shared.fs.VersionComparator
+import com.reposilite.storage.VersionComparator
+import com.reposilite.storage.toLocation
 import io.javalin.Javalin
 import kotlinx.coroutines.Job
 import org.junit.jupiter.api.io.TempDir
@@ -41,7 +42,7 @@ internal abstract class MavenIntegrationSpecification : ReposiliteSpecification(
 
     protected fun useDocument(repository: String, gav: String, file: String, content: String = "test-content", store: Boolean = false): UseDocument {
         if (store) {
-            useFacade<MavenFacade>().deployFile(DeployRequest(repository, "$gav/$file", "junit", content.byteInputStream()))
+            useFacade<MavenFacade>().deployFile(DeployRequest(repository, "$gav/$file".toLocation(), "junit", content.byteInputStream()))
         }
 
         return UseDocument(repository, gav, file, content)
@@ -58,7 +59,7 @@ internal abstract class MavenIntegrationSpecification : ReposiliteSpecification(
         val versioning = Versioning(latest = sortedVersions.firstOrNull(), _versions = sortedVersions)
         val metadata = Metadata(groupId, artifactId, versioning = versioning)
 
-        return Pair(repository, useFacade<MavenFacade>().saveMetadata(repository, "$groupId.$artifactId".replace(".", "/"), metadata).get())
+        return Pair(repository, useFacade<MavenFacade>().saveMetadata(repository, "$groupId.$artifactId".replace(".", "/").toLocation(), metadata).get())
     }
 
     protected suspend fun useProxiedHost(repository: String, gav: String, content: String, block: (String, String) -> Unit) {

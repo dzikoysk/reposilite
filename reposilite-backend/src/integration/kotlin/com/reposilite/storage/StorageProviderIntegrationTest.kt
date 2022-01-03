@@ -18,10 +18,8 @@
 
 package com.reposilite.storage
 
-import com.reposilite.shared.fs.DocumentInfo
-import com.reposilite.shared.fs.FileType.FILE
-import com.reposilite.shared.fs.getSimpleName
-import com.reposilite.shared.fs.toPath
+import com.reposilite.storage.api.DocumentInfo
+import com.reposilite.storage.api.FileType.FILE
 import com.reposilite.storage.specification.StorageProviderSpecification
 import io.javalin.http.ContentType.APPLICATION_JAR
 import org.junit.jupiter.api.Assertions.assertArrayEquals
@@ -36,18 +34,18 @@ internal abstract class StorageProviderIntegrationTest : StorageProviderSpecific
     @Test
     fun `should store and return valid resource` () {
         // given: a destination path to the resource and its content
-        val path = "/directory/file.data".toPath()
+        val resource = "/directory/file.data".toLocation()
         val content = "content".toByteArray()
 
         // when: resource is put in storage and then requested
-        val putResponse = storageProvider.putFile(path, content.inputStream())
+        val putResponse = storageProvider.putFile(resource, content.inputStream())
 
         // then: put request should succeed
         assertOk(putResponse)
-        assertTrue(storageProvider.exists(path))
+        assertTrue(storageProvider.exists(resource))
 
         // when: stored resource is requested
-        val fetchResponse = storageProvider.getFile(path)
+        val fetchResponse = storageProvider.getFile(resource)
 
         // then: provider should return proper resource
         assertOk(fetchResponse)
@@ -57,7 +55,7 @@ internal abstract class StorageProviderIntegrationTest : StorageProviderSpecific
     @Test
     fun `should return error if non-existing resource has been requested` () {
         // given: some path to the resource that doesn't exist
-        val resource = "/not/found.data".toPath()
+        val resource = "/not/found.data".toLocation()
 
         // when: non-existing resource is requested
         val nonExistingResource = storageProvider.getFile(resource)
@@ -69,17 +67,17 @@ internal abstract class StorageProviderIntegrationTest : StorageProviderSpecific
     @Test
     fun `should return valid file details` () {
         // given: a destination path to the resource and its content
-        val path = "/directory/file.jar".toPath()
+        val resource = "/directory/file.jar".toLocation()
         val content = "content".toByteArray()
-        storageProvider.putFile(path, content.inputStream())
+        storageProvider.putFile(resource, content.inputStream())
 
         // when: file details are requested
-        val response = storageProvider.getFileDetails(path)
+        val response = storageProvider.getFileDetails(resource)
 
         // then: response should contain expected file details
         val fileDetails = assertOk(response) as DocumentInfo
         assertEquals(FILE, fileDetails.type)
-        assertEquals(path.getSimpleName(), fileDetails.name)
+        assertEquals(resource.getSimpleName(), fileDetails.name)
         assertEquals(content.size.toLong(), fileDetails.contentLength)
         assertEquals(APPLICATION_JAR, fileDetails.contentType)
     }
