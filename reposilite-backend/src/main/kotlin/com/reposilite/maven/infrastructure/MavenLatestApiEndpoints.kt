@@ -123,7 +123,7 @@ internal class MavenLatestApiEndpoints(
                     if (isSnapshot)
                         "$gav/${gav.locationBeforeLast("/", "").locationAfterLast("/", "")}-$version.jar".toLocation()
                     else
-                        "$gav/$version/${gav.locationBeforeLast("/", "")}-$version.jar".toLocation()
+                        "$gav/$version/${gav.locationAfterLast("/", "")}-$version.jar".toLocation()
                 )
                 .let { request(it) }
                 .letIf({ it.isErr && version.contains("-SNAPSHOT", ignoreCase = true) }) {
