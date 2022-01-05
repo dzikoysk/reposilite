@@ -9,12 +9,14 @@
 hostname: 0.0.0.0
 # Port to bind
 port: 80
-# Database. Supported storage providers:
+# Database configuration. Supported storage providers:
 # - mysql localhost:3306 database user password
 # - sqlite reposilite.db
 # - sqlite --temporary
+# Experimental providers (not covered with tests):
+# - postgresql localhost:5432 database user password
 # - h2 reposilite
-database: h2 reposilite.db
+database: sqlite reposilite.db
 
 # Support encrypted connections
 sslEnabled: false
