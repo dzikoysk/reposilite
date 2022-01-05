@@ -21,6 +21,9 @@ import com.reposilite.settings.api.LocalConfiguration.SQLiteDatabaseSettings
 import com.reposilite.shared.extensions.loadCommandBasedConfiguration
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.transactions.TransactionManager
+import org.sqlite.SQLiteConfig
+import org.sqlite.SQLiteConfig.JournalMode.WAL
+import org.sqlite.SQLiteConfig.SynchronousMode.NORMAL
 import java.io.File
 import java.nio.file.Path
 import java.sql.Connection.TRANSACTION_SERIALIZABLE
@@ -32,13 +35,19 @@ internal object DatabaseSourceFactory {
             databaseConfiguration.startsWith("sqlite") -> {
                 val settings = loadCommandBasedConfiguration(SQLiteDatabaseSettings(), databaseConfiguration).configuration
 
+                val configuration = SQLiteConfig().also {
+                    it.setSynchronous(NORMAL)
+                    it.setJournalMode(WAL)
+                    it.busyTimeout = 3000
+                }
+
                 val database =
                     if (settings.temporary) {
                         val temporaryDatabase = File.createTempFile("reposilite-database", ".db")
                         temporaryDatabase.deleteOnExit()
-                        Database.connect("jdbc:sqlite:${temporaryDatabase.absolutePath}", "org.sqlite.JDBC")
+                        Database.connect("jdbc:sqlite:${temporaryDatabase.absolutePath}", "org.sqlite.JDBC", setupConnection = { configuration.apply(it) })
                     } else {
-                        Database.connect("jdbc:sqlite:${workingDirectory.resolve(settings.fileName)}", "org.sqlite.JDBC")
+                        Database.connect("jdbc:sqlite:${workingDirectory.resolve(settings.fileName)}", "org.sqlite.JDBC", setupConnection = { configuration.apply(it) })
                     }
 
                 TransactionManager.manager.defaultIsolationLevel = TRANSACTION_SERIALIZABLE
