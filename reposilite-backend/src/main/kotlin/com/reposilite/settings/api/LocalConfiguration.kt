@@ -42,22 +42,25 @@ class LocalConfiguration : Serializable {
 
     /* Database */
 
-    @Description("# Database. Supported storage providers:")
+    @Description("# Database configuration. Supported storage providers:")
+    @Description("# - mysql localhost:3306 database user password")
     @Description("# - sqlite reposilite.db")
     @Description("# - sqlite --temporary")
-    @Description("# - mysql localhost:3306 database user password")
+    @Description("# Experimental providers (not covered with tests):")
+    @Description("# - postgresql localhost:5432 database user password")
+    @Description("# - h2 reposilite")
     val database = reference("sqlite reposilite.db")
 
-    @Command(name = "sqlite")
-    internal class SQLiteDatabaseSettings : Validator() {
+    @Command(name = "embedded")
+    internal class EmbeddedSQLDatabaseSettings : Validator() {
         @Parameters(index = "0", paramLabel = "<file-name>", defaultValue = "")
         var fileName: String = ""
         @Option(names = ["--temporary", "--temp", "-t"])
         var temporary = false
     }
 
-    @Command(name = "mysql")
-    internal class MySqlDatabaseSettings : Validator() {
+    @Command(name = "standard")
+    internal class StandardSQLDatabaseSettings : Validator() {
         @Parameters(index = "0", paramLabel = "<host>")
         lateinit var host: String
         @Parameters(index = "1", paramLabel = "<database>")
