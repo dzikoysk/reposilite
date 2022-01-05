@@ -25,8 +25,10 @@ import org.sqlite.SQLiteConfig
 import org.sqlite.SQLiteConfig.JournalMode.WAL
 import org.sqlite.SQLiteConfig.SynchronousMode.NORMAL
 import java.io.File
+import java.nio.file.Files
 import java.nio.file.Path
 import java.sql.Connection.TRANSACTION_SERIALIZABLE
+import kotlin.io.path.absolutePathString
 
 internal object DatabaseSourceFactory {
 
@@ -47,7 +49,9 @@ internal object DatabaseSourceFactory {
                         temporaryDatabase.deleteOnExit()
                         Database.connect("jdbc:sqlite:${temporaryDatabase.absolutePath}", "org.sqlite.JDBC", setupConnection = { configuration.apply(it) })
                     } else {
-                        Database.connect("jdbc:sqlite:${workingDirectory.resolve(settings.fileName)}", "org.sqlite.JDBC", setupConnection = { configuration.apply(it) })
+                        val databaseFile = workingDirectory.resolve(settings.fileName)
+                        if (Files.notExists(databaseFile)) Files.createFile(databaseFile)
+                        Database.connect("jdbc:sqlite:${databaseFile.absolutePathString()}", "org.sqlite.JDBC", setupConnection = { configuration.apply(it) })
                     }
 
                 TransactionManager.manager.defaultIsolationLevel = TRANSACTION_SERIALIZABLE
