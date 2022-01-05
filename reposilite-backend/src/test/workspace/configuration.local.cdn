@@ -10,10 +10,11 @@ hostname: 0.0.0.0
 # Port to bind
 port: 80
 # Database. Supported storage providers:
+# - mysql localhost:3306 database user password
 # - sqlite reposilite.db
 # - sqlite --temporary
-# - mysql localhost:3306 database user password
-database: sqlite reposilite.db
+# - h2 reposilite
+database: h2 reposilite.db
 
 # Support encrypted connections
 sslEnabled: false
