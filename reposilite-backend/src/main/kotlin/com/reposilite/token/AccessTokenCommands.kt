@@ -19,7 +19,6 @@ package com.reposilite.token
 import com.reposilite.console.CommandContext
 import com.reposilite.console.CommandStatus.FAILED
 import com.reposilite.console.api.ReposiliteCommand
-import com.reposilite.token.api.AccessTokenPermission
 import com.reposilite.token.api.CreateAccessTokenRequest
 import picocli.CommandLine.Command
 import picocli.CommandLine.Option

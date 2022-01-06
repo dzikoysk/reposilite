@@ -13,29 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.reposilite.token.api
+package com.reposilite.token
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.reposilite.token.api.AccessTokenPermission.MANAGER
-import com.reposilite.token.api.AccessTokenType.PERSISTENT
+import com.reposilite.token.AccessTokenType.PERSISTENT
+import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.token.application.AccessTokenPlugin.Companion.MAX_TOKEN_NAME
 import io.javalin.openapi.OpenApiIgnore
 import net.dzikoysk.exposed.shared.IdentifiableEntity
 import net.dzikoysk.exposed.shared.UNINITIALIZED_ENTITY_ID
 import java.time.LocalDate
 
-data class AccessToken internal constructor(
-    override val id: Int = UNINITIALIZED_ENTITY_ID,
+enum class AccessTokenType {
+    PERSISTENT,
+    TEMPORARY
+}
+
+typealias AccessTokenId = Int
+
+internal data class AccessToken(
+    override val id: AccessTokenId = UNINITIALIZED_ENTITY_ID,
     val type: AccessTokenType = PERSISTENT,
     val name: String,
     @Transient @JsonIgnore @get:OpenApiIgnore
     val encryptedSecret: String = "",
     val createdAt: LocalDate = LocalDate.now(),
     val description: String = "",
-    val permissions: Set<AccessTokenPermission> = emptySet(),
-    val routes: Set<Route> = emptySet()
 ) : IdentifiableEntity {
 
     init {
@@ -44,26 +49,24 @@ data class AccessToken internal constructor(
         }
     }
 
-    fun withRoute(route: Route): AccessToken =
-        copy(routes = routes.toMutableSet().also { it.add(route) })
+    fun toDto(): AccessTokenDto =
+        AccessTokenDto(
+            id = id,
+            type = type,
+            name = name,
+            createdAt = createdAt,
+            description = description
+        )
+
+}
+
+data class AccessTokenPermissions(
+    val permissions: Set<AccessTokenPermission> = emptySet()
+) {
 
     fun hasPermission(permission: AccessTokenPermission): Boolean =
         permissions.contains(permission)
 
-    private fun isManager(): Boolean =
-        hasPermission(MANAGER)
-
-    fun hasPermissionTo(toPath: String, routePermission: RoutePermission): Boolean =
-        isManager() || routes.any { it.hasPermissionTo(toPath, routePermission) }
-
-    fun canSee(routeFragment: String): Boolean =
-        isManager() || routes.any { it.path.startsWith(routeFragment, ignoreCase = true) }
-
-}
-
-enum class AccessTokenType {
-    PERSISTENT,
-    TEMPORARY
 }
 
 @JsonFormat(shape = JsonFormat.Shape.OBJECT)

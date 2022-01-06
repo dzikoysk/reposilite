@@ -17,13 +17,16 @@
 package com.reposilite.token.infrastructure
 
 import com.reposilite.shared.extensions.firstAndMap
+import com.reposilite.token.AccessToken
+import com.reposilite.token.AccessTokenId
+import com.reposilite.token.AccessTokenPermission
+import com.reposilite.token.AccessTokenPermission.Companion.findAccessTokenPermissionByIdentifier
+import com.reposilite.token.AccessTokenPermissions
 import com.reposilite.token.AccessTokenRepository
-import com.reposilite.token.api.AccessToken
-import com.reposilite.token.api.AccessTokenPermission
-import com.reposilite.token.api.AccessTokenPermission.Companion.findAccessTokenPermissionByIdentifier
-import com.reposilite.token.api.AccessTokenType
-import com.reposilite.token.api.Route
-import com.reposilite.token.api.RoutePermission.Companion.findRoutePermissionByIdentifier
+import com.reposilite.token.AccessTokenType
+import com.reposilite.token.Route
+import com.reposilite.token.RoutePermission.Companion.findRoutePermissionByIdentifier
+import com.reposilite.token.Routes
 import com.reposilite.token.application.AccessTokenPlugin.Companion.MAX_ROUTE_LENGTH
 import com.reposilite.token.application.AccessTokenPlugin.Companion.MAX_TOKEN_NAME
 import net.dzikoysk.exposed.shared.UNINITIALIZED_ENTITY_ID
@@ -97,12 +100,7 @@ internal class SqlAccessTokenRepository(private val database: Database) : Access
             it[this.createdAt] = accessToken.createdAt
             it[this.description] = accessToken.description
         }
-
-        val createdAccessToken = accessToken.copy(id = getIdByName(accessToken.name))
-        createPermissions(createdAccessToken)
-        createRoutes(createdAccessToken)
-
-        return createdAccessToken
+        return accessToken.copy(id = getIdByName(accessToken.name))
     }
 
     private fun updateAccessToken(accessToken: AccessToken): AccessToken {
@@ -112,35 +110,38 @@ internal class SqlAccessTokenRepository(private val database: Database) : Access
             it[this.createdAt] = accessToken.createdAt
             it[this.description] = accessToken.description
         })
-
-        PermissionToAccessTokenTable.deleteWhere { PermissionToAccessTokenTable.accessTokenId eq accessToken.id }
-        createPermissions(accessToken)
-
-        PermissionToRouteTable.deleteWhere { PermissionToRouteTable.accessTokenId eq accessToken.id }
-        createRoutes(accessToken)
-
         return accessToken
     }
 
-    private fun createPermissions(accessToken: AccessToken) {
-        accessToken.permissions.forEach { permission ->
+    override fun addPermission(id: AccessTokenId, permission: AccessTokenPermission) {
+        transaction(database) {
             PermissionToAccessTokenTable.insert {
-                it[this.accessTokenId] = accessToken.id
+                it[this.accessTokenId] = id
                 it[this.permission] = permission.identifier
             }
         }
     }
 
-    private fun createRoutes(accessToken: AccessToken) {
-        accessToken.routes.forEach { route ->
-            route.permissions.forEach { permission ->
-                PermissionToRouteTable.insert {
-                    it[this.accessTokenId] = accessToken.id
-                    it[this.routeId] = UUID.nameUUIDFromBytes(route.path.toByteArray())
-                    it[this.route] = route.path
-                    it[this.permission] = permission.identifier
-                }
+    override fun deletePermission(id: AccessTokenId, permission: AccessTokenPermission) {
+        transaction(database) {
+            PermissionToRouteTable.deleteWhere { PermissionToRouteTable.accessTokenId eq id }
+        }
+    }
+
+    override fun addRoute(id: AccessTokenId, route: Route) {
+        transaction(database) {
+            PermissionToRouteTable.insert {
+                it[this.accessTokenId] = id
+                it[this.routeId] = UUID.nameUUIDFromBytes(route.path.toByteArray())
+                it[this.route] = route.path
+                it[this.permission] = route.permission.identifier
             }
+        }
+    }
+
+    override fun deleteRoute(id: AccessTokenId, route: Route) {
+        transaction(database) {
+            PermissionToRouteTable.deleteWhere { PermissionToRouteTable.accessTokenId eq id }
         }
     }
 
@@ -151,43 +152,46 @@ internal class SqlAccessTokenRepository(private val database: Database) : Access
             ?.value
             ?: UNINITIALIZED_ENTITY_ID
 
-    override fun deleteAccessToken(accessToken: AccessToken) {
+    override fun deleteAccessToken(id: AccessTokenId) {
         transaction(database) {
-            AccessTokenTable.deleteWhere { AccessTokenTable.id eq accessToken.id }
+            AccessTokenTable.deleteWhere { AccessTokenTable.id eq id }
         }
     }
 
-    private fun findAccessTokenPermissionsById(id: Int): Set<AccessTokenPermission> =
-        PermissionToAccessTokenTable.select { PermissionToAccessTokenTable.accessTokenId eq id }
-            .map { findAccessTokenPermissionByIdentifier(it[PermissionToAccessTokenTable.permission])!! }
-            .toSet()
+    override fun findAccessTokenPermissionsById(id: Int): AccessTokenPermissions =
+        transaction(database) {
+            PermissionToAccessTokenTable.select { PermissionToAccessTokenTable.accessTokenId eq id }
+                .map { findAccessTokenPermissionByIdentifier(it[PermissionToAccessTokenTable.permission])!! }
+                .toSet()
+                .let { AccessTokenPermissions(it) }
+        }
 
-    private fun findRoutesById(id: Int): Set<Route> =
-        PermissionToRouteTable.select { PermissionToRouteTable.accessTokenId eq id }
-            .map { Pair(it[PermissionToRouteTable.route], it[PermissionToRouteTable.permission]) }
-            .groupBy { it.first }
-            .map { (route, permissions) ->
-                Route(route, permissions.map { findRoutePermissionByIdentifier(it.second).get() }.toSet())
-            }
-            .toSet()
+    override fun findAccessTokenRoutesById(id: Int): Routes =
+        transaction(database) {
+            PermissionToRouteTable.select { PermissionToRouteTable.accessTokenId eq id }
+                .map { Route(it[PermissionToRouteTable.route], findRoutePermissionByIdentifier(it[PermissionToRouteTable.permission]).get()) }
+                .toSet()
+                .let { Routes(it) }
+        }
 
     private fun toAccessToken(result: ResultRow): AccessToken =
-        result[AccessTokenTable.id].value.let { accessTokenId ->
-            AccessToken(
-                accessTokenId,
-                AccessTokenType.PERSISTENT,
-                result[AccessTokenTable.name],
-                result[AccessTokenTable.secret],
-                result[AccessTokenTable.createdAt],
-                result[AccessTokenTable.description],
-                findAccessTokenPermissionsById(accessTokenId),
-                findRoutesById(accessTokenId)
-            )
-        }
+        AccessToken(
+            result[AccessTokenTable.id].value,
+            AccessTokenType.PERSISTENT,
+            result[AccessTokenTable.name],
+            result[AccessTokenTable.secret],
+            result[AccessTokenTable.createdAt],
+            result[AccessTokenTable.description]
+        )
 
     override fun findAccessTokenByName(name: String): AccessToken? =
         transaction(database) {
             AccessTokenTable.select { AccessTokenTable.name eq name }.firstAndMap { toAccessToken(it) }
+        }
+
+    override fun findAccessTokenById(id: AccessTokenId): AccessToken? =
+        transaction(database) {
+            AccessTokenTable.select { AccessTokenTable.id eq id }.firstAndMap { toAccessToken(it) }
         }
 
     override fun findAll(): Collection<AccessToken> =

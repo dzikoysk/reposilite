@@ -18,7 +18,6 @@
 package com.reposilite.token.infrastructure
 
 import com.reposilite.token.AccessTokenFacade
-import com.reposilite.token.api.AccessTokenPermission
 import com.reposilite.token.api.CreateAccessTokenRequest
 import com.reposilite.token.api.CreateAccessTokenWithNoNameRequest
 import com.reposilite.web.api.ReposiliteRoute
@@ -54,7 +53,7 @@ internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessToke
         pathParams = [OpenApiParam(name = "name", description = "Name of the token to be deleted", required = true)],
         methods = [HttpMethod.GET]
     )
-    val token = ReposiliteRoute("/api/tokens/{name}", RouteMethod.GET) {
+    val token = ReposiliteRoute("/api/tokens/{name}", GET) {
         authenticated {
             response = accessTokenFacade.getToken(requireParameter("name"))
                 ?.takeIf { isManager() || name == it.name }
@@ -65,7 +64,7 @@ internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessToke
     @OpenApi(
         path = "/api/tokens/{name}",
         tags = ["tokens"],
-        summary = "Creates / Updates a token via the specified body. Note: Requires Manager",
+        summary = "Creates / Updates a token via the specified body. Note: Requires manager permission.",
         requestBody = OpenApiRequestBody(
             content = [OpenApiContent(CreateAccessTokenWithNoNameRequest::class)],
             required = true,

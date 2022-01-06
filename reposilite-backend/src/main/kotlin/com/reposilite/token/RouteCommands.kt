@@ -19,8 +19,6 @@ package com.reposilite.token
 import com.reposilite.console.CommandContext
 import com.reposilite.console.CommandStatus.FAILED
 import com.reposilite.console.api.ReposiliteCommand
-import com.reposilite.token.api.Route
-import com.reposilite.token.api.RoutePermission
 import picocli.CommandLine.Command
 import picocli.CommandLine.Parameters
 
@@ -56,7 +54,7 @@ internal class RouteAdd(private val accessTokenFacade: AccessTokenFacade) : Repo
             }
 
             val route = Route(route, mappedPermissions)
-            val updatedToken = accessTokenFacade.updateToken(it.withRoute(route))
+            val updatedToken = accessTokenFacade.updateToken(it.addRoute(route))
             context.append("Route $route has been added to token ${updatedToken.name}")
         }
         ?: run {

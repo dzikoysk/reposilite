@@ -20,8 +20,7 @@ import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
 import com.reposilite.plugin.api.Facade
 import com.reposilite.token.AccessTokenFacade
-import com.reposilite.token.AccessTokenSecurityProvider.B_CRYPT_TOKENS_ENCODER
-import com.reposilite.token.api.AccessToken
+import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
 import com.reposilite.web.http.extractFromHeaders
@@ -35,17 +34,17 @@ class AuthenticationFacade internal constructor(
     private val accessTokenFacade: AccessTokenFacade
 ) : Journalist, Facade {
 
-    fun authenticateByHeader(headers: Map<String, String>): Result<AccessToken, ErrorResponse> =
+    fun authenticateByHeader(headers: Map<String, String>): Result<AccessTokenDto, ErrorResponse> =
         extractFromHeaders(headers)
             .flatMap { (name, secret) -> authenticateByCredentials(name, secret) }
 
-    fun authenticateByCredentials(credentials: String): Result<AccessToken, ErrorResponse> =
+    fun authenticateByCredentials(credentials: String): Result<AccessTokenDto, ErrorResponse> =
         extractFromString(credentials)
             .flatMap { (name, secret) -> authenticateByCredentials(name, secret) }
 
-    fun authenticateByCredentials(name: String, secret: String): Result<AccessToken, ErrorResponse> =
-        accessTokenFacade.getToken(name)
-            ?.takeIf { B_CRYPT_TOKENS_ENCODER.matches(secret, it.encryptedSecret) }
+    fun authenticateByCredentials(name: String, secret: String): Result<AccessTokenDto, ErrorResponse> =
+        accessTokenFacade.getAccessToken(name)
+            ?.takeIf { accessTokenFacade.secretMatches(it.id, secret) }
             ?.asSuccess()
             ?: errorResponse(UNAUTHORIZED, "Invalid authorization credentials")
 

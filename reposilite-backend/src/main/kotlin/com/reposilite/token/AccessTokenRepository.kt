@@ -16,15 +16,27 @@
 
 package com.reposilite.token
 
-import com.reposilite.token.api.AccessToken
-
 internal interface AccessTokenRepository {
 
     fun saveAccessToken(accessToken: AccessToken): AccessToken
 
-    fun deleteAccessToken(accessToken: AccessToken)
+    fun deleteAccessToken(id: AccessTokenId)
+
+    fun findAccessTokenById(id: AccessTokenId): AccessToken?
 
     fun findAccessTokenByName(name: String): AccessToken?
+
+    fun addPermission(id: AccessTokenId, permission: AccessTokenPermission)
+
+    fun deletePermission(id: AccessTokenId, permission: AccessTokenPermission)
+
+    fun findAccessTokenPermissionsById(id: AccessTokenId): AccessTokenPermissions
+
+    fun addRoute(id: AccessTokenId, route: Route)
+
+    fun deleteRoute(id: AccessTokenId, route: Route)
+
+    fun findAccessTokenRoutesById(id: AccessTokenId): Routes
 
     fun findAll(): Collection<AccessToken>
 
