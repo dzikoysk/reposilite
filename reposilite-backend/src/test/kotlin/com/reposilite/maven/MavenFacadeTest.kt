@@ -25,9 +25,9 @@ import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.VersionLookupRequest
 import com.reposilite.maven.specification.MavenSpecification
 import com.reposilite.storage.api.FileType.FILE
-import com.reposilite.storage.toLocation
-import com.reposilite.token.api.RoutePermission.READ
-import com.reposilite.token.api.RoutePermission.WRITE
+import com.reposilite.storage.api.toLocation
+import com.reposilite.token.RoutePermission.READ
+import com.reposilite.token.RoutePermission.WRITE
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue

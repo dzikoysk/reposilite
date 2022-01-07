@@ -17,6 +17,7 @@
 package com.reposilite.storage
 
 import com.reposilite.storage.api.FileDetails
+import com.reposilite.storage.api.Location
 import com.reposilite.web.http.ErrorResponse
 import panda.std.Result
 import java.io.InputStream

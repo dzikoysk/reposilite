@@ -21,7 +21,7 @@ import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.VersionLookupRequest
 import com.reposilite.shared.ContextDsl
 import com.reposilite.storage.api.FileDetails
-import com.reposilite.storage.toLocation
+import com.reposilite.storage.api.toLocation
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.http.ErrorResponse

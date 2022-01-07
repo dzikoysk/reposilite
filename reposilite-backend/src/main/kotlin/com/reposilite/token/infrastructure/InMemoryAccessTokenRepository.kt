@@ -16,32 +16,68 @@
 
 package com.reposilite.token.infrastructure
 
+import com.reposilite.token.AccessToken
+import com.reposilite.token.AccessTokenIdentifier
+import com.reposilite.token.AccessTokenPermission
 import com.reposilite.token.AccessTokenRepository
-import com.reposilite.token.api.AccessToken
+import com.reposilite.token.Route
 import net.dzikoysk.exposed.shared.UNINITIALIZED_ENTITY_ID
 import java.util.concurrent.atomic.AtomicInteger
 
 internal class InMemoryAccessTokenRepository : AccessTokenRepository {
 
-    private val tokens: MutableMap<Int, AccessToken> = HashMap(1)
+    private val tokens = mutableMapOf<Int, AccessToken>()
+    private val permissions = mutableListOf<Pair<Int, AccessTokenPermission>>()
+    private val routes = mutableListOf<Pair<Int, Route>>()
     private val id = AtomicInteger()
 
     override fun saveAccessToken(accessToken: AccessToken): AccessToken {
-        val initializedAccessToken = when (accessToken.id) {
-            UNINITIALIZED_ENTITY_ID -> accessToken.copy(id = id.incrementAndGet())
+        val initializedAccessToken = when (accessToken.identifier.value) {
+            UNINITIALIZED_ENTITY_ID -> accessToken.copy(identifier = AccessTokenIdentifier(value = id.incrementAndGet()))
             else -> accessToken
         }
 
-        tokens[initializedAccessToken.id] = initializedAccessToken
+        tokens[initializedAccessToken.identifier.value] = initializedAccessToken
         return initializedAccessToken
     }
 
-    override fun deleteAccessToken(accessToken: AccessToken) {
-        tokens.remove(accessToken.id)
+    override fun deleteAccessToken(id: AccessTokenIdentifier) {
+        tokens.remove(id.value)
     }
+
+    override fun findAccessTokenById(id: AccessTokenIdentifier): AccessToken? =
+        tokens[id.value]
 
     override fun findAccessTokenByName(name: String): AccessToken? =
         tokens.values.firstOrNull { it.name == name }
+
+    override fun addPermission(id: AccessTokenIdentifier, permission: AccessTokenPermission) {
+        permissions.add(Pair(id.value, permission))
+    }
+
+    override fun deletePermission(id: AccessTokenIdentifier, permission: AccessTokenPermission) {
+        permissions.removeIf { (tokenId, associatedPermission) -> id.value == tokenId && permission == associatedPermission }
+    }
+
+    override fun findAccessTokenPermissionsById(id: AccessTokenIdentifier): Set<AccessTokenPermission> =
+        permissions
+            .filter { (tokenId) -> tokenId == id.value }
+            .map { it.second }
+            .toSet()
+
+    override fun addRoute(id: AccessTokenIdentifier, route: Route) {
+        routes.add(Pair(id.value, route))
+    }
+
+    override fun deleteRoute(id: AccessTokenIdentifier, route: Route) {
+        routes.removeIf { it.second == route }
+    }
+
+    override fun findAccessTokenRoutesById(id: AccessTokenIdentifier): Set<Route> =
+        routes
+            .filter { it.first == id.value }
+            .map { it.second }
+            .toSet()
 
     override fun findAll(): Collection<AccessToken> =
         tokens.values

@@ -55,7 +55,7 @@ internal class AccessTokenPlugin : ReposilitePlugin() {
 
         extensions().parameters.tokens.forEach {
             val (token) = accessTokenFacade.createAccessToken(it)
-            accessTokenFacade.addPermission(token, MANAGER)
+            accessTokenFacade.addPermission(token.identifier, MANAGER)
         }
 
         event { event: CommandsSetupEvent ->

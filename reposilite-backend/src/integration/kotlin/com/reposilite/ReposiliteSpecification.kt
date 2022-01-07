@@ -21,9 +21,10 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.reposilite.plugin.api.Facade
 import com.reposilite.token.AccessTokenFacade
+import com.reposilite.token.AccessTokenType.PERSISTENT
+import com.reposilite.token.Route
+import com.reposilite.token.RoutePermission
 import com.reposilite.token.api.CreateAccessTokenRequest
-import com.reposilite.token.api.Route
-import com.reposilite.token.api.RoutePermission
 import io.javalin.http.HttpCode
 import kong.unirest.HttpRequest
 import kong.unirest.HttpResponse
@@ -49,10 +50,10 @@ internal abstract class ReposiliteSpecification : ReposiliteRunner() {
 
     fun useAuth(name: String, secret: String, routes: Map<String, RoutePermission> = emptyMap()): Pair<String, String> {
         val accessTokenFacade = useFacade<AccessTokenFacade>()
-        var accessToken = accessTokenFacade.createAccessToken(CreateAccessTokenRequest(name, secret)).accessToken
+        var accessToken = accessTokenFacade.createAccessToken(CreateAccessTokenRequest(PERSISTENT, name, secret)).accessToken
 
         routes.forEach { (route, permission) ->
-            accessToken = accessTokenFacade.updateToken(accessToken.withRoute(Route(route, setOf(permission))))
+            accessTokenFacade.addRoute(accessToken.identifier, Route(route, permission))
         }
 
         return Pair(name, secret)

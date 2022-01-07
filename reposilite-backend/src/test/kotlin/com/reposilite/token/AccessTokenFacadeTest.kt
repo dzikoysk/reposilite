@@ -50,7 +50,7 @@ internal class AccessTokenFacadeTest : AccessTokenSpecification() {
         accessTokenFacade.updateToken(updatedToken)
 
         // then: stored token should be updated
-        val storedToken = accessTokenFacade.getToken("reposilite")!!
+        val storedToken = accessTokenFacade.getAccessToken("reposilite")!!
         assertEquals("reposilite", storedToken.name)
     }
 
@@ -61,11 +61,11 @@ internal class AccessTokenFacadeTest : AccessTokenSpecification() {
         val name = token.name
 
         // when: token is deleted
-        val deletedToken = accessTokenFacade.deleteToken(name)
+        val deletedToken = accessTokenFacade.deleteToken(token.identifier)
 
         // then: proper token has been deleted, and it is no longer available
         assertEquals(token, deletedToken)
-        assertNull(accessTokenFacade.getToken(name))
+        assertNull(accessTokenFacade.getAccessToken(name))
     }
 
     @Test
@@ -74,7 +74,7 @@ internal class AccessTokenFacadeTest : AccessTokenSpecification() {
         val token = createToken("reposilite").accessToken
 
         // when: token is requested by its name
-        val foundToken = accessTokenFacade.getToken(token.name)
+        val foundToken = accessTokenFacade.getAccessToken(token.name)
 
         // then: proper token has been found
         assertEquals(token, foundToken)

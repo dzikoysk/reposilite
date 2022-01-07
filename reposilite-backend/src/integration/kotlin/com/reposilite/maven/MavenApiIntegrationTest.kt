@@ -19,7 +19,7 @@
 package com.reposilite.maven
 
 import com.reposilite.maven.specification.MavenIntegrationSpecification
-import com.reposilite.token.api.RoutePermission.READ
+import com.reposilite.token.RoutePermission.READ
 import io.javalin.http.HttpCode.UNAUTHORIZED
 import kong.unirest.Unirest.get
 import kotlinx.coroutines.runBlocking

@@ -7,7 +7,7 @@ import com.reposilite.maven.api.Metadata
 import com.reposilite.maven.api.SnapshotVersion
 import com.reposilite.maven.api.Versioning
 import com.reposilite.maven.specification.MavenSpecification
-import com.reposilite.storage.toLocation
+import com.reposilite.storage.api.toLocation
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import panda.std.ResultAssertions.assertOk

@@ -31,46 +31,63 @@ class AccessTokenFacade internal constructor(
     fun createAccessToken(request: CreateAccessTokenRequest): CreateAccessTokenResponse {
         val secret = request.secret ?: generateSecret()
         val encodedSecret = AccessTokenSecurityProvider.encodeSecret(secret)
-        val accessToken = AccessToken(type = request.type, name = request.name, encryptedSecret = encodedSecret)
+        val accessToken = AccessToken(identifier = AccessTokenIdentifier(type = request.type), name = request.name, encryptedSecret = encodedSecret)
 
         return request.type.getRepository()
-            .also { getAccessToken(accessToken.name)?.run { it.deleteAccessToken(this.id) } }
+            .also { getAccessToken(accessToken.name)?.run { it.deleteAccessToken(this.identifier) } }
             .saveAccessToken(accessToken)
             .toDto()
             .let { CreateAccessTokenResponse(it, secret) }
     }
 
-    fun secretMatches(id: AccessTokenId, secret: String): Boolean =
+    fun secretMatches(id: AccessTokenIdentifier, secret: String): Boolean =
         getAccessTokenById(id)
             ?.let { AccessTokenSecurityProvider.matches(it.encryptedSecret, secret) }
             ?: false
 
-    fun addRoute(accessToken: AccessTokenDto, route: Route) =
-        accessToken.type.getRepository().addRoute(accessToken.id, route)
+    fun addPermission(identifier: AccessTokenIdentifier, permission: AccessTokenPermission) =
+        identifier.type.getRepository().addPermission(identifier, permission)
 
-    fun addPermission(accessToken: AccessTokenDto, permission: AccessTokenPermission) =
-        accessToken.type.getRepository().addPermission(accessToken.id, permission)
+    fun hasPermission(identifier: AccessTokenIdentifier, permission: AccessTokenPermission): Boolean =
+        identifier.type.getRepository().findAccessTokenPermissionsById(identifier).contains(permission)
 
-    fun hasPermissionTo(accessTokenDto: AccessTokenDto, toPath: String, requiredPermission: RoutePermission): Boolean =
-        isManager(accessTokenDto) || accessTokenDto.type.getRepository()
-            .findAccessTokenRoutesById(accessTokenDto.id)
-            .hasPermissionTo(toPath, requiredPermission)
+    fun hasPermissionTo(identifier: AccessTokenIdentifier, toPath: String, requiredPermission: RoutePermission): Boolean =
+        hasPermission(identifier, MANAGER) || identifier.type.getRepository()
+                .findAccessTokenRoutesById(identifier)
+                .any { it.hasPermissionTo(toPath, requiredPermission) }
 
-    private fun isManager(accessToken: AccessTokenDto): Boolean =
-        accessToken.type.getRepository()
-            .findAccessTokenPermissionsById(accessToken.id)
-            .hasPermission(MANAGER)
+    fun deletePermission(identifier: AccessTokenIdentifier, permission: AccessTokenPermission) =
+        identifier.type.getRepository().deletePermission(identifier, permission)
 
-    private fun updateToken(accessToken: AccessToken): AccessToken =
-        accessToken.type.getRepository().saveAccessToken(accessToken)
+    fun getPermissions(identifier: AccessTokenIdentifier): Set<AccessTokenPermission> =
+        identifier.type.getRepository().findAccessTokenPermissionsById(identifier)
 
-    fun deleteToken(name: String) {
-        getAccessToken(name)?.apply {
-            type.getRepository().deleteAccessToken(this.id)
+    fun addRoute(identifier: AccessTokenIdentifier, route: Route) =
+        identifier.type.getRepository().addRoute(identifier, route)
+
+    fun deleteRoute(identifier: AccessTokenIdentifier, route: Route) =
+        identifier.type.getRepository().deleteRoute(identifier, route)
+
+    fun getRoutes(id: AccessTokenIdentifier): Set<Route> =
+        id.type.getRepository().findAccessTokenRoutesById(id)
+
+    fun updateToken(updatedToken: AccessTokenDto): AccessTokenDto? =
+        getAccessTokenById(updatedToken.identifier)
+            ?.copy(
+                name = updatedToken.name,
+                createdAt = updatedToken.createdAt,
+                description = updatedToken.description
+            )
+            ?.let { it.identifier.type.getRepository().saveAccessToken(it) }
+            ?.toDto()
+
+    fun deleteToken(id: AccessTokenIdentifier) {
+        getAccessTokenById(id)?.apply {
+            identifier.type.getRepository().deleteAccessToken(this.identifier)
         }
     }
 
-    private fun getAccessTokenById(id: AccessTokenId): AccessToken? =
+    private fun getAccessTokenById(id: AccessTokenIdentifier): AccessToken? =
         temporaryRepository.findAccessTokenById(id) ?: persistentRepository.findAccessTokenById(id)
 
     fun getAccessToken(name: String): AccessTokenDto? =

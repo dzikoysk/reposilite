@@ -20,23 +20,23 @@ internal interface AccessTokenRepository {
 
     fun saveAccessToken(accessToken: AccessToken): AccessToken
 
-    fun deleteAccessToken(id: AccessTokenId)
+    fun deleteAccessToken(id: AccessTokenIdentifier)
 
-    fun findAccessTokenById(id: AccessTokenId): AccessToken?
+    fun findAccessTokenById(id: AccessTokenIdentifier): AccessToken?
 
     fun findAccessTokenByName(name: String): AccessToken?
 
-    fun addPermission(id: AccessTokenId, permission: AccessTokenPermission)
+    fun addPermission(id: AccessTokenIdentifier, permission: AccessTokenPermission)
 
-    fun deletePermission(id: AccessTokenId, permission: AccessTokenPermission)
+    fun deletePermission(id: AccessTokenIdentifier, permission: AccessTokenPermission)
 
-    fun findAccessTokenPermissionsById(id: AccessTokenId): AccessTokenPermissions
+    fun findAccessTokenPermissionsById(id: AccessTokenIdentifier): Set<AccessTokenPermission>
 
-    fun addRoute(id: AccessTokenId, route: Route)
+    fun addRoute(id: AccessTokenIdentifier, route: Route)
 
-    fun deleteRoute(id: AccessTokenId, route: Route)
+    fun deleteRoute(id: AccessTokenIdentifier, route: Route)
 
-    fun findAccessTokenRoutesById(id: AccessTokenId): Routes
+    fun findAccessTokenRoutesById(id: AccessTokenIdentifier): Set<Route>
 
     fun findAll(): Collection<AccessToken>
 

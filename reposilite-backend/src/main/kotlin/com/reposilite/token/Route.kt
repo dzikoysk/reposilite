@@ -20,15 +20,6 @@ import com.fasterxml.jackson.annotation.JsonFormat
 import panda.std.Result
 import panda.std.asSuccess
 
-data class Routes(
-    val routes: Set<Route> = emptySet()
-) {
-
-    fun hasPermissionTo(toPath: String, requiredPermission: RoutePermission): Boolean =
-        routes.any { it.hasPermissionTo(toPath, requiredPermission) }
-
-}
-
 data class Route(
     val path: String,
     val permission: RoutePermission

@@ -16,7 +16,7 @@
 package com.reposilite.auth.infrastructure
 
 import com.reposilite.auth.AuthenticationFacade
-import com.reposilite.token.api.AccessToken
+import com.reposilite.token.api.AccessTokenDetails
 import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.routing.RouteMethod.GET
@@ -39,7 +39,7 @@ internal class AuthenticationEndpoint(private val authenticationFacade: Authenti
             OpenApiResponse(
                 status = "200",
                 description = "Details about the token for succeeded authentication",
-                content = [ OpenApiContent(from = AccessToken::class) ]
+                content = [ OpenApiContent(from = AccessTokenDetails::class) ]
             ),
             OpenApiResponse(
                 status = "401",

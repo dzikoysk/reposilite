@@ -34,15 +34,17 @@ import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
 import com.reposilite.settings.SettingsFacade
 import com.reposilite.status.FailureFacade
+import com.reposilite.token.AccessTokenFacade
 import com.reposilite.web.api.HttpServerInitializationEvent
 import com.reposilite.web.api.RoutingSetupEvent
 
-@Plugin(name = "console", dependencies = [ "settings", "failure", "authentication" ])
+@Plugin(name = "console", dependencies = [ "settings", "failure", "access-token", "authentication" ])
 internal class ConsolePlugin : ReposilitePlugin() {
 
     override fun initialize(): Facade {
         val settingsFacade = facade<SettingsFacade>()
         val failureFacade = facade<FailureFacade>()
+        val accessTokenFacade = facade<AccessTokenFacade>()
         val authenticationFacade = facade<AuthenticationFacade>()
 
         val commandExecutor = CommandExecutor(this, failureFacade, System.`in`)
@@ -70,7 +72,7 @@ internal class ConsolePlugin : ReposilitePlugin() {
         event { event: HttpServerInitializationEvent ->
             event.javalin.ws(
                 "/api/console/sock",
-                CliEndpoint(event.reposilite.journalist, authenticationFacade, consoleFacade, settingsFacade.sharedConfiguration.forwardedIp)
+                CliEndpoint(event.reposilite.journalist, accessTokenFacade, authenticationFacade, consoleFacade, settingsFacade.sharedConfiguration.forwardedIp)
             )
         }
 

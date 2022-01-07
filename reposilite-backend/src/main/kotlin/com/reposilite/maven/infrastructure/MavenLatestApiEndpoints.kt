@@ -9,11 +9,11 @@ import com.reposilite.settings.SettingsFacade
 import com.reposilite.shared.ContextDsl
 import com.reposilite.shared.extensions.letIf
 import com.reposilite.shared.extensions.resultAttachment
-import com.reposilite.storage.Location
 import com.reposilite.storage.api.DocumentInfo
 import com.reposilite.storage.api.FileDetails
-import com.reposilite.storage.toLocation
-import com.reposilite.token.api.AccessToken
+import com.reposilite.storage.api.Location
+import com.reposilite.storage.api.toLocation
+import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.http.ErrorResponse
@@ -110,10 +110,10 @@ internal class MavenLatestApiEndpoints(
         }
     }
 
-    private fun <T> resolveLatestArtifact(context: ContextDsl, accessToken: AccessToken?, request: RequestFunction<T>): Result<T, ErrorResponse> =
+    private fun <T> resolveLatestArtifact(context: ContextDsl, accessToken: AccessTokenDto?, request: RequestFunction<T>): Result<T, ErrorResponse> =
         resolveLatestArtifact(context.requireParameter("repository"), context.requireParameter("gav").toLocation(), context.ctx.queryParam("filter"), accessToken, request)
 
-    private fun <T> resolveLatestArtifact(repository: String, gav: Location, filter: String?, accessToken: AccessToken?, request: RequestFunction<T>): Result<T, ErrorResponse> =
+    private fun <T> resolveLatestArtifact(repository: String, gav: Location, filter: String?, accessToken: AccessTokenDto?, request: RequestFunction<T>): Result<T, ErrorResponse> =
         VersionLookupRequest(accessToken, repository, gav, filter)
             .let { mavenFacade.findLatest(it) }
             .flatMap { (isSnapshot, version) ->

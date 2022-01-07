@@ -17,10 +17,10 @@
 package com.reposilite.frontend.infrastructure
 
 import com.reposilite.frontend.FrontendFacade
+import com.reposilite.storage.api.toLocation
 import com.reposilite.storage.getExtension
 import com.reposilite.storage.getSimpleName
 import com.reposilite.storage.inputStream
-import com.reposilite.storage.toLocation
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.http.ErrorResponse

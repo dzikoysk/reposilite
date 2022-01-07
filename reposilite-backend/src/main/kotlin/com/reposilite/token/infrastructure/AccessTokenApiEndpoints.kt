@@ -18,14 +18,16 @@
 package com.reposilite.token.infrastructure
 
 import com.reposilite.token.AccessTokenFacade
+import com.reposilite.token.AccessTokenPermission
 import com.reposilite.token.api.CreateAccessTokenRequest
 import com.reposilite.token.api.CreateAccessTokenWithNoNameRequest
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.http.notFound
 import com.reposilite.web.http.unauthorized
-import com.reposilite.web.routing.RouteMethod
+import com.reposilite.web.routing.RouteMethod.DELETE
 import com.reposilite.web.routing.RouteMethod.GET
+import com.reposilite.web.routing.RouteMethod.PUT
 import io.javalin.openapi.HttpMethod
 import io.javalin.openapi.OpenApi
 import io.javalin.openapi.OpenApiContent
@@ -42,7 +44,7 @@ internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessToke
     )
     val tokens = ReposiliteRoute("/api/tokens", GET) {
         managerOnly {
-            response = accessTokenFacade.getTokens()
+            response = accessTokenFacade.getAccessTokens()
         }
     }
 
@@ -55,7 +57,7 @@ internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessToke
     )
     val token = ReposiliteRoute("/api/tokens/{name}", GET) {
         authenticated {
-            response = accessTokenFacade.getToken(requireParameter("name"))
+            response = accessTokenFacade.getAccessToken(requireParameter("name"))
                 ?.takeIf { isManager() || name == it.name }
                 ?: unauthorized("You must be the token owner or a manager to access this!")
         }
@@ -73,17 +75,15 @@ internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessToke
         pathParams = [OpenApiParam(name = "name", description = "Name of the token to be deleted", required = true)],
         methods = [HttpMethod.PUT]
     )
-    val createOrUpdateToken = ReposiliteRoute("/api/tokens/{name}", RouteMethod.PUT) {
+    val createOrUpdateToken = ReposiliteRoute("/api/tokens/{name}", PUT) {
         managerOnly {
             response = runCatching { ctx.bodyAsClass<CreateAccessTokenWithNoNameRequest>() }
-                .map { body ->
-                    accessTokenFacade.createAccessToken(
-                        CreateAccessTokenRequest(
-                            requireParameter("name"),
-                            body.secret,
-                            body.permissions.mapNotNull { AccessTokenPermission.findByAll(it) }.toSet()
-                        )
-                    )
+                .map { request -> accessTokenFacade.createAccessToken(CreateAccessTokenRequest(request.type, requireParameter("name"), request.secret))
+                    .also { (token) -> request.permissions
+                        .mapNotNull { AccessTokenPermission.findByAny(it) }
+                        .forEach { accessTokenFacade.addPermission(token.identifier, it) }
+                    }
+                    .accessToken
                 }
                 .getOrElse {
                     unauthorized("Failed to read body")
@@ -98,9 +98,11 @@ internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessToke
         pathParams = [OpenApiParam(name = "name", description = "Name of the token to be deleted", required = true)],
         methods = [HttpMethod.DELETE]
     )
-    val deleteToken = ReposiliteRoute("/api/tokens/{name}", RouteMethod.DELETE) {
+    val deleteToken = ReposiliteRoute("/api/tokens/{name}", DELETE) {
         managerOnly {
-            response = accessTokenFacade.deleteToken(requireParameter("name")) ?: notFound("Token not found")
+            response = accessTokenFacade.getAccessToken(requireParameter("name"))
+                ?.let { accessTokenFacade.deleteToken(it.identifier) }
+                ?: notFound("Token not found")
         }
     }
 

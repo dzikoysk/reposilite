@@ -22,7 +22,6 @@ import com.reposilite.token.AccessTokenType.PERSISTENT
 import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.token.application.AccessTokenPlugin.Companion.MAX_TOKEN_NAME
 import io.javalin.openapi.OpenApiIgnore
-import net.dzikoysk.exposed.shared.IdentifiableEntity
 import net.dzikoysk.exposed.shared.UNINITIALIZED_ENTITY_ID
 import java.time.LocalDate
 
@@ -31,17 +30,19 @@ enum class AccessTokenType {
     TEMPORARY
 }
 
-typealias AccessTokenId = Int
+data class AccessTokenIdentifier(
+    val type: AccessTokenType = PERSISTENT,
+    val value: Int = UNINITIALIZED_ENTITY_ID,
+)
 
 internal data class AccessToken(
-    override val id: AccessTokenId = UNINITIALIZED_ENTITY_ID,
-    val type: AccessTokenType = PERSISTENT,
+    val identifier: AccessTokenIdentifier = AccessTokenIdentifier(),
     val name: String,
     @Transient @JsonIgnore @get:OpenApiIgnore
     val encryptedSecret: String = "",
     val createdAt: LocalDate = LocalDate.now(),
     val description: String = "",
-) : IdentifiableEntity {
+) {
 
     init {
         if (name.length > MAX_TOKEN_NAME) {
@@ -51,21 +52,11 @@ internal data class AccessToken(
 
     fun toDto(): AccessTokenDto =
         AccessTokenDto(
-            id = id,
-            type = type,
+            identifier = identifier,
             name = name,
             createdAt = createdAt,
             description = description
         )
-
-}
-
-data class AccessTokenPermissions(
-    val permissions: Set<AccessTokenPermission> = emptySet()
-) {
-
-    fun hasPermission(permission: AccessTokenPermission): Boolean =
-        permissions.contains(permission)
 
 }
 
@@ -76,13 +67,13 @@ enum class AccessTokenPermission(val identifier: String, val shortcut: String) {
 
     companion object {
 
-        fun findAccessTokenPermissionByIdentifier(identifier: String) =
+        fun findAccessTokenPermissionByIdentifier(identifier: String): AccessTokenPermission? =
             values().firstOrNull { it.identifier == identifier }
 
-        fun findAccessTokenPermissionByShortcut(shortcut: String) =
+        fun findAccessTokenPermissionByShortcut(shortcut: String): AccessTokenPermission? =
             values().firstOrNull { it.shortcut == shortcut }
 
-        fun findByAll(permission: String) =
+        fun findByAny(permission: String): AccessTokenPermission? =
             findAccessTokenPermissionByIdentifier(permission) ?: findAccessTokenPermissionByShortcut(permission)
 
         @JsonCreator

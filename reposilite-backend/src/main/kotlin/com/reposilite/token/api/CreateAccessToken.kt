@@ -25,7 +25,9 @@ data class CreateAccessTokenRequest(
 )
 
 data class CreateAccessTokenWithNoNameRequest(
-    val secret: String? = null
+    val type: AccessTokenType,
+    val secret: String? = null,
+    val permissions: Set<String>
 )
 
 data class CreateAccessTokenResponse(

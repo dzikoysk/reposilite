@@ -34,13 +34,17 @@ import com.reposilite.shared.http.FakeRemoteClientProvider
 import com.reposilite.statistics.DailyDateIntervalProvider
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.statistics.infrastructure.InMemoryStatisticsRepository
-import com.reposilite.storage.Location
 import com.reposilite.storage.api.DocumentInfo
+import com.reposilite.storage.api.Location
 import com.reposilite.storage.api.UNKNOWN_LENGTH
-import com.reposilite.storage.toLocation
-import com.reposilite.token.api.AccessToken
-import com.reposilite.token.api.Route
-import com.reposilite.token.api.RoutePermission
+import com.reposilite.storage.api.toLocation
+import com.reposilite.token.AccessTokenFacade
+import com.reposilite.token.AccessTokenType.TEMPORARY
+import com.reposilite.token.Route
+import com.reposilite.token.RoutePermission
+import com.reposilite.token.api.AccessTokenDto
+import com.reposilite.token.api.CreateAccessTokenRequest
+import com.reposilite.token.infrastructure.InMemoryAccessTokenRepository
 import com.reposilite.web.http.notFoundError
 import io.javalin.http.ContentType.TEXT_XML
 import org.junit.jupiter.api.BeforeEach
@@ -57,7 +61,7 @@ import java.nio.file.Files
 internal abstract class MavenSpecification {
 
     protected companion object {
-        val UNAUTHORIZED: AccessToken? = null
+        val UNAUTHORIZED: AccessTokenDto? = null
         const val REMOTE_REPOSITORY = "https://domain.com/releases"
         const val REMOTE_REPOSITORY_WITH_WHITELIST = "https://example.com/whitelist"
         const val REMOTE_AUTH = "panda@secret"
@@ -68,6 +72,7 @@ internal abstract class MavenSpecification {
     @JvmField
     protected var workingDirectory: File? = null
     protected lateinit var mavenFacade: MavenFacade
+    protected val accessTokenFacade = AccessTokenFacade(InMemoryAccessTokenRepository(), InMemoryAccessTokenRepository())
 
     protected abstract fun repositories(): Map<String, RepositoryConfiguration>
 
@@ -104,8 +109,7 @@ internal abstract class MavenSpecification {
         val workingDirectoryPath = workingDirectory!!.toPath()
         val parameters = ReposiliteParameters().also { it.workingDirectory = workingDirectoryPath }
         val repositories = mutableReference(repositories())
-
-        val securityProvider = RepositorySecurityProvider()
+        val securityProvider = RepositorySecurityProvider(accessTokenFacade)
         val repositoryProvider = RepositoryProvider(logger, workingDirectoryPath, remoteClientProvider, repositories)
         val repositoryService = RepositoryService(logger, repositoryProvider, securityProvider)
 
@@ -127,7 +131,7 @@ internal abstract class MavenSpecification {
         val content: String
     ) {
 
-        fun toLookupRequest(authentication: AccessToken?): LookupRequest =
+        fun toLookupRequest(authentication: AccessTokenDto?): LookupRequest =
             LookupRequest(authentication, repository, gav.toLocation())
 
         fun gav(): Location =
@@ -138,7 +142,7 @@ internal abstract class MavenSpecification {
     protected fun createRepository(name: String, initializer: RepositoryConfiguration.() -> Unit): Pair<String, RepositoryConfiguration> =
         Pair(name, RepositoryConfiguration().also { initializer(it) })
 
-    protected fun findRepositories(accessToken: AccessToken?): Collection<String> =
+    protected fun findRepositories(accessToken: AccessTokenDto?): Collection<String> =
         mavenFacade.findRepositories(accessToken).files.map { it.name }
 
     protected fun addFileToRepository(fileSpec: FileSpec): FileSpec {
@@ -155,10 +159,10 @@ internal abstract class MavenSpecification {
         return fileSpec
     }
 
-    protected fun createAccessToken(name: String, secret: String, repository: String, gav: String, permission: RoutePermission): AccessToken {
-        val routes = setOf(Route("/$repository/${gav.toLocation()}", setOf(permission)))
-        return AccessToken(name = name, encryptedSecret = secret, routes = routes)
-    }
+    protected fun createAccessToken(name: String, secret: String, repository: String, gav: String, permission: RoutePermission): AccessTokenDto =
+        accessTokenFacade.createAccessToken(CreateAccessTokenRequest(TEMPORARY, name, secret))
+            .accessToken
+            .also { accessTokenFacade.addRoute(it.identifier, Route("/$repository/${gav.toLocation()}", permission)) }
 
     private fun String.isAllowed(): Boolean =
         this.endsWith("/allow")
