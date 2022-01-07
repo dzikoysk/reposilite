@@ -25,6 +25,7 @@ import kong.unirest.Unirest.get
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 
@@ -72,8 +73,7 @@ internal abstract class MavenApiIntegrationTest : MavenIntegrationSpecification(
         // given: a path to the existing artifact
         val latestVersion = "1.0.3"
         val (repository, metadata) = useMetadata("private", "com", "reposilite", versions = listOf("1.0.1", "1.0.2", latestVersion))
-        useDocument(repository, "${metadata.groupId}/${metadata.artifactId}/$latestVersion", "${metadata.artifactId}-$latestVersion.jar", "content", true)
-
+        val (_) = useDocument(repository, "${metadata.groupId}/${metadata.artifactId}/$latestVersion", "${metadata.artifactId}-$latestVersion.jar", "content", true)
         val artifactPath = "private/com/reposilite"
         val apiPath = "$base/$endpoint/$artifactPath"
 
@@ -85,6 +85,7 @@ internal abstract class MavenApiIntegrationTest : MavenIntegrationSpecification(
         // then: service rejects request
         assertEquals(UNAUTHORIZED.status, unauthorizedResponse.status)
 
+        // given: valid credentials
         val (name, secret) = useAuth("name", "secret", routes = mapOf("/$artifactPath" to READ))
 
         // when: user requests the latest version with invalid credentials
@@ -94,6 +95,47 @@ internal abstract class MavenApiIntegrationTest : MavenIntegrationSpecification(
 
         // then: the request should succeed
         assertTrue(response.isSuccess)
+    }
+
+    @Test
+    fun `should resolve latest version of snapshot`() = runBlocking {
+        val versionIdentifier = "1.0-20211230.200052-3"
+        val (repository, gav, _, content) = useDocument("private", "group/artifact/version-SNAPSHOT", "artifact-$versionIdentifier.jar", "content", true)
+        val (_) = useDocument(repository, gav, "maven-metadata.xml", """
+           <metadata modelVersion="1.1.0">
+             <version>1.0-SNAPSHOT</version>
+             <versioning>
+               <snapshotVersions>
+                 <snapshotVersion>
+                   <extension>jar</extension>
+                   <value>$versionIdentifier</value>
+                   <updated>20211230200052</updated>
+                 </snapshotVersion>
+               </snapshotVersions>
+             </versioning>
+           </metadata>
+        """.trimIndent(), true)
+        val apiUrl = "$base/api/maven/latest/file/$repository/$gav"
+
+        // when: user requests the latest version with invalid credentials
+        val unauthorizedResponse = get(apiUrl)
+            .basicAuth("invalid", "invalid-secret")
+            .asString()
+
+        // then: service rejects request
+        assertEquals(UNAUTHORIZED.status, unauthorizedResponse.status)
+
+        // given: valid credentials
+        val (name, secret) = useAuth("name", "secret", routes = mapOf("/private" to READ))
+
+        // when: user requests the latest version with invalid credentials
+        val response = get(apiUrl)
+            .basicAuth(name, secret)
+            .asString()
+
+        // then: the request should succeed
+        assertTrue(response.isSuccess)
+        assertEquals(content, response.body)
     }
 
 }

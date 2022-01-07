@@ -7,6 +7,7 @@ import com.reposilite.web.silentClose
 import io.javalin.http.ContentType
 import io.javalin.http.Context
 import java.io.InputStream
+import java.net.URLEncoder
 
 internal fun Context.resultAttachment(
     name: String,
@@ -16,7 +17,7 @@ internal fun Context.resultAttachment(
     data: InputStream
 ): Context {
     if (!contentType.isHumanReadable) {
-        contentDisposition(""""attachment; filename="$name" """)
+        contentDisposition("""attachment; filename="$name"; filename*=utf-8''${URLEncoder.encode(name, "utf-8")}""")
     }
 
     if (compressionStrategy == "none" && contentLength > 0) {

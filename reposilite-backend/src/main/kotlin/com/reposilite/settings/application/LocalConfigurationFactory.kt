@@ -9,10 +9,10 @@ internal object LocalConfigurationFactory {
 
     fun createLocalConfiguration(parameters: ReposiliteParameters): LocalConfiguration =
         FileSystemConfigurationProvider(
+            LOCAL_CONFIGURATION_FILE,
             "Local configuration",
             null,
             parameters.workingDirectory,
-            LOCAL_CONFIGURATION_FILE,
             parameters.localConfigurationMode,
             parameters.localConfigurationPath,
             LocalConfiguration()

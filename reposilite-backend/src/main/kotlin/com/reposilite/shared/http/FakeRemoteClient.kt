@@ -1,7 +1,7 @@
 package com.reposilite.shared.http
 
 import com.reposilite.journalist.Journalist
-import com.reposilite.shared.fs.FileDetails
+import com.reposilite.storage.api.FileDetails
 import com.reposilite.web.http.ErrorResponse
 import panda.std.Result
 import java.io.InputStream

@@ -16,20 +16,20 @@
 package com.reposilite.maven
 
 import com.reposilite.maven.api.REPOSITORY_NAME_MAX_LENGTH
-import com.reposilite.shared.fs.FileDetails
-import com.reposilite.shared.fs.getSimpleName
+import com.reposilite.storage.Location
 import com.reposilite.storage.StorageProvider
+import com.reposilite.storage.api.FileDetails
 import com.reposilite.web.http.ErrorResponse
 import org.apache.commons.codec.digest.DigestUtils
 import panda.std.Result
 import java.io.InputStream
-import java.nio.file.Path
 import java.nio.file.attribute.FileTime
 
 class Repository internal constructor(
     val name: String,
     val visibility: RepositoryVisibility,
     val redeployment: Boolean,
+    val preserved: Int,
     val proxiedHosts: List<ProxiedHost>,
     private val storageProvider: StorageProvider,
 ) {
@@ -41,41 +41,41 @@ class Repository internal constructor(
     }
 
     @Suppress("unused")
-    private fun writeFileChecksums(path: Path, bytes: ByteArray) {
-        val md5 = path.resolveSibling(path.getSimpleName() + ".md5")
+    private fun writeFileChecksums(location: Location, bytes: ByteArray) {
+        val md5 = location.resolveSibling(location.getSimpleName() + ".md5")
         putFile(md5, DigestUtils.md5(bytes).inputStream())
 
-        val sha1 = path.resolveSibling(path.getSimpleName() + ".sha1")
-        val sha256 = path.resolveSibling(path.getSimpleName() + ".sha256")
-        val sha512 = path.resolveSibling(path.getSimpleName() + ".sha512")
+        val sha1 = location.resolveSibling(location.getSimpleName() + ".sha1")
+        val sha256 = location.resolveSibling(location.getSimpleName() + ".sha256")
+        val sha512 = location.resolveSibling(location.getSimpleName() + ".sha512")
         putFile(sha1, DigestUtils.sha1(bytes).inputStream())
         putFile(sha256, DigestUtils.sha256(bytes).inputStream())
         putFile(sha512, DigestUtils.sha512(bytes).inputStream())
     }
 
-    fun putFile(file: Path, inputStream: InputStream): Result<Unit, ErrorResponse> =
-        storageProvider.putFile(file, inputStream)
+    fun putFile(location: Location, inputStream: InputStream): Result<Unit, ErrorResponse> =
+        storageProvider.putFile(location, inputStream)
 
-    fun getFile(file: Path): Result<InputStream, ErrorResponse> =
-        storageProvider.getFile(file)
+    fun getFile(location: Location): Result<InputStream, ErrorResponse> =
+        storageProvider.getFile(location)
 
-    fun getFileDetails(file: Path): Result<out FileDetails, ErrorResponse> =
-        storageProvider.getFileDetails(file)
+    fun getFileDetails(location: Location): Result<out FileDetails, ErrorResponse> =
+        storageProvider.getFileDetails(location)
 
-    fun removeFile(file: Path): Result<Unit, ErrorResponse> =
-        storageProvider.removeFile(file)
+    fun removeFile(location: Location): Result<Unit, ErrorResponse> =
+        storageProvider.removeFile(location)
 
-    fun getFiles(directory: Path): Result<List<Path>, ErrorResponse> =
-        storageProvider.getFiles(directory)
+    fun getFiles(directoryLocation: Location): Result<List<Location>, ErrorResponse> =
+        storageProvider.getFiles(directoryLocation)
 
-    fun getLastModifiedTime(file: Path): Result<FileTime, ErrorResponse> =
-        storageProvider.getLastModifiedTime(file)
+    fun getLastModifiedTime(location: Location): Result<FileTime, ErrorResponse> =
+        storageProvider.getLastModifiedTime(location)
 
-    fun getFileSize(file: Path): Result<Long, ErrorResponse> =
-        storageProvider.getFileSize(file)
+    fun getFileSize(location: Location): Result<Long, ErrorResponse> =
+        storageProvider.getFileSize(location)
 
-    fun exists(file: Path): Boolean =
-        storageProvider.exists(file)
+    fun exists(location: Location): Boolean =
+        storageProvider.exists(location)
 
     fun getUsage(): Result<Long, ErrorResponse> =
         storageProvider.usage()

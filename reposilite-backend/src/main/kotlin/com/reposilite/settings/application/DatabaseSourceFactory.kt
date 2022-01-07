@@ -16,21 +16,25 @@
 
 package com.reposilite.settings.application
 
-import com.reposilite.settings.api.LocalConfiguration.MySqlDatabaseSettings
-import com.reposilite.settings.api.LocalConfiguration.SQLiteDatabaseSettings
+import com.reposilite.settings.api.LocalConfiguration.StandardSQLDatabaseSettings
+import com.reposilite.settings.api.LocalConfiguration.EmbeddedSQLDatabaseSettings
 import com.reposilite.shared.extensions.loadCommandBasedConfiguration
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.transactions.TransactionManager
 import java.io.File
 import java.nio.file.Path
 import java.sql.Connection.TRANSACTION_SERIALIZABLE
+import kotlin.io.path.absolutePathString
 
 internal object DatabaseSourceFactory {
 
     fun createConnection(workingDirectory: Path, databaseConfiguration: String): Database =
         when {
+            databaseConfiguration.startsWith("mysql") -> {
+                connectWithCredentials(databaseConfiguration, "jdbc:mysql", "com.mysql.cj.jdbc.Driver")
+            }
             databaseConfiguration.startsWith("sqlite") -> {
-                val settings = loadCommandBasedConfiguration(SQLiteDatabaseSettings(), databaseConfiguration).configuration
+                val settings = loadCommandBasedConfiguration(EmbeddedSQLDatabaseSettings(), databaseConfiguration).configuration
 
                 val database =
                     if (settings.temporary) {
@@ -38,23 +42,31 @@ internal object DatabaseSourceFactory {
                         temporaryDatabase.deleteOnExit()
                         Database.connect("jdbc:sqlite:${temporaryDatabase.absolutePath}", "org.sqlite.JDBC")
                     } else {
-                        Database.connect("jdbc:sqlite:${workingDirectory.resolve(settings.fileName)}", "org.sqlite.JDBC")
+                        Database.connect("jdbc:sqlite:${workingDirectory.resolve(settings.fileName).absolutePathString()}", "org.sqlite.JDBC")
                     }
 
                 TransactionManager.manager.defaultIsolationLevel = TRANSACTION_SERIALIZABLE
                 database
             }
-            databaseConfiguration.startsWith("mysql") -> {
-                val settings = loadCommandBasedConfiguration(MySqlDatabaseSettings(), databaseConfiguration).configuration
-
-                Database.connect(
-                    url = "jdbc:mysql://${settings.host}/${settings.database}",
-                    driver = "com.mysql.cj.jdbc.Driver",
-                    user = settings.user,
-                    password = settings.password
-                )
+            /* Experimental implementations */
+            databaseConfiguration.startsWith("postgresql") -> {
+                connectWithCredentials(databaseConfiguration, "jdbc:postgresql", "org.postgresql.Driver")
+            }
+            databaseConfiguration.startsWith("h2") -> {
+                val settings = loadCommandBasedConfiguration(EmbeddedSQLDatabaseSettings(), databaseConfiguration).configuration
+                Database.connect("jdbc:h2:${workingDirectory.resolve(settings.fileName).absolutePathString()}", "org.h2.Driver")
             }
             else -> throw RuntimeException("Unknown database: $databaseConfiguration")
+        }
+
+    private fun connectWithCredentials(databaseConfiguration: String, dialect: String, driver:String): Database =
+        with(loadCommandBasedConfiguration(StandardSQLDatabaseSettings(), databaseConfiguration).configuration) {
+            Database.connect(
+                url = "$dialect://${host}/${database}",
+                driver = driver,
+                user = user,
+                password = password
+            )
         }
 
 }

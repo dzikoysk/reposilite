@@ -19,6 +19,7 @@ package com.reposilite.maven.application
 import com.reposilite.frontend.FrontendFacade
 import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.MetadataService
+import com.reposilite.maven.PreservedBuildsListener
 import com.reposilite.maven.ProxyService
 import com.reposilite.maven.RepositoryProvider
 import com.reposilite.maven.RepositorySecurityProvider
@@ -34,13 +35,18 @@ import com.reposilite.plugin.facade
 import com.reposilite.settings.SettingsFacade
 import com.reposilite.shared.http.HttpRemoteClientProvider
 import com.reposilite.statistics.StatisticsFacade
+import com.reposilite.web.api.HttpServerInitializationEvent
 import com.reposilite.web.api.RoutingSetupEvent
+import io.javalin.http.Handler
+import io.javalin.http.Stage
 
 @Plugin(name = "maven", dependencies = ["settings", "statistics", "frontend"])
 internal class MavenPlugin : ReposilitePlugin() {
 
     override fun initialize(): MavenFacade {
         val settingsFacade = facade<SettingsFacade>()
+        val sharedConfiguration = settingsFacade.sharedConfiguration
+
         val statisticsFacade = facade<StatisticsFacade>()
         val frontendFacade = facade<FrontendFacade>()
 
@@ -48,13 +54,14 @@ internal class MavenPlugin : ReposilitePlugin() {
             this,
             extensions().parameters.workingDirectory,
             HttpRemoteClientProvider,
-            settingsFacade.sharedConfiguration.repositories
+            sharedConfiguration.repositories
         )
         val securityProvider = RepositorySecurityProvider()
         val repositoryService = RepositoryService(this, repositoryProvider, securityProvider)
 
         val mavenFacade = MavenFacade(
             this,
+            sharedConfiguration.id,
             securityProvider,
             repositoryService,
             ProxyService(this),
@@ -71,13 +78,27 @@ internal class MavenPlugin : ReposilitePlugin() {
         event { event: RoutingSetupEvent ->
             event.registerRoutes(MavenEndpoints(mavenFacade, frontendFacade, settingsFacade))
             event.registerRoutes(MavenApiEndpoints(mavenFacade))
-            event.registerRoutes(MavenLatestApiEndpoints(mavenFacade))
+            event.registerRoutes(MavenLatestApiEndpoints(mavenFacade, settingsFacade))
         }
+
+        event(PreservedBuildsListener(mavenFacade))
 
         event { _: ReposiliteDisposeEvent ->
             mavenFacade.getRepositories().forEach {
                 it.shutdown()
             }
+        }
+
+        val afterHandlers = listOf<Handler>() // idk, custom handlers defined through plugin API
+
+        event { event: HttpServerInitializationEvent ->
+            event.javalin.javalinServlet().addLifecycleStages(Stage("after-without-errors", tasksInitialization = { submitTask ->
+                submitTask {
+                    afterHandlers.forEach { handler ->
+                        handler.handle(this.ctx)
+                    }
+                }
+            }))
         }
 
         return mavenFacade

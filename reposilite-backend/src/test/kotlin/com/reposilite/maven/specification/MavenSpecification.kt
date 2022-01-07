@@ -25,18 +25,19 @@ import com.reposilite.maven.RepositoryProvider
 import com.reposilite.maven.RepositorySecurityProvider
 import com.reposilite.maven.RepositoryService
 import com.reposilite.maven.api.LookupRequest
+import com.reposilite.maven.api.Metadata
+import com.reposilite.maven.api.Versioning
 import com.reposilite.plugin.Extensions
 import com.reposilite.settings.api.LocalConfiguration
 import com.reposilite.settings.api.SharedConfiguration.RepositoryConfiguration
-import com.reposilite.shared.fs.DocumentInfo
-import com.reposilite.shared.fs.UNKNOWN_LENGTH
-import com.reposilite.shared.fs.append
-import com.reposilite.shared.fs.getSimpleNameFromUri
-import com.reposilite.shared.fs.safeResolve
 import com.reposilite.shared.http.FakeRemoteClientProvider
 import com.reposilite.statistics.DailyDateIntervalProvider
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.statistics.infrastructure.InMemoryStatisticsRepository
+import com.reposilite.storage.Location
+import com.reposilite.storage.api.DocumentInfo
+import com.reposilite.storage.api.UNKNOWN_LENGTH
+import com.reposilite.storage.toLocation
 import com.reposilite.token.api.AccessToken
 import com.reposilite.token.api.Route
 import com.reposilite.token.api.RoutePermission
@@ -44,8 +45,10 @@ import com.reposilite.web.http.notFoundError
 import io.javalin.http.ContentType.TEXT_XML
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
+import panda.std.Quad
 import panda.std.asSuccess
 import panda.std.reactive.mutableReference
+import panda.std.reactive.reference
 import panda.std.reactive.toReference
 import java.io.File
 import java.nio.file.Files
@@ -66,7 +69,7 @@ internal abstract class MavenSpecification {
     protected var workingDirectory: File? = null
     protected lateinit var mavenFacade: MavenFacade
 
-    abstract fun repositories(): Map<String, RepositoryConfiguration>
+    protected abstract fun repositories(): Map<String, RepositoryConfiguration>
 
     @BeforeEach
     private fun initializeFacade() {
@@ -75,13 +78,13 @@ internal abstract class MavenSpecification {
             headHandler = { uri, credentials, _, _ ->
                 if (uri.startsWith(REMOTE_REPOSITORY) && REMOTE_AUTH == credentials && !uri.isAllowed())
                     DocumentInfo(
-                        uri.getSimpleNameFromUri(),
+                        uri.toLocation().getSimpleName(),
                         TEXT_XML,
                         UNKNOWN_LENGTH,
                     ).asSuccess()
                 else if (uri.startsWith(REMOTE_REPOSITORY_WITH_WHITELIST) && uri.isAllowed())
                     DocumentInfo(
-                        uri.getSimpleNameFromUri(),
+                        uri.toLocation().getSimpleName(),
                         TEXT_XML,
                         UNKNOWN_LENGTH,
                     ).asSuccess()
@@ -108,6 +111,7 @@ internal abstract class MavenSpecification {
 
         this.mavenFacade = MavenFacade(
             logger,
+            reference("repository-id"),
             securityProvider,
             RepositoryService(logger, repositoryProvider, securityProvider),
             ProxyService(logger),
@@ -117,44 +121,54 @@ internal abstract class MavenSpecification {
         )
     }
 
-    data class FileSpec(
+    protected data class FileSpec(
         val repository: String,
         val gav: String,
         val content: String
     ) {
 
         fun toLookupRequest(authentication: AccessToken?): LookupRequest =
-            LookupRequest(authentication, repository, gav)
+            LookupRequest(authentication, repository, gav.toLocation())
+
+        fun gav(): Location =
+            gav.toLocation()
 
     }
 
-    fun createRepository(name: String, initializer: RepositoryConfiguration.() -> Unit): Pair<String, RepositoryConfiguration> =
+    protected fun createRepository(name: String, initializer: RepositoryConfiguration.() -> Unit): Pair<String, RepositoryConfiguration> =
         Pair(name, RepositoryConfiguration().also { initializer(it) })
 
-    fun findRepositories(accessToken: AccessToken?): Collection<String> =
+    protected fun findRepositories(accessToken: AccessToken?): Collection<String> =
         mavenFacade.findRepositories(accessToken).files.map { it.name }
 
-    fun addFileToRepository(fileSpec: FileSpec): FileSpec {
+    protected fun addFileToRepository(fileSpec: FileSpec): FileSpec {
         workingDirectory!!.toPath()
-            .safeResolve("repositories")
-            .safeResolve(fileSpec.repository)
-            .append(fileSpec.gav)
-            .peek {
+            .resolve("repositories")
+            .resolve(fileSpec.repository)
+            .resolve(fileSpec.gav.toLocation().toPath().get())
+            .also {
                 Files.createDirectories(it.parent)
                 Files.createFile(it)
                 Files.write(it, fileSpec.content.toByteArray())
             }
-            .get()
 
         return fileSpec
     }
 
-    fun createAccessToken(name: String, secret: String, repository: String, gav: String, permission: RoutePermission): AccessToken {
-        val routes = setOf(Route("/$repository/$gav", setOf(permission)))
+    protected fun createAccessToken(name: String, secret: String, repository: String, gav: String, permission: RoutePermission): AccessToken {
+        val routes = setOf(Route("/$repository/${gav.toLocation()}", setOf(permission)))
         return AccessToken(name = name, encryptedSecret = secret, routes = routes)
     }
 
     private fun String.isAllowed(): Boolean =
         this.endsWith("/allow")
+
+    protected fun useMetadata(repository: String, gav: String, versioning: List<String>, filter: String? = null): Quad<String, Location, Metadata, String> =
+        Quad(
+            repository,
+            gav.toLocation(),
+            mavenFacade.saveMetadata(repository, gav.toLocation(), Metadata(versioning = Versioning(_versions = versioning))).get(),
+            filter
+        )
 
 }

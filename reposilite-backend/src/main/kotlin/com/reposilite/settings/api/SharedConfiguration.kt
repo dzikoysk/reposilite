@@ -47,14 +47,12 @@ class SharedConfiguration : Serializable, DeserializationHandler<SharedConfigura
     val swagger = reference(false)
 
     @Description("# Custom base path")
-    @JvmField
     val basePath = mutableReference("/")
 
     /* Repository properties */
 
     @Description("")
     @Description("# List of supported Maven repositories")
-    @JvmField
     val repositories = mutableReference(mapOf(
         "releases" to RepositoryConfiguration(),
         "snapshots" to RepositoryConfiguration(),
@@ -65,12 +63,13 @@ class SharedConfiguration : Serializable, DeserializationHandler<SharedConfigura
     class RepositoryConfiguration : Serializable {
 
         @Description("# Supported visibilities: public, hidden, private")
-        @JvmField
         var visibility = RepositoryVisibility.PUBLIC
 
         @Description("# Does this repository accept redeployment of the same artifact version")
-        @JvmField
         var redeployment = false
+
+        @Description("# How many builds of the given snapshot version should be preserved when a new build is deployed. Use -1 to disable this feature")
+        var preserved = -1
 
         @Description("")
         @Description("# Used storage type. Supported storage providers:")
@@ -87,7 +86,6 @@ class SharedConfiguration : Serializable, DeserializationHandler<SharedConfigura
         @Description("# See software.amazon.awssdk.services.s3.S3Client for default values")
         @Description("# Example usage:")
         @Description("# storageProvider: s3 bucket-name --endpoint custom.endpoint.com --access-key accessKey --secret-key secretKey --region region")
-        @JvmField
         var storageProvider = "fs --quota 100%"
 
         @Command(name = "fs", description = ["Local file system (disk) storage provider settings"])
@@ -125,7 +123,6 @@ class SharedConfiguration : Serializable, DeserializationHandler<SharedConfigura
         @Description("#   https://repo.panda-lang.org/releases --store --connectTimeout=3 --readTimeout=15 --auth user:token --allow=com.reposilite  --proxy host:ip")
         @Description("#   local-repository-name")
         @Description("# ]")
-        @JvmField
         var proxied = mutableListOf<String>()
 
         @Command(description = ["An entry representing one proxied host and its configuration"])
@@ -150,7 +147,6 @@ class SharedConfiguration : Serializable, DeserializationHandler<SharedConfigura
 
     @Description("")
     @Description("# Statistics module configuration")
-    @JvmField
     val statistics = reference(StatisticsConfiguration())
 
     @Contextual
@@ -160,7 +156,6 @@ class SharedConfiguration : Serializable, DeserializationHandler<SharedConfigura
         @Description("# With higher precision you can get more detailed timestamps, but it'll increase database size.")
         @Description("# It's not that important for small repos with low traffic, but public instances should not use daily interval.")
         @Description("# Available modes: daily, weekly, monthly, yearly")
-        @JvmField
         var resolvedRequestsInterval = "monthly"
 
     }
@@ -173,7 +168,6 @@ class SharedConfiguration : Serializable, DeserializationHandler<SharedConfigura
     @Description("# Nginx: X-Forwarded-For")
     @Description("# Cloudflare: CF-Connecting-IP")
     @Description("# Popular: X-Real-IP")
-    @JvmField
     val forwardedIp = reference("X-Forwarded-For")
 
     override fun handle(sharedConfiguration: SharedConfiguration): SharedConfiguration {

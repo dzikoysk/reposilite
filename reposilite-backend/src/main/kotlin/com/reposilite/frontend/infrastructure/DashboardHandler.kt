@@ -17,26 +17,25 @@
 package com.reposilite.frontend.infrastructure
 
 import com.reposilite.frontend.FrontendFacade
-import com.reposilite.shared.fs.decodeToString
-import com.reposilite.shared.fs.getExtension
-import com.reposilite.shared.fs.getSimpleName
-import com.reposilite.shared.fs.safeResolve
+import com.reposilite.storage.getExtension
+import com.reposilite.storage.getSimpleName
+import com.reposilite.storage.inputStream
+import com.reposilite.storage.toLocation
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.encoding
-import com.reposilite.web.http.errorResponse
+import com.reposilite.web.http.notFoundError
 import com.reposilite.web.routing.RouteMethod.GET
 import io.javalin.http.ContentType
 import io.javalin.http.ContentType.Companion.PLAIN
 import io.javalin.http.Context
-import io.javalin.http.HttpCode.NOT_FOUND
 import panda.std.Result
 import panda.std.Result.ok
 import java.nio.file.Files
 import java.nio.file.Path
-import java.util.stream.Collectors
 import kotlin.io.path.isDirectory
+import kotlin.streams.asSequence
 import kotlin.text.Charsets.UTF_8
 
 internal sealed class FrontendHandler(private val frontendFacade: FrontendFacade) : ReposiliteRoutes() {
@@ -48,7 +47,7 @@ internal sealed class FrontendHandler(private val frontendFacade: FrontendFacade
                 ctx.contentType(ContentType.getMimeTypeByExtension(uri.getExtension()) ?: PLAIN)
                 ok(it)
             }
-            ?: errorResponse(NOT_FOUND, "Resource not found");
+            ?: notFoundError("Resource not found");
 
 }
 
@@ -73,8 +72,7 @@ internal class ResourcesFrontendHandler(frontendFacade: FrontendFacade, val reso
                 ?: ""
         }
 
-    override val routes =
-        setOf(defaultHandler, indexHandler, assetsHandler)
+    override val routes = setOf(defaultHandler, indexHandler, assetsHandler)
 
 }
 
@@ -82,21 +80,38 @@ internal class CustomFrontendHandler(frontendFacade: FrontendFacade, directory: 
 
     override val routes: Set<ReposiliteRoute> = run {
         val routes = Files.list(directory)
+            .asSequence()
             .map {
-                if (it.isDirectory()) ReposiliteRoute("/${it.getSimpleName()}/<path>", GET) {
-                    response = respondWithFile(ctx, it.getSimpleName()) { it.safeResolve(ctx.pathParam("path")).decodeToString().orNull() }
-                }
-                else ReposiliteRoute("/${it.getSimpleName()}", GET) {
-                    response = respondWithFile(ctx, it.getSimpleName()) { it.decodeToString().orNull() }
-                }
+                if (it.isDirectory())
+                    ReposiliteRoute("/${it.fileName}/<path>", GET) {
+                        response = respondWithFile(ctx, it.getSimpleName()) {
+                            parameter("path")
+                                .toLocation()
+                                .toPath()
+                                .map { path -> it.resolve(path) }
+                                .orNull()
+                                ?.decodeToString()
+                        }
+                    }
+                else
+                    ReposiliteRoute("/${it.getSimpleName()}", GET) {
+                        response = respondWithFile(ctx, it.getSimpleName()) {
+                            it.decodeToString()
+                        }
+                    }
             }
-            .collect(Collectors.toSet())
+            .toMutableSet()
 
         routes.add(ReposiliteRoute("/", GET) {
-            response = respondWithFile(ctx, "index.html") { directory.safeResolve("index.html").decodeToString().orNull() }
+            response = respondWithFile(ctx, "index.html") { directory.resolve("index.html").decodeToString() }
         })
 
         routes
     }
+
+    private fun Path.decodeToString(): String? =
+        inputStream()
+            .map { it.use { input -> input.readBytes().decodeToString() } }
+            .orNull()
 
 }

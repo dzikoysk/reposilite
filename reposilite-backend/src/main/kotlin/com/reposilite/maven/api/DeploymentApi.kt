@@ -18,18 +18,21 @@ package com.reposilite.maven.api
 
 import com.reposilite.maven.Repository
 import com.reposilite.plugin.api.Event
+import com.reposilite.storage.Location
 import java.io.InputStream
-import java.nio.file.Path
 
 data class DeployRequest(
     val repository: String,
-    val gav: String,
+    val gav: Location,
     val by: String,
     val content: InputStream
 )
 
+/**
+ * Called when deployed file has been successfully stored in repository
+ */
 class DeployEvent(
-    val deployRequest: DeployRequest,
     val repository: Repository,
-    val path: Path
+    val gav: Location,
+    val by: String
 ) : Event

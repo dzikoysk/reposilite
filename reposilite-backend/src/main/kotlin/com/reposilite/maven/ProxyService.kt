@@ -20,43 +20,42 @@ import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
 import com.reposilite.settings.api.SharedConfiguration.RepositoryConfiguration.ProxiedHostConfiguration
 import com.reposilite.shared.extensions.firstOrErrors
-import com.reposilite.shared.fs.FileDetails
-import com.reposilite.shared.fs.toPath
+import com.reposilite.storage.Location
+import com.reposilite.storage.api.FileDetails
 import com.reposilite.web.http.ErrorResponse
 import io.javalin.http.HttpCode.NOT_FOUND
 import panda.std.Result
 import panda.std.Result.ok
 import java.io.InputStream
-import java.nio.file.Path
 
 internal class ProxyService(private val journalist: Journalist): Journalist {
 
-    fun findRemoteDetails(repository: Repository, gav: String): Result<out FileDetails, ErrorResponse> =
+    fun findRemoteDetails(repository: Repository, gav: Location): Result<out FileDetails, ErrorResponse> =
         searchInRemoteRepositories(repository, gav) { (host, config, client) ->
             client.head("$host/$gav", config.authorization, config.connectTimeout, config.readTimeout)
         }
 
-    fun findRemoteFile(repository: Repository, gav: String): Result<out InputStream, ErrorResponse> =
+    fun findRemoteFile(repository: Repository, gav: Location): Result<out InputStream, ErrorResponse> =
         searchInRemoteRepositories(repository, gav) { (host, config, client) ->
             client.get("$host/$gav", config.authorization, config.connectTimeout, config.readTimeout)
-                .flatMap { data -> if (config.store) storeFile(repository, gav.toPath(), data) else ok(data) }
+                .flatMap { data -> if (config.store) storeFile(repository, gav, data) else ok(data) }
                 .mapErr { error -> error.updateMessage { "$host: $it" } }
         }
 
-    private fun <V> searchInRemoteRepositories(repository: Repository, gav: String, fetch: (ProxiedHost) -> Result<out V, ErrorResponse>): Result<out V, ErrorResponse> =
+    private fun <V> searchInRemoteRepositories(repository: Repository, gav: Location, fetch: (ProxiedHost) -> Result<out V, ErrorResponse>): Result<out V, ErrorResponse> =
         repository.proxiedHosts.asSequence()
             .filter {(_, config) -> isAllowed(config, gav) }
             .map { fetch(it) }
             .firstOrErrors()
-            .mapErr { errors -> ErrorResponse(NOT_FOUND, errors.joinToString(" -> ") { "(${it.status}: ${it.message})" }) }
+            .mapErr { errors -> ErrorResponse(NOT_FOUND, if (errors.isEmpty()) "Cannot find $gav" else errors.joinToString(" -> ") { "(${it.status}: ${it.message})" }) }
 
-    private fun isAllowed(config: ProxiedHostConfiguration, gav: String): Boolean =
+    private fun isAllowed(config: ProxiedHostConfiguration, gav: Location): Boolean =
         config.allowedGroups.isEmpty() ||
                 config.allowedGroups
                     .map { it.replace('.', '/') }
-                    .any { gav.startsWith("/$it") }
+                    .any { gav.toString().startsWith(it) }
 
-    private fun storeFile(repository: Repository, gav: Path, data: InputStream): Result<InputStream, ErrorResponse> =
+    private fun storeFile(repository: Repository, gav: Location, data: InputStream): Result<InputStream, ErrorResponse> =
         repository
             .putFile(gav, data)
             .flatMap { repository.getFile(gav) }

@@ -42,6 +42,7 @@ internal class RepositoryFactory(
             repositoryName,
             configuration.visibility,
             configuration.redeployment,
+            configuration.preserved,
             configuration.proxied.map { createProxiedHostConfiguration(repositories, it) },
             createStorageProvider(journalist, workingDirectory.resolve(repositoriesDirectory), repositoryName, configuration.storageProvider),
         )

@@ -9,6 +9,7 @@ import java.util.concurrent.ScheduledExecutorService
 
 interface ConfigurationProvider<T> {
 
+    val name: String
     val displayName: String
     val configuration: T
 

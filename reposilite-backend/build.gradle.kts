@@ -58,16 +58,18 @@ dependencies {
     implementation("software.amazon.awssdk:s3:$awssdk")
     testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.131")
 
-    val exposed = "0.36.2"
+    val exposed = "0.37.3"
     implementation("org.jetbrains.exposed:exposed-core:$exposed")
     implementation("org.jetbrains.exposed:exposed-dao:$exposed")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposed")
     implementation("org.jetbrains.exposed:exposed-java-time:$exposed")
-
     implementation("net.dzikoysk:exposed-upsert:1.0.3")
+    // Drivers
     implementation("org.xerial:sqlite-jdbc:3.36.0.3")
     implementation("mysql:mysql-connector-java:8.0.27")
     implementation("org.mariadb.jdbc:mariadb-java-client:2.7.4")
+    implementation("org.postgresql:postgresql:42.3.1")
+    implementation("com.h2database:h2:2.0.204")
 
     val springSecurityCrypto = "5.6.1"
     implementation("org.springframework.security:spring-security-crypto:$springSecurityCrypto")
@@ -190,6 +192,7 @@ tasks.withType<ShadowJar> {
         exclude(dependency("org.xerial:sqlite-jdbc.*"))
         exclude(dependency("org.sqlite:.*"))
         exclude(dependency("mysql:.*"))
+        exclude(dependency("org.postgresql:.*"))
         exclude(dependency("org.h2:.*"))
         exclude(dependency("com.h2database:.*"))
         exclude(dependency("org.tinylog:.*"))
