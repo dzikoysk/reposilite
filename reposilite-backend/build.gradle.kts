@@ -135,13 +135,8 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junit")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junit")
 
-    val pac4j = "5.1.2"
-    val pac4jcore = "4.0.0-SNAPSHOT"
-    implementation("org.pac4j.javalin-pac4j:$pac4jcore")
-    implementation("org.pac4j.pac4j-oauth:$pac4j")
-    implementation("org.pac4j.pac4j-ldap:$pac4j")
-    implementation("org.pac4j.pac4j-http:$pac4j")
-    implementation("org.pac4j.pac4j-saml:$pac4j")
+    val pac4j = "5.2.1"
+    implementation("org.pac4j:pac4j-core:$pac4j")
 }
 
 sourceSets.main {
