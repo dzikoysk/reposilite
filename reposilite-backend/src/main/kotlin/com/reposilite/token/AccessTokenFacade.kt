@@ -22,6 +22,10 @@ import com.reposilite.token.AccessTokenType.PERSISTENT
 import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.token.api.CreateAccessTokenRequest
 import com.reposilite.token.api.CreateAccessTokenResponse
+import com.reposilite.web.http.ErrorResponse
+import com.reposilite.web.http.notFoundError
+import panda.std.Result
+import panda.std.asSuccess
 
 class AccessTokenFacade internal constructor(
     private val temporaryRepository: AccessTokenRepository,
@@ -53,8 +57,13 @@ class AccessTokenFacade internal constructor(
 
     fun hasPermissionTo(identifier: AccessTokenIdentifier, toPath: String, requiredPermission: RoutePermission): Boolean =
         hasPermission(identifier, MANAGER) || identifier.type.getRepository()
-                .findAccessTokenRoutesById(identifier)
-                .any { it.hasPermissionTo(toPath, requiredPermission) }
+            .findAccessTokenRoutesById(identifier)
+            .any { it.hasPermissionTo(toPath, requiredPermission) }
+
+    fun canSee(identifier: AccessTokenIdentifier, pathFragment: String): Boolean =
+        hasPermission(identifier, MANAGER) || identifier.type.getRepository()
+            .findAccessTokenRoutesById(identifier)
+            .any { it.path.startsWith(pathFragment, ignoreCase = true) }
 
     fun deletePermission(identifier: AccessTokenIdentifier, permission: AccessTokenPermission) =
         identifier.type.getRepository().deletePermission(identifier, permission)
@@ -81,14 +90,13 @@ class AccessTokenFacade internal constructor(
             ?.let { it.identifier.type.getRepository().saveAccessToken(it) }
             ?.toDto()
 
-    fun deleteToken(id: AccessTokenIdentifier) {
-        getAccessTokenById(id)?.apply {
-            identifier.type.getRepository().deleteAccessToken(this.identifier)
-        }
-    }
+    fun deleteToken(id: AccessTokenIdentifier): Result<Unit, ErrorResponse> =
+        getAccessTokenById(id)
+            ?.let { it.identifier.type.getRepository().deleteAccessToken(it.identifier).asSuccess() }
+            ?: notFoundError("Token not found")
 
     private fun getAccessTokenById(id: AccessTokenIdentifier): AccessToken? =
-        temporaryRepository.findAccessTokenById(id) ?: persistentRepository.findAccessTokenById(id)
+        id.type.getRepository().findAccessTokenById(id)
 
     fun getAccessToken(name: String): AccessTokenDto? =
         (temporaryRepository.findAccessTokenByName(name) ?: persistentRepository.findAccessTokenByName(name))?.toDto()

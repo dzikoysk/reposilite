@@ -22,7 +22,6 @@ import com.reposilite.maven.specification.MavenIntegrationSpecification
 import com.reposilite.token.RoutePermission.READ
 import io.javalin.http.HttpCode.UNAUTHORIZED
 import kong.unirest.Unirest.get
-import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -37,7 +36,7 @@ internal abstract class MavenApiIntegrationTest : MavenIntegrationSpecification(
         "/api/maven/details/private/gav/artifact.jar",
     ])
     @ParameterizedTest
-    fun `should respond with protected file details only for authenticated requests`(endpoint: String) = runBlocking {
+    fun `should respond with protected file details only for authenticated requests`(endpoint: String) {
         // given: a private repository with some artifact
         useDocument("private", "gav", "artifact.jar", store = true)
 
@@ -69,7 +68,7 @@ internal abstract class MavenApiIntegrationTest : MavenIntegrationSpecification(
         "api/maven/latest/file",
     ])
     @ParameterizedTest
-    fun `should find latest version`(endpoint: String) = runBlocking {
+    fun `should find latest version`(endpoint: String) {
         // given: a path to the existing artifact
         val latestVersion = "1.0.3"
         val (repository, metadata) = useMetadata("private", "com", "reposilite", versions = listOf("1.0.1", "1.0.2", latestVersion))
@@ -98,7 +97,7 @@ internal abstract class MavenApiIntegrationTest : MavenIntegrationSpecification(
     }
 
     @Test
-    fun `should resolve latest version of snapshot`() = runBlocking {
+    fun `should resolve latest version of snapshot`() {
         val versionIdentifier = "1.0-20211230.200052-3"
         val (repository, gav, _, content) = useDocument("private", "group/artifact/version-SNAPSHOT", "artifact-$versionIdentifier.jar", "content", true)
         val (_) = useDocument(repository, gav, "maven-metadata.xml", """

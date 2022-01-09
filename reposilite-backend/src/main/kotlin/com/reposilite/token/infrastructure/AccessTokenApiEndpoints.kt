@@ -83,7 +83,6 @@ internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessToke
                         .mapNotNull { AccessTokenPermission.findByAny(it) }
                         .forEach { accessTokenFacade.addPermission(token.identifier, it) }
                     }
-                    .accessToken
                 }
                 .getOrElse {
                     unauthorized("Failed to read body")

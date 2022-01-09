@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import panda.std.ResultAssertions.assertOk
 import java.time.LocalDate
 
 internal class AccessTokenFacadeTest : AccessTokenSpecification() {
@@ -58,14 +59,13 @@ internal class AccessTokenFacadeTest : AccessTokenSpecification() {
     fun `should delete token`() = runBlocking {
         // given: an existing token
         val token = createToken("reposilite").accessToken
-        val name = token.name
 
         // when: token is deleted
-        val deletedToken = accessTokenFacade.deleteToken(token.identifier)
+        val result = accessTokenFacade.deleteToken(token.identifier)
 
         // then: proper token has been deleted, and it is no longer available
-        assertEquals(token, deletedToken)
-        assertNull(accessTokenFacade.getAccessToken(name))
+        assertOk(result)
+        assertNull(accessTokenFacade.getAccessToken(token.name))
     }
 
     @Test

@@ -76,14 +76,16 @@ internal class ConsolePlugin : ReposilitePlugin() {
             )
         }
 
-        event { event: ReposiliteStartedEvent ->
-            event.reposilite.ioService.execute {
-                consoleFacade.executeCommand("help")
-                logger.info("")
-                logger.info("Collecting status metrics...")
-                logger.info("")
-                consoleFacade.executeCommand("status")
-                logger.info("")
+        if (extensions().parameters.testEnv.not()) {
+            event { event: ReposiliteStartedEvent ->
+                event.reposilite.ioService.execute {
+                    consoleFacade.executeCommand("help")
+                    logger.info("")
+                    logger.info("Collecting status metrics...")
+                    logger.info("")
+                    consoleFacade.executeCommand("status")
+                    logger.info("")
+                }
             }
         }
 

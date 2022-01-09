@@ -31,7 +31,7 @@ internal class RepositorySecurityProvider(private val accessTokenFacade: AccessT
     fun canAccessRepository(accessToken: AccessTokenDto?, repository: Repository): Boolean =
         when(repository.visibility) {
             PUBLIC -> true
-            HIDDEN, PRIVATE -> hasPermissionTo(accessToken, repository, null, READ)
+            HIDDEN, PRIVATE -> accessToken?.identifier?.let { accessTokenFacade.canSee(it, "/${repository.name}") } ?: false
         }
 
     fun canAccessResource(accessToken: AccessTokenDto?, repository: Repository, gav: Location): Boolean =
@@ -51,9 +51,9 @@ internal class RepositorySecurityProvider(private val accessTokenFacade: AccessT
     fun canModifyResource(accessToken: AccessTokenDto?, repository: Repository, gav: Location): Boolean =
         hasPermissionTo(accessToken, repository, gav, WRITE)
 
-    private fun hasPermissionTo(accessToken: AccessTokenDto?, repository: Repository, gav: Location?, permission: RoutePermission): Boolean =
+    private fun hasPermissionTo(accessToken: AccessTokenDto?, repository: Repository, gav: Location, permission: RoutePermission): Boolean =
         if (accessToken != null)
-            accessTokenFacade.hasPermissionTo(accessToken.identifier, "/${repository.name}" + (gav?.let { "/$it" } ?: ""), permission)
+            accessTokenFacade.hasPermissionTo(accessToken.identifier, "/${repository.name}/$gav", permission)
         else
             false
 

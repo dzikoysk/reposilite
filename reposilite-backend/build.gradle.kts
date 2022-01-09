@@ -133,7 +133,7 @@ dependencies {
     val junit = "5.8.2"
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junit")
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junit")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junit")
+    testImplementation("org.junit.jupiter:junit-jupiter-engine:$junit")
 }
 
 sourceSets.main {
@@ -215,7 +215,10 @@ tasks.withType<Test> {
     }
 
     useJUnitPlatform()
-    maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).takeIf { it > 0 } ?: 1
+
+    maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2)
+        .takeIf { it > 0 }
+        ?: 1
 }
 
 jacoco {
