@@ -1,11 +1,11 @@
 package com.reposilite.plugin.javadoc
 
-import com.reposilite.Reposilite
 import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.shared.ContextDsl
 import com.reposilite.shared.fs.FileType
 import com.reposilite.shared.fs.getExtension
+import com.reposilite.token.api.AccessToken
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.http.ErrorResponse
@@ -25,58 +25,91 @@ import java.nio.file.NoSuchFileException
  * @version 1.0.0
  * @since Dec. 27, 2021
  */
-class JavadocRoute(mavenFacade: MavenFacade, javadocFolder: File, reposilite: Reposilite) : ReposiliteRoutes() {
+class JavadocRoute(mavenFacade: MavenFacade, javadocFolder: File) : ReposiliteRoutes() {
 
     private val extractor: DocExtractor = DocExtractor()
 
-    private val docRoute = ReposiliteRoute("/javadoc/<repo>/<path>", RouteMethod.GET) {
-        val repo = ctx.pathParam("repo")
-        val gav = ctx.pathParam("path").replace(repo + "/".toRegex(), "") // janky IK, maybe a better way to do it?
+    private val docRoute = ReposiliteRoute("/javadoc/{repository}/<gav>", RouteMethod.GET) {
+        accessed {
+            val repo = requiredParameter("repository")
+            val gav = requiredParameter("gav")
 
+            // TODO ability to download zipped javadoc via /javadoc/*/download
 
-        if (gav.contains(".html") || gav.contains(".css") || gav.contains(".js")) {
             val targetFolder = File(javadocFolder, "${repo}${File.separator}${gav}")
+            if (targetFolder.exists() && (gav.endsWith(".html") || gav.endsWith(".css") || gav.endsWith(".js"))) {
 
-            ctx.encoding(Charsets.UTF_8)
-            ctx.contentType(ContentType.getMimeTypeByExtension(uri.getExtension()) ?: ContentType.PLAIN)
-            try {
-                response = Files.readAllLines(targetFolder.toPath()).joinToString(separator = "\n")
-            } catch (e: NoSuchFileException) {
-                response = ErrorResponse(HttpCode.NOT_FOUND, "Resource not found")
-                return@ReposiliteRoute
+                ctx.encoding(Charsets.UTF_8)
+                ctx.contentType(ContentType.getMimeTypeByExtension(uri.getExtension()) ?: ContentType.PLAIN)
+
+                try {
+                    response = Files.readAllLines(targetFolder.toPath()).joinToString(separator = "\n")
+                } catch (e: NoSuchFileException) {
+                    response = ErrorResponse(HttpCode.NOT_FOUND, "Resource not found")
+                    return@accessed
+                }
+                return@accessed
             }
-            return@ReposiliteRoute
-        }
 
-        mavenFacade.findDetails(LookupRequest(null, repo, gav)).consume(
-            { file ->
-                if (file.type === FileType.FILE) {
-                    // TODO make, that the javadoc.jar file should not be passed as URL parameter instead like: /index.html .
-                    //     Therefore construct gav
-                    if (!file.name.contains("-javadoc.jar")) {
-                        response = ErrorResponse(
-                            HttpCode.NOT_FOUND,
-                            "Please do not provide a direct link to a non javadoc file! GAV must be pointing to a directory or a javadoc file!"
-                        )
+            val newGav = constructGav(gav) // constructing new gav to count for non -javadoc.jar ending
+            mavenFacade.findDetails(LookupRequest(this, repo, newGav)).consume(
+                { file ->
+                    if (file.type === FileType.FILE) {
+                        if (!file.name.endsWith("-javadoc.jar")) {
+                            response = ErrorResponse(
+                                HttpCode.NOT_FOUND,
+                                "Please do not provide a direct link to a non javadoc file! GAV must be pointing to a directory or a javadoc file!"
+                            )
+                            return@consume
+                        }
+                        val source = extractJavaDoc(newGav, repo, mavenFacade, javadocFolder, this)
+
+                        ctx.encoding(Charsets.UTF_8)
+                        ctx.contentType(ContentType.TEXT_HTML)
+                        response = source
                         return@consume
                     }
-                    val source = extractJavaDoc(gav, repo, mavenFacade, javadocFolder, reposilite)
 
-                    ctx.encoding(Charsets.UTF_8)
-                    ctx.contentType(ContentType.TEXT_HTML)
-                    response = source
+                    // TODO handle latest
+                    println("hi")
+                    response = file.name
+                }, { error ->
                     return@consume
-                }
-
-                // TODO handle latest
-                response = file.name
-            }, { error ->
-                return@consume
-            })
+                })
+        }
     }
 
-    private fun extractJavaDoc(gav: String, repo: String, mavenFacade: MavenFacade, javadocFolder: File, reposilite: Reposilite): String {
-        val path = gav.substring(0, gav.lastIndexOf("/"))
+    /**
+     * Constructs a new gav from the input gav, so we can handle paths that end with /index.html for example.
+     * This method can be extended further, to support even more ways to get the same javadoc with less URL parameters.
+     */
+    private fun constructGav(gav: String): String {
+        if (gav.endsWith("index.html")) {
+            val path = gav.substringBeforeLast("/index.html")
+            val split = path.split("/".toRegex())
+
+            val version = split[split.size - 1]
+            val name = split[split.size - 2]
+
+            return "${path}/${name}-${version}-javadoc.jar"
+        } else if (gav.endsWith(".jar")) {
+            return gav //original gav
+        }
+
+        val append = if (gav.endsWith("/")) "" else "/"
+        return constructGav(gav + append + "index.html")
+    }
+
+    /**
+     * Retrieves the javadoc jar file from mavenFacade using a LookupRequest.
+     * Then it will extract the files from the jar file, rename index.html to docindex.html and generate a new index.html file using the writeNewIndex method.
+     *
+     * @param gav the direct gav to the javadoc file
+     * @param mavenFacade the MavenFacade to use
+     * @param javadocFolder the target folder in which the files should be extracted
+     */
+    private fun extractJavaDoc(gav: String, repo: String, mavenFacade: MavenFacade, javadocFolder: File, token: AccessToken?): String {
+        val path = gav.substringBeforeLast("/")
         val targetFolder = File(javadocFolder, "${repo}${File.separator}${path}")
         if (targetFolder.exists()) {
             return Files.readAllLines(File(targetFolder, "index.html").toPath()).joinToString(separator = "\n")
@@ -85,7 +118,7 @@ class JavadocRoute(mavenFacade: MavenFacade, javadocFolder: File, reposilite: Re
         targetFolder.mkdirs()
         val targetJar = File(targetFolder, "doc.jar")
 
-        mavenFacade.findFile(LookupRequest(null, repo, gav)).consume(
+        mavenFacade.findFile(LookupRequest(token, repo, gav)).consume(
             { inputStream ->
                 inputStream.use { inStream ->
                     FileOutputStream(targetJar).use {
@@ -100,12 +133,22 @@ class JavadocRoute(mavenFacade: MavenFacade, javadocFolder: File, reposilite: Re
                 return@consume
             }
         )
+
         File(targetFolder, "index.html").renameTo(File(targetFolder, "docindex.html"))
-        writeNewIndex(targetFolder, reposilite)
+        writeNewIndex(targetFolder)
+
         return Files.readAllLines(File(targetFolder, "index.html").toPath()).joinToString(separator = "\n")
     }
 
-    fun writeNewIndex(targetFolder: File, reposilite: Reposilite) {
+    /**
+     * Creates a new index.html file as a "holder" for the actual javadoc, so in the future we can have custom things embedded, like
+     * switching between documents easily, downloading documents etc.
+     *
+     * WARNING/NOTE: this html contains an iframe which points to a docindex.html, that must be in the same directory as the index.html!
+     *
+     * @param targetFolder the folder in which the index file will be generated
+     */
+    fun writeNewIndex(targetFolder: File) {
         val index = File(targetFolder, "index.html")
 
         @Language("html")

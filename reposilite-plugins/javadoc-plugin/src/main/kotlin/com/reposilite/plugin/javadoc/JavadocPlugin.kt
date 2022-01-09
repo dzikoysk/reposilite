@@ -20,6 +20,7 @@ class JavadocPlugin : ReposilitePlugin() {
             logger.info("")
             logger.info("--- javadoc plugin")
             logger.info("JavaDoc plugin has been successfully loaded!")
+
             reposilite = event.reposilite
             javadocFolder = File(reposilite.parameters.workingDirectory.toFile().absolutePath + File.separator + "javadocs")
             if (!javadocFolder.exists()) {
@@ -30,7 +31,7 @@ class JavadocPlugin : ReposilitePlugin() {
         val mavenFacade: MavenFacade = extensions().facade()
 
         extensions().registerEvent(RoutingSetupEvent::class.java) { event: RoutingSetupEvent ->
-            event.registerRoutes(JavadocRoute(mavenFacade, javadocFolder, reposilite))
+            event.registerRoutes(JavadocRoute(mavenFacade, javadocFolder))
         }
 
         return null
