@@ -1,4 +1,5 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 group = "com.reposilite.plugins"
 
@@ -13,7 +14,14 @@ application {
 dependencies {
     // compileOnly("org.panda-lang:reposilite:version") for external plugins
 
+    implementation("net.dzikoysk:exposed-upsert:1.0.3")
     compileOnly(project(":reposilite-backend"))
+}
+
+tasks.withType<KotlinCompile>().configureEach {
+    kotlinOptions {
+        freeCompilerArgs = listOf("-Xjvm-default=all")
+    }
 }
 
 tasks.withType<ShadowJar> {
