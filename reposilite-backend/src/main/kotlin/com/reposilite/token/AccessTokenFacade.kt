@@ -45,7 +45,7 @@ class AccessTokenFacade internal constructor(
     }
 
     fun secretMatches(id: AccessTokenIdentifier, secret: String): Boolean =
-        getAccessTokenById(id)
+        getRawAccessTokenById(id)
             ?.let { AccessTokenSecurityProvider.matches(it.encryptedSecret, secret) }
             ?: false
 
@@ -81,7 +81,7 @@ class AccessTokenFacade internal constructor(
         id.type.getRepository().findAccessTokenRoutesById(id)
 
     fun updateToken(updatedToken: AccessTokenDto): AccessTokenDto? =
-        getAccessTokenById(updatedToken.identifier)
+        getRawAccessTokenById(updatedToken.identifier)
             ?.copy(
                 name = updatedToken.name,
                 createdAt = updatedToken.createdAt,
@@ -91,12 +91,15 @@ class AccessTokenFacade internal constructor(
             ?.toDto()
 
     fun deleteToken(id: AccessTokenIdentifier): Result<Unit, ErrorResponse> =
-        getAccessTokenById(id)
+        getRawAccessTokenById(id)
             ?.let { it.identifier.type.getRepository().deleteAccessToken(it.identifier).asSuccess() }
             ?: notFoundError("Token not found")
 
-    private fun getAccessTokenById(id: AccessTokenIdentifier): AccessToken? =
+    private fun getRawAccessTokenById(id: AccessTokenIdentifier): AccessToken? =
         id.type.getRepository().findAccessTokenById(id)
+
+    fun getAccessTokenById(id: AccessTokenIdentifier): AccessTokenDto? =
+        getRawAccessTokenById(id)?.toDto()
 
     fun getAccessToken(name: String): AccessTokenDto? =
         (temporaryRepository.findAccessTokenByName(name) ?: persistentRepository.findAccessTokenByName(name))?.toDto()

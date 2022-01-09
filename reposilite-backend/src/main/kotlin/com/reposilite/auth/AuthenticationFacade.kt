@@ -17,13 +17,16 @@
 package com.reposilite.auth
 
 import com.reposilite.auth.api.AuthenticationRequest
+import com.reposilite.auth.api.SessionDetails
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
 import com.reposilite.plugin.api.Facade
 import com.reposilite.token.AccessTokenFacade
+import com.reposilite.token.AccessTokenIdentifier
 import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
+import com.reposilite.web.http.notFoundError
 import io.javalin.http.HttpCode.UNAUTHORIZED
 import panda.std.Result
 import panda.std.asSuccess
@@ -38,6 +41,18 @@ class AuthenticationFacade internal constructor(
             ?.takeIf { accessTokenFacade.secretMatches(it.identifier, authenticationRequest.secret) }
             ?.asSuccess()
             ?: errorResponse(UNAUTHORIZED, "Invalid authorization credentials")
+
+    fun geSessionDetails(identifier: AccessTokenIdentifier): Result<SessionDetails, ErrorResponse> =
+        accessTokenFacade.getAccessTokenById(identifier)
+            ?.let {
+                SessionDetails(
+                    it,
+                    accessTokenFacade.getPermissions(it.identifier),
+                    accessTokenFacade.getRoutes(it.identifier)
+                )
+            }
+            ?.asSuccess()
+            ?: notFoundError("Token $identifier not found")
 
     override fun getLogger(): Logger =
         journalist.logger

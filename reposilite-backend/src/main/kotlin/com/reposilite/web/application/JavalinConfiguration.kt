@@ -87,10 +87,10 @@ internal object JavalinConfiguration {
         val accessTokenFacade = extensionManager.facade<AccessTokenFacade>()
         val authenticationFacade = extensionManager.facade<AuthenticationFacade>()
 
-        val plugin = RoutingPlugin<ContextDsl, Unit>(
+        val plugin = RoutingPlugin<ContextDsl<*>, Unit>(
             handler = { ctx, route ->
                 try {
-                    val dsl = ContextDsl(
+                    val dsl = ContextDsl<Any>(
                         reposilite.logger,
                         ctx,
                         accessTokenFacade,

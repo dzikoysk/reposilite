@@ -18,6 +18,7 @@ package com.reposilite.statistics.infrastructure
 
 import com.reposilite.statistics.MAX_PAGE_SIZE
 import com.reposilite.statistics.StatisticsFacade
+import com.reposilite.statistics.api.ResolvedCountResponse
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.routing.RouteMethod.GET
@@ -37,12 +38,12 @@ internal class StatisticsEndpoint(private val statisticsFacade: StatisticsFacade
             OpenApiParam(name = "*", description = "Phrase to search for", required = true, allowEmptyValue = true)
         ],
     )
-    val findCount = ReposiliteRoute("/api/statistics/resolved/{limit}/{repository}/<gav>", GET) {
+    val findCount = ReposiliteRoute<ResolvedCountResponse>("/api/statistics/resolved/{limit}/{repository}/<gav>", GET) {
         authorized("/${requireParameter("repository")}/${requireParameter("gav")}") {
             response = statisticsFacade.findResolvedRequestsByPhrase(requireParameter("repository"), requireParameter("gav"), 1)
         }
     }
 
-    override val routes = setOf(findCount)
+    override val routes = routes(findCount)
 
 }

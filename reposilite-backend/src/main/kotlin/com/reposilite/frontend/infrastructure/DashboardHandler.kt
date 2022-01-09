@@ -53,15 +53,15 @@ internal sealed class FrontendHandler(private val frontendFacade: FrontendFacade
 
 internal class ResourcesFrontendHandler(frontendFacade: FrontendFacade, val resourcesDirectory: String) : FrontendHandler(frontendFacade) {
 
-    private val defaultHandler = ReposiliteRoute("/", GET) {
+    private val defaultHandler = ReposiliteRoute<String>("/", GET) {
         response = respondWithResource(ctx, "index.html")
     }
 
-    private val indexHandler = ReposiliteRoute("/index.html", GET) {
+    private val indexHandler = ReposiliteRoute<String>("/index.html", GET) {
         response = respondWithResource(ctx, "index.html")
     }
 
-    private val assetsHandler = ReposiliteRoute("/assets/<path>", GET) {
+    private val assetsHandler = ReposiliteRoute<String>("/assets/<path>", GET) {
         response = respondWithResource(ctx, "assets/${ctx.pathParam("path")}")
     }
 
@@ -72,18 +72,18 @@ internal class ResourcesFrontendHandler(frontendFacade: FrontendFacade, val reso
                 ?: ""
         }
 
-    override val routes = setOf(defaultHandler, indexHandler, assetsHandler)
+    override val routes = routes(defaultHandler, indexHandler, assetsHandler)
 
 }
 
 internal class CustomFrontendHandler(frontendFacade: FrontendFacade, directory: Path) : FrontendHandler(frontendFacade) {
 
-    override val routes: Set<ReposiliteRoute> = run {
-        val routes = Files.list(directory)
+    override val routes =
+        Files.list(directory)
             .asSequence()
             .map {
                 if (it.isDirectory())
-                    ReposiliteRoute("/${it.fileName}/<path>", GET) {
+                    ReposiliteRoute<String>("/${it.fileName}/<path>", GET) {
                         response = respondWithFile(ctx, it.getSimpleName()) {
                             parameter("path")
                                 .toLocation()
@@ -101,17 +101,16 @@ internal class CustomFrontendHandler(frontendFacade: FrontendFacade, directory: 
                     }
             }
             .toMutableSet()
-
-        routes.add(ReposiliteRoute("/", GET) {
-            response = respondWithFile(ctx, "index.html") { directory.resolve("index.html").decodeToString() }
-        })
-
-        routes
-    }
-
-    private fun Path.decodeToString(): String? =
-        inputStream()
-            .map { it.use { input -> input.readBytes().decodeToString() } }
-            .orNull()
+            .also {
+                it.add(ReposiliteRoute("/", GET) {
+                    response = respondWithFile(ctx, "index.html") { directory.resolve("index.html").decodeToString() }
+                })
+            }
+            .let { routes(*it.toTypedArray()) }
 
 }
+
+private fun Path.decodeToString(): String? =
+    inputStream()
+        .map { it.use { input -> input.readBytes().decodeToString() } }
+        .orNull()

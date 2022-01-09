@@ -21,6 +21,7 @@ import com.reposilite.console.api.ExecutionResponse
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.http.ErrorResponse
+import com.reposilite.web.http.unauthorizedError
 import com.reposilite.web.routing.RouteMethod.POST
 import io.javalin.http.HttpCode.UNAUTHORIZED
 import io.javalin.openapi.HttpMethod
@@ -56,12 +57,12 @@ internal class ConsoleEndpoint(private val consoleFacade: ConsoleFacade) : Repos
             )
         ]
     )
-    private val executeCommand = ReposiliteRoute("/api/console/execute", POST) {
+    private val executeCommand = ReposiliteRoute<ExecutionResponse>("/api/console/execute", POST) {
         logger.info("REMOTE EXECUTION $uri from ${ctx.ip()}")
 
         authenticated {
             if (!isManager()) {
-                response = ErrorResponse(UNAUTHORIZED, "Authenticated user is not a manager")
+                response = unauthorizedError("Authenticated user is not a manager")
                 return@authenticated
             }
 
@@ -70,6 +71,6 @@ internal class ConsoleEndpoint(private val consoleFacade: ConsoleFacade) : Repos
         }
     }
 
-    override val routes = setOf(executeCommand)
+    override val routes = routes(executeCommand)
 
 }

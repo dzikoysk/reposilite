@@ -64,7 +64,7 @@ internal class MavenEndpoints(
             OpenApiResponse(status = "404", description = "Returns 404 (for Maven) with frontend (for user) as a response if requested resource is not located in the current repository")
         ]
     )
-    private val findFile = ReposiliteRoute("/{repository}/<gav>", HEAD, GET) {
+    private val findFile = ReposiliteRoute<Unit>("/{repository}/<gav>", HEAD, GET) {
         accessed {
             LookupRequest(this, requireParameter("repository"), requireParameter("gav").toLocation()).let { request ->
                 mavenFacade.findDetails(request)
@@ -93,7 +93,7 @@ internal class MavenEndpoints(
             OpenApiResponse(status = "507", description = "Returns 507 if Reposilite does not have enough disk space to store the uploaded file")
         ]
     )
-    private val deployFile = ReposiliteRoute("/{repository}/<gav>", POST, PUT) {
+    private val deployFile = ReposiliteRoute<Unit>("/{repository}/<gav>", POST, PUT) {
         authorized {
             response = mavenFacade.deployFile(DeployRequest(requireParameter("repository"), requireParameter("gav").toLocation(), getSessionIdentifier(), ctx.bodyAsInputStream()))
                 .onError { logger.debug("Cannot deploy artifact due to: ${it.message}") }
@@ -110,12 +110,12 @@ internal class MavenEndpoints(
             OpenApiParam(name = "*", description = "Artifact path qualifier", required = true)
         ]
     )
-    private val deleteFile = ReposiliteRoute("/{repository}/<gav>", DELETE) {
+    private val deleteFile = ReposiliteRoute<Unit>("/{repository}/<gav>", DELETE) {
         authorized {
             response = mavenFacade.deleteFile(DeleteRequest(this, requireParameter("repository"), requireParameter("gav").toLocation()))
         }
     }
 
-    override val routes = setOf(findFile, deployFile, deleteFile)
+    override val routes = routes(findFile, deployFile, deleteFile)
 
 }

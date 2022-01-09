@@ -23,16 +23,16 @@ import com.reposilite.token.RoutePermission
 import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.error
-import com.reposilite.web.http.unauthorized
+import com.reposilite.web.http.unauthorizedError
 import com.reposilite.web.http.uri
 import io.javalin.http.Context
 import panda.std.Result
 
-class ContextDsl(
+class ContextDsl<R>(
     val logger: Logger,
     val ctx: Context,
-    val accessTokenFacade: AccessTokenFacade,
-    val authenticationResult: Lazy<Result<AccessTokenDto, ErrorResponse>>
+    private val accessTokenFacade: AccessTokenFacade,
+    private val authenticationResult: Lazy<Result<AccessTokenDto, ErrorResponse>>
 ) {
 
     val uri = ctx.uri()
@@ -40,7 +40,7 @@ class ContextDsl(
     /**
      * Response to send at the end of the dsl call
      */
-    var response: Any? = null
+    var response: Result<out R, ErrorResponse>? = null
 
     /**
      * Request was created by either anonymous user or through authenticated token
@@ -66,7 +66,7 @@ class ContextDsl(
             if (isAuthorized(to))
                 init(this)
             else
-                response = unauthorized("Invalid credentials")
+                response = unauthorizedError("Invalid credentials")
         }
     }
 
@@ -78,7 +78,7 @@ class ContextDsl(
             if (isManager())
                 block(this)
             else
-                response = unauthorized("Only manager can access this endpoint")
+                response = unauthorizedError("Only manager can access this endpoint")
         }
     }
 
@@ -105,6 +105,9 @@ class ContextDsl(
 
     fun getSessionIdentifier(): String =
         authenticationResult.value.fold({ "${it.name}@${ctx.ip()}" }, { ctx.ip() })
+
+    fun authentication(): Result<AccessTokenDto, ErrorResponse> =
+        authenticationResult.value
 
     private companion object {
         private val METHOD_PERMISSIONS = mapOf(

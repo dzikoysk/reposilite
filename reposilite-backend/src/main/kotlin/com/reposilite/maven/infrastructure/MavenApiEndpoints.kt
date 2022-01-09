@@ -19,6 +19,7 @@ package com.reposilite.maven.infrastructure
 import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.VersionLookupRequest
+import com.reposilite.maven.api.VersionsResponse
 import com.reposilite.shared.ContextDsl
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.toLocation
@@ -31,6 +32,7 @@ import io.javalin.openapi.OpenApi
 import io.javalin.openapi.OpenApiContent
 import io.javalin.openapi.OpenApiParam
 import io.javalin.openapi.OpenApiResponse
+import panda.std.asSuccess
 
 internal class MavenApiEndpoints(private val mavenFacade: MavenFacade) : ReposiliteRoutes() {
 
@@ -61,11 +63,11 @@ internal class MavenApiEndpoints(private val mavenFacade: MavenFacade) : Reposil
             )
         ]
     )
-    private val findFileDetails: ContextDsl.() -> Unit = {
+    private val findFileDetails: ContextDsl<FileDetails>.() -> Unit = {
         accessed {
             response = parameter("repository")
                 ?.let { repository -> mavenFacade.findDetails(LookupRequest(this, repository, wildcard("gav").toLocation())) }
-                ?: mavenFacade.findRepositories(this)
+                ?: mavenFacade.findRepositories(this).asSuccess()
         }
     }
 
@@ -85,12 +87,19 @@ internal class MavenApiEndpoints(private val mavenFacade: MavenFacade) : Reposil
             OpenApiParam(name = "filter", description = "Version (prefix) filter to apply", required = false),
         ]
     )
-    private val findVersions = ReposiliteRoute("/api/maven/versions/{repository}/<gav>", GET) {
+    private val findVersions = ReposiliteRoute<VersionsResponse>("/api/maven/versions/{repository}/<gav>", GET) {
         accessed {
-            response = mavenFacade.findVersions(VersionLookupRequest(this, requireParameter("repository"), requireParameter("gav").toLocation(), ctx.queryParam("filter")))
+            response = mavenFacade.findVersions(
+                VersionLookupRequest(
+                    accessToken = this,
+                    repository = requireParameter("repository"),
+                    gav = requireParameter("gav").toLocation(),
+                    filter = ctx.queryParam("filter")
+                )
+            )
         }
     }
 
-    override val routes = setOf(findRepositories, findRepository, findInRepository, findVersions)
+    override val routes = routes(findRepositories, findRepository, findInRepository, findVersions)
 
 }
