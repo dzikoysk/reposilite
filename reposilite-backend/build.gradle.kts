@@ -26,6 +26,7 @@ plugins {
     kotlin("jvm")
     kotlin("kapt")
     id("com.coditory.integration-test") version "1.3.0"
+    id("com.github.johnrengelman.shadow") version "7.1.1"
 }
 
 application {
