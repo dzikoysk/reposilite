@@ -9,6 +9,7 @@
     ],
     "Services": [
       "docker", 
+      "docker-compose",
       "cdn",
       "reverse-proxy",
       "reverse-proxy-ssl",
