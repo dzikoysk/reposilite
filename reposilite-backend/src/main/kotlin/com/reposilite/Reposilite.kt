@@ -24,6 +24,8 @@ import com.reposilite.plugin.api.ReposilitePostInitializeEvent
 import com.reposilite.plugin.api.ReposiliteStartedEvent
 import com.reposilite.shared.extensions.peek
 import com.reposilite.web.HttpServer
+import panda.std.Result
+import panda.std.Result.ok
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.atomic.AtomicBoolean
@@ -45,7 +47,7 @@ class Reposilite(
         alive.peek { shutdown() }
     }
 
-    fun launch() {
+    fun launch(): Result<Unit, Exception> =
         try {
             extensions.emitEvent(ReposiliteInitializeEvent(this))
             extensions.emitEvent(ReposilitePostInitializeEvent(this))
@@ -56,12 +58,14 @@ class Reposilite(
             webServer.start(this)
             Runtime.getRuntime().addShutdownHook(shutdownHook)
             extensions.emitEvent(ReposiliteStartedEvent(this))
-        } catch (exception: Exception) {
+            ok(Unit)
+        }
+        catch (exception: Exception) {
             logger.error("Failed to start Reposilite")
             logger.exception(exception)
             shutdown()
+            error(exception)
         }
-    }
 
     fun shutdown() =
         alive.peek {

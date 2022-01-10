@@ -103,15 +103,17 @@ internal abstract class ReposiliteRunner {
 
             cdn.render(sharedConfiguration, Source.of(reposiliteWorkingDirectory.resolve("configuration.shared.cdn")))
 
-            reposilite = ReposiliteFactory.createReposilite(parameters, logger)
-            reposilite.journalist.setVisibleThreshold(Channel.WARN)
+            val reposiliteInstance = ReposiliteFactory.createReposilite(parameters, logger)
+            reposiliteInstance.journalist.setVisibleThreshold(Channel.WARN)
 
-            try {
-                reposilite.launch()
-                break
-            } catch (bind: JavalinBindException) {
+            val launchResult = reposiliteInstance.launch()
+
+            if (launchResult.isErr && launchResult.error is JavalinBindException) {
                 continue // ignore, find a new one
             }
+
+            this.reposilite = reposiliteInstance
+            break
         }
     }
 
