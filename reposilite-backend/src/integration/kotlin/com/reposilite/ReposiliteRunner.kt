@@ -17,6 +17,7 @@
 package com.reposilite
 
 import com.reposilite.journalist.Channel
+import com.reposilite.journalist.Logger
 import com.reposilite.journalist.backend.PrintStreamLogger
 import com.reposilite.settings.api.LocalConfiguration
 import com.reposilite.settings.api.SharedConfiguration
@@ -27,6 +28,7 @@ import net.dzikoysk.cdn.source.Source
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
+import panda.std.Result
 import panda.std.reactive.ReferenceUtils
 import java.io.File
 import java.io.PrintStream
@@ -66,53 +68,51 @@ internal abstract class ReposiliteRunner {
         // disable log.txt to avoid conflicts with parallel testing
         System.setProperty("tinylog.writerFile.level", "off")
         val logger = PrintStreamLogger(PrintStream(Files.createTempFile("reposilite", "test-out").toFile()), System.err, Channel.ALL, false)
+        var launchResult: Result<Reposilite, Exception>? = null
 
-        while (true) {
-            val port = 10000 + 2 * ThreadLocalRandom.current().nextInt(30_000 / 2)
+        while (launchResult?.errorToOption()?.`is`(JavalinBindException::class.java)?.isPresent != false) {
+            launchResult = prepareInstance(logger).peek { reposilite = it }
+        }
+    }
 
-            val parameters = ReposiliteParameters()
-            parameters.sharedConfigurationMode = "copy"
-            parameters.tokenEntries = arrayOf("${DEFAULT_TOKEN.first}:${DEFAULT_TOKEN.second}")
-            parameters.workingDirectoryName = reposiliteWorkingDirectory.absolutePath
-            parameters.testEnv = true
-            parameters.port = port
-            parameters.run()
+    private fun prepareInstance(logger: Logger): Result<Reposilite, Exception> {
+        val parameters = ReposiliteParameters()
+        parameters.sharedConfigurationMode = "copy"
+        parameters.tokenEntries = arrayOf("${DEFAULT_TOKEN.first}:${DEFAULT_TOKEN.second}")
+        parameters.workingDirectoryName = reposiliteWorkingDirectory.absolutePath
+        parameters.testEnv = true
+        parameters.port = 10000 + 2 * ThreadLocalRandom.current().nextInt(30_000 / 2)
+        parameters.run()
 
-            val localConfiguration = LocalConfiguration().also {
-                ReferenceUtils.setValue(it.database, _database)
-                ReferenceUtils.setValue(it.webThreadPool, 5)
-                ReferenceUtils.setValue(it.ioThreadPool, 2)
-            }
+        val localConfiguration = LocalConfiguration().also {
+            ReferenceUtils.setValue(it.database, _database)
+            ReferenceUtils.setValue(it.webThreadPool, 5)
+            ReferenceUtils.setValue(it.ioThreadPool, 2)
+        }
 
-            val cdn = KCdnFactory.createStandard()
-            cdn.render(localConfiguration, Source.of(reposiliteWorkingDirectory.resolve("configuration.local.cdn")))
+        val cdn = KCdnFactory.createStandard()
+        cdn.render(localConfiguration, Source.of(reposiliteWorkingDirectory.resolve("configuration.local.cdn")))
 
-            val sharedConfiguration = SharedConfiguration().also {
-                val proxiedConfiguration = RepositoryConfiguration()
-                proxiedConfiguration.proxied = mutableListOf("http://localhost:${parameters.port + 1}/releases")
+        val sharedConfiguration = SharedConfiguration().also {
+            val proxiedConfiguration = RepositoryConfiguration()
+            proxiedConfiguration.proxied = mutableListOf("http://localhost:${parameters.port + 1}/releases")
 
-                val updatedRepositories = it.repositories.get().toMutableMap()
-                updatedRepositories["proxied"] = proxiedConfiguration
-                it.repositories.update(updatedRepositories)
+            val updatedRepositories = it.repositories.get().toMutableMap()
+            updatedRepositories["proxied"] = proxiedConfiguration
+            it.repositories.update(updatedRepositories)
 
-                it.repositories.get().forEach { (repositoryName, repositoryConfiguration) ->
-                    repositoryConfiguration.redeployment = true
-                    repositoryConfiguration.storageProvider = _storageProvider.replace("{repository}", repositoryName)
-                }
-            }
-
-            cdn.render(sharedConfiguration, Source.of(reposiliteWorkingDirectory.resolve("configuration.shared.cdn")))
-
-            reposilite = ReposiliteFactory.createReposilite(parameters, logger)
-            reposilite.journalist.setVisibleThreshold(Channel.WARN)
-
-            try {
-                reposilite.launch()
-                break
-            } catch (bind: JavalinBindException) {
-                continue // ignore, find a new one
+            it.repositories.get().forEach { (repositoryName, repositoryConfiguration) ->
+                repositoryConfiguration.redeployment = true
+                repositoryConfiguration.storageProvider = _storageProvider.replace("{repository}", repositoryName)
             }
         }
+
+        cdn.render(sharedConfiguration, Source.of(reposiliteWorkingDirectory.resolve("configuration.shared.cdn")))
+
+        val reposiliteInstance = ReposiliteFactory.createReposilite(parameters, logger)
+        reposiliteInstance.journalist.setVisibleThreshold(Channel.WARN)
+
+        return reposiliteInstance.launch()
     }
 
     @AfterEach

@@ -76,7 +76,7 @@ internal class CliEndpoint(
         return authenticationMessageToCredentials(authMessage)
             .map { (name, secret) -> AuthenticationRequest(name, secret) }
             .flatMap { authenticationFacade.authenticateByCredentials(it) }
-            .filterNot({ accessTokenFacade.hasPermission(it.identifier, MANAGER) }, {
+            .filter({ accessTokenFacade.hasPermission(it.identifier, MANAGER) }, {
                 journalist.logger.info("CLI | Unauthorized CLI access request from ${address(connection)}")
                 unauthorized("Unauthorized connection request")
             })

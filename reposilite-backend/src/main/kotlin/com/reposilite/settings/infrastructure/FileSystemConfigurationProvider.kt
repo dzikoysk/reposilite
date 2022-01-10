@@ -16,7 +16,6 @@ import net.dzikoysk.cdn.CdnException
 import net.dzikoysk.cdn.source.Source
 import panda.std.Result
 import panda.std.Result.ok
-import panda.std.Unit
 import panda.std.function.ThrowingFunction
 import java.nio.file.Path
 import java.util.concurrent.ScheduledExecutorService
@@ -56,7 +55,7 @@ internal class FileSystemConfigurationProvider<C : Any>(
             .flatMap { render() }
             .map { configuration }
 
-    fun render(): Result<String, CdnException> =
+    private fun render(): Result<String, CdnException> =
         when (mode) {
             "none" -> ok("")
             "copy" -> cdn.render(configuration, Source.of(workingDirectory.resolve(name)))
@@ -74,7 +73,7 @@ internal class FileSystemConfigurationProvider<C : Any>(
         }
     }
 
-    override fun resolve(name: String): Result<SettingsResponse, ErrorResponse> =
+    override fun resolve(configurationName: String): Result<SettingsResponse, ErrorResponse> =
         cdn.render(configuration)
             .map { SettingsResponse(APPLICATION_CDN, it) }
             .mapErr { ErrorResponse(INTERNAL_SERVER_ERROR, "Cannot render ${displayName.lowercase()}: ${it.message}") }
@@ -83,7 +82,7 @@ internal class FileSystemConfigurationProvider<C : Any>(
         when (request.name) {
             name -> load(Source.of(request.content))
                 .peek { journalist?.logger?.info("Updating ${displayName.lowercase()} in local source") }
-                .mapToUnit()
+                .map { /* Unit */ }
                 .mapErr { ErrorResponse(INTERNAL_SERVER_ERROR, "Cannot load configuration") }
             else -> errorResponse(BAD_REQUEST, "Unknown ${displayName.lowercase()}: ${request.name}")
         }
