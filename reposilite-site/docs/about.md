@@ -4,11 +4,11 @@ title: About
 sidebar_label: About
 ---
 
-Reposilite *(formerly NanoMaven)* is lightweight repository manager for Maven artifacts. It is a simple solution to replace managers like Nexus, Archiva or Artifactory.
+Reposilite *(formerly NanoMaven)* is a lightweight repository manager for Maven artifacts. It is a simple solution to replace managers like Nexus, Archiva or Artifactory.
 
 ### Platform
 
-Reposilite is an open source and its development takes place on GitHub:
+Reposilite is an open source project and its development takes place on GitHub:
 
 * [github.com/dzikoysk/reposilite](https://github.com/dzikoysk/reposilite)
 
