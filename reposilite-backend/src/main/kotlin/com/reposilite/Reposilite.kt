@@ -47,7 +47,7 @@ class Reposilite(
         alive.peek { shutdown() }
     }
 
-    fun launch(): Result<Unit, Exception> =
+    fun launch(): Result<Reposilite, Exception> =
         try {
             extensions.emitEvent(ReposiliteInitializeEvent(this))
             extensions.emitEvent(ReposilitePostInitializeEvent(this))
@@ -58,7 +58,7 @@ class Reposilite(
             webServer.start(this)
             Runtime.getRuntime().addShutdownHook(shutdownHook)
             extensions.emitEvent(ReposiliteStartedEvent(this))
-            ok(Unit)
+            ok(this)
         }
         catch (exception: Exception) {
             logger.error("Failed to start Reposilite")
