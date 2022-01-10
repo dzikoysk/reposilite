@@ -1,6 +1,6 @@
 package com.reposilite.maven.api
 
-import com.reposilite.storage.Location
+import com.reposilite.storage.api.Location
 
 class LatestBadgeRequest(
     val repository: String,

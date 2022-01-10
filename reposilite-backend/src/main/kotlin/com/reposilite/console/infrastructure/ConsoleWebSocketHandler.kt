@@ -17,16 +17,20 @@ package com.reposilite.console.infrastructure
 
 import com.reposilite.ReposiliteJournalist
 import com.reposilite.auth.AuthenticationFacade
+import com.reposilite.auth.api.AuthenticationRequest
 import com.reposilite.console.ConsoleFacade
-import com.reposilite.token.api.AccessTokenPermission.MANAGER
+import com.reposilite.token.AccessTokenFacade
+import com.reposilite.token.AccessTokenPermission.MANAGER
+import com.reposilite.web.http.ErrorResponse
+import com.reposilite.web.http.extractFromString
+import com.reposilite.web.http.unauthorized
+import com.reposilite.web.http.unauthorizedError
 import io.javalin.openapi.HttpMethod
 import io.javalin.openapi.OpenApi
 import io.javalin.websocket.WsConfig
 import io.javalin.websocket.WsContext
 import io.javalin.websocket.WsMessageContext
 import panda.std.Result
-import panda.std.Result.error
-import panda.std.Result.ok
 import panda.std.reactive.Reference
 import panda.utilities.StringUtils
 import java.util.function.Consumer
@@ -35,6 +39,7 @@ private const val AUTHORIZATION_PREFIX = "Authorization:"
 
 internal class CliEndpoint(
     private val journalist: ReposiliteJournalist,
+    private val accessTokenFacade: AccessTokenFacade,
     private val authenticationFacade: AuthenticationFacade,
     private val consoleFacade: ConsoleFacade,
     private val forwardedIp: Reference<String>
@@ -60,24 +65,27 @@ internal class CliEndpoint(
         }
     }
 
-    private fun authenticateContext(connection: WsMessageContext): Result<String, String> {
+    private fun authenticateContext(connection: WsMessageContext): Result<String, ErrorResponse> {
         val authMessage = connection.message()
 
         if (!authMessage.startsWith(AUTHORIZATION_PREFIX)) {
             journalist.logger.info("CLI | Unauthorized CLI access request from ${address(connection)} (missing credentials)")
-            return error("Unauthorized connection request")
+            return unauthorizedError("Unauthorized connection request")
         }
 
-        val credentials = StringUtils.replaceFirst(authMessage, AUTHORIZATION_PREFIX, "")
-        val auth = authenticationFacade.authenticateByCredentials(credentials)
-
-        if (!auth.isOk || !auth.get().hasPermission(MANAGER)) {
-            journalist.logger.info("CLI | Unauthorized CLI access request from ${address(connection)}")
-            return error("Unauthorized connection request")
-        }
-
-        return ok("${auth.get().name}@${address(connection)}")
+        return authenticationMessageToCredentials(authMessage)
+            .map { (name, secret) -> AuthenticationRequest(name, secret) }
+            .flatMap { authenticationFacade.authenticateByCredentials(it) }
+            .filterNot({ accessTokenFacade.hasPermission(it.identifier, MANAGER) }, {
+                journalist.logger.info("CLI | Unauthorized CLI access request from ${address(connection)}")
+                unauthorized("Unauthorized connection request")
+            })
+            .map { "${it.name}@${address(connection)}" }
     }
+
+    private fun authenticationMessageToCredentials(message: String): Result<AuthenticationRequest, ErrorResponse> =
+        extractFromString(StringUtils.replaceFirst(message, AUTHORIZATION_PREFIX, ""))
+            .map { (name, secret) -> AuthenticationRequest(name, secret) }
 
     private fun initializeAuthenticatedContext(ws: WsConfig, connection: WsContext, session: String) {
         ws.onMessage {

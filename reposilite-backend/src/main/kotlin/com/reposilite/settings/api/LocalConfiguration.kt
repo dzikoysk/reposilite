@@ -105,7 +105,7 @@ class LocalConfiguration : Serializable {
 //    var reactiveMode = true
 
     @Description("")
-    @Description("# Max amount of threads used by core thread pool (min: 4)")
+    @Description("# Max amount of threads used by core thread pool (min: 5)")
     @Description("# The web thread pool handles first few steps of incoming http connections, as soon as possible all tasks are redirected to IO thread pool.")
     val webThreadPool = reference(32)
 

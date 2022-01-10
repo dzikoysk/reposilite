@@ -16,18 +16,21 @@
 
 package com.reposilite.token.api
 
+import com.reposilite.token.AccessTokenType
+
 data class CreateAccessTokenRequest(
+    val type: AccessTokenType,
     val name: String,
-    val secret: String? = null,
-    val permissions: Set<AccessTokenPermission> = emptySet()
+    val secret: String? = null
 )
 
 data class CreateAccessTokenWithNoNameRequest(
+    val type: AccessTokenType,
     val secret: String? = null,
-    val permissions: Collection<String> = emptySet()
+    val permissions: Set<String>
 )
 
 data class CreateAccessTokenResponse(
-    val accessToken: AccessToken,
+    val accessToken: AccessTokenDto,
     val secret: String,
 )

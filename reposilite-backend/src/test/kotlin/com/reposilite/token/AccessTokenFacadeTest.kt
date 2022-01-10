@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import panda.std.ResultAssertions.assertOk
 import java.time.LocalDate
 
 internal class AccessTokenFacadeTest : AccessTokenSpecification() {
@@ -50,7 +51,7 @@ internal class AccessTokenFacadeTest : AccessTokenSpecification() {
         accessTokenFacade.updateToken(updatedToken)
 
         // then: stored token should be updated
-        val storedToken = accessTokenFacade.getToken("reposilite")!!
+        val storedToken = accessTokenFacade.getAccessToken("reposilite")!!
         assertEquals("reposilite", storedToken.name)
     }
 
@@ -58,14 +59,13 @@ internal class AccessTokenFacadeTest : AccessTokenSpecification() {
     fun `should delete token`() = runBlocking {
         // given: an existing token
         val token = createToken("reposilite").accessToken
-        val name = token.name
 
         // when: token is deleted
-        val deletedToken = accessTokenFacade.deleteToken(name)
+        val result = accessTokenFacade.deleteToken(token.identifier)
 
         // then: proper token has been deleted, and it is no longer available
-        assertEquals(token, deletedToken)
-        assertNull(accessTokenFacade.getToken(name))
+        assertOk(result)
+        assertNull(accessTokenFacade.getAccessToken(token.name))
     }
 
     @Test
@@ -74,7 +74,7 @@ internal class AccessTokenFacadeTest : AccessTokenSpecification() {
         val token = createToken("reposilite").accessToken
 
         // when: token is requested by its name
-        val foundToken = accessTokenFacade.getToken(token.name)
+        val foundToken = accessTokenFacade.getAccessToken(token.name)
 
         // then: proper token has been found
         assertEquals(token, foundToken)

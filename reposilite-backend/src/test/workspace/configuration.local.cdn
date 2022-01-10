@@ -30,7 +30,7 @@ keyStorePassword: reposilite
 # Redirect http traffic to https
 enforceSsl: false
 
-# Max amount of threads used by core thread pool (min: 4)
+# Max amount of threads used by core thread pool (min: 5)
 # The web thread pool handles first few steps of incoming http connections, as soon as possible all tasks are redirected to IO thread pool.
 webThreadPool: 32
 # IO thread pool handles all tasks that may benefit from non-blocking IO (min: 2)

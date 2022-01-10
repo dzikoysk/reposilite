@@ -1,9 +1,9 @@
 package com.reposilite.maven
 
 import com.reposilite.shared.http.RemoteClient
-import com.reposilite.storage.Location
 import com.reposilite.storage.api.FileDetails
-import com.reposilite.storage.toLocation
+import com.reposilite.storage.api.Location
+import com.reposilite.storage.api.toLocation
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.notFound
 import panda.std.Result

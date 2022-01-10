@@ -1,5 +1,6 @@
 package com.reposilite.storage
 
+import com.reposilite.storage.api.Location
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import panda.std.ResultAssertions.assertError

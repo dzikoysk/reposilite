@@ -21,6 +21,8 @@ public abstract class ReposilitePlugin implements Journalist {
     /**
      * Called when plugin is loaded using {@link com.reposilite.plugin.PluginLoader}.
      * There is no guarantee of order of load, so you cannot relay on other dependencies here.
+     *
+     * @param loader the loader instance used to load this plugin
      */
     public void load(@NotNull PluginLoader loader) {}
 

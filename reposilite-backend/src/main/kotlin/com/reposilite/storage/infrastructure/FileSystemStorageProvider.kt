@@ -17,7 +17,6 @@
 package com.reposilite.storage.infrastructure
 
 import com.reposilite.storage.FilesComparator
-import com.reposilite.storage.Location
 import com.reposilite.storage.StorageProvider
 import com.reposilite.storage.VersionComparator
 import com.reposilite.storage.api.DirectoryInfo
@@ -25,6 +24,7 @@ import com.reposilite.storage.api.DocumentInfo
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.FileType.DIRECTORY
 import com.reposilite.storage.api.FileType.FILE
+import com.reposilite.storage.api.Location
 import com.reposilite.storage.api.SimpleDirectoryInfo
 import com.reposilite.storage.getExtension
 import com.reposilite.storage.getSimpleName
