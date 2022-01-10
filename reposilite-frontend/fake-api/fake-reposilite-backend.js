@@ -138,19 +138,27 @@ application
   .get('/api/auth/me', (req, res) => {
     authorized(req,
       () => res.send({
-        id: 1,
-        name: 'name',
-        createdAt: Date.now(),
+        accessToken: {
+          id: 1,
+          name: 'name',
+          createdAt: Date.now(),
+          description: 'Description'
+        },
         permissions: [
           { identifier: 'access-token:manager' }
         ],
         routes: [
           {
             path: '/',
-            permissions: [
-              { identifier: 'route:read' },
-              { identifier: 'route:write' }
-            ]
+            permission: {
+              identifier: 'route:read'
+            }
+          },
+          {
+            path: '/',
+            permission: {
+              identifier: 'route:write'
+            }
           }
         ]
       }),

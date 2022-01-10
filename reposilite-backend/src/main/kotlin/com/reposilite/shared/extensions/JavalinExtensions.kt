@@ -15,7 +15,7 @@ internal fun Context.resultAttachment(
     contentLength: Long,
     compressionStrategy: String,
     data: InputStream
-): Context {
+) {
     if (!contentType.isHumanReadable) {
         contentDisposition("""attachment; filename="$name"; filename*=utf-8''${URLEncoder.encode(name, "utf-8")}""")
     }
@@ -31,5 +31,4 @@ internal fun Context.resultAttachment(
     }
 
     contentType(contentType)
-    return this
 }

@@ -19,7 +19,7 @@ package com.reposilite
 import com.reposilite.settings.api.LocalConfiguration
 import com.reposilite.settings.application.SettingsPlugin.Companion.LOCAL_CONFIGURATION_FILE
 import com.reposilite.settings.application.SettingsPlugin.Companion.SHARED_CONFIGURATION_FILE
-import com.reposilite.token.api.AccessTokenPermission.MANAGER
+import com.reposilite.token.AccessTokenType.TEMPORARY
 import com.reposilite.token.api.CreateAccessTokenRequest
 import picocli.CommandLine.Command
 import picocli.CommandLine.Option
@@ -86,7 +86,7 @@ class ReposiliteParameters : Runnable {
 
         this.tokens = tokenEntries
             .map { it.split(":", limit = 2) }
-            .map { (name, secret) -> CreateAccessTokenRequest(name, secret, setOf(MANAGER)) }
+            .map { (name, secret) -> CreateAccessTokenRequest(TEMPORARY, name, secret) }
     }
 
     fun applyLoadedConfiguration(localConfiguration: LocalConfiguration) {

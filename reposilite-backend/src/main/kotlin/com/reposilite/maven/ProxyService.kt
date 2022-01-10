@@ -20,8 +20,8 @@ import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
 import com.reposilite.settings.api.SharedConfiguration.RepositoryConfiguration.ProxiedHostConfiguration
 import com.reposilite.shared.extensions.firstOrErrors
-import com.reposilite.storage.Location
 import com.reposilite.storage.api.FileDetails
+import com.reposilite.storage.api.Location
 import com.reposilite.web.http.ErrorResponse
 import io.javalin.http.HttpCode.NOT_FOUND
 import panda.std.Result

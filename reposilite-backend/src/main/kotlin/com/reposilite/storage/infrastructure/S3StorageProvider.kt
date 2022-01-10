@@ -18,13 +18,13 @@ package com.reposilite.storage.infrastructure
 
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
+import com.reposilite.storage.StorageProvider
 import com.reposilite.storage.api.DirectoryInfo
 import com.reposilite.storage.api.DocumentInfo
 import com.reposilite.storage.api.FileDetails
+import com.reposilite.storage.api.Location
 import com.reposilite.storage.api.SimpleDirectoryInfo
-import com.reposilite.storage.Location
-import com.reposilite.storage.StorageProvider
-import com.reposilite.storage.toLocation
+import com.reposilite.storage.api.toLocation
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
 import io.javalin.http.ContentType

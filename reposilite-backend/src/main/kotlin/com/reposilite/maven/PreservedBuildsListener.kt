@@ -2,7 +2,7 @@ package com.reposilite.maven
 
 import com.reposilite.maven.api.DeployEvent
 import com.reposilite.plugin.api.EventListener
-import com.reposilite.storage.Location
+import com.reposilite.storage.api.Location
 import com.reposilite.web.http.ErrorResponse
 import panda.std.Result
 import panda.std.Result.ok

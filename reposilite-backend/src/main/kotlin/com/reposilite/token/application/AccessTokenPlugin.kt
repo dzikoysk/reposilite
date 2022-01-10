@@ -24,6 +24,7 @@ import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
 import com.reposilite.settings.SettingsFacade
 import com.reposilite.token.AccessTokenFacade
+import com.reposilite.token.AccessTokenPermission.MANAGER
 import com.reposilite.token.ChModCommand
 import com.reposilite.token.ChNameCommand
 import com.reposilite.token.KeygenCommand
@@ -53,7 +54,8 @@ internal class AccessTokenPlugin : ReposilitePlugin() {
         )
 
         extensions().parameters.tokens.forEach {
-            accessTokenFacade.createTemporaryAccessToken(it)
+            val (token) = accessTokenFacade.createAccessToken(it)
+            accessTokenFacade.addPermission(token.identifier, MANAGER)
         }
 
         event { event: CommandsSetupEvent ->

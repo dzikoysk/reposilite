@@ -33,7 +33,7 @@ class HttpServer {
     private var webThreadPool: QueuedThreadPool? = null
 
     fun start(reposilite: Reposilite) =
-        runWithDisabledLogging {
+        run {
             val extensionsManagement = reposilite.extensions
             val settingsFacade = extensionsManagement.facade<SettingsFacade>()
 

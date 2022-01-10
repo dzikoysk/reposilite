@@ -25,12 +25,12 @@ private const val WWW_BASIC_REALM = """Basic realm="Reposilite", charset="UTF-8"
 
 internal class PostAuthHandler : ReposiliteRoutes() {
 
-    private val realmDescription = ReposiliteRoute("/{repository}/<*>", AFTER) {
-        if (ctx.status() == UNAUTHORIZED.status && uri.startsWith("/api").not()) {
+    private val realmDescription = ReposiliteRoute<Unit>("/{repository}/<*>", AFTER) {
+        if (ctx.status() == UNAUTHORIZED.status && !uri.startsWith("/api")) {
             ctx.header(WWW_AUTHENTICATE, WWW_BASIC_REALM)
         }
     }
 
-    override val routes = setOf(realmDescription)
+    override val routes = routes(realmDescription)
 
 }

@@ -22,7 +22,7 @@ import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.Metadata
 import com.reposilite.maven.api.Versioning
 import com.reposilite.storage.VersionComparator
-import com.reposilite.storage.toLocation
+import com.reposilite.storage.api.toLocation
 import io.javalin.Javalin
 import kotlinx.coroutines.Job
 import org.junit.jupiter.api.io.TempDir
@@ -69,7 +69,7 @@ internal abstract class MavenIntegrationSpecification : ReposiliteSpecification(
             .events { it.serverStarted { serverStartedJob.complete() } }
             .head("/$repository/$gav") { ctx -> ctx.result(content) }
             .get("/$repository/$gav") { ctx -> ctx.result(content) }
-            .start(proxiedPort)
+            .start(reposilite.parameters.port + 1)
 
         serverStartedJob.join()
         block(gav, content)

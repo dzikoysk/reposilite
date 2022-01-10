@@ -29,8 +29,8 @@ import com.reposilite.maven.api.METADATA_FILE
 import com.reposilite.maven.api.Metadata
 import com.reposilite.maven.api.VersionsResponse
 import com.reposilite.shared.extensions.letIf
-import com.reposilite.storage.Location
 import com.reposilite.storage.VersionComparator
+import com.reposilite.storage.api.Location
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.notFound
 import panda.std.Result

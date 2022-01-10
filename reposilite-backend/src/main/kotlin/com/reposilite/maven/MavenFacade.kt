@@ -35,12 +35,13 @@ import com.reposilite.shared.BadgeGenerator
 import com.reposilite.shared.extensions.`when`
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.statistics.api.IncrementResolvedRequest
-import com.reposilite.storage.Location
 import com.reposilite.storage.api.DirectoryInfo
 import com.reposilite.storage.api.DocumentInfo
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.FileType.DIRECTORY
-import com.reposilite.token.api.AccessToken
+import com.reposilite.storage.api.Location
+import com.reposilite.token.AccessToken
+import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
 import com.reposilite.web.http.notFound
@@ -166,7 +167,7 @@ class MavenFacade internal constructor(
         return repository.removeFile(path)
     }
 
-    fun findRepositories(accessToken: AccessToken?): DirectoryInfo =
+    fun findRepositories(accessToken: AccessTokenDto?): DirectoryInfo =
         repositoryService.getRootDirectory(accessToken)
 
     fun getRepository(name: String) =

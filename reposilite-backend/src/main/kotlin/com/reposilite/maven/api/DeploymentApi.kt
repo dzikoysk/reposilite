@@ -18,7 +18,7 @@ package com.reposilite.maven.api
 
 import com.reposilite.maven.Repository
 import com.reposilite.plugin.api.Event
-import com.reposilite.storage.Location
+import com.reposilite.storage.api.Location
 import java.io.InputStream
 
 data class DeployRequest(

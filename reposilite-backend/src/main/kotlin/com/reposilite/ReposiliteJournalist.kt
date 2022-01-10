@@ -22,6 +22,7 @@ import com.reposilite.journalist.Logger
 import com.reposilite.journalist.backend.AggregatedLogger
 import com.reposilite.journalist.backend.CachedLogger
 import com.reposilite.journalist.backend.InMemoryLogger
+import com.reposilite.journalist.backend.PrintStreamLogger
 import com.reposilite.journalist.backend.PublisherLogger
 import com.reposilite.journalist.slf4j.Slf4jLogger
 import com.reposilite.journalist.tinylog.TinyLogLogger
@@ -30,6 +31,8 @@ import org.eclipse.jetty.util.log.Log
 import org.slf4j.LoggerFactory
 import org.tinylog.provider.ProviderRegistry
 import panda.std.reactive.Subscriber
+import java.io.PrintStream
+import java.nio.file.Files
 import kotlin.collections.MutableMap.MutableEntry
 
 /**
@@ -68,7 +71,7 @@ class ReposiliteJournalist(
         this.tinyLog = TinyLogLogger(Channel.ALL, redirectedLogger) // Redirect TinyLog output to redirected loggers
 
         Log.getProperties().setProperty("org.eclipse.jetty.util.log.announce", "false")
-        this.mainLogger = if (testEnv) InMemoryLogger() else Slf4jLogger(LoggerFactory.getLogger(Reposilite::class.java))
+        this.mainLogger = if (testEnv) PrintStreamLogger(PrintStream(Files.createTempFile("reposilite", "test-out").toFile()), System.err) else Slf4jLogger(LoggerFactory.getLogger(Reposilite::class.java))
     }
 
     fun subscribe(subscriber: Subscriber<MutableEntry<Channel, String>>): Int =
