@@ -20,12 +20,12 @@ For instance, if you use Cloudflare, you can set `Cache Level` to `Bypass` throu
 **A:** If you have `debugEnabled`, this can happen with very large artifacts. You can try to tune this by setting the system property `reposilite.requestCacheSize` (defaults to 8MB) to the maximum artifact size. e.g.
 `-Dreposilite.requestCacheSize=20MB`. See using [system properties](./configuration#system-properties) for more information on setting this.
 
-**Q:** How to create a valid keystore file
+**Q:** How to create a valid keystore file <br>
 **A:** JKS stands for Java KeyStore format. In most cases people does not really use SSL directly in Reposilite, because they serve it behind some proxy services like Nginx anyway.
 The keystore.jks is just the most popular name referenced in JKS resources. You may find various resources related to this topic. Take a look at e.g. on Jenkov's blog or directly in Javalin's/Jetty examples:
 
 * http://tutorials.jenkov.com/java-cryptography/keytool.html
 * https://github.com/tipsy/javalin-http2-example
 
-**Q:** Migrating from Nexus to Reposilite
+**Q:** Migrating from Nexus to Reposilite <br>
 **A:** Since Nexus 3, repositories are stored in a non-browsable way by filesystem. To migrate these files to Reposilite you have to unpack it using an external tool. You can use e.g. [nexus3-export](https://github.com/lbar/nexus3-export) to extract data and then you should be able to import its output as a repository in Reposilite.
