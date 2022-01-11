@@ -36,9 +36,11 @@
           <tab-panel :val="'Overview'">
             <Browser :qualifier="qualifier" :token="token" ref=""/>
           </tab-panel>
+          <!--
           <tab-panel :val="'Endpoints'">
             <Endpoints/>
           </tab-panel>
+          -->
           <tab-panel :val="'Console'" v-if="isManager">
             <Console :selectedTab="selectedTab" />
           </tab-panel>
@@ -86,7 +88,7 @@ export default {
 
     const tabs = [ 
       { name: 'Overview' },
-      { name: 'Endpoints' },
+      // { name: 'Endpoints' },
       { name: 'Console', manager: true },
       { name: 'Configuration', manager: true },
     ]

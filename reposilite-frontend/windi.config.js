@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-const colors = require('windicss/colors')
+import { defineConfig } from 'windicss/helpers'
+import colors from 'windicss/colors'
+import plugin from 'windicss/plugin'
 
-module.exports = {
+export default defineConfig({
   darkMode: "class",
   theme: {
     screens: {
@@ -39,5 +41,8 @@ module.exports = {
         mono: ['Consolas', 'Monaco', 'monospace']
       }
     }
+  },
+  shortcuts: {
+    'default-button': 'bg-white dark:bg-gray-900 cursor-pointer hover:(transition-color bg-gray-200 dark:bg-gray-800 duration-500)'
   }
-}
+})
