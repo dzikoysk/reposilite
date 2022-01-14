@@ -20,7 +20,7 @@ package com.reposilite.statistics
 
 import com.reposilite.statistics.api.ResolvedCountResponse
 import com.reposilite.statistics.specification.StatisticsIntegrationSpecification
-import com.reposilite.token.api.RoutePermission.READ
+import com.reposilite.token.RoutePermission.READ
 import io.javalin.http.HttpCode.UNAUTHORIZED
 import kong.unirest.Unirest.get
 import kotlinx.coroutines.runBlocking

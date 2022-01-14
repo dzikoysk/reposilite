@@ -16,72 +16,101 @@
 package com.reposilite.token
 
 import com.reposilite.plugin.api.Facade
-import com.reposilite.token.AccessTokenSecurityProvider.B_CRYPT_TOKENS_ENCODER
+import com.reposilite.token.AccessTokenPermission.MANAGER
 import com.reposilite.token.AccessTokenSecurityProvider.generateSecret
-import com.reposilite.token.api.AccessToken
-import com.reposilite.token.api.AccessTokenPermission
-import com.reposilite.token.api.AccessTokenType
-import com.reposilite.token.api.AccessTokenType.PERSISTENT
-import com.reposilite.token.api.AccessTokenType.TEMPORARY
+import com.reposilite.token.AccessTokenType.PERSISTENT
+import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.token.api.CreateAccessTokenRequest
 import com.reposilite.token.api.CreateAccessTokenResponse
+import com.reposilite.web.http.ErrorResponse
+import com.reposilite.web.http.notFoundError
+import panda.std.Result
+import panda.std.asSuccess
 
 class AccessTokenFacade internal constructor(
     private val temporaryRepository: AccessTokenRepository,
     private val persistentRepository: AccessTokenRepository
 ) : Facade {
 
-    fun createTemporaryAccessToken(request: CreateAccessTokenRequest): CreateAccessTokenResponse =
-        createAccessToken(
-            temporaryRepository,
-            TEMPORARY,
-            request.name,
-            request.secret ?: generateSecret(),
-            request.permissions
-        )
+    fun createAccessToken(request: CreateAccessTokenRequest): CreateAccessTokenResponse {
+        val secret = request.secret ?: generateSecret()
+        val encodedSecret = AccessTokenSecurityProvider.encodeSecret(secret)
+        val accessToken = AccessToken(identifier = AccessTokenIdentifier(type = request.type), name = request.name, encryptedSecret = encodedSecret)
 
-    fun createAccessToken(request: CreateAccessTokenRequest): CreateAccessTokenResponse =
-        createAccessToken(
-            persistentRepository,
-            PERSISTENT,
-            request.name,
-            request.secret ?: generateSecret(),
-            request.permissions
-        )
-
-    private fun createAccessToken(
-        repository: AccessTokenRepository,
-        type: AccessTokenType,
-        name: String,
-        secret: String,
-        permissions: Set<AccessTokenPermission>
-    ): CreateAccessTokenResponse {
-        val encodedSecret = B_CRYPT_TOKENS_ENCODER.encode(secret)
-        val accessToken = AccessToken(type = type, name = name, encryptedSecret = encodedSecret, permissions = permissions)
-
-        deleteToken(name)
-        return CreateAccessTokenResponse(repository.saveAccessToken(accessToken), secret)
+        return request.type.getRepository()
+            .also { getAccessToken(accessToken.name)?.run { it.deleteAccessToken(this.identifier) } }
+            .saveAccessToken(accessToken)
+            .toDto()
+            .let { CreateAccessTokenResponse(it, secret) }
     }
 
-    fun updateToken(accessToken: AccessToken): AccessToken =
-        when (accessToken.type) {
-            PERSISTENT -> persistentRepository.saveAccessToken(accessToken)
-            TEMPORARY -> temporaryRepository.saveAccessToken(accessToken)
-        }
+    fun secretMatches(id: AccessTokenIdentifier, secret: String): Boolean =
+        getRawAccessTokenById(id)
+            ?.let { AccessTokenSecurityProvider.matches(it.encryptedSecret, secret) }
+            ?: false
 
-    fun deleteToken(name: String): AccessToken? =
-        deleteToken(temporaryRepository, name) ?: deleteToken(persistentRepository, name)
+    fun addPermission(identifier: AccessTokenIdentifier, permission: AccessTokenPermission) =
+        identifier.type.getRepository().addPermission(identifier, permission)
 
-    private fun deleteToken(repository: AccessTokenRepository, name: String): AccessToken? =
-        repository.findAccessTokenByName(name)?.also { persistentRepository.deleteAccessToken(it) }
+    fun hasPermission(identifier: AccessTokenIdentifier, permission: AccessTokenPermission): Boolean =
+        identifier.type.getRepository().findAccessTokenPermissionsById(identifier).contains(permission)
 
-    fun getToken(name: String): AccessToken? =
-        temporaryRepository.findAccessTokenByName(name) ?: persistentRepository.findAccessTokenByName(name)
+    fun hasPermissionTo(identifier: AccessTokenIdentifier, toPath: String, requiredPermission: RoutePermission): Boolean =
+        hasPermission(identifier, MANAGER) || identifier.type.getRepository()
+            .findAccessTokenRoutesById(identifier)
+            .any { it.hasPermissionTo(toPath, requiredPermission) }
 
-    fun getTokens(): Collection<AccessToken> =
-        temporaryRepository.findAll() + persistentRepository.findAll()
+    fun canSee(identifier: AccessTokenIdentifier, pathFragment: String): Boolean =
+        hasPermission(identifier, MANAGER) || identifier.type.getRepository()
+            .findAccessTokenRoutesById(identifier)
+            .any { it.path.startsWith(pathFragment, ignoreCase = true) }
+
+    fun deletePermission(identifier: AccessTokenIdentifier, permission: AccessTokenPermission) =
+        identifier.type.getRepository().deletePermission(identifier, permission)
+
+    fun getPermissions(identifier: AccessTokenIdentifier): Set<AccessTokenPermission> =
+        identifier.type.getRepository().findAccessTokenPermissionsById(identifier)
+
+    fun addRoute(identifier: AccessTokenIdentifier, route: Route) =
+        identifier.type.getRepository().addRoute(identifier, route)
+
+    fun deleteRoute(identifier: AccessTokenIdentifier, route: Route) =
+        identifier.type.getRepository().deleteRoute(identifier, route)
+
+    fun getRoutes(id: AccessTokenIdentifier): Set<Route> =
+        id.type.getRepository().findAccessTokenRoutesById(id)
+
+    fun updateToken(updatedToken: AccessTokenDto): AccessTokenDto? =
+        getRawAccessTokenById(updatedToken.identifier)
+            ?.copy(
+                name = updatedToken.name,
+                createdAt = updatedToken.createdAt,
+                description = updatedToken.description
+            )
+            ?.let { it.identifier.type.getRepository().saveAccessToken(it) }
+            ?.toDto()
+
+    fun deleteToken(id: AccessTokenIdentifier): Result<Unit, ErrorResponse> =
+        getRawAccessTokenById(id)
+            ?.let { it.identifier.type.getRepository().deleteAccessToken(it.identifier).asSuccess() }
+            ?: notFoundError("Token not found")
+
+    private fun getRawAccessTokenById(id: AccessTokenIdentifier): AccessToken? =
+        id.type.getRepository().findAccessTokenById(id)
+
+    fun getAccessTokenById(id: AccessTokenIdentifier): AccessTokenDto? =
+        getRawAccessTokenById(id)?.toDto()
+
+    fun getAccessToken(name: String): AccessTokenDto? =
+        (temporaryRepository.findAccessTokenByName(name) ?: persistentRepository.findAccessTokenByName(name))?.toDto()
+
+    fun getAccessTokens(): Collection<AccessTokenDto> =
+        (temporaryRepository.findAll() + persistentRepository.findAll()).map { it.toDto() }
 
     fun count(): Long =
         temporaryRepository.countAccessTokens() + persistentRepository.countAccessTokens()
+
+    private fun AccessTokenType.getRepository(): AccessTokenRepository =
+        if (this == PERSISTENT) persistentRepository else temporaryRepository
 
 }

@@ -19,38 +19,42 @@ package com.reposilite.maven
 import com.reposilite.maven.RepositoryVisibility.HIDDEN
 import com.reposilite.maven.RepositoryVisibility.PRIVATE
 import com.reposilite.maven.RepositoryVisibility.PUBLIC
-import com.reposilite.storage.Location
-import com.reposilite.token.api.AccessToken
-import com.reposilite.token.api.RoutePermission
-import com.reposilite.token.api.RoutePermission.READ
-import com.reposilite.token.api.RoutePermission.WRITE
+import com.reposilite.storage.api.Location
+import com.reposilite.token.AccessTokenFacade
+import com.reposilite.token.RoutePermission
+import com.reposilite.token.RoutePermission.READ
+import com.reposilite.token.RoutePermission.WRITE
+import com.reposilite.token.api.AccessTokenDto
 
-internal class RepositorySecurityProvider {
+internal class RepositorySecurityProvider(private val accessTokenFacade: AccessTokenFacade) {
 
-    fun canAccessRepository(accessToken: AccessToken?, repository: Repository): Boolean =
+    fun canAccessRepository(accessToken: AccessTokenDto?, repository: Repository): Boolean =
         when(repository.visibility) {
             PUBLIC -> true
-            HIDDEN, PRIVATE -> accessToken?.canSee("/${repository.name}") ?: false
+            HIDDEN, PRIVATE -> accessToken?.identifier?.let { accessTokenFacade.canSee(it, "/${repository.name}") } ?: false
         }
 
-    fun canAccessResource(accessToken: AccessToken?, repository: Repository, gav: Location): Boolean =
+    fun canAccessResource(accessToken: AccessTokenDto?, repository: Repository, gav: Location): Boolean =
         when (repository.visibility) {
             PUBLIC -> true
             HIDDEN -> true
             PRIVATE -> hasPermissionTo(accessToken, repository, gav, READ)
         }
 
-    fun canBrowseResource(accessToken: AccessToken?, repository: Repository, gav: Location): Boolean =
+    fun canBrowseResource(accessToken: AccessTokenDto?, repository: Repository, gav: Location): Boolean =
         when (repository.visibility) {
             PUBLIC -> true
             HIDDEN -> hasPermissionTo(accessToken, repository, gav, READ)
             PRIVATE -> hasPermissionTo(accessToken, repository, gav, READ)
         }
 
-    fun canModifyResource(accessToken: AccessToken?, repository: Repository, gav: Location): Boolean =
+    fun canModifyResource(accessToken: AccessTokenDto?, repository: Repository, gav: Location): Boolean =
         hasPermissionTo(accessToken, repository, gav, WRITE)
 
-    private fun hasPermissionTo(accessToken: AccessToken?, repository: Repository, gav: Location, permission: RoutePermission): Boolean =
-        accessToken?.hasPermissionTo("/${repository.name}/$gav", permission) ?: false
+    private fun hasPermissionTo(accessToken: AccessTokenDto?, repository: Repository, gav: Location, permission: RoutePermission): Boolean =
+        if (accessToken != null)
+            accessTokenFacade.hasPermissionTo(accessToken.identifier, "/${repository.name}/$gav", permission)
+        else
+            false
 
 }

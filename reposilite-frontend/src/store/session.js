@@ -28,9 +28,12 @@ const token = reactive({
 })
 
 const defaultDetails = {
-  id: defaultValue,
-  name: defaultValue,
-  createdAt: defaultValue,
+  accessToken: {
+    id: defaultValue,
+    name: defaultValue,
+    createdAt: defaultValue,
+    description: defaultValue
+  },
   permissions: [],
   routes: []
 }
@@ -58,7 +61,7 @@ export default function useSession() {
       const { client } = createClient()
 
       if (name == defaultValue) {
-        throw new Error("Missing credentials")
+        throw new Error('Missing credentials')
       }
 
       const response = await client.auth.me(name, secret)

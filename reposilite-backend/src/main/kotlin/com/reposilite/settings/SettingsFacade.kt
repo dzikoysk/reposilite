@@ -12,7 +12,6 @@ import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.notFoundError
 import org.jetbrains.exposed.sql.Database
 import panda.std.Result
-import panda.std.Unit
 import java.nio.file.Path
 import java.util.concurrent.ScheduledExecutorService
 
@@ -51,11 +50,11 @@ class SettingsFacade internal constructor(
                 )
         )
 
-    fun <C : Any> registerCustomConfigurationProvider(configurationProvider: ConfigurationProvider<C>): ConfigurationProvider<C> {
-        configurationProviders[configurationProvider.name] = configurationProvider
-        configurationProvider.initialize()
-        return configurationProvider
-    }
+    fun <C : Any> registerCustomConfigurationProvider(configurationProvider: ConfigurationProvider<C>): ConfigurationProvider<C> =
+        configurationProvider.also {
+            configurationProviders[it.name] = it
+            it.initialize()
+        }
 
     internal fun attachWatcherScheduler(scheduler: ScheduledExecutorService) =
         configurationProviders.forEach { (_, provider) -> provider.registerWatcher(scheduler) }

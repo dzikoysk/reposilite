@@ -9,7 +9,7 @@
     "full": "concurrently -k \"npm run fake-api\" \"vite\""
   },
   "dependencies": {
-    "@vueuse/core": "^7.5.1",
+    "@vueuse/core": "^7.5.3",
     "@vueuse/head": "^0.7.4",
     "ansi-to-html": "^0.7.2",
     "axios": "^0.24.0",
@@ -17,7 +17,7 @@
     "mime-types": "^2.1.34",
     "mosha-vue-toastify": "^1.0.23",
     "pretty-bytes": "^5.6.0",
-    "prismjs": "^1.25.0",
+    "prismjs": "^1.26.0",
     "simple-syntax-highlighter": "^2.2.0",
     "vue": "^3.2.26",
     "vue-axios": "^3.4.0",
@@ -36,7 +36,7 @@
     "nodemon": "^2.0.15",
     "stylelint-config-standard": "^24.0.0",
     "vite": "^2.7.10",
-    "vite-plugin-windicss": "^1.6.1",
+    "vite-plugin-windicss": "^1.6.2",
     "windicss": "^3.4.2",
     "ws": "^8.4.0"
   }

@@ -34,7 +34,7 @@ This is simple, extensible and scalable self-hosted solution to replace managers
  <div>
   <a href="https://reposilite.com">Website</a>
   |
-  <a href="https://reposilite.com/docs/about">Official Gude</a>
+  <a href="https://reposilite.com/docs/about">Official Guide</a>
   |
   <a href="https://github.com/dzikoysk/reposilite/releases">GitHub Releases</a>
   |

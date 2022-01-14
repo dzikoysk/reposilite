@@ -23,13 +23,16 @@ import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.reposilite.Reposilite
 import com.reposilite.VERSION
 import com.reposilite.auth.AuthenticationFacade
+import com.reposilite.auth.api.AuthenticationRequest
 import com.reposilite.journalist.Journalist
 import com.reposilite.settings.SettingsFacade
 import com.reposilite.settings.api.LocalConfiguration
 import com.reposilite.settings.api.SharedConfiguration
 import com.reposilite.shared.ContextDsl
 import com.reposilite.status.FailureFacade
+import com.reposilite.token.AccessTokenFacade
 import com.reposilite.web.api.RoutingSetupEvent
+import com.reposilite.web.http.extractFromHeaders
 import com.reposilite.web.http.response
 import com.reposilite.web.http.uri
 import com.reposilite.web.routing.RoutingPlugin
@@ -81,12 +84,22 @@ internal object JavalinConfiguration {
     private fun configureReactiveRoutingPlugin(config: JavalinConfig, reposilite: Reposilite) {
         val extensionManager = reposilite.extensions
         val failureFacade = extensionManager.facade<FailureFacade>()
+        val accessTokenFacade = extensionManager.facade<AccessTokenFacade>()
         val authenticationFacade = extensionManager.facade<AuthenticationFacade>()
 
-        val plugin = RoutingPlugin<ContextDsl, Unit>(
+        val plugin = RoutingPlugin<ContextDsl<*>, Unit>(
             handler = { ctx, route ->
                 try {
-                    val dsl = ContextDsl(reposilite.logger, ctx, lazy { authenticationFacade.authenticateByHeader(ctx.headerMap()) })
+                    val dsl = ContextDsl<Any>(
+                        reposilite.logger,
+                        ctx,
+                        accessTokenFacade,
+                        lazy {
+                            extractFromHeaders(ctx.headerMap())
+                                .map { (name, secret) -> AuthenticationRequest(name, secret) }
+                                .flatMap { authenticationFacade.authenticateByCredentials(it) }
+                        }
+                    )
                     route.handler(dsl)
                     dsl.response?.also { ctx.response(it) }
                 } catch (throwable: Throwable) {

@@ -22,10 +22,10 @@ import com.reposilite.web.routing.RouteMethod.BEFORE
 
 internal class RouteAccessHandler : ReposiliteRoutes() {
 
-    private val collectRequests = ReposiliteRoute("/<*>", BEFORE) {
+    private val collectRequests = ReposiliteRoute<Unit>("/<*>", BEFORE) {
         logger.debug("${ctx.method()} $uri from ${ctx.ip()}")
     }
 
-    override val routes = setOf(collectRequests)
+    override val routes = routes(collectRequests)
 
 }

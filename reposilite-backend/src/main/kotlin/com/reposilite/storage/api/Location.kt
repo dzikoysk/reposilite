@@ -1,6 +1,7 @@
-package com.reposilite.storage
+package com.reposilite.storage.api
 
 import com.reposilite.shared.extensions.letIf
+import com.reposilite.storage.getExtension
 import panda.std.Result
 import panda.std.asSuccess
 import java.nio.file.Path

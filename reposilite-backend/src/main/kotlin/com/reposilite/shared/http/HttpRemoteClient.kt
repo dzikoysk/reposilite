@@ -11,8 +11,8 @@ import com.reposilite.journalist.Logger
 import com.reposilite.storage.api.DocumentInfo
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.UNKNOWN_LENGTH
+import com.reposilite.storage.api.toLocation
 import com.reposilite.storage.getExtension
-import com.reposilite.storage.toLocation
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
 import io.javalin.http.ContentType

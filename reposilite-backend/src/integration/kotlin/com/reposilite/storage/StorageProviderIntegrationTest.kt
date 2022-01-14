@@ -20,6 +20,7 @@ package com.reposilite.storage
 
 import com.reposilite.storage.api.DocumentInfo
 import com.reposilite.storage.api.FileType.FILE
+import com.reposilite.storage.api.toLocation
 import com.reposilite.storage.specification.StorageProviderSpecification
 import io.javalin.http.ContentType.APPLICATION_JAR
 import org.junit.jupiter.api.Assertions.assertArrayEquals

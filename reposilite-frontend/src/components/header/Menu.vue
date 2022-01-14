@@ -22,9 +22,9 @@
     </div>
     <LoginModal>
       <template v-slot:button>
-      <MenuButton v-if="!logged">
-        Sign in
-      </MenuButton>
+        <MenuButton v-if="!logged">
+          Sign in
+        </MenuButton>
       </template>
     </LoginModal>
     <MenuButton v-if="logged" @click="signout()" class="<sm:hidden">
@@ -34,7 +34,7 @@
          class="hidden px-2.7 pt-0.8 mr-1.5 cursor-pointer rounded-full bg-white dark:bg-gray-900 max-h-35px <sm:(block)">
       <LogoutIcon @click="signout()"/>
     </div>
-    <div class="pl-2 pt-1.3 cursor-pointer rounded-full bg-white dark:bg-gray-900 max-h-35px" @click="toggleTheme()">
+    <div class="pl-2 pt-1.3 rounded-full max-h-35px default-button" @click="toggleTheme()">
       <SunIcon class="mr-1.9" v-if="theme.isDark"/>
       <MoonIcon class="mr-1.5" v-else/>
     </div>

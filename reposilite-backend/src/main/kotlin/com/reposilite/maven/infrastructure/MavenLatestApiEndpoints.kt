@@ -9,11 +9,11 @@ import com.reposilite.settings.SettingsFacade
 import com.reposilite.shared.ContextDsl
 import com.reposilite.shared.extensions.letIf
 import com.reposilite.shared.extensions.resultAttachment
-import com.reposilite.storage.Location
 import com.reposilite.storage.api.DocumentInfo
 import com.reposilite.storage.api.FileDetails
-import com.reposilite.storage.toLocation
-import com.reposilite.token.api.AccessToken
+import com.reposilite.storage.api.Location
+import com.reposilite.storage.api.toLocation
+import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.http.ErrorResponse
@@ -56,15 +56,15 @@ internal class MavenLatestApiEndpoints(
             OpenApiResponse("200", content = [OpenApiContent(from = String::class, type = ContentType.PLAIN)], description = ""),
         ]
     )
-    private val findLatestVersion = ReposiliteRoute("/api/maven/latest/version/{repository}/<gav>", GET) {
+    private val findLatestVersion = ReposiliteRoute<Any>("/api/maven/latest/version/{repository}/<gav>", GET) {
         accessed {
             response = VersionLookupRequest(this, requireParameter("repository"), requireParameter("gav").toLocation(), ctx.queryParam("filter"))
                 .let { mavenFacade.findLatest(it) }
                 .flatMap {
                     when (val type = ctx.queryParam("type")) {
-                        "raw" -> it.version.asSuccess()
-                        "json", null -> it.asSuccess()
-                        else -> ErrorResponse(BAD_REQUEST, "Unsupported response type: $type").asError()
+                        "raw" -> it.version.asSuccess() // -> String
+                        "json", null -> it.asSuccess() // -> LatestVersionResponse
+                        else -> ErrorResponse(BAD_REQUEST, "Unsupported response type: $type").asError() // -> ErrorResponse
                     }
                 }
         }
@@ -81,7 +81,7 @@ internal class MavenLatestApiEndpoints(
         queryParams = [ OpenApiParam(name = "filter", description = "Version (prefix) filter to apply", required = false) ],
         responses = [ OpenApiResponse("200", description = "Details about the given file", content = [OpenApiContent(from = FileDetails::class)]) ]
     )
-    private val findLatestDetails = ReposiliteRoute("/api/maven/latest/details/{repository}/<gav>", GET) {
+    private val findLatestDetails = ReposiliteRoute<FileDetails>("/api/maven/latest/details/{repository}/<gav>", GET) {
         accessed {
             response = resolveLatestArtifact(this@ReposiliteRoute, this) {
                 mavenFacade.findDetails(it)
@@ -99,7 +99,7 @@ internal class MavenLatestApiEndpoints(
         ],
         queryParams = [ OpenApiParam(name = "filter", description = "Version (prefix) filter to apply", required = false) ]
     )
-    private val findLatestFile = ReposiliteRoute("/api/maven/latest/file/{repository}/<gav>", GET) {
+    private val findLatestFile = ReposiliteRoute<Unit>("/api/maven/latest/file/{repository}/<gav>", GET) {
         accessed {
             response = resolveLatestArtifact(this@ReposiliteRoute, this) { lookupRequest ->
                 mavenFacade.findDetails(lookupRequest)
@@ -110,10 +110,10 @@ internal class MavenLatestApiEndpoints(
         }
     }
 
-    private fun <T> resolveLatestArtifact(context: ContextDsl, accessToken: AccessToken?, request: RequestFunction<T>): Result<T, ErrorResponse> =
+    private fun <T> resolveLatestArtifact(context: ContextDsl<*>, accessToken: AccessTokenDto?, request: RequestFunction<T>): Result<T, ErrorResponse> =
         resolveLatestArtifact(context.requireParameter("repository"), context.requireParameter("gav").toLocation(), context.ctx.queryParam("filter"), accessToken, request)
 
-    private fun <T> resolveLatestArtifact(repository: String, gav: Location, filter: String?, accessToken: AccessToken?, request: RequestFunction<T>): Result<T, ErrorResponse> =
+    private fun <T> resolveLatestArtifact(repository: String, gav: Location, filter: String?, accessToken: AccessTokenDto?, request: RequestFunction<T>): Result<T, ErrorResponse> =
         VersionLookupRequest(accessToken, repository, gav, filter)
             .let { mavenFacade.findLatest(it) }
             .flatMap { (isSnapshot, version) ->
@@ -140,7 +140,7 @@ internal class MavenLatestApiEndpoints(
         ],
         methods = [HttpMethod.GET]
     )
-    val latestBadge = ReposiliteRoute("/api/badge/latest/{repository}/<gav>", GET) {
+    val latestBadge = ReposiliteRoute<String>("/api/badge/latest/{repository}/<gav>", GET) {
         response = mavenFacade.findLatestBadge(
                 LatestBadgeRequest(
                     repository = requireParameter("repository"),
@@ -160,6 +160,6 @@ internal class MavenLatestApiEndpoints(
             }}
     }
 
-    override val routes = setOf(findLatestVersion, findLatestDetails, findLatestFile, latestBadge)
+    override val routes = routes(findLatestVersion, findLatestDetails, findLatestFile, latestBadge)
 
 }

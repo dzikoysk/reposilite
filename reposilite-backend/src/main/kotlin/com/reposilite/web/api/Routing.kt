@@ -21,10 +21,20 @@ import com.reposilite.web.routing.AbstractRoutes
 import com.reposilite.web.routing.Route
 import com.reposilite.web.routing.RouteMethod
 
-abstract class ReposiliteRoutes : AbstractRoutes<ContextDsl, Unit>()
+abstract class ReposiliteRoutes : AbstractRoutes<ContextDsl<*>, Unit>() {
 
-class ReposiliteRoute(
+    fun routes(vararg reposiliteRoutes: ReposiliteRoute<*>): Set<Route<ContextDsl<*>, Unit>> =
+        reposiliteRoutes
+            .map {
+                @Suppress("UNCHECKED_CAST")
+                it as Route<ContextDsl<*>, Unit>
+            }
+            .toSet()
+
+}
+
+class ReposiliteRoute<R>(
     path: String,
     vararg methods: RouteMethod,
-    handler: ContextDsl.() -> Unit
-) : Route<ContextDsl, Unit>(path = path, methods = methods, handler = handler)
+    handler: ContextDsl<R>.() -> Unit
+) : Route<ContextDsl<R>, Unit>(path = path, methods = methods, handler = handler)

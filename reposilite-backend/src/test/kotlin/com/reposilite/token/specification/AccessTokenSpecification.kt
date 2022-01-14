@@ -17,7 +17,8 @@
 package com.reposilite.token.specification
 
 import com.reposilite.token.AccessTokenFacade
-import com.reposilite.token.api.AccessToken
+import com.reposilite.token.AccessTokenType.TEMPORARY
+import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.token.api.CreateAccessTokenRequest
 import com.reposilite.token.api.CreateAccessTokenResponse
 import com.reposilite.token.infrastructure.InMemoryAccessTokenRepository
@@ -27,9 +28,9 @@ internal abstract class AccessTokenSpecification {
     protected val accessTokenFacade = AccessTokenFacade(InMemoryAccessTokenRepository(), InMemoryAccessTokenRepository())
 
     protected fun createToken(name: String): CreateAccessTokenResponse =
-        accessTokenFacade.createAccessToken(CreateAccessTokenRequest(name))
+        accessTokenFacade.createAccessToken(CreateAccessTokenRequest(TEMPORARY, name))
 
-    protected fun createToken(name: String, secret: String): AccessToken =
-        accessTokenFacade.createAccessToken(CreateAccessTokenRequest(name, secret)).accessToken
+    protected fun createToken(name: String, secret: String): AccessTokenDto =
+        accessTokenFacade.createAccessToken(CreateAccessTokenRequest(TEMPORARY, name, secret)).accessToken
 
 }

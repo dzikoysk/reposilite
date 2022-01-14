@@ -2,8 +2,9 @@
 
 package com.reposilite.token
 
-import com.reposilite.token.api.AccessToken
-import com.reposilite.token.api.AccessTokenPermission.MANAGER
+import com.reposilite.token.AccessTokenPermission.MANAGER
+import com.reposilite.token.AccessTokenType.PERSISTENT
+import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.token.api.CreateAccessTokenResponse
 import com.reposilite.token.api.CreateAccessTokenWithNoNameRequest
 import com.reposilite.token.specification.AccessTokenIntegrationSpecification
@@ -14,7 +15,6 @@ import kong.unirest.Unirest.delete
 import kong.unirest.Unirest.get
 import kong.unirest.Unirest.put
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 internal abstract class AccessTokenIntegrationTest : AccessTokenIntegrationSpecification() {
@@ -36,14 +36,11 @@ internal abstract class AccessTokenIntegrationTest : AccessTokenIntegrationSpeci
         // when: list of tokens is requested with valid token
         val response = get("$base/api/tokens")
             .basicAuth(temporaryName, temporarySecret)
-            .asJacksonObject(Array<AccessToken>::class)
+            .asJacksonObject(Array<AccessTokenDto>::class)
 
         // then: response contains list of all
         assertSuccessResponse(OK, response) { tokens ->
             assertEquals(2, tokens.size)
-            // token should exist & should not leak secrets
-            assertTrue(tokens.first { it.name == temporaryName }.encryptedSecret.isEmpty())
-            assertTrue(tokens.first { it.name == persistentToken.name }.encryptedSecret.isEmpty())
         }
     }
 
@@ -64,12 +61,11 @@ internal abstract class AccessTokenIntegrationTest : AccessTokenIntegrationSpeci
         // when: token is requested with valid access token
         val response = get("$base/api/tokens/${allowedToken.name}")
             .basicAuth(allowedToken.name, allowedSecret)
-            .asJacksonObject(AccessToken::class)
+            .asJacksonObject(AccessTokenDto::class)
 
         // then: request is rejected by server
         assertSuccessResponse(OK, response) {
             assertEquals(allowedToken.name, it.name)
-            assertTrue(it.encryptedSecret.isEmpty())
         }
     }
 
@@ -83,7 +79,7 @@ internal abstract class AccessTokenIntegrationTest : AccessTokenIntegrationSpeci
         // when: not entitled token attempts to generate a new token
         val unauthorized = put("$base/api/tokens/$name")
             .basicAuth(notAllowedToken.name, notAllowedSecret)
-            .body(CreateAccessTokenWithNoNameRequest(secret, permissions.map { it.shortcut }))
+            .body(CreateAccessTokenWithNoNameRequest(PERSISTENT, secret, permissions.map { it.shortcut }.toSet()))
             .asJacksonObject(ErrorResponse::class)
 
         // then: the unauthorized request is rejected
@@ -92,14 +88,14 @@ internal abstract class AccessTokenIntegrationTest : AccessTokenIntegrationSpeci
         // when: valid manager token creates a new token
         val response = put("$base/api/tokens/$name")
             .basicAuth(managerName, managerSecret)
-            .body(CreateAccessTokenWithNoNameRequest(secret, permissions.map { it.shortcut }))
+            .body(CreateAccessTokenWithNoNameRequest(PERSISTENT, secret, permissions.map { it.shortcut }.toSet()))
             .asJacksonObject(CreateAccessTokenResponse::class)
 
         // then: response contains valid token with generated secret
         assertSuccessResponse(OK, response) {
             assertEquals(name, it.accessToken.name)
             assertEquals(secret, it.secret)
-            assertEquals(permissions, it.accessToken.permissions)
+            assertEquals(permissions, getPermissions(it.accessToken.identifier))
         }
     }
 
