@@ -16,11 +16,11 @@ import org.intellij.lang.annotations.Language
 import panda.std.Result
 import panda.std.Result.ok
 import panda.std.Unit
-import java.io.File
 import java.io.FileOutputStream
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.jar.JarFile
+import kotlin.io.path.outputStream
 
 class JavadocFacade internal constructor(
     private val javadocFolder: Path,
@@ -28,15 +28,13 @@ class JavadocFacade internal constructor(
     private val journalist: Journalist
 ) : Journalist, Facade {
 
-    private val extractor = DocExtractor()
-
     fun resolveRequest(
         repo: String,
         gav: String,
         extension: String,
         accessToken: AccessToken?
     ): Result<JavadocResponse, ErrorResponse> {
-        val target = javadocFolder.resolve("${repo}${File.separator}${gav}")
+        val target = javadocFolder.resolve(repo).resolve(gav)
         if (gav.contains("/resources/fonts")) return errorResponse(HttpCode.NOT_FOUND, "Fonts are not served!")
 
         if (Files.exists(target) && (gav.endsWith(".html") || gav.endsWith(".css") || gav.endsWith(".js"))) {
@@ -51,7 +49,7 @@ class JavadocFacade internal constructor(
         }
 
         val newGav = constructGav(gav)
-        val lookUp = mavenFacade.findDetails(LookupRequest(accessToken, repo, newGav));
+        val lookUp = mavenFacade.findDetails(LookupRequest(accessToken, repo, newGav))
 
 
         return lookUp.filter({ f -> f.type === FileType.FILE }, {
@@ -103,7 +101,7 @@ class JavadocFacade internal constructor(
         token: AccessToken?
     ): Result<String, ErrorResponse> {
         val path = gav.substringBeforeLast("/")
-        val targetFolder = javadocFolder.resolve("${repo}${File.separator}${path}")
+        val targetFolder = javadocFolder.resolve(repo).resolve(path)
         if (Files.exists(targetFolder)) {
             return ok(Files.readAllLines(targetFolder.resolve("index.html")).joinToString(separator = "\n"))
         }
@@ -120,7 +118,7 @@ class JavadocFacade internal constructor(
                 }
             }
             .map {
-                return@map extractor.extractJavadoc(targetJar, targetFolder)
+                return@map extractJavadoc(targetJar, targetFolder)
             }
             .map {
                 Files.move(targetFolder.resolve("index.html"), targetFolder.resolve("docindex.html"))
@@ -226,55 +224,50 @@ class JavadocFacade internal constructor(
     override fun getLogger(): Logger =
         journalist.logger
 
-    internal class DocExtractor {
+    private fun extractJavadoc(jarFilePath: Path, destination: Path): Result<Unit, ErrorResponse> {
+        // Some checks, to make sure we're working with valid files/paths.
+        if (Files.isDirectory(jarFilePath)) return errorResponse(
+            HttpCode.BAD_REQUEST,
+            "JavaDoc jar file must not be a directory!"
+        )
+        if (!Files.isDirectory(destination)) return errorResponse(
+            HttpCode.BAD_REQUEST,
+            "Destination must be a directory!"
+        )
+        if (!jarFilePath.fileName.toString().contains("doc.jar")) return errorResponse(
+            HttpCode.BAD_REQUEST,
+            "Invalid javadoc.jar! Name must contain: \"doc.jar\""
+        )
 
-        fun extractJavadoc(jarFilePath: Path, destination: Path): Result<Unit, ErrorResponse> {
-            // Some checks, to make sure we're working with valid files/paths.
-            if (Files.isDirectory(jarFilePath)) return errorResponse(
-                HttpCode.BAD_REQUEST,
-                "JavaDoc jar file must not be a directory!"
-            )
-            if (!Files.isDirectory(destination)) return errorResponse(
-                HttpCode.BAD_REQUEST,
-                "Destination must be a directory!"
-            )
-            if (!jarFilePath.fileName.toString().contains("doc.jar")) return errorResponse(
-                HttpCode.BAD_REQUEST,
-                "Invalid javadoc.jar! Name must contain: \"doc.jar\""
-            )
+        JarFile(jarFilePath.toAbsolutePath().toString()).use { jarFile ->
+            // Making sure we have an index.html file
+            val entry = jarFile.getEntry("index.html")
+            if (entry == null || entry.isDirectory)
+                return errorResponse(HttpCode.INTERNAL_SERVER_ERROR, "Invalid doc.jar given for extraction!")
 
-            JarFile(jarFilePath.toAbsolutePath().toString()).use { jarFile ->
-                // Making sure we have an index.html file
-                val entry = jarFile.getEntry("index.html")
-                check(!(entry == null || entry.isDirectory)) { "Invalid doc.jar!" }
-
-                val result = extractJavadoc(destination, jarFile)
-                Files.deleteIfExists(jarFilePath)
-                return result
-            }
+            val result = extractJavadoc(destination, jarFile)
+            Files.deleteIfExists(jarFilePath)
+            return result
         }
+    }
 
-        private fun extractJavadoc(destination: Path, jarFile: JarFile): Result<Unit, ErrorResponse> {
-            val entries = jarFile.entries()
-
-            try {
-                entries.asSequence().forEach { file ->
-                    val javaFile = File(destination.toAbsolutePath().toString() + File.separator + file.name)
-                    if (file.isDirectory) {
-                        javaFile.mkdir()
-                    } else {
-                        jarFile.getInputStream(file).use { input ->
-                            javaFile.outputStream().use { output ->
-                                input.copyTo(output)
-                            }
+    private fun extractJavadoc(destination: Path, jarFile: JarFile): Result<Unit, ErrorResponse> {
+        try {
+            jarFile.entries().asSequence().forEach { file ->
+                val javaFile = destination.resolve(file.name)
+                if (file.isDirectory) {
+                    Files.createDirectory(javaFile)
+                } else {
+                    jarFile.getInputStream(file).use { input ->
+                        javaFile.outputStream().use { output ->
+                            input.copyTo(output)
                         }
                     }
                 }
-                return ok()
-            } catch (e: Exception) {
-                return errorResponse(HttpCode.INTERNAL_SERVER_ERROR, e.message.orEmpty())
             }
+            return ok()
+        } catch (e: Exception) {
+            return errorResponse(HttpCode.INTERNAL_SERVER_ERROR, e.message.orEmpty())
         }
     }
 }
-
