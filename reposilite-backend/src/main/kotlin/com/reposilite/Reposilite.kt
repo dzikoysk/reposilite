@@ -22,10 +22,10 @@ import com.reposilite.plugin.api.ReposiliteDisposeEvent
 import com.reposilite.plugin.api.ReposiliteInitializeEvent
 import com.reposilite.plugin.api.ReposilitePostInitializeEvent
 import com.reposilite.plugin.api.ReposiliteStartedEvent
-import com.reposilite.shared.extensions.peek
 import com.reposilite.web.HttpServer
 import panda.std.Result
 import panda.std.Result.ok
+import panda.std.peek
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.atomic.AtomicBoolean
@@ -44,7 +44,7 @@ class Reposilite(
     private val alive = AtomicBoolean(false)
 
     private val shutdownHook = Thread {
-        alive.peek { shutdown() }
+        alive.peek { shutdown(); }
     }
 
     fun launch(): Result<Reposilite, Exception> =

@@ -68,11 +68,11 @@ internal abstract class ReposiliteRunner {
         // disable log.txt to avoid conflicts with parallel testing
         System.setProperty("tinylog.writerFile.level", "off")
         val logger = PrintStreamLogger(PrintStream(Files.createTempFile("reposilite", "test-out").toFile()), System.err, Channel.ALL, false)
-        var launchResult: Result<Reposilite, Exception>? = null
+        var launchResult: Result<Reposilite, Exception>
 
-        while (launchResult?.errorToOption()?.`is`(JavalinBindException::class.java)?.isPresent != false) {
+        do {
             launchResult = prepareInstance(logger).peek { reposilite = it }
-        }
+        } while (launchResult.errorToOption().`is`(JavalinBindException::class.java).isPresent)
     }
 
     private fun prepareInstance(logger: Logger): Result<Reposilite, Exception> {
