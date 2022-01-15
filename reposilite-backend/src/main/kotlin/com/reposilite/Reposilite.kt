@@ -25,6 +25,7 @@ import com.reposilite.plugin.api.ReposiliteStartedEvent
 import com.reposilite.web.HttpServer
 import panda.std.Result
 import panda.std.Result.ok
+import panda.std.asError
 import panda.std.peek
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.ScheduledExecutorService
@@ -64,7 +65,7 @@ class Reposilite(
             logger.error("Failed to start Reposilite")
             logger.exception(exception)
             shutdown()
-            error(exception)
+            exception.asError()
         }
 
     fun shutdown() =

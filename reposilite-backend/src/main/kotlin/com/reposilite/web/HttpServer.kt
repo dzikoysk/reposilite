@@ -32,30 +32,29 @@ class HttpServer {
     private var javalin: Javalin? = null
     private var webThreadPool: QueuedThreadPool? = null
 
-    fun start(reposilite: Reposilite) =
-        run {
-            val extensionsManagement = reposilite.extensions
-            val settingsFacade = extensionsManagement.facade<SettingsFacade>()
+    fun start(reposilite: Reposilite) {
+        val extensionsManagement = reposilite.extensions
+        val settingsFacade = extensionsManagement.facade<SettingsFacade>()
 
-            this.webThreadPool = QueuedThreadPool(settingsFacade.localConfiguration.webThreadPool.get(), 2).also {
-                it.name = "Reposilite | Web (${it.maxThreads}) -"
-                it.start()
-            }
-
-            this.javalin = createJavalin(reposilite, webThreadPool!!)
-                .exception(EofException::class.java) { _, _ -> reposilite.logger.warn("Client closed connection") }
-                .events { listener ->
-                    listener.serverStopping { reposilite.logger.info("Server stopping...") }
-                    listener.serverStopped { extensionsManagement.emitEvent(HttpServerStoppedEvent()) }
-                }
-                .also {
-                    reposilite.extensions.emitEvent(HttpServerInitializationEvent(reposilite, it))
-                }
-
-            if (!servlet) {
-                javalin!!.start(reposilite.parameters.hostname, reposilite.parameters.port)
-            }
+        this.webThreadPool = QueuedThreadPool(settingsFacade.localConfiguration.webThreadPool.get(), 2).also {
+            it.name = "Reposilite | Web (${it.maxThreads}) -"
+            it.start()
         }
+
+        this.javalin = createJavalin(reposilite, webThreadPool!!)
+            .exception(EofException::class.java) { _, _ -> reposilite.logger.warn("Client closed connection") }
+            .events { listener ->
+                listener.serverStopping { reposilite.logger.info("Server stopping...") }
+                listener.serverStopped { extensionsManagement.emitEvent(HttpServerStoppedEvent()) }
+            }
+            .also {
+                reposilite.extensions.emitEvent(HttpServerInitializationEvent(reposilite, it))
+            }
+
+        if (!servlet) {
+            javalin!!.start(reposilite.parameters.hostname, reposilite.parameters.port)
+        }
+    }
 
     private fun createJavalin(reposilite: Reposilite, webThreadPool: ThreadPool): Javalin =
         if (servlet)
