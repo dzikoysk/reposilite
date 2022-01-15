@@ -12,9 +12,7 @@ application {
 }
 
 dependencies {
-    // compileOnly("org.panda-lang:reposilite:version") for external plugins
-
-    implementation("net.dzikoysk:exposed-upsert:1.0.3")
+    compileOnly("net.dzikoysk:exposed-upsert:1.0.3")
     compileOnly(project(":reposilite-backend"))
 }
 

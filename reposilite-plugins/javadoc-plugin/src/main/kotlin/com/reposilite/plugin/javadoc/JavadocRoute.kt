@@ -14,15 +14,16 @@ class JavadocRoute(javadoc: JavadocFacade) : ReposiliteRoutes() {
         accessed {
             ctx.encoding(Charsets.UTF_8)
 
-            javadoc.resolveRequest(requiredParameter("repository"), requiredParameter("gav"), uri.getExtension(), this).consume(
-                {
-                    ctx.contentType(it.contentType)
-                    response = it.response
-                },
-                {
-                    response = it
-                }
-            )
+            javadoc.resolveRequest(requiredParameter("repository"), requiredParameter("gav"), uri.getExtension(), this)
+                .consume(
+                    {
+                        ctx.contentType(it.contentType)
+                        response = it.response
+                    },
+                    {
+                        response = it
+                    }
+                )
         }
     }
 

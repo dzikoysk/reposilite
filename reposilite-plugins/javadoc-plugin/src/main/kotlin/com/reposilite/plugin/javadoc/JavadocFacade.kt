@@ -9,15 +9,18 @@ import com.reposilite.shared.fs.FileType
 import com.reposilite.token.api.AccessToken
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
+import com.reposilite.web.http.notFound
 import io.javalin.http.ContentType
 import io.javalin.http.HttpCode
 import org.intellij.lang.annotations.Language
 import panda.std.Result
 import panda.std.Result.ok
+import panda.std.Unit
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.file.Files
 import java.nio.file.Path
+import java.util.jar.JarFile
 
 class JavadocFacade internal constructor(
     private val javadocFolder: Path,
@@ -27,7 +30,12 @@ class JavadocFacade internal constructor(
 
     private val extractor = DocExtractor()
 
-    fun resolveRequest(repo: String, gav: String, extension: String, accessToken: AccessToken?): Result<JavadocResponse, ErrorResponse> {
+    fun resolveRequest(
+        repo: String,
+        gav: String,
+        extension: String,
+        accessToken: AccessToken?
+    ): Result<JavadocResponse, ErrorResponse> {
         val target = javadocFolder.resolve("${repo}${File.separator}${gav}")
         if (gav.contains("/resources/fonts")) return errorResponse(HttpCode.NOT_FOUND, "Fonts are not served!")
 
@@ -45,24 +53,17 @@ class JavadocFacade internal constructor(
         val newGav = constructGav(gav)
         val lookUp = mavenFacade.findDetails(LookupRequest(accessToken, repo, newGav));
 
-        if (lookUp.isOk) {
-            val file = lookUp.get()
-            if (file.type === FileType.FILE) {
-                if (!file.name.endsWith("-javadoc.jar")) {
-                    return  errorResponse(
-                        HttpCode.NOT_FOUND,
-                        "Please do not provide a direct link to a non javadoc file! GAV must be pointing to a directory or a javadoc file!"
-                    )
-                }
 
-                val source = extractJavaDoc(newGav, repo, mavenFacade, javadocFolder, accessToken)
-                return ok(JavadocResponse(ContentType.HTML, source))
-            }
-
-            //TODO handle latest
-            return errorResponse(HttpCode.BAD_REQUEST, "Invalid request!")
+        return lookUp.filter({ f -> f.type === FileType.FILE }, {
+            return@filter ErrorResponse(HttpCode.BAD_REQUEST, "Invalid request!")
+        }).filter({ f -> f.name.endsWith("-javadoc.jar") }, {
+            return@filter notFound("Please do not provide a direct link to a non javadoc file! GAV must be pointing to a directory or a javadoc file!")
+        }).map {
+            return@map JavadocResponse(
+                ContentType.HTML,
+                extractJavaDoc(newGav, repo, mavenFacade, javadocFolder, accessToken)
+            )
         }
-        return error(lookUp.error)
     }
 
     /**
@@ -72,7 +73,7 @@ class JavadocFacade internal constructor(
     private fun constructGav(gav: String): String {
         if (gav.endsWith("index.html")) {
             val path = gav.substringBeforeLast("/index.html")
-            val split = path.split("/".toRegex())
+            val split = path.split("/")
 
             val version = split[split.size - 1]
             val name = split[split.size - 2]
@@ -94,7 +95,13 @@ class JavadocFacade internal constructor(
      * @param mavenFacade the MavenFacade to use
      * @param javadocFolder the target folder in which the files should be extracted
      */
-    private fun extractJavaDoc(gav: String, repo: String, mavenFacade: MavenFacade, javadocFolder: Path, token: AccessToken?): Result<String, ErrorResponse> {
+    private fun extractJavaDoc(
+        gav: String,
+        repo: String,
+        mavenFacade: MavenFacade,
+        javadocFolder: Path,
+        token: AccessToken?
+    ): Result<String, ErrorResponse> {
         val path = gav.substringBeforeLast("/")
         val targetFolder = javadocFolder.resolve("${repo}${File.separator}${path}")
         if (Files.exists(targetFolder)) {
@@ -104,27 +111,23 @@ class JavadocFacade internal constructor(
         Files.createDirectories(targetFolder)
         val targetJar = targetFolder.resolve("doc.jar")
 
-        val findResult = mavenFacade.findFile(LookupRequest(token, repo, gav))
-        if (findResult.isOk) {
-            val inputStream = findResult.get()
-            inputStream.use { inStream ->
-                FileOutputStream(targetJar.toString()).use {
-                    inStream.copyTo(it)
+        return mavenFacade.findFile(LookupRequest(token, repo, gav))
+            .peek { ins ->
+                ins.use { inStream ->
+                    FileOutputStream(targetJar.toString()).use {
+                        inStream.copyTo(it)
+                    }
                 }
             }
-
-            val result = extractor.extractJavadoc(targetJar, targetFolder)
-
-            if (result.isOk) {
+            .map {
+                return@map extractor.extractJavadoc(targetJar, targetFolder)
+            }
+            .map {
                 Files.move(targetFolder.resolve("index.html"), targetFolder.resolve("docindex.html"))
                 writeNewIndex(targetFolder)
 
-                return ok(Files.readAllLines(targetFolder.resolve("index.html")).joinToString(separator = "\n"))
+                return@map Files.readAllLines(targetFolder.resolve("index.html")).joinToString(separator = "\n")
             }
-
-            return error(result.error)
-        }
-        return error(findResult.error)
     }
 
     /**
@@ -222,5 +225,56 @@ class JavadocFacade internal constructor(
 
     override fun getLogger(): Logger =
         journalist.logger
+
+    internal class DocExtractor {
+
+        fun extractJavadoc(jarFilePath: Path, destination: Path): Result<Unit, ErrorResponse> {
+            // Some checks, to make sure we're working with valid files/paths.
+            if (Files.isDirectory(jarFilePath)) return errorResponse(
+                HttpCode.BAD_REQUEST,
+                "JavaDoc jar file must not be a directory!"
+            )
+            if (!Files.isDirectory(destination)) return errorResponse(
+                HttpCode.BAD_REQUEST,
+                "Destination must be a directory!"
+            )
+            if (!jarFilePath.fileName.toString().contains("doc.jar")) return errorResponse(
+                HttpCode.BAD_REQUEST,
+                "Invalid javadoc.jar! Name must contain: \"doc.jar\""
+            )
+
+            JarFile(jarFilePath.toAbsolutePath().toString()).use { jarFile ->
+                // Making sure we have an index.html file
+                val entry = jarFile.getEntry("index.html")
+                check(!(entry == null || entry.isDirectory)) { "Invalid doc.jar!" }
+
+                val result = extractJavadoc(destination, jarFile)
+                Files.deleteIfExists(jarFilePath)
+                return result
+            }
+        }
+
+        private fun extractJavadoc(destination: Path, jarFile: JarFile): Result<Unit, ErrorResponse> {
+            val entries = jarFile.entries()
+
+            try {
+                entries.asSequence().forEach { file ->
+                    val javaFile = File(destination.toAbsolutePath().toString() + File.separator + file.name)
+                    if (file.isDirectory) {
+                        javaFile.mkdir()
+                    } else {
+                        jarFile.getInputStream(file).use { input ->
+                            javaFile.outputStream().use { output ->
+                                input.copyTo(output)
+                            }
+                        }
+                    }
+                }
+                return ok()
+            } catch (e: Exception) {
+                return errorResponse(HttpCode.INTERNAL_SERVER_ERROR, e.message.orEmpty())
+            }
+        }
+    }
 }
 
