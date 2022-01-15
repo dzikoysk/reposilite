@@ -32,7 +32,6 @@ import com.reposilite.maven.api.VersionsResponse
 import com.reposilite.plugin.Extensions
 import com.reposilite.plugin.api.Facade
 import com.reposilite.shared.BadgeGenerator
-import com.reposilite.shared.extensions.`when`
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.statistics.api.IncrementResolvedRequest
 import com.reposilite.storage.api.DirectoryInfo
@@ -40,7 +39,6 @@ import com.reposilite.storage.api.DocumentInfo
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.FileType.DIRECTORY
 import com.reposilite.storage.api.Location
-import com.reposilite.token.AccessToken
 import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
@@ -87,7 +85,7 @@ class MavenFacade internal constructor(
 
             val details = repository.getFileDetails(gav)
 
-            if (details.`when` { it.type == DIRECTORY } && repositorySecurityProvider.canBrowseResource(lookupRequest.accessToken, repository, gav).not()) {
+            if (details.matches { it.type == DIRECTORY } && repositorySecurityProvider.canBrowseResource(lookupRequest.accessToken, repository, gav).not()) {
                 return@resolve unauthorizedError("Unauthorized indexing request")
             }
 

@@ -5,7 +5,6 @@ import com.reposilite.settings.ConfigurationProvider
 import com.reposilite.settings.api.SettingsResponse
 import com.reposilite.settings.api.SettingsUpdateRequest
 import com.reposilite.shared.extensions.createCdnByExtension
-import com.reposilite.shared.extensions.orElseThrow
 import com.reposilite.storage.getSimpleName
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
@@ -17,10 +16,11 @@ import net.dzikoysk.cdn.source.Source
 import panda.std.Result
 import panda.std.Result.ok
 import panda.std.function.ThrowingFunction
+import panda.std.mapToUnit
+import panda.std.orElseThrow
 import java.nio.file.Path
 import java.util.concurrent.ScheduledExecutorService
 import kotlin.io.path.readText
-
 
 internal class FileSystemConfigurationProvider<C : Any>(
     override val name: String,
@@ -82,7 +82,7 @@ internal class FileSystemConfigurationProvider<C : Any>(
         when (request.name) {
             name -> load(Source.of(request.content))
                 .peek { journalist?.logger?.info("Updating ${displayName.lowercase()} in local source") }
-                .map { /* Unit */ }
+                .mapToUnit()
                 .mapErr { ErrorResponse(INTERNAL_SERVER_ERROR, "Cannot load configuration") }
             else -> errorResponse(BAD_REQUEST, "Unknown ${displayName.lowercase()}: ${request.name}")
         }

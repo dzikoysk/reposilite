@@ -16,7 +16,6 @@
 
 package com.reposilite.token.infrastructure
 
-import com.reposilite.shared.extensions.firstAndMap
 import com.reposilite.token.AccessToken
 import com.reposilite.token.AccessTokenIdentifier
 import com.reposilite.token.AccessTokenPermission
@@ -43,6 +42,7 @@ import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
+import panda.std.firstAndMap
 import java.util.UUID
 
 object AccessTokenTable : IntIdTable("access_token") {

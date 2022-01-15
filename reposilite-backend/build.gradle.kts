@@ -44,20 +44,20 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin")
     api("org.jetbrains:annotations:23.0.0")
 
-    val expressible = "1.1.9"
+    val expressible = "1.1.12"
     api("org.panda-lang:expressible:$expressible")
     api("org.panda-lang:expressible-kt:$expressible")
     api("org.panda-lang:expressible-kt-coroutines:$expressible")
     testImplementation("org.panda-lang:expressible-junit:$expressible")
 
-    val cdn = "1.13.3"
+    val cdn = "1.13.5"
     implementation("net.dzikoysk:cdn:$cdn")
     implementation("net.dzikoysk:cdn-kt:$cdn")
 
     val awssdk = "2.17.107"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
-    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.136")
+    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.138")
 
     val exposed = "0.37.3"
     implementation("org.jetbrains.exposed:exposed-core:$exposed")

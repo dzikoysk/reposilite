@@ -7,7 +7,6 @@ import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.VersionLookupRequest
 import com.reposilite.settings.SettingsFacade
 import com.reposilite.shared.ContextDsl
-import com.reposilite.shared.extensions.letIf
 import com.reposilite.shared.extensions.resultAttachment
 import com.reposilite.storage.api.DocumentInfo
 import com.reposilite.storage.api.FileDetails
@@ -29,6 +28,7 @@ import io.javalin.openapi.OpenApiResponse
 import panda.std.Result
 import panda.std.asError
 import panda.std.asSuccess
+import panda.std.letIf
 
 private typealias RequestFunction<T> = (LookupRequest) -> Result<T, ErrorResponse>
 

@@ -6,7 +6,7 @@ import com.reposilite.storage.api.Location
 import com.reposilite.web.http.ErrorResponse
 import panda.std.Result
 import panda.std.Result.ok
-import panda.std.Unit
+import panda.std.mapToUnit
 import java.lang.Integer.max
 
 internal class PreservedBuildsListener(private val mavenFacade: MavenFacade) : EventListener<DeployEvent> {
@@ -24,7 +24,7 @@ internal class PreservedBuildsListener(private val mavenFacade: MavenFacade) : E
 
         mavenFacade.findMetadata(repository.name, artifactDirectory)
             .flatMap { metadata ->
-                val snapshotVersion = metadata.versioning?.snapshotVersions ?: return@flatMap ok()
+                val snapshotVersion = metadata.versioning?.snapshotVersions ?: return@flatMap ok(Unit)
 
                 val versionsToDelete = snapshotVersion.asSequence()
                     .sortedBy { it.updated }
@@ -35,7 +35,9 @@ internal class PreservedBuildsListener(private val mavenFacade: MavenFacade) : E
                 repository.getFiles(artifactDirectory)
                     .flatMap { deleteFiles(repository, it, versionsToDelete) }
                     .flatMap {
-                        val updatedMetadata = metadata.copy(versioning = metadata.versioning.copy(_snapshotVersions = snapshotVersion.filterNot { snapshot -> versionsToDelete.contains(snapshot.value) }))
+                        val updatedMetadata = metadata.copy(versioning = metadata.versioning.copy(
+                            _snapshotVersions = snapshotVersion.filterNot { snapshot -> versionsToDelete.contains(snapshot.value) }
+                        ))
                         mavenFacade.saveMetadata(repository.name, artifactDirectory, updatedMetadata)
                     }
                     .mapToUnit()
@@ -47,6 +49,6 @@ internal class PreservedBuildsListener(private val mavenFacade: MavenFacade) : E
         files
             .filter { versionsToDelete.any { toDelete -> "$it".contains(toDelete) } }
             .forEach { repository.removeFile(it) }
-            .let { ok() }
+            .let { ok(Unit) }
 
 }

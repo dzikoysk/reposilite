@@ -18,8 +18,8 @@ package com.reposilite.statistics
 import com.reposilite.console.CommandContext
 import com.reposilite.console.CommandStatus.FAILED
 import com.reposilite.console.api.ReposiliteCommand
-import com.reposilite.shared.extensions.take
 import panda.std.Option
+import panda.std.take
 import panda.utilities.console.Effect.BLACK_BOLD
 import panda.utilities.console.Effect.RESET
 import picocli.CommandLine.Command
