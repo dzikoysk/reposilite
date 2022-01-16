@@ -5,17 +5,18 @@ import com.reposilite.journalist.Logger
 import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.plugin.api.Facade
-import com.reposilite.shared.fs.FileType
-import com.reposilite.token.api.AccessToken
+import com.reposilite.storage.api.FileType
+import com.reposilite.storage.api.Location
+import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
 import com.reposilite.web.http.notFound
 import io.javalin.http.ContentType
 import io.javalin.http.HttpCode
 import org.intellij.lang.annotations.Language
+import panda.std.Blank
 import panda.std.Result
 import panda.std.Result.ok
-import panda.std.Unit
 import java.io.FileOutputStream
 import java.nio.file.Files
 import java.nio.file.Path
@@ -30,14 +31,15 @@ class JavadocFacade internal constructor(
 
     fun resolveRequest(
         repo: String,
-        gav: String,
+        gav: Location,
         extension: String,
-        accessToken: AccessToken?
+        accessToken: AccessTokenDto?
     ): Result<JavadocResponse, ErrorResponse> {
-        val target = javadocFolder.resolve(repo).resolve(gav)
-        if (gav.contains("/resources/fonts")) return errorResponse(HttpCode.NOT_FOUND, "Fonts are not served!")
+        val stringGav = gav.toString()
+        val target = javadocFolder.resolve(repo).resolve(stringGav)
+        if (stringGav.contains("/resources/fonts")) return errorResponse(HttpCode.NOT_FOUND, "Fonts are not served!")
 
-        if (Files.exists(target) && (gav.endsWith(".html") || gav.endsWith(".css") || gav.endsWith(".js"))) {
+        if (Files.exists(target) && (gav.getExtension() == "html" || gav.getExtension() == "css" || gav.getExtension() == "js")) {
             return try {
                 val contentType = ContentType.getMimeTypeByExtension(extension) ?: ContentType.PLAIN
                 val response = Files.readAllLines(target).joinToString(separator = "\n")
@@ -48,7 +50,7 @@ class JavadocFacade internal constructor(
             }
         }
 
-        val newGav = constructGav(gav)
+        val newGav = Location.of(constructGav(stringGav))
         val lookUp = mavenFacade.findDetails(LookupRequest(accessToken, repo, newGav))
 
 
@@ -94,13 +96,13 @@ class JavadocFacade internal constructor(
      * @param javadocFolder the target folder in which the files should be extracted
      */
     private fun extractJavaDoc(
-        gav: String,
+        gav: Location,
         repo: String,
         mavenFacade: MavenFacade,
         javadocFolder: Path,
-        token: AccessToken?
+        token: AccessTokenDto?
     ): Result<String, ErrorResponse> {
-        val path = gav.substringBeforeLast("/")
+        val path = gav.locationBeforeLast("/").toString()
         val targetFolder = javadocFolder.resolve(repo).resolve(path)
         if (Files.exists(targetFolder)) {
             return ok(Files.readAllLines(targetFolder.resolve("index.html")).joinToString(separator = "\n"))
@@ -224,7 +226,7 @@ class JavadocFacade internal constructor(
     override fun getLogger(): Logger =
         journalist.logger
 
-    private fun extractJavadoc(jarFilePath: Path, destination: Path): Result<Unit, ErrorResponse> {
+    private fun extractJavadoc(jarFilePath: Path, destination: Path): Result<Blank, ErrorResponse> {
         // Some checks, to make sure we're working with valid files/paths.
         if (Files.isDirectory(jarFilePath)) return errorResponse(
             HttpCode.BAD_REQUEST,
@@ -246,12 +248,14 @@ class JavadocFacade internal constructor(
                 return errorResponse(HttpCode.INTERNAL_SERVER_ERROR, "Invalid doc.jar given for extraction!")
 
             val result = extractJavadoc(destination, jarFile)
+            jarFile.close() // Since it may still use the file
+
             Files.deleteIfExists(jarFilePath)
             return result
         }
     }
 
-    private fun extractJavadoc(destination: Path, jarFile: JarFile): Result<Unit, ErrorResponse> {
+    private fun extractJavadoc(destination: Path, jarFile: JarFile): Result<Blank, ErrorResponse> {
         try {
             jarFile.entries().asSequence().forEach { file ->
                 val javaFile = destination.resolve(file.name)
