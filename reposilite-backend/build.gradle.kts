@@ -26,6 +26,7 @@ plugins {
     kotlin("jvm")
     kotlin("kapt")
     id("com.coditory.integration-test") version "1.3.0"
+    id("com.github.johnrengelman.shadow") version "7.1.1"
 }
 
 application {
@@ -43,31 +44,33 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin")
     api("org.jetbrains:annotations:23.0.0")
 
-    val expressible = "1.1.9"
+    val expressible = "1.1.12"
     api("org.panda-lang:expressible:$expressible")
     api("org.panda-lang:expressible-kt:$expressible")
     api("org.panda-lang:expressible-kt-coroutines:$expressible")
     testImplementation("org.panda-lang:expressible-junit:$expressible")
 
-    val cdn = "1.13.3"
+    val cdn = "1.13.5"
     implementation("net.dzikoysk:cdn:$cdn")
     implementation("net.dzikoysk:cdn-kt:$cdn")
 
-    val awssdk = "2.17.102"
+    val awssdk = "2.17.107"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
-    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.131")
+    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.138")
 
-    val exposed = "0.36.2"
+    val exposed = "0.37.3"
     implementation("org.jetbrains.exposed:exposed-core:$exposed")
     implementation("org.jetbrains.exposed:exposed-dao:$exposed")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposed")
     implementation("org.jetbrains.exposed:exposed-java-time:$exposed")
-
-    implementation("net.dzikoysk:exposed-upsert:1.0.3")
+    api("net.dzikoysk:exposed-upsert:1.0.3")
+    // Drivers
     implementation("org.xerial:sqlite-jdbc:3.36.0.3")
     implementation("mysql:mysql-connector-java:8.0.27")
     implementation("org.mariadb.jdbc:mariadb-java-client:2.7.4")
+    implementation("org.postgresql:postgresql:42.3.1")
+    implementation("com.h2database:h2:2.0.206")
 
     val springSecurityCrypto = "5.6.1"
     implementation("org.springframework.security:spring-security-crypto:$springSecurityCrypto")
@@ -82,7 +85,7 @@ dependencies {
     api("com.reposilite.javalin-rfcs:javalin-routing:$javalinRfcs")
 
     //implementation("io.javalin:javalin:4.1.1")
-    api("com.github.dzikoysk.javalin:javalin:ded7a51aa4")
+    api("com.github.dzikoysk.javalin:javalin:1928b145c9")
     @Suppress("GradlePackageUpdate")
     implementation("org.eclipse.jetty:jetty-server:9.4.44.v20210927")
 
@@ -95,7 +98,7 @@ dependencies {
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jackson")
 
-    val httpClient = "1.40.1"
+    val httpClient = "1.41.0"
     implementation("com.google.http-client:google-http-client:$httpClient")
     testImplementation("com.google.http-client:google-http-client-jackson2:$httpClient")
 
@@ -118,7 +121,7 @@ dependencies {
     implementation("org.tinylog:tinylog-api:$tinylog")
     implementation("org.tinylog:tinylog-impl:$tinylog")
 
-    val unirest = "3.13.4"
+    val unirest = "3.13.6"
     testImplementation("com.konghq:unirest-java:$unirest")
     testImplementation("com.konghq:unirest-objectmapper-jackson:$unirest")
 
@@ -131,7 +134,7 @@ dependencies {
     val junit = "5.8.2"
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junit")
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junit")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junit")
+    testImplementation("org.junit.jupiter:junit-jupiter-engine:$junit")
 }
 
 sourceSets.main {
@@ -182,6 +185,7 @@ tasks.withType<ShadowJar> {
         exclude(dependency("org.xerial:sqlite-jdbc.*"))
         exclude(dependency("org.sqlite:.*"))
         exclude(dependency("mysql:.*"))
+        exclude(dependency("org.postgresql:.*"))
         exclude(dependency("org.h2:.*"))
         exclude(dependency("com.h2database:.*"))
         exclude(dependency("org.tinylog:.*"))
@@ -212,7 +216,10 @@ tasks.withType<Test> {
     }
 
     useJUnitPlatform()
-    maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).takeIf { it > 0 } ?: 1
+
+    maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2)
+        .takeIf { it > 0 }
+        ?: 1
 }
 
 jacoco {

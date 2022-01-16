@@ -27,9 +27,9 @@ internal class SettingsEndpoints(private val settingsFacade: SettingsFacade) : R
             OpenApiResponse(status = "404", description = "Returns 404 if non-existing configuration is requested")
         ]
     )
-    private val findConfiguration = ReposiliteRoute("/api/settings/content/{name}", GET) {
+    private val findConfiguration = ReposiliteRoute<SettingsResponse>("/api/settings/content/{name}", GET) {
         managerOnly {
-            response = settingsFacade.resolveConfiguration(requiredParameter("name"))
+            response = settingsFacade.resolveConfiguration(requireParameter("name"))
         }
     }
 
@@ -45,13 +45,13 @@ internal class SettingsEndpoints(private val settingsFacade: SettingsFacade) : R
             OpenApiResponse(status = "404", description = "Returns 404 if non-existing configuration is requested")
         ]
     )
-    private val updateConfiguration = ReposiliteRoute("/api/settings/content/{name}", PUT) {
+    private val updateConfiguration = ReposiliteRoute<String>("/api/settings/content/{name}", PUT) {
         managerOnly {
-            response = settingsFacade.updateConfiguration(SettingsUpdateRequest(requiredParameter("name"), ctx.body()))
+            response = settingsFacade.updateConfiguration(SettingsUpdateRequest(requireParameter("name"), ctx.body()))
                 .map { "Success" }
         }
     }
 
-    override val routes = setOf(findConfiguration, updateConfiguration)
+    override val routes = routes(findConfiguration, updateConfiguration)
 
 }

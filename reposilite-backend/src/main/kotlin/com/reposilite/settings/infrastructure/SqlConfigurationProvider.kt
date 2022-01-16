@@ -16,7 +16,6 @@ import net.dzikoysk.cdn.Cdn
 import net.dzikoysk.cdn.KCdnFactory
 import net.dzikoysk.cdn.source.Source
 import panda.std.Result
-import panda.std.Unit
 import panda.std.function.ThrowingFunction
 import java.time.Instant
 import java.util.concurrent.ScheduledExecutorService
@@ -25,10 +24,10 @@ import java.util.concurrent.TimeUnit
 import kotlin.reflect.full.createInstance
 
 internal class SqlConfigurationProvider<C : Any>(
+    override val name: String,
     override val displayName: String,
     private val journalist: Journalist,
     private val settingsRepository: SettingsRepository,
-    private val name: String,
     override val configuration: C
 ) : ConfigurationProvider<C> {
 
@@ -38,11 +37,17 @@ internal class SqlConfigurationProvider<C : Any>(
 
     override fun initialize() {
         journalist.logger.info("Loading ${displayName.lowercase()} from database")
+        loadRemoteConfiguration()
+    }
 
+    private fun loadRemoteConfiguration() {
         settingsRepository.findConfiguration(name)
-            ?.let { standard.load(Source.of(it), configuration).orElseThrow(ThrowingFunction.identity()) }
-            ?.let { journalist.logger.info("$displayName has been loaded from database") }
-            ?: createInDatabase()
+            ?.let { standard.load(Source.of(it), configuration) }
+            ?.peek { journalist.logger.info("$displayName has been loaded from database") }
+            ?.orElseThrow(ThrowingFunction.identity())
+            ?: standard.render(configuration)
+                .map { settingsRepository.saveConfiguration(name, it) }
+                .orElseThrow(ThrowingFunction.identity())
 
         this.databaseUpdateTime = settingsRepository.findConfigurationUpdateDate(name) ?: databaseUpdateTime
     }
@@ -53,7 +58,7 @@ internal class SqlConfigurationProvider<C : Any>(
                 ?.takeIf { it.isAfter(databaseUpdateTime) }
                 ?.run {
                     journalist.logger.info("Propagation | $displayName has been changed in remote source, updating current instance...")
-                    initialize()
+                    loadRemoteConfiguration()
                 }
         }, 10, 10, TimeUnit.SECONDS)
     }
@@ -65,25 +70,17 @@ internal class SqlConfigurationProvider<C : Any>(
         }
         .peek { journalist.logger.info("Propagation | $displayName has updated, updating sources...") }
         .map { standard.render(it).orElseThrow(ThrowingFunction.identity()) }
-        .peek {
-            settingsRepository.saveConfiguration(name, it)
-            journalist.logger.info("Propagation | Sources have been updated successfully")
-            initialize()
-        }
-        .mapToUnit()
+        .map { settingsRepository.saveConfiguration(name, it) }
+        .peek { journalist.logger.info("Propagation | Sources have been updated successfully") }
+        .map { loadRemoteConfiguration() }
 
-    override fun resolve(name: String): Result<SettingsResponse, ErrorResponse> =
-        when (name) {
+    override fun resolve(configurationName: String): Result<SettingsResponse, ErrorResponse> =
+        when (configurationName) {
             name -> standard.render(configuration)
                 .map { SettingsResponse(APPLICATION_CDN, it) }
                 .mapErr { ErrorResponse(INTERNAL_SERVER_ERROR, "Cannot load configuration: ${it.message}") }
-            else -> errorResponse(BAD_REQUEST, "Unsupported configuration $name")
+            else -> errorResponse(BAD_REQUEST, "Unsupported configuration $configurationName")
         }
-
-    private fun createInDatabase() =
-        standard.render(configuration)
-            .map { settingsRepository.saveConfiguration(name, it) }
-            .orElseThrow(ThrowingFunction.identity())
 
     override fun shutdown() {
         watcher?.cancel(false)

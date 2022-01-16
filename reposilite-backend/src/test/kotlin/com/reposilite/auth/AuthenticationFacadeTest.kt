@@ -16,6 +16,7 @@
 
 package com.reposilite.auth
 
+import com.reposilite.auth.api.AuthenticationRequest
 import com.reposilite.auth.specification.AuthenticationSpecification
 import com.reposilite.web.http.ErrorResponse
 import io.javalin.http.HttpCode.UNAUTHORIZED
@@ -33,7 +34,7 @@ internal class AuthenticationFacadeTest : AuthenticationSpecification() {
         createToken(name)
 
         // when: an authentication is requested with invalid credentials
-        val response = authenticationFacade.authenticateByCredentials(name, "invalid-secret")
+        val response = authenticationFacade.authenticateByCredentials(AuthenticationRequest(name, "invalid-secret"))
 
         // then: the request has been rejected
         assertError(ErrorResponse(UNAUTHORIZED, "Invalid authorization credentials"), response)
@@ -47,7 +48,7 @@ internal class AuthenticationFacadeTest : AuthenticationSpecification() {
         val accessToken = createToken(name, secret)
 
         // when: an authentication is requested with valid credentials
-        val response = authenticationFacade.authenticateByCredentials(name, secret)
+        val response = authenticationFacade.authenticateByCredentials(AuthenticationRequest(name, secret))
 
         // then: the request has been authorized
         assertOk(accessToken, response)

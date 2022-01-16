@@ -15,7 +15,8 @@
   -->
 
 <template>
-  <div class="browser-entry flex flex-row justify-between mb-1.5 py-3 rounded-full bg-white dark:bg-gray-900 lg:max-w-2/5 xl:max-w-1/2 cursor-pointer">
+  <div class="
+    browser-entry flex flex-row justify-between mb-1.5 py-3 rounded-full default-button">
     <div class="flex flex-row">
       <div v-if="file.type == 'DIRECTORY'" class="text-xm px-6 pt-1.75">⚫</div>
       <div v-else class="text-xm px-6 pt-1.75">⚪</div>
@@ -47,10 +48,3 @@ export default {
   }
 }
 </script>
-
-<style scoped>
-#browser-list .browser-entry:hover {
-  @apply bg-gray-200 dark:bg-gray-800;
-  transition: background-color 0.5s;
-}
-</style>

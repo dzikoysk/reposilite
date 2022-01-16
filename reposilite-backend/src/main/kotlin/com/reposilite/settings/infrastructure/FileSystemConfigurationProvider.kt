@@ -5,8 +5,7 @@ import com.reposilite.settings.ConfigurationProvider
 import com.reposilite.settings.api.SettingsResponse
 import com.reposilite.settings.api.SettingsUpdateRequest
 import com.reposilite.shared.extensions.createCdnByExtension
-import com.reposilite.shared.extensions.orElseThrow
-import com.reposilite.shared.fs.getSimpleName
+import com.reposilite.storage.getSimpleName
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
 import io.javalin.http.ContentType.APPLICATION_CDN
@@ -16,18 +15,18 @@ import net.dzikoysk.cdn.CdnException
 import net.dzikoysk.cdn.source.Source
 import panda.std.Result
 import panda.std.Result.ok
-import panda.std.Unit
 import panda.std.function.ThrowingFunction
+import panda.std.mapToUnit
+import panda.std.orElseThrow
 import java.nio.file.Path
 import java.util.concurrent.ScheduledExecutorService
 import kotlin.io.path.readText
 
-
 internal class FileSystemConfigurationProvider<C : Any>(
+    override val name: String,
     override val displayName: String,
     private val journalist: Journalist?,
     private val workingDirectory: Path,
-    private val defaultFileName: String,
     private val mode: String,
     private val configurationFile: Path,
     override val configuration: C
@@ -56,10 +55,10 @@ internal class FileSystemConfigurationProvider<C : Any>(
             .flatMap { render() }
             .map { configuration }
 
-    fun render(): Result<String, CdnException> =
+    private fun render(): Result<String, CdnException> =
         when (mode) {
             "none" -> ok("")
-            "copy" -> cdn.render(configuration, Source.of(workingDirectory.resolve(defaultFileName)))
+            "copy" -> cdn.render(configuration, Source.of(workingDirectory.resolve(name)))
             "auto" -> cdn.render(configuration, Source.of(configurationFile))
             "print" -> cdn.render(configuration).peek { output -> printConfiguration(configurationFile, output) }
             else -> error(UnsupportedOperationException("Unknown configuration mode: $mode"))
@@ -74,14 +73,14 @@ internal class FileSystemConfigurationProvider<C : Any>(
         }
     }
 
-    override fun resolve(name: String): Result<SettingsResponse, ErrorResponse> =
+    override fun resolve(configurationName: String): Result<SettingsResponse, ErrorResponse> =
         cdn.render(configuration)
             .map { SettingsResponse(APPLICATION_CDN, it) }
             .mapErr { ErrorResponse(INTERNAL_SERVER_ERROR, "Cannot render ${displayName.lowercase()}: ${it.message}") }
 
     override fun update(request: SettingsUpdateRequest): Result<Unit, ErrorResponse> =
         when (request.name) {
-            defaultFileName -> load(Source.of(request.content))
+            name -> load(Source.of(request.content))
                 .peek { journalist?.logger?.info("Updating ${displayName.lowercase()} in local source") }
                 .mapToUnit()
                 .mapErr { ErrorResponse(INTERNAL_SERVER_ERROR, "Cannot load configuration") }

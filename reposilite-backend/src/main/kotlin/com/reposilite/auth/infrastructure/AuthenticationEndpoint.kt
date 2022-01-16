@@ -16,7 +16,8 @@
 package com.reposilite.auth.infrastructure
 
 import com.reposilite.auth.AuthenticationFacade
-import com.reposilite.token.api.AccessToken
+import com.reposilite.auth.api.SessionDetails
+import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.routing.RouteMethod.GET
@@ -39,7 +40,7 @@ internal class AuthenticationEndpoint(private val authenticationFacade: Authenti
             OpenApiResponse(
                 status = "200",
                 description = "Details about the token for succeeded authentication",
-                content = [ OpenApiContent(from = AccessToken::class) ]
+                content = [ OpenApiContent(from = SessionDetails::class) ]
             ),
             OpenApiResponse(
                 status = "401",
@@ -48,10 +49,12 @@ internal class AuthenticationEndpoint(private val authenticationFacade: Authenti
             )
         ]
     )
-    private val authInfo = route("/api/auth/me", GET) {
-        response = authenticationResult.value
+    private val authInfo = ReposiliteRoute<SessionDetails>("/api/auth/me", GET) {
+        response = authentication().flatMap {
+            authenticationFacade.geSessionDetails(it.identifier)
+        }
     }
 
-    override val routes = setOf(authInfo)
+    override val routes = routes(authInfo)
 
 }

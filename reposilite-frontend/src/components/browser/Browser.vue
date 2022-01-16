@@ -16,45 +16,55 @@
 
 <template>
   <div class="bg-gray-100">
-    <div class="bg-gray-100 dark:bg-black">
-      <div class="container mx-auto">
-        <p class="pt-7 pb-3 pl-2 font-semibold">
-          <span class="select-none">
-            <router-link to="/">
-              Index of 
-            </router-link>
-          </span>
-          <span class="select-text">
-            <router-link v-for="crumb of breadcrumbs" :key="crumb.link" :to="crumb.link">
-              {{ crumb.name }}
-            </router-link>
-          </span>
-
-          <router-link :to="parentPath">
-            <span class="font-normal text-xl text-gray-500 select-none"> ⤴ </span>
-          </router-link>
-        </p>
-      </div>
-    </div>
     <div class="dark:bg-black">
       <div class="container mx-auto relative min-h-320px mb-1.5">
-        <div class="lg:absolute pt-5 -top-5 right-8">
+        <div class="lg:absolute pt-13 -top-5 right-8">
           <Card :qualifier="qualifier" :token="token"/>
         </div>
-        <div id="browser-list" class="pt-4">
-          <div v-for="file in files" v-bind:key="file">
-            <router-link v-if="isDirectory(file)" :to="append($route.path, file.name)">
-              <Entry :file="file"/>
-            </router-link>
-            <a v-else @click.left.prevent="downloadHandler($route.path, file.name)" :href="$route.path + '/' + file.name" target="_blank">
-              <Entry :file="file"/>
-            </a>
+        <div class="lg:max-w-2/5 xl:max-w-1/2">
+          <div class="flex justify-between pt-7 px-2">
+            <div class="">
+              <p class="pb-3 font-semibold">
+                <span class="select-none">
+                  <router-link to="/">
+                    Index of 
+                  </router-link>
+                </span>
+                <span class="select-text">
+                  <router-link v-for="crumb of breadcrumbs" :key="crumb.link" :to="crumb.link">
+                    <span class="hover:(transition-colors duration-200 text-purple-500)">{{ crumb.name }}</span>
+                  </router-link>
+                </span>
+                <router-link :to="parentPath">
+                  <span class="font-normal text-xl text-gray-500 select-none"> ⤴ </span>
+                </router-link>
+              </p>
+            </div>
+            <div class="w-9">
+              <AdjustmentsModal>
+                <template v-slot:button>
+                  <div class="bg-white dark:bg-gray-900 pl-2 pt-1.3 pb-1 pr-2 cursor-pointer rounded-full default-button">
+                    <AdjustmentsIcon class="pr-0.9" />
+                  </div>
+                </template>
+              </AdjustmentsModal>
+            </div>
           </div>
-          <div v-if="isEmpty">
-            <p>Directory is empty</p>
-          </div>
-          <div v-if="isErrored">
-            <p>Directory not found</p>
+          <div id="browser-list" class="pt-3">
+            <div v-for="file in files" v-bind:key="file">
+              <router-link v-if="isDirectory(file)" :to="append($route.path, file.name)">
+                <Entry :file="file"/>
+              </router-link>
+              <a v-else @click.left.prevent="downloadHandler($route.path, file.name)" :href="$route.path + '/' + file.name" target="_blank">
+                <Entry :file="file"/>
+              </a>
+            </div>
+            <div v-if="isEmpty" class="pl-2">
+              <p>Directory is empty</p>
+            </div>
+            <div v-if="isErrored" class="pl-2">
+              <p>Directory not found</p>
+            </div>
           </div>
         </div>
       </div>
@@ -67,14 +77,17 @@ import { ref, watch, computed } from 'vue'
 import { createToast } from 'mosha-vue-toastify'
 import 'mosha-vue-toastify/dist/style.css'
 import { createURL, createClient } from '../../store/client'
+import AdjustmentsIcon from '../icons/AdjustmentsIcon.vue'
+import AdjustmentsModal from './AdjustmentsModal.vue'
+import HashtagIcon from '../icons/HashtagIcon.vue'
+import SortDescending from '../icons/SortDescending.vue'
 import Card from './Card.vue'
 import Entry from './Entry.vue'
 import { useRoute } from 'vue-router'
 import download from 'downloadjs'
-import mime from 'mime-types'
 
 export default {
-  components: { Card, Entry },
+  components: { AdjustmentsModal, AdjustmentsIcon, HashtagIcon, SortDescending, Card, Entry },
   props: {
     qualifier: {
       type: Object,
@@ -115,6 +128,7 @@ export default {
             createToast(`${error.response.status}: ${error.response.data.message}`, {
               type: 'danger'
             })
+            files.value = []
             isErrored.value = error
           })
 

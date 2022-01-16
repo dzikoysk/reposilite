@@ -1,5 +1,4 @@
 com.reposilite.auth.application.AuthenticationPlugin
-com.reposilite.badge.application.BadgePlugin
 com.reposilite.console.application.ConsolePlugin
 com.reposilite.frontend.application.FrontendPlugin
 com.reposilite.maven.application.MavenPlugin

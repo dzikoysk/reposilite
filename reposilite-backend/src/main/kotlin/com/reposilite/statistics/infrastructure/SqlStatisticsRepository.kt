@@ -20,7 +20,6 @@ import com.reposilite.maven.api.GAV_MAX_LENGTH
 import com.reposilite.maven.api.Identifier
 import com.reposilite.maven.api.REPOSITORY_NAME_MAX_LENGTH
 import com.reposilite.shared.extensions.and
-import com.reposilite.shared.extensions.firstAndMap
 import com.reposilite.statistics.StatisticsRepository
 import com.reposilite.statistics.api.ResolvedEntry
 import net.dzikoysk.exposed.upsert.upsert
@@ -40,6 +39,7 @@ import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.sum
 import org.jetbrains.exposed.sql.transactions.transaction
+import panda.std.firstAndMap
 import java.time.LocalDate
 import java.util.UUID
 

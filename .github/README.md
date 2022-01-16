@@ -34,7 +34,7 @@ This is simple, extensible and scalable self-hosted solution to replace managers
  <div>
   <a href="https://reposilite.com">Website</a>
   |
-  <a href="https://reposilite.com/docs/about">Official Gude</a>
+  <a href="https://reposilite.com/docs/about">Official Guide</a>
   |
   <a href="https://github.com/dzikoysk/reposilite/releases">GitHub Releases</a>
   |
@@ -61,10 +61,10 @@ For huge public repositories you can adjust memory limit and even size of used t
 
 ```bash
 # Launching a standalone JAR file
-$ java -Xmx16M -jar reposilite-3.0.0-alpha.16.jar
+$ java -Xmx16M -jar reposilite-3.0.0-alpha.18.jar
 
 # Using a Docker
-$ docker pull dzikoysk/reposilite:3.0.0-alpha.16
+$ docker pull dzikoysk/reposilite:3.0.0-alpha.18
 ```
 
 Visit official guide to read more about extra parameters and configuration details.

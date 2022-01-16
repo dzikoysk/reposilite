@@ -18,17 +18,15 @@ package com.reposilite.storage.infrastructure
 
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
-import com.reposilite.shared.fs.DirectoryInfo
-import com.reposilite.shared.fs.DocumentInfo
-import com.reposilite.shared.fs.FileDetails
-import com.reposilite.shared.fs.SimpleDirectoryInfo
-import com.reposilite.shared.fs.getExtension
-import com.reposilite.shared.fs.getSimpleName
-import com.reposilite.shared.fs.safeResolve
 import com.reposilite.storage.StorageProvider
+import com.reposilite.storage.api.DirectoryInfo
+import com.reposilite.storage.api.DocumentInfo
+import com.reposilite.storage.api.FileDetails
+import com.reposilite.storage.api.Location
+import com.reposilite.storage.api.SimpleDirectoryInfo
+import com.reposilite.storage.api.toLocation
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
-import com.reposilite.web.http.notFoundError
 import io.javalin.http.ContentType
 import io.javalin.http.ContentType.APPLICATION_OCTET_STREAM
 import io.javalin.http.ContentType.Companion.OCTET_STREAM
@@ -53,8 +51,6 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
-import java.nio.file.Path
-import java.nio.file.Paths
 import java.nio.file.attribute.FileTime
 
 class S3StorageProvider(
@@ -79,7 +75,7 @@ class S3StorageProvider(
         }
     }
 
-    override fun putFile(path: Path, inputStream: InputStream): Result<Unit, ErrorResponse> =
+    override fun putFile(location: Location, inputStream: InputStream): Result<Unit, ErrorResponse> =
         inputStream.use { data ->
             // So... S3 API is disabled and requires content-length of every inserted object.
             // It means we're pretty doomed if we'd like to re-stream large artifacts that size is unknown.
@@ -96,109 +92,103 @@ class S3StorageProvider(
             try {
                 val builder = PutObjectRequest.builder()
                 builder.bucket(bucket)
-                builder.key(path.toString().replace('\\', '/'))
-                builder.contentType(ContentType.getMimeTypeByExtension(path.getExtension()) ?: OCTET_STREAM)
+                builder.key(location.toString().replace('\\', '/'))
+                builder.contentType(ContentType.getMimeTypeByExtension(location.getExtension()) ?: OCTET_STREAM)
                 builder.contentLength(temporary.length())
                 s3.putObject(builder.build(), RequestBody.fromFile(temporary))
                 ok(Unit)
             } catch (ioException: IOException) {
                 logger.exception(ioException)
-                errorResponse(INTERNAL_SERVER_ERROR, "Failed to write $path")
+                errorResponse(INTERNAL_SERVER_ERROR, "Failed to write $location")
             } finally {
                 temporary.delete()
             }
         }
 
-    override fun getFile(path: Path): Result<InputStream, ErrorResponse> =
+    override fun getFile(location: Location): Result<InputStream, ErrorResponse> =
         try {
             val request = GetObjectRequest.builder()
             request.bucket(bucket)
-            request.key(path.toString().replace('\\', '/'))
+            request.key(location.toString().replace('\\', '/'))
             s3.getObject(request.build()).asSuccess()
             // val bytes = ByteArray(Math.toIntExact(response.response().contentLength()))
             // response.read(bytes)
         }
         catch (noSuchKeyException: NoSuchKeyException) {
-            errorResponse(NOT_FOUND, "File not found: $path")
+            errorResponse(NOT_FOUND, "File not found: $location")
         }
         catch (ioException: IOException) {
-            errorResponse(NOT_FOUND, "File not found: $path")
+            errorResponse(NOT_FOUND, "File not found: $location")
         }
 
-    override fun getFileDetails(path: Path): Result<FileDetails, ErrorResponse> =
-        head(path)
-            .map { toDocumentInfo(path, it) }
-            .flatMapErr { getFiles(path).map { toDirectoryInfo(path, it) } }
+    override fun getFileDetails(location: Location): Result<FileDetails, ErrorResponse> =
+        head(location)
+            .map { toDocumentInfo(location, it) }
+            .flatMapErr { getFiles(location).map { toDirectoryInfo(location, it) } }
 
-    private fun getSimplifiedFileDetails(file: Path): FileDetails =
-        head(file)
+    private fun getSimplifiedFileDetails(location: Location): FileDetails =
+        head(location)
             .fold(
-                { toDocumentInfo(file, it) },
-                { SimpleDirectoryInfo(file.getSimpleName()) }
+                { toDocumentInfo(location, it) },
+                { SimpleDirectoryInfo(location.getSimpleName()) }
             )
 
-    private fun toDocumentInfo(path: Path, head: HeadObjectResponse): FileDetails =
+    private fun toDocumentInfo(location: Location, head: HeadObjectResponse): FileDetails =
         DocumentInfo(
-            path.getSimpleName(),
-            ContentType.getContentTypeByExtension(path.getExtension()) ?: APPLICATION_OCTET_STREAM,
+            location.getSimpleName(),
+            ContentType.getContentTypeByExtension(location.getExtension()) ?: APPLICATION_OCTET_STREAM,
             head.contentLength()
         )
 
-    private fun toDirectoryInfo(path: Path, files: List<Path>): DirectoryInfo =
+    private fun toDirectoryInfo(location: Location, files: List<Location>): DirectoryInfo =
         DirectoryInfo(
-            path.getSimpleName(),
+            location.getSimpleName(),
             files.map { getSimplifiedFileDetails(it) }
         )
 
-    override fun removeFile(path: Path): Result<Unit, ErrorResponse> =
+    override fun removeFile(location: Location): Result<Unit, ErrorResponse> =
         with(DeleteObjectRequest.builder()) {
             bucket(bucket)
-            key(path.toString().replace('\\', '/'))
+            key(location.toString().replace('\\', '/'))
             s3.deleteObject(build())
             Unit
         }.asSuccess()
 
-    override fun getFiles(path: Path): Result<List<Path>, ErrorResponse> =
+    override fun getFiles(location: Location): Result<List<Location>, ErrorResponse> =
         try {
             val request = ListObjectsRequest.builder()
             request.bucket(bucket)
 
-            val directoryString =path.toString().replace('\\', '/')
+            val directoryString =location.toString().replace('\\', '/')
             request.prefix(directoryString)
 
             val paths = s3.listObjects(request.build())
                 .contents().asSequence()
-                .map { Paths.get(it.key()) }
+                .map { it.key().toLocation() }
                 .toList()
 
-            if (paths.isEmpty()) {
+            if (paths.isEmpty())
                 errorResponse(NOT_FOUND, "Directory not found or is empty")
-            }
-            else {
+            else
                 paths.asSuccess()
-            }
         }
         catch (exception: Exception) {
             errorResponse(INTERNAL_SERVER_ERROR, exception.localizedMessage)
         }
 
-    override fun getLastModifiedTime(path: Path): Result<FileTime, ErrorResponse> =
-        head(path)
+    override fun getLastModifiedTime(location: Location): Result<FileTime, ErrorResponse> =
+        head(location)
             .map { FileTime.from(it.lastModified()) }
-            .flatMapErr { getFiles(path)
-                .flatMap { files -> files.firstOrNull()?.asSuccess() ?: notFoundError("File not found: $path") }
-                .flatMap { getLastModifiedTime(path.safeResolve(it.getName(0))) }
-            }
 
-    override fun getFileSize(path: Path): Result<Long, ErrorResponse> =
-        head(path)
+    override fun getFileSize(location: Location): Result<Long, ErrorResponse> =
+        head(location)
             .map { it.contentLength() }
 
-    private fun head(file: Path): Result<HeadObjectResponse, ErrorResponse> =
+    private fun head(location: Location): Result<HeadObjectResponse, ErrorResponse> =
         try {
             val request = HeadObjectRequest.builder()
             request.bucket(bucket)
-            request.key(file.toString().replace('\\', '/'))
+            request.key(location.toString().replace('\\', '/'))
             s3.headObject(request.build()).asSuccess()
         }
         catch (ignored: NoSuchKeyException) {
@@ -208,11 +198,12 @@ class S3StorageProvider(
             errorResponse(INTERNAL_SERVER_ERROR, exception.message ?: "Generic exception")
         }
 
-    override fun exists(file: Path): Boolean =
-        head(file).fold(
-            { true },
-            { getFiles(file).isOk }
-        )
+    override fun exists(location: Location): Boolean =
+        head(location)
+            .fold(
+                { true },
+                { getFiles(location).isOk }
+            )
 
     override fun usage(): Result<Long, ErrorResponse> =
         ok(-1)

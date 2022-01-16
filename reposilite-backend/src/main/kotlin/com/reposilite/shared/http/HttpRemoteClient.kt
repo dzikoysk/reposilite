@@ -8,11 +8,11 @@ import com.google.api.client.http.javanet.NetHttpTransport
 import com.reposilite.journalist.Channel
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
-import com.reposilite.shared.fs.DocumentInfo
-import com.reposilite.shared.fs.FileDetails
-import com.reposilite.shared.fs.UNKNOWN_LENGTH
-import com.reposilite.shared.fs.getExtension
-import com.reposilite.shared.fs.getSimpleNameFromUri
+import com.reposilite.storage.api.DocumentInfo
+import com.reposilite.storage.api.FileDetails
+import com.reposilite.storage.api.UNKNOWN_LENGTH
+import com.reposilite.storage.api.toLocation
+import com.reposilite.storage.getExtension
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
 import io.javalin.http.ContentType
@@ -63,7 +63,7 @@ class HttpRemoteClient(private val journalist: Journalist, proxy: Proxy?) : Remo
                     ?: ContentType.APPLICATION_OCTET_STREAM
 
                 DocumentInfo(
-                    uri.getSimpleNameFromUri(),
+                    uri.toLocation().getSimpleName(),
                     contentType,
                     contentLength
                 ).asSuccess()

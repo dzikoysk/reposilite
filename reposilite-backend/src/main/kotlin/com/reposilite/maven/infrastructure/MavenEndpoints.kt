@@ -23,7 +23,8 @@ import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.settings.SettingsFacade
 import com.reposilite.shared.extensions.resultAttachment
-import com.reposilite.shared.fs.DocumentInfo
+import com.reposilite.storage.api.DocumentInfo
+import com.reposilite.storage.api.toLocation
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.http.ErrorResponse
@@ -63,9 +64,9 @@ internal class MavenEndpoints(
             OpenApiResponse(status = "404", description = "Returns 404 (for Maven) with frontend (for user) as a response if requested resource is not located in the current repository")
         ]
     )
-    private val findFile = ReposiliteRoute("/{repository}/<gav>", HEAD, GET) {
+    private val findFile = ReposiliteRoute<Unit>("/{repository}/<gav>", HEAD, GET) {
         accessed {
-            LookupRequest(this, requiredParameter("repository"), requiredParameter("gav")).let { request ->
+            LookupRequest(this, requireParameter("repository"), requireParameter("gav").toLocation()).let { request ->
                 mavenFacade.findDetails(request)
                     .`is`(DocumentInfo::class.java) { ErrorResponse(NOT_FOUND, "Requested file is a directory") }
                     .flatMap { details -> mavenFacade.findFile(request).map { Pair(details, it) } }
@@ -92,9 +93,9 @@ internal class MavenEndpoints(
             OpenApiResponse(status = "507", description = "Returns 507 if Reposilite does not have enough disk space to store the uploaded file")
         ]
     )
-    private val deployFile = ReposiliteRoute("/{repository}/<gav>", POST, PUT) {
+    private val deployFile = ReposiliteRoute<Unit>("/{repository}/<gav>", POST, PUT) {
         authorized {
-            response = mavenFacade.deployFile(DeployRequest(requiredParameter("repository"), requiredParameter("gav"), getSessionIdentifier(), ctx.bodyAsInputStream()))
+            response = mavenFacade.deployFile(DeployRequest(requireParameter("repository"), requireParameter("gav").toLocation(), getSessionIdentifier(), ctx.bodyAsInputStream()))
                 .onError { logger.debug("Cannot deploy artifact due to: ${it.message}") }
         }
     }
@@ -109,12 +110,12 @@ internal class MavenEndpoints(
             OpenApiParam(name = "*", description = "Artifact path qualifier", required = true)
         ]
     )
-    private val deleteFile = ReposiliteRoute("/{repository}/<gav>", DELETE) {
+    private val deleteFile = ReposiliteRoute<Unit>("/{repository}/<gav>", DELETE) {
         authorized {
-            response = mavenFacade.deleteFile(DeleteRequest(this, requiredParameter("repository"), requiredParameter("gav")))
+            response = mavenFacade.deleteFile(DeleteRequest(this, requireParameter("repository"), requireParameter("gav").toLocation()))
         }
     }
 
-    override val routes = setOf(findFile, deployFile, deleteFile)
+    override val routes = routes(findFile, deployFile, deleteFile)
 
 }

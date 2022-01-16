@@ -17,20 +17,22 @@
 package com.reposilite.shared
 
 import com.reposilite.journalist.Logger
-import com.reposilite.token.api.AccessToken
-import com.reposilite.token.api.AccessTokenPermission
-import com.reposilite.token.api.RoutePermission
+import com.reposilite.token.AccessTokenFacade
+import com.reposilite.token.AccessTokenPermission.MANAGER
+import com.reposilite.token.RoutePermission
+import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.error
-import com.reposilite.web.http.unauthorized
+import com.reposilite.web.http.unauthorizedError
 import com.reposilite.web.http.uri
 import io.javalin.http.Context
 import panda.std.Result
 
-class ContextDsl(
+class ContextDsl<R>(
     val logger: Logger,
     val ctx: Context,
-    val authenticationResult: Lazy<Result<AccessToken, ErrorResponse>>
+    private val accessTokenFacade: AccessTokenFacade,
+    private val authenticationResult: Lazy<Result<AccessTokenDto, ErrorResponse>>
 ) {
 
     val uri = ctx.uri()
@@ -38,19 +40,19 @@ class ContextDsl(
     /**
      * Response to send at the end of the dsl call
      */
-    var response: Any? = null
+    var response: Result<out R, ErrorResponse>? = null
 
     /**
      * Request was created by either anonymous user or through authenticated token
      */
-    fun accessed(init: AccessToken?.() -> Unit) {
+    fun accessed(init: AccessTokenDto?.() -> Unit) {
         init(authenticationResult.value.orNull())
     }
 
     /**
      * Request was created by valid access token
      */
-    fun authenticated(init: AccessToken.() -> Unit) {
+    fun authenticated(init: AccessTokenDto.() -> Unit) {
         authenticationResult.value
             .onError { ctx.error(it) }
             .peek { init(it) }
@@ -59,44 +61,53 @@ class ContextDsl(
     /**
      * Request was created by valid access token and the token has access to the requested path
      */
-    fun authorized(to: String = ctx.uri(), init: AccessToken.() -> Unit) {
+    fun authorized(to: String = ctx.uri(), init: AccessTokenDto.() -> Unit) {
         authenticated {
             if (isAuthorized(to))
                 init(this)
             else
-                response = unauthorized("Invalid credentials")
+                response = unauthorizedError("Invalid credentials")
         }
     }
 
     /**
      * Request was created with manager access token
      */
-    fun managerOnly(block: AccessToken.() -> Unit) {
+    fun managerOnly(block: AccessTokenDto.() -> Unit) {
         authenticated {
             if (isManager())
                 block(this)
             else
-                response = unauthorized("Only manager can access this endpoint")
+                response = unauthorizedError("Only manager can access this endpoint")
         }
     }
 
     fun wildcard(name: String): String? =
         ctx.pathParamMap()[name]
 
-    fun requiredParameter(name: String): String =
+    fun requireParameter(name: String): String =
         parameter(name)!!
 
     fun parameter(name: String): String? =
         ctx.pathParamMap()[name]
 
     fun isAuthorized(to: String): Boolean =
-        isManager() || authenticationResult.value.fold({ it.hasPermissionTo(to, METHOD_PERMISSIONS[ctx.method()]!!) }, { false })
+        isManager() || authenticationResult.value.fold(
+            { accessTokenFacade.hasPermissionTo(it.identifier, to, METHOD_PERMISSIONS[ctx.method()]!!) },
+            { false }
+        )
 
     fun isManager(): Boolean =
-        authenticationResult.value.fold({ it.hasPermission(AccessTokenPermission.MANAGER) }, { false })
+        authenticationResult.value.fold(
+            { accessTokenFacade.hasPermission(it.identifier, MANAGER) },
+            { false }
+        )
 
     fun getSessionIdentifier(): String =
         authenticationResult.value.fold({ "${it.name}@${ctx.ip()}" }, { ctx.ip() })
+
+    fun authentication(): Result<AccessTokenDto, ErrorResponse> =
+        authenticationResult.value
 
     private companion object {
         private val METHOD_PERMISSIONS = mapOf(

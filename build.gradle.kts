@@ -7,8 +7,6 @@ plugins {
     val kotlinVersion = "1.6.10"
     kotlin("jvm") version kotlinVersion
     kotlin("kapt") version kotlinVersion
-
-    id("com.github.johnrengelman.shadow") version "7.1.1"
 }
 
 allprojects {
@@ -25,13 +23,12 @@ allprojects {
 }
 
 subprojects {
-    version = "3.0.0-alpha.16"
+    version = "3.0.0-alpha.18"
 
     apply(plugin = "idea")
     apply(plugin = "java-library")
     apply(plugin = "application")
     apply(plugin = "maven-publish")
-    apply(plugin = "com.github.johnrengelman.shadow")
 
     dependencies {
 

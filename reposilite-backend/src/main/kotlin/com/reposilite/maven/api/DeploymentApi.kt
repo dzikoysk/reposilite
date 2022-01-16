@@ -18,12 +18,12 @@ package com.reposilite.maven.api
 
 import com.reposilite.maven.Repository
 import com.reposilite.plugin.api.Event
+import com.reposilite.storage.api.Location
 import java.io.InputStream
-import java.nio.file.Path
 
 data class DeployRequest(
     val repository: String,
-    val gav: String,
+    val gav: Location,
     val by: String,
     val content: InputStream
 )
@@ -33,6 +33,6 @@ data class DeployRequest(
  */
 class DeployEvent(
     val repository: Repository,
-    val gav: Path,
+    val gav: Location,
     val by: String
 ) : Event

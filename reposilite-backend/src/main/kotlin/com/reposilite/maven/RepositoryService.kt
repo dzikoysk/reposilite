@@ -17,9 +17,9 @@ package com.reposilite.maven
 
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
-import com.reposilite.shared.fs.DirectoryInfo
-import com.reposilite.shared.fs.SimpleDirectoryInfo
-import com.reposilite.token.api.AccessToken
+import com.reposilite.storage.api.DirectoryInfo
+import com.reposilite.storage.api.SimpleDirectoryInfo
+import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
 import io.javalin.http.HttpCode.NOT_FOUND
@@ -40,7 +40,7 @@ internal class RepositoryService(
     fun getRepository(name: String): Repository? =
         repositoryProvider.getRepositories()[name]
 
-    fun getRootDirectory(accessToken: AccessToken?): DirectoryInfo =
+    fun getRootDirectory(accessToken: AccessTokenDto?): DirectoryInfo =
         getRepositories()
             .filter { securityProvider.canAccessRepository(accessToken, it) }
             .map { SimpleDirectoryInfo(it.name) }

@@ -4,11 +4,11 @@ import com.reposilite.settings.api.SettingsResponse
 import com.reposilite.settings.api.SettingsUpdateRequest
 import com.reposilite.web.http.ErrorResponse
 import panda.std.Result
-import panda.std.Unit
 import java.util.concurrent.ScheduledExecutorService
 
 interface ConfigurationProvider<T> {
 
+    val name: String
     val displayName: String
     val configuration: T
 
@@ -16,7 +16,7 @@ interface ConfigurationProvider<T> {
 
     fun registerWatcher(scheduler: ScheduledExecutorService)
 
-    fun resolve(name: String): Result<SettingsResponse, ErrorResponse>
+    fun resolve(configurationName: String): Result<SettingsResponse, ErrorResponse>
 
     fun update(request: SettingsUpdateRequest): Result<Unit, ErrorResponse>
 

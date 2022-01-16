@@ -13,30 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.reposilite.token.api
+package com.reposilite.token
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.reposilite.token.api.AccessTokenPermission.MANAGER
-import com.reposilite.token.api.AccessTokenType.PERSISTENT
+import com.reposilite.token.AccessTokenType.PERSISTENT
+import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.token.application.AccessTokenPlugin.Companion.MAX_TOKEN_NAME
 import io.javalin.openapi.OpenApiIgnore
-import net.dzikoysk.exposed.shared.IdentifiableEntity
 import net.dzikoysk.exposed.shared.UNINITIALIZED_ENTITY_ID
 import java.time.LocalDate
 
-data class AccessToken internal constructor(
-    override val id: Int = UNINITIALIZED_ENTITY_ID,
+enum class AccessTokenType {
+    PERSISTENT,
+    TEMPORARY
+}
+
+data class AccessTokenIdentifier(
     val type: AccessTokenType = PERSISTENT,
+    val value: Int = UNINITIALIZED_ENTITY_ID,
+)
+
+internal data class AccessToken(
+    val identifier: AccessTokenIdentifier = AccessTokenIdentifier(),
     val name: String,
     @Transient @JsonIgnore @get:OpenApiIgnore
     val encryptedSecret: String = "",
     val createdAt: LocalDate = LocalDate.now(),
     val description: String = "",
-    val permissions: Set<AccessTokenPermission> = emptySet(),
-    val routes: Set<Route> = emptySet()
-) : IdentifiableEntity {
+) {
 
     init {
         if (name.length > MAX_TOKEN_NAME) {
@@ -44,26 +50,14 @@ data class AccessToken internal constructor(
         }
     }
 
-    fun withRoute(route: Route): AccessToken =
-        copy(routes = routes.toMutableSet().also { it.add(route) })
+    fun toDto(): AccessTokenDto =
+        AccessTokenDto(
+            identifier = identifier,
+            name = name,
+            createdAt = createdAt,
+            description = description
+        )
 
-    fun hasPermission(permission: AccessTokenPermission): Boolean =
-        permissions.contains(permission)
-
-    private fun isManager(): Boolean =
-        hasPermission(MANAGER)
-
-    fun hasPermissionTo(toPath: String, routePermission: RoutePermission): Boolean =
-        isManager() || routes.any { it.hasPermissionTo(toPath, routePermission) }
-
-    fun canSee(routeFragment: String): Boolean =
-        isManager() || routes.any { it.path.startsWith(routeFragment, ignoreCase = true) }
-
-}
-
-enum class AccessTokenType {
-    PERSISTENT,
-    TEMPORARY
 }
 
 @JsonFormat(shape = JsonFormat.Shape.OBJECT)
@@ -73,13 +67,13 @@ enum class AccessTokenPermission(val identifier: String, val shortcut: String) {
 
     companion object {
 
-        fun findAccessTokenPermissionByIdentifier(identifier: String) =
+        fun findAccessTokenPermissionByIdentifier(identifier: String): AccessTokenPermission? =
             values().firstOrNull { it.identifier == identifier }
 
-        fun findAccessTokenPermissionByShortcut(shortcut: String) =
+        fun findAccessTokenPermissionByShortcut(shortcut: String): AccessTokenPermission? =
             values().firstOrNull { it.shortcut == shortcut }
 
-        fun findByAll(permission: String) =
+        fun findByAny(permission: String): AccessTokenPermission? =
             findAccessTokenPermissionByIdentifier(permission) ?: findAccessTokenPermissionByShortcut(permission)
 
         @JsonCreator

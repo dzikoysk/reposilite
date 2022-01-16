@@ -16,10 +16,11 @@
 
 package com.reposilite.maven.api
 
-import com.reposilite.token.api.AccessToken
+import com.reposilite.storage.api.Location
+import com.reposilite.token.api.AccessTokenDto
 
 class DeleteRequest(
-    val accessToken: AccessToken,
+    val accessToken: AccessTokenDto,
     val repository: String,
-    val gav: String
+    val gav: Location
 )

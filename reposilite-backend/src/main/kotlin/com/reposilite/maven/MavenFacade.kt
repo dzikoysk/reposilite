@@ -21,6 +21,7 @@ import com.reposilite.journalist.Logger
 import com.reposilite.maven.api.DeleteRequest
 import com.reposilite.maven.api.DeployEvent
 import com.reposilite.maven.api.DeployRequest
+import com.reposilite.maven.api.LatestBadgeRequest
 import com.reposilite.maven.api.LatestVersionResponse
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.METADATA_FILE
@@ -30,17 +31,15 @@ import com.reposilite.maven.api.VersionLookupRequest
 import com.reposilite.maven.api.VersionsResponse
 import com.reposilite.plugin.Extensions
 import com.reposilite.plugin.api.Facade
-import com.reposilite.shared.extensions.`when`
-import com.reposilite.shared.fs.DirectoryInfo
-import com.reposilite.shared.fs.DocumentInfo
-import com.reposilite.shared.fs.FileDetails
-import com.reposilite.shared.fs.FileType.DIRECTORY
-import com.reposilite.shared.fs.getSimpleName
-import com.reposilite.shared.fs.toNormalizedPath
-import com.reposilite.shared.fs.toPath
+import com.reposilite.shared.BadgeGenerator
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.statistics.api.IncrementResolvedRequest
-import com.reposilite.token.api.AccessToken
+import com.reposilite.storage.api.DirectoryInfo
+import com.reposilite.storage.api.DocumentInfo
+import com.reposilite.storage.api.FileDetails
+import com.reposilite.storage.api.FileType.DIRECTORY
+import com.reposilite.storage.api.Location
+import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
 import com.reposilite.web.http.notFound
@@ -50,11 +49,12 @@ import com.reposilite.web.http.unauthorizedError
 import io.javalin.http.HttpCode.BAD_REQUEST
 import panda.std.Result
 import panda.std.asError
+import panda.std.reactive.Reference
 import java.io.InputStream
-import java.nio.file.Path
 
 class MavenFacade internal constructor(
     private val journalist: Journalist,
+    private val repositoryId: Reference<out String>,
     private val repositorySecurityProvider: RepositorySecurityProvider,
     private val repositoryService: RepositoryService,
     private val proxyService: ProxyService,
@@ -85,7 +85,7 @@ class MavenFacade internal constructor(
 
             val details = repository.getFileDetails(gav)
 
-            if (details.`when` { it.type == DIRECTORY } && repositorySecurityProvider.canBrowseResource(lookupRequest.accessToken, repository, gav).not()) {
+            if (details.matches { it.type == DIRECTORY } && repositorySecurityProvider.canBrowseResource(lookupRequest.accessToken, repository, gav).not()) {
                 return@resolve unauthorizedError("Unauthorized indexing request")
             }
 
@@ -108,38 +108,42 @@ class MavenFacade internal constructor(
             }
         }
 
-    private fun <T> resolve(lookupRequest: LookupRequest, block: (Repository, Path) -> Result<out T, ErrorResponse>): Result<out T, ErrorResponse> {
+    private fun <T> resolve(lookupRequest: LookupRequest, block: (Repository, Location) -> Result<out T, ErrorResponse>): Result<out T, ErrorResponse> {
         val repository = repositoryService.getRepository(lookupRequest.repository) ?: return notFound("Repository not found").asError()
-        val gav = lookupRequest.gav.toPath()
+        val gav = lookupRequest.gav
 
         if (repositorySecurityProvider.canAccessResource(lookupRequest.accessToken, repository, gav).not()) {
             logger.debug("Unauthorized attempt of access (token: ${lookupRequest.accessToken}) to $gav from ${repository.name}")
             return unauthorized().asError()
         }
 
-        extensions.emitEvent(ResolveEvent(lookupRequest, repository, gav))
+        extensions.emitEvent(ResolveEvent(lookupRequest.accessToken, repository, gav))
         return block(repository, gav)
     }
 
-    fun saveMetadata(repository: String, gav: String, metadata: Metadata): Result<Metadata, ErrorResponse> =
+    fun saveMetadata(repository: String, gav: Location, metadata: Metadata): Result<Metadata, ErrorResponse> =
         metadataService.saveMetadata(repository, gav, metadata)
 
-    fun findMetadata(repository: String, gav: String): Result<Metadata, ErrorResponse> =
+    fun findMetadata(repository: String, gav: Location): Result<Metadata, ErrorResponse> =
         metadataService.findMetadata(repository, gav)
 
     fun findVersions(lookupRequest: VersionLookupRequest): Result<VersionsResponse, ErrorResponse> =
         repositoryService.findRepository(lookupRequest.repository)
-            .filter({ repositorySecurityProvider.canAccessResource(lookupRequest.accessToken, it, lookupRequest.gav.toPath())}, { unauthorized() })
+            .filter({ repositorySecurityProvider.canAccessResource(lookupRequest.accessToken, it, lookupRequest.gav)}, { unauthorized() })
             .flatMap { metadataService.findVersions(it, lookupRequest.gav, lookupRequest.filter) }
 
     fun findLatest(lookupRequest: VersionLookupRequest): Result<LatestVersionResponse, ErrorResponse> =
         repositoryService.findRepository(lookupRequest.repository)
-            .filter({ repositorySecurityProvider.canAccessResource(lookupRequest.accessToken, it, lookupRequest.gav.toPath())}, { unauthorized() })
+            .filter({ repositorySecurityProvider.canAccessResource(lookupRequest.accessToken, it, lookupRequest.gav)}, { unauthorized() })
             .flatMap { metadataService.findLatest(it, lookupRequest.gav, lookupRequest.filter) }
+
+    fun findLatestBadge(request: LatestBadgeRequest): Result<String, ErrorResponse> =
+        findLatest(VersionLookupRequest(null, request.repository, request.gav, request.filter))
+            .flatMap { BadgeGenerator.generateSvg(request.name ?: repositoryId.get(), (request.prefix ?: "") + it.version, request.color) }
 
     fun deployFile(deployRequest: DeployRequest): Result<Unit, ErrorResponse> {
         val repository = repositoryService.getRepository(deployRequest.repository) ?: return notFoundError("Repository not found")
-        val path = deployRequest.gav.toNormalizedPath().orNull() ?: return errorResponse(BAD_REQUEST, "Invalid GAV")
+        val path = deployRequest.gav
 
         if (repository.redeployment.not() && path.getSimpleName().contains(METADATA_FILE).not() && repository.exists(path)) {
             return errorResponse(BAD_REQUEST, "Redeployment is not allowed")
@@ -152,7 +156,7 @@ class MavenFacade internal constructor(
 
     fun deleteFile(deleteRequest: DeleteRequest): Result<Unit, ErrorResponse> {
         val repository = repositoryService.getRepository(deleteRequest.repository) ?: return notFoundError("Repository ${deleteRequest.repository} not found")
-        val path = deleteRequest.gav.toNormalizedPath().orNull() ?: return notFoundError("Invalid GAV")
+        val path = deleteRequest.gav
 
         if (repositorySecurityProvider.canModifyResource(deleteRequest.accessToken, repository, path).not()) {
             return unauthorizedError("Unauthorized access request")
@@ -161,7 +165,7 @@ class MavenFacade internal constructor(
         return repository.removeFile(path)
     }
 
-    fun findRepositories(accessToken: AccessToken?): DirectoryInfo =
+    fun findRepositories(accessToken: AccessTokenDto?): DirectoryInfo =
         repositoryService.getRootDirectory(accessToken)
 
     fun getRepository(name: String) =

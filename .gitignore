@@ -1,7 +1,7 @@
 ### Reposilite ###
 stats.yml
 stats.dat
-reposilite.db
+*.db
 maven-metadata.xml*
 latest.log
 ./logs/

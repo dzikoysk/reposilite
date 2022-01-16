@@ -28,13 +28,12 @@ import com.reposilite.maven.api.LatestVersionResponse
 import com.reposilite.maven.api.METADATA_FILE
 import com.reposilite.maven.api.Metadata
 import com.reposilite.maven.api.VersionsResponse
-import com.reposilite.shared.extensions.letIf
-import com.reposilite.shared.fs.VersionComparator
-import com.reposilite.shared.fs.safeResolve
-import com.reposilite.shared.fs.toPath
+import com.reposilite.storage.VersionComparator
+import com.reposilite.storage.api.Location
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.notFound
 import panda.std.Result
+import panda.std.letIf
 
 internal class MetadataService(
     private val repositoryService: RepositoryService
@@ -49,23 +48,23 @@ internal class MetadataService(
         .enable(INDENT_OUTPUT)
         .build()
 
-    fun saveMetadata(repository: String, gav: String, metadata: Metadata): Result<Metadata, ErrorResponse> =
+    fun saveMetadata(repository: String, gav: Location, metadata: Metadata): Result<Metadata, ErrorResponse> =
         repositoryService.findRepository(repository)
-            .flatMap { it.putFile(gav.toPath().safeResolve(METADATA_FILE), xml.writeValueAsBytes(metadata).inputStream()) }
+            .flatMap { it.putFile(gav.resolve(METADATA_FILE), xml.writeValueAsBytes(metadata).inputStream()) }
             .map { metadata }
 
-    fun findMetadata(repository: String, gav: String): Result<Metadata, ErrorResponse> =
+    fun findMetadata(repository: String, gav: Location): Result<Metadata, ErrorResponse> =
         repositoryService.findRepository(repository)
-            .flatMap { it.getFile(gav.toPath().safeResolve(METADATA_FILE)) }
+            .flatMap { it.getFile(gav.resolve(METADATA_FILE)) }
             .map { it.use { data -> xml.readValue<Metadata>(data) } }
 
-    fun findLatest(repository: Repository, gav: String, filter: String?): Result<LatestVersionResponse, ErrorResponse> =
+    fun findLatest(repository: Repository, gav: Location, filter: String?): Result<LatestVersionResponse, ErrorResponse> =
         findVersions(repository, gav, filter)
             .filter({ it.versions.isNotEmpty() }, { notFound("Given artifact does not have any declared version") })
             .map { (isSnapshot, versions) -> LatestVersionResponse(isSnapshot, versions.last()) }
 
-    fun findVersions(repository: Repository, gav: String, filter: String?): Result<VersionsResponse, ErrorResponse> =
-        repository.getFile(gav.toPath().safeResolve(METADATA_FILE))
+    fun findVersions(repository: Repository, gav: Location, filter: String?): Result<VersionsResponse, ErrorResponse> =
+        repository.getFile(gav.resolve(METADATA_FILE))
             .map { it.use { data -> xml.readValue<Metadata>(data) } }
             .map { extractVersions(it) }
             .map { (isSnapshot, versions) ->

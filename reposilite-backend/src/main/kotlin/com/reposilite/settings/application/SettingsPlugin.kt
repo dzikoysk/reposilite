@@ -7,9 +7,7 @@ import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
 import com.reposilite.settings.SettingsFacade
 import com.reposilite.settings.api.SharedConfiguration
-import com.reposilite.settings.infrastructure.FileSystemConfigurationProvider
 import com.reposilite.settings.infrastructure.SettingsEndpoints
-import com.reposilite.settings.infrastructure.SqlConfigurationProvider
 import com.reposilite.settings.infrastructure.SqlSettingsRepository
 import com.reposilite.web.api.RoutingSetupEvent
 
@@ -22,38 +20,27 @@ internal class SettingsPlugin : ReposilitePlugin() {
     }
 
     override fun initialize(): SettingsFacade {
-        val database = DatabaseSourceFactory.createConnection(extensions().parameters.workingDirectory, extensions().localConfiguration.database.get())
+        val parameters = extensions().parameters
+        val workingDirectory = parameters.workingDirectory
+        val localConfiguration = extensions().localConfiguration
 
-        val sharedConfigurationProvider = with(extensions().parameters) {
-            if (sharedConfigurationMode == "none")
-                SqlConfigurationProvider(
-                    displayName = "Shared configuration",
-                    journalist = this@SettingsPlugin,
-                    settingsRepository = SqlSettingsRepository(database),
-                    name = SHARED_CONFIGURATION_FILE,
-                    configuration = SharedConfiguration()
-                )
-            else
-                FileSystemConfigurationProvider(
-                    displayName = "Shared configuration",
-                    journalist = this@SettingsPlugin,
-                    workingDirectory = workingDirectory,
-                    defaultFileName = SHARED_CONFIGURATION_FILE,
-                    configurationFile = sharedConfigurationPath,
-                    mode = sharedConfigurationMode,
-                    configuration = SharedConfiguration(),
-                )
-        }
-        .also {
-            logger.info("")
-            logger.info("--- Settings")
-            it.initialize()
-        }
+        val database = DatabaseSourceFactory.createConnection(workingDirectory, localConfiguration.database.get())
+        val settingsRepository = SqlSettingsRepository(database)
+        val settingsFacade = SettingsFacade(this, workingDirectory, localConfiguration, lazy { database }, settingsRepository)
 
-        val settingsFacade = SettingsFacade(extensions().localConfiguration, lazy { database }, sharedConfigurationProvider)
+        logger.info("")
+        logger.info("--- Settings")
+
+        settingsFacade.createConfigurationProvider(
+            SharedConfiguration(),
+            "Shared configuration",
+            SHARED_CONFIGURATION_FILE,
+            parameters.sharedConfigurationMode,
+            parameters.sharedConfigurationPath
+        )
 
         event { event: ReposiliteInitializeEvent ->
-            settingsFacade.registerWatchers(event.reposilite.scheduler)
+            settingsFacade.attachWatcherScheduler(event.reposilite.scheduler)
         }
 
         event { event: RoutingSetupEvent ->
