@@ -1,8 +1,8 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Build example-plugin to test workspace [example-plugin : clean build]" type="GradleRunConfiguration" factoryName="Gradle">
+  <configuration default="false" name="Build javadoc-plugin to test workspace [javadoc-plugin : clean build]" type="GradleRunConfiguration" factoryName="Gradle">
     <ExternalSystemSettings>
       <option name="executionName" />
-      <option name="externalProjectPath" value="$PROJECT_DIR$/reposilite-plugins/example-plugin" />
+      <option name="externalProjectPath" value="$PROJECT_DIR$/reposilite-plugins/javadoc-plugin" />
       <option name="externalSystemIdString" value="GRADLE" />
       <option name="scriptParameters" value="" />
       <option name="taskDescriptions">

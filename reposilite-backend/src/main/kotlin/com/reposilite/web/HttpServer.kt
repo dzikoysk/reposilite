@@ -41,18 +41,20 @@ class HttpServer {
             it.start()
         }
 
-        this.javalin = createJavalin(reposilite, webThreadPool!!)
-            .exception(EofException::class.java) { _, _ -> reposilite.logger.warn("Client closed connection") }
-            .events { listener ->
-                listener.serverStopping { reposilite.logger.info("Server stopping...") }
-                listener.serverStopped { extensionsManagement.emitEvent(HttpServerStoppedEvent()) }
-            }
-            .also {
-                reposilite.extensions.emitEvent(HttpServerInitializationEvent(reposilite, it))
-            }
+        runWithDisabledLogging {
+            this.javalin = createJavalin(reposilite, webThreadPool!!)
+                .exception(EofException::class.java) { _, _ -> reposilite.logger.warn("Client closed connection") }
+                .events { listener ->
+                    listener.serverStopping { reposilite.logger.info("Server stopping...") }
+                    listener.serverStopped { extensionsManagement.emitEvent(HttpServerStoppedEvent()) }
+                }
+                .also {
+                    reposilite.extensions.emitEvent(HttpServerInitializationEvent(reposilite, it))
+                }
 
-        if (!servlet) {
-            javalin!!.start(reposilite.parameters.hostname, reposilite.parameters.port)
+            if (!servlet) {
+                javalin!!.start(reposilite.parameters.hostname, reposilite.parameters.port)
+            }
         }
     }
 

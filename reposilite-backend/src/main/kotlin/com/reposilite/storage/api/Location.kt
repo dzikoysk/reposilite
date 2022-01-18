@@ -57,6 +57,12 @@ class Location private constructor(private val uri: String) {
             .toLocation()
             .resolve(sibling)
 
+    fun contains(value: String): Boolean =
+        uri.contains(value)
+
+    fun endsWith(suffix: String): Boolean =
+        uri.endsWith(suffix)
+
     fun locationBeforeLast(delimiter: String, defaultValue: String? = null): Location =
         uri.substringBeforeLast(delimiter, defaultValue ?: uri).toLocation()
 

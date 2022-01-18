@@ -39,6 +39,7 @@ import com.reposilite.storage.api.DocumentInfo
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.FileType.DIRECTORY
 import com.reposilite.storage.api.Location
+import com.reposilite.token.AccessTokenIdentifier
 import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
@@ -85,7 +86,7 @@ class MavenFacade internal constructor(
 
             val details = repository.getFileDetails(gav)
 
-            if (details.matches { it.type == DIRECTORY } && repositorySecurityProvider.canBrowseResource(lookupRequest.accessToken, repository, gav).not()) {
+            if (details.matches { it.type == DIRECTORY } && repositorySecurityProvider.canBrowseResource(lookupRequest.accessToken?.identifier, repository, gav).not()) {
                 return@resolve unauthorizedError("Unauthorized indexing request")
             }
 
@@ -109,17 +110,23 @@ class MavenFacade internal constructor(
         }
 
     private fun <T> resolve(lookupRequest: LookupRequest, block: (Repository, Location) -> Result<out T, ErrorResponse>): Result<out T, ErrorResponse> {
-        val repository = repositoryService.getRepository(lookupRequest.repository) ?: return notFound("Repository not found").asError()
-        val gav = lookupRequest.gav
+        val (accessToken, repository, gav) = lookupRequest
 
-        if (repositorySecurityProvider.canAccessResource(lookupRequest.accessToken, repository, gav).not()) {
-            logger.debug("Unauthorized attempt of access (token: ${lookupRequest.accessToken}) to $gav from ${repository.name}")
+        if (!canAccessResource(lookupRequest.accessToken?.identifier, repository, gav)) {
+            logger.debug("Unauthorized attempt of access (token: ${lookupRequest.accessToken}) to $gav from $repository")
             return unauthorized().asError()
         }
 
-        extensions.emitEvent(ResolveEvent(lookupRequest.accessToken, repository, gav))
-        return block(repository, gav)
+        return repositoryService.getRepository(lookupRequest.repository)!!.let {
+            extensions.emitEvent(ResolveEvent(accessToken, it, gav))
+            block(it, gav)
+        }
     }
+
+    fun canAccessResource(accessToken: AccessTokenIdentifier?, repository: String, gav: Location): Boolean =
+        getRepository(repository)
+            ?.let { repositorySecurityProvider.canAccessResource(accessToken, it, gav) }
+            ?: false
 
     fun saveMetadata(repository: String, gav: Location, metadata: Metadata): Result<Metadata, ErrorResponse> =
         metadataService.saveMetadata(repository, gav, metadata)
@@ -129,12 +136,12 @@ class MavenFacade internal constructor(
 
     fun findVersions(lookupRequest: VersionLookupRequest): Result<VersionsResponse, ErrorResponse> =
         repositoryService.findRepository(lookupRequest.repository)
-            .filter({ repositorySecurityProvider.canAccessResource(lookupRequest.accessToken, it, lookupRequest.gav)}, { unauthorized() })
+            .filter({ repositorySecurityProvider.canAccessResource(lookupRequest.accessToken?.identifier, it, lookupRequest.gav)}, { unauthorized() })
             .flatMap { metadataService.findVersions(it, lookupRequest.gav, lookupRequest.filter) }
 
     fun findLatest(lookupRequest: VersionLookupRequest): Result<LatestVersionResponse, ErrorResponse> =
         repositoryService.findRepository(lookupRequest.repository)
-            .filter({ repositorySecurityProvider.canAccessResource(lookupRequest.accessToken, it, lookupRequest.gav)}, { unauthorized() })
+            .filter({ repositorySecurityProvider.canAccessResource(lookupRequest.accessToken?.identifier, it, lookupRequest.gav)}, { unauthorized() })
             .flatMap { metadataService.findLatest(it, lookupRequest.gav, lookupRequest.filter) }
 
     fun findLatestBadge(request: LatestBadgeRequest): Result<String, ErrorResponse> =
@@ -158,14 +165,14 @@ class MavenFacade internal constructor(
         val repository = repositoryService.getRepository(deleteRequest.repository) ?: return notFoundError("Repository ${deleteRequest.repository} not found")
         val path = deleteRequest.gav
 
-        if (repositorySecurityProvider.canModifyResource(deleteRequest.accessToken, repository, path).not()) {
+        if (repositorySecurityProvider.canModifyResource(deleteRequest.accessToken?.identifier, repository, path).not()) {
             return unauthorizedError("Unauthorized access request")
         }
 
         return repository.removeFile(path)
     }
 
-    fun findRepositories(accessToken: AccessTokenDto?): DirectoryInfo =
+    fun findRepositories(accessToken: AccessTokenIdentifier?): DirectoryInfo =
         repositoryService.getRootDirectory(accessToken)
 
     fun getRepository(name: String) =

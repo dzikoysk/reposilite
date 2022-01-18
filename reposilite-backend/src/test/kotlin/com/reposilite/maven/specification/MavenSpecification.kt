@@ -143,7 +143,7 @@ internal abstract class MavenSpecification {
         Pair(name, RepositoryConfiguration().also { initializer(it) })
 
     protected fun findRepositories(accessToken: AccessTokenDto?): Collection<String> =
-        mavenFacade.findRepositories(accessToken).files.map { it.name }
+        mavenFacade.findRepositories(accessToken?.identifier).files.map { it.name }
 
     protected fun addFileToRepository(fileSpec: FileSpec): FileSpec {
         workingDirectory!!.toPath()
