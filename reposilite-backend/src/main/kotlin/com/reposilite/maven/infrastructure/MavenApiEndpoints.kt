@@ -67,7 +67,7 @@ internal class MavenApiEndpoints(private val mavenFacade: MavenFacade) : Reposil
         accessed {
             response = parameter("repository")
                 ?.let { repository -> mavenFacade.findDetails(LookupRequest(this, repository, wildcard("gav").toLocation())) }
-                ?: mavenFacade.findRepositories(this).asSuccess()
+                ?: mavenFacade.findRepositories(this?.identifier).asSuccess()
         }
     }
 
