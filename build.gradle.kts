@@ -1,5 +1,4 @@
 plugins {
-    idea
     `java-library`
     application
     `maven-publish`
@@ -11,21 +10,19 @@ plugins {
 
 allprojects {
     repositories {
+        // mavenCentral()
+        maven { url = uri("https://repo.panda-lang.org/releases") }
+        maven { url = uri("https://jitpack.io") }
         // maven {
         //     url = uri("http://localhost/releases")
         //     isAllowInsecureProtocol = true
         // }
-        // mavenCentral()
-        maven { url = uri("https://repo.panda-lang.org/releases") }
-        maven { url = uri("https://jitpack.io") }
-        mavenCentral()
     }
 }
 
 subprojects {
-    version = "3.0.0-alpha.18"
+    version = "3.0.0-alpha.19"
 
-    apply(plugin = "idea")
     apply(plugin = "java-library")
     apply(plugin = "application")
     apply(plugin = "maven-publish")
