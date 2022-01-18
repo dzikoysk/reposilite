@@ -6,6 +6,7 @@ maven-metadata.xml*
 latest.log
 ./logs/
 log_*.txt
+workspace/javadocs/
 
 ### Maven ###
 build/

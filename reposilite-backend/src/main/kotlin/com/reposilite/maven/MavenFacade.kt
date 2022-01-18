@@ -110,17 +110,16 @@ class MavenFacade internal constructor(
         }
 
     private fun <T> resolve(lookupRequest: LookupRequest, block: (Repository, Location) -> Result<out T, ErrorResponse>): Result<out T, ErrorResponse> {
-        val (accessToken, repository, gav) = lookupRequest
+        val (accessToken, repositoryName, gav) = lookupRequest
+        val repository = getRepository(lookupRequest.repository) ?: return notFoundError("Repository $repositoryName not found")
 
-        if (!canAccessResource(lookupRequest.accessToken?.identifier, repository, gav)) {
-            logger.debug("Unauthorized attempt of access (token: ${lookupRequest.accessToken}) to $gav from $repository")
+        if (!canAccessResource(lookupRequest.accessToken?.identifier, repository.name, gav)) {
+            logger.debug("Unauthorized attempt of access (token: ${lookupRequest.accessToken}) to $gav from ${repository.name}")
             return unauthorized().asError()
         }
 
-        return repositoryService.getRepository(lookupRequest.repository)!!.let {
-            extensions.emitEvent(ResolveEvent(accessToken, it, gav))
-            block(it, gav)
-        }
+        extensions.emitEvent(ResolveEvent(accessToken, repository, gav))
+        return block(repository, gav)
     }
 
     fun canAccessResource(accessToken: AccessTokenIdentifier?, repository: String, gav: Location): Boolean =
@@ -165,7 +164,7 @@ class MavenFacade internal constructor(
         val repository = repositoryService.getRepository(deleteRequest.repository) ?: return notFoundError("Repository ${deleteRequest.repository} not found")
         val path = deleteRequest.gav
 
-        if (repositorySecurityProvider.canModifyResource(deleteRequest.accessToken?.identifier, repository, path).not()) {
+        if (repositorySecurityProvider.canModifyResource(deleteRequest.accessToken.identifier, repository, path).not()) {
             return unauthorizedError("Unauthorized access request")
         }
 
