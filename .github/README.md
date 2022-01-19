@@ -86,14 +86,13 @@ Thanks to all contributors and people that decided to donate the project ❤️
  <tr>
   <td>One time</td>
   <td>
-   <a href="https://github.com/zzmgck">zzmgck</a> with $190,<br>
-   <a href="https://github.com/alexwhb">alexwhb</a> with $15, <br>
-   <a href="https://github.com/milkyway0308">milkyway0308</a> with $15, <br>
-   Rob with $5 <br>
-   <code>maybe someday... also you will \(^-^)/</code>
+   <a href="https://github.com/zzmgck">zzmgck</a> with $190, <a href="https://github.com/alexwhb">alexwhb</a> with $15, 
+   <a href="https://github.com/milkyway0308">milkyway0308</a> with $15, <a href="https://github.com/EthanDevelops">EthanDevelops</a> with $6, Rob with $5
   </td>
  </tr>
 </table>
+
+And maybe someday... also you will `\(^-^)/`
 
 ### For developers
 
