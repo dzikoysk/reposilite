@@ -218,7 +218,7 @@ class JavadocFacade internal constructor(
         </html>
         """.trimIndent()
 
-        Files.writeString(index, source, Charsets.UTF_8)
+        Files.write(index, source.toByteArray(Charsets.UTF_8))
     }
 
     private fun extractJavadoc(jarFilePath: Path, destination: Path): Result<Blank, ErrorResponse> {
