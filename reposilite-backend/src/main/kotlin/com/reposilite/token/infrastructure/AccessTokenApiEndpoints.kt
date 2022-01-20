@@ -29,9 +29,11 @@ import com.reposilite.web.http.notFound
 import com.reposilite.web.http.notFoundError
 import com.reposilite.web.http.unauthorized
 import com.reposilite.web.http.unauthorizedError
+import com.reposilite.web.http.errorResponse
 import com.reposilite.web.routing.RouteMethod.DELETE
 import com.reposilite.web.routing.RouteMethod.GET
 import com.reposilite.web.routing.RouteMethod.PUT
+import io.javalin.http.HttpCode
 import io.javalin.openapi.HttpMethod
 import io.javalin.openapi.OpenApi
 import io.javalin.openapi.OpenApiContent
@@ -93,7 +95,7 @@ internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessToke
                         }
                         .asSuccess()
                 },
-                onFailure = { unauthorizedError("Failed to read body") }
+                onFailure = { errorResponse(HttpCode.BAD_REQUEST, "Failed to read body") }
             )
         }
     }
