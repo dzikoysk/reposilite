@@ -68,7 +68,7 @@ internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessToke
             response = accessTokenFacade.getAccessToken(requireParameter("name"))
                 ?.takeIf { isManager() || name == it.name }
                 ?.asSuccess()
-                ?: unauthorizedError("You must be the token owner or a manager to access this!")
+                ?: errorResponse(HttpCode.FORBIDDEN, "You must be the token owner or a manager to access this.")
         }
     }
 
