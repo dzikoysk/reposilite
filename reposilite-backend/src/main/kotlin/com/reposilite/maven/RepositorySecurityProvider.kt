@@ -25,6 +25,10 @@ import com.reposilite.token.AccessTokenIdentifier
 import com.reposilite.token.RoutePermission
 import com.reposilite.token.RoutePermission.READ
 import com.reposilite.token.RoutePermission.WRITE
+import com.reposilite.web.http.ErrorResponse
+import com.reposilite.web.http.unauthorizedError
+import io.javalin.http.HttpCode
+import panda.std.Result
 
 internal class RepositorySecurityProvider(private val accessTokenFacade: AccessTokenFacade) {
 
@@ -38,23 +42,25 @@ internal class RepositorySecurityProvider(private val accessTokenFacade: AccessT
         when (repository.visibility) {
             PUBLIC -> true
             HIDDEN -> true
-            PRIVATE -> hasPermissionTo(accessToken, repository, gav, READ)
+            PRIVATE -> hasPermissionTo(accessToken, repository, gav, READ).isOk
         }
 
     fun canBrowseResource(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Boolean =
         when (repository.visibility) {
             PUBLIC -> true
-            HIDDEN -> hasPermissionTo(accessToken, repository, gav, READ)
-            PRIVATE -> hasPermissionTo(accessToken, repository, gav, READ)
+            HIDDEN -> hasPermissionTo(accessToken, repository, gav, READ).isOk
+            PRIVATE -> hasPermissionTo(accessToken, repository, gav, READ).isOk
         }
 
     fun canModifyResource(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Boolean =
-        hasPermissionTo(accessToken, repository, gav, WRITE)
+        hasPermissionTo(accessToken, repository, gav, WRITE).isOk
 
-    private fun hasPermissionTo(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location, permission: RoutePermission): Boolean =
+    private fun hasPermissionTo(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location, permission: RoutePermission): Result<Unit, ErrorResponse> =
         if (accessToken != null)
-            accessTokenFacade.hasPermissionTo(accessToken, "/${repository.name}/$gav", permission)
+            Result.`when`(accessTokenFacade.hasPermissionTo(accessToken, "/${repository.name}/$gav", permission),
+                {  },
+                { ErrorResponse(HttpCode.FORBIDDEN, "You must be the token owner or a manager to access this.") })
         else
-            false
+            unauthorizedError("You need to provide credentials.")
 
 }
