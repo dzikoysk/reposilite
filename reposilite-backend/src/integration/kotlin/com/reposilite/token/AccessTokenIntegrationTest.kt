@@ -12,7 +12,6 @@ import com.reposilite.web.http.ErrorResponse
 import io.javalin.http.HttpCode.OK
 import io.javalin.http.HttpCode.UNAUTHORIZED
 import io.javalin.http.HttpCode.FORBIDDEN
-import io.javalin.http.HttpCode.BAD_REQUEST
 import kong.unirest.Unirest.delete
 import kong.unirest.Unirest.get
 import kong.unirest.Unirest.put
@@ -79,13 +78,13 @@ internal abstract class AccessTokenIntegrationTest : AccessTokenIntegrationSpeci
         val (name, secret, permissions) = useTokenDescription("name", "secret", setOf(MANAGER))
 
         // when: not entitled token attempts to generate a new token
-        val badRequest = put("$base/api/tokens/$name")
+        val unauthorized = put("$base/api/tokens/$name")
             .basicAuth(notAllowedToken.name, notAllowedSecret)
             .body(CreateAccessTokenWithNoNameRequest(PERSISTENT, secret, permissions.map { it.shortcut }.toSet()))
             .asJacksonObject(ErrorResponse::class)
 
         // then: the unauthorized request is rejected
-        assertErrorResponse(BAD_REQUEST, badRequest)
+        assertErrorResponse(UNAUTHORIZED, unauthorized)
 
         // when: valid manager token creates a new token
         val response = put("$base/api/tokens/$name")
