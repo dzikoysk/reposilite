@@ -9,8 +9,7 @@ import com.reposilite.token.api.CreateAccessTokenResponse
 import com.reposilite.token.api.CreateAccessTokenWithNoNameRequest
 import com.reposilite.token.specification.AccessTokenIntegrationSpecification
 import com.reposilite.web.http.ErrorResponse
-import io.javalin.http.HttpCode.OK
-import io.javalin.http.HttpCode.UNAUTHORIZED
+import io.javalin.http.HttpCode.*
 import kong.unirest.Unirest.delete
 import kong.unirest.Unirest.get
 import kong.unirest.Unirest.put
@@ -51,12 +50,12 @@ internal abstract class AccessTokenIntegrationTest : AccessTokenIntegrationSpeci
         val (allowedToken, allowedSecret) = useToken("allowed", "secret")
 
         // when: tokens is requested without valid credentials
-        val unauthorizedResponse = get("$base/api/tokens/${allowedToken.name}")
+        val forbiddenResponse = get("$base/api/tokens/${allowedToken.name}")
             .basicAuth(notAllowedToken.name, notAllowedSecret)
             .asJacksonObject(ErrorResponse::class)
 
         // then: request is rejected by server
-        assertErrorResponse(UNAUTHORIZED, unauthorizedResponse)
+        assertErrorResponse(FORBIDDEN, forbiddenResponse)
 
         // when: token is requested with valid access token
         val response = get("$base/api/tokens/${allowedToken.name}")
@@ -77,13 +76,13 @@ internal abstract class AccessTokenIntegrationTest : AccessTokenIntegrationSpeci
         val (name, secret, permissions) = useTokenDescription("name", "secret", setOf(MANAGER))
 
         // when: not entitled token attempts to generate a new token
-        val unauthorized = put("$base/api/tokens/$name")
+        val badRequest = put("$base/api/tokens/$name")
             .basicAuth(notAllowedToken.name, notAllowedSecret)
             .body(CreateAccessTokenWithNoNameRequest(PERSISTENT, secret, permissions.map { it.shortcut }.toSet()))
             .asJacksonObject(ErrorResponse::class)
 
         // then: the unauthorized request is rejected
-        assertErrorResponse(UNAUTHORIZED, unauthorized)
+        assertErrorResponse(BAD_REQUEST, badRequest)
 
         // when: valid manager token creates a new token
         val response = put("$base/api/tokens/$name")
