@@ -9,7 +9,10 @@ import com.reposilite.token.api.CreateAccessTokenResponse
 import com.reposilite.token.api.CreateAccessTokenWithNoNameRequest
 import com.reposilite.token.specification.AccessTokenIntegrationSpecification
 import com.reposilite.web.http.ErrorResponse
-import io.javalin.http.HttpCode.*
+import io.javalin.http.HttpCode.OK
+import io.javalin.http.HttpCode.UNAUTHORIZED
+import io.javalin.http.HttpCode.FORBIDDEN
+import io.javalin.http.HttpCode.BAD_REQUEST
 import kong.unirest.Unirest.delete
 import kong.unirest.Unirest.get
 import kong.unirest.Unirest.put
