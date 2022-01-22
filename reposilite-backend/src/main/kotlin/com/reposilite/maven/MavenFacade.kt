@@ -86,7 +86,7 @@ class MavenFacade internal constructor(
 
             val details = repository.getFileDetails(gav)
 
-            if (details.matches { it.type == DIRECTORY } && repositorySecurityProvider.canBrowseResource(lookupRequest.accessToken?.identifier, repository, gav).not()) {
+            if (details.matches { it.type == DIRECTORY } && repositorySecurityProvider.canBrowseResource(lookupRequest.accessToken?.identifier, repository, gav).isErr) {
                 return@resolve unauthorizedError("Unauthorized indexing request")
             }
 
@@ -124,7 +124,7 @@ class MavenFacade internal constructor(
 
     fun canAccessResource(accessToken: AccessTokenIdentifier?, repository: String, gav: Location): Boolean =
         getRepository(repository)
-            ?.let { repositorySecurityProvider.canAccessResource(accessToken, it, gav) }
+            ?.let { repositorySecurityProvider.canAccessResource(accessToken, it, gav).isOk }
             ?: false
 
     fun saveMetadata(repository: String, gav: Location, metadata: Metadata): Result<Metadata, ErrorResponse> =
@@ -135,12 +135,12 @@ class MavenFacade internal constructor(
 
     fun findVersions(lookupRequest: VersionLookupRequest): Result<VersionsResponse, ErrorResponse> =
         repositoryService.findRepository(lookupRequest.repository)
-            .filter({ repositorySecurityProvider.canAccessResource(lookupRequest.accessToken?.identifier, it, lookupRequest.gav)}, { unauthorized() })
+            .filter({ repositorySecurityProvider.canAccessResource(lookupRequest.accessToken?.identifier, it, lookupRequest.gav).isOk }, { unauthorized() })
             .flatMap { metadataService.findVersions(it, lookupRequest.gav, lookupRequest.filter) }
 
     fun findLatest(lookupRequest: VersionLookupRequest): Result<LatestVersionResponse, ErrorResponse> =
         repositoryService.findRepository(lookupRequest.repository)
-            .filter({ repositorySecurityProvider.canAccessResource(lookupRequest.accessToken?.identifier, it, lookupRequest.gav)}, { unauthorized() })
+            .filter({ repositorySecurityProvider.canAccessResource(lookupRequest.accessToken?.identifier, it, lookupRequest.gav).isOk }, { unauthorized() })
             .flatMap { metadataService.findLatest(it, lookupRequest.gav, lookupRequest.filter) }
 
     fun findLatestBadge(request: LatestBadgeRequest): Result<String, ErrorResponse> =
