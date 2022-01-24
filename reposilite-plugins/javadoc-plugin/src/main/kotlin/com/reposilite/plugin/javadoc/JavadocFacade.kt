@@ -39,10 +39,6 @@ class JavadocFacade internal constructor(
     fun findJavadocPage(request: JavadocPageRequest): Result<JavadocResponse, ErrorResponse> {
         val (repository, gav, accessToken) = request
 
-        if (gav.contains("/resources/fonts")) {
-            return notFoundError("Fonts are not served!")
-        }
-
         if (!mavenFacade.canAccessResource(accessToken?.identifier, repository, gav)) {
             return unauthorizedError()
         }
@@ -57,6 +53,10 @@ class JavadocFacade internal constructor(
             } catch (noSuchFileException: NoSuchFileException) {
                 notFoundError("Resource not found!")
             }
+        }
+
+        if (gav.contains("/resources/")) {
+            return notFoundError("Resources are unavailable before extraction")
         }
 
         val javadocJar = resolveJavadocJar(gav) ?: return notFoundError("Invalid request")
