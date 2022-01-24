@@ -27,6 +27,7 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.jar.JarFile
 import kotlin.io.path.outputStream
 
@@ -122,20 +123,20 @@ class JavadocFacade internal constructor(
         when {
             Files.isDirectory(jarFilePath) -> errorResponse(BAD_REQUEST, "JavaDoc jar path has to be a file!")
             !Files.isDirectory(destination) -> errorResponse(BAD_REQUEST, "Destination must be a directory!")
-            !jarFilePath.getSimpleName().contains("javadoc.jar") -> errorResponse(BAD_REQUEST, "Invalid javadoc jar! Name must contain: 'doc.jar'")
+            !jarFilePath.getSimpleName().contains("javadoc.jar") -> errorResponse(BAD_REQUEST, "Invalid javadoc jar! Name must contain: 'javadoc.jar'")
             else -> jarFilePath.toAbsolutePath().toString()
                 .let { JarFile(it) }
                 .use { jarFile ->
                     if (jarFile.getEntry("index.html")?.isDirectory != false) { // Make sure we have an index.html file
-                        return errorResponse(INTERNAL_SERVER_ERROR, "Invalid doc.jar given for extraction!")
+                        return errorResponse(INTERNAL_SERVER_ERROR, "Invalid javadoc.jar given for extraction")
                     }
 
                     jarFile.entries().asSequence().forEach { file ->
-                        destination.resolve(file.name).also {
-                            if (file.isDirectory)
-                                Files.createDirectory(it)
-                            else
+                        Paths.get(destination.toString() + "/" + file.name).also {
+                            if (!file.isDirectory) {
+                                it.parent?.also { parent -> Files.createDirectories(parent) }
                                 jarFile.getInputStream(file).copyToAndClose(it.outputStream())
+                            }
                         }
                     }.asSuccess<Unit, ErrorResponse>()
                 }
