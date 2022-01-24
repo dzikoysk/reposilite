@@ -67,7 +67,7 @@ dependencies {
     api("net.dzikoysk:exposed-upsert:1.0.3")
     // Drivers
     implementation("org.xerial:sqlite-jdbc:3.36.0.3")
-    implementation("mysql:mysql-connector-java:8.0.27")
+    implementation("mysql:mysql-connector-java:8.0.28")
     implementation("org.mariadb.jdbc:mariadb-java-client:2.7.5")
     implementation("org.postgresql:postgresql:42.3.1")
     implementation("com.h2database:h2:2.1.210")
