@@ -9,7 +9,7 @@ import com.reposilite.plugin.javadoc.infrastructure.JavadocEndpoints
 import com.reposilite.web.api.RoutingSetupEvent
 
 @Plugin(name = "javadoc")
-class JavadocPlugin : ReposilitePlugin() {
+internal class JavadocPlugin : ReposilitePlugin() {
 
     override fun initialize(): Facade? {
         val javadocFolder = extensions().parameters.workingDirectory.resolve("javadocs")
