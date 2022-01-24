@@ -84,13 +84,15 @@ internal abstract class ReposiliteRunner {
         parameters.port = 10000 + 2 * ThreadLocalRandom.current().nextInt(30_000 / 2)
         parameters.run()
 
+        val cdn = KCdnFactory.createStandard()
+
         val localConfiguration = LocalConfiguration().also {
             ReferenceUtils.setValue(it.database, _database)
             ReferenceUtils.setValue(it.webThreadPool, 5)
             ReferenceUtils.setValue(it.ioThreadPool, 2)
         }
 
-        val cdn = KCdnFactory.createStandard()
+        overrideLocalConfiguration(localConfiguration)
         cdn.render(localConfiguration, Source.of(reposiliteWorkingDirectory.resolve("configuration.local.cdn")))
 
         val sharedConfiguration = SharedConfiguration().also {
@@ -107,6 +109,7 @@ internal abstract class ReposiliteRunner {
             }
         }
 
+        overrideSharedConfiguration(sharedConfiguration)
         cdn.render(sharedConfiguration, Source.of(reposiliteWorkingDirectory.resolve("configuration.shared.cdn")))
 
         val reposiliteInstance = ReposiliteFactory.createReposilite(parameters, logger)
@@ -114,6 +117,10 @@ internal abstract class ReposiliteRunner {
 
         return reposiliteInstance.launch()
     }
+
+    protected open fun overrideLocalConfiguration(localConfiguration: LocalConfiguration) { }
+
+    protected open fun overrideSharedConfiguration(sharedConfiguration: SharedConfiguration) { }
 
     @AfterEach
     fun shutdownApplication() {
