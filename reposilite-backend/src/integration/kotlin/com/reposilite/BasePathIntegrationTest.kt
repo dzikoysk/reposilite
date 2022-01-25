@@ -32,6 +32,7 @@ internal class BasePathIntegrationTest : ReposiliteSpecification() {
             .post("$basePath/<uri>") { Unirest.post(it.reposiliteLocation()).redirect(it) }
             .put("$basePath/<uri>") { Unirest.put(it.reposiliteLocation()).redirect(it) }
             .delete("$basePath/<uri>") { Unirest.delete(it.reposiliteLocation()).redirect(it) }
+            .options("$basePath/<uri>") { Unirest.options(it.reposiliteLocation()).redirect(it) }
             .get("/stop") { await.countDown() }
             .start(80)
 
@@ -39,17 +40,10 @@ internal class BasePathIntegrationTest : ReposiliteSpecification() {
     }
 
     private fun <R : HttpRequest<*>> R.redirect(ctx: Context) {
-        ctx.headerMap().forEach { (key, value) ->
-            header(key, value);
-        }
-
+        ctx.headerMap().forEach { (key, value) -> header(key, value) }
         val response = this.asBytes()
-
-        response.headers.all().forEach {
-            ctx.header(it.name, it.value)
-        }
-
-        ctx.result(response.body)
+        response.headers.all().forEach { ctx.header(it.name, it.value) }
+        ctx.status(response.status).result(response.body)
     }
 
     private fun Context.reposiliteLocation(): String =

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { ref, watch, onUnmounted, nextTick } from 'vue'
+import { ref } from 'vue'
 import { createURL } from '../client'
 
 const connection = ref()
