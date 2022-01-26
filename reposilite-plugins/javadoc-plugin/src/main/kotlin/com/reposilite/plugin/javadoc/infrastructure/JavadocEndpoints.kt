@@ -12,7 +12,7 @@ internal class JavadocEndpoints(javadoc: JavadocFacade) : ReposiliteRoutes() {
 
     private val javadocRoute = ReposiliteRoute<Any>("/javadoc/{repository}/<gav>", RouteMethod.GET) {
         accessed {
-            response = javadoc.findJavadocPage(JavadocPageRequest(requireParameter("repository"), requireParameter("gav").toLocation(), this))
+            response = javadoc.findJavadocPage(JavadocPageRequest(this?.identifier, requireParameter("repository"), requireParameter("gav").toLocation()))
                 .peek { ctx.encoding(Charsets.UTF_8).contentType(it.contentType) }
                 .map { it.response }
         }

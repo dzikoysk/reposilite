@@ -4,13 +4,14 @@ import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
 import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.api.LookupRequest
+import com.reposilite.maven.api.VersionLookupRequest
 import com.reposilite.plugin.api.Facade
 import com.reposilite.plugin.javadoc.api.JavadocResponse
 import com.reposilite.plugin.javadoc.api.JavadocPageRequest
 import com.reposilite.storage.api.FileType.FILE
 import com.reposilite.storage.api.Location
 import com.reposilite.storage.getSimpleName
-import com.reposilite.token.api.AccessTokenDto
+import com.reposilite.token.AccessTokenIdentifier
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
 import com.reposilite.web.http.notFound
@@ -38,11 +39,19 @@ class JavadocFacade internal constructor(
 ) : Journalist, Facade {
 
     fun findJavadocPage(request: JavadocPageRequest): Result<JavadocResponse, ErrorResponse> {
-        val (repository, gav, accessToken) = request
+        val (accessToken, repository, rawGav) = request
 
-        if (!mavenFacade.canAccessResource(accessToken?.identifier, repository, gav)) {
+        if (!mavenFacade.canAccessResource(accessToken, repository, rawGav)) {
             return unauthorizedError()
         }
+
+        val gav = rawGav
+            .takeIf { it.contains("/latest") }
+            ?.locationBeforeLast("/latest")
+            ?.let { mavenFacade.findLatest(VersionLookupRequest(accessToken, repository, it)) }
+            ?.map { rawGav.replace("latest", it.version) }
+            ?.orElseGet { rawGav }
+            ?: rawGav
 
         val target = javadocFolder.resolve(repository).resolve(gav.toString())
 
@@ -60,12 +69,12 @@ class JavadocFacade internal constructor(
             return notFoundError("Resources are unavailable before extraction")
         }
 
-        val javadocJar = resolveJavadocJar(gav) ?: return notFoundError("Invalid request")
+        val javadocJar = resolveJavadocJar(accessToken, repository, gav) ?: return errorResponse(BAD_REQUEST, "Invalid GAV")
 
         return mavenFacade.findDetails(LookupRequest(accessToken, repository, javadocJar))
             .filter({ it.type === FILE }, { ErrorResponse(BAD_REQUEST, "Invalid request") })
             .filter({ it.name.endsWith("-javadoc.jar") }, { notFound("Please do not provide a direct link to a non javadoc file! GAV must be pointing to a directory or a javadoc file!") })
-            .flatMap { extractJavadocJar(javadocJar, repository, javadocFolder, accessToken) }
+            .flatMap { extractJavadocJar(accessToken, repository, javadocJar, javadocFolder) }
             .map { JavadocResponse(ContentType.HTML, it) }
             .onError { logger.error("Cannot extract javadoc: ${it.message} (${it.status})}") }
     }
@@ -73,21 +82,21 @@ class JavadocFacade internal constructor(
     /**
      * Constructs a new gav from the input gav, so we can handle paths that end with /index.html for example.
      */
-    private fun resolveJavadocJar(gav: Location): Location? =
+    private fun resolveJavadocJar(accessToken: AccessTokenIdentifier?, repository: String, gav: Location): Location? =
         when {
             gav.endsWith(".jar") -> gav
             gav.endsWith("/index.html") -> {
-                val path = gav.locationBeforeLast("/index.html")
-                val split = path.toString().split("/")
+                val rootGav = gav.locationBeforeLast("/index.html")
+                val elements = rootGav.toString().split("/")
 
-                if (split.size >= 2) {
-                    val version = split[split.size - 1]
-                    val name = split[split.size - 2]
-                    path.resolve("${name}-${version}-javadoc.jar")
+                if (elements.size >= 2) {
+                    val name = elements[elements.size - 2]
+                    val version = elements[elements.size - 1]
+                    rootGav.resolve("${name}-${version}-javadoc.jar")
                 }
                 else null
             }
-            else -> resolveJavadocJar(gav.resolve("index.html"))
+            else -> resolveJavadocJar(accessToken, repository, gav.resolve("index.html"))
         }
 
     /**
@@ -97,7 +106,7 @@ class JavadocFacade internal constructor(
      * @param gav the direct gav to the javadoc file
      * @param javadocFolder the target folder in which the files should be extracted
      */
-    private fun extractJavadocJar(gav: Location, repository: String, javadocFolder: Path, token: AccessTokenDto?): Result<String, ErrorResponse> {
+    private fun extractJavadocJar(accessToken: AccessTokenIdentifier?, repository: String, gav: Location, javadocFolder: Path): Result<String, ErrorResponse> {
         val path = gav.locationBeforeLast("/").toString()
         val targetFolder = javadocFolder.resolve(repository).resolve(path)
         val indexFile = targetFolder.resolve("index.html")
@@ -109,7 +118,7 @@ class JavadocFacade internal constructor(
         Files.createDirectories(targetFolder)
         val targetJar = targetFolder.resolve("javadoc.jar")
 
-        return mavenFacade.findFile(LookupRequest(token, repository, gav))
+        return mavenFacade.findFile(LookupRequest(accessToken, repository, gav))
             .peek { it.copyToAndClose(FileOutputStream(targetJar.toString())) }
             .flatMap { extractJavadocArchive(targetJar, targetFolder) }
             .map {

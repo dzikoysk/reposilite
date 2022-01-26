@@ -39,6 +39,7 @@ import com.reposilite.storage.api.Location
 import com.reposilite.storage.api.UNKNOWN_LENGTH
 import com.reposilite.storage.api.toLocation
 import com.reposilite.token.AccessTokenFacade
+import com.reposilite.token.AccessTokenIdentifier
 import com.reposilite.token.AccessTokenType.TEMPORARY
 import com.reposilite.token.Route
 import com.reposilite.token.RoutePermission
@@ -61,7 +62,7 @@ import java.nio.file.Files
 internal abstract class MavenSpecification {
 
     protected companion object {
-        val UNAUTHORIZED: AccessTokenDto? = null
+        val UNAUTHORIZED: AccessTokenIdentifier? = null
         const val REMOTE_REPOSITORY = "https://domain.com/releases"
         const val REMOTE_REPOSITORY_WITH_WHITELIST = "https://example.com/whitelist"
         const val REMOTE_AUTH = "panda@secret"
@@ -131,7 +132,7 @@ internal abstract class MavenSpecification {
         val content: String
     ) {
 
-        fun toLookupRequest(authentication: AccessTokenDto?): LookupRequest =
+        fun toLookupRequest(authentication: AccessTokenIdentifier?): LookupRequest =
             LookupRequest(authentication, repository, gav.toLocation())
 
         fun gav(): Location =
@@ -142,8 +143,8 @@ internal abstract class MavenSpecification {
     protected fun createRepository(name: String, initializer: RepositoryConfiguration.() -> Unit): Pair<String, RepositoryConfiguration> =
         Pair(name, RepositoryConfiguration().also { initializer(it) })
 
-    protected fun findRepositories(accessToken: AccessTokenDto?): Collection<String> =
-        mavenFacade.findRepositories(accessToken?.identifier).files.map { it.name }
+    protected fun findRepositories(accessToken: AccessTokenIdentifier?): Collection<String> =
+        mavenFacade.findRepositories(accessToken).files.map { it.name }
 
     protected fun addFileToRepository(fileSpec: FileSpec): FileSpec {
         workingDirectory!!.toPath()
@@ -159,10 +160,11 @@ internal abstract class MavenSpecification {
         return fileSpec
     }
 
-    protected fun createAccessToken(name: String, secret: String, repository: String, gav: String, permission: RoutePermission): AccessTokenDto =
+    protected fun createAccessToken(name: String, secret: String, repository: String, gav: String, permission: RoutePermission): AccessTokenIdentifier =
         accessTokenFacade.createAccessToken(CreateAccessTokenRequest(TEMPORARY, name, secret))
             .accessToken
             .also { accessTokenFacade.addRoute(it.identifier, Route("/$repository/${gav.toLocation()}", permission)) }
+            .identifier
 
     private fun String.isAllowed(): Boolean =
         this.endsWith("/allow")
