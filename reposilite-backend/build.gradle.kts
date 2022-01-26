@@ -54,10 +54,10 @@ dependencies {
     implementation("net.dzikoysk:cdn:$cdn")
     implementation("net.dzikoysk:cdn-kt:$cdn")
 
-    val awssdk = "2.17.112"
+    val awssdk = "2.17.116"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
-    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.141")
+    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.145")
 
     val exposed = "0.37.3"
     implementation("org.jetbrains.exposed:exposed-core:$exposed")
@@ -67,10 +67,10 @@ dependencies {
     api("net.dzikoysk:exposed-upsert:1.0.3")
     // Drivers
     implementation("org.xerial:sqlite-jdbc:3.36.0.3")
-    implementation("mysql:mysql-connector-java:8.0.27")
-    implementation("org.mariadb.jdbc:mariadb-java-client:2.7.4")
+    implementation("mysql:mysql-connector-java:8.0.28")
+    implementation("org.mariadb.jdbc:mariadb-java-client:2.7.5")
     implementation("org.postgresql:postgresql:42.3.1")
-    implementation("com.h2database:h2:2.0.206")
+    implementation("com.h2database:h2:2.1.210")
 
     val springSecurityCrypto = "5.6.1"
     implementation("org.springframework.security:spring-security-crypto:$springSecurityCrypto")
@@ -98,7 +98,7 @@ dependencies {
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jackson")
 
-    val httpClient = "1.41.0"
+    val httpClient = "1.41.1"
     implementation("com.google.http-client:google-http-client:$httpClient")
     testImplementation("com.google.http-client:google-http-client-jackson2:$httpClient")
 
@@ -125,7 +125,7 @@ dependencies {
     testImplementation("com.konghq:unirest-java:$unirest")
     testImplementation("com.konghq:unirest-objectmapper-jackson:$unirest")
 
-    val testcontainers = "1.16.2"
+    val testcontainers = "1.16.3"
     testImplementation("org.testcontainers:mariadb:$testcontainers")
     testImplementation("org.testcontainers:testcontainers:$testcontainers")
     testImplementation("org.testcontainers:junit-jupiter:$testcontainers")

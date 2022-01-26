@@ -66,7 +66,7 @@ internal class MavenApiEndpoints(private val mavenFacade: MavenFacade) : Reposil
     private val findFileDetails: ContextDsl<FileDetails>.() -> Unit = {
         accessed {
             response = parameter("repository")
-                ?.let { repository -> mavenFacade.findDetails(LookupRequest(this, repository, wildcard("gav").toLocation())) }
+                ?.let { repository -> mavenFacade.findDetails(LookupRequest(this?.identifier, repository, wildcard("gav").toLocation())) }
                 ?: mavenFacade.findRepositories(this?.identifier).asSuccess()
         }
     }
@@ -91,7 +91,7 @@ internal class MavenApiEndpoints(private val mavenFacade: MavenFacade) : Reposil
         accessed {
             response = mavenFacade.findVersions(
                 VersionLookupRequest(
-                    accessToken = this,
+                    accessToken = this?.identifier,
                     repository = requireParameter("repository"),
                     gav = requireParameter("gav").toLocation(),
                     filter = ctx.queryParam("filter")

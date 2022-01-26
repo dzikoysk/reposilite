@@ -40,10 +40,8 @@ import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.FileType.DIRECTORY
 import com.reposilite.storage.api.Location
 import com.reposilite.token.AccessTokenIdentifier
-import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
-import com.reposilite.web.http.notFound
 import com.reposilite.web.http.notFoundError
 import com.reposilite.web.http.unauthorized
 import com.reposilite.web.http.unauthorizedError
@@ -86,7 +84,7 @@ class MavenFacade internal constructor(
 
             val details = repository.getFileDetails(gav)
 
-            if (details.matches { it.type == DIRECTORY } && repositorySecurityProvider.canBrowseResource(lookupRequest.accessToken?.identifier, repository, gav).isErr) {
+            if (details.matches { it.type == DIRECTORY } && repositorySecurityProvider.canBrowseResource(lookupRequest.accessToken, repository, gav).isErr) {
                 return@resolve unauthorizedError("Unauthorized indexing request")
             }
 
@@ -113,7 +111,7 @@ class MavenFacade internal constructor(
         val (accessToken, repositoryName, gav) = lookupRequest
         val repository = getRepository(lookupRequest.repository) ?: return notFoundError("Repository $repositoryName not found")
 
-        if (!canAccessResource(lookupRequest.accessToken?.identifier, repository.name, gav)) {
+        if (!canAccessResource(lookupRequest.accessToken, repository.name, gav)) {
             logger.debug("Unauthorized attempt of access (token: ${lookupRequest.accessToken}) to $gav from ${repository.name}")
             return unauthorized().asError()
         }
@@ -124,7 +122,7 @@ class MavenFacade internal constructor(
 
     fun canAccessResource(accessToken: AccessTokenIdentifier?, repository: String, gav: Location): Boolean =
         getRepository(repository)
-            ?.let { repositorySecurityProvider.canAccessResource(accessToken, it, gav).isOk }
+            ?.let { repositorySecurityProvider.canAccessResource(accessToken, it, gav) }
             ?: false
 
     fun saveMetadata(repository: String, gav: Location, metadata: Metadata): Result<Metadata, ErrorResponse> =
@@ -135,12 +133,12 @@ class MavenFacade internal constructor(
 
     fun findVersions(lookupRequest: VersionLookupRequest): Result<VersionsResponse, ErrorResponse> =
         repositoryService.findRepository(lookupRequest.repository)
-            .filter({ repositorySecurityProvider.canAccessResource(lookupRequest.accessToken?.identifier, it, lookupRequest.gav).isOk }, { unauthorized() })
+            .filter({ repositorySecurityProvider.canAccessResource(lookupRequest.accessToken, it, lookupRequest.gav)}, { unauthorized() })
             .flatMap { metadataService.findVersions(it, lookupRequest.gav, lookupRequest.filter) }
 
     fun findLatest(lookupRequest: VersionLookupRequest): Result<LatestVersionResponse, ErrorResponse> =
         repositoryService.findRepository(lookupRequest.repository)
-            .filter({ repositorySecurityProvider.canAccessResource(lookupRequest.accessToken?.identifier, it, lookupRequest.gav).isOk }, { unauthorized() })
+            .filter({ repositorySecurityProvider.canAccessResource(lookupRequest.accessToken, it, lookupRequest.gav)}, { unauthorized() })
             .flatMap { metadataService.findLatest(it, lookupRequest.gav, lookupRequest.filter) }
 
     fun findLatestBadge(request: LatestBadgeRequest): Result<String, ErrorResponse> =
@@ -164,7 +162,7 @@ class MavenFacade internal constructor(
         val repository = repositoryService.getRepository(deleteRequest.repository) ?: return notFoundError("Repository ${deleteRequest.repository} not found")
         val path = deleteRequest.gav
 
-        if (repositorySecurityProvider.canModifyResource(deleteRequest.accessToken.identifier, repository, path).not()) {
+        if (repositorySecurityProvider.canModifyResource(deleteRequest.accessToken, repository, path).not()) {
             return unauthorizedError("Unauthorized access request")
         }
 

@@ -66,7 +66,7 @@ internal class MavenEndpoints(
     )
     private val findFile = ReposiliteRoute<Unit>("/{repository}/<gav>", HEAD, GET) {
         accessed {
-            LookupRequest(this, requireParameter("repository"), requireParameter("gav").toLocation()).let { request ->
+            LookupRequest(this?.identifier, requireParameter("repository"), requireParameter("gav").toLocation()).let { request ->
                 mavenFacade.findDetails(request)
                     .`is`(DocumentInfo::class.java) { ErrorResponse(NOT_FOUND, "Requested file is a directory") }
                     .flatMap { details -> mavenFacade.findFile(request).map { Pair(details, it) } }
@@ -112,7 +112,7 @@ internal class MavenEndpoints(
     )
     private val deleteFile = ReposiliteRoute<Unit>("/{repository}/<gav>", DELETE) {
         authorized {
-            response = mavenFacade.deleteFile(DeleteRequest(this, requireParameter("repository"), requireParameter("gav").toLocation()))
+            response = mavenFacade.deleteFile(DeleteRequest(this.identifier, requireParameter("repository"), requireParameter("gav").toLocation()))
         }
     }
 

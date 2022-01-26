@@ -12,6 +12,7 @@ import com.reposilite.storage.api.DocumentInfo
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.Location
 import com.reposilite.storage.api.toLocation
+import com.reposilite.token.AccessTokenIdentifier
 import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
@@ -58,7 +59,7 @@ internal class MavenLatestApiEndpoints(
     )
     private val findLatestVersion = ReposiliteRoute<Any>("/api/maven/latest/version/{repository}/<gav>", GET) {
         accessed {
-            response = VersionLookupRequest(this, requireParameter("repository"), requireParameter("gav").toLocation(), ctx.queryParam("filter"))
+            response = VersionLookupRequest(this?.identifier, requireParameter("repository"), requireParameter("gav").toLocation(), ctx.queryParam("filter"))
                 .let { mavenFacade.findLatest(it) }
                 .flatMap {
                     when (val type = ctx.queryParam("type")) {
@@ -111,9 +112,15 @@ internal class MavenLatestApiEndpoints(
     }
 
     private fun <T> resolveLatestArtifact(context: ContextDsl<*>, accessToken: AccessTokenDto?, request: RequestFunction<T>): Result<T, ErrorResponse> =
-        resolveLatestArtifact(context.requireParameter("repository"), context.requireParameter("gav").toLocation(), context.ctx.queryParam("filter"), accessToken, request)
+        resolveLatestArtifact(
+            context.requireParameter("repository"),
+            context.requireParameter("gav").toLocation(),
+            context.ctx.queryParam("filter"),
+            accessToken?.identifier,
+            request
+        )
 
-    private fun <T> resolveLatestArtifact(repository: String, gav: Location, filter: String?, accessToken: AccessTokenDto?, request: RequestFunction<T>): Result<T, ErrorResponse> =
+    private fun <T> resolveLatestArtifact(repository: String, gav: Location, filter: String?, accessToken: AccessTokenIdentifier?, request: RequestFunction<T>): Result<T, ErrorResponse> =
         VersionLookupRequest(accessToken, repository, gav, filter)
             .let { mavenFacade.findLatest(it) }
             .flatMap { (isSnapshot, version) ->

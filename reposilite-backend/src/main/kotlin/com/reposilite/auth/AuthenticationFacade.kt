@@ -31,7 +31,7 @@ import io.javalin.http.HttpCode.UNAUTHORIZED
 import panda.std.Result
 import panda.std.asSuccess
 
-class AuthenticationFacade internal constructor(
+class AuthenticationFacade(
     private val journalist: Journalist,
     private val accessTokenFacade: AccessTokenFacade
 ) : Journalist, Facade {
