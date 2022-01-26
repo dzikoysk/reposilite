@@ -49,6 +49,7 @@ import com.reposilite.web.http.unauthorizedError
 import io.javalin.http.HttpCode.BAD_REQUEST
 import panda.std.Result
 import panda.std.asError
+import panda.std.asSuccess
 import panda.std.reactive.Reference
 import java.io.InputStream
 
@@ -83,18 +84,17 @@ class MavenFacade internal constructor(
                 return@resolve proxyService.findRemoteDetails(repository, lookupRequest.gav)
             }
 
-            val details = repository.getFileDetails(gav)
-
-            if (details.matches { it.type == DIRECTORY } && repositorySecurityProvider.canBrowseResource(lookupRequest.accessToken, repository, gav).isErr) {
-                return@resolve unauthorizedError("Unauthorized indexing request")
-            }
-
-            details.toOption()
-                .`is`(DocumentInfo::class.java)
-                .filter { ignoredExtensions.none { extension -> it.name.endsWith(extension) } }
-                .peek { statisticsFacade.incrementResolvedRequest(IncrementResolvedRequest(lookupRequest.toIdentifier())) }
-
-            details
+            return@resolve repository.getFileDetails(gav)
+                .flatMap {
+                    it.takeIf { it.type == DIRECTORY }
+                        ?.let { repositorySecurityProvider.canBrowseResource(lookupRequest.accessToken, repository, gav).map { _ -> it } }
+                        ?: it.asSuccess()
+                }
+                .peek {
+                    if (it is DocumentInfo && ignoredExtensions.none { extension -> it.name.endsWith(extension) }) {
+                         statisticsFacade.incrementResolvedRequest(IncrementResolvedRequest(lookupRequest.toIdentifier()))
+                    }
+                }
         }
 
     fun findFile(lookupRequest: LookupRequest): Result<out InputStream, ErrorResponse> =
