@@ -41,7 +41,7 @@ class JavadocFacade internal constructor(
     fun findJavadocPage(request: JavadocPageRequest): Result<JavadocResponse, ErrorResponse> {
         val (accessToken, repository, rawGav) = request
 
-        if (!mavenFacade.canAccessResource(accessToken, repository, rawGav)) {
+        if (mavenFacade.canAccessResource(accessToken, repository, rawGav).isErr) {
             return unauthorizedError()
         }
 

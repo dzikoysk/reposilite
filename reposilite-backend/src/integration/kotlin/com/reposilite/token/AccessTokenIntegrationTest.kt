@@ -11,6 +11,7 @@ import com.reposilite.token.specification.AccessTokenIntegrationSpecification
 import com.reposilite.web.http.ErrorResponse
 import io.javalin.http.HttpCode.OK
 import io.javalin.http.HttpCode.UNAUTHORIZED
+import io.javalin.http.HttpCode.FORBIDDEN
 import kong.unirest.Unirest.delete
 import kong.unirest.Unirest.get
 import kong.unirest.Unirest.put
@@ -51,12 +52,12 @@ internal abstract class AccessTokenIntegrationTest : AccessTokenIntegrationSpeci
         val (allowedToken, allowedSecret) = useToken("allowed", "secret")
 
         // when: tokens is requested without valid credentials
-        val unauthorizedResponse = get("$base/api/tokens/${allowedToken.name}")
+        val forbiddenResponse = get("$base/api/tokens/${allowedToken.name}")
             .basicAuth(notAllowedToken.name, notAllowedSecret)
             .asJacksonObject(ErrorResponse::class)
 
         // then: request is rejected by server
-        assertErrorResponse(UNAUTHORIZED, unauthorizedResponse)
+        assertErrorResponse(FORBIDDEN, forbiddenResponse)
 
         // when: token is requested with valid access token
         val response = get("$base/api/tokens/${allowedToken.name}")
