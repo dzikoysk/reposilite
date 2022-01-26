@@ -56,11 +56,13 @@ internal class RepositorySecurityProvider(private val accessTokenFacade: AccessT
         hasPermissionTo(accessToken, repository, gav, WRITE).isOk
 
     private fun hasPermissionTo(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location, permission: RoutePermission): Result<Unit, ErrorResponse> =
-        if (accessToken != null)
-            Result.`when`(accessTokenFacade.hasPermissionTo(accessToken, "/${repository.name}/$gav", permission),
-                {  },
-                { ErrorResponse(HttpCode.FORBIDDEN, "You must be the token owner or a manager to access this.") })
-        else
-            unauthorizedError("You need to provide credentials.")
+        accessToken
+            ?.let {
+                Result.`when`(accessTokenFacade.hasPermissionTo(accessToken, "/${repository.name}/$gav", permission),
+                    {  },
+                    { ErrorResponse(HttpCode.FORBIDDEN, "You must be the token owner or a manager to access this.") }
+                )
+            }
+            ?: unauthorizedError("You need to provide credentials.")
 
 }
