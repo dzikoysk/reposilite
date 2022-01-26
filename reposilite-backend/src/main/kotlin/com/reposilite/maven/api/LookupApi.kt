@@ -19,10 +19,10 @@ package com.reposilite.maven.api
 import com.reposilite.maven.Repository
 import com.reposilite.plugin.api.Event
 import com.reposilite.storage.api.Location
-import com.reposilite.token.api.AccessTokenDto
+import com.reposilite.token.AccessTokenIdentifier
 
 data class LookupRequest(
-    val accessToken: AccessTokenDto?,
+    val accessToken: AccessTokenIdentifier?,
     val repository: String,
     val gav: Location,
 ) {
@@ -33,10 +33,10 @@ data class LookupRequest(
 }
 
 data class VersionLookupRequest(
-    val accessToken: AccessTokenDto?,
+    val accessToken: AccessTokenIdentifier?,
     val repository: String,
     val gav: Location,
-    val filter: String?
+    val filter: String? = null
 )
 
 data class LatestVersionResponse(
@@ -50,7 +50,7 @@ data class VersionsResponse(
 )
 
 class ResolveEvent(
-    val accessToken: AccessTokenDto?,
+    val accessToken: AccessTokenIdentifier?,
     val repository: Repository,
     val gav: Location
 ) : Event

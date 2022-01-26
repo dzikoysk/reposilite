@@ -57,6 +57,9 @@ class Location private constructor(private val uri: String) {
             .toLocation()
             .resolve(sibling)
 
+    fun replace(element: String, replacement: String): Location =
+        uri.replace(element, replacement).toLocation()
+
     fun contains(value: String): Boolean =
         uri.contains(value)
 
