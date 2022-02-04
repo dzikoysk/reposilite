@@ -54,11 +54,13 @@ internal fun PluginLoader.loadExternalPlugins() {
         throw IllegalStateException("The path is not a directory")
     }
 
-    Files.list(pluginDirectory)
-        .collect(Collectors.toList())
-        .filter { it.getSimpleName().endsWith(".jar") }
-        .map { it.toUri().toURL() }
-        .let { URLClassLoader(it.toTypedArray()) }
-        .let { ServiceLoader.load(ReposilitePlugin::class.java, it) }
-        .forEach { registerPlugin(it) }
+    Files.list(pluginDirectory).use { pluginDirectoryStream ->
+        pluginDirectoryStream
+            .collect(Collectors.toList())
+            .filter { it.getSimpleName().endsWith(".jar") }
+            .map { it.toUri().toURL() }
+            .let { URLClassLoader(it.toTypedArray()) }
+            .let { ServiceLoader.load(ReposilitePlugin::class.java, it) }
+            .forEach { registerPlugin(it) }
+    }
 }
