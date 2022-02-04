@@ -151,9 +151,10 @@ class MavenFacade internal constructor(
             return errorResponse(BAD_REQUEST, "Redeployment is not allowed")
         }
 
-        return repository.putFile(path, deployRequest.content)
-            .peek { logger.info("DEPLOY | Artifact $path successfully deployed to ${repository.name} by ${deployRequest.by}") }
-            .peek { extensions.emitEvent(DeployEvent(repository, path, deployRequest.by)) }
+        return repository.putFile(path, deployRequest.content).peek {
+            logger.info("DEPLOY | Artifact $path successfully deployed to ${repository.name} by ${deployRequest.by}")
+            extensions.emitEvent(DeployEvent(repository, path, deployRequest.by))
+        }
     }
 
     fun deleteFile(deleteRequest: DeleteRequest): Result<Unit, ErrorResponse> {

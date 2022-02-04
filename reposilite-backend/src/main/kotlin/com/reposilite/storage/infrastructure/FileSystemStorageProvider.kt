@@ -111,10 +111,12 @@ internal abstract class FileSystemStorageProvider protected constructor(
     private fun toDirectoryInfo(directory: Path): Result<DirectoryInfo, ErrorResponse> =
         DirectoryInfo(
             directory.getSimpleName(),
-            Files.list(directory).asSequence()
-                .map { toSimpleFileDetails(it).orElseThrow { error -> IOException(error.message) } }
-                .sortedWith(FilesComparator({ VersionComparator.asVersion(it.name) }, { it.type == DIRECTORY }))
-                .toList()
+            Files.list(directory).use { directoryStream ->
+                directoryStream.asSequence()
+                    .map { toSimpleFileDetails(it).orElseThrow { error -> IOException(error.message) } }
+                    .sortedWith(FilesComparator({ VersionComparator.asVersion(it.name) }, { it.type == DIRECTORY }))
+                    .toList()
+            }
         ).asSuccess()
 
     private fun toSimpleFileDetails(file: Path): Result<out FileDetails, ErrorResponse> =
@@ -131,10 +133,12 @@ internal abstract class FileSystemStorageProvider protected constructor(
         location.resolveWithRootDirectory()
             .exists()
             .map {
-                Files.walk(it, 1).asSequence()
-                    .filter { path -> path != it }
-                    .map { path -> Location.of(rootDirectory, path) }
-                    .toList()
+                Files.walk(it, 1).use { directoryStream ->
+                    directoryStream.asSequence()
+                        .filter { path -> path != it }
+                        .map { path -> Location.of(rootDirectory, path) }
+                        .toList()
+                }
             }
 
     override fun getLastModifiedTime(location: Location): Result<FileTime, ErrorResponse> =
