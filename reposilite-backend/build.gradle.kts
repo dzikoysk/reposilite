@@ -50,7 +50,7 @@ dependencies {
     api("org.panda-lang:expressible-kt-coroutines:$expressible")
     testImplementation("org.panda-lang:expressible-junit:$expressible")
 
-    val cdn = "1.13.5"
+    val cdn = "1.13.6"
     implementation("net.dzikoysk:cdn:$cdn")
     implementation("net.dzikoysk:cdn-kt:$cdn")
 
@@ -85,7 +85,8 @@ dependencies {
     api("com.reposilite.javalin-rfcs:javalin-routing:$javalinRfcs")
 
     //implementation("io.javalin:javalin:4.1.1")
-    api("com.github.dzikoysk.javalin:javalin:1928b145c9")
+    @Suppress("GradlePackageUpdate")
+    api("com.github.dzikoysk.javalin:javalin:1075421a66")
     @Suppress("GradlePackageUpdate")
     implementation("org.eclipse.jetty:jetty-server:9.4.44.v20210927")
 
@@ -103,6 +104,7 @@ dependencies {
     testImplementation("com.google.http-client:google-http-client-jackson2:$httpClient")
 
     val commonsIO = "20030203.000550"
+    @Suppress("GradlePackageUpdate")
     implementation("commons-io:commons-io:$commonsIO")
 
     val jline = "3.21.0"
