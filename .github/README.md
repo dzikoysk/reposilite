@@ -105,10 +105,10 @@ Recommended tool to develop backend module is IntelliJ IDE, for frontend it migh
 $ ./gradlew run
 
 # Run only frontend
-$ cd reposilite-frontend && npm run i && npm run full
+$ cd reposilite-frontend && npm i && npm run full
 
 # Run only Reposilite site
-$ cd reposilite-site/website && npm run i && npm run start
+$ cd reposilite-site/website && npm i && npm run start
 ```
 
 #### Stack
