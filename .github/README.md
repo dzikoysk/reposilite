@@ -61,10 +61,10 @@ For huge public repositories you can adjust memory limit and even size of used t
 
 ```bash
 # Launching a standalone JAR file
-$ java -Xmx16M -jar reposilite-3.0.0-alpha.19.jar
+$ java -Xmx16M -jar reposilite-3.0.0-alpha.20.jar
 
 # Using a Docker
-$ docker pull dzikoysk/reposilite:3.0.0-alpha.19
+$ docker pull dzikoysk/reposilite:3.0.0-alpha.20
 ```
 
 Visit official guide to read more about extra parameters and configuration details.
