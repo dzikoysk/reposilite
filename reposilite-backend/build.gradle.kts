@@ -77,6 +77,9 @@ dependencies {
     val springSecurityCrypto = "5.6.1"
     implementation("org.springframework.security:spring-security-crypto:$springSecurityCrypto")
 
+    val ldap = "6.0.3"
+    testImplementation("com.unboundid:unboundid-ldapsdk:$ldap")
+
     val openapi = "1.1.1"
     kapt("io.javalin-rfc:openapi-annotation-processor:$openapi")
     implementation("io.javalin-rfc:javalin-openapi-plugin:$openapi")

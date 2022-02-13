@@ -14,7 +14,7 @@ import picocli.CommandLine.Option
 import picocli.CommandLine.Parameters
 import java.io.Serializable
 
-class SharedConfiguration : Serializable, DeserializationHandler<SharedConfiguration> {
+class SharedConfiguration : DeserializationHandler<SharedConfiguration> {
 
     @Description("# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #")
     @Description("#      Reposilite :: Shared      #")
@@ -150,7 +150,7 @@ class SharedConfiguration : Serializable, DeserializationHandler<SharedConfigura
     val statistics = reference(StatisticsConfiguration())
 
     @Contextual
-    class StatisticsConfiguration : Serializable {
+    class StatisticsConfiguration {
 
         @Description("# How often Reposilite should divide recorded requests into separated groups.")
         @Description("# With higher precision you can get more detailed timestamps, but it'll increase database size.")
@@ -158,6 +158,29 @@ class SharedConfiguration : Serializable, DeserializationHandler<SharedConfigura
         @Description("# Available modes: daily, weekly, monthly, yearly")
         var resolvedRequestsInterval = "monthly"
 
+    }
+
+    /* LDAP */
+
+    @Description("")
+    @Description("# LDAP configuration")
+    val ldap = reference(LdapConfiguration())
+
+    @Contextual
+    class LdapConfiguration {
+
+        @Description("# LDAP Authenticator is enabled")
+        var enabled = false
+        @Description("# LDAP server address")
+        var hostname = "ldapserver.mycompany.be"
+        @Description("# LDAP server port")
+        var port = 389
+        @Description("# Base DN with users")
+        var baseDn = "DC=mycompany,DC=be"
+        @Description("# User (~admin) used to perform searches in LDAP server")
+        var searchUserDn = "CN=reposilite,OU=Administrator Accounts,DC=mycompany,DC=be"
+        @Description("# Search user password")
+        var searchUserPassword = "admin-secret"
     }
 
     /* Utilities */
