@@ -66,7 +66,7 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-java-time:$exposed")
     api("net.dzikoysk:exposed-upsert:1.0.3")
     // Threadpool
-    implementation("com.zaxxer:HikariCP:4.0.3")
+    implementation("com.zaxxer:HikariCP:5.0.1")
     // Drivers
     implementation("org.xerial:sqlite-jdbc:3.36.0.3")
     implementation("mysql:mysql-connector-java:8.0.28")
