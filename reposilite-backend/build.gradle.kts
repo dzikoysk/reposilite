@@ -92,7 +92,7 @@ dependencies {
     @Suppress("GradlePackageUpdate")
     implementation("org.eclipse.jetty:jetty-server:9.4.44.v20210927")
 
-    val picocli = "4.6.2"
+    val picocli = "4.6.3"
     kapt("info.picocli:picocli-codegen:$picocli")
     api("info.picocli:picocli:$picocli")
 
