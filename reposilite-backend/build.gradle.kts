@@ -54,10 +54,10 @@ dependencies {
     implementation("net.dzikoysk:cdn:$cdn")
     implementation("net.dzikoysk:cdn-kt:$cdn")
 
-    val awssdk = "2.17.124"
+    val awssdk = "2.17.129"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
-    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.153")
+    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.158")
 
     val exposed = "0.37.3"
     implementation("org.jetbrains.exposed:exposed-core:$exposed")
@@ -93,9 +93,9 @@ dependencies {
     @Suppress("GradlePackageUpdate")
     api("com.github.dzikoysk.javalin:javalin:1075421a66")
     @Suppress("GradlePackageUpdate")
-    implementation("org.eclipse.jetty:jetty-server:9.4.44.v20210927")
+    implementation("org.eclipse.jetty:jetty-server:9.4.45.v20220203")
 
-    val picocli = "4.6.2"
+    val picocli = "4.6.3"
     kapt("info.picocli:picocli-codegen:$picocli")
     api("info.picocli:picocli:$picocli")
 
@@ -104,7 +104,7 @@ dependencies {
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jackson")
 
-    val httpClient = "1.41.2"
+    val httpClient = "1.41.4"
     implementation("com.google.http-client:google-http-client:$httpClient")
     testImplementation("com.google.http-client:google-http-client-jackson2:$httpClient")
 

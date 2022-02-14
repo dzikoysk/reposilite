@@ -9,35 +9,35 @@
     "full": "concurrently -k \"npm run fake-api\" \"vite\""
   },
   "dependencies": {
-    "@vueuse/core": "^7.5.5",
+    "@vueuse/core": "^7.6.2",
     "@vueuse/head": "^0.7.5",
     "ansi-to-html": "^0.7.2",
-    "axios": "^0.25.0",
+    "axios": "^0.26.0",
     "downloadjs": "^1.4.7",
     "mime-types": "^2.1.34",
     "mosha-vue-toastify": "^1.0.23",
-    "pretty-bytes": "^5.6.0",
+    "pretty-bytes": "^6.0.0",
     "prismjs": "^1.26.0",
     "simple-syntax-highlighter": "^2.2.0",
-    "vue": "^3.2.30",
-    "vue-axios": "^3.4.0",
+    "vue": "^3.2.31",
+    "vue-axios": "^3.4.1",
     "vue-final-modal": "^3.4.3",
     "vue-prism-editor": "^2.0.0-alpha.2",
     "vue-router": "^4.0.12",
     "vue3-tabs": "^0.1.12"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^2.1.0",
+    "@vitejs/plugin-vue": "^2.2.0",
     "@vue/compiler-sfc": "^3.2.22",
     "concurrently": "^7.0.0",
     "express": "^4.17.2",
     "express-ws": "^5.0.2",
     "json-server": "^0.17.0",
     "nodemon": "^2.0.15",
-    "stylelint-config-standard": "^24.0.0",
-    "vite": "^2.7.13",
-    "vite-plugin-windicss": "^1.6.3",
+    "stylelint-config-standard": "^25.0.0",
+    "vite": "^2.8.1",
+    "vite-plugin-windicss": "^1.7.0",
     "windicss": "^3.4.3",
-    "ws": "^8.4.2"
+    "ws": "^8.5.0"
   }
 }
