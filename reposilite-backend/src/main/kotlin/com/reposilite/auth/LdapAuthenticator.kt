@@ -1,8 +1,11 @@
 package com.reposilite.auth
 
+import com.reposilite.auth.api.AuthenticationRequest
 import com.reposilite.settings.api.SharedConfiguration.LdapConfiguration
+import com.reposilite.token.api.AccessTokenDto
+import com.reposilite.web.http.ErrorResponse
+import panda.std.Result
 import java.util.Hashtable
-import javax.naming.Context
 import javax.naming.Context.INITIAL_CONTEXT_FACTORY
 import javax.naming.Context.PROVIDER_URL
 import javax.naming.Context.SECURITY_AUTHENTICATION
@@ -14,6 +17,10 @@ import javax.naming.directory.InitialDirContext
 internal class LdapAuthenticator(
     private val ldapConfiguration: LdapConfiguration
 ) : Authenticator {
+
+    override fun authenticate(authenticationRequest: AuthenticationRequest): Result<AccessTokenDto, ErrorResponse> {
+        TODO("Not yet implemented")
+    }
 
     fun search(query: String) {
         val searchContext = with(ldapConfiguration) {

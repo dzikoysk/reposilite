@@ -4,7 +4,6 @@ import com.reposilite.settings.api.SharedConfiguration.LdapConfiguration
 import com.unboundid.ldap.listener.InMemoryDirectoryServer
 import com.unboundid.ldap.listener.InMemoryDirectoryServerConfig
 import com.unboundid.ldap.listener.InMemoryListenerConfig
-import org.eclipse.jetty.util.ssl.SslContextFactory
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -19,6 +18,7 @@ class LdapAuthenticatorTest {
     fun createLdapServer() {
         this.ldapConfiguration = LdapConfiguration().also {
             it.hostname = "ldap.domain.com"
+            it.port = (1024 + (Math.random() * (Short.MAX_VALUE - 1025))).toInt()
             it.baseDn = "dc=domain,dc=com"
             it.searchUserDn = "cn=Reposilite,ou=Search Accounts,${it.baseDn}"
             it.searchUserPassword = "search-secret"
@@ -30,11 +30,7 @@ class LdapAuthenticatorTest {
 
         this.ldapServer = InMemoryDirectoryServer(config)
         ldapServer.startListening(ldapConfiguration.hostname)
-
-        ldapConfiguration.also {
-            it.hostname = ldapServer.getListenAddress(it.hostname).hostAddress
-            it.port = ldapServer.listenPort
-        }
+        ldapConfiguration.hostname = ldapServer.getListenAddress(ldapConfiguration.hostname).hostAddress
     }
 
     @AfterEach

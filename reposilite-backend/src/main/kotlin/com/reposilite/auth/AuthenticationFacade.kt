@@ -25,9 +25,7 @@ import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.AccessTokenIdentifier
 import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.web.http.ErrorResponse
-import com.reposilite.web.http.errorResponse
 import com.reposilite.web.http.notFoundError
-import io.javalin.http.HttpCode.UNAUTHORIZED
 import panda.std.Result
 import panda.std.asSuccess
 
@@ -36,11 +34,14 @@ class AuthenticationFacade(
     private val accessTokenFacade: AccessTokenFacade
 ) : Journalist, Facade {
 
+    private val authenticators = listOf(
+        BasicAuthenticator(accessTokenFacade)
+    )
+
     fun authenticateByCredentials(authenticationRequest: AuthenticationRequest): Result<AccessTokenDto, ErrorResponse> =
-        accessTokenFacade.getAccessToken(authenticationRequest.name)
-            ?.takeIf { accessTokenFacade.secretMatches(it.identifier, authenticationRequest.secret) }
-            ?.asSuccess()
-            ?: errorResponse(UNAUTHORIZED, "Invalid authorization credentials")
+        authenticators.asSequence()
+            .map { it.authenticate(authenticationRequest) }
+            .first { it.isOk }
 
     fun geSessionDetails(identifier: AccessTokenIdentifier): Result<SessionDetails, ErrorResponse> =
         accessTokenFacade.getAccessTokenById(identifier)
