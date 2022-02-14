@@ -9,4 +9,6 @@ interface Authenticator {
 
     fun authenticate(authenticationRequest: AuthenticationRequest): Result<AccessTokenDto, ErrorResponse>
 
+    fun name(): String
+
 }

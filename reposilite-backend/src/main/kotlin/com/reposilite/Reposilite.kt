@@ -45,7 +45,7 @@ class Reposilite(
     private val alive = AtomicBoolean(false)
 
     private val shutdownHook = Thread {
-        alive.peek { shutdown(); }
+        alive.peek { shutdown() }
     }
 
     fun launch(): Result<Reposilite, Exception> =

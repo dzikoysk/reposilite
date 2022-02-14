@@ -22,10 +22,9 @@ import com.reposilite.settings.api.SharedConfiguration.RepositoryConfiguration.P
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.Location
 import com.reposilite.web.http.ErrorResponse
-import io.javalin.http.HttpCode.NOT_FOUND
+import com.reposilite.web.http.notFoundError
 import panda.std.Result
 import panda.std.Result.ok
-import panda.std.firstOrErrors
 import java.io.InputStream
 
 internal class ProxyService(private val journalist: Journalist): Journalist {
@@ -46,8 +45,8 @@ internal class ProxyService(private val journalist: Journalist): Journalist {
         repository.proxiedHosts.asSequence()
             .filter {(_, config) -> isAllowed(config, gav) }
             .map { fetch(it) }
-            .firstOrErrors()
-            .mapErr { errors -> ErrorResponse(NOT_FOUND, if (errors.isEmpty()) "Cannot find $gav" else errors.joinToString(" -> ") { "(${it.status}: ${it.message})" }) }
+            .firstOrNull { it.isOk }
+            ?: notFoundError("Cannot find $gav in remote repositories")
 
     private fun isAllowed(config: ProxiedHostConfiguration, gav: Location): Boolean =
         config.allowedGroups.isEmpty() ||

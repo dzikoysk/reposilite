@@ -26,6 +26,7 @@ import com.reposilite.token.AccessTokenIdentifier
 import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.notFoundError
+import com.reposilite.web.http.unauthorizedError
 import panda.std.Result
 import panda.std.asSuccess
 
@@ -38,10 +39,14 @@ class AuthenticationFacade(
         BasicAuthenticator(accessTokenFacade)
     )
 
-    fun authenticateByCredentials(authenticationRequest: AuthenticationRequest): Result<AccessTokenDto, ErrorResponse> =
+    fun authenticateByCredentials(authenticationRequest: AuthenticationRequest): Result<out AccessTokenDto, ErrorResponse> =
         authenticators.asSequence()
-            .map { it.authenticate(authenticationRequest) }
-            .first { it.isOk }
+            .map { authenticator -> authenticator
+                .authenticate(authenticationRequest)
+                .onError { logger.debug("${authenticationRequest.name} failed to authenticate with ${authenticator.name()} realm due to $it")  }
+            }
+            .firstOrNull { it.isOk }
+            ?: unauthorizedError("Invalid authorization credentials")
 
     fun geSessionDetails(identifier: AccessTokenIdentifier): Result<SessionDetails, ErrorResponse> =
         accessTokenFacade.getAccessTokenById(identifier)

@@ -40,4 +40,7 @@ internal class LdapAuthenticator(
         }
     )
 
+    override fun name(): String =
+        "LDAP"
+
 }
