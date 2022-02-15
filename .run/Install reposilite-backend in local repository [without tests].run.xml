@@ -4,12 +4,17 @@
       <option name="executionName" />
       <option name="externalProjectPath" value="$PROJECT_DIR$/reposilite-backend" />
       <option name="externalSystemIdString" value="GRADLE" />
-      <option name="scriptParameters" value="clean build shadowJar publishLibraryPublicationToMavenLocal --exclude-task test --exclude-task integrationTest" />
+      <option name="scriptParameters" value="--exclude-task test --exclude-task integrationTest" />
       <option name="taskDescriptions">
         <list />
       </option>
       <option name="taskNames">
-        <list />
+        <list>
+          <option value="clean" />
+          <option value="build" />
+          <option value="shadowJar" />
+          <option value="publishLibraryPublicationToMavenLocal" />
+        </list>
       </option>
       <option name="vmOptions" />
     </ExternalSystemSettings>
