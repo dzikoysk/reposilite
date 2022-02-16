@@ -73,13 +73,14 @@ internal abstract class MavenSpecification {
     @JvmField
     protected var workingDirectory: File? = null
     protected lateinit var mavenFacade: MavenFacade
-    protected val accessTokenFacade = AccessTokenFacade(InMemoryAccessTokenRepository(), InMemoryAccessTokenRepository())
+
+    private val logger = InMemoryLogger()
+    private val accessTokenFacade = AccessTokenFacade(logger, InMemoryAccessTokenRepository(), InMemoryAccessTokenRepository())
 
     protected abstract fun repositories(): Map<String, RepositoryConfiguration>
 
     @BeforeEach
     private fun initializeFacade() {
-        val logger = InMemoryLogger()
         val remoteClientProvider = FakeRemoteClientProvider(
             headHandler = { uri, credentials, _, _ ->
                 if (uri.startsWith(REMOTE_REPOSITORY) && REMOTE_AUTH == credentials && !uri.isAllowed())

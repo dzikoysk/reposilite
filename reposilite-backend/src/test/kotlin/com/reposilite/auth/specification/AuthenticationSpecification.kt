@@ -19,14 +19,11 @@ package com.reposilite.auth.specification
 import com.reposilite.auth.AuthenticationFacade
 import com.reposilite.auth.BasicAuthenticator
 import com.reposilite.auth.LdapAuthenticator
-import com.reposilite.journalist.backend.InMemoryLogger
 import com.reposilite.settings.api.SharedConfiguration.LdapConfiguration
 import com.reposilite.token.specification.AccessTokenSpecification
 import panda.std.reactive.toReference
 
 internal abstract class AuthenticationSpecification : AccessTokenSpecification() {
-
-    private val logger = InMemoryLogger()
 
     protected val ldapConfiguration = LdapConfiguration().toReference()
 

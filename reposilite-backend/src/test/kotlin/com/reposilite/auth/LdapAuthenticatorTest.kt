@@ -30,7 +30,7 @@ internal class LdapAuthenticatorTest : AuthenticationSpecification() {
             it.searchUserDn = "cn=Reposilite,ou=Search Accounts,dc=domain,dc=com"
             it.searchUserPassword = "search-secret"
             it.userFilter = "(&(objectClass=person)(ou=Maven Users))"
-            it.usernameAttribute = "cn"
+            it.userAttribute = "cn"
 
             val config = InMemoryDirectoryServerConfig(it.baseDn)
             config.addAdditionalBindCredentials(it.searchUserDn, it.searchUserPassword)

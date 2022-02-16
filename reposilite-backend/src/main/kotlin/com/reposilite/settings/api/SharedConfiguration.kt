@@ -171,19 +171,19 @@ class SharedConfiguration : DeserializationHandler<SharedConfiguration> {
         @Description("# LDAP Authenticator is enabled")
         var enabled = false
         @Description("# LDAP server address")
-        var hostname = "ldapserver.mycompany.be"
+        var hostname = "ldap.domain.com"
         @Description("# LDAP server port")
         var port = 389
         @Description("# Base DN with users")
-        var baseDn = "DC=mycompany,DC=be"
-        @Description("# User (~admin) used to perform searches in LDAP server")
-        var searchUserDn = "CN=reposilite,OU=Administrator Accounts,DC=mycompany,DC=be"
-        @Description("# Search user password")
-        var searchUserPassword = "admin-secret"
+        var baseDn = "dc=company,dc=com"
+        @Description("# User used to perform searches in LDAP server (requires permissions to read all LDAP entries)")
+        var searchUserDn = "cn=reposilite,ou=admins,dc=domain,dc=com"
+        @Description("# Search user's password")
+        var searchUserPassword = "reposilite-admin-secret"
         @Description("# Attribute in LDAP that represents unique username used to create access token")
-        var usernameAttribute = "cn"
+        var userAttribute = "cn"
         @Description("# LDAP user filter")
-        var userFilter = "(&(objectClass=person)(ou=Reposilite User Accounts))"
+        var userFilter = "(&(objectClass=person)(ou=Maven Users))"
     }
 
     /* Utilities */
