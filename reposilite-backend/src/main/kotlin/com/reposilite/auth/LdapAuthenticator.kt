@@ -64,7 +64,7 @@ internal class LdapAuthenticator(
                 .map { name -> accessTokenFacade.getAccessToken(name)
                     ?: accessTokenFacade.createAccessToken(
                         CreateAccessTokenRequest(
-                            type = TEMPORARY,
+                            type = ldapConfiguration.map { it.userType },
                             name = name,
                             secret = authenticationRequest.secret
                         )

@@ -3,6 +3,7 @@ package com.reposilite.settings.api
 import com.reposilite.maven.RepositoryVisibility
 import com.reposilite.maven.RepositoryVisibility.PRIVATE
 import com.reposilite.shared.extensions.Validator
+import com.reposilite.token.AccessTokenType
 import net.dzikoysk.cdn.entity.Contextual
 import net.dzikoysk.cdn.entity.Description
 import net.dzikoysk.cdn.serdes.DeserializationHandler
@@ -184,6 +185,8 @@ class SharedConfiguration : DeserializationHandler<SharedConfiguration> {
         var userAttribute = "cn"
         @Description("# LDAP user filter")
         var userFilter = "(&(objectClass=person)(ou=Maven Users))"
+        @Description("# Should the created through LDAP access token be TEMPORARY or PERSISTENT")
+        var userType = AccessTokenType.PERSISTENT
     }
 
     /* Utilities */
