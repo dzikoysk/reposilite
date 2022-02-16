@@ -43,7 +43,7 @@ class AuthenticationFacade(
         authenticators.asSequence()
             .map { authenticator -> authenticator
                 .authenticate(authenticationRequest)
-                .onError { logger.debug("${authenticationRequest.name} failed to authenticate with ${authenticator.name()} realm due to $it")  }
+                .onError { logger.debug("${authenticationRequest.name} failed to authenticate with ${authenticator.realm()} realm due to $it")  }
             }
             .firstOrNull { it.isOk }
             ?: unauthorizedError("Invalid authorization credentials")

@@ -17,7 +17,7 @@ internal class BasicAuthenticator(private val accessTokenFacade: AccessTokenFaca
             ?.asSuccess()
             ?: errorResponse(UNAUTHORIZED, "Invalid authorization credentials")
 
-    override fun name(): String =
+    override fun realm(): String =
         "Basic"
 
 }

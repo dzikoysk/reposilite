@@ -168,7 +168,6 @@ class SharedConfiguration : DeserializationHandler<SharedConfiguration> {
 
     @Contextual
     class LdapConfiguration {
-
         @Description("# LDAP Authenticator is enabled")
         var enabled = false
         @Description("# LDAP server address")
@@ -181,6 +180,10 @@ class SharedConfiguration : DeserializationHandler<SharedConfiguration> {
         var searchUserDn = "CN=reposilite,OU=Administrator Accounts,DC=mycompany,DC=be"
         @Description("# Search user password")
         var searchUserPassword = "admin-secret"
+        @Description("# Attribute in LDAP that represents unique username used to create access token")
+        var usernameAttribute = "cn"
+        @Description("# LDAP user filter")
+        var userFilter = "(&(objectClass=person)(ou=Reposilite User Accounts))"
     }
 
     /* Utilities */
