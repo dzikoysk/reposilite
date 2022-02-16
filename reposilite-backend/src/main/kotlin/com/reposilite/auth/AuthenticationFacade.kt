@@ -16,6 +16,8 @@
 
 package com.reposilite.auth
 
+import com.google.common.cache.Cache
+import com.google.common.cache.CacheBuilder
 import com.reposilite.auth.api.AuthenticationRequest
 import com.reposilite.auth.api.SessionDetails
 import com.reposilite.journalist.Journalist
@@ -29,6 +31,7 @@ import com.reposilite.web.http.notFoundError
 import com.reposilite.web.http.unauthorizedError
 import panda.std.Result
 import panda.std.asSuccess
+import java.util.concurrent.TimeUnit.MINUTES
 
 class AuthenticationFacade(
     private val journalist: Journalist,
@@ -36,14 +39,26 @@ class AuthenticationFacade(
     private val accessTokenFacade: AccessTokenFacade
 ) : Journalist, Facade {
 
+    private val authenticationCache: Cache<AuthenticationRequest, AccessTokenDto> = CacheBuilder.newBuilder()
+        .maximumSize(16)
+        .expireAfterAccess(1, MINUTES)
+        .build()
+
     fun authenticateByCredentials(authenticationRequest: AuthenticationRequest): Result<out AccessTokenDto, ErrorResponse> =
-        authenticators.asSequence()
-            .filter { it.enabled() }
-            .map { authenticator -> authenticator
-                .authenticate(authenticationRequest)
-                .onError { logger.debug("${authenticationRequest.name} failed to authenticate with ${authenticator.realm()} realm due to $it")  }
+        authenticationCache
+            .get(authenticationRequest) {
+                authenticators
+                    .asSequence()
+                    .filter { it.enabled() }
+                    .map { authenticator ->
+                        authenticator
+                            .authenticate(authenticationRequest)
+                            .onError { logger.debug("${authenticationRequest.name} failed to authenticate with ${authenticator.realm()} realm due to $it") }
+                    }
+                    .firstOrNull { it.isOk }
+                    ?.orNull()
             }
-            .firstOrNull { it.isOk }
+            ?.asSuccess()
             ?: unauthorizedError("Invalid authorization credentials")
 
     fun geSessionDetails(identifier: AccessTokenIdentifier): Result<SessionDetails, ErrorResponse> =
