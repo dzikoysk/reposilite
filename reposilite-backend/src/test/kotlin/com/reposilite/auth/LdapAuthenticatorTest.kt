@@ -10,7 +10,6 @@ import com.unboundid.ldap.listener.InMemoryDirectoryServer
 import com.unboundid.ldap.listener.InMemoryDirectoryServerConfig
 import com.unboundid.ldap.listener.InMemoryListenerConfig
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -19,13 +18,12 @@ import java.net.InetAddress
 
 internal class LdapAuthenticatorTest : AuthenticationSpecification() {
 
-    private lateinit var ldapConfiguration: LdapConfiguration
     private lateinit var ldapServer: InMemoryDirectoryServer
     private lateinit var authenticator: LdapAuthenticator
 
     @BeforeEach
     fun createLdapServer() {
-        this.ldapConfiguration = LdapConfiguration().also {
+        this.ldapConfiguration.peek {
             it.hostname = "ldap.domain.com"
             it.port = (1024 + Math.random() * (Short.MAX_VALUE - 1025)).toInt()
             it.baseDn = "dc=domain,dc=com"
@@ -33,25 +31,26 @@ internal class LdapAuthenticatorTest : AuthenticationSpecification() {
             it.searchUserPassword = "search-secret"
             it.userFilter = "(&(objectClass=person)(ou=Maven Users))"
             it.usernameAttribute = "cn"
+
+            val config = InMemoryDirectoryServerConfig(it.baseDn)
+            config.addAdditionalBindCredentials(it.searchUserDn, it.searchUserPassword)
+            config.addAdditionalBindCredentials("cn=Bella Swan,ou=Maven Users,dc=domain,dc=com", "secret")
+            config.listenerConfigs.add(InMemoryListenerConfig.createLDAPConfig(it.hostname, InetAddress.getLoopbackAddress(), it.port, null))
+            config.schema = null // remove
+
+            this.ldapServer = InMemoryDirectoryServer(config)
+            ldapServer.startListening(it.hostname)
+            it.hostname = ldapServer.getListenAddress(it.hostname).hostAddress
+
+            ldapServer.add("dn: dc=domain,dc=com", "objectClass: top", "objectClass: domain")
+
+            ldapServer.add("dn: ou=Search Accounts,dc=domain,dc=com", "objectClass: organizationalUnit", "objectClass: top")
+            ldapServer.add("dn: ou=Maven Users,dc=domain,dc=com", "objectClass: organizationalUnit", "objectClass: top")
+
+            ldapServer.add("dn: cn=Reposilite,ou=Search Accounts,dc=domain,dc=com", "ou:Search Accounts", "objectClass: person", "memberOf: ou=Search Accounts,dc=domain,dc=com")
+            ldapServer.add("dn: cn=Bella Swan,ou=Maven Users,dc=domain,dc=com", "cn:Bella Swan", "ou:Maven Users", "objectClass: person", "memberOf: ou=Maven Users,dc=domain,dc=com")
+
         }
-
-        val config = InMemoryDirectoryServerConfig(ldapConfiguration.baseDn)
-        config.addAdditionalBindCredentials(ldapConfiguration.searchUserDn, ldapConfiguration.searchUserPassword)
-        config.addAdditionalBindCredentials("cn=Bella Swan,ou=Maven Users,dc=domain,dc=com", "secret")
-        config.listenerConfigs.add(InMemoryListenerConfig.createLDAPConfig(ldapConfiguration.hostname, InetAddress.getLoopbackAddress(), ldapConfiguration.port, null))
-        config.schema = null // remove
-
-        this.ldapServer = InMemoryDirectoryServer(config)
-        ldapServer.startListening(ldapConfiguration.hostname)
-        ldapConfiguration.hostname = ldapServer.getListenAddress(ldapConfiguration.hostname).hostAddress
-
-        ldapServer.add("dn: dc=domain,dc=com", "objectClass: top", "objectClass: domain")
-
-        ldapServer.add("dn: ou=Search Accounts,dc=domain,dc=com", "objectClass: organizationalUnit", "objectClass: top")
-        ldapServer.add("dn: ou=Maven Users,dc=domain,dc=com", "objectClass: organizationalUnit", "objectClass: top")
-
-        ldapServer.add("dn: cn=Reposilite,ou=Search Accounts,dc=domain,dc=com", "ou:Search Accounts", "objectClass: person", "memberOf: ou=Search Accounts,dc=domain,dc=com")
-        ldapServer.add("dn: cn=Bella Swan,ou=Maven Users,dc=domain,dc=com", "cn:Bella Swan", "ou:Maven Users", "objectClass: person", "memberOf: ou=Maven Users,dc=domain,dc=com")
 
         this.authenticator = LdapAuthenticator(ldapConfiguration, accessTokenFacade)
     }
@@ -69,7 +68,16 @@ internal class LdapAuthenticatorTest : AuthenticationSpecification() {
 
     @Test
     fun `should authenticate non-existing ldap user`() {
+        val authenticationResult = authenticator.authenticate(
+            AuthenticationRequest(
+                name = "Bella Swan",
+                secret = "secret"
+            )
+        )
 
+        val accessToken = assertOk(authenticationResult)
+        assertEquals("Bella Swan", accessToken.name)
+        assertEquals(accessTokenFacade.getAccessToken("Bella Swan")!!, accessToken)
     }
 
     @Test

@@ -32,15 +32,13 @@ import panda.std.asSuccess
 
 class AuthenticationFacade(
     private val journalist: Journalist,
+    private val authenticators: List<Authenticator>,
     private val accessTokenFacade: AccessTokenFacade
 ) : Journalist, Facade {
 
-    private val authenticators = listOf(
-        BasicAuthenticator(accessTokenFacade)
-    )
-
     fun authenticateByCredentials(authenticationRequest: AuthenticationRequest): Result<out AccessTokenDto, ErrorResponse> =
         authenticators.asSequence()
+            .filter { it.enabled() }
             .map { authenticator -> authenticator
                 .authenticate(authenticationRequest)
                 .onError { logger.debug("${authenticationRequest.name} failed to authenticate with ${authenticator.realm()} realm due to $it")  }

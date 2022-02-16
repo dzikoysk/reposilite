@@ -9,6 +9,8 @@ interface Authenticator {
 
     fun authenticate(authenticationRequest: AuthenticationRequest): Result<AccessTokenDto, ErrorResponse>
 
+    fun enabled(): Boolean
+
     fun realm(): String
 
 }
