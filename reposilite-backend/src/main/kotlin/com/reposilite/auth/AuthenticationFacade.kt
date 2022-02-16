@@ -45,21 +45,18 @@ class AuthenticationFacade(
         .build()
 
     fun authenticateByCredentials(authenticationRequest: AuthenticationRequest): Result<out AccessTokenDto, ErrorResponse> =
-        authenticationCache
-            .get(authenticationRequest) {
-                authenticators
-                    .asSequence()
-                    .filter { it.enabled() }
-                    .map { authenticator ->
-                        authenticator
-                            .authenticate(authenticationRequest)
-                            .onError { logger.debug("${authenticationRequest.name} failed to authenticate with ${authenticator.realm()} realm due to $it") }
-                    }
-                    .firstOrNull { it.isOk }
-                    ?.orNull()
-            }
+        authenticationCache.getIfPresent(authenticationRequest)
             ?.asSuccess()
-            ?: unauthorizedError("Invalid authorization credentials")
+            ?: authenticators.asSequence()
+                .filter { it.enabled() }
+                .map { authenticator ->
+                    authenticator
+                        .authenticate(authenticationRequest)
+                        .onError { logger.debug("${authenticationRequest.name} failed to authenticate with ${authenticator.realm()} realm due to $it") }
+                }
+                .firstOrNull { it.isOk }
+                ?.peek { authenticationCache.put(authenticationRequest, it) }
+                ?: unauthorizedError("Invalid authorization credentials")
 
     fun geSessionDetails(identifier: AccessTokenIdentifier): Result<SessionDetails, ErrorResponse> =
         accessTokenFacade.getAccessTokenById(identifier)
