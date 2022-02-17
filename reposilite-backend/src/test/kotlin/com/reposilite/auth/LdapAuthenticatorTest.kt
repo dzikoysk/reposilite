@@ -52,7 +52,7 @@ internal class LdapAuthenticatorTest : AuthenticationSpecification() {
 
         }
 
-        this.authenticator = LdapAuthenticator(ldapConfiguration, accessTokenFacade)
+        this.authenticator = LdapAuthenticator(ldapConfiguration, accessTokenFacade, failureFacade)
     }
 
     @AfterEach

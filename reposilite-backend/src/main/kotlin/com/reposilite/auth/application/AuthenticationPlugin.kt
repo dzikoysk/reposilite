@@ -27,13 +27,15 @@ import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
 import com.reposilite.settings.SettingsFacade
+import com.reposilite.status.FailureFacade
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.web.api.RoutingSetupEvent
 
-@Plugin(name = "authentication", dependencies = ["settings", "access-token"])
+@Plugin(name = "authentication", dependencies = ["failure", "settings", "access-token"])
 internal class AuthenticationPlugin : ReposilitePlugin() {
 
     override fun initialize(): Facade {
+        val failureFacade = facade<FailureFacade>()
         val settingsFacade = facade<SettingsFacade>()
         val accessTokenFacade = facade<AccessTokenFacade>()
 
@@ -41,7 +43,7 @@ internal class AuthenticationPlugin : ReposilitePlugin() {
             journalist = this,
             authenticators =  listOf(
                 BasicAuthenticator(accessTokenFacade),
-                LdapAuthenticator(settingsFacade.sharedConfiguration.ldap, accessTokenFacade)
+                LdapAuthenticator(settingsFacade.sharedConfiguration.ldap, accessTokenFacade, failureFacade)
             ),
             accessTokenFacade = accessTokenFacade
         )

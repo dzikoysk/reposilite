@@ -3,6 +3,7 @@ package com.reposilite.auth
 import com.reposilite.auth.api.AuthenticationRequest
 import com.reposilite.journalist.Channel.DEBUG
 import com.reposilite.settings.api.SharedConfiguration.LdapConfiguration
+import com.reposilite.status.FailureFacade
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.AccessTokenType.TEMPORARY
 import com.reposilite.token.api.AccessTokenDto
@@ -36,7 +37,8 @@ typealias SearchEntry = Pair<String, AttributesMap>
 
 internal class LdapAuthenticator(
     private val ldapConfiguration: Reference<LdapConfiguration>,
-    private val accessTokenFacade: AccessTokenFacade
+    private val accessTokenFacade: AccessTokenFacade,
+    private val failureFacade: FailureFacade
 ) : Authenticator {
 
     override fun authenticate(authenticationRequest: AuthenticationRequest): Result<AccessTokenDto, ErrorResponse> =
@@ -111,8 +113,10 @@ internal class LdapAuthenticator(
         } catch (nameNotFoundException: NameNotFoundException) {
             notFoundError(nameNotFoundException.toString())
         } catch (invalidSearchFilterException: InvalidSearchFilterException) {
+            failureFacade.throwException("Bad search request in LDAP", invalidSearchFilterException)
             errorResponse(BAD_REQUEST, invalidSearchFilterException.toString())
         } catch (exception: Exception) {
+            failureFacade.throwException("Unknown LDAP search exception", exception)
             errorResponse(INTERNAL_SERVER_ERROR, exception.toString())
         }
 

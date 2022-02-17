@@ -16,41 +16,44 @@
 
 package com.reposilite.status
 
+import com.reposilite.journalist.Channel
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
 import com.reposilite.plugin.api.Facade
-import panda.utilities.StringUtils
 import java.util.concurrent.ConcurrentHashMap
 
 class FailureFacade internal constructor(private val journalist: Journalist) : Journalist, Facade {
 
     private val exceptions = ConcurrentHashMap.newKeySet<String>()
 
-    fun throwException(id: String, throwable: Throwable) {
-        logger.error(id)
-        logger.exception(throwable)
+    fun throwException(identifier: String, throwable: Throwable) =
+        throwException(identifier, Channel.ERROR, throwable)
 
-        exceptions.add(
-            arrayOf(
-                "failure $id",
-                throwException(throwable)
-            )
+    fun throwException(identifier: String, channel: Channel, throwable: Throwable) {
+        logger.log(channel, identifier)
+        logger.exception(channel, throwable)
+
+        arrayOf("failure $identifier",exceptionToString(throwable))
             .joinToString(separator = System.lineSeparator())
             .trim()
-        )
+            .let { exceptions.add(it) }
     }
 
-    private fun throwException(throwable: Throwable?): String {
-        if (throwable == null) {
-            return StringUtils.EMPTY
-        }
+    private fun exceptionToString(throwable: Throwable?): String =
+        throwable?.let {
+            arrayOf(
+                "  by ${throwable.javaClass.simpleName}: ${throwable.message}",
+                stacktraceToList(throwable),
+                exceptionToString(throwable.cause)
+            ).joinToString(separator = System.lineSeparator())
+        } ?: ""
 
-        return arrayOf(
-            "  by ${throwable.javaClass.simpleName}: ${throwable.message}",
-            "  at " + (throwable.stackTrace.getOrNull(0) ?: "<unknown stacktrace>"),
-            throwException(throwable.cause)
-        ).joinToString(separator = System.lineSeparator())
-    }
+    private fun stacktraceToList(throwable: Throwable): String =
+        throwable.stackTrace
+            .take(3)
+            .joinToString(prefix = "  at ", separator = System.lineSeparator())
+            .takeIf { it.isNotEmpty() }
+            ?: "<unknown stacktrace>"
 
     fun hasFailures() =
         exceptions.isNotEmpty()
