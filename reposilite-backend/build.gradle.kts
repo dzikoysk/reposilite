@@ -44,10 +44,9 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin")
     api("org.jetbrains:annotations:23.0.0")
 
-    val expressible = "1.1.13"
+    val expressible = "1.1.16"
     api("org.panda-lang:expressible:$expressible")
     api("org.panda-lang:expressible-kt:$expressible")
-    api("org.panda-lang:expressible-kt-coroutines:$expressible")
     testImplementation("org.panda-lang:expressible-junit:$expressible")
 
     val cdn = "1.13.8"
@@ -76,6 +75,9 @@ dependencies {
 
     val springSecurityCrypto = "5.6.1"
     implementation("org.springframework.security:spring-security-crypto:$springSecurityCrypto")
+
+    val ldap = "6.0.3"
+    testImplementation("com.unboundid:unboundid-ldapsdk:$ldap")
 
     val openapi = "1.1.1"
     kapt("io.javalin-rfc:openapi-annotation-processor:$openapi")

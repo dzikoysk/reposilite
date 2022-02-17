@@ -16,6 +16,8 @@
 
 package com.reposilite.auth
 
+import com.google.common.cache.Cache
+import com.google.common.cache.CacheBuilder
 import com.reposilite.auth.api.AuthenticationRequest
 import com.reposilite.auth.api.SessionDetails
 import com.reposilite.journalist.Journalist
@@ -25,22 +27,36 @@ import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.AccessTokenIdentifier
 import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.web.http.ErrorResponse
-import com.reposilite.web.http.errorResponse
 import com.reposilite.web.http.notFoundError
-import io.javalin.http.HttpCode.UNAUTHORIZED
+import com.reposilite.web.http.unauthorizedError
 import panda.std.Result
 import panda.std.asSuccess
+import java.util.concurrent.TimeUnit.MINUTES
 
 class AuthenticationFacade(
     private val journalist: Journalist,
+    private val authenticators: List<Authenticator>,
     private val accessTokenFacade: AccessTokenFacade
 ) : Journalist, Facade {
 
-    fun authenticateByCredentials(authenticationRequest: AuthenticationRequest): Result<AccessTokenDto, ErrorResponse> =
-        accessTokenFacade.getAccessToken(authenticationRequest.name)
-            ?.takeIf { accessTokenFacade.secretMatches(it.identifier, authenticationRequest.secret) }
+    private val authenticationCache: Cache<AuthenticationRequest, AccessTokenDto> = CacheBuilder.newBuilder()
+        .maximumSize(16)
+        .expireAfterAccess(1, MINUTES)
+        .build()
+
+    fun authenticateByCredentials(authenticationRequest: AuthenticationRequest): Result<out AccessTokenDto, ErrorResponse> =
+        authenticationCache.getIfPresent(authenticationRequest)
             ?.asSuccess()
-            ?: errorResponse(UNAUTHORIZED, "Invalid authorization credentials")
+            ?: authenticators.asSequence()
+                .filter { it.enabled() }
+                .map { authenticator ->
+                    authenticator
+                        .authenticate(authenticationRequest)
+                        .onError { logger.debug("${authenticationRequest.name} failed to authenticate with ${authenticator.realm()} realm due to $it") }
+                }
+                .firstOrNull { it.isOk }
+                ?.peek { authenticationCache.put(authenticationRequest, it) }
+                ?: unauthorizedError("Invalid authorization credentials")
 
     fun geSessionDetails(identifier: AccessTokenIdentifier): Result<SessionDetails, ErrorResponse> =
         accessTokenFacade.getAccessTokenById(identifier)

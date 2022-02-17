@@ -15,6 +15,8 @@
  */
 package com.reposilite.token
 
+import com.reposilite.journalist.Journalist
+import com.reposilite.journalist.Logger
 import com.reposilite.plugin.api.Facade
 import com.reposilite.token.AccessTokenPermission.MANAGER
 import com.reposilite.token.AccessTokenSecurityProvider.generateSecret
@@ -28,9 +30,10 @@ import panda.std.Result
 import panda.std.asSuccess
 
 class AccessTokenFacade internal constructor(
+    private val journalist: Journalist,
     private val temporaryRepository: AccessTokenRepository,
     private val persistentRepository: AccessTokenRepository
-) : Facade {
+) : Facade, Journalist {
 
     fun createAccessToken(request: CreateAccessTokenRequest): CreateAccessTokenResponse {
         val secret = request.secret ?: generateSecret()
@@ -112,5 +115,8 @@ class AccessTokenFacade internal constructor(
 
     private fun AccessTokenType.getRepository(): AccessTokenRepository =
         if (this == PERSISTENT) persistentRepository else temporaryRepository
+
+    override fun getLogger(): Logger =
+        journalist.logger
 
 }

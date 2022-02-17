@@ -32,7 +32,7 @@ class ContextDsl<R>(
     val logger: Logger,
     val ctx: Context,
     private val accessTokenFacade: AccessTokenFacade,
-    private val authenticationResult: Lazy<Result<AccessTokenDto, ErrorResponse>>
+    private val authenticationResult: Lazy<Result<out AccessTokenDto, ErrorResponse>>
 ) {
 
     val uri = ctx.uri()
@@ -106,7 +106,7 @@ class ContextDsl<R>(
     fun getSessionIdentifier(): String =
         authenticationResult.value.fold({ "${it.name}@${ctx.ip()}" }, { ctx.ip() })
 
-    fun authentication(): Result<AccessTokenDto, ErrorResponse> =
+    fun authentication(): Result<out AccessTokenDto, ErrorResponse> =
         authenticationResult.value
 
     private companion object {
