@@ -16,6 +16,7 @@
 
 package com.reposilite.token.specification
 
+import com.reposilite.journalist.backend.InMemoryLogger
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.AccessTokenType.TEMPORARY
 import com.reposilite.token.api.AccessTokenDto
@@ -25,7 +26,8 @@ import com.reposilite.token.infrastructure.InMemoryAccessTokenRepository
 
 internal abstract class AccessTokenSpecification {
 
-    protected val accessTokenFacade = AccessTokenFacade(InMemoryAccessTokenRepository(), InMemoryAccessTokenRepository())
+    protected val logger = InMemoryLogger()
+    protected val accessTokenFacade = AccessTokenFacade(logger, InMemoryAccessTokenRepository(), InMemoryAccessTokenRepository())
 
     protected fun createToken(name: String): CreateAccessTokenResponse =
         accessTokenFacade.createAccessToken(CreateAccessTokenRequest(TEMPORARY, name))

@@ -17,6 +17,8 @@
 package com.reposilite.auth.application
 
 import com.reposilite.auth.AuthenticationFacade
+import com.reposilite.auth.BasicAuthenticator
+import com.reposilite.auth.LdapAuthenticator
 import com.reposilite.auth.infrastructure.AuthenticationEndpoint
 import com.reposilite.auth.infrastructure.PostAuthHandler
 import com.reposilite.plugin.api.Facade
@@ -24,15 +26,27 @@ import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
+import com.reposilite.settings.SettingsFacade
+import com.reposilite.status.FailureFacade
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.web.api.RoutingSetupEvent
 
-@Plugin(name = "authentication", dependencies = ["access-token"])
+@Plugin(name = "authentication", dependencies = ["failure", "settings", "access-token"])
 internal class AuthenticationPlugin : ReposilitePlugin() {
 
     override fun initialize(): Facade {
+        val failureFacade = facade<FailureFacade>()
+        val settingsFacade = facade<SettingsFacade>()
         val accessTokenFacade = facade<AccessTokenFacade>()
-        val authenticationFacade = AuthenticationFacade(this, accessTokenFacade)
+
+        val authenticationFacade = AuthenticationFacade(
+            journalist = this,
+            authenticators =  listOf(
+                BasicAuthenticator(accessTokenFacade),
+                LdapAuthenticator(settingsFacade.sharedConfiguration.ldap, accessTokenFacade, failureFacade)
+            ),
+            accessTokenFacade = accessTokenFacade
+        )
 
         event { event: RoutingSetupEvent ->
             event.registerRoutes(AuthenticationEndpoint(authenticationFacade))

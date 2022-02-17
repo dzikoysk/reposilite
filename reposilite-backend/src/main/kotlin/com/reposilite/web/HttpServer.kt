@@ -30,13 +30,12 @@ class HttpServer {
 
     private val servlet = false
     private var javalin: Javalin? = null
-    private var webThreadPool: QueuedThreadPool? = null
 
     fun start(reposilite: Reposilite) {
         val extensionsManagement = reposilite.extensions
         val settingsFacade = extensionsManagement.facade<SettingsFacade>()
 
-        this.webThreadPool = QueuedThreadPool(settingsFacade.localConfiguration.webThreadPool.get(), 2).also {
+        val webThreadPool = QueuedThreadPool(settingsFacade.localConfiguration.webThreadPool.get(), 2).also {
             it.name = "Reposilite | Web (${it.maxThreads}) -"
             it.start()
         }
@@ -46,7 +45,10 @@ class HttpServer {
                 .exception(EofException::class.java) { _, _ -> reposilite.logger.warn("Client closed connection") }
                 .events { listener ->
                     listener.serverStopping { reposilite.logger.info("Server stopping...") }
-                    listener.serverStopped { extensionsManagement.emitEvent(HttpServerStoppedEvent()) }
+                    listener.serverStopped {
+                        extensionsManagement.emitEvent(HttpServerStoppedEvent())
+                        webThreadPool?.stop()
+                    }
                 }
                 .also {
                     reposilite.extensions.emitEvent(HttpServerInitializationEvent(reposilite, it))
@@ -65,7 +67,6 @@ class HttpServer {
             Javalin.create {  JavalinConfiguration.configure(reposilite, webThreadPool, it) }
 
     fun stop() {
-        webThreadPool?.stop()
         javalin?.stop()
     }
 

@@ -52,7 +52,7 @@
           </div>
           <div id="browser-list" class="pt-3">
             <div v-for="file in files" v-bind:key="file">
-              <router-link v-if="isDirectory(file)" :to="append($route.path, file.name)">
+              <router-link v-if="isDirectory(file)" :to="append($route.path, file.name)" @click.left="clearFiles()">
                 <Entry :file="file"/>
               </router-link>
               <a v-else @click.left.prevent="downloadHandler($route.path, file.name)" :href="$route.path + '/' + file.name" target="_blank">
@@ -158,6 +158,10 @@ export default {
         })
     }
 
+    const clearFiles = () => {
+      files.value = []
+    }
+
     return {
       qualifier,
       token,
@@ -168,7 +172,8 @@ export default {
       isDirectory,
       createURL,
       breadcrumbs,
-      downloadHandler
+      downloadHandler,
+      clearFiles
     }
   }
 }

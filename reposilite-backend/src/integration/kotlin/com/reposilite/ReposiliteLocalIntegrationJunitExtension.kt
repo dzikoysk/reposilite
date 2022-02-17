@@ -33,7 +33,7 @@ internal class ReposiliteLocalIntegrationJunitExtension : Extension, BeforeEachC
             val type = instance::class.java
 
             type.getField("_extensionInitialized").set(instance, true)
-            type.getField("_database").set(instance, "sqlite reposilite.db")
+            type.getField("_database").set(instance, "sqlite --temporary")
             type.getField("_storageProvider").set(instance, "fs")
         }
     }

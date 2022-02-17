@@ -3,6 +3,7 @@ package com.reposilite.settings.api
 import com.reposilite.maven.RepositoryVisibility
 import com.reposilite.maven.RepositoryVisibility.PRIVATE
 import com.reposilite.shared.extensions.Validator
+import com.reposilite.token.AccessTokenType
 import net.dzikoysk.cdn.entity.Contextual
 import net.dzikoysk.cdn.entity.Description
 import net.dzikoysk.cdn.serdes.DeserializationHandler
@@ -14,7 +15,7 @@ import picocli.CommandLine.Option
 import picocli.CommandLine.Parameters
 import java.io.Serializable
 
-class SharedConfiguration : Serializable, DeserializationHandler<SharedConfiguration> {
+class SharedConfiguration : DeserializationHandler<SharedConfiguration> {
 
     @Description("# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #")
     @Description("#      Reposilite :: Shared      #")
@@ -150,7 +151,7 @@ class SharedConfiguration : Serializable, DeserializationHandler<SharedConfigura
     val statistics = reference(StatisticsConfiguration())
 
     @Contextual
-    class StatisticsConfiguration : Serializable {
+    class StatisticsConfiguration {
 
         @Description("# How often Reposilite should divide recorded requests into separated groups.")
         @Description("# With higher precision you can get more detailed timestamps, but it'll increase database size.")
@@ -158,6 +159,34 @@ class SharedConfiguration : Serializable, DeserializationHandler<SharedConfigura
         @Description("# Available modes: daily, weekly, monthly, yearly")
         var resolvedRequestsInterval = "monthly"
 
+    }
+
+    /* LDAP */
+
+    @Description("")
+    @Description("# LDAP configuration")
+    val ldap = reference(LdapConfiguration())
+
+    @Contextual
+    class LdapConfiguration {
+        @Description("# LDAP Authenticator is enabled")
+        var enabled = false
+        @Description("# LDAP server address")
+        var hostname = "ldap.domain.com"
+        @Description("# LDAP server port")
+        var port = 389
+        @Description("# Base DN with users")
+        var baseDn = "dc=company,dc=com"
+        @Description("# User used to perform searches in LDAP server (requires permissions to read all LDAP entries)")
+        var searchUserDn = "cn=reposilite,ou=admins,dc=domain,dc=com"
+        @Description("# Search user's password")
+        var searchUserPassword = "reposilite-admin-secret"
+        @Description("# Attribute in LDAP that represents unique username used to create access token")
+        var userAttribute = "cn"
+        @Description("# LDAP user filter")
+        var userFilter = "(&(objectClass=person)(ou=Maven Users))"
+        @Description("# Should the created through LDAP access token be TEMPORARY or PERSISTENT")
+        var userType = AccessTokenType.PERSISTENT
     }
 
     /* Utilities */
