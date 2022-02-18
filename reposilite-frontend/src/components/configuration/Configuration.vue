@@ -19,7 +19,7 @@ import { ref } from 'vue'
 import { createClient } from '../../store/client'
 import { createToast } from 'mosha-vue-toastify'
 import { PrismEditor } from 'vue-prism-editor'
-import 'vue-prism-editor/dist/prismeditor.min.css' // import the styles somewhere
+import 'vue-prism-editor/dist/prismeditor.min.css'
 import prism from "prismjs"
 import "prismjs/themes/prism-coy.css"
 

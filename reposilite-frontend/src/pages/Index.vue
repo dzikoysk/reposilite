@@ -14,6 +14,51 @@
   - limitations under the License.
   -->
 
+<script setup>
+import { computed, reactive, watchEffect } from 'vue'
+import Header from '../components/header/Header.vue'
+import Browser from '../components/overview/browser/FileBrowser.vue'
+import Configuration from '../components/configuration/Configuration.vue'
+import Console from '../components/Console.vue'
+import useSession from '../store/session'
+
+const props = defineProps({
+  qualifier: {
+    type: Object,
+    required: true
+  },
+  token: {
+    type: Object,
+    required: true
+  },
+  session: {
+    type: Object,
+    required: true
+  }
+})
+
+const { hasManagerPermission } = useSession()
+const isManager = computed(() => hasManagerPermission(props.session.details))
+
+const listOfTabs = [ 
+  { name: 'Overview' },
+  { name: 'Console', manager: true },
+  { name: 'Configuration', manager: true },
+]
+
+const selectedTab = reactive({
+  value: localStorage.getItem('selectedTab') || 'Overview'
+})
+
+watchEffect(() => localStorage.setItem('selectedTab', selectedTab.value))
+
+const menuTabs = computed(() =>
+  listOfTabs
+    .filter(entry => !entry?.manager || hasManagerPermission(props.session.details))
+    .map(entry => entry.name)
+    )
+</script>
+
 <template>
   <div>
     <Header :token="token" />
@@ -36,11 +81,6 @@
           <tab-panel :val="'Overview'">
             <Browser :qualifier="qualifier" :token="token" ref=""/>
           </tab-panel>
-          <!--
-          <tab-panel :val="'Endpoints'">
-            <Endpoints/>
-          </tab-panel>
-          -->
           <tab-panel :val="'Console'" v-if="isManager">
             <Console :selectedTab="selectedTab" />
           </tab-panel>
@@ -52,69 +92,6 @@
     </div>
   </div>
 </template>
-
-<script>
-import { computed, reactive, watchEffect } from 'vue'
-import Header from '../components/header/Header.vue'
-import Browser from '../components/overview/browser/FileBrowser.vue'
-import Endpoints from '../components/Endpoints.vue'
-import Configuration from '../components/configuration/Configuration.vue'
-import Console from '../components/Console.vue'
-import useSession from '../store/session'
-
-export default {
-  components: { Header, Browser, Endpoints, Console, Configuration },
-  props: {
-    qualifier: {
-      type: Object,
-      required: true
-    },
-    token: {
-      type: Object,
-      required: true
-    },
-    session: {
-      type: Object,
-      required: true
-    }
-  },
-  setup(props) {
-    const qualifier = props.qualifier
-    const token = props.token
-    const session = props.session
-
-    const { hasManagerPermission } = useSession()
-    const isManager = computed(() => hasManagerPermission(session.details))
-
-    const tabs = [ 
-      { name: 'Overview' },
-      // { name: 'Endpoints' },
-      { name: 'Console', manager: true },
-      { name: 'Configuration', manager: true },
-    ]
-
-    const selectedTab = reactive({
-      value: localStorage.getItem('selectedTab') || 'Overview'
-    })
-    
-    watchEffect(() => localStorage.setItem('selectedTab', selectedTab.value))
-
-    const menuTabs = computed(() =>
-      tabs
-        .filter(entry => !entry?.manager || hasManagerPermission(session.details))
-        .map(entry => entry.name)
-    )
-
-    return {
-      qualifier,
-      token,
-      menuTabs,
-      isManager,
-      selectedTab
-    }
-  }
-}
-</script>
 
 <style scoped>
 .item {

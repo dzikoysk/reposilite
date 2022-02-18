@@ -14,6 +14,33 @@
   - limitations under the License.
   -->
 
+<script setup>
+import { ref } from 'vue'
+import { VueFinalModal } from 'vue-final-modal'
+import { createToast } from 'mosha-vue-toastify'
+import useSession from '../../store/session'
+
+const { login } = useSession()
+const showLogin = ref(false)
+const name = ref('')
+const secret = ref('')
+
+const close = () => 
+  (showLogin.value = false)
+
+const signin = (name, secret) =>
+  login(name, secret)
+    .then(() => createToast(`Dashboard accessed as ${name}`, { position: 'bottom-right' }))
+    .then(() => close())
+    .catch(error => createToast(`${error.response.status}: ${error.response.data.message}`, { type: 'danger' }))
+</script>
+
+<script>
+export default {
+  inheritAttrs: false,
+}
+</script>
+
 <template>
   <div id="login-modal">
     <vue-final-modal
@@ -39,48 +66,6 @@
     </div>
   </div>
 </template>
-
-<script>
-import { ref } from 'vue'
-import { VueFinalModal, ModalsContainer } from 'vue-final-modal'
-import { createToast } from 'mosha-vue-toastify'
-import 'mosha-vue-toastify/dist/style.css'
-import useSession from '../../store/session'
-
-export default {
-  inheritAttrs: false,
-  components: { VueFinalModal, ModalsContainer },
-  setup() {
-    const { login } = useSession()
-    const showLogin = ref(false)
-    const name = ref('')
-    const secret = ref('')
-
-    const close = () => 
-      (showLogin.value = false)
-
-    const signin = (name, secret) => {
-      login(name, secret)
-        .then(_ => createToast(`Dashboard accessed as ${name}`, { position: 'bottom-right' }))
-        .then(_ => close())
-        .catch(error => {
-          console.log(error)
-          createToast(`${error.response.status}: ${error.response.data.message}`, {
-           type: 'danger'
-          })
-        })
-    }
-
-    return {
-      name,
-      secret,
-      close,
-      showLogin,
-      signin
-    }
-  }
-}
-</script>
 
 <style scoped>
 .input {

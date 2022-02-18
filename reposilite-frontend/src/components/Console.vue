@@ -14,6 +14,61 @@
   - limitations under the License.
   -->
 
+<script setup>
+import { watch, onUnmounted, nextTick } from 'vue'
+import { createToast } from 'mosha-vue-toastify'
+import 'mosha-vue-toastify/dist/style.css'
+import useSession from '../store/session'
+import useLog from '../store/console/log'
+import useConsole from '../store/console/connection'
+
+const props = defineProps({
+  selectedTab: {
+    type: Object,
+    required: true
+  }
+})
+
+const { levels, log, logMessage, filter, clearLog } = useLog()
+
+const { 
+  onOpen, onMessage, onClose, onError, 
+  connect,
+  close,
+  command,
+  execute 
+} = useConsole()
+
+onUnmounted(() => close())
+
+const scrollToEnd = () => {
+  const console = document.getElementById('console')
+  console.scrollTop = console.scrollHeight
+}
+
+const setupConnection = () => {
+  onOpen.value = () => clearLog()
+  onMessage.value = message => {
+    logMessage(message)
+    nextTick(() => scrollToEnd())
+  }
+  onError.value = error => createToast(`${error || ''}`, { type: 'danger' })
+  onClose.value = () => createToast('Connection with console has been lost', { type: 'danger' })
+  
+  createToast('Connecting to the remote console', { type: 'info', })
+  const { token } = useSession()
+  connect(token)
+
+  nextTick(() => setTimeout(() => document.getElementById('consoleInput').focus(), 1000))
+}
+
+watch(
+  () => props.selectedTab.value,
+  selectedTab => selectedTab === 'Console' ? setupConnection() : close(),
+  { immediate: true }
+)
+</script>
+
 <template>
   <div class="container mx-auto pt-10 px-15 pb-10 text-xs">
     <div class="flex text-sm flex-col xl:flex-row w-full py-2 justify-between">
@@ -44,79 +99,3 @@
     </div>
   </div>
 </template>
-
-<script>
-import { watch, onUnmounted, nextTick } from 'vue'
-import { createToast } from 'mosha-vue-toastify'
-import 'mosha-vue-toastify/dist/style.css'
-import useSession from '../store/session'
-import useLog from '../store/console/log'
-import useConsole from '../store/console/connection'
-
-export default {
-  props: {
-    selectedTab: {
-      type: Object,
-      required: true
-    }
-  },
-  setup(props) {    
-    const selectedTab = props.selectedTab
-    const { levels, log, logMessage, filter, clearLog } = useLog()
-
-    const { 
-      onOpen, onMessage, onClose, onError, 
-      connect,
-      close,
-      command,
-      execute 
-    } = useConsole()
-
-    onUnmounted(() => close())
-
-    const scrollToEnd = () => {
-      const console = document.getElementById('console')
-      console.scrollTop = console.scrollHeight
-    }
-
-    const setupConnection = () => {
-      createToast('Connecting to the remote console', { type: 'info', })
-      const { token } = useSession()
-
-      onOpen.value = () => clearLog()
-      onMessage.value = message => {
-        logMessage(message)
-        nextTick(() => scrollToEnd())
-      }
-
-      onError.value = error =>
-        createToast(`${error || ''}`, {
-          type: 'danger'
-        })
-
-      onClose.value = () =>
-        createToast('Connection with console has been lost', {
-          type: 'danger'
-        })
-
-      connect(token)
-
-      nextTick(() => setTimeout(() => document.getElementById('consoleInput').focus(), 1000))
-    }
-
-    watch(
-      () => selectedTab.value,
-      selectedTab => selectedTab === 'Console' ? setupConnection() : close(),
-      { immediate: true }
-    )
-
-    return {
-      log,
-      command,
-      execute,
-      levels,
-      filter
-    }
-  }
-}
-</script>

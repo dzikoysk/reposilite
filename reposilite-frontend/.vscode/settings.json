@@ -3,5 +3,6 @@
     "strings": true
   },
   "css.validate": false,
-  "css.lint.unknownProperties": "ignore"
+  "css.lint.unknownProperties": "ignore",
+  "cSpell.words": ["signin", "signout"]
 }

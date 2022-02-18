@@ -14,6 +14,21 @@
   - limitations under the License.
   -->
 
+<script setup>
+import usePlaceholders from '../../store/placeholders'
+import Hero from './Hero.vue'
+import Menu from './Menu.vue'
+
+defineProps({
+  token: {
+    type: Object,
+    required: true
+  }
+})
+
+const { title } = usePlaceholders()
+</script>
+
 <template>
   <header class="bg-gray-100 dark:bg-black dark:text-white">
     <div class="container mx-auto flex flex-row py-10 justify-between <sm:(pb-2 pt-5 px-5 justify-start)">
@@ -25,28 +40,3 @@
     <Hero class="pt-2 pb-10 <sm:pb-4" />
   </header>
 </template>
-
-<script>
-import usePlaceholders from '../../store/placeholders'
-import Hero from './Hero.vue'
-import Menu from './Menu.vue'
-
-export default {
-  components: { Hero, Menu },
-  props: {
-    token: {
-      type: Object,
-      required: true
-    }
-  },
-  setup(props) {
-    const token = props.token
-    const { title } = usePlaceholders()
-
-    return {
-      token,
-      title
-    }
-  }
-}
-</script>

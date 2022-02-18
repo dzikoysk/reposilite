@@ -19,6 +19,9 @@ watchEffect(() => {
   emit('selectTab', selectedTab.value)
 })
 
+const selectConfiguration = (configuration) =>
+  selectedTab.value = configuration.name
+
 const dropdownOpen = ref(localStorage.getItem('dropdown-open') || false)
 watchEffect(() => localStorage.setItem('dropdown-open', dropdownOpen.value))
 </script>
@@ -29,7 +32,7 @@ watchEffect(() => localStorage.setItem('dropdown-open', dropdownOpen.value))
       <div 
         v-for="configuration in configurations" 
         :key="configuration.name" 
-        @click="selectedTab = configuration.name"
+        @click="selectConfiguration(configuration)"
         class="py-4 px-7 flex-grow text-center border-b-2 cursor-pointer border-transparent"
         :class="{ '!border-gray-800': configuration.name === selectedTab }"
       >
@@ -50,7 +53,7 @@ watchEffect(() => localStorage.setItem('dropdown-open', dropdownOpen.value))
         <li
             v-for="configuration in configurations"
             :key="configuration.name"
-            @click="selectedTab = configuration.name; dropdownOpen = !dropdownOpen"
+            @click="selectTab(configuration); dropdownOpen = !dropdownOpen"
             class="dropdown py-1"
             :class="{ 'hidden': configuration.name === selectedTab }">
           {{ configuration.name }}

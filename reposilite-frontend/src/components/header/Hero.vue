@@ -14,6 +14,13 @@
   - limitations under the License.
   -->
 
+<script setup>
+import GlobeIcon from '../icons/GlobeIcon.vue'
+import usePlaceholders from '../../store/placeholders'
+
+const { description, organizationWebsite, organizationLogo } = usePlaceholders()
+</script>
+
 <template>
   <div class="bg-gray-100 dark:bg-black">
     <div class="container mx-auto flex flex-row <sm:(flex-col items-center)">
@@ -32,21 +39,3 @@
     </div>
   </div>
 </template>
-
-<script>
-import GlobeIcon from '../icons/GlobeIcon.vue'
-import usePlaceholders from '../../store/placeholders'
-
-export default {
-  components: { GlobeIcon },
-  setup() {
-    const { description, organizationWebsite, organizationLogo } = usePlaceholders()
-
-    return {
-      description,
-      organizationWebsite,
-      organizationLogo
-    }
-  }
-}
-</script>
