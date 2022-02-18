@@ -5,7 +5,7 @@ import Toggle from '@vueform/toggle'
 import '@vueform/toggle/themes/default.css'
 import { useAdjustments } from '../../store/adjustments'
 
-const { reversedFilesOrder, displayHashFiles } = useAdjustments()
+const { reversedFileOrder, displayHashFiles } = useAdjustments()
 const showAdjustments = ref(false)
 </script>
 
@@ -20,7 +20,7 @@ export default {
     <vue-final-modal
       v-model="showAdjustments"
       v-bind="$attrs"
-      classes="flex justify-center items-center"
+      classes="flex justify-center iems-center"
     >
       <div class="relative border bg-white dark:bg-gray-900 border-gray-100 dark:border-black m-w-20 py-5 px-10 rounded-2xl shadow-xl text-center">
         <div>
@@ -29,9 +29,8 @@ export default {
           <div class="flex justify-between pt-6">
             <p class="pr-7">Sort files from newest to oldest</p>
             <Toggle 
-              v-model="reversedFilesOrder"
+              v-model="reversedFileOrder"
               class="ml-10"
-              :disabled="true"
             />
           </div>
           <div class="flex justify-between pt-6">

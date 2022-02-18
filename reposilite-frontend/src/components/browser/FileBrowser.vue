@@ -38,22 +38,12 @@ const props = defineProps({
 
 const parentPath = ref('')
 const files = ref({})
-const { displayHashFiles } = useAdjustments()
+const { applyAdjustments } = useAdjustments()
 
-const processedFiles = computed(() => {
-  let list = files.value.list || []
-
-  if (!displayHashFiles.value) {
-    list = list.filter(file => 
-      !['.md5', '.sha1', '.sha256', '.sha512'].some(ext => file.name.endsWith(ext))
-    )
-  }
-
-  return {
-    ...files.value,
-    list
-  }
-})
+const processedFiles = computed(() => ({
+  ...files.value,
+  list: applyAdjustments([...files.value.list] || [])
+}))
 
 watch(
   () => props.qualifier.watchable,

@@ -87,8 +87,8 @@ application
   ))
   .get('/api/maven/details/releases/gav', respond(
     createDirectoryDetails('/releases/gav', [
-      createDirectoryDetails('1.0.0'),
       createDirectoryDetails('0.1.0'),
+      createDirectoryDetails('1.0.0'),
       createFileDetails('maven-metadata.xml', 'text/xml', 4096)
     ])
   ))
