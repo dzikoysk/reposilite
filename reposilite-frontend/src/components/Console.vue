@@ -36,7 +36,9 @@ const {
   connect,
   close,
   command,
-  execute 
+  execute,
+  previousCommand,
+  nextCommand
 } = useConsole()
 
 onUnmounted(() => close())
@@ -45,6 +47,9 @@ const scrollToEnd = () => {
   const console = document.getElementById('console')
   console.scrollTop = console.scrollHeight
 }
+
+const focusInput = () =>
+  document.getElementById('consoleInput').focus()
 
 const setupConnection = () => {
   onOpen.value = () => clearLog()
@@ -59,8 +64,10 @@ const setupConnection = () => {
   const { token } = useSession()
   connect(token)
 
-  nextTick(() => setTimeout(() => document.getElementById('consoleInput').focus(), 1000))
+  nextTick(() => focusInput())
+  nextTick(() => setTimeout(() => focusInput(), 1000))
 }
+
 
 watch(
   () => props.selectedTab.value,
@@ -95,6 +102,8 @@ watch(
         class="w-full py-2 px-4 rounded-b-lg bg-white dark:bg-gray-900 dark:text-white"
         v-model="command"
         @keyup.enter="execute()"
+        @keyup.up="previousCommand()"
+        @keyup.down="nextCommand()"
       />
     </div>
   </div>
