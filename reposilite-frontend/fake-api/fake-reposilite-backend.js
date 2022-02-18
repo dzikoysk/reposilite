@@ -94,7 +94,8 @@ application
   ))
   .get('/api/maven/details/releases/gav/1.0.0', respond(
     createDirectoryDetails('/releases/gav/1.0.0', [
-      createFileDetails('gav-1.0.0.jar', 'application/jar-archive', 1337)
+      createFileDetails('gav-1.0.0.jar', 'application/jar-archive', 1337),
+      createFileDetails('gav-1.0.0.jar.md5', 'text/plain', 5)
     ])
   ))
   .get('/api/maven/details/releases/gav/0.1.0', respond(
@@ -165,7 +166,7 @@ application
       () => invalidCredentials(res)
     )
   })
-  .ws('/api/console/sock', (connection, req) => {
+  .ws('/api/console/sock', (connection) => {
     let authenticated = false
 
     connection.on('message', message => {

@@ -15,9 +15,10 @@
   -->
 
 <script setup>
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { createToast } from 'mosha-vue-toastify'
 import { createClient } from '../../helpers/client'
+import { useAdjustments } from '../../store/adjustments'
 import AdjustmentsIcon from '../icons/AdjustmentsIcon.vue'
 import AdjustmentsModal from './AdjustmentsModal.vue'
 import Card from '../card/SnippetsCard.vue'
@@ -37,6 +38,22 @@ const props = defineProps({
 
 const parentPath = ref('')
 const files = ref({})
+const { displayHashFiles } = useAdjustments()
+
+const processedFiles = computed(() => {
+  let list = files.value.list || []
+
+  if (!displayHashFiles.value) {
+    list = list.filter(file => 
+      !['.md5', '.sha1', '.sha256', '.sha512'].some(ext => file.name.endsWith(ext))
+    )
+  }
+
+  return {
+    ...files.value,
+    list
+  }
+})
 
 watch(
   () => props.qualifier.watchable,
@@ -95,7 +112,7 @@ watch(
               </template>
             </AdjustmentsModal>
           </div>
-          <List :files="files" />
+          <List :files="processedFiles" />
         </div>
       </div>
     </div>

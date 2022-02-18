@@ -10,6 +10,7 @@
     "full": "concurrently -k \"npm run fake-api\" \"vite\""
   },
   "dependencies": {
+    "@vueform/toggle": "^2.0.1",
     "@vueuse/core": "^7.6.2",
     "@vueuse/head": "^0.7.5",
     "ansi-to-html": "^0.7.2",
@@ -18,7 +19,7 @@
     "mime-types": "^2.1.34",
     "mosha-vue-toastify": "^1.0.23",
     "pretty-bytes": "^6.0.0",
-    "prismjs": "^1.26.0",
+    "prismjs": "^1.27.0",
     "simple-syntax-highlighter": "^2.2.0",
     "vue": "^3.2.31",
     "vue-axios": "^3.4.1",
@@ -29,17 +30,17 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^2.2.0",
-    "@vue/compiler-sfc": "^3.2.22",
+    "@vue/compiler-sfc": "^3.2.31",
     "concurrently": "^7.0.0",
     "eslint": "^8.9.0",
     "eslint-plugin-vue": "^8.4.1",
-    "express": "^4.17.2",
+    "express": "^4.17.3",
     "express-ws": "^5.0.2",
     "json-server": "^0.17.0",
     "nodemon": "^2.0.15",
     "stylelint-config-standard": "^25.0.0",
-    "vite": "^2.8.1",
-    "vite-plugin-windicss": "^1.7.0",
+    "vite": "^2.8.4",
+    "vite-plugin-windicss": "^1.7.1",
     "windicss": "^3.4.3",
     "ws": "^8.5.0"
   }

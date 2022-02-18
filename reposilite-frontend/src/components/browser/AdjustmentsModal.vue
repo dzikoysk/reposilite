@@ -1,17 +1,17 @@
-<script>
+<script setup>
 import { ref } from 'vue'
 import { VueFinalModal } from 'vue-final-modal'
+import Toggle from '@vueform/toggle'
+import '@vueform/toggle/themes/default.css'
+import { useAdjustments } from '../../store/adjustments'
 
+const { reversedFilesOrder, displayHashFiles } = useAdjustments()
+const showAdjustments = ref(false)
+</script>
+
+<script>
 export default {
-  inheritAttrs: false,
-  components: { VueFinalModal },
-  setup() {
-    const showAdjustments = ref(false)
-
-    return {
-      showAdjustments
-    }
-  }
+  inheritAttrs: false
 }
 </script>
 
@@ -23,7 +23,29 @@ export default {
       classes="flex justify-center items-center"
     >
       <div class="relative border bg-white dark:bg-gray-900 border-gray-100 dark:border-black m-w-20 py-5 px-10 rounded-2xl shadow-xl text-center">
-        <div>#TODO</div>
+        <div>
+          <h1 class="font-bold pb-4">File browser adjustments</h1>
+          <hr class>
+          <div class="flex justify-between pt-6">
+            <p class="pr-7">Sort files from newest to oldest</p>
+            <Toggle 
+              v-model="reversedFilesOrder"
+              class="ml-10"
+              :disabled="true"
+            />
+          </div>
+          <div class="flex justify-between pt-6">
+            <p class="pr-7">
+              Display hash files such as 
+              <span class="font-italic font-mono bg-gray-200 dark:bg-black px-2 py-0.5 m-2 rounded-lg">.md5/.sha1/.sha256/.sha512</span>
+            </p>
+            <Toggle 
+              v-model="displayHashFiles"
+              class="ml-10"
+            />
+          </div>
+        </div>
+        <button class="absolute top-0 right-0 mt-5 mr-9" @click="showAdjustments = false">🗙</button>
       </div>
     </vue-final-modal>
     <div @click="showAdjustments = true">
