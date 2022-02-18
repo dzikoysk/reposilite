@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-import { defineConfig } from "windicss/helpers";
-import colors from "windicss/colors";
-import plugin from "windicss/plugin";
+import { defineConfig } from "windicss/helpers"
+import colors from "windicss/colors"
 
 export default defineConfig({
   darkMode: "class",
@@ -47,4 +46,4 @@ export default defineConfig({
     "default-button":
       "bg-white dark:bg-gray-900 cursor-pointer hover:(transition-color bg-gray-200 dark:bg-gray-800 duration-500)",
   },
-});
+})

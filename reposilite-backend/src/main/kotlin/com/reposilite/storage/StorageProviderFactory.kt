@@ -20,6 +20,7 @@ import com.reposilite.journalist.Journalist
 import com.reposilite.settings.api.SharedConfiguration.RepositoryConfiguration.FSStorageProviderSettings
 import com.reposilite.settings.api.SharedConfiguration.RepositoryConfiguration.S3StorageProviderSettings
 import com.reposilite.shared.extensions.loadCommandBasedConfiguration
+import com.reposilite.status.FailureFacade
 import com.reposilite.storage.infrastructure.FileSystemStorageProvider
 import com.reposilite.storage.infrastructure.FileSystemStorageProviderFactory
 import com.reposilite.storage.infrastructure.S3StorageProvider
@@ -33,10 +34,10 @@ import java.nio.file.Path
 
 object StorageProviderFactory {
 
-    fun createStorageProvider(journalist: Journalist, workingDirectory: Path, repositoryName: String, storageDescription: String): StorageProvider =
+    fun createStorageProvider(failureFacade: FailureFacade, workingDirectory: Path, repositoryName: String, storageDescription: String): StorageProvider =
         when {
             storageDescription.startsWith("fs") -> createFileSystemStorageProvider(workingDirectory, repositoryName, storageDescription)
-            storageDescription.startsWith("s3") -> createS3StorageProvider(journalist, storageDescription)
+            storageDescription.startsWith("s3") -> createS3StorageProvider(failureFacade, storageDescription)
             else -> throw UnsupportedOperationException("Unknown storage provider: $storageDescription")
         }
 
@@ -53,7 +54,7 @@ object StorageProviderFactory {
         return FileSystemStorageProviderFactory.of(repositoryDirectory, settings.quota)
     }
 
-    private fun createS3StorageProvider(journalist: Journalist, storageDescription: String): S3StorageProvider {
+    private fun createS3StorageProvider(failureFacade: FailureFacade, storageDescription: String): S3StorageProvider {
         val settings = loadCommandBasedConfiguration(S3StorageProviderSettings(), storageDescription).configuration
         val client = S3Client.builder()
 
@@ -69,7 +70,7 @@ object StorageProviderFactory {
             client.endpointOverride(URI.create(settings.endpoint))
         }
 
-        return S3StorageProvider(journalist, client.build(), settings.bucketName)
+        return S3StorageProvider(failureFacade, client.build(), settings.bucketName)
     }
 
 }

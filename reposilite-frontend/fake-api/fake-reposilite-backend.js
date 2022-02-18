@@ -48,7 +48,7 @@ application
     console.log('Requested fake ' + req.method + ' ' + req.url)
     res.setHeader('Access-Control-Allow-Origin', '*')
     res.setHeader('Access-Control-Allow-Headers', '*')
-    res.setHeader('Access-Control-Allow-Methods', 'PUT, POST, GET, HEAD, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Methods', 'PUT, POST, GET, HEAD, DELETE, OPTIONS')
     next()
   })
   .use(express.text())

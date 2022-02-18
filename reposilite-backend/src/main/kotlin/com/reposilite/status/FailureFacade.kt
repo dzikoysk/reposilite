@@ -22,7 +22,7 @@ import com.reposilite.journalist.Logger
 import com.reposilite.plugin.api.Facade
 import java.util.concurrent.ConcurrentHashMap
 
-class FailureFacade internal constructor(private val journalist: Journalist) : Journalist, Facade {
+class FailureFacade(private val journalist: Journalist) : Journalist, Facade {
 
     private val exceptions = ConcurrentHashMap.newKeySet<String>()
 

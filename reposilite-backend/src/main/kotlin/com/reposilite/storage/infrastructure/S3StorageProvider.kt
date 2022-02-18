@@ -55,10 +55,9 @@ import java.io.InputStream
 import java.nio.file.attribute.FileTime
 
 class S3StorageProvider(
-    private val journalist: Journalist,
+    private val failureFacade: FailureFacade,
     private val s3: S3Client,
     private val bucket: String,
-    private val failureFacade: FailureFacade
 ) : StorageProvider, Journalist {
 
     init {
@@ -214,6 +213,6 @@ class S3StorageProvider(
         ok(Long.MAX_VALUE)
 
     override fun getLogger(): Logger =
-        journalist.logger
+        failureFacade.logger
 
 }

@@ -4,5 +4,15 @@
   },
   "css.validate": false,
   "css.lint.unknownProperties": "ignore",
-  "cSpell.words": ["signin", "signout"]
+  "cSpell.words": [
+    "Consolas",
+    "downloadjs",
+    "monospace",
+    "mosha",
+    "signin",
+    "signout",
+    "toastify",
+    "vueuse",
+    "windicss"
+  ]
 }
