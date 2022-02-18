@@ -3,10 +3,14 @@ import {  } from 'vue'
 import download from 'downloadjs'
 import { createToast } from 'mosha-vue-toastify'
 import { createClient } from '../../helpers/client'
-import Entry from './ListEntry.vue'
+import ListEntry from './ListEntry.vue'
 
 const props = defineProps({
   files: {
+    type: Object,
+    required: true
+  },
+  token: {
     type: Object,
     required: true
   }
@@ -26,10 +30,10 @@ const downloadHandler = (path, name) => {
   <div id="browser-list" class="pt-3">
     <div v-for="file in files.list" v-bind:key="file">
       <router-link v-if="file.type === 'DIRECTORY'" :to="append($route.path, file.name)">
-        <Entry :file="file"/>
+        <ListEntry :file="file"/>
       </router-link>
-      <a v-else @click.left.prevent="downloadHandler($route.path, file.name)" :href="$route.path + '/' + file.name" target="_blank">
-        <Entry :file="file"/>
+      <a v-else @click.left.prevent="downloadHandler($route.path, file.name)" :href="`${$route.path}/${file.name}`" target="_blank">
+        <ListEntry :file="file"/>
       </a>
     </div>
     <div v-if="files.isEmpty" class="pl-2">

@@ -23,7 +23,7 @@ import AdjustmentsIcon from '../icons/AdjustmentsIcon.vue'
 import AdjustmentsModal from './AdjustmentsModal.vue'
 import Card from '../card/SnippetsCard.vue'
 import Breadcrumb from './BreadcrumbNavigation.vue'
-import List from './BrowserList.vue'
+import BrowserList from './BrowserList.vue'
 
 const props = defineProps({
   qualifier: {
@@ -102,7 +102,10 @@ watch(
               </template>
             </AdjustmentsModal>
           </div>
-          <List :files="processedFiles" />
+          <BrowserList 
+            :token="token"
+            :files="processedFiles"
+          />
         </div>
       </div>
     </div>
