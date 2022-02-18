@@ -14,6 +14,17 @@
   - limitations under the License.
   -->
 
+<script setup>
+import prettyBytes from 'pretty-bytes'
+
+defineProps({
+  file: {
+    type: Object,
+    required: true
+  }
+})
+</script>
+
 <template>
   <div class="
     browser-entry flex flex-row justify-between mb-1.5 py-3 rounded-full default-button">
@@ -27,24 +38,3 @@
     </div>
   </div>
 </template>
-
-<script>
-import prettyBytes from 'pretty-bytes'
-
-export default {
-  props: {
-    file: {
-      type: Object,
-      required: true
-    }
-  },
-  setup(props) {
-    const file = props.file
-
-    return {
-      file,
-      prettyBytes
-    }
-  }
-}
-</script>

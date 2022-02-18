@@ -3,6 +3,7 @@
   "version": "3.0.0-alpha.20",
   "scripts": {
     "dev": "vite",
+    "eslint": "eslint src/**",
     "build": "vite build && git add --all ../reposilite-backend/src/main/resources/reposilite-frontend/",
     "serve": "vite preview",
     "fake-api": "nodemon fake-api/fake-reposilite-backend.js",
@@ -30,6 +31,8 @@
     "@vitejs/plugin-vue": "^2.2.0",
     "@vue/compiler-sfc": "^3.2.22",
     "concurrently": "^7.0.0",
+    "eslint": "^8.9.0",
+    "eslint-plugin-vue": "^8.4.1",
     "express": "^4.17.2",
     "express-ws": "^5.0.2",
     "json-server": "^0.17.0",

@@ -56,9 +56,9 @@
 <script>
 import { computed, reactive, watchEffect } from 'vue'
 import Header from '../components/header/Header.vue'
-import Browser from '../components/browser/Browser.vue'
+import Browser from '../components/overview/browser/FileBrowser.vue'
 import Endpoints from '../components/Endpoints.vue'
-import Configuration from '../components/Configuration.vue'
+import Configuration from '../components/configuration/Configuration.vue'
 import Console from '../components/Console.vue'
 import useSession from '../store/session'
 

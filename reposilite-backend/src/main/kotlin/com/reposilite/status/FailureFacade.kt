@@ -29,7 +29,7 @@ class FailureFacade internal constructor(private val journalist: Journalist) : J
     fun throwException(identifier: String, throwable: Throwable) =
         throwException(identifier, Channel.ERROR, throwable)
 
-    fun throwException(identifier: String, channel: Channel, throwable: Throwable) {
+    private fun throwException(identifier: String, channel: Channel, throwable: Throwable) {
         logger.log(channel, identifier)
         logger.exception(channel, throwable)
 

@@ -57,7 +57,6 @@ export default function useConsole() {
         if (event.data == 'keep-alive') {
           return
         }
-
         onMessage?.value(event.data)
       }
 
@@ -68,12 +67,10 @@ export default function useConsole() {
         onClose?.value()
 
       const keepAliveInterval = setInterval(() => {
-        if (isConnected()) {
+        if (isConnected())
           connection?.value?.send('keep-alive')
-        }
-        else {
+        else
           clearInterval(keepAliveInterval)
-        }
       }, 1000 * 5)
     } catch (error) {
       console.log(error)

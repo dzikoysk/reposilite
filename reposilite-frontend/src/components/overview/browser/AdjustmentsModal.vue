@@ -1,3 +1,20 @@
+<script>
+import { ref } from 'vue'
+import { VueFinalModal } from 'vue-final-modal'
+
+export default {
+  inheritAttrs: false,
+  components: { VueFinalModal },
+  setup() {
+    const showAdjustments = ref(false)
+
+    return {
+      showAdjustments
+    }
+  }
+}
+</script>
+
 <template>
   <div id="adjustments-modal">
     <vue-final-modal
@@ -14,20 +31,3 @@
     </div>
   </div>
 </template>
-
-<script>
-import { ref } from 'vue'
-import { VueFinalModal, ModalsContainer } from 'vue-final-modal'
-
-export default {
-  inheritAttrs: false,
-  components: { VueFinalModal, ModalsContainer },
-  setup() {
-    const showAdjustments = ref(false)
-
-    return {
-      showAdjustments
-    }
-  }
-}
-</script>

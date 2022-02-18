@@ -14,48 +14,53 @@
  * limitations under the License.
  */
 
-import { computed } from 'vue'
-import usePlaceholders from '../placeholders'
+import { computed } from "vue"
+import usePlaceholders from "../placeholders"
 
 export default function useRepository() {
   const { basePath, id, title } = usePlaceholders()
 
   const createRepositories = (qualifier) => {
-    const repository = computed(() => qualifier.path.split('/')[0])
-    const repoId = id + (qualifier.path ? `-${repository.value}` : '')
-    const domain = location.protocol + '//' + location.host + basePath + (basePath.endsWith('/') ? '' : '/') + (qualifier.path ? `${repository.value}` : '{repository}')
+    const repository = computed(() => qualifier.path.split("/")[0])
+    const repoId = id + (qualifier.path ? `-${repository.value}` : "")
+    const domain =
+      location.protocol +
+      "//" +
+      location.host +
+      basePath +
+      (basePath.endsWith("/") ? "" : "/") +
+      (qualifier.path ? `${repository.value}` : "{repository}")
 
     return [
       {
-      name: 'Maven',
-        lang: 'xml',
-          snippet: `
+        name: "Maven",
+        lang: "xml",
+        snippet: `
 <repository>
   <id>${repoId}</id>
   <name>${title}</name>
   <url>${domain}</url>
-</repository>
-        `.trim()
-    },
-    {
-      name: 'Gradle Groovy',
-        lang: 'groovy',
-          snippet: `maven {\n    url "${domain}"\n }`.trim()
-    },
-    {
-      name: 'Gradle Kotlin',
-        lang: 'kotlin',
-          snippet: `maven {\n    url = uri("${domain}")\n}`
-    },
-    {
-      name: 'SBT',
-        lang: 'scala',
-          snippet: `resolvers += "${repoId}" at "${domain}"`
-    }
+</repository>`.trim(),
+      },
+      {
+        name: "Gradle Groovy",
+        lang: "groovy",
+        snippet: `maven {\n    url "${domain}"\n}`.trim(),
+      },
+      {
+        name: "Gradle Kotlin",
+        lang: "kotlin",
+        snippet: `maven {\n    url = uri("${domain}")\n}`,
+      },
+      {
+        name: "SBT",
+        lang: "scala",
+        snippet: `resolvers +=\n  "${repoId}" \n     at "${domain}"`,
+      },
     ]
   }
 
   return {
-    createRepositories
+    createRepositories,
   }
 }
