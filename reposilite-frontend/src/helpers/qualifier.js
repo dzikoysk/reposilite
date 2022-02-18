@@ -36,7 +36,7 @@ export default function useQualifier(token) {
 
   watch(
     () => token.name,
-    _ => qualifier.watchable++
+    () => qualifier.watchable++
   )
 
   return {

@@ -17,8 +17,8 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { createToast } from 'mosha-vue-toastify'
-import { createClient } from '../../../store/client'
-import AdjustmentsIcon from '../../icons/AdjustmentsIcon.vue'
+import { createClient } from '../../helpers/client'
+import AdjustmentsIcon from '../icons/AdjustmentsIcon.vue'
 import AdjustmentsModal from './AdjustmentsModal.vue'
 import Card from '../card/SnippetsCard.vue'
 import Breadcrumb from './BreadcrumbNavigation.vue'

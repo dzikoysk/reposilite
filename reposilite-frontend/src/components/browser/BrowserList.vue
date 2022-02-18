@@ -2,7 +2,7 @@
 import {  } from 'vue'
 import download from 'downloadjs'
 import { createToast } from 'mosha-vue-toastify'
-import { createClient } from '../../../store/client'
+import { createClient } from '../../helpers/client'
 import Entry from './ListEntry.vue'
 
 const props = defineProps({

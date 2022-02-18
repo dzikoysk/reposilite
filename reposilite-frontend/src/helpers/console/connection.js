@@ -15,7 +15,7 @@
  */
 
 import { ref } from 'vue'
-import { createURL } from '../client'
+import { createURL } from '../../helpers/client'
 
 const connection = ref()
 const command = ref('')

@@ -15,7 +15,7 @@
  */
 
 import { reactive } from "vue"
-import { createClient } from './client'
+import { createClient } from '../helpers/client'
 
 const defaultValue = ''
 const nameKey = 'session-token-name'

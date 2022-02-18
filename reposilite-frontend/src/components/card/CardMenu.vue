@@ -1,6 +1,6 @@
 <script setup>
 import { ref, watchEffect } from 'vue'
-import DownIcon from '../../icons/DownIcon.vue'
+import DownIcon from '../icons/DownIcon.vue'
 
 defineProps({
   configurations: {

@@ -16,7 +16,7 @@
   
 <script setup>
 import { ref } from 'vue'
-import { createClient } from '../../store/client'
+import { createClient } from '../../helpers/client'
 import { createToast } from 'mosha-vue-toastify'
 import { PrismEditor } from 'vue-prism-editor'
 import 'vue-prism-editor/dist/prismeditor.min.css'

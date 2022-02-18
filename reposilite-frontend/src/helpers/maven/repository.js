@@ -15,7 +15,7 @@
  */
 
 import { computed } from "vue"
-import usePlaceholders from "../placeholders"
+import usePlaceholders from "../../store/placeholders"
 
 export default function useRepository() {
   const { basePath, id, title } = usePlaceholders()

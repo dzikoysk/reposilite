@@ -15,7 +15,7 @@
  */
 
 import axios from 'axios'
-import usePlaceholders from './placeholders'
+import usePlaceholders from '../store/placeholders'
 
 const { basePath } = usePlaceholders()
 
