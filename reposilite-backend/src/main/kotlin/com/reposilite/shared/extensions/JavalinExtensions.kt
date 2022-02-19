@@ -1,5 +1,8 @@
 package com.reposilite.shared.extensions
 
+import com.fasterxml.jackson.core.JsonGenerator
+import com.fasterxml.jackson.databind.SerializerProvider
+import com.fasterxml.jackson.databind.ser.std.StdSerializer
 import com.reposilite.web.http.acceptsBody
 import com.reposilite.web.http.contentDisposition
 import com.reposilite.web.http.contentLength
@@ -31,4 +34,16 @@ internal fun Context.resultAttachment(
     }
 
     contentType(contentType)
+}
+
+internal class ContentTypeSerializer : StdSerializer<ContentType> {
+
+    constructor() : this(null)
+
+    constructor(type: Class<ContentType>?) : super(type)
+
+    override fun serialize(value: ContentType, gen: JsonGenerator, provider: SerializerProvider) {
+        gen.writeString(value.mimeType)
+    }
+
 }

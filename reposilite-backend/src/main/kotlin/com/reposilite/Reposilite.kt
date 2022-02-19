@@ -60,8 +60,7 @@ class Reposilite(
             Runtime.getRuntime().addShutdownHook(shutdownHook)
             extensions.emitEvent(ReposiliteStartedEvent(this))
             ok(this)
-        }
-        catch (exception: Exception) {
+        } catch (exception: Exception) {
             logger.error("Failed to start Reposilite")
             logger.exception(exception)
             shutdown()

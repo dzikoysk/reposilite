@@ -21,6 +21,7 @@ import com.reposilite.settings.api.SharedConfiguration.RepositoryConfiguration
 import com.reposilite.settings.api.SharedConfiguration.RepositoryConfiguration.ProxiedHostConfiguration
 import com.reposilite.shared.extensions.loadCommandBasedConfiguration
 import com.reposilite.shared.http.RemoteClientProvider
+import com.reposilite.status.FailureFacade
 import com.reposilite.storage.StorageProviderFactory.createStorageProvider
 import java.net.InetSocketAddress
 import java.net.Proxy
@@ -29,25 +30,26 @@ import java.nio.file.Path
 import java.nio.file.Paths
 
 internal class RepositoryFactory(
-    private val journalist: Journalist,
     private val workingDirectory: Path,
     private val remoteClientProvider: RemoteClientProvider,
-    private val repositoryProvider: RepositoryProvider
+    private val repositoryProvider: RepositoryProvider,
+    private val failureFacade: FailureFacade,
+    private val repositoriesNames: Collection<String>,
 ) {
 
     private val repositoriesDirectory = Paths.get("repositories")
 
-    fun createRepository(repositories: Collection<String>, repositoryName: String, configuration: RepositoryConfiguration): Repository =
+    fun createRepository(repositoryName: String, configuration: RepositoryConfiguration): Repository =
         Repository(
             repositoryName,
             configuration.visibility,
             configuration.redeployment,
             configuration.preserved,
-            configuration.proxied.map { createProxiedHostConfiguration(repositories, it) },
-            createStorageProvider(journalist, workingDirectory.resolve(repositoriesDirectory), repositoryName, configuration.storageProvider),
+            configuration.proxied.map { createProxiedHostConfiguration(it) },
+            createStorageProvider(failureFacade, workingDirectory.resolve(repositoriesDirectory), repositoryName, configuration.storageProvider),
         )
 
-    private fun createProxiedHostConfiguration(repositories: Collection<String>, configurationSource: String): ProxiedHost {
+    private fun createProxiedHostConfiguration(configurationSource: String): ProxiedHost {
         val (name, configuration) = loadCommandBasedConfiguration(ProxiedHostConfiguration(), configurationSource)
 
         val host =
@@ -57,13 +59,13 @@ internal class RepositoryFactory(
                 name
 
         val remoteClient =
-            if (repositories.contains(host))
+            if (repositoriesNames.contains(host))
                 RepositoryLoopbackClient(lazy { repositoryProvider.getRepositories()[host]!! })
             else
                 configuration.proxy
                     .takeIf { it.isNotEmpty() }
                     ?.let { Proxy(HTTP, InetSocketAddress(it.substringBeforeLast(":"), it.substringAfterLast(":").toInt())) }
-                    .let { remoteClientProvider.createClient(journalist, it) }
+                    .let { remoteClientProvider.createClient(failureFacade, it) }
 
         return ProxiedHost(host, configuration, remoteClient)
     }

@@ -17,9 +17,6 @@
 const parser = new DOMParser()
 
 export default function useMetadata() {
-  const parseMetadata = (source) =>
-    parser.parseFromString(source, 'text/xml')
-  
   const groupId = (metadata) =>
     metadata
       ?.getElementsByTagName('groupId')[0]
@@ -38,6 +35,18 @@ export default function useMetadata() {
       ?? ['{unknown}']
   }
 
+  const parseMetadata = (source) => {
+    const metadata = parser.parseFromString(source, 'text/xml')
+    const availableVersions = versions(metadata)
+
+    return {
+      metadata,
+      groupId: groupId(metadata),
+      artifactId: artifactId(metadata),
+      versions: availableVersions
+    }
+  }
+  
   return {
     parseMetadata,
     groupId,

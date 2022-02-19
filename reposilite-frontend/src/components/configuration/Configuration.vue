@@ -14,6 +14,40 @@
   - limitations under the License.
   -->
   
+<script setup>
+import { ref } from 'vue'
+import { useSession } from '../../store/session'
+import { createToast } from 'mosha-vue-toastify'
+import { PrismEditor } from 'vue-prism-editor'
+import 'vue-prism-editor/dist/prismeditor.min.css'
+import prism from "prismjs"
+import "prismjs/themes/prism-coy.css"
+
+const { client } = useSession()
+
+const highlighter = (code) => 
+  prism.highlight(code, prism.languages.js)
+
+const configurationName = "configuration.shared.cdn"
+const configuration = ref('')
+const configurationInitialized = ref(false)
+
+const fetchConfiguration = () => 
+  client.value.settings.content(configurationName)
+    .then(response => configuration.value = response.data.content)
+    .catch(error => createToast(error, { type: 'error' }))
+
+const updateConfiguration = () =>
+  client.value.settings.updateContent(configurationName, configuration.value)
+    .then(() => createToast('Configuration has been deployed, fetching...', { type: 'info' }))
+    .then(() => fetchConfiguration())
+    .then(() => createToast('Configuration reloaded, refresh page to see changes', { type: 'success' }))
+    .catch(error => createToast(error, { type: 'error' }))
+
+fetchConfiguration()
+  .then(() => configurationInitialized.value = true)
+</script>
+
 <template>
   <div class="container mx-auto py-10 px-15">
     <div class="flex justify-between pb-5 flex-col xl:flex-row">
@@ -41,62 +75,6 @@
     </div>
   </div>
 </template>
-
-<script>
-import { ref } from 'vue'
-import { createClient } from '../store/client'
-import { PrismEditor } from 'vue-prism-editor'
-import 'vue-prism-editor/dist/prismeditor.min.css' // import the styles somewhere
-import prism from "prismjs"
-import "prismjs/themes/prism-coy.css"
-import { createToast } from 'mosha-vue-toastify'
-
-export default {
-  components: { PrismEditor },
-  props: {
-    token: {
-      type: Object,
-      required: true
-    }
-  },
-  setup(props) {
-    const token = props.token
-    const { client } = createClient(token.name, token.secret)
-
-    const highlighter = (code) => 
-      prism.highlight(code, prism.languages.js)
-
-    const configurationName = "configuration.shared.cdn"
-    const configuration = ref('')
-    const configurationInitialized = ref(false)
-
-    const fetchConfiguration = () => 
-      client.settings.content(configurationName)
-        .then(response => configuration.value = response.data.content)
-        .catch(error => createToast(error, { type: 'error' }))
-
-    const updateConfiguration = () =>
-      client.settings.updateContent(configurationName, configuration.value)
-        .then(response => {
-          createToast('Configuration has been deployed, fetching...', { type: 'info' })
-          fetchConfiguration()
-            .then(fetchResponse => createToast('Configuration reloaded, refresh page to see changes', { type: 'success' }))
-        })
-        .catch(error => createToast(error, { type: 'error' }))
-
-    fetchConfiguration()
-      .then(() => configurationInitialized.value = true)
-
-    return {
-      configuration,
-      configurationInitialized,
-      fetchConfiguration,
-      updateConfiguration,
-      highlighter
-    }
-  }
-}
-</script>
 
 <style>
 #configuration-state button {

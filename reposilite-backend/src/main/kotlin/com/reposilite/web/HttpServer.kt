@@ -41,13 +41,13 @@ class HttpServer {
         }
 
         runWithDisabledLogging {
-            this.javalin = createJavalin(reposilite, webThreadPool!!)
+            this.javalin = createJavalin(reposilite, webThreadPool)
                 .exception(EofException::class.java) { _, _ -> reposilite.logger.warn("Client closed connection") }
                 .events { listener ->
                     listener.serverStopping { reposilite.logger.info("Server stopping...") }
                     listener.serverStopped {
                         extensionsManagement.emitEvent(HttpServerStoppedEvent())
-                        webThreadPool?.stop()
+                        webThreadPool.stop()
                     }
                 }
                 .also {

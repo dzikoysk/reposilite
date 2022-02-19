@@ -14,6 +14,24 @@
   - limitations under the License.
   -->
 
+<script setup>
+import prettyBytes from 'pretty-bytes'
+import EyeIcon from '../icons/EyeIcon.vue'
+
+const props = defineProps({
+  file: {
+    type: Object,
+    required: true
+  }
+})
+
+const isHumanReadable =
+  ['application/xml', 'text/plain', 'text/xml', 'text/markdown', 'application/json'].some(type => props.file?.contentType == type)
+
+const openUrl = (url) =>
+  window.open(url)
+</script>
+
 <template>
   <div class="
     browser-entry flex flex-row justify-between mb-1.5 py-3 rounded-full default-button">
@@ -22,29 +40,18 @@
       <div v-else class="text-xm px-6 pt-1.75">⚪</div>
       <div class="font-semibold">{{file.name}}</div>
     </div>
-    <div v-if="file.contentLength" class="px-6">
-      {{prettyBytes(file.contentLength)}}
+    <div v-if="file.contentLength" class="px-6 flex">
+      <div v-if="isHumanReadable" :title="`Click to view ${file.name} file content in a new tab`">
+        <EyeIcon
+          id="view-button"
+          class="px-1 mr-7 pt-0.4 rounded-full text-purple-300 hover:(transition-colors duration-200 bg-gray-100 dark:bg-gray-900)" 
+          @click.left.prevent="openUrl(`${$route.path}/${file.name}`)"
+          v-on:click.stop
+        />
+      </div>
+      <div>
+        {{ prettyBytes(file.contentLength) }}
+      </div>
     </div>
   </div>
 </template>
-
-<script>
-import prettyBytes from 'pretty-bytes'
-
-export default {
-  props: {
-    file: {
-      type: Object,
-      required: true
-    }
-  },
-  setup(props) {
-    const file = props.file
-
-    return {
-      file,
-      prettyBytes
-    }
-  }
-}
-</script>
