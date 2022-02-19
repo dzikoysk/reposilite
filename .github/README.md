@@ -89,7 +89,9 @@ Thanks to all contributors and people that decided to donate the project ❤️
    <a href="https://github.com/zzmgck">zzmgck</a> with $190, 
    <a href="https://github.com/milkyway0308">milkyway0308</a> with $20,
    <a href="https://github.com/alexwhb">alexwhb</a> with $15, 
-   <a href="https://github.com/EthanDevelops">EthanDevelops</a> with $6, Rob with $5
+   <a href="https://github.com/escv">escv</a> with $10,
+   <a href="https://github.com/EthanDevelops">EthanDevelops</a> with $6, 
+   Rob with $5
   </td>
  </tr>
 </table>
