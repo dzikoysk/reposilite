@@ -82,7 +82,7 @@ export default function useConsole() {
       }
 
       connection.value.onmessage = (event) => {
-        (event.data !== "keep-alive")
+        if (event.data != "keep-alive")
           onMessage?.value(event.data)
       }
 

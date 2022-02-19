@@ -89,7 +89,6 @@ internal class MavenEndpoints(
         responses = [
             OpenApiResponse(status = "200", description = "Input stream of requested file", content = [OpenApiContent(type = FORM_DATA_MULTIPART)]),
             OpenApiResponse(status = "401", description = "Returns 401 for invalid credentials"),
-            OpenApiResponse(status = "405", description = "Returns 405 if deployment is disabled in configuration"),
             OpenApiResponse(status = "507", description = "Returns 507 if Reposilite does not have enough disk space to store the uploaded file")
         ]
     )
