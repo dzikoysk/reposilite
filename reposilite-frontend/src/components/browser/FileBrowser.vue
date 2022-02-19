@@ -17,8 +17,8 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { createToast } from 'mosha-vue-toastify'
-import { createClient } from '../../helpers/client'
 import { useAdjustments } from '../../store/adjustments'
+import { useSession } from '../../store/session'
 import AdjustmentsIcon from '../icons/AdjustmentsIcon.vue'
 import AdjustmentsModal from './AdjustmentsModal.vue'
 import Card from '../card/SnippetsCard.vue'
@@ -29,15 +29,12 @@ const props = defineProps({
   qualifier: {
     type: Object,
     required: true
-  },
-  token: {
-    type: Object,
-    required: true
   }
 })
 
 const parentPath = ref('')
 const files = ref({})
+const { client } = useSession()
 const { applyAdjustments } = useAdjustments()
 
 const processedFiles = computed(() => ({
@@ -53,9 +50,8 @@ watch(
     }
 
     const qualifier = props.qualifier.path
-    const { client } = createClient(props.token.name, props.token.secret)
 
-    client.maven.details(qualifier)
+    client.value.maven.details(qualifier)
       .then(response => files.value = {
         list: response.data.files,
       })
@@ -87,7 +83,7 @@ watch(
     <div class="dark:bg-black">
       <div class="container mx-auto relative min-h-320px mb-1.5">
         <div class="lg:absolute pt-13 -top-5 right-8">
-          <Card :qualifier="qualifier" :token="token"/>
+          <Card :qualifier="qualifier" />
         </div>
         <div class="lg:max-w-2/5 xl:max-w-1/2">
           <div class="flex justify-between pt-7 px-2">
@@ -102,10 +98,7 @@ watch(
               </template>
             </AdjustmentsModal>
           </div>
-          <BrowserList 
-            :token="token"
-            :files="processedFiles"
-          />
+          <BrowserList :files="processedFiles" />
         </div>
       </div>
     </div>

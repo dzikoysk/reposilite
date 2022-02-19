@@ -16,22 +16,22 @@
 
 <script setup>
 import { useHead } from '@vueuse/head'
+import { useSession } from "./store/session"
 import useTheme from "./store/theme"
-import useSession from "./store/session"
 import useQualifier from "./helpers/qualifier"
 import usePlaceholders from './store/placeholders'
 
 const { title, description, icpLicense } = usePlaceholders()
 const { theme, fetchTheme } = useTheme()
-const { fetchSession, token, session } = useSession()
-const { qualifier } = useQualifier(token)
+const { initializeSession } = useSession()
+const { qualifier } = useQualifier()
 
 useHead({
   title, 
   description
 })
 fetchTheme()
-fetchSession().catch(() => {})
+initializeSession().catch(() => {})
 </script>
 
 <template>
@@ -40,11 +40,9 @@ fetchSession().catch(() => {})
       <router-view 
         class="router-view-full "
         :qualifier="qualifier"
-        :token="token"
-        :session="session"
       />
       <div v-if="icpLicense" class="absolute h-8 pb-2 w-full text-center text-xs dark:bg-black dark:text-white">
-        <a href="https://beian.miit.gov.cn" target="_blank">{{icpLicense}}</a>
+        <a href="https://beian.miit.gov.cn" target="_blank">{{ icpLicense }}</a>
       </div>
     </div>
   </div>

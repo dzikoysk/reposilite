@@ -19,13 +19,6 @@ import usePlaceholders from '../../store/placeholders'
 import Hero from './Hero.vue'
 import Menu from './Menu.vue'
 
-defineProps({
-  token: {
-    type: Object,
-    required: true
-  }
-})
-
 const { title } = usePlaceholders()
 </script>
 
@@ -35,7 +28,7 @@ const { title } = usePlaceholders()
       <h1 class="text-xl font-medium py-1 <sm:w-1/2">
         <router-link :to="'/'">{{ title }}</router-link>
       </h1>
-      <Menu :token="token" class="mt-0.5"/>
+      <Menu class="mt-0.5"/>
     </div>
     <Hero class="pt-2 pb-10 <sm:pb-4" />
   </header>

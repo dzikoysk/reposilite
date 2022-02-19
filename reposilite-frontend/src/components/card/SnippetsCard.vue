@@ -18,7 +18,7 @@
 import { ref, watchEffect, watch } from 'vue'
 import { useClipboard } from '@vueuse/core'
 import { createToast } from 'mosha-vue-toastify'
-import { createClient } from '../../helpers/client'
+import { useSession } from '../../store/session'
 import useArtifacts from '../../helpers/maven/artifact'
 import useRepository from '../../helpers/maven/repository'
 import useMetadata from '../../helpers/maven/metadata'
@@ -30,10 +30,6 @@ const props = defineProps({
   qualifier: {
     type: Object,
     required: true
-  },
-  token: {
-    type: Object,
-    required: true
   }
 })
 
@@ -42,7 +38,7 @@ const configurations = ref([])
 const { createRepositories } = useRepository()
 const { createSnippets } = useArtifacts()
 const { parseMetadata } = useMetadata()
-const { client } = createClient(props.token.name, props.token.secret)
+const { client } = useSession()
 const { copy: copyText, isSupported: isCopySupported } = useClipboard()
 
 const displayRepository = () => {
@@ -70,10 +66,10 @@ watchEffect(() => {
     return
   } 
 
-  client.maven.content(`${qualifier}/maven-metadata.xml`)
+  client.value.maven.content(`${qualifier}/maven-metadata.xml`)
     .then(response => displayArtifact(response.data))
     .catch(() => {
-      client.maven.content(`${qualifier.substring(0, qualifier.indexOf(elements[elements.length-1])-1)}/maven-metadata.xml`)
+      client.value.maven.content(`${qualifier.substring(0, qualifier.indexOf(elements[elements.length-1])-1)}/maven-metadata.xml`)
         .then(response => displayArtifact(response.data, elements[elements.length-1]))
         .catch(error => {
           if (error.message !== 'Request failed with status code 404') {

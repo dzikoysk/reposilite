@@ -18,7 +18,7 @@
 import { ref } from 'vue'
 import { VueFinalModal } from 'vue-final-modal'
 import { createToast } from 'mosha-vue-toastify'
-import useSession from '../../store/session'
+import { useSession } from '../../store/session'
 
 const { login } = useSession()
 const showLogin = ref(false)

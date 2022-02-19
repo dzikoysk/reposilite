@@ -16,21 +16,14 @@
   
 <script setup>
 import { ref } from 'vue'
-import { createClient } from '../../helpers/client'
+import { useSession } from '../../store/session'
 import { createToast } from 'mosha-vue-toastify'
 import { PrismEditor } from 'vue-prism-editor'
 import 'vue-prism-editor/dist/prismeditor.min.css'
 import prism from "prismjs"
 import "prismjs/themes/prism-coy.css"
 
-const props = defineProps({
-  token: {
-    type: Object,
-    required: true
-  }
-})
-
-const { client } = createClient(props.token.name, props.token.secret)
+const { client } = useSession()
 
 const highlighter = (code) => 
   prism.highlight(code, prism.languages.js)
@@ -40,12 +33,12 @@ const configuration = ref('')
 const configurationInitialized = ref(false)
 
 const fetchConfiguration = () => 
-  client.settings.content(configurationName)
+  client.value.settings.content(configurationName)
     .then(response => configuration.value = response.data.content)
     .catch(error => createToast(error, { type: 'error' }))
 
 const updateConfiguration = () =>
-  client.settings.updateContent(configurationName, configuration.value)
+  client.value.settings.updateContent(configurationName, configuration.value)
     .then(() => createToast('Configuration has been deployed, fetching...', { type: 'info' }))
     .then(() => fetchConfiguration())
     .then(() => createToast('Configuration reloaded, refresh page to see changes', { type: 'success' }))

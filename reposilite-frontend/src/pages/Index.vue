@@ -16,29 +16,20 @@
 
 <script setup>
 import { computed, reactive, watchEffect } from 'vue'
+import { useSession } from '../store/session'
 import Header from '../components/header/Header.vue'
 import Browser from '../components/browser/FileBrowser.vue'
 import Configuration from '../components/configuration/Configuration.vue'
 import Console from '../components/Console.vue'
-import useSession from '../store/session'
 
-const props = defineProps({
+defineProps({
   qualifier: {
-    type: Object,
-    required: true
-  },
-  token: {
-    type: Object,
-    required: true
-  },
-  session: {
     type: Object,
     required: true
   }
 })
 
-const { hasManagerPermission } = useSession()
-const isManager = computed(() => hasManagerPermission(props.session.details))
+const { isManager } = useSession()
 
 const listOfTabs = [ 
   { name: 'Overview' },
@@ -54,14 +45,14 @@ watchEffect(() => localStorage.setItem('selectedTab', selectedTab.value))
 
 const menuTabs = computed(() =>
   listOfTabs
-    .filter(entry => !entry?.manager || hasManagerPermission(props.session.details))
+    .filter(entry => !entry?.manager || isManager.value)
     .map(entry => entry.name)
-    )
+)
 </script>
 
 <template>
   <div>
-    <Header :token="token" />
+    <Header />
     <div class="bg-gray-100 dark:bg-black">
       <div class="container mx-auto <sm:px-0">
         <tabs v-model="selectedTab.value">
@@ -79,13 +70,13 @@ const menuTabs = computed(() =>
       <div class="overflow-auto">
         <tab-panels v-model="selectedTab.value" :animate="true">
           <tab-panel :val="'Overview'">
-            <Browser :qualifier="qualifier" :token="token" ref=""/>
+            <Browser :qualifier="qualifier" ref=""/>
           </tab-panel>
           <tab-panel :val="'Console'" v-if="isManager">
             <Console :selectedTab="selectedTab" />
           </tab-panel>
            <tab-panel :val="'Configuration'" v-if="isManager">
-            <Configuration :selectedTab="selectedTab" :token="token" />
+            <Configuration :selectedTab="selectedTab" />
           </tab-panel>
         </tab-panels>
       </div>

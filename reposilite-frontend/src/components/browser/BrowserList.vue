@@ -1,24 +1,20 @@
 <script setup>
-import {  } from 'vue'
 import download from 'downloadjs'
 import { createToast } from 'mosha-vue-toastify'
-import { createClient } from '../../helpers/client'
+import { useSession } from '../../store/session'
 import ListEntry from './ListEntry.vue'
 
-const props = defineProps({
+defineProps({
   files: {
-    type: Object,
-    required: true
-  },
-  token: {
     type: Object,
     required: true
   }
 })
 
+const { client } = useSession()
+
 const downloadHandler = (path, name) => {
-  const { client } = createClient(props.token.name, props.token.secret)
-  client.maven.download(path.substring(1) + '/' + name)
+  client.value.maven.download(path.substring(1) + '/' + name)
     .then(response => download(response.data, name, response.headers['content-type']))
     .catch(error => createToast(`Cannot download file - ${error.response.status}: ${error.response.data.message}`, {
       type: 'danger'

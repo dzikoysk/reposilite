@@ -17,33 +17,24 @@
 import axios from 'axios'
 import usePlaceholders from '../store/placeholders'
 
-const { basePath } = usePlaceholders()
-
-const production = () =>
-  window.location.protocol + '//' + location.host + basePath
-
-const baseUrl = () =>
-  process.env.NODE_ENV === 'production'
-    ? (production().endsWith('/') ? production().slice(0, -1) : production())
-    : 'http://localhost'
+const { baseUrl } = usePlaceholders()
 
 const createURL = (endpoint) =>
-  baseUrl() + endpoint
+  baseUrl + endpoint
 
 const createClient = (defaultName, defaultSecret) => {
   const defaultAuthorization = () =>
     (defaultName && defaultSecret) ? authorization(defaultName, defaultSecret) : {}
-
+  
   const authorization = (name, secret) => ({
     headers: {
       Authorization: `xBasic ${btoa(`${name}:${secret}`)}`
     }
   })
+    
+  const get = (endpoint, credentials) =>
+    axios.get(createURL(endpoint), { ...(credentials || defaultAuthorization()) })
   
-  const get = (endpoint, credentials) => {
-    return axios.get(createURL(endpoint), { ...(credentials || defaultAuthorization()) })
-  }
-
   const put = (endpoint, content, credentials) =>
     axios.put(createURL(endpoint), content, {
       headers: {
@@ -51,11 +42,11 @@ const createClient = (defaultName, defaultSecret) => {
         ...(credentials || defaultAuthorization()).headers
       },
     })
-
+  
   const client = {
     auth: {
-      me(name, secret) {
-        return get("/api/auth/me", authorization(name, secret))
+      me() {
+        return get("/api/auth/me")
       }
     },
     console: {
@@ -83,13 +74,10 @@ const createClient = (defaultName, defaultSecret) => {
       }
     }
   }
-
-  return {
-    createURL,
-    client
-  }
+  
+  return client
 }
-
+  
 export {
   createURL,
   createClient

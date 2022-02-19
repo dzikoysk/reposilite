@@ -16,13 +16,21 @@
 
 import { watch, reactive } from 'vue'
 import { useRoute } from 'vue-router'
+import { useSession } from '../store/session'
 
 const qualifier = reactive({
   watchable: 0,
   path: ''
 })
 
-export default function useQualifier(token) {
+const { details } = useSession()
+
+watch(
+  () => details.value,
+  () => qualifier.watchable++
+)
+
+export default function useQualifier() {
   const route = useRoute()
 
   watch(
@@ -32,11 +40,6 @@ export default function useQualifier(token) {
       qualifier.watchable++
     },
     { immediate: true }
-  )
-
-  watch(
-    () => token.name,
-    () => qualifier.watchable++
   )
 
   return {

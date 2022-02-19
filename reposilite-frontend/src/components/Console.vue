@@ -17,8 +17,7 @@
 <script setup>
 import { watch, onUnmounted, nextTick } from 'vue'
 import { createToast } from 'mosha-vue-toastify'
-import 'mosha-vue-toastify/dist/style.css'
-import useSession from '../store/session'
+import { useSession } from '../store/session'
 import useLog from '../helpers/console/log'
 import useConsole from '../helpers/console/connection'
 
@@ -62,12 +61,10 @@ const setupConnection = () => {
   
   createToast('Connecting to the remote console', { type: 'info', })
   const { token } = useSession()
-  connect(token)
+  connect(token.value)
 
-  nextTick(() => focusInput())
-  nextTick(() => setTimeout(() => focusInput(), 1000))
+  nextTick(() => setTimeout(() => focusInput(), 1500))
 }
-
 
 watch(
   () => props.selectedTab.value,
