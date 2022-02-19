@@ -35,26 +35,29 @@ import com.reposilite.plugin.facade
 import com.reposilite.settings.SettingsFacade
 import com.reposilite.shared.http.HttpRemoteClientProvider
 import com.reposilite.statistics.StatisticsFacade
+import com.reposilite.status.FailureFacade
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.web.api.HttpServerInitializationEvent
 import com.reposilite.web.api.RoutingSetupEvent
 import io.javalin.http.Handler
 import io.javalin.http.Stage
 
-@Plugin(name = "maven", dependencies = ["settings", "statistics", "frontend", "access-token"])
+@Plugin(name = "maven", dependencies = ["failure", "settings", "statistics", "frontend", "access-token"])
 internal class MavenPlugin : ReposilitePlugin() {
 
     override fun initialize(): MavenFacade {
+        val failureFacade = facade<FailureFacade>()
         val settingsFacade = facade<SettingsFacade>()
         val sharedConfiguration = settingsFacade.sharedConfiguration
         val statisticsFacade = facade<StatisticsFacade>()
         val frontendFacade = facade<FrontendFacade>()
         val accessTokenFacade = facade<AccessTokenFacade>()
+
         val securityProvider = RepositorySecurityProvider(accessTokenFacade)
         val repositoryProvider = RepositoryProvider(
-            this,
             extensions().parameters.workingDirectory,
             HttpRemoteClientProvider,
+            failureFacade,
             sharedConfiguration.repositories
         )
         val repositoryService = RepositoryService(this, repositoryProvider, securityProvider)

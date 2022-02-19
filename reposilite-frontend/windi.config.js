@@ -14,35 +14,36 @@
  * limitations under the License.
  */
 
-import { defineConfig } from 'windicss/helpers'
-import colors from 'windicss/colors'
-import plugin from 'windicss/plugin'
+import { defineConfig } from "windicss/helpers"
+import colors from "windicss/colors"
 
 export default defineConfig({
   darkMode: "class",
   theme: {
     screens: {
-      sm: '640px',
-      md: '768px',
-      lg: '1024px',
-      xl: '1280px',
+      sm: "640px",
+      md: "768px",
+      lg: "1024px",
+      xl: "1280px",
     },
     extend: {
       colors: {
         gray: {
-          150: '#ececec',
-          ...colors.trueGray
-        }
+          150: "#ececec",
+          ...colors.trueGray,
+        },
       },
       fontSize: {
-        xm: ['0.625rem', { lineHeight: '0.75rem' }],
+        xm: ["0.625rem", { lineHeight: "0.75rem" }],
+        ssm: ["0.8rem", { lineHeight: "1.15rem" }],
       },
       fontFamily: {
-        mono: ['Consolas', 'Monaco', 'monospace']
-      }
-    }
+        mono: ["Consolas", "Monaco", "monospace"],
+      },
+    },
   },
   shortcuts: {
-    'default-button': 'bg-white dark:bg-gray-900 cursor-pointer hover:(transition-color bg-gray-200 dark:bg-gray-800 duration-500)'
-  }
+    "default-button":
+      "bg-white dark:bg-gray-900 cursor-pointer hover:(transition-color bg-gray-200 dark:bg-gray-800 duration-500)",
+  },
 })

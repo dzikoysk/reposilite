@@ -22,14 +22,14 @@ import com.reposilite.journalist.Logger
 import com.reposilite.plugin.api.Facade
 import java.util.concurrent.ConcurrentHashMap
 
-class FailureFacade internal constructor(private val journalist: Journalist) : Journalist, Facade {
+class FailureFacade(private val journalist: Journalist) : Journalist, Facade {
 
     private val exceptions = ConcurrentHashMap.newKeySet<String>()
 
     fun throwException(identifier: String, throwable: Throwable) =
         throwException(identifier, Channel.ERROR, throwable)
 
-    fun throwException(identifier: String, channel: Channel, throwable: Throwable) {
+    private fun throwException(identifier: String, channel: Channel, throwable: Throwable) {
         logger.log(channel, identifier)
         logger.exception(channel, throwable)
 

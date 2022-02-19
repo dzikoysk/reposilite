@@ -18,6 +18,7 @@ package com.reposilite.storage.infrastructure
 
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
+import com.reposilite.status.FailureFacade
 import com.reposilite.storage.StorageProvider
 import com.reposilite.storage.api.DirectoryInfo
 import com.reposilite.storage.api.DocumentInfo
@@ -54,7 +55,7 @@ import java.io.InputStream
 import java.nio.file.attribute.FileTime
 
 class S3StorageProvider(
-    private val journalist: Journalist,
+    private val failureFacade: FailureFacade,
     private val s3: S3Client,
     private val bucket: String,
 ) : StorageProvider, Journalist {
@@ -98,7 +99,7 @@ class S3StorageProvider(
                 s3.putObject(builder.build(), RequestBody.fromFile(temporary))
                 ok(Unit)
             } catch (ioException: IOException) {
-                logger.exception(ioException)
+                failureFacade.throwException("S3 Storage Provider failed with IO Exception", ioException)
                 errorResponse(INTERNAL_SERVER_ERROR, "Failed to write $location")
             } finally {
                 temporary.delete()
@@ -212,6 +213,6 @@ class S3StorageProvider(
         ok(Long.MAX_VALUE)
 
     override fun getLogger(): Logger =
-        journalist.logger
+        failureFacade.logger
 
 }

@@ -14,56 +14,39 @@
   - limitations under the License.
   -->
 
+<script setup>
+import { useHead } from '@vueuse/head'
+import { useSession } from "./store/session"
+import useTheme from "./store/theme"
+import useQualifier from "./helpers/qualifier"
+import usePlaceholders from './store/placeholders'
+
+const { title, description, icpLicense } = usePlaceholders()
+const { theme, fetchTheme } = useTheme()
+const { initializeSession } = useSession()
+const { qualifier } = useQualifier()
+
+useHead({
+  title, 
+  description
+})
+fetchTheme()
+initializeSession().catch(() => {})
+</script>
+
 <template>
   <div v-bind:class="{ 'dark': theme.isDark }">
     <div class="min-h-screen dark:bg-black dark:text-white">
       <router-view 
         class="router-view-full "
         :qualifier="qualifier"
-        :token="token"
-        :session="session"
       />
       <div v-if="icpLicense" class="absolute h-8 pb-2 w-full text-center text-xs dark:bg-black dark:text-white">
-        <a href="https://beian.miit.gov.cn" target="_blank">{{icpLicense}}</a>
+        <a href="https://beian.miit.gov.cn" target="_blank">{{ icpLicense }}</a>
       </div>
     </div>
   </div>
 </template>
-
-<script>
-import { defineComponent } from 'vue'
-import { useHead } from '@vueuse/head'
-import useTheme from "./store/theme"
-import useSession from "./store/session"
-import useQualifier from "./store/qualifier"
-import usePlaceholders from './store/placeholders'
-
-export default defineComponent({
-  setup() {
-    const { title, description, organizationLogo, icpLicense } = usePlaceholders()
-
-    useHead({
-      title,
-      description
-    })
-
-    const { theme, fetchTheme } = useTheme()
-    const { fetchSession, token, session } = useSession()
-    const { qualifier } = useQualifier(token)
-
-    fetchTheme()
-    fetchSession().catch(_ => {})
-        
-    return {
-      theme,
-      qualifier,
-      token,
-      session,
-      icpLicense
-    }
-  }
-})
-</script>
 
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600&display=swap');

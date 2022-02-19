@@ -14,86 +14,53 @@
  * limitations under the License.
  */
 
-import { reactive } from "vue"
-import { createClient } from './client'
+import { computed, ref, watchEffect } from "vue"
+import { createClient } from '../helpers/client'
 
-const defaultValue = ''
-const nameKey = 'session-token-name'
-const secretKey = 'session-token-secret'
-const managerPermission = 'access-token:manager'
-
-const token = reactive({
-  name: localStorage.getItem(nameKey) || defaultValue,
-  secret: localStorage.getItem(secretKey) || defaultValue
+const token = ref({
+  name: localStorage.getItem('token-name') || '',
+  secret: localStorage.getItem('token-secret') || '',
 })
 
-const defaultDetails = {
-  accessToken: {
-    id: defaultValue,
-    name: defaultValue,
-    createdAt: defaultValue,
-    description: defaultValue
-  },
-  permissions: [],
-  routes: []
+watchEffect(() => {
+  localStorage.setItem('token-name', token.value.name)
+  localStorage.setItem('token-secret', token.value.secret)
+})
+
+const setToken = (name, secret) =>
+  token.value = { name, secret }
+
+const details = ref()
+
+const logout = () => {
+  details.value = undefined
+  setToken('', '')
 }
 
-const session = reactive({
-  details: defaultDetails
-})
+const login = (name, secret) =>
+  createClient(name, secret)
+    .auth.me()
+    .then(response => {
+      setToken(name, secret)
+      details.value = response.data
+    })
 
-export default function useSession() {
-  // move to session
-  const updateToken = (name, secret) => {
-    localStorage.setItem(nameKey, name)
-    token.name = name
-    localStorage.setItem(secretKey, secret)
-    token.secret = secret
-  }
+const initializeSession = () =>
+  login(token.value.name, token.value.secret)
 
-  const logout = () => {
-    updateToken(defaultValue, defaultValue)
-    session.details = defaultDetails
-  }
+const client = computed(() => createClient(token.value.name, token.value.secret))
+const isLogged = computed(() => details.value !== undefined)
+const isManager = computed(() => details.value?.permissions?.find(entry => entry.identifier === 'access-token:manager'))
 
-  const login = async (name, secret) => {
-    try {
-      const { client } = createClient()
-
-      if (name == defaultValue) {
-        throw new Error('Missing credentials')
-      }
-
-      const response = await client.auth.me(name, secret)
-      updateToken(name, secret)
-      session.details = response.data
-      return { token, session }
-    } catch (error) {
-      logout()
-      throw error
-    }
-  }
-
-  const fetchSession = () => {
-    return login(
-      localStorage.getItem(nameKey),
-      localStorage.getItem(secretKey)
-    )
-  }
-
-  const isLogged = (token) =>
-    token?.name != defaultValue
-
-  const hasManagerPermission = (details) =>
-    details?.permissions?.find(entry => entry.identifier == managerPermission)
-  
+export function useSession() {
   return {
     token,
-    session,
+    details,
     login,
     logout,
-    fetchSession,
     isLogged,
-    hasManagerPermission
+    client,
+    isManager,
+    initializeSession
   }
 }

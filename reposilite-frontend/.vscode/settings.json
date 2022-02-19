@@ -3,5 +3,18 @@
     "strings": true
   },
   "css.validate": false,
-  "css.lint.unknownProperties": "ignore"
+  "css.lint.unknownProperties": "ignore",
+  "cSpell.words": [
+    "Consolas",
+    "downloadjs",
+    "monospace",
+    "mosha",
+    "rcompare",
+    "signin",
+    "signout",
+    "toastify",
+    "vueform",
+    "vueuse",
+    "windicss"
+  ]
 }

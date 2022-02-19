@@ -1,0 +1,42 @@
+<script setup>
+import download from 'downloadjs'
+import { createToast } from 'mosha-vue-toastify'
+import { useSession } from '../../store/session'
+import ListEntry from './ListEntry.vue'
+
+defineProps({
+  files: {
+    type: Object,
+    required: true
+  }
+})
+
+const { client } = useSession()
+
+const downloadHandler = (path, name) => {
+  client.value.maven.download(path.substring(1) + '/' + name)
+    .then(response => download(response.data, name, response.headers['content-type']))
+    .catch(error => createToast(`Cannot download file - ${error.response.status}: ${error.response.data.message}`, {
+      type: 'danger'
+    }))
+}
+</script>
+
+<template>
+  <div id="browser-list" class="pt-3">
+    <div v-for="file in files.list" v-bind:key="file">
+      <router-link v-if="file.type === 'DIRECTORY'" :to="append($route.path, file.name)">
+        <ListEntry :file="file"/>
+      </router-link>
+      <a v-else @click.left.prevent="downloadHandler($route.path, file.name)" :href="`${$route.path}/${file.name}`" target="_blank">
+        <ListEntry :file="file"/>
+      </a>
+    </div>
+    <div v-if="files.isEmpty" class="pl-2">
+      <p>Directory is empty</p>
+    </div>
+    <div v-if="files.error" class="pl-2">
+      <p>Directory not found</p>
+    </div>
+  </div>
+</template>
