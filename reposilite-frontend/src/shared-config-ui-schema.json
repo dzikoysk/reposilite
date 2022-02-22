@@ -33,6 +33,11 @@
     },
     {
       "type": "Group",
+      "label": "Ldap",
+      "scope": "#/properties/ldap"
+    },
+    {
+      "type": "Group",
       "label": "Statistics",
       "elements": [
         {

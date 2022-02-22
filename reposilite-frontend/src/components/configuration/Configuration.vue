@@ -19,7 +19,7 @@ import { ref } from 'vue'
 import { useSession } from '../../store/session'
 import { createToast } from 'mosha-vue-toastify'
 import schema from '../../shared-config-schema.json'
-import uischema from '../../shared-config-ui-schema.json'
+//import uischema from '../../shared-config-ui-schema.json'
 import { JsonForms } from '@jsonforms/vue'
 import { createAjv } from '@jsonforms/core'
 import { vanillaRenderers } from '@jsonforms/vue-vanilla'
@@ -82,7 +82,6 @@ ajv.addFormat('repository-name', {
           :data="configuration"
           :renderers="renderers"
           :schema="schema"
-          :uischema="uischema"
           :ajv="ajv"
       />
     </div>

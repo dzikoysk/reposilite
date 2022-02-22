@@ -207,7 +207,7 @@
   "title": "SharedConfiguration",
   "type": "object",
   "properties": {
-    "general": {
+    "appearance": {
       "type": "object",
       "properties": {
         "id": {
@@ -291,6 +291,71 @@
           "title": "The Internet Content Provider License (also known as Bei'An)",
           "description": "Web services in China require ICP license, a permit issued by the Chinese government to permit China-based websites to operate in China.\nIn order to fulfill the conditions, you should apply for ICP license from your service provider and fill in this parameter.",
           "default": ""
+        }
+      }
+    },
+    "ldap": {
+      "type": "object",
+      "title": "Ldap configuration",
+      "description": "Ldap configuration.",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "title": "Enabled",
+          "description": "LDAP Authenticator is enabled.",
+          "default": false
+        },
+        "hostname": {
+          "type": "string",
+          "format": "url",
+          "title": "Hostname",
+          "description": "LDAP server address",
+          "default": "ldap.domain.com"
+        },
+        "port": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535,
+          "title": "Port",
+          "description": "LDAP server port",
+          "default": 389
+        },
+        "baseDn": {
+          "type": "string",
+          "title": "Base DN",
+          "description": "Base DN with users",
+          "default": "dc=company,dc=com"
+        },
+        "searchUserDn": {
+          "type": "string",
+          "title": "Search user DN",
+          "description": "User used to perform searches in LDAP server (requires permissions to read all LDAP entries)",
+          "default": "cn=reposilite,ou=admins,dc=domain,dc=com"
+        },
+        "searchUserPassword": {
+          "type": "string",
+          "title": "Search user password",
+          "description": "Search user's password",
+          "default": "reposilite-admin-secret"
+        },
+        "userAttribute": {
+          "type": "string",
+          "title": "User attribute",
+          "description": "Attribute in LDAP that represents unique username used to create access token",
+          "default": "cn"
+        },
+        "userFilter": {
+          "type": "string",
+          "title": "User filter",
+          "description": "LDAP user filter",
+          "default": "(&(objectClass=person)(ou=Maven Users))"
+        },
+        "userType": {
+          "type": "string",
+          "enum": ["persistent", "temporary"],
+          "title": "User type",
+          "description": "Should the created through LDAP access token be TEMPORARY or PERSISTENT",
+          "default": "persistent"
         }
       }
     },

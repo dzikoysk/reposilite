@@ -10,5 +10,7 @@ data class Settings (
     /** List of Maven repositories. */
     val repositories: Map<String, RepositorySettings>,
     /** Statistics module configuration. */
-    val statistics: StatisticsSettings
+    val statistics: StatisticsSettings,
+    /** Ldap module settings */
+    val ldap: LdapSettings
 ) : Serializable

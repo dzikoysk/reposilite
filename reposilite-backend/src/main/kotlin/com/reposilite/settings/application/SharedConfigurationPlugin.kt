@@ -10,6 +10,7 @@ import com.reposilite.settings.infrastructure.SharedConfigurationEndpoints
 import com.reposilite.settings.SharedConfigurationFacade
 import com.reposilite.settings.api.*
 import com.reposilite.shared.extensions.loadCommandBasedConfiguration
+import com.reposilite.token.AccessTokenType
 import com.reposilite.web.api.RoutingSetupEvent
 
 @Plugin(name = "sharedconfig")
@@ -23,6 +24,7 @@ class SharedConfigurationPlugin: ReposilitePlugin() {
                 registerHandler(SettingsHandler.of("advanced", AdvancedSettings::class.java, sharedConfiguration::getAdvancedSettingsDTO, sharedConfiguration::updateFromAdvancedSettingsDTO))
                 registerHandler(SettingsHandler.of("repositories", RepositoriesSettings::class.java, sharedConfiguration::getRepositoriesSettingsDTO, sharedConfiguration::updateFromRepositoriesSettingsDTO))
                 registerHandler(SettingsHandler.of("statistics", StatisticsSettings::class.java, sharedConfiguration::getStatisticsSettingsDTO, sharedConfiguration::updateFromStatisticsSettingsDTO))
+                registerHandler(SettingsHandler.of("ldap", LdapSettings::class.java, sharedConfiguration::getLdapSettingsDTO, sharedConfiguration::updateFromLdapSettingsDTO))
                 registerHandler(SettingsHandler.of("all", Settings::class.java, sharedConfiguration::getSettingsDTO, sharedConfiguration::updateFromSettingsDTO))
             }
         }
@@ -106,7 +108,23 @@ private fun SharedConfiguration.updateFromSettingsDTO(settings: Settings): Setti
     updateFromAdvancedSettingsDTO(settings.advanced)
     updateFromRepositoriesSettingsDTO(RepositoriesSettings(settings.repositories))
     updateFromStatisticsSettingsDTO(settings.statistics)
+    updateFromLdapSettingsDTO(settings.ldap)
     return getSettingsDTO()
+}
+
+private fun SharedConfiguration.updateFromLdapSettingsDTO(settings: LdapSettings): LdapSettings {
+    ldap.update(SharedConfiguration.LdapConfiguration().apply {
+        enabled = settings.enabled
+        hostname = settings.hostname
+        port = settings.port
+        baseDn = settings.baseDn
+        searchUserDn = settings.searchUserDn
+        searchUserPassword = settings.searchUserPassword
+        userAttribute = settings.userAttribute
+        userFilter = settings.userFilter
+        userType = AccessTokenType.valueOf(settings.userType.name)
+    })
+    return getLdapSettingsDTO()
 }
 
 private fun SharedConfiguration.updateFromRepositoriesSettingsDTO(settings: RepositoriesSettings): RepositoriesSettings {
@@ -142,9 +160,11 @@ private fun SharedConfiguration.updateFromAppearanceSettingsDTO(settings: Appear
 
 private fun SharedConfiguration.RepositoryConfiguration.toDTO(): RepositorySettings = RepositorySettings(visibility = RepositorySettings.Visibility.valueOf(visibility.name), redeployment = redeployment, preserved = preserved, storageProvider = parseStorageProvider(storageProvider), proxied = proxied.map { parseProxied(it) })
 
-private fun SharedConfiguration.getSettingsDTO(): Settings = Settings(appearance = getAppearanceSettingsDTO(), advanced = getAdvancedSettingsDTO(), repositories = getRepositoriesSettingsDTO().repositories, statistics = getStatisticsSettingsDTO())
+private fun SharedConfiguration.getSettingsDTO(): Settings = Settings(appearance = getAppearanceSettingsDTO(), advanced = getAdvancedSettingsDTO(), repositories = getRepositoriesSettingsDTO().repositories, statistics = getStatisticsSettingsDTO(), ldap = getLdapSettingsDTO())
 
-private fun SharedConfiguration.getStatisticsSettingsDTO(): StatisticsSettings = StatisticsSettings(resolvedRequestsInterval = StatisticsSettings.ResolvedRequestsInterval.valueOf(statistics.get().resolvedRequestsInterval))
+private fun SharedConfiguration.getLdapSettingsDTO(): LdapSettings = with(ldap.get()) { LdapSettings(enabled = enabled, hostname = hostname, port = port, baseDn = baseDn, searchUserDn = searchUserDn, searchUserPassword = searchUserPassword, userAttribute = userAttribute, userFilter = userFilter, userType = LdapSettings.UserType.valueOf(userType.name)) }
+
+private fun SharedConfiguration.getStatisticsSettingsDTO(): StatisticsSettings = StatisticsSettings(resolvedRequestsInterval = StatisticsSettings.ResolvedRequestsInterval.valueOf(statistics.get().resolvedRequestsInterval.uppercase()))
 
 private fun SharedConfiguration.getRepositoriesSettingsDTO(): RepositoriesSettings = repositories.map { RepositoriesSettings(repositories = it.mapValues { entry -> entry.value.toDTO() }) }
 

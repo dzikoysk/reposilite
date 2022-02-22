@@ -23,3 +23,4 @@ com.reposilite.statistics.application.StatisticsPlugin
 com.reposilite.status.application.StatusPlugin
 com.reposilite.status.application.FailurePlugin
 com.reposilite.token.application.AccessTokenPlugin
+com.reposilite.settings.application.SharedConfigurationPlugin
