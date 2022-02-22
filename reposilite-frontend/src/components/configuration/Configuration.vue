@@ -56,7 +56,7 @@ ajv.addFormat('storage-quota', /^([1-9]\d*)([KkMmGg][Bb]|%)$/)
 ajv.addFormat('maven-artifact-group', /^(\w+\.)*\w+$/)
 ajv.addFormat('repository-name', {
   type: 'string',
-  validate: (name) => name in configuration.repositories
+  validate: (name) => name in configuration.value.repositories
 })
 </script>
 
