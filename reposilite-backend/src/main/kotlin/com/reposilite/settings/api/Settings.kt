@@ -3,16 +3,12 @@ package com.reposilite.settings.api
 import java.io.Serializable
 
 data class Settings (
-    /** General settings */
-    val general: GeneralSettings = GeneralSettings(),
+    /** Appearance settings */
+    val appearance: AppearanceSettings,
     /** Advanced settings */
-    val advanced: AdvancedSettings = AdvancedSettings(),
+    val advanced: AdvancedSettings,
     /** List of Maven repositories. */
-    val repositories: Map<String, RepositorySettings> = mapOf(
-        "releases" to RepositorySettings(),
-        "snapshots" to RepositorySettings(),
-        "private" to RepositorySettings(visibility = RepositorySettings.Visibility.PRIVATE)
-    ),
+    val repositories: Map<String, RepositorySettings>,
     /** Statistics module configuration. */
-    val statistics: StatisticsSettings = StatisticsSettings()
+    val statistics: StatisticsSettings
 ) : Serializable

@@ -16,36 +16,73 @@
   
 <script setup>
 import { ref } from 'vue'
-import { useSession } from '../../store/session'
+import { createClient } from '../../store/client'
 import { createToast } from 'mosha-vue-toastify'
-import { PrismEditor } from 'vue-prism-editor'
-import 'vue-prism-editor/dist/prismeditor.min.css'
-import prism from "prismjs"
-import "prismjs/themes/prism-coy.css"
+import schema from '../../shared-config-schema.json'
+import uischema from '../../shared-config-ui-schema.json'
+import { JsonForms } from '@jsonforms/vue'
+import { createAjv } from '@jsonforms/core'
+import { vanillaRenderers } from '@jsonforms/vue-vanilla'
+import { entry } from './ConfigurationLayout.vue';
 
-const { client } = useSession()
+export default {
+  components: { JsonForms },
+  props: {
+    token: {
+      type: Object,
+      required: true
+    }
+  },
+  mounted() {
+    console.log(this.$refs.form.uischemaToUse)
+  },
+  setup(props) {
+    const token = props.token
+    const { client } = createClient(token.name, token.secret)
 
-const highlighter = (code) => 
-  prism.highlight(code, prism.languages.js)
+    const configurationName = "all"
+    const configuration = ref({})
+    const configurationInitialized = ref(false)
 
-const configurationName = "configuration.shared.cdn"
-const configuration = ref('')
-const configurationInitialized = ref(false)
+    const fetchConfiguration = () =>
+        client.config.get(configurationName)
+            .then(response => configuration.value = response.data)
+            .catch(error => createToast(error, { type: 'error' }))
 
-const fetchConfiguration = () => 
-  client.value.settings.content(configurationName)
-    .then(response => configuration.value = response.data.content)
-    .catch(error => createToast(error, { type: 'error' }))
+    const updateConfiguration = () =>
+        client.config.put(configurationName, configuration.value)
+            .then(response => {
+              if (response.status >= 200 && response.status < 300) {
+                createToast('Configuration has been deployed', {type: 'success'});
+                configuration.value = response.data
+              }
+            })
+            .catch(error => createToast(error, { type: 'error' }))
 
-const updateConfiguration = () =>
-  client.value.settings.updateContent(configurationName, configuration.value)
-    .then(() => createToast('Configuration has been deployed, fetching...', { type: 'info' }))
-    .then(() => fetchConfiguration())
-    .then(() => createToast('Configuration reloaded, refresh page to see changes', { type: 'success' }))
-    .catch(error => createToast(error, { type: 'error' }))
+    fetchConfiguration()
+        .then(() => configurationInitialized.value = true)
 
-fetchConfiguration()
-  .then(() => configurationInitialized.value = true)
+    const renderers = Object.freeze([...vanillaRenderers, entry])
+
+    const ajv = createAjv()
+    ajv.addFormat('storage-quota', /^([1-9]\d*)([KkMmGg][Bb]|%)$/)
+    ajv.addFormat('maven-artifact-group', /^(\w+\.)*\w+$/)
+    ajv.addFormat('repository-name', {
+      type: 'string',
+      validate: (name) => name in configuration.repositories
+    })
+    return {
+      configuration,
+      configurationInitialized,
+      fetchConfiguration,
+      updateConfiguration,
+      schema,
+      uischema,
+      renderers,
+      ajv
+    }
+  }
+}
 </script>
 
 <template>
@@ -65,12 +102,13 @@ fetchConfiguration()
       </div>
     </div>
     <div class="border-1 rounded p-4 dark:border-gray-700">
-      <prism-editor
-        v-if="configurationInitialized"
-        class="configuration-editor font-mono text-xs"
-        v-model="configuration" 
-        :highlight="highlighter" 
-        line-numbers
+      <json-forms
+          ref="form"
+          :data="configuration"
+          :renderers="renderers"
+          :schema="schema"
+          :uischema="uischema"
+          :ajv="ajv"
       />
     </div>
   </div>
@@ -80,13 +118,13 @@ fetchConfiguration()
 #configuration-state button {
   @apply bg-blue-700 mx-2 rounded text-sm h-9 px-4 text-white;
 }
-.configuration-editor .prism-editor__textarea {
-  width: 4096px !important;
+.vertical-layout, .group-layout {
+  @apply container mx-auto;
 }
-.configuration-editor .prism-editor__editor {
-  white-space: pre !important;
+.vertical-layout .vertical-layout-item .control input:not([type=checkbox]) {
+  @apply mx-2 rounded text-sm h-9 px-4 text-black;
 }
-.configuration-editor .prism-editor__container {
-  overflow-x: auto !important;
+.vertical-layout .vertical-layout-item .control>.description {
+  display: none;
 }
 </style>

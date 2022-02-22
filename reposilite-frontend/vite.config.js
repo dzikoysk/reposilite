@@ -31,5 +31,9 @@ export default defineConfig({
   build: {
     emptyOutDir: true,
     outDir: '../reposilite-backend/src/main/resources/reposilite-frontend'
+  },
+  define: {
+    'process.env': {}, // hack so the json schema ref parser does not error
+    'global': {} // hack so the json schema ref parser does not error
   }
 })

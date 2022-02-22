@@ -72,6 +72,21 @@ const createClient = (defaultName, defaultSecret) => {
       updateContent(name, content) {
         return put(`/api/settings/content/${name}`, content)
       }
+    },
+    config: {
+      get(name) {
+        return axios.get(createURL(`/api/configuration/${name}`), { headers: {
+          'Accepts': 'application/json',
+          ...defaultAuthorization().headers
+        }})
+      },
+      put(name, content) {
+        return axios.put(createURL(`/api/configuration/${name}`), content, { headers: {
+          'Content-Type': 'application/json',
+          'Accepts': 'application/json',
+          ...defaultAuthorization().headers
+        }})
+      }
     }
   }
   

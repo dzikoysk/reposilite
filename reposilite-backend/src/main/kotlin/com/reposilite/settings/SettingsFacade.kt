@@ -18,14 +18,13 @@ package com.reposilite.settings
 
 import com.reposilite.journalist.Journalist
 import com.reposilite.plugin.api.Facade
-import com.reposilite.settings.api.LocalConfiguration
-import com.reposilite.settings.api.SettingsResponse
-import com.reposilite.settings.api.SettingsUpdateRequest
-import com.reposilite.settings.api.SharedConfiguration
+import com.reposilite.settings.api.*
+import com.reposilite.settings.application.SettingsPlugin
 import com.reposilite.settings.infrastructure.FileSystemConfigurationProvider
 import com.reposilite.settings.infrastructure.SqlConfigurationProvider
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.notFoundError
+import io.javalin.http.Context
 import org.jetbrains.exposed.sql.Database
 import panda.std.Result
 import java.nio.file.Path

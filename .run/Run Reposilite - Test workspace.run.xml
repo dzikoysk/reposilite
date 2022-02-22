@@ -16,7 +16,7 @@
 
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Run Reposilite - Test workspace" type="Application" factoryName="Application" singleton="false">
-    <option name="ALTERNATIVE_JRE_PATH" value="17" />
+    <option name="ALTERNATIVE_JRE_PATH" value="temurin-17" />
     <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
     <envs>
       <env name="GRADLE_OPS" value="--warning-mode all" />
@@ -26,6 +26,16 @@
     <option name="PROGRAM_PARAMETERS" value="--token name:secret" />
     <option name="VM_PARAMETERS" value="-Xmx32M" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/reposilite-backend/src/test/workspace" />
+    <extension name="net.ashald.envfile">
+      <option name="IS_ENABLED" value="false" />
+      <option name="IS_SUBST" value="false" />
+      <option name="IS_PATH_MACRO_SUPPORTED" value="false" />
+      <option name="IS_IGNORE_MISSING_FILES" value="false" />
+      <option name="IS_ENABLE_EXPERIMENTAL_INTEGRATIONS" value="false" />
+      <ENTRIES>
+        <ENTRY IS_ENABLED="true" PARSER="runconfig" />
+      </ENTRIES>
+    </extension>
     <method v="2">
       <option name="Make" enabled="true" />
     </method>

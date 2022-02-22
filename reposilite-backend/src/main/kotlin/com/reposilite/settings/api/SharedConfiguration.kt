@@ -24,7 +24,6 @@ import net.dzikoysk.cdn.entity.Contextual
 import net.dzikoysk.cdn.entity.Description
 import net.dzikoysk.cdn.serdes.DeserializationHandler
 import panda.std.reactive.mutableReference
-import panda.std.reactive.reference
 import panda.utilities.StringUtils
 import picocli.CommandLine.Command
 import picocli.CommandLine.Option
@@ -38,30 +37,30 @@ class SharedConfiguration : DeserializationHandler<SharedConfiguration> {
     @Description("# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #")
     @Description("")
     @Description("# Repository id used in Maven repository configuration")
-    val id = reference("reposilite-repository")
+    val id = mutableReference("reposilite-repository")
 
     @Description("# Repository title")
-    val title = reference("Reposilite Repository")
+    val title = mutableReference("Reposilite Repository")
 
     @Description("# Repository description")
-    val description = reference("Public Maven repository hosted through the Reposilite")
+    val description = mutableReference("Public Maven repository hosted through the Reposilite")
 
     @Description("# Link to organization's website")
-    val organizationWebsite = reference("https://reposilite.com")
+    val organizationWebsite = mutableReference("https://reposilite.com")
 
     @Description("# Link to organization's logo")
-    val organizationLogo = reference("https://avatars.githubusercontent.com/u/88636591")
+    val organizationLogo = mutableReference("https://avatars.githubusercontent.com/u/88636591")
 
     @Description("# The Internet Content Provider License (also known as Bei'An)")
     @Description("# Web services in China require ICP license, a permit issued by the Chinese government to permit China-based websites to operate in China.")
     @Description("# In order to fulfill the conditions, you should apply for ICP license from your service provider and fill in this parameter.")
-    val icpLicense = reference("")
+    val icpLicense = mutableReference("")
 
     @Description("# Enable default frontend with dashboard")
-    val frontend = reference(true)
+    val frontend = mutableReference(true)
 
     @Description("# Enable Swagger (/swagger-docs) and Swagger UI (/swagger)")
-    val swagger = reference(false)
+    val swagger = mutableReference(false)
 
     @Description("# Custom base path")
     val basePath = mutableReference("/")
@@ -164,7 +163,7 @@ class SharedConfiguration : DeserializationHandler<SharedConfiguration> {
 
     @Description("")
     @Description("# Statistics module configuration")
-    val statistics = reference(StatisticsConfiguration())
+    val statistics = mutableReference(StatisticsConfiguration())
 
     @Contextual
     class StatisticsConfiguration {
@@ -213,7 +212,7 @@ class SharedConfiguration : DeserializationHandler<SharedConfiguration> {
     @Description("# Nginx: X-Forwarded-For")
     @Description("# Cloudflare: CF-Connecting-IP")
     @Description("# Popular: X-Real-IP")
-    val forwardedIp = reference("X-Forwarded-For")
+    val forwardedIp = mutableReference("X-Forwarded-For")
 
     override fun handle(sharedConfiguration: SharedConfiguration): SharedConfiguration {
         var formattedBasePath = basePath.get()

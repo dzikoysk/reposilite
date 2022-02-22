@@ -22,6 +22,7 @@ import com.reposilite.plugin.api.ReposiliteInitializeEvent
 import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
 import com.reposilite.settings.SettingsFacade
+import com.reposilite.settings.SharedConfigurationFacade
 import com.reposilite.settings.api.SharedConfiguration
 import com.reposilite.settings.infrastructure.SettingsEndpoints
 import com.reposilite.settings.infrastructure.SqlSettingsRepository
