@@ -16,7 +16,7 @@
   
 <script setup>
 import { ref } from 'vue'
-import { createClient } from '../../store/client'
+import { useSession } from '../../store/session'
 import { createToast } from 'mosha-vue-toastify'
 import schema from '../../shared-config-schema.json'
 import uischema from '../../shared-config-ui-schema.json'
@@ -25,64 +25,39 @@ import { createAjv } from '@jsonforms/core'
 import { vanillaRenderers } from '@jsonforms/vue-vanilla'
 import { entry } from './ConfigurationLayout.vue';
 
-export default {
-  components: { JsonForms },
-  props: {
-    token: {
-      type: Object,
-      required: true
-    }
-  },
-  mounted() {
-    console.log(this.$refs.form.uischemaToUse)
-  },
-  setup(props) {
-    const token = props.token
-    const { client } = createClient(token.name, token.secret)
+const { client } = useSession()
 
-    const configurationName = "all"
-    const configuration = ref({})
-    const configurationInitialized = ref(false)
+const configurationName = "all"
+const configuration = ref({})
+const configurationInitialized = ref(false)
 
-    const fetchConfiguration = () =>
-        client.config.get(configurationName)
-            .then(response => configuration.value = response.data)
-            .catch(error => createToast(error, { type: 'error' }))
+const fetchConfiguration = () =>
+    client.value.config.get(configurationName)
+        .then(response => configuration.value = response.data)
+        .catch(error => createToast(error, { type: 'error' }))
 
-    const updateConfiguration = () =>
-        client.config.put(configurationName, configuration.value)
-            .then(response => {
-              if (response.status >= 200 && response.status < 300) {
-                createToast('Configuration has been deployed', {type: 'success'});
-                configuration.value = response.data
-              }
-            })
-            .catch(error => createToast(error, { type: 'error' }))
+const updateConfiguration = () =>
+    client.value.config.put(configurationName, configuration.value)
+        .then(response => {
+          if (response.status >= 200 && response.status < 300) {
+            createToast('Configuration has been deployed', {type: 'success'});
+            configuration.value = response.data
+          }
+        })
+        .catch(error => createToast(error, { type: 'error' }))
 
-    fetchConfiguration()
-        .then(() => configurationInitialized.value = true)
+fetchConfiguration()
+    .then(() => configurationInitialized.value = true)
 
-    const renderers = Object.freeze([...vanillaRenderers, entry])
+const renderers = Object.freeze([...vanillaRenderers, entry])
 
-    const ajv = createAjv()
-    ajv.addFormat('storage-quota', /^([1-9]\d*)([KkMmGg][Bb]|%)$/)
-    ajv.addFormat('maven-artifact-group', /^(\w+\.)*\w+$/)
-    ajv.addFormat('repository-name', {
-      type: 'string',
-      validate: (name) => name in configuration.repositories
-    })
-    return {
-      configuration,
-      configurationInitialized,
-      fetchConfiguration,
-      updateConfiguration,
-      schema,
-      uischema,
-      renderers,
-      ajv
-    }
-  }
-}
+const ajv = createAjv()
+ajv.addFormat('storage-quota', /^([1-9]\d*)([KkMmGg][Bb]|%)$/)
+ajv.addFormat('maven-artifact-group', /^(\w+\.)*\w+$/)
+ajv.addFormat('repository-name', {
+  type: 'string',
+  validate: (name) => name in configuration.repositories
+})
 </script>
 
 <template>

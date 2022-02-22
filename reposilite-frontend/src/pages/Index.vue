@@ -16,65 +16,38 @@
 
 <script setup>
 import { computed, reactive, watchEffect } from 'vue'
+import { useSession } from '../store/session'
 import Header from '../components/header/Header.vue'
-import Browser from '../components/browser/Browser.vue'
-import Endpoints from '../components/Endpoints.vue'
+import Browser from '../components/browser/FileBrowser.vue'
 import Configuration from '../components/configuration/Configuration.vue'
 import Console from '../components/Console.vue'
-import useSession from '../store/session'
 
-export default {
-  components: { Header, Browser, Endpoints, Console, Configuration },
-  props: {
-    qualifier: {
-      type: Object,
-      required: true
-    },
-    token: {
-      type: Object,
-      required: true
-    },
-    session: {
-      type: Object,
-      required: true
-    }
-  },
-  setup(props) {
-    const qualifier = props.qualifier
-    const token = props.token
-    const session = props.session
-
-    const { hasManagerPermission } = useSession()
-    const isManager = computed(() => hasManagerPermission(session.details))
-
-    const tabs = [
-      { name: 'Overview' },
-      // { name: 'Endpoints' },
-      { name: 'Console', manager: true },
-      { name: 'Configuration', manager: true },
-    ]
-
-    const selectedTab = reactive({
-      value: localStorage.getItem('selectedTab') || 'Overview'
-    })
-
-    watchEffect(() => localStorage.setItem('selectedTab', selectedTab.value))
-
-    const menuTabs = computed(() =>
-        tabs
-            .filter(entry => !entry?.manager || hasManagerPermission(session.details))
-            .map(entry => entry.name)
-    )
-
-    return {
-      qualifier,
-      token,
-      menuTabs,
-      isManager,
-      selectedTab
-    }
+defineProps({
+  qualifier: {
+    type: Object,
+    required: true
   }
-}
+})
+
+const { isManager } = useSession()
+
+const listOfTabs = [
+  { name: 'Overview' },
+  { name: 'Console', manager: true },
+  { name: 'Configuration', manager: true },
+]
+
+const selectedTab = reactive({
+  value: localStorage.getItem('selectedTab') || 'Overview'
+})
+
+watchEffect(() => localStorage.setItem('selectedTab', selectedTab.value))
+
+const menuTabs = computed(() =>
+  listOfTabs
+    .filter(entry => !entry?.manager || isManager.value)
+    .map(entry => entry.name)
+)
 </script>
 
 <template>

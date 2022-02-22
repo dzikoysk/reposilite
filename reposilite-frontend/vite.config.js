@@ -34,6 +34,6 @@ export default defineConfig({
   },
   define: {
     'process.env': {}, // hack so the json schema ref parser does not error
-    'global': {} // hack so the json schema ref parser does not error
+    'global.process': {} // hack so the json schema ref parser does not error
   }
 })
