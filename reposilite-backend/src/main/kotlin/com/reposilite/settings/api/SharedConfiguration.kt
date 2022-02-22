@@ -180,7 +180,7 @@ class SharedConfiguration : DeserializationHandler<SharedConfiguration> {
 
     @Description("")
     @Description("# LDAP configuration")
-    val ldap = reference(LdapConfiguration())
+    val ldap = mutableReference(LdapConfiguration())
 
     @Contextual
     class LdapConfiguration {
