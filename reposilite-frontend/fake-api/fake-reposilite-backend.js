@@ -40,6 +40,8 @@ let sharedConfiguration = `
 id: reposilite-repository
 `.trim();
 
+let uploadedFiles = []
+
 application
   .get("/", (req, res) => res.send("Reposilite stub API"))
   .use((req, res, next) => {
@@ -146,7 +148,7 @@ application
           content: sharedConfiguration,
         }),
       () => invalidCredentials(res)
-    );
+    )
   })
   .put("/api/settings/content/configuration.shared.cdn", (req, res) => {
     authorized(
@@ -156,7 +158,7 @@ application
         res.send("Success");
       },
       () => invalidCredentials(res)
-    );
+    )
   })
   .get("/api/auth/me", (req, res) => {
     authorized(
@@ -186,24 +188,24 @@ application
           ],
         }),
       () => invalidCredentials(res)
-    );
+    )
   })
   .ws("/api/console/sock", (connection) => {
     let authenticated = false;
 
     connection.on("message", (message) => {
       if (message == "Authorization:name:secret") {
-        sendMessage(connection, "DEBUG | Authorized");
-        authenticated = true;
+        sendMessage(connection, "DEBUG | Authorized")
+        authenticated = true
       }
 
       if (!authenticated || message == "stop") {
-        sendMessage(connection, "Connection closed");
-        connection.close();
-        return;
+        sendMessage(connection, "Connection closed")
+        connection.close()
+        return
       }
 
-      sendMessage(connection, "INFO | Response: " + message);
+      sendMessage(connection, "INFO | Response: " + message)
     });
   })
   .get("/api/maven/details", (req, res) => {
@@ -214,7 +216,17 @@ application
     authorized(req, () =>
       repositories.files.push(createDirectoryDetails("private"))
     );
-    res.send(repositories);
+    res.send(repositories)
+  })
+  .put("*", (req, res) => {
+    authorized(
+      req,
+      () => {
+        sharedConfiguration = req.body;
+        res.send("Success");
+      },
+      () => invalidCredentials(res)
+    )
   })
   .get("*", (req, res) =>
     res.status(404).send({

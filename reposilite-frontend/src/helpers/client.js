@@ -63,6 +63,9 @@ const createClient = (defaultName, defaultSecret) => {
           responseType: 'blob',
           ...defaultAuthorization()
         })
+      },
+      upload(gav, file) {
+        return put(gav, file)
       }
     },
     settings: {
