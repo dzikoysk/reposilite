@@ -47,8 +47,8 @@ const scrollToEnd = () => {
   console.scrollTop = console.scrollHeight
 }
 
-const focusInput = () =>
-  document.getElementById('consoleInput').focus()
+//const focusInput = () =>
+  //document.getElementById('consoleInput').focus()
 
 const setupConnection = () => {
   onOpen.value = () => clearLog()
@@ -62,8 +62,6 @@ const setupConnection = () => {
   createToast('Connecting to the remote console', { type: 'info', })
   const { token } = useSession()
   connect(token.value)
-
-  nextTick(() => setTimeout(() => focusInput(), 1500))
 }
 
 watch(

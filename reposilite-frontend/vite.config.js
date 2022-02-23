@@ -21,7 +21,9 @@ import WindiCSS from 'vite-plugin-windicss'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
-    vue(),
+    vue({
+      reactivityTransform: true // Lack of support in ESLint rules tho
+    }),
     WindiCSS()
   ],
   base:

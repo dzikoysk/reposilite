@@ -40,7 +40,7 @@ const openUrl = (url) =>
       <div v-else class="text-xm px-6 pt-1.75">⚪</div>
       <div class="font-semibold">{{file.name}}</div>
     </div>
-    <div v-if="file.contentLength" class="px-6 flex">
+    <div v-if="file.hasOwnProperty('contentLength')" class="px-6 flex">
       <div v-if="isHumanReadable" :title="`Click to view ${file.name} file content in a new tab`">
         <EyeIcon
           id="view-button"
