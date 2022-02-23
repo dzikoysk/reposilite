@@ -21,13 +21,7 @@ fun createWithParameters(vararg args: String): Reposilite? {
     val parameters = ReposiliteParameters()
     CommandLine(parameters).execute(*args)
 
-    if (parameters.usageHelpRequested) {
-        CommandLine.usage(parameters, System.out)
-        return null
-    }
-
-    if (parameters.versionInfoRequested) {
-        println("Reposilite $VERSION")
+    if (parameters.usageHelpRequested || parameters.versionInfoRequested) {
         return null
     }
 
