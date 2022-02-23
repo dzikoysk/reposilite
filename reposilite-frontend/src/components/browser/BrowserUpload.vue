@@ -1,14 +1,25 @@
 <script setup>
-import { ref } from 'vue';
+import { ref } from 'vue'
+import { createSuccessToast, createErrorToast } from '../../helpers/toast'
+import { useSession } from '../../store/session'
+import useQualifier from '../../helpers/qualifier'
 import FileUpload from 'vue-upload-component'
 
+const { client } = useSession()
+const { qualifier, refreshQualifier } = useQualifier()
 const files = ref([])
 
 const removeFile = (file) =>
   files.value = files.value.filter(element => element !== file)
 
 const uploadFiles = () => {
-  
+  files.value.forEach(vueFile => 
+    client.value.maven.deploy(`${qualifier.path}/${vueFile.name}`, vueFile.file)
+      .then(() => createSuccessToast(`File ${vueFile.name} has been uploaded`))
+      .then(() => removeFile(vueFile))
+      .catch(error => createErrorToast(`Cannot upload file ${vueFile.name} - ${error.response.status}: ${error.response.data.message}`))
+  )
+  refreshQualifier()
 }
 </script>
 
@@ -36,7 +47,7 @@ const uploadFiles = () => {
         <div class="my-3 px-6">
           <div v-if="files.length == 0" class="flex">
             <span class="text-xm pt-1.6">🟣</span>
-            <p class="font-bold px-5">Select files</p>
+            <span class="font-bold px-5">Select files</span>
           </div>
           <div v-else class="py-1">
             <p class="font-bold">Selected files to deploy here</p>
@@ -69,5 +80,8 @@ const uploadFiles = () => {
 <style>
 #browser-upload label {
   @apply cursor-pointer;
+}
+.file-uploads {
+  display: block !important;
 }
 </style>

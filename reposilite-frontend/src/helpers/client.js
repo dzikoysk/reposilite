@@ -64,8 +64,8 @@ const createClient = (defaultName, defaultSecret) => {
           ...defaultAuthorization()
         })
       },
-      upload(gav, file) {
-        return put(gav, file)
+      deploy(gav, file) {
+        return put(`/${gav}`, file)
       }
     },
     settings: {

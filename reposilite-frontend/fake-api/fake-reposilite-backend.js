@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-const express = require("express");
-const ws = require("ws");
-var expressWs = require("express-ws");
+const express = require("express")
+const ws = require("ws")
+const expressWs = require("express-ws")
+const bodyParser = require('body-parser')
 
 const [
   respond,
@@ -55,6 +56,7 @@ application
     next();
   })
   .use(express.text())
+  .use(bodyParser.raw({ limit: '10mb', extended: true }))
   .get(
     "/api/maven/details/snapshots",
     respond(createDirectoryDetails("/snapshot", []))
@@ -222,8 +224,11 @@ application
     authorized(
       req,
       () => {
-        sharedConfiguration = req.body;
-        res.send("Success");
+        uploadedFiles.push({
+          file: req.url,
+          content: req.body
+        })
+        console.log(`File ${req.url} has been uploaded`)
       },
       () => invalidCredentials(res)
     )
@@ -234,6 +239,6 @@ application
       message: "Not found",
     })
   )
-  .listen(80);
+  .listen(80)
 
-console.log("Reposilite stub API started on port 80");
+console.log("Reposilite stub API started on port 80")

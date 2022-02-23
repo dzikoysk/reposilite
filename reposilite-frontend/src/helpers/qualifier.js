@@ -23,11 +23,14 @@ const qualifier = reactive({
   path: ''
 })
 
+const refreshQualifier = () =>
+  qualifier.watchable++
+
 const { details } = useSession()
 
 watch(
   () => details.value,
-  () => qualifier.watchable++
+  () => refreshQualifier()
 )
 
 export default function useQualifier() {
@@ -37,12 +40,13 @@ export default function useQualifier() {
     () => route.params.qualifier,
     newQualifier => {
       qualifier.path = newQualifier
-      qualifier.watchable++
+      refreshQualifier()
     },
     { immediate: true }
   )
 
   return {
-    qualifier
+    qualifier,
+    refreshQualifier
   }
 }
