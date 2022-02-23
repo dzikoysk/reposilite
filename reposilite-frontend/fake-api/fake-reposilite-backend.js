@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-const express = require("express");
-const ws = require("ws");
-var expressWs = require("express-ws");
+const express = require("express")
+const ws = require("ws")
+const expressWs = require("express-ws")
+const bodyParser = require('body-parser')
 
 const [
   respond,
@@ -40,6 +41,8 @@ let sharedConfiguration = `
 id: reposilite-repository
 `.trim();
 
+let uploadedFiles = []
+
 application
   .get("/", (req, res) => res.send("Reposilite stub API"))
   .use((req, res, next) => {
@@ -53,6 +56,7 @@ application
     next();
   })
   .use(express.text())
+  .use(bodyParser.raw({ limit: '10mb', extended: true }))
   .get(
     "/api/maven/details/snapshots",
     respond(createDirectoryDetails("/snapshot", []))
@@ -146,7 +150,7 @@ application
           content: sharedConfiguration,
         }),
       () => invalidCredentials(res)
-    );
+    )
   })
   .put("/api/settings/content/configuration.shared.cdn", (req, res) => {
     authorized(
@@ -156,7 +160,7 @@ application
         res.send("Success");
       },
       () => invalidCredentials(res)
-    );
+    )
   })
   .get("/api/auth/me", (req, res) => {
     authorized(
@@ -186,24 +190,24 @@ application
           ],
         }),
       () => invalidCredentials(res)
-    );
+    )
   })
   .ws("/api/console/sock", (connection) => {
     let authenticated = false;
 
     connection.on("message", (message) => {
       if (message == "Authorization:name:secret") {
-        sendMessage(connection, "DEBUG | Authorized");
-        authenticated = true;
+        sendMessage(connection, "DEBUG | Authorized")
+        authenticated = true
       }
 
       if (!authenticated || message == "stop") {
-        sendMessage(connection, "Connection closed");
-        connection.close();
-        return;
+        sendMessage(connection, "Connection closed")
+        connection.close()
+        return
       }
 
-      sendMessage(connection, "INFO | Response: " + message);
+      sendMessage(connection, "INFO | Response: " + message)
     });
   })
   .get("/api/maven/details", (req, res) => {
@@ -214,7 +218,20 @@ application
     authorized(req, () =>
       repositories.files.push(createDirectoryDetails("private"))
     );
-    res.send(repositories);
+    res.send(repositories)
+  })
+  .put("*", (req, res) => {
+    authorized(
+      req,
+      () => {
+        uploadedFiles.push({
+          file: req.url,
+          content: req.body
+        })
+        console.log(`File ${req.url} has been uploaded`)
+      },
+      () => invalidCredentials(res)
+    )
   })
   .get("*", (req, res) =>
     res.status(404).send({
@@ -222,6 +239,6 @@ application
       message: "Not found",
     })
   )
-  .listen(80);
+  .listen(80)
 
-console.log("Reposilite stub API started on port 80");
+console.log("Reposilite stub API started on port 80")
