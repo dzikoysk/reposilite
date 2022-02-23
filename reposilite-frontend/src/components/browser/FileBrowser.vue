@@ -24,6 +24,7 @@ import AdjustmentsModal from './AdjustmentsModal.vue'
 import Card from '../card/SnippetsCard.vue'
 import Breadcrumb from './BreadcrumbNavigation.vue'
 import BrowserList from './BrowserList.vue'
+import BrowserUpload from './BrowserUpload.vue'
 
 const props = defineProps({
   qualifier: {
@@ -34,7 +35,7 @@ const props = defineProps({
 
 const parentPath = ref('')
 const files = ref({})
-const { client } = useSession()
+const { client, isManager } = useSession()
 const { applyAdjustments } = useAdjustments()
 
 const processedFiles = computed(() => ({
@@ -99,6 +100,7 @@ watch(
             </AdjustmentsModal>
           </div>
           <BrowserList :files="processedFiles" />
+          <BrowserUpload v-if="isManager"/>
         </div>
       </div>
     </div>
