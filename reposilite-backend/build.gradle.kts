@@ -132,6 +132,7 @@ dependencies {
     testImplementation("com.konghq:unirest-objectmapper-jackson:$unirest")
 
     val testcontainers = "1.16.3"
+    testImplementation("org.testcontainers:postgresql:$testcontainers")
     testImplementation("org.testcontainers:mariadb:$testcontainers")
     testImplementation("org.testcontainers:testcontainers:$testcontainers")
     testImplementation("org.testcontainers:junit-jupiter:$testcontainers")

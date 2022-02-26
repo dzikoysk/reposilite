@@ -21,6 +21,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.reposilite.plugin.api.Facade
 import com.reposilite.token.AccessTokenFacade
+import com.reposilite.token.AccessTokenPermission
 import com.reposilite.token.AccessTokenType.PERSISTENT
 import com.reposilite.token.Route
 import com.reposilite.token.RoutePermission
@@ -48,9 +49,13 @@ internal abstract class ReposiliteSpecification : ReposiliteRunner() {
     fun usePredefinedTemporaryAuth(): Pair<String, String> =
         Pair("manager", "manager-secret")
 
-    fun useAuth(name: String, secret: String, routes: Map<String, RoutePermission> = emptyMap()): Pair<String, String> {
+    fun useAuth(name: String, secret: String, permissions: List<AccessTokenPermission> = emptyList(), routes: Map<String, RoutePermission> = emptyMap()): Pair<String, String> {
         val accessTokenFacade = useFacade<AccessTokenFacade>()
         val accessToken = accessTokenFacade.createAccessToken(CreateAccessTokenRequest(PERSISTENT, name, secret)).accessToken
+
+        permissions.forEach {
+            accessTokenFacade.addPermission(accessToken.identifier, it)
+        }
 
         routes.forEach { (route, permission) ->
             accessTokenFacade.addRoute(accessToken.identifier, Route(route, permission))
