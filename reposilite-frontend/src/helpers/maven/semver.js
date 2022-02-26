@@ -1,9 +1,9 @@
 const createSemverComparator = (reversed, filter, toSemver) => {
   // Semver sorting
   // ~ https://github.com/substack/semver-compare/issues/1#issuecomment-594765531
-  const compare = (a, b) => {
-    a = a.split('-'),
-    b = b.split('-')
+  const compare = (rawA, rawB) => {
+    const a = rawA.split('-')
+    const b = rawB.split('-')
     const pa = a[0].split('.')
     const pb = b[0].split('.')
     
