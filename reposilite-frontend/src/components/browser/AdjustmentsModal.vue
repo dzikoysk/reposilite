@@ -20,6 +20,7 @@ import { VueFinalModal } from 'vue-final-modal'
 import Toggle from '@vueform/toggle'
 import '@vueform/toggle/themes/default.css'
 import { useAdjustments } from '../../store/adjustments'
+import CloseIcon from '../icons/CloseIcon.vue'
 
 const { reversedFileOrder, displayHashFiles } = useAdjustments()
 const showAdjustments = ref(false)
@@ -60,7 +61,9 @@ export default {
             />
           </div>
         </div>
-        <button class="absolute top-0 right-0 mt-5 mr-9" @click="showAdjustments = false">🗙</button>
+        <button class="absolute top-0 right-0 mt-5 mr-9" @click="showAdjustments = false">
+          <CloseIcon />
+        </button>
       </div>
     </vue-final-modal>
     <div @click="showAdjustments = true">
