@@ -25,10 +25,8 @@ import com.reposilite.token.api.CreateAccessTokenResponse
 import com.reposilite.token.api.CreateAccessTokenWithNoNameRequest
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
-import com.reposilite.web.http.notFound
+import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.notFoundError
-import com.reposilite.web.http.unauthorized
-import com.reposilite.web.http.unauthorizedError
 import com.reposilite.web.http.errorResponse
 import com.reposilite.web.routing.RouteMethod.DELETE
 import com.reposilite.web.routing.RouteMethod.GET
@@ -86,17 +84,18 @@ internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessToke
     )
     val createOrUpdateToken = ReposiliteRoute<CreateAccessTokenResponse>("/api/tokens/{name}", PUT) {
         managerOnly {
-            response = runCatching { ctx.bodyAsClass<CreateAccessTokenWithNoNameRequest>() }.fold(
-                onSuccess = { request ->
-                    accessTokenFacade.createAccessToken(CreateAccessTokenRequest(request.type, requireParameter("name"), request.secret))
-                        .also { (token) -> request.permissions
-                            .mapNotNull { AccessTokenPermission.findByAny(it) }
-                            .forEach { accessTokenFacade.addPermission(token.identifier, it) }
-                        }
-                        .asSuccess()
-                },
-                onFailure = { errorResponse(HttpCode.BAD_REQUEST, "Failed to read body") }
-            )
+            response = panda.std.Result.attempt { ctx.bodyAsClass<CreateAccessTokenWithNoNameRequest>() }
+                .mapErr { ErrorResponse(HttpCode.BAD_REQUEST, "Failed to read body") }
+                .map { request ->
+                    Pair(
+                        accessTokenFacade.createAccessToken(CreateAccessTokenRequest(request.type, requireParameter("name"), request.secret)),
+                        request.permissions.mapNotNull { AccessTokenPermission.findByAny(it) }
+                    )
+                }
+                .peek { (token, permissions) ->
+                    permissions.forEach { accessTokenFacade.addPermission(token.accessToken.identifier, it) }
+                }
+                .map { (response, _) -> response}
         }
     }
 
