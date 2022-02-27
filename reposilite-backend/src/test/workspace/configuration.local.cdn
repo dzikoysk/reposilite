@@ -2,6 +2,9 @@
 #       Reposilite :: Local       #
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
+# Local configuration contains init params for current Reposilite instance.
+# For more options, shared between instances, login to the dashboard with management token and visit 'Configuration' tab.
+
 # Hostname
 # The hostname can be used to limit which connections are accepted.
 # Use 0.0.0.0 to accept connections from anywhere.

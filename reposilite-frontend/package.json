@@ -1,6 +1,6 @@
 {
   "name": "reposilite-frontend",
-  "version": "3.0.0-alpha.21",
+  "version": "3.0.0-alpha.22",
   "scripts": {
     "dev": "vite",
     "eslint": "eslint src/**",
