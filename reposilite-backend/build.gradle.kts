@@ -49,7 +49,7 @@ dependencies {
     api("org.panda-lang:expressible-kt:$expressible")
     testImplementation("org.panda-lang:expressible-junit:$expressible")
 
-    val cdn = "1.13.8"
+    val cdn = "1.13.10"
     implementation("net.dzikoysk:cdn:$cdn")
     implementation("net.dzikoysk:cdn-kt:$cdn")
 
@@ -65,6 +65,7 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-java-time:$exposed")
     api("net.dzikoysk:exposed-upsert:1.0.3")
     // Threadpool
+    @Suppress("GradlePackageUpdate")
     implementation("com.zaxxer:HikariCP:4.0.3")
     // Drivers
     implementation("org.xerial:sqlite-jdbc:3.36.0.3")
