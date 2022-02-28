@@ -74,7 +74,7 @@ dependencies {
     implementation("org.postgresql:postgresql:42.3.3")
     implementation("com.h2database:h2:2.1.210")
 
-    val springSecurityCrypto = "5.6.1"
+    val springSecurityCrypto = "5.6.2"
     implementation("org.springframework.security:spring-security-crypto:$springSecurityCrypto")
 
     val ldap = "6.0.3"
