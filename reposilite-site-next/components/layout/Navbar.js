@@ -41,7 +41,7 @@ export default function Nav() {
   const { isOpen, onOpen, onClose } = useDisclosure()
 
   return (
-    <Box bg={useColorModeValue('gray.50', 'gray.900')} px={4}>
+    <Box bg={useColorModeValue('white', 'gray.900')} px={4}>
       <Flex h={16} alignItems={'center'} justifyContent={'space-between'}>
         <Box fontWeight={'bold'}>Reposilite</Box>
 

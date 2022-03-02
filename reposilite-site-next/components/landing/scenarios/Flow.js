@@ -30,10 +30,10 @@ const LockedReactFlow = ({ children, elements, style }) => (
       }
       .react-flow__edge-textwrapper {}
       .react-flow__edge-textbg {
-        fill: var(${useColorModeValue('--chakra-colors-gray-100', '--chakra-colors-gray-800')}) !important;
+        fill: var(${useColorModeValue('--chakra-colors-white', '--chakra-colors-gray-800')}) !important;
       }
       .react-flow__edge-text {
-        fill: white !important;
+        fill: ${useColorModeValue('black', 'white')} !important;
       }
     `}</style>
   </ReactFlowProvider>
@@ -42,7 +42,8 @@ const LockedReactFlow = ({ children, elements, style }) => (
 const StyledNode = ({ label, style, flow }) => {
   const title = label === undefined
     ? <></>
-    : <Text>{label}</Text>
+    : <Text as="i">{label}</Text>
+  
   const flowComponent = flow === undefined
     ? <></>
     : <LockedReactFlow

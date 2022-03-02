@@ -1,22 +1,14 @@
 import React from 'react'
 import { Tabs, TabList, TabPanels, Tab, TabPanel, useColorModeValue, Box } from '@chakra-ui/react'
 import { LockedReactFlow } from './Flow'
-import { cloudFlow } from './CloudScenario'
+import { directScenario } from './DirectScenario'
+import { cloudScenario } from './CloudScenario'
+import { mirrorScenario } from './MirrorScenario'
 
 const scenarios = [
-  {
-    name: 'Direct',
-    flow: [
-      { id: '1', type: 'input', data: { label: 'Node 1' }, position: { x: 250, y: 5 } },
-    ]
-  },
-  {
-    name: 'Mirror',
-    flow: [
-      { id: '1', type: 'input', data: { label: 'Node 1' }, position: { x: 250, y: 5 } },
-    ]
-  },
-  cloudFlow
+  directScenario,
+  mirrorScenario,
+  cloudScenario
 ]
 
 export default function Scenarios() {
@@ -45,7 +37,7 @@ export default function Scenarios() {
             <TabPanel key={scenario.name} paddingY={0}>
               <LockedReactFlow
                 elements={scenario.flow}
-                style={{ width: '100%', height: '500px' }}
+                style={{ width: '100%', height: '490px' }}
               />
             </TabPanel>
           ))}
