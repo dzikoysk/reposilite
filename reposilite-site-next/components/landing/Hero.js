@@ -1,9 +1,9 @@
-import { Box, Button, Flex, Heading, Image, Text } from "@chakra-ui/react"
+import { Box, Button, Flex, Heading, Text, useColorModeValue } from "@chakra-ui/react"
 import Scenarios from "./scenarios/Scenarios"
 
 export default function Hero() {
   return (
-    <Flex direction={{ base: 'column', md: 'row' }} paddingTop={'20'} paddingBottom={'16'}>
+    <Flex direction={{ base: 'column', md: 'row' }} paddingTop={'20'} paddingBottom={'8'} justifyContent={'center'}>
       <Box paddingX={{ base: '0', md: '7' }}>
         <Heading>
           Reposilite <Text as="u">3.x</Text>
@@ -19,11 +19,11 @@ export default function Hero() {
           Nexus, Archiva or Artifactory, with reduced resources consumption written in Kotlin 📦
         </Text>
         <Flex paddingTop={7} justifyContent={'space-between'}>
-          <Button w='48%' backgroundColor={'purple.100'}>Get started</Button>
+          <Button w='48%' backgroundColor={useColorModeValue('purple.100', 'purple.500')}>Get started</Button>
           <Button w='48%'>Download</Button>
         </Flex>
       </Box>
-      <Box minWidth="515px" paddingX={7} paddingY={{ base: '7', md: '0'}}>
+      <Box minWidth="515px" paddingX={7} paddingY={{ base: '5', md: '0'}}>
         <Scenarios />
       </Box>
     </Flex>

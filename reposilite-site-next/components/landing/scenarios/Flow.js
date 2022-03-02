@@ -10,7 +10,7 @@ const LockedReactFlow = ({ elements, style }) => (
       draggable={false}
       contentEditable={false}
       paneMoveable={false}
-      preventScrolling={true}
+      panOnScroll={false}
       zoomOnScroll={false}
       zoomOnPinch={false}
       zoomOnDoubleClick={false}

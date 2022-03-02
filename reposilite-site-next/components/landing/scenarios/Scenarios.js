@@ -13,36 +13,38 @@ const scenarios = [
 
 export default function Scenarios() {
   return (
-    <div>
-      <Tabs
-        align="center"
-        variant='soft-rounded'
-        colorScheme='purple'
-        // defaultIndex={scenarios.length - 1}
-        isLazy
-      >
-        <TabList>
-          {scenarios.map(scenario => (
-            <Tab
-              key={scenario.name}
-              paddingTop={'0'}
-              paddingBottom={'0'}
-            >
-              {scenario.name}
-            </Tab>
-          ))}
-        </TabList>
-        <TabPanels padding={0}>
-          {scenarios.map(scenario => (
-            <TabPanel key={scenario.name} paddingY={0}>
-              <LockedReactFlow
-                elements={scenario.flow}
-                style={{ width: '100%', height: '490px' }}
-              />
-            </TabPanel>
-          ))}
-        </TabPanels>
-      </Tabs>
-    </div>
+    <Tabs
+      isLazy
+      variant='soft-rounded'
+      colorScheme='purple'
+      // defaultIndex={scenarios.length - 1}
+      align="center"
+    >
+      <TabList>
+        {scenarios.map(scenario => (
+          <Tab
+            key={scenario.name}
+            paddingTop={'0'}
+            paddingBottom={'0'}
+          >
+            {scenario.name}
+          </Tab>
+        ))}
+      </TabList>
+      <TabPanels padding={0} >
+        {scenarios.map(scenario => (
+          <TabPanel
+            key={scenario.name}
+            paddingY={0}
+            paddingInlineStart={0}
+          >
+            <LockedReactFlow
+              elements={scenario.flow}
+              style={{ width: '100%', height: '490px' }}
+            />
+          </TabPanel>
+        ))}
+      </TabPanels>
+    </Tabs>
   )
 }
