@@ -1,5 +1,5 @@
 import React from 'react'
-import { Tabs, TabList, TabPanels, Tab, TabPanel, useColorModeValue, Box } from '@chakra-ui/react'
+import { Tabs, TabList, TabPanels, Tab, TabPanel, } from '@chakra-ui/react'
 import { LockedReactFlow } from './Flow'
 import { directScenario } from './DirectScenario'
 import { cloudScenario } from './CloudScenario'
@@ -18,8 +18,8 @@ export default function Scenarios() {
         align="center"
         variant='soft-rounded'
         colorScheme='purple'
+        // defaultIndex={scenarios.length - 1}
         isLazy
-        // backgroundColor={'black'}
       >
         <TabList>
           {scenarios.map(scenario => (

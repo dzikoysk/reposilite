@@ -25,14 +25,14 @@ export default function Footer() {
           <VStack>
             <Heading fontSize={16}>Guide</Heading>
             {guideLinks.map(({ title, url }) => (
-              <Link href={url} fontSize={'sm'}>{title}</Link>
+              <Link key={title} href={url} fontSize={'sm'}>{title}</Link>
             ))}
           </VStack>
           <Spacer />
           <VStack>
             <Heading fontSize={16}>Community</Heading>
             {communityLinks.map(({ title, url }) => (
-              <Link href={url} fontSize={'sm'}>{title}</Link>
+              <Link key={title} href={url} fontSize={'sm'}>{title}</Link>
             ))}
           </VStack>
         </Flex>

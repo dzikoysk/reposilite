@@ -1,5 +1,5 @@
-import { Box, Text } from "@chakra-ui/react"
-import { LockedReactFlow, StyledNode } from "./Flow"
+import { Text } from "@chakra-ui/react"
+import { StyledNode } from "./Flow"
 
 const ReposiliteInstance = ({ number, status }) => (
   <Text>

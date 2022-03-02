@@ -1,7 +1,7 @@
 import { Box, Text, useColorModeValue } from '@chakra-ui/react'
 import ReactFlow, { ReactFlowProvider } from 'react-flow-renderer'
 
-const LockedReactFlow = ({ children, elements, style }) => (
+const LockedReactFlow = ({ elements, style }) => (
   <ReactFlowProvider>
     <ReactFlow
       elements={elements}

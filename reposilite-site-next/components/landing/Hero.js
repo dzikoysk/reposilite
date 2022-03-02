@@ -3,8 +3,8 @@ import Scenarios from "./scenarios/Scenarios"
 
 export default function Hero() {
   return (
-    <Flex direction={'row'} paddingTop={'20'} paddingBottom={'16'}>
-      <Box paddingX={7}>
+    <Flex direction={{ base: 'column', md: 'row' }} paddingTop={'20'} paddingBottom={'16'}>
+      <Box paddingX={{ base: '0', md: '7' }}>
         <Heading>
           Reposilite <Text as="u">3.x</Text>
         </Heading>
@@ -12,10 +12,10 @@ export default function Hero() {
           Lightweight and easy-to-use repository manager for Maven based artifacts in JVM ecosystem.
         </Text>
         <Text paddingTop={2}>
-          <Text color="purple.300" fontStyle={'italic'}>
+          <Text as='i' color="purple.300">
             Simple, extensible, scalable and self-hosted
           </Text>
-          alternative to managers like
+          &nbsp;alternative to managers like
           Nexus, Archiva or Artifactory, with reduced resources consumption written in Kotlin 📦
         </Text>
         <Flex paddingTop={7} justifyContent={'space-between'}>
@@ -23,7 +23,7 @@ export default function Hero() {
           <Button w='48%'>Download</Button>
         </Flex>
       </Box>
-      <Box minWidth="515px" paddingX={7}>
+      <Box minWidth="515px" paddingX={7} paddingY={{ base: '7', md: '0'}}>
         <Scenarios />
       </Box>
     </Flex>

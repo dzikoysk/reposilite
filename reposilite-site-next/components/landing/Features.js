@@ -18,7 +18,7 @@ export default function Features() {
   return (
     <Flex justifyContent={'space-between'} flexWrap='wrap' backgroundColor={'gray.50'} borderRadius='2xl' padding={'7'}>
       {features.map(({ title, description }) => (
-        <Box width={'33%'} textAlign='center' paddingY='2'>
+        <Box key={title} width={'33%'} textAlign='center' paddingY='2'>
           <Heading as='h4' size='sm'>{title}</Heading>
           <Box paddingY='5' paddingX='6' fontSize={'sm'}>
             {description}
