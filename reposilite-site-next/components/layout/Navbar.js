@@ -1,24 +1,15 @@
-import { ReactNode } from 'react';
 import {
   Box,
   Flex,
-  Avatar,
   Link,
   Button,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
-  MenuDivider,
-  useDisclosure,
   useColorModeValue,
   Stack,
   HStack,
   useColorMode,
-  Center,
-} from '@chakra-ui/react';
-import { MoonIcon, SunIcon } from '@chakra-ui/icons';
-import { FaGithub, FaTwitter } from 'react-icons/fa'
+} from '@chakra-ui/react'
+import { MoonIcon, SunIcon } from '@chakra-ui/icons'
+import { FaGithub } from 'react-icons/fa'
 
 const link = (label, url) =>
   ({ label, url })

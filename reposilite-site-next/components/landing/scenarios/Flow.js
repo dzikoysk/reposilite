@@ -17,7 +17,6 @@ const LockedReactFlow = ({ elements, style }) => (
       zoomOnDoubleClick={false}
       connectionMode={false}
       nodesConnectable={false}
-      nodesDraggable={false}
       elementsSelectable={false}
     />
     <style jsx global>{`

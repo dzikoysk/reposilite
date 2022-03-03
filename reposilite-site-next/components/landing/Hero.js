@@ -1,10 +1,12 @@
-import { Box, Button, Flex, Heading, Text, useColorModeValue } from "@chakra-ui/react"
+import { Box, Button, Flex, Heading, Link, Text, useColorModeValue } from "@chakra-ui/react"
 import Scenarios from "./scenarios/Scenarios"
 
 const HeroButton = ({ label, description, color, url }) => (
-  <Button aria-label={description} width='48%' backgroundColor={color} href={url}>
-    {label}
-  </Button>
+  <Link href={url} width='48%'>
+    <Button aria-label={description} width='full' backgroundColor={color}>
+      {label}
+    </Button>
+  </Link>
 )
 
 const HeroDescription = () => (
