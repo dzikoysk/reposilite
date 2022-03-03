@@ -4,6 +4,7 @@ import ReactFlow, { ReactFlowProvider } from 'react-flow-renderer'
 const LockedReactFlow = ({ elements, style }) => (
   <ReactFlowProvider>
     <ReactFlow
+      className='nowheel'
       elements={elements}
       style={style}
       nodesDraggable={false}
