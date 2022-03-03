@@ -1,15 +1,22 @@
 import { ChakraProvider } from '@chakra-ui/react'
 import Head from 'next/head'
+import { useEffect, useState } from 'react';
 
-function MyApp({ Component, pageProps }) {
+function App({ Component, pageProps }) {
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   return (
     <ChakraProvider>
       <Head>
         <title>Reposilite - Lightweight repository manager for Maven artifacts</title>
       </Head>
-      <Component {...pageProps} />
+      {mounted && <Component {...pageProps} />}
     </ChakraProvider>
   )
 }
 
-export default MyApp
+export default App

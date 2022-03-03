@@ -1,13 +1,4 @@
-import {
-  Box,
-  Flex,
-  Link,
-  Button,
-  useColorModeValue,
-  Stack,
-  HStack,
-  useColorMode,
-} from '@chakra-ui/react'
+import { Box, Flex, Link, Button, useColorModeValue, useColorMode, Stack, HStack } from '@chakra-ui/react'
 import { MoonIcon, SunIcon } from '@chakra-ui/icons'
 import { FaGithub } from 'react-icons/fa'
 
