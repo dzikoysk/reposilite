@@ -1,22 +1,15 @@
-import { ChakraProvider } from '@chakra-ui/react'
 import Head from 'next/head'
-import { useEffect, useState } from 'react';
+import { Chakra } from '../components/Chakra'
 
-function App({ Component, pageProps }) {
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
+export default function App({ Component, pageProps }) {
   return (
-    <ChakraProvider>
+    <Chakra cookies={pageProps.cookies}>
       <Head>
         <title>Reposilite - Lightweight repository manager for Maven artifacts</title>
       </Head>
-      {mounted && <Component {...pageProps} />}
-    </ChakraProvider>
+      <Component {...pageProps} />
+    </Chakra>
   )
 }
 
-export default App
+export { getServerSideProps } from "../components/Chakra"
