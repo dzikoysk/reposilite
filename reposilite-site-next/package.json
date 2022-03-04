@@ -13,6 +13,7 @@
     "@heroicons/react": "^1.0.5",
     "@nextui-org/react": "^1.0.2-beta.4",
     "framer-motion": "^6.2.8",
+    "gray-matter": "^4.0.3",
     "next": "latest",
     "next-mdx-remote": "^4.0.0",
     "nextjs-color-mode": "^1.0.5",

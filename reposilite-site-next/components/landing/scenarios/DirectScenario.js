@@ -31,7 +31,7 @@ const directScenario = {
     { id: 'plugins', data: { label: <Text>Plugins</Text> }, position: { x: 300, y: 420}, sourcePosition: 'top', targetPosition: 'top' },
     { id: 'maven-reposilite', source: 'maven', target: 'reposilite', animated: true, type: 'smooth', label: '[ Public ]' },
     { id: 'ci-reposilite', source: 'ci', target: 'reposilite', animated: true, type: 'smooth', label: '[ Private ]' },
-    { id: 'reposilite-api', source: 'reposilite', target: 'api',  arrowHeadType: 'arrowclosed', type: 'smooth', label: '~ Possibilities ~', style: { stroke: 'purple' } },
+    { id: 'reposilite-api', source: 'reposilite', target: 'api',  arrowHeadType: 'arrowclosed', type: 'smooth', label: '~ Possibilities ~', style: { stroke: '#9f7aea' } },
     { id: 'rest-api', source: 'api', target: 'rest', animated: true, arrowHeadType: 'arrowclosed', type: 'smooth' },
     { id: 'plugins-api', source: 'api', target: 'plugins', animated: true, arrowHeadType: 'arrowclosed', type: 'smooth' },
   ]
