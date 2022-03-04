@@ -1,4 +1,6 @@
-import { Box, Container, Flex, Heading, Spacer, VStack, useColorModeValue, Text, Link } from "@chakra-ui/react";
+import { Box, Container, Flex, Heading, Spacer, VStack, Text, Link } from "@chakra-ui/react";
+import { ColorModeStyles, useColorModeValue } from "nextjs-color-mode";
+import { chakra } from "../../helpers/chakra-theme";
 
 const link = (title, url) =>
   ({ title, url })
@@ -18,28 +20,33 @@ const communityLinks = [
 ]
 
 export default function Footer() {
+  const [footerBg, footerBgCss] = useColorModeValue('footer-bg', chakra('colors-gray-100'), chakra('colors-gray-900'))
+
   return (
-    <Box backgroundColor={useColorModeValue('gray.100', 'gray.900')} marginTop={'12'}>
-      <Container>
-        <Flex justifyContent={'center'} paddingY={10}>
-          <VStack>
-            <Heading fontSize={16}>Guide</Heading>
-            {guideLinks.map(({ title, url }) => (
-              <Link key={title} href={url} fontSize={'sm'}>{title}</Link>
-            ))}
-          </VStack>
-          <Spacer />
-          <VStack>
-            <Heading fontSize={16}>Community</Heading>
-            {communityLinks.map(({ title, url }) => (
-              <Link key={title} href={url} fontSize={'sm'}>{title}</Link>
-            ))}
-          </VStack>
-        </Flex>
-        <Text textAlign={'center'} paddingY='4' fontSize={'sm'}>
-          Copyright © 2022 dzikoysk with ❤ panda-lang
-        </Text>
-      </Container>
-    </Box>
+    <>
+      <ColorModeStyles styles={[footerBgCss ]} />
+      <Box style={{ backgroundColor: footerBg }} marginTop={'12'}>
+        <Container>
+          <Flex justifyContent={'center'} paddingY={10}>
+            <VStack>
+              <Heading fontSize={16}>Guide</Heading>
+              {guideLinks.map(({ title, url }) => (
+                <Link key={title} href={url} fontSize={'sm'}>{title}</Link>
+              ))}
+            </VStack>
+            <Spacer />
+            <VStack>
+              <Heading fontSize={16}>Community</Heading>
+              {communityLinks.map(({ title, url }) => (
+                <Link key={title} href={url} fontSize={'sm'}>{title}</Link>
+              ))}
+            </VStack>
+          </Flex>
+          <Text textAlign={'center'} paddingY='4' fontSize={'sm'}>
+            Copyright © 2022 dzikoysk with ❤ panda-lang
+          </Text>
+        </Container>
+      </Box>
+    </>
   )
 }

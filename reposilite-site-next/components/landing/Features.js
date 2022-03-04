@@ -1,4 +1,6 @@
-import { Box, Flex, Heading, Link, Text, useColorModeValue } from "@chakra-ui/react";
+import { Box, Flex, Heading, Link, Text } from "@chakra-ui/react";
+import { ColorModeStyles, useColorModeValue } from "nextjs-color-mode";
+import { chakra } from "../../helpers/chakra-theme";
 
 const feature = (title, description) =>
   ({ title, description })
@@ -17,22 +19,27 @@ const features = [
 
 // TODO - Better layout or sth idk
 export default function Features() {
+  const [featuresBg, featuresBgCss] = useColorModeValue('features-bg', chakra('colors-gray-50'), chakra('colors-gray-900'))
+  
   return (
-    <Flex
-      justifyContent={'space-between'}
-      flexWrap='wrap'
-      backgroundColor={useColorModeValue('gray.50', 'gray.900')}
-      borderRadius='2xl'
-      padding={'7'}
-    >
-      {features.map(({ title, description }) => (
-        <Box key={title} width={'33%'} textAlign='center'>
-          <Heading as='h4' size='sm' paddingTop='5'>{title}</Heading>
-          <Box paddingY='3' paddingX='6' fontSize={'sm'}>
-            {description}
+    <>
+      <ColorModeStyles styles={[featuresBgCss]} />
+      <Flex
+        justifyContent={'space-between'}
+        flexWrap='wrap'
+        borderRadius='2xl'
+        padding={'7'}
+        style={{ backgroundColor: featuresBg }}
+      >
+        {features.map(({ title, description }) => (
+          <Box key={title} width={'33%'} textAlign='center'>
+            <Heading as='h4' size='sm' paddingTop='5'>{title}</Heading>
+            <Box paddingY='3' paddingX='6' fontSize={'sm'}>
+              {description}
+            </Box>
           </Box>
-        </Box>
-      ))}
-    </Flex>
+        ))}
+      </Flex>
+    </>
   )
 }

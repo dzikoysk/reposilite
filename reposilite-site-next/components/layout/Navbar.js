@@ -1,6 +1,8 @@
-import { Box, Flex, Link, Button, useColorModeValue, useColorMode, Stack, HStack } from '@chakra-ui/react'
-import { MoonIcon, SunIcon } from '@chakra-ui/icons'
+import { ColorModeStyles, useColorModeValue } from 'nextjs-color-mode'
+import { Box, Flex, Link, Button, Stack, HStack } from '@chakra-ui/react'
 import { FaGithub } from 'react-icons/fa'
+import dynamic from 'next/dynamic'
+import { chakraColor } from '../../helpers/chakra-theme'
 
 const link = (label, url) =>
   ({ label, url })
@@ -12,58 +14,63 @@ const Links = [
   link('Contribute', 'https://github.com/dzikoysk/reposilite')
 ]
 
-const NavLink = ({ link }) => (
-  <Link
-    px={2}
-    py={1}
-    rounded={'md'}
-    _hover={{
-      textDecoration: 'none',
-      bg: useColorModeValue('gray.200', 'gray.700'),
-    }}
-    href={link.url}>
-    {link.label}
-  </Link>
-)
-
-const ThemeButton = () => {
-  const { colorMode, toggleColorMode } = useColorMode()
+const NavLink = ({ link }) => {
+  const [hoverBg, hoverBgCss] = useColorModeValue('nav-link-hover-bg', chakraColor('gray.200'), chakraColor('gray.700'))
 
   return (
-    <Button aria-label='Switch color theme' onClick={toggleColorMode}>
-      {colorMode === 'light' ? <MoonIcon /> : <SunIcon />}
-    </Button>
+    <>
+      <ColorModeStyles styles={[hoverBgCss]}/>
+      <Link
+        href={link.url}
+        _hover={{
+          textDecoration: 'none',
+          bg: hoverBg,
+        }}
+        px={2} py={1} rounded={'md'}
+      >
+        {link.label}
+      </Link>
+    </>
   )
 }
 
-const GitHubButton = () => (
+const ThemeSwitcher = dynamic(() =>
+  import('./ThemeSwitcher'), { ssr: false })
+
+const GitHubButton = ({ style }) => (
   <Link href='https://github.com/dzikoysk/reposilite'>
-    <Button aria-label='Go to project on GitHub'>
+    <Button aria-label='Go to project on GitHub' style={style}>
       <FaGithub />
     </Button>
   </Link>
 )
 export default function Nav() {
-  return (
-    <Box bg={useColorModeValue('white', 'gray.900')} px={4}>
-      <Flex h={16} alignItems={'center'} justifyContent={'space-between'}>
-        <Link href='/'>
-          <Box fontWeight={'bold'}>Reposilite</Box>
-        </Link>
+  const [navbarBg, navbarBgCss] = useColorModeValue('navbar-bg', 'white', chakraColor('gray.900'))
+  const [buttonBg, buttonBgCss] = useColorModeValue('navbar-button-bg', chakraColor('gray.100'), chakraColor('gray.800'))
 
-        <HStack as={'nav'} spacing={3} >
-          {Links.map(link => (
-            <NavLink key={link.label} link={link} />
-          ))}
-        </HStack>
-  
-        <Flex alignItems={'center'}>
-          <Stack direction={'row'} spacing={4}>
-            <ThemeButton />
-            <GitHubButton />
-          </Stack>
+  return (
+    <>
+      <ColorModeStyles styles={[navbarBgCss, buttonBgCss]} />
+      <Box style={{ backgroundColor: navbarBg }} px={4}>
+        <Flex h={16} alignItems={'center'} justifyContent={'space-between'}>
+          <Link href='/'>
+            <Box fontWeight={'bold'}>Reposilite</Box>
+          </Link>
+
+          <HStack as={'nav'} spacing={3} >
+            {Links.map(link => (
+              <NavLink key={link.label} link={link} />
+            ))}
+          </HStack>
+
+          <Flex alignItems={'center'}>
+            <Stack direction={'row'} spacing={4}>
+              <ThemeSwitcher style={{ backgroundColor: buttonBg }} />
+              <GitHubButton style={{ backgroundColor: buttonBg }} />
+            </Stack>
+          </Flex>
         </Flex>
-      </Flex>
-    </Box>
+      </Box>
+    </>
   )
 }

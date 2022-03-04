@@ -1,13 +1,23 @@
-import { Flex } from "@chakra-ui/react";
-import Footer from "./Footer";
-import Nav from "./Navbar";
+import { Box, Flex } from "@chakra-ui/react"
+import { ColorModeStyles, useColorModeValue } from "nextjs-color-mode"
+import { chakra } from "../../helpers/chakra-theme"
+import Footer from "./Footer"
+import Nav from "./Navbar"
 
 export default function Layout({ children }) {
+  const [layoutBg, layoutBgCss] = useColorModeValue('layout-bg', 'white', chakra('colors-gray-800'))
+  const [layoutColor, layoutColorCss] = useColorModeValue('layout-color', 'black', 'white')
+
   return (
-    <Flex minH={'100vh'} flexDirection='column' flexWrap={'wrap'} >
-      <Nav />
-      {children}
-      <Footer />
-    </Flex>
+    <>
+      <ColorModeStyles styles={[layoutBgCss, layoutColorCss]} />
+      <Flex style={{ background: layoutBg, color: layoutColor }} minH={'100vh'} flexDirection='column' flexWrap={'wrap'} >
+        <Nav />
+        <Box minH={'70vh'}>
+          {children}
+        </Box>
+        <Footer />
+      </Flex>
+    </>
   )
 }

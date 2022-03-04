@@ -1,15 +1,21 @@
+import { ChakraProvider } from '@chakra-ui/react'
 import Head from 'next/head'
-import { Chakra } from '../components/Chakra'
+import { ColorModeScript } from 'nextjs-color-mode'
 
-export default function App({ Component, pageProps }) {
+const criticalThemeCss = ``
+
+function MyApp({ Component, pageProps }) {
   return (
-    <Chakra cookies={pageProps.cookies}>
+    <>
       <Head>
-        <title>Reposilite - Lightweight repository manager for Maven artifacts</title>
+        <style dangerouslySetInnerHTML={{ __html: criticalThemeCss }} />
       </Head>
-      <Component {...pageProps} />
-    </Chakra>
+      <ChakraProvider>
+        <ColorModeScript />
+        <Component {...pageProps} />
+      </ChakraProvider>
+    </>
   )
 }
 
-export { getServerSideProps } from "../components/Chakra"
+export default MyApp
