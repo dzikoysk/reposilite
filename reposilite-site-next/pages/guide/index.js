@@ -2,18 +2,19 @@ import { Box, Container, Link } from "@chakra-ui/react"
 import { MDXRemote } from "next-mdx-remote"
 import { getAllGuides } from "../../helpers/mdx"
 import Layout from '../../components/layout/Layout'
+import MDX from "../../components/MDX"
 
 export default function Guide({ guides }) {
   return (
     <Layout>
-      <Container>
-      {guides.map((guide, index) => (
-        <Box key={guide.id}>
-          <Link >{guide.title}</Link>
-          <MDXRemote {...guide.content} />
-        </Box>
-      ))}
-      </Container>
+      <Container maxW='container.lg' marginInlineStart={{ base: '0', sm: 'auto' }}>
+        {guides.map((guide, index) => (
+          <Box key={guide.id} paddingY='20'>
+            <Link >{guide.title}</Link>
+            <MDXRemote components={MDX} {...guide.content} />
+          </Box>
+        ))}
+        </Container>
     </Layout>
   )
 }

@@ -3,6 +3,7 @@ import matter from 'gray-matter'
 import { serialize } from 'next-mdx-remote/serialize'
 import path from 'path'
 import { promisify } from 'util'
+import remarkGfm from 'remark-gfm'
 
 const GUIDE_PATH = path.join(process.cwd(), "data", "guides")
 const PLUGINS_PATH = path.join(process.cwd(), "data", "plugins")
@@ -13,7 +14,9 @@ const readSpecificFile = promisify(readFile)
 function serializeMdx(mdx) {
   return serialize(mdx, {
     mdxOptions: {
-
+      remarkPlugins: [
+        remarkGfm
+      ]
     }
   })
 }

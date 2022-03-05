@@ -20,6 +20,7 @@
     "react": "17.0.2",
     "react-dom": "17.0.2",
     "react-flow-renderer": "^9.7.4",
-    "react-icons": "^4.3.1"
+    "react-icons": "^4.3.1",
+    "remark-gfm": "^3.0.1"
   }
 }
