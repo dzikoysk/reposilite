@@ -8,7 +8,7 @@ const link = (label, url) =>
   ({ label, url })
 
 const Links = [
-  link('Guide', '/guide'),
+  link('Guide', '/guide/about'),
   link('Plugins', '/plugins'),
   link('Support', '/support'),
   link('Contribute', 'https://github.com/dzikoysk/reposilite')

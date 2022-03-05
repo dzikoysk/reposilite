@@ -6,34 +6,36 @@ sidebar_label: Installation
 
 You can download standalone version of Reposilite from GitHub releases page:
 
-* [GitHub Downloads](https://github.com/dzikoysk/reposilite/releases)
+- [GitHub Downloads](https://github.com/dzikoysk/reposilite/releases)
 
 You may also use Docker image available on Docker Hub:
 
-* [DockerHub Repository](https://hub.docker.com/r/dzikoysk/reposilite)
+- [DockerHub Repository](https://hub.docker.com/r/dzikoysk/reposilite)
 
 ## Requirements
-* Java 8+
-* RAM 12MB+
 
-| Amount | Description |
-|:------:|-------------|
-| *12MB* | Tiny repository for personal projects |
-| *16MB* - *32MB* | *--------------------^------------------* + CI + Proxy |
-| *48MB - 128MB* | Tiny public repository *(recommended)* |
-| *128MB+* | Public repository | 
+- Java 8+
+- RAM 12MB+
 
+|     Amount      | Description                                            |
+| :-------------: | ------------------------------------------------------ |
+|     _12MB_      | Tiny repository for personal projects                  |
+| _16MB_ - _32MB_ | _--------------------^------------------_ + CI + Proxy |
+| _48MB - 128MB_  | Tiny public repository _(recommended)_                 |
+|    _128MB+_     | Public repository                                      |
 
 ## Running
+
 To launch Reposilite with defined amount of RAM, use `-Xmx` parameter, for instance:
 
-```console
+```bash
 $ java -Xmx32M -jar reposilite.jar
 ```
 
-If you will not define the memory size, Reposilite will probably use around *~40MB to ~250MB*.
+If you will not define the memory size, Reposilite will probably use around _~40MB to ~250MB_.
 
 ### Interactive CLI
+
 Reposilite exposes interactive console directly in a terminal and it awaits for an input.
 Type `help` and learn more about available commands.
 
@@ -43,6 +45,7 @@ Type `help` and learn more about available commands.
 Read more about tokens and token management commands here: [Authorization](authorization#generate-token).
 
 ### Structure
+
 Reposilite stores data in current [working directory](#working-directory),
 by default it is a place where you've launched it.
 
@@ -66,6 +69,7 @@ user@host ~/workspace: java -jar reposilite.jar
 To separate data files and configuration from application, use [parameters](configuration#parameters).
 
 ### Interface
+
 If Reposilite has been launched properly,
 you should be able to see its frontend located under the default http://localhost:80/#/ address:
 
@@ -75,9 +79,9 @@ To access the console, sign in using the button in the upper right corner.
 
 ### Further reading
 
-* [Generate token to access dashboard](authorization#generate-token)
-* [Deploy artifact](deploy)
+- [Generate token to access dashboard](authorization#generate-token)
+- [Deploy artifact](deploy)
 
 External publications:
 
-* [DEV.to article - Install & deploy your first artifact](https://dev.to/dzikoysk/publishing-your-artifacts-to-the-reposilite-a-new-self-hosted-repository-manager-3n0h)
+- [DEV.to article - Install & deploy your first artifact](https://dev.to/dzikoysk/publishing-your-artifacts-to-the-reposilite-a-new-self-hosted-repository-manager-3n0h)

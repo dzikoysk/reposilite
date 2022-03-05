@@ -4,16 +4,16 @@ title: Reverse proxy
 sidebar_label: Reverse proxy
 ---
 
-Reposilite uses websocket connection to provide remote CLI functionality. 
-Proxing such a connection through services like [Nginx](https://www.nginx.com/) or [Apache](https://httpd.apache.org/) requires additional configuration. 
-
+Reposilite uses websocket connection to provide remote CLI functionality.
+Proxing such a connection through services like [Nginx](https://www.nginx.com/) or [Apache](https://httpd.apache.org/) requires additional configuration.
 
 Related GitHub Issue: [#346](https://github.com/dzikoysk/reposilite/issues/346)
 
 ## Nginx
+
 Note: You can also use Nginx with SSL on [this page](reverse-proxy-ssl)
 
-```conf
+```json5
 map $http_upgrade $connection_upgrade {
     default upgrade;
     '' close;
@@ -24,11 +24,11 @@ upstream reposilite {
     server domain:8081;
 }
 
-server {                                                                                                                                                   
-    server_name domain;                                                                                                                                    
-    listen 80;                                                                                                                                                
-    listen [::]:80;                                                                                                                                           
-    access_log /var/log/nginx/reverse-access.log;                                                                                                             
+server {
+    server_name domain;
+    listen 80;
+    listen [::]:80;
+    access_log /var/log/nginx/reverse-access.log;
     error_log /var/log/nginx/reverse-error.log;
 
     client_max_body_size 50m; # maximum artifact upload size
@@ -41,14 +41,14 @@ server {
         proxy_set_header   X-Forwarded-Proto $scheme;
         proxy_set_header   Upgrade           $http_upgrade;
         proxy_set_header   Connection        $connection_upgrade;
-        proxy_http_version 1.1;    
-    }                                                                                                                                                              
-} 
+        proxy_http_version 1.1;
+    }
+}
 ```
 
 To use custom base path (e.g. `/reposilite`), modify the configuration just like this:
 
-```conf
+```json5
 location /reposilite/ {
     rewrite /reposilite/(.*) /$1 break;
 }
@@ -63,7 +63,7 @@ basePath: /reposilite/
 
 ## Apache
 
-```conf
+```json5
 # reposilite is listening on 127.0.0.1:8081
 RewriteEngine On
 

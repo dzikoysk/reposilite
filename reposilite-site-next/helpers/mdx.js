@@ -4,6 +4,7 @@ import { serialize } from 'next-mdx-remote/serialize'
 import path from 'path'
 import { promisify } from 'util'
 import remarkGfm from 'remark-gfm'
+import rehypePrism from '@mapbox/rehype-prism'
 
 const GUIDE_PATH = path.join(process.cwd(), "data", "guides")
 const PLUGINS_PATH = path.join(process.cwd(), "data", "plugins")
@@ -15,7 +16,10 @@ function serializeMdx(mdx) {
   return serialize(mdx, {
     mdxOptions: {
       remarkPlugins: [
-        remarkGfm
+        remarkGfm,
+      ],
+      rehypePlugins: [
+        rehypePrism
       ]
     }
   })
@@ -33,10 +37,10 @@ export async function getAllGuides() {
         const serializedContent = await serializeMdx(raw)
 
         return {
-          metadata,
-          guide: serializedContent
+          content: serializedContent,
+          ...metadata
         }
       })
+      .sort((a, b) => a.id - b.id)
   )
 }
-

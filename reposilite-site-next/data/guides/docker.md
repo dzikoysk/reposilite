@@ -5,8 +5,9 @@ sidebar_label: Docker
 ---
 
 Reposilite defines two types of builds:
-* tag-based - build is triggered per a new release, recommended for production environments
-* nightly - build is triggered for each commit on master branch, it might be useful for testers and developers
+
+- tag-based - build is triggered per a new release, recommended for production environments
+- nightly - build is triggered for each commit on master branch, it might be useful for testers and developers
 
 ## Installation
 
@@ -20,22 +21,23 @@ $ docker pull dzikoysk/reposilite:3.0.0-alpha.22
 $ docker pull dzikoysk/reposilite:nightly
 ```
 
-Then, 
-just run the image in interactive mode 
-*(to support [interactive CLI](install#interactive-cli))*:
+Then,
+just run the image in interactive mode
+_(to support [interactive CLI](install#interactive-cli))_:
 
-```console
+```bash
 $ docker run -it -v reposilite-data:/app/data -p 80:80 dzikoysk/reposilite:nightly
 ```
 
 ### Data persistence
-Reposilite stores data in `/app/data` directory. 
-Since 2.7.0, 
+
+Reposilite stores data in `/app/data` directory.
+Since 2.7.0,
 Reposilite marks this path as externally mounted volume by default.
 To use named volume which can be reused by Docker,
 run docker with `-v` parameter:
 
-```console
+```bash
 $ docker run -it -v reposilite-data:/app/data -p 80:80 dzikoysk/reposilite
 ```
 
@@ -50,6 +52,7 @@ $ docker run -e JAVA_OPTS='-Xmx128M -Dreposilite.port=8080' -p 8080:80 dzikoysk/
 You can find list of configuration properties in [configuration](configuration) chapter.
 
 ### Custom parameters
+
 To pass custom parameters described in [installation#properties](install#properties), use `REPOSILITE_OPTS` variable:
 
 ```shell-session
@@ -60,11 +63,12 @@ $ docker run -e REPOSILITE_OPTS='--config=/app/data/custom.cdn' -p 80:80 dzikoys
 It is not recommended to modify this property.
 
 ### External configuration
+
 You can mount external configuration file using the `--mount` and `--config` parameter.
-Before that, you have to make sure the the configuration file already exists on Docker host. 
+Before that, you have to make sure the the configuration file already exists on Docker host.
 To launch Reposilite with a custom configuration, we have to mount proper file:
 
-```console
+```bash
 $ docker run -it \
   --mount type=bind,source=/etc/reposilite/reposilite.cdn,target=/app/reposilite-host.cdn \
   -e REPOSILITE_OPTS='--config=/app/reposilite-host.cdn' \
@@ -73,10 +77,11 @@ $ docker run -it \
   dzikoysk/reposilite
 ```
 
-As you can see, it is not best solution and as long as possible, 
+As you can see, it is not best solution and as long as possible,
 you should override default configuration values using the [custom properties](#custom-properties).
 
 ### ARM-based systems
+
 To run Reposilite under docker on an ARM-based system, you'll have to build the image yourself, since the current pipeline doesn't support building multi-arch images, only building for X86 at the moment.
 
 The following Dockerfile should work:
@@ -112,7 +117,7 @@ ENTRYPOINT exec java $JAVA_OPTS -jar reposilite.jar -wd=/app/data $REPOSILITE_OP
 
 Save the file locally as `Dockerfile` and build it:
 
-```console
+```bash
 $ docker build . -t reposilite-arm
 ```
 

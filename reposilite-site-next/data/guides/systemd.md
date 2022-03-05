@@ -7,7 +7,7 @@ sidebar_label: Systemd
 You can launch Reposilite as a service using [systemd](https://en.wikipedia.org/wiki/Systemd).
 Here is an example configuration of `/etc/systemd/system/reposilite.service` file:
 
-```conf
+```json5
 [Unit]
 Description=Reposilite Service
 
