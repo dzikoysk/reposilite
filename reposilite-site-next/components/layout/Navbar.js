@@ -52,18 +52,20 @@ export default function Nav() {
     <>
       <ColorModeStyles styles={[navbarBgCss, buttonBgCss]} />
       <Box style={{ backgroundColor: navbarBg }} px={4}>
-        <Flex h={16} alignItems={'center'} justifyContent={'space-between'}>
-          <Link href='/'>
+        <Flex
+          alignItems={'center'}
+          justifyContent={'space-between'}
+          direction={{ base: 'column', md: 'row' }}
+        >
+          <Link href='/' py={4}>
             <Box fontWeight={'bold'}>Reposilite</Box>
           </Link>
-
           <HStack as={'nav'} spacing={3} >
             {Links.map(link => (
               <NavLink key={link.label} link={link} />
             ))}
           </HStack>
-
-          <Flex alignItems={'center'}>
+          <Flex alignItems={'center'} py={4}>
             <Stack direction={'row'} spacing={4}>
               <ThemeSwitcher style={{ backgroundColor: buttonBg }} />
               <GitHubButton style={{ backgroundColor: buttonBg }} />

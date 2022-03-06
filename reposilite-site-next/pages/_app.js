@@ -2,7 +2,10 @@ import { ChakraProvider } from '@chakra-ui/react'
 import Head from 'next/head'
 import { ColorModeScript } from 'nextjs-color-mode'
 
-const criticalThemeCss = ``
+const criticalThemeCss = `
+html {
+  min-width: 460px;
+}`
 
 function MyApp({ Component, pageProps }) {
   return (

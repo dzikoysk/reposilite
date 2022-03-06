@@ -11,7 +11,13 @@ export default function Layout({ children }) {
   return (
     <>
       <ColorModeStyles styles={[layoutBgCss, layoutColorCss]} />
-      <Flex style={{ background: layoutBg, color: layoutColor }} minH={'100vh'} flexDirection='column' flexWrap={'wrap'} >
+      <Flex
+        style={{ background: layoutBg, color: layoutColor }}
+        minH={'100vh'}
+        flexDirection='column'
+        flexWrap={'wrap'}
+        minWidth={'100vw'}
+      >
         <Nav />
         <Box minH={'70vh'}>
           {children}

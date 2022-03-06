@@ -4,19 +4,19 @@ import { chakraColor } from "../../helpers/chakra-theme"
 import Scenarios from "./scenarios/Scenarios"
 
 const HeroButton = ({ label, description, url, style }) => (
-  <Link href={url} width='48%'>
+  <Link href={url} width='48%' paddingTop={7}>
     <Button aria-label={description} width='full' style={style}>
       {label}
     </Button>
   </Link>
 )
 
-const HeroDescription = () => {
+const HeroDescription = ({ style }) => {
   const [ startBg, startBgCss ] = useColorModeValue('get-started-bg', chakraColor('purple.100'), chakraColor('purple.500'))
   const [ downloadBg, downloadBgCss ] = useColorModeValue('download-bg', chakraColor('gray.100'), chakraColor('gray.600'))
   
   return (
-    <>
+    <Box style={style}>
       <ColorModeStyles styles={[startBgCss, downloadBgCss]} />
       <Box paddingX={{ base: '0', md: '7' }}>
         <Heading>
@@ -30,7 +30,7 @@ const HeroDescription = () => {
           &nbsp;alternative to managers like
           Nexus, Archiva or Artifactory, with reduced resources consumption written in Kotlin 📦
         </Text>
-        <Flex paddingTop={7} justifyContent={'space-between'}>
+        <Flex justifyContent={'space-between'}>
           <HeroButton
             label='Get started'
             description='Get started - Learn about Reposilite'
@@ -45,19 +45,24 @@ const HeroDescription = () => {
           />
         </Flex>
       </Box>
-    </>
+    </Box>
   )
 }
 
 const HeroScenarios = () => (
-  <Box minWidth="515px" paddingX={7} paddingY={{ base: '5', md: '0'}}>
+  <Box paddingTop={{ base: 8, lg: 0}}>
     <Scenarios />
   </Box>
 )
 
 export default function Hero() {
   return (
-    <Flex direction={{ base: 'column', md: 'row' }} paddingTop={'20'} paddingBottom={'8'} justifyContent={'center'}>
+    <Flex
+      direction={{ base: 'column', lg: 'row' }}
+      paddingTop={{ base: 6, lg: 20 }}
+      paddingBottom={8}
+      justifyContent={'center'}
+    >
       <HeroDescription />
       <HeroScenarios />
     </Flex>
