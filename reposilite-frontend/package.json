@@ -30,7 +30,7 @@
     "vue3-tabs": "^0.1.12"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^2.2.2",
+    "@vitejs/plugin-vue": "^2.2.4",
     "@vue/compiler-sfc": "^3.2.31",
     "body-parser": "^1.19.2",
     "concurrently": "^7.0.0",
