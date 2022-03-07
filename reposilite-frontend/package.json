@@ -25,7 +25,7 @@
     "vue-axios": "^3.4.1",
     "vue-final-modal": "^3.4.3",
     "vue-prism-editor": "^2.0.0-alpha.2",
-    "vue-router": "^4.0.12",
+    "vue-router": "^4.0.13",
     "vue-upload-component": "^3.1.2",
     "vue3-tabs": "^0.1.12"
   },
