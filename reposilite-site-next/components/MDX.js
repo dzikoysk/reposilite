@@ -1,4 +1,4 @@
-import { Code, Heading, Link, ListItem, Table, Tbody, Td, Text, Th, Thead, Tr, UnorderedList } from "@chakra-ui/react";
+import { Box, Code, Heading, Link, ListItem, Table, Tbody, Td, Text, Th, Thead, Tr, UnorderedList } from "@chakra-ui/react";
 
 export default {
   a: (props) => <Link color={'purple.500'} {...props} />,
@@ -8,19 +8,33 @@ export default {
   h3: (props) => <Heading as='h3' size={'md'} paddingY={'2'} {...props} />,
   h4: (props) => <Heading as='h4' size={'sm'} paddingY={'2'} {...props} />,
   h5: (props) => <Heading as='h5' size={'xs'} paddingY={'2'} {...props} />,
+  /// ```text```
   pre: (props) => (
-    <Code
-      wordBreak={'break-all'}
-      whiteSpace={'pre'}
-      width='full'
-      size={'sm'}
+    <Box
+      border="1px solid black"
+      background={'#282a36'}
       marginY='4'
-      padding='3'
-      border='1px solid lightgray'
+      overflow='x-auto'
+      borderRadius='md'
+    >
+      <pre {...props} />
+    </Box>
+  ),
+  // `text`
+  code: (props) => (
+    <Code
+      fontSize={'xs'}
+      // border='1px solid green'
+      maxWidth={'full'}
+      background='purple.100'
+      borderRadius={'full'}
+      whiteSpace={'pre'}
+      wordSpacing={'normal'}
+      wordBreak={'normal'}
+      //paddingX='2'
       {...props}
     />
   ),
-  code: (props) => <Code wordBreak={'break-all'} whiteSpace={'pre'} {...props} />,
   table: (props) => (
     <Table
       variant={'simple'}

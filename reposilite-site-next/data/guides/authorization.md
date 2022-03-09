@@ -27,7 +27,7 @@ $ token-generate [--secret=<secret>] <name> [<permissions>]
 ```
 
 As an example, we can generate access token for `root`:
-```bash
+```batch
 $ token-generate root m
 14:17:57.400 INFO | Generated new access token for root with 'm' permissions. Secret:
 14:17:57.400 INFO | klRvqUGjxCAPnKpmmKCLlXnQhm4w06/aYQSFFgvjUjPkjG+HpwMAokO7BL+sIvJb
