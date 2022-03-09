@@ -53,10 +53,10 @@ dependencies {
     implementation("net.dzikoysk:cdn:$cdn")
     implementation("net.dzikoysk:cdn-kt:$cdn")
 
-    val awssdk = "2.17.133"
+    val awssdk = "2.17.143"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
-    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.163")
+    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.172")
 
     val exposed = "0.37.3"
     implementation("org.jetbrains.exposed:exposed-core:$exposed")
@@ -74,7 +74,7 @@ dependencies {
     implementation("org.postgresql:postgresql:42.3.3")
     implementation("com.h2database:h2:2.1.210")
 
-    val springSecurityCrypto = "5.6.1"
+    val springSecurityCrypto = "5.6.2"
     implementation("org.springframework.security:spring-security-crypto:$springSecurityCrypto")
 
     val ldap = "6.0.3"
