@@ -1,6 +1,7 @@
 import { ChakraProvider } from '@chakra-ui/react'
 import Head from 'next/head'
 import { ColorModeScript } from 'nextjs-color-mode'
+import '../components/MDX.css'
 
 const criticalThemeCss = `
 html {

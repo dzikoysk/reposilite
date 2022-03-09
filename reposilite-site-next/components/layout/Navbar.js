@@ -15,18 +15,19 @@ const Links = [
 ]
 
 const NavLink = ({ link }) => {
+  const [linkBg, linkBgCss] = useColorModeValue('nav-link-bg', 'white', chakraColor('gray.900'))
   const [hoverBg, hoverBgCss] = useColorModeValue('nav-link-hover-bg', chakraColor('gray.200'), chakraColor('gray.700'))
 
   return (
     <>
-      <ColorModeStyles styles={[hoverBgCss]}/>
+      <ColorModeStyles styles={[linkBgCss, hoverBgCss]}/>
       <Link
         href={link.url}
-        _hover={{
-          textDecoration: 'none',
-          bg: hoverBg,
-        }}
-        px={2} py={1} rounded={'md'}
+        px={2}
+        py={1}
+        rounded={'md'}
+        backgroundColor={linkBg}
+        _hover={{ textDecoration: 'none', bg: hoverBg }}
       >
         {link.label}
       </Link>
@@ -51,7 +52,7 @@ export default function Nav() {
   return (
     <>
       <ColorModeStyles styles={[navbarBgCss, buttonBgCss]} />
-      <Box style={{ backgroundColor: navbarBg }} px={4}>
+      <Box style={{ backgroundColor: navbarBg }} px={10}>
         <Flex
           alignItems={'center'}
           justifyContent={'space-between'}
