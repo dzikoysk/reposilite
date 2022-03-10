@@ -5,6 +5,7 @@ import path from 'path'
 import { promisify } from 'util'
 import remarkGfm from 'remark-gfm'
 import rehypePrism from '@mapbox/rehype-prism'
+import { categories } from '../data/guides/guides'
 
 const GUIDE_PATH = path.join(process.cwd(), "data", "guides")
 const PLUGINS_PATH = path.join(process.cwd(), "data", "plugins")
@@ -25,22 +26,45 @@ function serializeMdx(mdx) {
   })
 }
 
-export async function getAllGuides() {
-  const guides = await readDirectory(GUIDE_PATH)
+export async function getGuideCategories() {
+  return Promise.all(categories.map(async category => await readCategory(category)))
+}
 
-  return await Promise.all(
-    guides
-      .filter(path => /\.mdx?$/.test(path))
-      .map(async (guide) => {
-        const content = await readSpecificFile(path.join(GUIDE_PATH, guide))
-        const { content: raw, data: metadata } = matter(content)
-        const serializedContent = await serializeMdx(raw)
+async function readCategory(category) {
+  return ({
+    name: category.name,
+    content: await Promise.all(category.content
+      .map(async guideId => {
+        const { title } = await readGuideById(guideId)
 
         return {
-          content: serializedContent,
-          ...metadata
+          id: guideId,
+          title
         }
-      })
-      .sort((a, b) => a.id - b.id)
-  )
+      }))
+  })
+}
+
+export async function getPlugins() {
+  const plugins = await readDirectory(PLUGINS_PATH)
+  return Promise.all(plugins.map(async file => readMdx(path.join(PLUGINS_PATH, file))))
+}
+
+export async function readGuideById(id) {
+  return readMdx(path.join(GUIDE_PATH, id.endsWith('md') ? id : `${id}.md`))
+}
+
+export async function readPluginById(id) {
+  return readMdx(path.join(PLUGINS_PATH, id.endsWith('md') ? id : `${id}.md`))
+}
+
+export async function readMdx(file) {
+  const content = await readSpecificFile(file)
+  const { content: raw, data: metadata } = matter(content)
+  const serializedContent = await serializeMdx(raw)
+
+  return {
+    content: serializedContent,
+    ...metadata
+  }
 }

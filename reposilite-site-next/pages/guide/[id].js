@@ -1,16 +1,25 @@
-import { Box, Container, Flex, Heading, Link, Text } from "@chakra-ui/react"
+import { Box, Flex, Heading, Link, Text } from "@chakra-ui/react"
 import { MDXRemote } from "next-mdx-remote"
-import { getAllGuides } from "../../helpers/mdx"
+import { getGuideCategories, readGuideById } from "../../helpers/mdx"
 import Layout from '../../components/layout/Layout'
 import MDX from "../../components/MDX"
 
-const GuideMenu = ({ guides }) => {
+const GuideMenu = ({ categories }) => {
   return (
     <>
-      {guides.map(guide => (
-        <Link key={guide.id} href={`/guide/${guide.id}`}>
-          <Text marginBottom='1' whiteSpace={'nowrap'} wordBreak={'keep-all'}>{guide.title}</Text>
-        </Link>
+      {categories.map(category => (
+        <Box key={category.name} paddingBottom={3}>
+          <Heading as='h1' size='sm' paddingBottom={3}>
+            {category.name}
+          </Heading>
+          {category.content.map(guide => (
+            <Box key={guide.id} marginBottom='1' paddingLeft={4}>
+              <Link whiteSpace={'nowrap'} wordBreak={'keep-all'} href={`/guide/${guide.id}`}>
+                {guide.title}
+              </Link>
+            </Box>
+          ))}
+        </Box>
       ))}
     </>
   )
@@ -31,13 +40,13 @@ const GuideView = ({ selected }) => {
   )
 }
 
-export default function Guide({ guides, selected }) {
+export default function Guide({ categories, selected }) {
   return (
     <Layout>
       <Box maxW={{ base: '95vw', md: 'container.md', xl: 'container.xl' }} mx='auto'>
         <Flex direction={{ base: 'column', md: 'row' }}>
           <Box paddingTop='12' mx='auto' paddingLeft='6' paddingRight={{ base: 6, md: 16 }}>
-            <GuideMenu guides={guides} />
+            <GuideMenu categories={categories} />
           </Box>
           <Box maxW='70%' mx='auto' paddingTop='6' paddingRight={{ base: 0, md: 6 }} position='relative'>
             <GuideView selected={selected} />
@@ -49,26 +58,28 @@ export default function Guide({ guides, selected }) {
 }
 
 export async function getStaticProps({ params: { id } }) {
-  const guides = await getAllGuides()
-  const selectedGuide = guides.find(element => element.id === id)
+  const categories = await getGuideCategories()
+  const selectedGuide = await readGuideById(id)
 
   return {
     props: {
-      guides: guides,
+      categories,
       selected: selectedGuide
     }
   }
 }
 
 export async function getStaticPaths() {
-  const guides = await getAllGuides()
+  const categories = await getGuideCategories()
 
   return {
-    paths: guides.map((guideEntry, index) => ({
-      params: {
-        id: guideEntry.id
-      }
-    })),
+    paths: categories
+      .flatMap(category => category.content)
+      .map(guide => ({
+        params: {
+          id: guide.id
+        }
+      })),
     fallback: false
   }
 }
