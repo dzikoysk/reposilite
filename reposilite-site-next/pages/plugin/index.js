@@ -31,7 +31,7 @@ export default function Guide({ plugins }) {
   return (
     <Layout>
       <ColorModeStyles styles={[cardBgCss, cardBorderCss]} />
-      <Box maxW={{ base: '95vw', md: 'container.md', xl: 'container.xl' }} mx='auto'>
+      <Box maxW={{ base: '95vw', md: 'container.md' }} mx='auto'>
         <Flex direction={{ base: 'column' }} justifyContent={'space-around'}>
           {loadedPlugins.map(plugin => (
             <Box
@@ -58,17 +58,17 @@ export default function Guide({ plugins }) {
                 </Text>
               </Box>
               <Box paddingLeft={7}>
-                <Link href={`/plugin/${plugin.id}`}>
-                  <Flex>
-                    <Heading size={'md'}>{plugin.title}</Heading>
-                    <Text paddingX={4} paddingBottom={0.5}>
-                      {plugin.official
-                        ? <Badge colorScheme={'purple'} variant={'outline'}>Official</Badge>
-                        : <Badge>3rd party</Badge>}
-                    </Text>
-                  </Flex>
-                  <Text>{plugin.description}</Text>
-                </Link>
+                <Flex>
+                  <Heading size={'md'}>
+                    <Link href={`/plugin/${plugin.id}`}>{plugin.title}</Link>
+                  </Heading>
+                  <Text paddingX={4} paddingBottom={0.5}>
+                    {plugin.official
+                      ? <Badge colorScheme={'purple'} variant={'outline'}>Official</Badge>
+                      : <Badge>3rd party</Badge>}
+                  </Text>
+                </Flex>
+                <Text>{plugin.description}</Text>
               </Box>
             </Box>
           ))}

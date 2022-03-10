@@ -1,5 +1,7 @@
 import { Box, Code, Heading, Link, ListItem, Table, Tbody, Td, Text, Th, Thead, Tr, UnorderedList } from "@chakra-ui/react";
 
+// todo: add dark/light switch on top of the next-color-mode library
+
 export default {
   a: (props) => <Link color={'purple.400'} {...props} />,
   p: (props) => <Text paddingY={'2'} {...props} />,

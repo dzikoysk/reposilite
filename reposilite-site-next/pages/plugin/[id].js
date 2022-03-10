@@ -15,7 +15,7 @@ const GitHubLink = ({ url, children }) => {
 export default function Plugin({ plugin }) {
   return (
     <Layout>
-      <Container marginTop={6}>
+      <Container maxW={'container.md'} marginTop={6}>
         <Breadcrumb spacing='8px' separator={<ChevronRightIcon color='gray.500' />}>
           <BreadcrumbItem>
             <BreadcrumbLink href='/plugin'>Plugins</BreadcrumbLink>

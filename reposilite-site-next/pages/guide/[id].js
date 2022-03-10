@@ -1,14 +1,15 @@
-import { Box, Flex, Heading, Link, Text } from "@chakra-ui/react"
+import { Box, Breadcrumb, BreadcrumbItem, BreadcrumbLink, Flex, Heading, Link, Text } from "@chakra-ui/react"
 import { MDXRemote } from "next-mdx-remote"
 import { getGuideCategories, readGuideById } from "../../helpers/mdx"
 import Layout from '../../components/layout/Layout'
 import MDX from "../../components/MDX"
+import { ChevronRightIcon } from "@chakra-ui/icons"
 
 const GuideMenu = ({ categories }) => {
   return (
     <>
       {categories.map(category => (
-        <Box key={category.name} paddingBottom={3}>
+        <Box key={category.name} paddingBottom={2} paddingTop={1}>
           <Heading as='h1' size='sm' paddingBottom={3}>
             {category.name}
           </Heading>
@@ -28,9 +29,19 @@ const GuideMenu = ({ categories }) => {
 const GuideView = ({ selected }) => {
   return (
     <>
-      <Link>
-        <Heading as='h1' paddingY='4'>{selected.title}</Heading>
-      </Link>
+      <Breadcrumb spacing='8px' separator={<ChevronRightIcon color='gray.500' />}>
+        <BreadcrumbItem>
+          <BreadcrumbLink href='/guide/about'>Guide</BreadcrumbLink>
+        </BreadcrumbItem>
+        <BreadcrumbItem isCurrentPage>
+            <BreadcrumbLink href={`/guide/${selected.id}`}>{selected.title}</BreadcrumbLink>
+        </BreadcrumbItem>
+      </Breadcrumb>
+      <Box paddingY='4' paddingTop={6}>
+        <Link href={`#${selected.title}`}>
+          <Heading as='h1'>{selected.title}</Heading>
+        </Link>
+      </Box>
       <MDXRemote
         maxWidth={'10vw'}
         components={MDX}
@@ -45,10 +56,10 @@ export default function Guide({ categories, selected }) {
     <Layout>
       <Box maxW={{ base: '95vw', md: 'container.md', xl: 'container.xl' }} mx='auto'>
         <Flex direction={{ base: 'column', md: 'row' }}>
-          <Box paddingTop='12' mx='auto' paddingLeft='6' paddingRight={{ base: 6, md: 16 }}>
+          <Box paddingTop='24' mx='auto' paddingLeft='6' paddingRight={{ base: 6, md: 16 }}>
             <GuideMenu categories={categories} />
           </Box>
-          <Box maxW='70%' mx='auto' paddingTop='6' paddingRight={{ base: 0, md: 6 }} position='relative'>
+          <Box maxW='70%' mx='auto' paddingTop='10' paddingRight={{ base: 0, md: 6 }} position='relative'>
             <GuideView selected={selected} />
           </Box>
         </Flex>

@@ -310,7 +310,7 @@ pre[class*="language-"] {
 .token.atrule,
 .token.attr-name,
 .token.attr-value {
-  color: var(--green);
+  color: var(--foreground);
 }
 
 .language-css .token.atrule {
@@ -369,7 +369,7 @@ pre[class*="language-"] {
 }
 
 .token.function {
-  color: var(--green);
+  color: var(--foreground);
 }
 
 .language-css .token.function {
