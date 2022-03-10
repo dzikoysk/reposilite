@@ -9,7 +9,7 @@ const link = (label, url) =>
 
 const Links = [
   link('Guide', '/guide/about'),
-  link('Plugins', '/plugins'),
+  link('Plugins', '/plugin'),
   link('Support', '/support'),
   link('Contribute', 'https://github.com/dzikoysk/reposilite')
 ]

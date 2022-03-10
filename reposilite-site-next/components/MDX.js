@@ -1,7 +1,7 @@
 import { Box, Code, Heading, Link, ListItem, Table, Tbody, Td, Text, Th, Thead, Tr, UnorderedList } from "@chakra-ui/react";
 
 export default {
-  a: (props) => <Link color={'purple.500'} {...props} />,
+  a: (props) => <Link color={'purple.400'} {...props} />,
   p: (props) => <Text paddingY={'2'} {...props} />,
   h1: (props) => <Heading as='h1' size={'xl'} paddingY={'2'} {...props} />,
   h2: (props) => <Heading as='h2' size={'lg'} paddingY={'2'} {...props} />,
@@ -24,25 +24,31 @@ export default {
   code: (props) => (
     <Code
       fontSize={'xs'}
-      // border='1px solid green'
       maxWidth={'full'}
       background='purple.100'
       borderRadius={'full'}
       whiteSpace={'pre'}
       wordSpacing={'normal'}
       wordBreak={'normal'}
-      //paddingX='2'
+      paddingX='2'
       {...props}
     />
   ),
   table: (props) => (
-    <Table
-      variant={'simple'}
-      size={'sm'}
-      colorScheme={'purple'}
-      marginY='5'
-      {...props}
-    />
+    <Box
+      paddingX='4'
+      paddingY='2'
+      border='1px'
+      borderColor={'gray.200'}
+      borderRadius='lg'
+      marginY='4'
+    >
+      <Table
+        variant={'simple'}
+        size={'xs'}
+        {...props}
+      />
+    </Box>
   ),
   thead: (props) => <Thead {...props} />,
   tbody: (props) => <Tbody {...props} />,

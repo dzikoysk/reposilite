@@ -53,7 +53,7 @@ by default it is a place where you've launched it.
 user@host ~/workspace: java -jar reposilite.jar
 ```
 
-```
+```bash
 ~workspace/
 +--repositories/        The root directory for all declared repositories
    +--private/          Default private repository
