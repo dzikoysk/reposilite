@@ -1,0 +1,4 @@
+---
+id: manual
+title: Manual
+---

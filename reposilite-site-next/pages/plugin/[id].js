@@ -30,7 +30,7 @@ export default function Plugin({ plugin }) {
         </Text>
         <Text>
           Authors: {plugin.authors.map(author => (
-            <Text as='abbr'>
+            <Text key={author} as='abbr'>
               <GitHubLink url={author}>{author}</GitHubLink>
               {[...plugin.authors].pop() !== author ? <>,&nbsp;</> : <></>}
             </Text>

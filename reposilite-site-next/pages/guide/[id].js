@@ -70,7 +70,15 @@ export default function Guide({ categories, selected }) {
 
 export async function getStaticProps({ params: { id } }) {
   const categories = await getGuideCategories()
-  const selectedGuide = await readGuideById(id)
+  const selectedCategory = categories.find(category => {
+    console.log(category)
+    return category.content.find(guide => {
+      console.log(guide)
+      return guide.id == id
+    })
+  })
+  console.log(selectedCategory)
+  const selectedGuide = await readGuideById(selectedCategory.directory, id)
 
   return {
     props: {
