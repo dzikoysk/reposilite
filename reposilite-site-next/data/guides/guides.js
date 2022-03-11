@@ -1,20 +1,52 @@
 const categories = [
   {
     name: 'Introduction',
+    directory: 'introduction',
     content: [
       'about',
-      'authorization',
-      'install',
-      'deploy',
-      'faq'
+      'comparison',
+      'support'
     ]
   },
   {
-    name: 'Services',
-    content: []
+    name: 'Installation',
+    directory: 'installation',
+    content: [
+      'manual',
+      'docker',
+      'k8s'
+    ]
+  },
+  {
+    name: 'Authentication',
+    directory: 'authentication',
+    content: [
+      'tokens',
+      'routes',
+      'ldap'
+    ]
+  },
+  {
+    name: 'Features',
+    directory: 'features',
+    content: [
+      'repositories',
+      'deployment',
+      'proxy',
+    ]
+  },
+  {
+    name: 'Integrations',
+    directory: 'integrations',
+    content: [
+      'nginx',
+      'apache',
+      'cloudflare'
+    ]
   },
   {
     name: 'Developers',
+    directory: 'developers',
     content: [
       
     ]

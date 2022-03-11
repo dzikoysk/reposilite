@@ -33,9 +33,10 @@ export async function getGuideCategories() {
 async function readCategory(category) {
   return ({
     name: category.name,
+    directory: category.directory,
     content: await Promise.all(category.content
       .map(async guideId => {
-        const { title } = await readGuideById(guideId)
+        const { title } = await readGuideById(category.directory, guideId)
 
         return {
           id: guideId,
@@ -50,8 +51,8 @@ export async function getPlugins() {
   return Promise.all(plugins.map(async file => readMdx(path.join(PLUGINS_PATH, file))))
 }
 
-export async function readGuideById(id) {
-  return readMdx(path.join(GUIDE_PATH, id.endsWith('md') ? id : `${id}.md`))
+export async function readGuideById(category, id) {
+  return readMdx(path.join(GUIDE_PATH, category, id.endsWith('md') ? id : `${id}.md`))
 }
 
 export async function readPluginById(id) {
