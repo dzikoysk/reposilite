@@ -72,9 +72,17 @@ internal class PreservedBuildsListenerTest : MavenSpecification() {
         val repository = mavenFacade.getRepository(repositoryName)!!
         preservedBuildsListener.onCall(DeployEvent(repository, "$versionId/maven-metadata.xml".toLocation(), "junit"))
 
-        // then: builds 1 & 2 are deleted automatically
+        // then: builds 1 & 2 are deleted automatically, the metadata file should be updated with checksums
         val files = assertOk(repository.getFiles(versionId).map { it.map { file -> file.toString() }})
-        assertCollectionsEquals(listOf("$prefix-20220101213702-3.jar", "$prefix-20220101213702-3.pom", "$versionId/maven-metadata.xml").map { it.toLocation().toString() }, files)
+        assertCollectionsEquals(listOf(
+            "$prefix-20220101213702-3.jar",
+            "$prefix-20220101213702-3.pom",
+            "$versionId/maven-metadata.xml",
+            "$versionId/maven-metadata.xml.md5",
+            "$versionId/maven-metadata.xml.sha1",
+            "$versionId/maven-metadata.xml.sha256",
+            "$versionId/maven-metadata.xml.sha512"
+        ).map { it.toLocation().toString() }, files)
 
         val metadata = assertOk(mavenFacade.findMetadata(repositoryName, versionId))
         assertCollectionsEquals(listOf("1.0.0-20220101213702-3", "1.0.0-20220101213702-4"), metadata.versioning!!.snapshotVersions!!.map { it.value })

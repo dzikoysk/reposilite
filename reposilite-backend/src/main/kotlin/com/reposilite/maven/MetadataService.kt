@@ -50,7 +50,13 @@ internal class MetadataService(
 
     fun saveMetadata(repository: String, gav: Location, metadata: Metadata): Result<Metadata, ErrorResponse> =
         repositoryService.findRepository(repository)
-            .flatMap { it.putFile(gav.resolve(METADATA_FILE), xml.writeValueAsBytes(metadata).inputStream()) }
+            .flatMap {
+                val content = xml.writeValueAsBytes(metadata)
+                val metadataFile = gav.resolve(METADATA_FILE)
+
+                it.putFile(metadataFile, content.inputStream())
+                    .flatMap { _ -> it.writeFileChecksums(metadataFile, content) }
+            }
             .map { metadata }
 
     fun findMetadata(repository: String, gav: Location): Result<Metadata, ErrorResponse> =
