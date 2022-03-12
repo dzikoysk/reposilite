@@ -30,9 +30,13 @@ const categories = [
     name: 'Features',
     directory: 'features',
     content: [
+      'dashboard',
       'repositories',
       'deployment',
       'proxy',
+      'static-files',
+      'plugins',
+      'ssl'
     ]
   },
   {
@@ -43,13 +47,18 @@ const categories = [
       'apache',
       'cloudflare',
       'systemd',
+      'github'
     ]
   },
   {
     name: 'Developers',
     directory: 'developers',
     content: [
-      
+      'sources',
+      'kotlin',
+      'plugin-api',
+      'endpoints',
+      'swagger',
     ]
   }
 ]
