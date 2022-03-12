@@ -2,14 +2,34 @@ import { Box, Code, Heading, Link, ListItem, Table, Tbody, Td, Text, Th, Thead, 
 
 // todo: add dark/light switch on top of the next-color-mode library
 
+function getAnchor(text) {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9 ]/g, '')
+    .replace(/[ ]/g, '-');
+}
+
+const H = ({ children, as, size }) => {
+  const anchor = getAnchor(children)
+
+  return (
+    <Heading id={anchor} as={as} size={size} paddingY={'2'}>
+      <Link className="paragraph" href={`#${anchor}`} marginLeft={-4}>
+        <Text as='abbr' opacity="0" color={'gray.300'} fontWeight='normal'>§ </Text>
+        {children}
+      </Link>
+    </Heading>
+  )
+}
+
 export default {
   a: (props) => <Link color={'purple.400'} {...props} />,
   p: (props) => <Text paddingY={'2'} {...props} />,
-  h1: (props) => <Heading as='h1' size={'xl'} paddingY={'2'} {...props} />,
-  h2: (props) => <Heading as='h2' size={'lg'} paddingY={'2'} {...props} />,
-  h3: (props) => <Heading as='h3' size={'md'} paddingY={'2'} {...props} />,
-  h4: (props) => <Heading as='h4' size={'sm'} paddingY={'2'} {...props} />,
-  h5: (props) => <Heading as='h5' size={'xs'} paddingY={'2'} {...props} />,
+  h1: (props) => <H as='h1' size={'xl'} {...props} />,
+  h2: (props) => <H as='h2' size={'lg'} {...props} />,
+  h3: (props) => <H as='h3' size={'md'} {...props} />,
+  h4: (props) => <H as='h4' size={'sm'} {...props} />,
+  h5: (props) => <H as='h5' size={'xs'} {...props} />,
   /// ```text```
   pre: (props) => (
     <Box

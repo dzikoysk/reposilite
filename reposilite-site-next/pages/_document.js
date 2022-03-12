@@ -5,7 +5,7 @@ export default class Document extends NextDocument {
     return (
       <Html lang='en'>
         <Head>
-          <link rel="shortcut icon" href="/favicon.ico" />
+          <link rel="shortcut icon" href="/images/favicon.png" />
         </Head>
         <body>
           <Main />
