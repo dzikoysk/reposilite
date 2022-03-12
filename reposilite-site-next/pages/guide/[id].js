@@ -4,6 +4,7 @@ import { getGuideCategories, readGuideById } from "../../helpers/mdx"
 import Layout from '../../components/layout/Layout'
 import MDX from "../../components/MDX"
 import { ChevronRightIcon } from "@chakra-ui/icons"
+import Head from "next/head"
 
 const GuideMenu = ({ categories }) => {
   return (
@@ -27,6 +28,9 @@ const GuideMenu = ({ categories }) => {
 }
 
 const GuideView = ({ selected }) => {
+  const { id, title, content } = selected
+  const guideUrl = `/guide/${id}`
+
   return (
     <>
       <Breadcrumb spacing='8px' separator={<ChevronRightIcon color='gray.500' />}>
@@ -34,18 +38,20 @@ const GuideView = ({ selected }) => {
           <BreadcrumbLink href='/guide/about'>Guide</BreadcrumbLink>
         </BreadcrumbItem>
         <BreadcrumbItem isCurrentPage>
-            <BreadcrumbLink href={`/guide/${selected.id}`}>{selected.title}</BreadcrumbLink>
+            <BreadcrumbLink href={guideUrl}>{title}</BreadcrumbLink>
         </BreadcrumbItem>
       </Breadcrumb>
       <Box paddingY='4' paddingTop={6}>
-        <Link href={`#${selected.title}`}>
-          <Heading as='h1'>{selected.title}</Heading>
-        </Link>
+        <Heading as='h1'>
+          <Link href={guideUrl}>
+            {title}
+          </Link>
+        </Heading>
       </Box>
       <MDXRemote
         maxWidth={'10vw'}
         components={MDX}
-        {...selected.content}
+        {...content}
       />
     </> 
   )
@@ -54,6 +60,9 @@ const GuideView = ({ selected }) => {
 export default function Guide({ categories, selected }) {
   return (
     <Layout>
+      <Head>
+        <title>{selected.title} · Guide · Reposilite</title>  
+      </Head>
       <Box maxW={{ base: '95vw', md: 'container.md', xl: 'container.xl' }} mx='auto'>
         <Flex direction={{ base: 'column', md: 'row' }}>
           <Box paddingTop='24' mx='auto' paddingLeft='6' paddingRight={{ base: 6, md: 16 }}>
@@ -70,14 +79,7 @@ export default function Guide({ categories, selected }) {
 
 export async function getStaticProps({ params: { id } }) {
   const categories = await getGuideCategories()
-  const selectedCategory = categories.find(category => {
-    console.log(category)
-    return category.content.find(guide => {
-      console.log(guide)
-      return guide.id == id
-    })
-  })
-  console.log(selectedCategory)
+  const selectedCategory = categories.find(category => category.content.find(guide => guide.id == id))
   const selectedGuide = await readGuideById(selectedCategory.directory, id)
 
   return {

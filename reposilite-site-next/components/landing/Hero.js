@@ -34,7 +34,7 @@ const HeroDescription = ({ style }) => {
           <HeroButton
             label='Get started'
             description='Get started - Learn about Reposilite'
-            url='/guide'
+            url='/guide/about'
             style={{ backgroundColor: startBg }}
           />
           <HeroButton

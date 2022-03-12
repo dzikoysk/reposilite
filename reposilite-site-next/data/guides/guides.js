@@ -41,7 +41,8 @@ const categories = [
     content: [
       'nginx',
       'apache',
-      'cloudflare'
+      'cloudflare',
+      'systemd',
     ]
   },
   {

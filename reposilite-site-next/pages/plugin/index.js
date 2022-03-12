@@ -5,6 +5,7 @@ import { useEffect, useState } from "react"
 import { StarIcon } from "@chakra-ui/icons"
 import { chakraColor } from "../../helpers/chakra-theme"
 import { ColorModeStyles, useColorModeValue } from "nextjs-color-mode"
+import Head from "next/head"
 
 export default function Guide({ plugins }) {
   const [loadedPlugins, setLoadedPlugins] = useState([])
@@ -30,6 +31,9 @@ export default function Guide({ plugins }) {
 
   return (
     <Layout>
+      <Head>
+        <title>Plugins · Reposilite</title>  
+      </Head>
       <ColorModeStyles styles={[cardBgCss, cardBorderCss]} />
       <Box maxW={{ base: '95vw', md: 'container.md' }} mx='auto'>
         <Flex direction={{ base: 'column' }} justifyContent={'space-around'}>

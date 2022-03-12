@@ -4,6 +4,7 @@ import { getPlugins, readPluginById } from "../../helpers/mdx"
 import MDX from "../../components/MDX"
 import { MDXRemote } from "next-mdx-remote"
 import { ChevronRightIcon } from "@chakra-ui/icons"
+import Head from "next/head"
 
 const GitHubLink = ({ url, children }) => {
   return (
@@ -15,6 +16,9 @@ const GitHubLink = ({ url, children }) => {
 export default function Plugin({ plugin }) {
   return (
     <Layout>
+      <Head>
+        <title>{plugin.title} plugin · Plugins · Reposilite</title>  
+      </Head>
       <Container maxW={'container.md'} marginTop={6}>
         <Breadcrumb spacing='8px' separator={<ChevronRightIcon color='gray.500' />}>
           <BreadcrumbItem>

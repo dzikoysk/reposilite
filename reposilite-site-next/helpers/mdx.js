@@ -52,11 +52,11 @@ export async function getPlugins() {
 }
 
 export async function readGuideById(category, id) {
-  return readMdx(path.join(GUIDE_PATH, category, id.endsWith('md') ? id : `${id}.md`))
+  return readMdx(path.join(GUIDE_PATH, category, id.endsWith('.md') ? id : `${id}.md`))
 }
 
 export async function readPluginById(id) {
-  return readMdx(path.join(PLUGINS_PATH, id.endsWith('md') ? id : `${id}.md`))
+  return readMdx(path.join(PLUGINS_PATH, id.endsWith('.md') ? id : `${id}.md`))
 }
 
 export async function readMdx(file) {
