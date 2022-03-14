@@ -74,7 +74,7 @@ internal object JavalinConfiguration {
         config.showJavalinBanner = false
         config.asyncRequestTimeout = 1000L * 60 * 60 * 10 // 10min
         config.contextResolvers {
-            it.ip = { ctx -> ctx.header(sharedConfiguration.forwardedIp.get()) ?: ctx.req.remoteAddr }
+            it.ip = { ctx -> ctx.header(sharedConfiguration.advanced.get().forwardedIp) ?: ctx.req.remoteAddr }
         }
 
         when(localConfiguration.compressionStrategy.get().lowercase()) {
@@ -162,10 +162,10 @@ internal object JavalinConfiguration {
     }
 
     private fun configureOpenApi(sharedConfiguration: SharedConfiguration, config: JavalinConfig) {
-        if (sharedConfiguration.swagger.get()) {
+        if (sharedConfiguration.advanced.get().swagger) {
             val openApiConfiguration = OpenApiConfiguration() // TOFIX: Support dynamic configuration of Swagger integration
-            openApiConfiguration.title = sharedConfiguration.title.get()
-            openApiConfiguration.description = sharedConfiguration.description.get()
+            openApiConfiguration.title = sharedConfiguration.appearance.get().title
+            openApiConfiguration.description = sharedConfiguration.appearance.get().description
             openApiConfiguration.version = VERSION
             config.registerPlugin(OpenApiPlugin(openApiConfiguration))
 

@@ -37,7 +37,7 @@ internal class SettingsFacadeTest : SettingsSpecification() {
         val updateResult = settingsFacade.updateConfiguration(SettingsUpdateRequest(SHARED_CONFIGURATION_FILE, "id: custom"))
         // then: configuration should be updated in provider & repository
         assertOk(updateResult)
-        assertEquals("custom", settingsFacade.sharedConfiguration.id.get())
+        assertEquals("custom", settingsFacade.sharedConfiguration.appearance.get().id)
         renderConfiguration().run {
             assertEquals(this, assertOk(configurationFromProvider()))
             assertEquals(this, configurationFromRepository())

@@ -16,6 +16,7 @@
 
 package com.reposilite
 
+import com.reposilite.maven.application.S3StorageProviderSettings
 import org.junit.jupiter.api.extension.AfterEachCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.Extension
@@ -54,7 +55,7 @@ internal class ReposiliteRemoteIntegrationJunitExtension : Extension, BeforeEach
 
             type.getField("_extensionInitialized").set(instance, true)
             type.getField("_database").set(instance, "mysql ${mariaDb.host}:${mariaDb.getMappedPort(3306)} ${mariaDb.databaseName} ${mariaDb.username} ${mariaDb.password}")
-            type.getField("_storageProvider").set(instance, "s3 -e ${localstack.getEndpointOverride(S3)} -a ${localstack.accessKey} -s ${localstack.secretKey} -r ${localstack.region} {repository}")
+            type.getField("_storageProvider").set(instance, S3StorageProviderSettings("{repository}", endpoint = localstack.getEndpointOverride(S3).toString(), secretKey = localstack.secretKey, region = localstack.region))
         }
     }
 

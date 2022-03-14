@@ -19,15 +19,15 @@ package com.reposilite.auth.specification
 import com.reposilite.auth.AuthenticationFacade
 import com.reposilite.auth.BasicAuthenticator
 import com.reposilite.auth.LdapAuthenticator
-import com.reposilite.settings.api.SharedConfiguration.LdapConfiguration
+import com.reposilite.auth.application.LdapSettings
 import com.reposilite.status.FailureFacade
 import com.reposilite.token.specification.AccessTokenSpecification
-import panda.std.reactive.toReference
+import panda.std.reactive.toMutableReference
 
 internal abstract class AuthenticationSpecification : AccessTokenSpecification() {
 
     protected val failureFacade = FailureFacade(logger)
-    protected val ldapConfiguration = LdapConfiguration().toReference()
+    protected val ldapConfiguration = LdapSettings().toMutableReference()
 
     protected val authenticationFacade = AuthenticationFacade(
         journalist = logger,

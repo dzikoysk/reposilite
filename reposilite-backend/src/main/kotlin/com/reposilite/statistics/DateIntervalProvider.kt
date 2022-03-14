@@ -16,19 +16,19 @@
 
 package com.reposilite.statistics
 
+import com.reposilite.statistics.application.StatisticsSettings
+import com.reposilite.statistics.application.StatisticsSettings.ResolvedRequestsInterval.*
 import java.time.LocalDate
 import java.time.temporal.TemporalAdjusters
 import java.time.temporal.WeekFields
 import java.util.Locale
 
-fun createDateIntervalProvider(mode: String): DateIntervalProvider =
-    when (mode) {
-        "daily" -> DailyDateIntervalProvider
-        "weekly" -> WeeklyDateIntervalProvider
-        "monthly" -> MonthlyDateIntervalProvider
-        "yearly" -> YearlyDateIntervalProvider
-        else -> throw IllegalStateException("Unsupported date interval provided: $mode")
-    }
+fun createDateIntervalProvider(mode: StatisticsSettings.ResolvedRequestsInterval): DateIntervalProvider = when (mode) {
+    DAILY -> DailyDateIntervalProvider
+    WEEKLY -> WeeklyDateIntervalProvider
+    MONTHLY -> MonthlyDateIntervalProvider
+    YEARLY -> YearlyDateIntervalProvider
+}
 
 sealed interface DateIntervalProvider {
 

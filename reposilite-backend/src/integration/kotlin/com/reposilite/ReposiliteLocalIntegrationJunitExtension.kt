@@ -16,6 +16,7 @@
 
 package com.reposilite
 
+import com.reposilite.maven.application.FSStorageProviderSettings
 import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.Extension
 import org.junit.jupiter.api.extension.ExtensionContext
@@ -34,7 +35,7 @@ internal class ReposiliteLocalIntegrationJunitExtension : Extension, BeforeEachC
 
             type.getField("_extensionInitialized").set(instance, true)
             type.getField("_database").set(instance, "sqlite --temporary")
-            type.getField("_storageProvider").set(instance, "fs")
+            type.getField("_storageProvider").set(instance, FSStorageProviderSettings())
         }
     }
 

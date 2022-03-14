@@ -1,5 +1,9 @@
 package com.reposilite.settings.api
 
+import com.reposilite.auth.application.LdapSettings
+import com.reposilite.frontend.application.AppearanceSettings
+import com.reposilite.maven.application.RepositorySettings
+import com.reposilite.statistics.application.StatisticsSettings
 import java.io.Serializable
 
 data class Settings (

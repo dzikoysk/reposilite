@@ -16,10 +16,7 @@
 
 package com.reposilite.maven
 
-import com.reposilite.journalist.Journalist
-import com.reposilite.settings.api.SharedConfiguration.RepositoryConfiguration
-import com.reposilite.settings.api.SharedConfiguration.RepositoryConfiguration.ProxiedHostConfiguration
-import com.reposilite.shared.extensions.loadCommandBasedConfiguration
+import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.shared.http.RemoteClientProvider
 import com.reposilite.status.FailureFacade
 import com.reposilite.storage.StorageProviderFactory.createStorageProvider
@@ -39,7 +36,7 @@ internal class RepositoryFactory(
 
     private val repositoriesDirectory = Paths.get("repositories")
 
-    fun createRepository(repositoryName: String, configuration: RepositoryConfiguration): Repository =
+    fun createRepository(repositoryName: String, configuration: RepositorySettings): Repository =
         Repository(
             repositoryName,
             configuration.visibility,
@@ -49,8 +46,9 @@ internal class RepositoryFactory(
             createStorageProvider(failureFacade, workingDirectory.resolve(repositoriesDirectory), repositoryName, configuration.storageProvider),
         )
 
-    private fun createProxiedHostConfiguration(configurationSource: String): ProxiedHost {
-        val (name, configuration) = loadCommandBasedConfiguration(ProxiedHostConfiguration(), configurationSource)
+    private fun createProxiedHostConfiguration(configurationSource: RepositorySettings.ProxiedRepository): ProxiedHost {
+        val name = configurationSource.reference
+        val configuration = configurationSource
 
         val host =
             if (name.endsWith("/"))

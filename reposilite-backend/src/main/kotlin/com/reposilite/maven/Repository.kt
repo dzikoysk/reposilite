@@ -16,6 +16,7 @@
 package com.reposilite.maven
 
 import com.reposilite.maven.api.REPOSITORY_NAME_MAX_LENGTH
+import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.storage.StorageProvider
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.Location
@@ -27,7 +28,7 @@ import java.nio.file.attribute.FileTime
 
 class Repository internal constructor(
     val name: String,
-    val visibility: RepositoryVisibility,
+    val visibility: RepositorySettings.Visibility,
     val redeployment: Boolean,
     val preserved: Int,
     val proxiedHosts: List<ProxiedHost>,

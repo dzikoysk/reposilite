@@ -16,7 +16,7 @@
 
 package com.reposilite.maven
 
-import com.reposilite.settings.api.SharedConfiguration.RepositoryConfiguration
+import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.shared.http.RemoteClientProvider
 import com.reposilite.status.FailureFacade
 import panda.std.reactive.Reference
@@ -26,7 +26,7 @@ internal class RepositoryProvider(
     private val workingDirectory: Path,
     private val remoteClientProvider: RemoteClientProvider,
     private val failureFacade: FailureFacade,
-    repositoriesSource: Reference<Map<String, RepositoryConfiguration>>,
+    repositoriesSource: Reference<Map<String, RepositorySettings>>,
 ) {
 
     private var repositories: Map<String, Repository>
@@ -40,7 +40,7 @@ internal class RepositoryProvider(
         }
     }
 
-    private fun createRepositories(repositoriesConfiguration: Map<String, RepositoryConfiguration>): Map<String, Repository> =
+    private fun createRepositories(repositoriesConfiguration: Map<String, RepositorySettings>): Map<String, Repository> =
         RepositoryFactory(workingDirectory, remoteClientProvider, this, failureFacade, repositoriesConfiguration.keys)
             .let { repositoriesConfiguration.mapValues { (name, configuration) -> it.createRepository(name, configuration) } }
 

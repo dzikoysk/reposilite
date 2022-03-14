@@ -16,10 +16,9 @@
 
 package com.reposilite.storage
 
-import com.reposilite.journalist.Journalist
-import com.reposilite.settings.api.SharedConfiguration.RepositoryConfiguration.FSStorageProviderSettings
-import com.reposilite.settings.api.SharedConfiguration.RepositoryConfiguration.S3StorageProviderSettings
-import com.reposilite.shared.extensions.loadCommandBasedConfiguration
+import com.reposilite.maven.application.FSStorageProviderSettings
+import com.reposilite.maven.application.RepositorySettings
+import com.reposilite.maven.application.S3StorageProviderSettings
 import com.reposilite.status.FailureFacade
 import com.reposilite.storage.infrastructure.FileSystemStorageProvider
 import com.reposilite.storage.infrastructure.FileSystemStorageProviderFactory
@@ -34,15 +33,14 @@ import java.nio.file.Path
 
 object StorageProviderFactory {
 
-    fun createStorageProvider(failureFacade: FailureFacade, workingDirectory: Path, repositoryName: String, storageDescription: String): StorageProvider =
-        when {
-            storageDescription.startsWith("fs") -> createFileSystemStorageProvider(workingDirectory, repositoryName, storageDescription)
-            storageDescription.startsWith("s3") -> createS3StorageProvider(failureFacade, storageDescription)
-            else -> throw UnsupportedOperationException("Unknown storage provider: $storageDescription")
+    fun createStorageProvider(failureFacade: FailureFacade, workingDirectory: Path, repositoryName: String, storageSettings: RepositorySettings.StorageProvider): StorageProvider =
+        when(storageSettings.type) {
+            "fs" -> createFileSystemStorageProvider(workingDirectory, repositoryName, storageSettings as FSStorageProviderSettings)
+            "s3" -> createS3StorageProvider(failureFacade, storageSettings as S3StorageProviderSettings)
+            else -> throw UnsupportedOperationException("Unknown storage provider: $storageSettings")
         }
 
-    private fun createFileSystemStorageProvider(workingDirectory: Path, repositoryName: String, storageDescription: String): FileSystemStorageProvider {
-        val settings = loadCommandBasedConfiguration(FSStorageProviderSettings(), storageDescription).configuration
+    private fun createFileSystemStorageProvider(workingDirectory: Path, repositoryName: String, settings: FSStorageProviderSettings): FileSystemStorageProvider {
 
         val repositoryDirectory =
             if (settings.mount.isEmpty())
@@ -54,8 +52,7 @@ object StorageProviderFactory {
         return FileSystemStorageProviderFactory.of(repositoryDirectory, settings.quota)
     }
 
-    private fun createS3StorageProvider(failureFacade: FailureFacade, storageDescription: String): S3StorageProvider {
-        val settings = loadCommandBasedConfiguration(S3StorageProviderSettings(), storageDescription).configuration
+    private fun createS3StorageProvider(failureFacade: FailureFacade, settings: S3StorageProviderSettings): S3StorageProvider {
         val client = S3Client.builder()
 
         if (settings.accessKey.isNotEmpty() && settings.secretKey.isNotEmpty()) {

@@ -33,6 +33,8 @@ import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
 import com.reposilite.settings.SettingsFacade
+import com.reposilite.settings.SharedConfigurationFacade
+import com.reposilite.settings.api.SettingsHandler
 import com.reposilite.shared.http.HttpRemoteClientProvider
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.status.FailureFacade
@@ -41,6 +43,8 @@ import com.reposilite.web.api.HttpServerInitializationEvent
 import com.reposilite.web.api.RoutingSetupEvent
 import io.javalin.http.Handler
 import io.javalin.http.Stage
+import panda.std.reactive.toReference
+import java.util.function.Function
 
 @Plugin(name = "maven", dependencies = ["failure", "settings", "statistics", "frontend", "access-token"])
 internal class MavenPlugin : ReposilitePlugin() {
@@ -52,19 +56,22 @@ internal class MavenPlugin : ReposilitePlugin() {
         val statisticsFacade = facade<StatisticsFacade>()
         val frontendFacade = facade<FrontendFacade>()
         val accessTokenFacade = facade<AccessTokenFacade>()
+        val sharedConfigurationFacade = facade<SharedConfigurationFacade>()
+
+        sharedConfigurationFacade.registerHandler(SettingsHandler.of("repositories", RepositoriesSettings::class.java, { sharedConfiguration.repositories.get() }, { sharedConfiguration.repositories.update(it) }))
 
         val securityProvider = RepositorySecurityProvider(accessTokenFacade)
         val repositoryProvider = RepositoryProvider(
             extensions().parameters.workingDirectory,
             HttpRemoteClientProvider,
             failureFacade,
-            sharedConfiguration.repositories
+            sharedConfiguration.repositories.map {it.repositories}.toReference()
         )
         val repositoryService = RepositoryService(this, repositoryProvider, securityProvider)
 
         val mavenFacade = MavenFacade(
             this,
-            sharedConfiguration.id,
+            sharedConfiguration.appearance.get().id.toReference(),
             securityProvider,
             repositoryService,
             ProxyService(this),

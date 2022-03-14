@@ -37,6 +37,7 @@ import com.reposilite.status.FailureFacade
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.web.api.HttpServerInitializationEvent
 import com.reposilite.web.api.RoutingSetupEvent
+import panda.std.reactive.toReference
 
 @Plugin(name = "console", dependencies = [ "settings", "failure", "access-token", "authentication" ])
 internal class ConsolePlugin : ReposilitePlugin() {
@@ -72,7 +73,7 @@ internal class ConsolePlugin : ReposilitePlugin() {
         event { event: HttpServerInitializationEvent ->
             event.javalin.ws(
                 "/api/console/sock",
-                CliEndpoint(event.reposilite.journalist, accessTokenFacade, authenticationFacade, consoleFacade, settingsFacade.sharedConfiguration.forwardedIp)
+                CliEndpoint(event.reposilite.journalist, accessTokenFacade, authenticationFacade, consoleFacade, settingsFacade.sharedConfiguration.advanced.get().forwardedIp.toReference())
             )
         }
 

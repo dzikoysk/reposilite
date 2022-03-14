@@ -20,12 +20,14 @@ import com.reposilite.Reposilite
 import com.reposilite.frontend.FrontendFacade
 import com.reposilite.frontend.infrastructure.CustomFrontendHandler
 import com.reposilite.frontend.infrastructure.ResourcesFrontendHandler
-import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposiliteInitializeEvent
+import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
 import com.reposilite.settings.SettingsFacade
+import com.reposilite.settings.SharedConfigurationFacade
+import com.reposilite.settings.api.SettingsHandler
 import com.reposilite.web.api.HttpServerInitializationEvent
 import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.api.RoutingSetupEvent
@@ -34,27 +36,31 @@ import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.exists
 
-@Plugin(name = "frontend", dependencies = ["settings"])
+@Plugin(name = "frontend", dependencies = ["settings", "sharedconfig"])
 internal class FrontendPlugin : ReposilitePlugin() {
 
-    private val STATIC_DIRECTORY = "static"
-    private val FRONTEND_DIRECTORY = "reposilite-frontend"
+    internal companion object {
+        private const val STATIC_DIRECTORY = "static"
+        private const val FRONTEND_DIRECTORY = "reposilite-frontend"
+    }
 
     override fun initialize(): FrontendFacade {
         val settingsFacade = facade<SettingsFacade>()
+        val sharedConfigurationFacade = facade<SharedConfigurationFacade>()
 
-        val frontendFacade = with(settingsFacade.sharedConfiguration) {
-            FrontendFacade(
-                settingsFacade.localConfiguration.cacheContent,
-                basePath,
-                id,
-                title,
-                description,
-                organizationWebsite,
-                organizationLogo,
-                icpLicense
-            )
-        }
+        sharedConfigurationFacade.registerHandler(SettingsHandler.of(
+            "appearance",
+            AppearanceSettings::class.java,
+            { settingsFacade.sharedConfiguration.appearance.get() },
+            { settingsFacade.sharedConfiguration.appearance.update(it) }
+        ))
+
+
+        val frontendFacade = FrontendFacade(
+            settingsFacade.localConfiguration.cacheContent,
+            settingsFacade.sharedConfiguration.appearance,
+            settingsFacade.sharedConfiguration.advanced
+        )
 
         event { event: ReposiliteInitializeEvent -> staticDirectory(event.reposilite)
             .takeIf { it.exists().not() }
@@ -66,7 +72,7 @@ internal class FrontendPlugin : ReposilitePlugin() {
 
         event { event: RoutingSetupEvent -> event.registerRoutes(
             mutableSetOf<ReposiliteRoutes>().also {
-                if (settingsFacade.sharedConfiguration.frontend.get()) {
+                if (settingsFacade.sharedConfiguration.advanced.get().frontend) {
                     it.add(ResourcesFrontendHandler(frontendFacade, FRONTEND_DIRECTORY))
                 }
                 it.add(CustomFrontendHandler(frontendFacade, staticDirectory(event.reposilite)))

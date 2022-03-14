@@ -27,9 +27,9 @@ import com.reposilite.maven.RepositoryService
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.Metadata
 import com.reposilite.maven.api.Versioning
+import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.plugin.Extensions
 import com.reposilite.settings.api.LocalConfiguration
-import com.reposilite.settings.api.SharedConfiguration.RepositoryConfiguration
 import com.reposilite.shared.http.FakeRemoteClientProvider
 import com.reposilite.statistics.DailyDateIntervalProvider
 import com.reposilite.statistics.StatisticsFacade
@@ -66,7 +66,7 @@ internal abstract class MavenSpecification {
         val UNAUTHORIZED: AccessTokenIdentifier? = null
         const val REMOTE_REPOSITORY = "https://domain.com/releases"
         const val REMOTE_REPOSITORY_WITH_WHITELIST = "https://example.com/whitelist"
-        const val REMOTE_AUTH = "panda@secret"
+        val REMOTE_AUTH = RepositorySettings.ProxiedRepository.Authorization("panda", "secret")
         const val REMOTE_CONTENT = "content"
     }
 
@@ -79,7 +79,7 @@ internal abstract class MavenSpecification {
     private val failureFacade = FailureFacade(logger)
     private val accessTokenFacade = AccessTokenFacade(logger, InMemoryAccessTokenRepository(), InMemoryAccessTokenRepository())
 
-    protected abstract fun repositories(): Map<String, RepositoryConfiguration>
+    protected abstract fun repositories(): Map<String, RepositorySettings>
 
     @BeforeEach
     private fun initializeFacade() {
@@ -142,9 +142,6 @@ internal abstract class MavenSpecification {
             gav.toLocation()
 
     }
-
-    protected fun createRepository(name: String, initializer: RepositoryConfiguration.() -> Unit): Pair<String, RepositoryConfiguration> =
-        Pair(name, RepositoryConfiguration().also { initializer(it) })
 
     protected fun findRepositories(accessToken: AccessTokenIdentifier?): Collection<String> =
         mavenFacade.findRepositories(accessToken).files.map { it.name }

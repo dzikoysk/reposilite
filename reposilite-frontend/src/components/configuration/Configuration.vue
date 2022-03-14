@@ -69,10 +69,10 @@ ajv.addFormat('repository-name', {
       </div>
       <div id="configuration-state" class="flex flex-row pt-3 xl:pt-2">
         <button @click="fetchConfiguration">
-          <p>Reset changes</p>
+          Reset changes
         </button>
         <button @click="updateConfiguration">
-          <p>Update and reload</p>
+          Update and reload
         </button>
       </div>
     </div>
@@ -88,6 +88,7 @@ ajv.addFormat('repository-name', {
   </div>
 </template>
 
+<!--suppress CssInvalidAtRule -->
 <style>
 #configuration-state button {
   @apply bg-blue-700 mx-2 rounded text-sm h-9 px-4 text-white;

@@ -24,6 +24,7 @@ import com.google.api.client.http.javanet.NetHttpTransport
 import com.reposilite.journalist.Channel
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
+import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.storage.api.DocumentInfo
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.UNKNOWN_LENGTH
@@ -59,7 +60,7 @@ class HttpRemoteClient(private val journalist: Journalist, proxy: Proxy?) : Remo
         .build()
         .createRequestFactory()
 
-    override fun head(uri: String, credentials: String?, connectTimeout: Int, readTimeout: Int): Result<FileDetails, ErrorResponse> =
+    override fun head(uri: String, credentials: RepositorySettings.ProxiedRepository.Authorization?, connectTimeout: Int, readTimeout: Int): Result<FileDetails, ErrorResponse> =
         createRequest(HttpMethods.HEAD, uri, credentials, connectTimeout, readTimeout)
             .execute { response ->
                 response.disconnect()
@@ -85,11 +86,11 @@ class HttpRemoteClient(private val journalist: Journalist, proxy: Proxy?) : Remo
                 ).asSuccess()
             }
 
-    override fun get(uri: String, credentials: String?, connectTimeout: Int, readTimeout: Int): Result<InputStream, ErrorResponse> =
+    override fun get(uri: String, credentials: RepositorySettings.ProxiedRepository.Authorization?, connectTimeout: Int, readTimeout: Int): Result<InputStream, ErrorResponse> =
         createRequest(HttpMethods.GET, uri, credentials, connectTimeout, readTimeout)
             .execute { it.content.asSuccess() }
 
-    private fun createRequest(method: String, uri: String, credentials: String?, connectTimeout: Int, readTimeout: Int): HttpRequest {
+    private fun createRequest(method: String, uri: String, credentials: RepositorySettings.ProxiedRepository.Authorization?, connectTimeout: Int, readTimeout: Int): HttpRequest {
         val request = requestFactory.buildRequest(method, GenericUrl(uri), null)
         request.throwExceptionOnExecuteError = false
         request.connectTimeout = connectTimeout * 1000
@@ -113,10 +114,9 @@ class HttpRemoteClient(private val journalist: Journalist, proxy: Proxy?) : Remo
             createExceptionResponse(this.url.toString(), exception)
         }
 
-    private fun HttpRequest.authenticateWith(credentials: String?): HttpRequest = also {
+    private fun HttpRequest.authenticateWith(credentials: RepositorySettings.ProxiedRepository.Authorization?): HttpRequest = also {
         if (credentials != null) {
-            val (username, password) = credentials.split(":", limit = 2)
-            it.headers.setBasicAuthentication(username, password)
+            it.headers.setBasicAuthentication(credentials.name, credentials.token)
         }
     }
 

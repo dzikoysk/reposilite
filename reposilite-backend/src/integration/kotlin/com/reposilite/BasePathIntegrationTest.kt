@@ -16,6 +16,7 @@
 
 package com.reposilite
 
+import com.reposilite.settings.api.AdvancedSettings
 import com.reposilite.settings.api.SharedConfiguration
 import io.javalin.Javalin
 import io.javalin.http.Context
@@ -32,7 +33,9 @@ internal class BasePathIntegrationTest : ReposiliteSpecification() {
     private val basePath = "/custom-base-path"
 
     override fun overrideSharedConfiguration(sharedConfiguration: SharedConfiguration) {
-        sharedConfiguration.basePath.update(basePath)
+        sharedConfiguration.advanced.update {
+            AdvancedSettings(basePath, it.frontend, it.swagger, it.forwardedIp, it.icpLicense)
+        }
     }
 
     @Disabled

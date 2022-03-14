@@ -17,6 +17,7 @@
 package com.reposilite.storage.infrastructure
 
 import com.reposilite.journalist.backend.InMemoryLogger
+import com.reposilite.maven.application.S3StorageProviderSettings
 import com.reposilite.status.FailureFacade
 import com.reposilite.storage.StorageProviderFactory
 import com.reposilite.storage.StorageProviderIntegrationTest
@@ -27,7 +28,6 @@ import org.testcontainers.containers.localstack.LocalStackContainer.Service.S3
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import org.testcontainers.utility.DockerImageName
-import picocli.CommandLine.IFactory
 import java.io.File
 
 @Testcontainers
@@ -49,7 +49,7 @@ internal class S3StorageProviderIntegrationTest : StorageProviderIntegrationTest
             failureFacade,
             rootDirectory.toPath(),
             "test-repository",
-            "s3 test-repository --endpoint ${localstack.getEndpointOverride(S3).toURL()} --access-key ${localstack.accessKey} --secret-key ${localstack.secretKey} --region ${localstack.region}"
+            S3StorageProviderSettings("test-repository", localstack.getEndpointOverride(S3).toURL().toString(), localstack.accessKey, localstack.secretKey, localstack.region)
         )
     }
 

@@ -33,5 +33,6 @@ class SharedConfigurationFacade internal constructor(): Facade {
 }
 
 private fun <T> SettingsHandler<T>.update(value: Any): Any? {
-    return this.update(value as T)
+    this.update(value as T)
+    return this.get()
 }

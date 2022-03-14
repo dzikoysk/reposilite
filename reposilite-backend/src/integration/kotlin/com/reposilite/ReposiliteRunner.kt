@@ -19,9 +19,10 @@ package com.reposilite
 import com.reposilite.journalist.Channel
 import com.reposilite.journalist.Logger
 import com.reposilite.journalist.backend.PrintStreamLogger
+import com.reposilite.maven.application.RepositoriesSettings
+import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.settings.api.LocalConfiguration
 import com.reposilite.settings.api.SharedConfiguration
-import com.reposilite.settings.api.SharedConfiguration.RepositoryConfiguration
 import io.javalin.core.util.JavalinBindException
 import net.dzikoysk.cdn.KCdnFactory
 import net.dzikoysk.cdn.source.Source
@@ -55,7 +56,7 @@ internal abstract class ReposiliteRunner {
     @JvmField
     var _database: String = ""
     @JvmField
-    var _storageProvider = ""
+    var _storageProvider: RepositorySettings.StorageProvider? = null
 
     lateinit var reposilite: Reposilite
 
@@ -96,16 +97,17 @@ internal abstract class ReposiliteRunner {
         cdn.render(localConfiguration, Source.of(reposiliteWorkingDirectory.resolve("configuration.local.cdn")))
 
         val sharedConfiguration = SharedConfiguration().also {
-            val proxiedConfiguration = RepositoryConfiguration()
-            proxiedConfiguration.proxied = mutableListOf("http://localhost:${parameters.port + 1}/releases")
+            val proxiedConfiguration = RepositorySettings(proxied = mutableListOf(RepositorySettings.ProxiedRepository("http://localhost:${parameters.port + 1}/releases")))
 
-            val updatedRepositories = it.repositories.get().toMutableMap()
+            val updatedRepositories = it.repositories.get().repositories.toMutableMap()
             updatedRepositories["proxied"] = proxiedConfiguration
-            it.repositories.update(updatedRepositories)
+            it.repositories.update(RepositoriesSettings(updatedRepositories))
 
-            it.repositories.get().forEach { (repositoryName, repositoryConfiguration) ->
-                repositoryConfiguration.redeployment = true
-                repositoryConfiguration.storageProvider = _storageProvider.replace("{repository}", repositoryName)
+            it.repositories.update {settings ->
+                RepositoriesSettings(settings.repositories.mapValues { entry ->
+                    val repositoryConfiguration = entry.value
+                    RepositorySettings(repositoryConfiguration.visibility, redeployment = true, repositoryConfiguration.preserved, _storageProvider!!, repositoryConfiguration.proxied)
+                })
             }
         }
 

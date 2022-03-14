@@ -16,13 +16,12 @@
 
 package com.reposilite.maven
 
-import com.reposilite.maven.RepositoryVisibility.HIDDEN
-import com.reposilite.maven.RepositoryVisibility.PRIVATE
-import com.reposilite.maven.RepositoryVisibility.PUBLIC
 import com.reposilite.maven.api.DeleteRequest
 import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.VersionLookupRequest
+import com.reposilite.maven.application.RepositorySettings
+import com.reposilite.maven.application.RepositorySettings.Visibility.*
 import com.reposilite.maven.specification.MavenSpecification
 import com.reposilite.storage.api.FileType.FILE
 import com.reposilite.storage.api.toLocation
@@ -44,22 +43,13 @@ import panda.std.component4
 internal class MavenFacadeTest : MavenSpecification() {
 
     override fun repositories() = linkedMapOf(
-        createRepository(PRIVATE.name) {
-            visibility = PRIVATE
-        },
-        createRepository(HIDDEN.name) {
-            visibility = HIDDEN
-        },
-        createRepository(PUBLIC.name) {
-            visibility = PUBLIC
-        },
-        createRepository("PROXIED") {
-            visibility = PUBLIC
-            proxied = mutableListOf(
-                "$REMOTE_REPOSITORY --store --auth $REMOTE_AUTH",
-                "$REMOTE_REPOSITORY_WITH_WHITELIST --allow=do.allow"
-            )
-        }
+        PRIVATE.name to RepositorySettings(visibility = PRIVATE),
+        HIDDEN.name to RepositorySettings(visibility = HIDDEN),
+        PUBLIC.name to RepositorySettings(visibility = PUBLIC),
+        "PROXIED" to RepositorySettings(visibility = PUBLIC, proxied = mutableListOf(
+            RepositorySettings.ProxiedRepository(REMOTE_REPOSITORY, store = true, authorization = REMOTE_AUTH),
+            RepositorySettings.ProxiedRepository(REMOTE_REPOSITORY_WITH_WHITELIST, allowedGroups = listOf("do.allow"))
+        ))
     )
 
     @Test
