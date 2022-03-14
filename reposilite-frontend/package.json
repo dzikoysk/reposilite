@@ -16,7 +16,7 @@
     "ansi-to-html": "^0.7.2",
     "axios": "^0.26.0",
     "downloadjs": "^1.4.7",
-    "mime-types": "^2.1.34",
+    "mime-types": "^2.1.35",
     "mosha-vue-toastify": "^1.0.23",
     "pretty-bytes": "^6.0.0",
     "prismjs": "^1.27.0",
