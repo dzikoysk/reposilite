@@ -8,13 +8,18 @@ import java.io.Serializable
 
 data class Settings (
     /** Appearance settings */
+    @Doc(title = "Appearance", description = "Appearance settings")
     val appearance: AppearanceSettings,
     /** Advanced settings */
+    @Doc(title = "Advanced", description = "Advanced settings")
     val advanced: AdvancedSettings,
-    /** List of Maven repositories. */
+    /** List of Maven repositories */
+    @Doc(title = "Repositories", description = "List of Maven repositories.")
     val repositories: Map<String, RepositorySettings>,
-    /** Statistics module configuration. */
+    /** Statistics settings */
+    @Doc(title = "Statistics", description = "Statistics settings")
     val statistics: StatisticsSettings,
-    /** Ldap module settings */
+    /** LDAP settings */
+    @Doc(title = "LDAP", description = "LDAP settings")
     val ldap: LdapSettings
 ) : Serializable

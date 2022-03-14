@@ -95,6 +95,8 @@ dependencies {
     @Suppress("GradlePackageUpdate")
     implementation("org.eclipse.jetty:jetty-server:9.4.45.v20220203")
 
+    implementation("com.github.victools:jsonschema-generator:4.23.0")
+
     val picocli = "4.6.3"
     kapt("info.picocli:picocli-codegen:$picocli")
     api("info.picocli:picocli:$picocli")

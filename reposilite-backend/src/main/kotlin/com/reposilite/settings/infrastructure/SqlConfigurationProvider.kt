@@ -57,13 +57,13 @@ internal class SqlConfigurationProvider<C : Any>(
     }
 
     private fun loadRemoteConfiguration() {
-        settingsRepository.findConfiguration(name)
+        /*settingsRepository.findConfiguration(name)
             ?.let { standard.load(Source.of(it), configuration) }
             ?.peek { journalist.logger.info("$displayName has been loaded from database") }
             ?.orElseThrow(ThrowingFunction.identity())
             ?: standard.render(configuration)
                 .map { settingsRepository.saveConfiguration(name, it) }
-                .orElseThrow(ThrowingFunction.identity())
+                .orElseThrow(ThrowingFunction.identity())*/
 
         this.databaseUpdateTime = settingsRepository.findConfigurationUpdateDate(name) ?: databaseUpdateTime
     }
