@@ -118,7 +118,7 @@ internal class SqlStatisticsRepository(private val database: Database) : Statist
             IdentifierTable.leftJoin(ResolvedTable, { IdentifierTable.id }, { ResolvedTable.identifierId })
                 .slice(IdentifierTable.gav, resolvedSum)
                 .select(whereCriteria)
-                .groupBy(ResolvedTable.id)
+                .groupBy(ResolvedTable.id, IdentifierTable.gav)
                 .having { resolvedSum greater 0L }
                 .orderBy(resolvedSum, DESC)
                 .limit(limit)
@@ -129,14 +129,16 @@ internal class SqlStatisticsRepository(private val database: Database) : Statist
     override fun countUniqueResolvedRequests(): Long =
         transaction(database) {
             ResolvedTable.selectAll()
-                .groupBy(ResolvedTable.identifierId)
+                .groupBy(ResolvedTable.id, ResolvedTable.identifierId)
                 .count()
         }
 
     override fun countResolvedRequests(): Long =
         transaction(database) {
             with (ResolvedTable.count.sum()) {
-                ResolvedTable.slice(this).selectAll().firstAndMap { it[this] }
+                ResolvedTable.slice(this)
+                    .selectAll()
+                    .firstAndMap { it[this] }
             }
             ?: 0
         }

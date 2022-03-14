@@ -1,0 +1,5 @@
+---
+id: dashboard
+title: Dashboard
+---
+

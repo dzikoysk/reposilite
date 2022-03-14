@@ -15,8 +15,7 @@
  */
 
 import { ref, watchEffect } from 'vue'
-import semver from 'semver'
-import semverRegex from 'semver-regex'
+import { createSemverComparator } from '../helpers/maven/semver'
 
 const reversedFileOrder = ref(localStorage.getItem('reversedFileOrder') === 'true')
 watchEffect(() => localStorage.setItem('reversedFileOrder', reversedFileOrder.value))
@@ -33,22 +32,13 @@ export function useAdjustments() {
     }
   
     if (reversedFileOrder.value) {
-      try {
-        files = files.sort((a, b) => {
-          const aIsDirectory = a.type === 'DIRECTORY'
-          const bIsDirectory = b.type === 'DIRECTORY'
-  
-          if (aIsDirectory && bIsDirectory) {
-            const sv1 = semverRegex().exec(a.name)[0] || a.name
-            const sv2 = semverRegex().exec(b.name)[0] || b.name
-            return semver.rcompare(sv1, sv2)
-          }
-  
-          return 0 // preserve default order of unknown entires
-        })
-      } catch (error) { 
-        // just don't sort unknown entries
-      }
+      const semverComparator = createSemverComparator(
+        true,
+        (a, b) => a.type === 'DIRECTORY' && b.type === 'DIRECTORY',
+        (file) => file.name,
+      )
+
+      files = files.sort(semverComparator)
     }
     
     return files

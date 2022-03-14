@@ -42,16 +42,16 @@ class Repository internal constructor(
     }
 
     @Suppress("unused")
-    private fun writeFileChecksums(location: Location, bytes: ByteArray) {
+    fun writeFileChecksums(location: Location, bytes: ByteArray): Result<Unit, ErrorResponse> {
         val md5 = location.resolveSibling(location.getSimpleName() + ".md5")
-        putFile(md5, DigestUtils.md5(bytes).inputStream())
-
         val sha1 = location.resolveSibling(location.getSimpleName() + ".sha1")
         val sha256 = location.resolveSibling(location.getSimpleName() + ".sha256")
         val sha512 = location.resolveSibling(location.getSimpleName() + ".sha512")
-        putFile(sha1, DigestUtils.sha1(bytes).inputStream())
-        putFile(sha256, DigestUtils.sha256(bytes).inputStream())
-        putFile(sha512, DigestUtils.sha512(bytes).inputStream())
+
+        return putFile(md5, DigestUtils.md5(bytes).inputStream())
+            .flatMap { putFile(sha1, DigestUtils.sha1(bytes).inputStream()) }
+            .flatMap { putFile(sha256, DigestUtils.sha256(bytes).inputStream()) }
+            .flatMap { putFile(sha512, DigestUtils.sha512(bytes).inputStream()) }
     }
 
     fun putFile(location: Location, inputStream: InputStream): Result<Unit, ErrorResponse> =

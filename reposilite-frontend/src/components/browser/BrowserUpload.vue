@@ -4,6 +4,7 @@ import { createSuccessToast, createErrorToast } from '../../helpers/toast'
 import { useSession } from '../../store/session'
 import useQualifier from '../../helpers/qualifier'
 import FileUpload from 'vue-upload-component'
+import CloseIcon from '../icons/CloseIcon.vue'
 
 const { client } = useSession()
 const { qualifier, refreshQualifier } = useQualifier()
@@ -55,8 +56,10 @@ const uploadFiles = () => {
         </div>
       </FileUpload>
       <div class="-mt-2 pb-2">
-        <div v-for="file in files" :key="file.name" class="pb-1 px-6">
-          <span class="text-xs text-purple-400" @click="removeFile(file)">🗙</span>
+        <div v-for="file in files" :key="file.name" class="pb-1 px-6 flex">
+          <span @click="removeFile(file)" class="pt-0.85">
+            <CloseIcon class="h-5 text-purple-400" />
+          </span>
           <span class="px-2">{{file.name}}</span>
         </div>
       </div>

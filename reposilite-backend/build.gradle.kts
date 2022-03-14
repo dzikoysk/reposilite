@@ -49,14 +49,14 @@ dependencies {
     api("org.panda-lang:expressible-kt:$expressible")
     testImplementation("org.panda-lang:expressible-junit:$expressible")
 
-    val cdn = "1.13.8"
+    val cdn = "1.13.10"
     implementation("net.dzikoysk:cdn:$cdn")
     implementation("net.dzikoysk:cdn-kt:$cdn")
 
-    val awssdk = "2.17.133"
+    val awssdk = "2.17.143"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
-    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.163")
+    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.172")
 
     val exposed = "0.37.3"
     implementation("org.jetbrains.exposed:exposed-core:$exposed")
@@ -65,6 +65,7 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-java-time:$exposed")
     api("net.dzikoysk:exposed-upsert:1.0.3")
     // Threadpool
+    @Suppress("GradlePackageUpdate")
     implementation("com.zaxxer:HikariCP:4.0.3")
     // Drivers
     implementation("org.xerial:sqlite-jdbc:3.36.0.3")
@@ -73,7 +74,7 @@ dependencies {
     implementation("org.postgresql:postgresql:42.3.3")
     implementation("com.h2database:h2:2.1.210")
 
-    val springSecurityCrypto = "5.6.1"
+    val springSecurityCrypto = "5.6.2"
     implementation("org.springframework.security:spring-security-crypto:$springSecurityCrypto")
 
     val ldap = "6.0.3"
@@ -132,6 +133,7 @@ dependencies {
     testImplementation("com.konghq:unirest-objectmapper-jackson:$unirest")
 
     val testcontainers = "1.16.3"
+    testImplementation("org.testcontainers:postgresql:$testcontainers")
     testImplementation("org.testcontainers:mariadb:$testcontainers")
     testImplementation("org.testcontainers:testcontainers:$testcontainers")
     testImplementation("org.testcontainers:junit-jupiter:$testcontainers")

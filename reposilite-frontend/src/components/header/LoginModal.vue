@@ -19,6 +19,7 @@ import { ref } from 'vue'
 import { VueFinalModal } from 'vue-final-modal'
 import { createToast } from 'mosha-vue-toastify'
 import { useSession } from '../../store/session'
+import CloseIcon from '../icons/CloseIcon.vue'
 
 const { login } = useSession()
 const showLogin = ref(false)
@@ -58,7 +59,9 @@ export default {
           </div>
           <button class="bg-gray-100 dark:bg-gray-800 py-2 my-3 rounded-md cursor-pointer">Sign in</button>
         </form>
-        <button class="absolute top-0 right-0 mt-5 mr-5" @click="close()">🗙</button>
+        <button class="absolute top-0 right-0 mt-5 mr-5" @click="close()">
+          <CloseIcon />
+        </button>
       </div>
     </vue-final-modal>
     <div @click="showLogin = true">
