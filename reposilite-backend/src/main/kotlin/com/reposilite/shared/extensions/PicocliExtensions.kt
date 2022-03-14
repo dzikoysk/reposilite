@@ -20,7 +20,7 @@ import com.reposilite.VERSION
 import panda.std.Result
 import panda.std.asSuccess
 import picocli.CommandLine
-import java.util.TreeSet
+import java.util.*
 
 abstract class Validator : Runnable {
     override fun run() { }

@@ -21,7 +21,7 @@ import com.reposilite.statistics.application.StatisticsSettings.ResolvedRequests
 import java.time.LocalDate
 import java.time.temporal.TemporalAdjusters
 import java.time.temporal.WeekFields
-import java.util.Locale
+import java.util.*
 
 fun createDateIntervalProvider(mode: StatisticsSettings.ResolvedRequestsInterval): DateIntervalProvider = when (mode) {
     DAILY -> DailyDateIntervalProvider

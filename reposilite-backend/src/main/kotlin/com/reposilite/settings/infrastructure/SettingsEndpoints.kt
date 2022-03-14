@@ -23,11 +23,7 @@ import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.routing.RouteMethod.GET
 import com.reposilite.web.routing.RouteMethod.PUT
-import io.javalin.openapi.HttpMethod
-import io.javalin.openapi.OpenApi
-import io.javalin.openapi.OpenApiContent
-import io.javalin.openapi.OpenApiParam
-import io.javalin.openapi.OpenApiResponse
+import io.javalin.openapi.*
 
 internal class SettingsEndpoints(private val settingsFacade: SettingsFacade) : ReposiliteRoutes() {
 
@@ -43,7 +39,7 @@ internal class SettingsEndpoints(private val settingsFacade: SettingsFacade) : R
             OpenApiResponse(status = "404", description = "Returns 404 if non-existing configuration is requested")
         ]
     )
-    private val findConfiguration = ReposiliteRoute<SettingsResponse>("/api/settings/content/{name}", GET) {
+    private val legacyFindConfiguration = ReposiliteRoute<SettingsResponse>("/api/settings/content/{name}", GET) {
         managerOnly {
             response = settingsFacade.resolveConfiguration(requireParameter("name"))
         }
@@ -61,13 +57,61 @@ internal class SettingsEndpoints(private val settingsFacade: SettingsFacade) : R
             OpenApiResponse(status = "404", description = "Returns 404 if non-existing configuration is requested")
         ]
     )
-    private val updateConfiguration = ReposiliteRoute<String>("/api/settings/content/{name}", PUT) {
+    private val legacyUpdateConfiguration = ReposiliteRoute<String>("/api/settings/content/{name}", PUT) {
         managerOnly {
             response = settingsFacade.updateConfiguration(SettingsUpdateRequest(requireParameter("name"), ctx.body()))
                 .map { "Success" }
         }
     }
 
-    override val routes = routes(findConfiguration, updateConfiguration)
+    @OpenApi(
+        path = "/api/configuration/{name}",
+        methods = [HttpMethod.GET],
+        tags = ["Configuration"],
+        summary = "Find configuration",
+        pathParams = [OpenApiParam(name = "name", description = "Name of configuration to fetch", required = true)],
+        responses = [
+            OpenApiResponse(
+                status = "200",
+                description = "Returns dto representing configuration",
+                content = [OpenApiContent(from = SettingsResponse::class)]
+            ),
+            OpenApiResponse(
+                status = "401",
+                description = "Returns 401 if token without moderation permission has been used to access this resource"
+            ),
+            OpenApiResponse(status = "404", description = "Returns 404 if non-existing configuration is requested")
+        ]
+    )
+    private val getConfiguration = ReposiliteRoute<Any>("/api/configuration/{name}", GET) {
+        managerOnly {
+            response = settingsFacade.getConfiguration(requireParameter("name"))
+        }
+    }
+
+    @OpenApi(
+        path = "/api/configuration/{name}",
+        methods = [HttpMethod.PUT],
+        tags = ["Configuration"],
+        summary = "Update configuration",
+        pathParams = [OpenApiParam(name = "name", description = "Name of configuration to update", required = true)],
+        responses = [
+            OpenApiResponse(status = "200", description = "Returns 200 if configuration has been updated successfully"),
+            OpenApiResponse(
+                status = "401",
+                description = "Returns 401 if token without moderation permission has been used to access this resource"
+            ),
+            OpenApiResponse(status = "404", description = "Returns 404 if non-existing configuration is requested")
+        ]
+    )
+    private val updateConfiguration = ReposiliteRoute<Any>("/api/configuration/{name}", PUT) {
+        managerOnly {
+            val name = requireParameter("name")
+            response = settingsFacade.getClassForName(name)
+                .flatMap { settingsFacade.updateConfiguration(name, ctx.bodyAsClass(it)) }
+        }
+    }
+
+    override val routes = routes(legacyFindConfiguration, legacyUpdateConfiguration, getConfiguration, updateConfiguration)
 
 }

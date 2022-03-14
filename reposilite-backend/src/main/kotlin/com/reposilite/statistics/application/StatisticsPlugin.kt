@@ -23,7 +23,6 @@ import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
 import com.reposilite.settings.SettingsFacade
-import com.reposilite.settings.SharedConfigurationFacade
 import com.reposilite.settings.api.SettingsHandler
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.statistics.StatsCommand
@@ -33,16 +32,13 @@ import com.reposilite.statistics.infrastructure.StatisticsEndpoint
 import com.reposilite.web.api.RoutingSetupEvent
 import panda.std.reactive.computed
 import java.util.concurrent.TimeUnit.SECONDS
-import java.util.function.Consumer
-import java.util.function.Supplier
 
-@Plugin(name = "statistics", dependencies = ["settings", "console", "sharedconfig"])
+@Plugin(name = "statistics", dependencies = ["settings", "console"])
 internal class StatisticsPlugin : ReposilitePlugin() {
 
     override fun initialize(): StatisticsFacade {
         val settingsFacade = facade<SettingsFacade>()
         val consoleFacade = facade<ConsoleFacade>()
-        val sharedConfigurationFacade = facade<SharedConfigurationFacade>()
 
         val statisticsFacade = StatisticsFacade(
             this,
@@ -56,7 +52,7 @@ internal class StatisticsPlugin : ReposilitePlugin() {
 
         consoleFacade.registerCommand(StatsCommand(statisticsFacade))
 
-        sharedConfigurationFacade.registerHandler(SettingsHandler.of(
+        settingsFacade.registerHandler(SettingsHandler.of(
             "statistics",
             StatisticsSettings::class.java,
             { settingsFacade.sharedConfiguration.statistics.get() },

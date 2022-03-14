@@ -19,12 +19,11 @@ package com.reposilite.settings
 import com.reposilite.journalist.Journalist
 import com.reposilite.plugin.api.Facade
 import com.reposilite.settings.api.*
-import com.reposilite.settings.application.SettingsPlugin
 import com.reposilite.settings.infrastructure.FileSystemConfigurationProvider
 import com.reposilite.settings.infrastructure.SqlConfigurationProvider
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.notFoundError
-import io.javalin.http.Context
+import io.javalin.http.HttpCode
 import org.jetbrains.exposed.sql.Database
 import panda.std.Result
 import java.nio.file.Path
@@ -37,6 +36,29 @@ class SettingsFacade internal constructor(
     val database: Lazy<Database>,
     private val settingsRepository: SettingsRepository,
 ) : Facade {
+    private val configHandlers = mutableMapOf<String, SettingsHandler<*>>()
+
+    fun registerHandler(handler: SettingsHandler<*>) = configHandlers.put(handler.name, handler)
+
+    fun getClassForName(name: String): Result<Class<*>, ErrorResponse> = getHandler(name).map { it.type }
+
+    fun getConfiguration(name: String): Result<Any, ErrorResponse> {
+        return getHandler(name).map { configHandlers[name]!!.get()!! }
+    }
+
+    fun updateConfiguration(name: String, body: Any): Result<Any, ErrorResponse> {
+        return getHandler(name).flatMap {
+            Result.attempt { configHandlers[name]!!.update(body)!! }
+                .mapErr { ErrorResponse(HttpCode.INTERNAL_SERVER_ERROR, it.message.orEmpty()) }
+        }
+    }
+
+    private fun getHandler(name: String): Result<SettingsHandler<*>, ErrorResponse> {
+        return Result.`when`(configHandlers.containsKey(name),
+            { configHandlers[name]!! },
+            { ErrorResponse(HttpCode.NOT_FOUND, "No configuration with name \"$name\" found!") }
+        )
+    }
 
     private val configurationProviders = mutableMapOf<String, ConfigurationProvider<*>>()
 
@@ -92,4 +114,10 @@ class SettingsFacade internal constructor(
     inline fun <reified C : Any> findConfiguration(): C =
         findConfiguration(C::class.java)
 
+}
+
+@Suppress("UNCHECKED_CAST")
+private fun <T> SettingsHandler<T>.update(value: Any): Any? {
+    this.update(value as T)
+    return this.get()
 }

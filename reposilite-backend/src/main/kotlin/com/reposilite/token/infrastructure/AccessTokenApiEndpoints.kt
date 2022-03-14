@@ -26,17 +26,11 @@ import com.reposilite.token.api.CreateAccessTokenWithNoNameRequest
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.http.ErrorResponse
-import com.reposilite.web.http.notFoundError
 import com.reposilite.web.http.errorResponse
-import com.reposilite.web.routing.RouteMethod.DELETE
-import com.reposilite.web.routing.RouteMethod.GET
-import com.reposilite.web.routing.RouteMethod.PUT
+import com.reposilite.web.http.notFoundError
+import com.reposilite.web.routing.RouteMethod.*
 import io.javalin.http.HttpCode
-import io.javalin.openapi.HttpMethod
-import io.javalin.openapi.OpenApi
-import io.javalin.openapi.OpenApiContent
-import io.javalin.openapi.OpenApiParam
-import io.javalin.openapi.OpenApiRequestBody
+import io.javalin.openapi.*
 import panda.std.Result.ok
 import panda.std.asSuccess
 

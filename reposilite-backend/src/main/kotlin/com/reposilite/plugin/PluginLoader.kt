@@ -22,7 +22,7 @@ import com.reposilite.storage.getSimpleName
 import java.net.URLClassLoader
 import java.nio.file.Files
 import java.nio.file.Path
-import java.util.ServiceLoader
+import java.util.*
 import java.util.stream.Collectors
 import kotlin.reflect.full.findAnnotation
 

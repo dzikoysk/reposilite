@@ -17,8 +17,8 @@
 package com.reposilite.auth
 
 import com.reposilite.auth.api.AuthenticationRequest
-import com.reposilite.journalist.Channel.DEBUG
 import com.reposilite.auth.application.LdapSettings
+import com.reposilite.journalist.Channel.DEBUG
 import com.reposilite.status.FailureFacade
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.AccessTokenType
@@ -28,24 +28,14 @@ import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
 import com.reposilite.web.http.notFoundError
 import com.reposilite.web.http.unauthorized
-import io.javalin.http.HttpCode.BAD_REQUEST
-import io.javalin.http.HttpCode.INTERNAL_SERVER_ERROR
-import io.javalin.http.HttpCode.UNAUTHORIZED
+import io.javalin.http.HttpCode.*
 import panda.std.Result
 import panda.std.asSuccess
 import panda.std.reactive.Reference
-import java.util.Hashtable
-import javax.naming.Context.INITIAL_CONTEXT_FACTORY
-import javax.naming.Context.PROVIDER_URL
-import javax.naming.Context.SECURITY_AUTHENTICATION
-import javax.naming.Context.SECURITY_CREDENTIALS
-import javax.naming.Context.SECURITY_PRINCIPAL
+import java.util.*
+import javax.naming.Context.*
 import javax.naming.NameNotFoundException
-import javax.naming.directory.DirContext
-import javax.naming.directory.InitialDirContext
-import javax.naming.directory.InvalidSearchFilterException
-import javax.naming.directory.SearchControls
-import javax.naming.directory.SearchResult
+import javax.naming.directory.*
 
 typealias Attributes = List<String>
 typealias AttributesMap = Map<String, Attributes>

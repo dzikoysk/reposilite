@@ -16,8 +16,8 @@
 
 package com.reposilite.settings.application
 
-import com.reposilite.settings.api.LocalConfiguration.StandardSQLDatabaseSettings
 import com.reposilite.settings.api.LocalConfiguration.EmbeddedSQLDatabaseSettings
+import com.reposilite.settings.api.LocalConfiguration.StandardSQLDatabaseSettings
 import com.reposilite.shared.extensions.loadCommandBasedConfiguration
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource

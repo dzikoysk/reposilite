@@ -17,6 +17,7 @@
 package com.reposilite.plugin.api;
 
 import com.reposilite.ReposiliteKt;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

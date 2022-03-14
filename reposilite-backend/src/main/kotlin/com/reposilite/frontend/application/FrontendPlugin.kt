@@ -26,7 +26,6 @@ import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
 import com.reposilite.settings.SettingsFacade
-import com.reposilite.settings.SharedConfigurationFacade
 import com.reposilite.settings.api.SettingsHandler
 import com.reposilite.web.api.HttpServerInitializationEvent
 import com.reposilite.web.api.ReposiliteRoutes
@@ -36,7 +35,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.exists
 
-@Plugin(name = "frontend", dependencies = ["settings", "sharedconfig"])
+@Plugin(name = "frontend", dependencies = ["settings"])
 internal class FrontendPlugin : ReposilitePlugin() {
 
     internal companion object {
@@ -46,9 +45,8 @@ internal class FrontendPlugin : ReposilitePlugin() {
 
     override fun initialize(): FrontendFacade {
         val settingsFacade = facade<SettingsFacade>()
-        val sharedConfigurationFacade = facade<SharedConfigurationFacade>()
 
-        sharedConfigurationFacade.registerHandler(SettingsHandler.of(
+        settingsFacade.registerHandler(SettingsHandler.of(
             "appearance",
             AppearanceSettings::class.java,
             { settingsFacade.sharedConfiguration.appearance.get() },

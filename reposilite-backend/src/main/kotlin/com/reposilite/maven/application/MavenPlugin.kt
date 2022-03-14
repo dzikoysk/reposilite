@@ -17,13 +17,7 @@
 package com.reposilite.maven.application
 
 import com.reposilite.frontend.FrontendFacade
-import com.reposilite.maven.MavenFacade
-import com.reposilite.maven.MetadataService
-import com.reposilite.maven.PreservedBuildsListener
-import com.reposilite.maven.ProxyService
-import com.reposilite.maven.RepositoryProvider
-import com.reposilite.maven.RepositorySecurityProvider
-import com.reposilite.maven.RepositoryService
+import com.reposilite.maven.*
 import com.reposilite.maven.infrastructure.MavenApiEndpoints
 import com.reposilite.maven.infrastructure.MavenEndpoints
 import com.reposilite.maven.infrastructure.MavenLatestApiEndpoints
@@ -33,7 +27,6 @@ import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
 import com.reposilite.settings.SettingsFacade
-import com.reposilite.settings.SharedConfigurationFacade
 import com.reposilite.settings.api.SettingsHandler
 import com.reposilite.shared.http.HttpRemoteClientProvider
 import com.reposilite.statistics.StatisticsFacade
@@ -44,7 +37,6 @@ import com.reposilite.web.api.RoutingSetupEvent
 import io.javalin.http.Handler
 import io.javalin.http.Stage
 import panda.std.reactive.toReference
-import java.util.function.Function
 
 @Plugin(name = "maven", dependencies = ["failure", "settings", "statistics", "frontend", "access-token"])
 internal class MavenPlugin : ReposilitePlugin() {
@@ -56,9 +48,8 @@ internal class MavenPlugin : ReposilitePlugin() {
         val statisticsFacade = facade<StatisticsFacade>()
         val frontendFacade = facade<FrontendFacade>()
         val accessTokenFacade = facade<AccessTokenFacade>()
-        val sharedConfigurationFacade = facade<SharedConfigurationFacade>()
 
-        sharedConfigurationFacade.registerHandler(SettingsHandler.of("repositories", RepositoriesSettings::class.java, { sharedConfiguration.repositories.get() }, { sharedConfiguration.repositories.update(it) }))
+        settingsFacade.registerHandler(SettingsHandler.of("repositories", RepositoriesSettings::class.java, { sharedConfiguration.repositories.get() }, { sharedConfiguration.repositories.update(it) }))
 
         val securityProvider = RepositorySecurityProvider(accessTokenFacade)
         val repositoryProvider = RepositoryProvider(

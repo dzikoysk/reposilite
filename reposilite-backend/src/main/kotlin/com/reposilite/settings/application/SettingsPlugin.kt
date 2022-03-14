@@ -16,13 +16,16 @@
 
 package com.reposilite.settings.application
 
+import com.reposilite.maven.application.RepositoriesSettings
 import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposiliteDisposeEvent
 import com.reposilite.plugin.api.ReposiliteInitializeEvent
 import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
 import com.reposilite.settings.SettingsFacade
-import com.reposilite.settings.SharedConfigurationFacade
+import com.reposilite.settings.api.AdvancedSettings
+import com.reposilite.settings.api.Settings
+import com.reposilite.settings.api.SettingsHandler
 import com.reposilite.settings.api.SharedConfiguration
 import com.reposilite.settings.infrastructure.SettingsEndpoints
 import com.reposilite.settings.infrastructure.SqlSettingsRepository
@@ -56,6 +59,15 @@ internal class SettingsPlugin : ReposilitePlugin() {
             parameters.sharedConfigurationPath
         )
 
+        settingsFacade.registerHandler(
+            SettingsHandler.of(
+            "advanced",
+            AdvancedSettings::class.java,
+            { settingsFacade.sharedConfiguration.advanced.get() },
+            { settingsFacade.sharedConfiguration.advanced.update(it) }
+        ))
+        settingsFacade.registerHandler(SettingsHandler.of("all", Settings::class.java, settingsFacade.sharedConfiguration::getSettingsDTO, settingsFacade.sharedConfiguration::updateFromSettingsDTO))
+
         event { event: ReposiliteInitializeEvent ->
             settingsFacade.attachWatcherScheduler(event.reposilite.scheduler)
         }
@@ -72,3 +84,15 @@ internal class SettingsPlugin : ReposilitePlugin() {
     }
 
 }
+
+private fun SharedConfiguration.updateFromSettingsDTO(settings: Settings): Settings {
+    repositories.update(RepositoriesSettings(settings.repositories))
+    advanced.update(settings.advanced)
+    appearance.update(settings.appearance)
+    statistics.update(settings.statistics)
+    ldap.update(settings.ldap)
+    return getSettingsDTO()
+}
+
+private fun SharedConfiguration.getSettingsDTO(): Settings = Settings(appearance = appearance.get(), advanced = advanced.get(), repositories = repositories.get().repositories, statistics = statistics.get(), ldap = ldap.get())
+

@@ -18,19 +18,11 @@ package com.reposilite.settings.api
 
 import com.reposilite.auth.application.LdapSettings
 import com.reposilite.frontend.application.AppearanceSettings
-import com.reposilite.maven.RepositoryVisibility
 import com.reposilite.maven.application.RepositoriesSettings
-import com.reposilite.shared.extensions.Validator
 import com.reposilite.statistics.application.StatisticsSettings
-import net.dzikoysk.cdn.entity.Contextual
-import net.dzikoysk.cdn.entity.Description
 import net.dzikoysk.cdn.serdes.DeserializationHandler
 import panda.std.reactive.mutableReference
 import panda.utilities.StringUtils
-import picocli.CommandLine.Command
-import picocli.CommandLine.Option
-import picocli.CommandLine.Parameters
-import java.io.Serializable
 
 class SharedConfiguration : DeserializationHandler<SharedConfiguration> {
 

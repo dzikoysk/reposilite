@@ -18,9 +18,7 @@ package com.reposilite.settings.api
 import com.reposilite.shared.extensions.Validator
 import net.dzikoysk.cdn.entity.Description
 import panda.std.reactive.reference
-import picocli.CommandLine.Command
-import picocli.CommandLine.Option
-import picocli.CommandLine.Parameters
+import picocli.CommandLine.*
 import java.io.Serializable
 
 class LocalConfiguration : Serializable {

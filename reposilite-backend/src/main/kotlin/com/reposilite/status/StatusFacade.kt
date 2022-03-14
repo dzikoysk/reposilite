@@ -20,9 +20,7 @@ import com.reposilite.VERSION
 import com.reposilite.plugin.api.Facade
 import com.reposilite.shared.extensions.TimeUtils
 import panda.utilities.IOUtils
-import panda.utilities.console.Effect.GREEN
-import panda.utilities.console.Effect.RED_UNDERLINED
-import panda.utilities.console.Effect.RESET
+import panda.utilities.console.Effect.*
 
 class StatusFacade(
     private val testEnv: Boolean,
