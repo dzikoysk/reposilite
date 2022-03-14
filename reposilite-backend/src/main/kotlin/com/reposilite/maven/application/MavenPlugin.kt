@@ -17,7 +17,13 @@
 package com.reposilite.maven.application
 
 import com.reposilite.frontend.FrontendFacade
-import com.reposilite.maven.*
+import com.reposilite.maven.MavenFacade
+import com.reposilite.maven.MetadataService
+import com.reposilite.maven.PreservedBuildsListener
+import com.reposilite.maven.ProxyService
+import com.reposilite.maven.RepositoryProvider
+import com.reposilite.maven.RepositorySecurityProvider
+import com.reposilite.maven.RepositoryService
 import com.reposilite.maven.infrastructure.MavenApiEndpoints
 import com.reposilite.maven.infrastructure.MavenEndpoints
 import com.reposilite.maven.infrastructure.MavenLatestApiEndpoints

@@ -21,7 +21,11 @@ import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.routing.RouteMethod.GET
-import io.javalin.openapi.*
+import io.javalin.openapi.HttpMethod
+import io.javalin.openapi.OpenApi
+import io.javalin.openapi.OpenApiContent
+import io.javalin.openapi.OpenApiParam
+import io.javalin.openapi.OpenApiResponse
 
 internal class AuthenticationEndpoint(private val authenticationFacade: AuthenticationFacade) : ReposiliteRoutes() {
 

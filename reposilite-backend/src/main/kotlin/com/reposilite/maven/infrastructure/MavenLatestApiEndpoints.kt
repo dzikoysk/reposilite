@@ -37,7 +37,11 @@ import com.reposilite.web.http.contentDisposition
 import com.reposilite.web.routing.RouteMethod.GET
 import io.javalin.http.ContentType
 import io.javalin.http.HttpCode.BAD_REQUEST
-import io.javalin.openapi.*
+import io.javalin.openapi.HttpMethod
+import io.javalin.openapi.OpenApi
+import io.javalin.openapi.OpenApiContent
+import io.javalin.openapi.OpenApiParam
+import io.javalin.openapi.OpenApiResponse
 import panda.std.Result
 import panda.std.asError
 import panda.std.asSuccess

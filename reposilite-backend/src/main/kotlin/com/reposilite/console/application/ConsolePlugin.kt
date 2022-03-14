@@ -16,11 +16,20 @@
 package com.reposilite.console.application
 
 import com.reposilite.auth.AuthenticationFacade
-import com.reposilite.console.*
+import com.reposilite.console.CommandExecutor
+import com.reposilite.console.ConsoleFacade
+import com.reposilite.console.HelpCommand
+import com.reposilite.console.LevelCommand
+import com.reposilite.console.StopCommand
 import com.reposilite.console.api.CommandsSetupEvent
 import com.reposilite.console.infrastructure.CliEndpoint
 import com.reposilite.console.infrastructure.ConsoleEndpoint
-import com.reposilite.plugin.api.*
+import com.reposilite.plugin.api.Facade
+import com.reposilite.plugin.api.Plugin
+import com.reposilite.plugin.api.ReposiliteDisposeEvent
+import com.reposilite.plugin.api.ReposiliteInitializeEvent
+import com.reposilite.plugin.api.ReposilitePlugin
+import com.reposilite.plugin.api.ReposiliteStartedEvent
 import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
 import com.reposilite.settings.SettingsFacade

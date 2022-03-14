@@ -23,7 +23,9 @@ import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
 import com.reposilite.status.FailureFacade
 import picocli.CommandLine
-import picocli.CommandLine.*
+import picocli.CommandLine.Command
+import picocli.CommandLine.MissingParameterException
+import picocli.CommandLine.UnmatchedArgumentException
 import java.io.InputStream
 import java.util.function.Consumer
 

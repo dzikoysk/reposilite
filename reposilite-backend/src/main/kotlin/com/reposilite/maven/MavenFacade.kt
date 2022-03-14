@@ -18,7 +18,17 @@ package com.reposilite.maven
 
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
-import com.reposilite.maven.api.*
+import com.reposilite.maven.api.DeleteRequest
+import com.reposilite.maven.api.DeployEvent
+import com.reposilite.maven.api.DeployRequest
+import com.reposilite.maven.api.LatestBadgeRequest
+import com.reposilite.maven.api.LatestVersionResponse
+import com.reposilite.maven.api.LookupRequest
+import com.reposilite.maven.api.METADATA_FILE
+import com.reposilite.maven.api.Metadata
+import com.reposilite.maven.api.ResolveEvent
+import com.reposilite.maven.api.VersionLookupRequest
+import com.reposilite.maven.api.VersionsResponse
 import com.reposilite.plugin.Extensions
 import com.reposilite.plugin.api.Facade
 import com.reposilite.shared.BadgeGenerator

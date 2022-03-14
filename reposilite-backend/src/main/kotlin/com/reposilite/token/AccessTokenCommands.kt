@@ -21,7 +21,9 @@ import com.reposilite.console.CommandStatus.FAILED
 import com.reposilite.console.api.ReposiliteCommand
 import com.reposilite.token.AccessTokenType.PERSISTENT
 import com.reposilite.token.api.CreateAccessTokenRequest
-import picocli.CommandLine.*
+import picocli.CommandLine.Command
+import picocli.CommandLine.Option
+import picocli.CommandLine.Parameters
 
 @Command(name = "tokens", description = ["List all generated tokens"])
 internal class TokensCommand(private val accessTokenFacade: AccessTokenFacade) : ReposiliteCommand {

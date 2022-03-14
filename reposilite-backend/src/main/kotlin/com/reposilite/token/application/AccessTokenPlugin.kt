@@ -23,8 +23,15 @@ import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
 import com.reposilite.settings.SettingsFacade
-import com.reposilite.token.*
+import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.AccessTokenPermission.MANAGER
+import com.reposilite.token.ChModCommand
+import com.reposilite.token.ChNameCommand
+import com.reposilite.token.KeygenCommand
+import com.reposilite.token.RevokeCommand
+import com.reposilite.token.RouteAdd
+import com.reposilite.token.RouteRemove
+import com.reposilite.token.TokensCommand
 import com.reposilite.token.infrastructure.AccessTokenApiEndpoints
 import com.reposilite.token.infrastructure.InMemoryAccessTokenRepository
 import com.reposilite.token.infrastructure.SqlAccessTokenRepository
