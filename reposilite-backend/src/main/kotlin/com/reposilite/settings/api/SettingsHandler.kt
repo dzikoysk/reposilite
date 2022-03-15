@@ -43,18 +43,15 @@ interface SettingsHandler<T> {
     fun update(value: T)
 
     companion object {
-        private val generator = SchemaGenerator(SchemaGeneratorConfigBuilder(SchemaVersion.DRAFT_2019_09, SCHEMA_OPTION_PRESET).with(SettingsModule()).build())
+        private val generator = SchemaGenerator(SchemaGeneratorConfigBuilder(SchemaVersion.DRAFT_7, SCHEMA_OPTION_PRESET).with(SettingsModule()).build())
 
-        fun <T> of(name: String, type: Class<T>, getter: Supplier<T>, updater: Consumer<T>): SettingsHandler<T> {
-            val handler = object: SettingsHandler<T> {
-                override val name = name
-                override val type = type
-                override val schema = generator.generateSchema(type)
-                override fun get(): T = getter.get()
-                override fun update(value: T): Unit = updater.accept(value)
-            }
-            println(handler.schema.toString())
-            return handler
+        @JvmStatic
+        fun <T> of(name: String, type: Class<T>, getter: Supplier<T>, updater: Consumer<T>): SettingsHandler<T> = object : SettingsHandler<T> {
+            override val name = name
+            override val type = type
+            override val schema = generator.generateSchema(type)
+            override fun get(): T = getter.get()
+            override fun update(value: T): Unit = updater.accept(value)
         }
     }
 }

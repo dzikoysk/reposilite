@@ -16,6 +16,7 @@
 
 package com.reposilite.settings.infrastructure
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.reposilite.settings.SettingsFacade
 import com.reposilite.settings.api.SettingsResponse
 import com.reposilite.settings.api.SettingsUpdateRequest
@@ -71,7 +72,7 @@ internal class SettingsEndpoints(private val settingsFacade: SettingsFacade) : R
     @OpenApi(
         path = "/api/configuration/{name}",
         methods = [HttpMethod.GET],
-        tags = ["Configuration"],
+        tags = ["Settings"],
         summary = "Find configuration",
         pathParams = [OpenApiParam(name = "name", description = "Name of configuration to fetch", required = true)],
         responses = [
@@ -96,7 +97,7 @@ internal class SettingsEndpoints(private val settingsFacade: SettingsFacade) : R
     @OpenApi(
         path = "/api/configuration/{name}",
         methods = [HttpMethod.PUT],
-        tags = ["Configuration"],
+        tags = ["Settings"],
         summary = "Update configuration",
         pathParams = [OpenApiParam(name = "name", description = "Name of configuration to update", required = true)],
         responses = [
@@ -116,6 +117,32 @@ internal class SettingsEndpoints(private val settingsFacade: SettingsFacade) : R
         }
     }
 
-    override val routes = routes(legacyFindConfiguration, legacyUpdateConfiguration, getConfiguration, updateConfiguration)
+    @OpenApi(
+        path = "/api/schema/{name}",
+        methods = [HttpMethod.GET],
+        tags = ["Settings"],
+        summary = "Get schema",
+        pathParams = [OpenApiParam(name = "name", description = "Name of schema to get", required = true)],
+        responses = [
+            OpenApiResponse(
+                status = "200",
+                description = "Returns dto representing configuration schema",
+                content = [OpenApiContent(from = JsonNode::class)]
+            ),
+            OpenApiResponse(
+                status = "401",
+                description = "Returns 401 if token without moderation permission has been used to access this resource"
+            ),
+            OpenApiResponse(status = "404", description = "Returns 404 if non-existing configuration schema is requested")
+        ]
+    )
+    private val getSchema = ReposiliteRoute<Any>("/api/schema/{name}", GET) {
+        managerOnly {
+            val name = requireParameter("name")
+            response = settingsFacade.getHandler(name).map { it.schema }
+        }
+    }
+
+    override val routes = routes(legacyFindConfiguration, legacyUpdateConfiguration, getConfiguration, updateConfiguration, getSchema)
 
 }

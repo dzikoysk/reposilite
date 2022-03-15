@@ -18,23 +18,25 @@
 import { ref } from 'vue'
 import { useSession } from '../../store/session'
 import { createToast } from 'mosha-vue-toastify'
-import schema from '../../shared-config-schema.json'
-//import uischema from '../../shared-config-ui-schema.json'
-import { JsonForms } from '@jsonforms/vue'
-import { createAjv } from '@jsonforms/core'
-import { vanillaRenderers } from '@jsonforms/vue-vanilla'
-import { entry } from './ConfigurationLayout.vue';
+import {JsonForms} from '@jsonforms/vue';
+import {createAjv} from '@jsonforms/core';
 
 const { client } = useSession()
 
 const configurationName = "all"
 const configuration = ref({})
+const configurationSchema = ref({})
 const configurationInitialized = ref(false)
+
+const fetchSchema = () =>
+    client.value.schema.get(configurationName)
+        .then(response => configurationSchema.value = response.data)
+        .catch(error => createToast(error, { type: 'danger' }))
 
 const fetchConfiguration = () =>
     client.value.config.get(configurationName)
         .then(response => configuration.value = response.data)
-        .catch(error => createToast(error, { type: 'error' }))
+        .catch(error => createToast(error, { type: 'danger' }))
 
 const updateConfiguration = () =>
     client.value.config.put(configurationName, configuration.value)
@@ -44,20 +46,22 @@ const updateConfiguration = () =>
             configuration.value = response.data
           }
         })
-        .catch(error => createToast(error, { type: 'error' }))
+        .catch(error => createToast(error, { type: 'danger' }))
 
-fetchConfiguration()
+fetchSchema().then(fetchConfiguration)
     .then(() => configurationInitialized.value = true)
 
-const renderers = Object.freeze([...vanillaRenderers, entry])
-
-const ajv = createAjv()
-ajv.addFormat('storage-quota', /^([1-9]\d*)([KkMmGg][Bb]|%)$/)
-ajv.addFormat('maven-artifact-group', /^(\w+\.)*\w+$/)
-ajv.addFormat('repository-name', {
-  type: 'string',
-  validate: (name) => name in configuration.value.repositories
-})
+const ajvOptions = {
+  'formats': {
+    'storage-quota': /^([1-9]\d*)([KkMmGg][Bb]|%)$/,
+    'maven-artifact-group': /^(\w+\.)*\w+$/,
+    'repository-name': {
+      type: 'string',
+      validate: (name) => name in configuration.value.repositories
+    }
+  }
+}
+const ajv = createAjv(ajvOptions)
 </script>
 
 <template>
@@ -77,13 +81,7 @@ ajv.addFormat('repository-name', {
       </div>
     </div>
     <div class="border-1 rounded p-4 dark:border-gray-700">
-      <json-forms
-          ref="form"
-          :data="configuration"
-          :renderers="renderers"
-          :schema="schema"
-          :ajv="ajv"
-      />
+      <json-forms :schema="configurationSchema" :data="configuration" :ajv="ajv"></json-forms><!-- TODO: add renderer -->
     </div>
   </div>
 </template>

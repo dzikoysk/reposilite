@@ -76,6 +76,14 @@ const createClient = (defaultName, defaultSecret) => {
         return put(`/api/settings/content/${name}`, content)
       }
     },
+    schema: {
+      get(name) {
+        return axios.get(`/api/schema/${name}`, { headers: {
+          'Accepts': 'application/json',
+          ...defaultAuthorization().headers
+        }})
+      }
+    },
     config: {
       get(name) {
         return axios.get(createURL(`/api/configuration/${name}`), { headers: {

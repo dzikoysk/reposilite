@@ -57,7 +57,7 @@ class SettingsFacade internal constructor(
         }
     }
 
-    private fun getHandler(name: String): Result<SettingsHandler<*>, ErrorResponse> {
+    fun getHandler(name: String): Result<SettingsHandler<*>, ErrorResponse> {
         return Result.`when`(configHandlers.containsKey(name),
             { configHandlers[name]!! },
             { ErrorResponse(HttpCode.NOT_FOUND, "No configuration with name \"$name\" found!") }
