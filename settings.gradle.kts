@@ -20,5 +20,6 @@ include(
     "reposilite-backend",
     "reposilite-plugins:example-plugin",
     "reposilite-plugins:groovy-plugin",
-    "reposilite-plugins:javadoc-plugin"
+    "reposilite-plugins:javadoc-plugin",
+    "reposilite-plugins:webhook-plugin"
 )
