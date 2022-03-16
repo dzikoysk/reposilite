@@ -20,6 +20,6 @@ fun webhookEvent(by: String, gav: Location, repo: Repository) {
         }
     } else {
         // Send the Slack message/embed.
-        println("Reposilite Webhook: Slack is not yet implemented!")
+        println("Reposilite Webhook: Slack is not yet implemented or there was an invalid embed service!")
     }
 }
