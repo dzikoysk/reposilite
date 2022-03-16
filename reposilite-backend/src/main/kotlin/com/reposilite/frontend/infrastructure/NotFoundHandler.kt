@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.reposilite.frontend.application
+package com.reposilite.frontend.infrastructure
 
 import com.reposilite.frontend.FrontendFacade
 import io.javalin.http.Context

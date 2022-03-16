@@ -18,9 +18,11 @@ package com.reposilite.settings.specification
 
 import com.reposilite.journalist.backend.InMemoryLogger
 import com.reposilite.settings.SettingsFacade
-import com.reposilite.settings.api.LocalConfiguration
-import com.reposilite.settings.api.SharedConfiguration
+import com.reposilite.settings.LocalConfiguration
+import com.reposilite.settings.SettingsModule
+import com.reposilite.settings.SharedConfiguration
 import com.reposilite.settings.application.SettingsPlugin.Companion.SHARED_CONFIGURATION_FILE
+import com.reposilite.settings.createStandardSchemaGenerator
 import com.reposilite.settings.infrastructure.InMemorySettingsRepository
 import com.reposilite.web.http.ErrorResponse
 import net.dzikoysk.cdn.KCdnFactory
@@ -46,7 +48,8 @@ internal abstract class SettingsSpecification {
             workingDirectory.toPath(),
             localConfiguration,
             lazy { throw UnsupportedOperationException() },
-            settingsRepository
+            settingsRepository,
+            createStandardSchemaGenerator(SettingsModule())
         )
 
         settingsFacade.createConfigurationProvider(SharedConfiguration(), "Shared configuration", SHARED_CONFIGURATION_FILE)

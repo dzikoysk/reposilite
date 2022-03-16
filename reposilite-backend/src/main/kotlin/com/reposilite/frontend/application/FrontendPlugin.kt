@@ -19,6 +19,7 @@ package com.reposilite.frontend.application
 import com.reposilite.Reposilite
 import com.reposilite.frontend.FrontendFacade
 import com.reposilite.frontend.infrastructure.CustomFrontendHandler
+import com.reposilite.frontend.infrastructure.NotFoundHandler
 import com.reposilite.frontend.infrastructure.ResourcesFrontendHandler
 import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposiliteInitializeEvent
@@ -26,7 +27,7 @@ import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
 import com.reposilite.settings.SettingsFacade
-import com.reposilite.settings.api.SettingsHandler
+import com.reposilite.settings.api.SchemaHandler
 import com.reposilite.web.api.HttpServerInitializationEvent
 import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.api.RoutingSetupEvent
@@ -46,12 +47,11 @@ internal class FrontendPlugin : ReposilitePlugin() {
     override fun initialize(): FrontendFacade {
         val settingsFacade = facade<SettingsFacade>()
 
-        settingsFacade.registerHandler(SettingsHandler.of(
-            "appearance",
-            AppearanceSettings::class.java,
+        settingsFacade.registerSchemaWatcher(
+            FrontendSettings::class.java,
             { settingsFacade.sharedConfiguration.appearance.get() },
             { settingsFacade.sharedConfiguration.appearance.update(it) }
-        ))
+        )
 
         val frontendFacade = FrontendFacade(
             settingsFacade.localConfiguration.cacheContent,

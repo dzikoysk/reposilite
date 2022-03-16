@@ -27,8 +27,8 @@ import com.reposilite.auth.AuthenticationFacade
 import com.reposilite.auth.api.Credentials
 import com.reposilite.journalist.Journalist
 import com.reposilite.settings.SettingsFacade
-import com.reposilite.settings.api.LocalConfiguration
-import com.reposilite.settings.api.SharedConfiguration
+import com.reposilite.settings.LocalConfiguration
+import com.reposilite.settings.SharedConfiguration
 import com.reposilite.shared.ContextDsl
 import com.reposilite.shared.extensions.ContentTypeSerializer
 import com.reposilite.status.FailureFacade

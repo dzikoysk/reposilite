@@ -33,7 +33,7 @@ import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
 import com.reposilite.settings.SettingsFacade
-import com.reposilite.settings.api.SettingsHandler
+import com.reposilite.settings.api.SchemaHandler
 import com.reposilite.shared.http.HttpRemoteClientProvider
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.status.FailureFacade
@@ -55,7 +55,11 @@ internal class MavenPlugin : ReposilitePlugin() {
         val frontendFacade = facade<FrontendFacade>()
         val accessTokenFacade = facade<AccessTokenFacade>()
 
-        settingsFacade.registerHandler(SettingsHandler.of("repositories", RepositoriesSettings::class.java, { sharedConfiguration.repositories.get() }, { sharedConfiguration.repositories.update(it) }))
+        settingsFacade.registerSchemaWatcher(
+            RepositoriesSettings::class.java,
+            { sharedConfiguration.repositories.get() },
+            { sharedConfiguration.repositories.update(it) }
+        )
 
         val securityProvider = RepositorySecurityProvider(accessTokenFacade)
         val repositoryProvider = RepositoryProvider(

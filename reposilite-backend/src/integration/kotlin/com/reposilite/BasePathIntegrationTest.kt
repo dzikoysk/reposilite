@@ -16,9 +16,7 @@
 
 package com.reposilite
 
-import com.reposilite.frontend.application.AppearanceSettings
-import com.reposilite.web.application.WebSettings
-import com.reposilite.settings.api.SharedConfiguration
+import com.reposilite.settings.SharedConfiguration
 import io.javalin.Javalin
 import io.javalin.http.Context
 import kong.unirest.HttpRequest

@@ -19,7 +19,6 @@ package com.reposilite.settings.infrastructure
 import com.fasterxml.jackson.databind.JsonNode
 import com.reposilite.settings.SettingsFacade
 import com.reposilite.settings.api.SettingsResponse
-import com.reposilite.settings.api.SettingsUpdateRequest
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.routing.RouteMethod.GET
@@ -32,6 +31,7 @@ import io.javalin.openapi.OpenApiResponse
 
 internal class SettingsEndpoints(private val settingsFacade: SettingsFacade) : ReposiliteRoutes() {
 
+    /*
     @OpenApi(
         path = "/api/settings/content/{name}",
         methods = [HttpMethod.GET],
@@ -68,6 +68,7 @@ internal class SettingsEndpoints(private val settingsFacade: SettingsFacade) : R
                 .map { "Success" }
         }
     }
+     */
 
     @OpenApi(
         path = "/api/configuration/{name}",
@@ -143,6 +144,6 @@ internal class SettingsEndpoints(private val settingsFacade: SettingsFacade) : R
         }
     }
 
-    override val routes = routes(legacyFindConfiguration, legacyUpdateConfiguration, getConfiguration, updateConfiguration, getSchema)
+    override val routes = routes(getConfiguration, updateConfiguration, getSchema)
 
 }

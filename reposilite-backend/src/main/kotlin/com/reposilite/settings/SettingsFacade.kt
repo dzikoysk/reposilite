@@ -16,13 +16,13 @@
 
 package com.reposilite.settings
 
+import com.github.victools.jsonschema.generator.SchemaGenerator
 import com.reposilite.journalist.Journalist
 import com.reposilite.plugin.api.Facade
-import com.reposilite.settings.api.LocalConfiguration
-import com.reposilite.settings.api.SettingsHandler
+import com.reposilite.settings.api.Doc
+import com.reposilite.settings.api.SchemaHandler
 import com.reposilite.settings.api.SettingsResponse
 import com.reposilite.settings.api.SettingsUpdateRequest
-import com.reposilite.settings.api.SharedConfiguration
 import com.reposilite.settings.infrastructure.FileSystemConfigurationProvider
 import com.reposilite.settings.infrastructure.SqlConfigurationProvider
 import com.reposilite.web.http.ErrorResponse
@@ -32,6 +32,8 @@ import org.jetbrains.exposed.sql.Database
 import panda.std.Result
 import java.nio.file.Path
 import java.util.concurrent.ScheduledExecutorService
+import java.util.function.Consumer
+import java.util.function.Supplier
 
 class SettingsFacade internal constructor(
     private val journalist: Journalist,
@@ -39,32 +41,40 @@ class SettingsFacade internal constructor(
     val localConfiguration: LocalConfiguration,
     val database: Lazy<Database>,
     private val settingsRepository: SettingsRepository,
+    private val schemaGenerator: SchemaGenerator
 ) : Facade {
-    private val configHandlers = mutableMapOf<String, SettingsHandler<*>>()
 
-    fun registerHandler(handler: SettingsHandler<*>) = configHandlers.put(handler.name, handler)
+    private val configurationProviders = mutableMapOf<String, ConfigurationProvider<*>>()
+    private val configHandlers = mutableMapOf<String, SchemaHandler<*>>()
 
-    fun getClassForName(name: String): Result<Class<*>, ErrorResponse> = getHandler(name).map { it.type }
+    fun <T> registerSchemaWatcher(type: Class<T>, getter: Supplier<T>, updater: Consumer<T>): SchemaHandler<T> =
+        object : SchemaHandler<T> {
+            override val name = type.getAnnotation(Doc::class.java).title
+            override val type = type
+            override val schema = schemaGenerator.generateSchema(type)
+            override fun get(): T = getter.get()
+            override fun update(value: T): Unit = updater.accept(value)
+        }.also {
+            configHandlers[it.name] = it
+        }
 
-    fun getConfiguration(name: String): Result<Any, ErrorResponse> {
-        return getHandler(name).map { configHandlers[name]!!.get()!! }
-    }
+    fun getClassForName(name: String): Result<Class<*>, ErrorResponse> =
+        getHandler(name).map { it.type }
 
-    fun updateConfiguration(name: String, body: Any): Result<Any, ErrorResponse> {
-        return getHandler(name).flatMap {
+    fun getConfiguration(name: String): Result<Any, ErrorResponse> =
+        getHandler(name).map { configHandlers[name]!!.get()!! }
+
+    fun updateConfiguration(name: String, body: Any): Result<Any, ErrorResponse> =
+        getHandler(name).flatMap {
             Result.attempt { configHandlers[name]!!.update(body)!! }
                 .mapErr { ErrorResponse(HttpCode.INTERNAL_SERVER_ERROR, it.message.orEmpty()) }
         }
-    }
 
-    fun getHandler(name: String): Result<SettingsHandler<*>, ErrorResponse> {
-        return Result.`when`(configHandlers.containsKey(name),
+    fun getHandler(name: String): Result<SchemaHandler<*>, ErrorResponse> =
+        Result.`when`(configHandlers.containsKey(name),
             { configHandlers[name]!! },
             { ErrorResponse(HttpCode.NOT_FOUND, "No configuration with name \"$name\" found!") }
         )
-    }
-
-    private val configurationProviders = mutableMapOf<String, ConfigurationProvider<*>>()
 
     val sharedConfiguration: SharedConfiguration // expose it directly for easier calls
         get() = findConfiguration()
@@ -121,7 +131,7 @@ class SettingsFacade internal constructor(
 }
 
 @Suppress("UNCHECKED_CAST")
-private fun <T> SettingsHandler<T>.update(value: Any): Any? {
+private fun <T> SchemaHandler<T>.update(value: Any): Any? {
     this.update(value as T)
     return this.get()
 }

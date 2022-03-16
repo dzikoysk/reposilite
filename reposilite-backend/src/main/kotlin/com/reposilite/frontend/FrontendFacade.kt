@@ -15,7 +15,7 @@
  */
 package com.reposilite.frontend
 
-import com.reposilite.frontend.application.AppearanceSettings
+import com.reposilite.frontend.application.FrontendSettings
 import com.reposilite.plugin.api.Facade
 import org.intellij.lang.annotations.Language
 import panda.std.reactive.Reference
@@ -23,25 +23,25 @@ import panda.std.reactive.computed
 
 class FrontendFacade internal constructor(
     private val cacheContent: Reference<Boolean>,
-    private val appearanceSettings: Reference<AppearanceSettings>,
+    private val frontendSettings: Reference<FrontendSettings>,
 ) : Facade {
 
     private val resources = HashMap<String, String>(0)
     private val uriFormatter = Regex("/+") // exclude common typos from URI
 
     init {
-        computed(cacheContent, appearanceSettings) {
+        computed(cacheContent, frontendSettings) {
             resources.clear()
         }
     }
 
     fun resolve(uri: String, source: () -> String?): String? =
         resources[uri] ?: source()
-            ?.let { appearanceSettings.map { settings -> resolvePlaceholders(settings, it) } }
+            ?.let { frontendSettings.map { settings -> resolvePlaceholders(settings, it) } }
             ?.also { if (cacheContent.get()) resources[uri] = it }
 
-    private fun resolvePlaceholders(appearanceSettings: AppearanceSettings, source: String): String =
-        with(appearanceSettings) {
+    private fun resolvePlaceholders(frontendSettings: FrontendSettings, source: String): String =
+        with(frontendSettings) {
             source
                 .replace("{{REPOSILITE.BASE_PATH}}", basePath)
                 .replace("{{REPOSILITE.VITE_BASE_PATH}}", basePath.takeUnless { it == "" || it == "/" }?.replace(Regex("^/|/$"), "") ?: ".")
@@ -55,7 +55,7 @@ class FrontendFacade internal constructor(
 
     fun createNotFoundPage(originUri: String, details: String): String {
         val uri = originUri.replace(uriFormatter, "/")
-        val basePath = appearanceSettings.map { it.basePath }
+        val basePath = frontendSettings.map { it.basePath }
         val dashboardUrl = basePath + (if (basePath.endsWith("/")) "" else "/") + "#" + uri
 
         @Language("html")

@@ -23,7 +23,7 @@ import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
 import com.reposilite.settings.SettingsFacade
-import com.reposilite.settings.api.SettingsHandler
+import com.reposilite.settings.api.SchemaHandler
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.statistics.StatsCommand
 import com.reposilite.statistics.createDateIntervalProvider
@@ -52,12 +52,11 @@ internal class StatisticsPlugin : ReposilitePlugin() {
 
         consoleFacade.registerCommand(StatsCommand(statisticsFacade))
 
-        settingsFacade.registerHandler(SettingsHandler.of(
-            "statistics",
+        settingsFacade.registerSchemaWatcher(
             StatisticsSettings::class.java,
             { settingsFacade.sharedConfiguration.statistics.get() },
             { settingsFacade.sharedConfiguration.statistics.update(it) }
-        ))
+        )
 
         event { event: ReposiliteInitializeEvent ->
             event.reposilite.scheduler.scheduleWithFixedDelay({

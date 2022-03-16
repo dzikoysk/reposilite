@@ -16,7 +16,7 @@
 
 package com.reposilite
 
-import com.reposilite.settings.api.LocalConfiguration
+import com.reposilite.settings.LocalConfiguration
 import com.reposilite.settings.application.SettingsPlugin.Companion.LOCAL_CONFIGURATION_FILE
 import com.reposilite.settings.application.SettingsPlugin.Companion.SHARED_CONFIGURATION_FILE
 import com.reposilite.token.AccessTokenType.TEMPORARY

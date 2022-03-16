@@ -3,6 +3,11 @@ package com.reposilite.auth.application
 import com.reposilite.settings.api.Doc
 import java.io.Serializable
 
+@Doc(title = "Authentication", description = "Authenticator settings")
+data class AuthenticationSettings(
+    val ldap: LdapSettings = LdapSettings()
+)
+
 @Doc(title = "LDAP", description = "LDAP Authenticator settings")
 data class LdapSettings(
     @Doc(title = "Enabled", description = "LDAP Authenticator is enabled")

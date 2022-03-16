@@ -28,10 +28,9 @@ import com.reposilite.maven.RepositoryService
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.Metadata
 import com.reposilite.maven.api.Versioning
-import com.reposilite.maven.application.ProxiedRepository
 import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.plugin.Extensions
-import com.reposilite.settings.api.LocalConfiguration
+import com.reposilite.settings.LocalConfiguration
 import com.reposilite.shared.http.FakeRemoteClientProvider
 import com.reposilite.statistics.DailyDateIntervalProvider
 import com.reposilite.statistics.StatisticsFacade

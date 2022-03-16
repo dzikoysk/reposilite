@@ -16,19 +16,24 @@
 
 package com.reposilite.settings.application
 
-import com.reposilite.maven.application.RepositoriesSettings
 import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposiliteDisposeEvent
 import com.reposilite.plugin.api.ReposiliteInitializeEvent
 import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
+import com.reposilite.settings.EnumResolver
 import com.reposilite.settings.SettingsFacade
+import com.reposilite.settings.SettingsModule
 import com.reposilite.web.application.WebSettings
 import com.reposilite.settings.api.Settings
-import com.reposilite.settings.api.SettingsHandler
-import com.reposilite.settings.api.SharedConfiguration
+import com.reposilite.settings.SharedConfiguration
+import com.reposilite.settings.SubtypeResolver
+import com.reposilite.settings.createStandardSchemaGenerator
 import com.reposilite.settings.infrastructure.SettingsEndpoints
 import com.reposilite.settings.infrastructure.SqlSettingsRepository
+import com.reposilite.storage.application.FileSystemStorageProviderSettings
+import com.reposilite.storage.application.S3StorageProviderSettings
+import com.reposilite.storage.application.StorageProviderSettings
 import com.reposilite.web.api.RoutingSetupEvent
 
 @Plugin(name = "settings")
@@ -46,7 +51,33 @@ internal class SettingsPlugin : ReposilitePlugin() {
 
         val database = DatabaseSourceFactory.createConnection(workingDirectory, localConfiguration.database.get())
         val settingsRepository = SqlSettingsRepository(database)
-        val settingsFacade = SettingsFacade(this, workingDirectory, localConfiguration, lazy { database }, settingsRepository)
+
+        // TODO: Move to storage domain or remove this kind of impl if possible
+        val storageEnumResolver = EnumResolver {
+            if (it.name == "type")
+                when (it.declaringType.erasedType) {
+                    FileSystemStorageProviderSettings::class.java -> listOf("fs")
+                    S3StorageProviderSettings::class.java -> listOf("s3")
+                    else -> null
+                }
+            else null
+        }
+        val storageSubtypeResolver = SubtypeResolver { declaredType, context ->
+            when (declaredType.erasedType) {
+                StorageProviderSettings::class.java -> listOf(
+                    context.typeContext.resolveSubtype(declaredType, FileSystemStorageProviderSettings::class.java),
+                    context.typeContext.resolveSubtype(declaredType, S3StorageProviderSettings::class.java)
+                )
+                else -> null
+            }
+        }
+
+        val schemaGenerator = createStandardSchemaGenerator(SettingsModule(
+            subtypeResolvers =  listOf(storageSubtypeResolver),
+            enumResolvers = listOf(storageEnumResolver)
+        ))
+
+        val settingsFacade = SettingsFacade(this, workingDirectory, localConfiguration, lazy { database }, settingsRepository, schemaGenerator)
 
         logger.info("")
         logger.info("--- Settings")
@@ -59,14 +90,17 @@ internal class SettingsPlugin : ReposilitePlugin() {
             parameters.sharedConfigurationPath
         )
 
-        settingsFacade.registerHandler(
-            SettingsHandler.of(
-            "advanced",
+        settingsFacade.registerSchemaWatcher(
             WebSettings::class.java,
             { settingsFacade.sharedConfiguration.web.get() },
             { settingsFacade.sharedConfiguration.web.update(it) }
-        ))
-        settingsFacade.registerHandler(SettingsHandler.of("all", Settings::class.java, settingsFacade.sharedConfiguration::getSettingsDTO, settingsFacade.sharedConfiguration::updateFromSettingsDTO))
+        )
+
+        settingsFacade.registerSchemaWatcher(
+            Settings::class.java,
+            settingsFacade.sharedConfiguration::toDto,
+            settingsFacade.sharedConfiguration::update
+        )
 
         event { event: ReposiliteInitializeEvent ->
             settingsFacade.attachWatcherScheduler(event.reposilite.scheduler)
@@ -84,15 +118,3 @@ internal class SettingsPlugin : ReposilitePlugin() {
     }
 
 }
-
-private fun SharedConfiguration.updateFromSettingsDTO(settings: Settings): Settings {
-    repositories.update(RepositoriesSettings(settings.repositories))
-    web.update(settings.advanced)
-    appearance.update(settings.appearance)
-    statistics.update(settings.statistics)
-    ldap.update(settings.ldap)
-    return getSettingsDTO()
-}
-
-private fun SharedConfiguration.getSettingsDTO(): Settings = Settings(appearance = appearance.get(), advanced = web.get(), repositories = repositories.get().repositories, statistics = statistics.get(), ldap = ldap.get())
-

@@ -14,28 +14,35 @@
  * limitations under the License.
  */
 
-package com.reposilite.settings.api
+package com.reposilite.settings
 
-import com.reposilite.auth.application.LdapSettings
-import com.reposilite.frontend.application.AppearanceSettings
+import com.reposilite.auth.application.AuthenticationSettings
+import com.reposilite.frontend.application.FrontendSettings
 import com.reposilite.maven.application.RepositoriesSettings
+import com.reposilite.settings.api.Settings
 import com.reposilite.statistics.application.StatisticsSettings
 import com.reposilite.web.application.WebSettings
+import net.dzikoysk.cdn.entity.Description
 import net.dzikoysk.cdn.serdes.DeserializationHandler
 import panda.std.reactive.mutableReference
 import panda.utilities.StringUtils
 
 class SharedConfiguration : DeserializationHandler<SharedConfiguration> {
 
+    @Description("# Web domain configuration")
     val web = mutableReference(WebSettings())
 
+    @Description("# Repository domain configuration")
     val repositories = mutableReference(RepositoriesSettings())
 
-    val appearance = mutableReference(AppearanceSettings())
+    @Description("# Frontend domain configuration")
+    val appearance = mutableReference(FrontendSettings())
 
+    @Description("# Statistics domain configuration")
     val statistics = mutableReference(StatisticsSettings())
 
-    val ldap = mutableReference(LdapSettings())
+    @Description("# Authentication domain configuration")
+    val authentication = mutableReference(AuthenticationSettings())
 
     override fun handle(sharedConfiguration: SharedConfiguration): SharedConfiguration {
         var formattedBasePath = appearance.map { it.basePath }
@@ -57,5 +64,26 @@ class SharedConfiguration : DeserializationHandler<SharedConfiguration> {
 
         return this
     }
+
+    fun update(settings: Settings): Settings =
+        settings
+            .let {
+                repositories.update(RepositoriesSettings(it.repositories))
+                web.update(it.advanced)
+                appearance.update(it.appearance)
+                statistics.update(it.statistics)
+                authentication.update(it.authentication)
+                this
+            }
+            .toDto()
+
+    fun toDto(): Settings =
+        Settings(
+            appearance = appearance.get(),
+            advanced = web.get(),
+            repositories = repositories.get().repositories,
+            statistics = statistics.get(),
+            authentication = authentication.get()
+        )
 
 }

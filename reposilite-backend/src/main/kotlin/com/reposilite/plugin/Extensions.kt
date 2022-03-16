@@ -22,7 +22,7 @@ import com.reposilite.journalist.Logger
 import com.reposilite.plugin.api.Event
 import com.reposilite.plugin.api.EventListener
 import com.reposilite.plugin.api.Facade
-import com.reposilite.settings.api.LocalConfiguration
+import com.reposilite.settings.LocalConfiguration
 
 class Extensions(
     private val journalist: Journalist,

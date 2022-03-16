@@ -23,8 +23,8 @@ import com.reposilite.maven.application.ProxiedRepository
 import com.reposilite.maven.application.RepositoriesSettings
 import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.storage.application.StorageProviderSettings
-import com.reposilite.settings.api.LocalConfiguration
-import com.reposilite.settings.api.SharedConfiguration
+import com.reposilite.settings.LocalConfiguration
+import com.reposilite.settings.SharedConfiguration
 import io.javalin.core.util.JavalinBindException
 import net.dzikoysk.cdn.KCdnFactory
 import net.dzikoysk.cdn.source.Source

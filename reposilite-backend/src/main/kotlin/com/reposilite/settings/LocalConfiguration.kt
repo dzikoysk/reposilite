@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.reposilite.settings.api
+package com.reposilite.settings
 
 import com.reposilite.shared.extensions.Validator
 import net.dzikoysk.cdn.entity.Description

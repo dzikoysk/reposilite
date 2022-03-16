@@ -27,10 +27,11 @@ import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
 import com.reposilite.settings.SettingsFacade
-import com.reposilite.settings.api.SettingsHandler
 import com.reposilite.status.FailureFacade
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.web.api.RoutingSetupEvent
+import panda.std.reactive.Reference.Dependencies.dependencies
+import panda.std.reactive.Reference.computed
 
 @Plugin(name = "authentication", dependencies = ["failure", "settings", "access-token"])
 internal class AuthenticationPlugin : ReposilitePlugin() {
@@ -39,19 +40,23 @@ internal class AuthenticationPlugin : ReposilitePlugin() {
         val failureFacade = facade<FailureFacade>()
         val settingsFacade = facade<SettingsFacade>()
         val accessTokenFacade = facade<AccessTokenFacade>()
+        val authenticationSettings = settingsFacade.sharedConfiguration.authentication
 
-        settingsFacade.registerHandler(SettingsHandler.of(
-            "ldap",
-            LdapSettings::class.java,
-            { settingsFacade.sharedConfiguration.ldap.get() },
-            { settingsFacade.sharedConfiguration.ldap.update(it) }
-        ))
+        settingsFacade.registerSchemaWatcher(
+            AuthenticationSettings::class.java,
+            { authenticationSettings.get() },
+            { authenticationSettings.update(it) }
+        )
 
         val authenticationFacade = AuthenticationFacade(
             journalist = this,
             authenticators =  listOf(
                 BasicAuthenticator(accessTokenFacade),
-                LdapAuthenticator(settingsFacade.sharedConfiguration.ldap, accessTokenFacade, failureFacade)
+                LdapAuthenticator(
+                    computed(dependencies(authenticationSettings)) { authenticationSettings.map { it.ldap } },
+                    accessTokenFacade,
+                    failureFacade
+                )
             ),
             accessTokenFacade = accessTokenFacade
         )

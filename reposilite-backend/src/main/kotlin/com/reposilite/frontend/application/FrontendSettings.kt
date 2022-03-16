@@ -4,7 +4,7 @@ import com.reposilite.settings.api.Doc
 import java.io.Serializable
 
 @Doc(title = "Appearance", description = "Appearance settings")
-data class AppearanceSettings(
+data class FrontendSettings(
     /** Enable default frontend with dashboard */
     @Doc(title = "Frontend", description = "Enable default frontend with dashboard")
     val frontend: Boolean = true,
