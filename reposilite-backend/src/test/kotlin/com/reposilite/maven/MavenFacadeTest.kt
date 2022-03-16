@@ -16,12 +16,15 @@
 
 package com.reposilite.maven
 
+import com.reposilite.maven.RepositoryVisibility.HIDDEN
+import com.reposilite.maven.RepositoryVisibility.PRIVATE
+import com.reposilite.maven.RepositoryVisibility.PUBLIC
 import com.reposilite.maven.api.DeleteRequest
 import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.VersionLookupRequest
+import com.reposilite.maven.application.ProxiedRepository
 import com.reposilite.maven.application.RepositorySettings
-import com.reposilite.maven.application.RepositorySettings.Visibility.*
 import com.reposilite.maven.specification.MavenSpecification
 import com.reposilite.storage.api.FileType.FILE
 import com.reposilite.storage.api.toLocation
@@ -47,8 +50,8 @@ internal class MavenFacadeTest : MavenSpecification() {
         HIDDEN.name to RepositorySettings(visibility = HIDDEN),
         PUBLIC.name to RepositorySettings(visibility = PUBLIC),
         "PROXIED" to RepositorySettings(visibility = PUBLIC, proxied = mutableListOf(
-            RepositorySettings.ProxiedRepository(REMOTE_REPOSITORY, store = true, authorization = REMOTE_AUTH),
-            RepositorySettings.ProxiedRepository(REMOTE_REPOSITORY_WITH_WHITELIST, allowedGroups = listOf("do.allow"))
+            ProxiedRepository(REMOTE_REPOSITORY, store = true, authorization = REMOTE_AUTH),
+            ProxiedRepository(REMOTE_REPOSITORY_WITH_WHITELIST, allowedGroups = listOf("do.allow"))
         ))
     )
 

@@ -18,7 +18,7 @@ package com.reposilite.maven
 
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
-import com.reposilite.maven.application.RepositorySettings
+import com.reposilite.maven.application.ProxiedRepository
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.Location
 import com.reposilite.web.http.ErrorResponse
@@ -48,7 +48,7 @@ internal class ProxyService(private val journalist: Journalist): Journalist {
             .firstOrNull { it.isOk }
             ?: notFoundError("Cannot find $gav in remote repositories")
 
-    private fun isAllowed(config: RepositorySettings.ProxiedRepository, gav: Location): Boolean =
+    private fun isAllowed(config: ProxiedRepository, gav: Location): Boolean =
         config.allowedGroups.isEmpty() ||
                 config.allowedGroups
                     .map { it.replace('.', '/') }

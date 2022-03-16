@@ -24,7 +24,7 @@ import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.reposilite.Reposilite
 import com.reposilite.VERSION
 import com.reposilite.auth.AuthenticationFacade
-import com.reposilite.auth.api.AuthenticationRequest
+import com.reposilite.auth.api.Credentials
 import com.reposilite.journalist.Journalist
 import com.reposilite.settings.SettingsFacade
 import com.reposilite.settings.api.LocalConfiguration
@@ -99,7 +99,7 @@ internal object JavalinConfiguration {
                         accessTokenFacade,
                         lazy {
                             extractFromHeaders(ctx.headerMap())
-                                .map { (name, secret) -> AuthenticationRequest(name, secret) }
+                                .map { (name, secret) -> Credentials(name, secret) }
                                 .flatMap { authenticationFacade.authenticateByCredentials(it) }
                         }
                     )

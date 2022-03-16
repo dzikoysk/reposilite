@@ -80,7 +80,7 @@ dependencies {
     val ldap = "6.0.3"
     testImplementation("com.unboundid:unboundid-ldapsdk:$ldap")
 
-    val openapi = "1.1.1"
+    val openapi = "1.1.3"
     kapt("io.javalin-rfc:openapi-annotation-processor:$openapi")
     implementation("io.javalin-rfc:javalin-openapi-plugin:$openapi")
     implementation("io.javalin-rfc:javalin-swagger-plugin:$openapi")

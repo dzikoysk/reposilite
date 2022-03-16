@@ -16,6 +16,7 @@
 
 package com.reposilite.maven
 
+import com.reposilite.maven.application.ProxiedRepository
 import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.shared.http.RemoteClientProvider
 import com.reposilite.status.FailureFacade
@@ -46,7 +47,7 @@ internal class RepositoryFactory(
             createStorageProvider(failureFacade, workingDirectory.resolve(repositoriesDirectory), repositoryName, configuration.storageProvider),
         )
 
-    private fun createProxiedHostConfiguration(configurationSource: RepositorySettings.ProxiedRepository): ProxiedHost {
+    private fun createProxiedHostConfiguration(configurationSource: ProxiedRepository): ProxiedHost {
         val name = configurationSource.reference
         val configuration = configurationSource
 

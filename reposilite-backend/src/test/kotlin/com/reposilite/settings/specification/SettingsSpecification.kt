@@ -59,6 +59,6 @@ internal abstract class SettingsSpecification {
         settingsFacade.resolveConfiguration(SHARED_CONFIGURATION_FILE).map { it.content }
 
     fun renderConfiguration(): String =
-        cdn.render(settingsFacade.sharedConfiguration).get()
+        cdn.render(settingsFacade.sharedConfiguration).orElseThrow { it }
 
 }

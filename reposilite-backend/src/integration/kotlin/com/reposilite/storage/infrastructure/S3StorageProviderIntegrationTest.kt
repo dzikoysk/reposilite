@@ -17,7 +17,7 @@
 package com.reposilite.storage.infrastructure
 
 import com.reposilite.journalist.backend.InMemoryLogger
-import com.reposilite.maven.application.S3StorageProviderSettings
+import com.reposilite.storage.application.S3StorageProviderSettings
 import com.reposilite.status.FailureFacade
 import com.reposilite.storage.StorageProviderFactory
 import com.reposilite.storage.StorageProviderIntegrationTest

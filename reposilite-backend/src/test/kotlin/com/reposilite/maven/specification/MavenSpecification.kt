@@ -17,6 +17,7 @@
 package com.reposilite.maven.specification
 
 import com.reposilite.ReposiliteParameters
+import com.reposilite.auth.api.Credentials
 import com.reposilite.journalist.backend.InMemoryLogger
 import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.MetadataService
@@ -27,6 +28,7 @@ import com.reposilite.maven.RepositoryService
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.Metadata
 import com.reposilite.maven.api.Versioning
+import com.reposilite.maven.application.ProxiedRepository
 import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.plugin.Extensions
 import com.reposilite.settings.api.LocalConfiguration
@@ -44,7 +46,6 @@ import com.reposilite.token.AccessTokenIdentifier
 import com.reposilite.token.AccessTokenType.TEMPORARY
 import com.reposilite.token.Route
 import com.reposilite.token.RoutePermission
-import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.token.api.CreateAccessTokenRequest
 import com.reposilite.token.infrastructure.InMemoryAccessTokenRepository
 import com.reposilite.web.http.notFoundError
@@ -66,7 +67,7 @@ internal abstract class MavenSpecification {
         val UNAUTHORIZED: AccessTokenIdentifier? = null
         const val REMOTE_REPOSITORY = "https://domain.com/releases"
         const val REMOTE_REPOSITORY_WITH_WHITELIST = "https://example.com/whitelist"
-        val REMOTE_AUTH = RepositorySettings.ProxiedRepository.Authorization("panda", "secret")
+        val REMOTE_AUTH = Credentials("panda", "secret")
         const val REMOTE_CONTENT = "content"
     }
 

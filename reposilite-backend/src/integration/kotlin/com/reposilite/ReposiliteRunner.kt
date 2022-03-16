@@ -19,8 +19,10 @@ package com.reposilite
 import com.reposilite.journalist.Channel
 import com.reposilite.journalist.Logger
 import com.reposilite.journalist.backend.PrintStreamLogger
+import com.reposilite.maven.application.ProxiedRepository
 import com.reposilite.maven.application.RepositoriesSettings
 import com.reposilite.maven.application.RepositorySettings
+import com.reposilite.storage.application.StorageProviderSettings
 import com.reposilite.settings.api.LocalConfiguration
 import com.reposilite.settings.api.SharedConfiguration
 import io.javalin.core.util.JavalinBindException
@@ -56,7 +58,7 @@ internal abstract class ReposiliteRunner {
     @JvmField
     var _database: String = ""
     @JvmField
-    var _storageProvider: RepositorySettings.StorageProvider? = null
+    var _storageProvider: StorageProviderSettings? = null
 
     lateinit var reposilite: Reposilite
 
@@ -97,7 +99,7 @@ internal abstract class ReposiliteRunner {
         cdn.render(localConfiguration, Source.of(reposiliteWorkingDirectory.resolve("configuration.local.cdn")))
 
         val sharedConfiguration = SharedConfiguration().also {
-            val proxiedConfiguration = RepositorySettings(proxied = mutableListOf(RepositorySettings.ProxiedRepository("http://localhost:${parameters.port + 1}/releases")))
+            val proxiedConfiguration = RepositorySettings(proxied = mutableListOf(ProxiedRepository("http://localhost:${parameters.port + 1}/releases")))
 
             val updatedRepositories = it.repositories.get().repositories.toMutableMap()
             updatedRepositories["proxied"] = proxiedConfiguration

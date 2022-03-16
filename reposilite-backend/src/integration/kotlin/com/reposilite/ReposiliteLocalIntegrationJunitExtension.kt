@@ -16,7 +16,7 @@
 
 package com.reposilite
 
-import com.reposilite.maven.application.FSStorageProviderSettings
+import com.reposilite.storage.application.FSStorageProviderSettings
 import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.Extension
 import org.junit.jupiter.api.extension.ExtensionContext

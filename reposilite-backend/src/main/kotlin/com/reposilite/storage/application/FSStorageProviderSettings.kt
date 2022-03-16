@@ -1,4 +1,4 @@
-package com.reposilite.maven.application
+package com.reposilite.storage.application
 
 import com.reposilite.settings.api.Doc
 
@@ -8,6 +8,9 @@ data class FSStorageProviderSettings(
     val quota: String = "100%",
     @Doc(title = "Mount", description = "use custom directory to locate the repository data (optional, by default it's './repositories/{name}')")
     val mount: String = ""
-): RepositorySettings.StorageProvider {
-    override val type = "fs"
+): StorageProviderSettings {
+
+    override val type: String =
+        "fs"
+
 }

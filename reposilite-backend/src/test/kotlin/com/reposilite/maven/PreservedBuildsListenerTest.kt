@@ -34,7 +34,7 @@ internal class PreservedBuildsListenerTest : MavenSpecification() {
     private val repositoryName = "snapshots"
 
     override fun repositories() = linkedMapOf(
-        repositoryName to RepositorySettings(visibility = RepositorySettings.Visibility.PUBLIC, preserved = 2)
+        repositoryName to RepositorySettings(preserved = 2)
     )
 
     @BeforeEach

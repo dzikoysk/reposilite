@@ -16,9 +16,9 @@
 
 package com.reposilite.storage
 
-import com.reposilite.maven.application.FSStorageProviderSettings
-import com.reposilite.maven.application.RepositorySettings
-import com.reposilite.maven.application.S3StorageProviderSettings
+import com.reposilite.storage.application.FSStorageProviderSettings
+import com.reposilite.storage.application.StorageProviderSettings
+import com.reposilite.storage.application.S3StorageProviderSettings
 import com.reposilite.status.FailureFacade
 import com.reposilite.storage.infrastructure.FileSystemStorageProvider
 import com.reposilite.storage.infrastructure.FileSystemStorageProviderFactory
@@ -33,7 +33,7 @@ import java.nio.file.Path
 
 object StorageProviderFactory {
 
-    fun createStorageProvider(failureFacade: FailureFacade, workingDirectory: Path, repositoryName: String, storageSettings: RepositorySettings.StorageProvider): StorageProvider =
+    fun createStorageProvider(failureFacade: FailureFacade, workingDirectory: Path, repositoryName: String, storageSettings: StorageProviderSettings): StorageProvider =
         when(storageSettings.type) {
             "fs" -> createFileSystemStorageProvider(workingDirectory, repositoryName, storageSettings as FSStorageProviderSettings)
             "s3" -> createS3StorageProvider(failureFacade, storageSettings as S3StorageProviderSettings)

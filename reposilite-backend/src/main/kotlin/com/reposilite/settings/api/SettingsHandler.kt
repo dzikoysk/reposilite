@@ -9,9 +9,9 @@ import com.github.victools.jsonschema.generator.SchemaGenerator
 import com.github.victools.jsonschema.generator.SchemaGeneratorConfigBuilder
 import com.github.victools.jsonschema.generator.SchemaVersion
 import com.github.victools.jsonschema.generator.TypeScope
-import com.reposilite.maven.application.FSStorageProviderSettings
-import com.reposilite.maven.application.RepositorySettings
-import com.reposilite.maven.application.S3StorageProviderSettings
+import com.reposilite.storage.application.FSStorageProviderSettings
+import com.reposilite.storage.application.StorageProviderSettings
+import com.reposilite.storage.application.S3StorageProviderSettings
 import java.util.function.Consumer
 import java.util.function.Supplier
 import kotlin.reflect.KProperty1
@@ -93,7 +93,7 @@ private val SCHEMA_OPTION_PRESET = OptionPreset(
 class SettingsModule: com.github.victools.jsonschema.generator.Module {
     override fun applyToConfigBuilder(builder: SchemaGeneratorConfigBuilder) {
         builder.forTypesInGeneral().withSubtypeResolver { declaredType, context -> when (declaredType.erasedType) {
-            RepositorySettings.StorageProvider::class.java -> listOf(
+            StorageProviderSettings::class.java -> listOf(
                 context.typeContext.resolveSubtype(declaredType, FSStorageProviderSettings::class.java),
                 context.typeContext.resolveSubtype(declaredType, S3StorageProviderSettings::class.java)
             )

@@ -17,7 +17,7 @@
 package com.reposilite.auth
 
 import com.reposilite.assertCollectionsEquals
-import com.reposilite.auth.api.AuthenticationRequest
+import com.reposilite.auth.api.Credentials
 import com.reposilite.auth.specification.AuthenticationSpecification
 import com.reposilite.auth.application.LdapSettings
 import com.reposilite.token.AccessTokenType.TEMPORARY
@@ -101,7 +101,7 @@ internal class LdapAuthenticatorTest : AuthenticationSpecification() {
     @Test
     fun `should authenticate non-existing ldap user`() {
         val authenticationResult = authenticator.authenticate(
-            AuthenticationRequest(
+            Credentials(
                 name = "Bella Swan",
                 secret = "secret"
             )
@@ -123,7 +123,7 @@ internal class LdapAuthenticatorTest : AuthenticationSpecification() {
         )
 
         val authenticationResult = authenticator.authenticate(
-            AuthenticationRequest(
+            Credentials(
                 name = token.name,
                 secret = secret
             )

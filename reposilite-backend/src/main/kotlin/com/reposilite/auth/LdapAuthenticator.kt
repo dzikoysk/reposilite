@@ -16,7 +16,7 @@
 
 package com.reposilite.auth
 
-import com.reposilite.auth.api.AuthenticationRequest
+import com.reposilite.auth.api.Credentials
 import com.reposilite.auth.application.LdapSettings
 import com.reposilite.journalist.Channel.DEBUG
 import com.reposilite.status.FailureFacade
@@ -57,18 +57,18 @@ internal class LdapAuthenticator(
     private val failureFacade: FailureFacade
 ) : Authenticator {
 
-    override fun authenticate(authenticationRequest: AuthenticationRequest): Result<AccessTokenDto, ErrorResponse> =
+    override fun authenticate(credentials: Credentials): Result<AccessTokenDto, ErrorResponse> =
         with(ldapSettings.get()) {
             createSearchContext()
                 .flatMap {
                     it.search(
-                        "(&(objectClass=person)(${userAttribute}=${authenticationRequest.name}))", // find user entry with search user
+                        "(&(objectClass=person)(${userAttribute}=${credentials.name}))", // find user entry with search user
                         userAttribute
                     )
                 }
                 .filter({ it.size == 1 }, { ErrorResponse(BAD_REQUEST, "Could not identify one specific result") }) // only one search result allowed
                 .map { it.first() }
-                .flatMap { createContext(user = it.first, password = authenticationRequest.secret) } // try to authenticate user with matched domain namespace
+                .flatMap { createContext(user = it.first, password = credentials.secret) } // try to authenticate user with matched domain namespace
                 .flatMap { it.search(userFilter, userAttribute) } // filter result with user-filter from configuration
                 .filter({ it.size == 1 }, { ErrorResponse(BAD_REQUEST, "Could not identify one specific result") }) // only one search result allowed
                 .map { it.first() }
@@ -76,7 +76,7 @@ internal class LdapAuthenticator(
                 .filter({ it.size == 1 }, { ErrorResponse(BAD_REQUEST, "Could not identify one specific attribute") }) // only one attribute value is allowed
                 .map { it.first() }
                 .filter(
-                    { authenticationRequest.name == it }, // make sure requested name matches required attribute
+                    { credentials.name == it }, // make sure requested name matches required attribute
                     { unauthorized("LDAP user does not match required attribute") }
                 )
                 .map { name -> accessTokenFacade.getAccessToken(name)
@@ -84,7 +84,7 @@ internal class LdapAuthenticator(
                         CreateAccessTokenRequest(
                             type = ldapSettings.map { it.userType.tokenType() },
                             name = name,
-                            secret = authenticationRequest.secret
+                            secret = credentials.secret
                         )
                     ).accessToken
                 }
