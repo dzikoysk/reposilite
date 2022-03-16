@@ -3,16 +3,18 @@ package com.reposilite.plugin.webhook.api
 // Core
 import club.minnced.discord.webhook.WebhookClientBuilder;
 // Embed
-import club.minnced.discord.webhook.send.WebhookEmbed;
 import club.minnced.discord.webhook.receive.ReadonlyMessage;
+import club.minnced.discord.webhook.send.WebhookEmbedBuilder
 // Message
 import club.minnced.discord.webhook.send.WebhookMessageBuilder;
+import com.reposilite.maven.Repository
+import com.reposilite.storage.api.Location
 // Config
 
 
 
-fun sendEmbed(embed: WebhookEmbed) {
-    // TODO: Make this a conig value reorganize code to use one function in the init file.
+fun sendDiscordEmbed(by: String, gav: Location, repo: Repository) {
+    // DONE: Make this a conig value reorganize code to use one function in the init file.
     val url = "https://thisshouldbereplacedinproduction.example.com/webhook";
 
     val clientBuilder = WebhookClientBuilder(url);
@@ -25,27 +27,44 @@ fun sendEmbed(embed: WebhookEmbed) {
     clientBuilder.setWait(true);
 
     val client = clientBuilder.build();
+
+    // Temp Description until I can figure out how to style embeds more,
+    val embed = WebhookEmbedBuilder()
+        .setColor(0xFF00EE)
+        .setDescription("A new artifact named" + gav.getSimpleName() + " was uploaded to " + repo.name + " by " + by + "!")
+        .build();
+
     client.send(embed)
+        .thenAccept { message: ReadonlyMessage ->
+            System.out.printf(
+                "Reposilite Webhook: Discord embed sent with id: [%s]%n",
+                message.id
+            )
+        }
+}
+
+fun sendDiscordMessage(by: String, gav: Location, repo: Repository) {
+    val url = "https://thisshouldbereplacedinproduction.example.com/webhook";
+
+    val clientBuilder = WebhookClientBuilder(url);
+    clientBuilder.setThreadFactory { job: Runnable? ->
+        val thread = Thread(job)
+        thread.name = "Reposilite"
+        thread.isDaemon = true
+        thread
+    }
+    clientBuilder.setWait(true);
+    val client = clientBuilder.build();
+
+    val messageBuilder = WebhookMessageBuilder();
+    messageBuilder.setUsername("Reposilite")
+    messageBuilder.setAvatarUrl("https://raw.githubusercontent.com/dzikoysk/reposilite/main/reposilite-site-next/public/images/favicon.png")
+    messageBuilder.setContent("A new artifact named" + gav.getSimpleName() + " was uploaded to " + repo.name + " by " + by + "!")
+    client.send(messageBuilder.build())
         .thenAccept { message: ReadonlyMessage ->
             System.out.printf(
                 "Reposilite Webhook: Discord message sent with id: [%s]%n",
                 message.id
             )
         }
-}
-
-fun sendMessage(messageBuilder: WebhookMessageBuilder) {
-    val url = "https://thisshouldbereplacedinproduction.example.com/webhook";
-
-    val clientBuilder = WebhookClientBuilder(url);
-    clientBuilder.setThreadFactory { job: Runnable? ->
-        val thread = Thread(job)
-        thread.name = "Reposilite"
-        thread.isDaemon = true
-        thread
-    }
-    clientBuilder.setWait(true);
-
-    val client = clientBuilder.build();
-    client.send(messageBuilder.build());
 }
