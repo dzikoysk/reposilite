@@ -9,7 +9,7 @@ import com.github.victools.jsonschema.generator.SchemaGenerator
 import com.github.victools.jsonschema.generator.SchemaGeneratorConfigBuilder
 import com.github.victools.jsonschema.generator.SchemaVersion
 import com.github.victools.jsonschema.generator.TypeScope
-import com.reposilite.storage.application.FSStorageProviderSettings
+import com.reposilite.storage.application.FileSystemStorageProviderSettings
 import com.reposilite.storage.application.StorageProviderSettings
 import com.reposilite.storage.application.S3StorageProviderSettings
 import java.util.function.Consumer
@@ -94,14 +94,14 @@ class SettingsModule: com.github.victools.jsonschema.generator.Module {
     override fun applyToConfigBuilder(builder: SchemaGeneratorConfigBuilder) {
         builder.forTypesInGeneral().withSubtypeResolver { declaredType, context -> when (declaredType.erasedType) {
             StorageProviderSettings::class.java -> listOf(
-                context.typeContext.resolveSubtype(declaredType, FSStorageProviderSettings::class.java),
+                context.typeContext.resolveSubtype(declaredType, FileSystemStorageProviderSettings::class.java),
                 context.typeContext.resolveSubtype(declaredType, S3StorageProviderSettings::class.java)
             )
             else -> null
         }}
 
         builder.forFields().withEnumResolver { if (it.name == "type") when(it.declaringType.erasedType) {
-            FSStorageProviderSettings::class.java -> listOf("fs")
+            FileSystemStorageProviderSettings::class.java -> listOf("fs")
             S3StorageProviderSettings::class.java -> listOf("s3")
             else -> null
         } else null }
@@ -115,9 +115,9 @@ class SettingsModule: com.github.victools.jsonschema.generator.Module {
         builder.forMethods().withTitleResolver { methods -> methods.doc?.title }
         builder.forTypesInGeneral().withTitleResolver { scope -> scope.doc?.title }
 
-        builder.forFields().withDescriptionResolver { field -> field.doc?.description }
-        builder.forMethods().withDescriptionResolver { methods -> methods.doc?.description }
-        builder.forTypesInGeneral().withDescriptionResolver { scope -> scope.doc?.description }
+        builder.forFields().withDescriptionResolver { field -> field.doc?.description?.trimIndent() }
+        builder.forMethods().withDescriptionResolver { methods -> methods.doc?.description?.trimIndent() }
+        builder.forTypesInGeneral().withDescriptionResolver { scope -> scope.doc?.description?.trimIndent() }
 
         builder.forFields().withNullableCheck { field -> field.kProperty?.returnType?.isMarkedNullable }
     }

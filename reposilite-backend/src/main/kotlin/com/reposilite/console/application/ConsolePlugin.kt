@@ -73,7 +73,7 @@ internal class ConsolePlugin : ReposilitePlugin() {
         event { event: HttpServerInitializationEvent ->
             event.javalin.ws(
                 "/api/console/sock",
-                CliEndpoint(event.reposilite.journalist, accessTokenFacade, authenticationFacade, consoleFacade, settingsFacade.sharedConfiguration.advanced.get().forwardedIp.toReference())
+                CliEndpoint(event.reposilite.journalist, accessTokenFacade, authenticationFacade, consoleFacade, settingsFacade.sharedConfiguration.web.get().forwardedIp.toReference())
             )
         }
 

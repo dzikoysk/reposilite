@@ -16,7 +16,7 @@
 
 package com.reposilite.storage
 
-import com.reposilite.storage.application.FSStorageProviderSettings
+import com.reposilite.storage.application.FileSystemStorageProviderSettings
 import com.reposilite.storage.application.StorageProviderSettings
 import com.reposilite.storage.application.S3StorageProviderSettings
 import com.reposilite.status.FailureFacade
@@ -35,12 +35,12 @@ object StorageProviderFactory {
 
     fun createStorageProvider(failureFacade: FailureFacade, workingDirectory: Path, repositoryName: String, storageSettings: StorageProviderSettings): StorageProvider =
         when(storageSettings.type) {
-            "fs" -> createFileSystemStorageProvider(workingDirectory, repositoryName, storageSettings as FSStorageProviderSettings)
+            "fs" -> createFileSystemStorageProvider(workingDirectory, repositoryName, storageSettings as FileSystemStorageProviderSettings)
             "s3" -> createS3StorageProvider(failureFacade, storageSettings as S3StorageProviderSettings)
             else -> throw UnsupportedOperationException("Unknown storage provider: $storageSettings")
         }
 
-    private fun createFileSystemStorageProvider(workingDirectory: Path, repositoryName: String, settings: FSStorageProviderSettings): FileSystemStorageProvider {
+    private fun createFileSystemStorageProvider(workingDirectory: Path, repositoryName: String, settings: FileSystemStorageProviderSettings): FileSystemStorageProvider {
 
         val repositoryDirectory =
             if (settings.mount.isEmpty())

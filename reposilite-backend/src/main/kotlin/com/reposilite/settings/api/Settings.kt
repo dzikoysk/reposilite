@@ -4,6 +4,7 @@ import com.reposilite.auth.application.LdapSettings
 import com.reposilite.frontend.application.AppearanceSettings
 import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.statistics.application.StatisticsSettings
+import com.reposilite.web.application.WebSettings
 import java.io.Serializable
 
 data class Settings (
@@ -12,7 +13,7 @@ data class Settings (
     val appearance: AppearanceSettings,
     /** Advanced settings */
     @Doc(title = "Advanced", description = "Advanced settings")
-    val advanced: AdvancedSettings,
+    val advanced: WebSettings,
     /** List of Maven repositories */
     @Doc(title = "Repositories", description = "List of Maven repositories.")
     val repositories: Map<String, RepositorySettings>,

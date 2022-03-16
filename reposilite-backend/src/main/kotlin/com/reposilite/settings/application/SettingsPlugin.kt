@@ -23,7 +23,7 @@ import com.reposilite.plugin.api.ReposiliteInitializeEvent
 import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
 import com.reposilite.settings.SettingsFacade
-import com.reposilite.settings.api.AdvancedSettings
+import com.reposilite.web.application.WebSettings
 import com.reposilite.settings.api.Settings
 import com.reposilite.settings.api.SettingsHandler
 import com.reposilite.settings.api.SharedConfiguration
@@ -62,9 +62,9 @@ internal class SettingsPlugin : ReposilitePlugin() {
         settingsFacade.registerHandler(
             SettingsHandler.of(
             "advanced",
-            AdvancedSettings::class.java,
-            { settingsFacade.sharedConfiguration.advanced.get() },
-            { settingsFacade.sharedConfiguration.advanced.update(it) }
+            WebSettings::class.java,
+            { settingsFacade.sharedConfiguration.web.get() },
+            { settingsFacade.sharedConfiguration.web.update(it) }
         ))
         settingsFacade.registerHandler(SettingsHandler.of("all", Settings::class.java, settingsFacade.sharedConfiguration::getSettingsDTO, settingsFacade.sharedConfiguration::updateFromSettingsDTO))
 
@@ -87,12 +87,12 @@ internal class SettingsPlugin : ReposilitePlugin() {
 
 private fun SharedConfiguration.updateFromSettingsDTO(settings: Settings): Settings {
     repositories.update(RepositoriesSettings(settings.repositories))
-    advanced.update(settings.advanced)
+    web.update(settings.advanced)
     appearance.update(settings.appearance)
     statistics.update(settings.statistics)
     ldap.update(settings.ldap)
     return getSettingsDTO()
 }
 
-private fun SharedConfiguration.getSettingsDTO(): Settings = Settings(appearance = appearance.get(), advanced = advanced.get(), repositories = repositories.get().repositories, statistics = statistics.get(), ldap = ldap.get())
+private fun SharedConfiguration.getSettingsDTO(): Settings = Settings(appearance = appearance.get(), advanced = web.get(), repositories = repositories.get().repositories, statistics = statistics.get(), ldap = ldap.get())
 

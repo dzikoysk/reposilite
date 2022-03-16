@@ -53,11 +53,9 @@ internal class FrontendPlugin : ReposilitePlugin() {
             { settingsFacade.sharedConfiguration.appearance.update(it) }
         ))
 
-
         val frontendFacade = FrontendFacade(
             settingsFacade.localConfiguration.cacheContent,
-            settingsFacade.sharedConfiguration.appearance,
-            settingsFacade.sharedConfiguration.advanced
+            settingsFacade.sharedConfiguration.appearance
         )
 
         event { event: ReposiliteInitializeEvent -> staticDirectory(event.reposilite)
@@ -70,7 +68,7 @@ internal class FrontendPlugin : ReposilitePlugin() {
 
         event { event: RoutingSetupEvent -> event.registerRoutes(
             mutableSetOf<ReposiliteRoutes>().also {
-                if (settingsFacade.sharedConfiguration.advanced.get().frontend) {
+                if (settingsFacade.sharedConfiguration.appearance.map { it.frontend }) {
                     it.add(ResourcesFrontendHandler(frontendFacade, FRONTEND_DIRECTORY))
                 }
                 it.add(CustomFrontendHandler(frontendFacade, staticDirectory(event.reposilite)))

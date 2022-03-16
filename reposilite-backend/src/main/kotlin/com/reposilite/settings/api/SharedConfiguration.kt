@@ -20,15 +20,16 @@ import com.reposilite.auth.application.LdapSettings
 import com.reposilite.frontend.application.AppearanceSettings
 import com.reposilite.maven.application.RepositoriesSettings
 import com.reposilite.statistics.application.StatisticsSettings
+import com.reposilite.web.application.WebSettings
 import net.dzikoysk.cdn.serdes.DeserializationHandler
 import panda.std.reactive.mutableReference
 import panda.utilities.StringUtils
 
 class SharedConfiguration : DeserializationHandler<SharedConfiguration> {
 
-    val repositories = mutableReference(RepositoriesSettings())
+    val web = mutableReference(WebSettings())
 
-    val advanced = mutableReference(AdvancedSettings())
+    val repositories = mutableReference(RepositoriesSettings())
 
     val appearance = mutableReference(AppearanceSettings())
 
@@ -37,7 +38,7 @@ class SharedConfiguration : DeserializationHandler<SharedConfiguration> {
     val ldap = mutableReference(LdapSettings())
 
     override fun handle(sharedConfiguration: SharedConfiguration): SharedConfiguration {
-        var formattedBasePath = advanced.get().basePath
+        var formattedBasePath = appearance.map { it.basePath }
 
         // verify base path
         if (!StringUtils.isEmpty(formattedBasePath)) {
@@ -49,17 +50,12 @@ class SharedConfiguration : DeserializationHandler<SharedConfiguration> {
                 formattedBasePath += "/"
             }
 
-            this.advanced.update {
-                AdvancedSettings(
-                    formattedBasePath,
-                    it.frontend,
-                    it.swagger,
-                    it.forwardedIp,
-                    it.icpLicense
-                )
+            this.appearance.update {
+                it.copy(basePath = formattedBasePath)
             }
         }
 
         return this
     }
+
 }

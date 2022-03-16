@@ -6,7 +6,7 @@ import com.reposilite.maven.RepositoryVisibility.PRIVATE
 import com.reposilite.maven.RepositoryVisibility.PUBLIC
 import com.reposilite.settings.api.Doc
 import com.reposilite.settings.api.Min
-import com.reposilite.storage.application.FSStorageProviderSettings
+import com.reposilite.storage.application.FileSystemStorageProviderSettings
 import com.reposilite.storage.application.StorageProviderSettings
 import java.io.Serializable
 
@@ -33,7 +33,7 @@ data class RepositorySettings(
     @Doc(title = "Preserved", description = "How many builds of the given snapshot version should be preserved when a new build is deployed. Use -1 to disable this feature.")
     val preserved: Int = -1,
     /** The storage type of this repository. */
-    val storageProvider: StorageProviderSettings = FSStorageProviderSettings("100%", ""),
+    val storageProvider: StorageProviderSettings = FileSystemStorageProviderSettings("100%", ""),
     /** List of proxied repositories associated with this repository. */
     @Doc(title = "Proxied", description = "List of proxied repositories associated with this repository.")
     val proxied: List<ProxiedRepository> = listOf()
