@@ -29,7 +29,6 @@ application {
 }
 
 dependencies {
-    compileOnly("net.dzikoysk:exposed-upsert:1.0.3")
     compileOnly(project(":reposilite-backend"))
     implementation("club.minnced:discord-webhooks:0.8.0")
 }

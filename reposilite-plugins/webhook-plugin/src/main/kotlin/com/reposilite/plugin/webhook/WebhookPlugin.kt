@@ -21,15 +21,16 @@ import com.reposilite.plugin.api.Facade;
 import com.reposilite.plugin.api.Plugin;
 import com.reposilite.plugin.api.ReposilitePlugin;
 import com.reposilite.plugin.event;
-import com.reposilite.plugin.webhook.listener.webhookEvent;
 
 // TODO: Initialize the plugin logic (webhooks and the listener)
 @Plugin(name = "webhook")
 internal class WebhookPlugin : ReposilitePlugin() {
     override fun initialize(): Facade? {
+        val facade = WebhookFacade()
         event { event: DeployEvent ->
-            {
-                webhookEvent(event.by, event.gav, event.repository);
-            }
+
         }
+
+        return facade
+    }
 }

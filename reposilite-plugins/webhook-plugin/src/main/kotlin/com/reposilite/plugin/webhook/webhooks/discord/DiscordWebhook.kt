@@ -1,20 +1,16 @@
-package com.reposilite.plugin.webhook.api
+package com.reposilite.plugin.webhook.webhooks.discord
 
-// Core
 import club.minnced.discord.webhook.WebhookClientBuilder;
-// Embed
 import club.minnced.discord.webhook.receive.ReadonlyMessage;
 import club.minnced.discord.webhook.send.WebhookEmbedBuilder
-// Message
 import club.minnced.discord.webhook.send.WebhookMessageBuilder;
 import com.reposilite.maven.Repository
 import com.reposilite.storage.api.Location
-// Config
+
 
 
 
 fun sendDiscordEmbed(by: String, gav: Location, repo: Repository) {
-    // DONE: Make this a conig value reorganize code to use one function in the init file.
     val url = "https://thisshouldbereplacedinproduction.example.com/webhook";
 
     val clientBuilder = WebhookClientBuilder(url);
