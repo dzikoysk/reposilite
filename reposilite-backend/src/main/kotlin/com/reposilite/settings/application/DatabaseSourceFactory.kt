@@ -31,19 +31,19 @@ import kotlin.io.path.absolutePathString
 
 internal object DatabaseSourceFactory {
 
-    fun createConnection(workingDirectory: Path, databaseConfiguration: String): Database =
+    fun createConnection(workingDirectory: Path, databaseConfiguration: String, databaseThreadPoolSize: Int): Database =
         when {
-            databaseConfiguration.startsWith("mysql") -> connectWithStandardDatabase(databaseConfiguration, "jdbc:mysql", "com.mysql.cj.jdbc.Driver")
+            databaseConfiguration.startsWith("mysql") -> connectWithStandardDatabase(databaseConfiguration, "jdbc:mysql", "com.mysql.cj.jdbc.Driver", databaseThreadPoolSize)
             databaseConfiguration.startsWith("sqlite") -> connectWithEmbeddedDatabase(workingDirectory, databaseConfiguration, "org.sqlite.JDBC", "jdbc:sqlite:%file%")
             /* Experimental implementations (not covered with integration tests) */
-            databaseConfiguration.startsWith("postgresql") -> connectWithStandardDatabase(databaseConfiguration, "jdbc:postgresql", "org.postgresql.Driver")
+            databaseConfiguration.startsWith("postgresql") -> connectWithStandardDatabase(databaseConfiguration, "jdbc:postgresql", "org.postgresql.Driver", databaseThreadPoolSize)
             databaseConfiguration.startsWith("h2") -> connectWithEmbeddedDatabase(workingDirectory, databaseConfiguration, "org.h2.Driver", "jdbc:h2:%file%")
             else -> throw RuntimeException("Unknown database: $databaseConfiguration")
         }
 
-    private fun connectWithStandardDatabase(databaseConfiguration: String, dialect: String, driver: String): Database =
+    private fun connectWithStandardDatabase(databaseConfiguration: String, dialect: String, driver: String, databaseThreadPoolSize: Int): Database =
         with(loadCommandBasedConfiguration(StandardSQLDatabaseSettings(), databaseConfiguration).configuration) {
-            Database.connect(createDataSource(driver, "$dialect://${host}/${database}", 2, user, password))
+            Database.connect(createDataSource(driver, "$dialect://${host}/${database}", databaseThreadPoolSize, user, password))
         }
 
     private fun connectWithEmbeddedDatabase(workingDirectory: Path, databaseConfiguration: String, driver: String, dialect: String): Database =
