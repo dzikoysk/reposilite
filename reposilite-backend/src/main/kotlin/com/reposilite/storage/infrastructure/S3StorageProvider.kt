@@ -45,7 +45,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest
 import software.amazon.awssdk.services.s3.model.HeadBucketRequest
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse
-import software.amazon.awssdk.services.s3.model.ListObjectsRequest
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException
 import software.amazon.awssdk.services.s3.model.PutObjectRequest
@@ -157,16 +157,26 @@ class S3StorageProvider(
 
     override fun getFiles(location: Location): Result<List<Location>, ErrorResponse> =
         try {
-            val request = ListObjectsRequest.builder()
-            request.bucket(bucket)
+            val directoryString = location.toString().replace('\\', '/')
 
-            val directoryString =location.toString().replace('\\', '/')
-            request.prefix(directoryString)
+            val request = ListObjectsV2Request.builder()
+                .bucket(bucket)
+                .prefix("$directoryString/")
+                .delimiter("/")
 
-            val paths = s3.listObjects(request.build())
-                .contents().asSequence()
+            val directories = s3.listObjectsV2(request.build())
+                .commonPrefixes()
+                .asSequence()
+                .map { it.prefix().toLocation() }
+                .toList()
+
+            val files = s3.listObjectsV2(request.build())
+                .contents()
+                .asSequence()
                 .map { it.key().toLocation() }
                 .toList()
+
+            val paths = directories + files
 
             if (paths.isEmpty())
                 errorResponse(NOT_FOUND, "Directory not found or is empty")
