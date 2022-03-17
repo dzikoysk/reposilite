@@ -6,7 +6,7 @@ import com.reposilite.maven.RepositoryVisibility.PRIVATE
 import com.reposilite.maven.RepositoryVisibility.PUBLIC
 import com.reposilite.settings.api.Doc
 import com.reposilite.settings.api.Min
-import com.reposilite.storage.application.FileSystemStorageProviderSettings
+import com.reposilite.storage.filesystem.FileSystemStorageProviderSettings
 import com.reposilite.storage.application.StorageProviderSettings
 import java.io.Serializable
 

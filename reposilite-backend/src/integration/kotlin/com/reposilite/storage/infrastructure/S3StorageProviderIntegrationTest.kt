@@ -17,9 +17,9 @@
 package com.reposilite.storage.infrastructure
 
 import com.reposilite.journalist.backend.InMemoryLogger
-import com.reposilite.storage.application.S3StorageProviderSettings
+import com.reposilite.storage.s3.S3StorageProviderSettings
 import com.reposilite.status.FailureFacade
-import com.reposilite.storage.StorageProviderFactory
+import com.reposilite.storage.StorageFacade
 import com.reposilite.storage.StorageProviderIntegrationTest
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
@@ -45,7 +45,7 @@ internal class S3StorageProviderIntegrationTest : StorageProviderIntegrationTest
         val logger = InMemoryLogger()
         val failureFacade = FailureFacade(logger)
 
-        this.storageProvider = StorageProviderFactory.createStorageProvider(
+        this.storageProvider = StorageFacade().createStorageProvider(
             failureFacade,
             rootDirectory.toPath(),
             "test-repository",

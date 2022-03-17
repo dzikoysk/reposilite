@@ -36,7 +36,7 @@ class SharedConfiguration : DeserializationHandler<SharedConfiguration> {
     val repositories = mutableReference(RepositoriesSettings())
 
     @Description("# Frontend domain configuration")
-    val appearance = mutableReference(FrontendSettings())
+    val frontend = mutableReference(FrontendSettings())
 
     @Description("# Statistics domain configuration")
     val statistics = mutableReference(StatisticsSettings())
@@ -45,7 +45,7 @@ class SharedConfiguration : DeserializationHandler<SharedConfiguration> {
     val authentication = mutableReference(AuthenticationSettings())
 
     override fun handle(sharedConfiguration: SharedConfiguration): SharedConfiguration {
-        var formattedBasePath = appearance.map { it.basePath }
+        var formattedBasePath = frontend.map { it.basePath }
 
         // verify base path
         if (!StringUtils.isEmpty(formattedBasePath)) {
@@ -57,7 +57,7 @@ class SharedConfiguration : DeserializationHandler<SharedConfiguration> {
                 formattedBasePath += "/"
             }
 
-            this.appearance.update {
+            this.frontend.update {
                 it.copy(basePath = formattedBasePath)
             }
         }
@@ -69,8 +69,8 @@ class SharedConfiguration : DeserializationHandler<SharedConfiguration> {
         settings
             .let {
                 repositories.update(RepositoriesSettings(it.repositories))
-                web.update(it.advanced)
-                appearance.update(it.appearance)
+                web.update(it.web)
+                frontend.update(it.frontend)
                 statistics.update(it.statistics)
                 authentication.update(it.authentication)
                 this
@@ -79,11 +79,10 @@ class SharedConfiguration : DeserializationHandler<SharedConfiguration> {
 
     fun toDto(): Settings =
         Settings(
-            appearance = appearance.get(),
-            advanced = web.get(),
+            frontend = frontend.get(),
+            web = web.get(),
             repositories = repositories.get().repositories,
             statistics = statistics.get(),
             authentication = authentication.get()
         )
-
 }

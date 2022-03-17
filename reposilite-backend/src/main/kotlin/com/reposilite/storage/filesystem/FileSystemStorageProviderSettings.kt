@@ -1,6 +1,7 @@
-package com.reposilite.storage.application
+package com.reposilite.storage.filesystem
 
 import com.reposilite.settings.api.Doc
+import com.reposilite.storage.application.StorageProviderSettings
 
 @Doc(title = "Filesystem Storage Provider", description = "Local file system (disk) storage provider settings")
 data class FileSystemStorageProviderSettings(

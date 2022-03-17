@@ -16,7 +16,7 @@
 
 package com.reposilite
 
-import com.reposilite.storage.application.FileSystemStorageProviderSettings
+import com.reposilite.storage.filesystem.FileSystemStorageProviderSettings
 import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.Extension
 import org.junit.jupiter.api.extension.ExtensionContext

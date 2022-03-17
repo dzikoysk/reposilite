@@ -21,6 +21,7 @@ import com.reposilite.plugin.api.ReposiliteDisposeEvent
 import com.reposilite.plugin.api.ReposiliteInitializeEvent
 import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
+import com.reposilite.plugin.facade
 import com.reposilite.settings.EnumResolver
 import com.reposilite.settings.SettingsFacade
 import com.reposilite.settings.SettingsModule
@@ -31,17 +32,18 @@ import com.reposilite.settings.SubtypeResolver
 import com.reposilite.settings.createStandardSchemaGenerator
 import com.reposilite.settings.infrastructure.SettingsEndpoints
 import com.reposilite.settings.infrastructure.SqlSettingsRepository
-import com.reposilite.storage.application.FileSystemStorageProviderSettings
-import com.reposilite.storage.application.S3StorageProviderSettings
+import com.reposilite.storage.StorageFacade
+import com.reposilite.storage.StorageProviderFactory
 import com.reposilite.storage.application.StorageProviderSettings
 import com.reposilite.web.api.RoutingSetupEvent
+import java.util.ServiceLoader
 
 @Plugin(name = "settings")
 internal class SettingsPlugin : ReposilitePlugin() {
 
     companion object {
         const val LOCAL_CONFIGURATION_FILE = "configuration.local.cdn"
-        const val SHARED_CONFIGURATION_FILE = "configuration.shared.cdn"
+        const val SHARED_CONFIGURATION_FILE = "configuration.shared.json"
     }
 
     override fun initialize(): SettingsFacade {
@@ -52,24 +54,17 @@ internal class SettingsPlugin : ReposilitePlugin() {
         val database = DatabaseSourceFactory.createConnection(workingDirectory, localConfiguration.database.get(), localConfiguration.databaseThreadPool.get())
         val settingsRepository = SqlSettingsRepository(database)
 
-        // TODO: Move to storage domain or remove this kind of impl if possible
+        val storageProviders = ServiceLoader.load(StorageProviderFactory::class.java).associate { it.settingsType to it.type }
+
         val storageEnumResolver = EnumResolver {
             if (it.name == "type")
-                when (it.declaringType.erasedType) {
-                    FileSystemStorageProviderSettings::class.java -> listOf("fs")
-                    S3StorageProviderSettings::class.java -> listOf("s3")
-                    else -> null
-                }
+                storageProviders[it.declaringType.erasedType]?.let { type -> listOf(type) }
             else null
         }
         val storageSubtypeResolver = SubtypeResolver { declaredType, context ->
-            when (declaredType.erasedType) {
-                StorageProviderSettings::class.java -> listOf(
-                    context.typeContext.resolveSubtype(declaredType, FileSystemStorageProviderSettings::class.java),
-                    context.typeContext.resolveSubtype(declaredType, S3StorageProviderSettings::class.java)
-                )
-                else -> null
-            }
+            if (declaredType.erasedType == StorageProviderSettings::class.java)
+                storageProviders.keys.toList().map { clazz -> context.typeContext.resolveSubtype(declaredType, clazz) }
+            else null
         }
 
         val schemaGenerator = createStandardSchemaGenerator(SettingsModule(

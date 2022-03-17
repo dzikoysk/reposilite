@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.reposilite.storage.infrastructure
+package com.reposilite.storage.filesystem
 
 import com.reposilite.storage.FilesComparator
 import com.reposilite.storage.StorageProvider
@@ -50,7 +50,7 @@ import kotlin.streams.asSequence
 /**
  * @param rootDirectory root directory of storage space
  */
-internal abstract class FileSystemStorageProvider protected constructor(
+abstract class FileSystemStorageProvider protected constructor(
     private val rootDirectory: Path
  ) : StorageProvider {
 

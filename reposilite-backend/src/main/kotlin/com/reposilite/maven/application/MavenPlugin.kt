@@ -33,18 +33,19 @@ import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
 import com.reposilite.settings.SettingsFacade
-import com.reposilite.settings.api.SchemaHandler
 import com.reposilite.shared.http.HttpRemoteClientProvider
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.status.FailureFacade
+import com.reposilite.storage.StorageFacade
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.web.api.HttpServerInitializationEvent
 import com.reposilite.web.api.RoutingSetupEvent
 import io.javalin.http.Handler
 import io.javalin.http.Stage
-import panda.std.reactive.toReference
+import panda.std.reactive.Reference.Dependencies.dependencies
+import panda.std.reactive.Reference.computed
 
-@Plugin(name = "maven", dependencies = ["failure", "settings", "statistics", "frontend", "access-token"])
+@Plugin(name = "maven", dependencies = ["failure", "settings", "statistics", "frontend", "access-token", "storage"])
 internal class MavenPlugin : ReposilitePlugin() {
 
     override fun initialize(): MavenFacade {
@@ -54,6 +55,7 @@ internal class MavenPlugin : ReposilitePlugin() {
         val statisticsFacade = facade<StatisticsFacade>()
         val frontendFacade = facade<FrontendFacade>()
         val accessTokenFacade = facade<AccessTokenFacade>()
+        val storageFacade = facade<StorageFacade>()
 
         settingsFacade.registerSchemaWatcher(
             RepositoriesSettings::class.java,
@@ -66,13 +68,14 @@ internal class MavenPlugin : ReposilitePlugin() {
             extensions().parameters.workingDirectory,
             HttpRemoteClientProvider,
             failureFacade,
-            sharedConfiguration.repositories.map {it.repositories}.toReference()
+            storageFacade,
+            computed(dependencies(sharedConfiguration.repositories)){ sharedConfiguration.repositories.map { it.repositories } }
         )
         val repositoryService = RepositoryService(this, repositoryProvider, securityProvider)
 
         val mavenFacade = MavenFacade(
             this,
-            sharedConfiguration.appearance.get().id.toReference(),
+            computed(dependencies(sharedConfiguration.frontend)) { sharedConfiguration.frontend.get().id },
             securityProvider,
             repositoryService,
             ProxyService(this),

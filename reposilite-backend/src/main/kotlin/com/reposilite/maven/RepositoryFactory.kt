@@ -20,7 +20,7 @@ import com.reposilite.maven.application.ProxiedRepository
 import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.shared.http.RemoteClientProvider
 import com.reposilite.status.FailureFacade
-import com.reposilite.storage.StorageProviderFactory.createStorageProvider
+import com.reposilite.storage.StorageFacade
 import java.net.InetSocketAddress
 import java.net.Proxy
 import java.net.Proxy.Type.HTTP
@@ -32,6 +32,7 @@ internal class RepositoryFactory(
     private val remoteClientProvider: RemoteClientProvider,
     private val repositoryProvider: RepositoryProvider,
     private val failureFacade: FailureFacade,
+    private val storageFacade: StorageFacade,
     private val repositoriesNames: Collection<String>,
 ) {
 
@@ -44,7 +45,7 @@ internal class RepositoryFactory(
             configuration.redeployment,
             configuration.preserved,
             configuration.proxied.map { createProxiedHostConfiguration(it) },
-            createStorageProvider(failureFacade, workingDirectory.resolve(repositoriesDirectory), repositoryName, configuration.storageProvider),
+            storageFacade.createStorageProvider(failureFacade, workingDirectory.resolve(repositoriesDirectory), repositoryName, configuration.storageProvider),
         )
 
     private fun createProxiedHostConfiguration(configurationSource: ProxiedRepository): ProxiedHost {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.reposilite.storage.infrastructure
+package com.reposilite.storage.s3
 
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger

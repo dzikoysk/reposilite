@@ -16,7 +16,7 @@
 
 package com.reposilite
 
-import com.reposilite.storage.application.S3StorageProviderSettings
+import com.reposilite.storage.s3.S3StorageProviderSettings
 import org.junit.jupiter.api.extension.AfterEachCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.Extension

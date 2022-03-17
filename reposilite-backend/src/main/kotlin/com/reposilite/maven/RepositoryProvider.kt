@@ -19,6 +19,7 @@ package com.reposilite.maven
 import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.shared.http.RemoteClientProvider
 import com.reposilite.status.FailureFacade
+import com.reposilite.storage.StorageFacade
 import panda.std.reactive.Reference
 import java.nio.file.Path
 
@@ -26,6 +27,7 @@ internal class RepositoryProvider(
     private val workingDirectory: Path,
     private val remoteClientProvider: RemoteClientProvider,
     private val failureFacade: FailureFacade,
+    private val storageFacade: StorageFacade,
     repositoriesSource: Reference<Map<String, RepositorySettings>>,
 ) {
 
@@ -41,7 +43,7 @@ internal class RepositoryProvider(
     }
 
     private fun createRepositories(repositoriesConfiguration: Map<String, RepositorySettings>): Map<String, Repository> =
-        RepositoryFactory(workingDirectory, remoteClientProvider, this, failureFacade, repositoriesConfiguration.keys)
+        RepositoryFactory(workingDirectory, remoteClientProvider, this, failureFacade, storageFacade, repositoriesConfiguration.keys)
             .let { repositoriesConfiguration.mapValues { (name, configuration) -> it.createRepository(name, configuration) } }
 
     fun getRepositories(): Map<String, Repository> =

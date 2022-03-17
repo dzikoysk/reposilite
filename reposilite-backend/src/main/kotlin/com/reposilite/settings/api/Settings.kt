@@ -11,10 +11,10 @@ import java.io.Serializable
 
 @Doc(title = "all", description = "All settings")
 data class Settings (
-    @Doc(title = "Appearance", description = "Appearance settings")
-    val appearance: FrontendSettings,
-    @Doc(title = "Advanced", description = "Advanced settings")
-    val advanced: WebSettings,
+    @Doc(title = "Frontend", description = "Frontend settings")
+    val frontend: FrontendSettings,
+    @Doc(title = "Web", description = "Web settings")
+    val web: WebSettings,
     @Doc(title = "Repositories", description = "List of Maven repositories.")
     val repositories: Map<String, RepositorySettings>,
     @Doc(title = "Statistics", description = "Statistics settings")

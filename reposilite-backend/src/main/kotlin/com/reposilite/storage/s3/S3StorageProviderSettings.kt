@@ -1,6 +1,7 @@
-package com.reposilite.storage.application
+package com.reposilite.storage.s3
 
 import com.reposilite.settings.api.Doc
+import com.reposilite.storage.application.StorageProviderSettings
 
 @Doc(title = "S3 Storage Provider", description = "Amazon S3 storage provider settings")
 data class S3StorageProviderSettings(
