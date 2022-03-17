@@ -81,7 +81,9 @@ class MavenFacade internal constructor(
     fun findDetails(lookupRequest: LookupRequest): Result<out FileDetails, ErrorResponse> =
         resolve(lookupRequest) { repository, gav ->
             if (repository.exists(gav).not()) {
-                return@resolve proxyService.findRemoteDetails(repository, lookupRequest.gav)
+                return@resolve proxyService
+                    .findRemoteDetails(repository, lookupRequest.gav)
+                    .mapErr { notFound("Cannot find ${lookupRequest.gav} in local and remote repositories") }
             }
 
             return@resolve repository.getFileDetails(gav)

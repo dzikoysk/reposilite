@@ -36,6 +36,7 @@ import io.javalin.http.HttpCode.NOT_FOUND
 import panda.std.Result
 import panda.std.Result.ok
 import panda.std.asSuccess
+import panda.std.letIf
 import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.model.BucketAlreadyExistsException
@@ -158,10 +159,12 @@ class S3StorageProvider(
     override fun getFiles(location: Location): Result<List<Location>, ErrorResponse> =
         try {
             val directoryString = location.toString().replace('\\', '/')
+                .let { "$it/" }
+                .letIf({ it == "/"}, { "" })
 
             val request = ListObjectsV2Request.builder()
                 .bucket(bucket)
-                .prefix("$directoryString/")
+                .prefix(directoryString)
                 .delimiter("/")
 
             val directories = s3.listObjectsV2(request.build())
