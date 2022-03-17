@@ -37,7 +37,7 @@ allprojects {
 }
 
 subprojects {
-    version = "3.0.0-alpha.22"
+    version = "3.0.0-alpha.23"
 
     apply(plugin = "java-library")
     apply(plugin = "application")
