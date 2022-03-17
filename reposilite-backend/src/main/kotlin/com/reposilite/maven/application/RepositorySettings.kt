@@ -40,7 +40,8 @@ data class RepositorySettings(
 ) : Serializable {
 
     init {
-        require(preserved >= -1L) { "preserved < minimum -1 - $preserved" }
+        require(preserved >= -1L) { "Number of preserved snapshot builds cannot be smaller than -1 (now: $preserved)" }
+        require(preserved != 0) { "Number of preserved snapshot builds has to be greater than 0" }
     }
 
 }
