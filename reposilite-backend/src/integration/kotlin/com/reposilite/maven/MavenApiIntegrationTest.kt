@@ -43,7 +43,7 @@ internal abstract class MavenApiIntegrationTest : MavenIntegrationSpecification(
         val (repository, metadata) = useMetadata("private", "com", "reposilite", versions = listOf("1.0.1", "1.0.2", latestVersion))
         val (_) = useDocument(repository, "${metadata.groupId}/${metadata.artifactId}/$latestVersion", "${metadata.artifactId}-$latestVersion-fat.panda", "content", true)
         val artifactPath = "private/com/reposilite"
-        val apiPath = "$base/$endpoint/$artifactPath?extension=panda?classifier=fat"
+        val apiPath = "$base/$endpoint/$artifactPath?extension=panda&classifier=fat"
 
         // when: user requests the latest version with invalid credentials
         val unauthorizedResponse = get(apiPath)

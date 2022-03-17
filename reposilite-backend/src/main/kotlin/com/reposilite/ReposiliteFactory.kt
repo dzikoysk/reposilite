@@ -45,7 +45,7 @@ object ReposiliteFactory {
         journalist.logger.info("Platform: ${System.getProperty("java.version")} (${System.getProperty("os.name")} :: ${System.getProperty("os.arch")})")
         journalist.logger.info("Working directory: ${parameters.workingDirectory.toAbsolutePath()}")
         journalist.logger.info("Configuration: ${parameters.localConfigurationFile}")
-        journalist.logger.info("Threads: ${localConfiguration.webThreadPool.get()} WEB / ${localConfiguration.ioThreadPool.get()} IO")
+        journalist.logger.info("Threads: ${localConfiguration.webThreadPool.get()} WEB / ${localConfiguration.ioThreadPool.get()} IO / ${localConfiguration.databaseThreadPool.get()} DB")
         if (parameters.testEnv) journalist.logger.info("Test environment enabled")
 
         val webServer = HttpServer()
