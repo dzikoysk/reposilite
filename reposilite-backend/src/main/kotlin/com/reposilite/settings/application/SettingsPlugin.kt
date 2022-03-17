@@ -49,7 +49,7 @@ internal class SettingsPlugin : ReposilitePlugin() {
         val workingDirectory = parameters.workingDirectory
         val localConfiguration = extensions().localConfiguration
 
-        val database = DatabaseSourceFactory.createConnection(workingDirectory, localConfiguration.database.get())
+        val database = DatabaseSourceFactory.createConnection(workingDirectory, localConfiguration.database.get(), localConfiguration.databaseThreadPool.get())
         val settingsRepository = SqlSettingsRepository(database)
 
         // TODO: Move to storage domain or remove this kind of impl if possible
