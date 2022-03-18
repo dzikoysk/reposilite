@@ -1,6 +1,7 @@
-import { Badge, Box, Flex, Heading, Link, Text } from "@chakra-ui/react"
+import { Badge, Box, Flex, Heading, Text } from "@chakra-ui/react"
 import { getPlugins } from "../../helpers/mdx"
 import Layout from '../../components/layout/Layout'
+import { Link } from '../../components/Link'
 import { useEffect, useState } from "react"
 import { StarIcon } from "@chakra-ui/icons"
 import { chakraColor } from "../../helpers/chakra-theme"

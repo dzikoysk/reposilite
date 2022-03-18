@@ -1,6 +1,7 @@
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, Container, Divider, Heading, Link, Text } from "@chakra-ui/react"
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, Container, Divider, Heading, Text } from "@chakra-ui/react"
 import Layout from "../../components/layout/Layout"
 import { getPlugins, readPluginById } from "../../helpers/mdx"
+import { Link } from '../../components/Link'
 import MDX from "../../components/MDX"
 import { MDXRemote } from "next-mdx-remote"
 import { ChevronRightIcon } from "@chakra-ui/icons"
