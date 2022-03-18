@@ -9,16 +9,9 @@ import software.amazon.awssdk.services.s3.S3Client
 import java.net.URI
 import java.nio.file.Path
 
-data class S3StorageProviderFactory(
-    override val type: String,
-    override val settingsType: Class<S3StorageProviderSettings>
-) : StorageProviderFactory<S3StorageProvider, S3StorageProviderSettings> {
-    override fun create(
-        failureFacade: FailureFacade,
-        workingDirectory: Path,
-        repositoryName: String,
-        settings: S3StorageProviderSettings
-    ): S3StorageProvider {
+class S3StorageProviderFactory : StorageProviderFactory<S3StorageProvider, S3StorageProviderSettings> {
+
+    override fun create(failureFacade: FailureFacade, workingDirectory: Path, repositoryName: String, settings: S3StorageProviderSettings): S3StorageProvider {
         val client = S3Client.builder()
 
         if (settings.accessKey.isNotEmpty() && settings.secretKey.isNotEmpty()) {
@@ -42,4 +35,11 @@ data class S3StorageProviderFactory(
 
         return S3StorageProvider(failureFacade, client.build(), settings.bucketName)
     }
+
+    override val settingsType: Class<S3StorageProviderSettings> =
+        S3StorageProviderSettings::class.java
+
+    override val type: String =
+        "s3"
+
 }

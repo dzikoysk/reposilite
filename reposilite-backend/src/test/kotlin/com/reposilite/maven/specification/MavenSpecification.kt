@@ -36,6 +36,7 @@ import com.reposilite.statistics.DailyDateIntervalProvider
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.statistics.infrastructure.InMemoryStatisticsRepository
 import com.reposilite.status.FailureFacade
+import com.reposilite.storage.StorageFacade
 import com.reposilite.storage.api.DocumentInfo
 import com.reposilite.storage.api.Location
 import com.reposilite.storage.api.UNKNOWN_LENGTH
@@ -114,7 +115,8 @@ internal abstract class MavenSpecification {
         val parameters = ReposiliteParameters().also { it.workingDirectory = workingDirectoryPath }
         val repositories = mutableReference(repositories())
         val securityProvider = RepositorySecurityProvider(accessTokenFacade)
-        val repositoryProvider = RepositoryProvider(workingDirectoryPath, remoteClientProvider, failureFacade, repositories)
+        val storageFacade = StorageFacade()
+        val repositoryProvider = RepositoryProvider(workingDirectoryPath, remoteClientProvider, failureFacade, storageFacade, repositories)
         val repositoryService = RepositoryService(logger, repositoryProvider, securityProvider)
 
         this.mavenFacade = MavenFacade(

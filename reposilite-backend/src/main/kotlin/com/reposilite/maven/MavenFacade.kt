@@ -43,6 +43,7 @@ import com.reposilite.storage.api.toLocation
 import com.reposilite.token.AccessTokenIdentifier
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
+import com.reposilite.web.http.notFound
 import com.reposilite.web.http.notFoundError
 import com.reposilite.web.http.unauthorizedError
 import io.javalin.http.HttpCode.BAD_REQUEST

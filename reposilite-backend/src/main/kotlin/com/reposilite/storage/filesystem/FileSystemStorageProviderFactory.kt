@@ -22,10 +22,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.util.regex.Pattern
 
-data class FileSystemStorageProviderFactory(
-    override val type: String,
-    override val settingsType: Class<FileSystemStorageProviderSettings>
-) : StorageProviderFactory<FileSystemStorageProvider, FileSystemStorageProviderSettings> {
+class FileSystemStorageProviderFactory : StorageProviderFactory<FileSystemStorageProvider, FileSystemStorageProviderSettings> {
 
     internal companion object {
         private val DISPLAY_SIZE_PATTERN = Pattern.compile("(\\d+)(([KkMmGg])[Bb])")
@@ -91,4 +88,11 @@ data class FileSystemStorageProviderFactory(
         Files.createDirectories(repositoryDirectory)
         return of(repositoryDirectory, settings.quota)
     }
+
+    override val settingsType: Class<FileSystemStorageProviderSettings> =
+        FileSystemStorageProviderSettings::class.java
+
+    override val type: String =
+        "fs"
+
 }

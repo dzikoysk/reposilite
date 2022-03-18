@@ -164,8 +164,8 @@ internal object JavalinConfiguration {
     private fun configureOpenApi(sharedConfiguration: SharedConfiguration, config: JavalinConfig) {
         if (sharedConfiguration.web.get().swagger) {
             val openApiConfiguration = OpenApiConfiguration() // TOFIX: Support dynamic configuration of Swagger integration
-            openApiConfiguration.title = sharedConfiguration.appearance.get().title
-            openApiConfiguration.description = sharedConfiguration.appearance.get().description
+            openApiConfiguration.title = sharedConfiguration.frontend.map { it.title }
+            openApiConfiguration.description = sharedConfiguration.frontend.map { it.description }
             openApiConfiguration.version = VERSION
             config.registerPlugin(OpenApiPlugin(openApiConfiguration))
 

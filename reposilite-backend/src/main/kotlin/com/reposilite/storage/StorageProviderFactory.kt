@@ -20,11 +20,12 @@ import com.reposilite.storage.application.StorageProviderSettings
 import com.reposilite.status.FailureFacade
 import java.nio.file.Path
 
-interface StorageProviderFactory<P : StorageProvider, C : StorageProviderSettings> {
+interface StorageProviderFactory<PROVIDER : StorageProvider, SETTINGS : StorageProviderSettings> {
 
     val type: String
-    val settingsType: Class<C>
+    val settingsType: Class<SETTINGS>
 
-    fun create(failureFacade: FailureFacade, workingDirectory: Path, repositoryName: String, settings: C): P
+    fun create(failureFacade: FailureFacade, workingDirectory: Path, repositoryName: String, settings: SETTINGS): PROVIDER
+
 }
 
