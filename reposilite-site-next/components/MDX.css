@@ -75,12 +75,12 @@ pre::-webkit-scrollbar {
 
 pre::-webkit-scrollbar-track {
   background-color: var(--comment);
-  border-radius: 0px;
+  border-radius: 0;
 }
 
 pre::-webkit-scrollbar-thumb {
   background-color: var(--purple);
-  border-radius: 0px;
+  border-radius: 0;
 }
 
 /* Selection */
@@ -267,7 +267,7 @@ pre[class*="language-"] {
   height: 300px !important;
 }
 
-.limit-300 {
+.limit-400 {
   height: 400px !important;
 }
 

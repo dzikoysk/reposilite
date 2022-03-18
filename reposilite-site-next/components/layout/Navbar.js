@@ -1,5 +1,6 @@
 import { ColorModeStyles, useColorModeValue } from 'nextjs-color-mode'
-import { Box, Flex, Link, Button, Stack, HStack } from '@chakra-ui/react'
+import { Box, Flex, Button, Stack, HStack } from '@chakra-ui/react'
+import { Link } from '../../components/Link'
 import { FaGithub } from 'react-icons/fa'
 import dynamic from 'next/dynamic'
 import { chakraColor } from '../../helpers/chakra-theme'
