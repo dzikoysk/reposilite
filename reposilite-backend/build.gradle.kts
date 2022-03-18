@@ -44,7 +44,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin")
     api("org.jetbrains:annotations:23.0.0")
 
-    val expressible = "1.1.16"
+    val expressible = "1.1.17"
     api("org.panda-lang:expressible:$expressible")
     api("org.panda-lang:expressible-kt:$expressible")
     testImplementation("org.panda-lang:expressible-junit:$expressible")
@@ -80,7 +80,7 @@ dependencies {
     val ldap = "6.0.3"
     testImplementation("com.unboundid:unboundid-ldapsdk:$ldap")
 
-    val openapi = "1.1.1"
+    val openapi = "1.1.3"
     kapt("io.javalin-rfc:openapi-annotation-processor:$openapi")
     implementation("io.javalin-rfc:javalin-openapi-plugin:$openapi")
     implementation("io.javalin-rfc:javalin-swagger-plugin:$openapi")

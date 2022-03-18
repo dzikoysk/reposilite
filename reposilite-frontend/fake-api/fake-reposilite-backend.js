@@ -15,22 +15,19 @@
  */
 
 const express = require("express")
-const ws = require("ws")
 const expressWs = require("express-ws")
 const bodyParser = require('body-parser')
-
-const [
+const {
   respond,
-  basicAuth,
   authorized,
   invalidCredentials,
   sendMessage,
   createFileDetails,
   createDirectoryDetails,
-] = require("./extensions");
+} = require("./extensions")
 
-const application = express();
-expressWs(application);
+const application = express()
+expressWs(application)
 
 let sharedConfiguration = `
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
@@ -39,21 +36,21 @@ let sharedConfiguration = `
 
 # Repository id used in Maven repository configuration
 id: reposilite-repository
-`.trim();
+`.trim()
 
 let uploadedFiles = []
 
 application
   .get("/", (req, res) => res.send("Reposilite stub API"))
   .use((req, res, next) => {
-    console.log("Requested fake " + req.method + " " + req.url);
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Headers", "*");
+    console.log("Requested fake " + req.method + " " + req.url)
+    res.setHeader("Access-Control-Allow-Origin", "*")
+    res.setHeader("Access-Control-Allow-Headers", "*")
     res.setHeader(
       "Access-Control-Allow-Methods",
       "PUT, POST, GET, HEAD, DELETE, OPTIONS"
-    );
-    next();
+    )
+    next()
   })
   .use(express.text())
   .use(bodyParser.raw({ limit: '10mb', extended: true }))
@@ -69,7 +66,7 @@ application
           createDirectoryDetails("/private", [createDirectoryDetails("1.0.0")])
         ),
       () => invalidCredentials(res)
-    );
+    )
   })
   .get("/private/maven-metadata.xml", (req, res) => {
     authorized(
@@ -88,7 +85,7 @@ application
       </metadata>
       `),
       () => invalidCredentials(res)
-    );
+    )
   })
   .get(
     "/api/maven/details/releases",
@@ -156,8 +153,8 @@ application
     authorized(
       req,
       () => {
-        sharedConfiguration = req.body;
-        res.send("Success");
+        sharedConfiguration = req.body
+        res.send("Success")
       },
       () => invalidCredentials(res)
     )
@@ -193,7 +190,7 @@ application
     )
   })
   .ws("/api/console/sock", (connection) => {
-    let authenticated = false;
+    let authenticated = false
 
     connection.on("message", (message) => {
       if (message == "Authorization:name:secret") {
@@ -208,16 +205,16 @@ application
       }
 
       sendMessage(connection, "INFO | Response: " + message)
-    });
+    })
   })
   .get("/api/maven/details", (req, res) => {
     const repositories = createDirectoryDetails("/", [
       createDirectoryDetails("releases"),
       createDirectoryDetails("snapshots"),
-    ]);
+    ])
     authorized(req, () =>
       repositories.files.push(createDirectoryDetails("private"))
-    );
+    )
     res.send(repositories)
   })
   .put("*", (req, res) => {
