@@ -28,7 +28,11 @@ class TestPlugin extends ReposilitePlugin {
             getLogger().info("Hello from Groovy")
         })
 
-        return null
+        return new TestFacade()
     }
+
+}
+
+class TestFacade implements Facade {
 
 }
