@@ -1,9 +1,10 @@
 package com.reposilite.frontend.application
 
 import com.reposilite.settings.api.Doc
-import java.io.Serializable
+import net.dzikoysk.cdn.entity.Contextual
 
-@Doc(title = "Appearance", description = "Appearance settings")
+@Contextual
+@Doc(title = "Frontend", description = "Frontend settings")
 data class FrontendSettings(
     /** Enable default frontend with dashboard */
     @Doc(title = "Frontend", description = "Enable default frontend with dashboard")
@@ -35,4 +36,4 @@ data class FrontendSettings(
         In order to fulfill the conditions, you should apply for ICP license from your service provider and fill in this parameter.
     """)
     val icpLicense: String = "",
-) : Serializable
+)

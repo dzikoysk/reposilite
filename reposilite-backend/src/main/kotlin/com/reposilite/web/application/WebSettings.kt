@@ -1,8 +1,9 @@
 package com.reposilite.web.application
 
 import com.reposilite.settings.api.Doc
-import java.io.Serializable
+import net.dzikoysk.cdn.entity.Contextual
 
+@Contextual
 @Doc(title = "Web", description = "General web settings")
 data class WebSettings(
     /** Enable Swagger (/swagger-docs) and Swagger UI (/swagger). */
@@ -23,4 +24,4 @@ data class WebSettings(
         Popular: X-Real-IP
     """)
     val forwardedIp: String = "X-Forwarded-For",
-) : Serializable
+)

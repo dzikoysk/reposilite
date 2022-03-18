@@ -32,7 +32,7 @@ internal class BasePathIntegrationTest : ReposiliteSpecification() {
     private val basePath = "/custom-base-path"
 
     override fun overrideSharedConfiguration(sharedConfiguration: SharedConfiguration) {
-        sharedConfiguration.appearance.update {
+        sharedConfiguration.frontend.update {
             it.copy(basePath = basePath)
         }
     }

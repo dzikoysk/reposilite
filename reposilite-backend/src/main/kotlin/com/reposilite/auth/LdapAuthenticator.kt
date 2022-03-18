@@ -82,7 +82,7 @@ internal class LdapAuthenticator(
                 .map { name -> accessTokenFacade.getAccessToken(name)
                     ?: accessTokenFacade.createAccessToken(
                         CreateAccessTokenRequest(
-                            type = ldapSettings.map { it.userType.tokenType() },
+                            type = ldapSettings.map { it.userType },
                             name = name,
                             secret = credentials.secret
                         )
@@ -152,9 +152,4 @@ internal class LdapAuthenticator(
     override fun realm(): String =
         "LDAP"
 
-}
-
-private fun LdapSettings.UserType.tokenType(): AccessTokenType = when(this) {
-    LdapSettings.UserType.PERSISTENT -> AccessTokenType.PERSISTENT
-    LdapSettings.UserType.TEMPORARY -> AccessTokenType.TEMPORARY
 }

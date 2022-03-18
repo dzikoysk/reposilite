@@ -7,5 +7,7 @@ import com.reposilite.storage.StorageFacade
 
 @Plugin(name = "storage")
 class StoragePlugin : ReposilitePlugin() {
+
     override fun initialize(): Facade = StorageFacade()
+
 }

@@ -16,6 +16,9 @@
 
 package com.reposilite.auth.api
 
+import net.dzikoysk.cdn.entity.Contextual
+
+@Contextual
 data class Credentials(
     val name: String,
     val secret: String

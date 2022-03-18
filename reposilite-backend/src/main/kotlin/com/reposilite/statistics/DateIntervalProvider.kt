@@ -16,17 +16,17 @@
 
 package com.reposilite.statistics
 
-import com.reposilite.statistics.application.StatisticsSettings
-import com.reposilite.statistics.application.StatisticsSettings.ResolvedRequestsInterval.DAILY
-import com.reposilite.statistics.application.StatisticsSettings.ResolvedRequestsInterval.MONTHLY
-import com.reposilite.statistics.application.StatisticsSettings.ResolvedRequestsInterval.WEEKLY
-import com.reposilite.statistics.application.StatisticsSettings.ResolvedRequestsInterval.YEARLY
+import com.reposilite.statistics.api.ResolvedRequestsInterval
+import com.reposilite.statistics.api.ResolvedRequestsInterval.DAILY
+import com.reposilite.statistics.api.ResolvedRequestsInterval.MONTHLY
+import com.reposilite.statistics.api.ResolvedRequestsInterval.WEEKLY
+import com.reposilite.statistics.api.ResolvedRequestsInterval.YEARLY
 import java.time.LocalDate
 import java.time.temporal.TemporalAdjusters
 import java.time.temporal.WeekFields
 import java.util.*
 
-fun createDateIntervalProvider(mode: StatisticsSettings.ResolvedRequestsInterval): DateIntervalProvider = when (mode) {
+fun createDateIntervalProvider(mode: ResolvedRequestsInterval): DateIntervalProvider = when (mode) {
     DAILY -> DailyDateIntervalProvider
     WEEKLY -> WeeklyDateIntervalProvider
     MONTHLY -> MonthlyDateIntervalProvider

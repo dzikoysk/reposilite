@@ -8,8 +8,10 @@ import com.reposilite.settings.api.Doc
 import com.reposilite.settings.api.Min
 import com.reposilite.storage.filesystem.FileSystemStorageProviderSettings
 import com.reposilite.storage.application.StorageProviderSettings
+import net.dzikoysk.cdn.entity.Contextual
 import java.io.Serializable
 
+@Contextual
 @Doc(title = "Repositories", description = "Repositories settings")
 data class RepositoriesSettings(
     @Doc(title = "Repositories", description = "List of Maven repositories.")
@@ -20,6 +22,7 @@ data class RepositoriesSettings(
     )
 )
 
+@Contextual
 @Doc(title = "Repository", description = "Settings for a Repository.")
 data class RepositorySettings(
     /** The visibility of this repository */
@@ -37,7 +40,7 @@ data class RepositorySettings(
     /** List of proxied repositories associated with this repository. */
     @Doc(title = "Proxied", description = "List of proxied repositories associated with this repository.")
     val proxied: List<ProxiedRepository> = listOf()
-) : Serializable {
+) {
 
     init {
         require(preserved >= -1L) { "Number of preserved snapshot builds cannot be smaller than -1 (now: $preserved)" }
@@ -46,6 +49,7 @@ data class RepositorySettings(
 
 }
 
+@Contextual
 data class ProxiedRepository(
     /** The reference to the proxied repository. Either the id of another local repository or the url of a remote repository. */
     @Doc(title = "Reference", description = "The reference to the proxied repository. Either the id of another local repository or the url of a remote repository.")

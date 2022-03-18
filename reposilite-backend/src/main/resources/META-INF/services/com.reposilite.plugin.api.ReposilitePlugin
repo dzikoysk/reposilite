@@ -21,5 +21,6 @@ com.reposilite.maven.application.MavenPlugin
 com.reposilite.settings.application.SettingsPlugin
 com.reposilite.statistics.application.StatisticsPlugin
 com.reposilite.status.application.StatusPlugin
+com.reposilite.storage.application.StoragePlugin
 com.reposilite.status.application.FailurePlugin
 com.reposilite.token.application.AccessTokenPlugin

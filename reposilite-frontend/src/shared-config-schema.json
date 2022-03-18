@@ -207,7 +207,7 @@
   "title": "SharedConfiguration",
   "type": "object",
   "properties": {
-    "appearance": {
+    "frontend": {
       "type": "object",
       "properties": {
         "id": {
