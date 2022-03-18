@@ -1,10 +1,11 @@
-import { Box, Button, Flex, Heading, Link, Text } from "@chakra-ui/react"
+import { Box, Button, Flex, Heading, Text } from "@chakra-ui/react"
 import { ColorModeStyles, useColorModeValue } from "nextjs-color-mode"
+import { Link } from '../../components/Link'
 import { chakraColor } from "../../helpers/chakra-theme"
 import Scenarios from "./scenarios/Scenarios"
 
 const HeroButton = ({ label, description, url, style }) => (
-  <Link href={url} width='48%' paddingTop={7}>
+  <Link href={url} width='48%'>
     <Button aria-label={description} width='full' style={style}>
       {label}
     </Button>
@@ -30,7 +31,7 @@ const HeroDescription = ({ style }) => {
           &nbsp;alternative to managers like
           Nexus, Archiva or Artifactory, with reduced resources consumption written in Kotlin 📦
         </Text>
-        <Flex justifyContent={'space-between'}>
+        <Flex paddingTop={7} justifyContent={'space-between'}>
           <HeroButton
             label='Get started'
             description='Get started - Learn about Reposilite'

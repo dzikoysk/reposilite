@@ -1,5 +1,6 @@
-import { Box, Flex, Heading, Link, Text } from "@chakra-ui/react";
+import { Box, Flex, Heading, Text } from "@chakra-ui/react";
 import { ColorModeStyles, useColorModeValue } from "nextjs-color-mode";
+import { Link } from '../../components/Link';
 import { chakra } from "../../helpers/chakra-theme";
 
 const feature = (title, description) =>
@@ -7,7 +8,7 @@ const feature = (title, description) =>
 
 const features = [
   feature('Open Source', 'Personal access-token based authorization with configurable routes and permissions'),
-  feature('Docker 🐋', <Text>Available docker images <Link>docker.com/reposilite</Link></Text>),
+  feature('Docker 🐋', <Text>Available docker images <Link href="/">docker.com/reposilite</Link></Text>),
   feature('Authorization', 'Personal access-token based authorization with configurable routes and permissions'),
   feature('Dashboard', 'Simple dashboard with repository browser and management panel'),
   feature('API Endpoints', 'Exposes dedicated REST API to communicate with repository using external tools'),

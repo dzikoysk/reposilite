@@ -1,4 +1,5 @@
-import { Box, Code, Heading, Link, ListItem, Table, Tbody, Td, Text, Th, Thead, Tr, UnorderedList } from "@chakra-ui/react";
+import { Box, Code, Heading, ListItem, Table, Tbody, Td, Text, Th, Thead, Tr, UnorderedList } from "@chakra-ui/react";
+import { Link } from './Link'
 
 // todo: add dark/light switch on top of the next-color-mode library
 
