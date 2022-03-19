@@ -91,7 +91,7 @@ dependencies {
 
     //implementation("io.javalin:javalin:4.1.1")
     @Suppress("GradlePackageUpdate")
-    api("com.github.dzikoysk.javalin:javalin:1075421a66")
+    api("com.github.dzikoysk.javalin:javalin:97b4481c0a")
     @Suppress("GradlePackageUpdate")
     implementation("org.eclipse.jetty:jetty-server:9.4.45.v20220203")
 
