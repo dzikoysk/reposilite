@@ -16,6 +16,7 @@
 
 package com.reposilite
 
+import com.reposilite.storage.filesystem.FileSystemStorageProviderSettings
 import org.junit.jupiter.api.extension.AfterEachCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.Extension
@@ -47,7 +48,7 @@ internal class ReposiliteExperimentalIntegrationJunitExtension : Extension, Befo
 
             type.getField("_extensionInitialized").set(instance, true)
             type.getField("_database").set(instance, "postgresql ${postgres.host}:${postgres.getMappedPort(5432)} ${postgres.databaseName} ${postgres.username} ${postgres.password}")
-            type.getField("_storageProvider").set(instance, "fs")
+            type.getField("_storageProvider").set(instance, FileSystemStorageProviderSettings())
         }
     }
 
