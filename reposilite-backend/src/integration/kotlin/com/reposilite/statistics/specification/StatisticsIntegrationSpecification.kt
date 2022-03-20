@@ -21,6 +21,7 @@ import com.reposilite.maven.api.Identifier
 import com.reposilite.statistics.StatisticsFacade
 import kong.unirest.Unirest.get
 import kong.unirest.Unirest.put
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import panda.std.Mono
 
@@ -33,9 +34,9 @@ internal abstract class StatisticsIntegrationSpecification : ReposiliteSpecifica
         val putResponse = put(uri)
             .basicAuth(token, secret)
             .body(content)
-            .asEmpty()
+            .asString()
 
-        assertTrue(putResponse.isSuccess)
+        assertEquals(200, putResponse.status)
 
         val getResponse = get(uri)
             .asEmpty()

@@ -69,7 +69,7 @@ internal class MavenPlugin : ReposilitePlugin() {
             HttpRemoteClientProvider,
             failureFacade,
             storageFacade,
-            computed(dependencies(sharedConfiguration.repositories)){ sharedConfiguration.repositories.map { it.repositories } }
+            sharedConfiguration.repositories.computed { it.repositories }
         )
         val repositoryService = RepositoryService(this, repositoryProvider, securityProvider)
 

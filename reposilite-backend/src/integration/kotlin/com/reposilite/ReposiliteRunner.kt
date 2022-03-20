@@ -87,8 +87,6 @@ internal abstract class ReposiliteRunner {
         parameters.port = 10000 + 2 * ThreadLocalRandom.current().nextInt(30_000 / 2)
         parameters.run()
 
-        val cdn = KCdnFactory.createStandard()
-
         val localConfiguration = LocalConfiguration().also {
             ReferenceUtils.setValue(it.database, _database)
             ReferenceUtils.setValue(it.webThreadPool, 5)
@@ -96,7 +94,7 @@ internal abstract class ReposiliteRunner {
         }
 
         overrideLocalConfiguration(localConfiguration)
-        cdn.render(localConfiguration, Source.of(reposiliteWorkingDirectory.resolve("configuration.local.cdn")))
+        KCdnFactory.createStandard().render(localConfiguration, Source.of(reposiliteWorkingDirectory.resolve("configuration.local.cdn")))
 
         val sharedConfiguration = SharedConfiguration().also {
             val proxiedConfiguration = RepositorySettings(proxied = mutableListOf(ProxiedRepository("http://localhost:${parameters.port + 1}/releases")))
@@ -105,7 +103,7 @@ internal abstract class ReposiliteRunner {
             updatedRepositories["proxied"] = proxiedConfiguration
             it.repositories.update(RepositoriesSettings(updatedRepositories))
 
-            it.repositories.update {settings ->
+            it.repositories.update { settings ->
                 RepositoriesSettings(settings.repositories.mapValues { entry ->
                     val repositoryConfiguration = entry.value
                     RepositorySettings(repositoryConfiguration.visibility, redeployment = true, repositoryConfiguration.preserved, _storageProvider!!, repositoryConfiguration.proxied)
@@ -114,7 +112,7 @@ internal abstract class ReposiliteRunner {
         }
 
         overrideSharedConfiguration(sharedConfiguration)
-        cdn.render(sharedConfiguration, Source.of(reposiliteWorkingDirectory.resolve("configuration.shared.cdn")))
+        KCdnFactory.createJsonLike().render(sharedConfiguration, Source.of(reposiliteWorkingDirectory.resolve("configuration.shared.json")))
 
         val reposiliteInstance = ReposiliteFactory.createReposilite(parameters, logger)
         reposiliteInstance.journalist.setVisibleThreshold(Channel.WARN)

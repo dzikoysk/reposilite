@@ -8,7 +8,9 @@ import com.reposilite.settings.api.Doc
 import com.reposilite.settings.api.Min
 import com.reposilite.storage.filesystem.FileSystemStorageProviderSettings
 import com.reposilite.storage.application.StorageProviderSettings
+import com.reposilite.storage.application.StorageProviderSettingsComposer
 import net.dzikoysk.cdn.entity.Contextual
+import net.dzikoysk.cdn.entity.CustomComposer
 import java.io.Serializable
 
 @Contextual
@@ -36,6 +38,7 @@ data class RepositorySettings(
     @Doc(title = "Preserved", description = "How many builds of the given snapshot version should be preserved when a new build is deployed. Use -1 to disable this feature.")
     val preserved: Int = -1,
     /** The storage type of this repository. */
+    @CustomComposer(StorageProviderSettingsComposer::class)
     val storageProvider: StorageProviderSettings = FileSystemStorageProviderSettings("100%", ""),
     /** List of proxied repositories associated with this repository. */
     @Doc(title = "Proxied", description = "List of proxied repositories associated with this repository.")
