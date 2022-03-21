@@ -53,7 +53,7 @@ dependencies {
     implementation("net.dzikoysk:cdn:$cdn")
     implementation("net.dzikoysk:cdn-kt:$cdn")
 
-    val awssdk = "2.17.148"
+    val awssdk = "2.17.152"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
     testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.177")
