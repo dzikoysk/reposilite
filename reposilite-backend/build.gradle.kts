@@ -53,10 +53,10 @@ dependencies {
     implementation("net.dzikoysk:cdn:$cdn")
     implementation("net.dzikoysk:cdn-kt:$cdn")
 
-    val awssdk = "2.17.148"
+    val awssdk = "2.17.152"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
-    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.177")
+    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.181")
 
     val exposed = "0.37.3"
     implementation("org.jetbrains.exposed:exposed-core:$exposed")
@@ -77,7 +77,7 @@ dependencies {
     val springSecurityCrypto = "5.6.2"
     implementation("org.springframework.security:spring-security-crypto:$springSecurityCrypto")
 
-    val ldap = "6.0.3"
+    val ldap = "6.0.4"
     testImplementation("com.unboundid:unboundid-ldapsdk:$ldap")
 
     val openapi = "1.1.5"
@@ -130,7 +130,7 @@ dependencies {
     implementation("org.tinylog:tinylog-api:$tinylog")
     implementation("org.tinylog:tinylog-impl:$tinylog")
 
-    val unirest = "3.13.6"
+    val unirest = "3.13.7"
     testImplementation("com.konghq:unirest-java:$unirest")
     testImplementation("com.konghq:unirest-objectmapper-jackson:$unirest")
 

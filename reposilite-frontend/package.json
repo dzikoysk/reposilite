@@ -14,7 +14,7 @@
     "@jsonforms/core": "^3.0.0-beta.1",
     "@jsonforms/vue": "^3.0.0-beta.1",
     "@vueform/toggle": "^2.0.1",
-    "@vueuse/core": "^8.0.1",
+    "@vueuse/core": "^8.1.2",
     "@vueuse/head": "^0.7.5",
     "ansi-to-html": "^0.7.2",
     "axios": "^0.26.1",
