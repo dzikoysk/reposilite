@@ -1,4 +1,4 @@
-import { Box, Code, Heading, ListItem, Table, Tbody, Td, Text, Th, Thead, Tr, UnorderedList } from "@chakra-ui/react";
+import { Box, Code, Heading, ListItem, Table, Tbody, Td, Text, Th, Thead, Tr, UnorderedList } from "@chakra-ui/react"
 import { Link } from './Link'
 
 // todo: add dark/light switch on top of the next-color-mode library
@@ -7,7 +7,7 @@ function getAnchor(text) {
   return text
     .toLowerCase()
     .replace(/[^a-z0-9 ]/g, '')
-    .replace(/[ ]/g, '-');
+    .replace(/[ ]/g, '-')
 }
 
 const H = ({ children, as, size }) => {
