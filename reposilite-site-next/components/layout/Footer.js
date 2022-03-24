@@ -1,7 +1,7 @@
-import { Box, Container, Flex, Heading, Spacer, VStack, Text } from "@chakra-ui/react";
+import { Box, Container, Flex, Heading, Spacer, VStack, Text } from "@chakra-ui/react"
 import { Link } from '../../components/Link'
-import { ColorModeStyles, useColorModeValue } from "nextjs-color-mode";
-import { chakra } from "../../helpers/chakra-theme";
+import { ColorModeStyles, useColorModeValue } from "nextjs-color-mode"
+import { chakra } from "../../helpers/chakra-theme"
 
 const link = (title, url) =>
   ({ title, url: url || "/" })

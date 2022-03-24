@@ -1,7 +1,7 @@
-import { Box, Flex, Heading, Text } from "@chakra-ui/react";
-import { ColorModeStyles, useColorModeValue } from "nextjs-color-mode";
-import { Link } from '../../components/Link';
-import { chakra } from "../../helpers/chakra-theme";
+import { Box, Flex, Heading, Text } from "@chakra-ui/react"
+import { ColorModeStyles, useColorModeValue } from "nextjs-color-mode"
+import { Link } from '../../components/Link'
+import { chakra } from "../../helpers/chakra-theme"
 
 const feature = (title, description) =>
   ({ title, description })
