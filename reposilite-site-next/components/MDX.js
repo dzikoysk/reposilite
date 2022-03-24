@@ -82,14 +82,14 @@ export default {
     >
       <Table
         variant={'simple'}
-        size={'xs'}
+        size={'sm'}
         {...props}
       />
     </Box>
   ),
   thead: (props) => <Thead {...props} />,
   tbody: (props) => <Tbody {...props} />,
-  tr: (props) => <Tr {...props} />,
+  tr: (props) => <Tr borderRadius='lg'{...props} />,
   th: (props) => <Th py={3} px={5} {...props} />,
   td: (props) => <Td py={2} px={5} {...props} />,
   ul: (props) => <UnorderedList paddingY={'2'} {...props} />,
