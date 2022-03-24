@@ -49,7 +49,13 @@ internal class S3StorageProviderIntegrationTest : StorageProviderIntegrationTest
             failureFacade,
             rootDirectory.toPath(),
             "test-repository",
-            S3StorageProviderSettings("test-repository", localstack.getEndpointOverride(S3).toURL().toString(), localstack.accessKey, localstack.secretKey, localstack.region)
+            S3StorageProviderSettings(
+                bucketName = "test-repository",
+                endpoint = localstack.getEndpointOverride(S3).toURL().toString(),
+                accessKey = localstack.accessKey,
+                secretKey = localstack.secretKey,
+                region = localstack.region
+            )
         )
     }
 

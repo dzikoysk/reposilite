@@ -6,9 +6,9 @@ import net.dzikoysk.cdn.CdnSettings
 import net.dzikoysk.cdn.CdnUtils
 import net.dzikoysk.cdn.model.Element
 import net.dzikoysk.cdn.model.Section
+import net.dzikoysk.cdn.reflect.ClassTargetType
+import net.dzikoysk.cdn.reflect.TargetType
 import net.dzikoysk.cdn.serdes.Composer
-import net.dzikoysk.cdn.serdes.TargetType
-import net.dzikoysk.cdn.serdes.TargetType.ClassTargetType
 import net.dzikoysk.cdn.serdes.composers.ContextualComposer
 import panda.std.Result
 import java.lang.Exception
@@ -18,7 +18,7 @@ class StorageProviderSettingsComposer : Composer<StorageProviderSettings> {
     private val contextualComposer = ContextualComposer()
 
     override fun serialize(
-        settings: CdnSettings?,
+        settings: CdnSettings,
         description: MutableList<String>?,
         key: String?,
         type: TargetType?,
@@ -27,7 +27,7 @@ class StorageProviderSettingsComposer : Composer<StorageProviderSettings> {
         contextualComposer.serialize(settings, description, key, type, entity)
 
     override fun deserialize(
-        settings: CdnSettings?,
+        settings: CdnSettings,
         source: Element<*>?,
         type: TargetType?,
         defaultValue: StorageProviderSettings?,
@@ -36,8 +36,8 @@ class StorageProviderSettingsComposer : Composer<StorageProviderSettings> {
         val section = source!! as Section
 
         val target = when (section.getString("type").orNull()) {
-            "fs" -> ClassTargetType(FileSystemStorageProviderSettings::class.java)
-            "s3" -> ClassTargetType(S3StorageProviderSettings::class.java)
+            "fs" -> ClassTargetType(FileSystemStorageProviderSettings::class.java, settings.annotationResolver)
+            "s3" -> ClassTargetType(S3StorageProviderSettings::class.java, settings.annotationResolver)
             else -> throw IllegalArgumentException("Unsupported type $section")
         }
 

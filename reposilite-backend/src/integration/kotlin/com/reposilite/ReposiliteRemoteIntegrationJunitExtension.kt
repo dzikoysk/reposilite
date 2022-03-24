@@ -58,8 +58,9 @@ internal class ReposiliteRemoteIntegrationJunitExtension : Extension, BeforeEach
             type.getField("_storageProvider").set(
                 instance,
                 S3StorageProviderSettings(
-                    bucketName = "{repository}",
+                    bucketName = "test-repository",
                     endpoint = localstack.getEndpointOverride(S3).toString(),
+                    accessKey = localstack.accessKey,
                     secretKey = localstack.secretKey,
                     region = localstack.region
                 )

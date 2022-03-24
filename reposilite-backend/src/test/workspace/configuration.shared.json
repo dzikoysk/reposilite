@@ -1,0 +1,67 @@
+"web": {
+  "swagger": "false",
+  "forwardedIp": "X-Forwarded-For"
+},
+"repositories": {
+  "repositories": {
+    "releases": {
+      "visibility": "PUBLIC",
+      "redeployment": "false",
+      "preserved": "-1",
+      "storageProvider": {
+        "type": "fs",
+        "quota": "100%",
+        "mount": ""
+      },
+      "proxied": "[]"
+    },
+    "snapshots": {
+      "visibility": "PUBLIC",
+      "redeployment": "false",
+      "preserved": "-1",
+      "storageProvider": {
+        "type": "fs",
+        "quota": "100%",
+        "mount": ""
+      },
+      "proxied": "[]"
+    },
+    "private": {
+      "visibility": "PRIVATE",
+      "redeployment": "false",
+      "preserved": "-1",
+      "storageProvider": {
+        "type": "fs",
+        "quota": "100%",
+        "mount": ""
+      },
+      "proxied": "[]"
+    }
+  }
+},
+"frontend": {
+  "frontend": "true",
+  "basePath": "/",
+  "id": "reposilite-repository",
+  "title": "Reposilite Repository",
+  "description": "Public Maven repository hosted through the Reposilite",
+  "organizationWebsite": "https://reposilite.com",
+  "organizationLogo": "https://avatars.githubusercontent.com/u/88636591",
+  "icpLicense": ""
+},
+"statistics": {
+  "resolvedRequestsInterval": "MONTHLY"
+},
+"authentication": {
+  "ldap": {
+    "enabled": "false",
+    "hostname": "ldap.domain.com",
+    "port": "389",
+    "baseDn": "dc=company,dc=com",
+    "searchUserDn": "cn=reposilite,ou=admins,dc=domain,dc=com",
+    "searchUserPassword": "reposilite-admin-secret",
+    "userAttribute": "cn",
+    "userFilter": "(&(objectClass=person)(ou=Maven Users))",
+    "userType": "PERSISTENT"
+  }
+}

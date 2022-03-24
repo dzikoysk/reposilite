@@ -7,6 +7,7 @@ import net.dzikoysk.cdn.entity.Contextual
 @Contextual
 @Doc(title = "S3 Storage Provider", description = "Amazon S3 storage provider settings")
 data class S3StorageProviderSettings(
+    override val type: String = "s3",
     @Doc(title = "Bucket", description = "the selected AWS bucket")
     val bucketName: String = "",
     @Doc(title = "Endpoint", description = "overwrite the AWS endpoint (optional)")
@@ -17,9 +18,4 @@ data class S3StorageProviderSettings(
     val secretKey: String = "",
     @Doc(title = "Region", description = "overwrite AWS region (optional)")
     val region: String = ""
-): StorageProviderSettings {
-
-    override val type: String =
-        "s3"
-
-}
+): StorageProviderSettings

@@ -26,7 +26,7 @@ plugins {
 
 allprojects {
     repositories {
-        // mavenCentral()
+        mavenCentral()
         maven { url = uri("https://repo.panda-lang.org/releases") }
         maven { url = uri("https://jitpack.io") }
         // maven {

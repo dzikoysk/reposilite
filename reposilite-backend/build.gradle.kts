@@ -49,7 +49,7 @@ dependencies {
     api("org.panda-lang:expressible-kt:$expressible")
     testImplementation("org.panda-lang:expressible-junit:$expressible")
 
-    val cdn = "1.13.16"
+    val cdn = "1.13.20"
     implementation("net.dzikoysk:cdn:$cdn")
     implementation("net.dzikoysk:cdn-kt:$cdn")
 
@@ -80,7 +80,7 @@ dependencies {
     val ldap = "6.0.3"
     testImplementation("com.unboundid:unboundid-ldapsdk:$ldap")
 
-    val openapi = "1.1.3"
+    val openapi = "1.1.5"
     kapt("io.javalin-rfc:openapi-annotation-processor:$openapi")
     implementation("io.javalin-rfc:javalin-openapi-plugin:$openapi")
     implementation("io.javalin-rfc:javalin-swagger-plugin:$openapi")

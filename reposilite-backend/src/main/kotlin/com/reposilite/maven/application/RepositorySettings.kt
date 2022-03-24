@@ -39,7 +39,7 @@ data class RepositorySettings(
     val preserved: Int = -1,
     /** The storage type of this repository. */
     @CustomComposer(StorageProviderSettingsComposer::class)
-    val storageProvider: StorageProviderSettings = FileSystemStorageProviderSettings("100%", ""),
+    val storageProvider: StorageProviderSettings = FileSystemStorageProviderSettings(),
     /** List of proxied repositories associated with this repository. */
     @Doc(title = "Proxied", description = "List of proxied repositories associated with this repository.")
     val proxied: List<ProxiedRepository> = listOf()
@@ -56,7 +56,7 @@ data class RepositorySettings(
 data class ProxiedRepository(
     /** The reference to the proxied repository. Either the id of another local repository or the url of a remote repository. */
     @Doc(title = "Reference", description = "The reference to the proxied repository. Either the id of another local repository or the url of a remote repository.")
-    val reference: String,
+    val reference: String = "",
     /** Reposilite can store proxied artifacts locally to reduce response time and improve stability. */
     @Doc(title = "Store", description = "Reposilite can store proxied artifacts locally to reduce response time and improve stability.")
     val store: Boolean = false,
