@@ -1,5 +1,19 @@
-import { Box, Code, Heading, ListItem, Table, Tbody, Td, Text, Th, Thead, Tr, UnorderedList } from "@chakra-ui/react"
+import {
+  Box,
+  Code,
+  Heading,
+  ListItem,
+  Table,
+  Tbody,
+  Td,
+  Text,
+  Th,
+  Thead,
+  Tr,
+  UnorderedList
+} from "@chakra-ui/react"
 import { Link } from './Link'
+import Spoiler from './Spoiler'
 
 // todo: add dark/light switch on top of the next-color-mode library
 
@@ -59,8 +73,8 @@ export default {
   ),
   table: (props) => (
     <Box
-      paddingX='4'
-      paddingY='2'
+      paddingX='0'
+      paddingY='0'
       border='1px'
       borderColor={'gray.200'}
       borderRadius='lg'
@@ -76,8 +90,9 @@ export default {
   thead: (props) => <Thead {...props} />,
   tbody: (props) => <Tbody {...props} />,
   tr: (props) => <Tr {...props} />,
-  th: (props) => <Th {...props} />,
-  td: (props) => <Td {...props} />,
+  th: (props) => <Th py={3} px={5} {...props} />,
+  td: (props) => <Td py={2} px={5} {...props} />,
   ul: (props) => <UnorderedList paddingY={'2'} {...props} />,
   li: (props) => <ListItem paddingY={'0.5'} {...props} />,
+  Spoiler: (props) => <Spoiler {...props} />
 }
