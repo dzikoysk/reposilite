@@ -8,7 +8,7 @@ const feature = (title, description) =>
 
 const features = [
   feature('Open Source', 'Personal access-token based authorization with configurable routes and permissions'),
-  feature('Docker 🐋', <Text>Available docker images <Link href="/">docker.com/reposilite</Link></Text>),
+  feature('Docker 🐋', <Text>Available docker images <Link color={'purple.400'} href="/">docker.com/reposilite</Link></Text>),
   feature('Authorization', 'Personal access-token based authorization with configurable routes and permissions'),
   feature('Dashboard', 'Simple dashboard with repository browser and management panel'),
   feature('API Endpoints', 'Exposes dedicated REST API to communicate with repository using external tools'),
