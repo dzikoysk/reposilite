@@ -7,17 +7,17 @@ const link = (title, url) =>
   ({ title, url: url || "/" })
 
 const guideLinks = [
-  link('Getting Started'),
-  link('Installation'),
-  link('Developer API'),
-  link('FAQ'),
+  link('Getting Started', '/guide/about'),
+  link('Installation', '/guide/manual'),
+  link('Plugins', '/plugin'),
+  link('Developer API', '/guide/sources'),
 ]
 
 const communityLinks = [
-  link('Report Issue'),
-  link('Star Reposilite'),
-  link('Join Discord'),
-  link('Follow @dzikoysk'),
+  link('Report Issue', 'https://github.com/dzikoysk/reposilite/issues/new/choose'),
+  link('Join Discord', 'https://discord.gg/qGRqmGjUFX'),
+  link('Visit Twitter', 'https://twitter.com/dzikoysk'),
+  link('Go to GitHub', 'https://github.com/dzikoysk/reposilite'),
 ]
 
 export default function Footer() {

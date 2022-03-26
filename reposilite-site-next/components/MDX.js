@@ -2,6 +2,7 @@ import {
   Box,
   Code,
   Heading,
+  Image,
   ListItem,
   Table,
   Tbody,
@@ -90,9 +91,10 @@ export default {
   thead: (props) => <Thead {...props} />,
   tbody: (props) => <Tbody {...props} />,
   tr: (props) => <Tr borderRadius='lg'{...props} />,
-  th: (props) => <Th py={3} px={5} {...props} />,
-  td: (props) => <Td py={2} px={5} {...props} />,
+  th: (props) => <Th py={3} px={5} color={'gray.500'} {...props} />,
+  td: (props) => <Td py={2} px={5} wordBreak={'break-all'} {...props} />,
   ul: (props) => <UnorderedList paddingY={'2'} {...props} />,
   li: (props) => <ListItem paddingY={'0.5'} {...props} />,
+  img: (props) =>  <Image display={'inline-block'} {...props} marginBottom={-1} />,
   Spoiler: (props) => <Spoiler {...props} />
 }

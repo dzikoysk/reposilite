@@ -9,15 +9,10 @@ Reposilite *(formerly NanoMaven)* is a lightweight repository manager for Maven 
 
 Reposilite is an open source project and its development takes place on GitHub:
 
-* [github.com/dzikoysk/reposilite](https://github.com/dzikoysk/reposilite)
+* [GitHub / Reposilite](https://github.com/dzikoysk/reposilite)
 
-In case of any problems or feature requests, report the issue here:
+In case of any problems or feature requests, visit support section to see how to reach us on GitHub or Discord:
 
-* [github.com/dzikoysk/reposilite/issues](https://github.com/dzikoysk/reposilite/issues)
+* [Guide / Support 💕](/guide/support)
 
-### Support ❤️
 
-If you want to support this project financially, visit:
-
-* [github.com/sponsors/dzikoysk](https://github.com/sponsors/dzikoysk) - monthly, one-time
-* [panda-lang.org/support](https://panda-lang.org/support/) - one-time
