@@ -1,7 +1,7 @@
 import { Box, Container, Flex, Heading, Spacer, VStack, Text } from "@chakra-ui/react"
 import { Link } from '../../components/Link'
 import { ColorModeStyles, useColorModeValue } from "nextjs-color-mode"
-import { chakra } from "../../helpers/chakra-theme"
+import { chakraColor } from "../../helpers/chakra-theme"
 
 const link = (title, url) =>
   ({ title, url: url || "/" })
@@ -21,7 +21,7 @@ const communityLinks = [
 ]
 
 export default function Footer() {
-  const [footerBg, footerBgCss] = useColorModeValue('footer-bg', chakra('colors-gray-100'), chakra('colors-gray-900'))
+  const [footerBg, footerBgCss] = useColorModeValue('footer-bg', chakraColor('gray.100'), chakraColor('gray.900'))
 
   return (
     <>
