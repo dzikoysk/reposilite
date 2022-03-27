@@ -21,20 +21,6 @@ const individualCards = [
     ]
   },
   {
-    title: 'Contribute',
-    description: 'Join developers team and develop projects associated with Reposilite project',
-    buttons: [
-      {
-        title: 'Visit issues',
-        link: 'https://github.com/dzikoysk/reposilite/issues'
-      },
-      {
-        title: 'Visit PRs',
-        link: 'https://github.com/dzikoysk/reposilite/pulls'
-      }
-    ]
-  },
-  {
     title: 'Donation',
     description: 'Consider a donation to financially support my work and ecosystem around',
     buttons: [
@@ -45,6 +31,20 @@ const individualCards = [
       {
         title: 'Panda organization',
         link: 'https://panda-lang.org/support'
+      }
+    ]
+  },
+  {
+    title: 'Contribute',
+    description: 'Join developers team and develop projects associated with Reposilite project',
+    buttons: [
+      {
+        title: 'Visit issues',
+        link: 'https://github.com/dzikoysk/reposilite/issues'
+      },
+      {
+        title: 'Visit PRs',
+        link: 'https://github.com/dzikoysk/reposilite/pulls'
       }
     ]
   }

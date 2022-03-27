@@ -67,7 +67,7 @@ const GuideMenu = ({ categories }) => {
           <HamburgerIcon paddingBottom={1} boxSize={6} />
           <Heading size={'sm'} paddingLeft={4}>Table of Contents</Heading>
         </Flex>
-        <Drawer isOpen={isOpen} onClose={onClose} size={'xs'} isFullHeight={true} height={'100%'}>
+        <Drawer isOpen={isOpen} onClose={onClose} size={'xs'} isFullHeight={true}>
           <DrawerOverlay height={'100%'} />
           <DrawerContent height={'100%'} maxHeight={'100%'} color={menuColor} backgroundColor={menuBg}>
             <DrawerBody>
@@ -131,20 +131,21 @@ export default function Guide({ categories, category, selected }) {
         <title>{selected.title} · Guide · Reposilite</title>
       </Head>
       <Box
-        maxW={{ md: "container.md", xl: "container.xl" }}
-        mx={{ base: 0, md: "auto" }}
+        maxW={{ base: '100vmax', lg: "container.lg", xl: "container.xl" }}
+        mx={{ base: 'auto' }}
+        paddingX={3}
       >
         <Flex direction={{ base: "column", md: "row" }}>
           <Box
             paddingTop={{ base: 12, md: 24 }}
             mx={{ md: "auto" }}
-            paddingLeft="6"
+            paddingLeft={{ base: 0, md: 6 }}
             paddingRight={{ base: 6, md: 16 }}
           >
             <GuideMenu categories={categories} />
           </Box>
           <Box
-            maxW={{ base: '90%', md: "70%" }}
+            maxW={{ base: '100%', md: "70%" }}
             mx="auto"
             paddingTop="10"
             paddingRight={{ base: 0, md: 6 }}

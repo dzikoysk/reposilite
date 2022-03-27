@@ -1,7 +1,6 @@
 import {
   Box,
   Code,
-  Divider,
   Heading,
   Image,
   ListItem,
@@ -146,11 +145,8 @@ const TableHeader = (props) => {
   )
 }
 
-const TableRow = (props) => {
-  return (
-    <Tr borderRadius='lg' border={'none'} {...props} />
-  )
-}
+const TableRow = (props) =>
+  <Tr borderRadius='lg' border={'none'} {...props} />
 
 const TableCell = (props) => {
   const [borderColor, borderColorCss] = useColorModeValue('td-border-color', chakraColor('gray.200'), chakraColor('gray.600'))
@@ -160,11 +156,11 @@ const TableCell = (props) => {
       <ColorModeStyles styles={[borderColorCss]} />
       <Td
         py={2}
-        px={5}
+        px={{ base: 3, xl: 6 }}
         borderBottom={'none'}
         borderTop={'1px'}
         borderTopColor={borderColor}
-        wordBreak={'break-all'}
+        wordBreak={'break-word'}
         {...props}
       />
     </>
