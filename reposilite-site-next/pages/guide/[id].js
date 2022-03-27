@@ -30,7 +30,7 @@ import { chakraColor } from "../../helpers/chakra-theme"
 
 const TableOfContents = ({ categories, onClick }) => {
   return (
-    <>
+    <Flex flexDirection={'column'}>
       {categories.map((category) => (
         <Box key={category.name} paddingBottom={2} paddingTop={1}>
           <Heading as="h1" size="sm" paddingBottom={3}>
@@ -50,7 +50,7 @@ const TableOfContents = ({ categories, onClick }) => {
           ))}
         </Box>
       ))}
-    </>
+    </Flex>
   )
 }
 
@@ -67,14 +67,12 @@ const GuideMenu = ({ categories }) => {
           <HamburgerIcon paddingBottom={1} boxSize={6} />
           <Heading size={'sm'} paddingLeft={4}>Table of Contents</Heading>
         </Flex>
-        <Drawer isOpen={isOpen} onClose={onClose} size={'xs'}>
-          <DrawerOverlay />
-          <DrawerContent color={menuColor} backgroundColor={menuBg}>
-            <DrawerHeader />
+        <Drawer isOpen={isOpen} onClose={onClose} size={'xs'} isFullHeight={true} height={'100%'}>
+          <DrawerOverlay height={'100%'} />
+          <DrawerContent height={'100%'} maxHeight={'100%'} color={menuColor} backgroundColor={menuBg}>
             <DrawerBody>
               <TableOfContents categories={categories} onClick={onClose} />
             </DrawerBody>
-            <DrawerFooter />
           </DrawerContent>
         </Drawer>
       </>
@@ -133,7 +131,7 @@ export default function Guide({ categories, category, selected }) {
         <title>{selected.title} · Guide · Reposilite</title>
       </Head>
       <Box
-        maxW={{ base: "95vw", md: "container.md", xl: "container.xl" }}
+        maxW={{ md: "container.md", xl: "container.xl" }}
         mx={{ base: 0, md: "auto" }}
       >
         <Flex direction={{ base: "column", md: "row" }}>
