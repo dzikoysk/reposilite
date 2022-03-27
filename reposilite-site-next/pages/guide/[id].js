@@ -86,7 +86,7 @@ const GuideView = ({ category, selected }) => {
   const guideUrl = `/guide/${id}`
 
   return (
-    <>
+    <Box>
       <Breadcrumb
         spacing="8px"
         separator={<ChevronRightIcon color="gray.500" />}
@@ -120,7 +120,7 @@ const GuideView = ({ category, selected }) => {
           </Flex>
         </LinkBox>
       </Box>
-    </>
+    </Box>
   )
 }
 
@@ -145,7 +145,8 @@ export default function Guide({ categories, category, selected }) {
             <GuideMenu categories={categories} />
           </Box>
           <Box
-            maxW={{ base: '100%', md: "70%" }}
+            maxW={{ base: "100%", md: "70%" }}
+            minW={{ md: "70%" }}
             mx="auto"
             paddingTop="10"
             paddingRight={{ base: 0, md: 6 }}
