@@ -13,6 +13,7 @@ const categories = [
     directory: 'installation',
     content: [
       'manual',
+      'setup',
       'docker',
       'k8s'
     ]
