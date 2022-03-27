@@ -9,7 +9,7 @@ Actively developed projects & modules by [@dzikoysk](https://github.com/dzikoysk
   * [Backend](https://github.com/dzikoysk/reposilite/tree/main/reposilite-backend) - Main sources of Reposilite
   * [Frontend](https://github.com/dzikoysk/reposilite/tree/main/reposilite-frontend) - Dashboard implementation in [Vue 3](https://vuejs.org/)
   * [Plugins](https://github.com/dzikoysk/reposilite/tree/main/reposilite-plugins) - Official extensions to Reposilite
-  * [Website](https://github.com/dzikoysk/reposilite/tree/main/reposilite-site) - [reposilite.com] site sources in [Next.js](https://nextjs.org/) ([React](https://reactjs.org/))
+  * [Website](https://github.com/dzikoysk/reposilite/tree/main/reposilite-site) - [reposilite.com](https://reposilite.com/) site sources in [Next.js](https://nextjs.org/) ([React](https://reactjs.org/))
 * [Reposilite Playground / *](https://github.com/reposilite-playground/) - Dedicated organization for Reposilite with several internal utility libraries
   * [Javalin RFCs](https://github.com/reposilite-playground/javalin-rfcs) - Set of extension methods, alternative routing & coroutines plugin for Javalin
   * [Javalin OpenApi](https://github.com/reposilite-playground/javalin-openapi) - Reimplemented OpenApi plugin for Javalin based on top of annotation processing with a support for [Swagger](https://swagger.io/) & [ReDoc](https://github.com/Redocly/redoc)
