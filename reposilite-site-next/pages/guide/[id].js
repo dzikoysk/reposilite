@@ -3,21 +3,31 @@ import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
+  Button,
   Divider,
+  Drawer,
+  DrawerBody,
+  DrawerContent,
+  DrawerHeader,
+  DrawerOverlay,
   Flex,
   Heading,
   LinkBox,
   Text,
+  useBreakpointValue,
+  useDisclosure,
 } from "@chakra-ui/react"
 import { MDXRemote } from "next-mdx-remote"
 import { getGuideCategories, readGuideById } from "../../helpers/mdx"
 import Layout from "../../components/layout/Layout"
 import MDX from "../../components/MDX"
 import { Link, LinkOverlay } from "../../components/Link"
-import { ChevronRightIcon, EditIcon } from "@chakra-ui/icons"
+import { ChevronRightIcon, EditIcon, HamburgerIcon } from "@chakra-ui/icons"
 import Head from "next/head"
+import { ColorModeStyles, useColorModeValue } from "nextjs-color-mode"
+import { chakraColor } from "../../helpers/chakra-theme"
 
-const GuideMenu = ({ categories }) => {
+const TableOfContents = ({ categories, onClick }) => {
   return (
     <>
       {categories.map((category) => (
@@ -31,6 +41,7 @@ const GuideMenu = ({ categories }) => {
                 whiteSpace={"nowrap"}
                 wordBreak={"keep-all"}
                 href={`/guide/${guide.id}`}
+                onClick={onClick}
               >
                 {guide.title}
               </Link>
@@ -40,6 +51,34 @@ const GuideMenu = ({ categories }) => {
       ))}
     </>
   )
+}
+
+const GuideMenu = ({ categories }) => {
+  const { isOpen, onOpen, onClose } = useDisclosure()
+  const [ menuBg, menuBgCss ] = useColorModeValue('menu-bg', 'white', chakraColor('gray.900'))
+  const [ menuColor, menuColorCss ] = useColorModeValue('menu-color', 'black', 'white')
+  
+  return useBreakpointValue({
+    base: (
+      <>
+        <ColorModeStyles styles={[menuBgCss, menuColorCss]} />
+        <Flex onClick={onOpen} cursor={'pointer'}>
+          <HamburgerIcon marginLeft={2} paddingBottom={1} boxSize={6} />
+          <Heading size={'sm'} marginLeft={4}>Table of Contents</Heading>
+        </Flex>
+        <Drawer isOpen={isOpen} onClose={onClose} size={'xs'}>
+          <DrawerOverlay />
+          <DrawerContent color={menuColor} backgroundColor={menuBg}>
+            <DrawerHeader></DrawerHeader>
+            <DrawerBody>
+              <TableOfContents categories={categories} onClick={onClose} />
+            </DrawerBody>
+          </DrawerContent>
+        </Drawer>
+      </>
+    ),
+    md: <TableOfContents categories={categories} />
+  })
 }
 
 const GuideView = ({ category, selected }) => {
@@ -93,23 +132,22 @@ export default function Guide({ categories, category, selected }) {
       </Head>
       <Box
         maxW={{ base: "95vw", md: "container.md", xl: "container.xl" }}
-        mx="auto"
+        mx={{ base: 0, md: "auto" }}
       >
         <Flex direction={{ base: "column", md: "row" }}>
           <Box
-            paddingTop="24"
-            mx="auto"
+            paddingTop={{ base: 12, md: 24 }}
+            mx={{ md: "auto" }}
             paddingLeft="6"
             paddingRight={{ base: 6, md: 16 }}
           >
             <GuideMenu categories={categories} />
           </Box>
           <Box
-            maxW="70%"
+            maxW={{ base: '90%', md: "70%" }}
             mx="auto"
             paddingTop="10"
             paddingRight={{ base: 0, md: 6 }}
-            position="relative"
           >
             <GuideView category={category} selected={selected} />
           </Box>
