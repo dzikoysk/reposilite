@@ -5,7 +5,7 @@ import '../components/MDX.css'
 
 const criticalThemeCss = `
 html {
-  min-width: 460px;
+  min-width: 430px;
 }`
 
 function MyApp({ Component, pageProps }) {

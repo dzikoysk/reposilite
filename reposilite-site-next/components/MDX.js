@@ -25,8 +25,6 @@ import { chakraColor } from "../helpers/chakra-theme"
 import { Link } from './Link'
 import Spoiler from './Spoiler'
 
-// todo: add dark/light switch on top of the next-color-mode library
-
 function getAnchor(text) {
   return text
     .toLowerCase()
@@ -113,6 +111,66 @@ const Snippet = (props) => (
   </Box>
 )
 
+const MdTable = (props) => {
+  const [borderColor, borderColorCss] = useColorModeValue('table-border-color', chakraColor('gray.200'), chakraColor('gray.600'))
+  
+  return (
+    <>
+      <ColorModeStyles styles={[borderColorCss]} />
+      <Box
+        paddingX='0'
+        paddingY='0'
+        border='1px'
+        borderColor={borderColor}
+        borderRadius='lg'
+        marginY='4'
+      >
+        <Table
+          variant={'simple'}
+          size={'sm'}
+          {...props}
+        />
+      </Box>
+    </>
+  )
+}
+
+const TableHeader = (props) => {
+  const [color, colorCss] = useColorModeValue('th-color', chakraColor('gray.500'), chakraColor('gray.300'))
+
+  return (
+    <>
+      <ColorModeStyles styles={[colorCss]} />
+      <Th py={3} px={5} color={color} border={'none'} {...props} />
+    </>
+  )
+}
+
+const TableRow = (props) => {
+  return (
+    <Tr borderRadius='lg' border={'none'} {...props} />
+  )
+}
+
+const TableCell = (props) => {
+  const [borderColor, borderColorCss] = useColorModeValue('td-border-color', chakraColor('gray.200'), chakraColor('gray.600'))
+
+  return (
+    <>
+      <ColorModeStyles styles={[borderColorCss]} />
+      <Td
+        py={2}
+        px={5}
+        borderBottom={'none'}
+        borderTop={'1px'}
+        borderTopColor={borderColor}
+        wordBreak={'break-all'}
+        {...props}
+      />
+    </>
+  )
+}
+
 export default {
   a: (props) => <Link color={'purple.400'} {...props} />,
   p: (props) => <Text paddingY={'2'} {...props} />,
@@ -123,27 +181,12 @@ export default {
   h5: (props) => <H as='h5' size={'xs'} {...props} />,
   pre: Snippet,
   code: Highlight,
-  table: (props) => (
-    <Box
-      paddingX='0'
-      paddingY='0'
-      border='1px'
-      borderColor={'gray.200'}
-      borderRadius='lg'
-      marginY='4'
-    >
-      <Table
-        variant={'simple'}
-        size={'sm'}
-        {...props}
-      />
-    </Box>
-  ),
+  table: MdTable,
   thead: (props) => <Thead {...props} />,
   tbody: (props) => <Tbody {...props} />,
-  tr: (props) => <Tr borderRadius='lg'{...props} />,
-  th: (props) => <Th py={3} px={5} color={'gray.500'} {...props} />,
-  td: (props) => <Td py={2} px={5} wordBreak={'break-all'} {...props} />,
+  tr: TableRow,
+  th: TableHeader,
+  td: TableCell,
   ul: (props) => <UnorderedList paddingY={2} {...props} />,
   ol: (props) => <OrderedList paddingY={2} {...props} />,
   li: (props) => <ListItem paddingY={0.5} {...props} />,
