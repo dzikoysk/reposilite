@@ -8,6 +8,7 @@ import {
   Drawer,
   DrawerBody,
   DrawerContent,
+  DrawerFooter,
   DrawerHeader,
   DrawerOverlay,
   Flex,
@@ -63,16 +64,17 @@ const GuideMenu = ({ categories }) => {
       <>
         <ColorModeStyles styles={[menuBgCss, menuColorCss]} />
         <Flex onClick={onOpen} cursor={'pointer'}>
-          <HamburgerIcon marginLeft={2} paddingBottom={1} boxSize={6} />
-          <Heading size={'sm'} marginLeft={4}>Table of Contents</Heading>
+          <HamburgerIcon paddingBottom={1} boxSize={6} />
+          <Heading size={'sm'} paddingLeft={4}>Table of Contents</Heading>
         </Flex>
         <Drawer isOpen={isOpen} onClose={onClose} size={'xs'}>
           <DrawerOverlay />
           <DrawerContent color={menuColor} backgroundColor={menuBg}>
-            <DrawerHeader></DrawerHeader>
+            <DrawerHeader />
             <DrawerBody>
               <TableOfContents categories={categories} onClick={onClose} />
             </DrawerBody>
+            <DrawerFooter />
           </DrawerContent>
         </Drawer>
       </>
