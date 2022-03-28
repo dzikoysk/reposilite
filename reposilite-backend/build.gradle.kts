@@ -53,10 +53,10 @@ dependencies {
     implementation("net.dzikoysk:cdn:$cdn")
     implementation("net.dzikoysk:cdn-kt:$cdn")
 
-    val awssdk = "2.17.152"
+    val awssdk = "2.17.157"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
-    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.181")
+    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.186")
 
     val exposed = "0.37.3"
     implementation("org.jetbrains.exposed:exposed-core:$exposed")
@@ -70,7 +70,7 @@ dependencies {
     // Drivers
     implementation("org.xerial:sqlite-jdbc:3.36.0.3")
     implementation("mysql:mysql-connector-java:8.0.28")
-    implementation("org.mariadb.jdbc:mariadb-java-client:3.0.3")
+    implementation("org.mariadb.jdbc:mariadb-java-client:3.0.4")
     implementation("org.postgresql:postgresql:42.3.3")
     implementation("com.h2database:h2:2.1.210")
 
@@ -104,7 +104,7 @@ dependencies {
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jackson")
 
-    val httpClient = "1.41.4"
+    val httpClient = "1.41.5"
     implementation("com.google.http-client:google-http-client:$httpClient")
     testImplementation("com.google.http-client:google-http-client-jackson2:$httpClient")
 
