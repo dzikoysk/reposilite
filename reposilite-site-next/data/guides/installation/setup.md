@@ -226,3 +226,6 @@ Example output:
 ```
 
 </Spoiler>
+
+To make it work, you also have to change [configuration mode for shared configuration](#configuration-modes) using `--shared-configuration-mode` parameter.
+By default it's `none`, so you have to change it to any other value, e.g. `copy`.
