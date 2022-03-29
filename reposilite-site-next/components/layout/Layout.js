@@ -15,7 +15,6 @@ export default function Layout({ children }) {
         style={{ background: layoutBg, color: layoutColor }}
         minH={'100vh'}
         flexDirection='column'
-        flexWrap={'wrap'}
       >
         <Nav />
         <Box minH={'70vh'}>

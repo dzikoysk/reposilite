@@ -201,11 +201,107 @@ A few notes:
   e.g. `User(balance = 7, username = "Michael Scott")`.
 
 ### Functions
+Kotlin supports multiple variants of functions, you can find them all in Kotlin docs:
+
+* [Kotlin Docs / Functions](https://kotlinlang.org/docs/functions.html)
+* [Kotlin Docs / Lambdas](https://kotlinlang.org/docs/lambdas.html)
+
+
+We'll just show its fundamentals here,
+but it should be enough to understand most of use-cases in Reposilite.
+
+#### Definition 
+Kotlin supports functional signatures on language level, 
+it means that instead of using interface based signatures like in Java (e.g. `BiFunction<A, B, R>`),
+you can just write `(A, B) -> R`.
+
+#### Calls
+
+In Kotlin, lambda definition looks like this:
+
+<CodeVariants>
+  <CodeVariant name="Kotlin">
+
+```kotlin
+val runnable: () -> Unit = { println("Reposilite") }
+val consumer: (String) -> Unit = { println(it) }
+val function: (Int) -> String = { it.toString() }
+val biFunction: (Int, Int) -> Int = { a, b -> a + b }
+```
+
+  </CodeVariant>
+  <CodeVariant name="Java">
+
+```java
+Runnable runnable = () -> out.println("Reposilite");
+Consumer<String> consumer = value -> out.println(values);
+Function<Integer, String> function = value -> Integer.toString(value);
+BiFunction<Integer, Integer, String> biFunction = (a, b) -> a + b;
+```
+
+  </CodeVariant>
+</CodeVariants>
+
+As you can see, we're using `it` variable in those lambdas. 
+You can think about it like a keyword in Kotlin that refers to the unnamed argument in single-parameter lambdas.
+The most confusing part is often the we pass lambdas to functions:
+
+<CodeVariants>
+  <CodeVariant name="Kotlin">
+
+```kotlin
+val hasMoney = Result.ok("10")
+  /* Single parameter */
+  .map({ it.toInt() })     // Standard parameter
+  .map() { it.toString() } // Simplify it by pulling the last lambda argument of out method
+  .map { it.toInt() }      // Because () brackets are empty, you can just skip it
+  /* Multiple parameters */
+  .filter({ it > 0 }, { "Error: Negative balance" }) // Standard parameters
+  .filter({ it > 0 }) { "Error: Negative balance" } // Only the last lambda argument can be pulled out
+  .isOk()
+```
+
+  </CodeVariant>
+  <CodeVariant name="Java">
+
+```java
+boolean hasMoney = Result.ok("10")
+  .map((value) -> Integer.parseInt(value))
+  .filter(value -> value > 0, value -> "Error: Negative balance")
+  .isOk()
+```
+
+  </CodeVariant>
+</CodeVariants>
+
+#### DSL
+
+Quite useful enhancement to functions offered by Kotlin is a special type of argument that affects lambda context:
+
+```kotlin
+data class Request(val url: String, val ip: String)
+
+// 'Request.' declares that we'll change context of given labda
+// So 'this' will point to `Request` instance
+fun handleRequest(callable: Request.() -> Unit) =
+  // Context argument is now the fist parameter in 'callable' function
+  callable.invoke(Request("reposilite.com", "127.0.0.1")) 
+
+// Usage of our DSL function
+handleRequest {
+  println(this.url) // Explicit call using 'this.'
+  println(ip) // We can now use Request's properties directly
+}
+```
 
 ### Kotlin Standard Library
+List of functions available on every object:
 
-| Function | Example | Description |
-| :--: | :--: | :--: |
+| Function | Example | Result | Description |
+| :--: | :--: | :--: | :--: |
+| `let` | `"10".let { it.toInt() }` | `10` | Maps one value to another |
+| `also` | `createUser().also { users.add(it) }` | Result of createUser() | Consumes value and returns it as result |
+| `with` | `with(user) { this.username }` | Username | Maps value with DSL function
 
 ### Error handling
 Reposilite uses `panda.std.Result<Value, Error>` wrapper from [expressible](https://github.com/panda-lang/expressible) 
