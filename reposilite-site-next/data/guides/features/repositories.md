@@ -9,7 +9,6 @@ By default, Reposilite generates three standard repositories:
 * snapshots - dedicated repository for snapshot artifacts 
 * private - dedicated repository for private artifacts
 
-
 ## Custom repository 
 You can also define a new one just adding it in the configuration:
 
@@ -60,11 +59,11 @@ repositories {
 }
 ```
 
-## Hidden repositories
+#### Hidden repositories
 If the visibility of a repository is set to `HIDDEN`, it will not be shown in the dashboard,
 but you can download artifacts from it, for example with gradle.
 Only if you are using a proper [access token](authorization#access-token), it will be shown in the dashboard.
 
-## Private repositories
+#### Private repositories
 If the visibility of a repository is set to `PRIVATE`,
 you can only interact (download, index, deploy) with the repository using a proper [access token](authorization#access-token).
