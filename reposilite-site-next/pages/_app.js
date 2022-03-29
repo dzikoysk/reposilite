@@ -4,8 +4,9 @@ import { ColorModeScript } from 'nextjs-color-mode'
 import '../components/MDX.css'
 
 const criticalThemeCss = `
-html {
-  min-width: 430px;
+html, body {
+  min-width: 460px;
+  width: 100%;
 }`
 
 function MyApp({ Component, pageProps }) {

@@ -131,9 +131,9 @@ export default function Guide({ categories, category, selected }) {
         <title>{selected.title} · Guide · Reposilite</title>
       </Head>
       <Box
-        maxW={{ base: '100vmax', lg: "container.lg", xl: "container.xl" }}
-        mx={{ base: 'auto' }}
-        paddingX={3}
+        maxW={{ base: '100%', lg: "container.lg", xl: "container.xl" }}
+        mx={'auto'}
+        px={6}
       >
         <Flex direction={{ base: "column", md: "row" }}>
           <Box
