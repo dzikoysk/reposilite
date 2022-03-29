@@ -24,19 +24,6 @@ proxied: [
 Caching may allocate thousands of artifacts, especially at the beginning - for the first few builds. 
 
 ```json5
-# Used storage type. Supported storage providers:
-# > File system (local) provider. Supported flags:
-# --quota 10GB = control the maximum amount of data stored in this repository. (Supported formats: 90%, 500MB, 10GB)
-# Example usage:
-# storageProvider: fs --quota 50GB
-# > S3 provider. Supported flags:
-# --endpoint = overwrite the AWS endpoint (optional)
-# --access-key = overwrite AWS access-key used to authenticate (optional)
-# --secret-key = overwrite AWS secret-key used to authenticate (optional)
-# --region = overwrite AWS region (optional)
-# See software.amazon.awssdk.services.s3.S3Client for default values
-# Example usage:
-# storageProvider: s3 bucket-name --endpoint custom.endpoint.com --access-key accessKey --secret-key secretKey --region region
 storageProvider: fs --quota 85%
 ```
 
