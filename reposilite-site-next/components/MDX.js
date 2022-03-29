@@ -54,6 +54,7 @@ const CodeVariant = ({ children, name }) => {
 
 const CodeVariants = ({ children }) => {
   const [ bg, bgCss ] = useColorModeValue('code-variant-bg', chakraColor('gray.50'), chakraColor('gray.700'))
+  children = Array.isArray(children) ? children : [children]
 
   return (
     <>

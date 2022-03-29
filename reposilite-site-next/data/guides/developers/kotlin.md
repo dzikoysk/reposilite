@@ -8,9 +8,9 @@ Its syntax may look confusing at first, but it's really simple and clear when yo
 
 ### General
 
-* Semicolons are optional in Kotlin, so we don't use them in Reposilite
 * Forget about primitive types, those are handled automatically under the hood whenever possible
-* Declarations are reversed, 
+* Semicolons are optional in Kotlin and we don't use them in Reposilite
+* Declarations are in reversed order, 
   so the name of property is first and then comes its type,
   e.g. `surname: String`. 
   That's because in most cases, type is optional and you don't have to declare it explicitly.
