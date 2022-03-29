@@ -123,6 +123,8 @@ const MdTable = (props) => {
         borderColor={borderColor}
         borderRadius='lg'
         marginY='4'
+        maxWidth={'100vw'}
+        overflow="auto"
       >
         <Table
           variant={'simple'}
