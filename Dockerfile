@@ -1,5 +1,5 @@
 # Build stage
-FROM openjdk:16-slim AS build
+FROM openjdk:18-slim AS build
 COPY . /home/reposilite-build
 WORKDIR /home/reposilite-build
 RUN export GRADLE_OPTS="-Djdk.lang.Process.launchMechanism=vfork" && chmod +x gradlew && ./gradlew :reposilite-backend:shadowJar --no-daemon --stacktrace
@@ -19,7 +19,9 @@ LABEL org.label-schema.build-date=$BUILD_DATE \
       org.label-schema.schema-version="1.0"
 
 # Run stage
-FROM openjdk:16-slim
+FROM openjdk:18-slim
+RUN addgroup --gid 999 reposilite && adduser --system -uid 999 --ingroup reposilite reposilite
+USER reposilite
 WORKDIR /app
 RUN mkdir -p /app/data
 VOLUME /app/data
