@@ -1,4 +1,0 @@
----
-id: comparison
-title: Comparison
----

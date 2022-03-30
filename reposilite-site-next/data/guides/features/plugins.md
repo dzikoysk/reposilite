@@ -1,5 +1,0 @@
----
-id: plugins
-title: Plugins
----
-

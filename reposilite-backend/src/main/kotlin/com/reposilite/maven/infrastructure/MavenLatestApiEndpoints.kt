@@ -145,7 +145,7 @@ internal class MavenLatestApiEndpoints(
 
     @OpenApi(
         path = "/api/badge/latest/{repository}/{gav}", // Rename 'badge/latest' to 'maven/latest/badge'?
-        tags = ["badge"],
+        tags = [ "Maven", "Badge" ],
         pathParams = [
             OpenApiParam(name = "repository", description = "Artifact's repository", required = true),
             OpenApiParam(name = "gav", description = "Artifacts' GAV", required = true)

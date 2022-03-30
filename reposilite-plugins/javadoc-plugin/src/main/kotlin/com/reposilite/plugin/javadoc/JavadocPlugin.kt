@@ -27,7 +27,7 @@ import com.reposilite.web.api.RoutingSetupEvent
 @Plugin(name = "javadoc")
 internal class JavadocPlugin : ReposilitePlugin() {
 
-    override fun initialize(): Facade? {
+    override fun initialize(): Facade {
         val javadocFolder = extensions().parameters.workingDirectory.resolve("javadocs")
         val mavenFacade: MavenFacade = extensions().facade()
         val facade = JavadocFacade(javadocFolder, mavenFacade, this)
