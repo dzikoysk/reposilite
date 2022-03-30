@@ -70,7 +70,12 @@ const IndividualCard = ({ title, description, buttons }) => {
         <Heading as='h2' size={'sm'} textAlign={'center'}>{title}</Heading>
         <Text marginY={4} textAlign={'center'}>{description}</Text>
         {buttons.map(button => (
-          <Button marginTop={2} backgroundColor={cardButtonBg} _hover={{ backgroundColor: cardButtonBg }}>
+          <Button
+            key={button.title}
+            marginTop={2}
+            backgroundColor={cardButtonBg}
+            _hover={{ backgroundColor: cardButtonBg }}
+          >
             <Link href={button.link}>{button.title}</Link>
           </Button>
         ))}
