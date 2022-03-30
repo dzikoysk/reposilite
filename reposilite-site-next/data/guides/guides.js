@@ -59,7 +59,6 @@ const categories = [
       'kotlin',
       'plugin-api',
       'endpoints',
-      'swagger',
     ]
   }
 ]
