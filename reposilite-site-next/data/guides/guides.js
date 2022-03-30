@@ -15,7 +15,7 @@ const categories = [
       'manual',
       'setup',
       'docker',
-      'k8s'
+      //'k8s'
     ]
   },
   {

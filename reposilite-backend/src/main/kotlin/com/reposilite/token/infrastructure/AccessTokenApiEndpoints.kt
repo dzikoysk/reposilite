@@ -44,7 +44,7 @@ internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessToke
 
     @OpenApi(
         path = "/api/tokens",
-        tags = ["tokens"],
+        tags = ["Tokens"],
         summary = "Returns all existing tokens and data such as their permissions. Note: Requires Manager",
         methods = [HttpMethod.GET]
     )
@@ -56,7 +56,7 @@ internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessToke
 
     @OpenApi(
         path = "/api/tokens/{name}",
-        tags = ["tokens"],
+        tags = ["Tokens"],
         summary = "Returns data about the token given via it's name. Note: Requires manager or you must be the token owner",
         pathParams = [OpenApiParam(name = "name", description = "Name of the token to be deleted", required = true)],
         methods = [HttpMethod.GET]
@@ -72,7 +72,7 @@ internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessToke
 
     @OpenApi(
         path = "/api/tokens/{name}",
-        tags = ["tokens"],
+        tags = ["Tokens"],
         summary = "Creates / Updates a token via the specified body. Note: Requires manager permission.",
         requestBody = OpenApiRequestBody(
             content = [OpenApiContent(CreateAccessTokenWithNoNameRequest::class)],
@@ -101,7 +101,7 @@ internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessToke
 
     @OpenApi(
         path = "/api/tokens/{name}",
-        tags = ["tokens"],
+        tags = ["Tokens"],
         summary = "Deletes the token specified via it's name. Note: Requires Manager",
         pathParams = [OpenApiParam(name = "name", description = "Name of the token to be deleted", required = true)],
         methods = [HttpMethod.DELETE]
