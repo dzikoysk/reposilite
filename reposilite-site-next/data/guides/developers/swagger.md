@@ -1,4 +1,0 @@
----
-id: swagger
-title: Swagger
----
