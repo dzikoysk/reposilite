@@ -20,10 +20,10 @@ LABEL org.label-schema.build-date=$BUILD_DATE \
 
 # Run stage
 FROM openjdk:18-slim
-RUN addgroup --gid 999 reposilite && adduser --system -uid 999 --ingroup reposilite reposilite
-USER reposilite
-WORKDIR /app
 RUN mkdir -p /app/data
 VOLUME /app/data
-COPY --from=build /home/reposilite-build/reposilite-backend/build/libs/reposilite-3*.jar ./reposilite.jar
-ENTRYPOINT exec java $JAVA_OPTS -jar reposilite.jar -wd=/app/data $REPOSILITE_OPTS
+WORKDIR /app/data
+COPY --from=build /home/reposilite-build/reposilite-backend/build/libs/reposilite-3*.jar ../reposilite.jar
+RUN addgroup --gid 999 reposilite && adduser --system -uid 999 --ingroup reposilite reposilite && chgrp reposilite /app/data
+USER reposilite
+ENTRYPOINT exec java $JAVA_OPTS -jar ../reposilite.jar -wd=/app/data $REPOSILITE_OPTS
