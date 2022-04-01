@@ -22,8 +22,10 @@ import com.reposilite.journalist.backend.PrintStreamLogger
 import com.reposilite.maven.application.ProxiedRepository
 import com.reposilite.maven.application.RepositoriesSettings
 import com.reposilite.maven.application.RepositorySettings
+import com.reposilite.settings.LOCAL_CONFIGURATION_FILE
 import com.reposilite.storage.application.StorageProviderSettings
 import com.reposilite.settings.LocalConfiguration
+import com.reposilite.settings.SHARED_CONFIGURATION_FILE
 import com.reposilite.settings.SharedConfiguration
 import io.javalin.core.util.JavalinBindException
 import net.dzikoysk.cdn.KCdnFactory
@@ -94,7 +96,7 @@ internal abstract class ReposiliteRunner {
         }
 
         overrideLocalConfiguration(localConfiguration)
-        KCdnFactory.createStandard().render(localConfiguration, Source.of(reposiliteWorkingDirectory.resolve("configuration.local.cdn")))
+        KCdnFactory.createStandard().render(localConfiguration, Source.of(reposiliteWorkingDirectory.resolve(LOCAL_CONFIGURATION_FILE)))
 
         val sharedConfiguration = SharedConfiguration().also {
             val proxiedConfiguration = RepositorySettings(proxied = mutableListOf(ProxiedRepository("http://localhost:${parameters.port + 1}/releases")))
@@ -112,7 +114,7 @@ internal abstract class ReposiliteRunner {
         }
 
         overrideSharedConfiguration(sharedConfiguration)
-        KCdnFactory.createJsonLike().render(sharedConfiguration, Source.of(reposiliteWorkingDirectory.resolve("configuration.shared.json")))
+        KCdnFactory.createJsonLike().render(sharedConfiguration, Source.of(reposiliteWorkingDirectory.resolve(SHARED_CONFIGURATION_FILE)))
 
         val reposiliteInstance = ReposiliteFactory.createReposilite(parameters, logger)
         reposiliteInstance.journalist.setVisibleThreshold(Channel.WARN)

@@ -23,6 +23,7 @@ import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
 import com.reposilite.settings.EnumResolver
+import com.reposilite.settings.SHARED_CONFIGURATION_FILE
 import com.reposilite.settings.SettingsFacade
 import com.reposilite.settings.SettingsModule
 import com.reposilite.web.application.WebSettings
@@ -32,7 +33,6 @@ import com.reposilite.settings.SubtypeResolver
 import com.reposilite.settings.createStandardSchemaGenerator
 import com.reposilite.settings.infrastructure.SettingsEndpoints
 import com.reposilite.settings.infrastructure.SqlSettingsRepository
-import com.reposilite.storage.StorageFacade
 import com.reposilite.storage.StorageProviderFactory
 import com.reposilite.storage.application.StorageProviderSettings
 import com.reposilite.web.api.RoutingSetupEvent
@@ -40,11 +40,6 @@ import java.util.ServiceLoader
 
 @Plugin(name = "settings")
 internal class SettingsPlugin : ReposilitePlugin() {
-
-    companion object {
-        const val LOCAL_CONFIGURATION_FILE = "configuration.local.cdn"
-        const val SHARED_CONFIGURATION_FILE = "configuration.shared.json"
-    }
 
     override fun initialize(): SettingsFacade {
         val parameters = extensions().parameters

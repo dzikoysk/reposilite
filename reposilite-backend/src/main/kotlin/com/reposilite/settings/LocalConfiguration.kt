@@ -23,6 +23,8 @@ import picocli.CommandLine.Option
 import picocli.CommandLine.Parameters
 import java.io.Serializable
 
+const val LOCAL_CONFIGURATION_FILE = "configuration.cdn"
+
 class LocalConfiguration : Serializable {
 
     /* General */
@@ -94,18 +96,6 @@ class LocalConfiguration : Serializable {
     val enforceSsl = reference(false)
 
     /* Performance */
-
-//    @Description(
-//        "",
-//        "# Note: It might be hard to estimate the best amount of threads for your use case,",
-//        "# but you can safely increase amount of threads if needed and Reposilite will create only as much as it needs.",
-//        "# This option might be more useful to limit available memory resources to minimum (1 thread requires around 200kb to 1MB of memory)",
-//        "",
-//        "# By default, Reposilite 3.x uses experimental reactive mode to maximize performance of each spawned thread.",
-//        "# If you've noticed various unresolved behaviours like freezing and deadlocking, you can switch to the standard blocking mode.",
-//        "# Remember: Blocking mode requires more resources (threads) to handle the same throughput. "
-//    )
-//    var reactiveMode = true
 
     @Description("")
     @Description("# Max amount of threads used by core thread pool (min: 5)")

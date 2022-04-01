@@ -27,6 +27,8 @@ import net.dzikoysk.cdn.serdes.DeserializationHandler
 import panda.std.reactive.mutableReference
 import panda.utilities.StringUtils
 
+const val SHARED_CONFIGURATION_FILE = "configuration.shared.json"
+
 class SharedConfiguration : DeserializationHandler<SharedConfiguration> {
 
     @Description("# Web domain configuration")
