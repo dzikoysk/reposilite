@@ -82,7 +82,19 @@ Users' stories
 Thanks to all contributors and people that decided to donate the project ❤️
 
 <table>
- <tr><td>Monthly</td><td><a href="https://github.com/sponsors/dzikoysk">GitHub Sponsors</a></td></tr>
+ <tr>
+  <td>
+   Monthly (<a href="https://github.com/sponsors/dzikoysk">GitHub Sponsors</a>
+  </td>
+  <td>
+    <a href="https://github.com/Koressi">Koressi</a>, 
+    <a href="https://github.com/milkyway0308">milkyway0308</a>, 
+    <a href="https://github.com/insertt">insertt</a>, 
+    <a href="https://github.com/neg4n">neg4n</a>, 
+    <a href="https://github.com/EthanDevelops">EthanDevelops</a>, 
+    <a href="https://github.com/sebba-dev">sebba-dev</a>
+  </td>
+ </tr>
  <tr>
   <td>One time</td>
   <td>
@@ -92,7 +104,8 @@ Thanks to all contributors and people that decided to donate the project ❤️
    <a href="https://github.com/alexwhb">alexwhb</a> with $15, 
    <a href="https://github.com/escv">escv</a> with $10,
    <a href="https://github.com/EthanDevelops">EthanDevelops</a> with $6, 
-   Rob with $5
+   Rob with $5,
+   <a href="https://github.com/FlawCra">FlawCra</a> with $2
   </td>
  </tr>
 </table>
