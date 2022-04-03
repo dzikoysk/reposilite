@@ -15,41 +15,20 @@
   -->
   
 <script setup>
-import { ref } from 'vue'
+import { ref, shallowRef } from 'vue'
 import { useSession } from '../../store/session'
 import { createToast } from 'mosha-vue-toastify'
 import {JsonForms} from '@jsonforms/vue';
 import {createAjv} from '@jsonforms/core';
+import { defaultStyles, mergeStyles, vanillaRenderers } from '@jsonforms/vue-vanilla'
 
-const { client } = useSession()
+import data from '../../shared-config.json'
+import schema from '../../shared-config-schema.json'
+import uiSchema from '../../shared-config-ui-schema.json'
 
-const configurationName = "all"
-const configuration = ref({})
-const configurationSchema = ref({})
-const configurationInitialized = ref(false)
-
-const fetchSchema = () =>
-    client.value.schema.get(configurationName)
-        .then(response => configurationSchema.value = response.data)
-        .catch(error => createToast(error, { type: 'danger' }))
-
-const fetchConfiguration = () =>
-    client.value.config.get(configurationName)
-        .then(response => configuration.value = response.data)
-        .catch(error => createToast(error, { type: 'danger' }))
-
-const updateConfiguration = () =>
-    client.value.config.put(configurationName, configuration.value)
-        .then(response => {
-          if (response.status >= 200 && response.status < 300) {
-            createToast('Configuration has been deployed', {type: 'success'});
-            configuration.value = response.data
-          }
-        })
-        .catch(error => createToast(error, { type: 'danger' }))
-
-fetchSchema().then(fetchConfiguration)
-    .then(() => configurationInitialized.value = true)
+const renderers = [
+  ...vanillaRenderers
+]
 
 const ajvOptions = {
   'formats': {
@@ -81,7 +60,13 @@ const ajv = createAjv(ajvOptions)
       </div>
     </div>
     <div class="border-1 rounded p-4 dark:border-gray-700">
-      <json-forms :schema="configurationSchema" :data="configuration" :ajv="ajv"></json-forms><!-- TODO: add renderer -->
+      <JsonForms
+        :data="data"
+        :schema="schema" 
+        :uischema="uiSchema"
+        :renderers="renderers"
+        :ajv="ajv" 
+      />
     </div>
   </div>
 </template>
