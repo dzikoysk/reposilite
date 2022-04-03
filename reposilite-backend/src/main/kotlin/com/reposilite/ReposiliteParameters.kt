@@ -16,9 +16,9 @@
 
 package com.reposilite
 
+import com.reposilite.settings.LOCAL_CONFIGURATION_FILE
 import com.reposilite.settings.LocalConfiguration
-import com.reposilite.settings.application.SettingsPlugin.Companion.LOCAL_CONFIGURATION_FILE
-import com.reposilite.settings.application.SettingsPlugin.Companion.SHARED_CONFIGURATION_FILE
+import com.reposilite.settings.SHARED_CONFIGURATION_FILE
 import com.reposilite.token.AccessTokenType.TEMPORARY
 import com.reposilite.token.api.CreateAccessTokenRequest
 import picocli.CommandLine.Command
@@ -38,6 +38,13 @@ class ReposiliteParameters : Runnable {
     @Option(names = ["--working-directory", "-wd"], description = ["Set custom working directory of application instance"])
     var workingDirectoryName = ""
     lateinit var workingDirectory: Path
+
+    @Option(names = ["--generate-configuration", "-gc"], description = ["" +
+        "Generate default template of the configuration file. Supported templates:",
+        "configuration.cdn - Local configuration file",
+        "configuration.shared.json - Shared configuration file"
+    ])
+    var configurationRequested: String? = null
 
     @Option(names = ["--local-configuration", "--local-config", "-lc"], description = ["Set custom location of local configuration file"])
     var localConfigurationFile = LOCAL_CONFIGURATION_FILE
