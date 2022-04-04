@@ -56,7 +56,7 @@ dependencies {
     val awssdk = "2.17.157"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
-    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.186")
+    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.191")
 
     val exposed = "0.37.3"
     implementation("org.jetbrains.exposed:exposed-core:$exposed")
