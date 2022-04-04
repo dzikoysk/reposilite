@@ -16,7 +16,8 @@
 
 package com.reposilite
 
-import com.reposilite.settings.SharedConfiguration
+import com.reposilite.frontend.application.FrontendSettings
+import com.reposilite.settings.api.SharedConfiguration
 import io.javalin.Javalin
 import io.javalin.http.Context
 import kong.unirest.HttpRequest
@@ -32,7 +33,7 @@ internal class BasePathIntegrationTest : ReposiliteSpecification() {
     private val basePath = "/custom-base-path"
 
     override fun overrideSharedConfiguration(sharedConfiguration: SharedConfiguration) {
-        sharedConfiguration.frontend.update {
+        sharedConfiguration.forDomain<FrontendSettings>().update {
             it.copy(basePath = basePath)
         }
     }

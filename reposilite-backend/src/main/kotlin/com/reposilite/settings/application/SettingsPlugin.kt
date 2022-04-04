@@ -32,13 +32,10 @@ import com.reposilite.web.application.WebSettings
 import com.reposilite.settings.SubtypeResolver
 import com.reposilite.settings.api.SHARED_CONFIGURATION_FILE
 import com.reposilite.settings.api.SharedConfiguration
-import com.reposilite.settings.createStandardSchemaGenerator
+import com.reposilite.settings.api.createSharedConfigurationSchemaGenerator
 import com.reposilite.settings.infrastructure.SettingsEndpoints
 import com.reposilite.settings.infrastructure.SqlConfigurationRepository
-import com.reposilite.storage.StorageProviderFactory
-import com.reposilite.storage.application.StorageProviderSettings
 import com.reposilite.web.api.RoutingSetupEvent
-import java.util.ServiceLoader
 
 @Plugin(name = "settings")
 internal class SettingsPlugin : ReposilitePlugin() {
@@ -49,26 +46,9 @@ internal class SettingsPlugin : ReposilitePlugin() {
         val workingDirectory = parameters.workingDirectory
         val localConfiguration = reposilite.localConfiguration
 
-        val storageProviders = ServiceLoader.load(StorageProviderFactory::class.java)
-            .associate { it.settingsType to it.type }
-        val storageEnumResolver = EnumResolver {
-            if (it.name == "type")
-                storageProviders[it.declaringType.erasedType]?.let { type -> listOf(type) }
-            else null
-        }
-        val storageSubtypeResolver = SubtypeResolver { declaredType, context ->
-            if (declaredType.erasedType == StorageProviderSettings::class.java)
-                storageProviders.keys.toList().map { clazz -> context.typeContext.resolveSubtype(declaredType, clazz) }
-            else null
-        }
-        val schemaGenerator = createStandardSchemaGenerator(SettingsModule(
-            subtypeResolvers =  listOf(storageSubtypeResolver),
-            enumResolvers = listOf(storageEnumResolver)
-        ))
-
         val configurationRepository = SqlConfigurationRepository(reposilite.database)
         val configurationService = ConfigurationService(this, workingDirectory, configurationRepository, reposilite.scheduler, localConfiguration)
-        val schemaService = SchemaService(schemaGenerator)
+        val schemaService = SchemaService(createSharedConfigurationSchemaGenerator())
         val settingsFacade = SettingsFacade(this, configurationService, schemaService)
 
         logger.info("")

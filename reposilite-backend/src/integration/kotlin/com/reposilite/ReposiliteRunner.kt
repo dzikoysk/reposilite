@@ -22,13 +22,10 @@ import com.reposilite.journalist.backend.PrintStreamLogger
 import com.reposilite.maven.application.ProxiedRepository
 import com.reposilite.maven.application.RepositoriesSettings
 import com.reposilite.maven.application.RepositorySettings
-import com.reposilite.settings.LOCAL_CONFIGURATION_FILE
 import com.reposilite.storage.application.StorageProviderSettings
-import com.reposilite.settings.LocalConfiguration
-import com.reposilite.settings.SHARED_CONFIGURATION_FILE
-import com.reposilite.settings.SharedConfiguration
 import com.reposilite.settings.api.LOCAL_CONFIGURATION_FILE
 import com.reposilite.settings.api.LocalConfiguration
+import com.reposilite.settings.api.SHARED_CONFIGURATION_FILE
 import com.reposilite.settings.api.SharedConfiguration
 import io.javalin.core.util.JavalinBindException
 import net.dzikoysk.cdn.KCdnFactory
@@ -102,18 +99,22 @@ internal abstract class ReposiliteRunner {
         KCdnFactory.createStandard().render(localConfiguration, Source.of(reposiliteWorkingDirectory.resolve(LOCAL_CONFIGURATION_FILE)))
 
         val sharedConfiguration = SharedConfiguration().also {
-            val proxiedConfiguration = RepositorySettings(proxied = mutableListOf(ProxiedRepository("http://localhost:${parameters.port + 1}/releases")))
+            val proxiedConfiguration = RepositorySettings(
+                proxied = mutableListOf(ProxiedRepository("http://localhost:${parameters.port + 1}/releases"))
+            )
 
-            val updatedRepositories = it.repositories.get().repositories.toMutableMap()
-            updatedRepositories["proxied"] = proxiedConfiguration
-            it.repositories.update(RepositoriesSettings(updatedRepositories))
+            val repositoriesSettings = it.forDomain<RepositoriesSettings>()
 
-            it.repositories.update { settings ->
-                RepositoriesSettings(settings.repositories.mapValues { entry ->
-                    val repositoryConfiguration = entry.value
-                    RepositorySettings(repositoryConfiguration.visibility, redeployment = true, repositoryConfiguration.preserved, _storageProvider!!, repositoryConfiguration.proxied)
-                })
-            }
+            repositoriesSettings.update { old -> old.copy(
+                repositories = old.repositories.toMutableMap()
+                    .also { repositories -> repositories["proxied"] = proxiedConfiguration }
+                    .mapValues { (_, repositoryConfiguration) ->
+                        repositoryConfiguration.copy(
+                            redeployment = true,
+                            storageProvider = _storageProvider!!,
+                        )
+                    }
+            )}
         }
 
         overrideSharedConfiguration(sharedConfiguration)

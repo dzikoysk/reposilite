@@ -52,7 +52,7 @@ internal class StatisticsPlugin : ReposilitePlugin() {
 
         consoleFacade.registerCommand(StatsCommand(statisticsFacade))
 
-        event { event: ReposiliteInitializeEvent ->
+        event { _: ReposiliteInitializeEvent ->
             reposilite.scheduler.scheduleWithFixedDelay({
                 reposilite.ioService.execute {
                     statisticsFacade.saveRecordsBulk()

@@ -25,6 +25,7 @@ import com.reposilite.Reposilite
 import com.reposilite.VERSION
 import com.reposilite.auth.AuthenticationFacade
 import com.reposilite.auth.api.Credentials
+import com.reposilite.frontend.application.FrontendSettings
 import com.reposilite.journalist.Journalist
 import com.reposilite.settings.SettingsFacade
 import com.reposilite.settings.api.LocalConfiguration
@@ -165,10 +166,13 @@ internal object JavalinConfiguration {
     }
 
     private fun configureOpenApi(sharedConfiguration: SharedConfiguration, config: JavalinConfig) {
-        if (sharedConfiguration.web.get().swagger) {
+        val webSettings = sharedConfiguration.forDomain<WebSettings>()
+        val frontendSettings = sharedConfiguration.forDomain<FrontendSettings>() // TOFIX: web domain should not have dependency on this
+
+        if (webSettings.map { it.swagger }) {
             val openApiConfiguration = OpenApiConfiguration() // TOFIX: Support dynamic configuration of Swagger integration
-            openApiConfiguration.title = sharedConfiguration.frontend.map { it.title }
-            openApiConfiguration.description = sharedConfiguration.frontend.map { it.description }
+            openApiConfiguration.title = frontendSettings.map { it.title }
+            openApiConfiguration.description = frontendSettings.map { it.description }
             openApiConfiguration.version = VERSION
             config.registerPlugin(OpenApiPlugin(openApiConfiguration))
 

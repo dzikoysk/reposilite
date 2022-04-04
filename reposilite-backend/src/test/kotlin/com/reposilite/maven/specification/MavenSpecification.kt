@@ -30,7 +30,7 @@ import com.reposilite.maven.api.Metadata
 import com.reposilite.maven.api.Versioning
 import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.plugin.Extensions
-import com.reposilite.settings.LocalConfiguration
+import com.reposilite.settings.api.LocalConfiguration
 import com.reposilite.shared.http.FakeRemoteClientProvider
 import com.reposilite.statistics.DailyDateIntervalProvider
 import com.reposilite.statistics.StatisticsFacade
@@ -126,7 +126,7 @@ internal abstract class MavenSpecification {
             RepositoryService(logger, repositoryProvider, securityProvider),
             ProxyService(logger),
             MetadataService(repositoryService),
-            Extensions(logger, parameters, LocalConfiguration()),
+            Extensions(logger),
             StatisticsFacade(logger, DailyDateIntervalProvider.toReference(), InMemoryStatisticsRepository())
         )
     }

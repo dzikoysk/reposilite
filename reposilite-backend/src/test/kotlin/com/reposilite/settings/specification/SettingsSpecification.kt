@@ -17,11 +17,14 @@
 package com.reposilite.settings.specification
 
 import com.reposilite.journalist.backend.InMemoryLogger
+import com.reposilite.settings.ConfigurationService
+import com.reposilite.settings.SchemaService
 import com.reposilite.settings.SettingsFacade
-import com.reposilite.settings.LocalConfiguration
-import com.reposilite.settings.SHARED_CONFIGURATION_FILE
 import com.reposilite.settings.SettingsModule
-import com.reposilite.settings.SharedConfiguration
+import com.reposilite.settings.api.LocalConfiguration
+import com.reposilite.settings.api.SHARED_CONFIGURATION_FILE
+import com.reposilite.settings.api.SharedConfiguration
+import com.reposilite.settings.api.createSharedConfigurationSchemaGenerator
 import com.reposilite.settings.createStandardSchemaGenerator
 import com.reposilite.settings.infrastructure.InMemoryConfigurationRepository
 import com.reposilite.web.http.ErrorResponse
@@ -30,6 +33,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
 import panda.std.Result
 import java.io.File
+import java.util.concurrent.Executors
 
 internal abstract class SettingsSpecification {
 
@@ -43,13 +47,18 @@ internal abstract class SettingsSpecification {
 
     @BeforeEach
     fun prepare() {
+        val logger = InMemoryLogger()
+
         this.settingsFacade = SettingsFacade(
-            InMemoryLogger(),
-            workingDirectory.toPath(),
-            localConfiguration,
-            lazy { throw UnsupportedOperationException() },
-            settingsRepository,
-            createStandardSchemaGenerator(SettingsModule())
+            journalist = InMemoryLogger(),
+            configurationService = ConfigurationService(
+                logger,
+                workingDirectory.toPath(),
+                InMemoryConfigurationRepository(),
+                Executors.newScheduledThreadPool(1),
+                localConfiguration
+            ),
+            schemaService = SchemaService(createSharedConfigurationSchemaGenerator())
         )
 
         settingsFacade.createConfigurationProvider(SharedConfiguration(), "Shared configuration", SHARED_CONFIGURATION_FILE)
@@ -57,9 +66,6 @@ internal abstract class SettingsSpecification {
 
     fun configurationFromRepository(): String? =
         settingsRepository.findConfiguration(SHARED_CONFIGURATION_FILE)
-
-    fun configurationFromProvider(): Result<String, ErrorResponse> =
-        settingsFacade.resolveConfiguration(SHARED_CONFIGURATION_FILE).map { it.content }
 
     fun renderConfiguration(): String =
         cdn.render(settingsFacade.sharedConfiguration).orElseThrow { it }
