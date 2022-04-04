@@ -23,7 +23,7 @@ import com.reposilite.settings.SHARED_CONFIGURATION_FILE
 import com.reposilite.settings.SettingsModule
 import com.reposilite.settings.SharedConfiguration
 import com.reposilite.settings.createStandardSchemaGenerator
-import com.reposilite.settings.infrastructure.InMemorySettingsRepository
+import com.reposilite.settings.infrastructure.InMemoryConfigurationRepository
 import com.reposilite.web.http.ErrorResponse
 import net.dzikoysk.cdn.KCdnFactory
 import org.junit.jupiter.api.BeforeEach
@@ -37,7 +37,7 @@ internal abstract class SettingsSpecification {
     protected lateinit var workingDirectory: File
 
     private val localConfiguration = LocalConfiguration()
-    protected val settingsRepository = InMemorySettingsRepository()
+    protected val settingsRepository = InMemoryConfigurationRepository()
     protected lateinit var settingsFacade: SettingsFacade
     protected val cdn = KCdnFactory.createStandard()
 

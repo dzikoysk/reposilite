@@ -18,7 +18,6 @@ package com.reposilite.settings.infrastructure
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.reposilite.settings.SettingsFacade
-import com.reposilite.settings.api.SettingsResponse
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.routing.RouteMethod.GET
@@ -31,45 +30,6 @@ import io.javalin.openapi.OpenApiResponse
 
 internal class SettingsEndpoints(private val settingsFacade: SettingsFacade) : ReposiliteRoutes() {
 
-    /*
-    @OpenApi(
-        path = "/api/settings/content/{name}",
-        methods = [HttpMethod.GET],
-        tags = ["Settings"],
-        summary = "Find configuration content",
-        pathParams = [OpenApiParam(name = "name", description = "Name of configuration to fetch", required = true)],
-        responses = [
-            OpenApiResponse(status = "200", description = "Returns dto representing configuration", content = [OpenApiContent(from = SettingsResponse::class)]),
-            OpenApiResponse(status = "401", description = "Returns 401 if token without moderation permission has been used to access this resource"),
-            OpenApiResponse(status = "404", description = "Returns 404 if non-existing configuration is requested")
-        ]
-    )
-    private val legacyFindConfiguration = ReposiliteRoute<SettingsResponse>("/api/settings/content/{name}", GET) {
-        managerOnly {
-            response = settingsFacade.resolveConfiguration(requireParameter("name"))
-        }
-    }
-
-    @OpenApi(
-        path = "/api/settings/content/{name}",
-        methods = [HttpMethod.PUT],
-        tags = ["Settings"],
-        summary = "Update configuration",
-        pathParams = [OpenApiParam(name = "name", description = "Name of configuration to update", required = true)],
-        responses = [
-            OpenApiResponse(status = "200", description = "Returns 200 if configuration has been updated successfully"),
-            OpenApiResponse(status = "401", description = "Returns 401 if token without moderation permission has been used to access this resource"),
-            OpenApiResponse(status = "404", description = "Returns 404 if non-existing configuration is requested")
-        ]
-    )
-    private val legacyUpdateConfiguration = ReposiliteRoute<String>("/api/settings/content/{name}", PUT) {
-        managerOnly {
-            response = settingsFacade.updateConfiguration(SettingsUpdateRequest(requireParameter("name"), ctx.body()))
-                .map { "Success" }
-        }
-    }
-     */
-
     @OpenApi(
         path = "/api/configuration/{name}",
         methods = [HttpMethod.GET],
@@ -77,15 +37,8 @@ internal class SettingsEndpoints(private val settingsFacade: SettingsFacade) : R
         summary = "Find configuration",
         pathParams = [OpenApiParam(name = "name", description = "Name of configuration to fetch", required = true)],
         responses = [
-            OpenApiResponse(
-                status = "200",
-                description = "Returns dto representing configuration",
-                content = [OpenApiContent(from = SettingsResponse::class)]
-            ),
-            OpenApiResponse(
-                status = "401",
-                description = "Returns 401 if token without moderation permission has been used to access this resource"
-            ),
+            OpenApiResponse(status = "200", description = "Returns dto representing configuration"),
+            OpenApiResponse(status = "401", description = "Returns 401 if token without moderation permission has been used to access this resource"),
             OpenApiResponse(status = "404", description = "Returns 404 if non-existing configuration is requested")
         ]
     )
@@ -112,9 +65,11 @@ internal class SettingsEndpoints(private val settingsFacade: SettingsFacade) : R
     )
     private val updateConfiguration = ReposiliteRoute<Any>("/api/configuration/{name}", PUT) {
         managerOnly {
-            val name = requireParameter("name")
-            response = settingsFacade.getClassForName(name)
-                .flatMap { settingsFacade.updateConfiguration(name, ctx.bodyAsClass(it)) }
+            with(requireParameter("name")) {
+                response = settingsFacade
+                    .getSettingsClassForName(this)
+                    .flatMap { settingsFacade.updateConfiguration(this, ctx.bodyAsClass(it)) }
+            }
         }
     }
 
@@ -139,8 +94,7 @@ internal class SettingsEndpoints(private val settingsFacade: SettingsFacade) : R
     )
     private val getSchema = ReposiliteRoute<Any>("/api/schema/{name}", GET) {
         managerOnly {
-            val name = requireParameter("name")
-            response = settingsFacade.getHandler(name).map { it.schema }
+            response = settingsFacade.getSchema(requireParameter("name"))
         }
     }
 

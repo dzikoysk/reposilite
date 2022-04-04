@@ -29,8 +29,23 @@ class FrontendFacade internal constructor(
     private val resources = HashMap<String, String>(0)
     private val uriFormatter = Regex("/+") // exclude common typos from URI
 
+    private val formattedBasePath = frontendSettings.computed { // verify base path
+        var formattedBasePath = it.basePath
+
+        if (formattedBasePath.isNotEmpty()) {
+            if (!formattedBasePath.startsWith("/")) {
+                formattedBasePath = "/$formattedBasePath"
+            }
+            if (!formattedBasePath.endsWith("/")) {
+                formattedBasePath += "/"
+            }
+        }
+
+        return@computed formattedBasePath
+    }
+
     init {
-        computed(cacheContent, frontendSettings) {
+        computed(cacheContent, frontendSettings, formattedBasePath) {
             resources.clear()
         }
     }
@@ -43,8 +58,8 @@ class FrontendFacade internal constructor(
     private fun resolvePlaceholders(frontendSettings: FrontendSettings, source: String): String =
         with(frontendSettings) {
             source
-                .replace("{{REPOSILITE.BASE_PATH}}", basePath)
-                .replace("{{REPOSILITE.VITE_BASE_PATH}}", basePath.takeUnless { it == "" || it == "/" }?.replace(Regex("^/|/$"), "") ?: ".")
+                .replace("{{REPOSILITE.BASE_PATH}}", formattedBasePath.get())
+                .replace("{{REPOSILITE.VITE_BASE_PATH}}", formattedBasePath.get().takeUnless { it == "" || it == "/" }?.replace(Regex("^/|/$"), "") ?: ".")
                 .replace("{{REPOSILITE.ID}}", id)
                 .replace("{{REPOSILITE.TITLE}}", title)
                 .replace("{{REPOSILITE.DESCRIPTION}}", description)
@@ -55,7 +70,7 @@ class FrontendFacade internal constructor(
 
     fun createNotFoundPage(originUri: String, details: String): String {
         val uri = originUri.replace(uriFormatter, "/")
-        val basePath = frontendSettings.map { it.basePath }
+        val basePath = formattedBasePath.get()
         val dashboardUrl = basePath + (if (basePath.endsWith("/")) "" else "/") + "#" + uri
 
         @Language("html")

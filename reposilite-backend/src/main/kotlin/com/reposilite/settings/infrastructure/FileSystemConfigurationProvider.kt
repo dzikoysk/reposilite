@@ -18,8 +18,6 @@ package com.reposilite.settings.infrastructure
 
 import com.reposilite.journalist.Journalist
 import com.reposilite.settings.ConfigurationProvider
-import com.reposilite.settings.api.SettingsResponse
-import com.reposilite.settings.api.SettingsUpdateRequest
 import com.reposilite.shared.extensions.createCdnByExtension
 import com.reposilite.storage.getSimpleName
 import com.reposilite.web.http.ErrorResponse
@@ -63,7 +61,7 @@ internal class FileSystemConfigurationProvider<C : Any>(
     override fun registerWatcher(scheduler: ScheduledExecutorService) {
         // I don't think we want to support file watching
         // It can pretty much blow up the instance if file is manually modified by user
-        // val watchService = FileSystems.getDefault().newWatchService() TODO?
+        // val watchService = FileSystems.getDefault().newWatchService()
     }
 
     private fun load(source: Source): Result<out C, out Exception> =
@@ -89,18 +87,17 @@ internal class FileSystemConfigurationProvider<C : Any>(
         }
     }
 
-    override fun resolve(configurationName: String): Result<SettingsResponse, ErrorResponse> =
+    override fun resolve(name: String): Result<String, ErrorResponse> =
         cdn.render(configuration)
-            .map { SettingsResponse(APPLICATION_CDN, it) }
             .mapErr { ErrorResponse(INTERNAL_SERVER_ERROR, "Cannot render ${displayName.lowercase()}: ${it.message}") }
 
-    override fun update(request: SettingsUpdateRequest): Result<Unit, ErrorResponse> =
-        when (request.name) {
-            name -> load(Source.of(request.content))
+    override fun update(name: String, content: String): Result<Unit, ErrorResponse> =
+        when (name) {
+            name -> load(Source.of(content))
                 .peek { journalist?.logger?.info("Updating ${displayName.lowercase()} in local source") }
                 .mapToUnit()
                 .mapErr { ErrorResponse(INTERNAL_SERVER_ERROR, "Cannot load configuration") }
-            else -> errorResponse(BAD_REQUEST, "Unknown ${displayName.lowercase()}: ${request.name}")
+            else -> errorResponse(BAD_REQUEST, "Unknown ${displayName.lowercase()}: ${name}")
         }
 
     override fun shutdown() {

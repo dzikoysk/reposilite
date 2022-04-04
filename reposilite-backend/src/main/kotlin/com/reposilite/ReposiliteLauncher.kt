@@ -15,10 +15,10 @@
  */
 package com.reposilite
 
-import com.reposilite.settings.LOCAL_CONFIGURATION_FILE
-import com.reposilite.settings.LocalConfiguration
-import com.reposilite.settings.SHARED_CONFIGURATION_FILE
-import com.reposilite.settings.SharedConfiguration
+import com.reposilite.settings.api.LOCAL_CONFIGURATION_FILE
+import com.reposilite.settings.api.LocalConfiguration
+import com.reposilite.settings.api.SHARED_CONFIGURATION_FILE
+import com.reposilite.settings.api.SharedConfiguration
 import net.dzikoysk.cdn.KCdnFactory
 import net.dzikoysk.cdn.source.Source
 import picocli.CommandLine

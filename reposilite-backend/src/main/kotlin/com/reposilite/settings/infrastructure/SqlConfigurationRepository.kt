@@ -16,7 +16,7 @@
 
 package com.reposilite.settings.infrastructure
 
-import com.reposilite.settings.SettingsRepository
+import com.reposilite.settings.ConfigurationRepository
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.Table
@@ -30,7 +30,7 @@ import java.time.LocalDateTime
 import java.time.ZoneOffset
 
 @Suppress("RemoveRedundantQualifierName")
-internal class SqlSettingsRepository(private val database: Database) : SettingsRepository {
+internal class SqlConfigurationRepository(private val database: Database) : ConfigurationRepository {
 
     internal object SettingsTable : Table("settings") {
         val name = varchar("name", 32).uniqueIndex()

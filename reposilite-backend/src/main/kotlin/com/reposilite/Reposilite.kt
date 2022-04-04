@@ -18,11 +18,14 @@ package com.reposilite
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
 import com.reposilite.plugin.Extensions
+import com.reposilite.plugin.api.Facade
 import com.reposilite.plugin.api.ReposiliteDisposeEvent
 import com.reposilite.plugin.api.ReposiliteInitializeEvent
 import com.reposilite.plugin.api.ReposilitePostInitializeEvent
 import com.reposilite.plugin.api.ReposiliteStartedEvent
+import com.reposilite.settings.api.LocalConfiguration
 import com.reposilite.web.HttpServer
+import org.jetbrains.exposed.sql.Database
 import panda.std.Result
 import panda.std.Result.ok
 import panda.std.asError
@@ -33,14 +36,16 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 const val VERSION = "3.0.0-alpha.23"
 
-class Reposilite(
+data class Reposilite(
     val journalist: ReposiliteJournalist,
     val parameters: ReposiliteParameters,
+    val localConfiguration: LocalConfiguration,
+    val database: Database,
     val ioService: ExecutorService,
     val scheduler: ScheduledExecutorService,
     val webServer: HttpServer,
     val extensions: Extensions
-) : Journalist {
+) : Journalist, Facade {
 
     private val alive = AtomicBoolean(false)
 

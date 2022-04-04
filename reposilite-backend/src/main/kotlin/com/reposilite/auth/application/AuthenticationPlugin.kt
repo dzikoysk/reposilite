@@ -40,13 +40,9 @@ internal class AuthenticationPlugin : ReposilitePlugin() {
         val failureFacade = facade<FailureFacade>()
         val settingsFacade = facade<SettingsFacade>()
         val accessTokenFacade = facade<AccessTokenFacade>()
-        val authenticationSettings = settingsFacade.sharedConfiguration.authentication
 
-        settingsFacade.registerSchemaWatcher(
-            AuthenticationSettings::class.java,
-            { authenticationSettings.get() },
-            { authenticationSettings.update(it) }
-        )
+        val authenticationSettings = settingsFacade.sharedConfiguration.forDomain<AuthenticationSettings>()
+        settingsFacade.registerSchemaWatcher(AuthenticationSettings::class.java, authenticationSettings)
 
         val authenticationFacade = AuthenticationFacade(
             journalist = this,

@@ -16,6 +16,7 @@
 
 package com.reposilite.token.application
 
+import com.reposilite.Reposilite
 import com.reposilite.console.api.CommandsSetupEvent
 import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposiliteInitializeEvent
@@ -37,7 +38,7 @@ import com.reposilite.token.infrastructure.InMemoryAccessTokenRepository
 import com.reposilite.token.infrastructure.SqlAccessTokenRepository
 import com.reposilite.web.api.RoutingSetupEvent
 
-@Plugin(name = "access-token", dependencies = ["settings"])
+@Plugin(name = "access-token")
 internal class AccessTokenPlugin : ReposilitePlugin() {
 
     companion object {
@@ -46,15 +47,15 @@ internal class AccessTokenPlugin : ReposilitePlugin() {
     }
 
     override fun initialize(): AccessTokenFacade {
-        val settingsFacade = facade<SettingsFacade>()
+        val reposilite = facade<Reposilite>()
 
         val accessTokenFacade = AccessTokenFacade(
             journalist = this,
             temporaryRepository = InMemoryAccessTokenRepository(),
-            persistentRepository = SqlAccessTokenRepository(settingsFacade.database.value)
+            persistentRepository = SqlAccessTokenRepository(reposilite.database)
         )
 
-        extensions().parameters.tokens.forEach {
+        reposilite.parameters.tokens.forEach {
             val (token) = accessTokenFacade.createAccessToken(it)
             accessTokenFacade.addPermission(token.identifier, MANAGER)
         }

@@ -26,9 +26,9 @@ import com.reposilite.VERSION
 import com.reposilite.auth.AuthenticationFacade
 import com.reposilite.auth.api.Credentials
 import com.reposilite.journalist.Journalist
-import com.reposilite.settings.LocalConfiguration
 import com.reposilite.settings.SettingsFacade
-import com.reposilite.settings.SharedConfiguration
+import com.reposilite.settings.api.LocalConfiguration
+import com.reposilite.settings.api.SharedConfiguration
 import com.reposilite.shared.ContextDsl
 import com.reposilite.shared.extensions.ContentTypeSerializer
 import com.reposilite.status.FailureFacade
@@ -73,8 +73,11 @@ internal object JavalinConfiguration {
     private fun configureJavalin(config: JavalinConfig, localConfiguration: LocalConfiguration, sharedConfiguration: SharedConfiguration) {
         config.showJavalinBanner = false
         config.asyncRequestTimeout = 1000L * 60 * 60 * 10 // 10min
+
+        val webSettings = sharedConfiguration.forDomain<WebSettings>()
+
         config.contextResolvers {
-            it.ip = { ctx -> ctx.header(sharedConfiguration.web.get().forwardedIp) ?: ctx.req.remoteAddr }
+            it.ip = { ctx -> ctx.header(webSettings.get().forwardedIp) ?: ctx.req.remoteAddr }
         }
 
         when(localConfiguration.compressionStrategy.get().lowercase()) {

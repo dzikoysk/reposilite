@@ -18,7 +18,7 @@ package com.reposilite.settings
 
 import java.time.Instant
 
-internal interface SettingsRepository {
+internal interface ConfigurationRepository {
 
     fun saveConfiguration(name: String, configuration: String)
 

@@ -16,10 +16,10 @@
 
 package com.reposilite.settings.infrastructure
 
-import com.reposilite.settings.SettingsRepository
+import com.reposilite.settings.ConfigurationRepository
 import java.time.Instant
 
-internal class InMemorySettingsRepository : SettingsRepository {
+internal class InMemoryConfigurationRepository : ConfigurationRepository {
 
     private val settings = HashMap<String, Pair<Instant, String>>()
 

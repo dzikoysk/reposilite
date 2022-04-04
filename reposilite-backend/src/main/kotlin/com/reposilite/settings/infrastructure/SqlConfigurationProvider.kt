@@ -18,9 +18,7 @@ package com.reposilite.settings.infrastructure
 
 import com.reposilite.journalist.Journalist
 import com.reposilite.settings.ConfigurationProvider
-import com.reposilite.settings.SettingsRepository
-import com.reposilite.settings.api.SettingsResponse
-import com.reposilite.settings.api.SettingsUpdateRequest
+import com.reposilite.settings.ConfigurationRepository
 import com.reposilite.shared.extensions.validateAndLoad
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
@@ -43,7 +41,7 @@ internal class SqlConfigurationProvider<C : Any>(
     override val name: String,
     override val displayName: String,
     private val journalist: Journalist,
-    private val settingsRepository: SettingsRepository,
+    private val configurationRepository: ConfigurationRepository,
     override val configuration: C
 ) : ConfigurationProvider<C> {
 
@@ -57,20 +55,20 @@ internal class SqlConfigurationProvider<C : Any>(
     }
 
     private fun loadRemoteConfiguration() {
-        settingsRepository.findConfiguration(name)
+        configurationRepository.findConfiguration(name)
             ?.let { standard.load(Source.of(it), configuration) }
             ?.peek { journalist.logger.info("$displayName has been loaded from database") }
             ?.orElseThrow(ThrowingFunction.identity())
             ?: standard.render(configuration)
-                .map { settingsRepository.saveConfiguration(name, it) }
+                .map { configurationRepository.saveConfiguration(name, it) }
                 .orElseThrow(ThrowingFunction.identity())
 
-        this.databaseUpdateTime = settingsRepository.findConfigurationUpdateDate(name) ?: databaseUpdateTime
+        this.databaseUpdateTime = configurationRepository.findConfigurationUpdateDate(name) ?: databaseUpdateTime
     }
 
     override fun registerWatcher(scheduler: ScheduledExecutorService) {
         this.watcher = scheduler.scheduleWithFixedDelay({
-            settingsRepository.findConfigurationUpdateDate(name)
+            configurationRepository.findConfigurationUpdateDate(name)
                 ?.takeIf { it.isAfter(databaseUpdateTime) }
                 ?.run {
                     journalist.logger.info("Propagation | $displayName has been changed in remote source, updating current instance...")
@@ -79,23 +77,22 @@ internal class SqlConfigurationProvider<C : Any>(
         }, 10, 10, TimeUnit.SECONDS)
     }
 
-    override fun update(request: SettingsUpdateRequest): Result<Unit, ErrorResponse> =
-        when (request.name) {
-            name -> standard.validateAndLoad(request.content, configuration::class.createInstance(), configuration)
-            else -> notFoundError("Unsupported configuration ${request.name}")
+    override fun update(name: String, content: String): Result<Unit, ErrorResponse> =
+        when (name) {
+            name -> standard.validateAndLoad(content, configuration::class.createInstance(), configuration)
+            else -> notFoundError("Unsupported configuration ${name}")
         }
         .peek { journalist.logger.info("Propagation | $displayName has updated, updating sources...") }
         .map { standard.render(it).orElseThrow(ThrowingFunction.identity()) }
-        .map { settingsRepository.saveConfiguration(name, it) }
+        .map { configurationRepository.saveConfiguration(name, it) }
         .peek { journalist.logger.info("Propagation | Sources have been updated successfully") }
         .map { loadRemoteConfiguration() }
 
-    override fun resolve(configurationName: String): Result<SettingsResponse, ErrorResponse> =
-        when (configurationName) {
-            name -> standard.render(configuration)
-                .map { SettingsResponse(APPLICATION_CDN, it) }
+    override fun resolve(name: String): Result<String, ErrorResponse> =
+        when (name) {
+            this.name -> standard.render(configuration)
                 .mapErr { ErrorResponse(INTERNAL_SERVER_ERROR, "Cannot load configuration: ${it.message}") }
-            else -> errorResponse(BAD_REQUEST, "Unsupported configuration $configurationName")
+            else -> errorResponse(BAD_REQUEST, "Unsupported configuration $name")
         }
 
     override fun shutdown() {

@@ -16,19 +16,13 @@
 
 package com.reposilite.plugin
 
-import com.reposilite.ReposiliteParameters
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
 import com.reposilite.plugin.api.Event
 import com.reposilite.plugin.api.EventListener
 import com.reposilite.plugin.api.Facade
-import com.reposilite.settings.LocalConfiguration
 
-class Extensions(
-    private val journalist: Journalist,
-    val parameters: ReposiliteParameters,
-    val localConfiguration: LocalConfiguration
-) : Journalist {
+class Extensions(private val journalist: Journalist) : Journalist {
 
     private val events: MutableMap<Class<*>, MutableList<EventListener<Event>>> = mutableMapOf()
     private val facades: MutableList<Facade> = mutableListOf()

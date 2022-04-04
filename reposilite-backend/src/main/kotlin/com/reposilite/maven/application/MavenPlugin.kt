@@ -16,7 +16,9 @@
 
 package com.reposilite.maven.application
 
+import com.reposilite.Reposilite
 import com.reposilite.frontend.FrontendFacade
+import com.reposilite.frontend.application.FrontendSettings
 import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.MetadataService
 import com.reposilite.maven.PreservedBuildsListener
@@ -38,44 +40,40 @@ import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.status.FailureFacade
 import com.reposilite.storage.StorageFacade
 import com.reposilite.token.AccessTokenFacade
-import com.reposilite.web.api.HttpServerInitializationEvent
 import com.reposilite.web.api.RoutingSetupEvent
-import io.javalin.http.Handler
-import io.javalin.http.Stage
-import panda.std.reactive.Reference.Dependencies.dependencies
-import panda.std.reactive.Reference.computed
 
 @Plugin(name = "maven", dependencies = ["failure", "settings", "statistics", "frontend", "access-token", "storage"])
 internal class MavenPlugin : ReposilitePlugin() {
 
     override fun initialize(): MavenFacade {
+        val reposilite = facade<Reposilite>()
         val failureFacade = facade<FailureFacade>()
-        val settingsFacade = facade<SettingsFacade>()
-        val sharedConfiguration = settingsFacade.sharedConfiguration
         val statisticsFacade = facade<StatisticsFacade>()
-        val frontendFacade = facade<FrontendFacade>()
         val accessTokenFacade = facade<AccessTokenFacade>()
         val storageFacade = facade<StorageFacade>()
 
-        settingsFacade.registerSchemaWatcher(
-            RepositoriesSettings::class.java,
-            { sharedConfiguration.repositories.get() },
-            { sharedConfiguration.repositories.update(it) }
-        )
+        val settingsFacade = facade<SettingsFacade>()
+        val sharedConfiguration = settingsFacade.sharedConfiguration
+
+        val frontendFacade = facade<FrontendFacade>()
+        val frontendSettings = sharedConfiguration.forDomain<FrontendSettings>()
+
+        val repositoriesSettings = sharedConfiguration.forDomain<RepositoriesSettings>()
+        settingsFacade.registerSchemaWatcher(RepositoriesSettings::class.java, repositoriesSettings)
 
         val securityProvider = RepositorySecurityProvider(accessTokenFacade)
         val repositoryProvider = RepositoryProvider(
-            extensions().parameters.workingDirectory,
+            reposilite.parameters.workingDirectory,
             HttpRemoteClientProvider,
             failureFacade,
             storageFacade,
-            sharedConfiguration.repositories.computed { it.repositories }
+            repositoriesSettings.computed { it.repositories }
         )
         val repositoryService = RepositoryService(this, repositoryProvider, securityProvider)
 
         val mavenFacade = MavenFacade(
             this,
-            computed(dependencies(sharedConfiguration.frontend)) { sharedConfiguration.frontend.get().id },
+            frontendSettings.computed { it.id },
             securityProvider,
             repositoryService,
             ProxyService(this),

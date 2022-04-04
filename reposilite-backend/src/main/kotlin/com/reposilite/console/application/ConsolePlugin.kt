@@ -15,6 +15,7 @@
  */
 package com.reposilite.console.application
 
+import com.reposilite.Reposilite
 import com.reposilite.auth.AuthenticationFacade
 import com.reposilite.console.CommandExecutor
 import com.reposilite.console.ConsoleFacade
@@ -37,12 +38,13 @@ import com.reposilite.status.FailureFacade
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.web.api.HttpServerInitializationEvent
 import com.reposilite.web.api.RoutingSetupEvent
-import panda.std.reactive.toReference
+import com.reposilite.web.application.WebSettings
 
 @Plugin(name = "console", dependencies = [ "settings", "failure", "access-token", "authentication" ])
 internal class ConsolePlugin : ReposilitePlugin() {
 
     override fun initialize(): Facade {
+        val reposilite = facade<Reposilite>()
         val settingsFacade = facade<SettingsFacade>()
         val failureFacade = facade<FailureFacade>()
         val accessTokenFacade = facade<AccessTokenFacade>()
@@ -51,17 +53,17 @@ internal class ConsolePlugin : ReposilitePlugin() {
         val commandExecutor = CommandExecutor(this, failureFacade, System.`in`)
         val consoleFacade = ConsoleFacade(this, commandExecutor)
 
-        event { event: ReposiliteInitializeEvent ->
+        event { _: ReposiliteInitializeEvent ->
             consoleFacade.registerCommand(HelpCommand(consoleFacade))
-            consoleFacade.registerCommand(LevelCommand(event.reposilite.journalist))
-            consoleFacade.registerCommand(StopCommand(event.reposilite))
+            consoleFacade.registerCommand(LevelCommand(reposilite.journalist))
+            consoleFacade.registerCommand(StopCommand(reposilite))
 
             val setup = extensions().emitEvent(CommandsSetupEvent())
             setup.getCommands().forEach { consoleFacade.registerCommand(it) }
 
             // disable console daemon in tests due to issues with coverage and interrupt method call
             // https://github.com/jacoco/jacoco/issues/1066
-            if (!event.reposilite.parameters.testEnv) {
+            if (!reposilite.parameters.testEnv) {
                 consoleFacade.commandExecutor.hook()
             }
         }
@@ -73,13 +75,19 @@ internal class ConsolePlugin : ReposilitePlugin() {
         event { event: HttpServerInitializationEvent ->
             event.javalin.ws(
                 "/api/console/sock",
-                CliEndpoint(event.reposilite.journalist, accessTokenFacade, authenticationFacade, consoleFacade, settingsFacade.sharedConfiguration.web.get().forwardedIp.toReference())
+                CliEndpoint(
+                    reposilite.journalist,
+                    accessTokenFacade,
+                    authenticationFacade,
+                    consoleFacade,
+                    settingsFacade.sharedConfiguration.forDomain<WebSettings>().computed { it.forwardedIp }
+                )
             )
         }
 
-        if (extensions().parameters.testEnv.not()) {
+        if (reposilite.parameters.testEnv.not()) {
             event { event: ReposiliteStartedEvent ->
-                event.reposilite.ioService.execute {
+                reposilite.ioService.execute {
                     consoleFacade.executeCommand("help")
                     logger.info("")
                     logger.info("Collecting status metrics...")

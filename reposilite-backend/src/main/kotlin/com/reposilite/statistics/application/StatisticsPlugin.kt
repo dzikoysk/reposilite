@@ -16,6 +16,7 @@
 
 package com.reposilite.statistics.application
 
+import com.reposilite.Reposilite
 import com.reposilite.console.ConsoleFacade
 import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposiliteInitializeEvent
@@ -30,37 +31,30 @@ import com.reposilite.statistics.createDateIntervalProvider
 import com.reposilite.statistics.infrastructure.SqlStatisticsRepository
 import com.reposilite.statistics.infrastructure.StatisticsEndpoint
 import com.reposilite.web.api.RoutingSetupEvent
-import panda.std.reactive.computed
 import java.util.concurrent.TimeUnit.SECONDS
 
 @Plugin(name = "statistics", dependencies = ["settings", "console"])
 internal class StatisticsPlugin : ReposilitePlugin() {
 
     override fun initialize(): StatisticsFacade {
-        val settingsFacade = facade<SettingsFacade>()
+        val reposilite = facade<Reposilite>()
         val consoleFacade = facade<ConsoleFacade>()
 
+        val settingsFacade = facade<SettingsFacade>()
+        val statisticsSettings = settingsFacade.sharedConfiguration.forDomain<StatisticsSettings>()
+        settingsFacade.registerSchemaWatcher(StatisticsSettings::class.java, statisticsSettings)
+
         val statisticsFacade = StatisticsFacade(
-            this,
-            computed(settingsFacade.sharedConfiguration.statistics) {
-                settingsFacade.sharedConfiguration.statistics.map {
-                    createDateIntervalProvider(it.resolvedRequestsInterval)
-                }
-            },
-            SqlStatisticsRepository(settingsFacade.database.value)
+            journalist = this,
+            dateIntervalProvider = statisticsSettings.computed { createDateIntervalProvider(it.resolvedRequestsInterval) },
+            statisticsRepository = SqlStatisticsRepository(reposilite.database)
         )
 
         consoleFacade.registerCommand(StatsCommand(statisticsFacade))
 
-        settingsFacade.registerSchemaWatcher(
-            StatisticsSettings::class.java,
-            { settingsFacade.sharedConfiguration.statistics.get() },
-            { settingsFacade.sharedConfiguration.statistics.update(it) }
-        )
-
         event { event: ReposiliteInitializeEvent ->
-            event.reposilite.scheduler.scheduleWithFixedDelay({
-                event.reposilite.ioService.execute {
+            reposilite.scheduler.scheduleWithFixedDelay({
+                reposilite.ioService.execute {
                     statisticsFacade.saveRecordsBulk()
                 }
             }, 10, 10, SECONDS)

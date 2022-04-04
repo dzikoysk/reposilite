@@ -46,17 +46,10 @@ internal class FrontendPlugin : ReposilitePlugin() {
 
     override fun initialize(): FrontendFacade {
         val settingsFacade = facade<SettingsFacade>()
+        val frontendSettings = settingsFacade.sharedConfiguration.forDomain<FrontendSettings>()
+        settingsFacade.registerSchemaWatcher(FrontendSettings::class.java, frontendSettings)
 
-        settingsFacade.registerSchemaWatcher(
-            FrontendSettings::class.java,
-            { settingsFacade.sharedConfiguration.frontend.get() },
-            { settingsFacade.sharedConfiguration.frontend.update(it) }
-        )
-
-        val frontendFacade = FrontendFacade(
-            settingsFacade.localConfiguration.cacheContent,
-            settingsFacade.sharedConfiguration.frontend
-        )
+        val frontendFacade = FrontendFacade(settingsFacade.localConfiguration.cacheContent, frontendSettings)
 
         event { event: ReposiliteInitializeEvent -> staticDirectory(event.reposilite)
             .takeIf { it.exists().not() }
@@ -68,7 +61,7 @@ internal class FrontendPlugin : ReposilitePlugin() {
 
         event { event: RoutingSetupEvent -> event.registerRoutes(
             mutableSetOf<ReposiliteRoutes>().also { routes ->
-                if (settingsFacade.sharedConfiguration.frontend.map { it.frontend }) {
+                if (frontendSettings.map { it.frontend }) {
                     routes.add(ResourcesFrontendHandler(frontendFacade, FRONTEND_DIRECTORY))
                 }
                 routes.add(CustomFrontendHandler(frontendFacade, staticDirectory(event.reposilite)))
@@ -87,3 +80,4 @@ internal class FrontendPlugin : ReposilitePlugin() {
         reposilite.parameters.workingDirectory.resolve(STATIC_DIRECTORY)
 
 }
+

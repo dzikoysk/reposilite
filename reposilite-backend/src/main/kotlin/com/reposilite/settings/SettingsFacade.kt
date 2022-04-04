@@ -16,122 +16,47 @@
 
 package com.reposilite.settings
 
-import com.github.victools.jsonschema.generator.SchemaGenerator
+import com.fasterxml.jackson.databind.JsonNode
 import com.reposilite.journalist.Journalist
 import com.reposilite.plugin.api.Facade
-import com.reposilite.settings.api.Doc
-import com.reposilite.settings.api.SchemaHandler
-import com.reposilite.settings.api.SettingsResponse
-import com.reposilite.settings.api.SettingsUpdateRequest
-import com.reposilite.settings.infrastructure.FileSystemConfigurationProvider
-import com.reposilite.settings.infrastructure.SqlConfigurationProvider
+import com.reposilite.settings.api.LocalConfiguration
+import com.reposilite.settings.api.SharedConfiguration
 import com.reposilite.web.http.ErrorResponse
-import com.reposilite.web.http.notFoundError
-import io.javalin.http.HttpCode
-import org.jetbrains.exposed.sql.Database
 import panda.std.Result
+import panda.std.reactive.MutableReference
 import java.nio.file.Path
-import java.util.concurrent.ScheduledExecutorService
-import java.util.function.Consumer
-import java.util.function.Supplier
 
 class SettingsFacade internal constructor(
     private val journalist: Journalist,
-    private val workingDirectory: Path,
-    val localConfiguration: LocalConfiguration,
-    val database: Lazy<Database>,
-    private val settingsRepository: SettingsRepository,
-    private val schemaGenerator: SchemaGenerator
+    private val configurationService: ConfigurationService,
+    private val schemaService: SchemaService,
 ) : Facade {
 
-    private val configurationProviders = mutableMapOf<String, ConfigurationProvider<*>>()
-    private val configHandlers = mutableMapOf<String, SchemaHandler<*>>()
-
-    fun <T> registerSchemaWatcher(type: Class<T>, getter: Supplier<T>, updater: Consumer<T>): SchemaHandler<T> =
-        object : SchemaHandler<T> {
-            override val name = type.getAnnotation(Doc::class.java).title
-            override val type = type
-            override val schema = schemaGenerator.generateSchema(type)
-            override fun get(): T = getter.get()
-            override fun update(value: T): Unit = updater.accept(value)
-        }.also {
-            configHandlers[it.name] = it
-        }
-
-    fun getClassForName(name: String): Result<Class<*>, ErrorResponse> =
-        getHandler(name).map { it.type }
-
-    fun getConfiguration(name: String): Result<Any, ErrorResponse> =
-        getHandler(name).map { configHandlers[name]!!.get()!! }
-
-    fun updateConfiguration(name: String, body: Any): Result<Any, ErrorResponse> =
-        getHandler(name).flatMap {
-            Result.attempt { configHandlers[name]!!.update(body)!! }
-                .mapErr { ErrorResponse(HttpCode.INTERNAL_SERVER_ERROR, it.message.orEmpty()) }
-        }
-
-    fun getHandler(name: String): Result<SchemaHandler<*>, ErrorResponse> =
-        Result.`when`(configHandlers.containsKey(name),
-            { configHandlers[name]!! },
-            { ErrorResponse(HttpCode.NOT_FOUND, "No configuration with name \"$name\" found!") }
-        )
+    val localConfiguration: LocalConfiguration
+        get() = configurationService.localConfiguration
 
     val sharedConfiguration: SharedConfiguration // expose it directly for easier calls
-        get() = findConfiguration()
+        get() = configurationService.findConfiguration()
 
     fun <C : Any> createConfigurationProvider(configuration: C, displayName: String, name: String, mode: String = "none", configurationFile: Path? = null): ConfigurationProvider<C> =
-        registerCustomConfigurationProvider(
-            if (mode == "none")
-                SqlConfigurationProvider(
-                    name = name,
-                    displayName = displayName,
-                    journalist = journalist,
-                    settingsRepository = settingsRepository,
-                    configuration = configuration
-                )
-            else
-                FileSystemConfigurationProvider(
-                    name = name,
-                    displayName = displayName,
-                    journalist = journalist,
-                    workingDirectory = workingDirectory,
-                    configurationFile = configurationFile ?: workingDirectory.resolve(name),
-                    mode = mode,
-                    configuration = configuration,
-                )
-        )
+        configurationService.createConfigurationProvider(configuration, displayName, name, mode, configurationFile)
 
-    fun <C : Any> registerCustomConfigurationProvider(configurationProvider: ConfigurationProvider<C>): ConfigurationProvider<C> =
-        configurationProvider.also {
-            configurationProviders[it.name] = it
-            it.initialize()
-        }
+    fun <T> registerSchemaWatcher(type: Class<T>, reference: MutableReference<T>) =
+        schemaService.registerSchemaWatcher(type, reference)
 
-    internal fun attachWatcherScheduler(scheduler: ScheduledExecutorService) =
-        configurationProviders.forEach { (_, provider) -> provider.registerWatcher(scheduler) }
+    fun updateConfiguration(name: String, body: Any): Result<Any, ErrorResponse> =
+        schemaService.updateConfiguration(name, body)
 
-    fun resolveConfiguration(name: String): Result<SettingsResponse, ErrorResponse> =
-        configurationProviders[name]?.resolve(name) ?: notFoundError("Configuration $name not found")
+    fun getConfiguration(name: String): Result<Any, ErrorResponse> =
+        schemaService.getConfiguration(name)
 
-    fun updateConfiguration(request: SettingsUpdateRequest): Result<Unit, ErrorResponse> =
-        configurationProviders[request.name]?.update(request) ?: notFoundError("Configuration ${request.name} not found")
+    fun getSchema(name: String): Result<JsonNode, ErrorResponse> =
+        schemaService.getHandler(name).map { it.schema }
+
+    fun getSettingsClassForName(name: String): Result<Class<*>, ErrorResponse> =
+        schemaService.getSettingsClassForName(name)
 
     fun shutdownProviders() =
-        configurationProviders.forEach { (_, provider) -> provider.shutdown() }
+        configurationService.shutdownProviders()
 
-    @Suppress("UNCHECKED_CAST")
-    fun <C : Any> findConfiguration(type: Class<C>): C =
-        configurationProviders.values
-            .first { type.isInstance(it.configuration) }
-            .configuration as C
-
-    inline fun <reified C : Any> findConfiguration(): C =
-        findConfiguration(C::class.java)
-
-}
-
-@Suppress("UNCHECKED_CAST")
-private fun <T> SchemaHandler<T>.update(value: Any): Any? {
-    this.update(value as T)
-    return this.get()
 }

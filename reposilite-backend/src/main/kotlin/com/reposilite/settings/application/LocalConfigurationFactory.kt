@@ -17,8 +17,8 @@
 package com.reposilite.settings.application
 
 import com.reposilite.ReposiliteParameters
-import com.reposilite.settings.LOCAL_CONFIGURATION_FILE
-import com.reposilite.settings.LocalConfiguration
+import com.reposilite.settings.api.LOCAL_CONFIGURATION_FILE
+import com.reposilite.settings.api.LocalConfiguration
 import com.reposilite.settings.infrastructure.FileSystemConfigurationProvider
 
 internal object LocalConfigurationFactory {
