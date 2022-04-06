@@ -80,7 +80,7 @@ internal class ConsolePlugin : ReposilitePlugin() {
                     accessTokenFacade,
                     authenticationFacade,
                     consoleFacade,
-                    settingsFacade.sharedConfiguration.forDomain<WebSettings>().computed { it.forwardedIp }
+                    settingsFacade.getDomainSettings<WebSettings>().computed { it.forwardedIp }
                 )
             )
         }

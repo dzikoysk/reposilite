@@ -2,7 +2,7 @@ package com.reposilite.settings.api
 
 import com.fasterxml.jackson.databind.JsonNode
 
-interface SchemaHandler<T> {
+interface SettingsHandler<T> {
 
     val name: String
     val type: Class<T>

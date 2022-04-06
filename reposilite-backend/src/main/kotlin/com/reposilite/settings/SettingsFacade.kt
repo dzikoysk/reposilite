@@ -20,41 +20,61 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.reposilite.journalist.Journalist
 import com.reposilite.plugin.api.Facade
 import com.reposilite.settings.api.LocalConfiguration
+import com.reposilite.settings.api.SettingsHandler
 import com.reposilite.settings.api.SharedConfiguration
 import com.reposilite.web.http.ErrorResponse
 import panda.std.Result
 import panda.std.reactive.MutableReference
+import panda.std.reactive.mutableReference
 import java.nio.file.Path
+import java.util.function.Consumer
+import java.util.function.Supplier
 
+@Suppress("unused", "MemberVisibilityCanBePrivate")
 class SettingsFacade internal constructor(
     private val journalist: Journalist,
     private val configurationService: ConfigurationService,
-    private val schemaService: SchemaService,
+    private val settingsService: SettingsService,
 ) : Facade {
 
     val localConfiguration: LocalConfiguration
         get() = configurationService.localConfiguration
 
-    val sharedConfiguration: SharedConfiguration // expose it directly for easier calls
+    private val sharedConfiguration: SharedConfiguration
         get() = configurationService.findConfiguration()
 
     fun <C : Any> createConfigurationProvider(configuration: C, displayName: String, name: String, mode: String = "none", configurationFile: Path? = null): ConfigurationProvider<C> =
         configurationService.createConfigurationProvider(configuration, displayName, name, mode, configurationFile)
 
-    fun <T> registerSchemaWatcher(type: Class<T>, reference: MutableReference<T>) =
-        schemaService.registerSchemaWatcher(type, reference)
+    fun <T : Any> createDomainSettings(settingsInstance : T): MutableReference<T> = mutableReference(settingsInstance).also {
+        sharedConfiguration.domains[settingsInstance.javaClass] = it
+        registerSettingsWatcher(settingsInstance.javaClass, it)
+    }
 
-    fun updateConfiguration(name: String, body: Any): Result<Any, ErrorResponse> =
-        schemaService.updateConfiguration(name, body)
+    fun <T> getDomainSettings(settingsClass: Class<T>): MutableReference<T> = sharedConfiguration.forDomain(settingsClass)
 
-    fun getConfiguration(name: String): Result<Any, ErrorResponse> =
-        schemaService.getConfiguration(name)
+    inline fun <reified T> getDomainSettings(): MutableReference<T> = getDomainSettings(T::class.java)
+
+    fun <T> registerSettingsWatcher(handler: SettingsHandler<T>) =
+        settingsService.registerSettingsWatcher(handler)
+
+    fun <T> registerSettingsWatcher(type: Class<T>, getter: Supplier<T>, setter: Consumer<T>) =
+        settingsService.registerSettingsWatcher(type, getter, setter)
+
+    fun <T> registerSettingsWatcher(type: Class<T>, reference: MutableReference<T>) =
+        settingsService.registerSettingsWatcher(type, reference)
+
+    fun updateSettings(name: String, body: Any): Result<Any, ErrorResponse> =
+        settingsService.updateSettings(name, body)
+
+    fun getSettings(name: String): Result<Any, ErrorResponse> =
+        settingsService.getSettings(name)
 
     fun getSchema(name: String): Result<JsonNode, ErrorResponse> =
-        schemaService.getHandler(name).map { it.schema }
+        settingsService.getSchema(name)
 
-    fun getSettingsClassForName(name: String): Result<Class<*>, ErrorResponse> =
-        schemaService.getSettingsClassForName(name)
+    fun getSettingsClass(name: String): Result<Class<*>, ErrorResponse> =
+        settingsService.getClass(name)
 
     fun shutdownProviders() =
         configurationService.shutdownProviders()

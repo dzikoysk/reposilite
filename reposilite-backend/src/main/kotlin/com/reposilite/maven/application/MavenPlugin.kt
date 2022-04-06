@@ -53,13 +53,11 @@ internal class MavenPlugin : ReposilitePlugin() {
         val storageFacade = facade<StorageFacade>()
 
         val settingsFacade = facade<SettingsFacade>()
-        val sharedConfiguration = settingsFacade.sharedConfiguration
 
         val frontendFacade = facade<FrontendFacade>()
-        val frontendSettings = sharedConfiguration.forDomain<FrontendSettings>()
+        val frontendSettings = settingsFacade.getDomainSettings<FrontendSettings>()
 
-        val repositoriesSettings = sharedConfiguration.forDomain<RepositoriesSettings>()
-        settingsFacade.registerSchemaWatcher(RepositoriesSettings::class.java, repositoriesSettings)
+        val repositoriesSettings = settingsFacade.createDomainSettings(RepositoriesSettings())
 
         val securityProvider = RepositorySecurityProvider(accessTokenFacade)
         val repositoryProvider = RepositoryProvider(

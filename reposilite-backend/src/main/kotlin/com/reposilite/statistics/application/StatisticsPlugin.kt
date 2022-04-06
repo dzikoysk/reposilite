@@ -24,7 +24,6 @@ import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
 import com.reposilite.settings.SettingsFacade
-import com.reposilite.settings.api.SchemaHandler
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.statistics.StatsCommand
 import com.reposilite.statistics.createDateIntervalProvider
@@ -41,8 +40,7 @@ internal class StatisticsPlugin : ReposilitePlugin() {
         val consoleFacade = facade<ConsoleFacade>()
 
         val settingsFacade = facade<SettingsFacade>()
-        val statisticsSettings = settingsFacade.sharedConfiguration.forDomain<StatisticsSettings>()
-        settingsFacade.registerSchemaWatcher(StatisticsSettings::class.java, statisticsSettings)
+        val statisticsSettings = settingsFacade.createDomainSettings(StatisticsSettings())
 
         val statisticsFacade = StatisticsFacade(
             journalist = this,

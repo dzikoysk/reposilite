@@ -17,40 +17,24 @@
 package com.reposilite.settings.api
 
 import com.github.victools.jsonschema.generator.SchemaGenerator
-import com.reposilite.auth.application.AuthenticationSettings
-import com.reposilite.frontend.application.FrontendSettings
-import com.reposilite.maven.application.RepositoriesSettings
 import com.reposilite.settings.EnumResolver
 import com.reposilite.settings.SettingsModule
 import com.reposilite.settings.SubtypeResolver
 import com.reposilite.settings.createStandardSchemaGenerator
-import com.reposilite.statistics.application.StatisticsSettings
 import com.reposilite.storage.StorageProviderFactory
 import com.reposilite.storage.application.StorageProviderSettings
-import com.reposilite.web.application.WebSettings
 import panda.std.reactive.MutableReference
-import panda.std.reactive.mutableReference
 import java.util.ServiceLoader
 
 const val SHARED_CONFIGURATION_FILE = "configuration.shared.json"
 
 class SharedConfiguration {
 
-    val domains = mutableMapOf(
-        AuthenticationSettings::class.java to mutableReference(AuthenticationSettings()),
-        WebSettings::class.java to mutableReference(WebSettings()),
-        RepositoriesSettings::class.java to mutableReference(RepositoriesSettings()),
-        FrontendSettings::class.java to mutableReference(FrontendSettings()),
-        StatisticsSettings::class.java to mutableReference(StatisticsSettings())
-    )
+    val domains = mutableMapOf<Class<*>, MutableReference<*>>()
 
     @Suppress("UNCHECKED_CAST")
     fun <T> forDomain(type: Class<T>): MutableReference<T> =
         domains[type] as MutableReference<T>
-
-    inline fun <reified T> forDomain(): MutableReference<T> =
-        forDomain(T::class.java)
-
 }
 
 fun createSharedConfigurationSchemaGenerator(): SchemaGenerator {

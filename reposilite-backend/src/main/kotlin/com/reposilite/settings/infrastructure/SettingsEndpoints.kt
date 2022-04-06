@@ -44,7 +44,7 @@ internal class SettingsEndpoints(private val settingsFacade: SettingsFacade) : R
     )
     private val getConfiguration = ReposiliteRoute<Any>("/api/configuration/{name}", GET) {
         managerOnly {
-            response = settingsFacade.getConfiguration(requireParameter("name"))
+            response = settingsFacade.getSettings(requireParameter("name"))
         }
     }
 
@@ -67,8 +67,8 @@ internal class SettingsEndpoints(private val settingsFacade: SettingsFacade) : R
         managerOnly {
             with(requireParameter("name")) {
                 response = settingsFacade
-                    .getSettingsClassForName(this)
-                    .flatMap { settingsFacade.updateConfiguration(this, ctx.bodyAsClass(it)) }
+                    .getSettingsClass(this)
+                    .flatMap { settingsFacade.updateSettings(this, ctx.bodyAsClass(it)) }
             }
         }
     }

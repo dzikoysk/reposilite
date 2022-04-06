@@ -22,7 +22,6 @@ import com.reposilite.shared.extensions.createCdnByExtension
 import com.reposilite.storage.getSimpleName
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
-import io.javalin.http.ContentType.APPLICATION_CDN
 import io.javalin.http.HttpCode.BAD_REQUEST
 import io.javalin.http.HttpCode.INTERNAL_SERVER_ERROR
 import net.dzikoysk.cdn.CdnException
@@ -97,7 +96,7 @@ internal class FileSystemConfigurationProvider<C : Any>(
                 .peek { journalist?.logger?.info("Updating ${displayName.lowercase()} in local source") }
                 .mapToUnit()
                 .mapErr { ErrorResponse(INTERNAL_SERVER_ERROR, "Cannot load configuration") }
-            else -> errorResponse(BAD_REQUEST, "Unknown ${displayName.lowercase()}: ${name}")
+            else -> errorResponse(BAD_REQUEST, "Unknown ${displayName.lowercase()}: $name")
         }
 
     override fun shutdown() {

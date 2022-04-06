@@ -23,7 +23,6 @@ import com.reposilite.shared.extensions.validateAndLoad
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
 import com.reposilite.web.http.notFoundError
-import io.javalin.http.ContentType.APPLICATION_CDN
 import io.javalin.http.HttpCode.BAD_REQUEST
 import io.javalin.http.HttpCode.INTERNAL_SERVER_ERROR
 import net.dzikoysk.cdn.Cdn
@@ -80,7 +79,7 @@ internal class SqlConfigurationProvider<C : Any>(
     override fun update(name: String, content: String): Result<Unit, ErrorResponse> =
         when (name) {
             name -> standard.validateAndLoad(content, configuration::class.createInstance(), configuration)
-            else -> notFoundError("Unsupported configuration ${name}")
+            else -> notFoundError("Unsupported configuration $name")
         }
         .peek { journalist.logger.info("Propagation | $displayName has updated, updating sources...") }
         .map { standard.render(it).orElseThrow(ThrowingFunction.identity()) }
