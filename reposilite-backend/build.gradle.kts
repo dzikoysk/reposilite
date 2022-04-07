@@ -39,7 +39,7 @@ java {
 }
 
 dependencies {
-    val kotlin = "1.6.10"
+    val kotlin = "1.6.20"
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin")
     api("org.jetbrains:annotations:23.0.0")
@@ -53,10 +53,10 @@ dependencies {
     implementation("net.dzikoysk:cdn:$cdn")
     implementation("net.dzikoysk:cdn-kt:$cdn")
 
-    val awssdk = "2.17.157"
+    val awssdk = "2.17.162"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
-    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.186")
+    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.191")
 
     val exposed = "0.37.3"
     implementation("org.jetbrains.exposed:exposed-core:$exposed")
@@ -95,7 +95,7 @@ dependencies {
     api("com.github.tipsy.javalin:javalin:d00c8512c9")
 
     @Suppress("GradlePackageUpdate")
-    implementation("org.eclipse.jetty:jetty-server:9.4.45.v20220203")
+    implementation("org.eclipse.jetty:jetty-server:9.4.46.v20220331")
 
     implementation("com.github.victools:jsonschema-generator:4.23.0")
 

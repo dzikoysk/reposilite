@@ -32,7 +32,7 @@ import org.testcontainers.utility.DockerImageName
  * - Local file system
  */
 @Testcontainers
-internal class ReposiliteExperimentalIntegrationJunitExtension : Extension, BeforeEachCallback, AfterEachCallback {
+internal class ReposiliteExperimentalRemoteIntegrationJunitExtension : Extension, BeforeEachCallback, AfterEachCallback {
 
     private class SpecifiedPostgreSQLContainer(image: String) : PostgreSQLContainer<SpecifiedPostgreSQLContainer>(DockerImageName.parse(image))
 
