@@ -22,6 +22,7 @@ import com.reposilite.journalist.backend.PrintStreamLogger
 import com.reposilite.maven.application.ProxiedRepository
 import com.reposilite.maven.application.RepositoriesSettings
 import com.reposilite.maven.application.RepositorySettings
+import com.reposilite.settings.SettingsFacade
 import com.reposilite.storage.application.StorageProviderSettings
 import com.reposilite.settings.api.LOCAL_CONFIGURATION_FILE
 import com.reposilite.settings.api.LocalConfiguration
@@ -76,13 +77,13 @@ internal abstract class ReposiliteRunner {
         var launchResult: Result<Reposilite, Exception>
 
         do {
-            launchResult = prepareInstance(logger).peek { reposilite = it }
+            launchResult = prepareInstance(logger)
         } while (launchResult.errorToOption().`is`(JavalinBindException::class.java).isPresent)
     }
 
     private fun prepareInstance(logger: Logger): Result<Reposilite, Exception> {
         val parameters = ReposiliteParameters()
-        parameters.sharedConfigurationMode = "copy"
+        // parameters.sharedConfigurationMode = "copy"
         parameters.tokenEntries = arrayOf("${DEFAULT_TOKEN.first}:${DEFAULT_TOKEN.second}")
         parameters.workingDirectoryName = reposiliteWorkingDirectory.absolutePath
         parameters.testEnv = true
@@ -98,14 +99,17 @@ internal abstract class ReposiliteRunner {
         overrideLocalConfiguration(localConfiguration)
         KCdnFactory.createStandard().render(localConfiguration, Source.of(reposiliteWorkingDirectory.resolve(LOCAL_CONFIGURATION_FILE)))
 
-        val sharedConfiguration = SharedConfiguration().also {
+        reposilite = ReposiliteFactory.createReposilite(parameters, logger)
+        reposilite.journalist.setVisibleThreshold(Channel.WARN)
+
+        val settingsFacade = reposilite.extensions.facade<SettingsFacade>()
+
+        settingsFacade.getDomainSettings<RepositoriesSettings>().update { old ->
             val proxiedConfiguration = RepositorySettings(
                 proxied = mutableListOf(ProxiedRepository("http://localhost:${parameters.port + 1}/releases"))
             )
 
-            val repositoriesSettings = it.forDomain<RepositoriesSettings>()
-
-            repositoriesSettings.update { old -> old.copy(
+            return@update old.copy(
                 repositories = old.repositories.toMutableMap()
                     .also { repositories -> repositories["proxied"] = proxiedConfiguration }
                     .mapValues { (_, repositoryConfiguration) ->
@@ -114,21 +118,16 @@ internal abstract class ReposiliteRunner {
                             storageProvider = _storageProvider!!,
                         )
                     }
-            )}
+            )
         }
 
-        overrideSharedConfiguration(sharedConfiguration)
-        KCdnFactory.createJsonLike().render(sharedConfiguration, Source.of(reposiliteWorkingDirectory.resolve(SHARED_CONFIGURATION_FILE)))
-
-        val reposiliteInstance = ReposiliteFactory.createReposilite(parameters, logger)
-        reposiliteInstance.journalist.setVisibleThreshold(Channel.WARN)
-
-        return reposiliteInstance.launch()
+        overrideSharedConfiguration(settingsFacade)
+        return reposilite.launch()
     }
 
     protected open fun overrideLocalConfiguration(localConfiguration: LocalConfiguration) { }
 
-    protected open fun overrideSharedConfiguration(sharedConfiguration: SharedConfiguration) { }
+    protected open fun overrideSharedConfiguration(settingsFacade: SettingsFacade) { }
 
     @AfterEach
     fun shutdownApplication() {

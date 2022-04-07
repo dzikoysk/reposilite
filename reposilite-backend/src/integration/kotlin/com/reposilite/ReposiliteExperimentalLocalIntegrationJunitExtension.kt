@@ -16,6 +16,7 @@
 
 package com.reposilite
 
+import com.reposilite.storage.filesystem.FileSystemStorageProviderSettings
 import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.Extension
 import org.junit.jupiter.api.extension.ExtensionContext
@@ -34,7 +35,7 @@ internal class ReposiliteExperimentalLocalIntegrationJunitExtension : Extension,
 
             type.getField("_extensionInitialized").set(instance, true)
             type.getField("_database").set(instance, "h2 --temporary")
-            type.getField("_storageProvider").set(instance, "fs")
+            type.getField("_storageProvider").set(instance, FileSystemStorageProviderSettings())
         }
     }
 

@@ -18,20 +18,15 @@ package com.reposilite.settings.specification
 
 import com.reposilite.journalist.backend.InMemoryLogger
 import com.reposilite.settings.ConfigurationService
-import com.reposilite.settings.SchemaService
 import com.reposilite.settings.SettingsFacade
-import com.reposilite.settings.SettingsModule
+import com.reposilite.settings.SettingsService
 import com.reposilite.settings.api.LocalConfiguration
 import com.reposilite.settings.api.SHARED_CONFIGURATION_FILE
 import com.reposilite.settings.api.SharedConfiguration
 import com.reposilite.settings.api.createSharedConfigurationSchemaGenerator
-import com.reposilite.settings.createStandardSchemaGenerator
 import com.reposilite.settings.infrastructure.InMemoryConfigurationRepository
-import com.reposilite.web.http.ErrorResponse
-import net.dzikoysk.cdn.KCdnFactory
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
-import panda.std.Result
 import java.io.File
 import java.util.concurrent.Executors
 
@@ -41,9 +36,7 @@ internal abstract class SettingsSpecification {
     protected lateinit var workingDirectory: File
 
     private val localConfiguration = LocalConfiguration()
-    protected val settingsRepository = InMemoryConfigurationRepository()
     protected lateinit var settingsFacade: SettingsFacade
-    protected val cdn = KCdnFactory.createStandard()
 
     @BeforeEach
     fun prepare() {
@@ -58,16 +51,10 @@ internal abstract class SettingsSpecification {
                 Executors.newScheduledThreadPool(1),
                 localConfiguration
             ),
-            schemaService = SchemaService(createSharedConfigurationSchemaGenerator())
+            settingsService = SettingsService(createSharedConfigurationSchemaGenerator())
         )
 
         settingsFacade.createConfigurationProvider(SharedConfiguration(), "Shared configuration", SHARED_CONFIGURATION_FILE)
     }
-
-    fun configurationFromRepository(): String? =
-        settingsRepository.findConfiguration(SHARED_CONFIGURATION_FILE)
-
-    fun renderConfiguration(): String =
-        cdn.render(settingsFacade.sharedConfiguration).orElseThrow { it }
 
 }

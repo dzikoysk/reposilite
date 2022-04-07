@@ -51,6 +51,7 @@ import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.util.ssl.SslContextFactory
 import org.eclipse.jetty.util.thread.ThreadPool
+import panda.std.reactive.Reference
 
 internal object JavalinConfiguration {
 
@@ -60,22 +61,21 @@ internal object JavalinConfiguration {
 
         val settingsFacade = reposilite.extensions.facade<SettingsFacade>()
         val localConfiguration = settingsFacade.localConfiguration
-        val sharedConfiguration = settingsFacade.sharedConfiguration
+        val webSettings = settingsFacade.getDomainSettings<WebSettings>()
+        val frontendSettings = settingsFacade.getDomainSettings<FrontendSettings>()
 
-        configureJavalin(config, localConfiguration, sharedConfiguration)
+        configureJavalin(config, localConfiguration, webSettings)
         configureJsonSerialization(config)
         configureSSL(reposilite, localConfiguration, config, server)
         configureCors(config)
-        configureOpenApi(sharedConfiguration, config)
+        configureOpenApi(config, webSettings.get(), frontendSettings.get())
         configureDebug(reposilite, localConfiguration, config)
         configureReactiveRoutingPlugin(config, reposilite)
     }
 
-    private fun configureJavalin(config: JavalinConfig, localConfiguration: LocalConfiguration, sharedConfiguration: SharedConfiguration) {
+    private fun configureJavalin(config: JavalinConfig, localConfiguration: LocalConfiguration, webSettings: Reference<WebSettings>) {
         config.showJavalinBanner = false
         config.asyncRequestTimeout = 1000L * 60 * 60 * 10 // 10min
-
-        val webSettings = sharedConfiguration.forDomain<WebSettings>()
 
         config.contextResolvers {
             it.ip = { ctx -> ctx.header(webSettings.get().forwardedIp) ?: ctx.req.remoteAddr }
@@ -165,14 +165,11 @@ internal object JavalinConfiguration {
         config.enableCorsForAllOrigins()
     }
 
-    private fun configureOpenApi(sharedConfiguration: SharedConfiguration, config: JavalinConfig) {
-        val webSettings = sharedConfiguration.forDomain<WebSettings>()
-        val frontendSettings = sharedConfiguration.forDomain<FrontendSettings>() // TOFIX: web domain should not have dependency on this
-
-        if (webSettings.map { it.swagger }) {
+    private fun configureOpenApi(config: JavalinConfig, webSettings: WebSettings, frontendSettings: FrontendSettings) {
+        if (webSettings.swagger) {
             val openApiConfiguration = OpenApiConfiguration() // TOFIX: Support dynamic configuration of Swagger integration
-            openApiConfiguration.title = frontendSettings.map { it.title }
-            openApiConfiguration.description = frontendSettings.map { it.description }
+            openApiConfiguration.title = frontendSettings.title
+            openApiConfiguration.description = frontendSettings.description
             openApiConfiguration.version = VERSION
             config.registerPlugin(OpenApiPlugin(openApiConfiguration))
 
