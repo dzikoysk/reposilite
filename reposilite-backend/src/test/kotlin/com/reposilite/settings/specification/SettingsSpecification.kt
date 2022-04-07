@@ -18,12 +18,12 @@ package com.reposilite.settings.specification
 
 import com.reposilite.journalist.backend.InMemoryLogger
 import com.reposilite.settings.ConfigurationService
+import com.reposilite.settings.SHARED_CONFIGURATION_FILE
 import com.reposilite.settings.SettingsFacade
 import com.reposilite.settings.SettingsService
+import com.reposilite.settings.SharedConfiguration
 import com.reposilite.settings.api.LocalConfiguration
-import com.reposilite.settings.api.SHARED_CONFIGURATION_FILE
-import com.reposilite.settings.api.SharedConfiguration
-import com.reposilite.settings.api.createSharedConfigurationSchemaGenerator
+import com.reposilite.settings.createSharedConfigurationSchemaGenerator
 import com.reposilite.settings.infrastructure.InMemoryConfigurationRepository
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
@@ -36,7 +36,7 @@ internal abstract class SettingsSpecification {
     protected lateinit var workingDirectory: File
 
     private val localConfiguration = LocalConfiguration()
-    protected lateinit var settingsFacade: SettingsFacade
+    private lateinit var settingsFacade: SettingsFacade
 
     @BeforeEach
     fun prepare() {

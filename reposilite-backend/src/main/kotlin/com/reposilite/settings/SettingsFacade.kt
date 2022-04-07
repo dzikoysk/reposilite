@@ -21,7 +21,6 @@ import com.reposilite.journalist.Journalist
 import com.reposilite.plugin.api.Facade
 import com.reposilite.settings.api.LocalConfiguration
 import com.reposilite.settings.api.SettingsHandler
-import com.reposilite.settings.api.SharedConfiguration
 import com.reposilite.web.http.ErrorResponse
 import panda.std.Result
 import panda.std.reactive.MutableReference

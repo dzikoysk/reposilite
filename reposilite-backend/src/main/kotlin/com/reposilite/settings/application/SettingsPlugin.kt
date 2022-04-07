@@ -23,11 +23,11 @@ import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
 import com.reposilite.settings.ConfigurationService
+import com.reposilite.settings.SHARED_CONFIGURATION_FILE
 import com.reposilite.settings.SettingsFacade
 import com.reposilite.settings.SettingsService
-import com.reposilite.settings.api.SHARED_CONFIGURATION_FILE
-import com.reposilite.settings.api.SharedConfiguration
-import com.reposilite.settings.api.createSharedConfigurationSchemaGenerator
+import com.reposilite.settings.SharedConfiguration
+import com.reposilite.settings.createSharedConfigurationSchemaGenerator
 import com.reposilite.settings.infrastructure.SettingsEndpoints
 import com.reposilite.settings.infrastructure.SqlConfigurationRepository
 import com.reposilite.web.api.RoutingSetupEvent

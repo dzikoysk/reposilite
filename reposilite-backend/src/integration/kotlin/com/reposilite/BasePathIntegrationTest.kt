@@ -18,7 +18,6 @@ package com.reposilite
 
 import com.reposilite.frontend.application.FrontendSettings
 import com.reposilite.settings.SettingsFacade
-import com.reposilite.settings.api.SharedConfiguration
 import io.javalin.Javalin
 import io.javalin.http.Context
 import kong.unirest.HttpRequest

@@ -53,31 +53,30 @@ internal class MavenPlugin : ReposilitePlugin() {
         val storageFacade = facade<StorageFacade>()
 
         val settingsFacade = facade<SettingsFacade>()
+        val mavenSettings = settingsFacade.createDomainSettings(MavenSettings())
 
         val frontendFacade = facade<FrontendFacade>()
         val frontendSettings = settingsFacade.getDomainSettings<FrontendSettings>()
 
-        val repositoriesSettings = settingsFacade.createDomainSettings(RepositoriesSettings())
-
-        val securityProvider = RepositorySecurityProvider(accessTokenFacade)
         val repositoryProvider = RepositoryProvider(
-            reposilite.parameters.workingDirectory,
-            HttpRemoteClientProvider,
-            failureFacade,
-            storageFacade,
-            repositoriesSettings.computed { it.repositories }
+            workingDirectory = reposilite.parameters.workingDirectory,
+            remoteClientProvider = HttpRemoteClientProvider,
+            failureFacade = failureFacade,
+            storageFacade = storageFacade,
+            repositoriesSource = mavenSettings.computed { it.repositories }
         )
+        val securityProvider = RepositorySecurityProvider(accessTokenFacade)
         val repositoryService = RepositoryService(this, repositoryProvider, securityProvider)
 
         val mavenFacade = MavenFacade(
-            this,
-            frontendSettings.computed { it.id },
-            securityProvider,
-            repositoryService,
-            ProxyService(this),
-            MetadataService(repositoryService),
-            extensions(),
-            statisticsFacade,
+            journalist = this,
+            repositoryId = frontendSettings.computed { it.id },
+            repositorySecurityProvider = securityProvider,
+            repositoryService = repositoryService,
+            proxyService = ProxyService(this),
+            metadataService = MetadataService(repositoryService),
+            extensions = extensions(),
+            statisticsFacade = statisticsFacade,
         )
 
         logger.info("")

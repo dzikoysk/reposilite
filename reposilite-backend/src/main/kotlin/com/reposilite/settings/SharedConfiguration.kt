@@ -14,13 +14,9 @@
  * limitations under the License.
  */
 
-package com.reposilite.settings.api
+package com.reposilite.settings
 
 import com.github.victools.jsonschema.generator.SchemaGenerator
-import com.reposilite.settings.EnumResolver
-import com.reposilite.settings.SettingsModule
-import com.reposilite.settings.SubtypeResolver
-import com.reposilite.settings.createStandardSchemaGenerator
 import com.reposilite.storage.StorageProviderFactory
 import com.reposilite.storage.application.StorageProviderSettings
 import panda.std.reactive.MutableReference

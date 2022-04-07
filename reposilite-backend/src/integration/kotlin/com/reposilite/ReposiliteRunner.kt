@@ -20,14 +20,12 @@ import com.reposilite.journalist.Channel
 import com.reposilite.journalist.Logger
 import com.reposilite.journalist.backend.PrintStreamLogger
 import com.reposilite.maven.application.ProxiedRepository
-import com.reposilite.maven.application.RepositoriesSettings
+import com.reposilite.maven.application.MavenSettings
 import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.settings.SettingsFacade
 import com.reposilite.storage.application.StorageProviderSettings
 import com.reposilite.settings.api.LOCAL_CONFIGURATION_FILE
 import com.reposilite.settings.api.LocalConfiguration
-import com.reposilite.settings.api.SHARED_CONFIGURATION_FILE
-import com.reposilite.settings.api.SharedConfiguration
 import io.javalin.core.util.JavalinBindException
 import net.dzikoysk.cdn.KCdnFactory
 import net.dzikoysk.cdn.source.Source
@@ -104,7 +102,7 @@ internal abstract class ReposiliteRunner {
 
         val settingsFacade = reposilite.extensions.facade<SettingsFacade>()
 
-        settingsFacade.getDomainSettings<RepositoriesSettings>().update { old ->
+        settingsFacade.getDomainSettings<MavenSettings>().update { old ->
             val proxiedConfiguration = RepositorySettings(
                 proxied = mutableListOf(ProxiedRepository("http://localhost:${parameters.port + 1}/releases"))
             )

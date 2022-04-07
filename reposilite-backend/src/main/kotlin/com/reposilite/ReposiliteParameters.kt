@@ -16,9 +16,9 @@
 
 package com.reposilite
 
+import com.reposilite.settings.SHARED_CONFIGURATION_FILE
 import com.reposilite.settings.api.LOCAL_CONFIGURATION_FILE
 import com.reposilite.settings.api.LocalConfiguration
-import com.reposilite.settings.api.SHARED_CONFIGURATION_FILE
 import com.reposilite.token.AccessTokenType.TEMPORARY
 import com.reposilite.token.api.CreateAccessTokenRequest
 import picocli.CommandLine.Command

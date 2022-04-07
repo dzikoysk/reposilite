@@ -11,11 +11,10 @@ import com.reposilite.storage.application.StorageProviderSettings
 import com.reposilite.storage.application.StorageProviderSettingsComposer
 import net.dzikoysk.cdn.entity.Contextual
 import net.dzikoysk.cdn.entity.CustomComposer
-import java.io.Serializable
 
 @Contextual
-@Doc(title = "Repositories", description = "Repositories settings")
-data class RepositoriesSettings(
+@Doc(title = "Maven Repositories", description = "Repositories settings")
+data class MavenSettings(
     @Doc(title = "Repositories", description = "List of Maven repositories.")
     val repositories: Map<String, RepositorySettings> = mapOf(
         "releases" to RepositorySettings(),
@@ -25,7 +24,7 @@ data class RepositoriesSettings(
 )
 
 @Contextual
-@Doc(title = "Repository", description = "Settings for a Repository.")
+@Doc(title = "Maven Repository", description = "Settings for a given repository.")
 data class RepositorySettings(
     /** The visibility of this repository */
     @Doc(title = "Visibility", description = "The visibility of this repository")
@@ -53,6 +52,7 @@ data class RepositorySettings(
 }
 
 @Contextual
+@Doc(title = "Proxied Maven Repository", description = "Configuration of proxied host")
 data class ProxiedRepository(
     /** The reference to the proxied repository. Either the id of another local repository or the url of a remote repository. */
     @Doc(title = "Reference", description = "The reference to the proxied repository. Either the id of another local repository or the url of a remote repository.")
