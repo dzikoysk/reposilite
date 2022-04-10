@@ -67,11 +67,9 @@ class HttpRemoteClient(private val journalist: Journalist, proxy: Proxy?) : Remo
 
                 // Nexus can send misleading for client content-length of chunked responses
                 // ~ https://github.com/dzikoysk/reposilite/issues/549
-                val contentLength =
-                    if ("gzip" == headers.contentEncoding)
-                        UNKNOWN_LENGTH // remove content-length header
-                    else
-                        headers.contentLength
+                val contentLength = headers.contentLength
+                    ?.takeUnless { "gzip" == headers.contentEncoding } // remove content-length header
+                    ?: UNKNOWN_LENGTH
 
                 val contentType = headers.contentType
                     ?.let { ContentType.getContentType(it) }

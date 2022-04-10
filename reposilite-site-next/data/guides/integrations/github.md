@@ -1,4 +1,0 @@
----
-id: github
-title: GitHub
----

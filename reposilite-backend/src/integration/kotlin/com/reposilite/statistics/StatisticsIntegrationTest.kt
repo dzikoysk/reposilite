@@ -18,6 +18,10 @@
 
 package com.reposilite.statistics
 
+import com.reposilite.ReposiliteExperimentalLocalIntegrationJunitExtension
+import com.reposilite.ReposiliteExperimentalRemoteIntegrationJunitExtension
+import com.reposilite.ReposiliteLocalIntegrationJunitExtension
+import com.reposilite.ReposiliteRemoteIntegrationJunitExtension
 import com.reposilite.statistics.api.ResolvedCountResponse
 import com.reposilite.statistics.specification.StatisticsIntegrationSpecification
 import com.reposilite.token.AccessTokenPermission.MANAGER
@@ -27,7 +31,20 @@ import kong.unirest.Unirest.get
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import panda.std.component1
+
+@ExtendWith(ReposiliteExperimentalRemoteIntegrationJunitExtension::class)
+internal class ExperimentalRemoteStatisticsIntegrationTest : StatisticsIntegrationTest()
+
+@ExtendWith(ReposiliteRemoteIntegrationJunitExtension::class)
+internal class RemoteStatisticsIntegrationTest : StatisticsIntegrationTest()
+
+@ExtendWith(ReposiliteExperimentalLocalIntegrationJunitExtension::class)
+internal class ExperimentalLocalStatisticsIntegrationTest : StatisticsIntegrationTest()
+
+@ExtendWith(ReposiliteLocalIntegrationJunitExtension::class)
+internal class LocalStatisticsIntegrationTest : StatisticsIntegrationTest()
 
 internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecification() {
 

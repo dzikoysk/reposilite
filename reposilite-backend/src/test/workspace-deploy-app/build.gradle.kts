@@ -18,6 +18,10 @@ dependencies {
     implementation(kotlin("stdlib"))
 }
 
+repositories {
+    mavenCentral()
+}
+
 publishing {
     repositories {
         maven {
