@@ -17,18 +17,16 @@
 package com.reposilite.maven.infrastructure
 
 import com.reposilite.maven.MavenFacade
+import com.reposilite.maven.MavenFacade.MatchedVersionHandler
 import com.reposilite.maven.api.LatestBadgeRequest
 import com.reposilite.maven.api.LatestVersionResponse
-import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.VersionLookupRequest
 import com.reposilite.settings.SettingsFacade
 import com.reposilite.shared.ContextDsl
 import com.reposilite.shared.extensions.resultAttachment
 import com.reposilite.storage.api.DocumentInfo
 import com.reposilite.storage.api.FileDetails
-import com.reposilite.storage.api.Location
 import com.reposilite.storage.api.toLocation
-import com.reposilite.token.AccessTokenIdentifier
 import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
@@ -45,9 +43,6 @@ import io.javalin.openapi.OpenApiResponse
 import panda.std.Result
 import panda.std.asError
 import panda.std.asSuccess
-import panda.std.letIf
-
-private typealias RequestFunction<T> = (LookupRequest) -> Result<T, ErrorResponse>
 
 internal class MavenLatestApiEndpoints(
     private val mavenFacade: MavenFacade,
@@ -65,6 +60,8 @@ internal class MavenLatestApiEndpoints(
             OpenApiParam(name = "*", description = "Artifact path qualifier", required = true, allowEmptyValue = true)
         ],
         queryParams = [
+            OpenApiParam(name = "extension", description = "Changes extension of matched file (by default matches 'jar')", required = false),
+            OpenApiParam(name = "classifier", description = "Appends classifier suffix to matched file", required = false),
             OpenApiParam(name = "filter", description = "Version (prefix) filter to apply", required = false),
             OpenApiParam(name = "type", description = "Format of expected response type: empty (default) for json; 'raw' for plain text", required = false),
         ],
@@ -95,7 +92,11 @@ internal class MavenLatestApiEndpoints(
             OpenApiParam(name = "repository", description = "Destination repository", required = true),
             OpenApiParam(name = "*", description = "Artifact path qualifier", required = true, allowEmptyValue = true)
         ],
-        queryParams = [ OpenApiParam(name = "filter", description = "Version (prefix) filter to apply", required = false) ],
+        queryParams = [
+            OpenApiParam(name = "extension", description = "Changes extension of matched file (by default matches 'jar')", required = false),
+            OpenApiParam(name = "classifier", description = "Appends classifier suffix to matched file", required = false),
+            OpenApiParam(name = "filter", description = "Version (prefix) filter to apply", required = false),
+        ],
         responses = [ OpenApiResponse("200", description = "Details about the given file", content = [OpenApiContent(from = FileDetails::class)]) ]
     )
     private val findLatestDetails = ReposiliteRoute<FileDetails>("/api/maven/latest/details/{repository}/<gav>", GET) {
@@ -114,7 +115,11 @@ internal class MavenLatestApiEndpoints(
             OpenApiParam(name = "repository", description = "Destination repository", required = true),
             OpenApiParam(name = "*", description = "Artifact path qualifier", required = true, allowEmptyValue = true)
         ],
-        queryParams = [ OpenApiParam(name = "filter", description = "Version (prefix) filter to apply", required = false) ]
+        queryParams = [
+            OpenApiParam(name = "extension", description = "Changes extension of matched file (by default matches 'jar')", required = false),
+            OpenApiParam(name = "classifier", description = "Appends classifier suffix to matched file", required = false),
+            OpenApiParam(name = "filter", description = "Version (prefix) filter to apply", required = false),
+        ]
     )
     private val findLatestFile = ReposiliteRoute<Unit>("/api/maven/latest/file/{repository}/<gav>", GET) {
         accessed {
@@ -127,36 +132,20 @@ internal class MavenLatestApiEndpoints(
         }
     }
 
-    private fun <T> resolveLatestArtifact(context: ContextDsl<*>, accessToken: AccessTokenDto?, request: RequestFunction<T>): Result<T, ErrorResponse> =
-        resolveLatestArtifact(
-            context.requireParameter("repository"),
-            context.requireParameter("gav").toLocation(),
-            context.ctx.queryParam("filter"),
-            accessToken?.identifier,
-            request
+    private fun <T> resolveLatestArtifact(context: ContextDsl<*>, accessToken: AccessTokenDto?, request: MatchedVersionHandler<T>): Result<T, ErrorResponse> =
+        mavenFacade.findLatestArtifact(
+            accessToken = accessToken?.identifier,
+            repository = context.requireParameter("repository"),
+            gav = context.requireParameter("gav").toLocation(),
+            extension = context.ctx.queryParam("extension") ?: "jar",
+            classifier = context.ctx.queryParam("classifier"),
+            filter = context.ctx.queryParam("filter"),
+            request = request
         )
-
-    private fun <T> resolveLatestArtifact(repository: String, gav: Location, filter: String?, accessToken: AccessTokenIdentifier?, request: RequestFunction<T>): Result<T, ErrorResponse> =
-        VersionLookupRequest(accessToken, repository, gav, filter)
-            .let { mavenFacade.findLatest(it) }
-            .flatMap { (isSnapshot, version) ->
-                LookupRequest(
-                    accessToken,
-                    repository,
-                    if (isSnapshot)
-                        "$gav/${gav.locationBeforeLast("/", "").locationAfterLast("/", "")}-$version.jar".toLocation()
-                    else
-                        "$gav/$version/${gav.locationAfterLast("/", "")}-$version.jar".toLocation()
-                )
-                .let { request(it) }
-                .letIf({ it.isErr && version.contains("-SNAPSHOT", ignoreCase = true) }) {
-                    resolveLatestArtifact(repository, "$gav/$version".toLocation(), filter, accessToken, request)
-                }
-            }
 
     @OpenApi(
         path = "/api/badge/latest/{repository}/{gav}", // Rename 'badge/latest' to 'maven/latest/badge'?
-        tags = ["badge"],
+        tags = [ "Maven", "Badge" ],
         pathParams = [
             OpenApiParam(name = "repository", description = "Artifact's repository", required = true),
             OpenApiParam(name = "gav", description = "Artifacts' GAV", required = true)

@@ -92,18 +92,6 @@ internal class MavenPlugin : ReposilitePlugin() {
             }
         }
 
-        val afterHandlers = listOf<Handler>() // idk, custom handlers defined through plugin API
-
-        event { event: HttpServerInitializationEvent ->
-            event.javalin.javalinServlet().addLifecycleStages(Stage("after-without-errors", tasksInitialization = { submitTask ->
-                submitTask {
-                    afterHandlers.forEach { handler ->
-                        handler.handle(this.ctx)
-                    }
-                }
-            }))
-        }
-
         return mavenFacade
     }
 }

@@ -46,7 +46,7 @@ internal class ProxyService(private val journalist: Journalist): Journalist {
             .filter {(_, config) -> isAllowed(config, gav) }
             .map { fetch(it) }
             .firstOrNull { it.isOk }
-            ?: notFoundError("Cannot find $gav in remote repositories")
+            ?: notFoundError("Cannot find '$gav' in remote repositories")
 
     private fun isAllowed(config: ProxiedHostConfiguration, gav: Location): Boolean =
         config.allowedGroups.isEmpty() ||

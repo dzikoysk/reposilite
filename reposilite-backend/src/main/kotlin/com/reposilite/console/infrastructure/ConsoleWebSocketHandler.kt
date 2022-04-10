@@ -47,7 +47,8 @@ internal class CliEndpoint(
 
     @OpenApi(
         path = "/api/console/sock",
-        methods = [HttpMethod.PATCH]
+        methods = [HttpMethod.PATCH],
+        tags = ["Console"]
     )
     override fun accept(ws: WsConfig) {
         ws.onConnect { connection ->

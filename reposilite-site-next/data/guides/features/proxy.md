@@ -1,4 +1,0 @@
----
-id: proxy
-title: Proxy
----

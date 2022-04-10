@@ -1,4 +1,0 @@
----
-id: endpoints
-title: Endpoints
----

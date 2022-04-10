@@ -31,6 +31,41 @@ import org.junit.jupiter.params.provider.ValueSource
 internal abstract class MavenApiIntegrationTest : MavenIntegrationSpecification() {
 
     @ValueSource(strings = [
+        "api/maven/versions",
+        "api/maven/latest/version",
+        "api/maven/latest/details",
+        "api/maven/latest/file",
+    ])
+    @ParameterizedTest
+    fun `should find latest version`(endpoint: String) {
+        // given: a path to the existing artifact
+        val latestVersion = "1.0.3"
+        val (repository, metadata) = useMetadata("private", "com", "reposilite", versions = listOf("1.0.1", "1.0.2", latestVersion))
+        val (_) = useDocument(repository, "${metadata.groupId}/${metadata.artifactId}/$latestVersion", "${metadata.artifactId}-$latestVersion-fat.panda", "content", true)
+        val artifactPath = "private/com/reposilite"
+        val apiPath = "$base/$endpoint/$artifactPath?extension=panda&classifier=fat"
+
+        // when: user requests the latest version with invalid credentials
+        val unauthorizedResponse = get(apiPath)
+            .basicAuth("invalid", "invalid-secret")
+            .asString()
+
+        // then: service rejects request
+        assertEquals(UNAUTHORIZED.status, unauthorizedResponse.status)
+
+        // given: valid credentials
+        val (name, secret) = useAuth("name", "secret", routes = mapOf("/$artifactPath" to READ))
+
+        // when: user requests the latest version with invalid credentials
+        val response = get(apiPath)
+            .basicAuth(name, secret)
+            .asString()
+
+        // then: the request should succeed
+        assertTrue(response.isSuccess)
+    }
+
+    @ValueSource(strings = [
         "/api/maven/details/private",
         "/api/maven/details/private/gav",
         "/api/maven/details/private/gav/artifact.jar",
@@ -57,42 +92,6 @@ internal abstract class MavenApiIntegrationTest : MavenIntegrationSpecification(
             .asString()
 
         // then: service responds with file details
-        println(response.body)
-        assertTrue(response.isSuccess)
-    }
-
-    @ValueSource(strings = [
-        "api/maven/versions",
-        "api/maven/latest/version",
-        "api/maven/latest/details",
-        "api/maven/latest/file",
-    ])
-    @ParameterizedTest
-    fun `should find latest version`(endpoint: String) {
-        // given: a path to the existing artifact
-        val latestVersion = "1.0.3"
-        val (repository, metadata) = useMetadata("private", "com", "reposilite", versions = listOf("1.0.1", "1.0.2", latestVersion))
-        val (_) = useDocument(repository, "${metadata.groupId}/${metadata.artifactId}/$latestVersion", "${metadata.artifactId}-$latestVersion.jar", "content", true)
-        val artifactPath = "private/com/reposilite"
-        val apiPath = "$base/$endpoint/$artifactPath"
-
-        // when: user requests the latest version with invalid credentials
-        val unauthorizedResponse = get(apiPath)
-            .basicAuth("invalid", "invalid-secret")
-            .asString()
-
-        // then: service rejects request
-        assertEquals(UNAUTHORIZED.status, unauthorizedResponse.status)
-
-        // given: valid credentials
-        val (name, secret) = useAuth("name", "secret", routes = mapOf("/$artifactPath" to READ))
-
-        // when: user requests the latest version with invalid credentials
-        val response = get(apiPath)
-            .basicAuth(name, secret)
-            .asString()
-
-        // then: the request should succeed
         assertTrue(response.isSuccess)
     }
 

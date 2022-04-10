@@ -1,4 +1,0 @@
----
-id: ldap
-title: LDAP
----

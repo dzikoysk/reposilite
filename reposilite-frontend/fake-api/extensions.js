@@ -43,7 +43,7 @@ const createFileDetails = (name, contentType, contentLength) =>
 const createDirectoryDetails = (name, files) =>
   ({ type: 'DIRECTORY', name, files })
 
-module.exports = [
+module.exports = {
   respond,
   basicAuth,
   authorized,
@@ -51,4 +51,4 @@ module.exports = [
   sendMessage,
   createFileDetails,
   createDirectoryDetails,
-]
+}

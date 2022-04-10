@@ -39,16 +39,15 @@ import com.reposilite.storage.api.DocumentInfo
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.FileType.DIRECTORY
 import com.reposilite.storage.api.Location
+import com.reposilite.storage.api.toLocation
 import com.reposilite.token.AccessTokenIdentifier
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
 import com.reposilite.web.http.notFound
 import com.reposilite.web.http.notFoundError
-import com.reposilite.web.http.unauthorized
 import com.reposilite.web.http.unauthorizedError
 import io.javalin.http.HttpCode.BAD_REQUEST
 import panda.std.Result
-import panda.std.asError
 import panda.std.asSuccess
 import panda.std.reactive.Reference
 import java.io.InputStream
@@ -81,7 +80,9 @@ class MavenFacade internal constructor(
     fun findDetails(lookupRequest: LookupRequest): Result<out FileDetails, ErrorResponse> =
         resolve(lookupRequest) { repository, gav ->
             if (repository.exists(gav).not()) {
-                return@resolve proxyService.findRemoteDetails(repository, lookupRequest.gav)
+                return@resolve proxyService
+                    .findRemoteDetails(repository, lookupRequest.gav)
+                    .mapErr { notFound("Cannot find ${lookupRequest.gav} in local and remote repositories") }
             }
 
             return@resolve repository.getFileDetails(gav)
@@ -107,6 +108,46 @@ class MavenFacade internal constructor(
                 proxyService.findRemoteFile(repository, lookupRequest.gav)
             }
         }
+
+    fun interface MatchedVersionHandler<T> {
+        fun onMatch(request: LookupRequest): Result<T, ErrorResponse>
+    }
+
+    fun <T> findLatestArtifact(
+        accessToken: AccessTokenIdentifier?,
+        repository: String,
+        gav: Location,
+        extension: String,
+        classifier: String?,
+        filter: String?,
+        request: MatchedVersionHandler<T>
+    ): Result<T, ErrorResponse> =
+        findLatest(VersionLookupRequest(accessToken, repository, gav, filter))
+            .map { (isSnapshot, version) ->
+                val suffix = version + (if (classifier != null) "-$classifier" else "") + "." + extension
+
+                if (isSnapshot)
+                    version to "$gav/${gav.locationBeforeLast("/", "").locationAfterLast("/", "")}-$suffix".toLocation()
+                else
+                    version to "$gav/$version/${gav.locationAfterLast("/", "")}-$suffix".toLocation()
+            }
+            .flatMap { (version, file) ->
+                request.onMatch(LookupRequest(accessToken, repository, file))
+                    .flatMapErr {
+                        if (version.contains("-SNAPSHOT", ignoreCase = true))
+                            findLatestArtifact(
+                                accessToken = accessToken,
+                                repository = repository,
+                                gav = "$gav/$version".toLocation(),
+                                extension = extension,
+                                classifier = classifier,
+                                filter = filter,
+                                request = request
+                            )
+                        else
+                            Result.error(it)
+                    }
+            }
 
     private fun <T> resolve(lookupRequest: LookupRequest, block: (Repository, Location) -> Result<out T, ErrorResponse>): Result<out T, ErrorResponse> {
         val (accessToken, repositoryName, gav) = lookupRequest

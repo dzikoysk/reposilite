@@ -1,4 +1,0 @@
----
-id: support
-title: Support
----

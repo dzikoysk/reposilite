@@ -61,10 +61,10 @@ For huge public repositories you can adjust memory limit and even size of used t
 
 ```bash
 # Launching a standalone JAR file
-$ java -Xmx16M -jar reposilite-3.0.0-alpha.22.jar
+$ java -Xmx16M -jar reposilite-3.0.0-alpha.23.jar
 
 # Using a Docker
-$ docker pull dzikoysk/reposilite:3.0.0-alpha.22
+$ docker pull dzikoysk/reposilite:3.0.0-alpha.23
 ```
 
 Visit official guide to read more about extra parameters and configuration details.
@@ -82,16 +82,30 @@ Users' stories
 Thanks to all contributors and people that decided to donate the project ❤️
 
 <table>
- <tr><td>Monthly</td><td><a href="https://github.com/sponsors/dzikoysk">GitHub Sponsors</a></td></tr>
+ <tr>
+  <td>
+   Monthly (<a href="https://github.com/sponsors/dzikoysk">GitHub Sponsors</a>
+  </td>
+  <td>
+    <a href="https://github.com/Koressi">Koressi</a>, 
+    <a href="https://github.com/milkyway0308">milkyway0308</a>, 
+    <a href="https://github.com/insertt">insertt</a>, 
+    <a href="https://github.com/neg4n">neg4n</a>, 
+    <a href="https://github.com/EthanDevelops">EthanDevelops</a>, 
+    <a href="https://github.com/sebba-dev">sebba-dev</a>
+  </td>
+ </tr>
  <tr>
   <td>One time</td>
   <td>
    <a href="https://github.com/zzmgck">zzmgck</a> with $190, 
+   <a href="https://github.com/maxant">maxant</a> with $25,
    <a href="https://github.com/milkyway0308">milkyway0308</a> with $20,
    <a href="https://github.com/alexwhb">alexwhb</a> with $15, 
    <a href="https://github.com/escv">escv</a> with $10,
    <a href="https://github.com/EthanDevelops">EthanDevelops</a> with $6, 
-   Rob with $5
+   Rob with $5,
+   <a href="https://github.com/FlawCra">FlawCra</a> with $2
   </td>
  </tr>
 </table>

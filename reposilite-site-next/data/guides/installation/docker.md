@@ -1,4 +1,0 @@
----
-id: docker
-title: Docker
----
