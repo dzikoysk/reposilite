@@ -17,6 +17,7 @@
 package com.reposilite.settings
 
 import com.reposilite.settings.specification.SettingsSpecification
+import org.junit.jupiter.api.Test
 
 internal class SettingsFacadeTest : SettingsSpecification() {
 
@@ -38,5 +39,10 @@ internal class SettingsFacadeTest : SettingsSpecification() {
 //            assertEquals(this, configurationFromRepository())
 //        }
 //    }
+
+    @Test
+    fun `should generate scheme`() {
+        settingsFacade.getSchema("")
+    }
 
 }

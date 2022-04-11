@@ -36,7 +36,7 @@ internal abstract class SettingsSpecification {
     protected lateinit var workingDirectory: File
 
     private val localConfiguration = LocalConfiguration()
-    private lateinit var settingsFacade: SettingsFacade
+    protected lateinit var settingsFacade: SettingsFacade
 
     @BeforeEach
     fun prepare() {

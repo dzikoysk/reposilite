@@ -52,7 +52,7 @@ class SettingsService(
     fun getSchema(name: String): Result<JsonNode, ErrorResponse> =
         getHandler(name).map { it.schema }
 
-    fun getHandler(name: String): Result<SettingsHandler<*>, ErrorResponse> =
+    private fun getHandler(name: String): Result<SettingsHandler<*>, ErrorResponse> =
         configHandlers[name]
             ?.asSuccess()
             ?: notFoundError("No configuration with name '$name' found")
