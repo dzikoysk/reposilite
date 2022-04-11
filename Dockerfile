@@ -22,8 +22,16 @@ LABEL org.label-schema.build-date=$BUILD_DATE \
 FROM openjdk:18-slim
 RUN mkdir -p /app/data
 VOLUME /app/data
-WORKDIR /app/data
+WORKDIR /app
 COPY --from=build /home/reposilite-build/reposilite-backend/build/libs/reposilite-3*.jar ../reposilite.jar
-RUN addgroup --gid 999 reposilite && adduser --system -uid 999 --ingroup reposilite reposilite && chgrp reposilite /app/data
+RUN addgroup --gid 999 reposilite && adduser --system -uid 999 --ingroup reposilite reposilite && chgrp reposilite /app
 USER reposilite
-ENTRYPOINT exec java $JAVA_OPTS -jar ../reposilite.jar -wd=/app/data $REPOSILITE_OPTS
+ENTRYPOINT exec java $JAVA_OPTS \
+    # Move log files to /var/log/reposilite
+    -Dtinylog.writerFile.file="/var/log/reposilite/log_{date}.txt" \
+    -Dtinylog.writerFile.latest="/var/log/reposilite/latest.log" \
+    # Launch Reposilite archive from build phase
+    -jar ../reposilite.jar \
+    # Reposilite arguments
+    --working-directory=/app/data \
+    $REPOSILITE_OPTS
