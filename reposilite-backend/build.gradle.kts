@@ -72,7 +72,7 @@ dependencies {
     implementation("mysql:mysql-connector-java:8.0.28")
     implementation("org.mariadb.jdbc:mariadb-java-client:3.0.4")
     implementation("org.postgresql:postgresql:42.3.3")
-    implementation("com.h2database:h2:2.1.210")
+    implementation("com.h2database:h2:2.1.212")
 
     val springSecurityCrypto = "5.6.2"
     implementation("org.springframework.security:spring-security-crypto:$springSecurityCrypto")
