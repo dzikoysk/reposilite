@@ -18,6 +18,7 @@
 
 package com.reposilite.storage
 
+import com.reposilite.storage.api.DirectoryInfo
 import com.reposilite.storage.api.DocumentInfo
 import com.reposilite.storage.api.FileType.FILE
 import com.reposilite.storage.api.toLocation
@@ -81,6 +82,27 @@ internal abstract class StorageProviderIntegrationTest : StorageProviderSpecific
         assertEquals(resource.getSimpleName(), fileDetails.name)
         assertEquals(content.size.toLong(), fileDetails.contentLength)
         assertEquals(APPLICATION_JAR, fileDetails.contentType)
+    }
+
+    @Test
+    fun `should list entries in directory`() {
+        // given: a storage provider with multiple files in multiple directories
+        mapOf(
+            "/a/a.jar" to "a in a content",
+            "/a/b.jar" to "b in a content",
+            "/a/c/a.jar" to "a in c content",
+            "/b/a.jar" to "a in b content",
+            "/b/b.jar" to "b in b content"
+        ).forEach { (location, content) ->
+            storageProvider.putFile(location.toLocation(), content.toByteArray().inputStream())
+        }
+
+        // when: file details are requested
+        val response = storageProvider.getFileDetails("/a".toLocation())
+
+        // then: response should contain directory details with list of subnames
+        val fileDetails = assertOk(response) as DirectoryInfo
+        assertEquals(listOf("c", "a.jar", "b.jar"), fileDetails.files.map { it.name })
     }
 
 }
