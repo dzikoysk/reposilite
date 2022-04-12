@@ -58,7 +58,7 @@ dependencies {
     implementation("software.amazon.awssdk:s3:$awssdk")
     testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.196")
 
-    val exposed = "0.37.3"
+    val exposed = "0.38.1"
     implementation("org.jetbrains.exposed:exposed-core:$exposed")
     implementation("org.jetbrains.exposed:exposed-dao:$exposed")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposed")
@@ -90,9 +90,10 @@ dependencies {
     api("com.reposilite.javalin-rfcs:javalin-routing:$javalinRfcs")
 
     @Suppress("GradlePackageUpdate")
-    //implementation("io.javalin:javalin:4.1.1")
+    //api("io.javalin:javalin:4.1.1")
     // api("com.github.dzikoysk.javalin:javalin:97b4481c0a")
-    api("com.github.tipsy.javalin:javalin:d00c8512c9")
+    // api("com.github.tipsy.javalin:javalin:d00c8512c9")
+    api("io.javalin:javalin:4.5.0.RC0")
 
     @Suppress("GradlePackageUpdate")
     implementation("org.eclipse.jetty:jetty-server:9.4.46.v20220331")
