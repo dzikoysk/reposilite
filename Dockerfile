@@ -28,6 +28,9 @@ VOLUME /app/data
 WORKDIR /app
 COPY --from=build /home/reposilite-build/reposilite-backend/build/libs/reposilite-3*.jar reposilite.jar
 COPY --from=build /home/reposilite-build/entrypoint.sh entrypoint.sh
-RUN apt-get update && apt-get -y install util-linux && addgroup --gid 999 reposilite && adduser --system -uid 999 --ingroup reposilite --shell /bin/sh reposilite
+RUN apt-get update && \
+    apt-get -y install util-linux && \
+    addgroup --gid 999 reposilite && \
+    adduser --system -uid 999 --ingroup reposilite --shell /bin/sh reposilite
 ENTRYPOINT ["/bin/sh", "entrypoint.sh"]
 CMD []
