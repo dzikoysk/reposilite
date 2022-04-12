@@ -27,6 +27,7 @@ import com.reposilite.shared.extensions.newFixedThreadPool
 import com.reposilite.shared.extensions.newSingleThreadScheduledExecutor
 import com.reposilite.web.HttpServer
 import panda.utilities.console.Effect
+import kotlin.io.path.absolutePathString
 
 object ReposiliteFactory {
 
@@ -43,8 +44,9 @@ object ReposiliteFactory {
         journalist.logger.info("")
         journalist.logger.info("--- Environment")
         journalist.logger.info("Platform: ${System.getProperty("java.version")} (${System.getProperty("os.name")} :: ${System.getProperty("os.arch")})")
+        journalist.logger.info("Running as: ${System.getProperty("user.name")}")
         journalist.logger.info("Working directory: ${parameters.workingDirectory.toAbsolutePath()}")
-        journalist.logger.info("Configuration: ${parameters.localConfigurationFile}")
+        journalist.logger.info("Configuration: ${parameters.localConfigurationPath.absolutePathString()}")
         journalist.logger.info("Threads: ${localConfiguration.webThreadPool.get()} WEB / ${localConfiguration.ioThreadPool.get()} IO / ${localConfiguration.databaseThreadPool.get()} DB")
         if (parameters.testEnv) journalist.logger.info("Test environment enabled")
 
