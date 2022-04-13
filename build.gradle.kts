@@ -19,7 +19,7 @@ plugins {
     application
     `maven-publish`
 
-    val kotlinVersion = "1.6.10"
+    val kotlinVersion = "1.6.20"
     kotlin("jvm") version kotlinVersion
     kotlin("kapt") version kotlinVersion
 }
@@ -37,7 +37,7 @@ allprojects {
 }
 
 subprojects {
-    version = "3.0.0-alpha.23"
+    version = "3.0.0-alpha.24"
 
     apply(plugin = "java-library")
     apply(plugin = "application")

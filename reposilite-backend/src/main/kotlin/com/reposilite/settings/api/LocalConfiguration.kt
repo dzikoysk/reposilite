@@ -43,7 +43,7 @@ class LocalConfiguration : Serializable {
     val hostname = reference("0.0.0.0")
 
     @Description("# Port to bind")
-    val port = reference(80)
+    val port = reference(8080)
 
     /* Database */
 
