@@ -79,38 +79,49 @@ Users' stories
 * [Looking for simple repository manager by David Kihato](https://kihats.medium.com/custom-self-hosted-maven-repository-cbb778031f68)
 
 ### Supporters
-Thanks to all contributors and people that decided to donate the project ❤️
+Thanks to all contributors and people that decided to support my work financially ❤️
 
 <table>
  <tr>
   <td>
-   Monthly (<a href="https://github.com/sponsors/dzikoysk">GitHub Sponsors</a>
+   <a href="https://github.com/sponsors/dzikoysk">Still active GitHub Sponsors</a>
   </td>
   <td>
-    <a href="https://github.com/Koressi">Koressi</a>, 
-    <a href="https://github.com/milkyway0308">milkyway0308</a>, 
+    <a href="https://github.com/tipsy">tipsy</a>, 
+    <a href="https://github.com/Koressi">Koressi</a>,
     <a href="https://github.com/insertt">insertt</a>, 
+    <a href="https://github.com/milkyway0308">milkyway0308</a>, 
     <a href="https://github.com/neg4n">neg4n</a>, 
-    <a href="https://github.com/EthanDevelops">EthanDevelops</a>, 
     <a href="https://github.com/sebba-dev">sebba-dev</a>
   </td>
  </tr>
  <tr>
-  <td>One time</td>
+  <td>All time</td>
   <td>
-   <a href="https://github.com/zzmgck">zzmgck</a> with $190, 
-   <a href="https://github.com/maxant">maxant</a> with $25,
-   <a href="https://github.com/milkyway0308">milkyway0308</a> with $20,
-   <a href="https://github.com/alexwhb">alexwhb</a> with $15, 
-   <a href="https://github.com/escv">escv</a> with $10,
-   <a href="https://github.com/EthanDevelops">EthanDevelops</a> with $6, 
-   Rob with $5,
-   <a href="https://github.com/FlawCra">FlawCra</a> with $2
+   <a href="https://github.com/zzmgck">zzmgck</a>, 
+   <a href="https://github.com/tipsy">tipsy</a>, 
+   <a href="https://github.com/Koressi">Koressi</a>,
+   <a href="https://github.com/insertt">insertt</a>, 
+   <a href="https://github.com/insertt">bmstefanski</a>, 
+   <a href="https://github.com/milkyway0308">milkyway0308</a>,
+   <a href="https://github.com/maxant">maxant</a>,
+   <a href="https://github.com/alexwhb">alexwhb</a>, 
+   <a href="https://github.com/kay">Douglas Lawrie</a>,
+   <a href="https://github.com/neg4n">neg4n</a>,
+   <a href="https://github.com/crejk">crejk</a>,
+   <a href="https://github.com/EthanDevelops">EthanDevelops</a>, 
+   <a href="https://github.com/escv">escv</a>,
+   <a href="https://github.com/shitzuu">shitzuu</a>,
+   <a href="https://github.com/peter-jerry-ye">peter-jerry-ye</a>,
+   Rob,
+   <a href="https://github.com/FlawCra">FlawCra</a>,
+   <a href="https://github.com/sebba-dev">sebba-dev</a>,
+   <a href="https://github.com/mufinlive">mufinlive</a>
   </td>
  </tr>
 </table>
 
-And maybe someday... also you will `\(^-^)/`
+`\(^-^)/` The list is updated periodically and entries are sorted by aggregated total payment size of the given person.
 
 ### For developers
 
