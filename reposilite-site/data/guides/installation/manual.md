@@ -39,7 +39,7 @@ Read more about tokens and token management commands in [Guide / Tokens](/guide/
 ### Web interface
 
 If Reposilite has been launched properly,
-you should be able to see its frontend located under the default http://localhost:80/#/ address.
+you should be able to see its frontend located under the default http://localhost:8080/#/ address.
 
 ![Web Interface Preview](/images/guides/web-interface-preview.png)
 
