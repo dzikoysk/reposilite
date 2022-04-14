@@ -5,7 +5,7 @@ WORKDIR /home/reposilite-build
 RUN \
   export GRADLE_OPTS="-Djdk.lang.Process.launchMechanism=vfork" && \
   chmod +x gradlew && \
-  ./gradlew :reposilite-backend:shadowJar --no-daemon --stacktrace --exclude-task :reposilite-backend:integrationTest
+  ./gradlew :reposilite-backend:shadowJar --no-daemon --stacktrace
 
 # Build-time metadata stage
 ARG BUILD_DATE
