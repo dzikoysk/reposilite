@@ -155,7 +155,7 @@ sourceSets.main {
 tasks.withType<KotlinCompile>().configureEach {
     kotlinOptions {
         languageVersion = "1.6"
-        jvmTarget = "1.8"
+        jvmTarget = "11"
 
         // For generating default methods in interfaces
         freeCompilerArgs = listOf("-Xjvm-default=all")
