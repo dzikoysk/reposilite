@@ -20,7 +20,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 group = "com.reposilite.plugins"
 
 plugins {
-    id("com.github.johnrengelman.shadow") version "7.1.1"
+    id("com.github.johnrengelman.shadow") version "7.1.2"
     kotlin("jvm")
 }
 
@@ -35,6 +35,7 @@ dependencies {
 
 tasks.withType<KotlinCompile>().configureEach {
     kotlinOptions {
+        jvmTarget = "11"
         freeCompilerArgs = listOf("-Xjvm-default=all")
     }
 }
