@@ -52,9 +52,9 @@ internal class FileSystemConfigurationProvider<C : Any>(
     override fun initialize() {
         journalist?.logger?.info("Loading ${displayName.lowercase()} from local file")
 
-        load(Source.of(configurationFile))
+        /*load(Source.of(configurationFile))
             .peek { journalist?.logger?.info("$displayName has been loaded from local file") }
-            .orElseThrow()
+            .orElseThrow()*/// TODO reimplement loading without cdn
     }
 
     override fun registerWatcher(scheduler: ScheduledExecutorService) {
@@ -92,10 +92,10 @@ internal class FileSystemConfigurationProvider<C : Any>(
 
     override fun update(name: String, content: String): Result<Unit, ErrorResponse> =
         when (name) {
-            name -> load(Source.of(content))
+            /*name -> load(Source.of(content))
                 .peek { journalist?.logger?.info("Updating ${displayName.lowercase()} in local source") }
                 .mapToUnit()
-                .mapErr { ErrorResponse(INTERNAL_SERVER_ERROR, "Cannot load configuration") }
+                .mapErr { ErrorResponse(INTERNAL_SERVER_ERROR, "Cannot load configuration") }*/// fixme
             else -> errorResponse(BAD_REQUEST, "Unknown ${displayName.lowercase()}: $name")
         }
 
