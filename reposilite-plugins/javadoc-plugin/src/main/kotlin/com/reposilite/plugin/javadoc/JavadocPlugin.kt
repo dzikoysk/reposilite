@@ -24,6 +24,7 @@ import com.reposilite.plugin.event
 import com.reposilite.plugin.javadoc.infrastructure.JavadocEndpoints
 import com.reposilite.web.api.RoutingSetupEvent
 
+/*fixme
 @Plugin(name = "javadoc")
 internal class JavadocPlugin : ReposilitePlugin() {
 
@@ -39,4 +40,4 @@ internal class JavadocPlugin : ReposilitePlugin() {
         return facade
     }
 
-}
+}*/
