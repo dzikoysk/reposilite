@@ -38,6 +38,10 @@ java {
     withSourcesJar()
 }
 
+sourceSets.main {
+    java.srcDirs("src/main/kotlin")
+}
+
 dependencies {
     implementation(project(":reposilite-frontend"))
 
@@ -152,41 +156,6 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-engine:$junit")
 }
 
-sourceSets.main {
-    java.srcDirs("src/main/kotlin")
-}
-
-tasks.withType<KotlinCompile>().configureEach {
-    kotlinOptions {
-        languageVersion = "1.6"
-        jvmTarget = "11"
-
-        // For generating default methods in interfaces
-        freeCompilerArgs = listOf("-Xjvm-default=all")
-    }
-}
-
-publishing {
-    publications {
-        create<MavenPublication>("library") {
-            from(components.getByName("java"))
-            artifactId = "reposilite"
-            // Gradle generator does not support <repositories> section from Maven specification.
-            // ~ https://github.com/gradle/gradle/issues/15932
-            pom.withXml {
-                val repositories = asNode().appendNode("repositories")
-                project.repositories.findAll(closureOf<Any> {
-                    if (this is MavenArtifactRepository && this.url.toString().startsWith("https")) {
-                        val repository = repositories.appendNode("repository")
-                        repository.appendNode("id", this.name)
-                        repository.appendNode("url", this.url.toString())
-                    }
-                })
-            }
-        }
-    }
-}
-
 tasks.withType<ShadowJar> {
     archiveFileName.set("reposilite-${archiveVersion.get()}.jar")
     mergeServiceFiles()
@@ -215,6 +184,35 @@ kapt {
     }
 }
 
+publishing {
+    publications {
+        create<MavenPublication>("library") {
+            from(components.getByName("java"))
+            artifactId = "reposilite"
+            // Gradle generator does not support <repositories> section from Maven specification.
+            // ~ https://github.com/gradle/gradle/issues/15932
+            pom.withXml {
+                val repositories = asNode().appendNode("repositories")
+                project.repositories.findAll(closureOf<Any> {
+                    if (this is MavenArtifactRepository && this.url.toString().startsWith("https")) {
+                        val repository = repositories.appendNode("repository")
+                        repository.appendNode("id", this.name)
+                        repository.appendNode("url", this.url.toString())
+                    }
+                })
+            }
+        }
+    }
+}
+
+tasks.withType<KotlinCompile>().configureEach {
+    kotlinOptions {
+        languageVersion = "1.6"
+        jvmTarget = "11"
+        freeCompilerArgs = listOf("-Xjvm-default=all") // For generating default methods in interfaces
+    }
+}
+
 tasks.withType<Test> {
     testLogging {
         events(
@@ -230,11 +228,11 @@ tasks.withType<Test> {
         showStandardStreams = true
     }
 
-    useJUnitPlatform()
-
     maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2)
         .takeIf { it > 0 }
         ?: 1
+
+    useJUnitPlatform()
 }
 
 jacoco {
@@ -291,11 +289,12 @@ val testCoverage by tasks.registering {
     description = "Runs the unit tests with coverage"
 
     dependsOn(
-        ":test",
-        ":jacocoTestReport",
-        ":jacocoTestCoverageVerification"
+        ":reposilite-backend:test",
+        ":reposilite-backend:integrationTest",
+        ":reposilite-backend:jacocoTestReport",
+        ":reposilite-backend:jacocoTestCoverageVerification"
     )
 
-    tasks["jacocoTestReport"].mustRunAfter(tasks["test"])
+    tasks["jacocoTestReport"].mustRunAfter(tasks["testAll"])
     tasks["jacocoTestCoverageVerification"].mustRunAfter(tasks["jacocoTestReport"])
 }
