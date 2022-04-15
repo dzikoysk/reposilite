@@ -4,7 +4,7 @@
   "scripts": {
     "dev": "vite",
     "eslint": "eslint src/**",
-    "build": "vite build && git add --all ../reposilite-backend/src/main/resources/reposilite-frontend/",
+    "build": "vite build",
     "serve": "vite preview",
     "fake-api": "nodemon fake-api/fake-reposilite-backend.js",
     "full": "concurrently -k \"npm run fake-api\" \"vite\""

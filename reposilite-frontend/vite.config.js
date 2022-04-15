@@ -32,6 +32,6 @@ export default defineConfig({
       : '/',
   build: {
     emptyOutDir: true,
-    outDir: '../reposilite-backend/src/main/resources/reposilite-frontend'
+    outDir: 'build/frontend/reposilite-frontend'
   }
 })
