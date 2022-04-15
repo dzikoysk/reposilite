@@ -50,7 +50,7 @@ fun createSharedConfigurationSchemaGenerator(): SchemaGenerator {
 
     return createStandardSchemaGenerator(
         SettingsModule(
-            subtypeResolvers =  listOf(storageSubtypeResolver),
+            subtypeResolvers = listOf(storageSubtypeResolver),
             enumResolvers = listOf(storageEnumResolver)
         )
     )

@@ -86,7 +86,7 @@ internal class ConsolePlugin : ReposilitePlugin() {
         }
 
         if (reposilite.parameters.testEnv.not()) {
-            event { event: ReposiliteStartedEvent ->
+            event { _: ReposiliteStartedEvent ->
                 reposilite.ioService.execute {
                     consoleFacade.executeCommand("help")
                     logger.info("")
