@@ -39,6 +39,8 @@ java {
 }
 
 dependencies {
+    implementation(project(":reposilite-frontend"))
+
     val kotlin = "1.6.20"
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin")
