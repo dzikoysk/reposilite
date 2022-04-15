@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import axios from 'axios'
-import usePlaceholders from '../store/placeholders'
+import axios from 'axios';
+import usePlaceholders from '../store/placeholders';
 
 const { baseUrl } = usePlaceholders()
 
@@ -42,15 +42,14 @@ const createClient = (defaultName, defaultSecret) => {
         ...(credentials || defaultAuthorization()).headers
       },
     })
-  
-  const client = {
+
+  return {
     auth: {
       me() {
         return get("/api/auth/me")
       }
     },
-    console: {
-    },
+    console: {},
     maven: {
       content(gav) {
         return get(`/${gav}`)
@@ -78,30 +77,42 @@ const createClient = (defaultName, defaultSecret) => {
     },
     schema: {
       get(name) {
-        return axios.get(`/api/schema/${name}`, { headers: {
-          'Accepts': 'application/json',
-          ...defaultAuthorization().headers
-        }})
+        return axios.get(createURL(`/api/schema/${name}`), {
+          headers: {
+            'Accepts': 'application/json',
+            ...defaultAuthorization().headers
+          }
+        })
       }
     },
     config: {
+      list() {
+        return axios.get(createURL('/api/configuration'), {
+          headers: {
+            'Accepts': 'application/json',
+            ...defaultAuthorization().headers
+          }
+        })
+      },
       get(name) {
-        return axios.get(createURL(`/api/configuration/${name}`), { headers: {
-          'Accepts': 'application/json',
-          ...defaultAuthorization().headers
-        }})
+        return axios.get(createURL(`/api/configuration/${name}`), {
+          headers: {
+            'Accepts': 'application/json',
+            ...defaultAuthorization().headers
+          }
+        })
       },
       put(name, content) {
-        return axios.put(createURL(`/api/configuration/${name}`), content, { headers: {
-          'Content-Type': 'application/json',
-          'Accepts': 'application/json',
-          ...defaultAuthorization().headers
-        }})
+        return axios.put(createURL(`/api/configuration/${name}`), content, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accepts': 'application/json',
+            ...defaultAuthorization().headers
+          }
+        })
       }
     }
   }
-  
-  return client
 }
   
 export {

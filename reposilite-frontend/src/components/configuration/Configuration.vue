@@ -15,32 +15,93 @@
   -->
   
 <script setup>
-import { ref, shallowRef } from 'vue'
-import { useSession } from '../../store/session'
-import { createToast } from 'mosha-vue-toastify'
-import {JsonForms} from '@jsonforms/vue';
-import {createAjv} from '@jsonforms/core';
-import { defaultStyles, mergeStyles, vanillaRenderers } from '@jsonforms/vue-vanilla'
+import {ref} from 'vue'
+import {useSession} from '../../store/session'
+import {createToast} from 'mosha-vue-toastify'
+import {vanillaRenderers} from '@jsonforms/vue-vanilla'
+import {createAjv} from '@jsonforms/core'
+import {JsonForms} from '@jsonforms/vue'
+import {Tabs, Tab, TabPanels, TabPanel} from 'vue3-tabs'
 
-import data from '../../shared-config.json'
-import schema from '../../shared-config-schema.json'
-import uiSchema from '../../shared-config-ui-schema.json'
+const { client } = useSession()
+const configuration = ref({})
+const configurations = ref({})
+const configurationSchema = ref({})
+const selectedConfig = ref('')
+
+const getSchema = async (name) => {
+  try {
+    return (await client.value.schema.get(name)).data
+  } catch (e) {
+    createToast(`${e || ''}`, { type: 'danger' })
+  }
+}
+const listConfigs = async () => {
+  try {
+    return (await client.value.config.list()).data
+  } catch (e) {
+    createToast(`${e || ''}`, { type: 'danger' })
+  }
+}
+
+const getConfig = async (name) => {
+  try {
+    return (await client.value.config.get(name)).data
+  } catch (e) {
+    createToast(`${e || ''}`, { type: 'danger' })
+  }
+}
+
+const updateConfig = async (name, value) => {
+  try {
+    return (await client.value.config.put(name, value)).data
+  } catch (e) {
+    createToast(`${e || ''}`, { type: 'danger' })
+  }
+}
+
+const fetchConfiguration = async () => {
+  const confs = {}
+  const schemas = {}
+  configurations.value = await listConfigs()
+  for (const conf of Object.keys(configurations.value)) {
+    confs[conf] = await getConfig(conf)
+    schemas[conf] = await getSchema(conf)
+  }
+  configuration.value = confs
+  configurationSchema.value = schemas
+  selectedConfig.value = Object.keys(confs)[0]
+}
+
+const updateConfiguration = async () => {
+  const confs = {}
+  for (const conf of Object.keys(configuration.value)) {
+    confs[conf] = await updateConfig(conf, configuration.value[conf])
+  }
+  configuration.value = confs
+}
+
+fetchConfiguration().then()
+
+const configs = () => Object.keys(configuration.value)
+const config = (name) => configuration.value[name]
+const configSchema = (name) => configurationSchema.value[name]
+const configName = (name) => configurationSchema.value[name].title
 
 const renderers = [
   ...vanillaRenderers
 ]
 
-const ajvOptions = {
+const ajv = createAjv({
   'formats': {
     'storage-quota': /^([1-9]\d*)([KkMmGg][Bb]|%)$/,
     'maven-artifact-group': /^(\w+\.)*\w+$/,
     'repository-name': {
       type: 'string',
-      validate: (name) => name in configuration.value.repositories
+      validate: (name) => name in configuration.value['maven_repositories']
     }
   }
-}
-const ajv = createAjv(ajvOptions)
+})
 </script>
 
 <template>
@@ -59,18 +120,41 @@ const ajv = createAjv(ajvOptions)
         </button>
       </div>
     </div>
-    <div class="border-1 rounded p-4 dark:border-gray-700">
-      <JsonForms
-        :data="data"
-        :schema="schema" 
-        :uischema="uiSchema"
-        :renderers="renderers"
-        :ajv="ajv" 
-      />
-    </div>
+    <Tabs v-model="selectedConfig">
+      <Tab v-for="cfg in configs()"
+           class="item"
+           :key="`config:${cfg}`"
+           :val="cfg"
+           :label="configName(cfg)"
+           :indicator="true"/>
+    </Tabs>
+    <TabPanels v-model="selectedConfig">
+      <TabPanel v-for="cfg in configs()" :val="cfg" :key="`config_tab:${cfg}`" class="border-1 rounded dark:border-gray-700 p-4">
+        <JsonForms
+          :data="config(cfg)"
+          :schema="configSchema(cfg)"
+          :renderers="renderers"
+          :ajv="ajv"
+        />
+      </TabPanel>
+    </TabPanels>
   </div>
 </template>
 
+<!--suppress CssInvalidAtRule -->
+<style scoped>
+.item {
+  @apply pb-1;
+  @apply pt-1.5;
+  @apply cursor-pointer;
+  @apply text-gray-600 dark:text-gray-300;
+  @apply bg-gray-100 dark:bg-black;
+}
+.tabs .item:hover {
+  @apply bg-gray-150 dark:bg-gray-900;
+  transition: background-color 0.5s;
+}
+</style>
 <!--suppress CssInvalidAtRule -->
 <style>
 #configuration-state button {
@@ -79,10 +163,26 @@ const ajv = createAjv(ajvOptions)
 .vertical-layout, .group-layout {
   @apply container mx-auto;
 }
-.vertical-layout .vertical-layout-item .control input:not([type=checkbox]) {
-  @apply mx-2 rounded text-sm h-9 px-4 text-black;
+.control .input:not([type=checkbox]) {
+  @apply text-sm h-9 px-4 text-black;
 }
-.vertical-layout .vertical-layout-item .control>.description {
+.control .input[type="checkbox"] {
+  @apply h-5 w-5;
+}
+.control .input {
+  @apply mx-2 rounded;
+}
+.description {
   display: none;
+}
+.vertical-layout {
+  display: flex;
+  gap: 1rem;
+  flex-direction: column;
+}
+.label {
+  padding-bottom: 0.5em;
+  padding-left: 0.5em;
+  display: inline-block;
 }
 </style>

@@ -21,6 +21,7 @@ import Header from '../components/header/Header.vue'
 import Browser from '../components/browser/FileBrowser.vue'
 import Configuration from '../components/configuration/Configuration.vue'
 import Console from '../components/Console.vue'
+import {Tabs, Tab, TabPanels, TabPanel} from 'vue3-tabs';
 
 defineProps({
   qualifier: {
@@ -55,8 +56,8 @@ const menuTabs = computed(() =>
     <Header />
     <div class="bg-gray-100 dark:bg-black">
       <div class="container mx-auto <sm:px-0">
-        <tabs v-model="selectedTab.value">
-          <tab
+        <Tabs v-model="selectedTab.value">
+          <Tab
             v-for="(tab, i) in menuTabs"
             class="item font-normal"
             :key="`menu${i}`"
@@ -64,21 +65,21 @@ const menuTabs = computed(() =>
             :label="tab"
             :indicator="true"
           />
-        </tabs>
+        </Tabs>
       </div>
       <hr class="dark:border-gray-700">
       <div class="overflow-auto">
-        <tab-panels v-model="selectedTab.value" :animate="true">
-          <tab-panel :val="'Overview'">
+        <TabPanels v-model="selectedTab.value" :animate="true">
+          <TabPanel :val="'Overview'">
             <Browser :qualifier="qualifier" ref=""/>
-          </tab-panel>
-          <tab-panel :val="'Console'" v-if="isManager">
+          </TabPanel>
+          <TabPanel :val="'Console'" v-if="isManager">
             <Console :selectedTab="selectedTab" />
-          </tab-panel>
-           <tab-panel :val="'Configuration'" v-if="isManager">
+          </TabPanel>
+           <TabPanel :val="'Configuration'" v-if="isManager">
             <Configuration :selectedTab="selectedTab" />
-          </tab-panel>
-        </tab-panels>
+          </TabPanel>
+        </TabPanels>
       </div>
     </div>
   </div>

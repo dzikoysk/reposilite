@@ -31,6 +31,22 @@ import io.javalin.openapi.OpenApiResponse
 internal class SettingsEndpoints(private val settingsFacade: SettingsFacade) : ReposiliteRoutes() {
 
     @OpenApi(
+        path = "/api/configuration",
+        methods = [HttpMethod.GET],
+        tags = ["Settings"],
+        summary = "List configurations",
+        responses = [
+            OpenApiResponse(status = "200", description = "Returns list of configuration names"),
+            OpenApiResponse(status = "401", description = "Returns 401 if token without moderation permission has been used to access this resource")
+        ]
+    )
+    private val listConfigurations = ReposiliteRoute<Map<String, String>>("/api/configuration", GET) {
+        managerOnly {
+            response = settingsFacade.listSettings()
+        }
+    }
+
+    @OpenApi(
         path = "/api/configuration/{name}",
         methods = [HttpMethod.GET],
         tags = ["Settings"],
@@ -92,12 +108,12 @@ internal class SettingsEndpoints(private val settingsFacade: SettingsFacade) : R
             OpenApiResponse(status = "404", description = "Returns 404 if non-existing configuration schema is requested")
         ]
     )
-    private val getSchema = ReposiliteRoute<Any>("/api/schema/{name}", GET) {
+    private val getSchema = ReposiliteRoute<JsonNode>("/api/schema/{name}", GET) {
         managerOnly {
             response = settingsFacade.getSchema(requireParameter("name"))
         }
     }
 
-    override val routes = routes(getConfiguration, updateConfiguration, getSchema)
+    override val routes = routes(listConfigurations, getConfiguration, updateConfiguration, getSchema)
 
 }
