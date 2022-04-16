@@ -33,6 +33,7 @@ import com.reposilite.shared.ContextDsl
 import com.reposilite.shared.extensions.ContentTypeSerializer
 import com.reposilite.status.FailureFacade
 import com.reposilite.token.AccessTokenFacade
+import com.reposilite.web.api.HttpServerConfigurationEvent
 import com.reposilite.web.api.RoutingSetupEvent
 import com.reposilite.web.http.extractFromHeaders
 import com.reposilite.web.http.response
@@ -43,8 +44,6 @@ import io.javalin.core.compression.CompressionStrategy
 import io.javalin.http.ContentType
 import io.javalin.openapi.plugin.OpenApiConfiguration
 import io.javalin.openapi.plugin.OpenApiPlugin
-import io.javalin.openapi.plugin.swagger.SwaggerConfiguration
-import io.javalin.openapi.plugin.swagger.SwaggerPlugin
 import io.javalin.plugin.json.JavalinJackson
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
@@ -57,6 +56,7 @@ internal object JavalinConfiguration {
     internal fun configure(reposilite: Reposilite, webThreadPool: ThreadPool, config: JavalinConfig) {
         val server = Server(webThreadPool)
         config.server { server }
+        reposilite.extensions.emitEvent(HttpServerConfigurationEvent(reposilite, config))
 
         val settingsFacade = reposilite.extensions.facade<SettingsFacade>()
         val localConfiguration = settingsFacade.localConfiguration
@@ -171,10 +171,6 @@ internal object JavalinConfiguration {
             openApiConfiguration.description = frontendSettings.description
             openApiConfiguration.version = VERSION
             config.registerPlugin(OpenApiPlugin(openApiConfiguration))
-
-            val swaggerConfiguration = SwaggerConfiguration()
-            swaggerConfiguration.title = openApiConfiguration.title
-            config.registerPlugin(SwaggerPlugin(swaggerConfiguration))
         }
     }
 

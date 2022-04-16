@@ -14,27 +14,27 @@
  * limitations under the License.
  */
 
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 group = "com.reposilite.plugins"
 
 plugins {
-    kotlin("jvm")
     id("com.github.johnrengelman.shadow") version "7.1.2"
+    kotlin("jvm")
 }
 
 application {
-    mainClass.set("com.reposilite.plugin.groovy.GroovyPluginKt")
+    mainClass.set("com.reposilite.plugin.swagger.SwaggerPluginKt")
 }
 
 dependencies {
     compileOnly(project(":reposilite-backend"))
-    implementation("org.apache.groovy:groovy:4.0.0-rc-1")
+    implementation("io.javalin-rfc:javalin-swagger-plugin:1.1.3")
 }
 
 tasks.withType<ShadowJar> {
-    archiveFileName.set("groovy-plugin.jar")
+    archiveFileName.set("swagger-plugin.jar")
     destinationDirectory.set(file("$rootDir/reposilite-backend/src/test/workspace/plugins"))
     mergeServiceFiles()
 }

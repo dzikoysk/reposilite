@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 /*
  * Copyright (c) 2022 dzikoysk
  *
@@ -27,12 +29,12 @@ plugins {
 allprojects {
     repositories {
         mavenCentral()
-        maven { url = uri("https://repo.panda-lang.org/releases") }
-        maven { url = uri("https://jitpack.io") }
         // maven {
         //     url = uri("http://localhost/releases")
         //     isAllowInsecureProtocol = true
         // }
+        maven { url = uri("https://repo.panda-lang.org/releases") }
+        maven { url = uri("https://jitpack.io") }
     }
 }
 
@@ -44,8 +46,25 @@ subprojects {
     apply(plugin = "maven-publish")
 
     java {
+        withJavadocJar()
+        withSourcesJar()
+    }
+
+    sourceSets.main {
+        java.srcDirs("src/main/kotlin")
+    }
+
+    java {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+    }
+
+    tasks.withType<KotlinCompile>().configureEach {
+        kotlinOptions {
+            jvmTarget = "11"
+            languageVersion = "1.6"
+            freeCompilerArgs = listOf("-Xjvm-default=all") // For generating default methods in interfaces
+        }
     }
 
     publishing {

@@ -33,15 +33,6 @@ application {
     mainClass.set("com.reposilite.ReposiliteLauncherKt")
 }
 
-java {
-    withJavadocJar()
-    withSourcesJar()
-}
-
-sourceSets.main {
-    java.srcDirs("src/main/kotlin")
-}
-
 dependencies {
     implementation(project(":reposilite-frontend"))
 
@@ -56,8 +47,8 @@ dependencies {
     testImplementation("org.panda-lang:expressible-junit:$expressible")
 
     val cdn = "1.13.20"
-    implementation("net.dzikoysk:cdn:$cdn")
-    implementation("net.dzikoysk:cdn-kt:$cdn")
+    api("net.dzikoysk:cdn:$cdn")
+    api("net.dzikoysk:cdn-kt:$cdn")
 
     val awssdk = "2.17.167"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
@@ -89,7 +80,6 @@ dependencies {
     val openapi = "1.1.5"
     kapt("io.javalin-rfc:openapi-annotation-processor:$openapi")
     implementation("io.javalin-rfc:javalin-openapi-plugin:$openapi")
-    implementation("io.javalin-rfc:javalin-swagger-plugin:$openapi")
 
     val javalinRfcs = "4.1.0"
     api("com.reposilite.javalin-rfcs:javalin-context:$javalinRfcs")
@@ -202,14 +192,6 @@ publishing {
                 })
             }
         }
-    }
-}
-
-tasks.withType<KotlinCompile>().configureEach {
-    kotlinOptions {
-        languageVersion = "1.6"
-        jvmTarget = "11"
-        freeCompilerArgs = listOf("-Xjvm-default=all") // For generating default methods in interfaces
     }
 }
 
