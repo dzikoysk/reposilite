@@ -77,7 +77,7 @@ dependencies {
     val ldap = "6.0.4"
     testImplementation("com.unboundid:unboundid-ldapsdk:$ldap")
 
-    val openapi = "1.1.6"
+    val openapi = "1.1.7"
     kapt("io.javalin-rfc:openapi-annotation-processor:$openapi") {
         exclude(group = "ch.qos.logback")
     }
