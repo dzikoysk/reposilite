@@ -77,8 +77,10 @@ dependencies {
     val ldap = "6.0.4"
     testImplementation("com.unboundid:unboundid-ldapsdk:$ldap")
 
-    val openapi = "1.1.5"
-    kapt("io.javalin-rfc:openapi-annotation-processor:$openapi")
+    val openapi = "1.1.6"
+    kapt("io.javalin-rfc:openapi-annotation-processor:$openapi") {
+        exclude(group = "ch.qos.logback")
+    }
     implementation("io.javalin-rfc:javalin-openapi-plugin:$openapi")
 
     val javalinRfcs = "4.1.0"
@@ -94,7 +96,7 @@ dependencies {
     @Suppress("GradlePackageUpdate")
     implementation("org.eclipse.jetty:jetty-server:9.4.46.v20220331")
 
-    implementation("com.github.victools:jsonschema-generator:4.23.0")
+    implementation("com.github.victools:jsonschema-generator:4.24.2")
 
     val picocli = "4.6.3"
     kapt("info.picocli:picocli-codegen:$picocli")

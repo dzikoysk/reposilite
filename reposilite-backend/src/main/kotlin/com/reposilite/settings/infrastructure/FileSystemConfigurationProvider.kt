@@ -90,6 +90,7 @@ internal class FileSystemConfigurationProvider<C : Any>(
         cdn.render(configuration)
             .mapErr { ErrorResponse(INTERNAL_SERVER_ERROR, "Cannot render ${displayName.lowercase()}: ${it.message}") }
 
+    @Suppress("UNUSED_EXPRESSION")
     override fun update(name: String, content: String): Result<Unit, ErrorResponse> =
         when (name) {
             /*name -> load(Source.of(content))

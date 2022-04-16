@@ -112,7 +112,6 @@ internal abstract class MavenSpecification {
         )
 
         val workingDirectoryPath = workingDirectory!!.toPath()
-        val parameters = ReposiliteParameters().also { it.workingDirectory = workingDirectoryPath }
         val repositories = mutableReference(repositories())
         val securityProvider = RepositorySecurityProvider(accessTokenFacade)
         val storageFacade = StorageFacade()

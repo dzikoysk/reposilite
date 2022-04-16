@@ -67,7 +67,7 @@ internal object JavalinConfiguration {
         configureJsonSerialization(config)
         configureSSL(reposilite, localConfiguration, config, server)
         configureCors(config)
-        configureOpenApi(config, webSettings.get(), frontendSettings.get())
+        configureOpenApi(config, frontendSettings.get())
         configureDebug(reposilite, localConfiguration, config)
         configureReactiveRoutingPlugin(config, reposilite)
     }
@@ -164,14 +164,12 @@ internal object JavalinConfiguration {
         config.enableCorsForAllOrigins()
     }
 
-    private fun configureOpenApi(config: JavalinConfig, webSettings: WebSettings, frontendSettings: FrontendSettings) {
-        if (webSettings.swagger) {
-            val openApiConfiguration = OpenApiConfiguration() // TOFIX: Support dynamic configuration of Swagger integration
-            openApiConfiguration.title = frontendSettings.title
-            openApiConfiguration.description = frontendSettings.description
-            openApiConfiguration.version = VERSION
-            config.registerPlugin(OpenApiPlugin(openApiConfiguration))
-        }
+    private fun configureOpenApi(config: JavalinConfig, frontendSettings: FrontendSettings) {
+        val openApiConfiguration = OpenApiConfiguration()
+        openApiConfiguration.title = frontendSettings.title
+        openApiConfiguration.description = frontendSettings.description
+        openApiConfiguration.version = VERSION
+        config.registerPlugin(OpenApiPlugin(openApiConfiguration))
     }
 
     private fun configureDebug(journalist: Journalist, localConfiguration: LocalConfiguration, config: JavalinConfig) {
