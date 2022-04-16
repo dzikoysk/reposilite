@@ -19,6 +19,9 @@ package com.reposilite.web.api
 import com.reposilite.Reposilite
 import com.reposilite.plugin.api.Event
 import io.javalin.Javalin
+import io.javalin.core.JavalinConfig
+
+class HttpServerConfigurationEvent(val reposilite: Reposilite, val javalinConfig: JavalinConfig) : Event
 
 class HttpServerInitializationEvent(val reposilite: Reposilite, val javalin: Javalin) : Event
 
