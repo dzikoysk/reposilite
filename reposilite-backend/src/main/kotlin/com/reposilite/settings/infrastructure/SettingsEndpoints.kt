@@ -40,7 +40,7 @@ internal class SettingsEndpoints(private val settingsFacade: SettingsFacade) : R
             OpenApiResponse(status = "401", description = "Returns 401 if token without moderation permission has been used to access this resource")
         ]
     )
-    private val listConfigurations = ReposiliteRoute<Map<String, String>>("/api/configuration", GET) {
+    private val listConfigurations = ReposiliteRoute<Collection<String>>("/api/configuration", GET) {
         managerOnly {
             response = settingsFacade.listSettings()
         }

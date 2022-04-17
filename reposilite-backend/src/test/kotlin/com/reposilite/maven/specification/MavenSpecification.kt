@@ -80,7 +80,7 @@ internal abstract class MavenSpecification {
     private val failureFacade = FailureFacade(logger)
     private val accessTokenFacade = AccessTokenFacade(logger, InMemoryAccessTokenRepository(), InMemoryAccessTokenRepository())
 
-    protected abstract fun repositories(): Map<String, RepositorySettings>
+    protected abstract fun repositories(): List<RepositorySettings>
 
     @BeforeEach
     private fun initializeFacade() {

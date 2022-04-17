@@ -75,7 +75,7 @@ class SettingsFacade internal constructor(
     fun getSettingsClass(name: String): Result<Class<*>, ErrorResponse> =
         settingsService.getClass(name)
 
-    fun listSettings(): Result<Map<String, String>, ErrorResponse> =
+    fun listSettings(): Result<Collection<String>, ErrorResponse> =
         Result.ok(settingsService.listSettings())
 
     fun shutdownProviders() =

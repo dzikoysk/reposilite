@@ -33,8 +33,8 @@ internal class PreservedBuildsListenerTest : MavenSpecification() {
     private lateinit var preservedBuildsListener: PreservedBuildsListener
     private val repositoryName = "snapshots"
 
-    override fun repositories() = linkedMapOf(
-        repositoryName to RepositorySettings(preserved = 2)
+    override fun repositories() = listOf(
+        RepositorySettings(repositoryName, preserved = 2)
     )
 
     @BeforeEach

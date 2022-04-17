@@ -45,11 +45,11 @@ import panda.std.component4
 
 internal class MavenFacadeTest : MavenSpecification() {
 
-    override fun repositories() = linkedMapOf(
-        PRIVATE.name to RepositorySettings(visibility = PRIVATE),
-        HIDDEN.name to RepositorySettings(visibility = HIDDEN),
-        PUBLIC.name to RepositorySettings(visibility = PUBLIC),
-        "PROXIED" to RepositorySettings(visibility = PUBLIC, proxied = mutableListOf(
+    override fun repositories() = listOf(
+         RepositorySettings(PRIVATE.name, visibility = PRIVATE),
+         RepositorySettings(HIDDEN.name, visibility = HIDDEN),
+         RepositorySettings(PUBLIC.name, visibility = PUBLIC),
+         RepositorySettings("PROXIED", visibility = PUBLIC, proxied = mutableListOf(
             ProxiedRepository(REMOTE_REPOSITORY, store = true, authorization = REMOTE_AUTH),
             ProxiedRepository(REMOTE_REPOSITORY_WITH_WHITELIST, allowedGroups = listOf("do.allow"))
         ))

@@ -28,7 +28,7 @@ internal class RepositoryProvider(
     private val remoteClientProvider: RemoteClientProvider,
     private val failureFacade: FailureFacade,
     private val storageFacade: StorageFacade,
-    repositoriesSource: Reference<Map<String, RepositorySettings>>,
+    repositoriesSource: Reference<List<RepositorySettings>>,
 ) {
 
     private var repositories: Map<String, Repository>
@@ -42,9 +42,9 @@ internal class RepositoryProvider(
         }
     }
 
-    private fun createRepositories(repositoriesConfiguration: Map<String, RepositorySettings>): Map<String, Repository> =
-        RepositoryFactory(workingDirectory, remoteClientProvider, this, failureFacade, storageFacade, repositoriesConfiguration.keys)
-            .let { repositoriesConfiguration.mapValues { (name, configuration) -> it.createRepository(name, configuration) } }
+    private fun createRepositories(repositoriesConfiguration: List<RepositorySettings>): Map<String, Repository> =
+        RepositoryFactory(workingDirectory, remoteClientProvider, this, failureFacade, storageFacade, repositoriesConfiguration.map { it.id })
+            .let { repositoriesConfiguration.associate { configuration -> configuration.id to it.createRepository(configuration.id, configuration) } }
 
     fun getRepositories(): Map<String, Repository> =
         repositories

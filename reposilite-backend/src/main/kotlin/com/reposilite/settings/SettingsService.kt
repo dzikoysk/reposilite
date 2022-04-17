@@ -63,9 +63,7 @@ class SettingsService(
         return this.get()
     }
 
-    fun listSettings(): Map<String, String> =
-        configHandlers.mapValues { it.value.type.getAnnotation(Doc::class.java).title }
-
+    fun listSettings(): Collection<String> = configHandlers.keys
 }
 
 private fun String.sanitizeURLParam(): String {

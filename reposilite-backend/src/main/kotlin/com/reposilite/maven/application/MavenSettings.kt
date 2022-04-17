@@ -15,19 +15,23 @@ import net.dzikoysk.cdn.entity.CustomComposer
 @Contextual
 @Doc(title = "Maven Repositories", description = "Repositories settings")
 data class MavenSettings(
+    /** List of Maven repositories. */
     @Doc(title = "Repositories", description = "List of Maven repositories.")
-    val repositories: Map<String, RepositorySettings> = mapOf(
-        "releases" to RepositorySettings(),
-        "snapshots" to RepositorySettings(),
-        "private" to RepositorySettings(visibility = PRIVATE)
+    val repositories: List<RepositorySettings> = listOf(
+        RepositorySettings("releases"),
+        RepositorySettings("snapshots"),
+        RepositorySettings("private", visibility = PRIVATE)
     )
 )
 
 @Contextual
 @Doc(title = "Maven Repository", description = "Settings for a given repository.")
 data class RepositorySettings(
-    /** The visibility of this repository */
-    @Doc(title = "Visibility", description = "The visibility of this repository")
+    /** The id of this repository. */
+    @Doc(title = "Id", description = "The id of this repository.")
+    val id: String,
+    /** The visibility of this repository. */
+    @Doc(title = "Visibility", description = "The visibility of this repository.")
     val visibility: RepositoryVisibility = PUBLIC,
     /** Does this repository accept redeployment of the same artifact version. */
     @Doc(title = "Redeployment", description = "Does this repository accept redeployment of the same artifact version.")
@@ -46,7 +50,7 @@ data class RepositorySettings(
 
     init {
         require(preserved >= -1L) { "Number of preserved snapshot builds cannot be smaller than -1 (now: $preserved)" }
-        require(preserved != 0) { "Number of preserved snapshot builds has to be greater than 0" }
+        require(preserved != 0) { "Number of preserved snapshot builds has to be greater than 0 or -1 to make unlimited" }
     }
 
 }

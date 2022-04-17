@@ -104,18 +104,19 @@ internal abstract class ReposiliteRunner {
 
         settingsFacade.getDomainSettings<MavenSettings>().update { old ->
             val proxiedConfiguration = RepositorySettings(
+                "proxied",
                 proxied = mutableListOf(ProxiedRepository("http://localhost:${parameters.port + 1}/releases"))
             )
 
             return@update old.copy(
-                repositories = old.repositories.toMutableMap()
+                repositories = old.repositories.associateBy { it.id }.toMutableMap()
                     .also { repositories -> repositories["proxied"] = proxiedConfiguration }
                     .mapValues { (_, repositoryConfiguration) ->
                         repositoryConfiguration.copy(
                             redeployment = true,
                             storageProvider = _storageProvider!!,
                         )
-                    }
+                    }.values.toList()
             )
         }
 
