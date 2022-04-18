@@ -25,6 +25,7 @@ import {Tabs, Tab, TabPanels, TabPanel} from 'vue3-tabs'
 import { default as ObjectRenderer, tester as objectTester } from './renderers/ObjectRenderer.vue'
 import { default as AllOfRenderer, tester as allOfTester } from './renderers/AllOfRenderer.vue'
 import { default as OneOfRenderer, tester as oneOfTester } from './renderers/OneOfRenderer.vue'
+import { default as ConstantRenderer, tester as constantTester } from './renderers/ConstantRenderer.vue'
 
 const { client } = useSession()
 const configuration = ref({})
@@ -104,7 +105,8 @@ const renderers = [
   ...vanillaRenderers,
   {tester: objectTester, renderer: ObjectRenderer},
   {tester: allOfTester, renderer: AllOfRenderer},
-  {tester: oneOfTester, renderer: OneOfRenderer}
+  {tester: oneOfTester, renderer: OneOfRenderer},
+  {tester: constantTester, renderer: ConstantRenderer}
 ]
 
 const ajv = computed(() => createAjv({
