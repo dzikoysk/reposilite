@@ -1,6 +1,9 @@
 package com.reposilite.settings
 
 import com.fasterxml.classmate.ResolvedType
+import com.fasterxml.jackson.databind.node.ArrayNode
+import com.fasterxml.jackson.databind.node.ObjectNode
+import com.github.victools.jsonschema.generator.CustomDefinition
 import com.github.victools.jsonschema.generator.FieldScope
 import com.github.victools.jsonschema.generator.MemberScope
 import com.github.victools.jsonschema.generator.MethodScope
@@ -24,6 +27,7 @@ import com.github.victools.jsonschema.generator.OptionPreset
 import com.github.victools.jsonschema.generator.SchemaGenerationContext
 import com.github.victools.jsonschema.generator.SchemaGenerator
 import com.github.victools.jsonschema.generator.SchemaGeneratorConfigBuilder
+import com.github.victools.jsonschema.generator.SchemaKeyword
 import com.github.victools.jsonschema.generator.SchemaVersion.DRAFT_7
 import com.github.victools.jsonschema.generator.TypeScope
 import com.reposilite.settings.api.Doc
@@ -33,6 +37,7 @@ import com.reposilite.settings.api.Range
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.memberProperties
+
 
 val SCHEMA_OPTION_PRESET = OptionPreset(
     SCHEMA_VERSION_INDICATOR,
@@ -66,8 +71,18 @@ class SettingsModule(
 ) : Module {
 
     override fun applyToConfigBuilder(builder: SchemaGeneratorConfigBuilder) {
-        builder.forTypesInGeneral().withSubtypeResolver { declaredType, context ->
-            subtypeResolvers.firstNotNullOfOrNull { it.resolve(declaredType, context) }
+        builder.forTypesInGeneral().withCustomDefinitionProvider { declaredType, context ->
+            val subtypes = subtypeResolvers.firstNotNullOfOrNull { it.resolve(declaredType, context) } ?: return@withCustomDefinitionProvider null
+            val definition: ObjectNode = context.generatorConfig.createObjectNode()
+            val subtypeArray: ArrayNode = definition.withArray(context.getKeyword(SchemaKeyword.TAG_ONEOF))
+            subtypes.forEach { subtype ->
+                subtypeArray.add(context.createDefinition(subtype))
+            }
+            return@withCustomDefinitionProvider CustomDefinition(
+                definition,
+                CustomDefinition.DefinitionType.STANDARD,
+                CustomDefinition.AttributeInclusion.NO
+            )
         }
 
         builder.forFields().withEnumResolver {
