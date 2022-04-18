@@ -21,7 +21,7 @@ import Header from '../components/header/Header.vue'
 import Browser from '../components/browser/FileBrowser.vue'
 import Configuration from '../components/configuration/Configuration.vue'
 import Console from '../components/Console.vue'
-import {Tabs, Tab, TabPanels, TabPanel} from 'vue3-tabs';
+import {Tabs, Tab, TabPanels, TabPanel} from 'vue3-tabs'
 
 defineProps({
   qualifier: {

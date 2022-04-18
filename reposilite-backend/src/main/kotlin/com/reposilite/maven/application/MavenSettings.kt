@@ -20,7 +20,8 @@ data class MavenSettings(
     val repositories: List<RepositorySettings> = listOf(
         RepositorySettings("releases"),
         RepositorySettings("snapshots"),
-        RepositorySettings("private", visibility = PRIVATE)
+        RepositorySettings("private", visibility = PRIVATE),
+//        RepositorySettings("private2", visibility = PRIVATE, proxied = listOf(ProxiedRepository("private")))
     )
 )
 

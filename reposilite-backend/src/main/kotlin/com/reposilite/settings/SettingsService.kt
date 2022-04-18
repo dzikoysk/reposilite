@@ -1,6 +1,8 @@
 package com.reposilite.settings
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.node.ArrayNode
+import com.fasterxml.jackson.databind.node.ObjectNode
 import com.github.victools.jsonschema.generator.SchemaGenerator
 import com.reposilite.settings.api.Doc
 import com.reposilite.settings.api.SettingsHandler
@@ -28,10 +30,32 @@ class SettingsService(
         registerSettingsWatcher(object : SettingsHandler<T> {
             override val name = type.getAnnotation(Doc::class.java).title.sanitizeURLParam()
             override val type = type
-            override val schema = schemaGenerator.generateSchema(type)
+            override val schema = schemaGenerator.generateSchema(type).also { cleanup(it)}
             override fun get(): T = getter.get()
             override fun update(value: T) = setter.accept(value)
         })
+
+    private fun cleanup(node: JsonNode) {
+        when (node) {
+            is ObjectNode -> {
+                if (node.has("items") && node.get("items").isObject && node.get("items").has("allOf") && node.get("items").get("allOf").isArray && node.get("items").get("allOf").size() == 2) {
+                    if (!node.get("items").get("allOf").get(1).has("type")) {
+                        node.set<JsonNode>("items", node.get("items").get("allOf").get(0))
+                    } else if (!node.get("items").get("allOf").get(0).has("type")) {
+                        node.set<JsonNode>("items", node.get("items").get("allOf").get(1))
+                    }
+                }
+                node.fields().forEach {
+                    cleanup(it.value)
+                }
+            }
+            is ArrayNode -> {
+                node.forEach {
+                    cleanup(it)
+                }
+            }
+        }
+    }
 
     @Suppress("MoveLambdaOutsideParentheses")
     fun <T> registerSettingsWatcher(type: Class<T>, reference: MutableReference<T>): SettingsHandler<T> =

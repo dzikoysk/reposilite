@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import axios from 'axios';
-import usePlaceholders from '../store/placeholders';
+import axios from 'axios'
+import usePlaceholders from '../store/placeholders'
 
 const { baseUrl } = usePlaceholders()
 
@@ -65,14 +65,6 @@ const createClient = (defaultName, defaultSecret) => {
       },
       deploy(gav, file) {
         return put(`/${gav}`, file)
-      }
-    },
-    settings: {
-      content(name) {
-        return get(`/api/settings/content/${name}`)
-      },
-      updateContent(name, content) {
-        return put(`/api/settings/content/${name}`, content)
       }
     },
     schema: {

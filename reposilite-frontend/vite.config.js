@@ -35,12 +35,6 @@ export default defineConfig({
     emptyOutDir: true,
     outDir: 'build/frontend/reposilite-frontend'
   },
-  define: {
-    'process.env': {}, // hack so the json schema ref parser does not error
-    'process.platform': {}, // hack so the json schema ref parser does not error
-    'process.nextTick': {}, // hack so the json schema ref parser does not error
-    'global.process': {} // hack so the json schema ref parser does not error
-  },
   css: {
     preprocessorOptions: {
       css: {
@@ -54,7 +48,7 @@ export default defineConfig({
           AtRule: {
             charset: (atRule) => {
               if (atRule.name === 'charset') {
-                atRule.remove();
+                atRule.remove()
               }
             }
           }

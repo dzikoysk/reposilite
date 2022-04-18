@@ -15,18 +15,20 @@
   -->
   
 <script setup>
-import {ref} from 'vue'
+import {computed, ref, shallowRef} from 'vue'
 import {useSession} from '../../store/session'
 import {createToast} from 'mosha-vue-toastify'
-import {vanillaRenderers} from '@jsonforms/vue-vanilla'
 import {createAjv} from '@jsonforms/core'
 import {JsonForms} from '@jsonforms/vue'
+import {vanillaRenderers} from '@jsonforms/vue-vanilla'
 import {Tabs, Tab, TabPanels, TabPanel} from 'vue3-tabs'
+import { default as ObjectRenderer, tester as objectTester } from './renderers/ObjectRenderer.vue'
+import { default as AllOfRenderer, tester as allOfTester } from './renderers/AllOfRenderer.vue'
 
 const { client } = useSession()
 const configuration = ref({})
-const configurations = ref({})
-const configurationSchema = ref({})
+const configurations = shallowRef([])
+const configurationSchema = shallowRef({})
 const selectedConfig = ref('')
 
 const getSchema = async (name) => {
@@ -64,44 +66,55 @@ const fetchConfiguration = async () => {
   const confs = {}
   const schemas = {}
   configurations.value = await listConfigs()
-  for (const conf of Object.keys(configurations.value)) {
+  for (const conf of configurations.value) {
     confs[conf] = await getConfig(conf)
     schemas[conf] = await getSchema(conf)
   }
   configuration.value = confs
   configurationSchema.value = schemas
-  selectedConfig.value = Object.keys(confs)[0]
+  selectedConfig.value = configurations.value[0]
+  createToast('Configuration loaded', { type: 'success' })
 }
 
 const updateConfiguration = async () => {
   const confs = {}
-  for (const conf of Object.keys(configuration.value)) {
-    confs[conf] = await updateConfig(conf, configuration.value[conf])
+  const errored = []
+  for (const conf of configurations.value) {
+    const newValue = await updateConfig(conf, configuration.value[conf])
+    if (newValue) {
+      confs[conf] = newValue
+    } else {
+      errored.push(conf)
+    }
   }
   configuration.value = confs
+  if (errored.length > 0) {
+    createToast(`Failed to update ${errored.join(', ')}`, { type: 'danger' })
+  } else {
+    createToast('Configuration updated', { type: 'success' })
+  }
 }
 
-fetchConfiguration().then()
-
-const configs = () => Object.keys(configuration.value)
-const config = (name) => configuration.value[name]
-const configSchema = (name) => configurationSchema.value[name]
-const configName = (name) => configurationSchema.value[name].title
+fetchConfiguration().then(() => {
+  configurations.value.forEach(value => console.log(value, configurationSchema.value[value]))
+})
 
 const renderers = [
-  ...vanillaRenderers
+  ...vanillaRenderers,
+  {tester: objectTester, renderer: ObjectRenderer},
+  {tester: allOfTester, renderer: AllOfRenderer}
 ]
 
-const ajv = createAjv({
+const ajv = computed(() => createAjv({
   'formats': {
     'storage-quota': /^([1-9]\d*)([KkMmGg][Bb]|%)$/,
     'maven-artifact-group': /^(\w+\.)*\w+$/,
     'repository-name': {
       type: 'string',
-      validate: (name) => name in configuration.value['maven_repositories']
+      validate: (name) => name in configuration.value['maven_repositories'].repositories
     }
   }
-})
+}))
 </script>
 
 <template>
@@ -121,20 +134,21 @@ const ajv = createAjv({
       </div>
     </div>
     <Tabs v-model="selectedConfig">
-      <Tab v-for="cfg in configs()"
+      <Tab v-for="cfg in configurations"
            class="item"
            :key="`config:${cfg}`"
            :val="cfg"
-           :label="configName(cfg)"
+           :label="configurationSchema[cfg]?.title"
            :indicator="true"/>
     </Tabs>
     <TabPanels v-model="selectedConfig">
-      <TabPanel v-for="cfg in configs()" :val="cfg" :key="`config_tab:${cfg}`" class="border-1 rounded dark:border-gray-700 p-4">
+      <TabPanel v-for="cfg in configurations" :val="cfg" :key="`config_tab:${cfg}`" class="border-1 rounded dark:border-gray-700 p-4">
         <JsonForms
-          :data="config(cfg)"
-          :schema="configSchema(cfg)"
-          :renderers="renderers"
-          :ajv="ajv"
+            v-if="configuration[cfg]"
+            :data="configuration[cfg]"
+            :schema="configurationSchema[cfg]"
+            :renderers="renderers"
+            :ajv="ajv"
         />
       </TabPanel>
     </TabPanels>
@@ -163,26 +177,54 @@ const ajv = createAjv({
 .vertical-layout, .group-layout {
   @apply container mx-auto;
 }
-.control .input:not([type=checkbox]) {
+.control .input:not([type=checkbox]), .control .select {
   @apply text-sm h-9 px-4 text-black;
 }
 .control .input[type="checkbox"] {
   @apply h-5 w-5;
 }
-.control .input {
+.control .input, .control .select {
   @apply mx-2 rounded;
+}
+.control .select {
+  @apply pr-8;
 }
 .description {
   display: none;
 }
-.vertical-layout {
-  display: flex;
+.vertical-layout, .group, .array-list {
+  @apply flex flex-col;
   gap: 1rem;
-  flex-direction: column;
 }
 .label {
   padding-bottom: 0.5em;
   padding-left: 0.5em;
   display: inline-block;
+}
+.array-list-item-content>div {
+  @apply flex flex-row;
+}
+.array-list-item-label {
+  margin-right: auto;
+}
+.array-list-item-toolbar {
+  @apply flex flex-row align-items-baseline;
+  display: flex;
+  align-items: baseline;
+}
+.array-list-item-toolbar>button {
+  padding: 0.5rem;
+}
+.array-list-legend {
+  @apply flex flex-row gap-2;
+}
+.array-list-add {
+  @apply rounded-full h-6 w-6 line-height-6 bg-blue-500;
+}
+.array-list-item-move-up {
+  display: none;
+}
+.array-list-item-move-down {
+  display: none;
 }
 </style>

@@ -20,13 +20,16 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.reposilite.settings.SettingsFacade
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
+import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.routing.RouteMethod.GET
 import com.reposilite.web.routing.RouteMethod.PUT
+import io.javalin.http.HttpCode
 import io.javalin.openapi.HttpMethod
 import io.javalin.openapi.OpenApi
 import io.javalin.openapi.OpenApiContent
 import io.javalin.openapi.OpenApiParam
 import io.javalin.openapi.OpenApiResponse
+import panda.std.asError
 
 internal class SettingsEndpoints(private val settingsFacade: SettingsFacade) : ReposiliteRoutes() {
 
@@ -82,9 +85,13 @@ internal class SettingsEndpoints(private val settingsFacade: SettingsFacade) : R
     private val updateConfiguration = ReposiliteRoute<Any>("/api/configuration/{name}", PUT) {
         managerOnly {
             with(requireParameter("name")) {
-                response = settingsFacade
-                    .getSettingsClass(this)
-                    .flatMap { settingsFacade.updateSettings(this, ctx.bodyAsClass(it)) }
+                response = if (ctx.body().isEmpty()) {
+                    ErrorResponse(HttpCode.BAD_REQUEST, "Body is empty").asError()
+                } else {
+                    settingsFacade
+                        .getSettingsClass(this)
+                        .flatMap { settingsFacade.updateSettings(this, ctx.bodyAsClass(it)) }
+                }
             }
         }
     }

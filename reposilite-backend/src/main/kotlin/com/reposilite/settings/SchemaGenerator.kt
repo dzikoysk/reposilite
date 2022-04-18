@@ -2,11 +2,11 @@ package com.reposilite.settings
 
 import com.fasterxml.classmate.ResolvedType
 import com.github.victools.jsonschema.generator.FieldScope
+import com.github.victools.jsonschema.generator.MemberScope
 import com.github.victools.jsonschema.generator.MethodScope
 import com.github.victools.jsonschema.generator.Module
 import com.github.victools.jsonschema.generator.Option.ADDITIONAL_FIXED_TYPES
 import com.github.victools.jsonschema.generator.Option.ALLOF_CLEANUP_AT_THE_END
-import com.github.victools.jsonschema.generator.Option.DEFINITIONS_FOR_ALL_OBJECTS
 import com.github.victools.jsonschema.generator.Option.EXTRA_OPEN_API_FORMAT_VALUES
 import com.github.victools.jsonschema.generator.Option.FIELDS_DERIVED_FROM_ARGUMENTFREE_METHODS
 import com.github.victools.jsonschema.generator.Option.FLATTENED_ENUMS
@@ -49,8 +49,7 @@ val SCHEMA_OPTION_PRESET = OptionPreset(
     EXTRA_OPEN_API_FORMAT_VALUES,
     FIELDS_DERIVED_FROM_ARGUMENTFREE_METHODS,
     GETTER_METHODS,
-    FORBIDDEN_ADDITIONAL_PROPERTIES_BY_DEFAULT,
-    DEFINITIONS_FOR_ALL_OBJECTS
+    FORBIDDEN_ADDITIONAL_PROPERTIES_BY_DEFAULT
 )
 
 fun interface SubtypeResolver {
@@ -89,9 +88,11 @@ class SettingsModule(
         builder.forTypesInGeneral().withDescriptionResolver { it.doc?.description?.trimIndent() }
 
         builder.forFields().withNullableCheck { it.kProperty?.returnType?.isMarkedNullable }
+
+        builder.forTypesInGeneral().withPropertySorter { _, _ -> 0 }
     }
 
-    private val FieldScope.kProperty: KProperty1<*, *>?
+    private val MemberScope<*, *>.kProperty: KProperty1<*, *>?
         get() = this.declaringType.erasedType.kotlin.memberProperties.find { it.name == this.name }
 
     private val MethodScope.kProperty: KProperty1<*, *>?
