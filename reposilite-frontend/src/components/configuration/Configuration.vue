@@ -24,6 +24,7 @@ import {vanillaRenderers} from '@jsonforms/vue-vanilla'
 import {Tabs, Tab, TabPanels, TabPanel} from 'vue3-tabs'
 import { default as ObjectRenderer, tester as objectTester } from './renderers/ObjectRenderer.vue'
 import { default as AllOfRenderer, tester as allOfTester } from './renderers/AllOfRenderer.vue'
+import { default as OneOfRenderer, tester as oneOfTester } from './renderers/OneOfRenderer.vue'
 
 const { client } = useSession()
 const configuration = ref({})
@@ -102,7 +103,8 @@ fetchConfiguration().then(() => {
 const renderers = [
   ...vanillaRenderers,
   {tester: objectTester, renderer: ObjectRenderer},
-  {tester: allOfTester, renderer: AllOfRenderer}
+  {tester: allOfTester, renderer: AllOfRenderer},
+  {tester: oneOfTester, renderer: OneOfRenderer}
 ]
 
 const ajv = computed(() => createAjv({
