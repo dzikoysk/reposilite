@@ -197,16 +197,14 @@ const ajv = computed(() => createAjv({
   display: none;
 }
 .vertical-layout, .group, .array-list {
-  @apply flex flex-col;
+  @apply flex flex-col flex-wrap;
+  height: 100%;
   gap: 1rem;
 }
 .label {
   padding-bottom: 0.5em;
   padding-left: 0.5em;
   display: inline-block;
-}
-.array-list-item-content>div {
-  @apply flex flex-row;
 }
 .array-list-item-label {
   margin-right: auto;
@@ -220,10 +218,25 @@ const ajv = computed(() => createAjv({
   padding: 0.5rem;
 }
 .array-list-legend {
-  @apply flex flex-row gap-2;
+  @apply flex flex-row-reverse gap-2;
+  width: 100%;
+  margin-bottom: 1rem;
+}
+.array-list-item-wrapper {
+  border: solid;
+  border-radius: .25rem;
+  padding-inline: 1rem;
+}
+.one-of-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.tab-panel {
+  height: 100%;
 }
 .array-list-add {
-  @apply rounded-full h-6 w-6 line-height-6 bg-blue-500;
+  @apply rounded-full h-6 w-6 line-height-6 bg-blue-700 ml-auto;
 }
 .array-list-item-move-up {
   display: none;
