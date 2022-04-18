@@ -5,7 +5,7 @@
                   :appliedOptions="appliedOptions">
     <input :id="control.id + '-input'"
            :class="styles.control.input"
-           :value="control.data"
+           :value="control.schema.const"
            readonly
            @focus="isFocused = true"
            @blur="isFocused = false" />
