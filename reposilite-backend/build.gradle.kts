@@ -50,10 +50,10 @@ dependencies {
     api("net.dzikoysk:cdn:$cdn")
     api("net.dzikoysk:cdn-kt:$cdn")
 
-    val awssdk = "2.17.167"
+    val awssdk = "2.17.172"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
-    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.196")
+    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.201")
 
     val exposed = "0.38.1"
     implementation("org.jetbrains.exposed:exposed-core:$exposed")
@@ -68,7 +68,7 @@ dependencies {
     implementation("org.xerial:sqlite-jdbc:3.36.0.3")
     implementation("mysql:mysql-connector-java:8.0.28")
     implementation("org.mariadb.jdbc:mariadb-java-client:3.0.4")
-    implementation("org.postgresql:postgresql:42.3.3")
+    implementation("org.postgresql:postgresql:42.3.4")
     implementation("com.h2database:h2:2.1.212")
 
     val springSecurityCrypto = "5.6.2"
@@ -107,7 +107,7 @@ dependencies {
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jackson")
 
-    val httpClient = "1.41.6"
+    val httpClient = "1.41.7"
     implementation("com.google.http-client:google-http-client:$httpClient")
     testImplementation("com.google.http-client:google-http-client-jackson2:$httpClient")
 
@@ -131,11 +131,11 @@ dependencies {
     implementation("org.tinylog:tinylog-api:$tinylog")
     implementation("org.tinylog:tinylog-impl:$tinylog")
 
-    val unirest = "3.13.7"
+    val unirest = "3.13.8"
     testImplementation("com.konghq:unirest-java:$unirest")
     testImplementation("com.konghq:unirest-objectmapper-jackson:$unirest")
 
-    val testcontainers = "1.16.3"
+    val testcontainers = "1.17.1"
     testImplementation("org.testcontainers:postgresql:$testcontainers")
     testImplementation("org.testcontainers:mariadb:$testcontainers")
     testImplementation("org.testcontainers:testcontainers:$testcontainers")
