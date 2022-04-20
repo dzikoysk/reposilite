@@ -21,15 +21,16 @@ import com.reposilite.plugin.api.Facade
 import com.reposilite.token.AccessTokenPermission.MANAGER
 import com.reposilite.token.AccessTokenSecurityProvider.generateSecret
 import com.reposilite.token.AccessTokenType.PERSISTENT
-import com.reposilite.auth.api.SessionDetails
 import com.reposilite.token.api.AccessTokenDetails
 import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.token.api.CreateAccessTokenRequest
 import com.reposilite.token.api.CreateAccessTokenResponse
+import com.reposilite.token.api.SecretType.RAW
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.notFoundError
 import panda.std.Result
 import panda.std.asSuccess
+import panda.std.letIf
 
 class AccessTokenFacade internal constructor(
     private val journalist: Journalist,
@@ -39,7 +40,7 @@ class AccessTokenFacade internal constructor(
 
     fun createAccessToken(request: CreateAccessTokenRequest): CreateAccessTokenResponse {
         val secret = request.secret ?: generateSecret()
-        val encodedSecret = AccessTokenSecurityProvider.encodeSecret(secret)
+        val encodedSecret = secret.letIf(request.secretType == RAW) { AccessTokenSecurityProvider.encodeSecret(it) }
         val accessToken = AccessToken(identifier = AccessTokenIdentifier(type = request.type), name = request.name, encryptedSecret = encodedSecret)
 
         return request.type.getRepository()

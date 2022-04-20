@@ -228,11 +228,6 @@ tasks.test {
 }
 
 tasks.jacocoTestReport {
-    dependsOn(
-        ":reposilite-backend:test",
-        ":reposilite-backend:integrationTest"
-    )
-
     reports {
         html.required.set(false)
         csv.required.set(false)

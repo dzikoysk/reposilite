@@ -22,7 +22,7 @@ import kotlin.io.path.readText
 internal class ExportTokensCommand(private val workingDirectory: Path, private val accessTokenFacade: AccessTokenFacade) : ReposiliteCommand {
 
     @Parameters(index = "0", paramLabel = "<file>", description = ["Path to destination JSON file"])
-    private lateinit var name: String
+    lateinit var name: String
 
     override fun execute(context: CommandContext) {
         accessTokenFacade.getAccessTokens()
@@ -40,7 +40,7 @@ internal class ExportTokensCommand(private val workingDirectory: Path, private v
 internal class ImportTokensCommand(private val workingDirectory: Path, private val accessTokenFacade: AccessTokenFacade) : ReposiliteCommand {
 
     @Parameters(index = "0", paramLabel = "<file>", description = ["Path to JSON file with access tokens"])
-    private lateinit var name: String
+    lateinit var name: String
 
     override fun execute(context: CommandContext) {
         val file = workingDirectory.resolve(name)

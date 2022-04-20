@@ -35,4 +35,8 @@ internal abstract class AccessTokenSpecification {
     protected fun createToken(name: String, secret: String): AccessTokenDto =
         accessTokenFacade.createAccessToken(CreateAccessTokenRequest(TEMPORARY, name, secret = secret)).accessToken
 
+    protected fun deleteAllTokens() {
+        accessTokenFacade.getAccessTokens().forEach { accessTokenFacade.deleteToken(it.identifier) }
+    }
+
 }
