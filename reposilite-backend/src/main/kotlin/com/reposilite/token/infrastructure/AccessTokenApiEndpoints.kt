@@ -23,6 +23,7 @@ import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.token.api.CreateAccessTokenRequest
 import com.reposilite.token.api.CreateAccessTokenResponse
 import com.reposilite.token.api.CreateAccessTokenWithNoNameRequest
+import com.reposilite.token.api.SecretType.RAW
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.http.ErrorResponse
@@ -88,7 +89,7 @@ internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessToke
                 .mapErr { ErrorResponse(HttpCode.BAD_REQUEST, "Failed to read body") }
                 .map { request ->
                     Pair(
-                        accessTokenFacade.createAccessToken(CreateAccessTokenRequest(request.type, requireParameter("name"), request.secret)),
+                        accessTokenFacade.createAccessToken(CreateAccessTokenRequest(request.type, requireParameter("name"), RAW, request.secret)),
                         request.permissions.mapNotNull { AccessTokenPermission.findByAny(it) }
                     )
                 }

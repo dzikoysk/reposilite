@@ -26,6 +26,7 @@ import com.reposilite.token.AccessTokenType.PERSISTENT
 import com.reposilite.token.Route
 import com.reposilite.token.RoutePermission
 import com.reposilite.token.api.CreateAccessTokenRequest
+import com.reposilite.token.api.SecretType.RAW
 import io.javalin.http.HttpCode
 import kong.unirest.HttpRequest
 import kong.unirest.HttpResponse
@@ -51,7 +52,7 @@ internal abstract class ReposiliteSpecification : ReposiliteRunner() {
 
     fun useAuth(name: String, secret: String, permissions: List<AccessTokenPermission> = emptyList(), routes: Map<String, RoutePermission> = emptyMap()): Pair<String, String> {
         val accessTokenFacade = useFacade<AccessTokenFacade>()
-        val accessToken = accessTokenFacade.createAccessToken(CreateAccessTokenRequest(PERSISTENT, name, secret)).accessToken
+        val accessToken = accessTokenFacade.createAccessToken(CreateAccessTokenRequest(PERSISTENT, name, RAW, secret)).accessToken
 
         permissions.forEach {
             accessTokenFacade.addPermission(accessToken.identifier, it)

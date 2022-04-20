@@ -21,6 +21,8 @@ import com.reposilite.plugin.api.Facade
 import com.reposilite.token.AccessTokenPermission.MANAGER
 import com.reposilite.token.AccessTokenSecurityProvider.generateSecret
 import com.reposilite.token.AccessTokenType.PERSISTENT
+import com.reposilite.auth.api.SessionDetails
+import com.reposilite.token.api.AccessTokenDetails
 import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.token.api.CreateAccessTokenRequest
 import com.reposilite.token.api.CreateAccessTokenResponse
@@ -103,6 +105,9 @@ class AccessTokenFacade internal constructor(
 
     fun getAccessTokenById(id: AccessTokenIdentifier): AccessTokenDto? =
         getRawAccessTokenById(id)?.toDto()
+
+    internal fun getAccessTokenDetailsById(id: AccessTokenIdentifier): AccessTokenDetails? =
+        getRawAccessTokenById(id)?.let { AccessTokenDetails(it, getPermissions(id), getRoutes(id)) }
 
     fun getAccessToken(name: String): AccessTokenDto? =
         (temporaryRepository.findAccessTokenByName(name) ?: persistentRepository.findAccessTokenByName(name))?.toDto()

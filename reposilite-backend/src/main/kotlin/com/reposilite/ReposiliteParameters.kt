@@ -21,6 +21,7 @@ import com.reposilite.settings.application.SettingsPlugin.Companion.LOCAL_CONFIG
 import com.reposilite.settings.application.SettingsPlugin.Companion.SHARED_CONFIGURATION_FILE
 import com.reposilite.token.AccessTokenType.TEMPORARY
 import com.reposilite.token.api.CreateAccessTokenRequest
+import com.reposilite.token.api.SecretType.RAW
 import picocli.CommandLine.Command
 import picocli.CommandLine.Option
 import java.nio.file.Path
@@ -86,7 +87,7 @@ class ReposiliteParameters : Runnable {
 
         this.tokens = tokenEntries
             .map { it.split(":", limit = 2) }
-            .map { (name, secret) -> CreateAccessTokenRequest(TEMPORARY, name, secret) }
+            .map { (name, secret) -> CreateAccessTokenRequest(TEMPORARY, name, RAW, secret) }
     }
 
     fun applyLoadedConfiguration(localConfiguration: LocalConfiguration) {

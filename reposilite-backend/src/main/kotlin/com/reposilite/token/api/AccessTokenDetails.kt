@@ -16,29 +16,12 @@
 
 package com.reposilite.token.api
 
-import com.reposilite.token.AccessTokenType
-import com.reposilite.token.api.SecretType.RAW
+import com.reposilite.token.AccessToken
+import com.reposilite.token.AccessTokenPermission
+import com.reposilite.token.Route
 
-enum class SecretType {
-    RAW,
-    ENCRYPTED
-}
-
-data class CreateAccessTokenRequest(
-    val type: AccessTokenType,
-    val name: String,
-    val secretType: SecretType = RAW,
-    val secret: String? = null
-)
-
-data class CreateAccessTokenWithNoNameRequest(
-    val type: AccessTokenType,
-    val secretType: SecretType = RAW,
-    val secret: String? = null,
-    val permissions: Set<String>
-)
-
-data class CreateAccessTokenResponse(
-    val accessToken: AccessTokenDto,
-    val secret: String,
+internal data class AccessTokenDetails(
+    val accessToken: AccessToken,
+    val permissions: Set<AccessTokenPermission>,
+    val routes: Set<Route>
 )

@@ -22,6 +22,7 @@ import com.reposilite.token.AccessTokenType.TEMPORARY
 import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.token.api.CreateAccessTokenRequest
 import com.reposilite.token.api.CreateAccessTokenResponse
+import com.reposilite.token.api.SecretType.RAW
 import com.reposilite.token.infrastructure.InMemoryAccessTokenRepository
 
 internal abstract class AccessTokenSpecification {
@@ -33,6 +34,6 @@ internal abstract class AccessTokenSpecification {
         accessTokenFacade.createAccessToken(CreateAccessTokenRequest(TEMPORARY, name))
 
     protected fun createToken(name: String, secret: String): AccessTokenDto =
-        accessTokenFacade.createAccessToken(CreateAccessTokenRequest(TEMPORARY, name, secret)).accessToken
+        accessTokenFacade.createAccessToken(CreateAccessTokenRequest(TEMPORARY, name, RAW, secret)).accessToken
 
 }
