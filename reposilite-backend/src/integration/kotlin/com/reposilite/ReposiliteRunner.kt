@@ -45,7 +45,7 @@ import java.util.concurrent.ThreadLocalRandom
 internal abstract class ReposiliteRunner {
 
     companion object {
-        val DEFAULT_TOKEN = Pair("manager", "manager-secret")
+        val DEFAULT_TOKEN = "manager" to "manager-secret"
     }
 
     @TempDir

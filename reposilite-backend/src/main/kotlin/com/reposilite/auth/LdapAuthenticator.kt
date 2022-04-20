@@ -121,7 +121,7 @@ internal class LdapAuthenticator(
                 }
                 .let { controls -> search(ldapConfiguration.map { it.baseDn }, ldapFilterQuery, controls) }
                 .asSequence()
-                .map { Pair(it.nameInNamespace, it.attributesMap(*requestedAttributes)) }
+                .map { it.nameInNamespace to it.attributesMap(*requestedAttributes) }
                 .toList()
                 .takeIf { it.isNotEmpty() }
                 ?.asSuccess()
@@ -143,7 +143,7 @@ internal class LdapAuthenticator(
                 .asSequence()
                 .map { it.toString() }
                 .toList()
-                .let { Pair(attribute, it) }
+                .let { attribute to it }
         }
 
     override fun enabled(): Boolean =

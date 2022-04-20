@@ -51,15 +51,16 @@ internal abstract class MavenIntegrationSpecification : ReposiliteSpecification(
     protected fun useFile(name: String, sizeInMb: Int): Pair<File, Long> {
         val hugeFile = File(clientWorkingDirectory, name)
         hugeFile.writeBytes(ByteArray(sizeInMb * 1024 * 1024))
-        return Pair(hugeFile, hugeFile.length())
+        return hugeFile to hugeFile.length()
     }
 
     protected fun useMetadata(repository: String, groupId: String, artifactId: String, versions: List<String>): Pair<String, Metadata> {
         val sortedVersions = VersionComparator.sortStrings(versions.asSequence()).toList()
         val versioning = Versioning(latest = sortedVersions.firstOrNull(), _versions = sortedVersions)
         val metadata = Metadata(groupId, artifactId, versioning = versioning)
+        val mavenFacade = useFacade<MavenFacade>()
 
-        return Pair(repository, useFacade<MavenFacade>().saveMetadata(repository, "$groupId.$artifactId".replace(".", "/").toLocation(), metadata).get())
+        return repository to mavenFacade.saveMetadata(repository, "$groupId.$artifactId".replace(".", "/").toLocation(), metadata).get()
     }
 
     protected suspend fun useProxiedHost(repository: String, gav: String, content: String, block: (String, String) -> Unit) {

@@ -228,11 +228,6 @@ tasks.test {
 }
 
 tasks.jacocoTestReport {
-    dependsOn(
-        ":reposilite-backend:test",
-        ":reposilite-backend:integrationTest"
-    )
-
     reports {
         html.required.set(false)
         csv.required.set(false)
@@ -280,6 +275,7 @@ val testCoverage by tasks.registering {
         ":reposilite-backend:jacocoTestCoverageVerification"
     )
 
-    tasks["jacocoTestReport"].mustRunAfter(tasks["testAll"])
+    tasks["integrationTest"].mustRunAfter(tasks["test"])
+    tasks["jacocoTestReport"].mustRunAfter(tasks["integrationTest"])
     tasks["jacocoTestCoverageVerification"].mustRunAfter(tasks["jacocoTestReport"])
 }
