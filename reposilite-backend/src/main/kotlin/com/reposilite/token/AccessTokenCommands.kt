@@ -65,7 +65,7 @@ internal class KeygenCommand(private val accessTokenFacade: AccessTokenFacade) :
 
     override fun execute(context: CommandContext) {
         val mappedPermissions = mapPermissions(context, permissions) ?: return
-        val response = accessTokenFacade.createAccessToken(CreateAccessTokenRequest(PERSISTENT, name, secret))
+        val response = accessTokenFacade.createAccessToken(CreateAccessTokenRequest(PERSISTENT, name, secret = secret))
 
         mappedPermissions.forEach {
             accessTokenFacade.addPermission(response.accessToken.identifier, it)

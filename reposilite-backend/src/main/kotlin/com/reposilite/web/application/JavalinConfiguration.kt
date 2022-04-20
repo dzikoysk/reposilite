@@ -16,12 +16,8 @@
 
 package com.reposilite.web.application
 
-import com.fasterxml.jackson.annotation.JsonInclude.Include
-import com.fasterxml.jackson.databind.json.JsonMapper
-import com.fasterxml.jackson.databind.module.SimpleModule
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.reposilite.Reposilite
+import com.reposilite.ReposiliteObjectMapper
 import com.reposilite.VERSION
 import com.reposilite.auth.AuthenticationFacade
 import com.reposilite.auth.api.AuthenticationRequest
@@ -30,7 +26,6 @@ import com.reposilite.settings.SettingsFacade
 import com.reposilite.settings.api.LocalConfiguration
 import com.reposilite.settings.api.SharedConfiguration
 import com.reposilite.shared.ContextDsl
-import com.reposilite.shared.extensions.ContentTypeSerializer
 import com.reposilite.status.FailureFacade
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.web.api.HttpServerConfigurationEvent
@@ -41,7 +36,6 @@ import com.reposilite.web.http.uri
 import com.reposilite.web.routing.RoutingPlugin
 import io.javalin.core.JavalinConfig
 import io.javalin.core.compression.CompressionStrategy
-import io.javalin.http.ContentType
 import io.javalin.openapi.plugin.OpenApiConfiguration
 import io.javalin.openapi.plugin.OpenApiPlugin
 import io.javalin.plugin.json.JavalinJackson
@@ -123,16 +117,7 @@ internal object JavalinConfiguration {
     }
 
     private fun configureJsonSerialization(config: JavalinConfig) {
-        val objectMapper = JsonMapper.builder()
-            .addModule(JavaTimeModule())
-            .addModule(SimpleModule().also {
-                it.addSerializer(ContentType::class.java, ContentTypeSerializer())
-            })
-            .build()
-            .registerKotlinModule()
-            .setSerializationInclusion(Include.NON_NULL)
-
-        config.jsonMapper(JavalinJackson(objectMapper))
+        config.jsonMapper(JavalinJackson(ReposiliteObjectMapper.DEFAULT_OBJECT_MAPPER))
     }
 
     private fun configureSSL(reposilite: Reposilite, localConfiguration: LocalConfiguration, config: JavalinConfig, server: Server) {

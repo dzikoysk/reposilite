@@ -46,6 +46,7 @@ import com.reposilite.token.Route
 import com.reposilite.token.RoutePermission
 import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.token.api.CreateAccessTokenRequest
+import com.reposilite.token.api.SecretType.RAW
 import com.reposilite.token.infrastructure.InMemoryAccessTokenRepository
 import com.reposilite.web.http.notFoundError
 import io.javalin.http.ContentType.TEXT_XML
@@ -144,7 +145,7 @@ internal abstract class MavenSpecification {
     }
 
     protected fun createRepository(name: String, initializer: RepositoryConfiguration.() -> Unit): Pair<String, RepositoryConfiguration> =
-        Pair(name, RepositoryConfiguration().also { initializer(it) })
+        name to RepositoryConfiguration().also { initializer(it) }
 
     protected fun findRepositories(accessToken: AccessTokenIdentifier?): Collection<String> =
         mavenFacade.findRepositories(accessToken).files.map { it.name }
@@ -164,7 +165,7 @@ internal abstract class MavenSpecification {
     }
 
     protected fun createAccessToken(name: String, secret: String, repository: String, gav: String, permission: RoutePermission): AccessTokenIdentifier =
-        accessTokenFacade.createAccessToken(CreateAccessTokenRequest(TEMPORARY, name, secret))
+        accessTokenFacade.createAccessToken(CreateAccessTokenRequest(TEMPORARY, name, secret = secret))
             .accessToken
             .also { accessTokenFacade.addRoute(it.identifier, Route("/$repository/${gav.toLocation()}", permission)) }
             .identifier

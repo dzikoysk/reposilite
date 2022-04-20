@@ -96,7 +96,7 @@ internal abstract class AccessTokenIntegrationTest : AccessTokenIntegrationSpeci
         // when: not entitled token attempts to generate a new token
         val unauthorized = put("$base/api/tokens/$name")
             .basicAuth(notAllowedToken.name, notAllowedSecret)
-            .body(CreateAccessTokenWithNoNameRequest(PERSISTENT, secret, permissions.map { it.shortcut }.toSet()))
+            .body(CreateAccessTokenWithNoNameRequest(PERSISTENT, secret = secret, permissions = permissions.map { it.shortcut }.toSet()))
             .asJacksonObject(ErrorResponse::class)
 
         // then: the unauthorized request is rejected
@@ -105,7 +105,7 @@ internal abstract class AccessTokenIntegrationTest : AccessTokenIntegrationSpeci
         // when: valid manager token creates a new token
         val response = put("$base/api/tokens/$name")
             .basicAuth(managerName, managerSecret)
-            .body(CreateAccessTokenWithNoNameRequest(PERSISTENT, secret, permissions.map { it.shortcut }.toSet()))
+            .body(CreateAccessTokenWithNoNameRequest(PERSISTENT, secret = secret, permissions = permissions.map { it.shortcut }.toSet()))
             .asJacksonObject(CreateAccessTokenResponse::class)
 
         // then: response contains valid token with generated secret
