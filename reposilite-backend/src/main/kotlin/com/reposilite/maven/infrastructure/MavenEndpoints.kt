@@ -69,7 +69,7 @@ internal class MavenEndpoints(
             LookupRequest(this?.identifier, requireParameter("repository"), requireParameter("gav").toLocation()).let { request ->
                 mavenFacade.findDetails(request)
                     .`is`(DocumentInfo::class.java) { ErrorResponse(NOT_FOUND, "Requested file is a directory") }
-                    .flatMap { details -> mavenFacade.findFile(request).map { Pair(details, it) } }
+                    .flatMap { details -> mavenFacade.findFile(request).map { details to it } }
                     .peek { (details, file) -> ctx.resultAttachment(details.name, details.contentType, details.contentLength, compressionStrategy.get(), file) }
                     .onError { ctx.status(it.status).html(frontendFacade.createNotFoundPage(uri, it.message)) }
             }

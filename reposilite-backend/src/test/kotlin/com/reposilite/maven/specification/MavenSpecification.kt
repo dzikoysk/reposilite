@@ -145,7 +145,7 @@ internal abstract class MavenSpecification {
     }
 
     protected fun createRepository(name: String, initializer: RepositoryConfiguration.() -> Unit): Pair<String, RepositoryConfiguration> =
-        Pair(name, RepositoryConfiguration().also { initializer(it) })
+        name to RepositoryConfiguration().also { initializer(it) }
 
     protected fun findRepositories(accessToken: AccessTokenIdentifier?): Collection<String> =
         mavenFacade.findRepositories(accessToken).files.map { it.name }
@@ -165,7 +165,7 @@ internal abstract class MavenSpecification {
     }
 
     protected fun createAccessToken(name: String, secret: String, repository: String, gav: String, permission: RoutePermission): AccessTokenIdentifier =
-        accessTokenFacade.createAccessToken(CreateAccessTokenRequest(TEMPORARY, name, RAW, secret))
+        accessTokenFacade.createAccessToken(CreateAccessTokenRequest(TEMPORARY, name, secret = secret))
             .accessToken
             .also { accessTokenFacade.addRoute(it.identifier, Route("/$repository/${gav.toLocation()}", permission)) }
             .identifier

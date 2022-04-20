@@ -89,7 +89,7 @@ internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessToke
                 .mapErr { ErrorResponse(HttpCode.BAD_REQUEST, "Failed to read body") }
                 .map { request ->
                     Pair(
-                        accessTokenFacade.createAccessToken(CreateAccessTokenRequest(request.type, requireParameter("name"), RAW, request.secret)),
+                        accessTokenFacade.createAccessToken(CreateAccessTokenRequest(request.type, requireParameter("name"), secret = request.secret)),
                         request.permissions.mapNotNull { AccessTokenPermission.findByAny(it) }
                     )
                 }

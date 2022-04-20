@@ -22,15 +22,11 @@ import com.reposilite.token.AccessTokenIdentifier
 import com.reposilite.token.AccessTokenPermission
 import com.reposilite.token.AccessTokenType.PERSISTENT
 import com.reposilite.token.api.CreateAccessTokenRequest
-import com.reposilite.token.api.SecretType.RAW
 
 internal abstract class AccessTokenIntegrationSpecification : ReposiliteSpecification() {
 
     protected fun useToken(name: String, secret: String) =
-        Pair(
-            useFacade<AccessTokenFacade>().createAccessToken(CreateAccessTokenRequest(PERSISTENT, name, RAW, secret)).accessToken,
-            secret
-        )
+        useFacade<AccessTokenFacade>().createAccessToken(CreateAccessTokenRequest(PERSISTENT, name, secret = secret)).accessToken to secret
 
     protected fun useTokenDescription(name: String, secret: String, permissions: Set<AccessTokenPermission> = emptySet()) =
         Triple(name, secret, permissions)

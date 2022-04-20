@@ -87,7 +87,7 @@ class ReposiliteParameters : Runnable {
 
         this.tokens = tokenEntries
             .map { it.split(":", limit = 2) }
-            .map { (name, secret) -> CreateAccessTokenRequest(TEMPORARY, name, RAW, secret) }
+            .map { (name, secret) -> CreateAccessTokenRequest(TEMPORARY, name, secret = secret) }
     }
 
     fun applyLoadedConfiguration(localConfiguration: LocalConfiguration) {

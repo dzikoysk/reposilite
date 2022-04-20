@@ -32,7 +32,7 @@ internal open class StatisticsSpecification {
     protected fun useResolvedIdentifier(repository: String, gav: String, count: Long = 1): Pair<Identifier, Long> {
         val identifier = Identifier(repository, gav)
         increaseAndSave(identifier, count)
-        return Pair(identifier, count)
+        return identifier to count
     }
 
     private fun increaseAndSave(identifier: Identifier, count: Long) {
