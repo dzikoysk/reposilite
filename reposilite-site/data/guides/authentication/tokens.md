@@ -64,6 +64,27 @@ If you're confused about your first auth configuration, you may find this video 
     </video>
   </Spoiler>
 
+### Export and import
+Reposilite allows you to export your tokens to JSON file, so you can backup them or exchange between instances.
+You can do this using `token-export <file>` and `token-import <file>` commands as follows:
+
+```bash
+$ token-export tokens.json
+3 token(s) found.
+All tokens have been exported to $working-directory/tokens.json in JSON format.
+```
+
+By default Reposilite puts the file in your working directory, but you can also specify an absolute path.
+To import such JSON file, just specify it in the import command:
+
+```bash
+$ token-import tokens.json
+Importing 3 token(s) from $working-directory/tokens.json file:
+Access token 'token-0' has been imported.
+Access token 'token-1' has been imported.
+Access token 'token-2' has been imported.
+```
+
 ### Other commands
 Commands related to tokens you may find useful:
 

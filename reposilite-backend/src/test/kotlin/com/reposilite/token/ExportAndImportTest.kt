@@ -44,6 +44,9 @@ internal class ExportAndImportTest : AccessTokenSpecification() {
             assertEquals(it.permissions, token.permissions)
             assertEquals(it.routes, token.routes)
         }
+        for (s in context.output()) {
+            println(s)
+        }
     }
 
 }

@@ -16,7 +16,9 @@
 
 package com.reposilite.token.specification
 
+import com.reposilite.journalist.backend.AggregatedLogger
 import com.reposilite.journalist.backend.InMemoryLogger
+import com.reposilite.journalist.backend.PrintStreamLogger
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.AccessTokenType.TEMPORARY
 import com.reposilite.token.ExportService
@@ -31,7 +33,7 @@ import java.nio.file.Path
 
 internal abstract class AccessTokenSpecification {
 
-    val logger = InMemoryLogger()
+    val logger = AggregatedLogger(InMemoryLogger(), PrintStreamLogger(System.out, System.out))
 
     @TempDir
     lateinit var workingDirectory: File
