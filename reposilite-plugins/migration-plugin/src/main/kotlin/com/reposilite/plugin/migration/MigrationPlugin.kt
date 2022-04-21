@@ -8,22 +8,16 @@ import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.facade
 import com.reposilite.plugin.parameters
 import com.reposilite.token.AccessToken
-import com.reposilite.token.AccessTokenIdentifier
 import com.reposilite.token.AccessTokenPermission
 import com.reposilite.token.ExportService
 import com.reposilite.token.Route
 import com.reposilite.token.RoutePermission
+import com.reposilite.token.RoutePermission.READ
 import com.reposilite.token.api.AccessTokenDetails
-import net.dzikoysk.cdn.KCdnFactory
-import net.dzikoysk.cdn.loadAs
-import net.dzikoysk.cdn.source.Source
 import org.panda_lang.reposilite.auth.TokenCollection
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.readBytes
-import kotlin.io.path.readLines
-import kotlin.io.path.readText
-import kotlin.math.log
 
 @Plugin(name = "migration", dependencies = ["maven"])
 class MigrationPlugin : ReposilitePlugin() {
@@ -32,7 +26,10 @@ class MigrationPlugin : ReposilitePlugin() {
         val workingDirectory = parameters().workingDirectory
         val mavenFacade = facade<MavenFacade>()
 
-        migrateTokens(workingDirectory, mavenFacade.getAllRepositoryNames())
+        migrateTokens(
+            workingDirectory = workingDirectory,
+            repositories = mavenFacade.getAllRepositoryNames()
+        )
 
         return null
     }
@@ -54,7 +51,8 @@ class MigrationPlugin : ReposilitePlugin() {
                 .toCharArray()
                 .map { shortcut -> RoutePermission.findRoutePermissionByShortcut(shortcut.toString()).orNull() }
                 .filterNotNull()
-                .toSet()
+                .toMutableSet()
+                .also { it.add(READ) } // default permission
 
             AccessTokenDetails(
                 accessToken = AccessToken(
@@ -76,7 +74,6 @@ class MigrationPlugin : ReposilitePlugin() {
                         routePermissions
                             .map { Route(token.path, it) }
                             .toSet()
-
             )
         }
 

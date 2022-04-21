@@ -37,11 +37,11 @@ class ReposiliteParameters : Runnable {
     var versionInfoRequested = false
 
     @Option(names = ["--working-directory", "-wd"], description = ["Set custom working directory of application instance"])
-    internal var workingDirectoryName = ""
+    var workingDirectoryName = ""
     lateinit var workingDirectory: Path
 
     @Option(names = ["--local-configuration", "--local-config", "-lc"], description = ["Set custom location of local configuration file"])
-    internal var localConfigurationFile = LOCAL_CONFIGURATION_FILE
+    var localConfigurationFile = LOCAL_CONFIGURATION_FILE
     lateinit var localConfigurationPath: Path
 
     @Option(names = ["--local-configuration-mode", "--local-config-mode", "-lcm"], description = [
@@ -54,7 +54,7 @@ class ReposiliteParameters : Runnable {
     var localConfigurationMode = "copy"
 
     @Option(names = ["--shared-configuration", "--shared-config", "-sc"], description = ["Set custom location of shared configuration file"])
-    internal var sharedConfigurationFile = SHARED_CONFIGURATION_FILE
+    var sharedConfigurationFile = SHARED_CONFIGURATION_FILE
     lateinit var sharedConfigurationPath: Path
 
     @Option(names = ["--shared-configuration-mode", "--shared-config-mode", "-scm"], description = [
@@ -73,7 +73,7 @@ class ReposiliteParameters : Runnable {
     var port = -1
 
     @Option(names = ["--token", "-t"], description = ["Create temporary token with the given credentials in name:secret format", "Created token has all permissions"])
-    internal var tokenEntries = arrayOf<String>()
+    var tokenEntries = arrayOf<String>()
     lateinit var tokens: Collection<CreateAccessTokenRequest>
 
     @Option(names = ["--test-env", "--debug", "-d"], description = ["Enable test mode"])

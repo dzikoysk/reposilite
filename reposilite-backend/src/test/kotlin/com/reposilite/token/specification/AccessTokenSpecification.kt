@@ -19,24 +19,40 @@ package com.reposilite.token.specification
 import com.reposilite.journalist.backend.InMemoryLogger
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.AccessTokenType.TEMPORARY
+import com.reposilite.token.ExportService
 import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.token.api.CreateAccessTokenRequest
 import com.reposilite.token.api.CreateAccessTokenResponse
 import com.reposilite.token.infrastructure.InMemoryAccessTokenRepository
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.io.TempDir
+import java.io.File
+import java.nio.file.Path
 
 internal abstract class AccessTokenSpecification {
 
-    protected val logger = InMemoryLogger()
-    protected val accessTokenFacade = AccessTokenFacade(logger, InMemoryAccessTokenRepository(), InMemoryAccessTokenRepository())
+    val logger = InMemoryLogger()
 
-    protected fun createToken(name: String): CreateAccessTokenResponse =
+    @TempDir
+    lateinit var workingDirectory: File
+    lateinit var accessTokenFacade: AccessTokenFacade
+
+    @BeforeEach
+    fun createFacade() {
+        accessTokenFacade = AccessTokenFacade(logger, InMemoryAccessTokenRepository(), InMemoryAccessTokenRepository(), ExportService(workingDirectory()))
+    }
+
+    fun createToken(name: String): CreateAccessTokenResponse =
         accessTokenFacade.createAccessToken(CreateAccessTokenRequest(TEMPORARY, name))
 
-    protected fun createToken(name: String, secret: String): AccessTokenDto =
+    fun createToken(name: String, secret: String): AccessTokenDto =
         accessTokenFacade.createAccessToken(CreateAccessTokenRequest(TEMPORARY, name, secret = secret)).accessToken
 
-    protected fun deleteAllTokens() {
+    fun deleteAllTokens() {
         accessTokenFacade.getAccessTokens().forEach { accessTokenFacade.deleteToken(it.identifier) }
     }
+
+    fun workingDirectory(): Path =
+        workingDirectory.toPath()
 
 }

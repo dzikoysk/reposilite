@@ -55,15 +55,14 @@ internal class AccessTokenPlugin : ReposilitePlugin() {
         val accessTokenFacade = AccessTokenFacade(
             journalist = this,
             temporaryRepository = InMemoryAccessTokenRepository(),
-            persistentRepository = SqlAccessTokenRepository(settingsFacade.database.value)
+            persistentRepository = SqlAccessTokenRepository(settingsFacade.database.value),
+            exportService = ExportService(parameters.workingDirectory)
         )
 
         parameters.tokens.forEach {
             val (token) = accessTokenFacade.createAccessToken(it)
             accessTokenFacade.addPermission(token.identifier, MANAGER)
         }
-
-        val exportService = ExportService(parameters.workingDirectory)
 
         event { event: CommandsSetupEvent ->
             event.registerCommand(TokensCommand(accessTokenFacade))
@@ -75,8 +74,8 @@ internal class AccessTokenPlugin : ReposilitePlugin() {
             event.registerCommand(RouteAdd(accessTokenFacade))
             event.registerCommand(RouteRemove(accessTokenFacade))
 
-            event.registerCommand(ExportTokensCommand(accessTokenFacade, exportService))
-            event.registerCommand(ImportTokensCommand(accessTokenFacade, exportService))
+            event.registerCommand(ExportTokensCommand(accessTokenFacade))
+            event.registerCommand(ImportTokensCommand(accessTokenFacade))
         }
 
         event { event: RoutingSetupEvent ->
