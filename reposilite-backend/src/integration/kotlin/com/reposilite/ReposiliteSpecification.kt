@@ -47,11 +47,11 @@ internal abstract class ReposiliteSpecification : ReposiliteRunner() {
         get() = "http://localhost:${reposilite.parameters.port}"
 
     fun usePredefinedTemporaryAuth(): Pair<String, String> =
-        Pair("manager", "manager-secret")
+        "manager" to "manager-secret"
 
     fun useAuth(name: String, secret: String, permissions: List<AccessTokenPermission> = emptyList(), routes: Map<String, RoutePermission> = emptyMap()): Pair<String, String> {
         val accessTokenFacade = useFacade<AccessTokenFacade>()
-        val accessToken = accessTokenFacade.createAccessToken(CreateAccessTokenRequest(PERSISTENT, name, secret)).accessToken
+        val accessToken = accessTokenFacade.createAccessToken(CreateAccessTokenRequest(PERSISTENT, name, secret = secret)).accessToken
 
         permissions.forEach {
             accessTokenFacade.addPermission(accessToken.identifier, it)
@@ -61,7 +61,7 @@ internal abstract class ReposiliteSpecification : ReposiliteRunner() {
             accessTokenFacade.addRoute(accessToken.identifier, Route(route, permission))
         }
 
-        return Pair(name, secret)
+        return name to secret
     }
 
     inline fun <reified F : Facade> useFacade(): F =

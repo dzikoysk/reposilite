@@ -126,7 +126,7 @@ internal class MavenLatestApiEndpoints(
             response = resolveLatestArtifact(this@ReposiliteRoute, this) { lookupRequest ->
                 mavenFacade.findDetails(lookupRequest)
                     .`is`(DocumentInfo::class.java) { ErrorResponse(BAD_REQUEST, "Requested file is a directory") }
-                    .flatMap { mavenFacade.findFile(lookupRequest).map { data -> Pair(it, data) } }
+                    .flatMap { mavenFacade.findFile(lookupRequest).map { data -> it to data } }
                     .map { (details, file) -> ctx.resultAttachment(details.name, details.contentType, details.contentLength, compressionStrategy.get(), file) }
             }
         }

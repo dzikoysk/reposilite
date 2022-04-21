@@ -21,7 +21,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.reposilite.token.AccessTokenType.PERSISTENT
 import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.token.application.AccessTokenPlugin.Companion.MAX_TOKEN_NAME
-import io.javalin.openapi.OpenApiIgnore
 import net.dzikoysk.exposed.shared.UNINITIALIZED_ENTITY_ID
 import java.time.LocalDate
 
@@ -38,7 +37,6 @@ data class AccessTokenIdentifier(
 internal data class AccessToken(
     val identifier: AccessTokenIdentifier = AccessTokenIdentifier(),
     val name: String,
-    @Transient @JsonIgnore @get:OpenApiIgnore
     val encryptedSecret: String = "",
     val createdAt: LocalDate = LocalDate.now(),
     val description: String = "",

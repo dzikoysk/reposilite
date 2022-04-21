@@ -162,7 +162,7 @@ internal abstract class MavenSpecification {
     }
 
     protected fun createAccessToken(name: String, secret: String, repository: String, gav: String, permission: RoutePermission): AccessTokenIdentifier =
-        accessTokenFacade.createAccessToken(CreateAccessTokenRequest(TEMPORARY, name, secret))
+        accessTokenFacade.createAccessToken(CreateAccessTokenRequest(TEMPORARY, name, secret = secret))
             .accessToken
             .also { accessTokenFacade.addRoute(it.identifier, Route("/$repository/${gav.toLocation()}", permission)) }
             .identifier

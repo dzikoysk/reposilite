@@ -30,6 +30,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.reposilite.Reposilite
+import com.reposilite.ReposiliteObjectMapper
 import com.reposilite.VERSION
 import com.reposilite.auth.AuthenticationFacade
 import com.reposilite.auth.api.Credentials
@@ -137,14 +138,7 @@ internal object JavalinConfiguration {
     }
 
     private fun configureJsonSerialization(config: JavalinConfig) {
-        val objectMapper = JsonMapper.builder()
-            .addModule(JavaTimeModule())
-            .addModule(SimpleModule().also {
-                it.addSerializer(ContentType::class.java, ContentTypeSerializer())
-            })
-            .build()
-            .registerKotlinModule()
-            .setSerializationInclusion(Include.NON_NULL)
+        val objectMapper = ReposiliteObjectMapper.DEFAULT_OBJECT_MAPPER
             .addHandler(object:DeserializationProblemHandler() {// TODO: move this to a proper place
                 override fun handleMissingInstantiator(
                     ctxt: DeserializationContext?,

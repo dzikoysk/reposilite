@@ -45,7 +45,7 @@ open class VersionComparator<T>(
 
         fun sortStrings(sequence: Sequence<String>): Sequence<String> =
             sequence
-                .map { Pair(it, asVersion(it)) }
+                .map { it to asVersion(it) }
                 .sortedWith(VersionComparator { cache -> cache.second })
                 .map { it.first }
 
