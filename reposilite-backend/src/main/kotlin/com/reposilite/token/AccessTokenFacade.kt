@@ -25,6 +25,7 @@ import com.reposilite.token.api.AccessTokenDetails
 import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.token.api.CreateAccessTokenRequest
 import com.reposilite.token.api.CreateAccessTokenResponse
+import com.reposilite.token.api.SecretType.ENCRYPTED
 import com.reposilite.token.api.SecretType.RAW
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.notFoundError
@@ -49,6 +50,28 @@ class AccessTokenFacade internal constructor(
             .toDto()
             .let { CreateAccessTokenResponse(it, secret) }
     }
+
+    fun addAccessToken(accessTokenDetails: AccessTokenDetails): AccessTokenDto =
+        with (accessTokenDetails) {
+            val (accessTokenDto) = createAccessToken(
+                CreateAccessTokenRequest(
+                    type = accessToken.identifier.type,
+                    name = accessToken.name,
+                    secretType = ENCRYPTED,
+                    secret = accessToken.encryptedSecret
+                )
+            )
+
+            permissions.forEach {
+                addPermission(accessTokenDto.identifier, it)
+            }
+
+            routes.forEach {
+                addRoute(accessTokenDto.identifier, Route(it.path, it.permission))
+            }
+
+            accessTokenDto
+        }
 
     fun secretMatches(id: AccessTokenIdentifier, secret: String): Boolean =
         getRawAccessTokenById(id)

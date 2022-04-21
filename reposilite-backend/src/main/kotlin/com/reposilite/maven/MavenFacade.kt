@@ -215,6 +215,9 @@ class MavenFacade internal constructor(
     fun getRepository(name: String) =
         repositoryService.getRepository(name)
 
+    fun getAllRepositoryNames(): Collection<String> =
+        getRepositories().map { it.name }
+
     internal fun getRepositories(): Collection<Repository> =
         repositoryService.getRepositories()
 

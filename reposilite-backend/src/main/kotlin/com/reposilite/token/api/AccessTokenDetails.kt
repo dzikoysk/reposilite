@@ -20,7 +20,7 @@ import com.reposilite.token.AccessToken
 import com.reposilite.token.AccessTokenPermission
 import com.reposilite.token.Route
 
-internal data class AccessTokenDetails(
+data class AccessTokenDetails(
     val accessToken: AccessToken,
     val permissions: Set<AccessTokenPermission>,
     val routes: Set<Route>

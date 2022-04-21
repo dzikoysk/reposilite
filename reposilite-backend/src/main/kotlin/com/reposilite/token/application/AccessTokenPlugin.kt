@@ -27,6 +27,7 @@ import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.AccessTokenPermission.MANAGER
 import com.reposilite.token.ChModCommand
 import com.reposilite.token.ChNameCommand
+import com.reposilite.token.ExportService
 import com.reposilite.token.ExportTokensCommand
 import com.reposilite.token.ImportTokensCommand
 import com.reposilite.token.KeygenCommand
@@ -62,6 +63,8 @@ internal class AccessTokenPlugin : ReposilitePlugin() {
             accessTokenFacade.addPermission(token.identifier, MANAGER)
         }
 
+        val exportService = ExportService(parameters.workingDirectory)
+
         event { event: CommandsSetupEvent ->
             event.registerCommand(TokensCommand(accessTokenFacade))
             event.registerCommand(KeygenCommand(accessTokenFacade))
@@ -72,8 +75,8 @@ internal class AccessTokenPlugin : ReposilitePlugin() {
             event.registerCommand(RouteAdd(accessTokenFacade))
             event.registerCommand(RouteRemove(accessTokenFacade))
 
-            event.registerCommand(ExportTokensCommand(parameters.workingDirectory, accessTokenFacade))
-            event.registerCommand(ImportTokensCommand(parameters.workingDirectory, accessTokenFacade))
+            event.registerCommand(ExportTokensCommand(accessTokenFacade, exportService))
+            event.registerCommand(ImportTokensCommand(accessTokenFacade, exportService))
         }
 
         event { event: RoutingSetupEvent ->

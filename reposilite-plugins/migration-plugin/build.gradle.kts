@@ -21,6 +21,7 @@ group = "com.reposilite.plugins"
 plugins {
     id("com.github.johnrengelman.shadow") version "7.1.2"
     kotlin("jvm")
+    kotlin("plugin.serialization") version "1.4.20"
 }
 
 application {
@@ -29,11 +30,13 @@ application {
 
 dependencies {
     compileOnly(project(":reposilite-backend"))
-    implementation("io.javalin-rfc:javalin-swagger-plugin:1.1.3")
+    testImplementation(project(":reposilite-backend"))
+
+    implementation("com.charleskorn.kaml:kaml:0.43.0")
 }
 
 tasks.withType<ShadowJar> {
-    archiveFileName.set("swagger-plugin.jar")
+    archiveFileName.set("migration-plugin.jar")
     destinationDirectory.set(file("$rootDir/reposilite-backend/src/test/workspace/plugins"))
     mergeServiceFiles()
 }

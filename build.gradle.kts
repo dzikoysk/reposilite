@@ -45,6 +45,13 @@ subprojects {
     apply(plugin = "application")
     apply(plugin = "maven-publish")
 
+    dependencies {
+        val junit = "5.8.2"
+        testImplementation("org.junit.jupiter:junit-jupiter-params:$junit")
+        testImplementation("org.junit.jupiter:junit-jupiter-api:$junit")
+        testImplementation("org.junit.jupiter:junit-jupiter-engine:$junit")
+    }
+
     java {
         withJavadocJar()
         withSourcesJar()
@@ -78,5 +85,27 @@ subprojects {
                 }
             }
         }
+    }
+
+    tasks.withType<Test> {
+        testLogging {
+            events(
+                org.gradle.api.tasks.testing.logging.TestLogEvent.STARTED,
+                org.gradle.api.tasks.testing.logging.TestLogEvent.PASSED,
+                org.gradle.api.tasks.testing.logging.TestLogEvent.FAILED,
+                org.gradle.api.tasks.testing.logging.TestLogEvent.SKIPPED
+            )
+            exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+            showExceptions = true
+            showCauses = true
+            showStackTraces = true
+            showStandardStreams = true
+        }
+
+        maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2)
+            .takeIf { it > 0 }
+            ?: 1
+
+        useJUnitPlatform()
     }
 }
