@@ -38,8 +38,8 @@ internal abstract class AccessTokenSpecification {
     lateinit var accessTokenFacade: AccessTokenFacade
 
     @BeforeEach
-    fun createFacade() {
-        accessTokenFacade = AccessTokenFacade(logger, InMemoryAccessTokenRepository(), InMemoryAccessTokenRepository(), ExportService(workingDirectory()))
+    fun createAccessTokenFacade() {
+        this.accessTokenFacade = AccessTokenFacade(logger, InMemoryAccessTokenRepository(), InMemoryAccessTokenRepository(), ExportService(workingDirectory()))
     }
 
     fun createToken(name: String): CreateAccessTokenResponse =
