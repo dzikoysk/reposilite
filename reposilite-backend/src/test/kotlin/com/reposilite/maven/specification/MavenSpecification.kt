@@ -30,7 +30,6 @@ import com.reposilite.maven.api.Metadata
 import com.reposilite.maven.api.Versioning
 import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.plugin.Extensions
-import com.reposilite.settings.api.LocalConfiguration
 import com.reposilite.shared.http.FakeRemoteClientProvider
 import com.reposilite.statistics.DailyDateIntervalProvider
 import com.reposilite.statistics.StatisticsFacade
@@ -39,7 +38,6 @@ import com.reposilite.status.FailureFacade
 import com.reposilite.storage.StorageFacade
 import com.reposilite.storage.api.DocumentInfo
 import com.reposilite.storage.api.Location
-import com.reposilite.storage.api.UNKNOWN_LENGTH
 import com.reposilite.storage.api.toLocation
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.AccessTokenIdentifier
@@ -85,7 +83,6 @@ internal abstract class MavenSpecification {
     @BeforeEach
     private fun initializeFacade() {
         val workingDirectoryPath = workingDirectory.toPath()
-        val parameters = ReposiliteParameters().also { it.workingDirectory = workingDirectoryPath }
 
         this.accessTokenFacade = AccessTokenFacade(
             journalist = logger,

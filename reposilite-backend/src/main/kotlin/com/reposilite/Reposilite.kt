@@ -24,8 +24,8 @@ import com.reposilite.plugin.api.ReposiliteInitializeEvent
 import com.reposilite.plugin.api.ReposilitePostInitializeEvent
 import com.reposilite.plugin.api.ReposiliteStartedEvent
 import com.reposilite.settings.api.LocalConfiguration
+import com.reposilite.settings.application.DatabaseConnection
 import com.reposilite.web.HttpServer
-import org.jetbrains.exposed.sql.Database
 import panda.std.Result
 import panda.std.Result.ok
 import panda.std.asError
@@ -40,12 +40,14 @@ class Reposilite(
     val journalist: ReposiliteJournalist,
     val parameters: ReposiliteParameters,
     val localConfiguration: LocalConfiguration,
-    val database: Database,
+    val databaseConnection: DatabaseConnection,
     val ioService: ExecutorService,
     val scheduler: ScheduledExecutorService,
     val webServer: HttpServer,
     val extensions: Extensions
 ) : Facade, Journalist {
+
+    val database = databaseConnection.database
 
     private val alive = AtomicBoolean(false)
 
@@ -82,6 +84,7 @@ class Reposilite(
             webServer.stop()
             scheduler.shutdownNow()
             ioService.shutdownNow()
+            databaseConnection.close()
             journalist.shutdown()
         }
 

@@ -23,15 +23,25 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.transactions.TransactionManager
+import java.io.Closeable
 import java.io.File
 import java.nio.file.Path
 import java.sql.Connection.TRANSACTION_SERIALIZABLE
-import javax.sql.DataSource
 import kotlin.io.path.absolutePathString
 
-internal object DatabaseSourceFactory {
+data class DatabaseConnection(
+    val databaseSource: HikariDataSource,
+    val database: Database
+) : Closeable {
 
-    fun createConnection(workingDirectory: Path, databaseConfiguration: String, databaseThreadPoolSize: Int): Database =
+    override fun close() =
+        databaseSource.close()
+
+}
+
+object DatabaseSourceFactory {
+
+    fun createConnection(workingDirectory: Path, databaseConfiguration: String, databaseThreadPoolSize: Int): DatabaseConnection =
         when {
             databaseConfiguration.startsWith("mysql") -> connectWithStandardDatabase(databaseConfiguration, "jdbc:mysql", "com.mysql.cj.jdbc.Driver", databaseThreadPoolSize)
             databaseConfiguration.startsWith("sqlite") -> connectWithEmbeddedDatabase(workingDirectory, databaseConfiguration, "org.sqlite.JDBC", "jdbc:sqlite:%file%")
@@ -41,12 +51,13 @@ internal object DatabaseSourceFactory {
             else -> throw RuntimeException("Unknown database: $databaseConfiguration")
         }
 
-    private fun connectWithStandardDatabase(databaseConfiguration: String, dialect: String, driver: String, databaseThreadPoolSize: Int): Database =
+    private fun connectWithStandardDatabase(databaseConfiguration: String, dialect: String, driver: String, databaseThreadPoolSize: Int): DatabaseConnection =
         with(loadCommandBasedConfiguration(StandardSQLDatabaseSettings(), databaseConfiguration).configuration) {
-            Database.connect(createDataSource(driver, "$dialect://${host}/${database}", databaseThreadPoolSize, user, password))
+            createDataSource(driver, "$dialect://${host}/${database}", databaseThreadPoolSize, user, password)
+                .let { DatabaseConnection(it, Database.connect(it)) }
         }
 
-    private fun connectWithEmbeddedDatabase(workingDirectory: Path, databaseConfiguration: String, driver: String, dialect: String): Database =
+    private fun connectWithEmbeddedDatabase(workingDirectory: Path, databaseConfiguration: String, driver: String, dialect: String): DatabaseConnection =
         with(loadCommandBasedConfiguration(EmbeddedSQLDatabaseSettings(), databaseConfiguration).configuration) {
             val databaseFile =
                 if (temporary)
@@ -56,12 +67,12 @@ internal object DatabaseSourceFactory {
                 else
                     workingDirectory.resolve(fileName)
 
-            Database.connect(createDataSource(driver, dialect.replace("%file%", databaseFile.absolutePathString()), 1)).also {
-                TransactionManager.manager.defaultIsolationLevel = TRANSACTION_SERIALIZABLE
-            }
+            createDataSource(driver, dialect.replace("%file%", databaseFile.absolutePathString()), 1)
+                .let { DatabaseConnection(it, Database.connect(it)) }
+                .also { TransactionManager.manager.defaultIsolationLevel = TRANSACTION_SERIALIZABLE }
         }
 
-    private fun createDataSource(driver: String, url: String, threadPool: Int, username: String? = null, password: String? = null): DataSource =
+    private fun createDataSource(driver: String, url: String, threadPool: Int, username: String? = null, password: String? = null): HikariDataSource =
         HikariDataSource(
             HikariConfig().apply {
                 this.jdbcUrl = url

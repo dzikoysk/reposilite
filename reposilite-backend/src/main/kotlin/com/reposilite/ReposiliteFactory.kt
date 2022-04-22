@@ -55,7 +55,7 @@ object ReposiliteFactory {
             journalist = journalist,
             parameters = parameters,
             localConfiguration = localConfiguration,
-            database = DatabaseSourceFactory.createConnection(parameters.workingDirectory, localConfiguration.database.get(), localConfiguration.databaseThreadPool.get()),
+            databaseConnection = DatabaseSourceFactory.createConnection(parameters.workingDirectory, localConfiguration.database.get(), localConfiguration.databaseThreadPool.get()),
             webServer = HttpServer(),
             ioService = newFixedThreadPool(2, localConfiguration.ioThreadPool.get(), "Reposilite | IO"),
             scheduler = newSingleThreadScheduledExecutor("Reposilite | Scheduler"),

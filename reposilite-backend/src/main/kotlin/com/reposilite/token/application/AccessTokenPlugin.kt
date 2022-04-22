@@ -23,7 +23,6 @@ import com.reposilite.plugin.api.ReposiliteInitializeEvent
 import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
-import com.reposilite.settings.SettingsFacade
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.AccessTokenPermission.MANAGER
 import com.reposilite.token.ChModCommand
