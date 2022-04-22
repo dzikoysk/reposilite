@@ -1,3 +1,5 @@
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 /*
@@ -39,11 +41,18 @@ allprojects {
 }
 
 subprojects {
-    version = "3.0.0-alpha.24"
+    version = "3.0.0-alpha.25"
 
     apply(plugin = "java-library")
     apply(plugin = "application")
     apply(plugin = "maven-publish")
+
+    dependencies {
+        val junit = "5.8.2"
+        testImplementation("org.junit.jupiter:junit-jupiter-params:$junit")
+        testImplementation("org.junit.jupiter:junit-jupiter-api:$junit")
+        testImplementation("org.junit.jupiter:junit-jupiter-engine:$junit")
+    }
 
     java {
         withJavadocJar()
@@ -78,5 +87,27 @@ subprojects {
                 }
             }
         }
+    }
+
+    tasks.withType<Test> {
+        testLogging {
+            events(
+                TestLogEvent.STARTED,
+                TestLogEvent.PASSED,
+                TestLogEvent.FAILED,
+                TestLogEvent.SKIPPED
+            )
+            exceptionFormat = TestExceptionFormat.FULL
+            showExceptions = true
+            showCauses = true
+            showStackTraces = true
+            showStandardStreams = true
+        }
+
+        maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2)
+            .takeIf { it > 0 }
+            ?: 1
+
+        useJUnitPlatform()
     }
 }

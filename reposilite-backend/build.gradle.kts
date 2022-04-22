@@ -15,9 +15,6 @@
  */
 
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-import org.gradle.api.tasks.testing.logging.TestExceptionFormat
-import org.gradle.api.tasks.testing.logging.TestLogEvent
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 group = "org.panda-lang"
 
@@ -36,7 +33,7 @@ application {
 dependencies {
     implementation(project(":reposilite-frontend"))
 
-    val kotlin = "1.6.20"
+    val kotlin = "1.6.21"
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin")
     api("org.jetbrains:annotations:23.0.0")
@@ -50,12 +47,12 @@ dependencies {
     api("net.dzikoysk:cdn:$cdn")
     api("net.dzikoysk:cdn-kt:$cdn")
 
-    val awssdk = "2.17.172"
+    val awssdk = "2.17.175"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
-    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.201")
+    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.204")
 
-    val exposed = "0.38.1"
+    val exposed = "0.38.2"
     implementation("org.jetbrains.exposed:exposed-core:$exposed")
     implementation("org.jetbrains.exposed:exposed-dao:$exposed")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposed")
@@ -71,7 +68,7 @@ dependencies {
     implementation("org.postgresql:postgresql:42.3.4")
     implementation("com.h2database:h2:2.1.212")
 
-    val springSecurityCrypto = "5.6.2"
+    val springSecurityCrypto = "5.6.3"
     implementation("org.springframework.security:spring-security-crypto:$springSecurityCrypto")
 
     val ldap = "6.0.4"
@@ -141,11 +138,6 @@ dependencies {
     testImplementation("org.testcontainers:testcontainers:$testcontainers")
     testImplementation("org.testcontainers:junit-jupiter:$testcontainers")
     testImplementation("org.testcontainers:localstack:$testcontainers")
-
-    val junit = "5.8.2"
-    testImplementation("org.junit.jupiter:junit-jupiter-params:$junit")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:$junit")
-    testImplementation("org.junit.jupiter:junit-jupiter-engine:$junit")
 }
 
 tasks.withType<ShadowJar> {
@@ -195,28 +187,6 @@ publishing {
             }
         }
     }
-}
-
-tasks.withType<Test> {
-    testLogging {
-        events(
-            TestLogEvent.STARTED,
-            TestLogEvent.PASSED,
-            TestLogEvent.FAILED,
-            TestLogEvent.SKIPPED
-        )
-        exceptionFormat = TestExceptionFormat.FULL
-        showExceptions = true
-        showCauses = true
-        showStackTraces = true
-        showStandardStreams = true
-    }
-
-    maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2)
-        .takeIf { it > 0 }
-        ?: 1
-
-    useJUnitPlatform()
 }
 
 jacoco {

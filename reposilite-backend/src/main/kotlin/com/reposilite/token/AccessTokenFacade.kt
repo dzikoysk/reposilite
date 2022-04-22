@@ -25,17 +25,20 @@ import com.reposilite.token.api.AccessTokenDetails
 import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.token.api.CreateAccessTokenRequest
 import com.reposilite.token.api.CreateAccessTokenResponse
+import com.reposilite.token.api.SecretType.ENCRYPTED
 import com.reposilite.token.api.SecretType.RAW
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.notFoundError
 import panda.std.Result
 import panda.std.asSuccess
 import panda.std.letIf
+import java.nio.file.Path
 
 class AccessTokenFacade internal constructor(
     private val journalist: Journalist,
     private val temporaryRepository: AccessTokenRepository,
-    private val persistentRepository: AccessTokenRepository
+    private val persistentRepository: AccessTokenRepository,
+    private val exportService: ExportService
 ) : Facade, Journalist {
 
     fun createAccessToken(request: CreateAccessTokenRequest): CreateAccessTokenResponse {
@@ -49,6 +52,36 @@ class AccessTokenFacade internal constructor(
             .toDto()
             .let { CreateAccessTokenResponse(it, secret) }
     }
+
+    fun addAccessToken(accessTokenDetails: AccessTokenDetails): AccessTokenDto =
+        with (accessTokenDetails) {
+            val (accessTokenDto) = createAccessToken(
+                CreateAccessTokenRequest(
+                    type = accessToken.identifier.type,
+                    name = accessToken.name,
+                    secretType = ENCRYPTED,
+                    secret = accessToken.encryptedSecret
+                )
+            )
+
+            permissions.forEach {
+                addPermission(accessTokenDto.identifier, it)
+            }
+
+            routes.forEach {
+                addRoute(accessTokenDto.identifier, Route(it.path, it.permission))
+            }
+
+            accessTokenDto
+        }
+
+    fun exportToFile(toFile: String): Pair<Path, Collection<AccessTokenDetails>> =
+        getAccessTokens()
+            .map { getAccessTokenDetailsById(it.identifier)!! }
+            .let { exportService.exportToFile(it, toFile) to it }
+
+    fun importFromFile(fromFile: String): Result<Pair<Path, Collection<AccessTokenDetails>>, Exception> =
+        exportService.importFromFile(fromFile)
 
     fun secretMatches(id: AccessTokenIdentifier, secret: String): Boolean =
         getRawAccessTokenById(id)

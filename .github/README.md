@@ -61,10 +61,10 @@ For huge public repositories you can adjust memory limit and even size of used t
 
 ```bash
 # Launching a standalone JAR file
-$ java -Xmx16M -jar reposilite-3.0.0-alpha.24.jar
+$ java -Xmx16M -jar reposilite-3.0.0-alpha.25.jar
 
 # Using a Docker
-$ docker pull dzikoysk/reposilite:3.0.0-alpha.24
+$ docker pull dzikoysk/reposilite:3.0.0-alpha.25
 ```
 
 Visit official guide to read more about extra parameters and configuration details.
@@ -90,7 +90,8 @@ Thanks to all contributors and people that decided to support my work financiall
     <a href="https://github.com/tipsy">tipsy</a>, 
     <a href="https://github.com/Koressi">Koressi</a>,
     <a href="https://github.com/insertt">insertt</a>, 
-    <a href="https://github.com/milkyway0308">milkyway0308</a>, 
+    <a href="https://github.com/milkyway0308">milkyway0308</a>,
+    <a href="https://github.com/andrm">andrm</a>, 
     <a href="https://github.com/neg4n">neg4n</a>, 
     <a href="https://github.com/sebba-dev">sebba-dev</a>
   </td>
@@ -113,6 +114,7 @@ Thanks to all contributors and people that decided to support my work financiall
    <a href="https://github.com/escv">escv</a>,
    <a href="https://github.com/shitzuu">shitzuu</a>,
    <a href="https://github.com/peter-jerry-ye">peter-jerry-ye</a>,
+   <a href="https://github.com/andrm">andrm</a>, 
    Rob,
    <a href="https://github.com/FlawCra">FlawCra</a>,
    <a href="https://github.com/sebba-dev">sebba-dev</a>,
@@ -125,7 +127,7 @@ Thanks to all contributors and people that decided to support my work financiall
 
 ### For developers
 
-Recommended tool to develop backend module is IntelliJ IDE, for frontend it might be e.g. VSC. 
+Recommended tool to develop backend module is IntelliJ IDE, for frontend it might be e.g. VSC.
 
 ```bash
 # Run only backend through CLI
@@ -148,7 +150,7 @@ Reposilite 3.x
 Reposilite 2.x
 * Reposilite Backend: Java + Javalin (Jetty) + Groovy (JUnit) + _(DDD)_
 * Reposilite Frontend: Vue2 + Pug + Stylus + Tailwindcss
-* Reposilite Site: React.js + Docusaurus 
+* Reposilite Site: React.js + Docusaurus
 
 Reposilite 1.x
 * Reposilite: Java + NanoHTTPD

@@ -23,19 +23,26 @@ import com.reposilite.auth.application.LdapSettings
 import com.reposilite.status.FailureFacade
 import com.reposilite.token.specification.AccessTokenSpecification
 import panda.std.reactive.toMutableReference
+import org.junit.jupiter.api.BeforeEach
+import panda.std.reactive.toReference
 
 internal abstract class AuthenticationSpecification : AccessTokenSpecification() {
 
     protected val failureFacade = FailureFacade(logger)
     protected val ldapConfiguration = LdapSettings().toMutableReference()
 
-    protected val authenticationFacade = AuthenticationFacade(
-        journalist = logger,
-        authenticators = listOf(
-            BasicAuthenticator(accessTokenFacade),
-            LdapAuthenticator(ldapConfiguration, accessTokenFacade, failureFacade)
-        ),
-        accessTokenFacade = accessTokenFacade
-    )
+    protected lateinit var authenticationFacade: AuthenticationFacade
+
+    @BeforeEach
+    fun createAuthenticationFacade() {
+        this.authenticationFacade = AuthenticationFacade(
+            journalist = logger,
+            authenticators = listOf(
+                BasicAuthenticator(accessTokenFacade),
+                LdapAuthenticator(ldapConfiguration, accessTokenFacade, failureFacade)
+            ),
+            accessTokenFacade = accessTokenFacade
+        )
+    }
 
 }

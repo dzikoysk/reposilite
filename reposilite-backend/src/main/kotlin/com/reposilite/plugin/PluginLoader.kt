@@ -18,6 +18,7 @@ package com.reposilite.plugin
 
 import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposilitePlugin
+import com.reposilite.plugin.api.ReposilitePlugin.ReposilitePluginAccessor
 import com.reposilite.storage.getSimpleName
 import java.net.URLClassLoader
 import java.nio.file.Files
@@ -53,10 +54,11 @@ class PluginLoader(
         .forEach { (_, plugin) -> plugin.initialize()?.apply { extensions.registerFacade(this) } }
 
     fun registerPlugin(plugin: ReposilitePlugin) {
-        val field = plugin::class.java.superclass.getDeclaredField("extensions")
-        field.isAccessible = true
-        field.set(plugin, extensions)
-        plugins.add(PluginEntry(plugin::class.findAnnotation() ?: throw IllegalStateException("Plugin ${plugin::class} does not have @Plugin annotation"), plugin))
+        plugin::class.findAnnotation<Plugin>()
+            ?.let { PluginEntry(it, plugin) }
+            ?.also { ReposilitePluginAccessor.injectExtension(it.plugin, extensions) }
+            ?.also { plugins.add(it) }
+            ?: throw IllegalStateException("Plugin ${plugin::class} does not have @Plugin annotation")
     }
 
 }

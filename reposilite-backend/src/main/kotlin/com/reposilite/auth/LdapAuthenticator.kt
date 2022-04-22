@@ -69,8 +69,13 @@ internal class LdapAuthenticator(
                 .filter({ it.size == 1 }, { ErrorResponse(BAD_REQUEST, "Could not identify one specific result") }) // only one search result allowed
                 .map { it.first() }
                 .flatMap { createContext(user = it.first, password = credentials.secret) } // try to authenticate user with matched domain namespace
-                .flatMap { it.search(userFilter, userAttribute) } // filter result with user-filter from configuration
-                .filter({ it.size == 1 }, { ErrorResponse(BAD_REQUEST, "Could not identify one specific result") }) // only one search result allowed
+                .flatMap {
+                    it.search(
+                        "(&(objectClass=person)(${userAttribute}=${credentials.name})${userFilter})", // filter result with user-filter from configuration
+                        userAttribute
+                    )
+                }
+                .filter({ it.size == 1 }, { ErrorResponse(BAD_REQUEST, "Could not identify one specific result as user") }) // only one search result allowed
                 .map { it.first() }
                 .map { (_, attributes) -> attributes[userAttribute]!! } // search returns only lists with values
                 .filter({ it.size == 1 }, { ErrorResponse(BAD_REQUEST, "Could not identify one specific attribute") }) // only one attribute value is allowed
