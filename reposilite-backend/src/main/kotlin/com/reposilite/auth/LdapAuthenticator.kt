@@ -21,6 +21,7 @@ import com.reposilite.journalist.Channel.DEBUG
 import com.reposilite.settings.api.SharedConfiguration.LdapConfiguration
 import com.reposilite.status.FailureFacade
 import com.reposilite.token.AccessTokenFacade
+import com.reposilite.token.AccessTokenType.TEMPORARY
 import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.token.api.CreateAccessTokenRequest
 import com.reposilite.web.http.ErrorResponse
@@ -67,9 +68,14 @@ internal class LdapAuthenticator(
                 }
                 .filter({ it.size == 1 }, { ErrorResponse(BAD_REQUEST, "Could not identify one specific result") }) // only one search result allowed
                 .map { it.first() }
-                .flatMap { createContext(user = it.first, password = authenticationRequest.secret) } // try to authenticate user with matched domain namespace
-                .flatMap { it.search(userFilter, userAttribute) } // filter result with user-filter from configuration
-                .filter({ it.size == 1 }, { ErrorResponse(BAD_REQUEST, "Could not identify one specific result") }) // only one search result allowed
+                .flatMap { createContext(user = it.first, password = authenticationRequest.secret) } // try to authenticate user with matched domain namespace                                
+                .flatMap { 
+                    it.search(
+                        "(&(objectClass=person)(${userAttribute}=${authenticationRequest.name})${userFilter})", // filter result with user-filter from configuration                
+                        userAttribute
+                    ) 
+                } 
+                .filter({ it.size == 1 }, { ErrorResponse(BAD_REQUEST, "Could not identify one specific result as user") }) // only one search result allowed
                 .map { it.first() }
                 .map { (_, attributes) -> attributes[userAttribute]!! } // search returns only lists with values
                 .filter({ it.size == 1 }, { ErrorResponse(BAD_REQUEST, "Could not identify one specific attribute") }) // only one attribute value is allowed
