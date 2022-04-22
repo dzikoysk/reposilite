@@ -27,11 +27,11 @@
     "vue-prism-editor": "^2.0.0-alpha.2",
     "vue-router": "^4.0.14",
     "vue-upload-component": "^3.1.2",
-    "vue3-tabs": "^0.1.12"
+    "vue3-tabs": "^0.1.13-beta.3"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^2.3.1",
-    "@vue/compiler-sfc": "^3.2.31",
+    "@vue/compiler-sfc": "^3.2.33",
     "body-parser": "^1.20.0",
     "concurrently": "^7.1.0",
     "eslint": "^8.13.0",
