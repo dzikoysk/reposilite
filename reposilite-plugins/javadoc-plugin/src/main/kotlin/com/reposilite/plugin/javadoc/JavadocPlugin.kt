@@ -16,7 +16,6 @@
 
 package com.reposilite.plugin.javadoc
 
-import com.reposilite.Reposilite
 import com.reposilite.maven.MavenFacade
 import com.reposilite.plugin.api.Facade
 import com.reposilite.plugin.api.Plugin
@@ -24,13 +23,14 @@ import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
 import com.reposilite.plugin.javadoc.infrastructure.JavadocEndpoints
+import com.reposilite.plugin.parameters
 import com.reposilite.web.api.RoutingSetupEvent
 
-@Plugin(name = "javadoc")
+@Plugin(name = "javadoc", dependencies = ["maven"])
 internal class JavadocPlugin : ReposilitePlugin() {
 
     override fun initialize(): Facade {
-        val javadocFolder = facade<Reposilite>().parameters.workingDirectory.resolve("javadocs")
+        val javadocFolder = parameters().workingDirectory.resolve("javadocs")
         val mavenFacade = facade<MavenFacade>()
         val facade = JavadocFacade(javadocFolder, mavenFacade, this)
 
