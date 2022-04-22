@@ -48,13 +48,14 @@ const scrollToEnd = () => {
 }
 
 //const focusInput = () =>
-  //document.getElementById('consoleInput').focus()
+//  document.getElementById('consoleInput').focus()
 
 const setupConnection = () => {
   onOpen.value = () => clearLog()
   onMessage.value = message => {
     logMessage(message)
     nextTick(() => scrollToEnd())
+    //focusInput()
   }
   onError.value = error => createToast(`${error || ''}`, { type: 'danger' })
   onClose.value = () => createToast('Connection with console has been lost', { type: 'danger' })
