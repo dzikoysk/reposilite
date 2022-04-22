@@ -22,6 +22,7 @@ import com.reposilite.auth.LdapAuthenticator
 import com.reposilite.settings.api.SharedConfiguration.LdapConfiguration
 import com.reposilite.status.FailureFacade
 import com.reposilite.token.specification.AccessTokenSpecification
+import org.junit.jupiter.api.BeforeEach
 import panda.std.reactive.toReference
 
 internal abstract class AuthenticationSpecification : AccessTokenSpecification() {
@@ -29,13 +30,18 @@ internal abstract class AuthenticationSpecification : AccessTokenSpecification()
     protected val failureFacade = FailureFacade(logger)
     protected val ldapConfiguration = LdapConfiguration().toReference()
 
-    protected val authenticationFacade = AuthenticationFacade(
-        journalist = logger,
-        authenticators = listOf(
-            BasicAuthenticator(accessTokenFacade),
-            LdapAuthenticator(ldapConfiguration, accessTokenFacade, failureFacade)
-        ),
-        accessTokenFacade = accessTokenFacade
-    )
+    protected lateinit var authenticationFacade: AuthenticationFacade
+
+    @BeforeEach
+    fun createAuthenticationFacade() {
+        this.authenticationFacade = AuthenticationFacade(
+            journalist = logger,
+            authenticators = listOf(
+                BasicAuthenticator(accessTokenFacade),
+                LdapAuthenticator(ldapConfiguration, accessTokenFacade, failureFacade)
+            ),
+            accessTokenFacade = accessTokenFacade
+        )
+    }
 
 }

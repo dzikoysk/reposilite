@@ -19,7 +19,6 @@ package com.reposilite.auth
 import com.reposilite.assertCollectionsEquals
 import com.reposilite.auth.api.AuthenticationRequest
 import com.reposilite.auth.specification.AuthenticationSpecification
-import com.reposilite.settings.api.SharedConfiguration.LdapConfiguration
 import com.reposilite.token.AccessTokenType.TEMPORARY
 import com.reposilite.token.api.CreateAccessTokenRequest
 import com.unboundid.ldap.listener.InMemoryDirectoryServer

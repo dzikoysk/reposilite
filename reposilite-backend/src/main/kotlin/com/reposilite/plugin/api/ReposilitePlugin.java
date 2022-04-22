@@ -63,4 +63,21 @@ public abstract class ReposilitePlugin implements Journalist {
         return extensions().getLogger();
     }
 
+    /**
+     * Allows you to inject hidden properties into plugin instance
+     */
+    public static class ReposilitePluginAccessor {
+
+        /**
+         * Injects {@link com.reposilite.plugin.Extensions} instance into {@link com.reposilite.plugin.api.ReposilitePlugin}
+         *
+         * @param plugin the plugin to inject into
+         * @param extensions the extensions to inject
+         */
+        public static void injectExtension(ReposilitePlugin plugin, Extensions extensions) {
+            plugin.extensions = extensions;
+        }
+
+    }
+
 }
