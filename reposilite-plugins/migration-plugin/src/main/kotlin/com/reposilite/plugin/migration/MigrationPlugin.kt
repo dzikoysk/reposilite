@@ -6,6 +6,7 @@ import com.reposilite.plugin.api.Facade
 import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.facade
+import com.reposilite.plugin.parameters
 import com.reposilite.token.AccessToken
 import com.reposilite.token.AccessTokenPermission
 import com.reposilite.token.ExportService
@@ -22,7 +23,7 @@ import kotlin.io.path.readBytes
 class MigrationPlugin : ReposilitePlugin() {
 
     override fun initialize(): Facade? {
-        val workingDirectory = extensions().parameters.workingDirectory
+        val workingDirectory = parameters().workingDirectory
         val mavenFacade = facade<MavenFacade>()
 
         migrateTokens(
