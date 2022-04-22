@@ -21,7 +21,6 @@ import com.reposilite.journalist.Channel.DEBUG
 import com.reposilite.settings.api.SharedConfiguration.LdapConfiguration
 import com.reposilite.status.FailureFacade
 import com.reposilite.token.AccessTokenFacade
-import com.reposilite.token.AccessTokenType.TEMPORARY
 import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.token.api.CreateAccessTokenRequest
 import com.reposilite.web.http.ErrorResponse

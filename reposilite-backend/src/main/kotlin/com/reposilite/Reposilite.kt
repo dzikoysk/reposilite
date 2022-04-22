@@ -18,6 +18,7 @@ package com.reposilite
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
 import com.reposilite.plugin.Extensions
+import com.reposilite.plugin.api.Facade
 import com.reposilite.plugin.api.ReposiliteDisposeEvent
 import com.reposilite.plugin.api.ReposiliteInitializeEvent
 import com.reposilite.plugin.api.ReposilitePostInitializeEvent
@@ -40,7 +41,7 @@ class Reposilite(
     val scheduler: ScheduledExecutorService,
     val webServer: HttpServer,
     val extensions: Extensions
-) : Journalist {
+) : Facade, Journalist {
 
     private val alive = AtomicBoolean(false)
 

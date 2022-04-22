@@ -1,0 +1,14 @@
+!!org.panda_lang.reposilite.auth.TokenCollection
+"tokens":
+- "alias": "private"
+  "path": "/private"
+  "permissions": "w"
+  "token": "$2a$10$emGPCUwsR650EJYNrjy/tucpi2rA0O2oYTT87OYQU9bSodGlNrI.q"
+- "alias": "wildcard"
+  "path": "*/"
+  "permissions": "m"
+  "token": "$2a$10$b2jinHwPoS.0BhwpBgj8juS9NXr3kDy5JpO8qggt3o6HakHeasl1."
+- "alias": "admin"
+  "path": "/"
+  "permissions": "wm"
+  "token": "$2a$10$BgjbxB2Fug88kURC5F.xTeVVz2EEKvbiUNt7OnO4K5qBMZFTu39T."

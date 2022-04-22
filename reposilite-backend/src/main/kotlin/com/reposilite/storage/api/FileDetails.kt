@@ -41,7 +41,7 @@ sealed class FileDetails(
 class DocumentInfo(
     name: String,
     val contentType: ContentType,
-    val contentLength: Long,
+    val contentLength: Long = UNKNOWN_LENGTH,
 ) : FileDetails(FILE, name)
 
 sealed class AbstractDirectoryInfo(

@@ -16,6 +16,8 @@
 
 package com.reposilite.plugin
 
+import com.reposilite.Reposilite
+import com.reposilite.ReposiliteParameters
 import com.reposilite.plugin.api.Event
 import com.reposilite.plugin.api.EventListener
 import com.reposilite.plugin.api.Facade
@@ -26,3 +28,9 @@ inline fun <reified EVENT : Event> ReposilitePlugin.event(listener: EventListene
 
 inline fun <reified F : Facade> ReposilitePlugin.facade(): F =
     extensions().facade()
+
+fun ReposilitePlugin.reposilite(): Reposilite =
+    facade()
+
+fun ReposilitePlugin.parameters(): ReposiliteParameters =
+    reposilite().parameters
