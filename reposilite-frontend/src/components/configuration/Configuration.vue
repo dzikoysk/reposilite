@@ -26,6 +26,7 @@ import { default as ObjectRenderer, tester as objectTester } from './renderers/O
 import { default as AllOfRenderer, tester as allOfTester } from './renderers/AllOfRenderer.vue'
 import { default as OneOfRenderer, tester as oneOfTester } from './renderers/OneOfRenderer.vue'
 import { default as ConstantRenderer, tester as constantTester } from './renderers/ConstantRenderer.vue'
+import { default as OptionalRenderer, tester as optionalTester } from './renderers/OptionalRenderer.vue'
 
 const { client } = useSession()
 const configuration = ref({})
@@ -103,10 +104,17 @@ fetchConfiguration().then(() => {
 
 const renderers = [
   ...vanillaRenderers,
-  {tester: objectTester, renderer: ObjectRenderer},
+  {
+    tester: (uischema, schema) => {
+      let x = objectTester(uischema, schema)
+      return x === -1 || schema.title === 'Proxied Maven Repository' ? -1 : x  // needed because without it hangs TODO find out why
+    },
+    renderer: ObjectRenderer
+  },
   {tester: allOfTester, renderer: AllOfRenderer},
   {tester: oneOfTester, renderer: OneOfRenderer},
-  {tester: constantTester, renderer: ConstantRenderer}
+  {tester: constantTester, renderer: ConstantRenderer},
+  {tester: optionalTester, renderer: OptionalRenderer}
 ]
 
 const ajv = computed(() => createAjv({
@@ -197,7 +205,7 @@ const ajv = computed(() => createAjv({
   display: none;
 }
 .vertical-layout, .group, .array-list {
-  @apply flex flex-col flex-wrap;
+  @apply flex flex-col flex-wrap py-4;
   height: 100%;
   gap: 1rem;
 }
