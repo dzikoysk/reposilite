@@ -115,5 +115,6 @@ export default function useConsole() {
     execute,
     previousCommand,
     nextCommand,
+    isConnected
   }
 }

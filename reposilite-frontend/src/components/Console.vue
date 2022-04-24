@@ -15,7 +15,7 @@
   -->
 
 <script setup>
-import { watch, onUnmounted, nextTick } from 'vue'
+import { watch, nextTick } from 'vue'
 import { createToast } from 'mosha-vue-toastify'
 import { useSession } from '../store/session'
 import useLog from '../helpers/console/log'
@@ -33,14 +33,15 @@ const { levels, log, logMessage, filter, clearLog } = useLog()
 const { 
   onOpen, onMessage, onClose, onError, 
   connect,
-  close,
+  //close,
   command,
   execute,
   previousCommand,
-  nextCommand
+  nextCommand,
+  isConnected
 } = useConsole()
 
-onUnmounted(() => close())
+// onUnmounted(() => close())
 
 const scrollToEnd = () => {
   const console = document.getElementById('console')
@@ -59,7 +60,6 @@ const setupConnection = () => {
   }
   onError.value = error => createToast(`${error || ''}`, { type: 'danger' })
   onClose.value = () => createToast('Connection with console has been lost', { type: 'danger' })
-  
   createToast('Connecting to the remote console', { type: 'info', })
   const { token } = useSession()
   connect(token.value)
@@ -67,7 +67,11 @@ const setupConnection = () => {
 
 watch(
   () => props.selectedTab.value,
-  selectedTab => selectedTab === 'Console' ? setupConnection() : close(),
+  (selectedTab, previous) => {
+    if (selectedTab === 'Console' && previous == undefined && !isConnected()) {
+      setupConnection()
+    }
+  },
   { immediate: true }
 )
 </script>

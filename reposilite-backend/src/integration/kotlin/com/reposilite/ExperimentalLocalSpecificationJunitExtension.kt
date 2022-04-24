@@ -26,7 +26,7 @@ import org.junit.jupiter.api.extension.ExtensionContext
  * - H2
  * - Local file system
  */
-internal class ReposiliteExperimentalLocalIntegrationJunitExtension : Extension, BeforeEachCallback {
+internal class ExperimentalLocalSpecificationJunitExtension : Extension, BeforeEachCallback {
 
     override fun beforeEach(context: ExtensionContext?) {
         context?.also {

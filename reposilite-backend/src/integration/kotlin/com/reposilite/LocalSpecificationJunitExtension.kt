@@ -26,7 +26,7 @@ import org.junit.jupiter.api.extension.ExtensionContext
  * - SQLite
  * - Local file system
  */
-internal class ReposiliteLocalIntegrationJunitExtension : Extension, BeforeEachCallback {
+internal class LocalSpecificationJunitExtension : Extension, BeforeEachCallback {
 
     override fun beforeEach(context: ExtensionContext?) {
         context?.also {

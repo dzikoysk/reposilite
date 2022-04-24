@@ -34,7 +34,7 @@ import org.testcontainers.utility.DockerImageName
  * - AWS S3 through LocalStack
  */
 @Testcontainers
-internal class ReposiliteRemoteIntegrationJunitExtension : Extension, BeforeEachCallback, AfterEachCallback {
+internal class RemoteSpecificationJunitExtension : Extension, BeforeEachCallback, AfterEachCallback {
 
     private class SpecifiedMariaDBContainer(image: String) : MariaDBContainer<SpecifiedMariaDBContainer>(DockerImageName.parse(image))
 

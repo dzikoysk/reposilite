@@ -42,8 +42,8 @@ import java.util.concurrent.ThreadLocalRandom
 /**
  * This is a dirty launcher of Reposilite instance for integration tests.
  * Every integration test is launched twice, with local and remote integrations, through dedicated extensions:
- * - [ReposiliteLocalIntegrationJunitExtension]
- * - [ReposiliteRemoteIntegrationJunitExtension]
+ * - [LocalSpecificationJunitExtension]
+ * - [RemoteSpecificationJunitExtension]
  */
 @Suppress("PropertyName")
 internal abstract class ReposiliteRunner {

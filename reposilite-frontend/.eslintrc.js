@@ -27,6 +27,7 @@ module.exports = {
     // override/add rules settings here, such as:
     'vue/script-setup-uses-vars': 'error',
     'vue/no-setup-props-destructure': 'error',
+    // 'vue/no-unused-vars': 'error',
     'semi': ['error', 'never']
   }
 }

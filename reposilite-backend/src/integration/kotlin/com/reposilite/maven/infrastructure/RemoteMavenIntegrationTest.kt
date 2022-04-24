@@ -16,9 +16,9 @@
 
 package com.reposilite.maven.infrastructure
 
-import com.reposilite.ReposiliteRemoteIntegrationJunitExtension
+import com.reposilite.RemoteSpecificationJunitExtension
 import com.reposilite.maven.MavenIntegrationTest
 import org.junit.jupiter.api.extension.ExtendWith
 
-@ExtendWith(ReposiliteRemoteIntegrationJunitExtension::class)
+@ExtendWith(RemoteSpecificationJunitExtension::class)
 internal class RemoteMavenIntegrationTest : MavenIntegrationTest()

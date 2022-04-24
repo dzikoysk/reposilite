@@ -54,7 +54,7 @@ const menuTabs = computed(() =>
 <template>
   <div>
     <Header />
-    <div class="bg-gray-100 dark:bg-black">
+    <div class="bg-gray-100 dark:bg-black overflow-y-visible">
       <div class="container mx-auto <sm:px-0">
         <Tabs v-model="selectedTab.value">
           <Tab

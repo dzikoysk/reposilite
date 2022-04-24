@@ -15,7 +15,7 @@
   -->
   
 <script setup>
-import {computed, ref, shallowRef} from 'vue'
+import {computed, markRaw, ref, watch} from 'vue'
 import {useSession} from '../../store/session'
 import {createToast} from 'mosha-vue-toastify'
 import {createAjv} from '@jsonforms/core'
@@ -28,10 +28,17 @@ import { default as OneOfRenderer, tester as oneOfTester } from './renderers/One
 import { default as ConstantRenderer, tester as constantTester } from './renderers/ConstantRenderer.vue'
 import { default as OptionalRenderer, tester as optionalTester } from './renderers/OptionalRenderer.vue'
 
+const props = defineProps({
+  selectedTab: {
+    type: Object,
+    required: true
+  }
+})
+
 const { client } = useSession()
 const configuration = ref({})
-const configurations = shallowRef([])
-const configurationSchema = shallowRef({})
+const configurations = ref([])
+const configurationSchema = ref({})
 const selectedConfig = ref('')
 
 const getSchema = async (name) => {
@@ -98,11 +105,7 @@ const updateConfiguration = async () => {
   }
 }
 
-fetchConfiguration().then(() => {
-  configurations.value.forEach(value => console.log(value, configurationSchema.value[value]))
-})
-
-const renderers = [
+const renderers = markRaw([
   ...vanillaRenderers,
   {
     tester: (uischema, schema) => {
@@ -115,7 +118,7 @@ const renderers = [
   {tester: oneOfTester, renderer: OneOfRenderer},
   {tester: constantTester, renderer: ConstantRenderer},
   {tester: optionalTester, renderer: OptionalRenderer}
-]
+])
 
 const ajv = computed(() => createAjv({
   'formats': {
@@ -127,6 +130,18 @@ const ajv = computed(() => createAjv({
     }
   }
 }))
+
+watch(
+  () => props.selectedTab.value,
+  (selectedTab, prev) => {
+    if (selectedTab === 'Configuration' && prev == undefined && configurations.value.length == 0) {
+      fetchConfiguration().then(() => {
+        configurations.value.forEach(value => console.log(value, configurationSchema.value[value]))
+      })
+    }
+  },
+  { immediate: true }
+)
 </script>
 
 <template>
@@ -147,20 +162,21 @@ const ajv = computed(() => createAjv({
     </div>
     <Tabs v-model="selectedConfig">
       <Tab v-for="cfg in configurations"
-           class="item"
-           :key="`config:${cfg}`"
-           :val="cfg"
-           :label="configurationSchema[cfg]?.title"
-           :indicator="true"/>
+        class="item"
+        :key="`config:${cfg}`"
+        :val="cfg"
+        :label="configurationSchema[cfg]?.title"
+        :indicator="true"
+      />
     </Tabs>
     <TabPanels v-model="selectedConfig">
       <TabPanel v-for="cfg in configurations" :val="cfg" :key="`config_tab:${cfg}`" class="border-1 rounded dark:border-gray-700 p-4">
         <JsonForms
-            v-if="configuration[cfg]"
-            :data="configuration[cfg]"
-            :schema="configurationSchema[cfg]"
-            :renderers="renderers"
-            :ajv="ajv"
+          v-if="configuration[cfg]"
+          :data="configuration[cfg]"
+          :schema="configurationSchema[cfg]"
+          :renderers="renderers"
+          :ajv="ajv"
         />
       </TabPanel>
     </TabPanels>

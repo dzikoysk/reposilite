@@ -27,7 +27,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import java.util.concurrent.CountDownLatch
 
-@ExtendWith(ReposiliteLocalIntegrationJunitExtension::class)
+@ExtendWith(LocalSpecificationJunitExtension::class)
 internal class BasePathIntegrationTest : ReposiliteSpecification() {
 
     private val basePath = "/custom-base-path"

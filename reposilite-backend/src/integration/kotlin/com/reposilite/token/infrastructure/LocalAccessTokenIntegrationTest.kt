@@ -16,9 +16,9 @@
 
 package com.reposilite.token.infrastructure
 
-import com.reposilite.ReposiliteLocalIntegrationJunitExtension
+import com.reposilite.LocalSpecificationJunitExtension
 import com.reposilite.token.AccessTokenIntegrationTest
 import org.junit.jupiter.api.extension.ExtendWith
 
-@ExtendWith(ReposiliteLocalIntegrationJunitExtension::class)
+@ExtendWith(LocalSpecificationJunitExtension::class)
 internal class LocalAccessTokenIntegrationTest : AccessTokenIntegrationTest()
