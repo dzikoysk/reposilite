@@ -34,7 +34,7 @@ This is simple, extensible and scalable self-hosted solution to replace managers
  <div>
   <a href="https://reposilite.com">Website</a>
   |
-  <a href="https://reposilite.com/docs/about">Official Guide</a>
+  <a href="https://reposilite.com/guide/about">Official Guide</a>
   |
   <a href="https://github.com/dzikoysk/reposilite/releases">GitHub Releases</a>
   |
@@ -70,7 +70,7 @@ $ docker pull dzikoysk/reposilite:3.0.0-alpha.25
 Visit official guide to read more about extra parameters and configuration details.
 
 ### Publications
-* [Reposilite - Official Guide](https://reposilite.com/docs/about)
+* [Reposilite - Official Guide](https://reposilite.com/guide/about)
 * [Publishing your artifacts to the Reposilite - a new self-hosted repository manager ](https://dev.to/dzikoysk/publishing-your-artifacts-to-the-reposilite-a-new-self-hosted-repository-manager-3n0h)
 
 Users' stories
