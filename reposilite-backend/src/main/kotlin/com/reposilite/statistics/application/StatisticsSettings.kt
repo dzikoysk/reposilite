@@ -1,6 +1,7 @@
 package com.reposilite.statistics.application
 
 import com.reposilite.settings.api.Doc
+import com.reposilite.settings.api.Settings
 import com.reposilite.statistics.api.ResolvedRequestsInterval
 import com.reposilite.statistics.api.ResolvedRequestsInterval.MONTHLY
 import net.dzikoysk.cdn.entity.Contextual
@@ -14,4 +15,4 @@ data class StatisticsSettings(
         It's not that important for small repos with low traffic, but public instances should not use daily interval.
     """)
     val resolvedRequestsInterval: ResolvedRequestsInterval = MONTHLY
-)
+) : Settings

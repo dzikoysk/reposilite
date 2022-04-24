@@ -45,13 +45,15 @@ internal abstract class SettingsSpecification {
         this.settingsFacade = SettingsFacade(
             journalist = InMemoryLogger(),
             configurationService = ConfigurationService(
-                logger,
-                workingDirectory.toPath(),
-                InMemoryConfigurationRepository(),
-                Executors.newScheduledThreadPool(1),
-                localConfiguration
+                journalist = logger,
+                workingDirectory = workingDirectory.toPath(),
+                configurationRepository = InMemoryConfigurationRepository(),
+                scheduler = Executors.newScheduledThreadPool(1),
+                localConfiguration = localConfiguration
             ),
-            settingsService = SettingsService(createSharedConfigurationSchemaGenerator())
+            settingsService = SettingsService(
+                schemaGenerator = createSharedConfigurationSchemaGenerator()
+            )
         )
 
         settingsFacade.createConfigurationProvider(SharedConfiguration(), "Shared configuration", SHARED_CONFIGURATION_FILE)

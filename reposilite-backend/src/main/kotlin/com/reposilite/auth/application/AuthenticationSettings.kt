@@ -1,6 +1,7 @@
 package com.reposilite.auth.application
 
 import com.reposilite.settings.api.Doc
+import com.reposilite.settings.api.Settings
 import com.reposilite.token.AccessTokenType
 import com.reposilite.token.AccessTokenType.PERSISTENT
 import net.dzikoysk.cdn.entity.Contextual
@@ -9,7 +10,7 @@ import net.dzikoysk.cdn.entity.Contextual
 @Doc(title = "Authentication", description = "Authenticator settings")
 data class AuthenticationSettings(
     val ldap: LdapSettings = LdapSettings()
-)
+) : Settings
 
 @Contextual
 @Doc(title = "LDAP", description = "LDAP Authenticator settings")
@@ -32,4 +33,4 @@ data class LdapSettings(
     val userFilter: String = "(&(objectClass=person)(ou=Maven Users))",
     @Doc(title = "User Type", description = "Should the created through LDAP access token be TEMPORARY or PERSISTENT")
     val userType: AccessTokenType = PERSISTENT
-)
+) : Settings

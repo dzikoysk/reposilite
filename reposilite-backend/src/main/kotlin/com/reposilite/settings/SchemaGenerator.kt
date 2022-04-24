@@ -1,6 +1,7 @@
 package com.reposilite.settings
 
 import com.fasterxml.classmate.ResolvedType
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.github.victools.jsonschema.generator.CustomDefinition
@@ -37,7 +38,6 @@ import com.reposilite.settings.api.Range
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.memberProperties
-
 
 val SCHEMA_OPTION_PRESET = OptionPreset(
     SCHEMA_VERSION_INDICATOR,
@@ -129,3 +129,25 @@ fun createStandardSchemaGenerator(settingsModule: SettingsModule): SchemaGenerat
         .with(settingsModule)
         .build()
         .let { SchemaGenerator(it) }
+
+internal fun cleanupScheme(node: JsonNode) {
+    when (node) {
+        is ObjectNode -> {
+            if (node.has("items") && node.get("items").isObject && node.get("items").has("allOf") && node.get("items").get("allOf").isArray && node.get("items").get("allOf").size() == 2) {
+                if (!node.get("items").get("allOf").get(1).has("type")) {
+                    node.set<JsonNode>("items", node.get("items").get("allOf").get(0))
+                } else if (!node.get("items").get("allOf").get(0).has("type")) {
+                    node.set<JsonNode>("items", node.get("items").get("allOf").get(1))
+                }
+            }
+            node.fields().forEach {
+                cleanupScheme(it.value)
+            }
+        }
+        is ArrayNode -> {
+            node.forEach {
+                cleanupScheme(it)
+            }
+        }
+    }
+}

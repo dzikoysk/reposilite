@@ -16,33 +16,49 @@
 
 package com.reposilite.settings
 
+import com.reposilite.settings.api.Doc
+import com.reposilite.settings.api.Settings
 import com.reposilite.settings.specification.SettingsSpecification
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import panda.std.ResultAssertions.assertOk
 
 internal class SettingsFacadeTest : SettingsSpecification() {
 
-//    @Test
-//    fun `should create, load, validate and fetch remote configuration`() {
-//        // then: configuration is up-to-date in provider & repository
-//        renderConfiguration().run {
-//            assertEquals(this, assertOk(configurationFromProvider()))
-//            assertEquals(this, configurationFromRepository())
-//        }
-//
-//        // when: user updates configuration
-//        val updateResult = settingsFacade.updateConfiguration(SettingsUpdateRequest(SHARED_CONFIGURATION_FILE, "id: custom"))
-//        // then: configuration should be updated in provider & repository
-//        assertOk(updateResult)
-//        assertEquals("custom", settingsFacade.sharedConfiguration.frontend.get().id)
-//        renderConfiguration().run {
-//            assertEquals(this, assertOk(configurationFromProvider()))
-//            assertEquals(this, configurationFromRepository())
-//        }
-//    }
+    @Doc(title = "Test", description = "Description")
+    data class TestSettings(
+        @Doc(title = "Property", description = "Sets property to the given value")
+        val property: String = "value"
+    ) : Settings
 
     @Test
-    fun `should generate scheme`() {
-        settingsFacade.getSchema("")
+    fun `should generate a valid json schema describing settings entity`() {
+        // given: a known domain settings
+        settingsFacade.createDomainSettings(TestSettings())
+
+        // when: test's schema is requested
+        val schema = assertOk(settingsFacade.getSchema("test"))
+
+        // then: the response is a valid json schema
+        assertEquals(
+            """
+            {
+              "${'$'}schema" : "http://json-schema.org/draft-07/schema#",
+              "type" : "object",
+              "properties" : {
+                "property" : {
+                  "type" : "string",
+                  "title" : "Property",
+                  "description" : "Sets property to the given value"
+                }
+              },
+              "title" : "Test",
+              "description" : "Description",
+              "additionalProperties" : false
+            }
+            """.trimIndent().replace("\n", System.lineSeparator()),
+            schema.toPrettyString()
+        )
     }
 
 }

@@ -18,18 +18,20 @@ package com.reposilite.settings.infrastructure
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.reposilite.settings.SettingsFacade
+import com.reposilite.settings.api.Settings
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.http.ErrorResponse
+import com.reposilite.web.http.errorResponse
 import com.reposilite.web.routing.RouteMethod.GET
 import com.reposilite.web.routing.RouteMethod.PUT
 import io.javalin.http.HttpCode
+import io.javalin.http.HttpCode.BAD_REQUEST
 import io.javalin.openapi.HttpMethod
 import io.javalin.openapi.OpenApi
 import io.javalin.openapi.OpenApiContent
 import io.javalin.openapi.OpenApiParam
 import io.javalin.openapi.OpenApiResponse
-import panda.std.asError
 
 internal class SettingsEndpoints(private val settingsFacade: SettingsFacade) : ReposiliteRoutes() {
 
@@ -45,7 +47,7 @@ internal class SettingsEndpoints(private val settingsFacade: SettingsFacade) : R
     )
     private val listConfigurations = ReposiliteRoute<Collection<String>>("/api/configuration", GET) {
         managerOnly {
-            response = settingsFacade.listSettings()
+            response = settingsFacade.names()
         }
     }
 
@@ -61,7 +63,7 @@ internal class SettingsEndpoints(private val settingsFacade: SettingsFacade) : R
             OpenApiResponse(status = "404", description = "Returns 404 if non-existing configuration is requested")
         ]
     )
-    private val getConfiguration = ReposiliteRoute<Any>("/api/configuration/{name}", GET) {
+    private val getConfiguration = ReposiliteRoute<Settings>("/api/configuration/{name}", GET) {
         managerOnly {
             response = settingsFacade.getSettings(requireParameter("name"))
         }
@@ -82,16 +84,14 @@ internal class SettingsEndpoints(private val settingsFacade: SettingsFacade) : R
             OpenApiResponse(status = "404", description = "Returns 404 if non-existing configuration is requested")
         ]
     )
-    private val updateConfiguration = ReposiliteRoute<Any>("/api/configuration/{name}", PUT) {
+    private val updateConfiguration = ReposiliteRoute<Settings>("/api/configuration/{name}", PUT) {
         managerOnly {
             with(requireParameter("name")) {
-                response = if (ctx.body().isEmpty()) {
-                    ErrorResponse(HttpCode.BAD_REQUEST, "Body is empty").asError()
-                } else {
-                    settingsFacade
-                        .getSettingsClass(this)
-                        .flatMap { settingsFacade.updateSettings(this, ctx.bodyAsClass(it)) }
-                }
+                response = ctx.body()
+                    .takeIf { it.isNotEmpty() }
+                    ?.let { settingsFacade.getSettingsClass(this) }
+                    ?.flatMap { settingsFacade.updateSettings(this, ctx.bodyAsClass(it)) }
+                    ?: errorResponse(BAD_REQUEST, "Body is empty")
             }
         }
     }
