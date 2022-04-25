@@ -22,7 +22,7 @@
     "node-fetch": "^3.2.2",
     "react": "17.0.2",
     "react-dom": "17.0.2",
-    "react-flow-renderer": "^9.7.4",
+    "react-flow-renderer": "^10.1.2",
     "react-icons": "^4.3.1",
     "rehype-highlight": "^5.0.2",
     "remark-gfm": "^3.0.1"
