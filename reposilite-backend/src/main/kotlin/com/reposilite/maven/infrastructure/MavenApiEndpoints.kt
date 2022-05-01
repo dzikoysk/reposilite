@@ -38,13 +38,13 @@ internal class MavenApiEndpoints(private val mavenFacade: MavenFacade) : Reposil
 
     @OpenApi(
         tags = ["Maven"],
-        path = "/api/maven/details/{repository}/*",
+        path = "/api/maven/details/{repository}/{gav}",
         methods = [HttpMethod.GET],
         summary = "Browse the contents of repositories using API",
         description = "Get details about the requested file as JSON response",
         pathParams = [
             OpenApiParam(name = "repository", description = "Destination repository", required = true),
-            OpenApiParam(name = "*", description = "Artifact path qualifier", required = true, allowEmptyValue = true)
+            OpenApiParam(name = "gav", description = "Artifact path qualifier", required = true, allowEmptyValue = true)
         ],
         responses = [
             OpenApiResponse(
@@ -77,11 +77,11 @@ internal class MavenApiEndpoints(private val mavenFacade: MavenFacade) : Reposil
 
     @OpenApi(
         tags = ["Maven"],
-        path = "/api/maven/versions/{repository}/*",
+        path = "/api/maven/versions/{repository}/{gav}",
         methods = [HttpMethod.GET],
         pathParams = [
             OpenApiParam(name = "repository", description = "Destination repository", required = true),
-            OpenApiParam(name = "*", description = "Artifact path qualifier", required = true, allowEmptyValue = true)
+            OpenApiParam(name = "gav", description = "Artifact path qualifier", required = true, allowEmptyValue = true)
         ],
         queryParams = [
             OpenApiParam(name = "filter", description = "Version (prefix) filter to apply", required = false),
