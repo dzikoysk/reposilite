@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "com.reposilite.plugin.test"
-version = "1.0.0"
+version = "1.0.0-SNAPSHOT"
 
 application {
     mainClass.set("ApplicationKt")
@@ -30,7 +30,7 @@ publishing {
                 password = "secret"
             }
             name = "local-repository"
-            url = uri("http://localhost/releases")
+            url = uri("http://localhost/snapshots")
             isAllowInsecureProtocol = true
         }
     }

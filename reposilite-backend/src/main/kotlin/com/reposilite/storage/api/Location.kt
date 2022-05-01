@@ -26,7 +26,8 @@ import java.nio.file.Paths
 /**
  * [Path] alternative, represents location of resource in [StorageProvider]
  */
-class Location private constructor(private val uri: String) {
+@Suppress("DataClassPrivateConstructor")
+data class Location private constructor(private val uri: String) {
 
     companion object {
 

@@ -43,7 +43,7 @@ internal class RepositoryFactory(
             repositoryName,
             configuration.visibility,
             configuration.redeployment,
-            configuration.preserved,
+            configuration.preserveSnapshots,
             configuration.proxied.map { createProxiedHostConfiguration(it) },
             storageFacade.createStorageProvider(failureFacade, workingDirectory.resolve(repositoriesDirectory), repositoryName, configuration.storageProvider),
         )

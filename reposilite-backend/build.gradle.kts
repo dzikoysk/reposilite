@@ -38,7 +38,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin")
     api("org.jetbrains:annotations:23.0.0")
 
-    val expressible = "1.1.17"
+    val expressible = "1.1.19"
     api("org.panda-lang:expressible:$expressible")
     api("org.panda-lang:expressible-kt:$expressible")
     testImplementation("org.panda-lang:expressible-junit:$expressible")
@@ -47,10 +47,10 @@ dependencies {
     api("net.dzikoysk:cdn:$cdn")
     api("net.dzikoysk:cdn-kt:$cdn")
 
-    val awssdk = "2.17.175"
+    val awssdk = "2.17.176"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
-    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.204")
+    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.205")
 
     val exposed = "0.38.2"
     implementation("org.jetbrains.exposed:exposed-core:$exposed")
@@ -88,7 +88,7 @@ dependencies {
     //api("io.javalin:javalin:4.1.1")
     // api("com.github.dzikoysk.javalin:javalin:97b4481c0a")
     // api("com.github.tipsy.javalin:javalin:d00c8512c9")
-    api("io.javalin:javalin:4.5.0.RC0")
+    api("io.javalin:javalin:4.5.0")
 
     @Suppress("GradlePackageUpdate")
     implementation("org.eclipse.jetty:jetty-server:9.4.46.v20220331")
