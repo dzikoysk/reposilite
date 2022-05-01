@@ -34,22 +34,14 @@ data class RepositorySettings(
     val visibility: RepositoryVisibility = PUBLIC,
     @Doc(title = "Redeployment", description = "Does this repository accept redeployment of the same artifact version.")
     val redeployment: Boolean = false,
-    @Min(-1)
-    @Doc(title = "Preserved", description = "How many builds of the given snapshot version should be preserved when a new build is deployed. Use -1 to disable this feature.")
-    val preserved: Int = -1,
+    @Doc(title = "Preserved snapshots", "# By default Reposilite deletes all deprecated build files. If you'd like to preserve them, set this property to true.")
+    val preserveSnapshots: Boolean = false,
     @Doc(title = "Storage provider", description = "The storage type of this repository.")
     @CustomComposer(StorageProviderSettingsComposer::class)
     val storageProvider: StorageProviderSettings = FileSystemStorageProviderSettings(),
     @Doc(title = "Proxied", description = "List of proxied repositories associated with this repository.")
     val proxied: List<ProxiedRepository> = listOf()
-) : Settings {
-
-    init {
-        require(preserved >= -1L) { "Number of preserved snapshot builds cannot be smaller than -1 (now: $preserved)" }
-        require(preserved != 0) { "Number of preserved snapshot builds has to be greater than 0 or -1 to make unlimited" }
-    }
-
-}
+) : Settings
 
 @Contextual
 @Doc(title = "Proxied Maven Repository", description = "Configuration of proxied host")
