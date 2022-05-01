@@ -1,14 +1,18 @@
 <template>
-  <ControlWrapper v-bind="controlWrapper"
-                  :styles="styles"
-                  :isFocused="isFocused"
-                  :appliedOptions="appliedOptions">
-    <input :id="control.id + '-input'"
-           :class="styles.control.input"
-           :value="control.schema.const"
-           readonly
-           @focus="isFocused = true"
-           @blur="isFocused = false" />
+  <ControlWrapper 
+    v-bind="controlWrapper"
+    :styles="styles"
+    :isFocused="isFocused"
+    :appliedOptions="appliedOptions"
+  >
+    <input 
+      :id="control.id + '-input'"
+      :class="styles.control.input"
+      :value="control.schema.const"
+      readonly
+      @focus="isFocused = true"
+      @blur="isFocused = false"
+    />
   </ControlWrapper>
 </template>
 

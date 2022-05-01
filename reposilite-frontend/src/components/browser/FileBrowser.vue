@@ -58,6 +58,7 @@ watch(
       })
       .then(() => files.value.isEmpty = files.value.list.length == 0)
       .catch(error => {
+        console.log(error)
         createToast(`${error.response.status}: ${error.response.data.message}`, {
           type: 'danger'
         })

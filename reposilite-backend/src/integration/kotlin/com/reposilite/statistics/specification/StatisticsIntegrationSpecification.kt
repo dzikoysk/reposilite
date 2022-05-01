@@ -29,7 +29,7 @@ internal abstract class StatisticsIntegrationSpecification : ReposiliteSpecifica
 
     fun useResolvedRequest(repository: String, gav: String, content: String): Mono<Identifier> {
         val uri = "$base/$repository/$gav"
-        val (token, secret) = usePredefinedTemporaryAuth()
+        val (token, secret) = useDefaultManagementToken()
 
         val putResponse = put(uri)
             .basicAuth(token, secret)

@@ -697,6 +697,6 @@ application
       message: "Not found",
     })
   )
-  .listen(80)
+  .listen(8080)
 
 console.log("Reposilite stub API started on port 80")

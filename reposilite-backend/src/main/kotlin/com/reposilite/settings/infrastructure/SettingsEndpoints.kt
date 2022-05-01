@@ -16,16 +16,13 @@
 
 package com.reposilite.settings.infrastructure
 
-import com.fasterxml.jackson.databind.JsonNode
 import com.reposilite.settings.SettingsFacade
 import com.reposilite.settings.api.Settings
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
-import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
 import com.reposilite.web.routing.RouteMethod.GET
 import com.reposilite.web.routing.RouteMethod.PUT
-import io.javalin.http.HttpCode
 import io.javalin.http.HttpCode.BAD_REQUEST
 import io.javalin.openapi.HttpMethod
 import io.javalin.openapi.OpenApi
@@ -36,7 +33,7 @@ import io.javalin.openapi.OpenApiResponse
 internal class SettingsEndpoints(private val settingsFacade: SettingsFacade) : ReposiliteRoutes() {
 
     @OpenApi(
-        path = "/api/configuration",
+        path = "/api/settings/domains",
         methods = [HttpMethod.GET],
         tags = ["Settings"],
         summary = "List configurations",
@@ -45,14 +42,40 @@ internal class SettingsEndpoints(private val settingsFacade: SettingsFacade) : R
             OpenApiResponse(status = "401", description = "Returns 401 if token without moderation permission has been used to access this resource")
         ]
     )
-    private val listConfigurations = ReposiliteRoute<Collection<String>>("/api/configuration", GET) {
+    private val listConfigurations = ReposiliteRoute<Collection<String>>("/api/settings/domains", GET) {
         managerOnly {
             response = settingsFacade.names()
         }
     }
 
     @OpenApi(
-        path = "/api/configuration/{name}",
+        path = "/api/settings/schema/{name}",
+        methods = [HttpMethod.GET],
+        tags = ["Settings"],
+        summary = "Get schema",
+        pathParams = [OpenApiParam(name = "name", description = "Name of schema to get", required = true)],
+        responses = [
+            OpenApiResponse(
+                status = "200",
+                description = "Returns dto representing configuration schema",
+                content = [OpenApiContent(from = String::class)]
+            ),
+            OpenApiResponse(
+                status = "401",
+                description = "Returns 401 if token without moderation permission has been used to access this resource"
+            ),
+            OpenApiResponse(status = "404", description = "Returns 404 if non-existing configuration schema is requested")
+        ]
+    )
+    private val getSchema = ReposiliteRoute<String>("/api/settings/schema/{name}", GET) {
+        managerOnly {
+            response = settingsFacade.getSchema(requireParameter("name"))
+                .map { it.toPrettyString() }
+        }
+    }
+
+    @OpenApi(
+        path = "/api/settings/domain/{name}",
         methods = [HttpMethod.GET],
         tags = ["Settings"],
         summary = "Find configuration",
@@ -63,14 +86,14 @@ internal class SettingsEndpoints(private val settingsFacade: SettingsFacade) : R
             OpenApiResponse(status = "404", description = "Returns 404 if non-existing configuration is requested")
         ]
     )
-    private val getConfiguration = ReposiliteRoute<Settings>("/api/configuration/{name}", GET) {
+    private val getConfiguration = ReposiliteRoute<Settings>("/api/settings/domain/{name}", GET) {
         managerOnly {
             response = settingsFacade.getSettings(requireParameter("name"))
         }
     }
 
     @OpenApi(
-        path = "/api/configuration/{name}",
+        path = "/api/settings/domain/{name}",
         methods = [HttpMethod.PUT],
         tags = ["Settings"],
         summary = "Update configuration",
@@ -84,7 +107,7 @@ internal class SettingsEndpoints(private val settingsFacade: SettingsFacade) : R
             OpenApiResponse(status = "404", description = "Returns 404 if non-existing configuration is requested")
         ]
     )
-    private val updateConfiguration = ReposiliteRoute<Settings>("/api/configuration/{name}", PUT) {
+    private val updateConfiguration = ReposiliteRoute<Settings>("/api/settings/domain/{name}", PUT) {
         managerOnly {
             with(requireParameter("name")) {
                 response = ctx.body()
@@ -93,31 +116,6 @@ internal class SettingsEndpoints(private val settingsFacade: SettingsFacade) : R
                     ?.flatMap { settingsFacade.updateSettings(this, ctx.bodyAsClass(it)) }
                     ?: errorResponse(BAD_REQUEST, "Body is empty")
             }
-        }
-    }
-
-    @OpenApi(
-        path = "/api/schema/{name}",
-        methods = [HttpMethod.GET],
-        tags = ["Settings"],
-        summary = "Get schema",
-        pathParams = [OpenApiParam(name = "name", description = "Name of schema to get", required = true)],
-        responses = [
-            OpenApiResponse(
-                status = "200",
-                description = "Returns dto representing configuration schema",
-                content = [OpenApiContent(from = JsonNode::class)]
-            ),
-            OpenApiResponse(
-                status = "401",
-                description = "Returns 401 if token without moderation permission has been used to access this resource"
-            ),
-            OpenApiResponse(status = "404", description = "Returns 404 if non-existing configuration schema is requested")
-        ]
-    )
-    private val getSchema = ReposiliteRoute<JsonNode>("/api/schema/{name}", GET) {
-        managerOnly {
-            response = settingsFacade.getSchema(requireParameter("name"))
         }
     }
 

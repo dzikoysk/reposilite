@@ -14,7 +14,7 @@ import net.dzikoysk.cdn.entity.Contextual
 import net.dzikoysk.cdn.entity.CustomComposer
 
 @Contextual
-@Doc(title = "Maven Repositories", description = "Repositories settings")
+@Doc(title = "Maven", description = "Repositories settings")
 data class MavenSettings(
     @Doc(title = "Repositories", description = "List of Maven repositories.")
     val repositories: List<RepositorySettings> = listOf(

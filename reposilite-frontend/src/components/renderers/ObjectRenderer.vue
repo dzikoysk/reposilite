@@ -1,13 +1,13 @@
 <template>
   <div v-if="control.visible">
     <DispatchRenderer
-        :visible="control.visible"
-        :enabled="control.enabled"
-        :schema="control.schema"
-        :uischema="detailUiSchema"
-        :path="control.path"
-        :renderers="control.renderers"
-        :cells="control.cells"
+      :visible="control.visible"
+      :enabled="control.enabled"
+      :schema="control.schema"
+      :uischema="detailUiSchema"
+      :path="control.path"
+      :renderers="control.renderers"
+      :cells="control.cells"
     />
   </div>
 </template>

@@ -1,15 +1,18 @@
 <template>
   <div>
-    <label>{{ control.label }}<input type="checkbox" v-model="present" /></label><!-- TODO styling -->
+    <label>
+      {{ control.label }}
+      <input type="checkbox" v-model="present" />
+    </label><!-- TODO styling -->
     <div v-if="present && control.visible">
       <DispatchRenderer
-          :visible="control.visible"
-          :enabled="control.enabled"
-          :schema="schema"
-          :uischema="uischema"
-          :path="control.path"
-          :renderers="control.renderers"
-          :cells="control.cells"
+        :visible="control.visible"
+        :enabled="control.enabled"
+        :schema="schema"
+        :uischema="uischema"
+        :path="control.path"
+        :renderers="control.renderers"
+        :cells="control.cells"
       />
     </div>
   </div>

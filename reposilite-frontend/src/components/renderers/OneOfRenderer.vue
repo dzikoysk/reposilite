@@ -1,23 +1,29 @@
 <template>
   <div v-if="control.visible" class="one-of-container">
     <Tabs v-model="tabIndex">
-      <Tab v-for="(oneOfRenderInfo, oneOfIndex) in oneOfRenderInfos"
-           :key="`${control.path}-${oneOfIndex}`"
-           :val="oneOfIndex"
-           :label="oneOfRenderInfo.label"
-           @click="tabChanged" />
+      <Tab 
+        v-for="(oneOfRenderInfo, oneOfIndex) in oneOfRenderInfos"
+        :key="`${control.path}-${oneOfIndex}`"
+        :val="oneOfIndex"
+        :label="oneOfRenderInfo.label"
+        @click="tabChanged" 
+      />
     </Tabs>
     <TabPanels v-model="selectedIndex">
-      <TabPanel v-for="(oneOfRenderInfo, oneOfIndex) in oneOfRenderInfos"
-                :key="`${control.path}-${oneOfIndex}`"
-                :val="oneOfIndex"
-                :name="`${control.path}-${oneOfIndex}`">
-        <DispatchRenderer v-if="selectedIndex === oneOfIndex"
-                          :schema="oneOfRenderInfo.schema"
-                          :uischema="oneOfRenderInfo.uischema"
-                          :path="control.path"
-                          :renderers="control.renderers"
-                          :cells="control.cells" />
+      <TabPanel 
+        v-for="(oneOfRenderInfo, oneOfIndex) in oneOfRenderInfos"
+        :key="`${control.path}-${oneOfIndex}`"
+        :val="oneOfIndex"
+        :name="`${control.path}-${oneOfIndex}`"
+      >
+        <DispatchRenderer
+          v-if="selectedIndex === oneOfIndex"
+          :schema="oneOfRenderInfo.schema"
+          :uischema="oneOfRenderInfo.uischema"
+          :path="control.path"
+          :renderers="control.renderers"
+          :cells="control.cells" 
+        />
       </TabPanel>
     </TabPanels>
   </div>
@@ -47,15 +53,17 @@ import {DispatchRenderer, rendererProps, useJsonFormsOneOfControl} from '@jsonfo
 import {useVanillaControl} from '@jsonforms/vue-vanilla'
 import {Tabs, Tab, TabPanels, TabPanel} from 'vue3-tabs'
 import isEmpty from 'lodash/isEmpty'
-import DialogWrapper from '../../util/DialogWrapper.vue'
+import DialogWrapper from '../util/DialogWrapper.vue'
 
 export const tester = rankWith(2, isOneOfControl)
+
 const isControlEnabled = (ownProps, jsonforms) => {
   const state = { jsonforms }
   const config = getConfig(state)
   const rootData = getData(state)
   const { uischema } = ownProps
   const rootSchema = getSchema(state)
+
   return isInherentlyEnabled(
       state,
       ownProps,
@@ -84,11 +92,13 @@ export default {
     const newSelectedIndex = ref(0)
     const dialog = ref(false)
     const jsonforms = inject('jsonforms')
+
     if (!jsonforms) {
       throw new Error(
           "'jsonforms' couldn't be injected. Are you within JSON Forms?"
       )
     }
+    
     const controlEnabled = computed(() => isControlEnabled(props, jsonforms))
 
     return {

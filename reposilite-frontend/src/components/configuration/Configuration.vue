@@ -15,18 +15,10 @@
   -->
   
 <script setup>
-import {computed, markRaw, ref, watch} from 'vue'
-import {useSession} from '../../store/session'
-import {createToast} from 'mosha-vue-toastify'
-import {createAjv} from '@jsonforms/core'
+import {watch} from 'vue'
 import {JsonForms} from '@jsonforms/vue'
-import {vanillaRenderers} from '@jsonforms/vue-vanilla'
 import {Tabs, Tab, TabPanels, TabPanel} from 'vue3-tabs'
-import { default as ObjectRenderer, tester as objectTester } from './renderers/ObjectRenderer.vue'
-import { default as AllOfRenderer, tester as allOfTester } from './renderers/AllOfRenderer.vue'
-import { default as OneOfRenderer, tester as oneOfTester } from './renderers/OneOfRenderer.vue'
-import { default as ConstantRenderer, tester as constantTester } from './renderers/ConstantRenderer.vue'
-import { default as OptionalRenderer, tester as optionalTester } from './renderers/OptionalRenderer.vue'
+import { useConfiguration } from '../../store/configuration'
 
 const props = defineProps({
   selectedTab: {
@@ -35,108 +27,21 @@ const props = defineProps({
   }
 })
 
-const { client } = useSession()
-const configuration = ref({})
-const configurations = ref([])
-const configurationSchema = ref({})
-const selectedConfig = ref('')
-
-const getSchema = async (name) => {
-  try {
-    return (await client.value.schema.get(name)).data
-  } catch (e) {
-    createToast(`${e || ''}`, { type: 'danger' })
-  }
-}
-const listConfigs = async () => {
-  try {
-    return (await client.value.config.list()).data
-  } catch (e) {
-    createToast(`${e || ''}`, { type: 'danger' })
-  }
-}
-
-const getConfig = async (name) => {
-  try {
-    return (await client.value.config.get(name)).data
-  } catch (e) {
-    createToast(`${e || ''}`, { type: 'danger' })
-  }
-}
-
-const updateConfig = async (name, value) => {
-  try {
-    return (await client.value.config.put(name, value)).data
-  } catch (e) {
-    createToast(`${e || ''}`, { type: 'danger' })
-  }
-}
-
-const fetchConfiguration = async () => {
-  const confs = {}
-  const schemas = {}
-  configurations.value = await listConfigs()
-  for (const conf of configurations.value) {
-    confs[conf] = await getConfig(conf)
-    schemas[conf] = await getSchema(conf)
-  }
-  configuration.value = confs
-  configurationSchema.value = schemas
-  selectedConfig.value = configurations.value[0]
-  createToast('Configuration loaded', { type: 'success' })
-}
-
-const updateConfiguration = async () => {
-  const confs = {}
-  const errored = []
-  for (const conf of configurations.value) {
-    const newValue = await updateConfig(conf, configuration.value[conf])
-    if (newValue) {
-      confs[conf] = newValue
-    } else {
-      errored.push(conf)
-    }
-  }
-  configuration.value = confs
-  if (errored.length > 0) {
-    createToast(`Failed to update ${errored.join(', ')}`, { type: 'danger' })
-  } else {
-    createToast('Configuration updated', { type: 'success' })
-  }
-}
-
-const renderers = markRaw([
-  ...vanillaRenderers,
-  {
-    tester: (uischema, schema) => {
-      let x = objectTester(uischema, schema)
-      return x === -1 || schema.title === 'Proxied Maven Repository' ? -1 : x  // needed because without it hangs TODO find out why
-    },
-    renderer: ObjectRenderer
-  },
-  {tester: allOfTester, renderer: AllOfRenderer},
-  {tester: oneOfTester, renderer: OneOfRenderer},
-  {tester: constantTester, renderer: ConstantRenderer},
-  {tester: optionalTester, renderer: OptionalRenderer}
-])
-
-const ajv = computed(() => createAjv({
-  'formats': {
-    'storage-quota': /^([1-9]\d*)([KkMmGg][Bb]|%)$/,
-    'maven-artifact-group': /^(\w+\.)*\w+$/,
-    'repository-name': {
-      type: 'string',
-      validate: (name) => name in configuration.value['maven_repositories'].repositories
-    }
-  }
-}))
+const {
+  fetchConfiguration,
+  updateConfiguration, 
+  renderers, 
+  configurations, 
+  schema,
+  selectedConfiguration
+} = useConfiguration()
 
 watch(
   () => props.selectedTab.value,
   (selectedTab, prev) => {
     if (selectedTab === 'Configuration' && prev == undefined && configurations.value.length == 0) {
       fetchConfiguration().then(() => {
-        configurations.value.forEach(value => console.log(value, configurationSchema.value[value]))
+        configurations.value.forEach(value => console.log(value, schema.value[value]))
       })
     }
   },
@@ -160,7 +65,7 @@ watch(
         </button>
       </div>
     </div>
-    <Tabs v-model="selectedConfig">
+    <Tabs v-model="selectedConfiguration">
       <Tab v-for="cfg in configurations"
         class="item"
         :key="`config:${cfg}`"
@@ -169,7 +74,7 @@ watch(
         :indicator="true"
       />
     </Tabs>
-    <TabPanels v-model="selectedConfig">
+    <TabPanels v-model="selectedConfiguration">
       <TabPanel v-for="cfg in configurations" :val="cfg" :key="`config_tab:${cfg}`" class="border-1 rounded dark:border-gray-700 p-4">
         <JsonForms
           v-if="configuration[cfg]"

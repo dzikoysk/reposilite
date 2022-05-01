@@ -18,6 +18,8 @@
 
 package com.reposilite.maven
 
+import com.reposilite.LocalSpecificationJunitExtension
+import com.reposilite.RemoteSpecificationJunitExtension
 import com.reposilite.maven.specification.MavenIntegrationSpecification
 import com.reposilite.settings.SettingsFacade
 import com.reposilite.storage.api.DocumentInfo
@@ -34,8 +36,15 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
+
+@ExtendWith(LocalSpecificationJunitExtension::class)
+internal class LocalMavenIntegrationTest : MavenIntegrationTest()
+
+@ExtendWith(RemoteSpecificationJunitExtension::class)
+internal class RemoteMavenIntegrationTest : MavenIntegrationTest()
 
 internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
 
@@ -90,7 +99,7 @@ internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
                 try {
                     // given: file to upload and valid credentials
                     val (repository, gav, file) = useDocument("releases", "com/reposilite", "$idx.jar")
-                    val (name, secret) = usePredefinedTemporaryAuth()
+                    val (name, secret) = useDefaultManagementToken()
                     val (content, length) = useFile(file, 8)
 
                     // when: client wants to upload artifact
@@ -134,7 +143,7 @@ internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
         // given: the details about an existing in repository file
         val (repository, gav, file) = useDocument("releases", "gav", "artifact.jar", "content", true)
         val address = "$base/$repository/$gav/$file"
-        val (name, secret) = usePredefinedTemporaryAuth()
+        val (name, secret) = useDefaultManagementToken()
 
         // when: unauthorized client tries to delete existing file
         val response = delete(address)
