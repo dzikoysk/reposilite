@@ -16,7 +16,6 @@
 
 package com.reposilite.maven
 
-import com.reposilite.journalist.Journalist
 import com.reposilite.settings.api.SharedConfiguration.RepositoryConfiguration
 import com.reposilite.settings.api.SharedConfiguration.RepositoryConfiguration.ProxiedHostConfiguration
 import com.reposilite.shared.extensions.loadCommandBasedConfiguration
@@ -44,7 +43,7 @@ internal class RepositoryFactory(
             repositoryName,
             configuration.visibility,
             configuration.redeployment,
-            configuration.preserved,
+            configuration.preserveSnapshots,
             configuration.proxied.map { createProxiedHostConfiguration(it) },
             createStorageProvider(failureFacade, workingDirectory.resolve(repositoriesDirectory), repositoryName, configuration.storageProvider),
         )

@@ -20,6 +20,7 @@ import com.reposilite.assertCollectionsEquals
 import com.reposilite.maven.RepositoryVisibility.PUBLIC
 import com.reposilite.maven.api.DeployEvent
 import com.reposilite.maven.api.Metadata
+import com.reposilite.maven.api.Snapshot
 import com.reposilite.maven.api.SnapshotVersion
 import com.reposilite.maven.api.Versioning
 import com.reposilite.maven.specification.MavenSpecification
@@ -36,7 +37,7 @@ internal class PreservedBuildsListenerTest : MavenSpecification() {
     override fun repositories() = linkedMapOf(
         createRepository(repositoryName) {
             visibility = PUBLIC
-            preserved = 2
+            preserveSnapshots = false
         }
     )
 
@@ -48,44 +49,45 @@ internal class PreservedBuildsListenerTest : MavenSpecification() {
     @Test
     fun `should remove deprecated snapshot versions`() {
         // given: repository with snapshot artifact and some related files
-        val versionId = "group/artifact/1.0.0-SNAPSHOT".toLocation()
+        val artifactId = "artifact"
+        val versionId = "group/$artifactId/1.0.0-R0.1-SNAPSHOT".toLocation()
+        val prefix = "$versionId/$artifactId-1.0.0-R0.1"
+        val newTimestamp = "20220101.213702"
 
-        mavenFacade.saveMetadata(repositoryName, versionId, Metadata(versioning = Versioning(_snapshotVersions = listOf(
-            SnapshotVersion(value = "1.0.0-20220101213700-1", updated = "20220101213700"),
-            SnapshotVersion(value = "1.0.0-20220101213701-2", updated = "20220101213701"),
-            SnapshotVersion(value = "1.0.0-20220101213702-3", updated = "20220101213702"),
-            SnapshotVersion(value = "1.0.0-20220101213702-4", updated = "20220101213703") // this one is currently deployed, so we don't need its files
-        ))))
+        // some old artifacts
+        addFileToRepository(FileSpec(repositoryName, "$prefix-20220101.213700-1.jar", "one"))
+        addFileToRepository(FileSpec(repositoryName, "$prefix-20220101.213700-1.pom", "one"))
+        addFileToRepository(FileSpec(repositoryName, "$prefix-20220101.213701-2.jar", "two"))
+        addFileToRepository(FileSpec(repositoryName, "$prefix-20220101.213701-2.pom", "two"))
 
-        val prefix = "$versionId/artifact-1.0.0"
-
-        addFileToRepository(FileSpec(repositoryName, "$prefix-20220101213700-1.jar", "one"))
-        addFileToRepository(FileSpec(repositoryName, "$prefix-20220101213700-1.pom", "one"))
-
-        addFileToRepository(FileSpec(repositoryName, "$prefix-20220101213701-2.jar", "two"))
-        addFileToRepository(FileSpec(repositoryName, "$prefix-20220101213701-2.pom", "two"))
-
-        addFileToRepository(FileSpec(repositoryName, "$prefix-20220101213702-3.jar", "three"))
-        addFileToRepository(FileSpec(repositoryName, "$prefix-20220101213702-3.pom", "three"))
+        // this one is currently deployed
+        mavenFacade.saveMetadata(repositoryName, versionId,
+            Metadata(
+                artifactId = artifactId,
+                versioning = Versioning(
+                    snapshot = Snapshot(
+                        timestamp = newTimestamp
+                    ),
+                    _snapshotVersions = listOf(SnapshotVersion(value = "1.0.0-R0.1-$newTimestamp-3", updated = "20220101213703"))
+                )
+            )
+        )
 
         // when: a new snapshot is deployed
         val repository = mavenFacade.getRepository(repositoryName)!!
-        preservedBuildsListener.onCall(DeployEvent(repository, "$versionId/maven-metadata.xml".toLocation(), "junit"))
+        preservedBuildsListener.onCall(DeployEvent(repository, "$versionId/maven-metadata.xml".toLocation(), "junit@localhost"))
 
-        // then: builds 1 & 2 are deleted automatically, the metadata file should be updated with checksums
-        val files = assertOk(repository.getFiles(versionId).map { it.map { file -> file.toString() }})
-        assertCollectionsEquals(listOf(
-            "$prefix-20220101213702-3.jar",
-            "$prefix-20220101213702-3.pom",
-            "$versionId/maven-metadata.xml",
-            "$versionId/maven-metadata.xml.md5",
-            "$versionId/maven-metadata.xml.sha1",
-            "$versionId/maven-metadata.xml.sha256",
-            "$versionId/maven-metadata.xml.sha512"
-        ).map { it.toLocation().toString() }, files)
-
-        val metadata = assertOk(mavenFacade.findMetadata(repositoryName, versionId))
-        assertCollectionsEquals(listOf("1.0.0-20220101213702-3", "1.0.0-20220101213702-4"), metadata.versioning!!.snapshotVersions!!.map { it.value })
+        // then: builds 1 & 2 are deleted automatically
+        assertCollectionsEquals(
+            setOf(
+                "$versionId/maven-metadata.xml",
+                "$versionId/maven-metadata.xml.md5",
+                "$versionId/maven-metadata.xml.sha1",
+                "$versionId/maven-metadata.xml.sha256",
+                "$versionId/maven-metadata.xml.sha512"
+            ).map { it.toLocation() },
+            assertOk(repository.getFiles(versionId))
+        )
     }
 
 }
