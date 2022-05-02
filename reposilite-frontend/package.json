@@ -14,7 +14,7 @@
     "@vueuse/core": "^8.3.1",
     "@vueuse/head": "^0.7.6",
     "ansi-to-html": "^0.7.2",
-    "axios": "^0.26.1",
+    "axios": "^0.27.2",
     "downloadjs": "^1.4.7",
     "mime-types": "^2.1.35",
     "mosha-vue-toastify": "^1.0.23",
