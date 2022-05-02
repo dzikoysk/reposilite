@@ -21,7 +21,6 @@ data class MavenSettings(
         RepositorySettings("releases"),
         RepositorySettings("snapshots"),
         RepositorySettings("private", visibility = PRIVATE),
-//        RepositorySettings("private2", visibility = PRIVATE, proxied = listOf(ProxiedRepository("private")))
     )
 ) : Settings
 

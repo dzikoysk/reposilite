@@ -139,26 +139,6 @@ internal object JavalinConfiguration {
 
     private fun configureJsonSerialization(config: JavalinConfig) {
         val objectMapper = ReposiliteObjectMapper.DEFAULT_OBJECT_MAPPER
-            .addHandler(object:DeserializationProblemHandler() {// TODO: move this to a proper place
-                override fun handleMissingInstantiator(
-                    ctxt: DeserializationContext?,
-                    instClass: Class<*>?,
-                    valueInsta: ValueInstantiator?,
-                    p: JsonParser?,
-                    msg: String?
-                ): Any {
-                    if (instClass == StorageProviderSettings::class.java) {
-                        val storageProviders = ServiceLoader.load(StorageProviderFactory::class.java).associate { it.type to it.settingsType }
-                        return p?.codec?.let {
-                            val json = it.readTree<JsonNode>(p)
-                            val type = json.get("type").asText()
-                            return it.treeToValue(json, storageProviders[type])
-                        } ?: super.handleMissingInstantiator(ctxt, instClass, valueInsta, p, msg)
-                    }
-                    return super.handleMissingInstantiator(ctxt, instClass, valueInsta, p, msg)
-                }
-            })
-
         config.jsonMapper(JavalinJackson(objectMapper))
     }
 

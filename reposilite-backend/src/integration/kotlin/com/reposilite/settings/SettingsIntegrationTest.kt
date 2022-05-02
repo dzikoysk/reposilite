@@ -1,17 +1,20 @@
 package com.reposilite.settings
 
-import com.google.gson.Gson
-import com.google.gson.JsonObject
 import com.reposilite.LocalSpecificationJunitExtension
 import com.reposilite.RemoteSpecificationJunitExtension
 import com.reposilite.ReposiliteObjectMapper
+import com.reposilite.auth.application.AuthenticationSettings
+import com.reposilite.auth.application.LdapSettings
+import com.reposilite.frontend.application.FrontendSettings
+import com.reposilite.maven.application.MavenSettings
 import com.reposilite.settings.specification.SettingsIntegrationSpecification
+import com.reposilite.statistics.api.ResolvedRequestsInterval.YEARLY
+import com.reposilite.statistics.application.StatisticsSettings
+import com.reposilite.web.application.WebSettings
 import com.reposilite.web.http.ErrorResponse
 import io.javalin.http.HttpCode.OK
 import io.javalin.http.HttpCode.UNAUTHORIZED
-import kong.unirest.ObjectMapper
 import kong.unirest.Unirest
-import kong.unirest.json.JSONObject
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -26,54 +29,44 @@ internal class RemoteSettingsIntegrationTest : SettingsIntegrationTest()
 internal abstract class SettingsIntegrationTest : SettingsIntegrationSpecification() {
 
     companion object {
-        private val DEFAULT_DOMAINS = setOf("web", "authentication", "statistics", "frontend", "maven")
+        private val DEFAULT_DOMAINS = mapOf(
+            "web" to WebSettings::class,
+            "authentication" to AuthenticationSettings::class,
+            "statistics" to StatisticsSettings::class,
+            "frontend" to FrontendSettings::class,
+            "maven" to MavenSettings::class
+        )
     }
 
     @Test
     fun `should list all built-in config domains`() {
-        // given: an existing token without management permission
-        val (unauthorizedToken, unauthorizedSecret) = useAuth("unauthorized-token", "secret")
-
-        // when: list of tokens is requested without valid access token
-        val unauthorizedResponse = Unirest.get("$base/api/settings/domains")
-            .basicAuth(unauthorizedToken, unauthorizedSecret)
-            .asJacksonObject(ErrorResponse::class)
-
-        // then: request is rejected
-        assertErrorResponse(UNAUTHORIZED, unauthorizedResponse)
+        // then: endpoint requires management access token
+        assertManagerOnlyGetEndpoint("/api/settings/domains")
 
         // given: a permitted token
         val (permittedName, permittedSecret) = useDefaultManagementToken()
 
-        // when: list of tokens is requested with valid token
+        // when: list of domains is requested
         val response = Unirest.get("$base/api/settings/domains")
             .basicAuth(permittedName, permittedSecret)
             .asJacksonObject(Array<String>::class)
 
-        // then: response contains list of all
+        // then: response contains list of all of them
         assertSuccessResponse(OK, response) { domains ->
-            assertEquals(DEFAULT_DOMAINS, domains.toSet())
+            assertEquals(DEFAULT_DOMAINS.keys, domains.toSet())
         }
     }
 
     @Test
     fun `should offer schemes for all domains`() {
-        // given: an existing token without management permission
-        val (unauthorizedToken, unauthorizedSecret) = useAuth("unauthorized-token", "secret")
-
-        DEFAULT_DOMAINS.forEach { domain ->
-            // when: list of tokens is requested without valid access token
-            val unauthorizedResponse = Unirest.get("$base/api/settings/schema/$domain")
-                .basicAuth(unauthorizedToken, unauthorizedSecret)
-                .asJacksonObject(ErrorResponse::class)
-
-            // then: request is rejected
-            assertErrorResponse(UNAUTHORIZED, unauthorizedResponse)
+        DEFAULT_DOMAINS.forEach { (domain, _) ->
+            // then: endpoint requires management access token
+            assertManagerOnlyGetEndpoint("/api/settings/schema/$domain")
 
             // given: a permitted token
             val (permittedName, permittedSecret) = useDefaultManagementToken()
 
-            // when: list of tokens is requested with valid token
+            // when: domain schema is requested
             val response = Unirest.get("$base/api/settings/schema/$domain")
                 .basicAuth(permittedName, permittedSecret)
                 .asString()
@@ -88,8 +81,64 @@ internal abstract class SettingsIntegrationTest : SettingsIntegrationSpecificati
     }
 
     @Test
-    fun `should `() {
+    fun `should return settings entity for a domain`() {
+        DEFAULT_DOMAINS.forEach { (domain, type) ->
+            // then: endpoint requires management access token
+            assertManagerOnlyGetEndpoint("/api/settings/domain/$domain")
 
+            // given: a permitted token
+            val (permittedName, permittedSecret) = useDefaultManagementToken()
+
+            // when: settings entity is requested
+            val response = Unirest.get("$base/api/settings/domain/$domain")
+                .basicAuth(permittedName, permittedSecret)
+                .asJacksonObject(type)
+
+            assertSuccessResponse(OK, response)
+        }
+    }
+
+    @Test
+    fun `should update settings`() {
+        // given: an existing token without management permission
+        val (unauthorizedToken, unauthorizedSecret) = useAuth("unauthorized-token", "secret")
+
+        // when: list of tokens is requested without valid access token
+        val unauthorizedResponse = Unirest.put("$base/api/settings/domain/")
+            .basicAuth(unauthorizedToken, unauthorizedSecret)
+            .asJacksonObject(ErrorResponse::class)
+
+        // then: request is rejected
+        assertErrorResponse(UNAUTHORIZED, unauthorizedResponse)
+
+        // given: list of domain
+        val settings = mapOf(
+            "web" to WebSettings(forwardedIp = "test"),
+            "authentication" to AuthenticationSettings(ldap = LdapSettings(enabled = true)),
+            "statistics" to StatisticsSettings(resolvedRequestsInterval = YEARLY),
+            "frontend" to FrontendSettings(id = "test"),
+            "maven" to MavenSettings(repositories = emptyList())
+        )
+
+        // given: a permitted token
+        val (permittedName, permittedSecret) = useDefaultManagementToken()
+
+        settings.forEach { (domain, configuration) ->
+            // when: list of tokens is requested with valid token
+            val updateResponse = Unirest.put("$base/api/settings/domain/$domain")
+                .basicAuth(permittedName, permittedSecret)
+                .body(configuration)
+                .asEmpty()
+
+            assertSuccessResponse(OK, updateResponse)
+
+            // when: settings entity is requested
+            val response = Unirest.get("$base/api/settings/domain/$domain")
+                .basicAuth(permittedName, permittedSecret)
+                .asJacksonObject(configuration::class)
+
+            assertEquals(configuration, response.body)
+        }
     }
 
 }
