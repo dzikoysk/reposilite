@@ -69,7 +69,7 @@ const createClient = (defaultName, defaultSecret) => {
     },
     schema: {
       get(name) {
-        return axios.get(createURL(`/api/schema/${name}`), {
+        return axios.get(createURL(`/api/settings/schema/${name}`), {
           headers: {
             'Accepts': 'application/json',
             ...defaultAuthorization().headers
@@ -79,7 +79,7 @@ const createClient = (defaultName, defaultSecret) => {
     },
     config: {
       list() {
-        return axios.get(createURL('/api/configuration'), {
+        return axios.get(createURL('/api/settings/domains'), {
           headers: {
             'Accepts': 'application/json',
             ...defaultAuthorization().headers
@@ -87,7 +87,7 @@ const createClient = (defaultName, defaultSecret) => {
         })
       },
       get(name) {
-        return axios.get(createURL(`/api/configuration/${name}`), {
+        return axios.get(createURL(`/api/settings/domain/${name}`), {
           headers: {
             'Accepts': 'application/json',
             ...defaultAuthorization().headers
@@ -95,7 +95,7 @@ const createClient = (defaultName, defaultSecret) => {
         })
       },
       put(name, content) {
-        return axios.put(createURL(`/api/configuration/${name}`), content, {
+        return axios.put(createURL(`/api/settings/domain/${name}`), content, {
           headers: {
             'Content-Type': 'application/json',
             'Accepts': 'application/json',

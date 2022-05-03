@@ -32,6 +32,7 @@ const {
   updateConfiguration, 
   renderers, 
   configurations, 
+  configuration,
   schema,
   selectedConfiguration
 } = useConfiguration()
@@ -54,15 +55,11 @@ watch(
     <div class="flex justify-between pb-5 flex-col xl:flex-row">
       <div>
         <p>Modify configuration shared between all instances.</p>
-        <p><strong>Remember</strong>: Configuration propagation can take up to 30 seconds on all instances</p>
+        <p><strong>Remember</strong>: Configuration propagation can take up to 10 seconds on all your instances.</p>
       </div>
       <div id="configuration-state" class="flex flex-row pt-3 xl:pt-2">
-        <button @click="fetchConfiguration">
-          Reset changes
-        </button>
-        <button @click="updateConfiguration">
-          Update and reload
-        </button>
+        <button @click="fetchConfiguration">Reset changes</button>
+        <button @click="updateConfiguration">Update and reload</button>
       </div>
     </div>
     <Tabs v-model="selectedConfiguration">
@@ -70,7 +67,7 @@ watch(
         class="item"
         :key="`config:${cfg}`"
         :val="cfg"
-        :label="configurationSchema[cfg]?.title"
+        :label="schema[cfg]?.title"
         :indicator="true"
       />
     </Tabs>
@@ -79,7 +76,7 @@ watch(
         <JsonForms
           v-if="configuration[cfg]"
           :data="configuration[cfg]"
-          :schema="configurationSchema[cfg]"
+          :schema="schema[cfg]"
           :renderers="renderers"
           :ajv="ajv"
         />
@@ -165,7 +162,7 @@ watch(
   height: 100%;
 }
 .array-list-add {
-  @apply rounded-full h-6 w-6 line-height-6 bg-blue-700 ml-auto;
+  @apply rounded-full h-6 w-6 line-height-6 bg-blue-700 ml-auto text-white;
 }
 .array-list-item-move-up {
   display: none;

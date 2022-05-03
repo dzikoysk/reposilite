@@ -12,10 +12,10 @@ import { default as ConstantRenderer, tester as constantTester } from '../compon
 import { default as OptionalRenderer, tester as optionalTester } from '../components/renderers/OptionalRenderer.vue'
 
 const { client } = useSession()
-const schema = ref({})
-const configuration = ref({})
-const configurations = ref([])
-const selectedConfiguration = ref('')
+const domains = ref([])
+const schemas = ref({})
+const selectedDomain = ref('')
+const selectedConfiguration = ref({})
 
 const getSchema = async (name) =>
   (await client.value.schema.get(name)).data
@@ -33,33 +33,33 @@ const fetchConfiguration = async () => {
   try {
     const fetchedConfiguration = {}
     const fetchedSchemas = {}
-    configurations.value = await listConfigs()
-    for (const conf of configurations.value) {
+    domains.value = await listConfigs()
+    for (const conf of domains.value) {
       fetchedConfiguration[conf] = await getConfig(conf)
       fetchedSchemas[conf] = await getSchema(conf)
     }
-    configuration.value = fetchedConfiguration
-    schema.value = fetchedSchemas
-    selectedConfiguration.value = configurations.value[0]
+    selectedConfiguration.value = fetchedConfiguration
+    schemas.value = fetchedSchemas
+    selectedDomain.value = domains.value[0]
     createToast('Configuration loaded', { type: 'success' })
-  } catch (e) {
-    createToast(`${e || ''}`, { type: 'danger' })
+  } catch (error) {
+    createToast(`${error || ''}`, { type: 'danger' })
   }
 }
 
 const updateConfiguration = async () => {
   try {
-    const confs = {}
+    const fetchedConfiguration = {}
     const errored = []
-    for (const conf of configurations.value) {
-      const newValue = await updateConfig(conf, configuration.value[conf])
+    for (const conf of domains.value) {
+      const newValue = await updateConfig(conf, selectedConfiguration.value[conf])
       if (newValue) {
-        confs[conf] = newValue
+        fetchedConfiguration[conf] = newValue
       } else {
         errored.push(conf)
       }
     }
-    configuration.value = confs
+    selectedConfiguration.value = fetchedConfiguration
     if (errored.length > 0) {
       createToast(`Failed to update ${errored.join(', ')}`, { type: 'danger' })
     } else {
@@ -91,7 +91,7 @@ const configurationValidator = computed(() => createAjv({
     'maven-artifact-group': /^(\w+\.)*\w+$/,
     'repository-name': {
       type: 'string',
-      validate: (name) => name in configuration.value['maven'].repositories
+      validate: (name) => name in selectedConfiguration.value['maven'].repositories
     }
   }
 }))
@@ -102,8 +102,9 @@ export function useConfiguration() {
     updateConfiguration,
     renderers,
     configurationValidator,
-    configurations,
-    schema,
-    selectedConfiguration
+    configurations: domains,
+    configuration: selectedConfiguration,
+    schema: schemas,
+    selectedConfiguration: selectedDomain
   }
 }
