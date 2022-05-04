@@ -9,9 +9,9 @@ import net.dzikoysk.cdn.entity.Contextual
 data class WebSettings(
     @Doc(title = "Forwarded IP", description = """
         Any kind of proxy services change real ip.
-        The origin ip should be available in one of the headers.
-        Nginx: X-Forwarded-For
-        Cloudflare: CF-Connecting-IP
+        The origin ip should be available in one of the headers. <br />
+        Nginx: X-Forwarded-For <br />
+        Cloudflare: CF-Connecting-IP <br />
         Popular: X-Real-IP
     """)
     val forwardedIp: String = "X-Forwarded-For",
