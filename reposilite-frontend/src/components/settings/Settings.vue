@@ -116,12 +116,16 @@ const formsConfiguration = {
   @apply bg-gray-150 dark:bg-gray-900;
   transition: background-color 0.5s;
 }
+
 </style>
 
 <!--suppress CssInvalidAtRule -->
 <style>
 #configuration-state button {
   @apply bg-blue-700 mx-2 rounded text-sm h-9 px-4 text-white;
+}
+input, select {
+  @apply dark:bg-gray-900 dark:text-white !important;
 }
 .vertical-layout, .group-layout {
   @apply container mx-auto;
