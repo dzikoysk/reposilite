@@ -10,6 +10,6 @@ data class FileSystemStorageProviderSettings(
     override val type: String = "fs",
     @Doc(title = "Quota", description = "Control the maximum amount of data stored in this repository. Supported formats: 90%, 500MB, 10GB (optional, by default: unlimited)")
     val quota: String = "100%",
-    @Doc(title = "Mount", description = "use custom directory to locate the repository data (optional, by default it's './repositories/{name}')")
+    @Doc(title = "Mount", description = "Use custom directory to locate the repository data (optional, by default it's './repositories/{name}')")
     val mount: String = ""
 ): StorageProviderSettings

@@ -34,20 +34,28 @@ const {
   configurations, 
   configuration,
   schema,
-  selectedConfiguration
+  selectedConfiguration,
+  configurationValidator
 } = useConfiguration()
 
+/* Fetch configuration only when user opens the configuration tab  */
 watch(
   () => props.selectedTab.value,
   (selectedTab, prev) => {
-    if (selectedTab === 'Configuration' && prev == undefined && configurations.value.length == 0) {
+    if (selectedTab === 'Settings' && prev == undefined && configurations.value.length == 0) {
       fetchConfiguration().then(() => {
+        // debug println
         configurations.value.forEach(value => console.log(value, schema.value[value]))
       })
     }
   },
   { immediate: true }
 )
+
+/* JsonForms configuration */
+const formsConfiguration = {
+  showUnfocusedDescription: true
+}
 </script>
 
 <template>
@@ -75,10 +83,11 @@ watch(
       <TabPanel v-for="cfg in configurations" :val="cfg" :key="`config_tab:${cfg}`" class="border-1 rounded dark:border-gray-700 p-4">
         <JsonForms
           v-if="configuration[cfg]"
+          :config="formsConfiguration"
           :data="configuration[cfg]"
           :schema="schema[cfg]"
           :renderers="renderers"
-          :ajv="ajv"
+          :ajv="configurationValidator"
         />
       </TabPanel>
     </TabPanels>
@@ -119,9 +128,6 @@ watch(
 .control .select {
   @apply pr-8;
 }
-.description {
-  display: none;
-}
 .vertical-layout, .group, .array-list {
   @apply flex flex-col flex-wrap py-4;
   height: 100%;
@@ -129,8 +135,14 @@ watch(
 }
 .label {
   padding-bottom: 0.5em;
-  padding-left: 0.5em;
+  padding-left: 0.45em;
   display: inline-block;
+  font-weight: bold;
+}
+.description {
+  padding-left: 0.45em;
+  padding-bottom: 0.7em;
+  @apply text-sm italic;
 }
 .array-list-item-label {
   margin-right: auto;

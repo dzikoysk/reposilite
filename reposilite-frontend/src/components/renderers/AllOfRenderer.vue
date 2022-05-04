@@ -28,7 +28,7 @@
 <script>
 import {createCombinatorRenderInfos, findMatchingUISchema, resolveSubSchemas, isAllOfControl, rankWith} from '@jsonforms/core'
 import {DispatchRenderer, rendererProps, useJsonFormsAllOfControl} from '@jsonforms/vue'
-import {useVanillaControl} from '@jsonforms/vue-vanilla'
+import {useVanillaControl} from '@dzikoysk/vue-vanilla'
 
 export const tester = rankWith(3, isAllOfControl)
 

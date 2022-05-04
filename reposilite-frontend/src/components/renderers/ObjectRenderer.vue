@@ -15,7 +15,7 @@
 <script>
 import {findUISchema, isObjectControl, rankWith} from '@jsonforms/core'
 import {DispatchRenderer, rendererProps, useJsonFormsControlWithDetail} from '@jsonforms/vue'
-import {useVanillaControl} from '@jsonforms/vue-vanilla'
+import {useVanillaControl} from '@dzikoysk/vue-vanilla'
 import {useNested} from './util'
 import isEmpty from 'lodash/isEmpty'
 

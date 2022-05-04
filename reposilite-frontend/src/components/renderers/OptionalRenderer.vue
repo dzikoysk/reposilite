@@ -8,8 +8,8 @@
       <DispatchRenderer
         :visible="control.visible"
         :enabled="control.enabled"
-        :schema="schema"
-        :uischema="uischema"
+        :schema="filteredSchema"
+        :uischema="matchedUISchema"
         :path="control.path"
         :renderers="control.renderers"
         :cells="control.cells"
@@ -20,7 +20,7 @@
 
 <script>
 import {DispatchRenderer, rendererProps, useJsonFormsControlWithDetail} from '@jsonforms/vue'
-import {useVanillaControl} from '@jsonforms/vue-vanilla'
+import {useVanillaControl} from '@dzikoysk/vue-vanilla'
 import {ref} from 'vue'
 import {and, rankWith, schemaMatches, uiTypeIs} from '@jsonforms/core'
 import includes from 'lodash/includes'
@@ -41,14 +41,16 @@ export default {
     }
   },
   computed: {
-    schema() {
+    filteredSchema() {
       const schema = this.control.schema
-      return Array.isArray(schema.type) ? {
-        ...schema,
-        type: schema.type.filter(t => t !== 'null')
-      } : schema
+      return Array.isArray(schema.type) 
+        ? {
+            ...schema,
+            type: schema.type.filter(t => t !== 'null')
+          } 
+        : schema
     },
-    uischema() {
+    matchedUISchema() {
       return findUISchema(
           this.control.uischemas,
           this.control.schema,

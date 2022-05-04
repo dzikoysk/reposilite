@@ -19,7 +19,7 @@ import { computed, reactive, watchEffect } from 'vue'
 import { useSession } from '../store/session'
 import Header from '../components/header/Header.vue'
 import Browser from '../components/browser/FileBrowser.vue'
-import Configuration from '../components/configuration/Configuration.vue'
+import Configuration from '../components/settings/Settings.vue'
 import Console from '../components/Console.vue'
 import {Tabs, Tab, TabPanels, TabPanel} from 'vue3-tabs'
 
@@ -35,7 +35,7 @@ const { isManager } = useSession()
 const listOfTabs = [
   { name: 'Overview' },
   { name: 'Console', manager: true },
-  { name: 'Configuration', manager: true },
+  { name: 'Settings', manager: true },
 ]
 
 const selectedTab = reactive({
@@ -76,7 +76,7 @@ const menuTabs = computed(() =>
           <TabPanel :val="'Console'" v-if="isManager">
             <Console :selectedTab="selectedTab" />
           </TabPanel>
-           <TabPanel :val="'Configuration'" v-if="isManager">
+           <TabPanel :val="'Settings'" v-if="isManager">
             <Configuration :selectedTab="selectedTab" />
           </TabPanel>
         </TabPanels>

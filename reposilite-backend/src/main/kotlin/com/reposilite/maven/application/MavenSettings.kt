@@ -33,7 +33,7 @@ data class RepositorySettings(
     val visibility: RepositoryVisibility = PUBLIC,
     @Doc(title = "Redeployment", description = "Does this repository accept redeployment of the same artifact version.")
     val redeployment: Boolean = false,
-    @Doc(title = "Preserved snapshots", "# By default Reposilite deletes all deprecated build files. If you'd like to preserve them, set this property to true.")
+    @Doc(title = "Preserved snapshots", "By default Reposilite deletes all deprecated build files. If you'd like to preserve them, set this property to true.")
     val preserveSnapshots: Boolean = false,
     @Doc(title = "Storage provider", description = "The storage type of this repository.")
     @CustomComposer(StorageProviderSettingsComposer::class)

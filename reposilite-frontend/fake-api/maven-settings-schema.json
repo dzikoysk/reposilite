@@ -2,6 +2,12 @@
   "$schema" : "http://json-schema.org/draft-07/schema#",
   "type" : "object",
   "properties" : {
+    "test" : {
+      "type" : "string",
+      "title" : "Test",
+      "description" : "Test description.",
+      "showUnfocusedDescription": true
+    },
     "repositories" : {
       "title" : "Repositories",
       "description" : "List of Maven repositories.",
@@ -28,7 +34,7 @@
           "preserveSnapshots" : {
             "type" : "boolean",
             "title" : "Preserved snapshots",
-            "description" : "# By default Reposilite deletes all deprecated build files. If you'd like to preserve them, set this property to true."
+            "description" : "By default Reposilite deletes all deprecated build files. If you'd like to preserve them, set this property to true."
           },
           "storageProvider" : {
             "oneOf" : [ {
@@ -46,7 +52,7 @@
                 "mount" : {
                   "type" : "string",
                   "title" : "Mount",
-                  "description" : "use custom directory to locate the repository data (optional, by default it's './repositories/{name}')"
+                  "description" : "Use custom directory to locate the repository data (optional, by default it's './repositories/{name}')"
                 }
               },
               "title" : "File system Storage Provider",

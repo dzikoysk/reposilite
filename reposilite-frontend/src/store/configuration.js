@@ -3,8 +3,9 @@ import { useSession } from './session'
 import {createToast} from 'mosha-vue-toastify'
 import { createAjv } from '@jsonforms/core'
 
-import { vanillaRenderers } from '@jsonforms/vue-vanilla'
+import { vanillaRenderers } from '@dzikoysk/vue-vanilla'
 
+import { default as LabelRenderer, tester as labelTester } from '../components/renderers/LabelRenderer.vue'
 import { default as ObjectRenderer, tester as objectTester } from '../components/renderers/ObjectRenderer.vue'
 import { default as AllOfRenderer, tester as allOfTester } from '../components/renderers/AllOfRenderer.vue'
 import { default as OneOfRenderer, tester as oneOfTester } from '../components/renderers/OneOfRenderer.vue'
@@ -70,12 +71,14 @@ const updateConfiguration = async () => {
   }
 }
 
+console.log(vanillaRenderers.filter(element => element.renderer.name != "label-renderer"))
+
 const renderers = markRaw([
-  ...vanillaRenderers,
   { tester: allOfTester, renderer: AllOfRenderer },
   { tester: oneOfTester, renderer: OneOfRenderer },
   { tester: constantTester, renderer: ConstantRenderer },
   { tester: optionalTester, renderer: OptionalRenderer },
+  { tester: labelTester, renderer: LabelRenderer },
   {
     tester: (uischema, schema) => {
       let x = objectTester(uischema, schema)
@@ -83,7 +86,10 @@ const renderers = markRaw([
     },
     renderer: ObjectRenderer
   },
+  ...(vanillaRenderers.filter(element => element.renderer.name != "label-renderer"))
 ])
+
+console.log(renderers)
 
 const configurationValidator = computed(() => createAjv({
   'formats': {
