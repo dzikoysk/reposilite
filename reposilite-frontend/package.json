@@ -1,6 +1,8 @@
 {
   "name": "reposilite-frontend",
   "version": "3.0.0-alpha.25",
+  "repository": "https://github.com/dzikoysk/reposilite",
+  "license": "APACHE-2.0",
   "scripts": {
     "dev": "vite",
     "eslint": "eslint src/**",

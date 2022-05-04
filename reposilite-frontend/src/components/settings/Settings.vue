@@ -31,21 +31,21 @@ const {
   fetchConfiguration,
   updateConfiguration, 
   renderers, 
-  configurations, 
-  configuration,
-  schema,
-  selectedConfiguration,
-  configurationValidator
+  configurationValidator,
+  domains, 
+  configurations,
+  schemas,
+  selectedDomain
 } = useConfiguration()
 
 /* Fetch configuration only when user opens the configuration tab  */
 watch(
   () => props.selectedTab.value,
   (selectedTab, prev) => {
-    if (selectedTab === 'Settings' && prev == undefined && configurations.value.length == 0) {
+    if (selectedTab === 'Settings' && prev == undefined && domains.value.length == 0) {
       fetchConfiguration().then(() => {
         // debug println
-        configurations.value.forEach(value => console.log(value, schema.value[value]))
+        domains.value.forEach(value => console.log(value, schemas.value[value]))
       })
     }
   },
@@ -70,22 +70,27 @@ const formsConfiguration = {
         <button @click="updateConfiguration">Update and reload</button>
       </div>
     </div>
-    <Tabs v-model="selectedConfiguration">
-      <Tab v-for="cfg in configurations"
+    <Tabs v-model="selectedDomain">
+      <Tab v-for="domain in domains"
         class="item"
-        :key="`config:${cfg}`"
-        :val="cfg"
-        :label="schema[cfg]?.title"
+        :key="`config:${domain}`"
+        :val="domain"
+        :label="schemas[domain]?.title"
         :indicator="true"
       />
     </Tabs>
-    <TabPanels v-model="selectedConfiguration">
-      <TabPanel v-for="cfg in configurations" :val="cfg" :key="`config_tab:${cfg}`" class="border-1 rounded dark:border-gray-700 p-4">
+    <TabPanels v-model="selectedDomain">
+      <TabPanel 
+        v-for="domain in domains" 
+        :val="domain" 
+        :key="`config_tab:${domain}`" 
+        class="border-1 rounded dark:border-gray-700 p-4"
+      >
         <JsonForms
-          v-if="configuration[cfg]"
+          v-if="configurations[domain]"
           :config="formsConfiguration"
-          :data="configuration[cfg]"
-          :schema="schema[cfg]"
+          :data="configurations[domain]"
+          :schema="schemas[domain]"
           :renderers="renderers"
           :ajv="configurationValidator"
         />

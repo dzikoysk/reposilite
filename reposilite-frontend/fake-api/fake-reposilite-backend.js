@@ -49,10 +49,11 @@ application
   })
   .use(express.text())
   .use(bodyParser.raw({ limit: '10mb', extended: true }))
+  .use(bodyParser.json())
   .get('/api/settings/domains', (req, res) => res.send(['maven']))
   .get('/api/settings/schema/maven', (req, res) => res.send(mavenSettingsSchema))
   .get('/api/settings/domain/maven', (req, res) => res.send(mavenSettingsEntity))
-  .put('/api/settings/domain/maven', (req, res) => mavenSettingsEntity = req.body)
+  .put('/api/settings/domain/maven', (req, res) => { mavenSettingsEntity = req.body; console.log(req.body) })
   .get(
     "/api/maven/details/snapshots",
     respond(createDirectoryDetails("/snapshot", []))
