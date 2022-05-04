@@ -38,6 +38,9 @@ const {
   selectedDomain
 } = useConfiguration()
 
+const updateFormsConfiguration = (domain, event) =>
+  configurations.value[domain] = event.data
+  
 /* Fetch configuration only when user opens the configuration tab  */
 watch(
   () => props.selectedTab.value,
@@ -93,6 +96,7 @@ const formsConfiguration = {
           :schema="schemas[domain]"
           :renderers="renderers"
           :ajv="configurationValidator"
+          @change="updateFormsConfiguration(domain, $event)"
         />
       </TabPanel>
     </TabPanels>
