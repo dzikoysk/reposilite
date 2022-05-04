@@ -40,7 +40,7 @@ const {
 
 const updateFormsConfiguration = (domain, event) =>
   configurations.value[domain] = event.data
-  
+
 /* Fetch configuration only when user opens the configuration tab  */
 watch(
   () => props.selectedTab.value,
@@ -117,6 +117,7 @@ const formsConfiguration = {
   transition: background-color 0.5s;
 }
 </style>
+
 <!--suppress CssInvalidAtRule -->
 <style>
 #configuration-state button {
@@ -153,6 +154,12 @@ const formsConfiguration = {
   padding-bottom: 0.7em;
   @apply text-sm italic;
 }
+.array-list {
+  padding: 0;
+}
+.array-list-label {
+font-weight: bold;
+}
 .array-list-item-label {
   margin-right: auto;
 }
@@ -160,6 +167,7 @@ const formsConfiguration = {
   @apply flex flex-row align-items-baseline;
   display: flex;
   align-items: baseline;
+  display: none;
 }
 .array-list-item-toolbar>button {
   padding: 0.5rem;
@@ -170,9 +178,7 @@ const formsConfiguration = {
   margin-bottom: 1rem;
 }
 .array-list-item-wrapper {
-  border: solid;
-  border-radius: .25rem;
-  padding-inline: 1rem;
+  @apply border rounded-md px-6 py-2 dark:border-gray-600;
 }
 .one-of-container {
   height: 100%;
@@ -190,5 +196,8 @@ const formsConfiguration = {
 }
 .array-list-item-move-down {
   display: none;
+}
+.array-list-no-data {
+  @apply p-4 bg-gray-200 dark:bg-gray-900 italic rounded-md;
 }
 </style>

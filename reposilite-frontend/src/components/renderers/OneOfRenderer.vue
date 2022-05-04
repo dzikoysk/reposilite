@@ -6,6 +6,7 @@
         :key="`${control.path}-${oneOfIndex}`"
         :val="oneOfIndex"
         :label="oneOfRenderInfo.label"
+        :indicator="true"
         @click="tabChanged" 
       />
     </Tabs>
@@ -181,5 +182,8 @@ dialog::backdrop {
 }
 button {
   @apply bg-blue-700 mx-2 rounded text-sm h-9 px-4 text-white;
+}
+.tabs {
+  @apply cursor-pointer !important;
 }
 </style>
