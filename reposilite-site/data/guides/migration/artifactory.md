@@ -3,7 +3,9 @@
 
 1. Export Each Repository from Artifactory.
     Be sure to check the `.m2 compatible export` box to get an export that reposilite can use. Also, we recommend excluding artifactory build metadata if your version of Artifactory has this feature.
+    
     ![image](https://user-images.githubusercontent.com/823828/167173140-6777ed00-d5e6-44b9-bf40-c337bae712a9.png)
+    
 2. Move the resulting export files to your new reposilite server and extract them to the repository folder you would like them in.
     Depending on the organization of your new repositories, you may need to move your artifacts out of parent folders to get them in the location you want them in your new repository.
    
