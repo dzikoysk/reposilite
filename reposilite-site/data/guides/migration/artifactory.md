@@ -1,7 +1,3 @@
----
-id: artifactory
-title: Artifactory
----
 
 ### Instructions
 
