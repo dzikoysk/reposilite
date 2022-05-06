@@ -68,9 +68,14 @@ internal class LdapAuthenticator(
                 }
                 .filter({ it.size == 1 }, { ErrorResponse(BAD_REQUEST, "Could not identify one specific result") }) // only one search result allowed
                 .map { it.first() }
-                .flatMap { createContext(user = it.first, password = authenticationRequest.secret) } // try to authenticate user with matched domain namespace
-                .flatMap { it.search(userFilter, userAttribute) } // filter result with user-filter from configuration
-                .filter({ it.size == 1 }, { ErrorResponse(BAD_REQUEST, "Could not identify one specific result") }) // only one search result allowed
+                .flatMap { createContext(user = it.first, password = authenticationRequest.secret) } // try to authenticate user with matched domain namespace                                
+                .flatMap { 
+                    it.search(
+                        "(&(objectClass=person)(${userAttribute}=${authenticationRequest.name})${userFilter})", // filter result with user-filter from configuration                
+                        userAttribute
+                    ) 
+                } 
+                .filter({ it.size == 1 }, { ErrorResponse(BAD_REQUEST, "Could not identify one specific result as user") }) // only one search result allowed
                 .map { it.first() }
                 .map { (_, attributes) -> attributes[userAttribute]!! } // search returns only lists with values
                 .filter({ it.size == 1 }, { ErrorResponse(BAD_REQUEST, "Could not identify one specific attribute") }) // only one attribute value is allowed
@@ -121,7 +126,7 @@ internal class LdapAuthenticator(
                 }
                 .let { controls -> search(ldapConfiguration.map { it.baseDn }, ldapFilterQuery, controls) }
                 .asSequence()
-                .map { Pair(it.nameInNamespace, it.attributesMap(*requestedAttributes)) }
+                .map { it.nameInNamespace to it.attributesMap(*requestedAttributes) }
                 .toList()
                 .takeIf { it.isNotEmpty() }
                 ?.asSuccess()
@@ -143,7 +148,7 @@ internal class LdapAuthenticator(
                 .asSequence()
                 .map { it.toString() }
                 .toList()
-                .let { Pair(attribute, it) }
+                .let { attribute to it }
         }
 
     override fun enabled(): Boolean =

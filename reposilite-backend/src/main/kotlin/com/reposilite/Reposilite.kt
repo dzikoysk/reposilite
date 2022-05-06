@@ -18,6 +18,7 @@ package com.reposilite
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
 import com.reposilite.plugin.Extensions
+import com.reposilite.plugin.api.Facade
 import com.reposilite.plugin.api.ReposiliteDisposeEvent
 import com.reposilite.plugin.api.ReposiliteInitializeEvent
 import com.reposilite.plugin.api.ReposilitePostInitializeEvent
@@ -31,7 +32,7 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.atomic.AtomicBoolean
 
-const val VERSION = "3.0.0-alpha.23"
+const val VERSION = "3.0.0-alpha.25"
 
 class Reposilite(
     val journalist: ReposiliteJournalist,
@@ -40,7 +41,7 @@ class Reposilite(
     val scheduler: ScheduledExecutorService,
     val webServer: HttpServer,
     val extensions: Extensions
-) : Journalist {
+) : Facade, Journalist {
 
     private val alive = AtomicBoolean(false)
 

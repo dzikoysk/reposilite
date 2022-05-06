@@ -2,7 +2,14 @@
 FROM openjdk:18-slim AS build
 COPY . /home/reposilite-build
 WORKDIR /home/reposilite-build
-RUN export GRADLE_OPTS="-Djdk.lang.Process.launchMechanism=vfork" && chmod +x gradlew && ./gradlew :reposilite-backend:shadowJar --no-daemon --stacktrace
+RUN apt-get update; apt-get install -y curl \
+    && curl -sL https://deb.nodesource.com/setup_14.x | bash - \
+    && apt-get install -y nodejs \
+    && curl -L https://www.npmjs.com/install.sh | sh
+RUN \
+  export GRADLE_OPTS="-Djdk.lang.Process.launchMechanism=vfork" && \
+  chmod +x gradlew && \
+  ./gradlew :reposilite-backend:shadowJar --no-daemon --stacktrace
 
 # Build-time metadata stage
 ARG BUILD_DATE
@@ -20,10 +27,14 @@ LABEL org.label-schema.build-date=$BUILD_DATE \
 
 # Run stage
 FROM openjdk:18-slim
-RUN mkdir -p /app/data
+RUN mkdir -p /app/data && mkdir -p /var/log/reposilite
 VOLUME /app/data
-WORKDIR /app/data
-COPY --from=build /home/reposilite-build/reposilite-backend/build/libs/reposilite-3*.jar ../reposilite.jar
-RUN addgroup --gid 999 reposilite && adduser --system -uid 999 --ingroup reposilite reposilite && chgrp reposilite /app/data
-USER reposilite
-ENTRYPOINT exec java $JAVA_OPTS -jar ../reposilite.jar -wd=/app/data $REPOSILITE_OPTS
+WORKDIR /app
+COPY --from=build /home/reposilite-build/reposilite-backend/build/libs/reposilite-3*.jar reposilite.jar
+COPY --from=build /home/reposilite-build/entrypoint.sh entrypoint.sh
+RUN apt-get update && \
+    apt-get -y install util-linux && \
+    addgroup --gid 999 reposilite && \
+    adduser --system -uid 999 --ingroup reposilite --shell /bin/sh reposilite
+ENTRYPOINT ["/bin/sh", "entrypoint.sh"]
+CMD []

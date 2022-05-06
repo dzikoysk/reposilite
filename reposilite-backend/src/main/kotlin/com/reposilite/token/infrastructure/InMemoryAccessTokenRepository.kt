@@ -53,7 +53,7 @@ internal class InMemoryAccessTokenRepository : AccessTokenRepository {
         tokens.values.firstOrNull { it.name == name }
 
     override fun addPermission(id: AccessTokenIdentifier, permission: AccessTokenPermission) {
-        permissions.add(Pair(id.value, permission))
+        permissions.add(id.value to permission)
     }
 
     override fun deletePermission(id: AccessTokenIdentifier, permission: AccessTokenPermission) {

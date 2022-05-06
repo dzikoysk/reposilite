@@ -8,3 +8,7 @@ updates:
     directory: "/reposilite-frontend"
     schedule:
       interval: "weekly"
+  - package-ecosystem: "npm"
+    directory: "/reposilite-site"
+    schedule:
+      interval: "weekly"

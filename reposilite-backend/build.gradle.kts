@@ -15,9 +15,6 @@
  */
 
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-import org.gradle.api.tasks.testing.logging.TestExceptionFormat
-import org.gradle.api.tasks.testing.logging.TestLogEvent
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 group = "org.panda-lang"
 
@@ -33,32 +30,29 @@ application {
     mainClass.set("com.reposilite.ReposiliteLauncherKt")
 }
 
-java {
-    withJavadocJar()
-    withSourcesJar()
-}
-
 dependencies {
-    val kotlin = "1.6.20"
+    implementation(project(":reposilite-frontend"))
+
+    val kotlin = "1.6.21"
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin")
     api("org.jetbrains:annotations:23.0.0")
 
-    val expressible = "1.1.17"
+    val expressible = "1.1.19"
     api("org.panda-lang:expressible:$expressible")
     api("org.panda-lang:expressible-kt:$expressible")
     testImplementation("org.panda-lang:expressible-junit:$expressible")
 
     val cdn = "1.13.10"
-    implementation("net.dzikoysk:cdn:$cdn")
-    implementation("net.dzikoysk:cdn-kt:$cdn")
+    api("net.dzikoysk:cdn:$cdn")
+    api("net.dzikoysk:cdn-kt:$cdn")
 
-    val awssdk = "2.17.162"
+    val awssdk = "2.17.181"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
-    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.191")
+    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.210")
 
-    val exposed = "0.37.3"
+    val exposed = "0.38.2"
     implementation("org.jetbrains.exposed:exposed-core:$exposed")
     implementation("org.jetbrains.exposed:exposed-dao:$exposed")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposed")
@@ -69,12 +63,12 @@ dependencies {
     implementation("com.zaxxer:HikariCP:4.0.3")
     // Drivers
     implementation("org.xerial:sqlite-jdbc:3.36.0.3")
-    implementation("mysql:mysql-connector-java:8.0.28")
+    implementation("mysql:mysql-connector-java:8.0.29")
     implementation("org.mariadb.jdbc:mariadb-java-client:3.0.4")
-    implementation("org.postgresql:postgresql:42.3.3")
-    implementation("com.h2database:h2:2.1.210")
+    implementation("org.postgresql:postgresql:42.3.4")
+    implementation("com.h2database:h2:2.1.212")
 
-    val springSecurityCrypto = "5.6.2"
+    val springSecurityCrypto = "5.6.3"
     implementation("org.springframework.security:spring-security-crypto:$springSecurityCrypto")
 
     val ldap = "6.0.4"
@@ -83,16 +77,16 @@ dependencies {
     val openapi = "1.1.3"
     kapt("io.javalin-rfc:openapi-annotation-processor:$openapi")
     implementation("io.javalin-rfc:javalin-openapi-plugin:$openapi")
-    implementation("io.javalin-rfc:javalin-swagger-plugin:$openapi")
 
     val javalinRfcs = "4.1.0"
     api("com.reposilite.javalin-rfcs:javalin-context:$javalinRfcs")
     api("com.reposilite.javalin-rfcs:javalin-routing:$javalinRfcs")
 
     @Suppress("GradlePackageUpdate")
-    //implementation("io.javalin:javalin:4.1.1")
+    //api("io.javalin:javalin:4.1.1")
     // api("com.github.dzikoysk.javalin:javalin:97b4481c0a")
-    api("com.github.tipsy.javalin:javalin:d00c8512c9")
+    // api("com.github.tipsy.javalin:javalin:d00c8512c9")
+    api("io.javalin:javalin:4.5.0")
 
     @Suppress("GradlePackageUpdate")
     implementation("org.eclipse.jetty:jetty-server:9.4.46.v20220331")
@@ -106,7 +100,7 @@ dependencies {
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jackson")
 
-    val httpClient = "1.41.5"
+    val httpClient = "1.41.7"
     implementation("com.google.http-client:google-http-client:$httpClient")
     testImplementation("com.google.http-client:google-http-client-jackson2:$httpClient")
 
@@ -130,56 +124,16 @@ dependencies {
     implementation("org.tinylog:tinylog-api:$tinylog")
     implementation("org.tinylog:tinylog-impl:$tinylog")
 
-    val unirest = "3.13.7"
+    val unirest = "3.13.8"
     testImplementation("com.konghq:unirest-java:$unirest")
     testImplementation("com.konghq:unirest-objectmapper-jackson:$unirest")
 
-    val testcontainers = "1.16.3"
+    val testcontainers = "1.17.1"
     testImplementation("org.testcontainers:postgresql:$testcontainers")
     testImplementation("org.testcontainers:mariadb:$testcontainers")
     testImplementation("org.testcontainers:testcontainers:$testcontainers")
     testImplementation("org.testcontainers:junit-jupiter:$testcontainers")
     testImplementation("org.testcontainers:localstack:$testcontainers")
-
-    val junit = "5.8.2"
-    testImplementation("org.junit.jupiter:junit-jupiter-params:$junit")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:$junit")
-    testImplementation("org.junit.jupiter:junit-jupiter-engine:$junit")
-}
-
-sourceSets.main {
-    java.srcDirs("src/main/kotlin")
-}
-
-tasks.withType<KotlinCompile>().configureEach {
-    kotlinOptions {
-        languageVersion = "1.6"
-        jvmTarget = "1.8"
-
-        // For generating default methods in interfaces
-        freeCompilerArgs = listOf("-Xjvm-default=all")
-    }
-}
-
-publishing {
-    publications {
-        create<MavenPublication>("library") {
-            from(components.getByName("java"))
-            artifactId = "reposilite"
-            // Gradle generator does not support <repositories> section from Maven specification.
-            // ~ https://github.com/gradle/gradle/issues/15932
-            pom.withXml {
-                val repositories = asNode().appendNode("repositories")
-                project.repositories.findAll(closureOf<Any> {
-                    if (this is MavenArtifactRepository && this.url.toString().startsWith("https")) {
-                        val repository = repositories.appendNode("repository")
-                        repository.appendNode("id", this.name)
-                        repository.appendNode("url", this.url.toString())
-                    }
-                })
-            }
-        }
-    }
 }
 
 tasks.withType<ShadowJar> {
@@ -210,30 +164,29 @@ kapt {
     }
 }
 
-tasks.withType<Test> {
-    testLogging {
-        events(
-            TestLogEvent.STARTED,
-            TestLogEvent.PASSED,
-            TestLogEvent.FAILED,
-            TestLogEvent.SKIPPED
-        )
-        exceptionFormat = TestExceptionFormat.FULL
-        showExceptions = true
-        showCauses = true
-        showStackTraces = true
-        showStandardStreams = true
+publishing {
+    publications {
+        create<MavenPublication>("library") {
+            from(components.getByName("java"))
+            artifactId = "reposilite"
+            // Gradle generator does not support <repositories> section from Maven specification.
+            // ~ https://github.com/gradle/gradle/issues/15932
+            pom.withXml {
+                val repositories = asNode().appendNode("repositories")
+                project.repositories.findAll(closureOf<Any> {
+                    if (this is MavenArtifactRepository && this.url.toString().startsWith("https")) {
+                        val repository = repositories.appendNode("repository")
+                        repository.appendNode("id", this.name)
+                        repository.appendNode("url", this.url.toString())
+                    }
+                })
+            }
+        }
     }
-
-    useJUnitPlatform()
-
-    maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2)
-        .takeIf { it > 0 }
-        ?: 1
 }
 
 jacoco {
-    toolVersion = "0.8.7"
+    toolVersion = "0.8.8"
 }
 
 tasks.test {
@@ -286,11 +239,13 @@ val testCoverage by tasks.registering {
     description = "Runs the unit tests with coverage"
 
     dependsOn(
-        ":test",
-        ":jacocoTestReport",
-        ":jacocoTestCoverageVerification"
+        ":reposilite-backend:test",
+        ":reposilite-backend:integrationTest",
+        ":reposilite-backend:jacocoTestReport",
+        ":reposilite-backend:jacocoTestCoverageVerification"
     )
 
-    tasks["jacocoTestReport"].mustRunAfter(tasks["test"])
+    tasks["integrationTest"].mustRunAfter(tasks["test"])
+    tasks["jacocoTestReport"].mustRunAfter(tasks["integrationTest"])
     tasks["jacocoTestCoverageVerification"].mustRunAfter(tasks["jacocoTestReport"])
 }

@@ -85,8 +85,8 @@ class SharedConfiguration : DeserializationHandler<SharedConfiguration> {
         @Description("# Does this repository accept redeployment of the same artifact version")
         var redeployment = false
 
-        @Description("# How many builds of the given snapshot version should be preserved when a new build is deployed. Use -1 to disable this feature")
-        var preserved = -1
+        @Description("# By default Reposilite deletes all deprecated build files. If you'd like to preserve them, set this property to true.")
+        var preserveSnapshots = false
 
         @Description("")
         @Description("# Used storage type. Supported storage providers:")

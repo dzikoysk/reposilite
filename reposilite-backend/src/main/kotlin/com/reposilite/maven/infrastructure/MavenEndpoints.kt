@@ -50,14 +50,14 @@ internal class MavenEndpoints(
     private val compressionStrategy = settingsFacade.localConfiguration.compressionStrategy
 
     @OpenApi(
-        path = "/{repository}/*",
+        path = "/{repository}/{gav}",
         methods = [HttpMethod.GET],
         tags = ["Maven"],
         summary = "Browse the contents of repositories",
         description = "The route may return various responses to properly handle Maven specification and frontend application using the same path.",
         pathParams = [
             OpenApiParam(name = "repository", description = "Destination repository", required = true),
-            OpenApiParam(name = "*", description = "Artifact path qualifier", required = true, allowEmptyValue = true)
+            OpenApiParam(name = "gav", description = "Artifact path qualifier", required = true, allowEmptyValue = true)
         ],
         responses = [
             OpenApiResponse(status = "200", description = "Input stream of requested file", content = [OpenApiContent(type = FORM_DATA_MULTIPART)]),
@@ -69,7 +69,7 @@ internal class MavenEndpoints(
             LookupRequest(this?.identifier, requireParameter("repository"), requireParameter("gav").toLocation()).let { request ->
                 mavenFacade.findDetails(request)
                     .`is`(DocumentInfo::class.java) { ErrorResponse(NOT_FOUND, "Requested file is a directory") }
-                    .flatMap { details -> mavenFacade.findFile(request).map { Pair(details, it) } }
+                    .flatMap { details -> mavenFacade.findFile(request).map { details to it } }
                     .peek { (details, file) -> ctx.resultAttachment(details.name, details.contentType, details.contentLength, compressionStrategy.get(), file) }
                     .onError { ctx.status(it.status).html(frontendFacade.createNotFoundPage(uri, it.message)) }
             }
@@ -78,13 +78,13 @@ internal class MavenEndpoints(
 
     @OpenApi(
         tags = [ "Maven" ],
-        path = "/{repository}/*",
+        path = "/{repository}/{gav}",
         methods = [HttpMethod.POST, HttpMethod.PUT],
         summary = "Deploy artifact to the repository",
         description = "Deploy supports both, POST and PUT, methods and allows to deploy artifact builds",
         pathParams = [
             OpenApiParam(name = "repository", description = "Destination repository", required = true),
-            OpenApiParam(name = "*", description = "Artifact path qualifier", required = true)
+            OpenApiParam(name = "gav", description = "Artifact path qualifier", required = true)
         ],
         responses = [
             OpenApiResponse(status = "200", description = "Input stream of requested file", content = [OpenApiContent(type = FORM_DATA_MULTIPART)]),
@@ -101,12 +101,12 @@ internal class MavenEndpoints(
 
     @OpenApi(
         tags = ["Maven"],
-        path = "/{repository}/*",
+        path = "/{repository}/{gav}",
         summary = "Delete the given file from repository",
         methods = [HttpMethod.DELETE],
         pathParams = [
             OpenApiParam(name = "repository", description = "Destination repository", required = true),
-            OpenApiParam(name = "*", description = "Artifact path qualifier", required = true)
+            OpenApiParam(name = "gav", description = "Artifact path qualifier", required = true)
         ]
     )
     private val deleteFile = ReposiliteRoute<Unit>("/{repository}/<gav>", DELETE) {

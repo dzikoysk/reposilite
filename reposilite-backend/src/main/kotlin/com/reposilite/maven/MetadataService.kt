@@ -52,7 +52,7 @@ internal class MetadataService(
         repositoryService.findRepository(repository)
             .flatMap {
                 val content = xml.writeValueAsBytes(metadata)
-                val metadataFile = gav.resolve(METADATA_FILE)
+                val metadataFile = gav.resolveMetadataFile()
 
                 it.putFile(metadataFile, content.inputStream())
                     .flatMap { _ -> it.writeFileChecksums(metadataFile, content) }
@@ -61,7 +61,7 @@ internal class MetadataService(
 
     fun findMetadata(repository: String, gav: Location): Result<Metadata, ErrorResponse> =
         repositoryService.findRepository(repository)
-            .flatMap { it.getFile(gav.resolve(METADATA_FILE)) }
+            .flatMap { it.getFile(gav.resolveMetadataFile()) }
             .map { it.use { data -> xml.readValue<Metadata>(data) } }
 
     fun findLatest(repository: Repository, gav: Location, filter: String?): Result<LatestVersionResponse, ErrorResponse> =
@@ -70,7 +70,7 @@ internal class MetadataService(
             .map { (isSnapshot, versions) -> LatestVersionResponse(isSnapshot, versions.last()) }
 
     fun findVersions(repository: Repository, gav: Location, filter: String?): Result<VersionsResponse, ErrorResponse> =
-        repository.getFile(gav.resolve(METADATA_FILE))
+        repository.getFile(gav.resolveMetadataFile())
             .map { it.use { data -> xml.readValue<Metadata>(data) } }
             .map { extractVersions(it) }
             .map { (isSnapshot, versions) ->
@@ -79,6 +79,9 @@ internal class MetadataService(
                     .let { VersionComparator.sortStrings(it) }
                     .let { VersionsResponse(isSnapshot, it.toList()) }
             }
+
+    private fun Location.resolveMetadataFile(): Location =
+        if (endsWith(METADATA_FILE)) this else resolve(METADATA_FILE)
 
     private data class VersionSequence(val isSnapshot: Boolean = false, val versions: Sequence<String>)
 

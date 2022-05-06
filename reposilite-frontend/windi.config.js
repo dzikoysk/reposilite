@@ -30,7 +30,7 @@ export default defineConfig({
       colors: {
         gray: {
           150: "#ececec",
-          ...colors.trueGray,
+          ...colors.neutral,
         },
       },
       fontSize: {

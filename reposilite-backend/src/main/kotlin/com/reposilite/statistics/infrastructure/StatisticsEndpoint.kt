@@ -34,12 +34,12 @@ internal class StatisticsEndpoint(private val statisticsFacade: StatisticsFacade
 
     @OpenApi(
         tags = ["Statistics"],
-        path = "/api/statistics/resolved/phrase/{limit}/{repository}/*",
+        path = "/api/statistics/resolved/phrase/{limit}/{repository}/{gav}",
         methods = [HttpMethod.GET],
         pathParams = [
             OpenApiParam(name = "limit", description = "Amount of records to find (Maximum: $MAX_PAGE_SIZE", required = true),
             OpenApiParam(name = "repository", description = "Repository to search in", required = true),
-            OpenApiParam(name = "*", description = "Phrase to search for", required = true, allowEmptyValue = true)
+            OpenApiParam(name = "gav", description = "Phrase to search for", required = true, allowEmptyValue = true)
         ],
         responses = [
             OpenApiResponse("200", content = [ OpenApiContent(from = ResolvedCountResponse::class) ], description = "Aggregated sum of resolved requests with list a list of them all"),
