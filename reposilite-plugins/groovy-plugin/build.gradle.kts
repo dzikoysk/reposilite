@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 group = "com.reposilite.plugins"
 
 plugins {
     kotlin("jvm")
-    id("com.github.johnrengelman.shadow") version "7.1.1"
+    id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
 application {
@@ -31,12 +31,6 @@ application {
 dependencies {
     compileOnly(project(":reposilite-backend"))
     implementation("org.apache.groovy:groovy:4.0.0-rc-1")
-}
-
-tasks.withType(KotlinCompile::class.java) {
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
 }
 
 tasks.withType<ShadowJar> {

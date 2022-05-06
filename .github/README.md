@@ -34,7 +34,7 @@ This is simple, extensible and scalable self-hosted solution to replace managers
  <div>
   <a href="https://reposilite.com">Website</a>
   |
-  <a href="https://reposilite.com/docs/about">Official Guide</a>
+  <a href="https://reposilite.com/guide/about">Official Guide</a>
   |
   <a href="https://github.com/dzikoysk/reposilite/releases">GitHub Releases</a>
   |
@@ -61,16 +61,16 @@ For huge public repositories you can adjust memory limit and even size of used t
 
 ```bash
 # Launching a standalone JAR file
-$ java -Xmx16M -jar reposilite-3.0.0-alpha.23.jar
+$ java -Xmx16M -jar reposilite-3.0.0-alpha.25.jar
 
 # Using a Docker
-$ docker pull dzikoysk/reposilite:3.0.0-alpha.23
+$ docker pull dzikoysk/reposilite:3.0.0-alpha.25
 ```
 
 Visit official guide to read more about extra parameters and configuration details.
 
 ### Publications
-* [Reposilite - Official Guide](https://reposilite.com/docs/about)
+* [Reposilite - Official Guide](https://reposilite.com/guide/about)
 * [Publishing your artifacts to the Reposilite - a new self-hosted repository manager ](https://dev.to/dzikoysk/publishing-your-artifacts-to-the-reposilite-a-new-self-hosted-repository-manager-3n0h)
 
 Users' stories
@@ -79,42 +79,55 @@ Users' stories
 * [Looking for simple repository manager by David Kihato](https://kihats.medium.com/custom-self-hosted-maven-repository-cbb778031f68)
 
 ### Supporters
-Thanks to all contributors and people that decided to donate the project ❤️
+Thanks to all contributors and people that decided to support my work financially ❤️
 
 <table>
  <tr>
   <td>
-   Monthly (<a href="https://github.com/sponsors/dzikoysk">GitHub Sponsors</a>
+   <a href="https://github.com/sponsors/dzikoysk">Still active GitHub Sponsors</a>
   </td>
   <td>
-    <a href="https://github.com/Koressi">Koressi</a>, 
-    <a href="https://github.com/milkyway0308">milkyway0308</a>, 
+    <a href="https://github.com/tipsy">tipsy</a>, 
+    <a href="https://github.com/Koressi">Koressi</a>,
     <a href="https://github.com/insertt">insertt</a>, 
+    <a href="https://github.com/milkyway0308">milkyway0308</a>,
+    <a href="https://github.com/andrm">andrm</a>, 
     <a href="https://github.com/neg4n">neg4n</a>, 
-    <a href="https://github.com/EthanDevelops">EthanDevelops</a>, 
     <a href="https://github.com/sebba-dev">sebba-dev</a>
   </td>
  </tr>
  <tr>
-  <td>One time</td>
+  <td>All time</td>
   <td>
-   <a href="https://github.com/zzmgck">zzmgck</a> with $190, 
-   <a href="https://github.com/maxant">maxant</a> with $25,
-   <a href="https://github.com/milkyway0308">milkyway0308</a> with $20,
-   <a href="https://github.com/alexwhb">alexwhb</a> with $15, 
-   <a href="https://github.com/escv">escv</a> with $10,
-   <a href="https://github.com/EthanDevelops">EthanDevelops</a> with $6, 
-   Rob with $5,
-   <a href="https://github.com/FlawCra">FlawCra</a> with $2
+   <a href="https://github.com/zzmgck">zzmgck</a>, 
+   <a href="https://github.com/tipsy">tipsy</a>, 
+   <a href="https://github.com/Koressi">Koressi</a>,
+   <a href="https://github.com/insertt">insertt</a>, 
+   <a href="https://github.com/insertt">bmstefanski</a>, 
+   <a href="https://github.com/milkyway0308">milkyway0308</a>,
+   <a href="https://github.com/maxant">maxant</a>,
+   <a href="https://github.com/alexwhb">alexwhb</a>, 
+   <a href="https://github.com/kay">Douglas Lawrie</a>,
+   <a href="https://github.com/neg4n">neg4n</a>,
+   <a href="https://github.com/crejk">crejk</a>,
+   <a href="https://github.com/EthanDevelops">EthanDevelops</a>, 
+   <a href="https://github.com/escv">escv</a>,
+   <a href="https://github.com/shitzuu">shitzuu</a>,
+   <a href="https://github.com/peter-jerry-ye">peter-jerry-ye</a>,
+   <a href="https://github.com/andrm">andrm</a>, 
+   Rob,
+   <a href="https://github.com/FlawCra">FlawCra</a>,
+   <a href="https://github.com/sebba-dev">sebba-dev</a>,
+   <a href="https://github.com/mufinlive">mufinlive</a>
   </td>
  </tr>
 </table>
 
-And maybe someday... also you will `\(^-^)/`
+`\(^-^)/` The list is updated periodically and entries are sorted by aggregated total payment size of the given person.
 
 ### For developers
 
-Recommended tool to develop backend module is IntelliJ IDE, for frontend it might be e.g. VSC. 
+Recommended tool to develop backend module is IntelliJ IDE, for frontend it might be e.g. VSC.
 
 ```bash
 # Run only backend through CLI
@@ -137,7 +150,7 @@ Reposilite 3.x
 Reposilite 2.x
 * Reposilite Backend: Java + Javalin (Jetty) + Groovy (JUnit) + _(DDD)_
 * Reposilite Frontend: Vue2 + Pug + Stylus + Tailwindcss
-* Reposilite Site: React.js + Docusaurus 
+* Reposilite Site: React.js + Docusaurus
 
 Reposilite 1.x
 * Reposilite: Java + NanoHTTPD

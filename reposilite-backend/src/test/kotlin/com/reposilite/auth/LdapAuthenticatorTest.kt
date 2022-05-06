@@ -51,6 +51,7 @@ internal class LdapAuthenticatorTest : AuthenticationSpecification() {
             val config = InMemoryDirectoryServerConfig(it.baseDn)
             config.addAdditionalBindCredentials(it.searchUserDn, it.searchUserPassword)
             config.addAdditionalBindCredentials("cn=Bella Swan,ou=Maven Users,dc=domain,dc=com", "secret")
+            config.addAdditionalBindCredentials("cn=James Smith,ou=Maven Users,dc=domain,dc=com", "secret2")
             config.listenerConfigs.add(InMemoryListenerConfig.createLDAPConfig(it.hostname, InetAddress.getLoopbackAddress(), it.port, null))
             config.schema = null // remove
 
@@ -65,6 +66,7 @@ internal class LdapAuthenticatorTest : AuthenticationSpecification() {
 
             ldapServer.add("dn: cn=Reposilite,ou=Search Accounts,dc=domain,dc=com", "ou:Search Accounts", "objectClass: person", "memberOf: ou=Search Accounts,dc=domain,dc=com")
             ldapServer.add("dn: cn=Bella Swan,ou=Maven Users,dc=domain,dc=com", "cn:Bella Swan", "ou:Maven Users", "objectClass: person", "memberOf: ou=Maven Users,dc=domain,dc=com")
+            ldapServer.add("dn: cn=James Smith,ou=Maven Users,dc=domain,dc=com", "cn:James Smith", "ou:Maven Users", "objectClass: person", "memberOf: ou=Maven Users,dc=domain,dc=com")
 
         }
 

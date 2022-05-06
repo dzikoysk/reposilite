@@ -22,7 +22,7 @@ application {
 }
 
 dependencies {
-    compileOnly("org.panda-lang:reposilite:3.0.0-alpha.23")
+    compileOnly("org.panda-lang:reposilite:3.0.0-alpha.25")
 }
 
 tasks.withType<ShadowJar> {

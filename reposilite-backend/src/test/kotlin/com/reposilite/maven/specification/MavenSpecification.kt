@@ -42,10 +42,12 @@ import com.reposilite.storage.api.toLocation
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.AccessTokenIdentifier
 import com.reposilite.token.AccessTokenType.TEMPORARY
+import com.reposilite.token.ExportService
 import com.reposilite.token.Route
 import com.reposilite.token.RoutePermission
 import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.token.api.CreateAccessTokenRequest
+import com.reposilite.token.api.SecretType.RAW
 import com.reposilite.token.infrastructure.InMemoryAccessTokenRepository
 import com.reposilite.web.http.notFoundError
 import io.javalin.http.ContentType.TEXT_XML
@@ -70,32 +72,39 @@ internal abstract class MavenSpecification {
         const val REMOTE_CONTENT = "content"
     }
 
-    @TempDir
-    @JvmField
-    protected var workingDirectory: File? = null
-    protected lateinit var mavenFacade: MavenFacade
-
     private val logger = InMemoryLogger()
     private val failureFacade = FailureFacade(logger)
-    private val accessTokenFacade = AccessTokenFacade(logger, InMemoryAccessTokenRepository(), InMemoryAccessTokenRepository())
+
+    @TempDir
+    lateinit var workingDirectory: File
+    private lateinit var accessTokenFacade: AccessTokenFacade
+    protected lateinit var mavenFacade: MavenFacade
 
     protected abstract fun repositories(): Map<String, RepositoryConfiguration>
 
     @BeforeEach
     private fun initializeFacade() {
+        val workingDirectoryPath = workingDirectory.toPath()
+        val parameters = ReposiliteParameters().also { it.workingDirectory = workingDirectoryPath }
+
+        this.accessTokenFacade = AccessTokenFacade(
+            journalist = logger,
+            temporaryRepository = InMemoryAccessTokenRepository(),
+            persistentRepository = InMemoryAccessTokenRepository(),
+            exportService = ExportService(workingDirectoryPath)
+        )
+
         val remoteClientProvider = FakeRemoteClientProvider(
             headHandler = { uri, credentials, _, _ ->
                 if (uri.startsWith(REMOTE_REPOSITORY) && REMOTE_AUTH == credentials && !uri.isAllowed())
                     DocumentInfo(
-                        uri.toLocation().getSimpleName(),
-                        TEXT_XML,
-                        UNKNOWN_LENGTH,
+                        name = uri.toLocation().getSimpleName(),
+                        contentType = TEXT_XML,
                     ).asSuccess()
                 else if (uri.startsWith(REMOTE_REPOSITORY_WITH_WHITELIST) && uri.isAllowed())
                     DocumentInfo(
-                        uri.toLocation().getSimpleName(),
-                        TEXT_XML,
-                        UNKNOWN_LENGTH,
+                        name = uri.toLocation().getSimpleName(),
+                        contentType = TEXT_XML,
                     ).asSuccess()
                 else
                     notFoundError("Not found")
@@ -110,8 +119,6 @@ internal abstract class MavenSpecification {
             }
         )
 
-        val workingDirectoryPath = workingDirectory!!.toPath()
-        val parameters = ReposiliteParameters().also { it.workingDirectory = workingDirectoryPath }
         val repositories = mutableReference(repositories())
         val securityProvider = RepositorySecurityProvider(accessTokenFacade)
         val repositoryProvider = RepositoryProvider(workingDirectoryPath, remoteClientProvider, failureFacade, repositories)
@@ -144,13 +151,13 @@ internal abstract class MavenSpecification {
     }
 
     protected fun createRepository(name: String, initializer: RepositoryConfiguration.() -> Unit): Pair<String, RepositoryConfiguration> =
-        Pair(name, RepositoryConfiguration().also { initializer(it) })
+        name to RepositoryConfiguration().also { initializer(it) }
 
     protected fun findRepositories(accessToken: AccessTokenIdentifier?): Collection<String> =
         mavenFacade.findRepositories(accessToken).files.map { it.name }
 
     protected fun addFileToRepository(fileSpec: FileSpec): FileSpec {
-        workingDirectory!!.toPath()
+        workingDirectory.toPath()
             .resolve("repositories")
             .resolve(fileSpec.repository)
             .resolve(fileSpec.gav.toLocation().toPath().get())
@@ -164,7 +171,7 @@ internal abstract class MavenSpecification {
     }
 
     protected fun createAccessToken(name: String, secret: String, repository: String, gav: String, permission: RoutePermission): AccessTokenIdentifier =
-        accessTokenFacade.createAccessToken(CreateAccessTokenRequest(TEMPORARY, name, secret))
+        accessTokenFacade.createAccessToken(CreateAccessTokenRequest(TEMPORARY, name, secret = secret))
             .accessToken
             .also { accessTokenFacade.addRoute(it.identifier, Route("/$repository/${gav.toLocation()}", permission)) }
             .identifier

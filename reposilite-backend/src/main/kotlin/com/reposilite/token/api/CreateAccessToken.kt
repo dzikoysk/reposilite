@@ -17,15 +17,23 @@
 package com.reposilite.token.api
 
 import com.reposilite.token.AccessTokenType
+import com.reposilite.token.api.SecretType.RAW
+
+enum class SecretType {
+    RAW,
+    ENCRYPTED
+}
 
 data class CreateAccessTokenRequest(
     val type: AccessTokenType,
     val name: String,
+    val secretType: SecretType = RAW,
     val secret: String? = null
 )
 
 data class CreateAccessTokenWithNoNameRequest(
     val type: AccessTokenType,
+    val secretType: SecretType = RAW,
     val secret: String? = null,
     val permissions: Set<String>
 )

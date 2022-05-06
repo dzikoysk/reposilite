@@ -1,3 +1,7 @@
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 /*
  * Copyright (c) 2022 dzikoysk
  *
@@ -19,7 +23,7 @@ plugins {
     application
     `maven-publish`
 
-    val kotlinVersion = "1.6.10"
+    val kotlinVersion = "1.6.20"
     kotlin("jvm") version kotlinVersion
     kotlin("kapt") version kotlinVersion
 }
@@ -27,29 +31,49 @@ plugins {
 allprojects {
     repositories {
         // mavenCentral()
-        maven { url = uri("https://repo.panda-lang.org/releases") }
-        maven { url = uri("https://jitpack.io") }
         // maven {
         //     url = uri("http://localhost/releases")
         //     isAllowInsecureProtocol = true
         // }
+        maven { url = uri("https://repo.panda-lang.org/releases") }
+        maven { url = uri("https://jitpack.io") }
     }
 }
 
 subprojects {
-    version = "3.0.0-alpha.23"
+    version = "3.0.0-alpha.25"
 
     apply(plugin = "java-library")
     apply(plugin = "application")
     apply(plugin = "maven-publish")
 
     dependencies {
-
+        val junit = "5.8.2"
+        testImplementation("org.junit.jupiter:junit-jupiter-params:$junit")
+        testImplementation("org.junit.jupiter:junit-jupiter-api:$junit")
+        testImplementation("org.junit.jupiter:junit-jupiter-engine:$junit")
     }
 
     java {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        withJavadocJar()
+        withSourcesJar()
+    }
+
+    sourceSets.main {
+        java.srcDirs("src/main/kotlin")
+    }
+
+    java {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+
+    tasks.withType<KotlinCompile>().configureEach {
+        kotlinOptions {
+            jvmTarget = "11"
+            languageVersion = "1.6"
+            freeCompilerArgs = listOf("-Xjvm-default=all") // For generating default methods in interfaces
+        }
     }
 
     publishing {
@@ -63,5 +87,27 @@ subprojects {
                 }
             }
         }
+    }
+
+    tasks.withType<Test> {
+        testLogging {
+            events(
+                TestLogEvent.STARTED,
+                TestLogEvent.PASSED,
+                TestLogEvent.FAILED,
+                TestLogEvent.SKIPPED
+            )
+            exceptionFormat = TestExceptionFormat.FULL
+            showExceptions = true
+            showCauses = true
+            showStackTraces = true
+            showStandardStreams = true
+        }
+
+        maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2)
+            .takeIf { it > 0 }
+            ?: 1
+
+        useJUnitPlatform()
     }
 }

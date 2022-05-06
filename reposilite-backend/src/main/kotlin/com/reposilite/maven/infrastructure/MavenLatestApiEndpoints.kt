@@ -53,11 +53,11 @@ internal class MavenLatestApiEndpoints(
 
     @OpenApi(
         tags = ["Maven"],
-        path = "/api/maven/latest/version/{repository}/*",
+        path = "/api/maven/latest/version/{repository}/{gav}",
         methods = [HttpMethod.GET],
         pathParams = [
             OpenApiParam(name = "repository", description = "Destination repository", required = true),
-            OpenApiParam(name = "*", description = "Artifact path qualifier", required = true, allowEmptyValue = true)
+            OpenApiParam(name = "gav", description = "Artifact path qualifier", required = true, allowEmptyValue = true)
         ],
         queryParams = [
             OpenApiParam(name = "extension", description = "Changes extension of matched file (by default matches 'jar')", required = false),
@@ -86,11 +86,11 @@ internal class MavenLatestApiEndpoints(
 
     @OpenApi(
         tags = ["Maven"],
-        path = "/api/maven/latest/details/{repository}/*",
+        path = "/api/maven/latest/details/{repository}/{gav}",
         methods = [HttpMethod.GET],
         pathParams = [
             OpenApiParam(name = "repository", description = "Destination repository", required = true),
-            OpenApiParam(name = "*", description = "Artifact path qualifier", required = true, allowEmptyValue = true)
+            OpenApiParam(name = "gav", description = "Artifact path qualifier", required = true, allowEmptyValue = true)
         ],
         queryParams = [
             OpenApiParam(name = "extension", description = "Changes extension of matched file (by default matches 'jar')", required = false),
@@ -109,11 +109,11 @@ internal class MavenLatestApiEndpoints(
 
     @OpenApi(
         tags = ["Maven"],
-        path = "/api/maven/latest/file/{repository}/*",
+        path = "/api/maven/latest/file/{repository}/{gav}",
         methods = [HttpMethod.GET],
         pathParams = [
             OpenApiParam(name = "repository", description = "Destination repository", required = true),
-            OpenApiParam(name = "*", description = "Artifact path qualifier", required = true, allowEmptyValue = true)
+            OpenApiParam(name = "gav", description = "Artifact path qualifier", required = true, allowEmptyValue = true)
         ],
         queryParams = [
             OpenApiParam(name = "extension", description = "Changes extension of matched file (by default matches 'jar')", required = false),
@@ -126,7 +126,7 @@ internal class MavenLatestApiEndpoints(
             response = resolveLatestArtifact(this@ReposiliteRoute, this) { lookupRequest ->
                 mavenFacade.findDetails(lookupRequest)
                     .`is`(DocumentInfo::class.java) { ErrorResponse(BAD_REQUEST, "Requested file is a directory") }
-                    .flatMap { mavenFacade.findFile(lookupRequest).map { data -> Pair(it, data) } }
+                    .flatMap { mavenFacade.findFile(lookupRequest).map { data -> it to data } }
                     .map { (details, file) -> ctx.resultAttachment(details.name, details.contentType, details.contentLength, compressionStrategy.get(), file) }
             }
         }
