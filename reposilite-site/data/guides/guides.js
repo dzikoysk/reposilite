@@ -52,6 +52,13 @@ const categories = [
     ]
   },
   {
+    name: 'Migration',
+    directory: 'migration',
+    content: [
+      'artifactory'
+    ]
+  },
+  {
     name: 'Developers',
     directory: 'developers',
     content: [
