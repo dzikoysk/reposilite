@@ -56,7 +56,7 @@ internal class AccessTokenPlugin : ReposilitePlugin() {
             journalist = this,
             temporaryRepository = InMemoryAccessTokenRepository(),
             persistentRepository = SqlAccessTokenRepository(settingsFacade.database.value),
-            exportService = ExportService(parameters.workingDirectory)
+            exportService = ExportService()
         )
 
         parameters.tokens.forEach {
@@ -74,8 +74,9 @@ internal class AccessTokenPlugin : ReposilitePlugin() {
             event.registerCommand(RouteAdd(accessTokenFacade))
             event.registerCommand(RouteRemove(accessTokenFacade))
 
-            event.registerCommand(ExportTokensCommand(accessTokenFacade))
-            event.registerCommand(ImportTokensCommand(accessTokenFacade))
+            val workingDirectory = parameters.workingDirectory
+            event.registerCommand(ExportTokensCommand(workingDirectory, accessTokenFacade))
+            event.registerCommand(ImportTokensCommand(workingDirectory, accessTokenFacade))
         }
 
         event { event: RoutingSetupEvent ->
