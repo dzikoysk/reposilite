@@ -2,6 +2,8 @@ package com.reposilite.token
 
 import com.reposilite.console.CommandContext
 import com.reposilite.console.CommandStatus.SUCCEEDED
+import com.reposilite.token.AccessTokenPermission.MANAGER
+import com.reposilite.token.RoutePermission.READ
 import com.reposilite.token.specification.AccessTokenSpecification
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -13,7 +15,11 @@ internal class ExportAndImportTest : AccessTokenSpecification() {
     @Test
     fun `should export and import tokens`() {
         // given: a facade with 3 tokens
-        val tokens = repeat(3) { createToken("token-$it", "secret-$it") }
+        val tokens = List(3) { createToken("token-$it", "secret-$it") }
+            .forEach {
+                accessTokenFacade.addPermission(it.identifier, MANAGER)
+                accessTokenFacade.addRoute(it.identifier, Route("/test", READ))
+            }
             .let { accessTokenFacade.getAccessTokens() }
             .map { accessTokenFacade.getAccessTokenDetailsById(it.identifier)!! }
 
@@ -44,8 +50,9 @@ internal class ExportAndImportTest : AccessTokenSpecification() {
             assertEquals(it.permissions, token.permissions)
             assertEquals(it.routes, token.routes)
         }
-        for (s in context.output()) {
-            println(s)
+
+        for (message in context.output()) {
+            println(message)
         }
     }
 
