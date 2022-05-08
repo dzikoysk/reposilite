@@ -59,6 +59,7 @@ internal class ImportTokensCommand(val accessTokenFacade: AccessTokenFacade) : R
             .onError {
                 context.status = FAILED
                 context.append("Cannot read JSON file due to: $it")
+                it.printStackTrace()
             }
             .orNull()
             ?.also { (source, tokens) -> context.append("Importing ${tokens.size} token(s) from ${source.absolute()} file:") }
