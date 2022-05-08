@@ -27,7 +27,7 @@ internal class ExportAndImportTest : AccessTokenSpecification() {
         val context = CommandContext()
 
         // when: tokens are exported to file
-        val exportCommand = ExportTokensCommand(accessTokenFacade).also { it.name = fileName }
+        val exportCommand = ExportTokensCommand(workingDirectory(), accessTokenFacade).also { it.name = fileName }
         exportCommand.execute(context)
 
         // then: tokens were successfully exported
@@ -38,7 +38,7 @@ internal class ExportAndImportTest : AccessTokenSpecification() {
         deleteAllTokens()
 
         // when: exported tokens are imported from the given file
-        val importCommand = ImportTokensCommand(accessTokenFacade).also { it.name = fileName }
+        val importCommand = ImportTokensCommand(workingDirectory(), accessTokenFacade).also { it.name = fileName }
         importCommand.execute(context)
 
         // then: the imported tokens match the old ones

@@ -91,7 +91,7 @@ internal abstract class MavenSpecification {
             journalist = logger,
             temporaryRepository = InMemoryAccessTokenRepository(),
             persistentRepository = InMemoryAccessTokenRepository(),
-            exportService = ExportService(workingDirectoryPath)
+            exportService = ExportService()
         )
 
         val remoteClientProvider = FakeRemoteClientProvider(
