@@ -15,10 +15,11 @@
   -->
   
 <script setup>
-import {watch} from 'vue'
+import {toRaw, watch} from 'vue'
 import {JsonForms} from '@jsonforms/vue'
 import {Tabs, Tab, TabPanels, TabPanel} from 'vue3-tabs'
 import { useConfiguration } from '../../store/configuration'
+import download from 'downloadjs'
 
 const props = defineProps({
   selectedTab: {
@@ -55,6 +56,14 @@ watch(
   { immediate: true }
 )
 
+const downloadSettings = () => {
+  download(
+    JSON.stringify(toRaw(configurations.value)), 
+    'shared.configuration.json', 
+    'application/json'
+  )
+}
+
 /* JsonForms configuration */
 const formsConfiguration = {
   showUnfocusedDescription: true
@@ -69,8 +78,9 @@ const formsConfiguration = {
         <p><strong>Remember</strong>: Configuration propagation can take up to 10 seconds on all your instances.</p>
       </div>
       <div id="configuration-state" class="flex flex-row pt-3 xl:pt-2">
-        <button @click="fetchConfiguration">Reset changes</button>
         <button @click="updateConfiguration">Update and reload</button>
+        <button @click="fetchConfiguration">Reset changes</button>
+        <button @click="downloadSettings">Download as JSON</button>
       </div>
     </div>
     <Tabs v-model="selectedDomain">
@@ -203,5 +213,11 @@ font-weight: bold;
 }
 .array-list-no-data {
   @apply p-4 bg-gray-200 dark:bg-gray-900 italic rounded-md;
+}
+.wrapper {
+  @apply flex py-2;
+}
+.wrapper p {
+  @apply px-2;
 }
 </style>
