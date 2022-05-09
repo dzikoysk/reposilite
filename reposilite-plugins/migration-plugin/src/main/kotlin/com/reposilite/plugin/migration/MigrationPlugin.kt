@@ -77,8 +77,8 @@ class MigrationPlugin : ReposilitePlugin() {
             )
         }
 
-        val exportService = ExportService(workingDirectory)
-        exportService.exportToFile(migratedTokens, "tokens.json")
+        val exportService = ExportService()
+        exportService.exportToFile(migratedTokens, workingDirectory.resolve("tokens.json"))
         logger.warn("[Migration] ${migratedTokens.size} token(s) have been exported to 'tokens.json' file.")
         logger.warn("[Migration] Run 'token-import tokens.json' command to import those tokens.")
         logger.warn("[Migration] This plugin is no longer needed, you can remove it.")
