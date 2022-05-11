@@ -2,9 +2,7 @@ import {computed, markRaw, ref, toRaw} from 'vue'
 import { useSession } from './session'
 import {createToast} from 'mosha-vue-toastify'
 import { createAjv } from '@jsonforms/core'
-
 import { vanillaRenderers } from '@dzikoysk/vue-vanilla'
-
 import { default as ObjectRenderer, tester as objectTester } from '../components/renderers/ObjectRenderer.vue'
 import { default as AllOfRenderer, tester as allOfTester } from '../components/renderers/AllOfRenderer.vue'
 import { default as OneOfRenderer, tester as oneOfTester } from '../components/renderers/OneOfRenderer.vue'
@@ -16,76 +14,57 @@ const domains = ref([])
 const schemas = ref({})
 const configurations = ref({})
 const selectedDomain = ref('')
-
-const getSchema = async (name) =>
-  (await client.value.schema.get(name)).data
-
-const listConfigs = async () =>
-  (await client.value.config.list()).data
-
-const getConfig = async (name) =>
-  (await client.value.config.get(name)).data
-
-const fetchConfiguration = async () => {
-  try {
-    const fetchedConfiguration = {}
-    const fetchedSchemas = {}
-    domains.value = await listConfigs()
-    for (const domain of domains.value) {
-      fetchedConfiguration[domain] = await getConfig(domain)
-      fetchedSchemas[domain] = await getSchema(domain)
-    }
-    configurations.value = fetchedConfiguration
-    schemas.value = fetchedSchemas
-    selectedDomain.value = domains.value[0]
-    createToast('Configuration loaded', { type: 'success' })
-  } catch (error) {
-    createToast(`${error || ''}`, { type: 'danger' })
-  }
+    
+const fetchConfiguration = () => {
+  return client.value.settings.domains()
+    .then(domainsResponse => domains.value = domainsResponse.data)
+    .then(() => Promise.all(domains.value.map(domain =>
+      client.value.settings.schema(domain)
+        .then(schemaResponse => schemas.value[domain] = schemaResponse.data)
+        .then(() => client.value.settings.fetch(domain))
+        .then(configurationResponse => configurations.value[domain] = configurationResponse.data)))
+    )
+    .then(() => selectedDomain.value = domains.value[0])
+    .then(() => createToast('Configuration loaded', { type: 'success' }))
+    .catch(error => createToast(`${error || ''}`, { type: 'danger' }))
 }
 
-const updateConfiguration = async () => {
-  try {
-    const fetchedConfigurations = []
-    const errored = []
-    for (const domain of domains.value) {
-      await client.value.config.put(domain, toRaw(configurations.value[domain]))
-      fetchedConfigurations[domain] = await getConfig(domain)
-    }
-    configurations.value = fetchedConfigurations
-    if (errored.length > 0) {
-      createToast(`Failed to update ${errored.join(', ')}`, { type: 'danger' })
-    } else {
-      createToast('Configuration updated', { type: 'success' })
-    }
-  } catch (error) {
-    createToast(`${error || ''}`, { type: 'danger' })
-  }
+const updateConfiguration = () => {
+  const updates = domains.value.map(domain => {
+    client.value.settings.update(domain, toRaw(configurations.value[domain]))
+      .then(() => client.value.settings.fetch(domain))
+      .then(response => { configurations[domain] = response.data })
+  })
+
+  return Promise.all(updates)
+    .then(() => createToast('Configuration updated', { type: 'success' }))
+    .catch(error => createToast(`Failed to update ${error.join(', ')}`, { type: 'danger' }))
 }
 
 const renderers = markRaw([
+  ...vanillaRenderers,
   { tester: allOfTester, renderer: AllOfRenderer },
   { tester: oneOfTester, renderer: OneOfRenderer },
   { tester: constantTester, renderer: ConstantRenderer },
   { tester: optionalTester, renderer: OptionalRenderer },
   {
+    // needed because without it hangs TODO find out why
     tester: (uischema, schema) => {
-      let x = objectTester(uischema, schema)
-      return x === -1 || schema.title === 'Proxied Maven Repository' ? -1 : x  // needed because without it hangs TODO find out why
+      let rank = objectTester(uischema, schema)
+      return rank === -1 || schema.title === 'Proxied Maven Repository' ? -1 : rank 
     },
     renderer: ObjectRenderer
-  },
-  ...(vanillaRenderers.filter(element => element.renderer.name != "label-renderer"))
+  }
 ])
 
 const configurationValidator = computed(() => createAjv({
   'formats': {
-    'storage-quota': /^([1-9]\d*)([KkMmGg][Bb]|%)$/,
-    'maven-artifact-group': /^(\w+\.)*\w+$/,
-    'repository-name': {
+    'repositories.storageProvider.quota': /^([1-9]\d*)([KkMmGg][Bb]|%)$/,
+    'repositories.id': {
       type: 'string',
       validate: (name) => name in configurations.value['maven'].repositories
-    }
+    },
+    'repositories.proxied.allowedGroups': /^(\w+\.)*\w+$/,
   }
 }))
 

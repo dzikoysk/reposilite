@@ -18,7 +18,8 @@
           "id" : {
             "type" : "string",
             "title" : "Id",
-            "description" : "The id of this repository."
+            "description" : "The id of this repository.",
+            "minLength": 1
           },
           "visibility" : {
             "type" : "string",

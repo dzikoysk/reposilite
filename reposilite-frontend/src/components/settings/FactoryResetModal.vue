@@ -53,6 +53,6 @@ export default {
 
 <style scoped>
 .factory-reset-confirm button {
-  @apply mt-6 bg-gray-700 px-20 py-2 rounded-lg;
+  @apply mt-6 bg-gray-200 dark:bg-gray-700 px-20 py-2 rounded-lg;
 }
 </style>

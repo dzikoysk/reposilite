@@ -27,6 +27,7 @@ data class MavenSettings(
 @Contextual
 @Doc(title = "Maven Repository", description = "Settings for a given repository.")
 data class RepositorySettings(
+    @Min(1)
     @Doc(title = "Id", description = "The id of this repository.")
     val id: String,
     @Doc(title = "Visibility", description = "The visibility of this repository.")
@@ -45,6 +46,7 @@ data class RepositorySettings(
 @Contextual
 @Doc(title = "Proxied Maven Repository", description = "Configuration of proxied host")
 data class ProxiedRepository(
+    @Min(1)
     @Doc(title = "Reference", description = "The reference to the proxied repository. Either the id of another local repository or the url of a remote repository.")
     val reference: String = "",
     @Doc(title = "Store", description = "Reposilite can store proxied artifacts locally to reduce response time and improve stability.")

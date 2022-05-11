@@ -53,7 +53,7 @@ application
   .get('/api/settings/domains', (req, res) => res.send(['maven']))
   .get('/api/settings/schema/maven', (req, res) => res.send(mavenSettingsSchema))
   .get('/api/settings/domain/maven', (req, res) => res.send(mavenSettingsEntity))
-  .put('/api/settings/domain/maven', (req, res) => { mavenSettingsEntity = req.body; console.log(req.body) })
+  .put('/api/settings/domain/maven', (req, res) => { mavenSettingsEntity = req.body; res.send("") })
   .get(
     "/api/maven/details/snapshots",
     respond(createDirectoryDetails("/snapshot", []))
@@ -138,27 +138,6 @@ application
   </metadata>
   `)
   )
-  .get("/api/configuration/all", (req, res) => {
-    authorized(
-      req,
-      () =>
-        res.send({
-          type: "application/cdn",
-          content: sharedConfiguration,
-        }),
-      () => invalidCredentials(res)
-    )
-  })
-  .put("/api/settings/content/configuration.shared.cdn", (req, res) => {
-    authorized(
-      req,
-      () => {
-        sharedConfiguration = req.body
-        res.send("Success")
-      },
-      () => invalidCredentials(res)
-    )
-  })
   .get("/api/auth/me", (req, res) => {
     authorized(
       req,

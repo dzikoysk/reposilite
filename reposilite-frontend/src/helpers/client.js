@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import axios from 'axios'
-import usePlaceholders from '../store/placeholders'
+import axios from "axios"
+import usePlaceholders from "../store/placeholders"
 
 const { baseUrl } = usePlaceholders()
 
@@ -24,22 +24,26 @@ const createURL = (endpoint) =>
 
 const createClient = (defaultName, defaultSecret) => {
   const defaultAuthorization = () =>
-    (defaultName && defaultSecret) ? authorization(defaultName, defaultSecret) : {}
-  
+    defaultName && defaultSecret
+      ? authorization(defaultName, defaultSecret)
+      : {}
+
   const authorization = (name, secret) => ({
     headers: {
-      Authorization: `xBasic ${btoa(`${name}:${secret}`)}`
-    }
+      Authorization: `xBasic ${btoa(`${name}:${secret}`)}`,
+    },
   })
-    
+
   const get = (endpoint, credentials) =>
-    axios.get(createURL(endpoint), { ...(credentials || defaultAuthorization()) })
-  
+    axios.get(createURL(endpoint), {
+      ...(credentials || defaultAuthorization()),
+    })
+
   const put = (endpoint, content, credentials) =>
     axios.put(createURL(endpoint), content, {
       headers: {
-        'Content-Type': 'text/plain',
-        ...(credentials || defaultAuthorization()).headers
+        "Content-Type": "text/plain",
+        ...(credentials || defaultAuthorization()).headers,
       },
     })
 
@@ -47,7 +51,7 @@ const createClient = (defaultName, defaultSecret) => {
     auth: {
       me() {
         return get("/api/auth/me")
-      }
+      },
     },
     console: {},
     maven: {
@@ -55,58 +59,56 @@ const createClient = (defaultName, defaultSecret) => {
         return get(`/${gav}`)
       },
       details(gav) {
-        return get(`/api/maven/details/${gav || ''}`)
+        return get(`/api/maven/details/${gav || ""}`)
       },
       download(gav) {
         return get(`/${gav}`, {
-          responseType: 'blob',
-          ...defaultAuthorization()
+          responseType: "blob",
+          ...defaultAuthorization(),
         })
       },
       deploy(gav, file) {
         return put(`/${gav}`, file)
-      }
+      },
     },
-    schema: {
-      get(name) {
+    settings: {
+      domains() {
+        return axios.get(createURL("/api/settings/domains"), {
+          headers: {
+            Accepts: "application/json",
+            ...defaultAuthorization().headers,
+          },
+        })
+      },
+      schema(name) {
         return axios.get(createURL(`/api/settings/schema/${name}`), {
           headers: {
-            'Accepts': 'application/json',
-            ...defaultAuthorization().headers
-          }
-        })
-      }
-    },
-    config: {
-      list() {
-        return axios.get(createURL('/api/settings/domains'), {
-          headers: {
-            'Accepts': 'application/json',
-            ...defaultAuthorization().headers
-          }
+            Accepts: "application/json",
+            ...defaultAuthorization().headers,
+          },
         })
       },
-      get(name) {
+      fetch(name) {
         return axios.get(createURL(`/api/settings/domain/${name}`), {
           headers: {
-            'Accepts': 'application/json',
-            ...defaultAuthorization().headers
-          }
+            Accepts: "application/json",
+            ...defaultAuthorization().headers,
+          },
         })
       },
-      put(name, content) {
+      update(name, content) {
         return axios.put(createURL(`/api/settings/domain/${name}`), content, {
           headers: {
-            'Content-Type': 'application/json',
-            'Accepts': 'application/json',
-            ...defaultAuthorization().headers
-          }
+            "Content-Type": "application/json",
+            Accepts: "application/json",
+            ...defaultAuthorization().headers,
+          },
         })
-      }
-    }
+      },
+    },
   }
 }
-  
+
 export {
   createURL,
   createClient

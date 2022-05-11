@@ -23,7 +23,7 @@ import useConsole from '../helpers/console/connection'
 
 const props = defineProps({
   selectedTab: {
-    type: Object,
+    type: String,
     required: true
   }
 })
@@ -45,7 +45,7 @@ const {
 
 const scrollToEnd = () => {
   const console = document.getElementById('console')
-  console.scrollTop = console.scrollHeight
+  if (console) console.scrollTop = console.scrollHeight
 }
 
 //const focusInput = () =>
@@ -66,7 +66,7 @@ const setupConnection = () => {
 }
 
 watch(
-  () => props.selectedTab.value,
+  () => props.selectedTab,
   (selectedTab, previous) => {
     if (selectedTab === 'Console' && previous == undefined && !isConnected()) {
       setupConnection()

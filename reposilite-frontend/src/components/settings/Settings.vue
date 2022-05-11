@@ -15,7 +15,7 @@
   -->
   
 <script setup>
-import {toRaw, watch} from 'vue'
+import {ref, toRaw, watch} from 'vue'
 import {JsonForms} from '@jsonforms/vue'
 import {Tabs, Tab, TabPanels, TabPanel} from 'vue3-tabs'
 import { useConfiguration } from '../../store/configuration'
@@ -24,7 +24,7 @@ import FactoryResetModal from './FactoryResetModal.vue'
 
 const props = defineProps({
   selectedTab: {
-    type: Object,
+    type: String,
     required: true
   }
 })
@@ -40,16 +40,23 @@ const {
   selectedDomain
 } = useConfiguration()
 
-const updateFormsConfiguration = (domain, event) =>
-  configurations.value[domain] = event.data
+const isValid = ref(true)
 
-/* Fetch configuration only when user opens the configuration tab  */
+const executeIfValid = (callback) => { 
+  if (isValid.value) callback() 
+}
+
+const updateFormsConfiguration = (domain, event) => {
+  configurations.value[domain] = event.data
+  isValid.value = event.errors.length == 0
+}
+
 watch(
-  () => props.selectedTab.value,
+  () => props.selectedTab,
   (selectedTab, prev) => {
-    if (selectedTab === 'Settings' && prev == undefined && domains.value.length == 0) {
+    /* Fetch configuration only when user opens the configuration tab  */
+    if (selectedTab === 'Settings' && prev == undefined && domains.value.length == 0)
       fetchConfiguration()
-    }
   },
   { immediate: true }
 )
@@ -83,9 +90,9 @@ const formsConfiguration = {
         <p><strong>Remember</strong>: Configuration propagation can take up to 10 seconds on all your instances.</p>
       </div>
       <div id="configuration-state" class="flex flex-row pt-8">
-        <button @click="fetchConfiguration">Reset changes</button>
-        <button @click="updateConfiguration">Update and reload</button>
-        <button @click="downloadSettings">Download as JSON</button>
+        <button @click.prevent="fetchConfiguration">Reset changes</button>
+        <button @click.prevent="executeIfValid(updateConfiguration)" :class="{ forbidden: !isValid }">Update and reload</button>
+        <button @click.prevent="executeIfValid(downloadSettings)" :class="{ forbidden: !isValid }">Download as JSON</button>
         <FactoryResetModal :callback="factoryReset">
             <template v-slot:button>
                 <button>Factory reset</button>
@@ -129,6 +136,10 @@ const formsConfiguration = {
   @apply bg-blue-700 mx-2 rounded text-sm px-4 text-white py-2;
 }
 
+#configuration-state .forbidden {
+  @apply bg-gray-500 cursor-not-allowed !important;
+}
+
 .item {
   @apply pb-1;
   @apply pt-1.5;
@@ -144,6 +155,9 @@ const formsConfiguration = {
 
 <!--suppress CssInvalidAtRule -->
 <style>
+.error {
+  @apply text-red-500 px-2 font-bold;
+}
 input, select {
   @apply dark:bg-gray-900 dark:text-white !important;
 }
@@ -163,8 +177,7 @@ input, select {
   @apply pr-8;
 }
 .vertical-layout, .group, .array-list {
-  @apply flex flex-col flex-wrap py-4;
-  height: 100%;
+  @apply flex flex-col flex-wrap py-4 h-full;
   gap: 1rem;
 }
 .label {
@@ -182,38 +195,38 @@ input, select {
   padding: 0;
 }
 .array-list-label {
-font-weight: bold;
+  font-weight: bold;
 }
 .array-list-item-label {
   margin-right: auto;
 }
+.array-list-item-delete {
+  @apply absolute right-0 top-2;
+}
 .array-list-item-toolbar {
-  @apply flex flex-row align-items-baseline;
-  display: flex;
-  align-items: baseline;
+  @apply flex flex-row items-baseline relative;
+}
+.array-list-item-label {
   display: none;
 }
 .array-list-item-toolbar>button {
   padding: 0.5rem;
 }
 .array-list-legend {
-  @apply flex flex-row-reverse gap-2;
-  width: 100%;
+  @apply flex flex-row-reverse gap-2 w-full;
   margin-bottom: 1rem;
 }
 .array-list-item-wrapper {
   @apply border rounded-md px-6 py-2 dark:border-gray-600;
 }
 .one-of-container {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
+  @apply h-full flex flex-col; 
 }
 .tab-panel {
-  height: 100%;
+  @apply h-full;
 }
 .array-list-add {
-  @apply rounded-full h-6 w-6 line-height-6 bg-blue-700 ml-auto text-white;
+  @apply rounded-full h-6 w-6 leading-6 bg-blue-700 ml-auto text-white;
 }
 .array-list-item-move-up {
   display: none;
@@ -228,6 +241,6 @@ font-weight: bold;
   @apply flex py-2;
 }
 .wrapper p {
-  @apply px-2;
+  @apply px-2 text-sm;
 }
 </style>
