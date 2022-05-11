@@ -14,4 +14,4 @@
 # limitations under the License.
 #
 
-#com.reposilite.plugin.javadoc.JavadocPlugin
+com.reposilite.plugin.javadoc.JavadocPlugin

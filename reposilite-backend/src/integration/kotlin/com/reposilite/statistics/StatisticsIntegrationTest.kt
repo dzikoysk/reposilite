@@ -33,16 +33,16 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import panda.std.component1
 
-@ExtendWith(ExperimentalRemoteSpecficiationJunitExtension::class) // Uses localstack (S3) + experimental PostgreSQL db
+@ExtendWith(ExperimentalRemoteSpecficiationJunitExtension::class)
 internal class ExperimentalRemoteStatisticsIntegrationTest : StatisticsIntegrationTest()
 
-@ExtendWith(RemoteSpecificationJunitExtension::class) // Uses localstack (S3) + MariaDB db
+@ExtendWith(RemoteSpecificationJunitExtension::class)
 internal class RemoteStatisticsIntegrationTest : StatisticsIntegrationTest()
 
-@ExtendWith(ExperimentalLocalSpecificationJunitExtension::class) // Uses local file-system + experimental embedded H2 database
+@ExtendWith(ExperimentalLocalSpecificationJunitExtension::class)
 internal class ExperimentalLocalStatisticsIntegrationTest : StatisticsIntegrationTest()
 
-@ExtendWith(LocalSpecificationJunitExtension::class) // Uses local file-system + embedded SQLite database
+@ExtendWith(LocalSpecificationJunitExtension::class)
 internal class LocalStatisticsIntegrationTest : StatisticsIntegrationTest()
 
 internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecification() {

@@ -9,11 +9,7 @@ import com.reposilite.settings.api.Min
 import com.reposilite.settings.api.Settings
 import com.reposilite.storage.filesystem.FileSystemStorageProviderSettings
 import com.reposilite.storage.application.StorageProviderSettings
-import com.reposilite.storage.application.StorageProviderSettingsComposer
-import net.dzikoysk.cdn.entity.Contextual
-import net.dzikoysk.cdn.entity.CustomComposer
 
-@Contextual
 @Doc(title = "Maven", description = "Repositories settings")
 data class MavenSettings(
     @Doc(title = "Repositories", description = "List of Maven repositories.")
@@ -24,7 +20,6 @@ data class MavenSettings(
     )
 ) : Settings
 
-@Contextual
 @Doc(title = "Maven Repository", description = "Settings for a given repository.")
 data class RepositorySettings(
     @Min(1)
@@ -37,13 +32,11 @@ data class RepositorySettings(
     @Doc(title = "Preserved snapshots", "By default Reposilite deletes all deprecated build files. If you'd like to preserve them, set this property to true.")
     val preserveSnapshots: Boolean = false,
     @Doc(title = "Storage provider", description = "The storage type of this repository.")
-    @CustomComposer(StorageProviderSettingsComposer::class)
     val storageProvider: StorageProviderSettings = FileSystemStorageProviderSettings(),
     @Doc(title = "Proxied", description = "List of proxied repositories associated with this repository.")
     val proxied: List<ProxiedRepository> = listOf()
 ) : Settings
 
-@Contextual
 @Doc(title = "Proxied Maven Repository", description = "Configuration of proxied host")
 data class ProxiedRepository(
     @Min(1)

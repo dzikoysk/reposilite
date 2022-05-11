@@ -19,7 +19,6 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import kotlin.reflect.full.primaryConstructor
 
 @ExtendWith(LocalSpecificationJunitExtension::class)
 internal class LocalSettingsIntegrationTest : SettingsIntegrationTest()
@@ -99,7 +98,7 @@ internal abstract class SettingsIntegrationTest : SettingsIntegrationSpecificati
         }
     }
 
-    private val customSettins = mapOf(
+    private val customSettings = mapOf(
         "web" to WebSettings(forwardedIp = "test"),
         "authentication" to AuthenticationSettings(ldap = LdapSettings(enabled = true)),
         "statistics" to StatisticsSettings(resolvedRequestsInterval = YEARLY),
@@ -112,7 +111,7 @@ internal abstract class SettingsIntegrationTest : SettingsIntegrationSpecificati
         // given: an existing token without management permission
         val (unauthorizedToken, unauthorizedSecret) = useAuth("unauthorized-token", "secret")
 
-        // when: list of tokens is requested without valid access token
+        // when: configuration is requested without valid access token
         val unauthorizedResponse = Unirest.put("$base/api/settings/domain/")
             .basicAuth(unauthorizedToken, unauthorizedSecret)
             .asJacksonObject(ErrorResponse::class)
@@ -123,13 +122,14 @@ internal abstract class SettingsIntegrationTest : SettingsIntegrationSpecificati
         // given: a permitted token
         val (permittedName, permittedSecret) = useDefaultManagementToken()
 
-        customSettins.forEach { (domain, configuration) ->
-            // when: list of tokens is requested with valid token
+        customSettings.forEach { (domain, configuration) ->
+            // when: configuration is updated with valid token
             val updateResponse = Unirest.put("$base/api/settings/domain/$domain")
                 .basicAuth(permittedName, permittedSecret)
                 .body(configuration)
                 .asEmpty()
 
+            // then: configuration update request succeeded
             assertSuccessResponse(OK, updateResponse)
 
             // when: settings entity is requested
@@ -137,6 +137,7 @@ internal abstract class SettingsIntegrationTest : SettingsIntegrationSpecificati
                 .basicAuth(permittedName, permittedSecret)
                 .asJacksonObject(configuration::class)
 
+            // then: configuration updated succeeded
             assertEquals(configuration, response.body)
         }
     }
@@ -147,9 +148,9 @@ internal abstract class SettingsIntegrationTest : SettingsIntegrationSpecificati
         val (permittedName, permittedSecret) = useDefaultManagementToken()
 
         val settingsFacade = useFacade<SettingsFacade>()
-        customSettins.forEach { (domain, configuration) -> settingsFacade.updateSettings(domain, configuration) }
+        customSettings.forEach { (domain, configuration) -> settingsFacade.updateSettings(domain, configuration) }
 
-        customSettins.forEach { (domain, configuration) ->
+        customSettings.forEach { (domain, configuration) ->
             // when: empty configuration is set
             val updateResponse = Unirest.put("$base/api/settings/domain/$domain")
                 .basicAuth(permittedName, permittedSecret)
