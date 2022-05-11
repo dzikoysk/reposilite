@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { VueFinalModal } from 'vue-final-modal'
 import CloseIcon from '../icons/CloseIcon.vue'
 
-const { callback } = defineProps({
+const props = defineProps({
   callback: {
     type: Function,
     required: true
@@ -13,7 +13,7 @@ const { callback } = defineProps({
 const showFactoryReset = ref(false)
 
 const factoryReset = () => {
-  callback()
+  props.callback()
   showFactoryReset.value = false
 }
 </script>
