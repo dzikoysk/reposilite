@@ -20,6 +20,7 @@ import {JsonForms} from '@jsonforms/vue'
 import {Tabs, Tab, TabPanels, TabPanel} from 'vue3-tabs'
 import { useConfiguration } from '../../store/configuration'
 import download from 'downloadjs'
+import FactoryResetModal from './FactoryResetModal.vue'
 
 const props = defineProps({
   selectedTab: {
@@ -47,10 +48,7 @@ watch(
   () => props.selectedTab.value,
   (selectedTab, prev) => {
     if (selectedTab === 'Settings' && prev == undefined && domains.value.length == 0) {
-      fetchConfiguration().then(() => {
-        // debug println
-        domains.value.forEach(value => console.log(value, schemas.value[value]))
-      })
+      fetchConfiguration()
     }
   },
   { immediate: true }
@@ -64,6 +62,13 @@ const downloadSettings = () => {
   )
 }
 
+const factoryReset = () => {
+  const emptyConfiguration = {}
+  domains.value.forEach(domain => emptyConfiguration[domain] = {})
+  configurations.value = emptyConfiguration
+  updateConfiguration()
+}
+
 /* JsonForms configuration */
 const formsConfiguration = {
   showUnfocusedDescription: true
@@ -72,15 +77,20 @@ const formsConfiguration = {
 
 <template>
   <div class="container mx-auto py-10 px-15">
-    <div class="flex justify-between pb-5 flex-col xl:flex-row">
+    <div class="flex justify-between pb-3 flex-col">
       <div>
         <p>Modify configuration shared between all instances.</p>
         <p><strong>Remember</strong>: Configuration propagation can take up to 10 seconds on all your instances.</p>
       </div>
-      <div id="configuration-state" class="flex flex-row pt-3 xl:pt-2">
-        <button @click="updateConfiguration">Update and reload</button>
+      <div id="configuration-state" class="flex flex-row pt-8">
         <button @click="fetchConfiguration">Reset changes</button>
+        <button @click="updateConfiguration">Update and reload</button>
         <button @click="downloadSettings">Download as JSON</button>
+        <FactoryResetModal :callback="factoryReset">
+            <template v-slot:button>
+                <button>Factory reset</button>
+            </template>
+        </FactoryResetModal>
       </div>
     </div>
     <Tabs v-model="selectedDomain">
@@ -115,6 +125,10 @@ const formsConfiguration = {
 
 <!--suppress CssInvalidAtRule -->
 <style scoped>
+#configuration-state button {
+  @apply bg-blue-700 mx-2 rounded text-sm px-4 text-white py-2;
+}
+
 .item {
   @apply pb-1;
   @apply pt-1.5;
@@ -126,14 +140,10 @@ const formsConfiguration = {
   @apply bg-gray-150 dark:bg-gray-900;
   transition: background-color 0.5s;
 }
-
 </style>
 
 <!--suppress CssInvalidAtRule -->
 <style>
-#configuration-state button {
-  @apply bg-blue-700 mx-2 rounded text-sm h-9 px-4 text-white;
-}
 input, select {
   @apply dark:bg-gray-900 dark:text-white !important;
 }
