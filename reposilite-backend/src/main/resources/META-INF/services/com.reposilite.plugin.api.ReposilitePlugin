@@ -18,9 +18,9 @@ com.reposilite.auth.application.AuthenticationPlugin
 com.reposilite.console.application.ConsolePlugin
 com.reposilite.frontend.application.FrontendPlugin
 com.reposilite.maven.application.MavenPlugin
-com.reposilite.settings.ConfigurationPlugin
-com.reposilite.settings.local.LocalConfigurationPlugin
-com.reposilite.settings.shared.SharedConfigurationPlugin
+com.reposilite.configuration.ConfigurationPlugin
+com.reposilite.configuration.local.LocalConfigurationPlugin
+com.reposilite.configuration.shared.SharedConfigurationPlugin
 com.reposilite.statistics.application.StatisticsPlugin
 com.reposilite.status.application.StatusPlugin
 com.reposilite.storage.StoragePlugin

@@ -15,8 +15,8 @@
  */
 package com.reposilite
 
-import com.reposilite.settings.local.LocalConfiguration
-import com.reposilite.settings.local.infrastructure.LOCAL_CONFIGURATION_FILE
+import com.reposilite.configuration.local.LocalConfiguration
+import com.reposilite.configuration.local.infrastructure.LOCAL_CONFIGURATION_FILE
 import net.dzikoysk.cdn.KCdnFactory
 import net.dzikoysk.cdn.source.Source
 import picocli.CommandLine

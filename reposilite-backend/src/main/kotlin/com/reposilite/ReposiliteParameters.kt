@@ -16,10 +16,10 @@
 
 package com.reposilite
 
-import com.reposilite.settings.local.LocalConfiguration
-import com.reposilite.settings.local.LocalConfigurationMode
-import com.reposilite.settings.local.infrastructure.LOCAL_CONFIGURATION_FILE
-import com.reposilite.settings.shared.infrastructure.SHARED_CONFIGURATION_FILE
+import com.reposilite.configuration.local.LocalConfiguration
+import com.reposilite.configuration.local.LocalConfigurationMode
+import com.reposilite.configuration.local.infrastructure.LOCAL_CONFIGURATION_FILE
+import com.reposilite.configuration.shared.infrastructure.SHARED_CONFIGURATION_FILE
 import com.reposilite.token.AccessTokenType.TEMPORARY
 import com.reposilite.token.api.CreateAccessTokenRequest
 import picocli.CommandLine.Command

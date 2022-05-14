@@ -23,8 +23,8 @@ import com.reposilite.auth.AuthenticationFacade
 import com.reposilite.auth.api.Credentials
 import com.reposilite.frontend.application.FrontendSettings
 import com.reposilite.journalist.Journalist
-import com.reposilite.settings.local.LocalConfiguration
-import com.reposilite.settings.shared.SharedConfigurationFacade
+import com.reposilite.configuration.local.LocalConfiguration
+import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.shared.ContextDsl
 import com.reposilite.status.FailureFacade
 import com.reposilite.token.AccessTokenFacade

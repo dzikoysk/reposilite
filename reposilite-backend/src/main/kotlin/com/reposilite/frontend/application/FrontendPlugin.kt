@@ -26,8 +26,8 @@ import com.reposilite.plugin.api.ReposiliteInitializeEvent
 import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
-import com.reposilite.settings.local.LocalConfiguration
-import com.reposilite.settings.shared.SharedConfigurationFacade
+import com.reposilite.configuration.local.LocalConfiguration
+import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.web.api.HttpServerInitializationEvent
 import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.api.RoutingSetupEvent

@@ -17,7 +17,7 @@
 package com.reposilite.web
 
 import com.reposilite.Reposilite
-import com.reposilite.settings.local.LocalConfiguration
+import com.reposilite.configuration.local.LocalConfiguration
 import com.reposilite.web.api.HttpServerInitializationEvent
 import com.reposilite.web.api.HttpServerStoppedEvent
 import com.reposilite.web.application.JavalinConfiguration

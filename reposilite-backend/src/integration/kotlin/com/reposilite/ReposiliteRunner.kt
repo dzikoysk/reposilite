@@ -22,9 +22,9 @@ import com.reposilite.journalist.backend.PrintStreamLogger
 import com.reposilite.maven.application.MavenSettings
 import com.reposilite.maven.application.ProxiedRepository
 import com.reposilite.maven.application.RepositorySettings
-import com.reposilite.settings.local.LocalConfiguration
-import com.reposilite.settings.local.infrastructure.LOCAL_CONFIGURATION_FILE
-import com.reposilite.settings.shared.SharedConfigurationFacade
+import com.reposilite.configuration.local.LocalConfiguration
+import com.reposilite.configuration.local.infrastructure.LOCAL_CONFIGURATION_FILE
+import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.storage.StorageProviderSettings
 import io.javalin.core.util.JavalinBindException
 import net.dzikoysk.cdn.KCdnFactory

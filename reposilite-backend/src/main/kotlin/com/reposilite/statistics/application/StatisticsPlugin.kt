@@ -23,7 +23,7 @@ import com.reposilite.plugin.api.ReposiliteInitializeEvent
 import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
-import com.reposilite.settings.shared.SharedConfigurationFacade
+import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.statistics.StatsCommand
 import com.reposilite.statistics.createDateIntervalProvider

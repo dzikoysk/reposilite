@@ -40,12 +40,12 @@ internal class RepositoryFactory(
 
     fun createRepository(repositoryName: String, configuration: RepositorySettings): Repository =
         Repository(
-            repositoryName,
-            configuration.visibility,
-            configuration.redeployment,
-            configuration.preserveSnapshots,
-            configuration.proxied.map { createProxiedHostConfiguration(it) },
-            storageFacade.createStorageProvider(
+            name = repositoryName,
+            visibility = configuration.visibility,
+            redeployment = configuration.redeployment,
+            preserveSnapshots = configuration.preserveSnapshots,
+            proxiedHosts = configuration.proxied.map { createProxiedHostConfiguration(it) },
+            storageProvider = storageFacade.createStorageProvider(
                 failureFacade = failureFacade,
                 workingDirectory = workingDirectory.resolve(repositoriesDirectory),
                 repository = repositoryName,
@@ -55,7 +55,6 @@ internal class RepositoryFactory(
 
     private fun createProxiedHostConfiguration(configurationSource: ProxiedRepository): ProxiedHost {
         val name = configurationSource.reference
-        val configuration = configurationSource
 
         val host =
             if (name.endsWith("/"))
@@ -67,12 +66,12 @@ internal class RepositoryFactory(
             if (repositoriesNames.contains(host))
                 RepositoryLoopbackClient(lazy { repositoryProvider.getRepositories()[host]!! })
             else
-                configuration.proxy
+                configurationSource.proxy
                     .takeIf { it.isNotEmpty() }
                     ?.let { Proxy(HTTP, InetSocketAddress(it.substringBeforeLast(":"), it.substringAfterLast(":").toInt())) }
                     .let { remoteClientProvider.createClient(failureFacade, it) }
 
-        return ProxiedHost(host, configuration, remoteClient)
+        return ProxiedHost(host, configurationSource, remoteClient)
     }
 
 }

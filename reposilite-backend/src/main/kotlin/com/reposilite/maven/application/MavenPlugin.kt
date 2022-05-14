@@ -34,8 +34,8 @@ import com.reposilite.plugin.api.ReposiliteDisposeEvent
 import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
-import com.reposilite.settings.local.LocalConfiguration
-import com.reposilite.settings.shared.SharedConfigurationFacade
+import com.reposilite.configuration.local.LocalConfiguration
+import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.shared.http.HttpRemoteClientProvider
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.status.FailureFacade

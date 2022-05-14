@@ -33,7 +33,7 @@ import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.api.ReposiliteStartedEvent
 import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
-import com.reposilite.settings.shared.SharedConfigurationFacade
+import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.status.FailureFacade
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.web.api.HttpServerInitializationEvent

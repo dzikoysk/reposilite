@@ -21,7 +21,7 @@ package com.reposilite.maven
 import com.reposilite.LocalSpecificationJunitExtension
 import com.reposilite.RemoteSpecificationJunitExtension
 import com.reposilite.maven.specification.MavenIntegrationSpecification
-import com.reposilite.settings.local.LocalConfiguration
+import com.reposilite.configuration.local.LocalConfiguration
 import com.reposilite.storage.api.DocumentInfo
 import com.reposilite.web.http.ErrorResponse
 import io.javalin.http.HttpCode.NOT_FOUND

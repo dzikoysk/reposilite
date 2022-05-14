@@ -1,7 +1,7 @@
 package com.reposilite.frontend.application
 
-import com.reposilite.settings.shared.Doc
-import com.reposilite.settings.shared.SharedSettings
+import com.reposilite.configuration.shared.Doc
+import com.reposilite.configuration.shared.SharedSettings
 
 @Doc(title = "Frontend", description = "Frontend settings")
 data class FrontendSettings(

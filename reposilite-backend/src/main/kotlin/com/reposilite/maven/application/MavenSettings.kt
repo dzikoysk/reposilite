@@ -4,9 +4,9 @@ import com.reposilite.auth.api.Credentials
 import com.reposilite.maven.RepositoryVisibility
 import com.reposilite.maven.RepositoryVisibility.PRIVATE
 import com.reposilite.maven.RepositoryVisibility.PUBLIC
-import com.reposilite.settings.shared.Doc
-import com.reposilite.settings.shared.Min
-import com.reposilite.settings.shared.SharedSettings
+import com.reposilite.configuration.shared.Doc
+import com.reposilite.configuration.shared.Min
+import com.reposilite.configuration.shared.SharedSettings
 import com.reposilite.storage.StorageProviderSettings
 import com.reposilite.storage.filesystem.FileSystemStorageProviderSettings
 
