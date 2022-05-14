@@ -16,12 +16,12 @@
 
 package com.reposilite.configuration.local.infrastructure
 
-import com.reposilite.journalist.Journalist
 import com.reposilite.configuration.infrastructure.FileConfigurationProvider
 import com.reposilite.configuration.local.LocalConfiguration
 import com.reposilite.configuration.local.LocalConfigurationMode
 import com.reposilite.configuration.local.LocalConfigurationMode.AUTO
 import com.reposilite.configuration.local.LocalConfigurationMode.NONE
+import com.reposilite.journalist.Journalist
 import com.reposilite.shared.extensions.createCdnByExtension
 import com.reposilite.storage.getSimpleName
 import net.dzikoysk.cdn.CdnException
@@ -38,7 +38,8 @@ internal class LocalConfigurationProvider(
     journalist: Journalist?,
     workingDirectory: Path,
     configurationFile: Path,
-    private val mode: LocalConfigurationMode
+    private val mode: LocalConfigurationMode,
+    val localConfiguration: LocalConfiguration
 ) : FileConfigurationProvider(
     name = LOCAL_CONFIGURATION_FILE,
     displayName = "Local configuration",
@@ -46,8 +47,6 @@ internal class LocalConfigurationProvider(
     workingDirectory = workingDirectory,
     configurationFile = configurationFile,
 ) {
-
-    val configuration = LocalConfiguration()
 
     private val cdn = configurationFile.getSimpleName()
         .createCdnByExtension()
@@ -57,14 +56,14 @@ internal class LocalConfigurationProvider(
         load(Source.of(configurationFile))
 
     private fun load(source: Source): Result<LocalConfiguration, out Exception> =
-        cdn.load(source, configuration)
+        cdn.load(source, localConfiguration)
             .flatMap { render() }
-            .map { configuration }
+            .map { localConfiguration }
 
     private fun render(): Result<String, CdnException> =
         when (mode) {
             NONE -> ok("")
-            AUTO -> cdn.render(configuration, Source.of(configurationFile))
+            AUTO -> cdn.render(localConfiguration, Source.of(configurationFile))
         }
 
     override fun loadContent(content: String): Result<Unit, out Exception> =

@@ -1,15 +1,15 @@
 package com.reposilite.configuration.shared
 
 import com.github.victools.jsonschema.generator.SchemaGenerator
+import com.reposilite.configuration.ConfigurationFacade
+import com.reposilite.configuration.shared.infrastructure.LocalSharedConfigurationProvider
+import com.reposilite.configuration.shared.infrastructure.RemoteSharedConfigurationProvider
+import com.reposilite.configuration.shared.infrastructure.SettingsEndpoints
 import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
 import com.reposilite.plugin.parameters
-import com.reposilite.configuration.ConfigurationFacade
-import com.reposilite.configuration.shared.infrastructure.LocalSharedConfigurationProvider
-import com.reposilite.configuration.shared.infrastructure.RemoteSharedConfigurationProvider
-import com.reposilite.configuration.shared.infrastructure.SettingsEndpoints
 import com.reposilite.status.FailureFacade
 import com.reposilite.storage.StorageProviderFactory
 import com.reposilite.storage.StorageProviderSettings
@@ -24,7 +24,12 @@ class SharedConfigurationPlugin : ReposilitePlugin() {
         val parameters = parameters()
         val failureFacade = facade<FailureFacade>()
         val configurationFacade = facade<ConfigurationFacade>()
-        val sharedConfigurationFacade = SharedConfigurationFacade(createSharedConfigurationSchemaGenerator())
+
+        val sharedConfigurationFacade = SharedConfigurationFacade(
+            journalist = this,
+            schemaGenerator = createSharedConfigurationSchemaGenerator(),
+            failureFacade = failureFacade
+        )
 
         logger.info("")
         logger.info("--- Settings")
@@ -33,7 +38,6 @@ class SharedConfigurationPlugin : ReposilitePlugin() {
             null -> configurationFacade.registerCustomConfigurationProvider(
                 RemoteSharedConfigurationProvider(
                     journalist = this,
-                    failureFacade = failureFacade,
                     configurationFacade = configurationFacade,
                     sharedConfigurationFacade = sharedConfigurationFacade
                 )
@@ -42,7 +46,8 @@ class SharedConfigurationPlugin : ReposilitePlugin() {
                 LocalSharedConfigurationProvider(
                     journalist = this,
                     workingDirectory = parameters.workingDirectory,
-                    configurationFile = sharedConfigurationFile
+                    configurationFile = sharedConfigurationFile,
+                    sharedConfigurationFacade = sharedConfigurationFacade
                 )
             )
         }

@@ -17,8 +17,8 @@
 package com.reposilite.configuration.local
 
 import com.reposilite.ReposiliteParameters
-import com.reposilite.journalist.Journalist
 import com.reposilite.configuration.local.infrastructure.LocalConfigurationProvider
+import com.reposilite.journalist.Journalist
 
 internal object LocalConfigurationFactory {
 
@@ -28,8 +28,9 @@ internal object LocalConfigurationFactory {
             workingDirectory = parameters.workingDirectory,
             configurationFile = parameters.localConfigurationPath,
             mode = parameters.localConfigurationMode,
+            localConfiguration = LocalConfiguration()
         )
         .also { it.initialize() }
-        .configuration
+        .localConfiguration
 
 }

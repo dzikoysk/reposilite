@@ -16,8 +16,8 @@
 
 package com.reposilite.configuration.infrastructure
 
-import com.reposilite.journalist.Journalist
 import com.reposilite.configuration.ConfigurationProvider
+import com.reposilite.journalist.Journalist
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
 import io.javalin.http.HttpCode.BAD_REQUEST
@@ -59,6 +59,7 @@ abstract class FileConfigurationProvider(
             name -> loadContent(content)
                 .peek { journalist?.logger?.info("Updating ${displayName.lowercase()} in local source") }
                 .mapToUnit()
+                .onError { it.printStackTrace() }
                 .mapErr { ErrorResponse(INTERNAL_SERVER_ERROR, "Cannot load configuration") }
             else -> errorResponse(BAD_REQUEST, "Unknown ${displayName.lowercase()}: $name")
         }

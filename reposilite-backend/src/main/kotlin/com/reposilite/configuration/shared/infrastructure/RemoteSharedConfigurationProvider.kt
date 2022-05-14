@@ -21,16 +21,12 @@ import com.reposilite.configuration.ConfigurationFacade
 import com.reposilite.configuration.ConfigurationProvider
 import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.configuration.shared.SharedSettings
-import com.reposilite.configuration.shared.SharedSettingsReference
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
-import com.reposilite.status.FailureFacade
 import com.reposilite.web.http.ErrorResponse
 import io.javalin.http.HttpCode.INTERNAL_SERVER_ERROR
 import panda.std.Result
-import panda.std.asError
 import panda.std.asSuccess
-import panda.std.ok
 import java.time.Instant
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.ScheduledFuture
@@ -38,7 +34,6 @@ import java.util.concurrent.TimeUnit
 
 internal class RemoteSharedConfigurationProvider(
     private val journalist: Journalist,
-    private val failureFacade: FailureFacade,
     private val configurationFacade: ConfigurationFacade,
     private val sharedConfigurationFacade: SharedConfigurationFacade
 ) : ConfigurationProvider, Journalist {
@@ -56,7 +51,7 @@ internal class RemoteSharedConfigurationProvider(
 
     private fun loadRemoteConfiguration(): Boolean =
         configurationFacade.findConfiguration(name)
-            ?.let { updateSharedSettings(it) }
+            ?.let { sharedConfigurationFacade.updateSharedSettings(it) }
             ?.also { refreshUpdateTime() }
             ?.isOk
             ?: generateConfiguration().isOk
@@ -76,31 +71,8 @@ internal class RemoteSharedConfigurationProvider(
         this.databaseUpdateTime = configurationFacade.findConfigurationUpdateDate(name) ?: databaseUpdateTime
     }
 
-    private fun updateSharedSettings(content: String): Result<Unit, Collection<Pair<SharedSettingsReference<*>, Exception>>> {
-        val updateResult = sharedConfigurationFacade.updateSharedSettings(content)
-
-        updateResult
-            .filter { (_, result) -> result.isOk }
-            .forEach { (ref) -> journalist.logger.info("$displayName | Domain '${ref.name}' has been loaded from database") }
-
-        val failures = updateResult.filter { (_, result) -> result.isErr }
-
-        failures.forEach { (ref, result) ->
-            journalist.logger.error("$displayName | Cannot update '${ref.name}' due to ${result.error}")
-            journalist.logger.debug("$displayName | Source:")
-            journalist.logger.debug(content)
-            failureFacade.throwException(displayName, result.error)
-        }
-
-        return if (failures.isNotEmpty())
-            failures
-                .map { (ref, result) -> ref to result.error }
-                .asError()
-        else ok()
-    }
-
     override fun update(content: String): Result<Unit, ErrorResponse> =
-        updateSharedSettings(content)
+        sharedConfigurationFacade.updateSharedSettings(content)
             .also {
                 journalist.logger.info("Propagation | $displayName has updated, updating sources...")
                 configurationFacade.saveConfiguration(name, renderConfiguration())
