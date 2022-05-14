@@ -20,20 +20,17 @@ import com.reposilite.web.http.ErrorResponse
 import panda.std.Result
 import java.util.concurrent.ScheduledExecutorService
 
-interface ConfigurationProvider<T> {
+interface ConfigurationProvider {
 
     val name: String
     val displayName: String
-    val configuration: T
 
-    fun initialize()
+    fun initialize(): Boolean
 
     fun registerWatcher(scheduler: ScheduledExecutorService)
 
-    fun resolve(name: String): Result<String, ErrorResponse>
+    fun update(content: String): Result<Unit, ErrorResponse>
 
-    fun update(name: String, content: String): Result<Unit, ErrorResponse>
-
-    fun shutdown()
+    fun shutdown() {}
 
 }

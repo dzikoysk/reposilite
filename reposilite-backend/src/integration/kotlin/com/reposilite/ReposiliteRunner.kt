@@ -19,13 +19,13 @@ package com.reposilite
 import com.reposilite.journalist.Channel
 import com.reposilite.journalist.Logger
 import com.reposilite.journalist.backend.PrintStreamLogger
-import com.reposilite.maven.application.ProxiedRepository
 import com.reposilite.maven.application.MavenSettings
+import com.reposilite.maven.application.ProxiedRepository
 import com.reposilite.maven.application.RepositorySettings
-import com.reposilite.settings.SettingsFacade
-import com.reposilite.storage.application.StorageProviderSettings
-import com.reposilite.settings.api.LOCAL_CONFIGURATION_FILE
-import com.reposilite.settings.api.LocalConfiguration
+import com.reposilite.settings.local.LocalConfiguration
+import com.reposilite.settings.local.infrastructure.LOCAL_CONFIGURATION_FILE
+import com.reposilite.settings.shared.SharedConfigurationFacade
+import com.reposilite.storage.StorageProviderSettings
 import io.javalin.core.util.JavalinBindException
 import net.dzikoysk.cdn.KCdnFactory
 import net.dzikoysk.cdn.source.Source
@@ -100,9 +100,9 @@ internal abstract class ReposiliteRunner {
         reposilite = ReposiliteFactory.createReposilite(parameters, logger)
         reposilite.journalist.setVisibleThreshold(Channel.WARN)
 
-        val settingsFacade = reposilite.extensions.facade<SettingsFacade>()
+        val sharedConfigurationFacade = reposilite.extensions.facade<SharedConfigurationFacade>()
 
-        settingsFacade.getDomainSettings<MavenSettings>().update { old ->
+        sharedConfigurationFacade.getDomainSettings<MavenSettings>().update { old ->
             val proxiedConfiguration = RepositorySettings(
                 "proxied",
                 proxied = mutableListOf(ProxiedRepository("http://localhost:${parameters.port + 1}/releases"))
@@ -120,13 +120,13 @@ internal abstract class ReposiliteRunner {
             )
         }
 
-        overrideSharedConfiguration(settingsFacade)
+        overrideSharedConfiguration(sharedConfigurationFacade)
         return reposilite.launch()
     }
 
     protected open fun overrideLocalConfiguration(localConfiguration: LocalConfiguration) { }
 
-    protected open fun overrideSharedConfiguration(settingsFacade: SettingsFacade) { }
+    protected open fun overrideSharedConfiguration(sharedConfigurationFacade: SharedConfigurationFacade) { }
 
     @AfterEach
     fun shutdownApplication() {

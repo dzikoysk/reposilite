@@ -1,10 +1,8 @@
 package com.reposilite.web.application
 
-import com.reposilite.settings.api.Doc
-import com.reposilite.settings.api.Settings
-import net.dzikoysk.cdn.entity.Contextual
+import com.reposilite.settings.shared.Doc
+import com.reposilite.settings.shared.SharedSettings
 
-@Contextual
 @Doc(title = "Web", description = "General web settings")
 data class WebSettings(
     @Doc(title = "Forwarded IP", description = """
@@ -15,4 +13,4 @@ data class WebSettings(
         Popular: X-Real-IP
     """)
     val forwardedIp: String = "X-Forwarded-For",
-) : Settings
+) : SharedSettings

@@ -16,7 +16,6 @@
 
 package com.reposilite.storage.filesystem
 
-import com.reposilite.storage.filesystem.FileSystemStorageProvider
 import com.reposilite.web.http.ErrorResponse
 import io.javalin.http.HttpCode.INSUFFICIENT_STORAGE
 import panda.std.Result

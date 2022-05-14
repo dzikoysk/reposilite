@@ -1,10 +1,8 @@
 package com.reposilite.storage.s3
 
-import com.reposilite.settings.api.Doc
-import com.reposilite.storage.application.StorageProviderSettings
-import net.dzikoysk.cdn.entity.Contextual
+import com.reposilite.settings.shared.Doc
+import com.reposilite.storage.StorageProviderSettings
 
-@Contextual
 @Doc(title = "S3 Storage Provider", description = "Amazon S3 storage provider settings")
 data class S3StorageProviderSettings(
     override val type: String = "s3",

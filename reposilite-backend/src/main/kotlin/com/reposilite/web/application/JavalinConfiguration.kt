@@ -16,19 +16,6 @@
 
 package com.reposilite.web.application
 
-import com.fasterxml.jackson.annotation.JsonInclude.Include
-import com.fasterxml.jackson.core.JsonParser
-import com.fasterxml.jackson.databind.DeserializationContext
-import com.fasterxml.jackson.databind.JsonDeserializer
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.deser.DeserializationProblemHandler
-import com.fasterxml.jackson.databind.deser.ValueInstantiator
-import com.fasterxml.jackson.databind.json.JsonMapper
-import com.fasterxml.jackson.databind.module.SimpleModule
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.KotlinModule
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.reposilite.Reposilite
 import com.reposilite.ReposiliteObjectMapper
 import com.reposilite.VERSION
@@ -36,13 +23,10 @@ import com.reposilite.auth.AuthenticationFacade
 import com.reposilite.auth.api.Credentials
 import com.reposilite.frontend.application.FrontendSettings
 import com.reposilite.journalist.Journalist
-import com.reposilite.settings.SettingsFacade
-import com.reposilite.settings.api.LocalConfiguration
+import com.reposilite.settings.local.LocalConfiguration
+import com.reposilite.settings.shared.SharedConfigurationFacade
 import com.reposilite.shared.ContextDsl
-import com.reposilite.shared.extensions.ContentTypeSerializer
 import com.reposilite.status.FailureFacade
-import com.reposilite.storage.StorageProviderFactory
-import com.reposilite.storage.application.StorageProviderSettings
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.web.api.HttpServerConfigurationEvent
 import com.reposilite.web.api.RoutingSetupEvent
@@ -52,7 +36,6 @@ import com.reposilite.web.http.uri
 import com.reposilite.web.routing.RoutingPlugin
 import io.javalin.core.JavalinConfig
 import io.javalin.core.compression.CompressionStrategy
-import io.javalin.http.ContentType
 import io.javalin.openapi.plugin.OpenApiConfiguration
 import io.javalin.openapi.plugin.OpenApiPlugin
 import io.javalin.plugin.json.JavalinJackson
@@ -61,7 +44,6 @@ import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.util.ssl.SslContextFactory
 import org.eclipse.jetty.util.thread.ThreadPool
 import panda.std.reactive.Reference
-import java.util.ServiceLoader
 
 internal object JavalinConfiguration {
 
@@ -70,10 +52,10 @@ internal object JavalinConfiguration {
         config.server { server }
         reposilite.extensions.emitEvent(HttpServerConfigurationEvent(reposilite, config))
 
-        val settingsFacade = reposilite.extensions.facade<SettingsFacade>()
-        val localConfiguration = settingsFacade.localConfiguration
-        val webSettings = settingsFacade.getDomainSettings<WebSettings>()
-        val frontendSettings = settingsFacade.getDomainSettings<FrontendSettings>()
+        val localConfiguration = reposilite.extensions.facade<LocalConfiguration>()
+        val sharedConfigurationFacade = reposilite.extensions.facade<SharedConfigurationFacade>()
+        val webSettings = sharedConfigurationFacade.getDomainSettings<WebSettings>()
+        val frontendSettings = sharedConfigurationFacade.getDomainSettings<FrontendSettings>()
 
         configureJavalin(config, localConfiguration, webSettings)
         configureJsonSerialization(config)

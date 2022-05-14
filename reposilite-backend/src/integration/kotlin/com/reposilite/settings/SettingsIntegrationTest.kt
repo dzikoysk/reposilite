@@ -7,6 +7,7 @@ import com.reposilite.auth.application.AuthenticationSettings
 import com.reposilite.auth.application.LdapSettings
 import com.reposilite.frontend.application.FrontendSettings
 import com.reposilite.maven.application.MavenSettings
+import com.reposilite.settings.shared.SharedConfigurationFacade
 import com.reposilite.settings.specification.SettingsIntegrationSpecification
 import com.reposilite.statistics.api.ResolvedRequestsInterval.YEARLY
 import com.reposilite.statistics.application.StatisticsSettings
@@ -147,8 +148,8 @@ internal abstract class SettingsIntegrationTest : SettingsIntegrationSpecificati
         // given: a permitted token and a facade with custom configuration
         val (permittedName, permittedSecret) = useDefaultManagementToken()
 
-        val settingsFacade = useFacade<SettingsFacade>()
-        customSettings.forEach { (domain, configuration) -> settingsFacade.updateSettings(domain, configuration) }
+        val settingsFacade = useFacade<SharedConfigurationFacade>()
+        customSettings.forEach { (domain, configuration) -> settingsFacade.updateSharedSettings(domain, configuration) }
 
         customSettings.forEach { (domain, configuration) ->
             // when: empty configuration is set

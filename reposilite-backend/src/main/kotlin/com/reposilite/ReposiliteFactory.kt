@@ -22,8 +22,8 @@ import com.reposilite.journalist.backend.PrintStreamLogger
 import com.reposilite.plugin.Extensions
 import com.reposilite.plugin.PluginLoader
 import com.reposilite.plugin.loadExternalPlugins
-import com.reposilite.settings.application.DatabaseSourceFactory
-import com.reposilite.settings.application.LocalConfigurationFactory
+import com.reposilite.settings.local.LocalConfigurationFactory
+import com.reposilite.settings.local.infrastructure.DatabaseConnectionFactory
 import com.reposilite.shared.extensions.newFixedThreadPool
 import com.reposilite.shared.extensions.newSingleThreadScheduledExecutor
 import com.reposilite.web.HttpServer
@@ -36,7 +36,7 @@ object ReposiliteFactory {
         createReposilite(parameters, PrintStreamLogger(System.out, System.err, Channel.ALL, false))
 
     fun createReposilite(parameters: ReposiliteParameters, rootJournalist: Journalist): Reposilite {
-        val localConfiguration = LocalConfigurationFactory.createLocalConfiguration(parameters)
+        val localConfiguration = LocalConfigurationFactory.createLocalConfiguration(null, parameters)
         parameters.applyLoadedConfiguration(localConfiguration)
 
         val journalist = ReposiliteJournalist(rootJournalist, localConfiguration.cachedLogSize.get(), parameters.testEnv)
@@ -55,7 +55,7 @@ object ReposiliteFactory {
             journalist = journalist,
             parameters = parameters,
             localConfiguration = localConfiguration,
-            databaseConnection = DatabaseSourceFactory.createConnection(parameters.workingDirectory, localConfiguration.database.get(), localConfiguration.databaseThreadPool.get()),
+            databaseConnection = DatabaseConnectionFactory.createConnection(parameters.workingDirectory, localConfiguration.database.get(), localConfiguration.databaseThreadPool.get()),
             webServer = HttpServer(),
             ioService = newFixedThreadPool(2, localConfiguration.ioThreadPool.get(), "Reposilite | IO"),
             scheduler = newSingleThreadScheduledExecutor("Reposilite | Scheduler"),

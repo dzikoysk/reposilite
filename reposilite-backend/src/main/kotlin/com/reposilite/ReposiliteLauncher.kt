@@ -15,10 +15,8 @@
  */
 package com.reposilite
 
-import com.reposilite.settings.SHARED_CONFIGURATION_FILE
-import com.reposilite.settings.SharedConfiguration
-import com.reposilite.settings.api.LOCAL_CONFIGURATION_FILE
-import com.reposilite.settings.api.LocalConfiguration
+import com.reposilite.settings.local.LocalConfiguration
+import com.reposilite.settings.local.infrastructure.LOCAL_CONFIGURATION_FILE
 import net.dzikoysk.cdn.KCdnFactory
 import net.dzikoysk.cdn.source.Source
 import picocli.CommandLine
@@ -29,16 +27,19 @@ fun main(args: Array<String>) {
 
 fun createWithParameters(vararg args: String): Reposilite? {
     val parameters = ReposiliteParameters()
-    CommandLine(parameters).execute(*args)
+
+    CommandLine(parameters)
+        .setCaseInsensitiveEnumValuesAllowed(true)
+        .execute(*args)
 
     if (parameters.usageHelpRequested || parameters.versionInfoRequested) {
         return null
     }
 
     if (parameters.configurationRequested != null) {
-        when (parameters.configurationRequested) {
+        when (parameters.configurationRequested?.lowercase()) {
             "configuration.cdn" -> KCdnFactory.createStandard().render(LocalConfiguration(), Source.of(parameters.workingDirectory.resolve(LOCAL_CONFIGURATION_FILE)))
-            "shared.configuration.json" -> KCdnFactory.createJsonLike().render(SharedConfiguration(), Source.of(parameters.workingDirectory.resolve(SHARED_CONFIGURATION_FILE)))
+            // TODO "shared.configuration.json" -> KCdnFactory.createJsonLike().render(SharedConfiguration(), Source.of(parameters.workingDirectory.resolve(SHARED_CONFIGURATION_FILE)))
             else -> println("Unknown configuration: ${parameters.configurationRequested}")
         }
         return null

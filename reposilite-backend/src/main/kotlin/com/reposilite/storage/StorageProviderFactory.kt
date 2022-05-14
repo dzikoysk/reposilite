@@ -16,7 +16,6 @@
 
 package com.reposilite.storage
 
-import com.reposilite.storage.application.StorageProviderSettings
 import com.reposilite.status.FailureFacade
 import java.nio.file.Path
 
@@ -28,4 +27,3 @@ interface StorageProviderFactory<PROVIDER : StorageProvider, SETTINGS : StorageP
     fun create(failureFacade: FailureFacade, workingDirectory: Path, repositoryName: String, settings: SETTINGS): PROVIDER
 
 }
-

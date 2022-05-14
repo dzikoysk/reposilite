@@ -23,7 +23,7 @@ import com.reposilite.plugin.api.ReposiliteInitializeEvent
 import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
-import com.reposilite.settings.SettingsFacade
+import com.reposilite.settings.shared.SharedConfigurationFacade
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.statistics.StatsCommand
 import com.reposilite.statistics.createDateIntervalProvider
@@ -32,14 +32,14 @@ import com.reposilite.statistics.infrastructure.StatisticsEndpoint
 import com.reposilite.web.api.RoutingSetupEvent
 import java.util.concurrent.TimeUnit.SECONDS
 
-@Plugin(name = "statistics", dependencies = ["settings", "console"])
+@Plugin(name = "statistics", dependencies = ["shared-configuration", "console"])
 internal class StatisticsPlugin : ReposilitePlugin() {
 
     override fun initialize(): StatisticsFacade {
         val reposilite = facade<Reposilite>()
         val consoleFacade = facade<ConsoleFacade>()
 
-        val settingsFacade = facade<SettingsFacade>()
+        val settingsFacade = facade<SharedConfigurationFacade>()
         val statisticsSettings = settingsFacade.createDomainSettings(StatisticsSettings())
 
         val statisticsFacade = StatisticsFacade(

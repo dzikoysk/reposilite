@@ -33,19 +33,19 @@ import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.api.ReposiliteStartedEvent
 import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
-import com.reposilite.settings.SettingsFacade
+import com.reposilite.settings.shared.SharedConfigurationFacade
 import com.reposilite.status.FailureFacade
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.web.api.HttpServerInitializationEvent
 import com.reposilite.web.api.RoutingSetupEvent
 import com.reposilite.web.application.WebSettings
 
-@Plugin(name = "console", dependencies = [ "settings", "failure", "access-token", "authentication" ])
+@Plugin(name = "console", dependencies = [ "shared-configuration", "failure", "access-token", "authentication" ])
 internal class ConsolePlugin : ReposilitePlugin() {
 
     override fun initialize(): Facade {
         val reposilite = facade<Reposilite>()
-        val settingsFacade = facade<SettingsFacade>()
+        val sharedConfigurationFacade = facade<SharedConfigurationFacade>()
         val failureFacade = facade<FailureFacade>()
         val accessTokenFacade = facade<AccessTokenFacade>()
         val authenticationFacade = facade<AuthenticationFacade>()
@@ -80,7 +80,7 @@ internal class ConsolePlugin : ReposilitePlugin() {
                     accessTokenFacade,
                     authenticationFacade,
                     consoleFacade,
-                    settingsFacade.getDomainSettings<WebSettings>().computed { it.forwardedIp }
+                    sharedConfigurationFacade.getDomainSettings<WebSettings>().computed { it.forwardedIp }
                 )
             )
         }

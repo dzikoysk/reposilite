@@ -1,10 +1,8 @@
 package com.reposilite.storage.filesystem
 
-import com.reposilite.settings.api.Doc
-import com.reposilite.storage.application.StorageProviderSettings
-import net.dzikoysk.cdn.entity.Contextual
+import com.reposilite.settings.shared.Doc
+import com.reposilite.storage.StorageProviderSettings
 
-@Contextual
 @Doc(title = "File system Storage Provider", description = "Local file system (disk) storage provider settings")
 data class FileSystemStorageProviderSettings(
     override val type: String = "fs",

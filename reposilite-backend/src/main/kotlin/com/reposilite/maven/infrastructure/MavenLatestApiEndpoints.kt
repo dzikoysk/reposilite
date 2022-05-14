@@ -21,7 +21,6 @@ import com.reposilite.maven.MavenFacade.MatchedVersionHandler
 import com.reposilite.maven.api.LatestBadgeRequest
 import com.reposilite.maven.api.LatestVersionResponse
 import com.reposilite.maven.api.VersionLookupRequest
-import com.reposilite.settings.SettingsFacade
 import com.reposilite.shared.ContextDsl
 import com.reposilite.shared.extensions.resultAttachment
 import com.reposilite.storage.api.DocumentInfo
@@ -46,10 +45,8 @@ import panda.std.asSuccess
 
 internal class MavenLatestApiEndpoints(
     private val mavenFacade: MavenFacade,
-    settingsFacade: SettingsFacade
+    private val compressionStrategy: String
 ) : ReposiliteRoutes() {
-
-    private val compressionStrategy = settingsFacade.localConfiguration.compressionStrategy
 
     @OpenApi(
         tags = ["Maven"],
@@ -127,7 +124,7 @@ internal class MavenLatestApiEndpoints(
                 mavenFacade.findDetails(lookupRequest)
                     .`is`(DocumentInfo::class.java) { ErrorResponse(BAD_REQUEST, "Requested file is a directory") }
                     .flatMap { mavenFacade.findFile(lookupRequest).map { data -> it to data } }
-                    .map { (details, file) -> ctx.resultAttachment(details.name, details.contentType, details.contentLength, compressionStrategy.get(), file) }
+                    .map { (details, file) -> ctx.resultAttachment(details.name, details.contentType, details.contentLength, compressionStrategy, file) }
             }
         }
     }

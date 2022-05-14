@@ -23,8 +23,8 @@ import com.reposilite.plugin.api.ReposiliteDisposeEvent
 import com.reposilite.plugin.api.ReposiliteInitializeEvent
 import com.reposilite.plugin.api.ReposilitePostInitializeEvent
 import com.reposilite.plugin.api.ReposiliteStartedEvent
-import com.reposilite.settings.api.LocalConfiguration
-import com.reposilite.settings.application.DatabaseConnection
+import com.reposilite.settings.local.LocalConfiguration
+import com.reposilite.settings.local.infrastructure.DatabaseConnection
 import com.reposilite.web.HttpServer
 import panda.std.Result
 import panda.std.Result.ok

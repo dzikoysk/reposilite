@@ -4,11 +4,11 @@ import com.reposilite.auth.api.Credentials
 import com.reposilite.maven.RepositoryVisibility
 import com.reposilite.maven.RepositoryVisibility.PRIVATE
 import com.reposilite.maven.RepositoryVisibility.PUBLIC
-import com.reposilite.settings.api.Doc
-import com.reposilite.settings.api.Min
-import com.reposilite.settings.api.Settings
+import com.reposilite.settings.shared.Doc
+import com.reposilite.settings.shared.Min
+import com.reposilite.settings.shared.SharedSettings
+import com.reposilite.storage.StorageProviderSettings
 import com.reposilite.storage.filesystem.FileSystemStorageProviderSettings
-import com.reposilite.storage.application.StorageProviderSettings
 
 @Doc(title = "Maven", description = "Repositories settings")
 data class MavenSettings(
@@ -18,7 +18,7 @@ data class MavenSettings(
         RepositorySettings("snapshots"),
         RepositorySettings("private", visibility = PRIVATE),
     )
-) : Settings
+) : SharedSettings
 
 @Doc(title = "Maven Repository", description = "Settings for a given repository.")
 data class RepositorySettings(
@@ -35,7 +35,7 @@ data class RepositorySettings(
     val storageProvider: StorageProviderSettings = FileSystemStorageProviderSettings(),
     @Doc(title = "Proxied", description = "List of proxied repositories associated with this repository.")
     val proxied: List<ProxiedRepository> = listOf()
-) : Settings
+) : SharedSettings
 
 @Doc(title = "Proxied Maven Repository", description = "Configuration of proxied host")
 data class ProxiedRepository(
@@ -56,4 +56,4 @@ data class ProxiedRepository(
     val allowedGroups: List<String> = listOf(),
     @Doc(title = "Proxy", description = "Custom proxy configuration for HTTP client used by Reposilite")
     val proxy: String = ""
-) : Settings
+) : SharedSettings

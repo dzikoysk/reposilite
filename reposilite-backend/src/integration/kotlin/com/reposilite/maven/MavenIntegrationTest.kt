@@ -21,7 +21,7 @@ package com.reposilite.maven
 import com.reposilite.LocalSpecificationJunitExtension
 import com.reposilite.RemoteSpecificationJunitExtension
 import com.reposilite.maven.specification.MavenIntegrationSpecification
-import com.reposilite.settings.SettingsFacade
+import com.reposilite.settings.local.LocalConfiguration
 import com.reposilite.storage.api.DocumentInfo
 import com.reposilite.web.http.ErrorResponse
 import io.javalin.http.HttpCode.NOT_FOUND
@@ -91,7 +91,7 @@ internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
 
     @Test
     fun `should accept deploy request with valid credentials` () {
-        val calls = useFacade<SettingsFacade>().localConfiguration.webThreadPool.get() * 3
+        val calls = useFacade<LocalConfiguration>().webThreadPool.get() * 3
         val completed = CountDownLatch(calls)
 
         repeat(calls) { idx ->

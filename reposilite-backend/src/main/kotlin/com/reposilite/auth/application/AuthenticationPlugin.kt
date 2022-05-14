@@ -26,22 +26,22 @@ import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
-import com.reposilite.settings.SettingsFacade
+import com.reposilite.settings.shared.SharedConfigurationFacade
 import com.reposilite.status.FailureFacade
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.web.api.RoutingSetupEvent
 import panda.std.reactive.Reference.Dependencies.dependencies
 import panda.std.reactive.Reference.computed
 
-@Plugin(name = "authentication", dependencies = ["failure", "settings", "access-token"])
+@Plugin(name = "authentication", dependencies = ["failure", "shared-configuration", "access-token"])
 internal class AuthenticationPlugin : ReposilitePlugin() {
 
     override fun initialize(): Facade {
         val failureFacade = facade<FailureFacade>()
-        val settingsFacade = facade<SettingsFacade>()
+        val sharedConfigurationFacade = facade<SharedConfigurationFacade>()
         val accessTokenFacade = facade<AccessTokenFacade>()
 
-        val authenticationSettings = settingsFacade.createDomainSettings(AuthenticationSettings())
+        val authenticationSettings = sharedConfigurationFacade.createDomainSettings(AuthenticationSettings())
 
         val authenticationFacade = AuthenticationFacade(
             journalist = this,

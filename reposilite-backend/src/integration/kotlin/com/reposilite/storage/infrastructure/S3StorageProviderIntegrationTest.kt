@@ -17,10 +17,10 @@
 package com.reposilite.storage.infrastructure
 
 import com.reposilite.journalist.backend.InMemoryLogger
-import com.reposilite.storage.s3.S3StorageProviderSettings
 import com.reposilite.status.FailureFacade
 import com.reposilite.storage.StorageFacade
 import com.reposilite.storage.StorageProviderIntegrationTest
+import com.reposilite.storage.s3.S3StorageProviderSettings
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
 import org.testcontainers.containers.localstack.LocalStackContainer
@@ -44,19 +44,20 @@ internal class S3StorageProviderIntegrationTest : StorageProviderIntegrationTest
     fun setup() {
         val logger = InMemoryLogger()
         val failureFacade = FailureFacade(logger)
+        val storageFacade = StorageFacade()
 
-        this.storageProvider = StorageFacade().createStorageProvider(
-            failureFacade,
-            rootDirectory.toPath(),
-            "test-repository",
-            S3StorageProviderSettings(
+        this.storageProvider = storageFacade.createStorageProvider(
+            failureFacade = failureFacade,
+            workingDirectory = rootDirectory.toPath(),
+            repository = "test-repository",
+            storageSettings = S3StorageProviderSettings(
                 bucketName = "test-repository",
                 endpoint = localstack.getEndpointOverride(S3).toURL().toString(),
                 accessKey = localstack.accessKey,
                 secretKey = localstack.secretKey,
                 region = localstack.region
             )
-        )
+        )!!
     }
 
 }

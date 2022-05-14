@@ -34,7 +34,8 @@ import com.reposilite.plugin.api.ReposiliteDisposeEvent
 import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
-import com.reposilite.settings.SettingsFacade
+import com.reposilite.settings.local.LocalConfiguration
+import com.reposilite.settings.shared.SharedConfigurationFacade
 import com.reposilite.shared.http.HttpRemoteClientProvider
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.status.FailureFacade
@@ -42,7 +43,7 @@ import com.reposilite.storage.StorageFacade
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.web.api.RoutingSetupEvent
 
-@Plugin(name = "maven", dependencies = ["failure", "settings", "statistics", "frontend", "access-token", "storage"])
+@Plugin(name = "maven", dependencies = ["failure", "local-configuration", "shared-configuration", "statistics", "frontend", "access-token", "storage"])
 internal class MavenPlugin : ReposilitePlugin() {
 
     override fun initialize(): MavenFacade {
@@ -51,12 +52,12 @@ internal class MavenPlugin : ReposilitePlugin() {
         val statisticsFacade = facade<StatisticsFacade>()
         val accessTokenFacade = facade<AccessTokenFacade>()
         val storageFacade = facade<StorageFacade>()
-
-        val settingsFacade = facade<SettingsFacade>()
-        val mavenSettings = settingsFacade.createDomainSettings(MavenSettings())
+        val localConfiguration = facade<LocalConfiguration>()
+        val sharedConfigurationFacade = facade<SharedConfigurationFacade>()
+        val mavenSettings = sharedConfigurationFacade.createDomainSettings(MavenSettings())
 
         val frontendFacade = facade<FrontendFacade>()
-        val frontendSettings = settingsFacade.getDomainSettings<FrontendSettings>()
+        val frontendSettings = sharedConfigurationFacade.getDomainSettings<FrontendSettings>()
 
         val repositoryProvider = RepositoryProvider(
             workingDirectory = reposilite.parameters.workingDirectory,
@@ -85,9 +86,9 @@ internal class MavenPlugin : ReposilitePlugin() {
         logger.info("${mavenFacade.getRepositories().size} repositories have been found")
 
         event { event: RoutingSetupEvent ->
-            event.registerRoutes(MavenEndpoints(mavenFacade, frontendFacade, settingsFacade))
             event.registerRoutes(MavenApiEndpoints(mavenFacade))
-            event.registerRoutes(MavenLatestApiEndpoints(mavenFacade, settingsFacade))
+            event.registerRoutes(MavenEndpoints(mavenFacade, frontendFacade, localConfiguration.compressionStrategy.get()))
+            event.registerRoutes(MavenLatestApiEndpoints(mavenFacade, localConfiguration.compressionStrategy.get()))
         }
 
         event(PreservedBuildsListener(mavenFacade))

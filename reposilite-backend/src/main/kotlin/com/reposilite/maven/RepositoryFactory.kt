@@ -45,7 +45,12 @@ internal class RepositoryFactory(
             configuration.redeployment,
             configuration.preserveSnapshots,
             configuration.proxied.map { createProxiedHostConfiguration(it) },
-            storageFacade.createStorageProvider(failureFacade, workingDirectory.resolve(repositoriesDirectory), repositoryName, configuration.storageProvider),
+            storageFacade.createStorageProvider(
+                failureFacade = failureFacade,
+                workingDirectory = workingDirectory.resolve(repositoriesDirectory),
+                repository = repositoryName,
+                storageSettings = configuration.storageProvider
+            ) ?: throw IllegalArgumentException("Unknown storage provider '${configuration.storageProvider.type}'")
         )
 
     private fun createProxiedHostConfiguration(configurationSource: ProxiedRepository): ProxiedHost {
