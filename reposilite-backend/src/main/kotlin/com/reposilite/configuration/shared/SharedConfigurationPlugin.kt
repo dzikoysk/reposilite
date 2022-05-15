@@ -11,8 +11,6 @@ import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
 import com.reposilite.plugin.parameters
 import com.reposilite.status.FailureFacade
-import com.reposilite.storage.StorageProviderFactory
-import com.reposilite.storage.StorageProviderSettings
 import com.reposilite.web.api.RoutingSetupEvent
 import com.reposilite.web.application.WebSettings
 import java.util.ServiceLoader
@@ -63,25 +61,10 @@ class SharedConfigurationPlugin : ReposilitePlugin() {
 
 }
 
-fun createSharedConfigurationSchemaGenerator(): SchemaGenerator {
-    val storageProviders = ServiceLoader.load(StorageProviderFactory::class.java)
-        .associate { it.settingsType to it.type }
-
-    val storageEnumResolver = EnumResolver {
-        if (it.name == "type")
-            storageProviders[it.declaringType.erasedType]?.let { type -> listOf(type) }
-        else null
-    }
-    val storageSubtypeResolver = SubtypeResolver { declaredType, context ->
-        if (declaredType.erasedType == StorageProviderSettings::class.java)
-            storageProviders.keys.toList().map { clazz -> context.typeContext.resolveSubtype(declaredType, clazz) }
-        else null
-    }
-
-    return createStandardSchemaGenerator(
+fun createSharedConfigurationSchemaGenerator(): SchemaGenerator =
+    createStandardSchemaGenerator(
         SettingsModule(
-            subtypeResolvers = listOf(storageSubtypeResolver),
-            enumResolvers = listOf(storageEnumResolver)
+            subtypeResolvers = ServiceLoader.load(SubtypeResolver::class.java).toList(),
+            enumResolvers = ServiceLoader.load(EnumResolver::class.java).toList()
         )
     )
-}

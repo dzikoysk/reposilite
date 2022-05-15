@@ -18,15 +18,22 @@ package com.reposilite.configuration.specification
 
 import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.configuration.shared.createSharedConfigurationSchemaGenerator
+import com.reposilite.journalist.backend.PrintStreamLogger
+import com.reposilite.status.FailureFacade
 import org.junit.jupiter.api.BeforeEach
 
 internal abstract class SharedConfigurationSpecification {
 
+    private val logger = PrintStreamLogger(System.out, System.err)
     protected lateinit var sharedConfigurationFacade: SharedConfigurationFacade
 
     @BeforeEach
     fun prepare() {
-        this.sharedConfigurationFacade = SharedConfigurationFacade(createSharedConfigurationSchemaGenerator())
+        this.sharedConfigurationFacade = SharedConfigurationFacade(
+            journalist = logger,
+            schemaGenerator = createSharedConfigurationSchemaGenerator(),
+            failureFacade = FailureFacade(logger)
+        )
     }
 
 }
