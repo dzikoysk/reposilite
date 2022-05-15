@@ -4,6 +4,7 @@ import com.reposilite.configuration.infrastructure.FileConfigurationProvider
 import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.journalist.Journalist
 import panda.std.Result
+import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.exists
 
@@ -23,10 +24,12 @@ class LocalSharedConfigurationProvider(
 ) {
 
     override fun initializeConfigurationFile(): Result<*, out Exception> =
-        Result.`when`(workingDirectory.resolve(configurationFile).exists(), {}, { IllegalStateException("$configurationFile does not exist") })
+        workingDirectory.resolve(configurationFile)
+            .let { Result.`when`<Path, Exception>(it.exists(), { it }, { IllegalStateException("$configurationFile does not exist") }) }
+            .map { Files.readString(it) }
+            .flatMap { sharedConfigurationFacade.updateSharedSettings(it) }
 
     override fun loadContent(content: String): Result<Unit, out Exception> =
         sharedConfigurationFacade.updateSharedSettings(content)
-            .mapErr { IllegalStateException("Cannot load shared configuration from file (${it.size} errors)") }
 
 }

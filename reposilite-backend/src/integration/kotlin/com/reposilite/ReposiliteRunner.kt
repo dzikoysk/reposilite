@@ -16,15 +16,15 @@
 
 package com.reposilite
 
+import com.reposilite.configuration.local.LocalConfiguration
+import com.reposilite.configuration.local.infrastructure.LOCAL_CONFIGURATION_FILE
+import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.journalist.Channel
 import com.reposilite.journalist.Logger
 import com.reposilite.journalist.backend.PrintStreamLogger
 import com.reposilite.maven.application.MavenSettings
 import com.reposilite.maven.application.ProxiedRepository
 import com.reposilite.maven.application.RepositorySettings
-import com.reposilite.configuration.local.LocalConfiguration
-import com.reposilite.configuration.local.infrastructure.LOCAL_CONFIGURATION_FILE
-import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.storage.StorageProviderSettings
 import io.javalin.core.util.JavalinBindException
 import net.dzikoysk.cdn.KCdnFactory
@@ -81,7 +81,6 @@ internal abstract class ReposiliteRunner {
 
     private fun prepareInstance(logger: Logger): Result<Reposilite, Exception> {
         val parameters = ReposiliteParameters()
-        // parameters.sharedConfigurationMode = "copy"
         parameters.tokenEntries = arrayOf("${DEFAULT_TOKEN.first}:${DEFAULT_TOKEN.second}")
         parameters.workingDirectoryName = reposiliteWorkingDirectory.absolutePath
         parameters.testEnv = true
@@ -104,7 +103,7 @@ internal abstract class ReposiliteRunner {
 
         sharedConfigurationFacade.getDomainSettings<MavenSettings>().update { old ->
             val proxiedConfiguration = RepositorySettings(
-                "proxied",
+                id = "proxied",
                 proxied = mutableListOf(ProxiedRepository("http://localhost:${parameters.port + 1}/releases"))
             )
 

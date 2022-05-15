@@ -17,6 +17,7 @@
 package com.reposilite.plugin.api;
 
 import com.reposilite.ReposiliteKt;
+import com.reposilite.configuration.shared.SharedSettings;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -45,5 +46,7 @@ public @interface Plugin {
      * @return array of plugins required to launch before this one
      */
     String[] dependencies() default {};
+
+    Class<? extends SharedSettings> settings() default SharedSettings.class;
 
 }

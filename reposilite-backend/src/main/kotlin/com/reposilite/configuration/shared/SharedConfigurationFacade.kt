@@ -20,16 +20,10 @@ class SharedConfigurationFacade(
     private val domains = mutableMapOf<Class<*>, MutableReference<*>>()
     private val configHandlers = mutableMapOf<String, SharedSettingsReference<*>>()
 
-    fun <S : SharedSettings> createDomainSettings(settingsInstance : S): MutableReference<S> =
+    internal fun <S : SharedSettings> createDomainSettings(settingsInstance : S): MutableReference<S> =
         mutableReference(settingsInstance).also {
             domains[settingsInstance.javaClass] = it
             registerSettingsWatcher(settingsInstance.javaClass, it)
-        }
-
-    private fun <T : SharedSettings> registerSettingsWatcher(handler: SharedSettingsReference<T>): SharedSettingsReference<T> =
-        handler.also {
-            if (it.name in configHandlers) throw IllegalArgumentException("There are already settings with that name! Please report to the plugin author.")
-            configHandlers[it.name] = it
         }
 
     private fun <T : SharedSettings> registerSettingsWatcher(type: Class<T>, reference: MutableReference<T>): SharedSettingsReference<T> =
@@ -38,7 +32,17 @@ class SharedConfigurationFacade(
     private fun <T : SharedSettings> registerSettingsWatcher(type: Class<T>, getter: () -> T, setter: (T) -> Unit): SharedSettingsReference<T> =
         registerSettingsWatcher(DefaultSharedSettingsReference(type, schemaGenerator, getter, setter))
 
-    internal fun updateSharedSettings(content: String): Result<Unit, Collection<Pair<SharedSettingsReference<*>, Exception>>> {
+    private fun <T : SharedSettings> registerSettingsWatcher(handler: SharedSettingsReference<T>): SharedSettingsReference<T> =
+        handler.also {
+            if (it.name in configHandlers) throw IllegalArgumentException("There are already settings with that name! Please report to the plugin author.")
+            configHandlers[it.name] = it
+        }
+
+    class SharedSettingsUpdateException(
+        val errors: Collection<Pair<SharedSettingsReference<*>, Exception>>
+    ) : IllegalStateException("Cannot load shared configuration from file (${errors.size} errors):\n${errors.joinToString(System.lineSeparator())}")
+
+    internal fun updateSharedSettings(content: String): Result<Unit, SharedSettingsUpdateException> {
         val updateResult = Result.attempt { DEFAULT_OBJECT_MAPPER.readTree(content) }
             .map { node -> names().filter { node.has(it) }.associateWith { node.get(it) } }
             .orElseGet { emptyMap() }
@@ -63,7 +67,7 @@ class SharedConfigurationFacade(
         return failures
             .map { (ref, result) -> ref to result.error }
             .takeIf { it.isNotEmpty() }
-            ?.asError()
+            ?.let { SharedSettingsUpdateException(it).asError() }
             ?: ok()
     }
 

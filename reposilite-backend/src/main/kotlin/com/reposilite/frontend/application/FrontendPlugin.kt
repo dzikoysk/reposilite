@@ -17,6 +17,8 @@
 package com.reposilite.frontend.application
 
 import com.reposilite.Reposilite
+import com.reposilite.configuration.local.LocalConfiguration
+import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.frontend.FrontendFacade
 import com.reposilite.frontend.infrastructure.CustomFrontendHandler
 import com.reposilite.frontend.infrastructure.NotFoundHandler
@@ -26,8 +28,6 @@ import com.reposilite.plugin.api.ReposiliteInitializeEvent
 import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
-import com.reposilite.configuration.local.LocalConfiguration
-import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.web.api.HttpServerInitializationEvent
 import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.api.RoutingSetupEvent
@@ -36,7 +36,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.exists
 
-@Plugin(name = "frontend", dependencies = ["local-configuration", "shared-configuration"])
+@Plugin(name = "frontend", dependencies = ["local-configuration", "shared-configuration"], settings = FrontendSettings::class)
 internal class FrontendPlugin : ReposilitePlugin() {
 
     internal companion object {
@@ -46,7 +46,7 @@ internal class FrontendPlugin : ReposilitePlugin() {
 
     override fun initialize(): FrontendFacade {
         val sharedConfigurationFacade = facade<SharedConfigurationFacade>()
-        val frontendSettings = sharedConfigurationFacade.createDomainSettings(FrontendSettings())
+        val frontendSettings = sharedConfigurationFacade.getDomainSettings<FrontendSettings>()
 
         val localConfiguration = facade<LocalConfiguration>()
         val frontendFacade = FrontendFacade(localConfiguration.cacheContent, frontendSettings)

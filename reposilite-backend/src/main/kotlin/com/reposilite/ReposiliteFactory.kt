@@ -16,14 +16,13 @@
 
 package com.reposilite
 
+import com.reposilite.configuration.local.LocalConfigurationFactory
+import com.reposilite.configuration.local.infrastructure.DatabaseConnectionFactory
 import com.reposilite.journalist.Channel
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.backend.PrintStreamLogger
 import com.reposilite.plugin.Extensions
 import com.reposilite.plugin.PluginLoader
-import com.reposilite.plugin.loadExternalPlugins
-import com.reposilite.configuration.local.LocalConfigurationFactory
-import com.reposilite.configuration.local.infrastructure.DatabaseConnectionFactory
 import com.reposilite.shared.extensions.newFixedThreadPool
 import com.reposilite.shared.extensions.newSingleThreadScheduledExecutor
 import com.reposilite.web.HttpServer

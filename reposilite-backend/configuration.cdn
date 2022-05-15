@@ -1,0 +1,56 @@
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+#       Reposilite :: Local       #
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+# Local configuration contains init params for current Reposilite instance.
+# For more options, shared between instances, login to the dashboard with management token and visit 'Configuration' tab.
+
+# Hostname
+# The hostname can be used to limit which connections are accepted.
+# Use 0.0.0.0 to accept connections from anywhere.
+# 127.0.0.1 will only allow connections from localhost.
+hostname: 0.0.0.0
+# Port to bind
+port: 8080
+# Database configuration. Supported storage providers:
+# - mysql localhost:3306 database user password
+# - sqlite reposilite.db
+# - sqlite --temporary
+# Experimental providers (not covered with tests):
+# - postgresql localhost:5432 database user password
+# - h2 reposilite
+database: sqlite reposilite.db
+
+# Support encrypted connections
+sslEnabled: false
+# SSL port to bind
+sslPort: 443
+# Key store file to use.
+# You can specify absolute path to the given file or use ${WORKING_DIRECTORY} variable.
+keyStorePath: ${WORKING_DIRECTORY}/keystore.jks
+# Key store password to use
+keyStorePassword: ""
+# Redirect http traffic to https
+enforceSsl: false
+
+# Max amount of threads used by core thread pool (min: 5)
+# The web thread pool handles first few steps of incoming http connections, as soon as possible all tasks are redirected to IO thread pool.
+webThreadPool: 32
+# IO thread pool handles all tasks that may benefit from non-blocking IO (min: 2)
+# Because most of tasks are redirected to IO thread pool, it might be a good idea to keep it at least equal to web thread pool.
+ioThreadPool: 16
+# Database thread pool manages open connections to database (min: 1)
+# Embedded databases such as SQLite or H2 don't support truly concurrent connections, so the value will be always 1 for them if selected.
+databaseThreadPool: 2
+# Select compression strategy used by this instance.
+# Using 'none' reduces usage of CPU & memory, but ends up with higher transfer usage.
+# GZIP is better option if you're not limiting resources that much to increase overall request times.
+# Available strategies: none, gzip
+compressionStrategy: none
+
+# Keep processed frontend files in memory to improve response time
+cacheContent: true
+# Amount of messages stored in cached logger.
+cachedLogSize: 100
+# Debug mode
+debugEnabled: false

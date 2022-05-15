@@ -78,7 +78,7 @@ internal class RemoteSharedConfigurationProvider(
                 configurationFacade.saveConfiguration(name, renderConfiguration())
                 journalist.logger.info("Propagation | Sources have been updated successfully")
             }
-            .let { it.mapErr { ErrorResponse(INTERNAL_SERVER_ERROR, it.joinToString(",")) } }
+            .let { it.mapErr { ErrorResponse(INTERNAL_SERVER_ERROR, it.errors.joinToString(",")) } }
 
     override fun registerWatcher(scheduler: ScheduledExecutorService) {
         this.watcher = scheduler.scheduleWithFixedDelay({

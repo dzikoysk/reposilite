@@ -12,8 +12,8 @@ import com.reposilite.plugin.facade
 import com.reposilite.plugin.parameters
 import com.reposilite.status.FailureFacade
 import com.reposilite.web.api.RoutingSetupEvent
-import com.reposilite.web.application.WebSettings
 import java.util.ServiceLoader
+import kotlin.reflect.full.createInstance
 
 @Plugin(name = "shared-configuration", dependencies = ["failure", "configuration", "local-configuration"])
 class SharedConfigurationPlugin : ReposilitePlugin() {
@@ -23,14 +23,19 @@ class SharedConfigurationPlugin : ReposilitePlugin() {
         val failureFacade = facade<FailureFacade>()
         val configurationFacade = facade<ConfigurationFacade>()
 
+        logger.info("")
+        logger.info("--- Settings")
+
         val sharedConfigurationFacade = SharedConfigurationFacade(
             journalist = this,
             schemaGenerator = createSharedConfigurationSchemaGenerator(),
             failureFacade = failureFacade
         )
 
-        logger.info("")
-        logger.info("--- Settings")
+        extensions().getPlugins().values
+            .map { it.metadata.settings }
+            .filter { it != SharedSettings::class }
+            .forEach { sharedConfigurationFacade.createDomainSettings(it.createInstance()) }
 
         when (val sharedConfigurationFile = parameters.sharedConfigurationPath) {
             null -> configurationFacade.registerCustomConfigurationProvider(
@@ -50,7 +55,6 @@ class SharedConfigurationPlugin : ReposilitePlugin() {
             )
         }
 
-        sharedConfigurationFacade.createDomainSettings(WebSettings())
 
         event { event: RoutingSetupEvent ->
             event.registerRoutes(SettingsEndpoints(sharedConfigurationFacade))

@@ -34,7 +34,7 @@ class GroovyPlugin : ReposilitePlugin() {
             pluginDirectoryStream
                 .filter { it.getSimpleName().endsWith(".groovy") }
                 .map { groovyClassLoader.parseClass(it.toFile()) }
-                .forEach { loader.registerPlugin(it.getConstructor().newInstance() as ReposilitePlugin) }
+                .forEach { extensions().registerPlugin(it.getConstructor().newInstance() as ReposilitePlugin) }
         }
     }
 
