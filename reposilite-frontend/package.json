@@ -35,7 +35,7 @@
     "body-parser": "^1.20.0",
     "concurrently": "^7.2.0",
     "eslint": "^8.15.0",
-    "eslint-plugin-vue": "^8.6.0",
+    "eslint-plugin-vue": "^8.7.1",
     "express": "^4.18.1",
     "express-ws": "^5.0.2",
     "json-server": "^0.17.0",
