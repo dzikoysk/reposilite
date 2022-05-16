@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@vueform/toggle": "^2.0.2",
-    "@vueuse/core": "^8.4.2",
+    "@vueuse/core": "^8.5.0",
     "@vueuse/head": "^0.7.6",
     "ansi-to-html": "^0.7.2",
     "axios": "^0.27.2",
