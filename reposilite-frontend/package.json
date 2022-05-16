@@ -10,7 +10,7 @@
     "full": "concurrently -k \"npm run fake-api\" \"vite\""
   },
   "dependencies": {
-    "@vueform/toggle": "^2.0.1",
+    "@vueform/toggle": "^2.0.2",
     "@vueuse/core": "^8.4.2",
     "@vueuse/head": "^0.7.6",
     "ansi-to-html": "^0.7.2",
