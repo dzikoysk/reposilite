@@ -50,11 +50,11 @@ class SharedConfigurationFacade(
             .orElseGet { emptyMap() }
             .mapKeys { (name) -> getSettingsReference<SharedSettings>(name)!! }
             .mapValues { (ref, obj) -> DEFAULT_OBJECT_MAPPER.readValue(obj.toString(), ref.type.java) }
-            .map { (ref, settings) -> ref to updateSharedSettings(ref.name, settings)!! }
+            .map { (ref, settings) -> ref to ref.update(settings) }
 
         updateResult
             .filter { (_, result) -> result.isOk }
-            .forEach { (ref) -> journalist.logger.info("Shared configuration | Domain '${ref.name}' has been loaded from database") }
+            .forEach { (ref) -> journalist.logger.info("Domain '${ref.name}' has been loaded from ${sharedConfigurationProvider.name()}") }
 
         val failures = updateResult
             .filter { (_, result) -> result.isErr }

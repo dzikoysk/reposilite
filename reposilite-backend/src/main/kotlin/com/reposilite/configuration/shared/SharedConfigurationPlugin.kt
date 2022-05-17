@@ -51,7 +51,7 @@ class SharedConfigurationPlugin : ReposilitePlugin() {
             sharedConfigurationProvider = sharedConfigurationProvider
         )
 
-        logger.info("Shared Configuration | Loading shared configuration from ${sharedConfigurationProvider.name()}")
+        logger.info("Loading shared configuration from ${sharedConfigurationProvider.name()}")
         sharedConfigurationFacade.loadSharedSettingsFromString(sharedConfigurationProvider.fetchConfiguration())
 
         if (sharedConfigurationProvider.isMutable()) {
@@ -60,9 +60,9 @@ class SharedConfigurationPlugin : ReposilitePlugin() {
                     return@scheduleWithFixedDelay
                 }
 
-                logger.info("Shared Configuration | Propagation | Shared configuration has been changed in ${sharedConfigurationProvider.name()}, updating current instance...")
+                logger.info("Propagation | Shared configuration has been changed in ${sharedConfigurationProvider.name()}, updating current instance...")
                 sharedConfigurationFacade.loadSharedSettingsFromString(sharedConfigurationProvider.fetchConfiguration())
-                logger.info("Shared Configuration | Propagation | Sources have been updated successfully")
+                logger.info("Propagation | Sources have been updated successfully")
             }, 10, 10, TimeUnit.SECONDS)
 
             event { _: ReposiliteDisposeEvent ->

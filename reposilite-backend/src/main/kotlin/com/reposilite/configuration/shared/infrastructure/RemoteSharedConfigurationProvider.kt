@@ -32,6 +32,7 @@ internal class RemoteSharedConfigurationProvider(
 
     override fun updateConfiguration(content: String) {
         configurationFacade.saveConfiguration(CONFIGURATION_NAME, content)
+        fetchConfiguration()
     }
 
     override fun fetchConfiguration(): String {
@@ -50,6 +51,6 @@ internal class RemoteSharedConfigurationProvider(
         true
 
     override fun name(): String =
-        "remote "
+        "remote database"
 
 }

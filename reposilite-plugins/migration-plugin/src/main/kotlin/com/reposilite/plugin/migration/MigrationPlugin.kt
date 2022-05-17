@@ -38,13 +38,13 @@ class MigrationPlugin : ReposilitePlugin() {
         val tokensFile = workingDirectory.resolve("tokens.dat")
 
         if (Files.notExists(tokensFile)) {
-            logger.warn("[Migration] 'tokens.dat' file not found in working directory, there is nothing that migration plugin can do.")
+            logger.warn("Migration | 'tokens.dat' file not found in working directory, there is nothing that migration plugin can do.")
             return null
         }
 
-        logger.warn("[Migration] Reposilite 2.x 'tokens.dat' file found, the migration procedure has started.")
+        logger.warn("Migration | Reposilite 2.x 'tokens.dat' file found, the migration procedure has started.")
         val tokenCollection = Yaml.default.decodeFromStream(TokenCollection.serializer(), tokensFile.readBytes().inputStream())
-        logger.warn("[Migration] ${tokenCollection.tokens.size} token(s) found in 'tokens.dat' file.")
+        logger.warn("Migration | ${tokenCollection.tokens.size} token(s) found in 'tokens.dat' file.")
 
         val migratedTokens = tokenCollection.tokens.map { token ->
             val routePermissions = token.permissions
@@ -79,9 +79,9 @@ class MigrationPlugin : ReposilitePlugin() {
 
         val exportService = ExportService()
         exportService.exportToFile(migratedTokens, workingDirectory.resolve("tokens.json"))
-        logger.warn("[Migration] ${migratedTokens.size} token(s) have been exported to 'tokens.json' file.")
-        logger.warn("[Migration] Run 'token-import tokens.json' command to import those tokens.")
-        logger.warn("[Migration] This plugin is no longer needed, you can remove it.")
+        logger.warn("Migration | ${migratedTokens.size} token(s) have been exported to 'tokens.json' file.")
+        logger.warn("Migration | Run 'token-import tokens.json' command to import those tokens.")
+        logger.warn("Migration | This plugin is no longer needed, you can remove it.")
 
         return migratedTokens
     }
