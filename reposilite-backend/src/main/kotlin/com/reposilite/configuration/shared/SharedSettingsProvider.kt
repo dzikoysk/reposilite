@@ -17,6 +17,7 @@ data class SharedSettingsProvider(
             .map { mutableReference(it) }
             .associateBy { it.get()::class }
             .let { SharedSettingsProvider(it) }
+
     }
 
 }

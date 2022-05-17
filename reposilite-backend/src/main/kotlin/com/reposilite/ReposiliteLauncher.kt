@@ -15,10 +15,7 @@
  */
 package com.reposilite
 
-import com.reposilite.configuration.local.LocalConfiguration
-import com.reposilite.configuration.local.infrastructure.LOCAL_CONFIGURATION_FILE
-import net.dzikoysk.cdn.KCdnFactory
-import net.dzikoysk.cdn.source.Source
+import com.reposilite.configuration.generateRequestedConfiguration
 import picocli.CommandLine
 
 fun main(args: Array<String>) {
@@ -37,11 +34,7 @@ fun createWithParameters(vararg args: String): Reposilite? {
     }
 
     if (parameters.configurationRequested != null) {
-        when (parameters.configurationRequested?.lowercase()) {
-            "configuration.cdn" -> KCdnFactory.createStandard().render(LocalConfiguration(), Source.of(parameters.workingDirectory.resolve(LOCAL_CONFIGURATION_FILE)))
-            // TODO "shared.configuration.json" -> KCdnFactory.createJsonLike().render(SharedConfiguration(), Source.of(parameters.workingDirectory.resolve(SHARED_CONFIGURATION_FILE)))
-            else -> println("Unknown configuration: ${parameters.configurationRequested}")
-        }
+        generateRequestedConfiguration(parameters)
         return null
     }
 
