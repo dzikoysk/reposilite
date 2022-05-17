@@ -22,7 +22,7 @@ plugins {
     jacoco
     kotlin("jvm")
     kotlin("kapt")
-    id("com.coditory.integration-test") version "1.3.0"
+    id("com.coditory.integration-test") version "1.4.0"
     id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
@@ -47,10 +47,10 @@ dependencies {
     api("net.dzikoysk:cdn:$cdn")
     api("net.dzikoysk:cdn-kt:$cdn")
 
-    val awssdk = "2.17.186"
+    val awssdk = "2.17.192"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
-    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.215")
+    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.220")
 
     val exposed = "0.38.2"
     implementation("org.jetbrains.exposed:exposed-core:$exposed")
@@ -88,7 +88,7 @@ dependencies {
     //api("io.javalin:javalin:4.1.1")
     // api("com.github.dzikoysk.javalin:javalin:97b4481c0a")
     // api("com.github.tipsy.javalin:javalin:d00c8512c9")
-    api("io.javalin:javalin:4.5.0")
+    api("io.javalin:javalin:4.6.0")
 
     @Suppress("GradlePackageUpdate")
     implementation("org.eclipse.jetty:jetty-server:9.4.46.v20220331")
@@ -99,7 +99,7 @@ dependencies {
     kapt("info.picocli:picocli-codegen:$picocli")
     api("info.picocli:picocli:$picocli")
 
-    val jackson = "2.13.2"
+    val jackson = "2.13.3"
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jackson")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jackson")
