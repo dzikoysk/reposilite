@@ -6,14 +6,16 @@ import com.reposilite.configuration.shared.infrastructure.LocalSharedConfigurati
 import com.reposilite.configuration.shared.infrastructure.RemoteSharedConfigurationProvider
 import com.reposilite.configuration.shared.infrastructure.SettingsEndpoints
 import com.reposilite.plugin.api.Plugin
+import com.reposilite.plugin.api.ReposiliteDisposeEvent
 import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
 import com.reposilite.plugin.parameters
+import com.reposilite.plugin.reposilite
 import com.reposilite.status.FailureFacade
 import com.reposilite.web.api.RoutingSetupEvent
 import java.util.ServiceLoader
-import kotlin.reflect.full.createInstance
+import java.util.concurrent.TimeUnit
 
 @Plugin(name = "shared-configuration", dependencies = ["failure", "configuration", "local-configuration"])
 class SharedConfigurationPlugin : ReposilitePlugin() {
@@ -23,38 +25,50 @@ class SharedConfigurationPlugin : ReposilitePlugin() {
         val failureFacade = facade<FailureFacade>()
         val configurationFacade = facade<ConfigurationFacade>()
 
-        logger.info("")
-        logger.info("--- Settings")
-
-        val sharedConfigurationFacade = SharedConfigurationFacade(
-            journalist = this,
-            schemaGenerator = createSharedConfigurationSchemaGenerator(),
-            failureFacade = failureFacade
-        )
-
-        extensions().getPlugins().values
+        val sharedSettingsProvider = extensions().getPlugins().values
             .map { it.metadata.settings }
             .filter { it != SharedSettings::class }
-            .forEach { sharedConfigurationFacade.createDomainSettings(it.createInstance()) }
+            .let { SharedSettingsProvider.createStandardProvider(it) }
 
-        when (val sharedConfigurationFile = parameters.sharedConfigurationPath) {
-            null -> configurationFacade.registerCustomConfigurationProvider(
+        val sharedConfigurationProvider = when (val sharedConfigurationFile = parameters.sharedConfigurationPath) {
+            null ->
                 RemoteSharedConfigurationProvider(
-                    journalist = this,
                     configurationFacade = configurationFacade,
-                    sharedConfigurationFacade = sharedConfigurationFacade
                 )
-            )
-            else -> configurationFacade.registerCustomConfigurationProvider(
+            else ->
                 LocalSharedConfigurationProvider(
                     journalist = this,
                     workingDirectory = parameters.workingDirectory,
                     configurationFile = sharedConfigurationFile,
-                    sharedConfigurationFacade = sharedConfigurationFacade
                 )
-            )
         }
 
+        val sharedConfigurationFacade = SharedConfigurationFacade(
+            journalist = this,
+            schemaGenerator = createSharedConfigurationSchemaGenerator(),
+            failureFacade = failureFacade,
+            sharedSettingsProvider = sharedSettingsProvider,
+            sharedConfigurationProvider = sharedConfigurationProvider
+        )
+
+        logger.info("Shared Configuration | Loading shared configuration from ${sharedConfigurationProvider.name()}")
+        sharedConfigurationFacade.loadSharedSettingsFromString(sharedConfigurationProvider.fetchConfiguration())
+
+        if (sharedConfigurationProvider.isMutable()) {
+            val watcher = reposilite().scheduler.scheduleWithFixedDelay({
+                if (!sharedConfigurationProvider.isUpdateRequired()) {
+                    return@scheduleWithFixedDelay
+                }
+
+                logger.info("Shared Configuration | Propagation | Shared configuration has been changed in ${sharedConfigurationProvider.name()}, updating current instance...")
+                sharedConfigurationFacade.loadSharedSettingsFromString(sharedConfigurationProvider.fetchConfiguration())
+                logger.info("Shared Configuration | Propagation | Sources have been updated successfully")
+            }, 10, 10, TimeUnit.SECONDS)
+
+            event { _: ReposiliteDisposeEvent ->
+                watcher.cancel(false)
+            }
+        }
 
         event { event: RoutingSetupEvent ->
             event.registerRoutes(SettingsEndpoints(sharedConfigurationFacade))

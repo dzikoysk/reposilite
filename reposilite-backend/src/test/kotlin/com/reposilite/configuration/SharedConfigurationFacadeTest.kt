@@ -33,7 +33,6 @@ internal class SharedConfigurationFacadeTest : SharedConfigurationSpecification(
     @Test
     fun `should generate a valid json schema describing settings entity`() {
         // given: a known domain settings
-        sharedConfigurationFacade.createDomainSettings(TestSettings())
 
         // when: test's schema is requested
         val schema = sharedConfigurationFacade.getSettingsReference<TestSettings>("test")!!.schema

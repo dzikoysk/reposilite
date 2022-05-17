@@ -16,86 +16,40 @@
 
 package com.reposilite.configuration.shared.infrastructure
 
-import com.reposilite.ReposiliteObjectMapper.DEFAULT_OBJECT_MAPPER
 import com.reposilite.configuration.ConfigurationFacade
-import com.reposilite.configuration.ConfigurationProvider
-import com.reposilite.configuration.shared.SharedConfigurationFacade
-import com.reposilite.configuration.shared.SharedSettings
-import com.reposilite.journalist.Journalist
-import com.reposilite.journalist.Logger
-import com.reposilite.web.http.ErrorResponse
-import io.javalin.http.HttpCode.INTERNAL_SERVER_ERROR
-import panda.std.Result
-import panda.std.asSuccess
+import com.reposilite.configuration.shared.SharedConfigurationProvider
 import java.time.Instant
-import java.util.concurrent.ScheduledExecutorService
-import java.util.concurrent.ScheduledFuture
-import java.util.concurrent.TimeUnit
 
 internal class RemoteSharedConfigurationProvider(
-    private val journalist: Journalist,
     private val configurationFacade: ConfigurationFacade,
-    private val sharedConfigurationFacade: SharedConfigurationFacade
-) : ConfigurationProvider, Journalist {
+) : SharedConfigurationProvider {
 
-    override val name = "shared-configuration"
-    override val displayName = "Shared (remote) configuration"
+    companion object {
+        private const val CONFIGURATION_NAME = "remote-shared-configuration"
+    }
 
     private var databaseUpdateTime = Instant.ofEpochMilli(0)
-    private var watcher: ScheduledFuture<*>? = null
 
-    override fun initialize(): Boolean {
-        journalist.logger.info("Loading ${displayName.lowercase()} from database")
-        return loadRemoteConfiguration()
+    override fun updateConfiguration(content: String) {
+        configurationFacade.saveConfiguration(CONFIGURATION_NAME, content)
     }
 
-    private fun loadRemoteConfiguration(): Boolean =
-        configurationFacade.findConfiguration(name)
-            ?.let { sharedConfigurationFacade.updateSharedSettings(it) }
-            ?.also { refreshUpdateTime() }
-            ?.isOk
-            ?: generateConfiguration().isOk
-
-    private fun generateConfiguration(): Result<Unit, *> =
-        renderConfiguration()
-            .let { configurationFacade.saveConfiguration(name, it) }
-            .also { refreshUpdateTime() }
-            .asSuccess<Unit, Nothing>()
-
-    private fun renderConfiguration(): String =
-        sharedConfigurationFacade.names()
-            .associateWith { sharedConfigurationFacade.getSettingsReference<SharedSettings>(it)!!.get() }
-            .let { DEFAULT_OBJECT_MAPPER.writeValueAsString(it) }
+    override fun fetchConfiguration(): String {
+        refreshUpdateTime()
+        return configurationFacade.findConfiguration(CONFIGURATION_NAME) ?: ""
+    }
 
     private fun refreshUpdateTime() {
-        this.databaseUpdateTime = configurationFacade.findConfigurationUpdateDate(name) ?: databaseUpdateTime
+        this.databaseUpdateTime = configurationFacade.findConfigurationUpdateDate(CONFIGURATION_NAME) ?: databaseUpdateTime
     }
 
-    override fun update(content: String): Result<Unit, ErrorResponse> =
-        sharedConfigurationFacade.updateSharedSettings(content)
-            .also {
-                journalist.logger.info("Propagation | $displayName has updated, updating sources...")
-                configurationFacade.saveConfiguration(name, renderConfiguration())
-                journalist.logger.info("Propagation | Sources have been updated successfully")
-            }
-            .let { it.mapErr { ErrorResponse(INTERNAL_SERVER_ERROR, it.errors.joinToString(",")) } }
+    override fun isUpdateRequired(): Boolean =
+        configurationFacade.findConfigurationUpdateDate(CONFIGURATION_NAME)?.isAfter(databaseUpdateTime) == true
 
-    override fun registerWatcher(scheduler: ScheduledExecutorService) {
-        this.watcher = scheduler.scheduleWithFixedDelay({
-            configurationFacade.findConfigurationUpdateDate(name)
-                ?.takeIf { it.isAfter(databaseUpdateTime) }
-                ?.run {
-                    journalist.logger.info("Propagation | $displayName has been changed in remote source, updating current instance...")
-                    loadRemoteConfiguration()
-                }
-        }, 10, 10, TimeUnit.SECONDS)
-    }
+    override fun isMutable(): Boolean =
+        true
 
-    override fun shutdown() {
-        watcher?.cancel(false)
-    }
-
-    override fun getLogger(): Logger =
-        journalist.logger
+    override fun name(): String =
+        "remote "
 
 }

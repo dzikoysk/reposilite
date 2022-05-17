@@ -9,28 +9,30 @@ import panda.std.Result
 import panda.std.asError
 import panda.std.ok
 import panda.std.reactive.MutableReference
-import panda.std.reactive.mutableReference
+import kotlin.reflect.KClass
 
 class SharedConfigurationFacade(
     private val journalist: Journalist,
     private val schemaGenerator: SchemaGenerator,
-    private val failureFacade: FailureFacade
+    private val failureFacade: FailureFacade,
+    private val sharedSettingsProvider: SharedSettingsProvider,
+    private val sharedConfigurationProvider: SharedConfigurationProvider
 ) : Facade {
 
-    private val domains = mutableMapOf<Class<*>, MutableReference<*>>()
     private val configHandlers = mutableMapOf<String, SharedSettingsReference<*>>()
 
-    internal fun <S : SharedSettings> createDomainSettings(settingsInstance : S): MutableReference<S> =
-        mutableReference(settingsInstance).also {
-            domains[settingsInstance.javaClass] = it
-            registerSettingsWatcher(settingsInstance.javaClass, it)
+    init {
+        sharedSettingsProvider.domains.forEach { (type, settings) ->
+            registerSettingsWatcher(
+                DefaultSharedSettingsReference(
+                    type = type,
+                    schemaGenerator = schemaGenerator,
+                    getter = { settings.get() },
+                    setter = { settings.update(it) }
+                )
+            )
         }
-
-    private fun <T : SharedSettings> registerSettingsWatcher(type: Class<T>, reference: MutableReference<T>): SharedSettingsReference<T> =
-        registerSettingsWatcher(type, reference::get) { reference.update(it) }
-
-    private fun <T : SharedSettings> registerSettingsWatcher(type: Class<T>, getter: () -> T, setter: (T) -> Unit): SharedSettingsReference<T> =
-        registerSettingsWatcher(DefaultSharedSettingsReference(type, schemaGenerator, getter, setter))
+    }
 
     private fun <T : SharedSettings> registerSettingsWatcher(handler: SharedSettingsReference<T>): SharedSettingsReference<T> =
         handler.also {
@@ -42,12 +44,12 @@ class SharedConfigurationFacade(
         val errors: Collection<Pair<SharedSettingsReference<*>, Exception>>
     ) : IllegalStateException("Cannot load shared configuration from file (${errors.size} errors):\n${errors.joinToString(System.lineSeparator())}")
 
-    internal fun updateSharedSettings(content: String): Result<Unit, SharedSettingsUpdateException> {
+    internal fun loadSharedSettingsFromString(content: String): Result<Unit, SharedSettingsUpdateException> {
         val updateResult = Result.attempt { DEFAULT_OBJECT_MAPPER.readTree(content) }
             .map { node -> names().filter { node.has(it) }.associateWith { node.get(it) } }
             .orElseGet { emptyMap() }
             .mapKeys { (name) -> getSettingsReference<SharedSettings>(name)!! }
-            .mapValues { (ref, obj) -> DEFAULT_OBJECT_MAPPER.readValue(obj.toString(), ref.type) }
+            .mapValues { (ref, obj) -> DEFAULT_OBJECT_MAPPER.readValue(obj.toString(), ref.type.java) }
             .map { (ref, settings) -> ref to updateSharedSettings(ref.name, settings)!! }
 
         updateResult
@@ -73,14 +75,21 @@ class SharedConfigurationFacade(
 
     @Suppress("UNCHECKED_CAST")
     fun <S : SharedSettings> updateSharedSettings(name: String, body: S): Result<S, out Exception>? =
-        getSettingsReference<S>(name)?.update(body)
+        getSettingsReference<S>(name)
+            ?.update(body)
+            ?.peek { sharedConfigurationProvider.updateConfiguration(renderConfiguration()) }
 
-    inline fun <reified T> getDomainSettings(): MutableReference<T> =
-        getDomainSettings(T::class.java)
+    private fun renderConfiguration(): String =
+        names()
+            .associateWith { getSettingsReference<SharedSettings>(it)!!.get() }
+            .let { DEFAULT_OBJECT_MAPPER.writeValueAsString(it) }
+
+    inline fun <reified T : SharedSettings> getDomainSettings(): MutableReference<T> =
+        getDomainSettings(T::class)
 
     @Suppress("UNCHECKED_CAST")
-    fun <S> getDomainSettings(settingsClass: Class<S>): MutableReference<S> =
-        domains[settingsClass] as MutableReference<S>
+    fun <S : SharedSettings> getDomainSettings(settingsClass: KClass<S>): MutableReference<S> =
+        sharedSettingsProvider.domains[settingsClass] as MutableReference<S>
 
     @Suppress("UNCHECKED_CAST")
     fun <S : SharedSettings> getSettingsReference(name: String): SharedSettingsReference<S>? =

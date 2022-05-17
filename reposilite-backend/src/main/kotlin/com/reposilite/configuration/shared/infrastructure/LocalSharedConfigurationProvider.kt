@@ -1,9 +1,7 @@
 package com.reposilite.configuration.shared.infrastructure
 
-import com.reposilite.configuration.infrastructure.FileConfigurationProvider
-import com.reposilite.configuration.shared.SharedConfigurationFacade
+import com.reposilite.configuration.shared.SharedConfigurationProvider
 import com.reposilite.journalist.Journalist
-import panda.std.Result
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.exists
@@ -11,25 +9,28 @@ import kotlin.io.path.exists
 const val SHARED_CONFIGURATION_FILE = "configuration.shared.json"
 
 class LocalSharedConfigurationProvider(
-    journalist: Journalist,
-    workingDirectory: Path,
-    configurationFile: Path,
-    val sharedConfigurationFacade: SharedConfigurationFacade
-) : FileConfigurationProvider(
-    name = SHARED_CONFIGURATION_FILE,
-    displayName = "Shared (local) configuration",
-    journalist = journalist,
-    workingDirectory = workingDirectory,
-    configurationFile = configurationFile,
-) {
+    val journalist: Journalist,
+    val workingDirectory: Path,
+    val configurationFile: Path,
+) : SharedConfigurationProvider {
 
-    override fun initializeConfigurationFile(): Result<*, out Exception> =
+    override fun updateConfiguration(content: String) {
+        Files.writeString(workingDirectory.resolve(configurationFile), content)
+    }
+
+    override fun fetchConfiguration(): String =
         workingDirectory.resolve(configurationFile)
-            .let { Result.`when`<Path, Exception>(it.exists(), { it }, { IllegalStateException("$configurationFile does not exist") }) }
-            .map { Files.readString(it) }
-            .flatMap { sharedConfigurationFacade.updateSharedSettings(it) }
+            .takeIf { it.exists() }
+            ?.let { Files.readString(it) }
+            ?: ""
 
-    override fun loadContent(content: String): Result<Unit, out Exception> =
-        sharedConfigurationFacade.updateSharedSettings(content)
+    override fun isUpdateRequired(): Boolean =
+        false
+
+    override fun isMutable(): Boolean =
+        false
+
+    override fun name(): String =
+        "local file-system"
 
 }

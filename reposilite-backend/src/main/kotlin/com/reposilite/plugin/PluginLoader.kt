@@ -34,9 +34,13 @@ class PluginLoader(
             .forEach { (_, plugin) -> plugin.load(this) }
 
         val plugins = sortPlugins()
+
         extensions.logger.info("")
         extensions.logger.info("--- Loading plugins (${plugins.size}):")
-        extensions.logger.info(plugins.joinToString(", ", transform = { (metadata, _) -> metadata.name }))
+
+        plugins.chunked(5).forEach {
+            extensions.logger.info(it.joinToString(", ", transform = { (metadata, _) -> metadata.name }))
+        }
 
         plugins.forEach { (_, plugin) ->
             plugin.initialize()?.apply { extensions.registerFacade(this) }

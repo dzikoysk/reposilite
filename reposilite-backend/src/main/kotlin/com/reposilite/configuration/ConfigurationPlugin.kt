@@ -16,12 +16,10 @@
 
 package com.reposilite.configuration
 
-import com.reposilite.plugin.api.Plugin
-import com.reposilite.plugin.api.ReposiliteDisposeEvent
-import com.reposilite.plugin.api.ReposilitePlugin
-import com.reposilite.plugin.event
-import com.reposilite.plugin.reposilite
 import com.reposilite.configuration.infrastructure.SqlConfigurationRepository
+import com.reposilite.plugin.api.Plugin
+import com.reposilite.plugin.api.ReposilitePlugin
+import com.reposilite.plugin.reposilite
 
 @Plugin(name = "configuration")
 internal class ConfigurationPlugin : ReposilitePlugin() {
@@ -29,13 +27,11 @@ internal class ConfigurationPlugin : ReposilitePlugin() {
     override fun initialize(): ConfigurationFacade {
         val reposilite = reposilite()
         val configurationRepository = SqlConfigurationRepository(reposilite.database)
-        val configurationFacade = ConfigurationFacade(configurationRepository, reposilite.scheduler)
 
-        event { _: ReposiliteDisposeEvent ->
-            configurationFacade.shutdownProviders()
-        }
+        logger.info("")
+        logger.info("--- Settings")
 
-        return configurationFacade
+        return ConfigurationFacade(configurationRepository)
     }
 
 }
