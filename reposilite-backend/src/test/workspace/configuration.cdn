@@ -11,7 +11,7 @@
 # 127.0.0.1 will only allow connections from localhost.
 hostname: 0.0.0.0
 # Port to bind
-port: 80
+port: 8080
 # Database configuration. Supported storage providers:
 # - mysql localhost:3306 database user password
 # - sqlite reposilite.db

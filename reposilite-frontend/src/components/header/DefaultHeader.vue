@@ -16,8 +16,8 @@
 
 <script setup>
 import usePlaceholders from '../../store/placeholders'
-import Hero from './Hero.vue'
-import Menu from './Menu.vue'
+import HeaderHero from './HeaderHero.vue'
+import MenuPanel from './MenuPanel.vue'
 
 defineProps({
   logoClickCallback: {
@@ -35,8 +35,8 @@ const { title } = usePlaceholders()
       <h1 @click="logoClickCallback" class="text-xl font-medium py-1 <sm:w-1/2">
         <router-link :to="'/'">{{ title }}</router-link>
       </h1>
-      <Menu class="mt-0.5"/>
+      <MenuPanel class="mt-0.5"/>
     </div>
-    <Hero class="pt-2 pb-10 <sm:pb-4" />
+    <HeaderHero class="pt-2 pb-10 <sm:pb-4" />
   </header>
 </template>

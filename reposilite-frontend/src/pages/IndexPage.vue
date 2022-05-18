@@ -17,10 +17,10 @@
 <script setup>
 import { computed, ref, watchEffect } from 'vue'
 import { useSession } from '../store/session'
-import Header from '../components/header/Header.vue'
-import Browser from '../components/browser/FileBrowser.vue'
-import Configuration from '../components/settings/Settings.vue'
-import Console from '../components/Console.vue'
+import DefaultHeader from '../components/header/DefaultHeader.vue'
+import FileBrowserView from '../components/browser/FileBrowserView.vue'
+import ConsoleView from '../components/console/ConsoleView.vue'
+import SettingsView from '../components/settings/SettingsView.vue'
 import {Tabs, Tab, TabPanels, TabPanel} from 'vue3-tabs'
 
 defineProps({
@@ -53,7 +53,7 @@ const selectHomepage = () =>
 
 <template>
   <div>
-    <Header :logoClickCallback="selectHomepage" />
+    <DefaultHeader :logoClickCallback="selectHomepage" />
     <div class="bg-gray-100 dark:bg-black overflow-y-visible">
       <div class="container mx-auto <sm:px-0">
         <Tabs v-model="selectedTab">
@@ -71,13 +71,13 @@ const selectHomepage = () =>
       <div class="overflow-auto">
         <TabPanels v-model="selectedTab" :animate="true">
           <TabPanel :val="'Overview'">
-            <Browser :qualifier="qualifier" ref=""/>
+            <FileBrowserView :qualifier="qualifier" ref=""/>
           </TabPanel>
           <TabPanel :val="'Console'" v-if="isManager">
-            <Console :selectedTab="selectedTab" />
+            <ConsoleView :selectedTab="selectedTab" />
           </TabPanel>
            <TabPanel :val="'Settings'" v-if="isManager">
-            <Configuration :selectedTab="selectedTab" />
+            <SettingsView :selectedTab="selectedTab" />
           </TabPanel>
         </TabPanels>
       </div>

@@ -24,11 +24,10 @@ module.exports = {
     'plugin:vue/vue3-essential',
   ],
   rules: {
-    // override/add rules settings here, such as:
     'vue/script-setup-uses-vars': 'error',
     'vue/no-setup-props-destructure': 'error',
-    // 'vue/no-unused-vars': 'error',
-    'vue/multi-word-component-names': 'off',
+    'vue/no-unused-vars': 'error',
+    'vue/multi-word-component-names': 'error',
     'semi': ['error', 'never']
   }
 }
