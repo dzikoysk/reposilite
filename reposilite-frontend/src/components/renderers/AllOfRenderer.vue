@@ -2,7 +2,7 @@
   <div v-if="control.visible">
     <template v-if="delegateUISchema">
       <DispatchRenderer
-          :schema="subSchema"
+          :schema="control.schema"
           :uischema="delegateUISchema"
           :path="control.path"
           :enabled="control.enabled"
@@ -40,19 +40,16 @@ export default {
   props: rendererProps(),
   setup: props => useVanillaControl(useJsonFormsAllOfControl(props)),
   computed: {
-    subSchema() {
-      return this.control.schema
-    },
     delegateUISchema() {
       return findMatchingUISchema(this.control.uischemas)(
-          this.subSchema,
+          this.control.schema,
           this.control.uischema.scope,
           this.control.path
       )
     },
     allOfRenderInfos() {
       return createCombinatorRenderInfos(
-          this.subSchema.allOf,
+          this.control.schema.allOf,
           this.control.rootSchema,
           'allOf',
           this.control.uischema,
@@ -63,7 +60,3 @@ export default {
   }
 }
 </script>
-
-<style scoped>
-
-</style>
