@@ -28,6 +28,7 @@ module.exports = {
     'vue/script-setup-uses-vars': 'error',
     'vue/no-setup-props-destructure': 'error',
     // 'vue/no-unused-vars': 'error',
+    'vue/multi-word-component-names': 'off',
     'semi': ['error', 'never']
   }
 }

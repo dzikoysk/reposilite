@@ -30,8 +30,8 @@
   </div>
   <DialogWrapper :open="dialog">
     <p>
-      Your data will be cleared if you navigate away from this tab. Do you
-      want to proceed?
+      Your data will be cleared if you navigate away from this tab. 
+      Do you want to proceed?
     </p>
     <div class="dialog-actions">
       <button @click="cancel"> No </button>
@@ -48,7 +48,6 @@ import {
   getData, getSchema, isInherentlyEnabled,
   isOneOfControl,
   rankWith,
-  resolveSubSchemas
 } from '@jsonforms/core'
 import {DispatchRenderer, rendererProps, useJsonFormsOneOfControl} from '@jsonforms/vue'
 import {useVanillaControl} from '@dzikoysk/vue-vanilla'
@@ -113,11 +112,7 @@ export default {
   },
   computed: {
     subSchema() {
-      return resolveSubSchemas(
-          this.control.schema,
-          this.control.rootSchema,
-          'oneOf'
-      )
+      return this.control.schema
     },
     oneOfRenderInfos() {
       return createCombinatorRenderInfos(

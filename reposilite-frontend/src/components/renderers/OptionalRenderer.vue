@@ -1,10 +1,13 @@
 <template>
   <div>
-    <label>
+    <div class="label">
       {{ control.label }}
-      <input type="checkbox" v-model="present" />
-    </label><!-- TODO styling -->
-    <div v-if="present && control.visible">
+      <input type="checkbox" v-model="present" class="mx-4 mb-1" />
+    </div>
+    <div class="description">
+      {{ control.description }}
+    </div>
+    <div v-if="present && control.visible" class="border-1 rounded-lg mt-1">
       <DispatchRenderer
         :visible="control.visible"
         :enabled="control.enabled"

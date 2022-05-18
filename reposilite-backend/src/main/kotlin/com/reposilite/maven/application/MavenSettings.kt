@@ -1,12 +1,12 @@
 package com.reposilite.maven.application
 
 import com.reposilite.auth.api.Credentials
-import com.reposilite.maven.RepositoryVisibility
-import com.reposilite.maven.RepositoryVisibility.PRIVATE
-import com.reposilite.maven.RepositoryVisibility.PUBLIC
 import com.reposilite.configuration.shared.Doc
 import com.reposilite.configuration.shared.Min
 import com.reposilite.configuration.shared.SharedSettings
+import com.reposilite.maven.RepositoryVisibility
+import com.reposilite.maven.RepositoryVisibility.PRIVATE
+import com.reposilite.maven.RepositoryVisibility.PUBLIC
 import com.reposilite.storage.StorageProviderSettings
 import com.reposilite.storage.filesystem.FileSystemStorageProviderSettings
 
@@ -50,10 +50,23 @@ data class ProxiedRepository(
     @Min(0)
     @Doc(title = "Read Timeout", description = "How long Reposilite can read data from remote proxy.")
     val readTimeout: Int = 15,
-    @Doc(title = "Authorisation", description = "The authorisation information of the proxied repository.")
-    val authorization: Credentials? = null,
+    @Doc(title = "Authorization", description = "The authorization information of the proxied repository.")
+    val authorization: ProxiedCredentials? = null,
     @Doc(title = "Allowed Groups", description = "Allowed artifact groups. If none are given, all artifacts can be obtained from this proxy.")
     val allowedGroups: List<String> = listOf(),
     @Doc(title = "Proxy", description = "Custom proxy configuration for HTTP client used by Reposilite")
     val proxy: String = ""
 ) : SharedSettings
+
+@Doc(title = "Proxied credentials", description = "The authorization credentials used to access proxied repository.")
+data class ProxiedCredentials(
+    @Doc(title = "Login", description = "Login to use by proxied HTTP client")
+    val login: String,
+    @Doc(title = "Password", description = "Raw password used by proxied HTTP client to connect to the given repository")
+    val password: String
+) : SharedSettings {
+
+    fun toCredentials(): Credentials =
+        Credentials(login, password)
+
+}

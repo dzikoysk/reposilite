@@ -26,7 +26,7 @@
 </template>
 
 <script>
-import {createCombinatorRenderInfos, findMatchingUISchema, resolveSubSchemas, isAllOfControl, rankWith} from '@jsonforms/core'
+import {createCombinatorRenderInfos, findMatchingUISchema, isAllOfControl, rankWith} from '@jsonforms/core'
 import {DispatchRenderer, rendererProps, useJsonFormsAllOfControl} from '@jsonforms/vue'
 import {useVanillaControl} from '@dzikoysk/vue-vanilla'
 
@@ -41,11 +41,7 @@ export default {
   setup: props => useVanillaControl(useJsonFormsAllOfControl(props)),
   computed: {
     subSchema() {
-      return resolveSubSchemas(
-          this.control.schema,
-          this.control.rootSchema,
-          'allOf'
-      )
+      return this.control.schema
     },
     delegateUISchema() {
       return findMatchingUISchema(this.control.uischemas)(

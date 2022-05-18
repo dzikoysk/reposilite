@@ -135,11 +135,9 @@ const formsConfiguration = {
 #configuration-state button {
   @apply bg-blue-700 mx-2 rounded text-sm px-4 text-white py-2;
 }
-
 #configuration-state .forbidden {
   @apply bg-gray-500 cursor-not-allowed !important;
 }
-
 .item {
   @apply pb-1;
   @apply pt-1.5;
@@ -180,7 +178,7 @@ input, select {
   @apply flex flex-col flex-wrap py-4 h-full;
   gap: 1rem;
 }
-.label {
+.label, label {
   padding-bottom: 0.5em;
   padding-left: 0.45em;
   display: inline-block;

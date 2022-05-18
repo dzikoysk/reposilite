@@ -31,12 +31,12 @@ internal class ProxyService(private val journalist: Journalist): Journalist {
 
     fun findRemoteDetails(repository: Repository, gav: Location): Result<out FileDetails, ErrorResponse> =
         searchInRemoteRepositories(repository, gav) { (host, config, client) ->
-            client.head("$host/$gav", config.authorization, config.connectTimeout, config.readTimeout)
+            client.head("$host/$gav", config.authorization?.toCredentials(), config.connectTimeout, config.readTimeout)
         }
 
     fun findRemoteFile(repository: Repository, gav: Location): Result<out InputStream, ErrorResponse> =
         searchInRemoteRepositories(repository, gav) { (host, config, client) ->
-            client.get("$host/$gav", config.authorization, config.connectTimeout, config.readTimeout)
+            client.get("$host/$gav", config.authorization?.toCredentials(), config.connectTimeout, config.readTimeout)
                 .flatMap { data -> if (config.store) storeFile(repository, gav, data) else ok(data) }
                 .mapErr { error -> error.updateMessage { "$host: $it" } }
         }
