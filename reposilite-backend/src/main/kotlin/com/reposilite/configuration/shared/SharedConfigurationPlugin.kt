@@ -51,6 +51,12 @@ class SharedConfigurationPlugin : ReposilitePlugin() {
             sharedConfigurationProvider = sharedConfigurationProvider
         )
 
+        /*
+        sharedConfigurationFacade.names()
+            .map { sharedConfigurationFacade.getSettingsReference<SharedSettings>(it)!!.schema.toPrettyString() }
+            .forEach { println(it) }
+        */
+
         logger.info("Loading shared configuration from ${sharedConfigurationProvider.name()}")
         sharedConfigurationFacade.loadSharedSettingsFromString(sharedConfigurationProvider.fetchConfiguration())
 

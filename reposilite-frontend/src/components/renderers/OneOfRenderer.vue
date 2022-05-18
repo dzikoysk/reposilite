@@ -94,9 +94,7 @@ export default {
     const jsonforms = inject('jsonforms')
 
     if (!jsonforms) {
-      throw new Error(
-          "'jsonforms' couldn't be injected. Are you within JSON Forms?"
-      )
+      throw new Error("'jsonforms' couldn't be injected. Are you within JSON Forms?")
     }
     
     const controlEnabled = computed(() => isControlEnabled(props, jsonforms))

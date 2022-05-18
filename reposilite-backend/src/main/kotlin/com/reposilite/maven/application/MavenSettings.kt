@@ -50,7 +50,10 @@ data class ProxiedRepository(
     @Min(0)
     @Doc(title = "Read Timeout", description = "How long Reposilite can read data from remote proxy.")
     val readTimeout: Int = 15,
-    @Doc(title = "Authorization", description = "The authorization information of the proxied repository.")
+    // Adding:
+    // @Doc(title = "Authorization", description = "The authorization information of the proxied repository.")
+    // Results in converting 'authorization` property into 'allOf` component that is currently broken
+    // ~ https://github.com/dzikoysk/reposilite/issues/1320
     val authorization: ProxiedCredentials? = null,
     @Doc(title = "Allowed Groups", description = "Allowed artifact groups. If none are given, all artifacts can be obtained from this proxy.")
     val allowedGroups: List<String> = listOf(),
@@ -65,6 +68,7 @@ data class ProxiedCredentials(
     @Doc(title = "Password", description = "Raw password used by proxied HTTP client to connect to the given repository")
     val password: String
 ) : SharedSettings {
+
 
     fun toCredentials(): Credentials =
         Credentials(login, password)
