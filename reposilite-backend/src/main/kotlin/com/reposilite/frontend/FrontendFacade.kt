@@ -15,6 +15,7 @@
  */
 package com.reposilite.frontend
 
+import com.reposilite.frontend.application.FrontendSettings
 import com.reposilite.plugin.api.Facade
 import org.intellij.lang.annotations.Language
 import panda.std.reactive.Reference
@@ -22,43 +23,55 @@ import panda.std.reactive.computed
 
 class FrontendFacade internal constructor(
     private val cacheContent: Reference<Boolean>,
-    private val basePath: Reference<String>,
-    private val id: Reference<String>,
-    private val title: Reference<String>,
-    private val description: Reference<String>,
-    private val organizationWebsite: Reference<String>,
-    private val organizationLogo: Reference<String>,
-    private val icpLicense: Reference<String>,
+    private val frontendSettings: Reference<FrontendSettings>,
 ) : Facade {
 
     private val resources = HashMap<String, String>(0)
     private val uriFormatter = Regex("/+") // exclude common typos from URI
 
+    private val formattedBasePath = frontendSettings.computed { // verify base path
+        var formattedBasePath = it.basePath
+
+        if (formattedBasePath.isNotEmpty()) {
+            if (!formattedBasePath.startsWith("/")) {
+                formattedBasePath = "/$formattedBasePath"
+            }
+            if (!formattedBasePath.endsWith("/")) {
+                formattedBasePath += "/"
+            }
+        }
+
+        return@computed formattedBasePath
+    }
+
     init {
-        computed(cacheContent, basePath, id, title, description, organizationWebsite, organizationLogo, icpLicense) {
+        computed(cacheContent, frontendSettings, formattedBasePath) {
             resources.clear()
         }
     }
 
     fun resolve(uri: String, source: () -> String?): String? =
         resources[uri] ?: source()
-            ?.let { resolvePlaceholders(it) }
+            ?.let { frontendSettings.map { settings -> resolvePlaceholders(settings, it) } }
             ?.also { if (cacheContent.get()) resources[uri] = it }
 
-    private fun resolvePlaceholders(source: String): String =
-        source
-            .replace("{{REPOSILITE.BASE_PATH}}", basePath.get())
-            .replace("{{REPOSILITE.VITE_BASE_PATH}}", basePath.get().takeUnless { it == "" || it == "/" }?.replace(Regex("^/|/$"), "") ?: ".")
-            .replace("{{REPOSILITE.ID}}", id.get())
-            .replace("{{REPOSILITE.TITLE}}", title.get())
-            .replace("{{REPOSILITE.DESCRIPTION}}", description.get())
-            .replace("{{REPOSILITE.ORGANIZATION_WEBSITE}}", organizationWebsite.get())
-            .replace("{{REPOSILITE.ORGANIZATION_LOGO}}", organizationLogo.get())
-            .replace("{{REPOSILITE.ICP_LICENSE}}", icpLicense.get())
+    private fun resolvePlaceholders(frontendSettings: FrontendSettings, source: String): String =
+        with(frontendSettings) {
+            source
+                .replace("{{REPOSILITE.BASE_PATH}}", formattedBasePath.get())
+                .replace("{{REPOSILITE.VITE_BASE_PATH}}", formattedBasePath.get().takeUnless { it == "" || it == "/" }?.replace(Regex("^/|/$"), "") ?: ".")
+                .replace("{{REPOSILITE.ID}}", id)
+                .replace("{{REPOSILITE.TITLE}}", title)
+                .replace("{{REPOSILITE.DESCRIPTION}}", description)
+                .replace("{{REPOSILITE.ORGANIZATION_WEBSITE}}", organizationWebsite)
+                .replace("{{REPOSILITE.ORGANIZATION_LOGO}}", organizationLogo)
+                .replace("{{REPOSILITE.ICP_LICENSE}}", icpLicense)
+        }
 
     fun createNotFoundPage(originUri: String, details: String): String {
         val uri = originUri.replace(uriFormatter, "/")
-        val dashboardURI = basePath.get() + (if (basePath.get().endsWith("/")) "" else "/") + "#" + uri
+        val basePath = formattedBasePath.get()
+        val dashboardUrl = basePath + (if (basePath.endsWith("/")) "" else "/") + "#" + uri
 
         @Language("html")
         val response = """
@@ -105,7 +118,7 @@ class FrontendFacade internal constructor(
                   <p>(●ᴗ●)</p>
                   <p>( >🥕</p>
                 </div>
-                <p>Visit <a href="$dashboardURI" style="color: rebeccapurple; text-decoration: none;">$dashboardURI</a></p>
+                <p>Visit <a href="$dashboardUrl" style="color: rebeccapurple; text-decoration: none;">$dashboardUrl</a></p>
               </div>
             </body>
         </html>

@@ -21,7 +21,6 @@ import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
 import com.reposilite.journalist.backend.AggregatedLogger
 import com.reposilite.journalist.backend.CachedLogger
-import com.reposilite.journalist.backend.InMemoryLogger
 import com.reposilite.journalist.backend.PrintStreamLogger
 import com.reposilite.journalist.backend.PublisherLogger
 import com.reposilite.journalist.slf4j.Slf4jLogger

@@ -7,7 +7,7 @@ import com.reposilite.journalist.backend.PrintStreamLogger
 import com.reposilite.plugin.Extensions
 import com.reposilite.plugin.api.ReposilitePlugin.ReposilitePluginAccessor
 import com.reposilite.plugin.migration.MigrationPlugin
-import com.reposilite.settings.api.LocalConfiguration
+import com.reposilite.configuration.api.LocalConfiguration
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
 import java.nio.file.Path

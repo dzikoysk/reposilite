@@ -43,7 +43,7 @@ import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
 import panda.std.firstAndMap
-import java.util.UUID
+import java.util.*
 
 object AccessTokenTable : IntIdTable("access_token") {
     val name = varchar("name", MAX_TOKEN_NAME).uniqueIndex("uq_name")

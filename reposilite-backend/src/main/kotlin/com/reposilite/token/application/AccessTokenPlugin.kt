@@ -16,13 +16,13 @@
 
 package com.reposilite.token.application
 
+import com.reposilite.Reposilite
 import com.reposilite.console.api.CommandsSetupEvent
 import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposiliteInitializeEvent
 import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
-import com.reposilite.settings.SettingsFacade
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.AccessTokenPermission.MANAGER
 import com.reposilite.token.ChModCommand
@@ -40,7 +40,7 @@ import com.reposilite.token.infrastructure.InMemoryAccessTokenRepository
 import com.reposilite.token.infrastructure.SqlAccessTokenRepository
 import com.reposilite.web.api.RoutingSetupEvent
 
-@Plugin(name = "access-token", dependencies = ["settings"])
+@Plugin(name = "access-token")
 internal class AccessTokenPlugin : ReposilitePlugin() {
 
     companion object {
@@ -49,13 +49,13 @@ internal class AccessTokenPlugin : ReposilitePlugin() {
     }
 
     override fun initialize(): AccessTokenFacade {
-        val parameters = extensions().parameters
-        val settingsFacade = facade<SettingsFacade>()
+        val reposilite = facade<Reposilite>()
+        val parameters = reposilite.parameters
 
         val accessTokenFacade = AccessTokenFacade(
             journalist = this,
             temporaryRepository = InMemoryAccessTokenRepository(),
-            persistentRepository = SqlAccessTokenRepository(settingsFacade.database.value),
+            persistentRepository = SqlAccessTokenRepository(reposilite.database),
             exportService = ExportService()
         )
 

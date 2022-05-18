@@ -23,7 +23,6 @@ import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.unauthorizedError
 import com.reposilite.web.routing.RouteMethod.POST
-import io.javalin.http.HttpCode.UNAUTHORIZED
 import io.javalin.openapi.HttpMethod
 import io.javalin.openapi.OpenApi
 import io.javalin.openapi.OpenApiContent

@@ -41,7 +41,7 @@ import org.jetbrains.exposed.sql.sum
 import org.jetbrains.exposed.sql.transactions.transaction
 import panda.std.firstAndMap
 import java.time.LocalDate
-import java.util.UUID
+import java.util.*
 
 @Suppress("RemoveRedundantQualifierName")
 internal class SqlStatisticsRepository(private val database: Database) : StatisticsRepository {

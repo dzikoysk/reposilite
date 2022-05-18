@@ -27,8 +27,8 @@ import com.reposilite.token.api.SecretType.RAW
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.http.ErrorResponse
-import com.reposilite.web.http.notFoundError
 import com.reposilite.web.http.errorResponse
+import com.reposilite.web.http.notFoundError
 import com.reposilite.web.routing.RouteMethod.DELETE
 import com.reposilite.web.routing.RouteMethod.GET
 import com.reposilite.web.routing.RouteMethod.PUT

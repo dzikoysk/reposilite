@@ -30,7 +30,7 @@ plugins {
 
 allprojects {
     repositories {
-        // mavenCentral()
+        mavenCentral()
         // maven {
         //     url = uri("http://localhost/releases")
         //     isAllowInsecureProtocol = true

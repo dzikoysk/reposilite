@@ -15,12 +15,13 @@
   -->
 
 <script setup>
-import { computed, reactive, watchEffect } from 'vue'
+import { computed, ref, watchEffect } from 'vue'
 import { useSession } from '../store/session'
 import Header from '../components/header/Header.vue'
 import Browser from '../components/browser/FileBrowser.vue'
-import Configuration from '../components/configuration/Configuration.vue'
+import Configuration from '../components/settings/Settings.vue'
 import Console from '../components/Console.vue'
+import {Tabs, Tab, TabPanels, TabPanel} from 'vue3-tabs'
 
 defineProps({
   qualifier: {
@@ -29,34 +30,34 @@ defineProps({
   }
 })
 
-const { isManager } = useSession()
-
-const listOfTabs = [ 
+const listOfTabs = [
   { name: 'Overview' },
   { name: 'Console', manager: true },
-  { name: 'Configuration', manager: true },
+  { name: 'Settings', manager: true },
 ]
 
-const selectedTab = reactive({
-  value: localStorage.getItem('selectedTab') || 'Overview'
-})
-
-watchEffect(() => localStorage.setItem('selectedTab', selectedTab.value))
+const { isManager } = useSession()
 
 const menuTabs = computed(() =>
   listOfTabs
     .filter(entry => !entry?.manager || isManager.value)
     .map(entry => entry.name)
 )
+
+const selectedTab = ref(localStorage.getItem('selectedTab') || 'Overview')
+watchEffect(() => localStorage.setItem('selectedTab', selectedTab.value))
+
+const selectHomepage = () => 
+  selectedTab.value = 'Overview'
 </script>
 
 <template>
   <div>
-    <Header />
-    <div class="bg-gray-100 dark:bg-black">
+    <Header :logoClickCallback="selectHomepage" />
+    <div class="bg-gray-100 dark:bg-black overflow-y-visible">
       <div class="container mx-auto <sm:px-0">
-        <tabs v-model="selectedTab.value">
-          <tab
+        <Tabs v-model="selectedTab">
+          <Tab
             v-for="(tab, i) in menuTabs"
             class="item font-normal"
             :key="`menu${i}`"
@@ -64,21 +65,21 @@ const menuTabs = computed(() =>
             :label="tab"
             :indicator="true"
           />
-        </tabs>
+        </Tabs>
       </div>
       <hr class="dark:border-gray-700">
       <div class="overflow-auto">
-        <tab-panels v-model="selectedTab.value" :animate="true">
-          <tab-panel :val="'Overview'">
+        <TabPanels v-model="selectedTab" :animate="true">
+          <TabPanel :val="'Overview'">
             <Browser :qualifier="qualifier" ref=""/>
-          </tab-panel>
-          <tab-panel :val="'Console'" v-if="isManager">
+          </TabPanel>
+          <TabPanel :val="'Console'" v-if="isManager">
             <Console :selectedTab="selectedTab" />
-          </tab-panel>
-           <tab-panel :val="'Configuration'" v-if="isManager">
+          </TabPanel>
+           <TabPanel :val="'Settings'" v-if="isManager">
             <Configuration :selectedTab="selectedTab" />
-          </tab-panel>
-        </tab-panels>
+          </TabPanel>
+        </TabPanels>
       </div>
     </div>
   </div>

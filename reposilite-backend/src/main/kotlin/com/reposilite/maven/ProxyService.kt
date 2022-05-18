@@ -18,7 +18,7 @@ package com.reposilite.maven
 
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
-import com.reposilite.settings.api.SharedConfiguration.RepositoryConfiguration.ProxiedHostConfiguration
+import com.reposilite.maven.application.ProxiedRepository
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.Location
 import com.reposilite.web.http.ErrorResponse
@@ -31,12 +31,12 @@ internal class ProxyService(private val journalist: Journalist): Journalist {
 
     fun findRemoteDetails(repository: Repository, gav: Location): Result<out FileDetails, ErrorResponse> =
         searchInRemoteRepositories(repository, gav) { (host, config, client) ->
-            client.head("$host/$gav", config.authorization, config.connectTimeout, config.readTimeout)
+            client.head("$host/$gav", config.authorization?.toCredentials(), config.connectTimeout, config.readTimeout)
         }
 
     fun findRemoteFile(repository: Repository, gav: Location): Result<out InputStream, ErrorResponse> =
         searchInRemoteRepositories(repository, gav) { (host, config, client) ->
-            client.get("$host/$gav", config.authorization, config.connectTimeout, config.readTimeout)
+            client.get("$host/$gav", config.authorization?.toCredentials(), config.connectTimeout, config.readTimeout)
                 .flatMap { data -> if (config.store) storeFile(repository, gav, data) else ok(data) }
                 .mapErr { error -> error.updateMessage { "$host: $it" } }
         }
@@ -48,7 +48,7 @@ internal class ProxyService(private val journalist: Journalist): Journalist {
             .firstOrNull { it.isOk }
             ?: notFoundError("Cannot find '$gav' in remote repositories")
 
-    private fun isAllowed(config: ProxiedHostConfiguration, gav: Location): Boolean =
+    private fun isAllowed(config: ProxiedRepository, gav: Location): Boolean =
         config.allowedGroups.isEmpty() ||
                 config.allowedGroups
                     .map { it.replace('.', '/') }
