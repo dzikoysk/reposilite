@@ -21,7 +21,6 @@ import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.api.DeleteRequest
 import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.LookupRequest
-import com.reposilite.settings.SettingsFacade
 import com.reposilite.shared.extensions.resultAttachment
 import com.reposilite.storage.api.DocumentInfo
 import com.reposilite.storage.api.toLocation
@@ -44,10 +43,8 @@ import io.javalin.openapi.OpenApiResponse
 internal class MavenEndpoints(
     private val mavenFacade: MavenFacade,
     private val frontendFacade: FrontendFacade,
-    settingsFacade: SettingsFacade
+    private val compressionStrategy: String
 ) : ReposiliteRoutes() {
-
-    private val compressionStrategy = settingsFacade.localConfiguration.compressionStrategy
 
     @OpenApi(
         path = "/{repository}/{gav}",
@@ -70,7 +67,7 @@ internal class MavenEndpoints(
                 mavenFacade.findDetails(request)
                     .`is`(DocumentInfo::class.java) { ErrorResponse(NOT_FOUND, "Requested file is a directory") }
                     .flatMap { details -> mavenFacade.findFile(request).map { details to it } }
-                    .peek { (details, file) -> ctx.resultAttachment(details.name, details.contentType, details.contentLength, compressionStrategy.get(), file) }
+                    .peek { (details, file) -> ctx.resultAttachment(details.name, details.contentType, details.contentLength, compressionStrategy, file) }
                     .onError { ctx.status(it.status).html(frontendFacade.createNotFoundPage(uri, it.message)) }
             }
         }

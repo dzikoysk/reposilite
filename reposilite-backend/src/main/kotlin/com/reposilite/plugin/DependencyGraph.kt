@@ -16,7 +16,7 @@
 
 package com.reposilite.plugin
 
-import java.util.Stack
+import java.util.*
 
 fun toFlattenedDependencyGraph(declarations: Map<String, List<String>>): List<String> {
     val topologicalOrdering = mutableListOf<String>()

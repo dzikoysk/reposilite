@@ -43,7 +43,7 @@ dependencies {
     api("org.panda-lang:expressible-kt:$expressible")
     testImplementation("org.panda-lang:expressible-junit:$expressible")
 
-    val cdn = "1.13.10"
+    val cdn = "1.13.20"
     api("net.dzikoysk:cdn:$cdn")
     api("net.dzikoysk:cdn-kt:$cdn")
 
@@ -74,8 +74,10 @@ dependencies {
     val ldap = "6.0.5"
     testImplementation("com.unboundid:unboundid-ldapsdk:$ldap")
 
-    val openapi = "1.1.3"
-    kapt("io.javalin-rfc:openapi-annotation-processor:$openapi")
+    val openapi = "1.1.7"
+    kapt("io.javalin-rfc:openapi-annotation-processor:$openapi") {
+        exclude(group = "ch.qos.logback")
+    }
     implementation("io.javalin-rfc:javalin-openapi-plugin:$openapi")
 
     val javalinRfcs = "4.1.0"
@@ -90,6 +92,8 @@ dependencies {
 
     @Suppress("GradlePackageUpdate")
     implementation("org.eclipse.jetty:jetty-server:9.4.46.v20220331")
+
+    implementation("com.github.victools:jsonschema-generator:4.24.2")
 
     val picocli = "4.6.3"
     kapt("info.picocli:picocli-codegen:$picocli")

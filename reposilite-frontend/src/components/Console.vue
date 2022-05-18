@@ -15,7 +15,7 @@
   -->
 
 <script setup>
-import { watch, onUnmounted, nextTick } from 'vue'
+import { watch, nextTick } from 'vue'
 import { createToast } from 'mosha-vue-toastify'
 import { useSession } from '../store/session'
 import useLog from '../helpers/console/log'
@@ -23,7 +23,7 @@ import useConsole from '../helpers/console/connection'
 
 const props = defineProps({
   selectedTab: {
-    type: Object,
+    type: String,
     required: true
   }
 })
@@ -33,18 +33,19 @@ const { levels, log, logMessage, filter, clearLog } = useLog()
 const { 
   onOpen, onMessage, onClose, onError, 
   connect,
-  close,
+  //close,
   command,
   execute,
   previousCommand,
-  nextCommand
+  nextCommand,
+  isConnected
 } = useConsole()
 
-onUnmounted(() => close())
+// onUnmounted(() => close())
 
 const scrollToEnd = () => {
   const console = document.getElementById('console')
-  console.scrollTop = console.scrollHeight
+  if (console) console.scrollTop = console.scrollHeight
 }
 
 //const focusInput = () =>
@@ -59,15 +60,18 @@ const setupConnection = () => {
   }
   onError.value = error => createToast(`${error || ''}`, { type: 'danger' })
   onClose.value = () => createToast('Connection with console has been lost', { type: 'danger' })
-  
   createToast('Connecting to the remote console', { type: 'info', })
   const { token } = useSession()
   connect(token.value)
 }
 
 watch(
-  () => props.selectedTab.value,
-  selectedTab => selectedTab === 'Console' ? setupConnection() : close(),
+  () => props.selectedTab,
+  (selectedTab, previous) => {
+    if (selectedTab === 'Console' && previous == undefined && !isConnected()) {
+      setupConnection()
+    }
+  },
   { immediate: true }
 )
 </script>

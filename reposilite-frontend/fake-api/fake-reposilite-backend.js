@@ -1,3 +1,5 @@
+/* eslint-disable no-unused-vars */
+
 /*
  * Copyright (c) 2022 dzikoysk
  *
@@ -29,16 +31,9 @@ const {
 const application = express()
 expressWs(application)
 
-let sharedConfiguration = `
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
-#      Reposilite :: Shared      #
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
-
-# Repository id used in Maven repository configuration
-id: reposilite-repository
-`.trim()
-
 let uploadedFiles = []
+let mavenSettingsSchema = require('./maven-settings-schema.json')
+let mavenSettingsEntity = require('./maven-settings-entity.json')
 
 application
   .get("/", (req, res) => res.send("Reposilite stub API"))
@@ -54,6 +49,11 @@ application
   })
   .use(express.text())
   .use(bodyParser.raw({ limit: '10mb', extended: true }))
+  .use(bodyParser.json())
+  .get('/api/settings/domains', (req, res) => res.send(['maven']))
+  .get('/api/settings/schema/maven', (req, res) => res.send(mavenSettingsSchema))
+  .get('/api/settings/domain/maven', (req, res) => res.send(mavenSettingsEntity))
+  .put('/api/settings/domain/maven', (req, res) => { mavenSettingsEntity = req.body; res.send("") })
   .get(
     "/api/maven/details/snapshots",
     respond(createDirectoryDetails("/snapshot", []))
@@ -138,27 +138,6 @@ application
   </metadata>
   `)
   )
-  .get("/api/settings/content/configuration.shared.cdn", (req, res) => {
-    authorized(
-      req,
-      () =>
-        res.send({
-          type: "application/cdn",
-          content: sharedConfiguration,
-        }),
-      () => invalidCredentials(res)
-    )
-  })
-  .put("/api/settings/content/configuration.shared.cdn", (req, res) => {
-    authorized(
-      req,
-      () => {
-        sharedConfiguration = req.body
-        res.send("Success")
-      },
-      () => invalidCredentials(res)
-    )
-  })
   .get("/api/auth/me", (req, res) => {
     authorized(
       req,
@@ -236,6 +215,6 @@ application
       message: "Not found",
     })
   )
-  .listen(80)
+  .listen(8080)
 
 console.log("Reposilite stub API started on port 80")

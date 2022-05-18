@@ -19,13 +19,20 @@ import usePlaceholders from '../../store/placeholders'
 import Hero from './Hero.vue'
 import Menu from './Menu.vue'
 
+defineProps({
+  logoClickCallback: {
+    type: Function,
+    required: false
+  }
+})
+
 const { title } = usePlaceholders()
 </script>
 
 <template>
   <header class="bg-gray-100 dark:bg-black dark:text-white">
     <div class="container mx-auto flex flex-row py-10 justify-between <sm:(pb-2 pt-5 px-5 justify-start)">
-      <h1 class="text-xl font-medium py-1 <sm:w-1/2">
+      <h1 @click="logoClickCallback" class="text-xl font-medium py-1 <sm:w-1/2">
         <router-link :to="'/'">{{ title }}</router-link>
       </h1>
       <Menu class="mt-0.5"/>

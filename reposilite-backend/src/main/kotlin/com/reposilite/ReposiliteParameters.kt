@@ -16,12 +16,12 @@
 
 package com.reposilite
 
-import com.reposilite.settings.api.LocalConfiguration
-import com.reposilite.settings.application.SettingsPlugin.Companion.LOCAL_CONFIGURATION_FILE
-import com.reposilite.settings.application.SettingsPlugin.Companion.SHARED_CONFIGURATION_FILE
+import com.reposilite.configuration.local.LocalConfiguration
+import com.reposilite.configuration.local.LocalConfigurationMode
+import com.reposilite.configuration.local.infrastructure.LOCAL_CONFIGURATION_FILE
+import com.reposilite.configuration.shared.infrastructure.SHARED_CONFIGURATION_FILE
 import com.reposilite.token.AccessTokenType.TEMPORARY
 import com.reposilite.token.api.CreateAccessTokenRequest
-import com.reposilite.token.api.SecretType.RAW
 import picocli.CommandLine.Command
 import picocli.CommandLine.Option
 import java.nio.file.Path
@@ -40,6 +40,13 @@ class ReposiliteParameters : Runnable {
     var workingDirectoryName = ""
     lateinit var workingDirectory: Path
 
+    @Option(names = ["--generate-configuration", "-gc"], description = ["" +
+        "Generate default template of the configuration file. Supported templates:",
+        "configuration.cdn - Local configuration file",
+        "configuration.shared.json - Shared configuration file"
+    ])
+    var configurationRequested: String? = null
+
     @Option(names = ["--local-configuration", "--local-config", "-lc"], description = ["Set custom location of local configuration file"])
     var localConfigurationFile = LOCAL_CONFIGURATION_FILE
     lateinit var localConfigurationPath: Path
@@ -47,24 +54,13 @@ class ReposiliteParameters : Runnable {
     @Option(names = ["--local-configuration-mode", "--local-config-mode", "-lcm"], description = [
         "Supported local configuration modes:",
         "auto - process and override main configuration file",
-        "copy - load mounted configuration and save processed output in working directory (default)",
-        "print - load mounted configuration and print processed output in the console",
         "none - disable automatic updates of configuration file"
     ])
-    var localConfigurationMode = "copy"
+    var localConfigurationMode = LocalConfigurationMode.AUTO
 
     @Option(names = ["--shared-configuration", "--shared-config", "-sc"], description = ["Set custom location of shared configuration file"])
-    var sharedConfigurationFile = SHARED_CONFIGURATION_FILE
-    lateinit var sharedConfigurationPath: Path
-
-    @Option(names = ["--shared-configuration-mode", "--shared-config-mode", "-scm"], description = [
-        "Supported configuration modes:",
-        "auto - process and override main configuration file",
-        "copy - load mounted configuration and save processed output in working directory",
-        "print - load mounted configuration and print processed output in the console",
-        "none - disable automatic updates of configuration file (none)"
-    ])
-    var sharedConfigurationMode = "none"
+    var sharedConfigurationFile: String? = null
+    var sharedConfigurationPath: Path? = null
 
     @Option(names = ["--hostname", "-h"], description = ["Override hostname from configuration"])
     var hostname = ""
@@ -82,8 +78,8 @@ class ReposiliteParameters : Runnable {
     override fun run() {
         this.workingDirectory = Paths.get(workingDirectoryName)
 
-        this.localConfigurationPath = workingDirectory.resolve(localConfigurationFile.ifEmpty { LOCAL_CONFIGURATION_FILE })
-        this.sharedConfigurationPath = workingDirectory.resolve(sharedConfigurationFile.ifEmpty { SHARED_CONFIGURATION_FILE })
+        this.localConfigurationPath = localConfigurationFile.let { workingDirectory.resolve(it.ifEmpty { LOCAL_CONFIGURATION_FILE }) }
+        this.sharedConfigurationPath = sharedConfigurationFile?.let { workingDirectory.resolve(it.ifEmpty { SHARED_CONFIGURATION_FILE }) }
 
         this.tokens = tokenEntries
             .map { it.split(":", limit = 2) }

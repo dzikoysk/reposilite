@@ -17,6 +17,7 @@
 package com.reposilite.maven.specification
 
 import com.reposilite.ReposiliteParameters
+import com.reposilite.auth.api.Credentials
 import com.reposilite.journalist.backend.InMemoryLogger
 import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.MetadataService
@@ -27,17 +28,16 @@ import com.reposilite.maven.RepositoryService
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.Metadata
 import com.reposilite.maven.api.Versioning
+import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.plugin.Extensions
-import com.reposilite.settings.api.LocalConfiguration
-import com.reposilite.settings.api.SharedConfiguration.RepositoryConfiguration
 import com.reposilite.shared.http.FakeRemoteClientProvider
 import com.reposilite.statistics.DailyDateIntervalProvider
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.statistics.infrastructure.InMemoryStatisticsRepository
 import com.reposilite.status.FailureFacade
+import com.reposilite.storage.StorageFacade
 import com.reposilite.storage.api.DocumentInfo
 import com.reposilite.storage.api.Location
-import com.reposilite.storage.api.UNKNOWN_LENGTH
 import com.reposilite.storage.api.toLocation
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.AccessTokenIdentifier
@@ -45,9 +45,7 @@ import com.reposilite.token.AccessTokenType.TEMPORARY
 import com.reposilite.token.ExportService
 import com.reposilite.token.Route
 import com.reposilite.token.RoutePermission
-import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.token.api.CreateAccessTokenRequest
-import com.reposilite.token.api.SecretType.RAW
 import com.reposilite.token.infrastructure.InMemoryAccessTokenRepository
 import com.reposilite.web.http.notFoundError
 import io.javalin.http.ContentType.TEXT_XML
@@ -68,7 +66,7 @@ internal abstract class MavenSpecification {
         val UNAUTHORIZED: AccessTokenIdentifier? = null
         const val REMOTE_REPOSITORY = "https://domain.com/releases"
         const val REMOTE_REPOSITORY_WITH_WHITELIST = "https://example.com/whitelist"
-        const val REMOTE_AUTH = "panda@secret"
+        val REMOTE_AUTH = Credentials("panda", "secret")
         const val REMOTE_CONTENT = "content"
     }
 
@@ -80,12 +78,11 @@ internal abstract class MavenSpecification {
     private lateinit var accessTokenFacade: AccessTokenFacade
     protected lateinit var mavenFacade: MavenFacade
 
-    protected abstract fun repositories(): Map<String, RepositoryConfiguration>
+    protected abstract fun repositories(): List<RepositorySettings>
 
     @BeforeEach
     private fun initializeFacade() {
         val workingDirectoryPath = workingDirectory.toPath()
-        val parameters = ReposiliteParameters().also { it.workingDirectory = workingDirectoryPath }
 
         this.accessTokenFacade = AccessTokenFacade(
             journalist = logger,
@@ -121,7 +118,8 @@ internal abstract class MavenSpecification {
 
         val repositories = mutableReference(repositories())
         val securityProvider = RepositorySecurityProvider(accessTokenFacade)
-        val repositoryProvider = RepositoryProvider(workingDirectoryPath, remoteClientProvider, failureFacade, repositories)
+        val storageFacade = StorageFacade()
+        val repositoryProvider = RepositoryProvider(workingDirectoryPath, remoteClientProvider, failureFacade, storageFacade, repositories)
         val repositoryService = RepositoryService(logger, repositoryProvider, securityProvider)
 
         this.mavenFacade = MavenFacade(
@@ -131,7 +129,7 @@ internal abstract class MavenSpecification {
             RepositoryService(logger, repositoryProvider, securityProvider),
             ProxyService(logger),
             MetadataService(repositoryService),
-            Extensions(logger, parameters, LocalConfiguration()),
+            Extensions(logger),
             StatisticsFacade(logger, DailyDateIntervalProvider.toReference(), InMemoryStatisticsRepository())
         )
     }
@@ -149,9 +147,6 @@ internal abstract class MavenSpecification {
             gav.toLocation()
 
     }
-
-    protected fun createRepository(name: String, initializer: RepositoryConfiguration.() -> Unit): Pair<String, RepositoryConfiguration> =
-        name to RepositoryConfiguration().also { initializer(it) }
 
     protected fun findRepositories(accessToken: AccessTokenIdentifier?): Collection<String> =
         mavenFacade.findRepositories(accessToken).files.map { it.name }

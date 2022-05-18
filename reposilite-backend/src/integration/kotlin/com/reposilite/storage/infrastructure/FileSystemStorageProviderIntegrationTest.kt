@@ -18,8 +18,9 @@ package com.reposilite.storage.infrastructure
 
 import com.reposilite.journalist.backend.InMemoryLogger
 import com.reposilite.status.FailureFacade
-import com.reposilite.storage.StorageProviderFactory
+import com.reposilite.storage.StorageFacade
 import com.reposilite.storage.StorageProviderIntegrationTest
+import com.reposilite.storage.filesystem.FileSystemStorageProviderSettings
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
@@ -33,8 +34,14 @@ internal class FileSystemStorageProviderIntegrationTest : StorageProviderIntegra
     fun setup() {
         val logger = InMemoryLogger()
         val failureFacade = FailureFacade(logger)
+        val storageFacade = StorageFacade()
 
-        super.storageProvider = StorageProviderFactory.createStorageProvider(failureFacade, rootDirectory.toPath(), "test-storage", "fs --quota 1MB")
+        super.storageProvider = storageFacade.createStorageProvider(
+            failureFacade = failureFacade,
+            workingDirectory = rootDirectory.toPath(),
+            repository = "test-storage",
+            storageSettings = FileSystemStorageProviderSettings(quota = "1MB")
+        )!!
     }
 
 }
