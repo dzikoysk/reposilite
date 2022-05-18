@@ -6,8 +6,8 @@
     "start": "next start"
   },
   "dependencies": {
-    "@chakra-ui/icons": "^1.1.7",
-    "@chakra-ui/react": "^1.8.8",
+    "@chakra-ui/icons": "^2.0.0",
+    "@chakra-ui/react": "^2.0.2",
     "@emotion/react": "^11.9.0",
     "@emotion/styled": "^11.8.1",
     "@heroicons/react": "^1.0.6",
@@ -22,7 +22,7 @@
     "node-fetch": "^3.2.4",
     "react": "18.1.0",
     "react-dom": "18.1.0",
-    "react-flow-renderer": "^9.7.4",
+    "react-flow-renderer": "^10.2.3",
     "react-icons": "^4.3.1",
     "rehype-highlight": "^5.0.2",
     "remark-gfm": "^3.0.1"
