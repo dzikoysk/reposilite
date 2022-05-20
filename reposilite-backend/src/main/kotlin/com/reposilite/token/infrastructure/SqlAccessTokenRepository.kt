@@ -87,7 +87,7 @@ internal class SqlAccessTokenRepository(private val database: Database) : Access
 
     override fun saveAccessToken(accessToken: AccessToken): AccessToken =
         transaction(database) {
-            when(getIdByName(accessToken.name)) {
+            when (getIdByName(accessToken.name)) {
                 UNINITIALIZED_ENTITY_ID -> createAccessToken(accessToken)
                 else -> updateAccessToken(accessToken)
             }

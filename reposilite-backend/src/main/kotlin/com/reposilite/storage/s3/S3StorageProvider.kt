@@ -115,11 +115,9 @@ class S3StorageProvider(
             s3.getObject(request.build()).asSuccess()
             // val bytes = ByteArray(Math.toIntExact(response.response().contentLength()))
             // response.read(bytes)
-        }
-        catch (noSuchKeyException: NoSuchKeyException) {
+        } catch (noSuchKeyException: NoSuchKeyException) {
             errorResponse(NOT_FOUND, "File not found: $location")
-        }
-        catch (ioException: IOException) {
+        } catch (ioException: IOException) {
             errorResponse(NOT_FOUND, "File not found: $location")
         }
 
@@ -160,7 +158,7 @@ class S3StorageProvider(
         try {
             val directoryString = location.toString().replace('\\', '/')
                 .let { "$it/" }
-                .letIf({ it == "/"}, { "" })
+                .letIf({ it == "/" }, { "" })
 
             val request = ListObjectsV2Request.builder()
                 .bucket(bucket)
@@ -185,8 +183,7 @@ class S3StorageProvider(
                 errorResponse(NOT_FOUND, "Directory not found or is empty")
             else
                 paths.asSuccess()
-        }
-        catch (exception: Exception) {
+        } catch (exception: Exception) {
             errorResponse(INTERNAL_SERVER_ERROR, exception.localizedMessage)
         }
 
@@ -204,11 +201,9 @@ class S3StorageProvider(
             request.bucket(bucket)
             request.key(location.toString().replace('\\', '/'))
             s3.headObject(request.build()).asSuccess()
-        }
-        catch (ignored: NoSuchKeyException) {
+        } catch (ignored: NoSuchKeyException) {
             errorResponse(NOT_FOUND, ignored.message ?: "File not found")
-        }
-        catch (exception: Exception) {
+        } catch (exception: Exception) {
             errorResponse(INTERNAL_SERVER_ERROR, exception.message ?: "Generic exception")
         }
 

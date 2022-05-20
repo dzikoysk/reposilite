@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 package com.reposilite.token.infrastructure
 
 import com.reposilite.token.AccessTokenFacade
@@ -23,7 +22,6 @@ import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.token.api.CreateAccessTokenRequest
 import com.reposilite.token.api.CreateAccessTokenResponse
 import com.reposilite.token.api.CreateAccessTokenWithNoNameRequest
-import com.reposilite.token.api.SecretType.RAW
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.http.ErrorResponse
@@ -96,7 +94,7 @@ internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessToke
                 .peek { (token, permissions) ->
                     permissions.forEach { accessTokenFacade.addPermission(token.accessToken.identifier, it) }
                 }
-                .map { (response, _) -> response}
+                .map { (response, _) -> response }
         }
     }
 

@@ -39,29 +39,30 @@ internal class RouteAdd(private val accessTokenFacade: AccessTokenFacade) : Repo
     private lateinit var permissions: String
 
     override fun execute(context: CommandContext) {
-        accessTokenFacade.getAccessToken(name)?.also { token ->
-            val routes = accessTokenFacade.getRoutes(token.identifier)
+        accessTokenFacade.getAccessToken(name)
+            ?.also { token ->
+                val routes = accessTokenFacade.getRoutes(token.identifier)
 
-            if (routes.any { entry -> entry.path == route }) {
-                context.status = FAILED
-                context.append("Token $name already has route with path $route")
-                return
+                if (routes.any { entry -> entry.path == route }) {
+                    context.status = FAILED
+                    context.append("Token $name already has route with path $route")
+                    return
+                }
+
+                val mappedPermissions = mapPermissions() ?: let {
+                    context.status = FAILED
+                    context.append("Unknown permission shortcuts (${permissions.toCharArray().joinToString()})")
+                    context.append("Available options (${RoutePermission.values().joinToString { perm -> perm.shortcut }})")
+                    return
+                }
+
+                mappedPermissions.forEach { accessTokenFacade.addRoute(token.identifier, Route(route, it)) }
+                context.append("Route $route has been added to token ${token.name}")
             }
-
-            val mappedPermissions = mapPermissions() ?: let {
+            ?: run {
                 context.status = FAILED
-                context.append("Unknown permission shortcuts (${permissions.toCharArray().joinToString()})")
-                context.append("Available options (${RoutePermission.values().joinToString { perm -> perm.shortcut }})")
-                return
+                context.append("Token $name not found")
             }
-
-            mappedPermissions.forEach { accessTokenFacade.addRoute(token.identifier, Route(route, it)) }
-            context.append("Route $route has been added to token ${token.name}")
-        }
-        ?: run {
-            context.status = FAILED
-            context.append("Token $name not found")
-        }
     }
 
     private fun mapPermissions(): Set<RoutePermission>? =
@@ -83,14 +84,15 @@ internal class RouteRemove(private val accessTokenFacade: AccessTokenFacade) : R
     private lateinit var path: String
 
     override fun execute(context: CommandContext) {
-        accessTokenFacade.getAccessToken(name)?.also { token ->
-            RoutePermission.values().forEach { accessTokenFacade.deleteRoute(token.identifier, Route(path, it)) }
-            context.append("Routes of token $name has been updated")
-        }
-        ?: run {
-            context.status = FAILED
-            context.append("Token $name not found")
-        }
+        accessTokenFacade.getAccessToken(name)
+            ?.also { token ->
+                RoutePermission.values().forEach { accessTokenFacade.deleteRoute(token.identifier, Route(path, it)) }
+                context.append("Routes of token $name has been updated")
+            }
+            ?: run {
+                context.status = FAILED
+                context.append("Token $name not found")
+            }
     }
 
 }

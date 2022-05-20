@@ -20,13 +20,16 @@ internal class ParametersTest {
     fun `should load custom shared configuration`() {
         // given: an existing shared configuration to use
         val sharedConfigurationPath = workingDirectory.resolve(SHARED_CONFIGURATION_FILE).toPath()
-        Files.writeString(sharedConfigurationPath, """
-        {
-            "frontend": {
-                "id": "test-repository"
+        Files.writeString(
+            sharedConfigurationPath,
+            """
+            {
+                "frontend": {
+                    "id": "test-repository"
+                }
             }
-        }
-        """.trimIndent())
+            """.trimIndent()
+        )
 
         // when: Reposilite instance is created with custom shared configuration
         val reposilite = createWithParameters("--shared-configuration=$sharedConfigurationPath")!!

@@ -151,22 +151,22 @@ internal class MavenLatestApiEndpoints(
     )
     val latestBadge = ReposiliteRoute<String>("/api/badge/latest/{repository}/<gav>", GET) {
         response = mavenFacade.findLatestBadge(
-                LatestBadgeRequest(
-                    repository = requireParameter("repository"),
-                    gav = requireParameter("gav").toLocation(),
-                    name = ctx.queryParam("name"),
-                    color = ctx.queryParam("color"),
-                    prefix = ctx.queryParam("prefix"),
-                    filter = ctx.queryParam("filter")
-                )
+            LatestBadgeRequest(
+                repository = requireParameter("repository"),
+                gav = requireParameter("gav").toLocation(),
+                name = ctx.queryParam("name"),
+                color = ctx.queryParam("color"),
+                prefix = ctx.queryParam("prefix"),
+                filter = ctx.queryParam("filter")
             )
+        )
             .peek { ctx.run {
                 contentType("image/svg+xml")
                 header("pragma", "no-cache")
                 header("expires", "0")
                 header("cache-control", "no-cache, no-store, must-revalidate, max-age=0")
                 contentDisposition("inline; filename=\"latest-badge.svg\"")
-            }}
+            } }
     }
 
     override val routes = routes(findLatestVersion, findLatestDetails, findLatestFile, latestBadge)

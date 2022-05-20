@@ -41,7 +41,7 @@ import org.jetbrains.exposed.sql.sum
 import org.jetbrains.exposed.sql.transactions.transaction
 import panda.std.firstAndMap
 import java.time.LocalDate
-import java.util.*
+import java.util.UUID
 
 @Suppress("RemoveRedundantQualifierName")
 internal class SqlStatisticsRepository(private val database: Database) : StatisticsRepository {
@@ -90,7 +90,7 @@ internal class SqlStatisticsRepository(private val database: Database) : Statist
     private fun findOrCreateIdentifierId(identifier: Identifier): UUID =
         findIdentifier(identifier) ?: createIdentifier(identifier)
 
-    private fun createIdentifier(identifier: Identifier): UUID  =
+    private fun createIdentifier(identifier: Identifier): UUID =
         identifier.toUUID().also { id ->
             IdentifierTable.insert {
                 it[IdentifierTable.id] = id
@@ -111,9 +111,9 @@ internal class SqlStatisticsRepository(private val database: Database) : Statist
             val resolvedSum = ResolvedTable.count.sum()
             val whereCriteria =
                 if (repository.isEmpty())
-                    { IdentifierTable.gav like "%${phrase}%" }
+                    IdentifierTable.gav like "%$phrase%"
                 else
-                    and({ IdentifierTable.repository eq repository }, { IdentifierTable.gav like "%${phrase}%" })
+                    and({ IdentifierTable.repository eq repository }, { IdentifierTable.gav like "%$phrase%" })
 
             IdentifierTable.leftJoin(ResolvedTable, { IdentifierTable.id }, { ResolvedTable.identifierId })
                 .slice(IdentifierTable.gav, resolvedSum)
@@ -140,7 +140,7 @@ internal class SqlStatisticsRepository(private val database: Database) : Statist
                     .selectAll()
                     .firstAndMap { it[this] }
             }
-            ?: 0
+                ?: 0
         }
 
 }

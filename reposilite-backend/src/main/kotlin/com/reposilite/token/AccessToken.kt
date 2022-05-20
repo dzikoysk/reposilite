@@ -81,5 +81,3 @@ enum class AccessTokenPermission(val identifier: String, val shortcut: String) {
     }
 
 }
-
-

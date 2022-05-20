@@ -21,10 +21,10 @@ import com.reposilite.ReposiliteObjectMapper
 import com.reposilite.VERSION
 import com.reposilite.auth.AuthenticationFacade
 import com.reposilite.auth.api.Credentials
-import com.reposilite.frontend.application.FrontendSettings
-import com.reposilite.journalist.Journalist
 import com.reposilite.configuration.local.LocalConfiguration
 import com.reposilite.configuration.shared.SharedConfigurationFacade
+import com.reposilite.frontend.application.FrontendSettings
+import com.reposilite.journalist.Journalist
 import com.reposilite.shared.ContextDsl
 import com.reposilite.status.FailureFacade
 import com.reposilite.token.AccessTokenFacade
@@ -74,7 +74,7 @@ internal object JavalinConfiguration {
             it.ip = { ctx -> ctx.header(webSettings.get().forwardedIp) ?: ctx.req.remoteAddr }
         }
 
-        when(localConfiguration.compressionStrategy.get().lowercase()) {
+        when (localConfiguration.compressionStrategy.get().lowercase()) {
             "none" -> config.compressionStrategy(CompressionStrategy.NONE)
             "gzip" -> config.compressionStrategy(CompressionStrategy.GZIP)
             else -> throw IllegalStateException("Unknown compression strategy ${localConfiguration.compressionStrategy.get()}")

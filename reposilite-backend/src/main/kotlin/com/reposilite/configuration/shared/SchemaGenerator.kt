@@ -58,7 +58,7 @@ fun interface SubtypeResolver {
 }
 
 fun interface EnumResolver {
-   fun resolve(scope: FieldScope): Collection<*>?
+    fun resolve(scope: FieldScope): Collection<*>?
 }
 
 class SettingsModule(

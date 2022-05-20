@@ -53,7 +53,7 @@ object DatabaseConnectionFactory {
 
     private fun connectWithStandardDatabase(databaseConfiguration: String, dialect: String, driver: String, databaseThreadPoolSize: Int): DatabaseConnection =
         with(loadCommandBasedConfiguration(StandardSQLDatabaseSettings(), databaseConfiguration).configuration) {
-            createDataSource(driver, "$dialect://${host}/${database}", databaseThreadPoolSize, user, password)
+            createDataSource(driver, "$dialect://$host/$database", databaseThreadPoolSize, user, password)
                 .let { DatabaseConnection(it, Database.connect(it)) }
         }
 

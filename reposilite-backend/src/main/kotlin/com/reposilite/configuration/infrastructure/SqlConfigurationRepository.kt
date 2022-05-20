@@ -53,8 +53,7 @@ internal class SqlConfigurationRepository(private val database: Database) : Conf
                     it[SettingsTable.updateDate] = LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC)
                     it[SettingsTable.content] = configuration
                 }
-            }
-            else {
+            } else {
                 SettingsTable.update(where = { SettingsTable.name eq name }, body = {
                     it[SettingsTable.updateDate] = LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC)
                     it[SettingsTable.content] = configuration

@@ -107,7 +107,7 @@ class HttpRemoteClient(private val journalist: Journalist, proxy: Proxy?) : Remo
                 response.isSuccessStatusCode.not() -> errorResponse(NOT_ACCEPTABLE, "Unsuccessful request (${response.statusCode})")
                 else -> consumer(response)
             }
-            .onError { response.disconnect() }
+                .onError { response.disconnect() }
         } catch (exception: Exception) {
             createExceptionResponse(this.url.toString(), exception)
         }

@@ -93,7 +93,7 @@ class MavenFacade internal constructor(
                 }
                 .peek {
                     if (it is DocumentInfo && ignoredExtensions.none { extension -> it.name.endsWith(extension) }) {
-                         statisticsFacade.incrementResolvedRequest(IncrementResolvedRequest(lookupRequest.toIdentifier()))
+                        statisticsFacade.incrementResolvedRequest(IncrementResolvedRequest(lookupRequest.toIdentifier()))
                     }
                 }
         }

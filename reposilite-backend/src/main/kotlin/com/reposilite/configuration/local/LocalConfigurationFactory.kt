@@ -29,8 +29,8 @@ internal object LocalConfigurationFactory {
             configurationFile = parameters.localConfigurationPath,
             mode = parameters.localConfigurationMode,
             localConfiguration = LocalConfiguration()
-        )
-        .also { it.initialize() }
-        .localConfiguration
+        ).also {
+            it.initialize()
+        }.localConfiguration
 
 }
