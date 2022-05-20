@@ -13,10 +13,10 @@ data class SharedSettingsProvider(
 
         fun createStandardProvider(classes: Collection<KClass<out SharedSettings>>): SharedSettingsProvider =
             classes
-            .map { it.createInstance() }
-            .map { mutableReference(it) }
-            .associateBy { it.get()::class }
-            .let { SharedSettingsProvider(it) }
+                .map { it.createInstance() }
+                .map { mutableReference(it) }
+                .associateBy { it.get()::class }
+                .let { SharedSettingsProvider(it) }
 
     }
 

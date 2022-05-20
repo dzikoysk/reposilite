@@ -17,7 +17,6 @@
 package com.reposilite.maven
 
 import com.reposilite.auth.api.Credentials
-import com.reposilite.maven.application.ProxiedRepository
 import com.reposilite.shared.http.RemoteClient
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.Location

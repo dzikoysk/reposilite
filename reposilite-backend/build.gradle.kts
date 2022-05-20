@@ -24,6 +24,7 @@ plugins {
     kotlin("kapt")
     id("com.coditory.integration-test") version "1.4.0"
     id("com.github.johnrengelman.shadow") version "7.1.2"
+    id("io.gitlab.arturbosch.detekt").version("1.20.0")
 }
 
 application {
@@ -32,6 +33,7 @@ application {
 
 dependencies {
     implementation(project(":reposilite-frontend"))
+    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.20.0")
 
     val kotlin = "1.6.21"
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin")
@@ -162,12 +164,6 @@ tasks.withType<ShadowJar> {
     }
 }
 
-kapt {
-    arguments {
-        arg("project", "${project.group}/${project.name}") // picocli requirement
-    }
-}
-
 publishing {
     publications {
         create<MavenPublication>("library") {
@@ -186,6 +182,12 @@ publishing {
                 })
             }
         }
+    }
+}
+
+kapt {
+    arguments {
+        arg("project", "${project.group}/${project.name}") // picocli requirement
     }
 }
 
@@ -252,4 +254,19 @@ val testCoverage by tasks.registering {
     tasks["integrationTest"].mustRunAfter(tasks["test"])
     tasks["jacocoTestReport"].mustRunAfter(tasks["integrationTest"])
     tasks["jacocoTestCoverageVerification"].mustRunAfter(tasks["jacocoTestReport"])
+}
+
+detekt {
+    buildUponDefaultConfig = true
+    allRules = false
+    config = files("$projectDir/detekt.yml")
+    autoCorrect = true
+}
+
+tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
+    jvmTarget = "11"
+}
+
+tasks.withType<io.gitlab.arturbosch.detekt.DetektCreateBaselineTask>().configureEach {
+    jvmTarget = "11"
 }

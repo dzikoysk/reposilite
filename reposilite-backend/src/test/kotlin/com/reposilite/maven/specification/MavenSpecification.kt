@@ -16,7 +16,6 @@
 
 package com.reposilite.maven.specification
 
-import com.reposilite.ReposiliteParameters
 import com.reposilite.auth.api.Credentials
 import com.reposilite.journalist.backend.InMemoryLogger
 import com.reposilite.maven.MavenFacade

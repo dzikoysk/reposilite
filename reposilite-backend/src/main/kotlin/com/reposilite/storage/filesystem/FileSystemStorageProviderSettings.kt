@@ -10,4 +10,4 @@ data class FileSystemStorageProviderSettings(
     val quota: String = "100%",
     @Doc(title = "Mount", description = "Use custom directory to locate the repository data (optional, by default it's './repositories/{name}')")
     val mount: String = ""
-): StorageProviderSettings
+) : StorageProviderSettings

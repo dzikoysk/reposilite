@@ -20,7 +20,7 @@ import com.reposilite.VERSION
 import panda.std.Result
 import panda.std.asSuccess
 import picocli.CommandLine
-import java.util.*
+import java.util.TreeSet
 
 abstract class Validator : Runnable {
     override fun run() { }
@@ -57,21 +57,20 @@ internal fun createCommandHelp(commands: Map<String, CommandLine>, requestedComm
         .forEach { command ->
             val specification = command.commandSpec
 
-            response.add("  " + command.commandName
-                    + (if (specification.args().isEmpty()) "" else " ")
-                    + specification.args().joinToString(separator = " ", transform = {
-                            if (it.isOption) {
-                                var option = ""
-                                if (!it.required()) option += "["
-                                option += "--"
-                                option += if (it.paramLabel().startsWith("<")) it.paramLabel().substring(1).dropLast(1) else it.paramLabel()
-                                if (it.type() != Boolean::class.javaPrimitiveType) option += "=<value>"
-                                if (!it.required()) option += "]"
-                                option
-                            }
-                            else it.paramLabel()
-                    })
-                    + " - ${specification.usageMessage().description().joinToString(". ")}"
+            response.add("  " + command.commandName +
+                (if (specification.args().isEmpty()) "" else " ") +
+                specification.args().joinToString(separator = " ", transform = {
+                    if (it.isOption) {
+                        var option = ""
+                        if (!it.required()) option += "["
+                        option += "--"
+                        option += if (it.paramLabel().startsWith("<")) it.paramLabel().substring(1).dropLast(1) else it.paramLabel()
+                        if (it.type() != Boolean::class.javaPrimitiveType) option += "=<value>"
+                        if (!it.required()) option += "]"
+                        option
+                    } else it.paramLabel()
+                }) +
+                " - ${specification.usageMessage().description().joinToString(". ")}"
             )
         }
 

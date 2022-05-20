@@ -44,7 +44,7 @@ internal class AuthenticationPlugin : ReposilitePlugin() {
 
         val authenticationFacade = AuthenticationFacade(
             journalist = this,
-            authenticators =  listOf(
+            authenticators = listOf(
                 BasicAuthenticator(accessTokenFacade),
                 LdapAuthenticator(
                     ldapSettings = computed(dependencies(authenticationSettings)) { authenticationSettings.map { it.ldap } },

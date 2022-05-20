@@ -22,9 +22,8 @@ import panda.std.reactive.reference
 import picocli.CommandLine.Command
 import picocli.CommandLine.Option
 import picocli.CommandLine.Parameters
-import java.io.Serializable
 
-class LocalConfiguration : Serializable, Facade {
+class LocalConfiguration : Facade {
 
     /* General */
 

@@ -16,4 +16,4 @@ data class S3StorageProviderSettings(
     val secretKey: String = "",
     @Doc(title = "Region", description = "Overwrite AWS region (optional)")
     val region: String = ""
-): StorageProviderSettings
+) : StorageProviderSettings
