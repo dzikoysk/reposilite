@@ -32,7 +32,7 @@ internal class TokensCommand(private val accessTokenFacade: AccessTokenFacade) :
         context.append("Tokens (${accessTokenFacade.count()})")
 
         accessTokenFacade.getAccessTokens().forEach { token ->
-            context.append("- ${token.name}:")
+            context.append("- ${token.name}: ${accessTokenFacade.getPermissions(token.identifier)}}")
             val routes = accessTokenFacade.getRoutes(token.identifier)
 
             routes.groupBy { it.path }
