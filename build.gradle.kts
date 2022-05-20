@@ -63,7 +63,7 @@ allprojects {
         //     url = uri("http://localhost/releases")
         //     isAllowInsecureProtocol = true
         // }
-        maven { url = uri("https://repo.panda-lang.org/releases") }
+        maven { url = uri("https://maven.reposilite.com/releases") }
         maven { url = uri("https://jitpack.io") }
     }
 }
@@ -106,7 +106,7 @@ subprojects {
         repositories {
             maven {
                 name = "panda-repository"
-                url = uri("https://repo.panda-lang.org/${if (version.toString().endsWith("-SNAPSHOT")) "snapshots" else "releases"}")
+                url = uri("https://maven.reposilite.com/${if (version.toString().endsWith("-SNAPSHOT")) "snapshots" else "releases"}")
                 credentials {
                     username = System.getenv("MAVEN_NAME") ?: ""
                     password = System.getenv("MAVEN_TOKEN") ?: ""
