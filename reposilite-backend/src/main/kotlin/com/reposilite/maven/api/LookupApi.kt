@@ -18,8 +18,12 @@ package com.reposilite.maven.api
 
 import com.reposilite.maven.Repository
 import com.reposilite.plugin.api.Event
+import com.reposilite.storage.api.DocumentInfo
 import com.reposilite.storage.api.Location
 import com.reposilite.token.AccessTokenIdentifier
+import com.reposilite.web.http.ErrorResponse
+import panda.std.Result
+import java.io.InputStream
 
 data class LookupRequest(
     val accessToken: AccessTokenIdentifier?,
@@ -49,8 +53,15 @@ data class VersionsResponse(
     val versions: List<String>
 )
 
-class ResolveEvent(
+class PreResolveEvent(
     val accessToken: AccessTokenIdentifier?,
     val repository: Repository,
     val gav: Location
+) : Event
+
+class ResolvedFileEvent(
+    val accessToken: AccessTokenIdentifier?,
+    val repository: Repository,
+    val gav: Location,
+    var result: Result<Pair< DocumentInfo, InputStream>, ErrorResponse>
 ) : Event

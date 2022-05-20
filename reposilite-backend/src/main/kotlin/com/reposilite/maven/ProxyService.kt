@@ -34,14 +34,14 @@ internal class ProxyService(private val journalist: Journalist): Journalist {
             client.head("$host/$gav", config.authorization?.toCredentials(), config.connectTimeout, config.readTimeout)
         }
 
-    fun findRemoteFile(repository: Repository, gav: Location): Result<out InputStream, ErrorResponse> =
+    fun findRemoteFile(repository: Repository, gav: Location): Result<InputStream, ErrorResponse> =
         searchInRemoteRepositories(repository, gav) { (host, config, client) ->
             client.get("$host/$gav", config.authorization?.toCredentials(), config.connectTimeout, config.readTimeout)
                 .flatMap { data -> if (config.store) storeFile(repository, gav, data) else ok(data) }
                 .mapErr { error -> error.updateMessage { "$host: $it" } }
         }
 
-    private fun <V> searchInRemoteRepositories(repository: Repository, gav: Location, fetch: (ProxiedHost) -> Result<out V, ErrorResponse>): Result<out V, ErrorResponse> =
+    private fun <V> searchInRemoteRepositories(repository: Repository, gav: Location, fetch: (ProxiedHost) -> Result<V, ErrorResponse>): Result<V, ErrorResponse> =
         repository.proxiedHosts.asSequence()
             .filter {(_, config) -> isAllowed(config, gav) }
             .map { fetch(it) }

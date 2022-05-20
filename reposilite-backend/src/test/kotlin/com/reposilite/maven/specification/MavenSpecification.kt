@@ -16,7 +16,6 @@
 
 package com.reposilite.maven.specification
 
-import com.reposilite.ReposiliteParameters
 import com.reposilite.auth.api.Credentials
 import com.reposilite.journalist.backend.InMemoryLogger
 import com.reposilite.maven.MavenFacade
@@ -76,6 +75,7 @@ internal abstract class MavenSpecification {
     @TempDir
     lateinit var workingDirectory: File
     private lateinit var accessTokenFacade: AccessTokenFacade
+    protected lateinit var extensions: Extensions
     protected lateinit var mavenFacade: MavenFacade
 
     protected abstract fun repositories(): List<RepositorySettings>
@@ -122,15 +122,17 @@ internal abstract class MavenSpecification {
         val repositoryProvider = RepositoryProvider(workingDirectoryPath, remoteClientProvider, failureFacade, storageFacade, repositories)
         val repositoryService = RepositoryService(logger, repositoryProvider, securityProvider)
 
+        this.extensions = Extensions(logger)
+
         this.mavenFacade = MavenFacade(
-            logger,
-            reference("repository-id"),
-            securityProvider,
-            RepositoryService(logger, repositoryProvider, securityProvider),
-            ProxyService(logger),
-            MetadataService(repositoryService),
-            Extensions(logger),
-            StatisticsFacade(logger, DailyDateIntervalProvider.toReference(), InMemoryStatisticsRepository())
+            journalist = logger,
+            repositoryId = reference("repository-id"),
+            repositorySecurityProvider = securityProvider,
+            repositoryService = RepositoryService(logger, repositoryProvider, securityProvider),
+            proxyService = ProxyService(logger),
+            metadataService = MetadataService(repositoryService),
+            extensions = extensions,
+            statisticsFacade = StatisticsFacade(logger, DailyDateIntervalProvider.toReference(), InMemoryStatisticsRepository())
         )
     }
 
