@@ -31,10 +31,12 @@ import net.dzikoysk.exposed.upsert.withIndex
 import net.dzikoysk.exposed.upsert.withUnique
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.ReferenceOption.CASCADE
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.javatime.date
@@ -43,7 +45,7 @@ import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
 import panda.std.firstAndMap
-import java.util.*
+import java.util.UUID
 
 object AccessTokenTable : IntIdTable("access_token") {
     val name = varchar("name", MAX_TOKEN_NAME).uniqueIndex("uq_name")
@@ -122,7 +124,9 @@ internal class SqlAccessTokenRepository(private val database: Database) : Access
 
     override fun deletePermission(id: AccessTokenIdentifier, permission: AccessTokenPermission) {
         transaction(database) {
-            PermissionToRouteTable.deleteWhere { PermissionToRouteTable.accessTokenId eq id.value }
+            PermissionToAccessTokenTable.deleteWhere {
+                Op.build { PermissionToAccessTokenTable.accessTokenId eq id.value }.and { PermissionToAccessTokenTable.permission eq permission.identifier }
+            }
         }
     }
 
