@@ -21,7 +21,6 @@ import com.reposilite.auth.application.LdapSettings
 import com.reposilite.journalist.Channel.DEBUG
 import com.reposilite.status.FailureFacade
 import com.reposilite.token.AccessTokenFacade
-import com.reposilite.token.AccessTokenType
 import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.token.api.CreateAccessTokenRequest
 import com.reposilite.web.http.ErrorResponse
@@ -34,7 +33,7 @@ import io.javalin.http.HttpCode.UNAUTHORIZED
 import panda.std.Result
 import panda.std.asSuccess
 import panda.std.reactive.Reference
-import java.util.*
+import java.util.Hashtable
 import javax.naming.Context.INITIAL_CONTEXT_FACTORY
 import javax.naming.Context.PROVIDER_URL
 import javax.naming.Context.SECURITY_AUTHENTICATION
@@ -62,7 +61,7 @@ internal class LdapAuthenticator(
             createSearchContext()
                 .flatMap {
                     it.search(
-                        "(&(objectClass=person)(${userAttribute}=${credentials.name}))", // find user entry with search user
+                        "(&(objectClass=person)($userAttribute=${credentials.name}))", // find user entry with search user
                         userAttribute
                     )
                 }
@@ -71,7 +70,7 @@ internal class LdapAuthenticator(
                 .flatMap { createContext(user = it.first, password = credentials.secret) } // try to authenticate user with matched domain namespace
                 .flatMap {
                     it.search(
-                        "(&(objectClass=person)(${userAttribute}=${credentials.name})${userFilter})", // filter result with user-filter from configuration
+                        "(&(objectClass=person)($userAttribute=${credentials.name})$userFilter)", // filter result with user-filter from configuration
                         userAttribute
                     )
                 }
@@ -102,7 +101,7 @@ internal class LdapAuthenticator(
         Hashtable<String, String>()
             .also {
                 it[INITIAL_CONTEXT_FACTORY] = "com.sun.jndi.ldap.LdapCtxFactory"
-                it[PROVIDER_URL] = with(ldapSettings.get()) { "ldap://${hostname}:${port}" }
+                it[PROVIDER_URL] = with(ldapSettings.get()) { "ldap://$hostname:$port" }
                 it[SECURITY_AUTHENTICATION] = "simple"
                 it[SECURITY_PRINCIPAL] = user
                 it[SECURITY_CREDENTIALS] = password

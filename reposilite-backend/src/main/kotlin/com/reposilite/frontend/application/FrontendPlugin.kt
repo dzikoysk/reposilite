@@ -66,7 +66,7 @@ internal class FrontendPlugin : ReposilitePlugin() {
                 }
                 routes.add(CustomFrontendHandler(frontendFacade, staticDirectory(event.reposilite)))
             }
-        )}
+        ) }
 
         event { event: HttpServerInitializationEvent ->
             event.javalin.exception(NotFoundResponse::class.java, NotFoundHandler(frontendFacade))
@@ -80,4 +80,3 @@ internal class FrontendPlugin : ReposilitePlugin() {
         reposilite.parameters.workingDirectory.resolve(STATIC_DIRECTORY)
 
 }
-

@@ -63,16 +63,16 @@ internal class LdapAuthenticatorTest : AuthenticationSpecification() {
             ldapServer.startListening(it.hostname)
             this.ldapConfiguration.update(
                 LdapSettings(
-                it.enabled,
-                ldapServer.getListenAddress(it.hostname).hostAddress,
-                it.port,
-                it.baseDn,
-                it.searchUserDn,
-                it.searchUserPassword,
-                it.userAttribute,
-                it.userFilter,
-                it.userType
-            )
+                    it.enabled,
+                    ldapServer.getListenAddress(it.hostname).hostAddress,
+                    it.port,
+                    it.baseDn,
+                    it.searchUserDn,
+                    it.searchUserPassword,
+                    it.userAttribute,
+                    it.userFilter,
+                    it.userType
+                )
             )
 
             ldapServer.add("dn: dc=domain,dc=com", "objectClass: top", "objectClass: domain")

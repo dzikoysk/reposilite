@@ -24,7 +24,6 @@ import com.reposilite.status.FailureFacade
 import com.reposilite.token.specification.AccessTokenSpecification
 import panda.std.reactive.toMutableReference
 import org.junit.jupiter.api.BeforeEach
-import panda.std.reactive.toReference
 
 internal abstract class AuthenticationSpecification : AccessTokenSpecification() {
 
