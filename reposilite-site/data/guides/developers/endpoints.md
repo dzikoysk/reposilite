@@ -5,8 +5,8 @@ title: Endpoints
 
 All endpoints are described using OpenApi. Useful links:
 
-* [Reposilite / OpenAPI Scheme](https://repo.panda-lang.org/openapi)
-* [Reposilite / Swagger](https://repo.panda-lang.org/swagger)
+* [Reposilite / OpenAPI Scheme](https://maven.reposilite.com/openapi)
+* [Reposilite / Swagger](https://maven.reposilite.com/swagger)
 
 Raw JSON scheme:
 
