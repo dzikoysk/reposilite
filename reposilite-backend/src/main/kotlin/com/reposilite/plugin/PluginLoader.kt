@@ -23,9 +23,10 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.util.ServiceLoader
 import java.util.stream.Collectors
+import kotlin.io.path.absolutePathString
 
 class PluginLoader(
-    val pluginDirectory: Path,
+    val pluginsDirectory: Path,
     val extensions: Extensions
 ) {
 
@@ -57,21 +58,25 @@ class PluginLoader(
         }
 
     internal fun loadExternalPlugins() {
-        if (Files.notExists(pluginDirectory)) {
-            Files.createDirectories(pluginDirectory)
+        if (Files.notExists(pluginsDirectory)) {
+            Files.createDirectories(pluginsDirectory)
         }
 
-        if (!Files.isDirectory(pluginDirectory)) {
+        if (!Files.isDirectory(pluginsDirectory)) {
             throw IllegalStateException("The path is not a directory")
         }
 
-        Files.list(pluginDirectory).use { pluginDirectoryStream ->
+        extensions.logger.debug("Plugins directory: ${pluginsDirectory.absolutePathString()}")
+
+        Files.list(pluginsDirectory).use { pluginDirectoryStream ->
             pluginDirectoryStream
-                .collect(Collectors.toList())
                 .filter { it.getSimpleName().endsWith(".jar") }
                 .map { it.toUri().toURL() }
+                .collect(Collectors.toList())
+                .onEach { extensions.logger.debug("Plugin file: $it") }
                 .let { URLClassLoader(it.toTypedArray()) }
                 .let { ServiceLoader.load(ReposilitePlugin::class.java, it) }
+                .onEach { extensions.logger.debug("Plugin class: $it") }
                 .forEach { extensions.registerPlugin(it) }
         }
     }

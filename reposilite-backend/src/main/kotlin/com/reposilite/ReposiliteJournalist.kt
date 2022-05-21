@@ -48,6 +48,7 @@ import kotlin.collections.MutableMap.MutableEntry
 class ReposiliteJournalist(
     visibleJournalist: Journalist,
     cachedLogSize: Int,
+    defaultVisibilityThreshold: Channel = Channel.INFO,
     private val testEnv: Boolean
 ) : Journalist {
 
@@ -60,7 +61,7 @@ class ReposiliteJournalist(
 
     init {
         this.visibleLogger = AggregatedLogger(visibleJournalist.logger, publisherLogger)
-        setVisibleThreshold(Channel.INFO)
+        setVisibleThreshold(defaultVisibilityThreshold)
 
         if (!testEnv) {
             System.setProperty("tinylog.autoshutdown", "false")
