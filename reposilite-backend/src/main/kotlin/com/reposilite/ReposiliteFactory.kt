@@ -67,9 +67,12 @@ object ReposiliteFactory {
             extensions = Extensions(journalist)
         )
 
+        journalist.logger.info("")
+        journalist.logger.info("--- Loading plugins:")
+
         val pluginLoader = PluginLoader(parameters.workingDirectory.resolve("plugins"), reposilite.extensions)
         pluginLoader.extensions.registerFacade(reposilite)
-        pluginLoader.loadExternalPlugins()
+        pluginLoader.loadPluginsByServiceFiles()
         pluginLoader.initialize()
 
         return reposilite

@@ -7,7 +7,11 @@ import com.reposilite.plugin.parameters
 @Plugin(name = "local-configuration", dependencies = ["configuration"])
 class LocalConfigurationPlugin : ReposilitePlugin() {
 
-    override fun initialize(): LocalConfiguration =
-        LocalConfigurationFactory.createLocalConfiguration(this, parameters())
+    override fun initialize(): LocalConfiguration {
+        logger.info("")
+        logger.info("--- Local configuration")
+
+        return LocalConfigurationFactory.createLocalConfiguration(this, parameters())
+    }
 
 }

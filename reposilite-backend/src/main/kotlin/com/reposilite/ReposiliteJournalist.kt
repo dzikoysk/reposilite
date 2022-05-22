@@ -60,18 +60,22 @@ class ReposiliteJournalist(
     private val tinyLog: TinyLogLogger
 
     init {
-        this.visibleLogger = AggregatedLogger(visibleJournalist.logger, publisherLogger)
-        setVisibleThreshold(defaultVisibilityThreshold)
-
         if (!testEnv) {
             System.setProperty("tinylog.autoshutdown", "false")
+            Log.getProperties().setProperty("org.eclipse.jetty.util.log.announce", "false")
         }
+
+        this.visibleLogger = AggregatedLogger(visibleJournalist.logger, publisherLogger)
+        setVisibleThreshold(defaultVisibilityThreshold)
 
         val redirectedLogger = AggregatedLogger(cachedLogger, visibleLogger)
         this.tinyLog = TinyLogLogger(Channel.ALL, redirectedLogger) // Redirect TinyLog output to redirected loggers
 
-        Log.getProperties().setProperty("org.eclipse.jetty.util.log.announce", "false")
-        this.mainLogger = if (testEnv) PrintStreamLogger(PrintStream(Files.createTempFile("reposilite", "test-out").toFile()), System.err) else Slf4jLogger(LoggerFactory.getLogger(Reposilite::class.java))
+        this.mainLogger =
+            if (testEnv)
+                PrintStreamLogger(PrintStream(Files.createTempFile("reposilite", "test-out").toFile()), System.err)
+            else
+                Slf4jLogger(LoggerFactory.getLogger(Reposilite::class.java))
     }
 
     fun subscribe(subscriber: Subscriber<MutableEntry<Channel, String>>): Int =
