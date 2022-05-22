@@ -28,9 +28,6 @@ internal class ConfigurationPlugin : ReposilitePlugin() {
         val reposilite = reposilite()
         val configurationRepository = SqlConfigurationRepository(reposilite.database)
 
-        logger.info("")
-        logger.info("--- Settings")
-
         return ConfigurationFacade(configurationRepository)
     }
 

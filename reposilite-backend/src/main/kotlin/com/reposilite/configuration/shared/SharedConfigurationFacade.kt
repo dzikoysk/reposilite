@@ -54,7 +54,8 @@ class SharedConfigurationFacade(
 
         updateResult
             .filter { (_, result) -> result.isOk }
-            .forEach { (ref) -> journalist.logger.info("Domain '${ref.name}' has been loaded from ${sharedConfigurationProvider.name()}") }
+            .joinToString(separator = ", ") { (ref) -> "'${ref.name}'" }
+            .let { journalist.logger.info("Domains $it have been loaded from ${sharedConfigurationProvider.name()}") }
 
         val failures = updateResult
             .filter { (_, result) -> result.isErr }

@@ -26,6 +26,9 @@ class MigrationPlugin : ReposilitePlugin() {
         val workingDirectory = parameters().workingDirectory
         val mavenFacade = facade<MavenFacade>()
 
+        logger.warn("")
+        logger.warn("--- Migration")
+
         migrateTokens(
             workingDirectory = workingDirectory,
             repositories = mavenFacade.getAllRepositoryNames()
