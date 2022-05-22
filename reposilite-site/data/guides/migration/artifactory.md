@@ -3,20 +3,29 @@ id: artifactory
 title: Artifactory
 ---
 
-Export Each Repository from Artifactory.
-Be sure to check the `.m2 compatible export` box to get an export that reposilite can use. Also, we recommend excluding artifactory build metadata if your version of Artifactory has this feature.
+### General
+
+Reposilite works slightly different than Artifactory or Nexus, so make sure you've properly configured your instance and environment.
+Guides you may find especially useful during migration:
+
+* [Reposilite / Guide - Setup](/guide/setup) - How you can configure Reposilite instance
+* [Reposilite / Guide - Tokens](/guide/tokens) - How to generate access to your instance
+* [Reposilite / Guide - Deployment](/guide/deployment) - Deploy your first artifact to the Reposilite
+
+### Export repository from Artifactory
+Be sure to check the `.m2 compatible export` box to get an export that Reposilite can use. Also, we recommend excluding artifactory build metadata if your version of Artifactory has this feature.
     
-![image](https://user-images.githubusercontent.com/823828/167173140-6777ed00-d5e6-44b9-bf40-c337bae712a9.png)
+![Artifactory - Export menu preview](https://user-images.githubusercontent.com/823828/167173140-6777ed00-d5e6-44b9-bf40-c337bae712a9.png)
     
-Move the resulting export files to your new reposilite server and extract them to the repository folder you would like them in.
+Move the resulting export files to your new Reposilite server and extract them to the repository folder you would like them in.
 Depending on the organization of your new repositories, you may need to move your artifacts out of parent folders to get them in the location you want them in your new repository.
    
-* [Reposolite Data Structure](https://reposilite-nl595cx48-dzikoysk.vercel.app/guide/manual#data-structure)
+* [Reposilite / Guide - Data Structure](/guide/manual#data-structure)
 
-Configure the new repository in reposilite, if you haven't already, making sure it is loading files from the correct directory.
+Configure the new repository in Reposilite, if you haven't already, making sure it is loading files from the correct directory.
 You should be able to browse the artifacts once configuration reloads.
     
-* [Reposilite Custom Repository Configuration](https://reposilite-nl595cx48-dzikoysk.vercel.app/guide/repositories)
+* [Reposilite / Guide - Custom repository configuration](/guide/repositories)
 
 ### Helpful Tips
 
