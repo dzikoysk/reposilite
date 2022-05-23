@@ -39,7 +39,7 @@
     "@vitejs/plugin-vue": "^2.3.3",
     "@vue/compiler-sfc": "^3.2.33",
     "body-parser": "^1.20.0",
-    "concurrently": "^7.2.0",
+    "concurrently": "^7.2.1",
     "eslint": "^8.15.0",
     "eslint-plugin-vue": "^9.0.0",
     "express": "^4.18.1",
