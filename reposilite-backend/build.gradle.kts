@@ -15,6 +15,7 @@
  */
 
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.apache.tools.ant.filters.ReplaceTokens
 
 group = "org.panda-lang"
 
@@ -183,6 +184,21 @@ publishing {
             }
         }
     }
+}
+
+tasks.register<Copy>("generateKotlin") {
+    inputs.property("version", version)
+    from("$projectDir/src/template/kotlin")
+    into("$buildDir/generated/kotlin")
+    filter(ReplaceTokens::class, "tokens" to mapOf("version" to version))
+}
+
+tasks.compileKotlin {
+    dependsOn("generateKotlin")
+}
+
+kotlin.sourceSets.main {
+    kotlin.srcDir("$buildDir/generated/kotlin")
 }
 
 kapt {
