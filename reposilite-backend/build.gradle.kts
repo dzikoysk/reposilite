@@ -189,7 +189,7 @@ publishing {
 tasks.register<Copy>("generateKotlin") {
     inputs.property("version", version)
     from("$projectDir/src/template/kotlin")
-    into("$buildDir/generated/kotlin")
+    into("$projectDir/src/generated/kotlin")
     filter(ReplaceTokens::class, "tokens" to mapOf("version" to version))
 }
 
@@ -198,7 +198,7 @@ tasks.compileKotlin {
 }
 
 kotlin.sourceSets.main {
-    kotlin.srcDir("$buildDir/generated/kotlin")
+    kotlin.srcDir("$projectDir/src/generated/kotlin")
 }
 
 kapt {
