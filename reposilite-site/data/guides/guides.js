@@ -36,6 +36,7 @@ const categories = [
       'deployment',
       'proxy',
       'static-files',
+      'badges',
       'plugins',
       'ssl'
     ]
