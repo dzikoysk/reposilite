@@ -16,7 +16,7 @@
 
 package com.reposilite.plugin.api;
 
-import com.reposilite.ReposiliteKt;
+import com.reposilite.ReposilitePropertiesKt;
 import com.reposilite.configuration.shared.SharedSettings;
 
 import java.lang.annotation.ElementType;
@@ -38,9 +38,9 @@ public @interface Plugin {
 
     /**
      * @return version of plugin, by default it is same as the current Reposilite version
-     * @see com.reposilite.ReposiliteKt#VERSION
+     * @see com.reposilite.ReposilitePropertiesKt#VERSION
      */
-    String version() default ReposiliteKt.VERSION;
+    String version() default ReposilitePropertiesKt.VERSION;
 
     /**
      * @return array of plugins required to launch before this one
