@@ -49,10 +49,10 @@ dependencies {
     api("net.dzikoysk:cdn:$cdn")
     api("net.dzikoysk:cdn-kt:$cdn")
 
-    val awssdk = "2.17.192"
+    val awssdk = "2.17.196"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
-    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.220")
+    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.225")
 
     val exposed = "0.38.2"
     implementation("org.jetbrains.exposed:exposed-core:$exposed")
@@ -70,7 +70,7 @@ dependencies {
     implementation("org.postgresql:postgresql:42.3.5")
     implementation("com.h2database:h2:2.1.212")
 
-    val springSecurityCrypto = "5.6.3"
+    val springSecurityCrypto = "5.7.1"
     implementation("org.springframework.security:spring-security-crypto:$springSecurityCrypto")
 
     val ldap = "6.0.5"
@@ -95,7 +95,7 @@ dependencies {
     @Suppress("GradlePackageUpdate")
     implementation("org.eclipse.jetty:jetty-server:9.4.46.v20220331")
 
-    implementation("com.github.victools:jsonschema-generator:4.24.2")
+    implementation("com.github.victools:jsonschema-generator:4.24.3")
 
     val picocli = "4.6.3"
     kapt("info.picocli:picocli-codegen:$picocli")
@@ -134,7 +134,7 @@ dependencies {
     testImplementation("com.konghq:unirest-java:$unirest")
     testImplementation("com.konghq:unirest-objectmapper-jackson:$unirest")
 
-    val testcontainers = "1.17.1"
+    val testcontainers = "1.17.2"
     testImplementation("org.testcontainers:postgresql:$testcontainers")
     testImplementation("org.testcontainers:mariadb:$testcontainers")
     testImplementation("org.testcontainers:testcontainers:$testcontainers")
