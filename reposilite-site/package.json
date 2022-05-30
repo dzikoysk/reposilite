@@ -6,7 +6,7 @@
     "start": "next start"
   },
   "dependencies": {
-    "@chakra-ui/icons": "^2.0.0",
+    "@chakra-ui/icons": "^2.0.1",
     "@chakra-ui/react": "^2.1.0",
     "@emotion/react": "^11.9.0",
     "@emotion/styled": "^11.8.1",
