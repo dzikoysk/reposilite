@@ -64,9 +64,7 @@ internal class MavenEndpoints(
     private val findFile = ReposiliteRoute<Unit>("/{repository}/<gav>", HEAD, GET) {
         accessed {
             LookupRequest(this?.identifier, requireParameter("repository"), requireParameter("gav").toLocation()).let { request ->
-                mavenFacade.findDetails(request)
-                    .`is`(DocumentInfo::class.java) { ErrorResponse(NOT_FOUND, "Requested file is a directory") }
-                    .flatMap { details -> mavenFacade.findFile(request).map { details to it } }
+                mavenFacade.findFile(request)
                     .peek { (details, file) -> ctx.resultAttachment(details.name, details.contentType, details.contentLength, compressionStrategy, file) }
                     .onError { ctx.status(it.status).html(frontendFacade.createNotFoundPage(uri, it.message)) }
             }

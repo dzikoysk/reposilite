@@ -23,7 +23,6 @@ import com.reposilite.maven.api.LatestVersionResponse
 import com.reposilite.maven.api.VersionLookupRequest
 import com.reposilite.shared.ContextDsl
 import com.reposilite.shared.extensions.resultAttachment
-import com.reposilite.storage.api.DocumentInfo
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.toLocation
 import com.reposilite.token.api.AccessTokenDto
@@ -121,9 +120,7 @@ internal class MavenLatestApiEndpoints(
     private val findLatestFile = ReposiliteRoute<Unit>("/api/maven/latest/file/{repository}/<gav>", GET) {
         accessed {
             response = resolveLatestArtifact(this@ReposiliteRoute, this) { lookupRequest ->
-                mavenFacade.findDetails(lookupRequest)
-                    .`is`(DocumentInfo::class.java) { ErrorResponse(BAD_REQUEST, "Requested file is a directory") }
-                    .flatMap { mavenFacade.findFile(lookupRequest).map { data -> it to data } }
+                mavenFacade.findFile(lookupRequest)
                     .map { (details, file) -> ctx.resultAttachment(details.name, details.contentType, details.contentLength, compressionStrategy, file) }
             }
         }

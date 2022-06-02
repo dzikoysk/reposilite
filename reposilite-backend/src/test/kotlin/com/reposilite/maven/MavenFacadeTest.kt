@@ -179,7 +179,7 @@ internal class MavenFacadeTest : MavenSpecification() {
         val response = mavenFacade.findFile(fileSpec.toLookupRequest(UNAUTHORIZED))
 
         // then: the file has been properly proxied
-        val data = assertOk(response)
+        val (_, data) = assertOk(response)
         assertEquals(REMOTE_CONTENT, data.readBytes().decodeToString())
     }
 
@@ -228,7 +228,7 @@ internal class MavenFacadeTest : MavenSpecification() {
         val response = mavenFacade.findFile(file.toLookupRequest(UNAUTHORIZED))
 
         // then: the file is found
-        val data = assertOk(response)
+        val (_, data) = assertOk(response)
         assertEquals(REMOTE_CONTENT, data.readBytes().decodeToString())
     }
 
