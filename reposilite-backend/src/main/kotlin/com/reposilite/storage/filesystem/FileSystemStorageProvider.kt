@@ -52,7 +52,7 @@ import kotlin.streams.asSequence
  */
 abstract class FileSystemStorageProvider protected constructor(
     private val rootDirectory: Path
- ) : StorageProvider {
+) : StorageProvider {
 
     override fun shutdown() {}
 

@@ -20,6 +20,7 @@ import com.reposilite.configuration.local.LocalConfiguration
 import com.reposilite.configuration.local.LocalConfigurationMode
 import com.reposilite.configuration.local.infrastructure.LOCAL_CONFIGURATION_FILE
 import com.reposilite.configuration.shared.infrastructure.SHARED_CONFIGURATION_FILE
+import com.reposilite.journalist.Channel
 import com.reposilite.token.AccessTokenType.TEMPORARY
 import com.reposilite.token.api.CreateAccessTokenRequest
 import picocli.CommandLine.Command
@@ -71,6 +72,9 @@ class ReposiliteParameters : Runnable {
     @Option(names = ["--token", "-t"], description = ["Create temporary token with the given credentials in name:secret format", "Created token has all permissions"])
     var tokenEntries = arrayOf<String>()
     lateinit var tokens: Collection<CreateAccessTokenRequest>
+
+    @Option(names = ["--channel", "--level"], description = ["Default logging channel"])
+    var level: String = Channel.INFO.name
 
     @Option(names = ["--test-env", "--debug", "-d"], description = ["Enable test mode"])
     var testEnv = false

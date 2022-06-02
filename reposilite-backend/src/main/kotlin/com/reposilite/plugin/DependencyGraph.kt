@@ -16,7 +16,7 @@
 
 package com.reposilite.plugin
 
-import java.util.*
+import java.util.Stack
 
 fun toFlattenedDependencyGraph(declarations: Map<String, List<String>>): List<String> {
     val topologicalOrdering = mutableListOf<String>()
@@ -41,7 +41,7 @@ fun toFlattenedDependencyGraph(declarations: Map<String, List<String>>): List<St
         topologicalOrdering.add(node)
 
         declarations[node]!!.forEach { neighbor ->
-            if (indegrees.compute(neighbor) { _, value -> (value ?: 1) -1 } == 0) {
+            if (indegrees.compute(neighbor) { _, value -> (value ?: 1) - 1 } == 0) {
                 nodesWithNoIncomingEdges.push(neighbor)
             }
         }

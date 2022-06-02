@@ -18,14 +18,18 @@ package com.reposilite.plugin
 
 import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.storage.getSimpleName
+import panda.std.Result
+import java.io.File
 import java.net.URLClassLoader
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.ServiceLoader
+import java.util.jar.JarFile
 import java.util.stream.Collectors
+import kotlin.io.path.absolutePathString
 
 class PluginLoader(
-    val pluginDirectory: Path,
+    val pluginsDirectory: Path,
     val extensions: Extensions
 ) {
 
@@ -34,9 +38,6 @@ class PluginLoader(
             .forEach { (_, plugin) -> plugin.load(this) }
 
         val plugins = sortPlugins()
-
-        extensions.logger.info("")
-        extensions.logger.info("--- Loading plugins (${plugins.size}):")
 
         plugins.chunked(5).forEach {
             extensions.logger.info(it.joinToString(", ", transform = { (metadata, _) -> metadata.name }))
@@ -51,29 +52,41 @@ class PluginLoader(
         with (extensions.getPlugins()) {
             extensions.getPlugins().asSequence()
                 .map { it.value.metadata }
+                .sortedBy { it.name }
                 .associateBy({ it.name }, { it.dependencies.toList() })
                 .let { toFlattenedDependencyGraph(it) }
                 .map { this[it]!! }
         }
 
-    internal fun loadExternalPlugins() {
-        if (Files.notExists(pluginDirectory)) {
-            Files.createDirectories(pluginDirectory)
+    internal fun loadPluginsByServiceFiles() {
+        if (Files.notExists(pluginsDirectory)) {
+            Files.createDirectories(pluginsDirectory)
         }
 
-        if (!Files.isDirectory(pluginDirectory)) {
+        if (!Files.isDirectory(pluginsDirectory)) {
             throw IllegalStateException("The path is not a directory")
         }
 
-        Files.list(pluginDirectory).use { pluginDirectoryStream ->
+        extensions.logger.debug("Plugins directory: ${pluginsDirectory.absolutePathString()}")
+
+        Files.list(pluginsDirectory).use { pluginDirectoryStream ->
             pluginDirectoryStream
-                .collect(Collectors.toList())
                 .filter { it.getSimpleName().endsWith(".jar") }
+                .filter { isValidJarFile(it.toFile()) }
                 .map { it.toUri().toURL() }
+                .collect(Collectors.toList())
+                .onEach { extensions.logger.debug("Plugin file: $it") }
                 .let { URLClassLoader(it.toTypedArray()) }
                 .let { ServiceLoader.load(ReposilitePlugin::class.java, it) }
+                .onEach { extensions.logger.debug("Plugin class: $it") }
                 .forEach { extensions.registerPlugin(it) }
         }
     }
+
+    private fun isValidJarFile(file: File): Boolean =
+        Result.attempt { JarFile(file) }
+            .map { it.close() }
+            .onError { extensions.logger.warn("Invalid JAR file: ${file.absolutePath}") }
+            .isOk
 
 }

@@ -38,7 +38,13 @@ object ReposiliteFactory {
         val localConfiguration = LocalConfigurationFactory.createLocalConfiguration(null, parameters)
         parameters.applyLoadedConfiguration(localConfiguration)
 
-        val journalist = ReposiliteJournalist(rootJournalist, localConfiguration.cachedLogSize.get(), parameters.testEnv)
+        val journalist = ReposiliteJournalist(
+            visibleJournalist = rootJournalist,
+            cachedLogSize = localConfiguration.cachedLogSize.get(),
+            defaultVisibilityThreshold = Channel.of(parameters.level).orElseGet { Channel.INFO },
+            testEnv = parameters.testEnv
+        )
+
         journalist.logger.info("")
         journalist.logger.info("${Effect.GREEN}Reposilite ${Effect.RESET}$VERSION")
         journalist.logger.info("")
@@ -61,13 +67,15 @@ object ReposiliteFactory {
             extensions = Extensions(journalist)
         )
 
+        journalist.logger.info("")
+        journalist.logger.info("--- Loading plugins:")
+
         val pluginLoader = PluginLoader(parameters.workingDirectory.resolve("plugins"), reposilite.extensions)
         pluginLoader.extensions.registerFacade(reposilite)
-        pluginLoader.loadExternalPlugins()
+        pluginLoader.loadPluginsByServiceFiles()
         pluginLoader.initialize()
 
         return reposilite
     }
-
 
 }

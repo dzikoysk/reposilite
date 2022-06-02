@@ -90,7 +90,7 @@ internal class CliEndpoint(
 
     private fun initializeAuthenticatedContext(ws: WsConfig, connection: WsContext, session: String) {
         ws.onMessage {
-            when(val message = it.message()) {
+            when (val message = it.message()) {
                 "keep-alive" -> connection.send("keep-alive")
                 else -> {
                     journalist.logger.info("CLI | $session> $message")

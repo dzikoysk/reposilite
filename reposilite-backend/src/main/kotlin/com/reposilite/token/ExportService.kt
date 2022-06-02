@@ -19,7 +19,7 @@ import kotlin.io.path.readText
 class ExportService {
 
     fun exportToFile(tokens: Collection<AccessTokenDetails>, toFile: Path): Path =
-        Files.writeString(toFile,  DEFAULT_OBJECT_MAPPER.writeValueAsString(tokens), TRUNCATE_EXISTING, CREATE)
+        Files.writeString(toFile, DEFAULT_OBJECT_MAPPER.writeValueAsString(tokens), TRUNCATE_EXISTING, CREATE)
 
     fun importFromFile(fromFile: Path): Result<Collection<AccessTokenDetails>, Exception> =
         Result.attempt { DEFAULT_OBJECT_MAPPER.readValue<List<AccessTokenDetails>>(fromFile.readText()) }

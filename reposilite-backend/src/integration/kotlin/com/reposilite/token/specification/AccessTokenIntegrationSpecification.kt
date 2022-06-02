@@ -17,6 +17,8 @@
 package com.reposilite.token.specification
 
 import com.reposilite.ReposiliteSpecification
+import com.reposilite.auth.AuthenticationFacade
+import com.reposilite.auth.api.SessionDetails
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.AccessTokenIdentifier
 import com.reposilite.token.AccessTokenPermission
@@ -27,6 +29,12 @@ internal abstract class AccessTokenIntegrationSpecification : ReposiliteSpecific
 
     protected fun useToken(name: String, secret: String) =
         useFacade<AccessTokenFacade>().createAccessToken(CreateAccessTokenRequest(PERSISTENT, name, secret = secret)).accessToken to secret
+
+    protected fun useExistingToken(name: String): SessionDetails =
+        useFacade<AccessTokenFacade>().getAccessToken(name)!!
+            .identifier
+            .let { useFacade<AuthenticationFacade>().geSessionDetails(it) }
+            .get()
 
     protected fun useTokenDescription(name: String, secret: String, permissions: Set<AccessTokenPermission> = emptySet()) =
         Triple(name, secret, permissions)

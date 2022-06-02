@@ -69,7 +69,6 @@ data class ProxiedCredentials(
     val password: String
 ) : SharedSettings {
 
-
     fun toCredentials(): Credentials =
         Credentials(login, password)
 

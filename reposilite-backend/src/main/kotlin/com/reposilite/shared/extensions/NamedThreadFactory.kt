@@ -44,4 +44,4 @@ internal fun newFixedThreadPool(min: Int, max: Int, prefix: String): ExecutorSer
     )
 
 internal fun newSingleThreadScheduledExecutor(prefix: String): ScheduledExecutorService =
-     ScheduledThreadPoolExecutor(1, NamedThreadFactory("$prefix (1) - "))
+    ScheduledThreadPoolExecutor(1, NamedThreadFactory("$prefix (1) - "))

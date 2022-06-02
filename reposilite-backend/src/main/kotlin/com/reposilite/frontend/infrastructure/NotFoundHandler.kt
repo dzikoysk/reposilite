@@ -38,12 +38,10 @@ internal class NotFoundHandler(private val frontendFacade: FrontendFacade) : Han
         handleNotFound(ctx)
 
     private fun handleNotFound(ctx: Context) {
-        if (ctx.resultFuture() != null) {
+        if (ctx.resultFuture() != null)
             ctx.resultFuture()!!.thenRun { handler(ctx) }
-        }
-        else {
+        else
             handler(ctx)
-        }
     }
 
 }
