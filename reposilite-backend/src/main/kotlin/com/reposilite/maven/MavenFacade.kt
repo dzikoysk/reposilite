@@ -81,14 +81,15 @@ class MavenFacade internal constructor(
     )
 
     fun findDetails(lookupRequest: LookupRequest): Result<out FileDetails, ErrorResponse> =
-        resolve(lookupRequest) { repository, gav -> findDetails(lookupRequest.accessToken, repository, gav )}
+        resolve(lookupRequest) { repository, gav -> findDetails(lookupRequest.accessToken, repository, gav) }
 
     private fun findDetails(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<out FileDetails, ErrorResponse> =
         when {
             repository.exists(gav) -> findLocalDetails(accessToken, repository, gav)
             else -> findProxiedDetails(repository, gav)
+        }.peek {
+            recordResolvedRequest(Identifier(repository.name, gav.toString()), it)
         }
-        .peek { recordResolvedRequest(Identifier(repository.name, gav.toString()), it) }
 
     private fun findLocalDetails(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<out FileDetails, ErrorResponse> =
         repository.getFileDetails(gav)

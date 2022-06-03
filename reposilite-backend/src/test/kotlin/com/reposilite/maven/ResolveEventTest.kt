@@ -31,8 +31,7 @@ internal class ResolveEventTest : MavenSpecification() {
                         .byteInputStream()
                         .let { document.copy(contentLength = it.available().toLong()) to it }
                         .asSuccess()
-                }
-                else (document to data).asSuccess()
+                } else (document to data).asSuccess()
             }
         }
 
