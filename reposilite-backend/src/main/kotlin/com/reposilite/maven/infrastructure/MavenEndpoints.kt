@@ -22,17 +22,14 @@ import com.reposilite.maven.api.DeleteRequest
 import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.shared.extensions.resultAttachment
-import com.reposilite.storage.api.DocumentInfo
 import com.reposilite.storage.api.toLocation
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
-import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.routing.RouteMethod.DELETE
 import com.reposilite.web.routing.RouteMethod.GET
 import com.reposilite.web.routing.RouteMethod.HEAD
 import com.reposilite.web.routing.RouteMethod.POST
 import com.reposilite.web.routing.RouteMethod.PUT
-import io.javalin.http.HttpCode.NOT_FOUND
 import io.javalin.openapi.ContentType.FORM_DATA_MULTIPART
 import io.javalin.openapi.HttpMethod
 import io.javalin.openapi.OpenApi
