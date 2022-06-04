@@ -45,11 +45,15 @@ internal class FrontendPlugin : ReposilitePlugin() {
     }
 
     override fun initialize(): FrontendFacade {
+        val localConfiguration = facade<LocalConfiguration>()
         val sharedConfigurationFacade = facade<SharedConfigurationFacade>()
         val frontendSettings = sharedConfigurationFacade.getDomainSettings<FrontendSettings>()
 
-        val localConfiguration = facade<LocalConfiguration>()
-        val frontendFacade = FrontendFacade(localConfiguration.cacheContent, frontendSettings)
+        val frontendFacade = FrontendFacade(
+            cacheContent = localConfiguration.cacheContent,
+            basePath = localConfiguration.basePath,
+            frontendSettings = frontendSettings
+        )
 
         event { event: ReposiliteInitializeEvent -> staticDirectory(event.reposilite)
             .takeIf { it.exists().not() }

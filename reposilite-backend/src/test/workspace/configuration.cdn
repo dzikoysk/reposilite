@@ -52,5 +52,9 @@ compressionStrategy: none
 cacheContent: true
 # Amount of messages stored in cached logger.
 cachedLogSize: 100
+# Set custom base path for Reposilite instance.
+# It's not recommended to mount Reposilite under custom base path
+# and you should always prioritize subdomain over this option.
+basePath: /
 # Debug mode
 debugEnabled: false

@@ -18,6 +18,7 @@ package com.reposilite.configuration.local
 import com.reposilite.plugin.api.Facade
 import com.reposilite.shared.extensions.Validator
 import net.dzikoysk.cdn.entity.Description
+import panda.std.reactive.mutableReference
 import panda.std.reactive.reference
 import picocli.CommandLine.Command
 import picocli.CommandLine.Option
@@ -119,6 +120,11 @@ class LocalConfiguration : Facade {
 
     @Description("# Amount of messages stored in cached logger.")
     val cachedLogSize = reference(100)
+
+    @Description("# Set custom base path for Reposilite instance.")
+    @Description("# It's not recommended to mount Reposilite under custom base path")
+    @Description("# and you should always prioritize subdomain over this option.")
+    val basePath = mutableReference("/")
 
     @Description("# Debug mode")
     val debugEnabled = reference(false)

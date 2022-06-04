@@ -23,14 +23,15 @@ import panda.std.reactive.computed
 
 class FrontendFacade internal constructor(
     private val cacheContent: Reference<Boolean>,
-    private val frontendSettings: Reference<FrontendSettings>,
+    private val basePath: Reference<String>,
+    private val frontendSettings: Reference<FrontendSettings>
 ) : Facade {
 
     private val resources = HashMap<String, String>(0)
     private val uriFormatter = Regex("/+") // exclude common typos from URI
 
-    private val formattedBasePath = frontendSettings.computed { // verify base path
-        var formattedBasePath = it.basePath
+    private val formattedBasePath = basePath.computed { // verify base path
+        var formattedBasePath = it
 
         if (formattedBasePath.isNotEmpty()) {
             if (!formattedBasePath.startsWith("/")) {
@@ -45,7 +46,7 @@ class FrontendFacade internal constructor(
     }
 
     init {
-        computed(cacheContent, frontendSettings, formattedBasePath) {
+        computed(cacheContent, basePath, formattedBasePath) {
             resources.clear()
         }
     }
