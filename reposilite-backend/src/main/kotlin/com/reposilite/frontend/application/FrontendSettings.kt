@@ -7,8 +7,6 @@ import com.reposilite.configuration.shared.SharedSettings
 data class FrontendSettings(
     @Doc(title = "Frontend", description = "Enable default frontend with dashboard")
     val frontend: Boolean = true,
-    @Doc(title = "Custom Base Path", description = "Custom base path the frontend is located at.")
-    val basePath: String = "/",
     @Doc(title = "Id", description = "Repository id used in Maven repository configuration")
     val id: String = "reposilite-repository",
     @Doc(title = "Title", description = "The title displayed on the frontend homepage.")

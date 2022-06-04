@@ -1,6 +1,7 @@
 package com.reposilite
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.deser.DeserializationProblemHandler
 import com.fasterxml.jackson.databind.json.JsonMapper
@@ -21,6 +22,7 @@ object ReposiliteObjectMapper {
         .build()
         .registerKotlinModule()
         .setSerializationInclusion(Include.NON_NULL)
+        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
         .apply { ServiceLoader.load(DeserializationProblemHandler::class.java).forEach { addHandler(it) } }
 
 }
