@@ -1,7 +1,7 @@
 ---
 id: migration
 title: Migration
-description: Mount Swagger UI for your Reposilite instance
+description: Migrate your tokens from 2.x to 3.x
 official: true
 repository: dzikoysk/reposilite
 authors: [ 'dzikoysk' ]
