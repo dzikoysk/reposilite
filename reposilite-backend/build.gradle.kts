@@ -91,7 +91,7 @@ dependencies {
     //api("io.javalin:javalin:4.1.1")
     // api("com.github.dzikoysk.javalin:javalin:97b4481c0a")
     // api("com.github.tipsy.javalin:javalin:d00c8512c9")
-    api("io.javalin:javalin:4.6.0")
+    api("io.javalin:javalin:4.6.1")
 
     @Suppress("GradlePackageUpdate")
     implementation("org.eclipse.jetty:jetty-server:9.4.46.v20220331")
