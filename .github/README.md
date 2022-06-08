@@ -49,7 +49,7 @@ This is simple, extensible and scalable self-hosted solution to replace managers
  <br>
  <br>
  <strong>
-  ⛔ Main sources refers to the alpha version of Reposilite 3.x that is under heavy development.
+  ? Main sources refers to the alpha version of Reposilite 3.x that is under heavy development.
   <br>
   If you're looking for docs and sources of Reposilite 2.x, visit 2.x branch: <a href="https://github.com/dzikoysk/reposilite/tree/2.x">Reposilite 2.x</a>
  </strong>
@@ -61,10 +61,10 @@ For huge public repositories you can adjust memory limit and even size of used t
 
 ```bash
 # Launching a standalone JAR file
-$ java -Xmx16M -jar reposilite-3.0.0-alpha.25.jar
+$ java -Xmx16M -jar reposilite-3.0.0-alpha.26.jar
 
 # Using a Docker
-$ docker pull dzikoysk/reposilite:3.0.0-alpha.25
+$ docker pull dzikoysk/reposilite:3.0.0-alpha.26
 ```
 
 Visit official guide to read more about extra parameters and configuration details.
@@ -79,7 +79,7 @@ Users' stories
 * [Looking for simple repository manager by David Kihato](https://kihats.medium.com/custom-self-hosted-maven-repository-cbb778031f68)
 
 ### Supporters
-Thanks to all contributors and people that decided to support my work financially ❤️
+Thanks to all contributors and people that decided to support my work financially ??
 
 <table>
  <tr>
