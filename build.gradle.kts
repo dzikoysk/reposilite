@@ -31,13 +31,18 @@ plugins {
 }
 
 scmVersion {
+    localOnly = true
+    ignoreUncommittedChanges = true
+    versionIncrementer("incrementPrerelease")
+
     tag.apply {
         prefix = ""
     }
+
     nextVersion.apply {
         suffix = "next"
     }
-    versionIncrementer("incrementPrerelease")
+
     hooks.apply {
         fileUpdate(".github/README.md") { version -> "reposilite-$version.jar" }
         fileUpdate(".github/README.md") { version -> "dzikoysk/reposilite:$version" }
