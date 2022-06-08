@@ -1,4 +1,4 @@
-<div align="center">
+﻿<div align="center">
  <h1>Reposilite</h1>
  <div>
   <a href="https://github.com/dzikoysk/reposilite/actions/workflows/gradle.yml">
