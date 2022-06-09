@@ -33,7 +33,10 @@ plugins {
 scmVersion {
     localOnly = true
     ignoreUncommittedChanges = true
-    versionIncrementer("incrementPrerelease")
+
+    checks.apply {
+        isUncommittedChanges = false
+    }
 
     tag.apply {
         prefix = ""
@@ -42,6 +45,8 @@ scmVersion {
     nextVersion.apply {
         suffix = "next"
     }
+
+    versionIncrementer("incrementPrerelease")
 
     hooks.apply {
         fileUpdate(".github/README.md") { version -> "reposilite-$version.jar" }
@@ -113,8 +118,8 @@ subprojects {
                 name = "panda-repository"
                 url = uri("https://maven.reposilite.com/${if (version.toString().endsWith("-SNAPSHOT")) "snapshots" else "releases"}")
                 credentials {
-                    username = System.getenv("MAVEN_NAME") ?: ""
-                    password = System.getenv("MAVEN_TOKEN") ?: ""
+                    username = System.getenv("MAVEN_NAME") ?: property("mavenUser").toString()
+                    password = System.getenv("MAVEN_TOKEN") ?: property("mavenPassword").toString()
                 }
             }
         }
