@@ -16,6 +16,7 @@
 
 package com.reposilite.token
 
+import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonFormat
 import panda.std.Result
 import panda.std.asSuccess
@@ -49,6 +50,11 @@ enum class RoutePermission(val identifier: String, val shortcut: String) {
                 .firstOrNull { it.shortcut == shortcut }
                 ?.asSuccess()
                 ?: Result.error("Unknown permission shortcut ($shortcut) available options (${values().joinToString { it.shortcut }})")
+
+        @JsonCreator
+        @JvmStatic
+        fun fromObject(data: Map<String, String>): RoutePermission =
+            findRoutePermissionByIdentifier(data["identifier"]!!).orElseThrow { IllegalArgumentException(it) }
 
     }
 

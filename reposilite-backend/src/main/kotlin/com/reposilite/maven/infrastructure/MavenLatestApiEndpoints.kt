@@ -21,10 +21,8 @@ import com.reposilite.maven.MavenFacade.MatchedVersionHandler
 import com.reposilite.maven.api.LatestBadgeRequest
 import com.reposilite.maven.api.LatestVersionResponse
 import com.reposilite.maven.api.VersionLookupRequest
-import com.reposilite.settings.SettingsFacade
 import com.reposilite.shared.ContextDsl
 import com.reposilite.shared.extensions.resultAttachment
-import com.reposilite.storage.api.DocumentInfo
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.toLocation
 import com.reposilite.token.api.AccessTokenDto
@@ -46,10 +44,8 @@ import panda.std.asSuccess
 
 internal class MavenLatestApiEndpoints(
     private val mavenFacade: MavenFacade,
-    settingsFacade: SettingsFacade
+    private val compressionStrategy: String
 ) : ReposiliteRoutes() {
-
-    private val compressionStrategy = settingsFacade.localConfiguration.compressionStrategy
 
     @OpenApi(
         tags = ["Maven"],
@@ -124,10 +120,8 @@ internal class MavenLatestApiEndpoints(
     private val findLatestFile = ReposiliteRoute<Unit>("/api/maven/latest/file/{repository}/<gav>", GET) {
         accessed {
             response = resolveLatestArtifact(this@ReposiliteRoute, this) { lookupRequest ->
-                mavenFacade.findDetails(lookupRequest)
-                    .`is`(DocumentInfo::class.java) { ErrorResponse(BAD_REQUEST, "Requested file is a directory") }
-                    .flatMap { mavenFacade.findFile(lookupRequest).map { data -> it to data } }
-                    .map { (details, file) -> ctx.resultAttachment(details.name, details.contentType, details.contentLength, compressionStrategy.get(), file) }
+                mavenFacade.findFile(lookupRequest)
+                    .map { (details, file) -> ctx.resultAttachment(details.name, details.contentType, details.contentLength, compressionStrategy, file) }
             }
         }
     }
@@ -154,22 +148,22 @@ internal class MavenLatestApiEndpoints(
     )
     val latestBadge = ReposiliteRoute<String>("/api/badge/latest/{repository}/<gav>", GET) {
         response = mavenFacade.findLatestBadge(
-                LatestBadgeRequest(
-                    repository = requireParameter("repository"),
-                    gav = requireParameter("gav").toLocation(),
-                    name = ctx.queryParam("name"),
-                    color = ctx.queryParam("color"),
-                    prefix = ctx.queryParam("prefix"),
-                    filter = ctx.queryParam("filter")
-                )
+            LatestBadgeRequest(
+                repository = requireParameter("repository"),
+                gav = requireParameter("gav").toLocation(),
+                name = ctx.queryParam("name"),
+                color = ctx.queryParam("color"),
+                prefix = ctx.queryParam("prefix"),
+                filter = ctx.queryParam("filter")
             )
+        )
             .peek { ctx.run {
                 contentType("image/svg+xml")
                 header("pragma", "no-cache")
                 header("expires", "0")
                 header("cache-control", "no-cache, no-store, must-revalidate, max-age=0")
                 contentDisposition("inline; filename=\"latest-badge.svg\"")
-            }}
+            } }
     }
 
     override val routes = routes(findLatestVersion, findLatestDetails, findLatestFile, latestBadge)
