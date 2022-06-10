@@ -17,7 +17,7 @@ package com.reposilite.console.infrastructure
 
 import com.reposilite.ReposiliteJournalist
 import com.reposilite.auth.AuthenticationFacade
-import com.reposilite.auth.api.AuthenticationRequest
+import com.reposilite.auth.api.Credentials
 import com.reposilite.console.ConsoleFacade
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.AccessTokenPermission.MANAGER
@@ -75,7 +75,7 @@ internal class CliEndpoint(
         }
 
         return authenticationMessageToCredentials(authMessage)
-            .map { (name, secret) -> AuthenticationRequest(name, secret) }
+            .map { (name, secret) -> Credentials(name, secret) }
             .flatMap { authenticationFacade.authenticateByCredentials(it) }
             .filter({ accessTokenFacade.hasPermission(it.identifier, MANAGER) }, {
                 journalist.logger.info("CLI | Unauthorized CLI access request from ${address(connection)}")
@@ -84,13 +84,13 @@ internal class CliEndpoint(
             .map { "${it.name}@${address(connection)}" }
     }
 
-    private fun authenticationMessageToCredentials(message: String): Result<AuthenticationRequest, ErrorResponse> =
+    private fun authenticationMessageToCredentials(message: String): Result<Credentials, ErrorResponse> =
         extractFromString(StringUtils.replaceFirst(message, AUTHORIZATION_PREFIX, ""))
-            .map { (name, secret) -> AuthenticationRequest(name, secret) }
+            .map { (name, secret) -> Credentials(name, secret) }
 
     private fun initializeAuthenticatedContext(ws: WsConfig, connection: WsContext, session: String) {
         ws.onMessage {
-            when(val message = it.message()) {
+            when (val message = it.message()) {
                 "keep-alive" -> connection.send("keep-alive")
                 else -> {
                     journalist.logger.info("CLI | $session> $message")

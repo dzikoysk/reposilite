@@ -25,4 +25,4 @@ class HttpServerConfigurationEvent(val reposilite: Reposilite, val javalinConfig
 
 class HttpServerInitializationEvent(val reposilite: Reposilite, val javalin: Javalin) : Event
 
-class HttpServerStoppedEvent() : Event
+class HttpServerStoppedEvent : Event

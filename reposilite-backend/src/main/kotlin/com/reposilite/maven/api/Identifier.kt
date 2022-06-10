@@ -16,7 +16,7 @@
 
 package com.reposilite.maven.api
 
-import java.util.UUID
+import java.util.*
 
 const val REPOSITORY_NAME_MAX_LENGTH = 32
 const val GAV_MAX_LENGTH = 1024

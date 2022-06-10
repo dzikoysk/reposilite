@@ -22,8 +22,8 @@ import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.VersionLookupRequest
 import com.reposilite.plugin.api.Facade
-import com.reposilite.plugin.javadoc.api.JavadocResponse
 import com.reposilite.plugin.javadoc.api.JavadocPageRequest
+import com.reposilite.plugin.javadoc.api.JavadocResponse
 import com.reposilite.storage.api.FileType.FILE
 import com.reposilite.storage.api.Location
 import com.reposilite.storage.getSimpleName
@@ -135,7 +135,7 @@ class JavadocFacade internal constructor(
         val targetJar = targetFolder.resolve("javadoc.jar")
 
         return mavenFacade.findFile(LookupRequest(accessToken, repository, gav))
-            .peek { it.copyToAndClose(FileOutputStream(targetJar.toString())) }
+            .peek { it.second.copyToAndClose(FileOutputStream(targetJar.toString())) }
             .flatMap { extractJavadocArchive(targetJar, targetFolder) }
             .map {
                 Files.move(indexFile, targetFolder.resolve("docindex.html"))

@@ -33,7 +33,7 @@ class FailureFacade(private val journalist: Journalist) : Journalist, Facade {
         logger.log(channel, identifier)
         logger.exception(channel, throwable)
 
-        arrayOf("failure $identifier",exceptionToString(throwable))
+        arrayOf("failure $identifier", exceptionToString(throwable))
             .joinToString(separator = System.lineSeparator())
             .trim()
             .let { exceptions.add(it) }

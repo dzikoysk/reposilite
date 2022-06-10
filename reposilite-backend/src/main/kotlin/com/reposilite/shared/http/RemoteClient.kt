@@ -16,6 +16,7 @@
 
 package com.reposilite.shared.http
 
+import com.reposilite.auth.api.Credentials
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.web.http.ErrorResponse
 import panda.std.Result
@@ -29,7 +30,7 @@ interface RemoteClient {
      * @param connectTimeout - connection establishment timeout in seconds
      * @param readTimeout - connection read timeout in seconds
      */
-    fun head(uri: String, credentials: String?, connectTimeout: Int, readTimeout: Int): Result<FileDetails, ErrorResponse>
+    fun head(uri: String, credentials: Credentials?, connectTimeout: Int, readTimeout: Int): Result<FileDetails, ErrorResponse>
 
     /**
      * @param uri - full remote host address with a gav
@@ -37,6 +38,6 @@ interface RemoteClient {
      * @param connectTimeout - connection establishment timeout in seconds
      * @param readTimeout - connection read timeout in seconds
      */
-    fun get(uri: String, credentials: String?, connectTimeout: Int, readTimeout: Int): Result<InputStream, ErrorResponse>
+    fun get(uri: String, credentials: Credentials?, connectTimeout: Int, readTimeout: Int): Result<InputStream, ErrorResponse>
 
 }

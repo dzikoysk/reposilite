@@ -3,7 +3,7 @@ import { ColorModeStyles, useColorModeValue } from 'nextjs-color-mode'
 import ReactFlow, { ReactFlowProvider } from 'react-flow-renderer'
 import { chakraColor } from '../../../helpers/chakra-theme'
 
-const LockedReactFlow = ({ elements, style }) => {
+const LockedReactFlow = ({ nodes, edges, style }) => {
   const [flowColor, flowColorCss] = useColorModeValue('flow-color', 'black', 'white')
   const [flowBg, flowBgCss] = useColorModeValue('flow-bg', 'white', chakraColor('gray.800'))
 
@@ -12,12 +12,13 @@ const LockedReactFlow = ({ elements, style }) => {
       <ColorModeStyles styles={[flowColorCss, flowBgCss]} />
       <ReactFlow
         className='nowheel'
-        elements={elements}
+        nodes={nodes}
+        edges={edges}
         style={style}
         nodesDraggable={false}
         draggable={false}
         contentEditable={false}
-        paneMoveable={false}
+        panOnDrag={false}
         panOnScroll={false}
         zoomOnScroll={false}
         zoomOnPinch={false}
@@ -42,20 +43,26 @@ const LockedReactFlow = ({ elements, style }) => {
         .react-flow__edge-text {
           fill: ${flowColor} !important;
         }
+        // Reposilite is an open-source project, so it's eligble to hide the attribution from React Flow 10.x+
+        // https://reactflow.dev/docs/introduction/#attribution
+        .react-flow__attribution {
+          display: none;
+        }
       `}</style>
     </ReactFlowProvider>
   )
 }
 
-const StyledNode = ({ label, style, flow }) => {
+const StyledNode = ({ label, style, nodes, edges }) => {
   const title = label === undefined
     ? <></>
     : <Text as="i">{label}</Text>
   
-  const flowComponent = flow === undefined
+  const flowComponent = nodes === undefined
     ? <></>
     : <LockedReactFlow
-      elements={flow}
+      nodes={nodes}
+      edges={edges}
       style={style}
     />
   
