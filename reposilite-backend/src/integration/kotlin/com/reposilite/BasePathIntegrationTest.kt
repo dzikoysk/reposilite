@@ -16,7 +16,7 @@
 
 package com.reposilite
 
-import com.reposilite.configuration.local.LocalConfiguration
+import com.reposilite.settings.api.SharedConfiguration
 import io.javalin.Javalin
 import io.javalin.http.Context
 import kong.unirest.HttpRequest
@@ -26,13 +26,13 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import java.util.concurrent.CountDownLatch
 
-@ExtendWith(LocalSpecificationJunitExtension::class)
+@ExtendWith(ReposiliteLocalIntegrationJunitExtension::class)
 internal class BasePathIntegrationTest : ReposiliteSpecification() {
 
     private val basePath = "/custom-base-path"
 
-    override fun overrideLocalConfiguration(localConfiguration: LocalConfiguration) {
-        localConfiguration.basePath.update { basePath }
+    override fun overrideSharedConfiguration(sharedConfiguration: SharedConfiguration) {
+        sharedConfiguration.basePath.update(basePath)
     }
 
     @Disabled

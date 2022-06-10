@@ -15,28 +15,19 @@
  */
 package com.reposilite
 
-import com.reposilite.configuration.generateRequestedConfiguration
 import picocli.CommandLine
-
-fun main(args: Array<String>) {
-    createWithParameters(*args)?.launch()
-}
 
 fun createWithParameters(vararg args: String): Reposilite? {
     val parameters = ReposiliteParameters()
-
-    CommandLine(parameters)
-        .setCaseInsensitiveEnumValuesAllowed(true)
-        .execute(*args)
+    CommandLine(parameters).execute(*args)
 
     if (parameters.usageHelpRequested || parameters.versionInfoRequested) {
         return null
     }
 
-    if (parameters.configurationRequested != null) {
-        generateRequestedConfiguration(parameters)
-        return null
-    }
-
     return ReposiliteFactory.createReposilite(parameters)
+}
+
+fun main(args: Array<String>) {
+    createWithParameters(*args)?.launch()
 }

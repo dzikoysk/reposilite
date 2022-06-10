@@ -16,11 +16,12 @@
 
 package com.reposilite.auth
 
-import com.reposilite.auth.api.Credentials
-import com.reposilite.auth.application.LdapSettings
+import com.reposilite.auth.api.AuthenticationRequest
 import com.reposilite.journalist.Channel.DEBUG
+import com.reposilite.settings.api.SharedConfiguration.LdapConfiguration
 import com.reposilite.status.FailureFacade
 import com.reposilite.token.AccessTokenFacade
+import com.reposilite.token.AccessTokenType.TEMPORARY
 import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.token.api.CreateAccessTokenRequest
 import com.reposilite.web.http.ErrorResponse
@@ -51,57 +52,57 @@ typealias AttributesMap = Map<String, Attributes>
 typealias SearchEntry = Pair<String, AttributesMap>
 
 internal class LdapAuthenticator(
-    private val ldapSettings: Reference<LdapSettings>,
+    private val ldapConfiguration: Reference<LdapConfiguration>,
     private val accessTokenFacade: AccessTokenFacade,
     private val failureFacade: FailureFacade
 ) : Authenticator {
 
-    override fun authenticate(credentials: Credentials): Result<AccessTokenDto, ErrorResponse> =
-        with(ldapSettings.get()) {
+    override fun authenticate(authenticationRequest: AuthenticationRequest): Result<AccessTokenDto, ErrorResponse> =
+        with(ldapConfiguration.get()) {
             createSearchContext()
                 .flatMap {
                     it.search(
-                        "(&(objectClass=person)($userAttribute=${credentials.name}))", // find user entry with search user
+                        "(&(objectClass=person)(${userAttribute}=${authenticationRequest.name}))", // find user entry with search user
                         userAttribute
                     )
                 }
                 .filter({ it.size == 1 }, { ErrorResponse(BAD_REQUEST, "Could not identify one specific result") }) // only one search result allowed
                 .map { it.first() }
-                .flatMap { createContext(user = it.first, password = credentials.secret) } // try to authenticate user with matched domain namespace
-                .flatMap {
+                .flatMap { createContext(user = it.first, password = authenticationRequest.secret) } // try to authenticate user with matched domain namespace                                
+                .flatMap { 
                     it.search(
-                        "(&(objectClass=person)($userAttribute=${credentials.name})$userFilter)", // filter result with user-filter from configuration
+                        "(&(objectClass=person)(${userAttribute}=${authenticationRequest.name})${userFilter})", // filter result with user-filter from configuration                
                         userAttribute
-                    )
-                }
+                    ) 
+                } 
                 .filter({ it.size == 1 }, { ErrorResponse(BAD_REQUEST, "Could not identify one specific result as user") }) // only one search result allowed
                 .map { it.first() }
                 .map { (_, attributes) -> attributes[userAttribute]!! } // search returns only lists with values
                 .filter({ it.size == 1 }, { ErrorResponse(BAD_REQUEST, "Could not identify one specific attribute") }) // only one attribute value is allowed
                 .map { it.first() }
                 .filter(
-                    { credentials.name == it }, // make sure requested name matches required attribute
+                    { authenticationRequest.name == it }, // make sure requested name matches required attribute
                     { unauthorized("LDAP user does not match required attribute") }
                 )
                 .map { name -> accessTokenFacade.getAccessToken(name)
                     ?: accessTokenFacade.createAccessToken(
                         CreateAccessTokenRequest(
-                            type = ldapSettings.map { it.userType },
+                            type = ldapConfiguration.map { it.userType },
                             name = name,
-                            secret = credentials.secret
+                            secret = authenticationRequest.secret
                         )
                     ).accessToken
                 }
         }
 
     private fun createSearchContext(): Result<out DirContext, ErrorResponse> =
-        ldapSettings.map { createContext(user = it.searchUserDn, password = it.searchUserPassword) }
+        ldapConfiguration.map { createContext(user = it.searchUserDn, password = it.searchUserPassword) }
 
     private fun createContext(user: String, password: String): Result<out DirContext, ErrorResponse> =
         Hashtable<String, String>()
             .also {
                 it[INITIAL_CONTEXT_FACTORY] = "com.sun.jndi.ldap.LdapCtxFactory"
-                it[PROVIDER_URL] = with(ldapSettings.get()) { "ldap://$hostname:$port" }
+                it[PROVIDER_URL] = with(ldapConfiguration.get()) { "ldap://${hostname}:${port}" }
                 it[SECURITY_AUTHENTICATION] = "simple"
                 it[SECURITY_PRINCIPAL] = user
                 it[SECURITY_CREDENTIALS] = password
@@ -123,7 +124,7 @@ internal class LdapAuthenticator(
                     it.returningAttributes = requestedAttributes
                     it.searchScope = SearchControls.SUBTREE_SCOPE
                 }
-                .let { controls -> search(ldapSettings.map { it.baseDn }, ldapFilterQuery, controls) }
+                .let { controls -> search(ldapConfiguration.map { it.baseDn }, ldapFilterQuery, controls) }
                 .asSequence()
                 .map { it.nameInNamespace to it.attributesMap(*requestedAttributes) }
                 .toList()
@@ -151,7 +152,7 @@ internal class LdapAuthenticator(
         }
 
     override fun enabled(): Boolean =
-        ldapSettings.map { it.enabled }
+        ldapConfiguration.map { it.enabled }
 
     override fun realm(): String =
         "LDAP"

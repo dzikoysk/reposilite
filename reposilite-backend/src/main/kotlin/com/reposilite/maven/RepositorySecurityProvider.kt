@@ -33,7 +33,7 @@ import panda.std.Result
 internal class RepositorySecurityProvider(private val accessTokenFacade: AccessTokenFacade) {
 
     fun canAccessRepository(accessToken: AccessTokenIdentifier?, repository: Repository): Boolean =
-        when (repository.visibility) {
+        when(repository.visibility) {
             PUBLIC -> true
             HIDDEN, PRIVATE -> accessToken?.let { accessTokenFacade.canSee(it, "/${repository.name}") } ?: false
         }
@@ -59,7 +59,7 @@ internal class RepositorySecurityProvider(private val accessTokenFacade: AccessT
         accessToken
             ?.let {
                 Result.`when`(accessTokenFacade.hasPermissionTo(accessToken, "/${repository.name}/$gav", permission),
-                    { },
+                    {  },
                     { ErrorResponse(HttpCode.FORBIDDEN, "You must be the token owner or a manager to access this.") }
                 )
             }

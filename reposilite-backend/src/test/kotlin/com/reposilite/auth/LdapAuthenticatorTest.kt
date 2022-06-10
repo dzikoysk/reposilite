@@ -17,9 +17,9 @@
 package com.reposilite.auth
 
 import com.reposilite.assertCollectionsEquals
-import com.reposilite.auth.api.Credentials
+import com.reposilite.auth.api.AuthenticationRequest
 import com.reposilite.auth.specification.AuthenticationSpecification
-import com.reposilite.auth.application.LdapSettings
+import com.reposilite.settings.api.SharedConfiguration.LdapConfiguration
 import com.reposilite.token.AccessTokenType.TEMPORARY
 import com.reposilite.token.api.CreateAccessTokenRequest
 import com.unboundid.ldap.listener.InMemoryDirectoryServer
@@ -39,41 +39,25 @@ internal class LdapAuthenticatorTest : AuthenticationSpecification() {
 
     @BeforeEach
     fun createLdapServer() {
-        this.ldapConfiguration.update {
-            LdapSettings(
-                it.enabled,
-                "ldap.domain.com",
-                (1024 + Math.random() * (Short.MAX_VALUE - 1025)).toInt(),
-                "dc=domain,dc=com",
-                "cn=Reposilite,ou=Search Accounts,dc=domain,dc=com",
-                "search-secret",
-                "cn",
-                "(&(objectClass=person)(ou=Maven Users))",
-                it.userType
-            )
-        }
         this.ldapConfiguration.peek {
+            it.hostname = "ldap.domain.com"
+            it.port = (1024 + Math.random() * (Short.MAX_VALUE - 1025)).toInt()
+            it.baseDn = "dc=domain,dc=com"
+            it.searchUserDn = "cn=Reposilite,ou=Search Accounts,dc=domain,dc=com"
+            it.searchUserPassword = "search-secret"
+            it.userFilter = "(&(objectClass=person)(ou=Maven Users))"
+            it.userAttribute = "cn"
+
             val config = InMemoryDirectoryServerConfig(it.baseDn)
             config.addAdditionalBindCredentials(it.searchUserDn, it.searchUserPassword)
             config.addAdditionalBindCredentials("cn=Bella Swan,ou=Maven Users,dc=domain,dc=com", "secret")
             config.addAdditionalBindCredentials("cn=James Smith,ou=Maven Users,dc=domain,dc=com", "secret2")
             config.listenerConfigs.add(InMemoryListenerConfig.createLDAPConfig(it.hostname, InetAddress.getLoopbackAddress(), it.port, null))
             config.schema = null // remove
+
             this.ldapServer = InMemoryDirectoryServer(config)
             ldapServer.startListening(it.hostname)
-            this.ldapConfiguration.update(
-                LdapSettings(
-                    it.enabled,
-                    ldapServer.getListenAddress(it.hostname).hostAddress,
-                    it.port,
-                    it.baseDn,
-                    it.searchUserDn,
-                    it.searchUserPassword,
-                    it.userAttribute,
-                    it.userFilter,
-                    it.userType
-                )
-            )
+            it.hostname = ldapServer.getListenAddress(it.hostname).hostAddress
 
             ldapServer.add("dn: dc=domain,dc=com", "objectClass: top", "objectClass: domain")
 
@@ -103,7 +87,7 @@ internal class LdapAuthenticatorTest : AuthenticationSpecification() {
     @Test
     fun `should authenticate non-existing ldap user`() {
         val authenticationResult = authenticator.authenticate(
-            Credentials(
+            AuthenticationRequest(
                 name = "Bella Swan",
                 secret = "secret"
             )
@@ -125,7 +109,7 @@ internal class LdapAuthenticatorTest : AuthenticationSpecification() {
         )
 
         val authenticationResult = authenticator.authenticate(
-            Credentials(
+            AuthenticationRequest(
                 name = token.name,
                 secret = secret
             )

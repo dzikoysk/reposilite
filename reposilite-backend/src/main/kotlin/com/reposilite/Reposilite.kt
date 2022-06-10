@@ -15,8 +15,6 @@
  */
 package com.reposilite
 
-import com.reposilite.configuration.local.LocalConfiguration
-import com.reposilite.configuration.local.infrastructure.DatabaseConnection
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
 import com.reposilite.plugin.Extensions
@@ -34,18 +32,16 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.atomic.AtomicBoolean
 
+const val VERSION = "3.0.0-alpha.25"
+
 class Reposilite(
     val journalist: ReposiliteJournalist,
     val parameters: ReposiliteParameters,
-    val localConfiguration: LocalConfiguration,
-    val databaseConnection: DatabaseConnection,
     val ioService: ExecutorService,
     val scheduler: ScheduledExecutorService,
     val webServer: HttpServer,
     val extensions: Extensions
 ) : Facade, Journalist {
-
-    val database = databaseConnection.database
 
     private val alive = AtomicBoolean(false)
 
@@ -80,7 +76,6 @@ class Reposilite(
             ioService.shutdown()
             extensions.emitEvent(ReposiliteDisposeEvent(this))
             webServer.stop()
-            databaseConnection.close()
             scheduler.shutdownNow()
             ioService.shutdownNow()
             journalist.shutdown()

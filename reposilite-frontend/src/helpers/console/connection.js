@@ -15,7 +15,7 @@
  */
 
 import { ref } from "vue"
-import { createURL } from '../client'
+import { createURL } from "../../helpers/client"
 
 const connection = ref()
 const command = ref("")
@@ -74,7 +74,7 @@ export default function useConsole() {
 
   const connect = (token) => {
     try {
-      connection.value = new WebSocket(consoleAddress)
+      connection.value = new WebSocket(consoleAddress);
 
       connection.value.onopen = () => {
         connection.value.send(`Authorization:${token.name}:${token.secret}`)
@@ -115,6 +115,5 @@ export default function useConsole() {
     execute,
     previousCommand,
     nextCommand,
-    isConnected
   }
 }

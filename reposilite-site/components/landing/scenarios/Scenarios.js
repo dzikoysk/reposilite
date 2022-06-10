@@ -43,8 +43,7 @@ export default function Scenarios() {
               paddingInlineStart={0}
             >
               <LockedReactFlow
-                nodes={scenario.nodes}
-                edges={scenario.edges}
+                elements={scenario.flow}
                 style={{ width: '420px', height: '490px' }}
               />
             </TabPanel>

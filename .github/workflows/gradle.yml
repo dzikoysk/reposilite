@@ -15,11 +15,7 @@ jobs:
         # Use 11 LTS releases and the latest one
         jdk: [ 11, 18 ]
     steps:
-    - uses: actions/checkout@v3
-    - name: Fetch git tags # Required for axion-release-plugin
-      run: git fetch --tags --unshallow
-    - name: Verify gradle wrapper
-      uses: gradle/wrapper-validation-action@v1
+    - uses: actions/checkout@v2
     - name: Set up JDK
       uses: actions/setup-java@v1
       with:

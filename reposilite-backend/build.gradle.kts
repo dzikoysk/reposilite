@@ -15,7 +15,6 @@
  */
 
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-import org.apache.tools.ant.filters.ReplaceTokens
 
 group = "org.panda-lang"
 
@@ -23,9 +22,8 @@ plugins {
     jacoco
     kotlin("jvm")
     kotlin("kapt")
-    id("com.coditory.integration-test") version "1.4.0"
+    id("com.coditory.integration-test") version "1.3.0"
     id("com.github.johnrengelman.shadow") version "7.1.2"
-    id("io.gitlab.arturbosch.detekt").version("1.20.0")
 }
 
 application {
@@ -34,7 +32,6 @@ application {
 
 dependencies {
     implementation(project(":reposilite-frontend"))
-    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.20.0")
 
     val kotlin = "1.6.21"
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin")
@@ -46,14 +43,14 @@ dependencies {
     api("org.panda-lang:expressible-kt:$expressible")
     testImplementation("org.panda-lang:expressible-junit:$expressible")
 
-    val cdn = "1.13.20"
+    val cdn = "1.13.10"
     api("net.dzikoysk:cdn:$cdn")
     api("net.dzikoysk:cdn-kt:$cdn")
 
-    val awssdk = "2.17.204"
+    val awssdk = "2.17.181"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
-    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.233")
+    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.210")
 
     val exposed = "0.38.2"
     implementation("org.jetbrains.exposed:exposed-core:$exposed")
@@ -67,20 +64,18 @@ dependencies {
     // Drivers
     implementation("org.xerial:sqlite-jdbc:3.36.0.3")
     implementation("mysql:mysql-connector-java:8.0.29")
-    implementation("org.mariadb.jdbc:mariadb-java-client:3.0.5")
-    implementation("org.postgresql:postgresql:42.3.6")
+    implementation("org.mariadb.jdbc:mariadb-java-client:3.0.4")
+    implementation("org.postgresql:postgresql:42.3.4")
     implementation("com.h2database:h2:2.1.212")
 
-    val springSecurityCrypto = "5.7.1"
+    val springSecurityCrypto = "5.6.3"
     implementation("org.springframework.security:spring-security-crypto:$springSecurityCrypto")
 
-    val ldap = "6.0.5"
+    val ldap = "6.0.4"
     testImplementation("com.unboundid:unboundid-ldapsdk:$ldap")
 
-    val openapi = "1.1.7"
-    kapt("io.javalin-rfc:openapi-annotation-processor:$openapi") {
-        exclude(group = "ch.qos.logback")
-    }
+    val openapi = "1.1.3"
+    kapt("io.javalin-rfc:openapi-annotation-processor:$openapi")
     implementation("io.javalin-rfc:javalin-openapi-plugin:$openapi")
 
     val javalinRfcs = "4.1.0"
@@ -91,23 +86,21 @@ dependencies {
     //api("io.javalin:javalin:4.1.1")
     // api("com.github.dzikoysk.javalin:javalin:97b4481c0a")
     // api("com.github.tipsy.javalin:javalin:d00c8512c9")
-    api("io.javalin:javalin:4.6.1")
+    api("io.javalin:javalin:4.5.0")
 
     @Suppress("GradlePackageUpdate")
     implementation("org.eclipse.jetty:jetty-server:9.4.46.v20220331")
-
-    implementation("com.github.victools:jsonschema-generator:4.24.3")
 
     val picocli = "4.6.3"
     kapt("info.picocli:picocli-codegen:$picocli")
     api("info.picocli:picocli:$picocli")
 
-    val jackson = "2.13.3"
+    val jackson = "2.13.2"
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jackson")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jackson")
 
-    val httpClient = "1.41.8"
+    val httpClient = "1.41.7"
     implementation("com.google.http-client:google-http-client:$httpClient")
     testImplementation("com.google.http-client:google-http-client-jackson2:$httpClient")
 
@@ -131,11 +124,11 @@ dependencies {
     implementation("org.tinylog:tinylog-api:$tinylog")
     implementation("org.tinylog:tinylog-impl:$tinylog")
 
-    val unirest = "3.13.10"
+    val unirest = "3.13.8"
     testImplementation("com.konghq:unirest-java:$unirest")
     testImplementation("com.konghq:unirest-objectmapper-jackson:$unirest")
 
-    val testcontainers = "1.17.2"
+    val testcontainers = "1.17.1"
     testImplementation("org.testcontainers:postgresql:$testcontainers")
     testImplementation("org.testcontainers:mariadb:$testcontainers")
     testImplementation("org.testcontainers:testcontainers:$testcontainers")
@@ -165,6 +158,12 @@ tasks.withType<ShadowJar> {
     }
 }
 
+kapt {
+    arguments {
+        arg("project", "${project.group}/${project.name}") // picocli requirement
+    }
+}
+
 publishing {
     publications {
         create<MavenPublication>("library") {
@@ -183,27 +182,6 @@ publishing {
                 })
             }
         }
-    }
-}
-
-tasks.register<Copy>("generateKotlin") {
-    inputs.property("version", version)
-    from("$projectDir/src/template/kotlin")
-    into("$projectDir/src/generated/kotlin")
-    filter(ReplaceTokens::class, "tokens" to mapOf("version" to version))
-}
-
-tasks.compileKotlin {
-    dependsOn("generateKotlin")
-}
-
-kotlin.sourceSets.main {
-    kotlin.srcDir("$projectDir/src/generated/kotlin")
-}
-
-kapt {
-    arguments {
-        arg("project", "${project.group}/${project.name}") // picocli requirement
     }
 }
 
@@ -270,19 +248,4 @@ val testCoverage by tasks.registering {
     tasks["integrationTest"].mustRunAfter(tasks["test"])
     tasks["jacocoTestReport"].mustRunAfter(tasks["integrationTest"])
     tasks["jacocoTestCoverageVerification"].mustRunAfter(tasks["jacocoTestReport"])
-}
-
-detekt {
-    buildUponDefaultConfig = true
-    allRules = false
-    config = files("$projectDir/detekt.yml")
-    autoCorrect = true
-}
-
-tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
-    jvmTarget = "11"
-}
-
-tasks.withType<io.gitlab.arturbosch.detekt.DetektCreateBaselineTask>().configureEach {
-    jvmTarget = "11"
 }

@@ -17,7 +17,7 @@
 package com.reposilite.web
 
 import com.reposilite.Reposilite
-import com.reposilite.configuration.local.LocalConfiguration
+import com.reposilite.settings.SettingsFacade
 import com.reposilite.web.api.HttpServerInitializationEvent
 import com.reposilite.web.api.HttpServerStoppedEvent
 import com.reposilite.web.application.JavalinConfiguration
@@ -33,9 +33,9 @@ class HttpServer {
 
     fun start(reposilite: Reposilite) {
         val extensionsManagement = reposilite.extensions
-        val localConfiguration = extensionsManagement.facade<LocalConfiguration>()
+        val settingsFacade = extensionsManagement.facade<SettingsFacade>()
 
-        val webThreadPool = QueuedThreadPool(localConfiguration.webThreadPool.get(), 2).also {
+        val webThreadPool = QueuedThreadPool(settingsFacade.localConfiguration.webThreadPool.get(), 2).also {
             it.name = "Reposilite | Web (${it.maxThreads}) -"
             it.start()
         }
@@ -64,7 +64,7 @@ class HttpServer {
         if (servlet)
             Javalin.createStandalone { JavalinConfiguration.configure(reposilite, webThreadPool, it) }
         else
-            Javalin.create { JavalinConfiguration.configure(reposilite, webThreadPool, it) }
+            Javalin.create {  JavalinConfiguration.configure(reposilite, webThreadPool, it) }
 
     fun stop() {
         javalin?.stop()

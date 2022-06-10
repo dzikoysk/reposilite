@@ -37,7 +37,7 @@ internal class CommandExecutor(
 ) : Journalist {
 
     private val consoleThread = ConsoleThread(this, source, failureFacade)
-    private val commandLine = CommandLine(this)
+    private val commandExecutor = CommandLine(this)
 
     fun execute(command: String): ExecutionResponse =
         execute(command) { logger.info(it) }
@@ -61,7 +61,7 @@ internal class CommandExecutor(
         val response: MutableList<String> = ArrayList()
 
         return try {
-            val parseResult = commandLine.parseArgs(*processedCommand.split(" ").toTypedArray())
+            val parseResult = commandExecutor.parseArgs(*processedCommand.split(" ").toTypedArray())
             val commandObject = parseResult.subcommand().commandSpec().userObject() as? ReposiliteCommand
 
             commandObject
@@ -70,10 +70,12 @@ internal class CommandExecutor(
                     commandObject.execute(context)
                     ExecutionResponse(context.status, context.output())
                 }
-                ?: ExecutionResponse(FAILED, listOf(commandLine.usageMessage))
-        } catch (unmatchedArgumentException: UnmatchedArgumentException) {
+                ?: ExecutionResponse(FAILED, listOf(commandExecutor.usageMessage))
+        }
+        catch (unmatchedArgumentException: UnmatchedArgumentException) {
             ExecutionResponse(FAILED, listOf("Unknown command $processedCommand"))
-        } catch (missingParameterException: MissingParameterException) {
+        }
+        catch (missingParameterException: MissingParameterException) {
             response.add(missingParameterException.message.toString())
             response.add("")
             response.add(missingParameterException.commandLine.usageMessage)
@@ -82,10 +84,10 @@ internal class CommandExecutor(
     }
 
     fun registerCommand(command: ReposiliteCommand): CommandLine =
-        commandLine.addSubcommand(command)
+        commandExecutor.addSubcommand(command)
 
     fun getCommands(): Map<String, CommandLine> =
-        commandLine.subcommands
+        commandExecutor.subcommands
 
     fun hook() =
         consoleThread.start()

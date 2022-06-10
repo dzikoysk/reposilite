@@ -47,7 +47,7 @@ internal sealed class FrontendHandler(private val frontendFacade: FrontendFacade
                 ctx.contentType(ContentType.getMimeTypeByExtension(uri.getExtension()) ?: PLAIN)
                 ok(it)
             }
-            ?: notFoundError("Resource not found")
+            ?: notFoundError("Resource not found");
 
 }
 

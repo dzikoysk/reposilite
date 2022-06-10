@@ -75,12 +75,12 @@ class AccessTokenFacade internal constructor(
             accessTokenDto
         }
 
-    fun exportToFile(toFile: Path): Path =
+    fun exportToFile(toFile: String): Pair<Path, Collection<AccessTokenDetails>> =
         getAccessTokens()
             .map { getAccessTokenDetailsById(it.identifier)!! }
-            .let { exportService.exportToFile(it, toFile) }
+            .let { exportService.exportToFile(it, toFile) to it }
 
-    fun importFromFile(fromFile: Path): Result<Collection<AccessTokenDetails>, Exception> =
+    fun importFromFile(fromFile: String): Result<Pair<Path, Collection<AccessTokenDetails>>, Exception> =
         exportService.importFromFile(fromFile)
 
     fun secretMatches(id: AccessTokenIdentifier, secret: String): Boolean =

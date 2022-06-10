@@ -7,8 +7,8 @@ Reposilite supports multiple use cases and scenarios,
 that's why there is several ways to configure it divided into 3 configuration layers:
 
 * [Parameters](#parameters) - Startup configuration
-* [Configuration - Local configuration](#local-configuration) - Immutable file-based configuration of the given Reposilite instance
-* [Settings - Shared configuration](#shared-configuration) - Stores mutable state of Reposilite in database, it's shared between all Reposilite instances and supports hot-reloading of properties
+* [Local configuration](#local-configuration) - Immutable static instance configuration
+* [Shared configuration](#shared-configuration) - Mutable configuration shared between instances
 
 You don't have to create configuration files manually,
 Reposilite will generate it during the first startup,
@@ -29,10 +29,10 @@ List of available parameters:
 | `--help` | - | Displays help message with all parameters |
 | `--version` | - | Display current version of Reposilite |
 | `--working-directory` <br/> `-wd` | `./` | Sets custom working directory for this instance, so the location where Reposilite keeps local data |
-| `--generate-configuration` <br/> `-gc` | - | Generate default template of the requested file. Supported templates: `configuration.cdn` for local configuration and `configuration.shared.json` for shared configuration |
-| `--local-configuration`<br/>`--local-config`<br/>`-lc` | `configuration.cdn` | Sets custom location of local configuration file in CDN format. By default it's relative to working directory path, but you can also use absolute path. |
-| `--local-configuration-mode`<br/>`--local-config-mode`<br/>`-lcm` | `auto` | Configuration modes description: [Configuration modes](#configuration-modes) |
-| `--shared-configuration`<br/>`--shared-config`<br/>`-sc` | `configuration.shared.cdn` | Replaces database oriented storage of shared configuration with manually linked JSON file with all defined properties |
+| `--local-configuration`<br/>`--local-config`<br/>`-lc` | `configuration.cdn` | Sets custom location of local configuration file. By default it's relative to working directory path, but you can also use absolute path. |
+| `--local-configuration-mode`<br/>`--local-config-mode`<br/>`-lcm` | `copy` | Configuration modes description: [Configuration modes](#configuration-modes) |
+| `--shared-configuration`<br/>`--shared-config`<br/>`-sc` | `configuration.shared.cdn` | Sets custom location of shared configuration file |
+| `--shared-configuration-mode`<br/>`--shared-config-mode`<br/>`-scm` | `none` | If `none`, Reposilite stores shared configuration in database. Full configuration modes description: [Configuration modes](#configuration-modes) |
 | `--hostname`<br/>`-h`| Value from [local configuration](#local-configuration) | Overrides hostname from local configuration |
 | `--port`<br/>`-p` | Value from [local configuration](#local-configuration) | Overrides port from local configuration |
 | `--token`<br/>`-t` | Empty | Create temporary token with the given credentials in `name:secret` format |
@@ -51,8 +51,10 @@ configuration modes where introduced. Supported configuration modes:
 
 | Mode | Description |
 | :--: | :--: |
-| `auto` | Processes and updates configuration file automatically if there are missing entries |
-| `none` | Disables automatic updates of configuration file, user has update such files manually in case of new properties introduced in further updates |
+| `auto` | Process and updates configuration file automatically |
+| `copy` | Load mounted configuration and save processed output in working directory (default) |
+| `print` | Load mounted configuration and print processed output in the console |
+| `none` | Disable automatic updates of configuration file |
 
 ## Local configuration
 
@@ -77,7 +79,7 @@ Example local configuration file in CDN format from [test workspace](https://git
 # 127.0.0.1 will only allow connections from localhost.
 hostname: 0.0.0.0
 # Port to bind
-port: 8080
+port: 80
 # Database configuration. Supported storage providers:
 # - mysql localhost:3306 database user password
 # - sqlite reposilite.db
@@ -92,8 +94,8 @@ sslEnabled: false
 # SSL port to bind
 sslPort: 443
 # Key store file to use.
-# You can specify absolute path to the given file or use ${WORKING_DIRECTORY} variable.
-keyStorePath: ${WORKING_DIRECTORY}/keystore.jks
+# You can specify absolute path to the given file or use $\{WORKING_DIRECTORY} variable.
+keyStorePath: $\{WORKING_DIRECTORY}/keystore.jks
 # Key store password to use
 keyStorePassword: reposilite
 # Redirect http traffic to https
@@ -118,10 +120,6 @@ compressionStrategy: none
 cacheContent: true
 # Amount of messages stored in cached logger.
 cachedLogSize: 100
-# Set custom base path for Reposilite instance.
-# It's not recommended to mount Reposilite under custom base path
-# and you should always prioritize subdomain over this option.
-basePath: /
 # Debug mode
 debugEnabled: false
 ```
@@ -130,7 +128,8 @@ debugEnabled: false
 
 ## Shared configuration
 
-Settings (shared configuration) describes content of all your Reposilite instances, such as repositories or frontend customization. 
+Shared configuration describes content of your Reposilite, 
+such as repositories or frontend customization. 
 This configuration supports hot-reloading of properties and should be shared between all your Reposilite instances
 to make sure that every instance behaves and offers the same content.
 
@@ -139,94 +138,94 @@ Reposilite uses database to store shared configuration and synchronizes its stat
 Configuration synchronization is based on top of an interval, 
 due to the lack of 3rd party service that could broadcast data between instances.
 
-Shared configuration can be modified by access token with management permission through web interface in _Settings_ tab:
+Shared configuration can be modified by access token with management permission through web interface in _Configuration_ tab:
+
+<Spoiler title="Preview of shared configuration in the dashboard">
 
 ![Dashboard / Configuration](/images/guides/web-interface-configuration.png)
+
+</Spoiler>
 
 #### Shared configuration as file
 
 Most users should use default configuration with shared configuration in database that offers support for hot-reloading and automatic updates, 
-but for some of them it's not really what they want/can use. Some use cases where database based shared configuration may not be the best solution:
-
-* Boot temporary Reposilite instance without preserved database file
-* Specific environments with external configuration supervisors that don't want to share state between shared database
-
+but for some of them it's not really what they want/can use. 
 That's why Reposilite allows you to export shared configuration into JSON file and link it manually using `--shared-configuration` parameter. 
-You can generate default template with `--generate-configuration=configuration.shared.json` parameter or just configure your instance through web dashboard and download configuration as JSON file.
 Example output:
 
 <Spoiler title="configuration.shared.json">
 
 ```json
-{
-  "web": {
-    "swagger": "false",
-    "forwardedIp": "X-Forwarded-For"
-  },
+"web": {
+  "swagger": "false",
+  "forwardedIp": "X-Forwarded-For"
+},
+"repositories": {
   "repositories": {
-    "repositories": {
-      "releases": {
-        "visibility": "PUBLIC",
-        "redeployment": "false",
-        "preserved": "-1",
-        "storageProvider": {
-          "type": "fs",
-          "quota": "100%",
-          "mount": ""
-        },
-        "proxied": "[]"
+    "releases": {
+      "visibility": "PUBLIC",
+      "redeployment": "false",
+      "preserved": "-1",
+      "storageProvider": {
+        "type": "fs",
+        "quota": "100%",
+        "mount": ""
       },
-      "snapshots": {
-        "visibility": "PUBLIC",
-        "redeployment": "false",
-        "preserved": "-1",
-        "storageProvider": {
-          "type": "fs",
-          "quota": "100%",
-          "mount": ""
-        },
-        "proxied": "[]"
+      "proxied": "[]"
+    },
+    "snapshots": {
+      "visibility": "PUBLIC",
+      "redeployment": "false",
+      "preserved": "-1",
+      "storageProvider": {
+        "type": "fs",
+        "quota": "100%",
+        "mount": ""
       },
-      "private": {
-        "visibility": "PRIVATE",
-        "redeployment": "false",
-        "preserved": "-1",
-        "storageProvider": {
-          "type": "fs",
-          "quota": "100%",
-          "mount": ""
-        },
-        "proxied": "[]"
-      }
+      "proxied": "[]"
+    },
+    "private": {
+      "visibility": "PRIVATE",
+      "redeployment": "false",
+      "preserved": "-1",
+      "storageProvider": {
+        "type": "fs",
+        "quota": "100%",
+        "mount": ""
+      },
+      "proxied": "[]"
     }
-  },
-  "frontend": {
-    "frontend": "true",
-    "basePath": "/",
-    "id": "reposilite-repository",
-    "title": "Reposilite Repository",
-    "description": "Public Maven repository hosted through the Reposilite",
-    "organizationWebsite": "https://reposilite.com",
-    "organizationLogo": "https://avatars.githubusercontent.com/u/88636591",
-    "icpLicense": ""
-  },
-  "statistics": {
-    "resolvedRequestsInterval": "MONTHLY"
-  },
-  "authentication": {
-    "ldap": {
-      "enabled": "false",
-      "hostname": "ldap.domain.com",
-      "port": "389",
-      "baseDn": "dc=company,dc=com",
-      "searchUserDn": "cn=reposilite,ou=admins,dc=domain,dc=com",
-      "searchUserPassword": "reposilite-admin-secret",
-      "userAttribute": "cn",
-      "userFilter": "(&(objectClass=person)(ou=Maven Users))",
-      "userType": "PERSISTENT"
-    }
+  }
+},
+"frontend": {
+  "frontend": "true",
+  "basePath": "/",
+  "id": "reposilite-repository",
+  "title": "Reposilite Repository",
+  "description": "Public Maven repository hosted through the Reposilite",
+  "organizationWebsite": "https://reposilite.com",
+  "organizationLogo": "https://avatars.githubusercontent.com/u/88636591",
+  "icpLicense": ""
+},
+"statistics": {
+  "resolvedRequestsInterval": "MONTHLY"
+},
+"authentication": {
+  "ldap": {
+    "enabled": "false",
+    "hostname": "ldap.domain.com",
+    "port": "389",
+    "baseDn": "dc=company,dc=com",
+    "searchUserDn": "cn=reposilite,ou=admins,dc=domain,dc=com",
+    "searchUserPassword": "reposilite-admin-secret",
+    "userAttribute": "cn",
+    "userFilter": "(&(objectClass=person)(ou=Maven Users))",
+    "userType": "PERSISTENT"
   }
 }
 ```
 
 </Spoiler>
+
+To make it work, you also have to change [configuration mode for shared configuration](#configuration-modes) using `--shared-configuration-mode` parameter.
+By default it's `none`, so you have to change it to any other value, e.g. `copy`.

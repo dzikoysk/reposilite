@@ -1,11 +1,11 @@
-﻿<div align="center">
+<div align="center">
  <h1>Reposilite</h1>
  <div>
   <a href="https://github.com/dzikoysk/reposilite/actions/workflows/gradle.yml">
    <img alt="Reposilite CI" src="https://github.com/dzikoysk/reposilite/actions/workflows/gradle.yml/badge.svg" />
   </a>
   <a href="https://github.com/dzikoysk/reposilite/releases">
-   <img src="https://maven.reposilite.com/api/badge/latest/releases/org/panda-lang/reposilite?color=40c14a&name=Reposilite&prefix=v" />
+   <img src="https://repo.panda-lang.org/api/badge/latest/releases/org/panda-lang/reposilite?color=40c14a&name=Reposilite&prefix=v" />
   </a>
   <a href="https://codecov.io/gh/dzikoysk/reposilite">
    <img alt="CodeCov" src="https://codecov.io/gh/dzikoysk/reposilite/branch/main/graph/badge.svg?token=9flNHTSJpp" />
@@ -42,14 +42,14 @@ This is simple, extensible and scalable self-hosted solution to replace managers
   |
   <a href="https://panda-lang.org/support">Support</a>
   |
-  <a href="https://maven.reposilite.com">Demo</a>
+  <a href="https://repo.panda-lang.org">Demo</a>
  </div>
  <br>
  <img alt="Preview" src="https://user-images.githubusercontent.com/4235722/133891983-966e5c6d-97b1-48cc-b754-6e88117ee4f7.png" />
  <br>
  <br>
  <strong>
-   ⛔ Main sources refers to the alpha version of Reposilite 3.x that is under heavy development.
+  ⛔ Main sources refers to the alpha version of Reposilite 3.x that is under heavy development.
   <br>
   If you're looking for docs and sources of Reposilite 2.x, visit 2.x branch: <a href="https://github.com/dzikoysk/reposilite/tree/2.x">Reposilite 2.x</a>
  </strong>
@@ -61,10 +61,10 @@ For huge public repositories you can adjust memory limit and even size of used t
 
 ```bash
 # Launching a standalone JAR file
-$ java -Xmx16M -jar reposilite-3.0.0-rc.1.jar
+$ java -Xmx16M -jar reposilite-3.0.0-alpha.25.jar
 
 # Using a Docker
-$ docker pull dzikoysk/reposilite:3.0.0-rc.1
+$ docker pull dzikoysk/reposilite:3.0.0-alpha.25
 ```
 
 Visit official guide to read more about extra parameters and configuration details.

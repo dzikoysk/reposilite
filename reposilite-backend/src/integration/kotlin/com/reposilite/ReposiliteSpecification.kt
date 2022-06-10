@@ -16,6 +16,9 @@
 
 package com.reposilite
 
+import com.fasterxml.jackson.databind.json.JsonMapper
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.reposilite.plugin.api.Facade
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.AccessTokenPermission
@@ -23,12 +26,9 @@ import com.reposilite.token.AccessTokenType.PERSISTENT
 import com.reposilite.token.Route
 import com.reposilite.token.RoutePermission
 import com.reposilite.token.api.CreateAccessTokenRequest
-import com.reposilite.web.http.ErrorResponse
 import io.javalin.http.HttpCode
-import io.javalin.http.HttpCode.UNAUTHORIZED
 import kong.unirest.HttpRequest
 import kong.unirest.HttpResponse
-import kong.unirest.Unirest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -36,10 +36,17 @@ import kotlin.reflect.KClass
 
 internal abstract class ReposiliteSpecification : ReposiliteRunner() {
 
+    private val jacksonMapper by lazy {
+        JsonMapper.builder()
+            .addModule(JavaTimeModule())
+            .build()
+            .registerKotlinModule()
+    }
+
     val base: String
         get() = "http://localhost:${reposilite.parameters.port}"
 
-    fun useDefaultManagementToken(): Pair<String, String> =
+    fun usePredefinedTemporaryAuth(): Pair<String, String> =
         "manager" to "manager-secret"
 
     fun useAuth(name: String, secret: String, permissions: List<AccessTokenPermission> = emptyList(), routes: Map<String, RoutePermission> = emptyMap()): Pair<String, String> {
@@ -61,7 +68,7 @@ internal abstract class ReposiliteSpecification : ReposiliteRunner() {
         reposilite.extensions.facade()
 
     fun <T : Any> HttpRequest<*>.asJacksonObject(type: KClass<T>): HttpResponse<T> =
-        this.asObject { ReposiliteObjectMapper.DEFAULT_OBJECT_MAPPER.readValue(it.contentAsString, type.java) }
+        this.asObject { jacksonMapper.readValue(it.contentAsString, type.java) }
 
     fun assertStatus(expectedCode: HttpCode, value: Int) {
         assertEquals(expectedCode.status, value)
@@ -76,19 +83,6 @@ internal abstract class ReposiliteSpecification : ReposiliteRunner() {
         assertStatus(expectedCode, response.status)
         assertTrue(response.isSuccess)
         return response.body.also { block(it) }
-    }
-
-    fun assertManagerOnlyGetEndpoint(endpoint: String) {
-        // given: an existing token without management permission
-        val (unauthorizedToken, unauthorizedSecret) = useAuth("unauthorized-token", "secret")
-
-        // when: list of tokens is requested without valid access token
-        val unauthorizedResponse = Unirest.get("$base$endpoint")
-            .basicAuth(unauthorizedToken, unauthorizedSecret)
-            .asJacksonObject(ErrorResponse::class)
-
-        // then: request is rejected
-        assertErrorResponse(UNAUTHORIZED, unauthorizedResponse)
     }
 
 }

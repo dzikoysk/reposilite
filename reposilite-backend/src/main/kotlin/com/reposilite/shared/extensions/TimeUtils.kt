@@ -15,7 +15,7 @@
  */
 package com.reposilite.shared.extensions
 
-import java.util.*
+import java.util.Locale
 
 internal object TimeUtils {
 

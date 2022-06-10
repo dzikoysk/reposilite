@@ -1,8 +1,6 @@
 {
   "name": "reposilite-frontend",
-  "version": "3.0.0-rc.1",
-  "repository": "https://github.com/dzikoysk/reposilite",
-  "license": "Apache-2.0",
+  "version": "3.0.0-alpha.25",
   "scripts": {
     "dev": "vite",
     "eslint": "eslint src/**",
@@ -12,11 +10,8 @@
     "full": "concurrently -k \"npm run fake-api\" \"vite\""
   },
   "dependencies": {
-    "@dzikoysk/vue-vanilla": "^3.0.0-beta.2",
-    "@jsonforms/core": "^3.0.0-beta.2",
-    "@jsonforms/vue": "^3.0.0-beta.2",
-    "@vueform/toggle": "^2.0.2",
-    "@vueuse/core": "^8.6.0",
+    "@vueform/toggle": "^2.0.1",
+    "@vueuse/core": "^8.3.1",
     "@vueuse/head": "^0.7.6",
     "ansi-to-html": "^0.7.2",
     "axios": "^0.27.2",
@@ -26,30 +21,30 @@
     "pretty-bytes": "^6.0.0",
     "prismjs": "^1.28.0",
     "simple-syntax-highlighter": "^2.2.0",
-    "vue": "^3.2.36",
+    "vue": "^3.2.33",
     "vue-axios": "^3.4.1",
-    "vue-final-modal": "^3.4.4",
-    "vue-float-menu": "^1.9.1",
+    "vue-final-modal": "^3.4.3",
     "vue-prism-editor": "^2.0.0-alpha.2",
-    "vue-router": "^4.0.15",
+    "vue-router": "^4.0.14",
     "vue-upload-component": "^3.1.2",
     "vue3-tabs": "^0.1.13-beta.3"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^2.3.3",
-    "@vue/compiler-sfc": "^3.2.36",
+    "@vitejs/plugin-vue": "^2.3.1",
+    "@vue/compiler-sfc": "^3.2.33",
     "body-parser": "^1.20.0",
-    "concurrently": "^7.2.1",
-    "eslint": "^8.17.0",
-    "eslint-plugin-vue": "^9.1.0",
+    "concurrently": "^7.1.0",
+    "eslint": "^8.14.0",
+    "eslint-plugin-vue": "^8.6.0",
     "express": "^4.18.1",
     "express-ws": "^5.0.2",
     "json-server": "^0.17.0",
     "nodemon": "^2.0.16",
     "rollup-plugin-visualizer": "^5.6.0",
-    "vite": "^2.9.9",
+    "stylelint-config-standard": "^25.0.0",
+    "vite": "^2.9.6",
     "vite-plugin-windicss": "^1.8.4",
-    "windicss": "^3.5.4",
-    "ws": "^8.7.0"
+    "windicss": "^3.5.1",
+    "ws": "^8.6.0"
   }
 }

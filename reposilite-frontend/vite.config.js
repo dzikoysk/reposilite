@@ -33,29 +33,7 @@ export default defineConfig({
       ? '{{REPOSILITE.VITE_BASE_PATH}}'
       : '/',
   build: {
-    minify: true,
     emptyOutDir: true,
     outDir: 'build/frontend/reposilite-frontend'
-  },
-  css: {
-    preprocessorOptions: {
-      css: {
-        charset: false
-      }
-    },
-    postcss: {
-      plugins: [
-        {
-          postcssPlugin: 'internal:charset-removal',
-          AtRule: {
-            charset: (atRule) => {
-              if (atRule.name === 'charset') {
-                atRule.remove()
-              }
-            }
-          }
-        }
-      ]
-    }
   }
 })

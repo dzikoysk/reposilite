@@ -36,6 +36,6 @@ Reposilite has 3 modules that use different tech stack.
 Visit README.md of each module to see details about how to run specific module and work with it:
 
 * [Reposilite :: Backend](https://github.com/dzikoysk/reposilite/tree/main/reposilite-backend) - Sources of main Reposilite application
-  * [Reposilite :: Plugins](https://github.com/dzikoysk/reposilite/tree/main/reposilite-plugins) - Plugin system related subprojects
+  *  [Reposilite :: Plugins](https://github.com/dzikoysk/reposilite/tree/main/reposilite-plugins) - Plugin system related subprojects
 * [Reposilite :: Frontend](https://github.com/dzikoysk/reposilite/tree/main/reposilite-frontend) - Sources of default Reposilite frontend in Vue
 * [Reposilite :: Site](https://github.com/dzikoysk/reposilite/tree/main/reposilite-site) - Sources of [reposilite.com](https://reposilite.com/) website

@@ -36,7 +36,6 @@ const categories = [
       'deployment',
       'proxy',
       'static-files',
-      'badges',
       'plugins',
       'ssl'
     ]
@@ -50,13 +49,6 @@ const categories = [
       'cloudflare',
       'systemd',
       'github'
-    ]
-  },
-  {
-    name: 'Migration',
-    directory: 'migration',
-    content: [
-      'artifactory'
     ]
   },
   {

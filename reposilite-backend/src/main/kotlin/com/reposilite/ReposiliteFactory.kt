@@ -16,13 +16,13 @@
 
 package com.reposilite
 
-import com.reposilite.configuration.local.LocalConfigurationFactory
-import com.reposilite.configuration.local.infrastructure.DatabaseConnectionFactory
 import com.reposilite.journalist.Channel
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.backend.PrintStreamLogger
 import com.reposilite.plugin.Extensions
 import com.reposilite.plugin.PluginLoader
+import com.reposilite.plugin.loadExternalPlugins
+import com.reposilite.settings.application.LocalConfigurationFactory
 import com.reposilite.shared.extensions.newFixedThreadPool
 import com.reposilite.shared.extensions.newSingleThreadScheduledExecutor
 import com.reposilite.web.HttpServer
@@ -35,16 +35,10 @@ object ReposiliteFactory {
         createReposilite(parameters, PrintStreamLogger(System.out, System.err, Channel.ALL, false))
 
     fun createReposilite(parameters: ReposiliteParameters, rootJournalist: Journalist): Reposilite {
-        val localConfiguration = LocalConfigurationFactory.createLocalConfiguration(null, parameters)
+        val localConfiguration = LocalConfigurationFactory.createLocalConfiguration(parameters)
         parameters.applyLoadedConfiguration(localConfiguration)
 
-        val journalist = ReposiliteJournalist(
-            visibleJournalist = rootJournalist,
-            cachedLogSize = localConfiguration.cachedLogSize.get(),
-            defaultVisibilityThreshold = Channel.of(parameters.level).orElseGet { Channel.INFO },
-            testEnv = parameters.testEnv
-        )
-
+        val journalist = ReposiliteJournalist(rootJournalist, localConfiguration.cachedLogSize.get(), parameters.testEnv)
         journalist.logger.info("")
         journalist.logger.info("${Effect.GREEN}Reposilite ${Effect.RESET}$VERSION")
         journalist.logger.info("")
@@ -56,26 +50,23 @@ object ReposiliteFactory {
         journalist.logger.info("Threads: ${localConfiguration.webThreadPool.get()} WEB / ${localConfiguration.ioThreadPool.get()} IO / ${localConfiguration.databaseThreadPool.get()} DB")
         if (parameters.testEnv) journalist.logger.info("Test environment enabled")
 
-        val reposilite = Reposilite(
-            journalist = journalist,
-            parameters = parameters,
-            localConfiguration = localConfiguration,
-            databaseConnection = DatabaseConnectionFactory.createConnection(parameters.workingDirectory, localConfiguration.database.get(), localConfiguration.databaseThreadPool.get()),
-            webServer = HttpServer(),
-            ioService = newFixedThreadPool(2, localConfiguration.ioThreadPool.get(), "Reposilite | IO"),
-            scheduler = newSingleThreadScheduledExecutor("Reposilite | Scheduler"),
-            extensions = Extensions(journalist)
-        )
+        val webServer = HttpServer()
+        val scheduler = newSingleThreadScheduledExecutor("Reposilite | Scheduler")
+        val ioService = newFixedThreadPool(2, localConfiguration.ioThreadPool.get(), "Reposilite | IO")
 
-        journalist.logger.info("")
-        journalist.logger.info("--- Loading plugins:")
-
-        val pluginLoader = PluginLoader(parameters.workingDirectory.resolve("plugins"), reposilite.extensions)
-        pluginLoader.extensions.registerFacade(reposilite)
-        pluginLoader.loadPluginsByServiceFiles()
+        val extensions = Extensions(journalist, parameters, localConfiguration)
+        val pluginLoader = PluginLoader(parameters.workingDirectory.resolve("plugins"), extensions)
+        pluginLoader.loadExternalPlugins()
         pluginLoader.initialize()
 
-        return reposilite
+        return Reposilite(
+            journalist = journalist,
+            parameters = parameters,
+            ioService = ioService,
+            scheduler = scheduler,
+            webServer = webServer,
+            extensions = extensions
+        )
     }
 
 }

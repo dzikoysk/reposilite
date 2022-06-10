@@ -21,7 +21,6 @@ import com.reposilite.maven.api.Identifier
 import com.reposilite.statistics.StatisticsFacade
 import kong.unirest.Unirest.get
 import kong.unirest.Unirest.put
-import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import panda.std.Mono
 
@@ -29,14 +28,14 @@ internal abstract class StatisticsIntegrationSpecification : ReposiliteSpecifica
 
     fun useResolvedRequest(repository: String, gav: String, content: String): Mono<Identifier> {
         val uri = "$base/$repository/$gav"
-        val (token, secret) = useDefaultManagementToken()
+        val (token, secret) = usePredefinedTemporaryAuth()
 
         val putResponse = put(uri)
             .basicAuth(token, secret)
             .body(content)
-            .asString()
+            .asEmpty()
 
-        assertEquals(200, putResponse.status)
+        assertTrue(putResponse.isSuccess)
 
         val getResponse = get(uri)
             .asEmpty()

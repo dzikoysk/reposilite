@@ -20,11 +20,11 @@ import com.reposilite.Reposilite
 import com.reposilite.ReposiliteObjectMapper
 import com.reposilite.VERSION
 import com.reposilite.auth.AuthenticationFacade
-import com.reposilite.auth.api.Credentials
-import com.reposilite.configuration.local.LocalConfiguration
-import com.reposilite.configuration.shared.SharedConfigurationFacade
-import com.reposilite.frontend.application.FrontendSettings
+import com.reposilite.auth.api.AuthenticationRequest
 import com.reposilite.journalist.Journalist
+import com.reposilite.settings.SettingsFacade
+import com.reposilite.settings.api.LocalConfiguration
+import com.reposilite.settings.api.SharedConfiguration
 import com.reposilite.shared.ContextDsl
 import com.reposilite.status.FailureFacade
 import com.reposilite.token.AccessTokenFacade
@@ -43,7 +43,6 @@ import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.util.ssl.SslContextFactory
 import org.eclipse.jetty.util.thread.ThreadPool
-import panda.std.reactive.Reference
 
 internal object JavalinConfiguration {
 
@@ -52,29 +51,27 @@ internal object JavalinConfiguration {
         config.server { server }
         reposilite.extensions.emitEvent(HttpServerConfigurationEvent(reposilite, config))
 
-        val localConfiguration = reposilite.extensions.facade<LocalConfiguration>()
-        val sharedConfigurationFacade = reposilite.extensions.facade<SharedConfigurationFacade>()
-        val webSettings = sharedConfigurationFacade.getDomainSettings<WebSettings>()
-        val frontendSettings = sharedConfigurationFacade.getDomainSettings<FrontendSettings>()
+        val settingsFacade = reposilite.extensions.facade<SettingsFacade>()
+        val localConfiguration = settingsFacade.localConfiguration
+        val sharedConfiguration = settingsFacade.sharedConfiguration
 
-        configureJavalin(config, localConfiguration, webSettings)
+        configureJavalin(config, localConfiguration, sharedConfiguration)
         configureJsonSerialization(config)
         configureSSL(reposilite, localConfiguration, config, server)
         configureCors(config)
-        configureOpenApi(config, frontendSettings.get())
+        configureOpenApi(sharedConfiguration, config)
         configureDebug(reposilite, localConfiguration, config)
         configureReactiveRoutingPlugin(config, reposilite)
     }
 
-    private fun configureJavalin(config: JavalinConfig, localConfiguration: LocalConfiguration, webSettings: Reference<WebSettings>) {
+    private fun configureJavalin(config: JavalinConfig, localConfiguration: LocalConfiguration, sharedConfiguration: SharedConfiguration) {
         config.showJavalinBanner = false
         config.asyncRequestTimeout = 1000L * 60 * 60 * 10 // 10min
-
         config.contextResolvers {
-            it.ip = { ctx -> ctx.header(webSettings.get().forwardedIp) ?: ctx.req.remoteAddr }
+            it.ip = { ctx -> ctx.header(sharedConfiguration.forwardedIp.get()) ?: ctx.req.remoteAddr }
         }
 
-        when (localConfiguration.compressionStrategy.get().lowercase()) {
+        when(localConfiguration.compressionStrategy.get().lowercase()) {
             "none" -> config.compressionStrategy(CompressionStrategy.NONE)
             "gzip" -> config.compressionStrategy(CompressionStrategy.GZIP)
             else -> throw IllegalStateException("Unknown compression strategy ${localConfiguration.compressionStrategy.get()}")
@@ -96,7 +93,7 @@ internal object JavalinConfiguration {
                         accessTokenFacade,
                         lazy {
                             extractFromHeaders(ctx.headerMap())
-                                .map { (name, secret) -> Credentials(name, secret) }
+                                .map { (name, secret) -> AuthenticationRequest(name, secret) }
                                 .flatMap { authenticationFacade.authenticateByCredentials(it) }
                         }
                     )
@@ -120,8 +117,7 @@ internal object JavalinConfiguration {
     }
 
     private fun configureJsonSerialization(config: JavalinConfig) {
-        val objectMapper = ReposiliteObjectMapper.DEFAULT_OBJECT_MAPPER
-        config.jsonMapper(JavalinJackson(objectMapper))
+        config.jsonMapper(JavalinJackson(ReposiliteObjectMapper.DEFAULT_OBJECT_MAPPER))
     }
 
     private fun configureSSL(reposilite: Reposilite, localConfiguration: LocalConfiguration, config: JavalinConfig, server: Server) {
@@ -150,12 +146,14 @@ internal object JavalinConfiguration {
         config.enableCorsForAllOrigins()
     }
 
-    private fun configureOpenApi(config: JavalinConfig, frontendSettings: FrontendSettings) {
-        val openApiConfiguration = OpenApiConfiguration()
-        openApiConfiguration.title = frontendSettings.title
-        openApiConfiguration.description = frontendSettings.description
-        openApiConfiguration.version = VERSION
-        config.registerPlugin(OpenApiPlugin(openApiConfiguration))
+    private fun configureOpenApi(sharedConfiguration: SharedConfiguration, config: JavalinConfig) {
+        if (sharedConfiguration.swagger.get()) {
+            val openApiConfiguration = OpenApiConfiguration() // TOFIX: Support dynamic configuration of Swagger integration
+            openApiConfiguration.title = sharedConfiguration.title.get()
+            openApiConfiguration.description = sharedConfiguration.description.get()
+            openApiConfiguration.version = VERSION
+            config.registerPlugin(OpenApiPlugin(openApiConfiguration))
+        }
     }
 
     private fun configureDebug(journalist: Journalist, localConfiguration: LocalConfiguration, config: JavalinConfig) {

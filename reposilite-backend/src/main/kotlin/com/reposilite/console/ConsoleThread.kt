@@ -17,7 +17,7 @@ package com.reposilite.console
 
 import com.reposilite.status.FailureFacade
 import java.io.InputStream
-import java.util.*
+import java.util.Scanner
 
 internal class ConsoleThread(
     private val commandExecutor: CommandExecutor,

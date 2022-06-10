@@ -16,42 +16,44 @@
 
 package com.reposilite.statistics.application
 
-import com.reposilite.Reposilite
-import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.console.ConsoleFacade
 import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposiliteInitializeEvent
 import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
+import com.reposilite.settings.SettingsFacade
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.statistics.StatsCommand
 import com.reposilite.statistics.createDateIntervalProvider
 import com.reposilite.statistics.infrastructure.SqlStatisticsRepository
 import com.reposilite.statistics.infrastructure.StatisticsEndpoint
 import com.reposilite.web.api.RoutingSetupEvent
+import panda.std.reactive.computed
 import java.util.concurrent.TimeUnit.SECONDS
 
-@Plugin(name = "statistics", dependencies = ["shared-configuration", "console"], settings = StatisticsSettings::class)
+@Plugin(name = "statistics", dependencies = ["settings", "console"])
 internal class StatisticsPlugin : ReposilitePlugin() {
 
     override fun initialize(): StatisticsFacade {
-        val reposilite = facade<Reposilite>()
+        val settingsFacade = facade<SettingsFacade>()
         val consoleFacade = facade<ConsoleFacade>()
-        val settingsFacade = facade<SharedConfigurationFacade>()
-        val statisticsSettings = settingsFacade.getDomainSettings<StatisticsSettings>()
 
         val statisticsFacade = StatisticsFacade(
-            journalist = this,
-            dateIntervalProvider = statisticsSettings.computed { createDateIntervalProvider(it.resolvedRequestsInterval) },
-            statisticsRepository = SqlStatisticsRepository(reposilite.database)
+            this,
+            computed(settingsFacade.sharedConfiguration.statistics) {
+                settingsFacade.sharedConfiguration.statistics.map {
+                    createDateIntervalProvider(it.resolvedRequestsInterval)
+                }
+            },
+            SqlStatisticsRepository(settingsFacade.database.value)
         )
 
         consoleFacade.registerCommand(StatsCommand(statisticsFacade))
 
-        event { _: ReposiliteInitializeEvent ->
-            reposilite.scheduler.scheduleWithFixedDelay({
-                reposilite.ioService.execute {
+        event { event: ReposiliteInitializeEvent ->
+            event.reposilite.scheduler.scheduleWithFixedDelay({
+                event.reposilite.ioService.execute {
                     statisticsFacade.saveRecordsBulk()
                 }
             }, 10, 10, SECONDS)

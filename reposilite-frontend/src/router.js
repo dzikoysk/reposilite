@@ -15,7 +15,7 @@
  */
 
 import { createWebHashHistory, createRouter } from "vue-router"
-import IndexPage from "./pages/IndexPage.vue"
+import Index from "./pages/Index.vue"
 
 const router = createRouter({
   history: createWebHashHistory(),
@@ -23,7 +23,7 @@ const router = createRouter({
     {
       path: "/:qualifier(.*)",
       name: "Index",
-      component: IndexPage,
+      component: Index,
     }
   ]
 })

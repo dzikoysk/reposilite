@@ -76,8 +76,10 @@ enum class AccessTokenPermission(val identifier: String, val shortcut: String) {
         @JsonCreator
         @JvmStatic
         fun fromObject(data: Map<String, String>): AccessTokenPermission =
-            findAccessTokenPermissionByIdentifier(data["identifier"]!!) ?: throw IllegalArgumentException("Unknown access token ($data)")
+            findAccessTokenPermissionByIdentifier(data["identifier"]!!)!!
 
     }
 
 }
+
+

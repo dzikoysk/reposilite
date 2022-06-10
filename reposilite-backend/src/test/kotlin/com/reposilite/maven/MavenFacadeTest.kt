@@ -23,9 +23,6 @@ import com.reposilite.maven.api.DeleteRequest
 import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.VersionLookupRequest
-import com.reposilite.maven.application.ProxiedCredentials
-import com.reposilite.maven.application.ProxiedRepository
-import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.maven.specification.MavenSpecification
 import com.reposilite.storage.api.FileType.FILE
 import com.reposilite.storage.api.toLocation
@@ -46,14 +43,23 @@ import panda.std.component4
 
 internal class MavenFacadeTest : MavenSpecification() {
 
-    override fun repositories() = listOf(
-        RepositorySettings(PRIVATE.name, visibility = PRIVATE),
-        RepositorySettings(HIDDEN.name, visibility = HIDDEN),
-        RepositorySettings(PUBLIC.name, visibility = PUBLIC),
-        RepositorySettings("PROXIED", visibility = PUBLIC, proxied = mutableListOf(
-            ProxiedRepository(REMOTE_REPOSITORY, store = true, authorization = REMOTE_AUTH.let { (name, secret) -> ProxiedCredentials(name, secret) }),
-            ProxiedRepository(REMOTE_REPOSITORY_WITH_WHITELIST, allowedGroups = listOf("do.allow"))
-        ))
+    override fun repositories() = linkedMapOf(
+        createRepository(PRIVATE.name) {
+            visibility = PRIVATE
+        },
+        createRepository(HIDDEN.name) {
+            visibility = HIDDEN
+        },
+        createRepository(PUBLIC.name) {
+            visibility = PUBLIC
+        },
+        createRepository("PROXIED") {
+            visibility = PUBLIC
+            proxied = mutableListOf(
+                "$REMOTE_REPOSITORY --store --auth $REMOTE_AUTH",
+                "$REMOTE_REPOSITORY_WITH_WHITELIST --allow=do.allow"
+            )
+        }
     )
 
     @Test
@@ -179,7 +185,7 @@ internal class MavenFacadeTest : MavenSpecification() {
         val response = mavenFacade.findFile(fileSpec.toLookupRequest(UNAUTHORIZED))
 
         // then: the file has been properly proxied
-        val (_, data) = assertOk(response)
+        val data = assertOk(response)
         assertEquals(REMOTE_CONTENT, data.readBytes().decodeToString())
     }
 
@@ -228,7 +234,7 @@ internal class MavenFacadeTest : MavenSpecification() {
         val response = mavenFacade.findFile(file.toLookupRequest(UNAUTHORIZED))
 
         // then: the file is found
-        val (_, data) = assertOk(response)
+        val data = assertOk(response)
         assertEquals(REMOTE_CONTENT, data.readBytes().decodeToString())
     }
 

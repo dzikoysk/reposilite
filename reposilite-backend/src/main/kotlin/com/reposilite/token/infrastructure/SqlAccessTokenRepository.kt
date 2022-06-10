@@ -31,12 +31,10 @@ import net.dzikoysk.exposed.upsert.withIndex
 import net.dzikoysk.exposed.upsert.withUnique
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.ReferenceOption.CASCADE
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.javatime.date
@@ -87,7 +85,7 @@ internal class SqlAccessTokenRepository(private val database: Database) : Access
 
     override fun saveAccessToken(accessToken: AccessToken): AccessToken =
         transaction(database) {
-            when (getIdByName(accessToken.name)) {
+            when(getIdByName(accessToken.name)) {
                 UNINITIALIZED_ENTITY_ID -> createAccessToken(accessToken)
                 else -> updateAccessToken(accessToken)
             }
@@ -124,9 +122,7 @@ internal class SqlAccessTokenRepository(private val database: Database) : Access
 
     override fun deletePermission(id: AccessTokenIdentifier, permission: AccessTokenPermission) {
         transaction(database) {
-            PermissionToAccessTokenTable.deleteWhere {
-                Op.build { PermissionToAccessTokenTable.accessTokenId eq id.value }.and { PermissionToAccessTokenTable.permission eq permission.identifier }
-            }
+            PermissionToRouteTable.deleteWhere { PermissionToRouteTable.accessTokenId eq id.value }
         }
     }
 

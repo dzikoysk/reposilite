@@ -17,12 +17,12 @@
 package com.reposilite.maven
 
 import com.reposilite.assertCollectionsEquals
+import com.reposilite.maven.RepositoryVisibility.PUBLIC
 import com.reposilite.maven.api.DeployEvent
 import com.reposilite.maven.api.Metadata
 import com.reposilite.maven.api.Snapshot
 import com.reposilite.maven.api.SnapshotVersion
 import com.reposilite.maven.api.Versioning
-import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.maven.specification.MavenSpecification
 import com.reposilite.storage.api.toLocation
 import org.junit.jupiter.api.BeforeEach
@@ -34,8 +34,11 @@ internal class PreservedBuildsListenerTest : MavenSpecification() {
     private lateinit var preservedBuildsListener: PreservedBuildsListener
     private val repositoryName = "snapshots"
 
-    override fun repositories() = listOf(
-        RepositorySettings(repositoryName, preserveSnapshots = false)
+    override fun repositories() = linkedMapOf(
+        createRepository(repositoryName) {
+            visibility = PUBLIC
+            preserveSnapshots = false
+        }
     )
 
     @BeforeEach

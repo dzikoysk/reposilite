@@ -16,7 +16,6 @@
 
 package com.reposilite.shared.http
 
-import com.reposilite.auth.api.Credentials
 import com.reposilite.journalist.Journalist
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.web.http.ErrorResponse
@@ -24,8 +23,8 @@ import panda.std.Result
 import java.io.InputStream
 import java.net.Proxy
 
-private typealias HeadHandler = (String, Credentials?, Int, Int) -> Result<FileDetails, ErrorResponse>
-private typealias GetHandler = (String, Credentials?, Int, Int) -> Result<InputStream, ErrorResponse>
+private typealias HeadHandler = (String, String?, Int, Int) -> Result<FileDetails, ErrorResponse>
+private typealias GetHandler = (String, String?, Int, Int) -> Result<InputStream, ErrorResponse>
 
 class FakeRemoteClientProvider(private val headHandler: HeadHandler, private val getHandler: GetHandler) : RemoteClientProvider {
 
@@ -36,10 +35,10 @@ class FakeRemoteClientProvider(private val headHandler: HeadHandler, private val
 
 class FakeRemoteClient(private val headHandler: HeadHandler, private val getHandler: GetHandler) : RemoteClient {
 
-    override fun head(uri: String, credentials: Credentials?, connectTimeout: Int, readTimeout: Int): Result<FileDetails, ErrorResponse> =
+    override fun head(uri: String, credentials: String?, connectTimeout: Int, readTimeout: Int): Result<FileDetails, ErrorResponse> =
         headHandler(uri, credentials, connectTimeout, readTimeout)
 
-    override fun get(uri: String, credentials: Credentials?, connectTimeout: Int, readTimeout: Int): Result<InputStream, ErrorResponse> =
+    override fun get(uri: String, credentials: String?, connectTimeout: Int, readTimeout: Int): Result<InputStream, ErrorResponse> =
         getHandler(uri, credentials, connectTimeout, readTimeout)
 
 }

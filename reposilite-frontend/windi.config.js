@@ -19,9 +19,6 @@ import colors from "windicss/colors"
 
 export default defineConfig({
   darkMode: "class",
-  plugins: [
-    require('windicss/plugin/forms')
-  ],
   theme: {
     screens: {
       sm: "640px",
@@ -50,4 +47,3 @@ export default defineConfig({
       "bg-white dark:bg-gray-900 cursor-pointer hover:(transition-color bg-gray-200 dark:bg-gray-800 duration-500)",
   },
 })
-

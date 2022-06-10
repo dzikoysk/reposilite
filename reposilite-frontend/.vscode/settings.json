@@ -16,6 +16,5 @@
     "vueform",
     "vueuse",
     "windicss"
-  ],
-  "vetur.validation.script": false // https://github.com/vuejs/vetur/issues/2296
+  ]
 }

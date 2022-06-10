@@ -21,14 +21,12 @@ import com.reposilite.journalist.Logger
 import com.reposilite.maven.api.DeleteRequest
 import com.reposilite.maven.api.DeployEvent
 import com.reposilite.maven.api.DeployRequest
-import com.reposilite.maven.api.Identifier
 import com.reposilite.maven.api.LatestBadgeRequest
 import com.reposilite.maven.api.LatestVersionResponse
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.METADATA_FILE
 import com.reposilite.maven.api.Metadata
-import com.reposilite.maven.api.PreResolveEvent
-import com.reposilite.maven.api.ResolvedFileEvent
+import com.reposilite.maven.api.ResolveEvent
 import com.reposilite.maven.api.VersionLookupRequest
 import com.reposilite.maven.api.VersionsResponse
 import com.reposilite.plugin.Extensions
@@ -49,7 +47,6 @@ import com.reposilite.web.http.notFound
 import com.reposilite.web.http.notFoundError
 import com.reposilite.web.http.unauthorizedError
 import io.javalin.http.HttpCode.BAD_REQUEST
-import io.javalin.http.HttpCode.NOT_FOUND
 import panda.std.Result
 import panda.std.asSuccess
 import panda.std.reactive.Reference
@@ -81,51 +78,35 @@ class MavenFacade internal constructor(
     )
 
     fun findDetails(lookupRequest: LookupRequest): Result<out FileDetails, ErrorResponse> =
-        resolve(lookupRequest) { repository, gav -> findDetails(lookupRequest.accessToken, repository, gav) }
-
-    private fun findDetails(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<out FileDetails, ErrorResponse> =
-        when {
-            repository.exists(gav) -> findLocalDetails(accessToken, repository, gav)
-            else -> findProxiedDetails(repository, gav)
-        }.peek {
-            recordResolvedRequest(Identifier(repository.name, gav.toString()), it)
-        }
-
-    private fun findLocalDetails(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<out FileDetails, ErrorResponse> =
-        repository.getFileDetails(gav)
-            .flatMap {
-                it.takeIf { it.type == DIRECTORY }
-                    ?.let { repositorySecurityProvider.canBrowseResource(accessToken, repository, gav).map { _ -> it } }
-                    ?: it.asSuccess()
+        resolve(lookupRequest) { repository, gav ->
+            if (repository.exists(gav).not()) {
+                return@resolve proxyService
+                    .findRemoteDetails(repository, lookupRequest.gav)
+                    .mapErr { notFound("Cannot find ${lookupRequest.gav} in local and remote repositories") }
             }
 
-    private fun findProxiedDetails(repository: Repository, gav: Location): Result<out FileDetails, ErrorResponse> =
-        proxyService
-            .findRemoteDetails(repository, gav)
-            .mapErr { notFound("Cannot find $gav in local and remote repositories") }
-
-    private fun recordResolvedRequest(identifier: Identifier, fileDetails: FileDetails) {
-        if (fileDetails is DocumentInfo && ignoredExtensions.none { extension -> fileDetails.name.endsWith(extension) }) {
-            statisticsFacade.incrementResolvedRequest(IncrementResolvedRequest(identifier))
+            return@resolve repository.getFileDetails(gav)
+                .flatMap {
+                    it.takeIf { it.type == DIRECTORY }
+                        ?.let { repositorySecurityProvider.canBrowseResource(lookupRequest.accessToken, repository, gav).map { _ -> it } }
+                        ?: it.asSuccess()
+                }
+                .peek {
+                    if (it is DocumentInfo && ignoredExtensions.none { extension -> it.name.endsWith(extension) }) {
+                         statisticsFacade.incrementResolvedRequest(IncrementResolvedRequest(lookupRequest.toIdentifier()))
+                    }
+                }
         }
-    }
 
-    fun findFile(lookupRequest: LookupRequest): Result<Pair<DocumentInfo, InputStream>, ErrorResponse> =
-        resolve(lookupRequest) { repository, gav -> findFile(lookupRequest.accessToken, repository, gav) }
-
-    private fun findFile(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<Pair<DocumentInfo, InputStream>, ErrorResponse> =
-        findDetails(accessToken, repository, gav)
-            .`is`(DocumentInfo::class.java) { ErrorResponse(NOT_FOUND, "Requested file is a directory") }
-            .flatMap { details -> findInputStream(repository, gav).map { details to it } }
-            .let { extensions.emitEvent(ResolvedFileEvent(accessToken, repository, gav, it)).result }
-
-    private fun findInputStream(repository: Repository, gav: Location): Result<InputStream, ErrorResponse> =
-        if (repository.exists(gav)) {
-            logger.debug("Gav $gav found in ${repository.name} repository")
-            repository.getFile(gav)
-        } else {
-            logger.debug("Cannot find $gav in ${repository.name} repository, requesting proxied repositories")
-            proxyService.findRemoteFile(repository, gav)
+    fun findFile(lookupRequest: LookupRequest): Result<out InputStream, ErrorResponse> =
+        resolve(lookupRequest) { repository, gav ->
+            if (repository.exists(gav)) {
+                logger.debug("Gav $gav found in ${repository.name} repository")
+                repository.getFile(gav)
+            } else {
+                logger.debug("Cannot find $gav in ${repository.name} repository, requesting proxied repositories")
+                proxyService.findRemoteFile(repository, lookupRequest.gav)
+            }
         }
 
     fun interface MatchedVersionHandler<T> {
@@ -168,13 +149,13 @@ class MavenFacade internal constructor(
                     }
             }
 
-    private fun <T> resolve(lookupRequest: LookupRequest, block: (Repository, Location) -> Result<T, ErrorResponse>): Result<T, ErrorResponse> {
+    private fun <T> resolve(lookupRequest: LookupRequest, block: (Repository, Location) -> Result<out T, ErrorResponse>): Result<out T, ErrorResponse> {
         val (accessToken, repositoryName, gav) = lookupRequest
         val repository = getRepository(lookupRequest.repository) ?: return notFoundError("Repository $repositoryName not found")
 
         return canAccessResource(lookupRequest.accessToken, repository.name, gav)
             .onError { logger.debug("Unauthorized attempt of access (token: $accessToken) to $gav from ${repository.name}") }
-            .peek { extensions.emitEvent(PreResolveEvent(accessToken, repository, gav)) }
+            .peek { extensions.emitEvent(ResolveEvent(accessToken, repository, gav)) }
             .flatMap { block(repository, gav) }
     }
 

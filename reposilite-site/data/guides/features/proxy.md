@@ -16,7 +16,7 @@ and Reposilite will also search for requested artifacts among them:
 # --connectTimeout=<seconds> - How long Reposilite can wait for establishing the connection with a remote host (default: 3s)
 # --readTimeout=<seconds> - How long Reposilite can read data from remote proxy. (default: 15s)
 proxied: [
-  https://maven.reposilite.com/releases --store 
+  https://repo.panda-lang.org/releases --store 
 ]
 ```
 

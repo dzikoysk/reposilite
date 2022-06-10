@@ -42,12 +42,7 @@ class DocumentInfo(
     name: String,
     val contentType: ContentType,
     val contentLength: Long = UNKNOWN_LENGTH,
-) : FileDetails(FILE, name) {
-
-    fun copy(name: String = this.name, contentType: ContentType = this.contentType, contentLength: Long = this.contentLength): DocumentInfo =
-        DocumentInfo(name, contentType, contentLength)
-
-}
+) : FileDetails(FILE, name)
 
 sealed class AbstractDirectoryInfo(
     name: String,

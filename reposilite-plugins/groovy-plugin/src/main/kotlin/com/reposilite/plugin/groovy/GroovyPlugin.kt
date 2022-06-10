@@ -30,11 +30,11 @@ class GroovyPlugin : ReposilitePlugin() {
     override fun load(loader: PluginLoader) {
         val groovyClassLoader = GroovyClassLoader(this::class.java.classLoader)
 
-        Files.list(loader.pluginsDirectory).use { pluginDirectoryStream ->
+        Files.list(loader.pluginDirectory).use { pluginDirectoryStream ->
             pluginDirectoryStream
                 .filter { it.getSimpleName().endsWith(".groovy") }
                 .map { groovyClassLoader.parseClass(it.toFile()) }
-                .forEach { extensions().registerPlugin(it.getConstructor().newInstance() as ReposilitePlugin) }
+                .forEach { loader.registerPlugin(it.getConstructor().newInstance() as ReposilitePlugin) }
         }
     }
 

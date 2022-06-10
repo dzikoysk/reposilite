@@ -1,2 +1,0 @@
-com.reposilite.storage.filesystem.FileSystemStorageProviderFactory
-com.reposilite.storage.s3.S3StorageProviderFactory

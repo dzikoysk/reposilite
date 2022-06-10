@@ -26,59 +26,23 @@ plugins {
     val kotlinVersion = "1.6.20"
     kotlin("jvm") version kotlinVersion
     kotlin("kapt") version kotlinVersion
-
-    id("pl.allegro.tech.build.axion-release")
-}
-
-scmVersion {
-    localOnly = true
-    ignoreUncommittedChanges = true
-
-    checks.apply {
-        isUncommittedChanges = false
-    }
-
-    tag.apply {
-        prefix = ""
-    }
-
-    nextVersion.apply {
-        suffix = "next"
-    }
-
-    versionIncrementer("incrementPrerelease")
-
-    hooks.apply {
-        fileUpdate(".github/README.md") { version -> "reposilite-$version.jar" }
-        fileUpdate(".github/README.md") { version -> "dzikoysk/reposilite:$version" }
-        fileUpdate("docker-compose.yml") { version -> "image: reposilite:$version" }
-        fileUpdate("reposilite-backend/src/main/kotlin/com/reposilite/Reposilite.kt") { version -> "const val VERSION = \"$version\"" }
-        fileUpdate("reposilite-frontend/package.json") { version -> "\"version\": \"$version\"" }
-        fileUpdate("reposilite-frontend/package-lock.json") { version -> "\"version\": \"$version\"" }
-        fileUpdate("reposilite-site/data/guides/developers/endpoints.md") { version -> "\"version\": \"$version\"" }
-        fileUpdate("reposilite-site/data/guides/developers/plugin-api.md") { version -> "\"org.panda-lang:reposilite:$version\"" }
-        fileUpdate("reposilite-site/data/guides/installation/docker.md") { version -> version }
-        fileUpdate("reposilite-site/data/plugins/javadoc.md") { version -> "reposilite-$version" }
-        fileUpdate("reposilite-site/data/plugins/javadoc.md") { version -> "reposilite/$version" }
-        commit { version -> "Release $version" }
-    }
 }
 
 allprojects {
-    version = rootProject.scmVersion.version
-
     repositories {
-        mavenCentral()
+        // mavenCentral()
         // maven {
         //     url = uri("http://localhost/releases")
         //     isAllowInsecureProtocol = true
         // }
-        maven { url = uri("https://maven.reposilite.com/releases") }
+        maven { url = uri("https://repo.panda-lang.org/releases") }
         maven { url = uri("https://jitpack.io") }
     }
 }
 
 subprojects {
+    version = "3.0.0-alpha.25"
+
     apply(plugin = "java-library")
     apply(plugin = "application")
     apply(plugin = "maven-publish")
@@ -116,10 +80,10 @@ subprojects {
         repositories {
             maven {
                 name = "panda-repository"
-                url = uri("https://maven.reposilite.com/${if (version.toString().endsWith("-SNAPSHOT")) "snapshots" else "releases"}")
+                url = uri("https://repo.panda-lang.org/${if (version.toString().endsWith("-SNAPSHOT")) "snapshots" else "releases"}")
                 credentials {
-                    username = System.getenv("MAVEN_NAME") ?: property("mavenUser").toString()
-                    password = System.getenv("MAVEN_TOKEN") ?: property("mavenPassword").toString()
+                    username = System.getenv("MAVEN_NAME") ?: ""
+                    password = System.getenv("MAVEN_TOKEN") ?: ""
                 }
             }
         }

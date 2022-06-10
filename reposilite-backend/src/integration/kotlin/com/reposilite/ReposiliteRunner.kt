@@ -16,16 +16,12 @@
 
 package com.reposilite
 
-import com.reposilite.configuration.local.LocalConfiguration
-import com.reposilite.configuration.local.infrastructure.LOCAL_CONFIGURATION_FILE
-import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.journalist.Channel
 import com.reposilite.journalist.Logger
 import com.reposilite.journalist.backend.PrintStreamLogger
-import com.reposilite.maven.application.MavenSettings
-import com.reposilite.maven.application.ProxiedRepository
-import com.reposilite.maven.application.RepositorySettings
-import com.reposilite.storage.StorageProviderSettings
+import com.reposilite.settings.api.LocalConfiguration
+import com.reposilite.settings.api.SharedConfiguration
+import com.reposilite.settings.api.SharedConfiguration.RepositoryConfiguration
 import io.javalin.core.util.JavalinBindException
 import net.dzikoysk.cdn.KCdnFactory
 import net.dzikoysk.cdn.source.Source
@@ -42,8 +38,8 @@ import java.util.concurrent.ThreadLocalRandom
 /**
  * This is a dirty launcher of Reposilite instance for integration tests.
  * Every integration test is launched twice, with local and remote integrations, through dedicated extensions:
- * - [LocalSpecificationJunitExtension]
- * - [RemoteSpecificationJunitExtension]
+ * - [ReposiliteLocalIntegrationJunitExtension]
+ * - [ReposiliteRemoteIntegrationJunitExtension]
  */
 @Suppress("PropertyName")
 internal abstract class ReposiliteRunner {
@@ -59,7 +55,7 @@ internal abstract class ReposiliteRunner {
     @JvmField
     var _database: String = ""
     @JvmField
-    var _storageProvider: StorageProviderSettings? = null
+    var _storageProvider = ""
 
     lateinit var reposilite: Reposilite
 
@@ -75,17 +71,20 @@ internal abstract class ReposiliteRunner {
         var launchResult: Result<Reposilite, Exception>
 
         do {
-            launchResult = prepareInstance(logger)
+            launchResult = prepareInstance(logger).peek { reposilite = it }
         } while (launchResult.errorToOption().`is`(JavalinBindException::class.java).isPresent)
     }
 
     private fun prepareInstance(logger: Logger): Result<Reposilite, Exception> {
         val parameters = ReposiliteParameters()
+        parameters.sharedConfigurationMode = "copy"
         parameters.tokenEntries = arrayOf("${DEFAULT_TOKEN.first}:${DEFAULT_TOKEN.second}")
         parameters.workingDirectoryName = reposiliteWorkingDirectory.absolutePath
         parameters.testEnv = true
         parameters.port = 10000 + 2 * ThreadLocalRandom.current().nextInt(30_000 / 2)
         parameters.run()
+
+        val cdn = KCdnFactory.createStandard()
 
         val localConfiguration = LocalConfiguration().also {
             ReferenceUtils.setValue(it.database, _database)
@@ -94,38 +93,34 @@ internal abstract class ReposiliteRunner {
         }
 
         overrideLocalConfiguration(localConfiguration)
-        KCdnFactory.createStandard().render(localConfiguration, Source.of(reposiliteWorkingDirectory.resolve(LOCAL_CONFIGURATION_FILE)))
+        cdn.render(localConfiguration, Source.of(reposiliteWorkingDirectory.resolve("configuration.local.cdn")))
 
-        reposilite = ReposiliteFactory.createReposilite(parameters, logger)
-        reposilite.journalist.setVisibleThreshold(Channel.WARN)
+        val sharedConfiguration = SharedConfiguration().also {
+            val proxiedConfiguration = RepositoryConfiguration()
+            proxiedConfiguration.proxied = mutableListOf("http://localhost:${parameters.port + 1}/releases")
 
-        val sharedConfigurationFacade = reposilite.extensions.facade<SharedConfigurationFacade>()
+            val updatedRepositories = it.repositories.get().toMutableMap()
+            updatedRepositories["proxied"] = proxiedConfiguration
+            it.repositories.update(updatedRepositories)
 
-        sharedConfigurationFacade.getDomainSettings<MavenSettings>().update { old ->
-            val proxiedConfiguration = RepositorySettings(
-                id = "proxied",
-                proxied = mutableListOf(ProxiedRepository("http://localhost:${parameters.port + 1}/releases"))
-            )
-
-            return@update old.copy(
-                repositories = old.repositories.associateBy { it.id }.toMutableMap()
-                    .also { repositories -> repositories["proxied"] = proxiedConfiguration }
-                    .mapValues { (_, repositoryConfiguration) ->
-                        repositoryConfiguration.copy(
-                            redeployment = true,
-                            storageProvider = _storageProvider!!,
-                        )
-                    }.values.toList()
-            )
+            it.repositories.get().forEach { (repositoryName, repositoryConfiguration) ->
+                repositoryConfiguration.redeployment = true
+                repositoryConfiguration.storageProvider = _storageProvider.replace("{repository}", repositoryName)
+            }
         }
 
-        overrideSharedConfiguration(sharedConfigurationFacade)
-        return reposilite.launch()
+        overrideSharedConfiguration(sharedConfiguration)
+        cdn.render(sharedConfiguration, Source.of(reposiliteWorkingDirectory.resolve("configuration.shared.cdn")))
+
+        val reposiliteInstance = ReposiliteFactory.createReposilite(parameters, logger)
+        reposiliteInstance.journalist.setVisibleThreshold(Channel.WARN)
+
+        return reposiliteInstance.launch()
     }
 
     protected open fun overrideLocalConfiguration(localConfiguration: LocalConfiguration) { }
 
-    protected open fun overrideSharedConfiguration(sharedConfigurationFacade: SharedConfigurationFacade) { }
+    protected open fun overrideSharedConfiguration(sharedConfiguration: SharedConfiguration) { }
 
     @AfterEach
     fun shutdownApplication() {
