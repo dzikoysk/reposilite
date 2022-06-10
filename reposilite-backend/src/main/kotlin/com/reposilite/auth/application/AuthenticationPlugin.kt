@@ -21,29 +21,36 @@ import com.reposilite.auth.BasicAuthenticator
 import com.reposilite.auth.LdapAuthenticator
 import com.reposilite.auth.infrastructure.AuthenticationEndpoint
 import com.reposilite.auth.infrastructure.PostAuthHandler
+import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.plugin.api.Facade
 import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
-import com.reposilite.settings.SettingsFacade
 import com.reposilite.status.FailureFacade
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.web.api.RoutingSetupEvent
+import panda.std.reactive.Reference.Dependencies.dependencies
+import panda.std.reactive.Reference.computed
 
-@Plugin(name = "authentication", dependencies = ["failure", "settings", "access-token"])
+@Plugin(name = "authentication", dependencies = ["failure", "shared-configuration", "access-token"], settings = AuthenticationSettings::class)
 internal class AuthenticationPlugin : ReposilitePlugin() {
 
     override fun initialize(): Facade {
         val failureFacade = facade<FailureFacade>()
-        val settingsFacade = facade<SettingsFacade>()
         val accessTokenFacade = facade<AccessTokenFacade>()
+        val sharedConfigurationFacade = facade<SharedConfigurationFacade>()
+        val authenticationSettings = sharedConfigurationFacade.getDomainSettings<AuthenticationSettings>()
 
         val authenticationFacade = AuthenticationFacade(
             journalist = this,
-            authenticators =  listOf(
+            authenticators = listOf(
                 BasicAuthenticator(accessTokenFacade),
-                LdapAuthenticator(settingsFacade.sharedConfiguration.ldap, accessTokenFacade, failureFacade)
+                LdapAuthenticator(
+                    ldapSettings = computed(dependencies(authenticationSettings)) { authenticationSettings.map { it.ldap } },
+                    accessTokenFacade = accessTokenFacade,
+                    failureFacade = failureFacade
+                )
             ),
             accessTokenFacade = accessTokenFacade
         )

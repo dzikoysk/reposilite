@@ -16,22 +16,41 @@
 
 package com.reposilite.plugin
 
-import com.reposilite.ReposiliteParameters
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
 import com.reposilite.plugin.api.Event
 import com.reposilite.plugin.api.EventListener
 import com.reposilite.plugin.api.Facade
-import com.reposilite.settings.api.LocalConfiguration
+import com.reposilite.plugin.api.Plugin
+import com.reposilite.plugin.api.ReposilitePlugin
+import com.reposilite.plugin.api.ReposilitePlugin.ReposilitePluginAccessor
+import kotlin.reflect.full.findAnnotation
 
-class Extensions(
-    private val journalist: Journalist,
-    val parameters: ReposiliteParameters,
-    val localConfiguration: LocalConfiguration
-) : Journalist {
+data class PluginEntry(
+    val metadata: Plugin,
+    val plugin: ReposilitePlugin
+)
 
-    private val events: MutableMap<Class<*>, MutableList<EventListener<Event>>> = mutableMapOf()
+class Extensions(private val journalist: Journalist) : Journalist {
+
+    private val plugins: MutableMap<String, PluginEntry> = mutableMapOf()
     private val facades: MutableList<Facade> = mutableListOf()
+    private val events: MutableMap<Class<*>, MutableList<EventListener<Event>>> = mutableMapOf()
+
+    fun registerPlugin(plugin: ReposilitePlugin) {
+        val pluginEntry = plugin::class.findAnnotation<Plugin>()
+            ?.let { PluginEntry(it, plugin) }
+            ?.also { ReposilitePluginAccessor.injectExtension(it.plugin, this) }
+            ?: throw IllegalStateException("Plugin ${plugin::class} does not have @Plugin annotation")
+
+        val name = pluginEntry.metadata.name
+
+        if (plugins.containsKey(name)) {
+            throw IllegalStateException("Plugin $name is already registered")
+        }
+
+        plugins[name] = pluginEntry
+    }
 
     fun registerFacade(facade: Facade) {
         facades.add(facade)
@@ -60,7 +79,10 @@ class Extensions(
         getFacades().find { type.isInstance(it) }!! as F
 
     fun getFacades(): Collection<Facade> =
-        facades
+        facades.toList()
+
+    fun getPlugins(): Map<String, PluginEntry> =
+        plugins.toMap()
 
     override fun getLogger(): Logger =
         journalist.logger

@@ -18,6 +18,8 @@
 
 package com.reposilite.token
 
+import com.reposilite.LocalSpecificationJunitExtension
+import com.reposilite.RemoteSpecificationJunitExtension
 import com.reposilite.token.AccessTokenPermission.MANAGER
 import com.reposilite.token.AccessTokenType.PERSISTENT
 import com.reposilite.token.api.AccessTokenDto
@@ -33,13 +35,20 @@ import kong.unirest.Unirest.get
 import kong.unirest.Unirest.put
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
+
+@ExtendWith(LocalSpecificationJunitExtension::class)
+internal class LocalAccessTokenIntegrationTest : AccessTokenIntegrationTest()
+
+@ExtendWith(RemoteSpecificationJunitExtension::class)
+internal class RemoteAccessTokenIntegrationTest : AccessTokenIntegrationTest()
 
 internal abstract class AccessTokenIntegrationTest : AccessTokenIntegrationSpecification() {
 
     @Test
     fun `should list tokens with entitled token`() {
         // given: existing tokens
-        val (temporaryName, temporarySecret) = usePredefinedTemporaryAuth()
+        val (temporaryName, temporarySecret) = useDefaultManagementToken()
         val (persistentToken, persistentSecret) = useToken("persistent", "persistent-secret")
 
         // when: list of tokens is requested without valid access token
@@ -89,7 +98,7 @@ internal abstract class AccessTokenIntegrationTest : AccessTokenIntegrationSpeci
     @Test
     fun `should generate a new token with entitled token`() {
         // given: existing tokens to use and details about token to create
-        val (managerName, managerSecret) = usePredefinedTemporaryAuth()
+        val (managerName, managerSecret) = useDefaultManagementToken()
         val (notAllowedToken, notAllowedSecret) = useToken("not-allowed", "secret")
         val (name, secret, permissions) = useTokenDescription("name", "secret", setOf(MANAGER))
 
@@ -118,7 +127,7 @@ internal abstract class AccessTokenIntegrationTest : AccessTokenIntegrationSpeci
 
     @Test
     fun `should delete given token with entitled token`() {
-        val (managerName, managerSecret) = usePredefinedTemporaryAuth()
+        val (managerName, managerSecret) = useDefaultManagementToken()
         val (notAllowedToken, notAllowedSecret) = useToken("not-allowed", "secret")
         val (tokenToDelete) = useToken("token-to-delete", "secret")
 
