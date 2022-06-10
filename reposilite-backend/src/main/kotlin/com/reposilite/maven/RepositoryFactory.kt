@@ -16,12 +16,11 @@
 
 package com.reposilite.maven
 
-import com.reposilite.settings.api.SharedConfiguration.RepositoryConfiguration
-import com.reposilite.settings.api.SharedConfiguration.RepositoryConfiguration.ProxiedHostConfiguration
-import com.reposilite.shared.extensions.loadCommandBasedConfiguration
+import com.reposilite.maven.application.ProxiedRepository
+import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.shared.http.RemoteClientProvider
 import com.reposilite.status.FailureFacade
-import com.reposilite.storage.StorageProviderFactory.createStorageProvider
+import com.reposilite.storage.StorageFacade
 import java.net.InetSocketAddress
 import java.net.Proxy
 import java.net.Proxy.Type.HTTP
@@ -33,23 +32,29 @@ internal class RepositoryFactory(
     private val remoteClientProvider: RemoteClientProvider,
     private val repositoryProvider: RepositoryProvider,
     private val failureFacade: FailureFacade,
+    private val storageFacade: StorageFacade,
     private val repositoriesNames: Collection<String>,
 ) {
 
     private val repositoriesDirectory = Paths.get("repositories")
 
-    fun createRepository(repositoryName: String, configuration: RepositoryConfiguration): Repository =
+    fun createRepository(repositoryName: String, configuration: RepositorySettings): Repository =
         Repository(
-            repositoryName,
-            configuration.visibility,
-            configuration.redeployment,
-            configuration.preserveSnapshots,
-            configuration.proxied.map { createProxiedHostConfiguration(it) },
-            createStorageProvider(failureFacade, workingDirectory.resolve(repositoriesDirectory), repositoryName, configuration.storageProvider),
+            name = repositoryName,
+            visibility = configuration.visibility,
+            redeployment = configuration.redeployment,
+            preserveSnapshots = configuration.preserveSnapshots,
+            proxiedHosts = configuration.proxied.map { createProxiedHostConfiguration(it) },
+            storageProvider = storageFacade.createStorageProvider(
+                failureFacade = failureFacade,
+                workingDirectory = workingDirectory.resolve(repositoriesDirectory),
+                repository = repositoryName,
+                storageSettings = configuration.storageProvider
+            ) ?: throw IllegalArgumentException("Unknown storage provider '${configuration.storageProvider.type}'")
         )
 
-    private fun createProxiedHostConfiguration(configurationSource: String): ProxiedHost {
-        val (name, configuration) = loadCommandBasedConfiguration(ProxiedHostConfiguration(), configurationSource)
+    private fun createProxiedHostConfiguration(configurationSource: ProxiedRepository): ProxiedHost {
+        val name = configurationSource.reference
 
         val host =
             if (name.endsWith("/"))
@@ -61,12 +66,12 @@ internal class RepositoryFactory(
             if (repositoriesNames.contains(host))
                 RepositoryLoopbackClient(lazy { repositoryProvider.getRepositories()[host]!! })
             else
-                configuration.proxy
+                configurationSource.proxy
                     .takeIf { it.isNotEmpty() }
                     ?.let { Proxy(HTTP, InetSocketAddress(it.substringBeforeLast(":"), it.substringAfterLast(":").toInt())) }
                     .let { remoteClientProvider.createClient(failureFacade, it) }
 
-        return ProxiedHost(host, configuration, remoteClient)
+        return ProxiedHost(host, configurationSource, remoteClient)
     }
 
 }

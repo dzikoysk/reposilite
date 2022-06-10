@@ -18,8 +18,9 @@ package com.reposilite.storage.infrastructure
 
 import com.reposilite.journalist.backend.InMemoryLogger
 import com.reposilite.status.FailureFacade
-import com.reposilite.storage.StorageProviderFactory
+import com.reposilite.storage.StorageFacade
 import com.reposilite.storage.StorageProviderIntegrationTest
+import com.reposilite.storage.s3.S3StorageProviderSettings
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
 import org.testcontainers.containers.localstack.LocalStackContainer
@@ -27,7 +28,6 @@ import org.testcontainers.containers.localstack.LocalStackContainer.Service.S3
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import org.testcontainers.utility.DockerImageName
-import picocli.CommandLine.IFactory
 import java.io.File
 
 @Testcontainers
@@ -44,13 +44,20 @@ internal class S3StorageProviderIntegrationTest : StorageProviderIntegrationTest
     fun setup() {
         val logger = InMemoryLogger()
         val failureFacade = FailureFacade(logger)
+        val storageFacade = StorageFacade()
 
-        this.storageProvider = StorageProviderFactory.createStorageProvider(
-            failureFacade,
-            rootDirectory.toPath(),
-            "test-repository",
-            "s3 test-repository --endpoint ${localstack.getEndpointOverride(S3).toURL()} --access-key ${localstack.accessKey} --secret-key ${localstack.secretKey} --region ${localstack.region}"
-        )
+        this.storageProvider = storageFacade.createStorageProvider(
+            failureFacade = failureFacade,
+            workingDirectory = rootDirectory.toPath(),
+            repository = "test-repository",
+            storageSettings = S3StorageProviderSettings(
+                bucketName = "test-repository",
+                endpoint = localstack.getEndpointOverride(S3).toURL().toString(),
+                accessKey = localstack.accessKey,
+                secretKey = localstack.secretKey,
+                region = localstack.region
+            )
+        )!!
     }
 
 }
