@@ -68,7 +68,7 @@ dependencies {
     implementation("org.xerial:sqlite-jdbc:3.36.0.3")
     implementation("mysql:mysql-connector-java:8.0.29")
     implementation("org.mariadb.jdbc:mariadb-java-client:3.0.5")
-    implementation("org.postgresql:postgresql:42.3.6")
+    implementation("org.postgresql:postgresql:42.4.0")
     implementation("com.h2database:h2:2.1.212")
 
     val springSecurityCrypto = "5.7.1"
