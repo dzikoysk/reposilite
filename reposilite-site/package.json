@@ -9,7 +9,7 @@
     "@chakra-ui/icons": "^2.0.1",
     "@chakra-ui/react": "^2.1.2",
     "@emotion/react": "^11.9.0",
-    "@emotion/styled": "^11.8.1",
+    "@emotion/styled": "^11.9.3",
     "@heroicons/react": "^1.0.6",
     "@mapbox/rehype-prism": "^0.8.0",
     "@nextui-org/react": "^1.0.2-beta.5",
