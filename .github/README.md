@@ -90,8 +90,8 @@ Thanks to all contributors and people that decided to support my work financiall
     <a href="https://github.com/tipsy">tipsy</a>, 
     <a href="https://github.com/Koressi">Koressi</a>,
     <a href="https://github.com/insertt">insertt</a>, 
-    <a href="https://github.com/milkyway0308">milkyway0308</a>,
     <a href="https://github.com/andrm">andrm</a>, 
+    <a href="https://github.com/rdehuyss">rdehuyss</a>
     <a href="https://github.com/neg4n">neg4n</a>, 
     <a href="https://github.com/sebba-dev">sebba-dev</a>
   </td>
@@ -105,6 +105,7 @@ Thanks to all contributors and people that decided to support my work financiall
    <a href="https://github.com/insertt">insertt</a>, 
    <a href="https://github.com/insertt">bmstefanski</a>, 
    <a href="https://github.com/milkyway0308">milkyway0308</a>,
+   <a href="https://github.com/rdehuyss">rdehuyss</a>
    <a href="https://github.com/maxant">maxant</a>,
    <a href="https://github.com/alexwhb">alexwhb</a>, 
    <a href="https://github.com/kay">Douglas Lawrie</a>,
