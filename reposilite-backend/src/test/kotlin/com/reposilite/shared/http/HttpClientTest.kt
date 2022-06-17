@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.reposilite.shared
+package com.reposilite.shared.http
 
 class HttpClientTest {
 

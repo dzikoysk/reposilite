@@ -19,11 +19,9 @@ package com.reposilite.maven
 import com.reposilite.maven.application.ProxiedRepository
 import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.shared.http.RemoteClientProvider
+import com.reposilite.shared.http.createHttpProxy
 import com.reposilite.status.FailureFacade
 import com.reposilite.storage.StorageFacade
-import java.net.InetSocketAddress
-import java.net.Proxy
-import java.net.Proxy.Type.HTTP
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -66,9 +64,9 @@ internal class RepositoryFactory(
             if (repositoriesNames.contains(host))
                 RepositoryLoopbackClient(lazy { repositoryProvider.getRepositories()[host]!! })
             else
-                configurationSource.proxy
+                configurationSource.httpProxy
                     .takeIf { it.isNotEmpty() }
-                    ?.let { Proxy(HTTP, InetSocketAddress(it.substringBeforeLast(":"), it.substringAfterLast(":").toInt())) }
+                    ?.let { createHttpProxy(it) }
                     .let { remoteClientProvider.createClient(failureFacade, it) }
 
         return ProxiedHost(host, configurationSource, remoteClient)
