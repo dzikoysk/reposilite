@@ -33,17 +33,19 @@ data class RepositorySettings(
     val preserveSnapshots: Boolean = false,
     @Doc(title = "Storage provider", description = "The storage type of this repository.")
     val storageProvider: StorageProviderSettings = FileSystemStorageProviderSettings(),
-    @Doc(title = "Proxied", description = "List of proxied repositories associated with this repository.")
+    @Doc(title = "Mirrored repositories", description = "List of mirrored repositories associated with this repository.")
     val proxied: List<ProxiedRepository> = listOf()
 ) : SharedSettings
 
-@Doc(title = "Proxied Maven Repository", description = "Configuration of proxied host")
+@Doc(title = "Mirrored Maven Repository", description = "Configuration of proxied host")
 data class ProxiedRepository(
     @Min(1)
-    @Doc(title = "Reference", description = "The reference to the proxied repository. Either the id of another local repository or the url of a remote repository.")
+    @Doc(title = "Link", description = "Either the id of other local repository or the URL of a remote repository.")
     val reference: String = "",
     @Doc(title = "Store", description = "Reposilite can store proxied artifacts locally to reduce response time and improve stability.")
     val store: Boolean = false,
+    @Doc(title = "Allowed Groups", description = "Allowed artifact groups. If none are given, all artifacts can be obtained from this proxy.")
+    val allowedGroups: List<String> = listOf(),
     @Min(0)
     @Doc(title = "Connect Timeout", description = "How long Reposilite can wait for establishing the connection with a remote host.")
     val connectTimeout: Int = 3,
@@ -55,10 +57,12 @@ data class ProxiedRepository(
     // Results in converting 'authorization` property into 'allOf` component that is currently broken
     // ~ https://github.com/dzikoysk/reposilite/issues/1320
     val authorization: ProxiedCredentials? = null,
-    @Doc(title = "Allowed Groups", description = "Allowed artifact groups. If none are given, all artifacts can be obtained from this proxy.")
-    val allowedGroups: List<String> = listOf(),
-    @Doc(title = "Proxy", description = "Custom proxy configuration for HTTP client used by Reposilite")
-    val proxy: String = ""
+    @Doc(title = "HTTP Proxy", description = """
+        Custom proxy configuration for HTTP/SOCKS client used by Reposilite. Examples: <br/>
+        HTTP 127.0.0.1:1081 <br/>
+        SOCKS 127.0.0.1:1080 login password 
+    """)
+    val httpProxy: String = ""
 ) : SharedSettings
 
 @Doc(title = "Proxied credentials", description = "The authorization credentials used to access proxied repository.")
