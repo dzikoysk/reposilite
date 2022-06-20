@@ -20,7 +20,7 @@
     "next-seo": "^5.4.0",
     "nextjs-color-mode": "^1.0.5",
     "node-fetch": "^3.2.6",
-    "react": "18.1.0",
+    "react": "18.2.0",
     "react-dom": "18.1.0",
     "react-flow-renderer": "^10.3.7",
     "react-icons": "^4.4.0",
