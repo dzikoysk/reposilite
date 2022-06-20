@@ -159,3 +159,12 @@ add_header Strict-Transport-Security "max-age=63072000;includeSubdomains;";
 
 Finally, run `sudo nginx -t` to verify the config and `sudo systemctl restart nginx` to restart nginx.
 This config also works with [Cloudflare](https://www.cloudflare.com/).
+
+### Additional Notes
+
+#### nginxconfig.io / DigitalOcean Nginx config generator
+
+The snippet contained inside `nginxconfig.io/security.conf`
+may break the frontend in many aspects. To fix this, simply
+remove the line containing the following content:
+`add_header Content-Security-Policy   "default-src 'self' http: https: ws: wss: data: blob: 'unsafe-inline'; frame-ancestors 'self';" always;`
