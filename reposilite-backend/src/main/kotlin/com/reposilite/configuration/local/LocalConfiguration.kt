@@ -75,6 +75,19 @@ class LocalConfiguration : Facade {
         lateinit var password: String
     }
 
+    /* Webhooks */
+    @Description("")
+    @Description("# Webhook Service")
+    @Description("Options: slack, discord, off")
+    val webhookService = reference("off")
+
+    @Description("# Webhook URL")
+    val webhookUrl = reference("https://webhook.example.com/v1/channel/id")
+
+    @Description("# Webhook Type")
+    @Description("# Only for Discord at the moment. Options: embed, message")
+    val webhookType = reference("embed")
+
     /* SSL */
 
     @Description("")

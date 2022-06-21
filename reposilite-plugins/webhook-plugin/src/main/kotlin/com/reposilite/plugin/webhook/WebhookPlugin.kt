@@ -14,15 +14,23 @@
  * limitations under the License.
  */
 
-rootProject.name = "reposilite-parent"
+package com.reposilite.plugin.webhook;
 
-include(
-    "reposilite-frontend",
-    "reposilite-backend",
-    "reposilite-plugins:example-plugin",
-    "reposilite-plugins:groovy-plugin",
-    "reposilite-plugins:javadoc-plugin",
-    "reposilite-plugins:webhook-plugin"
-    "reposilite-plugins:migration-plugin",
-    "reposilite-plugins:swagger-plugin"
-)
+import com.reposilite.maven.api.DeployEvent;
+import com.reposilite.plugin.api.Facade;
+import com.reposilite.plugin.api.Plugin;
+import com.reposilite.plugin.api.ReposilitePlugin;
+import com.reposilite.plugin.event;
+
+// TODO: Initialize the plugin logic (webhooks and the listener)
+@Plugin(name = "webhook")
+internal class WebhookPlugin : ReposilitePlugin() {
+    override fun initialize(): Facade? {
+        val facade = WebhookFacade()
+        event { event: DeployEvent ->
+
+        }
+
+        return facade
+    }
+}
