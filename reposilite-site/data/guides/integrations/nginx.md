@@ -12,7 +12,7 @@ map $http_upgrade $connection_upgrade {
     '' close;
 }
 
-# load balancing pool for Reposilite
+# Load balancing pool for Reposilite
 upstream reposilite {
     # Reposilite IP and port, see below for explanation
     server domain.com:8081;
@@ -25,10 +25,10 @@ server {
     access_log /var/log/nginx/reverse-access.log;
     error_log /var/log/nginx/reverse-error.log;
 
-    client_max_body_size 50m; # maximum artifact upload size
+    client_max_body_size 50m; # maximum allowed artifact upload size
 
     location / {
-        proxy_pass http://reposilite; # references the before specified upstream
+        proxy_pass http://reposilite; # the name of Reposilite's upstream specified above
         proxy_set_header   Host              $host;
         proxy_set_header   X-Real-IP         $remote_addr;
         proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
@@ -40,12 +40,14 @@ server {
 }
 ```
 
-Depending on your inital setup of Reposilite the IP address to use will vary.
+Depending on your inital setup of Reposilite, the IP address to use will vary.
 
-If you want to reference a Reposilite instance running on a different machine, use it's IP address
-or a domain name pointing to it. If Reposilite runs on the same machine (possibly in a Docker
-container), use `localhost`. If you are using Docker compose to provision both Reposilite and Nginx
-you can simply reference the Reposilite instance via it's service name directly and do not need to
+* If you want to reference a Reposilite instance running on a different machine, use its IP address
+or a domain name pointing to it. 
+* If Reposilite runs on the same machine (possibly in a Docker
+container), use `localhost`. 
+* If you are using Docker Compose to combine both, Reposilite and Nginx, 
+you can simply reference the Reposilite instance via its service name directly and you do not need to
 expose any port of the Reposilite container (see [Networking in Compose](https://docs.docker.com/compose/networking/)).
 
 Also, don't forget to change the port according to your Reposilite startup parameters.
