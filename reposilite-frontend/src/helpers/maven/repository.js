@@ -50,7 +50,7 @@ export default function useRepository() {
       {
         name: "Gradle Kotlin",
         lang: "kotlin",
-        snippet: `maven {\n    url = uri("${domain}")\n}`,
+        snippet: `maven(url = "${domain}") {\n    name = "${title}"\n}`,
       },
       {
         name: "SBT",
