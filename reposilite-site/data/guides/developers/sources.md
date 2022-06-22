@@ -17,7 +17,7 @@ Actively developed projects & modules by [@dzikoysk](https://github.com/dzikoysk
   * [Exposed Upsert](https://github.com/reposilite-playground/exposed-upsert) - Implements missing upsert functionality for [Exposed](https://github.com/JetBrains/Exposed) framework
 * [dzikoysk / CDN](https://github.com/dzikoysk/cdn) - Configuration library used by Reposilite to handle `.cdn` format
 * [dzikoysk / Expressible](https://github.com/panda-lang/expressible) - Dependency free utility library for Java & Kotlin, dedicated for functional codebases that require enhanced response handling. 
-* [tipsy / Javalin](https://github.com/tipsy/javalin) - Simple web framework that receives contributions as a result to issues addresed in Reposilite
+* [javlain / Javalin](https://github.com/javalin/javalin) - Simple web framework behind Reposilite, received a few patches addressed by Reposilite
 
 ### State of sources
 
