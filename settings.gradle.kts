@@ -23,5 +23,6 @@ include(
     "reposilite-plugins:groovy-plugin",
     "reposilite-plugins:javadoc-plugin",
     "reposilite-plugins:migration-plugin",
-    "reposilite-plugins:swagger-plugin"
+    "reposilite-plugins:swagger-plugin",
+    "reposilite-plugins:webhook-plugin"
 )
