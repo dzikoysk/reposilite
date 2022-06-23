@@ -32,12 +32,10 @@ import com.github.victools.jsonschema.generator.SchemaGeneratorConfigBuilder
 import com.github.victools.jsonschema.generator.SchemaKeyword
 import com.github.victools.jsonschema.generator.SchemaVersion.DRAFT_7
 import com.github.victools.jsonschema.generator.TypeScope
-import panda.std.Result
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.memberProperties
-
 
 val SCHEMA_OPTION_PRESET = OptionPreset(
     SCHEMA_VERSION_INDICATOR,
@@ -104,7 +102,6 @@ class SettingsModule(
 
         builder.forFields().withNullableCheck { it.kProperty?.returnType?.isMarkedNullable }
 
-
         builder.forFields().withDefaultResolver(defaultValueResolve())
 
         builder.forTypesInGeneral().withPropertySorter { _, _ -> 0 }
@@ -117,16 +114,20 @@ class SettingsModule(
         val instanceCache = ConcurrentHashMap<Class<*>, Any>()
 
         return ConfigFunction { field ->
-            Result.attempt<Any?> {
+            runCatching {
                 val declaringClass = field.declaringType.erasedType
 
                 if (!field.isFakeContainerItemScope && declaringClass.name.startsWith("com.reposilite")) {
                     val instance = instanceCache.computeIfAbsent(declaringClass) { declaringClass.getConstructor().newInstance() }
                     field.findGetter().rawMember.invoke(instance)
                 } else null
-            }.onError {
-                it.printStackTrace() // most likely missing a no-args constructor
-            }.orNull()
+            }.fold(
+              onSuccess = { it },
+              onFailure = {
+                  it.printStackTrace() // most likely missing a no-args constructor
+                  null
+              }
+            )
         }
     }
 

@@ -241,4 +241,7 @@ input, select {
 .wrapper p {
   @apply px-2 text-sm;
 }
+.wrapper input {
+  @apply w-1/2;
+}
 </style>
