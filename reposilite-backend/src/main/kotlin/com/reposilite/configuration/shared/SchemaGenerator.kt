@@ -122,11 +122,11 @@ class SettingsModule(
                     field.findGetter().rawMember.invoke(instance)
                 } else null
             }.fold(
-              onSuccess = { it },
-              onFailure = {
-                  it.printStackTrace() // most likely missing a no-args constructor
-                  null
-              }
+                onSuccess = { it },
+                onFailure = {
+                    it.printStackTrace() // most likely missing a no-args constructor
+                    null
+                }
             )
         }
     }
