@@ -22,6 +22,7 @@ import io.javalin.http.Context
 import kong.unirest.HttpRequest
 import kong.unirest.Unirest
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import java.util.concurrent.CountDownLatch
@@ -47,7 +48,7 @@ internal class BasePathIntegrationTest : ReposiliteSpecification() {
             .writeText("Content")
     }
 
-    //@Disabled
+    @Disabled
     @Test
     fun `run reposilite with custom base path`() {
         val await = CountDownLatch(1)

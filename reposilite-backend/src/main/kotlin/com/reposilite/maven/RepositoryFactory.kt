@@ -24,6 +24,7 @@ import com.reposilite.status.FailureFacade
 import com.reposilite.storage.StorageFacade
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.UUID
 
 internal class RepositoryFactory(
     private val workingDirectory: Path,
@@ -38,7 +39,7 @@ internal class RepositoryFactory(
 
     fun createRepository(repositoryName: String, configuration: RepositorySettings): Repository =
         Repository(
-            name = repositoryName,
+            name = repositoryName.ifEmpty { UUID.randomUUID().toString() },
             visibility = configuration.visibility,
             redeployment = configuration.redeployment,
             preserveSnapshots = configuration.preserveSnapshots,

@@ -72,6 +72,13 @@ class SharedConfigurationPlugin : ReposilitePlugin() {
             }
         }
 
+        sharedConfigurationFacade.names()
+            .map { sharedConfigurationFacade.getSettingsReference<SharedSettings>(it) }
+            .forEach {
+                logger.debug("Schema for ${it?.name}:")
+                logger.debug(it?.schema?.toPrettyString())
+            }
+
         event { event: RoutingSetupEvent ->
             event.registerRoutes(SettingsEndpoints(sharedConfigurationFacade))
         }

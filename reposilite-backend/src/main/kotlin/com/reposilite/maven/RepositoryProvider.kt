@@ -31,20 +31,29 @@ internal class RepositoryProvider(
     repositoriesSource: Reference<List<RepositorySettings>>,
 ) {
 
-    private var repositories: Map<String, Repository>
+    private var repositories: Map<String, Repository> = createRepositories(repositoriesSource.get())
 
     init {
-        this.repositories = createRepositories(repositoriesSource.get())
-
         repositoriesSource.subscribe {
             repositories.forEach { (_, repository) -> repository.shutdown() }
             this.repositories = createRepositories(it)
         }
     }
 
-    private fun createRepositories(repositoriesConfiguration: List<RepositorySettings>): Map<String, Repository> =
-        RepositoryFactory(workingDirectory, remoteClientProvider, this, failureFacade, storageFacade, repositoriesConfiguration.map { it.id })
-            .let { repositoriesConfiguration.associate { configuration -> configuration.id to it.createRepository(configuration.id, configuration) } }
+    private fun createRepositories(repositoriesConfiguration: List<RepositorySettings>): Map<String, Repository> {
+        val factory = RepositoryFactory(
+            workingDirectory = workingDirectory,
+            remoteClientProvider = remoteClientProvider,
+            repositoryProvider = this,
+            failureFacade = failureFacade,
+            storageFacade = storageFacade,
+            repositoriesNames = repositoriesConfiguration.map { it.id }
+        )
+
+        return repositoriesConfiguration.asSequence()
+            .map { factory.createRepository(it.id, it) }
+            .associateBy { it.name }
+    }
 
     fun getRepositories(): Map<String, Repository> =
         repositories
