@@ -46,7 +46,7 @@ class FrontendFacade internal constructor(
     }
 
     init {
-        computed(cacheContent, basePath, formattedBasePath) {
+        computed(cacheContent, basePath, formattedBasePath, frontendSettings) {
             resources.clear()
         }
     }
