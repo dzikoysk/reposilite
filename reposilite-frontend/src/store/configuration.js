@@ -5,6 +5,7 @@ import { createAjv } from '@jsonforms/core'
 import { vanillaRenderers } from '@dzikoysk/vue-vanilla'
 import { default as ObjectRenderer, tester as objectTester } from '../components/renderers/ObjectRenderer.vue'
 import { default as AllOfRenderer, tester as allOfTester } from '../components/renderers/AllOfRenderer.vue'
+import { default as ArrayListRenderer, tester as arrayListTester } from '../components/renderers/ArrayListRenderer.vue'
 import { default as OneOfRenderer, tester as oneOfTester } from '../components/renderers/OneOfRenderer.vue'
 import { default as ConstantRenderer, tester as constantTester } from '../components/renderers/ConstantRenderer.vue'
 import { default as OptionalRenderer, tester as optionalTester } from '../components/renderers/OptionalRenderer.vue'
@@ -42,7 +43,7 @@ const updateConfiguration = () => {
 }
 
 const renderers = markRaw([
-  ...vanillaRenderers,
+  { tester: arrayListTester, renderer: ArrayListRenderer },
   { tester: allOfTester, renderer: AllOfRenderer },
   { tester: oneOfTester, renderer: OneOfRenderer },
   { tester: constantTester, renderer: ConstantRenderer },
@@ -54,7 +55,8 @@ const renderers = markRaw([
       return rank === -1 || schema.title === 'Proxied Maven Repository' ? -1 : rank 
     },
     renderer: ObjectRenderer
-  }
+  },
+  ...vanillaRenderers,
 ])
 
 const configurationValidator = computed(() => createAjv({
