@@ -17,6 +17,7 @@
 <script setup>
 import download from 'downloadjs'
 import { createToast } from 'mosha-vue-toastify'
+import { createURL } from '../../helpers/client'
 import { useSession } from '../../store/session'
 import ListEntry from './ListEntry.vue'
 
@@ -44,8 +45,15 @@ const downloadHandler = (path, name) => {
       <router-link v-if="file.type === 'DIRECTORY'" :to="append($route.path, file.name)">
         <ListEntry :file="file"/>
       </router-link>
-      <a v-else @click.left.prevent="downloadHandler($route.path, file.name)" :href="`${$route.path}/${file.name}`" target="_blank">
-        <ListEntry :file="file"/>
+      <a v-else 
+        @click.left.prevent="downloadHandler($route.path, file.name)" 
+        :href="createURL($route.path + '/' + file.name)" 
+        target="_blank"
+      >
+        <ListEntry 
+          :file="file" 
+          :url="createURL($route.path + '/' + file.name)"
+        />
       </a>
     </div>
     <div v-if="files.isEmpty" class="pl-2">

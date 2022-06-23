@@ -22,6 +22,10 @@ const props = defineProps({
   file: {
     type: Object,
     required: true
+  },
+  url: {
+    type: String,
+    required: false
   }
 })
 
@@ -33,8 +37,7 @@ const openUrl = (url) =>
 </script>
 
 <template>
-  <div class="
-    browser-entry flex flex-row justify-between mb-1.5 py-3 rounded-full default-button">
+  <div class="browser-entry flex flex-row justify-between mb-1.5 py-3 rounded-full default-button">
     <div class="flex flex-row">
       <div v-if="file.type == 'DIRECTORY'" class="text-xm px-6 pt-1.75">⚫</div>
       <div v-else class="text-xm px-6 pt-1.75">⚪</div>
@@ -45,7 +48,7 @@ const openUrl = (url) =>
         <EyeIcon
           id="view-button"
           class="px-1 mr-7 pt-0.4 rounded-full text-purple-300 hover:(transition-colors duration-200 bg-gray-100 dark:bg-gray-900)" 
-          @click.left.prevent="openUrl(`${$route.path}/${file.name}`)"
+          @click.left.prevent="openUrl(url)"
           v-on:click.stop
         />
       </div>

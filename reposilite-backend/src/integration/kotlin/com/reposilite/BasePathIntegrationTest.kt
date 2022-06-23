@@ -21,10 +21,13 @@ import io.javalin.Javalin
 import io.javalin.http.Context
 import kong.unirest.HttpRequest
 import kong.unirest.Unirest
-import org.junit.jupiter.api.Disabled
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import java.util.concurrent.CountDownLatch
+import kotlin.io.path.createDirectories
+import kotlin.io.path.createFile
+import kotlin.io.path.writeText
 
 @ExtendWith(LocalSpecificationJunitExtension::class)
 internal class BasePathIntegrationTest : ReposiliteSpecification() {
@@ -35,7 +38,16 @@ internal class BasePathIntegrationTest : ReposiliteSpecification() {
         localConfiguration.basePath.update { basePath }
     }
 
-    @Disabled
+    @BeforeEach
+    fun setupRepository() {
+        reposiliteWorkingDirectory.toPath()
+            .resolve("repositories/releases/gav/file.txt")
+            .also { it.parent.createDirectories() }
+            .also { it.createFile() }
+            .writeText("Content")
+    }
+
+    //@Disabled
     @Test
     fun `run reposilite with custom base path`() {
         val await = CountDownLatch(1)
