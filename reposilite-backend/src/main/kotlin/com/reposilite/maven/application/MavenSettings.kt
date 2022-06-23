@@ -24,7 +24,7 @@ data class MavenSettings(
 data class RepositorySettings(
     @Min(1)
     @Doc(title = "Id", description = "The id of this repository.")
-    val id: String,
+    val id: String = "",
     @Doc(title = "Visibility", description = "The visibility of this repository.")
     val visibility: RepositoryVisibility = PUBLIC,
     @Doc(title = "Redeployment", description = "Does this repository accept redeployment of the same artifact version.")
@@ -68,9 +68,9 @@ data class ProxiedRepository(
 @Doc(title = "Proxied credentials", description = "The authorization credentials used to access proxied repository.")
 data class ProxiedCredentials(
     @Doc(title = "Login", description = "Login to use by proxied HTTP client")
-    val login: String,
+    val login: String = "",
     @Doc(title = "Password", description = "Raw password used by proxied HTTP client to connect to the given repository")
-    val password: String
+    val password: String = ""
 ) : SharedSettings {
 
     fun toCredentials(): Credentials =

@@ -4,6 +4,7 @@ import com.fasterxml.classmate.ResolvedType
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.databind.node.ObjectNode
+import com.github.victools.jsonschema.generator.ConfigFunction
 import com.github.victools.jsonschema.generator.CustomDefinition
 import com.github.victools.jsonschema.generator.FieldScope
 import com.github.victools.jsonschema.generator.MemberScope
@@ -31,9 +32,12 @@ import com.github.victools.jsonschema.generator.SchemaGeneratorConfigBuilder
 import com.github.victools.jsonschema.generator.SchemaKeyword
 import com.github.victools.jsonschema.generator.SchemaVersion.DRAFT_7
 import com.github.victools.jsonschema.generator.TypeScope
+import panda.std.Result
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.memberProperties
+
 
 val SCHEMA_OPTION_PRESET = OptionPreset(
     SCHEMA_VERSION_INDICATOR,
@@ -100,7 +104,30 @@ class SettingsModule(
 
         builder.forFields().withNullableCheck { it.kProperty?.returnType?.isMarkedNullable }
 
+
+        builder.forFields().withDefaultResolver(defaultValueResolve())
+
         builder.forTypesInGeneral().withPropertySorter { _, _ -> 0 }
+    }
+
+    /**
+     * Based on https://victools.github.io/jsonschema-generator/#how-to-populate-default-values
+     */
+    private fun defaultValueResolve(): ConfigFunction<FieldScope, Any?> {
+        val instanceCache = ConcurrentHashMap<Class<*>, Any>()
+
+        return ConfigFunction { field ->
+            Result.attempt<Any?> {
+                val declaringClass = field.declaringType.erasedType
+
+                if (!field.isFakeContainerItemScope && declaringClass.name.startsWith("com.reposilite")) {
+                    val instance = instanceCache.computeIfAbsent(declaringClass) { declaringClass.getConstructor().newInstance() }
+                    field.findGetter().rawMember.invoke(instance)
+                } else null
+            }.onError {
+                it.printStackTrace() // most likely missing a no-args constructor
+            }.orNull()
+        }
     }
 
     private val MemberScope<*, *>.kProperty: KProperty1<*, *>?

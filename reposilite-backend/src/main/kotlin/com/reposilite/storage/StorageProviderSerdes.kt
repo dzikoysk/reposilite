@@ -32,7 +32,7 @@ class StorageProviderSerdes {
         private fun JsonParser.parseStorageProvider(): Any? =
             codec?.let {
                 val json = it.readTree<JsonNode>(this)
-                val type = json.get("type").asText()
+                val type = json?.get("type")?.asText() ?: "fs"
                 return it.treeToValue(json, STORAGE_PROVIDERS[type])
             }
 
