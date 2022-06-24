@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-
-group = "com.reposilite.plugins"
 
 plugins {
     kotlin("jvm")

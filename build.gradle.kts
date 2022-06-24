@@ -56,7 +56,7 @@ scmVersion {
         fileUpdate("reposilite-frontend/package.json") { version -> "\"version\": \"$version\"" }
         fileUpdate("reposilite-frontend/package-lock.json") { version -> "\"version\": \"$version\"" }
         fileUpdate("reposilite-site/data/guides/developers/endpoints.md") { version -> "\"version\": \"$version\"" }
-        fileUpdate("reposilite-site/data/guides/developers/plugin-api.md") { version -> "\"org.panda-lang:reposilite:$version\"" }
+        fileUpdate("reposilite-site/data/guides/developers/plugin-api.md") { version -> "\"com.reposilite:reposilite:$version\"" }
         fileUpdate("reposilite-site/data/guides/installation/docker.md") { version -> version }
         fileUpdate("reposilite-site/data/plugins/javadoc.md") { version -> "reposilite-$version" }
         fileUpdate("reposilite-site/data/plugins/javadoc.md") { version -> "reposilite/$version" }
@@ -82,6 +82,8 @@ subprojects {
     apply(plugin = "java-library")
     apply(plugin = "application")
     apply(plugin = "maven-publish")
+
+    group = "com.reposilite"
 
     dependencies {
         val junit = "5.8.2"
