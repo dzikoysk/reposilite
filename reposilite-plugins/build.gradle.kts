@@ -1,5 +1,5 @@
 subprojects {
-    group = "com.reposilite.plugins"
+    group = "com.reposilite.plugin"
 
     publishing {
         publications {

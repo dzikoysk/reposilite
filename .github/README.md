@@ -5,7 +5,7 @@
    <img alt="Reposilite CI" src="https://github.com/dzikoysk/reposilite/actions/workflows/gradle.yml/badge.svg" />
   </a>
   <a href="https://github.com/dzikoysk/reposilite/releases">
-   <img src="https://maven.reposilite.com/api/badge/latest/releases/org/panda-lang/reposilite?color=40c14a&name=Reposilite&prefix=v" />
+   <img src="https://maven.reposilite.com/api/badge/latest/releases/com/reposilite/reposilite?color=40c14a&name=Reposilite&prefix=v" />
   </a>
   <a href="https://codecov.io/gh/dzikoysk/reposilite">
    <img alt="CodeCov" src="https://codecov.io/gh/dzikoysk/reposilite/branch/main/graph/badge.svg?token=9flNHTSJpp" />

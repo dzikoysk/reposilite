@@ -38,7 +38,7 @@ import panda.std.reactive.Completable
 @Plugin(name = "status", dependencies = ["console", "failure"])
 internal class StatusPlugin : ReposilitePlugin() {
 
-    private val remoteVersionEndpoint = "https://maven.reposilite.com/api/maven/latest/version/releases/org/panda-lang/reposilite?type=raw"
+    private val remoteVersionEndpoint = "https://maven.reposilite.com/api/maven/latest/version/releases/com/reposilite/reposilite?type=raw"
 
     override fun initialize(): StatusFacade {
         val reposilite = facade<Reposilite>()

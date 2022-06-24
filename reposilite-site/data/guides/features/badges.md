@@ -24,4 +24,4 @@ Supported path parameters:
 
 Results in such badge:
 
-* ![Badge](https://maven.reposilite.com/api/badge/latest/releases/org/panda-lang/reposilite?color=40c14a&name=Reposilite&prefix=v)
+* ![Badge](https://maven.reposilite.com/api/badge/latest/releases/com/reposilite/reposilite?color=40c14a&name=Reposilite&prefix=v)

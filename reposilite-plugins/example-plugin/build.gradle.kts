@@ -16,7 +16,7 @@
 
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
-group = "com.reposilite.plugins"
+// group = "com.reposilite.plugin"
 
 plugins {
     id("com.github.johnrengelman.shadow") version "7.1.2"
@@ -27,7 +27,7 @@ application {
 }
 
 dependencies {
-    // compileOnly("org.panda-lang:reposilite:version") for external plugins
+    // compileOnly("com.reposilite:reposilite:version") for external plugins
     compileOnly(project(":reposilite-backend"))
 }
 

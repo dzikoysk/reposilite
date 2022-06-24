@@ -17,8 +17,6 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.apache.tools.ant.filters.ReplaceTokens
 
-group = "org.panda-lang"
-
 plugins {
     jacoco
     kotlin("jvm")
