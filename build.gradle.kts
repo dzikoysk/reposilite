@@ -31,7 +31,6 @@ plugins {
 }
 
 scmVersion {
-    localOnly = true
     ignoreUncommittedChanges = true
 
     checks.apply {
