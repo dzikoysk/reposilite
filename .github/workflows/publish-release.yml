@@ -42,7 +42,7 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       - name: Publish with Gradle
-        run: ./gradlew :reposilite-backend:build :reposilite-backend:shadowJar :reposilite-backend:publish
+        run: ./gradlew shadowJar publish
         env:
           MAVEN_NAME: ${{ secrets.MAVEN_NAME }}
           MAVEN_TOKEN: ${{ secrets.MAVEN_TOKEN }}
