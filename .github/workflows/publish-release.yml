@@ -1,3 +1,5 @@
+name: Publish release builds
+
 on: workflow_dispatch
 
 jobs:
