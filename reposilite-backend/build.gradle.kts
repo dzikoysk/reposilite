@@ -94,7 +94,7 @@ dependencies {
     api("io.javalin:javalin:4.6.3")
 
     @Suppress("GradlePackageUpdate")
-    implementation("org.eclipse.jetty:jetty-server:9.4.46.v20220331")
+    implementation("org.eclipse.jetty:jetty-server:9.4.48.v20220622")
 
     implementation("com.github.victools:jsonschema-generator:4.24.3")
 
