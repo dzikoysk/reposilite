@@ -52,6 +52,8 @@ compressionStrategy: none
 cacheContent: true
 # Amount of messages stored in cached logger.
 cachedLogSize: 100
+# Default idle timeout used by Jetty
+idleTimeout: 30000
 # Set custom base path for Reposilite instance.
 # It's not recommended to mount Reposilite under custom base path
 # and you should always prioritize subdomain over this option.

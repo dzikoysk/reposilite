@@ -29,6 +29,7 @@ import com.reposilite.shared.ContextDsl
 import com.reposilite.status.FailureFacade
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.web.api.HttpServerConfigurationEvent
+import com.reposilite.web.api.HttpServerStarted
 import com.reposilite.web.api.RoutingSetupEvent
 import com.reposilite.web.http.extractFromHeaders
 import com.reposilite.web.http.response
@@ -56,6 +57,12 @@ internal object JavalinConfiguration {
         val sharedConfigurationFacade = reposilite.extensions.facade<SharedConfigurationFacade>()
         val webSettings = sharedConfigurationFacade.getDomainSettings<WebSettings>()
         val frontendSettings = sharedConfigurationFacade.getDomainSettings<FrontendSettings>()
+
+        reposilite.extensions.registerEvent { _: HttpServerStarted ->
+            server.connectors
+                .filterIsInstance<ServerConnector>()
+                .forEach { it.idleTimeout = localConfiguration.idleTimeout.get() }
+        }
 
         configureJavalin(config, localConfiguration, webSettings)
         configureJsonSerialization(config)
@@ -134,6 +141,7 @@ internal object JavalinConfiguration {
 
             val sslConnector = ServerConnector(server, sslContextFactory)
             sslConnector.port = localConfiguration.sslPort.get()
+            sslConnector.idleTimeout = localConfiguration.idleTimeout.get()
             server.addConnector(sslConnector)
 
             if (!localConfiguration.enforceSsl.get()) {

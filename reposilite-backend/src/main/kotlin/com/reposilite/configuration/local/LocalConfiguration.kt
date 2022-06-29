@@ -121,6 +121,9 @@ class LocalConfiguration : Facade {
     @Description("# Amount of messages stored in cached logger.")
     val cachedLogSize = reference(100)
 
+    @Description("# Default idle timeout used by Jetty")
+    val idleTimeout = reference(30_000L)
+
     @Description("# Set custom base path for Reposilite instance.")
     @Description("# It's not recommended to mount Reposilite under custom base path")
     @Description("# and you should always prioritize subdomain over this option.")
