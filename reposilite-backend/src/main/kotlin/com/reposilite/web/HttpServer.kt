@@ -19,6 +19,7 @@ package com.reposilite.web
 import com.reposilite.Reposilite
 import com.reposilite.configuration.local.LocalConfiguration
 import com.reposilite.web.api.HttpServerInitializationEvent
+import com.reposilite.web.api.HttpServerStarted
 import com.reposilite.web.api.HttpServerStoppedEvent
 import com.reposilite.web.application.JavalinConfiguration
 import io.javalin.Javalin
@@ -46,7 +47,7 @@ class HttpServer {
                 .events { listener ->
                     listener.serverStopping { reposilite.logger.info("Server stopping...") }
                     listener.serverStopped {
-                        extensionsManagement.emitEvent(HttpServerStoppedEvent())
+                        extensionsManagement.emitEvent(HttpServerStoppedEvent)
                         webThreadPool.stop()
                     }
                 }
@@ -56,6 +57,7 @@ class HttpServer {
 
             if (!servlet) {
                 javalin!!.start(reposilite.parameters.hostname, reposilite.parameters.port)
+                extensionsManagement.emitEvent(HttpServerStarted)
             }
         }
     }
