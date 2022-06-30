@@ -107,7 +107,17 @@ class JavadocFacade internal constructor(
 
                 if (elements.size >= 2) {
                     val name = elements[elements.size - 2]
-                    val version = elements[elements.size - 1]
+                    var version = elements[elements.size - 1]
+
+                    if (version.contains("-SNAPSHOT")) {
+                        val metadataResult = mavenFacade.findMetadata(repository, rootGav)
+                        val snapshot = if (metadataResult.isOk) metadataResult.get().versioning?.snapshot else null
+
+                        if (snapshot?.timestamp != null && snapshot.buildNumber != null) {
+                            version = "${version.replace("-SNAPSHOT", "")}-${snapshot.timestamp}-${snapshot.buildNumber}"
+                        }
+                    }
+
                     rootGav.resolve("${name}-${version}-javadoc.jar")
                 }
                 else null
