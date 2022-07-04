@@ -107,7 +107,7 @@ dependencies {
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jackson")
 
-    val httpClient = "1.42.0"
+    val httpClient = "1.42.1"
     implementation("com.google.http-client:google-http-client:$httpClient")
     testImplementation("com.google.http-client:google-http-client-jackson2:$httpClient")
 
