@@ -3,12 +3,12 @@ updates:
   - package-ecosystem: "gradle"
     directory: "/reposilite-backend"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
   - package-ecosystem: "npm"
     directory: "/reposilite-frontend"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
   - package-ecosystem: "npm"
     directory: "/reposilite-site"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
