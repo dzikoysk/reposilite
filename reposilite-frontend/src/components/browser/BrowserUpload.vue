@@ -18,9 +18,10 @@ const uploadFiles = () => {
     client.value.maven.deploy(`${qualifier.path}/${vueFile.name}`, vueFile.file)
       .then(() => createSuccessToast(`File ${vueFile.name} has been uploaded`))
       .then(() => removeFile(vueFile))
+      .then(() => refreshQualifier())
       .catch(error => createErrorToast(`Cannot upload file ${vueFile.name} - ${error.response.status}: ${error.response.data.message}`))
+      .catch(error => createErrorToast(error))
   )
-  refreshQualifier()
 }
 </script>
 

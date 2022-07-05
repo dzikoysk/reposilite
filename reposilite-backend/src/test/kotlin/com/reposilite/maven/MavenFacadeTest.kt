@@ -155,7 +155,7 @@ internal class MavenFacadeTest : MavenSpecification() {
         var authentication = createAccessToken("invalid", "invalid", "invalid", "invalid", WRITE)
 
         // when: the given file is deleted with invalid credentials
-        val errorResponse = mavenFacade.deleteFile(DeleteRequest(authentication, fileSpec.repository, fileSpec.gav()))
+        val errorResponse = mavenFacade.deleteFile(DeleteRequest(authentication, fileSpec.repository, fileSpec.gav(), "test@test"))
 
         // then: response contains error
         assertError(errorResponse)
@@ -164,7 +164,7 @@ internal class MavenFacadeTest : MavenSpecification() {
         authentication = createAccessToken("name", "secret", PUBLIC.name, "gav", WRITE)
 
         // when: the given file is deleted with valid credentials
-        val response = mavenFacade.deleteFile(DeleteRequest(authentication, fileSpec.repository, fileSpec.gav()))
+        val response = mavenFacade.deleteFile(DeleteRequest(authentication, fileSpec.repository, fileSpec.gav(), "test@test"))
 
         // then: file has been deleted
         assertOk(response)
