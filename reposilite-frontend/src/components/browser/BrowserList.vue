@@ -20,8 +20,14 @@ import { createToast } from 'mosha-vue-toastify'
 import { createURL } from '../../helpers/client'
 import { useSession } from '../../store/session'
 import ListEntry from './ListEntry.vue'
+import DeleteEntryModal from './DeleteEntryModal.vue'
+import { ref } from 'vue'
 
-defineProps({
+const props = defineProps({
+  qualifier: {
+    type: Object,
+    required: true
+  },
   files: {
     type: Object,
     required: true
@@ -37,13 +43,31 @@ const downloadHandler = (path, name) => {
       type: 'danger'
     }))
 }
+
+const deleteModalValue = ref()
+const openDeleteModal = (file) => {
+  deleteModalValue.value = {
+    path: props.qualifier.path,
+    file
+  }
+}
+const closeDeleteModal = () => (deleteModalValue.value = undefined)
 </script>
 
 <template>
   <div id="browser-list" class="pt-3">
+    <DeleteEntryModal
+      :qualifier="qualifier"
+      :value="deleteModalValue"
+      :close="closeDeleteModal"
+    />
     <div v-for="file in files.list" v-bind:key="file">
       <router-link v-if="file.type === 'DIRECTORY'" :to="append($route.path, file.name)">
-        <ListEntry :file="file"/>
+        <ListEntry
+          :file="file"
+          :qualifier="qualifier"
+          :openDeleteEntryModal="openDeleteModal"
+        />
       </router-link>
       <a v-else 
         @click.left.prevent="downloadHandler($route.path, file.name)" 
@@ -52,11 +76,13 @@ const downloadHandler = (path, name) => {
       >
         <ListEntry 
           :file="file" 
+          :qualifier="qualifier"
           :url="createURL($route.path + '/' + file.name)"
+          :openDeleteEntryModal="openDeleteModal"
         />
       </a>
     </div>
-    <div v-if="files.isEmpty" class="pl-2">
+    <div v-if="files.isEmpty" class="pl-2 pb-4">
       <p>Directory is empty</p>
     </div>
     <div v-if="files.error" class="pl-2">

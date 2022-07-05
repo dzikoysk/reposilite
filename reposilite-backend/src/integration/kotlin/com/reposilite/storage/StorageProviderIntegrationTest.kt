@@ -26,6 +26,7 @@ import com.reposilite.storage.specification.StorageProviderSpecification
 import io.javalin.http.ContentType.APPLICATION_JAR
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import panda.std.ResultAssertions.assertError
@@ -94,7 +95,7 @@ internal abstract class StorageProviderIntegrationTest : StorageProviderSpecific
             "/b/a.jar" to "a in b content",
             "/b/b.jar" to "b in b content"
         ).forEach { (location, content) ->
-            storageProvider.putFile(location.toLocation(), content.toByteArray().inputStream())
+            storageProvider.putFile(location.toLocation(), content.byteInputStream())
         }
 
         // when: file details are requested
@@ -103,6 +104,38 @@ internal abstract class StorageProviderIntegrationTest : StorageProviderSpecific
         // then: response should contain directory details with list of subnames
         val fileDetails = assertOk(response) as DirectoryInfo
         assertEquals(listOf("c", "a.jar", "b.jar"), fileDetails.files.map { it.name })
+    }
+
+    @Test
+    fun `should delete file`() {
+        // given: a file in storage provider
+        storageProvider.putFile("/test/test1.jar".toLocation(), "content".byteInputStream())
+        storageProvider.putFile("/test/test2.jar".toLocation(), "content".byteInputStream())
+
+        // when: given file is deleted
+        val response = storageProvider.removeFile("/test/test1.jar".toLocation())
+
+        // then: storage provider should not contain deleted file
+        assertOk(response)
+        assertFalse(storageProvider.exists("/test/test1.jar".toLocation()))
+        assertTrue(storageProvider.exists("/test/test2.jar".toLocation()))
+    }
+
+    @Test
+    fun `should delete directory with files`() {
+        // given: a directory with file & subdirectory in storage provider
+        storageProvider.putFile("/directory/sub/sub/test.jar".toLocation(), "content".byteInputStream())
+        storageProvider.putFile("/directory/sub/test.jar".toLocation(), "content".byteInputStream())
+        storageProvider.putFile("/directory/test.jar".toLocation(), "content".byteInputStream())
+
+        // when: root directory is deleted
+        val response = storageProvider.removeFile("/directory/sub".toLocation())
+
+        // then: storage provider should not contain any of deleted files
+        assertOk(response)
+        assertFalse(storageProvider.exists("/directory/sub/sub/test.jar".toLocation()))
+        assertFalse(storageProvider.exists("/directory/sub/test.jar".toLocation()))
+        assertTrue(storageProvider.exists("/directory/test.jar".toLocation()))
     }
 
 }

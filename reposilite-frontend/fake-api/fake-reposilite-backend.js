@@ -48,7 +48,7 @@ application
     next()
   })
   .use(express.text())
-  .use(bodyParser.raw({ limit: '10mb', extended: true }))
+  .use(bodyParser.raw({ limit: '100mb', extended: true }))
   .use(bodyParser.json())
   .get('/api/settings/domains', (req, res) => res.send(['maven']))
   .get('/api/settings/schema/maven', (req, res) => res.send(mavenSettingsSchema))
@@ -205,6 +205,16 @@ application
           content: req.body
         })
         console.log(`File ${req.url} has been uploaded`)
+      },
+      () => invalidCredentials(res)
+    )
+  })
+  .delete("*", (req, res) => {
+    authorized(
+      req,
+      () => {
+        uploadedFiles = uploadedFiles.filter(entry => entry.file == req.url)
+        console.log(`File ${req.url} has been deleted`)
       },
       () => invalidCredentials(res)
     )

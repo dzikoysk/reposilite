@@ -39,6 +39,11 @@ const createClient = (defaultName, defaultSecret) => {
       ...(credentials || defaultAuthorization()),
     })
 
+  const del = (endpoint, credentials) =>
+    axios.delete(createURL(endpoint), {
+      ...(credentials || defaultAuthorization()),
+    })
+  
   const put = (endpoint, content, credentials) =>
     axios.put(createURL(endpoint), content, {
       headers: {
@@ -70,6 +75,9 @@ const createClient = (defaultName, defaultSecret) => {
       deploy(gav, file) {
         return put(`/${gav}`, file)
       },
+      delete(gav) {
+        return del(`/${gav}`)
+      }
     },
     settings: {
       domains() {

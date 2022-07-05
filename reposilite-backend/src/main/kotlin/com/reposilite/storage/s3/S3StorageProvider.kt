@@ -147,12 +147,28 @@ class S3StorageProvider(
         )
 
     override fun removeFile(location: Location): Result<Unit, ErrorResponse> =
-        with(DeleteObjectRequest.builder()) {
-            bucket(bucket)
-            key(location.toString().replace('\\', '/'))
-            s3.deleteObject(build())
-            Unit
-        }.asSuccess()
+        try {
+            val request = ListObjectsV2Request.builder()
+                .bucket(bucket)
+                .prefix(location.toString().replace('\\', '/'))
+                .build()
+
+            s3.listObjectsV2(request)
+                .contents()
+                .asSequence()
+                .map { createDeleteRequest(it.key().toLocation()) }
+                .forEach { s3.deleteObject(it) }
+
+            ok(Unit)
+        } catch (exception: Exception) {
+            errorResponse(INTERNAL_SERVER_ERROR, exception.message ?: exception::class.toString())
+        }
+
+    private fun createDeleteRequest(location: Location): DeleteObjectRequest =
+        DeleteObjectRequest.builder()
+            .bucket(bucket)
+            .key(location.toString().replace('\\', '/'))
+            .build()
 
     override fun getFiles(location: Location): Result<List<Location>, ErrorResponse> =
         try {
