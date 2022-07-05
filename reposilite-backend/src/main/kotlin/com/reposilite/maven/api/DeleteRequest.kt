@@ -22,5 +22,6 @@ import com.reposilite.token.AccessTokenIdentifier
 class DeleteRequest(
     val accessToken: AccessTokenIdentifier,
     val repository: String,
-    val gav: Location
+    val gav: Location,
+    val by: String
 )

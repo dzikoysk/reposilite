@@ -225,7 +225,9 @@ class MavenFacade internal constructor(
             return unauthorizedError("Unauthorized access request")
         }
 
-        return repository.removeFile(path)
+        return repository.removeFile(path).peek {
+            logger.info("DELETE | File $path has been deleted from ${repository.name} by ${deleteRequest.by}")
+        }
     }
 
     fun findRepositories(accessToken: AccessTokenIdentifier?): DirectoryInfo =

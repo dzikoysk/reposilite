@@ -126,8 +126,18 @@ abstract class FileSystemStorageProvider protected constructor(
         }
 
     override fun removeFile(location: Location): Result<Unit, ErrorResponse> =
-        location.resolveWithRootDirectory()
-            .map { Files.delete(it) }
+        location.resolveWithRootDirectory().map { rootPath ->
+            when {
+                Files.isDirectory(rootDirectory) ->
+                    Files.walk(rootPath).use { directoryStream ->
+                        directoryStream
+                            .sorted(Comparator.reverseOrder())
+                            .map(Path::toFile)
+                            .forEach(File::delete)
+                    }
+                else -> Files.delete(rootPath)
+            }
+        }
 
     override fun getFiles(location: Location): Result<List<Location>, ErrorResponse> =
         location.resolveWithRootDirectory()

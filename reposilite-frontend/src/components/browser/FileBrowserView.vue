@@ -99,8 +99,14 @@ watch(
               </template>
             </AdjustmentsModal>
           </div>
-          <BrowserList :files="processedFiles" />
-          <BrowserUpload v-if="isManager"/>
+          <BrowserList 
+            :qualifier="qualifier"
+            :files="processedFiles" 
+          />
+          <BrowserUpload 
+            v-if="isManager && qualifier.path.length > 1"
+            :qualifier="qualifier"
+          />
         </div>
       </div>
     </div>

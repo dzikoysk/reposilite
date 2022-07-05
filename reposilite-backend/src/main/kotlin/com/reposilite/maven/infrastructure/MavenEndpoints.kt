@@ -103,7 +103,14 @@ internal class MavenEndpoints(
     )
     private val deleteFile = ReposiliteRoute<Unit>("/{repository}/<gav>", DELETE) {
         authorized {
-            response = mavenFacade.deleteFile(DeleteRequest(this.identifier, requireParameter("repository"), requireParameter("gav").toLocation()))
+            response = mavenFacade.deleteFile(
+                DeleteRequest(
+                    accessToken = this.identifier,
+                    repository = requireParameter("repository"),
+                    gav = requireParameter("gav").toLocation(),
+                    by = getSessionIdentifier()
+                )
+            )
         }
     }
 
