@@ -5,6 +5,8 @@ description: Host JavaDoc pages automatically using JAR files located in reposit
 official: true
 repository: dzikoysk/reposilite
 authors: [ 'TOTHT0MI', 'dzikoysk' ]
+url: 'maven.reposilite.com'
+gav: 'com.reposilite.plugin.javadoc-plugin'
 ---
 
 Host JavaDoc pages automatically using JAR files (`*-javadoc.jar`) located in repositories.

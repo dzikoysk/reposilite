@@ -24,7 +24,11 @@ export default function Guide({ plugins }) {
   }, [])
 
   useEffect(() => {
-    loadedPlugins.sort((a, b) => a.stars - b.stars)
+    loadedPlugins.sort((a, b) => {
+      let result = a.stars - b.stars
+      if (result == 0) result = (a.id < b.id) ? -1 : 1
+      return result
+    })
   }, [loadedPlugins])
 
   const [cardBg, cardBgCss] = useColorModeValue('plugin-card-bg', chakraColor('gray.50'), chakraColor('gray.900'))

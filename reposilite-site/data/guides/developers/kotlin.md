@@ -141,7 +141,7 @@ The best way to see the difference between those languages is by comparison:
 class User(
   val username: String,
   var balance: Double = 0.00
-) : Serializable {
+) {
 
   override fun toString(): String =
     "$username ($balance USD)"
