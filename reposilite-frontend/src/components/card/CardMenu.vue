@@ -69,7 +69,7 @@ watchEffect(() => localStorage.setItem('dropdown-open', dropdownOpen.value))
         <li
             v-for="configuration in configurations"
             :key="configuration.name"
-            @click="selectTab(configuration); dropdownOpen = !dropdownOpen"
+            @click="selectConfiguration(configuration); dropdownOpen = !dropdownOpen"
             class="dropdown py-1"
             :class="{ 'hidden': configuration.name === selectedTab }">
           {{ configuration.name }}
