@@ -5,7 +5,7 @@
       "visibility": "PUBLIC",
       "redeployment": false,
       "preserveSnapshots": false,
-      "storageProvider": { "type": "fs", "quota": "100%", "mount": "" },
+      "storageProvider": { "type": "s3", "bucketName": "test" },
       "proxied": [
         {
           "reference": "https://jitpack.io",

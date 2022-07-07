@@ -87,7 +87,7 @@ export default {
   props: rendererProps(),
   setup(props) {
     const input = useJsonFormsOneOfControl(props)
-    const selectedIndex = ref(input.control.indexOfFittingSchema || 0)
+    const selectedIndex = ref(input?.control?.value?.data?.type == 's3' ? 1 : (input.control.indexOfFittingSchema || 0)) // well...
     const tabIndex = ref(selectedIndex.value)
     const newSelectedIndex = ref(0)
     const dialog = ref(false)

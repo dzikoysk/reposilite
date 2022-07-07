@@ -48,7 +48,6 @@ internal class SharedConfigurationFacadeTest : SharedConfigurationSpecification(
                   "type" : "string",
                   "title" : "Property",
                   "description" : "Sets property to the given value",
-                  "default" : "value"
                 }
               },
               "title" : "Test",
