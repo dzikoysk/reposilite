@@ -20,10 +20,11 @@
       </button>
       <button
         @click="deleteClicked"
+        class="font-mono text-xl"
         :class="styles.arrayList.itemDelete"
         type="button"
       >
-        🗙
+        x
       </button>
     </div>
     <div :class="contentClasses">

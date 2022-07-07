@@ -23,7 +23,7 @@ import panda.std.reactive.computed
 
 class FrontendFacade internal constructor(
     private val cacheContent: Reference<Boolean>,
-    private val basePath: Reference<String>,
+    basePath: Reference<String>,
     private val frontendSettings: Reference<FrontendSettings>
 ) : Facade {
 
