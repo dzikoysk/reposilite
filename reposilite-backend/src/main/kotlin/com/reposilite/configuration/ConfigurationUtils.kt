@@ -25,7 +25,7 @@ internal fun generateRequestedConfiguration(parameters: ReposiliteParameters) {
             KCdnFactory.createStandard().render(LocalConfiguration(), Source.of(localConfigurationFile))
             println("Local configuration has been generated to the $localConfigurationFile file")
         }
-        "shared", "shared.configuration.json" -> {
+        "shared", "configuration.shared.json" -> {
             val sharedConfigurationFile = parameters.workingDirectory.resolve(SHARED_CONFIGURATION_FILE)
             ServiceLoader.load(ReposilitePlugin::class.java).asSequence()
                 .mapNotNull { it::class.findAnnotation<Plugin>() }
