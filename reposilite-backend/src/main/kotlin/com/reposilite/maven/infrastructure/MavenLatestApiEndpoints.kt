@@ -159,9 +159,6 @@ internal class MavenLatestApiEndpoints(
         )
             .peek { ctx.run {
                 contentType("image/svg+xml")
-                header("pragma", "no-cache")
-                header("expires", "0")
-                header("cache-control", "no-cache, no-store, must-revalidate, max-age=0")
                 contentDisposition("inline; filename=\"latest-badge.svg\"")
             } }
     }

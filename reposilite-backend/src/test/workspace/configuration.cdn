@@ -50,6 +50,9 @@ compressionStrategy: none
 
 # Keep processed frontend files in memory to improve response time
 cacheContent: true
+# Adds cache bypass headers to each request served by this instance.
+# Helps to avoid various random issues caused by proxy provides (e.g. Cloudflare) and browsers.
+bypassExternalCache: true
 # Amount of messages stored in cached logger.
 cachedLogSize: 100
 # Default idle timeout used by Jetty

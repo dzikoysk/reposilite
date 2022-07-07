@@ -34,6 +34,7 @@ import com.reposilite.web.api.RoutingSetupEvent
 import com.reposilite.web.http.extractFromHeaders
 import com.reposilite.web.http.response
 import com.reposilite.web.http.uri
+import com.reposilite.web.infrastructure.CacheBypassHandler
 import com.reposilite.web.routing.RoutingPlugin
 import io.javalin.core.JavalinConfig
 import io.javalin.core.compression.CompressionStrategy
@@ -62,6 +63,13 @@ internal object JavalinConfiguration {
             server.connectors
                 .filterIsInstance<ServerConnector>()
                 .forEach { it.idleTimeout = localConfiguration.idleTimeout.get() }
+        }
+
+        if (localConfiguration.bypassExternalCache.get()) {
+            reposilite.extensions.registerEvent { event: RoutingSetupEvent ->
+                event.registerRoutes(CacheBypassHandler())
+                reposilite.logger.debug("CacheBypassHandler has been registered")
+            }
         }
 
         configureJavalin(config, localConfiguration, webSettings)
