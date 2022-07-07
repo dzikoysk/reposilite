@@ -18,7 +18,7 @@
           v-for="(element, index) in control.data"
           :key="`${control.path}-${index}-tab`"
           :val="index"
-          :label="element.id || '<new>'"
+          :label="element.id || element?.reference?.replace('https://', 'http://')?.replace('http://', '') || '<new>'"
           :indicator="true"
         />
       </Tabs>
@@ -107,7 +107,7 @@ export default {
   watch: {
     'control.data'(newValue, oldValue) {
       newValue = newValue || []
-      if (newValue.length != oldValue.length) {
+      if (newValue.length != oldValue?.length) {
         this.selectedIndex = newValue.length - 1
       }
     }

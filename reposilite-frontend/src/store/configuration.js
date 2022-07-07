@@ -61,6 +61,7 @@ const renderers = markRaw([
 
 const configurationValidator = computed(() => createAjv({
   useDefaults: true,
+  removeAdditional: false,
   formats: {
     'repositories.storageProvider.quota': /^([1-9]\d*)([KkMmGg][Bb]|%)$/,
     'repositories.id': {

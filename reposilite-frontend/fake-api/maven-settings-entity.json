@@ -1,36 +1,19 @@
 {
-  "test": "default",
   "repositories": [
     {
       "id": "releases",
       "visibility": "PUBLIC",
-      "redeployment": true,
+      "redeployment": false,
       "preserveSnapshots": false,
-      "storageProvider": {
-        "type": "fs",
-        "quota": "100%",
-        "mount": ""
-      },
-      "proxied": []
-    },
-    {
-      "id": "proxied",
-      "visibility": "PUBLIC",
-      "redeployment": true,
-      "preserveSnapshots": false,
-      "storageProvider": {
-        "type": "fs",
-        "quota": "100%",
-        "mount": ""
-      },
+      "storageProvider": { "type": "fs", "quota": "100%", "mount": "" },
       "proxied": [
         {
-          "reference": "http://localhost:18937/releases",
-          "store": false,
+          "reference": "https://jitpack.io",
+          "store": true,
+          "allowedGroups": [],
           "connectTimeout": 3,
           "readTimeout": 15,
-          "allowedGroups": [],
-          "proxy": ""
+          "httpProxy": ""
         }
       ]
     }

@@ -18,7 +18,6 @@
 import { VueFinalModal } from 'vue-final-modal'
 import '@vueform/toggle/themes/default.css'
 import CloseIcon from '../icons/CloseIcon.vue'
-import { useRoute } from 'vue-router'
 import { useSession } from '../../store/session'
 import { createToast } from 'mosha-vue-toastify'
 import { computed } from 'vue'
@@ -34,9 +33,6 @@ const props = defineProps({
     required: true
   }
 })
-
-const route = useRoute()
-const qualifier = route.params.qualifier
 
 const { client } = useSession()
 const { refreshQualifier } = useQualifier()
@@ -55,7 +51,6 @@ const deleteAndClose = () => {
 }
 
 const isOpen = computed(() => props.value != undefined)
-console.log(qualifier)
 </script>
 
 <script>

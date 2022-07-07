@@ -49,6 +49,9 @@ const executeIfValid = (callback) => {
 const updateFormsConfiguration = (domain, event) => {
   configurations.value[domain] = event.data
   isValid.value = event.errors.length == 0
+  event.errors.forEach(error => {
+    console.log(error)
+  })
 }
 
 watch(

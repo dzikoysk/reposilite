@@ -102,7 +102,8 @@ class SettingsModule(
 
         builder.forFields().withNullableCheck { it.kProperty?.returnType?.isMarkedNullable }
 
-        builder.forFields().withDefaultResolver(defaultValueResolve())
+        // Obviously, jsonforms is going crazy with default values and is not able to match proper scheme in 'oneOf' directive
+        // builder.forFields().withDefaultResolver(defaultValueResolve())
 
         builder.forTypesInGeneral().withPropertySorter { _, _ -> 0 }
     }

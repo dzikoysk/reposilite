@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.deser.DeserializationProblemHandler
 import com.fasterxml.jackson.databind.deser.ValueInstantiator
+import com.fasterxml.jackson.module.kotlin.contains
 import com.github.victools.jsonschema.generator.FieldScope
 import com.github.victools.jsonschema.generator.SchemaGenerationContext
 import com.reposilite.configuration.shared.EnumResolver
@@ -32,7 +33,11 @@ class StorageProviderSerdes {
         private fun JsonParser.parseStorageProvider(): Any? =
             codec?.let {
                 val json = it.readTree<JsonNode>(this)
-                val type = json?.get("type")?.asText() ?: "fs"
+
+                val type = json?.get("type")
+                    ?.asText()
+                    ?: if (json?.contains("bucketName") == true) "s3" else "fs" // currently jsonforms doesn't send 'type' when oneOf is changed in UI, so we have to guess
+
                 return it.treeToValue(json, STORAGE_PROVIDERS[type])
             }
 
