@@ -52,6 +52,7 @@ object ReposiliteFactory {
         journalist.logger.info("Platform: ${System.getProperty("java.version")} (${System.getProperty("os.name")} :: ${System.getProperty("os.arch")})")
         journalist.logger.info("Running as: ${System.getProperty("user.name")}")
         journalist.logger.info("Working directory: ${parameters.workingDirectory.toAbsolutePath()}")
+        journalist.logger.info("Plugin directory: ${parameters.pluginDirectory.toAbsolutePath()}")
         journalist.logger.info("Configuration: ${parameters.localConfigurationPath.absolutePathString()}")
         journalist.logger.info("Threads: ${localConfiguration.webThreadPool.get()} WEB / ${localConfiguration.ioThreadPool.get()} IO / ${localConfiguration.databaseThreadPool.get()} DB")
         if (parameters.testEnv) journalist.logger.info("Test environment enabled")
@@ -70,7 +71,7 @@ object ReposiliteFactory {
         journalist.logger.info("")
         journalist.logger.info("--- Loading plugins:")
 
-        val pluginLoader = PluginLoader(parameters.workingDirectory.resolve("plugins"), reposilite.extensions)
+        val pluginLoader = PluginLoader(parameters.pluginDirectory, reposilite.extensions)
         pluginLoader.extensions.registerFacade(reposilite)
         pluginLoader.loadPluginsByServiceFiles()
         pluginLoader.initialize()
