@@ -41,6 +41,10 @@ class ReposiliteParameters : Runnable {
     var workingDirectoryName = ""
     lateinit var workingDirectory: Path
 
+    @Option(names = ["--plugin-directory", "-pd"], description = ["Set custom plugin directory"])
+    var pluginDirectoryName: String? = null
+    lateinit var pluginDirectory: Path
+
     @Option(names = ["--generate-configuration", "-gc"], description = ["" +
         "Generate default template of the configuration file. Supported templates:",
         "configuration.cdn - Local configuration file",
@@ -81,6 +85,7 @@ class ReposiliteParameters : Runnable {
 
     override fun run() {
         this.workingDirectory = Paths.get(workingDirectoryName)
+        this.pluginDirectory = pluginDirectoryName?.let { Paths.get(it) } ?: workingDirectory.resolve("plugins")
 
         this.localConfigurationPath = localConfigurationFile.let { workingDirectory.resolve(it.ifEmpty { LOCAL_CONFIGURATION_FILE }) }
         this.sharedConfigurationPath = sharedConfigurationFile?.let { workingDirectory.resolve(it.ifEmpty { SHARED_CONFIGURATION_FILE }) }
