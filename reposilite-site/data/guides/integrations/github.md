@@ -39,10 +39,28 @@ jobs:
       - name: Publish with Gradle
         run: ./gradlew build publish
         env:
-          MAVEN_NAME: ${{ secrets.MAVEN_NAME }}
-          MAVEN_TOKEN: ${{ secrets.MAVEN_TOKEN }}
+          MAVEN_NAME: ${{ secrets.MAVEN_NAME }} # token
+          MAVEN_TOKEN: ${{ secrets.MAVEN_TOKEN }} # password
 ```
 
-You can find full list of available events in GitHub docs:
+You can find full list of available events in GitHub Actions documentation:
 
 * [GitHub Docs - Events that trigger workflows](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#available-events)
+
+#### Maven
+
+Because Maven does not support environment variables, you have to somehow provide `~/.m2/settings.xml` to your CI process.
+I can recommend [s4u/maven-settings-action](https://github.com/s4u/maven-settings-action) plugin to generate such file during execution, without a need to write a custom script.
+
+```yaml
+- uses: s4u/maven-settings-action@v2.6.0
+  with:
+    servers: |
+      [{
+        "id": "reposilite-repository",
+        "username": "${{ secrets.MAVEN_NAME }}",
+        "password": "${{ secrets.MAVEN_SECRET }}"
+      }]
+```
+
+If you don't want to use such plugin, or you can't, just link/generate the settings file using any other tool you want.
