@@ -16,7 +16,7 @@ Raw JSON scheme:
   "info": {
     "title": "Reposilite Repository",
     "description": "Public Maven repository hosted through the Reposilite",
-    "version": "3.0.0-rc.3"
+    "version": "3.0.0-rc.4"
   },
   "paths": {
     "/api/console/sock": {
