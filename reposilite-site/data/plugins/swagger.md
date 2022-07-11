@@ -5,8 +5,9 @@ description: Mount Swagger UI for your Reposilite instance
 official: true
 repository: dzikoysk/reposilite
 authors: [ 'dzikoysk' ]
-url: 'maven.reposilite.com'
-gav: 'com.reposilite.plugin.swagger-plugin'
+maven: 'maven.reposilite.com'
+groupId: 'com.reposilite.plugin'
+artifactId: 'swagger-plugin'
 ---
 
 This plugin mounts 

@@ -20,32 +20,27 @@ const GitHubLink = ({ url, children }) => {
 }
 export default function Plugin({ plugin }) {
   const title = `${plugin.title} plugin · Plugins · Reposilite`
-  const gavPath = plugin.gav.replace(/\./g, '/')
-  const groupUrl = `https://${plugin.url}/releases/${gavPath}/`
+
+  const {
+    maven,
+    groupId,
+    artifactId
+  } = plugin
+
+  const gavPath = groupId.replace(/\./g, '/')
+  const groupUrl = `https://${maven}/releases/${gavPath}/${artifactId}`
   
-  const [version, setVersion] = useState('')
-  const [metadata, setMetadata] = useState({
-    metadata: {
-      artifactId: [
-        ''
-      ],
-      versioning: [
-        {
-          versions: []
-        }
-      ]
-    }
-  })
+  const [versions, setVersions] = useState([])
+  const [version, setVersion] = useState('unknown')
 
   useEffect(() => {
-    fetch(`${groupUrl}/maven-metadata.xml`)
-      .then(response => response.text())
-      .then(data => xml2js.parseString(data, (err, result) => {
-        if (err) console.log(err)
-        else console.log(result)
-        setMetadata(result)
-        setVersion(result?.metadata?.versioning[0]?.versions?.reverse()[0]?.version || '')
-      }))
+    setVersion(versions[0] || 'unknown')
+  }, [versions])
+
+  useEffect(() => {
+    fetch(`https://${maven}/api/maven/versions/releases/${gavPath}/${artifactId}`)
+      .then(response => response.json())
+      .then(response => setVersions(response.versions.reverse()))
       .catch(err => console.log(err))
   }, [])
 
@@ -94,21 +89,22 @@ export default function Plugin({ plugin }) {
             >
               <Select
                 value={version}
-                onChange={(version) => { console.log(version); setVersion(version); }}
+                onChange={event => setVersion(event.target.value)}
                 height={'8'}
                 width={'full'}
               >
-                {metadata.metadata.versioning[0].versions.reverse().map(versionEntry => (
+                {versions.map(version => (
                   <option
-                    key={versionEntry.version}
-                    value={versionEntry.version}
+                    key={version}
+                    value={version}
                     width={'full'}
+                    sx={{ backgroundColor: '#000 !important' }}
                   >
-                    {versionEntry.version}
+                    {version}
                   </option>
                 ))}
               </Select>
-              <Link href={`${groupUrl}/${version}/${metadata.metadata.artifactId[0]}-${version}-all.jar`}>
+              <Link href={`${groupUrl}/${version}/${artifactId}-${version}-all.jar`}>
                 <Button
                   width={'full'}
                   marginTop={'2'}

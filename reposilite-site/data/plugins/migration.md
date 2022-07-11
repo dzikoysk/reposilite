@@ -5,8 +5,9 @@ description: Migrate your tokens from 2.x to 3.x
 official: true
 repository: dzikoysk/reposilite
 authors: [ 'dzikoysk' ]
-url: 'maven.reposilite.com'
-gav: 'com.reposilite.plugin.migration-plugin'
+maven: 'maven.reposilite.com'
+groupId: 'com.reposilite.plugin'
+artifactId: 'migration-plugin'
 ---
 
 The migration plugin is dedicated for Reposilite 2.x users that want to migrate their tokens to Reposilite 3.x.
