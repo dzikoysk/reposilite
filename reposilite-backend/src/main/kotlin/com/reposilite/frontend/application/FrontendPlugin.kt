@@ -42,6 +42,8 @@ internal class FrontendPlugin : ReposilitePlugin() {
     internal companion object {
         private const val STATIC_DIRECTORY = "static"
         private const val FRONTEND_DIRECTORY = "reposilite-frontend"
+        private const val INDEX = "index.html"
+        private const val FAVICON = "favicon.png"
     }
 
     override fun initialize(): FrontendFacade {
@@ -55,12 +57,25 @@ internal class FrontendPlugin : ReposilitePlugin() {
             frontendSettings = frontendSettings
         )
 
-        event { event: ReposiliteInitializeEvent -> staticDirectory(event.reposilite)
-            .takeIf { it.exists().not() }
-            ?.run {
-                Files.createDirectory(this)
-                Files.copy(Reposilite::class.java.getResourceAsStream("/$STATIC_DIRECTORY/index.html")!!, resolve("index.html"))
-            }
+        event { event: ReposiliteInitializeEvent ->
+            val staticDirectory = staticDirectory(event.reposilite)
+
+            staticDirectory
+                .takeUnless { it.exists() }
+                ?.also { Files.createDirectory(it) }
+                ?.also { directory ->
+                    Reposilite::class.java.getResourceAsStream("/$STATIC_DIRECTORY/$INDEX")?.use {
+                        Files.copy(it, directory.resolve(INDEX))
+                    }
+                }
+
+            staticDirectory.resolve(FAVICON)
+                .takeUnless { it.exists() }
+                ?.also { file ->
+                    Reposilite::class.java.getResourceAsStream("/$STATIC_DIRECTORY/$FAVICON")?.use { content ->
+                        Files.copy(content, file)
+                    }
+                }
         }
 
         event { event: RoutingSetupEvent -> event.registerRoutes(
