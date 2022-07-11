@@ -18,10 +18,10 @@
 
 package com.reposilite.statistics
 
-import com.reposilite.ExperimentalLocalSpecificationJunitExtension
-import com.reposilite.ExperimentalRemoteSpecficiationJunitExtension
-import com.reposilite.LocalSpecificationJunitExtension
-import com.reposilite.RemoteSpecificationJunitExtension
+import com.reposilite.specification.ExperimentalLocalSpecificationJunitExtension
+import com.reposilite.specification.ExperimentalRemoteSpecficiationJunitExtension
+import com.reposilite.specification.LocalSpecificationJunitExtension
+import com.reposilite.specification.RemoteSpecificationJunitExtension
 import com.reposilite.statistics.api.ResolvedCountResponse
 import com.reposilite.statistics.specification.StatisticsIntegrationSpecification
 import com.reposilite.token.AccessTokenPermission.MANAGER

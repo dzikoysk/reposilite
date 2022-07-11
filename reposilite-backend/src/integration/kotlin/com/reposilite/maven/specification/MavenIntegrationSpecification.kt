@@ -16,7 +16,7 @@
 
 package com.reposilite.maven.specification
 
-import com.reposilite.ReposiliteSpecification
+import com.reposilite.specification.ReposiliteSpecification
 import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.Metadata

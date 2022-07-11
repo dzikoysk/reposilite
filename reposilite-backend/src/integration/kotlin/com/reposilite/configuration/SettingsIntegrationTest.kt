@@ -1,7 +1,7 @@
 package com.reposilite.configuration
 
-import com.reposilite.LocalSpecificationJunitExtension
-import com.reposilite.RemoteSpecificationJunitExtension
+import com.reposilite.specification.LocalSpecificationJunitExtension
+import com.reposilite.specification.RemoteSpecificationJunitExtension
 import com.reposilite.ReposiliteObjectMapper
 import com.reposilite.auth.application.AuthenticationSettings
 import com.reposilite.auth.application.LdapSettings

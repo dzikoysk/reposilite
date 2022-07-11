@@ -16,7 +16,7 @@
 
 package com.reposilite.token.specification
 
-import com.reposilite.ReposiliteSpecification
+import com.reposilite.specification.ReposiliteSpecification
 import com.reposilite.auth.AuthenticationFacade
 import com.reposilite.auth.api.SessionDetails
 import com.reposilite.token.AccessTokenFacade

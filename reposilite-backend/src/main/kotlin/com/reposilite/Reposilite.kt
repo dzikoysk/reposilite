@@ -47,7 +47,7 @@ class Reposilite(
 
     val database = databaseConnection.database
 
-    private val alive = AtomicBoolean(false)
+    private val alive = AtomicBoolean(true)
 
     private val shutdownHook = Thread {
         alive.peek { shutdown() }

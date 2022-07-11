@@ -18,8 +18,8 @@
 
 package com.reposilite.maven
 
-import com.reposilite.LocalSpecificationJunitExtension
-import com.reposilite.RemoteSpecificationJunitExtension
+import com.reposilite.specification.LocalSpecificationJunitExtension
+import com.reposilite.specification.RemoteSpecificationJunitExtension
 import com.reposilite.maven.specification.MavenIntegrationSpecification
 import com.reposilite.token.RoutePermission.READ
 import io.javalin.http.HttpCode.UNAUTHORIZED

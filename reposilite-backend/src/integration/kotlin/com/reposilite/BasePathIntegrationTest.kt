@@ -17,6 +17,8 @@
 package com.reposilite
 
 import com.reposilite.configuration.local.LocalConfiguration
+import com.reposilite.specification.LocalSpecificationJunitExtension
+import com.reposilite.specification.ReposiliteSpecification
 import io.javalin.Javalin
 import io.javalin.http.Context
 import kong.unirest.HttpRequest

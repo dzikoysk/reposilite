@@ -1,6 +1,6 @@
 package com.reposilite.token
 
-import com.reposilite.LocalSpecificationJunitExtension
+import com.reposilite.specification.LocalSpecificationJunitExtension
 import com.reposilite.console.CommandStatus.SUCCEEDED
 import com.reposilite.console.ConsoleFacade
 import com.reposilite.token.AccessTokenPermission.MANAGER

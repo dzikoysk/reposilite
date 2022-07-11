@@ -18,8 +18,8 @@
 
 package com.reposilite.maven
 
-import com.reposilite.LocalSpecificationJunitExtension
-import com.reposilite.RemoteSpecificationJunitExtension
+import com.reposilite.specification.LocalSpecificationJunitExtension
+import com.reposilite.specification.RemoteSpecificationJunitExtension
 import com.reposilite.maven.specification.MavenIntegrationSpecification
 import com.reposilite.configuration.local.LocalConfiguration
 import com.reposilite.storage.api.DocumentInfo

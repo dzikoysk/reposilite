@@ -18,8 +18,8 @@
 
 package com.reposilite.token
 
-import com.reposilite.LocalSpecificationJunitExtension
-import com.reposilite.RemoteSpecificationJunitExtension
+import com.reposilite.specification.LocalSpecificationJunitExtension
+import com.reposilite.specification.RemoteSpecificationJunitExtension
 import com.reposilite.token.AccessTokenPermission.MANAGER
 import com.reposilite.token.AccessTokenType.PERSISTENT
 import com.reposilite.token.api.AccessTokenDto
