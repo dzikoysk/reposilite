@@ -45,7 +45,7 @@ internal sealed class FrontendHandler(private val frontendFacade: FrontendFacade
         val contentType = ContentType.getContentTypeByExtension(uri.getExtension())
         ctx.contentType(contentType?.mimeType ?: ContentType.OCTET_STREAM)
 
-        return when (contentType?.mimeType?.startsWith("text")) {
+        return when (contentType?.mimeType?.let { it.startsWith("text") || it.startsWith("application") }) {
             true -> respondWithProcessedFile(ctx, uri, source)
             else -> respondWithRawFile(source)
         }
