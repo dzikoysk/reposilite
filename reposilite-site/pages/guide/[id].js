@@ -125,10 +125,12 @@ const GuideView = ({ category, selected }) => {
 }
 
 export default function Guide({ categories, category, selected }) {
+  const title = `${selected.title} · Guide · Reposilite`
+
   return (
     <Layout>
       <Head>
-        <title>{selected.title} · Guide · Reposilite</title>
+        <title>{title}</title>
       </Head>
       <Box
         maxW={{ base: '100%', lg: "container.lg", xl: "container.xl" }}

@@ -3,10 +3,12 @@ import Landing from "../components/landing/Landing"
 import Layout from "../components/layout/Layout"
 
 export default function Home() {
+  const defaultTitle = 'Reposilite · Lightweight repository manager for Maven artifacts'
+
   return (
     <Layout>
       <Head>
-        <title>Reposilite · Lightweight repository manager for Maven artifacts</title>  
+        <title>{defaultTitle}</title>  
       </Head>
       <Landing />
     </Layout>

@@ -31,9 +31,9 @@ const categories = [
     name: 'Features',
     directory: 'features',
     content: [
+      'deployment',
       'dashboard',
       'repositories',
-      'deployment',
       'proxy',
       'static-files',
       'badges',

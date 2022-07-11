@@ -19,6 +19,11 @@ const GitHubLink = ({ url, children }) => {
   )
 }
 export default function Plugin({ plugin }) {
+  const title = `${plugin.title} plugin · Plugins · Reposilite`
+  const gavPath = plugin.gav.replace(/\./g, '/')
+  const groupUrl = `https://${plugin.url}/releases/${gavPath}/`
+  
+  const [version, setVersion] = useState('')
   const [metadata, setMetadata] = useState({
     metadata: {
       artifactId: [
@@ -31,9 +36,6 @@ export default function Plugin({ plugin }) {
       ]
     }
   })
-  const [version, setVersion] = useState('')
-  const gavPath = plugin.gav.replace(/\./g, '/')
-  const groupUrl = `https://${plugin.url}/releases/${gavPath}/`
 
   useEffect(() => {
     fetch(`${groupUrl}/maven-metadata.xml`)
@@ -53,7 +55,7 @@ export default function Plugin({ plugin }) {
   return (
     <Layout>
       <Head>
-        <title>{plugin.title} plugin · Plugins · Reposilite</title>  
+        <title>{title}</title>  
       </Head>
       <ColorModeStyles styles={[bgCss, buttonBgCss]} />
       <Container maxW={'container.md'} marginTop={8}>
