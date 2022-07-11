@@ -15,4 +15,4 @@ Javadoc file is extracted during the first request to `$working-directory/javado
 To access javadocs, you have to visit `repo.domain.com/javadoc/<gav>`. 
 For instance, using Reposilite Javadocs:
 
-* [panda-lang repository / reposilite-3.0.0-rc.2 javadocs](https://maven.reposilite.com/javadoc/releases/com/reposilite/reposilite/3.0.0-rc.2/)
+* [panda-lang repository / reposilite-3.0.0-rc.3 javadocs](https://maven.reposilite.com/javadoc/releases/com/reposilite/reposilite/3.0.0-rc.3/)
