@@ -115,6 +115,11 @@ class LocalConfiguration : Facade {
     @Description("# Available strategies: none, gzip")
     val compressionStrategy = reference("none")
 
+    @Description("# Default idle timeout used by Jetty")
+    val idleTimeout = reference(30_000L)
+
+    /* Cache */
+
     @Description("", "# Keep processed frontend files in memory to improve response time")
     val cacheContent = reference(true)
 
@@ -125,13 +130,17 @@ class LocalConfiguration : Facade {
     @Description("# Amount of messages stored in cached logger.")
     val cachedLogSize = reference(100)
 
-    @Description("# Default idle timeout used by Jetty")
-    val idleTimeout = reference(30_000L)
+    /* Frontend */
+
+    @Description("# Enable default frontend with dashboard")
+    val defaultFrontend = mutableReference(true)
 
     @Description("# Set custom base path for Reposilite instance.")
     @Description("# It's not recommended to mount Reposilite under custom base path")
     @Description("# and you should always prioritize subdomain over this option.")
     val basePath = mutableReference("/")
+
+    /* Others */
 
     @Description("# Debug mode")
     val debugEnabled = reference(false)

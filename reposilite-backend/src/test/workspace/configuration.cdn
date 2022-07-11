@@ -47,6 +47,8 @@ databaseThreadPool: 2
 # GZIP is better option if you're not limiting resources that much to increase overall request times.
 # Available strategies: none, gzip
 compressionStrategy: none
+# Default idle timeout used by Jetty
+idleTimeout: 30000
 
 # Keep processed frontend files in memory to improve response time
 cacheContent: true
@@ -55,8 +57,8 @@ cacheContent: true
 bypassExternalCache: true
 # Amount of messages stored in cached logger.
 cachedLogSize: 100
-# Default idle timeout used by Jetty
-idleTimeout: 30000
+# Enable default frontend with dashboard
+frontend: true
 # Set custom base path for Reposilite instance.
 # It's not recommended to mount Reposilite under custom base path
 # and you should always prioritize subdomain over this option.

@@ -80,7 +80,7 @@ internal class FrontendPlugin : ReposilitePlugin() {
 
         event { event: RoutingSetupEvent -> event.registerRoutes(
             mutableSetOf<ReposiliteRoutes>().also { routes ->
-                if (frontendSettings.map { it.frontend }) {
+                if (localConfiguration.defaultFrontend.get()) {
                     routes.add(ResourcesFrontendHandler(frontendFacade, FRONTEND_DIRECTORY))
                 }
                 routes.add(CustomFrontendHandler(frontendFacade, staticDirectory(event.reposilite)))
