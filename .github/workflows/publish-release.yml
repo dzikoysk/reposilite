@@ -73,5 +73,5 @@ jobs:
         with:
           context: .
           push: true
-          tags: dzikoysk/reposilite:${{ needs.release.outputs.version }}
+          tags: dzikoysk/reposilite:${{ needs.release.outputs.version }},dzikoysk/reposilite:latest
           platforms: linux/amd64,linux/arm64
