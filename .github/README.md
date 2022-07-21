@@ -47,12 +47,6 @@ This is simple, extensible and scalable self-hosted solution to replace managers
  <br>
  <img alt="Preview" src="https://user-images.githubusercontent.com/4235722/133891983-966e5c6d-97b1-48cc-b754-6e88117ee4f7.png" />
  <br>
- <br>
- <strong>
-   ⛔ Main sources refers to the alpha version of Reposilite 3.x that is under heavy development.
-  <br>
-  If you're looking for docs and sources of Reposilite 2.x, visit 2.x branch: <a href="https://github.com/dzikoysk/reposilite/tree/2.x">Reposilite 2.x</a>
- </strong>
 </div>
 
 ### Installation
