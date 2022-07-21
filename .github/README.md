@@ -139,15 +139,15 @@ $ cd reposilite-site/website && npm i && npm run start
 
 #### Stack
 
-Reposilite 3.x
-* Reposilite Backend: Kotlin with Coroutines + Javalin + Exposed + JUnit + _(DDD + Hexagonal Architecture)_
-* Reposilite Frontend: Vue3 + Vite + Windicss
-* Reposilite Site: React.js + Docusaurus
+[Reposilite 3.x](https://reposilite.com/)
+* Reposilite Backend: [Kotlin](https://kotlinlang.org/) + [Javalin](https://javalin.io) + [Exposed (SQL)](https://github.com/JetBrains/Exposed) + [AWS SDK](https://github.com/aws/aws-sdk-java) + [JUnit](https://junit.org/junit5/) + [Testcontainers](https://www.testcontainers.org/) + _(DDD & Hexagonal Architecture)_
+* Reposilite Frontend: [Vue3](https://vuejs.org/) + [Vite](https://vitejs.dev/) + [WindiCSS](https://windicss.org/) + [JsonForms](https://jsonforms.io/)
+* Reposilite Site: [Next.js](https://nextjs.org/) + [Vercel](https://vercel.com/)
 
-Reposilite 2.x
-* Reposilite Backend: Java + Javalin (Jetty) + Groovy (JUnit) + _(DDD)_
-* Reposilite Frontend: Vue2 + Pug + Stylus + Tailwindcss
-* Reposilite Site: React.js + Docusaurus
+[Reposilite 2.x](https://v2.reposilite.com/)
+* Reposilite Backend: Java + [Javalin](https://javalin.io/) + [Groovy](https://groovy-lang.org/) ([JUnit](https://junit.org/junit5/)) + _(DDD)_
+* Reposilite Frontend: [Vue2](https://v2.vuejs.org/) + [Pug](https://pugjs.org/api/getting-started.html) + [Stylus](https://stylus-lang.com/) + [TailwindCSS](https://tailwindcss.com/)
+* Reposilite Site: [React.js](https://reactjs.org/) + [Docusaurus v1](https://docusaurus.io/)
 
 Reposilite 1.x
-* Reposilite: Java + NanoHTTPD
+* Reposilite: Java + [NanoHTTPD](https://github.com/NanoHttpd/nanohttpd)
