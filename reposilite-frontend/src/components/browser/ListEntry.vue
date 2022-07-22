@@ -16,6 +16,7 @@
 
 <script setup>
 import prettyBytes from 'pretty-bytes'
+import { useSession } from '../../store/session'
 import EyeIcon from '../icons/EyeIcon.vue'
 import TrashIcon from '../icons/TrashIcon.vue'
 
@@ -38,8 +39,11 @@ const props = defineProps({
   }
 })
 
+const { hasPermissionTo } = useSession()
+
 const isHumanReadable =
-  ['application/xml', 'text/plain', 'text/xml', 'text/markdown', 'application/json'].some(type => props.file?.contentType == type)
+  ['application/xml', 'text/plain', 'text/xml', 'text/markdown', 'application/json']
+    .some(type => props.file?.contentType == type)
 
 const openUrl = (url) =>
   window.open(url)
@@ -63,7 +67,7 @@ const openUrl = (url) =>
           v-on:click.stop
         />
         <TrashIcon
-          v-if="qualifier.path.length > 1"
+          v-if="qualifier.path.length > 1 && hasPermissionTo(`/${qualifier.path}`, 'route:write')"
           id="delete-button"
           class="px-1 mr-6 pt-0.4 rounded-full text-purple-300 hover:(transition-colors duration-200 bg-gray-100 dark:bg-gray-900)"
           @click.left.prevent="openDeleteEntryModal(file.name)"

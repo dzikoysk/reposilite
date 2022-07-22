@@ -22,6 +22,8 @@ const token = ref({
   secret: localStorage.getItem('token-secret') || '',
 })
 
+const details = ref()
+
 watchEffect(() => {
   localStorage.setItem('token-name', token.value.name)
   localStorage.setItem('token-secret', token.value.secret)
@@ -29,8 +31,6 @@ watchEffect(() => {
 
 const setToken = (name, secret) =>
   token.value = { name, secret }
-
-const details = ref()
 
 const logout = () => {
   details.value = undefined
@@ -52,6 +52,18 @@ const client = computed(() => createClient(token.value.name, token.value.secret)
 const isLogged = computed(() => details.value !== undefined)
 const isManager = computed(() => details.value?.permissions?.find(entry => entry.identifier === 'access-token:manager'))
 
+const hasPermissionTo = (path, permission) => {
+  if (isManager.value) {
+    return true
+  }
+
+  if (details.value == null) {
+    return
+  }
+
+  return details.value.routes.find(route => path.startsWith(route.path) && route.permission.identifier == permission)
+}
+
 export function useSession() {
   return {
     token,
@@ -61,6 +73,7 @@ export function useSession() {
     isLogged,
     client,
     isManager,
+    hasPermissionTo,
     initializeSession
   }
 }

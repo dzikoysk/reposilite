@@ -35,7 +35,7 @@ const props = defineProps({
 
 const parentPath = ref('')
 const files = ref({})
-const { client, isManager } = useSession()
+const { client, hasPermissionTo } = useSession()
 const { applyAdjustments } = useAdjustments()
 
 const processedFiles = computed(() => ({
@@ -104,7 +104,7 @@ watch(
             :files="processedFiles" 
           />
           <BrowserUpload 
-            v-if="isManager && qualifier.path.length > 1"
+            v-if="qualifier.path.length > 1 && hasPermissionTo(`/${qualifier.path}`, 'route:write')"
             :qualifier="qualifier"
           />
         </div>
