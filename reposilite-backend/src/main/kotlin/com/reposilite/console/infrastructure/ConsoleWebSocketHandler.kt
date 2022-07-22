@@ -32,10 +32,15 @@ import io.javalin.websocket.WsContext
 import io.javalin.websocket.WsMessageContext
 import panda.std.Result
 import panda.std.reactive.Reference
-import panda.utilities.StringUtils
+import java.util.WeakHashMap
 import java.util.function.Consumer
 
 private const val AUTHORIZATION_PREFIX = "Authorization:"
+
+private data class WsSession(
+    val identifier: String,
+    val subscriberId: Int,
+)
 
 internal class CliEndpoint(
     private val journalist: ReposiliteJournalist,
@@ -45,24 +50,50 @@ internal class CliEndpoint(
     private val forwardedIp: Reference<String>
 ) : Consumer<WsConfig> {
 
+    private val users: WeakHashMap<WsContext, WsSession> = WeakHashMap()
+
     @OpenApi(
         path = "/api/console/sock",
         methods = [HttpMethod.PATCH],
         tags = ["Console"]
     )
     override fun accept(ws: WsConfig) {
-        ws.onConnect { connection ->
-            ws.onMessage { messageContext ->
-                authenticateContext(messageContext)
-                    .peek {
-                        journalist.logger.info("CLI | $it accessed remote console")
-                        initializeAuthenticatedContext(ws, connection, it)
-                    }
-                    .onError {
-                        connection.send(it)
-                        connection.session.disconnect()
+        ws.onMessage { ctx ->
+            when (val session = users[ctx]) {
+                null ->
+                    authenticateContext(ctx)
+                        .peek { identifier ->
+                            journalist.logger.info("CLI | $identifier accessed remote console")
+
+                            val subscriberId = journalist.subscribe {
+                                ctx.send(it.value)
+                            }
+
+                            users[ctx] = WsSession(identifier, subscriberId)
+
+                            journalist.cachedLogger.messages.forEach { message ->
+                                ctx.send(message.value)
+                            }
+                        }
+                        .onError {
+                            journalist.logger.info("CLI | ${it.message} (${it.status})")
+                            ctx.send(it)
+                            ctx.session.disconnect()
+                        }
+                else ->
+                    when (val message = ctx.message()) {
+                        "keep-alive" -> ctx.send("keep-alive")
+                        else -> {
+                            journalist.logger.info("CLI | ${session.identifier}> $message")
+                            consoleFacade.executeCommand(message)
+                        }
                     }
             }
+        }
+        ws.onClose { ctx ->
+            val session = users.remove(ctx) ?: return@onClose
+            journalist.logger.info("CLI | ${session.identifier} closed connection")
+            journalist.unsubscribe(session.subscriberId)
         }
     }
 
@@ -70,47 +101,16 @@ internal class CliEndpoint(
         val authMessage = connection.message()
 
         if (!authMessage.startsWith(AUTHORIZATION_PREFIX)) {
-            journalist.logger.info("CLI | Unauthorized CLI access request from ${address(connection)} (missing credentials)")
-            return unauthorizedError("Unauthorized connection request")
+            return unauthorizedError("Unauthorized CLI access request from ${address(connection)} (missing credentials)")
         }
 
-        return authenticationMessageToCredentials(authMessage)
-            .map { (name, secret) -> Credentials(name, secret) }
-            .flatMap { authenticationFacade.authenticateByCredentials(it) }
-            .filter({ accessTokenFacade.hasPermission(it.identifier, MANAGER) }, {
-                journalist.logger.info("CLI | Unauthorized CLI access request from ${address(connection)}")
-                unauthorized("Unauthorized connection request")
-            })
+        return extractFromString(authMessage.replaceFirst(AUTHORIZATION_PREFIX, ""))
+            .flatMap { (name, secret) -> authenticationFacade.authenticateByCredentials(Credentials(name, secret)) }
+            .filter(
+                { accessTokenFacade.hasPermission(it.identifier, MANAGER) },
+                { unauthorized("Unauthorized CLI access request from ${address(connection)}") }
+            )
             .map { "${it.name}@${address(connection)}" }
-    }
-
-    private fun authenticationMessageToCredentials(message: String): Result<Credentials, ErrorResponse> =
-        extractFromString(StringUtils.replaceFirst(message, AUTHORIZATION_PREFIX, ""))
-            .map { (name, secret) -> Credentials(name, secret) }
-
-    private fun initializeAuthenticatedContext(ws: WsConfig, connection: WsContext, session: String) {
-        ws.onMessage {
-            when (val message = it.message()) {
-                "keep-alive" -> connection.send("keep-alive")
-                else -> {
-                    journalist.logger.info("CLI | $session> $message")
-                    consoleFacade.executeCommand(message)
-                }
-            }
-        }
-
-        val subscriberId = journalist.subscribe {
-            connection.send(it.value)
-        }
-
-        ws.onClose {
-            journalist.logger.info("CLI | $session closed connection")
-            journalist.unsubscribe(subscriberId)
-        }
-
-        for (message in journalist.cachedLogger.messages) {
-            connection.send(message.value)
-        }
     }
 
     private fun address(context: WsContext): String =
