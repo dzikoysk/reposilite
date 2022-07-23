@@ -39,10 +39,10 @@ internal class RemoteSpecificationJunitExtension : Extension, BeforeEachCallback
     private class SpecifiedMariaDBContainer(image: String) : MariaDBContainer<SpecifiedMariaDBContainer>(DockerImageName.parse(image))
 
     @Container
-    private val mariaDb = SpecifiedMariaDBContainer("mariadb:10.7.1")
+    private val mariaDb = SpecifiedMariaDBContainer("mariadb:latest")
 
     @Container
-    private val localstack: LocalStackContainer = LocalStackContainer(DockerImageName.parse("localstack/localstack:0.13.2"))
+    private val localstack: LocalStackContainer = LocalStackContainer(DockerImageName.parse("localstack/localstack:latest"))
         .withServices(S3)
 
     override fun beforeEach(context: ExtensionContext?) {

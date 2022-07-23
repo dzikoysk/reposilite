@@ -37,7 +37,7 @@ internal class S3StorageProviderIntegrationTest : StorageProviderIntegrationTest
     lateinit var rootDirectory: File
 
     @Container
-    val localstack: LocalStackContainer = LocalStackContainer(DockerImageName.parse("localstack/localstack:0.12.19"))
+    val localstack: LocalStackContainer = LocalStackContainer(DockerImageName.parse("localstack/localstack:latest"))
         .withServices(S3)
 
     @BeforeEach

@@ -37,7 +37,7 @@ internal class ExperimentalRemoteSpecficiationJunitExtension : Extension, Before
     private class SpecifiedPostgreSQLContainer(image: String) : PostgreSQLContainer<SpecifiedPostgreSQLContainer>(DockerImageName.parse(image))
 
     @Container
-    private val postgres = SpecifiedPostgreSQLContainer("postgres:13.6")
+    private val postgres = SpecifiedPostgreSQLContainer("postgres:latest")
 
     override fun beforeEach(context: ExtensionContext?) {
         postgres.start()
