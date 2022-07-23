@@ -43,7 +43,7 @@ internal class LocalConfigurationProvider(
 
     private val cdn = configurationFile.getSimpleName()
         .createCdnByExtension()
-        .orElseThrow(ThrowingFunction.identity())
+        .orThrow(ThrowingFunction.identity())
 
     fun initialize() {
         workingDirectory.resolve(configurationFile)

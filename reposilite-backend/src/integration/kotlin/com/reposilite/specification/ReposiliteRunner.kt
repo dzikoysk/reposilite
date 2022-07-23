@@ -29,7 +29,7 @@ import com.reposilite.maven.application.MavenSettings
 import com.reposilite.maven.application.ProxiedRepository
 import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.storage.StorageProviderSettings
-import io.javalin.core.util.JavalinBindException
+import io.javalin.util.JavalinBindException
 import net.dzikoysk.cdn.KCdnFactory
 import net.dzikoysk.cdn.source.Source
 import org.junit.jupiter.api.AfterEach

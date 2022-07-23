@@ -54,7 +54,7 @@ internal class RepositoryProvider(
             .mapNotNull {
                 try {
                     factory.createRepository(it.id, it)
-                }  catch (exception: Exception) {
+                } catch (exception: Exception) {
                     failureFacade.throwException("Cannot load ${it.id} repository", exception)
                     null
                 }

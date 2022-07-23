@@ -54,7 +54,7 @@ enum class RoutePermission(val identifier: String, val shortcut: String) {
         @JsonCreator
         @JvmStatic
         fun fromObject(data: Map<String, String>): RoutePermission =
-            findRoutePermissionByIdentifier(data["identifier"]!!).orElseThrow { IllegalArgumentException(it) }
+            findRoutePermissionByIdentifier(data["identifier"]!!).orThrow { IllegalArgumentException(it) }
 
     }
 

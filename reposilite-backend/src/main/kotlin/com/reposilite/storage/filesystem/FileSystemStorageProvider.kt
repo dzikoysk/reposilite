@@ -113,7 +113,7 @@ abstract class FileSystemStorageProvider protected constructor(
             directory.getSimpleName(),
             Files.list(directory).use { directoryStream ->
                 directoryStream.asSequence()
-                    .map { toSimpleFileDetails(it).orElseThrow { error -> IOException(error.message) } }
+                    .map { toSimpleFileDetails(it).orThrow { error -> IOException(error.message) } }
                     .sortedWith(FilesComparator({ VersionComparator.asVersion(it.name) }, { it.type == DIRECTORY }))
                     .toList()
             }

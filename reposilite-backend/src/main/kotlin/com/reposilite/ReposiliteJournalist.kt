@@ -26,7 +26,6 @@ import com.reposilite.journalist.backend.PublisherLogger
 import com.reposilite.journalist.slf4j.Slf4jLogger
 import com.reposilite.journalist.tinylog.TinyLogLogger
 import com.reposilite.journalist.tinylog.TinyLogWriter
-import org.eclipse.jetty.util.log.Log
 import org.slf4j.LoggerFactory
 import org.tinylog.provider.ProviderRegistry
 import panda.std.reactive.Subscriber
@@ -62,7 +61,7 @@ class ReposiliteJournalist(
     init {
         if (!testEnv) {
             System.setProperty("tinylog.autoshutdown", "false")
-            Log.getProperties().setProperty("org.eclipse.jetty.util.log.announce", "false")
+            // Log.setProperty("org.eclipse.jetty.util.log.announce", "false")
         }
 
         this.visibleLogger = AggregatedLogger(visibleJournalist.logger, publisherLogger)

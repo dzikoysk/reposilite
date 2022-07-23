@@ -23,7 +23,7 @@ plugins {
     application
     `maven-publish`
 
-    val kotlinVersion = "1.7.0"
+    val kotlinVersion = "1.7.10"
     kotlin("jvm") version kotlinVersion
     kotlin("kapt") version kotlinVersion
 
@@ -65,13 +65,26 @@ allprojects {
     version = rootProject.scmVersion.version
 
     repositories {
-        mavenCentral()
-        // maven {
-        //     url = uri("http://localhost/releases")
-        //     isAllowInsecureProtocol = true
-        // }
-        maven { url = uri("https://maven.reposilite.com/releases") }
-        maven { url = uri("https://jitpack.io") }
+        mavenCentral() {
+            mavenContent {
+                releasesOnly()
+            }
+        }
+        maven("https://maven.reposilite.com/releases") {
+            mavenContent {
+                releasesOnly()
+            }
+        }
+        maven("https://maven.reposilite.com/snapshots") {
+            mavenContent {
+                snapshotsOnly()
+            }
+        }
+        maven("https://jitpack.io") {
+            mavenContent {
+                releasesOnly()
+            }
+        }
     }
 }
 

@@ -36,8 +36,7 @@ import com.reposilite.web.http.response
 import com.reposilite.web.http.uri
 import com.reposilite.web.infrastructure.CacheBypassHandler
 import com.reposilite.web.routing.RoutingPlugin
-import io.javalin.core.JavalinConfig
-import io.javalin.core.compression.CompressionStrategy
+import io.javalin.config.JavalinConfig
 import io.javalin.openapi.plugin.OpenApiConfiguration
 import io.javalin.openapi.plugin.OpenApiPlugin
 import io.javalin.plugin.json.JavalinJackson
@@ -51,7 +50,7 @@ internal object JavalinConfiguration {
 
     internal fun configure(reposilite: Reposilite, webThreadPool: ThreadPool, config: JavalinConfig) {
         val server = Server(webThreadPool)
-        config.server { server }
+        config.jetty.server { server }
         reposilite.extensions.emitEvent(HttpServerConfigurationEvent(reposilite, config))
 
         val localConfiguration = reposilite.extensions.facade<LocalConfiguration>()
@@ -82,16 +81,17 @@ internal object JavalinConfiguration {
     }
 
     private fun configureJavalin(config: JavalinConfig, localConfiguration: LocalConfiguration, webSettings: Reference<WebSettings>) {
-        config.showJavalinBanner = false
-        config.asyncRequestTimeout = 1000L * 60 * 60 * 10 // 10min
+        config.core.showJavalinBanner = false
+        config.http.asyncTimeout = 1000L * 60 * 60 * 10 // 10min
 
-        config.contextResolvers {
+        config.core.contextResolvers {
             it.ip = { ctx -> ctx.header(webSettings.get().forwardedIp) ?: ctx.req.remoteAddr }
         }
 
         when (localConfiguration.compressionStrategy.get().lowercase()) {
-            "none" -> config.compressionStrategy(CompressionStrategy.NONE)
-            "gzip" -> config.compressionStrategy(CompressionStrategy.GZIP)
+            "none" -> config.compression.none()
+            "gzip" -> config.compression.gzipOnly()
+            "brotli" -> config.compression.brotliOnly()
             else -> throw IllegalStateException("Unknown compression strategy ${localConfiguration.compressionStrategy.get()}")
         }
     }
@@ -131,12 +131,12 @@ internal object JavalinConfiguration {
             .toSet()
             .let { plugin.registerRoutes(it) }
 
-        config.registerPlugin(plugin)
+        config.plugins.register(plugin)
     }
 
     private fun configureJsonSerialization(config: JavalinConfig) {
         val objectMapper = ReposiliteObjectMapper.DEFAULT_OBJECT_MAPPER
-        config.jsonMapper(JavalinJackson(objectMapper))
+        config.core.jsonMapper(JavalinJackson(objectMapper))
     }
 
     private fun configureSSL(reposilite: Reposilite, localConfiguration: LocalConfiguration, config: JavalinConfig, server: Server) {
@@ -159,11 +159,13 @@ internal object JavalinConfiguration {
             }
         }
 
-        config.enforceSsl = localConfiguration.enforceSsl.get()
+        if (localConfiguration.enforceSsl.get()) {
+            config.plugins.enableSslRedirects()
+        }
     }
 
     private fun configureCors(config: JavalinConfig) {
-        config.enableCorsForAllOrigins()
+        config.plugins.enableCorsForAllOrigins()
     }
 
     private fun configureOpenApi(config: JavalinConfig, frontendSettings: FrontendSettings) {
@@ -171,7 +173,7 @@ internal object JavalinConfiguration {
         openApiConfiguration.title = frontendSettings.title
         openApiConfiguration.description = frontendSettings.description
         openApiConfiguration.version = VERSION
-        config.registerPlugin(OpenApiPlugin(openApiConfiguration))
+        config.plugins.register(OpenApiPlugin(openApiConfiguration))
     }
 
     private fun configureDebug(journalist: Journalist, localConfiguration: LocalConfiguration, config: JavalinConfig) {
@@ -179,7 +181,7 @@ internal object JavalinConfiguration {
             // config.requestCacheSize = FilesUtils.displaySizeToBytesCount(System.getProperty("reposilite.requestCacheSize", "8MB"));
             // Reposilite.getLogger().debug("requestCacheSize set to " + config.requestCacheSize + " bytes");
             journalist.logger.info("Debug enabled")
-            config.enableDevLogging()
+            config.plugins.enableDevLogging()
         }
     }
 

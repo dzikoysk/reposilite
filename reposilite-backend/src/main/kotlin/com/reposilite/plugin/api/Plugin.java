@@ -47,6 +47,9 @@ public @interface Plugin {
      */
     String[] dependencies() default {};
 
+    /**
+     * @return custom configuration class used by plugin
+     */
     Class<? extends SharedSettings> settings() default SharedSettings.class;
 
 }

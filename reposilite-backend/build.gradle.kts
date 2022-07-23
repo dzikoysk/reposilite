@@ -36,7 +36,7 @@ dependencies {
     implementation(project(":reposilite-frontend"))
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.20.0")
 
-    val kotlin = "1.7.0"
+    val kotlin = "1.7.10"
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin")
     api("org.jetbrains:annotations:23.0.0")
@@ -61,9 +61,7 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposed")
     implementation("org.jetbrains.exposed:exposed-java-time:$exposed")
     api("net.dzikoysk:exposed-upsert:1.0.3")
-    // Threadpool
-    @Suppress("GradlePackageUpdate")
-    implementation("com.zaxxer:HikariCP:4.0.3")
+    implementation("com.zaxxer:HikariCP:5.0.1")
     // Drivers
     implementation("org.xerial:sqlite-jdbc:3.36.0.3")
     implementation("mysql:mysql-connector-java:8.0.29")
@@ -77,26 +75,12 @@ dependencies {
     val ldap = "6.0.5"
     testImplementation("com.unboundid:unboundid-ldapsdk:$ldap")
 
-    val openapi = "1.1.7"
-    kapt("io.javalin-rfc:openapi-annotation-processor:$openapi") {
-        exclude(group = "ch.qos.logback")
-    }
-    implementation("io.javalin-rfc:javalin-openapi-plugin:$openapi")
-
-    val javalinRfcs = "4.1.0"
-    api("com.reposilite.javalin-rfcs:javalin-context:$javalinRfcs")
-    api("com.reposilite.javalin-rfcs:javalin-routing:$javalinRfcs")
-
-    @Suppress("GradlePackageUpdate")
-    //api("io.javalin:javalin:4.1.1")
-    // api("com.github.dzikoysk.javalin:javalin:97b4481c0a")
-    // api("com.github.tipsy.javalin:javalin:d00c8512c9")
-    api("io.javalin:javalin:4.6.3")
-
-    @Suppress("GradlePackageUpdate")
-    implementation("org.eclipse.jetty:jetty-server:9.4.46.v20220331")
-
-    implementation("com.github.victools:jsonschema-generator:4.25.0")
+    val javalin = "5.0.0-SNAPSHOT"
+    api("io.javalin:javalin:$javalin")
+    api("io.javalin:javalin-openapi-plugin:$javalin")
+    kapt("io.javalin:openapi-annotation-processor:$javalin") { exclude(group = "ch.qos.logback") }
+    api("com.reposilite.javalin-rfcs:javalin-context:$javalin")
+    api("com.reposilite.javalin-rfcs:javalin-routing:$javalin")
 
     val picocli = "4.6.3"
     kapt("info.picocli:picocli-codegen:$picocli")
@@ -106,6 +90,7 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jackson")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jackson")
+    implementation("com.github.victools:jsonschema-generator:4.25.0")
 
     val httpClient = "1.42.1"
     implementation("com.google.http-client:google-http-client:$httpClient")

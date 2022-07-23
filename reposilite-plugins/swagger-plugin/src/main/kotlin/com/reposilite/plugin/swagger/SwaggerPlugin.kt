@@ -20,7 +20,7 @@ class SwaggerPlugin : ReposilitePlugin() {
         event { event: HttpServerConfigurationEvent ->
             val swaggerConfiguration = SwaggerConfiguration()
             swaggerConfiguration.title = frontendSettings.map { it.title }
-            event.javalinConfig.registerPlugin(SwaggerPluginForJavalin(swaggerConfiguration))
+            event.javalinConfig.plugins.register(SwaggerPluginForJavalin(swaggerConfiguration))
         }
 
         return null
