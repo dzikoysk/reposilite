@@ -82,7 +82,7 @@ watch(
 <template>
   <div class="bg-gray-100">
     <div class="dark:bg-black">
-      <div class="container mx-auto relative min-h-320px mb-1.5">
+      <div class="container mx-auto relative min-h-320px mb-12">
         <div class="lg:absolute pt-13 -top-5 right-8">
           <Card :qualifier="qualifier" />
         </div>
