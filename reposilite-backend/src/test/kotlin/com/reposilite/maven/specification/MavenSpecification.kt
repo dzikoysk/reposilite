@@ -17,19 +17,15 @@
 package com.reposilite.maven.specification
 
 import com.reposilite.auth.api.Credentials
+import com.reposilite.frontend.application.FrontendSettings
 import com.reposilite.journalist.backend.InMemoryLogger
-import com.reposilite.maven.LatestService
 import com.reposilite.maven.MavenFacade
-import com.reposilite.maven.MavenService
-import com.reposilite.maven.MetadataService
-import com.reposilite.maven.ProxyService
 import com.reposilite.maven.Repository
-import com.reposilite.maven.RepositoryProvider
-import com.reposilite.maven.RepositorySecurityProvider
-import com.reposilite.maven.RepositoryService
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.Metadata
 import com.reposilite.maven.api.Versioning
+import com.reposilite.maven.application.MavenSettings
+import com.reposilite.maven.application.MavenConfiguration
 import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.plugin.Extensions
 import com.reposilite.shared.http.FakeRemoteClientProvider
@@ -55,7 +51,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
 import panda.std.Quad
 import panda.std.asSuccess
-import panda.std.reactive.mutableReference
 import panda.std.reactive.reference
 import panda.std.reactive.toReference
 import java.io.File
@@ -72,28 +67,24 @@ internal abstract class MavenSpecification {
         const val REMOTE_CONTENT = "content"
     }
 
-    private val logger = InMemoryLogger()
-    private val failureFacade = FailureFacade(logger)
-
     @TempDir
     lateinit var workingDirectory: File
-    private lateinit var accessTokenFacade: AccessTokenFacade
-    protected lateinit var extensions: Extensions
     protected lateinit var mavenFacade: MavenFacade
+
+    protected val logger = InMemoryLogger()
+    protected val extensions = Extensions(logger)
+    protected val failureFacade = FailureFacade(logger)
+    protected val accessTokenFacade = AccessTokenFacade(
+        journalist = logger,
+        temporaryRepository = InMemoryAccessTokenRepository(),
+        persistentRepository = InMemoryAccessTokenRepository(),
+        exportService = ExportService()
+    )
 
     protected abstract fun repositories(): List<RepositorySettings>
 
     @BeforeEach
     private fun initializeFacade() {
-        val workingDirectoryPath = workingDirectory.toPath()
-
-        this.accessTokenFacade = AccessTokenFacade(
-            journalist = logger,
-            temporaryRepository = InMemoryAccessTokenRepository(),
-            persistentRepository = InMemoryAccessTokenRepository(),
-            exportService = ExportService()
-        )
-
         val remoteClientProvider = FakeRemoteClientProvider(
             headHandler = { uri, credentials, _, _ ->
                 if (uri.startsWith(REMOTE_REPOSITORY) && REMOTE_AUTH == credentials && !uri.isAllowed())
@@ -119,31 +110,20 @@ internal abstract class MavenSpecification {
             }
         )
 
-        val repositories = mutableReference(repositories())
-        val securityProvider = RepositorySecurityProvider(accessTokenFacade)
-        val storageFacade = StorageFacade()
-        val repositoryProvider = RepositoryProvider(workingDirectoryPath, remoteClientProvider, failureFacade, storageFacade, repositories)
-        val repositoryService = RepositoryService(logger, repositoryProvider, securityProvider)
-
-        this.extensions = Extensions(logger)
-
-        this.mavenFacade = MavenFacade(
+        this.mavenFacade = MavenConfiguration(
+            workingDirectory = workingDirectory.toPath(),
             journalist = logger,
-            repositorySecurityProvider = securityProvider,
-            repositoryService = RepositoryService(logger, repositoryProvider, securityProvider),
-            mavenService = MavenService(
-                journalist = logger,
-                repositoryService = repositoryService,
-                repositorySecurityProvider = securityProvider,
-                proxyService = ProxyService(logger),
-                statisticsFacade = StatisticsFacade(logger, DailyDateIntervalProvider.toReference(), InMemoryStatisticsRepository()),
-                extensions = extensions
-            ),
-            metadataService = MetadataService(),
-            latestService = LatestService(
-                repositoryId = reference("repository-id")
-            )
-        )
+            extensions = extensions,
+            remoteClientProvider = remoteClientProvider,
+            failureFacade = failureFacade,
+            storageFacade = StorageFacade(),
+            accessTokenFacade = accessTokenFacade,
+            statisticsFacade = StatisticsFacade(logger, DailyDateIntervalProvider.toReference(), InMemoryStatisticsRepository()),
+            mavenSettings =  reference(MavenSettings(
+                repositories = repositories()
+            )),
+            frontendSettings = reference(FrontendSettings())
+        ).mavenFacade()
     }
 
     protected inner class FileSpec(

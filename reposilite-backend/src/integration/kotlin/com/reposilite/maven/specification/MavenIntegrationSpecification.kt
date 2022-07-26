@@ -16,11 +16,11 @@
 
 package com.reposilite.maven.specification
 
-import com.reposilite.specification.ReposiliteSpecification
 import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.Metadata
 import com.reposilite.maven.api.Versioning
+import com.reposilite.specification.ReposiliteSpecification
 import com.reposilite.storage.VersionComparator
 import com.reposilite.storage.api.toLocation
 import io.javalin.Javalin
@@ -40,9 +40,18 @@ internal abstract class MavenIntegrationSpecification : ReposiliteSpecification(
     @TempDir
     lateinit var clientWorkingDirectory: File
 
+    protected val mavenFacade by lazy { useFacade<MavenFacade>() }
+
     protected fun useDocument(repository: String, gav: String, file: String, content: String = "test-content", store: Boolean = false): UseDocument {
         if (store) {
-            useFacade<MavenFacade>().deployFile(DeployRequest(repository, "$gav/$file".toLocation(), "junit", content.byteInputStream()))
+            mavenFacade.deployFile(
+                DeployRequest(
+                    repository = mavenFacade.getRepository(repository)!!,
+                    gav = "$gav/$file".toLocation(),
+                    by = "junit",
+                    content = content.byteInputStream()
+                )
+            )
         }
 
         return UseDocument(repository, gav, file, content)
@@ -60,7 +69,11 @@ internal abstract class MavenIntegrationSpecification : ReposiliteSpecification(
         val metadata = Metadata(groupId, artifactId, versioning = versioning)
         val mavenFacade = useFacade<MavenFacade>()
 
-        return repository to mavenFacade.saveMetadata(repository, "$groupId.$artifactId".replace(".", "/").toLocation(), metadata).get()
+        return repository to mavenFacade.saveMetadata(
+            repository = mavenFacade.getRepository(repository)!!,
+            gav = "$groupId.$artifactId".replace(".", "/").toLocation(),
+            metadata = metadata
+        ).get()
     }
 
     protected suspend fun useProxiedHost(repository: String, gav: String, content: String, block: (String, String) -> Unit) {
