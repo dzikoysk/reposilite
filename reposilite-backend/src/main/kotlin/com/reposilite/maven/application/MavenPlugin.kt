@@ -21,7 +21,9 @@ import com.reposilite.configuration.local.LocalConfiguration
 import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.frontend.FrontendFacade
 import com.reposilite.frontend.application.FrontendSettings
+import com.reposilite.maven.LatestService
 import com.reposilite.maven.MavenFacade
+import com.reposilite.maven.MavenService
 import com.reposilite.maven.MetadataService
 import com.reposilite.maven.PreservedBuildsListener
 import com.reposilite.maven.ProxyService
@@ -72,15 +74,26 @@ internal class MavenPlugin : ReposilitePlugin() {
         val securityProvider = RepositorySecurityProvider(accessTokenFacade)
         val repositoryService = RepositoryService(this, repositoryProvider, securityProvider)
 
+        val mavenService = MavenService(
+            journalist = this,
+            repositoryService = repositoryService,
+            repositorySecurityProvider = securityProvider,
+            proxyService = ProxyService(this),
+            statisticsFacade = statisticsFacade,
+            extensions = extensions()
+        )
+
+        val latestService = LatestService(
+            repositoryId = frontendSettings.computed { it.id },
+        )
+
         val mavenFacade = MavenFacade(
             journalist = this,
-            repositoryId = frontendSettings.computed { it.id },
             repositorySecurityProvider = securityProvider,
             repositoryService = repositoryService,
-            proxyService = ProxyService(this),
-            metadataService = MetadataService(repositoryService),
-            extensions = extensions(),
-            statisticsFacade = statisticsFacade,
+            mavenService = mavenService,
+            metadataService = MetadataService(),
+            latestService = latestService
         )
 
         logger.info("")
@@ -104,4 +117,5 @@ internal class MavenPlugin : ReposilitePlugin() {
 
         return mavenFacade
     }
+
 }

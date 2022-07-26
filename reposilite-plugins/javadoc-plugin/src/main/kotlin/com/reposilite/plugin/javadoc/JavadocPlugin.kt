@@ -32,13 +32,18 @@ internal class JavadocPlugin : ReposilitePlugin() {
     override fun initialize(): Facade {
         val javadocFolder = parameters().workingDirectory.resolve("javadocs")
         val mavenFacade = facade<MavenFacade>()
-        val facade = JavadocFacade(javadocFolder, mavenFacade, this)
+
+        val javadocFacade = JavadocFacade(
+            journalist = this,
+            javadocFolder = javadocFolder,
+            mavenFacade = mavenFacade
+        )
 
         event { event: RoutingSetupEvent ->
-            event.registerRoutes(JavadocEndpoints(facade))
+            event.registerRoutes(JavadocEndpoints(javadocFacade))
         }
 
-        return facade
+        return javadocFacade
     }
 
 }

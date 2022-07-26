@@ -16,8 +16,11 @@
 
 package com.reposilite.maven.infrastructure
 
+import com.reposilite.maven.MatchedVersionHandler
 import com.reposilite.maven.MavenFacade
-import com.reposilite.maven.MavenFacade.MatchedVersionHandler
+import com.reposilite.maven.Repository
+import com.reposilite.maven.api.LatestArtifactQuery
+import com.reposilite.maven.api.LatestArtifactQueryRequest
 import com.reposilite.maven.api.LatestBadgeRequest
 import com.reposilite.maven.api.LatestVersionResponse
 import com.reposilite.maven.api.VersionLookupRequest
@@ -27,7 +30,6 @@ import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.toLocation
 import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.web.api.ReposiliteRoute
-import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.contentDisposition
 import com.reposilite.web.routing.RouteMethod.GET
@@ -43,9 +45,9 @@ import panda.std.asError
 import panda.std.asSuccess
 
 internal class MavenLatestApiEndpoints(
-    private val mavenFacade: MavenFacade,
+    mavenFacade: MavenFacade,
     private val compressionStrategy: String
-) : ReposiliteRoutes() {
+) : MavenRoutes(mavenFacade) {
 
     @OpenApi(
         tags = ["Maven"],
@@ -68,15 +70,19 @@ internal class MavenLatestApiEndpoints(
     )
     private val findLatestVersion = ReposiliteRoute<Any>("/api/maven/latest/version/{repository}/<gav>", GET) {
         accessed {
-            response = VersionLookupRequest(this?.identifier, requireParameter("repository"), requireParameter("gav").toLocation(), ctx.queryParam("filter"))
-                .let { mavenFacade.findLatest(it) }
-                .flatMap {
-                    when (val type = ctx.queryParam("type")) {
-                        "raw" -> it.version.asSuccess() // -> String
-                        "json", null -> it.asSuccess() // -> LatestVersionResponse
-                        else -> ErrorResponse(BAD_REQUEST, "Unsupported response type: $type").asError() // -> ErrorResponse
-                    }
+            requireGav { gav ->
+                requireRepository { repository ->
+                    response = VersionLookupRequest(this?.identifier, repository, gav, ctx.queryParam("filter"))
+                        .let { mavenFacade.findLatestVersion(it) }
+                        .flatMap {
+                            when (val type = ctx.queryParam("type")) {
+                                "raw" -> it.version.asSuccess() // -> String
+                                "json", null -> it.asSuccess() // -> LatestVersionResponse
+                                else -> ErrorResponse(BAD_REQUEST, "Unsupported response type: $type").asError() // -> ErrorResponse
+                            }
+                        }
                 }
+            }
         }
     }
 
@@ -95,10 +101,15 @@ internal class MavenLatestApiEndpoints(
         ],
         responses = [ OpenApiResponse("200", description = "Details about the given file", content = [OpenApiContent(from = FileDetails::class)]) ]
     )
-    private val findLatestDetails = ReposiliteRoute<FileDetails>("/api/maven/latest/details/{repository}/<gav>", GET) {
+    private val findLatestDetails = ReposiliteRoute("/api/maven/latest/details/{repository}/<gav>", GET) {
         accessed {
-            response = resolveLatestArtifact(this@ReposiliteRoute, this) {
-                mavenFacade.findDetails(it)
+            requireRepository {
+                response = resolveLatestArtifact(
+                    context = this@ReposiliteRoute,
+                    accessToken = this,
+                    repository = it,
+                    handler = { lookupRequest -> mavenFacade.findDetails(lookupRequest) }
+                )
             }
         }
     }
@@ -119,22 +130,34 @@ internal class MavenLatestApiEndpoints(
     )
     private val findLatestFile = ReposiliteRoute<Unit>("/api/maven/latest/file/{repository}/<gav>", GET) {
         accessed {
-            response = resolveLatestArtifact(this@ReposiliteRoute, this) { lookupRequest ->
-                mavenFacade.findFile(lookupRequest)
-                    .map { (details, file) -> ctx.resultAttachment(details.name, details.contentType, details.contentLength, compressionStrategy, file) }
+            requireRepository {
+                response = resolveLatestArtifact(
+                    context = this@ReposiliteRoute,
+                    accessToken = this,
+                    repository = it,
+                    handler = { lookupRequest ->
+                        mavenFacade.findFile(lookupRequest).map { (details, file) ->
+                            ctx.resultAttachment(details.name, details.contentType, details.contentLength, compressionStrategy, file)
+                        }
+                    }
+                )
             }
         }
     }
 
-    private fun <T> resolveLatestArtifact(context: ContextDsl<*>, accessToken: AccessTokenDto?, request: MatchedVersionHandler<T>): Result<T, ErrorResponse> =
-        mavenFacade.findLatestArtifact(
-            accessToken = accessToken?.identifier,
-            repository = context.requireParameter("repository"),
-            gav = context.requireParameter("gav").toLocation(),
-            extension = context.ctx.queryParam("extension") ?: "jar",
-            classifier = context.ctx.queryParam("classifier"),
-            filter = context.ctx.queryParam("filter"),
-            request = request
+    private fun <T> resolveLatestArtifact(context: ContextDsl<*>, accessToken: AccessTokenDto?, repository: Repository, handler: MatchedVersionHandler<T>): Result<T, ErrorResponse> =
+        mavenFacade.findLatestVersionFile(
+            LatestArtifactQueryRequest(
+                accessToken = accessToken?.identifier,
+                repository = repository,
+                query = LatestArtifactQuery(
+                    gav = context.requireParameter("gav").toLocation(),
+                    extension = context.queryParameter("extension") ?: "jar",
+                    classifier = context.queryParameter("classifier"),
+                    filter = context.ctx.queryParam("filter"),
+                )
+            ),
+            handler = handler
         )
 
     @OpenApi(
@@ -147,20 +170,27 @@ internal class MavenLatestApiEndpoints(
         methods = [HttpMethod.GET]
     )
     val latestBadge = ReposiliteRoute<String>("/api/badge/latest/{repository}/<gav>", GET) {
-        response = mavenFacade.findLatestBadge(
-            LatestBadgeRequest(
-                repository = requireParameter("repository"),
-                gav = requireParameter("gav").toLocation(),
-                name = ctx.queryParam("name"),
-                color = ctx.queryParam("color"),
-                prefix = ctx.queryParam("prefix"),
-                filter = ctx.queryParam("filter")
-            )
-        )
-            .peek { ctx.run {
-                contentType("image/svg+xml")
-                contentDisposition("inline; filename=\"latest-badge.svg\"")
-            } }
+        accessed {
+            requireGav { gav ->
+                requireRepository { repository ->
+                    response =
+                        mavenFacade.createLatestBadge(
+                            LatestBadgeRequest(
+                                accessToken = this?.identifier,
+                                repository = repository,
+                                gav = gav,
+                                name = queryParameter("name"),
+                                color = queryParameter("color"),
+                                prefix = queryParameter("prefix"),
+                                filter = queryParameter("filter")
+                            )
+                        ).peek {
+                            ctx.contentType("image/svg+xml")
+                            ctx.contentDisposition("inline; filename=\"latest-badge.svg\"")
+                        }
+                }
+            }
+        }
     }
 
     override val routes = routes(findLatestVersion, findLatestDetails, findLatestFile, latestBadge)

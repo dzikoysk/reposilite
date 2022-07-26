@@ -58,7 +58,7 @@ internal class PreservedBuildsListenerTest : MavenSpecification() {
         addFileToRepository(FileSpec(repositoryName, "$prefix-20220101.213701-2.pom", "two"))
 
         // this one is currently deployed
-        mavenFacade.saveMetadata(repositoryName, versionId,
+        mavenFacade.saveMetadata(mavenFacade.getRepository(repositoryName)!!, versionId,
             Metadata(
                 artifactId = artifactId,
                 versioning = Versioning(

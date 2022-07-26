@@ -19,6 +19,7 @@ package com.reposilite.plugin.javadoc
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
 import com.reposilite.maven.MavenFacade
+import com.reposilite.maven.Repository
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.VersionLookupRequest
 import com.reposilite.plugin.api.Facade
@@ -49,9 +50,9 @@ import java.util.jar.JarFile
 import kotlin.io.path.outputStream
 
 class JavadocFacade internal constructor(
+    private val journalist: Journalist,
     private val javadocFolder: Path,
-    private val mavenFacade: MavenFacade,
-    private val journalist: Journalist
+    val mavenFacade: MavenFacade,
 ) : Journalist, Facade {
 
     fun findJavadocPage(request: JavadocPageRequest): Result<JavadocResponse, ErrorResponse> {
@@ -64,12 +65,12 @@ class JavadocFacade internal constructor(
         val gav = rawGav
             .takeIf { it.contains("/latest") }
             ?.locationBeforeLast("/latest")
-            ?.let { mavenFacade.findLatest(VersionLookupRequest(accessToken, repository, it)) }
+            ?.let { mavenFacade.findLatestVersion(VersionLookupRequest(accessToken, repository, it)) }
             ?.map { rawGav.replace("latest", it.version) }
             ?.orElseGet { rawGav }
             ?: rawGav
 
-        val target = javadocFolder.resolve(repository).resolve(gav.toString())
+        val target = javadocFolder.resolve(repository.name).resolve(gav.toString())
 
         if (Files.exists(target) && (gav.getExtension() == "html" || gav.getExtension() == "css" || gav.getExtension() == "js")) {
             return try {
@@ -87,7 +88,7 @@ class JavadocFacade internal constructor(
 
         val javadocJar = resolveJavadocJar(accessToken, repository, gav) ?: return errorResponse(BAD_REQUEST, "Invalid GAV")
 
-        return mavenFacade.findDetails(LookupRequest(accessToken, repository, javadocJar))
+        return mavenFacade.findDetails(LookupRequest(accessToken, repository.name, javadocJar))
             .filter({ it.type === FILE }, { ErrorResponse(BAD_REQUEST, "Invalid request") })
             .filter({ it.name.endsWith("-javadoc.jar") }, { notFound("Please do not provide a direct link to a non javadoc file! GAV must be pointing to a directory or a javadoc file!") })
             .flatMap { extractJavadocJar(accessToken, repository, javadocJar, javadocFolder) }
@@ -98,7 +99,7 @@ class JavadocFacade internal constructor(
     /**
      * Constructs a new gav from the input gav, so we can handle paths that end with /index.html for example.
      */
-    private fun resolveJavadocJar(accessToken: AccessTokenIdentifier?, repository: String, gav: Location): Location? =
+    private fun resolveJavadocJar(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Location? =
         when {
             gav.endsWith(".jar") -> gav
             gav.endsWith("/index.html") -> {
@@ -132,9 +133,9 @@ class JavadocFacade internal constructor(
      * @param gav the direct gav to the javadoc file
      * @param javadocFolder the target folder in which the files should be extracted
      */
-    private fun extractJavadocJar(accessToken: AccessTokenIdentifier?, repository: String, gav: Location, javadocFolder: Path): Result<String, ErrorResponse> {
+    private fun extractJavadocJar(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location, javadocFolder: Path): Result<String, ErrorResponse> {
         val path = gav.locationBeforeLast("/").toString()
-        val targetFolder = javadocFolder.resolve(repository).resolve(path)
+        val targetFolder = javadocFolder.resolve(repository.name).resolve(path)
         val indexFile = targetFolder.resolve("index.html")
 
         if (Files.exists(indexFile)) {
@@ -144,7 +145,7 @@ class JavadocFacade internal constructor(
         Files.createDirectories(targetFolder)
         val targetJar = targetFolder.resolve("javadoc.jar")
 
-        return mavenFacade.findFile(LookupRequest(accessToken, repository, gav))
+        return mavenFacade.findFile(LookupRequest(accessToken, repository.name, gav))
             .peek { it.second.copyToAndClose(FileOutputStream(targetJar.toString())) }
             .flatMap { extractJavadocArchive(targetJar, targetFolder) }
             .map {

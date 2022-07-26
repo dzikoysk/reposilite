@@ -91,6 +91,9 @@ class ContextDsl<R>(
     fun parameter(name: String): String? =
         ctx.pathParamMap()[name]
 
+    fun queryParameter(name: String): String? =
+        ctx.queryParam(name)
+
     fun isAuthorized(to: String): Boolean =
         isManager() || authenticationResult.value.fold(
             { accessTokenFacade.hasPermissionTo(it.identifier, to, METHOD_PERMISSIONS[ctx.method()]!!) },

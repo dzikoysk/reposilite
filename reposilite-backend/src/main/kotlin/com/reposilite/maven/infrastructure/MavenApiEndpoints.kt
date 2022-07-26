@@ -24,9 +24,9 @@ import com.reposilite.shared.ContextDsl
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.toLocation
 import com.reposilite.web.api.ReposiliteRoute
-import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.routing.RouteMethod.GET
+import com.reposilite.web.routing.RouteMethod.POST
 import io.javalin.openapi.HttpMethod
 import io.javalin.openapi.OpenApi
 import io.javalin.openapi.OpenApiContent
@@ -34,7 +34,7 @@ import io.javalin.openapi.OpenApiParam
 import io.javalin.openapi.OpenApiResponse
 import panda.std.asSuccess
 
-internal class MavenApiEndpoints(private val mavenFacade: MavenFacade) : ReposiliteRoutes() {
+internal class MavenApiEndpoints(mavenFacade: MavenFacade) : MavenRoutes(mavenFacade) {
 
     @OpenApi(
         tags = ["Maven"],
@@ -89,14 +89,29 @@ internal class MavenApiEndpoints(private val mavenFacade: MavenFacade) : Reposil
     )
     private val findVersions = ReposiliteRoute<VersionsResponse>("/api/maven/versions/{repository}/<gav>", GET) {
         accessed {
-            response = mavenFacade.findVersions(
-                VersionLookupRequest(
-                    accessToken = this?.identifier,
-                    repository = requireParameter("repository"),
-                    gav = requireParameter("gav").toLocation(),
-                    filter = ctx.queryParam("filter")
-                )
-            )
+            requireGav { gav ->
+                requireRepository { repository ->
+                    response = mavenFacade.findVersions(
+                        VersionLookupRequest(
+                            accessToken = this?.identifier,
+                            repository = repository,
+                            gav = gav,
+                            filter = ctx.queryParam("filter")
+                        )
+                    )
+                }
+            }
+        }
+    }
+
+    @OpenApi(
+        tags = ["Maven"],
+        path = "/api/maven/generate/pom/{repository}/{gav}",
+        methods = [HttpMethod.POST]
+    )
+    private val generatePom = ReposiliteRoute<Unit>("/api/maven/generate/pom/{repository}/{gav}", POST) {
+        authenticated {
+
         }
     }
 

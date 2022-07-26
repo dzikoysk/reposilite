@@ -32,12 +32,11 @@ import com.reposilite.storage.VersionComparator
 import com.reposilite.storage.api.Location
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.notFound
+import io.javalin.http.HttpCode.INTERNAL_SERVER_ERROR
 import panda.std.Result
 import panda.std.letIf
 
-internal class MetadataService(
-    private val repositoryService: RepositoryService
-) {
+internal class MetadataService {
 
     private val xml = XmlMapper.xmlBuilder()
         .addModules(JacksonXmlModule(), kotlinModule())
@@ -48,26 +47,16 @@ internal class MetadataService(
         .enable(INDENT_OUTPUT)
         .build()
 
-    fun saveMetadata(repository: String, gav: Location, metadata: Metadata): Result<Metadata, ErrorResponse> =
-        repositoryService.findRepository(repository)
-            .flatMap {
-                val content = xml.writeValueAsBytes(metadata)
-                val metadataFile = gav.resolveMetadataFile()
-
-                it.putFile(metadataFile, content.inputStream())
-                    .flatMap { _ -> it.writeFileChecksums(metadataFile, content) }
-            }
+    fun saveMetadata(repository: Repository, gav: Location, metadata: Metadata): Result<Metadata, ErrorResponse> =
+        Result.attempt { xml.writeValueAsBytes(metadata) }
+            .mapErr { ErrorResponse(INTERNAL_SERVER_ERROR, "Cannot parse metadata file") }
+            .flatMap { repository.putFile(gav.resolveMetadataFile(), it.inputStream()).map { _ -> it } }
+            .flatMap { repository.writeFileChecksums(gav.resolveMetadataFile(), it) }
             .map { metadata }
 
-    fun findMetadata(repository: String, gav: Location): Result<Metadata, ErrorResponse> =
-        repositoryService.findRepository(repository)
-            .flatMap { it.getFile(gav.resolveMetadataFile()) }
+    fun findMetadata(repository: Repository, gav: Location): Result<Metadata, ErrorResponse> =
+        repository.getFile(gav.resolveMetadataFile())
             .map { it.use { data -> xml.readValue<Metadata>(data) } }
-
-    fun findLatest(repository: Repository, gav: Location, filter: String?): Result<LatestVersionResponse, ErrorResponse> =
-        findVersions(repository, gav, filter)
-            .filter({ it.versions.isNotEmpty() }, { notFound("Given artifact does not have any declared version") })
-            .map { (isSnapshot, versions) -> LatestVersionResponse(isSnapshot, versions.last()) }
 
     fun findVersions(repository: Repository, gav: Location, filter: String?): Result<VersionsResponse, ErrorResponse> =
         repository.getFile(gav.resolveMetadataFile())
@@ -80,10 +69,19 @@ internal class MetadataService(
                     .let { VersionsResponse(isSnapshot, it.toList()) }
             }
 
+    fun findLatestVersion(repository: Repository, gav: Location, filter: String?): Result<LatestVersionResponse, ErrorResponse> =
+        findVersions(repository, gav, filter)
+            .filter({ it.versions.isNotEmpty() }, { notFound("Given artifact does not have any declared version") })
+            .map { (isSnapshot, versions) -> LatestVersionResponse(isSnapshot, versions.last()) }
+
+
     private fun Location.resolveMetadataFile(): Location =
         if (endsWith(METADATA_FILE)) this else resolve(METADATA_FILE)
 
-    private data class VersionSequence(val isSnapshot: Boolean = false, val versions: Sequence<String>)
+    private data class VersionSequence(
+        val isSnapshot: Boolean = false,
+        val versions: Sequence<String>,
+    )
 
     private fun extractVersions(metadata: Metadata): VersionSequence =
         (metadata.versioning?.versions?.asSequence()?.let { VersionSequence(false, it) }

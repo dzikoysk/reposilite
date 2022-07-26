@@ -16,13 +16,13 @@
 
 package com.reposilite.maven.api
 
+import com.reposilite.maven.Repository
 import com.reposilite.storage.api.Location
+import com.reposilite.token.AccessTokenIdentifier
 
-class LatestBadgeRequest(
-    val repository: String,
+data class DeleteRequest(
+    val accessToken: AccessTokenIdentifier,
+    val repository: Repository,
     val gav: Location,
-    val name: String? = null,
-    val color: String? = null,
-    val prefix: String? = null,
-    val filter: String? = null
+    val by: String
 )

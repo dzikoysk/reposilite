@@ -22,7 +22,7 @@ import com.reposilite.storage.api.Location
 import java.io.InputStream
 
 data class DeployRequest(
-    val repository: String,
+    val repository: Repository,
     val gav: Location,
     val by: String,
     val content: InputStream

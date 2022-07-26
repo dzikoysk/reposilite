@@ -19,216 +19,72 @@ package com.reposilite.maven
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
 import com.reposilite.maven.api.DeleteRequest
-import com.reposilite.maven.api.DeployEvent
 import com.reposilite.maven.api.DeployRequest
-import com.reposilite.maven.api.Identifier
+import com.reposilite.maven.api.LatestArtifactQueryRequest
 import com.reposilite.maven.api.LatestBadgeRequest
 import com.reposilite.maven.api.LatestVersionResponse
 import com.reposilite.maven.api.LookupRequest
-import com.reposilite.maven.api.METADATA_FILE
 import com.reposilite.maven.api.Metadata
-import com.reposilite.maven.api.PreResolveEvent
-import com.reposilite.maven.api.ResolvedFileEvent
 import com.reposilite.maven.api.VersionLookupRequest
 import com.reposilite.maven.api.VersionsResponse
-import com.reposilite.plugin.Extensions
 import com.reposilite.plugin.api.Facade
-import com.reposilite.shared.BadgeGenerator
-import com.reposilite.statistics.StatisticsFacade
-import com.reposilite.statistics.api.IncrementResolvedRequest
 import com.reposilite.storage.api.DirectoryInfo
 import com.reposilite.storage.api.DocumentInfo
 import com.reposilite.storage.api.FileDetails
-import com.reposilite.storage.api.FileType.DIRECTORY
 import com.reposilite.storage.api.Location
-import com.reposilite.storage.api.toLocation
 import com.reposilite.token.AccessTokenIdentifier
 import com.reposilite.web.http.ErrorResponse
-import com.reposilite.web.http.errorResponse
-import com.reposilite.web.http.notFound
-import com.reposilite.web.http.notFoundError
-import com.reposilite.web.http.unauthorizedError
-import io.javalin.http.HttpCode.BAD_REQUEST
-import io.javalin.http.HttpCode.NOT_FOUND
 import panda.std.Result
-import panda.std.asSuccess
-import panda.std.reactive.Reference
 import java.io.InputStream
 
 class MavenFacade internal constructor(
     private val journalist: Journalist,
-    private val repositoryId: Reference<out String>,
     private val repositorySecurityProvider: RepositorySecurityProvider,
     private val repositoryService: RepositoryService,
-    private val proxyService: ProxyService,
+    private val mavenService: MavenService,
     private val metadataService: MetadataService,
-    private val extensions: Extensions,
-    private val statisticsFacade: StatisticsFacade
+    private val latestService: LatestService,
 ) : Journalist, Facade {
 
-    private val ignoredExtensions = listOf(
-        // Checksums
-        ".md5",
-        ".sha1",
-        ".sha256",
-        ".sha512",
-        // Artifact descriptions
-        ".pom",
-        ".xml",
-        // Artifact extensions
-        "-sources.jar",
-        "-javadoc.jar",
-    )
-
     fun findDetails(lookupRequest: LookupRequest): Result<out FileDetails, ErrorResponse> =
-        resolve(lookupRequest) { repository, gav -> findDetails(lookupRequest.accessToken, repository, gav) }
-
-    private fun findDetails(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<out FileDetails, ErrorResponse> =
-        when {
-            repository.exists(gav) -> findLocalDetails(accessToken, repository, gav)
-            else -> findProxiedDetails(repository, gav)
-        }.peek {
-            recordResolvedRequest(Identifier(repository.name, gav.toString()), it)
-        }
-
-    private fun findLocalDetails(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<out FileDetails, ErrorResponse> =
-        repository.getFileDetails(gav)
-            .flatMap {
-                it.takeIf { it.type == DIRECTORY }
-                    ?.let { repositorySecurityProvider.canBrowseResource(accessToken, repository, gav).map { _ -> it } }
-                    ?: it.asSuccess()
-            }
-
-    private fun findProxiedDetails(repository: Repository, gav: Location): Result<out FileDetails, ErrorResponse> =
-        proxyService
-            .findRemoteDetails(repository, gav)
-            .mapErr { notFound("Cannot find $gav in local and remote repositories") }
-
-    private fun recordResolvedRequest(identifier: Identifier, fileDetails: FileDetails) {
-        if (fileDetails is DocumentInfo && ignoredExtensions.none { extension -> fileDetails.name.endsWith(extension) }) {
-            statisticsFacade.incrementResolvedRequest(IncrementResolvedRequest(identifier))
-        }
-    }
+        mavenService.findDetails(lookupRequest)
 
     fun findFile(lookupRequest: LookupRequest): Result<Pair<DocumentInfo, InputStream>, ErrorResponse> =
-        resolve(lookupRequest) { repository, gav -> findFile(lookupRequest.accessToken, repository, gav) }
+        mavenService.findFile(lookupRequest)
 
-    private fun findFile(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<Pair<DocumentInfo, InputStream>, ErrorResponse> =
-        findDetails(accessToken, repository, gav)
-            .`is`(DocumentInfo::class.java) { ErrorResponse(NOT_FOUND, "Requested file is a directory") }
-            .flatMap { details -> findInputStream(repository, gav).map { details to it } }
-            .let { extensions.emitEvent(ResolvedFileEvent(accessToken, repository, gav, it)).result }
+    fun deployFile(deployRequest: DeployRequest): Result<Unit, ErrorResponse> =
+        mavenService.deployFile(deployRequest)
 
-    private fun findInputStream(repository: Repository, gav: Location): Result<InputStream, ErrorResponse> =
-        if (repository.exists(gav)) {
-            logger.debug("Gav $gav found in ${repository.name} repository")
-            repository.getFile(gav)
-        } else {
-            logger.debug("Cannot find $gav in ${repository.name} repository, requesting proxied repositories")
-            proxyService.findRemoteFile(repository, gav)
-        }
+    fun deleteFile(deleteRequest: DeleteRequest): Result<Unit, ErrorResponse> =
+        mavenService.deleteFile(deleteRequest)
 
-    fun interface MatchedVersionHandler<T> {
-        fun onMatch(request: LookupRequest): Result<T, ErrorResponse>
-    }
-
-    fun <T> findLatestArtifact(
-        accessToken: AccessTokenIdentifier?,
-        repository: String,
-        gav: Location,
-        extension: String,
-        classifier: String?,
-        filter: String?,
-        request: MatchedVersionHandler<T>
-    ): Result<T, ErrorResponse> =
-        findLatest(VersionLookupRequest(accessToken, repository, gav, filter))
-            .map { (isSnapshot, version) ->
-                val suffix = version + (if (classifier != null) "-$classifier" else "") + "." + extension
-
-                if (isSnapshot)
-                    version to "$gav/${gav.locationBeforeLast("/", "").locationAfterLast("/", "")}-$suffix".toLocation()
-                else
-                    version to "$gav/$version/${gav.locationAfterLast("/", "")}-$suffix".toLocation()
-            }
-            .flatMap { (version, file) ->
-                request.onMatch(LookupRequest(accessToken, repository, file))
-                    .flatMapErr {
-                        if (version.contains("-SNAPSHOT", ignoreCase = true))
-                            findLatestArtifact(
-                                accessToken = accessToken,
-                                repository = repository,
-                                gav = "$gav/$version".toLocation(),
-                                extension = extension,
-                                classifier = classifier,
-                                filter = filter,
-                                request = request
-                            )
-                        else
-                            Result.error(it)
-                    }
-            }
-
-    private fun <T> resolve(lookupRequest: LookupRequest, block: (Repository, Location) -> Result<T, ErrorResponse>): Result<T, ErrorResponse> {
-        val (accessToken, repositoryName, gav) = lookupRequest
-        val repository = getRepository(lookupRequest.repository) ?: return notFoundError("Repository $repositoryName not found")
-
-        return canAccessResource(lookupRequest.accessToken, repository.name, gav)
-            .onError { logger.debug("Unauthorized attempt of access (token: $accessToken) to $gav from ${repository.name}") }
-            .peek { extensions.emitEvent(PreResolveEvent(accessToken, repository, gav)) }
-            .flatMap { block(repository, gav) }
-    }
-
-    fun canAccessResource(accessToken: AccessTokenIdentifier?, repository: String, gav: Location): Result<Unit, ErrorResponse> =
-        getRepository(repository)
-            ?.let { repositorySecurityProvider.canAccessResource(accessToken, it, gav) }
-            ?: notFoundError("Repository $repository not found")
-
-    fun saveMetadata(repository: String, gav: Location, metadata: Metadata): Result<Metadata, ErrorResponse> =
+    fun saveMetadata(repository: Repository, gav: Location, metadata: Metadata): Result<Metadata, ErrorResponse> =
         metadataService.saveMetadata(repository, gav, metadata)
 
-    fun findMetadata(repository: String, gav: Location): Result<Metadata, ErrorResponse> =
+    fun findMetadata(repository: Repository, gav: Location): Result<Metadata, ErrorResponse> =
         metadataService.findMetadata(repository, gav)
 
     fun findVersions(lookupRequest: VersionLookupRequest): Result<VersionsResponse, ErrorResponse> =
-        repositoryService.findRepository(lookupRequest.repository)
-            .flatMap { repositorySecurityProvider.canAccessResource(lookupRequest.accessToken, it, lookupRequest.gav).map { _ -> it } }
-            .flatMap { metadataService.findVersions(it, lookupRequest.gav, lookupRequest.filter) }
+        repositorySecurityProvider.canAccessResource(lookupRequest.accessToken, lookupRequest.repository, lookupRequest.gav)
+            .flatMap { metadataService.findVersions(lookupRequest.repository, lookupRequest.gav, lookupRequest.filter) }
 
-    fun findLatest(lookupRequest: VersionLookupRequest): Result<LatestVersionResponse, ErrorResponse> =
-        repositoryService.findRepository(lookupRequest.repository)
-            .flatMap { repositorySecurityProvider.canAccessResource(lookupRequest.accessToken, it, lookupRequest.gav).map { _ -> it } }
-            .flatMap { metadataService.findLatest(it, lookupRequest.gav, lookupRequest.filter) }
+    fun findLatestVersion(lookupRequest: VersionLookupRequest): Result<LatestVersionResponse, ErrorResponse> =
+        repositorySecurityProvider.canAccessResource(lookupRequest.accessToken, lookupRequest.repository, lookupRequest.gav)
+            .flatMap { metadataService.findLatestVersion(lookupRequest.repository, lookupRequest.gav, lookupRequest.filter) }
 
-    fun findLatestBadge(request: LatestBadgeRequest): Result<String, ErrorResponse> =
-        findLatest(VersionLookupRequest(null, request.repository, request.gav, request.filter))
-            .flatMap { BadgeGenerator.generateSvg(request.name ?: repositoryId.get(), (request.prefix ?: "") + it.version, request.color) }
+    fun <T> findLatestVersionFile(latestArtifactQueryRequest: LatestArtifactQueryRequest, handler: MatchedVersionHandler<T>): Result<T, ErrorResponse> =
+        latestService.queryLatestArtifact(
+            request = latestArtifactQueryRequest,
+            supplier = { findLatestVersion(it) },
+            handler = handler
+        )
 
-    fun deployFile(deployRequest: DeployRequest): Result<Unit, ErrorResponse> {
-        val repository = repositoryService.getRepository(deployRequest.repository) ?: return notFoundError("Repository not found")
-        val path = deployRequest.gav
+    fun createLatestBadge(lookupRequest: LatestBadgeRequest): Result<String, ErrorResponse> =
+        findLatestVersion(lookupRequest.toVersionLookupRequest())
+            .flatMap { latestService.createLatestBadge(lookupRequest, it.version) }
 
-        if (repository.redeployment.not() && path.getSimpleName().contains(METADATA_FILE).not() && repository.exists(path)) {
-            return errorResponse(BAD_REQUEST, "Redeployment is not allowed")
-        }
-
-        return repository.putFile(path, deployRequest.content).peek {
-            logger.info("DEPLOY | Artifact $path successfully deployed to ${repository.name} by ${deployRequest.by}")
-            extensions.emitEvent(DeployEvent(repository, path, deployRequest.by))
-        }
-    }
-
-    fun deleteFile(deleteRequest: DeleteRequest): Result<Unit, ErrorResponse> {
-        val repository = repositoryService.getRepository(deleteRequest.repository) ?: return notFoundError("Repository ${deleteRequest.repository} not found")
-        val path = deleteRequest.gav
-
-        if (repositorySecurityProvider.canModifyResource(deleteRequest.accessToken, repository, path).not()) {
-            return unauthorizedError("Unauthorized access request")
-        }
-
-        return repository.removeFile(path).peek {
-            logger.info("DELETE | File $path has been deleted from ${repository.name} by ${deleteRequest.by}")
-        }
-    }
+    fun canAccessResource(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<Unit, ErrorResponse> =
+        repositorySecurityProvider.canAccessResource(accessToken, repository, gav)
 
     fun findRepositories(accessToken: AccessTokenIdentifier?): DirectoryInfo =
         repositoryService.getRootDirectory(accessToken)
@@ -236,10 +92,7 @@ class MavenFacade internal constructor(
     fun getRepository(name: String) =
         repositoryService.getRepository(name)
 
-    fun getAllRepositoryNames(): Collection<String> =
-        getRepositories().map { it.name }
-
-    internal fun getRepositories(): Collection<Repository> =
+    fun getRepositories(): Collection<Repository> =
         repositoryService.getRepositories()
 
     override fun getLogger(): Logger =

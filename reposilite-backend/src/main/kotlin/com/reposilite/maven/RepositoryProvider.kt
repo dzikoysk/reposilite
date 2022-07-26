@@ -51,13 +51,10 @@ internal class RepositoryProvider(
         )
 
         return repositoriesConfiguration.asSequence()
-            .mapNotNull {
-                try {
-                    factory.createRepository(it.id, it)
-                } catch (exception: Exception) {
-                    failureFacade.throwException("Cannot load ${it.id} repository", exception)
-                    null
-                }
+            .mapNotNull { configuration ->
+                runCatching { factory.createRepository(configuration.id, configuration) }
+                    .onFailure { failureFacade.throwException("Cannot load ${configuration.id} repository", it) }
+                    .getOrNull()
             }
             .associateBy { it.name }
     }

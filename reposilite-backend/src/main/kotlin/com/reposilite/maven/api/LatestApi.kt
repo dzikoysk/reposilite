@@ -17,41 +17,53 @@
 package com.reposilite.maven.api
 
 import com.reposilite.maven.Repository
-import com.reposilite.plugin.api.Event
-import com.reposilite.storage.api.DocumentInfo
 import com.reposilite.storage.api.Location
 import com.reposilite.token.AccessTokenIdentifier
-import com.reposilite.web.http.ErrorResponse
-import panda.std.Result
-import java.io.InputStream
 
-data class LookupRequest(
-    val accessToken: AccessTokenIdentifier?,
-    val repository: String,
-    val gav: Location,
-)
-
-data class VersionLookupRequest(
-    val accessToken: AccessTokenIdentifier?,
-    val repository: Repository,
-    val gav: Location,
-    val filter: String? = null
-)
-
-data class VersionsResponse(
+data class LatestVersionResponse(
     val isSnapshot: Boolean,
-    val versions: List<String>
+    val version: String,
 )
 
-class PreResolveEvent(
+data class LatestArtifactQueryRequest(
     val accessToken: AccessTokenIdentifier?,
     val repository: Repository,
-    val gav: Location
-) : Event
+    val query: LatestArtifactQuery
+) {
 
-class ResolvedFileEvent(
+    fun toVersionLookupRequest(): VersionLookupRequest =
+        VersionLookupRequest(
+            accessToken = accessToken,
+            repository = repository,
+            gav = query.gav,
+            filter = query.filter
+        )
+
+}
+
+data class LatestArtifactQuery(
+    val gav: Location,
+    val extension: String,
+    val classifier: String?,
+    val filter: String?,
+)
+
+data class LatestBadgeRequest(
     val accessToken: AccessTokenIdentifier?,
     val repository: Repository,
     val gav: Location,
-    var result: Result<Pair< DocumentInfo, InputStream>, ErrorResponse>
-) : Event
+    val name: String? = null,
+    val color: String? = null,
+    val prefix: String? = null,
+    val filter: String? = null
+) {
+
+    fun toVersionLookupRequest(): VersionLookupRequest =
+        VersionLookupRequest(
+            accessToken = accessToken,
+            repository = repository,
+            gav = gav,
+            filter = filter
+        )
+
+}

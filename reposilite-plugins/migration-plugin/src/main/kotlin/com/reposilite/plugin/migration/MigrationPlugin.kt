@@ -31,7 +31,7 @@ class MigrationPlugin : ReposilitePlugin() {
 
         migrateTokens(
             workingDirectory = workingDirectory,
-            repositories = mavenFacade.getAllRepositoryNames()
+            repositories = mavenFacade.getRepositories().map { it.name }
         )
 
         return null

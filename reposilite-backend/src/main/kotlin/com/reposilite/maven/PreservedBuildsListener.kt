@@ -32,7 +32,7 @@ internal class PreservedBuildsListener(private val mavenFacade: MavenFacade) : E
 
         val artifactDirectory = gav.locationBeforeLast("/")
 
-        mavenFacade.findMetadata(repository.name, artifactDirectory)
+        mavenFacade.findMetadata(repository, artifactDirectory)
             .merge(repository.getFiles(artifactDirectory)) { metadata, files -> metadata to files }
             .peek { (metadata, files) ->
                 val snapshotToPreserve = metadata.versioning?.snapshot?.timestamp ?: return@peek

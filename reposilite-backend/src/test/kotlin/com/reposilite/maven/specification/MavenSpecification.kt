@@ -18,9 +18,12 @@ package com.reposilite.maven.specification
 
 import com.reposilite.auth.api.Credentials
 import com.reposilite.journalist.backend.InMemoryLogger
+import com.reposilite.maven.LatestService
 import com.reposilite.maven.MavenFacade
+import com.reposilite.maven.MavenService
 import com.reposilite.maven.MetadataService
 import com.reposilite.maven.ProxyService
+import com.reposilite.maven.Repository
 import com.reposilite.maven.RepositoryProvider
 import com.reposilite.maven.RepositorySecurityProvider
 import com.reposilite.maven.RepositoryService
@@ -126,21 +129,31 @@ internal abstract class MavenSpecification {
 
         this.mavenFacade = MavenFacade(
             journalist = logger,
-            repositoryId = reference("repository-id"),
             repositorySecurityProvider = securityProvider,
             repositoryService = RepositoryService(logger, repositoryProvider, securityProvider),
-            proxyService = ProxyService(logger),
-            metadataService = MetadataService(repositoryService),
-            extensions = extensions,
-            statisticsFacade = StatisticsFacade(logger, DailyDateIntervalProvider.toReference(), InMemoryStatisticsRepository())
+            mavenService = MavenService(
+                journalist = logger,
+                repositoryService = repositoryService,
+                repositorySecurityProvider = securityProvider,
+                proxyService = ProxyService(logger),
+                statisticsFacade = StatisticsFacade(logger, DailyDateIntervalProvider.toReference(), InMemoryStatisticsRepository()),
+                extensions = extensions
+            ),
+            metadataService = MetadataService(),
+            latestService = LatestService(
+                repositoryId = reference("repository-id")
+            )
         )
     }
 
-    protected data class FileSpec(
+    protected inner class FileSpec(
         val repository: String,
         val gav: String,
         val content: String
     ) {
+
+        fun repository(): Repository =
+            mavenFacade.getRepository(repository)!!
 
         fun toLookupRequest(authentication: AccessTokenIdentifier?): LookupRequest =
             LookupRequest(authentication, repository, gav.toLocation())
@@ -176,11 +189,15 @@ internal abstract class MavenSpecification {
     private fun String.isAllowed(): Boolean =
         this.endsWith("/allow")
 
-    protected fun useMetadata(repository: String, gav: String, versioning: List<String>, filter: String? = null): Quad<String, Location, Metadata, String> =
+    protected fun useMetadata(repository: String, gav: String, versioning: List<String>, filter: String? = null): Quad<Repository, Location, Metadata, String> =
         Quad(
-            repository,
+            mavenFacade.getRepository(repository),
             gav.toLocation(),
-            mavenFacade.saveMetadata(repository, gav.toLocation(), Metadata(versioning = Versioning(_versions = versioning))).get(),
+            mavenFacade.saveMetadata(
+                repository = mavenFacade.getRepository(repository)!!,
+                gav = gav.toLocation(),
+                metadata = Metadata(versioning = Versioning(_versions = versioning))
+            ).get(),
             filter
         )
 

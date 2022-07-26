@@ -22,9 +22,7 @@ import com.reposilite.maven.api.DeleteRequest
 import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.shared.extensions.resultAttachment
-import com.reposilite.storage.api.toLocation
 import com.reposilite.web.api.ReposiliteRoute
-import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.routing.RouteMethod.DELETE
 import com.reposilite.web.routing.RouteMethod.GET
 import com.reposilite.web.routing.RouteMethod.HEAD
@@ -38,10 +36,10 @@ import io.javalin.openapi.OpenApiParam
 import io.javalin.openapi.OpenApiResponse
 
 internal class MavenEndpoints(
-    private val mavenFacade: MavenFacade,
+    mavenFacade: MavenFacade,
     private val frontendFacade: FrontendFacade,
     private val compressionStrategy: String
-) : ReposiliteRoutes() {
+) : MavenRoutes(mavenFacade) {
 
     @OpenApi(
         path = "/{repository}/{gav}",
@@ -60,8 +58,9 @@ internal class MavenEndpoints(
     )
     private val findFile = ReposiliteRoute<Unit>("/{repository}/<gav>", HEAD, GET) {
         accessed {
-            LookupRequest(this?.identifier, requireParameter("repository"), requireParameter("gav").toLocation()).let { request ->
-                mavenFacade.findFile(request)
+            requireGav { gav ->
+                LookupRequest(this?.identifier, requireParameter("repository"), gav)
+                    .let { request -> mavenFacade.findFile(request) }
                     .peek { (details, file) -> ctx.resultAttachment(details.name, details.contentType, details.contentLength, compressionStrategy, file) }
                     .onError { ctx.status(it.status).html(frontendFacade.createNotFoundPage(uri, it.message)) }
             }
@@ -86,8 +85,14 @@ internal class MavenEndpoints(
     )
     private val deployFile = ReposiliteRoute<Unit>("/{repository}/<gav>", POST, PUT) {
         authorized {
-            response = mavenFacade.deployFile(DeployRequest(requireParameter("repository"), requireParameter("gav").toLocation(), getSessionIdentifier(), ctx.bodyAsInputStream()))
-                .onError { logger.debug("Cannot deploy artifact due to: ${it.message}") }
+            requireGav { gav ->
+                requireRepository { repository ->
+                    response = DeployRequest(repository, gav, getSessionIdentifier(), ctx.bodyAsInputStream())
+                        .let { request -> mavenFacade.deployFile(request) }
+                        .onError { error -> logger.debug("Cannot deploy artifact due to: ${error.message}") }
+                }
+            }
+
         }
     }
 
@@ -103,14 +108,11 @@ internal class MavenEndpoints(
     )
     private val deleteFile = ReposiliteRoute<Unit>("/{repository}/<gav>", DELETE) {
         authorized {
-            response = mavenFacade.deleteFile(
-                DeleteRequest(
-                    accessToken = this.identifier,
-                    repository = requireParameter("repository"),
-                    gav = requireParameter("gav").toLocation(),
-                    by = getSessionIdentifier()
-                )
-            )
+            requireGav { gav ->
+                requireRepository { repository ->
+                    response = mavenFacade.deleteFile(DeleteRequest(this.identifier, repository, gav, getSessionIdentifier()))
+                }
+            }
         }
     }
 
