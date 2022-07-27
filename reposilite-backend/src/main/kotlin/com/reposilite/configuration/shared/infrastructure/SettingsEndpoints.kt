@@ -17,7 +17,7 @@
 package com.reposilite.configuration.shared.infrastructure
 
 import com.reposilite.configuration.shared.SharedConfigurationFacade
-import com.reposilite.configuration.shared.SharedSettings
+import com.reposilite.configuration.shared.api.SharedSettings
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.http.ErrorResponse
@@ -46,7 +46,7 @@ internal class SettingsEndpoints(private val sharedConfigurationFacade: SharedCo
     )
     private val listConfigurations = ReposiliteRoute<Collection<String>>("/api/settings/domains", GET) {
         managerOnly {
-            response = sharedConfigurationFacade.names().asSuccess()
+            response = sharedConfigurationFacade.getDomainNames().asSuccess()
         }
     }
 

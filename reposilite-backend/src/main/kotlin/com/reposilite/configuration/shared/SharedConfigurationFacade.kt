@@ -2,6 +2,7 @@ package com.reposilite.configuration.shared
 
 import com.github.victools.jsonschema.generator.SchemaGenerator
 import com.reposilite.ReposiliteObjectMapper.DEFAULT_OBJECT_MAPPER
+import com.reposilite.configuration.shared.api.SharedSettings
 import com.reposilite.journalist.Journalist
 import com.reposilite.plugin.api.Facade
 import com.reposilite.status.FailureFacade
@@ -40,13 +41,16 @@ class SharedConfigurationFacade(
             configHandlers[it.name] = it
         }
 
-    class SharedSettingsUpdateException(
+    open class SharedSettingsUpdateException(
         val errors: Collection<Pair<SharedSettingsReference<*>, Exception>>
     ) : IllegalStateException("Cannot load shared configuration from file (${errors.size} errors):\n${errors.joinToString(System.lineSeparator())}")
 
+    fun fetchConfiguration(): String =
+        sharedConfigurationProvider.fetchConfiguration()
+
     internal fun loadSharedSettingsFromString(content: String): Result<Unit, SharedSettingsUpdateException> {
         val updateResult = Result.attempt { DEFAULT_OBJECT_MAPPER.readTree(content) }
-            .map { node -> names().filter { node.has(it) }.associateWith { node.get(it) } }
+            .map { node -> getDomainNames().filter { node.has(it) }.associateWith { node.get(it) } }
             .orElseGet { emptyMap() }
             .mapKeys { (name) -> getSettingsReference<SharedSettings>(name)!! }
             .mapValues { (ref, obj) -> DEFAULT_OBJECT_MAPPER.readValue(obj.toString(), ref.type.java) }
@@ -70,7 +74,7 @@ class SharedConfigurationFacade(
         return failures
             .map { (ref, result) -> ref to result.error }
             .takeIf { it.isNotEmpty() }
-            ?.let { SharedSettingsUpdateException(it).asError() }
+            ?.let { SharedSettingsUpdateException(errors = it).asError() }
             ?: ok()
     }
 
@@ -81,7 +85,7 @@ class SharedConfigurationFacade(
             ?.peek { sharedConfigurationProvider.updateConfiguration(renderConfiguration()) }
 
     private fun renderConfiguration(): String =
-        names()
+        getDomainNames()
             .associateWith { getSettingsReference<SharedSettings>(it)!!.get() }
             .let { DEFAULT_OBJECT_MAPPER.writeValueAsString(it) }
 
@@ -96,7 +100,16 @@ class SharedConfigurationFacade(
     fun <S : SharedSettings> getSettingsReference(name: String): SharedSettingsReference<S>? =
         configHandlers[name] as? SharedSettingsReference<S>
 
-    fun names(): Collection<String> =
+    fun getDomainNames(): Collection<String> =
         configHandlers.keys
+
+    fun isUpdateRequired(): Boolean =
+        sharedConfigurationProvider.isUpdateRequired()
+
+    fun isMutable(): Boolean =
+        sharedConfigurationProvider.isMutable()
+
+    fun getProviderName(): String =
+        sharedConfigurationProvider.name()
 
 }

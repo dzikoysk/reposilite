@@ -5,7 +5,7 @@ import com.reposilite.ReposiliteObjectMapper
 import com.reposilite.ReposiliteParameters
 import com.reposilite.configuration.local.LocalConfiguration
 import com.reposilite.configuration.local.infrastructure.LOCAL_CONFIGURATION_FILE
-import com.reposilite.configuration.shared.SharedSettings
+import com.reposilite.configuration.shared.api.SharedSettings
 import com.reposilite.configuration.shared.infrastructure.SHARED_CONFIGURATION_FILE
 import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposilitePlugin

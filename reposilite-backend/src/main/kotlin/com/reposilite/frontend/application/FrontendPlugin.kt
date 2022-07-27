@@ -51,11 +51,11 @@ internal class FrontendPlugin : ReposilitePlugin() {
         val sharedConfigurationFacade = facade<SharedConfigurationFacade>()
         val frontendSettings = sharedConfigurationFacade.getDomainSettings<FrontendSettings>()
 
-        val frontendFacade = FrontendFacade(
+        val frontendFacade = FrontendComponents(
             cacheContent = localConfiguration.cacheContent,
             basePath = localConfiguration.basePath,
             frontendSettings = frontendSettings
-        )
+        ).frontendFacade()
 
         event { event: ReposiliteInitializeEvent ->
             val staticDirectory = staticDirectory(event.reposilite)
@@ -63,29 +63,21 @@ internal class FrontendPlugin : ReposilitePlugin() {
             staticDirectory
                 .takeUnless { it.exists() }
                 ?.also { Files.createDirectory(it) }
-                ?.also { directory ->
-                    Reposilite::class.java.getResourceAsStream("/$STATIC_DIRECTORY/$INDEX")?.use {
-                        Files.copy(it, directory.resolve(INDEX))
-                    }
-                }
+                ?.also { copyResourceTo(INDEX, it.resolve(INDEX)) }
 
             staticDirectory.resolve(FAVICON)
                 .takeUnless { it.exists() }
-                ?.also { file ->
-                    Reposilite::class.java.getResourceAsStream("/$STATIC_DIRECTORY/$FAVICON")?.use { content ->
-                        Files.copy(content, file)
-                    }
-                }
+                ?.also { copyResourceTo(FAVICON, it) }
         }
 
-        event { event: RoutingSetupEvent -> event.registerRoutes(
-            mutableSetOf<ReposiliteRoutes>().also { routes ->
-                if (localConfiguration.defaultFrontend.get()) {
-                    routes.add(ResourcesFrontendHandler(frontendFacade, FRONTEND_DIRECTORY))
-                }
-                routes.add(CustomFrontendHandler(frontendFacade, staticDirectory(event.reposilite)))
+        event { event: RoutingSetupEvent ->
+            val routes = mutableSetOf<ReposiliteRoutes>()
+            if (localConfiguration.defaultFrontend.get()) {
+                routes.add(ResourcesFrontendHandler(frontendFacade, FRONTEND_DIRECTORY))
             }
-        ) }
+            routes.add(CustomFrontendHandler(frontendFacade, staticDirectory(event.reposilite)))
+            event.registerRoutes(routes)
+        }
 
         event { event: HttpServerInitializationEvent ->
             event.javalin.exception(NotFoundResponse::class.java, NotFoundHandler(frontendFacade))
@@ -93,6 +85,12 @@ internal class FrontendPlugin : ReposilitePlugin() {
         }
 
         return frontendFacade
+    }
+
+    private fun copyResourceTo(file: String, to: Path) {
+        Reposilite::class.java.getResourceAsStream("/$STATIC_DIRECTORY/$file")?.use {
+            Files.copy(it, to)
+        }
     }
 
     private fun staticDirectory(reposilite: Reposilite): Path =

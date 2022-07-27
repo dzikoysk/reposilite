@@ -27,7 +27,7 @@ import com.reposilite.web.api.HttpServerInitializationEvent
 internal class FailurePlugin : ReposilitePlugin() {
 
     override fun initialize(): FailureFacade {
-        val failureFacade = FailureFacade(this)
+        val failureFacade = FailureComponents(this).failureFacade()
 
         event { event: HttpServerInitializationEvent ->
             event.javalin.exception(Exception::class.java, FailureHandler(failureFacade))

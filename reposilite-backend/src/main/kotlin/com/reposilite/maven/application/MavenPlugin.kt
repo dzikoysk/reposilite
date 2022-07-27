@@ -44,7 +44,7 @@ internal class MavenPlugin : ReposilitePlugin() {
         val sharedConfigurationFacade = facade<SharedConfigurationFacade>()
 
         val mavenFacade =
-            MavenConfiguration(
+            MavenComponents(
                 workingDirectory = parameters().workingDirectory,
                 journalist = this,
                 extensions = extensions(),

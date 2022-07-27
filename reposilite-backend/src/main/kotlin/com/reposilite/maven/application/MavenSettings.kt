@@ -1,9 +1,9 @@
 package com.reposilite.maven.application
 
 import com.reposilite.auth.api.Credentials
-import com.reposilite.configuration.shared.Doc
-import com.reposilite.configuration.shared.Min
-import com.reposilite.configuration.shared.SharedSettings
+import com.reposilite.configuration.shared.api.Doc
+import com.reposilite.configuration.shared.api.Min
+import com.reposilite.configuration.shared.api.SharedSettings
 import com.reposilite.maven.RepositoryVisibility
 import com.reposilite.maven.RepositoryVisibility.PRIVATE
 import com.reposilite.maven.RepositoryVisibility.PUBLIC

@@ -21,7 +21,7 @@ import com.reposilite.statistics.api.ResolvedEntry
 import java.time.LocalDate
 import kotlin.Int.Companion.MAX_VALUE
 
-internal interface StatisticsRepository {
+interface StatisticsRepository {
 
     fun incrementResolvedRequests(requests: Map<Identifier, Long>, date: LocalDate)
 

@@ -15,10 +15,7 @@
  */
 package com.reposilite.console.application
 
-import com.reposilite.Reposilite
-import com.reposilite.auth.AuthenticationFacade
-import com.reposilite.console.CommandExecutor
-import com.reposilite.console.ConsoleFacade
+import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.console.HelpCommand
 import com.reposilite.console.LevelCommand
 import com.reposilite.console.StopCommand
@@ -33,9 +30,8 @@ import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.api.ReposiliteStartedEvent
 import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
-import com.reposilite.configuration.shared.SharedConfigurationFacade
-import com.reposilite.status.FailureFacade
-import com.reposilite.token.AccessTokenFacade
+import com.reposilite.plugin.parameters
+import com.reposilite.plugin.reposilite
 import com.reposilite.web.api.HttpServerInitializationEvent
 import com.reposilite.web.api.RoutingSetupEvent
 import com.reposilite.web.application.WebSettings
@@ -44,26 +40,20 @@ import com.reposilite.web.application.WebSettings
 internal class ConsolePlugin : ReposilitePlugin() {
 
     override fun initialize(): Facade {
-        val reposilite = facade<Reposilite>()
         val sharedConfigurationFacade = facade<SharedConfigurationFacade>()
-        val failureFacade = facade<FailureFacade>()
-        val accessTokenFacade = facade<AccessTokenFacade>()
-        val authenticationFacade = facade<AuthenticationFacade>()
-
-        val commandExecutor = CommandExecutor(this, failureFacade, System.`in`)
-        val consoleFacade = ConsoleFacade(this, commandExecutor)
+        val consoleFacade = ConsoleComponents(this, facade()).consoleFacade()
 
         event { _: ReposiliteInitializeEvent ->
             consoleFacade.registerCommand(HelpCommand(consoleFacade))
-            consoleFacade.registerCommand(LevelCommand(reposilite.journalist))
-            consoleFacade.registerCommand(StopCommand(reposilite))
+            consoleFacade.registerCommand(LevelCommand(reposilite().journalist))
+            consoleFacade.registerCommand(StopCommand(reposilite()))
 
             val setup = extensions().emitEvent(CommandsSetupEvent())
             setup.getCommands().forEach { consoleFacade.registerCommand(it) }
 
             // disable console daemon in tests due to issues with coverage and interrupt method call
             // https://github.com/jacoco/jacoco/issues/1066
-            if (!reposilite.parameters.testEnv) {
+            if (!parameters().testEnv) {
                 consoleFacade.commandExecutor.hook()
             }
         }
@@ -76,18 +66,18 @@ internal class ConsolePlugin : ReposilitePlugin() {
             event.javalin.ws(
                 "/api/console/sock",
                 CliEndpoint(
-                    reposilite.journalist,
-                    accessTokenFacade,
-                    authenticationFacade,
-                    consoleFacade,
-                    sharedConfigurationFacade.getDomainSettings<WebSettings>().computed { it.forwardedIp }
+                    journalist = reposilite().journalist,
+                    accessTokenFacade = facade(),
+                    authenticationFacade = facade(),
+                    consoleFacade = consoleFacade,
+                    forwardedIp = sharedConfigurationFacade.getDomainSettings<WebSettings>().computed { it.forwardedIp }
                 )
             )
         }
 
-        if (reposilite.parameters.testEnv.not()) {
+        if (!parameters().testEnv) {
             event { _: ReposiliteStartedEvent ->
-                reposilite.ioService.execute {
+                reposilite().ioService.execute {
                     consoleFacade.executeCommand("help")
                     logger.info("")
                     logger.info("Collecting status metrics...")

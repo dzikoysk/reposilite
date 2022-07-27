@@ -16,9 +16,6 @@
 
 package com.reposilite.auth.application
 
-import com.reposilite.auth.AuthenticationFacade
-import com.reposilite.auth.BasicAuthenticator
-import com.reposilite.auth.LdapAuthenticator
 import com.reposilite.auth.infrastructure.AuthenticationEndpoint
 import com.reposilite.auth.infrastructure.PostAuthHandler
 import com.reposilite.configuration.shared.SharedConfigurationFacade
@@ -27,33 +24,21 @@ import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
-import com.reposilite.status.FailureFacade
-import com.reposilite.token.AccessTokenFacade
 import com.reposilite.web.api.RoutingSetupEvent
-import panda.std.reactive.Reference.Dependencies.dependencies
-import panda.std.reactive.Reference.computed
 
 @Plugin(name = "authentication", dependencies = ["failure", "shared-configuration", "access-token"], settings = AuthenticationSettings::class)
-internal class AuthenticationPlugin : ReposilitePlugin() {
+class AuthenticationPlugin : ReposilitePlugin() {
 
     override fun initialize(): Facade {
-        val failureFacade = facade<FailureFacade>()
-        val accessTokenFacade = facade<AccessTokenFacade>()
         val sharedConfigurationFacade = facade<SharedConfigurationFacade>()
-        val authenticationSettings = sharedConfigurationFacade.getDomainSettings<AuthenticationSettings>()
 
-        val authenticationFacade = AuthenticationFacade(
-            journalist = this,
-            authenticators = listOf(
-                BasicAuthenticator(accessTokenFacade),
-                LdapAuthenticator(
-                    ldapSettings = computed(dependencies(authenticationSettings)) { authenticationSettings.map { it.ldap } },
-                    accessTokenFacade = accessTokenFacade,
-                    failureFacade = failureFacade
-                )
-            ),
-            accessTokenFacade = accessTokenFacade
-        )
+        val authenticationFacade =
+            AuthenticationComponents(
+                journalist = this,
+                accessTokenFacade = facade(),
+                failureFacade = facade(),
+                authenticationSettings = sharedConfigurationFacade.getDomainSettings()
+            ).authenticationFacade()
 
         event { event: RoutingSetupEvent ->
             event.registerRoutes(AuthenticationEndpoint(authenticationFacade))

@@ -25,7 +25,7 @@ import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.Metadata
 import com.reposilite.maven.api.Versioning
 import com.reposilite.maven.application.MavenSettings
-import com.reposilite.maven.application.MavenConfiguration
+import com.reposilite.maven.application.MavenComponents
 import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.plugin.Extensions
 import com.reposilite.shared.http.FakeRemoteClientProvider
@@ -110,7 +110,7 @@ internal abstract class MavenSpecification {
             }
         )
 
-        this.mavenFacade = MavenConfiguration(
+        this.mavenFacade = MavenComponents(
             workingDirectory = workingDirectory.toPath(),
             journalist = logger,
             extensions = extensions,

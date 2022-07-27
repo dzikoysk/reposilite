@@ -1,7 +1,7 @@
 package com.reposilite.web.application
 
-import com.reposilite.configuration.shared.Doc
-import com.reposilite.configuration.shared.SharedSettings
+import com.reposilite.configuration.shared.api.Doc
+import com.reposilite.configuration.shared.api.SharedSettings
 
 @Doc(title = "Web", description = "General web settings")
 data class WebSettings(

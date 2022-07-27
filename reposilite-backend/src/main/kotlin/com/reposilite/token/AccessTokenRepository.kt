@@ -16,7 +16,7 @@
 
 package com.reposilite.token
 
-internal interface AccessTokenRepository {
+interface AccessTokenRepository {
 
     fun saveAccessToken(accessToken: AccessToken): AccessToken
 

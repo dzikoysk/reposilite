@@ -16,16 +16,15 @@
 
 package com.reposilite.token.application
 
-import com.reposilite.Reposilite
 import com.reposilite.console.api.CommandsSetupEvent
 import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposiliteInitializeEvent
 import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
-import com.reposilite.plugin.facade
+import com.reposilite.plugin.parameters
+import com.reposilite.plugin.reposilite
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.AccessTokenPermission.MANAGER
-import com.reposilite.token.ExportService
 import com.reposilite.token.ExportTokensCommand
 import com.reposilite.token.ImportTokensCommand
 import com.reposilite.token.RouteAdd
@@ -33,10 +32,8 @@ import com.reposilite.token.RouteRemove
 import com.reposilite.token.infrastructure.AccessTokenApiEndpoints
 import com.reposilite.token.infrastructure.ChModCommand
 import com.reposilite.token.infrastructure.ChNameCommand
-import com.reposilite.token.infrastructure.InMemoryAccessTokenRepository
 import com.reposilite.token.infrastructure.KeygenCommand
 import com.reposilite.token.infrastructure.RevokeCommand
-import com.reposilite.token.infrastructure.SqlAccessTokenRepository
 import com.reposilite.token.infrastructure.TokensCommand
 import com.reposilite.web.api.RoutingSetupEvent
 
@@ -49,17 +46,12 @@ internal class AccessTokenPlugin : ReposilitePlugin() {
     }
 
     override fun initialize(): AccessTokenFacade {
-        val reposilite = facade<Reposilite>()
-        val parameters = reposilite.parameters
-
-        val accessTokenFacade = AccessTokenFacade(
+        val accessTokenFacade = AccessTokenComponents(
             journalist = this,
-            temporaryRepository = InMemoryAccessTokenRepository(),
-            persistentRepository = SqlAccessTokenRepository(reposilite.database),
-            exportService = ExportService()
-        )
+            database = reposilite().database
+        ).accessTokenFacade()
 
-        parameters.tokens.forEach {
+        parameters().tokens.forEach {
             val (token) = accessTokenFacade.createAccessToken(it)
             accessTokenFacade.addPermission(token.identifier, MANAGER)
         }
@@ -74,7 +66,7 @@ internal class AccessTokenPlugin : ReposilitePlugin() {
             event.registerCommand(RouteAdd(accessTokenFacade))
             event.registerCommand(RouteRemove(accessTokenFacade))
 
-            val workingDirectory = parameters.workingDirectory
+            val workingDirectory = parameters().workingDirectory
             event.registerCommand(ExportTokensCommand(workingDirectory, accessTokenFacade))
             event.registerCommand(ImportTokensCommand(workingDirectory, accessTokenFacade))
         }

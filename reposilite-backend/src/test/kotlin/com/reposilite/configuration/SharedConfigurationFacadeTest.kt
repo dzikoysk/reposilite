@@ -16,8 +16,8 @@
 
 package com.reposilite.configuration
 
-import com.reposilite.configuration.shared.Doc
-import com.reposilite.configuration.shared.SharedSettings
+import com.reposilite.configuration.shared.api.Doc
+import com.reposilite.configuration.shared.api.SharedSettings
 import com.reposilite.configuration.specification.SharedConfigurationSpecification
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test

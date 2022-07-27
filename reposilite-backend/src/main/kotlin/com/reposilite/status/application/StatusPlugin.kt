@@ -16,7 +16,6 @@
 
 package com.reposilite.status.application
 
-import com.reposilite.Reposilite
 import com.reposilite.console.ConsoleFacade
 import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposiliteInitializeEvent
@@ -24,8 +23,9 @@ import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.api.ReposiliteStartedEvent
 import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
+import com.reposilite.plugin.parameters
+import com.reposilite.plugin.reposilite
 import com.reposilite.shared.extensions.TimeUtils
-import com.reposilite.status.FailureFacade
 import com.reposilite.status.FailuresCommand
 import com.reposilite.status.StatusCommand
 import com.reposilite.status.StatusFacade
@@ -41,21 +41,20 @@ internal class StatusPlugin : ReposilitePlugin() {
     private val remoteVersionEndpoint = "https://maven.reposilite.com/api/maven/latest/version/releases/com/reposilite/reposilite?type=raw"
 
     override fun initialize(): StatusFacade {
-        val reposilite = facade<Reposilite>()
-        val consoleFacade = facade<ConsoleFacade>()
-        val failureFacade = facade<FailureFacade>()
         val webServer = Completable<HttpServer>()
 
-        val statusFacade = StatusFacade(
-            testEnv = reposilite.parameters.testEnv,
-            status = { if (webServer.isReady) webServer.get().isAlive() else false },
-            remoteVersionUrl = remoteVersionEndpoint
-        )
+        val statusFacade = StatusComponents(
+            testEnv = parameters().testEnv,
+            remoteVersionEndpoint = remoteVersionEndpoint,
+            statusSupplier = { if (webServer.isReady) webServer.get().isAlive() else false }
+        ).statusFacade()
+
+        val consoleFacade = facade<ConsoleFacade>()
 
         event { _: ReposiliteInitializeEvent ->
-            webServer.complete(reposilite.webServer)
-            consoleFacade.registerCommand(FailuresCommand(failureFacade))
-            consoleFacade.registerCommand(StatusCommand(statusFacade, failureFacade))
+            webServer.complete(reposilite().webServer)
+            consoleFacade.registerCommand(FailuresCommand(facade()))
+            consoleFacade.registerCommand(StatusCommand(statusFacade, facade()))
         }
 
         event { event: RoutingSetupEvent ->

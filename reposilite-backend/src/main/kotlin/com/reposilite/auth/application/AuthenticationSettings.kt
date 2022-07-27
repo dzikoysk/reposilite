@@ -1,7 +1,7 @@
 package com.reposilite.auth.application
 
-import com.reposilite.configuration.shared.Doc
-import com.reposilite.configuration.shared.SharedSettings
+import com.reposilite.configuration.shared.api.Doc
+import com.reposilite.configuration.shared.api.SharedSettings
 import com.reposilite.token.AccessTokenType
 import com.reposilite.token.AccessTokenType.PERSISTENT
 

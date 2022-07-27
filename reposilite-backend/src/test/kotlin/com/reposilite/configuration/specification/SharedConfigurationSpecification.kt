@@ -17,11 +17,12 @@
 package com.reposilite.configuration.specification
 
 import com.reposilite.configuration.SharedConfigurationFacadeTest.TestSettings
+import com.reposilite.configuration.application.ConfigurationComponents
 import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.configuration.shared.SharedSettingsProvider
-import com.reposilite.configuration.shared.createSharedConfigurationSchemaGenerator
-import com.reposilite.configuration.shared.infrastructure.LocalSharedConfigurationProvider
+import com.reposilite.configuration.shared.application.SharedConfigurationComponents
 import com.reposilite.journalist.backend.PrintStreamLogger
+import com.reposilite.plugin.Extensions
 import com.reposilite.status.FailureFacade
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
@@ -39,12 +40,15 @@ internal abstract class SharedConfigurationSpecification {
 
     @BeforeEach
     fun prepare() {
-        this.sharedConfigurationFacade = SharedConfigurationFacade(
+        this.sharedConfigurationFacade = SharedConfigurationComponents(
             journalist = logger,
-            schemaGenerator = createSharedConfigurationSchemaGenerator(),
+            workingDirectory = workingDirectory.toPath(),
+            extensions = Extensions(logger),
+            sharedConfigurationPath = Path.of("shared.json"),
             failureFacade = FailureFacade(logger),
+            configurationFacade = ConfigurationComponents().configurationFacade()
+        ).sharedConfigurationFacade(
             sharedSettingsProvider = SharedSettingsProvider(mapOf(TestSettings::class to mutableReference(TestSettings()))),
-            sharedConfigurationProvider = LocalSharedConfigurationProvider(logger, workingDirectory.toPath(), Path.of("shared.json")) // todo: should test both providers
         )
     }
 

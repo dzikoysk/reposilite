@@ -27,11 +27,13 @@ import com.github.victools.jsonschema.generator.Option.SCHEMA_VERSION_INDICATOR
 import com.github.victools.jsonschema.generator.Option.VALUES_FROM_CONSTANT_FIELDS
 import com.github.victools.jsonschema.generator.OptionPreset
 import com.github.victools.jsonschema.generator.SchemaGenerationContext
-import com.github.victools.jsonschema.generator.SchemaGenerator
 import com.github.victools.jsonschema.generator.SchemaGeneratorConfigBuilder
 import com.github.victools.jsonschema.generator.SchemaKeyword
-import com.github.victools.jsonschema.generator.SchemaVersion.DRAFT_7
 import com.github.victools.jsonschema.generator.TypeScope
+import com.reposilite.configuration.shared.api.Doc
+import com.reposilite.configuration.shared.api.Max
+import com.reposilite.configuration.shared.api.Min
+import com.reposilite.configuration.shared.api.Range
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.findAnnotation
@@ -148,12 +150,6 @@ class SettingsModule(
         get() = this.type.erasedType.getAnnotation(Doc::class.java)
 
 }
-
-fun createStandardSchemaGenerator(settingsModule: SettingsModule): SchemaGenerator =
-    SchemaGeneratorConfigBuilder(DRAFT_7, SCHEMA_OPTION_PRESET)
-        .with(settingsModule)
-        .build()
-        .let { SchemaGenerator(it) }
 
 internal fun cleanupScheme(node: JsonNode) {
     when (node) {

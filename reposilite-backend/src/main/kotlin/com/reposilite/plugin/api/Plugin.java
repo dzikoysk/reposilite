@@ -17,7 +17,7 @@
 package com.reposilite.plugin.api;
 
 import com.reposilite.ReposilitePropertiesKt;
-import com.reposilite.configuration.shared.SharedSettings;
+import com.reposilite.configuration.shared.api.SharedSettings;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

@@ -16,7 +16,6 @@
 
 package com.reposilite.statistics.application
 
-import com.reposilite.Reposilite
 import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.console.ConsoleFacade
 import com.reposilite.plugin.api.Plugin
@@ -24,10 +23,9 @@ import com.reposilite.plugin.api.ReposiliteInitializeEvent
 import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
+import com.reposilite.plugin.reposilite
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.statistics.StatsCommand
-import com.reposilite.statistics.createDateIntervalProvider
-import com.reposilite.statistics.infrastructure.SqlStatisticsRepository
 import com.reposilite.statistics.infrastructure.StatisticsEndpoint
 import com.reposilite.web.api.RoutingSetupEvent
 import java.util.concurrent.TimeUnit.SECONDS
@@ -36,22 +34,20 @@ import java.util.concurrent.TimeUnit.SECONDS
 internal class StatisticsPlugin : ReposilitePlugin() {
 
     override fun initialize(): StatisticsFacade {
-        val reposilite = facade<Reposilite>()
-        val consoleFacade = facade<ConsoleFacade>()
         val settingsFacade = facade<SharedConfigurationFacade>()
-        val statisticsSettings = settingsFacade.getDomainSettings<StatisticsSettings>()
 
-        val statisticsFacade = StatisticsFacade(
+        val statisticsFacade = StatisticsComponents(
             journalist = this,
-            dateIntervalProvider = statisticsSettings.computed { createDateIntervalProvider(it.resolvedRequestsInterval) },
-            statisticsRepository = SqlStatisticsRepository(reposilite.database)
-        )
+            database = reposilite().database,
+            statisticsSettings = settingsFacade.getDomainSettings<StatisticsSettings>()
+        ).statisticsFacade()
 
+        val consoleFacade = facade<ConsoleFacade>()
         consoleFacade.registerCommand(StatsCommand(statisticsFacade))
 
         event { _: ReposiliteInitializeEvent ->
-            reposilite.scheduler.scheduleWithFixedDelay({
-                reposilite.ioService.execute {
+            reposilite().scheduler.scheduleWithFixedDelay({
+                reposilite().ioService.execute {
                     statisticsFacade.saveRecordsBulk()
                 }
             }, 10, 10, SECONDS)
