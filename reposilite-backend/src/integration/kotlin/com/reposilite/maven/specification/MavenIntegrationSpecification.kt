@@ -19,6 +19,7 @@ package com.reposilite.maven.specification
 import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.Metadata
+import com.reposilite.maven.api.SaveMetadataRequest
 import com.reposilite.maven.api.Versioning
 import com.reposilite.specification.ReposiliteSpecification
 import com.reposilite.storage.VersionComparator
@@ -70,9 +71,11 @@ internal abstract class MavenIntegrationSpecification : ReposiliteSpecification(
         val mavenFacade = useFacade<MavenFacade>()
 
         return repository to mavenFacade.saveMetadata(
-            repository = mavenFacade.getRepository(repository)!!,
-            gav = "$groupId.$artifactId".replace(".", "/").toLocation(),
-            metadata = metadata
+            SaveMetadataRequest(
+                repository = mavenFacade.getRepository(repository)!!,
+                gav = "$groupId.$artifactId".replace(".", "/").toLocation(),
+                metadata = metadata
+            )
         ).get()
     }
 

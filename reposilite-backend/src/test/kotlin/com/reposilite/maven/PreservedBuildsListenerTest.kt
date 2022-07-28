@@ -19,6 +19,7 @@ package com.reposilite.maven
 import com.reposilite.assertCollectionsEquals
 import com.reposilite.maven.api.DeployEvent
 import com.reposilite.maven.api.Metadata
+import com.reposilite.maven.api.SaveMetadataRequest
 import com.reposilite.maven.api.Snapshot
 import com.reposilite.maven.api.SnapshotVersion
 import com.reposilite.maven.api.Versioning
@@ -58,14 +59,18 @@ internal class PreservedBuildsListenerTest : MavenSpecification() {
         addFileToRepository(FileSpec(repositoryName, "$prefix-20220101.213701-2.pom", "two"))
 
         // this one is currently deployed
-        mavenFacade.saveMetadata(mavenFacade.getRepository(repositoryName)!!, versionId,
-            Metadata(
-                artifactId = artifactId,
-                versioning = Versioning(
-                    snapshot = Snapshot(
-                        timestamp = newTimestamp
-                    ),
-                    _snapshotVersions = listOf(SnapshotVersion(value = "1.0.0-R0.1-$newTimestamp-3", updated = "20220101213703"))
+        mavenFacade.saveMetadata(
+            SaveMetadataRequest(
+                repository = mavenFacade.getRepository(repositoryName)!!,
+                gav = versionId,
+                metadata = Metadata(
+                    artifactId = artifactId,
+                    versioning = Versioning(
+                        snapshot = Snapshot(
+                            timestamp = newTimestamp
+                        ),
+                        _snapshotVersions = listOf(SnapshotVersion(value = "1.0.0-R0.1-$newTimestamp-3", updated = "20220101213703"))
+                    )
                 )
             )
         )

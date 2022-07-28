@@ -44,6 +44,11 @@ const createClient = (defaultName, defaultSecret) => {
       ...(credentials || defaultAuthorization()),
     })
   
+  const post = (endpoint, data, credentials) =>
+    axios.post(createURL(endpoint), data, {
+      ...(credentials || defaultAuthorization()),
+    })
+  
   const put = (endpoint, content, credentials) =>
     axios.put(createURL(endpoint), content, {
       headers: {
@@ -74,6 +79,13 @@ const createClient = (defaultName, defaultSecret) => {
       },
       deploy(gav, file) {
         return put(`/${gav}`, file)
+      },
+      generatePom(gav, groupId, artifactId, version) {
+        return post(`/api/maven/generate/pom/${gav}/${artifactId}-${version}.pom`, {
+          groupId,
+          artifactId,
+          version
+        })
       },
       delete(gav) {
         return del(`/${gav}`)

@@ -20,11 +20,13 @@ import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
 import com.reposilite.maven.api.DeleteRequest
 import com.reposilite.maven.api.DeployRequest
+import com.reposilite.maven.api.GeneratePomRequest
 import com.reposilite.maven.api.LatestArtifactQueryRequest
 import com.reposilite.maven.api.LatestBadgeRequest
 import com.reposilite.maven.api.LatestVersionResponse
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.Metadata
+import com.reposilite.maven.api.SaveMetadataRequest
 import com.reposilite.maven.api.VersionLookupRequest
 import com.reposilite.maven.api.VersionsResponse
 import com.reposilite.plugin.api.Facade
@@ -58,8 +60,11 @@ class MavenFacade internal constructor(
     fun deleteFile(deleteRequest: DeleteRequest): Result<Unit, ErrorResponse> =
         mavenService.deleteFile(deleteRequest)
 
-    fun saveMetadata(repository: Repository, gav: Location, metadata: Metadata): Result<Metadata, ErrorResponse> =
-        metadataService.saveMetadata(repository, gav, metadata)
+    fun saveMetadata(saveMetadataRequest: SaveMetadataRequest): Result<Metadata, ErrorResponse> =
+        metadataService.saveMetadata(saveMetadataRequest)
+
+    fun generatePom(generatePomRequest: GeneratePomRequest): Result<Unit, ErrorResponse> =
+        metadataService.generatePom(generatePomRequest)
 
     fun findMetadata(repository: Repository, gav: Location): Result<Metadata, ErrorResponse> =
         metadataService.findMetadata(repository, gav)

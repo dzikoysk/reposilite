@@ -17,6 +17,7 @@
 package com.reposilite.maven.infrastructure
 
 import com.reposilite.maven.MavenFacade
+import com.reposilite.maven.api.GeneratePomRequest
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.VersionLookupRequest
 import com.reposilite.maven.api.VersionsResponse
@@ -27,6 +28,7 @@ import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.routing.RouteMethod.GET
 import com.reposilite.web.routing.RouteMethod.POST
+import io.javalin.http.HttpCode.CREATED
 import io.javalin.openapi.HttpMethod
 import io.javalin.openapi.OpenApi
 import io.javalin.openapi.OpenApiContent
@@ -81,7 +83,7 @@ internal class MavenApiEndpoints(mavenFacade: MavenFacade) : MavenRoutes(mavenFa
         methods = [HttpMethod.GET],
         pathParams = [
             OpenApiParam(name = "repository", description = "Destination repository", required = true),
-            OpenApiParam(name = "gav", description = "Artifact path qualifier", required = true, allowEmptyValue = true)
+            OpenApiParam(name = "gav", description = "Artifact path qualifier", required = true)
         ],
         queryParams = [
             OpenApiParam(name = "filter", description = "Version (prefix) filter to apply", required = false),
@@ -107,14 +109,38 @@ internal class MavenApiEndpoints(mavenFacade: MavenFacade) : MavenRoutes(mavenFa
     @OpenApi(
         tags = ["Maven"],
         path = "/api/maven/generate/pom/{repository}/{gav}",
-        methods = [HttpMethod.POST]
+        methods = [HttpMethod.POST],
+        pathParams = [
+            OpenApiParam(name = "repository", description = "Destination repository", required = true),
+            OpenApiParam(name = "gav", description = "Artifact path qualifier", required = true)
+        ],
+        queryParams = [
+            OpenApiParam(name = "groupId", description = "Group identifier, e.g. com.dzikoysk"),
+            OpenApiParam(name = "artifactId", description = "Artifact identifier, e.g. reposilite"),
+            OpenApiParam(name = "version", description = "Version to generate, e.g. 3.0.0")
+        ]
     )
     private val generatePom = ReposiliteRoute<Unit>("/api/maven/generate/pom/{repository}/{gav}", POST) {
         authenticated {
-
+            requireGav { gav ->
+                requireRepository { repository ->
+                    response = mavenFacade
+                        .generatePom(
+                            GeneratePomRequest(
+                                accessToken = this.identifier,
+                                repository = repository,
+                                gav = gav,
+                                groupId = requireParameter("groupId"),
+                                artifactId = requireParameter("artifactId"),
+                                version = requireParameter("version")
+                            )
+                        )
+                        .peek { ctx.status(CREATED) }
+                }
+            }
         }
     }
 
-    override val routes = routes(findRepositories, findRepository, findInRepository, findVersions)
+    override val routes = routes(findRepositories, findRepository, findInRepository, findVersions, generatePom)
 
 }

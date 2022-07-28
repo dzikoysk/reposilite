@@ -23,9 +23,10 @@ import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.Repository
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.Metadata
+import com.reposilite.maven.api.SaveMetadataRequest
 import com.reposilite.maven.api.Versioning
-import com.reposilite.maven.application.MavenSettings
 import com.reposilite.maven.application.MavenComponents
+import com.reposilite.maven.application.MavenSettings
 import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.plugin.Extensions
 import com.reposilite.shared.http.FakeRemoteClientProvider
@@ -81,7 +82,7 @@ internal abstract class MavenSpecification {
         exportService = ExportService()
     )
 
-    protected abstract fun repositories(): List<RepositorySettings>
+    abstract fun repositories(): List<RepositorySettings>
 
     @BeforeEach
     private fun initializeFacade() {
@@ -119,7 +120,7 @@ internal abstract class MavenSpecification {
             storageFacade = StorageFacade(),
             accessTokenFacade = accessTokenFacade,
             statisticsFacade = StatisticsFacade(logger, DailyDateIntervalProvider.toReference(), InMemoryStatisticsRepository()),
-            mavenSettings =  reference(MavenSettings(
+            mavenSettings = reference(MavenSettings(
                 repositories = repositories()
             )),
             frontendSettings = reference(FrontendSettings())
@@ -174,9 +175,11 @@ internal abstract class MavenSpecification {
             mavenFacade.getRepository(repository),
             gav.toLocation(),
             mavenFacade.saveMetadata(
-                repository = mavenFacade.getRepository(repository)!!,
-                gav = gav.toLocation(),
-                metadata = Metadata(versioning = Versioning(_versions = versioning))
+                SaveMetadataRequest(
+                    repository = mavenFacade.getRepository(repository)!!,
+                    gav = gav.toLocation(),
+                    metadata = Metadata(versioning = Versioning(_versions = versioning))
+                )
             ).get(),
             filter
         )

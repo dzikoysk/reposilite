@@ -33,7 +33,7 @@ internal class LatestService(private val repositoryId: Reference<out String>) {
     fun <T> queryLatestArtifact(request: LatestArtifactQueryRequest, supplier: LatestVersionSupplier, handler: MatchedVersionHandler<T>): Result<T, ErrorResponse> =
         supplier.findLatestVersion(request.toVersionLookupRequest())
             .map { (isSnapshot, version) -> createLatestArtifactLocation(request.query, isSnapshot, version) }
-            .flatMap { (version, fileLocation) -> matchLocation(request, supplier, handler, version, fileLocation)}
+            .flatMap { (version, fileLocation) -> matchLocation(request, supplier, handler, version, fileLocation) }
 
     private fun <T> matchLocation(request: LatestArtifactQueryRequest, supplier: LatestVersionSupplier, handler: MatchedVersionHandler<T>, version: String, fileLocation: Location) =
         handler

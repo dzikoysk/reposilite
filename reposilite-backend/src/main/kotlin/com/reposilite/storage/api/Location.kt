@@ -89,6 +89,9 @@ data class Location private constructor(private val uri: String) {
     fun locationAfterLast(delimiter: String, defaultValue: String? = null): Location =
         uri.substringAfterLast(delimiter, defaultValue ?: uri).toLocation()
 
+    fun getParent(): Location =
+        uri.substringBeforeLast("/").toLocation()
+
     fun getRootName(): String =
         uri.substringBefore("/")
 

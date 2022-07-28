@@ -5,10 +5,10 @@ complexity:
   ComplexMethod:
     threshold: 15
   LongParameterList:
-    functionThreshold: 10
-    constructorThreshold: 10
+    functionThreshold: 15
+    constructorThreshold: 15
   ComplexCondition:
-    threshold: 10
+    threshold: 15
 
 formatting:
   active: true
@@ -26,6 +26,8 @@ formatting:
   SpacingAroundParens:
     active: false
   ImportOrdering:
+    active: false
+  Filename:
     active: false
 
 style:
@@ -61,6 +63,8 @@ naming:
   active: true
   ConstructorParameterNaming:
     privateParameterPattern: "[_a-z][A-Za-z0-9]*"
+  MatchingDeclarationName:
+    active: false
 
 empty-blocks:
   active: true

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watchEffect } from 'vue'
 import { createSuccessToast, createErrorToast } from '../../helpers/toast'
 import { useSession } from '../../store/session'
 import useQualifier from '../../helpers/qualifier'
@@ -10,8 +10,22 @@ const { client } = useSession()
 
 const { qualifier, refreshQualifier } = useQualifier()
 const repository = computed(() => qualifier.path.split("/")[0])
-const to = ref(qualifier.path.substring(repository.value.length + 1))
+const defaultTo = qualifier.path.substring(repository.value.length + 1)
+const to = ref(defaultTo)
 const destination = computed(() => `${repository.value}/${to.value}`)
+const customDestination = ref(false)
+
+const stubPomEnabled = ref(false)
+const artifactId = ref('')
+const groupId = ref('')
+const version = ref('')
+
+watchEffect(() => {
+    if (stubPomEnabled.value && !customDestination.value) {
+      to.value = defaultTo + '/' + version.value
+    }
+  }
+)
 
 const files = ref([])
 const isEnabled = computed(() => files.value.length > 0)
@@ -20,6 +34,11 @@ const removeFile = (file) =>
   files.value = files.value.filter(element => element !== file)
 
 const uploadFiles = () => {
+  if (stubPomEnabled.value && (artifactId.value == "" || groupId.value == "" || version.value == "")) {
+    createErrorToast(`Cannot upload files, one of artifactId/groupId/version is empty`)
+    return
+  }
+
   files.value.forEach(vueFile => 
     client.value.maven.deploy(`${destination.value}/${vueFile.name}`, vueFile.file)
       .then(() => createSuccessToast(`File ${vueFile.name} has been uploaded`))
@@ -28,6 +47,13 @@ const uploadFiles = () => {
       .catch(error => createErrorToast(`Cannot upload file ${vueFile.name} - ${error.response.status}: ${error.response.data.message}`))
       .catch(error => createErrorToast(error))
   )
+
+  if (stubPomEnabled.value) {
+    client.value.maven.generatePom(destination.value, groupId.value, artifactId.value, version.value)
+      .then(() => createSuccessToast(`Stub POM.xml file has been generated`))
+      .catch(error => createErrorToast(`Cannot generate stub POM file - ${error.response.status}: ${error.response.data.message}`))
+      .catch(error => createErrorToast(error))
+  }
 }
 </script>
 
@@ -63,17 +89,44 @@ const uploadFiles = () => {
           </div>
         </div>
       </FileUpload>
-      <div class="-mt-2 pb-2">
-        <div v-for="file in files" :key="file.name" class="pb-1 px-6 flex">
-          <span @click="removeFile(file)" class="pt-0.85">
-            <CloseIcon class="h-5 pb-1 text-purple-400" />
-          </span>
-          <span class="px-2">{{file.name}}</span>
+      <div v-if="isEnabled">
+        <div class="-mt-2 pb-2">
+          <div v-for="file in files" :key="file.name" class="pt-1 px-6 flex">
+            <span @click="removeFile(file)" class="pt-0.85">
+              <CloseIcon class="h-5 pb-1 text-purple-400" />
+            </span>
+            <span class="px-2">{{file.name}}</span>
+          </div>
+        </div>
+        <div class="px-6 pb-4">
+          <div>
+            <input type="checkbox" v-model="stubPomEnabled" class="mb-1 ml-1" />
+            <span class="pl-3" @click="stubPomEnabled = !stubPomEnabled" >Generate stub POM file</span>
+          </div>
+          <div v-if="stubPomEnabled" class="pom-form mt-2 border px-2 pb-2 bg-gray-100 rounded">
+            <div>
+              <label>Group</label>
+              <input v-model="groupId" placeholder="com.dzikoysk" required/>
+            </div>
+            <div>
+              <label>Artifact</label>
+              <input v-model="artifactId" placeholder="reposilite" required/>
+            </div>
+            <div>
+              <label>Version</label>
+              <input v-model="version" placeholder="3.0.0" required/>
+            </div>
+          </div>
         </div>
       </div>
     </div>
     <div v-if="isEnabled" class="flex">
-      <input class="flex-1 mt-2 ml-1 mr-2 rounded px-6 border-dashed border" v-model="to" />
+      <input 
+        class="flex-1 mt-2 mr-2 rounded px-6 border-dashed border"
+        v-model="to" 
+        placeholder="E.g. path/to/deploy" 
+        @change="customDestination = true"
+      />
       <button 
         @click.prevent="uploadFiles"
         class="
@@ -95,5 +148,14 @@ const uploadFiles = () => {
 }
 .file-uploads {
   display: block !important;
+}
+.pom-form div {
+  @apply flex flex-row items-center mt-2;
+}
+.pom-form label {
+  @apply w-1/6 p-1;
+}
+.pom-form input {
+  @apply flex-1 py-1 px-2 rounded;
 }
 </style>

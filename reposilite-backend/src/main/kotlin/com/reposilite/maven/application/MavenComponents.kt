@@ -52,7 +52,7 @@ internal class MavenComponents(
         ProxyService(journalist)
 
     private fun metadataService(): MetadataService =
-        MetadataService()
+        MetadataService(securityProvider())
 
     private fun latestService(): LatestService =
         LatestService(frontendSettings.computed { it.id })

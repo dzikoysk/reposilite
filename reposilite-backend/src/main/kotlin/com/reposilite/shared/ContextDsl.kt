@@ -26,6 +26,7 @@ import com.reposilite.web.http.error
 import com.reposilite.web.http.unauthorizedError
 import com.reposilite.web.http.uri
 import io.javalin.http.Context
+import io.javalin.http.HandlerType
 import panda.std.Result
 
 class ContextDsl<R>(
@@ -114,11 +115,11 @@ class ContextDsl<R>(
 
     private companion object {
         private val METHOD_PERMISSIONS = mapOf(
-            "HEAD" to RoutePermission.READ,
-            "GET" to RoutePermission.READ,
-            "PUT" to RoutePermission.WRITE,
-            "POST" to RoutePermission.WRITE,
-            "DELETE" to RoutePermission.WRITE
+            HandlerType.HEAD to RoutePermission.READ,
+            HandlerType.GET to RoutePermission.READ,
+            HandlerType.PUT to RoutePermission.WRITE,
+            HandlerType.POST to RoutePermission.WRITE,
+            HandlerType.DELETE to RoutePermission.WRITE
         )
     }
 
