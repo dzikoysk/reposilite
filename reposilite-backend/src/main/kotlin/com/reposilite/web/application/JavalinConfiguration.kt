@@ -85,7 +85,7 @@ internal object JavalinConfiguration {
         config.http.asyncTimeout = 1000L * 60 * 60 * 10 // 10min
 
         config.core.contextResolvers {
-            it.ip = { ctx -> ctx.header(webSettings.get().forwardedIp) ?: ctx.req.remoteAddr }
+            it.ip = { ctx -> ctx.header(webSettings.get().forwardedIp) ?: ctx.req().remoteAddr }
         }
 
         when (localConfiguration.compressionStrategy.get().lowercase()) {
