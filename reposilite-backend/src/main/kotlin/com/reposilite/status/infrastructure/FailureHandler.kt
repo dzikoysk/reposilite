@@ -22,7 +22,7 @@ import io.javalin.http.ExceptionHandler
 internal class FailureHandler(private val failureFacade: FailureFacade) : ExceptionHandler<Exception> {
 
     override fun handle(exception: Exception, context: Context) {
-        failureFacade.throwException(context.req.requestURI, exception)
+        failureFacade.throwException(context.req().requestURI, exception)
     }
 
 }
