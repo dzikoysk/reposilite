@@ -33,7 +33,7 @@ internal abstract class AccessTokenIntegrationSpecification : ReposiliteSpecific
     protected fun useExistingToken(name: String): SessionDetails =
         useFacade<AccessTokenFacade>().getAccessToken(name)!!
             .identifier
-            .let { useFacade<AuthenticationFacade>().geSessionDetails(it) }
+            .let { useFacade<AuthenticationFacade>().getSessionDetails(it) }
             .get()
 
     protected fun useTokenDescription(name: String, secret: String, permissions: Set<AccessTokenPermission> = emptySet()) =
