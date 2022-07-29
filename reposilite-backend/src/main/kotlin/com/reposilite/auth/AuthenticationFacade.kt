@@ -58,7 +58,7 @@ class AuthenticationFacade(
                 ?.peek { authenticationCache.put(credentials, it) }
             ?: unauthorizedError("Invalid authorization credentials")
 
-    fun geSessionDetails(identifier: AccessTokenIdentifier): Result<SessionDetails, ErrorResponse> =
+    fun getSessionDetails(identifier: AccessTokenIdentifier): Result<SessionDetails, ErrorResponse> =
         accessTokenFacade.getAccessTokenById(identifier)
             ?.let {
                 SessionDetails(

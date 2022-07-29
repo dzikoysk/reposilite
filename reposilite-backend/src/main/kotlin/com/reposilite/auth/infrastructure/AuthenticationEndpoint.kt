@@ -51,7 +51,7 @@ internal class AuthenticationEndpoint(private val authenticationFacade: Authenti
     )
     private val authInfo = ReposiliteRoute<SessionDetails>("/api/auth/me", GET) {
         response = authentication().flatMap {
-            authenticationFacade.geSessionDetails(it.identifier)
+            authenticationFacade.getSessionDetails(it.identifier)
         }
     }
 
