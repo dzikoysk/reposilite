@@ -92,7 +92,7 @@ dependencies {
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jackson")
     implementation("com.github.victools:jsonschema-generator:4.25.0")
 
-    val httpClient = "1.42.1"
+    val httpClient = "1.42.2"
     implementation("com.google.http-client:google-http-client:$httpClient")
     testImplementation("com.google.http-client:google-http-client-jackson2:$httpClient")
 
