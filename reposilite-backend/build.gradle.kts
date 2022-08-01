@@ -34,7 +34,7 @@ application {
 
 dependencies {
     implementation(project(":reposilite-frontend"))
-    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.20.0")
+    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.21.0")
 
     val kotlin = "1.7.10"
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin")
