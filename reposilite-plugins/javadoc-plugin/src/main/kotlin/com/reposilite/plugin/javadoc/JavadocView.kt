@@ -91,7 +91,7 @@ internal object JavadocView {
                         <!--<a href="#p"><h5>Download JavaDoc</h5></a> todo-->
                     </div>
                 </div>
-                <iframe id="javadoc" class="doc" src="docindex.html"></iframe>
+                <iframe id="javadoc" class="doc" src="docindex.html" sandbox="allow-scripts"></iframe>
                 <script>
                 if (!window.location.href.endsWith("/")) {
                     document.getElementById("javadoc").src = window.location.href + '/docindex.html'
