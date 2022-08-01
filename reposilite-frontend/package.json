@@ -15,7 +15,7 @@
     "@dzikoysk/vue-vanilla": "^3.0.0-beta.2",
     "@jsonforms/core": "^3.0.0-beta.2",
     "@jsonforms/vue": "^3.0.0-beta.2",
-    "@vueform/toggle": "^2.0.2",
+    "@vueform/toggle": "^2.1.1",
     "@vueuse/core": "^8.7.5",
     "@vueuse/head": "^0.7.6",
     "ansi-to-html": "^0.7.2",
@@ -50,6 +50,6 @@
     "vite": "^2.9.13",
     "vite-plugin-windicss": "^1.8.6",
     "windicss": "^3.5.6",
-    "ws": "^8.8.0"
+    "ws": "^8.8.1"
   }
 }
