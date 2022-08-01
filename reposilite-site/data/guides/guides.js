@@ -19,6 +19,14 @@ const categories = [
     ]
   },
   {
+    name: 'Migration',
+    directory: 'migration',
+    content: [
+      'reposilite-2.x',
+      'artifactory'
+    ]
+  },
+  {
     name: 'Authentication',
     directory: 'authentication',
     content: [
@@ -50,13 +58,6 @@ const categories = [
       'cloudflare',
       'systemd',
       'github'
-    ]
-  },
-  {
-    name: 'Migration',
-    directory: 'migration',
-    content: [
-      'artifactory'
     ]
   },
   {
