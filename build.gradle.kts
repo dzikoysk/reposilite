@@ -59,6 +59,10 @@ scmVersion {
         fileUpdate("reposilite-site/data/plugins/javadoc.md") { version -> "reposilite/$version" }
         commit { version -> "Release $version" }
     }
+
+    scmVersion {
+        checks.isSnapshotDependencies = false
+    }
 }
 
 allprojects {
