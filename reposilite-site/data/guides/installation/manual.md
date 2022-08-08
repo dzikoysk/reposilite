@@ -7,7 +7,7 @@ You can download standalone version of Reposilite from GitHub releases page:
 
 - [GitHub / Reposilite :: Releases](https://github.com/dzikoysk/reposilite/releases)
 
-Requirements: `System: Windows, Linux AMD/ARM`, `JVM: 8-18`, `Memory: 16MB+`
+Requirements: `System: Windows, Linux AMD/ARM`, `JVM: 11-18`, `Memory: 16MB+`
 
 Recommended memory ranges:
 
