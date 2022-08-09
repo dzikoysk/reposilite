@@ -34,9 +34,9 @@ import com.reposilite.maven.api.VersionsResponse
 import com.reposilite.storage.VersionComparator
 import com.reposilite.storage.api.Location
 import com.reposilite.web.http.ErrorResponse
+import com.reposilite.web.http.internalServer
 import com.reposilite.web.http.notFound
 import com.reposilite.web.http.unauthorizedError
-import io.javalin.http.HttpCode.INTERNAL_SERVER_ERROR
 import panda.std.Result
 import panda.std.letIf
 import panda.std.mapToUnit
@@ -59,7 +59,7 @@ internal class MetadataService(private val repositorySecurityProvider: Repositor
     fun saveMetadata(saveMetadataRequest: SaveMetadataRequest): Result<Metadata, ErrorResponse> =
         with (saveMetadataRequest) {
             Result.attempt { xml.writeValueAsBytes(metadata) }
-                .mapErr { ErrorResponse(INTERNAL_SERVER_ERROR, "Cannot parse metadata file") }
+                .mapErr { internalServer("Cannot parse metadata file") }
                 .flatMap { repository.putFile(gav.resolveMetadataFile(), it.inputStream()).map { _ -> it } }
                 .flatMap { repository.writeFileChecksums(gav.resolveMetadataFile(), it) }
                 .map { metadata }

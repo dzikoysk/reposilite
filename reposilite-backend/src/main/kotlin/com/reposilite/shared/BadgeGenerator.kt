@@ -17,8 +17,7 @@
 package com.reposilite.shared
 
 import com.reposilite.web.http.ErrorResponse
-import com.reposilite.web.http.errorResponse
-import io.javalin.http.HttpCode.BAD_REQUEST
+import com.reposilite.web.http.badRequestError
 import org.intellij.lang.annotations.Language
 import panda.std.Result
 import panda.std.asSuccess
@@ -49,7 +48,7 @@ object BadgeGenerator {
         val color = optionalColor ?: colorBlue
 
         if (!(name + value + color).matches(supportedCharacters)) {
-            return errorResponse(BAD_REQUEST, "Request contains invalid characters")
+            return badRequestError("Request contains invalid characters")
         }
 
         val padding = 11

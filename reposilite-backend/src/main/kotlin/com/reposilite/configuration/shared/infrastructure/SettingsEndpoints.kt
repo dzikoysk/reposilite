@@ -20,11 +20,10 @@ import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.configuration.shared.api.SharedSettings
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
-import com.reposilite.web.http.ErrorResponse
-import com.reposilite.web.http.errorResponse
+import com.reposilite.web.http.badRequest
+import com.reposilite.web.http.badRequestError
 import com.reposilite.web.routing.RouteMethod.GET
 import com.reposilite.web.routing.RouteMethod.PUT
-import io.javalin.http.HttpCode.BAD_REQUEST
 import io.javalin.openapi.HttpMethod
 import io.javalin.openapi.OpenApi
 import io.javalin.openapi.OpenApiContent
@@ -120,8 +119,8 @@ internal class SettingsEndpoints(private val sharedConfigurationFacade: SharedCo
                     .takeIf { it.isNotEmpty() }
                     ?.let { sharedConfigurationFacade.getSettingsReference<SharedSettings>(this)?.type }
                     ?.let { sharedConfigurationFacade.updateSharedSettings(this, ctx.bodyAsClass(it.java)) }
-                    ?.mapErr { ErrorResponse(BAD_REQUEST, it.toString()) }
-                    ?: errorResponse(BAD_REQUEST, "Body is empty")
+                    ?.mapErr { badRequest(it.toString()) }
+                    ?: badRequestError("Body is empty")
             }
         }
     }

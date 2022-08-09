@@ -1,20 +1,20 @@
 package com.reposilite.configuration
 
-import com.reposilite.specification.LocalSpecificationJunitExtension
-import com.reposilite.specification.RemoteSpecificationJunitExtension
 import com.reposilite.ReposiliteObjectMapper
 import com.reposilite.auth.application.AuthenticationSettings
 import com.reposilite.auth.application.LdapSettings
-import com.reposilite.frontend.application.FrontendSettings
-import com.reposilite.maven.application.MavenSettings
 import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.configuration.specification.SettingsIntegrationSpecification
+import com.reposilite.frontend.application.FrontendSettings
+import com.reposilite.maven.application.MavenSettings
+import com.reposilite.specification.LocalSpecificationJunitExtension
+import com.reposilite.specification.RemoteSpecificationJunitExtension
 import com.reposilite.statistics.api.ResolvedRequestsInterval.YEARLY
 import com.reposilite.statistics.application.StatisticsSettings
 import com.reposilite.web.application.WebSettings
 import com.reposilite.web.http.ErrorResponse
-import io.javalin.http.HttpCode.OK
-import io.javalin.http.HttpCode.UNAUTHORIZED
+import io.javalin.http.HttpStatus.OK
+import io.javalin.http.HttpStatus.UNAUTHORIZED
 import kong.unirest.Unirest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue

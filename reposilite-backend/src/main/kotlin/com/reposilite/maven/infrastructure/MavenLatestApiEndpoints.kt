@@ -31,17 +31,16 @@ import com.reposilite.storage.api.toLocation
 import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.http.ErrorResponse
+import com.reposilite.web.http.badRequestError
 import com.reposilite.web.http.contentDisposition
 import com.reposilite.web.routing.RouteMethod.GET
 import io.javalin.http.ContentType
-import io.javalin.http.HttpCode.BAD_REQUEST
 import io.javalin.openapi.HttpMethod
 import io.javalin.openapi.OpenApi
 import io.javalin.openapi.OpenApiContent
 import io.javalin.openapi.OpenApiParam
 import io.javalin.openapi.OpenApiResponse
 import panda.std.Result
-import panda.std.asError
 import panda.std.asSuccess
 
 internal class MavenLatestApiEndpoints(
@@ -78,7 +77,7 @@ internal class MavenLatestApiEndpoints(
                             when (val type = ctx.queryParam("type")) {
                                 "raw" -> it.version.asSuccess() // -> String
                                 "json", null -> it.asSuccess() // -> LatestVersionResponse
-                                else -> ErrorResponse(BAD_REQUEST, "Unsupported response type: $type").asError() // -> ErrorResponse
+                                else -> badRequestError("Unsupported response type: $type") // -> ErrorResponse
                             }
                         }
                 }

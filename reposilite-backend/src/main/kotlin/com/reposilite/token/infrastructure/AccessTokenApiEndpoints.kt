@@ -24,13 +24,13 @@ import com.reposilite.token.api.CreateAccessTokenResponse
 import com.reposilite.token.api.CreateAccessTokenWithNoNameRequest
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
-import com.reposilite.web.http.ErrorResponse
-import com.reposilite.web.http.errorResponse
+import com.reposilite.web.http.badRequest
 import com.reposilite.web.http.notFoundError
+import com.reposilite.web.http.toErrorResult
 import com.reposilite.web.routing.RouteMethod.DELETE
 import com.reposilite.web.routing.RouteMethod.GET
 import com.reposilite.web.routing.RouteMethod.PUT
-import io.javalin.http.HttpCode
+import io.javalin.http.HttpStatus.FORBIDDEN
 import io.javalin.http.bodyAsClass
 import io.javalin.openapi.HttpMethod
 import io.javalin.openapi.OpenApi
@@ -66,7 +66,7 @@ internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessToke
             response = accessTokenFacade.getAccessToken(requireParameter("name"))
                 ?.takeIf { isManager() || name == it.name }
                 ?.asSuccess()
-                ?: errorResponse(HttpCode.FORBIDDEN, "You must be the token owner or a manager to access this.")
+                ?: FORBIDDEN.toErrorResult("You must be the token owner or a manager to access this.")
         }
     }
 
@@ -85,7 +85,7 @@ internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessToke
     val createOrUpdateToken = ReposiliteRoute<CreateAccessTokenResponse>("/api/tokens/{name}", PUT) {
         managerOnly {
             response = panda.std.Result.attempt { ctx.bodyAsClass<CreateAccessTokenWithNoNameRequest>() }
-                .mapErr { ErrorResponse(HttpCode.BAD_REQUEST, "Failed to read body") }
+                .mapErr { badRequest("Failed to read body") }
                 .map { request ->
                     Pair(
                         accessTokenFacade.createAccessToken(CreateAccessTokenRequest(request.type, requireParameter("name"), secret = request.secret)),

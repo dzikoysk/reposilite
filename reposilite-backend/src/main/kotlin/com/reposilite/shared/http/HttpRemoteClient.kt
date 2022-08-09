@@ -31,10 +31,10 @@ import com.reposilite.storage.api.UNKNOWN_LENGTH
 import com.reposilite.storage.api.toLocation
 import com.reposilite.storage.getExtension
 import com.reposilite.web.http.ErrorResponse
-import com.reposilite.web.http.errorResponse
+import com.reposilite.web.http.badRequestError
+import com.reposilite.web.http.toErrorResult
 import io.javalin.http.ContentType
-import io.javalin.http.HttpCode.BAD_REQUEST
-import io.javalin.http.HttpCode.NOT_ACCEPTABLE
+import io.javalin.http.HttpStatus.NOT_ACCEPTABLE
 import panda.std.Result
 import panda.std.asSuccess
 import java.io.InputStream
@@ -103,11 +103,12 @@ class HttpRemoteClient(private val journalist: Journalist, proxy: Proxy?) : Remo
             logger.debug("HttpRemoteClient | $url responded with ${response.statusCode} (Content-Type: ${response.contentType})")
 
             when {
-                response.contentType == ContentType.HTML -> errorResponse(NOT_ACCEPTABLE, "Illegal file type (${response.contentType})")
-                response.isSuccessStatusCode.not() -> errorResponse(NOT_ACCEPTABLE, "Unsuccessful request (${response.statusCode})")
+                response.contentType == ContentType.HTML -> NOT_ACCEPTABLE.toErrorResult("Illegal file type (${response.contentType})")
+                response.isSuccessStatusCode.not() -> NOT_ACCEPTABLE.toErrorResult("Unsuccessful request (${response.statusCode})")
                 else -> consumer(response)
+            }.onError {
+                response.disconnect()
             }
-                .onError { response.disconnect() }
         } catch (exception: Exception) {
             createExceptionResponse(this.url.toString(), exception)
         }
@@ -121,7 +122,7 @@ class HttpRemoteClient(private val journalist: Journalist, proxy: Proxy?) : Remo
     private fun <V> createExceptionResponse(uri: String, exception: Exception): Result<V, ErrorResponse> {
         logger.debug("HttpRemoteClient | Cannot get $uri")
         logger.exception(Channel.DEBUG, exception)
-        return errorResponse(BAD_REQUEST, "An error of type ${exception.javaClass} happened: ${exception.message}")
+        return badRequestError("An error of type ${exception.javaClass} happened: ${exception.message}")
     }
 
     override fun getLogger(): Logger =

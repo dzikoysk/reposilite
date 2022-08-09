@@ -26,8 +26,9 @@ import com.reposilite.token.RoutePermission
 import com.reposilite.token.RoutePermission.READ
 import com.reposilite.token.RoutePermission.WRITE
 import com.reposilite.web.http.ErrorResponse
+import com.reposilite.web.http.toErrorResponse
 import com.reposilite.web.http.unauthorizedError
-import io.javalin.http.HttpCode
+import io.javalin.http.HttpStatus.FORBIDDEN
 import panda.std.Result
 
 internal class RepositorySecurityProvider(private val accessTokenFacade: AccessTokenFacade) {
@@ -60,7 +61,7 @@ internal class RepositorySecurityProvider(private val accessTokenFacade: AccessT
             ?.let {
                 Result.`when`(accessTokenFacade.hasPermissionTo(accessToken, "/${repository.name}/$gav", permission),
                     { },
-                    { ErrorResponse(HttpCode.FORBIDDEN, "You must be the token owner or a manager to access this.") }
+                    { FORBIDDEN.toErrorResponse("You must be the token owner or a manager to access this.") }
                 )
             }
             ?: unauthorizedError("You need to provide credentials.")

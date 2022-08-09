@@ -21,8 +21,7 @@ import com.reposilite.storage.api.DirectoryInfo
 import com.reposilite.storage.api.SimpleDirectoryInfo
 import com.reposilite.token.AccessTokenIdentifier
 import com.reposilite.web.http.ErrorResponse
-import com.reposilite.web.http.errorResponse
-import io.javalin.http.HttpCode.NOT_FOUND
+import com.reposilite.web.http.notFoundError
 import panda.std.Result
 import panda.std.asSuccess
 
@@ -35,7 +34,7 @@ internal class RepositoryService(
     fun findRepository(name: String): Result<Repository, ErrorResponse> =
         getRepository(name)
             ?.asSuccess()
-            ?: errorResponse(NOT_FOUND, "Repository $name not found")
+            ?: notFoundError("Repository $name not found")
 
     fun getRepository(name: String): Repository? =
         repositoryProvider.getRepositories()[name]

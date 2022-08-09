@@ -31,11 +31,12 @@ import com.reposilite.storage.getSimpleName
 import com.reposilite.storage.inputStream
 import com.reposilite.storage.type
 import com.reposilite.web.http.ErrorResponse
+import com.reposilite.web.http.badRequest
 import com.reposilite.web.http.notFound
+import com.reposilite.web.http.toErrorResponse
 import io.javalin.http.ContentType
 import io.javalin.http.ContentType.APPLICATION_OCTET_STREAM
-import io.javalin.http.HttpCode.BAD_REQUEST
-import io.javalin.http.HttpCode.INSUFFICIENT_STORAGE
+import io.javalin.http.HttpStatus.INSUFFICIENT_STORAGE
 import panda.std.Result
 import panda.std.asSuccess
 import java.io.File
@@ -59,7 +60,7 @@ abstract class FileSystemStorageProvider protected constructor(
     override fun putFile(location: Location, inputStream: InputStream): Result<Unit, ErrorResponse> =
         inputStream.use { data ->
             canHold(data.available().toLong())
-                .mapErr { ErrorResponse(INSUFFICIENT_STORAGE, "Not enough storage space available: ${it.message}") }
+                .mapErr { INSUFFICIENT_STORAGE.toErrorResponse("Not enough storage space available: ${it.message}") }
                 .flatMap { location.resolveWithRootDirectory() }
                 .map { file ->
                     if (file.parent != null && !Files.exists(file.parent)) {
@@ -180,6 +181,6 @@ abstract class FileSystemStorageProvider protected constructor(
     private fun Location.resolveWithRootDirectory(): Result<Path, ErrorResponse> =
         toPath()
             .map { rootDirectory.resolve(it) }
-            .mapErr { ErrorResponse(BAD_REQUEST, it) }
+            .mapErr { badRequest(it) }
 
 }

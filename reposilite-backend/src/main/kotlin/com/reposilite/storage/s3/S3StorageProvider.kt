@@ -27,12 +27,11 @@ import com.reposilite.storage.api.Location
 import com.reposilite.storage.api.SimpleDirectoryInfo
 import com.reposilite.storage.api.toLocation
 import com.reposilite.web.http.ErrorResponse
-import com.reposilite.web.http.errorResponse
+import com.reposilite.web.http.internalServerError
+import com.reposilite.web.http.notFoundError
 import io.javalin.http.ContentType
 import io.javalin.http.ContentType.APPLICATION_OCTET_STREAM
 import io.javalin.http.ContentType.Companion.OCTET_STREAM
-import io.javalin.http.HttpCode.INTERNAL_SERVER_ERROR
-import io.javalin.http.HttpCode.NOT_FOUND
 import panda.std.Result
 import panda.std.Result.ok
 import panda.std.asSuccess
@@ -101,7 +100,7 @@ class S3StorageProvider(
                 ok(Unit)
             } catch (ioException: IOException) {
                 failureFacade.throwException("S3 Storage Provider failed with IO Exception", ioException)
-                errorResponse(INTERNAL_SERVER_ERROR, "Failed to write $location")
+                internalServerError("Failed to write $location")
             } finally {
                 temporary.delete()
             }
@@ -116,9 +115,9 @@ class S3StorageProvider(
             // val bytes = ByteArray(Math.toIntExact(response.response().contentLength()))
             // response.read(bytes)
         } catch (noSuchKeyException: NoSuchKeyException) {
-            errorResponse(NOT_FOUND, "File not found: $location")
+            notFoundError("File not found: $location")
         } catch (ioException: IOException) {
-            errorResponse(NOT_FOUND, "File not found: $location")
+            notFoundError("File not found: $location")
         }
 
     override fun getFileDetails(location: Location): Result<FileDetails, ErrorResponse> =
@@ -161,7 +160,7 @@ class S3StorageProvider(
 
             ok(Unit)
         } catch (exception: Exception) {
-            errorResponse(INTERNAL_SERVER_ERROR, exception.message ?: exception::class.toString())
+            internalServerError(exception.message ?: exception::class.toString())
         }
 
     private fun createDeleteRequest(location: Location): DeleteObjectRequest =
@@ -196,11 +195,11 @@ class S3StorageProvider(
             val paths = directories + files
 
             if (paths.isEmpty())
-                errorResponse(NOT_FOUND, "Directory not found or is empty")
+                notFoundError("Directory not found or is empty")
             else
                 paths.asSuccess()
         } catch (exception: Exception) {
-            errorResponse(INTERNAL_SERVER_ERROR, exception.localizedMessage)
+            internalServerError(exception.localizedMessage)
         }
 
     override fun getLastModifiedTime(location: Location): Result<FileTime, ErrorResponse> =
@@ -218,9 +217,9 @@ class S3StorageProvider(
             request.key(location.toString().replace('\\', '/'))
             s3.headObject(request.build()).asSuccess()
         } catch (ignored: NoSuchKeyException) {
-            errorResponse(NOT_FOUND, ignored.message ?: "File not found")
+            notFoundError(ignored.message ?: "File not found")
         } catch (exception: Exception) {
-            errorResponse(INTERNAL_SERVER_ERROR, exception.message ?: "Generic exception")
+            internalServerError(exception.message ?: "Generic exception")
         }
 
     override fun exists(location: Location): Boolean =

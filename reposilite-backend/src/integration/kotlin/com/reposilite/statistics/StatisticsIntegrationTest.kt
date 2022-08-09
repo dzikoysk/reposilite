@@ -26,7 +26,7 @@ import com.reposilite.statistics.api.ResolvedCountResponse
 import com.reposilite.statistics.specification.StatisticsIntegrationSpecification
 import com.reposilite.token.AccessTokenPermission.MANAGER
 import com.reposilite.token.RoutePermission.READ
-import io.javalin.http.HttpCode.UNAUTHORIZED
+import io.javalin.http.HttpStatus.UNAUTHORIZED
 import kong.unirest.Unirest.get
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -57,7 +57,7 @@ internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecifi
         val unauthorizedResponse = get(endpoint).asString()
 
         // then: service rejects request
-        assertEquals(UNAUTHORIZED.status, unauthorizedResponse.status)
+        assertEquals(UNAUTHORIZED.code, unauthorizedResponse.status)
 
         // given: a valid credentials
         val (name, secret) = useAuth("name", "secret", listOf(MANAGER))
@@ -82,7 +82,7 @@ internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecifi
         val unauthorizedResponse = get(endpoint).asString()
 
         // then: service rejects request
-        assertEquals(UNAUTHORIZED.status, unauthorizedResponse.status)
+        assertEquals(UNAUTHORIZED.code, unauthorizedResponse.status)
 
         // given: a valid credentials
         val (name, secret) = useAuth("name", "secret", emptyList(),  mapOf(identifier.toString() to READ))

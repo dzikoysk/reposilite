@@ -19,12 +19,10 @@ import com.reposilite.storage.api.FileType.DIRECTORY
 import com.reposilite.storage.api.Location
 import com.reposilite.token.AccessTokenIdentifier
 import com.reposilite.web.http.ErrorResponse
-import com.reposilite.web.http.errorResponse
+import com.reposilite.web.http.badRequestError
 import com.reposilite.web.http.notFound
 import com.reposilite.web.http.notFoundError
 import com.reposilite.web.http.unauthorizedError
-import io.javalin.http.HttpCode.BAD_REQUEST
-import io.javalin.http.HttpCode.NOT_FOUND
 import panda.std.Result
 import panda.std.asSuccess
 import java.io.InputStream
@@ -67,7 +65,7 @@ internal class MavenService(
         val (repository, path) = deployRequest
 
         if (repository.redeployment.not() && !path.getSimpleName().contains(METADATA_FILE) && repository.exists(path)) {
-            return errorResponse(BAD_REQUEST, "Redeployment is not allowed")
+            return badRequestError("Redeployment is not allowed")
         }
 
         return repository.putFile(path, deployRequest.content).peek {
@@ -90,7 +88,7 @@ internal class MavenService(
 
     private fun findFile(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<Pair<DocumentInfo, InputStream>, ErrorResponse> =
         findDetails(accessToken, repository, gav)
-            .`is`(DocumentInfo::class.java) { ErrorResponse(NOT_FOUND, "Requested file is a directory") }
+            .`is`(DocumentInfo::class.java) { notFound("Requested file is a directory") }
             .flatMap { details -> findInputStream(repository, gav).map { details to it } }
             .let { extensions.emitEvent(ResolvedFileEvent(accessToken, repository, gav, it)).result }
 

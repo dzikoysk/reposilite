@@ -22,8 +22,7 @@ import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
 import com.reposilite.plugin.api.Facade
 import com.reposilite.web.http.ErrorResponse
-import com.reposilite.web.http.errorResponse
-import io.javalin.http.HttpCode.BAD_REQUEST
+import com.reposilite.web.http.badRequestError
 import panda.std.Result
 import panda.std.asSuccess
 import panda.utilities.StringUtils
@@ -38,11 +37,11 @@ class ConsoleFacade internal constructor(
 
     fun executeCommand(command: String): Result<ExecutionResponse, ErrorResponse> {
         if (StringUtils.isEmpty(command)) {
-            return errorResponse(BAD_REQUEST, "Missing command")
+            return badRequestError("Missing command")
         }
 
         if (command.length > MAX_COMMAND_LENGTH) {
-            return errorResponse(BAD_REQUEST, "The given command exceeds allowed length (${command.length} > $MAX_COMMAND_LENGTH)")
+            return badRequestError("The given command exceeds allowed length (${command.length} > $MAX_COMMAND_LENGTH)")
         }
 
         return commandExecutor.execute(command).asSuccess()

@@ -18,8 +18,7 @@ package com.reposilite.auth
 
 import com.reposilite.auth.api.Credentials
 import com.reposilite.auth.specification.AuthenticationSpecification
-import com.reposilite.web.http.ErrorResponse
-import io.javalin.http.HttpCode.UNAUTHORIZED
+import com.reposilite.web.http.unauthorized
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import panda.std.ResultAssertions.assertError
@@ -37,7 +36,7 @@ internal class AuthenticationFacadeTest : AuthenticationSpecification() {
         val response = authenticationFacade.authenticateByCredentials(Credentials(name, "invalid-secret"))
 
         // then: the request has been rejected
-        assertError(ErrorResponse(UNAUTHORIZED, "Invalid authorization credentials"), response)
+        assertError(unauthorized("Invalid authorization credentials"), response)
     }
 
     @Test

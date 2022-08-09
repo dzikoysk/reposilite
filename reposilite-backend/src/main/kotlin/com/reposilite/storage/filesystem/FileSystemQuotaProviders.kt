@@ -17,7 +17,8 @@
 package com.reposilite.storage.filesystem
 
 import com.reposilite.web.http.ErrorResponse
-import io.javalin.http.HttpCode.INSUFFICIENT_STORAGE
+import com.reposilite.web.http.toErrorResponse
+import io.javalin.http.HttpStatus.INSUFFICIENT_STORAGE
 import panda.std.Result
 import java.nio.file.Files
 import java.nio.file.Path
@@ -37,7 +38,7 @@ internal class FixedQuota(rootDirectory: Path, private val maxSize: Long) : File
     override fun canHold(contentLength: Long): Result<Long, ErrorResponse> =
         usage()
             .map { usage -> maxSize - usage }
-            .filter({ available -> contentLength <= available }, { ErrorResponse(INSUFFICIENT_STORAGE, "Repository cannot hold the given file (${maxSize - it} + $contentLength > $maxSize)") })
+            .filter({ available -> contentLength <= available }, { INSUFFICIENT_STORAGE.toErrorResponse("Repository cannot hold the given file (${maxSize - it} + $contentLength > $maxSize)") })
 
 }
 
@@ -63,6 +64,6 @@ internal class PercentageQuota(
                 val max = capacity * maxPercentage
                 max.toLong() - usage
             }
-            .filter({ available -> contentLength <= available }, { ErrorResponse(INSUFFICIENT_STORAGE, "Repository cannot hold the given file ($contentLength too much for $maxPercentage%)") })
+            .filter({ available -> contentLength <= available }, { INSUFFICIENT_STORAGE.toErrorResponse("Repository cannot hold the given file ($contentLength too much for $maxPercentage%)") })
 
 }

@@ -18,14 +18,14 @@
 
 package com.reposilite.maven
 
+import com.reposilite.configuration.local.LocalConfiguration
+import com.reposilite.maven.specification.MavenIntegrationSpecification
 import com.reposilite.specification.LocalSpecificationJunitExtension
 import com.reposilite.specification.RemoteSpecificationJunitExtension
-import com.reposilite.maven.specification.MavenIntegrationSpecification
-import com.reposilite.configuration.local.LocalConfiguration
 import com.reposilite.storage.api.DocumentInfo
 import com.reposilite.web.http.ErrorResponse
-import io.javalin.http.HttpCode.NOT_FOUND
-import io.javalin.http.HttpCode.UNAUTHORIZED
+import io.javalin.http.HttpStatus.NOT_FOUND
+import io.javalin.http.HttpStatus.UNAUTHORIZED
 import kong.unirest.HeaderNames.CONTENT_LENGTH
 import kong.unirest.Unirest.delete
 import kong.unirest.Unirest.get
@@ -86,7 +86,7 @@ internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
             .asObject(ErrorResponse::class.java)
 
         // then: service should reject the request
-        assertEquals(UNAUTHORIZED.status, response.status)
+        assertEquals(UNAUTHORIZED.code, response.status)
     }
 
     @Test
@@ -164,7 +164,7 @@ internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
         val response = get(address).asString()
 
         // then: service responds with custom 404 page
-        assertEquals(NOT_FOUND.status, response.status)
+        assertEquals(NOT_FOUND.code, response.status)
         assertTrue(response.body.contains("Reposilite - 404 Not Found"))
     }
 

@@ -25,8 +25,8 @@ import com.reposilite.token.Route
 import com.reposilite.token.RoutePermission
 import com.reposilite.token.api.CreateAccessTokenRequest
 import com.reposilite.web.http.ErrorResponse
-import io.javalin.http.HttpCode
-import io.javalin.http.HttpCode.UNAUTHORIZED
+import io.javalin.http.HttpStatus
+import io.javalin.http.HttpStatus.UNAUTHORIZED
 import kong.unirest.HttpRequest
 import kong.unirest.HttpResponse
 import kong.unirest.Unirest
@@ -64,16 +64,16 @@ internal abstract class ReposiliteSpecification : ReposiliteRunner() {
     fun <T : Any> HttpRequest<*>.asJacksonObject(type: KClass<T>): HttpResponse<T> =
         this.asObject { ReposiliteObjectMapper.DEFAULT_OBJECT_MAPPER.readValue(it.contentAsString, type.java) }
 
-    fun assertStatus(expectedCode: HttpCode, value: Int) {
-        assertEquals(expectedCode.status, value)
+    fun assertStatus(expectedCode: HttpStatus, value: Int) {
+        assertEquals(expectedCode.code, value)
     }
 
-    fun assertErrorResponse(expectedCode: HttpCode, response: HttpResponse<*>) {
+    fun assertErrorResponse(expectedCode: HttpStatus, response: HttpResponse<*>) {
         assertStatus(expectedCode, response.status)
         assertFalse(response.isSuccess)
     }
 
-    fun <T> assertSuccessResponse(expectedCode: HttpCode, response: HttpResponse<T>, block: (T) -> Unit = {}): T {
+    fun <T> assertSuccessResponse(expectedCode: HttpStatus, response: HttpResponse<T>, block: (T) -> Unit = {}): T {
         assertStatus(expectedCode, response.status)
         assertTrue(response.isSuccess)
         return response.body.also { block(it) }

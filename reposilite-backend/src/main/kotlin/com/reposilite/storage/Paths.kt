@@ -21,7 +21,8 @@ import com.reposilite.storage.api.FileType.DIRECTORY
 import com.reposilite.storage.api.FileType.FILE
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.notFound
-import io.javalin.http.HttpCode.NO_CONTENT
+import com.reposilite.web.http.toErrorResponse
+import io.javalin.http.HttpStatus.NO_CONTENT
 import panda.std.Result
 import java.io.InputStream
 import java.nio.file.Files
@@ -33,7 +34,7 @@ fun Path.type(): FileType =
 
 fun Path.inputStream(): Result<InputStream, ErrorResponse> =
     Result.`when`(Files.exists(this), this, notFound(""))
-        .filter({ it.isDirectory().not() }, { ErrorResponse(NO_CONTENT, "Requested file is a directory") })
+        .filter({ it.isDirectory().not() }, { NO_CONTENT.toErrorResponse("Requested file is a directory") })
         .map { Files.newInputStream(it) }
 
 internal fun Path.getExtension(): String =

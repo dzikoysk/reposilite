@@ -24,12 +24,11 @@ import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.token.api.CreateAccessTokenRequest
 import com.reposilite.web.http.ErrorResponse
-import com.reposilite.web.http.errorResponse
+import com.reposilite.web.http.badRequest
+import com.reposilite.web.http.badRequestError
+import com.reposilite.web.http.internalServerError
 import com.reposilite.web.http.notFoundError
 import com.reposilite.web.http.unauthorized
-import io.javalin.http.HttpCode.BAD_REQUEST
-import io.javalin.http.HttpCode.INTERNAL_SERVER_ERROR
-import io.javalin.http.HttpCode.UNAUTHORIZED
 import panda.std.Result
 import panda.std.asSuccess
 import panda.std.reactive.Reference
@@ -65,7 +64,7 @@ internal class LdapAuthenticator(
                         userAttribute
                     )
                 }
-                .filter({ it.size == 1 }, { ErrorResponse(BAD_REQUEST, "Could not identify one specific result") }) // only one search result allowed
+                .filter({ it.size == 1 }, { badRequest("Could not identify one specific result") }) // only one search result allowed
                 .map { it.first() }
                 .flatMap { createContext(user = it.first, password = credentials.secret) } // try to authenticate user with matched domain namespace
                 .flatMap {
@@ -74,10 +73,10 @@ internal class LdapAuthenticator(
                         userAttribute
                     )
                 }
-                .filter({ it.size == 1 }, { ErrorResponse(BAD_REQUEST, "Could not identify one specific result as user") }) // only one search result allowed
+                .filter({ it.size == 1 }, { badRequest("Could not identify one specific result as user") }) // only one search result allowed
                 .map { it.first() }
                 .map { (_, attributes) -> attributes[userAttribute]!! } // search returns only lists with values
-                .filter({ it.size == 1 }, { ErrorResponse(BAD_REQUEST, "Could not identify one specific attribute") }) // only one attribute value is allowed
+                .filter({ it.size == 1 }, { badRequest("Could not identify one specific attribute") }) // only one attribute value is allowed
                 .map { it.first() }
                 .filter(
                     { credentials.name == it }, // make sure requested name matches required attribute
@@ -109,7 +108,7 @@ internal class LdapAuthenticator(
             .let { Result.attempt { InitialDirContext(it) } }
             .mapErr {
                 accessTokenFacade.logger.exception(DEBUG, it)
-                ErrorResponse(UNAUTHORIZED, "Unauthorized LDAP access")
+                unauthorized("Unauthorized LDAP access")
             }
 
     fun search(ldapFilterQuery: String, vararg requestedAttributes: String): Result<List<SearchEntry>, ErrorResponse> =
@@ -134,10 +133,10 @@ internal class LdapAuthenticator(
             notFoundError(nameNotFoundException.toString())
         } catch (invalidSearchFilterException: InvalidSearchFilterException) {
             failureFacade.throwException("Bad search request in LDAP", invalidSearchFilterException)
-            errorResponse(BAD_REQUEST, invalidSearchFilterException.toString())
+            badRequestError(invalidSearchFilterException.toString())
         } catch (exception: Exception) {
             failureFacade.throwException("Unknown LDAP search exception", exception)
-            errorResponse(INTERNAL_SERVER_ERROR, exception.toString())
+            internalServerError(exception.toString())
         }
 
     private fun SearchResult.attributesMap(vararg requestedAttributes: String): AttributesMap =

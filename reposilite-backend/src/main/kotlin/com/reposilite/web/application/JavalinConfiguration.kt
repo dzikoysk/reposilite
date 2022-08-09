@@ -38,6 +38,7 @@ import com.reposilite.web.infrastructure.CacheBypassHandler
 import com.reposilite.web.routing.RoutingPlugin
 import io.javalin.config.JavalinConfig
 import io.javalin.openapi.plugin.OpenApiConfiguration
+import io.javalin.openapi.plugin.OpenApiInfo
 import io.javalin.openapi.plugin.OpenApiPlugin
 import io.javalin.plugin.json.JavalinJackson
 import org.eclipse.jetty.server.Server
@@ -145,7 +146,7 @@ internal object JavalinConfiguration {
 
             val sslContextFactory = SslContextFactory.Server()
             sslContextFactory.keyStorePath = localConfiguration.keyStorePath.get().replace("\${WORKING_DIRECTORY}", reposilite.parameters.workingDirectory.toAbsolutePath().toString())
-            sslContextFactory.setKeyStorePassword(localConfiguration.keyStorePassword.get())
+            sslContextFactory.keyStorePassword = localConfiguration.keyStorePassword.get()
 
             val sslConnector = ServerConnector(server, sslContextFactory)
             sslConnector.port = localConfiguration.sslPort.get()
@@ -165,14 +166,20 @@ internal object JavalinConfiguration {
     }
 
     private fun configureCors(config: JavalinConfig) {
-        config.plugins.enableCorsForAllOrigins()
+        config.plugins.enableCors {
+            it.allowedOrigins = listOf("*")
+        }
     }
 
     private fun configureOpenApi(config: JavalinConfig, frontendSettings: FrontendSettings) {
         val openApiConfiguration = OpenApiConfiguration()
-        openApiConfiguration.title = frontendSettings.title
-        openApiConfiguration.description = frontendSettings.description
-        openApiConfiguration.version = VERSION
+
+        openApiConfiguration.info = OpenApiInfo().also {
+            it.title = frontendSettings.title
+            it.description = frontendSettings.description
+            it.version = VERSION
+        }
+
         config.plugins.register(OpenApiPlugin(openApiConfiguration))
     }
 

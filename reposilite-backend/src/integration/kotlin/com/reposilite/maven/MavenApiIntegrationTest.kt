@@ -18,11 +18,11 @@
 
 package com.reposilite.maven
 
+import com.reposilite.maven.specification.MavenIntegrationSpecification
 import com.reposilite.specification.LocalSpecificationJunitExtension
 import com.reposilite.specification.RemoteSpecificationJunitExtension
-import com.reposilite.maven.specification.MavenIntegrationSpecification
 import com.reposilite.token.RoutePermission.READ
-import io.javalin.http.HttpCode.UNAUTHORIZED
+import io.javalin.http.HttpStatus.UNAUTHORIZED
 import kong.unirest.Unirest.get
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -60,7 +60,7 @@ internal abstract class MavenApiIntegrationTest : MavenIntegrationSpecification(
             .asString()
 
         // then: service rejects request
-        assertEquals(UNAUTHORIZED.status, unauthorizedResponse.status)
+        assertEquals(UNAUTHORIZED.code, unauthorizedResponse.status)
 
         // given: valid credentials
         val (name, secret) = useAuth("name", "secret", routes = mapOf("/$artifactPath" to READ))
@@ -90,7 +90,7 @@ internal abstract class MavenApiIntegrationTest : MavenIntegrationSpecification(
             .asString()
 
         // then: service rejects request
-        assertEquals(UNAUTHORIZED.status, unauthorizedResponse.status)
+        assertEquals(UNAUTHORIZED.code, unauthorizedResponse.status)
 
         // given: valid credentials
         val (name, secret) = useAuth("name", "secret", routes = mapOf(endpoint.replace("/api/maven/details", "") to READ))
@@ -130,7 +130,7 @@ internal abstract class MavenApiIntegrationTest : MavenIntegrationSpecification(
             .asString()
 
         // then: service rejects request
-        assertEquals(UNAUTHORIZED.status, unauthorizedResponse.status)
+        assertEquals(UNAUTHORIZED.code, unauthorizedResponse.status)
 
         // given: valid credentials
         val (name, secret) = useAuth("name", "secret", routes = mapOf("/private" to READ))

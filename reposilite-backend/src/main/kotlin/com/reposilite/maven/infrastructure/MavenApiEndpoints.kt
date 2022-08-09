@@ -28,7 +28,7 @@ import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.routing.RouteMethod.GET
 import com.reposilite.web.routing.RouteMethod.POST
-import io.javalin.http.HttpCode.CREATED
+import io.javalin.http.HttpStatus.CREATED
 import io.javalin.openapi.HttpMethod
 import io.javalin.openapi.OpenApi
 import io.javalin.openapi.OpenApiContent

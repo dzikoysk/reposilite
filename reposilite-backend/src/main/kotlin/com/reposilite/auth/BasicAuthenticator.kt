@@ -21,7 +21,7 @@ import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.http.errorResponse
-import io.javalin.http.HttpCode.UNAUTHORIZED
+import io.javalin.http.HttpStatus.UNAUTHORIZED
 import panda.std.Result
 import panda.std.asSuccess
 
