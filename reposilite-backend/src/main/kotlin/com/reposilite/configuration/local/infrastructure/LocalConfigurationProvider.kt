@@ -28,7 +28,7 @@ import net.dzikoysk.cdn.source.Source
 import panda.std.Result
 import panda.std.Result.ok
 import panda.std.function.ThrowingFunction
-import panda.std.orElseThrow
+import panda.std.orThrow
 import java.nio.file.Path
 
 const val LOCAL_CONFIGURATION_FILE = "configuration.cdn"
@@ -52,7 +52,7 @@ internal class LocalConfigurationProvider(
             .let { cdn.load(it, localConfiguration) }
             .peek { render() }
             .peek { journalist?.logger?.info("Local configuration has been loaded from local file") }
-            .orElseThrow()
+            .orThrow()
     }
 
     private fun render(): Result<String, CdnException> =

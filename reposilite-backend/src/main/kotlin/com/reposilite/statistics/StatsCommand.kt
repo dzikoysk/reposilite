@@ -18,7 +18,7 @@ package com.reposilite.statistics
 import com.reposilite.console.CommandContext
 import com.reposilite.console.CommandStatus.FAILED
 import com.reposilite.console.api.ReposiliteCommand
-import panda.std.Option
+import panda.std.Option.supplyThrowing
 import panda.std.take
 import panda.utilities.console.Effect.BLACK_BOLD
 import panda.utilities.console.Effect.RESET
@@ -41,7 +41,7 @@ internal class StatsCommand(private val statisticsFacade: StatisticsFacade) : Re
         context.append("  Unique resolved requests: ${statisticsFacade.countUniqueRecords()}")
         context.append("  All resolved requests: ${statisticsFacade.countRecords()}")
 
-        val limiter = Option.attempt(NumberFormatException::class.java) { filter.toInt() }.orElseGet(DEFAULT_TOP_LIMIT)
+        val limiter = supplyThrowing(NumberFormatException::class.java) { filter.toInt() }.orElseGet(DEFAULT_TOP_LIMIT)
         val phrase = take(limiter != DEFAULT_TOP_LIMIT, "", filter)
 
         statisticsFacade.findResolvedRequestsByPhrase(repository, phrase, limiter)
