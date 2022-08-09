@@ -37,10 +37,10 @@ import com.reposilite.web.http.uri
 import com.reposilite.web.infrastructure.CacheBypassHandler
 import com.reposilite.web.routing.RoutingPlugin
 import io.javalin.config.JavalinConfig
+import io.javalin.json.JavalinJackson
 import io.javalin.openapi.plugin.OpenApiConfiguration
 import io.javalin.openapi.plugin.OpenApiInfo
 import io.javalin.openapi.plugin.OpenApiPlugin
-import io.javalin.plugin.json.JavalinJackson
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.util.ssl.SslContextFactory
