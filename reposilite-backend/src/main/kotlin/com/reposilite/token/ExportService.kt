@@ -7,6 +7,7 @@ import com.reposilite.console.CommandStatus.FAILED
 import com.reposilite.console.api.ReposiliteCommand
 import com.reposilite.token.api.AccessTokenDetails
 import panda.std.Result
+import panda.std.Result.supplyThrowing
 import picocli.CommandLine.Command
 import picocli.CommandLine.Parameters
 import java.nio.file.Files
@@ -22,7 +23,7 @@ class ExportService {
         Files.writeString(toFile, DEFAULT_OBJECT_MAPPER.writeValueAsString(tokens), TRUNCATE_EXISTING, CREATE)
 
     fun importFromFile(fromFile: Path): Result<Collection<AccessTokenDetails>, Exception> =
-        Result.attempt { DEFAULT_OBJECT_MAPPER.readValue<List<AccessTokenDetails>>(fromFile.readText()) }
+        supplyThrowing { DEFAULT_OBJECT_MAPPER.readValue<List<AccessTokenDetails>>(fromFile.readText()) }
 
 }
 

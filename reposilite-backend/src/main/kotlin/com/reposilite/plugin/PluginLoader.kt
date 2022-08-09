@@ -18,7 +18,7 @@ package com.reposilite.plugin
 
 import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.storage.getSimpleName
-import panda.std.Result
+import panda.std.Result.supplyThrowing
 import java.io.File
 import java.net.URLClassLoader
 import java.nio.file.Files
@@ -84,7 +84,7 @@ class PluginLoader(
     }
 
     private fun isValidJarFile(file: File): Boolean =
-        Result.attempt { JarFile(file) }
+        supplyThrowing { JarFile(file) }
             .map { it.close() }
             .onError { extensions.logger.warn("Invalid JAR file: ${file.absolutePath}") }
             .isOk

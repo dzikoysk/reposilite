@@ -38,6 +38,7 @@ import com.reposilite.web.http.internalServer
 import com.reposilite.web.http.notFound
 import com.reposilite.web.http.unauthorizedError
 import panda.std.Result
+import panda.std.Result.supplyThrowing
 import panda.std.letIf
 import panda.std.mapToUnit
 import java.time.ZonedDateTime
@@ -58,7 +59,7 @@ internal class MetadataService(private val repositorySecurityProvider: Repositor
 
     fun saveMetadata(saveMetadataRequest: SaveMetadataRequest): Result<Metadata, ErrorResponse> =
         with (saveMetadataRequest) {
-            Result.attempt { xml.writeValueAsBytes(metadata) }
+            supplyThrowing { xml.writeValueAsBytes(metadata) }
                 .mapErr { internalServer("Cannot parse metadata file") }
                 .flatMap { repository.putFile(gav.resolveMetadataFile(), it.inputStream()).map { _ -> it } }
                 .flatMap { repository.writeFileChecksums(gav.resolveMetadataFile(), it) }

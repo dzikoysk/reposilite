@@ -6,6 +6,7 @@ import com.github.victools.jsonschema.generator.SchemaGenerator
 import com.reposilite.configuration.shared.api.Doc
 import com.reposilite.configuration.shared.api.SharedSettings
 import panda.std.Result
+import panda.std.Result.supplyThrowing
 import kotlin.reflect.KClass
 import kotlin.reflect.full.findAnnotation
 
@@ -34,7 +35,7 @@ internal class DefaultSharedSettingsReference<T : SharedSettings>(
         getter()
 
     override fun update(value: T): Result<T, out Exception> =
-        Result.attempt { setter(value) }
+        supplyThrowing { setter(value) }
             .mapErr { IllegalStateException("Cannot update settings reference $name", it) }
             .map { get() }
 

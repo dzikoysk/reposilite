@@ -30,6 +30,7 @@ import com.reposilite.web.http.internalServerError
 import com.reposilite.web.http.notFoundError
 import com.reposilite.web.http.unauthorized
 import panda.std.Result
+import panda.std.Result.supplyThrowing
 import panda.std.asSuccess
 import panda.std.reactive.Reference
 import java.util.Hashtable
@@ -105,7 +106,7 @@ internal class LdapAuthenticator(
                 it[SECURITY_PRINCIPAL] = user
                 it[SECURITY_CREDENTIALS] = password
             }
-            .let { Result.attempt { InitialDirContext(it) } }
+            .let { supplyThrowing { InitialDirContext(it) } }
             .mapErr {
                 accessTokenFacade.logger.exception(DEBUG, it)
                 unauthorized("Unauthorized LDAP access")

@@ -38,6 +38,7 @@ import io.javalin.openapi.OpenApiContent
 import io.javalin.openapi.OpenApiParam
 import io.javalin.openapi.OpenApiRequestBody
 import panda.std.Result.ok
+import panda.std.Result.supplyThrowing
 import panda.std.asSuccess
 
 internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessTokenFacade) : ReposiliteRoutes() {
@@ -84,7 +85,7 @@ internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessToke
     )
     val createOrUpdateToken = ReposiliteRoute<CreateAccessTokenResponse>("/api/tokens/{name}", PUT) {
         managerOnly {
-            response = panda.std.Result.attempt { ctx.bodyAsClass<CreateAccessTokenWithNoNameRequest>() }
+            response = supplyThrowing { ctx.bodyAsClass<CreateAccessTokenWithNoNameRequest>() }
                 .mapErr { badRequest("Failed to read body") }
                 .map { request ->
                     Pair(

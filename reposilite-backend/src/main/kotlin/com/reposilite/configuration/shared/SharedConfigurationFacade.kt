@@ -7,6 +7,7 @@ import com.reposilite.journalist.Journalist
 import com.reposilite.plugin.api.Facade
 import com.reposilite.status.FailureFacade
 import panda.std.Result
+import panda.std.Result.supplyThrowing
 import panda.std.asError
 import panda.std.ok
 import panda.std.reactive.MutableReference
@@ -49,7 +50,7 @@ class SharedConfigurationFacade(
         sharedConfigurationProvider.fetchConfiguration()
 
     internal fun loadSharedSettingsFromString(content: String): Result<Unit, SharedSettingsUpdateException> {
-        val updateResult = Result.attempt { DEFAULT_OBJECT_MAPPER.readTree(content) }
+        val updateResult = supplyThrowing { DEFAULT_OBJECT_MAPPER.readTree(content) }
             .map { node -> getDomainNames().filter { node.has(it) }.associateWith { node.get(it) } }
             .orElseGet { emptyMap() }
             .mapKeys { (name) -> getSettingsReference<SharedSettings>(name)!! }
