@@ -29,8 +29,11 @@ import com.reposilite.maven.api.LatestVersionResponse
 import com.reposilite.maven.api.METADATA_FILE
 import com.reposilite.maven.api.Metadata
 import com.reposilite.maven.api.SaveMetadataRequest
+import com.reposilite.maven.api.VersionSequence
 import com.reposilite.maven.api.Versioning
 import com.reposilite.maven.api.VersionsResponse
+import com.reposilite.maven.api.extractReleaseVersions
+import com.reposilite.maven.api.extractSnapshotVersions
 import com.reposilite.storage.VersionComparator
 import com.reposilite.storage.api.Location
 import com.reposilite.web.http.ErrorResponse
@@ -138,17 +141,12 @@ internal class MetadataService(private val repositorySecurityProvider: Repositor
             .filter({ it.versions.isNotEmpty() }, { notFound("Given artifact does not have any declared version") })
             .map { (isSnapshot, versions) -> LatestVersionResponse(isSnapshot, versions.last()) }
 
+    private fun extractVersions(metadata: Metadata): VersionSequence =
+        metadata.extractReleaseVersions()
+            ?: metadata.extractSnapshotVersions()
+            ?: VersionSequence(false, emptySequence())
+
     private fun Location.resolveMetadataFile(): Location =
         if (endsWith(METADATA_FILE)) this else resolve(METADATA_FILE)
-
-    private data class VersionSequence(
-        val isSnapshot: Boolean = false,
-        val versions: Sequence<String>,
-    )
-
-    private fun extractVersions(metadata: Metadata): VersionSequence =
-        (metadata.versioning?.versions?.asSequence()?.let { VersionSequence(false, it) }
-            ?: metadata.versioning?.snapshotVersions?.asSequence()?.map { it.value }?.filterNotNull()?.let { VersionSequence(true, it) })
-            ?: VersionSequence(false, emptySequence())
 
 }

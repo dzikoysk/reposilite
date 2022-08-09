@@ -41,19 +41,21 @@ internal class LatestService(private val repositoryId: Reference<out String>) {
             .flatMapErr {
                 version
                     .takeIf { version.contains("-SNAPSHOT", ignoreCase = true) }
-                    ?.let {
-                        queryLatestArtifact(
-                            request.copy(
-                                query = request.query.copy(
-                                    gav = "${request.query.gav}/$version".toLocation()
-                                )
-                            ),
-                            supplier = supplier,
-                            handler = handler
-                        )
-                    }
+                    ?.let { matchSnapshotLocation(request, supplier, handler, version) }
                     ?: Result.error(it)
             }
+
+    private fun <T> matchSnapshotLocation(request: LatestArtifactQueryRequest, supplier: LatestVersionSupplier, handler: MatchedVersionHandler<T>, version: String) =
+        queryLatestArtifact(
+            request = request.copy(
+                query = request.query.copy(
+                    gav = "${request.query.gav}/$version".toLocation()
+                )
+            ),
+            supplier = supplier,
+            handler = handler
+        )
+
     private fun createLatestArtifactLocation(query: LatestArtifactQuery, isSnapshot: Boolean, version: String): Pair<String, Location> =
         with(query) {
             val suffix = version + (if (classifier != null) "-$classifier" else "") + "." + extension

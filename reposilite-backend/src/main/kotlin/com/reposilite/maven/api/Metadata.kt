@@ -28,24 +28,43 @@ data class Metadata(
     val artifactId: String? = null,
     val version: String? = null, // snapshot only
     val versioning: Versioning? = Versioning(),
-    private var _plugins: Collection<Plugin>? = null,
+    private var _plugins: List<Plugin>? = null,
 ) {
 
     @get:JacksonXmlElementWrapper(localName = "plugins")
     @get:JacksonXmlProperty(localName = "plugin")
-    var plugins: Collection<Plugin>?
+    var plugins: List<Plugin>?
         set(value) { _plugins = value }
         get() = _plugins
 
 }
 
+internal data class VersionSequence(
+    val isSnapshot: Boolean = false,
+    val versions: Sequence<String>,
+)
+
+internal fun Metadata.extractReleaseVersions(): VersionSequence? =
+    versioning
+        ?.versions
+        ?.asSequence()
+        ?.let { VersionSequence(false, it) }
+
+internal fun Metadata.extractSnapshotVersions(): VersionSequence? =
+    versioning
+        ?.snapshotVersions
+        ?.asSequence()
+        ?.map { it.value }
+        ?.filterNotNull()
+        ?.let { VersionSequence(true, it) }
+
 @JacksonXmlRootElement(localName = "versioning")
 data class Versioning(
     val release: String? = null,
     val latest: String? = null,
-    private var _versions: Collection<String>? = null,
+    private var _versions: List<String>? = null,
     val snapshot: Snapshot? = null,
-    private var _snapshotVersions: Collection<SnapshotVersion>? = null,
+    private var _snapshotVersions: List<SnapshotVersion>? = null,
     val lastUpdated: String? = null
 ) {
 
@@ -56,13 +75,13 @@ data class Versioning(
 
     @get:JacksonXmlElementWrapper(localName = "versions")
     @get:JacksonXmlProperty(localName = "version")
-    var versions: Collection<String>?
+    var versions: List<String>?
         set(value) { _versions = value }
         get() = _versions
 
     @get:JacksonXmlElementWrapper(localName = "snapshotVersions")
     @get:JsonProperty("snapshotVersion")
-    var snapshotVersions: Collection<SnapshotVersion>?
+    var snapshotVersions: List<SnapshotVersion>?
         set(value) { _snapshotVersions = value }
         get() = _snapshotVersions
 
