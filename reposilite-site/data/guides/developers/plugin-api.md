@@ -22,7 +22,7 @@ application {
 }
 
 dependencies {
-    compileOnly("com.reposilite:reposilite:3.0.0")
+    compileOnly("com.reposilite:reposilite:3.0.1")
 }
 
 tasks.withType<ShadowJar> {
