@@ -30,13 +30,14 @@ import com.reposilite.storage.api.Location
 import com.reposilite.storage.getSimpleName
 import com.reposilite.token.AccessTokenIdentifier
 import com.reposilite.web.http.ErrorResponse
+import com.reposilite.web.http.badRequest
+import com.reposilite.web.http.badRequestError
 import com.reposilite.web.http.errorResponse
 import com.reposilite.web.http.notFound
 import com.reposilite.web.http.notFoundError
 import com.reposilite.web.http.unauthorizedError
 import io.javalin.http.ContentType
-import io.javalin.http.HttpCode.BAD_REQUEST
-import io.javalin.http.HttpCode.INTERNAL_SERVER_ERROR
+import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
 import panda.std.Result
 import panda.std.Result.ok
 import panda.std.asSuccess
@@ -86,10 +87,10 @@ class JavadocFacade internal constructor(
             return notFoundError("Resources are unavailable before extraction")
         }
 
-        val javadocJar = resolveJavadocJar(accessToken, repository, gav) ?: return errorResponse(BAD_REQUEST, "Invalid GAV")
+        val javadocJar = resolveJavadocJar(accessToken, repository, gav) ?: return badRequestError("Invalid GAV")
 
         return mavenFacade.findDetails(LookupRequest(accessToken, repository.name, javadocJar))
-            .filter({ it.type === FILE }, { ErrorResponse(BAD_REQUEST, "Invalid request") })
+            .filter({ it.type === FILE }, { badRequest("Invalid request") })
             .filter({ it.name.endsWith("-javadoc.jar") }, { notFound("Please do not provide a direct link to a non javadoc file! GAV must be pointing to a directory or a javadoc file!") })
             .flatMap { extractJavadocJar(accessToken, repository, javadocJar, javadocFolder) }
             .map { JavadocResponse(ContentType.HTML, it) }
@@ -157,9 +158,9 @@ class JavadocFacade internal constructor(
 
     private fun extractJavadocArchive(jarFilePath: Path, destination: Path): Result<Unit, ErrorResponse> =
         when {
-            Files.isDirectory(jarFilePath) -> errorResponse(BAD_REQUEST, "JavaDoc jar path has to be a file!")
-            !Files.isDirectory(destination) -> errorResponse(BAD_REQUEST, "Destination must be a directory!")
-            !jarFilePath.getSimpleName().contains("javadoc.jar") -> errorResponse(BAD_REQUEST, "Invalid javadoc jar! Name must contain: 'javadoc.jar'")
+            Files.isDirectory(jarFilePath) -> badRequestError("JavaDoc jar path has to be a file!")
+            !Files.isDirectory(destination) -> badRequestError("Destination must be a directory!")
+            !jarFilePath.getSimpleName().contains("javadoc.jar") -> badRequestError("Invalid javadoc jar! Name must contain: 'javadoc.jar'")
             else -> jarFilePath.toAbsolutePath().toString()
                 .let { JarFile(it) }
                 .use { jarFile ->
