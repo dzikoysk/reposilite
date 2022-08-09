@@ -60,7 +60,6 @@ scmVersion {
         commit { version -> "Release $version" }
     }
 
-    localOnly = true
     scmVersion {
         checks.isSnapshotDependencies = false
     }
