@@ -16,7 +16,7 @@
     "@jsonforms/core": "^3.0.0-beta.2",
     "@jsonforms/vue": "^3.0.0-beta.2",
     "@vueform/toggle": "^2.1.1",
-    "@vueuse/core": "^9.0.2",
+    "@vueuse/core": "^9.1.0",
     "@vueuse/head": "^0.7.9",
     "ansi-to-html": "^0.7.2",
     "axios": "^0.27.2",
@@ -36,7 +36,7 @@
     "vue3-tabs": "^0.1.13-beta.3"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^2.3.3",
+    "@vitejs/plugin-vue": "^3.0.1",
     "@vue/compiler-sfc": "^3.2.37",
     "body-parser": "^1.20.0",
     "concurrently": "^7.3.0",
@@ -47,7 +47,7 @@
     "json-server": "^0.17.0",
     "nodemon": "^2.0.19",
     "rollup-plugin-visualizer": "^5.7.1",
-    "vite": "^2.9.13",
+    "vite": "^3.0.5",
     "vite-plugin-windicss": "^1.8.7",
     "windicss": "^3.5.6",
     "ws": "^8.8.1"
