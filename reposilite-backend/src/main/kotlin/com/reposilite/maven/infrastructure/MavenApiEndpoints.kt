@@ -21,6 +21,7 @@ import com.reposilite.maven.api.GeneratePomRequest
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.VersionLookupRequest
 import com.reposilite.maven.api.VersionsResponse
+import com.reposilite.maven.api.PomDetails
 import com.reposilite.shared.ContextDsl
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.toLocation
@@ -34,6 +35,7 @@ import io.javalin.openapi.OpenApi
 import io.javalin.openapi.OpenApiContent
 import io.javalin.openapi.OpenApiParam
 import io.javalin.openapi.OpenApiResponse
+import io.javalin.openapi.OpenApiRequestBody
 import panda.std.asSuccess
 
 internal class MavenApiEndpoints(mavenFacade: MavenFacade) : MavenRoutes(mavenFacade) {
@@ -114,13 +116,13 @@ internal class MavenApiEndpoints(mavenFacade: MavenFacade) : MavenRoutes(mavenFa
             OpenApiParam(name = "repository", description = "Destination repository", required = true),
             OpenApiParam(name = "gav", description = "Artifact path qualifier", required = true)
         ],
-        queryParams = [
-            OpenApiParam(name = "groupId", description = "Group identifier, e.g. com.dzikoysk"),
-            OpenApiParam(name = "artifactId", description = "Artifact identifier, e.g. reposilite"),
-            OpenApiParam(name = "version", description = "Version to generate, e.g. 3.0.0")
-        ]
+        requestBody = OpenApiRequestBody(
+            content = [OpenApiContent(from = PomDetails::class)],
+            required = true,
+            description = "GroupId, ArtifactId and Version of the stub POM"
+        ),
     )
-    private val generatePom = ReposiliteRoute<Unit>("/api/maven/generate/pom/{repository}/{gav}", POST) {
+    private val generatePom = ReposiliteRoute<Unit>("/api/maven/generate/pom/{repository}/<gav>", POST) {
         authenticated {
             requireGav { gav ->
                 requireRepository { repository ->
@@ -130,9 +132,7 @@ internal class MavenApiEndpoints(mavenFacade: MavenFacade) : MavenRoutes(mavenFa
                                 accessToken = this.identifier,
                                 repository = repository,
                                 gav = gav,
-                                groupId = requireParameter("groupId"),
-                                artifactId = requireParameter("artifactId"),
-                                version = requireParameter("version")
+                                pomDetails = body(),
                             )
                         )
                         .peek { ctx.status(CREATED) }

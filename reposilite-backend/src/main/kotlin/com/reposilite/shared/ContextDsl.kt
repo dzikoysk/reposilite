@@ -95,6 +95,8 @@ class ContextDsl<R>(
     fun queryParameter(name: String): String? =
         ctx.queryParam(name)
 
+    inline fun <reified T: Any> body() = ctx.bodyAsClass(T::class.java)
+
     fun isAuthorized(to: String): Boolean =
         isManager() || authenticationResult.value.fold(
             { accessTokenFacade.hasPermissionTo(it.identifier, to, METHOD_PERMISSIONS[ctx.method()]!!) },
