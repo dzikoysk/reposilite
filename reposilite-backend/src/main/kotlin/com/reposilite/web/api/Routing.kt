@@ -17,18 +17,16 @@
 package com.reposilite.web.api
 
 import com.reposilite.shared.ContextDsl
-import com.reposilite.web.routing.AbstractRoutes
-import com.reposilite.web.routing.Route
 import com.reposilite.web.routing.RouteMethod
+import com.reposilite.web.routing.Routes
+import com.reposilite.web.routing.StandardRoute
 
-abstract class ReposiliteRoutes : AbstractRoutes<ContextDsl<*>, Unit>() {
+abstract class ReposiliteRoutes : Routes<ReposiliteRoute<Any>> {
 
-    fun routes(vararg reposiliteRoutes: ReposiliteRoute<*>): Set<Route<ContextDsl<*>, Unit>> =
+    @Suppress("UNCHECKED_CAST")
+    fun routes(vararg reposiliteRoutes: ReposiliteRoute<*>): Set<ReposiliteRoute<Any>> =
         reposiliteRoutes
-            .map {
-                @Suppress("UNCHECKED_CAST")
-                it as Route<ContextDsl<*>, Unit>
-            }
+            .map { it as ReposiliteRoute<Any> }
             .toSet()
 
 }
@@ -37,4 +35,4 @@ class ReposiliteRoute<R>(
     path: String,
     vararg methods: RouteMethod,
     handler: ContextDsl<R>.() -> Unit
-) : Route<ContextDsl<R>, Unit>(path = path, methods = methods, handler = handler)
+) : StandardRoute<ContextDsl<R>, Unit>(path = path, methods = methods, handler = handler)

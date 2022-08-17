@@ -30,12 +30,14 @@ import com.reposilite.status.FailureFacade
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.web.api.HttpServerConfigurationEvent
 import com.reposilite.web.api.HttpServerStarted
+import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.RoutingSetupEvent
 import com.reposilite.web.http.extractFromHeaders
 import com.reposilite.web.http.response
 import com.reposilite.web.http.uri
 import com.reposilite.web.infrastructure.CacheBypassHandler
 import com.reposilite.web.routing.RoutingPlugin
+import io.javalin.config.ContextResolver
 import io.javalin.config.JavalinConfig
 import io.javalin.json.JavalinJackson
 import io.javalin.openapi.plugin.OpenApiConfiguration
@@ -85,7 +87,7 @@ internal object JavalinConfiguration {
         config.core.showJavalinBanner = false
         config.http.asyncTimeout = 1000L * 60 * 60 * 10 // 10min
 
-        config.core.contextResolvers {
+        config.core.contextResolver = ContextResolver().also {
             it.ip = { ctx -> ctx.header(webSettings.get().forwardedIp) ?: ctx.req().remoteAddr }
         }
 
@@ -103,7 +105,7 @@ internal object JavalinConfiguration {
         val accessTokenFacade = extensionManager.facade<AccessTokenFacade>()
         val authenticationFacade = extensionManager.facade<AuthenticationFacade>()
 
-        val plugin = RoutingPlugin<ContextDsl<*>, Unit>(
+        val plugin = RoutingPlugin<ReposiliteRoute<Any>>(
             handler = { ctx, route ->
                 try {
                     val dsl = ContextDsl<Any>(
@@ -126,7 +128,8 @@ internal object JavalinConfiguration {
         )
 
         extensionManager.emitEvent(RoutingSetupEvent(reposilite))
-            .getRoutes().asSequence()
+            .getRoutes()
+            .asSequence()
             .flatMap { it.routes }
             .distinctBy { it.methods.joinToString(";") + ":" + it.path }
             .toSet()
