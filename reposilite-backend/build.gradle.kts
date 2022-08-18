@@ -55,7 +55,7 @@ dependencies {
     implementation("software.amazon.awssdk:s3:$awssdk")
     testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.272")
 
-    val exposed = "0.38.2"
+    val exposed = "0.39.2"
     implementation("org.jetbrains.exposed:exposed-core:$exposed")
     implementation("org.jetbrains.exposed:exposed-dao:$exposed")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposed")
@@ -63,13 +63,13 @@ dependencies {
     api("net.dzikoysk:exposed-upsert:1.0.3")
     implementation("com.zaxxer:HikariCP:5.0.1")
     // Drivers
-    implementation("org.xerial:sqlite-jdbc:3.36.0.3")
+    implementation("org.xerial:sqlite-jdbc:3.39.2.0")
     implementation("mysql:mysql-connector-java:8.0.30")
-    implementation("org.mariadb.jdbc:mariadb-java-client:3.0.6")
-    implementation("org.postgresql:postgresql:42.4.0")
+    implementation("org.mariadb.jdbc:mariadb-java-client:3.0.7")
+    implementation("org.postgresql:postgresql:42.4.1")
     implementation("com.h2database:h2:2.1.214")
 
-    val springSecurityCrypto = "5.7.2"
+    val springSecurityCrypto = "5.7.3"
     implementation("org.springframework.security:spring-security-crypto:$springSecurityCrypto")
 
     val ldap = "6.0.5"
@@ -111,7 +111,7 @@ dependencies {
     implementation("com.reposilite:journalist-slf4j:$journalist")
     implementation("com.reposilite:journalist-tinylog:$journalist")
 
-    val tinylog = "2.4.1"
+    val tinylog = "2.5.0"
     implementation("org.tinylog:slf4j-tinylog:$tinylog")
     implementation("org.tinylog:tinylog-api:$tinylog")
     implementation("org.tinylog:tinylog-impl:$tinylog")
