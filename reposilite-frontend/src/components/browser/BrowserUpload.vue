@@ -12,7 +12,7 @@ const { qualifier, refreshQualifier } = useQualifier()
 const repository = computed(() => qualifier.path.split("/")[0])
 const defaultTo = qualifier.path.substring(repository.value.length + 1)
 const to = ref(defaultTo)
-const destination = computed(() => `${repository.value}/${to.value}`)
+const destination = computed(() => `${repository.value}/${to.value.replace(/(^\/+)|(\/+$)/g, '')}`)
 const customDestination = ref(false)
 
 const stubPomEnabled = ref(false)
@@ -20,12 +20,52 @@ const artifactId = ref('')
 const groupId = ref('')
 const version = ref('')
 
+const stubPomGeneratedPath = computed(() => {
+  let path = ''
+
+  if (groupId.value) {
+    path = groupId.value.replaceAll('.', '/')
+    
+    if (!path.endsWith('/')) {
+      path = path + '/'
+    }
+  }
+  
+  if (artifactId.value) {
+    path = path + artifactId.value + '/'
+  }
+
+  if (version.value) {
+    path = path + version.value
+  }
+
+  return path
+})
+
 watchEffect(() => {
-    if (stubPomEnabled.value && !customDestination.value) {
-      to.value = defaultTo + '/' + version.value
+  if (stubPomEnabled.value && !customDestination.value) {
+    to.value = defaultTo
+      ? defaultTo + '/' + version.value
+      : stubPomGeneratedPath.value
     }
   }
 )
+
+const pathMatchesPom = computed(() => {
+  if (!stubPomEnabled.value) {
+    return true
+  }
+
+  const generatedPath = stubPomGeneratedPath.value.endsWith('/')
+    ? stubPomGeneratedPath.value.slice(0, -1)
+    : stubPomGeneratedPath.value
+
+  const currentPath = to.value.endsWith('/')
+    ? to.value.slice(0, -1)
+    : to.value
+
+  return generatedPath === currentPath
+})
 
 const files = ref([])
 const isEnabled = computed(() => files.value.length > 0)
@@ -103,7 +143,7 @@ const uploadFiles = () => {
             <input type="checkbox" v-model="stubPomEnabled" class="mb-1 ml-1" />
             <span class="pl-3" @click="stubPomEnabled = !stubPomEnabled" >Generate stub POM file</span>
           </div>
-          <div v-if="stubPomEnabled" class="pom-form mt-2 border px-2 pb-2 bg-gray-100 rounded">
+          <div v-if="stubPomEnabled" class="pom-form mt-2 border px-2 pb-2 bg-gray-100 dark:bg-black rounded">
             <div>
               <label>Group</label>
               <input v-model="groupId" placeholder="com.dzikoysk" required/>
@@ -120,24 +160,27 @@ const uploadFiles = () => {
         </div>
       </div>
     </div>
-    <div v-if="isEnabled" class="flex">
-      <input 
-        class="flex-1 mt-2 mr-2 rounded px-6 border-dashed border"
-        v-model="to" 
-        placeholder="E.g. path/to/deploy" 
-        @change="customDestination = true"
-      />
-      <button 
-        @click.prevent="uploadFiles"
-        class="
-          border text-sm py-1.5 h-9 px-4 mt-2 border-dashed rounded 
-          bg-gray-50  border-gray-400 hover:(transition-colors duration-200 bg-purple-500 text-white)
-          dark:bg-black dark:border-gray-700 dark:text-white dark:hover:(transition-colors duration-200 bg-purple-700)
-        "
-      >
-        <span>Upload files </span>
-        <span class="font-bold text-purple-400">↝</span>
-      </button>
+    <div v-if="isEnabled" class="flex flex-col">
+      <div class="flex">
+        <input
+          class="flex-1 mt-2 mr-2 rounded px-6 border-dashed border"
+          v-model="to"
+          placeholder="E.g. path/to/deploy"
+          @change="customDestination = true"
+        />
+        <button
+          @click.prevent="uploadFiles"
+          class="
+            border text-sm py-1.5 h-9 px-4 mt-2 border-dashed rounded
+            bg-gray-50  border-gray-400 hover:(transition-colors duration-200 bg-purple-500 text-white)
+            dark:bg-black dark:border-gray-700 dark:text-white dark:hover:(transition-colors duration-200 bg-purple-700)
+          "
+        >
+          <span>Upload files </span>
+          <span class="font-bold text-purple-400">↝</span>
+        </button>
+      </div>
+      <span v-if="!pathMatchesPom" class="px-6 text-yellow-500">⚠ Warning: Path does not match artifact coordinates</span>
     </div>
   </div>
 </template>

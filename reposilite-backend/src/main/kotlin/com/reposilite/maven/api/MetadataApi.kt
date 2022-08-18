@@ -14,7 +14,12 @@ data class GeneratePomRequest(
     val accessToken: AccessTokenIdentifier,
     val repository: Repository,
     val gav: Location,
+    val pomDetails: PomDetails
+)
+
+data class PomDetails(
     val groupId: String,
     val artifactId: String,
     val version: String
 )
+
