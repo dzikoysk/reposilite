@@ -22,28 +22,31 @@ const version = ref('')
 
 const stubPomGeneratedPath = computed(() => {
   let path = ''
+
   if (groupId.value) {
     path = groupId.value.replaceAll('.', '/')
+    
     if (!path.endsWith('/')) {
       path = path + '/'
     }
   }
+  
   if (artifactId.value) {
     path = path + artifactId.value + '/'
   }
+
   if (version.value) {
     path = path + version.value
   }
+
   return path
 })
 
 watchEffect(() => {
-    if (stubPomEnabled.value && !customDestination.value) {
-      if (defaultTo) {
-        to.value = defaultTo + '/' + version.value
-      } else {
-        to.value = stubPomGeneratedPath.value
-      }
+  if (stubPomEnabled.value && !customDestination.value) {
+    to.value = defaultTo
+      ? defaultTo + '/' + version.value
+      : stubPomGeneratedPath.value
     }
   }
 )
@@ -53,14 +56,13 @@ const pathMatchesPom = computed(() => {
     return true
   }
 
-  let generatedPath = stubPomGeneratedPath.value
-  let currentPath = to.value
-  if (generatedPath.endsWith('/')) {
-    generatedPath = generatedPath.slice(0, -1)
-  }
-  if (currentPath.endsWith('/')) {
-    currentPath = currentPath.slice(0, -1)
-  }
+  const generatedPath = stubPomGeneratedPath.value.endsWith('/')
+    ? stubPomGeneratedPath.value.slice(0, -1)
+    : stubPomGeneratedPath.value
+
+  const currentPath = to.value.endsWith('/')
+    ? to.value.slice(0, -1)
+    : to.value
 
   return generatedPath === currentPath
 })
@@ -141,7 +143,7 @@ const uploadFiles = () => {
             <input type="checkbox" v-model="stubPomEnabled" class="mb-1 ml-1" />
             <span class="pl-3" @click="stubPomEnabled = !stubPomEnabled" >Generate stub POM file</span>
           </div>
-          <div v-if="stubPomEnabled" class="pom-form mt-2 border px-2 pb-2 bg-gray-100 rounded">
+          <div v-if="stubPomEnabled" class="pom-form mt-2 border px-2 pb-2 bg-gray-100 dark:bg-black rounded">
             <div>
               <label>Group</label>
               <input v-model="groupId" placeholder="com.dzikoysk" required/>
@@ -178,7 +180,7 @@ const uploadFiles = () => {
           <span class="font-bold text-purple-400">↝</span>
         </button>
       </div>
-      <span v-if="!pathMatchesPom" class="px-6 text-yellow-500">⚠Warning: Path does not match artifact coordinates</span>
+      <span v-if="!pathMatchesPom" class="px-6 text-yellow-500">⚠ Warning: Path does not match artifact coordinates</span>
     </div>
   </div>
 </template>
