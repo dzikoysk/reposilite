@@ -69,7 +69,7 @@ const selectHomepage = () =>
       </div>
       <hr class="dark:border-gray-700">
       <div class="overflow-auto">
-        <TabPanels v-model="selectedTab" :animate="true">
+        <TabPanels v-model="selectedTab">
           <TabPanel :val="'Overview'">
             <FileBrowserView :qualifier="qualifier" ref=""/>
           </TabPanel>
