@@ -25,6 +25,7 @@ import com.reposilite.maven.api.GeneratePomRequest
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.METADATA_FILE
 import com.reposilite.maven.api.VersionLookupRequest
+import com.reposilite.maven.api.PomDetails
 import com.reposilite.maven.application.ProxiedCredentials
 import com.reposilite.maven.application.ProxiedRepository
 import com.reposilite.maven.application.RepositorySettings
@@ -269,9 +270,11 @@ internal class MavenFacadeTest : MavenSpecification() {
                         accessToken = token,
                         repository = repository,
                         gav = pom,
-                        groupId = "com.dzikoysk",
-                        artifactId = "reposilite",
-                        version = "3.0.1"
+                        pomDetails = PomDetails(
+                            groupId = "com.dzikoysk",
+                            artifactId = "reposilite",
+                            version = "3.0.1"
+                        )
                     )
                 )
             )
