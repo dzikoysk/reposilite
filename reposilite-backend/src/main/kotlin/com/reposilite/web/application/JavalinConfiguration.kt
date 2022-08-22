@@ -37,7 +37,6 @@ import com.reposilite.web.http.response
 import com.reposilite.web.http.uri
 import com.reposilite.web.infrastructure.CacheBypassHandler
 import com.reposilite.web.routing.RoutingPlugin
-import io.javalin.config.ContextResolver
 import io.javalin.config.JavalinConfig
 import io.javalin.json.JavalinJackson
 import io.javalin.openapi.OpenApiInfo
@@ -84,12 +83,9 @@ internal object JavalinConfiguration {
     }
 
     private fun configureJavalin(config: JavalinConfig, localConfiguration: LocalConfiguration, webSettings: Reference<WebSettings>) {
-        config.core.showJavalinBanner = false
+        config.showJavalinBanner = false
         config.http.asyncTimeout = 1000L * 60 * 60 * 10 // 10min
-
-        config.core.contextResolver = ContextResolver().also {
-            it.ip = { ctx -> ctx.header(webSettings.get().forwardedIp) ?: ctx.req().remoteAddr }
-        }
+        config.contextResolver.ip = { ctx -> ctx.header(webSettings.get().forwardedIp) ?: ctx.req().remoteAddr }
 
         when (localConfiguration.compressionStrategy.get().lowercase()) {
             "none" -> config.compression.none()
@@ -140,7 +136,7 @@ internal object JavalinConfiguration {
 
     private fun configureJsonSerialization(config: JavalinConfig) {
         val objectMapper = ReposiliteObjectMapper.DEFAULT_OBJECT_MAPPER
-        config.core.jsonMapper(JavalinJackson(objectMapper))
+        config.jsonMapper(JavalinJackson(objectMapper))
     }
 
     private fun configureSSL(reposilite: Reposilite, localConfiguration: LocalConfiguration, config: JavalinConfig, server: Server) {
