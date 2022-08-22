@@ -26,7 +26,7 @@ Every pull request will be considered :)
 
 ### How to increase the chance of having your PR merged
 
-1. If related issue does not exist, create a new one to start a discussion aobut it
+1. If related issue does not exist, create a new one to start a discussion about it
 2. Try to write some tests for your change. There are a lot of examples in the `test` dir.
 3. Format your code, so it looks somewhat like the rest of the source, don't make any extra changes like refactor that is not related to the subject of your PR.
 

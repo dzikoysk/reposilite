@@ -6,6 +6,6 @@ body:
     id: request-details
     attributes:
       label: Request details
-      description: Try to precisly explain your request and how it may improve Reposilite
+      description: Try to precisely explain your request and how it may improve Reposilite
     validations:
       required: true
