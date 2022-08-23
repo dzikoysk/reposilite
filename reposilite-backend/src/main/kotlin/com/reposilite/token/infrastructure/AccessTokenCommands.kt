@@ -156,3 +156,30 @@ internal class RevokeCommand(private val accessTokenFacade: AccessTokenFacade) :
     }
 
 }
+
+@Command(name = "token-regenerate", description = ["Regenerate token"])
+internal class RegenerateCommand(private val accessTokenFacade: AccessTokenFacade): ReposiliteCommand {
+    @Parameters(index = "0", paramLabel = "<name>", description = ["Name of token to revoke"])
+    private lateinit var name: String
+
+    @Option(names = ["--secret", "-s"], description = ["Override generated token with custom secret"], required = false)
+    var secret: String? = null
+
+    override fun execute(context: CommandContext) {
+        accessTokenFacade.getAccessToken(name)
+            ?.also {
+                accessTokenFacade.regenerateAccessToken(it, secret)
+                    .consume(
+                        { context.append("New token for '$name': $it") },
+                        {
+                            context.status = FAILED
+                            context.append("Token '$name' not found")
+                        }
+                    )
+            }
+            ?: run {
+                context.status = FAILED
+                context.append("Token '$name' not found")
+            }
+    }
+}
