@@ -20,6 +20,7 @@ import com.reposilite.journalist.backend.AggregatedLogger
 import com.reposilite.journalist.backend.InMemoryLogger
 import com.reposilite.journalist.backend.PrintStreamLogger
 import com.reposilite.token.AccessTokenFacade
+import com.reposilite.token.AccessTokenRepository
 import com.reposilite.token.AccessTokenType.TEMPORARY
 import com.reposilite.token.ExportService
 import com.reposilite.token.api.AccessTokenDto
