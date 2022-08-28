@@ -157,7 +157,7 @@ internal class RevokeCommand(private val accessTokenFacade: AccessTokenFacade) :
 
 }
 
-@Command(name = "token-regenerate", description = ["Regenerate token"])
+@Command(name = "token-regenerate", description = ["Regenerate token secret"])
 internal class RegenerateCommand(private val accessTokenFacade: AccessTokenFacade): ReposiliteCommand {
     @Parameters(index = "0", paramLabel = "<name>", description = ["Name of token to revoke"])
     private lateinit var name: String
@@ -170,7 +170,7 @@ internal class RegenerateCommand(private val accessTokenFacade: AccessTokenFacad
             ?.also {
                 accessTokenFacade.regenerateAccessToken(it, secret)
                     .consume(
-                        { context.append("New token for '$name': $it") },
+                        { context.append("New secret for '$name': $it") },
                         {
                             context.status = FAILED
                             context.append("Token '$name' not found")

@@ -102,4 +102,7 @@ $ token-rename root super-user
 
 $ token-modify super-user m
 14:30:26.320 INFO | Permissions have been changed from '[]' to 'm'
+
+$ token-regenerate super-user
+16:49:45.211 INFO | New secret for 'test': 4n1NAKgAuzqdZ+mS/OIhqdpqjTyjI78OkgC/Yym5+3vGoXaefYQ2DKqK14c80xNl
 ```
