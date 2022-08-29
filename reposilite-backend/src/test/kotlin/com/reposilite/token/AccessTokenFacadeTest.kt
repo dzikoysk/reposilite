@@ -89,7 +89,6 @@ internal class AccessTokenFacadeTest : AccessTokenSpecification() {
         accessTokenFacade.regenerateAccessToken(token, "new secret")
 
         // then: stored token should be updated
-
         assertTrue(accessTokenFacade.secretMatches(token.identifier, "new secret"))
     }
 }

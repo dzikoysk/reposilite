@@ -46,10 +46,10 @@ internal abstract class AccessTokenCommandsIntegrationTest : AccessTokenIntegrat
         // when: user updates the token
         val firstResult = assertOk(consoleFacade.executeCommand("token-regenerate name -s new-secret"))
 
-
         // then: the given token is updated
         assertEquals(SUCCEEDED, firstResult.status)
         val secretMatch = useFacade<AccessTokenFacade>().secretMatches(useExistingToken(name).accessToken.identifier, "new-secret")
         assertTrue(secretMatch)
     }
+
 }
