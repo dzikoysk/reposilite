@@ -7,6 +7,7 @@ import com.reposilite.token.AccessTokenPermission.MANAGER
 import com.reposilite.token.RoutePermission.READ
 import com.reposilite.token.specification.AccessTokenIntegrationSpecification
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import panda.std.ResultAssertions.assertOk
@@ -35,6 +36,20 @@ internal abstract class AccessTokenCommandsIntegrationTest : AccessTokenIntegrat
         assertEquals(SUCCEEDED, firstResult.status)
         assertEquals(SUCCEEDED, secondResult.status)
         assertEquals(setOf(MANAGER), useExistingToken(name).permissions)
+    }
+
+    @Test
+    fun `should regenerate access token secret`() {
+        // given: a token
+        val (name) = useAuth("name", "secret", listOf(), routes = mapOf("/" to READ))
+
+        // when: user updates the token
+        val firstResult = assertOk(consoleFacade.executeCommand("token-regenerate name -s new-secret"))
+
+        // then: the given token is updated
+        assertEquals(SUCCEEDED, firstResult.status)
+        val secretMatch = useFacade<AccessTokenFacade>().secretMatches(useExistingToken(name).accessToken.identifier, "new-secret")
+        assertTrue(secretMatch)
     }
 
 }

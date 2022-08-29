@@ -80,4 +80,15 @@ internal class AccessTokenFacadeTest : AccessTokenSpecification() {
         assertEquals(token, foundToken)
     }
 
+    @Test
+    fun `should regenerate token`() = runBlocking {
+        // given: an existing token and its updated version
+        val token = createToken("reposilite").accessToken
+
+        // when: token is updated
+        accessTokenFacade.regenerateAccessToken(token, "new secret")
+
+        // then: stored token should be updated
+        assertTrue(accessTokenFacade.secretMatches(token.identifier, "new secret"))
+    }
 }

@@ -25,6 +25,7 @@ import com.reposilite.token.api.AccessTokenDetails
 import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.token.api.CreateAccessTokenRequest
 import com.reposilite.token.api.CreateAccessTokenResponse
+import com.reposilite.token.api.SecretType
 import com.reposilite.token.api.SecretType.ENCRYPTED
 import com.reposilite.token.api.SecretType.RAW
 import com.reposilite.web.http.ErrorResponse
@@ -133,6 +134,16 @@ class AccessTokenFacade internal constructor(
         getRawAccessTokenById(id)
             ?.let { it.identifier.type.getRepository().deleteAccessToken(it.identifier).asSuccess() }
             ?: notFoundError("Token not found")
+
+    fun regenerateAccessToken(accessTokenDto: AccessTokenDto, secret: String?, secretType: SecretType = RAW): Result<String, ErrorResponse> =
+        (secret ?: generateSecret()).let {
+            val encodedSecret = it.letIf(secretType == RAW) { AccessTokenSecurityProvider.encodeSecret(it) }
+            getRawAccessTokenById(accessTokenDto.identifier)?.copy(encryptedSecret = encodedSecret)
+                ?.let { it.identifier.type.getRepository().saveAccessToken(it) }
+                ?: return notFoundError("Token not found")
+
+            it.asSuccess()
+        }
 
     private fun getRawAccessTokenById(id: AccessTokenIdentifier): AccessToken? =
         id.type.getRepository().findAccessTokenById(id)

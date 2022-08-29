@@ -33,6 +33,7 @@ import com.reposilite.token.infrastructure.AccessTokenApiEndpoints
 import com.reposilite.token.infrastructure.ChModCommand
 import com.reposilite.token.infrastructure.ChNameCommand
 import com.reposilite.token.infrastructure.KeygenCommand
+import com.reposilite.token.infrastructure.RegenerateCommand
 import com.reposilite.token.infrastructure.RevokeCommand
 import com.reposilite.token.infrastructure.TokensCommand
 import com.reposilite.web.api.RoutingSetupEvent
@@ -62,6 +63,7 @@ internal class AccessTokenPlugin : ReposilitePlugin() {
             event.registerCommand(ChNameCommand(accessTokenFacade))
             event.registerCommand(ChModCommand(accessTokenFacade))
             event.registerCommand(RevokeCommand(accessTokenFacade))
+            event.registerCommand(RegenerateCommand(accessTokenFacade))
 
             event.registerCommand(RouteAdd(accessTokenFacade))
             event.registerCommand(RouteRemove(accessTokenFacade))
