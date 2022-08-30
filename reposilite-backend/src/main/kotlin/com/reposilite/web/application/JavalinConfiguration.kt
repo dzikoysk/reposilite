@@ -115,7 +115,10 @@ internal object JavalinConfiguration {
                         }
                     )
                     route.handler(dsl)
-                    dsl.response?.also { ctx.response(it) }
+                    dsl.response?.also { result ->
+                        result.onError { reposilite.logger.debug("RESPONSE | " + ctx.uri() + " errored with $it") }
+                        ctx.response(result)
+                    }
                 } catch (throwable: Throwable) {
                     throwable.printStackTrace()
                     failureFacade.throwException(ctx.uri(), throwable)
