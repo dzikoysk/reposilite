@@ -65,7 +65,7 @@ internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessToke
     val token = ReposiliteRoute<AccessTokenDto>("/api/tokens/{name}", GET) {
         authenticated {
             response = accessTokenFacade.getAccessToken(requireParameter("name"))
-                ?.takeIf { isManager() || name == it.name }
+                ?.takeIf { isManager().isOk || name == it.name }
                 ?.asSuccess()
                 ?: FORBIDDEN.toErrorResult("You must be the token owner or a manager to access this.")
         }

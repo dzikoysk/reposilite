@@ -116,7 +116,7 @@ internal object JavalinConfiguration {
                     )
                     route.handler(dsl)
                     dsl.response?.also { result ->
-                        result.onError { reposilite.logger.debug("RESPONSE | " + ctx.uri() + " errored with $it") }
+                        result.onError { reposilite.logger.debug("ERROR RESPONSE | " + ctx.uri() + " errored with $it") }
                         ctx.response(result)
                     }
                 } catch (throwable: Throwable) {

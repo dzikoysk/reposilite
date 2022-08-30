@@ -29,7 +29,6 @@ import com.reposilite.token.specification.AccessTokenIntegrationSpecification
 import com.reposilite.web.http.ErrorResponse
 import io.javalin.http.HttpStatus.FORBIDDEN
 import io.javalin.http.HttpStatus.OK
-import io.javalin.http.HttpStatus.UNAUTHORIZED
 import kong.unirest.Unirest.delete
 import kong.unirest.Unirest.get
 import kong.unirest.Unirest.put
@@ -57,7 +56,7 @@ internal abstract class AccessTokenIntegrationTest : AccessTokenIntegrationSpeci
             .asJacksonObject(ErrorResponse::class)
 
         // then: request is rejected
-        assertErrorResponse(UNAUTHORIZED, unauthorizedResponse)
+        assertErrorResponse(FORBIDDEN, unauthorizedResponse)
 
         // when: list of tokens is requested with valid token
         val response = get("$base/api/tokens")
@@ -109,7 +108,7 @@ internal abstract class AccessTokenIntegrationTest : AccessTokenIntegrationSpeci
             .asJacksonObject(ErrorResponse::class)
 
         // then: the unauthorized request is rejected
-        assertErrorResponse(UNAUTHORIZED, unauthorized)
+        assertErrorResponse(FORBIDDEN, unauthorized)
 
         // when: valid manager token creates a new token
         val response = put("$base/api/tokens/$name")
@@ -137,7 +136,7 @@ internal abstract class AccessTokenIntegrationTest : AccessTokenIntegrationSpeci
             .asJacksonObject(ErrorResponse::class)
 
         // then: the unauthorized request is rejected
-        assertErrorResponse(UNAUTHORIZED, unauthorized)
+        assertErrorResponse(FORBIDDEN, unauthorized)
 
         // when: valid manager token creates a new token
         val response = delete("$base/api/tokens/${tokenToDelete.name}")

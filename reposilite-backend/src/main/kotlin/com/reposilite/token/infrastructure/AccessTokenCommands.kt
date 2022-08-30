@@ -158,7 +158,7 @@ internal class RevokeCommand(private val accessTokenFacade: AccessTokenFacade) :
 }
 
 @Command(name = "token-regenerate", description = ["Regenerate token secret"])
-internal class RegenerateCommand(private val accessTokenFacade: AccessTokenFacade): ReposiliteCommand {
+internal class RegenerateCommand(private val accessTokenFacade: AccessTokenFacade) : ReposiliteCommand {
 
     @Parameters(index = "0", paramLabel = "<name>", description = ["Name of token to revoke"])
     private lateinit var name: String

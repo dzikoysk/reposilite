@@ -26,16 +26,16 @@ import io.javalin.http.NotFoundResponse
 internal class NotFoundHandler(private val frontendFacade: FrontendFacade) : Handler, ExceptionHandler<NotFoundResponse> {
 
     // It does not support async handlers
-    private val notFoundHandler: (Context) -> Unit = { ctx ->
+    private val defaultNotFoundHandler: (Context) -> Unit = { ctx ->
         if (ctx.resultString() == null && ctx.resultStream() == null && ctx.resultStream() == null) {
             ctx.status(NOT_FOUND).html(frontendFacade.createNotFoundPage(ctx.req().requestURI, ""))
         }
     }
 
     override fun handle(ctx: Context) =
-        notFoundHandler(ctx)
+        defaultNotFoundHandler(ctx)
 
     override fun handle(exception: NotFoundResponse, ctx: Context) =
-        notFoundHandler(ctx)
+        defaultNotFoundHandler(ctx)
 
 }

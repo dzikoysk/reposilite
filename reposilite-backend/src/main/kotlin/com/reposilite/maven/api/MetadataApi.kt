@@ -22,4 +22,3 @@ data class PomDetails(
     val artifactId: String,
     val version: String
 )
-

@@ -13,8 +13,8 @@ import com.reposilite.statistics.api.ResolvedRequestsInterval.YEARLY
 import com.reposilite.statistics.application.StatisticsSettings
 import com.reposilite.web.application.WebSettings
 import com.reposilite.web.http.ErrorResponse
+import io.javalin.http.HttpStatus.FORBIDDEN
 import io.javalin.http.HttpStatus.OK
-import io.javalin.http.HttpStatus.UNAUTHORIZED
 import kong.unirest.Unirest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -118,7 +118,7 @@ internal abstract class SettingsIntegrationTest : SettingsIntegrationSpecificati
             .asJacksonObject(ErrorResponse::class)
 
         // then: request is rejected
-        assertErrorResponse(UNAUTHORIZED, unauthorizedResponse)
+        assertErrorResponse(FORBIDDEN, unauthorizedResponse)
 
         // given: a permitted token
         val (permittedName, permittedSecret) = useDefaultManagementToken()

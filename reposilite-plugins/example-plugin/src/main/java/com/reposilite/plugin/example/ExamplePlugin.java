@@ -22,6 +22,9 @@ import com.reposilite.plugin.api.ReposiliteInitializeEvent;
 import com.reposilite.plugin.api.ReposilitePlugin;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Example plugin
+ */
 @Plugin(name = "example")
 public final class ExamplePlugin extends ReposilitePlugin {
 

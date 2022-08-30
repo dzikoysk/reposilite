@@ -133,7 +133,7 @@ internal class MavenService(
         val repository = repositoryService.getRepository(lookupRequest.repository) ?: return notFoundError("Repository $repositoryName not found")
 
         return canAccessResource(lookupRequest.accessToken, repository.name, gav)
-            .onError { logger.debug("Unauthorized attempt of access (token: $accessToken) to $gav from ${repository.name}") }
+            .onError { logger.debug("ACCESS | Unauthorized attempt of access (token: $accessToken) to $gav from ${repository.name}") }
             .peek { extensions.emitEvent(PreResolveEvent(accessToken, repository, gav)) }
             .flatMap { block(repository, gav) }
     }

@@ -60,13 +60,12 @@ internal class ConsoleEndpoint(private val consoleFacade: ConsoleFacade) : Repos
         logger.info("REMOTE EXECUTION $uri from ${ctx.ip()}")
 
         authenticated {
-            if (!isManager()) {
-                response = unauthorizedError("Authenticated user is not a manager")
-                return@authenticated
-            }
-
-            logger.info("$name (${ctx.ip()}) requested command: ${ctx.body()}")
-            response = consoleFacade.executeCommand(ctx.body())
+            isManager()
+                .peek {
+                    logger.info("$name (${ctx.ip()}) requested command: ${ctx.body()}")
+                    response = consoleFacade.executeCommand(ctx.body())
+                }
+                .onError { response = unauthorizedError("Authenticated user is not a manager") }
         }
     }
 

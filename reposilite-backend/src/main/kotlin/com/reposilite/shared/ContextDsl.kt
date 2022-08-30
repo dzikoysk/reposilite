@@ -22,12 +22,14 @@ import com.reposilite.token.AccessTokenPermission.MANAGER
 import com.reposilite.token.RoutePermission
 import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.web.http.ErrorResponse
-import com.reposilite.web.http.error
-import com.reposilite.web.http.unauthorizedError
+import com.reposilite.web.http.toErrorResponse
 import com.reposilite.web.http.uri
 import io.javalin.http.Context
 import io.javalin.http.HandlerType
+import io.javalin.http.HttpStatus.FORBIDDEN
 import panda.std.Result
+import panda.std.asError
+import panda.std.mapToUnit
 
 class ContextDsl<R>(
     val logger: Logger,
@@ -35,6 +37,16 @@ class ContextDsl<R>(
     private val accessTokenFacade: AccessTokenFacade,
     private val authenticationResult: Lazy<Result<out AccessTokenDto, ErrorResponse>>
 ) {
+
+    private companion object {
+        private val METHOD_PERMISSIONS = mapOf(
+            HandlerType.HEAD to RoutePermission.READ,
+            HandlerType.GET to RoutePermission.READ,
+            HandlerType.PUT to RoutePermission.WRITE,
+            HandlerType.POST to RoutePermission.WRITE,
+            HandlerType.DELETE to RoutePermission.WRITE
+        )
+    }
 
     val uri = ctx.uri()
 
@@ -55,8 +67,8 @@ class ContextDsl<R>(
      */
     fun authenticated(init: AccessTokenDto.() -> Unit) {
         authenticationResult.value
-            .onError { ctx.error(it) }
             .peek { init(it) }
+            .onError { response = it.asError() }
     }
 
     /**
@@ -64,10 +76,9 @@ class ContextDsl<R>(
      */
     fun authorized(to: String = ctx.uri(), init: AccessTokenDto.() -> Unit) {
         authenticated {
-            if (isAuthorized(to))
-                init(this)
-            else
-                response = unauthorizedError("Invalid credentials")
+            isAuthorized(to)
+                .peek { init(this) }
+                .onError { response = it.asError() }
         }
     }
 
@@ -76,10 +87,9 @@ class ContextDsl<R>(
      */
     fun managerOnly(block: AccessTokenDto.() -> Unit) {
         authenticated {
-            if (isManager())
-                block(this)
-            else
-                response = unauthorizedError("Only manager can access this endpoint")
+            isManager()
+                .peek { block(this) }
+                .onError { response = it.asError() }
         }
     }
 
@@ -95,34 +105,32 @@ class ContextDsl<R>(
     fun queryParameter(name: String): String? =
         ctx.queryParam(name)
 
-    inline fun <reified T: Any> body() = ctx.bodyAsClass(T::class.java)
+    inline fun <reified T : Any> body() =
+        ctx.bodyAsClass(T::class.java)
 
-    fun isAuthorized(to: String): Boolean =
-        isManager() || authenticationResult.value.fold(
-            { accessTokenFacade.hasPermissionTo(it.identifier, to, METHOD_PERMISSIONS[ctx.method()]!!) },
-            { false }
-        )
+    fun isAuthorized(to: String): Result<Unit, ErrorResponse> =
+        isManager()
+            .flatMapErr { _ ->
+                authenticationResult.value
+                    .filter(
+                        { accessTokenFacade.hasPermissionTo(it.identifier, to, METHOD_PERMISSIONS[ctx.method()]!!) },
+                        { FORBIDDEN.toErrorResponse("This token is not authorized to access this path") }
+                    )
+                    .mapToUnit()
+            }
 
-    fun isManager(): Boolean =
-        authenticationResult.value.fold(
-            { accessTokenFacade.hasPermission(it.identifier, MANAGER) },
-            { false }
-        )
+    fun isManager(): Result<Unit, ErrorResponse> =
+        authenticationResult.value
+            .filter(
+                { accessTokenFacade.hasPermission(it.identifier, MANAGER) },
+                { FORBIDDEN.toErrorResponse("Only manager can access this endpoint") }
+            )
+            .mapToUnit()
 
     fun getSessionIdentifier(): String =
         authenticationResult.value.fold({ "${it.name}@${ctx.ip()}" }, { ctx.ip() })
 
     fun authentication(): Result<out AccessTokenDto, ErrorResponse> =
         authenticationResult.value
-
-    private companion object {
-        private val METHOD_PERMISSIONS = mapOf(
-            HandlerType.HEAD to RoutePermission.READ,
-            HandlerType.GET to RoutePermission.READ,
-            HandlerType.PUT to RoutePermission.WRITE,
-            HandlerType.POST to RoutePermission.WRITE,
-            HandlerType.DELETE to RoutePermission.WRITE
-        )
-    }
 
 }

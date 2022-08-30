@@ -26,7 +26,7 @@ import com.reposilite.token.RoutePermission
 import com.reposilite.token.api.CreateAccessTokenRequest
 import com.reposilite.web.http.ErrorResponse
 import io.javalin.http.HttpStatus
-import io.javalin.http.HttpStatus.UNAUTHORIZED
+import io.javalin.http.HttpStatus.FORBIDDEN
 import kong.unirest.HttpRequest
 import kong.unirest.HttpResponse
 import kong.unirest.Unirest
@@ -89,7 +89,7 @@ internal abstract class ReposiliteSpecification : ReposiliteRunner() {
             .asJacksonObject(ErrorResponse::class)
 
         // then: request is rejected
-        assertErrorResponse(UNAUTHORIZED, unauthorizedResponse)
+        assertErrorResponse(FORBIDDEN, unauthorizedResponse)
     }
 
 }
