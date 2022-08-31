@@ -23,10 +23,10 @@ import com.reposilite.maven.api.VersionLookupRequest
 import com.reposilite.maven.api.VersionsResponse
 import com.reposilite.maven.api.PomDetails
 import com.reposilite.shared.ContextDsl
+import com.reposilite.shared.ErrorResponse
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.toLocation
 import com.reposilite.web.api.ReposiliteRoute
-import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.routing.RouteMethod.GET
 import com.reposilite.web.routing.RouteMethod.POST
 import io.javalin.http.HttpStatus.CREATED

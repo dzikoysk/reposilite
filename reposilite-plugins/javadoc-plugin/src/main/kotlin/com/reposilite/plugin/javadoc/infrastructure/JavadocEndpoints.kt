@@ -19,8 +19,8 @@ package com.reposilite.plugin.javadoc.infrastructure
 import com.reposilite.maven.infrastructure.MavenRoutes
 import com.reposilite.plugin.javadoc.JavadocFacade
 import com.reposilite.plugin.javadoc.api.JavadocPageRequest
+import com.reposilite.shared.extensions.encoding
 import com.reposilite.web.api.ReposiliteRoute
-import com.reposilite.web.http.encoding
 import com.reposilite.web.routing.RouteMethod
 
 internal class JavadocEndpoints(javadoc: JavadocFacade) : MavenRoutes(javadoc.mavenFacade) {

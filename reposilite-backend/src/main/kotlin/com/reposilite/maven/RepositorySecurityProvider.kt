@@ -19,15 +19,15 @@ package com.reposilite.maven
 import com.reposilite.maven.RepositoryVisibility.HIDDEN
 import com.reposilite.maven.RepositoryVisibility.PRIVATE
 import com.reposilite.maven.RepositoryVisibility.PUBLIC
+import com.reposilite.shared.ErrorResponse
+import com.reposilite.shared.toErrorResponse
+import com.reposilite.shared.unauthorizedError
 import com.reposilite.storage.api.Location
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.AccessTokenIdentifier
 import com.reposilite.token.RoutePermission
 import com.reposilite.token.RoutePermission.READ
 import com.reposilite.token.RoutePermission.WRITE
-import com.reposilite.web.http.ErrorResponse
-import com.reposilite.web.http.toErrorResponse
-import com.reposilite.web.http.unauthorizedError
 import io.javalin.http.HttpStatus.FORBIDDEN
 import panda.std.Result
 

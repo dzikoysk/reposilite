@@ -26,15 +26,15 @@ import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.frontend.application.FrontendSettings
 import com.reposilite.journalist.Journalist
 import com.reposilite.shared.ContextDsl
+import com.reposilite.shared.extensions.response
+import com.reposilite.shared.extensions.uri
+import com.reposilite.shared.extractFromHeaders
 import com.reposilite.status.FailureFacade
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.web.api.HttpServerConfigurationEvent
 import com.reposilite.web.api.HttpServerStarted
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.RoutingSetupEvent
-import com.reposilite.web.http.extractFromHeaders
-import com.reposilite.web.http.response
-import com.reposilite.web.http.uri
 import com.reposilite.web.infrastructure.CacheBypassHandler
 import com.reposilite.web.routing.RoutingPlugin
 import io.javalin.config.JavalinConfig
@@ -116,7 +116,7 @@ internal object JavalinConfiguration {
                     )
                     route.handler(dsl)
                     dsl.response?.also { result ->
-                        result.onError { reposilite.logger.debug("ERROR RESPONSE | " + ctx.uri() + " errored with $it") }
+                        result.onError { reposilite.logger.debug("ERR RESULT | ${ctx.method()} ${ctx.uri()} errored with $it") }
                         ctx.response(result)
                     }
                 } catch (throwable: Throwable) {

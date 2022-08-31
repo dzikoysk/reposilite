@@ -17,8 +17,8 @@
 package com.reposilite.shared.http
 
 import com.reposilite.auth.api.Credentials
+import com.reposilite.shared.ErrorResponse
 import com.reposilite.storage.api.FileDetails
-import com.reposilite.web.http.ErrorResponse
 import panda.std.Result
 import java.io.InputStream
 

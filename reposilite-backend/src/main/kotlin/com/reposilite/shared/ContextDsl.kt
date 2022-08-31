@@ -17,13 +17,11 @@
 package com.reposilite.shared
 
 import com.reposilite.journalist.Logger
+import com.reposilite.shared.extensions.uri
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.AccessTokenPermission.MANAGER
 import com.reposilite.token.RoutePermission
 import com.reposilite.token.api.AccessTokenDto
-import com.reposilite.web.http.ErrorResponse
-import com.reposilite.web.http.toErrorResponse
-import com.reposilite.web.http.uri
 import io.javalin.http.Context
 import io.javalin.http.HandlerType
 import io.javalin.http.HttpStatus.FORBIDDEN

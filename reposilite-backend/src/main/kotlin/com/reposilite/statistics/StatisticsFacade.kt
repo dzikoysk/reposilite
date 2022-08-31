@@ -19,10 +19,10 @@ import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
 import com.reposilite.maven.api.Identifier
 import com.reposilite.plugin.api.Facade
+import com.reposilite.shared.ErrorResponse
+import com.reposilite.shared.badRequestError
 import com.reposilite.statistics.api.IncrementResolvedRequest
 import com.reposilite.statistics.api.ResolvedCountResponse
-import com.reposilite.web.http.ErrorResponse
-import com.reposilite.web.http.badRequestError
 import panda.std.Result
 import panda.std.asSuccess
 import panda.std.reactive.Reference

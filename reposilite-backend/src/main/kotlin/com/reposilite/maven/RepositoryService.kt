@@ -17,11 +17,11 @@ package com.reposilite.maven
 
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
+import com.reposilite.shared.ErrorResponse
+import com.reposilite.shared.notFoundError
 import com.reposilite.storage.api.DirectoryInfo
 import com.reposilite.storage.api.SimpleDirectoryInfo
 import com.reposilite.token.AccessTokenIdentifier
-import com.reposilite.web.http.ErrorResponse
-import com.reposilite.web.http.notFoundError
 import panda.std.Result
 import panda.std.asSuccess
 

@@ -34,12 +34,12 @@ import com.reposilite.maven.api.Versioning
 import com.reposilite.maven.api.VersionsResponse
 import com.reposilite.maven.api.extractReleaseVersions
 import com.reposilite.maven.api.extractSnapshotVersions
+import com.reposilite.shared.ErrorResponse
+import com.reposilite.shared.internalServer
+import com.reposilite.shared.notFound
+import com.reposilite.shared.unauthorizedError
 import com.reposilite.storage.VersionComparator
 import com.reposilite.storage.api.Location
-import com.reposilite.web.http.ErrorResponse
-import com.reposilite.web.http.internalServer
-import com.reposilite.web.http.notFound
-import com.reposilite.web.http.unauthorizedError
 import panda.std.Result
 import panda.std.Result.supplyThrowing
 import panda.std.letIf

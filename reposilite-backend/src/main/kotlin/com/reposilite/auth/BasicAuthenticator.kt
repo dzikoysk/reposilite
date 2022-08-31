@@ -17,11 +17,10 @@
 package com.reposilite.auth
 
 import com.reposilite.auth.api.Credentials
+import com.reposilite.shared.ErrorResponse
+import com.reposilite.shared.unauthorizedError
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.api.AccessTokenDto
-import com.reposilite.web.http.ErrorResponse
-import com.reposilite.web.http.errorResponse
-import io.javalin.http.HttpStatus.UNAUTHORIZED
 import panda.std.Result
 import panda.std.asSuccess
 
@@ -31,7 +30,7 @@ internal class BasicAuthenticator(private val accessTokenFacade: AccessTokenFaca
         accessTokenFacade.getAccessToken(credentials.name)
             ?.takeIf { accessTokenFacade.secretMatches(it.identifier, credentials.secret) }
             ?.asSuccess()
-            ?: errorResponse(UNAUTHORIZED, "Invalid authorization credentials")
+            ?: unauthorizedError("Invalid authorization credentials")
 
     override fun enabled(): Boolean =
         true

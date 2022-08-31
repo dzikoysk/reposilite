@@ -18,6 +18,7 @@
 
 package com.reposilite.token
 
+import com.reposilite.shared.ErrorResponse
 import com.reposilite.specification.LocalSpecificationJunitExtension
 import com.reposilite.specification.RemoteSpecificationJunitExtension
 import com.reposilite.token.AccessTokenPermission.MANAGER
@@ -26,7 +27,6 @@ import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.token.api.CreateAccessTokenResponse
 import com.reposilite.token.api.CreateAccessTokenWithNoNameRequest
 import com.reposilite.token.specification.AccessTokenIntegrationSpecification
-import com.reposilite.web.http.ErrorResponse
 import io.javalin.http.HttpStatus.FORBIDDEN
 import io.javalin.http.HttpStatus.OK
 import kong.unirest.Unirest.delete

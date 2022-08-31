@@ -18,7 +18,7 @@ package com.reposilite.auth
 
 import com.reposilite.auth.api.Credentials
 import com.reposilite.auth.specification.AuthenticationSpecification
-import com.reposilite.web.http.unauthorized
+import com.reposilite.shared.unauthorized
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import panda.std.ResultAssertions.assertError

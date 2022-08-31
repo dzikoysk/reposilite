@@ -16,8 +16,6 @@
 
 package com.reposilite.shared
 
-import com.reposilite.web.http.ErrorResponse
-import com.reposilite.web.http.badRequestError
 import org.intellij.lang.annotations.Language
 import panda.std.Result
 import panda.std.asSuccess

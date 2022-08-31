@@ -25,14 +25,14 @@ import com.reposilite.auth.api.Credentials
 import com.reposilite.journalist.Channel
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
+import com.reposilite.shared.ErrorResponse
+import com.reposilite.shared.badRequestError
+import com.reposilite.shared.toErrorResult
 import com.reposilite.storage.api.DocumentInfo
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.UNKNOWN_LENGTH
 import com.reposilite.storage.api.toLocation
 import com.reposilite.storage.getExtension
-import com.reposilite.web.http.ErrorResponse
-import com.reposilite.web.http.badRequestError
-import com.reposilite.web.http.toErrorResult
 import io.javalin.http.ContentType
 import io.javalin.http.HttpStatus.NOT_ACCEPTABLE
 import panda.std.Result

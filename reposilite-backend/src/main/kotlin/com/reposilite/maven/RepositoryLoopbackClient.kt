@@ -17,12 +17,12 @@
 package com.reposilite.maven
 
 import com.reposilite.auth.api.Credentials
+import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.http.RemoteClient
+import com.reposilite.shared.notFound
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.Location
 import com.reposilite.storage.api.toLocation
-import com.reposilite.web.http.ErrorResponse
-import com.reposilite.web.http.notFound
 import panda.std.Result
 import java.io.InputStream
 

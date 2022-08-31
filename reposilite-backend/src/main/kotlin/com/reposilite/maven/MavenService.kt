@@ -11,6 +11,11 @@ import com.reposilite.maven.api.METADATA_FILE
 import com.reposilite.maven.api.PreResolveEvent
 import com.reposilite.maven.api.ResolvedFileEvent
 import com.reposilite.plugin.Extensions
+import com.reposilite.shared.ErrorResponse
+import com.reposilite.shared.badRequestError
+import com.reposilite.shared.notFound
+import com.reposilite.shared.notFoundError
+import com.reposilite.shared.unauthorizedError
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.statistics.api.IncrementResolvedRequest
 import com.reposilite.storage.api.DocumentInfo
@@ -18,11 +23,6 @@ import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.FileType.DIRECTORY
 import com.reposilite.storage.api.Location
 import com.reposilite.token.AccessTokenIdentifier
-import com.reposilite.web.http.ErrorResponse
-import com.reposilite.web.http.badRequestError
-import com.reposilite.web.http.notFound
-import com.reposilite.web.http.notFoundError
-import com.reposilite.web.http.unauthorizedError
 import panda.std.Result
 import panda.std.asSuccess
 import java.io.InputStream

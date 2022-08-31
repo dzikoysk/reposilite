@@ -30,12 +30,12 @@ import com.reposilite.maven.api.SaveMetadataRequest
 import com.reposilite.maven.api.VersionLookupRequest
 import com.reposilite.maven.api.VersionsResponse
 import com.reposilite.plugin.api.Facade
+import com.reposilite.shared.ErrorResponse
 import com.reposilite.storage.api.DirectoryInfo
 import com.reposilite.storage.api.DocumentInfo
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.Location
 import com.reposilite.token.AccessTokenIdentifier
-import com.reposilite.web.http.ErrorResponse
 import panda.std.Result
 import java.io.InputStream
 

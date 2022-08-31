@@ -19,12 +19,12 @@ import com.reposilite.ReposiliteJournalist
 import com.reposilite.auth.AuthenticationFacade
 import com.reposilite.auth.api.Credentials
 import com.reposilite.console.ConsoleFacade
+import com.reposilite.shared.ErrorResponse
+import com.reposilite.shared.extractFromString
+import com.reposilite.shared.unauthorized
+import com.reposilite.shared.unauthorizedError
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.AccessTokenPermission.MANAGER
-import com.reposilite.web.http.ErrorResponse
-import com.reposilite.web.http.extractFromString
-import com.reposilite.web.http.unauthorized
-import com.reposilite.web.http.unauthorizedError
 import io.javalin.openapi.HttpMethod
 import io.javalin.openapi.OpenApi
 import io.javalin.websocket.WsConfig

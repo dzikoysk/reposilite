@@ -20,10 +20,10 @@ package com.reposilite.maven
 
 import com.reposilite.configuration.local.LocalConfiguration
 import com.reposilite.maven.specification.MavenIntegrationSpecification
+import com.reposilite.shared.ErrorResponse
 import com.reposilite.specification.LocalSpecificationJunitExtension
 import com.reposilite.specification.RemoteSpecificationJunitExtension
 import com.reposilite.storage.api.DocumentInfo
-import com.reposilite.web.http.ErrorResponse
 import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.HttpStatus.UNAUTHORIZED
 import kong.unirest.HeaderNames.CONTENT_LENGTH

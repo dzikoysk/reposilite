@@ -17,8 +17,8 @@
 package com.reposilite.auth
 
 import com.reposilite.auth.api.Credentials
+import com.reposilite.shared.ErrorResponse
 import com.reposilite.token.api.AccessTokenDto
-import com.reposilite.web.http.ErrorResponse
 import panda.std.Result
 
 interface Authenticator {

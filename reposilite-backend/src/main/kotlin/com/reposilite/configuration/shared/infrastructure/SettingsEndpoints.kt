@@ -18,10 +18,10 @@ package com.reposilite.configuration.shared.infrastructure
 
 import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.configuration.shared.api.SharedSettings
+import com.reposilite.shared.badRequest
+import com.reposilite.shared.badRequestError
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
-import com.reposilite.web.http.badRequest
-import com.reposilite.web.http.badRequestError
 import com.reposilite.web.routing.RouteMethod.GET
 import com.reposilite.web.routing.RouteMethod.PUT
 import io.javalin.openapi.HttpMethod

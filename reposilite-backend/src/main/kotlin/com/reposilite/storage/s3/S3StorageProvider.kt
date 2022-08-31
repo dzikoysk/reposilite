@@ -18,6 +18,9 @@ package com.reposilite.storage.s3
 
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
+import com.reposilite.shared.ErrorResponse
+import com.reposilite.shared.internalServerError
+import com.reposilite.shared.notFoundError
 import com.reposilite.status.FailureFacade
 import com.reposilite.storage.StorageProvider
 import com.reposilite.storage.api.DirectoryInfo
@@ -26,9 +29,6 @@ import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.Location
 import com.reposilite.storage.api.SimpleDirectoryInfo
 import com.reposilite.storage.api.toLocation
-import com.reposilite.web.http.ErrorResponse
-import com.reposilite.web.http.internalServerError
-import com.reposilite.web.http.notFoundError
 import io.javalin.http.ContentType
 import io.javalin.http.ContentType.APPLICATION_OCTET_STREAM
 import io.javalin.http.ContentType.Companion.OCTET_STREAM

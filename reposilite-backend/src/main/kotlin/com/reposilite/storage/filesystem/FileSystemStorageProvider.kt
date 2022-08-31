@@ -16,6 +16,10 @@
 
 package com.reposilite.storage.filesystem
 
+import com.reposilite.shared.ErrorResponse
+import com.reposilite.shared.badRequest
+import com.reposilite.shared.notFound
+import com.reposilite.shared.toErrorResponse
 import com.reposilite.storage.FilesComparator
 import com.reposilite.storage.StorageProvider
 import com.reposilite.storage.VersionComparator
@@ -30,10 +34,6 @@ import com.reposilite.storage.getExtension
 import com.reposilite.storage.getSimpleName
 import com.reposilite.storage.inputStream
 import com.reposilite.storage.type
-import com.reposilite.web.http.ErrorResponse
-import com.reposilite.web.http.badRequest
-import com.reposilite.web.http.notFound
-import com.reposilite.web.http.toErrorResponse
 import io.javalin.http.ContentType
 import io.javalin.http.ContentType.APPLICATION_OCTET_STREAM
 import io.javalin.http.HttpStatus.INSUFFICIENT_STORAGE

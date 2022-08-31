@@ -18,6 +18,8 @@ package com.reposilite.token
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
 import com.reposilite.plugin.api.Facade
+import com.reposilite.shared.ErrorResponse
+import com.reposilite.shared.notFoundError
 import com.reposilite.token.AccessTokenPermission.MANAGER
 import com.reposilite.token.AccessTokenSecurityProvider.generateSecret
 import com.reposilite.token.AccessTokenType.PERSISTENT
@@ -28,8 +30,6 @@ import com.reposilite.token.api.CreateAccessTokenResponse
 import com.reposilite.token.api.SecretType
 import com.reposilite.token.api.SecretType.ENCRYPTED
 import com.reposilite.token.api.SecretType.RAW
-import com.reposilite.web.http.ErrorResponse
-import com.reposilite.web.http.notFoundError
 import panda.std.Result
 import panda.std.asSuccess
 import panda.std.letIf

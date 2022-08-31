@@ -21,8 +21,8 @@ import com.reposilite.console.api.ReposiliteCommand
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
 import com.reposilite.plugin.api.Facade
-import com.reposilite.web.http.ErrorResponse
-import com.reposilite.web.http.badRequestError
+import com.reposilite.shared.ErrorResponse
+import com.reposilite.shared.badRequestError
 import panda.std.Result
 import panda.std.asSuccess
 import panda.utilities.StringUtils

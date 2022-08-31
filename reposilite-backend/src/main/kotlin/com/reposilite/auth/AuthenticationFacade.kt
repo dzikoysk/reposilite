@@ -23,12 +23,12 @@ import com.reposilite.auth.api.SessionDetails
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
 import com.reposilite.plugin.api.Facade
+import com.reposilite.shared.ErrorResponse
+import com.reposilite.shared.notFoundError
+import com.reposilite.shared.unauthorizedError
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.AccessTokenIdentifier
 import com.reposilite.token.api.AccessTokenDto
-import com.reposilite.web.http.ErrorResponse
-import com.reposilite.web.http.notFoundError
-import com.reposilite.web.http.unauthorizedError
 import panda.std.Result
 import panda.std.asSuccess
 import java.util.concurrent.TimeUnit.MINUTES

@@ -30,6 +30,7 @@ import com.reposilite.maven.application.MavenSettings
 import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.plugin.Extensions
 import com.reposilite.shared.http.FakeRemoteClientProvider
+import com.reposilite.shared.notFoundError
 import com.reposilite.statistics.DailyDateIntervalProvider
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.statistics.infrastructure.InMemoryStatisticsRepository
@@ -46,7 +47,6 @@ import com.reposilite.token.Route
 import com.reposilite.token.RoutePermission
 import com.reposilite.token.api.CreateAccessTokenRequest
 import com.reposilite.token.infrastructure.InMemoryAccessTokenRepository
-import com.reposilite.web.http.notFoundError
 import io.javalin.http.ContentType.TEXT_XML
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir

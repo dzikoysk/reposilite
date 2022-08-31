@@ -16,8 +16,8 @@
 
 package com.reposilite.storage.filesystem
 
-import com.reposilite.web.http.ErrorResponse
-import com.reposilite.web.http.toErrorResponse
+import com.reposilite.shared.ErrorResponse
+import com.reposilite.shared.toErrorResponse
 import io.javalin.http.HttpStatus.INSUFFICIENT_STORAGE
 import panda.std.Result
 import java.nio.file.Files

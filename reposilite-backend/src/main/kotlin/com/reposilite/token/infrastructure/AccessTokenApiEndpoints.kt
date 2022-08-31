@@ -16,6 +16,9 @@
 
 package com.reposilite.token.infrastructure
 
+import com.reposilite.shared.badRequest
+import com.reposilite.shared.notFoundError
+import com.reposilite.shared.toErrorResult
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.AccessTokenPermission
 import com.reposilite.token.api.AccessTokenDto
@@ -24,9 +27,6 @@ import com.reposilite.token.api.CreateAccessTokenResponse
 import com.reposilite.token.api.CreateAccessTokenWithNoNameRequest
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
-import com.reposilite.web.http.badRequest
-import com.reposilite.web.http.notFoundError
-import com.reposilite.web.http.toErrorResult
 import com.reposilite.web.routing.RouteMethod.DELETE
 import com.reposilite.web.routing.RouteMethod.GET
 import com.reposilite.web.routing.RouteMethod.PUT

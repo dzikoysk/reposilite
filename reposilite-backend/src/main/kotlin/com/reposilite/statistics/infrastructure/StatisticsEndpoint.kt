@@ -16,12 +16,12 @@
 
 package com.reposilite.statistics.infrastructure
 
+import com.reposilite.shared.ErrorResponse
 import com.reposilite.statistics.MAX_PAGE_SIZE
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.statistics.api.ResolvedCountResponse
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
-import com.reposilite.web.http.ErrorResponse
 import com.reposilite.web.routing.RouteMethod.GET
 import io.javalin.openapi.HttpMethod
 import io.javalin.openapi.OpenApi

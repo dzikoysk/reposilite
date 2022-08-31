@@ -16,10 +16,10 @@
 package com.reposilite.maven
 
 import com.reposilite.maven.api.REPOSITORY_NAME_MAX_LENGTH
+import com.reposilite.shared.ErrorResponse
 import com.reposilite.storage.StorageProvider
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.Location
-import com.reposilite.web.http.ErrorResponse
 import org.apache.commons.codec.digest.DigestUtils
 import panda.std.Result
 import java.io.InputStream

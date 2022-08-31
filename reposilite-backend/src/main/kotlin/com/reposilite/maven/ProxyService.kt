@@ -19,10 +19,10 @@ package com.reposilite.maven
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
 import com.reposilite.maven.application.ProxiedRepository
+import com.reposilite.shared.ErrorResponse
+import com.reposilite.shared.notFoundError
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.Location
-import com.reposilite.web.http.ErrorResponse
-import com.reposilite.web.http.notFoundError
 import panda.std.Result
 import panda.std.Result.ok
 import java.io.InputStream

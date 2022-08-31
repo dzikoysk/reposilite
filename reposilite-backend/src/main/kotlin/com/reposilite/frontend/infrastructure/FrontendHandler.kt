@@ -17,15 +17,15 @@
 package com.reposilite.frontend.infrastructure
 
 import com.reposilite.frontend.FrontendFacade
+import com.reposilite.shared.ErrorResponse
+import com.reposilite.shared.extensions.encoding
+import com.reposilite.shared.notFoundError
 import com.reposilite.storage.api.toLocation
 import com.reposilite.storage.getExtension
 import com.reposilite.storage.getSimpleName
 import com.reposilite.storage.inputStream
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
-import com.reposilite.web.http.ErrorResponse
-import com.reposilite.web.http.encoding
-import com.reposilite.web.http.notFoundError
 import com.reposilite.web.routing.RouteMethod.GET
 import io.javalin.http.ContentType
 import io.javalin.http.Context

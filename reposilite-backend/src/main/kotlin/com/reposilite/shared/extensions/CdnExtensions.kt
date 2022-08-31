@@ -16,8 +16,8 @@
 
 package com.reposilite.shared.extensions
 
-import com.reposilite.web.http.ErrorResponse
-import com.reposilite.web.http.badRequest
+import com.reposilite.shared.ErrorResponse
+import com.reposilite.shared.badRequest
 import net.dzikoysk.cdn.Cdn
 import net.dzikoysk.cdn.KCdnFactory
 import net.dzikoysk.cdn.source.Source

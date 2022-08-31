@@ -3,10 +3,10 @@ package com.reposilite.maven.infrastructure
 import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.Repository
 import com.reposilite.shared.ContextDsl
+import com.reposilite.shared.notFoundError
 import com.reposilite.storage.api.Location
 import com.reposilite.storage.api.toLocation
 import com.reposilite.web.api.ReposiliteRoutes
-import com.reposilite.web.http.notFoundError
 
 abstract class MavenRoutes(val mavenFacade: MavenFacade) : ReposiliteRoutes() {
 

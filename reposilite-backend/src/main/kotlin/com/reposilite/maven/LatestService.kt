@@ -7,9 +7,9 @@ import com.reposilite.maven.api.LatestVersionResponse
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.VersionLookupRequest
 import com.reposilite.shared.BadgeGenerator
+import com.reposilite.shared.ErrorResponse
 import com.reposilite.storage.api.Location
 import com.reposilite.storage.api.toLocation
-import com.reposilite.web.http.ErrorResponse
 import panda.std.Result
 import panda.std.reactive.Reference
 

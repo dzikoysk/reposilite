@@ -16,12 +16,12 @@
 
 package com.reposilite.storage
 
+import com.reposilite.shared.ErrorResponse
+import com.reposilite.shared.notFound
+import com.reposilite.shared.toErrorResponse
 import com.reposilite.storage.api.FileType
 import com.reposilite.storage.api.FileType.DIRECTORY
 import com.reposilite.storage.api.FileType.FILE
-import com.reposilite.web.http.ErrorResponse
-import com.reposilite.web.http.notFound
-import com.reposilite.web.http.toErrorResponse
 import io.javalin.http.HttpStatus.NO_CONTENT
 import panda.std.Result
 import java.io.InputStream

@@ -25,14 +25,14 @@ import com.reposilite.maven.api.LatestBadgeRequest
 import com.reposilite.maven.api.LatestVersionResponse
 import com.reposilite.maven.api.VersionLookupRequest
 import com.reposilite.shared.ContextDsl
+import com.reposilite.shared.ErrorResponse
+import com.reposilite.shared.badRequestError
+import com.reposilite.shared.extensions.contentDisposition
 import com.reposilite.shared.extensions.resultAttachment
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.toLocation
 import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.web.api.ReposiliteRoute
-import com.reposilite.web.http.ErrorResponse
-import com.reposilite.web.http.badRequestError
-import com.reposilite.web.http.contentDisposition
 import com.reposilite.web.routing.RouteMethod.GET
 import io.javalin.http.ContentType
 import io.javalin.openapi.HttpMethod

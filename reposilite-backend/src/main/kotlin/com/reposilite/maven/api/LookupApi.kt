@@ -18,10 +18,10 @@ package com.reposilite.maven.api
 
 import com.reposilite.maven.Repository
 import com.reposilite.plugin.api.Event
+import com.reposilite.shared.ErrorResponse
 import com.reposilite.storage.api.DocumentInfo
 import com.reposilite.storage.api.Location
 import com.reposilite.token.AccessTokenIdentifier
-import com.reposilite.web.http.ErrorResponse
 import panda.std.Result
 import java.io.InputStream
 

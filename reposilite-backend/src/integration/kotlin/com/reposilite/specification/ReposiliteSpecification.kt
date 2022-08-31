@@ -18,13 +18,13 @@ package com.reposilite.specification
 
 import com.reposilite.ReposiliteObjectMapper
 import com.reposilite.plugin.api.Facade
+import com.reposilite.shared.ErrorResponse
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.AccessTokenPermission
 import com.reposilite.token.AccessTokenType.PERSISTENT
 import com.reposilite.token.Route
 import com.reposilite.token.RoutePermission
 import com.reposilite.token.api.CreateAccessTokenRequest
-import com.reposilite.web.http.ErrorResponse
 import io.javalin.http.HttpStatus
 import io.javalin.http.HttpStatus.FORBIDDEN
 import kong.unirest.HttpRequest
