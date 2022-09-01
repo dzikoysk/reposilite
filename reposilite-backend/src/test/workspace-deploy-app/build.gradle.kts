@@ -30,7 +30,7 @@ publishing {
                 password = "secret"
             }
             name = "local-repository"
-            url = uri("http://localhost/snapshots")
+            url = uri("http://localhost/private")
             isAllowInsecureProtocol = true
         }
     }

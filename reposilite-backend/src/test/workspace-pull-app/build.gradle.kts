@@ -13,8 +13,12 @@ application {
 repositories {
     mavenCentral()
     maven {
-        url = uri("http://localhost/releases")
-        isAllowInsecureProtocol = true
+        url = uri("http://localhost/private")
+        isAllowInsecureProtocol = true,
+        credentials {
+            username = "name"
+            password = "secret"
+        }
     }
 }
 
