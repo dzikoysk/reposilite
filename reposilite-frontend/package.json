@@ -24,7 +24,7 @@
     "mime-types": "^2.1.35",
     "mosha-vue-toastify": "^1.0.23",
     "pretty-bytes": "^6.0.0",
-    "prismjs": "^1.28.0",
+    "prismjs": "^1.29.0",
     "simple-syntax-highlighter": "^2.2.3",
     "vue": "^3.2.37",
     "vue-axios": "^3.4.1",
