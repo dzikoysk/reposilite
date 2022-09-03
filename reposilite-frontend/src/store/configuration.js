@@ -1,6 +1,6 @@
 import {computed, markRaw, ref, toRaw} from 'vue'
 import { useSession } from './session'
-import {createToast} from 'mosha-vue-toastify'
+import { createToast } from 'mosha-vue-toastify'
 import { createAjv } from '@jsonforms/core'
 import { vanillaRenderers } from '@dzikoysk/vue-vanilla'
 import { default as ObjectRenderer, tester as objectTester } from '../components/renderers/ObjectRenderer.vue'
@@ -59,18 +59,25 @@ const renderers = markRaw([
   ...vanillaRenderers,
 ])
 
-const configurationValidator = computed(() => createAjv({
-  useDefaults: true,
-  removeAdditional: false,
-  formats: {
-    'repositories.storageProvider.quota': /^([1-9]\d*)([KkMmGg][Bb]|%)$/,
-    'repositories.id': {
-      type: 'string',
-      validate: (name) => name in configurations.value['maven'].repositories
-    },
-    'repositories.proxied.allowedGroups': /^(\w+\.)*\w+$/,
-  }
-}))
+const configurationValidator = computed(() => {
+  const ajv = createAjv({
+    useDefaults: true,
+    removeAdditional: false,
+    formats: {
+      'repositories.storageProvider.quota': /^([1-9]\d*)([KkMmGg][Bb]|%)$/,
+      'repositories.id': {
+        type: 'string',
+        validate: (name) => name in configurations.value['maven'].repositories || name.startsWith(' ') || name.endsWith(' ')
+      },
+      'repositories.proxied.allowedGroups': /^(\w+\.)*\w+$/,
+    }
+  })
+  ajv.addFormat("repositories.id", {
+    type: "string",
+    validate: (value) => !value.endsWith(' ')
+  })
+  return ajv
+})
 
 export function useConfiguration() {
   return {

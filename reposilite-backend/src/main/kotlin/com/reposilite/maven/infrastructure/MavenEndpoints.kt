@@ -90,7 +90,7 @@ internal class MavenEndpoints(
         authorized {
             requireGav { gav ->
                 requireRepository { repository ->
-                    response = DeployRequest(repository, gav, getSessionIdentifier(), ctx.bodyAsInputStream())
+                    response = DeployRequest(repository, gav, getSessionIdentifier(), ctx.bodyInputStream())
                         .let { request -> mavenFacade.deployFile(request) }
                         .onError { error -> logger.debug("Cannot deploy artifact due to: ${error.message}") }
                 }

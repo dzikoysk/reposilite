@@ -169,7 +169,9 @@ internal object JavalinConfiguration {
 
     private fun configureCors(config: JavalinConfig) {
         config.plugins.enableCors {
-            it.allowedOrigins = listOf("*")
+            it.add { cfg ->
+                cfg.anyHost()
+            }
         }
     }
 
