@@ -72,7 +72,7 @@ dependencies {
     val springSecurityCrypto = "5.7.3"
     implementation("org.springframework.security:spring-security-crypto:$springSecurityCrypto")
 
-    val ldap = "6.0.5"
+    val ldap = "6.0.6"
     testImplementation("com.unboundid:unboundid-ldapsdk:$ldap")
 
     val javalin = "5.0.0-SNAPSHOT"
