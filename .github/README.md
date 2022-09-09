@@ -81,6 +81,7 @@ Thanks to all contributors and people that decided to support my work financiall
    <a href="https://github.com/sponsors/dzikoysk">Still active GitHub Sponsors</a>
   </td>
   <td>
+    <a href="https://github.com/milkyway0308">milkyway0308</a>,
     <a href="https://github.com/tipsy">tipsy</a>, 
     <a href="https://github.com/Koressi">Koressi</a>,
     <a href="https://github.com/insertt">insertt</a>, 
@@ -88,32 +89,33 @@ Thanks to all contributors and people that decided to support my work financiall
     <a href="https://github.com/rdehuyss">rdehuyss</a>,
     <a href="https://github.com/zugazagoitia">zugazagoitia</a>,
     <a href="https://github.com/neg4n">neg4n</a>, 
-    <a href="https://github.com/sebba-dev">sebba-dev</a>
+    <a href="https://github.com/sebba-dev">sebba-dev</a>,
+    <a href="https://github.com/FlawCra">FlawCra</a>,
   </td>
  </tr>
  <tr>
   <td>All time</td>
   <td>
    <a href="https://github.com/zzmgck">zzmgck</a>, 
-   <a href="https://github.com/tipsy">tipsy</a>, 
    <a href="https://github.com/Koressi">Koressi</a>,
    <a href="https://github.com/insertt">insertt</a>, 
-   <a href="https://github.com/insertt">bmstefanski</a>, 
    <a href="https://github.com/milkyway0308">milkyway0308</a>,
+   <a href="https://github.com/tipsy">tipsy</a>, 
+   <a href="https://github.com/insertt">bmstefanski</a>, 
    <a href="https://github.com/rdehuyss">rdehuyss</a>
+   <a href="https://github.com/andrm">andrm</a>,
+   <a href="https://github.com/neg4n">neg4n</a>,
    <a href="https://github.com/maxant">maxant</a>,
    <a href="https://github.com/alexwhb">alexwhb</a>, 
    <a href="https://github.com/kay">Douglas Lawrie</a>,
-   <a href="https://github.com/neg4n">neg4n</a>,
+   <a href="https://github.com/zugazagoitia">zugazagoitia</a>,
    <a href="https://github.com/crejk">crejk</a>,
    <a href="https://github.com/EthanDevelops">EthanDevelops</a>, 
    <a href="https://github.com/escv">escv</a>,
+   <a href="https://github.com/FlawCra">FlawCra</a>,
    <a href="https://github.com/shitzuu">shitzuu</a>,
    <a href="https://github.com/peter-jerry-ye">peter-jerry-ye</a>,
-   <a href="https://github.com/andrm">andrm</a>,
-   <a href="https://github.com/zugazagoitia">zugazagoitia</a>,
    Rob,
-   <a href="https://github.com/FlawCra">FlawCra</a>,
    <a href="https://github.com/sebba-dev">sebba-dev</a>,
    <a href="https://github.com/mufinlive">mufinlive</a>
   </td>
