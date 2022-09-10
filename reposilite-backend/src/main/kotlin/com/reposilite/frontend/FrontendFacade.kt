@@ -29,6 +29,7 @@ class FrontendFacade internal constructor(
 
     private val resources = HashMap<String, String>(0)
     private val uriFormatter = Regex("/+") // exclude common typos from URI
+    private val regexAntiXss = Regex("[^A-Za-z0-9/ ]")
 
     private val formattedBasePath = basePath.computed { // verify base path
         var formattedBasePath = it
@@ -73,6 +74,8 @@ class FrontendFacade internal constructor(
         val uri = originUri.replace(uriFormatter, "/")
         val basePath = formattedBasePath.get()
         val dashboardUrl = basePath + (if (basePath.endsWith("/")) "" else "/") + "#" + uri
+        // prevent xss attack
+        details = regexAntiXss.replace(details!!, "")
 
         @Language("html")
         val response = """
