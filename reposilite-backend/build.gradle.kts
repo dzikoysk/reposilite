@@ -23,9 +23,9 @@ plugins {
     jacoco
     kotlin("jvm")
     kotlin("kapt")
-    id("com.coditory.integration-test") version "1.4.2"
+    id("com.coditory.integration-test") version "1.4.4"
     id("com.github.johnrengelman.shadow") version "7.1.2"
-    id("io.gitlab.arturbosch.detekt").version("1.20.0")
+    id("io.gitlab.arturbosch.detekt").version("1.21.0")
 }
 
 application {
@@ -85,7 +85,7 @@ dependencies {
     kapt("info.picocli:picocli-codegen:$picocli")
     api("info.picocli:picocli:$picocli")
 
-    val jackson = "2.13.3"
+    val jackson = "2.13.4"
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jackson")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jackson")
@@ -95,8 +95,7 @@ dependencies {
     implementation("com.google.http-client:google-http-client:$httpClient")
     testImplementation("com.google.http-client:google-http-client-jackson2:$httpClient")
 
-    val commonsIO = "20030203.000550"
-    @Suppress("GradlePackageUpdate")
+    val commonsIO = "2.11.0"
     implementation("commons-io:commons-io:$commonsIO")
 
     val jline = "3.21.0"
@@ -161,7 +160,7 @@ publishing {
                 project.repositories.findAll(closureOf<Any> {
                     if (this is MavenArtifactRepository && this.url.toString().startsWith("https")) {
                         val repository = repositories.appendNode("repository")
-                        repository.appendNode("id", this.name)
+                        repository.appendNode("id", this.url.toString().replace("https://", "").replace(".", "-").replace("/", "-"))
                         repository.appendNode("url", this.url.toString())
                     }
                 })

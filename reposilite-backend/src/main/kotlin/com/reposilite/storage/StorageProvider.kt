@@ -45,6 +45,6 @@ interface StorageProvider {
 
     fun canHold(contentLength: Long): Result<Long, ErrorResponse>
 
-    fun shutdown() {}
+    fun shutdown()
 
 }

@@ -21,13 +21,11 @@ import com.reposilite.configuration.local.LocalConfigurationMode
 import com.reposilite.configuration.local.LocalConfigurationMode.AUTO
 import com.reposilite.configuration.local.LocalConfigurationMode.NONE
 import com.reposilite.journalist.Journalist
-import com.reposilite.shared.extensions.createCdnByExtension
-import com.reposilite.storage.getSimpleName
 import net.dzikoysk.cdn.CdnException
+import net.dzikoysk.cdn.KCdnFactory
 import net.dzikoysk.cdn.source.Source
 import panda.std.Result
 import panda.std.Result.ok
-import panda.std.function.ThrowingFunction
 import panda.std.orThrow
 import java.nio.file.Path
 
@@ -41,9 +39,7 @@ internal class LocalConfigurationProvider(
     val localConfiguration: LocalConfiguration
 ) {
 
-    private val cdn = configurationFile.getSimpleName()
-        .createCdnByExtension()
-        .orThrow(ThrowingFunction.identity())
+    private val cdn = KCdnFactory.createStandard()
 
     fun initialize() {
         workingDirectory.resolve(configurationFile)

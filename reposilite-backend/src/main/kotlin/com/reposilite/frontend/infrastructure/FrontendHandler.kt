@@ -102,7 +102,7 @@ internal class CustomFrontendHandler(frontendFacade: FrontendFacade, directory: 
                                     .toLocation()
                                     .toPath()
                                     .map { path -> it.resolve(path) }
-                                    .flatMap { path -> path.inputStream().mapErr { it.message } }
+                                    .flatMap { path -> path.inputStream().mapErr { error -> error.message } }
                                     .orNull()
                             }
                         }

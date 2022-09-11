@@ -19,13 +19,14 @@ package com.reposilite.statistics.infrastructure
 import com.reposilite.maven.api.GAV_MAX_LENGTH
 import com.reposilite.maven.api.Identifier
 import com.reposilite.maven.api.REPOSITORY_NAME_MAX_LENGTH
-import com.reposilite.shared.extensions.and
 import com.reposilite.statistics.StatisticsRepository
 import com.reposilite.statistics.api.ResolvedEntry
 import net.dzikoysk.exposed.upsert.upsert
 import net.dzikoysk.exposed.upsert.withUnique
 import org.jetbrains.exposed.dao.id.IntIdTable
+import org.jetbrains.exposed.sql.AndOp
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.ReferenceOption.CASCADE
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.SortOrder.DESC
@@ -113,7 +114,7 @@ internal class SqlStatisticsRepository(private val database: Database) : Statist
                 if (repository.isEmpty())
                     IdentifierTable.gav like "%$phrase%"
                 else
-                    and({ IdentifierTable.repository eq repository }, { IdentifierTable.gav like "%$phrase%" })
+                    AndOp(listOf(Op.build{ IdentifierTable.repository eq repository }, Op.build { IdentifierTable.gav like "%$phrase%" }))
 
             IdentifierTable.leftJoin(ResolvedTable, { IdentifierTable.id }, { ResolvedTable.identifierId })
                 .slice(IdentifierTable.gav, resolvedSum)

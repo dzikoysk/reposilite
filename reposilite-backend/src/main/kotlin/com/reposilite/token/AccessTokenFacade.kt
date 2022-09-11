@@ -135,15 +135,16 @@ class AccessTokenFacade internal constructor(
             ?.let { it.identifier.type.getRepository().deleteAccessToken(it.identifier).asSuccess() }
             ?: notFoundError("Token not found")
 
-    fun regenerateAccessToken(accessTokenDto: AccessTokenDto, secret: String?, secretType: SecretType = RAW): Result<String, ErrorResponse> =
-        (secret ?: generateSecret()).let {
-            val encodedSecret = it.letIf(secretType == RAW) { AccessTokenSecurityProvider.encodeSecret(it) }
-            getRawAccessTokenById(accessTokenDto.identifier)?.copy(encryptedSecret = encodedSecret)
-                ?.let { it.identifier.type.getRepository().saveAccessToken(it) }
-                ?: return notFoundError("Token not found")
+    fun regenerateAccessToken(accessTokenDto: AccessTokenDto, secret: String?, secretType: SecretType = RAW): Result<String, ErrorResponse> {
+        val rawSecret = secret ?: generateSecret()
+        val encodedSecret = rawSecret.letIf(secretType == RAW) { AccessTokenSecurityProvider.encodeSecret(it) } // encode if not already encoded
 
-            it.asSuccess()
-        }
+        return getRawAccessTokenById(accessTokenDto.identifier)
+            ?.copy(encryptedSecret = encodedSecret)
+            ?.let { it.identifier.type.getRepository().saveAccessToken(it) }
+            ?.let { rawSecret.asSuccess() }
+            ?: return notFoundError("Token not found")
+    }
 
     private fun getRawAccessTokenById(id: AccessTokenIdentifier): AccessToken? =
         id.type.getRepository().findAccessTokenById(id)

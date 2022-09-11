@@ -15,14 +15,14 @@
  */
 package com.reposilite.shared.extensions
 
-import java.util.*
+import java.util.Locale
 
 internal object TimeUtils {
 
-    fun getUptimeInSeconds(uptime: Long): Double =
+    private fun getUptimeInSeconds(uptime: Long): Double =
         getUptime(uptime) / 1000.0
 
-    fun getUptime(startTime: Long): Long =
+    private fun getUptime(startTime: Long): Long =
         System.currentTimeMillis() - startTime
 
     fun getPrettyUptimeInSeconds(startTime: Long): String =

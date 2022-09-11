@@ -31,10 +31,6 @@ object BadgeGenerator {
      */
     private val shortCharacters = listOf('i', 'I', 'f', 'j', 'l', '.', '-', '1')
     /**
-     * Standard blue color used by well-known badges on GitHub
-     */
-    private const val colorBlue = "007ec6"
-    /**
      * Standard green color used by well-known badges on GitHub
      */
     private const val colorGreen = "4c1"
@@ -43,7 +39,7 @@ object BadgeGenerator {
         shortCharacters.sumOf { this.count { char -> char == it } }
 
     fun generateSvg(name: String, value: String, optionalColor: String?): Result<String, ErrorResponse> {
-        val color = optionalColor ?: colorBlue
+        val color = optionalColor ?: colorGreen
 
         if (!(name + value + color).matches(supportedCharacters)) {
             return badRequestError("Request contains invalid characters")

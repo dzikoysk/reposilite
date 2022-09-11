@@ -31,7 +31,6 @@ class RoutingSetupEvent(val reposilite: Reposilite) : Event {
         routes.addAll(routesToAdd)
     }
 
-    @Suppress("REDUNDANT_PROJECTION")
     fun getRoutes(): Collection<ReposiliteRoutes> =
         routes
 

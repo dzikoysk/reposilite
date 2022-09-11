@@ -28,9 +28,7 @@ fun interface EventListener<E : Event> {
 }
 
 object Priorities {
-
     const val HIGH = 0.0
     const val DEFAULT = 1.0
     const val LOW = 2.0
-
 }

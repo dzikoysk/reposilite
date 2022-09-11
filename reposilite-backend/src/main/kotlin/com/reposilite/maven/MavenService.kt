@@ -57,9 +57,8 @@ internal class MavenService(
         resolve(lookupRequest) { repository, gav -> findFile(lookupRequest.accessToken, repository, gav) }
 
     fun canAccessResource(accessToken: AccessTokenIdentifier?, repository: String, gav: Location): Result<Unit, ErrorResponse> =
-        repositoryService.getRepository(repository)
-            ?.let { repositorySecurityProvider.canAccessResource(accessToken, it, gav) }
-            ?: notFoundError("Repository $repository not found")
+        repositoryService.findRepository(repository)
+            .map { repositorySecurityProvider.canAccessResource(accessToken, it, gav) }
 
     fun deployFile(deployRequest: DeployRequest): Result<Unit, ErrorResponse> {
         val (repository, path) = deployRequest

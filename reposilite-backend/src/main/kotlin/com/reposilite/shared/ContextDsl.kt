@@ -106,7 +106,7 @@ class ContextDsl<R>(
     inline fun <reified T : Any> body() =
         ctx.bodyAsClass(T::class.java)
 
-    fun isAuthorized(to: String): Result<Unit, ErrorResponse> =
+    private fun isAuthorized(to: String): Result<Unit, ErrorResponse> =
         isManager()
             .flatMapErr { _ ->
                 authenticationResult.value

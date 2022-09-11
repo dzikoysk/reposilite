@@ -22,7 +22,6 @@ import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.HttpStatus.UNAUTHORIZED
 import panda.std.Result
 import panda.std.asError
-import java.lang.System.lineSeparator
 
 data class ErrorResponse(val status: Int, val message: String) {
 
@@ -35,12 +34,6 @@ data class ErrorResponse(val status: Int, val message: String) {
 
 fun <V> errorResponse(status: HttpStatus, message: String): Result<V, ErrorResponse> =
     Result.error(ErrorResponse(status.code, message))
-
-fun aggregatedError(status: HttpStatus, errors: Collection<ErrorResponse>): ErrorResponse =
-    ErrorResponse(
-        status,
-        "$status - Aggregated error" + lineSeparator() + errors.joinToString { lineSeparator() }
-    )
 
 fun HttpStatus.toErrorResponse(message: String? = null): ErrorResponse =
     ErrorResponse(this, message ?: this.message)

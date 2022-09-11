@@ -67,7 +67,7 @@ abstract class FileSystemStorageProvider protected constructor(
                         Files.createDirectories(file.parent)
                     }
 
-                    // TOFIX: FS locks are not truly respected, there might be a need to enhanced it with .lock file to be sure if it's respected.
+                    // TO-FIX: FS locks are not truly respected, there might be a need to enhanced it with .lock file to be sure if it's respected.
                     // In theory people shouldn't redeploy multiple times the same file, but who knows.
                     // Let's try with temporary files.
                     // ~ https://github.com/dzikoysk/reposilite/issues/264

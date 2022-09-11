@@ -4,7 +4,6 @@ import com.fasterxml.classmate.ResolvedType
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.databind.node.ObjectNode
-import com.github.victools.jsonschema.generator.ConfigFunction
 import com.github.victools.jsonschema.generator.CustomDefinition
 import com.github.victools.jsonschema.generator.FieldScope
 import com.github.victools.jsonschema.generator.MemberScope
@@ -34,7 +33,6 @@ import com.reposilite.configuration.shared.api.Doc
 import com.reposilite.configuration.shared.api.Max
 import com.reposilite.configuration.shared.api.Min
 import com.reposilite.configuration.shared.api.Range
-import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.memberProperties
@@ -113,26 +111,26 @@ class SettingsModule(
     /**
      * Based on https://victools.github.io/jsonschema-generator/#how-to-populate-default-values
      */
-    private fun defaultValueResolve(): ConfigFunction<FieldScope, Any?> {
-        val instanceCache = ConcurrentHashMap<Class<*>, Any>()
-
-        return ConfigFunction { field ->
-            runCatching {
-                val declaringClass = field.declaringType.erasedType
-
-                if (!field.isFakeContainerItemScope && declaringClass.name.startsWith("com.reposilite")) {
-                    val instance = instanceCache.computeIfAbsent(declaringClass) { declaringClass.getConstructor().newInstance() }
-                    field.findGetter().rawMember.invoke(instance)
-                } else null
-            }.fold(
-                onSuccess = { it },
-                onFailure = {
-                    it.printStackTrace() // most likely missing a no-args constructor
-                    null
-                }
-            )
-        }
-    }
+//    private fun defaultValueResolve(): ConfigFunction<FieldScope, Any?> {
+//        val instanceCache = ConcurrentHashMap<Class<*>, Any>()
+//
+//        return ConfigFunction { field ->
+//            runCatching {
+//                val declaringClass = field.declaringType.erasedType
+//
+//                if (!field.isFakeContainerItemScope && declaringClass.name.startsWith("com.reposilite")) {
+//                    val instance = instanceCache.computeIfAbsent(declaringClass) { declaringClass.getConstructor().newInstance() }
+//                    field.findGetter().rawMember.invoke(instance)
+//                } else null
+//            }.fold(
+//                onSuccess = { it },
+//                onFailure = {
+//                    it.printStackTrace() // most likely missing a no-args constructor
+//                    null
+//                }
+//            )
+//        }
+//    }
 
     private val MemberScope<*, *>.kProperty: KProperty1<*, *>?
         get() = this.declaringType.erasedType.kotlin.memberProperties.find { it.name == this.name }

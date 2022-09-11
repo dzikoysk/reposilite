@@ -24,7 +24,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 
 /**
- * [Path] alternative, represents location of resource in [StorageProvider]
+ * [Path] alternative, represents location of resource in [com.reposilite.storage.StorageProvider]
  */
 @Suppress("DataClassPrivateConstructor")
 data class Location private constructor(private val uri: String) {
@@ -91,9 +91,6 @@ data class Location private constructor(private val uri: String) {
 
     fun getParent(): Location =
         uri.substringBeforeLast("/").toLocation()
-
-    fun getRootName(): String =
-        uri.substringBefore("/")
 
     fun getExtension(): String =
         getSimpleName().getExtension()

@@ -79,7 +79,6 @@ class SharedConfigurationFacade(
             ?: ok()
     }
 
-    @Suppress("UNCHECKED_CAST")
     fun <S : SharedSettings> updateSharedSettings(name: String, body: S): Result<S, out Exception>? =
         getSettingsReference<S>(name)
             ?.update(body)

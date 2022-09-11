@@ -62,7 +62,7 @@ fun Context.response(result: Any): Context =
             }
         }
 
-        if (!acceptsBody() || !output().isProbablyOpen()) {
+        if (!acceptsBody() || !outputStream().isProbablyOpen()) {
             if (result is InputStream) {
                 result.silentClose()
             }
@@ -96,10 +96,9 @@ internal fun Context.resultAttachment(
         contentLength(contentLength) // Using this with GZIP ends up with "Premature end of Content-Length delimited message body".
     }
 
-    if (acceptsBody()) {
-        result(data)
-    } else {
-        data.silentClose()
+    when {
+        acceptsBody() -> result(data)
+        else -> data.silentClose()
     }
 
     contentType(contentType)
@@ -139,9 +138,6 @@ fun Context.resultAttachment(name: String, contentType: ContentType, contentLeng
 
 fun Context.uri(): String =
     path()
-
-fun Context.output(): OutputStream =
-    res().outputStream
 
 fun Context.error(error: ErrorResponse): Context =
     error(error.status, error)

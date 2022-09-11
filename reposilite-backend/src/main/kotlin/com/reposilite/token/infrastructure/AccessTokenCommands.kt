@@ -168,15 +168,13 @@ internal class RegenerateCommand(private val accessTokenFacade: AccessTokenFacad
 
     override fun execute(context: CommandContext) {
         accessTokenFacade.getAccessToken(name)
-            ?.also {
-                accessTokenFacade.regenerateAccessToken(it, secret)
-                    .consume(
-                        { context.append("New secret for '$name': $it") },
-                        {
-                            context.status = FAILED
-                            context.append("Token '$name' not found")
-                        }
-                    )
+            ?.also { token ->
+                accessTokenFacade.regenerateAccessToken(token, secret)
+                    .peek { context.append("New secret for '$name': $it") }
+                    .onError {
+                        context.status = FAILED
+                        context.append("Token '$name' not found")
+                    }
             }
             ?: run {
                 context.status = FAILED
