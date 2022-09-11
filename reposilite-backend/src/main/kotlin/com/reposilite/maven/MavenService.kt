@@ -58,7 +58,7 @@ internal class MavenService(
 
     fun canAccessResource(accessToken: AccessTokenIdentifier?, repository: String, gav: Location): Result<Unit, ErrorResponse> =
         repositoryService.findRepository(repository)
-            .map { repositorySecurityProvider.canAccessResource(accessToken, it, gav) }
+            .flatMap { repositorySecurityProvider.canAccessResource(accessToken, it, gav) }
 
     fun deployFile(deployRequest: DeployRequest): Result<Unit, ErrorResponse> {
         val (repository, path) = deployRequest
