@@ -29,7 +29,7 @@ class FrontendFacade internal constructor(
 
     private val resources = HashMap<String, String>(0)
     private val uriFormatter = Regex("/+") // exclude common typos from URI
-    private val regexAntiXss = Regex("[^A-Za-z0-9/ ]")
+    private val regexAntiXss = Regex("[^A-Za-z0-9/.\\- ]") // exclude custom non-standard characters from template
 
     private val formattedBasePath = basePath.computed { // verify base path
         var formattedBasePath = it
@@ -74,8 +74,6 @@ class FrontendFacade internal constructor(
         val uri = originUri.replace(uriFormatter, "/")
         val basePath = formattedBasePath.get()
         val dashboardUrl = basePath + (if (basePath.endsWith("/")) "" else "/") + "#" + uri
-        // prevent xss attack
-        details = regexAntiXss.replace(details!!, "")
 
         @Language("html")
         val response = """
@@ -115,7 +113,7 @@ class FrontendFacade internal constructor(
                 <h1 style="font-size: 1.5rem">
                   <span style="color: gray;">404︱</span>Resource not found
                 </h1>
-                ${if (details.isEmpty()) "" else "<p><i>$details</i></p>" }
+                ${if (details.isEmpty()) "" else "<p><i>${regexAntiXss.replace(details, "")}</i></p>" }
                 <p>Looking for a dashboard?</p>
                 <div class="spooky">
                   <p>{\__/}</p>
