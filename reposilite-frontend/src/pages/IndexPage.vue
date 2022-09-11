@@ -85,6 +85,17 @@ const selectHomepage = () =>
   </div>
 </template>
 
+<style>
+.tabs .tab {
+  cursor: pointer;
+  text-transform: capitalize;
+}
+.tabs .item:hover {
+  @apply bg-gray-150 dark:bg-gray-900;
+  transition: background-color 0.5s;
+}
+</style>
+
 <style scoped>
 .item {
   @apply px-1;
@@ -102,9 +113,5 @@ const selectHomepage = () =>
 .tabs .item {
   border-top-left-radius: 10%;
   border-top-right-radius: 10%;
-}
-.tabs .item:hover {
-  @apply bg-gray-150 dark:bg-gray-900;
-  transition: background-color 0.5s;
 }
 </style>

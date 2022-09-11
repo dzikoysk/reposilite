@@ -14,48 +14,51 @@
  * limitations under the License.
  */
 
-import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
-import WindiCSS from 'vite-plugin-windicss'
-import { visualizer } from "rollup-plugin-visualizer"
+import { defineConfig } from "vite";
+import vue from "@vitejs/plugin-vue";
+import WindiCSS from "vite-plugin-windicss";
+import { visualizer } from "rollup-plugin-visualizer";
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  server: {
+    port: 80,
+  },
   plugins: [
     vue({
-      reactivityTransform: true // Lack of support in ESLint rules tho
+      reactivityTransform: true, // Lack of support in ESLint rules tho
     }),
     WindiCSS(),
-    visualizer()
+    visualizer(),
   ],
   base:
-    process.env.NODE_ENV === 'production'
-      ? '{{REPOSILITE.VITE_BASE_PATH}}'
-      : '/',
+    process.env.NODE_ENV === "production"
+      ? "{{REPOSILITE.VITE_BASE_PATH}}"
+      : "/",
   build: {
     minify: true,
     emptyOutDir: true,
-    outDir: 'build/frontend/reposilite-frontend'
+    outDir: "build/frontend/reposilite-frontend",
   },
   css: {
     preprocessorOptions: {
       css: {
-        charset: false
-      }
+        charset: false,
+      },
     },
     postcss: {
       plugins: [
         {
-          postcssPlugin: 'internal:charset-removal',
+          postcssPlugin: "internal:charset-removal",
           AtRule: {
             charset: (atRule) => {
-              if (atRule.name === 'charset') {
+              if (atRule.name === "charset") {
                 atRule.remove()
               }
-            }
-          }
-        }
-      ]
-    }
-  }
+            },
+          },
+        },
+      ],
+    },
+  },
 })

@@ -12,9 +12,9 @@
     "full": "concurrently -k \"npm run fake-api\" \"vite\""
   },
   "dependencies": {
-    "@dzikoysk/vue-vanilla": "^3.0.0-beta.2",
-    "@jsonforms/core": "^3.0.0-beta.2",
-    "@jsonforms/vue": "^3.0.0-beta.2",
+    "@dzikoysk/vue-vanilla": "^3.0.0-rc.1",
+    "@jsonforms/core": "^3.0.0-rc.1",
+    "@jsonforms/vue": "^3.0.0-rc.1",
     "@vueform/toggle": "^2.1.1",
     "@vueuse/core": "^9.1.1",
     "@vueuse/head": "^0.7.9",

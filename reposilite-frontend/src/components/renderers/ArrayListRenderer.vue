@@ -20,6 +20,7 @@
           :val="index"
           :label="element.id || element?.reference?.replace('https://', 'http://')?.replace('http://', '') || '<new>'"
           :indicator="true"
+          class="item"
         />
       </Tabs>
       <TabPanels v-model="selectedIndex">
@@ -114,10 +115,3 @@ export default {
   }
 }
 </script>
-
-<style>
-.tabs .tab {
-  cursor: pointer;
-  text-transform: capitalize;
-}
-</style>
