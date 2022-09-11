@@ -76,6 +76,10 @@ class S3StorageProvider(
         }
     }
 
+    override fun shutdown() {
+        s3.close()
+    }
+
     override fun putFile(location: Location, inputStream: InputStream): Result<Unit, ErrorResponse> =
         inputStream.use { data ->
             // So... S3 API is disabled and requires content-length of every inserted object.
