@@ -15,31 +15,48 @@
   -->
 
 <script setup>
-import {  computed } from 'vue'
-import { PrismEditor } from 'vue-prism-editor'
-import 'vue-prism-editor/dist/prismeditor.min.css'
-import prism from 'prismjs'
-import 'prismjs/themes/prism-coy.css'
+import CodeEditor from 'simple-code-editor'
+// fix for https://github.com/justcaliturner/simple-code-editor/issues/20
+// eslint-disable-next-line no-unused-vars
+import hljs from 'highlight.js'
 
-const props = defineProps({
+defineProps({
   configuration: {
     type: Object,
     required: true
   }
 })
-
-const highlightedSnippet = computed(() => ({
-  highlighter: (code) => prism.highlight(code, prism.languages[props.configuration.lang] ?? prism.languages.js),
-  ...props.configuration
-}))
 </script>
 
 <template>
-  <prism-editor
-    class="card-editor font-mono text-ssm absolute"
-    v-model="highlightedSnippet.snippet" 
-    :highlight="highlightedSnippet.highlighter" 
-    readonly
-    line-numbers
+  <code-editor
+      class="card-editor font-mono text-ssm !absolute !w-auto overflow-x-scroll inset-0 !rounded-none"
+      :value="configuration.snippet"
+      :languages="[[configuration.lang]]"
+      font_size=".8rem"
+      read_only
+      hide_header
   />
 </template>
+
+<style>
+.card-editor.hljs,
+.card-editor .hljs {
+  background: none;
+}
+
+.card-editor > .code_area,
+.card-editor > .code_area > pre,
+.card-editor > .code_area > pre > code {
+  width: max-content;
+}
+
+.card-editor > .code_area > pre {
+  top: -1rem;
+}
+
+.card-editor > .code_area > pre > code {
+  padding-block: .5rem !important;
+  padding-inline: 1rem !important;
+}
+</style>
