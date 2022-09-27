@@ -31,6 +31,9 @@ jobs:
         java-version: "${{ matrix.java-version }}"
         distribution: "adopt"
 
+    - name: "Grant execute permission for gradlew"
+      run: chmod +x gradlew
+
     - name: "Gradle build"
       uses: gradle/gradle-build-action@v2
       with:

@@ -58,6 +58,9 @@ jobs:
           java-version: "${{ env.JAVA_VERSION }}"
           distribution: "adopt"
 
+      - name: "Grant execute permission for gradlew"
+        run: chmod +x gradlew
+
       - name: "Gradle publish"
         uses: gradle/gradle-build-action@v2
         with:
