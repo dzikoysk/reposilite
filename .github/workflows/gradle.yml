@@ -9,12 +9,12 @@ on:
 
 jobs:
   build:
-    name: "Build with Java ${{ matrix.java-version }}"
+    name: "Build with JDK ${{ matrix.java-version }}"
     runs-on: ubuntu-latest
     strategy:
       matrix:
         # Use 11 LTS releases and the latest one
-        jdk: [ 11, 18 ]
+        java-version: [ 11, 18 ]
     steps:
     - name: "Checkout repository"
       uses: actions/checkout@v3
@@ -25,10 +25,10 @@ jobs:
     - name: "Validate gradle wrapper"
       uses: gradle/wrapper-validation-action@v1
 
-    - name: "Set up JDK ${{ matrix.jdk }}"
+    - name: "Set up Java ${{ matrix.java-version }}"
       uses: actions/setup-java@v3
       with:
-        java-version: "${{ matrix.jdk }}"
+        java-version: "${{ matrix.java-version }}"
         distribution: "adopt"
 
     - name: "Grant execute permission for gradlew"
