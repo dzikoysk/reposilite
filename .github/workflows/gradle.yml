@@ -1,5 +1,5 @@
-# GitHub Actions workflow to automatically build Reposilite.
-name: "Gradle"
+# GitHub Actions workflow to automatically build and test Reposilite.
+name: "Reposilite CI"
 
 on:
   push:
@@ -14,7 +14,7 @@ jobs:
     strategy:
       matrix:
         # Use 11 LTS releases and the latest one
-        java-version: [ 11, 18 ]
+        jdk: [ 11, 18 ]
     steps:
     - name: "Checkout repository"
       uses: actions/checkout@v3
@@ -25,10 +25,10 @@ jobs:
     - name: "Validate gradle wrapper"
       uses: gradle/wrapper-validation-action@v1
 
-    - name: "Set up Java ${{ matrix.java-version }}"
+    - name: "Set up JDK ${{ matrix.jdk }}"
       uses: actions/setup-java@v3
       with:
-        java-version: "${{ matrix.java-version }}"
+        java-version: "${{ matrix.jdk }}"
         distribution: "adopt"
 
     - name: "Grant execute permission for gradlew"

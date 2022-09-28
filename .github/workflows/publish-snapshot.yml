@@ -1,5 +1,5 @@
 # GitHub Actions workflow to automatically publish snapshot builds.
-name: "Snapshot"
+name: "Publish snapshots"
 on:
   push:
     branches: [ "main" ]
@@ -8,8 +8,8 @@ env:
   JAVA_VERSION: 18
 
 jobs:
-  publish:
-    name: "Publish"
+  maven:
+    name: "Maven"
     runs-on: ubuntu-latest
     steps:
       - name: "Checkout repository"
@@ -36,7 +36,7 @@ jobs:
           MAVEN_TOKEN: ${{ secrets.MAVEN_TOKEN }}
 
   docker:
-    name: "Docker publish nightly"
+    name: "Docker"
     runs-on: ubuntu-latest
     steps:
       - name: "Checkout repository"

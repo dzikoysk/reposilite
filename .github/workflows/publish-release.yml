@@ -1,13 +1,13 @@
 # GitHub Actions workflow to publish new releases.
-name: "Release"
+name: "Publish releases"
 on: workflow_dispatch
 
 env:
   JAVA_VERSION: 18
 
 jobs:
-  release:
-    name: "Release"
+  github:
+    name: "GitHub"
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -39,15 +39,15 @@ jobs:
         id: version
         run: echo "::set-output name=version::$(./gradlew -q -Prelease.quiet cV)"
 
-  gradle:
-    name: "Gradle Publish"
+  maven:
+    name: "Maven"
     runs-on: ubuntu-latest
-    needs: [ release ]
+    needs: [ github ]
     steps:
       - name: "Checkout repository"
         uses: actions/checkout@v3
         with:
-          ref: "refs/tags/${{ needs.release.outputs.version }}"
+          ref: "refs/tags/${{ needs.github.outputs.version }}"
 
       - name: "Fetch git tags" # Required for axion-release-plugin
         run: git fetch --tags --unshallow
@@ -70,14 +70,14 @@ jobs:
           MAVEN_TOKEN: ${{ secrets.MAVEN_TOKEN }}
 
   docker:
-    name: "Docker Push"
+    name: "Docker"
     runs-on: ubuntu-latest
-    needs: [ release ]
+    needs: [ github ]
     steps:
       - name: "Checkout repository"
         uses: actions/checkout@v3
         with:
-          ref: "refs/tags/${{ needs.release.outputs.version }}"
+          ref: "refs/tags/${{ needs.github.outputs.version }}"
 
       - name: "Fetch git tags" # Required for axion-release-plugin
         run: git fetch --tags --unshallow
@@ -110,6 +110,6 @@ jobs:
           push: true
           tags: |
             dzikoysk/reposilite:latest
-            dzikoysk/reposilite:${{ needs.release.outputs.version }}
+            dzikoysk/reposilite:${{ needs.github.outputs.version }}
             ghcr.io/dzikoysk/reposilite:latest
-            ghcr.io/dzikoysk/reposilite:${{ needs.release.outputs.version }}
+            ghcr.io/dzikoysk/reposilite:${{ needs.github.outputs.version }}
