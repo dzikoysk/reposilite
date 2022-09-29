@@ -1,35 +1,46 @@
-name: Reposilite CI
+# GitHub Actions workflow to automatically build and test Reposilite.
+name: "Reposilite CI"
 
 on:
   push:
-    branches: [ master, main, "3.0" ]
+    branches: [ "main", "3.0" ]
   pull_request:
-    branches: [ master, main, "3.0" ]
+    branches: [ "main", "3.0" ]
 
 jobs:
   build:
-    name: "Build with JDK${{ matrix.jdk }}"
+    name: "Build with JDK ${{ matrix.java-version }}"
     runs-on: ubuntu-latest
     strategy:
       matrix:
         # Use 11 LTS releases and the latest one
-        jdk: [ 11, 18 ]
+        java-version: [ 11, 18 ]
     steps:
-    - uses: actions/checkout@v3
-    - name: Fetch git tags # Required for axion-release-plugin
+    - name: "Checkout repository"
+      uses: actions/checkout@v3
+
+    - name: "Fetch git tags" # Required for axion-release-plugin
       run: git fetch --tags --unshallow
-    - name: Verify gradle wrapper
+
+    - name: "Validate gradle wrapper"
       uses: gradle/wrapper-validation-action@v1
-    - name: Set up JDK
-      uses: actions/setup-java@v1
+
+    - name: "Set up Java ${{ matrix.java-version }}"
+      uses: actions/setup-java@v3
       with:
-        java-version: ${{ matrix.jdk }}
-    - name: Grant execute permission for gradlew
+        java-version: "${{ matrix.java-version }}"
+        distribution: "adopt"
+
+    - name: "Grant execute permission for gradlew"
       run: chmod +x gradlew
-    - name: Build with Gradle
-      run: ./gradlew :reposilite-backend:testCoverage
-    - name: Upload coverage to Codecov
+
+    - name: "Gradle build"
+      uses: gradle/gradle-build-action@v2
+      with:
+        arguments: ":reposilite-backend:testCoverage"
+
+    - name: "Upload coverage to Codecov"
       uses: codecov/codecov-action@v2
       with:
-        files: ./reposilite-backend/build/reports/jacoco/reposilite-backend-report.xml
+        files: "./reposilite-backend/build/reports/jacoco/reposilite-backend-report.xml"
         fail_ci_if_error: false
