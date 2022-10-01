@@ -50,7 +50,7 @@ dependencies {
     api("net.dzikoysk:cdn:$cdn")
     api("net.dzikoysk:cdn-kt:$cdn")
 
-    val awssdk = "2.17.267"
+    val awssdk = "2.17.285"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
     testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.296")
@@ -65,7 +65,7 @@ dependencies {
     // Drivers
     implementation("org.xerial:sqlite-jdbc:3.39.2.1")
     implementation("mysql:mysql-connector-java:8.0.30")
-    implementation("org.mariadb.jdbc:mariadb-java-client:3.0.7")
+    implementation("org.mariadb.jdbc:mariadb-java-client:3.0.8")
     implementation("org.postgresql:postgresql:42.5.0")
     implementation("com.h2database:h2:2.1.214")
 
