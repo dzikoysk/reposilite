@@ -36,7 +36,7 @@ dependencies {
     implementation(project(":reposilite-frontend"))
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.21.0")
 
-    val kotlin = "1.7.10"
+    val kotlin = "1.7.20"
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin")
     api("org.jetbrains:annotations:23.0.0")
@@ -65,7 +65,7 @@ dependencies {
     // Drivers
     implementation("org.xerial:sqlite-jdbc:3.39.2.1")
     implementation("mysql:mysql-connector-java:8.0.30")
-    implementation("org.mariadb.jdbc:mariadb-java-client:3.0.7")
+    implementation("org.mariadb.jdbc:mariadb-java-client:3.0.8")
     implementation("org.postgresql:postgresql:42.5.0")
     implementation("com.h2database:h2:2.1.214")
 
