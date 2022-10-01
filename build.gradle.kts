@@ -143,7 +143,6 @@ subprojects {
         publications {
             create<MavenPublication>("library") {
                 from(components.getByName("java"))
-                artifactId = "reposilite"
                 // Gradle generator does not support <repositories> section from Maven specification.
                 // ~ https://github.com/gradle/gradle/issues/15932
                 pom.withXml {
