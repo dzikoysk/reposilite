@@ -57,7 +57,6 @@ import panda.std.reactive.toReference
 import java.io.File
 import java.nio.file.Files
 
-@Suppress("LeakingThis")
 internal abstract class MavenSpecification {
 
     protected companion object {
@@ -85,7 +84,7 @@ internal abstract class MavenSpecification {
     abstract fun repositories(): List<RepositorySettings>
 
     @BeforeEach
-    private fun initializeFacade() {
+    fun initializeFacade() {
         val remoteClientProvider = FakeRemoteClientProvider(
             headHandler = { uri, credentials, _, _ ->
                 if (uri.startsWith(REMOTE_REPOSITORY) && REMOTE_AUTH == credentials && !uri.isAllowed())
