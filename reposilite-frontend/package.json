@@ -17,7 +17,7 @@
     "@jsonforms/vue": "^3.0.0-rc.1",
     "@vueform/toggle": "^2.1.2",
     "@vueuse/core": "^9.1.1",
-    "@vueuse/head": "^0.7.9",
+    "@vueuse/head": "^0.8.0",
     "ansi-to-html": "^0.7.2",
     "axios": "^0.27.2",
     "downloadjs": "^1.4.7",
@@ -47,8 +47,8 @@
     "json-server": "^0.17.0",
     "nodemon": "^2.0.19",
     "rollup-plugin-visualizer": "^5.8.2",
-    "vite": "^3.0.8",
-    "vite-plugin-windicss": "^1.8.7",
+    "vite": "^3.1.4",
+    "vite-plugin-windicss": "^1.8.8",
     "windicss": "^3.5.6",
     "ws": "^8.9.0"
   }
