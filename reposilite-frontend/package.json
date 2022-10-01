@@ -37,7 +37,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^3.1.0",
-    "@vue/compiler-sfc": "^3.2.38",
+    "@vue/compiler-sfc": "^3.2.40",
     "body-parser": "^1.20.0",
     "concurrently": "^7.4.0",
     "eslint": "^8.24.0",
