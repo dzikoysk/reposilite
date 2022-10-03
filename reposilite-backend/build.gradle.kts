@@ -36,7 +36,7 @@ dependencies {
     implementation(project(":reposilite-frontend"))
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.21.0")
 
-    val kotlin = "1.7.10"
+    val kotlin = "1.7.20"
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin")
     api("org.jetbrains:annotations:23.0.0")
@@ -50,10 +50,10 @@ dependencies {
     api("net.dzikoysk:cdn:$cdn")
     api("net.dzikoysk:cdn-kt:$cdn")
 
-    val awssdk = "2.17.267"
+    val awssdk = "2.17.285"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
-    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.296")
+    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.314")
 
     val exposed = "0.39.2"
     implementation("org.jetbrains.exposed:exposed-core:$exposed")
@@ -63,9 +63,9 @@ dependencies {
     api("net.dzikoysk:exposed-upsert:1.0.3")
     implementation("com.zaxxer:HikariCP:5.0.1")
     // Drivers
-    implementation("org.xerial:sqlite-jdbc:3.39.2.1")
+    implementation("org.xerial:sqlite-jdbc:3.39.3.0")
     implementation("mysql:mysql-connector-java:8.0.30")
-    implementation("org.mariadb.jdbc:mariadb-java-client:3.0.7")
+    implementation("org.mariadb.jdbc:mariadb-java-client:3.0.8")
     implementation("org.postgresql:postgresql:42.5.0")
     implementation("com.h2database:h2:2.1.214")
 
@@ -89,7 +89,7 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jackson")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jackson")
-    implementation("com.github.victools:jsonschema-generator:4.26.0")
+    implementation("com.github.victools:jsonschema-generator:4.27.0")
 
     val httpClient = "1.42.2"
     implementation("com.google.http-client:google-http-client:$httpClient")
@@ -118,7 +118,7 @@ dependencies {
     testImplementation("com.konghq:unirest-java:$unirest")
     testImplementation("com.konghq:unirest-objectmapper-jackson:$unirest")
 
-    val testcontainers = "1.17.3"
+    val testcontainers = "1.17.4"
     testImplementation("org.testcontainers:postgresql:$testcontainers")
     testImplementation("org.testcontainers:mariadb:$testcontainers")
     testImplementation("org.testcontainers:testcontainers:$testcontainers")
@@ -150,7 +150,7 @@ tasks.withType<ShadowJar> {
 
 publishing {
     publications {
-        create<MavenPublication>("library") {
+        create<MavenPublication>("bundle") {
             from(components.getByName("java"))
             artifactId = "reposilite"
             // Gradle generator does not support <repositories> section from Maven specification.
