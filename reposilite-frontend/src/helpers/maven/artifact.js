@@ -15,35 +15,22 @@
  */
 
 export default function useArtifact() {
-  const createSnippets = (groupId, artifactId, version) => [
-    { 
-      name: 'Maven',
-      lang: 'xml',
-      snippet: `
-<dependency>
-  <groupId>${groupId}</groupId>
-  <artifactId>${artifactId}</artifactId>
-  <version>${version}</version>
-</dependency>`.trim()
-    },
-    {
-      name: 'Gradle Groovy',
-      lang: 'xml',
-      snippet: `implementation "${groupId}:${artifactId}:${version}"`
-    },
-    {
-      name: 'Gradle Kotlin',
-      lang: 'kotlin',
-      snippet: `implementation("${groupId}:${artifactId}:${version}")`
-    },
-    {
-      name: 'SBT',
-      lang: 'scala',
-      snippet: `"${groupId}" %% "${artifactId}" %% "${version}"`
+  const createArtifactSnippet = (lang, { groupId, artifactId, version }) => {
+    switch (lang) {
+      case "Maven": return `
+  <dependency>
+    <groupId>${groupId}</groupId>
+    <artifactId>${artifactId}</artifactId>
+    <version>${version}</version>
+  </dependency>`.trim()
+      case "Gradle Groovy": return `implementation "${groupId}:${artifactId}:${version}"`
+      case "Gradle Kotlin": return `implementation("${groupId}:${artifactId}:${version}")`
+      case "SBT": return `"${groupId}" %% "${artifactId}" %% "${version}"`
+      default: return ""
     }
-  ]
+  }
 
   return {
-    createSnippets
+    createArtifactSnippet
   }
 }
