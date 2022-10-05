@@ -6,7 +6,7 @@ import com.reposilite.web.routing.RouteMethod.BEFORE
 
 internal class CacheBypassHandler : ReposiliteRoutes() {
 
-    private val bypassCacheRoute = ReposiliteRoute<Unit>("*", BEFORE) {
+    private val bypassCacheRoute = ReposiliteRoute<Unit>("/api/*", BEFORE) {
         ctx.header("pragma", "no-cache")
         ctx.header("expires", "0")
         ctx.header("cache-control", "no-cache, no-store, must-revalidate, max-age=0")
