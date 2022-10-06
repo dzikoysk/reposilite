@@ -91,6 +91,7 @@ Thanks to all contributors and people that decided to support my work financiall
     <a href="https://github.com/neg4n">neg4n</a>, 
     <a href="https://github.com/sebba-dev">sebba-dev</a>,
     <a href="https://github.com/FlawCra">FlawCra</a>,
+    <a href="https://github.com/arthurr0">arthurr0</a>
   </td>
  </tr>
  <tr>
@@ -109,10 +110,11 @@ Thanks to all contributors and people that decided to support my work financiall
    <a href="https://github.com/alexwhb">alexwhb</a>, 
    <a href="https://github.com/kay">Douglas Lawrie</a>,
    <a href="https://github.com/zugazagoitia">zugazagoitia</a>,
+   <a href="https://github.com/FlawCra">FlawCra</a>,
    <a href="https://github.com/crejk">crejk</a>,
    <a href="https://github.com/EthanDevelops">EthanDevelops</a>, 
    <a href="https://github.com/escv">escv</a>,
-   <a href="https://github.com/FlawCra">FlawCra</a>,
+   <a href="https://github.com/arthurr0">arthurr0</a>
    <a href="https://github.com/shitzuu">shitzuu</a>,
    <a href="https://github.com/peter-jerry-ye">peter-jerry-ye</a>,
    Rob,
