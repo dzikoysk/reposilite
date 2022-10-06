@@ -15,11 +15,21 @@ Reposilite defines two types of builds:
 First of all, you have to pull the image:
 
 ```yaml
-# released builds, e.g. 3.0.2
-$ docker pull dzikoysk/reposilite:3.0.2
+# released builds, e.g. 3.0.4
+$ docker pull dzikoysk/reposilite:3.0.4
 
 # nightly builds
 $ docker pull dzikoysk/reposilite:nightly
+```
+
+Or from [GitHub Registry](https://github.com/features/packages) if you've experienced rate limiting from Docker Hub: 
+
+```yaml
+# released builds, e.g. 3.0.4
+docker pull ghcr.io/dzikoysk/reposilite:3.0.4
+
+# nightl builds
+$ docker pull ghcr.io/dzikoysk/reposilite:nightly
 ```
 
 Then,
