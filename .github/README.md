@@ -66,11 +66,13 @@ Visit official guide to read more about extra parameters and configuration detai
 ### Publications
 
 Reposilite 3.x:
-* [Reposilite / Official Guide](https://reposilite.com/guide/about)
+* [Reposilite 3.x / Official Guide](https://reposilite.com/guide/about)
+* [Reddit / 3.x Thread](https://www.reddit.com/r/java/comments/xy07vc/reposilite_3x_released_alternative_lightweight/)
 * [Medium / Setup your own Maven repository manager in 5 minutes](https://dzikoysk.medium.com/reposilite-3-x-setup-your-own-maven-repository-manager-in-5-minutes-e72cc8b67bc3)
 
 Reposilite 2.x:
-* [Reddit / Thread](https://www.reddit.com/r/java/comments/k8i2m0/reposilite_alternative_lightweight_maven/)
+* [Reposilite 2.x / Official Guide](https://v2.reposilite.com/)
+* [Reddit / 2.x Thread](https://www.reddit.com/r/java/comments/k8i2m0/reposilite_alternative_lightweight_maven/)
 * [Dev.to / Publishing your artifacts to the Reposilite - a new self-hosted repository manager ](https://dev.to/dzikoysk/publishing-your-artifacts-to-the-reposilite-a-new-self-hosted-repository-manager-3n0h)
 * [Medium / Looking for simple repository manager by David Kihato](https://kihats.medium.com/custom-self-hosted-maven-repository-cbb778031f68)
 
