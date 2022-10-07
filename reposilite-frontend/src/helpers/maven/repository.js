@@ -31,36 +31,27 @@ export default function useRepository() {
       (basePath.endsWith("/") ? "" : "/") +
       (qualifier.path ? `${repository.value}` : "{repository}")
 
-    return [
-      {
-        name: "Maven",
-        lang: "xml",
-        snippet: `
+    return { type: "repository", repoId, title, domain }
+  }
+
+  const createRepositorySnippet = (name, { repoId, title, domain }) => {
+    switch (name) {
+      case "Maven": return `
 <repository>
   <id>${repoId}</id>
   <name>${title}</name>
   <url>${domain}</url>
-</repository>`.trim(),
-      },
-      {
-        name: "Gradle Groovy",
-        lang: "groovy",
-        snippet: `maven {\n    url "${domain}"\n}`.trim(),
-      },
-      {
-        name: "Gradle Kotlin",
-        lang: "kotlin",
-        snippet: `maven {\n    url = uri("${domain}")\n}`,
-      },
-      {
-        name: "SBT",
-        lang: "scala",
-        snippet: `resolvers +=\n  "${repoId}" \n     at "${domain}"`,
-      },
-    ]
+</repository>`.trim()
+      case "Gradle Groovy": return `maven {\n    url "${domain}"\n}`
+      case "Gradle Kotlin": return `maven {\n    url = uri("${domain}")\n}`
+      case "SBT": return `resolvers +=\n  "${repoId}" \n     at "${domain}"`
+      default: return ""
+    }
   }
+
 
   return {
     createRepositories,
+    createRepositorySnippet
   }
 }

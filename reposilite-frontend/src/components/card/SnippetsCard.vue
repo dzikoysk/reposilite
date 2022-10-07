@@ -15,7 +15,7 @@
   -->
 
 <script setup>
-import { ref, watchEffect, watch } from 'vue'
+import { ref, watch, watchEffect } from 'vue'
 import { useClipboard } from '@vueuse/core'
 import { createToast } from 'mosha-vue-toastify'
 import { useSession } from '../../store/session'
@@ -23,8 +23,9 @@ import useArtifacts from '../../helpers/maven/artifact'
 import useRepository from '../../helpers/maven/repository'
 import useMetadata from '../../helpers/maven/metadata'
 import CopyIcon from '../icons/CopyIcon.vue'
-import CodeSnippet from './CodeSnippet.vue'
 import CardMenu from './CardMenu.vue'
+import RepositorySnippet from "./RepositorySnippet.vue"
+import ArtifactSnippet from "./ArtifactSnippet.vue"
 
 const props = defineProps({
   qualifier: {
@@ -34,23 +35,29 @@ const props = defineProps({
 })
 
 const title = ref('')
-const configurations = ref([])
-const { createRepositories } = useRepository()
-const { createSnippets } = useArtifacts()
+const configurations = [
+  { name: 'Maven', lang: 'xml' },
+  { name: 'Gradle Groovy', lang: 'groovy' },
+  { name: 'Gradle Kotlin', lang: 'kotlin' },
+  { name: 'SBT', lang: 'scala' }
+]
+const data = ref({})
+const { createRepositories, createRepositorySnippet } = useRepository()
+const { createArtifactSnippet } = useArtifacts()
 const { parseMetadata } = useMetadata()
 const { client } = useSession()
 const { copy: copyText, isSupported: isCopySupported } = useClipboard()
 
 const displayRepository = () => {
   title.value = 'Repository details'
-  configurations.value = createRepositories(props.qualifier)
+  data.value = createRepositories(props.qualifier)
 }
 
 const displayArtifact = (metadataSource, version) => {
   title.value = 'Artifact details'
   const { groupId, artifactId, versions } = parseMetadata(metadataSource)
   const latestVersion = versions[version ? versions.indexOf(version) : versions.length - 1]
-  configurations.value = createSnippets(groupId, artifactId, latestVersion)
+  data.value = { type: 'artifact', groupId, artifactId, version: latestVersion }
 }
 
 watchEffect(() => {
@@ -64,7 +71,7 @@ watchEffect(() => {
   if (elements.length == 1 && elements[0] == '') {
     displayRepository()
     return
-  } 
+  }
 
   client.value.maven.content(`${qualifier}/maven-metadata.xml`)
     .then(response => displayArtifact(response.data))
@@ -84,13 +91,18 @@ const selectedTab = ref()
 const transitionName = ref('slide-right')
 
 watch(selectedTab, (to, from) => {
-  const toIndex = configurations.value.findIndex(entry => entry.name === to)
-  const fromIndex = configurations.value.findIndex(entry => entry.name === from)
+  const toIndex = configurations.findIndex(entry => entry.name === to)
+  const fromIndex = configurations.findIndex(entry => entry.name === from)
   transitionName.value = toIndex - fromIndex < 0 ? 'slide-left' : 'slide-right'
 })
 
 const copy = async () => {
-  const { snippet } = configurations.value.find(entry => entry.name === selectedTab.value)
+  let snippet = ''
+  if (data.value.type === 'artifact') {
+    snippet = createArtifactSnippet(selectedTab.value, data.value)
+  } else if (data.value.type === 'repository') {
+    snippet = createRepositorySnippet(selectedTab.value, data.value)
+  }
   await copyText(snippet)
   return createToast('Snippet copied', { type: 'info', timeout: '2000' })
 }
@@ -110,26 +122,32 @@ const selectTab = (tab) =>
       </h1>
       <!-- <button class="bg-black dark:bg-white text-white dark:text-black px-6 py-1 rounded">Download</button> -->
     </div>
-    
-    <CardMenu 
-      :configurations="configurations" 
-      @selectTab="selectTab" 
+
+    <CardMenu
+      :configurations="configurations"
+      @selectTab="selectTab"
     />
 
     <hr class="dark:border-gray-800 <sm:(hidden)">
-    
-    <div class="overflow-hidden">
-      <transition :name="transitionName" mode="out-in">
-        <div :key="selectedTab" class="h-29 relative mt-6 py-3 pl-1 mr-1 rounded-lg bg-gray-100 dark:bg-gray-800">
-          <template v-for="entry in configurations" :key="entry.name"> 
-            <CodeSnippet 
-              v-if="entry.name === selectedTab" 
-              :configuration="entry"
+
+    <transition :name="transitionName" mode="out-in">
+      <div :key="selectedTab" class="card-editor overflow-auto font-mono text-ssm h-29 relative mt-6 py-3 px-4 rounded-lg bg-gray-100 dark:bg-gray-800">
+        <template v-for="entry in configurations" :key="entry.name">
+          <template v-if="entry.name === selectedTab">
+            <RepositorySnippet
+                v-if="data.type === 'repository'"
+                :configuration="entry"
+                :data="data"
+            />
+            <ArtifactSnippet
+                v-else-if="data.type === 'artifact'"
+                :configuration="entry"
+                :data="data"
             />
           </template>
-        </div>
-      </transition>
-    </div>
+        </template>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -174,36 +192,8 @@ const selectTab = (tab) =>
   border: transparent;
   margin-top: 10px;
 }
-.card-editor .card-editor.prism-editor__textarea {
-  display: none;
-}
-.card-editor .prism-editor__line-numbers {
-  user-select: none;
-}
-.card-editor .prism-editor-wrapper .prism-editor__editor {
-  pointer-events: auto !important;
-}
-.card-editor .prism-editor-wrapper .prism-editor__container {
-  overflow: auto;
-  scrollbar-width: thin;
-  scrollbar-track-color: transparent;
-  margin-right: 27px;
-}
-.card-editor .prism-editor-wrapper .prism-editor__editor, 
-.card-editor .prism-editor-wrapper .prism-editor__textarea {
-  white-space: pre !important;
-  min-height: 100px;
-}
-.token.tag {
-  color: mediumpurple;
-}
-.token.operator {
-  background: none;
-}
-.token.function {
-  @apply text-black dark:text-white;
-}
-.token.string {
-    color: mediumpurple;
+
+.card-editor > pre {
+  position: absolute;
 }
 </style>
