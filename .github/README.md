@@ -50,27 +50,29 @@ This is simple, extensible and scalable self-hosted solution to replace managers
 </div>
 
 ### Installation
-To run Reposilite for your personal needs you should assign around 16MB of RAM and at least Java 8+ installed. <br>
+To run Reposilite for your personal needs you should assign around 16MB of RAM and at least Java 11+ installed. <br>
 For huge public repositories you can adjust memory limit and even size of used thread pools in the configuration.
 
 ```bash
 # Launching a standalone JAR file
-$ java -Xmx16M -jar reposilite-3.0.2.jar
+$ java -Xmx16M -jar reposilite-3.0.4.jar
 
 # Using a Docker
-$ docker pull dzikoysk/reposilite:3.0.2
+$ docker pull dzikoysk/reposilite:3.0.4
 ```
 
 Visit official guide to read more about extra parameters and configuration details.
 
 ### Publications
-* [Reposilite - Official Guide](https://reposilite.com/guide/about)
-* [Publishing your artifacts to the Reposilite - a new self-hosted repository manager ](https://dev.to/dzikoysk/publishing-your-artifacts-to-the-reposilite-a-new-self-hosted-repository-manager-3n0h)
 
-Users' stories
+Reposilite 3.x:
+* [Reposilite / Official Guide](https://reposilite.com/guide/about)
+* [Medium / Setup your own Maven repository manager in 5 minutes](https://dzikoysk.medium.com/reposilite-3-x-setup-your-own-maven-repository-manager-in-5-minutes-e72cc8b67bc3)
 
-* [Reposilite - Reddit Thread](https://www.reddit.com/r/java/comments/k8i2m0/reposilite_alternative_lightweight_maven/)
-* [Looking for simple repository manager by David Kihato](https://kihats.medium.com/custom-self-hosted-maven-repository-cbb778031f68)
+Reposilite 2.x:
+* [Reddit / Thread](https://www.reddit.com/r/java/comments/k8i2m0/reposilite_alternative_lightweight_maven/)
+* [Dev.to / Publishing your artifacts to the Reposilite - a new self-hosted repository manager ](https://dev.to/dzikoysk/publishing-your-artifacts-to-the-reposilite-a-new-self-hosted-repository-manager-3n0h)
+* [Medium / Looking for simple repository manager by David Kihato](https://kihats.medium.com/custom-self-hosted-maven-repository-cbb778031f68)
 
 ### Supporters
 Thanks to all contributors and people that decided to support my work financially ❤️
@@ -91,6 +93,7 @@ Thanks to all contributors and people that decided to support my work financiall
     <a href="https://github.com/neg4n">neg4n</a>, 
     <a href="https://github.com/sebba-dev">sebba-dev</a>,
     <a href="https://github.com/FlawCra">FlawCra</a>,
+    <a href="https://github.com/arthurr0">arthurr0</a>
   </td>
  </tr>
  <tr>
@@ -109,10 +112,11 @@ Thanks to all contributors and people that decided to support my work financiall
    <a href="https://github.com/alexwhb">alexwhb</a>, 
    <a href="https://github.com/kay">Douglas Lawrie</a>,
    <a href="https://github.com/zugazagoitia">zugazagoitia</a>,
+   <a href="https://github.com/FlawCra">FlawCra</a>,
    <a href="https://github.com/crejk">crejk</a>,
    <a href="https://github.com/EthanDevelops">EthanDevelops</a>, 
    <a href="https://github.com/escv">escv</a>,
-   <a href="https://github.com/FlawCra">FlawCra</a>,
+   <a href="https://github.com/arthurr0">arthurr0</a>
    <a href="https://github.com/shitzuu">shitzuu</a>,
    <a href="https://github.com/peter-jerry-ye">peter-jerry-ye</a>,
    Rob,

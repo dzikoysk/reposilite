@@ -119,7 +119,7 @@ internal class SqlStatisticsRepository(private val database: Database) : Statist
             IdentifierTable.leftJoin(ResolvedTable, { IdentifierTable.id }, { ResolvedTable.identifierId })
                 .slice(IdentifierTable.gav, resolvedSum)
                 .select(whereCriteria)
-                .groupBy(ResolvedTable.id, IdentifierTable.gav)
+                .groupBy(IdentifierTable.id, IdentifierTable.gav)
                 .having { resolvedSum greater 0L }
                 .orderBy(resolvedSum, DESC)
                 .limit(limit)

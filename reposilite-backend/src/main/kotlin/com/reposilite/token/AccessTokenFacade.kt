@@ -103,7 +103,7 @@ class AccessTokenFacade internal constructor(
     fun canSee(identifier: AccessTokenIdentifier, pathFragment: String): Boolean =
         hasPermission(identifier, MANAGER) || identifier.type.getRepository()
             .findAccessTokenRoutesById(identifier)
-            .any { it.path.startsWith(pathFragment, ignoreCase = true) }
+            .any { it.path.startsWith(pathFragment, ignoreCase = true) || pathFragment.startsWith(it.path) }
 
     fun deletePermission(identifier: AccessTokenIdentifier, permission: AccessTokenPermission) =
         identifier.type.getRepository().deletePermission(identifier, permission)
