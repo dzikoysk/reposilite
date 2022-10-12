@@ -42,9 +42,7 @@ data class AccessToken(
 ) {
 
     init {
-        if (name.length > MAX_TOKEN_NAME) {
-            throw IllegalStateException("Name is too long (${name.length} > $MAX_TOKEN_NAME)")
-        }
+        check(name.length < MAX_TOKEN_NAME) { "Name is too long (${name.length} > $MAX_TOKEN_NAME)" }
     }
 
     fun toDto(): AccessTokenDto =

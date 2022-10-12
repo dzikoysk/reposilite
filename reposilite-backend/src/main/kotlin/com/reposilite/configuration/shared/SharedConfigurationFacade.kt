@@ -38,7 +38,7 @@ class SharedConfigurationFacade(
 
     private fun <T : SharedSettings> registerSettingsWatcher(handler: SharedSettingsReference<T>): SharedSettingsReference<T> =
         handler.also {
-            if (it.name in configHandlers) throw IllegalArgumentException("There are already settings with that name! Please report to the plugin author.")
+            require(it.name !in configHandlers) { "There are already settings with that name! Please report to the plugin author." }
             configHandlers[it.name] = it
         }
 

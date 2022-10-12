@@ -28,13 +28,8 @@ const val GAV_MAX_LENGTH = 1024
 data class Identifier(val repository: String, val gav: String) {
 
     init {
-        if (repository.length > REPOSITORY_NAME_MAX_LENGTH) {
-            throw IllegalStateException("Repository name cannot exceed $GAV_MAX_LENGTH characters")
-        }
-
-        if (gav.length > GAV_MAX_LENGTH) {
-            throw IllegalStateException("Gav cannot exceed $GAV_MAX_LENGTH characters")
-        }
+        check(repository.length < REPOSITORY_NAME_MAX_LENGTH) { "Repository name cannot exceed $GAV_MAX_LENGTH characters" }
+        check(gav.length < GAV_MAX_LENGTH) { "Gav cannot exceed $GAV_MAX_LENGTH characters" }
     }
 
     fun toUUID(): UUID =

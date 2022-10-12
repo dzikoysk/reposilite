@@ -35,9 +35,7 @@ class Repository internal constructor(
 ) {
 
     init {
-        if (name.length > REPOSITORY_NAME_MAX_LENGTH) {
-            throw IllegalStateException("Repository name cannot exceed $REPOSITORY_NAME_MAX_LENGTH characters")
-        }
+        check(name.length < REPOSITORY_NAME_MAX_LENGTH) { "Repository name cannot exceed $REPOSITORY_NAME_MAX_LENGTH characters" }
     }
 
     @Suppress("unused")

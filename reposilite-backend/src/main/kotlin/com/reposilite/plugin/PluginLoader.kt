@@ -63,10 +63,7 @@ class PluginLoader(
             Files.createDirectories(pluginsDirectory)
         }
 
-        if (!Files.isDirectory(pluginsDirectory)) {
-            throw IllegalStateException("The path is not a directory")
-        }
-
+        check (Files.isDirectory(pluginsDirectory)) { "The path is not a directory" }
         extensions.logger.debug("Plugins directory: ${pluginsDirectory.absolutePathString()}")
 
         Files.list(pluginsDirectory).use { pluginDirectoryStream ->

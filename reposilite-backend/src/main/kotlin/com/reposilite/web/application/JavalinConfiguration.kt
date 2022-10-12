@@ -91,7 +91,7 @@ internal object JavalinConfiguration {
             "none" -> config.compression.none()
             "gzip" -> config.compression.gzipOnly()
             "brotli" -> config.compression.brotliOnly()
-            else -> throw IllegalStateException("Unknown compression strategy ${localConfiguration.compressionStrategy.get()}")
+            else -> error("Unknown compression strategy ${localConfiguration.compressionStrategy.get()}")
         }
     }
 

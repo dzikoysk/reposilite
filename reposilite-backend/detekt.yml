@@ -49,6 +49,8 @@ style:
   ThrowsCount:
     active: true
     max: 3
+  DestructuringDeclarationWithTooManyEntries:
+    maxDestructuringEntries: 5
 
 exceptions:
   active: true

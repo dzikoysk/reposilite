@@ -114,7 +114,7 @@ internal class SqlStatisticsRepository(private val database: Database) : Statist
                 if (repository.isEmpty())
                     IdentifierTable.gav like "%$phrase%"
                 else
-                    AndOp(listOf(Op.build{ IdentifierTable.repository eq repository }, Op.build { IdentifierTable.gav like "%$phrase%" }))
+                    AndOp(listOf(Op.build { IdentifierTable.repository eq repository }, Op.build { IdentifierTable.gav like "%$phrase%" }))
 
             IdentifierTable.leftJoin(ResolvedTable, { IdentifierTable.id }, { ResolvedTable.identifierId })
                 .slice(IdentifierTable.gav, resolvedSum)

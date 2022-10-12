@@ -51,8 +51,8 @@ fun toFlattenedDependencyGraph(declarations: Map<String, List<String>>): List<St
         (declarations.keys - topologicalOrdering.toSet()).asSequence()
             .map { deepSearch(declarations, emptySet(), it) }
             .firstOrNull()
-            ?.let { throw IllegalStateException("Circular dependency between ${it.joinToString(" -> ")}") }
-            ?: throw IllegalStateException("Graph has a circular dependency that cannot be traced.")
+            ?.let { error("Circular dependency between ${it.joinToString(" -> ")}") }
+            ?: error("Graph has a circular dependency that cannot be traced.")
     }
 
     return topologicalOrdering.reversed()

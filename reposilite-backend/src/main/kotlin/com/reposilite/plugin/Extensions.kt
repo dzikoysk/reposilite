@@ -41,14 +41,10 @@ class Extensions(private val journalist: Journalist) : Journalist {
         val pluginEntry = plugin::class.findAnnotation<Plugin>()
             ?.let { PluginEntry(it, plugin) }
             ?.also { ReposilitePluginAccessor.injectExtension(it.plugin, this) }
-            ?: throw IllegalStateException("Plugin ${plugin::class} does not have @Plugin annotation")
+            ?: error("Plugin ${plugin::class} does not have @Plugin annotation")
 
         val name = pluginEntry.metadata.name
-
-        if (plugins.containsKey(name)) {
-            throw IllegalStateException("Plugin $name is already registered")
-        }
-
+        check(!plugins.containsKey(name)) { "Plugin $name is already registered" }
         plugins[name] = pluginEntry
     }
 
