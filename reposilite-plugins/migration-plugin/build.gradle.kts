@@ -23,7 +23,7 @@ plugins {
 }
 
 application {
-    mainClass.set("com.reposilite.plugin.swagger.SwaggerPluginKt")
+    mainClass.set("com.reposilite.plugin.migration.MigrationPlugin")
 }
 
 dependencies {
