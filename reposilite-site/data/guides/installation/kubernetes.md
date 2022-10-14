@@ -92,3 +92,20 @@ spec:
         - name: reposilite
           port: http
 ```
+
+### Creating the first Access Token
+To create the first access token, it is recommended to use `kubectl`:
+```bash
+# Get the pod name
+$ kubectl get pods -n reposilite
+NAME                          READY   STATUS    RESTARTS   AGE
+reposilite-75997659f4-mfszl   1/1     Running   0          18
+
+# Attach to the pod
+$ kubectl attach -i reposilite-75997659f4-mfszl -n reposilite
+If you don't see a command prompt, try pressing enter.
+
+token-generate admin m
+10:26:27.423 INFO | Generated new access token for admin with 'm' permissions. Secret:
+10:26:27.423 INFO | biK3dtcNLtm7klb/h7uGXFyUQxStfkSOUIo/LSZSX5nB/+D8ImyXj6LaJ9vZrDIZ
+```
