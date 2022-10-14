@@ -3,18 +3,18 @@ id: docker
 title: Docker
 ---
 
-You may use Docker image available on Docker Hub:
+The Reposilite Docker image is available on several container registries:
+ - [Docker Hub: dzikoysk/reposilite](https://hub.docker.com/r/dzikoysk/reposilite)
+ - [GitHub Container Registry: ghcr.io/dzikoysk/reposilite](https://github.com/dzikoysk/reposilite/pkgs/container/reposilite)
 
-- [DockerHub Registry / Reposilite](https://hub.docker.com/r/dzikoysk/reposilite)
+There are three different types of tags used on the Docker images:
+ - `vX.X.X` (tag-based) - Docker image is published per new release, recommended for production environments.
+ - `latest` - Always refers to the latest Docker image version, not recommended.
+ - `nightly` - Docker image is published for each commit to the `main` branch, may contain bugs but is useful for testing new features.
 
-Reposilite defines two types of builds:
+First of all, you have to pull the image from Docker Hub:
 
-- `tag-based` - build is triggered per a new release, recommended for production environments
-- `nightly` - build is triggered for each commit on main branch, it might be useful for testers and developers
-
-First of all, you have to pull the image:
-
-```yaml
+```bash
 # released builds, e.g. 3.0.4
 $ docker pull dzikoysk/reposilite:3.0.4
 
@@ -22,19 +22,17 @@ $ docker pull dzikoysk/reposilite:3.0.4
 $ docker pull dzikoysk/reposilite:nightly
 ```
 
-Or from [GitHub Registry](https://github.com/features/packages) if you've experienced rate limiting from Docker Hub: 
+Or from the [GitHub Container Registry](https://github.com/features/packages) (useful if you have been rate limited on Docker Hub):
 
-```yaml
+```bash
 # released builds, e.g. 3.0.4
-docker pull ghcr.io/dzikoysk/reposilite:3.0.4
+$ docker pull ghcr.io/dzikoysk/reposilite:3.0.4
 
 # nightly builds
 $ docker pull ghcr.io/dzikoysk/reposilite:nightly
 ```
 
-Then,
-just run the image in interactive mode
-_(to enable [interactive CLI](/guide/manual#interactive-cli))_:
+Then, just run the image in interactive mode _(to enable [interactive CLI](/guide/manual#interactive-cli))_:
 
 ```bash
 $ docker run -it -v reposilite-data:/app/data -p 80:8080 dzikoysk/reposilite:nightly
@@ -55,7 +53,7 @@ $ docker run -it -v reposilite-data:/app/data -p 80:8080 dzikoysk/reposilite
 
 You can also pass custom configuration values using the environment variables:
 
-```shell-session
+```bash
 $ docker run -e JAVA_OPTS='-Xmx128M' -p 80:8080 dzikoysk/reposilite
 ```
 
@@ -63,14 +61,14 @@ $ docker run -e JAVA_OPTS='-Xmx128M' -p 80:8080 dzikoysk/reposilite
 
 To pass custom parameters described in [setup#parameters](setup#parameters), use `REPOSILITE_OPTS` variable:
 
-```shell-session
+```bash
 $ docker run -e REPOSILITE_OPTS='--local-configuration=/app/data/custom.cdn' -p 80:8080 dzikoysk/reposilite
 ```
 
 #### External configuration
 
 You can mount external configuration files using the `--mount` parameter.
-Before that, you have to make sure the the configuration file already exists on Docker host.
+Before that, you have to make sure the configuration file already exists on Docker host.
 To launch Reposilite with a custom configuration, we have to mount proper file:
 
 ```bash

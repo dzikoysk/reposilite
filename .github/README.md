@@ -57,8 +57,13 @@ For huge public repositories you can adjust memory limit and even size of used t
 # Launching a standalone JAR file
 $ java -Xmx16M -jar reposilite-3.0.4.jar
 
-# Using a Docker
+# Using the official Docker image
 $ docker pull dzikoysk/reposilite:3.0.4
+
+# Using the official Helm chart
+$ helm repo add reposilite https://helm.reposilite.com/
+$ helm repo update
+$ helm install reposilite/reposilite
 ```
 
 Visit official guide to read more about extra parameters and configuration details.
