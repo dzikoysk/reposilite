@@ -7,6 +7,7 @@ latest.log
 ./logs/
 log_*.txt
 javadocs
+reposilite-backend/src/test/workspace/plugins/*.jar
 
 ### Maven ###
 build/
