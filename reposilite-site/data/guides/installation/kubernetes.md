@@ -7,8 +7,6 @@ You may use the official Helm chart to install Reposilite on Kubernetes.
 
 Requirements: `Kubernetes: 1.14+`, [`Helm: v3.x+`](https://helm.sh/docs/intro/install/)
 
-**By default, the Helm chart will use 4 GB of disk and 32 MB of RAM, to increase or decrease these settings, see [Installing with custom values](#installing-with-custom-values).**
-
 ### Adding the Reposilite chart repository
 Before you can use the Reposilite chart, you need to add the chart repository to Helm:
 ```bash
@@ -20,7 +18,9 @@ $ helm repo update
 ```
 
 ### Basic installation
-Basic installation without changing any of the default chart values.
+Basic installation without changing any of the default chart values.  
+**By default, the Helm chart will use 4 GB of disk and 32 MB of RAM, to increase or decrease these settings, see [Installing with custom values](#installing-with-custom-values).**
+
 ```bash
 # Create the 'reposilite' namespace
 $ kubectl create namespace reposilite
