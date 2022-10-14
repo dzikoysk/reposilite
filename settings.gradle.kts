@@ -23,6 +23,7 @@ include(
     "reposilite-plugins:example-plugin",
     "reposilite-plugins:groovy-plugin",
     "reposilite-plugins:javadoc-plugin",
+    "reposilite-plugins:maven-indexer-plugin",
     "reposilite-plugins:migration-plugin",
     "reposilite-plugins:swagger-plugin"
 )
