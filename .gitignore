@@ -126,3 +126,6 @@ local.properties
 hs_err_pid*
 src/test/
 log.txt
+
+# Fleet
+.fleet/
