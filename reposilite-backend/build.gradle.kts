@@ -80,6 +80,7 @@ dependencies {
     api("io.javalin:javalin-openapi-plugin:$javalin")
     kapt("io.javalin:openapi-annotation-processor:$javalin") { exclude(group = "ch.qos.logback") }
     api("com.reposilite.javalin-rfcs:javalin-routing:$javalin")
+    implementation("io.javalin.community.ssl:ssl-plugin:5.0.1")
 
     val picocli = "4.6.3"
     kapt("info.picocli:picocli-codegen:$picocli")

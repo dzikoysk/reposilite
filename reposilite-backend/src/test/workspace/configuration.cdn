@@ -22,14 +22,16 @@ port: 8080
 database: sqlite reposilite.db
 
 # Support encrypted connections
-sslEnabled: false
+sslEnabled: true
 # SSL port to bind
 sslPort: 443
-# Key store file to use.
+# Key file to use.
 # You can specify absolute path to the given file or use ${WORKING_DIRECTORY} variable.
-keyStorePath: ${WORKING_DIRECTORY}/keystore.jks
-# Key store password to use
-keyStorePassword: reposilite
+# If you want to use .pem certificate you need to specify its path next to the key path:
+# keyPath: ${WORKING_DIRECTORY}/key.pem ${WORKING_DIRECTORY}/cert.pem
+keyPath: ${WORKING_DIRECTORY}/keystore.jks
+# Key password to use
+keyPassword: reposilite
 # Redirect http traffic to https
 enforceSsl: false
 
