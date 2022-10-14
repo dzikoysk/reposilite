@@ -32,10 +32,11 @@ Due to this fact, you cannot override routes registered by Reposilite using publ
 
 Using `public` directory you can implement frontend on your own.
 Because assets have lower priority, 
-you have to disable frontend in shared configuration / settings in the dashboard:
+you have to disable frontend in the local configuration file:
 
 ```yaml
-frontend: false
+# Enable default frontend with dashboard
+defaultFrontend: false
 ```
 
 `Warning` - With disabled dashboard, you'll lose access to settings tab.
