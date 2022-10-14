@@ -32,6 +32,7 @@ import io.javalin.websocket.WsContext
 import io.javalin.websocket.WsMessageContext
 import panda.std.Result
 import panda.std.reactive.Reference
+import java.nio.channels.ClosedChannelException
 import java.util.WeakHashMap
 import java.util.function.Consumer
 
@@ -69,7 +70,7 @@ internal class CliEndpoint(
                                 try{
                                     ctx.send(it.value)
                                 }
-                                catch(e: java.nio.channels.ClosedChannelException) {
+                                catch(e: ClosedChannelException) {
                                     journalist.logger.debug("CLI | $identifier tried to access a Closed Channel ")
                                 }
                             }
