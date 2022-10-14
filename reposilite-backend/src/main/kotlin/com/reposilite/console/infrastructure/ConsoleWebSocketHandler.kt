@@ -66,7 +66,12 @@ internal class CliEndpoint(
                             journalist.logger.info("CLI | $identifier accessed remote console")
 
                             val subscriberId = journalist.subscribe {
-                                ctx.send(it.value)
+                                try{
+                                    ctx.send(it.value)
+                                }
+                                catch(e: java.nio.channels.ClosedChannelException) {
+                                    journalist.logger.debug("CLI | $identifier tried to access a Closed Channel ")
+                                }
                             }
 
                             users[ctx] = WsSession(identifier, subscriberId)
