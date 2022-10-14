@@ -67,11 +67,10 @@ internal class CliEndpoint(
                             journalist.logger.info("CLI | $identifier accessed remote console")
 
                             val subscriberId = journalist.subscribe {
-                                try{
+                                try {
                                     ctx.send(it.value)
-                                }
-                                catch(e: ClosedChannelException) {
-                                    journalist.logger.debug("CLI | $identifier tried to access a Closed Channel ")
+                                } catch (ignored: ClosedChannelException) {
+                                    journalist.logger.debug("CLI | $identifier tried to write to closed channel")
                                 }
                             }
 
