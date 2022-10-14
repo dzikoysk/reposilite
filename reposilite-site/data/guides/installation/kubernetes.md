@@ -52,7 +52,8 @@ custom chart values, you may be unable to access the Reposilite frontend.
 As Kubernetes ingress is generally different depending on the Ingress controller you are using, we are
 unable to document every way to create an ingress, but here are basic examples for two popular ingress controllers.
 
-#### [Nginx](https://github.com/kubernetes/ingress-nginx)
+#### Nginx
+Using the [Nginx Ingress Controller](https://github.com/kubernetes/ingress-nginx).
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -73,7 +74,8 @@ spec:
               name: http
 ```
 
-#### [Traefik](https://traefik.io/traefik/)
+#### Traefik
+Using [Traefik](https://traefik.io/traefik/).
 ```yaml
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
