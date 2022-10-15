@@ -32,6 +32,7 @@ import io.javalin.websocket.WsContext
 import io.javalin.websocket.WsMessageContext
 import panda.std.Result
 import panda.std.reactive.Reference
+import java.nio.channels.ClosedChannelException
 import java.util.WeakHashMap
 import java.util.function.Consumer
 
@@ -66,7 +67,11 @@ internal class CliEndpoint(
                             journalist.logger.info("CLI | $identifier accessed remote console")
 
                             val subscriberId = journalist.subscribe {
-                                ctx.send(it.value)
+                                try {
+                                    ctx.send(it.value)
+                                } catch (ignored: ClosedChannelException) {
+                                    journalist.logger.debug("CLI | $identifier tried to write to closed channel")
+                                }
                             }
 
                             users[ctx] = WsSession(identifier, subscriberId)
