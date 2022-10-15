@@ -1,21 +1,23 @@
 package com.reposilite.plugin.mavenindexer
 
-import com.reposilite.plugin.api.Facade
+import com.reposilite.maven.MavenFacade
 import com.reposilite.plugin.api.Plugin
-import com.reposilite.plugin.api.ReposiliteInitializeEvent
 import com.reposilite.plugin.api.ReposilitePlugin
+import com.reposilite.plugin.event
+import com.reposilite.plugin.facade
+import com.reposilite.plugin.mavenindexer.infrastructure.MavenIndexerTestEndpoints
+import com.reposilite.web.api.RoutingSetupEvent
 
-@Plugin(name = "maven-indexer")
+@Plugin(name = "maven-indexer", dependencies = ["maven"])
 internal class MavenIndexerPlugin : ReposilitePlugin() {
-    override fun initialize(): Facade? {
-        extensions().registerEvent(
-            ReposiliteInitializeEvent::class.java
-        ) {
-            logger.info("")
-            logger.info("--- Maven Indexer plugin")
-            logger.info("Maven Indexer plugin has been properly loaded")
-        }
-        return null
-    }
+    override fun initialize(): MavenIndexerFacade {
+        val mavenIndexerFacade = MavenIndexerFacade()
+        val mavenFacade = facade<MavenFacade>()
 
+        event { event: RoutingSetupEvent ->
+            event.registerRoutes(MavenIndexerTestEndpoints(mavenIndexerFacade, mavenFacade))
+        }
+
+        return mavenIndexerFacade
+    }
 }
