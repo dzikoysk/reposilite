@@ -19,6 +19,7 @@ package com.reposilite.statistics.infrastructure
 import com.reposilite.maven.api.GAV_MAX_LENGTH
 import com.reposilite.maven.api.Identifier
 import com.reposilite.maven.api.REPOSITORY_NAME_MAX_LENGTH
+import com.reposilite.shared.extensions.executeQuery
 import com.reposilite.statistics.StatisticsRepository
 import com.reposilite.statistics.api.ResolvedEntry
 import net.dzikoysk.exposed.upsert.upsert
@@ -39,13 +40,14 @@ import org.jetbrains.exposed.sql.leftJoin
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.sum
+import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
 import panda.std.firstAndMap
 import java.time.LocalDate
 import java.util.UUID
 
 @Suppress("RemoveRedundantQualifierName")
-internal class SqlStatisticsRepository(private val database: Database) : StatisticsRepository {
+internal class SqlStatisticsRepository(private val database: Database, runMigrations: Boolean) : StatisticsRepository {
 
     private object IdentifierTable : Table("statistics_identifier") {
         val id = uuid("identifier_id")
@@ -67,6 +69,31 @@ internal class SqlStatisticsRepository(private val database: Database) : Statist
         transaction(database) {
             SchemaUtils.create(IdentifierTable, ResolvedTable)
             SchemaUtils.addMissingColumnsStatements(IdentifierTable, ResolvedTable)
+        }
+        if (runMigrations) {
+            runMigrations()
+        }
+    }
+
+    private fun runMigrations() {
+        transaction(database) {
+            val connection = TransactionManager.current().connection
+
+            // Migration 0001: Change `repository` identifier size from 32 to 64.
+            when (val dialect = db.vendor) {
+                "postgresql" -> {
+                    connection.executeQuery("ALTER TABLE statistics_identifier ALTER COLUMN repository TYPE VARCHAR($REPOSITORY_NAME_MAX_LENGTH);")
+                }
+                "mysql", "mariadb", "h2" -> {
+                    connection.executeQuery("ALTER TABLE statistics_identifier MODIFY repository VARCHAR($REPOSITORY_NAME_MAX_LENGTH);")
+                }
+                "sqlite" -> {
+                    connection.executeQuery("PRAGMA writable_schema = 1;")
+                    connection.executeQuery("UPDATE SQLITE_MASTER SET SQL = replace(sql, 'repository VARCHAR(32)', 'repository VARCHAR($REPOSITORY_NAME_MAX_LENGTH)') WHERE name='statistics_identifier' AND type='table';")
+                    connection.executeQuery("PRAGMA writable_schema = 0;")
+                }
+                else -> throw UnsupportedOperationException("Unsupported SQL dialect $dialect")
+            }
         }
     }
 

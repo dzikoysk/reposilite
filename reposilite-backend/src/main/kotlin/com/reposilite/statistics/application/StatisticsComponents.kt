@@ -13,13 +13,14 @@ import panda.std.reactive.Reference
 class StatisticsComponents(
     private val journalist: Journalist,
     private val database: Database?,
+    private val runMigrations: Boolean,
     private val statisticsSettings: Reference<StatisticsSettings>
 ) : PluginComponents {
 
     private fun statisticsRepository(): StatisticsRepository =
         when (database) {
             null -> InMemoryStatisticsRepository()
-            else -> SqlStatisticsRepository(database)
+            else -> SqlStatisticsRepository(database, runMigrations)
         }
 
     fun statisticsFacade(statisticsRepository: StatisticsRepository = statisticsRepository()): StatisticsFacade =
