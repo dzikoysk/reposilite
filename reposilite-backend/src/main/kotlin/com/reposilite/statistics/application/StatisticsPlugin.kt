@@ -23,6 +23,7 @@ import com.reposilite.plugin.api.ReposiliteInitializeEvent
 import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
+import com.reposilite.plugin.parameters
 import com.reposilite.plugin.reposilite
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.statistics.StatsCommand
@@ -39,6 +40,7 @@ internal class StatisticsPlugin : ReposilitePlugin() {
         val statisticsFacade = StatisticsComponents(
             journalist = this,
             database = reposilite().database,
+            runMigrations = parameters().runMigrations,
             statisticsSettings = settingsFacade.getDomainSettings<StatisticsSettings>()
         ).statisticsFacade()
 

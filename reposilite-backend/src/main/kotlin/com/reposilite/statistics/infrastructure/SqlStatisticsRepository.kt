@@ -16,7 +16,6 @@
 
 package com.reposilite.statistics.infrastructure
 
-import com.reposilite.journalist.Journalist
 import com.reposilite.maven.api.GAV_MAX_LENGTH
 import com.reposilite.maven.api.Identifier
 import com.reposilite.maven.api.REPOSITORY_NAME_MAX_LENGTH
@@ -48,7 +47,7 @@ import java.time.LocalDate
 import java.util.UUID
 
 @Suppress("RemoveRedundantQualifierName")
-internal class SqlStatisticsRepository(private val journalist: Journalist, private val database: Database) : StatisticsRepository {
+internal class SqlStatisticsRepository(private val database: Database, runMigrations: Boolean) : StatisticsRepository {
 
     private object IdentifierTable : Table("statistics_identifier") {
         val id = uuid("identifier_id")
@@ -71,7 +70,9 @@ internal class SqlStatisticsRepository(private val journalist: Journalist, priva
             SchemaUtils.create(IdentifierTable, ResolvedTable)
             SchemaUtils.addMissingColumnsStatements(IdentifierTable, ResolvedTable)
         }
-        runMigrations()
+        if (runMigrations) {
+            runMigrations()
+        }
     }
 
     private fun runMigrations() {

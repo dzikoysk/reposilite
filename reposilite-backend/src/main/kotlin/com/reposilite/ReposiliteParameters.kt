@@ -80,8 +80,12 @@ class ReposiliteParameters : Runnable {
     @Option(names = ["--channel", "--level"], description = ["Default logging channel"])
     var level: String = Channel.INFO.name
 
+    @Option(names = ["--enable-migrations"], description = ["Opt-in to run all available migrations"])
+    var runMigrations = false
+
     @Option(names = ["--test-env", "--debug", "-d"], description = ["Enable test mode"])
     var testEnv = false
+
 
     override fun run() {
         this.workingDirectory = Paths.get(workingDirectoryName)
