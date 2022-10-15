@@ -86,7 +86,6 @@ class ReposiliteParameters : Runnable {
     @Option(names = ["--test-env", "--debug", "-d"], description = ["Enable test mode"])
     var testEnv = false
 
-
     override fun run() {
         this.workingDirectory = Paths.get(workingDirectoryName)
         this.pluginDirectory = pluginDirectoryName?.let { Paths.get(it) } ?: workingDirectory.resolve("plugins")
