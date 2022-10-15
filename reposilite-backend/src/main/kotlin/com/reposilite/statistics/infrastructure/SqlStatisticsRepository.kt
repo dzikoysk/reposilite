@@ -20,7 +20,7 @@ import com.reposilite.journalist.Journalist
 import com.reposilite.maven.api.GAV_MAX_LENGTH
 import com.reposilite.maven.api.Identifier
 import com.reposilite.maven.api.REPOSITORY_NAME_MAX_LENGTH
-import com.reposilite.shared.extensions.executeOneOfQueries
+import com.reposilite.shared.extensions.executeQuery
 import com.reposilite.statistics.StatisticsRepository
 import com.reposilite.statistics.api.ResolvedEntry
 import net.dzikoysk.exposed.upsert.upsert
@@ -40,7 +40,6 @@ import org.jetbrains.exposed.sql.javatime.date
 import org.jetbrains.exposed.sql.leftJoin
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.statements.api.ExposedConnection
 import org.jetbrains.exposed.sql.sum
 import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -51,15 +50,13 @@ import java.util.UUID
 @Suppress("RemoveRedundantQualifierName")
 internal class SqlStatisticsRepository(private val journalist: Journalist, private val database: Database) : StatisticsRepository {
 
-    private open class IdentifierTableScheme(name: String) : Table(name) {
+    private object IdentifierTable : Table("statistics_identifier") {
         val id = uuid("identifier_id")
         val repository = varchar("repository", REPOSITORY_NAME_MAX_LENGTH).index("idx_statistics_identifier_repository")
         val gav = varchar("gav", GAV_MAX_LENGTH)
 
         override val primaryKey = PrimaryKey(id)
     }
-
-    private object IdentifierTable : IdentifierTableScheme("statistics_identifier")
 
     private object ResolvedTable : IntIdTable("statistics_resolved_identifier") {
         val identifierId = reference("identifier_id", IdentifierTable.id, onDelete = CASCADE, onUpdate = CASCADE)
@@ -73,26 +70,30 @@ internal class SqlStatisticsRepository(private val journalist: Journalist, priva
         transaction(database) {
             SchemaUtils.create(IdentifierTable, ResolvedTable)
             SchemaUtils.addMissingColumnsStatements(IdentifierTable, ResolvedTable)
-            runMigrations(TransactionManager.current() .connection)
         }
+        runMigrations()
     }
 
-    private fun runMigrations(connection: ExposedConnection<*>) {
-        // Migration 0001: Change `repository` identifier size from 32 to 64.
-        val temporaryStatisticsIdentifierTable = object : IdentifierTableScheme("tmp_statistics_identifier") {}
-        require(connection.executeOneOfQueries(
-            journalist,
-            "DROP INDEX idx_statistics_identifier_repository ON statistics_identifier;", // MySQL
-            "DROP INDEX idx_statistics_identifier_repository;", // PostgreSQL/SQLite
-            "DROP INDEX statistics_identifier.idx_statistics_identifier_repository;", // H2
-        ))
-        SchemaUtils.create(temporaryStatisticsIdentifierTable) // create temp table
-        temporaryStatisticsIdentifierTable.insert(IdentifierTable.selectAll()) // copy content
-        SchemaUtils.drop(IdentifierTable) // drop old
-        require(connection.executeOneOfQueries(
-            journalist,
-            "ALTER TABLE `tmp_statistics_identifier` RENAME TO `statistics_identifier`;")
-        )
+    private fun runMigrations() {
+        transaction(database) {
+            val connection = TransactionManager.current().connection
+
+            // Migration 0001: Change `repository` identifier size from 32 to 64.
+            when (val dialect = db.vendor) {
+                "postgresql" -> {
+                    connection.executeQuery("ALTER TABLE statistics_identifier ALTER COLUMN repository TYPE VARCHAR($REPOSITORY_NAME_MAX_LENGTH);")
+                }
+                "mysql", "mariadb", "h2" -> {
+                    connection.executeQuery("ALTER TABLE statistics_identifier MODIFY repository VARCHAR($REPOSITORY_NAME_MAX_LENGTH);")
+                }
+                "sqlite" -> {
+                    connection.executeQuery("PRAGMA writable_schema = 1;")
+                    connection.executeQuery("UPDATE SQLITE_MASTER SET SQL = replace(sql, 'repository VARCHAR(32)', 'repository VARCHAR($REPOSITORY_NAME_MAX_LENGTH)') WHERE name='statistics_identifier' AND type='table';")
+                    connection.executeQuery("PRAGMA writable_schema = 0;")
+                }
+                else -> throw UnsupportedOperationException("Unsupported SQL dialect $dialect")
+            }
+        }
     }
 
     override fun incrementResolvedRequests(requests: Map<Identifier, Long>, date: LocalDate) =
