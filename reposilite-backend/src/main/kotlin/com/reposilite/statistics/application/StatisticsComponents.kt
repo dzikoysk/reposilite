@@ -19,7 +19,7 @@ class StatisticsComponents(
     private fun statisticsRepository(): StatisticsRepository =
         when (database) {
             null -> InMemoryStatisticsRepository()
-            else -> SqlStatisticsRepository(database)
+            else -> SqlStatisticsRepository(journalist, database)
         }
 
     fun statisticsFacade(statisticsRepository: StatisticsRepository = statisticsRepository()): StatisticsFacade =
