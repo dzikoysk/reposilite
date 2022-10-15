@@ -43,6 +43,7 @@ import io.javalin.json.JavalinJackson
 import io.javalin.openapi.OpenApiInfo
 import io.javalin.openapi.plugin.OpenApiConfiguration
 import io.javalin.openapi.plugin.OpenApiPlugin
+import java.util.function.Consumer
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.util.thread.ThreadPool
@@ -147,6 +148,9 @@ internal object JavalinConfiguration {
             reposilite.logger.info("Enabling SSL connector at ::" + localConfiguration.sslPort.get())
 
             val sslPlugin = SSLPlugin {
+                it.insecure = true
+                it.insecurePort = localConfiguration.port.get()
+
                 it.secure = true
                 it.securePort = localConfiguration.sslPort.get()
 
@@ -159,12 +163,9 @@ internal object JavalinConfiguration {
                 } else if (keyPath.endsWith(".jks")) {
                     it.keystoreFromPath(keyPath, keyPassword)
                 }
-            }
 
-            if (!localConfiguration.enforceSsl.get()) {
-                val standardConnector = ServerConnector(server)
-                standardConnector.port = localConfiguration.port.get()
-                server.addConnector(standardConnector)
+                it.configConnectors = Consumer { connector -> connector.idleTimeout = localConfiguration.idleTimeout.get() }
+                it.sniHostCheck = false
             }
 
             config.plugins.register(sslPlugin)
