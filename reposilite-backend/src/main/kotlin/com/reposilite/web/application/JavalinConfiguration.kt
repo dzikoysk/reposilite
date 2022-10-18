@@ -157,11 +157,13 @@ internal object JavalinConfiguration {
                 val keyPath = localConfiguration.keyPath.get().replace("\${WORKING_DIRECTORY}", reposilite.parameters.workingDirectory.toAbsolutePath().toString())
                 val keyPassword = localConfiguration.keyPassword.get()
 
-                if (keyPath.endsWith(".pem")) {
-                    val paths = keyPath.split(" ")
-                    it.pemFromPath(paths[0], paths[1], keyPassword)
-                } else if (keyPath.endsWith(".jks")) {
-                    it.keystoreFromPath(keyPath, keyPassword)
+                when {
+                    keyPath.endsWith(".pem") -> {
+                        val (pemKeyPath, certPath) = keyPath.split(" ")
+                        it.pemFromPath(pemKeyPath, certPath, keyPassword)
+                    }
+                    keyPath.endsWith(".jks") -> it.keystoreFromPath(keyPath, keyPassword)
+                    else -> throw IllegalArgumentException("Provided key extension is not supported.")
                 }
 
                 it.configConnectors = Consumer { connector -> connector.idleTimeout = localConfiguration.idleTimeout.get() }

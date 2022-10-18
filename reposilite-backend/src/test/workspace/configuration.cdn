@@ -27,7 +27,10 @@ sslEnabled: true
 sslPort: 443
 # Key file to use.
 # You can specify absolute path to the given file or use ${WORKING_DIRECTORY} variable.
-# If you want to use .pem certificate you need to specify its path next to the key path:
+# If you want to use .pem certificate you need to specify its path next to the key path.
+# Example .jks path setup:
+# keyPath: ${WORKING_DIRECTORY}/keystore.jks
+# Example .pem paths setup:
 # keyPath: ${WORKING_DIRECTORY}/key.pem ${WORKING_DIRECTORY}/cert.pem
 keyPath: ${WORKING_DIRECTORY}/keystore.jks
 # Key password to use
