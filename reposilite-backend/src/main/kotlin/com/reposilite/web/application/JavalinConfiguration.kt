@@ -37,14 +37,15 @@ import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.RoutingSetupEvent
 import com.reposilite.web.infrastructure.CacheBypassHandler
 import com.reposilite.web.routing.RoutingPlugin
+import io.javalin.community.ssl.SSLPlugin
 import io.javalin.config.JavalinConfig
 import io.javalin.json.JavalinJackson
 import io.javalin.openapi.OpenApiInfo
 import io.javalin.openapi.plugin.OpenApiConfiguration
 import io.javalin.openapi.plugin.OpenApiPlugin
+import java.util.function.Consumer
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
-import org.eclipse.jetty.util.ssl.SslContextFactory
 import org.eclipse.jetty.util.thread.ThreadPool
 import panda.std.reactive.Reference
 
@@ -146,20 +147,30 @@ internal object JavalinConfiguration {
         if (localConfiguration.sslEnabled.get()) {
             reposilite.logger.info("Enabling SSL connector at ::" + localConfiguration.sslPort.get())
 
-            val sslContextFactory = SslContextFactory.Server()
-            sslContextFactory.keyStorePath = localConfiguration.keyStorePath.get().replace("\${WORKING_DIRECTORY}", reposilite.parameters.workingDirectory.toAbsolutePath().toString())
-            sslContextFactory.keyStorePassword = localConfiguration.keyStorePassword.get()
+            val sslPlugin = SSLPlugin {
+                it.insecure = true
+                it.insecurePort = localConfiguration.port.get()
 
-            val sslConnector = ServerConnector(server, sslContextFactory)
-            sslConnector.port = localConfiguration.sslPort.get()
-            sslConnector.idleTimeout = localConfiguration.idleTimeout.get()
-            server.addConnector(sslConnector)
+                it.secure = true
+                it.securePort = localConfiguration.sslPort.get()
 
-            if (!localConfiguration.enforceSsl.get()) {
-                val standardConnector = ServerConnector(server)
-                standardConnector.port = localConfiguration.port.get()
-                server.addConnector(standardConnector)
+                val keyPath = localConfiguration.keyPath.get().replace("\${WORKING_DIRECTORY}", reposilite.parameters.workingDirectory.toAbsolutePath().toString())
+                val keyPassword = localConfiguration.keyPassword.get()
+
+                when {
+                    keyPath.endsWith(".pem") -> {
+                        val (pemKeyPath, certPath) = keyPath.split(" ")
+                        it.pemFromPath(pemKeyPath, certPath, keyPassword)
+                    }
+                    keyPath.endsWith(".jks") -> it.keystoreFromPath(keyPath, keyPassword)
+                    else -> throw IllegalArgumentException("Provided key extension is not supported.")
+                }
+
+                it.configConnectors = Consumer { connector -> connector.idleTimeout = localConfiguration.idleTimeout.get() }
+                it.sniHostCheck = false
             }
+
+            config.plugins.register(sslPlugin)
         }
 
         if (localConfiguration.enforceSsl.get()) {

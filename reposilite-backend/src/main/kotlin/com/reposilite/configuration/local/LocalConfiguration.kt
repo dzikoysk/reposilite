@@ -84,12 +84,17 @@ class LocalConfiguration : Facade {
     @Description("# SSL port to bind")
     val sslPort = reference(443)
 
-    @Description("# Key store file to use.")
+    @Description("# Key file to use.")
     @Description("# You can specify absolute path to the given file or use \${WORKING_DIRECTORY} variable.")
-    val keyStorePath = reference("\${WORKING_DIRECTORY}/keystore.jks")
+    @Description("# If you want to use .pem certificate you need to specify its path next to the key path.")
+    @Description("# Example .pem paths setup:")
+    @Description("# keyPath: \${WORKING_DIRECTORY}/key.pem \${WORKING_DIRECTORY}/cert.pem")
+    @Description("# Example .jks path setup:")
+    @Description("# keyPath: \${WORKING_DIRECTORY}/keystore.jks")
+    val keyPath = reference("\${WORKING_DIRECTORY}/key.pem \${WORKING_DIRECTORY}/cert.pem")
 
-    @Description("# Key store password to use")
-    val keyStorePassword = reference("")
+    @Description("# Key password to use")
+    val keyPassword = reference("")
 
     @Description("# Redirect http traffic to https")
     val enforceSsl = reference(false)

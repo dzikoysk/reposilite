@@ -75,11 +75,12 @@ dependencies {
     val ldap = "6.0.6"
     testImplementation("com.unboundid:unboundid-ldapsdk:$ldap")
 
-    val javalin = "5.0.0-SNAPSHOT"
+    val javalin = "5.1.0"
     api("io.javalin:javalin:$javalin")
-    api("io.javalin:javalin-openapi-plugin:$javalin")
-    kapt("io.javalin:openapi-annotation-processor:$javalin") { exclude(group = "ch.qos.logback") }
-    api("com.reposilite.javalin-rfcs:javalin-routing:$javalin")
+    api("io.javalin.community.openapi:javalin-openapi-plugin:$javalin")
+    kapt("io.javalin.community.openapi:openapi-annotation-processor:$javalin") { exclude(group = "ch.qos.logback") }
+    api("com.reposilite.javalin-rfcs:javalin-routing:5.0.0-SNAPSHOT")
+    api("io.javalin.community.ssl:ssl-plugin:$javalin")
 
     val picocli = "4.6.3"
     kapt("info.picocli:picocli-codegen:$picocli")
