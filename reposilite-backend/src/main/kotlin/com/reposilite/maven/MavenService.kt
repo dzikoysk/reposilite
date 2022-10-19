@@ -48,6 +48,8 @@ internal class MavenService(
         // Artifact extensions
         "-sources.jar",
         "-javadoc.jar",
+        // Sign
+        ".asc"
     )
 
     fun findDetails(lookupRequest: LookupRequest): Result<out FileDetails, ErrorResponse> =

@@ -14,16 +14,24 @@
  * limitations under the License.
  */
 
-rootProject.name = "reposilite-parent"
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
-include(
-    "reposilite-frontend",
-    "reposilite-backend",
-    "reposilite-plugins",
-    "reposilite-plugins:checksum-plugin",
-    "reposilite-plugins:example-plugin",
-    "reposilite-plugins:groovy-plugin",
-    "reposilite-plugins:javadoc-plugin",
-    "reposilite-plugins:migration-plugin",
-    "reposilite-plugins:swagger-plugin"
-)
+plugins {
+    id("com.github.johnrengelman.shadow") version "7.1.2"
+    kotlin("jvm")
+}
+
+application {
+    mainClass.set("com.reposilite.plugin.checksum.ChecksumPlugin")
+}
+
+dependencies {
+    compileOnly(project(":reposilite-backend"))
+    testImplementation(project(":reposilite-backend"))
+}
+
+tasks.withType<ShadowJar> {
+    archiveFileName.set("checksum-plugin.jar")
+    destinationDirectory.set(file("$rootDir/reposilite-backend/src/test/workspace/plugins"))
+    mergeServiceFiles()
+}
