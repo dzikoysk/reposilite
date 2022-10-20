@@ -43,13 +43,13 @@ data class VersionsResponse(
     val versions: List<String>
 )
 
-class PreResolveEvent(
+data class PreResolveEvent(
     val accessToken: AccessTokenIdentifier?,
     val repository: Repository,
     val gav: Location
 ) : Event
 
-class ResolvedFileEvent(
+data class ResolvedFileEvent(
     val accessToken: AccessTokenIdentifier?,
     val repository: Repository,
     val gav: Location,

@@ -50,12 +50,12 @@ dependencies {
     api("net.dzikoysk:cdn:$cdn")
     api("net.dzikoysk:cdn-kt:$cdn")
 
-    val awssdk = "2.17.285"
+    val awssdk = "2.17.292"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
-    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.314")
+    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.315")
 
-    val exposed = "0.39.2"
+    val exposed = "0.40.1"
     implementation("org.jetbrains.exposed:exposed-core:$exposed")
     implementation("org.jetbrains.exposed:exposed-dao:$exposed")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposed")
@@ -75,7 +75,7 @@ dependencies {
     val ldap = "6.0.6"
     testImplementation("com.unboundid:unboundid-ldapsdk:$ldap")
 
-    val javalin = "5.1.0"
+    val javalin = "5.1.1"
     api("io.javalin:javalin:$javalin")
     api("io.javalin.community.openapi:javalin-openapi-plugin:$javalin")
     kapt("io.javalin.community.openapi:openapi-annotation-processor:$javalin") { exclude(group = "ch.qos.logback") }
@@ -93,8 +93,11 @@ dependencies {
     implementation("com.github.victools:jsonschema-generator:4.27.0")
 
     val httpClient = "1.42.2"
-    implementation("com.google.http-client:google-http-client:$httpClient")
+    implementation("com.google.http-client:google-http-client:$httpClient") { exclude(group = "commons-codec", module = "commons-codec")}
     testImplementation("com.google.http-client:google-http-client-jackson2:$httpClient")
+
+    val commonsCoded = "1.15"
+    api("commons-codec:commons-codec:$commonsCoded")
 
     val commonsIO = "2.11.0"
     implementation("commons-io:commons-io:$commonsIO")
