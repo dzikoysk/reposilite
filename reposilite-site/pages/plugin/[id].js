@@ -1,26 +1,14 @@
-import {
-  Box,
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  Button,
-  Container,
-  Divider,
-  Flex,
-  Heading,
-  Select,
-  Text
-} from "@chakra-ui/react"
+import { Box, Breadcrumb, BreadcrumbItem, BreadcrumbLink, Button, Container, Divider, Flex, Heading, Select, Text } from "@chakra-ui/react"
 import Layout from "../../components/layout/Layout"
-import {getPlugins, readPluginById} from "../../helpers/mdx"
-import {Link} from '../../components/Link'
+import { getPlugins, readPluginById } from "../../helpers/mdx"
+import { Link } from '../../components/Link'
 import MDX from "../../components/MDX"
-import {MDXRemote} from "next-mdx-remote"
-import {ChevronRightIcon} from "@chakra-ui/icons"
+import { MDXRemote } from "next-mdx-remote"
+import { ChevronRightIcon } from "@chakra-ui/icons"
 import Head from "next/head"
-import {useEffect, useState} from "react"
-import {ColorModeStyles, useColorModeValue} from "nextjs-color-mode"
-import {chakraColor} from "../../helpers/chakra-theme"
+import { useEffect, useState } from "react"
+import { ColorModeStyles, useColorModeValue } from "nextjs-color-mode"
+import { chakraColor } from "../../helpers/chakra-theme"
 
 const GitHubLink = ({ url, children }) => {
   return (
