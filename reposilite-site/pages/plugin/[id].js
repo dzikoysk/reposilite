@@ -7,7 +7,6 @@ import { MDXRemote } from "next-mdx-remote"
 import { ChevronRightIcon } from "@chakra-ui/icons"
 import Head from "next/head"
 import { useEffect, useState } from "react"
-import xml2js from 'xml2js'
 import { ColorModeStyles, useColorModeValue } from "nextjs-color-mode"
 import { chakraColor } from "../../helpers/chakra-theme"
 
@@ -46,6 +45,7 @@ export default function Plugin({ plugin }) {
 
   const [ bg, bgCss ] = useColorModeValue('download-bg', chakraColor('gray.50'), chakraColor('gray.700'))
   const [ buttonBg, buttonBgCss ] = useColorModeValue('download-button-bg', chakraColor('purple.100'), chakraColor('purple.500'))
+  const [layoutColor] = useColorModeValue('layout-color', 'black', 'white')
 
   return (
     <Layout>
@@ -92,13 +92,15 @@ export default function Plugin({ plugin }) {
                 onChange={event => setVersion(event.target.value)}
                 height={'8'}
                 width={'full'}
+                style={{ color: layoutColor }}
               >
                 {versions.map(version => (
                   <option
                     key={version}
                     value={version}
                     width={'full'}
-                    sx={{ backgroundColor: '#000 !important' }}
+                    sx={{ backgroundColor: '#000 !important'}}
+                    style={{ color: layoutColor, backgroundColor: bg }}
                   >
                     {version}
                   </option>
