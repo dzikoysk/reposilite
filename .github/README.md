@@ -101,6 +101,7 @@ Thanks to all contributors and people that decided to support my work financiall
     <a href="https://github.com/sebba-dev">sebba-dev</a>,
     <a href="https://github.com/FlawCra">FlawCra</a>,
     <a href="https://github.com/arthurr0">arthurr0</a>,
+    <a href="https://github.com/Rollczi">Rollczi</a>,
     <a href="https://github.com/mattwelke">mattwelke</a>,
     <a href="https://github.com/bopke">bopke</a>
   </td>
@@ -131,6 +132,7 @@ Thanks to all contributors and people that decided to support my work financiall
    Rob,
    <a href="https://github.com/sebba-dev">sebba-dev</a>,
    <a href="https://github.com/mufinlive">mufinlive</a>,
+   <a href="https://github.com/Rollczi">Rollczi</a>,
    <a href="https://github.com/bopke">bopke</a>,
    <a href="https://github.com/mattwelke">mattwelke</a>,
   </td>
