@@ -96,6 +96,14 @@ publishing {
             }
         }
     }
+    publications {
+        create<MavenPublication>("maven") {
+            groupId = "com.example"
+            artifactId = "library"
+            version = "1.0.0"
+            from(components["java"])
+        }
+    }
 }
 ```
 
@@ -108,16 +116,24 @@ plugins {
   id 'maven-publish'
 }
 publishing {
-  repositories {
-      maven {
-          name = "myDomainRepository"
-          url = "https://repo.my-domain.com/releases"
-          credentials(PasswordCredentials)
-            authentication {
-              basic(BasicAuthentication)
-          }
-      }
-  }
+    repositories {
+        maven {
+            name = "myDomainRepository"
+            url = "https://repo.my-domain.com/releases"
+            credentials(PasswordCredentials)
+            authentication {
+                basic(BasicAuthentication)
+            }
+        }
+    }
+    publications {
+        maven(MavenPublication) {
+            groupId = 'com.example'
+            artifactId = 'library'
+            version = '1.0.0'
+            from components.java
+        }
+    }
 }
 ```
 
