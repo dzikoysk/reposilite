@@ -17,6 +17,7 @@
 <script setup>
 import { computed, ref, watchEffect } from 'vue'
 import { useSession } from '../store/session'
+import useQualifier from '../helpers/qualifier'
 import DefaultHeader from '../components/header/DefaultHeader.vue'
 import FileBrowserView from '../components/browser/FileBrowserView.vue'
 import ConsoleView from '../components/console/ConsoleView.vue'
@@ -37,6 +38,7 @@ const listOfTabs = [
 ]
 
 const { isManager } = useSession()
+const { redirectTo } = useQualifier()
 
 const menuTabs = computed(() =>
   listOfTabs
@@ -45,7 +47,16 @@ const menuTabs = computed(() =>
 )
 
 const selectedTab = ref(localStorage.getItem('selectedTab') || 'Overview')
-watchEffect(() => localStorage.setItem('selectedTab', selectedTab.value))
+
+watchEffect(() => {
+  localStorage.setItem('selectedTab', selectedTab.value)
+})
+
+const createTabClick = (newTab) => {
+  if (newTab == 'Overview') {
+    redirectTo('/')
+  }
+}
 
 const selectHomepage = () => 
   selectedTab.value = 'Overview'
@@ -56,7 +67,10 @@ const selectHomepage = () =>
     <DefaultHeader :logoClickCallback="selectHomepage" />
     <div class="bg-gray-100 dark:bg-black overflow-y-visible">
       <div class="container mx-auto <sm:px-0">
-        <Tabs v-model="selectedTab">
+        <Tabs 
+          v-model="selectedTab"
+          @update:modelValue="createTabClick"
+        >
           <Tab
             v-for="(tab, i) in menuTabs"
             class="item font-normal"

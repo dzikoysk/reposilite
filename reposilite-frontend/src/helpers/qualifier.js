@@ -15,7 +15,7 @@
  */
 
 import { watch, reactive } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useSession } from '../store/session'
 
 const qualifier = reactive({
@@ -35,6 +35,11 @@ watch(
 
 export default function useQualifier() {
   const route = useRoute()
+  const router = useRouter()
+
+  const redirectTo = (path) => {
+    router.push(path)
+  }
 
   watch(
     () => route.params.qualifier,
@@ -47,6 +52,7 @@ export default function useQualifier() {
 
   return {
     qualifier,
-    refreshQualifier
+    refreshQualifier,
+    redirectTo
   }
 }
