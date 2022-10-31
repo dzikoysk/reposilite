@@ -50,10 +50,10 @@ dependencies {
     api("net.dzikoysk:cdn:$cdn")
     api("net.dzikoysk:cdn-kt:$cdn")
 
-    val awssdk = "2.17.292"
+    val awssdk = "2.18.1"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
-    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.315")
+    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.328")
 
     val exposed = "0.40.1"
     implementation("org.jetbrains.exposed:exposed-core:$exposed")
@@ -75,7 +75,7 @@ dependencies {
     val ldap = "6.0.6"
     testImplementation("com.unboundid:unboundid-ldapsdk:$ldap")
 
-    val javalin = "5.1.1"
+    val javalin = "5.1.3"
     api("io.javalin:javalin:$javalin")
     api("io.javalin.community.openapi:javalin-openapi-plugin:$javalin")
     kapt("io.javalin.community.openapi:openapi-annotation-processor:$javalin") { exclude(group = "ch.qos.logback") }
