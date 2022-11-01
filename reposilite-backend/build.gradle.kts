@@ -64,7 +64,7 @@ dependencies {
     implementation("com.zaxxer:HikariCP:5.0.1")
     // Drivers
     implementation("org.xerial:sqlite-jdbc:3.39.3.0")
-    implementation("mysql:mysql-connector-java:8.0.30")
+    implementation("mysql:mysql-connector-java:8.0.31")
     implementation("org.mariadb.jdbc:mariadb-java-client:3.0.8")
     implementation("org.postgresql:postgresql:42.5.0")
     implementation("com.h2database:h2:2.1.214")
