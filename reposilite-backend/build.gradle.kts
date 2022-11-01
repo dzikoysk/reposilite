@@ -82,7 +82,7 @@ dependencies {
     api("com.reposilite.javalin-rfcs:javalin-routing:5.0.0-SNAPSHOT")
     api("io.javalin.community.ssl:ssl-plugin:$javalin")
 
-    val picocli = "4.6.3"
+    val picocli = "4.7.0"
     kapt("info.picocli:picocli-codegen:$picocli")
     api("info.picocli:picocli:$picocli")
 
