@@ -18,6 +18,7 @@ package com.reposilite.shared.extensions
 
 import com.reposilite.VERSION
 import panda.std.Result
+import panda.std.Result.error
 import panda.std.asSuccess
 import picocli.CommandLine
 import java.util.TreeSet
