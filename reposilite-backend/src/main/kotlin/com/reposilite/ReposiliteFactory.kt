@@ -23,6 +23,7 @@ import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.backend.PrintStreamLogger
 import com.reposilite.plugin.Extensions
 import com.reposilite.plugin.PluginLoader
+import com.reposilite.shared.extensions.LoomExtensions
 import com.reposilite.shared.extensions.newFixedThreadPool
 import com.reposilite.shared.extensions.newSingleThreadScheduledExecutor
 import com.reposilite.web.HttpServer
@@ -55,7 +56,8 @@ object ReposiliteFactory {
         journalist.logger.info("Plugin directory: ${parameters.pluginDirectory.toAbsolutePath()}")
         journalist.logger.info("Configuration: ${parameters.localConfigurationPath.absolutePathString()}")
         journalist.logger.info("Threads: ${localConfiguration.webThreadPool.get()} WEB / ${localConfiguration.ioThreadPool.get()} IO / ${localConfiguration.databaseThreadPool.get()} DB")
-        if (parameters.testEnv) journalist.logger.info("Test environment enabled")
+        journalist.logger.info("Loom enabled: ${LoomExtensions.isLoomAvailable()}")
+        if (parameters.testEnv) journalist.logger.info("Test environment: Enabled")
 
         val reposilite = Reposilite(
             journalist = journalist,
@@ -63,7 +65,7 @@ object ReposiliteFactory {
             localConfiguration = localConfiguration,
             databaseConnection = DatabaseConnectionFactory.createConnection(parameters.workingDirectory, localConfiguration.database.get(), localConfiguration.databaseThreadPool.get()),
             webServer = HttpServer(),
-            ioService = newFixedThreadPool(2, localConfiguration.ioThreadPool.get(), "Reposilite | IO"),
+            ioService = newFixedThreadPool(0, localConfiguration.ioThreadPool.get(), "Reposilite | IO"),
             scheduler = newSingleThreadScheduledExecutor("Reposilite | Scheduler"),
             extensions = Extensions(journalist)
         )

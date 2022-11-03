@@ -50,7 +50,7 @@ dependencies {
     api("net.dzikoysk:cdn:$cdn")
     api("net.dzikoysk:cdn-kt:$cdn")
 
-    val awssdk = "2.18.1"
+    val awssdk = "2.18.6"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
     testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.332")
@@ -75,12 +75,12 @@ dependencies {
     val ldap = "6.0.6"
     testImplementation("com.unboundid:unboundid-ldapsdk:$ldap")
 
-    val javalin = "5.1.3"
+    val javalin = "5.1.4-SNAPSHOT"
     api("io.javalin:javalin:$javalin")
     api("io.javalin.community.openapi:javalin-openapi-plugin:$javalin")
     kapt("io.javalin.community.openapi:openapi-annotation-processor:$javalin") { exclude(group = "ch.qos.logback") }
     api("com.reposilite.javalin-rfcs:javalin-routing:5.0.0-SNAPSHOT")
-    api("io.javalin.community.ssl:ssl-plugin:$javalin")
+    api("io.javalin.community.ssl:ssl-plugin:5.1.3")
 
     val picocli = "4.7.0"
     kapt("info.picocli:picocli-codegen:$picocli")
@@ -90,9 +90,9 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jackson")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jackson")
-    implementation("com.github.victools:jsonschema-generator:4.27.0")
+    implementation("com.github.victools:jsonschema-generator:4.28.0")
 
-    val httpClient = "1.42.2"
+    val httpClient = "1.42.3"
     implementation("com.google.http-client:google-http-client:$httpClient") { exclude(group = "commons-codec", module = "commons-codec")}
     testImplementation("com.google.http-client:google-http-client-jackson2:$httpClient")
 

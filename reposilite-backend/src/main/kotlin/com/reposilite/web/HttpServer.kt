@@ -18,6 +18,7 @@ package com.reposilite.web
 
 import com.reposilite.Reposilite
 import com.reposilite.configuration.local.LocalConfiguration
+import com.reposilite.shared.extensions.LoomExtensions
 import com.reposilite.web.api.HttpServerInitializationEvent
 import com.reposilite.web.api.HttpServerStarted
 import com.reposilite.web.api.HttpServerStoppedEvent
@@ -26,6 +27,7 @@ import io.javalin.Javalin
 import org.eclipse.jetty.io.EofException
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 import org.eclipse.jetty.util.thread.ThreadPool
+import kotlin.math.min
 
 class HttpServer {
 
@@ -36,8 +38,9 @@ class HttpServer {
         val extensionsManagement = reposilite.extensions
         val localConfiguration = extensionsManagement.facade<LocalConfiguration>()
 
-        val webThreadPool = QueuedThreadPool(localConfiguration.webThreadPool.get(), 2).also {
+        val webThreadPool = QueuedThreadPool(localConfiguration.webThreadPool.get(), min(2, localConfiguration.webThreadPool.get())).also {
             it.name = "Reposilite | Web (${it.maxThreads}) -"
+            it.isUseVirtualThreads = LoomExtensions.isLoomAvailable()
             it.start()
         }
 

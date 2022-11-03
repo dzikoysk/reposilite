@@ -104,11 +104,11 @@ class LocalConfiguration : Facade {
     @Description("")
     @Description("# Max amount of threads used by core thread pool (min: 5)")
     @Description("# The web thread pool handles first few steps of incoming http connections, as soon as possible all tasks are redirected to IO thread pool.")
-    val webThreadPool = reference(32)
+    val webThreadPool = reference(16)
 
     @Description("# IO thread pool handles all tasks that may benefit from non-blocking IO (min: 2)")
     @Description("# Because most of tasks are redirected to IO thread pool, it might be a good idea to keep it at least equal to web thread pool.")
-    val ioThreadPool = reference(16)
+    val ioThreadPool = reference(8)
 
     @Description("# Database thread pool manages open connections to database (min: 1)")
     @Description("# Embedded databases such as SQLite or H2 don't support truly concurrent connections, so the value will be always 1 for them if selected.")

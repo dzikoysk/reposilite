@@ -16,6 +16,7 @@
 
 package com.reposilite.shared.extensions
 
+import io.javalin.util.ConcurrencyUtil
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ScheduledExecutorService
@@ -36,12 +37,15 @@ internal class NamedThreadFactory(private val prefix: String) : ThreadFactory {
 }
 
 internal fun newFixedThreadPool(min: Int, max: Int, prefix: String): ExecutorService =
-    ThreadPoolExecutor(
-        min, max,
-        0L, MILLISECONDS,
-        LinkedBlockingQueue(),
-        NamedThreadFactory("$prefix ($max) - ")
-    )
+    when (LoomExtensions.isLoomAvailable()) {
+        true -> ConcurrencyUtil.executorService("$prefix (virtual) - ");
+        false -> ThreadPoolExecutor(
+            min, max,
+            0L, MILLISECONDS,
+            LinkedBlockingQueue(),
+            NamedThreadFactory("$prefix ($max) - ")
+        )
+    }
 
 internal fun newSingleThreadScheduledExecutor(prefix: String): ScheduledExecutorService =
     ScheduledThreadPoolExecutor(1, NamedThreadFactory("$prefix (1) - "))
