@@ -1,12 +1,13 @@
 package com.reposilite.maven.application
 
-import com.reposilite.auth.api.Credentials
 import com.reposilite.configuration.shared.api.Doc
 import com.reposilite.configuration.shared.api.Min
 import com.reposilite.configuration.shared.api.SharedSettings
 import com.reposilite.maven.RepositoryVisibility
 import com.reposilite.maven.RepositoryVisibility.PRIVATE
 import com.reposilite.maven.RepositoryVisibility.PUBLIC
+import com.reposilite.shared.http.AuthenticationMethod
+import com.reposilite.shared.http.RemoteCredentials
 import com.reposilite.storage.StorageProviderSettings
 import com.reposilite.storage.filesystem.FileSystemStorageProviderSettings
 import com.reposilite.storage.s3.S3StorageProviderSettings
@@ -39,11 +40,11 @@ data class RepositorySettings(
     @get:Doc(title = "Preserved snapshots", "By default Reposilite deletes all deprecated build files. If you'd like to preserve them, set this property to true.")
     val preserveSnapshots: Boolean = false,
     @get:Doc(title = "Mirrored repositories", description = "List of mirrored repositories associated with this repository.")
-    val proxied: List<ProxiedRepository> = listOf()
+    val proxied: List<MirroredRepositorySettings> = listOf()
 ) : SharedSettings
 
 @Doc(title = "Mirrored Maven Repository", description = "Configuration of proxied host")
-data class ProxiedRepository(
+data class MirroredRepositorySettings(
     @Min(1)
     @get:Doc(title = "Link", description = "Either the id of other local repository or the URL of a remote repository.")
     val reference: String = "",
@@ -61,24 +62,21 @@ data class ProxiedRepository(
     // @Doc(title = "Authorization", description = "The authorization information of the proxied repository.")
     // Results in converting 'authorization` property into 'allOf` component that is currently broken
     // ~ https://github.com/dzikoysk/reposilite/issues/1320
-    val authorization: ProxiedCredentials? = null,
+    val authorization: MirrorCredentials? = null,
     @get:Doc(title = "HTTP Proxy", description = """
-        Custom proxy configuration for HTTP/SOCKS client used by Reposilite. Examples: <br/>
+        Custom proxy configuration for HTTP/SOCKS client used by Reposilite to connect to the mirrored repository. Examples: <br/>
         HTTP 127.0.0.1:1081 <br/>
         SOCKS 127.0.0.1:1080 login password 
     """)
     val httpProxy: String = ""
 ) : SharedSettings
 
-@Doc(title = "Proxied credentials", description = "The authorization credentials used to access proxied repository.")
-data class ProxiedCredentials(
-    @get:Doc(title = "Login", description = "Login to use by proxied HTTP client")
-    val login: String = "",
-    @get:Doc(title = "Password", description = "Raw password used by proxied HTTP client to connect to the given repository")
-    val password: String = ""
-) : SharedSettings {
-
-    fun toCredentials(): Credentials =
-        Credentials(login, password)
-
-}
+@Doc(title = "Mirror Credentials", description = "The authorization credentials used to access mirrored repository.")
+data class MirrorCredentials(
+    @get:Doc(title = "Method", description = "Basic or custom header")
+    override val method: AuthenticationMethod = AuthenticationMethod.BASIC,
+    @get:Doc(title = "Login", description = "Login or custom header name to use")
+    override val login: String = "",
+    @get:Doc(title = "Password", description = "Raw password or header value used by HTTP client to connect to the given repository")
+    override val password: String = ""
+) : SharedSettings, RemoteCredentials

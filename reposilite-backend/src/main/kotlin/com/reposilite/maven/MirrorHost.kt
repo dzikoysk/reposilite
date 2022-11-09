@@ -16,11 +16,11 @@
 
 package com.reposilite.maven
 
-import com.reposilite.maven.application.ProxiedRepository
+import com.reposilite.maven.application.MirroredRepositorySettings
 import com.reposilite.shared.http.RemoteClient
 
-data class ProxiedHost(
+data class MirrorHost(
     val host: String,
-    val configuration: ProxiedRepository,
+    val configuration: MirroredRepositorySettings,
     val client: RemoteClient
 )

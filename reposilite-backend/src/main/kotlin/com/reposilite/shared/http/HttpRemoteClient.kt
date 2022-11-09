@@ -21,7 +21,6 @@ import com.google.api.client.http.HttpMethods
 import com.google.api.client.http.HttpRequest
 import com.google.api.client.http.HttpResponse
 import com.google.api.client.http.javanet.NetHttpTransport
-import com.reposilite.auth.api.Credentials
 import com.reposilite.journalist.Channel
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
@@ -60,7 +59,7 @@ class HttpRemoteClient(private val journalist: Journalist, proxy: Proxy?) : Remo
         .build()
         .createRequestFactory()
 
-    override fun head(uri: String, credentials: Credentials?, connectTimeout: Int, readTimeout: Int): Result<FileDetails, ErrorResponse> =
+    override fun head(uri: String, credentials: RemoteCredentials?, connectTimeout: Int, readTimeout: Int): Result<FileDetails, ErrorResponse> =
         createRequest(HttpMethods.HEAD, uri, credentials, connectTimeout, readTimeout)
             .execute { response ->
                 response.disconnect()
@@ -84,11 +83,11 @@ class HttpRemoteClient(private val journalist: Journalist, proxy: Proxy?) : Remo
                 ).asSuccess()
             }
 
-    override fun get(uri: String, credentials: Credentials?, connectTimeout: Int, readTimeout: Int): Result<InputStream, ErrorResponse> =
+    override fun get(uri: String, credentials: RemoteCredentials?, connectTimeout: Int, readTimeout: Int): Result<InputStream, ErrorResponse> =
         createRequest(HttpMethods.GET, uri, credentials, connectTimeout, readTimeout)
             .execute { it.content.asSuccess() }
 
-    private fun createRequest(method: String, uri: String, credentials: Credentials?, connectTimeout: Int, readTimeout: Int): HttpRequest {
+    private fun createRequest(method: String, uri: String, credentials: RemoteCredentials?, connectTimeout: Int, readTimeout: Int): HttpRequest {
         val request = requestFactory.buildRequest(method, GenericUrl(uri), null)
         request.throwExceptionOnExecuteError = false
         request.connectTimeout = connectTimeout * 1000
@@ -113,9 +112,12 @@ class HttpRemoteClient(private val journalist: Journalist, proxy: Proxy?) : Remo
             createExceptionResponse(this.url.toString(), exception)
         }
 
-    private fun HttpRequest.authenticateWith(credentials: Credentials?): HttpRequest = also {
+    private fun HttpRequest.authenticateWith(credentials: RemoteCredentials?): HttpRequest = also {
         if (credentials != null) {
-            it.headers.setBasicAuthentication(credentials.name, credentials.secret)
+            when (credentials.method) {
+                AuthenticationMethod.BASIC -> it.headers.setBasicAuthentication(credentials.login, credentials.password)
+                AuthenticationMethod.CUSTOM_HEADER -> it.headers[credentials.login] = credentials.password
+            }
         }
     }
 

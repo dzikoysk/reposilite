@@ -18,7 +18,7 @@ package com.reposilite.maven
 
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
-import com.reposilite.maven.application.ProxiedRepository
+import com.reposilite.maven.application.MirroredRepositorySettings
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.notFoundError
 import com.reposilite.storage.api.FileDetails
@@ -31,24 +31,24 @@ internal class ProxyService(private val journalist: Journalist) : Journalist {
 
     fun findRemoteDetails(repository: Repository, gav: Location): Result<out FileDetails, ErrorResponse> =
         searchInRemoteRepositories(repository, gav) { (host, config, client) ->
-            client.head("$host/$gav", config.authorization?.toCredentials(), config.connectTimeout, config.readTimeout)
+            client.head("$host/$gav", config.authorization, config.connectTimeout, config.readTimeout)
         }
 
     fun findRemoteFile(repository: Repository, gav: Location): Result<InputStream, ErrorResponse> =
         searchInRemoteRepositories(repository, gav) { (host, config, client) ->
-            client.get("$host/$gav", config.authorization?.toCredentials(), config.connectTimeout, config.readTimeout)
+            client.get("$host/$gav", config.authorization, config.connectTimeout, config.readTimeout)
                 .flatMap { data -> if (config.store) storeFile(repository, gav, data) else ok(data) }
                 .mapErr { error -> error.updateMessage { "$host: $it" } }
         }
 
-    private fun <V> searchInRemoteRepositories(repository: Repository, gav: Location, fetch: (ProxiedHost) -> Result<V, ErrorResponse>): Result<V, ErrorResponse> =
-        repository.proxiedHosts.asSequence()
+    private fun <V> searchInRemoteRepositories(repository: Repository, gav: Location, fetch: (MirrorHost) -> Result<V, ErrorResponse>): Result<V, ErrorResponse> =
+        repository.mirrorHosts.asSequence()
             .filter { (_, config) -> isAllowed(config, gav) }
             .map { fetch(it) }
             .firstOrNull { it.isOk }
             ?: notFoundError("Cannot find '$gav' in remote repositories")
 
-    private fun isAllowed(config: ProxiedRepository, gav: Location): Boolean =
+    private fun isAllowed(config: MirroredRepositorySettings, gav: Location): Boolean =
         config.allowedGroups.isEmpty() ||
             config.allowedGroups
                 .map { it.replace('.', '/') }

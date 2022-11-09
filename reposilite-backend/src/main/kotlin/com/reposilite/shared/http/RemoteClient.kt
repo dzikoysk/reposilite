@@ -16,11 +16,21 @@
 
 package com.reposilite.shared.http
 
-import com.reposilite.auth.api.Credentials
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.storage.api.FileDetails
 import panda.std.Result
 import java.io.InputStream
+
+enum class AuthenticationMethod {
+    BASIC,
+    CUSTOM_HEADER
+}
+
+interface RemoteCredentials {
+    val method: AuthenticationMethod
+    val login: String
+    val password: String
+}
 
 interface RemoteClient {
 
@@ -30,7 +40,7 @@ interface RemoteClient {
      * @param connectTimeout - connection establishment timeout in seconds
      * @param readTimeout - connection read timeout in seconds
      */
-    fun head(uri: String, credentials: Credentials?, connectTimeout: Int, readTimeout: Int): Result<FileDetails, ErrorResponse>
+    fun head(uri: String, credentials: RemoteCredentials?, connectTimeout: Int, readTimeout: Int): Result<FileDetails, ErrorResponse>
 
     /**
      * @param uri - full remote host address with a gav
@@ -38,6 +48,6 @@ interface RemoteClient {
      * @param connectTimeout - connection establishment timeout in seconds
      * @param readTimeout - connection read timeout in seconds
      */
-    fun get(uri: String, credentials: Credentials?, connectTimeout: Int, readTimeout: Int): Result<InputStream, ErrorResponse>
+    fun get(uri: String, credentials: RemoteCredentials?, connectTimeout: Int, readTimeout: Int): Result<InputStream, ErrorResponse>
 
 }

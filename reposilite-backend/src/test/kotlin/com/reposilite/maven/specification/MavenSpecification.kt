@@ -16,7 +16,6 @@
 
 package com.reposilite.maven.specification
 
-import com.reposilite.auth.api.Credentials
 import com.reposilite.frontend.application.FrontendSettings
 import com.reposilite.journalist.backend.InMemoryLogger
 import com.reposilite.maven.MavenFacade
@@ -27,8 +26,10 @@ import com.reposilite.maven.api.SaveMetadataRequest
 import com.reposilite.maven.api.Versioning
 import com.reposilite.maven.application.MavenComponents
 import com.reposilite.maven.application.MavenSettings
+import com.reposilite.maven.application.MirrorCredentials
 import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.plugin.Extensions
+import com.reposilite.shared.http.AuthenticationMethod.BASIC
 import com.reposilite.shared.http.FakeRemoteClientProvider
 import com.reposilite.shared.notFoundError
 import com.reposilite.statistics.DailyDateIntervalProvider
@@ -63,7 +64,7 @@ internal abstract class MavenSpecification {
         val UNAUTHORIZED: AccessTokenIdentifier? = null
         const val REMOTE_REPOSITORY = "https://domain.com/releases"
         const val REMOTE_REPOSITORY_WITH_WHITELIST = "https://example.com/whitelist"
-        val REMOTE_AUTH = Credentials("panda", "secret")
+        val REMOTE_AUTH = MirrorCredentials(BASIC, "panda", "secret")
         const val REMOTE_CONTENT = "content"
     }
 

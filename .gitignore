@@ -8,7 +8,7 @@ latest.log
 log_*.txt
 javadocs
 reposilite-backend/src/test/workspace/plugins/*.jar
-./src/generated/
+reposilite-backend/src/generated/kotlin/com/reposilite/ReposiliteProperties.kt
 
 ### Maven ###
 build/

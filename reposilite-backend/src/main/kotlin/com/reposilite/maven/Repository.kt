@@ -30,7 +30,7 @@ class Repository internal constructor(
     val visibility: RepositoryVisibility,
     val redeployment: Boolean,
     val preserveSnapshots: Boolean,
-    val proxiedHosts: List<ProxiedHost>,
+    val mirrorHosts: List<MirrorHost>,
     private val storageProvider: StorageProvider,
 ) {
 

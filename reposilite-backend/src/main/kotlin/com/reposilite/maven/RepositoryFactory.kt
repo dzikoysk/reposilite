@@ -16,7 +16,7 @@
 
 package com.reposilite.maven
 
-import com.reposilite.maven.application.ProxiedRepository
+import com.reposilite.maven.application.MirroredRepositorySettings
 import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.shared.http.RemoteClientProvider
 import com.reposilite.shared.http.createHttpProxy
@@ -43,7 +43,7 @@ internal class RepositoryFactory(
             visibility = configuration.visibility,
             redeployment = configuration.redeployment,
             preserveSnapshots = configuration.preserveSnapshots,
-            proxiedHosts = configuration.proxied.map { createProxiedHostConfiguration(it) },
+            mirrorHosts = configuration.proxied.map { createMirroredHostConfiguration(it) },
             storageProvider = storageFacade.createStorageProvider(
                 failureFacade = failureFacade,
                 workingDirectory = workingDirectory.resolve(repositoriesDirectory),
@@ -52,25 +52,23 @@ internal class RepositoryFactory(
             ) ?: throw IllegalArgumentException("Unknown storage provider '${configuration.storageProvider.type}'")
         )
 
-    private fun createProxiedHostConfiguration(configurationSource: ProxiedRepository): ProxiedHost {
+    private fun createMirroredHostConfiguration(configurationSource: MirroredRepositorySettings): MirrorHost {
         val name = configurationSource.reference
 
-        val host =
-            if (name.endsWith("/"))
-                name.substring(0, name.length - 1)
-            else
-                name
+        val host = when {
+            name.endsWith("/") -> name.substring(0, name.length - 1)
+            else -> name
+        }
 
-        val remoteClient =
-            if (repositoriesNames.contains(host))
-                RepositoryLoopbackClient(lazy { repositoryProvider.getRepositories()[host]!! })
-            else
-                configurationSource.httpProxy
-                    .takeIf { it.isNotEmpty() }
-                    ?.let { createHttpProxy(it) }
-                    .let { remoteClientProvider.createClient(failureFacade, it) }
+        val remoteClient = when {
+            repositoriesNames.contains(host) -> RepositoryLoopbackClient(lazy { repositoryProvider.getRepositories()[host]!! })
+            else -> configurationSource.httpProxy
+                .takeIf { it.isNotEmpty() }
+                ?.let { createHttpProxy(it) }
+                .let { remoteClientProvider.createClient(failureFacade, it) }
+        }
 
-        return ProxiedHost(host, configurationSource, remoteClient)
+        return MirrorHost(host, configurationSource, remoteClient)
     }
 
 }

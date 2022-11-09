@@ -24,10 +24,9 @@ import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.GeneratePomRequest
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.METADATA_FILE
-import com.reposilite.maven.api.VersionLookupRequest
 import com.reposilite.maven.api.PomDetails
-import com.reposilite.maven.application.ProxiedCredentials
-import com.reposilite.maven.application.ProxiedRepository
+import com.reposilite.maven.api.VersionLookupRequest
+import com.reposilite.maven.application.MirroredRepositorySettings
 import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.maven.specification.MavenSpecification
 import com.reposilite.storage.api.FileType.FILE
@@ -57,8 +56,8 @@ internal class MavenFacadeTest : MavenSpecification() {
         RepositorySettings(HIDDEN.name, visibility = HIDDEN),
         RepositorySettings(PUBLIC.name, visibility = PUBLIC),
         RepositorySettings("PROXIED", visibility = PUBLIC, proxied = mutableListOf(
-            ProxiedRepository(REMOTE_REPOSITORY, store = true, authorization = REMOTE_AUTH.let { (name, secret) -> ProxiedCredentials(name, secret) }),
-            ProxiedRepository(REMOTE_REPOSITORY_WITH_WHITELIST, allowedGroups = listOf("do.allow"))
+            MirroredRepositorySettings(REMOTE_REPOSITORY, store = true, authorization = REMOTE_AUTH),
+            MirroredRepositorySettings(REMOTE_REPOSITORY_WITH_WHITELIST, allowedGroups = listOf("do.allow"))
         ))
     )
 

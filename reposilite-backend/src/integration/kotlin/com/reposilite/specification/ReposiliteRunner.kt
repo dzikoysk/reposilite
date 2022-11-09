@@ -26,7 +26,7 @@ import com.reposilite.journalist.Channel
 import com.reposilite.journalist.Logger
 import com.reposilite.journalist.backend.PrintStreamLogger
 import com.reposilite.maven.application.MavenSettings
-import com.reposilite.maven.application.ProxiedRepository
+import com.reposilite.maven.application.MirroredRepositorySettings
 import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.storage.StorageProviderSettings
 import io.javalin.util.JavalinBindException
@@ -108,7 +108,7 @@ internal abstract class ReposiliteRunner {
         sharedConfigurationFacade.getDomainSettings<MavenSettings>().update { old ->
             val proxiedConfiguration = RepositorySettings(
                 id = "proxied",
-                proxied = mutableListOf(ProxiedRepository("http://localhost:${parameters.port + 1}/releases"))
+                proxied = mutableListOf(MirroredRepositorySettings("http://localhost:${parameters.port + 1}/releases"))
             )
 
             return@update old.copy(
