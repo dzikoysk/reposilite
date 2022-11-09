@@ -32,7 +32,7 @@ $ docker pull ghcr.io/dzikoysk/reposilite:3.1.1
 $ docker pull ghcr.io/dzikoysk/reposilite:nightly
 ```
 
-Then, just run the image in interactive mode _(to enable [interactive CLI](/guide/manual#interactive-cli))_:
+Then, just run the image in interactive mode _(to enable [interactive CLI](/guide/standalone#interactive-cli))_:
 
 ```bash
 $ docker run -it -v reposilite-data:/app/data -p 80:8080 dzikoysk/reposilite:nightly

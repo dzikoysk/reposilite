@@ -4,7 +4,7 @@ title: Dashboard
 ---
 
 Reposilite exposes frontend that is mounted to `/#/` as SPA application in Vue 3.
-You can disable frontend in [shared configuration](/guide/setup#shared-configuration)
+You can disable frontend in [shared configuration](/guide/settings#shared-configuration)
 if you just want to disable an easy way to query your repository or to provide custom frontend implementation using [static files](/guide/static-files).
 
 #### Browser
@@ -18,7 +18,7 @@ You can control the way Reposilite displays directory content by opening adjustm
 
 #### Console
 
-CLI *(command-line interface)* displays current Reposilite output and allows to perform available [commands](/guide/manual#interactive-cli).
+CLI *(command-line interface)* displays current Reposilite output and allows to perform available [commands](/guide/standalone#interactive-cli).
 Only access tokens with management permission can access this view.
 
 ![CLI Preview](/images/guides/dashboard-console.png)
@@ -28,7 +28,7 @@ You can also filter those messages using filters, but keep in mind it searches o
 #### Shared configuration
 Shared configuration has been already mentioned in:
 
-* [Guide / Setup :: Shared configuration](/guide/setup#shared-configuration)
+* [Guide / Setup :: Shared configuration](/guide/settings#shared-configuration)
 
 Currently, configuration is provided in CDN format:
 

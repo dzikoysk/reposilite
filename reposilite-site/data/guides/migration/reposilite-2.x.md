@@ -12,7 +12,7 @@ Anyway, there are some differences between 2.x and 3.x you should be aware of:
 
 1. 3.x uses database to store state of your instance, not raw data files. <br/>
   [1.1. Stable targets: SQLite, MySQL/MariaDB <br/>
-  1.2. Experimental targets: H2, PostgreSQL](/guide/setup#local-configuration) <br/>
+  1.2. Experimental targets: H2, PostgreSQL](/guide/settings#local-configuration) <br/>
 2. Concept of primary repository _(paths rewriting)_ has been [removed](https://github.com/dzikoysk/reposilite/issues/505). <br/>
    If you need it for backwards compatibility, you can always imitate this behavior with custom repositories,
    but it's strongly recommended to move on from this approach. 
@@ -37,7 +37,7 @@ It's a good practice to be absolutely sure that you won't lose any important dat
 Overall working directory structure stays the same, so your repositories and their content is fully compatible with 3.x.
 If you'd like to see what files you can expect, take a look at:
 
-* [Reposilite / Guide - Data structure](/guide/manual#data-structure)
+* [Reposilite / Guide - Data structure](/guide/standalone#data-structure)
 
 #### Configuration
 Reposilite 3.x has much more configuration possibilities, so unfortunately previous configuration is just incompatible. 
@@ -46,7 +46,7 @@ That's because a lot of them is now configurable in web interface and those prop
 
 To learn more about all possibilities to setup your Reposilite instance, take a look at:
 
-* [Reposilite / Guide - Setup](/guide/setup)
+* [Reposilite / Guide - Settings](/guide/settings)
 
 #### Tokens
 Reposilite 2.x stored access tokens & statistics in local files and those are incompatible with Reposilite 3.x. 

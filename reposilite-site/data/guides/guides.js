@@ -12,18 +12,10 @@ const categories = [
     name: 'Installation',
     directory: 'installation',
     content: [
-      'manual',
-      'setup',
+      'settings',
+      'standalone',
       'docker',
-      'kubernetes'
-    ]
-  },
-  {
-    name: 'Migration',
-    directory: 'migration',
-    content: [
-      'reposilite-2.x',
-      'artifactory'
+      'kubernetes',
     ]
   },
   {
@@ -36,13 +28,21 @@ const categories = [
     ]
   },
   {
+    name: 'Deployment',
+    directory: 'deployment',
+    content: [
+      'gradle',
+      'maven',
+      'sbt'
+    ]
+  },
+  {
     name: 'Features',
     directory: 'features',
     content: [
-      'deployment',
       'dashboard',
       'repositories',
-      'proxy',
+      'mirrors',
       'static-files',
       'badges',
       'plugins',
@@ -58,6 +58,14 @@ const categories = [
       'cloudflare',
       'systemd',
       'github'
+    ]
+  },
+  {
+    name: 'Migration',
+    directory: 'migration',
+    content: [
+      'reposilite-2.x',
+      'artifactory'
     ]
   },
   {

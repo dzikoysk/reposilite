@@ -1,10 +1,15 @@
 ---
-id: setup
-title: Setup
+id: settings
+title: Settings
 ---
 
-Reposilite supports multiple use cases and scenarios, 
-that's why there is several ways to configure it divided into 3 configuration layers:
+Reposilite supports multiple use cases and environments. By default we support 3 of them:
+
+* [Standalone](/guide/standalone) - run regular JAR file as standalone Java application
+* [Docker](/guide/docker) - launch Reposilite within Docker container
+* [Kubernetes](/guide/kubernetes) - manage multiple Reposilite instances using Kubernetes
+
+That's why there're different ways to configure your instance. We divided it into 3 configuration layers:
 
 * [Parameters](#parameters) - Startup configuration
 * [Configuration - Local configuration](#local-configuration) - Immutable file-based configuration of the given Reposilite instance

@@ -1,9 +1,9 @@
 ---
-id: manual
-title: Manual
+id: standalone
+title: Standalone
 ---
 
-You can download standalone version of Reposilite from GitHub releases page:
+You can download standalone (JAR) version of Reposilite from GitHub releases page:
 
 - [GitHub / Reposilite :: Releases](https://github.com/dzikoysk/reposilite/releases)
 

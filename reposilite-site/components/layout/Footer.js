@@ -8,7 +8,7 @@ const link = (title, url) =>
 
 const guideLinks = [
   link('Getting Started', '/guide/about'),
-  link('Installation', '/guide/manual'),
+  link('Installation', '/guide/standalone'),
   link('Plugins', '/plugin'),
   link('Developer API', '/guide/sources'),
 ]

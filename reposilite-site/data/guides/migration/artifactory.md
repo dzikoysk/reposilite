@@ -8,9 +8,8 @@ title: Artifactory
 Reposilite works slightly different than Artifactory or Nexus, so make sure you've properly configured your instance and environment.
 Guides you may find especially useful during migration:
 
-* [Reposilite / Guide - Setup](/guide/setup) - How you can configure Reposilite instance
+* [Reposilite / Guide - Settings](/guide/settings) - How you can configure Reposilite instance
 * [Reposilite / Guide - Tokens](/guide/tokens) - How to generate access to your instance
-* [Reposilite / Guide - Deployment](/guide/deployment) - Deploy your first artifact to the Reposilite
 
 ### Export repository from Artifactory
 Be sure to check the `.m2 compatible export` box to get an export that Reposilite can use. Also, we recommend excluding artifactory build metadata if your version of Artifactory has this feature.
@@ -20,7 +19,7 @@ Be sure to check the `.m2 compatible export` box to get an export that Reposilit
 Move the resulting export files to your new Reposilite server and extract them to the repository folder you would like them in.
 Depending on the organization of your new repositories, you may need to move your artifacts out of parent folders to get them in the location you want them in your new repository.
    
-* [Reposilite / Guide - Data Structure](/guide/manual#data-structure)
+* [Reposilite / Guide - Data Structure](/guide/standalone#data-structure)
 
 Configure the new repository in Reposilite, if you haven't already, making sure it is loading files from the correct directory.
 You should be able to browse the artifacts once configuration reloads.

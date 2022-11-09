@@ -1,6 +1,6 @@
 ---
-id: proxy
-title: Proxy
+id: mirrors
+title: Mirrors
 ---
 
 Our projects often use many repositories.
