@@ -40,13 +40,13 @@ enforceSsl: false
 
 # Max amount of threads used by core thread pool (min: 5)
 # The web thread pool handles first few steps of incoming http connections, as soon as possible all tasks are redirected to IO thread pool.
-webThreadPool: 32
+webThreadPool: 16
 # IO thread pool handles all tasks that may benefit from non-blocking IO (min: 2)
 # Because most of tasks are redirected to IO thread pool, it might be a good idea to keep it at least equal to web thread pool.
-ioThreadPool: 16
+ioThreadPool: 8
 # Database thread pool manages open connections to database (min: 1)
 # Embedded databases such as SQLite or H2 don't support truly concurrent connections, so the value will be always 1 for them if selected.
-databaseThreadPool: 2
+databaseThreadPool: 1
 # Select compression strategy used by this instance.
 # Using 'none' reduces usage of CPU & memory, but ends up with higher transfer usage.
 # GZIP is better option if you're not limiting resources that much to increase overall request times.
@@ -61,7 +61,7 @@ cacheContent: true
 # Helps to avoid various random issues caused by proxy provides (e.g. Cloudflare) and browsers.
 bypassExternalCache: true
 # Amount of messages stored in cached logger.
-cachedLogSize: 100
+cachedLogSize: 50
 # Enable default frontend with dashboard
 defaultFrontend: true
 # Set custom base path for Reposilite instance.
@@ -69,4 +69,4 @@ defaultFrontend: true
 # and you should always prioritize subdomain over this option.
 basePath: /
 # Debug mode
-debugEnabled: false
+debugEnabled: true

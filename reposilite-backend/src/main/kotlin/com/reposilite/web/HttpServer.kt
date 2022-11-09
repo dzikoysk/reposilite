@@ -41,12 +41,12 @@ class HttpServer {
         val webThreadPool = QueuedThreadPool(localConfiguration.webThreadPool.get(), min(2, localConfiguration.webThreadPool.get())).also {
             it.name = "Reposilite | Web (${it.maxThreads}) -"
             it.isUseVirtualThreads = LoomExtensions.isLoomAvailable()
-            it.start()
         }
 
         this.javalin = createJavalin(reposilite, webThreadPool)
             .exception(EofException::class.java) { _, _ -> reposilite.logger.warn("Client closed connection") }
             .events { listener ->
+                listener.serverStarted { webThreadPool.start() }
                 listener.serverStopping { reposilite.logger.info("Server stopping...") }
                 listener.serverStopped {
                     extensionsManagement.emitEvent(HttpServerStoppedEvent)

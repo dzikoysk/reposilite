@@ -19,14 +19,16 @@ package com.reposilite.configuration
 import com.reposilite.configuration.shared.api.Doc
 import com.reposilite.configuration.shared.api.SharedSettings
 import com.reposilite.configuration.specification.SharedConfigurationSpecification
+import io.javalin.openapi.JsonSchema
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 internal class SharedConfigurationFacadeTest : SharedConfigurationSpecification() {
 
+    @JsonSchema(requireNonNulls = false)
     @Doc(title = "Test", description = "Description")
     data class TestSettings(
-        @Doc(title = "Property", description = "Sets property to the given value")
+        @get:Doc(title = "Property", description = "Sets property to the given value")
         val property: String = "value"
     ) : SharedSettings
 
@@ -35,7 +37,7 @@ internal class SharedConfigurationFacadeTest : SharedConfigurationSpecification(
         // given: a known domain settings
 
         // when: test's schema is requested
-        val schema = sharedConfigurationFacade.getSettingsReference<TestSettings>("test")!!.schema
+        val schema = sharedConfigurationFacade.getSettingsReference<TestSettings>("test")!!.schema.get().reader().readText()
 
         // then: the response is a valid json schema
         assertEquals(
@@ -55,7 +57,7 @@ internal class SharedConfigurationFacadeTest : SharedConfigurationSpecification(
               "additionalProperties" : false
             }
             """.trimIndent().replace("\n", System.lineSeparator()),
-            schema.toPrettyString()
+            schema
         )
     }
 

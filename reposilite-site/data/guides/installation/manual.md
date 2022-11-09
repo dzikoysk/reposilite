@@ -7,16 +7,22 @@ You can download standalone version of Reposilite from GitHub releases page:
 
 - [GitHub / Reposilite :: Releases](https://github.com/dzikoysk/reposilite/releases)
 
-Requirements: `System: Windows, Linux AMD/ARM`, `JVM: 11-18`, `Memory: 16MB+`
+Requirements: `System: Windows, Linux AMD/ARM`, `JVM: 11-18`, `Memory: 20MB+`
 
 Recommended memory ranges:
 
-|     Amount      | Description                                            |
-| :-------------: | ------------------------------------------------------ |
-|     _16MB_      | Tiny repository for personal projects                  |
-|     _32MB_      | _--------------------^----------------_ + CI + Proxy |
-| _64MB - 128MB_  | Tiny public repository _(recommended)_                 |
-|    _128MB+_     | Public repository                                      |
+|  Amount  | Description                                      |
+|:--------:|--------------------------------------------------|
+|  _20MB_  | Minimal requirements for basic setup             |
+|  _32MB_  | Repository for personal projects + CI + Proxy    |
+|  _64MB_  | General use public repository                    |
+| _128MB+_ | Huge repositories with high traffic & throughput |                                    
+
+Our **safe recommendation is to use 32MB-64MB** if you don't care that much about those few MBs. 
+You can handle millions of requests per month with it and use various plugins at once and you will always have resources in reserve.
+
+If you'd like to make the most of Reposilite, feel free to use values between 20MB - 32MB, 
+but keep in mind that reducing memory may lead to more frequent gc calls that can increase usage of CPU.
 
 ### Running
 

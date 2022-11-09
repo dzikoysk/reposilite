@@ -50,20 +50,22 @@ class SharedConfigurationComponents(
                 )
         }
 
-    private fun schemaGenerator(): SchemaGenerator =
-        SchemaGenerator(
-            SchemaGeneratorConfigBuilder(DRAFT_7, SCHEMA_OPTION_PRESET)
-                .with(
-                    SettingsModule(
-                        subtypeResolvers = ServiceLoader.load(SubtypeResolver::class.java).toList(),
-                        enumResolvers = ServiceLoader.load(EnumResolver::class.java).toList()
+    private fun schemaGenerator(): Lazy<SchemaGenerator> =
+        lazy {
+            SchemaGenerator(
+                SchemaGeneratorConfigBuilder(DRAFT_7, SCHEMA_OPTION_PRESET)
+                    .with(
+                        SettingsModule(
+                            subtypeResolvers = ServiceLoader.load(SubtypeResolver::class.java).toList(),
+                            enumResolvers = ServiceLoader.load(EnumResolver::class.java).toList()
+                        )
                     )
-                )
-                .build()
-        )
+                    .build()
+            )
+        }
 
     fun sharedConfigurationFacade(
-        schemaGenerator: SchemaGenerator = schemaGenerator(),
+        schemaGenerator: Lazy<SchemaGenerator> = schemaGenerator(),
         sharedSettingsProvider: SharedSettingsProvider = sharedSettingsProvider(),
         sharedConfigurationProvider: SharedConfigurationProvider = sharedConfigurationProvider()
     ): SharedConfigurationFacade =

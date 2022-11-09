@@ -50,12 +50,12 @@ This is simple, extensible and scalable self-hosted solution to replace managers
 </div>
 
 ### Installation
-To run Reposilite for your personal needs you should assign around 16MB of RAM and at least Java 11+ installed. <br>
+To run Reposilite for your personal needs you should assign around 20MB of RAM and at least Java 11+ installed. <br>
 For huge public repositories you can adjust memory limit and even size of used thread pools in the configuration.
 
 ```bash
 # Launching a standalone JAR file
-$ java -Xmx16M -jar reposilite-3.1.1.jar
+$ java -Xmx32M -jar reposilite-3.1.1.jar
 
 # Using the official Docker image
 $ docker pull dzikoysk/reposilite:3.1.1

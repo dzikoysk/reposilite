@@ -49,14 +49,16 @@ import java.time.format.DateTimeFormatter
 
 internal class MetadataService(private val repositorySecurityProvider: RepositorySecurityProvider) {
 
-    private val xml = XmlMapper.xmlBuilder()
-        .addModules(JacksonXmlModule(), kotlinModule())
-        .configure(ToXmlGenerator.Feature.WRITE_XML_DECLARATION, true)
-        .configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true)
-        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-        .defaultUseWrapper(false)
-        .enable(INDENT_OUTPUT)
-        .build()
+    private val xml by lazy {
+        XmlMapper.xmlBuilder()
+            .addModules(JacksonXmlModule(), kotlinModule())
+            .configure(ToXmlGenerator.Feature.WRITE_XML_DECLARATION, true)
+            .configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true)
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+            .defaultUseWrapper(false)
+            .enable(INDENT_OUTPUT)
+            .build()
+    }
 
     private val timestampFormatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
 

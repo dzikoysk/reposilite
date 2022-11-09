@@ -25,8 +25,8 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.util.ServiceLoader
 import java.util.jar.JarFile
-import java.util.stream.Collectors
 import kotlin.io.path.absolutePathString
+import kotlin.streams.asSequence
 
 class PluginLoader(
     val pluginsDirectory: Path,
@@ -34,7 +34,8 @@ class PluginLoader(
 ) {
 
     fun initialize() {
-        extensions.getPlugins().values
+        extensions.getPlugins()
+            .values
             .forEach { (_, plugin) -> plugin.load(this) }
 
         val plugins = sortPlugins()
@@ -45,6 +46,7 @@ class PluginLoader(
 
         plugins.forEach { (_, plugin) ->
             plugin.initialize()?.apply { extensions.registerFacade(this) }
+            System.gc() // startup is heavy & reflective operation, so we'd like to tell jvm to take a look on that
         }
     }
 
@@ -67,11 +69,11 @@ class PluginLoader(
         extensions.logger.debug("Plugins directory: ${pluginsDirectory.absolutePathString()}")
 
         Files.list(pluginsDirectory).use { pluginDirectoryStream ->
-            pluginDirectoryStream
+            pluginDirectoryStream.asSequence()
                 .filter { it.getSimpleName().endsWith(".jar") }
                 .filter { isValidJarFile(it.toFile()) }
                 .map { it.toUri().toURL() }
-                .collect(Collectors.toList())
+                .toList()
                 .onEach { extensions.logger.debug("Plugin file: $it") }
                 .let { URLClassLoader(it.toTypedArray()) }
                 .let { ServiceLoader.load(ReposilitePlugin::class.java, it) }

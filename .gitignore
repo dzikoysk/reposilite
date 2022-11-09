@@ -8,6 +8,7 @@ latest.log
 log_*.txt
 javadocs
 reposilite-backend/src/test/workspace/plugins/*.jar
+./src/generated/
 
 ### Maven ###
 build/

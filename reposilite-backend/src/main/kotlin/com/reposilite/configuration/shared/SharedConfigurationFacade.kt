@@ -6,16 +6,18 @@ import com.reposilite.configuration.shared.api.SharedSettings
 import com.reposilite.journalist.Journalist
 import com.reposilite.plugin.api.Facade
 import com.reposilite.status.FailureFacade
+import io.javalin.openapi.JsonSchemaLoader
 import panda.std.Result
 import panda.std.Result.supplyThrowing
 import panda.std.asError
 import panda.std.ok
 import panda.std.reactive.MutableReference
+import java.util.function.Supplier
 import kotlin.reflect.KClass
 
 class SharedConfigurationFacade(
     private val journalist: Journalist,
-    private val schemaGenerator: SchemaGenerator,
+    private val schemaGenerator: Lazy<SchemaGenerator>,
     private val failureFacade: FailureFacade,
     private val sharedSettingsProvider: SharedSettingsProvider,
     private val sharedConfigurationProvider: SharedConfigurationProvider
@@ -24,11 +26,20 @@ class SharedConfigurationFacade(
     private val configHandlers = mutableMapOf<String, SharedSettingsReference<*>>()
 
     init {
+        val jsonSchemaLoader = JsonSchemaLoader()
+        val knownSchemes = jsonSchemaLoader.loadGeneratedSchemes().associateBy { it.name }
+
         sharedSettingsProvider.domains.forEach { (type, settings) ->
             registerSettingsWatcher(
                 DefaultSharedSettingsReference(
                     type = type,
-                    schemaGenerator = schemaGenerator,
+                    schema = knownSchemes[type.qualifiedName]
+                        ?.let { Supplier { it.getContent() } }
+                        ?: run {
+                            journalist.logger.warn("[SharedConfigurationFacade] Cannot find scheme for $type, scheme has to be generated at runtime")
+                            val scheme = schemaGenerator.value.generateSchema(type.java).also { cleanupScheme(it) }.toPrettyString()
+                            Supplier { scheme.byteInputStream() }
+                        },
                     getter = { settings.get() },
                     setter = { settings.update(it) }
                 )
@@ -51,13 +62,16 @@ class SharedConfigurationFacade(
 
     internal fun loadSharedSettingsFromString(content: String): Result<Unit, SharedSettingsUpdateException> {
         val updateResult = supplyThrowing { DEFAULT_OBJECT_MAPPER.readTree(content) }
-            .map { node -> getDomainNames().filter { node.has(it) }.associateWith { node.get(it) } }
+            .map { node -> getDomainNames().asSequence().filter { node.has(it) }.associateWith { node.get(it) } }
             .orElseGet { emptyMap() }
-            .mapKeys { (name) -> getSettingsReference<SharedSettings>(name)!! }
-            .mapValues { (ref, obj) -> DEFAULT_OBJECT_MAPPER.readValue(obj.toString(), ref.type.java) }
-            .map { (ref, settings) -> ref to ref.update(settings) }
+            .map { (name, obj) ->
+                val ref = getSettingsReference<SharedSettings>(name)!!
+                val settings = DEFAULT_OBJECT_MAPPER.readValue(obj.toString(), ref.type.java)
+                ref to ref.update(settings)
+            }
 
         updateResult
+            .asSequence()
             .filter { (_, result) -> result.isOk }
             .joinToString(separator = ", ") { (ref) -> "'${ref.name}'" }
             .let { journalist.logger.info("Domains $it have been loaded from ${sharedConfigurationProvider.name()}") }

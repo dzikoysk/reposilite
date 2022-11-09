@@ -112,7 +112,7 @@ class LocalConfiguration : Facade {
 
     @Description("# Database thread pool manages open connections to database (min: 1)")
     @Description("# Embedded databases such as SQLite or H2 don't support truly concurrent connections, so the value will be always 1 for them if selected.")
-    val databaseThreadPool = reference(2)
+    val databaseThreadPool = reference(1)
 
     @Description("# Select compression strategy used by this instance.")
     @Description("# Using 'none' reduces usage of CPU & memory, but ends up with higher transfer usage.")
@@ -133,7 +133,7 @@ class LocalConfiguration : Facade {
     val bypassExternalCache = reference(true)
 
     @Description("# Amount of messages stored in cached logger.")
-    val cachedLogSize = reference(100)
+    val cachedLogSize = reference(32)
 
     /* Frontend */
 

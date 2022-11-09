@@ -30,6 +30,7 @@ import io.javalin.openapi.OpenApiContent
 import io.javalin.openapi.OpenApiParam
 import io.javalin.openapi.OpenApiResponse
 import panda.std.asSuccess
+import java.io.InputStream
 
 internal class SettingsEndpoints(private val sharedConfigurationFacade: SharedConfigurationFacade) : ReposiliteRoutes() {
 
@@ -68,11 +69,11 @@ internal class SettingsEndpoints(private val sharedConfigurationFacade: SharedCo
             OpenApiResponse(status = "404", description = "Returns 404 if non-existing configuration schema is requested")
         ]
     )
-    private val getSchema = ReposiliteRoute<String>("/api/settings/schema/{name}", GET) {
+    private val getSchema = ReposiliteRoute<InputStream>("/api/settings/schema/{name}", GET) {
         managerOnly {
             response = sharedConfigurationFacade.getSettingsReference<SharedSettings>(requireParameter("name"))
                 ?.schema
-                ?.toPrettyString()
+                ?.get()
                 ?.asSuccess()
         }
     }

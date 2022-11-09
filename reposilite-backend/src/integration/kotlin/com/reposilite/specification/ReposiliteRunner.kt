@@ -93,8 +93,8 @@ internal abstract class ReposiliteRunner {
 
         val localConfiguration = LocalConfiguration().also {
             ReferenceUtils.setValue(it.database, _database)
-            ReferenceUtils.setValue(it.webThreadPool, 5)
-            ReferenceUtils.setValue(it.ioThreadPool, 2)
+            ReferenceUtils.setValue(it.webThreadPool, 6)
+            ReferenceUtils.setValue(it.ioThreadPool, 4)
         }
 
         overrideLocalConfiguration(localConfiguration)

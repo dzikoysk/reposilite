@@ -10,7 +10,8 @@ groupId: 'com.reposilite.plugin'
 artifactId: 'groovy-plugin'
 ---
 
-Utility plugin that enables scripting API in Groovy. In general, you should probably use Java/Kotlin for better experience and performance, but that's still an option - especially useful for quick prototyping of dirty scripts.
+Utility plugin that enables scripting API in Groovy. 
+In general, you should probably use Java/Kotlin for better experience and performance, but that's still an option - especially useful for quick prototyping of dirty scripts. Keep in mind that Groovy runtime is pretty heavy and your Reposilite instance should have at least 64MB+ of available memory.
 
 Before you'll start using Groovy, you should definitely take a look at:
 * [Guide / Developers - Plugin API](/guide/plugin-api)

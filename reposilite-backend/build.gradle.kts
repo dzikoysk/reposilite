@@ -79,6 +79,7 @@ dependencies {
     api("io.javalin:javalin:$javalin")
     api("io.javalin.community.openapi:javalin-openapi-plugin:$javalin")
     kapt("io.javalin.community.openapi:openapi-annotation-processor:$javalin") { exclude(group = "ch.qos.logback") }
+    compileOnly("io.javalin.community.openapi:openapi-annotation-processor:$javalin") { exclude(group = "ch.qos.logback") }
     api("com.reposilite.javalin-rfcs:javalin-routing:5.0.0-SNAPSHOT")
     api("io.javalin.community.ssl:ssl-plugin:5.1.3")
 
@@ -98,12 +99,6 @@ dependencies {
 
     val commonsCoded = "1.15"
     api("commons-codec:commons-codec:$commonsCoded")
-
-    val commonsIO = "2.11.0"
-    implementation("commons-io:commons-io:$commonsIO")
-
-    val jline = "3.21.0"
-    implementation("org.jline:jline:$jline")
 
     val jansi = "2.4.0"
     implementation("org.fusesource.jansi:jansi:$jansi")

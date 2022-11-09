@@ -1,8 +1,10 @@
 package com.reposilite.configuration.shared.api
 
+import io.javalin.openapi.CustomAnnotation
 import kotlin.annotation.AnnotationTarget.CLASS
 import kotlin.annotation.AnnotationTarget.FIELD
 import kotlin.annotation.AnnotationTarget.PROPERTY
+import kotlin.annotation.AnnotationTarget.PROPERTY_GETTER
 
 /*
  * JsonForms annotations
@@ -28,7 +30,8 @@ annotation class Range(
 )
 
 @Retention
-@Target(PROPERTY, FIELD, CLASS)
+@Target(PROPERTY_GETTER, CLASS)
+@CustomAnnotation
 annotation class Doc(
     val title: String,
     val description: String

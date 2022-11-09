@@ -1,5 +1,6 @@
 package com.reposilite.configuration.shared.application
 
+import com.reposilite.configuration.local.LocalConfiguration
 import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.configuration.shared.api.SharedSettings
 import com.reposilite.configuration.shared.infrastructure.SettingsEndpoints
@@ -17,6 +18,8 @@ import java.util.concurrent.TimeUnit
 class SharedConfigurationPlugin : ReposilitePlugin() {
 
     override fun initialize(): SharedConfigurationFacade {
+        val localConfiguration = facade<LocalConfiguration>()
+
         val sharedConfigurationFacade = SharedConfigurationComponents(
             journalist = this,
             workingDirectory = parameters().workingDirectory,
@@ -29,7 +32,8 @@ class SharedConfigurationPlugin : ReposilitePlugin() {
         logger.info("")
         logger.info("--- Shared settings")
         logger.info("Loading shared configuration from ${sharedConfigurationFacade.getProviderName()}")
-        sharedConfigurationFacade.loadSharedSettingsFromString(sharedConfigurationFacade.fetchConfiguration())
+        val storedConfiguration = sharedConfigurationFacade.fetchConfiguration()
+        sharedConfigurationFacade.loadSharedSettingsFromString(storedConfiguration)
 
         if (sharedConfigurationFacade.isMutable()) {
             val watcher = reposilite().scheduler.scheduleWithFixedDelay({
@@ -47,12 +51,14 @@ class SharedConfigurationPlugin : ReposilitePlugin() {
             }
         }
 
-        sharedConfigurationFacade.getDomainNames()
-            .map { sharedConfigurationFacade.getSettingsReference<SharedSettings>(it) }
-            .forEach {
-                logger.debug("Schema for ${it?.name}:")
-                logger.debug(it?.schema?.toPrettyString())
-            }
+        if (localConfiguration.debugEnabled.get()) {
+            sharedConfigurationFacade.getDomainNames()
+                .map { sharedConfigurationFacade.getSettingsReference<SharedSettings>(it) }
+                .forEach {
+                    logger.debug("Schema for ${it?.name}:")
+                    logger.debug(it?.schema?.get()?.reader()?.readText())
+                }
+        }
 
         event { event: RoutingSetupEvent ->
             event.registerRoutes(SettingsEndpoints(sharedConfigurationFacade))
