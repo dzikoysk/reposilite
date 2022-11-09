@@ -68,7 +68,7 @@ const IndividualCard = ({ title, description, buttons }) => {
         w={'30%'}
       >
         <Heading as='h2' size={'sm'} textAlign={'center'}>{title}</Heading>
-        <Text marginY={4} textAlign={'center'}>{description}</Text>
+        <Box marginY={4} textAlign={'center'}>{description}</Box>
         {buttons.map(button => (
           <Button
             key={button.title}
@@ -88,11 +88,11 @@ const organizationCards = [
   {
     title: 'Sponsor',
     description: (
-      <Text>
+      <Box>
         If you'd like to invest into open source sector, feel free to contact me using one of conversation channels listed on&nbsp;
         <Link href={'https://dzikoysk.net/#contact'} color={'purple.400'}>dzikoysk.net</Link>.
         I'm open to discuss various possibilities and scenarios individually, so we can find out the best solution for both sides! :)
-      </Text>
+      </Box>
     )
   }
 ]
@@ -105,7 +105,7 @@ const OrganizationCard = ({ title, description }) => {
       <ColorModeStyles styles={[cardBgCss]} />
       <Flex backgroundColor={cardBg} padding={6} marginBottom={8} w='full' flexDirection={'column'}>
         <Heading as='h2' size={'sm'}>{title}</Heading>
-        <Text paddingTop={3}>{description}</Text>
+        <Box paddingTop={3}>{description}</Box>
       </Flex>
     </>
   )

@@ -60,11 +60,11 @@ export default function Guide({ plugins }) {
                   {plugin.stars}
                   <StarIcon marginLeft={1} marginBottom={1} color={'purple.300'} />
                 </Text>
-                <Text>
+                <Box>
                   <Link href={`https://github.com/${plugin.repository}`}>
                     {plugin.repository}
                   </Link>
-                </Text>
+                </Box>
               </Box>
               <Box paddingLeft={7}>
                 <Flex>

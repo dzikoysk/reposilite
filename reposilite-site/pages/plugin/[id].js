@@ -65,17 +65,17 @@ export default function Plugin({ plugin }) {
               </BreadcrumbItem>
             </Breadcrumb>
             <Heading marginY={2}>{plugin.title}</Heading>
-            <Text>
+            <Box>
               Repository: <GitHubLink url={plugin.repository}>{plugin.repository}</GitHubLink>
-            </Text>
-            <Text>
+            </Box>
+            <Box>
               Authors: {plugin.authors.map(author => (
-                <Text key={author} as='abbr'>
+                <Box key={author} as='abbr'>
                   <GitHubLink url={author}>{author}</GitHubLink>
                   {[...plugin.authors].pop() !== author ? <>,&nbsp;</> : <></>}
-                </Text>
+                </Box>
               ))}
-            </Text>
+            </Box>
           </Box>
           <Box width='full'>
             <Box

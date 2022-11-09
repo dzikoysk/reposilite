@@ -172,7 +172,7 @@ const TableCell = (props) => {
 
 export default {
   a: (props) => <Link color={'purple.400'} {...props} />,
-  p: (props) => <Text paddingY={'2'} {...props} />,
+  p: (props) => <Box paddingY={'2'} {...props} />,
   h1: (props) => <H as='h1' size={'xl'} {...props} />,
   h2: (props) => <H as='h2' size={'lg'} {...props} />,
   h3: (props) => <H as='h3' size={'md'} {...props} />,

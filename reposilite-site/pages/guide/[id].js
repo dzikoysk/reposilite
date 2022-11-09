@@ -112,11 +112,11 @@ const GuideView = ({ category, selected }) => {
         <LinkBox as='article' color={'purple.400'}>
           <Flex justifyContent='center'>
             <EditIcon marginTop='1' />
-            <Text marginLeft='2'>
+            <Box marginLeft='2'>
               <LinkOverlay href={`https://github.com/dzikoysk/reposilite/blob/main/reposilite-site/data/guides/${category}/${id}.md`}>
                 Edit this page on GitHub
               </LinkOverlay>
-            </Text>
+            </Box>
           </Flex>
         </LinkBox>
       </Box>

@@ -1,14 +1,17 @@
 import NextLink from "next/link"
 import {
-  Link as ChakraLink,
+  Box,
+  // Link as ChakraLink,
   LinkOverlay as ChakraLinkOverlay,
 } from "@chakra-ui/react"
 
 export function Link({ children, href, nextProps, ...chakraLinkProps }) {
   return (
-    <NextLink {...nextProps} href={href} passHref>
-      <ChakraLink {...chakraLinkProps}>{children}</ChakraLink>
-    </NextLink>
+    <Box {...chakraLinkProps} style={{ display: 'inline'}}>
+      <NextLink {...nextProps} href={href} passHref>
+        {children}
+      </NextLink>
+    </Box>
   )
 }
 
@@ -19,11 +22,12 @@ export function LinkOverlay({
   ...chakraLinkOverlayProps
 }) {
   return (
-    <NextLink {...nextProps} href={href} passHref>
-      <ChakraLinkOverlay {...chakraLinkOverlayProps}>
+    <Box {...chakraLinkOverlayProps} style={{ display: 'inline'}}>
+      <NextLink {...nextProps} href={href} passHref>
         {children}
-      </ChakraLinkOverlay>
-    </NextLink>
+      </NextLink>
+    </Box>
+    
   )
 }
 
