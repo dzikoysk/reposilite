@@ -33,15 +33,25 @@ class ChecksumPlugin : ReposilitePlugin() {
             checksums.find { endsWith(it.extension) }
 
         event { (accessToken, repository, checksumGav): PreResolveEvent ->
-            val checksum = checksumGav.getChecksum() ?: return@event
+            if (repository.mirrorHosts.isNotEmpty()) {
+                logger.debug("Checksum | ${repository.name} uses mirrors")
+                return@event
+            }
+
+            val checksum = checksumGav.getChecksum() ?: run {
+                logger.debug("Checksum | $checksumGav is not a checksum file")
+                return@event
+            }
+
             val file = checksumGav.getParent().resolve(checksumGav.getSimpleName().substring(0, checksumGav.getSimpleName().length - checksum.extension.length))
 
             if (file.getChecksum() != null) {
-                logger.debug("Checksum | Cannot generate checksum for existing checksum file")
+                logger.debug("Checksum | Cannot generate checksum for existing checksum file: $file")
                 return@event
             }
 
             if (repository.exists(checksumGav)) {
+                logger.debug("Checksum | $checksumGav already exists")
                 return@event // checksum already exists
             }
 
@@ -54,7 +64,10 @@ class ChecksumPlugin : ReposilitePlugin() {
                     )
                 )
                 .orNull() // ignore files that don't exist
-                ?: return@event
+                ?: run {
+                    logger.debug("Checksum | $file does not exist")
+                    return@event
+                }
 
             val generatedChecksum = data.use {
                 when (checksum) {

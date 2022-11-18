@@ -50,10 +50,10 @@ dependencies {
     api("net.dzikoysk:cdn:$cdn")
     api("net.dzikoysk:cdn-kt:$cdn")
 
-    val awssdk = "2.18.6"
+    val awssdk = "2.18.16"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
-    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.332")
+    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.342")
 
     val exposed = "0.40.1"
     implementation("org.jetbrains.exposed:exposed-core:$exposed")
@@ -75,19 +75,18 @@ dependencies {
     val ldap = "6.0.6"
     testImplementation("com.unboundid:unboundid-ldapsdk:$ldap")
 
-    val javalin = "5.1.4-SNAPSHOT"
-    api("io.javalin:javalin:$javalin")
-    api("io.javalin.community.openapi:javalin-openapi-plugin:$javalin")
-    kapt("io.javalin.community.openapi:openapi-annotation-processor:$javalin") { exclude(group = "ch.qos.logback") }
-    compileOnly("io.javalin.community.openapi:openapi-annotation-processor:$javalin") { exclude(group = "ch.qos.logback") }
+    api("io.javalin:javalin:5.1.4")
+    api("io.javalin.community.openapi:javalin-openapi-plugin:5.1.4-1")
+    kapt("io.javalin.community.openapi:openapi-annotation-processor:5.1.4-1") { exclude(group = "ch.qos.logback") }
+    // compileOnly("io.javalin.community.openapi:openapi-annotation-processor:$javalin") { exclude(group = "ch.qos.logback") }
     api("com.reposilite.javalin-rfcs:javalin-routing:5.0.0-SNAPSHOT")
-    api("io.javalin.community.ssl:ssl-plugin:5.1.3")
+    api("io.javalin.community.ssl:ssl-plugin:5.1.4")
 
     val picocli = "4.7.0"
     kapt("info.picocli:picocli-codegen:$picocli")
     api("info.picocli:picocli:$picocli")
 
-    val jackson = "2.13.4"
+    val jackson = "2.14.0"
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jackson")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jackson")
