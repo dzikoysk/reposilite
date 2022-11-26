@@ -50,10 +50,10 @@ dependencies {
     api("net.dzikoysk:cdn:$cdn")
     api("net.dzikoysk:cdn-kt:$cdn")
 
-    val awssdk = "2.18.16"
+    val awssdk = "2.18.21"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
-    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.342")
+    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.347")
 
     val exposed = "0.40.1"
     implementation("org.jetbrains.exposed:exposed-core:$exposed")
@@ -63,7 +63,7 @@ dependencies {
     api("net.dzikoysk:exposed-upsert:1.0.3")
     implementation("com.zaxxer:HikariCP:5.0.1")
     // Drivers
-    implementation("org.xerial:sqlite-jdbc:3.39.3.0")
+    implementation("org.xerial:sqlite-jdbc:3.39.4.1")
     implementation("mysql:mysql-connector-java:8.0.31")
     implementation("org.mariadb.jdbc:mariadb-java-client:3.0.8")
     implementation("org.postgresql:postgresql:42.5.0")
@@ -75,12 +75,11 @@ dependencies {
     val ldap = "6.0.6"
     testImplementation("com.unboundid:unboundid-ldapsdk:$ldap")
 
-    api("io.javalin:javalin:5.1.4")
-    api("io.javalin.community.openapi:javalin-openapi-plugin:5.1.4-1")
-    kapt("io.javalin.community.openapi:openapi-annotation-processor:5.1.4-1") { exclude(group = "ch.qos.logback") }
-    // compileOnly("io.javalin.community.openapi:openapi-annotation-processor:$javalin") { exclude(group = "ch.qos.logback") }
+    api("io.javalin:javalin:5.2.0")
+    api("io.javalin.community.openapi:javalin-openapi-plugin:5.2.0")
+    kapt("io.javalin.community.openapi:openapi-annotation-processor:5.2.0")
     api("com.reposilite.javalin-rfcs:javalin-routing:5.0.0-SNAPSHOT")
-    api("io.javalin.community.ssl:ssl-plugin:5.1.4")
+    api("io.javalin.community.ssl:ssl-plugin:5.2.0")
 
     val picocli = "4.7.0"
     kapt("info.picocli:picocli-codegen:$picocli")
@@ -112,11 +111,11 @@ dependencies {
     implementation("org.tinylog:tinylog-api:$tinylog")
     implementation("org.tinylog:tinylog-impl:$tinylog")
 
-    val unirest = "3.13.12"
+    val unirest = "3.13.13"
     testImplementation("com.konghq:unirest-java:$unirest")
     testImplementation("com.konghq:unirest-objectmapper-jackson:$unirest")
 
-    val testcontainers = "1.17.5"
+    val testcontainers = "1.17.6"
     testImplementation("org.testcontainers:postgresql:$testcontainers")
     testImplementation("org.testcontainers:mariadb:$testcontainers")
     testImplementation("org.testcontainers:testcontainers:$testcontainers")

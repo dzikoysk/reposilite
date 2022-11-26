@@ -69,4 +69,4 @@ defaultFrontend: true
 # and you should always prioritize subdomain over this option.
 basePath: /
 # Debug mode
-debugEnabled: true
+debugEnabled: false

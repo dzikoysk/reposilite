@@ -27,7 +27,7 @@ application {
 
 dependencies {
     compileOnly(project(":reposilite-backend"))
-    implementation("io.javalin.community.openapi:javalin-swagger-plugin:5.1.4-1")
+    implementation("io.javalin.community.openapi:javalin-swagger-plugin:5.2.0")
 }
 
 tasks.withType<ShadowJar> {
