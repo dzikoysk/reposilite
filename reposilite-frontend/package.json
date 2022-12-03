@@ -17,7 +17,7 @@
     "@jsonforms/vue": "^3.0.0",
     "@vueform/toggle": "^2.1.2",
     "@vueuse/core": "^9.6.0",
-    "@vueuse/head": "^1.0.18",
+    "@vueuse/head": "^1.0.19",
     "ansi-to-html": "^0.7.2",
     "axios": "^1.2.0",
     "downloadjs": "^1.4.7",
