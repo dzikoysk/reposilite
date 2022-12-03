@@ -29,7 +29,7 @@
     "vue-final-modal": "^3.4.11",
     "vue-float-menu": "^1.9.1",
     "vue-router": "^4.1.6",
-    "vue-upload-component": "^3.1.2",
+    "vue-upload-component": "^3.1.6",
     "vue3-tabs": "^0.1.13-beta.3"
   },
   "devDependencies": {
