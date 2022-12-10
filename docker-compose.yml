@@ -1,10 +1,14 @@
 version: "3.9"
 services:
   reposilite:
-    image: reposilite:3.2.0
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: dzikoysk/reposilite:3.2.0
+    #
+    # To build from sources:
+    #
+    # image: reposilite:3.2.0
+    # build:
+    #  context: .
+    #  dockerfile: Dockerfile
     ports:
       - ${PORT}:${PORT}
     env_file:
