@@ -1,5 +1,11 @@
 #!/bin/bash
 
+GROUP_ID="${PGID:-999}"
+addgroup --gid $GROUP_ID reposilite
+
+USER_ID="${PUID:-999}"
+adduser --system -uid $USER_ID --ingroup reposilite --shell /bin/sh reposilite
+
 chown -R reposilite:reposilite /app
 chown -R reposilite:reposilite /var/log/reposilite
 

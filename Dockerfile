@@ -1,5 +1,5 @@
 # Build stage
-FROM openjdk:18-slim AS build
+FROM openjdk:19-slim AS build
 COPY . /home/reposilite-build
 WORKDIR /home/reposilite-build
 RUN apt-get update; apt-get install -y curl \
@@ -9,7 +9,7 @@ RUN apt-get update; apt-get install -y curl \
 RUN \
   export GRADLE_OPTS="-Djdk.lang.Process.launchMechanism=vfork" && \
   chmod +x gradlew && \
-  ./gradlew :reposilite-backend:shadowJar --no-daemon --stacktrace
+  bash gradlew :reposilite-backend:shadowJar --no-daemon --stacktrace
 
 # Build-time metadata stage
 ARG BUILD_DATE
@@ -26,15 +26,12 @@ LABEL org.label-schema.build-date=$BUILD_DATE \
       org.label-schema.schema-version="1.0"
 
 # Run stage
-FROM openjdk:18-slim
+FROM openjdk:19-slim
 RUN mkdir -p /app/data && mkdir -p /var/log/reposilite
 VOLUME /app/data
 WORKDIR /app
 COPY --from=build /home/reposilite-build/reposilite-backend/build/libs/reposilite-3*.jar reposilite.jar
 COPY --from=build /home/reposilite-build/entrypoint.sh entrypoint.sh
-RUN apt-get update && \
-    apt-get -y install util-linux && \
-    addgroup --gid 999 reposilite && \
-    adduser --system -uid 999 --ingroup reposilite --shell /bin/sh reposilite
+RUN apt-get update && apt-get -y install util-linux
 ENTRYPOINT ["/bin/sh", "entrypoint.sh"]
 CMD []
