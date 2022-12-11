@@ -19,6 +19,7 @@
     "@vueuse/core": "^9.6.0",
     "@vueuse/head": "^1.0.19",
     "ansi-to-html": "^0.7.2",
+    "apexcharts": "^3.36.3",
     "axios": "^1.2.0",
     "downloadjs": "^1.4.7",
     "mime-types": "^2.1.35",
@@ -30,6 +31,7 @@
     "vue-float-menu": "^1.9.1",
     "vue-router": "^4.1.6",
     "vue-upload-component": "^3.1.6",
+    "vue3-apexcharts": "^1.4.1",
     "vue3-tabs": "^0.1.13-beta.3"
   },
   "devDependencies": {

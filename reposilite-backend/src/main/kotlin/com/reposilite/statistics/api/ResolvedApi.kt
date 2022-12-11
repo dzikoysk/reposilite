@@ -18,6 +18,25 @@ package com.reposilite.statistics.api
 
 import com.reposilite.maven.api.Identifier
 
+/* Per repository */
+
+data class AllResolvedResponse(
+    val statisticsEnabled: Boolean = true,
+    val repositories: Collection<RepositoryStatistics> = emptyList()
+)
+
+data class RepositoryStatistics(
+    val name: String,
+    val data: List<IntervalRecord>
+)
+
+data class IntervalRecord(
+    val date: Long,
+    val count: Long
+)
+
+/* Per identifier */
+
 data class IncrementResolvedRequest(
     val identifier: Identifier,
     val count: Long = 1

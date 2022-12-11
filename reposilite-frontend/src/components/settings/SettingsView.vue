@@ -22,6 +22,8 @@ import { useConfiguration } from '../../store/configuration'
 import download from 'downloadjs'
 import FactoryResetModal from './FactoryResetModal.vue'
 
+// const JsonForms = defineAsyncComponent(() => import('@jsonforms/vue'))
+
 const props = defineProps({
   selectedTab: {
     type: String,

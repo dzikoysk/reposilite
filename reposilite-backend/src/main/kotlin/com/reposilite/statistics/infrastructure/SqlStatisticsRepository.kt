@@ -21,6 +21,8 @@ import com.reposilite.maven.api.Identifier
 import com.reposilite.maven.api.REPOSITORY_NAME_MAX_LENGTH
 import com.reposilite.shared.extensions.executeQuery
 import com.reposilite.statistics.StatisticsRepository
+import com.reposilite.statistics.api.IntervalRecord
+import com.reposilite.statistics.api.RepositoryStatistics
 import com.reposilite.statistics.api.ResolvedEntry
 import net.dzikoysk.exposed.upsert.upsert
 import net.dzikoysk.exposed.upsert.withUnique
@@ -44,6 +46,7 @@ import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
 import panda.std.firstAndMap
 import java.time.LocalDate
+import java.time.ZoneId
 import java.util.UUID
 
 @Suppress("RemoveRedundantQualifierName")
@@ -154,6 +157,23 @@ internal class SqlStatisticsRepository(private val database: Database, runMigrat
                 .map { ResolvedEntry(it[IdentifierTable.gav], it[resolvedSum] ?: 0) }
         }
 
+    override fun getAllResolvedRequestsPerRepositoryAsTimeseries(): List<RepositoryStatistics> =
+        transaction(database) {
+            val start = LocalDate.now().minusYears(1).minusDays(1)
+
+            ResolvedTable.leftJoin(IdentifierTable, { ResolvedTable.identifierId }, { IdentifierTable.id })
+                .slice(IdentifierTable.repository, ResolvedTable.date, ResolvedTable.count.sum())
+                .select { ResolvedTable.date greater start  }
+                .groupBy(IdentifierTable.repository, ResolvedTable.date)
+                .map { Triple(it[IdentifierTable.repository], it[ResolvedTable.date], it[ResolvedTable.count.sum()]) }
+                .groupBy(
+                    keySelector = { (repository, _, _) -> repository },
+                    valueTransform = { (_, date, count) -> IntervalRecord(date.atStartOfDay(ZoneId.systemDefault()).toEpochSecond() * 1000, count ?: 0) }
+                )
+                .mapValues { (_, records) -> records.sortedBy { it.date } }
+                .map { (repository, records) -> RepositoryStatistics(repository, records) }
+        }
+
     override fun countUniqueResolvedRequests(): Long =
         transaction(database) {
             ResolvedTable.selectAll()
@@ -168,7 +188,7 @@ internal class SqlStatisticsRepository(private val database: Database, runMigrat
                     .selectAll()
                     .firstAndMap { it[this] }
             }
-                ?: 0
+            ?: 0
         }
 
 }

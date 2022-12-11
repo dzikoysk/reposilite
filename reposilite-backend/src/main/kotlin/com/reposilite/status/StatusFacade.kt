@@ -40,8 +40,8 @@ class StatusFacade(
     internal fun memoryUsage(): String =
         TimeUtils.format((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1024.0 / 1024.0) + "M"
 
-    internal fun threadGroupUsage(): String =
-        Thread.activeCount().toString()
+    internal fun threadGroupUsage(): Int =
+        Thread.activeCount()
 
     internal fun getLatestVersion(): String =
         if (testEnv)

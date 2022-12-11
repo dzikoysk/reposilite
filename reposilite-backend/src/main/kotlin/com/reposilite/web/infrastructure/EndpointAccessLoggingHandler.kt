@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package com.reposilite.status.infrastructure
+package com.reposilite.web.infrastructure
 
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.routing.RouteMethod.BEFORE
 
-internal class RouteAccessHandler : ReposiliteRoutes() {
+internal class EndpointAccessLoggingHandler : ReposiliteRoutes() {
 
     private val collectRequests = ReposiliteRoute<Unit>("/<*>", BEFORE) {
         logger.debug("${ctx.method()} $uri from ${ctx.ip()}")

@@ -21,6 +21,7 @@ import com.reposilite.maven.api.Identifier
 import com.reposilite.plugin.api.Facade
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.badRequestError
+import com.reposilite.statistics.api.AllResolvedResponse
 import com.reposilite.statistics.api.IncrementResolvedRequest
 import com.reposilite.statistics.api.ResolvedCountResponse
 import panda.std.Result
@@ -32,20 +33,25 @@ const val MAX_PAGE_SIZE = 100
 
 class StatisticsFacade internal constructor(
     private val journalist: Journalist,
+    private val statisticsEnabled: Reference<Boolean>,
     private val dateIntervalProvider: Reference<DateIntervalProvider>,
     private val statisticsRepository: StatisticsRepository
 ) : Journalist, Facade {
 
     private val resolvedRequestsBulk: ConcurrentHashMap<Identifier, Long> = ConcurrentHashMap()
 
-    fun incrementResolvedRequest(incrementResolvedRequest: IncrementResolvedRequest) =
-        resolvedRequestsBulk.merge(incrementResolvedRequest.identifier, incrementResolvedRequest.count) { cached, value -> cached + value }
+    fun incrementResolvedRequest(incrementResolvedRequest: IncrementResolvedRequest) {
+        when {
+            statisticsEnabled.get() -> resolvedRequestsBulk.merge(incrementResolvedRequest.identifier, incrementResolvedRequest.count) { cached, value -> cached + value }
+            else -> logger.debug("Statistics | Cannot increment ${incrementResolvedRequest.identifier}, because statistics are disabled")
+        }
+    }
 
     fun saveRecordsBulk() =
         resolvedRequestsBulk.toMap().also {
             resolvedRequestsBulk.clear() // read doesn't lock, so there is a possibility of dropping a few records between toMap and clear. Might be improved in the future
             statisticsRepository.incrementResolvedRequests(it, dateIntervalProvider.get().createDate())
-            if (it.isNotEmpty()) logger.debug("Statistics | Saved bulk with ${it.size} records")
+            logger.debug("Statistics | Saved bulk with ${it.size} records")
         }
 
     fun findResolvedRequestsByPhrase(repository: String = "", phrase: String, limit: Int = MAX_PAGE_SIZE): Result<ResolvedCountResponse, ErrorResponse> =
@@ -53,18 +59,27 @@ class StatisticsFacade internal constructor(
             ?.let {
                 statisticsRepository.findResolvedRequestsByPhrase(repository, phrase, limit).let {
                     ResolvedCountResponse(
-                        it.sumOf { resolved -> resolved.count },
-                        it
+                        sum = it.sumOf { resolved -> resolved.count },
+                        requests = it
                     ).asSuccess()
                 }
             }
             ?: badRequestError("Requested too many records ($limit > $MAX_PAGE_SIZE)")
+
+    fun getAllResolvedStatistics(): Result<AllResolvedResponse, ErrorResponse> =
+        when {
+            statisticsEnabled.get() -> AllResolvedResponse(repositories = statisticsRepository.getAllResolvedRequestsPerRepositoryAsTimeseries())
+            else -> AllResolvedResponse(statisticsEnabled = false)
+        }.asSuccess()
 
     fun countUniqueRecords(): Long =
         statisticsRepository.countUniqueResolvedRequests()
 
     fun countRecords(): Long =
         statisticsRepository.countResolvedRequests()
+
+    fun statisticsEnabled(): Reference<Boolean> =
+        statisticsEnabled
 
     override fun getLogger(): Logger =
         journalist.logger

@@ -18,31 +18,51 @@ package com.reposilite.statistics.infrastructure
 
 import com.reposilite.maven.api.Identifier
 import com.reposilite.statistics.StatisticsRepository
+import com.reposilite.statistics.api.IntervalRecord
+import com.reposilite.statistics.api.RepositoryStatistics
 import com.reposilite.statistics.api.ResolvedEntry
 import java.time.LocalDate
-import java.util.concurrent.ConcurrentHashMap
+import java.time.ZoneId
 
 internal class InMemoryStatisticsRepository : StatisticsRepository {
 
-    private val resolvedRequests = ConcurrentHashMap<Identifier, Long>()
+    data class ResolvedRequest(
+        val identifier: Identifier,
+        val date: LocalDate,
+        var count: Long
+    )
+
+    private val resolvedRequests = ArrayList<ResolvedRequest>()
 
     override fun incrementResolvedRequests(requests: Map<Identifier, Long>, date: LocalDate) =
         requests.forEach { (identifier, count) ->
-            resolvedRequests.merge(identifier, count) { oldCount, value -> oldCount + value }
+            resolvedRequests
+                .firstOrNull { it.identifier == identifier }
+                ?.let { it.count += count }
+                ?: resolvedRequests.add(ResolvedRequest(identifier, date, count))
         }
 
     override fun findResolvedRequestsByPhrase(repository: String, phrase: String, limit: Int): List<ResolvedEntry> =
         resolvedRequests.asSequence()
+            .filter { it.identifier.repository == repository }
             .filter { (identifier) -> identifier.toString().contains(phrase) }
             .sortedByDescending { (_, count) -> count }
             .take(limit)
-            .map { (identifier, count) -> ResolvedEntry(identifier.gav, count) }
+            .map { (identifier, _, count) -> ResolvedEntry(identifier.gav, count) }
             .toList()
+
+    override fun getAllResolvedRequestsPerRepositoryAsTimeseries(): Collection<RepositoryStatistics> =
+        resolvedRequests
+            .groupBy(
+                keySelector = { it.identifier.repository },
+                valueTransform = { IntervalRecord(it.date.atStartOfDay(ZoneId.systemDefault()).toEpochSecond() * 1000, it.count) }
+            )
+            .map { RepositoryStatistics(it.key, it.value) }
 
     override fun countUniqueResolvedRequests(): Long =
         resolvedRequests.size.toLong()
 
     override fun countResolvedRequests(): Long =
-        resolvedRequests.map { it.value }.sum()
+        resolvedRequests.sumOf { it.count }
 
 }

@@ -26,6 +26,7 @@ const {
   sendMessage,
   createFileDetails,
   createDirectoryDetails,
+  generateDayWiseTimeSeries
 } = require("./extensions")
 
 const application = express()
@@ -34,6 +35,30 @@ expressWs(application)
 let uploadedFiles = []
 let mavenSettingsSchema = require('./maven-settings-schema.json')
 let mavenSettingsEntity = require('./maven-settings-entity.json')
+
+const statisticsSeries = [
+  {
+    name: 'Releases',
+    data: generateDayWiseTimeSeries(new Date('11 Feb 2022 GMT').getTime(), 20, {
+      min: 10,
+      max: 60
+    })
+  },
+  {
+    name: 'Snapshots',
+    data: generateDayWiseTimeSeries(new Date('11 Feb 2022 GMT').getTime(), 20, {
+      min: 10,
+      max: 20
+    })
+  },
+  {
+    name: 'Maven Central',
+    data: generateDayWiseTimeSeries(new Date('11 Feb 2022 GMT').getTime(), 20, {
+      min: 10,
+      max: 15
+    })
+  }
+]
 
 application
   .get("/", (req, res) => res.send("Reposilite stub API"))
@@ -164,6 +189,31 @@ application
               },
             },
           ],
+        }),
+      () => invalidCredentials(res)
+    )
+  })
+  .get("/api/status/instance", (req, res) => {
+    authorized(
+      req,
+      () =>
+        res.send({
+          version: '3.2.0',
+          uptime: '21.37min',
+          usedMemory: (20 + (Math.random() * 10)).toFixed(2) + 'M',
+          usedThreads: 14,
+          failuresCount: 1
+        }),
+      () => invalidCredentials(res)
+    )
+  })
+  .get("/api/statistics/resolved/all", (req, res) => {
+    authorized(
+      req,
+      () =>
+        res.send({
+          statisticsEnabled: true,
+          repositories: statisticsSeries
         }),
       () => invalidCredentials(res)
     )

@@ -26,10 +26,11 @@ import com.reposilite.plugin.facade
 import com.reposilite.plugin.parameters
 import com.reposilite.plugin.reposilite
 import com.reposilite.shared.extensions.TimeUtils
+import com.reposilite.status.FailureFacade
 import com.reposilite.status.FailuresCommand
 import com.reposilite.status.StatusCommand
 import com.reposilite.status.StatusFacade
-import com.reposilite.status.infrastructure.RouteAccessHandler
+import com.reposilite.status.infrastructure.StatusEndpoints
 import com.reposilite.web.HttpServer
 import com.reposilite.web.api.HttpServerStoppedEvent
 import com.reposilite.web.api.RoutingSetupEvent
@@ -42,6 +43,7 @@ internal class StatusPlugin : ReposilitePlugin() {
 
     override fun initialize(): StatusFacade {
         val webServer = Completable<HttpServer>()
+        val failureFacade = facade<FailureFacade>()
 
         val statusFacade = StatusComponents(
             testEnv = parameters().testEnv,
@@ -53,12 +55,12 @@ internal class StatusPlugin : ReposilitePlugin() {
 
         event { _: ReposiliteInitializeEvent ->
             webServer.complete(reposilite().webServer)
-            consoleFacade.registerCommand(FailuresCommand(facade()))
-            consoleFacade.registerCommand(StatusCommand(statusFacade, facade()))
+            consoleFacade.registerCommand(FailuresCommand(failureFacade))
+            consoleFacade.registerCommand(StatusCommand(statusFacade, failureFacade))
         }
 
         event { event: RoutingSetupEvent ->
-            event.registerRoutes(RouteAccessHandler())
+            event.registerRoutes(StatusEndpoints(statusFacade, failureFacade))
         }
 
         event { _: ReposiliteStartedEvent ->
