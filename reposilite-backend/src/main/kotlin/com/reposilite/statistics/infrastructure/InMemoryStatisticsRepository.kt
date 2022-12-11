@@ -26,7 +26,7 @@ import java.time.ZoneId
 
 internal class InMemoryStatisticsRepository : StatisticsRepository {
 
-    data class ResolvedRequest(
+    private data class ResolvedRequest(
         val identifier: Identifier,
         val date: LocalDate,
         var count: Long
