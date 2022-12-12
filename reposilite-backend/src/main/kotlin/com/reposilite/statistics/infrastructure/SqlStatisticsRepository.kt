@@ -172,6 +172,7 @@ internal class SqlStatisticsRepository(private val database: Database, runMigrat
                 )
                 .mapValues { (_, records) -> records.sortedBy { it.date } }
                 .map { (repository, records) -> RepositoryStatistics(repository, records) }
+                .sortedBy { it.name }
         }
 
     override fun countUniqueResolvedRequests(): Long =

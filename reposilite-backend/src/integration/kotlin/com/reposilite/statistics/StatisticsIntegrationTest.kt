@@ -111,15 +111,17 @@ internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecifi
         // given: a database with some requests
         val hackyDatabaseStateAccessor = SqlStatisticsRepository(reposilite.database, false)
 
-        Month.values().forEach { month ->
-            listOf(2021, 2022).forEach { year ->
-                hackyDatabaseStateAccessor.incrementResolvedRequests(
-                    requests = mapOf(
-                        Identifier("releases", "/com/reposilite/1.0.0/reposilite-1.0.0.jar") to month.ordinal.toLong(),
-                        Identifier("snapshots", "/com/reposilite/1.0.0-SNAPSHOT/reposilite-1.0.0-SNAPSHOT.jar") to month.ordinal.toLong()
-                    ),
-                    date = LocalDate.of(year, month, 1)
-                )
+        repeat(2) { // repeat 2 times to verify aggregation
+            Month.values().forEach { month -> // fill all points
+                listOf(2021, 2022).forEach { year -> // exceed 1 year range
+                    hackyDatabaseStateAccessor.incrementResolvedRequests(
+                        requests = mapOf(
+                            Identifier("releases", "/com/reposilite/1.0.0/reposilite-1.0.0.jar") to month.ordinal.toLong(),
+                            Identifier("snapshots", "/com/reposilite/1.0.0-SNAPSHOT/reposilite-1.0.0-SNAPSHOT.jar") to month.ordinal.toLong()
+                        ),
+                        date = LocalDate.of(year, month, 1)
+                    )
+                }
             }
         }
 
@@ -142,17 +144,21 @@ internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecifi
         assertEquals(
             response.body,
             AllResolvedResponse(
-                repositories = listOf("releases", "snapshots").map { repository ->
-                    RepositoryStatistics(
-                        name = repository,
-                        data = Month.values().map { month ->
-                            IntervalRecord(
-                                date = LocalDate.of(2022, month, 1).atStartOfDay(ZoneId.systemDefault()).toEpochSecond() * 1000,
-                                count = month.ordinal.toLong()
-                            )
-                        }
-                    )
-                }
+                repositories = listOf("releases", "snapshots")
+                    .map { repository ->
+                        RepositoryStatistics(
+                            name = repository,
+                            data = Month.values()
+                                .map { month ->
+                                    IntervalRecord(
+                                        date = LocalDate.of(2022, month, 1).atStartOfDay(ZoneId.systemDefault()).toEpochSecond() * 1000,
+                                        count = 2L * month.ordinal
+                                    )
+                                }
+                                .sortedBy { it.date }
+                        )
+                    }
+                    .sortedBy { it.name }
             )
         )
     }
