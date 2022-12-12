@@ -53,6 +53,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
 import panda.std.Quad
 import panda.std.asSuccess
+import panda.std.reactive.Reference
 import panda.std.reactive.reference
 import panda.std.reactive.toReference
 import java.io.File
@@ -119,7 +120,7 @@ internal abstract class MavenSpecification {
             failureFacade = failureFacade,
             storageFacade = StorageFacade(),
             accessTokenFacade = accessTokenFacade,
-            statisticsFacade = StatisticsFacade(logger, DailyDateIntervalProvider.toReference(), InMemoryStatisticsRepository()),
+            statisticsFacade = StatisticsFacade(logger, Reference.reference(false), DailyDateIntervalProvider.toReference(), InMemoryStatisticsRepository()),
             mavenSettings = reference(MavenSettings(
                 repositories = repositories()
             )),
