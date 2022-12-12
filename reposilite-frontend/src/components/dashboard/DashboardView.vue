@@ -54,6 +54,7 @@ client.value.statistics.allResolved()
 const chartOptions = {
   chart: {
     id: "reposilite-requests-over-time",
+    stacked: true
   },
   xaxis: {
     type: 'datetime'
@@ -96,9 +97,9 @@ const chartOptions = {
     <div v-if="statisticsEnabled">
       <h1 class="font-bold py-6 text-lg">Requests over time</h1>
       <VueApexCharts 
+        class="dark:text-black"
         width="100%"
         type="area"
-        :stacked="true"
         :options="chartOptions"
         :series="resolvedSeries"
       />
