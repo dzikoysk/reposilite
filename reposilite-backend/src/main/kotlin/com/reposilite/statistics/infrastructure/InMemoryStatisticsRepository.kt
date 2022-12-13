@@ -22,7 +22,7 @@ import com.reposilite.statistics.api.IntervalRecord
 import com.reposilite.statistics.api.RepositoryStatistics
 import com.reposilite.statistics.api.ResolvedEntry
 import java.time.LocalDate
-import java.time.ZoneId
+import java.time.ZoneOffset
 
 internal class InMemoryStatisticsRepository : StatisticsRepository {
 
@@ -55,7 +55,7 @@ internal class InMemoryStatisticsRepository : StatisticsRepository {
         resolvedRequests
             .groupBy(
                 keySelector = { it.identifier.repository },
-                valueTransform = { IntervalRecord(it.date.atStartOfDay(ZoneId.systemDefault()).toEpochSecond() * 1000, it.count) }
+                valueTransform = { IntervalRecord((it.date.atStartOfDay().toEpochSecond(ZoneOffset.UTC) * 1000), it.count) }
             )
             .map { RepositoryStatistics(it.key, it.value) }
 

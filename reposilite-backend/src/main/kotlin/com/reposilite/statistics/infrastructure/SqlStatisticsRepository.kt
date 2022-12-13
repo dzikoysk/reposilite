@@ -46,7 +46,7 @@ import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
 import panda.std.firstAndMap
 import java.time.LocalDate
-import java.time.ZoneId
+import java.time.ZoneOffset
 import java.util.UUID
 
 @Suppress("RemoveRedundantQualifierName")
@@ -168,7 +168,7 @@ internal class SqlStatisticsRepository(private val database: Database, runMigrat
                 .map { Triple(it[IdentifierTable.repository], it[ResolvedTable.date], it[ResolvedTable.count.sum()]) }
                 .groupBy(
                     keySelector = { (repository, _, _) -> repository },
-                    valueTransform = { (_, date, count) -> IntervalRecord(date.atStartOfDay(ZoneId.systemDefault()).toEpochSecond() * 1000, count ?: 0) }
+                    valueTransform = { (_, date, count) -> IntervalRecord(date.atStartOfDay().toEpochSecond(ZoneOffset.UTC) * 1000, count ?: 0) }
                 )
                 .mapValues { (_, records) -> records.sortedBy { it.date } }
                 .map { (repository, records) -> RepositoryStatistics(repository, records) }

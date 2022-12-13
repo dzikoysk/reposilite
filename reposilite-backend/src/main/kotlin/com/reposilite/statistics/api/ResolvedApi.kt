@@ -31,6 +31,7 @@ data class RepositoryStatistics(
 )
 
 data class IntervalRecord(
+    /** Epoch millis in UTC */
     val date: Long,
     val count: Long
 )

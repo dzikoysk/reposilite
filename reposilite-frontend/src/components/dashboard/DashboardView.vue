@@ -32,7 +32,7 @@ setInterval(function requestStatus() {
   }
 
   return requestStatus
-}(), 3000)
+}(), 5000)
 
 client.value.statistics.allResolved()
   .then(response => response.data)
@@ -95,7 +95,7 @@ const chartOptions = {
       />
     </div>
     <div v-if="statisticsEnabled">
-      <h1 class="font-bold py-6 text-lg">Requests over time</h1>
+      <h1 class="font-bold py-6 text-lg">Resolved requests</h1>
       <VueApexCharts 
         class="dark:text-black"
         width="100%"
