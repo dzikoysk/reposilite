@@ -28,7 +28,7 @@ import com.reposilite.journalist.Journalist
 import com.reposilite.shared.ContextDsl
 import com.reposilite.shared.extensions.response
 import com.reposilite.shared.extensions.uri
-import com.reposilite.shared.extractFromHeaders
+import com.reposilite.shared.extractFromHeader
 import com.reposilite.status.FailureFacade
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.web.api.HttpServerConfigurationEvent
@@ -40,6 +40,7 @@ import com.reposilite.web.infrastructure.EndpointAccessLoggingHandler
 import com.reposilite.web.routing.RoutingPlugin
 import io.javalin.community.ssl.SSLPlugin
 import io.javalin.config.JavalinConfig
+import io.javalin.http.Header
 import io.javalin.json.JavalinJackson
 import io.javalin.openapi.OpenApiInfo
 import io.javalin.openapi.plugin.OpenApiConfiguration
@@ -112,7 +113,7 @@ internal object JavalinConfiguration {
                         ctx,
                         accessTokenFacade,
                         lazy {
-                            extractFromHeaders(ctx.headerMap())
+                            extractFromHeader(ctx.header(Header.AUTHORIZATION))
                                 .map { (name, secret) -> Credentials(name, secret) }
                                 .flatMap { authenticationFacade.authenticateByCredentials(it) }
                         }
