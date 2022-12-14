@@ -21,8 +21,6 @@ import com.reposilite.maven.api.Identifier
 import com.reposilite.maven.api.REPOSITORY_NAME_MAX_LENGTH
 import com.reposilite.shared.extensions.executeQuery
 import com.reposilite.statistics.StatisticsRepository
-import com.reposilite.statistics.api.IntervalRecord
-import com.reposilite.statistics.api.RepositoryStatistics
 import com.reposilite.statistics.api.ResolvedEntry
 import net.dzikoysk.exposed.upsert.upsert
 import net.dzikoysk.exposed.upsert.withUnique
@@ -46,7 +44,6 @@ import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
 import panda.std.firstAndMap
 import java.time.LocalDate
-import java.time.ZoneOffset
 import java.util.UUID
 
 @Suppress("RemoveRedundantQualifierName")
@@ -157,7 +154,7 @@ internal class SqlStatisticsRepository(private val database: Database, runMigrat
                 .map { ResolvedEntry(it[IdentifierTable.gav], it[resolvedSum] ?: 0) }
         }
 
-    override fun getAllResolvedRequestsPerRepositoryAsTimeseries(): List<RepositoryStatistics> =
+    override fun getAllResolvedRequestsPerRepositoryAsTimeSeries(): Map<String, Map<LocalDate, Long>> =
         transaction(database) {
             val start = LocalDate.now().minusYears(1).minusDays(1)
 
@@ -165,14 +162,13 @@ internal class SqlStatisticsRepository(private val database: Database, runMigrat
                 .slice(IdentifierTable.repository, ResolvedTable.date, ResolvedTable.count.sum())
                 .select { ResolvedTable.date greater start  }
                 .groupBy(IdentifierTable.repository, ResolvedTable.date)
+                .asSequence()
                 .map { Triple(it[IdentifierTable.repository], it[ResolvedTable.date], it[ResolvedTable.count.sum()]) }
                 .groupBy(
                     keySelector = { (repository, _, _) -> repository },
-                    valueTransform = { (_, date, count) -> IntervalRecord(date.atStartOfDay().toEpochSecond(ZoneOffset.UTC) * 1000, count ?: 0) }
+                    valueTransform = { (_, date, count) -> date to (count ?: 0) }
                 )
-                .mapValues { (_, records) -> records.sortedBy { it.date } }
-                .map { (repository, records) -> RepositoryStatistics(repository, records) }
-                .sortedBy { it.name }
+                .mapValues { (_, records) -> records.toMap() }
         }
 
     override fun countUniqueResolvedRequests(): Long =

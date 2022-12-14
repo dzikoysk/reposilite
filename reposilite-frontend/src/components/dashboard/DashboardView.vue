@@ -23,7 +23,7 @@ setInterval(function requestStatus() {
     client.value.status.instance()
       .then(response => response.data)
       .then(instanceStatusData => {
-        instanceStatus.value = instanceStatusData
+        console.log(instanceStatusData)
       })
       .catch((error) => {
         createErrorToast(`Cannot load instance status`)
@@ -37,13 +37,16 @@ setInterval(function requestStatus() {
 client.value.statistics.allResolved()
   .then(response => response.data)
   .then(allResolved => {
-    console.log(allResolved)
     resolvedSeries.value = allResolved.repositories.map(repositoryStatistics => {
       return {
         name: repositoryStatistics.name,
-        data: repositoryStatistics.data.map(record => [record.date, record.count])
+        data: repositoryStatistics.data.map(record => ({
+          x: record.date,
+          y: record.count
+        }))
       }
     })
+    console.log(resolvedSeries.value)
     statisticsEnabled.value = allResolved.statisticsEnabled
   })
   .catch(error => {
@@ -56,11 +59,26 @@ const chartOptions = {
     id: "reposilite-requests-over-time",
     stacked: true
   },
+  tooltip: {
+    shared: true,
+  },
   xaxis: {
-    type: 'datetime'
+    type: 'datetime',
+    axisBorder: {
+      show: false
+    },
+    axisTicks: {
+      show: false
+    }
   },
   dataLabels: {
     enabled: false
+  },
+  dropShadow: {
+    enabled: true,
+  },
+  onDatasetHover: {
+    highlightDataSeries: true
   }
 }
 </script>

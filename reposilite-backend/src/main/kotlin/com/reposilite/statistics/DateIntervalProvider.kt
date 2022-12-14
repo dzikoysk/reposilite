@@ -22,9 +22,10 @@ import com.reposilite.statistics.api.ResolvedRequestsInterval.MONTHLY
 import com.reposilite.statistics.api.ResolvedRequestsInterval.WEEKLY
 import com.reposilite.statistics.api.ResolvedRequestsInterval.YEARLY
 import java.time.LocalDate
+import java.time.ZoneOffset
 import java.time.temporal.TemporalAdjusters
 import java.time.temporal.WeekFields
-import java.util.*
+import java.util.Locale
 
 fun createDateIntervalProvider(mode: ResolvedRequestsInterval): DateIntervalProvider = when (mode) {
     DAILY -> DailyDateIntervalProvider
@@ -37,12 +38,17 @@ sealed interface DateIntervalProvider {
 
     fun createDate(): LocalDate
 
+    fun createTimeSeries(): List<LocalDate>
+
 }
 
 internal object DailyDateIntervalProvider : DateIntervalProvider {
 
     override fun createDate(): LocalDate =
         LocalDate.now()
+
+    override fun createTimeSeries(): List<LocalDate> =
+        (0..364).map { createDate().minusDays(it.toLong()) }
 
 }
 
@@ -53,12 +59,18 @@ internal object WeeklyDateIntervalProvider : DateIntervalProvider {
     override fun createDate(): LocalDate =
         LocalDate.now().with(TemporalAdjusters.previousOrSame(firstDayOfWeek))
 
+    override fun createTimeSeries(): List<LocalDate> =
+        (0..51).map { createDate().minusWeeks(it.toLong()) }
+
 }
 
 internal object MonthlyDateIntervalProvider : DateIntervalProvider {
 
     override fun createDate(): LocalDate =
         LocalDate.now().with(TemporalAdjusters.firstDayOfMonth())
+
+    override fun createTimeSeries(): List<LocalDate> =
+        (0..11).map { createDate().minusMonths(it.toLong()) }
 
 }
 
@@ -67,4 +79,10 @@ internal object YearlyDateIntervalProvider : DateIntervalProvider {
     override fun createDate(): LocalDate =
         LocalDate.now().with(TemporalAdjusters.firstDayOfYear())
 
+    override fun createTimeSeries(): List<LocalDate> =
+        listOf(createDate())
+
 }
+
+fun LocalDate.toUTCMillis(): Long =
+    atStartOfDay().toEpochSecond(ZoneOffset.UTC) * 1000

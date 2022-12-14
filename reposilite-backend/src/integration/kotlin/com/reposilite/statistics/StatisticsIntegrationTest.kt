@@ -39,7 +39,6 @@ import org.junit.jupiter.api.extension.ExtendWith
 import panda.std.component1
 import java.time.LocalDate
 import java.time.Month
-import java.time.ZoneId
 
 @ExtendWith(ExperimentalRemoteSpecficiationJunitExtension::class)
 internal class ExperimentalRemoteStatisticsIntegrationTest : StatisticsIntegrationTest()
@@ -151,7 +150,7 @@ internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecifi
                             data = Month.values()
                                 .map { month ->
                                     IntervalRecord(
-                                        date = LocalDate.of(2022, month, 1).atStartOfDay(ZoneId.systemDefault()).toEpochSecond() * 1000,
+                                        date = LocalDate.of(2022, month, 1).toUTCMillis(),
                                         count = 2L * month.ordinal
                                     )
                                 }

@@ -18,11 +18,8 @@ package com.reposilite.statistics.infrastructure
 
 import com.reposilite.maven.api.Identifier
 import com.reposilite.statistics.StatisticsRepository
-import com.reposilite.statistics.api.IntervalRecord
-import com.reposilite.statistics.api.RepositoryStatistics
 import com.reposilite.statistics.api.ResolvedEntry
 import java.time.LocalDate
-import java.time.ZoneOffset
 
 internal class InMemoryStatisticsRepository : StatisticsRepository {
 
@@ -51,13 +48,13 @@ internal class InMemoryStatisticsRepository : StatisticsRepository {
             .map { (identifier, _, count) -> ResolvedEntry(identifier.gav, count) }
             .toList()
 
-    override fun getAllResolvedRequestsPerRepositoryAsTimeseries(): Collection<RepositoryStatistics> =
+    override fun getAllResolvedRequestsPerRepositoryAsTimeSeries(): Map<String, Map<LocalDate, Long>> =
         resolvedRequests
             .groupBy(
                 keySelector = { it.identifier.repository },
-                valueTransform = { IntervalRecord((it.date.atStartOfDay().toEpochSecond(ZoneOffset.UTC) * 1000), it.count) }
+                valueTransform = { it.date to it.count }
             )
-            .map { RepositoryStatistics(it.key, it.value) }
+            .mapValues { (_, records) -> records.toMap() }
 
     override fun countUniqueResolvedRequests(): Long =
         resolvedRequests.size.toLong()

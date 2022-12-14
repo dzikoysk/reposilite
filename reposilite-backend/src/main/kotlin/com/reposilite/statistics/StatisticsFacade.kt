@@ -23,6 +23,8 @@ import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.badRequestError
 import com.reposilite.statistics.api.AllResolvedResponse
 import com.reposilite.statistics.api.IncrementResolvedRequest
+import com.reposilite.statistics.api.IntervalRecord
+import com.reposilite.statistics.api.RepositoryStatistics
 import com.reposilite.statistics.api.ResolvedCountResponse
 import panda.std.Result
 import panda.std.asSuccess
@@ -68,8 +70,28 @@ class StatisticsFacade internal constructor(
 
     fun getAllResolvedStatistics(): Result<AllResolvedResponse, ErrorResponse> =
         when {
-            statisticsEnabled.get() -> AllResolvedResponse(repositories = statisticsRepository.getAllResolvedRequestsPerRepositoryAsTimeseries())
-            else -> AllResolvedResponse(statisticsEnabled = false)
+            statisticsEnabled.get() ->
+                AllResolvedResponse(
+                    repositories =
+                        statisticsRepository.getAllResolvedRequestsPerRepositoryAsTimeSeries()
+                            .mapValues { (_, records) ->
+                                val timeSeries = dateIntervalProvider
+                                    .map { it.createTimeSeries() }
+                                    .associateWith { 0L }
+
+                                (timeSeries + records)
+                                    .asSequence()
+                                    .map { (date, count) -> IntervalRecord(date.toUTCMillis(), count) }
+                                    .sortedBy { it.date }
+                                    .toList()
+                            }
+                            .asSequence()
+                            .map { (repository, records) -> RepositoryStatistics(repository, records) }
+                            .sortedWith(compareBy({ it.data.sumOf { it.count } }, { it.name }))
+                            .toList()
+                )
+            else ->
+                AllResolvedResponse(statisticsEnabled = false)
         }.asSuccess()
 
     fun countUniqueRecords(): Long =
