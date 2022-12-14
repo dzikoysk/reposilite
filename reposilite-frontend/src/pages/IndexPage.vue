@@ -15,14 +15,16 @@
   -->
 
 <script setup>
-import { computed, ref, watchEffect } from 'vue'
+import { computed, ref, watchEffect, defineAsyncComponent } from 'vue'
 import { useSession } from '../store/session'
 import useQualifier from '../helpers/qualifier'
 import DefaultHeader from '../components/header/DefaultHeader.vue'
 import FileBrowserView from '../components/browser/FileBrowserView.vue'
-import ConsoleView from '../components/console/ConsoleView.vue'
-import SettingsView from '../components/settings/SettingsView.vue'
 import {Tabs, Tab, TabPanels, TabPanel} from 'vue3-tabs'
+
+const ConsoleView = defineAsyncComponent(() => import('../components/console/ConsoleView.vue'))
+const DashboardView = defineAsyncComponent(() => import('../components/dashboard/DashboardView.vue'))
+const SettingsView = defineAsyncComponent(() => import('../components/settings/SettingsView.vue'))
 
 defineProps({
   qualifier: {
@@ -33,6 +35,7 @@ defineProps({
 
 const listOfTabs = [
   { name: 'Overview' },
+  { name: 'Dashboard', manager: true },
   { name: 'Console', manager: true },
   { name: 'Settings', manager: true },
 ]
@@ -85,13 +88,16 @@ const selectHomepage = () =>
       <div class="overflow-auto">
         <TabPanels v-model="selectedTab">
           <TabPanel :val="'Overview'">
-            <FileBrowserView :qualifier="qualifier" ref=""/>
+            <FileBrowserView v-if="selectedTab == 'Overview'" :qualifier="qualifier" ref=""/>
+          </TabPanel>
+          <TabPanel :val="'Dashboard'" v-if="isManager">
+            <DashboardView v-if="selectedTab == 'Dashboard'" :selectedTab="selectedTab" />
           </TabPanel>
           <TabPanel :val="'Console'" v-if="isManager">
-            <ConsoleView :selectedTab="selectedTab" />
+            <ConsoleView v-if="selectedTab == 'Console'" :selectedTab="selectedTab" />
           </TabPanel>
            <TabPanel :val="'Settings'" v-if="isManager">
-            <SettingsView :selectedTab="selectedTab" />
+            <SettingsView v-if="selectedTab == 'Settings'" :selectedTab="selectedTab" />
           </TabPanel>
         </TabPanels>
       </div>

@@ -20,29 +20,46 @@ import com.reposilite.maven.api.Identifier
 import com.reposilite.statistics.StatisticsRepository
 import com.reposilite.statistics.api.ResolvedEntry
 import java.time.LocalDate
-import java.util.concurrent.ConcurrentHashMap
 
 internal class InMemoryStatisticsRepository : StatisticsRepository {
 
-    private val resolvedRequests = ConcurrentHashMap<Identifier, Long>()
+    private data class ResolvedRequest(
+        val identifier: Identifier,
+        val date: LocalDate,
+        var count: Long
+    )
+
+    private val resolvedRequests = ArrayList<ResolvedRequest>()
 
     override fun incrementResolvedRequests(requests: Map<Identifier, Long>, date: LocalDate) =
         requests.forEach { (identifier, count) ->
-            resolvedRequests.merge(identifier, count) { oldCount, value -> oldCount + value }
+            resolvedRequests
+                .firstOrNull { it.identifier == identifier }
+                ?.let { it.count += count }
+                ?: resolvedRequests.add(ResolvedRequest(identifier, date, count))
         }
 
     override fun findResolvedRequestsByPhrase(repository: String, phrase: String, limit: Int): List<ResolvedEntry> =
         resolvedRequests.asSequence()
+            .filter { it.identifier.repository == repository }
             .filter { (identifier) -> identifier.toString().contains(phrase) }
             .sortedByDescending { (_, count) -> count }
             .take(limit)
-            .map { (identifier, count) -> ResolvedEntry(identifier.gav, count) }
+            .map { (identifier, _, count) -> ResolvedEntry(identifier.gav, count) }
             .toList()
+
+    override fun getAllResolvedRequestsPerRepositoryAsTimeSeries(): Map<String, Map<LocalDate, Long>> =
+        resolvedRequests
+            .groupBy(
+                keySelector = { it.identifier.repository },
+                valueTransform = { it.date to it.count }
+            )
+            .mapValues { (_, records) -> records.toMap() }
 
     override fun countUniqueResolvedRequests(): Long =
         resolvedRequests.size.toLong()
 
     override fun countResolvedRequests(): Long =
-        resolvedRequests.map { it.value }.sum()
+        resolvedRequests.sumOf { it.count }
 
 }

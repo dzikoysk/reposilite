@@ -16,6 +16,7 @@
 
 package com.reposilite.status.application
 
+import com.reposilite.configuration.local.LocalConfiguration
 import com.reposilite.console.ConsoleFacade
 import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposiliteInitializeEvent
@@ -26,39 +27,50 @@ import com.reposilite.plugin.facade
 import com.reposilite.plugin.parameters
 import com.reposilite.plugin.reposilite
 import com.reposilite.shared.extensions.TimeUtils
+import com.reposilite.status.FailureFacade
 import com.reposilite.status.FailuresCommand
 import com.reposilite.status.StatusCommand
 import com.reposilite.status.StatusFacade
-import com.reposilite.status.infrastructure.RouteAccessHandler
+import com.reposilite.status.infrastructure.StatusEndpoints
 import com.reposilite.web.HttpServer
 import com.reposilite.web.api.HttpServerStoppedEvent
 import com.reposilite.web.api.RoutingSetupEvent
 import panda.std.reactive.Completable
+import panda.std.reactive.Reference.Dependencies.dependencies
+import panda.std.reactive.Reference.computed
 
-@Plugin(name = "status", dependencies = ["console", "failure"])
+@Plugin(name = "status", dependencies = ["console", "failure", "local-configuration"])
 internal class StatusPlugin : ReposilitePlugin() {
 
     private val remoteVersionEndpoint = "https://maven.reposilite.com/api/maven/latest/version/releases/com/reposilite/reposilite?type=raw"
 
     override fun initialize(): StatusFacade {
         val webServer = Completable<HttpServer>()
+        val failureFacade = facade<FailureFacade>()
+        val localConfiguration = facade<LocalConfiguration>()
 
         val statusFacade = StatusComponents(
             testEnv = parameters().testEnv,
+            failureFacade = failureFacade,
             remoteVersionEndpoint = remoteVersionEndpoint,
-            statusSupplier = { if (webServer.isReady) webServer.get().isAlive() else false }
+            statusSupplier = { if (webServer.isReady) webServer.get().isAlive() else false },
+            maxThreads = with (localConfiguration) {
+                computed(dependencies(webThreadPool, ioThreadPool, databaseThreadPool)) {
+                    webThreadPool.get() + ioThreadPool.get() + databaseThreadPool.get()
+                }
+            }
         ).statusFacade()
 
         val consoleFacade = facade<ConsoleFacade>()
 
         event { _: ReposiliteInitializeEvent ->
             webServer.complete(reposilite().webServer)
-            consoleFacade.registerCommand(FailuresCommand(facade()))
-            consoleFacade.registerCommand(StatusCommand(statusFacade, facade()))
+            consoleFacade.registerCommand(FailuresCommand(failureFacade))
+            consoleFacade.registerCommand(StatusCommand(statusFacade))
         }
 
         event { event: RoutingSetupEvent ->
-            event.registerRoutes(RouteAccessHandler())
+            event.registerRoutes(StatusEndpoints(statusFacade, failureFacade))
         }
 
         event { _: ReposiliteStartedEvent ->

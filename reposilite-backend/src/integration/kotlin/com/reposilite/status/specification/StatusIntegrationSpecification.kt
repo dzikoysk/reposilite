@@ -14,18 +14,10 @@
  * limitations under the License.
  */
 
-package com.reposilite.status.infrastructure
+package com.reposilite.status.specification
 
-import com.reposilite.web.api.ReposiliteRoute
-import com.reposilite.web.api.ReposiliteRoutes
-import com.reposilite.web.routing.RouteMethod.BEFORE
+import com.reposilite.specification.ReposiliteSpecification
 
-internal class RouteAccessHandler : ReposiliteRoutes() {
-
-    private val collectRequests = ReposiliteRoute<Unit>("/<*>", BEFORE) {
-        logger.debug("${ctx.method()} $uri from ${ctx.ip()}")
-    }
-
-    override val routes = routes(collectRequests)
+internal abstract class StatusIntegrationSpecification : ReposiliteSpecification() {
 
 }

@@ -43,6 +43,20 @@ const createFileDetails = (name, contentType, contentLength) =>
 const createDirectoryDetails = (name, files) =>
   ({ type: 'DIRECTORY', name, files })
 
+const generateDayWiseTimeSeries = (baseval, count, yrange) => {
+  let i = 0
+  const series = []
+  while (i < count) {
+    series.push({
+      date: baseval,
+      count: Math.floor(Math.random() * (yrange.max - yrange.min + 1)) + yrange.min
+    })
+    baseval += 86400000
+    i++
+  }
+  return series
+}
+   
 module.exports = {
   respond,
   basicAuth,
@@ -51,4 +65,5 @@ module.exports = {
   sendMessage,
   createFileDetails,
   createDirectoryDetails,
+  generateDayWiseTimeSeries
 }

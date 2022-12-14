@@ -19,6 +19,7 @@ package com.reposilite.statistics.infrastructure
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.statistics.MAX_PAGE_SIZE
 import com.reposilite.statistics.StatisticsFacade
+import com.reposilite.statistics.api.AllResolvedResponse
 import com.reposilite.statistics.api.ResolvedCountResponse
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
@@ -67,6 +68,21 @@ internal class StatisticsEndpoint(private val statisticsFacade: StatisticsFacade
         }
     }
 
-    override val routes = routes(findCountByPhrase, findUniqueCount)
+    @OpenApi(
+        tags = ["Statistics"],
+        path = "/api/statistics/resolved/all",
+        methods = [HttpMethod.GET],
+        responses = [
+            OpenApiResponse("200", content = [ OpenApiContent(from = AllResolvedResponse::class) ], description = "Aggregated list of statistics per each repository"),
+            OpenApiResponse("401", content = [ OpenApiContent(from = ErrorResponse::class) ], description = "When non-manager token is used")
+        ]
+    )
+    val getAllStatistics = ReposiliteRoute<AllResolvedResponse>("/api/statistics/resolved/all", GET) {
+        managerOnly {
+            response = statisticsFacade.getAllResolvedStatistics()
+        }
+    }
+
+    override val routes = routes(findCountByPhrase, findUniqueCount, getAllStatistics)
 
 }

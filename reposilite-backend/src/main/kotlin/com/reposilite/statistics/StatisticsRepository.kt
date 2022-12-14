@@ -27,6 +27,8 @@ interface StatisticsRepository {
 
     fun findResolvedRequestsByPhrase(repository: String, phrase: String, limit: Int = MAX_VALUE): List<ResolvedEntry>
 
+    fun getAllResolvedRequestsPerRepositoryAsTimeSeries(): Map<String, Map<LocalDate, Long>>
+
     fun countUniqueResolvedRequests(): Long
 
     fun countResolvedRequests(): Long

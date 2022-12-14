@@ -26,6 +26,7 @@ class StatisticsComponents(
     fun statisticsFacade(statisticsRepository: StatisticsRepository = statisticsRepository()): StatisticsFacade =
         StatisticsFacade(
             journalist = journalist,
+            statisticsEnabled = statisticsSettings.computed { it.enabled },
             dateIntervalProvider = statisticsSettings.computed { createDateIntervalProvider(it.resolvedRequestsInterval) },
             statisticsRepository = statisticsRepository
         )

@@ -64,6 +64,16 @@ const createClient = (defaultName, defaultSecret) => {
       },
     },
     console: {},
+    status: {
+      instance() {
+        return get("/api/status/instance")
+      }
+    },
+    statistics: {
+      allResolved() {
+        return get("/api/statistics/resolved/all")
+      }
+    },
     maven: {
       content(gav) {
         return get(`/${gav}`)

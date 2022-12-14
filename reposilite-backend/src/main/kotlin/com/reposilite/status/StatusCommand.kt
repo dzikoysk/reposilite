@@ -19,24 +19,32 @@ package com.reposilite.status
 import com.reposilite.VERSION
 import com.reposilite.console.CommandContext
 import com.reposilite.console.api.ReposiliteCommand
+import com.reposilite.shared.extensions.TimeUtils
+import panda.utilities.console.Effect.GREEN
 import panda.utilities.console.Effect.GREEN_BOLD
+import panda.utilities.console.Effect.RED_UNDERLINED
 import panda.utilities.console.Effect.RESET
 import picocli.CommandLine.Command
 
 @Command(name = "status", description = ["Display summary status of app health"])
-internal class StatusCommand(
-    private val statusFacade: StatusFacade,
-    private val failureFacade: FailureFacade
-) : ReposiliteCommand {
+internal class StatusCommand(private val statusFacade: StatusFacade) : ReposiliteCommand {
 
     override fun execute(context: CommandContext) {
-        context.append("Reposilite $VERSION Status")
-        context.append("  Active: $GREEN_BOLD${statusFacade.isAlive()}$RESET")
-        context.append("  Uptime: ${statusFacade.uptime()}")
-        context.append("  Memory usage of process: ${statusFacade.memoryUsage()}")
-        context.append("  Active threads in group: ${statusFacade.threadGroupUsage()}")
-        context.append("  Recorded failures: ${failureFacade.getFailures().size}")
-        context.append("  Latest version of Reposilite: ${statusFacade.getLatestVersion()}")
+        statusFacade.fetchInstanceStatus().apply {
+            context.append("Reposilite $VERSION Status")
+            context.append("  Active: $GREEN_BOLD${statusFacade.isAlive()}$RESET")
+            context.append("  Uptime: ${TimeUtils.getPrettyUptimeInMinutes(uptime)}")
+            context.append("  Memory usage of process: ${TimeUtils.format(usedMemory)}M")
+            context.append("  Active threads in group: $usedThreads")
+            context.append("  Recorded failures: $failuresCount")
+        }
+
+        statusFacade.getLatestVersion()
+            .fold(
+                { "${if (VERSION == it) GREEN else RED_UNDERLINED}$it$RESET" },
+                { "$RED_UNDERLINED$it${RESET}" }
+            )
+            .let { coloredStatus -> context.append("  Latest version of Reposilite: $coloredStatus") }
     }
 
 }

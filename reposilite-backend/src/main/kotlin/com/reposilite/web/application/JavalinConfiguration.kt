@@ -36,6 +36,7 @@ import com.reposilite.web.api.HttpServerStarted
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.RoutingSetupEvent
 import com.reposilite.web.infrastructure.CacheBypassHandler
+import com.reposilite.web.infrastructure.EndpointAccessLoggingHandler
 import com.reposilite.web.routing.RoutingPlugin
 import io.javalin.community.ssl.SSLPlugin
 import io.javalin.config.JavalinConfig
@@ -43,11 +44,11 @@ import io.javalin.json.JavalinJackson
 import io.javalin.openapi.OpenApiInfo
 import io.javalin.openapi.plugin.OpenApiConfiguration
 import io.javalin.openapi.plugin.OpenApiPlugin
-import java.util.function.Consumer
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.util.thread.ThreadPool
 import panda.std.reactive.Reference
+import java.util.function.Consumer
 
 internal object JavalinConfiguration {
 
@@ -69,6 +70,7 @@ internal object JavalinConfiguration {
 
         if (localConfiguration.bypassExternalCache.get()) {
             reposilite.extensions.registerEvent { event: RoutingSetupEvent ->
+                event.registerRoutes(EndpointAccessLoggingHandler())
                 event.registerRoutes(CacheBypassHandler())
                 reposilite.logger.debug("CacheBypassHandler has been registered")
             }

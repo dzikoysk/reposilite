@@ -154,6 +154,23 @@ internal class SqlStatisticsRepository(private val database: Database, runMigrat
                 .map { ResolvedEntry(it[IdentifierTable.gav], it[resolvedSum] ?: 0) }
         }
 
+    override fun getAllResolvedRequestsPerRepositoryAsTimeSeries(): Map<String, Map<LocalDate, Long>> =
+        transaction(database) {
+            val start = LocalDate.now().minusYears(1).minusDays(1)
+
+            ResolvedTable.leftJoin(IdentifierTable, { ResolvedTable.identifierId }, { IdentifierTable.id })
+                .slice(IdentifierTable.repository, ResolvedTable.date, ResolvedTable.count.sum())
+                .select { ResolvedTable.date greater start  }
+                .groupBy(IdentifierTable.repository, ResolvedTable.date)
+                .asSequence()
+                .map { Triple(it[IdentifierTable.repository], it[ResolvedTable.date], it[ResolvedTable.count.sum()]) }
+                .groupBy(
+                    keySelector = { (repository, _, _) -> repository },
+                    valueTransform = { (_, date, count) -> date to (count ?: 0) }
+                )
+                .mapValues { (_, records) -> records.toMap() }
+        }
+
     override fun countUniqueResolvedRequests(): Long =
         transaction(database) {
             ResolvedTable.selectAll()
@@ -168,7 +185,7 @@ internal class SqlStatisticsRepository(private val database: Database, runMigrat
                     .selectAll()
                     .firstAndMap { it[this] }
             }
-                ?: 0
+            ?: 0
         }
 
 }

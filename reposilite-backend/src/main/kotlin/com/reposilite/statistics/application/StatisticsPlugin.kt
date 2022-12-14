@@ -49,8 +49,10 @@ internal class StatisticsPlugin : ReposilitePlugin() {
 
         event { _: ReposiliteInitializeEvent ->
             reposilite().scheduler.scheduleWithFixedDelay({
-                reposilite().ioService.execute {
-                    statisticsFacade.saveRecordsBulk()
+                if (statisticsFacade.statisticsEnabled().get()) {
+                    reposilite().ioService.execute {
+                        statisticsFacade.saveRecordsBulk()
+                    }
                 }
             }, 10, 10, SECONDS)
         }
