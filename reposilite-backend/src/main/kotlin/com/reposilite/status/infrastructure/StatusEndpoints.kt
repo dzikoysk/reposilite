@@ -1,6 +1,5 @@
 package com.reposilite.status.infrastructure
 
-import com.reposilite.VERSION
 import com.reposilite.status.FailureFacade
 import com.reposilite.status.StatusFacade
 import com.reposilite.status.api.InstanceStatusResponse
@@ -24,13 +23,7 @@ internal class StatusEndpoints(private val statusFacade: StatusFacade, val failu
     )
     private val collectRequests = ReposiliteRoute<InstanceStatusResponse>("/api/status/instance", GET) {
         managerOnly {
-            response = InstanceStatusResponse(
-                version = VERSION,
-                uptime = statusFacade.uptime(),
-                usedMemory = statusFacade.memoryUsage(),
-                usedThreads = statusFacade.threadGroupUsage(),
-                failuresCount = failureFacade.getFailures().size
-            ).asSuccess()
+            response = statusFacade.fetchInstanceStatus().asSuccess()
         }
     }
 

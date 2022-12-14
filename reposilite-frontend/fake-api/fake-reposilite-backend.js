@@ -36,6 +36,18 @@ let uploadedFiles = []
 let mavenSettingsSchema = require('./maven-settings-schema.json')
 let mavenSettingsEntity = require('./maven-settings-entity.json')
 
+let uptime = 1000
+let memory = 20
+let threads = 10
+let failures = 0
+
+setInterval(() => {
+  memory += Math.random() * 10
+  threads += 1
+  uptime += 5000
+  failures += 1
+}, 5000)
+
 const statisticsSeries = [
   {
     name: 'Releases',
@@ -196,14 +208,18 @@ application
   .get("/api/status/instance", (req, res) => {
     authorized(
       req,
-      () =>
+      () => {
         res.send({
           version: '3.2.0',
-          uptime: '21.37min',
-          usedMemory: (20 + (Math.random() * 10)).toFixed(2) + 'M',
-          usedThreads: 14,
-          failuresCount: 1
-        }),
+          latestVersion: '<unknown>',
+          uptime: uptime,
+          usedMemory: memory,
+          maxMemory: '32',
+          usedThreads: threads,
+          maxThreads: 64,
+          failuresCount: failures
+        })
+      },
       () => invalidCredentials(res)
     )
   })

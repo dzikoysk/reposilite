@@ -87,7 +87,7 @@ class StatisticsFacade internal constructor(
                             }
                             .asSequence()
                             .map { (repository, records) -> RepositoryStatistics(repository, records) }
-                            .sortedWith(compareBy({ it.data.sumOf { it.count } }, { it.name }))
+                            .sortedWith(compareBy({ repository -> -repository.data.sumOf { it.count } }, { it.name }))
                             .toList()
                 )
             else ->
