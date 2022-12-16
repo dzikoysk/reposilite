@@ -29,7 +29,6 @@ client.value.statistics.allResolved()
     createErrorToast(`Cannot load statistics`)
   })
 
-
 const chartOptions = {
   chart: {
     id: "reposilite-requests-over-time",
@@ -60,17 +59,20 @@ const chartOptions = {
     palette: 'palette10'
   },
   legend: {
-    offsetY: 10
+    itemMargin: {
+      vertical: 15
+    }
   }
 }
 </script>
 
 <template>
   <div v-if="statisticsEnabled">
-    <h1 class="font-bold py-6 text-lg">Resolved requests</h1>
+    <h1 class="font-bold text-lg">Resolved requests</h1>
     <VueApexCharts 
-      class="dark:text-black"
+      class="dark:text-black pt-2"
       width="100%"
+      height="320px"
       type="area"
       :options="chartOptions"
       :series="resolvedSeries"

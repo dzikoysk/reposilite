@@ -223,6 +223,26 @@ application
       () => invalidCredentials(res)
     )
   })
+  .get("/api/status/snapshots", (req, res) => {
+    authorized(
+      req,
+      () => {
+        res.send([
+          {
+            at: new Date().getTime() - (1000 * 60),
+            memory: 20,
+            threads: 11
+          },
+          {
+            at: new Date().getTime(),
+            memory: 10,
+            threads: 5
+          }
+        ])
+      },
+      () => invalidCredentials(res)
+    )
+  })
   .get("/api/statistics/resolved/all", (req, res) => {
     authorized(
       req,

@@ -18,7 +18,7 @@ defineProps({
 </script>
 
 <template>
-  <div class="py-6 w-1/6 mx-4 text-center border-2 border-xl rounded-xl border-gray-700">
+  <div class="py-3 w-1/6 mx-4 text-center border-2 border-xl rounded-xl border-gray-700">
     <a v-if="link" :href="link" target="_blank">
       <div class="flex text-blue-500 w-full justify-center">
         <h1 class="text-md pt-1">{{title}}</h1>

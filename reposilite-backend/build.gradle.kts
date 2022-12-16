@@ -34,14 +34,23 @@ application {
 
 dependencies {
     implementation(project(":reposilite-frontend"))
-    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.21.0")
+    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.22.0")
 
     val kotlin = "1.7.20"
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin")
     api("org.jetbrains:annotations:23.0.0")
 
-    val expressible = "1.2.1"
+    api("io.javalin:javalin:5.2.0")
+    api("io.javalin.community.openapi:javalin-openapi-plugin:5.2.0")
+    kapt("io.javalin.community.openapi:openapi-annotation-processor:5.2.0")
+    api("com.reposilite.javalin-rfcs:javalin-routing:5.0.0-SNAPSHOT")
+    api("io.javalin.community.ssl:ssl-plugin:5.2.0")
+
+    val springSecurityCrypto = "5.7.3"
+    implementation("org.springframework.security:spring-security-crypto:$springSecurityCrypto")
+
+    val expressible = "1.2.2"
     api("org.panda-lang:expressible:$expressible")
     api("org.panda-lang:expressible-kt:$expressible")
     testImplementation("org.panda-lang:expressible-junit:$expressible")
@@ -50,10 +59,10 @@ dependencies {
     api("net.dzikoysk:cdn:$cdn")
     api("net.dzikoysk:cdn-kt:$cdn")
 
-    val awssdk = "2.18.28"
+    val awssdk = "2.18.35"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
-    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.347")
+    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.364")
 
     val exposed = "0.41.1"
     implementation("org.jetbrains.exposed:exposed-core:$exposed")
@@ -69,17 +78,8 @@ dependencies {
     implementation("org.postgresql:postgresql:42.5.1")
     implementation("com.h2database:h2:2.1.214")
 
-    val springSecurityCrypto = "5.7.3"
-    implementation("org.springframework.security:spring-security-crypto:$springSecurityCrypto")
-
-    val ldap = "6.0.6"
+    val ldap = "6.0.7"
     testImplementation("com.unboundid:unboundid-ldapsdk:$ldap")
-
-    api("io.javalin:javalin:5.2.0")
-    api("io.javalin.community.openapi:javalin-openapi-plugin:5.2.0")
-    kapt("io.javalin.community.openapi:openapi-annotation-processor:5.2.0")
-    api("com.reposilite.javalin-rfcs:javalin-routing:5.0.0-SNAPSHOT")
-    api("io.javalin.community.ssl:ssl-plugin:5.2.0")
 
     val picocli = "4.7.0"
     kapt("info.picocli:picocli-codegen:$picocli")
@@ -111,7 +111,7 @@ dependencies {
     implementation("org.tinylog:tinylog-api:$tinylog")
     implementation("org.tinylog:tinylog-impl:$tinylog")
 
-    val unirest = "3.13.13"
+    val unirest = "3.14.1"
     testImplementation("com.konghq:unirest-java:$unirest")
     testImplementation("com.konghq:unirest-objectmapper-jackson:$unirest")
 

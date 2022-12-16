@@ -19,6 +19,7 @@ package com.reposilite.status.application
 import com.reposilite.configuration.local.LocalConfiguration
 import com.reposilite.console.ConsoleFacade
 import com.reposilite.plugin.api.Plugin
+import com.reposilite.plugin.api.ReposiliteDisposeEvent
 import com.reposilite.plugin.api.ReposiliteInitializeEvent
 import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.api.ReposiliteStartedEvent
@@ -31,6 +32,7 @@ import com.reposilite.status.FailureFacade
 import com.reposilite.status.FailuresCommand
 import com.reposilite.status.StatusCommand
 import com.reposilite.status.StatusFacade
+import com.reposilite.status.StatusSnapshotScheduler
 import com.reposilite.status.infrastructure.StatusEndpoints
 import com.reposilite.web.HttpServer
 import com.reposilite.web.api.HttpServerStoppedEvent
@@ -48,6 +50,7 @@ internal class StatusPlugin : ReposilitePlugin() {
         val webServer = Completable<HttpServer>()
         val failureFacade = facade<FailureFacade>()
         val localConfiguration = facade<LocalConfiguration>()
+        val consoleFacade = facade<ConsoleFacade>()
 
         val statusFacade = StatusComponents(
             testEnv = parameters().testEnv,
@@ -61,7 +64,12 @@ internal class StatusPlugin : ReposilitePlugin() {
             }
         ).statusFacade()
 
-        val consoleFacade = facade<ConsoleFacade>()
+        val statusSnapshotScheduler = StatusSnapshotScheduler(reposilite().scheduler, statusFacade)
+        statusSnapshotScheduler.start()
+
+        event { _: ReposiliteDisposeEvent ->
+            statusSnapshotScheduler.stop()
+        }
 
         event { _: ReposiliteInitializeEvent ->
             webServer.complete(reposilite().webServer)
@@ -74,15 +82,17 @@ internal class StatusPlugin : ReposilitePlugin() {
         }
 
         event { _: ReposiliteStartedEvent ->
-            logger.info("Done (${TimeUtils.getPrettyUptimeInSeconds(statusFacade.startTime)})!")
+            logger.info("Done (${TimeUtils.getPrettyUptimeInSeconds(statusFacade.getUptime())})!")
             logger.info("")
         }
 
         event { _: HttpServerStoppedEvent ->
-            logger.info("Bye! Uptime: " + TimeUtils.getPrettyUptimeInMinutes(statusFacade.startTime))
+            logger.info("Bye! Uptime: " + TimeUtils.getPrettyUptimeInMinutes(statusFacade.getUptime()))
         }
 
         return statusFacade
     }
+
+
 
 }

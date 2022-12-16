@@ -67,6 +67,9 @@ const createClient = (defaultName, defaultSecret) => {
     status: {
       instance() {
         return get("/api/status/instance")
+      },
+      snapshots() {
+        return get("/api/status/snapshots")
       }
     },
     statistics: {

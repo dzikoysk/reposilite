@@ -14,21 +14,26 @@
  * limitations under the License.
  */
 
+@file:Suppress("UnstableApiUsage")
+
 package com.reposilite.status
 
 import com.google.common.base.Supplier
 import com.google.common.base.Suppliers
+import com.google.common.collect.EvictingQueue
 import com.reposilite.VERSION
 import com.reposilite.plugin.api.Facade
 import com.reposilite.status.api.InstanceStatusResponse
+import com.reposilite.status.api.StatusSnapshot
 import panda.std.Result
 import panda.std.reactive.Reference
 import panda.utilities.IOUtils
 import java.util.concurrent.TimeUnit
+import kotlin.math.roundToInt
 
 class StatusFacade(
     private val testEnv: Boolean,
-    val startTime: Long = System.currentTimeMillis(),
+    private val startTime: Long = System.currentTimeMillis(),
     private val maxMemory: Long = Runtime.getRuntime().totalMemory(),
     private val maxThreads: Reference<Int>,
     private val status: () -> Boolean,
@@ -52,22 +57,49 @@ class StatusFacade(
         }
     }, 1, TimeUnit.HOURS)
 
-    fun isAlive(): Boolean =
-        status()
+    private val cachedStatusSnapshots = EvictingQueue.create<StatusSnapshot>(12)
+
+    init {
+        recordStatusSnapshot()
+    }
+
+    fun recordStatusSnapshot() {
+        cachedStatusSnapshots.add(
+            StatusSnapshot(
+                memory = getUsedMemory().roundToInt(),
+                threads = getUsedThreads()
+            )
+        )
+    }
 
     fun fetchInstanceStatus(): InstanceStatusResponse =
         InstanceStatusResponse(
             version = VERSION,
             latestVersion = cachedLatestVersion.get().fold({ it }, { it }),
-            uptime = System.currentTimeMillis() - startTime,
-            usedMemory = (maxMemory - Runtime.getRuntime().freeMemory()) / 1024.0 / 1024.0,
+            uptime = System.currentTimeMillis() - getUptime(),
+            usedMemory = getUsedMemory(),
             maxMemory = (maxMemory / 1024 / 1024).toInt(),
-            usedThreads =  Thread.activeCount(),
+            usedThreads = getUsedThreads(),
             maxThreads = maxThreads.get(),
             failuresCount = failureFacade.getFailures().size
         )
 
+    private fun getUsedThreads(): Int =
+        Thread.activeCount()
+
+    private fun getUsedMemory(): Double =
+        (maxMemory - Runtime.getRuntime().freeMemory()) / 1024.0 / 1024.0
+
     internal fun getLatestVersion(): Result<String, String> =
         cachedLatestVersion.get()
+
+    fun getLatestStatusSnapshots(): Array<StatusSnapshot> =
+        cachedStatusSnapshots.toTypedArray()
+
+    fun getUptime(): Long =
+        startTime
+
+    fun isAlive(): Boolean =
+        status()
 
 }

@@ -69,7 +69,7 @@ allprojects {
     version = rootProject.scmVersion.version
 
     repositories {
-        mavenCentral {
+        maven("https://maven.reposilite.com/maven-central") {
             mavenContent {
                 releasesOnly()
             }
