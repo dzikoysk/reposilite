@@ -98,11 +98,9 @@ Thanks to all contributors and people that decided to support my work financiall
     <a href="https://github.com/tipsy">tipsy</a>, 
     <a href="https://github.com/zugazagoitia">zugazagoitia</a>,
     <a href="https://github.com/neg4n">neg4n</a>, 
-    <a href="https://github.com/sebba-dev">sebba-dev</a>,
-    <a href="https://github.com/arthurr0">arthurr0</a>,
-    <a href="https://github.com/Rollczi">Rollczi</a>,
     <a href="https://github.com/mattwelke">mattwelke</a>,
-    <a href="https://github.com/bopke">bopke</a>
+    <a href="https://github.com/bopke">bopke</a>,
+    <a href="https://github.com/bopke">crejk</a>
   </td>
  </tr>
  <tr>
