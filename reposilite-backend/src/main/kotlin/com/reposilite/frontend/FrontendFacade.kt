@@ -20,6 +20,8 @@ import com.reposilite.plugin.api.Facade
 import org.intellij.lang.annotations.Language
 import panda.std.reactive.Reference
 import panda.std.reactive.computed
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 class FrontendFacade internal constructor(
     private val cacheContent: Reference<Boolean>,
@@ -30,6 +32,7 @@ class FrontendFacade internal constructor(
     private val resources = HashMap<String, String>(0)
     private val uriFormatter = Regex("/+") // exclude common typos from URI
     private val regexAntiXss = Regex("[^A-Za-z0-9/.\\- ]") // exclude custom non-standard characters from template
+    private val pathRegex = Regex("^/|/$")
 
     private val formattedBasePath = basePath.computed { // verify base path
         var formattedBasePath = it
@@ -60,8 +63,8 @@ class FrontendFacade internal constructor(
     private fun resolvePlaceholders(frontendSettings: FrontendSettings, source: String): String =
         with(frontendSettings) {
             source
-                .replace("{{REPOSILITE.BASE_PATH}}", formattedBasePath.get())
-                .replace("{{REPOSILITE.VITE_BASE_PATH}}", formattedBasePath.get().takeUnless { it == "" || it == "/" }?.replace(Regex("^/|/$"), "") ?: ".")
+                .resolvePathPlaceholder("{{REPOSILITE.BASE_PATH}}", formattedBasePath.get())
+                .resolvePathPlaceholder("{{REPOSILITE.VITE_BASE_PATH}}", getViteBasePath())
                 .replace("{{REPOSILITE.ID}}", id)
                 .replace("{{REPOSILITE.TITLE}}", title)
                 .replace("{{REPOSILITE.DESCRIPTION}}", description)
@@ -69,6 +72,20 @@ class FrontendFacade internal constructor(
                 .replace("{{REPOSILITE.ORGANIZATION_LOGO}}", organizationLogo)
                 .replace("{{REPOSILITE.ICP_LICENSE}}", icpLicense)
         }
+
+    private fun getViteBasePath(): String =
+        formattedBasePath.get()
+            .takeIf { hasCustomBasePath() }
+            ?.replace(pathRegex, "") // remove first & last slash
+            ?: "." // no custom base path
+
+    private fun hasCustomBasePath(): Boolean =
+        formattedBasePath.map { it != "" && it != "/" }
+
+    private fun String.resolvePathPlaceholder(placeholder: String, value: String): String =
+        this
+            .replace(placeholder, value)
+            .replace(URLEncoder.encode(placeholder, StandardCharsets.UTF_8), URLEncoder.encode(value, StandardCharsets.UTF_8))
 
     fun createNotFoundPage(originUri: String, details: String): String {
         val uri = originUri.replace(uriFormatter, "/")
