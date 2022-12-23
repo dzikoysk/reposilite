@@ -34,7 +34,6 @@ import kotlin.math.roundToInt
 class StatusFacade(
     private val testEnv: Boolean,
     private val startTime: Long = System.currentTimeMillis(),
-    private val maxMemory: Long = Runtime.getRuntime().totalMemory(),
     private val maxThreads: Reference<Int>,
     private val status: () -> Boolean,
     private val remoteVersionUrl: String,
@@ -58,6 +57,7 @@ class StatusFacade(
     }, 1, TimeUnit.HOURS)
 
     private val cachedStatusSnapshots = EvictingQueue.create<StatusSnapshot>(12)
+    private val runtime = Runtime.getRuntime()
 
     init {
         recordStatusSnapshot()
@@ -78,7 +78,7 @@ class StatusFacade(
             latestVersion = cachedLatestVersion.get().fold({ it }, { it }),
             uptime = System.currentTimeMillis() - getUptime(),
             usedMemory = getUsedMemory(),
-            maxMemory = (maxMemory / 1024 / 1024).toInt(),
+            maxMemory = (runtime.maxMemory() / 1024 / 1024).toInt(),
             usedThreads = getUsedThreads(),
             maxThreads = maxThreads.get(),
             failuresCount = failureFacade.getFailures().size
@@ -88,7 +88,7 @@ class StatusFacade(
         Thread.activeCount()
 
     private fun getUsedMemory(): Double =
-        (maxMemory - Runtime.getRuntime().freeMemory()) / 1024.0 / 1024.0
+        (runtime.totalMemory() - runtime.freeMemory()) / 1024.0 / 1024.0
 
     internal fun getLatestVersion(): Result<String, String> =
         cachedLatestVersion.get()
