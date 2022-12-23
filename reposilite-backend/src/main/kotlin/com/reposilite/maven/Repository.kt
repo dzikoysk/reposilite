@@ -25,13 +25,14 @@ import panda.std.Result
 import java.io.InputStream
 import java.nio.file.attribute.FileTime
 
+@Suppress("DeprecatedCallableAddReplaceWith")
 class Repository internal constructor(
     val name: String,
     val visibility: RepositoryVisibility,
     val redeployment: Boolean,
     val preserveSnapshots: Boolean,
     val mirrorHosts: List<MirrorHost>,
-    private val storageProvider: StorageProvider,
+    val storageProvider: StorageProvider,
 ) {
 
     init {
@@ -45,39 +46,49 @@ class Repository internal constructor(
         val sha256 = location.resolveSibling(location.getSimpleName() + ".sha256")
         val sha512 = location.resolveSibling(location.getSimpleName() + ".sha512")
 
-        return putFile(md5, DigestUtils.md5(bytes).inputStream())
-            .flatMap { putFile(sha1, DigestUtils.sha1(bytes).inputStream()) }
-            .flatMap { putFile(sha256, DigestUtils.sha256(bytes).inputStream()) }
-            .flatMap { putFile(sha512, DigestUtils.sha512(bytes).inputStream()) }
+        return storageProvider.putFile(md5, DigestUtils.md5(bytes).inputStream())
+            .flatMap { storageProvider.putFile(sha1, DigestUtils.sha1(bytes).inputStream()) }
+            .flatMap { storageProvider.putFile(sha256, DigestUtils.sha256(bytes).inputStream()) }
+            .flatMap { storageProvider.putFile(sha512, DigestUtils.sha512(bytes).inputStream()) }
     }
 
+    @Deprecated(message = "Use Repository#storageProvider")
     fun putFile(location: Location, inputStream: InputStream): Result<Unit, ErrorResponse> =
         storageProvider.putFile(location, inputStream)
 
+    @Deprecated(message = "Use Repository#storageProvider")
     fun getFile(location: Location): Result<InputStream, ErrorResponse> =
         storageProvider.getFile(location)
 
+    @Deprecated(message = "Use Repository#storageProvider")
     fun getFileDetails(location: Location): Result<out FileDetails, ErrorResponse> =
         storageProvider.getFileDetails(location)
 
+    @Deprecated(message = "Use Repository#storageProvider")
     fun removeFile(location: Location): Result<Unit, ErrorResponse> =
         storageProvider.removeFile(location)
 
+    @Deprecated(message = "Use Repository#storageProvider")
     fun getFiles(directoryLocation: Location): Result<List<Location>, ErrorResponse> =
         storageProvider.getFiles(directoryLocation)
 
+    @Deprecated(message = "Use Repository#storageProvider")
     fun getLastModifiedTime(location: Location): Result<FileTime, ErrorResponse> =
         storageProvider.getLastModifiedTime(location)
 
+    @Deprecated(message = "Use Repository#storageProvider")
     fun getFileSize(location: Location): Result<Long, ErrorResponse> =
         storageProvider.getFileSize(location)
 
+    @Deprecated(message = "Use Repository#storageProvider")
     fun exists(location: Location): Boolean =
         storageProvider.exists(location)
 
+    @Deprecated(message = "Use Repository#storageProvider")
     fun getUsage(): Result<Long, ErrorResponse> =
         storageProvider.usage()
 
+    @Deprecated(message = "Use Repository#storageProvider")
     fun canHold(contentLength: Long): Result<*, ErrorResponse> =
         storageProvider.canHold(contentLength)
 
