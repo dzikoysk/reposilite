@@ -47,7 +47,7 @@ internal class FixedQuota(rootDirectory: Path, private val maxSize: Long) : File
  * @param maxPercentage the maximum percentage of the disk available for use
  */
 internal class PercentageQuota(
-    private val rootDirectory: Path,
+    rootDirectory: Path,
     private val maxPercentage: Double
 ) : FileSystemStorageProvider(rootDirectory) {
 
