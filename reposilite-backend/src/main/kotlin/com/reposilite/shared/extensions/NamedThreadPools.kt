@@ -26,7 +26,7 @@ import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.concurrent.atomic.AtomicInteger
 
-internal class NamedThreadFactory(private val prefix: String) : ThreadFactory {
+open class NamedThreadFactory(private val prefix: String) : ThreadFactory {
 
     private val group = Thread.currentThread().threadGroup
     private val threadCount = AtomicInteger(0)
@@ -36,7 +36,7 @@ internal class NamedThreadFactory(private val prefix: String) : ThreadFactory {
 
 }
 
-internal fun newFixedThreadPool(min: Int, max: Int, prefix: String): ExecutorService =
+fun newFixedThreadPool(min: Int, max: Int, prefix: String): ExecutorService =
     when (LoomExtensions.isLoomAvailable()) {
         true -> ConcurrencyUtil.executorService("$prefix (virtual) - ");
         false -> ThreadPoolExecutor(
@@ -47,5 +47,5 @@ internal fun newFixedThreadPool(min: Int, max: Int, prefix: String): ExecutorSer
         )
     }
 
-internal fun newSingleThreadScheduledExecutor(prefix: String): ScheduledExecutorService =
+fun newSingleThreadScheduledExecutor(prefix: String): ScheduledExecutorService =
     ScheduledThreadPoolExecutor(1, NamedThreadFactory("$prefix (1) - "))
