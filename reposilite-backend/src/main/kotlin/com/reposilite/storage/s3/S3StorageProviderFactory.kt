@@ -27,6 +27,8 @@ class S3StorageProviderFactory : StorageProviderFactory<S3StorageProvider, S3Sto
 
         if (settings.region.isNotEmpty()) {
             client.region(Region.of(settings.region))
+        } else {
+            client.region(Region.of("reposilite"))
         }
 
         if (settings.endpoint.isNotEmpty()) {
