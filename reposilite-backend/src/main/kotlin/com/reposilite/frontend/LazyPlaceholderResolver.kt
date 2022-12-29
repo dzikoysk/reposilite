@@ -34,7 +34,7 @@ internal class LazyPlaceholderResolver(private val placeholders: Map<String, Str
         }
     }
 
-    private fun process(input: InputStream, output: OutputStream) {
+    fun process(input: InputStream, output: OutputStream) {
         val buffer = ByteArray(1024)
 
         while (true) {
