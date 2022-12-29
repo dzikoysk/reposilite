@@ -17,6 +17,7 @@
 package com.reposilite.frontend.infrastructure
 
 import com.reposilite.frontend.FrontendFacade
+import com.reposilite.frontend.Source
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.extensions.encoding
 import com.reposilite.shared.notFoundError
@@ -41,26 +42,26 @@ import kotlin.streams.asSequence
 
 internal sealed class FrontendHandler(private val frontendFacade: FrontendFacade) : ReposiliteRoutes() {
 
-    protected fun respondWithFile(ctx: Context, uri: String, source: () -> InputStream?): Result<InputStream, ErrorResponse> {
+    protected fun respondWithResource(ctx: Context, uri: String, source: Source): Result<InputStream, ErrorResponse> {
         val contentType = ContentType.getContentTypeByExtension(uri.getExtension())
         ctx.contentType(contentType?.mimeType ?: ContentType.OCTET_STREAM)
 
         return when (uri.contains(".html") || uri.contains(".js")) {
-            true -> respondWithProcessedFile(ctx, uri, source)
-            else -> respondWithRawFile(source)
+            true -> respondWithProcessedResource(ctx, uri, source)
+            else -> respondWithRawResource(source)
         }
     }
 
-    private fun respondWithProcessedFile(ctx: Context, uri: String, source: () -> InputStream?): Result<InputStream, ErrorResponse> =
-        frontendFacade.resolve(uri) { source() }
+    private fun respondWithProcessedResource(ctx: Context, uri: String, source: Source): Result<InputStream, ErrorResponse> =
+        frontendFacade.resolve(uri) { source.get() }
             ?.let {
                 ctx.encoding(UTF_8)
                 it.supply().mapErr { ErrorResponse(INTERNAL_SERVER_ERROR, "Cannot serve resource") }
             }
             ?: notFoundError("Resource not found")
 
-    private fun respondWithRawFile(source: () -> InputStream?): Result<InputStream, ErrorResponse> =
-        source()
+    private fun respondWithRawResource(source: Source): Result<InputStream, ErrorResponse> =
+        source.get()
             ?.asSuccess()
             ?: notFoundError("Resource not found")
 
@@ -69,19 +70,19 @@ internal sealed class FrontendHandler(private val frontendFacade: FrontendFacade
 internal class ResourcesFrontendHandler(frontendFacade: FrontendFacade, private val resourcesDirectory: String) : FrontendHandler(frontendFacade) {
 
     private val defaultHandler = ReposiliteRoute<InputStream>("/", GET) {
-        response = respondWithResource(ctx, "index.html")
+        response = respondWithBundledResource(ctx, "index.html")
     }
 
     private val indexHandler = ReposiliteRoute<InputStream>("/index.html", GET) {
-        response = respondWithResource(ctx, "index.html")
+        response = respondWithBundledResource(ctx, "index.html")
     }
 
     private val assetsHandler = ReposiliteRoute<InputStream>("/assets/<path>", GET) {
-        response = respondWithResource(ctx, "assets/${ctx.pathParam("path")}")
+        response = respondWithBundledResource(ctx, "assets/${ctx.pathParam("path")}")
     }
 
-    private fun respondWithResource(ctx: Context, uri: String): Result<InputStream, ErrorResponse> =
-        respondWithFile(ctx, uri) {
+    private fun respondWithBundledResource(ctx: Context, uri: String): Result<InputStream, ErrorResponse> =
+        respondWithResource(ctx, uri) {
             FrontendFacade::class.java.getResourceAsStream("/$resourcesDirectory/$uri") ?: "".toByteArray().inputStream()
         }
 
@@ -91,38 +92,42 @@ internal class ResourcesFrontendHandler(frontendFacade: FrontendFacade, private 
 
 internal class CustomFrontendHandler(frontendFacade: FrontendFacade, directory: Path) : FrontendHandler(frontendFacade) {
 
+    private fun rootFileHandler(file: Path) = ReposiliteRoute<InputStream>("/${file.getSimpleName()}", GET) {
+        response = respondWithResource(ctx, file.getSimpleName()) {
+            file.inputStream().orNull()
+        }
+    }
+
+    private fun directoryHandler(directory: Path) = ReposiliteRoute<InputStream>("/${directory.fileName}/<path>", GET) {
+        response = respondWithResource(ctx, directory.getSimpleName()) {
+            parameter("path")
+                .toLocation()
+                .toPath()
+                .map { path -> directory.resolve(path) }
+                .flatMap { path -> path.inputStream().mapErr { error -> error.message } }
+                .orNull()
+        }
+    }
+
+    private fun indexHandler(directory: Path) = ReposiliteRoute<InputStream>("/", GET) {
+        response = respondWithResource(ctx, "index.html") {
+            directory.resolve("index.html")
+                .inputStream()
+                .orNull()
+        }
+    }
+
     override val routes =
         Files.list(directory).use { staticDirectoryStream ->
             staticDirectoryStream.asSequence()
                 .map {
-                    if (it.isDirectory())
-                        ReposiliteRoute<InputStream>("/${it.fileName}/<path>", GET) {
-                            response = respondWithFile(ctx, it.getSimpleName()) {
-                                parameter("path")
-                                    .toLocation()
-                                    .toPath()
-                                    .map { path -> it.resolve(path) }
-                                    .flatMap { path -> path.inputStream().mapErr { error -> error.message } }
-                                    .orNull()
-                            }
-                        }
-                    else
-                        ReposiliteRoute("/${it.getSimpleName()}", GET) {
-                            response = respondWithFile(ctx, it.getSimpleName()) {
-                                it.inputStream().orNull()
-                            }
-                        }
+                    when {
+                        it.isDirectory() -> directoryHandler(it)
+                        else -> rootFileHandler(it)
+                    }
                 }
                 .toMutableSet()
-                .also {
-                    it.add(ReposiliteRoute("/", GET) {
-                        response = respondWithFile(ctx, "index.html") {
-                            directory.resolve("index.html")
-                                .inputStream()
-                                .orNull()
-                        }
-                    })
-                }
+                .also { it.add(indexHandler(directory)) }
                 .let { routes(*it.toTypedArray()) }
         }
 

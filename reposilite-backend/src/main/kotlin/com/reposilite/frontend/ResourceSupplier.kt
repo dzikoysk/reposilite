@@ -4,6 +4,10 @@ import panda.std.Result
 import java.io.IOException
 import java.io.InputStream
 
+fun interface Source {
+    fun get(): InputStream?
+}
+
 fun interface ResourceSupplier {
     fun supply(): Result<InputStream, IOException>
 }

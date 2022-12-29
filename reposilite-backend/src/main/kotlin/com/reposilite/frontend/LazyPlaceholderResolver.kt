@@ -1,30 +1,40 @@
 package com.reposilite.frontend
 
+import panda.std.Result
+import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
+import java.nio.file.Files
+import java.nio.file.StandardOpenOption
 
 internal class LazyPlaceholderResolver(private val placeholders: Map<String, String>) {
+
+    init {
+        verifyPlaceholders()
+    }
 
     private val theLongestPlaceholder = placeholders.keys
         .maxOfOrNull { it }
         ?.length
         ?: 0
 
-    init {
-        verifyPlaceholders()
-    }
+    fun createProcessedResource(input: InputStream): ResourceSupplier {
+        val temporaryResourcePath = Files.createTempFile("reposilite", "frontend-resource")
 
-    private fun verifyPlaceholders() {
-        placeholders.keys.forEach { placeholder ->
-            placeholder.forEach {
-                if (it.code > Byte.MAX_VALUE) {
-                    throw UnsupportedOperationException("LazyPlaceholderResolve supports only basic placeholders from 1-byte long symbols")
-                }
+        input.use { inputStream ->
+            Files.newOutputStream(temporaryResourcePath, StandardOpenOption.WRITE).use { outputStream ->
+                process(inputStream, outputStream)
+            }
+        }
+
+        return ResourceSupplier {
+            Result.supplyThrowing(IOException::class.java) {
+                Files.newInputStream(temporaryResourcePath)
             }
         }
     }
 
-    fun process(input: InputStream, output: OutputStream) {
+    private fun process(input: InputStream, output: OutputStream) {
         val buffer = ByteArray(1024)
 
         while (true) {
@@ -74,6 +84,16 @@ internal class LazyPlaceholderResolver(private val placeholders: Map<String, Str
         }
 
         return content
+    }
+
+    private fun verifyPlaceholders() {
+        placeholders.keys.forEach { placeholder ->
+            placeholder.forEach {
+                if (it.code > Byte.MAX_VALUE) {
+                    throw UnsupportedOperationException("LazyPlaceholderResolve supports only basic placeholders from 1-byte long symbols")
+                }
+            }
+        }
     }
 
 }

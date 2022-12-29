@@ -15,18 +15,13 @@
  */
 package com.reposilite.frontend
 
+import com.reposilite.frontend.BasePathFormatter.formatAsViteBasePath
 import com.reposilite.frontend.application.FrontendSettings
 import com.reposilite.plugin.api.Facade
-import panda.std.Result
-import panda.std.letIf
 import panda.std.reactive.Reference
 import panda.std.reactive.computed
-import java.io.IOException
-import java.io.InputStream
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
-import java.nio.file.Files
-import java.nio.file.StandardOpenOption
 
 class FrontendFacade internal constructor(
     basePath: Reference<String>,
@@ -34,7 +29,7 @@ class FrontendFacade internal constructor(
 ) : Facade {
 
     private val resources = HashMap<String, ResourceSupplier>(0)
-    private val formattedBasePath = basePath.computed { formatBasePath(it) }
+    private val formattedBasePath = basePath.computed { BasePathFormatter.formatBasePath(it) }
 
     init {
         computed(basePath, formattedBasePath, frontendSettings) {
@@ -42,23 +37,12 @@ class FrontendFacade internal constructor(
         }
     }
 
-    fun resolve(uri: String, source: () -> InputStream?): ResourceSupplier? =
-        resources[uri] ?: source()
-            ?.let {
-                val temporaryResourcePath = Files.createTempFile("reposilite", "frontend-resource")
+    fun resolve(uri: String, source: Source): ResourceSupplier? =
+        resources[uri] ?: createProcessedResource(uri, source)
 
-                it.use { inputStream ->
-                    Files.newOutputStream(temporaryResourcePath, StandardOpenOption.WRITE).use { outputStream ->
-                        createLazyPlaceholderResolver().process(inputStream, outputStream)
-                    }
-                }
-
-                ResourceSupplier {
-                    Result.supplyThrowing(IOException::class.java) {
-                        Files.newInputStream(temporaryResourcePath)
-                    }
-                }
-            }
+    private fun createProcessedResource(uri: String, source: Source): ResourceSupplier? =
+        source.get()
+            ?.let { createLazyPlaceholderResolver().createProcessedResource(it) }
             ?.also { resources[uri] = it }
 
     private fun createLazyPlaceholderResolver(): LazyPlaceholderResolver =
@@ -67,8 +51,8 @@ class FrontendFacade internal constructor(
                 "{{REPOSILITE.BASE_PATH}}" to formattedBasePath.get(),
                 URLEncoder.encode("{{REPOSILITE.BASE_PATH}}", StandardCharsets.UTF_8) to formattedBasePath.get(),
 
-                "{{REPOSILITE.VITE_BASE_PATH}}" to getViteBasePath(),
-                URLEncoder.encode("{{REPOSILITE.VITE_BASE_PATH}}", StandardCharsets.UTF_8) to getViteBasePath(),
+                "{{REPOSILITE.VITE_BASE_PATH}}" to formatAsViteBasePath(formattedBasePath.get()),
+                URLEncoder.encode("{{REPOSILITE.VITE_BASE_PATH}}", StandardCharsets.UTF_8) to formatAsViteBasePath(formattedBasePath.get()),
 
                 "{{REPOSILITE.ID}}" to id,
                 "{{REPOSILITE.TITLE}}" to title,
@@ -78,27 +62,6 @@ class FrontendFacade internal constructor(
                 "{{REPOSILITE.ICP_LICENSE}}" to icpLicense,
             ))
         }
-
-    private fun formatBasePath(originBasePath: String): String =
-        originBasePath
-            .letIf({ it.isNotEmpty() && !it.startsWith("/") }, { "/$it" })
-            .letIf({ it.isNotEmpty() && !it.endsWith("/")}, { "$it/" })
-
-    private val pathRegex = Regex("^/|/$")
-
-    private fun getViteBasePath(): String =
-        formattedBasePath.get()
-            .takeIf { hasCustomBasePath() }
-            ?.replace(pathRegex, "") // remove first & last slash
-            ?: "." // no custom base path
-
-    private fun hasCustomBasePath(): Boolean =
-        formattedBasePath.map { it != "" && it != "/" }
-
-    private fun String.resolvePathPlaceholder(placeholder: String, value: String): String =
-        this
-            .replace(placeholder, value)
-            .replace(URLEncoder.encode(placeholder, StandardCharsets.UTF_8), URLEncoder.encode(value, StandardCharsets.UTF_8))
 
     fun createNotFoundPage(originUri: String, details: String): String =
         NotFoundTemplate.createNotFoundPage(formattedBasePath.get(), originUri, details)

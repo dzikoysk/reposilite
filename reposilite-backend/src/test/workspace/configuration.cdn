@@ -54,6 +54,7 @@ databaseThreadPool: 1
 compressionStrategy: none
 # Default idle timeout used by Jetty
 idleTimeout: 30000
+
 # Adds cache bypass headers to each request from /api/* scope served by this instance.
 # Helps to avoid various random issues caused by proxy provides (e.g. Cloudflare) and browsers.
 bypassExternalCache: true
