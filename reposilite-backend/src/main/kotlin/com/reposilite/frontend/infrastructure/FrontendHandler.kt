@@ -29,8 +29,8 @@ import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.routing.RouteMethod.GET
 import io.javalin.http.ContentType
 import io.javalin.http.Context
+import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
 import panda.std.Result
-import panda.std.Result.ok
 import panda.std.asSuccess
 import java.io.InputStream
 import java.nio.charset.StandardCharsets.UTF_8
@@ -45,17 +45,17 @@ internal sealed class FrontendHandler(private val frontendFacade: FrontendFacade
         val contentType = ContentType.getContentTypeByExtension(uri.getExtension())
         ctx.contentType(contentType?.mimeType ?: ContentType.OCTET_STREAM)
 
-        return when (contentType?.mimeType?.let { it.startsWith("text") || it.startsWith("application") }) {
+        return when (uri.contains(".html") || uri.contains(".js")) {
             true -> respondWithProcessedFile(ctx, uri, source)
             else -> respondWithRawFile(source)
         }
     }
 
     private fun respondWithProcessedFile(ctx: Context, uri: String, source: () -> InputStream?): Result<InputStream, ErrorResponse> =
-        frontendFacade.resolve(uri) { source()?.readAllBytes()?.decodeToString() }
+        frontendFacade.resolve(uri) { source() }
             ?.let {
                 ctx.encoding(UTF_8)
-                ok(it.toByteArray().inputStream())
+                it.supply().mapErr { ErrorResponse(INTERNAL_SERVER_ERROR, "Cannot serve resource") }
             }
             ?: notFoundError("Resource not found")
 

@@ -17,61 +17,74 @@ package com.reposilite.frontend
 
 import com.reposilite.frontend.application.FrontendSettings
 import com.reposilite.plugin.api.Facade
-import org.intellij.lang.annotations.Language
+import panda.std.Result
+import panda.std.letIf
 import panda.std.reactive.Reference
 import panda.std.reactive.computed
+import java.io.IOException
+import java.io.InputStream
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.nio.file.StandardOpenOption
 
 class FrontendFacade internal constructor(
-    private val cacheContent: Reference<Boolean>,
     basePath: Reference<String>,
     private val frontendSettings: Reference<FrontendSettings>
 ) : Facade {
 
-    private val resources = HashMap<String, String>(0)
-    private val uriFormatter = Regex("/+") // exclude common typos from URI
-    private val regexAntiXss = Regex("[^A-Za-z0-9/.\\- ]") // exclude custom non-standard characters from template
-    private val pathRegex = Regex("^/|/$")
-
-    private val formattedBasePath = basePath.computed { // verify base path
-        var formattedBasePath = it
-
-        if (formattedBasePath.isNotEmpty()) {
-            if (!formattedBasePath.startsWith("/")) {
-                formattedBasePath = "/$formattedBasePath"
-            }
-            if (!formattedBasePath.endsWith("/")) {
-                formattedBasePath += "/"
-            }
-        }
-
-        return@computed formattedBasePath
-    }
+    private val resources = HashMap<String, ResourceSupplier>(0)
+    private val formattedBasePath = basePath.computed { formatBasePath(it) }
 
     init {
-        computed(cacheContent, basePath, formattedBasePath, frontendSettings) {
+        computed(basePath, formattedBasePath, frontendSettings) {
             resources.clear()
         }
     }
 
-    fun resolve(uri: String, source: () -> String?): String? =
+    fun resolve(uri: String, source: () -> InputStream?): ResourceSupplier? =
         resources[uri] ?: source()
-            ?.let { frontendSettings.map { settings -> resolvePlaceholders(settings, it) } }
-            ?.also { if (cacheContent.get()) resources[uri] = it }
+            ?.let {
+                val temporaryResourcePath = Files.createTempFile("reposilite", "frontend-resource")
 
-    private fun resolvePlaceholders(frontendSettings: FrontendSettings, source: String): String =
-        with(frontendSettings) {
-            source
-                .resolvePathPlaceholder("{{REPOSILITE.BASE_PATH}}", formattedBasePath.get())
-                .resolvePathPlaceholder("{{REPOSILITE.VITE_BASE_PATH}}", getViteBasePath())
-                .replace("{{REPOSILITE.ID}}", id)
-                .replace("{{REPOSILITE.TITLE}}", title)
-                .replace("{{REPOSILITE.DESCRIPTION}}", description)
-                .replace("{{REPOSILITE.ORGANIZATION_WEBSITE}}", organizationWebsite)
-                .replace("{{REPOSILITE.ORGANIZATION_LOGO}}", organizationLogo)
-                .replace("{{REPOSILITE.ICP_LICENSE}}", icpLicense)
+                it.use { inputStream ->
+                    Files.newOutputStream(temporaryResourcePath, StandardOpenOption.WRITE).use { outputStream ->
+                        createLazyPlaceholderResolver().process(inputStream, outputStream)
+                    }
+                }
+
+                ResourceSupplier {
+                    Result.supplyThrowing(IOException::class.java) {
+                        Files.newInputStream(temporaryResourcePath)
+                    }
+                }
+            }
+            ?.also { resources[uri] = it }
+
+    private fun createLazyPlaceholderResolver(): LazyPlaceholderResolver =
+        with (frontendSettings.get()) {
+            LazyPlaceholderResolver(mapOf(
+                "{{REPOSILITE.BASE_PATH}}" to formattedBasePath.get(),
+                URLEncoder.encode("{{REPOSILITE.BASE_PATH}}", StandardCharsets.UTF_8) to formattedBasePath.get(),
+
+                "{{REPOSILITE.VITE_BASE_PATH}}" to getViteBasePath(),
+                URLEncoder.encode("{{REPOSILITE.VITE_BASE_PATH}}", StandardCharsets.UTF_8) to getViteBasePath(),
+
+                "{{REPOSILITE.ID}}" to id,
+                "{{REPOSILITE.TITLE}}" to title,
+                "{{REPOSILITE.DESCRIPTION}}" to description,
+                "{{REPOSILITE.ORGANIZATION_WEBSITE}}" to organizationWebsite,
+                "{{REPOSILITE.ORGANIZATION_LOGO}}" to organizationLogo,
+                "{{REPOSILITE.ICP_LICENSE}}" to icpLicense,
+            ))
         }
+
+    private fun formatBasePath(originBasePath: String): String =
+        originBasePath
+            .letIf({ it.isNotEmpty() && !it.startsWith("/") }, { "/$it" })
+            .letIf({ it.isNotEmpty() && !it.endsWith("/")}, { "$it/" })
+
+    private val pathRegex = Regex("^/|/$")
 
     private fun getViteBasePath(): String =
         formattedBasePath.get()
@@ -87,63 +100,7 @@ class FrontendFacade internal constructor(
             .replace(placeholder, value)
             .replace(URLEncoder.encode(placeholder, StandardCharsets.UTF_8), URLEncoder.encode(value, StandardCharsets.UTF_8))
 
-    fun createNotFoundPage(originUri: String, details: String): String {
-        val uri = originUri.replace(uriFormatter, "/")
-        val basePath = formattedBasePath.get()
-        val dashboardUrl = basePath + (if (basePath.endsWith("/")) "" else "/") + "#" + uri
-
-        @Language("html")
-        val response = """
-        <html lang="en">
-            <head>
-              <meta charset="UTF-8" />
-              <title>Reposilite - 404 Not Found</title>
-            </head>
-            <style>
-              body {
-                height: calc(100vh - 170px);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                font-family: Arial, Helvetica, sans-serif;
-              }
-            
-              .error-view {
-                text-align: center;
-                width: 100vh;
-                height: 100px;
-              }
-            
-              .spooky p {
-                margin-top: 0;
-                margin-bottom: 0;
-                font-size: 1.2rem;
-                font-weight: lighter;
-              }
-              
-              a:link, a:visited {
-                color: rebeccapurple;
-              }
-            </style>
-            <body>
-              <div class='error-view'>
-                <h1 style="font-size: 1.5rem">
-                  <span style="color: gray;">404︱</span>Resource not found
-                </h1>
-                ${if (details.isEmpty()) "" else "<p><i>${regexAntiXss.replace(details, "")}</i></p>" }
-                <p>Looking for a dashboard?</p>
-                <div class="spooky">
-                  <p>{\__/}</p>
-                  <p>(●ᴗ●)</p>
-                  <p>( >🥕</p>
-                </div>
-                <p>Visit <a href="$dashboardUrl" style="color: rebeccapurple; text-decoration: none;">$dashboardUrl</a></p>
-              </div>
-            </body>
-        </html>
-        """
-
-        return response.trimIndent()
-    }
+    fun createNotFoundPage(originUri: String, details: String): String =
+        NotFoundTemplate.createNotFoundPage(formattedBasePath.get(), originUri, details)
 
 }

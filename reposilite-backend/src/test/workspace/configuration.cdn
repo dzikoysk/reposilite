@@ -54,9 +54,6 @@ databaseThreadPool: 1
 compressionStrategy: none
 # Default idle timeout used by Jetty
 idleTimeout: 30000
-
-# Keep processed frontend files in memory to improve response time
-cacheContent: true
 # Adds cache bypass headers to each request from /api/* scope served by this instance.
 # Helps to avoid various random issues caused by proxy provides (e.g. Cloudflare) and browsers.
 bypassExternalCache: true

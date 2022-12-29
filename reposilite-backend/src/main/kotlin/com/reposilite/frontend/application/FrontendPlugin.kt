@@ -52,7 +52,6 @@ internal class FrontendPlugin : ReposilitePlugin() {
         val frontendSettings = sharedConfigurationFacade.getDomainSettings<FrontendSettings>()
 
         val frontendFacade = FrontendComponents(
-            cacheContent = localConfiguration.cacheContent,
             basePath = localConfiguration.basePath,
             frontendSettings = frontendSettings
         ).frontendFacade()

@@ -125,10 +125,7 @@ class LocalConfiguration : Facade {
 
     /* Cache */
 
-    @Description("", "# Keep processed frontend files in memory to improve response time")
-    val cacheContent = reference(true)
-
-    @Description("# Adds cache bypass headers to each request from /api/* scope served by this instance.")
+    @Description("", "# Adds cache bypass headers to each request from /api/* scope served by this instance.")
     @Description("# Helps to avoid various random issues caused by proxy provides (e.g. Cloudflare) and browsers.")
     val bypassExternalCache = reference(true)
 
