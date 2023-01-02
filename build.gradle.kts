@@ -100,6 +100,8 @@ subprojects {
     group = "com.reposilite"
 
     dependencies {
+        testImplementation("org.assertj:assertj-core:3.23.1")
+
         val junit = "5.8.2"
         testImplementation("org.junit.jupiter:junit-jupiter-params:$junit")
         testImplementation("org.junit.jupiter:junit-jupiter-api:$junit")

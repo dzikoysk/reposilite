@@ -33,12 +33,12 @@ import com.reposilite.token.AccessTokenPermission.MANAGER
 import com.reposilite.token.RoutePermission.READ
 import io.javalin.http.HttpStatus.UNAUTHORIZED
 import kong.unirest.Unirest.get
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import panda.std.component1
 import java.time.LocalDate
-import java.time.Month
 
 @ExtendWith(ExperimentalRemoteSpecficiationJunitExtension::class)
 internal class ExperimentalRemoteStatisticsIntegrationTest : StatisticsIntegrationTest()
@@ -111,16 +111,18 @@ internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecifi
         val hackyDatabaseStateAccessor = SqlStatisticsRepository(reposilite.database, false)
 
         repeat(2) { // repeat 2 times to verify aggregation
-            Month.values().forEach { month -> // fill all points
-                listOf(2021, 2022).forEach { year -> // exceed 1 year range
-                    hackyDatabaseStateAccessor.incrementResolvedRequests(
-                        requests = mapOf(
-                            Identifier("releases", "/com/reposilite/1.0.0/reposilite-1.0.0.jar") to month.ordinal.toLong(),
-                            Identifier("snapshots", "/com/reposilite/1.0.0-SNAPSHOT/reposilite-1.0.0-SNAPSHOT.jar") to month.ordinal.toLong()
-                        ),
-                        date = LocalDate.of(year, month, 1)
-                    )
-                }
+            repeat(24) { index -> // 24 months
+                val date = LocalDate.now()
+                    .minusMonths(index.toLong())
+                    .withDayOfMonth(1)
+
+                hackyDatabaseStateAccessor.incrementResolvedRequests(
+                    requests = mapOf(
+                        Identifier("releases", "/com/reposilite/1.0.0/reposilite-1.0.0.jar") to index.toLong(),
+                        Identifier("snapshots", "/com/reposilite/1.0.0-SNAPSHOT/reposilite-1.0.0-SNAPSHOT.jar") to index.toLong()
+                    ),
+                    date = date
+                )
             }
         }
 
@@ -140,18 +142,18 @@ internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecifi
 
         // then: service should respond with time-series not older than a year
         assertEquals(200, response.status)
-        assertEquals(
-            response.body,
+
+        assertThat(response.body).isEqualTo(
             AllResolvedResponse(
                 repositories = listOf("releases", "snapshots")
                     .map { repository ->
                         RepositoryStatistics(
                             name = repository,
-                            data = Month.values()
-                                .map { month ->
+                            data = (0..11)
+                                .map { index ->
                                     IntervalRecord(
-                                        date = LocalDate.of(2022, month, 1).toUTCMillis(),
-                                        count = 2L * month.ordinal
+                                        date = LocalDate.now().minusMonths(index.toLong()).withDayOfMonth(1).toUTCMillis(),
+                                        count = 2L * index
                                     )
                                 }
                                 .sortedBy { it.date }
