@@ -43,7 +43,7 @@ dependencies {
 
     api("io.javalin:javalin:5.2.0")
     api("io.javalin.community.openapi:javalin-openapi-plugin:5.3.0-alpha.6")
-    kapt("io.javalin.community.openapi:openapi-annotation-processor:5.3.0-alpha.6")
+    kapt("io.javalin.community.openapi:openapi-annotation-processor:5.3.0-alpha.7")
     api("com.reposilite.javalin-rfcs:javalin-routing:5.0.0-SNAPSHOT")
     api("io.javalin.community.ssl:ssl-plugin:5.2.0")
 
