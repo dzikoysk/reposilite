@@ -27,8 +27,8 @@ import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.AccessTokenPermission.MANAGER
 import com.reposilite.token.ExportTokensCommand
 import com.reposilite.token.ImportTokensCommand
-import com.reposilite.token.RouteAdd
-import com.reposilite.token.RouteRemove
+import com.reposilite.token.infrastructure.RouteAdd
+import com.reposilite.token.infrastructure.RouteRemove
 import com.reposilite.token.infrastructure.AccessTokenApiEndpoints
 import com.reposilite.token.infrastructure.ChModCommand
 import com.reposilite.token.infrastructure.ChNameCommand

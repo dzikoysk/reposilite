@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
-package com.reposilite.token
+package com.reposilite.token.infrastructure
 
 import com.reposilite.console.CommandContext
 import com.reposilite.console.CommandStatus.FAILED
 import com.reposilite.console.api.ReposiliteCommand
+import com.reposilite.token.AccessTokenFacade
+import com.reposilite.token.Route
+import com.reposilite.token.RoutePermission
 import picocli.CommandLine.Command
 import picocli.CommandLine.Parameters
 
