@@ -47,7 +47,7 @@ dependencies {
     api("com.reposilite.javalin-rfcs:javalin-routing:5.0.0-SNAPSHOT")
     api("io.javalin.community.ssl:ssl-plugin:5.2.0")
 
-    val springSecurityCrypto = "5.7.3"
+    val springSecurityCrypto = "6.0.1"
     implementation("org.springframework.security:spring-security-crypto:$springSecurityCrypto")
 
     val expressible = "1.2.2"
