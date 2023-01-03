@@ -6,6 +6,7 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3Client
+import software.amazon.awssdk.services.s3.S3Configuration
 import java.net.URI
 import java.nio.file.Path
 
@@ -13,6 +14,14 @@ class S3StorageProviderFactory : StorageProviderFactory<S3StorageProvider, S3Sto
 
     override fun create(failureFacade: FailureFacade, workingDirectory: Path, repositoryName: String, settings: S3StorageProviderSettings): S3StorageProvider {
         val client = S3Client.builder()
+
+        if (System.getProperty("reposilite.s3.pathStyleAccessEnabled") == "true") {
+            client.serviceConfiguration(
+                S3Configuration.builder()
+                    .pathStyleAccessEnabled(true)
+                    .build()
+            )
+        }
 
         if (settings.accessKey.isNotEmpty() && settings.secretKey.isNotEmpty()) {
             client.credentialsProvider(
@@ -25,10 +34,9 @@ class S3StorageProviderFactory : StorageProviderFactory<S3StorageProvider, S3Sto
             )
         }
 
-        if (settings.region.isNotEmpty()) {
-            client.region(Region.of(settings.region))
-        } else {
-            client.region(Region.of("reposilite"))
+        when {
+            settings.region.isNotEmpty() -> client.region(Region.of(settings.region))
+            else -> client.region(Region.of("reposilite"))
         }
 
         if (settings.endpoint.isNotEmpty()) {
