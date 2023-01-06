@@ -18,11 +18,11 @@ export default function useArtifact() {
   const createArtifactSnippet = (lang, { groupId, artifactId, version }) => {
     switch (lang) {
       case "Maven": return `
-  <dependency>
-    <groupId>${groupId}</groupId>
-    <artifactId>${artifactId}</artifactId>
-    <version>${version}</version>
-  </dependency>`.trim()
+<dependency>
+  <groupId>${groupId}</groupId>
+  <artifactId>${artifactId}</artifactId>
+  <version>${version}</version>
+</dependency>`.trim()
       case "Gradle Groovy": return `implementation "${groupId}:${artifactId}:${version}"`
       case "Gradle Kotlin": return `implementation("${groupId}:${artifactId}:${version}")`
       case "SBT": return `"${groupId}" %% "${artifactId}" %% "${version}"`
