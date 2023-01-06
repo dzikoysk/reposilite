@@ -43,7 +43,7 @@ dependencies {
 
     api("io.javalin:javalin:5.2.0")
     api("io.javalin.community.openapi:javalin-openapi-plugin:5.3.0-alpha.6")
-    kapt("io.javalin.community.openapi:openapi-annotation-processor:5.3.0-alpha.6")
+    kapt("io.javalin.community.openapi:openapi-annotation-processor:5.3.0-alpha.7")
     api("com.reposilite.javalin-rfcs:javalin-routing:5.0.0-SNAPSHOT")
     api("io.javalin.community.ssl:ssl-plugin:5.2.0")
 
@@ -59,10 +59,10 @@ dependencies {
     api("net.dzikoysk:cdn:$cdn")
     api("net.dzikoysk:cdn-kt:$cdn")
 
-    val awssdk = "2.18.35"
+    val awssdk = "2.19.8"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
-    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.364")
+    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.376")
 
     val exposed = "0.41.1"
     implementation("org.jetbrains.exposed:exposed-core:$exposed")
