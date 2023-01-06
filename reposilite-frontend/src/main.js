@@ -27,8 +27,8 @@ import 'mosha-vue-toastify/dist/style.css'
 
 const app = createApp(App)
 
-app.config.globalProperties.append = (path, pathToAppend) =>
-  path + (path.endsWith('/') ? '' : '/') + pathToAppend
+// app.config.globalProperties.append = (path, pathToAppend) =>
+  // path + (path.endsWith('/') ? '' : '/') + pathToAppend
 
 app.config.globalProperties.drop = (path) =>
   (path.endsWith('/') ? path.slice(0, -1) : path).split("/")

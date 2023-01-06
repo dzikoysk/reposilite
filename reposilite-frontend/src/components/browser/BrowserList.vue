@@ -14,26 +14,24 @@
   - limitations under the License.
   -->
 
-<script setup>
+<script setup lang="jsx">
 import download from 'downloadjs'
+import { useRoute } from 'vue-router'
 import { createToast } from 'mosha-vue-toastify'
 import { createURL } from '../../helpers/client'
 import { useSession } from '../../store/session'
 import ListEntry from './ListEntry.vue'
 import DeleteEntryModal from './DeleteEntryModal.vue'
 import { ref } from 'vue'
+import { property } from '../../helpers/vue-extensions'
 
 const props = defineProps({
-  qualifier: {
-    type: Object,
-    required: true
-  },
-  files: {
-    type: Object,
-    required: true
-  }
+  qualifier: property(Object, true),
+  files: property(Object, true),
+  compactMode: property(Boolean, true)
 })
 
+const route = useRoute()
 const { client } = useSession()
 
 const downloadHandler = (path, name) => {
@@ -51,7 +49,49 @@ const openDeleteModal = (file) => {
     file
   }
 }
-const closeDeleteModal = () => (deleteModalValue.value = undefined)
+const closeDeleteModal = () =>
+  (deleteModalValue.value = undefined)
+
+const isDirectory = (file) =>
+  file.type == 'DIRECTORY'
+
+const LinkEntry = ({ file }, context) => {
+  return (
+    <a
+      onClick={(event) => {
+        event.preventDefault()
+        downloadHandler(route.path, file.name, event)
+      }}
+      href={createURL(route.path + '/' + file.name)} 
+      target="_blank"
+    >
+      {context.slots.default()}
+    </a>
+  )
+}
+
+const append = (path, pathToAppend) =>
+  path + (path.endsWith('/') ? '' : '/') + pathToAppend
+
+const RouterEntry = ({ file }, context) => {
+  return (
+    <router-link to={append(route.path, file.name)}>
+      {context.slots.default()}
+    </router-link>
+  )
+}
+
+const CompactListEntry = ({ file }) => {  
+  return (
+    <p class="flex bg-gray-800 rounded-lg text-center">
+      {isDirectory(file)
+        ? <span class="text-xm pl-1 pt-1.4">⚫</span>
+        : <span class="text-xm pl-1 pt-1.4">⚪</span>
+      }
+      <span class="px-2 w-full">{file.name}</span>
+    </p>
+  )
+}
 </script>
 
 <template>
@@ -61,27 +101,39 @@ const closeDeleteModal = () => (deleteModalValue.value = undefined)
       :value="deleteModalValue"
       :close="closeDeleteModal"
     />
-    <div v-for="file in files.list" v-bind:key="file">
-      <router-link v-if="file.type === 'DIRECTORY'" :to="append($route.path, file.name)">
-        <ListEntry
-          :file="file"
-          :qualifier="qualifier"
-          :openDeleteEntryModal="openDeleteModal"
-        />
-      </router-link>
-      <a v-else 
-        @click.left.prevent="downloadHandler($route.path, file.name)" 
-        :href="createURL($route.path + '/' + file.name)" 
-        target="_blank"
-      >
-        <ListEntry 
-          :file="file" 
-          :qualifier="qualifier"
-          :url="createURL($route.path + '/' + file.name)"
-          :openDeleteEntryModal="openDeleteModal"
-        />
-      </a>
+
+    <div v-if="compactMode" class="">
+      <div class="flex flex-wrap justify-between flex-grow">
+        <div v-for="file in files.list" v-bind:key="file" class="flex-1 xl:min-w-1/3 px-1 my-1">
+          <RouterEntry v-if="isDirectory(file)" :file="file">
+            <CompactListEntry :file="file" />
+          </RouterEntry>
+          <LinkEntry v-else :file="file">
+            <CompactListEntry :file="file" />
+          </LinkEntry>
+        </div>
+      </div>
     </div>
+    <div v-else>
+      <div v-for="file in files.list" v-bind:key="file">
+        <RouterEntry v-if="isDirectory(file)" :file="file">
+          <ListEntry
+            :file="file"
+            :qualifier="qualifier"
+            :openDeleteEntryModal="openDeleteModal"
+          />
+        </RouterEntry>
+        <LinkEntry v-else :file="file">
+          <ListEntry 
+            :file="file" 
+            :qualifier="qualifier"
+            :url="createURL(`${$route.path}/${file.name}`)"
+            :openDeleteEntryModal="openDeleteModal"
+          />
+        </LinkEntry>
+      </div>
+    </div>
+
     <div v-if="files.isEmpty" class="pl-2 pb-4">
       <p>Directory is empty</p>
     </div>

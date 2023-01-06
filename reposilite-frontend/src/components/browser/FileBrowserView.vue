@@ -14,7 +14,7 @@
   - limitations under the License.
   -->
 
-<script setup>
+<script setup lang="jsx">
 import { computed, ref, watch } from 'vue'
 import { createToast } from 'mosha-vue-toastify'
 import { useAdjustments } from '../../store/adjustments'
@@ -25,6 +25,8 @@ import Card from '../card/SnippetsCard.vue'
 import Breadcrumb from './BreadcrumbNavigation.vue'
 import BrowserList from './BrowserList.vue'
 import BrowserUpload from './BrowserUpload.vue'
+import ViewGrid from '../icons/ViewGrid.vue'
+import ViewList from '../icons/ViewList.vue'
 
 const props = defineProps({
   qualifier: {
@@ -77,6 +79,23 @@ watch(
   },
   { immediate: true }
 )
+
+const fileBrowserCompactViewKey = 'file-browser-compact-view'
+const fileBrowserCompactMode = ref(localStorage.getItem(fileBrowserCompactViewKey) == "true")
+const toggleCompactMode = () => {
+  fileBrowserCompactMode.value = !fileBrowserCompactMode.value
+  localStorage.setItem(fileBrowserCompactViewKey, fileBrowserCompactMode.value)
+}
+
+const MenuButton = (_, context) => {
+  return (
+    <div class="w-9 mx-2">
+      <div class="bg-white dark:bg-gray-900 pl-2 pt-1.3 pb-1 pr-2 cursor-pointer rounded-full default-button">
+        {context.slots.default()}
+      </div>
+    </div>
+  )
+}
 </script>
 
 <template>
@@ -89,19 +108,26 @@ watch(
         <div class="lg:max-w-2/5 xl:max-w-1/2">
           <div class="flex justify-between pt-7 px-2">
             <Breadcrumb :parentPath="parentPath" />
-            <AdjustmentsModal>
-              <template v-slot:button>
-                <div class="w-9">
-                  <div class="bg-white dark:bg-gray-900 pl-2 pt-1.3 pb-1 pr-2 cursor-pointer rounded-full default-button">
-                    <AdjustmentsIcon class="pr-0.9" />
+            <div class="flex">
+              <MenuButton @click="toggleCompactMode()">
+                <ViewGrid v-if="fileBrowserCompactMode" class="pr-0.9"/>
+                <ViewList v-else class="pr-0.9"/>
+              </MenuButton>
+              <AdjustmentsModal>
+                <template v-slot:button>
+                  <div class="w-9">
+                    <div class="bg-white dark:bg-gray-900 pl-2 pt-1.3 pb-1 pr-2 cursor-pointer rounded-full default-button">
+                      <AdjustmentsIcon class="pr-0.9" />
+                    </div>
                   </div>
-                </div>
-              </template>
-            </AdjustmentsModal>
+                </template>
+              </AdjustmentsModal>
+            </div>
           </div>
           <BrowserList 
             :qualifier="qualifier"
-            :files="processedFiles" 
+            :files="processedFiles"
+            :compactMode="fileBrowserCompactMode"
           />
           <BrowserUpload 
             v-if="qualifier.path.length > 1 && hasPermissionTo(`/${qualifier.path}`, 'route:write')"

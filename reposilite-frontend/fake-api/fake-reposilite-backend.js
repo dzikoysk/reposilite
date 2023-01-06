@@ -19,6 +19,8 @@
 const express = require("express")
 const expressWs = require("express-ws")
 const bodyParser = require('body-parser')
+const crypto = require("crypto")
+
 const {
   respond,
   authorized,
@@ -124,6 +126,22 @@ application
       () => invalidCredentials(res)
     )
   })
+  .get(
+    "/api/maven/details/filled",
+    respond(
+      createDirectoryDetails(
+        "/filled",
+        Array(80)
+          .fill(undefined)
+          .map(() => createDirectoryDetails(crypto.randomBytes(7).toString('hex')))
+          .concat(
+            Array(10)
+              .fill(undefined)
+              .map(() => createFileDetails(crypto.randomBytes(7).toString('hex'),"text/html", 4096))
+          )
+      )
+    )
+  )
   .get(
     "/api/maven/details/releases",
     respond(
@@ -276,6 +294,7 @@ application
     const repositories = createDirectoryDetails("/", [
       createDirectoryDetails("releases"),
       createDirectoryDetails("snapshots"),
+      createDirectoryDetails("filled"),
     ])
     authorized(req, () =>
       repositories.files.push(createDirectoryDetails("private"))

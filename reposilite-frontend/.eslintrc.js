@@ -19,6 +19,12 @@ module.exports = {
     node: true,
     'vue/setup-compiler-macros': true
   },
+  parserOptions: {
+    "ecmaVersion": 2020,
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  },
   extends: [
     'eslint:recommended',
     'plugin:vue/vue3-essential',
@@ -28,6 +34,7 @@ module.exports = {
     'vue/no-setup-props-destructure': 'error',
     'vue/no-unused-vars': 'error',
     'vue/multi-word-component-names': 'error',
-    'semi': ['error', 'never']
+    'vue/jsx-uses-vars': 'error',
+    'semi': ['error', 'never'],
   }
 }
