@@ -18,7 +18,7 @@
 import { useHead } from '@vueuse/head'
 import { useSession } from "./store/session"
 import useTheme from "./store/theme"
-import useQualifier from "./helpers/qualifier"
+import useQualifier from "./store/qualifier"
 import usePlaceholders from './store/placeholders'
 
 const { title, description, icpLicense } = usePlaceholders()

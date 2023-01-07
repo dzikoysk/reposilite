@@ -1,34 +1,28 @@
-<template>
-  <dialog
-      ref="dialog"
-      class="v-native-dialog"
-      v-bind="attrs"
-  >
-    <slot />
-  </dialog>
-</template>
-
 <script setup>
-import {
-  onMounted, ref, watchEffect, useAttrs,
-} from 'vue'
-const dialog = ref(null)
-const internalOpen = ref(false)
+import { onMounted, ref, watchEffect, useAttrs } from 'vue'
+import { property } from '../../helpers/vue-extensions'
+
 const props = defineProps({
-  open: Boolean,
-  inline: Boolean,
+  open: property(Boolean, true),
+  inline: property(Boolean, false),
 })
+
+const dialog = ref()
+const internalOpen = ref(false)
 const attrs = useAttrs()
-function openCloseDialog() {
+
+const openCloseDialog = () => {
   if (!dialog?.value) return
   if (props.open) dialog.value.show()
   else dialog.value.close()
 }
-function showHideDialog() {
+
+const showHideDialog = () => {
   if (!dialog?.value) return
   if (props.open) dialog.value.showModal()
   else dialog.value.close()
 }
+
 onMounted(() => {
   watchEffect(() => {
     if (props.open !== internalOpen.value) {
@@ -40,5 +34,8 @@ onMounted(() => {
 })
 </script>
 
-<style>
-</style>
+<template>
+  <dialog ref="dialog" class="v-native-dialog" v-bind="attrs">
+    <slot />
+  </dialog>
+</template>

@@ -18,8 +18,8 @@
 import { watch, nextTick } from 'vue'
 import { createToast } from 'mosha-vue-toastify'
 import { useSession } from '../../store/session'
-import useLog from '../../helpers/console/log'
-import useConsole from '../../helpers/console/connection'
+import useLog from '../../store/console/log'
+import useConsole from '../../store/console/connection'
 
 const props = defineProps({
   selectedTab: {

@@ -21,7 +21,7 @@ import CloseIcon from '../icons/CloseIcon.vue'
 import { useSession } from '../../store/session'
 import { createToast } from 'mosha-vue-toastify'
 import { computed } from 'vue'
-import useQualifier from '../../helpers/qualifier'
+import useQualifier from '../../store/qualifier'
 import { property } from '../../helpers/vue-extensions'
 
 const props = defineProps({

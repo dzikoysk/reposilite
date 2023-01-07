@@ -21,12 +21,10 @@ import {Tabs, Tab, TabPanels, TabPanel} from 'vue3-tabs'
 import { useConfiguration } from '../../store/configuration'
 import download from 'downloadjs'
 import FactoryResetModal from './FactoryResetModal.vue'
+import { property } from '../../helpers/vue-extensions'
 
 const props = defineProps({
-  selectedTab: {
-    type: String,
-    required: true
-  }
+  selectedTab: property(String, true)
 })
 
 const {

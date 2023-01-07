@@ -1,13 +1,11 @@
 <script setup>
 import { ref } from 'vue'
 import { VueFinalModal } from 'vue-final-modal'
+import { property } from '../../helpers/vue-extensions'
 import CloseIcon from '../icons/CloseIcon.vue'
 
 const props = defineProps({
-  callback: {
-    type: Function,
-    required: true
-  }
+  callback: property(Function, true)
 })
 
 const showFactoryReset = ref(false)
@@ -26,7 +24,7 @@ export default {
 
 <template>
   <div id="adjustments-modal">
-    <vue-final-modal
+    <VueFinalModal
       v-model="showFactoryReset"
       v-bind="$attrs"
       classes="flex justify-center iems-center"
@@ -44,7 +42,7 @@ export default {
           <CloseIcon />
         </button>
       </div>
-    </vue-final-modal>
+    </VueFinalModal>
     <div @click="showFactoryReset = true">
       <slot name="button"></slot>
     </div>

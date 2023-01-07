@@ -16,7 +16,7 @@
 
 import { watch, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useSession } from '../store/session'
+import { useSession } from './session'
 
 const qualifier = reactive({
   watchable: 0,
@@ -25,6 +25,12 @@ const qualifier = reactive({
 
 const refreshQualifier = () =>
   qualifier.watchable++
+
+const getParentPath = () =>
+  (qualifier.path.endsWith('/') ? qualifier.path.slice(0, -1) : qualifier.path)
+    .split("/")
+    .slice(0, -1)
+    .join('/') || '/'
 
 const { details } = useSession()
 
@@ -52,6 +58,7 @@ export default function useQualifier() {
 
   return {
     qualifier,
+    getParentPath,
     refreshQualifier,
     redirectTo
   }

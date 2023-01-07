@@ -16,34 +16,38 @@
 
 <script setup lang="jsx">
 import { computed, ref, watch } from 'vue'
-import { createToast } from 'mosha-vue-toastify'
 import { useAdjustments } from '../../store/adjustments'
 import { useSession } from '../../store/session'
+import useQualifier from '../../store/qualifier'
 import AdjustmentsIcon from '../icons/AdjustmentsIcon.vue'
 import AdjustmentsModal from './AdjustmentsModal.vue'
 import Card from '../card/SnippetsCard.vue'
 import Breadcrumb from './BreadcrumbNavigation.vue'
-import BrowserList from './BrowserList.vue'
-import BrowserUpload from './BrowserUpload.vue'
+import FileList from './FileList.vue'
+import BrowserUpload from './FileUpload.vue'
 import ViewGrid from '../icons/ViewGrid.vue'
 import ViewList from '../icons/ViewList.vue'
+import { property } from '../../helpers/vue-extensions'
+import { createErrorToast } from '../../helpers/toast'
 
 const props = defineProps({
-  qualifier: {
-    type: Object,
-    required: true
-  }
+  qualifier: property(Object, true)
 })
 
 const parentPath = ref('')
 const files = ref({})
 const { client, hasPermissionTo } = useSession()
 const { applyAdjustments } = useAdjustments()
+const { getParentPath } = useQualifier()
 
 const processedFiles = computed(() => ({
   ...files.value,
   list: applyAdjustments([...files.value.list] || [])
 }))
+
+const canUpload = computed(() => {
+  return props.qualifier.path.length > 1 && hasPermissionTo(`/${props.qualifier.path}`, 'route:write')
+})
 
 watch(
   () => props.qualifier.watchable,
@@ -60,22 +64,14 @@ watch(
       })
       .then(() => files.value.isEmpty = files.value.list.length == 0)
       .catch(error => {
-        createToast(`${error.response.status}: ${error.response.data.message}`, {
-          type: 'danger'
-        })
+        createErrorToast(`${error.response.status}: ${error.response.data.message}`)
         files.value = {
           list: [],
           error: true
         }
       })
-    
-    const drop = (path) => 
-      (path.endsWith('/') ? path.slice(0, -1) : path)
-        .split("/")
-        .slice(0, -1)
-        .join('/') || '/'
-
-    parentPath.value = drop(`/${qualifier}`)
+  
+    parentPath.value = getParentPath(`/${qualifier}`)
   },
   { immediate: true }
 )
@@ -124,15 +120,8 @@ const MenuButton = (_, context) => {
               </AdjustmentsModal>
             </div>
           </div>
-          <BrowserList 
-            :qualifier="qualifier"
-            :files="processedFiles"
-            :compactMode="fileBrowserCompactMode"
-          />
-          <BrowserUpload 
-            v-if="qualifier.path.length > 1 && hasPermissionTo(`/${qualifier.path}`, 'route:write')"
-            :qualifier="qualifier"
-          />
+          <FileList :qualifier="qualifier" :files="processedFiles" :compactMode="fileBrowserCompactMode"/>
+          <BrowserUpload v-if="canUpload" :qualifier="qualifier" />
         </div>
       </div>
     </div>

@@ -15,7 +15,7 @@
  */
 
 import { ref, watchEffect } from 'vue'
-import { createSemverComparator } from '../helpers/maven/semver'
+import { createSemverComparator } from '../store/maven/semver'
 
 const reversedFileOrder = ref(localStorage.getItem('reversedFileOrder') === 'true')
 watchEffect(() => localStorage.setItem('reversedFileOrder', reversedFileOrder.value))

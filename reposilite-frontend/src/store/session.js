@@ -15,7 +15,7 @@
  */
 
 import { computed, ref, watchEffect } from "vue"
-import { createClient } from '../helpers/client'
+import { createClient } from './client'
 
 const token = ref({
   name: localStorage.getItem('token-name') || '',

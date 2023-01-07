@@ -1,8 +1,8 @@
-<script setup>
+<script setup lang="jsx">
 import { ref, computed, watchEffect } from 'vue'
 import { createSuccessToast, createErrorToast } from '../../helpers/toast'
 import { useSession } from '../../store/session'
-import useQualifier from '../../helpers/qualifier'
+import useQualifier from '../../store/qualifier'
 import FileUpload from 'vue-upload-component'
 import CloseIcon from '../icons/CloseIcon.vue'
 
@@ -16,7 +16,7 @@ const destination = computed(() => `${repository.value}/${to.value.replace(/(^\/
 const customDestination = ref(false)
 
 const stubPomEnabled = ref(false)
-const artifactId = ref('')
+const artifactId = ref('xx')
 const groupId = ref('')
 const version = ref('')
 

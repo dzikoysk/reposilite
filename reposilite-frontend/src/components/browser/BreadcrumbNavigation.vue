@@ -16,8 +16,13 @@
 
 <script setup>
 import { computed } from 'vue'
-
 import { useRoute } from 'vue-router'
+import { property } from '../../helpers/vue-extensions'
+
+defineProps({
+  parentPath: property(String, true)
+})
+
 const route = useRoute()
 
 const breadcrumbs = computed(() => {
@@ -28,22 +33,13 @@ const breadcrumbs = computed(() => {
     name: index === crumbs.length - 1 ? name : name + '/'
   }))
 })
-
-defineProps({
-  parentPath: {
-    type: String,
-    required: true
-  }
-})
 </script>
 
 <template>
   <div class="">
     <p class="pb-3 font-semibold">
       <span class="select-none">
-        <router-link to="/">
-          Index of 
-        </router-link>
+        <router-link to="/">Index of</router-link>
       </span>
       <span class="select-text">
         <router-link v-for="crumb of breadcrumbs" :key="crumb.link" :to="crumb.link">

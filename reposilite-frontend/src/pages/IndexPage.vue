@@ -17,24 +17,22 @@
 <script setup>
 import { computed, ref, watchEffect, defineAsyncComponent } from 'vue'
 import { useSession } from '../store/session'
-import useQualifier from '../helpers/qualifier'
+import useQualifier from '../store/qualifier'
 import DefaultHeader from '../components/header/DefaultHeader.vue'
 import FileBrowserView from '../components/browser/FileBrowserView.vue'
 import {Tabs, Tab, TabPanels, TabPanel} from 'vue3-tabs'
+import { property } from '../helpers/vue-extensions'
 
 const ConsoleView = defineAsyncComponent(() => import('../components/console/ConsoleView.vue'))
 const DashboardView = defineAsyncComponent(() => import('../components/dashboard/DashboardView.vue'))
 const SettingsView = defineAsyncComponent(() => import('../components/settings/SettingsView.vue'))
 
 defineProps({
-  qualifier: {
-    type: Object,
-    required: true
-  }
+  qualifier: property(Object, true)
 })
 
 const listOfTabs = [
-  { name: 'Overview' },
+  { name: 'Overview', manager: false },
   { name: 'Dashboard', manager: true },
   { name: 'Console', manager: true },
   { name: 'Settings', manager: true },
@@ -43,11 +41,11 @@ const listOfTabs = [
 const { isManager } = useSession()
 const { redirectTo } = useQualifier()
 
-const menuTabs = computed(() =>
-  listOfTabs
+const menuTabs = computed(() => {
+  return listOfTabs
     .filter(entry => !entry?.manager || isManager.value)
     .map(entry => entry.name)
-)
+})
 
 const selectedTab = ref(localStorage.getItem('selectedTab') || 'Overview')
 

@@ -16,8 +16,8 @@
 
 <script setup>
 import { ref } from 'vue'
-import { VueFinalModal } from 'vue-final-modal'
 import Toggle from '@vueform/toggle'
+import { VueFinalModal } from 'vue-final-modal'
 import '@vueform/toggle/themes/default.css'
 import { useAdjustments } from '../../store/adjustments'
 import CloseIcon from '../icons/CloseIcon.vue'
@@ -34,7 +34,7 @@ export default {
 
 <template>
   <div id="adjustments-modal">
-    <vue-final-modal
+    <VueFinalModal
       v-model="showAdjustments"
       v-bind="$attrs"
       classes="flex justify-center iems-center"
@@ -45,27 +45,21 @@ export default {
           <hr class>
           <div class="flex justify-between pt-6">
             <p class="pr-7">Sort files from newest to oldest</p>
-            <Toggle 
-              v-model="reversedFileOrder"
-              class="ml-10"
-            />
+            <Toggle v-model="reversedFileOrder" class="ml-10"/>
           </div>
           <div class="flex justify-between pt-6">
             <p class="pr-7">
               Display hash files such as 
               <span class="font-italic font-mono bg-gray-200 dark:bg-black px-2 py-0.5 m-2 rounded-lg">.md5/.sha1/.sha256/.sha512</span>
             </p>
-            <Toggle 
-              v-model="displayHashFiles"
-              class="ml-10"
-            />
+            <Toggle v-model="displayHashFiles" class="ml-10"/>
           </div>
         </div>
         <button class="absolute top-0 right-0 mt-5 mr-9" @click="showAdjustments = false">
           <CloseIcon />
         </button>
       </div>
-    </vue-final-modal>
+    </VueFinalModal>
     <div @click="showAdjustments = true">
       <slot name="button"></slot>
     </div>
