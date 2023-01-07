@@ -66,7 +66,7 @@ internal class MetadataService(private val repositorySecurityProvider: Repositor
         with (saveMetadataRequest) {
             supplyThrowing { xml.writeValueAsBytes(metadata) }
                 .mapErr { internalServer("Cannot parse metadata file") }
-                .flatMap { repository.putFile(gav.resolveMetadataFile(), it.inputStream()).map { _ -> it } }
+                .flatMap { repository.storageProvider.putFile(gav.resolveMetadataFile(), it.inputStream()).map { _ -> it } }
                 .flatMap { repository.writeFileChecksums(gav.resolveMetadataFile(), it) }
                 .map { metadata }
         }
@@ -84,7 +84,7 @@ internal class MetadataService(private val repositorySecurityProvider: Repositor
                     return unauthorizedError("Unauthorized access request")
                 }
 
-                repository
+                repository.storageProvider
                     .putFile(
                         location = gav,
                         inputStream = """
@@ -127,11 +127,11 @@ internal class MetadataService(private val repositorySecurityProvider: Repositor
         }
 
     fun findMetadata(repository: Repository, gav: Location): Result<Metadata, ErrorResponse> =
-        repository.getFile(gav.resolveMetadataFile())
+        repository.storageProvider.getFile(gav.resolveMetadataFile())
             .map { it.use { data -> xml.readValue<Metadata>(data) } }
 
     fun findVersions(repository: Repository, gav: Location, filter: String?): Result<VersionsResponse, ErrorResponse> =
-        repository.getFile(gav.resolveMetadataFile())
+        repository.storageProvider.getFile(gav.resolveMetadataFile())
             .map { it.use { data -> xml.readValue<Metadata>(data) } }
             .map { extractVersions(it) }
             .map { (isSnapshot, versions) ->

@@ -42,9 +42,8 @@ import io.javalin.community.ssl.SSLPlugin
 import io.javalin.config.JavalinConfig
 import io.javalin.http.Header
 import io.javalin.json.JavalinJackson
-import io.javalin.openapi.OpenApiInfo
-import io.javalin.openapi.plugin.OpenApiConfiguration
 import io.javalin.openapi.plugin.OpenApiPlugin
+import io.javalin.openapi.plugin.OpenApiPluginConfiguration
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.util.thread.ThreadPool
@@ -79,7 +78,7 @@ internal object JavalinConfiguration {
 
         configureJavalin(config, localConfiguration, webSettings)
         configureJsonSerialization(config)
-        configureSSL(reposilite, localConfiguration, config, server)
+        configureSSL(reposilite, localConfiguration, config)
         configureCors(config)
         configureOpenApi(config, frontendSettings.get())
         configureDebug(reposilite, localConfiguration, config)
@@ -146,7 +145,7 @@ internal object JavalinConfiguration {
         config.jsonMapper(JavalinJackson(objectMapper))
     }
 
-    private fun configureSSL(reposilite: Reposilite, localConfiguration: LocalConfiguration, config: JavalinConfig, server: Server) {
+    private fun configureSSL(reposilite: Reposilite, localConfiguration: LocalConfiguration, config: JavalinConfig) {
         if (localConfiguration.sslEnabled.get()) {
             reposilite.logger.info("Enabling SSL connector at ::" + localConfiguration.sslPort.get())
 
@@ -190,15 +189,18 @@ internal object JavalinConfiguration {
     }
 
     private fun configureOpenApi(config: JavalinConfig, frontendSettings: FrontendSettings) {
-        val openApiConfiguration = OpenApiConfiguration()
-
-        openApiConfiguration.info = OpenApiInfo().also {
-            it.title = frontendSettings.title
-            it.description = frontendSettings.description
-            it.version = VERSION
-        }
-
-        config.plugins.register(OpenApiPlugin(openApiConfiguration))
+        config.plugins.register(
+            OpenApiPlugin(
+                OpenApiPluginConfiguration()
+                    .withDefinitionConfiguration { _, configuration ->
+                        configuration.withOpenApiInfo {
+                            it.title = frontendSettings.title
+                            it.description = frontendSettings.description
+                            it.version = VERSION
+                        }
+                    }
+            )
+        )
     }
 
     private fun configureDebug(journalist: Journalist, localConfiguration: LocalConfiguration, config: JavalinConfig) {

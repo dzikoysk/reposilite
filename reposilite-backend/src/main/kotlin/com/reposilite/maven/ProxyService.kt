@@ -55,9 +55,9 @@ internal class ProxyService(private val journalist: Journalist) : Journalist {
                 .any { gav.toString().startsWith(it) }
 
     private fun storeFile(repository: Repository, gav: Location, data: InputStream): Result<InputStream, ErrorResponse> =
-        repository
+        repository.storageProvider
             .putFile(gav, data)
-            .flatMap { repository.getFile(gav) }
+            .flatMap { repository.storageProvider.getFile(gav) }
 
     override fun getLogger(): Logger =
         journalist.logger

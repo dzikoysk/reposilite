@@ -65,11 +65,11 @@ internal class MavenService(
     fun deployFile(deployRequest: DeployRequest): Result<Unit, ErrorResponse> {
         val (repository, path) = deployRequest
 
-        if (repository.redeployment.not() && !path.getSimpleName().contains(METADATA_FILE) && repository.exists(path)) {
+        if (repository.redeployment.not() && !path.getSimpleName().contains(METADATA_FILE) && repository.storageProvider.exists(path)) {
             return badRequestError("Redeployment is not allowed")
         }
 
-        return repository.putFile(path, deployRequest.content).peek {
+        return repository.storageProvider.putFile(path, deployRequest.content).peek {
             logger.info("DEPLOY | Artifact $path successfully deployed to ${repository.name} by ${deployRequest.by}")
             extensions.emitEvent(DeployEvent(repository, path, deployRequest.by))
         }
@@ -82,7 +82,7 @@ internal class MavenService(
             return unauthorizedError("Unauthorized access request")
         }
 
-        return repository.removeFile(path).peek {
+        return repository.storageProvider.removeFile(path).peek {
             logger.info("DELETE | File $path has been deleted from ${repository.name} by ${deleteRequest.by}")
         }
     }
@@ -94,9 +94,9 @@ internal class MavenService(
             .let { extensions.emitEvent(ResolvedFileEvent(accessToken, repository, gav, it)).result }
 
     private fun findInputStream(repository: Repository, gav: Location): Result<InputStream, ErrorResponse> =
-        if (repository.exists(gav)) {
+        if (repository.storageProvider.exists(gav)) {
             logger.debug("Gav $gav found in ${repository.name} repository")
-            repository.getFile(gav)
+            repository.storageProvider.getFile(gav)
         } else {
             logger.debug("Cannot find $gav in ${repository.name} repository, requesting proxied repositories")
             proxyService.findRemoteFile(repository, gav)
@@ -104,14 +104,14 @@ internal class MavenService(
 
     private fun findDetails(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<out FileDetails, ErrorResponse> =
         when {
-            repository.exists(gav) -> findLocalDetails(accessToken, repository, gav)
+            repository.storageProvider.exists(gav) -> findLocalDetails(accessToken, repository, gav)
             else -> findProxiedDetails(repository, gav)
         }.peek {
             recordResolvedRequest(Identifier(repository.name, gav.toString()), it)
         }
 
     private fun findLocalDetails(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<out FileDetails, ErrorResponse> =
-        repository.getFileDetails(gav)
+        repository.storageProvider.getFileDetails(gav)
             .flatMap {
                 it.takeIf { it.type == DIRECTORY }
                     ?.let { repositorySecurityProvider.canBrowseResource(accessToken, repository, gav).map { _ -> it } }

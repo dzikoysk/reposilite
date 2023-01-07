@@ -33,14 +33,14 @@ internal class PreservedBuildsListener(private val mavenFacade: MavenFacade) : E
         val artifactDirectory = gav.locationBeforeLast("/")
 
         mavenFacade.findMetadata(repository, artifactDirectory)
-            .merge(repository.getFiles(artifactDirectory)) { metadata, files -> metadata to files }
+            .merge(repository.storageProvider.getFiles(artifactDirectory)) { metadata, files -> metadata to files }
             .peek { (metadata, files) ->
                 val snapshotToPreserve = metadata.versioning?.snapshot?.timestamp ?: return@peek
 
                 files
                     .filter { it.locationAfterLast("/").toString().startsWith(metadata.artifactId!!) }
                     .filterNot { it.toString().contains(snapshotToPreserve) }
-                    .map { repository.removeFile(it) }
+                    .map { repository.storageProvider.removeFile(it) }
                     .count()
                     .also { mavenFacade.logger.info("DEPLOY | Preserved Builds Listener | $it deprecated file(s) have been removed") }
             }
