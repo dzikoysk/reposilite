@@ -22,16 +22,11 @@ import { useSession } from '../../store/session'
 import { createToast } from 'mosha-vue-toastify'
 import { computed } from 'vue'
 import useQualifier from '../../helpers/qualifier'
+import { property } from '../../helpers/vue-extensions'
 
 const props = defineProps({
-  value: {
-    type: Object,
-    required: false
-  },
-  close: {
-    type: Function,
-    required: true
-  }
+  value: property(Object, false),
+  close: property(Function, true)
 })
 
 const { client } = useSession()
@@ -61,7 +56,7 @@ export default {
 
 <template>
   <div id="adjustments-modal">
-    <vue-final-modal
+    <VueFinalModal
       v-if="isOpen"
       v-model="isOpen"
       v-bind="$attrs"
@@ -84,6 +79,6 @@ export default {
           <CloseIcon />
         </button>
       </div>
-    </vue-final-modal>
+    </VueFinalModal>
   </div>
 </template>

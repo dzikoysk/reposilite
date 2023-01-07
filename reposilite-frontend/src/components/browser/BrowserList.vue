@@ -83,12 +83,12 @@ const RouterEntry = ({ file }, context) => {
 
 const CompactListEntry = ({ file }) => {  
   return (
-    <p class="flex bg-gray-800 rounded-lg text-center">
+    <p class="flex bg-white dark:bg-gray-800 rounded-lg text-center">
       {isDirectory(file)
-        ? <span class="text-xm pl-1 pt-1.4">⚫</span>
-        : <span class="text-xm pl-1 pt-1.4">⚪</span>
+        ? <span class="text-xxs pl-4 pt-2">⚫</span>
+        : <span class="text-xxs pl-4 pt-2">⚪</span>
       }
-      <span class="px-2 w-full">{file.name}</span>
+      <span class="pl-1 pr-2 w-full">{file.name}</span>
     </p>
   )
 }

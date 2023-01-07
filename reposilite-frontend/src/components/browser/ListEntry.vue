@@ -19,34 +19,19 @@ import prettyBytes from 'pretty-bytes'
 import { useSession } from '../../store/session'
 import EyeIcon from '../icons/EyeIcon.vue'
 import TrashIcon from '../icons/TrashIcon.vue'
+import { property } from '../../helpers/vue-extensions'
 
 const props = defineProps({
-  qualifier: {
-    type: Object,
-    required: true
-  },
-  file: {
-    type: Object,
-    required: true
-  },
-  url: {
-    type: String,
-    required: false
-  },
-  openDeleteEntryModal: {
-    type: Function,
-    required: true
-  }
+  qualifier: property(Object, true),
+  file: property(Object, true),
+  url: property(String, false),
+  openDeleteEntryModal: property(Function, true)
 })
 
 const { hasPermissionTo } = useSession()
 
-const isHumanReadable =
-  ['application/xml', 'text/plain', 'text/xml', 'text/markdown', 'application/json']
-    .some(type => props.file?.contentType == type)
-
-const openUrl = (url) =>
-  window.open(url)
+const humanReadableMimeTypes = ['application/xml', 'text/plain', 'text/xml', 'text/markdown', 'application/json']
+const isHumanReadable = humanReadableMimeTypes.some(type => props.file?.contentType == type)
 </script>
 
 <template>
@@ -63,7 +48,7 @@ const openUrl = (url) =>
           :title="`Click to view ${file.name} file content in a new tab`"
           id="view-button"
           class="px-1 mr-6 pt-0.4 rounded-full text-purple-300 hover:(transition-colors duration-200 bg-gray-100 dark:bg-gray-900)" 
-          @click.left.prevent="openUrl(url)"
+          @click.left.prevent="window.open(url)"
           v-on:click.stop
         />
         <TrashIcon

@@ -37,6 +37,7 @@ export default defineConfig({
         },
       },
       fontSize: {
+        xxs: ["0.45rem", { lineHeight: "0.5rem" }],
         xm: ["0.625rem", { lineHeight: "0.75rem" }],
         ssm: ["0.8rem", { lineHeight: "1.15rem" }],
       },
