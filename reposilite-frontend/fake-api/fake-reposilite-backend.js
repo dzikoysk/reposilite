@@ -131,7 +131,7 @@ application
     respond(
       createDirectoryDetails(
         "/filled",
-        Array(80)
+        Array(60)
           .fill(undefined)
           .map(() => createDirectoryDetails(crypto.randomBytes(7).toString('hex')))
           .concat(
