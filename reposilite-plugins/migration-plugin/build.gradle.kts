@@ -19,7 +19,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     id("com.github.johnrengelman.shadow") version "7.1.2"
     kotlin("jvm")
-    kotlin("plugin.serialization") version "1.4.20"
+    kotlin("plugin.serialization") version "1.8.0"
 }
 
 application {
@@ -30,7 +30,7 @@ dependencies {
     compileOnly(project(":reposilite-backend"))
     testImplementation(project(":reposilite-backend"))
 
-    implementation("com.charleskorn.kaml:kaml:0.43.0")
+    implementation("com.charleskorn.kaml:kaml:0.49.0")
 }
 
 tasks.withType<ShadowJar> {

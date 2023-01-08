@@ -36,16 +36,16 @@ dependencies {
     implementation(project(":reposilite-frontend"))
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.22.0")
 
-    val kotlin = "1.7.21"
+    val kotlin = "1.8.0"
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin")
     api("org.jetbrains:annotations:23.1.0")
 
-    api("io.javalin:javalin:5.2.0")
-    api("io.javalin.community.openapi:javalin-openapi-plugin:5.3.0-alpha.6")
-    kapt("io.javalin.community.openapi:openapi-annotation-processor:5.3.0-alpha.7")
+    api("io.javalin:javalin:5.3.0")
+    api("io.javalin.community.openapi:javalin-openapi-plugin:5.3.0")
+    kapt("io.javalin.community.openapi:openapi-annotation-processor:5.3.0")
     api("com.reposilite.javalin-rfcs:javalin-routing:5.0.0-SNAPSHOT")
-    api("io.javalin.community.ssl:ssl-plugin:5.2.0")
+    api("io.javalin.community.ssl:ssl-plugin:5.3.0")
 
     val springSecurityCrypto = "5.7.3"
     implementation("org.springframework.security:spring-security-crypto:$springSecurityCrypto")
