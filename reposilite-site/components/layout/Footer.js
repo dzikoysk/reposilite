@@ -44,7 +44,7 @@ export default function Footer() {
             </VStack>
           </Flex>
           <Text textAlign={'center'} paddingY='4' fontSize={'sm'}>
-            Copyright © 2022 dzikoysk with ❤ panda-lang
+            Copyright © 2023 dzikoysk with ❤ panda-lang
           </Text>
         </Container>
       </Box>
