@@ -83,12 +83,12 @@ const RouterEntry = ({ file }, context) => {
 
 const CompactListEntry = ({ file }) => {  
   return (
-    <p class="flex bg-white dark:bg-gray-800 rounded-lg text-center">
+    <p class="bg-white dark:bg-gray-800 rounded-lg inline-block w-full flex">
       {isDirectory(file)
-        ? <span class="text-xxs pl-4 pt-2">⚫</span>
-        : <span class="text-xxs pl-4 pt-2">⚪</span>
+        ? <div class="text-xxs pl-4 pt-2">⚫</div>
+        : <div class="text-xxs pl-4 pt-2">⚪</div>
       }
-      <span class="pl-1 pr-2 w-full">{file.name}</span>
+      <div class="pl-3 pr-2 w-full whitespace-nowrap">{file.name}</div>
     </p>
   )
 }
@@ -103,8 +103,8 @@ const CompactListEntry = ({ file }) => {
     />
 
     <div v-if="compactMode" class="">
-      <div class="flex flex-wrap justify-between flex-grow">
-        <div v-for="file in files.list" v-bind:key="file" class="flex-1 xl:min-w-1/3 px-1 my-1">
+      <div class="flex flex-wrap justify-between flex-grow w-full">
+        <div v-for="file in files.list" v-bind:key="file" class="flex-1 px-1 my-1">
           <RouterEntry v-if="isDirectory(file)" :file="file">
             <CompactListEntry :file="file" />
           </RouterEntry>

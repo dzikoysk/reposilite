@@ -133,7 +133,7 @@ application
         "/filled",
         Array(60)
           .fill(undefined)
-          .map(() => createDirectoryDetails(crypto.randomBytes(7).toString('hex')))
+          .map(() => createDirectoryDetails(crypto.randomBytes(5).toString('hex') + '-' + crypto.randomBytes(5).toString('hex')))
           .concat(
             Array(10)
               .fill(undefined)
