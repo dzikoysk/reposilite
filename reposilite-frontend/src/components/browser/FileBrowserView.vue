@@ -70,8 +70,8 @@ watch(
           error: true
         }
       })
-  
-    parentPath.value = getParentPath(`/${qualifier}`)
+
+    parentPath.value = getParentPath()
   },
   { immediate: true }
 )

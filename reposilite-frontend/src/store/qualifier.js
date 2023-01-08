@@ -27,7 +27,7 @@ const refreshQualifier = () =>
   qualifier.watchable++
 
 const getParentPath = () =>
-  (qualifier.path.endsWith('/') ? qualifier.path.slice(0, -1) : qualifier.path)
+  `/${(qualifier.path.endsWith('/') ? qualifier.path.slice(0, -1) : qualifier.path)}`
     .split("/")
     .slice(0, -1)
     .join('/') || '/'
