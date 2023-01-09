@@ -83,7 +83,11 @@ const RouterEntry = ({ file }, context) => {
 
 const CompactListEntry = ({ file }) => {  
   return (
-    <p class="bg-white dark:bg-gray-800 rounded-lg inline-block w-full flex">
+    <p class={`
+      rounded-lg inline-block w-full flex
+      hover:(transition-colors duration-200 bg-purple-400 text-white)
+      dark:text-white dark:hover:(transition-colors duration-200 bg-purple-600)
+    `}>
       {isDirectory(file)
         ? <div class="text-xxs pl-4 pt-2">⚫</div>
         : <div class="text-xxs pl-4 pt-2">⚪</div>
@@ -101,17 +105,14 @@ const CompactListEntry = ({ file }) => {
       :value="deleteModalValue"
       :close="closeDeleteModal"
     />
-
-    <div v-if="compactMode" class="">
-      <div class="flex flex-wrap justify-between flex-grow w-full">
-        <div v-for="file in files.list" v-bind:key="file" class="flex-1 px-1 my-1">
-          <RouterEntry v-if="isDirectory(file)" :file="file">
-            <CompactListEntry :file="file" />
-          </RouterEntry>
-          <LinkEntry v-else :file="file">
-            <CompactListEntry :file="file" />
-          </LinkEntry>
-        </div>
+    <div v-if="compactMode" class="relative w-full bg-white dark:bg-gray-800 py-3 px-1 rounded-xl">
+      <div v-for="file in files.list" v-bind:key="file" class="px-1 my-1">
+        <RouterEntry v-if="isDirectory(file)" :file="file">
+          <CompactListEntry :file="file" />
+        </RouterEntry>
+        <LinkEntry v-else :file="file">
+          <CompactListEntry :file="file" />
+        </LinkEntry>
       </div>
     </div>
     <div v-else>
@@ -133,7 +134,6 @@ const CompactListEntry = ({ file }) => {
         </LinkEntry>
       </div>
     </div>
-
     <div v-if="files.isEmpty" class="pl-2 pb-4">
       <p>Directory is empty</p>
     </div>

@@ -131,9 +131,15 @@ application
     respond(
       createDirectoryDetails(
         "/filled",
-        Array(60)
+        Array(80)
           .fill(undefined)
-          .map(() => createDirectoryDetails(crypto.randomBytes(5).toString('hex') + '-' + crypto.randomBytes(5).toString('hex')))
+          .map(() => {
+            const a = crypto.randomBytes(10).toString('hex').substring(0, 1 + Math.round(1 * Math.random()))
+            const b = crypto.randomBytes(10).toString('hex').substring(0, 1 + Math.round(3 * Math.random()))
+            const c = crypto.randomBytes(10).toString('hex').substring(0, 1 + Math.round(6 * Math.random()))
+            const d = crypto.randomBytes(10).toString('hex').substring(0, 1 + Math.round(9 * Math.random()))
+            return createDirectoryDetails(a + '-' + b + '-' + c + '-' + d)
+          })
           .concat(
             Array(10)
               .fill(undefined)

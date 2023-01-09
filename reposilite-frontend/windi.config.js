@@ -43,7 +43,7 @@ export default defineConfig({
       },
       fontFamily: {
         mono: ["Consolas", "Monaco", "monospace"],
-      },
+      }
     },
   },
   shortcuts: {
