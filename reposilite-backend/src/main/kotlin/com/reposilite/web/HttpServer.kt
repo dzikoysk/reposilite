@@ -18,16 +18,14 @@ package com.reposilite.web
 
 import com.reposilite.Reposilite
 import com.reposilite.configuration.local.LocalConfiguration
-import com.reposilite.shared.extensions.LoomExtensions
 import com.reposilite.web.api.HttpServerInitializationEvent
 import com.reposilite.web.api.HttpServerStarted
 import com.reposilite.web.api.HttpServerStoppedEvent
 import com.reposilite.web.application.JavalinConfiguration
 import io.javalin.Javalin
+import io.javalin.util.ConcurrencyUtil
 import org.eclipse.jetty.io.EofException
-import org.eclipse.jetty.util.thread.QueuedThreadPool
 import org.eclipse.jetty.util.thread.ThreadPool
-import kotlin.math.min
 
 class HttpServer {
 
@@ -38,20 +36,17 @@ class HttpServer {
         val extensionsManagement = reposilite.extensions
         val localConfiguration = extensionsManagement.facade<LocalConfiguration>()
 
-        val webThreadPool = QueuedThreadPool(localConfiguration.webThreadPool.get(), min(2, localConfiguration.webThreadPool.get())).also {
-            it.name = "Reposilite | Web (${it.maxThreads}) -"
-            it.isUseVirtualThreads = LoomExtensions.isLoomAvailable()
-        }
+        val webThreadPool = ConcurrencyUtil.jettyThreadPool(
+            name = "Reposilite | Web (${localConfiguration.webThreadPool.get()}) -",
+            minThreads = localConfiguration.webThreadPool.get(),
+            maxThreads = localConfiguration.webThreadPool.get()
+        )
 
         this.javalin = createJavalin(reposilite, webThreadPool)
             .exception(EofException::class.java) { _, _ -> reposilite.logger.warn("Client closed connection") }
             .events { listener ->
-                listener.serverStarted { webThreadPool.start() }
                 listener.serverStopping { reposilite.logger.info("Server stopping...") }
-                listener.serverStopped {
-                    extensionsManagement.emitEvent(HttpServerStoppedEvent)
-                    webThreadPool.stop()
-                }
+                listener.serverStopped { extensionsManagement.emitEvent(HttpServerStoppedEvent) }
             }
             .also {
                 reposilite.extensions.emitEvent(HttpServerInitializationEvent(reposilite, it))
