@@ -22,6 +22,7 @@ import com.reposilite.statistics.api.ResolvedRequestsInterval.MONTHLY
 import com.reposilite.statistics.api.ResolvedRequestsInterval.WEEKLY
 import com.reposilite.statistics.api.ResolvedRequestsInterval.YEARLY
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.temporal.TemporalAdjusters
 import java.time.temporal.WeekFields
@@ -83,6 +84,9 @@ internal object YearlyDateIntervalProvider : DateIntervalProvider {
         listOf(createDate())
 
 }
+
+fun LocalDateTime.toUTCMillis(): Long =
+    toEpochSecond(ZoneOffset.UTC) * 1000
 
 fun LocalDate.toUTCMillis(): Long =
     atStartOfDay().toEpochSecond(ZoneOffset.UTC) * 1000

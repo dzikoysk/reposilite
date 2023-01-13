@@ -33,6 +33,7 @@ function requestStatus() {
       .then(response => response.data)
       .then(snapshotsData => {
         statusSnapshots.value = snapshotsData
+        console.log(statusSnapshots.value)
         setTimeout(requestStatus, 1000 * 30)
       })
       .catch(error => {
@@ -46,7 +47,6 @@ requestStatus()
 const chartOptions = {
   chart: {
     id: "reposilite-instance-status",
-    stacked: true
   },
   tooltip: {
     shared: true,
@@ -87,7 +87,7 @@ const chartOptions = {
       class="dark:text-black pt-1"
       width="100%"
       height="320px"
-      type="area"
+      type="line"
       :options="chartOptions"
       :series="statusSnapshotsSeries"
     />

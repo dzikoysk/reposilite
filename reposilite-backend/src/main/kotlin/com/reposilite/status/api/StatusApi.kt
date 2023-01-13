@@ -16,7 +16,8 @@
 
 package com.reposilite.status.api
 
-import java.time.Instant
+import com.reposilite.statistics.toUTCMillis
+import java.time.LocalDateTime
 
 data class InstanceStatusResponse(
     val version: String,
@@ -30,7 +31,7 @@ data class InstanceStatusResponse(
 )
 
 data class StatusSnapshot(
-    val at: Instant = Instant.now(),
+    val at: Long = LocalDateTime.now().toUTCMillis(),
     val memory: Int,
     val threads: Int
 )
