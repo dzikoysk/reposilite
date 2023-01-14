@@ -61,6 +61,7 @@ internal class MavenService(
         // Artifact descriptions
         ".pom",
         ".xml",
+        ".module",
         // Artifact extensions
         "-sources.jar",
         "-javadoc.jar",
