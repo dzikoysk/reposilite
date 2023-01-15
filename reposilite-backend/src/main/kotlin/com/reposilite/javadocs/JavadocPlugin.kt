@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package com.reposilite.plugin.javadoc
+package com.reposilite.javadocs
 
+import com.reposilite.javadocs.infrastructure.JavadocEndpoints
 import com.reposilite.maven.MavenFacade
 import com.reposilite.plugin.api.Facade
 import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
-import com.reposilite.plugin.javadoc.infrastructure.JavadocEndpoints
 import com.reposilite.plugin.parameters
 import com.reposilite.web.api.RoutingSetupEvent
 

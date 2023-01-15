@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.reposilite.plugin.javadoc.infrastructure
+package com.reposilite.javadocs.infrastructure
 
+import com.reposilite.javadocs.JavadocFacade
+import com.reposilite.javadocs.api.JavadocPageRequest
 import com.reposilite.maven.infrastructure.MavenRoutes
-import com.reposilite.plugin.javadoc.JavadocFacade
-import com.reposilite.plugin.javadoc.api.JavadocPageRequest
 import com.reposilite.shared.extensions.encoding
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.routing.RouteMethod

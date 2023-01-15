@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.reposilite.plugin.javadoc.api
+package com.reposilite.javadocs.api
 
 data class JavadocResponse(
     val contentType: String,

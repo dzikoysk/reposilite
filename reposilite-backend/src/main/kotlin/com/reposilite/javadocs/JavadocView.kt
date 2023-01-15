@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.reposilite.plugin.javadoc
+package com.reposilite.javadocs
 
 import org.intellij.lang.annotations.Language
 
@@ -91,10 +91,10 @@ internal object JavadocView {
                         <!--<a href="#p"><h5>Download JavaDoc</h5></a> todo-->
                     </div>
                 </div>
-                <iframe id="javadoc" class="doc" src="docindex.html" sandbox="allow-scripts"></iframe>
+                <iframe id="javadoc" class="doc" src="/cache/index.html" sandbox="allow-scripts"></iframe>
                 <script>
                 if (!window.location.href.endsWith("/")) {
-                    document.getElementById("javadoc").src = window.location.href + '/docindex.html'
+                    document.getElementById("javadoc").src = window.location.href + '/cache/index.html'
                 }
                 </script>
             </body>

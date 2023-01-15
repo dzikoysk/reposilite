@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.reposilite.plugin.javadoc.api
+package com.reposilite.javadocs.api
 
 import com.reposilite.maven.Repository
 import com.reposilite.storage.api.Location
