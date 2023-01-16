@@ -29,9 +29,9 @@ private const val JAVADOC_JAR_EXTENSION = "-javadoc.jar"
 private const val JAVADOC_JAR = "javadoc.jar"
 private const val JAVADOC_JAR_INDEX = "index.html"
 
-private const val CONTAINER_DIR = "container"
+private const val CONTAINER_DIR = ".cache"
 private const val CONTAINER_VIEW_INDEX = "index.html"
-private const val CONTAINER_UNPACK_DIR = "cache"
+private const val CONTAINER_UNPACK_DIR = "unpack"
 
 internal class JavadocContainerService(
     private val mavenFacade: MavenFacade,

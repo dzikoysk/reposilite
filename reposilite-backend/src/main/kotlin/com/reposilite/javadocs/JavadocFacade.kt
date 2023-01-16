@@ -18,6 +18,10 @@ package com.reposilite.javadocs
 
 import com.reposilite.javadocs.api.JavadocPageRequest
 import com.reposilite.javadocs.api.JavadocResponse
+import com.reposilite.javadocs.JavadocPage.JavadocContainerPage
+import com.reposilite.javadocs.JavadocPage.JavadocErrorPage
+import com.reposilite.javadocs.JavadocPage.JavadocEmptyFilePage
+import com.reposilite.javadocs.JavadocPage.JavadocPlainFilePage
 import com.reposilite.javadocs.container.JavadocContainerService
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
@@ -63,18 +67,18 @@ class JavadocFacade internal constructor(
 
         if (repositoryFile != null) {
             if (!Files.exists(repositoryFile.targetPath)) {
-                return JavadocPage.JavadocEmptyFilePage(repositoryFile)
+                return JavadocEmptyFilePage(repositoryFile)
             }
 
-            return JavadocPage.JavadocPlainFilePage(repositoryFile)
+            return JavadocPlainFilePage(repositoryFile)
         }
 
         if (gav.contains("/resources/")) {
-            return JavadocPage.JavadocErrorPage(notFound("Resources are unavailable before extraction"))
+            return JavadocErrorPage(notFound("Resources are unavailable before extraction"))
         }
 
         return javadocContainerService.loadContainer(accessToken, repository, gav)
-            .fold({ container -> JavadocPage.JavadocContainerPage(container) }, { error -> JavadocPage.JavadocErrorPage(error) })
+            .fold({ container -> JavadocContainerPage(container) }, { error -> JavadocErrorPage(error) })
     }
 
     private fun resolveGav(request: JavadocPageRequest): Location {
