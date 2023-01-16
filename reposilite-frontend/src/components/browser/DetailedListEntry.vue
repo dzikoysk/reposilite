@@ -16,14 +16,17 @@
 
 <script setup>
 import prettyBytes from 'pretty-bytes'
-import { useSession } from '../../store/session'
+import {createURL} from "../../store/client"
+import {useSession} from '../../store/session'
 import EyeIcon from '../icons/EyeIcon.vue'
+import JavaDocsIcon from "../icons/JavaDocsIcon.vue"
 import TrashIcon from '../icons/TrashIcon.vue'
-import { property } from '../../helpers/vue-extensions'
+import {property} from '../../helpers/vue-extensions'
+
 
 const props = defineProps({
-  qualifier: property(Object, true),
   file: property(Object, true),
+  qualifier: property(Object, true),
   url: property(String, false),
   openDeleteEntryModal: property(Function, true)
 })
@@ -32,6 +35,22 @@ const { hasPermissionTo } = useSession()
 
 const humanReadableMimeTypes = ['application/xml', 'text/plain', 'text/xml', 'text/markdown', 'application/json']
 const isHumanReadable = humanReadableMimeTypes.some(type => props.file?.contentType == type)
+
+const openUrl = (url) =>
+    window.open(url, '_blank')
+
+const isJavaDocsAvailable = () => props.file.name.endsWith('-javadoc.jar') && getJavaDocsUrl() != null
+const getJavaDocsUrl = () => {
+  const qualifier = props.qualifier.path
+  const elements = qualifier.split('/')
+
+  if (elements.length < 2 || elements[1] === '') {
+      return null
+  }
+
+  return createURL(`/javadoc/${qualifier}`)
+}
+
 </script>
 
 <template>
@@ -48,7 +67,15 @@ const isHumanReadable = humanReadableMimeTypes.some(type => props.file?.contentT
           :title="`Click to view ${file.name} file content in a new tab`"
           id="view-button"
           class="px-1 mr-6 pt-0.4 rounded-full text-purple-300 hover:(transition-colors duration-200 bg-gray-100 dark:bg-gray-900)" 
-          @click.left.prevent="window.open(url)"
+          @click.left.prevent="openUrl(url)"
+          v-on:click.stop
+        />
+        <JavaDocsIcon
+          v-if="isJavaDocsAvailable()"
+          :title="`Click to view ${file.name} javadocs in a new tab`"
+          id="javadoc-button"
+          class="px-1 mr-6 pt-0.4 rounded-full text-purple-300 hover:(transition-colors duration-200 bg-gray-100 dark:bg-gray-900)"
+          @click.left.prevent="openUrl(getJavaDocsUrl())"
           v-on:click.stop
         />
         <TrashIcon
