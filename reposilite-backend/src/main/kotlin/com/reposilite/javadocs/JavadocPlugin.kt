@@ -17,6 +17,7 @@
 package com.reposilite.javadocs
 
 import com.reposilite.javadocs.infrastructure.JavadocEndpoints
+import com.reposilite.javadocs.page.JavadocContainerUpdateController
 import com.reposilite.maven.MavenFacade
 import com.reposilite.plugin.api.Facade
 import com.reposilite.plugin.api.Plugin
@@ -38,6 +39,8 @@ internal class JavadocPlugin : ReposilitePlugin() {
             javadocFolder = javadocFolder,
             mavenFacade = mavenFacade
         )
+
+        event(JavadocContainerUpdateController(javadocFolder))
 
         event { event: RoutingSetupEvent ->
             event.registerRoutes(JavadocEndpoints(javadocFacade))

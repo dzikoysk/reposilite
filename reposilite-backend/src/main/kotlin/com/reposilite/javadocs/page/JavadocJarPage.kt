@@ -33,7 +33,6 @@ internal class JavadocJarPage(
 
     companion object {
         private const val RESOURCES_PATH = "/resources/"
-        private const val CACHE_DIR = "cache"
 
         private const val JAR_EXTENSION = ".jar"
         private const val JAVADOC_JAR_EXTENSION = "-javadoc.jar"
@@ -42,7 +41,7 @@ internal class JavadocJarPage(
         private const val SNAPSHOT_TAG = "-SNAPSHOT"
         private const val INDEX_HTML = "index.html"
         private const val INDEX_HTML_PATH = "/index.html"
-        private const val INDEX_DOCS_HTML = "index.html"
+
 
         private const val DIR_SEPARATOR = "/"
 
@@ -106,26 +105,22 @@ internal class JavadocJarPage(
      * @param gav the direct gav to the javadoc file
      */
     private fun extractJavadocJar(gav: Location): Result<String, ErrorResponse> {
-        val destinationPath = javadocFolder
-            .resolve(repository.name)
-            .resolve(gav.locationBeforeLast(DIR_SEPARATOR).toString())
+        val container: JavadocContainer = JavadocContainer.create(javadocFolder, repository, gav);
 
-        val indexFile = destinationPath.resolve(INDEX_DOCS_HTML)
-
-        if (Files.exists(indexFile)) {
-            return Result.ok(this.readFile(indexFile))
+        if (Files.exists(container.javadocContainerIndex)) {
+            return Result.ok(this.readFile(container.javadocContainerIndex))
         }
 
-        val cacheDestinationPath = destinationPath.resolve(CACHE_DIR)
+        val javadocCachePath = container.javadocCachePath
 
-        Files.createDirectories(cacheDestinationPath)
-        val cacheDestinationJarPath = cacheDestinationPath.resolve(JAVADOC_JAR)
+        Files.createDirectories(javadocCachePath)
+        val cacheDestinationJarPath = javadocCachePath.resolve(JAVADOC_JAR)
 
         return mavenFacade.findFile(LookupRequest(accessToken, repository.name, gav))
             .peek { (_, originInput) -> this.copyJavadocJar(originInput, cacheDestinationJarPath) }
-            .flatMap { this.unpackJavadocJar(cacheDestinationJarPath, cacheDestinationPath) }
-            .peek { this.createDocIndexHtml(destinationPath) }
-            .map { this.readFile(indexFile) }
+            .flatMap { this.unpackJavadocJar(cacheDestinationJarPath, javadocCachePath) }
+            .peek { this.createDocIndexHtml(container) }
+            .map { this.readFile(container.javadocContainerIndex) }
     }
 
     private fun copyJavadocJar(originInput: InputStream, destinationJarPath: Path) {
@@ -159,10 +154,8 @@ internal class JavadocJarPage(
                 .also { Files.deleteIfExists(destinationJarPath) }
         }
 
-    private fun createDocIndexHtml(destinationPath: Path) {
-        val docIndexFile = destinationPath.resolve(INDEX_DOCS_HTML)
-
-        Files.write(docIndexFile, JavadocView.index().toByteArray(Charsets.UTF_8))
+    private fun createDocIndexHtml(container: JavadocContainer) {
+        Files.write(container.javadocContainerIndex, JavadocView.index().toByteArray(Charsets.UTF_8))
     }
 
     private fun InputStream.copyToAndClose(output: OutputStream) =
