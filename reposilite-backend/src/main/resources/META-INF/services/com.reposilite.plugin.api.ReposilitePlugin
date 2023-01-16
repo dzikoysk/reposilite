@@ -2,7 +2,7 @@ com.reposilite.auth.application.AuthenticationPlugin
 com.reposilite.console.application.ConsolePlugin
 com.reposilite.frontend.application.FrontendPlugin
 com.reposilite.maven.application.MavenPlugin
-com.reposilite.javadocs.JavadocPlugin
+com.reposilite.javadocs.application.JavadocPlugin
 com.reposilite.configuration.application.ConfigurationPlugin
 com.reposilite.configuration.local.LocalConfigurationPlugin
 com.reposilite.configuration.shared.application.SharedConfigurationPlugin

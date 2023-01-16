@@ -18,30 +18,31 @@ package com.reposilite.javadocs
 
 import com.reposilite.javadocs.api.JavadocPageRequest
 import com.reposilite.javadocs.api.JavadocResponse
-import com.reposilite.javadocs.page.JavadocPageFactory
+import com.reposilite.javadocs.container.JavadocContainerService
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
 import com.reposilite.maven.MavenFacade
+import com.reposilite.maven.Repository
 import com.reposilite.maven.api.VersionLookupRequest
 import com.reposilite.plugin.api.Facade
 import com.reposilite.shared.ErrorResponse
+import com.reposilite.shared.notFound
 import com.reposilite.shared.unauthorizedError
 import com.reposilite.storage.api.Location
+import com.reposilite.token.AccessTokenIdentifier
 import panda.std.Result
+import java.nio.file.Files
 import java.nio.file.Path
+
+private const val LATEST_PATTERN = "/latest"
+private const val VERSION_FORMAT = "/%s"
 
 class JavadocFacade internal constructor(
     private val journalist: Journalist,
     val mavenFacade: MavenFacade,
-    javadocFolder: Path,
+    private val javadocFolder: Path,
+    private val javadocContainerService: JavadocContainerService
 ) : Journalist, Facade {
-
-    companion object {
-        private const val LATEST_PATTERN = "/latest"
-        private const val VERSION_FORMAT = "/%s"
-    }
-
-    private val javadocPageFactory = JavadocPageFactory(mavenFacade, javadocFolder)
 
     fun findJavadocPage(request: JavadocPageRequest): Result<JavadocResponse, ErrorResponse> {
         val (accessToken, repository, rawGav) = request
@@ -51,13 +52,30 @@ class JavadocFacade internal constructor(
         }
 
         val gav = this.resolveGav(request)
-        val page = this.javadocPageFactory.createPage(accessToken, repository, gav)
+        val page = this.createPage(accessToken, repository, gav)
 
         return page.render()
             .onError { this.logger.error("Cannot extract javadoc: ${it.message} (${it.status})}") }
     }
 
-    override fun getLogger(): Logger = journalist.logger
+    private fun createPage(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): JavadocPage {
+        val repositoryFile = createPlainFile(javadocFolder, repository, gav)
+
+        if (repositoryFile != null) {
+            if (!Files.exists(repositoryFile.targetPath)) {
+                return JavadocPage.JavadocEmptyFilePage(repositoryFile)
+            }
+
+            return JavadocPage.JavadocPlainFilePage(repositoryFile)
+        }
+
+        if (gav.contains("/resources/")) {
+            return JavadocPage.JavadocErrorPage(notFound("Resources are unavailable before extraction"))
+        }
+
+        return javadocContainerService.loadContainer(accessToken, repository, gav)
+            .fold({ container -> JavadocPage.JavadocContainerPage(container) }, { error -> JavadocPage.JavadocErrorPage(error) })
+    }
 
     private fun resolveGav(request: JavadocPageRequest): Location {
         if (!request.gav.contains(LATEST_PATTERN)) {
@@ -70,5 +88,7 @@ class JavadocFacade internal constructor(
             .map { request.gav.replace(LATEST_PATTERN, VERSION_FORMAT.format(it.version)) }
             .orElseGet { request.gav }
     }
+
+    override fun getLogger(): Logger = journalist.logger
 
 }
