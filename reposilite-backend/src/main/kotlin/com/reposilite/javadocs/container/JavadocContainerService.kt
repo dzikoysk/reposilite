@@ -4,7 +4,11 @@ import com.reposilite.javadocs.JavadocView
 import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.Repository
 import com.reposilite.maven.api.LookupRequest
-import com.reposilite.shared.*
+import com.reposilite.shared.ErrorResponse
+import com.reposilite.shared.badRequest
+import com.reposilite.shared.badRequestError
+import com.reposilite.shared.notFound
+import com.reposilite.shared.errorResponse
 import com.reposilite.storage.api.FileType
 import com.reposilite.storage.api.Location
 import com.reposilite.storage.getSimpleName
