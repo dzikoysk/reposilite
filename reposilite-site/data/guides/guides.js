@@ -54,6 +54,7 @@ const categories = [
     directory: 'integrations',
     content: [
       'nginx',
+      'caddy',
       'apache',
       'cloudflare',
       'systemd',
