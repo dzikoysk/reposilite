@@ -59,8 +59,8 @@ class HttpRemoteClient(private val journalist: Journalist, proxy: Proxy?) : Remo
         .build()
         .createRequestFactory()
 
-    override fun head(uri: String, credentials: RemoteCredentials?, connectTimeout: Int, readTimeout: Int): Result<FileDetails, ErrorResponse> =
-        createRequest(HttpMethods.HEAD, uri, credentials, connectTimeout, readTimeout)
+    override fun head(uri: String, credentials: RemoteCredentials?, connectTimeoutInSeconds: Int, readTimeoutInSeconds: Int): Result<FileDetails, ErrorResponse> =
+        createRequest(HttpMethods.HEAD, uri, credentials, connectTimeoutInSeconds, readTimeoutInSeconds)
             .execute { response ->
                 response.disconnect()
                 val headers = response.headers
@@ -83,8 +83,8 @@ class HttpRemoteClient(private val journalist: Journalist, proxy: Proxy?) : Remo
                 ).asSuccess()
             }
 
-    override fun get(uri: String, credentials: RemoteCredentials?, connectTimeout: Int, readTimeout: Int): Result<InputStream, ErrorResponse> =
-        createRequest(HttpMethods.GET, uri, credentials, connectTimeout, readTimeout)
+    override fun get(uri: String, credentials: RemoteCredentials?, connectTimeoutInSeconds: Int, readTimeoutInSeconds: Int): Result<InputStream, ErrorResponse> =
+        createRequest(HttpMethods.GET, uri, credentials, connectTimeoutInSeconds, readTimeoutInSeconds)
             .execute { it.content.asSuccess() }
 
     private fun createRequest(method: String, uri: String, credentials: RemoteCredentials?, connectTimeout: Int, readTimeout: Int): HttpRequest {

@@ -37,17 +37,17 @@ interface RemoteClient {
     /**
      * @param uri - full remote host address with a gav
      * @param credentials - basic credentials in user:password format
-     * @param connectTimeout - connection establishment timeout in seconds
-     * @param readTimeout - connection read timeout in seconds
+     * @param connectTimeoutInSeconds - connection establishment timeout in seconds
+     * @param readTimeoutInSeconds - connection read timeout in seconds
      */
-    fun head(uri: String, credentials: RemoteCredentials?, connectTimeout: Int, readTimeout: Int): Result<FileDetails, ErrorResponse>
+    fun head(uri: String, credentials: RemoteCredentials?, connectTimeoutInSeconds: Int, readTimeoutInSeconds: Int): Result<FileDetails, ErrorResponse>
 
     /**
      * @param uri - full remote host address with a gav
      * @param credentials - basic credentials in user:password format
-     * @param connectTimeout - connection establishment timeout in seconds
-     * @param readTimeout - connection read timeout in seconds
+     * @param connectTimeoutInSeconds - connection establishment timeout in seconds
+     * @param readTimeoutInSeconds - connection read timeout in seconds
      */
-    fun get(uri: String, credentials: RemoteCredentials?, connectTimeout: Int, readTimeout: Int): Result<InputStream, ErrorResponse>
+    fun get(uri: String, credentials: RemoteCredentials?, connectTimeoutInSeconds: Int, readTimeoutInSeconds: Int): Result<InputStream, ErrorResponse>
 
 }

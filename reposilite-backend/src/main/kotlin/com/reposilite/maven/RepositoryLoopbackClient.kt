@@ -28,11 +28,11 @@ import java.io.InputStream
 
 internal class RepositoryLoopbackClient(private val repository: Lazy<Repository>) : RemoteClient {
 
-    override fun head(uri: String, credentials: RemoteCredentials?, connectTimeout: Int, readTimeout: Int): Result<FileDetails, ErrorResponse> =
+    override fun head(uri: String, credentials: RemoteCredentials?, connectTimeoutInSeconds: Int, readTimeoutInSeconds: Int): Result<FileDetails, ErrorResponse> =
         repository.value.storageProvider.getFileDetails(toGav(uri))
             .`is`(FileDetails::class.java) { notFound("Requested file is a directory") }
 
-    override fun get(uri: String, credentials: RemoteCredentials?, connectTimeout: Int, readTimeout: Int): Result<InputStream, ErrorResponse> =
+    override fun get(uri: String, credentials: RemoteCredentials?, connectTimeoutInSeconds: Int, readTimeoutInSeconds: Int): Result<InputStream, ErrorResponse> =
         repository.value.storageProvider.getFile(toGav(uri))
 
     private fun toGav(uri: String): Location =

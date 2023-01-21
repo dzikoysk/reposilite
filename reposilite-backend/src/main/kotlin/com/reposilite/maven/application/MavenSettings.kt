@@ -69,10 +69,10 @@ data class MirroredRepositorySettings(
     @get:Doc(title = "Allowed Groups", description = "Allowed artifact groups. If none are given, all artifacts can be obtained from this proxy.")
     val allowedGroups: List<String> = listOf(),
     @Min(0)
-    @get:Doc(title = "Connect Timeout", description = "How long Reposilite can wait for establishing the connection with a remote host.")
+    @get:Doc(title = "Connect Timeout", description = "How long Reposilite can wait for establishing the connection with a remote host. (In seconds)")
     val connectTimeout: Int = 3,
     @Min(0)
-    @get:Doc(title = "Read Timeout", description = "How long Reposilite can read data from remote proxy.")
+    @get:Doc(title = "Read Timeout", description = "How long Reposilite can read data from remote proxy. (In seconds)")
     val readTimeout: Int = 15,
     // Adding:
     // @Doc(title = "Authorization", description = "The authorization information of the proxied repository.")

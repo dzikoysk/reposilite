@@ -35,10 +35,10 @@ class FakeRemoteClientProvider(private val headHandler: HeadHandler, private val
 
 class FakeRemoteClient(private val headHandler: HeadHandler, private val getHandler: GetHandler) : RemoteClient {
 
-    override fun head(uri: String, credentials: RemoteCredentials?, connectTimeout: Int, readTimeout: Int): Result<FileDetails, ErrorResponse> =
-        headHandler(uri, credentials, connectTimeout, readTimeout)
+    override fun head(uri: String, credentials: RemoteCredentials?, connectTimeoutInSeconds: Int, readTimeoutInSeconds: Int): Result<FileDetails, ErrorResponse> =
+        headHandler(uri, credentials, connectTimeoutInSeconds, readTimeoutInSeconds)
 
-    override fun get(uri: String, credentials: RemoteCredentials?, connectTimeout: Int, readTimeout: Int): Result<InputStream, ErrorResponse> =
-        getHandler(uri, credentials, connectTimeout, readTimeout)
+    override fun get(uri: String, credentials: RemoteCredentials?, connectTimeoutInSeconds: Int, readTimeoutInSeconds: Int): Result<InputStream, ErrorResponse> =
+        getHandler(uri, credentials, connectTimeoutInSeconds, readTimeoutInSeconds)
 
 }
