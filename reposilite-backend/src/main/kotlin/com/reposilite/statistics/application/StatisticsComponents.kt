@@ -36,7 +36,7 @@ class StatisticsComponents(
     private fun statisticsRepository(): StatisticsRepository =
         when (database) {
             null -> InMemoryStatisticsRepository()
-            else -> SqlStatisticsRepository(database, runMigrations)
+            else -> SqlStatisticsRepository(database, journalist, runMigrations)
         }
 
     fun statisticsFacade(statisticsRepository: StatisticsRepository = statisticsRepository()): StatisticsFacade =

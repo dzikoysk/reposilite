@@ -16,6 +16,7 @@
 
 package com.reposilite.statistics.infrastructure
 
+import com.reposilite.journalist.Journalist
 import com.reposilite.maven.api.GAV_MAX_LENGTH
 import com.reposilite.maven.api.Identifier
 import com.reposilite.maven.api.REPOSITORY_NAME_MAX_LENGTH
@@ -32,8 +33,10 @@ import org.jetbrains.exposed.sql.ReferenceOption.CASCADE
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.SortOrder.DESC
 import org.jetbrains.exposed.sql.SqlExpressionBuilder
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.like
 import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.javatime.date
 import org.jetbrains.exposed.sql.leftJoin
@@ -47,7 +50,11 @@ import java.time.LocalDate
 import java.util.UUID
 
 @Suppress("RemoveRedundantQualifierName")
-internal class SqlStatisticsRepository(private val database: Database, runMigrations: Boolean) : StatisticsRepository {
+internal class SqlStatisticsRepository(
+    private val database: Database,
+    private val journalist: Journalist,
+    private val runMigrations: Boolean
+) : StatisticsRepository {
 
     private object IdentifierTable : Table("statistics_identifier") {
         val id = uuid("identifier_id")
@@ -70,30 +77,41 @@ internal class SqlStatisticsRepository(private val database: Database, runMigrat
             SchemaUtils.create(IdentifierTable, ResolvedTable)
             SchemaUtils.addMissingColumnsStatements(IdentifierTable, ResolvedTable)
         }
-        if (runMigrations) {
-            runMigrations()
-        }
+        runFixes()
     }
 
-    private fun runMigrations() {
-        transaction(database) {
-            val connection = TransactionManager.current().connection
+    private fun runFixes() {
+        // 001 Migration: Change `repository` identifier size from 32 to 64.
+        if (runMigrations) {
+            transaction(database) {
+                val connection = TransactionManager.current().connection
 
-            // Migration 0001: Change `repository` identifier size from 32 to 64.
-            when (val dialect = db.vendor) {
-                "postgresql" -> {
-                    connection.executeQuery("ALTER TABLE statistics_identifier ALTER COLUMN repository TYPE VARCHAR($REPOSITORY_NAME_MAX_LENGTH);")
+                when (val dialect = db.vendor) {
+                    "postgresql" -> {
+                        connection.executeQuery("ALTER TABLE statistics_identifier ALTER COLUMN repository TYPE VARCHAR($REPOSITORY_NAME_MAX_LENGTH);")
+                    }
+                    "mysql", "mariadb", "h2" -> {
+                        connection.executeQuery("ALTER TABLE statistics_identifier MODIFY repository VARCHAR($REPOSITORY_NAME_MAX_LENGTH);")
+                    }
+                    "sqlite" -> {
+                        connection.executeQuery("PRAGMA writable_schema = 1;")
+                        connection.executeQuery("UPDATE SQLITE_MASTER SET SQL = replace(sql, 'repository VARCHAR(32)', 'repository VARCHAR($REPOSITORY_NAME_MAX_LENGTH)') WHERE name='statistics_identifier' AND type='table';")
+                        connection.executeQuery("PRAGMA writable_schema = 0;")
+                    }
+
+                    else -> throw UnsupportedOperationException("Unsupported SQL dialect $dialect")
                 }
-                "mysql", "mariadb", "h2" -> {
-                    connection.executeQuery("ALTER TABLE statistics_identifier MODIFY repository VARCHAR($REPOSITORY_NAME_MAX_LENGTH);")
-                }
-                "sqlite" -> {
-                    connection.executeQuery("PRAGMA writable_schema = 1;")
-                    connection.executeQuery("UPDATE SQLITE_MASTER SET SQL = replace(sql, 'repository VARCHAR(32)', 'repository VARCHAR($REPOSITORY_NAME_MAX_LENGTH)') WHERE name='statistics_identifier' AND type='table';")
-                    connection.executeQuery("PRAGMA writable_schema = 0;")
-                }
-                else -> throw UnsupportedOperationException("Unsupported SQL dialect $dialect")
             }
+        }
+
+        // 002 Fix: Remove `.module` entries from records
+        transaction(database) {
+            ResolvedTable.leftJoin(IdentifierTable, { ResolvedTable.identifierId }, { IdentifierTable.id })
+                .select { IdentifierTable.gav like "%.module" }
+                .map { it[ResolvedTable.identifierId] }
+                .takeIf { it.isNotEmpty() }
+                ?.also { journalist.logger.info("SqlStatisticsRepository | ${it.size} '%.module' entries will be removed from database") }
+                ?.forEach { id -> ResolvedTable.deleteWhere { ResolvedTable.identifierId eq id } }
         }
     }
 
