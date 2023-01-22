@@ -88,7 +88,7 @@ internal class PreservedBuildsListenerTest : MavenSpecification() {
                 "$versionId/maven-metadata.xml.sha256",
                 "$versionId/maven-metadata.xml.sha512"
             ).map { it.toLocation() },
-            assertOk(repository.getFiles(versionId))
+            assertOk(repository.storageProvider.getFiles(versionId))
         )
     }
 

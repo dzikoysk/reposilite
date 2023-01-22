@@ -29,10 +29,10 @@ sslPort: 443
 # You can specify absolute path to the given file or use ${WORKING_DIRECTORY} variable.
 # If you want to use .pem certificate you need to specify its path next to the key path.
 # Example .pem paths setup:
-# keyPath: ${WORKING_DIRECTORY}/key.pem ${WORKING_DIRECTORY}/cert.pem
+# keyPath: ${WORKING_DIRECTORY}/cert.pem ${WORKING_DIRECTORY}/key.pem
 # Example .jks path setup:
 # keyPath: ${WORKING_DIRECTORY}/keystore.jks
-keyPath: ${WORKING_DIRECTORY}/keystore.jks
+keyPath: ${WORKING_DIRECTORY}/cert.pem ${WORKING_DIRECTORY}/key.pem
 # Key password to use
 keyPassword: reposilite
 # Redirect http traffic to https

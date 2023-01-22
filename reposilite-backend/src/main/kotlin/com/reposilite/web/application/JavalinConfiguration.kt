@@ -149,27 +149,29 @@ internal object JavalinConfiguration {
         if (localConfiguration.sslEnabled.get()) {
             reposilite.logger.info("Enabling SSL connector at ::" + localConfiguration.sslPort.get())
 
-            val sslPlugin = SSLPlugin {
-                it.insecure = true
-                it.insecurePort = localConfiguration.port.get()
+            val sslPlugin = SSLPlugin { sslConfig ->
+                sslConfig.insecure = true
+                sslConfig.insecurePort = localConfiguration.port.get()
 
-                it.secure = true
-                it.securePort = localConfiguration.sslPort.get()
+                sslConfig.secure = true
+                sslConfig.securePort = localConfiguration.sslPort.get()
 
-                val keyPath = localConfiguration.keyPath.get().replace("\${WORKING_DIRECTORY}", reposilite.parameters.workingDirectory.toAbsolutePath().toString())
+                val keyConfiguration = localConfiguration.keyPath.map {
+                    it.replace("\${WORKING_DIRECTORY}", reposilite.parameters.workingDirectory.toAbsolutePath().toString())
+                }
                 val keyPassword = localConfiguration.keyPassword.get()
 
                 when {
-                    keyPath.endsWith(".pem") -> {
-                        val (pemKeyPath, certPath) = keyPath.split(" ")
-                        it.pemFromPath(pemKeyPath, certPath, keyPassword)
+                    keyConfiguration.endsWith(".pem") -> {
+                        val (certPath, keyPath) = keyConfiguration.split(" ")
+                        sslConfig.pemFromPath(certPath, keyPath, keyPassword)
                     }
-                    keyPath.endsWith(".jks") -> it.keystoreFromPath(keyPath, keyPassword)
+                    keyConfiguration.endsWith(".jks") -> sslConfig.keystoreFromPath(keyConfiguration, keyPassword)
                     else -> throw IllegalArgumentException("Provided key extension is not supported.")
                 }
 
-                it.configConnectors = Consumer { connector -> connector.idleTimeout = localConfiguration.idleTimeout.get() }
-                it.sniHostCheck = false
+                sslConfig.configConnectors = Consumer { it.idleTimeout = localConfiguration.idleTimeout.get() }
+                sslConfig.sniHostCheck = false
             }
 
             config.plugins.register(sslPlugin)

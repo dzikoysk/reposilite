@@ -143,6 +143,7 @@ tasks.withType<ShadowJar> {
         exclude(dependency("org.tinylog:.*"))
         exclude(dependency("org.slf4j:.*"))
         exclude(dependency("software.amazon.awssdk:.*"))
+        exclude(dependency("org.bouncycastle:.*"))
     }
 }
 

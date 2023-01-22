@@ -88,10 +88,10 @@ class LocalConfiguration : Facade {
     @Description("# You can specify absolute path to the given file or use \${WORKING_DIRECTORY} variable.")
     @Description("# If you want to use .pem certificate you need to specify its path next to the key path.")
     @Description("# Example .pem paths setup:")
-    @Description("# keyPath: \${WORKING_DIRECTORY}/key.pem \${WORKING_DIRECTORY}/cert.pem")
+    @Description("# keyPath: \${WORKING_DIRECTORY}/cert.pem \${WORKING_DIRECTORY}/key.pem")
     @Description("# Example .jks path setup:")
     @Description("# keyPath: \${WORKING_DIRECTORY}/keystore.jks")
-    val keyPath = reference("\${WORKING_DIRECTORY}/key.pem \${WORKING_DIRECTORY}/cert.pem")
+    val keyPath = reference("\${WORKING_DIRECTORY}/cert.pem \${WORKING_DIRECTORY}/key.pem")
 
     @Description("# Key password to use")
     val keyPassword = reference("")
