@@ -44,8 +44,10 @@ import org.junit.jupiter.api.io.TempDir
 import java.io.File
 import kotlin.reflect.KClass
 
+internal typealias Repository = String
+
 internal data class UseDocument(
-    val repository: String,
+    val repository: Repository,
     val gav: String,
     val file: String,
     val content: String
@@ -134,7 +136,7 @@ internal abstract class ReposiliteSpecification : ReposiliteRunner() {
         return hugeFile to hugeFile.length()
     }
 
-    protected fun useMetadata(repository: String, groupId: String, artifactId: String, versions: List<String>): Pair<String, Metadata> {
+    protected fun useMetadata(repository: Repository, groupId: String, artifactId: String, versions: List<String>): Pair<Repository, Metadata> {
         val sortedVersions = VersionComparator.sortStrings(versions.asSequence()).toList()
         val versioning = Versioning(latest = sortedVersions.firstOrNull(), _versions = sortedVersions)
         val metadata = Metadata(groupId, artifactId, versioning = versioning)
