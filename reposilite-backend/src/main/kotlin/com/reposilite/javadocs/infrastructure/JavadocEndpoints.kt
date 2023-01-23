@@ -32,7 +32,7 @@ internal class JavadocEndpoints(javadoc: JavadocFacade) : MavenRoutes(javadoc.ma
                     response = JavadocPageRequest(this?.identifier, repository, gav)
                         .let { javadoc.findJavadocPage(it) }
                         .peek { ctx.encoding(Charsets.UTF_8).contentType(it.contentType) }
-                        .map { it.response }
+                        .map { it.content }
                 }
             }
         }

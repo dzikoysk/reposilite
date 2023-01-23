@@ -101,7 +101,7 @@ internal object JavadocView {
         </html>
         """.trimIndent()
 
-        return source;
+        return source
     }
 
 }

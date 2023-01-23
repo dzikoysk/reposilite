@@ -1,19 +1,18 @@
-package com.reposilite.javadocs.container
+package com.reposilite.javadocs
 
-import com.reposilite.javadocs.JavadocView
 import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.Repository
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.badRequest
 import com.reposilite.shared.badRequestError
-import com.reposilite.shared.notFound
 import com.reposilite.shared.errorResponse
-import com.reposilite.storage.api.FileType
+import com.reposilite.shared.notFound
+import com.reposilite.storage.api.FileType.FILE
 import com.reposilite.storage.api.Location
 import com.reposilite.storage.getSimpleName
 import com.reposilite.token.AccessTokenIdentifier
-import io.javalin.http.HttpStatus
+import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
 import panda.std.Result
 import panda.std.asSuccess
 import java.io.FileOutputStream
@@ -25,13 +24,13 @@ import java.nio.file.Paths
 import java.util.jar.JarFile
 import kotlin.io.path.outputStream
 
-private const val JAVADOC_JAR_EXTENSION = "-javadoc.jar"
-private const val JAVADOC_JAR = "javadoc.jar"
-private const val JAVADOC_JAR_INDEX = "index.html"
+private const val INDEX_FILE = "index.html"
 
-private const val CONTAINER_DIR = ".cache"
-private const val CONTAINER_VIEW_INDEX = "index.html"
-private const val CONTAINER_UNPACK_DIR = "unpack"
+internal class JavadocContainer(
+    val javadocContainerPath: Path,
+    val javadocContainerIndex: Path,
+    val javadocUnpackPath: Path
+)
 
 internal class JavadocContainerService(
     private val mavenFacade: MavenFacade,
@@ -42,19 +41,19 @@ internal class JavadocContainerService(
         val javadocJar = this.resolveJavadocJar(repository, gav) ?: return badRequestError("Invalid GAV")
 
         return mavenFacade.findDetails(LookupRequest(accessToken, repository.name, javadocJar))
-            .filter({ it.type === FileType.FILE }, { badRequest("Invalid request") })
+            .filter({ it.type === FILE }, { badRequest("Invalid request") })
             .filter({ isJavadocJar(it.name) }, { notFound("Please do not provide a direct link to a non javadoc file! GAV must be pointing to a directory or a javadoc file!") })
             .flatMap { loadJavadocJarContainer(accessToken, repository, javadocJar) }
     }
 
-    private fun resolveJavadocJar( repository: Repository, gav: Location): Location? = when {
+    private fun resolveJavadocJar(repository: Repository, gav: Location): Location? = when {
         gav.endsWith(".jar") -> gav
-        gav.endsWith("/$JAVADOC_JAR_INDEX") -> resolveIndexGav(repository, gav)
-        else -> resolveJavadocJar(repository, gav.resolve(JAVADOC_JAR_INDEX))
+        gav.endsWith("/$INDEX_FILE") -> resolveIndexGav(repository, gav)
+        else -> resolveJavadocJar(repository, gav.resolve(INDEX_FILE))
     }
 
     private fun resolveIndexGav(repository: Repository, gav: Location): Location? {
-        val rootGav = gav.locationBeforeLast("/$JAVADOC_JAR_INDEX")
+        val rootGav = gav.locationBeforeLast("/$INDEX_FILE")
         val elements = rootGav.toString().split("/")
 
         if (elements.size < 2) {
@@ -73,7 +72,7 @@ internal class JavadocContainerService(
             }
         }
 
-        return rootGav.resolve("${name}-${version}${JAVADOC_JAR_EXTENSION}")
+        return rootGav.resolve("${name}-${version}-javadoc.jar")
     }
 
     private fun loadJavadocJarContainer(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<JavadocContainer, ErrorResponse> {
@@ -86,7 +85,7 @@ internal class JavadocContainerService(
         val javadocUnpackPath = container.javadocUnpackPath
 
         Files.createDirectories(javadocUnpackPath)
-        val copyJarPath = javadocUnpackPath.resolve(JAVADOC_JAR)
+        val copyJarPath = javadocUnpackPath.resolve("javadoc.jar")
 
         return mavenFacade.findFile(LookupRequest(accessToken, repository.name, gav))
             .peek { (_, originInput) -> this.copyJavadocJar(originInput, copyJarPath) }
@@ -99,12 +98,13 @@ internal class JavadocContainerService(
         val javadocContainerPath = javadocFolder
             .resolve(repository.name)
             .resolve(jarLocation.locationBeforeLast("/").toString())
-            .resolve(CONTAINER_DIR)
+            .resolve(".cache")
 
-        val javadocContainerIndex = javadocContainerPath.resolve(CONTAINER_VIEW_INDEX)
-        val javadocUnpackPath = javadocContainerPath.resolve(CONTAINER_UNPACK_DIR)
-
-        return JavadocContainer(javadocContainerIndex, javadocContainerPath, javadocUnpackPath)
+        return JavadocContainer(
+            javadocContainerPath = javadocContainerPath,
+            javadocContainerIndex = javadocContainerPath.resolve(INDEX_FILE),
+            javadocUnpackPath = javadocContainerPath.resolve("unpack")
+        )
     }
 
     private fun copyJavadocJar(originInput: InputStream, destinationJarPath: Path) {
@@ -113,15 +113,15 @@ internal class JavadocContainerService(
 
     private fun unpackJavadocJar(jarPath: Path, javadocUnpackPath: Path): Result<Unit, ErrorResponse> =
         when {
-            !jarPath.getSimpleName().contains(JAVADOC_JAR) -> badRequestError("Invalid javadoc jar! Name must contain: '${JAVADOC_JAR}'")
+            !jarPath.getSimpleName().contains("-javadoc.jar") -> badRequestError("Invalid javadoc jar! Name must contain: '-javadoc.jar'")
             Files.isDirectory(jarPath) -> badRequestError("JavaDoc jar path has to be a file!")
             !Files.isDirectory(javadocUnpackPath) -> badRequestError("Destination must be a directory!")
 
             else -> jarPath.toAbsolutePath().toString()
                 .let { JarFile(it) }
                 .use { jarFile ->
-                    if (!isIndexExist(jarFile)) {
-                        return errorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Invalid javadoc.jar given for extraction")
+                    if (!hasIndex(jarFile)) {
+                        return errorResponse(INTERNAL_SERVER_ERROR, "Invalid javadoc.jar given for extraction")
                     }
 
                     jarFile.entries().asSequence().forEach { file ->
@@ -143,10 +143,10 @@ internal class JavadocContainerService(
     }
 
     private fun isJavadocJar(path: String) =
-        path.endsWith(JAVADOC_JAR_EXTENSION)
+        path.endsWith("-javadoc.jar")
 
-    private fun isIndexExist(jarFile: JarFile) =
-        jarFile.getJarEntry(JAVADOC_JAR_INDEX)?.isDirectory == false
+    private fun hasIndex(jarFile: JarFile) =
+        jarFile.getJarEntry(INDEX_FILE)?.isDirectory == false
 
     private fun InputStream.copyToAndClose(output: OutputStream) =
         this.use { output.use { this.copyTo(output) } }

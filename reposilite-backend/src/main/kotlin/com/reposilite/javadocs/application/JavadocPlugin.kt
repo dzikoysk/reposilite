@@ -18,7 +18,7 @@ package com.reposilite.javadocs.application
 
 import com.reposilite.javadocs.JavadocFacade
 import com.reposilite.javadocs.infrastructure.JavadocEndpoints
-import com.reposilite.javadocs.container.JavadocContainerService
+import com.reposilite.javadocs.JavadocContainerService
 import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.api.DeployEvent
 import com.reposilite.plugin.api.Facade
@@ -36,7 +36,10 @@ internal class JavadocPlugin : ReposilitePlugin() {
         val javadocFolder = parameters().workingDirectory.resolve("javadocs")
         val mavenFacade = facade<MavenFacade>()
 
-        val javadocContainerService = JavadocContainerService(mavenFacade, javadocFolder)
+        val javadocContainerService = JavadocContainerService(
+            mavenFacade = mavenFacade,
+            javadocFolder = javadocFolder
+        )
 
         val javadocFacade = JavadocFacade(
             journalist = this,

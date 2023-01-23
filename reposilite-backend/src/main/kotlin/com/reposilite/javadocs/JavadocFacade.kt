@@ -18,11 +18,6 @@ package com.reposilite.javadocs
 
 import com.reposilite.javadocs.api.JavadocPageRequest
 import com.reposilite.javadocs.api.JavadocResponse
-import com.reposilite.javadocs.JavadocPage.JavadocContainerPage
-import com.reposilite.javadocs.JavadocPage.JavadocErrorPage
-import com.reposilite.javadocs.JavadocPage.JavadocEmptyFilePage
-import com.reposilite.javadocs.JavadocPage.JavadocPlainFilePage
-import com.reposilite.javadocs.container.JavadocContainerService
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
 import com.reposilite.maven.MavenFacade
@@ -31,15 +26,19 @@ import com.reposilite.maven.api.VersionLookupRequest
 import com.reposilite.plugin.api.Facade
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.notFound
-import com.reposilite.shared.unauthorizedError
+import com.reposilite.shared.notFoundError
+import com.reposilite.shared.unauthorized
 import com.reposilite.storage.api.Location
 import com.reposilite.token.AccessTokenIdentifier
+import io.javalin.http.ContentType
 import panda.std.Result
+import panda.std.Result.supplyThrowing
+import panda.std.asSuccess
+import panda.utilities.StringUtils
 import java.nio.file.Files
 import java.nio.file.Path
 
 private const val LATEST_PATTERN = "/latest"
-private const val VERSION_FORMAT = "/%s"
 
 class JavadocFacade internal constructor(
     private val journalist: Journalist,
@@ -48,51 +47,73 @@ class JavadocFacade internal constructor(
     private val javadocContainerService: JavadocContainerService
 ) : Journalist, Facade {
 
-    fun findJavadocPage(request: JavadocPageRequest): Result<JavadocResponse, ErrorResponse> {
-        val (accessToken, repository, rawGav) = request
+    private val supportedExtensions = mapOf(
+        "html" to ContentType.TEXT_HTML,
+        "css" to ContentType.TEXT_CSS,
+        "js" to ContentType.APPLICATION_JS,
+    )
 
-        if (mavenFacade.canAccessResource(accessToken, repository, rawGav).isErr) {
-            return unauthorizedError()
+    private data class JavadocPlainFile(
+        val targetPath: Path,
+        val extension: String,
+        val contentType: ContentType
+    )
+
+    fun findJavadocPage(request: JavadocPageRequest): Result<JavadocResponse, ErrorResponse> =
+        with (request) {
+            mavenFacade.canAccessResource(accessToken, repository, gav)
+                .mapErr { unauthorized() }
+                .flatMap { createPage(accessToken, repository, resolveGav(request)) }
+                .onError { logger.error("Cannot extract javadoc: ${it.message} (${it.status})}") }
         }
 
-        val gav = this.resolveGav(request)
-        val page = this.createPage(accessToken, repository, gav)
 
-        return page.render()
-            .onError { this.logger.error("Cannot extract javadoc: ${it.message} (${it.status})}") }
+    private fun createPage(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<JavadocResponse, ErrorResponse> {
+        val resourcesFile = createPlainFile(javadocFolder, repository, gav)
+
+        return when {
+            /* File not found */
+            resourcesFile != null && !Files.exists(resourcesFile.targetPath) ->
+                JavadocResponse(resourcesFile.contentType.mimeType, StringUtils.EMPTY).asSuccess()
+            /* File exists */
+            resourcesFile != null ->
+                supplyThrowing {
+                    JavadocResponse(resourcesFile.contentType.mimeType, readFile(resourcesFile.targetPath))
+                }.mapErr {
+                    notFound("Resource not found!")
+                }
+            /* Premature resources request */
+            gav.contains("/resources/") ->
+                notFoundError("Resources are unavailable before extraction")
+            /* Load resource */
+            else ->
+                javadocContainerService
+                    .loadContainer(accessToken, repository, gav)
+                    .map { JavadocResponse(ContentType.HTML, readFile(it.javadocContainerIndex)) }
+        }
     }
 
-    private fun createPage(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): JavadocPage {
-        val repositoryFile = createPlainFile(javadocFolder, repository, gav)
+    private fun createPlainFile(javadocFolder: Path, repository: Repository, gav: Location): JavadocPlainFile? =
+        javadocFolder
+            .resolve(repository.name)
+            .let { targetPath -> targetPath to supportedExtensions[gav.getExtension()] }
+            .takeIf { (_, contentType) -> contentType != null }
+            ?.let { (targetPath, contentType) -> JavadocPlainFile(targetPath, gav.getExtension(), contentType!!) }
 
-        if (repositoryFile != null) {
-            if (!Files.exists(repositoryFile.targetPath)) {
-                return JavadocEmptyFilePage(repositoryFile)
-            }
+    private fun readFile(indexFile: Path): String =
+        Files.readAllLines(indexFile).joinToString(separator = "\n")
 
-            return JavadocPlainFilePage(repositoryFile)
-        }
+    private fun resolveGav(request: JavadocPageRequest): Location =
+        request.gav
+            .takeIf { it.contains("/latest") }
+            ?.let { request.gav.locationBeforeLast("/latest") }
+            ?.let { gavWithoutVersion -> VersionLookupRequest(request.accessToken, request.repository, gavWithoutVersion) }
+            ?.let { mavenFacade.findLatestVersion(it) }
+            ?.map { request.gav.replace(LATEST_PATTERN, "%s".format(it.version)) }
+            ?.orNull()
+            ?: request.gav
 
-        if (gav.contains("/resources/")) {
-            return JavadocErrorPage(notFound("Resources are unavailable before extraction"))
-        }
-
-        return javadocContainerService.loadContainer(accessToken, repository, gav)
-            .fold({ container -> JavadocContainerPage(container) }, { error -> JavadocErrorPage(error) })
-    }
-
-    private fun resolveGav(request: JavadocPageRequest): Location {
-        if (!request.gav.contains(LATEST_PATTERN)) {
-            return request.gav
-        }
-
-        val gavWithoutVersion = request.gav.locationBeforeLast(LATEST_PATTERN)
-
-        return mavenFacade.findLatestVersion(VersionLookupRequest(request.accessToken, request.repository, gavWithoutVersion))
-            .map { request.gav.replace(LATEST_PATTERN, VERSION_FORMAT.format(it.version)) }
-            .orElseGet { request.gav }
-    }
-
-    override fun getLogger(): Logger = journalist.logger
+    override fun getLogger(): Logger =
+        journalist.logger
 
 }
