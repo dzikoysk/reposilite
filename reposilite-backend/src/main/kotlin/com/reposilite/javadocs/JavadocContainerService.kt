@@ -113,7 +113,7 @@ internal class JavadocContainerService(
 
     private fun unpackJavadocJar(jarPath: Path, javadocUnpackPath: Path): Result<Unit, ErrorResponse> =
         when {
-            !jarPath.getSimpleName().contains("-javadoc.jar") -> badRequestError("Invalid javadoc jar! Name must contain: '-javadoc.jar'")
+            !jarPath.getSimpleName().contains("javadoc.jar") -> badRequestError("Invalid javadoc jar! Name must contain: 'javadoc.jar'")
             Files.isDirectory(jarPath) -> badRequestError("JavaDoc jar path has to be a file!")
             !Files.isDirectory(javadocUnpackPath) -> badRequestError("Destination must be a directory!")
 
@@ -139,7 +139,7 @@ internal class JavadocContainerService(
         }
 
     private fun createDocIndexHtml(container: JavadocContainer) {
-        Files.write(container.javadocContainerIndex, JavadocView.index().toByteArray(Charsets.UTF_8))
+        Files.write(container.javadocContainerIndex, JavadocView.index("/.cache/unpack/index.html").toByteArray(Charsets.UTF_8))
     }
 
     private fun isJavadocJar(path: String) =

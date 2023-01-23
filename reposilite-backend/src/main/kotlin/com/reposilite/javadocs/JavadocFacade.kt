@@ -96,6 +96,7 @@ class JavadocFacade internal constructor(
     private fun createPlainFile(javadocFolder: Path, repository: Repository, gav: Location): JavadocPlainFile? =
         javadocFolder
             .resolve(repository.name)
+            .resolve(gav.toString())
             .let { targetPath -> targetPath to supportedExtensions[gav.getExtension()] }
             .takeIf { (_, contentType) -> contentType != null }
             ?.let { (targetPath, contentType) -> JavadocPlainFile(targetPath, gav.getExtension(), contentType!!) }

@@ -25,7 +25,7 @@ internal object JavadocView {
      * switching between documents easily, downloading documents etc.
      * WARNING/NOTE: this html contains an iframe which points to a docindex.html, that must be in the same directory as the index.html!
      */
-    fun index(): String {
+    fun index(unpackedIndexPath: String): String {
         @Suppress("CssUnresolvedCustomProperty", "HtmlUnknownTarget")
         @Language("html")
         val source = """
@@ -91,10 +91,10 @@ internal object JavadocView {
                         <!--<a href="#p"><h5>Download JavaDoc</h5></a> todo-->
                     </div>
                 </div>
-                <iframe id="javadoc" class="doc" src="/container/cache/index.html" sandbox="allow-scripts"></iframe>
+                <iframe id="javadoc" class="doc" src="$unpackedIndexPath" sandbox="allow-scripts"></iframe>
                 <script>
                 if (!window.location.href.endsWith("/")) {
-                    document.getElementById("javadoc").src = window.location.href + '/container/cache/index.html'
+                    document.getElementById("javadoc").src = window.location.href + '$unpackedIndexPath'
                 }
                 </script>
             </body>
