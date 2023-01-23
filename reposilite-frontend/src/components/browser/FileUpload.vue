@@ -16,7 +16,7 @@ const destination = computed(() => `${repository.value}/${to.value.replace(/(^\/
 const customDestination = ref(false)
 
 const stubPomEnabled = ref(false)
-const artifactId = ref('xx')
+const artifactId = ref('')
 const groupId = ref('')
 const version = ref('')
 
@@ -100,7 +100,7 @@ const uploadFiles = () => {
 <template>
   <div id="browser-upload">
     <div 
-      :class="[ isEnabled ? 'rounded' : 'rounded-3xl' ]"
+      :class="[ isEnabled ? 'rounded-t-3xl rounded-b' : 'rounded-3xl' ]"
       class="
         border border-dashed mt-1.5 cursor-pointer
         bg-gray-50 border-gray-300 hover:(transition-colors duration-200 bg-white)
@@ -140,10 +140,10 @@ const uploadFiles = () => {
         </div>
         <div class="px-6 pb-4">
           <div>
-            <input type="checkbox" v-model="stubPomEnabled" class="mb-1 ml-1" />
+            <input type="checkbox" v-model="stubPomEnabled" class="mb-1 ml-1 dark:bg-gray-900" />
             <span class="pl-3" @click="stubPomEnabled = !stubPomEnabled" >Generate stub POM file</span>
           </div>
-          <div v-if="stubPomEnabled" class="pom-form mt-2 border px-2 pb-2 bg-gray-100 dark:bg-black rounded">
+          <div v-if="stubPomEnabled" class="pom-form mt-4 border px-3 pb-3 pt-1 bg-gray-100 dark:bg-black dark:border-gray-800 rounded">
             <div>
               <label>Group</label>
               <input v-model="groupId" placeholder="com.dzikoysk" required/>
@@ -163,7 +163,7 @@ const uploadFiles = () => {
     <div v-if="isEnabled" class="flex flex-col">
       <div class="flex">
         <input
-          class="flex-1 mt-2 mr-2 rounded px-6 border-dashed border"
+          class="flex-1 mt-2 mr-2 rounded px-6 border-dashed dark:bg-gray-900 dark:border-gray-800 border"
           v-model="to"
           placeholder="E.g. path/to/deploy"
           @change="customDestination = true"
@@ -199,6 +199,6 @@ const uploadFiles = () => {
   @apply w-1/6 p-1;
 }
 .pom-form input {
-  @apply flex-1 py-1 px-2 rounded;
+  @apply flex-1 py-1 px-2 rounded dark:bg-gray-900;
 }
 </style>
