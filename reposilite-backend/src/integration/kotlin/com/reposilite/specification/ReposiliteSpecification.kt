@@ -17,8 +17,15 @@
 package com.reposilite.specification
 
 import com.reposilite.ReposiliteObjectMapper
+import com.reposilite.maven.MavenFacade
+import com.reposilite.maven.api.DeployRequest
+import com.reposilite.maven.api.Metadata
+import com.reposilite.maven.api.SaveMetadataRequest
+import com.reposilite.maven.api.Versioning
 import com.reposilite.plugin.api.Facade
 import com.reposilite.shared.ErrorResponse
+import com.reposilite.storage.VersionComparator
+import com.reposilite.storage.api.toLocation
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.AccessTokenPermission
 import com.reposilite.token.AccessTokenType.PERSISTENT
@@ -33,9 +40,25 @@ import kong.unirest.Unirest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.io.TempDir
+import java.io.File
 import kotlin.reflect.KClass
 
+internal typealias Repository = String
+
+internal data class UseDocument(
+    val repository: Repository,
+    val gav: String,
+    val file: String,
+    val content: String
+)
+
 internal abstract class ReposiliteSpecification : ReposiliteRunner() {
+
+    @TempDir
+    lateinit var clientWorkingDirectory: File
+
+    protected val mavenFacade by lazy { useFacade<MavenFacade>() }
 
     val base: String
         get() = "http://localhost:${reposilite.parameters.port}"
@@ -90,6 +113,42 @@ internal abstract class ReposiliteSpecification : ReposiliteRunner() {
 
         // then: request is rejected
         assertErrorResponse(FORBIDDEN, unauthorizedResponse)
+    }
+
+    protected fun useDocument(repository: String, gav: String, file: String, content: String = "test-content", store: Boolean = false): UseDocument {
+        if (store) {
+            mavenFacade.deployFile(
+                DeployRequest(
+                    repository = mavenFacade.getRepository(repository)!!,
+                    gav = "$gav/$file".toLocation(),
+                    by = "junit",
+                    content = content.byteInputStream(Charsets.UTF_8)
+                )
+            )
+        }
+
+        return UseDocument(repository, gav, file, content)
+    }
+
+    protected fun useFile(name: String, sizeInMb: Int): Pair<File, Long> {
+        val hugeFile = File(clientWorkingDirectory, name)
+        hugeFile.writeBytes(ByteArray(sizeInMb * 1024 * 1024))
+        return hugeFile to hugeFile.length()
+    }
+
+    protected fun useMetadata(repository: Repository, groupId: String, artifactId: String, versions: List<String>): Pair<Repository, Metadata> {
+        val sortedVersions = VersionComparator.sortStrings(versions.asSequence()).toList()
+        val versioning = Versioning(latest = sortedVersions.firstOrNull(), _versions = sortedVersions)
+        val metadata = Metadata(groupId, artifactId, versioning = versioning)
+        val mavenFacade = useFacade<MavenFacade>()
+
+        return repository to mavenFacade.saveMetadata(
+            SaveMetadataRequest(
+                repository = mavenFacade.getRepository(repository)!!,
+                gav = "$groupId.$artifactId".replace(".", "/").toLocation(),
+                metadata = metadata
+            )
+        ).get()
     }
 
 }

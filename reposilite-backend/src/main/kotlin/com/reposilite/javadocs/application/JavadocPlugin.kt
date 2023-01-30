@@ -14,15 +14,18 @@
  * limitations under the License.
  */
 
-package com.reposilite.plugin.javadoc
+package com.reposilite.javadocs.application
 
+import com.reposilite.javadocs.JavadocFacade
+import com.reposilite.javadocs.infrastructure.JavadocEndpoints
+import com.reposilite.javadocs.JavadocContainerService
 import com.reposilite.maven.MavenFacade
+import com.reposilite.maven.api.DeployEvent
 import com.reposilite.plugin.api.Facade
 import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
-import com.reposilite.plugin.javadoc.infrastructure.JavadocEndpoints
 import com.reposilite.plugin.parameters
 import com.reposilite.web.api.RoutingSetupEvent
 
@@ -33,11 +36,30 @@ internal class JavadocPlugin : ReposilitePlugin() {
         val javadocFolder = parameters().workingDirectory.resolve("javadocs")
         val mavenFacade = facade<MavenFacade>()
 
+        val javadocContainerService = JavadocContainerService(
+            mavenFacade = mavenFacade,
+            javadocFolder = javadocFolder
+        )
+
         val javadocFacade = JavadocFacade(
             journalist = this,
             javadocFolder = javadocFolder,
-            mavenFacade = mavenFacade
+            mavenFacade = mavenFacade,
+            javadocContainerService = javadocContainerService
         )
+
+        event { event: DeployEvent ->
+            val gav = event.gav
+                .takeIf { it.toString().endsWith("-javadoc.jar") }
+                ?: return@event
+
+            val container = javadocContainerService.createContainer(javadocFolder, event.repository, gav)
+            val javadocDirectory = container.javadocContainerPath.toFile()
+
+            if (javadocDirectory.exists()) {
+                javadocDirectory.deleteRecursively()
+            }
+        }
 
         event { event: RoutingSetupEvent ->
             event.registerRoutes(JavadocEndpoints(javadocFacade))
