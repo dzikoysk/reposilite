@@ -29,16 +29,16 @@ internal class JavadocEndpoints(javadoc: JavadocFacade) : MavenRoutes(javadoc.ma
         accessed {
             requireGav { gav ->
                 requireRepository { repository ->
+                    val uri: String = this@ReposiliteRoute.uri
+
+                    if (uri.endsWith("/")) {
+                        ctx.redirect(uri.substring(0, uri.length - 1))
+                        return@requireRepository
+                    }
+
                     response = JavadocPageRequest(this?.identifier, repository, gav)
                         .let { javadoc.findJavadocPage(it) }
                         .peek { ctx.encoding(Charsets.UTF_8).contentType(it.contentType) }
-                        .peek {
-                            val uri: String = this@ReposiliteRoute.uri
-
-                            if (uri.endsWith("/")) {
-                                ctx.redirect(uri.substring(0, uri.length - 1))
-                            }
-                        }
                         .map { it.content }
                 }
             }
