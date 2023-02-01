@@ -81,7 +81,7 @@ dependencies {
     val ldap = "6.0.7"
     testImplementation("com.unboundid:unboundid-ldapsdk:$ldap")
 
-    val picocli = "4.7.0"
+    val picocli = "4.7.1"
     kapt("info.picocli:picocli-codegen:$picocli")
     api("info.picocli:picocli:$picocli")
 
