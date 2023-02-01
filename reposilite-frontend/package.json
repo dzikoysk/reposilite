@@ -17,7 +17,7 @@
     "@jsonforms/vue": "^3.0.0",
     "@vueform/toggle": "^2.1.3",
     "@vueuse/core": "^9.10.0",
-    "@vueuse/head": "^1.0.22",
+    "@vueuse/head": "^1.0.24",
     "ansi-to-html": "^0.7.2",
     "apexcharts": "^3.36.3",
     "axios": "^1.3.0",
