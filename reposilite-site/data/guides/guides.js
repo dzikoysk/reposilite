@@ -43,6 +43,7 @@ const categories = [
       'dashboard',
       'repositories',
       'mirrors',
+      'javadocs',
       'static-files',
       'badges',
       'plugins',
