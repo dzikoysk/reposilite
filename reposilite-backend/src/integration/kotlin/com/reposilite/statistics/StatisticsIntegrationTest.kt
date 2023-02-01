@@ -39,6 +39,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import panda.std.component1
 import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 
 @ExtendWith(ExperimentalRemoteSpecficiationJunitExtension::class)
 internal class ExperimentalRemoteStatisticsIntegrationTest : StatisticsIntegrationTest()
@@ -149,7 +150,7 @@ internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecifi
                     .map { repository ->
                         RepositoryStatistics(
                             name = repository,
-                            data = (0..11)
+                            data = (0..ChronoUnit.MONTHS.between(LocalDate.now().minusYears(1).withDayOfMonth(1), LocalDate.now())) // may be 12 or 13 months
                                 .map { index ->
                                     IntervalRecord(
                                         date = LocalDate.now().minusMonths(index.toLong()).withDayOfMonth(1).toUTCMillis(),
