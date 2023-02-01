@@ -55,7 +55,7 @@ dependencies {
     api("org.panda-lang:expressible-kt:$expressible")
     testImplementation("org.panda-lang:expressible-junit:$expressible")
 
-    val cdn = "1.14.1"
+    val cdn = "1.14.3"
     api("net.dzikoysk:cdn:$cdn")
     api("net.dzikoysk:cdn-kt:$cdn")
 
