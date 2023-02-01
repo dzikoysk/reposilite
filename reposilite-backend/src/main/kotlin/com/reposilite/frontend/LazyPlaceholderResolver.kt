@@ -20,6 +20,8 @@ import panda.std.Result
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
+import java.nio.charset.MalformedInputException
+import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
 
@@ -29,9 +31,10 @@ internal class LazyPlaceholderResolver(private val placeholders: Map<String, Str
         verifyPlaceholders()
     }
 
-    private val theLongestPlaceholder = placeholders.keys
+    private val theLongestPlaceholderInBytes = placeholders.keys
         .maxOfOrNull { it }
-        ?.length
+        ?.toByteArray(Charsets.UTF_8)
+        ?.size
         ?: 0
 
     fun createProcessedResource(input: InputStream): ResourceSupplier {
@@ -54,52 +57,62 @@ internal class LazyPlaceholderResolver(private val placeholders: Map<String, Str
         val buffer = ByteArray(1024)
 
         while (true) {
-            val length = input.read(buffer)
+            var readLength = input.read(buffer)
                 .takeIf { it != -1 }
                 ?: break
 
-            // convert data from buffer to text
-            var content = buffer.decodeToString(endIndex = length)
-
             // check if current content may end with placeholder
-            if (content.length > theLongestPlaceholder) {
-                content = loadSlicedPlaceholders(input, content)
+            val processedBuffer = when (readLength) {
+                buffer.size -> loadSlicedPlaceholders(input, buffer).also { readLength = it.size }
+                else -> buffer
             }
 
-            // resolve placeholders
-            for ((name, value) in placeholders) {
-                content = content.replace(name, value)
-            }
+            try {
+                // try to decode content
+                var content = processedBuffer.decodeToString(
+                    endIndex = readLength,
+                    throwOnInvalidSequence = true
+                )
 
-            val resolvedContentAsBytes = content.toByteArray()
-            output.write(resolvedContentAsBytes, 0, resolvedContentAsBytes.size)
+                // resolve placeholders
+                for ((name, value) in placeholders) {
+                    content = content.replace(name, value)
+                }
+
+                // save processed content
+                val resolvedContentAsBytes = content.toByteArray(UTF_8)
+                output.write(resolvedContentAsBytes, 0, resolvedContentAsBytes.size)
+            } catch (exception: MalformedInputException) {
+                // given frame may contain invalid UTF-8 sequence, so we cannot decode it
+                output.write(processedBuffer, 0, readLength)
+            }
         }
     }
 
-    private fun loadSlicedPlaceholders(input: InputStream, content: String): String {
-        val borderlineStartIndex = content.length - theLongestPlaceholder + 1
-        val positionCount = content.length - borderlineStartIndex
+    private fun loadSlicedPlaceholders(input: InputStream, buffer: ByteArray): ByteArray {
+        val borderlineStartIndex = buffer.size - theLongestPlaceholderInBytes + 1
+        val positionCount = buffer.size - borderlineStartIndex
 
         for (index in 0 until positionCount) {
             val placeholderStartIndex = borderlineStartIndex + index
-            val boundaryPlaceholder = content.substring(placeholderStartIndex, content.length)
+            val boundaryPlaceholder = buffer.copyOfRange(placeholderStartIndex, buffer.size).decodeToString() // .substring(placeholderStartIndex, content.length)
 
             for (placeholder in placeholders.keys) {
                 if (placeholder.startsWith(boundaryPlaceholder)) {
-                    val missingBuffer = ByteArray(theLongestPlaceholder)
+                    val missingBuffer = ByteArray(theLongestPlaceholderInBytes)
                     val missingLength = input.read(missingBuffer)
 
                     if (missingLength == -1) {
-                        return content
+                        return buffer
                     }
 
-                    val contentWithMissingPlaceholder = content + missingBuffer.decodeToString(endIndex = missingLength)
+                    val contentWithMissingPlaceholder = buffer + missingBuffer
                     return loadSlicedPlaceholders(input, contentWithMissingPlaceholder)
                 }
             }
         }
 
-        return content
+        return buffer
     }
 
     private fun verifyPlaceholders() {
