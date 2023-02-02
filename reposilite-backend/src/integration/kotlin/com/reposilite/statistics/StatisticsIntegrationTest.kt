@@ -150,10 +150,10 @@ internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecifi
                     .map { repository ->
                         RepositoryStatistics(
                             name = repository,
-                            data = (0..ChronoUnit.MONTHS.between(LocalDate.now().minusYears(1).withDayOfMonth(1), LocalDate.now())) // may be 12 or 13 months
+                            data = (0..ChronoUnit.MONTHS.between(LocalDate.now().minusYears(1), LocalDate.now())) // may be 12 or 13 months
                                 .map { index ->
                                     IntervalRecord(
-                                        date = LocalDate.now().minusMonths(index.toLong()).withDayOfMonth(1).toUTCMillis(),
+                                        date = LocalDate.now().minusMonths(index).withDayOfMonth(1).toUTCMillis(),
                                         count = 2L * index
                                     )
                                 }

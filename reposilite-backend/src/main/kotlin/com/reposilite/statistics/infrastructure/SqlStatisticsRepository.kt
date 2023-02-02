@@ -174,7 +174,7 @@ internal class SqlStatisticsRepository(
 
     override fun getAllResolvedRequestsPerRepositoryAsTimeSeries(): Map<String, Map<LocalDate, Long>> =
         transaction(database) {
-            val start = LocalDate.now().minusYears(1)
+            val start = LocalDate.now().minusYears(1).withDayOfMonth(1)
 
             ResolvedTable.leftJoin(IdentifierTable, { ResolvedTable.identifierId }, { IdentifierTable.id })
                 .slice(IdentifierTable.repository, ResolvedTable.date, ResolvedTable.count.sum())
