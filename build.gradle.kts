@@ -55,8 +55,6 @@ scmVersion {
         fileUpdate("reposilite-site/data/guides/developers/endpoints.md") { version -> "\"version\": \"$version\"" }
         fileUpdate("reposilite-site/data/guides/developers/plugin-api.md") { version -> "\"com.reposilite:reposilite:$version\"" }
         fileUpdate("reposilite-site/data/guides/installation/docker.md") { version -> version }
-        fileUpdate("reposilite-site/data/plugins/javadoc.md") { version -> "reposilite-$version" }
-        fileUpdate("reposilite-site/data/plugins/javadoc.md") { version -> "reposilite/$version" }
         commit { version -> "Release $version" }
     }
 
