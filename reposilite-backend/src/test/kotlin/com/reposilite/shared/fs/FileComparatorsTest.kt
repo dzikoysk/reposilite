@@ -42,14 +42,14 @@ internal class FileComparatorsTest : FileComparatorsSpecification() {
         // then: sorted list matches expected rules
         assertEquals(
             listOf(
-                directory("1.0.1"),
-                directory("1.0.2"),
                 directory("Reposilite"),
                 directory("Zeolite"),
-                file("1.0.2"),
-                file("1.0.3"),
+                directory("1.0.1"),
+                directory("1.0.2"),
                 file("Apposite"),
                 file("Lolita"),
+                file("1.0.2"),
+                file("1.0.3"),
             ),
             sortedResult
         )

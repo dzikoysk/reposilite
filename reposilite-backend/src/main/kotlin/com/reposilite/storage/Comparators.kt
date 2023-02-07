@@ -71,7 +71,7 @@ open class VersionComparator<T>(
                 }
                 // Prioritize digits over strings
                 else if (baseIsDigit || toFragment.isDigit()) {
-                    if (baseIsDigit) -1 else 1
+                    if (baseIsDigit) 1 else -1
                 }
                 // Compare strings
                 else {
