@@ -19,6 +19,7 @@ package com.reposilite.web.api
 import com.reposilite.shared.ContextDsl
 import com.reposilite.web.routing.RouteMethod
 import io.javalin.community.routing.Route
+import io.javalin.community.routing.dsl.DefaultDslRoute
 import io.javalin.community.routing.dsl.DslRoute
 import io.javalin.community.routing.dsl.DslRoutes
 
@@ -36,7 +37,7 @@ abstract class ReposiliteRoutes : DslRoutes<DslRoute<ContextDsl<*>, Unit>, Conte
     override fun routes(): Collection<DslRoute<ContextDsl<*>, Unit>> =
         routes.flatMap { route ->
             route.methods.map { method ->
-                DslRoute(
+                DefaultDslRoute(
                     path = route.path,
                     method = method,
                     handler = route.handler as ContextDsl<*>.() -> Unit
