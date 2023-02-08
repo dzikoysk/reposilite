@@ -41,10 +41,10 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin")
     api("org.jetbrains:annotations:23.1.0")
 
-    api("io.javalin:javalin:5.3.1")
-    api("io.javalin.community.openapi:javalin-openapi-plugin:5.3.1")
-    kapt("io.javalin.community.openapi:openapi-annotation-processor:5.3.1")
-    api("io.javalin.community.routing:routing-dsl:5.3.2-alpha.1-SNAPSHOT")
+    api("io.javalin:javalin:5.3.2")
+    api("io.javalin.community.openapi:javalin-openapi-plugin:5.3.2")
+    kapt("io.javalin.community.openapi:openapi-annotation-processor:5.3.2")
+    api("io.javalin.community.routing:routing-dsl:5.3.2-alpha.3")
     api("io.javalin.community.ssl:ssl-plugin:5.3.2")
 
     val springSecurityCrypto = "5.7.3"
@@ -129,7 +129,9 @@ tasks.withType<ShadowJar> {
     mergeServiceFiles()
     minimize {
         exclude(dependency("org.eclipse.jetty:.*"))
+        exclude(dependency("org.eclipse.jetty.http2:.*"))
         exclude(dependency("org.eclipse.jetty.websocket:.*"))
+        exclude(dependency("org.bouncycastle:.*"))
         exclude(dependency("com.fasterxml.woodstox:woodstox-core:.*"))
         exclude(dependency("commons-logging:commons-logging:.*"))
         exclude(dependency("org.jetbrains.kotlin:kotlin-reflect:.*"))
@@ -143,7 +145,6 @@ tasks.withType<ShadowJar> {
         exclude(dependency("org.tinylog:.*"))
         exclude(dependency("org.slf4j:.*"))
         exclude(dependency("software.amazon.awssdk:.*"))
-        exclude(dependency("org.bouncycastle:.*"))
     }
 }
 
