@@ -22,7 +22,8 @@ import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.unauthorizedError
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
-import com.reposilite.web.routing.RouteMethod.POST
+import io.javalin.community.routing.Route
+import io.javalin.community.routing.Route.POST
 import io.javalin.openapi.HttpMethod
 import io.javalin.openapi.OpenApi
 import io.javalin.openapi.OpenApiContent

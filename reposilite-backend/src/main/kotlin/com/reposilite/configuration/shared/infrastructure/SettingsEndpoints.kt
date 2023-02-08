@@ -22,8 +22,9 @@ import com.reposilite.shared.badRequest
 import com.reposilite.shared.badRequestError
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
-import com.reposilite.web.routing.RouteMethod.GET
-import com.reposilite.web.routing.RouteMethod.PUT
+import io.javalin.community.routing.Route
+import io.javalin.community.routing.Route.GET
+import io.javalin.community.routing.Route.PUT
 import io.javalin.openapi.HttpMethod
 import io.javalin.openapi.OpenApi
 import io.javalin.openapi.OpenApiContent

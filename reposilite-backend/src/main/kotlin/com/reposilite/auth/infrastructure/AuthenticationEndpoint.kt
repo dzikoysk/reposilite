@@ -20,7 +20,7 @@ import com.reposilite.auth.api.SessionDetails
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
-import com.reposilite.web.routing.RouteMethod.GET
+import io.javalin.community.routing.Route
 import io.javalin.openapi.HttpMethod
 import io.javalin.openapi.OpenApi
 import io.javalin.openapi.OpenApiContent
@@ -49,7 +49,7 @@ internal class AuthenticationEndpoint(private val authenticationFacade: Authenti
             )
         ]
     )
-    private val authInfo = ReposiliteRoute<SessionDetails>("/api/auth/me", GET) {
+    private val authInfo = ReposiliteRoute<SessionDetails>("/api/auth/me", Route.GET) {
         response = authentication().flatMap {
             authenticationFacade.getSessionDetails(it.identifier)
         }

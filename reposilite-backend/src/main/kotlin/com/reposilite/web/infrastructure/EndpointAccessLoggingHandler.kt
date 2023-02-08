@@ -18,7 +18,7 @@ package com.reposilite.web.infrastructure
 
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
-import com.reposilite.web.routing.RouteMethod.BEFORE
+import io.javalin.community.routing.Route.BEFORE
 
 internal class EndpointAccessLoggingHandler : ReposiliteRoutes() {
 

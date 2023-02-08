@@ -33,13 +33,18 @@ import com.reposilite.status.FailureFacade
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.web.api.HttpServerConfigurationEvent
 import com.reposilite.web.api.HttpServerStarted
-import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.RoutingSetupEvent
 import com.reposilite.web.infrastructure.CacheBypassHandler
 import com.reposilite.web.infrastructure.EndpointAccessLoggingHandler
-import com.reposilite.web.routing.RoutingPlugin
+import io.javalin.community.routing.dsl.ConfigurationSupplier
+import io.javalin.community.routing.dsl.DslRoute
+import io.javalin.community.routing.dsl.DslRoutingPlugin
+import io.javalin.community.routing.dsl.HandlerFactory
+import io.javalin.community.routing.dsl.RoutingConfiguration
+import io.javalin.community.routing.dsl.RoutingDsl
 import io.javalin.community.ssl.SSLPlugin
 import io.javalin.config.JavalinConfig
+import io.javalin.http.Handler
 import io.javalin.http.Header
 import io.javalin.json.JavalinJackson
 import io.javalin.openapi.plugin.OpenApiPlugin
@@ -48,7 +53,6 @@ import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.util.thread.ThreadPool
 import panda.std.reactive.Reference
-import java.util.function.Consumer
 
 internal object JavalinConfiguration {
 
@@ -82,7 +86,7 @@ internal object JavalinConfiguration {
         configureCors(config)
         configureOpenApi(config, frontendSettings.get())
         configureDebug(reposilite, localConfiguration, config)
-        configureReactiveRoutingPlugin(config, reposilite)
+        configureRoutingPlugin(config, reposilite)
     }
 
     private fun configureJavalin(config: JavalinConfig, localConfiguration: LocalConfiguration, webSettings: Reference<WebSettings>) {
@@ -98,46 +102,68 @@ internal object JavalinConfiguration {
         }
     }
 
-    private fun configureReactiveRoutingPlugin(config: JavalinConfig, reposilite: Reposilite) {
+    private class ReposiliteDsl(
+        val routeFactory: (DslRoute<ContextDsl<*>, Unit>) -> Handler
+    ) : RoutingDsl<ReposiliteDsl.Configuration, DslRoute<ContextDsl<*>, Unit>, ContextDsl<*>, Unit> {
+
+        open class Configuration : RoutingConfiguration<DslRoute<ContextDsl<*>, Unit>, ContextDsl<*>, Unit>()
+
+        override fun createConfigurationSupplier(): ConfigurationSupplier<ReposiliteDsl.Configuration, DslRoute<ContextDsl<*>, Unit>, ContextDsl<*>, Unit> =
+            ConfigurationSupplier { Configuration() }
+
+        override fun createHandlerFactory(): HandlerFactory<DslRoute<ContextDsl<*>, Unit>> =
+            HandlerFactory { routeFactory.invoke(it) }
+
+    }
+
+    private fun configureRoutingPlugin(config: JavalinConfig, reposilite: Reposilite) {
         val extensionManager = reposilite.extensions
         val failureFacade = extensionManager.facade<FailureFacade>()
         val accessTokenFacade = extensionManager.facade<AccessTokenFacade>()
         val authenticationFacade = extensionManager.facade<AuthenticationFacade>()
 
-        val plugin = RoutingPlugin<ReposiliteRoute<Any>>(
-            handler = { ctx, route ->
-                try {
-                    val dsl = ContextDsl<Any>(
-                        reposilite.logger,
-                        ctx,
-                        accessTokenFacade,
-                        lazy {
-                            extractFromHeader(ctx.header(Header.AUTHORIZATION))
-                                .map { (name, secret) -> Credentials(name, secret) }
-                                .flatMap { authenticationFacade.authenticateByCredentials(it) }
+        val reposiliteDsl = ReposiliteDsl(
+            routeFactory = { route ->
+                Handler { ctx ->
+                    try {
+                        val dsl = ContextDsl<Any>(
+                            reposilite.logger,
+                            ctx,
+                            accessTokenFacade,
+                            lazy {
+                                extractFromHeader(ctx.header(Header.AUTHORIZATION))
+                                    .map { (name, secret) -> Credentials(name, secret) }
+                                    .flatMap { authenticationFacade.authenticateByCredentials(it) }
+                            }
+                        )
+                        route.handler(dsl)
+                        dsl.response?.also { result ->
+                            result.onError { reposilite.logger.debug("ERR RESULT | ${ctx.method()} ${ctx.uri()} errored with $it") }
+                            ctx.response(result)
                         }
-                    )
-                    route.handler(dsl)
-                    dsl.response?.also { result ->
-                        result.onError { reposilite.logger.debug("ERR RESULT | ${ctx.method()} ${ctx.uri()} errored with $it") }
-                        ctx.response(result)
+                    } catch (throwable: Throwable) {
+                        throwable.printStackTrace()
+                        failureFacade.throwException(ctx.uri(), throwable)
                     }
-                } catch (throwable: Throwable) {
-                    throwable.printStackTrace()
-                    failureFacade.throwException(ctx.uri(), throwable)
                 }
             }
         )
 
+        val routingPlugin = DslRoutingPlugin(reposiliteDsl)
+
         extensionManager.emitEvent(RoutingSetupEvent(reposilite))
             .getRoutes()
             .asSequence()
-            .flatMap { it.routes }
-            .distinctBy { it.methods.joinToString(";") + ":" + it.path }
+            .flatMap { it.routes() }
+            .distinctBy { it.method.name + ":" + it.path }
             .toSet()
-            .let { plugin.registerRoutes(it) }
+            .let {
+                routingPlugin.routing {
+                    it.forEach { routes.add(it) }
+                }
+            }
 
-        config.plugins.register(plugin)
+        config.plugins.register(routingPlugin)
     }
 
     private fun configureJsonSerialization(config: JavalinConfig) {
@@ -170,7 +196,7 @@ internal object JavalinConfiguration {
                     else -> throw IllegalArgumentException("Provided key extension is not supported.")
                 }
 
-                sslConfig.configConnectors = Consumer { it.idleTimeout = localConfiguration.idleTimeout.get() }
+                sslConfig.configConnectors { it.idleTimeout = localConfiguration.idleTimeout.get() }
                 sslConfig.sniHostCheck = false
             }
 

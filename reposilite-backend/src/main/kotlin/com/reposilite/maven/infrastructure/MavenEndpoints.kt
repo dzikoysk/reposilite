@@ -23,11 +23,11 @@ import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.shared.extensions.resultAttachment
 import com.reposilite.web.api.ReposiliteRoute
-import com.reposilite.web.routing.RouteMethod.DELETE
-import com.reposilite.web.routing.RouteMethod.GET
-import com.reposilite.web.routing.RouteMethod.HEAD
-import com.reposilite.web.routing.RouteMethod.POST
-import com.reposilite.web.routing.RouteMethod.PUT
+import io.javalin.community.routing.Route.DELETE
+import io.javalin.community.routing.Route.GET
+import io.javalin.community.routing.Route.HEAD
+import io.javalin.community.routing.Route.POST
+import io.javalin.community.routing.Route.PUT
 import io.javalin.openapi.ContentType.FORM_DATA_MULTIPART
 import io.javalin.openapi.HttpMethod
 import io.javalin.openapi.OpenApi

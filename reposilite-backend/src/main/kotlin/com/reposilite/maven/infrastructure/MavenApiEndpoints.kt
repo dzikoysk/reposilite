@@ -27,8 +27,8 @@ import com.reposilite.shared.ErrorResponse
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.toLocation
 import com.reposilite.web.api.ReposiliteRoute
-import com.reposilite.web.routing.RouteMethod.GET
-import com.reposilite.web.routing.RouteMethod.POST
+import io.javalin.community.routing.Route.GET
+import io.javalin.community.routing.Route.POST
 import io.javalin.http.HttpStatus.CREATED
 import io.javalin.openapi.HttpMethod
 import io.javalin.openapi.OpenApi

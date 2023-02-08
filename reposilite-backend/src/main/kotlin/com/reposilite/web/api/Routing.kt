@@ -18,10 +18,13 @@ package com.reposilite.web.api
 
 import com.reposilite.shared.ContextDsl
 import com.reposilite.web.routing.RouteMethod
-import com.reposilite.web.routing.Routes
-import com.reposilite.web.routing.StandardRoute
+import io.javalin.community.routing.Route
+import io.javalin.community.routing.dsl.DslRoute
+import io.javalin.community.routing.dsl.DslRoutes
 
-abstract class ReposiliteRoutes : Routes<ReposiliteRoute<Any>> {
+abstract class ReposiliteRoutes : DslRoutes<DslRoute<ContextDsl<*>, Unit>, ContextDsl<*>, Unit> {
+
+    abstract val routes: Set<ReposiliteRoute<*>>
 
     @Suppress("UNCHECKED_CAST")
     fun routes(vararg reposiliteRoutes: ReposiliteRoute<*>): Set<ReposiliteRoute<Any>> =
@@ -29,10 +32,38 @@ abstract class ReposiliteRoutes : Routes<ReposiliteRoute<Any>> {
             .map { it as ReposiliteRoute<Any> }
             .toSet()
 
+    @Suppress("UNCHECKED_CAST")
+    override fun routes(): Collection<DslRoute<ContextDsl<*>, Unit>> =
+        routes.flatMap { route ->
+            route.methods.map { method ->
+                DslRoute(
+                    path = route.path,
+                    method = method,
+                    handler = route.handler as ContextDsl<*>.() -> Unit
+                )
+            }
+        }
+
 }
 
 class ReposiliteRoute<R>(
-    path: String,
-    vararg methods: RouteMethod,
-    handler: ContextDsl<R>.() -> Unit
-) : StandardRoute<ContextDsl<R>, Unit>(path = path, methods = methods, handler = handler)
+    val path: String,
+    vararg val methods: Route,
+    val handler: ContextDsl<R>.() -> Unit
+) {
+
+    @Deprecated("Use io.javalin.community.routing.Route instead of RouteMethod")
+    constructor(
+        path: String,
+        vararg methods: RouteMethod,
+        handler: ContextDsl<R>.() -> Unit
+    ) : this(
+        path = path,
+        methods = methods
+            .map { Route.valueOf(it.name) }
+            .toTypedArray()
+        ,
+        handler = handler
+    )
+
+}

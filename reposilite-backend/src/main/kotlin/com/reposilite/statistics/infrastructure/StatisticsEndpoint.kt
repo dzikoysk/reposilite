@@ -23,7 +23,7 @@ import com.reposilite.statistics.api.AllResolvedResponse
 import com.reposilite.statistics.api.ResolvedCountResponse
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
-import com.reposilite.web.routing.RouteMethod.GET
+import io.javalin.community.routing.Route.GET
 import io.javalin.openapi.HttpMethod
 import io.javalin.openapi.OpenApi
 import io.javalin.openapi.OpenApiContent

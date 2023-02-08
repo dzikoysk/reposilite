@@ -27,9 +27,9 @@ import com.reposilite.token.api.CreateAccessTokenResponse
 import com.reposilite.token.api.CreateAccessTokenWithNoNameRequest
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
-import com.reposilite.web.routing.RouteMethod.DELETE
-import com.reposilite.web.routing.RouteMethod.GET
-import com.reposilite.web.routing.RouteMethod.PUT
+import io.javalin.community.routing.Route.DELETE
+import io.javalin.community.routing.Route.GET
+import io.javalin.community.routing.Route.PUT
 import io.javalin.http.HttpStatus.FORBIDDEN
 import io.javalin.http.bodyAsClass
 import io.javalin.openapi.HttpMethod

@@ -21,11 +21,11 @@ import com.reposilite.javadocs.api.JavadocPageRequest
 import com.reposilite.maven.infrastructure.MavenRoutes
 import com.reposilite.shared.extensions.encoding
 import com.reposilite.web.api.ReposiliteRoute
-import com.reposilite.web.routing.RouteMethod
+import io.javalin.community.routing.Route.GET
 
 internal class JavadocEndpoints(javadoc: JavadocFacade) : MavenRoutes(javadoc.mavenFacade) {
 
-    private val javadocRoute = ReposiliteRoute<Any>("/javadoc/{repository}/<gav>", RouteMethod.GET) {
+    private val javadocRoute = ReposiliteRoute<Any>("/javadoc/{repository}/<gav>", GET) {
         accessed {
             requireGav { gav ->
                 requireRepository { repository ->

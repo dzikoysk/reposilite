@@ -27,7 +27,8 @@ import com.reposilite.storage.getSimpleName
 import com.reposilite.storage.inputStream
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
-import com.reposilite.web.routing.RouteMethod.GET
+import io.javalin.community.routing.Route
+import io.javalin.community.routing.Route.GET
 import io.javalin.http.ContentType
 import io.javalin.http.Context
 import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR

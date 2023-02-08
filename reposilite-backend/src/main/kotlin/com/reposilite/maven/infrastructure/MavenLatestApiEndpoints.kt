@@ -33,7 +33,7 @@ import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.toLocation
 import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.web.api.ReposiliteRoute
-import com.reposilite.web.routing.RouteMethod.GET
+import io.javalin.community.routing.Route.GET
 import io.javalin.http.ContentType
 import io.javalin.openapi.HttpMethod
 import io.javalin.openapi.OpenApi
