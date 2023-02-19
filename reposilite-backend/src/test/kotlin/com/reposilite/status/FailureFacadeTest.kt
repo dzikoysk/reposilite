@@ -17,7 +17,7 @@
 package com.reposilite.status
 
 import com.reposilite.status.specification.FailureSpecification
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 internal class FailureFacadeTest : FailureSpecification() {
@@ -32,8 +32,8 @@ internal class FailureFacadeTest : FailureSpecification() {
         failureFacade.throwException("PATH /com/reposilite", exception)
 
         // then: service properly registered thrown exception
-        assertTrue(failureFacade.hasFailures())
-        assertTrue(failureFacade.getFailures().iterator().next().contains(message))
+        assertThat(failureFacade.hasFailures()).isTrue
+        assertThat(failureFacade.getFailures().iterator().next().contains(message)).isTrue
     }
 
 }

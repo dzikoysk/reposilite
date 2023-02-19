@@ -1,6 +1,6 @@
 package com.reposilite.frontend
 
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.io.ByteArrayOutputStream
@@ -26,7 +26,7 @@ class LazyPlaceholderResolverTest {
         defaultResolver.process(input, output)
         val result = output.toByteArray().decodeToString()
 
-        assertTrue(result.contains("Reposilite"))
+        assertThat(result).contains("Reposilite")
     }
 
     @Test
@@ -38,7 +38,7 @@ class LazyPlaceholderResolverTest {
         defaultResolver.process(input, output)
         val result = output.toByteArray().decodeToString()
 
-        assertTrue(result.contains("Reposilite"))
+        assertThat(result).contains("Reposilite")
     }
 
     @Test
@@ -50,7 +50,7 @@ class LazyPlaceholderResolverTest {
         defaultResolver.process(input, output)
         val result = output.toByteArray().decodeToString()
 
-        assertTrue(result.contains("Reposilite"))
+        assertThat(result).contains("Reposilite")
     }
 
 }

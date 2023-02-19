@@ -5,7 +5,7 @@ import com.reposilite.maven.api.ResolvedFileEvent
 import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.maven.specification.MavenSpecification
 import com.reposilite.storage.api.Location
-import org.junit.jupiter.api.Assertions.assertEquals
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import panda.std.ResultAssertions.assertOk
 import panda.std.asSuccess
@@ -40,8 +40,8 @@ internal class ResolveEventTest : MavenSpecification() {
 
         // then: listener properly intercepted result
         val (document, content) = assertOk(result)
-        assertEquals("content", content.readBytes().decodeToString())
-        assertEquals("content".encodeToByteArray().size.toLong(), document.contentLength)
+        assertThat(content.readBytes().decodeToString()).isEqualTo("content")
+        assertThat(document.contentLength).isEqualTo("content".encodeToByteArray().size.toLong())
     }
 
 }

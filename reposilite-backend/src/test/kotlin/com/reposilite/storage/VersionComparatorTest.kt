@@ -17,7 +17,7 @@
 package com.reposilite.storage
 
 import com.reposilite.storage.specification.VersionComparatorSpecification
-import org.junit.jupiter.api.Assertions.assertEquals
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 internal class VersionComparatorTest : VersionComparatorSpecification() {
@@ -41,7 +41,7 @@ internal class VersionComparatorTest : VersionComparatorSpecification() {
         val sortedResult = versions.sortedWith(versionComparator)
 
         // then: sorted list matches expected rules
-        assertEquals(
+        assertThat(sortedResult).isEqualTo(
             listOf(
                 "word",
                 "0.5",
@@ -52,8 +52,7 @@ internal class VersionComparatorTest : VersionComparatorSpecification() {
                 "1.1.5-SNAPSHOT",
                 "1.2",
                 "1.2.3-SNAPSHOT"
-            ),
-            sortedResult
+            )
         )
     }
 
@@ -75,7 +74,7 @@ internal class VersionComparatorTest : VersionComparatorSpecification() {
         val sortedResult = versions.sortedWith(versionComparator)
 
         // then: sorted list matches expected rules
-        assertEquals(
+        assertThat(sortedResult).isEqualTo(
             listOf(
                 "word",
                 "0.12",
@@ -85,8 +84,7 @@ internal class VersionComparatorTest : VersionComparatorSpecification() {
                 "1.12",
                 "1.20",
                 "1.20.5-SNAPSHOT"
-            ),
-            sortedResult
+            )
         )
     }
 
@@ -109,7 +107,7 @@ internal class VersionComparatorTest : VersionComparatorSpecification() {
         val sortedResult = versions.sortedWith(versionComparator)
 
         // then: sorted list matches expected rules
-        assertEquals(
+        assertThat(sortedResult).isEqualTo(
             listOf(
                 "pre-1.12.5-SNAPSHOT",
                 "pre-1.12.5",
@@ -120,8 +118,8 @@ internal class VersionComparatorTest : VersionComparatorSpecification() {
                 "1.1_5",
                 "1.1_7",
                 "2.6-SNAPSHOT"
-            ),
-            sortedResult
+            )
         )
     }
+
 }

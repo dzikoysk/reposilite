@@ -33,9 +33,7 @@ import com.reposilite.storage.api.FileType.FILE
 import com.reposilite.storage.api.toLocation
 import com.reposilite.token.RoutePermission.READ
 import com.reposilite.token.RoutePermission.WRITE
-import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -65,12 +63,12 @@ internal class MavenFacadeTest : MavenSpecification() {
     inner class Access {
 
         @Test
-        fun `should list available repositories`() = runBlocking {
+        fun `should list available repositories`() {
             // when: repositories are requested without any credentials
             var availableRepositories = findRepositories(UNAUTHORIZED)
 
             // then: response contains only public repositories
-            assertEquals(listOf(PUBLIC.name, "PROXIED"), availableRepositories)
+            assertThat(availableRepositories).isEqualTo(listOf(PUBLIC.name, "PROXIED"))
 
             // given: a token with access to private repository
             val accessToken = createAccessToken("name", "secret", PRIVATE.name, "gav", WRITE)
@@ -79,12 +77,12 @@ internal class MavenFacadeTest : MavenSpecification() {
             availableRepositories = findRepositories(accessToken)
 
             // then: response contains authorized repositories
-            assertEquals(listOf(PRIVATE.name, PUBLIC.name, "PROXIED"), availableRepositories)
+            assertThat(availableRepositories).isEqualTo(listOf(PRIVATE.name, PUBLIC.name, "PROXIED"))
         }
 
         @ParameterizedTest
         @EnumSource(value = RepositoryVisibility::class, names = [ "PUBLIC", "HIDDEN" ])
-        fun `should find requested details without credentials in public and hidden repositories`(visibility: RepositoryVisibility) = runBlocking {
+        fun `should find requested details without credentials in public and hidden repositories`(visibility: RepositoryVisibility) {
             // given: a repository with a file
             val fileSpec = addFileToRepository(FileSpec(visibility.name, "/gav/file.pom", "content"))
 
@@ -93,12 +91,12 @@ internal class MavenFacadeTest : MavenSpecification() {
 
             // then: result is a proper file
             val fileDetails = assertOk(detailsResult)
-            assertEquals("file.pom", fileDetails.name)
-            assertEquals(FILE, fileDetails.type)
+            assertThat(fileDetails.name).isEqualTo("file.pom")
+            assertThat(fileDetails.type).isEqualTo(FILE)
         }
 
         @Test
-        fun `should require authentication to access file in private repository`(): Unit = runBlocking {
+        fun `should require authentication to access file in private repository`() {
             // given: a repository with file and request without credentials
             val repository = PRIVATE.name
             val fileSpec = addFileToRepository(FileSpec(repository, "/gav/file.pom", "content"))
@@ -122,7 +120,7 @@ internal class MavenFacadeTest : MavenSpecification() {
 
         @ParameterizedTest
         @EnumSource(value = RepositoryVisibility::class, names = [ "HIDDEN", "PRIVATE" ])
-        fun `should restrict directory indexing in hidden and private repositories `(visibility: RepositoryVisibility): Unit = runBlocking {
+        fun `should restrict directory indexing in hidden and private repositories `(visibility: RepositoryVisibility) {
             // given: a repository with a file
             val fileSpec = addFileToRepository(FileSpec(visibility.name, "/gav/file.pom", "content"))
 
@@ -157,8 +155,8 @@ internal class MavenFacadeTest : MavenSpecification() {
 
             // then: the result file matches deployed file
             val deployedFile = assertOk(deployedFileResult)
-            assertEquals(FILE, deployedFile.type)
-            assertEquals("reposilite-3.0.0.jar", deployedFile.name)
+            assertThat(deployedFile.type).isEqualTo(FILE)
+            assertThat(deployedFile.name).isEqualTo("reposilite-3.0.0.jar")
         }
 
         @Test
@@ -189,7 +187,7 @@ internal class MavenFacadeTest : MavenSpecification() {
     inner class Mirrors {
 
         @Test
-        fun `should serve proxied file from remote host and store it in local repository` () = runBlocking {
+        fun `should serve proxied file from remote host and store it in local repository` () {
             // given: a file available in remote repository
             val fileSpec = FileSpec("PROXIED", "/gav/file.pom", REMOTE_CONTENT)
 
@@ -198,7 +196,7 @@ internal class MavenFacadeTest : MavenSpecification() {
 
             // then: the file has been properly proxied
             val (_, data) = assertOk(response)
-            assertEquals(REMOTE_CONTENT, data.readBytes().decodeToString())
+            assertThat(data.readBytes().decodeToString()).isEqualTo(REMOTE_CONTENT)
         }
 
         @Test
@@ -210,7 +208,7 @@ internal class MavenFacadeTest : MavenSpecification() {
             val response = mavenFacade.findFile(file.toLookupRequest(UNAUTHORIZED))
 
             // then: no file is found
-            assertTrue(response.isErr)
+            assertError(response)
         }
 
         @Test
@@ -223,7 +221,7 @@ internal class MavenFacadeTest : MavenSpecification() {
 
             // then: the file is found
             val (_, data) = assertOk(response)
-            assertEquals(REMOTE_CONTENT, data.readBytes().decodeToString())
+            assertThat(data.readBytes().decodeToString()).isEqualTo(REMOTE_CONTENT)
         }
 
     }
@@ -283,33 +281,29 @@ internal class MavenFacadeTest : MavenSpecification() {
                 .second
                 .use { it.readAllBytes().decodeToString() }
 
-            assertEquals(
+            assertThat(pomBody).isEqualTo(
                 """
                 <?xml version="1.0" encoding="UTF-8"?>
-                <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
-                    xmlns="http://maven.apache.org/POM/4.0.0"
-                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-                  <modelVersion>4.0.0</modelVersion>
-                  <groupId>com.dzikoysk</groupId>
-                  <artifactId>reposilite</artifactId>
-                  <version>3.0.1</version>
-                  <description>POM was generated by Reposilite</description>
+                <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+                    <modelVersion>4.0.0</modelVersion>
+                    <groupId>com.dzikoysk</groupId>
+                    <artifactId>reposilite</artifactId>
+                    <version>3.0.1</version>
                 </project>
-                """.trimIndent(),
-                pomBody
+                """.trimIndent()
             )
 
             val metadataBody = assertOk(mavenFacade.findFile(LookupRequest(token, repository.name, gav.resolve(METADATA_FILE))))
                 .second
                 .use { it.readAllBytes().decodeToString() }
 
-            assertTrue(metadataBody.contains("<groupId>com.dzikoysk</groupId>"))
-            assertTrue(metadataBody.contains("<artifactId>reposilite</artifactId>"))
-            assertTrue(metadataBody.contains("<release>3.0.1</release>"))
-            assertTrue(metadataBody.contains("<latest>3.0.1</latest>"))
-            assertTrue(metadataBody.contains("<version>3.0.0</version>"))
-            assertTrue(metadataBody.contains("<version>3.0.1</version>"))
-            assertTrue(metadataBody.contains("<lastUpdated>" + ZonedDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMM"))))
+            assertThat(metadataBody).contains("<groupId>com.dzikoysk</groupId>")
+            assertThat(metadataBody).contains("<artifactId>reposilite</artifactId>")
+            assertThat(metadataBody).contains("<release>3.0.1</release>")
+            assertThat(metadataBody).contains("<latest>3.0.1</latest>")
+            assertThat(metadataBody).contains("<version>3.0.0</version>")
+            assertThat(metadataBody).contains("<version>3.0.1</version>")
+            assertThat(metadataBody).contains("<lastUpdated>" + ZonedDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMM")))
         }
 
     }

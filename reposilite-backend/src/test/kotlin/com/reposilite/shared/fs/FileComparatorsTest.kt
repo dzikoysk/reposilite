@@ -17,7 +17,7 @@
 package com.reposilite.shared.fs
 
 import com.reposilite.shared.fs.specification.FileComparatorsSpecification
-import org.junit.jupiter.api.Assertions.assertEquals
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 internal class FileComparatorsTest : FileComparatorsSpecification() {
@@ -27,7 +27,7 @@ internal class FileComparatorsTest : FileComparatorsSpecification() {
         // given: an unordered list of files
         val files = listOf(
             file("Apposite"),
-            file("Lolita"),
+            file("Lovilite"),
             directory("Reposilite"),
             directory("Zeolite"),
             file("1.0.3"),
@@ -40,18 +40,17 @@ internal class FileComparatorsTest : FileComparatorsSpecification() {
         val sortedResult = files.sortedWith(filesComparator)
 
         // then: sorted list matches expected rules
-        assertEquals(
+        assertThat(sortedResult).isEqualTo(
             listOf(
                 directory("Reposilite"),
                 directory("Zeolite"),
                 directory("1.0.1"),
                 directory("1.0.2"),
                 file("Apposite"),
-                file("Lolita"),
+                file("Lovilite"),
                 file("1.0.2"),
                 file("1.0.3"),
-            ),
-            sortedResult
+            )
         )
     }
 

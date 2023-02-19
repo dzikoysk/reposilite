@@ -1,7 +1,6 @@
 package com.reposilite.shared.http
 
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.net.InetSocketAddress
 import java.net.Proxy
@@ -12,24 +11,24 @@ class ProxyFactoryTest {
     fun `should create http factory`() {
         val proxy = createHttpProxy("http 127.0.0.1:1081")
 
-        assertNotNull(proxy)
-        assertEquals(Proxy.Type.HTTP, proxy!!.type())
+        assertThat(proxy).isNotNull
+        assertThat(proxy!!.type()).isEqualTo(Proxy.Type.HTTP)
 
         val address = proxy.address() as InetSocketAddress
-        assertEquals("127.0.0.1", address.hostString)
-        assertEquals(1081, address.port)
+        assertThat(address.hostString).isEqualTo("127.0.0.1")
+        assertThat(address.port).isEqualTo(1081)
     }
 
     @Test
     fun `should create socks factory`() {
         val proxy = createHttpProxy("socks 127.0.0.1:1080 login password")
 
-        assertNotNull(proxy)
-        assertEquals(Proxy.Type.SOCKS, proxy!!.type())
+        assertThat(proxy).isNotNull
+        assertThat(proxy!!.type()).isEqualTo(Proxy.Type.SOCKS)
 
         val address = proxy.address() as InetSocketAddress
-        assertEquals("127.0.0.1", address.hostString)
-        assertEquals(1080, address.port)
+        assertThat(address.hostString).isEqualTo("127.0.0.1")
+        assertThat(address.port).isEqualTo(1080)
     }
 
 }

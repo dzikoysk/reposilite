@@ -5,8 +5,7 @@ import com.reposilite.console.CommandStatus.SUCCEEDED
 import com.reposilite.token.AccessTokenPermission.MANAGER
 import com.reposilite.token.RoutePermission.READ
 import com.reposilite.token.specification.AccessTokenSpecification
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.nio.file.Files
 
@@ -31,8 +30,8 @@ internal class ExportAndImportTest : AccessTokenSpecification() {
         exportCommand.execute(context)
 
         // then: tokens were successfully exported
-        assertEquals(SUCCEEDED, context.status)
-        assertTrue(Files.exists(workingDirectory.toPath().resolve(fileName)))
+        assertThat(context.status).isEqualTo(SUCCEEDED)
+        assertThat(Files.exists(workingDirectory.toPath().resolve(fileName))).isTrue
 
         // given: a facade without tokens
         deleteAllTokens()
@@ -42,13 +41,13 @@ internal class ExportAndImportTest : AccessTokenSpecification() {
         importCommand.execute(context)
 
         // then: the imported tokens match the old ones
-        assertEquals(SUCCEEDED, context.status)
+        assertThat(context.status).isEqualTo(SUCCEEDED)
 
         tokens.forEach {
             val token = accessTokenFacade.getAccessTokenDetailsById(accessTokenFacade.getAccessToken(it.accessToken.name)!!.identifier)!!
-            assertEquals(it.accessToken, token.accessToken.copy(identifier = it.accessToken.identifier))
-            assertEquals(it.permissions, token.permissions)
-            assertEquals(it.routes, token.routes)
+            assertThat(token.accessToken.copy(identifier = it.accessToken.identifier)).isEqualTo(it.accessToken)
+            assertThat(token.permissions).isEqualTo(it.permissions)
+            assertThat(token.routes).isEqualTo(it.routes)
         }
 
         for (message in context.output()) {

@@ -23,7 +23,7 @@ plugins {
     application
     `maven-publish`
 
-    val kotlinVersion = "1.8.0"
+    val kotlinVersion = "1.8.10"
     kotlin("jvm") version kotlinVersion
     kotlin("kapt") version kotlinVersion
 
@@ -122,6 +122,7 @@ subprojects {
 
     tasks.withType<KotlinCompile>().configureEach {
         kotlinOptions {
+            useK2 = true
             jvmTarget = "11"
             languageVersion = "1.7"
             freeCompilerArgs = listOf("-Xjvm-default=all") // For generating default methods in interfaces

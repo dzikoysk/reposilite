@@ -20,7 +20,7 @@ import com.reposilite.configuration.shared.api.Doc
 import com.reposilite.configuration.shared.api.SharedSettings
 import com.reposilite.configuration.specification.SharedConfigurationSpecification
 import io.javalin.openapi.JsonSchema
-import org.junit.jupiter.api.Assertions.assertEquals
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 internal class SharedConfigurationFacadeTest : SharedConfigurationSpecification() {
@@ -40,7 +40,7 @@ internal class SharedConfigurationFacadeTest : SharedConfigurationSpecification(
         val schema = sharedConfigurationFacade.getSettingsReference<TestSettings>("test")!!.schema.get().reader().readText()
 
         // then: the response is a valid json schema
-        assertEquals(
+        assertThat(schema).isEqualTo(
             """
             {
               "${'$'}schema" : "http://json-schema.org/draft-07/schema#",
@@ -56,8 +56,7 @@ internal class SharedConfigurationFacadeTest : SharedConfigurationSpecification(
               "description" : "Description",
               "additionalProperties" : false
             }
-            """.trimIndent().replace("\n", System.lineSeparator()),
-            schema
+            """.trimIndent().replace("\n", System.lineSeparator())
         )
     }
 

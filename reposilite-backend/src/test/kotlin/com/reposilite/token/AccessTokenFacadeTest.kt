@@ -17,10 +17,7 @@
 package com.reposilite.token
 
 import com.reposilite.token.specification.AccessTokenSpecification
-import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNull
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import panda.std.ResultAssertions.assertOk
 import java.time.LocalDate
@@ -28,7 +25,7 @@ import java.time.LocalDate
 internal class AccessTokenFacadeTest : AccessTokenSpecification() {
 
     @Test
-    fun `should create token`() = runBlocking {
+    fun `should create token`() {
         // given: a name and associated secret to register
         val name = "reposilite"
 
@@ -37,12 +34,12 @@ internal class AccessTokenFacadeTest : AccessTokenSpecification() {
 
         // then: valid token should be created
         val accessToken = accessTokenDetails.accessToken
-        assertEquals(name, accessToken.name)
-        assertTrue(LocalDate.now().isEqual(accessToken.createdAt))
+        assertThat(accessToken.name).isEqualTo(name)
+        assertThat(LocalDate.now().isEqual(accessToken.createdAt)).isTrue
     }
 
     @Test
-    fun `should update token` () = runBlocking {
+    fun `should update token` () {
         // given: an existing token and its updated version
         val token = createToken("nanomaven").accessToken
         val updatedToken = token.copy(name = "reposilite")
@@ -52,11 +49,11 @@ internal class AccessTokenFacadeTest : AccessTokenSpecification() {
 
         // then: stored token should be updated
         val storedToken = accessTokenFacade.getAccessToken("reposilite")!!
-        assertEquals("reposilite", storedToken.name)
+        assertThat(storedToken.name).isEqualTo("reposilite")
     }
 
     @Test
-    fun `should delete token`() = runBlocking {
+    fun `should delete token`() {
         // given: an existing token
         val token = createToken("reposilite").accessToken
 
@@ -65,11 +62,11 @@ internal class AccessTokenFacadeTest : AccessTokenSpecification() {
 
         // then: proper token has been deleted, and it is no longer available
         assertOk(result)
-        assertNull(accessTokenFacade.getAccessToken(token.name))
+        assertThat(accessTokenFacade.getAccessToken(token.name)).isNull()
     }
 
     @Test
-    fun `should find token by given name`() = runBlocking {
+    fun `should find token by given name`() {
         // given: an existing token
         val token = createToken("reposilite").accessToken
 
@@ -77,11 +74,11 @@ internal class AccessTokenFacadeTest : AccessTokenSpecification() {
         val foundToken = accessTokenFacade.getAccessToken(token.name)
 
         // then: proper token has been found
-        assertEquals(token, foundToken)
+        assertThat(foundToken).isEqualTo(token)
     }
 
     @Test
-    fun `should regenerate token`() = runBlocking {
+    fun `should regenerate token`() {
         // given: an existing token and its updated version
         val token = createToken("reposilite").accessToken
 
@@ -89,6 +86,6 @@ internal class AccessTokenFacadeTest : AccessTokenSpecification() {
         accessTokenFacade.regenerateAccessToken(token, "new secret")
 
         // then: stored token should be updated
-        assertTrue(accessTokenFacade.secretMatches(token.identifier, "new secret"))
+        assertThat(accessTokenFacade.secretMatches(token.identifier, "new secret")).isTrue
     }
 }

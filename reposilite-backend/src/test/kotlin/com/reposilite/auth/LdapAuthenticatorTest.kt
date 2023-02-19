@@ -25,8 +25,8 @@ import com.reposilite.token.api.CreateAccessTokenRequest
 import com.unboundid.ldap.listener.InMemoryDirectoryServer
 import com.unboundid.ldap.listener.InMemoryDirectoryServerConfig
 import com.unboundid.ldap.listener.InMemoryListenerConfig
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import panda.std.ResultAssertions.assertOk
@@ -110,8 +110,8 @@ internal class LdapAuthenticatorTest : AuthenticationSpecification() {
         )
 
         val accessToken = assertOk(authenticationResult)
-        assertEquals("Bella Swan", accessToken.name)
-        assertEquals(accessTokenFacade.getAccessToken("Bella Swan")!!, accessToken)
+        assertThat(accessToken.name).isEqualTo("Bella Swan")
+        assertThat(accessToken).isEqualTo(accessTokenFacade.getAccessToken("Bella Swan"))
     }
 
     @Test
@@ -132,8 +132,8 @@ internal class LdapAuthenticatorTest : AuthenticationSpecification() {
         )
 
         val accessToken = assertOk(authenticationResult)
-        assertEquals("Bella Swan", accessToken.name)
-        assertEquals(token, accessToken)
+        assertThat(accessToken.name).isEqualTo("Bella Swan")
+        assertThat(accessToken).isEqualTo(token)
     }
 
 }
