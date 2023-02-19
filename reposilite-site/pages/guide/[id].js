@@ -107,7 +107,7 @@ const GuideView = ({ category, selected }) => {
       <Divider mt='16' mb='4' borderColor={'gray.600'} />
       <Box align="center" fontSize='sm'>
         <Text>
-          Did you found a misleading and deprecated content, or maybe you just feel this section misses important elements?
+          Did you find misleading or deprecated content? Maybe you just feel this section misses important elements?
         </Text>
         <LinkBox as='article' color={'purple.400'}>
           <Flex justifyContent='center'>
