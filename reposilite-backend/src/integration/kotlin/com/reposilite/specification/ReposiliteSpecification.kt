@@ -91,7 +91,7 @@ internal abstract class ReposiliteSpecification : ReposiliteRunner() {
 
     fun assertErrorResponse(expectedCode: HttpStatus, response: HttpResponse<*>) {
         assertStatus(expectedCode, response.status)
-        assertThat(response.isSuccess).isTrue
+        assertThat(response.isSuccess).isFalse
     }
 
     fun <T> assertSuccessResponse(expectedCode: HttpStatus, response: HttpResponse<T>, block: (T) -> Unit = {}): T {
