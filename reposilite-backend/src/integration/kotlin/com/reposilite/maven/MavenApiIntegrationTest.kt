@@ -100,7 +100,7 @@ internal abstract class MavenApiIntegrationTest : MavenIntegrationSpecification(
             .asString()
 
         // then: service responds with file details
-        assertThat(response.isSuccess).isFalse
+        assertThat(response.isSuccess).isTrue
     }
 
     @Test
