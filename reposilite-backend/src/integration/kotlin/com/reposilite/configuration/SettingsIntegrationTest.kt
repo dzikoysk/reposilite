@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+@file:Suppress("FunctionName")
+
 package com.reposilite.configuration
 
 import com.reposilite.ReposiliteObjectMapper
@@ -32,8 +34,7 @@ import com.reposilite.web.application.WebSettings
 import io.javalin.http.HttpStatus.FORBIDDEN
 import io.javalin.http.HttpStatus.OK
 import kong.unirest.Unirest
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 
@@ -70,7 +71,7 @@ internal abstract class SettingsIntegrationTest : SettingsIntegrationSpecificati
 
         // then: response contains list of all of them
         assertSuccessResponse(OK, response) { domains ->
-            assertEquals(DEFAULT_DOMAINS.keys, domains.toSet())
+            assertThat(domains.toSet()).isEqualTo(DEFAULT_DOMAINS.keys)
         }
     }
 
@@ -91,8 +92,8 @@ internal abstract class SettingsIntegrationTest : SettingsIntegrationSpecificati
             // then: response contains list of all
             assertSuccessResponse(OK, response) {
                 val schema = ReposiliteObjectMapper.DEFAULT_OBJECT_MAPPER.readTree(it)
-                assertTrue(schema.has("title"))
-                assertTrue(schema.has("description"))
+                assertThat(schema.has("title")).isTrue
+                assertThat(schema.has("description")).isTrue
             }
         }
     }
@@ -155,7 +156,7 @@ internal abstract class SettingsIntegrationTest : SettingsIntegrationSpecificati
                 .asJacksonObject(configuration::class)
 
             // then: configuration updated succeeded
-            assertEquals(configuration, response.body)
+            assertThat(response.body).isEqualTo(configuration)
         }
     }
 
@@ -183,7 +184,7 @@ internal abstract class SettingsIntegrationTest : SettingsIntegrationSpecificati
                 .asJacksonObject(configuration::class)
 
             // then: response is equal to the default configuration instance
-            assertEquals(configuration.javaClass.getConstructor().newInstance(), response.body)
+            assertThat(response.body).isEqualTo(configuration.javaClass.getConstructor().newInstance())
         }
     }
 

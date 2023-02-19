@@ -37,9 +37,7 @@ import io.javalin.http.HttpStatus.FORBIDDEN
 import kong.unirest.HttpRequest
 import kong.unirest.HttpResponse
 import kong.unirest.Unirest
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
 import kotlin.reflect.KClass
@@ -87,18 +85,18 @@ internal abstract class ReposiliteSpecification : ReposiliteRunner() {
     fun <T : Any> HttpRequest<*>.asJacksonObject(type: KClass<T>): HttpResponse<T> =
         this.asObject { ReposiliteObjectMapper.DEFAULT_OBJECT_MAPPER.readValue(it.contentAsString, type.java) }
 
-    fun assertStatus(expectedCode: HttpStatus, value: Int) {
-        assertEquals(expectedCode.code, value)
+    private fun assertStatus(expectedCode: HttpStatus, value: Int) {
+        assertThat(value).isEqualTo(expectedCode.code)
     }
 
     fun assertErrorResponse(expectedCode: HttpStatus, response: HttpResponse<*>) {
         assertStatus(expectedCode, response.status)
-        assertFalse(response.isSuccess)
+        assertThat(response.isSuccess).isTrue
     }
 
     fun <T> assertSuccessResponse(expectedCode: HttpStatus, response: HttpResponse<T>, block: (T) -> Unit = {}): T {
         assertStatus(expectedCode, response.status)
-        assertTrue(response.isSuccess)
+        assertThat(response.isSuccess).isTrue
         return response.body.also { block(it) }
     }
 

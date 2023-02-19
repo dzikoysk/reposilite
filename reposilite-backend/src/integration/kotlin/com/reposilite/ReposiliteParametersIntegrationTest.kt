@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
+@file:Suppress("FunctionName")
+
 package com.reposilite
 
 import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.frontend.application.FrontendSettings
 import com.reposilite.specification.LocalSpecificationJunitExtension
 import com.reposilite.specification.ReposiliteSpecification
-import org.junit.jupiter.api.Assertions.assertEquals
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import java.nio.file.Files
@@ -50,7 +52,7 @@ internal class ReposiliteParametersIntegrationTest : ReposiliteSpecification() {
         val frontendSettings = sharedConfigurationFacade.getDomainSettings<FrontendSettings>()
 
         // then: Reposilite should use file-based shared configuration
-        assertEquals("test-repository", frontendSettings.map { it.id })
+        assertThat(frontendSettings.map { it.id }).isEqualTo("test-repository")
     }
 
 }

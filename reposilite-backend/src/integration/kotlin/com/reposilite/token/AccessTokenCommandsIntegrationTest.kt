@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+@file:Suppress("FunctionName")
+
 package com.reposilite.token
 
 import com.reposilite.specification.LocalSpecificationJunitExtension
@@ -22,8 +24,7 @@ import com.reposilite.console.ConsoleFacade
 import com.reposilite.token.AccessTokenPermission.MANAGER
 import com.reposilite.token.RoutePermission.READ
 import com.reposilite.token.specification.AccessTokenIntegrationSpecification
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import panda.std.ResultAssertions.assertOk
@@ -49,9 +50,9 @@ internal abstract class AccessTokenCommandsIntegrationTest : AccessTokenIntegrat
         val secondResult = assertOk(consoleFacade.executeCommand("token-modify name m"))
 
         // then: the given token is updated
-        assertEquals(SUCCEEDED, firstResult.status)
-        assertEquals(SUCCEEDED, secondResult.status)
-        assertEquals(setOf(MANAGER), useExistingToken(name).permissions)
+        assertThat(firstResult.status).isEqualTo(SUCCEEDED)
+        assertThat(secondResult.status).isEqualTo(SUCCEEDED)
+        assertThat(useExistingToken(name).permissions).isEqualTo(setOf(MANAGER))
     }
 
     @Test
@@ -63,9 +64,8 @@ internal abstract class AccessTokenCommandsIntegrationTest : AccessTokenIntegrat
         val firstResult = assertOk(consoleFacade.executeCommand("token-regenerate name -s new-secret"))
 
         // then: the given token is updated
-        assertEquals(SUCCEEDED, firstResult.status)
-        val secretMatch = useFacade<AccessTokenFacade>().secretMatches(useExistingToken(name).accessToken.identifier, "new-secret")
-        assertTrue(secretMatch)
+        assertThat(firstResult.status).isEqualTo(SUCCEEDED)
+        assertThat(useFacade<AccessTokenFacade>().secretMatches(useExistingToken(name).accessToken.identifier, "new-secret")).isTrue
     }
 
 }

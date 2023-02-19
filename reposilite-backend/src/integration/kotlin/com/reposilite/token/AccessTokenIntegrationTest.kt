@@ -32,7 +32,7 @@ import io.javalin.http.HttpStatus.OK
 import kong.unirest.Unirest.delete
 import kong.unirest.Unirest.get
 import kong.unirest.Unirest.put
-import org.junit.jupiter.api.Assertions.assertEquals
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 
@@ -65,7 +65,7 @@ internal abstract class AccessTokenIntegrationTest : AccessTokenIntegrationSpeci
 
         // then: response contains list of all
         assertSuccessResponse(OK, response) { tokens ->
-            assertEquals(2, tokens.size)
+            assertThat(tokens.size).isEqualTo(2)
         }
     }
 
@@ -90,7 +90,7 @@ internal abstract class AccessTokenIntegrationTest : AccessTokenIntegrationSpeci
 
         // then: request is rejected by server
         assertSuccessResponse(OK, response) {
-            assertEquals(allowedToken.name, it.name)
+            assertThat(it.name).isEqualTo(allowedToken.name)
         }
     }
 
@@ -118,9 +118,9 @@ internal abstract class AccessTokenIntegrationTest : AccessTokenIntegrationSpeci
 
         // then: response contains valid token with generated secret
         assertSuccessResponse(OK, response) {
-            assertEquals(name, it.accessToken.name)
-            assertEquals(secret, it.secret)
-            assertEquals(permissions, getPermissions(it.accessToken.identifier))
+            assertThat(it.accessToken.name).isEqualTo(name)
+            assertThat(it.secret).isEqualTo(secret)
+            assertThat(getPermissions(it.accessToken.identifier)).isEqualTo(permissions)
         }
     }
 

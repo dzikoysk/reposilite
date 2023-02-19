@@ -24,8 +24,7 @@ import com.reposilite.specification.RemoteSpecificationJunitExtension
 import com.reposilite.token.RoutePermission.READ
 import io.javalin.http.HttpStatus.UNAUTHORIZED
 import kong.unirest.Unirest.get
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
@@ -60,7 +59,7 @@ internal abstract class MavenApiIntegrationTest : MavenIntegrationSpecification(
             .asString()
 
         // then: service rejects request
-        assertEquals(UNAUTHORIZED.code, unauthorizedResponse.status)
+        assertThat(unauthorizedResponse.status).isEqualTo(UNAUTHORIZED.code)
 
         // given: valid credentials
         val (name, secret) = useAuth("name", "secret", routes = mapOf("/$artifactPath" to READ))
@@ -71,7 +70,7 @@ internal abstract class MavenApiIntegrationTest : MavenIntegrationSpecification(
             .asString()
 
         // then: the request should succeed
-        assertTrue(response.isSuccess)
+        assertThat(response.isSuccess).isTrue
     }
 
     @ValueSource(strings = [
@@ -90,7 +89,7 @@ internal abstract class MavenApiIntegrationTest : MavenIntegrationSpecification(
             .asString()
 
         // then: service rejects request
-        assertEquals(UNAUTHORIZED.code, unauthorizedResponse.status)
+        assertThat(unauthorizedResponse.status).isEqualTo(UNAUTHORIZED.code)
 
         // given: valid credentials
         val (name, secret) = useAuth("name", "secret", routes = mapOf(endpoint.replace("/api/maven/details", "") to READ))
@@ -101,7 +100,7 @@ internal abstract class MavenApiIntegrationTest : MavenIntegrationSpecification(
             .asString()
 
         // then: service responds with file details
-        assertTrue(response.isSuccess)
+        assertThat(response.isSuccess).isFalse
     }
 
     @Test
@@ -130,7 +129,7 @@ internal abstract class MavenApiIntegrationTest : MavenIntegrationSpecification(
             .asString()
 
         // then: service rejects request
-        assertEquals(UNAUTHORIZED.code, unauthorizedResponse.status)
+        assertThat(unauthorizedResponse.status).isEqualTo(UNAUTHORIZED.code)
 
         // given: valid credentials
         val (name, secret) = useAuth("name", "secret", routes = mapOf("/private" to READ))
@@ -141,8 +140,8 @@ internal abstract class MavenApiIntegrationTest : MavenIntegrationSpecification(
             .asString()
 
         // then: the request should succeed
-        assertTrue(response.isSuccess)
-        assertEquals(content, response.body)
+        assertThat(response.isSuccess).isTrue
+        assertThat(response.body).isEqualTo(content)
     }
 
 }

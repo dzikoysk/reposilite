@@ -19,10 +19,10 @@ package com.reposilite.statistics.specification
 import com.reposilite.specification.ReposiliteSpecification
 import com.reposilite.maven.api.Identifier
 import com.reposilite.statistics.StatisticsFacade
+import io.javalin.http.HttpStatus.OK
 import kong.unirest.Unirest.get
 import kong.unirest.Unirest.put
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.assertj.core.api.Assertions.assertThat
 import panda.std.Mono
 
 internal abstract class StatisticsIntegrationSpecification : ReposiliteSpecification() {
@@ -36,12 +36,12 @@ internal abstract class StatisticsIntegrationSpecification : ReposiliteSpecifica
             .body(content)
             .asString()
 
-        assertEquals(200, putResponse.status)
+        assertThat(putResponse.status).isEqualTo(OK.code)
 
         val getResponse = get(uri)
             .asEmpty()
 
-        assertTrue(getResponse.isSuccess)
+        assertThat(getResponse.isSuccess).isTrue
 
         useFacade<StatisticsFacade>().saveRecordsBulk()
         return Mono(Identifier(repository, gav))

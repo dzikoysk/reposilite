@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+@file:Suppress("FunctionName")
+
 package com.reposilite.status
 
 import com.reposilite.VERSION
@@ -25,10 +27,10 @@ import com.reposilite.status.api.InstanceStatusResponse
 import com.reposilite.status.api.StatusSnapshot
 import com.reposilite.status.specification.StatusIntegrationSpecification
 import com.reposilite.token.AccessTokenPermission.MANAGER
+import io.javalin.http.HttpStatus.OK
 import io.javalin.http.HttpStatus.UNAUTHORIZED
 import kong.unirest.Unirest
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 
@@ -52,7 +54,7 @@ internal abstract class StatusIntegrationTest : StatusIntegrationSpecification()
         val unauthorizedResponse = Unirest.get("$base/api/status/instance").asString()
 
         // then: service rejects request
-        assertEquals(UNAUTHORIZED.code, unauthorizedResponse.status)
+        assertThat(unauthorizedResponse.status).isEqualTo(UNAUTHORIZED.code)
 
         // given: a valid credentials
         val (name, secret) = useAuth("name", "secret", listOf(MANAGER))
@@ -63,8 +65,8 @@ internal abstract class StatusIntegrationTest : StatusIntegrationSpecification()
             .asObject(InstanceStatusResponse::class.java)
 
         // then: service should respond with valid instance dto
-        assertEquals(200, response.status)
-        assertEquals(VERSION, response.body.version)
+        assertThat(response.status).isEqualTo(OK.code)
+        assertThat(response.body.version).isEqualTo(VERSION)
     }
 
     @Test
@@ -73,7 +75,7 @@ internal abstract class StatusIntegrationTest : StatusIntegrationSpecification()
         val unauthorizedResponse = Unirest.get("$base/api/status/snapshots").asString()
 
         // then: service rejects request
-        assertEquals(UNAUTHORIZED.code, unauthorizedResponse.status)
+        assertThat(unauthorizedResponse.status).isEqualTo(UNAUTHORIZED.code)
 
         // given: a valid credentials
         val (name, secret) = useAuth("name", "secret", listOf(MANAGER))
@@ -84,8 +86,8 @@ internal abstract class StatusIntegrationTest : StatusIntegrationSpecification()
             .asJacksonObject(Array<StatusSnapshot>::class)
 
         // then: service should respond with valid instance dto
-        assertEquals(200, response.status)
-        assertNotNull(response.body.getOrNull(0))
+        assertThat(response.status).isEqualTo(OK.code)
+        assertThat(response.body.getOrNull(0)).isNotNull
     }
 
 }

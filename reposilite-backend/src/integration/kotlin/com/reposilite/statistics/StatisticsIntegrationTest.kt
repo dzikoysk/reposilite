@@ -31,10 +31,10 @@ import com.reposilite.statistics.infrastructure.SqlStatisticsRepository
 import com.reposilite.statistics.specification.StatisticsIntegrationSpecification
 import com.reposilite.token.AccessTokenPermission.MANAGER
 import com.reposilite.token.RoutePermission.READ
+import io.javalin.http.HttpStatus.OK
 import io.javalin.http.HttpStatus.UNAUTHORIZED
 import kong.unirest.Unirest.get
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import panda.std.component1
@@ -65,7 +65,7 @@ internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecifi
         val unauthorizedResponse = get(endpoint).asString()
 
         // then: service rejects request
-        assertEquals(UNAUTHORIZED.code, unauthorizedResponse.status)
+        assertThat(unauthorizedResponse.status).isEqualTo(UNAUTHORIZED.code)
 
         // given: a valid credentials
         val (name, secret) = useAuth("name", "secret", listOf(MANAGER))
@@ -76,8 +76,8 @@ internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecifi
             .asObject { it.contentAsString.toLong() }
 
         // then: service responds with valid stats data
-        assertEquals(200, response.status)
-        assertEquals(1, response.body)
+        assertThat(response.status).isEqualTo(200)
+        assertThat(response.body).isEqualTo(1)
     }
 
     @Test
@@ -90,7 +90,7 @@ internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecifi
         val unauthorizedResponse = get(endpoint).asString()
 
         // then: service rejects request
-        assertEquals(UNAUTHORIZED.code, unauthorizedResponse.status)
+        assertThat(unauthorizedResponse.status).isEqualTo(UNAUTHORIZED.code)
 
         // given: a valid credentials
         val (name, secret) = useAuth("name", "secret", emptyList(),  mapOf(identifier.toString() to READ))
@@ -101,9 +101,9 @@ internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecifi
             .asObject(ResolvedCountResponse::class.java)
 
         // then: service responds with valid stats data
-        assertEquals(200, response.status)
-        assertEquals(1, response.body.sum)
-        assertEquals(identifier.gav, response.body.requests[0].gav)
+        assertThat(response.status).isEqualTo(OK.code)
+        assertThat(response.body.sum).isEqualTo(1)
+        assertThat(response.body.requests[0].gav).isEqualTo(identifier.gav)
     }
 
     @Test
@@ -131,7 +131,7 @@ internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecifi
         val unauthorizedResponse = get("$base/api/statistics/resolved/all").asString()
 
         // then: service rejects request
-        assertEquals(UNAUTHORIZED.code, unauthorizedResponse.status)
+        assertThat(unauthorizedResponse.status).isEqualTo(UNAUTHORIZED.code)
 
         // given: a valid credentials
         val (name, secret) = useAuth("name", "secret", listOf(MANAGER))
@@ -142,7 +142,7 @@ internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecifi
             .asObject(AllResolvedResponse::class.java)
 
         // then: service should respond with time-series not older than a year
-        assertEquals(200, response.status)
+        assertThat(response.status).isEqualTo(OK.code)
 
         assertThat(response.body).isEqualTo(
             AllResolvedResponse(

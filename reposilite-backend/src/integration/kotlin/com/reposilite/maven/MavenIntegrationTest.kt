@@ -32,9 +32,7 @@ import kong.unirest.Unirest.get
 import kong.unirest.Unirest.head
 import kong.unirest.Unirest.put
 import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import java.util.concurrent.CompletableFuture
@@ -57,8 +55,8 @@ internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
         val response = head("$base/$repository/$gav/$file").asEmpty()
 
         // then: service returns valid file metadata
-        assertTrue(response.isSuccess)
-        assertEquals(content.length, response.headers.getFirst(CONTENT_LENGTH).toInt())
+        assertThat(response.isSuccess).isTrue
+        assertThat(response.headers.getFirst(CONTENT_LENGTH).toInt()).isEqualTo(content.length)
     }
 
     @Test
@@ -70,8 +68,8 @@ internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
         val response = get("$base/$repository/$gav/$file").asString()
 
         // then: service returns content of requested file
-        assertTrue(response.isSuccess)
-        assertEquals(content, response.body)
+        assertThat(response.isSuccess).isTrue
+        assertThat(response.body).isEqualTo(content)
     }
 
     @Test
@@ -86,7 +84,7 @@ internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
             .asObject(ErrorResponse::class.java)
 
         // then: service should reject the request
-        assertEquals(UNAUTHORIZED.code, response.status)
+        assertThat(response.status).isEqualTo(UNAUTHORIZED.code)
     }
 
     @Test
@@ -109,10 +107,10 @@ internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
                         .asObject(DocumentInfo::class.java)
 
                     // then: service properly accepts connection and deploys file
-                    assertTrue(response.isSuccess)
-                    assertEquals(file, response.body.name)
-                    assertEquals(length, response.body.contentLength)
-                    assertTrue(get("$base/$repository/$gav/$file").asString().isSuccess)
+                    assertThat(response.isSuccess).isTrue
+                    assertThat(response.body.name).isEqualTo(file)
+                    assertThat(response.body.contentLength).isEqualTo(length)
+                    assertThat(get("$base/$repository/$gav/$file").asString().isSuccess).isTrue
                 } finally {
                     completed.countDown()
                 }
@@ -134,8 +132,8 @@ internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
             .asObject(ErrorResponse::class.java)
 
         // then: service rejects request and file still exists
-        assertFalse(response.isSuccess)
-        assertTrue(get(address).asEmpty().isSuccess)
+        assertThat(response.isSuccess).isFalse
+        assertThat(get(address).asEmpty().isSuccess).isTrue
     }
 
     @Test
@@ -151,8 +149,8 @@ internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
             .asString()
 
         // then: service rejects request and file still exists
-        assertTrue(response.isSuccess)
-        assertFalse(get(address).asEmpty().isSuccess)
+        assertThat(response.isSuccess).isTrue
+        assertThat(get(address).asEmpty().isSuccess).isFalse
     }
 
     @Test
@@ -164,8 +162,8 @@ internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
         val response = get(address).asString()
 
         // then: service responds with custom 404 page
-        assertEquals(NOT_FOUND.code, response.status)
-        assertTrue(response.body.contains("Reposilite - 404 Not Found"))
+        assertThat(response.status).isEqualTo(NOT_FOUND.code)
+        assertThat(response.body).contains("Reposilite - 404 Not Found")
     }
 
     @Test
@@ -176,14 +174,14 @@ internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
             val notFoundResponse = get("$base/proxied/not/found.file").asString()
 
             // then: service responds with 404 status page
-            assertFalse(notFoundResponse.isSuccess)
+            assertThat(notFoundResponse.isSuccess).isFalse
 
             // when: file that exists in remote repository is requested
             val response = get("$base/proxied/$gav").asString()
 
             // then: service responds with its content
-            assertEquals(content, response.body)
-            assertTrue(response.isSuccess)
+            assertThat(response.body).isEqualTo(content)
+            assertThat(response.isSuccess).isTrue
         }
     }
 

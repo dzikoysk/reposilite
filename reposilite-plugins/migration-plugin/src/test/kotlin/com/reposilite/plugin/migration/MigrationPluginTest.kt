@@ -5,8 +5,7 @@ import com.reposilite.token.AccessTokenPermission.MANAGER
 import com.reposilite.token.Route
 import com.reposilite.token.RoutePermission.READ
 import com.reposilite.token.RoutePermission.WRITE
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.nio.file.Files
 
@@ -24,25 +23,22 @@ internal class MigrationPluginTest : MigrationPluginSpecification() {
 
         // then: a valid json scheme with up-to-date tokens should be generated
         val schema = workingDirectory().resolve("tokens.json")
-        assertTrue(Files.exists(schema))
-        assertEquals(3, tokens.size)
+        assertThat(Files.exists(schema)).isTrue
+        assertThat(tokens.size).isEqualTo(3)
 
         val privateToken = tokens.first { it.accessToken.name == "private" }
         with (privateToken.routes.first()) {
-            assertEquals("/private", path)
-            assertEquals(WRITE, permission)
+            assertThat(path).isEqualTo("/private")
+            assertThat(permission).isEqualTo(WRITE)
         }
 
         val wildcardToken = tokens.first { it.accessToken.name == "wildcard" }
-        assertEquals(setOf(MANAGER), wildcardToken.permissions)
-        assertEquals(
-            repositories.map { Route("/$it/", READ) }.toSet(),
-            wildcardToken.routes
-        )
+        assertThat(wildcardToken.permissions).isEqualTo(setOf(MANAGER))
+        assertThat(wildcardToken.routes).isEqualTo(repositories.map { Route("/$it/", READ) }.toSet())
 
         val adminToken = tokens.first { it.accessToken.name == "admin" }
-        assertEquals(setOf(MANAGER), adminToken.permissions)
-        assertEquals(setOf(Route("/", READ), Route("/", WRITE)), adminToken.routes)
+        assertThat(adminToken.permissions).isEqualTo(setOf(MANAGER))
+        assertThat(adminToken.routes).isEqualTo(setOf(Route("/", READ), Route("/", WRITE)))
     }
 
 }

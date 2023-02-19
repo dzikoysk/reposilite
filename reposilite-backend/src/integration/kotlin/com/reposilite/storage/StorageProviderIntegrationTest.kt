@@ -24,10 +24,7 @@ import com.reposilite.storage.api.FileType.FILE
 import com.reposilite.storage.api.toLocation
 import com.reposilite.storage.specification.StorageProviderSpecification
 import io.javalin.http.ContentType.APPLICATION_JAR
-import org.junit.jupiter.api.Assertions.assertArrayEquals
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import panda.std.ResultAssertions.assertError
 import panda.std.ResultAssertions.assertOk
@@ -45,14 +42,14 @@ internal abstract class StorageProviderIntegrationTest : StorageProviderSpecific
 
         // then: put request should succeed
         assertOk(putResponse)
-        assertTrue(storageProvider.exists(resource))
+        assertThat(storageProvider.exists(resource)).isTrue
 
         // when: stored resource is requested
         val fetchResponse = storageProvider.getFile(resource)
 
         // then: provider should return proper resource
         assertOk(fetchResponse)
-        assertArrayEquals(content, fetchResponse.get().readBytes())
+        assertThat(fetchResponse.get().readBytes()).isEqualTo(content)
     }
 
     @Test
@@ -79,10 +76,10 @@ internal abstract class StorageProviderIntegrationTest : StorageProviderSpecific
 
         // then: response should contain expected file details
         val fileDetails = assertOk(response) as DocumentInfo
-        assertEquals(FILE, fileDetails.type)
-        assertEquals(resource.getSimpleName(), fileDetails.name)
-        assertEquals(content.size.toLong(), fileDetails.contentLength)
-        assertEquals(APPLICATION_JAR, fileDetails.contentType)
+        assertThat(fileDetails.type).isEqualTo(FILE)
+        assertThat(fileDetails.name).isEqualTo(resource.getSimpleName())
+        assertThat(fileDetails.contentLength).isEqualTo(content.size.toLong())
+        assertThat(fileDetails.contentType).isEqualTo(APPLICATION_JAR)
     }
 
     @Test
@@ -103,7 +100,7 @@ internal abstract class StorageProviderIntegrationTest : StorageProviderSpecific
 
         // then: response should contain directory details with list of subnames
         val fileDetails = assertOk(response) as DirectoryInfo
-        assertEquals(listOf("c", "a.jar", "b.jar"), fileDetails.files.map { it.name })
+        assertThat(fileDetails.files.map { it.name }).isEqualTo(listOf("c", "a.jar", "b.jar"))
     }
 
     @Test
@@ -117,8 +114,8 @@ internal abstract class StorageProviderIntegrationTest : StorageProviderSpecific
 
         // then: storage provider should not contain deleted file
         assertOk(response)
-        assertFalse(storageProvider.exists("/test/test1.jar".toLocation()))
-        assertTrue(storageProvider.exists("/test/test2.jar".toLocation()))
+        assertThat(storageProvider.exists("/test/test1.jar".toLocation())).isFalse
+        assertThat(storageProvider.exists("/test/test2.jar".toLocation())).isTrue
     }
 
     @Test
@@ -133,9 +130,9 @@ internal abstract class StorageProviderIntegrationTest : StorageProviderSpecific
 
         // then: storage provider should not contain any of deleted files
         assertOk(response)
-        assertFalse(storageProvider.exists("/directory/sub/sub/test.jar".toLocation()))
-        assertFalse(storageProvider.exists("/directory/sub/test.jar".toLocation()))
-        assertTrue(storageProvider.exists("/directory/test.jar".toLocation()))
+        assertThat(storageProvider.exists("/directory/sub/sub/test.jar".toLocation())).isFalse
+        assertThat(storageProvider.exists("/directory/sub/test.jar".toLocation())).isFalse
+        assertThat(storageProvider.exists("/directory/test.jar".toLocation())).isTrue
     }
 
 }
