@@ -22,13 +22,14 @@ import EyeIcon from '../icons/EyeIcon.vue'
 import JavaDocsIcon from "../icons/JavaDocsIcon.vue"
 import TrashIcon from '../icons/TrashIcon.vue'
 import {property} from '../../helpers/vue-extensions'
-
+import { computed } from 'vue'
 
 const props = defineProps({
   file: property(Object, true),
   qualifier: property(Object, true),
   url: property(String, false),
-  openDeleteEntryModal: property(Function, true)
+  openDeleteEntryModal: property(Function, true),
+  compactMode: property(Boolean, true)
 })
 
 const { hasPermissionTo } = useSession()
@@ -51,16 +52,17 @@ const getJavaDocsUrl = () => {
   return createURL(`/javadoc/${qualifier}`)
 }
 
+const defaultMode = computed(() => !props.compactMode)
 </script>
 
 <template>
-  <div class="browser-entry flex flex-row justify-between mb-1.5 py-3 rounded-full default-button">
+  <div class="browser-entry" :class="{ 'default-entry': defaultMode, 'compact-entry': compactMode }">
     <div class="flex flex-row">
-      <div v-if="file.type == 'DIRECTORY'" class="text-xm px-6 pt-1.75">⚫</div>
-      <div v-else class="text-xm px-6 pt-1.75">⚪</div>
-      <div class="font-semibold">{{file.name}}</div>
+      <div v-if="file.type == 'DIRECTORY'" :class="{ 'default-icon': defaultMode, 'compact-icon': compactMode }">⚫</div>
+      <div v-else :class="{ 'default-icon': defaultMode, 'compact-icon': compactMode }">⚪</div>
+      <div :class="{ 'default-filename': defaultMode, 'compact-filename': compactMode }">{{file.name}}</div>
     </div>
-    <div class="entry-details flex">
+    <div class="entry-details flex flex-1 justify-end">
       <div class="entry-menu hidden flex flex-row justify-end">
         <EyeIcon
           v-if="file.hasOwnProperty('contentLength') && isHumanReadable" 
@@ -96,5 +98,28 @@ const getJavaDocsUrl = () => {
 <style>
 .browser-entry:hover > .entry-details .entry-menu {
   display: flex;
+}
+
+.default-entry {
+  @apply flex flex-row justify-between mb-1.5 py-3 rounded-full default-button;
+}
+.compact-entry {
+  @apply rounded-lg inline-block w-full flex;
+  @apply hover:(transition-colors duration-200 bg-purple-400 text-white);
+  @apply dark:text-white dark:hover:(transition-colors duration-200 bg-purple-600);
+}
+
+.default-icon {
+  @apply text-xm px-6 pt-1.75;
+}
+.compact-icon {
+  @apply text-xxs pl-4 pt-2;
+}
+
+.default-filename {
+  @apply font-semibold;
+}
+.compact-filename {
+  @apply pl-3 pr-2 w-full whitespace-nowrap;
 }
 </style>

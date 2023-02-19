@@ -80,22 +80,6 @@ const RouterEntry = ({ file }, context) => {
     </router-link>
   )
 }
-
-const CompactListEntry = ({ file }) => {  
-  return (
-    <p class={`
-      rounded-lg inline-block w-full flex
-      hover:(transition-colors duration-200 bg-purple-400 text-white)
-      dark:text-white dark:hover:(transition-colors duration-200 bg-purple-600)
-    `}>
-      {isDirectory(file)
-        ? <div class="text-xxs pl-4 pt-2">⚫</div>
-        : <div class="text-xxs pl-4 pt-2">⚪</div>
-      }
-      <div class="pl-3 pr-2 w-full whitespace-nowrap">{file.name}</div>
-    </p>
-  )
-}
 </script>
 
 <template>
@@ -105,23 +89,14 @@ const CompactListEntry = ({ file }) => {
       :value="deleteModalValue"
       :close="closeDeleteModal"
     />
-    <div v-if="compactMode" class="relative w-full bg-white dark:bg-gray-800 py-3 px-1 rounded-xl">
-      <div v-for="file in files.list" v-bind:key="file" class="px-1 my-1">
-        <RouterEntry v-if="isDirectory(file)" :file="file">
-          <CompactListEntry :file="file" />
-        </RouterEntry>
-        <LinkEntry v-else :file="file">
-          <CompactListEntry :file="file" />
-        </LinkEntry>
-      </div>
-    </div>
-    <div v-else>
+    <div :class="{'compact-background': compactMode}">
       <div v-for="file in files.list" v-bind:key="file">
         <RouterEntry v-if="isDirectory(file)" :file="file">
           <ListEntry
             :file="file"
             :qualifier="qualifier"
             :openDeleteEntryModal="openDeleteModal"
+            :compactMode="compactMode"
           />
         </RouterEntry>
         <LinkEntry v-else :file="file">
@@ -130,6 +105,7 @@ const CompactListEntry = ({ file }) => {
             :qualifier="qualifier"
             :url="createURL(`${$route.path}/${file.name}`)"
             :openDeleteEntryModal="openDeleteModal"
+            :compactMode="compactMode"
           />
         </LinkEntry>
       </div>
@@ -142,3 +118,9 @@ const CompactListEntry = ({ file }) => {
     </div>
   </div>
 </template>
+
+<style>
+.compact-background {
+  @apply relative w-full bg-white dark:bg-gray-800 py-3 px-1 rounded-xl;
+}
+</style>
