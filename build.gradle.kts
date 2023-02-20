@@ -66,6 +66,12 @@ scmVersion {
 allprojects {
     version = rootProject.scmVersion.version
 
+    // Give a friendly error when building project and git tags aren't available
+    // ~ https://github.com/dzikoysk/reposilite/issues/1725
+    if (version == "0.1.0-SNAPSHOT") {
+        throw IllegalStateException("Version is not set, please run 'git fetch --tags' command to fetch tags from main repository.")
+    }
+
     repositories {
         maven("https://maven.reposilite.com/maven-central") {
             mavenContent {
