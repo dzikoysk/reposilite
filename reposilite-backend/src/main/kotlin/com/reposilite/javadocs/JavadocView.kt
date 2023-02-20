@@ -88,6 +88,7 @@ internal object JavadocView {
                 <div class="sticky-nav">
                     <div class="row">
                         <a class="title" href="/"><h3>Reposilite</h3></a>
+                        <a id='raw'><h4>Raw docs</h4></a>
                         <!--<a href="#p"><h5>Download JavaDoc</h5></a> todo-->
                     </div>
                 </div>
@@ -96,6 +97,7 @@ internal object JavadocView {
                 if (!window.location.href.endsWith("/")) {
                     document.getElementById("javadoc").src = window.location.href + '$unpackedIndexPath'
                 }
+                document.getElementById('raw').href = window.location.href + '/raw/index.html'
                 </script>
             </body>
         </html>

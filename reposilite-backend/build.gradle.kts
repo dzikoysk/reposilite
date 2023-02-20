@@ -44,7 +44,7 @@ dependencies {
     api("io.javalin:javalin:5.3.2")
     api("io.javalin.community.openapi:javalin-openapi-plugin:5.3.2")
     kapt("io.javalin.community.openapi:openapi-annotation-processor:5.3.2")
-    api("io.javalin.community.routing:routing-dsl:5.3.2-alpha.3")
+    api("io.javalin.community.routing:routing-dsl:5.3.2-alpha.4")
     api("io.javalin.community.ssl:ssl-plugin:5.3.2")
 
     val springSecurityCrypto = "5.7.3"

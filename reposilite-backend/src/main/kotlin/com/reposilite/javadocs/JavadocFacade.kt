@@ -17,6 +17,8 @@
 package com.reposilite.javadocs
 
 import com.reposilite.javadocs.api.JavadocPageRequest
+import com.reposilite.javadocs.api.JavadocRawRequest
+import com.reposilite.javadocs.api.JavadocRawResponse
 import com.reposilite.javadocs.api.JavadocResponse
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
@@ -27,7 +29,6 @@ import com.reposilite.plugin.api.Facade
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.notFound
 import com.reposilite.shared.notFoundError
-import com.reposilite.shared.unauthorized
 import com.reposilite.storage.api.Location
 import com.reposilite.token.AccessTokenIdentifier
 import io.javalin.http.ContentType
@@ -35,6 +36,7 @@ import panda.std.Result
 import panda.std.Result.supplyThrowing
 import panda.std.asSuccess
 import panda.utilities.StringUtils
+import java.io.InputStream
 import java.nio.file.Files
 import java.nio.file.Path
 
@@ -51,6 +53,7 @@ class JavadocFacade internal constructor(
         "html" to ContentType.TEXT_HTML,
         "css" to ContentType.TEXT_CSS,
         "js" to ContentType.APPLICATION_JS,
+        "png" to ContentType.IMAGE_PNG,
     )
 
     private data class JavadocPlainFile(
@@ -62,11 +65,21 @@ class JavadocFacade internal constructor(
     fun findJavadocPage(request: JavadocPageRequest): Result<JavadocResponse, ErrorResponse> =
         with (request) {
             mavenFacade.canAccessResource(accessToken, repository, gav)
-                .mapErr { unauthorized() }
                 .flatMap { createPage(accessToken, repository, resolveGav(request)) }
                 .onError { logger.error("Cannot extract javadoc: ${it.message} (${it.status})}") }
         }
 
+    fun findRawJavadocResource(request: JavadocRawRequest): Result<JavadocRawResponse, ErrorResponse> =
+        with (request) {
+            mavenFacade.canAccessResource(accessToken, repository, gav)
+                .flatMap { javadocContainerService.loadContainer(accessToken, repository, gav) }
+                .map {
+                    JavadocRawResponse(
+                        contentType = supportedExtensions[resource.getExtension()] ?: ContentType.APPLICATION_OCTET_STREAM,
+                        content = Files.newInputStream(it.javadocUnpackPath.resolve(resource.toString()))
+                    )
+                }
+        }
 
     private fun createPage(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<JavadocResponse, ErrorResponse> {
         val resourcesFile = createPlainFile(javadocFolder, repository, gav)
