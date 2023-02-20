@@ -67,6 +67,9 @@ class ReposiliteParameters : Runnable {
     var sharedConfigurationFile: String? = null
     var sharedConfigurationPath: Path? = null
 
+    @Option(names = ["--ignore-shared-configuration-errors"], description = ["Ignore errors while loading shared configuration file"])
+    var ignoreSharedConfigurationErrors = false
+
     @Option(names = ["--hostname", "-h"], description = ["Override hostname from configuration"])
     var hostname = ""
 
