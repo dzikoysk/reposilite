@@ -59,7 +59,7 @@ I can recommend [s4u/maven-settings-action](https://github.com/s4u/maven-setting
       [{
         "id": "reposilite-repository",
         "username": "${{ secrets.MAVEN_NAME }}",
-        "password": "${{ secrets.MAVEN_SECRET }}"
+        "password": "${{ secrets.MAVEN_TOKEN }}"
       }]
 ```
 
