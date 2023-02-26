@@ -30,8 +30,16 @@ FROM openjdk:19-slim
 RUN mkdir -p /app/data && mkdir -p /var/log/reposilite
 VOLUME /app/data
 WORKDIR /app
+EXPOSE 8080
 COPY --from=build /home/reposilite-build/reposilite-backend/build/libs/reposilite-3*.jar reposilite.jar
 COPY --from=build /home/reposilite-build/entrypoint.sh entrypoint.sh
-RUN apt-get update && apt-get -y install util-linux
+RUN apt-get update && apt-get -y install util-linux curl
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s \
+    --retries=3 CMD [ "sh", "-c", "echo -n 'curl localhost:8080... '; \
+    (\
+        curl -sf localhost:8080 > /dev/null\
+    ) && echo OK || (\
+        echo Fail && exit 2\
+    )"]
 ENTRYPOINT ["/bin/sh", "entrypoint.sh"]
 CMD []
