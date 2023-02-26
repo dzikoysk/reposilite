@@ -19,6 +19,10 @@ package com.reposilite.configuration.local
 import com.reposilite.ReposiliteParameters
 import com.reposilite.configuration.local.infrastructure.LocalConfigurationProvider
 import com.reposilite.journalist.Journalist
+import panda.std.reactive.Reference
+import panda.std.reactive.ReferenceUtils
+import java.lang.IllegalArgumentException
+import kotlin.reflect.full.declaredMemberProperties
 
 internal object LocalConfigurationFactory {
 
@@ -29,8 +33,56 @@ internal object LocalConfigurationFactory {
             configurationFile = parameters.localConfigurationPath,
             mode = parameters.localConfigurationMode,
             localConfiguration = LocalConfiguration()
-        ).also {
-            it.initialize()
+        ).also { provider ->
+            provider.initialize()
+            loadCustomPropertiesViaReflections(journalist, provider.localConfiguration)
         }.localConfiguration
+
+    /**
+     * Load custom properties from environment variables and system properties.
+     */
+    private fun loadCustomPropertiesViaReflections(journalist: Journalist?, localConfiguration: LocalConfiguration) {
+        (getEnvironmentVariables() + getProperties()).forEach { (key, value) ->
+            val property = localConfiguration::class.declaredMemberProperties.find { it.name.equals(key, ignoreCase = true) } ?: run {
+                journalist?.logger?.warn("Unknown local configuration property: $key")
+                return@forEach
+            }
+
+            @Suppress("UNCHECKED_CAST")
+            val reference = property.getter.call(localConfiguration) as Reference<Any>
+
+            when (reference.type.kotlin) {
+                Boolean::class -> ReferenceUtils.setValue(reference, value.toBoolean())
+                Int::class -> ReferenceUtils.setValue(reference, value.toInt())
+                String::class -> ReferenceUtils.setValue(reference, value)
+                else -> throw IllegalArgumentException("Unsupported local configuration property type: $key (expected: ${reference.type})")
+            }
+
+            journalist?.logger?.info("Local configuration has been updated by external property: $key=${value.take(1)}***${value.takeLast(1)}")
+        }
+    }
+
+    /**
+     * Get all environment variables that starts with REPOSILITE.LOCAL., example:
+     * REPOSILITE.LOCAL.SSLENABLED=false
+     */
+    private fun getEnvironmentVariables(): Map<String, String> =
+        System.getenv()
+            .asSequence()
+            .map { it.key.uppercase() to it.value }
+            .filter { (key) -> key.startsWith("REPOSILITE.LOCAL.") }
+            .associate { (key, value) -> key.substringAfter("REPOSILITE.LOCAL.") to value }
+
+    /**
+     * Get all system properties that starts with reposilite.local., example:
+     * reposilite.local.sslEnabled=false
+     */
+    private fun getProperties(): Map<String, String> =
+        System.getProperties()
+            .propertyNames()
+            .asSequence()
+            .map { it.toString() }
+            .filter { it.lowercase().startsWith("reposilite.local.") }
+            .associate { it.lowercase().substringAfter("reposilite.local.") to System.getProperty(it) }
 
 }
