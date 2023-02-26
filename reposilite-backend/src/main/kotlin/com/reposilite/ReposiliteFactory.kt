@@ -63,9 +63,17 @@ object ReposiliteFactory {
             journalist = journalist,
             parameters = parameters,
             localConfiguration = localConfiguration,
-            databaseConnection = DatabaseConnectionFactory.createConnection(parameters.workingDirectory, localConfiguration.database.get(), localConfiguration.databaseThreadPool.get()),
+            databaseConnection = DatabaseConnectionFactory.createConnection(
+                workingDirectory = parameters.workingDirectory,
+                databaseConfiguration = parameters.database,
+                databaseThreadPoolSize = localConfiguration.databaseThreadPool.get()
+            ),
             webServer = HttpServer(),
-            ioService = newFixedThreadPool(0, localConfiguration.ioThreadPool.get(), "Reposilite | IO"),
+            ioService = newFixedThreadPool(
+                min = 0,
+                max = localConfiguration.ioThreadPool.get(),
+                prefix = "Reposilite | IO"
+            ),
             scheduler = newSingleThreadScheduledExecutor("Reposilite | Scheduler"),
             extensions = Extensions(journalist)
         )

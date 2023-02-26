@@ -76,6 +76,9 @@ class ReposiliteParameters : Runnable {
     @Option(names = ["--port", "-p"], description = ["Override port from configuration"])
     var port = -1
 
+    @Option(names = ["--database"], description = ["Override database connection from local configuration"])
+    var database = ""
+
     @Option(names = ["--token", "-t"], description = ["Create temporary token with the given credentials in name:secret format", "Created token has all permissions"])
     var tokenEntries = arrayOf<String>()
     lateinit var tokens: Collection<CreateAccessTokenRequest>
@@ -108,6 +111,10 @@ class ReposiliteParameters : Runnable {
 
         if (port == -1) {
             this.port = localConfiguration.port.get()
+        }
+
+        if (database.isEmpty()) {
+            this.database = localConfiguration.database.get()
         }
     }
 

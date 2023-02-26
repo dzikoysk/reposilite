@@ -88,11 +88,11 @@ internal abstract class ReposiliteRunner {
         parameters.workingDirectoryName = reposiliteWorkingDirectory.absolutePath
         parameters.testEnv = true
         parameters.port = 10000 + 2 * ThreadLocalRandom.current().nextInt(30_000 / 2)
+        parameters.database = _database
         parameters.run()
         overrideParameters(parameters)
 
         val localConfiguration = LocalConfiguration().also {
-            ReferenceUtils.setValue(it.database, _database)
             ReferenceUtils.setValue(it.webThreadPool, 6)
             ReferenceUtils.setValue(it.ioThreadPool, 4)
         }
