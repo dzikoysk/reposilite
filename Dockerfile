@@ -34,7 +34,7 @@ EXPOSE 8080
 COPY --from=build /home/reposilite-build/reposilite-backend/build/libs/reposilite-3*.jar reposilite.jar
 COPY --from=build /home/reposilite-build/entrypoint.sh entrypoint.sh
 RUN apt-get update && apt-get -y install util-linux curl
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s \
+HEALTHCHECK --interval=30s --timeout=30s --start-period=15s \
     --retries=3 CMD [ "sh", "-c", "echo -n 'curl localhost:8080... '; \
     (\
         curl -sf localhost:8080 > /dev/null\
