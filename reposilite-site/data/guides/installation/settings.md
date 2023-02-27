@@ -34,13 +34,17 @@ List of available parameters:
 | `--help` | - | Displays help message with all parameters |
 | `--version` | - | Display current version of Reposilite |
 | `--working-directory` <br/> `-wd` | `./` | Sets custom working directory for this instance, so the location where Reposilite keeps local data |
+| `--plugin-directory` <br/> `-pd` | `./plugins` | Sets custom directory for plugins |
 | `--generate-configuration` <br/> `-gc` | - | Generate default template of the requested file. Supported templates: `configuration.cdn` for local configuration and `configuration.shared.json` for shared configuration |
 | `--local-configuration`<br/>`--local-config`<br/>`-lc` | `configuration.cdn` | Sets custom location of local configuration file in CDN format. By default it's relative to working directory path, but you can also use absolute path. |
 | `--local-configuration-mode`<br/>`--local-config-mode`<br/>`-lcm` | `auto` | Configuration modes description: [Configuration modes](#configuration-modes) |
 | `--shared-configuration`<br/>`--shared-config`<br/>`-sc` | `configuration.shared.cdn` | Replaces database oriented storage of shared configuration with manually linked JSON file with all defined properties |
 | `--hostname`<br/>`-h`| Value from [local configuration](#local-configuration) | Overrides hostname from local configuration |
 | `--port`<br/>`-p` | Value from [local configuration](#local-configuration) | Overrides port from local configuration |
+| `--database` | Value from [local configuration](#local-configuration) | Overrides database from local configuration |
 | `--token`<br/>`-t` | Empty | Create temporary token with the given credentials in `name:secret` format |
+| `--channel`<br/>`-c` | `info` | Sets channel of Reposilite updates. Supported channels: `fatal`, `error`, `warn`, `info`, `debug`, `trace` |
+| `--enable-migrations` | - | Runs set of optional migrations. Currently available migrations: <br/> 1. 001 Change `repository` identifier size from 32 to 64. This migration is required to support longer repository names |
 | `--test-env`<br/>`--debug`<br/>`-d` | - | Enables debug mode |
 
 #### Configuration modes
@@ -93,36 +97,46 @@ port: 8080
 database: sqlite reposilite.db
 
 # Support encrypted connections
-sslEnabled: false
+sslEnabled: true
 # SSL port to bind
 sslPort: 443
-# Key store file to use.
+# Key file to use.
 # You can specify absolute path to the given file or use ${WORKING_DIRECTORY} variable.
-keyStorePath: ${WORKING_DIRECTORY}/keystore.jks
-# Key store password to use
-keyStorePassword: reposilite
+# If you want to use .pem certificate you need to specify its path next to the key path.
+# Example .pem paths setup:
+# keyPath: ${WORKING_DIRECTORY}/cert.pem ${WORKING_DIRECTORY}/key.pem
+# Example .jks path setup:
+# keyPath: ${WORKING_DIRECTORY}/keystore.jks
+keyPath: ${WORKING_DIRECTORY}/cert.pem ${WORKING_DIRECTORY}/key.pem
+# Key password to use
+keyPassword: reposilite
 # Redirect http traffic to https
 enforceSsl: false
 
 # Max amount of threads used by core thread pool (min: 5)
 # The web thread pool handles first few steps of incoming http connections, as soon as possible all tasks are redirected to IO thread pool.
-webThreadPool: 32
+webThreadPool: 16
 # IO thread pool handles all tasks that may benefit from non-blocking IO (min: 2)
 # Because most of tasks are redirected to IO thread pool, it might be a good idea to keep it at least equal to web thread pool.
-ioThreadPool: 16
+ioThreadPool: 8
 # Database thread pool manages open connections to database (min: 1)
 # Embedded databases such as SQLite or H2 don't support truly concurrent connections, so the value will be always 1 for them if selected.
-databaseThreadPool: 2
+databaseThreadPool: 1
 # Select compression strategy used by this instance.
 # Using 'none' reduces usage of CPU & memory, but ends up with higher transfer usage.
 # GZIP is better option if you're not limiting resources that much to increase overall request times.
 # Available strategies: none, gzip
 compressionStrategy: none
+# Default idle timeout used by Jetty
+idleTimeout: 30000
 
-# Keep processed frontend files in memory to improve response time
-cacheContent: true
+# Adds cache bypass headers to each request from /api/* scope served by this instance.
+# Helps to avoid various random issues caused by proxy provides (e.g. Cloudflare) and browsers.
+bypassExternalCache: true
 # Amount of messages stored in cached logger.
-cachedLogSize: 100
+cachedLogSize: 50
+# Enable default frontend with dashboard
+defaultFrontend: true
 # Set custom base path for Reposilite instance.
 # It's not recommended to mount Reposilite under custom base path
 # and you should always prioritize subdomain over this option.
@@ -132,6 +146,13 @@ debugEnabled: false
 ```
 
 </Spoiler>
+
+You can also updated those properties using system properties or environment variables in following format:
+
+| Mode | Prefix | Example |
+| :--: | :--: | :--: |
+| System properties | `reposilite.local.` | `-Dreposilite.local.sslEnabled=true` |
+| Environment variables | `REPOSILITE_LOCAL_` | `REPOSILITE_LOCAL_SSLENABLED=true` |
 
 ## Shared configuration
 
@@ -164,65 +185,11 @@ Example output:
 
 ```json
 {
-  "web": {
-    "swagger": "false",
-    "forwardedIp": "X-Forwarded-For"
-  },
-  "repositories": {
-    "repositories": {
-      "releases": {
-        "visibility": "PUBLIC",
-        "redeployment": "false",
-        "preserved": "-1",
-        "storageProvider": {
-          "type": "fs",
-          "quota": "100%",
-          "mount": ""
-        },
-        "proxied": "[]"
-      },
-      "snapshots": {
-        "visibility": "PUBLIC",
-        "redeployment": "false",
-        "preserved": "-1",
-        "storageProvider": {
-          "type": "fs",
-          "quota": "100%",
-          "mount": ""
-        },
-        "proxied": "[]"
-      },
-      "private": {
-        "visibility": "PRIVATE",
-        "redeployment": "false",
-        "preserved": "-1",
-        "storageProvider": {
-          "type": "fs",
-          "quota": "100%",
-          "mount": ""
-        },
-        "proxied": "[]"
-      }
-    }
-  },
-  "frontend": {
-    "frontend": "true",
-    "basePath": "/",
-    "id": "reposilite-repository",
-    "title": "Reposilite Repository",
-    "description": "Public Maven repository hosted through the Reposilite",
-    "organizationWebsite": "https://reposilite.com",
-    "organizationLogo": "https://avatars.githubusercontent.com/u/88636591",
-    "icpLicense": ""
-  },
-  "statistics": {
-    "resolvedRequestsInterval": "MONTHLY"
-  },
   "authentication": {
     "ldap": {
-      "enabled": "false",
+      "enabled": false,
       "hostname": "ldap.domain.com",
-      "port": "389",
+      "port": 389,
       "baseDn": "dc=company,dc=com",
       "searchUserDn": "cn=reposilite,ou=admins,dc=domain,dc=com",
       "searchUserPassword": "reposilite-admin-secret",
@@ -230,6 +197,61 @@ Example output:
       "userFilter": "(&(objectClass=person)(ou=Maven Users))",
       "userType": "PERSISTENT"
     }
+  },
+  "statistics": {
+    "enabled": true,
+    "resolvedRequestsInterval": "MONTHLY"
+  },
+  "frontend": {
+    "id": "reposilite-repository",
+    "title": "Reposilite Repository",
+    "description": "Public Maven repository hosted through the Reposilite",
+    "organizationWebsite": "https://reposilite.com",
+    "organizationLogo": "https://avatars.githubusercontent.com/u/88636591",
+    "icpLicense": ""
+  },
+  "web": {
+    "forwardedIp": "X-Forwarded-For"
+  },
+  "maven": {
+    "repositories": [
+      {
+        "id": "releases",
+        "visibility": "PUBLIC",
+        "storageProvider": {
+          "type": "fs",
+          "quota": "100%",
+          "mount": ""
+        },
+        "redeployment": false,
+        "preserveSnapshots": false,
+        "proxied": []
+      },
+      {
+        "id": "snapshots",
+        "visibility": "PUBLIC",
+        "storageProvider": {
+          "type": "fs",
+          "quota": "100%",
+          "mount": ""
+        },
+        "redeployment": false,
+        "preserveSnapshots": false,
+        "proxied": []
+      },
+      {
+        "id": "private",
+        "visibility": "PRIVATE",
+        "storageProvider": {
+          "type": "fs",
+          "quota": "100%",
+          "mount": ""
+        },
+        "redeployment": false,
+        "preserveSnapshots": false,
+        "proxied": []
+      }
+    ]
   }
 }
 ```
