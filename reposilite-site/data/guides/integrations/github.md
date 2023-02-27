@@ -7,7 +7,7 @@ title: GitHub
 
 Before you can start working with [GitHub Actions](https://github.com/features/actions), 
 you have to add access token to your environment.
-You can do this in `Your repository -> Settings -> Security -> Actions`:
+You can do this in `Your repository -> Settings -> Security -> Secrets and variables -> Actions`:
 
 ![GitHub Actions :: Secret](/images/guides/github-actions-secrets.png)
 
@@ -39,8 +39,8 @@ jobs:
       - name: Publish with Gradle
         run: ./gradlew build publish
         env:
-          MAVEN_NAME: ${{ secrets.MAVEN_NAME }} # token
-          MAVEN_TOKEN: ${{ secrets.MAVEN_TOKEN }} # password
+          MAVEN_NAME: ${{ secrets.MAVEN_NAME }} # token name
+          MAVEN_SECRET: ${{ secrets.MAVEN_SECRET }} # token secret (password)
 ```
 
 You can find full list of available events in GitHub Actions documentation:
@@ -59,7 +59,7 @@ I can recommend [s4u/maven-settings-action](https://github.com/s4u/maven-setting
       [{
         "id": "reposilite-repository",
         "username": "${{ secrets.MAVEN_NAME }}",
-        "password": "${{ secrets.MAVEN_TOKEN }}"
+        "password": "${{ secrets.MAVEN_SECRET }}"
       }]
 ```
 
