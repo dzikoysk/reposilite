@@ -64,14 +64,14 @@ internal object LocalConfigurationFactory {
 
     /**
      * Get all environment variables that starts with REPOSILITE.LOCAL., example:
-     * REPOSILITE.LOCAL.SSLENABLED=false
+     * REPOSILITE_LOCAL_SSLENABLED=false
      */
     private fun getEnvironmentVariables(): Map<String, String> =
         System.getenv()
             .asSequence()
             .map { it.key.uppercase() to it.value }
-            .filter { (key) -> key.startsWith("REPOSILITE.LOCAL.") }
-            .associate { (key, value) -> key.substringAfter("REPOSILITE.LOCAL.") to value }
+            .filter { (key) -> key.startsWith("REPOSILITE_LOCAL_") }
+            .associate { (key, value) -> key.substringAfter("REPOSILITE_LOCAL_") to value }
 
     /**
      * Get all system properties that starts with reposilite.local., example:
