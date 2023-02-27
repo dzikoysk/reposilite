@@ -32,36 +32,35 @@ $ ./gradlew publish \
   </CodeVariant>
 </CodeVariants>
 
-Next, add the `publishing` and `signing` gradle plugins, as well as the maven repository:
+Next, add the `publishing` plugin, as well as the maven repository:
 
 <CodeVariants>
   <CodeVariant name="Gradle (Kts)">
 
 ```kotlin
 plugins {
-    signing
-    `maven-publish`
+  `maven-publish`
 }
 
 publishing {
-    repositories {
-        maven {
-            name = "myDomainRepository"
-            url = uri("https://repo.my-domain.com/releases")
-            credentials(PasswordCredentials::class)
-            authentication {
-                create<BasicAuthentication>("basic")
-            }
-        }
+  repositories {
+    maven {
+      name = "myDomainRepository"
+      url = uri("https://repo.my-domain.com/releases")
+      credentials(PasswordCredentials::class)
+      authentication {
+        create<BasicAuthentication>("basic")
+      }
     }
-    publications {
-        create<MavenPublication>("maven") {
-            groupId = "com.example"
-            artifactId = "library"
-            version = "1.0.0"
-            from(components["java"])
-        }
+  }
+  publications {
+    create<MavenPublication>("maven") {
+      groupId = "com.example"
+      artifactId = "library"
+      version = "1.0.0"
+      from(components["java"])
     }
+  }
 }
 ```
 
@@ -70,35 +69,35 @@ publishing {
 
 ```groovy
 plugins {
-  id 'signing'
   id 'maven-publish'
 }
+
 publishing {
-    repositories {
-        maven {
-            name = "myDomainRepository"
-            url = "https://repo.my-domain.com/releases"
-            credentials(PasswordCredentials)
-            authentication {
-                basic(BasicAuthentication)
-            }
-        }
+  repositories {
+    maven {
+      name = "myDomainRepository"
+      url = "https://repo.my-domain.com/releases"
+      credentials(PasswordCredentials)
+      authentication {
+        basic(BasicAuthentication)
+      }
     }
-    publications {
-        maven(MavenPublication) {
-            groupId = 'com.example'
-            artifactId = 'library'
-            version = '1.0.0'
-            from components.java
-        }
+  }
+  publications {
+    maven(MavenPublication) {
+      groupId = "com.example"
+      artifactId = "library"
+      version = "1.0.0"
+      from components.java
     }
+  }
 }
 ```
 
   </CodeVariant>
 </CodeVariants>
 
-To publish to several repositories, you have to declare it for all repositories _(which may or may not be the same)_:
+To publish to several repositories, you have to declare it for all repositories _(which may or may not be the same)_, e.g.:
 
 ```properties
 # Releases token & secret
@@ -117,20 +116,20 @@ And declare multiple target in build file:
 
 ```kotlin
 maven {
-    name = "myDomainRepositoryReleases"
-    url = uri("https://repo.my-domain.com/releases")
-    credentials(PasswordCredentials::class)
-    authentication {
-        create<BasicAuthentication>("basic")
-    }
+  name = "myDomainRepositoryReleases"
+  url = uri("https://repo.my-domain.com/releases")
+  credentials(PasswordCredentials::class)
+  authentication {
+    create<BasicAuthentication>("basic")
+  }
 }
 maven {
-    name = "myCoolRepositorySnapshots"
-    url = uri("https://repo.my-domain.com/snapshots")
-    credentials(PasswordCredentials::class)
-    authentication {
-        create<BasicAuthentication>("basic")
-    }
+  name = "myCoolRepositorySnapshots"
+  url = uri("https://repo.my-cool.com/snapshots")
+  credentials(PasswordCredentials::class)
+  authentication {
+    create<BasicAuthentication>("basic")
+  }
 }
 ```
 
@@ -139,20 +138,20 @@ maven {
 
 ```groovy
 maven {
-    name = "myDomainRepositoryReleases"
-    url = "https://repo.my-domain.com/releases"
-    credentials(PasswordCredentials)
-    authentication {
-        basic(BasicAuthentication)
-    }
+  name = "myDomainRepositoryReleases"
+  url = "https://repo.my-domain.com/releases"
+  credentials(PasswordCredentials)
+  authentication {
+    basic(BasicAuthentication)
+  }
 }
 maven {
-    name = "myCoolRepositorySnapshots"
-    url = uri("https://repo.my-domain.com/snapshots")
-    credentials(PasswordCredentials)
-    authentication {
-        basic(BasicAuthentication)
-    }
+  name = "myCoolRepositorySnapshots"
+  url = uri("https://repo.my-cool.com/snapshots")
+  credentials(PasswordCredentials)
+  authentication {
+    basic(BasicAuthentication)
+  }
 }
 ```
 
