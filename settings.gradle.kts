@@ -24,5 +24,6 @@ include(
     "reposilite-plugins:example-plugin",
     "reposilite-plugins:groovy-plugin",
     "reposilite-plugins:migration-plugin",
+    "reposilite-plugins:prometheus-plugin",
     "reposilite-plugins:swagger-plugin"
 )
