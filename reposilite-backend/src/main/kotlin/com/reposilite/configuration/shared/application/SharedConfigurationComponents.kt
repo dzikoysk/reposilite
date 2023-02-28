@@ -48,8 +48,8 @@ class SharedConfigurationComponents(
 
     private fun sharedSettingsProvider(): SharedSettingsProvider =
         extensions.getPlugins().values
-            .map { it.metadata.settings }
-            .filter { it != SharedSettings::class }
+            .map { it.metadata.settings.java }
+            .filter { it != SharedSettings::class.java }
             .let { SharedSettingsProvider.createStandardProvider(it) }
 
     private fun sharedConfigurationProvider(): SharedConfigurationProvider =

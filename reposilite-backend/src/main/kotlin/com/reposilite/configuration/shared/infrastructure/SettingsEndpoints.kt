@@ -120,7 +120,7 @@ internal class SettingsEndpoints(private val sharedConfigurationFacade: SharedCo
                 response = ctx.body()
                     .takeIf { it.isNotEmpty() }
                     ?.let { sharedConfigurationFacade.getSettingsReference<SharedSettings>(this)?.type }
-                    ?.let { sharedConfigurationFacade.updateSharedSettings(this, ctx.bodyAsClass(it.java)) }
+                    ?.let { sharedConfigurationFacade.updateSharedSettings(this, ctx.bodyAsClass(it)) }
                     ?.mapErr { badRequest(it.toString()) }
                     ?: badRequestError("Body is empty")
             }
