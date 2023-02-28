@@ -48,7 +48,7 @@ internal abstract class SharedConfigurationSpecification {
             failureFacade = FailureFacade(logger),
             configurationFacade = ConfigurationComponents().configurationFacade()
         ).sharedConfigurationFacade(
-            sharedSettingsProvider = SharedSettingsProvider(mapOf(TestSettings::class to mutableReference(TestSettings()))),
+            sharedSettingsProvider = SharedSettingsProvider(mapOf(TestSettings::class.java to mutableReference(TestSettings()))),
         )
     }
 
