@@ -19,7 +19,7 @@ package com.reposilite.web
 import com.reposilite.Reposilite
 import com.reposilite.configuration.local.LocalConfiguration
 import com.reposilite.web.api.HttpServerInitializationEvent
-import com.reposilite.web.api.HttpServerStarted
+import com.reposilite.web.api.HttpServerStartedEvent
 import com.reposilite.web.api.HttpServerStoppedEvent
 import com.reposilite.web.application.JavalinConfiguration
 import io.javalin.Javalin
@@ -54,7 +54,7 @@ class HttpServer {
 
         if (!servlet) {
             javalin!!.start(reposilite.parameters.hostname, reposilite.parameters.port)
-            extensionsManagement.emitEvent(HttpServerStarted)
+            extensionsManagement.emitEvent(HttpServerStartedEvent)
         }
     }
 
