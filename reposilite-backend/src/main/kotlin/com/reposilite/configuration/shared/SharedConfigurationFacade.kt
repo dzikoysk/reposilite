@@ -49,11 +49,11 @@ class SharedConfigurationFacade(
             registerSettingsWatcher(
                 DefaultSharedSettingsReference(
                     type = type,
-                    schema = knownSchemes[type.qualifiedName]
+                    schema = knownSchemes[type.name]
                         ?.let { Supplier { it.getContent() } }
                         ?: run {
                             journalist.logger.warn("[SharedConfigurationFacade] Cannot find scheme for $type, scheme has to be generated at runtime")
-                            val scheme = schemaGenerator.value.generateSchema(type.java).also { cleanupScheme(it) }.toPrettyString()
+                            val scheme = schemaGenerator.value.generateSchema(type).also { cleanupScheme(it) }.toPrettyString()
                             Supplier { scheme.byteInputStream() }
                         },
                     getter = { settings.get() },
@@ -82,7 +82,7 @@ class SharedConfigurationFacade(
             .orElseGet { emptyMap() }
             .map { (name, obj) ->
                 val ref = getSettingsReference<SharedSettings>(name)!!
-                val settings = DEFAULT_OBJECT_MAPPER.readValue(obj.toString(), ref.type.java)
+                val settings = DEFAULT_OBJECT_MAPPER.readValue(obj.toString(), ref.type)
                 ref to ref.update(settings)
             }
 
@@ -122,8 +122,11 @@ class SharedConfigurationFacade(
     inline fun <reified T : SharedSettings> getDomainSettings(): MutableReference<T> =
         getDomainSettings(T::class)
 
-    @Suppress("UNCHECKED_CAST")
     fun <S : SharedSettings> getDomainSettings(settingsClass: KClass<S>): MutableReference<S> =
+        getDomainSettings(settingsClass.java)
+
+    @Suppress("UNCHECKED_CAST")
+    fun <S : SharedSettings> getDomainSettings(settingsClass: Class<S>): MutableReference<S> =
         sharedSettingsProvider.domains[settingsClass] as MutableReference<S>
 
     @Suppress("UNCHECKED_CAST")
