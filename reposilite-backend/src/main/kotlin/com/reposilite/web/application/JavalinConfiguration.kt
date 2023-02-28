@@ -32,7 +32,7 @@ import com.reposilite.shared.extractFromHeader
 import com.reposilite.status.FailureFacade
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.web.api.HttpServerConfigurationEvent
-import com.reposilite.web.api.HttpServerStarted
+import com.reposilite.web.api.HttpServerStartedEvent
 import com.reposilite.web.api.RoutingSetupEvent
 import com.reposilite.web.infrastructure.CacheBypassHandler
 import com.reposilite.web.infrastructure.EndpointAccessLoggingHandler
@@ -66,7 +66,7 @@ internal object JavalinConfiguration {
         val webSettings = sharedConfigurationFacade.getDomainSettings<WebSettings>()
         val frontendSettings = sharedConfigurationFacade.getDomainSettings<FrontendSettings>()
 
-        reposilite.extensions.registerEvent { _: HttpServerStarted ->
+        reposilite.extensions.registerEvent { _: HttpServerStartedEvent ->
             server.connectors
                 .filterIsInstance<ServerConnector>()
                 .forEach { it.idleTimeout = localConfiguration.idleTimeout.get() }
