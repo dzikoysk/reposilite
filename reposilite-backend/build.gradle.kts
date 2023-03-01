@@ -69,7 +69,7 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-dao:$exposed")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposed")
     implementation("org.jetbrains.exposed:exposed-java-time:$exposed")
-    api("net.dzikoysk:exposed-upsert:1.0.3")
+    api("net.dzikoysk:exposed-upsert:1.1.0")
     implementation("com.zaxxer:HikariCP:5.0.1")
     // Drivers
     implementation("org.xerial:sqlite-jdbc:3.40.0.0")
