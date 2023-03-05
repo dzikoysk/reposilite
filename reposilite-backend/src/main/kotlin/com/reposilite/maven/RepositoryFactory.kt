@@ -43,7 +43,7 @@ internal class RepositoryFactory(
             visibility = configuration.visibility,
             redeployment = configuration.redeployment,
             preserveSnapshots = configuration.preserveSnapshots,
-            mirrorHosts = configuration.proxied.map { createMirroredHostConfiguration(it) },
+            mirrorHosts = configuration.proxied.mapNotNull { createMirroredHostConfiguration(it) },
             storageProvider = storageFacade.createStorageProvider(
                 failureFacade = failureFacade,
                 workingDirectory = workingDirectory.resolve(repositoriesDirectory),
@@ -52,10 +52,14 @@ internal class RepositoryFactory(
             ) ?: throw IllegalArgumentException("Unknown storage provider '${configuration.storageProvider.type}'")
         )
 
-    private fun createMirroredHostConfiguration(configurationSource: MirroredRepositorySettings): MirrorHost {
-        val name = configurationSource.reference
+    private fun createMirroredHostConfiguration(configurationSource: MirroredRepositorySettings): MirrorHost? {
+        val name = configurationSource.reference.trim()
 
         val host = when {
+            name.isEmpty() -> {
+                failureFacade.logger.warn("Empty reference value of mirrored repository found, skipping configuration entry.")
+                return null
+            }
             name.endsWith("/") -> name.substring(0, name.length - 1)
             else -> name
         }
