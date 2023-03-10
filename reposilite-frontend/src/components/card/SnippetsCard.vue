@@ -37,8 +37,8 @@ const props = defineProps({
 const title = ref('')
 const configurations = [
   { name: 'Maven', lang: 'xml' },
-  { name: 'Gradle Groovy', lang: 'groovy' },
   { name: 'Gradle Kotlin', lang: 'kotlin' },
+  { name: 'Gradle Groovy', lang: 'groovy' },
   { name: 'SBT', lang: 'scala' }
 ]
 const data = ref({})
