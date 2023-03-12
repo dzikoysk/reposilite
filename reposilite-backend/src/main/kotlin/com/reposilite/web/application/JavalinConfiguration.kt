@@ -49,6 +49,7 @@ import io.javalin.http.Header
 import io.javalin.json.JavalinJackson
 import io.javalin.openapi.plugin.OpenApiPlugin
 import io.javalin.openapi.plugin.OpenApiPluginConfiguration
+import io.javalin.plugin.bundled.SslRedirectPlugin
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.util.thread.ThreadPool
@@ -204,7 +205,12 @@ internal object JavalinConfiguration {
         }
 
         if (localConfiguration.enforceSsl.get()) {
-            config.plugins.enableSslRedirects()
+            config.plugins.register(
+                SslRedirectPlugin(
+                    redirectOnLocalhost = true,
+                    sslPort = localConfiguration.sslPort.get(),
+                )
+            )
         }
     }
 
