@@ -36,14 +36,15 @@ import com.reposilite.web.api.HttpServerStartedEvent
 import com.reposilite.web.api.RoutingSetupEvent
 import com.reposilite.web.infrastructure.CacheBypassHandler
 import com.reposilite.web.infrastructure.EndpointAccessLoggingHandler
-import io.javalin.community.routing.dsl.ConfigurationSupplier
+import io.javalin.community.routing.dsl.DslExceptionHandler
 import io.javalin.community.routing.dsl.DslRoute
 import io.javalin.community.routing.dsl.DslRoutingPlugin
-import io.javalin.community.routing.dsl.HandlerFactory
-import io.javalin.community.routing.dsl.RoutingConfiguration
-import io.javalin.community.routing.dsl.RoutingDsl
+import io.javalin.community.routing.dsl.RoutingDslConfiguration
+import io.javalin.community.routing.dsl.RoutingDslFactory
 import io.javalin.community.ssl.SSLPlugin
 import io.javalin.config.JavalinConfig
+import io.javalin.http.Context
+import io.javalin.http.ExceptionHandler
 import io.javalin.http.Handler
 import io.javalin.http.Header
 import io.javalin.json.JavalinJackson
@@ -104,16 +105,20 @@ internal object JavalinConfiguration {
     }
 
     private class ReposiliteDsl(
-        val routeFactory: (DslRoute<ContextDsl<*>, Unit>) -> Handler
-    ) : RoutingDsl<ReposiliteDsl.Configuration, DslRoute<ContextDsl<*>, Unit>, ContextDsl<*>, Unit> {
+        val routeFactory: (DslRoute<ContextDsl<*>, Unit>) -> Handler,
+        val exceptionRouteFactory: (DslExceptionHandler<ContextDsl<*>, Exception, Unit>) -> ExceptionHandler<Exception>
+    ) : RoutingDslFactory<ReposiliteDsl.Configuration, DslRoute<ContextDsl<*>, Unit>, ContextDsl<*>, Unit> {
 
-        open class Configuration : RoutingConfiguration<DslRoute<ContextDsl<*>, Unit>, ContextDsl<*>, Unit>()
+        open class Configuration : RoutingDslConfiguration<DslRoute<ContextDsl<*>, Unit>, ContextDsl<*>, Unit>()
 
-        override fun createConfigurationSupplier(): ConfigurationSupplier<ReposiliteDsl.Configuration, DslRoute<ContextDsl<*>, Unit>, ContextDsl<*>, Unit> =
-            ConfigurationSupplier { Configuration() }
+        override fun createConfiguration(): Configuration =
+            Configuration()
 
-        override fun createHandlerFactory(): HandlerFactory<DslRoute<ContextDsl<*>, Unit>> =
-            HandlerFactory { routeFactory.invoke(it) }
+        override fun createHandler(route: DslRoute<ContextDsl<*>, Unit>): Handler =
+            routeFactory.invoke(route)
+
+        override fun createExceptionHandler(handler: DslExceptionHandler<ContextDsl<*>, Exception, Unit>): ExceptionHandler<Exception> =
+            exceptionRouteFactory.invoke(handler)
 
     }
 
@@ -123,27 +128,44 @@ internal object JavalinConfiguration {
         val accessTokenFacade = extensionManager.facade<AccessTokenFacade>()
         val authenticationFacade = extensionManager.facade<AuthenticationFacade>()
 
+        fun Context.toDslContext(): ContextDsl<Any> =
+            ContextDsl(
+                logger = reposilite.logger,
+                ctx = this,
+                accessTokenFacade = accessTokenFacade,
+                authenticationResult = lazy {
+                    extractFromHeader(header(Header.AUTHORIZATION))
+                        .map { (name, secret) -> Credentials(name, secret) }
+                        .flatMap { authenticationFacade.authenticateByCredentials(it) }
+                }
+            )
+
+        fun ContextDsl<Any>.consumeResponse() {
+            response?.also { result ->
+                result.onError { reposilite.logger.debug("ERR RESULT | ${ctx.method()} ${ctx.uri()} errored with $it") }
+                ctx.response(result)
+            }
+        }
+
         val reposiliteDsl = ReposiliteDsl(
             routeFactory = { route ->
                 Handler { ctx ->
                     try {
-                        val dsl = ContextDsl<Any>(
-                            reposilite.logger,
-                            ctx,
-                            accessTokenFacade,
-                            lazy {
-                                extractFromHeader(ctx.header(Header.AUTHORIZATION))
-                                    .map { (name, secret) -> Credentials(name, secret) }
-                                    .flatMap { authenticationFacade.authenticateByCredentials(it) }
-                            }
-                        )
+                        val dsl = ctx.toDslContext()
                         route.handler(dsl)
-                        dsl.response?.also { result ->
-                            result.onError { reposilite.logger.debug("ERR RESULT | ${ctx.method()} ${ctx.uri()} errored with $it") }
-                            ctx.response(result)
-                        }
+                        dsl.consumeResponse()
                     } catch (throwable: Throwable) {
-                        throwable.printStackTrace()
+                        failureFacade.throwException(ctx.uri(), throwable)
+                    }
+                }
+            },
+            exceptionRouteFactory = { exceptionRoute ->
+                ExceptionHandler { exception, ctx ->
+                    try {
+                        val dsl = ctx.toDslContext()
+                        exceptionRoute.invoke(dsl, exception)
+                        dsl.consumeResponse()
+                    } catch (throwable: Throwable) {
                         failureFacade.throwException(ctx.uri(), throwable)
                     }
                 }
@@ -160,7 +182,7 @@ internal object JavalinConfiguration {
             .toSet()
             .let {
                 routingPlugin.routing {
-                    it.forEach { routes.add(it) }
+                    addRoutes(it)
                 }
             }
 

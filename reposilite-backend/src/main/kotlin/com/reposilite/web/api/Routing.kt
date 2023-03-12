@@ -20,10 +20,10 @@ import com.reposilite.shared.ContextDsl
 import com.reposilite.web.routing.RouteMethod
 import io.javalin.community.routing.Route
 import io.javalin.community.routing.dsl.DefaultDslRoute
+import io.javalin.community.routing.dsl.DslContainer
 import io.javalin.community.routing.dsl.DslRoute
-import io.javalin.community.routing.dsl.DslRoutes
 
-abstract class ReposiliteRoutes : DslRoutes<DslRoute<ContextDsl<*>, Unit>, ContextDsl<*>, Unit> {
+abstract class ReposiliteRoutes : DslContainer<DslRoute<ContextDsl<*>, Unit>, ContextDsl<*>, Unit> {
 
     abstract val routes: Set<ReposiliteRoute<*>>
 

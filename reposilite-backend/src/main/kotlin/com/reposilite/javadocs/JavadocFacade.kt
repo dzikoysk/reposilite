@@ -52,7 +52,7 @@ class JavadocFacade internal constructor(
     private val supportedExtensions = mapOf(
         "html" to ContentType.TEXT_HTML,
         "css" to ContentType.TEXT_CSS,
-        "js" to ContentType.APPLICATION_JS,
+        "js" to ContentType.TEXT_JS,
         "png" to ContentType.IMAGE_PNG,
     )
 
