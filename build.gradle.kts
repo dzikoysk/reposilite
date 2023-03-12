@@ -106,7 +106,7 @@ subprojects {
     dependencies {
         testImplementation("org.assertj:assertj-core:3.23.1")
 
-        val junit = "5.8.2"
+        val junit = "5.9.2"
         testImplementation("org.junit.jupiter:junit-jupiter-params:$junit")
         testImplementation("org.junit.jupiter:junit-jupiter-api:$junit")
         testImplementation("org.junit.jupiter:junit-jupiter-engine:$junit")
@@ -129,7 +129,7 @@ subprojects {
     tasks.withType<KotlinCompile>().configureEach {
         kotlinOptions {
             jvmTarget = "11"
-            languageVersion = "1.7"
+            languageVersion = "1.8"
             freeCompilerArgs = listOf("-Xjvm-default=all") // For generating default methods in interfaces
         }
     }

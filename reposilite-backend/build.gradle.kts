@@ -41,21 +41,22 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin")
     api("org.jetbrains:annotations:23.1.0")
 
-    api("io.javalin:javalin:5.3.2")
-    api("io.javalin.community.openapi:javalin-openapi-plugin:5.3.2")
-    kapt("io.javalin.community.openapi:openapi-annotation-processor:5.3.2")
-    api("io.javalin.community.routing:routing-dsl:5.3.2-alpha.4")
-    api("io.javalin.community.ssl:ssl-plugin:5.3.2")
+    val javalin = "5.4.2"
+    api("io.javalin:javalin:$javalin")
+    api("io.javalin.community.openapi:javalin-openapi-plugin:$javalin")
+    kapt("io.javalin.community.openapi:openapi-annotation-processor:$javalin")
+    api("io.javalin.community.routing:routing-dsl:$javalin-RC.1")
+    api("io.javalin.community.ssl:ssl-plugin:$javalin")
 
     val springSecurityCrypto = "5.7.3"
     implementation("org.springframework.security:spring-security-crypto:$springSecurityCrypto")
 
-    val expressible = "1.2.2"
+    val expressible = "1.3.1"
     api("org.panda-lang:expressible:$expressible")
     api("org.panda-lang:expressible-kt:$expressible")
     testImplementation("org.panda-lang:expressible-junit:$expressible")
 
-    val cdn = "1.14.3"
+    val cdn = "1.14.4"
     api("net.dzikoysk:cdn:$cdn")
     api("net.dzikoysk:cdn-kt:$cdn")
 
@@ -107,7 +108,7 @@ dependencies {
     implementation("com.reposilite:journalist-slf4j:$journalist")
     implementation("com.reposilite:journalist-tinylog:$journalist")
 
-    val tinylog = "2.5.0"
+    val tinylog = "2.6.1"
     implementation("org.tinylog:slf4j-tinylog:$tinylog")
     implementation("org.tinylog:tinylog-api:$tinylog")
     implementation("org.tinylog:tinylog-impl:$tinylog")
