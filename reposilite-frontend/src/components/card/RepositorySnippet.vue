@@ -41,11 +41,13 @@ defineProps({
 </pre>
 <pre v-else-if="configuration.lang === 'groovy'">
 maven <CodeBrackets start="{" end="}">
+    name <CodeString>{{ data.title }}</CodeString>
     url <CodeString>{{ data.domain }}</CodeString>
 </CodeBrackets>
 </pre>
 <pre v-else-if="configuration.lang === 'kotlin'">
 maven <CodeBrackets start="{" end="}">
+    name = <CodeString>{{ data.title }}</CodeString>
     url = uri<CodeBrackets start="(" end=")"><CodeString>{{ data.domain }}</CodeString></CodeBrackets>
 </CodeBrackets>
 </pre>
