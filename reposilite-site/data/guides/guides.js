@@ -59,7 +59,8 @@ const categories = [
       'apache',
       'cloudflare',
       'systemd',
-      'github'
+      'github',
+      'nixos'
     ]
   },
   {
