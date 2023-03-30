@@ -67,7 +67,8 @@ const categories = [
     directory: 'migration',
     content: [
       'reposilite-2.x',
-      'artifactory'
+      'artifactory',
+      'nexus-3'
     ]
   },
   {
