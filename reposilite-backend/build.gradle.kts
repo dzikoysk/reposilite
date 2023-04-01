@@ -39,7 +39,7 @@ dependencies {
     val kotlin = "1.8.10"
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin")
-    api("org.jetbrains:annotations:23.1.0")
+    api("org.jetbrains:annotations:24.0.1")
 
     val javalin = "5.4.2"
     api("io.javalin:javalin:$javalin")
