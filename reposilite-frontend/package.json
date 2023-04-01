@@ -39,7 +39,7 @@
     "vue3-tabs": "^0.1.13-beta.3"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue-jsx": "^3.0.0",
+    "@vitejs/plugin-vue-jsx": "^3.0.1",
     "@vitejs/plugin-vue": "^4.0.0",
     "@vue/compiler-sfc": "^3.2.47",
     "body-parser": "^1.20.2",
