@@ -90,7 +90,7 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jackson")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jackson")
-    implementation("com.github.victools:jsonschema-generator:4.28.0")
+    implementation("com.github.victools:jsonschema-generator:4.29.0")
 
     val httpClient = "1.43.0"
     implementation("com.google.http-client:google-http-client:$httpClient") { exclude(group = "commons-codec", module = "commons-codec")}
