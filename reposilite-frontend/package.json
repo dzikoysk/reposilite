@@ -31,7 +31,7 @@
     "pretty-bytes": "^6.1.0",
     "vue": "^3.2.47",
     "vue-axios": "^3.5.2",
-    "vue-final-modal": "^4.0.6",
+    "vue-final-modal": "^4.1.4",
     "vue-float-menu": "^1.9.1",
     "vue-router": "^4.1.6",
     "vue-upload-component": "^3.1.6",
