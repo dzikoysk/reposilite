@@ -40,6 +40,8 @@ import com.reposilite.web.api.RoutingSetupEvent
 import panda.std.reactive.Completable
 import panda.std.reactive.Reference.Dependencies.dependencies
 import panda.std.reactive.Reference.computed
+import java.nio.file.Files
+import java.nio.file.StandardOpenOption
 
 @Plugin(name = "status", dependencies = ["console", "failure", "local-configuration"])
 internal class StatusPlugin : ReposilitePlugin() {
@@ -84,6 +86,17 @@ internal class StatusPlugin : ReposilitePlugin() {
         event { _: ReposiliteStartedEvent ->
             logger.info("Done (${TimeUtils.getPrettyUptimeInSeconds(statusFacade.getUptime())})!")
             logger.info("")
+        }
+
+        event { _: ReposiliteStartedEvent ->
+            val localTmpDataDirectory = parameters().workingDirectory.resolve(".local")
+            Files.createDirectories(localTmpDataDirectory)
+
+            Files.writeString(
+                localTmpDataDirectory.resolve("reposilite.address"),
+                "${parameters().hostname}:${parameters().port}",
+                StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.SYNC
+            )
         }
 
         event { _: HttpServerStoppedEvent ->
