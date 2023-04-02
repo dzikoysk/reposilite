@@ -76,7 +76,7 @@ dependencies {
     implementation("org.xerial:sqlite-jdbc:3.40.0.0")
     implementation("mysql:mysql-connector-java:8.0.31")
     implementation("org.mariadb.jdbc:mariadb-java-client:3.0.8")
-    implementation("org.postgresql:postgresql:42.5.1")
+    implementation("org.postgresql:postgresql:42.6.0")
     implementation("com.h2database:h2:2.1.214")
 
     val ldap = "6.0.7"
