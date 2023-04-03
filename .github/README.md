@@ -50,6 +50,7 @@ This is simple, extensible and scalable self-hosted solution to replace managers
 </div>
 
 ### Installation
+
 To run Reposilite for your personal needs you should assign around 20MB of RAM and at least Java 11+ installed. <br>
 For huge public repositories you can adjust memory limit and even size of used thread pools in the configuration.
 
@@ -60,11 +61,6 @@ $ java -Xmx32M -jar reposilite-3.3.2.jar
 # Using the official Docker image
 $ docker pull dzikoysk/reposilite:3.3.2
 
-# Installing on Arch Linux
-$ git clone https://aur.archlinux.org/reposilite.git
-$ cd reposilite
-$ makepkg -si
-
 # Using the official Helm chart
 $ helm repo add reposilite https://helm.reposilite.com/
 $ helm repo update
@@ -72,9 +68,6 @@ $ helm install reposilite/reposilite
 ```
 
 Visit official guide to read more about extra parameters and configuration details.
-
-For more information on installing on Arch Linux, please check the
-[ArchWiki](https://wiki.archlinux.org/title/Reposilite).
 
 ### Publications
 
