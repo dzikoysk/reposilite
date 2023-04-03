@@ -16,6 +16,7 @@ const categories = [
       'standalone',
       'docker',
       'kubernetes',
+      'archlinux',
     ]
   },
   {

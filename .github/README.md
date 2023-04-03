@@ -83,6 +83,7 @@ Reposilite 2.x:
 * [Medium / Looking for simple repository manager by David Kihato](https://kihats.medium.com/custom-self-hosted-maven-repository-cbb778031f68)
 
 ### Supporters
+
 Thanks to all contributors and people that decided to support my work financially ❤️
 
 <table>
