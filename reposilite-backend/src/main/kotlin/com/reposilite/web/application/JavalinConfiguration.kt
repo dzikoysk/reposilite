@@ -96,6 +96,10 @@ internal object JavalinConfiguration {
         config.http.asyncTimeout = 1000L * 60 * 60 * 10 // 10min
         config.contextResolver.ip = { ctx -> ctx.header(webSettings.get().forwardedIp) ?: ctx.req().remoteAddr }
 
+        System.getProperty("javalin.maxRequestSize")?.let {
+            config.http.maxRequestSize = it.toLong()
+        }
+
         when (localConfiguration.compressionStrategy.get().lowercase()) {
             "none" -> config.compression.none()
             "gzip" -> config.compression.gzipOnly()
