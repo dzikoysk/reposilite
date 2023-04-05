@@ -36,7 +36,6 @@ import panda.std.Result
 import panda.std.Result.supplyThrowing
 import panda.std.asSuccess
 import panda.utilities.StringUtils
-import java.io.InputStream
 import java.nio.file.Files
 import java.nio.file.Path
 
@@ -54,6 +53,7 @@ class JavadocFacade internal constructor(
         "css" to ContentType.TEXT_CSS,
         "js" to ContentType.TEXT_JS,
         "png" to ContentType.IMAGE_PNG,
+        "svg" to ContentType.IMAGE_SVG,
     )
 
     private data class JavadocPlainFile(
