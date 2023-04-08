@@ -58,7 +58,10 @@ const setupConnection = () => {
     nextTick(() => scrollToEnd())
     //focusInput()
   }
-  onError.value = error => createToast(`${error || ''}`, { type: 'danger' })
+  onError.value = error => {
+    console.log(error)
+    createToast(`Console connection error - Make sure that WebSockets are enabled.`, { type: 'danger' })
+  }
   onClose.value = () => createToast('Connection with console has been lost', { type: 'danger' })
   createToast('Connecting to the remote console', { type: 'info', })
   const { token } = useSession()
