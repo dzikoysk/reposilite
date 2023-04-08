@@ -20,9 +20,11 @@ import com.reposilite.status.FailureFacade
 import com.reposilite.storage.StorageProviderFactory
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
+import software.amazon.awssdk.core.exception.SdkClientException
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.S3Configuration
+import software.amazon.awssdk.services.s3.model.S3Exception
 import java.net.URI
 import java.nio.file.Path
 
@@ -31,7 +33,9 @@ class S3StorageProviderFactory : StorageProviderFactory<S3StorageProvider, S3Sto
     override fun create(failureFacade: FailureFacade, workingDirectory: Path, repositoryName: String, settings: S3StorageProviderSettings): S3StorageProvider {
         val client = S3Client.builder()
 
-        if (System.getProperty("reposilite.s3.pathStyleAccessEnabled") == "true") {
+        val pathStyleAccessEnabled = System.getProperty("reposilite.s3.pathStyleAccessEnabled") == "true"
+
+        if (pathStyleAccessEnabled) {
             client.serviceConfiguration(
                 S3Configuration.builder()
                     .pathStyleAccessEnabled(true)
@@ -50,16 +54,35 @@ class S3StorageProviderFactory : StorageProviderFactory<S3StorageProvider, S3Sto
             )
         }
 
-        when {
-            settings.region.isNotEmpty() -> client.region(Region.of(settings.region))
-            else -> client.region(Region.of("reposilite"))
+        val region = when {
+            settings.region.isNotEmpty() -> Region.of(settings.region)
+            else -> Region.of("reposilite")
         }
 
-        if (settings.endpoint.isNotEmpty()) {
-            client.endpointOverride(URI.create(settings.endpoint))
-        }
+        client.region(region)
 
-        return S3StorageProvider(failureFacade, client.build(), settings.bucketName)
+        val customEndpoint = settings.endpoint
+            .takeIf { it.isNotEmpty() }
+            ?.let { URI.create(it) }
+            ?.also { client.endpointOverride(it) }
+
+        return try {
+            S3StorageProvider(
+                failureFacade = failureFacade,
+                s3 = client.build(),
+                bucket = settings.bucketName
+            )
+        } catch (exception: Exception) {
+            failureFacade.logger.error("Cannot connect to S3 storage provider: ${exception.message}")
+            failureFacade.logger.error("S3 storage provider configuration:")
+            failureFacade.logger.error("  - Bucket: ${settings.bucketName}")
+            failureFacade.logger.error("  - Region: ${region.id()} (isGlobalRegion: ${region.isGlobalRegion})")
+            failureFacade.logger.error("  - Custom endpoint: $customEndpoint")
+            failureFacade.logger.error("  - Path style access: $pathStyleAccessEnabled")
+            failureFacade.logger.error("  - Access key: ${settings.accessKey}")
+            failureFacade.logger.error("  - Secret key: ${settings.secretKey}")
+            throw IllegalStateException("Failed to initialize S3 storage provider", exception)
+        }
     }
 
     override val settingsType: Class<S3StorageProviderSettings> =
