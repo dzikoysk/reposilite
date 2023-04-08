@@ -50,6 +50,7 @@ This is simple, extensible and scalable self-hosted solution to replace managers
 </div>
 
 ### Installation
+
 To run Reposilite for your personal needs you should assign around 20MB of RAM and at least Java 11+ installed. <br>
 For huge public repositories you can adjust memory limit and even size of used thread pools in the configuration.
 
@@ -82,6 +83,7 @@ Reposilite 2.x:
 * [Medium / Looking for simple repository manager by David Kihato](https://kihats.medium.com/custom-self-hosted-maven-repository-cbb778031f68)
 
 ### Supporters
+
 Thanks to all contributors and people that decided to support my work financially ❤️
 
 <table>
