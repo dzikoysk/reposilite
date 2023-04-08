@@ -157,9 +157,6 @@ const formsConfiguration = {
 .error {
   @apply text-red-500 px-2 font-bold;
 }
-input, select {
-  @apply dark:bg-gray-900 dark:text-white !important;
-}
 .vertical-layout, .group-layout {
   @apply container mx-auto;
 }
@@ -216,13 +213,24 @@ input, select {
   margin-bottom: 1rem;
 }
 .array-list-item-wrapper {
-  @apply border rounded-md px-6 py-2 dark:border-gray-600;
 }
 .one-of-container {
   @apply h-full flex flex-col; 
 }
+.one-of-container .active, .tab-panel .array-list .tab-panel .array-list .active {
+  @apply bg-gray-125 dark:bg-gray-900;
+}
+.one-of-container .tab-panel, .tab-panel .array-list .tab-panel .array-list .tab-panel {
+  @apply bg-gray-125 dark: bg-gray-900;
+  border-radius: 0.25rem;
+  padding-left: 17px;
+}
+.tabs > div {
+  @apply rounded-t-lg;
+}
 .tab-panel {
   @apply h-full;
+  @apply border rounded-md px-6 py-2 dark:border-gray-600;
 }
 .array-list-add {
   @apply rounded-full h-6 w-6 leading-6 bg-blue-700 ml-auto text-white;
@@ -244,5 +252,17 @@ input, select {
 }
 .wrapper input {
   @apply w-1/2;
+}
+.wrapper input, .wrapper select {
+  @apply dark:bg-gray-800 dark:text-white !important;
+}
+.wrapper input:not([type=checkbox]):read-only {
+  @apply bg-gray-200 dark:bg-gray-800 text-gray-500 !important;
+}
+.array-list-legend {
+  margin-bottom: 0;
+}
+.description {
+  padding-bottom: 0;
 }
 </style>

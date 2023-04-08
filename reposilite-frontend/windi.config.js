@@ -32,6 +32,7 @@ export default defineConfig({
     extend: {
       colors: {
         gray: {
+          125: "#efefef",
           150: "#ececec",
           ...colors.neutral,
         },

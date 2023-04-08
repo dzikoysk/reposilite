@@ -14,6 +14,7 @@
     </legend>
     <div v-if="control?.description" class="description">
       {{ control.description }}
+      <!-- It is a list of items. You can add new entries by clicking the '+' button on the right. -->
     </div>
     <div>
        <Tabs v-model="selectedIndex">
@@ -125,9 +126,3 @@ export default {
   }
 }
 </script>
-
-<style>
-.array-list-legend {
-  margin-bottom: 0;
-}
-</style>
