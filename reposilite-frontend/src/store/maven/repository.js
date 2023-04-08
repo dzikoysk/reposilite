@@ -29,7 +29,7 @@ export default function useRepository() {
       location.host +
       basePath +
       (basePath.endsWith("/") ? "" : "/") +
-      (qualifier.path ? `${repository.value}` : "{repository}")
+      (qualifier.path ? `${repository.value}` : "<repository>")
 
     return { type: "repository", repoId, title, domain }
   }

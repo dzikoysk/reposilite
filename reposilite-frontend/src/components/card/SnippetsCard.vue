@@ -68,7 +68,7 @@ watchEffect(() => {
   const qualifier = props.qualifier.path
   const elements = qualifier.split('/')
 
-  if (elements.length == 1 && elements[0] == '') {
+  if (elements.length === 1 && elements[0] == '') {
     displayRepository()
     return
   }
