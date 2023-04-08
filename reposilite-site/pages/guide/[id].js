@@ -82,11 +82,16 @@ const GuideMenu = ({ categories }) => {
 }
 
 const GuideView = ({ category, selected }) => {
-  const { id, title, content } = selected
+  const { id, title, community, content } = selected
+  const isCommunityGuide = community === true
   const guideUrl = `/guide/${id}`
 
+  const [ communityBg, communityBgCss ] = useColorModeValue('community-bg', 'white', chakraColor('gray.700'))
+  const [ communityColor, communityColorCss] = useColorModeValue('community-color', 'black', 'white')
+  
   return (
     <Box>
+      <ColorModeStyles styles={[communityBgCss, communityColorCss]} />
       <Breadcrumb
         spacing="8px"
         separator={<ChevronRightIcon color="gray.500" />}
@@ -103,6 +108,24 @@ const GuideView = ({ category, selected }) => {
           <Link href={guideUrl}>{title}</Link>
         </Heading>
       </Box>
+      {isCommunityGuide && (
+        <Flex
+          backgroundColor={communityBg}
+          paddingX={7}
+          paddingY={5}
+          marginTop={5}
+          marginBottom={6}
+          borderRadius={'xl'}
+          border={'1px dashed'}
+          borderColor={'gray.400'}
+        >
+          <Text fontSize={'sm'}>
+            This is a <Text as="span" fontWeight='bold'>community</Text> guide.
+            It was written by Reposilite's community member and may not be up to date. 
+            It may also reference thrid-party services that are not affiliated with the Reposilite project.
+          </Text>
+        </Flex>
+      )}
       <MDXRemote maxWidth={"10vw"} components={MDX} {...content} />
       <Divider mt='16' mb='4' borderColor={'gray.600'} />
       <Box align="center" fontSize='sm'>

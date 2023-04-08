@@ -1,12 +1,13 @@
 ---
 id: archlinux
 title: Arch Linux
+community: true
 ---
 
-The reposilite AUR package can be found at the following sources:
-- [Github](https://github.com/reposilite-playground/reposilite-aur) -
-  releases, and official source of package
-- [AUR](https://aur.archlinux.org/packages/reposilite) - to pull
+The Reposilite AUR package can be found at the following sources:
+- [Github / Reposilite AUR](https://github.com/reposilite-playground/reposilite-aur) -
+  releases and official source of package.
+- [AUR / Reposilite Package](https://aur.archlinux.org/packages/reposilite) - to pull
   package using AUR helpers
 - [Polarian Onedev](https://onedev.polarian.dev/polarrepo/reposilite) -
   mainly for development purposes from arch linux contributors, all
@@ -71,13 +72,13 @@ packages, these are used to build Arch Linux Packages.
 
 `cd paru && makepkg -si`
 
-4. Install reposilite through Paru:
+4. Install Reposilite through Paru:
 
 `paru -Syu reposilite`
 
-This will clone, build and install reposilite automatically.
+This will clone, build and install Reposilite automatically.
 
-Every time you need to update reposilite, execute:
+Every time you need to update Reposilite, execute:
 
 `paru -Syu`
 
@@ -87,8 +88,8 @@ Every time you need to update reposilite, execute:
   1 to 3 once you have paru installed.
 
 **Pros:**
-- Easy to install AUR packages (not just reposilite)
-- Automaticaally updates reposilite just like `pacman` updates official
+- Easy to install AUR packages (not just Reposilite)
+- Automaticaally updates Reposilite just like `pacman` updates official
   packages.
 
 **Cons:**
@@ -123,7 +124,7 @@ package.
 ## From PolarRepo
 
 PolarRepo is an unofficial Arch Linux Repository. It is not verified by
-any Arch Linux staff, nor reposilite developers, use at your own risk.
+any Arch Linux staff, nor Reposilite developers, use at your own risk.
 
 To use PolarRepo, follow their [setup guide](https://onedev.polarian.dev/polarrepo#getting-started).
 

@@ -1,6 +1,7 @@
 ---
 id: nixos
 title: NixOS
+community: true
 ---
 
 You can install Reposilite on NixOS using the following configuration.

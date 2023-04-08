@@ -16,7 +16,20 @@ const categories = [
       'standalone',
       'docker',
       'kubernetes',
+    ]
+  },
+  {
+    name: 'Integrations',
+    directory: 'integrations',
+    content: [
+      'nginx',
+      'apache',
+      'caddy',
+      'systemd',
       'archlinux',
+      'nixos',
+      'cloudflare',
+      'github',
     ]
   },
   {
@@ -49,19 +62,6 @@ const categories = [
       'badges',
       'plugins',
       'ssl'
-    ]
-  },
-  {
-    name: 'Integrations',
-    directory: 'integrations',
-    content: [
-      'nginx',
-      'caddy',
-      'apache',
-      'cloudflare',
-      'systemd',
-      'github',
-      'nixos'
     ]
   },
   {

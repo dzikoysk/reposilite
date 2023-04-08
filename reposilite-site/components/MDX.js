@@ -173,7 +173,7 @@ const TableCell = (props) => {
 export default {
   a: (props) => <Link color={'purple.400'} {...props} />,
   p: (props) => <Box paddingY={'2'} {...props} />,
-  h1: (props) => <H as='h1' size={'xl'} {...props} />,
+  h1: (props) => <H as='h1' size={'xl'}  {...props} />,
   h2: (props) => <H as='h2' size={'lg'} {...props} />,
   h3: (props) => <H as='h3' size={'md'} {...props} />,
   h4: (props) => <H as='h4' size={'sm'} {...props} />,
@@ -186,7 +186,7 @@ export default {
   tr: TableRow,
   th: TableHeader,
   td: TableCell,
-  ul: (props) => <UnorderedList paddingY={2} {...props} />,
+  ul: (props) => <UnorderedList paddingY={1} {...props} />,
   ol: (props) => <OrderedList paddingY={2} {...props} />,
   li: (props) => <ListItem paddingY={0.5} {...props} />,
   img: (props) =>  <Image display={'inline-block'} {...props} marginBottom={-1} />,

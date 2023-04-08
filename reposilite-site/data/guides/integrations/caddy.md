@@ -13,24 +13,23 @@ First [download and install caddy](https://caddyserver.com/docs/install) and mod
 typically found in `/etc/caddy/Caddyfile`.
 
 ```json5
-
 (revproxy) {
-         #compress responses
-         encode zstd gzip
+    #compress responses
+    encode zstd gzip
 
-         #redirect from http to https
-         @http {
-                protocol http
-         }
-         redir @http https://{host}{uri}
+    #redirect from http to https
+    @http {
+        protocol http
+    }
+    redir @http https://{host}{uri}
 
-         reverse_proxy localhost:{args.0}
-         file_server
+    reverse_proxy localhost:{args.0}
+    file_server
 }
 
 domain.com {
-        root * /opt/reposilite/static
-        import revproxy 8080
+    root * /opt/reposilite/static
+    import revproxy 8080
 }
 ```
 
