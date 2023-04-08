@@ -21,7 +21,14 @@
           v-for="(element, index) in control.data"
           :key="`${control.path}-${index}-tab`"
           :val="index"
-          :label="element.id || element?.reference?.replace('https://', 'http://')?.replace('http://', '') || '<new>'"
+          :label="
+            element.id 
+              || element
+                ?.reference
+                ?.replace('https://', 'http://')
+                ?.replace('http://', '') 
+              || (typeof element == 'string' && element)
+              || '<new>'"
           :indicator="true"
           class="item"
         />
@@ -118,3 +125,9 @@ export default {
   }
 }
 </script>
+
+<style>
+.array-list-legend {
+  margin-bottom: 0;
+}
+</style>
