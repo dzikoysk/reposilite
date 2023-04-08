@@ -12,6 +12,9 @@
         {{ control.label }}
       </label>
     </legend>
+    <div v-if="control?.description" class="description">
+      {{ control.description }}
+    </div>
     <div>
        <Tabs v-model="selectedIndex">
         <Tab
