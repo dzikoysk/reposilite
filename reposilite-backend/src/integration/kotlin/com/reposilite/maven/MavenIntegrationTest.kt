@@ -19,6 +19,8 @@
 package com.reposilite.maven
 
 import com.reposilite.configuration.local.LocalConfiguration
+import com.reposilite.configuration.shared.SharedConfigurationFacade
+import com.reposilite.maven.application.MavenSettings
 import com.reposilite.maven.specification.MavenIntegrationSpecification
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.specification.LocalSpecificationJunitExtension
@@ -169,9 +171,9 @@ internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
     @Test
     fun `should proxy remote file`() = runBlocking {
         // given: a remote server and artifact
-        useProxiedHost("releases", "com/reposilite/remote.file", "content") { gav, content ->
+        useProxiedHost("releases", "com/reposilite/remote.jar", "content") { gav, content ->
             // when: non-existing file is requested
-            val notFoundResponse = get("$base/proxied/not/found.file").asString()
+            val notFoundResponse = get("$base/proxied/not/found.jar").asString()
 
             // then: service responds with 404 status page
             assertThat(notFoundResponse.isSuccess).isFalse
@@ -182,6 +184,17 @@ internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
             // then: service responds with its content
             assertThat(response.body).isEqualTo(content)
             assertThat(response.isSuccess).isTrue
+        }
+    }
+
+    @Test
+    fun `should not proxy file with forbidden extension`() = runBlocking {
+        // given: a remote server and artifact
+        useProxiedHost("releases", "com/reposilite/remote.file", "content") { gav, _ ->
+            // when: file that exists in remote repository is requested
+            val response = get("$base/proxied/$gav").asString()
+            // then: service responds with 404 status page as .file extension is not allowed
+            assertThat(response.isSuccess).isFalse
         }
     }
 

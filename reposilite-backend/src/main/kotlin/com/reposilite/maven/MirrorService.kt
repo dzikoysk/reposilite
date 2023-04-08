@@ -23,11 +23,13 @@ import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.notFoundError
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.Location
+import panda.std.Blank
 import panda.std.Result
+import panda.std.Result.error
 import panda.std.Result.ok
 import java.io.InputStream
 
-internal class ProxyService(private val journalist: Journalist) : Journalist {
+internal class MirrorService(private val journalist: Journalist) : Journalist {
 
     fun findRemoteDetails(repository: Repository, gav: Location): Result<out FileDetails, ErrorResponse> =
         searchInRemoteRepositories(repository, gav) { (host, config, client) ->
@@ -41,23 +43,47 @@ internal class ProxyService(private val journalist: Journalist) : Journalist {
                 .mapErr { error -> error.updateMessage { "$host: $it" } }
         }
 
-    private fun <V> searchInRemoteRepositories(repository: Repository, gav: Location, fetch: (MirrorHost) -> Result<V, ErrorResponse>): Result<V, ErrorResponse> =
-        repository.mirrorHosts.asSequence()
-            .filter { (_, config) -> isAllowed(config, gav) }
-            .map { fetch(it) }
-            .firstOrNull { it.isOk }
-            ?: notFoundError("Cannot find '$gav' in remote repositories")
-
-    private fun isAllowed(config: MirroredRepositorySettings, gav: Location): Boolean =
-        config.allowedGroups.isEmpty() ||
-            config.allowedGroups
-                .map { it.replace('.', '/') }
-                .any { gav.toString().startsWith(it) }
-
     private fun storeFile(repository: Repository, gav: Location, data: InputStream): Result<InputStream, ErrorResponse> =
         repository.storageProvider
             .putFile(gav, data)
             .flatMap { repository.storageProvider.getFile(gav) }
+
+    private fun <V> searchInRemoteRepositories(repository: Repository, gav: Location, fetch: (MirrorHost) -> Result<V, ErrorResponse>): Result<V, ErrorResponse> =
+        repository.mirrorHosts.asSequence()
+            .filter { (_, config) ->
+                isAllowed(config, gav).fold(
+                    { true },
+                    { reason ->
+                        logger.debug("MirrorService | Cannot request '$gav' from remote repository '$repository' (reason: illegal $reason)")
+                        false
+                    }
+                )
+            }
+            .map { fetch(it) }
+            .firstOrNull { it.isOk }
+            ?: notFoundError("Cannot find '$gav' in remote repositories")
+
+    private enum class DisallowedReason {
+        EXTENSION,
+        GROUP
+    }
+
+    private fun isAllowed(config: MirroredRepositorySettings, gav: Location): Result<Blank, DisallowedReason> =
+        isAllowedExtension(config, gav).flatMap { isAllowedGroup(config, gav) }
+
+    private fun isAllowedExtension(config: MirroredRepositorySettings, gav: Location): Result<Blank, DisallowedReason> =
+        when {
+            config.allowedExtensions.isEmpty() -> ok()
+            config.allowedExtensions.any { gav.endsWith(it) } -> ok()
+            else -> error(DisallowedReason.EXTENSION)
+        }
+
+    private fun isAllowedGroup(config: MirroredRepositorySettings, gav: Location): Result<Blank, DisallowedReason> =
+        when {
+            config.allowedGroups.isEmpty() -> ok()
+            config.allowedGroups.any { gav.toString().startsWith(it.replace('.', '/')) } -> ok()
+            else -> error(DisallowedReason.GROUP)
+        }
 
     override fun getLogger(): Logger =
         journalist.logger

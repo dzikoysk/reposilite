@@ -47,7 +47,7 @@ internal class MavenService(
     private val journalist: Journalist,
     private val repositoryService: RepositoryService,
     private val repositorySecurityProvider: RepositorySecurityProvider,
-    private val proxyService: ProxyService,
+    private val mirrorService: MirrorService,
     private val statisticsFacade: StatisticsFacade,
     private val extensions: Extensions,
 ) : Journalist {
@@ -116,7 +116,7 @@ internal class MavenService(
             repository.storageProvider.getFile(gav)
         } else {
             logger.debug("Cannot find $gav in ${repository.name} repository, requesting proxied repositories")
-            proxyService.findRemoteFile(repository, gav)
+            mirrorService.findRemoteFile(repository, gav)
         }
 
     private fun findDetails(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<out FileDetails, ErrorResponse> =
@@ -136,7 +136,7 @@ internal class MavenService(
             }
 
     private fun findProxiedDetails(repository: Repository, gav: Location): Result<out FileDetails, ErrorResponse> =
-        proxyService
+        mirrorService
             .findRemoteDetails(repository, gav)
             .mapErr { notFound("Cannot find $gav in local and remote repositories") }
 

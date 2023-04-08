@@ -22,7 +22,7 @@ import com.reposilite.maven.LatestService
 import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.MavenService
 import com.reposilite.maven.MetadataService
-import com.reposilite.maven.ProxyService
+import com.reposilite.maven.MirrorService
 import com.reposilite.maven.RepositoryProvider
 import com.reposilite.maven.RepositorySecurityProvider
 import com.reposilite.maven.RepositoryService
@@ -64,8 +64,8 @@ internal class MavenComponents(
     private fun repositoryService(securityProvider: RepositorySecurityProvider): RepositoryService =
         RepositoryService(journalist, repositoryProvider(), securityProvider)
 
-    private fun proxyService(): ProxyService =
-        ProxyService(journalist)
+    private fun proxyService(): MirrorService =
+        MirrorService(journalist)
 
     private fun metadataService(): MetadataService =
         MetadataService(securityProvider())
@@ -73,12 +73,12 @@ internal class MavenComponents(
     private fun latestService(): LatestService =
         LatestService(frontendSettings.computed { it.id })
 
-    private fun mavenService(repositoryService: RepositoryService, securityProvider: RepositorySecurityProvider, proxyService: ProxyService): MavenService =
+    private fun mavenService(repositoryService: RepositoryService, securityProvider: RepositorySecurityProvider, mirrorService: MirrorService): MavenService =
         MavenService(
             journalist = journalist,
             repositoryService = repositoryService,
             repositorySecurityProvider = securityProvider,
-            proxyService = proxyService,
+            mirrorService = mirrorService,
             statisticsFacade = statisticsFacade,
             extensions = extensions
         )
@@ -86,8 +86,8 @@ internal class MavenComponents(
     fun mavenFacade(
         securityProvider: RepositorySecurityProvider = securityProvider(),
         repositoryService: RepositoryService = repositoryService(securityProvider),
-        proxyService: ProxyService = proxyService(),
-        mavenService: MavenService = mavenService(repositoryService, securityProvider, proxyService),
+        mirrorService: MirrorService = proxyService(),
+        mavenService: MavenService = mavenService(repositoryService, securityProvider, mirrorService),
         metadataService: MetadataService = metadataService(),
         latestService: LatestService = latestService()
     ): MavenFacade =

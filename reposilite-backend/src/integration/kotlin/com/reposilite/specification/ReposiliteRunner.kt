@@ -72,9 +72,7 @@ internal abstract class ReposiliteRunner {
             throw IllegalStateException("Missing Reposilite extension on integration test")
         }
 
-        // disable log.txt to avoid conflicts with parallel testing
-        System.setProperty("tinylog.writerFile.level", "off")
-        val logger = PrintStreamLogger(PrintStream(Files.createTempFile("reposilite", "test-out").toFile()), System.err, Channel.ALL, false)
+        val logger = PrintStreamLogger(System.out, System.err, Channel.ALL, false)
         var launchResult: Result<Reposilite, Exception>
 
         do {
@@ -108,7 +106,11 @@ internal abstract class ReposiliteRunner {
         sharedConfigurationFacade.getDomainSettings<MavenSettings>().update { old ->
             val proxiedConfiguration = RepositorySettings(
                 id = "proxied",
-                proxied = mutableListOf(MirroredRepositorySettings("http://localhost:${parameters.port + 1}/releases"))
+                proxied = listOf(
+                    MirroredRepositorySettings(
+                        reference = "http://localhost:${parameters.port + 1}/releases"
+                    )
+                )
             )
 
             return@update old.copy(

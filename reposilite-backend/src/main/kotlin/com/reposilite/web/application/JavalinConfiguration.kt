@@ -47,6 +47,7 @@ import io.javalin.http.Context
 import io.javalin.http.ExceptionHandler
 import io.javalin.http.Handler
 import io.javalin.http.Header
+import io.javalin.http.HttpStatus
 import io.javalin.json.JavalinJackson
 import io.javalin.openapi.plugin.OpenApiPlugin
 import io.javalin.openapi.plugin.OpenApiPluginConfiguration
@@ -160,6 +161,7 @@ internal object JavalinConfiguration {
                         dsl.consumeResponse()
                     } catch (throwable: Throwable) {
                         failureFacade.throwException(ctx.uri(), throwable)
+                        ctx.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     }
                 }
             },
@@ -171,6 +173,7 @@ internal object JavalinConfiguration {
                         dsl.consumeResponse()
                     } catch (throwable: Throwable) {
                         failureFacade.throwException(ctx.uri(), throwable)
+                        ctx.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     }
                 }
             }

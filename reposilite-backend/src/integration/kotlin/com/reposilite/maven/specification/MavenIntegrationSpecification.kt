@@ -22,7 +22,12 @@ import kotlinx.coroutines.Job
 
 internal abstract class MavenIntegrationSpecification : ReposiliteSpecification() {
 
-    protected suspend fun useProxiedHost(repository: String, gav: String, content: String, block: (String, String) -> Unit) {
+    protected suspend fun useProxiedHost(
+        repository: String,
+        gav: String,
+        content: String,
+        block: (String, String) -> Unit
+    ) {
         val serverStartedJob = Job()
 
         val application = Javalin.create()
