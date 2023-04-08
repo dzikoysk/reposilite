@@ -18,8 +18,9 @@
 import XmlTag from './XmlTag.vue'
 import CodeString from './CodeString.vue'
 import CodeBrackets from "./CodeBrackets.vue"
+import {computed} from 'vue'
 
-defineProps({
+const props = defineProps({
   configuration: {
     type: Object,
     required: true
@@ -29,6 +30,16 @@ defineProps({
     required: true
   }
 })
+
+const gradleId = computed(() => {
+  const gradleIdUppercase = props.data.repoId
+      .split('-')
+      .map(it => it.charAt(0).toUpperCase() + it.slice(1))
+      .join('')
+
+  return gradleIdUppercase.charAt(0).toLowerCase() + gradleIdUppercase.slice(1)
+})
+
 </script>
 
 <template>
@@ -41,11 +52,13 @@ defineProps({
 </pre>
 <pre v-else-if="configuration.lang === 'groovy'">
 maven <CodeBrackets start="{" end="}">
+    name <CodeString>{{ gradleId }}</CodeString>
     url <CodeString>{{ data.domain }}</CodeString>
 </CodeBrackets>
 </pre>
 <pre v-else-if="configuration.lang === 'kotlin'">
 maven <CodeBrackets start="{" end="}">
+    name = <CodeString>{{ gradleId }}</CodeString>
     url = uri<CodeBrackets start="(" end=")"><CodeString>{{ data.domain }}</CodeString></CodeBrackets>
 </CodeBrackets>
 </pre>

@@ -41,6 +41,7 @@ export default defineConfig({
     minify: true,
     emptyOutDir: true,
     outDir: "build/frontend/reposilite-frontend",
+    chunkSizeWarningLimit: 550
   },
   css: {
     preprocessorOptions: {
