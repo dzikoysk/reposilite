@@ -29,6 +29,8 @@ import com.reposilite.maven.api.LatestVersionResponse
 import com.reposilite.maven.api.METADATA_FILE
 import com.reposilite.maven.api.Metadata
 import com.reposilite.maven.api.SaveMetadataRequest
+import com.reposilite.maven.api.FilterType.HAS
+import com.reposilite.maven.api.FilterType.NONE
 import com.reposilite.maven.api.VersionSequence
 import com.reposilite.maven.api.Versioning
 import com.reposilite.maven.api.VersionsResponse
@@ -42,7 +44,6 @@ import com.reposilite.storage.VersionComparator
 import com.reposilite.storage.api.Location
 import panda.std.Result
 import panda.std.Result.supplyThrowing
-import panda.std.letIf
 import panda.std.mapToUnit
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -135,11 +136,23 @@ internal class MetadataService(private val repositorySecurityProvider: Repositor
             .map { it.use { data -> xml.readValue<Metadata>(data) } }
             .map { extractVersions(it) }
             .map { (isSnapshot, versions) ->
+                val matchedFilter = when (filter) {
+                    null -> ({ true })
+                    else -> parseVersionFilter(filter)
+                }
+
                 versions
-                    .letIf(filter != null) { it.filter { version -> version.startsWith(filter!!) } }
+                    .filter(matchedFilter)
                     .let { VersionComparator.sortStrings(it) }
                     .let { VersionsResponse(isSnapshot, it.toList()) }
             }
+
+    private fun parseVersionFilter(filter: String): (String) -> Boolean =
+        when {
+            filter.startsWith(HAS.prefix) -> ({ it.contains(filter.substring(HAS.prefix.length)) })
+            filter.startsWith(NONE.prefix) -> ({ !it.contains(filter.substring(NONE.prefix.length)) })
+            else -> ({ it.startsWith(filter) })
+        }
 
     fun findLatestVersion(repository: Repository, gav: Location, filter: String?): Result<LatestVersionResponse, ErrorResponse> =
         findVersions(repository, gav, filter)

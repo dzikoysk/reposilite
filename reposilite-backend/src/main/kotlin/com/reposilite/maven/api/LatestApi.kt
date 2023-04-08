@@ -67,3 +67,8 @@ data class LatestBadgeRequest(
         )
 
 }
+
+enum class FilterType(val prefix: String) {
+    HAS("has:"),
+    NONE("none:")
+}
