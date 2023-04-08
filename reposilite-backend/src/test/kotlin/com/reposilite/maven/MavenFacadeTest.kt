@@ -214,7 +214,7 @@ internal class MavenFacadeTest : MavenSpecification() {
         @Test
         fun `should find allowed artifact in remote repository` () {
             // given: an artifact that is  both available and allowed
-            val file = FileSpec("PROXIED", "/do/allow", REMOTE_CONTENT)
+            val file = FileSpec("PROXIED", "/do/allow.jar", REMOTE_CONTENT)
 
             // when: the file is requested
             val response = mavenFacade.findFile(file.toLookupRequest(UNAUTHORIZED))

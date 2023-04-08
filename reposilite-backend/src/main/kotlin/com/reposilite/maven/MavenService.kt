@@ -112,10 +112,10 @@ internal class MavenService(
 
     private fun findInputStream(repository: Repository, gav: Location): Result<InputStream, ErrorResponse> =
         if (repository.storageProvider.exists(gav)) {
-            logger.debug("Gav $gav found in ${repository.name} repository")
+            logger.debug("Gav '$gav' found in '${repository.name}' repository")
             repository.storageProvider.getFile(gav)
         } else {
-            logger.debug("Cannot find $gav in ${repository.name} repository, requesting proxied repositories")
+            logger.debug("Cannot find '$gav' in '${repository.name}' repository, requesting proxied repositories")
             mirrorService.findRemoteFile(repository, gav)
         }
 
@@ -138,7 +138,7 @@ internal class MavenService(
     private fun findProxiedDetails(repository: Repository, gav: Location): Result<out FileDetails, ErrorResponse> =
         mirrorService
             .findRemoteDetails(repository, gav)
-            .mapErr { notFound("Cannot find $gav in local and remote repositories") }
+            .mapErr { notFound("Cannot find '$gav' in local and remote repositories") }
 
     private fun recordResolvedRequest(identifier: Identifier, fileDetails: FileDetails) {
         if (fileDetails is DocumentInfo && ignoredExtensions.none { extension -> fileDetails.name.endsWith(extension) }) {
