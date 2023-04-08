@@ -234,7 +234,7 @@ val biFunction: (Int, Int) -> Int = { a, b -> a + b }
 
 ```java
 Runnable runnable = () -> out.println("Reposilite");
-Consumer<String> consumer = value -> out.println(values);
+Consumer<String> consumer = value -> out.println(value);
 Function<Integer, String> function = value -> Integer.toString(value);
 BiFunction<Integer, Integer, String> biFunction = (a, b) -> a + b;
 ```
