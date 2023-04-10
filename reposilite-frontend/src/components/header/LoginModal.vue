@@ -44,10 +44,10 @@ export default {
 
 <template>
   <div id="login-modal">
-    <vue-final-modal
+    <VueFinalModal
       v-model="showLogin"
       v-bind="$attrs"
-      classes="flex justify-center items-center"
+      class="flex justify-center items-center"
     >
       <div class="relative border bg-white dark:bg-gray-900 border-gray-100 dark:border-black m-w-20 py-5 px-10 rounded-2xl shadow-xl text-center">
         <p class="font-bold text-xl pb-4">Login with access token</p>
@@ -63,7 +63,7 @@ export default {
           <CloseIcon />
         </button>
       </div>
-    </vue-final-modal>
+    </VueFinalModal>
     <div @click="showLogin = true">
       <slot name="button"></slot>
     </div>

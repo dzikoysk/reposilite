@@ -60,7 +60,7 @@ export default {
       v-if="isOpen"
       v-model="isOpen"
       v-bind="$attrs"
-      classes="flex justify-center iems-center"
+      class="flex justify-center iems-center"
     >
       <div class="relative border bg-white dark:bg-gray-900 border-gray-100 dark:border-black m-w-20 py-5 px-10 rounded-2xl shadow-xl text-center">
         <div>
