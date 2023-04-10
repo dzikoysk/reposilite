@@ -99,11 +99,11 @@ Thanks to all contributors and people that decided to support my work financiall
     <a href="https://github.com/Koressi">Koressi</a>,
     <a href="https://github.com/neg4n">neg4n</a>, 
     <a href="https://github.com/tipsy">tipsy</a>, 
-    <a href="https://github.com/Kamilkime">Kamilkime</a>
+    <a href="https://github.com/Kamilkime">Kamilkime</a>,
     <a href="https://github.com/that-apex">that-apex</a>,
     <a href="https://github.com/mattwelke">mattwelke</a>,
-    <a href="https://github.com/crejk">crejk</a>.
-    <a href="https://github.com/Rollczi">Rollczi</a>,
+    <a href="https://github.com/crejk">crejk</a>,
+    <a href="https://github.com/Rollczi">Rollczi</a>
   </td>
  </tr>
  <tr>
@@ -115,7 +115,7 @@ Thanks to all contributors and people that decided to support my work financiall
    <a href="https://github.com/milkyway0308">milkyway0308</a>,
    <a href="https://github.com/tipsy">tipsy</a>, 
    <a href="https://github.com/insertt">bmstefanski</a>, 
-   <a href="https://github.com/rdehuyss">rdehuyss</a>
+   <a href="https://github.com/rdehuyss">rdehuyss</a>,
    <a href="https://github.com/andrm">andrm</a>,
    <a href="https://github.com/neg4n">neg4n</a>,
    <a href="https://github.com/maxant">maxant</a>,
@@ -139,7 +139,7 @@ Thanks to all contributors and people that decided to support my work financiall
    <a href="https://github.com/asikkema">asikkema</a>,
    <a href="https://github.com/Rollczi">Rollczi</a>,
    <a href="https://github.com/Szczurowsky">Szczurowsky</a>,
-   <a href="https://github.com/that-apex">that-apex</a>,
+   <a href="https://github.com/that-apex">that-apex</a>
   </td>
  </tr>
 </table>
