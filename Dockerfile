@@ -30,14 +30,13 @@ FROM openjdk:19-slim
 RUN mkdir -p /app/data && mkdir -p /var/log/reposilite
 VOLUME /app/data
 WORKDIR /app
-EXPOSE 8080
 COPY --from=build /home/reposilite-build/reposilite-backend/build/libs/reposilite-3*.jar reposilite.jar
 COPY --from=build /home/reposilite-build/entrypoint.sh entrypoint.sh
 RUN apt-get update && apt-get -y install util-linux curl
 HEALTHCHECK --interval=30s --timeout=30s --start-period=15s \
-    --retries=3 CMD [ "sh", "-c", "echo -n 'curl localhost:8080... '; \
+    --retries=3 CMD [ "sh", "-c", "URL=$(cat /app/data/.local/reposilite.address); echo -n \"curl $URL... \"; \
     (\
-        curl -sf localhost:8080 > /dev/null\
+        curl -sf $URL > /dev/null\
     ) && echo OK || (\
         echo Fail && exit 2\
     )"]
