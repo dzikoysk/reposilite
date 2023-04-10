@@ -88,13 +88,13 @@ const selectHomepage = () =>
           <TabPanel :val="'Overview'">
             <FileBrowserView v-if="selectedTab == 'Overview'" :qualifier="qualifier" ref=""/>
           </TabPanel>
-          <TabPanel :val="'Dashboard'" v-if="isManager">
+          <TabPanel :val="'Dashboard'" v-show="isManager">
             <DashboardView v-if="selectedTab == 'Dashboard'" :selectedTab="selectedTab" />
           </TabPanel>
-          <TabPanel :val="'Console'" v-if="isManager">
+          <TabPanel :val="'Console'" v-show="isManager">
             <ConsoleView v-if="selectedTab == 'Console'" :selectedTab="selectedTab" />
           </TabPanel>
-           <TabPanel :val="'Settings'" v-if="isManager">
+           <TabPanel :val="'Settings'" v-show="isManager">
             <SettingsView v-if="selectedTab == 'Settings'" :selectedTab="selectedTab" />
           </TabPanel>
         </TabPanels>

@@ -53,7 +53,7 @@ const isLogged = computed(() => details.value !== undefined)
 const isManager = computed(() => {
   return details.value
     ?.permissions
-    ?.find(entry => entry.identifier === 'access-token:manager') == true
+    ?.some(entry => entry.identifier === 'access-token:manager') == true
 })
 
 const hasPermissionTo = (path, permission) => {
