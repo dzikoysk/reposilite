@@ -21,47 +21,48 @@ const token = ref({
   name: localStorage.getItem('token-name') || '',
   secret: localStorage.getItem('token-secret') || '',
 })
-
-const details = ref()
+const setToken = (name, secret) => {
+  token.value = { name, secret }
+}
 
 watchEffect(() => {
   localStorage.setItem('token-name', token.value.name)
   localStorage.setItem('token-secret', token.value.secret)
 })
 
-const setToken = (name, secret) =>
-  token.value = { name, secret }
+const details = ref()
 
 const logout = () => {
-  details.value = undefined
   setToken('', '')
+  details.value = undefined
 }
 
 const login = (name, secret) =>
   createClient(name, secret)
-    .auth.me()
+    .auth
+    .me()
     .then(response => {
       setToken(name, secret)
       details.value = response.data
     })
 
-const initializeSession = () =>
-  login(token.value.name, token.value.secret)
-
 const client = computed(() => createClient(token.value.name, token.value.secret))
+const initializeSession = () => login(token.value.name, token.value.secret)
 const isLogged = computed(() => details.value !== undefined)
-const isManager = computed(() => details.value?.permissions?.find(entry => entry.identifier === 'access-token:manager'))
+
+const isManager = computed(() => {
+  return details.value
+    ?.permissions
+    ?.find(entry => entry.identifier === 'access-token:manager') == true
+})
 
 const hasPermissionTo = (path, permission) => {
   if (isManager.value) {
     return true
   }
-
-  if (details.value == null) {
-    return
-  }
-
-  return details.value.routes.find(route => path.startsWith(route.path) && route.permission.identifier == permission)
+  return details.value
+    ?.routes
+    ?.find(route => path.startsWith(route.path) && route.permission.identifier == permission) == true
 }
 
 export function useSession() {
