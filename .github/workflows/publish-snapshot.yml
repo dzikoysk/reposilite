@@ -5,7 +5,7 @@ on:
     branches: [ "main" ]
 
 env:
-  JAVA_VERSION: 18
+  JAVA_VERSION: 19
 
 jobs:
   maven:

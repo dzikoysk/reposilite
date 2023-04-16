@@ -50,7 +50,7 @@ class ChecksumPlugin : ReposilitePlugin() {
                 return@event
             }
 
-            if (repository.exists(checksumGav)) {
+            if (repository.storageProvider.exists(checksumGav)) {
                 logger.debug("Checksum | $checksumGav already exists")
                 return@event // checksum already exists
             }
@@ -78,7 +78,7 @@ class ChecksumPlugin : ReposilitePlugin() {
                 }
             }
 
-            repository.putFile(checksumGav, generatedChecksum.inputStream())
+            repository.storageProvider.putFile(checksumGav, generatedChecksum.inputStream())
                 .peek { logger.debug("Checksum | Generated checksum ${checksum.name} for $file") }
                 .onError { logger.debug("Checksum | Cannot generate checksum ${checksum.name} for $file due to $it") }
         }

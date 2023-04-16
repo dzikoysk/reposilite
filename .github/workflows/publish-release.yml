@@ -3,7 +3,7 @@ name: "Publish releases"
 on: workflow_dispatch
 
 env:
-  JAVA_VERSION: 18
+  JAVA_VERSION: 19
 
 jobs:
   github:
