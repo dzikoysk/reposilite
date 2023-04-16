@@ -181,6 +181,10 @@ tasks.compileKotlin {
     dependsOn("generateKotlin")
 }
 
+tasks.sourcesJar {
+    dependsOn("generateKotlin")
+}
+
 kotlin.sourceSets.main {
     kotlin.srcDir("$projectDir/src/generated/kotlin")
 }
@@ -197,7 +201,7 @@ jacoco {
 
 tasks.test {
     extensions.configure(JacocoTaskExtension::class) {
-        setDestinationFile(file("$buildDir/jacoco/jacoco.exec"))
+        destinationFile = file("$buildDir/jacoco/jacoco.exec")
     }
 
     finalizedBy("jacocoTestReport")
