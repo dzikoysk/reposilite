@@ -52,6 +52,7 @@ class JavadocFacade internal constructor(
         "html" to ContentType.TEXT_HTML,
         "css" to ContentType.TEXT_CSS,
         "js" to ContentType.TEXT_JS,
+        "json" to ContentType.TEXT_JS,
         "png" to ContentType.IMAGE_PNG,
         "svg" to ContentType.IMAGE_SVG,
     )
