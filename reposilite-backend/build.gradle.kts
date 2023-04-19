@@ -25,7 +25,7 @@ plugins {
     kotlin("kapt")
     id("com.coditory.integration-test") version "1.4.4"
     id("com.github.johnrengelman.shadow") version "8.1.1"
-    id("io.gitlab.arturbosch.detekt").version("1.21.0")
+    id("io.gitlab.arturbosch.detekt").version("1.22.0")
 }
 
 application {
@@ -34,7 +34,9 @@ application {
 
 dependencies {
     implementation(project(":reposilite-frontend"))
-    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.22.0")
+
+    val detekt = "1.22.0"
+    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:$detekt")
 
     val kotlin = "1.8.20"
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin")
@@ -59,37 +61,38 @@ dependencies {
     api("net.dzikoysk:cdn:$cdn")
     api("net.dzikoysk:cdn-kt:$cdn")
 
-    val awssdk = "2.20.14"
-    implementation(platform("software.amazon.awssdk:bom:$awssdk"))
-    implementation("software.amazon.awssdk:s3:$awssdk")
-    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.397")
-
-    val exposed = "0.41.1"
-    implementation("org.jetbrains.exposed:exposed-core:$exposed")
-    implementation("org.jetbrains.exposed:exposed-dao:$exposed")
-    implementation("org.jetbrains.exposed:exposed-jdbc:$exposed")
-    implementation("org.jetbrains.exposed:exposed-java-time:$exposed")
-    api("net.dzikoysk:exposed-upsert:1.1.0")
-    implementation("com.zaxxer:HikariCP:5.0.1")
-    // Drivers
-    implementation("org.xerial:sqlite-jdbc:3.40.0.0")
-    implementation("mysql:mysql-connector-java:8.0.31")
-    implementation("org.mariadb.jdbc:mariadb-java-client:3.0.8")
-    implementation("org.postgresql:postgresql:42.6.0")
-    implementation("com.h2database:h2:2.1.214")
-
-    val ldap = "6.0.7"
-    testImplementation("com.unboundid:unboundid-ldapsdk:$ldap")
-
     val picocli = "4.7.1"
     kapt("info.picocli:picocli-codegen:$picocli")
     api("info.picocli:picocli:$picocli")
+
+    val awssdk = "2.20.14"
+    implementation(platform("software.amazon.awssdk:bom:$awssdk"))
+    implementation("software.amazon.awssdk:s3:$awssdk")
+    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.429")
+
+    val exposed = "0.41.1"
+    api("org.jetbrains.exposed:exposed-core:$exposed")
+    api("org.jetbrains.exposed:exposed-dao:$exposed")
+    api("org.jetbrains.exposed:exposed-jdbc:$exposed")
+    api("org.jetbrains.exposed:exposed-java-time:$exposed")
+    // Drivers
+    implementation("com.zaxxer:HikariCP:5.0.1")
+    implementation("org.xerial:sqlite-jdbc:3.40.1.0")
+    implementation("mysql:mysql-connector-java:8.0.32")
+    implementation("org.mariadb.jdbc:mariadb-java-client:3.1.2")
+    implementation("org.postgresql:postgresql:42.6.0")
+    implementation("com.h2database:h2:2.1.214")
+
+    val exposedUpsert = "1.1.0"
+    api("net.dzikoysk:exposed-upsert:$exposedUpsert")
 
     val jackson = "2.14.2"
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jackson")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jackson")
-    implementation("com.github.victools:jsonschema-generator:4.29.0")
+
+    val jsonSchema = "4.29.0"
+    implementation("com.github.victools:jsonschema-generator:$jsonSchema")
 
     val httpClient = "1.43.1"
     implementation("com.google.http-client:google-http-client:$httpClient") { exclude(group = "commons-codec", module = "commons-codec")}
@@ -111,16 +114,15 @@ dependencies {
     implementation("org.tinylog:tinylog-api:$tinylog")
     implementation("org.tinylog:tinylog-impl:$tinylog")
 
-    val unirest = "3.14.1"
-    testImplementation("com.konghq:unirest-java:$unirest")
-    testImplementation("com.konghq:unirest-objectmapper-jackson:$unirest")
-
     val testcontainers = "1.17.6"
     testImplementation("org.testcontainers:postgresql:$testcontainers")
     testImplementation("org.testcontainers:mariadb:$testcontainers")
     testImplementation("org.testcontainers:testcontainers:$testcontainers")
     testImplementation("org.testcontainers:junit-jupiter:$testcontainers")
     testImplementation("org.testcontainers:localstack:$testcontainers")
+
+    val ldap = "6.0.7"
+    testImplementation("com.unboundid:unboundid-ldapsdk:$ldap")
 }
 
 tasks.withType<ShadowJar> {

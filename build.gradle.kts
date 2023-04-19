@@ -104,7 +104,12 @@ subprojects {
     group = "com.reposilite"
 
     dependencies {
-        testImplementation("org.assertj:assertj-core:3.23.1")
+        val unirest = "3.14.1"
+        testImplementation("com.konghq:unirest-java:$unirest")
+        testImplementation("com.konghq:unirest-objectmapper-jackson:$unirest")
+
+        val assertJ = "3.24.2"
+        testImplementation("org.assertj:assertj-core:$assertJ")
 
         val junit = "5.9.2"
         testImplementation("org.junit.jupiter:junit-jupiter-params:$junit")
