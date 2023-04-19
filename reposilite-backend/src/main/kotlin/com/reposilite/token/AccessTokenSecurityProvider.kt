@@ -16,13 +16,15 @@
 
 package com.reposilite.token
 
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
+import at.favre.lib.crypto.bcrypt.BCrypt
 import java.security.SecureRandom
-import java.util.*
+import java.util.Base64
 
 object AccessTokenSecurityProvider {
 
-    private val B_CRYPT_TOKENS_ENCODER = BCryptPasswordEncoder()
+    private const val bcryptStrength = 10
+    private val bcryptHasher = BCrypt.with(BCrypt.Version.VERSION_2A)
+    private val bcryptVerifier = BCrypt.verifyer(BCrypt.Version.VERSION_2A)
 
     fun generateSecret(): String {
         val secret = ByteArray(48)
@@ -31,9 +33,9 @@ object AccessTokenSecurityProvider {
     }
 
     fun encodeSecret(secret: String): String =
-        B_CRYPT_TOKENS_ENCODER.encode(secret)
+        bcryptHasher.hashToString(bcryptStrength, secret.toCharArray())
 
     fun matches(encryptedSecret: String, rawSecret: String): Boolean =
-        B_CRYPT_TOKENS_ENCODER.matches(rawSecret, encryptedSecret)
+        bcryptVerifier.verify(rawSecret.toCharArray(), encryptedSecret.toCharArray()).verified
 
 }

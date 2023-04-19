@@ -47,8 +47,8 @@ dependencies {
     api("io.javalin.community.routing:routing-dsl:$javalin-RC.1")
     api("io.javalin.community.ssl:ssl-plugin:$javalin")
 
-    val springSecurityCrypto = "5.7.3"
-    implementation("org.springframework.security:spring-security-crypto:$springSecurityCrypto")
+    val bcrypt = "0.10.2"
+    implementation("at.favre.lib:bcrypt:$bcrypt")
 
     val expressible = "1.3.1"
     api("org.panda-lang:expressible:$expressible")
