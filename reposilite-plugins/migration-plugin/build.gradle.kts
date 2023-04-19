@@ -37,6 +37,6 @@ dependencies {
 
 tasks.withType<ShadowJar> {
     archiveFileName.set("migration-plugin.jar")
-    destinationDirectory.set(file("$rootDir/reposilite-backend/src/test/workspace/plugins"))
+    destinationDirectory.set(file("$rootDir/reposilite-test/workspace/plugins"))
     mergeServiceFiles()
 }
