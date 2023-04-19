@@ -98,7 +98,6 @@ dependencies {
 
     val commonsCoded = "1.15"
     api("commons-codec:commons-codec:$commonsCoded")
-    implementation("org.apache.commons:commons-text:1.10.0")
 
     val jansi = "2.4.0"
     implementation("org.fusesource.jansi:jansi:$jansi")
