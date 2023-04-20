@@ -73,4 +73,4 @@ user@host ~/workspace: java -jar reposilite.jar
 +--reposilite.db      Data file containing stats and tokens (only if embedded database enabled)
 ```
 
-To separate data files and configuration from application, use [parameters](configuration#parameters).
+To separate data files and configuration from application, use [parameters](settings#parameters).
