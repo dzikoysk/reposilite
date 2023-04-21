@@ -16,9 +16,6 @@
 
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
-repositories {
-    mavenCentral()
-}
 plugins {
     id("com.github.johnrengelman.shadow") version "8.1.1"
     kotlin("jvm")
