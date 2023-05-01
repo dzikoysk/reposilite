@@ -65,7 +65,7 @@ dependencies {
     kapt("info.picocli:picocli-codegen:$picocli")
     api("info.picocli:picocli:$picocli")
 
-    val awssdk = "2.20.14"
+    val awssdk = "2.20.56"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
     testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.429")
