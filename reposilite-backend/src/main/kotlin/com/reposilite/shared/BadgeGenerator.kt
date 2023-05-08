@@ -70,7 +70,7 @@ object BadgeGenerator {
                     </clipPath>
                     <g clip-path="url(#r)">
                         <rect width="$nameWidth" height="20" fill="#555"/>
-                        <rect x="$nameWidth" width="$valueWidth" height="20" fill="#$optionalColor"/>
+                        <rect x="$nameWidth" width="$valueWidth" height="20" fill="#$color"/>
                         <rect width="$fullWidth" height="20" fill="url(#s)"/>
                     </g>
                     <g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" text-rendering="geometricPrecision" font-size="110"> 
