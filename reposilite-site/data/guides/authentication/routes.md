@@ -27,13 +27,22 @@ Currently supported permissions:
 * `r` - allows token to read resources under the associated path
 * `w` - allows token to write (deploy) resources under the associated path
 
+> Note: Permissions can be combined (`rw`) to allow read and write on associated paths.
+
 ### Commands
 
-#### Adding access to route
+#### Adding write access to route
 You can add access to specified route for token using the `route-add <token> <path> <permissions>` command in Reposilite CLI.
 ```bash
 $ route-add reposilite-publisher /releases/com/reposilite w
 Route Route(path=/releases/com/reposilite, permissions=[WRITE]) has been added to token reposilite-publisher
+```
+
+#### Adding full access to route
+You can add full access (read and write) to specified route using `rw` for permissions attribute in Reposilite CLI command.
+```bash
+$ route-add reposilite-publisher /releases/com/reposilite rw
+Route Route(path=/releases/com/reposilite, permissions=[READ, WRITE]) has been added to token reposilite-publisher
 ```
 
 #### Removing access to route
