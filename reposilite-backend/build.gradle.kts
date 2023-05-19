@@ -176,19 +176,16 @@ publishing {
     }
 }
 
-tasks.register<Copy>("generateKotlin") {
-    inputs.property("version", version)
-    from("$projectDir/src/template/kotlin")
-    into("$projectDir/src/generated/kotlin")
-    filter(ReplaceTokens::class, "tokens" to mapOf("version" to version))
-}
-
-tasks.compileKotlin {
-    dependsOn("generateKotlin")
-}
-
-tasks.sourcesJar {
-    dependsOn("generateKotlin")
+tasks {
+    register<Copy>("generateKotlin") {
+        inputs.property("version", version)
+        from("$projectDir/src/template/kotlin")
+        into("$projectDir/src/generated/kotlin")
+        filter(ReplaceTokens::class, "tokens" to mapOf("version" to version))
+    }
+    compileKotlin { dependsOn("generateKotlin") }
+    sourcesJar { dependsOn("generateKotlin") }
+    kotlinSourcesJar { dependsOn("generateKotlin") }
 }
 
 kotlin.sourceSets.main {
