@@ -39,12 +39,16 @@ const {
 } = useConfiguration()
 
 const isValid = ref(true)
+const hasChanged = ref(false)
 
 const executeIfValid = (callback) => { 
   if (isValid.value) callback() 
 }
 
 const updateFormsConfiguration = (domain, event) => {
+  if (!hasChanged.value) {
+    hasChanged.value = configurations.value[domain] != event.data
+  }
   configurations.value[domain] = event.data
   isValid.value = event.errors.length == 0
   event.errors.forEach(error => {
@@ -91,14 +95,34 @@ const formsConfiguration = {
         <p><strong>Remember</strong>: Configuration propagation can take up to 10 seconds on all your instances.</p>
       </div>
       <div id="configuration-state" class="flex flex-row pt-8">
-        <button @click.prevent="fetchConfiguration">Reset changes</button>
-        <button @click.prevent="executeIfValid(updateConfiguration)" :class="{ forbidden: !isValid }">Update and reload</button>
-        <button @click.prevent="executeIfValid(downloadSettings)" :class="{ forbidden: !isValid }">Download as JSON</button>
+        <button 
+          @click.prevent="executeIfValid(downloadSettings)" 
+          class="bg-gray-800 dark:bg-gray-600"
+          :class="{ forbidden: !isValid }"
+        >
+          Download as JSON
+        </button>
         <FactoryResetModal :callback="factoryReset">
             <template v-slot:button>
-                <button>Factory reset</button>
+                <button class="bg-gray-800 dark:bg-gray-600">Factory reset</button>
             </template>
         </FactoryResetModal>
+        <button 
+          @click.prevent="executeIfValid(updateConfiguration)" 
+          class="bg-gray-500 dark:bg-gray-800 cursor-not-allowed"
+          :class="{ changed: hasChanged, forbidden: !isValid }"
+          :disabled="!isValid || !hasChanged"
+        >
+          Update and reload
+        </button>
+        <button 
+          @click.prevent="fetchConfiguration"
+          class="bg-gray-500 dark:bg-gray-800 cursor-not-allowed"
+          :class="{ changed: hasChanged }"
+          :disabled="!isValid || !hasChanged"
+        >
+          Reset changes
+        </button>
       </div>
     </div>
     <Tabs v-model="selectedDomain">
@@ -134,7 +158,10 @@ const formsConfiguration = {
 <!--suppress CssInvalidAtRule -->
 <style scoped>
 #configuration-state button {
-  @apply bg-blue-700 mx-2 rounded text-sm px-4 text-white py-2;
+  @apply mx-2 rounded text-sm px-4 text-white py-2;
+}
+#configuration-state .changed {
+  @apply bg-blue-700 cursor-pointer !important;
 }
 #configuration-state .forbidden {
   @apply bg-gray-500 cursor-not-allowed !important;
