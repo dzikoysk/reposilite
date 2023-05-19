@@ -89,7 +89,7 @@ Thanks to all contributors and people that decided to support my work financiall
 <table>
  <tr>
   <td>
-   <a href="https://github.com/sponsors/dzikoysk">Still active GitHub Sponsors</a>
+   <a href="https://github.com/sponsors/dzikoysk">Active GitHub Sponsors</a>
   </td>
   <td>
     <a href="https://github.com/milkyway0308">milkyway0308</a>,
@@ -97,49 +97,53 @@ Thanks to all contributors and people that decided to support my work financiall
     <a href="https://github.com/insertt">insertt</a>, 
     <a href="https://github.com/oskarscot">oskarscot</a>,
     <a href="https://github.com/Koressi">Koressi</a>,
-    <a href="https://github.com/neg4n">neg4n</a>, 
     <a href="https://github.com/tipsy">tipsy</a>, 
     <a href="https://github.com/Kamilkime">Kamilkime</a>,
     <a href="https://github.com/that-apex">that-apex</a>,
+    <a href="https://github.com/neg4n">neg4n</a>, 
     <a href="https://github.com/mattwelke">mattwelke</a>,
     <a href="https://github.com/crejk">crejk</a>,
-    <a href="https://github.com/Rollczi">Rollczi</a>
+    <a href="https://github.com/Rollczi">Rollczi</a>,
+    <a href="https://github.com/scheidtp">scheidtp</a>,
+    Andreas R.
   </td>
  </tr>
  <tr>
   <td>All time</td>
   <td>
    <a href="https://github.com/zzmgck">zzmgck</a>, 
-   <a href="https://github.com/Koressi">Koressi</a>,
    <a href="https://github.com/insertt">insertt</a>, 
    <a href="https://github.com/milkyway0308">milkyway0308</a>,
-   <a href="https://github.com/tipsy">tipsy</a>, 
-   <a href="https://github.com/insertt">bmstefanski</a>, 
-   <a href="https://github.com/rdehuyss">rdehuyss</a>,
    <a href="https://github.com/andrm">andrm</a>,
+   <a href="https://github.com/insertt">insertt</a>,
+   <a href="https://github.com/Koressi">Koressi</a>,
+   <a href="https://github.com/tipsy">tipsy</a>, 
+   <a href="https://github.com/rdehuyss">rdehuyss</a>,
    <a href="https://github.com/neg4n">neg4n</a>,
    <a href="https://github.com/maxant">maxant</a>,
    <a href="https://github.com/alexwhb">alexwhb</a>, 
    <a href="https://github.com/kay">Douglas Lawrie</a>,
+   <a href="https://github.com/crejk">crejk</a>, 
+   Andreas R.,
+   <a href="https://github.com/Szczurowsky">Szczurowsky</a>,
+   <a href="https://github.com/that-apex">that-apex</a>,
+   <a href="https://github.com/Kamilkime">Kamilkime</a>,
    <a href="https://github.com/zugazagoitia">zugazagoitia</a>,
    <a href="https://github.com/FlawCra">FlawCra</a>,
-   <a href="https://github.com/crejk">crejk</a>,
    <a href="https://github.com/mattwelke">mattwelke</a>,
    <a href="https://github.com/EthanDevelops">EthanDevelops</a>, 
+   <a href="https://github.com/bmstefanski">bmstefanski</a>,
    <a href="https://github.com/escv">escv</a>,
-   <a href="https://github.com/arthurr0">arthurr0</a>
+   <a href="https://github.com/Rollczi">Rollczi</a>,
+   <a href="https://github.com/arthurr0">arthurr0</a>,
    <a href="https://github.com/shitzuu">shitzuu</a>,
    <a href="https://github.com/peter-jerry-ye">peter-jerry-ye</a>,
    Rob,
+   <a href="https://github.com/scheidtp">scheidtp</a>,
    <a href="https://github.com/sebba-dev">sebba-dev</a>,
    <a href="https://github.com/mufinlive">mufinlive</a>,
-   <a href="https://github.com/Rollczi">Rollczi</a>,
    <a href="https://github.com/bopke">bopke</a>,
-   <a href="https://github.com/Kamilkime">Kamilkime</a>,
-   <a href="https://github.com/asikkema">asikkema</a>,
-   <a href="https://github.com/Rollczi">Rollczi</a>,
-   <a href="https://github.com/Szczurowsky">Szczurowsky</a>,
-   <a href="https://github.com/that-apex">that-apex</a>
+   <a href="https://github.com/asikkema">asikkema</a>
   </td>
  </tr>
 </table>
