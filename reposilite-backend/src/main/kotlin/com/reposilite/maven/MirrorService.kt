@@ -54,7 +54,7 @@ internal class MirrorService(private val journalist: Journalist) : Journalist {
                 isAllowed(config, gav).fold(
                     { true },
                     { reason ->
-                        logger.debug("MirrorService | Cannot request '$gav' from remote repository '$repository' (reason: illegal $reason)")
+                        logger.debug("MirrorService | Cannot request '$gav' from remote repository '${repository.name}' (reason: illegal $reason)")
                         false
                     }
                 )
