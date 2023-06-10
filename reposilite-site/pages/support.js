@@ -53,10 +53,11 @@ const individualCards = [
 const IndividualCard = ({ title, description, buttons }) => {
   const [cardBg, cardBgCss] = useColorModeValue('individual-card-bg', chakraColor('gray.100'), chakraColor('gray.900'))
   const [cardButtonBg, cardButtonBgCss] = useColorModeValue('individual-card-button-bg', chakraColor('gray.200'), chakraColor('gray.700'))
+  const [cardColor, cardColorCss] = useColorModeValue('individual-card-color', chakraColor('black'), chakraColor('gray.100'))
 
   return (
     <>
-      <ColorModeStyles styles={[cardBgCss, cardButtonBgCss]} />
+      <ColorModeStyles styles={[cardBgCss, cardButtonBgCss, cardColorCss]} />
       <Flex
         flexDirection={'column'}
         justifyContent={'space-between'}
@@ -73,6 +74,7 @@ const IndividualCard = ({ title, description, buttons }) => {
           <Button
             key={button.title}
             marginTop={2}
+            color={cardColor}
             backgroundColor={cardButtonBg}
             _hover={{ backgroundColor: cardButtonBg }}
           >

@@ -47,12 +47,13 @@ const GitHubButton = ({ style }) => (
   </Link>
 )
 export default function Nav() {
+  const [navbarColor, navbarColorCss] = useColorModeValue('navbar-color', 'black', chakraColor('white'))
   const [navbarBg, navbarBgCss] = useColorModeValue('navbar-bg', 'white', chakraColor('gray.900'))
   const [buttonBg, buttonBgCss] = useColorModeValue('navbar-button-bg', chakraColor('gray.100'), chakraColor('gray.800'))
 
   return (
     <>
-      <ColorModeStyles styles={[navbarBgCss, buttonBgCss]} />
+      <ColorModeStyles styles={[navbarBgCss, buttonBgCss, navbarColorCss]} />
       <Box style={{ backgroundColor: navbarBg }} px={10}>
         <Flex
           alignItems={'center'}
@@ -69,8 +70,14 @@ export default function Nav() {
           </HStack>
           <Flex alignItems={'center'} py={4}>
             <Stack direction={'row'} spacing={4}>
-              <ThemeSwitcher style={{ backgroundColor: buttonBg }} />
-              <GitHubButton style={{ backgroundColor: buttonBg }} />
+              <ThemeSwitcher style={{
+                color: navbarColor,
+                backgroundColor: buttonBg
+              }} />
+              <GitHubButton style={{
+                color: navbarColor,
+                backgroundColor: buttonBg
+              }} />
             </Stack>
           </Flex>
         </Flex>

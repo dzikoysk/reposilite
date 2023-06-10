@@ -14,11 +14,12 @@ const HeroButton = ({ label, description, url, style }) => (
 
 const HeroDescription = ({ style }) => {
   const [ startBg, startBgCss ] = useColorModeValue('get-started-bg', chakraColor('purple.100'), chakraColor('purple.500'))
-  const [ downloadBg, downloadBgCss ] = useColorModeValue('download-bg', chakraColor('gray.100'), chakraColor('gray.600'))
+  const [ color, colorCss ] = useColorModeValue('hero-color', chakraColor('black'), chakraColor('gray.200'))
+  const [ downloadBg, downloadBgCss ] = useColorModeValue('download-bg', chakraColor('gray.100'), chakraColor('gray.500'))
   
   return (
     <Box style={style}>
-      <ColorModeStyles styles={[startBgCss, downloadBgCss]} />
+      <ColorModeStyles styles={[startBgCss, colorCss, downloadBgCss]} />
       <Box paddingX={{ base: '0', md: '7' }}>
         <Heading>
           Reposilite <Text as="u">3.x</Text>
@@ -36,13 +37,19 @@ const HeroDescription = ({ style }) => {
             label='Get started'
             description='Get started - Learn about Reposilite'
             url='/guide/about'
-            style={{ backgroundColor: startBg }}
+            style={{
+              color,
+              backgroundColor: startBg
+            }}
           />
           <HeroButton
             label='Download'
             description='Download Reposilite'
             url='https://github.com/dzikoysk/reposilite/releases'
-            style={{ backgroundColor: downloadBg }}
+            style={{
+              color,
+              backgroundColor: downloadBg
+            }}
           />
         </Flex>
       </Box>

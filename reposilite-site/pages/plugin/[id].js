@@ -43,8 +43,8 @@ export default function Plugin({ plugin }) {
       .catch(err => console.log(err))
   }, [])
 
-  const [ bg, bgCss ] = useColorModeValue('download-bg', chakraColor('gray.50'), chakraColor('gray.700'))
-  const [ buttonBg, buttonBgCss ] = useColorModeValue('download-button-bg', chakraColor('purple.100'), chakraColor('purple.500'))
+  const [bg, bgCss] = useColorModeValue('download-bg', chakraColor('gray.50'), chakraColor('gray.700'))
+  const [buttonBg, buttonBgCss] = useColorModeValue('download-button-bg', chakraColor('purple.100'), chakraColor('purple.500'))
   const [layoutColor] = useColorModeValue('layout-color', 'black', 'white')
 
   return (
@@ -111,6 +111,7 @@ export default function Plugin({ plugin }) {
                   width={'full'}
                   marginTop={'2'}
                   height={'8'}
+                  color={layoutColor}
                   backgroundColor={buttonBg}
                 >
                   Download
