@@ -22,14 +22,7 @@
           v-for="(element, index) in control.data"
           :key="`${control.path}-${index}-tab`"
           :val="index"
-          :label="
-            element.id 
-              || element
-                ?.reference
-                ?.replace('https://', 'http://')
-                ?.replace('http://', '') 
-              || (typeof element == 'string' && element)
-              || '<new>'"
+          :label="createLabel(element)"
           :indicator="true"
           class="item"
         />
@@ -95,8 +88,34 @@ export default {
   setup(props) {
     const vanillaArrayControl = useVanillaArrayControl(useJsonFormsArrayControl(props))
     const selectedIndex = ref(0)
+
+    const createLabel = (element) => {
+      if (element.id) {
+        return element.id
+      }
+
+      if (element.reference) {
+        let adjustedUrl = element
+          ?.reference
+          ?.replace('https://', 'http://')
+          ?.replace('http://', '')
+
+        if (adjustedUrl.indexOf("/") > -1) {
+          adjustedUrl = adjustedUrl.substring(0, adjustedUrl.indexOf("/"))
+        }
+
+        return adjustedUrl
+      }
+
+      if (typeof element == 'string' && element) {
+        return element
+      }
+
+      return '<new>'
+    }
     
     return {
+      createLabel,
       selectedIndex,
       ...vanillaArrayControl
     }
