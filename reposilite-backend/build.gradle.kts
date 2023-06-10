@@ -38,7 +38,7 @@ dependencies {
     val detekt = "1.22.0"
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:$detekt")
 
-    val kotlin = "1.8.21"
+    val kotlin = "1.8.22"
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin")
 
@@ -65,15 +65,15 @@ dependencies {
     api("net.dzikoysk:cdn:$cdn")
     api("net.dzikoysk:cdn-kt:$cdn")
 
-    val picocli = "4.7.3"
+    val picocli = "4.7.4"
     kapt("info.picocli:picocli-codegen:$picocli")
     api("info.picocli:picocli:$picocli")
 
-    val awssdk = "2.20.68"
+    val awssdk = "2.20.83"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
 
-    val awsSdkV1 = "1.12.479"
+    val awsSdkV1 = "1.12.486"
     testImplementation("com.amazonaws:aws-java-sdk-s3:$awsSdkV1")
 
     val exposed = "0.41.1"
@@ -127,7 +127,7 @@ dependencies {
     testImplementation("org.testcontainers:junit-jupiter:$testcontainers")
     testImplementation("org.testcontainers:localstack:$testcontainers")
 
-    val ldap = "6.0.8"
+    val ldap = "6.0.9"
     testImplementation("com.unboundid:unboundid-ldapsdk:$ldap")
 }
 
