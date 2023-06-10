@@ -3,7 +3,7 @@ name: "Publish releases"
 on: workflow_dispatch
 
 env:
-  JAVA_VERSION: 20
+  JAVA_VERSION: 19
 
 jobs:
   github:
@@ -24,7 +24,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           java-version: "${{ env.JAVA_VERSION }}"
-          distribution: "adopt"
+          distribution: "liberica"
 
       - name: "Grant execute permission for gradlew"
         run: chmod +x gradlew
