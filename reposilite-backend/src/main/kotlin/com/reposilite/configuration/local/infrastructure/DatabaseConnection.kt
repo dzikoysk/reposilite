@@ -44,6 +44,7 @@ object DatabaseConnectionFactory {
     fun createConnection(workingDirectory: Path, databaseConfiguration: String, databaseThreadPoolSize: Int): DatabaseConnection =
         when {
             databaseConfiguration.startsWith("mysql") -> connectWithStandardDatabase(databaseConfiguration, "jdbc:mysql", "com.mysql.cj.jdbc.Driver", databaseThreadPoolSize)
+            databaseConfiguration.startsWith("mariadb") -> connectWithStandardDatabase(databaseConfiguration, "jdbc:mariadb", "org.mariadb.jdbc.Driver", databaseThreadPoolSize)
             databaseConfiguration.startsWith("sqlite") -> connectWithEmbeddedDatabase(workingDirectory, databaseConfiguration, "org.sqlite.JDBC", "jdbc:sqlite:%file%")
             /* Experimental implementations (not covered with integration tests) */
             databaseConfiguration.startsWith("postgresql") -> connectWithStandardDatabase(databaseConfiguration, "jdbc:postgresql", "org.postgresql.Driver", databaseThreadPoolSize)

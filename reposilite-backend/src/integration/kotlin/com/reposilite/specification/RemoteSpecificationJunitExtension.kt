@@ -54,7 +54,7 @@ internal class RemoteSpecificationJunitExtension : Extension, BeforeEachCallback
             val type = instance::class.java
 
             type.getField("_extensionInitialized").set(instance, true)
-            type.getField("_database").set(instance, "mysql ${mariaDb.host}:${mariaDb.getMappedPort(3306)} ${mariaDb.databaseName} ${mariaDb.username} ${mariaDb.password}")
+            type.getField("_database").set(instance, "mariadb ${mariaDb.host}:${mariaDb.getMappedPort(3306)} ${mariaDb.databaseName} ${mariaDb.username} ${mariaDb.password}")
             type.getField("_storageProvider").set(
                 instance,
                 S3StorageProviderSettings(

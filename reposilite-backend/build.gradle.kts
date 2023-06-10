@@ -126,6 +126,7 @@ dependencies {
     testImplementation("org.testcontainers:testcontainers:$testcontainers")
     testImplementation("org.testcontainers:junit-jupiter:$testcontainers")
     testImplementation("org.testcontainers:localstack:$testcontainers")
+    testImplementation("org.testcontainers:mysql:$testcontainers")
 
     val ldap = "6.0.9"
     testImplementation("com.unboundid:unboundid-ldapsdk:$ldap")
@@ -146,6 +147,7 @@ tasks.withType<ShadowJar> {
         exclude(dependency("org.xerial:sqlite-jdbc.*"))
         exclude(dependency("org.sqlite:.*"))
         exclude(dependency("mysql:.*"))
+        exclude(dependency("org.mariadb:.*"))
         exclude(dependency("org.postgresql:.*"))
         exclude(dependency("org.h2:.*"))
         exclude(dependency("com.h2database:.*"))
