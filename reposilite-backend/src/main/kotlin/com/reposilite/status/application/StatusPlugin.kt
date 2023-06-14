@@ -100,7 +100,7 @@ internal class StatusPlugin : ReposilitePlugin() {
         }
 
         event { _: HttpServerStoppedEvent ->
-            logger.info("Bye! Uptime: " + TimeUtils.getPrettyUptimeInMinutes(statusFacade.getUptime()))
+            logger.info("Bye! Uptime: " + TimeUtils.getPrettyUptime(statusFacade.getUptime()))
         }
 
         return statusFacade
