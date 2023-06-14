@@ -30,16 +30,18 @@ function requestStatus() {
 }
 requestStatus()
 
-const secondsToHms = (seconds) => {
-    const h = Math.floor(seconds / 3600)
-    const m = Math.floor(seconds % 3600 / 60)
-    const s = Math.floor(seconds % 3600 % 60)
+const prettyUptime = (seconds) => {
+    const d = Math.floor(seconds / 86400)
+    const h = Math.floor((seconds % 86400) / 3600)
+    const m = Math.floor(((seconds % 86400) % 3600) / 60)
+    const s = Math.floor(((seconds % 86400) % 3600) % 60)
 
+    const dDisplay = d > 0 ? d + "d " : ""
     const hDisplay = h > 0 ? h + "h " : ""
     const mDisplay = m > 0 ? m + "min " : ""
     const sDisplay = s > 0 ? s + "s" : ""
-    
-    return hDisplay + mDisplay + sDisplay
+
+    return dDisplay + hDisplay + mDisplay + sDisplay
 }
 </script>
 
@@ -53,7 +55,7 @@ const secondsToHms = (seconds) => {
       />
       <DashboardBox 
         title="Uptime"
-        :content="secondsToHms(instanceStatus.uptime / 1000)"
+        :content="prettyUptime(instanceStatus.uptime / 1000)"
       />
       <DashboardBox 
         title="Used memory"

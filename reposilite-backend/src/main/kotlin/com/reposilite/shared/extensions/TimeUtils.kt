@@ -15,6 +15,8 @@
  */
 package com.reposilite.shared.extensions
 
+import java.time.Duration
+import java.time.Instant
 import java.util.Locale
 
 internal object TimeUtils {
@@ -28,8 +30,36 @@ internal object TimeUtils {
     fun getPrettyUptimeInSeconds(startTime: Long): String =
         format(getUptimeInSeconds(startTime)) + "s"
 
-    fun getPrettyUptimeInMinutes(startTime: Long): String =
-        format(getUptimeInSeconds(startTime) / 60) + "min"
+    fun getPrettyUptime(startTime: Long): String {
+        val currentTimestamp = Instant.now().toEpochMilli()
+        val uptimeMillis = currentTimestamp - startTime
+
+        val uptimeDuration = Duration.ofMillis(uptimeMillis)
+        val days = uptimeDuration.toDays()
+        val hours = uptimeDuration.toHours() % 24
+        val minutes = uptimeDuration.toMinutes() % 60
+        val seconds = uptimeDuration.seconds % 60
+
+        val uptimeStringBuilder = StringBuilder()
+
+        if (days > 0) {
+            uptimeStringBuilder.append(days).append("d ")
+        }
+
+        if (hours > 0) {
+            uptimeStringBuilder.append(hours).append("h ")
+        }
+
+        if (minutes > 0) {
+            uptimeStringBuilder.append(minutes).append("min ")
+        }
+
+        if (seconds > 0 || days == 0L && hours == 0L && minutes == 0L) {
+            uptimeStringBuilder.append(seconds).append("s")
+        }
+
+        return uptimeStringBuilder.toString().trim()
+    }
 
     fun format(time: Double): String =
         String.format(Locale.US, "%.2f", time)

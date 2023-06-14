@@ -33,7 +33,7 @@ internal class StatusCommand(private val statusFacade: StatusFacade) : Reposilit
         statusFacade.fetchInstanceStatus().apply {
             context.append("Reposilite $VERSION Status")
             context.append("  Active: $GREEN_BOLD${statusFacade.isAlive()}$RESET")
-            context.append("  Uptime: ${TimeUtils.getPrettyUptimeInMinutes(statusFacade.getUptime())}")
+            context.append("  Uptime: ${TimeUtils.getPrettyUptime(statusFacade.getUptime())}")
             context.append("  Memory usage of process: ${TimeUtils.format(usedMemory)}M")
             context.append("  Active threads in group: $usedThreads")
             context.append("  Recorded failures: $failuresCount")
