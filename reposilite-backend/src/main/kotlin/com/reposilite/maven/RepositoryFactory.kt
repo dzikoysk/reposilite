@@ -16,6 +16,7 @@
 
 package com.reposilite.maven
 
+import com.reposilite.auth.AuthenticationFacade
 import com.reposilite.maven.application.MirroredRepositorySettings
 import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.shared.http.RemoteClientProvider
@@ -28,8 +29,9 @@ import java.util.UUID
 
 internal class RepositoryFactory(
     private val workingDirectory: Path,
+    private val authenticationFacade: AuthenticationFacade,
     private val remoteClientProvider: RemoteClientProvider,
-    private val repositoryProvider: RepositoryProvider,
+    private val repositoryService: RepositoryService,
     private val failureFacade: FailureFacade,
     private val storageFacade: StorageFacade,
     private val repositoriesNames: Collection<String>,
@@ -65,11 +67,17 @@ internal class RepositoryFactory(
         }
 
         val remoteClient = when {
-            repositoriesNames.contains(host) -> RepositoryLoopbackClient(lazy { repositoryProvider.getRepositories()[host]!! })
-            else -> configurationSource.httpProxy
-                .takeIf { it.isNotEmpty() }
-                ?.let { createHttpProxy(it) }
-                .let { remoteClientProvider.createClient(failureFacade, it) }
+            repositoriesNames.contains(host) ->
+                RepositoryLoopbackClient(
+                    authenticationFacade = authenticationFacade,
+                    repositoryService = repositoryService,
+                    repositoryName = host
+                )
+            else ->
+                configurationSource.httpProxy
+                    .takeIf { it.isNotEmpty() }
+                    ?.let { createHttpProxy(it) }
+                    .let { remoteClientProvider.createClient(failureFacade, it) }
         }
 
         return MirrorHost(host, configurationSource, remoteClient)

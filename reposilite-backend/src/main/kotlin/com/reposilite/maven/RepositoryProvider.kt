@@ -16,20 +16,43 @@
 
 package com.reposilite.maven
 
+import com.reposilite.auth.AuthenticationFacade
+import com.reposilite.journalist.Journalist
 import com.reposilite.maven.application.RepositorySettings
+import com.reposilite.plugin.Extensions
+import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.http.RemoteClientProvider
+import com.reposilite.shared.notFoundError
+import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.status.FailureFacade
 import com.reposilite.storage.StorageFacade
+import panda.std.Result
+import panda.std.asSuccess
 import panda.std.reactive.Reference
 import java.nio.file.Path
 
 internal class RepositoryProvider(
+    private val journalist: Journalist,
     private val workingDirectory: Path,
     private val remoteClientProvider: RemoteClientProvider,
+    private val authenticationFacade: AuthenticationFacade,
+    private val extensions: Extensions,
     private val failureFacade: FailureFacade,
+    private val statisticsFacade: StatisticsFacade,
     private val storageFacade: StorageFacade,
+    private val mirrorService: MirrorService,
+    private val repositorySecurityProvider: RepositorySecurityProvider,
     repositoriesSource: Reference<List<RepositorySettings>>,
 ) {
+
+    val repositoryService = RepositoryService(
+        journalist = journalist,
+        repositoryProvider = this,
+        securityProvider = repositorySecurityProvider,
+        mirrorService = mirrorService,
+        statisticsFacade = statisticsFacade,
+        extensions = extensions
+    )
 
     private var repositories: Map<String, Repository> = createRepositories(repositoriesSource.get())
 
@@ -43,10 +66,11 @@ internal class RepositoryProvider(
     private fun createRepositories(repositoriesConfiguration: List<RepositorySettings>): Map<String, Repository> {
         val factory = RepositoryFactory(
             workingDirectory = workingDirectory,
+            authenticationFacade = authenticationFacade,
             remoteClientProvider = remoteClientProvider,
-            repositoryProvider = this,
             failureFacade = failureFacade,
             storageFacade = storageFacade,
+            repositoryService = repositoryService,
             repositoriesNames = repositoriesConfiguration.map { it.id }
         )
 
@@ -59,7 +83,16 @@ internal class RepositoryProvider(
             .associateBy { it.name }
     }
 
-    fun getRepositories(): Map<String, Repository> =
-        repositories
+
+    fun findRepository(name: String): Result<Repository, ErrorResponse> =
+        getRepository(name)
+            ?.asSuccess()
+            ?: notFoundError("Repository $name not found")
+
+    fun getRepository(name: String): Repository? =
+        repositories[name]
+
+    fun getRepositories(): Collection<Repository> =
+        repositories.values
 
 }

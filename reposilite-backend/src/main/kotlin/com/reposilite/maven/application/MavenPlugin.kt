@@ -35,7 +35,7 @@ import com.reposilite.web.api.RoutingSetupEvent
 
 @Plugin(
     name = "maven",
-    dependencies = ["failure", "local-configuration", "shared-configuration", "statistics", "frontend", "access-token", "storage"],
+    dependencies = ["failure", "local-configuration", "shared-configuration", "statistics", "frontend", "authentication", "access-token", "storage"],
     settings = MavenSettings::class
 )
 internal class MavenPlugin : ReposilitePlugin() {
@@ -51,6 +51,7 @@ internal class MavenPlugin : ReposilitePlugin() {
                 remoteClientProvider = HttpRemoteClientProvider,
                 failureFacade = facade(),
                 storageFacade = facade(),
+                authenticationFacade = facade(),
                 accessTokenFacade = facade(),
                 statisticsFacade = facade(),
                 mavenSettings = sharedConfigurationFacade.getDomainSettings<MavenSettings>(),

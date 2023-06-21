@@ -54,8 +54,11 @@ internal class MavenFacadeTest : MavenSpecification() {
         RepositorySettings(HIDDEN.name, visibility = HIDDEN),
         RepositorySettings(PUBLIC.name, visibility = PUBLIC),
         RepositorySettings("PROXIED", visibility = PUBLIC, proxied = mutableListOf(
-            MirroredRepositorySettings(REMOTE_REPOSITORY, store = true, authorization = REMOTE_AUTH),
-            MirroredRepositorySettings(REMOTE_REPOSITORY_WITH_WHITELIST, allowedGroups = listOf("do.allow"))
+            MirroredRepositorySettings(reference = REMOTE_REPOSITORY, store = true, authorization = REMOTE_AUTH),
+            MirroredRepositorySettings(reference = REMOTE_REPOSITORY_WITH_WHITELIST, allowedGroups = listOf("do.allow"))
+        )),
+        RepositorySettings("PROXIED-LOOPBACK", visibility = PUBLIC, proxied = mutableListOf(
+            MirroredRepositorySettings(reference = "PROXIED")
         ))
     )
 
@@ -220,6 +223,23 @@ internal class MavenFacadeTest : MavenSpecification() {
             val response = mavenFacade.findFile(file.toLookupRequest(UNAUTHORIZED))
 
             // then: the file is found
+            val (_, data) = assertOk(response)
+            assertThat(data.readBytes().decodeToString()).isEqualTo(REMOTE_CONTENT)
+        }
+
+        @Test
+        fun `should find mirrored file in local loopback repository` () {
+            // given: a file available in remote repository
+            val fileSpec = FileSpec("PROXIED", "/gav/file.pom", REMOTE_CONTENT)
+
+            // when: a remote file is requested through proxied repository
+            val response = mavenFacade.findFile(
+                fileSpec
+                    .toLookupRequest(UNAUTHORIZED)
+                    .copy(repository = "PROXIED-LOOPBACK")
+            )
+
+            // then: the file has been properly proxied
             val (_, data) = assertOk(response)
             assertThat(data.readBytes().decodeToString()).isEqualTo(REMOTE_CONTENT)
         }

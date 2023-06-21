@@ -16,6 +16,8 @@
 
 package com.reposilite.maven.specification
 
+import com.reposilite.auth.application.AuthenticationComponents
+import com.reposilite.auth.application.AuthenticationSettings
 import com.reposilite.frontend.application.FrontendSettings
 import com.reposilite.journalist.backend.InMemoryLogger
 import com.reposilite.maven.MavenFacade
@@ -35,19 +37,17 @@ import com.reposilite.shared.notFoundError
 import com.reposilite.statistics.DailyDateIntervalProvider
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.statistics.infrastructure.InMemoryStatisticsRepository
-import com.reposilite.status.FailureFacade
+import com.reposilite.status.application.FailureComponents
 import com.reposilite.storage.StorageFacade
 import com.reposilite.storage.api.DocumentInfo
 import com.reposilite.storage.api.Location
 import com.reposilite.storage.api.toLocation
-import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.AccessTokenIdentifier
 import com.reposilite.token.AccessTokenType.TEMPORARY
-import com.reposilite.token.ExportService
 import com.reposilite.token.Route
 import com.reposilite.token.RoutePermission
 import com.reposilite.token.api.CreateAccessTokenRequest
-import com.reposilite.token.infrastructure.InMemoryAccessTokenRepository
+import com.reposilite.token.application.AccessTokenComponents
 import io.javalin.http.ContentType.TEXT_XML
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
@@ -73,15 +73,24 @@ internal abstract class MavenSpecification {
     lateinit var workingDirectory: File
     protected lateinit var mavenFacade: MavenFacade
 
-    protected val logger = InMemoryLogger()
+    private val logger = InMemoryLogger()
     protected val extensions = Extensions(logger)
-    protected val failureFacade = FailureFacade(logger)
-    protected val accessTokenFacade = AccessTokenFacade(
+
+    private val failureFacade = FailureComponents(
+        journalist = logger
+    ).failureFacade()
+
+    private val accessTokenFacade = AccessTokenComponents(
         journalist = logger,
-        temporaryRepository = InMemoryAccessTokenRepository(),
-        persistentRepository = InMemoryAccessTokenRepository(),
-        exportService = ExportService()
-    )
+        database = null
+    ).accessTokenFacade()
+
+    private val authenticationFacade = AuthenticationComponents(
+        journalist = logger,
+        accessTokenFacade = accessTokenFacade,
+        failureFacade = failureFacade,
+        authenticationSettings = AuthenticationSettings().toReference(),
+    ).authenticationFacade()
 
     abstract fun repositories(): List<RepositorySettings>
 
@@ -119,6 +128,7 @@ internal abstract class MavenSpecification {
             remoteClientProvider = remoteClientProvider,
             failureFacade = failureFacade,
             storageFacade = StorageFacade(),
+            authenticationFacade = authenticationFacade,
             accessTokenFacade = accessTokenFacade,
             statisticsFacade = StatisticsFacade(logger, Reference.reference(false), DailyDateIntervalProvider.toReference(), InMemoryStatisticsRepository()),
             mavenSettings = reference(MavenSettings(

@@ -42,23 +42,24 @@ import java.io.InputStream
 class MavenFacade internal constructor(
     private val journalist: Journalist,
     private val repositorySecurityProvider: RepositorySecurityProvider,
-    private val repositoryService: RepositoryService,
-    private val mavenService: MavenService,
+    private val repositoryProvider: RepositoryProvider,
     private val metadataService: MetadataService,
     private val latestService: LatestService,
 ) : Journalist, Facade {
 
+    private val repositoryService = repositoryProvider.repositoryService
+
     fun findDetails(lookupRequest: LookupRequest): Result<out FileDetails, ErrorResponse> =
-        mavenService.findDetails(lookupRequest)
+        repositoryService.findDetails(lookupRequest)
 
     fun findFile(lookupRequest: LookupRequest): Result<Pair<DocumentInfo, InputStream>, ErrorResponse> =
-        mavenService.findFile(lookupRequest)
+        repositoryService.findFile(lookupRequest)
 
     fun deployFile(deployRequest: DeployRequest): Result<Unit, ErrorResponse> =
-        mavenService.deployFile(deployRequest)
+        repositoryService.deployFile(deployRequest)
 
     fun deleteFile(deleteRequest: DeleteRequest): Result<Unit, ErrorResponse> =
-        mavenService.deleteFile(deleteRequest)
+        repositoryService.deleteFile(deleteRequest)
 
     fun saveMetadata(saveMetadataRequest: SaveMetadataRequest): Result<Metadata, ErrorResponse> =
         metadataService.saveMetadata(saveMetadataRequest)
@@ -95,10 +96,10 @@ class MavenFacade internal constructor(
         repositoryService.getRootDirectory(accessToken)
 
     fun getRepository(name: String) =
-        repositoryService.getRepository(name)
+        repositoryService.repositoryProvider.getRepository(name)
 
     fun getRepositories(): Collection<Repository> =
-        repositoryService.getRepositories()
+        repositoryService.repositoryProvider.getRepositories()
 
     override fun getLogger(): Logger =
         journalist.logger

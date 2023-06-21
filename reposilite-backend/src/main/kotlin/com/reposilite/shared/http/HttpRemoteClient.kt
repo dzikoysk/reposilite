@@ -26,6 +26,9 @@ import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.badRequestError
+import com.reposilite.shared.http.AuthenticationMethod.BASIC
+import com.reposilite.shared.http.AuthenticationMethod.CUSTOM_HEADER
+import com.reposilite.shared.http.AuthenticationMethod.LOOPBACK_LINK
 import com.reposilite.shared.toErrorResult
 import com.reposilite.storage.api.DocumentInfo
 import com.reposilite.storage.api.FileDetails
@@ -115,8 +118,8 @@ class HttpRemoteClient(private val journalist: Journalist, proxy: Proxy?) : Remo
     private fun HttpRequest.authenticateWith(credentials: RemoteCredentials?): HttpRequest = also {
         if (credentials != null) {
             when (credentials.method) {
-                AuthenticationMethod.BASIC -> it.headers.setBasicAuthentication(credentials.login, credentials.password)
-                AuthenticationMethod.CUSTOM_HEADER -> it.headers[credentials.login] = credentials.password
+                BASIC, LOOPBACK_LINK -> it.headers.setBasicAuthentication(credentials.login, credentials.password)
+                CUSTOM_HEADER -> it.headers[credentials.login] = credentials.password
             }
         }
     }
