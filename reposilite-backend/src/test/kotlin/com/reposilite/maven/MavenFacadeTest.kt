@@ -71,7 +71,7 @@ internal class MavenFacadeTest : MavenSpecification() {
             var availableRepositories = findRepositories(UNAUTHORIZED)
 
             // then: response contains only public repositories
-            assertThat(availableRepositories).isEqualTo(listOf(PUBLIC.name, "PROXIED"))
+            assertThat(availableRepositories).isEqualTo(listOf(PUBLIC.name, "PROXIED", "PROXIED-LOOPBACK"))
 
             // given: a token with access to private repository
             val accessToken = createAccessToken("name", "secret", PRIVATE.name, "gav", WRITE)
@@ -80,7 +80,7 @@ internal class MavenFacadeTest : MavenSpecification() {
             availableRepositories = findRepositories(accessToken)
 
             // then: response contains authorized repositories
-            assertThat(availableRepositories).isEqualTo(listOf(PRIVATE.name, PUBLIC.name, "PROXIED"))
+            assertThat(availableRepositories).isEqualTo(listOf(PRIVATE.name, PUBLIC.name, "PROXIED", "PROXIED-LOOPBACK"))
         }
 
         @ParameterizedTest
