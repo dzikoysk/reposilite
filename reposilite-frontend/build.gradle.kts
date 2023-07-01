@@ -20,6 +20,11 @@ plugins {
     id("com.github.node-gradle.node") version "3.2.1"
 }
 
+node {
+    version.set("18.16.1")
+    download.set(true)
+}
+
 val lintTask = tasks.register<NpmTask>("lintFrontend") {
 //    command.set("eslint")
 //    args.set(listOf("src/**"))
