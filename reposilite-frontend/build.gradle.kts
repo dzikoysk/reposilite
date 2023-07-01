@@ -14,14 +14,19 @@
  * limitations under the License.
  */
 
+import com.github.gradle.node.npm.task.NpmTask
 import com.github.gradle.node.npm.task.NpxTask
 
 plugins {
     id("com.github.node-gradle.node") version "3.2.1"
 }
 
-val lintTask = tasks.register<NpxTask>("lintFrontend") {
-    command.set("eslint")
+node {
+
+}
+
+val lintTask = tasks.register<NpmTask>("lintFrontend") {
+//    command.set("eslint")
     args.set(listOf("src/**"))
     dependsOn(tasks.npmInstall)
     inputs.dir("src")
@@ -30,8 +35,8 @@ val lintTask = tasks.register<NpxTask>("lintFrontend") {
     outputs.upToDateWhen { true }
 }
 
-val buildTask = tasks.register<NpxTask>("buildFrontend") {
-    command.set("vite")
+val buildTask = tasks.register<NpmTask>("buildFrontend") {
+//    command.set("vite")
     args.set(listOf("build"))
     dependsOn(tasks.npmInstall, lintTask)
     inputs.dir(project.fileTree("src"))
