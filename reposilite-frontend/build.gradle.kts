@@ -27,7 +27,8 @@ node {
 
 val lintTask = tasks.register<NpmTask>("lintFrontend") {
 //    command.set("eslint")
-    args.set(listOf("src/**"))
+//    args.set(listOf("src/**"))
+    args.set(listOf("run", "eslint"))
     dependsOn(tasks.npmInstall)
     inputs.dir("src")
     inputs.dir("node_modules")
@@ -37,7 +38,8 @@ val lintTask = tasks.register<NpmTask>("lintFrontend") {
 
 val buildTask = tasks.register<NpmTask>("buildFrontend") {
 //    command.set("vite")
-    args.set(listOf("build"))
+//    args.set(listOf("build"))
+    args.set(listOf("run", "build"))
     dependsOn(tasks.npmInstall, lintTask)
     inputs.dir(project.fileTree("src"))
     inputs.dir("node_modules")
