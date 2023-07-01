@@ -5,7 +5,7 @@
   "license": "Apache-2.0",
   "scripts": {
     "dev": "vite",
-    "eslint": "eslint src/**",
+    "eslint": "eslint \"src/**\"",
     "build": "vite build",
     "serve": "vite preview",
     "fake-api": "nodemon fake-api/fake-reposilite-backend.js",
