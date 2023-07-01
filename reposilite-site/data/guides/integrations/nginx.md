@@ -54,7 +54,7 @@ Also, don't forget to change the port according to your Reposilite startup param
 
 #### Custom base path
 
-To use custom base path (e.g. `domain.com/reposilite`), modify the configuration just like this:
+To use custom base path (e.g. `domain.com/reposilite`), modify the configuration just like below:
 
 ```json5
 location /reposilite/ {
@@ -63,7 +63,7 @@ location /reposilite/ {
 }
 ```
 
-And update the base path property in shared configuration:
+And update the base path property in the local configuration (by default `configuration.cdn`)`:
 
 ```yaml
 # Custom base path
