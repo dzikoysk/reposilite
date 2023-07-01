@@ -23,7 +23,7 @@
     "@vueuse/core": "^10.1.2",
     "@vueuse/head": "^1.1.26",
     "ansi-to-html": "^0.7.2",
-    "apexcharts": "^3.40.0",
+    "apexcharts": "^3.41.0",
     "axios": "^1.4.0",
     "downloadjs": "^1.4.7",
     "mime-types": "^2.1.35",
