@@ -35,7 +35,7 @@ application {
 dependencies {
     implementation(project(":reposilite-frontend"))
 
-    val detekt = "1.22.0"
+    val detekt = "1.23.0"
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:$detekt")
 
     val kotlin = "1.8.22"
