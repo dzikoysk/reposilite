@@ -84,7 +84,7 @@ internal class ConsolePlugin : ReposilitePlugin() {
                     logger.info("")
                     consoleFacade.executeCommand("status")
                     logger.info("")
-                    logger.info("Startup Done! For help, type 'help' or '?'")
+                    logger.info("Startup done! For help, type 'help' or '?'")
                 }
             }
         }
