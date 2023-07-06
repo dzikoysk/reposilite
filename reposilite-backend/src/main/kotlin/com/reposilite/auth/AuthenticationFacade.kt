@@ -62,9 +62,9 @@ class AuthenticationFacade(
         accessTokenFacade.getAccessTokenById(identifier)
             ?.let {
                 SessionDetails(
-                    it,
-                    accessTokenFacade.getPermissions(it.identifier),
-                    accessTokenFacade.getRoutes(it.identifier)
+                    accessToken = it,
+                    permissions = accessTokenFacade.getPermissions(it.identifier),
+                    routes = accessTokenFacade.getRoutes(it.identifier)
                 )
             }
             ?.asSuccess()

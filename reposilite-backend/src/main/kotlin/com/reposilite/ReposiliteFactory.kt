@@ -47,7 +47,7 @@ object ReposiliteFactory {
         )
 
         journalist.logger.info("")
-        journalist.logger.info("${Effect.GREEN}Reposilite ${Effect.RESET}$VERSION")
+        journalist.logger.info("${Effect.MAGENTA_BOLD}Reposilite $VERSION${Effect.RESET}")
         journalist.logger.info("")
         journalist.logger.info("--- Environment")
         journalist.logger.info("Platform: ${System.getProperty("java.version")} (${System.getProperty("os.name")} :: ${System.getProperty("os.arch")})")

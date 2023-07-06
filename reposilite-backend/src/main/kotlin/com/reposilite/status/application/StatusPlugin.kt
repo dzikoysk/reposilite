@@ -16,6 +16,7 @@
 
 package com.reposilite.status.application
 
+import com.reposilite.VERSION
 import com.reposilite.configuration.local.LocalConfiguration
 import com.reposilite.console.ConsoleFacade
 import com.reposilite.plugin.api.Plugin
@@ -40,6 +41,7 @@ import com.reposilite.web.api.RoutingSetupEvent
 import panda.std.reactive.Completable
 import panda.std.reactive.Reference.Dependencies.dependencies
 import panda.std.reactive.Reference.computed
+import panda.utilities.console.Effect
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
 
@@ -84,8 +86,15 @@ internal class StatusPlugin : ReposilitePlugin() {
         }
 
         event { _: ReposiliteStartedEvent ->
-            logger.info("Done (${TimeUtils.getPrettyUptimeInSeconds(statusFacade.getUptime())})!")
             logger.info("")
+            logger.info("${Effect.GREEN}Done (${TimeUtils.getPrettyUptimeInSeconds(statusFacade.getUptime())})!${Effect.RESET}")
+            logger.info("")
+            logger.info("${Effect.YELLOW_BOLD}$VERSION version has been sponsored by:${Effect.RESET}")
+            logger.info("  ${Effect.BOLD}milkyway0308, andrm, Koressi, insertt, Andreas R., rdehuyss")
+            logger.info("  tipsy, Kamilkime, that-apex")
+            logger.info("  neg4n, mattwelke, crejk, scheidtp, Rollczi, Szczurowsky")
+            logger.info("")
+            logger.info("${Effect.RESET}")
         }
 
         event { _: ReposiliteStartedEvent ->
