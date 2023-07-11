@@ -26,8 +26,8 @@ import com.reposilite.configuration.specification.SettingsIntegrationSpecificati
 import com.reposilite.frontend.application.FrontendSettings
 import com.reposilite.maven.application.MavenSettings
 import com.reposilite.shared.ErrorResponse
-import com.reposilite.specification.LocalSpecificationJunitExtension
-import com.reposilite.specification.RemoteSpecificationJunitExtension
+import com.reposilite.RecommendedLocalSpecificationJunitExtension
+import com.reposilite.RecommendedRemoteSpecificationJunitExtension
 import com.reposilite.statistics.api.ResolvedRequestsInterval.YEARLY
 import com.reposilite.statistics.application.StatisticsSettings
 import com.reposilite.web.application.WebSettings
@@ -38,10 +38,10 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 
-@ExtendWith(LocalSpecificationJunitExtension::class)
+@ExtendWith(RecommendedLocalSpecificationJunitExtension::class)
 internal class LocalSettingsIntegrationTest : SettingsIntegrationTest()
 
-@ExtendWith(RemoteSpecificationJunitExtension::class)
+@ExtendWith(RecommendedRemoteSpecificationJunitExtension::class)
 internal class RemoteSettingsIntegrationTest : SettingsIntegrationTest()
 
 internal abstract class SettingsIntegrationTest : SettingsIntegrationSpecification() {

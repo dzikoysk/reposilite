@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.reposilite.specification
+package com.reposilite
 
 import com.reposilite.storage.filesystem.FileSystemStorageProviderSettings
 import org.junit.jupiter.api.extension.BeforeEachCallback
@@ -23,10 +23,10 @@ import org.junit.jupiter.api.extension.ExtensionContext
 
 /**
  * Integrations used in local stack:
- * - SQLite
+ * - H2
  * - Local file system
  */
-internal class LocalSpecificationJunitExtension : Extension, BeforeEachCallback {
+internal class ExperimentalLocalSpecificationJunitExtension : Extension, BeforeEachCallback {
 
     override fun beforeEach(context: ExtensionContext?) {
         context?.also {
@@ -34,7 +34,7 @@ internal class LocalSpecificationJunitExtension : Extension, BeforeEachCallback 
             val type = instance::class.java
 
             type.getField("_extensionInitialized").set(instance, true)
-            type.getField("_database").set(instance, "sqlite --temporary")
+            type.getField("_database").set(instance, "h2 --temporary")
             type.getField("_storageProvider").set(instance, FileSystemStorageProviderSettings())
         }
     }

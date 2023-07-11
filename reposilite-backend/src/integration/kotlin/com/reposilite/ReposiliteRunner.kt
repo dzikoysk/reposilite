@@ -14,11 +14,8 @@
  * limitations under the License.
  */
 
-package com.reposilite.specification
+package com.reposilite
 
-import com.reposilite.Reposilite
-import com.reposilite.ReposiliteFactory
-import com.reposilite.ReposiliteParameters
 import com.reposilite.configuration.local.LocalConfiguration
 import com.reposilite.configuration.local.infrastructure.LOCAL_CONFIGURATION_FILE
 import com.reposilite.configuration.shared.SharedConfigurationFacade
@@ -38,15 +35,13 @@ import org.junit.jupiter.api.io.TempDir
 import panda.std.Result
 import panda.std.reactive.ReferenceUtils
 import java.io.File
-import java.io.PrintStream
-import java.nio.file.Files
 import java.util.concurrent.ThreadLocalRandom
 
 /**
  * This is a dirty launcher of Reposilite instance for integration tests.
  * Every integration test is launched twice, with local and remote integrations, through dedicated extensions:
- * - [LocalSpecificationJunitExtension]
- * - [RemoteSpecificationJunitExtension]
+ * - [RecommendedLocalSpecificationJunitExtension]
+ * - [RecommendedRemoteSpecificationJunitExtension]
  */
 @Suppress("PropertyName")
 internal abstract class ReposiliteRunner {

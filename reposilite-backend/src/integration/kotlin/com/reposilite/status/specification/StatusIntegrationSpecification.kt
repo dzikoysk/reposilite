@@ -16,7 +16,7 @@
 
 package com.reposilite.status.specification
 
-import com.reposilite.specification.ReposiliteSpecification
+import com.reposilite.ReposiliteSpecification
 
 internal abstract class StatusIntegrationSpecification : ReposiliteSpecification() {
 

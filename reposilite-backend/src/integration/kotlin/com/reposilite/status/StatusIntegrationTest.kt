@@ -19,10 +19,10 @@
 package com.reposilite.status
 
 import com.reposilite.VERSION
-import com.reposilite.specification.ExperimentalLocalSpecificationJunitExtension
-import com.reposilite.specification.ExperimentalRemoteSpecficiationJunitExtension
-import com.reposilite.specification.LocalSpecificationJunitExtension
-import com.reposilite.specification.RemoteSpecificationJunitExtension
+import com.reposilite.ExperimentalLocalSpecificationJunitExtension
+import com.reposilite.ExperimentalRemoteSpecficiationJunitExtension
+import com.reposilite.RecommendedLocalSpecificationJunitExtension
+import com.reposilite.RecommendedRemoteSpecificationJunitExtension
 import com.reposilite.status.api.InstanceStatusResponse
 import com.reposilite.status.api.StatusSnapshot
 import com.reposilite.status.specification.StatusIntegrationSpecification
@@ -37,13 +37,13 @@ import org.junit.jupiter.api.extension.ExtendWith
 @ExtendWith(ExperimentalRemoteSpecficiationJunitExtension::class)
 internal class ExperimentalRemoteStatusIntegrationTest : StatusIntegrationTest()
 
-@ExtendWith(RemoteSpecificationJunitExtension::class)
+@ExtendWith(RecommendedRemoteSpecificationJunitExtension::class)
 internal class RemoteStatusIntegrationTest : StatusIntegrationTest()
 
 @ExtendWith(ExperimentalLocalSpecificationJunitExtension::class)
 internal class ExperimentalLocalStatusIntegrationTest : StatusIntegrationTest()
 
-@ExtendWith(LocalSpecificationJunitExtension::class)
+@ExtendWith(RecommendedLocalSpecificationJunitExtension::class)
 internal class LocalStatusIntegrationTest : StatusIntegrationTest()
 
 internal abstract class StatusIntegrationTest : StatusIntegrationSpecification() {

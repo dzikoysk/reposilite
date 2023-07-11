@@ -19,8 +19,8 @@
 package com.reposilite.maven
 
 import com.reposilite.maven.specification.MavenIntegrationSpecification
-import com.reposilite.specification.LocalSpecificationJunitExtension
-import com.reposilite.specification.RemoteSpecificationJunitExtension
+import com.reposilite.RecommendedLocalSpecificationJunitExtension
+import com.reposilite.RecommendedRemoteSpecificationJunitExtension
 import com.reposilite.token.RoutePermission.READ
 import io.javalin.http.HttpStatus.UNAUTHORIZED
 import kong.unirest.Unirest.get
@@ -30,10 +30,10 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 
-@ExtendWith(LocalSpecificationJunitExtension::class)
+@ExtendWith(RecommendedLocalSpecificationJunitExtension::class)
 internal class LocalMavenApiIntegrationTest : MavenApiIntegrationTest()
 
-@ExtendWith(RemoteSpecificationJunitExtension::class)
+@ExtendWith(RecommendedRemoteSpecificationJunitExtension::class)
 internal class RemoteMavenApiIntegrationTest : MavenApiIntegrationTest()
 
 internal abstract class MavenApiIntegrationTest : MavenIntegrationSpecification() {

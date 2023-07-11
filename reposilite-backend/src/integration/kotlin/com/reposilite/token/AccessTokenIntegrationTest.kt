@@ -19,8 +19,8 @@
 package com.reposilite.token
 
 import com.reposilite.shared.ErrorResponse
-import com.reposilite.specification.LocalSpecificationJunitExtension
-import com.reposilite.specification.RemoteSpecificationJunitExtension
+import com.reposilite.RecommendedLocalSpecificationJunitExtension
+import com.reposilite.RecommendedRemoteSpecificationJunitExtension
 import com.reposilite.token.AccessTokenPermission.MANAGER
 import com.reposilite.token.AccessTokenType.PERSISTENT
 import com.reposilite.token.api.AccessTokenDto
@@ -36,10 +36,10 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 
-@ExtendWith(LocalSpecificationJunitExtension::class)
+@ExtendWith(RecommendedLocalSpecificationJunitExtension::class)
 internal class LocalAccessTokenIntegrationTest : AccessTokenIntegrationTest()
 
-@ExtendWith(RemoteSpecificationJunitExtension::class)
+@ExtendWith(RecommendedRemoteSpecificationJunitExtension::class)
 internal class RemoteAccessTokenIntegrationTest : AccessTokenIntegrationTest()
 
 internal abstract class AccessTokenIntegrationTest : AccessTokenIntegrationSpecification() {

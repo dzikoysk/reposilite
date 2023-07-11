@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package com.reposilite.specification
+package com.reposilite
 
-import com.reposilite.ReposiliteObjectMapper
 import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.Metadata

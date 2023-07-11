@@ -19,12 +19,10 @@
 package com.reposilite.maven
 
 import com.reposilite.configuration.local.LocalConfiguration
-import com.reposilite.configuration.shared.SharedConfigurationFacade
-import com.reposilite.maven.application.MavenSettings
 import com.reposilite.maven.specification.MavenIntegrationSpecification
 import com.reposilite.shared.ErrorResponse
-import com.reposilite.specification.LocalSpecificationJunitExtension
-import com.reposilite.specification.RemoteSpecificationJunitExtension
+import com.reposilite.RecommendedLocalSpecificationJunitExtension
+import com.reposilite.RecommendedRemoteSpecificationJunitExtension
 import com.reposilite.storage.api.DocumentInfo
 import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.HttpStatus.UNAUTHORIZED
@@ -40,10 +38,10 @@ import org.junit.jupiter.api.extension.ExtendWith
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
 
-@ExtendWith(LocalSpecificationJunitExtension::class)
+@ExtendWith(RecommendedLocalSpecificationJunitExtension::class)
 internal class LocalMavenIntegrationTest : MavenIntegrationTest()
 
-@ExtendWith(RemoteSpecificationJunitExtension::class)
+@ExtendWith(RecommendedRemoteSpecificationJunitExtension::class)
 internal class RemoteMavenIntegrationTest : MavenIntegrationTest()
 
 internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {

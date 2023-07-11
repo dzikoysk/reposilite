@@ -18,7 +18,7 @@
 
 package com.reposilite.token
 
-import com.reposilite.specification.LocalSpecificationJunitExtension
+import com.reposilite.RecommendedLocalSpecificationJunitExtension
 import com.reposilite.console.CommandStatus.SUCCEEDED
 import com.reposilite.console.ConsoleFacade
 import com.reposilite.token.AccessTokenPermission.MANAGER
@@ -29,7 +29,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import panda.std.ResultAssertions.assertOk
 
-@ExtendWith(LocalSpecificationJunitExtension::class)
+@ExtendWith(RecommendedLocalSpecificationJunitExtension::class)
 internal class LocalAccessTokenCommandsIntegrationTest : AccessTokenCommandsIntegrationTest()
 
 internal abstract class AccessTokenCommandsIntegrationTest : AccessTokenIntegrationSpecification() {

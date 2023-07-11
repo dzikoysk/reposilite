@@ -16,6 +16,6 @@
 
 package com.reposilite.configuration.specification
 
-import com.reposilite.specification.ReposiliteSpecification
+import com.reposilite.ReposiliteSpecification
 
 internal abstract class SettingsIntegrationSpecification : ReposiliteSpecification()

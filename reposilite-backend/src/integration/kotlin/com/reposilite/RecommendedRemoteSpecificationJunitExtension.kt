@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.reposilite.specification
+package com.reposilite
 
 import com.reposilite.storage.s3.S3StorageProviderSettings
 import org.junit.jupiter.api.extension.AfterEachCallback
@@ -34,7 +34,7 @@ import org.testcontainers.utility.DockerImageName
  * - AWS S3 through LocalStack
  */
 @Testcontainers
-internal class RemoteSpecificationJunitExtension : Extension, BeforeEachCallback, AfterEachCallback {
+internal class RecommendedRemoteSpecificationJunitExtension : Extension, BeforeEachCallback, AfterEachCallback {
 
     private class SpecifiedMariaDBContainer(image: String) : MariaDBContainer<SpecifiedMariaDBContainer>(DockerImageName.parse(image))
 

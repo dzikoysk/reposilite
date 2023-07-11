@@ -1,5 +1,5 @@
 package com.reposilite.javadocs.specification
 
-import com.reposilite.specification.ReposiliteSpecification
+import com.reposilite.ReposiliteSpecification
 
 internal abstract class JavadocsIntegrationSpecification : ReposiliteSpecification()

@@ -16,7 +16,7 @@
 
 package com.reposilite.maven.specification
 
-import com.reposilite.specification.ReposiliteSpecification
+import com.reposilite.ReposiliteSpecification
 import io.javalin.Javalin
 import kotlinx.coroutines.Job
 

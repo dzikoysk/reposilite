@@ -19,10 +19,10 @@
 package com.reposilite.statistics
 
 import com.reposilite.maven.api.Identifier
-import com.reposilite.specification.ExperimentalLocalSpecificationJunitExtension
-import com.reposilite.specification.ExperimentalRemoteSpecficiationJunitExtension
-import com.reposilite.specification.LocalSpecificationJunitExtension
-import com.reposilite.specification.RemoteSpecificationJunitExtension
+import com.reposilite.ExperimentalLocalSpecificationJunitExtension
+import com.reposilite.ExperimentalRemoteSpecficiationJunitExtension
+import com.reposilite.RecommendedLocalSpecificationJunitExtension
+import com.reposilite.RecommendedRemoteSpecificationJunitExtension
 import com.reposilite.statistics.api.AllResolvedResponse
 import com.reposilite.statistics.api.IntervalRecord
 import com.reposilite.statistics.api.RepositoryStatistics
@@ -44,13 +44,13 @@ import java.time.temporal.ChronoUnit
 @ExtendWith(ExperimentalRemoteSpecficiationJunitExtension::class)
 internal class ExperimentalRemoteStatisticsIntegrationTest : StatisticsIntegrationTest()
 
-@ExtendWith(RemoteSpecificationJunitExtension::class)
+@ExtendWith(RecommendedRemoteSpecificationJunitExtension::class)
 internal class RemoteStatisticsIntegrationTest : StatisticsIntegrationTest()
 
 @ExtendWith(ExperimentalLocalSpecificationJunitExtension::class)
 internal class ExperimentalLocalStatisticsIntegrationTest : StatisticsIntegrationTest()
 
-@ExtendWith(LocalSpecificationJunitExtension::class)
+@ExtendWith(RecommendedLocalSpecificationJunitExtension::class)
 internal class LocalStatisticsIntegrationTest : StatisticsIntegrationTest()
 
 internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecification() {

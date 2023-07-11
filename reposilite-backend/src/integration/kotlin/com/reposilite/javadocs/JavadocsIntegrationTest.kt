@@ -3,18 +3,18 @@
 package com.reposilite.javadocs
 
 import com.reposilite.javadocs.specification.JavadocsIntegrationSpecification
-import com.reposilite.specification.LocalSpecificationJunitExtension
-import com.reposilite.specification.RemoteSpecificationJunitExtension
+import com.reposilite.RecommendedLocalSpecificationJunitExtension
+import com.reposilite.RecommendedRemoteSpecificationJunitExtension
 import com.reposilite.storage.api.Location
 import kong.unirest.Unirest.*
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 
-@ExtendWith(LocalSpecificationJunitExtension::class)
+@ExtendWith(RecommendedLocalSpecificationJunitExtension::class)
 internal class LocalJavadocsIntegrationTest : JavadocsIntegrationTest()
 
-@ExtendWith(RemoteSpecificationJunitExtension::class)
+@ExtendWith(RecommendedRemoteSpecificationJunitExtension::class)
 internal class RemoteJavadocsIntegrationTest : JavadocsIntegrationTest()
 
 internal abstract class JavadocsIntegrationTest : JavadocsIntegrationSpecification() {

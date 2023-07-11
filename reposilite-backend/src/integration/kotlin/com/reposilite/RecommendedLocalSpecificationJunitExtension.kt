@@ -14,46 +14,29 @@
  * limitations under the License.
  */
 
-package com.reposilite.specification
+package com.reposilite
 
 import com.reposilite.storage.filesystem.FileSystemStorageProviderSettings
-import org.junit.jupiter.api.extension.AfterEachCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.Extension
 import org.junit.jupiter.api.extension.ExtensionContext
-import org.testcontainers.containers.PostgreSQLContainer
-import org.testcontainers.junit.jupiter.Container
-import org.testcontainers.junit.jupiter.Testcontainers
-import org.testcontainers.utility.DockerImageName
 
 /**
- * Integrations used in remote stack:
- * - PostreSQL
+ * Integrations used in local stack:
+ * - SQLite
  * - Local file system
  */
-@Testcontainers
-internal class ExperimentalRemoteSpecficiationJunitExtension : Extension, BeforeEachCallback, AfterEachCallback {
-
-    private class SpecifiedPostgreSQLContainer(image: String) : PostgreSQLContainer<SpecifiedPostgreSQLContainer>(DockerImageName.parse(image))
-
-    @Container
-    private val postgres = SpecifiedPostgreSQLContainer("postgres:latest")
+internal class RecommendedLocalSpecificationJunitExtension : Extension, BeforeEachCallback {
 
     override fun beforeEach(context: ExtensionContext?) {
-        postgres.start()
-
         context?.also {
             val instance = it.requiredTestInstance
             val type = instance::class.java
 
             type.getField("_extensionInitialized").set(instance, true)
-            type.getField("_database").set(instance, "postgresql ${postgres.host}:${postgres.getMappedPort(5432)} ${postgres.databaseName} ${postgres.username} ${postgres.password}")
+            type.getField("_database").set(instance, "sqlite --temporary")
             type.getField("_storageProvider").set(instance, FileSystemStorageProviderSettings())
         }
-    }
-
-    override fun afterEach(context: ExtensionContext) {
-        postgres.stop()
     }
 
 }

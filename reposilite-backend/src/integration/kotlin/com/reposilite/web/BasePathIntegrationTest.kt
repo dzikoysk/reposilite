@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.reposilite
+package com.reposilite.web
 
 import com.reposilite.configuration.local.LocalConfiguration
-import com.reposilite.specification.LocalSpecificationJunitExtension
-import com.reposilite.specification.ReposiliteSpecification
+import com.reposilite.RecommendedLocalSpecificationJunitExtension
+import com.reposilite.ReposiliteSpecification
 import io.javalin.Javalin
 import io.javalin.http.Context
 import kong.unirest.HttpRequest
@@ -32,7 +32,7 @@ import kotlin.io.path.createDirectories
 import kotlin.io.path.createFile
 import kotlin.io.path.writeText
 
-@ExtendWith(LocalSpecificationJunitExtension::class)
+@ExtendWith(RecommendedLocalSpecificationJunitExtension::class)
 internal class BasePathIntegrationTest : ReposiliteSpecification() {
 
     private val basePath = "/custom-base-path"

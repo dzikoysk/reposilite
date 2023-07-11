@@ -1,7 +1,8 @@
-package com.reposilite
+package com.reposilite.configuration
 
 import com.reposilite.configuration.local.infrastructure.LOCAL_CONFIGURATION_FILE
 import com.reposilite.configuration.shared.infrastructure.SHARED_CONFIGURATION_FILE
+import com.reposilite.createWithParameters
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir

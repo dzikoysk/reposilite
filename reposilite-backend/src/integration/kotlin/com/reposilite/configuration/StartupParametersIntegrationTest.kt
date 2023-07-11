@@ -16,19 +16,20 @@
 
 @file:Suppress("FunctionName")
 
-package com.reposilite
+package com.reposilite.configuration
 
+import com.reposilite.ReposiliteParameters
 import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.frontend.application.FrontendSettings
-import com.reposilite.specification.LocalSpecificationJunitExtension
-import com.reposilite.specification.ReposiliteSpecification
+import com.reposilite.RecommendedLocalSpecificationJunitExtension
+import com.reposilite.ReposiliteSpecification
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import java.nio.file.Files
 
-@ExtendWith(LocalSpecificationJunitExtension::class)
-internal class ReposiliteParametersIntegrationTest : ReposiliteSpecification() {
+@ExtendWith(RecommendedLocalSpecificationJunitExtension::class)
+internal class StartupParametersIntegrationTest : ReposiliteSpecification() {
 
     override fun overrideParameters(parameters: ReposiliteParameters) {
         // given: a custom shared configuration
