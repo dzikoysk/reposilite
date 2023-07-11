@@ -56,6 +56,11 @@ internal class LdapAuthenticator(
     private val failureFacade: FailureFacade
 ) : Authenticator {
 
+    private val protocol = when {
+        ldapSettings.get().ssl -> "ldaps"
+        else -> "ldap"
+    }
+
     override fun authenticate(credentials: Credentials): Result<AccessTokenDto, ErrorResponse> =
         with(ldapSettings.get()) {
             createSearchContext()
@@ -101,7 +106,7 @@ internal class LdapAuthenticator(
         Hashtable<String, String>()
             .also {
                 it[INITIAL_CONTEXT_FACTORY] = "com.sun.jndi.ldap.LdapCtxFactory"
-                it[PROVIDER_URL] = with(ldapSettings.get()) { "ldap://$hostname:$port" }
+                it[PROVIDER_URL] = with(ldapSettings.get()) { "$protocol://$hostname:$port" }
                 it[SECURITY_AUTHENTICATION] = "simple"
                 it[SECURITY_PRINCIPAL] = user
                 it[SECURITY_CREDENTIALS] = password

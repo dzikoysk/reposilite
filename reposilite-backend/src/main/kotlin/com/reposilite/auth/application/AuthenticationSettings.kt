@@ -32,6 +32,8 @@ data class AuthenticationSettings(
 data class LdapSettings(
     @get:Doc(title = "Enabled", description = "LDAP Authenticator is enabled")
     val enabled: Boolean = false,
+    @get:Doc(title = "SSL", description = "Use SSL (LDAPS) to connect to LDAP server")
+    val ssl: Boolean = false,
     @get:Doc(title = "Hostname", description = "LDAP server address")
     val hostname: String = "ldap.domain.com",
     @get:Doc(title = "Port", description = "LDAP server port")
