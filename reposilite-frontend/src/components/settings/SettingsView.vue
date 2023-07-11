@@ -260,7 +260,7 @@ const formsConfiguration = {
   @apply border rounded-md px-6 py-2 dark:border-gray-600;
 }
 .array-list-add {
-  @apply rounded-full h-6 w-6 leading-6 bg-blue-700 ml-auto text-white;
+  @apply rounded-full h-6 w-6 leading-6 bg-blue-700 ml-auto text-white z-1;
 }
 .array-list-item-move-up {
   display: none;
