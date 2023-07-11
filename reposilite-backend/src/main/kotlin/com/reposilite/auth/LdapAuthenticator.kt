@@ -22,6 +22,7 @@ import com.reposilite.journalist.Channel.DEBUG
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.badRequest
 import com.reposilite.shared.badRequestError
+import com.reposilite.shared.extensions.accept
 import com.reposilite.shared.internalServerError
 import com.reposilite.shared.notFoundError
 import com.reposilite.shared.unauthorized
@@ -48,7 +49,11 @@ import javax.naming.directory.SearchResult
 
 typealias Attributes = List<String>
 typealias AttributesMap = Map<String, Attributes>
-typealias SearchEntry = Pair<String, AttributesMap>
+
+data class SearchEntry(
+    val fullName: String,
+    val attributes: AttributesMap
+)
 
 internal class LdapAuthenticator(
     private val ldapSettings: Reference<LdapSettings>,
@@ -66,43 +71,69 @@ internal class LdapAuthenticator(
             createSearchContext()
                 .flatMap {
                     it.search(
-                        "(&(objectClass=person)($userAttribute=${credentials.name}))", // find user entry with search user
-                        userAttribute
+                        ldapFilterQuery = "(&(objectClass=person)($userAttribute={0}))", // find user entry with search user,
+                        ldapFilterQueryArguments = arrayOf(credentials.name),
+                        requestedAttributes = arrayOf(userAttribute)
                     )
                 }
-                .filter({ it.size == 1 }, { badRequest("Could not identify one specific result") }) // only one search result allowed
-                .map { it.first() }
-                .flatMap { createContext(user = it.first, password = credentials.secret) } // try to authenticate user with matched domain namespace
+                .filter { users ->
+                    when {
+                        users.isEmpty() -> badRequest("User not found")
+                        users.size > 1 -> badRequest("Could not identify one specific result")
+                        else -> accept() // only one search result allowed
+                    }
+                }
+                .map { users -> users.first() }
+                .flatMap { matchedUserObject ->
+                    // try to authenticate user with matched domain namespace
+                    createDirContext(
+                        user = matchedUserObject.fullName,
+                        password = credentials.secret
+                    )
+                }
                 .flatMap {
                     it.search(
-                        "(&(objectClass=person)($userAttribute=${credentials.name})$userFilter)", // filter result with user-filter from configuration
-                        userAttribute
+                        ldapFilterQuery = "(&(objectClass=person)($userAttribute={0})$userFilter)", // filter result with user-filter from configuration
+                        ldapFilterQueryArguments = arrayOf(credentials.name),
+                        requestedAttributes = arrayOf(userAttribute)
                     )
                 }
-                .filter({ it.size == 1 }, { badRequest("Could not identify one specific result as user") }) // only one search result allowed
-                .map { it.first() }
-                .map { (_, attributes) -> attributes[userAttribute]!! } // search returns only lists with values
-                .filter({ it.size == 1 }, { badRequest("Could not identify one specific attribute") }) // only one attribute value is allowed
-                .map { it.first() }
-                .filter(
-                    { credentials.name == it }, // make sure requested name matches required attribute
-                    { unauthorized("LDAP user does not match required attribute") }
-                )
-                .map { name -> accessTokenFacade.getAccessToken(name)
-                    ?: accessTokenFacade.createAccessToken(
-                        CreateAccessTokenRequest(
-                            type = ldapSettings.map { it.userType },
-                            name = name,
-                            secret = credentials.secret
-                        )
-                    ).accessToken
+                .filter { filterResults ->
+                    when {
+                        filterResults.isEmpty() -> badRequest("User matching filter not found")
+                        filterResults.size > 1 -> badRequest("Could not identify one specific result with specified user-filter")
+                        else -> accept() // only one search result allowed
+                    }
+                }
+                .map { filterResults -> filterResults.first() }
+                .map { it.attributes[userAttribute]!! } // search returns only lists with values
+                .filter { usernameAttributeObject ->
+                    when {
+                        usernameAttributeObject.isEmpty() -> badRequest("Username attribute not found")
+                        usernameAttributeObject.size > 1 -> badRequest("Could not identify one specific username attribute: ${usernameAttributeObject.joinToString()}")
+                        else -> accept() // only one attribute value is allowed
+                    }
+                }
+                .map { attributes -> attributes.first() }
+                .filter { username ->
+                    when {
+                        username != credentials.name -> unauthorized("LDAP user does not match required attribute")
+                        else -> accept()
+                    }
+                }
+                .map { username ->
+                    accessTokenFacade.getAccessToken(username)
+                        ?: accessTokenFacade.createAccessToken(
+                            CreateAccessTokenRequest(
+                                type = ldapSettings.map { it.userType },
+                                name = username,
+                                secret = credentials.secret
+                            )
+                        ).accessToken
                 }
         }
 
-    private fun createSearchContext(): Result<out DirContext, ErrorResponse> =
-        ldapSettings.map { createContext(user = it.searchUserDn, password = it.searchUserPassword) }
-
-    private fun createContext(user: String, password: String): Result<out DirContext, ErrorResponse> =
+    private fun createDirContext(user: String, password: String): Result<out DirContext, ErrorResponse> =
         Hashtable<String, String>()
             .also {
                 it[INITIAL_CONTEXT_FACTORY] = "com.sun.jndi.ldap.LdapCtxFactory"
@@ -117,20 +148,53 @@ internal class LdapAuthenticator(
                 unauthorized("Unauthorized LDAP access")
             }
 
-    fun search(ldapFilterQuery: String, vararg requestedAttributes: String): Result<List<SearchEntry>, ErrorResponse> =
-        createSearchContext()
-            .flatMap { it.search(ldapFilterQuery, *requestedAttributes) }
+    fun search(
+        ldapFilterQuery: String,
+        ldapFilterQueryArguments: Array<Any>,
+        vararg requestedAttributes: String
+    ): Result<List<SearchEntry>, ErrorResponse> =
+        createSearchContext().flatMap {
+            it.search(
+                ldapFilterQuery = ldapFilterQuery,
+                ldapFilterQueryArguments = ldapFilterQueryArguments,
+                requestedAttributes = requestedAttributes
+            )
+        }
 
-    private fun DirContext.search(ldapFilterQuery: String, vararg requestedAttributes: String): Result<List<SearchEntry>, ErrorResponse> =
+    private fun createSearchContext(): Result<out DirContext, ErrorResponse> =
+        ldapSettings.map {
+            createDirContext(
+                user = it.searchUserDn,
+                password = it.searchUserPassword
+            )
+        }
+
+    private fun DirContext.search(
+        ldapFilterQuery: String,
+        ldapFilterQueryArguments: Array<Any>,
+        requestedAttributes: Array<out String>
+    ): Result<List<SearchEntry>, ErrorResponse> =
         try {
             SearchControls()
                 .also {
-                    it.returningAttributes = requestedAttributes
                     it.searchScope = SearchControls.SUBTREE_SCOPE
+                    it.returningAttributes = requestedAttributes
                 }
-                .let { controls -> search(ldapSettings.map { it.baseDn }, ldapFilterQuery, controls) }
+                .let {
+                    this.search(
+                        ldapSettings.get().baseDn,
+                        ldapFilterQuery,
+                        ldapFilterQueryArguments,
+                        it
+                    )
+                }
                 .asSequence()
-                .map { it.nameInNamespace to it.attributesMap(*requestedAttributes) }
+                .map {
+                    SearchEntry(
+                        fullName = it.nameInNamespace,
+                        attributes = it.attributesMap(requestedAttributes)
+                    )
+                }
                 .toList()
                 .takeIf { it.isNotEmpty() }
                 ?.asSuccess()
@@ -145,7 +209,7 @@ internal class LdapAuthenticator(
             internalServerError(exception.toString())
         }
 
-    private fun SearchResult.attributesMap(vararg requestedAttributes: String): AttributesMap =
+    private fun SearchResult.attributesMap(requestedAttributes: Array<out String>): AttributesMap =
         requestedAttributes.associate { attribute ->
             attributes.get(attribute)
                 .all
