@@ -88,8 +88,15 @@ internal class LdapAuthenticatorTest : AuthenticationSpecification() {
 
     @Test
     fun `should connect with search user`() {
-        val result = assertOk(authenticator.search("(&(objectClass=person)(cn=Reposilite)(ou=Search Accounts))", arrayOf("cn")))
-        assertCollectionsEquals(listOf(Pair("cn=Reposilite,ou=Search Accounts,dc=domain,dc=com", mapOf("cn" to listOf("Reposilite")))), result)
+        val result = assertOk(authenticator.search("(&(objectClass=person)(cn=Reposilite)(ou=Search Accounts))", arrayOf(), arrayOf("cn")))
+        assertCollectionsEquals(
+            result,
+            listOf(
+                SearchEntry(
+                    fullName = "cn=Reposilite,ou=Search Accounts,dc=domain,dc=com",
+                    attributes = mapOf("cn" to listOf("Reposilite")))
+            )
+        )
     }
 
     @Test

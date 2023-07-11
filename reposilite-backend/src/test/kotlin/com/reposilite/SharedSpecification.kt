@@ -18,10 +18,10 @@ package com.reposilite
 
 import org.assertj.core.api.Assertions.assertThat
 
-internal fun assertCollectionsEquals(first: Collection<Any?>, second: Collection<Any?>) {
-    if (first.size == second.size && first.containsAll(second) && second.containsAll(first)) {
+internal fun assertCollectionsEquals(actual: Collection<Any?>, expected: Collection<Any?>) {
+    if (actual.size == expected.size && actual.containsAll(expected) && expected.containsAll(actual)) {
         return
     }
 
-    assertThat(first.sortedBy { it.toString() }).isEqualTo(second.sortedBy { it.toString() }) // pretty printing
+    assertThat(actual.sortedBy { it.toString() }).isEqualTo(expected.sortedBy { it.toString() }) // pretty printing
 }

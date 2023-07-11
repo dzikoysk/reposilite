@@ -151,7 +151,7 @@ internal class LdapAuthenticator(
     fun search(
         ldapFilterQuery: String,
         ldapFilterQueryArguments: Array<Any>,
-        vararg requestedAttributes: String
+        requestedAttributes: Array<out String>
     ): Result<List<SearchEntry>, ErrorResponse> =
         createSearchContext().flatMap {
             it.search(
