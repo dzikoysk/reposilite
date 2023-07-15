@@ -17,7 +17,7 @@ const statusSnapshots = ref()
 const statusSnapshotsSeries = computed(() => {
   return [
     {
-      name: 'Used memory',
+      name: 'Used memory (MB)',
       data: statusSnapshots.value.map(record => [record.at, record.memory])
     },
     {
