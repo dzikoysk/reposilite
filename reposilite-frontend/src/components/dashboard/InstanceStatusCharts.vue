@@ -59,7 +59,7 @@ const prettyUptime = (seconds) => {
       />
       <DashboardBox 
         title="Used memory"
-        :content="instanceStatus.usedMemory.toFixed(1) + ' of ' + instanceStatus.maxMemory"
+        :content="`${instanceStatus.usedMemory.toFixed(1)} of ${instanceStatus.maxMemory} MB`"
       />
       <DashboardBox 
         title="Used threads"
