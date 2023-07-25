@@ -10,7 +10,7 @@ Browser displays the content of the currently selected directory in respect to t
 
 ![Dashboard Browser Preview](/images/guides/dashboard-browser-preview.png)
 
-You can control the way how Reposilite displays directory content by opening the adjustments view via the icon in the top-right corner:
+You can control how Reposilite displays directory content by opening the adjustments view via the icon in the top-right corner:
 
 ![Browser Adjustments](/images/guides/dashboard-browser-adjustments.png)
 
