@@ -3,7 +3,7 @@ id: dashboard
 title: Dashboard
 ---
 
-Reposilite exposes a frontend that is mounted to `/#/` as [SPA (_single-page application_)](https://en.wikipedia.org/wiki/Single-page_application) in [Vue 3](https://vuejs.org/). You can disable the frontend in [shared configuration](/guide/settings#shared-configuration) if you want to disable an easy way to query your repository or to provide a custom frontend implementation using [static files](/guide/static-files).
+Reposilite exposes a frontend that is mounted to `/#/` as [SPA _(single-page application)_](https://en.wikipedia.org/wiki/Single-page_application) in [Vue 3](https://vuejs.org/). You can disable the frontend in [shared configuration](/guide/settings#shared-configuration) if you want to disable an easy way to query your repository or to provide a custom frontend implementation using [static files](/guide/static-files).
 
 #### Browser
 Browser displays the content of the currently selected directory in respect to the provided authentication credentials. For users not logged in it lists only public files, for authenticated users it also displays files that the user has access to.
@@ -16,7 +16,7 @@ You can control how Reposilite displays directory content by opening the adjustm
 
 #### Console
 
-CLI (_command-line interface_) displays the current Reposilite output and allows to perform available [commands](/guide/standalone#interactive-cli). Only access tokens with management permission can access this view.
+CLI _(command-line interface)_ displays the current Reposilite output and allows to perform available [commands](/guide/standalone#interactive-cli). Only access tokens with management permission can access this view.
 
 ![CLI Preview](/images/guides/dashboard-console.png)
 
@@ -27,7 +27,7 @@ Shared configuration has been already mentioned in:
 
 * [Guide / Setup :: Shared configuration](/guide/settings#shared-configuration)
 
-Currently, configuration is provided in [CDN (_change detection and Notification_)](https://en.wikipedia.org/wiki/Change_detection_and_notification) format:
+Currently, configuration is provided in [CDN _(Configuration Data Notation)_](https://github.com/dzikoysk/cdn) format:
 
 ![Dashboard / Configuration](/images/guides/web-interface-configuration.png)
 
