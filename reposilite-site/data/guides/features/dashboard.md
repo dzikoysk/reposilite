@@ -6,7 +6,7 @@ title: Dashboard
 Reposilite exposes a frontend that is mounted to `/#/` as [SPA (_single-page application_)](https://en.wikipedia.org/wiki/Single-page_application) in [Vue 3](https://vuejs.org/). You can disable the frontend in [shared configuration](/guide/settings#shared-configuration) if you want to disable an easy way to query your repository or to provide a custom frontend implementation using [static files](/guide/static-files).
 
 #### Browser
-Browser displays the content of the currently selected directory in respect to the provided authentication credentials. For user not logged in it lists only public files, for authenticated users it also displays files that the user has access to.
+Browser displays the content of the currently selected directory in respect to the provided authentication credentials. For users not logged in it lists only public files, for authenticated users it also displays files that the user has access to.
 
 ![Dashboard Browser Preview](/images/guides/dashboard-browser-preview.png)
 
