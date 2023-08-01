@@ -35,7 +35,7 @@
     "vue-float-menu": "^1.9.1",
     "vue-router": "^4.2.2",
     "vue-upload-component": "^3.1.8",
-    "vue3-apexcharts": "^1.4.1",
+    "vue3-apexcharts": "^1.4.4",
     "vue3-tabs": "^0.1.13-beta.3"
   },
   "devDependencies": {
