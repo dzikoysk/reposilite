@@ -87,7 +87,7 @@ dependencies {
     implementation("mysql:mysql-connector-java:8.0.33")
     implementation("org.mariadb.jdbc:mariadb-java-client:3.1.4")
     implementation("org.postgresql:postgresql:42.6.0")
-    implementation("com.h2database:h2:2.1.214")
+    implementation("com.h2database:h2:2.2.220")
 
     val exposedUpsert = "1.2.1"
     api("net.dzikoysk:exposed-upsert:$exposedUpsert")
