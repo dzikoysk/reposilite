@@ -23,7 +23,7 @@ plugins {
     application
     `maven-publish`
 
-    val kotlinVersion = "1.8.22"
+    val kotlinVersion = "1.9.0"
     kotlin("jvm") version kotlinVersion
     kotlin("kapt") version kotlinVersion
 
@@ -104,14 +104,14 @@ subprojects {
     group = "com.reposilite"
 
     dependencies {
-        val unirest = "3.14.2"
+        val unirest = "3.14.5"
         testImplementation("com.konghq:unirest-java:$unirest")
         testImplementation("com.konghq:unirest-objectmapper-jackson:$unirest")
 
         val assertJ = "3.24.2"
         testImplementation("org.assertj:assertj-core:$assertJ")
 
-        val junit = "5.9.3"
+        val junit = "5.10.0"
         testImplementation("org.junit.jupiter:junit-jupiter-params:$junit")
         testImplementation("org.junit.jupiter:junit-jupiter-api:$junit")
         testImplementation("org.junit.jupiter:junit-jupiter-engine:$junit")

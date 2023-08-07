@@ -38,19 +38,19 @@ dependencies {
     val detekt = "1.23.0"
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:$detekt")
 
-    val kotlin = "1.8.22"
+    val kotlin = "1.9.0"
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin")
 
-    val javalin = "5.6.1"
+    val javalin = "5.6.2"
     api("io.javalin:javalin:$javalin")
     api("io.javalin.community.ssl:ssl-plugin:$javalin")
 
-    val javalinOpenApi = "5.6.1"
+    val javalinOpenApi = "5.6.2"
     api("io.javalin.community.openapi:javalin-openapi-plugin:$javalinOpenApi")
     kapt("io.javalin.community.openapi:openapi-annotation-processor:$javalinOpenApi")
 
-    val javalinRouting = "5.5.0-RC.3"
+    val javalinRouting = "5.6.2-RC.1"
     api("io.javalin.community.routing:routing-dsl:$javalinRouting")
 
     val bcrypt = "0.10.2"
@@ -69,14 +69,14 @@ dependencies {
     kapt("info.picocli:picocli-codegen:$picocli")
     api("info.picocli:picocli:$picocli")
 
-    val awssdk = "2.20.97"
+    val awssdk = "2.20.121"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
 
     val awsSdkV1 = "1.12.486"
     testImplementation("com.amazonaws:aws-java-sdk-s3:$awsSdkV1")
 
-    val exposed = "0.41.1"
+    val exposed = "0.42.0"
     api("org.jetbrains.exposed:exposed-core:$exposed")
     api("org.jetbrains.exposed:exposed-dao:$exposed")
     api("org.jetbrains.exposed:exposed-jdbc:$exposed")
@@ -87,7 +87,7 @@ dependencies {
     implementation("mysql:mysql-connector-java:8.0.33")
     implementation("org.mariadb.jdbc:mariadb-java-client:3.1.4")
     implementation("org.postgresql:postgresql:42.6.0")
-    implementation("com.h2database:h2:2.1.214")
+    implementation("com.h2database:h2:2.2.220")
 
     val exposedUpsert = "1.2.1"
     api("net.dzikoysk:exposed-upsert:$exposedUpsert")
@@ -104,7 +104,7 @@ dependencies {
     implementation("com.google.http-client:google-http-client:$httpClient") { exclude(group = "commons-codec", module = "commons-codec")}
     testImplementation("com.google.http-client:google-http-client-jackson2:$httpClient")
 
-    val commonsCoded = "1.15"
+    val commonsCoded = "1.16"
     api("commons-codec:commons-codec:$commonsCoded")
 
     val jansi = "2.4.0"
