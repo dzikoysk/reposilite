@@ -18,6 +18,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import io.gitlab.arturbosch.detekt.Detekt
 import io.gitlab.arturbosch.detekt.DetektCreateBaselineTask
 import org.apache.tools.ant.filters.ReplaceTokens
+import org.jetbrains.kotlin.gradle.tasks.KaptGenerateStubs
 
 plugins {
     jacoco
@@ -104,7 +105,7 @@ dependencies {
     implementation("com.google.http-client:google-http-client:$httpClient") { exclude(group = "commons-codec", module = "commons-codec")}
     testImplementation("com.google.http-client:google-http-client-jackson2:$httpClient")
 
-    val commonsCoded = "1.16"
+    val commonsCoded = "1.16.0"
     api("commons-codec:commons-codec:$commonsCoded")
 
     val jansi = "2.4.0"
@@ -188,6 +189,7 @@ tasks {
     compileKotlin { dependsOn("generateKotlin") }
     sourcesJar { dependsOn("generateKotlin") }
     kotlinSourcesJar { dependsOn("generateKotlin") }
+    withType<KaptGenerateStubs> { dependsOn("generateKotlin") }
 }
 
 kotlin.sourceSets.main {
