@@ -82,7 +82,7 @@ export default function useConsole() {
       }
 
       connection.value.onmessage = (event) => {
-        if (event.data != "keep-alive")
+        if (event.data != "keep-alive" && !event.data.toString().includes("GET /api/status/instance from"))
           onMessage?.value(event.data)
       }
 
