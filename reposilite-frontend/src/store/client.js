@@ -39,24 +39,6 @@ const createClient = (defaultName, defaultSecret) => {
       ...(credentials || defaultAuthorization()),
     })
 
-  const del = (endpoint, credentials) =>
-    axios.delete(createURL(endpoint), {
-      ...(credentials || defaultAuthorization()),
-    })
-  
-  const post = (endpoint, data, credentials) =>
-    axios.post(createURL(endpoint), data, {
-      ...(credentials || defaultAuthorization()),
-    })
-  
-  const put = (endpoint, content, credentials) =>
-    axios.put(createURL(endpoint), content, {
-      headers: {
-        "Content-Type": "text/plain",
-        ...(credentials || defaultAuthorization()).headers,
-      },
-    })
-
   return {
     auth: {
       me() {
@@ -90,18 +72,34 @@ const createClient = (defaultName, defaultSecret) => {
           ...defaultAuthorization(),
         })
       },
-      deploy(gav, file) {
-        return put(`/${gav}`, file)
-      },
-      generatePom(gav, groupId, artifactId, version) {
-        return post(`/api/maven/generate/pom/${gav}/${artifactId}-${version}.pom`, {
-          groupId,
-          artifactId,
-          version
+      deploy(gav, file, generateChecksums) {
+        return axios.put(createURL(`/${gav}`), file, {
+          headers: {
+            "Content-Type": "application/octet-stream",
+            "X-Generate-Checksums": generateChecksums,
+            ...defaultAuthorization().headers,
+          }
         })
       },
+      generatePom(gav, groupId, artifactId, version) {
+        return axios.post(
+          createURL(`/api/maven/generate/pom/${gav}/${artifactId}-${version}.pom`),
+          {
+            groupId,
+            artifactId,
+            version
+          }, {
+            headers: {
+              "Content-Type": "application/json",
+              ...defaultAuthorization().headers,
+            }
+          }
+        )
+      },
       delete(gav) {
-        return del(`/${gav}`)
+        return axios.delete(createURL(`/${gav}`), {
+          ...defaultAuthorization(),
+        })
       }
     },
     settings: {

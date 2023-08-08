@@ -15,6 +15,7 @@
  */
 package com.reposilite.maven
 
+import com.reposilite.maven.api.METADATA_FILE
 import com.reposilite.maven.api.REPOSITORY_NAME_MAX_LENGTH
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.storage.StorageProvider
@@ -39,8 +40,13 @@ class Repository internal constructor(
         check(name.length < REPOSITORY_NAME_MAX_LENGTH) { "Repository name cannot exceed $REPOSITORY_NAME_MAX_LENGTH characters" }
     }
 
-    @Suppress("unused")
-    fun writeFileChecksums(location: Location, bytes: ByteArray): Result<Unit, ErrorResponse> {
+    fun acceptsDeploymentOf(location: Location): Boolean =
+        redeployment || location.getSimpleName().contains(METADATA_FILE) || !storageProvider.exists(location)
+
+    fun writeFileChecksums(location: Location, bytes: ByteArray): Result<Unit, ErrorResponse> =
+        writeFileChecksums(location, bytes.inputStream())
+
+    fun writeFileChecksums(location: Location, bytes: InputStream): Result<Unit, ErrorResponse> {
         val md5 = location.resolveSibling(location.getSimpleName() + ".md5")
         val sha1 = location.resolveSibling(location.getSimpleName() + ".sha1")
         val sha256 = location.resolveSibling(location.getSimpleName() + ".sha256")

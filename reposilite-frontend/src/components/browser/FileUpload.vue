@@ -15,6 +15,7 @@ const to = ref(defaultTo)
 const destination = computed(() => `${repository.value}/${to.value.replace(/(^\/+)|(\/+$)/g, '')}`)
 const customDestination = ref(false)
 
+const checksumsEnabled = ref(false)
 const stubPomEnabled = ref(false)
 const artifactId = ref('')
 const groupId = ref('')
@@ -80,7 +81,7 @@ const uploadFiles = () => {
   }
 
   files.value.forEach(vueFile => 
-    client.value.maven.deploy(`${destination.value}/${vueFile.name}`, vueFile.file)
+    client.value.maven.deploy(`${destination.value}/${vueFile.name}`, vueFile.file, checksumsEnabled.value)
       .then(() => createSuccessToast(`File ${vueFile.name} has been uploaded`))
       .then(() => removeFile(vueFile))
       .then(() => refreshQualifier())
@@ -139,6 +140,10 @@ const uploadFiles = () => {
           </div>
         </div>
         <div class="px-6 pb-4">
+          <div>
+            <input type="checkbox" v-model="checksumsEnabled" class="mb-1 ml-1 dark:bg-gray-900" />
+            <span class="pl-3" @click="checksumsEnabled = !checksumsEnabled" >Generate default checksums</span>
+          </div>
           <div>
             <input type="checkbox" v-model="stubPomEnabled" class="mb-1 ml-1 dark:bg-gray-900" />
             <span class="pl-3" @click="stubPomEnabled = !stubPomEnabled" >Generate stub POM file</span>

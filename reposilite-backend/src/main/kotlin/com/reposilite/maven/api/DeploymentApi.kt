@@ -25,7 +25,8 @@ data class DeployRequest(
     val repository: Repository,
     val gav: Location,
     val by: String,
-    val content: InputStream
+    val content: InputStream,
+    val generateChecksums: Boolean
 )
 
 /**

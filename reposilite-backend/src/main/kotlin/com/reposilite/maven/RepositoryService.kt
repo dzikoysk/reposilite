@@ -42,6 +42,7 @@ import com.reposilite.storage.api.SimpleDirectoryInfo
 import com.reposilite.token.AccessTokenIdentifier
 import panda.std.Result
 import panda.std.asSuccess
+import panda.std.ok
 import java.io.InputStream
 
 internal class RepositoryService(
@@ -70,30 +71,41 @@ internal class RepositoryService(
         ".asc"
     )
 
-    fun deployFile(deployRequest: DeployRequest): Result<Unit, ErrorResponse> {
-        val (repository, path) = deployRequest
-
-        if (repository.redeployment.not() && !path.getSimpleName().contains(METADATA_FILE) && repository.storageProvider.exists(path)) {
-            return badRequestError("Redeployment is not allowed")
+    fun deployFile(deployRequest: DeployRequest): Result<Unit, ErrorResponse> =
+        with(deployRequest) {
+            when {
+                repository.acceptsDeploymentOf(gav) ->
+                    repository.storageProvider
+                        .putFile(gav, deployRequest.content)
+                        .peek { logger.info("DEPLOY | Artifact $gav successfully deployed to ${repository.name} by ${deployRequest.by}") }
+                        .peek { extensions.emitEvent(DeployEvent(repository, gav, deployRequest.by)) }
+                        .flatMap { _ ->
+                            when {
+                                deployRequest.generateChecksums ->
+                                    repository.storageProvider
+                                        .getFile(gav)
+                                        .peek { logger.info("DEPLOY | Generating checksums for $gav") }
+                                        .flatMap { repository.writeFileChecksums(gav, it) }
+                                else -> {
+                                    logger.debug("DEPLOY | Skipping checksums generation for $gav")
+                                    ok()
+                                }
+                            }
+                        }
+                else -> badRequestError("Redeployment is not allowed")
+            }
         }
 
-        return repository.storageProvider.putFile(path, deployRequest.content).peek {
-            logger.info("DEPLOY | Artifact $path successfully deployed to ${repository.name} by ${deployRequest.by}")
-            extensions.emitEvent(DeployEvent(repository, path, deployRequest.by))
+    fun deleteFile(deleteRequest: DeleteRequest): Result<Unit, ErrorResponse> =
+        with(deleteRequest) {
+            when {
+                securityProvider.canModifyResource(accessToken, repository, gav) ->
+                    repository.storageProvider
+                        .removeFile(gav)
+                        .peek { logger.info("DELETE | File $gav has been deleted from ${repository.name} by ${deleteRequest.by}") }
+                else -> unauthorizedError("Unauthorized access request")
+            }
         }
-    }
-
-    fun deleteFile(deleteRequest: DeleteRequest): Result<Unit, ErrorResponse> {
-        val (accessToken, repository, path) = deleteRequest
-
-        if (!securityProvider.canModifyResource(accessToken, repository, path)) {
-            return unauthorizedError("Unauthorized access request")
-        }
-
-        return repository.storageProvider.removeFile(path).peek {
-            logger.info("DELETE | File $path has been deleted from ${repository.name} by ${deleteRequest.by}")
-        }
-    }
 
     fun findDetails(lookupRequest: LookupRequest): Result<out FileDetails, ErrorResponse> =
         resolve(lookupRequest) { repository, gav -> findDetails(lookupRequest.accessToken, repository, gav) }

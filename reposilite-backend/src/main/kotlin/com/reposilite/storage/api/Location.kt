@@ -70,9 +70,7 @@ data class Location private constructor(private val uri: String) {
         "$uri/${subLocation.uri}".toLocation()
 
     fun resolveSibling(sibling: String): Location =
-        uri.substringBeforeLast("/")
-            .toLocation()
-            .resolve(sibling)
+        getParent().resolve(sibling)
 
     fun replace(element: String, replacement: String): Location =
         uri.replace(element, replacement).toLocation()

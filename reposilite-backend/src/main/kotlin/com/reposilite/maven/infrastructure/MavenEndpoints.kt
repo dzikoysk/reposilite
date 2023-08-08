@@ -35,6 +35,8 @@ import io.javalin.openapi.OpenApiContent
 import io.javalin.openapi.OpenApiParam
 import io.javalin.openapi.OpenApiResponse
 
+const val X_GENERATE_CHECKSUMS = "X-Generate-Checksums"
+
 internal class MavenEndpoints(
     mavenFacade: MavenFacade,
     private val frontendFacade: FrontendFacade,
@@ -80,6 +82,9 @@ internal class MavenEndpoints(
             OpenApiParam(name = "repository", description = "Destination repository", required = true),
             OpenApiParam(name = "gav", description = "Artifact path qualifier", required = true)
         ],
+        headers = [
+            OpenApiParam(name = X_GENERATE_CHECKSUMS, description = "Determines if Reposilite should generate checksums for this file", required = false)
+        ],
         responses = [
             OpenApiResponse(status = "200", description = "Input stream of requested file", content = [OpenApiContent(type = FORM_DATA_MULTIPART)]),
             OpenApiResponse(status = "401", description = "Returns 401 for invalid credentials"),
@@ -90,7 +95,7 @@ internal class MavenEndpoints(
         authorized {
             requireGav { gav ->
                 requireRepository { repository ->
-                    response = DeployRequest(repository, gav, getSessionIdentifier(), ctx.bodyInputStream())
+                    response = DeployRequest(repository, gav, getSessionIdentifier(), ctx.bodyInputStream(), ctx.header(X_GENERATE_CHECKSUMS) == "true")
                         .let { request -> mavenFacade.deployFile(request) }
                         .onError { error -> logger.debug("Cannot deploy artifact due to: ${error.message}") }
                 }
