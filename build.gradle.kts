@@ -134,7 +134,7 @@ subprojects {
     tasks.withType<KotlinCompile>().configureEach {
         kotlinOptions {
             jvmTarget = "11"
-            languageVersion = "1.8"
+            languageVersion = "1.9"
             freeCompilerArgs = listOf("-Xjvm-default=all") // For generating default methods in interfaces
         }
     }

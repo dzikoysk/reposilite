@@ -147,7 +147,7 @@ internal class MavenFacadeTest : MavenSpecification() {
             val by = "dzikoysk@127.0.0.1"
 
             // when: the following file is deployed
-            val deployResult = mavenFacade.deployFile(DeployRequest(fileSpec.repository(), fileSpec.gav(), by, fileSpec.content.byteInputStream()))
+            val deployResult = mavenFacade.deployFile(DeployRequest(fileSpec.repository(), fileSpec.gav(), by, fileSpec.content.byteInputStream(), false))
 
             // then: file has been successfully stored
             assertOk(deployResult)
