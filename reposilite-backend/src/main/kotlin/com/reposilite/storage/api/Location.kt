@@ -90,7 +90,10 @@ data class Location private constructor(private val uri: String) {
         uri.substringAfterLast(delimiter, defaultValue ?: uri).toLocation()
 
     fun getParent(): Location =
-        uri.substringBeforeLast("/").toLocation()
+        when (uri.contains("/")) {
+            true -> uri.substringBeforeLast("/").toLocation()
+            else -> empty()
+        }
 
     fun getExtension(): String =
         getSimpleName().getExtension()

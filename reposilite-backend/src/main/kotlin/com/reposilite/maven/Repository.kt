@@ -46,10 +46,10 @@ class Repository internal constructor(
         val sha256 = location.resolveSibling(location.getSimpleName() + ".sha256")
         val sha512 = location.resolveSibling(location.getSimpleName() + ".sha512")
 
-        return storageProvider.putFile(md5, DigestUtils.md5(bytes).inputStream())
-            .flatMap { storageProvider.putFile(sha1, DigestUtils.sha1(bytes).inputStream()) }
-            .flatMap { storageProvider.putFile(sha256, DigestUtils.sha256(bytes).inputStream()) }
-            .flatMap { storageProvider.putFile(sha512, DigestUtils.sha512(bytes).inputStream()) }
+        return storageProvider.putFile(md5, DigestUtils.md5Hex(bytes).byteInputStream())
+            .flatMap { storageProvider.putFile(sha1, DigestUtils.sha1Hex(bytes).byteInputStream()) }
+            .flatMap { storageProvider.putFile(sha256, DigestUtils.sha256Hex(bytes).byteInputStream()) }
+            .flatMap { storageProvider.putFile(sha512, DigestUtils.sha512Hex(bytes).byteInputStream()) }
     }
 
     @Deprecated(message = "Use Repository#storageProvider")

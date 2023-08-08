@@ -71,14 +71,14 @@ class ChecksumPlugin : ReposilitePlugin() {
 
             val generatedChecksum = data.use {
                 when (checksum) {
-                    MD5 -> DigestUtils.md5(data)
-                    SHA1 -> DigestUtils.sha1(data)
-                    SHA256 -> DigestUtils.sha256(data)
-                    SHA512 -> DigestUtils.sha512(data)
+                    MD5 -> DigestUtils.md5Hex(data)
+                    SHA1 -> DigestUtils.sha1Hex(data)
+                    SHA256 -> DigestUtils.sha256Hex(data)
+                    SHA512 -> DigestUtils.sha512Hex(data)
                 }
             }
 
-            repository.storageProvider.putFile(checksumGav, generatedChecksum.inputStream())
+            repository.storageProvider.putFile(checksumGav, generatedChecksum.byteInputStream())
                 .peek { logger.debug("Checksum | Generated checksum ${checksum.name} for $file") }
                 .onError { logger.debug("Checksum | Cannot generate checksum ${checksum.name} for $file due to $it") }
         }
