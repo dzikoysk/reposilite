@@ -119,7 +119,8 @@ internal abstract class ReposiliteSpecification : ReposiliteRunner() {
                     repository = mavenFacade.getRepository(repository)!!,
                     gav = "$gav/$file".toLocation(),
                     by = "junit",
-                    content = content.byteInputStream(Charsets.UTF_8)
+                    content = content.byteInputStream(Charsets.UTF_8),
+                    generateChecksums = false
                 )
             )
         }
