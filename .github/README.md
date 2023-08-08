@@ -105,7 +105,6 @@ Thanks to all contributors and people that decided to support my work financiall
     <a href="https://github.com/crejk">crejk</a>,
     <a href="https://github.com/Rollczi">Rollczi</a>,
     <a href="https://github.com/scheidtp">scheidtp</a>,
-    <a href="https://github.com/Szczurowsky">Szczurowsky</a>,
     <a href="https://github.com/Kebab81">Kebab81</a>
   </td>
  </tr>
