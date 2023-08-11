@@ -16,49 +16,47 @@
       {{ control.description }}
       <!-- It is a list of items. You can add new entries by clicking the '+' button on the right. -->
     </div>
-    <div>
-       <Tabs v-model="selectedIndex">
-        <Tab
+    <Tabs v-model="selectedIndex">
+      <Tab
+        v-for="(element, index) in control.data"
+        :key="`${control.path}-${index}-tab`"
+        :val="index"
+        :label="createLabel(element)"
+        :indicator="true"
+        class="item"
+      />
+    </Tabs>
+    <TabPanels v-model="selectedIndex">
+      <TabPanel
           v-for="(element, index) in control.data"
-          :key="`${control.path}-${index}-tab`"
+          :key="`${control.path}-${index}-panel`"
           :val="index"
-          :label="createLabel(element)"
-          :indicator="true"
-          class="item"
-        />
-      </Tabs>
-      <TabPanels v-model="selectedIndex">
-        <TabPanel
-            v-for="(element, index) in control.data"
-            :key="`${control.path}-${index}-panel`"
-            :val="index"
-        >
-          <div :class="styles.arrayList.itemWrapper">
-            <array-list-element
-              :moveUp="moveUp(control.path, index)"
-              :moveUpEnabled="index > 0"
-              :moveDown="moveDown(control.path, index)"
-              :moveDownEnabled="index < control.data.length - 1"
-              :delete="removeItems(control.path, [index])"
-              :label="childLabelForIndex(index)"
-              :styles="styles"
-            >
-              <dispatch-renderer
-                :schema="control.schema"
-                :uischema="childUiSchema"
-                :path="composePaths(control.path, `${index}`)"
-                :enabled="control.enabled"
-                :renderers="control.renderers"
-                :cells="control.cells"
-              />
-            </array-list-element>
-          </div>
-          <div v-if="noData" :class="styles.arrayList.noData">
-            No data
-          </div>
-        </TabPanel>
-      </TabPanels>
-    </div>
+      >
+        <div :class="styles.arrayList.itemWrapper">
+          <array-list-element
+            :moveUp="moveUp(control.path, index)"
+            :moveUpEnabled="index > 0"
+            :moveDown="moveDown(control.path, index)"
+            :moveDownEnabled="index < control.data.length - 1"
+            :delete="removeItems(control.path, [index])"
+            :label="childLabelForIndex(index)"
+            :styles="styles"
+          >
+            <dispatch-renderer
+              :schema="control.schema"
+              :uischema="childUiSchema"
+              :path="composePaths(control.path, `${index}`)"
+              :enabled="control.enabled"
+              :renderers="control.renderers"
+              :cells="control.cells"
+            />
+          </array-list-element>
+        </div>
+        <div v-if="noData" :class="styles.arrayList.noData">
+          No data
+        </div>
+      </TabPanel>
+    </TabPanels>
   </fieldset>
 </template>
 
