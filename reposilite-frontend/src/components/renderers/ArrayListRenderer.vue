@@ -90,8 +90,9 @@ export default {
     const selectedIndex = ref(0)
 
     const createLabel = (element) => {
-      if (element.id) {
-        return element.id
+      if (element.id?.length > 0) {
+        const capitalized = element.id.charAt(0).toUpperCase() + element.id.slice(1)
+        return capitalized
       }
 
       if (element.reference) {
@@ -111,7 +112,7 @@ export default {
         return element
       }
 
-      return '<new>'
+      return '<New>'
     }
     
     return {
@@ -145,3 +146,10 @@ export default {
   }
 }
 </script>
+
+<style>
+.array-list .tabs .tab {
+  overflow-wrap: anywhere;
+  text-transform: none !important;
+}
+</style>
