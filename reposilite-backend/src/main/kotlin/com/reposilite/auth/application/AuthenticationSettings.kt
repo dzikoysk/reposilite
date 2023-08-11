@@ -44,10 +44,12 @@ data class LdapSettings(
     val searchUserDn: String = "cn=reposilite,ou=admins,dc=domain,dc=com",
     @get:Doc(title = "Search-User Password", description = "Search user's password")
     val searchUserPassword: String = "reposilite-admin-secret",
+    @get:Doc(title = "Type Attribute", description = "Attribute in LDAP that represents given type/group (objectClass)")
+    val typeAttribute: String = "person",
     @get:Doc(title = "User Attribute", description = "Attribute in LDAP that represents unique username used to create access token")
     val userAttribute: String = "cn",
     @get:Doc(title = "User Filter", description = "LDAP user filter")
-    val userFilter: String = "(&(objectClass=person)(ou=Maven Users))",
+    val userFilter: String = "(&(objectClass=$typeAttribute)(ou=Maven Users))",
     @get:Doc(title = "User Type", description = "Should the created through LDAP access token be TEMPORARY or PERSISTENT")
     val userType: AccessTokenType = PERSISTENT
 ) : SharedSettings

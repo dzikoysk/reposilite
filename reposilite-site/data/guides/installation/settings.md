@@ -193,6 +193,7 @@ Example output:
       "baseDn": "dc=company,dc=com",
       "searchUserDn": "cn=reposilite,ou=admins,dc=domain,dc=com",
       "searchUserPassword": "reposilite-admin-secret",
+      "typeAttribute": "person",
       "userAttribute": "cn",
       "userFilter": "(&(objectClass=person)(ou=Maven Users))",
       "userType": "PERSISTENT"

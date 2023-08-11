@@ -71,7 +71,7 @@ internal class LdapAuthenticator(
             createSearchContext()
                 .flatMap {
                     it.search(
-                        ldapFilterQuery = "(&(objectClass=person)($userAttribute={0}))", // find user entry with search user,
+                        ldapFilterQuery = "(&(objectClass=$typeAttribute)($userAttribute={0}))", // find user entry with search user,
                         ldapFilterQueryArguments = arrayOf(credentials.name),
                         requestedAttributes = arrayOf(userAttribute)
                     )
@@ -93,7 +93,7 @@ internal class LdapAuthenticator(
                 }
                 .flatMap {
                     it.search(
-                        ldapFilterQuery = "(&(objectClass=person)($userAttribute={0})$userFilter)", // filter result with user-filter from configuration
+                        ldapFilterQuery = "(&(objectClass=$typeAttribute)($userAttribute={0})$userFilter)", // filter result with user-filter from configuration
                         ldapFilterQueryArguments = arrayOf(credentials.name),
                         requestedAttributes = arrayOf(userAttribute)
                     )
