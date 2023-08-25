@@ -46,12 +46,16 @@ internal class RepositoryFactory(
             redeployment = configuration.redeployment,
             preserveSnapshots = configuration.preserveSnapshots,
             mirrorHosts = configuration.proxied.mapNotNull { createMirroredHostConfiguration(it) },
-            storageProvider = storageFacade.createStorageProvider(
-                failureFacade = failureFacade,
-                workingDirectory = workingDirectory.resolve(repositoriesDirectory),
-                repository = repositoryName,
-                storageSettings = configuration.storageProvider
-            ) ?: throw IllegalArgumentException("Unknown storage provider '${configuration.storageProvider.type}'")
+            storageProvider =
+                storageFacade
+                    .createStorageProvider(
+                        failureFacade = failureFacade,
+                        workingDirectory = workingDirectory.resolve(repositoriesDirectory),
+                        repository = repositoryName,
+                        storageSettings = configuration.storageProvider
+                    )
+                    ?: throw IllegalArgumentException("Unknown storage provider '${configuration.storageProvider.type}'"),
+            storagePolicy = configuration.storagePolicy
         )
 
     private fun createMirroredHostConfiguration(configurationSource: MirroredRepositorySettings): MirrorHost? {

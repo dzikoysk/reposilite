@@ -18,6 +18,7 @@ package com.reposilite.maven
 
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
+import com.reposilite.maven.api.METADATA_FILE
 import com.reposilite.maven.application.MirroredRepositorySettings
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.notFoundError
@@ -30,6 +31,9 @@ import panda.std.Result.ok
 import java.io.InputStream
 
 internal class MirrorService(private val journalist: Journalist) : Journalist {
+
+    fun shouldPrioritizeMirrorRepository(repository: Repository, gav: Location): Boolean =
+        repository.storagePolicy == StoragePolicy.PRIORITIZE_UPSTREAM_METADATA && gav.getSimpleName().contains(METADATA_FILE)
 
     fun findRemoteDetails(repository: Repository, gav: Location): Result<out FileDetails, ErrorResponse> =
         searchInRemoteRepositories(repository, gav) { (host, config, client) ->

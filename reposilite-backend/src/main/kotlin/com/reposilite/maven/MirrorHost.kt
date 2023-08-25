@@ -24,3 +24,8 @@ data class MirrorHost(
     val configuration: MirroredRepositorySettings,
     val client: RemoteClient
 )
+
+enum class StoragePolicy {
+    PRIORITIZE_UPSTREAM_METADATA,
+    STRICT
+}

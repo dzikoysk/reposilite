@@ -134,17 +134,20 @@ internal class RepositoryService(
             .let { extensions.emitEvent(ResolvedFileEvent(accessToken, repository, gav, it)).result }
 
     private fun findInputStream(repository: Repository, gav: Location): Result<InputStream, ErrorResponse> =
-        if (repository.storageProvider.exists(gav)) {
-            logger.debug("Gav '$gav' found in '${repository.name}' repository")
-            repository.storageProvider.getFile(gav)
-        } else {
-            logger.debug("Cannot find '$gav' in '${repository.name}' repository, requesting proxied repositories")
-            mirrorService.findRemoteFile(repository, gav)
+        when {
+            !mirrorService.shouldPrioritizeMirrorRepository(repository, gav) && repository.storageProvider.exists(gav) -> { // todo: add fallback to local for shouldPrioritizeMirrorRepository
+                logger.debug("Gav '$gav' found in '${repository.name}' repository")
+                repository.storageProvider.getFile(gav)
+            }
+            else -> {
+                logger.debug("Cannot find '$gav' in '${repository.name}' repository, requesting proxied repositories")
+                mirrorService.findRemoteFile(repository, gav)
+            }
         }
 
     private fun findDetails(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<out FileDetails, ErrorResponse> =
         when {
-            repository.storageProvider.exists(gav) -> findLocalDetails(accessToken, repository, gav)
+            !mirrorService.shouldPrioritizeMirrorRepository(repository, gav) && repository.storageProvider.exists(gav) -> findLocalDetails(accessToken, repository, gav) // todo: add fallback to local for shouldPrioritizeMirrorRepository
             else -> findProxiedDetails(repository, gav)
         }.peek {
             recordResolvedRequest(Identifier(repository.name, gav.toString()), it)

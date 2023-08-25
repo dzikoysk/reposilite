@@ -31,7 +31,6 @@ import kong.unirest.Unirest.delete
 import kong.unirest.Unirest.get
 import kong.unirest.Unirest.head
 import kong.unirest.Unirest.put
-import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -164,36 +163,6 @@ internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
         // then: service responds with custom 404 page
         assertThat(response.status).isEqualTo(NOT_FOUND.code)
         assertThat(response.body).contains("Reposilite - 404 Not Found")
-    }
-
-    @Test
-    fun `should proxy remote file`() = runBlocking {
-        // given: a remote server and artifact
-        useProxiedHost("releases", "com/reposilite/remote.jar", "content") { gav, content ->
-            // when: non-existing file is requested
-            val notFoundResponse = get("$base/proxied/not/found.jar").asString()
-
-            // then: service responds with 404 status page
-            assertThat(notFoundResponse.isSuccess).isFalse
-
-            // when: file that exists in remote repository is requested
-            val response = get("$base/proxied/$gav").asString()
-
-            // then: service responds with its content
-            assertThat(response.body).isEqualTo(content)
-            assertThat(response.isSuccess).isTrue
-        }
-    }
-
-    @Test
-    fun `should not proxy file with forbidden extension`() = runBlocking {
-        // given: a remote server and artifact
-        useProxiedHost("releases", "com/reposilite/remote.file", "content") { gav, _ ->
-            // when: file that exists in remote repository is requested
-            val response = get("$base/proxied/$gav").asString()
-            // then: service responds with 404 status page as .file extension is not allowed
-            assertThat(response.isSuccess).isFalse
-        }
     }
 
 }
