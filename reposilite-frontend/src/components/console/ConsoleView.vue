@@ -103,6 +103,7 @@ watch(
         id="consoleInput"
         placeholder="Type command or '?' to get help"
         class="w-full py-2 px-4 rounded-b-lg bg-white dark:bg-gray-900 dark:text-white"
+        autocomplete="off"
         v-model="command"
         @keyup.enter="execute()"
         @keyup.up="previousCommand()"
