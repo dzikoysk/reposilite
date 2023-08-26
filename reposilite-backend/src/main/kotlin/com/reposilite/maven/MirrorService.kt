@@ -35,7 +35,7 @@ internal class MirrorService(private val journalist: Journalist) : Journalist {
     fun shouldPrioritizeMirrorRepository(repository: Repository, gav: Location): Boolean =
         repository.storagePolicy == StoragePolicy.PRIORITIZE_UPSTREAM_METADATA && gav.getSimpleName().contains(METADATA_FILE)
 
-    fun findRemoteDetails(repository: Repository, gav: Location): Result<out FileDetails, ErrorResponse> =
+    fun findRemoteDetails(repository: Repository, gav: Location): Result<FileDetails, ErrorResponse> =
         searchInRemoteRepositories(repository, gav) { (host, config, client) ->
             client.head("${host.removeSuffix("/")}/$gav", config.authorization, config.connectTimeout, config.readTimeout)
         }

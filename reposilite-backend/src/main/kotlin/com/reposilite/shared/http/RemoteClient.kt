@@ -41,7 +41,7 @@ interface RemoteClient {
      * @param connectTimeoutInSeconds - connection establishment timeout in seconds
      * @param readTimeoutInSeconds - connection read timeout in seconds
      */
-    fun head(uri: String, credentials: RemoteCredentials?, connectTimeoutInSeconds: Int, readTimeoutInSeconds: Int): Result<out FileDetails, ErrorResponse>
+    fun head(uri: String, credentials: RemoteCredentials?, connectTimeoutInSeconds: Int, readTimeoutInSeconds: Int): Result<FileDetails, ErrorResponse>
 
     /**
      * @param uri - full remote host address with a gav

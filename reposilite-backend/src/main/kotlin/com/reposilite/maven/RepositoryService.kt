@@ -107,7 +107,7 @@ internal class RepositoryService(
             }
         }
 
-    fun findDetails(lookupRequest: LookupRequest): Result<out FileDetails, ErrorResponse> =
+    fun findDetails(lookupRequest: LookupRequest): Result<FileDetails, ErrorResponse> =
         resolve(lookupRequest) { repository, gav -> findDetails(lookupRequest.accessToken, repository, gav) }
 
     fun findFile(lookupRequest: LookupRequest): Result<Pair<DocumentInfo, InputStream>, ErrorResponse> =
@@ -135,7 +135,13 @@ internal class RepositoryService(
 
     private fun findInputStream(repository: Repository, gav: Location): Result<InputStream, ErrorResponse> =
         when {
-            !mirrorService.shouldPrioritizeMirrorRepository(repository, gav) && repository.storageProvider.exists(gav) -> { // todo: add fallback to local for shouldPrioritizeMirrorRepository
+            mirrorService.shouldPrioritizeMirrorRepository(repository, gav) -> {
+                logger.debug("Prioritizing mirror repository for '$gav'")
+                mirrorService
+                    .findRemoteFile(repository, gav)
+                    .flatMapErr { repository.storageProvider.getFile(gav) }
+            }
+            repository.storageProvider.exists(gav) -> {
                 logger.debug("Gav '$gav' found in '${repository.name}' repository")
                 repository.storageProvider.getFile(gav)
             }
@@ -145,15 +151,21 @@ internal class RepositoryService(
             }
         }
 
-    private fun findDetails(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<out FileDetails, ErrorResponse> =
+    private fun findDetails(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<FileDetails, ErrorResponse> =
         when {
-            !mirrorService.shouldPrioritizeMirrorRepository(repository, gav) && repository.storageProvider.exists(gav) -> findLocalDetails(accessToken, repository, gav) // todo: add fallback to local for shouldPrioritizeMirrorRepository
+            mirrorService.shouldPrioritizeMirrorRepository(repository, gav) -> {
+                logger.debug("Prioritizing mirror repository for '$gav'")
+                this
+                    .findProxiedDetails(repository, gav)
+                    .flatMapErr { findLocalDetails(accessToken, repository, gav) }
+            }
+            repository.storageProvider.exists(gav) -> findLocalDetails(accessToken, repository, gav) // todo: add fallback to local for shouldPrioritizeMirrorRepository
             else -> findProxiedDetails(repository, gav)
         }.peek {
             recordResolvedRequest(Identifier(repository.name, gav.toString()), it)
         }
 
-    private fun findLocalDetails(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<out FileDetails, ErrorResponse> =
+    private fun findLocalDetails(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<FileDetails, ErrorResponse> =
         repository.storageProvider.getFileDetails(gav)
             .flatMap {
                 it.takeIf { it.type == DIRECTORY }
@@ -161,7 +173,7 @@ internal class RepositoryService(
                     ?: it.asSuccess()
             }
 
-    private fun findProxiedDetails(repository: Repository, gav: Location): Result<out FileDetails, ErrorResponse> =
+    private fun findProxiedDetails(repository: Repository, gav: Location): Result<FileDetails, ErrorResponse> =
         mirrorService
             .findRemoteDetails(repository, gav)
             .mapErr { notFound("Cannot find '$gav' in local and remote repositories") }

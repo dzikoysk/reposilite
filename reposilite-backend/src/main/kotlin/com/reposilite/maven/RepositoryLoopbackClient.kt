@@ -39,7 +39,7 @@ internal class RepositoryLoopbackClient(
     private val repositoryName: String
 ) : RemoteClient {
 
-    override fun head(uri: String, credentials: RemoteCredentials?, connectTimeoutInSeconds: Int, readTimeoutInSeconds: Int): Result<out FileDetails, ErrorResponse> =
+    override fun head(uri: String, credentials: RemoteCredentials?, connectTimeoutInSeconds: Int, readTimeoutInSeconds: Int): Result<FileDetails, ErrorResponse> =
         repositoryService.findDetails(
             LookupRequest(
                 accessToken = credentials.toAccessToken(),

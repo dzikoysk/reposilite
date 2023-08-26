@@ -51,14 +51,15 @@ data class RepositorySettings(
     val visibility: RepositoryVisibility = PUBLIC,
     @get:Doc(title = "Redeployment", description = "Does this repository accept redeployment of the same artifact version.")
     val redeployment: Boolean = false,
-    @get:Doc(title = "Preserved snapshots", "By default Reposilite deletes all deprecated build files. If you'd like to preserve them, set this property to true.")
+    @get:Doc(title = "Preserved snapshots", "By default, Reposilite deletes all deprecated build files. If you'd like to preserve them, set this property to true.")
     val preserveSnapshots: Boolean = false,
     @get:Doc(title = "Storage provider", description = "The storage type of this repository.")
     @get:OneOf(FileSystemStorageProviderSettings::class, S3StorageProviderSettings::class)
     val storageProvider: StorageProviderSettings = FileSystemStorageProviderSettings(),
     @get:Doc(title = "Storage policy", description = """
-        By default Reposilite prioritizes upstream metadata over a cached version, so it'll always try to fetch the latest version of the artifact from the remote repository. <br/>
-        If you'd like to go full offline mode, set this property to STRICT.
+        Defines how Reposilite should handle requests to repository with configured mirrored repositories. <br/>
+        PRIORITIZE_UPSTREAM_METADATA - try to fetch the latest version of the artifact from the remote repository <br/>
+        STRICT - prioritize cached version over upstream metadata (full offline mode)
     """)
     val storagePolicy: StoragePolicy = StoragePolicy.PRIORITIZE_UPSTREAM_METADATA,
     @get:Doc(title = "Mirrored repositories", description = "List of mirrored repositories associated with this repository.")
