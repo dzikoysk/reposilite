@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 REPOSILITE_ARGS="$REPOSILITE_OPTS"
 case "$REPOSILITE_OPTS" in
