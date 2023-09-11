@@ -49,7 +49,7 @@ You can find full list of available events in GitHub Actions documentation:
 
 #### Maven
 
-Because Maven does not support environment variables directly in the `pom.xml` file, you have to somehow provide `~/.m2/settings.xml` to your CI process.
+Because Maven does not support server credentials section in the `pom.xml` file, you have to somehow provide `~/.m2/settings.xml` to your CI process.
 I can recommend [s4u/maven-settings-action](https://github.com/s4u/maven-settings-action) plugin to generate such file during execution, without a need to write a custom script.
 
 ```yaml
