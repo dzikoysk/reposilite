@@ -52,6 +52,7 @@ import io.javalin.json.JavalinJackson
 import io.javalin.openapi.plugin.OpenApiPlugin
 import io.javalin.openapi.plugin.OpenApiPluginConfiguration
 import io.javalin.plugin.bundled.SslRedirectPlugin
+import kotlin.time.Duration.Companion.minutes
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.util.thread.ThreadPool
@@ -94,8 +95,8 @@ internal object JavalinConfiguration {
 
     private fun configureJavalin(config: JavalinConfig, localConfiguration: LocalConfiguration, webSettings: Reference<WebSettings>) {
         config.showJavalinBanner = false
-        config.http.asyncTimeout = 1000L * 60 * 60 * 10 // 10min
-        config.contextResolver.ip = { ctx -> ctx.header(webSettings.get().forwardedIp) ?: ctx.req().remoteAddr }
+        config.http.asyncTimeout = 10.minutes.inWholeMilliseconds
+        config.contextResolver.ip = { it.header(webSettings.get().forwardedIp) ?: it.req().remoteAddr }
 
         System.getProperty("javalin.maxRequestSize")?.let {
             config.http.maxRequestSize = it.toLong()
@@ -185,7 +186,7 @@ internal object JavalinConfiguration {
             .getRoutes()
             .asSequence()
             .flatMap { it.routes() }
-            .distinctBy { it.method.name + ":" + it.path }
+            .distinctBy { "${it.method.name}:${it.path}" }
             .toSet()
             .let {
                 routingPlugin.routing {
@@ -203,7 +204,7 @@ internal object JavalinConfiguration {
 
     private fun configureSSL(reposilite: Reposilite, localConfiguration: LocalConfiguration, config: JavalinConfig) {
         if (localConfiguration.sslEnabled.get()) {
-            reposilite.logger.info("Enabling SSL connector at ::" + localConfiguration.sslPort.get())
+            reposilite.logger.info("Enabling SSL connector at ::${localConfiguration.sslPort.get()}")
 
             val sslPlugin = SSLPlugin { sslConfig ->
                 sslConfig.insecure = true
