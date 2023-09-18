@@ -41,3 +41,4 @@ HEALTHCHECK --interval=30s --timeout=30s --start-period=15s \
     )"]
 ENTRYPOINT ["/app/entrypoint.sh"]
 CMD []
+EXPOSE 8080
