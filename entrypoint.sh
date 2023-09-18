@@ -17,10 +17,18 @@ if [ "$UID" -ne "0" ]; then
        $REPOSILITE_ARGS
 else
   GROUP_ID="${PGID:-999}"
-  addgroup --gid "$GROUP_ID" reposilite
+  grep "^reposilite" /etc/group > /dev/null
+  if [ $? -ne 0 ]
+  then
+    addgroup --gid "$GROUP_ID" reposilite
+  fi
 
   USER_ID="${PUID:-999}"
-  adduser --system -uid "$USER_ID" --ingroup reposilite --shell /bin/sh reposilite
+  grep "^reposilite" /etc/passwd > /dev/null
+  if [ $? -ne 0 ]
+  then
+    adduser --system -uid "$USER_ID" --ingroup reposilite --shell /bin/sh reposilite
+  fi
 
   chown -R reposilite:reposilite /app
   chown -R reposilite:reposilite /var/log/reposilite
