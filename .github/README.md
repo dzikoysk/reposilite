@@ -56,10 +56,10 @@ For huge public repositories you can adjust memory limit and even size of used t
 
 ```bash
 # Launching a standalone JAR file
-$ java -Xmx32M -jar reposilite-3.4.9.jar
+$ java -Xmx32M -jar reposilite-3.4.10.jar
 
 # Using the official Docker image
-$ docker pull dzikoysk/reposilite:3.4.9
+$ docker pull dzikoysk/reposilite:3.4.10
 
 # Using the official Helm chart
 $ helm repo add reposilite https://helm.reposilite.com/
