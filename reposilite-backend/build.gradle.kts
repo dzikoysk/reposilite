@@ -66,15 +66,15 @@ dependencies {
     api("net.dzikoysk:cdn:$cdn")
     api("net.dzikoysk:cdn-kt:$cdn")
 
-    val picocli = "4.7.4"
+    val picocli = "4.7.5"
     kapt("info.picocli:picocli-codegen:$picocli")
     api("info.picocli:picocli:$picocli")
 
-    val awssdk = "2.20.121"
+    val awssdk = "2.20.150"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
 
-    val awsSdkV1 = "1.12.524"
+    val awsSdkV1 = "1.12.552"
     testImplementation("com.amazonaws:aws-java-sdk-s3:$awsSdkV1")
 
     val exposed = "0.41.1"
@@ -88,7 +88,7 @@ dependencies {
     implementation("mysql:mysql-connector-java:8.0.33")
     implementation("org.mariadb.jdbc:mariadb-java-client:3.2.0")
     implementation("org.postgresql:postgresql:42.6.0")
-    implementation("com.h2database:h2:2.2.220")
+    implementation("com.h2database:h2:2.2.224")
 
     val exposedUpsert = "1.2.1"
     api("net.dzikoysk:exposed-upsert:$exposedUpsert")

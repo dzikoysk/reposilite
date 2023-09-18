@@ -16,7 +16,7 @@
     "@emotion/styled": "^11.11.0",
     "@heroicons/react": "^2.0.18",
     "@mapbox/rehype-prism": "^0.8.0",
-    "@nextui-org/react": "^2.1.12",
+    "@nextui-org/react": "^2.1.13",
     "framer-motion": "^10.16.4",
     "gray-matter": "^4.0.3",
     "next": "latest",
@@ -29,7 +29,7 @@
     "react-flow-renderer": "^10.3.17",
     "react-icons": "^4.11.0",
     "rehype-highlight": "^7.0.0",
-    "remark-gfm": "^3.0.1",
+    "remark-gfm": "^4.0.0",
     "xml-js": "^1.6.11",
     "xml2js": "^0.6.2"
   }
