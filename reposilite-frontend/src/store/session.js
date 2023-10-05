@@ -62,7 +62,7 @@ const hasPermissionTo = (path, permission) => {
   }
   return details.value
     ?.routes
-    ?.find(route => path.startsWith(route.path) && route.permission.identifier == permission) == true
+    ?.find(route => path.startsWith(route.path) && route.permission.identifier === permission) !== undefined
 }
 
 export function useSession() {
