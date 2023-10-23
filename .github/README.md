@@ -94,9 +94,9 @@ Thanks to all contributors and people that decided to support my work financiall
   <td>
     <a href="https://github.com/milkyway0308">milkyway0308</a>,
     <a href="https://github.com/andrm">andrm</a>, 
-    <a href="https://github.com/insertt">insertt</a>,
-    Andreas R.,
     <a href="https://github.com/rdehuyss">rdehuyss</a>,
+    <a href="https://github.com/insertt">insertt</a>,
+    Lukas P.
     <a href="https://github.com/Koressi">Koressi</a>,
     <a href="https://github.com/Zur13">Zur13</a>,
     <a href="https://github.com/GotoFinal">GotoFinal</a>,
@@ -106,7 +106,7 @@ Thanks to all contributors and people that decided to support my work financiall
     <a href="https://github.com/crejk">crejk</a>,
     <a href="https://github.com/Rollczi">Rollczi</a>,
     <a href="https://github.com/scheidtp">scheidtp</a>,
-    <a href="https://github.com/Kebab81">Kebab81</a>
+    <a href="https://github.com/Szczurowsky">Szczurowsky</a>
   </td>
  </tr>
  <tr>
@@ -139,6 +139,7 @@ Thanks to all contributors and people that decided to support my work financiall
    <a href="https://github.com/bmstefanski">bmstefanski</a>,
    <a href="https://github.com/escv">escv</a>,
    <a href="https://github.com/Rollczi">Rollczi</a>,
+   Lukas P.,
    <a href="https://github.com/arthurr0">arthurr0</a>,
    <a href="https://github.com/shitzuu">shitzuu</a>,
    <a href="https://github.com/peter-jerry-ye">peter-jerry-ye</a>,
