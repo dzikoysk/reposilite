@@ -23,7 +23,7 @@ plugins {
     application
     `maven-publish`
 
-    val kotlinVersion = "1.9.10"
+    val kotlinVersion = "1.9.20-RC"
     kotlin("jvm") version kotlinVersion
     kotlin("kapt") version kotlinVersion
 
