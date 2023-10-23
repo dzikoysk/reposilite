@@ -64,6 +64,10 @@ scmVersion {
 }
 
 allprojects {
+    apply(plugin = "java-library")
+    apply(plugin = "application")
+
+    group = "com.reposilite"
     version = rootProject.scmVersion.version
 
     // Give a friendly error when building project and git tags aren't available
@@ -94,14 +98,26 @@ allprojects {
             }
         }
     }
+
+    java {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+
+        withJavadocJar()
+        withSourcesJar()
+    }
+
+    tasks.withType<KotlinCompile>().configureEach {
+        kotlinOptions {
+            jvmTarget = "11"
+            languageVersion = "1.9"
+            freeCompilerArgs = listOf("-Xjvm-default=all") // For generating default methods in interfaces
+        }
+    }
 }
 
 subprojects {
-    apply(plugin = "java-library")
-    apply(plugin = "application")
     apply(plugin = "maven-publish")
-
-    group = "com.reposilite"
 
     dependencies {
         val unirest = "3.14.5"
@@ -117,26 +133,8 @@ subprojects {
         testImplementation("org.junit.jupiter:junit-jupiter-engine:$junit")
     }
 
-    java {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-
-    java {
-        withJavadocJar()
-        withSourcesJar()
-    }
-
     sourceSets.main {
         java.srcDirs("src/main/kotlin")
-    }
-
-    tasks.withType<KotlinCompile>().configureEach {
-        kotlinOptions {
-            jvmTarget = "11"
-            languageVersion = "1.9"
-            freeCompilerArgs = listOf("-Xjvm-default=all") // For generating default methods in interfaces
-        }
     }
 
     publishing {
