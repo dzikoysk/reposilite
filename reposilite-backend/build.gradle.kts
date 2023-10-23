@@ -43,7 +43,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin")
 
-    val javalin = "5.6.2"
+    val javalin = "5.6.3"
     api("io.javalin:javalin:$javalin")
     api("io.javalin.community.ssl:ssl-plugin:$javalin")
 
@@ -208,7 +208,7 @@ jacoco {
 
 tasks.test {
     extensions.configure(JacocoTaskExtension::class) {
-        destinationFile = file("$buildDir/jacoco/jacoco.exec")
+        setDestinationFile(file("${layout.buildDirectory}/jacoco/jacoco.exec"))
     }
 
     finalizedBy("jacocoTestReport")
@@ -222,7 +222,7 @@ tasks.jacocoTestReport {
         xml.outputLocation.set(file("./build/reports/jacoco/reposilite-backend-report.xml"))
     }
 
-    executionData(fileTree(project.buildDir).include("jacoco/*.exec"))
+    executionData(fileTree(project.layout.buildDirectory).include("jacoco/*.exec"))
     finalizedBy("jacocoTestCoverageVerification")
 }
 

@@ -14,7 +14,7 @@ jobs:
     strategy:
       matrix:
         # Use 11 LTS releases and the latest one
-        java-version: [ 11, 19 ]
+        java-version: [ 11, 21 ]
     steps:
     - name: "Checkout repository"
       uses: actions/checkout@v3

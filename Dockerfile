@@ -1,5 +1,5 @@
 # Build stage
-FROM openjdk:19-slim AS build
+FROM openjdk:21-slim AS build
 COPY . /home/reposilite-build
 WORKDIR /home/reposilite-build
 RUN \
@@ -24,7 +24,7 @@ LABEL org.label-schema.build-date=$BUILD_DATE \
       org.label-schema.schema-version="1.0"
 
 # Run stage
-FROM openjdk:19-slim
+FROM openjdk:21-slim
 RUN mkdir -p /app/data && mkdir -p /var/log/reposilite
 VOLUME /app/data
 WORKDIR /app
