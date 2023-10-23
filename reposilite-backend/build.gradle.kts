@@ -39,7 +39,7 @@ dependencies {
     val detekt = "1.23.0"
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:$detekt")
 
-    val kotlin = "1.9.20-RC"
+    val kotlin = "1.9.10"
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin")
 
@@ -208,7 +208,7 @@ jacoco {
 
 tasks.test {
     extensions.configure(JacocoTaskExtension::class) {
-        setDestinationFile(file("${layout.buildDirectory}/jacoco/jacoco.exec"))
+        setDestinationFile(file("${project.layout.buildDirectory.get()}/jacoco/jacoco.exec"))
     }
 
     finalizedBy("jacocoTestReport")
@@ -222,7 +222,7 @@ tasks.jacocoTestReport {
         xml.outputLocation.set(file("./build/reports/jacoco/reposilite-backend-report.xml"))
     }
 
-    executionData(fileTree(project.layout.buildDirectory).include("jacoco/*.exec"))
+    executionData(fileTree(project.layout.buildDirectory.get()).include("jacoco/*.exec"))
     finalizedBy("jacocoTestCoverageVerification")
 }
 

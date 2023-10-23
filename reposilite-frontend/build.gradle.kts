@@ -44,7 +44,7 @@ val buildTask = tasks.register<NpmTask>("buildFrontend") {
     inputs.dir(project.fileTree("src"))
     inputs.dir("node_modules")
     inputs.files("vite.config.js", "windi.config.js", "index.html")
-    outputs.dir("${project.buildDir}/frontend")
+    outputs.dir("${project.layout.buildDirectory.get()}/frontend")
 }
 
 sourceSets {
