@@ -105,8 +105,8 @@ myDomainRepositoryReleasesUsername={token}
 myDomainRepositoryReleasesPassword={secret}
 
 # Snapshots token & secret
-myDomainRepositorySnapshotsUsername={token}
-myDomainRepositorySnapshotsPassword={secret}
+myCoolRepositorySnapshotsUsername={token}
+myCoolRepositorySnapshotsPassword={secret}
 ```
 
 And declare multiple target in build file:
