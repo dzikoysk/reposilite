@@ -129,7 +129,7 @@ dependencies {
     testImplementation("org.testcontainers:localstack:$testcontainers")
     testImplementation("org.testcontainers:mysql:$testcontainers")
 
-    val ldap = "6.0.9"
+    val ldap = "6.0.10"
     testImplementation("com.unboundid:unboundid-ldapsdk:$ldap")
 }
 
