@@ -77,7 +77,7 @@ dependencies {
     val awsSdkV1 = "1.12.579"
     testImplementation("com.amazonaws:aws-java-sdk-s3:$awsSdkV1")
 
-    val exposed = "0.41.1"
+    val exposed = "0.44.1"
     api("org.jetbrains.exposed:exposed-core:$exposed")
     api("org.jetbrains.exposed:exposed-dao:$exposed")
     api("org.jetbrains.exposed:exposed-jdbc:$exposed")
@@ -90,7 +90,7 @@ dependencies {
     implementation("org.postgresql:postgresql:42.6.0")
     implementation("com.h2database:h2:2.2.224")
 
-    val exposedUpsert = "1.2.1"
+    val exposedUpsert = "1.2.2"
     api("net.dzikoysk:exposed-upsert:$exposedUpsert")
 
     val jackson = "2.15.3"
@@ -203,7 +203,7 @@ kapt {
 }
 
 jacoco {
-    toolVersion = "0.8.8"
+    toolVersion = "0.8.11"
 }
 
 tasks.test {
@@ -261,11 +261,11 @@ val testCoverage by tasks.registering {
         ":reposilite-backend:jacocoTestReport",
         ":reposilite-backend:jacocoTestCoverageVerification"
     )
-
-    tasks["integrationTest"].mustRunAfter(tasks["test"])
-    tasks["jacocoTestReport"].mustRunAfter(tasks["integrationTest"])
-    tasks["jacocoTestCoverageVerification"].mustRunAfter(tasks["jacocoTestReport"])
 }
+
+tasks["integrationTest"].mustRunAfter(tasks["test"])
+tasks["jacocoTestReport"].mustRunAfter(tasks["integrationTest"])
+tasks["jacocoTestCoverageVerification"].mustRunAfter(tasks["jacocoTestReport"])
 
 detekt {
     buildUponDefaultConfig = true
