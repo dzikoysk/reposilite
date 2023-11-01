@@ -39,7 +39,7 @@ dependencies {
     val detekt = "1.23.0"
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:$detekt")
 
-    val kotlin = "1.9.10"
+    val kotlin = "1.9.20"
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin")
 
@@ -47,7 +47,7 @@ dependencies {
     api("io.javalin:javalin:$javalin")
     api("io.javalin.community.ssl:ssl-plugin:$javalin")
 
-    val javalinOpenApi = "5.6.2-2"
+    val javalinOpenApi = "5.6.3"
     api("io.javalin.community.openapi:javalin-openapi-plugin:$javalinOpenApi")
     kapt("io.javalin.community.openapi:openapi-annotation-processor:$javalinOpenApi")
 
@@ -70,11 +70,11 @@ dependencies {
     kapt("info.picocli:picocli-codegen:$picocli")
     api("info.picocli:picocli:$picocli")
 
-    val awssdk = "2.20.157"
+    val awssdk = "2.21.13"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
 
-    val awsSdkV1 = "1.12.560"
+    val awsSdkV1 = "1.12.579"
     testImplementation("com.amazonaws:aws-java-sdk-s3:$awsSdkV1")
 
     val exposed = "0.41.1"
@@ -84,7 +84,7 @@ dependencies {
     api("org.jetbrains.exposed:exposed-java-time:$exposed")
     // Drivers
     implementation("com.zaxxer:HikariCP:5.0.1")
-    implementation("org.xerial:sqlite-jdbc:3.42.0.0")
+    implementation("org.xerial:sqlite-jdbc:3.43.2.2")
     implementation("mysql:mysql-connector-java:8.0.33")
     implementation("org.mariadb.jdbc:mariadb-java-client:3.2.0")
     implementation("org.postgresql:postgresql:42.6.0")
@@ -93,7 +93,7 @@ dependencies {
     val exposedUpsert = "1.2.1"
     api("net.dzikoysk:exposed-upsert:$exposedUpsert")
 
-    val jackson = "2.15.2"
+    val jackson = "2.15.3"
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jackson")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jackson")
@@ -108,7 +108,7 @@ dependencies {
     val commonsCoded = "1.16.0"
     api("commons-codec:commons-codec:$commonsCoded")
 
-    val jansi = "2.4.0"
+    val jansi = "2.4.1"
     implementation("org.fusesource.jansi:jansi:$jansi")
 
     val journalist = "1.0.10"
@@ -121,7 +121,7 @@ dependencies {
     implementation("org.tinylog:tinylog-api:$tinylog")
     implementation("org.tinylog:tinylog-impl:$tinylog")
 
-    val testcontainers = "1.19.0"
+    val testcontainers = "1.19.1"
     testImplementation("org.testcontainers:postgresql:$testcontainers")
     testImplementation("org.testcontainers:mariadb:$testcontainers")
     testImplementation("org.testcontainers:testcontainers:$testcontainers")
@@ -129,7 +129,7 @@ dependencies {
     testImplementation("org.testcontainers:localstack:$testcontainers")
     testImplementation("org.testcontainers:mysql:$testcontainers")
 
-    val ldap = "6.0.9"
+    val ldap = "6.0.10"
     testImplementation("com.unboundid:unboundid-ldapsdk:$ldap")
 }
 
