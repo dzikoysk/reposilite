@@ -65,6 +65,7 @@ internal class RepositoryProvider(
 
     private fun createRepositories(repositoriesConfiguration: List<RepositorySettings>): Map<String, Repository> {
         val factory = RepositoryFactory(
+            journalist = journalist,
             workingDirectory = workingDirectory,
             authenticationFacade = authenticationFacade,
             remoteClientProvider = remoteClientProvider,

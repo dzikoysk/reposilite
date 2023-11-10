@@ -47,6 +47,7 @@ internal class S3StorageProviderIntegrationTest : StorageProviderIntegrationTest
         val storageFacade = StorageFacade()
 
         this.storageProvider = storageFacade.createStorageProvider(
+            journalist = logger,
             failureFacade = failureFacade,
             workingDirectory = rootDirectory.toPath(),
             repository = "test-repository",

@@ -16,6 +16,7 @@
 
 package com.reposilite.storage.filesystem
 
+import com.reposilite.journalist.Journalist
 import com.reposilite.status.FailureFacade
 import com.reposilite.storage.StorageProviderFactory
 import java.nio.file.Files
@@ -34,26 +35,26 @@ class FileSystemStorageProviderFactory : StorageProviderFactory<FileSystemStorag
          * @param rootDirectory root directory of storage space
          * @param quota quota to use as % or in bytes
          */
-        fun of(rootDirectory: Path, quota: String): FileSystemStorageProvider =
+        fun of(journalist: Journalist, rootDirectory: Path, quota: String): FileSystemStorageProvider =
             if (quota.endsWith("%")) {
-                of(rootDirectory, quota.substring(0, quota.length - 1).toInt() / 100.0)
+                of(journalist, rootDirectory, quota.substring(0, quota.length - 1).toInt() / 100.0)
             } else {
-                of(rootDirectory, displaySizeToBytesCount(quota))
+                of(journalist, rootDirectory, displaySizeToBytesCount(quota))
             }
 
         /**
          * @param rootDirectory root directory of storage space
          * @param maxSize the largest amount of storage available for use, in bytes
          */
-        fun of(rootDirectory: Path, maxSize: Long): FileSystemStorageProvider =
-            FixedQuota(rootDirectory, maxSize)
+        fun of(journalist: Journalist, rootDirectory: Path, maxSize: Long): FileSystemStorageProvider =
+            FixedQuota(journalist, rootDirectory, maxSize)
 
         /**
          * @param rootDirectory root directory of storage space
          * @param maxPercentage the maximum percentage of the disk available for use
          */
-        fun of(rootDirectory: Path, maxPercentage: Double): FileSystemStorageProvider =
-            PercentageQuota(rootDirectory, maxPercentage)
+        fun of(journalist: Journalist, rootDirectory: Path, maxPercentage: Double): FileSystemStorageProvider =
+            PercentageQuota(journalist, rootDirectory, maxPercentage)
 
         private fun displaySizeToBytesCount(displaySize: String): Long {
             val match = DISPLAY_SIZE_PATTERN.matcher(displaySize)
@@ -74,6 +75,7 @@ class FileSystemStorageProviderFactory : StorageProviderFactory<FileSystemStorag
     }
 
     override fun create(
+        journalist: Journalist,
         failureFacade: FailureFacade,
         workingDirectory: Path,
         repositoryName: String,
@@ -86,7 +88,7 @@ class FileSystemStorageProviderFactory : StorageProviderFactory<FileSystemStorag
                 workingDirectory.resolve(settings.mount)
 
         Files.createDirectories(repositoryDirectory)
-        return of(repositoryDirectory, settings.quota)
+        return of(journalist, repositoryDirectory, settings.quota)
     }
 
     override val settingsType: Class<FileSystemStorageProviderSettings> =

@@ -16,23 +16,27 @@
 
 package com.reposilite.storage.s3
 
+import com.reposilite.journalist.Journalist
 import com.reposilite.status.FailureFacade
 import com.reposilite.storage.StorageProviderFactory
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
-import software.amazon.awssdk.core.exception.SdkClientException
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.S3Configuration
-import software.amazon.awssdk.services.s3.model.S3Exception
 import java.net.URI
 import java.nio.file.Path
 
 class S3StorageProviderFactory : StorageProviderFactory<S3StorageProvider, S3StorageProviderSettings> {
 
-    override fun create(failureFacade: FailureFacade, workingDirectory: Path, repositoryName: String, settings: S3StorageProviderSettings): S3StorageProvider {
+    override fun create(
+        journalist: Journalist,
+        failureFacade: FailureFacade,
+        workingDirectory: Path,
+        repositoryName: String,
+        settings: S3StorageProviderSettings
+    ): S3StorageProvider {
         val client = S3Client.builder()
-
         val pathStyleAccessEnabled = System.getProperty("reposilite.s3.pathStyleAccessEnabled") == "true"
 
         if (pathStyleAccessEnabled) {

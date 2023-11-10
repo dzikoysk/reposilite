@@ -16,6 +16,7 @@
 
 package com.reposilite.storage
 
+import com.reposilite.journalist.Journalist
 import com.reposilite.plugin.api.Facade
 import com.reposilite.status.FailureFacade
 import java.nio.file.Path
@@ -28,7 +29,19 @@ class StorageFacade : Facade {
         .associateBy { it.type }
         .mapValues { (_, factory) -> factory as StorageProviderFactory<*, StorageProviderSettings> }
 
-    fun createStorageProvider(failureFacade: FailureFacade, workingDirectory: Path, repository: String, storageSettings: StorageProviderSettings): StorageProvider? =
-        storageProviderFactories[storageSettings.type]?.create(failureFacade, workingDirectory, repository, storageSettings)
+    fun createStorageProvider(
+        journalist: Journalist,
+        failureFacade: FailureFacade,
+        workingDirectory: Path,
+        repository: String,
+        storageSettings: StorageProviderSettings
+    ): StorageProvider? =
+        storageProviderFactories[storageSettings.type]?.create(
+            journalist = journalist,
+            failureFacade = failureFacade,
+            workingDirectory = workingDirectory,
+            repositoryName = repository,
+            settings = storageSettings
+        )
 
 }

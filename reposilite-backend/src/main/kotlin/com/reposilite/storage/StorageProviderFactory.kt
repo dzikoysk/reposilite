@@ -16,6 +16,7 @@
 
 package com.reposilite.storage
 
+import com.reposilite.journalist.Journalist
 import com.reposilite.status.FailureFacade
 import java.nio.file.Path
 
@@ -24,6 +25,12 @@ interface StorageProviderFactory<PROVIDER : StorageProvider, SETTINGS : StorageP
     val type: String
     val settingsType: Class<SETTINGS>
 
-    fun create(failureFacade: FailureFacade, workingDirectory: Path, repositoryName: String, settings: SETTINGS): PROVIDER
+    fun create(
+        journalist: Journalist,
+        failureFacade: FailureFacade,
+        workingDirectory: Path,
+        repositoryName: String,
+        settings: SETTINGS
+    ): PROVIDER
 
 }

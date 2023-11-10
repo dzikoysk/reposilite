@@ -17,6 +17,7 @@
 package com.reposilite.maven
 
 import com.reposilite.auth.AuthenticationFacade
+import com.reposilite.journalist.Journalist
 import com.reposilite.maven.application.MirroredRepositorySettings
 import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.shared.http.RemoteClientProvider
@@ -28,6 +29,7 @@ import java.nio.file.Paths
 import java.util.UUID
 
 internal class RepositoryFactory(
+    private val journalist: Journalist,
     private val workingDirectory: Path,
     private val authenticationFacade: AuthenticationFacade,
     private val remoteClientProvider: RemoteClientProvider,
@@ -49,6 +51,7 @@ internal class RepositoryFactory(
             storageProvider =
                 storageFacade
                     .createStorageProvider(
+                        journalist = journalist,
                         failureFacade = failureFacade,
                         workingDirectory = workingDirectory.resolve(repositoriesDirectory),
                         repository = repositoryName,

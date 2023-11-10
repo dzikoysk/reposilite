@@ -37,6 +37,7 @@ internal class FileSystemStorageProviderIntegrationTest : StorageProviderIntegra
         val storageFacade = StorageFacade()
 
         super.storageProvider = storageFacade.createStorageProvider(
+            journalist = logger,
             failureFacade = failureFacade,
             workingDirectory = rootDirectory.toPath(),
             repository = "test-storage",

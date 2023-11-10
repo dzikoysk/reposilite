@@ -16,6 +16,7 @@
 
 package com.reposilite.storage.filesystem
 
+import com.reposilite.journalist.Journalist
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.badRequest
 import com.reposilite.shared.notFound
@@ -43,15 +44,18 @@ import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.nio.file.Files
+import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption.REPLACE_EXISTING
 import java.nio.file.attribute.FileTime
+import kotlin.io.path.absolutePathString
 import kotlin.streams.asSequence
 
 /**
  * @param rootDirectory root directory of storage space
  */
 abstract class FileSystemStorageProvider protected constructor(
+    val journalist: Journalist,
     val rootDirectory: Path
 ) : StorageProvider {
 
@@ -78,8 +82,16 @@ abstract class FileSystemStorageProvider protected constructor(
                         data.copyTo(destination)
                     }
 
-                    Files.move(temporaryFile.toPath(), file, REPLACE_EXISTING)
-                    Unit
+                    do {
+                        try {
+                            Files.move(temporaryFile.toPath(), file, REPLACE_EXISTING)
+                        } catch (e: NoSuchFileException) {
+                            // Concurrent Files.move calls may throw
+                            // ~ https://github.com/dzikoysk/reposilite/issues/1975
+                            journalist.logger.debug("[FS] Cannot move file ${temporaryFile.absolutePath} to ${file.absolutePathString()}, retrying...")
+                            Thread.sleep(100) // probably good enough for now
+                        }
+                    } while (Files.exists(temporaryFile.toPath()))
                 }
         }
 

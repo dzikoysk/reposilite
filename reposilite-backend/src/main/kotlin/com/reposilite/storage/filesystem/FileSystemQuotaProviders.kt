@@ -16,6 +16,7 @@
 
 package com.reposilite.storage.filesystem
 
+import com.reposilite.journalist.Journalist
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.toErrorResponse
 import io.javalin.http.HttpStatus.INSUFFICIENT_STORAGE
@@ -27,7 +28,11 @@ import java.nio.file.Path
  * @param rootDirectory root directory of storage space
  * @param maxSize the largest amount of storage available for use, in bytes
  */
-internal class FixedQuota(rootDirectory: Path, private val maxSize: Long) : FileSystemStorageProvider(rootDirectory) {
+internal class FixedQuota(
+    journalist: Journalist,
+    rootDirectory: Path,
+    private val maxSize: Long
+) : FileSystemStorageProvider(journalist, rootDirectory) {
 
     init {
         if (maxSize <= 0) {
@@ -47,9 +52,10 @@ internal class FixedQuota(rootDirectory: Path, private val maxSize: Long) : File
  * @param maxPercentage the maximum percentage of the disk available for use
  */
 internal class PercentageQuota(
+    journalist: Journalist,
     rootDirectory: Path,
     private val maxPercentage: Double
-) : FileSystemStorageProvider(rootDirectory) {
+) : FileSystemStorageProvider(journalist, rootDirectory) {
 
     init {
         if (maxPercentage > 1 || maxPercentage <= 0) {
