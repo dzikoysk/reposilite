@@ -74,7 +74,7 @@ internal abstract class MavenMirrorsIntegrationTest : MavenIntegrationSpecificat
                 )
             )
             assertThat(localFile.isOk).isTrue
-            assertThat(localFile.get().second.readAllBytes().decodeToString()).isEqualTo("upstream")
+            assertThat(localFile.get().content.readAllBytes().decodeToString()).isEqualTo("upstream")
         }
     }
 

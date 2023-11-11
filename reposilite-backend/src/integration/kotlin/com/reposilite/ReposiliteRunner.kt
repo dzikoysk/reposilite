@@ -116,7 +116,11 @@ internal abstract class ReposiliteRunner {
                             redeployment = true,
                             storageProvider = _storageProvider!!,
                         )
-                    }.values.toList()
+                    }
+                    .toMutableMap()
+                    .also { it["immutable"] = RepositorySettings(id = "immutable", redeployment = false) }
+                    .values
+                    .toList()
             )
         }
 

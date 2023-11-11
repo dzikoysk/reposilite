@@ -63,7 +63,16 @@ internal class MavenEndpoints(
             requireGav { gav ->
                 LookupRequest(this?.identifier, requireParameter("repository"), gav)
                     .let { request -> mavenFacade.findFile(request) }
-                    .peek { (details, file) -> ctx.resultAttachment(details.name, details.contentType, details.contentLength, compressionStrategy, file) }
+                    .peek {
+                        ctx.resultAttachment(
+                            name = it.document.name,
+                            contentType = it.document.contentType,
+                            contentLength = it.document.contentLength,
+                            compressionStrategy = compressionStrategy,
+                            cache = it.cachable,
+                            data = it.content
+                        )
+                    }
                     .onError {
                         ctx.status(it.status).html(frontendFacade.createNotFoundPage(uri, it.message))
                         mavenFacade.logger.debug("FIND | Could not find file due to $it")

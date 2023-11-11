@@ -24,6 +24,7 @@ import io.javalin.http.ContentType
 import io.javalin.http.Context
 import io.javalin.http.HandlerType.HEAD
 import io.javalin.http.HandlerType.OPTIONS
+import io.javalin.http.Header.CACHE_CONTROL
 import io.javalin.http.HttpStatus
 import org.eclipse.jetty.server.HttpOutput
 import panda.std.Result
@@ -32,6 +33,7 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.net.URLEncoder
 import java.nio.charset.Charset
+import kotlin.time.Duration.Companion.hours
 
 internal class ContentTypeSerializer : StdSerializer<ContentType> {
 
@@ -81,11 +83,14 @@ fun Context.response(result: Any): Context =
         }
     }
 
+internal val maxAge = System.getProperty("reposilite.maven.maxAge", 1.hours.inWholeSeconds.toString()).toLong()
+
 internal fun Context.resultAttachment(
     name: String,
     contentType: ContentType,
     contentLength: Long,
     compressionStrategy: String,
+    cache: Boolean,
     data: InputStream
 ) {
     if (!contentType.isHumanReadable) {
@@ -94,6 +99,12 @@ internal fun Context.resultAttachment(
 
     if (compressionStrategy == "none" && contentLength > 0) {
         contentLength(contentLength) // Using this with GZIP ends up with "Premature end of Content-Length delimited message body".
+    }
+
+    if (cache) {
+        header(CACHE_CONTROL, "public, max-age=$maxAge")
+    } else {
+        header(CACHE_CONTROL, "no-cache, no-store, max-age=0")
     }
 
     when {
@@ -121,20 +132,6 @@ fun Context.encoding(encoding: String): Context =
 
 fun Context.contentDisposition(disposition: String): Context =
     header("Content-Disposition", disposition)
-
-fun Context.resultAttachment(name: String, contentType: ContentType, contentLength: Long, data: InputStream): Context {
-    contentType(contentType)
-
-    if (contentLength > 0) {
-        contentLength(contentLength)
-    }
-
-    if (!contentType.isHumanReadable) {
-        contentDisposition(""""attachment; filename="$name" """)
-    }
-
-    return response(data)
-}
 
 fun Context.uri(): String =
     path()

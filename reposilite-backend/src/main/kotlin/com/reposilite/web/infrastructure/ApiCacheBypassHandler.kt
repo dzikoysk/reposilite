@@ -20,7 +20,7 @@ import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
 import io.javalin.community.routing.Route.BEFORE
 
-internal class CacheBypassHandler : ReposiliteRoutes() {
+internal class ApiCacheBypassHandler : ReposiliteRoutes() {
 
     private val bypassCacheRoute = ReposiliteRoute<Unit>("/api/*", BEFORE) {
         ctx.header("pragma", "no-cache")

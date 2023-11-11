@@ -23,6 +23,7 @@ import com.reposilite.maven.specification.MavenIntegrationSpecification
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.RecommendedLocalSpecificationJunitExtension
 import com.reposilite.RecommendedRemoteSpecificationJunitExtension
+import com.reposilite.shared.extensions.maxAge
 import com.reposilite.storage.api.DocumentInfo
 import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.HttpStatus.UNAUTHORIZED
@@ -36,6 +37,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
+import kong.unirest.HeaderNames.CACHE_CONTROL
 
 @ExtendWith(RecommendedLocalSpecificationJunitExtension::class)
 internal class LocalMavenIntegrationTest : MavenIntegrationTest()
@@ -48,7 +50,7 @@ internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
     @Test
     fun `should support head requests`() {
         // given: the details about an existing in repository file
-        val (repository, gav, file, content) = useDocument("releases", "gav", "artifact.jar", "content", true)
+        val (repository, gav, file, content) = useDocument("immutable", "gav", "artifact.jar", "content", true)
 
         // when: client requests head data
         val response = head("$base/$repository/$gav/$file").asEmpty()
@@ -56,6 +58,7 @@ internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
         // then: service returns valid file metadata
         assertThat(response.isSuccess).isTrue
         assertThat(response.headers.getFirst(CONTENT_LENGTH).toInt()).isEqualTo(content.length)
+        assertThat(response.headers.getFirst(CACHE_CONTROL)).isEqualTo("public, max-age=$maxAge")
     }
 
     @Test

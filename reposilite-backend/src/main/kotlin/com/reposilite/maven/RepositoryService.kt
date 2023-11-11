@@ -22,8 +22,8 @@ import com.reposilite.maven.api.DeployEvent
 import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.Identifier
 import com.reposilite.maven.api.LookupRequest
-import com.reposilite.maven.api.METADATA_FILE
 import com.reposilite.maven.api.PreResolveEvent
+import com.reposilite.maven.api.ResolvedDocument
 import com.reposilite.maven.api.ResolvedFileEvent
 import com.reposilite.plugin.Extensions
 import com.reposilite.shared.ErrorResponse
@@ -110,8 +110,17 @@ internal class RepositoryService(
     fun findDetails(lookupRequest: LookupRequest): Result<FileDetails, ErrorResponse> =
         resolve(lookupRequest) { repository, gav -> findDetails(lookupRequest.accessToken, repository, gav) }
 
-    fun findFile(lookupRequest: LookupRequest): Result<Pair<DocumentInfo, InputStream>, ErrorResponse> =
-        resolve(lookupRequest) { repository, gav -> findFile(lookupRequest.accessToken, repository, gav) }
+    fun findFile(lookupRequest: LookupRequest): Result<ResolvedDocument, ErrorResponse> =
+        resolve(lookupRequest) { repository, gav ->
+            findFile(lookupRequest.accessToken, repository, gav).map {
+                val (details, stream) = it
+                ResolvedDocument(
+                    document = details,
+                    cachable = repository.acceptsCachingOf(gav),
+                    content = stream
+                )
+            }
+        }
 
     private fun <T> resolve(lookupRequest: LookupRequest, block: (Repository, Location) -> Result<T, ErrorResponse>): Result<T, ErrorResponse> {
         val (accessToken, repositoryName, gav) = lookupRequest

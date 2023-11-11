@@ -26,18 +26,17 @@ import com.reposilite.maven.api.LatestBadgeRequest
 import com.reposilite.maven.api.LatestVersionResponse
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.Metadata
+import com.reposilite.maven.api.ResolvedDocument
 import com.reposilite.maven.api.SaveMetadataRequest
 import com.reposilite.maven.api.VersionLookupRequest
 import com.reposilite.maven.api.VersionsResponse
 import com.reposilite.plugin.api.Facade
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.storage.api.DirectoryInfo
-import com.reposilite.storage.api.DocumentInfo
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.Location
 import com.reposilite.token.AccessTokenIdentifier
 import panda.std.Result
-import java.io.InputStream
 
 class MavenFacade internal constructor(
     private val journalist: Journalist,
@@ -52,7 +51,7 @@ class MavenFacade internal constructor(
     fun findDetails(lookupRequest: LookupRequest): Result<out FileDetails, ErrorResponse> =
         repositoryService.findDetails(lookupRequest)
 
-    fun findFile(lookupRequest: LookupRequest): Result<Pair<DocumentInfo, InputStream>, ErrorResponse> =
+    fun findFile(lookupRequest: LookupRequest): Result<ResolvedDocument, ErrorResponse> =
         repositoryService.findFile(lookupRequest)
 
     fun deployFile(deployRequest: DeployRequest): Result<Unit, ErrorResponse> =

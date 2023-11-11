@@ -298,7 +298,7 @@ internal class MavenFacadeTest : MavenSpecification() {
 
             // then: valid pom xml has been generated and metadata file has been updated
             val pomBody = assertOk(mavenFacade.findFile(LookupRequest(token, repository.name, pom)))
-                .second
+                .content
                 .use { it.readAllBytes().decodeToString() }
 
             assertThat(pomBody).isEqualTo(
@@ -317,7 +317,7 @@ internal class MavenFacadeTest : MavenSpecification() {
             )
 
             val metadataBody = assertOk(mavenFacade.findFile(LookupRequest(token, repository.name, gav.resolve(METADATA_FILE))))
-                .second
+                .content
                 .use { it.readAllBytes().decodeToString() }
 
             assertThat(metadataBody).contains("<groupId>com.dzikoysk</groupId>")

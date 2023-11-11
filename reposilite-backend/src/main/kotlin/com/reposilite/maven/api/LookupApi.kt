@@ -55,3 +55,9 @@ data class ResolvedFileEvent(
     val gav: Location,
     var result: Result<Pair< DocumentInfo, InputStream>, ErrorResponse>
 ) : Event
+
+data class ResolvedDocument(
+    val document: DocumentInfo,
+    val content: InputStream,
+    val cachable: Boolean
+)

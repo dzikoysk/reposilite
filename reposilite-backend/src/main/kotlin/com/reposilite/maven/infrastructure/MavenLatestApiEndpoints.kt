@@ -129,14 +129,21 @@ internal class MavenLatestApiEndpoints(
     )
     private val findLatestFile = ReposiliteRoute<Unit>("/api/maven/latest/file/{repository}/<gav>", GET) {
         accessed {
-            requireRepository {
+            requireRepository { repository ->
                 response = resolveLatestArtifact(
                     context = this@ReposiliteRoute,
                     accessToken = this,
-                    repository = it,
+                    repository = repository,
                     handler = { lookupRequest ->
-                        mavenFacade.findFile(lookupRequest).map { (details, file) ->
-                            ctx.resultAttachment(details.name, details.contentType, details.contentLength, compressionStrategy, file)
+                        mavenFacade.findFile(lookupRequest).map {
+                            ctx.resultAttachment(
+                                name = it.document.name,
+                                contentType = it.document.contentType,
+                                contentLength = it.document.contentLength,
+                                compressionStrategy = compressionStrategy,
+                                cache = it.cachable,
+                                data = it.content
+                            )
                         }
                     }
                 )

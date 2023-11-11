@@ -34,7 +34,7 @@ import com.reposilite.token.AccessTokenFacade
 import com.reposilite.web.api.HttpServerConfigurationEvent
 import com.reposilite.web.api.HttpServerStartedEvent
 import com.reposilite.web.api.RoutingSetupEvent
-import com.reposilite.web.infrastructure.CacheBypassHandler
+import com.reposilite.web.infrastructure.ApiCacheBypassHandler
 import com.reposilite.web.infrastructure.EndpointAccessLoggingHandler
 import io.javalin.community.routing.dsl.DslExceptionHandler
 import io.javalin.community.routing.dsl.DslRoute
@@ -79,7 +79,7 @@ internal object JavalinConfiguration {
         if (localConfiguration.bypassExternalCache.get()) {
             reposilite.extensions.registerEvent { event: RoutingSetupEvent ->
                 event.registerRoutes(EndpointAccessLoggingHandler())
-                event.registerRoutes(CacheBypassHandler())
+                event.registerRoutes(ApiCacheBypassHandler())
                 reposilite.logger.debug("CacheBypassHandler has been registered")
             }
         }
