@@ -28,6 +28,7 @@ import com.reposilite.maven.api.ResolvedFileEvent
 import com.reposilite.plugin.Extensions
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.badRequestError
+import com.reposilite.shared.errorResponse
 import com.reposilite.shared.notFound
 import com.reposilite.shared.notFoundError
 import com.reposilite.shared.unauthorizedError
@@ -40,6 +41,7 @@ import com.reposilite.storage.api.FileType.DIRECTORY
 import com.reposilite.storage.api.Location
 import com.reposilite.storage.api.SimpleDirectoryInfo
 import com.reposilite.token.AccessTokenIdentifier
+import io.javalin.http.HttpStatus.CONFLICT
 import panda.std.Result
 import panda.std.asSuccess
 import panda.std.ok
@@ -92,7 +94,7 @@ internal class RepositoryService(
                                 }
                             }
                         }
-                else -> badRequestError("Redeployment is not allowed")
+                else -> errorResponse(CONFLICT, "Redeployment is not allowed")
             }
         }
 
