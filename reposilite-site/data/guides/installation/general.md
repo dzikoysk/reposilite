@@ -1,6 +1,6 @@
 ---
-id: settings
-title: Settings
+id: general
+title: General
 ---
 
 Reposilite supports multiple use cases and environments. By default we support 3 of them:

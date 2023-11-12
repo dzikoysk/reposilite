@@ -189,7 +189,7 @@ export default {
   ul: (props) => <UnorderedList paddingY={1} {...props} />,
   ol: (props) => <OrderedList paddingY={2} {...props} />,
   li: (props) => <ListItem paddingY={0.5} {...props} />,
-  img: (props) =>  <Image display={'inline-block'} {...props} marginBottom={-1} />,
+  img: (props) =>  <Image display={'inline-block'} rounded={'md'} {...props} marginBottom={-1} />,
   Spoiler: (props) => <Spoiler {...props} />,
   CodeVariants: (props) => <CodeVariants {...props} />,
   CodeVariant: (props) => <CodeVariant {...props} />,

@@ -12,24 +12,23 @@ const categories = [
     name: 'Installation',
     directory: 'installation',
     content: [
-      'settings',
-      'standalone',
+      'general',
+      'jar',
       'docker',
       'kubernetes',
     ]
   },
   {
-    name: 'Integrations',
-    directory: 'integrations',
+    name: 'Infrastructure',
+    directory: 'infrastructure',
     content: [
       'nginx',
-      'apache',
       'caddy',
+      'apache',
       'systemd',
       'archlinux',
       'nixos',
       'cloudflare',
-      'github',
     ]
   },
   {
@@ -47,7 +46,8 @@ const categories = [
     content: [
       'gradle',
       'maven',
-      'sbt'
+      'sbt',
+      'github',
     ]
   },
   {
@@ -56,6 +56,7 @@ const categories = [
     content: [
       'dashboard',
       'repositories',
+      's3',
       'mirrors',
       'javadocs',
       'static-files',
