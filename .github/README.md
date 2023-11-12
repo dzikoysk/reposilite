@@ -106,7 +106,8 @@ Thanks to all contributors and people that decided to support my work financiall
     <a href="https://github.com/crejk">crejk</a>,
     <a href="https://github.com/Rollczi">Rollczi</a>,
     <a href="https://github.com/scheidtp">scheidtp</a>,
-    <a href="https://github.com/Szczurowsky">Szczurowsky</a>
+    <a href="https://github.com/Szczurowsky">Szczurowsky</a>,
+    <a href="https://github.com/SirEndii">SirEndii</a>
   </td>
  </tr>
  <tr>
@@ -139,12 +140,13 @@ Thanks to all contributors and people that decided to support my work financiall
    <a href="https://github.com/bmstefanski">bmstefanski</a>,
    <a href="https://github.com/escv">escv</a>,
    <a href="https://github.com/Rollczi">Rollczi</a>,
+   <a href="https://github.com/scheidtp">scheidtp</a>,
    Lukas P.,
    <a href="https://github.com/arthurr0">arthurr0</a>,
    <a href="https://github.com/shitzuu">shitzuu</a>,
    <a href="https://github.com/peter-jerry-ye">peter-jerry-ye</a>,
    Rob,
-   <a href="https://github.com/scheidtp">scheidtp</a>,
+   <a href="https://github.com/SirEndii">SirEndii</a>
    <a href="https://github.com/sebba-dev">sebba-dev</a>,
    <a href="https://github.com/mufinlive">mufinlive</a>,
    <a href="https://github.com/bopke">bopke</a>,
