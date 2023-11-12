@@ -96,10 +96,9 @@ Thanks to all contributors and people that decided to support my work financiall
     <a href="https://github.com/andrm">andrm</a>, 
     <a href="https://github.com/rdehuyss">rdehuyss</a>,
     <a href="https://github.com/insertt">insertt</a>,
+    <a href="https://github.com/GotoFinal">GotoFinal</a>,
     Lukas P.
     <a href="https://github.com/Koressi">Koressi</a>,
-    <a href="https://github.com/Zur13">Zur13</a>,
-    <a href="https://github.com/GotoFinal">GotoFinal</a>,
     <a href="https://github.com/tipsy">tipsy</a>, 
     <a href="https://github.com/Kamilkime">Kamilkime</a>,
     <a href="https://github.com/that-apex">that-apex</a>,

@@ -70,11 +70,11 @@ dependencies {
     kapt("info.picocli:picocli-codegen:$picocli")
     api("info.picocli:picocli:$picocli")
 
-    val awssdk = "2.21.13"
+    val awssdk = "2.21.21"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
 
-    val awsSdkV1 = "1.12.579"
+    val awsSdkV1 = "1.12.587"
     testImplementation("com.amazonaws:aws-java-sdk-s3:$awsSdkV1")
 
     val exposed = "0.44.1"
@@ -83,10 +83,10 @@ dependencies {
     api("org.jetbrains.exposed:exposed-jdbc:$exposed")
     api("org.jetbrains.exposed:exposed-java-time:$exposed")
     // Drivers
-    implementation("com.zaxxer:HikariCP:5.0.1")
+    implementation("com.zaxxer:HikariCP:5.1.0")
     implementation("org.xerial:sqlite-jdbc:3.43.2.2")
     implementation("mysql:mysql-connector-java:8.0.33")
-    implementation("org.mariadb.jdbc:mariadb-java-client:3.2.0")
+    implementation("org.mariadb.jdbc:mariadb-java-client:3.3.0")
     implementation("org.postgresql:postgresql:42.6.0")
     implementation("com.h2database:h2:2.2.224")
 
@@ -98,7 +98,7 @@ dependencies {
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jackson")
 
-    val jsonSchema = "4.31.1"
+    val jsonSchema = "4.32.0"
     implementation("com.github.victools:jsonschema-generator:$jsonSchema")
 
     val httpClient = "1.43.3"
