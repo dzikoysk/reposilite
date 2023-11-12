@@ -54,6 +54,8 @@ import java.io.IOException
 import java.io.InputStream
 import java.nio.file.attribute.FileTime
 
+private val skipBucketCreation = System.getProperty("reposilite.s3.skip-bucket-creation", "false") == "true"
+
 class S3StorageProvider(
     private val failureFacade: FailureFacade,
     private val s3: S3Client,
@@ -61,9 +63,17 @@ class S3StorageProvider(
 ) : StorageProvider, Journalist {
 
     init {
-        val headBucketRequest = HeadBucketRequest.builder().bucket(bucket).build()
+        if (!skipBucketCreation) {
+            createBucketIfNotExists()
+        }
+    }
 
+    private fun createBucketIfNotExists() {
         try {
+            val headBucketRequest = HeadBucketRequest.builder()
+                .bucket(bucket)
+                .build()
+
             s3.headBucket(headBucketRequest)
         } catch (noSuchBucket: NoSuchBucketException) {
             try {
