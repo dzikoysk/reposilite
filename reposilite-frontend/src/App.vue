@@ -22,7 +22,7 @@ import useQualifier from "./store/qualifier"
 import usePlaceholders from './store/placeholders'
 
 const { title, description, icpLicense } = usePlaceholders()
-const { theme, fetchTheme } = useTheme()
+const { theme, fetchColorMode } = useTheme()
 const { initializeSession } = useSession()
 const { qualifier } = useQualifier()
 
@@ -30,7 +30,7 @@ useHead({
   title, 
   description
 })
-fetchTheme()
+fetchColorMode()
 initializeSession().catch(() => {})
 </script>
 

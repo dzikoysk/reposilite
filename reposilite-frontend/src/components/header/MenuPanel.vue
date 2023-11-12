@@ -23,8 +23,22 @@ import SunIcon from '../icons/SunIcon.vue'
 import LogoutIcon from '../icons/LogoutIcon.vue'
 import useTheme from "../../store/theme"
 
-const { theme, toggleTheme } = useTheme()
+const { theme, changeTheme } = useTheme()
 const { token, isLogged, logout } = useSession()
+
+const toggleTheme = () => {
+  switch (theme.mode) {
+    case 'light':
+      changeTheme('dark')
+      break
+    case 'dark':
+      changeTheme('auto')
+      break
+    case 'auto':
+      changeTheme('light')
+      break
+  }
+}
 </script>
 
 <template>
@@ -49,9 +63,12 @@ const { token, isLogged, logout } = useSession()
     >
       <LogoutIcon @click="logout()"/>
     </div>
-    <div class="pl-2 pt-1.3 rounded-full max-h-35px default-button" @click="toggleTheme()">
-      <SunIcon class="mr-1.9" v-if="theme.isDark"/>
-      <MoonIcon class="mr-1.5" v-else/>
+    <div class="flex justify-center items-center rounded-full w-40px h-35px default-button" @click="toggleTheme()">
+      <SunIcon v-if="theme.mode === 'light'"/>
+      <MoonIcon class="pl-0.5" v-if="theme.mode === 'dark'"/>
+      <div class="font-bold w-full text-center text-lg" v-if="theme.mode === 'auto'">
+        A
+      </div>
     </div>
   </nav>
 </template>

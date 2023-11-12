@@ -17,26 +17,34 @@
 import { reactive } from 'vue'
 
 const theme = reactive({
+  mode: 'auto',
   isDark: false
 })
 
-const themeKey = 'dark-theme'
+const themeKey = 'theme-mode'
 
 export default function useTheme() {
-  const fetchTheme = () => {
-    localStorage.getItem(themeKey) === null
-      ? theme.isDark = window.matchMedia("(prefers-color-scheme: dark)").matches
-      : theme.isDark = (localStorage.getItem(themeKey) === 'true')
+  const fetchColorMode = () => {
+    const storedTheme = localStorage.getItem(themeKey) ?? 'auto'
+    localStorage.setItem(themeKey, storedTheme)
+    theme.mode = storedTheme
+
+    if (storedTheme === 'auto') {
+      theme.isDark = window.matchMedia("(prefers-color-scheme: dark)").matches
+      return
+    }
+
+    theme.isDark = storedTheme === 'dark'
   }
 
-  const toggleTheme = () => {
-    theme.isDark = !theme.isDark
-    localStorage.setItem(themeKey, theme.isDark)
+  const changeTheme = (mode) => {
+    localStorage.setItem(themeKey, mode)
+    fetchColorMode()
   }
 
   return {
     theme,
-    fetchTheme,
-    toggleTheme
+    fetchColorMode,
+    changeTheme
   }
 }
