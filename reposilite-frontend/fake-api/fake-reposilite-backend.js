@@ -210,7 +210,11 @@ application
             createdAt: Date.now(),
             description: "Description",
           },
-          permissions: [{ identifier: "access-token:manager" }],
+          permissions: [
+            {
+              identifier: "access-token:read"
+            }
+          ],
           routes: [
             {
               path: "/",

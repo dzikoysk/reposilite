@@ -79,7 +79,7 @@ watchEffect(() => {
       client.value.maven.content(`${qualifier.substring(0, qualifier.indexOf(elements[elements.length-1])-1)}/maven-metadata.xml`)
         .then(response => displayArtifact(response.data, elements[elements.length-1]))
         .catch(error => {
-          if (error.message !== 'Request failed with status code 404') {
+          if (error.response?.status !== 404 && error.response?.status !== 403) {
             console.log(error)
           }
           displayRepository()

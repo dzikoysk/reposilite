@@ -53,7 +53,7 @@ const closeDeleteModal = () =>
   (deleteModalValue.value = undefined)
 
 const isDirectory = (file) =>
-  file.type == 'DIRECTORY'
+  file.type === 'DIRECTORY'
 
 const LinkEntry = ({ file }, context) => {
   return (

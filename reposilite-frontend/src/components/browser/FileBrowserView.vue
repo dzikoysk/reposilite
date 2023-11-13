@@ -36,13 +36,13 @@ const props = defineProps({
 
 const parentPath = ref('')
 const files = ref({})
-const { client, hasPermissionTo } = useSession()
+const { details, client, hasPermissionTo } = useSession()
 const { applyAdjustments } = useAdjustments()
 const { getParentPath } = useQualifier()
 
 const processedFiles = computed(() => ({
   ...files.value,
-  list: applyAdjustments([...files.value.list] || [])
+  list: applyAdjustments([...files.value.list ?? []])
 }))
 
 const canUpload = computed(() => {
@@ -50,8 +50,12 @@ const canUpload = computed(() => {
 })
 
 watch(
-  () => props.qualifier.watchable,
+  () => [props.qualifier.watchable, details.value],
   async () => {
+    if (details.value == null) {
+      return
+    }
+
     files.value = {
       list: []
     }
@@ -59,15 +63,38 @@ watch(
     const qualifier = props.qualifier.path
 
     client.value.maven.details(qualifier)
-      .then(response => files.value = {
-        list: response.data.files,
-      })
-      .then(() => files.value.isEmpty = files.value.list.length == 0)
-      .catch(error => {
-        createErrorToast(`${error.response.status}: ${error.response.data.message}`)
+      .then(response => {
         files.value = {
-          list: [],
-          error: true
+          list: response.data.files,
+          isEmpty: response.data.files.length === 0,
+          error: false
+        }
+      })
+      .catch(error => {
+        // simulate intermediate directory if 403 & user has access to only one directory
+        const currentRoutes = details.value.routes?.filter(route => route.path.startsWith(`/${qualifier}`)) ?? []
+
+        if (error.response.status === 403 && currentRoutes.length > 0) {
+          const intermediateDirectories = currentRoutes.map(currentRoute => {
+            let currentSegment = currentRoute.path.substring(`/${qualifier}/`.replaceAll('//', '/').length)
+            return currentSegment.includes('/') ? currentSegment.substring(0, currentSegment.indexOf('/')) : currentSegment
+          })
+
+          files.value = {
+            list: intermediateDirectories.map(directory => ({
+              name: directory,
+              type: 'DIRECTORY',
+              list: []
+            })),
+            isEmpty: false,
+            error: false
+          }
+        } else {
+          createErrorToast(`${error.response.status}: ${error.response.data.message}`)
+          files.value = {
+            list: [],
+            error: true
+          }
         }
       })
 
@@ -77,10 +104,10 @@ watch(
 )
 
 const fileBrowserCompactViewKey = 'file-browser-compact-view'
-const fileBrowserCompactMode = ref(localStorage.getItem(fileBrowserCompactViewKey) == "true")
+const fileBrowserCompactMode = ref(localStorage.getItem(fileBrowserCompactViewKey) === "true")
 const toggleCompactMode = () => {
   fileBrowserCompactMode.value = !fileBrowserCompactMode.value
-  localStorage.setItem(fileBrowserCompactViewKey, fileBrowserCompactMode.value)
+  localStorage.setItem(fileBrowserCompactViewKey, fileBrowserCompactMode.value.toString())
 }
 
 const MenuButton = (_, context) => {

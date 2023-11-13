@@ -30,7 +30,32 @@ watchEffect(() => {
   localStorage.setItem('token-secret', token.value.secret)
 })
 
-const details = ref()
+/**
+ * @type {(undefined|{
+ *    accessToken: {
+ *      identifier: {
+ *        type: string,
+ *        value: number
+ *      },
+ *      name: string,
+ *      createdAt: string,
+ *      description: string
+ *    },
+ *    permissions: {
+ *      identifier: string,
+ *      shortcut: string
+ *    }[],
+ *    routes: {
+ *      path: string,
+ *      permission: {
+ *        identifier: string,
+ *        shortcut: string
+*       }
+ *    }[]
+ *  })}
+ */
+const defaultDetails = undefined
+const details = ref(defaultDetails)
 
 const logout = () => {
   setToken('', '')
@@ -53,7 +78,7 @@ const isLogged = computed(() => details.value !== undefined)
 const isManager = computed(() => {
   return details.value
     ?.permissions
-    ?.some(entry => entry.identifier === 'access-token:manager') == true
+    ?.some(entry => entry.identifier === 'access-token:manager') === true
 })
 
 const hasPermissionTo = (path, permission) => {

@@ -3,7 +3,9 @@ FROM openjdk:20-slim AS build
 COPY . /home/reposilite-build
 WORKDIR /home/reposilite-build
 RUN \
-    apt-get update; apt-get install -y curl
+  rm -rf reposilite-frontend/node_modules
+RUN \
+  apt-get update; apt-get install -y curl
 RUN \
   export GRADLE_OPTS="-Djdk.lang.Process.launchMechanism=vfork" && \
   chmod +x gradlew && \
