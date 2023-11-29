@@ -33,7 +33,7 @@ const { description, organizationWebsite, organizationLogo } = usePlaceholders()
         </div>
         <div class="flex flex-row py-2 <sm:justify-center">
           <GlobeIcon />
-          <a class="px-3 text-gray-500" :href="organizationWebsite">{{organizationWebsite}}</a>
+          <a class="px-3 text-gray-500" :href="organizationWebsite" target="_blank">{{organizationWebsite}}</a>
         </div>
       </div>
     </div>
