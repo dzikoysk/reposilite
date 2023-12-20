@@ -26,6 +26,7 @@ import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.S3Configuration
 import java.net.URI
 import java.nio.file.Path
+import java.time.Duration
 
 class S3StorageProviderFactory : StorageProviderFactory<S3StorageProvider, S3StorageProviderSettings> {
 
@@ -69,6 +70,13 @@ class S3StorageProviderFactory : StorageProviderFactory<S3StorageProvider, S3Sto
             .takeIf { it.isNotEmpty() }
             ?.let { URI.create(it) }
             ?.also { client.endpointOverride(it) }
+
+        client.overrideConfiguration {
+            it.retryPolicy { cfg ->
+                cfg.backoffStrategy(ExponentialBackoffStrategy(Duration.ofSeconds(1), Duration.ofMinutes(1)))
+                cfg.numRetries(5)
+            }
+        }
 
         return try {
             S3StorageProvider(
