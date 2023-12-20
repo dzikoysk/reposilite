@@ -39,7 +39,7 @@ dependencies {
     val detekt = "1.23.0"
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:$detekt")
 
-    val kotlin = "1.9.20"
+    val kotlin = "1.9.21"
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin")
 
@@ -70,24 +70,24 @@ dependencies {
     kapt("info.picocli:picocli-codegen:$picocli")
     api("info.picocli:picocli:$picocli")
 
-    val awssdk = "2.21.21"
+    val awssdk = "2.22.2"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
 
-    val awsSdkV1 = "1.12.587"
+    val awsSdkV1 = "1.12.622"
     testImplementation("com.amazonaws:aws-java-sdk-s3:$awsSdkV1")
 
-    val exposed = "0.44.1"
+    val exposed = "0.45.0"
     api("org.jetbrains.exposed:exposed-core:$exposed")
     api("org.jetbrains.exposed:exposed-dao:$exposed")
     api("org.jetbrains.exposed:exposed-jdbc:$exposed")
     api("org.jetbrains.exposed:exposed-java-time:$exposed")
     // Drivers
     implementation("com.zaxxer:HikariCP:5.1.0")
-    implementation("org.xerial:sqlite-jdbc:3.43.2.2")
+    implementation("org.xerial:sqlite-jdbc:3.44.1.0")
     implementation("mysql:mysql-connector-java:8.0.33")
-    implementation("org.mariadb.jdbc:mariadb-java-client:3.3.0")
-    implementation("org.postgresql:postgresql:42.6.0")
+    implementation("org.mariadb.jdbc:mariadb-java-client:3.3.2")
+    implementation("org.postgresql:postgresql:42.7.1")
     implementation("com.h2database:h2:2.2.224")
 
     val exposedUpsert = "1.2.2"
@@ -98,7 +98,7 @@ dependencies {
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jackson")
 
-    val jsonSchema = "4.32.0"
+    val jsonSchema = "4.33.1"
     implementation("com.github.victools:jsonschema-generator:$jsonSchema")
 
     val httpClient = "1.43.3"
@@ -121,7 +121,7 @@ dependencies {
     implementation("org.tinylog:tinylog-api:$tinylog")
     implementation("org.tinylog:tinylog-impl:$tinylog")
 
-    val testcontainers = "1.19.1"
+    val testcontainers = "1.19.3"
     testImplementation("org.testcontainers:postgresql:$testcontainers")
     testImplementation("org.testcontainers:mariadb:$testcontainers")
     testImplementation("org.testcontainers:testcontainers:$testcontainers")
@@ -129,7 +129,7 @@ dependencies {
     testImplementation("org.testcontainers:localstack:$testcontainers")
     testImplementation("org.testcontainers:mysql:$testcontainers")
 
-    val ldap = "6.0.10"
+    val ldap = "6.0.11"
     testImplementation("com.unboundid:unboundid-ldapsdk:$ldap")
 }
 
