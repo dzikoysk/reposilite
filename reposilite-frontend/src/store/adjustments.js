@@ -27,7 +27,7 @@ export function useAdjustments() {
   const applyAdjustments = (files) => {
     if (!displayHashFiles.value) {
       files = files.filter(file => 
-        !['.md5', '.sha1', '.sha256', '.sha512'].some(ext => file.name.endsWith(ext))
+        !['.asc', '.md5', '.sha1', '.sha256', '.sha512'].some(ext => file.name.endsWith(ext))
       )
     }
   

@@ -49,8 +49,8 @@ export default {
           </div>
           <div class="flex justify-between pt-6">
             <p class="pr-7">
-              Display hash files such as 
-              <span class="font-italic font-mono bg-gray-200 dark:bg-black px-2 py-0.5 m-2 rounded-lg">.md5/.sha1/.sha256/.sha512</span>
+              Display utility files such as 
+              <span class="font-italic font-mono bg-gray-200 dark:bg-black px-2 py-0.5 m-2 rounded-lg">.asc/.md5/.sha1/.sha256/.sha512</span>
             </p>
             <Toggle v-model="displayHashFiles" class="ml-10"/>
           </div>
