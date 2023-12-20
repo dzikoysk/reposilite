@@ -90,9 +90,9 @@ internal class StatusPlugin : ReposilitePlugin() {
             logger.info("${Effect.GREEN}Done (${TimeUtils.getPrettyUptimeInSeconds(statusFacade.getUptime())})!${Effect.RESET}")
             logger.info("")
             logger.info("${Effect.YELLOW_BOLD}$VERSION version has been sponsored by:${Effect.RESET}")
-            logger.info("  ${Effect.BOLD}milkyway0308, andrm, rdehuyss, insertt, GotoFinal, Lukas P.,${Effect.RESET}")
-            logger.info("  ${Effect.BOLD}Koressi, tipsy, Kamilkime, that-apex, SirEndii,${Effect.RESET}")
-            logger.info("  ${Effect.BOLD}scheidtp, crejk, Rollczi, Szczurowsky${Effect.RESET}")
+            logger.info("  ${Effect.BOLD}milkyway0308, andrm, rdehuyss, insertt, GotoFinal,${Effect.RESET}")
+            logger.info("  ${Effect.BOLD}Koressi, tipsy, Kamilkime, that-apex, joshuasing, SirEndii, TheFruxz,${Effect.RESET}")
+            logger.info("  ${Effect.BOLD}crejk, Rollczi${Effect.RESET}")
             logger.info("")
             logger.info("${Effect.RESET}")
         }
