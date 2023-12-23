@@ -52,7 +52,7 @@ const canUpload = computed(() => {
 watch(
   () => [props.qualifier.watchable, details.value],
   async () => {
-    if (details.value == null) {
+    if (details.value === null) {
       return
     }
 
