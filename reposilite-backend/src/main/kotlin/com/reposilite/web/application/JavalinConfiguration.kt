@@ -52,6 +52,7 @@ import io.javalin.json.JavalinJackson
 import io.javalin.openapi.plugin.OpenApiPlugin
 import io.javalin.openapi.plugin.OpenApiPluginConfiguration
 import io.javalin.plugin.bundled.SslRedirectPlugin
+import io.javalin.util.ConcurrencyUtil
 import kotlin.time.Duration.Companion.minutes
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
@@ -94,6 +95,7 @@ internal object JavalinConfiguration {
     }
 
     private fun configureJavalin(config: JavalinConfig, localConfiguration: LocalConfiguration, webSettings: Reference<WebSettings>) {
+        ConcurrencyUtil.useLoom = false
         config.showJavalinBanner = false
         config.http.asyncTimeout = 10.minutes.inWholeMilliseconds
         config.contextResolver.ip = { it.header(webSettings.get().forwardedIp) ?: it.req().remoteAddr }
