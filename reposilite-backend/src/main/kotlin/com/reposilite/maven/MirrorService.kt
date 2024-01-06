@@ -29,11 +29,29 @@ import panda.std.Result
 import panda.std.Result.error
 import panda.std.Result.ok
 import java.io.InputStream
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 
 internal class MirrorService(private val journalist: Journalist) : Journalist {
 
-    fun shouldPrioritizeMirrorRepository(repository: Repository, gav: Location): Boolean =
-        repository.storagePolicy == StoragePolicy.PRIORITIZE_UPSTREAM_METADATA && gav.getSimpleName().contains(METADATA_FILE)
+    fun shouldPrioritizeMirrorRepository(repository: Repository, gav: Location): Boolean {
+        if (repository.storagePolicy == StoragePolicy.PRIORITIZE_UPSTREAM_METADATA
+            && gav.getSimpleName().contains(METADATA_FILE)
+        ) {
+            if (repository.noRefetchTimeout <= 0L){
+                return true
+            }
+            val lastModifiedTime = repository.storageProvider.getLastModifiedTime(gav)
+            if (lastModifiedTime.isOk
+                && lastModifiedTime.get().toInstant()
+                    .plus(repository.noRefetchTimeout, ChronoUnit.SECONDS)
+                    .isBefore(Instant.now())
+            ) {
+                return true
+            }
+        }
+        return false
+    }
 
     fun findRemoteDetails(repository: Repository, gav: Location): Result<FileDetails, ErrorResponse> =
         searchInRemoteRepositories(repository, gav) { (host, config, client) ->

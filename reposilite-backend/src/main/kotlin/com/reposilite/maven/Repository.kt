@@ -34,7 +34,8 @@ class Repository internal constructor(
     val preserveSnapshots: Boolean,
     val mirrorHosts: List<MirrorHost>,
     val storageProvider: StorageProvider,
-    val storagePolicy: StoragePolicy
+    val storagePolicy: StoragePolicy,
+    val noRefetchTimeout: Long
 ) {
 
     init {
