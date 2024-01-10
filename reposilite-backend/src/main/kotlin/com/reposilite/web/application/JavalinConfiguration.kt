@@ -95,7 +95,6 @@ internal object JavalinConfiguration {
     }
 
     private fun configureJavalin(config: JavalinConfig, localConfiguration: LocalConfiguration, webSettings: Reference<WebSettings>) {
-        ConcurrencyUtil.useLoom = false
         config.showJavalinBanner = false
         config.http.asyncTimeout = 10.minutes.inWholeMilliseconds
         config.contextResolver.ip = { it.header(webSettings.get().forwardedIp) ?: it.req().remoteAddr }

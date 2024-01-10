@@ -36,6 +36,9 @@ class HttpServer {
         val extensionsManagement = reposilite.extensions
         val localConfiguration = extensionsManagement.facade<LocalConfiguration>()
 
+        // Loom is enabled by default in Javalin 5.x & it's unstable on prd
+        ConcurrencyUtil.useLoom = false
+
         val webThreadPool = ConcurrencyUtil.jettyThreadPool(
             name = "Reposilite | Web (${localConfiguration.webThreadPool.get()}) -",
             minThreads = localConfiguration.webThreadPool.get(),
