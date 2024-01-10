@@ -18,6 +18,7 @@ package com.reposilite.maven
 
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
+import com.reposilite.maven.StoragePolicy.PRIORITIZE_UPSTREAM_METADATA
 import com.reposilite.maven.api.METADATA_FILE
 import com.reposilite.maven.application.MirroredRepositorySettings
 import com.reposilite.shared.ErrorResponse
@@ -29,11 +30,27 @@ import panda.std.Result
 import panda.std.Result.error
 import panda.std.Result.ok
 import java.io.InputStream
+import java.time.Clock
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 
-internal class MirrorService(private val journalist: Journalist) : Journalist {
+internal class MirrorService(
+    private val journalist: Journalist,
+    private val clock: Clock
+) : Journalist {
 
     fun shouldPrioritizeMirrorRepository(repository: Repository, gav: Location): Boolean =
-        repository.storagePolicy == StoragePolicy.PRIORITIZE_UPSTREAM_METADATA && gav.getSimpleName().contains(METADATA_FILE)
+        when {
+            repository.storagePolicy == PRIORITIZE_UPSTREAM_METADATA && gav.getSimpleName().contains(METADATA_FILE) ->
+                repository.metadataMaxAgeInSeconds <= 0 || !isMetadataFileValid(repository, gav)
+            else ->
+                false
+        }
+
+    private fun isMetadataFileValid(repository: Repository, gav: Location): Boolean =
+        repository.storageProvider.getLastModifiedTime(gav)
+            .map { it.toInstant().plus(repository.metadataMaxAgeInSeconds, ChronoUnit.SECONDS) }
+            .matches { it.isBefore(Instant.now(clock)) }
 
     fun findRemoteDetails(repository: Repository, gav: Location): Result<FileDetails, ErrorResponse> =
         searchInRemoteRepositories(repository, gav) { (host, config, client) ->

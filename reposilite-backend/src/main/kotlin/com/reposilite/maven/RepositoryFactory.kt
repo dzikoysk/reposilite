@@ -58,7 +58,8 @@ internal class RepositoryFactory(
                         storageSettings = configuration.storageProvider
                     )
                     ?: throw IllegalArgumentException("Unknown storage provider '${configuration.storageProvider.type}'"),
-            storagePolicy = configuration.storagePolicy
+            storagePolicy = configuration.storagePolicy,
+            metadataMaxAgeInSeconds = configuration.metadataMaxAge
         )
 
     private fun createMirroredHostConfiguration(configurationSource: MirroredRepositorySettings): MirrorHost? {

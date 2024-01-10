@@ -34,8 +34,10 @@ import com.reposilite.storage.StorageFacade
 import com.reposilite.token.AccessTokenFacade
 import panda.std.reactive.Reference
 import java.nio.file.Path
+import java.time.Clock
 
 internal class MavenComponents(
+    private val clock: Clock,
     private val workingDirectory: Path,
     private val journalist: Journalist,
     private val extensions: Extensions,
@@ -56,7 +58,10 @@ internal class MavenComponents(
         MetadataService(securityProvider())
 
     private fun mirrorService(): MirrorService =
-        MirrorService(journalist)
+        MirrorService(
+            journalist = journalist,
+            clock = clock
+        )
 
     private fun repositoryProvider(
         mirrorService: MirrorService = mirrorService(),
