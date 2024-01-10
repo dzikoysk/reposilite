@@ -32,6 +32,7 @@ import com.reposilite.plugin.facade
 import com.reposilite.plugin.parameters
 import com.reposilite.shared.http.HttpRemoteClientProvider
 import com.reposilite.web.api.RoutingSetupEvent
+import java.time.Clock
 
 @Plugin(
     name = "maven",
@@ -45,6 +46,7 @@ internal class MavenPlugin : ReposilitePlugin() {
 
         val mavenFacade =
             MavenComponents(
+                clock = Clock.systemDefaultZone(),
                 workingDirectory = parameters().workingDirectory,
                 journalist = this,
                 extensions = extensions(),

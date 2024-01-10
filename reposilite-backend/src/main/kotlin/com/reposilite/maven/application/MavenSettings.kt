@@ -62,11 +62,11 @@ data class RepositorySettings(
         STRICT - prioritize cached version over upstream metadata (full offline mode)
     """)
     val storagePolicy: StoragePolicy = StoragePolicy.PRIORITIZE_UPSTREAM_METADATA,
-    @get:Doc(title = "No Refetch Timeout", description = """
-        Defines the amount of time in seconds how long a re-fetch of maven-metadata.xml is postponed.<br/>
+    @get:Doc(title = "Max age of metadata file", description = """
+        Fetching metadata files with PRIORITIZE_UPSTREAM_METADATA may be slow, so you can use dedicated TTL threshold for them.<br/>
         If set to "0" then a fetch is done always. (Default: 0 seconds)
     """)
-    val noRefetchTimeout: Long = 0L,
+    val metadataMaxAge: Long = 0L,
     @get:Doc(title = "Mirrored repositories", description = "List of mirrored repositories associated with this repository.")
     val proxied: List<MirroredRepositorySettings> = listOf()
 ) : SharedSettings

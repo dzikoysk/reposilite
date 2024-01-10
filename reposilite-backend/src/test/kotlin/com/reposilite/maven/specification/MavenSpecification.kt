@@ -58,6 +58,7 @@ import panda.std.reactive.reference
 import panda.std.reactive.toReference
 import java.io.File
 import java.nio.file.Files
+import java.time.Clock
 
 internal abstract class MavenSpecification {
 
@@ -73,6 +74,7 @@ internal abstract class MavenSpecification {
     lateinit var workingDirectory: File
     protected lateinit var mavenFacade: MavenFacade
 
+    private val clock = Clock.systemDefaultZone()
     private val logger = InMemoryLogger()
     protected val extensions = Extensions(logger)
 
@@ -122,6 +124,7 @@ internal abstract class MavenSpecification {
         )
 
         this.mavenFacade = MavenComponents(
+            clock = clock,
             workingDirectory = workingDirectory.toPath(),
             journalist = logger,
             extensions = extensions,

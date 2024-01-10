@@ -35,7 +35,7 @@ class Repository internal constructor(
     val mirrorHosts: List<MirrorHost>,
     val storageProvider: StorageProvider,
     val storagePolicy: StoragePolicy,
-    val noRefetchTimeout: Long
+    val metadataMaxAgeInSeconds: Long
 ) {
 
     init {
