@@ -15,7 +15,6 @@
  */
 
 plugins {
-//    kotlin("jvm") version "1.9.20-RC"
     `kotlin-dsl`
 }
 
@@ -25,10 +24,4 @@ repositories {
 
 dependencies {
     implementation("pl.allegro.tech.build:axion-release-plugin:1.13.6")
-}
-
-java {
-    toolchain {
-//        languageVersion.set(JavaLanguageVersion.of(21))
-    }
 }
