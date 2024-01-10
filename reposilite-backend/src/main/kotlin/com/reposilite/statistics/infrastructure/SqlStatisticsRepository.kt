@@ -86,7 +86,7 @@ internal class SqlStatisticsRepository(
             transaction(database) {
                 val connection = TransactionManager.current().connection
 
-                when (val dialect = db.vendor) {
+                when (val dialect = db.vendor.lowercase()) {
                     "postgresql" -> {
                         connection.executeQuery("ALTER TABLE statistics_identifier ALTER COLUMN repository TYPE VARCHAR($REPOSITORY_NAME_MAX_LENGTH);")
                     }
