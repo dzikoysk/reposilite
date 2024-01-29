@@ -60,8 +60,8 @@ internal class RepositoryLoopbackClient(
     private fun RemoteCredentials?.toAccessToken(): AccessTokenIdentifier? =
         Option.of(this)
             .toResult(UNAUTHORIZED.toErrorResponse("Missing credentials"))
-            .filter({ it.method == LOOPBACK_LINK }, { UNAUTHORIZED.toErrorResponse("") })
-            .flatMap { authenticationFacade.authenticateByCredentials(Credentials(it.login, it.password)) }
+            .filter({ it.method == LOOPBACK_LINK }, { UNAUTHORIZED.toErrorResponse() })
+            .flatMap { authenticationFacade.authenticateByCredentials(Credentials(host = "loopback", name = it.login, secret = it.password)) }
             .fold(
                 { it.identifier },
                 { null }

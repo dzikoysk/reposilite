@@ -106,19 +106,26 @@ internal class CliEndpoint(
         val authMessage = connection.message()
 
         if (!authMessage.startsWith(AUTHORIZATION_PREFIX)) {
-            return unauthorizedError("Unauthorized CLI access request from ${address(connection)} (missing credentials)")
+            return unauthorizedError("Unauthorized CLI access request from ${connection.getHost()} (missing credentials)")
         }
 
         return extractFromString(authMessage.replaceFirst(AUTHORIZATION_PREFIX, ""))
-            .flatMap { (name, secret) -> authenticationFacade.authenticateByCredentials(Credentials(name, secret)) }
+            .map { (name, secret) ->
+                Credentials(
+                    host = connection.getHost(),
+                    name = name,
+                    secret = secret
+                )
+            }
+            .flatMap { authenticationFacade.authenticateByCredentials(it) }
             .filter(
                 { accessTokenFacade.hasPermission(it.identifier, MANAGER) },
-                { unauthorized("Unauthorized CLI access request from ${address(connection)}") }
+                { unauthorized("Unauthorized CLI access request from ${connection.getHost()}") }
             )
-            .map { "${it.name}@${address(connection)}" }
+            .map { "${it.name}@${connection.getHost()}" }
     }
 
-    private fun address(context: WsContext): String =
-        context.header(forwardedIp.get()) ?: context.session.remoteAddress.toString()
+    private fun WsContext.getHost(): String =
+        header(forwardedIp.get()) ?: session.remoteAddress.toString()
 
 }

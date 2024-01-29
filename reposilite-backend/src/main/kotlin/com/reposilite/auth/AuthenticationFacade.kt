@@ -52,7 +52,7 @@ class AuthenticationFacade(
                 .map { authenticator ->
                     authenticator
                         .authenticate(credentials)
-                        .onError { logger.debug("${credentials.name} failed to authenticate with ${authenticator.realm()} realm due to $it") }
+                        .onError { logger.debug("${credentials.name}@${credentials.host} failed to authenticate with ${authenticator.realm()} realm due to $it") }
                 }
                 .firstOrNull { it.isOk }
                 ?.peek { authenticationCache.put(credentials, it) }

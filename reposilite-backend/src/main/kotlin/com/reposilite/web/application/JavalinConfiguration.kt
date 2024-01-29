@@ -47,12 +47,14 @@ import io.javalin.http.Context
 import io.javalin.http.ExceptionHandler
 import io.javalin.http.Handler
 import io.javalin.http.Header
+import io.javalin.http.Header.AUTHORIZATION
 import io.javalin.http.HttpStatus
 import io.javalin.json.JavalinJackson
 import io.javalin.openapi.plugin.OpenApiPlugin
 import io.javalin.openapi.plugin.OpenApiPluginConfiguration
 import io.javalin.plugin.bundled.SslRedirectPlugin
 import io.javalin.util.ConcurrencyUtil
+import io.javalin.util.javalinLazy
 import kotlin.time.Duration.Companion.minutes
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
@@ -140,9 +142,9 @@ internal object JavalinConfiguration {
                 logger = reposilite.logger,
                 ctx = this,
                 accessTokenFacade = accessTokenFacade,
-                authenticationResult = lazy {
-                    extractFromHeader(header(Header.AUTHORIZATION))
-                        .map { (name, secret) -> Credentials(name, secret) }
+                authenticationResult = javalinLazy {
+                    extractFromHeader(header(AUTHORIZATION))
+                        .map { (name, secret) -> Credentials(host = host() ?: req().remoteAddr, name = name, secret = secret) }
                         .flatMap { authenticationFacade.authenticateByCredentials(it) }
                 }
             )
