@@ -50,7 +50,7 @@ internal class MirrorService(
     private fun isMetadataFileValid(repository: Repository, gav: Location): Boolean =
         repository.storageProvider.getLastModifiedTime(gav)
             .map { it.toInstant().plus(repository.metadataMaxAgeInSeconds, ChronoUnit.SECONDS) }
-            .matches { it.isBefore(Instant.now(clock)) }
+            .matches { it.isAfter(Instant.now(clock)) }
 
     fun findRemoteDetails(repository: Repository, gav: Location): Result<FileDetails, ErrorResponse> =
         searchInRemoteRepositories(repository, gav) { (host, config, client) ->
