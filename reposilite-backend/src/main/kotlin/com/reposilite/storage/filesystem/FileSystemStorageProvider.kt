@@ -84,12 +84,16 @@ abstract class FileSystemStorageProvider protected constructor(
 
                     do {
                         try {
-                            Files.move(temporaryFile.toPath(), file, REPLACE_EXISTING)
+                            Files.copy(temporaryFile.toPath(), file, REPLACE_EXISTING)
                         } catch (e: NoSuchFileException) {
                             // Concurrent Files.move calls may throw
                             // ~ https://github.com/dzikoysk/reposilite/issues/1975
-                            journalist.logger.debug("[FS] Cannot move file ${temporaryFile.absolutePath} to ${file.absolutePathString()}, retrying...")
-                            Thread.sleep(100) // probably good enough for now
+                            journalist.logger.debug("[FS][1] Cannot move file ${temporaryFile.absolutePath} to ${file.absolutePathString()}, retrying...")
+                            Thread.sleep(1000) // probably good enough for now
+                        } catch (e: FileAlreadyExistsException) {
+                            // ~ https://github.com/dzikoysk/reposilite/issues/2027
+                            journalist.logger.debug("[FS][2] Cannot move file ${temporaryFile.absolutePath} to ${file.absolutePathString()}, retrying...")
+                            Thread.sleep(1000) // probably good enough for now
                         }
                     } while (Files.exists(temporaryFile.toPath()))
                 }
