@@ -38,8 +38,6 @@ import com.reposilite.storage.type
 import io.javalin.http.ContentType
 import io.javalin.http.ContentType.APPLICATION_OCTET_STREAM
 import io.javalin.http.HttpStatus.INSUFFICIENT_STORAGE
-import panda.std.Result
-import panda.std.asSuccess
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
@@ -50,6 +48,8 @@ import java.nio.file.StandardCopyOption.REPLACE_EXISTING
 import java.nio.file.attribute.FileTime
 import kotlin.io.path.absolutePathString
 import kotlin.streams.asSequence
+import panda.std.Result
+import panda.std.asSuccess
 
 /**
  * @param rootDirectory root directory of storage space
@@ -84,7 +84,7 @@ abstract class FileSystemStorageProvider protected constructor(
 
                     do {
                         try {
-                            Files.copy(temporaryFile.toPath(), file, REPLACE_EXISTING)
+                            Files.move(temporaryFile.toPath(), file, REPLACE_EXISTING)
                         } catch (e: NoSuchFileException) {
                             // Concurrent Files.move calls may throw
                             // ~ https://github.com/dzikoysk/reposilite/issues/1975
