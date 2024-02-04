@@ -32,12 +32,12 @@ import com.reposilite.shared.notFoundError
 import com.reposilite.storage.api.Location
 import com.reposilite.token.AccessTokenIdentifier
 import io.javalin.http.ContentType
+import java.nio.file.Files
+import java.nio.file.Path
 import panda.std.Result
 import panda.std.Result.supplyThrowing
 import panda.std.asSuccess
 import panda.utilities.StringUtils
-import java.nio.file.Files
-import java.nio.file.Path
 
 private const val LATEST_PATTERN = "/latest"
 
@@ -74,6 +74,7 @@ class JavadocFacade internal constructor(
         with (request) {
             mavenFacade.canAccessResource(accessToken, repository, gav)
                 .flatMap { javadocContainerService.loadContainer(accessToken, repository, gav) }
+                .filter({ Files.exists(it.javadocUnpackPath.resolve(resource.toString())) }, { notFound("Resource $resource not found") })
                 .map {
                     JavadocRawResponse(
                         contentType = supportedExtensions[resource.getExtension()] ?: ContentType.APPLICATION_OCTET_STREAM,
