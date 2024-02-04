@@ -5,7 +5,7 @@ services:
     #
     # To build from sources:
     #
-    # image: reposilite:3.5.4
+    # image: reposilite:3.5.5
     # build:
     #  context: .
     #  dockerfile: Dockerfile
