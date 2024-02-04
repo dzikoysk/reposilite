@@ -63,16 +63,18 @@ internal class ConsolePlugin : ReposilitePlugin() {
         }
 
         event { event: HttpServerInitializationEvent ->
-            event.javalin.ws(
-                "/api/console/sock",
-                CliEndpoint(
-                    journalist = reposilite().journalist,
-                    accessTokenFacade = facade(),
-                    authenticationFacade = facade(),
-                    consoleFacade = consoleFacade,
-                    forwardedIp = sharedConfigurationFacade.getDomainSettings<WebSettings>().computed { it.forwardedIp }
+            event.config.router.mount {
+                it.ws(
+                    "/api/console/sock",
+                    CliEndpoint(
+                        journalist = reposilite().journalist,
+                        accessTokenFacade = facade(),
+                        authenticationFacade = facade(),
+                        consoleFacade = consoleFacade,
+                        forwardedIp = sharedConfigurationFacade.getDomainSettings<WebSettings>().computed { it.forwardedIp }
+                    )
                 )
-            )
+            }
         }
 
         if (!parameters().testEnv) {

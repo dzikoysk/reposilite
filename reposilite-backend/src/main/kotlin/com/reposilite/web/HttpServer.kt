@@ -25,47 +25,44 @@ import com.reposilite.web.application.JavalinConfiguration
 import io.javalin.Javalin
 import io.javalin.util.ConcurrencyUtil
 import org.eclipse.jetty.io.EofException
-import org.eclipse.jetty.util.thread.ThreadPool
 
 class HttpServer {
 
-    private val servlet = false
     private var javalin: Javalin? = null
 
     fun start(reposilite: Reposilite) {
         val extensionsManagement = reposilite.extensions
         val localConfiguration = extensionsManagement.facade<LocalConfiguration>()
 
-        // Loom is enabled by default in Javalin 5.x & it's unstable on prd
-        ConcurrencyUtil.useLoom = false
-
         val webThreadPool = ConcurrencyUtil.jettyThreadPool(
             name = "Reposilite | Web (${localConfiguration.webThreadPool.get()}) -",
             minThreads = localConfiguration.webThreadPool.get(),
-            maxThreads = localConfiguration.webThreadPool.get()
+            maxThreads = localConfiguration.webThreadPool.get(),
+            useLoom = false
         )
 
-        this.javalin = createJavalin(reposilite, webThreadPool)
-            .exception(EofException::class.java) { _, _ -> reposilite.logger.warn("Client closed connection") }
-            .events { listener ->
-                listener.serverStopping { reposilite.logger.info("Server stopping...") }
-                listener.serverStopped { extensionsManagement.emitEvent(HttpServerStoppedEvent) }
-            }
-            .also {
-                reposilite.extensions.emitEvent(HttpServerInitializationEvent(reposilite, it))
+        this.javalin = Javalin.createAndStart { config ->
+            config.jetty.defaultHost = reposilite.parameters.hostname
+            config.jetty.defaultPort = reposilite.parameters.port
+
+            JavalinConfiguration.configure(reposilite, webThreadPool, config)
+
+            config.router.mount {
+                it.exception(EofException::class.java) { _, _ ->
+                    reposilite.logger.warn("Client closed connection")
+                }
             }
 
-        if (!servlet) {
-            javalin!!.start(reposilite.parameters.hostname, reposilite.parameters.port)
-            extensionsManagement.emitEvent(HttpServerStartedEvent)
+            config.events {
+                it.serverStopping { reposilite.logger.info("Server stopping...") }
+                it.serverStopped { extensionsManagement.emitEvent(HttpServerStoppedEvent) }
+            }
+
+            reposilite.extensions.emitEvent(HttpServerInitializationEvent(reposilite, config))
         }
-    }
 
-    private fun createJavalin(reposilite: Reposilite, webThreadPool: ThreadPool): Javalin =
-        if (servlet)
-            Javalin.createStandalone { JavalinConfiguration.configure(reposilite, webThreadPool, it) }
-        else
-            Javalin.create { JavalinConfiguration.configure(reposilite, webThreadPool, it) }
+        extensionsManagement.emitEvent(HttpServerStartedEvent)
+    }
 
     fun stop() {
         javalin?.stop()

@@ -18,12 +18,12 @@ package com.reposilite.configuration
 
 import com.reposilite.configuration.shared.api.Doc
 import com.reposilite.configuration.shared.api.SharedSettings
-import com.reposilite.configuration.specification.SharedConfigurationSpecification
+import com.reposilite.configuration.specification.SharedReposiliteConfigurationSpecification
 import io.javalin.openapi.JsonSchema
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
-internal class SharedConfigurationFacadeTest : SharedConfigurationSpecification() {
+internal class SharedReposiliteConfigurationFacadeTest : SharedReposiliteConfigurationSpecification() {
 
     @JsonSchema(requireNonNulls = false)
     @Doc(title = "Test", description = "Description")

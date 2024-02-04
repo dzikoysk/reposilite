@@ -16,7 +16,7 @@
 
 package com.reposilite.configuration.specification
 
-import com.reposilite.configuration.SharedConfigurationFacadeTest.TestSettings
+import com.reposilite.configuration.SharedReposiliteConfigurationFacadeTest.TestSettings
 import com.reposilite.configuration.application.ConfigurationComponents
 import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.configuration.shared.SharedSettingsProvider
@@ -30,7 +30,7 @@ import panda.std.reactive.mutableReference
 import java.io.File
 import java.nio.file.Path
 
-internal abstract class SharedConfigurationSpecification {
+internal abstract class SharedReposiliteConfigurationSpecification {
 
     @TempDir
     lateinit var workingDirectory: File

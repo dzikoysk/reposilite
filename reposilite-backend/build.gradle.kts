@@ -43,15 +43,17 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin")
 
-    val javalin = "5.6.3"
+    val javalin = "6.0.1"
     api("io.javalin:javalin:$javalin")
-    api("io.javalin.community.ssl:ssl-plugin:$javalin")
 
-    val javalinOpenApi = "5.6.3-2"
+    val javalinSsl = "6.0.1"
+    api("io.javalin.community.ssl:ssl-plugin:$javalinSsl")
+
+    val javalinOpenApi = "6.0.1"
     api("io.javalin.community.openapi:javalin-openapi-plugin:$javalinOpenApi")
     kapt("io.javalin.community.openapi:openapi-annotation-processor:$javalinOpenApi")
 
-    val javalinRouting = "5.6.2-RC.1"
+    val javalinRouting = "6.0.1"
     api("io.javalin.community.routing:routing-dsl:$javalinRouting")
 
     val bcrypt = "0.10.2"

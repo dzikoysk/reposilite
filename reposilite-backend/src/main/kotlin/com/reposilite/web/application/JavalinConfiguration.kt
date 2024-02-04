@@ -19,42 +19,21 @@ package com.reposilite.web.application
 import com.reposilite.Reposilite
 import com.reposilite.ReposiliteObjectMapper
 import com.reposilite.VERSION
-import com.reposilite.auth.AuthenticationFacade
-import com.reposilite.auth.api.Credentials
 import com.reposilite.configuration.local.LocalConfiguration
 import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.frontend.application.FrontendSettings
 import com.reposilite.journalist.Journalist
-import com.reposilite.shared.ContextDsl
-import com.reposilite.shared.extensions.response
-import com.reposilite.shared.extensions.uri
-import com.reposilite.shared.extractFromHeader
-import com.reposilite.status.FailureFacade
-import com.reposilite.token.AccessTokenFacade
 import com.reposilite.web.api.HttpServerConfigurationEvent
 import com.reposilite.web.api.HttpServerStartedEvent
 import com.reposilite.web.api.RoutingSetupEvent
 import com.reposilite.web.infrastructure.ApiCacheBypassHandler
 import com.reposilite.web.infrastructure.EndpointAccessLoggingHandler
-import io.javalin.community.routing.dsl.DslExceptionHandler
-import io.javalin.community.routing.dsl.DslRoute
-import io.javalin.community.routing.dsl.DslRoutingPlugin
-import io.javalin.community.routing.dsl.RoutingDslConfiguration
-import io.javalin.community.routing.dsl.RoutingDslFactory
-import io.javalin.community.ssl.SSLPlugin
+import com.reposilite.web.infrastructure.createReposiliteDsl
+import io.javalin.community.ssl.SslPlugin
 import io.javalin.config.JavalinConfig
-import io.javalin.http.Context
-import io.javalin.http.ExceptionHandler
-import io.javalin.http.Handler
-import io.javalin.http.Header
-import io.javalin.http.Header.AUTHORIZATION
-import io.javalin.http.HttpStatus
 import io.javalin.json.JavalinJackson
 import io.javalin.openapi.plugin.OpenApiPlugin
-import io.javalin.openapi.plugin.OpenApiPluginConfiguration
 import io.javalin.plugin.bundled.SslRedirectPlugin
-import io.javalin.util.ConcurrencyUtil
-import io.javalin.util.javalinLazy
 import kotlin.time.Duration.Companion.minutes
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
@@ -65,7 +44,7 @@ internal object JavalinConfiguration {
 
     internal fun configure(reposilite: Reposilite, webThreadPool: ThreadPool, config: JavalinConfig) {
         val server = Server(webThreadPool)
-        config.jetty.server { server }
+        config.pvt.jetty.server = server
         reposilite.extensions.emitEvent(HttpServerConfigurationEvent(reposilite, config))
 
         val localConfiguration = reposilite.extensions.facade<LocalConfiguration>()
@@ -74,9 +53,7 @@ internal object JavalinConfiguration {
         val frontendSettings = sharedConfigurationFacade.getDomainSettings<FrontendSettings>()
 
         reposilite.extensions.registerEvent { _: HttpServerStartedEvent ->
-            server.connectors
-                .filterIsInstance<ServerConnector>()
-                .forEach { it.idleTimeout = localConfiguration.idleTimeout.get() }
+            server.connectors.filterIsInstance<ServerConnector>().forEach { it.idleTimeout = localConfiguration.idleTimeout.get() }
         }
 
         if (localConfiguration.bypassExternalCache.get()) {
@@ -106,98 +83,29 @@ internal object JavalinConfiguration {
         }
 
         when (localConfiguration.compressionStrategy.get().lowercase()) {
-            "none" -> config.compression.none()
-            "gzip" -> config.compression.gzipOnly()
-            "brotli" -> config.compression.brotliOnly()
+            "none" -> config.http.disableCompression()
+            "gzip" -> config.http.gzipOnlyCompression()
+            "brotli" -> config.http.brotliOnlyCompression()
             else -> error("Unknown compression strategy ${localConfiguration.compressionStrategy.get()}")
         }
     }
 
-    private class ReposiliteDsl(
-        val routeFactory: (DslRoute<ContextDsl<*>, Unit>) -> Handler,
-        val exceptionRouteFactory: (DslExceptionHandler<ContextDsl<*>, Exception, Unit>) -> ExceptionHandler<Exception>
-    ) : RoutingDslFactory<ReposiliteDsl.Configuration, DslRoute<ContextDsl<*>, Unit>, ContextDsl<*>, Unit> {
-
-        open class Configuration : RoutingDslConfiguration<DslRoute<ContextDsl<*>, Unit>, ContextDsl<*>, Unit>()
-
-        override fun createConfiguration(): Configuration =
-            Configuration()
-
-        override fun createHandler(route: DslRoute<ContextDsl<*>, Unit>): Handler =
-            routeFactory.invoke(route)
-
-        override fun createExceptionHandler(handler: DslExceptionHandler<ContextDsl<*>, Exception, Unit>): ExceptionHandler<Exception> =
-            exceptionRouteFactory.invoke(handler)
-
-    }
-
     private fun configureRoutingPlugin(config: JavalinConfig, reposilite: Reposilite) {
         val extensionManager = reposilite.extensions
-        val failureFacade = extensionManager.facade<FailureFacade>()
-        val accessTokenFacade = extensionManager.facade<AccessTokenFacade>()
-        val authenticationFacade = extensionManager.facade<AuthenticationFacade>()
 
-        fun Context.toDslContext(): ContextDsl<Any> =
-            ContextDsl(
-                logger = reposilite.logger,
-                ctx = this,
-                accessTokenFacade = accessTokenFacade,
-                authenticationResult = javalinLazy {
-                    extractFromHeader(header(AUTHORIZATION))
-                        .map { (name, secret) -> Credentials(host = host() ?: req().remoteAddr, name = name, secret = secret) }
-                        .flatMap { authenticationFacade.authenticateByCredentials(it) }
-                }
-            )
-
-        fun ContextDsl<Any>.consumeResponse() {
-            response?.also { result ->
-                result.onError { reposilite.logger.debug("ERR RESULT | ${ctx.method()} ${ctx.uri()} errored with $it") }
-                ctx.response(result)
-            }
-        }
-
-        val reposiliteDsl = ReposiliteDsl(
-            routeFactory = { route ->
-                Handler { ctx ->
-                    try {
-                        val dsl = ctx.toDslContext()
-                        route.handler(dsl)
-                        dsl.consumeResponse()
-                    } catch (throwable: Throwable) {
-                        failureFacade.throwException(ctx.uri(), throwable)
-                        ctx.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    }
-                }
-            },
-            exceptionRouteFactory = { exceptionRoute ->
-                ExceptionHandler { exception, ctx ->
-                    try {
-                        val dsl = ctx.toDslContext()
-                        exceptionRoute.invoke(dsl, exception)
-                        dsl.consumeResponse()
-                    } catch (throwable: Throwable) {
-                        failureFacade.throwException(ctx.uri(), throwable)
-                        ctx.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    }
-                }
-            }
+        val reposiliteDsl = createReposiliteDsl(
+            journalist = reposilite.logger,
+            failureFacade = extensionManager.facade(),
+            accessTokenFacade = extensionManager.facade(),
+            authenticationFacade = extensionManager.facade()
         )
 
-        val routingPlugin = DslRoutingPlugin(reposiliteDsl)
-
-        extensionManager.emitEvent(RoutingSetupEvent(reposilite))
-            .getRoutes()
-            .asSequence()
-            .flatMap { it.routes() }
-            .distinctBy { "${it.method.name}:${it.path}" }
-            .toSet()
-            .let {
-                routingPlugin.routing {
-                    addRoutes(it)
+        extensionManager.emitEvent(RoutingSetupEvent(reposilite)).getRoutes().asSequence().flatMap { it.routes() }.distinctBy { "${it.method.name}:${it.path}" }
+            .toSet().let { route ->
+                config.router.mount(reposiliteDsl) {
+                    it.routes(route)
                 }
             }
-
-        config.plugins.register(routingPlugin)
     }
 
     private fun configureJsonSerialization(config: JavalinConfig) {
@@ -209,65 +117,58 @@ internal object JavalinConfiguration {
         if (localConfiguration.sslEnabled.get()) {
             reposilite.logger.info("Enabling SSL connector at ::${localConfiguration.sslPort.get()}")
 
-            val sslPlugin = SSLPlugin { sslConfig ->
-                sslConfig.insecure = true
-                sslConfig.insecurePort = localConfiguration.port.get()
+            config.registerPlugin(SslPlugin {
+                it.insecure = true
+                it.insecurePort = localConfiguration.port.get()
 
-                sslConfig.secure = true
-                sslConfig.securePort = localConfiguration.sslPort.get()
+                it.secure = true
+                it.securePort = localConfiguration.sslPort.get()
 
-                val keyConfiguration = localConfiguration.keyPath.map {
-                    it.replace("\${WORKING_DIRECTORY}", reposilite.parameters.workingDirectory.toAbsolutePath().toString())
+                val keyConfiguration = localConfiguration.keyPath.map { path ->
+                    path.replace("\${WORKING_DIRECTORY}", reposilite.parameters.workingDirectory.toAbsolutePath().toString())
                 }
                 val keyPassword = localConfiguration.keyPassword.get()
 
                 when {
                     keyConfiguration.endsWith(".pem") -> {
                         val (certPath, keyPath) = keyConfiguration.split(" ")
-                        sslConfig.pemFromPath(certPath, keyPath, keyPassword)
+                        it.pemFromPath(certPath, keyPath, keyPassword)
                     }
-                    keyConfiguration.endsWith(".jks") -> sslConfig.keystoreFromPath(keyConfiguration, keyPassword)
+                    keyConfiguration.endsWith(".jks") -> it.keystoreFromPath(keyConfiguration, keyPassword)
                     else -> throw IllegalArgumentException("Provided key extension is not supported.")
                 }
 
-                sslConfig.configConnectors { it.idleTimeout = localConfiguration.idleTimeout.get() }
-                sslConfig.sniHostCheck = false
-            }
-
-            config.plugins.register(sslPlugin)
+                it.configConnectors { connector -> connector.idleTimeout = localConfiguration.idleTimeout.get() }
+                it.sniHostCheck = false
+            })
         }
 
         if (localConfiguration.enforceSsl.get()) {
-            config.plugins.register(
-                SslRedirectPlugin(
-                    redirectOnLocalhost = true,
-                    sslPort = localConfiguration.sslPort.get(),
-                )
-            )
+            config.registerPlugin(SslRedirectPlugin {
+                it.redirectOnLocalhost = true
+                it.sslPort = localConfiguration.sslPort.get()
+            })
         }
     }
 
     private fun configureCors(config: JavalinConfig) {
-        config.plugins.enableCors {
-            it.add { cfg ->
+        config.bundledPlugins.enableCors {
+            it.addRule { cfg ->
                 cfg.anyHost()
             }
         }
     }
 
     private fun configureOpenApi(config: JavalinConfig, frontendSettings: FrontendSettings) {
-        config.plugins.register(
-            OpenApiPlugin(
-                OpenApiPluginConfiguration()
-                    .withDefinitionConfiguration { _, configuration ->
-                        configuration.withOpenApiInfo {
-                            it.title = frontendSettings.title
-                            it.description = frontendSettings.description
-                            it.version = VERSION
-                        }
-                    }
-            )
-        )
+        config.registerPlugin(OpenApiPlugin {
+            it.withDefinitionConfiguration { _, configuration ->
+                configuration.withOpenApiInfo { info ->
+                    info.title = frontendSettings.title
+                    info.description = frontendSettings.description
+                    info.version = VERSION
+                }
+            }
+        })
     }
 
     private fun configureDebug(journalist: Journalist, localConfiguration: LocalConfiguration, config: JavalinConfig) {
@@ -275,7 +176,7 @@ internal object JavalinConfiguration {
             // config.requestCacheSize = FilesUtils.displaySizeToBytesCount(System.getProperty("reposilite.requestCacheSize", "8MB"));
             // Reposilite.getLogger().debug("requestCacheSize set to " + config.requestCacheSize + " bytes");
             journalist.logger.info("Debug enabled")
-            config.plugins.enableDevLogging()
+            config.bundledPlugins.enableDevLogging()
         }
     }
 

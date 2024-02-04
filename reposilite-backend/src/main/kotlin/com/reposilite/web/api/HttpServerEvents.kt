@@ -18,12 +18,11 @@ package com.reposilite.web.api
 
 import com.reposilite.Reposilite
 import com.reposilite.plugin.api.Event
-import io.javalin.Javalin
 import io.javalin.config.JavalinConfig
 
-class HttpServerConfigurationEvent(val reposilite: Reposilite, val javalinConfig: JavalinConfig) : Event
+class HttpServerConfigurationEvent(val reposilite: Reposilite, val config: JavalinConfig) : Event
 
-class HttpServerInitializationEvent(val reposilite: Reposilite, val javalin: Javalin) : Event
+class HttpServerInitializationEvent(val reposilite: Reposilite, val config: JavalinConfig) : Event
 
 object HttpServerStartedEvent : Event
 

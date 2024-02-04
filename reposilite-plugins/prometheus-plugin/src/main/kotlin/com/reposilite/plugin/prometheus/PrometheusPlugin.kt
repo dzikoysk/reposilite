@@ -38,7 +38,7 @@ class PrometheusPlugin : ReposilitePlugin() {
         )
 
         event { event: HttpServerConfigurationEvent ->
-            val server = event.javalinConfig.pvt.server!!
+            val server = event.config.pvt.jetty.server!!
 
             val statisticsHandler = StatisticsHandler()
             server.handler = statisticsHandler
