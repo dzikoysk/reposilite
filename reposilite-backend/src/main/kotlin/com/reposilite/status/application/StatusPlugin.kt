@@ -38,12 +38,12 @@ import com.reposilite.status.infrastructure.StatusEndpoints
 import com.reposilite.web.HttpServer
 import com.reposilite.web.api.HttpServerStoppedEvent
 import com.reposilite.web.api.RoutingSetupEvent
+import java.nio.file.Files
+import java.nio.file.StandardOpenOption
 import panda.std.reactive.Completable
 import panda.std.reactive.Reference.Dependencies.dependencies
 import panda.std.reactive.Reference.computed
 import panda.utilities.console.Effect
-import java.nio.file.Files
-import java.nio.file.StandardOpenOption
 
 @Plugin(name = "status", dependencies = ["console", "failure", "local-configuration"])
 internal class StatusPlugin : ReposilitePlugin() {
@@ -91,8 +91,8 @@ internal class StatusPlugin : ReposilitePlugin() {
             logger.info("")
             logger.info("${Effect.YELLOW_BOLD}$VERSION version has been sponsored by:${Effect.RESET}")
             logger.info("  ${Effect.BOLD}milkyway0308, andrm, rdehuyss, insertt, GotoFinal,${Effect.RESET}")
-            logger.info("  ${Effect.BOLD}Koressi, tipsy, Kamilkime, that-apex, joshuasing, SirEndii, TheFruxz,${Effect.RESET}")
-            logger.info("  ${Effect.BOLD}crejk, Rollczi${Effect.RESET}")
+            logger.info("  ${Effect.BOLD}Koressi, tipsy, Kamilkime, that-apex, joshuasing, SirEndii, TheFruxz, FlawCra,${Effect.RESET}")
+            logger.info("  ${Effect.BOLD}crejk, Rollczi, Jan Bojarczuk${Effect.RESET}")
             logger.info("")
             logger.info("${Effect.RESET}")
         }

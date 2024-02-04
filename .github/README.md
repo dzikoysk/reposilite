@@ -104,8 +104,10 @@ Thanks to all contributors and people that decided to support my work financiall
     <a href="https://github.com/joshuasing">joshuasing</a>, 
     <a href="https://github.com/TheFruxz">TheFruxz</a>, 
     <a href="https://github.com/SirEndii">SirEndii</a>,
+    <a href="https://github.com/FlawCra">FlawCra</a>,
     <a href="https://github.com/crejk">crejk</a>,
     <a href="https://github.com/Rollczi">Rollczi</a>,
+    <a href="https://github.com/Kebab81">Jan Bojarczuk</a>,
   </td>
  </tr>
  <tr>
@@ -151,7 +153,7 @@ Thanks to all contributors and people that decided to support my work financiall
    <a href="https://github.com/mufinlive">mufinlive</a>,
    <a href="https://github.com/bopke">bopke</a>,
    <a href="https://github.com/asikkema">asikkema</a>,
-   <a href="https://github.com/Kebab81">Kebab81</a>
+   <a href="https://github.com/Kebab81">Jan Bojarczuk</a>
   </td>
  </tr>
 </table>
