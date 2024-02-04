@@ -50,7 +50,7 @@ class FailureFacade(private val journalist: Journalist) : Journalist, Facade {
 
     private fun stacktraceToList(throwable: Throwable): String =
         throwable.stackTrace
-            .take(3)
+            .take(5)
             .joinToString(prefix = "  at ", separator = System.lineSeparator())
             .takeIf { it.isNotEmpty() }
             ?: "<unknown stacktrace>"
