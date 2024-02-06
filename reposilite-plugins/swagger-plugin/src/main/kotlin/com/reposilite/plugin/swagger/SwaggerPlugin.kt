@@ -9,7 +9,6 @@ import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
 import com.reposilite.web.api.HttpServerConfigurationEvent
-import io.javalin.openapi.plugin.swagger.SwaggerConfiguration
 
 @Plugin(name = "swagger", dependencies = ["shared-configuration", "frontend"])
 class SwaggerPlugin : ReposilitePlugin() {
@@ -18,9 +17,9 @@ class SwaggerPlugin : ReposilitePlugin() {
         val frontendSettings = facade<SharedConfigurationFacade>().getDomainSettings<FrontendSettings>()
 
         event { event: HttpServerConfigurationEvent ->
-            val swaggerConfiguration = SwaggerConfiguration()
-            swaggerConfiguration.title = frontendSettings.map { it.title }
-            event.config.registerPlugin(SwaggerPluginForJavalin(swaggerConfiguration))
+            event.config.registerPlugin(SwaggerPluginForJavalin { swaggerConfiguration ->
+                swaggerConfiguration.title = frontendSettings.map { it.title }
+            })
         }
 
         return null
