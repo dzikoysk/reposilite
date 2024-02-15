@@ -25,6 +25,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import panda.std.ResultAssertions.assertError
 import panda.std.ResultAssertions.assertOk
 
 internal class LdapAuthenticatorTest : LdapSpecification() {
@@ -44,11 +45,15 @@ internal class LdapAuthenticatorTest : LdapSpecification() {
                 )
             }
 
-            createLdapServer(ldapConfiguration.get(), mapOf(
-                ldapConfiguration.map { it.searchUserDn } to ldapConfiguration.map { it.searchUserPassword },
-                "cn=Bella Swan,ou=Maven Users,dc=domain,dc=com" to "secret",
-                "cn=James Smith,ou=Maven Users,dc=domain,dc=com" to "secret2"
-            ))
+            createLdapServer(
+                ldapSettings = ldapConfiguration.get(),
+                baseDns = listOf(ldapConfiguration.get().baseDn),
+                credentials = mapOf(
+                    ldapConfiguration.map { it.searchUserDn } to ldapConfiguration.map { it.searchUserPassword },
+                    "cn=Bella Swan,ou=Maven Users,dc=domain,dc=com" to "secret",
+                    "cn=James Smith,ou=Maven Users,dc=domain,dc=com" to "secret2"
+                )
+            )
         }
 
         @BeforeEach
@@ -138,7 +143,7 @@ internal class LdapAuthenticatorTest : LdapSpecification() {
         init {
             ldapConfiguration.update {
                 it.copy(
-                    baseDn = "dc=domain,dc=com",
+                    baseDn = "ou=people,dc=domain,dc=com",
                     searchUserDn = "cn=readonly,dc=domain,dc=com",
                     searchUserPassword = "search-secret",
                     typeAttribute = "posixAccount",
@@ -148,10 +153,14 @@ internal class LdapAuthenticatorTest : LdapSpecification() {
                 )
             }
 
-            createLdapServer(ldapConfiguration.get(), mapOf(
-                "cn=readonly,dc=domain,dc=com" to "search-secret",
-                "uid=mykola,ou=people,dc=domain,dc=com" to "mykola-secret"
-            ))
+            createLdapServer(
+                ldapSettings = ldapConfiguration.get(),
+                baseDns = listOf("dc=domain,dc=com", "ou=people,dc=domain,dc=com"),
+                credentials = mapOf(
+                    "cn=readonly,dc=domain,dc=com" to "search-secret",
+                    "uid=mykola,ou=people,dc=domain,dc=com" to "mykola-secret"
+                )
+            )
         }
 
         @BeforeEach
@@ -183,7 +192,7 @@ internal class LdapAuthenticatorTest : LdapSpecification() {
         }
 
         @Test
-        fun `should authenticate readonly`() {
+        fun `should not authenticate readonly`() {
             val authenticationResult = authenticator.authenticate(
                 Credentials(
                     host = "host",
@@ -192,9 +201,7 @@ internal class LdapAuthenticatorTest : LdapSpecification() {
                 )
             )
 
-            val accessToken = assertOk(authenticationResult)
-            assertThat(accessToken.name).isEqualTo("readonly")
-            assertThat(accessToken).isEqualTo(accessTokenFacade.getAccessToken("readonly"))
+            assertError(authenticationResult)
         }
     }
 

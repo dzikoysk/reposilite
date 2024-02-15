@@ -23,8 +23,8 @@ internal open class LdapSpecification : AuthenticationSpecification() {
         }
     }
 
-    fun createLdapServer(ldapSettings: LdapSettings, credentials: Map<String, String>) {
-        val config = InMemoryDirectoryServerConfig(ldapSettings.baseDn)
+    fun createLdapServer(ldapSettings: LdapSettings, baseDns: List<String>, credentials: Map<String, String>) {
+        val config = InMemoryDirectoryServerConfig(*baseDns.toTypedArray())
         credentials.forEach { (user, password) ->
             config.addAdditionalBindCredentials(user, password)
         }
