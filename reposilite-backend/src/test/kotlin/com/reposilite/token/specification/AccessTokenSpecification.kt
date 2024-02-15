@@ -26,10 +26,9 @@ import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.token.api.CreateAccessTokenRequest
 import com.reposilite.token.api.CreateAccessTokenResponse
 import com.reposilite.token.infrastructure.InMemoryAccessTokenRepository
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.io.TempDir
 import java.io.File
 import java.nio.file.Path
+import org.junit.jupiter.api.io.TempDir
 
 internal abstract class AccessTokenSpecification {
 
@@ -37,12 +36,7 @@ internal abstract class AccessTokenSpecification {
 
     @TempDir
     lateinit var workingDirectory: File
-    lateinit var accessTokenFacade: AccessTokenFacade
-
-    @BeforeEach
-    fun createAccessTokenFacade() {
-        this.accessTokenFacade = AccessTokenFacade(logger, InMemoryAccessTokenRepository(), InMemoryAccessTokenRepository(), ExportService())
-    }
+    var accessTokenFacade: AccessTokenFacade = AccessTokenFacade(logger, InMemoryAccessTokenRepository(), InMemoryAccessTokenRepository(), ExportService())
 
     fun createToken(name: String): CreateAccessTokenResponse =
         accessTokenFacade.createAccessToken(CreateAccessTokenRequest(TEMPORARY, name))

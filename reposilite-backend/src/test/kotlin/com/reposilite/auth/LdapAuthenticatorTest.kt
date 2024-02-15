@@ -18,123 +18,184 @@ package com.reposilite.auth
 
 import com.reposilite.assertCollectionsEquals
 import com.reposilite.auth.api.Credentials
-import com.reposilite.auth.specification.AuthenticationSpecification
-import com.reposilite.auth.application.LdapSettings
+import com.reposilite.auth.specification.LdapSpecification
 import com.reposilite.token.AccessTokenType.TEMPORARY
 import com.reposilite.token.api.CreateAccessTokenRequest
-import com.unboundid.ldap.listener.InMemoryDirectoryServer
-import com.unboundid.ldap.listener.InMemoryDirectoryServerConfig
-import com.unboundid.ldap.listener.InMemoryListenerConfig
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import panda.std.ResultAssertions.assertOk
-import java.net.InetAddress
 
-internal class LdapAuthenticatorTest : AuthenticationSpecification() {
+internal class LdapAuthenticatorTest : LdapSpecification() {
 
-    private lateinit var ldapServer: InMemoryDirectoryServer
-    private lateinit var authenticator: LdapAuthenticator
+    @Nested
+    inner class DefaultTests {
 
-    @BeforeEach
-    fun createLdapServer() {
-        this.ldapConfiguration.update {
-            LdapSettings(
-                enabled = it.enabled,
-                hostname = "ldap.domain.com",
-                port = (1024 + Math.random() * (Short.MAX_VALUE - 1025)).toInt(),
-                baseDn = "dc=domain,dc=com",
-                searchUserDn = "cn=Reposilite,ou=Search Accounts,dc=domain,dc=com",
-                searchUserPassword = "search-secret",
-                userAttribute = "cn",
-                userFilter = "(&(objectClass=person)(ou=Maven Users))",
-                userType = it.userType
+        init {
+            ldapConfiguration.update {
+                it.copy(
+                    baseDn = "dc=domain,dc=com",
+                    searchUserDn = "cn=Reposilite,ou=Search Accounts,dc=domain,dc=com",
+                    searchUserPassword = "search-secret",
+                    userAttribute = "cn",
+                    userFilter = "(&(objectClass=person)(ou=Maven Users))",
+                    userType = it.userType
+                )
+            }
+
+            createLdapServer(ldapConfiguration.get(), mapOf(
+                ldapConfiguration.map { it.searchUserDn } to ldapConfiguration.map { it.searchUserPassword },
+                "cn=Bella Swan,ou=Maven Users,dc=domain,dc=com" to "secret",
+                "cn=James Smith,ou=Maven Users,dc=domain,dc=com" to "secret2"
+            ))
+        }
+
+        @BeforeEach
+        fun setup() {
+            ldapServer.add("dn: dc=domain,dc=com", "objectClass: top", "objectClass: domain")
+            ldapServer.add("dn: ou=Search Accounts,dc=domain,dc=com", "objectClass: organizationalUnit", "objectClass: top")
+            ldapServer.add("dn: ou=Maven Users,dc=domain,dc=com", "objectClass: organizationalUnit", "objectClass: top")
+            ldapServer.add(
+                "dn: cn=Reposilite,ou=Search Accounts,dc=domain,dc=com",
+                "ou:Search Accounts",
+                "objectClass: person",
+                "memberOf: ou=Search Accounts,dc=domain,dc=com"
+            )
+            ldapServer.add(
+                "dn: cn=Bella Swan,ou=Maven Users,dc=domain,dc=com",
+                "cn:Bella Swan",
+                "ou:Maven Users",
+                "objectClass: person",
+                "memberOf: ou=Maven Users,dc=domain,dc=com"
+            )
+            ldapServer.add(
+                "dn: cn=James Smith,ou=Maven Users,dc=domain,dc=com",
+                "cn:James Smith",
+                "ou:Maven Users",
+                "objectClass: person",
+                "memberOf: ou=Maven Users,dc=domain,dc=com"
             )
         }
-        this.ldapConfiguration.peek {
-            val config = InMemoryDirectoryServerConfig(it.baseDn)
-            config.addAdditionalBindCredentials(it.searchUserDn, it.searchUserPassword)
-            config.addAdditionalBindCredentials("cn=Bella Swan,ou=Maven Users,dc=domain,dc=com", "secret")
-            config.addAdditionalBindCredentials("cn=James Smith,ou=Maven Users,dc=domain,dc=com", "secret2")
-            config.listenerConfigs.add(InMemoryListenerConfig.createLDAPConfig(it.hostname, InetAddress.getLoopbackAddress(), it.port, null))
-            config.schema = null // remove
-            this.ldapServer = InMemoryDirectoryServer(config)
-            ldapServer.startListening(it.hostname)
-            this.ldapConfiguration.update(
-                it.copy(
-                    hostname = ldapServer.getListenAddress(it.hostname).hostAddress
+
+        @Test
+        fun `should connect with search user`() {
+            val result = assertOk(authenticator.search("(&(objectClass=person)(cn=Reposilite)(ou=Search Accounts))", arrayOf(), arrayOf("cn")))
+            assertCollectionsEquals(
+                result,
+                listOf(
+                    SearchEntry(
+                        fullName = "cn=Reposilite,ou=Search Accounts,dc=domain,dc=com",
+                        attributes = mapOf("cn" to listOf("Reposilite"))
+                    )
+                )
+            )
+        }
+
+        @Test
+        fun `should authenticate non-existing ldap user`() {
+            val authenticationResult = authenticator.authenticate(
+                Credentials(
+                    host = "host",
+                    name = "Bella Swan",
+                    secret = "secret"
                 )
             )
 
-            ldapServer.add("dn: dc=domain,dc=com", "objectClass: top", "objectClass: domain")
-
-            ldapServer.add("dn: ou=Search Accounts,dc=domain,dc=com", "objectClass: organizationalUnit", "objectClass: top")
-            ldapServer.add("dn: ou=Maven Users,dc=domain,dc=com", "objectClass: organizationalUnit", "objectClass: top")
-
-            ldapServer.add("dn: cn=Reposilite,ou=Search Accounts,dc=domain,dc=com", "ou:Search Accounts", "objectClass: person", "memberOf: ou=Search Accounts,dc=domain,dc=com")
-            ldapServer.add("dn: cn=Bella Swan,ou=Maven Users,dc=domain,dc=com", "cn:Bella Swan", "ou:Maven Users", "objectClass: person", "memberOf: ou=Maven Users,dc=domain,dc=com")
-            ldapServer.add("dn: cn=James Smith,ou=Maven Users,dc=domain,dc=com", "cn:James Smith", "ou:Maven Users", "objectClass: person", "memberOf: ou=Maven Users,dc=domain,dc=com")
-
+            val accessToken = assertOk(authenticationResult)
+            assertThat(accessToken.name).isEqualTo("Bella Swan")
+            assertThat(accessToken).isEqualTo(accessTokenFacade.getAccessToken("Bella Swan"))
         }
 
-        this.authenticator = LdapAuthenticator(ldapConfiguration, accessTokenFacade, failureFacade)
+        @Test
+        fun `should authenticate existing ldap user`() {
+            val (token, secret) = accessTokenFacade.createAccessToken(
+                CreateAccessTokenRequest(
+                    type = TEMPORARY,
+                    name = "Bella Swan",
+                    secret = "secret"
+                )
+            )
+
+            val authenticationResult = authenticator.authenticate(
+                Credentials(
+                    host = "host",
+                    name = token.name,
+                    secret = secret
+                )
+            )
+
+            val accessToken = assertOk(authenticationResult)
+            assertThat(accessToken.name).isEqualTo("Bella Swan")
+            assertThat(accessToken).isEqualTo(token)
+        }
+
     }
 
-    @AfterEach
-    fun shutdownLdapServer() {
-        ldapServer.shutDown(true)
-    }
+    @Nested
+    inner class GH2054 {
 
-    @Test
-    fun `should connect with search user`() {
-        val result = assertOk(authenticator.search("(&(objectClass=person)(cn=Reposilite)(ou=Search Accounts))", arrayOf(), arrayOf("cn")))
-        assertCollectionsEquals(
-            result,
-            listOf(
-                SearchEntry(
-                    fullName = "cn=Reposilite,ou=Search Accounts,dc=domain,dc=com",
-                    attributes = mapOf("cn" to listOf("Reposilite")))
+        init {
+            ldapConfiguration.update {
+                it.copy(
+                    baseDn = "dc=domain,dc=com",
+                    searchUserDn = "cn=readonly,dc=domain,dc=com",
+                    searchUserPassword = "search-secret",
+                    typeAttribute = "posixAccount",
+                    userAttribute = "uid",
+                    userFilter = "(memberOf=cn=users,ou=reposilite,dc=domain,dc=com)",
+                    userType = it.userType
+                )
+            }
+
+            createLdapServer(ldapConfiguration.get(), mapOf(
+                "cn=readonly,dc=domain,dc=com" to "search-secret",
+                "uid=mykola,ou=people,dc=domain,dc=com" to "mykola-secret"
+            ))
+        }
+
+        @BeforeEach
+        fun setup() {
+            ldapServer.add("dn: dc=domain,dc=com", "objectClass: top", "objectClass: domain")
+
+            ldapServer.add("dn: ou=people,dc=domain,dc=com", "objectClass: organizationalUnit", "objectClass: top")
+            ldapServer.add("dn: ou=reposilite,dc=domain,dc=com", "objectClass: organizationalUnit", "objectClass: top")
+
+            ldapServer.add("dn: cn=users,dc=domain,dc=com", "ou: people", "objectClass: posixAccount", "memberOf: ou=people,dc=domain,dc=com")
+            ldapServer.add("dn: cn=readonly,dc=domain,dc=com", "ou: reposilite", "uid: readonly", "objectClass: posixAccount", "memberOf: cn=users,ou=reposilite,dc=domain,dc=com")
+
+            ldapServer.add("dn: uid=mykola,ou=people,dc=domain,dc=com", "ou: reposilite", "objectClass: posixAccount", "memberOf: cn=users,ou=reposilite,dc=domain,dc=com")
+        }
+
+        @Test
+        fun `should authenticate mykola`() {
+            val authenticationResult = authenticator.authenticate(
+                Credentials(
+                    host = "host",
+                    name = "mykola",
+                    secret = "mykola-secret"
+                )
             )
-        )
-    }
 
-    @Test
-    fun `should authenticate non-existing ldap user`() {
-        val authenticationResult = authenticator.authenticate(
-            Credentials(
-                host = "host",
-                name = "Bella Swan",
-                secret = "secret"
+            val accessToken = assertOk(authenticationResult)
+            assertThat(accessToken.name).isEqualTo("mykola")
+            assertThat(accessToken).isEqualTo(accessTokenFacade.getAccessToken("mykola"))
+        }
+
+        @Test
+        fun `should authenticate readonly`() {
+            val authenticationResult = authenticator.authenticate(
+                Credentials(
+                    host = "host",
+                    name = "readonly",
+                    secret = "search-secret"
+                )
             )
-        )
 
-        val accessToken = assertOk(authenticationResult)
-        assertThat(accessToken.name).isEqualTo("Bella Swan")
-        assertThat(accessToken).isEqualTo(accessTokenFacade.getAccessToken("Bella Swan"))
-    }
-
-    @Test
-    fun `should authenticate existing ldap user`() {
-        val (token, secret) = accessTokenFacade.createAccessToken(
-            CreateAccessTokenRequest(
-                type = TEMPORARY,
-                name = "Bella Swan",
-                secret = "secret"
-            )
-        )
-
-        val authenticationResult = authenticator.authenticate(
-            Credentials(
-                host = "host",
-                name = token.name,
-                secret = secret
-            )
-        )
-
-        val accessToken = assertOk(authenticationResult)
-        assertThat(accessToken.name).isEqualTo("Bella Swan")
-        assertThat(accessToken).isEqualTo(token)
+            val accessToken = assertOk(authenticationResult)
+            assertThat(accessToken.name).isEqualTo("readonly")
+            assertThat(accessToken).isEqualTo(accessTokenFacade.getAccessToken("readonly"))
+        }
     }
 
 }

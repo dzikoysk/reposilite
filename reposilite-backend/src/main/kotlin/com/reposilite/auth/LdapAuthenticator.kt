@@ -19,6 +19,7 @@ package com.reposilite.auth
 import com.reposilite.auth.api.Credentials
 import com.reposilite.auth.application.LdapSettings
 import com.reposilite.journalist.Channel.DEBUG
+import com.reposilite.journalist.Journalist
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.badRequest
 import com.reposilite.shared.badRequestError
@@ -30,10 +31,6 @@ import com.reposilite.status.FailureFacade
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.token.api.CreateAccessTokenRequest
-import panda.std.Result
-import panda.std.Result.supplyThrowing
-import panda.std.asSuccess
-import panda.std.reactive.Reference
 import java.util.Hashtable
 import javax.naming.Context.INITIAL_CONTEXT_FACTORY
 import javax.naming.Context.PROVIDER_URL
@@ -46,6 +43,10 @@ import javax.naming.directory.InitialDirContext
 import javax.naming.directory.InvalidSearchFilterException
 import javax.naming.directory.SearchControls
 import javax.naming.directory.SearchResult
+import panda.std.Result
+import panda.std.Result.supplyThrowing
+import panda.std.asSuccess
+import panda.std.reactive.Reference
 
 typealias Attributes = List<String>
 typealias AttributesMap = Map<String, Attributes>
@@ -56,6 +57,7 @@ data class SearchEntry(
 )
 
 internal class LdapAuthenticator(
+    private val journalist: Journalist,
     private val ldapSettings: Reference<LdapSettings>,
     private val accessTokenFacade: AccessTokenFacade,
     private val failureFacade: FailureFacade
@@ -144,6 +146,7 @@ internal class LdapAuthenticator(
             }
             .let { supplyThrowing { InitialDirContext(it) } }
             .mapErr {
+                it.printStackTrace()
                 accessTokenFacade.logger.exception(DEBUG, it)
                 unauthorized("Unauthorized LDAP access")
             }
@@ -181,6 +184,14 @@ internal class LdapAuthenticator(
                     it.returningAttributes = requestedAttributes
                 }
                 .let {
+                    journalist.logger.debug(
+                        "[LDAP] LDAP search query { name: %s, filter: %s, args: %s, cons: %s }".format(
+                            ldapSettings.get().baseDn,
+                            ldapFilterQuery,
+                            ldapFilterQueryArguments.joinToString(", "),
+                            "[${it.searchScope}, ${it.returningAttributes.joinToString(", ")}]"
+                        )
+                    )
                     this.search(
                         ldapSettings.get().baseDn,
                         ldapFilterQuery,
@@ -189,6 +200,12 @@ internal class LdapAuthenticator(
                     )
                 }
                 .asSequence()
+                .onEach {
+                    journalist.logger.debug("[LDAP] LDAP search result { fullName: %s, attributes: %s }".format(
+                        it.nameInNamespace,
+                        it.attributesMap(requestedAttributes)
+                    ))
+                }
                 .map {
                     SearchEntry(
                         fullName = it.nameInNamespace,
@@ -196,6 +213,7 @@ internal class LdapAuthenticator(
                     )
                 }
                 .toList()
+                .also { journalist.logger.debug("[LDAP] LDAP search result: ${it.size} entries found") }
                 .takeIf { it.isNotEmpty() }
                 ?.asSuccess()
                 ?: notFoundError("Entries not found")

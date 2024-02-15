@@ -22,8 +22,8 @@ import com.reposilite.auth.LdapAuthenticator
 import com.reposilite.auth.application.LdapSettings
 import com.reposilite.status.FailureFacade
 import com.reposilite.token.specification.AccessTokenSpecification
-import panda.std.reactive.toMutableReference
 import org.junit.jupiter.api.BeforeEach
+import panda.std.reactive.toMutableReference
 
 internal abstract class AuthenticationSpecification : AccessTokenSpecification() {
 
@@ -38,7 +38,12 @@ internal abstract class AuthenticationSpecification : AccessTokenSpecification()
             journalist = logger,
             authenticators = listOf(
                 BasicAuthenticator(accessTokenFacade),
-                LdapAuthenticator(ldapConfiguration, accessTokenFacade, failureFacade)
+                LdapAuthenticator(
+                    journalist = logger,
+                    ldapSettings = ldapConfiguration,
+                    accessTokenFacade = accessTokenFacade,
+                    failureFacade = failureFacade
+                )
             ),
             accessTokenFacade = accessTokenFacade
         )

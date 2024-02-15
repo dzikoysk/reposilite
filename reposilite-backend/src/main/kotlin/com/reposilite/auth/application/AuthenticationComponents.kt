@@ -39,6 +39,7 @@ class AuthenticationComponents(
 
     private fun ldapAuthenticator(): LdapAuthenticator =
         LdapAuthenticator(
+            journalist = journalist,
             ldapSettings = Reference.computed(Dependencies.dependencies(authenticationSettings)) { authenticationSettings.map { it.ldap } },
             accessTokenFacade = accessTokenFacade,
             failureFacade = failureFacade
