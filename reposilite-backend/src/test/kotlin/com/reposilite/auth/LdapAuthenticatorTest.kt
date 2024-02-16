@@ -158,7 +158,8 @@ internal class LdapAuthenticatorTest : LdapSpecification() {
                 baseDns = listOf("dc=domain,dc=com", "ou=people,dc=domain,dc=com"),
                 credentials = mapOf(
                     "cn=readonly,dc=domain,dc=com" to "search-secret",
-                    "uid=mykola,ou=people,dc=domain,dc=com" to "mykola-secret"
+                    "uid=mykola,ou=people,dc=domain,dc=com" to "mykola-secret",
+                    "uid=panda,ou=people,dc=domain,dc=com" to "panda-secret"
                 )
             )
         }
@@ -166,18 +167,15 @@ internal class LdapAuthenticatorTest : LdapSpecification() {
         @BeforeEach
         fun setup() {
             ldapServer.add("dn: dc=domain,dc=com", "objectClass: top", "objectClass: domain")
+            ldapServer.add("dn: cn=readonly,dc=domain,dc=com", "objectClass: posixAccount")
 
             ldapServer.add("dn: ou=people,dc=domain,dc=com", "objectClass: organizationalUnit", "objectClass: top")
-            ldapServer.add("dn: ou=reposilite,dc=domain,dc=com", "objectClass: organizationalUnit", "objectClass: top")
-
-            ldapServer.add("dn: cn=users,dc=domain,dc=com", "ou: people", "objectClass: posixAccount", "memberOf: ou=people,dc=domain,dc=com")
-            ldapServer.add("dn: cn=readonly,dc=domain,dc=com", "ou: reposilite", "uid: readonly", "objectClass: posixAccount", "memberOf: cn=users,ou=reposilite,dc=domain,dc=com")
-
-            ldapServer.add("dn: uid=mykola,ou=people,dc=domain,dc=com", "ou: reposilite", "objectClass: posixAccount", "memberOf: cn=users,ou=reposilite,dc=domain,dc=com")
+            ldapServer.add("dn: uid=mykola,ou=people,dc=domain,dc=com", "objectClass: posixAccount")
+            ldapServer.add("dn: uid=panda,ou=people,dc=domain,dc=com", "objectClass: posixAccount", "memberOf: cn=users,ou=reposilite,dc=domain,dc=com")
         }
 
         @Test
-        fun `should authenticate mykola`() {
+        fun `should not authenticate mykola`() {
             val authenticationResult = authenticator.authenticate(
                 Credentials(
                     host = "host",
@@ -186,22 +184,22 @@ internal class LdapAuthenticatorTest : LdapSpecification() {
                 )
             )
 
-            val accessToken = assertOk(authenticationResult)
-            assertThat(accessToken.name).isEqualTo("mykola")
-            assertThat(accessToken).isEqualTo(accessTokenFacade.getAccessToken("mykola"))
+            assertError(authenticationResult)
         }
 
         @Test
-        fun `should not authenticate readonly`() {
+        fun `should authenticate panda`() {
             val authenticationResult = authenticator.authenticate(
                 Credentials(
                     host = "host",
-                    name = "readonly",
-                    secret = "search-secret"
+                    name = "panda",
+                    secret = "panda-secret"
                 )
             )
 
-            assertError(authenticationResult)
+            val accessToken = assertOk(authenticationResult)
+            assertThat(accessToken.name).isEqualTo("panda")
+            assertThat(accessToken).isEqualTo(accessTokenFacade.getAccessToken("panda"))
         }
     }
 
