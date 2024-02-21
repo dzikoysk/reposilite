@@ -73,7 +73,7 @@ internal class LdapAuthenticator(
             createSearchContext()
                 .flatMap {
                     it.search(
-                        ldapFilterQuery = "(&(objectClass=$typeAttribute)($userAttribute={0}))", // find user entry with search user,
+                        ldapFilterQuery = "(&(objectClass=$typeAttribute)($userAttribute={0})$userFilter)", // find user entry with search user,
                         ldapFilterQueryArguments = arrayOf(credentials.name),
                         requestedAttributes = arrayOf(userAttribute)
                     )
@@ -85,45 +85,23 @@ internal class LdapAuthenticator(
                         else -> accept() // only one search result allowed
                     }
                 }
-                .map { users -> users.first() }
-                .flatMap { matchedUserObject ->
-                    // try to authenticate user with matched domain namespace
-                    createDirContext(
-                        user = matchedUserObject.fullName,
-                        password = credentials.secret
-                    )
-                }
-                .flatMap {
-                    it.search(
-                        ldapFilterQuery = "(&(objectClass=$typeAttribute)($userAttribute={0})$userFilter)", // filter result with user-filter from configuration
-                        ldapFilterQueryArguments = arrayOf(credentials.name),
-                        requestedAttributes = arrayOf(userAttribute)
-                    )
-                }
-                .filter { filterResults ->
-                    when {
-                        filterResults.isEmpty() -> badRequest("User matching filter not found")
-                        filterResults.size > 1 -> badRequest("Could not identify one specific result with specified user-filter")
-                        else -> accept() // only one search result allowed
+                .map { users ->
+                    users.first().let {
+                        it.fullName to it.attributes[userAttribute]
                     }
                 }
-                .map { filterResults -> filterResults.first() }
-                .map { it.attributes[userAttribute]!! } // search returns only lists with values
-                .filter { usernameAttributeObject ->
+                .filter({ (_, attributes) -> attributes != null }, { badRequest("User attribute not found") })
+                .map { (userDomain, username) -> userDomain to username!! }
+                .filter { (_, attributes) ->
                     when {
-                        usernameAttributeObject.isEmpty() -> badRequest("Username attribute not found")
-                        usernameAttributeObject.size > 1 -> badRequest("Could not identify one specific username attribute: ${usernameAttributeObject.joinToString()}")
+                        attributes.isEmpty() -> badRequest("Username attribute not found")
+                        attributes.size > 1 -> badRequest("Could not identify one specific username attribute: ${attributes.joinToString()}")
                         else -> accept() // only one attribute value is allowed
                     }
                 }
-                .map { attributes -> attributes.first() }
-                .filter { username ->
-                    when {
-                        username != credentials.name -> unauthorized("LDAP user does not match required attribute")
-                        else -> accept()
-                    }
-                }
-                .map { username ->
+                .map { (userDomain, username) -> userDomain to username.first() }
+                .filter({ (userDomain, _) -> createDirContext(user = userDomain, password = credentials.secret).isOk }) { unauthorized("Unauthorized LDAP access") }
+                .map { (_, username) ->
                     accessTokenFacade.getAccessToken(username)
                         ?: accessTokenFacade.createAccessToken(
                             CreateAccessTokenRequest(
