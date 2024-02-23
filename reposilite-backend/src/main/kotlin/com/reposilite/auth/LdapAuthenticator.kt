@@ -60,7 +60,8 @@ internal class LdapAuthenticator(
     private val journalist: Journalist,
     private val ldapSettings: Reference<LdapSettings>,
     private val accessTokenFacade: AccessTokenFacade,
-    private val failureFacade: FailureFacade
+    private val failureFacade: FailureFacade,
+    private val disableUserPasswordAuthentication: Boolean
 ) : Authenticator {
 
     private val protocol = when {
@@ -100,7 +101,7 @@ internal class LdapAuthenticator(
                     }
                 }
                 .map { (userDomain, username) -> userDomain to username.first() }
-                .filter({ (userDomain, _) -> createDirContext(user = userDomain, password = credentials.secret).isOk }) { unauthorized("Unauthorized LDAP access") }
+                .filter({ (userDomain, _) -> disableUserPasswordAuthentication || createDirContext(user = userDomain, password = credentials.secret).isOk }) { unauthorized("Unauthorized LDAP access") }
                 .map { (_, username) ->
                     accessTokenFacade.getAccessToken(username)
                         ?: accessTokenFacade.createAccessToken(
