@@ -31,11 +31,16 @@ internal open class LdapSpecification : AuthenticationSpecification() {
         config.listenerConfigs.add(InMemoryListenerConfig.createLDAPConfig(ldapSettings.hostname, InetAddress.getLoopbackAddress(), ldapSettings.port, null))
         config.schema = null // remove
 
-        ldapServer = InMemoryDirectoryServer(config)
+        this.ldapServer = InMemoryDirectoryServer(config)
         ldapServer.startListening(ldapSettings.hostname)
         ldapConfiguration.update(ldapSettings.copy(hostname = ldapServer.getListenAddress(ldapSettings.hostname).hostAddress))
 
-        authenticator = LdapAuthenticator(logger, ldapConfiguration, accessTokenFacade, failureFacade)
+        this.authenticator = LdapAuthenticator(
+            journalist = logger,
+            ldapSettings = ldapConfiguration,
+            accessTokenFacade = accessTokenFacade,
+            failureFacade = failureFacade
+        )
     }
 
     @AfterEach

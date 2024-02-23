@@ -61,7 +61,7 @@ internal class LdapAuthenticator(
     private val ldapSettings: Reference<LdapSettings>,
     private val accessTokenFacade: AccessTokenFacade,
     private val failureFacade: FailureFacade,
-    private val disableUserPasswordAuthentication: Boolean
+    private val disableUserPasswordAuthentication: Boolean = false,
 ) : Authenticator {
 
     private val protocol = when {
