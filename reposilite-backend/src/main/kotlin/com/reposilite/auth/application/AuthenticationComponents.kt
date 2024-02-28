@@ -31,7 +31,8 @@ class AuthenticationComponents(
     private val journalist: Journalist,
     private val accessTokenFacade: AccessTokenFacade,
     private val failureFacade: FailureFacade,
-    private val authenticationSettings: Reference<AuthenticationSettings>
+    private val authenticationSettings: Reference<AuthenticationSettings>,
+    private val disableUserPasswordAuthentication: Boolean = false
 ) : PluginComponents {
 
     private fun basicAuthenticator(): BasicAuthenticator =
@@ -39,9 +40,11 @@ class AuthenticationComponents(
 
     private fun ldapAuthenticator(): LdapAuthenticator =
         LdapAuthenticator(
+            journalist = journalist,
             ldapSettings = Reference.computed(Dependencies.dependencies(authenticationSettings)) { authenticationSettings.map { it.ldap } },
             accessTokenFacade = accessTokenFacade,
-            failureFacade = failureFacade
+            failureFacade = failureFacade,
+            disableUserPasswordAuthentication = disableUserPasswordAuthentication,
         )
 
     private fun authenticators(): List<Authenticator> =

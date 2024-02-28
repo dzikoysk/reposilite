@@ -19,6 +19,7 @@ package com.reposilite.auth
 import com.reposilite.auth.api.Credentials
 import com.reposilite.auth.application.LdapSettings
 import com.reposilite.journalist.Channel.DEBUG
+import com.reposilite.journalist.Journalist
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.badRequest
 import com.reposilite.shared.badRequestError
@@ -30,10 +31,6 @@ import com.reposilite.status.FailureFacade
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.token.api.CreateAccessTokenRequest
-import panda.std.Result
-import panda.std.Result.supplyThrowing
-import panda.std.asSuccess
-import panda.std.reactive.Reference
 import java.util.Hashtable
 import javax.naming.Context.INITIAL_CONTEXT_FACTORY
 import javax.naming.Context.PROVIDER_URL
@@ -46,6 +43,10 @@ import javax.naming.directory.InitialDirContext
 import javax.naming.directory.InvalidSearchFilterException
 import javax.naming.directory.SearchControls
 import javax.naming.directory.SearchResult
+import panda.std.Result
+import panda.std.Result.supplyThrowing
+import panda.std.asSuccess
+import panda.std.reactive.Reference
 
 typealias Attributes = List<String>
 typealias AttributesMap = Map<String, Attributes>
@@ -56,9 +57,11 @@ data class SearchEntry(
 )
 
 internal class LdapAuthenticator(
+    private val journalist: Journalist,
     private val ldapSettings: Reference<LdapSettings>,
     private val accessTokenFacade: AccessTokenFacade,
-    private val failureFacade: FailureFacade
+    private val failureFacade: FailureFacade,
+    private val disableUserPasswordAuthentication: Boolean = false,
 ) : Authenticator {
 
     private val protocol = when {
@@ -71,7 +74,7 @@ internal class LdapAuthenticator(
             createSearchContext()
                 .flatMap {
                     it.search(
-                        ldapFilterQuery = "(&(objectClass=$typeAttribute)($userAttribute={0}))", // find user entry with search user,
+                        ldapFilterQuery = "(&(objectClass=$typeAttribute)($userAttribute={0})$userFilter)", // find user entry with search user,
                         ldapFilterQueryArguments = arrayOf(credentials.name),
                         requestedAttributes = arrayOf(userAttribute)
                     )
@@ -83,45 +86,23 @@ internal class LdapAuthenticator(
                         else -> accept() // only one search result allowed
                     }
                 }
-                .map { users -> users.first() }
-                .flatMap { matchedUserObject ->
-                    // try to authenticate user with matched domain namespace
-                    createDirContext(
-                        user = matchedUserObject.fullName,
-                        password = credentials.secret
-                    )
-                }
-                .flatMap {
-                    it.search(
-                        ldapFilterQuery = "(&(objectClass=$typeAttribute)($userAttribute={0})$userFilter)", // filter result with user-filter from configuration
-                        ldapFilterQueryArguments = arrayOf(credentials.name),
-                        requestedAttributes = arrayOf(userAttribute)
-                    )
-                }
-                .filter { filterResults ->
-                    when {
-                        filterResults.isEmpty() -> badRequest("User matching filter not found")
-                        filterResults.size > 1 -> badRequest("Could not identify one specific result with specified user-filter")
-                        else -> accept() // only one search result allowed
+                .map { users ->
+                    users.first().let {
+                        it.fullName to it.attributes[userAttribute]
                     }
                 }
-                .map { filterResults -> filterResults.first() }
-                .map { it.attributes[userAttribute]!! } // search returns only lists with values
-                .filter { usernameAttributeObject ->
+                .filter({ (_, attributes) -> attributes != null }, { badRequest("User attribute not found") })
+                .map { (userDomain, username) -> userDomain to username!! }
+                .filter { (_, attributes) ->
                     when {
-                        usernameAttributeObject.isEmpty() -> badRequest("Username attribute not found")
-                        usernameAttributeObject.size > 1 -> badRequest("Could not identify one specific username attribute: ${usernameAttributeObject.joinToString()}")
+                        attributes.isEmpty() -> badRequest("Username attribute not found")
+                        attributes.size > 1 -> badRequest("Could not identify one specific username attribute: ${attributes.joinToString()}")
                         else -> accept() // only one attribute value is allowed
                     }
                 }
-                .map { attributes -> attributes.first() }
-                .filter { username ->
-                    when {
-                        username != credentials.name -> unauthorized("LDAP user does not match required attribute")
-                        else -> accept()
-                    }
-                }
-                .map { username ->
+                .map { (userDomain, username) -> userDomain to username.first() }
+                .filter({ (userDomain, _) -> disableUserPasswordAuthentication || createDirContext(user = userDomain, password = credentials.secret).isOk }) { unauthorized("Unauthorized LDAP access") }
+                .map { (_, username) ->
                     accessTokenFacade.getAccessToken(username)
                         ?: accessTokenFacade.createAccessToken(
                             CreateAccessTokenRequest(
@@ -144,6 +125,7 @@ internal class LdapAuthenticator(
             }
             .let { supplyThrowing { InitialDirContext(it) } }
             .mapErr {
+                it.printStackTrace()
                 accessTokenFacade.logger.exception(DEBUG, it)
                 unauthorized("Unauthorized LDAP access")
             }
@@ -181,6 +163,14 @@ internal class LdapAuthenticator(
                     it.returningAttributes = requestedAttributes
                 }
                 .let {
+                    journalist.logger.debug(
+                        "[LDAP] LDAP search query { name: %s, filter: %s, args: %s, cons: %s }".format(
+                            ldapSettings.get().baseDn,
+                            ldapFilterQuery,
+                            ldapFilterQueryArguments.joinToString(", "),
+                            "[${it.searchScope}, ${it.returningAttributes.joinToString(", ")}]"
+                        )
+                    )
                     this.search(
                         ldapSettings.get().baseDn,
                         ldapFilterQuery,
@@ -189,6 +179,12 @@ internal class LdapAuthenticator(
                     )
                 }
                 .asSequence()
+                .onEach {
+                    journalist.logger.debug("[LDAP] LDAP search result { fullName: %s, attributes: %s }".format(
+                        it.nameInNamespace,
+                        it.attributesMap(requestedAttributes)
+                    ))
+                }
                 .map {
                     SearchEntry(
                         fullName = it.nameInNamespace,
@@ -196,6 +192,7 @@ internal class LdapAuthenticator(
                     )
                 }
                 .toList()
+                .also { journalist.logger.debug("[LDAP] LDAP search result: ${it.size} entries found") }
                 .takeIf { it.isNotEmpty() }
                 ?.asSuccess()
                 ?: notFoundError("Entries not found")

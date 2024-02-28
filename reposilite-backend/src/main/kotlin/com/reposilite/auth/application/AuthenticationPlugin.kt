@@ -37,7 +37,8 @@ class AuthenticationPlugin : ReposilitePlugin() {
                 journalist = this,
                 accessTokenFacade = facade(),
                 failureFacade = facade(),
-                authenticationSettings = sharedConfigurationFacade.getDomainSettings()
+                authenticationSettings = sharedConfigurationFacade.getDomainSettings(),
+                disableUserPasswordAuthentication = System.getProperty("reposilite.ldap.disable-user-password-authentication", "false") == "true"
             ).authenticationFacade()
 
         event { event: RoutingSetupEvent ->
