@@ -103,7 +103,7 @@ dependencies {
     val jsonSchema = "4.33.1"
     implementation("com.github.victools:jsonschema-generator:$jsonSchema")
 
-    val httpClient = "1.43.3"
+    val httpClient = "1.44.1"
     implementation("com.google.http-client:google-http-client:$httpClient") { exclude(group = "commons-codec", module = "commons-codec")}
     testImplementation("com.google.http-client:google-http-client-jackson2:$httpClient")
 
