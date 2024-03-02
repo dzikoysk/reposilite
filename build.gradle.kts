@@ -124,10 +124,10 @@ subprojects {
         testImplementation("com.konghq:unirest-java:$unirest")
         testImplementation("com.konghq:unirest-objectmapper-jackson:$unirest")
 
-        val assertJ = "3.25.1"
+        val assertJ = "3.25.3"
         testImplementation("org.assertj:assertj-core:$assertJ")
 
-        val junit = "5.10.1"
+        val junit = "5.10.2"
         testImplementation("org.junit.jupiter:junit-jupiter-params:$junit")
         testImplementation("org.junit.jupiter:junit-jupiter-api:$junit")
         testImplementation("org.junit.jupiter:junit-jupiter-engine:$junit")

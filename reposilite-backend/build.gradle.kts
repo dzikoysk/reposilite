@@ -43,13 +43,13 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin")
 
-    val javalin = "6.1.1"
+    val javalin = "6.1.2"
     api("io.javalin:javalin:$javalin")
 
-    val javalinSsl = "6.1.1"
+    val javalinSsl = "6.1.2"
     api("io.javalin.community.ssl:ssl-plugin:$javalinSsl")
 
-    val javalinOpenApi = "6.1.1"
+    val javalinOpenApi = "6.1.2"
     api("io.javalin.community.openapi:javalin-openapi-plugin:$javalinOpenApi")
     kapt("io.javalin.community.openapi:openapi-annotation-processor:$javalinOpenApi")
 
@@ -76,10 +76,10 @@ dependencies {
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
 
-    val awsSdkV1 = "1.12.633"
+    val awsSdkV1 = "1.12.671"
     testImplementation("com.amazonaws:aws-java-sdk-s3:$awsSdkV1")
 
-    val exposed = "0.47.0"
+    val exposed = "0.48.0"
     api("org.jetbrains.exposed:exposed-core:$exposed")
     api("org.jetbrains.exposed:exposed-dao:$exposed")
     api("org.jetbrains.exposed:exposed-jdbc:$exposed")
@@ -88,8 +88,8 @@ dependencies {
     implementation("com.zaxxer:HikariCP:5.1.0")
     implementation("org.xerial:sqlite-jdbc:3.45.1.0")
     implementation("mysql:mysql-connector-java:8.0.33")
-    implementation("org.mariadb.jdbc:mariadb-java-client:3.3.2")
-    implementation("org.postgresql:postgresql:42.7.1")
+    implementation("org.mariadb.jdbc:mariadb-java-client:3.3.3")
+    implementation("org.postgresql:postgresql:42.7.2")
     implementation("com.h2database:h2:2.2.224")
 
     val exposedUpsert = "1.2.2"
@@ -103,11 +103,11 @@ dependencies {
     val jsonSchema = "4.33.1"
     implementation("com.github.victools:jsonschema-generator:$jsonSchema")
 
-    val httpClient = "1.43.3"
+    val httpClient = "1.44.1"
     implementation("com.google.http-client:google-http-client:$httpClient") { exclude(group = "commons-codec", module = "commons-codec")}
     testImplementation("com.google.http-client:google-http-client-jackson2:$httpClient")
 
-    val commonsCoded = "1.16.0"
+    val commonsCoded = "1.16.1"
     api("commons-codec:commons-codec:$commonsCoded")
 
     val jansi = "2.4.1"
@@ -123,7 +123,7 @@ dependencies {
     implementation("org.tinylog:tinylog-api:$tinylog")
     implementation("org.tinylog:tinylog-impl:$tinylog")
 
-    val testcontainers = "1.19.4"
+    val testcontainers = "1.19.6"
     testImplementation("org.testcontainers:postgresql:$testcontainers")
     testImplementation("org.testcontainers:mariadb:$testcontainers")
     testImplementation("org.testcontainers:testcontainers:$testcontainers")
