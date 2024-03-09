@@ -27,5 +27,7 @@ data class FileSystemStorageProviderSettings(
     @get:Doc(title = "Quota", description = "Control the maximum amount of data stored in this repository. Supported formats: 90%, 500MB, 10GB (optional, by default: unlimited)")
     val quota: String = "100%",
     @get:Doc(title = "Mount", description = "Use custom directory to locate the repository data (optional, by default it's './repositories/{name}')")
-    val mount: String = ""
+    val mount: String = "",
+    @get:Doc(title = "Max resource lock lifetime", description = "How long given resource can be locked (by default: 60s)")
+    val maxResourceLockLifetimeInSeconds: Int = 60,
 ) : StorageProviderSettings

@@ -35,26 +35,46 @@ class FileSystemStorageProviderFactory : StorageProviderFactory<FileSystemStorag
          * @param rootDirectory root directory of storage space
          * @param quota quota to use as % or in bytes
          */
-        fun of(journalist: Journalist, rootDirectory: Path, quota: String): FileSystemStorageProvider =
+        fun of(journalist: Journalist, rootDirectory: Path, quota: String, maxResourceLockLifetimeInSeconds: Int): FileSystemStorageProvider =
             if (quota.endsWith("%")) {
-                of(journalist, rootDirectory, quota.substring(0, quota.length - 1).toInt() / 100.0)
+                of(
+                    journalist = journalist,
+                    rootDirectory = rootDirectory,
+                    maxPercentage = quota.substring(0, quota.length - 1).toInt() / 100.0,
+                    maxResourceLockLifetimeInSeconds = maxResourceLockLifetimeInSeconds
+                )
             } else {
-                of(journalist, rootDirectory, displaySizeToBytesCount(quota))
+                of(
+                    journalist = journalist,
+                    rootDirectory = rootDirectory,
+                    maxSize = displaySizeToBytesCount(quota),
+                    maxResourceLockLifetimeInSeconds = maxResourceLockLifetimeInSeconds
+                )
             }
 
         /**
          * @param rootDirectory root directory of storage space
          * @param maxSize the largest amount of storage available for use, in bytes
          */
-        fun of(journalist: Journalist, rootDirectory: Path, maxSize: Long): FileSystemStorageProvider =
-            FixedQuota(journalist, rootDirectory, maxSize)
+        fun of(journalist: Journalist, rootDirectory: Path, maxSize: Long, maxResourceLockLifetimeInSeconds: Int): FileSystemStorageProvider =
+            FixedQuota(
+                journalist = journalist,
+                rootDirectory = rootDirectory,
+                maxSize = maxSize,
+                maxResourceLockLifetimeInSeconds = maxResourceLockLifetimeInSeconds
+            )
 
         /**
          * @param rootDirectory root directory of storage space
          * @param maxPercentage the maximum percentage of the disk available for use
          */
-        fun of(journalist: Journalist, rootDirectory: Path, maxPercentage: Double): FileSystemStorageProvider =
-            PercentageQuota(journalist, rootDirectory, maxPercentage)
+        fun of(journalist: Journalist, rootDirectory: Path, maxPercentage: Double, maxResourceLockLifetimeInSeconds: Int): FileSystemStorageProvider =
+            PercentageQuota(
+                journalist = journalist,
+                rootDirectory = rootDirectory,
+                maxPercentage = maxPercentage,
+                maxResourceLockLifetimeInSeconds = maxResourceLockLifetimeInSeconds
+            )
 
         private fun displaySizeToBytesCount(displaySize: String): Long {
             val match = DISPLAY_SIZE_PATTERN.matcher(displaySize)
@@ -79,7 +99,7 @@ class FileSystemStorageProviderFactory : StorageProviderFactory<FileSystemStorag
         failureFacade: FailureFacade,
         workingDirectory: Path,
         repositoryName: String,
-        settings: FileSystemStorageProviderSettings
+        settings: FileSystemStorageProviderSettings,
     ): FileSystemStorageProvider {
         val repositoryDirectory =
             if (settings.mount.isEmpty())
@@ -88,7 +108,13 @@ class FileSystemStorageProviderFactory : StorageProviderFactory<FileSystemStorag
                 workingDirectory.resolve(settings.mount)
 
         Files.createDirectories(repositoryDirectory)
-        return of(journalist, repositoryDirectory, settings.quota)
+
+        return of(
+            journalist = journalist,
+            rootDirectory = repositoryDirectory,
+            quota = settings.quota,
+            maxResourceLockLifetimeInSeconds = settings.maxResourceLockLifetimeInSeconds,
+        )
     }
 
     override val settingsType: Class<FileSystemStorageProviderSettings> =

@@ -20,9 +20,9 @@ import com.reposilite.journalist.Journalist
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.toErrorResponse
 import io.javalin.http.HttpStatus.INSUFFICIENT_STORAGE
-import panda.std.Result
 import java.nio.file.Files
 import java.nio.file.Path
+import panda.std.Result
 
 /**
  * @param rootDirectory root directory of storage space
@@ -31,8 +31,13 @@ import java.nio.file.Path
 internal class FixedQuota(
     journalist: Journalist,
     rootDirectory: Path,
-    private val maxSize: Long
-) : FileSystemStorageProvider(journalist, rootDirectory) {
+    private val maxSize: Long,
+    maxResourceLockLifetimeInSeconds: Int
+) : FileSystemStorageProvider(
+    journalist = journalist,
+    rootDirectory = rootDirectory,
+    maxResourceLockLifetimeInSeconds = maxResourceLockLifetimeInSeconds
+) {
 
     init {
         if (maxSize <= 0) {
@@ -54,8 +59,13 @@ internal class FixedQuota(
 internal class PercentageQuota(
     journalist: Journalist,
     rootDirectory: Path,
-    private val maxPercentage: Double
-) : FileSystemStorageProvider(journalist, rootDirectory) {
+    private val maxPercentage: Double,
+    maxResourceLockLifetimeInSeconds: Int
+) : FileSystemStorageProvider(
+    journalist = journalist,
+    rootDirectory = rootDirectory,
+    maxResourceLockLifetimeInSeconds = maxResourceLockLifetimeInSeconds
+) {
 
     init {
         if (maxPercentage > 1 || maxPercentage <= 0) {

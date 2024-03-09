@@ -48,9 +48,9 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
 import java.nio.file.attribute.FileTime
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit.MINUTES
-import java.util.concurrent.locks.ReentrantReadWriteLock
+import java.util.concurrent.Semaphore
+import java.util.concurrent.TimeUnit.SECONDS
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.streams.asSequence
 import panda.std.Result
 import panda.std.asSuccess
@@ -60,49 +60,41 @@ import panda.std.asSuccess
  */
 abstract class FileSystemStorageProvider protected constructor(
     val journalist: Journalist,
-    val rootDirectory: Path
+    val rootDirectory: Path,
+    maxResourceLockLifetimeInSeconds: Int
 ) : StorageProvider {
-
-    // tech-debt(GH-2048): StorageProvider API uses blocking operations
-    // FileSystemStorageProvider has to respond with open input-streams, so resource lock has to be maintained until the stream is closed
-    // Locks have to be released by the same thread that acquired them, so we have to use a single-thread executor that proxies lock requests
-    // This is a quick hot-fix, but it's not a proper solution - we should cover IO operations with CompletableFutures, so we can avoid it in the first place
-    // ~ https://github.com/dzikoysk/reposilite/issues/2048
-    private val lockManager = Executors.newSingleThreadExecutor()
-
-    private val lockedLocations =
-        CacheBuilder.newBuilder()
-            .expireAfterAccess(3, MINUTES)
-            .concurrencyLevel(1)
-            .build<Location, ReentrantReadWriteLock>()
 
     private enum class LockMode {
         READ,
         WRITE
     }
 
-    override fun shutdown() {
-        lockManager.shutdown()
-    }
+    private class FileAccessor(
+        val lock: Semaphore = Semaphore(1),
+        val reads: AtomicInteger = AtomicInteger(0),
+    )
 
-    private fun acquireFileAccessLock(location: Location, lockMode: LockMode): Closeable =
-        lockManager.submit<Closeable> {
-            val lock = lockedLocations.get(location) { ReentrantReadWriteLock() }
+    private val lockedLocations =
+        CacheBuilder.newBuilder()
+            .expireAfterAccess(maxResourceLockLifetimeInSeconds.toLong(), SECONDS)
+            .concurrencyLevel(4)
+            .build<Location, FileAccessor>()
 
+    private fun acquireFileAccessLock(location: Location, lockMode: LockMode): Closeable {
+        val accessor = lockedLocations.get(location) { FileAccessor() }
+
+        when (lockMode) {
+            LockMode.READ -> if (accessor.reads.incrementAndGet() == 1) accessor.lock.acquire()
+            LockMode.WRITE -> accessor.lock.acquire()
+        }
+
+        return Closeable {
             when (lockMode) {
-                LockMode.READ -> lock.readLock().lock()
-                LockMode.WRITE -> lock.writeLock().lock()
+                LockMode.READ -> if (accessor.reads.decrementAndGet() == 0) accessor.lock.release()
+                LockMode.WRITE -> accessor.lock.release()
             }
-
-            Closeable {
-                lockManager.execute {
-                    when (lockMode) {
-                        LockMode.READ -> lock.readLock().unlock()
-                        LockMode.WRITE -> lock.writeLock().unlock()
-                    }
-                }
-            }
-        }.get()
+        }
+    }
 
     override fun putFile(location: Location, inputStream: InputStream): Result<Unit, ErrorResponse> =
         inputStream.use { data ->
@@ -132,23 +124,23 @@ abstract class FileSystemStorageProvider protected constructor(
                 }
         }
 
+    private class LockedFilterInputStream(private val inputStream: InputStream, private val lock: Closeable) : FilterInputStream(inputStream) {
+        override fun close() {
+            lock.use {
+                inputStream.close()
+            }
+        }
+    }
+
     override fun getFile(location: Location): Result<InputStream, ErrorResponse> =
         location.resolveWithRootDirectory()
             .exists()
-            .flatMap {
+            .flatMap { resource ->
                 val lock = acquireFileAccessLock(location, LockMode.READ)
 
-                it.inputStream()
+                resource.inputStream()
                     .onError { lock.close() }
-                    .map { inputStream ->
-                        object : FilterInputStream(inputStream) {
-                            override fun close() {
-                                lock.use {
-                                    inputStream.close()
-                                }
-                            }
-                        }
-                    }
+                    .map { LockedFilterInputStream(it, lock) }
             }
 
     override fun getFileDetails(location: Location): Result<out FileDetails, ErrorResponse> =

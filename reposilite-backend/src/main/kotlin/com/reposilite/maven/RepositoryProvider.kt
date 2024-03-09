@@ -26,22 +26,22 @@ import com.reposilite.shared.notFoundError
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.status.FailureFacade
 import com.reposilite.storage.StorageFacade
+import java.nio.file.Path
 import panda.std.Result
 import panda.std.asSuccess
 import panda.std.reactive.Reference
-import java.nio.file.Path
 
 internal class RepositoryProvider(
     private val journalist: Journalist,
     private val workingDirectory: Path,
     private val remoteClientProvider: RemoteClientProvider,
     private val authenticationFacade: AuthenticationFacade,
-    private val extensions: Extensions,
+    extensions: Extensions,
     private val failureFacade: FailureFacade,
-    private val statisticsFacade: StatisticsFacade,
+    statisticsFacade: StatisticsFacade,
     private val storageFacade: StorageFacade,
-    private val mirrorService: MirrorService,
-    private val repositorySecurityProvider: RepositorySecurityProvider,
+    mirrorService: MirrorService,
+    repositorySecurityProvider: RepositorySecurityProvider,
     repositoriesSource: Reference<List<RepositorySettings>>,
 ) {
 
@@ -72,7 +72,7 @@ internal class RepositoryProvider(
             failureFacade = failureFacade,
             storageFacade = storageFacade,
             repositoryService = repositoryService,
-            repositoriesNames = repositoriesConfiguration.map { it.id }
+            repositoriesNames = repositoriesConfiguration.map { it.id },
         )
 
         return repositoriesConfiguration.asSequence()

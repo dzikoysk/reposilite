@@ -55,7 +55,7 @@ internal class RepositoryFactory(
                         failureFacade = failureFacade,
                         workingDirectory = workingDirectory.resolve(repositoriesDirectory),
                         repository = repositoryName,
-                        storageSettings = configuration.storageProvider
+                        storageSettings = configuration.storageProvider,
                     )
                     ?: throw IllegalArgumentException("Unknown storage provider '${configuration.storageProvider.type}'"),
             storagePolicy = configuration.storagePolicy,

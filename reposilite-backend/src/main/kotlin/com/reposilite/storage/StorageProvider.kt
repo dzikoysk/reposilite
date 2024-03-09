@@ -19,9 +19,9 @@ package com.reposilite.storage
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.Location
-import panda.std.Result
 import java.io.InputStream
 import java.nio.file.attribute.FileTime
+import panda.std.Result
 
 interface StorageProvider {
 
@@ -45,6 +45,6 @@ interface StorageProvider {
 
     fun canHold(contentLength: Long): Result<Long, ErrorResponse>
 
-    fun shutdown()
+    fun shutdown() {}
 
 }
