@@ -22,22 +22,22 @@ import io.javalin.http.Header
 import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
 import io.javalin.util.javalinLazy
 
-typealias ReposiliteRouting = DslRouting<ReposiliteConfiguration, ReposiliteRoute, ReposiliteScope, Unit>
-typealias ReposiliteRoute = DslRoute<ContextDsl<*>, Unit>
+typealias ReposiliteRouting = DslRouting<ReposiliteConfiguration, ReposiliteDslRoute, ReposiliteScope, Unit>
+typealias ReposiliteDslRoute = DslRoute<ContextDsl<*>, Unit>
 typealias ReposiliteExceptionHandler = DslExceptionHandler<ContextDsl<*>, Exception, Unit>
 typealias ReposiliteScope = ContextDsl<*>
 
 class ReposiliteDsl(
-    private val routeFactory: (ReposiliteRoute) -> Handler,
+    private val routeFactory: (ReposiliteDslRoute) -> Handler,
     private val exceptionRouteFactory: (ReposiliteExceptionHandler) -> ExceptionHandler<Exception>
-) : RoutingDslFactory<ReposiliteConfiguration, ReposiliteRoute, ContextDsl<*>, Unit> {
+) : RoutingDslFactory<ReposiliteConfiguration, ReposiliteDslRoute, ContextDsl<*>, Unit> {
 
-    open class ReposiliteConfiguration : RoutingDslConfiguration<ReposiliteRoute, ContextDsl<*>, Unit>()
+    open class ReposiliteConfiguration : RoutingDslConfiguration<ReposiliteDslRoute, ContextDsl<*>, Unit>()
 
     override fun createConfiguration(): ReposiliteConfiguration =
         ReposiliteConfiguration()
 
-    override fun createHandler(route: ReposiliteRoute): Handler =
+    override fun createHandler(route: ReposiliteDslRoute): Handler =
         routeFactory.invoke(route)
 
     override fun createExceptionHandler(handler: ReposiliteExceptionHandler): ExceptionHandler<Exception> =

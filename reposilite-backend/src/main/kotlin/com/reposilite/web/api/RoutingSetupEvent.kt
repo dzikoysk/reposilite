@@ -21,17 +21,25 @@ import com.reposilite.plugin.api.Event
 
 class RoutingSetupEvent(val reposilite: Reposilite) : Event {
 
-    private val routes: MutableSet<ReposiliteRoutes> = mutableSetOf()
+    private val routes: MutableSet<ReposiliteRoute<*>> = mutableSetOf()
 
-    fun registerRoutes(routesToAdd: ReposiliteRoutes) {
-        routes.add(routesToAdd)
+    fun register(routeToAdd: ReposiliteRoute<*>) {
+        routes.add(routeToAdd)
     }
 
-    fun registerRoutes(routesToAdd: Set<ReposiliteRoutes>) {
+    fun register(routesToAdd: Collection<ReposiliteRoute<*>>) {
         routes.addAll(routesToAdd)
     }
 
-    fun getRoutes(): Collection<ReposiliteRoutes> =
+    fun registerRoutes(routesToAdd: ReposiliteRoutes) {
+        routes.addAll(routesToAdd.routes)
+    }
+
+    fun registerRoutes(routesToAdd: Collection<ReposiliteRoutes>) {
+        routes.addAll(routesToAdd.map { it.routes }.flatten())
+    }
+
+    fun getRoutes(): Collection<ReposiliteRoute<*>> =
         routes
 
 }

@@ -100,8 +100,13 @@ internal object JavalinConfiguration {
             authenticationFacade = extensionManager.facade()
         )
 
-        extensionManager.emitEvent(RoutingSetupEvent(reposilite)).getRoutes().asSequence().flatMap { it.routes() }.distinctBy { "${it.method.name}:${it.path}" }
-            .toSet().let { route ->
+        extensionManager.emitEvent(RoutingSetupEvent(reposilite))
+            .getRoutes()
+            .asSequence()
+            .flatMap { it.toDslRoutes() }
+            .distinctBy { "${it.method.name}:${it.path}" }
+            .toSet()
+            .let { route ->
                 config.router.mount(reposiliteDsl) {
                     it.routes(route)
                 }
