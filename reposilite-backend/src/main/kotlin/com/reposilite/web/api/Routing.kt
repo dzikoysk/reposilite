@@ -17,6 +17,7 @@
 package com.reposilite.web.api
 
 import com.reposilite.shared.ContextDsl
+import com.reposilite.web.infrastructure.ReposiliteDslRoute
 import com.reposilite.web.routing.RouteMethod
 import io.javalin.community.routing.Route
 import io.javalin.community.routing.dsl.DefaultDslRoute
@@ -33,17 +34,8 @@ abstract class ReposiliteRoutes : DslContainer<DslRoute<ContextDsl<*>, Unit>, Co
             .map { it as ReposiliteRoute<Any> }
             .toSet()
 
-    @Suppress("UNCHECKED_CAST")
-    override fun routes(): Collection<DslRoute<ContextDsl<*>, Unit>> =
-        routes.flatMap { route ->
-            route.methods.map { method ->
-                DefaultDslRoute(
-                    path = route.path,
-                    method = method,
-                    handler = route.handler as ContextDsl<*>.() -> Unit
-                )
-            }
-        }
+    override fun routes(): Collection<ReposiliteDslRoute> =
+        routes.flatMap { it.toDslRoutes() }
 
 }
 
@@ -62,9 +54,19 @@ class ReposiliteRoute<R>(
         path = path,
         methods = methods
             .map { Route.valueOf(it.name) }
-            .toTypedArray()
-        ,
+            .toTypedArray(),
         handler = handler
     )
+
+    @Suppress("UNCHECKED_CAST")
+    fun toDslRoutes(): Set<ReposiliteDslRoute> =
+        methods.mapTo(HashSet()) { method ->
+            @Suppress("UNCHECKED_CAST")
+            DefaultDslRoute(
+                path = path,
+                method = method,
+                handler = handler as ContextDsl<*>.() -> Unit
+            )
+        }
 
 }

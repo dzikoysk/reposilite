@@ -22,12 +22,16 @@ import com.reposilite.maven.api.DeleteRequest
 import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.shared.extensions.resultAttachment
+import com.reposilite.shared.extensions.uri
+import com.reposilite.storage.api.Location
+import com.reposilite.token.AccessTokenIdentifier
 import com.reposilite.web.api.ReposiliteRoute
 import io.javalin.community.routing.Route.DELETE
 import io.javalin.community.routing.Route.GET
 import io.javalin.community.routing.Route.HEAD
 import io.javalin.community.routing.Route.POST
 import io.javalin.community.routing.Route.PUT
+import io.javalin.http.Context
 import io.javalin.openapi.ContentType.FORM_DATA_MULTIPART
 import io.javalin.openapi.HttpMethod
 import io.javalin.openapi.OpenApi
@@ -61,24 +65,28 @@ internal class MavenEndpoints(
     private val findFile = ReposiliteRoute<Unit>("/{repository}/<gav>", HEAD, GET) {
         accessed {
             requireGav { gav ->
-                LookupRequest(this?.identifier, requireParameter("repository"), gav)
-                    .let { request -> mavenFacade.findFile(request) }
-                    .peek {
-                        ctx.resultAttachment(
-                            name = it.document.name,
-                            contentType = it.document.contentType,
-                            contentLength = it.document.contentLength,
-                            compressionStrategy = compressionStrategy,
-                            cache = it.cachable,
-                            data = it.content
-                        )
-                    }
-                    .onError {
-                        ctx.status(it.status).html(frontendFacade.createNotFoundPage(uri, it.message))
-                        mavenFacade.logger.debug("FIND | Could not find file due to $it")
-                    }
+                findFile(ctx, this?.identifier, requireParameter("repository"), gav)
             }
         }
+    }
+
+    fun findFile(ctx: Context, identifier: AccessTokenIdentifier?, repository: String, gav: Location) {
+        LookupRequest(identifier, repository, gav)
+            .let { request -> mavenFacade.findFile(request) }
+            .peek {
+                ctx.resultAttachment(
+                    name = it.document.name,
+                    contentType = it.document.contentType,
+                    contentLength = it.document.contentLength,
+                    compressionStrategy = compressionStrategy,
+                    cache = it.cachable,
+                    data = it.content
+                )
+            }
+            .onError {
+                ctx.status(it.status).html(frontendFacade.createNotFoundPage(ctx.uri(), it.message))
+                mavenFacade.logger.debug("FIND | Could not find file due to $it")
+            }
     }
 
     @OpenApi(
