@@ -100,7 +100,7 @@ dependencies {
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jackson")
 
-    val jsonSchema = "4.33.1"
+    val jsonSchema = "4.35.0"
     implementation("com.github.victools:jsonschema-generator:$jsonSchema")
 
     val httpClient = "1.44.1"
