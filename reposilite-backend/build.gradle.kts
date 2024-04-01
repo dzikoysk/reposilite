@@ -46,7 +46,7 @@ dependencies {
     val javalin = "6.1.2"
     api("io.javalin:javalin:$javalin")
 
-    val javalinSsl = "6.1.2"
+    val javalinSsl = "6.1.3"
     api("io.javalin.community.ssl:ssl-plugin:$javalinSsl")
 
     val javalinOpenApi = "6.1.2"
