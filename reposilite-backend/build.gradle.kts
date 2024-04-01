@@ -43,7 +43,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin")
 
-    val javalin = "6.1.2"
+    val javalin = "6.1.3"
     api("io.javalin:javalin:$javalin")
 
     val javalinSsl = "6.1.2"
