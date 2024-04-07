@@ -34,7 +34,7 @@
     "vue-final-modal": "^4.5.4",
     "vue-float-menu": "^1.9.1",
     "vue-router": "^4.3.0",
-    "vue-upload-component": "^3.1.8",
+    "vue-upload-component": "^3.1.15",
     "vue3-apexcharts": "^1.5.2",
     "vue3-tabs": "^0.1.13-beta.3"
   },
