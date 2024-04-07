@@ -16,6 +16,7 @@
 
 package com.reposilite.web.application
 
+import io.javalin.plugin.Plugin as JavalinPlugin
 import com.reposilite.Reposilite
 import com.reposilite.ReposiliteObjectMapper
 import com.reposilite.VERSION
@@ -100,17 +101,20 @@ internal object JavalinConfiguration {
             authenticationFacade = extensionManager.facade()
         )
 
-        extensionManager.emitEvent(RoutingSetupEvent(reposilite))
+        val routes = extensionManager.emitEvent(RoutingSetupEvent(reposilite))
             .getRoutes()
             .asSequence()
             .flatMap { it.toDslRoutes() }
             .distinctBy { "${it.method.name}:${it.path}" }
             .toSet()
-            .let { route ->
+
+        config.registerPlugin(object : JavalinPlugin<Unit?>() {
+            override fun onStart(config: JavalinConfig) {
                 config.router.mount(reposiliteDsl) {
-                    it.routes(route)
+                    it.routes(routes)
                 }
             }
+        })
     }
 
     private fun configureJsonSerialization(config: JavalinConfig) {
@@ -130,7 +134,10 @@ internal object JavalinConfiguration {
                 it.securePort = localConfiguration.sslPort.get()
 
                 val keyConfiguration = localConfiguration.keyPath.map { path ->
-                    path.replace("\${WORKING_DIRECTORY}", reposilite.parameters.workingDirectory.toAbsolutePath().toString())
+                    path.replace(
+                        "\${WORKING_DIRECTORY}",
+                        reposilite.parameters.workingDirectory.toAbsolutePath().toString()
+                    )
                 }
                 val keyPassword = localConfiguration.keyPassword.get()
 
@@ -157,20 +164,20 @@ internal object JavalinConfiguration {
     }
 
     private fun configureCors(config: JavalinConfig) {
-        config.bundledPlugins.enableCors {
-            it.addRule { cfg ->
-                cfg.anyHost()
+        config.bundledPlugins.enableCors { cors ->
+            cors.addRule {
+                it.anyHost()
             }
         }
     }
 
     private fun configureOpenApi(config: JavalinConfig, frontendSettings: FrontendSettings) {
-        config.registerPlugin(OpenApiPlugin {
-            it.withDefinitionConfiguration { _, configuration ->
-                configuration.withOpenApiInfo { info ->
-                    info.title = frontendSettings.title
-                    info.description = frontendSettings.description
-                    info.version = VERSION
+        config.registerPlugin(OpenApiPlugin { openapi ->
+            openapi.withDefinitionConfiguration { _, configuration ->
+                configuration.withInfo {
+                    it.title = frontendSettings.title
+                    it.description = frontendSettings.description
+                    it.version = VERSION
                 }
             }
         })
