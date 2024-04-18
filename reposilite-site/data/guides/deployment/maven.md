@@ -25,8 +25,8 @@ To use generated token, add a new server in your [~/.m2/settings.xml](https://ma
     <server>
       <!-- Id has to match the id provided in pom.xml -->
       <id>my-domain-repository</id>
-      <username>{token}</username>
-      <password>{secret}</password>
+      <username>{secret}</username>
+      <password>{token}</password>
     </server>
   </servers>
 </settings>
