@@ -72,7 +72,9 @@ watch(
       })
       .catch(error => {
         // simulate intermediate directory if 403 & user has access to only one directory
-        const currentRoutes = details.value.routes?.filter(route => route.path.startsWith(`/${qualifier}`)) ?? []
+        const currentRoutes = details.value.routes
+            ?.filter(route => route.path.startsWith(`/${qualifier}`))
+            ?? []
 
         if (error.response.status === 403 && currentRoutes.length > 0) {
           const intermediateDirectories = currentRoutes.map(currentRoute => {
@@ -80,8 +82,10 @@ watch(
             return currentSegment.includes('/') ? currentSegment.substring(0, currentSegment.indexOf('/')) : currentSegment
           })
 
+          const uniqueIntermediateDirectories = [...new Set(intermediateDirectories)]
+
           files.value = {
-            list: intermediateDirectories.map(directory => ({
+            list: uniqueIntermediateDirectories.map(directory => ({
               name: directory,
               type: 'DIRECTORY',
               list: []
