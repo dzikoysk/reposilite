@@ -14,27 +14,28 @@
  * limitations under the License.
  */
 
-module.exports = {
-  env: {
-    node: true,
-    'vue/setup-compiler-macros': true
-  },
-  parserOptions: {
-    "ecmaVersion": 2020,
-    "ecmaFeatures": {
-      "jsx": true
+import js from "@eslint/js";
+import pluginVue from 'eslint-plugin-vue'
+
+export default [
+  js.configs.recommended,
+  ...pluginVue.configs['flat/recommended'],
+  {
+    languageOptions: {
+      parserOptions: {
+        "ecmaVersion": 2020,
+        "ecmaFeatures": {
+          "jsx": true
+        }
+      },
+    },
+    rules: {
+      'vue/script-setup-uses-vars': 'error',
+      'vue/no-setup-props-destructure': 'error',
+      'vue/no-unused-vars': 'error',
+      'vue/multi-word-component-names': 'error',
+      'vue/jsx-uses-vars': 'error',
+      'semi': ['error', 'never'],
     }
-  },
-  extends: [
-    'eslint:recommended',
-    'plugin:vue/vue3-essential',
-  ],
-  rules: {
-    'vue/script-setup-uses-vars': 'error',
-    'vue/no-setup-props-destructure': 'error',
-    'vue/no-unused-vars': 'error',
-    'vue/multi-word-component-names': 'error',
-    'vue/jsx-uses-vars': 'error',
-    'semi': ['error', 'never'],
   }
-}
+]

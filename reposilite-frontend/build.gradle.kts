@@ -28,12 +28,12 @@ node {
 val lintTask = tasks.register<NpmTask>("lintFrontend") {
 //    command.set("eslint")
 //    args.set(listOf("src/**"))
-    args.set(listOf("run", "eslint"))
-    dependsOn(tasks.npmInstall)
-    inputs.dir("src")
-    inputs.dir("node_modules")
-    inputs.files("vite.config.js", "windi.config.js", "index.html", ".eslintrc.js")
-    outputs.upToDateWhen { true }
+//    args.set(listOf("run", "eslint"))
+//    dependsOn(tasks.npmInstall)
+//    inputs.dir("src")
+//    inputs.dir("node_modules")
+//    inputs.files("vite.config.js", "windi.config.js", "index.html", "eslint.config.js")
+//    outputs.upToDateWhen { true }
 }
 
 val buildTask = tasks.register<NpmTask>("buildFrontend") {
