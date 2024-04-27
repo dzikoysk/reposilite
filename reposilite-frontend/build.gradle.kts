@@ -41,6 +41,7 @@ val buildTask = tasks.register<NpmTask>("buildFrontend") {
 //    args.set(listOf("build"))
     args.set(listOf("run", "build"))
 //    dependsOn(tasks.npmInstall, lintTask)
+    dependsOn(tasks.npmInstall)
     inputs.dir(project.fileTree("src"))
     inputs.dir("node_modules")
     inputs.files("vite.config.js", "windi.config.js", "index.html")
