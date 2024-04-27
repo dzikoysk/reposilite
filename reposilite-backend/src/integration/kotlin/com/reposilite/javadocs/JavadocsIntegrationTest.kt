@@ -2,11 +2,11 @@
 
 package com.reposilite.javadocs
 
-import com.reposilite.javadocs.specification.JavadocsIntegrationSpecification
 import com.reposilite.RecommendedLocalSpecificationJunitExtension
 import com.reposilite.RecommendedRemoteSpecificationJunitExtension
+import com.reposilite.javadocs.specification.JavadocsIntegrationSpecification
 import com.reposilite.storage.api.Location
-import kong.unirest.Unirest.*
+import kong.unirest.core.Unirest.get
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith

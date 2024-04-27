@@ -18,26 +18,26 @@
 
 package com.reposilite.maven
 
+import com.reposilite.RecommendedLocalSpecificationJunitExtension
+import com.reposilite.RecommendedRemoteSpecificationJunitExtension
 import com.reposilite.configuration.local.LocalConfiguration
 import com.reposilite.maven.specification.MavenIntegrationSpecification
 import com.reposilite.shared.ErrorResponse
-import com.reposilite.RecommendedLocalSpecificationJunitExtension
-import com.reposilite.RecommendedRemoteSpecificationJunitExtension
 import com.reposilite.shared.extensions.maxAge
 import com.reposilite.storage.api.DocumentInfo
 import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.HttpStatus.UNAUTHORIZED
-import kong.unirest.HeaderNames.CONTENT_LENGTH
-import kong.unirest.Unirest.delete
-import kong.unirest.Unirest.get
-import kong.unirest.Unirest.head
-import kong.unirest.Unirest.put
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CountDownLatch
+import kong.unirest.core.HeaderNames.CACHE_CONTROL
+import kong.unirest.core.HeaderNames.CONTENT_LENGTH
+import kong.unirest.core.Unirest.delete
+import kong.unirest.core.Unirest.get
+import kong.unirest.core.Unirest.head
+import kong.unirest.core.Unirest.put
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.CountDownLatch
-import kong.unirest.HeaderNames.CACHE_CONTROL
 
 @ExtendWith(RecommendedLocalSpecificationJunitExtension::class)
 internal class LocalMavenIntegrationTest : MavenIntegrationTest()

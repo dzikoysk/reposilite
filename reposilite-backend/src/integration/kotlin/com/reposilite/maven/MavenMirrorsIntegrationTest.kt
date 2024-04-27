@@ -7,7 +7,7 @@ import com.reposilite.RecommendedRemoteSpecificationJunitExtension
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.specification.MavenIntegrationSpecification
 import com.reposilite.storage.api.toLocation
-import kong.unirest.Unirest
+import kong.unirest.core.Unirest.get
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -26,13 +26,13 @@ internal abstract class MavenMirrorsIntegrationTest : MavenIntegrationSpecificat
         // given: a remote server and artifact
         useProxiedHost("releases", "com/reposilite/remote.jar", "content") { gav, content ->
             // when: non-existing file is requested
-            val notFoundResponse = Unirest.get("$base/proxied/not/found.jar").asString()
+            val notFoundResponse = get("$base/proxied/not/found.jar").asString()
 
             // then: service responds with 404 status page
             assertThat(notFoundResponse.isSuccess).isFalse
 
             // when: file that exists in remote repository is requested
-            val response = Unirest.get("$base/proxied/$gav").asString()
+            val response = get("$base/proxied/$gav").asString()
 
             // then: service responds with its content
             assertThat(response.body).isEqualTo(content)
@@ -45,7 +45,7 @@ internal abstract class MavenMirrorsIntegrationTest : MavenIntegrationSpecificat
         // given: a remote server and artifact
         useProxiedHost("releases", "com/reposilite/remote.file", "content") { gav, _ ->
             // when: file that exists in remote repository is requested
-            val response = Unirest.get("$base/proxied/$gav").asString()
+            val response = get("$base/proxied/$gav").asString()
             // then: service responds with 404 status page as .file extension is not allowed
             assertThat(response.isSuccess).isFalse
         }
@@ -59,7 +59,7 @@ internal abstract class MavenMirrorsIntegrationTest : MavenIntegrationSpecificat
             useDocument("proxied", "com/reposilite", "maven-metadata.xml", "local", true)
 
             // when: metadata file is requested
-            val response = Unirest.get("$base/proxied/$gav").asString()
+            val response = get("$base/proxied/$gav").asString()
 
             // then: service responds with upstream metadata file
             assertThat(response.body).isEqualTo("upstream")

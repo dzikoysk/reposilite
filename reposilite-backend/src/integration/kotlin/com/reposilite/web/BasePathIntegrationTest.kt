@@ -16,21 +16,21 @@
 
 package com.reposilite.web
 
-import com.reposilite.configuration.local.LocalConfiguration
 import com.reposilite.RecommendedLocalSpecificationJunitExtension
 import com.reposilite.ReposiliteSpecification
+import com.reposilite.configuration.local.LocalConfiguration
 import io.javalin.Javalin
 import io.javalin.http.Context
-import kong.unirest.HttpRequest
-import kong.unirest.Unirest
+import java.util.concurrent.CountDownLatch
+import kong.unirest.core.HttpRequest
+import kong.unirest.core.Unirest
+import kotlin.io.path.createDirectories
+import kotlin.io.path.createFile
+import kotlin.io.path.writeText
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import java.util.concurrent.CountDownLatch
-import kotlin.io.path.createDirectories
-import kotlin.io.path.createFile
-import kotlin.io.path.writeText
 
 @ExtendWith(RecommendedLocalSpecificationJunitExtension::class)
 internal class BasePathIntegrationTest : ReposiliteSpecification() {

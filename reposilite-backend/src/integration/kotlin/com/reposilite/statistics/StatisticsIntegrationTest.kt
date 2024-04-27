@@ -18,11 +18,11 @@
 
 package com.reposilite.statistics
 
-import com.reposilite.maven.api.Identifier
 import com.reposilite.ExperimentalLocalSpecificationJunitExtension
 import com.reposilite.ExperimentalRemoteSpecficiationJunitExtension
 import com.reposilite.RecommendedLocalSpecificationJunitExtension
 import com.reposilite.RecommendedRemoteSpecificationJunitExtension
+import com.reposilite.maven.api.Identifier
 import com.reposilite.statistics.api.AllResolvedResponse
 import com.reposilite.statistics.api.IntervalRecord
 import com.reposilite.statistics.api.RepositoryStatistics
@@ -33,13 +33,13 @@ import com.reposilite.token.AccessTokenPermission.MANAGER
 import com.reposilite.token.RoutePermission.READ
 import io.javalin.http.HttpStatus.OK
 import io.javalin.http.HttpStatus.UNAUTHORIZED
-import kong.unirest.Unirest.get
+import java.time.LocalDate
+import java.time.temporal.ChronoUnit
+import kong.unirest.core.Unirest.get
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import panda.std.component1
-import java.time.LocalDate
-import java.time.temporal.ChronoUnit
 
 @ExtendWith(ExperimentalRemoteSpecficiationJunitExtension::class)
 internal class ExperimentalRemoteStatisticsIntegrationTest : StatisticsIntegrationTest()

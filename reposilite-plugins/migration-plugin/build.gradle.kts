@@ -29,7 +29,7 @@ application {
 dependencies {
     compileOnly(project(":reposilite-backend"))
     testImplementation(project(":reposilite-backend"))
-    implementation("com.charleskorn.kaml:kaml-jvm:0.57.0")
+    implementation("com.charleskorn.kaml:kaml-jvm:0.59.0")
 }
 
 tasks.withType<ShadowJar> {

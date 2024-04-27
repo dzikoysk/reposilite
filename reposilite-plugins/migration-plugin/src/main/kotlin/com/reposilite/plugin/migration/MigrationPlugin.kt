@@ -1,6 +1,7 @@
 package com.reposilite.plugin.migration
 
 import com.charleskorn.kaml.Yaml
+import com.charleskorn.kaml.decodeFromStream
 import com.reposilite.maven.MavenFacade
 import com.reposilite.plugin.api.Facade
 import com.reposilite.plugin.api.Plugin
@@ -14,10 +15,10 @@ import com.reposilite.token.Route
 import com.reposilite.token.RoutePermission
 import com.reposilite.token.RoutePermission.READ
 import com.reposilite.token.api.AccessTokenDetails
-import org.panda_lang.reposilite.auth.TokenCollection
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.readBytes
+import org.panda_lang.reposilite.auth.TokenCollection
 
 @Plugin(name = "migration", dependencies = ["maven"])
 class MigrationPlugin : ReposilitePlugin() {

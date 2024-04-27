@@ -33,13 +33,14 @@ import com.reposilite.token.RoutePermission
 import com.reposilite.token.api.CreateAccessTokenRequest
 import io.javalin.http.HttpStatus
 import io.javalin.http.HttpStatus.FORBIDDEN
-import kong.unirest.HttpRequest
-import kong.unirest.HttpResponse
-import kong.unirest.Unirest
+import java.io.File
+import kong.unirest.core.HttpRequest
+import kong.unirest.core.HttpResponse
+import kong.unirest.core.Unirest
+import kong.unirest.modules.jackson.JacksonObjectMapper
+import kotlin.reflect.KClass
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.io.TempDir
-import java.io.File
-import kotlin.reflect.KClass
 
 internal typealias Repository = String
 
@@ -51,6 +52,10 @@ internal data class UseDocument(
 )
 
 internal abstract class ReposiliteSpecification : ReposiliteRunner() {
+
+    init {
+        Unirest.config().objectMapper = JacksonObjectMapper(ReposiliteObjectMapper.DEFAULT_OBJECT_MAPPER)
+    }
 
     @TempDir
     lateinit var clientWorkingDirectory: File

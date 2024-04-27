@@ -18,18 +18,18 @@
 
 package com.reposilite.status
 
-import com.reposilite.VERSION
 import com.reposilite.ExperimentalLocalSpecificationJunitExtension
 import com.reposilite.ExperimentalRemoteSpecficiationJunitExtension
 import com.reposilite.RecommendedLocalSpecificationJunitExtension
 import com.reposilite.RecommendedRemoteSpecificationJunitExtension
+import com.reposilite.VERSION
 import com.reposilite.status.api.InstanceStatusResponse
 import com.reposilite.status.api.StatusSnapshot
 import com.reposilite.status.specification.StatusIntegrationSpecification
 import com.reposilite.token.AccessTokenPermission.MANAGER
 import io.javalin.http.HttpStatus.OK
 import io.javalin.http.HttpStatus.UNAUTHORIZED
-import kong.unirest.Unirest
+import kong.unirest.core.Unirest.get
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -51,7 +51,7 @@ internal abstract class StatusIntegrationTest : StatusIntegrationSpecification()
     @Test
     fun `should respond with instance status`() {
         // when: status service is requested without valid credentials
-        val unauthorizedResponse = Unirest.get("$base/api/status/instance").asString()
+        val unauthorizedResponse = get("$base/api/status/instance").asString()
 
         // then: service rejects request
         assertThat(unauthorizedResponse.status).isEqualTo(UNAUTHORIZED.code)
@@ -60,7 +60,7 @@ internal abstract class StatusIntegrationTest : StatusIntegrationSpecification()
         val (name, secret) = useAuth("name", "secret", listOf(MANAGER))
 
         // when: service is requested with valid credentials
-        val response = Unirest.get("$base/api/status/instance")
+        val response = get("$base/api/status/instance")
             .basicAuth(name, secret)
             .asObject(InstanceStatusResponse::class.java)
 
@@ -72,7 +72,7 @@ internal abstract class StatusIntegrationTest : StatusIntegrationSpecification()
     @Test
     fun `should respond with status snapshots`() {
         // when: status service is requested without valid credentials
-        val unauthorizedResponse = Unirest.get("$base/api/status/snapshots").asString()
+        val unauthorizedResponse = get("$base/api/status/snapshots").asString()
 
         // then: service rejects request
         assertThat(unauthorizedResponse.status).isEqualTo(UNAUTHORIZED.code)
@@ -81,7 +81,7 @@ internal abstract class StatusIntegrationTest : StatusIntegrationSpecification()
         val (name, secret) = useAuth("name", "secret", listOf(MANAGER))
 
         // when: service is requested with valid credentials
-        val response = Unirest.get("$base/api/status/snapshots")
+        val response = get("$base/api/status/snapshots")
             .basicAuth(name, secret)
             .asJacksonObject(Array<StatusSnapshot>::class)
 

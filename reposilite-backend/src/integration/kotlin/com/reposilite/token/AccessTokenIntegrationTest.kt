@@ -18,9 +18,9 @@
 
 package com.reposilite.token
 
-import com.reposilite.shared.ErrorResponse
 import com.reposilite.RecommendedLocalSpecificationJunitExtension
 import com.reposilite.RecommendedRemoteSpecificationJunitExtension
+import com.reposilite.shared.ErrorResponse
 import com.reposilite.token.AccessTokenPermission.MANAGER
 import com.reposilite.token.AccessTokenType.PERSISTENT
 import com.reposilite.token.api.AccessTokenDto
@@ -29,9 +29,9 @@ import com.reposilite.token.api.CreateAccessTokenWithNoNameRequest
 import com.reposilite.token.specification.AccessTokenIntegrationSpecification
 import io.javalin.http.HttpStatus.FORBIDDEN
 import io.javalin.http.HttpStatus.OK
-import kong.unirest.Unirest.delete
-import kong.unirest.Unirest.get
-import kong.unirest.Unirest.put
+import kong.unirest.core.Unirest.delete
+import kong.unirest.core.Unirest.get
+import kong.unirest.core.Unirest.put
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith

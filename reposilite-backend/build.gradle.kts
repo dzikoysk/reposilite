@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
+//import io.gitlab.arturbosch.detekt.Detekt
+//import io.gitlab.arturbosch.detekt.DetektCreateBaselineTask
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-import io.gitlab.arturbosch.detekt.Detekt
-import io.gitlab.arturbosch.detekt.DetektCreateBaselineTask
 import org.apache.tools.ant.filters.ReplaceTokens
 import org.jetbrains.kotlin.gradle.tasks.KaptGenerateStubs
 
@@ -26,7 +26,7 @@ plugins {
     kotlin("kapt")
     id("com.coditory.integration-test") version "1.4.5"
     id("com.github.johnrengelman.shadow") version "8.1.1"
-    id("io.gitlab.arturbosch.detekt").version("1.22.0")
+//    id("io.gitlab.arturbosch.detekt").version("1.22.0")
 }
 
 application {
@@ -36,8 +36,8 @@ application {
 dependencies {
     implementation(project(":reposilite-frontend"))
 
-    val detekt = "1.23.5"
-    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:$detekt")
+//    val detekt = "1.23.5"
+//    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:$detekt")
 
     val kotlin = "1.9.23"
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin")
@@ -72,11 +72,11 @@ dependencies {
     kapt("info.picocli:picocli-codegen:$picocli")
     api("info.picocli:picocli:$picocli")
 
-    val awssdk = "2.25.26"
+    val awssdk = "2.25.40"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
 
-    val awsSdkV1 = "1.12.696"
+    val awsSdkV1 = "1.12.710"
     testImplementation("com.amazonaws:aws-java-sdk-s3:$awsSdkV1")
 
     val exposed = "0.49.0"
@@ -86,7 +86,7 @@ dependencies {
     api("org.jetbrains.exposed:exposed-java-time:$exposed")
     // Drivers
     implementation("com.zaxxer:HikariCP:5.1.0")
-    implementation("org.xerial:sqlite-jdbc:3.45.2.0")
+    implementation("org.xerial:sqlite-jdbc:3.45.3.0")
     implementation("mysql:mysql-connector-java:8.0.33")
     implementation("org.mariadb.jdbc:mariadb-java-client:3.3.3")
     implementation("org.postgresql:postgresql:42.7.3")
@@ -131,7 +131,7 @@ dependencies {
     testImplementation("org.testcontainers:localstack:$testcontainers")
     testImplementation("org.testcontainers:mysql:$testcontainers")
 
-    val ldap = "6.0.11"
+    val ldap = "7.0.0"
     testImplementation("com.unboundid:unboundid-ldapsdk:$ldap")
 }
 
@@ -269,17 +269,17 @@ tasks["integrationTest"].mustRunAfter(tasks["test"])
 tasks["jacocoTestReport"].mustRunAfter(tasks["integrationTest"])
 tasks["jacocoTestCoverageVerification"].mustRunAfter(tasks["jacocoTestReport"])
 
-detekt {
-    buildUponDefaultConfig = true
-    allRules = false
-    config = files("$projectDir/detekt.yml")
-    autoCorrect = true
-}
-
-tasks.withType<Detekt>().configureEach {
-    jvmTarget = "11"
-}
-
-tasks.withType<DetektCreateBaselineTask>().configureEach {
-    jvmTarget = "11"
-}
+//detekt {
+//    buildUponDefaultConfig = true
+//    allRules = false
+//    config = files("$projectDir/detekt.yml")
+//    autoCorrect = true
+//}
+//
+//tasks.withType<Detekt>().configureEach {
+//    jvmTarget = "11"
+//}
+//
+//tasks.withType<DetektCreateBaselineTask>().configureEach {
+//    jvmTarget = "11"
+//}

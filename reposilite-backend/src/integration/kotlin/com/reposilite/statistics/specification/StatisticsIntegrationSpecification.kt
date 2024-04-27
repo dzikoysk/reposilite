@@ -20,8 +20,8 @@ import com.reposilite.ReposiliteSpecification
 import com.reposilite.maven.api.Identifier
 import com.reposilite.statistics.StatisticsFacade
 import io.javalin.http.HttpStatus.OK
-import kong.unirest.Unirest.get
-import kong.unirest.Unirest.put
+import kong.unirest.core.Unirest.get
+import kong.unirest.core.Unirest.put
 import org.assertj.core.api.Assertions.assertThat
 import panda.std.Mono
 

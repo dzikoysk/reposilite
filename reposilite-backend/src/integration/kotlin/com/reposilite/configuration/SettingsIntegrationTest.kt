@@ -18,6 +18,8 @@
 
 package com.reposilite.configuration
 
+import com.reposilite.RecommendedLocalSpecificationJunitExtension
+import com.reposilite.RecommendedRemoteSpecificationJunitExtension
 import com.reposilite.ReposiliteObjectMapper
 import com.reposilite.auth.application.AuthenticationSettings
 import com.reposilite.auth.application.LdapSettings
@@ -26,14 +28,12 @@ import com.reposilite.configuration.specification.SettingsIntegrationSpecificati
 import com.reposilite.frontend.application.FrontendSettings
 import com.reposilite.maven.application.MavenSettings
 import com.reposilite.shared.ErrorResponse
-import com.reposilite.RecommendedLocalSpecificationJunitExtension
-import com.reposilite.RecommendedRemoteSpecificationJunitExtension
 import com.reposilite.statistics.api.ResolvedRequestsInterval.YEARLY
 import com.reposilite.statistics.application.StatisticsSettings
 import com.reposilite.web.application.WebSettings
 import io.javalin.http.HttpStatus.FORBIDDEN
 import io.javalin.http.HttpStatus.OK
-import kong.unirest.Unirest
+import kong.unirest.core.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
