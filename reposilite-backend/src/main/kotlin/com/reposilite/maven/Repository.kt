@@ -52,17 +52,17 @@ class Repository internal constructor(
     fun writeFileChecksums(location: Location, bytes: ByteArray): Result<Unit, ErrorResponse> =
         writeFileChecksums(location, bytes.inputStream())
 
-    fun writeFileChecksums(location: Location, is: InputStream): Result<Unit, ErrorResponse> {
+    fun writeFileChecksums(location: Location, bytes: InputStream): Result<Unit, ErrorResponse> {
         val md5 = location.resolveSibling(location.getSimpleName() + ".md5")
         val sha1 = location.resolveSibling(location.getSimpleName() + ".sha1")
         val sha256 = location.resolveSibling(location.getSimpleName() + ".sha256")
         val sha512 = location.resolveSibling(location.getSimpleName() + ".sha512")
-        val bytes = IOUtils.toByteArray(is)
+        val byteArray = IOUtils.toByteArray(bytes)
 
-        return storageProvider.putFile(md5, DigestUtils.md5Hex(bytes).byteInputStream())
-            .flatMap { storageProvider.putFile(sha1, DigestUtils.sha1Hex(bytes).byteInputStream()) }
-            .flatMap { storageProvider.putFile(sha256, DigestUtils.sha256Hex(bytes).byteInputStream()) }
-            .flatMap { storageProvider.putFile(sha512, DigestUtils.sha512Hex(bytes).byteInputStream()) }
+        return storageProvider.putFile(md5, DigestUtils.md5Hex(byteArray).byteInputStream())
+            .flatMap { storageProvider.putFile(sha1, DigestUtils.sha1Hex(byteArray).byteInputStream()) }
+            .flatMap { storageProvider.putFile(sha256, DigestUtils.sha256Hex(byteArray).byteInputStream()) }
+            .flatMap { storageProvider.putFile(sha512, DigestUtils.sha512Hex(byteArray).byteInputStream()) }
     }
 
     @Deprecated(message = "Use Repository#storageProvider")
