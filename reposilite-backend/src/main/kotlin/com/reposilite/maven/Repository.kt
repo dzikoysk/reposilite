@@ -21,6 +21,7 @@ import com.reposilite.shared.ErrorResponse
 import com.reposilite.storage.StorageProvider
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.Location
+import org.apache.commons.io.IOUtils
 import org.apache.commons.codec.digest.DigestUtils
 import panda.std.Result
 import java.io.InputStream
@@ -51,11 +52,12 @@ class Repository internal constructor(
     fun writeFileChecksums(location: Location, bytes: ByteArray): Result<Unit, ErrorResponse> =
         writeFileChecksums(location, bytes.inputStream())
 
-    fun writeFileChecksums(location: Location, bytes: InputStream): Result<Unit, ErrorResponse> {
+    fun writeFileChecksums(location: Location, is: InputStream): Result<Unit, ErrorResponse> {
         val md5 = location.resolveSibling(location.getSimpleName() + ".md5")
         val sha1 = location.resolveSibling(location.getSimpleName() + ".sha1")
         val sha256 = location.resolveSibling(location.getSimpleName() + ".sha256")
         val sha512 = location.resolveSibling(location.getSimpleName() + ".sha512")
+        val bytes = IOUtils.toByteArray(is)
 
         return storageProvider.putFile(md5, DigestUtils.md5Hex(bytes).byteInputStream())
             .flatMap { storageProvider.putFile(sha1, DigestUtils.sha1Hex(bytes).byteInputStream()) }
