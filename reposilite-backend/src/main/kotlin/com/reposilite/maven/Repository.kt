@@ -21,10 +21,10 @@ import com.reposilite.shared.ErrorResponse
 import com.reposilite.storage.StorageProvider
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.Location
-import org.apache.commons.io.IOUtils
 import org.apache.commons.codec.digest.DigestUtils
 import panda.std.Result
 import java.io.InputStream
+import java.io.File
 import java.nio.file.attribute.FileTime
 
 @Suppress("DeprecatedCallableAddReplaceWith")
@@ -57,12 +57,18 @@ class Repository internal constructor(
         val sha1 = location.resolveSibling(location.getSimpleName() + ".sha1")
         val sha256 = location.resolveSibling(location.getSimpleName() + ".sha256")
         val sha512 = location.resolveSibling(location.getSimpleName() + ".sha512")
-        val byteArray = IOUtils.toByteArray(bytes)
+        val temporaryFile = File.createTempFile("reposilite-", "-file-checksum")
 
-        return storageProvider.putFile(md5, DigestUtils.md5Hex(byteArray).byteInputStream())
-            .flatMap { storageProvider.putFile(sha1, DigestUtils.sha1Hex(byteArray).byteInputStream()) }
-            .flatMap { storageProvider.putFile(sha256, DigestUtils.sha256Hex(byteArray).byteInputStream()) }
-            .flatMap { storageProvider.putFile(sha512, DigestUtils.sha512Hex(byteArray).byteInputStream()) }
+        bytes.use { input ->
+            temporaryFile.outputStream().use { output ->
+                input.copyTo(output)
+            }
+        }
+
+        return storageProvider.putFile(md5, DigestUtils.md5Hex(temporaryFile.inputStream()).byteInputStream())
+            .flatMap { storageProvider.putFile(sha1, DigestUtils.sha1Hex(temporaryFile.inputStream()).byteInputStream()) }
+            .flatMap { storageProvider.putFile(sha256, DigestUtils.sha256Hex(temporaryFile.inputStream()).byteInputStream()) }
+            .flatMap { storageProvider.putFile(sha512, DigestUtils.sha512Hex(temporaryFile.inputStream()).byteInputStream()) }
     }
 
     @Deprecated(message = "Use Repository#storageProvider")
