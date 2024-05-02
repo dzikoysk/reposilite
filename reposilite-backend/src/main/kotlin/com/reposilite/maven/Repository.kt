@@ -65,10 +65,24 @@ class Repository internal constructor(
             }
         }
 
-        return storageProvider.putFile(md5, DigestUtils.md5Hex(temporaryFile.inputStream()).byteInputStream())
-            .flatMap { storageProvider.putFile(sha1, DigestUtils.sha1Hex(temporaryFile.inputStream()).byteInputStream()) }
-            .flatMap { storageProvider.putFile(sha256, DigestUtils.sha256Hex(temporaryFile.inputStream()).byteInputStream()) }
-            .flatMap { storageProvider.putFile(sha512, DigestUtils.sha512Hex(temporaryFile.inputStream()).byteInputStream()) }
+        // Setup these InputStreams ahead of time so we can explicitly close them.
+        val md5Stream = temporaryFile.inputStream()
+        val sha1Stream = temporaryFile.inputStream()
+        val sha256Stream = temporaryFile.inputStream()
+        val sha512Stream = temporaryFile.inputStream()
+
+        try {
+            return storageProvider.putFile(md5, DigestUtils.md5Hex(md5Stream).byteInputStream())
+                .flatMap { storageProvider.putFile(sha1, DigestUtils.sha1Hex(sha1Stream).byteInputStream()) }
+                .flatMap { storageProvider.putFile(sha256, DigestUtils.sha256Hex(sha256Stream).byteInputStream()) }
+                .flatMap { storageProvider.putFile(sha512, DigestUtils.sha512Hex(sha512Stream).byteInputStream()) }
+        } finally {
+            md5Stream.close()
+            sha1Stream.close()
+            sha256Stream.close()
+            sha512Stream.close()
+            temporaryFile.delete()
+        }
     }
 
     @Deprecated(message = "Use Repository#storageProvider")
