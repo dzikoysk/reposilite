@@ -186,7 +186,7 @@ internal class MavenFacadeTest : MavenSpecification() {
             // when: the deployed file checksum is requested
             val accessToken = createAccessToken("name", "secret", fileSpec.repository, "/", READ)
             val checksums = Checksum.entries.associateWith { algorithm ->
-                val checksumResult = mavenFacade.findFile(LookupRequest(accessToken, fileSpec.repository, fileSpec.gav().resolveSibling("reposilite-3.0.0.jar.$algorithm")))
+                val checksumResult = mavenFacade.findFile(LookupRequest(accessToken, fileSpec.repository, fileSpec.gav().resolveSibling("reposilite-3.0.0.jar.${algorithm.extension}")))
                 assertOk(checksumResult)
             }
 
