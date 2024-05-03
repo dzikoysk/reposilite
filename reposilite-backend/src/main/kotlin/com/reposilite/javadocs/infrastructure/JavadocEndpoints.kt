@@ -52,7 +52,7 @@ internal class JavadocEndpoints(javadoc: JavadocFacade) : MavenRoutes(javadoc.ma
                 requireRepository { repository ->
                     response = JavadocRawRequest(this?.identifier, repository, gav, requireParameter("resource").toLocation())
                         .let { javadoc.findRawJavadocResource(it) }
-                        .peek { ctx.encoding(Charsets.UTF_8).contentType(it.contentType).header(Header.CONTENT_SECURITY_POLICY, "sandbox") }
+                        .peek { ctx.encoding(Charsets.UTF_8).contentType(it.contentType).header(Header.CONTENT_SECURITY_POLICY, "sandbox allow-scripts") }
                         .map { it.content }
                 }
             }
