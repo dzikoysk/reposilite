@@ -15,16 +15,17 @@
  */
 package com.reposilite.maven
 
+import com.reposilite.maven.api.Checksum
 import com.reposilite.maven.api.METADATA_FILE
 import com.reposilite.maven.api.REPOSITORY_NAME_MAX_LENGTH
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.storage.StorageProvider
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.Location
-import org.apache.commons.codec.digest.DigestUtils
-import panda.std.Result
+import java.io.File
 import java.io.InputStream
 import java.nio.file.attribute.FileTime
+import panda.std.Result
 
 @Suppress("DeprecatedCallableAddReplaceWith")
 class Repository internal constructor(
@@ -52,16 +53,24 @@ class Repository internal constructor(
         writeFileChecksums(location, bytes.inputStream())
 
     fun writeFileChecksums(location: Location, bytes: InputStream): Result<Unit, ErrorResponse> {
-        val md5 = location.resolveSibling(location.getSimpleName() + ".md5")
-        val sha1 = location.resolveSibling(location.getSimpleName() + ".sha1")
-        val sha256 = location.resolveSibling(location.getSimpleName() + ".sha256")
-        val sha512 = location.resolveSibling(location.getSimpleName() + ".sha512")
+        val temporaryFile = File.createTempFile("reposilite-", "-file-checksum")
 
-        return storageProvider.putFile(md5, DigestUtils.md5Hex(bytes).byteInputStream())
-            .flatMap { storageProvider.putFile(sha1, DigestUtils.sha1Hex(bytes).byteInputStream()) }
-            .flatMap { storageProvider.putFile(sha256, DigestUtils.sha256Hex(bytes).byteInputStream()) }
-            .flatMap { storageProvider.putFile(sha512, DigestUtils.sha512Hex(bytes).byteInputStream()) }
+        bytes.use { input ->
+            temporaryFile.outputStream().use { output ->
+                input.copyTo(output)
+            }
+        }
+
+        return Checksum.entries
+            .fold(Result.ok<Unit, ErrorResponse>(Unit)) { result, checksum -> result.flatMap { writeFileChecksum(location, temporaryFile, checksum) } }
+            .peek { temporaryFile.delete() }
     }
+
+    private fun writeFileChecksum(location: Location, file: File, checksum: Checksum): Result<Unit, ErrorResponse> =
+        file.inputStream().use {
+            val checksumFile = location.resolveSibling(location.getSimpleName() + "." + checksum.extension)
+            storageProvider.putFile(checksumFile, checksum.generate(it).byteInputStream())
+        }
 
     @Deprecated(message = "Use Repository#storageProvider")
     fun putFile(location: Location, inputStream: InputStream): Result<Unit, ErrorResponse> =
