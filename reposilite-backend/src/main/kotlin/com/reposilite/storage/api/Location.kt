@@ -17,49 +17,54 @@
 package com.reposilite.storage.api
 
 import com.reposilite.storage.getExtension
+import java.nio.file.Path
+import java.nio.file.Paths
 import panda.std.Result
 import panda.std.asSuccess
 import panda.std.letIf
-import java.nio.file.Path
-import java.nio.file.Paths
 
 /**
  * [Path] alternative, represents location of resource in [com.reposilite.storage.StorageProvider]
  */
-@Suppress("DataClassPrivateConstructor")
-data class Location private constructor(private val uri: String) {
+class Location private constructor(private val uri: String) {
 
     companion object {
 
+        private val empty = Location("")
         private val multipleSlashes = Regex("/+")
+        private val multipleDirectoryOperators = Regex("\\.{2,}")
 
         @JvmStatic
-        fun of(uri: String): Location =
-            uri.replace("\\", "/")
+        fun of(uri: String): Location {
+            return uri
+                .replaceBefore(":", "")
+                .replace(":", "")
+                .replace(multipleDirectoryOperators, ".")
+                .replace("\\", "/")
                 .replace(multipleSlashes, "/")
                 .letIf({ it.startsWith("/") }) { it.removePrefix("/") }
                 .letIf({ it.endsWith("/") }) { it.removeSuffix("/") }
                 .let { Location(it) }
+        }
 
         @JvmStatic
         fun of(path: Path): Location =
-            path.toString().toLocation()
+            of(path.normalize().toString())
 
         @JvmStatic
         fun of(root: Path, path: Path): Location =
-            of(root.relativize(path))
+            of(root.relativize(path.normalize()))
 
         @JvmStatic
         fun empty(): Location =
-            "".toLocation()
+            empty
 
     }
 
     fun toPath(): Result<Path, String> {
-        if (uri.contains("..") || uri.contains(":") || uri.contains("\\")) {
+        if (uri.contains(":") || uri.contains("\\") || uri.contains(multipleDirectoryOperators)) {
             return Result.error("Illegal path operator in URI")
         }
-
         return Paths.get(uri).normalize().asSuccess()
     }
 
@@ -99,13 +104,23 @@ data class Location private constructor(private val uri: String) {
     fun getSimpleName(): String =
         uri.substringAfterLast("/")
 
+    override fun equals(other: Any?): Boolean =
+        when {
+            this === other -> true
+            javaClass != other?.javaClass -> false
+            else -> uri == (other as Location).uri
+        }
+
+    override fun hashCode(): Int =
+        uri.hashCode()
+
     override fun toString(): String =
         uri
 
 }
 
 fun String?.toLocation(): Location =
-    if (this != null)
-        Location.of(this)
-    else
-        Location.empty()
+    when {
+        this != null -> Location.of(this)
+        else -> Location.empty()
+    }

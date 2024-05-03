@@ -17,9 +17,10 @@
 package com.reposilite.storage
 
 import com.reposilite.storage.api.Location
+import java.io.File
+import java.nio.file.Path
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import panda.std.ResultAssertions.assertError
 
 class LocationTest {
 
@@ -33,9 +34,10 @@ class LocationTest {
     }
 
     @Test
-    fun `should drop corrupted paths`() {
-        assertError(Location.of("../artifact").toPath())
-        assertError(Location.of("C:/artifact").toPath())
+    fun `should normalize corrupted paths`() {
+        assertThat(Location.of(Path.of("../../artifact")).toPath().get().toString()).isEqualTo("artifact")
+        assertThat(Location.of(Path.of("C:/artifact")).toPath().get().toString()).isEqualTo("artifact")
+        assertThat(Location.of("artifact").resolve("../../root").toPath().get().toString()).isEqualTo("artifact" + File.separator + "root")
     }
 
 }

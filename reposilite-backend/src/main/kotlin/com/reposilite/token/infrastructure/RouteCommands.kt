@@ -55,7 +55,7 @@ internal class RouteAdd(private val accessTokenFacade: AccessTokenFacade) : Repo
                 val mappedPermissions = mapPermissions() ?: let {
                     context.status = FAILED
                     context.append("Unknown permission shortcuts (${permissions.toCharArray().joinToString()})")
-                    context.append("Available options (${RoutePermission.values().joinToString { perm -> perm.shortcut }})")
+                    context.append("Available options (${RoutePermission.entries.joinToString { perm -> perm.shortcut }})")
                     return
                 }
 
@@ -89,7 +89,7 @@ internal class RouteRemove(private val accessTokenFacade: AccessTokenFacade) : R
     override fun execute(context: CommandContext) {
         accessTokenFacade.getAccessToken(name)
             ?.also { token ->
-                RoutePermission.values().forEach { accessTokenFacade.deleteRoute(token.identifier, Route(path, it)) }
+                RoutePermission.entries.forEach { accessTokenFacade.deleteRoute(token.identifier, Route(path, it)) }
                 context.append("Routes of token $name has been updated")
             }
             ?: run {

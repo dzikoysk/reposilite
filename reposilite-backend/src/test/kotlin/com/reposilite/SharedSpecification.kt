@@ -23,5 +23,5 @@ internal fun assertCollectionsEquals(actual: Collection<Any?>, expected: Collect
         return
     }
 
-    assertThat(actual.sortedBy { it.toString() }).isEqualTo(expected.sortedBy { it.toString() }) // pretty printing
+    assertThat(actual.sortedBy { it.toString() }).containsExactlyElementsOf(expected.sortedBy { it.toString() }) // pretty printing
 }
