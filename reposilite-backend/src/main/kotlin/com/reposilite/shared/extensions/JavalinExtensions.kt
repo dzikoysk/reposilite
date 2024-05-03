@@ -25,15 +25,16 @@ import io.javalin.http.Context
 import io.javalin.http.HandlerType.HEAD
 import io.javalin.http.HandlerType.OPTIONS
 import io.javalin.http.Header.CACHE_CONTROL
+import io.javalin.http.Header.CONTENT_SECURITY_POLICY
 import io.javalin.http.HttpStatus
-import org.eclipse.jetty.server.HttpOutput
-import panda.std.Result
 import java.io.Closeable
 import java.io.InputStream
 import java.io.OutputStream
 import java.net.URLEncoder
 import java.nio.charset.Charset
 import kotlin.time.Duration.Companion.hours
+import org.eclipse.jetty.server.HttpOutput
+import panda.std.Result
 
 internal class ContentTypeSerializer : StdSerializer<ContentType> {
 
@@ -93,6 +94,8 @@ internal fun Context.resultAttachment(
     cache: Boolean,
     data: InputStream
 ) {
+    header(CONTENT_SECURITY_POLICY, "sandbox")
+
     if (!contentType.isHumanReadable) {
         contentDisposition("""attachment; filename="$name"; filename*=utf-8''${URLEncoder.encode(name, "utf-8")}""")
     }
