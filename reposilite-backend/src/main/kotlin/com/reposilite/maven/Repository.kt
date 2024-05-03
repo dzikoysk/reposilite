@@ -59,30 +59,31 @@ class Repository internal constructor(
         val sha512 = location.resolveSibling(location.getSimpleName() + ".sha512")
         val temporaryFile = File.createTempFile("reposilite-", "-file-checksum")
 
+        lateinit var md5Result: Result<Unit, ErrorResponse>
+        lateinit var sha1Result: Result<Unit, ErrorResponse>
+        lateinit var sha256Result: Result<Unit, ErrorResponse>
+        lateinit var sha512Result: Result<Unit, ErrorResponse>
+
         bytes.use { input ->
             temporaryFile.outputStream().use { output ->
                 input.copyTo(output)
             }
         }
 
-        // Setup these InputStreams ahead of time so we can explicitly close them.
-        val md5Stream = temporaryFile.inputStream()
-        val sha1Stream = temporaryFile.inputStream()
-        val sha256Stream = temporaryFile.inputStream()
-        val sha512Stream = temporaryFile.inputStream()
-
-        try {
-            return storageProvider.putFile(md5, DigestUtils.md5Hex(md5Stream).byteInputStream())
-                .flatMap { storageProvider.putFile(sha1, DigestUtils.sha1Hex(sha1Stream).byteInputStream()) }
-                .flatMap { storageProvider.putFile(sha256, DigestUtils.sha256Hex(sha256Stream).byteInputStream()) }
-                .flatMap { storageProvider.putFile(sha512, DigestUtils.sha512Hex(sha512Stream).byteInputStream()) }
-        } finally {
-            md5Stream.close()
-            sha1Stream.close()
-            sha256Stream.close()
-            sha512Stream.close()
-            temporaryFile.delete()
+        temporaryFile.inputStream().use { stream ->
+            md5Result = storageProvider.putFile(md5, DigestUtils.md5Hex(stream).byteInputStream())
         }
+        temporaryFile.inputStream().use { stream ->
+            sha1Result = storageProvider.putFile(sha1, DigestUtils.sha1Hex(stream).byteInputStream())
+        }
+        temporaryFile.inputStream().use { stream ->
+            sha256Result = storageProvider.putFile(sha256, DigestUtils.sha256Hex(stream).byteInputStream())
+        }
+        temporaryFile.inputStream().use { stream ->
+            sha512Result = storageProvider.putFile(sha512, DigestUtils.sha512Hex(stream).byteInputStream())
+        }
+
+        return md5Result.flatMap { sha1Result }.flatMap { sha256Result }.flatMap { sha512Result }
     }
 
     @Deprecated(message = "Use Repository#storageProvider")
