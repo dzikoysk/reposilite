@@ -91,7 +91,7 @@ internal class StatusPlugin : ReposilitePlugin() {
             logger.info("")
             logger.info("${Effect.YELLOW_BOLD}$VERSION version has been sponsored by:${Effect.RESET}")
             logger.info("  ${Effect.BOLD}milkyway0308, andrm, rdehuyss, insertt, GotoFinal, joshuasing, mcebular${Effect.RESET}")
-            logger.info("  ${Effect.BOLD}Koressi, tipsy, Kamilkime, that-apex, SirEndii, FlawCra,${Effect.RESET}")
+            logger.info("  ${Effect.BOLD}Koressi, tipsy, Kamilkime, that-apex, SirEndii,${Effect.RESET}")
             logger.info("  ${Effect.BOLD}crejk, Rollczi, Jan Bojarczuk${Effect.RESET}")
             logger.info("")
             logger.info("${Effect.RESET}")
