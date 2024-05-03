@@ -28,6 +28,7 @@ import org.jetbrains.exposed.sql.update
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneOffset
+import org.jetbrains.exposed.sql.selectAll
 
 @Suppress("RemoveRedundantQualifierName")
 internal class SqlConfigurationRepository(private val database: Database) : ConfigurationRepository {
@@ -68,13 +69,15 @@ internal class SqlConfigurationRepository(private val database: Database) : Conf
         }
 
     private fun findSharedConfigurationContent(name: String): String? =
-        SettingsTable.select { SettingsTable.name eq name }
+        SettingsTable.selectAll()
+            .where { SettingsTable.name eq name }
             .map { it[SettingsTable.content] }
             .firstOrNull()
 
     override fun findConfigurationUpdateDate(name: String): Instant? =
         transaction(database) {
-            SettingsTable.select { SettingsTable.name eq name }
+            SettingsTable.selectAll()
+                .where { SettingsTable.name eq name }
                 .map { it[SettingsTable.updateDate] }
                 .map { it.toInstant(ZoneOffset.UTC) }
                 .firstOrNull()

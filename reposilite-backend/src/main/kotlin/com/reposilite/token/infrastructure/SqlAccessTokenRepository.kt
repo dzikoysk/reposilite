@@ -29,9 +29,11 @@ import com.reposilite.token.Route
 import com.reposilite.token.RoutePermission.Companion.findRoutePermissionByIdentifier
 import com.reposilite.token.application.AccessTokenPlugin.Companion.MAX_ROUTE_LENGTH
 import com.reposilite.token.application.AccessTokenPlugin.Companion.MAX_TOKEN_NAME
+import java.util.UUID
 import net.dzikoysk.exposed.shared.UNINITIALIZED_ENTITY_ID
 import net.dzikoysk.exposed.upsert.withIndex
 import net.dzikoysk.exposed.upsert.withUnique
+import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.Op
@@ -43,12 +45,10 @@ import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.javatime.date
-import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
 import panda.std.firstAndMap
-import java.util.UUID
 
 object AccessTokenTable : IntIdTable("access_token") {
     val name = varchar("name", MAX_TOKEN_NAME).uniqueIndex("uq_name")
@@ -119,7 +119,7 @@ internal class SqlAccessTokenRepository(private val database: Database) : Access
     override fun addPermission(id: AccessTokenIdentifier, permission: AccessTokenPermission) {
         transaction(database) {
             PermissionToAccessTokenTable.insert {
-                it[this.accessTokenId] = id.value
+                it[this.accessTokenId] = EntityID(id.value, AccessTokenTable)
                 it[this.permission] = permission.identifier
             }
         }
@@ -139,7 +139,7 @@ internal class SqlAccessTokenRepository(private val database: Database) : Access
     override fun addRoute(id: AccessTokenIdentifier, route: Route) {
         transaction(database) {
             PermissionToRouteTable.insert {
-                it[this.accessTokenId] = id.value
+                it[this.accessTokenId] = EntityID(id.value, AccessTokenTable)
                 it[this.routeId] = UUID.nameUUIDFromBytes(route.path.toByteArray())
                 it[this.route] = route.path
                 it[this.permission] = route.permission.identifier
@@ -160,7 +160,9 @@ internal class SqlAccessTokenRepository(private val database: Database) : Access
     }
 
     private fun getIdByName(name: String): Int =
-        AccessTokenTable.select { AccessTokenTable.name eq name }
+        AccessTokenTable
+            .selectAll()
+            .where { AccessTokenTable.name eq name }
             .map { it[AccessTokenTable.id] }
             .firstOrNull()
             ?.value
@@ -174,14 +176,14 @@ internal class SqlAccessTokenRepository(private val database: Database) : Access
 
     override fun findAccessTokenPermissionsById(id: AccessTokenIdentifier): Set<AccessTokenPermission> =
         transaction(database) {
-            PermissionToAccessTokenTable.select { PermissionToAccessTokenTable.accessTokenId eq id.value }
+            PermissionToAccessTokenTable.selectAll().where { PermissionToAccessTokenTable.accessTokenId eq id.value }
                 .map { findAccessTokenPermissionByIdentifier(it[PermissionToAccessTokenTable.permission])!! }
                 .toSet()
         }
 
     override fun findAccessTokenRoutesById(id: AccessTokenIdentifier): Set<Route> =
         transaction(database) {
-            PermissionToRouteTable.select { PermissionToRouteTable.accessTokenId eq id.value }
+            PermissionToRouteTable.selectAll().where { PermissionToRouteTable.accessTokenId eq id.value }
                 .map { Route(it[PermissionToRouteTable.route], findRoutePermissionByIdentifier(it[PermissionToRouteTable.permission]).get()) }
                 .toSet()
         }
@@ -197,12 +199,12 @@ internal class SqlAccessTokenRepository(private val database: Database) : Access
 
     override fun findAccessTokenByName(name: String): AccessToken? =
         transaction(database) {
-            AccessTokenTable.select { AccessTokenTable.name eq name }.firstAndMap { toAccessToken(it) }
+            AccessTokenTable.selectAll().where { AccessTokenTable.name eq name }.firstAndMap { toAccessToken(it) }
         }
 
     override fun findAccessTokenById(id: AccessTokenIdentifier): AccessToken? =
         transaction(database) {
-            AccessTokenTable.select { AccessTokenTable.id eq id.value }.firstAndMap { toAccessToken(it) }
+            AccessTokenTable.selectAll().where { AccessTokenTable.id eq id.value }.firstAndMap { toAccessToken(it) }
         }
 
     override fun findAll(): Collection<AccessToken> =

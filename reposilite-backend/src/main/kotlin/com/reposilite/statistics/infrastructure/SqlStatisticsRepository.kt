@@ -23,6 +23,8 @@ import com.reposilite.maven.api.REPOSITORY_NAME_MAX_LENGTH
 import com.reposilite.shared.extensions.executeQuery
 import com.reposilite.statistics.StatisticsRepository
 import com.reposilite.statistics.api.ResolvedEntry
+import java.time.LocalDate
+import java.util.UUID
 import net.dzikoysk.exposed.upsert.upsert
 import net.dzikoysk.exposed.upsert.withUnique
 import org.jetbrains.exposed.dao.id.IntIdTable
@@ -40,14 +42,11 @@ import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.javatime.date
 import org.jetbrains.exposed.sql.leftJoin
-import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.sum
 import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
 import panda.std.firstAndMap
-import java.time.LocalDate
-import java.util.UUID
 
 @Suppress("RemoveRedundantQualifierName")
 internal class SqlStatisticsRepository(
@@ -107,7 +106,8 @@ internal class SqlStatisticsRepository(
         // 002 Fix: Remove `.module` entries from records
         transaction(database) {
             ResolvedTable.leftJoin(IdentifierTable, { ResolvedTable.identifierId }, { IdentifierTable.id })
-                .select { IdentifierTable.gav like "%.module" }
+                .selectAll()
+                .where { IdentifierTable.gav like "%.module" }
                 .map { it[ResolvedTable.identifierId] }
                 .takeIf { it.isNotEmpty() }
                 ?.also { journalist.logger.info("SqlStatisticsRepository | ${it.size} '%.module' entries will be removed from database") }
@@ -147,7 +147,9 @@ internal class SqlStatisticsRepository(
 
     private fun findIdentifier(identifier: Identifier): UUID? =
         with(identifier.toUUID()) {
-            IdentifierTable.select { IdentifierTable.id eq this@with }
+            IdentifierTable
+                .selectAll()
+                .where { IdentifierTable.id eq this@with }
                 .firstOrNull()
                 ?.let { it[IdentifierTable.id] }
         }
@@ -162,8 +164,8 @@ internal class SqlStatisticsRepository(
                     AndOp(listOf(Op.build { IdentifierTable.repository eq repository }, Op.build { IdentifierTable.gav like "%$phrase%" }))
 
             IdentifierTable.leftJoin(ResolvedTable, { IdentifierTable.id }, { ResolvedTable.identifierId })
-                .slice(IdentifierTable.gav, resolvedSum)
-                .select(whereCriteria)
+                .select(IdentifierTable.gav, resolvedSum)
+                .where(whereCriteria)
                 .groupBy(IdentifierTable.id, IdentifierTable.gav)
                 .having { resolvedSum greater 0L }
                 .orderBy(resolvedSum, DESC)
@@ -177,8 +179,8 @@ internal class SqlStatisticsRepository(
             val start = LocalDate.now().minusYears(1).withDayOfMonth(1)
 
             ResolvedTable.leftJoin(IdentifierTable, { ResolvedTable.identifierId }, { IdentifierTable.id })
-                .slice(IdentifierTable.repository, ResolvedTable.date, ResolvedTable.count.sum())
-                .select { ResolvedTable.date greaterEq start  }
+                .select(IdentifierTable.repository, ResolvedTable.date, ResolvedTable.count.sum())
+                .where { ResolvedTable.date greaterEq start  }
                 .groupBy(IdentifierTable.repository, ResolvedTable.date)
                 .asSequence()
                 .map { Triple(it[IdentifierTable.repository], it[ResolvedTable.date], it[ResolvedTable.count.sum()]) }
@@ -199,11 +201,8 @@ internal class SqlStatisticsRepository(
     override fun countResolvedRequests(): Long =
         transaction(database) {
             with (ResolvedTable.count.sum()) {
-                ResolvedTable.slice(this)
-                    .selectAll()
-                    .firstAndMap { it[this] }
+                ResolvedTable.select(this).firstAndMap { it[this] } ?: 0
             }
-            ?: 0
         }
 
 }
