@@ -24,6 +24,7 @@ import com.reposilite.shared.extensions.encoding
 import com.reposilite.storage.api.toLocation
 import com.reposilite.web.api.ReposiliteRoute
 import io.javalin.community.routing.Route.GET
+import io.javalin.http.Header
 
 internal class JavadocEndpoints(javadoc: JavadocFacade) : MavenRoutes(javadoc.mavenFacade) {
 
@@ -51,7 +52,7 @@ internal class JavadocEndpoints(javadoc: JavadocFacade) : MavenRoutes(javadoc.ma
                 requireRepository { repository ->
                     response = JavadocRawRequest(this?.identifier, repository, gav, requireParameter("resource").toLocation())
                         .let { javadoc.findRawJavadocResource(it) }
-                        .peek { ctx.encoding(Charsets.UTF_8).contentType(it.contentType) }
+                        .peek { ctx.encoding(Charsets.UTF_8).contentType(it.contentType).header(Header.CONTENT_SECURITY_POLICY, "sandbox") }
                         .map { it.content }
                 }
             }
