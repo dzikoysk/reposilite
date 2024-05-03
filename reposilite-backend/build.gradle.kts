@@ -72,11 +72,11 @@ dependencies {
     kapt("info.picocli:picocli-codegen:$picocli")
     api("info.picocli:picocli:$picocli")
 
-    val awssdk = "2.25.40"
+    val awssdk = "2.25.44"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
 
-    val awsSdkV1 = "1.12.710"
+    val awsSdkV1 = "1.12.714"
     testImplementation("com.amazonaws:aws-java-sdk-s3:$awsSdkV1")
 
     val exposed = "0.50.0"
@@ -107,7 +107,7 @@ dependencies {
     implementation("com.google.http-client:google-http-client:$httpClient") { exclude(group = "commons-codec", module = "commons-codec")}
     testImplementation("com.google.http-client:google-http-client-jackson2:$httpClient")
 
-    val commonsCoded = "1.16.1"
+    val commonsCoded = "1.17.0"
     api("commons-codec:commons-codec:$commonsCoded")
 
     val jansi = "2.4.1"
