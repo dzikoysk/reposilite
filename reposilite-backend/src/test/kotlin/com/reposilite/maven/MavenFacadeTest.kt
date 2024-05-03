@@ -19,6 +19,7 @@ package com.reposilite.maven
 import com.reposilite.maven.RepositoryVisibility.HIDDEN
 import com.reposilite.maven.RepositoryVisibility.PRIVATE
 import com.reposilite.maven.RepositoryVisibility.PUBLIC
+import com.reposilite.maven.api.Checksum
 import com.reposilite.maven.api.DeleteRequest
 import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.GeneratePomRequest
@@ -33,6 +34,8 @@ import com.reposilite.storage.api.FileType.FILE
 import com.reposilite.storage.api.toLocation
 import com.reposilite.token.RoutePermission.READ
 import com.reposilite.token.RoutePermission.WRITE
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -44,8 +47,6 @@ import panda.std.component1
 import panda.std.component2
 import panda.std.component3
 import panda.std.component4
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
 
 internal class MavenFacadeTest : MavenSpecification() {
 
@@ -160,6 +161,40 @@ internal class MavenFacadeTest : MavenSpecification() {
             val deployedFile = assertOk(deployedFileResult)
             assertThat(deployedFile.type).isEqualTo(FILE)
             assertThat(deployedFile.name).isEqualTo("reposilite-3.0.0.jar")
+        }
+
+        @Test
+        fun `should deploy file and generate checksums`() {
+            // given: an uri and file to store
+            val fileSpec = FileSpec(PUBLIC.name, "/com/reposilite/3.0.0/reposilite-3.0.0.jar", "content")
+            val by = "dzikoysk@127.0.0.1"
+
+            // when: the following file is deployed with requested checksums
+            val deployResult = mavenFacade.deployFile(
+                DeployRequest(
+                    repository = fileSpec.repository(),
+                    gav = fileSpec.gav(),
+                    by = by,
+                    content = fileSpec.content.byteInputStream(),
+                    generateChecksums = true
+                )
+            )
+
+            // then: file has been successfully stored
+            assertOk(deployResult)
+
+            // when: the deployed file checksum is requested
+            val accessToken = createAccessToken("name", "secret", fileSpec.repository, "/", READ)
+            val checksums = Checksum.entries.associateWith { algorithm ->
+                val checksumResult = mavenFacade.findFile(LookupRequest(accessToken, fileSpec.repository, fileSpec.gav().resolveSibling("reposilite-3.0.0.jar.$algorithm")))
+                assertOk(checksumResult)
+            }
+
+            // then: the result checksum matches file content
+            assertThat(checksums).hasSize(Checksum.entries.size)
+            checksums.forEach { (algorithm, checksum) ->
+                assertThat(checksum.content.use { it.readBytes().decodeToString() }).isEqualTo(algorithm.generate(fileSpec.content.byteInputStream()))
+            }
         }
 
         @Test
