@@ -14,7 +14,9 @@ const packages = usePackages();
 <style scoped lang="scss">
 .sidebar {
     width: 25%;
-    height: 100%;
+    height: 100vh;
+    padding: 0;
+    margin: 0;
 
     display: flex;
     flex-direction: column;
@@ -22,5 +24,6 @@ const packages = usePackages();
     justify-content: flex-start;
 
     overflow: scroll;
+    overflow-y: scroll;
 }
 </style>
