@@ -52,6 +52,18 @@ const getJavaDocsUrl = () => {
   return createURL(`/javadoc/${qualifier}`)
 }
 
+const isDokkaAvailable = () => props.file.name.endsWith('-dokka.jar') && getDokkaUrl() != null
+const getDokkaUrl = () => {
+  const qualifier = props.qualifier.path
+  const elements = qualifier.split('/')
+
+  if (elements.length < 2 || elements[1] === '') {
+      return null
+  }
+
+  return createURL(`/dokka/${qualifier}`)
+}
+
 const defaultMode = computed(() => !props.compactMode)
 </script>
 
@@ -78,6 +90,14 @@ const defaultMode = computed(() => !props.compactMode)
           id="javadoc-button"
           class="px-1 mr-6 pt-0.4 rounded-full text-purple-300 hover:(transition-colors duration-200 bg-gray-100 dark:bg-gray-900)"
           @click.left.prevent="openUrl(getJavaDocsUrl())"
+          v-on:click.stop
+        />
+        <JavaDocsIcon
+          v-if="isDokkaAvailable()"
+          :title="`Click to view ${file.name} dokka in a new tab`"
+          id="dokka-button"
+          class="px-1 mr-6 pt-0.4 rounded-full text-purple-300 hover:(transition-colors duration-200 bg-gray-100 dark:bg-gray-900)"
+          @click.left.prevent="openUrl(getDokkaUrl())"
           v-on:click.stop
         />
         <TrashIcon

@@ -66,8 +66,8 @@ jobs:
         with:
           arguments: "shadowJar publish"
         env:
-          MAVEN_NAME: ${{ secrets.MAVEN_NAME }}
-          MAVEN_TOKEN: ${{ secrets.MAVEN_TOKEN }}
+          MAVEN_NAME: ${{ secrets.MAVEN_USER }}
+          MAVEN_TOKEN: ${{ secrets.MAVEN_PASSWORD }}
 
   docker:
     name: "Docker"
@@ -109,7 +109,7 @@ jobs:
           platforms: "linux/amd64,linux/arm64"
           push: true
           tags: |
-            dzikoysk/reposilite:latest
-            dzikoysk/reposilite:${{ needs.github.outputs.version }}
-            ghcr.io/dzikoysk/reposilite:latest
-            ghcr.io/dzikoysk/reposilite:${{ needs.github.outputs.version }}
+            redstonewizard/reposilite:latest
+            redstonewizard/reposilite:${{ needs.github.outputs.version }}
+            ghcr.io/stardustmodding/reposilite:latest
+            ghcr.io/stardustmodding/reposilite:${{ needs.github.outputs.version }}

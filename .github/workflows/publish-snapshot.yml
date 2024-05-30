@@ -32,8 +32,8 @@ jobs:
         with:
           arguments: "shadowJar publish"
         env:
-          MAVEN_NAME: ${{ secrets.MAVEN_NAME }}
-          MAVEN_TOKEN: ${{ secrets.MAVEN_TOKEN }}
+          MAVEN_NAME: ${{ secrets.MAVEN_USER }}
+          MAVEN_TOKEN: ${{ secrets.MAVEN_PASSWORD }}
 
   docker:
     name: "Docker"
@@ -71,5 +71,5 @@ jobs:
           context: .
           push: true
           tags: |
-            dzikoysk/reposilite:nightly
-            ghcr.io/dzikoysk/reposilite:nightly
+            redstonewizard/reposilite:nightly
+            ghcr.io/stardustmodding/reposilite:nightly
