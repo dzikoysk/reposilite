@@ -1,0 +1,6 @@
+public
+node_modules
+*.md
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
