@@ -1,5 +1,7 @@
 import "./assets/main.css";
-import "highlight.js/styles/atom-one-dark.min.css";
+import "prismjs";
+import "prismjs/themes/prism.min.css";
+import "./assets/prism-custom.css";
 
 import { createApp } from "vue";
 import App from "./App.vue";

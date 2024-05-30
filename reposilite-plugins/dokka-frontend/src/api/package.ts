@@ -29,8 +29,37 @@ export const loadData = async (pkg: Package) => {
         const content = title.querySelector(".content")!;
         const codeEl = content.querySelector(".symbol") as HTMLDivElement;
         const descEl = content.querySelector(".brief") as HTMLDivElement;
-        const code = codeEl.innerText;
-        const desc = descEl.innerText;
+
+        for (const a of codeEl.querySelectorAll("a")) {
+            const href = a.getAttribute("href")!;
+
+            if (href.startsWith("-")) {
+                a.href = `/item/${pkg.name}/${a.innerText}`;
+            } else if (href.startsWith("../")) {
+                const pkg = href.split("/")[1];
+                
+                a.href = `/item/${pkg}/${a.innerText}`;
+            }
+        }
+
+        for (const a of descEl.querySelectorAll("a")) {
+            const href = a.getAttribute("href")!;
+
+            if (href.startsWith("-")) {
+                a.href = `/item/${pkg.name}/${a.innerText}`;
+            } else if (href.startsWith("../")) {
+                const pkg = href.split("/")[1];
+                
+                a.href = `/item/${pkg}/${a.innerText}`;
+            }
+        }
+
+        for (const code of descEl.querySelectorAll(".lang-kotlin")) {
+            code.className = code.className.replace("lang-kotlin", "");
+        }
+
+        const code = codeEl.innerHTML;
+        const desc = descEl.innerHTML;
 
         meta[name] = {
             item: name,

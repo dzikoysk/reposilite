@@ -2,10 +2,12 @@
 import Item from "./Item.vue";
 import DownIcon from "@/images/arrow_down.svg";
 import type { Package } from "@/api/item";
-import { type PropType, ref } from "vue";
+import { type PropType, ref, watch } from "vue";
 import router from "@/router";
+import { useRoute } from "vue-router";
 
 const open = ref(false);
+const route = useRoute();
 
 const props = defineProps({
     data: { type: Object as PropType<Package>, required: true },
@@ -15,6 +17,19 @@ const nav = (ev: MouseEvent) => {
     if (ev.target instanceof HTMLDivElement || ev.target instanceof HTMLSpanElement)
         router.push(`/package/${props.data.name}`);
 };
+
+const updateRoute = () => {
+    if ("name" in route.params && route.params.name == props.data.name) {
+        open.value = true;
+    }
+
+    if ("package" in route.params && route.params.package == props.data.name) {
+        open.value = true;
+    }
+};
+
+watch(() => route.params, updateRoute);
+updateRoute();
 </script>
 
 <template>

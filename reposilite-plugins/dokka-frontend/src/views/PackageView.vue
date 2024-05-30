@@ -2,16 +2,27 @@
 import { type ItemMeta, loadData } from "@/api/package";
 import Sidebar from "@/components/Sidebar.vue";
 import { usePackages } from "@/stores/data";
-import { computed, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
+import Prism from "prismjs";
 
 const route = useRoute();
 const pkgs = usePackages();
 const pkg = computed(() => pkgs.data[route.params.name as string]);
 const meta = ref<Record<string, ItemMeta>>({});
 
+onMounted(async () => {
+    window.Prism = window.Prism || {};
+    window.Prism.manual = true;
+});
+
 watch(() => pkg.value, async () => {
     meta.value = await loadData(pkg.value);
+
+    // Delay so Vue has a chance to create the elements
+    setTimeout(() => {
+        Prism.highlightAll();
+    }, 5);
 });
 </script>
 
@@ -27,8 +38,8 @@ watch(() => pkg.value, async () => {
 
             <div class="item" v-for="item in meta">
                 <a class="name" :href="`/item/${pkg.name}/${item.item}`">{{ item.item }}</a>
-                <highlightjs language="kotlin" :code="item.snippet" />
-                <p class="desc">{{ item.desc }}</p>
+                <div class="snippet" v-html="item.snippet" />
+                <p class="desc" v-html="item.desc" />
             </div>
         </div>
     </main>
@@ -82,7 +93,7 @@ watch(() => pkg.value, async () => {
             font-size: 10pt;
             border-bottom: 1px solid #3e3e3e;
 
-            p, a, span {
+            .name, .desc {
                 margin: 0.25rem;
             }
 
@@ -94,6 +105,18 @@ watch(() => pkg.value, async () => {
                 &:hover {
                     background-color: unset;
                     border-color: #dddddd;
+                }
+            }
+
+            .snippet {
+                margin: 0.25rem;
+                background-color: #333333;
+                width: calc(100% - 1rem);
+                padding: 0.5rem;
+
+                * {
+                    padding: 0;
+                    margin: 0;
                 }
             }
         }
