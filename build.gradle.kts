@@ -120,11 +120,11 @@ subprojects {
     apply(plugin = "maven-publish")
 
     dependencies {
-        val unirest = "4.3.2"
+        val unirest = "4.4.0"
         testImplementation("com.konghq:unirest-java-core:$unirest")
         testImplementation("com.konghq:unirest-modules-jackson:$unirest")
 
-        val assertJ = "3.25.3"
+        val assertJ = "3.26.0"
         testImplementation("org.assertj:assertj-core:$assertJ")
 
         val junit = "5.10.2"
