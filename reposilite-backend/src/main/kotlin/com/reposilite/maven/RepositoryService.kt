@@ -109,11 +109,11 @@ internal class RepositoryService(
             }
         }
 
-    fun findDetails(lookupRequest: LookupRequest): Result<FileDetails, ErrorResponse> =
-        resolve(lookupRequest) { repository, gav -> findDetails(lookupRequest.accessToken, repository, gav) }
+    fun findDetails(lookupRequest: LookupRequest, force: Boolean = false): Result<FileDetails, ErrorResponse> =
+        resolve(lookupRequest, force) { repository, gav -> findDetails(lookupRequest.accessToken, repository, gav, force) }
 
-    fun findFile(lookupRequest: LookupRequest): Result<ResolvedDocument, ErrorResponse> =
-        resolve(lookupRequest) { repository, gav ->
+    fun findFile(lookupRequest: LookupRequest, force: Boolean = false): Result<ResolvedDocument, ErrorResponse> =
+        resolve(lookupRequest, force) { repository, gav ->
             findFile(lookupRequest.accessToken, repository, gav).map {
                 val (details, stream) = it
                 ResolvedDocument(
@@ -124,9 +124,14 @@ internal class RepositoryService(
             }
         }
 
-    private fun <T> resolve(lookupRequest: LookupRequest, block: (Repository, Location) -> Result<T, ErrorResponse>): Result<T, ErrorResponse> {
+    private fun <T> resolve(lookupRequest: LookupRequest, force: Boolean = false, block: (Repository, Location) -> Result<T, ErrorResponse>): Result<T, ErrorResponse> {
         val (accessToken, repositoryName, gav) = lookupRequest
         val repository = repositoryProvider.getRepository(lookupRequest.repository) ?: return notFoundError("Repository $repositoryName not found")
+
+        if (force) {
+            extensions.emitEvent(PreResolveEvent(accessToken, repository, gav))
+            return block(repository, gav)
+        }
 
         return canAccessResource(lookupRequest.accessToken, repository.name, gav)
             .onError { logger.debug("ACCESS | Unauthorized attempt of access (token: $accessToken) to $gav from ${repository.name}") }
@@ -162,7 +167,7 @@ internal class RepositoryService(
             }
         }
 
-    private fun findDetails(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<FileDetails, ErrorResponse> =
+    private fun findDetails(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location, force: Boolean = false): Result<FileDetails, ErrorResponse> =
         when {
             mirrorService.shouldPrioritizeMirrorRepository(repository, gav) -> {
                 logger.debug("Prioritizing mirror repository for '$gav'")
@@ -170,17 +175,17 @@ internal class RepositoryService(
                     .findProxiedDetails(repository, gav)
                     .flatMapErr { findLocalDetails(accessToken, repository, gav) }
             }
-            repository.storageProvider.exists(gav) -> findLocalDetails(accessToken, repository, gav) // todo: add fallback to local for shouldPrioritizeMirrorRepository
+            repository.storageProvider.exists(gav) -> findLocalDetails(accessToken, repository, gav, force) // todo: add fallback to local for shouldPrioritizeMirrorRepository
             else -> findProxiedDetails(repository, gav)
         }.peek {
             recordResolvedRequest(Identifier(repository.name, gav.toString()), it)
         }
 
-    private fun findLocalDetails(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<FileDetails, ErrorResponse> =
+    private fun findLocalDetails(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location, force: Boolean = false): Result<FileDetails, ErrorResponse> =
         repository.storageProvider.getFileDetails(gav)
             .flatMap {
                 it.takeIf { it.type == DIRECTORY }
-                    ?.let { securityProvider.canBrowseResource(accessToken, repository, gav).map { _ -> it } }
+                    ?.let { securityProvider.canBrowseResource(accessToken, repository, gav, force).map { _ -> it } }
                     ?: it.asSuccess()
             }
 

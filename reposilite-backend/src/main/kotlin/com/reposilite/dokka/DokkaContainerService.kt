@@ -39,13 +39,13 @@ internal class DokkaContainerService(
     private val dokkaFolder: Path
 ) {
 
-    fun loadContainer(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<DokkaContainer, ErrorResponse> {
+    fun loadContainer(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location, force: Boolean = false): Result<DokkaContainer, ErrorResponse> {
         val dokkaJar = this.resolveDokkaJar(repository, gav) ?: return badRequestError("Invalid GAV")
 
-        return mavenFacade.findDetails(LookupRequest(accessToken, repository.name, dokkaJar))
+        return mavenFacade.findDetails(LookupRequest(accessToken, repository.name, dokkaJar), force)
             .filter({ it.type === FILE }, { badRequest("Invalid request") })
             .filter({ isDokkaJar(it.name) }, { notFound("Please do not provide a direct link to a non dokka file! GAV must be pointing to a directory or a dokka file!") })
-            .flatMap { loadDokkaJarContainer(accessToken, repository, dokkaJar) }
+            .flatMap { loadDokkaJarContainer(accessToken, repository, dokkaJar, force) }
     }
 
     private fun resolveDokkaJar(repository: Repository, gav: Location): Location? = when {
@@ -77,7 +77,7 @@ internal class DokkaContainerService(
         return rootGav.resolve("${name}-${version}-dokka.jar")
     }
 
-    private fun loadDokkaJarContainer(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<DokkaContainer, ErrorResponse> {
+    private fun loadDokkaJarContainer(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location, force: Boolean = false): Result<DokkaContainer, ErrorResponse> {
         val container: DokkaContainer = createContainer(dokkaFolder, repository, gav)
 
         if (Files.exists(container.dokkaContainerIndex)) {
@@ -89,7 +89,7 @@ internal class DokkaContainerService(
         Files.createDirectories(dokkaUnpackPath)
         val copyJarPath = dokkaUnpackPath.resolve("dokka.jar")
 
-        return mavenFacade.findFile(LookupRequest(accessToken, repository.name, gav))
+        return mavenFacade.findFile(LookupRequest(accessToken, repository.name, gav), force)
             .peek { (_, originInput) -> this.copyDokkaJar(originInput, copyJarPath) }
             .flatMap { this.unpackDokkaJar(copyJarPath, dokkaUnpackPath) }
             .peek { this.createDocIndexHtml(container) }

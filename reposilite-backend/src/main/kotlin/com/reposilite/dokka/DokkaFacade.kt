@@ -47,6 +47,14 @@ class DokkaFacade internal constructor(
     private val dokkaFolder: Path,
     private val dokkaContainerService: DokkaContainerService
 ) : Journalist, Facade {
+    // TODO: Figure out a way to make this work with auth
+    private val excludedExtensions = listOf(
+        "pages.json",
+        "navigation.html",
+        ".svg",
+        ".js",
+        ".css",
+    )
 
     private val supportedExtensions = mapOf(
         "html" to ContentType.TEXT_HTML,
@@ -65,25 +73,46 @@ class DokkaFacade internal constructor(
 
     fun findDokkaPage(request: DokkaPageRequest): Result<DokkaResponse, ErrorResponse> =
         with (request) {
-            mavenFacade.canAccessResource(accessToken, repository, gav)
-                .flatMap { createPage(accessToken, repository, resolveGav(request)) }
-                .onError { logger.error("Cannot extract dokka: ${it.message} (${it.status})}") }
+            if (excludedExtensions.any { gav.endsWith(it) }) {
+                createPage(accessToken, repository, resolveGav(request), true)
+            } else {
+                mavenFacade.canAccessResource(accessToken, repository, gav)
+                    .flatMap { createPage(accessToken, repository, resolveGav(request)) }
+                    .onError { logger.error("Cannot extract dokka [${gav}]: ${it.message} (${it.status})}") }
+            }
         }
 
     fun findRawDokkaResource(request: DokkaRawRequest): Result<DokkaRawResponse, ErrorResponse> =
         with (request) {
-            mavenFacade.canAccessResource(accessToken, repository, gav)
-                .flatMap { dokkaContainerService.loadContainer(accessToken, repository, gav) }
-                .filter({ Files.exists(it.dokkaUnpackPath.resolve(resource.toString())) }, { notFound("Resource $resource not found") })
-                .map {
-                    DokkaRawResponse(
-                        contentType = supportedExtensions[resource.getExtension()] ?: ContentType.APPLICATION_OCTET_STREAM,
-                        content = Files.newInputStream(it.dokkaUnpackPath.resolve(resource.toString()))
-                    )
+            if (excludedExtensions.any { resource.endsWith(it) }) {
+                val it = dokkaContainerService.loadContainer(accessToken, repository, gav, true)
+
+                if (it.isOk) {
+                    if (Files.exists(it.get().dokkaUnpackPath.resolve(resource.toString()))) {
+                        Result.ok(DokkaRawResponse(
+                            contentType = supportedExtensions[resource.getExtension()] ?: ContentType.APPLICATION_OCTET_STREAM,
+                            content = Files.newInputStream(it.get().dokkaUnpackPath.resolve(resource.toString()))
+                        ))
+                    } else {
+                        Result.error(notFound("Resource $resource not found"))
+                    }
+                } else {
+                    Result.error(notFound("Resource $resource not found"))
                 }
+            } else {
+                mavenFacade.canAccessResource(accessToken, repository, gav)
+                    .flatMap { dokkaContainerService.loadContainer(accessToken, repository, gav) }
+                    .filter({ Files.exists(it.dokkaUnpackPath.resolve(resource.toString())) }, { notFound("Resource $resource not found") })
+                    .map {
+                        DokkaRawResponse(
+                            contentType = supportedExtensions[resource.getExtension()] ?: ContentType.APPLICATION_OCTET_STREAM,
+                            content = Files.newInputStream(it.dokkaUnpackPath.resolve(resource.toString()))
+                        )
+                    }
+            }
         }
 
-    private fun createPage(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<DokkaResponse, ErrorResponse> {
+    private fun createPage(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location, force: Boolean = false): Result<DokkaResponse, ErrorResponse> {
         val resourcesFile = createPlainFile(dokkaFolder, repository, gav)
 
         return when {
@@ -103,7 +132,7 @@ class DokkaFacade internal constructor(
             /* Load resource */
             else ->
                 dokkaContainerService
-                    .loadContainer(accessToken, repository, gav)
+                    .loadContainer(accessToken, repository, gav, force)
                     .map { DokkaResponse(ContentType.HTML, readFile(it.dokkaContainerIndex)) }
         }
     }

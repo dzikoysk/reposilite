@@ -46,11 +46,15 @@ internal class RepositorySecurityProvider(private val accessTokenFacade: AccessT
             PRIVATE -> hasPermissionTo(accessToken, repository, gav, READ)
         }
 
-    fun canBrowseResource(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<Unit, ErrorResponse> =
-        when (repository.visibility) {
-            PUBLIC -> Result.ok(Unit)
-            HIDDEN -> hasPermissionTo(accessToken, repository, gav, READ)
-            PRIVATE -> hasPermissionTo(accessToken, repository, gav, READ)
+    fun canBrowseResource(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location, force: Boolean = false): Result<Unit, ErrorResponse> =
+        if (force) {
+            Result.ok(Unit)
+        } else {
+            when (repository.visibility) {
+                PUBLIC -> Result.ok(Unit)
+                HIDDEN -> hasPermissionTo(accessToken, repository, gav, READ)
+                PRIVATE -> hasPermissionTo(accessToken, repository, gav, READ)
+            }
         }
 
     fun canModifyResource(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Boolean =
