@@ -16,6 +16,9 @@
 
 package com.reposilite.statistics.infrastructure
 
+import com.reposilite.DatabaseMigrations.MIGRATION_001
+import com.reposilite.DatabaseMigrations.MIGRATION_002
+import com.reposilite.DatabaseMigrations.MIGRATION_003
 import com.reposilite.journalist.Journalist
 import com.reposilite.maven.api.GAV_MAX_LENGTH
 import com.reposilite.maven.api.Identifier
@@ -24,10 +27,10 @@ import com.reposilite.shared.extensions.executeQuery
 import com.reposilite.statistics.StatisticsRepository
 import com.reposilite.statistics.api.ResolvedEntry
 import com.reposilite.statistics.toUTCMillis
-import java.time.LocalDate
-import java.util.UUID
 import net.dzikoysk.exposed.upsert.upsert
 import net.dzikoysk.exposed.upsert.withUnique
+import org.intellij.lang.annotations.Language
+import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.ReferenceOption.CASCADE
@@ -35,18 +38,23 @@ import org.jetbrains.exposed.sql.SortOrder.DESC
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.like
 import org.jetbrains.exposed.sql.javatime.date
+import org.jetbrains.exposed.sql.statements.BatchUpdateStatement
 import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
 import panda.std.firstAndMap
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.util.UUID
 
 @Suppress("RemoveRedundantQualifierName")
 internal class SqlStatisticsRepository(
     private val database: Database,
     private val journalist: Journalist,
-    private val runMigrations: Boolean
+    private val runMigrations: Array<String>
 ) : StatisticsRepository {
 
-    private object IdentifierTable : Table("statistics_identifier") {
+    object IdentifierTable : Table("statistics_identifier") {
         val id = uuid("identifier_id")
         val repository = varchar("repository", REPOSITORY_NAME_MAX_LENGTH).index("idx_statistics_identifier_repository")
         val gav = varchar("gav", GAV_MAX_LENGTH)
@@ -54,7 +62,7 @@ internal class SqlStatisticsRepository(
         override val primaryKey = PrimaryKey(id)
     }
 
-    private object ResolvedTable : IntIdTable("statistics_resolved_identifier") {
+    object ResolvedTable : IntIdTable("statistics_resolved_identifier") {
         val identifierId = reference("identifier_id", IdentifierTable.id, onDelete = CASCADE, onUpdate = CASCADE)
         val date = date("date")
         val count = long("count")
@@ -72,7 +80,7 @@ internal class SqlStatisticsRepository(
 
     private fun runFixes() {
         // 001 Migration: Change `repository` identifier size from 32 to 64.
-        if (runMigrations) {
+        if (MIGRATION_001 in runMigrations) {
             transaction(database) {
                 val connection = TransactionManager.current().connection
 
@@ -88,21 +96,52 @@ internal class SqlStatisticsRepository(
                         connection.executeQuery("UPDATE SQLITE_MASTER SET SQL = replace(sql, 'repository VARCHAR(32)', 'repository VARCHAR($REPOSITORY_NAME_MAX_LENGTH)') WHERE name='statistics_identifier' AND type='table';")
                         connection.executeQuery("PRAGMA writable_schema = 0;")
                     }
-
                     else -> throw UnsupportedOperationException("Unsupported SQL dialect $dialect")
                 }
             }
         }
 
         // 002 Fix: Remove `.module` entries from records
-        transaction(database) {
-            ResolvedTable.leftJoin(IdentifierTable, { ResolvedTable.identifierId }, { IdentifierTable.id })
-                .selectAll()
-                .where { IdentifierTable.gav like "%.module" }
-                .map { it[ResolvedTable.identifierId] }
-                .takeIf { it.isNotEmpty() }
-                ?.also { journalist.logger.info("SqlStatisticsRepository | ${it.size} '%.module' entries will be removed from database") }
-                ?.forEach { id -> ResolvedTable.deleteWhere { ResolvedTable.identifierId eq id } }
+        if (MIGRATION_002 in runMigrations) {
+            transaction(database) {
+                ResolvedTable.leftJoin(IdentifierTable, { ResolvedTable.identifierId }, { IdentifierTable.id })
+                    .selectAll()
+                    .where { IdentifierTable.gav like "%.module" }
+                    .map { it[ResolvedTable.identifierId] }
+                    .takeIf { it.isNotEmpty() }
+                    ?.also { journalist.logger.info("SqlStatisticsRepository | ${it.size} '%.module' entries will be removed from database") }
+                    ?.forEach { id -> ResolvedTable.deleteWhere { ResolvedTable.identifierId eq id } }
+            }
+        }
+
+        // 003 Fix: Convert timestamp dates in SQLite to ISO format
+        if (MIGRATION_003 in runMigrations && database.vendor.lowercase() == "sqlite") {
+            transaction(database) {
+                @Language("sqlite")
+                val query = "SELECT id, date FROM statistics_resolved_identifier WHERE date NOT LIKE '%-%';".trimIndent()
+
+                val statement = TransactionManager.current().connection.prepareStatement(query, false)
+                val result = statement.executeQuery()
+                val resolvedRequestIdToTimestamp = mutableMapOf<Int, String>()
+
+                while (result.next()) {
+                    val id = result.getInt(ResolvedTable.id.name)
+                    val timestamp = result.getString(ResolvedTable.date.name)
+                    resolvedRequestIdToTimestamp[id] = timestamp
+                }
+
+                BatchUpdateStatement(ResolvedTable).apply {
+                    resolvedRequestIdToTimestamp
+                        .mapValues { it.value.toLongOrNull() }
+                        .filterValues { it != null }
+                        .mapValues { it.value!! }
+                        .forEach {
+                            addBatch(EntityID(it.key, ResolvedTable))
+                            this[ResolvedTable.date] = Instant.ofEpochMilli(it.value).atZone(ZoneId.systemDefault()).toLocalDate()
+                        }
+                    execute(TransactionManager.current())
+                }
+            }
         }
     }
 
@@ -171,10 +210,7 @@ internal class SqlStatisticsRepository(
 
             ResolvedTable.leftJoin(IdentifierTable, { ResolvedTable.identifierId }, { IdentifierTable.id })
                 .select(IdentifierTable.repository, ResolvedTable.date, ResolvedTable.count.sum())
-                .where {
-                    @Suppress("INFERRED_TYPE_VARIABLE_INTO_EMPTY_INTERSECTION_WARNING")
-                    (ResolvedTable.date greaterEq start).or(ResolvedTable.date greaterEq start.toUTCMillis())
-                }
+                .where { ResolvedTable.date greaterEq start }
                 .groupBy(IdentifierTable.repository, ResolvedTable.date)
                 .asSequence()
                 .map { Triple(it[IdentifierTable.repository], it[ResolvedTable.date], it[ResolvedTable.count.sum()]) }

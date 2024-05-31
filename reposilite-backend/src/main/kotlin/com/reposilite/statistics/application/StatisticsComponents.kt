@@ -29,7 +29,7 @@ import panda.std.reactive.Reference
 class StatisticsComponents(
     private val journalist: Journalist,
     private val database: Database?,
-    private val runMigrations: Boolean,
+    private val runMigrations: Array<String>,
     private val statisticsSettings: Reference<StatisticsSettings>
 ) : PluginComponents {
 

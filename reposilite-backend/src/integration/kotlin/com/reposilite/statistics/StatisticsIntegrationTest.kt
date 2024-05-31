@@ -109,7 +109,7 @@ internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecifi
     @Test
     fun `should return time-series`() {
         // given: a database with some requests
-        val hackyDatabaseStateAccessor = SqlStatisticsRepository(reposilite.database, reposilite.journalist, false)
+        val hackyDatabaseStateAccessor = SqlStatisticsRepository(reposilite.database, reposilite.journalist, emptyArray())
 
         repeat(2) { // repeat 2 times to verify aggregation
             repeat(24) { index -> // 24 months

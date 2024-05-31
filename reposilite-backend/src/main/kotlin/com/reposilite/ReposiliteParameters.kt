@@ -86,8 +86,13 @@ class ReposiliteParameters : Runnable {
     @Option(names = ["--channel", "--level"], description = ["Default logging channel"])
     var level: String = Channel.INFO.name
 
-    @Option(names = ["--enable-migrations"], description = ["Opt-in to run all available migrations"])
-    var runMigrations = false
+    @Option(names = ["--run-migrations"], description = [
+        "Opt-in to run all available migrations. Available migrations:",
+        "001 - Change `repository` identifier size from 32 to 64.",
+        "002 - Remove `.module` entries from recorded requests.",
+        "003 - Convert timestamp dates in SQLite to ISO format"
+    ])
+    var runMigrations = arrayOf<String>()
 
     @Option(names = ["--test-env", "--debug", "-d"], description = ["Enable test mode"])
     var testEnv = false
