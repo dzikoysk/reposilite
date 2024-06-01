@@ -45,7 +45,7 @@
     "@vue/compiler-sfc": "^3.4.27",
     "body-parser": "^1.20.2",
     "concurrently": "^8.2.2",
-    "eslint": "9.3.0",
+    "eslint": "9.4.0",
     "eslint-plugin-vue": "^9.26.0",
     "express": "^4.19.2",
     "express-ws": "^5.0.2",
