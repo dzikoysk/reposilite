@@ -37,11 +37,13 @@ import org.jetbrains.exposed.sql.ReferenceOption.CASCADE
 import org.jetbrains.exposed.sql.SortOrder.DESC
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.like
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.plus
 import org.jetbrains.exposed.sql.javatime.date
 import org.jetbrains.exposed.sql.statements.BatchUpdateStatement
 import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
 import panda.std.firstAndMap
+import java.nio.ByteBuffer
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -118,29 +120,47 @@ internal class SqlStatisticsRepository(
         if (MIGRATION_003 in runMigrations && database.vendor.lowercase() == "sqlite") {
             transaction(database) {
                 @Language("sqlite")
-                val query = "SELECT id, date FROM statistics_resolved_identifier WHERE date NOT LIKE '%-%';".trimIndent()
+                val query = "SELECT id, identifier_id, date, count FROM statistics_resolved_identifier WHERE date NOT LIKE '%-%';".trimIndent()
 
                 val statement = TransactionManager.current().connection.prepareStatement(query, false)
                 val result = statement.executeQuery()
-                val resolvedRequestIdToTimestamp = mutableMapOf<Int, String>()
+                val resolvedRequestIdToTimestamp = mutableMapOf<Int, Triple<UUID, LocalDate, Long>>()
 
                 while (result.next()) {
                     val id = result.getInt(ResolvedTable.id.name)
                     val timestamp = result.getString(ResolvedTable.date.name)
-                    resolvedRequestIdToTimestamp[id] = timestamp
+                    val count = result.getLong(ResolvedTable.count.name)
+
+                    val identifierIdBytes = ByteBuffer.wrap(result.getBytes(ResolvedTable.identifierId.name))
+                    val identifierId = UUID(identifierIdBytes.getLong(), identifierIdBytes.getLong())
+
+                    resolvedRequestIdToTimestamp[id] = Triple(
+                        identifierId,
+                        Instant.ofEpochMilli(timestamp.toLong()).atZone(ZoneId.systemDefault()).toLocalDate(),
+                        count
+                    )
                 }
 
-                BatchUpdateStatement(ResolvedTable).apply {
-                    resolvedRequestIdToTimestamp
-                        .mapValues { it.value.toLongOrNull() }
-                        .filterValues { it != null }
-                        .mapValues { it.value!! }
-                        .forEach {
-                            addBatch(EntityID(it.key, ResolvedTable))
-                            this[ResolvedTable.date] = Instant.ofEpochMilli(it.value).atZone(ZoneId.systemDefault()).toLocalDate()
+                var updated = 0
+                var merged = 0
+
+                resolvedRequestIdToTimestamp.forEach { (id, value) ->
+                    val (identifier, date, count) = value
+
+                    try {
+                        ResolvedTable.update({ ResolvedTable.id eq id }) {
+                            it[ResolvedTable.date] = date
                         }
-                    execute(TransactionManager.current())
+                        updated++
+                    } catch (sqliteException: Exception) {
+                        ResolvedTable.update({ (ResolvedTable.identifierId eq identifier) and (ResolvedTable.date eq date)}) {
+                            it[ResolvedTable.count] = ResolvedTable.count + count
+                        }
+                        merged++
+                    }
                 }
+
+                journalist.logger.info("SqlStatisticsRepository | $updated records updated, $merged records merged")
             }
         }
     }
