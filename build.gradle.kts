@@ -140,10 +140,8 @@ subprojects {
     publishing {
         repositories {
             maven {
-                // name = "panda-repository"
-                name = "StardustModding"
-                // url = uri("https://maven.reposilite.com/${if (version.toString().endsWith("-SNAPSHOT")) "snapshots" else "releases"}")
-                url = uri("https://repo.kadaroja.com/${if (version.toString().endsWith("-SNAPSHOT")) "snapshots" else "releases"}/")
+                name = "panda-repository"
+                url = uri("https://maven.reposilite.com/${if (version.toString().endsWith("-SNAPSHOT")) "snapshots" else "releases"}")
                 credentials {
                     username = System.getenv("MAVEN_NAME") ?: property("mavenUser").toString()
                     password = System.getenv("MAVEN_TOKEN") ?: property("mavenPassword").toString()
