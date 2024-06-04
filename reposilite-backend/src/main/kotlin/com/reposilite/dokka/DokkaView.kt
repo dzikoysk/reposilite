@@ -32,7 +32,7 @@ internal object DokkaView {
         <html lang="en">
             <head>
                 <meta charset="UTF-8" />
-                <title>Reposilite - JavaDoc</title>
+                <title>Reposilite - Dokka</title>
             </head>
             <style>
                 :root {
@@ -89,10 +89,10 @@ internal object DokkaView {
                     <div class="row">
                         <a class="title" href="/"><h3>Reposilite</h3></a>
                         <a id='raw'><h4>Raw docs</h4></a>
-                        <!--<a href="#p"><h5>Download JavaDoc</h5></a> todo-->
+                        <!--<a href="#p"><h5>Download Dokka</h5></a> todo-->
                     </div>
                 </div>
-                <iframe id="dokka" class="doc" src="$unpackedIndexPath" sandbox="allow-scripts"></iframe>
+                <iframe id="dokka" class="doc" src="$unpackedIndexPath" sandbox="allow-scripts allow-same-origin"></iframe>
                 <script>
                 if (!window.location.href.endsWith("/")) {
                     document.getElementById("dokka").src = window.location.href + '$unpackedIndexPath'

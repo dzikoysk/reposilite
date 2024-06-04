@@ -52,7 +52,7 @@ internal class DokkaEndpoints(dokka: DokkaFacade) : MavenRoutes(dokka.mavenFacad
                 requireRepository { repository ->
                     response = DokkaRawRequest(this?.identifier, repository, gav, requireParameter("resource").toLocation())
                         .let { dokka.findRawDokkaResource(it) }
-                        .peek { ctx.encoding(Charsets.UTF_8).contentType(it.contentType).header(Header.CONTENT_SECURITY_POLICY, "sandbox allow-scripts") }
+                        .peek { ctx.encoding(Charsets.UTF_8).contentType(it.contentType).header(Header.CONTENT_SECURITY_POLICY, "sandbox allow-scripts allow-same-origin") }
                         .map { it.content }
                 }
             }
