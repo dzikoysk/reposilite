@@ -21,9 +21,11 @@
   <a href="https://discord.gg/qGRqmGjUFX">
    <img alt="Discord" src="https://img.shields.io/badge/discord-reposilite-738bd7.svg?style=square" />
   </a>
+  <!--
   <a href="https://discord.gg/qGRqmGjUFX">
    <img alt="Discord Online" src="https://img.shields.io/discord/204728244434501632.svg" />
   </a>
+  -->
  </div>
  <br>
  <div>
@@ -95,7 +97,8 @@ Thanks to all contributors and people that decided to support my work financiall
     <a href="https://github.com/milkyway0308">milkyway0308</a>,
     <a href="https://github.com/andrm">andrm</a>, 
     <a href="https://github.com/rdehuyss">rdehuyss</a>,
-    <a href="https://github.com/rdehuyss">amp7368</a>,
+    <a href="https://github.com/amp7368">amp7368</a>,
+    <a href="https://github.com/talismanplatform">talismanplatform</a>,
     <a href="https://github.com/joshuasing">joshuasing</a>, 
     <a href="https://github.com/insertt">insertt</a>,
     <a href="https://github.com/GotoFinal">GotoFinal</a>,
@@ -120,6 +123,7 @@ Thanks to all contributors and people that decided to support my work financiall
    <a href="https://github.com/rdehuyss">amp7368</a>,
    <a href="https://github.com/insertt">insertt</a>,
    <a href="https://github.com/joshuasing">joshuasing</a>,
+   <a href="https://github.com/talismanplatform">talismanplatform</a>,
    <a href="https://github.com/Koressi">Koressi</a>,
    <a href="https://github.com/GotoFinal">GotoFinal</a>,
    <a href="https://github.com/tipsy">tipsy</a>, 
