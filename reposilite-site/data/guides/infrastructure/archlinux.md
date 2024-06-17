@@ -5,32 +5,23 @@ community: true
 ---
 
 The Reposilite AUR package can be found at the following sources:
-- [Github / Reposilite AUR](https://github.com/reposilite-playground/reposilite-aur) -
+- [GitHub / Reposilite AUR](https://github.com/reposilite-playground/reposilite-aur) -
   releases and official source of package.
 - [AUR / Reposilite Package](https://aur.archlinux.org/packages/reposilite) - to pull
   package using AUR helpers
-- [Polarian Onedev](https://onedev.polarian.dev/polarrepo/reposilite) -
-  mainly for development purposes from arch linux contributors, all
-  commits are pushed to github.
 
 There is a lot of different methods to install on Arch Linux, some of
 them are more complicated than others, find a list of methods below:
 
-- [From Github](/guide/archlinux#from-github)
+- [From GitHub](/guide/archlinux#from-github)
 - [From AUR](/guide/archlinux#from-aur)
   - [Using an AUR Helper](/guide/archlinux#using-an-aur-helper)
   - [Building Manually](/guide/archlinux#building-manually)
-- [From PolarRepo](/guide/archlinux#from-polarrepo)
 
-## From Github
+## From GitHub
 
-AUR package builds are updated to the release section on github, see
+AUR package builds are updated to the release section on GitHub, see
 [Reposilite AUR Releases](https://github.com/reposilite-playground/reposilite-aur/releases).
-
-These packages are identical to which are deployed to
-[PolarRepo](/guide/archlinux#from-polarrepo), however is downloaded from
-a trusted source (github), and is reviewed by other contributors and
-developers.
 
 All install, and updates, must be done manually, using the command
 supplied within the release notes, please follow the guide on the latest
@@ -38,12 +29,12 @@ version of the release.
 
 **Pros:**
 - Officially supported
-- Uses a trusted, and well known platform (Github)
+- Uses a trusted, and well known platform (GitHub)
 - Distributed as a built package, fast to install
 
 **Cons:**
 - Manual installation, and manual updates
-- Download speed is reliant on Github
+- Download speed is reliant on GitHub
 
 ## From AUR
 
@@ -58,7 +49,7 @@ its functionality to also be able to pull and build packages from the
 AUR.
 
 There are multiple AUR helpers to pick from, see
-[Comparision Table](https://wiki.archlinux.org/title/AUR_helpers#Comparison_tables)
+[Comparison Table](https://wiki.archlinux.org/title/AUR_helpers#Comparison_tables)
 for more information. For this example we will use Paru.
 
 1. Install [git](https://archlinux.org/packages/extra/x86_64/git/) and
@@ -83,13 +74,13 @@ Every time you need to update Reposilite, execute:
 `paru -Syu`
 
 **NOTE:**
-- If you already have paru installed, you can ignore steps 1 to 3.
+- If you already have Paru installed, you can ignore steps 1 to 3.
 - Paru will update itself automatically, you do not need to follow steps
-  1 to 3 once you have paru installed.
+  1 to 3 once you have Paru installed.
 
 **Pros:**
 - Easy to install AUR packages (not just Reposilite)
-- Automaticaally updates Reposilite just like `pacman` updates official
+- Automatically updates Reposilite just like `pacman` updates official
   packages.
 
 **Cons:**
@@ -120,20 +111,3 @@ package.
 **Cons:**
 - Packages must be built manually every update, which can be tedious.
 - Building packages takes time and computational resources.
-
-## From PolarRepo
-
-PolarRepo is an unofficial Arch Linux Repository. It is not verified by
-any Arch Linux staff, nor Reposilite developers, use at your own risk.
-
-To use PolarRepo, follow their [setup guide](https://onedev.polarian.dev/polarrepo#getting-started).
-
-**Pros:**
-- Prebuilt package, fast to install.
-- Updates automatically handled by the `pacman` package manager, which
-  is the official package manager for Arch Linux.
-
-**Cons:**
-- Unofficial repository, uptime and download speeds may vary and can not
-  be relied upon.
-- Unverified, **use at your own risk!**
