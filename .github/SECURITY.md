@@ -10,9 +10,8 @@
 
 ## Reporting a Vulnerability
 
-If you've spotted security vulnerability, 
-visit [Issues](https://github.com/dzikoysk/reposilite/issues) section and report this just as a standard problem related to Reposilite.
-As soon as possible the author should investigate this case and resolve the problem with the highest possible priority. 
-Because it's free and open source project, there is no guarantee how fast the fix may happen :<
+If you've spotted security vulnerability or something that could be treated as a security issue, visit [Security Advisory](https://github.com/dzikoysk/reposilite/security) and use `Report a vulnerability` form.
+As soon as possible, I'll investigate this case with the highest possible priority. 
+Because it's free and open source project, there is no guarantee how fast the fix may happen.
 
 You can also try to reach the author through private communication channels described at [dzikoysk.net](https://dzikoysk.net/#contact).
