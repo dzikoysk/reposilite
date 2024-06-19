@@ -1,5 +1,5 @@
 # Build stage
-FROM openjdk:21-slim AS build
+FROM --platform=amd64 openjdk:21-slim AS build
 COPY . /home/reposilite-build
 WORKDIR /home/reposilite-build
 RUN \

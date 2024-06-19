@@ -48,11 +48,11 @@ class MavenFacade internal constructor(
 
     private val repositoryService = repositoryProvider.repositoryService
 
-    fun findDetails(lookupRequest: LookupRequest): Result<out FileDetails, ErrorResponse> =
-        repositoryService.findDetails(lookupRequest)
+    fun findDetails(lookupRequest: LookupRequest, force: Boolean = false): Result<out FileDetails, ErrorResponse> =
+        repositoryService.findDetails(lookupRequest, force)
 
-    fun findFile(lookupRequest: LookupRequest): Result<ResolvedDocument, ErrorResponse> =
-        repositoryService.findFile(lookupRequest)
+    fun findFile(lookupRequest: LookupRequest, force: Boolean = false): Result<ResolvedDocument, ErrorResponse> =
+        repositoryService.findFile(lookupRequest, force)
 
     fun deployFile(deployRequest: DeployRequest): Result<Unit, ErrorResponse> =
         repositoryService.deployFile(deployRequest)

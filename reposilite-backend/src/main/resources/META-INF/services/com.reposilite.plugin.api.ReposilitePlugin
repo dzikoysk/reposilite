@@ -4,6 +4,7 @@ com.reposilite.frontend.application.FrontendPlugin
 com.reposilite.maven.application.MavenPlugin
 com.reposilite.redirect.RedirectPlugin
 com.reposilite.javadocs.application.JavadocPlugin
+com.reposilite.dokka.application.DokkaPlugin
 com.reposilite.configuration.application.ConfigurationPlugin
 com.reposilite.configuration.local.LocalConfigurationPlugin
 com.reposilite.configuration.shared.application.SharedConfigurationPlugin
