@@ -16,6 +16,9 @@
  * limitations under the License.
  */
 
+import { createRequire } from "module"
+const require = createRequire(import.meta.url)
+
 const express = require("express")
 const expressWs = require("express-ws")
 const bodyParser = require('body-parser')
@@ -29,7 +32,7 @@ const {
   createFileDetails,
   createDirectoryDetails,
   generateDayWiseTimeSeries
-} = require("./extensions")
+} = require("./extensions.cjs")
 
 const application = express()
 expressWs(application)
