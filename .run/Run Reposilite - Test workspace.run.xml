@@ -10,7 +10,7 @@
     <option name="MAIN_CLASS_NAME" value="com.reposilite.ReposiliteLauncherKt" />
     <module name="reposilite-parent.reposilite-backend.main" />
     <option name="PROGRAM_PARAMETERS" value="--token name:secret --level=DEBUG" />
-    <option name="VM_PARAMETERS" value="-Xmx32M -Dreposilite.redirect.default-repository=releases" />
+    <option name="VM_PARAMETERS" value="-Xmx64M -Dreposilite.redirect.default-repository=releases" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/reposilite-test/workspace" />
     <extension name="net.ashald.envfile">
       <option name="IS_ENABLED" value="false" />
