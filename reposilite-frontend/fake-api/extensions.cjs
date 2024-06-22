@@ -32,7 +32,7 @@ const authorized = (req, success, failure) => {
 }
 
 const invalidCredentials = (res) =>
-  res.status(401).send('Invalid credentials')
+  res.status(401).send({message:'Invalid credentials'})
 
 const sendMessage = (connection, message) =>
   connection.send(`${new Date().toDateString()} ${message}`)
