@@ -100,7 +100,7 @@ const selectHomepage = () =>
             <FileBrowserView v-if="selectedTab == 'Overview'" :qualifier="qualifier" ref=""/>
           </TabPanel>
           <TabPanel :val="'Dashboard'" v-show="isManager">
-            <!-- <DashboardView v-if="selectedTab == 'Dashboard'" :selectedTab="selectedTab" /> -->
+            <DashboardView v-if="selectedTab == 'Dashboard'" :selectedTab="selectedTab" />
           </TabPanel>
           <TabPanel :val="'Console'" v-show="isManager">
             <ConsoleView v-if="selectedTab == 'Console'" :selectedTab="selectedTab" />
@@ -130,7 +130,6 @@ const selectHomepage = () =>
 }
 .dashboard .tab {
   padding-left: 15px !important;
-
 }
 </style>
 
