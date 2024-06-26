@@ -215,7 +215,7 @@ application
           },
           permissions: [
             {
-              identifier: "access-token:read"
+              identifier: "access-token:manager"
             }
           ],
           routes: [
