@@ -129,7 +129,9 @@ const selectHomepage = () =>
     }
 }
 .dashboard .tab {
-  padding-left: 15px !important;
+  @media (max-width: 640px){
+    padding-left: 15px !important;
+  }
 }
 </style>
 
