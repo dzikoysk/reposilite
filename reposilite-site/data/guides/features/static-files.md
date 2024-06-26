@@ -5,17 +5,17 @@ title: Static files
 
 Despite of content served by each repository, 
 Reposilite supports also static files. 
-By default, Reposilite creates `public` directory in workdir. 
+By default, Reposilite creates `static` directory in workdir. 
 
 ```yaml
 reposilite_working_directory/
-  public/
+  static/
     index.html
   # ...
 ```
 
-Endpoints used to serve files located in `public` directory have the lowest priority.
-Due to this fact, you cannot override routes registered by Reposilite using public files.
+Endpoints used to serve files located in `static` directory have the lowest priority.
+Due to this fact, you cannot override routes registered by Reposilite using static files.
 
 #### Placeholders
 
@@ -30,7 +30,7 @@ Due to this fact, you cannot override routes registered by Reposilite using publ
 
 #### Custom frontend
 
-Using `public` directory you can implement frontend on your own.
+Using `static` directory you can implement frontend on your own.
 Because assets have lower priority, 
 you have to disable frontend in the local configuration file:
 
