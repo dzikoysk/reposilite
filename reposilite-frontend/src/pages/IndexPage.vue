@@ -72,14 +72,25 @@ const selectHomepage = () =>
           v-model="selectedTab"
           @update:modelValue="createTabClick"
         >
-          <Tab
-            v-for="(tab, i) in menuTabs"
-            class="item font-normal"
+          <template 
+            v-for="(tab, i) in menuTabs" 
             :key="`menu${i}`"
-            :val="tab"
-            :label="tab"
-            :indicator="true"
-          />
+          >
+            <Tab
+              v-if="tab !== 'Dashboard'"
+              class="item font-normal <sm:w-1/4"
+              :val="tab"
+              :label="tab"
+              :indicator="true"
+            />
+            <Tab
+              v-if="tab === 'Dashboard'"
+              class="item font-normal dashboard <sm:w-1/4"
+              :val="tab"
+              :label="tab"
+              :indicator="true"
+            />
+          </template>
         </Tabs>
       </div>
       <hr class="dark:border-gray-700">
@@ -111,6 +122,16 @@ const selectHomepage = () =>
 .tabs .item:hover {
   @apply bg-gray-150 dark:bg-gray-900;
   transition: background-color 0.5s;
+}
+  .dashboard {
+    @media (max-width: 640px) {
+      padding-left: 0px !important;
+    }
+}
+.dashboard .tab {
+  @media (max-width: 640px){
+    padding-left: 15px !important;
+  }
 }
 </style>
 

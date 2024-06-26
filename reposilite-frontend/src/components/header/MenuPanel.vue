@@ -43,7 +43,7 @@ const toggleTheme = () => {
 
 <template>
   <nav class="flex flex-row <sm:(max-w-100px flex-wrap flex-1 justify-end min-w-1/2)">
-    <div v-if="isLogged" class="pt-1.1 px-2 <sm:(py-2 max-w-full truncate)">
+    <div v-if="isLogged" class="pt-1.1 px-2 <sm:hidden">
       Welcome 
       <span class="font-bold underline">{{ token.name }}</span>
     </div>
@@ -59,7 +59,7 @@ const toggleTheme = () => {
     </MenuButton>
     <div
       v-if="isLogged"
-      class="hidden px-2.7 pt-0.8 mr-1.5 cursor-pointer rounded-full bg-white dark:bg-gray-900 max-h-35px <sm:(block)"
+      class="hidden px-2.7 pt-0.8 mr-1.5 cursor-pointer rounded-full bg-white dark:bg-gray-900 max-h-35px <sm:(block pt-1.5)"
     >
       <LogoutIcon @click="logout()"/>
     </div>
