@@ -101,7 +101,7 @@ const defaultMode = computed(() => !props.compactMode)
 }
 
 .default-entry {
-  @apply flex flex-row justify-between mb-1.5 py-3 rounded-3xl default-button sm:rounded-xl;
+  @apply flex flex-row justify-between mb-1.5 py-3 rounded-3xl default-button <sm:rounded-xl;
 }
 .compact-entry {
   @apply rounded-lg inline-block w-full flex;
@@ -110,10 +110,10 @@ const defaultMode = computed(() => !props.compactMode)
 }
 
 .default-icon {
-  @apply text-xm px-6 pt-1.75 sm:px-3;
+  @apply text-xm px-6 pt-1.75 <sm:px-3;
 }
 .compact-icon {
-  @apply text-xxs pl-4 pt-2 sm:px-3;
+  @apply text-xxs pl-4 pt-2 <sm:px-3;
 }
 
 .default-filename {
