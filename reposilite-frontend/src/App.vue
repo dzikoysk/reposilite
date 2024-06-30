@@ -63,7 +63,7 @@ html, body {
   min-height: calc(100vh - 2rem);
 }
 .container {
-  @apply px-10;
+  @apply px-10 <sm:px-2;
 }
 .active {
   @apply dark:border-white;
