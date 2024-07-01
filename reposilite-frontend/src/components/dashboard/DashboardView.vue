@@ -12,7 +12,7 @@ defineProps({
 </script>
 
 <template>
-  <div class="container mx-auto pt-6 px-15 pb-10 text-xs">
+  <div class="container mx-auto pt-6 px-15 pb-10 text-xs <sm:px-2 ">
     <div class="flex">
       <h1 class="font-bold pb-6 text-lg">Instance status</h1>
       <p class="text-3xl text-green-500 px-3 -mt-1 font-bold">•</p>
