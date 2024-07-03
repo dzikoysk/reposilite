@@ -113,7 +113,7 @@ internal fun Context.resultAttachment(
     }
 
     if (lastTimeModified != null) {
-        lastModified(lastTimeModified.atZone(ZoneId.systemDefault()))
+        lastModified(lastTimeModified)
     }
 
     when {
@@ -147,8 +147,10 @@ fun Context.encoding(encoding: String): Context =
 fun Context.contentDisposition(disposition: String): Context =
     header("Content-Disposition", disposition)
 
-fun Context.lastModified(time: ZonedDateTime): Context =
-    header(LAST_MODIFIED, DateTimeFormatter.RFC_1123_DATE_TIME.format(time))
+private val gmtZone = ZoneId.of("GMT")
+
+fun Context.lastModified(time: Instant): Context =
+    header(LAST_MODIFIED, DateTimeFormatter.RFC_1123_DATE_TIME.format(time.atZone(gmtZone)))
 
 fun Context.uri(): String =
     path()
