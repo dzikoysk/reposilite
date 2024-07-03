@@ -18,6 +18,7 @@ package com.reposilite.storage.api
 import com.reposilite.storage.api.FileType.DIRECTORY
 import com.reposilite.storage.api.FileType.FILE
 import io.javalin.http.ContentType
+import java.time.Instant
 
 const val UNKNOWN_LENGTH = -1L
 
@@ -28,7 +29,7 @@ enum class FileType {
 
 sealed class FileDetails(
     val type: FileType,
-    val name: String,
+    open val name: String,
 ) : Comparable<FileDetails> {
 
     override fun compareTo(other: FileDetails): Int =
@@ -38,16 +39,12 @@ sealed class FileDetails(
 
 }
 
-class DocumentInfo(
-    name: String,
+data class DocumentInfo(
+    override val name: String,
     val contentType: ContentType,
     val contentLength: Long = UNKNOWN_LENGTH,
-) : FileDetails(FILE, name) {
-
-    fun copy(name: String = this.name, contentType: ContentType = this.contentType, contentLength: Long = this.contentLength): DocumentInfo =
-        DocumentInfo(name, contentType, contentLength)
-
-}
+    val lastModifiedTime: Instant? = null,
+) : FileDetails(FILE, name)
 
 sealed class AbstractDirectoryInfo(
     name: String,

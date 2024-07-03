@@ -148,9 +148,10 @@ class S3StorageProvider(
 
     private fun toDocumentInfo(location: Location, head: HeadObjectResponse): FileDetails =
         DocumentInfo(
-            location.getSimpleName(),
-            ContentType.getContentTypeByExtension(location.getExtension()) ?: APPLICATION_OCTET_STREAM,
-            head.contentLength()
+            name = location.getSimpleName(),
+            contentType = ContentType.getContentTypeByExtension(location.getExtension()) ?: APPLICATION_OCTET_STREAM,
+            contentLength = head.contentLength(),
+            lastModifiedTime = head.lastModified(),
         )
 
     private fun toDirectoryInfo(location: Location, files: List<Location>): DirectoryInfo =

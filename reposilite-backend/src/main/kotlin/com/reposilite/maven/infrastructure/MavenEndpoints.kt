@@ -78,6 +78,7 @@ internal class MavenEndpoints(
                     name = it.document.name,
                     contentType = it.document.contentType,
                     contentLength = it.document.contentLength,
+                    lastTimeModified = it.document.lastModifiedTime,
                     compressionStrategy = compressionStrategy,
                     cache = it.cachable,
                     data = it.content

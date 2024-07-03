@@ -41,6 +41,9 @@ import panda.std.Result
 import panda.std.asSuccess
 import java.io.InputStream
 import java.net.Proxy
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 
 interface RemoteClientProvider {
 
@@ -79,10 +82,22 @@ class HttpRemoteClient(private val journalist: Journalist, proxy: Proxy?) : Remo
                     ?: ContentType.getContentTypeByExtension(uri.getExtension())
                     ?: ContentType.APPLICATION_OCTET_STREAM
 
+                val lastModified = headers.lastModified
+                    ?.trim()
+                    ?.takeIf { it.isNotEmpty() }
+                    ?.let {
+                        try {
+                            ZonedDateTime.parse(it, DateTimeFormatter.RFC_1123_DATE_TIME).toInstant()
+                        } catch (dateTimeParsedException: DateTimeParseException) {
+                            null
+                        }
+                    }
+
                 DocumentInfo(
-                    uri.toLocation().getSimpleName(),
-                    contentType,
-                    contentLength
+                    name = uri.toLocation().getSimpleName(),
+                    contentType = contentType,
+                    contentLength = contentLength,
+                    lastModifiedTime = lastModified,
                 ).asSuccess()
             }
 
