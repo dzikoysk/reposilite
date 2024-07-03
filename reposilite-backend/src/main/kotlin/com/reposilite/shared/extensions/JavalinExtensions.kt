@@ -26,6 +26,7 @@ import io.javalin.http.HandlerType.HEAD
 import io.javalin.http.HandlerType.OPTIONS
 import io.javalin.http.Header.CACHE_CONTROL
 import io.javalin.http.Header.CONTENT_SECURITY_POLICY
+import io.javalin.http.Header.LAST_MODIFIED
 import io.javalin.http.HttpStatus
 import java.io.Closeable
 import java.io.InputStream
@@ -35,6 +36,12 @@ import java.nio.charset.Charset
 import kotlin.time.Duration.Companion.hours
 import org.eclipse.jetty.server.HttpOutput
 import panda.std.Result
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.ZonedDateTime
+
+
 
 internal class ContentTypeSerializer : StdSerializer<ContentType> {
 
@@ -90,6 +97,7 @@ internal fun Context.resultAttachment(
     name: String,
     contentType: ContentType,
     contentLength: Long,
+    lastTimeModified: Instant?,
     compressionStrategy: String,
     cache: Boolean,
     data: InputStream
@@ -104,10 +112,13 @@ internal fun Context.resultAttachment(
         contentLength(contentLength) // Using this with GZIP ends up with "Premature end of Content-Length delimited message body".
     }
 
-    if (cache) {
-        header(CACHE_CONTROL, "public, max-age=$maxAge")
-    } else {
-        header(CACHE_CONTROL, "no-cache, no-store, max-age=0")
+    if (lastTimeModified != null) {
+        lastModified(lastTimeModified)
+    }
+
+    when {
+        cache -> header(CACHE_CONTROL, "public, max-age=$maxAge")
+        else -> header(CACHE_CONTROL, "no-cache, no-store, max-age=0")
     }
 
     when {
@@ -135,6 +146,11 @@ fun Context.encoding(encoding: String): Context =
 
 fun Context.contentDisposition(disposition: String): Context =
     header("Content-Disposition", disposition)
+
+private val gmtZone = ZoneId.of("GMT")
+
+fun Context.lastModified(time: Instant): Context =
+    header(LAST_MODIFIED, DateTimeFormatter.RFC_1123_DATE_TIME.format(time.atZone(gmtZone)))
 
 fun Context.uri(): String =
     path()

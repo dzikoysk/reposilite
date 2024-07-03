@@ -54,6 +54,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import kotlin.streams.asSequence
 import panda.std.Result
 import panda.std.asSuccess
+import java.nio.file.attribute.BasicFileAttributes
 
 /**
  * @param rootDirectory root directory of storage space
@@ -157,22 +158,28 @@ abstract class FileSystemStorageProvider protected constructor(
                 }
             }
 
-    private fun toDocumentInfo(file: Path): Result<DocumentInfo, ErrorResponse> =
-        DocumentInfo(
-            file.getSimpleName(),
-            ContentType.getContentTypeByExtension(file.getExtension()) ?: APPLICATION_OCTET_STREAM,
-            Files.size(file)
-        ).asSuccess()
+    private fun toDocumentInfo(path: Path): Result<DocumentInfo, ErrorResponse> =
+        path
+            .let { Files.readAttributes(path, BasicFileAttributes::class.java) }
+            .let {
+                DocumentInfo(
+                    name = path.getSimpleName(),
+                    contentType = ContentType.getContentTypeByExtension(path.getExtension()) ?: APPLICATION_OCTET_STREAM,
+                    contentLength = it.size(),
+                    lastModifiedTime = it.lastModifiedTime().toInstant(),
+                )
+            }.asSuccess()
 
     private fun toDirectoryInfo(directory: Path): Result<DirectoryInfo, ErrorResponse> =
         DirectoryInfo(
-            directory.getSimpleName(),
-            Files.list(directory).use { directoryStream ->
-                directoryStream.asSequence()
-                    .map { toSimpleFileDetails(it).orThrow { error -> IOException(error.message) } }
-                    .sortedWith(FilesComparator({ VersionComparator.asVersion(it.name) }, { it.type == DIRECTORY }))
-                    .toList()
-            }
+            name = directory.getSimpleName(),
+            files =
+                Files.list(directory).use { directoryStream ->
+                    directoryStream.asSequence()
+                        .map { toSimpleFileDetails(it).orThrow { error -> IOException(error.message) } }
+                        .sortedWith(FilesComparator({ VersionComparator.asVersion(it.name) }, { it.type == DIRECTORY }))
+                        .toList()
+                }
         ).asSuccess()
 
     private fun toSimpleFileDetails(file: Path): Result<out FileDetails, ErrorResponse> =
