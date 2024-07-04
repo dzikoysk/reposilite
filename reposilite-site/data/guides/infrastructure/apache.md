@@ -18,7 +18,7 @@ The most basic configuration should look like this:
 
     RewriteCond %{HTTP:Upgrade} =websocket [NC]
     RewriteRule ^/api/(.*) ws://127.0.0.1:8081/api/$1 [P,L]
-<IfModule mod_rewrite.c>
+</IfModule>
 
 ProxyPass / http://127.0.0.1:8081/
 ProxyPassReverse / http://127.0.0.1:8081/
@@ -49,7 +49,7 @@ If you're running reposilite under a custom base path (e.g. `repo.example.com/re
         # reposilite is listening on 127.0.0.1:8081
         RewriteCond %{HTTP:Upgrade} =websocket [NC]
         RewriteRule ^/reposilite/api/(.*) ws://127.0.0.1:8081/api/$1 [P,L]
-    <IfModule mod_rewrite.c>
+    </IfModule>
 
     ProxyPass /reposilite/ http://127.0.0.1:8081/
     ProxyPassReverse /reposilite/ http://127.0.0.1:8081/
