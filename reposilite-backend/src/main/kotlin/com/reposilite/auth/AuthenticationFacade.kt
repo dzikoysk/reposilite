@@ -35,7 +35,7 @@ import java.util.concurrent.TimeUnit.MINUTES
 
 class AuthenticationFacade(
     private val journalist: Journalist,
-    private val authenticators: List<Authenticator>,
+    private val authenticators: MutableList<Authenticator>,
     private val accessTokenFacade: AccessTokenFacade
 ) : Journalist, Facade {
 
@@ -43,6 +43,10 @@ class AuthenticationFacade(
         .maximumSize(16)
         .expireAfterAccess(1, MINUTES)
         .build()
+
+    fun registerAuthenticator(authenticator: Authenticator) {
+        this.authenticators.add(authenticator)
+    }
 
     fun authenticateByCredentials(credentials: Credentials): Result<out AccessTokenDto, ErrorResponse> =
         authenticationCache.getIfPresent(credentials)

@@ -47,13 +47,13 @@ class AuthenticationComponents(
             disableUserPasswordAuthentication = disableUserPasswordAuthentication,
         )
 
-    private fun authenticators(): List<Authenticator> =
-        listOf(
+    private fun authenticators(): MutableList<Authenticator> =
+        arrayListOf(
             basicAuthenticator(),
             ldapAuthenticator()
         )
 
-    fun authenticationFacade(authenticators: List<Authenticator> = authenticators()): AuthenticationFacade =
+    fun authenticationFacade(authenticators: MutableList<Authenticator> = authenticators()): AuthenticationFacade =
         AuthenticationFacade(
             journalist = journalist,
             authenticators = authenticators,
