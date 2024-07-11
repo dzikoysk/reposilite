@@ -16,7 +16,7 @@ User=reposilite-user
 # Reposilite workspace directory
 WorkingDirectory=/opt/reposilite
 # Path to Reposilite executable/script and its configuration.
-ExecStart=java -jar reposilite-3.0.0.jar --config=/etc/reposilite/reposilite.cdn
+ExecStart=java -jar reposilite.jar --local-configuration=/etc/reposilite/reposilite.cdn --working-directory=/opt/reposilite
 # Policy
 SuccessExitStatus=0
 TimeoutStopSec=10
