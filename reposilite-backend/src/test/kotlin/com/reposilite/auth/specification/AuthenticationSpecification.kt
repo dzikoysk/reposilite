@@ -36,7 +36,7 @@ internal abstract class AuthenticationSpecification : AccessTokenSpecification()
     fun createAuthenticationFacade() {
         this.authenticationFacade = AuthenticationFacade(
             journalist = logger,
-            authenticators = listOf(
+            authenticators = mutableListOf(
                 BasicAuthenticator(accessTokenFacade),
                 LdapAuthenticator(
                     journalist = logger,
