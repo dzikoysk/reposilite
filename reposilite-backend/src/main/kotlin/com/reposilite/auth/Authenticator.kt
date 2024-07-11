@@ -27,6 +27,8 @@ interface Authenticator {
 
     fun enabled(): Boolean
 
+    fun priority(): Int = 0
+
     fun realm(): String
 
 }

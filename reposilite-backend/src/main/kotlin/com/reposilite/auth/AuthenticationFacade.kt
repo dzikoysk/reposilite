@@ -46,6 +46,7 @@ class AuthenticationFacade(
 
     fun registerAuthenticator(authenticator: Authenticator) {
         this.authenticators.add(authenticator)
+        this.authenticators.sortWith(compareByDescending { authenticator.priority() })
     }
 
     fun authenticateByCredentials(credentials: Credentials): Result<out AccessTokenDto, ErrorResponse> =
