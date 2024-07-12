@@ -26,6 +26,7 @@ import com.reposilite.status.FailureFacade
 import com.reposilite.token.AccessTokenFacade
 import panda.std.reactive.Reference
 import panda.std.reactive.Reference.Dependencies
+import java.util.SortedSet
 
 class AuthenticationComponents(
     private val journalist: Journalist,
@@ -47,13 +48,14 @@ class AuthenticationComponents(
             disableUserPasswordAuthentication = disableUserPasswordAuthentication,
         )
 
-    private fun authenticators(): MutableList<Authenticator> =
-        arrayListOf(
+    private fun authenticators(): SortedSet<Authenticator> =
+        sortedSetOf(
+            Authenticator.priorityComparator,
             basicAuthenticator(),
             ldapAuthenticator()
         )
 
-    fun authenticationFacade(authenticators: MutableList<Authenticator> = authenticators()): AuthenticationFacade =
+    fun authenticationFacade(authenticators: SortedSet<Authenticator> = authenticators()): AuthenticationFacade =
         AuthenticationFacade(
             journalist = journalist,
             authenticators = authenticators,

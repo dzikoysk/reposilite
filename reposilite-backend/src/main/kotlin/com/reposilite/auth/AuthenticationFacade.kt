@@ -31,11 +31,12 @@ import com.reposilite.token.AccessTokenIdentifier
 import com.reposilite.token.api.AccessTokenDto
 import panda.std.Result
 import panda.std.asSuccess
+import java.util.SortedSet
 import java.util.concurrent.TimeUnit.MINUTES
 
 class AuthenticationFacade(
     private val journalist: Journalist,
-    private val authenticators: MutableList<Authenticator>,
+    private val authenticators: SortedSet<Authenticator>,
     private val accessTokenFacade: AccessTokenFacade
 ) : Journalist, Facade {
 

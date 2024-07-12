@@ -35,6 +35,9 @@ internal class BasicAuthenticator(private val accessTokenFacade: AccessTokenFaca
     override fun enabled(): Boolean =
         true
 
+    override fun priority(): Double =
+        0.0
+
     override fun realm(): String =
         "Basic"
 

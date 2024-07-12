@@ -219,6 +219,9 @@ internal class LdapAuthenticator(
     override fun enabled(): Boolean =
         ldapSettings.map { it.enabled }
 
+    override fun priority(): Double =
+        -1.0
+
     override fun realm(): String =
         "LDAP"
 

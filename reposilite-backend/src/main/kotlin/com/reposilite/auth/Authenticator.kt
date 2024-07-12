@@ -27,6 +27,13 @@ interface Authenticator {
 
     fun enabled(): Boolean
 
+    fun priority(): Double
+
     fun realm(): String
 
+    companion object {
+
+        val priorityComparator = compareByDescending<Authenticator>{it.priority()}
+
+    }
 }
