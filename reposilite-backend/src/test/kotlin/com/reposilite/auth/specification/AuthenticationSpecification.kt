@@ -17,6 +17,7 @@
 package com.reposilite.auth.specification
 
 import com.reposilite.auth.AuthenticationFacade
+import com.reposilite.auth.Authenticator
 import com.reposilite.auth.BasicAuthenticator
 import com.reposilite.auth.LdapAuthenticator
 import com.reposilite.auth.application.LdapSettings
@@ -36,7 +37,8 @@ internal abstract class AuthenticationSpecification : AccessTokenSpecification()
     fun createAuthenticationFacade() {
         this.authenticationFacade = AuthenticationFacade(
             journalist = logger,
-            authenticators = mutableListOf(
+            authenticators = sortedSetOf(
+                Authenticator.priorityComparator,
                 BasicAuthenticator(accessTokenFacade),
                 LdapAuthenticator(
                     journalist = logger,
