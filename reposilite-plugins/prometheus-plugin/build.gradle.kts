@@ -32,6 +32,8 @@ dependencies {
     implementation("io.prometheus:prometheus-metrics-core:$prometheus")
     implementation("io.prometheus:prometheus-metrics-instrumentation-jvm:$prometheus")
     implementation("io.prometheus:prometheus-metrics-exporter-common:$prometheus")
+
+    testImplementation(project(":reposilite-backend"))
 }
 
 tasks.withType<ShadowJar> {

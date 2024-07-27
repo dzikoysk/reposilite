@@ -24,7 +24,7 @@ import kotlin.time.DurationUnit
 @Plugin(name = "prometheus", dependencies = ["failure", "statistics", "status"])
 class PrometheusPlugin : ReposilitePlugin() {
 
-    override fun initialize(): Facade {
+    override fun initialize(): PrometheusFacade {
         logger.info("")
         logger.info("--- Prometheus")
 
