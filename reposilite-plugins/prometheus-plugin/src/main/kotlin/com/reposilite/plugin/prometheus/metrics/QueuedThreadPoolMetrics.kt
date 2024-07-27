@@ -1,19 +1,13 @@
 package com.reposilite.plugin.prometheus.metrics
 
-import io.prometheus.metrics.config.PrometheusProperties
 import io.prometheus.metrics.core.metrics.GaugeWithCallback
-import io.prometheus.metrics.model.registry.PrometheusRegistry
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 import io.prometheus.metrics.model.snapshots.Unit as MetricsUnit
 
 
-class QueuedThreadPoolMetrics(
-    private val config: PrometheusProperties,
-    private val queuedThreadPool: QueuedThreadPool
-) {
-
-    private fun register(registry: PrometheusRegistry) {
-        GaugeWithCallback.builder(config)
+object QueuedThreadPoolMetrics {
+    fun register(queuedThreadPool: QueuedThreadPool) {
+        GaugeWithCallback.builder()
             .name("jetty_queued_thread_pool_threads_state")
             .help("Number of threads by state")
             .labelNames("state")
@@ -27,40 +21,25 @@ class QueuedThreadPoolMetrics(
                 callback.call(queuedThreadPool.utilizedThreads.toDouble(), "utilized")
                 callback.call(queuedThreadPool.maxAvailableThreads.toDouble(), "max_available")
             }
-            .register(registry)
+            .register()
 
-        GaugeWithCallback.builder(config)
+        GaugeWithCallback.builder()
             .name("jetty_queued_thread_pool_utilization")
             .help("Percentage of threads in use")
             .unit(MetricsUnit.RATIO)
             .callback { callback -> callback.call(queuedThreadPool.utilizationRate) }
-            .register(registry)
+            .register()
 
-        GaugeWithCallback.builder(config)
+        GaugeWithCallback.builder()
             .name("jetty_queued_thread_pool_jobs")
             .help("Number of total jobs")
             .callback { callback -> callback.call(queuedThreadPool.queueSize.toDouble()) }
-            .register(registry)
+            .register()
 
-        GaugeWithCallback.builder(config)
+        GaugeWithCallback.builder()
             .name("jetty_queued_thread_pool_low_on_threads")
             .help("Number of total jobs")
             .callback { callback -> callback.call(if (queuedThreadPool.isLowOnThreads) 1.0 else 0.0) }
-            .register(registry)
-    }
-
-    class Builder(private val config: PrometheusProperties) {
-        var queuedThreadPool: QueuedThreadPool? = null
-
-        fun register(registry: PrometheusRegistry = PrometheusRegistry.defaultRegistry) =
-            QueuedThreadPoolMetrics(config, queuedThreadPool!!).apply {
-                register(registry)
-            }
-    }
-
-    companion object {
-        fun builder(build: Builder.() -> Unit) = builder(PrometheusProperties.get(), build)
-
-        fun builder(config: PrometheusProperties, build: Builder.() -> Unit) = Builder(config).also { it.build() }
+            .register()
     }
 }

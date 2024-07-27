@@ -7,15 +7,15 @@ import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
-import com.reposilite.plugin.prometheus.metrics.JettyStatisticsHandlerMetrics
+import com.reposilite.plugin.prometheus.metrics.JettyMetrics
 import com.reposilite.plugin.prometheus.metrics.QueuedThreadPoolMetrics
 import com.reposilite.plugin.prometheus.metrics.ReposiliteMetrics
-import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.status.FailureFacade
 import com.reposilite.status.StatusFacade
 import com.reposilite.web.api.HttpServerConfigurationEvent
 import com.reposilite.web.api.RoutingSetupEvent
 import io.prometheus.metrics.instrumentation.jvm.JvmMetrics
+import org.eclipse.jetty.server.Response
 import org.eclipse.jetty.server.handler.StatisticsHandler
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 import kotlin.time.Duration.Companion.milliseconds
@@ -49,21 +49,17 @@ class PrometheusPlugin : ReposilitePlugin() {
         JvmMetrics.builder().register()
         logger.info("Prometheus | JVM metrics has been initialized.")
 
-        val reposiliteMetrics = ReposiliteMetrics.builder {
-            statisticsFacade = facade<StatisticsFacade>()
-            statusFacade = facade<StatusFacade>()
-            failureFacade = facade<FailureFacade>()
-        }.register()
+        ReposiliteMetrics.register(facade<StatusFacade>(), facade<FailureFacade>())
 
         event { event: ResolvedFileEvent ->
             event.result.map { (info, _) ->
-                reposiliteMetrics.responseFileSizeSummary.observe(info.contentLength.toDouble())
-                reposiliteMetrics.resolvedFileCounter.inc()
+                ReposiliteMetrics.responseFileSizeSummary.observe(info.contentLength.toDouble())
+                ReposiliteMetrics.resolvedFileCounter.inc()
             }
         }
 
         event { _: DeployEvent ->
-            reposiliteMetrics.mavenDeployCounter.inc()
+            ReposiliteMetrics.mavenDeployCounter.inc()
         }
 
         logger.info("Prometheus | Reposilite metrics has been initialized")
@@ -74,21 +70,27 @@ class PrometheusPlugin : ReposilitePlugin() {
             val handler = StatisticsHandler()
             server.handler = handler
 
-            val jettyMetrics = JettyStatisticsHandlerMetrics.builder {
-                statisticsHandler = handler
-            }.register()
-
-            // Abusing request log, as it's the only way to get the time the request was sent
-            server.setRequestLog { request, response ->
-                jettyMetrics.responseTimeSummary.labelValues(response.status.toString())
-                    .observe((System.currentTimeMillis() - request.timeStamp).milliseconds.toDouble(DurationUnit.SECONDS))
-
-                jettyMetrics.responseSizeSummary.observe(response.contentCount.toDouble())
-            }
+            JettyMetrics.register(handler)
 
             event.config.router.mount {
+                it.before { ctx ->
+                    ctx.attribute("timestamp", System.currentTimeMillis())
+                }
+
                 it.after { ctx ->
-                    jettyMetrics.responseCounter.labelValues(ctx.statusCode().toString()).inc()
+                    JettyMetrics.responseCounter.labelValues(ctx.statusCode().toString()).inc()
+
+                    val currentTime = System.currentTimeMillis()
+                    val timestamp = ctx.attribute<Long>("timestamp")
+
+                    if (timestamp != null)
+                        JettyMetrics.responseTimeSummary.labelValues(ctx.statusCode().toString())
+                            .observe((currentTime - timestamp).milliseconds.toDouble(DurationUnit.SECONDS))
+
+
+                    val response = ctx.res()
+                    if (response is Response) // should always succeed
+                        JettyMetrics.responseSizeSummary.observe(response.contentCount.toDouble())
                 }
             }
 
@@ -97,9 +99,7 @@ class PrometheusPlugin : ReposilitePlugin() {
 
             when (val threadPool = server.threadPool) {
                 is QueuedThreadPool -> {
-                    QueuedThreadPoolMetrics.builder {
-                        queuedThreadPool = threadPool
-                    }.register()
+                    QueuedThreadPoolMetrics.register(threadPool)
                     logger.info("Prometheus | Queued Thread Pool metrics has been initialized.")
                 }
 
@@ -108,7 +108,12 @@ class PrometheusPlugin : ReposilitePlugin() {
         }
 
         event { event: RoutingSetupEvent ->
-            event.registerRoutes(PrometheusEndpoints(prometheusFacade = prometheusFacade, prometheusPath = prometheusPath))
+            event.registerRoutes(
+                PrometheusEndpoints(
+                    prometheusFacade = prometheusFacade,
+                    prometheusPath = prometheusPath
+                )
+            )
         }
 
         return prometheusFacade
