@@ -1,21 +1,30 @@
 package com.reposilite.plugin.prometheus
 
+import com.reposilite.maven.api.DeployEvent
+import com.reposilite.maven.api.ResolvedFileEvent
 import com.reposilite.plugin.api.Facade
 import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
-import com.reposilite.plugin.prometheus.collectors.QueuedThreadPoolCollector
-import com.reposilite.plugin.prometheus.collectors.StatisticsHandlerCollector
+import com.reposilite.plugin.prometheus.metrics.JettyStatisticsHandlerMetrics
+import com.reposilite.plugin.prometheus.metrics.QueuedThreadPoolMetrics
+import com.reposilite.plugin.prometheus.metrics.ReposiliteMetrics
+import com.reposilite.statistics.StatisticsFacade
+import com.reposilite.status.FailureFacade
+import com.reposilite.status.StatusFacade
 import com.reposilite.web.api.HttpServerConfigurationEvent
 import com.reposilite.web.api.RoutingSetupEvent
+import io.prometheus.metrics.instrumentation.jvm.JvmMetrics
 import org.eclipse.jetty.server.handler.StatisticsHandler
 import org.eclipse.jetty.util.thread.QueuedThreadPool
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.DurationUnit
 
-@Plugin(name = "prometheus", dependencies = ["failure"])
+@Plugin(name = "prometheus", dependencies = ["failure", "statistics", "status"])
 class PrometheusPlugin : ReposilitePlugin() {
 
-    override fun initialize(): Facade? {
+    override fun initialize(): Facade {
         logger.info("")
         logger.info("--- Prometheus")
 
@@ -32,38 +41,72 @@ class PrometheusPlugin : ReposilitePlugin() {
             ?: throw IllegalStateException("Prometheus password is not defined")
 
         val prometheusFacade = PrometheusFacade(
-            failureFacade = facade(),
+            failureFacade = facade<FailureFacade>(),
             prometheusUser = prometheusUser,
             prometheusPassword = prometheusPassword
         )
 
-        event { event: HttpServerConfigurationEvent ->
-            val server = event.config.pvt.jetty.server!!
+        val reposiliteMetrics = ReposiliteMetrics.builder {
+            statisticsFacade = facade<StatisticsFacade>()
+            statusFacade = facade<StatusFacade>()
+            failureFacade = facade<FailureFacade>()
+        }.register()
+        logger.info("Prometheus | Reposilite metrics has been initialized")
 
-            val statisticsHandler = StatisticsHandler()
-            server.handler = statisticsHandler
-            StatisticsHandlerCollector.initialize(statisticsHandler)
-            logger.info("Prometheus | Default StatisticsHandler collector has been initialized.")
+        event { event: HttpServerConfigurationEvent ->
+            JvmMetrics.builder().register()
+            logger.info("Prometheus | JVM metrics has been initialized.")
+
+            val server = event.config.pvt.jetty.server!!
+            val handler = StatisticsHandler()
+            server.handler = handler
+
+            JettyStatisticsHandlerMetrics.builder {
+                statisticsHandler = handler
+            }.register()
+            logger.info("Prometheus | Jetty StatisticsHandler metrics has been initialized.")
+
 
             when (val threadPool = server.threadPool) {
                 is QueuedThreadPool -> {
-                    QueuedThreadPoolCollector.initialize(threadPool)
-                    logger.info("Prometheus | QueuedThreadPool collector has been initialized.")
+                    QueuedThreadPoolMetrics.builder {
+                        queuedThreadPool = threadPool
+                    }.register()
+                    logger.info("Prometheus | Queued Thread Pool metrics has been initialized.")
                 }
-                else -> logger.info("Prometheus | Unsupported thread pool for collector: ${threadPool.javaClass.name}")
+
+                else -> logger.warn("Prometheus | Unsupported thread pool for metrics: ${threadPool.javaClass.name}, ignoring")
+            }
+
+
+            // Abusing request log, as it's the only way to get the time the request was sent
+            server.setRequestLog { request, response ->
+                reposiliteMetrics.responseTimeSummary.labelValues(request.requestURI, response.status.toString())
+                    .observe((System.currentTimeMillis() - request.timeStamp).milliseconds.toDouble(DurationUnit.SECONDS))
+            }
+
+            event.config.router.mount {
+                it.after { ctx ->
+                    reposiliteMetrics.responseCounter.labelValues(ctx.statusCode().toString()).inc()
+                }
             }
         }
 
-        event { event: RoutingSetupEvent ->
-            event.registerRoutes(
-                PrometheusEndpoints(
-                    prometheusFacade = prometheusFacade,
-                    prometheusPath = prometheusPath
-                )
-            )
+        event { event: ResolvedFileEvent ->
+            event.result.map { (info, _) ->
+                reposiliteMetrics.responseFileSizeSummary.observe(info.contentLength.toDouble())
+            }
         }
 
-        return null
+        event { _: DeployEvent ->
+            reposiliteMetrics.mavenDeployCounter.inc()
+        }
+
+        event { event: RoutingSetupEvent ->
+            event.registerRoutes(PrometheusEndpoints(prometheusFacade = prometheusFacade, prometheusPath = prometheusPath))
+        }
+
+        return prometheusFacade
     }
 
 }
