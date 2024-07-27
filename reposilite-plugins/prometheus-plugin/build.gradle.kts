@@ -28,8 +28,12 @@ application {
 dependencies {
     compileOnly(project(":reposilite-backend"))
 
-    val prometheus = "0.16.0"
-    implementation("io.prometheus:simpleclient_servlet_jakarta:$prometheus")
+    val prometheus = "1.3.1"
+    implementation("io.prometheus:prometheus-metrics-core:$prometheus")
+    implementation("io.prometheus:prometheus-metrics-instrumentation-jvm:$prometheus")
+    implementation("io.prometheus:prometheus-metrics-exporter-common:$prometheus")
+
+    testImplementation(project(":reposilite-backend"))
 }
 
 tasks.withType<ShadowJar> {
