@@ -1,8 +1,10 @@
-package com.reposilite.plugin.prometheus.metrics
+        package com.reposilite.plugin.prometheus.metrics
 
 import io.prometheus.metrics.config.PrometheusProperties
+import io.prometheus.metrics.core.metrics.Counter
 import io.prometheus.metrics.core.metrics.CounterWithCallback
 import io.prometheus.metrics.core.metrics.GaugeWithCallback
+import io.prometheus.metrics.core.metrics.Summary
 import io.prometheus.metrics.model.registry.PrometheusRegistry
 import org.eclipse.jetty.server.handler.StatisticsHandler
 import kotlin.Unit
@@ -15,6 +17,9 @@ class JettyStatisticsHandlerMetrics(
     private val config: PrometheusProperties,
     private val statisticsHandler: StatisticsHandler
 ) {
+    lateinit var responseTimeSummary: Summary
+    lateinit var responseSizeSummary: Summary
+    lateinit var responseCounter: Counter
 
     private fun register(registry: PrometheusRegistry) {
         CounterWithCallback.builder(config)
@@ -177,6 +182,25 @@ class JettyStatisticsHandlerMetrics(
             .callback { callback -> callback.call(statisticsHandler.responsesBytesTotal.toDouble()) }
             .register(registry)
 
+        responseSizeSummary = Summary.builder(config)
+            .name("jetty_response_bytes")
+            .help("Size in bytes of responses")
+            .unit(MetricsUnit.BYTES)
+            .quantile(0.01, 0.05, 0.1, 0.5, 0.9, 0.95, 0.99)
+            .register(registry)
+
+        responseTimeSummary = Summary.builder(config)
+            .name("jetty_response_time_seconds")
+            .help("Time spent for a response")
+            .labelNames("code")
+            .quantile(0.01, 0.05, 0.1, 0.5, 0.9, 0.95, 0.99)
+            .register(registry)
+
+        responseCounter = Counter.builder(config)
+            .name("reposilite_responses_total")
+            .help("Total response count")
+            .labelNames("code")
+            .register(registry)
     }
 
     class Builder(private val config: PrometheusProperties) {
@@ -192,5 +216,12 @@ class JettyStatisticsHandlerMetrics(
         fun builder(build: Builder.() -> Unit) = builder(PrometheusProperties.get(), build)
 
         fun builder(config: PrometheusProperties, build: Builder.() -> Unit) = Builder(config).also { it.build() }
+    }
+
+    fun Summary.Builder.quantile(vararg quantiles: Double): Summary.Builder {
+        for (quantile in quantiles) {
+            this.quantile(quantile)
+        }
+        return this
     }
 }

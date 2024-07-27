@@ -20,15 +20,14 @@ class ReposiliteMetrics(
     private val statusFacade: StatusFacade,
     private val failureFacade: FailureFacade,
 ) {
-    lateinit var responseTimeSummary: Summary
     lateinit var responseFileSizeSummary: Summary
-    lateinit var responseCounter: Counter
+    lateinit var resolvedFileCounter: Counter
     lateinit var mavenDeployCounter: Counter
 
     private fun register(registry: PrometheusRegistry) {
         GaugeWithCallback.builder(config)
             .name("reposilite_uptime_seconds")
-            .help("Uptime")
+            .help("Uptime of reposilite")
             .unit(MetricsUnit.SECONDS)
             .callback { callback -> callback.call(statusFacade.fetchInstanceStatus().uptime.milliseconds.toDouble(DurationUnit.SECONDS)) }
             .register(registry)
@@ -41,28 +40,19 @@ class ReposiliteMetrics(
 
         responseFileSizeSummary = Summary.builder(config)
             .name("reposilite_response_file_size_bytes")
-            .help("Size in bytes of responses")
+            .help("Size in bytes of response files")
             .unit(MetricsUnit.BYTES)
             .quantile(0.01, 0.05, 0.1, 0.5, 0.9, 0.95, 0.99)
-            .register(registry)
-
-        responseTimeSummary = Summary.builder(config)
-            .name("reposilite_response_time_seconds")
-            .help("Size in bytes of responses")
-            .unit(MetricsUnit.BYTES)
-            .labelNames("code")
-            .quantile(0.01, 0.05, 0.1, 0.5, 0.9, 0.95, 0.99)
-            .register(registry)
-
-        responseCounter = Counter.builder(config)
-            .name("reposilite_response_total")
-            .help("Total response count")
-            .labelNames("code")
             .register(registry)
 
         mavenDeployCounter = Counter.builder(config)
             .name("reposilite_deploy_total")
             .help("Total successful deployments count")
+            .register(registry)
+
+        resolvedFileCounter = Counter.builder(config)
+            .name("reposilite_resolved_total")
+            .help("Total resolved files count")
             .register(registry)
     }
 
