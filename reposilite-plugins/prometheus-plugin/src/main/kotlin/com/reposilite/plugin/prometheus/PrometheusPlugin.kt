@@ -81,7 +81,7 @@ class PrometheusPlugin : ReposilitePlugin() {
 
             // Abusing request log, as it's the only way to get the time the request was sent
             server.setRequestLog { request, response ->
-                reposiliteMetrics.responseTimeSummary.labelValues(request.requestURI, response.status.toString())
+                reposiliteMetrics.responseTimeSummary.labelValues(response.status.toString())
                     .observe((System.currentTimeMillis() - request.timeStamp).milliseconds.toDouble(DurationUnit.SECONDS))
             }
 

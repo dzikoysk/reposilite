@@ -31,7 +31,7 @@ dependencies {
     val prometheus = "1.3.1"
     implementation("io.prometheus:prometheus-metrics-core:$prometheus")
     implementation("io.prometheus:prometheus-metrics-instrumentation-jvm:$prometheus")
-    implementation("io.prometheus:prometheus-metrics-exporter-servlet-jakarta:$prometheus")
+    implementation("io.prometheus:prometheus-metrics-exporter-common:$prometheus")
 }
 
 tasks.withType<ShadowJar> {

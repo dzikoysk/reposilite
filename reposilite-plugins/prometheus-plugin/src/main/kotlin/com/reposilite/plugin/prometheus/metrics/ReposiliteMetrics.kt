@@ -50,7 +50,7 @@ class ReposiliteMetrics(
             .name("reposilite_response_time_seconds")
             .help("Size in bytes of responses")
             .unit(MetricsUnit.BYTES)
-            .labelNames("path", "code")
+            .labelNames("code")
             .quantile(0.01, 0.05, 0.1, 0.5, 0.9, 0.95, 0.99)
             .register(registry)
 
