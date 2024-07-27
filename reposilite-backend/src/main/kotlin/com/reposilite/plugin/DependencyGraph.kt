@@ -40,9 +40,9 @@ fun toFlattenedDependencyGraph(declarations: Map<String, List<String>>): List<St
         val node = nodesWithNoIncomingEdges.pop()
         topologicalOrdering.add(node)
 
-        declarations[node]!!.forEach { neighbor ->
-            if (indegrees.compute(neighbor) { _, value -> (value ?: 1) - 1 } == 0) {
-                nodesWithNoIncomingEdges.push(neighbor)
+        declarations[node]!!.forEach { neighbour ->
+            if (indegrees.compute(neighbour) { _, value -> (value ?: 1) - 1 } == 0) {
+                nodesWithNoIncomingEdges.push(neighbour)
             }
         }
     }
@@ -61,10 +61,10 @@ fun toFlattenedDependencyGraph(declarations: Map<String, List<String>>): List<St
 private fun deepSearch(declarations: Map<String, List<String>>, track: Set<String>, current: String): List<String>? =
     declarations[current]!!.asSequence()
         .map { dependency ->
-            if (track.contains(dependency))
-                track.toMutableList().also { it.add(dependency) }
-            else
-                deepSearch(declarations, track.toMutableSet().also { it.add(dependency) }, dependency)
+            when {
+                track.contains(dependency) -> track.toMutableList().also { it.add(dependency) }
+                else -> deepSearch(declarations, track.toMutableSet().also { it.add(dependency) }, dependency)
+            }
         }
         .filterNotNull()
         .firstOrNull()
