@@ -70,9 +70,16 @@ internal class ConsoleSseHandler(
                         journalist.logger.info("CLI | $identifier accessed remote console")
 
                         val subscriberId = journalist.subscribe {
-                            if (!sse.terminated()) {
-                                sse.sendEvent(SSE_EVENT_NAME, it.value)
-                            } else {
+                            // TODO: do better
+                            try {
+                                if (!sse.terminated()) {
+                                    sse.sendEvent(SSE_EVENT_NAME, it.value)
+                                } else {
+                                    sse.close()
+                                }
+                            } catch (ignored: ClosedChannelException) {
+                                sse.close()
+                            } catch (ignored: InterruptedException) {
                                 sse.close()
                             }
                         }
