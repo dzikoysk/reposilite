@@ -16,12 +16,12 @@
 
 import { ref } from "vue"
 import { createURL } from '../client'
-import { fetchEventSource } from "@microsoft/fetch-event-source"
-import {useSession} from "../session.js";
+import { EventSource as Eventsource } from 'extended-eventsource';
+import { useSession } from "../session.js";
 
 const { client } = useSession()
 
-const connected = ref()
+const connection = ref()
 const command = ref("")
 
 export default function useConsole() {
@@ -30,10 +30,15 @@ export default function useConsole() {
 
   let abortController;
 
-  const isConnected = () => connected.value
+  const isConnected = () => {
+    // TODO: stop using built-in EventSource for readystate constants
+    //  (the ones from extended-eventsource return undefined for some reason)
+    return connection.value?.readyState === EventSource.OPEN
+  }
 
   const close = () => {
-    abortController?.abort("Closing connection")
+    if (isConnected())
+      connection.value.close()
   }
 
   const history = ref([''])
@@ -49,7 +54,6 @@ export default function useConsole() {
   const execute = () => {
     addCommandToHistory(command.value)
     client.value.console.execute(command.value)
-        .catch(error => console.log(error))
     command.value = ''
   }
 
@@ -77,40 +81,41 @@ export default function useConsole() {
   const onClose = ref()
 
   const connect = (token) => {
-    const abortController = new AbortController()
-
     try {
-      fetchEventSource(consoleAddress, {
-        signal: abortController.signal,
-        openWhenHidden: true,
+      connection.value = new Eventsource(consoleAddress, {
         headers: {
           Authorization: `xBasic ${btoa(`${token.name}:${token.secret}`)}`
         },
-        onopen: async (response) => {
-          //connection.value.send(`Authorization:${token.name}:${token.secret}`)
-          connected.value = true
-          onOpen?.value()
-        },
-        onmessage: (message) => {
-          //if (message.data != "keep-alive" && !message.data.toString().includes("GET /api/status/instance from"))
-          if (message.event === "log")
-            onMessage?.value(message.data)
-        },
-        onerror: (error) => {
-          onError?.value(error)
-        },
-        onclose: () => {
-          onClose?.value()
-          connected.value = false
-        }
+        disableRetry: true
       })
+
+      connection.value.onopen = () => {
+        onOpen?.value()
+      }
+
+      connection.value.addEventListener("log", (event) => {
+        if (!event.data.toString().includes("GET /api/status/instance from"))
+          onMessage?.value(event.data)
+      })
+
+      connection.value.onerror = (error) => {
+        if (error instanceof TypeError) {
+          close()
+          return
+        }
+        onError?.value(error)
+      }
+
+      connection.value.onclose = () =>
+          onClose?.value()
+
     } catch (error) {
       onError?.value(error)
     }
   }
 
   return {
-    //connection,
+    connection,
     connect,
     close,
     onOpen,

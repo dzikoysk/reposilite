@@ -30,8 +30,8 @@ const props = defineProps({
 
 const { levels, log, logMessage, filter, clearLog } = useLog()
 
-const { 
-  onOpen, onMessage, onClose, onError, 
+const {
+  onOpen, onMessage, onClose, onError,
   connect,
   //close,
   command,
