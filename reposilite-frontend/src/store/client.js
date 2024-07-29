@@ -45,7 +45,17 @@ const createClient = (defaultName, defaultSecret) => {
         return get("/api/auth/me")
       },
     },
-    console: {},
+    console: {
+      execute(command) {
+        return axios.post(
+            createURL(`/api/console/execute`), command, {
+              headers: {
+                ...defaultAuthorization().headers,
+              }
+            }
+        )
+      }
+    },
     status: {
       instance() {
         return get("/api/status/instance")

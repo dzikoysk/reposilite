@@ -16,21 +16,24 @@
 
 import { ref } from "vue"
 import { createURL } from '../client'
+import { fetchEventSource } from "@microsoft/fetch-event-source"
+import {useSession} from "../session.js";
 
-const connection = ref()
+const { client } = useSession()
+
+const connected = ref()
 const command = ref("")
 
 export default function useConsole() {
-  const consoleAddress = createURL("/api/console/sock")
-    .replace("https", "wss")
-    .replace("http", "ws")
+  // TODO: does this need better endpoint name?
+  const consoleAddress = createURL("/api/console/log");
 
-  const isConnected = () =>
-    connection.value?.readyState === WebSocket.OPEN
+  let abortController;
+
+  const isConnected = () => connected.value
 
   const close = () => {
-    if (isConnected())
-      connection.value.close()
+    abortController?.abort("Closing connection")
   }
 
   const history = ref([''])
@@ -45,7 +48,8 @@ export default function useConsole() {
 
   const execute = () => {
     addCommandToHistory(command.value)
-    connection.value.send(command.value)
+    client.value.console.execute(command.value)
+        .catch(error => console.log(error))
     command.value = ''
   }
 
@@ -73,38 +77,40 @@ export default function useConsole() {
   const onClose = ref()
 
   const connect = (token) => {
+    const abortController = new AbortController()
+
     try {
-      connection.value = new WebSocket(consoleAddress)
-
-      connection.value.onopen = () => {
-        connection.value.send(`Authorization:${token.name}:${token.secret}`)
-        onOpen?.value()
-      }
-
-      connection.value.onmessage = (event) => {
-        if (event.data != "keep-alive" && !event.data.toString().includes("GET /api/status/instance from"))
-          onMessage?.value(event.data)
-      }
-
-      connection.value.onerror = (error) =>
-        onError?.value(error)
-
-      connection.value.onclose = () =>
-        onClose?.value()
-
-      const keepAliveInterval = setInterval(() => {
-        if (isConnected())
-          connection?.value?.send("keep-alive")
-        else
-          clearInterval(keepAliveInterval)
-      }, 1000 * 5)
+      fetchEventSource(consoleAddress, {
+        signal: abortController.signal,
+        openWhenHidden: true,
+        headers: {
+          Authorization: `xBasic ${btoa(`${token.name}:${token.secret}`)}`
+        },
+        onopen: async (response) => {
+          //connection.value.send(`Authorization:${token.name}:${token.secret}`)
+          connected.value = true
+          onOpen?.value()
+        },
+        onmessage: (message) => {
+          //if (message.data != "keep-alive" && !message.data.toString().includes("GET /api/status/instance from"))
+          if (message.event === "log")
+            onMessage?.value(message.data)
+        },
+        onerror: (error) => {
+          onError?.value(error)
+        },
+        onclose: () => {
+          onClose?.value()
+          connected.value = false
+        }
+      })
     } catch (error) {
       onError?.value(error)
     }
   }
 
   return {
-    connection,
+    //connection,
     connect,
     close,
     onOpen,

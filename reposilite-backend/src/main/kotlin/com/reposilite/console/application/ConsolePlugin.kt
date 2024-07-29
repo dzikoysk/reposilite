@@ -22,6 +22,7 @@ import com.reposilite.console.StopCommand
 import com.reposilite.console.api.CommandsSetupEvent
 import com.reposilite.console.infrastructure.ConsoleWebSocketHandler
 import com.reposilite.console.infrastructure.ConsoleEndpoint
+import com.reposilite.console.infrastructure.ConsoleSseHandler
 import com.reposilite.plugin.api.Facade
 import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposiliteDisposeEvent
@@ -67,6 +68,17 @@ internal class ConsolePlugin : ReposilitePlugin() {
                 it.ws(
                     "/api/console/sock",
                     ConsoleWebSocketHandler(
+                        journalist = reposilite().journalist,
+                        accessTokenFacade = facade(),
+                        authenticationFacade = facade(),
+                        consoleFacade = consoleFacade,
+                        forwardedIp = sharedConfigurationFacade.getDomainSettings<WebSettings>().computed { it.forwardedIp }
+                    )
+                )
+                it.sse(
+                    // TODO: does this need better endpoint name?
+                    "/api/console/log",
+                    ConsoleSseHandler(
                         journalist = reposilite().journalist,
                         accessTokenFacade = facade(),
                         authenticationFacade = facade(),
