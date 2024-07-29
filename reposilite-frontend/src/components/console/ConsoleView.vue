@@ -60,7 +60,8 @@ const setupConnection = () => {
   }
   onError.value = error => {
     console.log(error)
-    createToast(`Console connection error - Make sure that WebSockets are enabled.`, { type: 'danger' })
+    // TODO: change error content
+    createToast(`Console connection error - ???.`, { type: 'danger' })
   }
   onClose.value = () => createToast('Connection with console has been lost', { type: 'danger' })
   createToast('Connecting to the remote console', { type: 'info', })
