@@ -3,7 +3,6 @@ package com.reposilite.console.infrastructure
 import com.reposilite.ReposiliteJournalist
 import com.reposilite.auth.AuthenticationFacade
 import com.reposilite.auth.api.Credentials
-import com.reposilite.console.ConsoleFacade
 import com.reposilite.console.api.ExecutionResponse
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.extractFromHeader
@@ -34,7 +33,6 @@ internal class ConsoleSseHandler(
     private val journalist: ReposiliteJournalist,
     private val accessTokenFacade: AccessTokenFacade,
     private val authenticationFacade: AuthenticationFacade,
-    private val consoleFacade: ConsoleFacade,
     private val forwardedIp: Reference<String>
 ) : Consumer<SseClient> {
 

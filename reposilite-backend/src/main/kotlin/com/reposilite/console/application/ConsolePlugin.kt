@@ -82,7 +82,6 @@ internal class ConsolePlugin : ReposilitePlugin() {
                         journalist = reposilite().journalist,
                         accessTokenFacade = facade(),
                         authenticationFacade = facade(),
-                        consoleFacade = consoleFacade,
                         forwardedIp = sharedConfigurationFacade.getDomainSettings<WebSettings>().computed { it.forwardedIp }
                     )
                 )
