@@ -20,7 +20,7 @@ import com.reposilite.console.HelpCommand
 import com.reposilite.console.LevelCommand
 import com.reposilite.console.StopCommand
 import com.reposilite.console.api.CommandsSetupEvent
-import com.reposilite.console.infrastructure.CliEndpoint
+import com.reposilite.console.infrastructure.ConsoleWebSocketHandler
 import com.reposilite.console.infrastructure.ConsoleEndpoint
 import com.reposilite.plugin.api.Facade
 import com.reposilite.plugin.api.Plugin
@@ -66,7 +66,7 @@ internal class ConsolePlugin : ReposilitePlugin() {
             event.config.router.mount {
                 it.ws(
                     "/api/console/sock",
-                    CliEndpoint(
+                    ConsoleWebSocketHandler(
                         journalist = reposilite().journalist,
                         accessTokenFacade = facade(),
                         authenticationFacade = facade(),
