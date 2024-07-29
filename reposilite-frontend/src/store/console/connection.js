@@ -28,8 +28,6 @@ export default function useConsole() {
   // TODO: does this need better endpoint name?
   const consoleAddress = createURL("/api/console/log");
 
-  let abortController;
-
   const isConnected = () => {
     // TODO: stop using built-in EventSource for readystate constants
     //  (the ones from extended-eventsource return undefined for some reason)
@@ -99,6 +97,7 @@ export default function useConsole() {
       })
 
       connection.value.onerror = (error) => {
+        // TODO: doesn't work to close the connection on refresh
         if (error instanceof TypeError) {
           close()
           return
@@ -107,7 +106,7 @@ export default function useConsole() {
       }
 
       connection.value.onclose = () =>
-          onClose?.value()
+        onClose?.value()
 
     } catch (error) {
       onError?.value(error)
