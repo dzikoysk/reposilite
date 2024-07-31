@@ -52,8 +52,10 @@ internal class ConsolePlugin : ReposilitePlugin() {
         )
 
         val watcher = reposilite().scheduler.scheduleWithFixedDelay({
-            client.users.forEach {
-                it.key.sendComment("ping")
+            // use an iterator instead of forEach to avoid CME
+            val iterator = client.users.iterator()
+            while (iterator.hasNext()) {
+                iterator.next().key.sendComment("ping")
             }
         }, 0, 1, TimeUnit.SECONDS)
 
