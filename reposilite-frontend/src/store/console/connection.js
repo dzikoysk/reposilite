@@ -73,6 +73,13 @@ export default function useConsole() {
     command.value = history.value[historyIdx.value]
   }
 
+  // this is needed to stop an error from appearing in console when
+  // switching/refreshing the page without closing the connection
+  // TODO: move somewhere else?
+  window.onbeforeunload = function () {
+    close();
+  };
+
   const onOpen = ref()
   const onMessage = ref()
   const onError = ref()
@@ -84,6 +91,7 @@ export default function useConsole() {
         headers: {
           Authorization: `xBasic ${btoa(`${token.name}:${token.secret}`)}`
         },
+        // TODO: should we try to reconnect? how many attempts should be made?
         disableRetry: true
       })
 
@@ -97,11 +105,6 @@ export default function useConsole() {
       })
 
       connection.value.onerror = (error) => {
-        // TODO: doesn't work to close the connection on refresh
-        if (error instanceof TypeError) {
-          close()
-          return
-        }
         onError?.value(error)
       }
 
