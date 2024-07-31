@@ -43,6 +43,12 @@ internal class ConsolePlugin : ReposilitePlugin() {
     override fun initialize(): Facade {
         val sharedConfigurationFacade = facade<SharedConfigurationFacade>()
         val consoleFacade = ConsoleComponents(this, facade()).consoleFacade()
+        val client = ConsoleSseHandler(
+            journalist = reposilite().journalist,
+            accessTokenFacade = facade(),
+            authenticationFacade = facade(),
+            forwardedIp = sharedConfigurationFacade.getDomainSettings<WebSettings>().computed { it.forwardedIp }
+        )
 
         event { _: ReposiliteInitializeEvent ->
             consoleFacade.registerCommand(HelpCommand(consoleFacade))
@@ -78,12 +84,7 @@ internal class ConsolePlugin : ReposilitePlugin() {
                 it.sse(
                     // TODO: does this need better endpoint name?
                     "/api/console/log",
-                    ConsoleSseHandler(
-                        journalist = reposilite().journalist,
-                        accessTokenFacade = facade(),
-                        authenticationFacade = facade(),
-                        forwardedIp = sharedConfigurationFacade.getDomainSettings<WebSettings>().computed { it.forwardedIp }
-                    )
+                    client
                 )
             }
         }
@@ -102,6 +103,9 @@ internal class ConsolePlugin : ReposilitePlugin() {
 
         event { _: ReposiliteDisposeEvent ->
             consoleFacade.commandExecutor.stop()
+            client.users.forEach {
+                it.key.close()
+            }
         }
 
         return consoleFacade

@@ -24,7 +24,7 @@ import java.util.function.Consumer
 
 private const val SSE_EVENT_NAME = "log"
 
-private data class SseSession(
+data class SseSession(
     val identifier: String,
     val subscriberId: Int,
 )
@@ -36,7 +36,7 @@ internal class ConsoleSseHandler(
     private val forwardedIp: Reference<String>
 ) : Consumer<SseClient> {
 
-    private val users: WeakHashMap<SseClient, SseSession> = WeakHashMap()
+    internal val users: WeakHashMap<SseClient, SseSession> = WeakHashMap()
 
     @OpenApi(
         // TODO: does this need better endpoint name?
@@ -69,15 +69,9 @@ internal class ConsoleSseHandler(
 
                         val subscriberId = journalist.subscribe {
                             // TODO: do better
-                            try {
-                                if (!sse.terminated()) {
-                                    sse.sendEvent(SSE_EVENT_NAME, it.value)
-                                } else {
-                                    sse.close()
-                                }
-                            } catch (ignored: ClosedChannelException) {
-                                sse.close()
-                            } catch (ignored: InterruptedException) {
+                            if (!sse.terminated()) {
+                                sse.sendEvent(SSE_EVENT_NAME, it.value)
+                            } else {
                                 sse.close()
                             }
                         }
