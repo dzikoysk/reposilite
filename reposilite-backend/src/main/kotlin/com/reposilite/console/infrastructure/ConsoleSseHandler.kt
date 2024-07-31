@@ -39,7 +39,6 @@ internal class ConsoleSseHandler(
     internal val users: WeakHashMap<SseClient, SseSession> = WeakHashMap()
 
     @OpenApi(
-        // TODO: does this need better endpoint name?
         path = "/api/console/log",
         methods = [HttpMethod.GET],
         // TODO: the responses parameter is *technically* not really needed, but would be nice to have

@@ -25,7 +25,6 @@ const connection = ref()
 const command = ref("")
 
 export default function useConsole() {
-  // TODO: does this need better endpoint name?
   const consoleAddress = createURL("/api/console/log");
 
   const isConnected = () => {

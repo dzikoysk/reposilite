@@ -91,7 +91,6 @@ internal class ConsolePlugin : ReposilitePlugin() {
                     )
                 )
                 it.sse(
-                    // TODO: does this need better endpoint name?
                     "/api/console/log",
                     client
                 )
