@@ -36,6 +36,7 @@ import com.reposilite.plugin.reposilite
 import com.reposilite.web.api.HttpServerInitializationEvent
 import com.reposilite.web.api.RoutingSetupEvent
 import com.reposilite.web.application.WebSettings
+import java.util.concurrent.TimeUnit
 
 @Plugin(name = "console", dependencies = [ "shared-configuration", "failure", "access-token", "authentication" ])
 internal class ConsolePlugin : ReposilitePlugin() {
@@ -49,6 +50,12 @@ internal class ConsolePlugin : ReposilitePlugin() {
             authenticationFacade = facade(),
             forwardedIp = sharedConfigurationFacade.getDomainSettings<WebSettings>().computed { it.forwardedIp }
         )
+
+        val watcher = reposilite().scheduler.scheduleWithFixedDelay({
+            client.users.forEach {
+                it.key.sendComment("ping")
+            }
+        }, 0, 1, TimeUnit.SECONDS)
 
         event { _: ReposiliteInitializeEvent ->
             consoleFacade.registerCommand(HelpCommand(consoleFacade))
@@ -106,6 +113,7 @@ internal class ConsolePlugin : ReposilitePlugin() {
             client.users.forEach {
                 it.key.close()
             }
+            watcher.cancel(false)
         }
 
         return consoleFacade
