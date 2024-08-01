@@ -92,7 +92,7 @@ internal class ConsolePlugin : ReposilitePlugin() {
                 )
                 it.sse(
                     "/api/console/log",
-                    client
+                    client::handleSseLiveLog
                 )
             }
         }

@@ -32,7 +32,7 @@ internal class ConsoleSseHandler(
     private val accessTokenFacade: AccessTokenFacade,
     private val authenticationFacade: AuthenticationFacade,
     private val forwardedIp: Reference<String>
-) : Consumer<SseClient> {
+) {
 
     internal val users: WeakHashMap<SseClient, SseSession> = WeakHashMap()
 
@@ -49,7 +49,7 @@ internal class ConsoleSseHandler(
         ],
         tags = ["Console"]
     )
-    override fun accept(sse: SseClient) {
+    fun handleSseLiveLog(sse: SseClient) {
         sse.keepAlive()
         sse.onClose {  ->
             val session = users.remove(sse) ?: return@onClose
