@@ -57,7 +57,7 @@ internal class ConsolePlugin : ReposilitePlugin() {
             while (iterator.hasNext()) {
                 iterator.next().key.sendComment("ping")
             }
-        }, 0, 1, TimeUnit.SECONDS)
+        }, 5, 5, TimeUnit.SECONDS)
 
         event { _: ReposiliteInitializeEvent ->
             consoleFacade.registerCommand(HelpCommand(consoleFacade))
