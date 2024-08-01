@@ -30,7 +30,7 @@
     "mime-types": "^2.1.35",
     "mosha-vue-toastify": "^1.0.23",
     "pretty-bytes": "^6.1.1",
-    "vue": "^3.4.29",
+    "vue": "^3.4.35",
     "vue-axios": "^3.5.2",
     "vue-final-modal": "^4.5.4",
     "vue-float-menu": "^1.9.1",
