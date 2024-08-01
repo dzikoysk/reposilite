@@ -28,8 +28,8 @@ export default function useConsole() {
   const consoleAddress = createURL("/api/console/log");
 
   const isConnected = () => {
-    // TODO: stop using built-in EventSource for readystate constants
-    //  (the ones from extended-eventsource return undefined for some reason)
+    // using built-in EventSource for readystate constants
+    // the ones from extended-eventsource return undefined for some reason
     return connection.value?.readyState === EventSource.OPEN
   }
 
