@@ -57,28 +57,25 @@ internal class ConsoleSseHandler(
             journalist.unsubscribe(session.subscriberId)
         }
 
-        when (users[sse]) {
-            null ->
-                authenticateContext(sse.ctx())
-                    .peek { identifier ->
-                        journalist.logger.info("CLI | $identifier accessed remote console")
+        authenticateContext(sse.ctx())
+            .peek { identifier ->
+                journalist.logger.info("CLI | $identifier accessed remote console")
 
-                        val subscriberId = journalist.subscribe {
-                            sse.sendEvent(SSE_EVENT_NAME, it.value)
-                        }
+                val subscriberId = journalist.subscribe {
+                    sse.sendEvent(SSE_EVENT_NAME, it.value)
+                }
 
-                        users[sse] = SseSession(identifier, subscriberId)
+                users[sse] = SseSession(identifier, subscriberId)
 
-                        journalist.cachedLogger.messages.forEach { message ->
-                            sse.sendEvent(SSE_EVENT_NAME, message.value)
-                        }
-                    }
-                    .onError {
-                        journalist.logger.info("CLI | ${it.message} (${it.status})")
-                        sse.sendEvent(SSE_EVENT_NAME, it)
-                        sse.close()
-                    }
-        }
+                journalist.cachedLogger.messages.forEach { message ->
+                    sse.sendEvent(SSE_EVENT_NAME, message.value)
+                }
+            }
+            .onError {
+                journalist.logger.info("CLI | ${it.message} (${it.status})")
+                sse.sendEvent(SSE_EVENT_NAME, it)
+                sse.close()
+            }
     }
 
     private fun authenticateContext(connection: Context): Result<String, ErrorResponse> {
