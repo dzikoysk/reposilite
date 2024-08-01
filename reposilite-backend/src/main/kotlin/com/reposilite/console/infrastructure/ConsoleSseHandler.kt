@@ -82,7 +82,7 @@ internal class ConsoleSseHandler(
         return extractFromHeader(connection.header(Header.AUTHORIZATION))
             .map { (name, secret) ->
                 Credentials(
-                    host = connection.getHost(),
+                    host = connection.ip(),
                     name = name,
                     secret = secret
                 )
@@ -90,11 +90,8 @@ internal class ConsoleSseHandler(
             .flatMap { authenticationFacade.authenticateByCredentials(it) }
             .filter(
                 { accessTokenFacade.hasPermission(it.identifier, AccessTokenPermission.MANAGER) },
-                { unauthorized("Unauthorized CLI access request from ${connection.getHost()}") }
+                { unauthorized("Unauthorized CLI access request from ${connection.ip()}") }
             )
-            .map { "${it.name}@${connection.getHost()}" }
+            .map { "${it.name}@${connection.ip()}" }
     }
-
-    private fun Context.getHost(): String =
-        header(forwardedIp.get()) ?: req().remoteAddr
 }
