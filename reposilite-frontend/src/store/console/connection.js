@@ -72,13 +72,6 @@ export default function useConsole() {
     command.value = history.value[historyIdx.value]
   }
 
-  // this is needed to stop an error from appearing in console when
-  // switching/refreshing the page without closing the connection
-  // TODO: move somewhere else?
-  window.onbeforeunload = function () {
-    close();
-  };
-
   const onOpen = ref()
   const onMessage = ref()
   const onError = ref()
@@ -95,6 +88,12 @@ export default function useConsole() {
       })
 
       connection.value.onopen = () => {
+        // this is needed to stop an error from appearing in console when
+        // switching/refreshing the page without closing the connection
+        window.onbeforeunload = function () {
+          close();
+        };
+
         onOpen?.value()
       }
 
