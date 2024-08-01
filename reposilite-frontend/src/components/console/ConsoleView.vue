@@ -60,8 +60,7 @@ const setupConnection = () => {
   }
   onError.value = error => {
     console.log(error)
-    // TODO: change error content
-    createToast(`Console connection error - ???.`, { type: 'danger' })
+    createToast(`Console connection error - Cannot establish SSE connection.`, { type: 'danger' })
   }
   onClose.value = () => createToast('Connection with console has been lost', { type: 'danger' })
   createToast('Connecting to the remote console', { type: 'info', })
