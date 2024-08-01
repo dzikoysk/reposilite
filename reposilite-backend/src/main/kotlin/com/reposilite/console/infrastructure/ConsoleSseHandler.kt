@@ -3,7 +3,6 @@ package com.reposilite.console.infrastructure
 import com.reposilite.ReposiliteJournalist
 import com.reposilite.auth.AuthenticationFacade
 import com.reposilite.auth.api.Credentials
-import com.reposilite.console.api.ExecutionResponse
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.extractFromHeader
 import com.reposilite.shared.unauthorized
@@ -14,11 +13,10 @@ import io.javalin.http.Header
 import io.javalin.http.sse.SseClient
 import io.javalin.openapi.HttpMethod
 import io.javalin.openapi.OpenApi
-import io.javalin.openapi.OpenApiContent
+import io.javalin.openapi.OpenApiParam
 import io.javalin.openapi.OpenApiResponse
 import panda.std.Result
 import panda.std.reactive.Reference
-import java.nio.channels.ClosedChannelException
 import java.util.*
 import java.util.function.Consumer
 
@@ -41,13 +39,12 @@ internal class ConsoleSseHandler(
     @OpenApi(
         path = "/api/console/log",
         methods = [HttpMethod.GET],
-        // TODO: the responses parameter is *technically* not really needed, but would be nice to have
+        headers = [OpenApiParam(name = "Authorization", description = "Name and secret provided as basic auth credentials", required = true)],
+        description = "Streams the output of logs through an SSE Connection.",
         responses = [
             OpenApiResponse(
                 status = "200",
-                // TODO: better description?
-                description = "Continuously sends out the log as data messages",
-                content = [OpenApiContent(from = ExecutionResponse::class)]
+                description = "Continuously sends out the log as messages under the `log` event. Sends a keepalive ping through comments."
             )
         ],
         tags = ["Console"]
