@@ -62,7 +62,10 @@ internal class ConsoleSseHandler(
                 journalist.logger.info("CLI | $identifier accessed remote console")
 
                 val subscriberId = journalist.subscribe {
-                    sse.sendEvent(SSE_EVENT_NAME, it.value)
+                    // stop stack overflow log spam
+                    if (!sse.terminated()) {
+                        sse.sendEvent(SSE_EVENT_NAME, it.value)
+                    }
                 }
 
                 users[sse] = SseSession(identifier, subscriberId)
