@@ -111,10 +111,10 @@ internal class ConsolePlugin : ReposilitePlugin() {
 
         event { _: ReposiliteDisposeEvent ->
             consoleFacade.commandExecutor.stop()
+            watcher.cancel(false)
             client.users.forEach {
                 it.key.close()
             }
-            watcher.cancel(false)
         }
 
         return consoleFacade
