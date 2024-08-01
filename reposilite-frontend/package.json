@@ -24,7 +24,7 @@
     "@vueuse/core": "^10.11.0",
     "@vueuse/head": "^2.0.0",
     "ansi-to-html": "^0.7.2",
-    "apexcharts": "^3.49.1",
+    "apexcharts": "^3.51.0",
     "axios": "^1.7.2",
     "downloadjs": "^1.4.7",
     "mime-types": "^2.1.35",
