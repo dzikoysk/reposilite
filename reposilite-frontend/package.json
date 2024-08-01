@@ -46,7 +46,7 @@
     "body-parser": "^1.20.2",
     "concurrently": "^8.2.2",
     "eslint": "9.5.0",
-    "eslint-plugin-vue": "^9.26.0",
+    "eslint-plugin-vue": "^9.27.0",
     "express": "^4.19.2",
     "express-ws": "^5.0.2",
     "globals": "^15.6.0",
