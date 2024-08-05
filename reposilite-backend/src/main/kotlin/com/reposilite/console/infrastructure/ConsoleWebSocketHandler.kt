@@ -43,7 +43,7 @@ private data class WsSession(
     val subscriberId: Int,
 )
 
-internal class CliEndpoint(
+internal class ConsoleWebSocketHandler(
     private val journalist: ReposiliteJournalist,
     private val accessTokenFacade: AccessTokenFacade,
     private val authenticationFacade: AuthenticationFacade,

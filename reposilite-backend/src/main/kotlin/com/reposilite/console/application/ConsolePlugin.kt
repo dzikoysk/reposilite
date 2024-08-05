@@ -20,8 +20,9 @@ import com.reposilite.console.HelpCommand
 import com.reposilite.console.LevelCommand
 import com.reposilite.console.StopCommand
 import com.reposilite.console.api.CommandsSetupEvent
-import com.reposilite.console.infrastructure.CliEndpoint
+import com.reposilite.console.infrastructure.ConsoleWebSocketHandler
 import com.reposilite.console.infrastructure.ConsoleEndpoint
+import com.reposilite.console.infrastructure.ConsoleSseHandler
 import com.reposilite.plugin.api.Facade
 import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposiliteDisposeEvent
@@ -35,6 +36,7 @@ import com.reposilite.plugin.reposilite
 import com.reposilite.web.api.HttpServerInitializationEvent
 import com.reposilite.web.api.RoutingSetupEvent
 import com.reposilite.web.application.WebSettings
+import java.util.concurrent.TimeUnit
 
 @Plugin(name = "console", dependencies = [ "shared-configuration", "failure", "access-token", "authentication" ])
 internal class ConsolePlugin : ReposilitePlugin() {
@@ -42,6 +44,20 @@ internal class ConsolePlugin : ReposilitePlugin() {
     override fun initialize(): Facade {
         val sharedConfigurationFacade = facade<SharedConfigurationFacade>()
         val consoleFacade = ConsoleComponents(this, facade()).consoleFacade()
+        val client = ConsoleSseHandler(
+            journalist = reposilite().journalist,
+            accessTokenFacade = facade(),
+            authenticationFacade = facade(),
+            forwardedIp = sharedConfigurationFacade.getDomainSettings<WebSettings>().computed { it.forwardedIp }
+        )
+
+        val watcher = reposilite().scheduler.scheduleWithFixedDelay({
+            // use an iterator instead of forEach to avoid CME
+            val iterator = client.users.iterator()
+            while (iterator.hasNext()) {
+                iterator.next().key.sendComment("ping")
+            }
+        }, 5, 5, TimeUnit.SECONDS)
 
         event { _: ReposiliteInitializeEvent ->
             consoleFacade.registerCommand(HelpCommand(consoleFacade))
@@ -66,13 +82,17 @@ internal class ConsolePlugin : ReposilitePlugin() {
             event.config.router.mount {
                 it.ws(
                     "/api/console/sock",
-                    CliEndpoint(
+                    ConsoleWebSocketHandler(
                         journalist = reposilite().journalist,
                         accessTokenFacade = facade(),
                         authenticationFacade = facade(),
                         consoleFacade = consoleFacade,
                         forwardedIp = sharedConfigurationFacade.getDomainSettings<WebSettings>().computed { it.forwardedIp }
                     )
+                )
+                it.sse(
+                    "/api/console/log",
+                    client::handleSseLiveLog
                 )
             }
         }
@@ -91,6 +111,10 @@ internal class ConsolePlugin : ReposilitePlugin() {
 
         event { _: ReposiliteDisposeEvent ->
             consoleFacade.commandExecutor.stop()
+            watcher.cancel(false)
+            client.users.forEach {
+                it.key.close()
+            }
         }
 
         return consoleFacade
