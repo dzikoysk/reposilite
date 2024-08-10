@@ -83,7 +83,6 @@ export default function useConsole() {
         headers: {
           Authorization: `xBasic ${btoa(`${token.name}:${token.secret}`)}`
         },
-        // TODO: should we try to reconnect? how many attempts should be made?
         disableRetry: true
       })
 
