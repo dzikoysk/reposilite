@@ -48,16 +48,9 @@ internal class ConsolePlugin : ReposilitePlugin() {
             journalist = reposilite().journalist,
             accessTokenFacade = facade(),
             authenticationFacade = facade(),
-            forwardedIp = sharedConfigurationFacade.getDomainSettings<WebSettings>().computed { it.forwardedIp }
+            forwardedIp = sharedConfigurationFacade.getDomainSettings<WebSettings>().computed { it.forwardedIp },
+            scheduler = reposilite().scheduler
         )
-
-        val watcher = reposilite().scheduler.scheduleWithFixedDelay({
-            // use an iterator instead of forEach to avoid CME
-            val iterator = client.users.iterator()
-            while (iterator.hasNext()) {
-                iterator.next().key.sendComment("ping")
-            }
-        }, 5, 5, TimeUnit.SECONDS)
 
         event { _: ReposiliteInitializeEvent ->
             consoleFacade.registerCommand(HelpCommand(consoleFacade))
@@ -111,7 +104,6 @@ internal class ConsolePlugin : ReposilitePlugin() {
 
         event { _: ReposiliteDisposeEvent ->
             consoleFacade.commandExecutor.stop()
-            watcher.cancel(false)
             client.users.forEach {
                 it.key.close()
             }

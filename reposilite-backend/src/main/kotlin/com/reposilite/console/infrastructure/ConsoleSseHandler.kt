@@ -18,20 +18,24 @@ import io.javalin.openapi.OpenApiResponse
 import panda.std.Result
 import panda.std.reactive.Reference
 import java.util.*
-import java.util.function.Consumer
+import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.ScheduledFuture
+import java.util.concurrent.TimeUnit
 
 private const val SSE_EVENT_NAME = "log"
 
 data class SseSession(
     val identifier: String,
     val subscriberId: Int,
+    val scheduler: ScheduledFuture<*>
 )
 
 internal class ConsoleSseHandler(
     private val journalist: ReposiliteJournalist,
     private val accessTokenFacade: AccessTokenFacade,
     private val authenticationFacade: AuthenticationFacade,
-    private val forwardedIp: Reference<String>
+    private val forwardedIp: Reference<String>,
+    private val scheduler: ScheduledExecutorService
 ) {
 
     internal val users: WeakHashMap<SseClient, SseSession> = WeakHashMap()
@@ -53,6 +57,7 @@ internal class ConsoleSseHandler(
         sse.keepAlive()
         sse.onClose {  ->
             val session = users.remove(sse) ?: return@onClose
+            session.scheduler.cancel(false)
             journalist.logger.info("CLI | ${session.identifier} closed connection")
             journalist.unsubscribe(session.subscriberId)
         }
@@ -68,7 +73,11 @@ internal class ConsoleSseHandler(
                     }
                 }
 
-                users[sse] = SseSession(identifier, subscriberId)
+                val watcher = scheduler.scheduleWithFixedDelay({
+                    sse.sendComment("ping")
+                }, 5, 5, TimeUnit.SECONDS)
+
+                users[sse] = SseSession(identifier, subscriberId, watcher)
 
                 journalist.cachedLogger.messages.forEach { message ->
                     sse.sendEvent(SSE_EVENT_NAME, message.value)
