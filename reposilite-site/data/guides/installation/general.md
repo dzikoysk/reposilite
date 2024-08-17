@@ -5,7 +5,7 @@ title: General
 
 Reposilite supports multiple use cases and environments. By default we support 3 of them:
 
-* [Standalone](/guide/standalone) - run regular JAR file as standalone Java application
+* [Standalone](/guide/jar) - run regular JAR file as standalone Java application
 * [Docker](/guide/docker) - launch Reposilite within Docker container
 * [Kubernetes](/guide/kubernetes) - manage multiple Reposilite instances using Kubernetes
 
