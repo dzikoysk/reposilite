@@ -88,6 +88,17 @@ class MavenFacade internal constructor(
             handler = handler
         )
 
+    fun getAvailableFiles(request: LookupRequest, directoryInfo: DirectoryInfo): List<FileDetails> =
+        getRepository(request.repository)!!.let { repository ->
+            directoryInfo.files.filter {
+                repositorySecurityProvider.canBrowseResource(
+                    accessToken = request.accessToken,
+                    repository = repository,
+                    gav = request.gav.resolve(it.name)
+                ).isOk
+            }
+        }
+
     fun createLatestBadge(lookupRequest: LatestBadgeRequest): Result<String, ErrorResponse> =
         findLatestVersion(lookupRequest.toVersionLookupRequest())
             .flatMap { latestService.createLatestBadge(lookupRequest, it.version) }

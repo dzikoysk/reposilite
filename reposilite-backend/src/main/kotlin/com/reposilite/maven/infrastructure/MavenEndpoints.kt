@@ -101,7 +101,7 @@ internal class MavenEndpoints(
                                 createDirectoryIndexPage(
                                     basePath = frontendFacade.formattedBasePath.get(),
                                     uri = ctx.uri(),
-                                    directory = details,
+                                    authenticatedFiles = mavenFacade.getAvailableFiles(request, details),
                                 )
                             )
                         else ->

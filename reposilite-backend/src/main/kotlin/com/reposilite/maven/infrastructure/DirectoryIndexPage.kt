@@ -1,9 +1,9 @@
 package com.reposilite.maven.infrastructure
 
-import com.reposilite.storage.api.DirectoryInfo
+import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.FileType
 
-internal fun createDirectoryIndexPage(basePath: String, uri: String, directory: DirectoryInfo): String {
+internal fun createDirectoryIndexPage(basePath: String, uri: String, authenticatedFiles: List<FileDetails>): String {
     val formattedUri = basePath + uri.removePrefix("/")
 
     // language=html
@@ -34,7 +34,7 @@ internal fun createDirectoryIndexPage(basePath: String, uri: String, directory: 
                     <li class='back'>
                         <a href='${formattedUri.substringBeforeLast("/")}'>Parent Directory</a>
                     </li>
-                    ${directory.files.flatMap { 
+                    ${authenticatedFiles.flatMap { 
                         listOf(
                             "<li class='${it.type.name.lowercase()}'>",
                             "<a href='$formattedUri/${it.name}'>${it.name}${if (it.type == FileType.DIRECTORY) "/" else ""}</a>",
