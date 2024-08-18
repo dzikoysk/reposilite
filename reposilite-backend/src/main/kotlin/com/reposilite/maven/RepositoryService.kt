@@ -27,7 +27,6 @@ import com.reposilite.maven.api.ResolvedDocument
 import com.reposilite.maven.api.ResolvedFileEvent
 import com.reposilite.plugin.Extensions
 import com.reposilite.shared.ErrorResponse
-import com.reposilite.shared.badRequestError
 import com.reposilite.shared.errorResponse
 import com.reposilite.shared.notFound
 import com.reposilite.shared.notFoundError
@@ -114,8 +113,7 @@ internal class RepositoryService(
 
     fun findFile(lookupRequest: LookupRequest): Result<ResolvedDocument, ErrorResponse> =
         resolve(lookupRequest) { repository, gav ->
-            findFile(lookupRequest.accessToken, repository, gav).map {
-                val (details, stream) = it
+            findFile(lookupRequest.accessToken, repository, gav).map { (details, stream) ->
                 ResolvedDocument(
                     document = details,
                     cachable = repository.acceptsCachingOf(gav),
@@ -143,6 +141,9 @@ internal class RepositoryService(
             .`is`(DocumentInfo::class.java) { notFound("Requested file is a directory") }
             .flatMap { details -> findInputStream(repository, gav).map { details to it } }
             .let { extensions.emitEvent(ResolvedFileEvent(accessToken, repository, gav, it)).result }
+
+    fun findInputStream(lookupRequest: LookupRequest): Result<InputStream, ErrorResponse> =
+        resolve(lookupRequest) { repository, gav -> findInputStream(repository, gav) }
 
     private fun findInputStream(repository: Repository, gav: Location): Result<InputStream, ErrorResponse> =
         when {
