@@ -29,7 +29,7 @@ class FrontendFacade internal constructor(
 ) : Facade {
 
     private val resources = HashMap<String, ResourceSupplier>(0)
-    private val formattedBasePath = basePath.computed { BasePathFormatter.formatBasePath(it) }
+    val formattedBasePath = basePath.computed { BasePathFormatter.formatBasePath(it) }
 
     init {
         computed(basePath, formattedBasePath, frontendSettings) {

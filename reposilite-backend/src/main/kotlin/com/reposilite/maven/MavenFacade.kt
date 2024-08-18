@@ -37,6 +37,7 @@ import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.Location
 import com.reposilite.token.AccessTokenIdentifier
 import panda.std.Result
+import java.io.InputStream
 
 class MavenFacade internal constructor(
     private val journalist: Journalist,
@@ -53,6 +54,9 @@ class MavenFacade internal constructor(
 
     fun findFile(lookupRequest: LookupRequest): Result<ResolvedDocument, ErrorResponse> =
         repositoryService.findFile(lookupRequest)
+
+    fun findData(lookupRequest: LookupRequest): Result<InputStream, ErrorResponse> =
+        repositoryService.findInputStream(lookupRequest)
 
     fun deployFile(deployRequest: DeployRequest): Result<Unit, ErrorResponse> =
         repositoryService.deployFile(deployRequest)
@@ -87,6 +91,9 @@ class MavenFacade internal constructor(
     fun createLatestBadge(lookupRequest: LatestBadgeRequest): Result<String, ErrorResponse> =
         findLatestVersion(lookupRequest.toVersionLookupRequest())
             .flatMap { latestService.createLatestBadge(lookupRequest, it.version) }
+
+    fun acceptsCachingOf(request: LookupRequest): Boolean =
+        getRepository(request.repository)?.acceptsCachingOf(request.gav) ?: false
 
     fun canAccessResource(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<Unit, ErrorResponse> =
         repositorySecurityProvider.canAccessResource(accessToken, repository, gav)
