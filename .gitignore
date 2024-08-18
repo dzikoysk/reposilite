@@ -6,10 +6,14 @@ maven-metadata.xml*
 latest.log
 ./logs/
 log_*.txt
+reposilite-backend/logs/
 reposilite-test/workspace/javadocs/
 reposilite-test/workspace/logs/
 reposilite-test/workspace/plugins/*.jar
 reposilite-backend/src/generated/kotlin/com/reposilite/ReposiliteProperties.kt
+
+### Kotlin ###
+.kotlin/
 
 ### Maven ###
 build/
