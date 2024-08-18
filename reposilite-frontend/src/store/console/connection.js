@@ -16,17 +16,22 @@
 
 import { ref } from "vue"
 import { createURL } from '../client'
+import { EventSource as Eventsource } from 'extended-eventsource';
+import { useSession } from "../session.js";
+
+const { client } = useSession()
 
 const connection = ref()
 const command = ref("")
 
 export default function useConsole() {
-  const consoleAddress = createURL("/api/console/sock")
-    .replace("https", "wss")
-    .replace("http", "ws")
+  const consoleAddress = createURL("/api/console/log");
 
-  const isConnected = () =>
-    connection.value?.readyState === WebSocket.OPEN
+  const isConnected = () => {
+    // using built-in EventSource for readystate constants
+    // the ones from extended-eventsource return undefined for some reason
+    return connection.value?.readyState === EventSource.OPEN
+  }
 
   const close = () => {
     if (isConnected())
@@ -45,7 +50,7 @@ export default function useConsole() {
 
   const execute = () => {
     addCommandToHistory(command.value)
-    connection.value.send(command.value)
+    client.value.console.execute(command.value)
     command.value = ''
   }
 
@@ -74,30 +79,35 @@ export default function useConsole() {
 
   const connect = (token) => {
     try {
-      connection.value = new WebSocket(consoleAddress)
+      connection.value = new Eventsource(consoleAddress, {
+        headers: {
+          Authorization: `xBasic ${btoa(`${token.name}:${token.secret}`)}`
+        },
+        disableRetry: true
+      })
 
       connection.value.onopen = () => {
-        connection.value.send(`Authorization:${token.name}:${token.secret}`)
+        // this is needed to stop an error from appearing in console when
+        // switching/refreshing the page without closing the connection
+        window.onbeforeunload = function () {
+          close();
+        };
+
         onOpen?.value()
       }
 
-      connection.value.onmessage = (event) => {
-        if (event.data != "keep-alive" && !event.data.toString().includes("GET /api/status/instance from"))
+      connection.value.addEventListener("log", (event) => {
+        if (!event.data.toString().includes("GET /api/status/instance from"))
           onMessage?.value(event.data)
-      }
+      })
 
-      connection.value.onerror = (error) =>
+      connection.value.onerror = (error) => {
         onError?.value(error)
+      }
 
       connection.value.onclose = () =>
         onClose?.value()
 
-      const keepAliveInterval = setInterval(() => {
-        if (isConnected())
-          connection?.value?.send("keep-alive")
-        else
-          clearInterval(keepAliveInterval)
-      }, 1000 * 5)
     } catch (error) {
       onError?.value(error)
     }

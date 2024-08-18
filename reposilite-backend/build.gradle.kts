@@ -111,7 +111,7 @@ dependencies {
     val jansi = "2.4.1"
     implementation("org.fusesource.jansi:jansi:$jansi")
 
-    val journalist = "1.0.10"
+    val journalist = "1.0.12"
     api("com.reposilite:journalist:$journalist")
     implementation("com.reposilite:journalist-slf4j:$journalist")
     implementation("com.reposilite:journalist-tinylog:$journalist")
