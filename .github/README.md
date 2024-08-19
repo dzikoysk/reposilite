@@ -94,23 +94,22 @@ Thanks to all contributors and people that decided to support my work financiall
    <a href="https://github.com/sponsors/dzikoysk">Active GitHub Sponsors</a>
   </td>
   <td>
-    <a href="https://github.com/milkyway0308">milkyway0308</a>,
     <a href="https://github.com/andrm">andrm</a>, 
     <a href="https://github.com/rdehuyss">rdehuyss</a>,
-    <a href="https://github.com/amp7368">amp7368</a>,
     <a href="https://github.com/talismanplatform">talismanplatform</a>,
+    <a href="https://github.com/amp7368">amp7368</a>,
     <a href="https://github.com/joshuasing">joshuasing</a>, 
     <a href="https://github.com/insertt">insertt</a>,
     <a href="https://github.com/GotoFinal">GotoFinal</a>,
-    <a href="https://github.com/mcebular">mcebular</a>,
     <a href="https://github.com/Koressi">Koressi</a>,
     <a href="https://github.com/tipsy">tipsy</a>,
+    <a href="https://github.com/SirEndii">SirEndii</a>,
     <a href="https://github.com/Kamilkime">Kamilkime</a>,
     <a href="https://github.com/that-apex">that-apex</a>,
-    <a href="https://github.com/SirEndii">SirEndii</a>,
     <a href="https://github.com/crejk">crejk</a>,
     <a href="https://github.com/Rollczi">Rollczi</a>,
-    <a href="https://github.com/Kebab81">Jan Bojarczuk</a>
+    <a href="https://github.com/Kebab81">Jan Bojarczuk</a>,
+    <a href="https://github.com/Petersoj">Petersoj</a>
   </td>
  </tr>
  <tr>
@@ -119,13 +118,13 @@ Thanks to all contributors and people that decided to support my work financiall
    <a href="https://github.com/milkyway0308">milkyway0308</a>,
    <a href="https://github.com/rdehuyss">rdehuyss</a>,
    <a href="https://github.com/andrm">andrm</a>,
-   <a href="https://github.com/zzmgck">zzmgck</a>, 
    <a href="https://github.com/rdehuyss">amp7368</a>,
-   <a href="https://github.com/insertt">insertt</a>,
    <a href="https://github.com/joshuasing">joshuasing</a>,
    <a href="https://github.com/talismanplatform">talismanplatform</a>,
-   <a href="https://github.com/Koressi">Koressi</a>,
+   <a href="https://github.com/zzmgck">zzmgck</a>, 
+   <a href="https://github.com/insertt">insertt</a>,
    <a href="https://github.com/GotoFinal">GotoFinal</a>,
+   <a href="https://github.com/Koressi">Koressi</a>,
    <a href="https://github.com/tipsy">tipsy</a>, 
    <a href="https://github.com/mcebular">mcebular</a>,
    <a href="https://github.com/maxant">maxant</a>,
@@ -158,7 +157,8 @@ Thanks to all contributors and people that decided to support my work financiall
    <a href="https://github.com/mufinlive">mufinlive</a>,
    <a href="https://github.com/bopke">bopke</a>,
    <a href="https://github.com/asikkema">asikkema</a>,
-   <a href="https://github.com/Kebab81">Jan Bojarczuk</a>
+   <a href="https://github.com/Kebab81">Jan Bojarczuk</a>,
+   <a href="https://github.com/Petersoj">Petersoj</a>
   </td>
  </tr>
 </table>
