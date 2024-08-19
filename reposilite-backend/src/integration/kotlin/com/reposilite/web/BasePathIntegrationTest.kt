@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+@file:Suppress("FunctionName")
+
 package com.reposilite.web
 
 import com.reposilite.RecommendedLocalSpecificationJunitExtension
@@ -65,13 +67,18 @@ internal class BasePathIntegrationTest : ReposiliteSpecification() {
             .delete("$basePath/<uri>") { Unirest.delete(it.reposiliteLocation()).redirect(it) }
             .options("$basePath/<uri>") { Unirest.options(it.reposiliteLocation()).redirect(it) }
             .get("/stop") { await.countDown() }
-            .start(80)
+            .start(8080)
 
         await.await()
     }
 
+    private val restrictedHttpHeaders = listOf(
+        "Connection",
+        "Host",
+    )
+
     private fun <R : HttpRequest<*>> R.redirect(ctx: Context) {
-        ctx.headerMap().forEach { (key, value) -> header(key, value) }
+        ctx.headerMap().filter { it.key !in restrictedHttpHeaders }.forEach { (key, value) -> header(key, value) }
         val response = this.asBytes()
         response.headers.all().forEach { ctx.header(it.name, it.value) }
         ctx.status(response.status).result(response.body)
