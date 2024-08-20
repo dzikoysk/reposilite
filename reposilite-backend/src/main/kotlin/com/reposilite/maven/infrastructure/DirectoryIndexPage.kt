@@ -13,6 +13,7 @@ internal fun createDirectoryIndexPage(basePath: String, uri: String, authenticat
             <head>
                 <title>Index of $formattedUri</title>
                 <meta charset='utf-8'>
+                <base href='${formattedUri.removeSuffix("/")}/'>
                 <style>
                 li {
                     padding: 2px 10px;
@@ -32,13 +33,15 @@ internal fun createDirectoryIndexPage(basePath: String, uri: String, authenticat
                 <h1>Index of $formattedUri</h1>
                 <ul>
                     <li class='back'>
-                        <a href='${formattedUri.substringBeforeLast("/")}'>Parent Directory</a>
+                        <a href='${formattedUri.removeSuffix("/").substringBeforeLast("/")}'>Parent Directory</a>
                     </li>
-                    ${authenticatedFiles.flatMap { 
+                    ${authenticatedFiles.flatMap {
+                        val fileSeparator = if (it.type == FileType.DIRECTORY) "/" else ""
+        
                         listOf(
-                            "<li class='${it.type.name.lowercase()}'>",
-                            "<a href='$formattedUri/${it.name}'>${it.name}${if (it.type == FileType.DIRECTORY) "/" else ""}</a>",
-                            "</li>"
+                            """<li class="${it.type.name.lowercase()}">""",
+                            """<a href="./${it.name}$fileSeparator">${it.name}$fileSeparator</a>""",
+                            """</li>"""
                         )
                     }.joinToString(separator = "")}
                 </ul>
