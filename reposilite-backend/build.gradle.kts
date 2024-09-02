@@ -39,19 +39,19 @@ dependencies {
 //    val detekt = "1.23.5"
 //    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:$detekt")
 
-    val kotlin = "2.0.10"
+    val kotlin = "2.0.20"
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin")
 
-    val javalin = "6.2.0"
+    val javalin = "6.3.0"
     api("io.javalin:javalin:$javalin")
     api("io.javalin.community.ssl:ssl-plugin:$javalin")
 
-    val javalinOpenApi = "6.2.0"
+    val javalinOpenApi = "6.3.0"
     api("io.javalin.community.openapi:javalin-openapi-plugin:$javalinOpenApi")
     kapt("io.javalin.community.openapi:openapi-annotation-processor:$javalinOpenApi")
 
-    val javalinRouting = "6.2.0"
+    val javalinRouting = "6.3.0"
     api("io.javalin.community.routing:routing-dsl:$javalinRouting")
 
     val bcrypt = "0.10.2"
@@ -70,14 +70,14 @@ dependencies {
     kapt("info.picocli:picocli-codegen:$picocli")
     api("info.picocli:picocli:$picocli")
 
-    val awssdk = "2.27.9"
+    val awssdk = "2.27.17"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
 
-    val awsSdkV1 = "1.12.769"
+    val awsSdkV1 = "1.12.770"
     testImplementation("com.amazonaws:aws-java-sdk-s3:$awsSdkV1")
 
-    val exposed = "0.53.0"
+    val exposed = "0.54.0"
     api("org.jetbrains.exposed:exposed-core:$exposed")
     api("org.jetbrains.exposed:exposed-dao:$exposed")
     api("org.jetbrains.exposed:exposed-jdbc:$exposed")
@@ -87,7 +87,7 @@ dependencies {
     implementation("org.xerial:sqlite-jdbc:3.46.1.0")
     implementation("mysql:mysql-connector-java:8.0.33")
     implementation("org.mariadb.jdbc:mariadb-java-client:3.4.1")
-    implementation("org.postgresql:postgresql:42.7.3")
+    implementation("org.postgresql:postgresql:42.7.4")
     implementation("com.h2database:h2:2.3.232")
 
     val exposedUpsert = "1.2.2"
@@ -101,8 +101,10 @@ dependencies {
     val jsonSchema = "4.36.0"
     implementation("com.github.victools:jsonschema-generator:$jsonSchema")
 
-    val httpClient = "1.44.2"
-    implementation("com.google.http-client:google-http-client:$httpClient") { exclude(group = "commons-codec", module = "commons-codec")}
+    val httpClient = "1.45.0"
+    implementation("com.google.http-client:google-http-client:$httpClient") {
+        exclude(group = "commons-codec", module = "commons-codec")
+    }
     testImplementation("com.google.http-client:google-http-client-jackson2:$httpClient")
 
     val commonsCoded = "1.17.1"
