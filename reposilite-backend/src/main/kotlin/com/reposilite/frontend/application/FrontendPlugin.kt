@@ -28,6 +28,7 @@ import com.reposilite.plugin.api.ReposiliteInitializeEvent
 import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
+import com.reposilite.status.FailureFacade
 import com.reposilite.web.api.HttpServerInitializationEvent
 import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.api.RoutingSetupEvent
@@ -36,7 +37,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.exists
 
-@Plugin(name = "frontend", dependencies = ["local-configuration", "shared-configuration"], settings = FrontendSettings::class)
+@Plugin(name = "frontend", dependencies = ["local-configuration", "shared-configuration", "failure"], settings = FrontendSettings::class)
 internal class FrontendPlugin : ReposilitePlugin() {
 
     internal companion object {
@@ -48,6 +49,7 @@ internal class FrontendPlugin : ReposilitePlugin() {
 
     override fun initialize(): FrontendFacade {
         val localConfiguration = facade<LocalConfiguration>()
+        val failureFacade = facade<FailureFacade>()
         val sharedConfigurationFacade = facade<SharedConfigurationFacade>()
         val frontendSettings = sharedConfigurationFacade.getDomainSettings<FrontendSettings>()
 
@@ -71,10 +73,25 @@ internal class FrontendPlugin : ReposilitePlugin() {
 
         event { event: RoutingSetupEvent ->
             val routes = mutableSetOf<ReposiliteRoutes>()
+
             if (localConfiguration.defaultFrontend.get()) {
-                routes.add(ResourcesFrontendHandler(frontendFacade, FRONTEND_DIRECTORY))
+                routes.add(
+                    ResourcesFrontendHandler(
+                        failureFacade = failureFacade,
+                        frontendFacade = frontendFacade,
+                        resourcesDirectory = FRONTEND_DIRECTORY
+                    )
+                )
             }
-            routes.add(CustomFrontendHandler(frontendFacade, staticDirectory(event.reposilite)))
+
+            routes.add(
+                CustomFrontendHandler(
+                    failureFacade = failureFacade,
+                    frontendFacade = frontendFacade,
+                    directory = staticDirectory(event.reposilite)
+                )
+            )
+
             event.registerRoutes(routes)
         }
 

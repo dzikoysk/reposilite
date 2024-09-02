@@ -21,6 +21,7 @@ import com.reposilite.frontend.Source
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.extensions.encoding
 import com.reposilite.shared.notFoundError
+import com.reposilite.status.FailureFacade
 import com.reposilite.storage.api.toLocation
 import com.reposilite.storage.getExtension
 import com.reposilite.storage.getSimpleName
@@ -40,7 +41,10 @@ import kotlin.streams.asSequence
 import panda.std.Result
 import panda.std.asSuccess
 
-internal sealed class FrontendHandler(private val frontendFacade: FrontendFacade) : ReposiliteRoutes() {
+internal sealed class FrontendHandler(
+    private val frontendFacade: FrontendFacade,
+    private val failureFacade: FailureFacade,
+) : ReposiliteRoutes() {
 
     protected fun respondWithResource(ctx: Context, uri: String, source: Source): Result<InputStream, ErrorResponse> {
         val contentType = ContentType.getContentTypeByExtension(uri.getExtension())
@@ -54,9 +58,12 @@ internal sealed class FrontendHandler(private val frontendFacade: FrontendFacade
 
     private fun respondWithProcessedResource(ctx: Context, uri: String, source: Source): Result<InputStream, ErrorResponse> =
         frontendFacade.resolve(uri) { source.get() }
-            ?.let {
-                ctx.encoding(UTF_8)
-                it.supply().mapErr { ErrorResponse(INTERNAL_SERVER_ERROR, "Cannot serve resource") }
+            ?.let { resource ->
+                resource
+                    .supply()
+                    .peek { ctx.encoding(UTF_8) }
+                    .onError { failureFacade.throwException(uri, it) }
+                    .mapErr { ErrorResponse(INTERNAL_SERVER_ERROR, "Cannot serve resource") }
             }
             ?: notFoundError("Resource not found")
 
@@ -67,7 +74,11 @@ internal sealed class FrontendHandler(private val frontendFacade: FrontendFacade
 
 }
 
-internal class ResourcesFrontendHandler(frontendFacade: FrontendFacade, private val resourcesDirectory: String) : FrontendHandler(frontendFacade) {
+internal class ResourcesFrontendHandler(
+    failureFacade: FailureFacade,
+    frontendFacade: FrontendFacade,
+    private val resourcesDirectory: String
+) : FrontendHandler(frontendFacade, failureFacade) {
 
     private val defaultHandler = ReposiliteRoute<InputStream>("/", GET) {
         response = respondWithBundledResource(ctx, "index.html")
@@ -90,7 +101,11 @@ internal class ResourcesFrontendHandler(frontendFacade: FrontendFacade, private 
 
 }
 
-internal class CustomFrontendHandler(frontendFacade: FrontendFacade, directory: Path) : FrontendHandler(frontendFacade) {
+internal class CustomFrontendHandler(
+    failureFacade: FailureFacade,
+    frontendFacade: FrontendFacade,
+    directory: Path
+) : FrontendHandler(frontendFacade, failureFacade) {
 
     private fun rootFileHandler(file: Path) = ReposiliteRoute<InputStream>("/${file.getSimpleName()}", GET) {
         response = respondWithResource(ctx, file.getSimpleName()) {
