@@ -42,7 +42,8 @@ data class AccessToken(
 ) {
 
     init {
-        check(name.length < MAX_TOKEN_NAME) { "Name is too long (${name.length} > $MAX_TOKEN_NAME)" }
+        check(name.length < MAX_TOKEN_NAME) { "Access token name is too long (${name.length} > $MAX_TOKEN_NAME)" }
+        check(!name.contains(":")) { "Access token name cannot contain ':' character" }
     }
 
     fun toDto(): AccessTokenDto =
@@ -63,10 +64,10 @@ enum class AccessTokenPermission(val identifier: String, val shortcut: String) {
     companion object {
 
         fun findAccessTokenPermissionByIdentifier(identifier: String): AccessTokenPermission? =
-            values().firstOrNull { it.identifier == identifier }
+            entries.firstOrNull { it.identifier == identifier }
 
         fun findAccessTokenPermissionByShortcut(shortcut: String): AccessTokenPermission? =
-            values().firstOrNull { it.shortcut == shortcut }
+            entries.firstOrNull { it.shortcut == shortcut }
 
         fun findByAny(permission: String): AccessTokenPermission? =
             findAccessTokenPermissionByIdentifier(permission) ?: findAccessTokenPermissionByShortcut(permission)

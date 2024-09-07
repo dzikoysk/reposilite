@@ -67,7 +67,20 @@ internal class KeygenCommand(private val accessTokenFacade: AccessTokenFacade) :
 
     override fun execute(context: CommandContext) {
         val mappedPermissions = mapPermissions(context, permissions) ?: return
-        val response = accessTokenFacade.createAccessToken(CreateAccessTokenRequest(PERSISTENT, name, secret = secret))
+
+        if (name.contains(":")) {
+            context.status = FAILED
+            context.append("Token name cannot contain ':' character")
+            return
+        }
+
+        val response = accessTokenFacade.createAccessToken(
+            CreateAccessTokenRequest(
+                type = PERSISTENT,
+                name = name,
+                secret = secret
+            )
+        )
 
         mappedPermissions.forEach {
             accessTokenFacade.addPermission(response.accessToken.identifier, it)
@@ -93,7 +106,7 @@ internal class ChModCommand(private val accessTokenFacade: AccessTokenFacade) : 
 
         accessTokenFacade.getAccessToken(name)
             ?.let { token ->
-                AccessTokenPermission.values().forEach { accessTokenFacade.deletePermission(token.identifier, it) }
+                AccessTokenPermission.entries.forEach { accessTokenFacade.deletePermission(token.identifier, it) }
                 mappedPermissions.forEach { accessTokenFacade.addPermission(token.identifier, it) }
                 context.append("Permissions have been changed from to '$permissions'")
             }
