@@ -59,6 +59,11 @@ internal class RouteAdd(private val accessTokenFacade: AccessTokenFacade) : Repo
                     return
                 }
 
+                if (!route.startsWith("/")) {
+                    route = "/$route"
+                    context.append("Provided route has been prefixed with /")
+                }
+
                 mappedPermissions.forEach { accessTokenFacade.addRoute(token.identifier, Route(route, it)) }
                 context.append("Route $route has been added to token ${token.name}")
             }
