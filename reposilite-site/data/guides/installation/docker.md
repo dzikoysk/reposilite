@@ -75,8 +75,8 @@ To launch Reposilite with a custom configuration, we have to mount proper file:
 $ docker run -it \
   --mount type=bind,source=/etc/reposilite/configuration.cdn,target=/app/configuration.cdn \
   -e REPOSILITE_OPTS='--local-configuration=/app/configuration.cdn' \
-  -v reposilite-data:/app/data
-  -p 80:8080
+  -v reposilite-data:/app/data \
+  -p 80:8080 \
   dzikoysk/reposilite
 ```
 
