@@ -16,7 +16,7 @@
     "@emotion/styled": "^11.13.0",
     "@heroicons/react": "^2.1.5",
     "@mapbox/rehype-prism": "^0.9.0",
-    "@nextui-org/react": "^2.4.6",
+    "@nextui-org/react": "^2.4.8",
     "framer-motion": "^11.3.31",
     "gray-matter": "^4.0.3",
     "next": "latest",
