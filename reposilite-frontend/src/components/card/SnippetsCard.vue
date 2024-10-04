@@ -19,7 +19,6 @@ import { ref, watch, watchEffect } from 'vue'
 import { useClipboard } from '@vueuse/core'
 import { createToast } from 'mosha-vue-toastify'
 import { useSession } from '../../store/session'
-import useArtifacts from '../../store/maven/artifact'
 import useRepository from '../../store/maven/repository'
 import useMetadata from '../../store/maven/metadata'
 import CopyIcon from '../icons/CopyIcon.vue'
@@ -42,8 +41,7 @@ const configurations = [
   { name: 'SBT', lang: 'scala' }
 ]
 const data = ref({})
-const { createRepositories, createRepositorySnippet } = useRepository()
-const { createArtifactSnippet } = useArtifacts()
+const { createRepositories } = useRepository()
 const { parseMetadata } = useMetadata()
 const { client } = useSession()
 const { copy: copyText, isSupported: isCopySupported } = useClipboard()
@@ -96,13 +94,10 @@ watch(selectedTab, (to, from) => {
   transitionName.value = toIndex - fromIndex < 0 ? 'slide-left' : 'slide-right'
 })
 
+const snippetRef = ref()
+
 const copy = async () => {
-  let snippet = ''
-  if (data.value.type === 'artifact') {
-    snippet = createArtifactSnippet(selectedTab.value, data.value)
-  } else if (data.value.type === 'repository') {
-    snippet = createRepositorySnippet(selectedTab.value, data.value)
-  }
+  let snippet = snippetRef.value[0].content.trim()
   await copyText(snippet)
   return createToast('Snippet copied', { type: 'info', timeout: '2000' })
 }
@@ -136,11 +131,13 @@ const selectTab = (tab) =>
           <template v-if="entry.name === selectedTab">
             <RepositorySnippet
                 v-if="data.type === 'repository'"
+                ref="snippetRef"
                 :configuration="entry"
                 :data="data"
             />
             <ArtifactSnippet
                 v-else-if="data.type === 'artifact'"
+                ref="snippetRef"
                 :configuration="entry"
                 :data="data"
             />
