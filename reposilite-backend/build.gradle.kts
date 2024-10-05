@@ -70,21 +70,21 @@ dependencies {
     kapt("info.picocli:picocli-codegen:$picocli")
     api("info.picocli:picocli:$picocli")
 
-    val awssdk = "2.27.17"
+    val awssdk = "2.28.16"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
 
-    val awsSdkV1 = "1.12.770"
+    val awsSdkV1 = "1.12.773"
     testImplementation("com.amazonaws:aws-java-sdk-s3:$awsSdkV1")
 
-    val exposed = "0.54.0"
+    val exposed = "0.55.0"
     api("org.jetbrains.exposed:exposed-core:$exposed")
     api("org.jetbrains.exposed:exposed-dao:$exposed")
     api("org.jetbrains.exposed:exposed-jdbc:$exposed")
     api("org.jetbrains.exposed:exposed-java-time:$exposed")
     // Drivers
     implementation("com.zaxxer:HikariCP:5.1.0")
-    implementation("org.xerial:sqlite-jdbc:3.46.1.0")
+    implementation("org.xerial:sqlite-jdbc:3.46.1.3")
     implementation("mysql:mysql-connector-java:8.0.33")
     implementation("org.mariadb.jdbc:mariadb-java-client:3.4.1")
     implementation("org.postgresql:postgresql:42.7.4")
@@ -93,7 +93,7 @@ dependencies {
     val exposedUpsert = "1.2.2"
     api("net.dzikoysk:exposed-upsert:$exposedUpsert")
 
-    val jackson = "2.17.2"
+    val jackson = "2.18.0"
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jackson")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jackson")
@@ -123,7 +123,7 @@ dependencies {
     implementation("org.tinylog:tinylog-api:$tinylog")
     implementation("org.tinylog:tinylog-impl:$tinylog")
 
-    val testcontainers = "1.20.1"
+    val testcontainers = "1.20.2"
     testImplementation("org.testcontainers:postgresql:$testcontainers")
     testImplementation("org.testcontainers:mariadb:$testcontainers")
     testImplementation("org.testcontainers:testcontainers:$testcontainers")

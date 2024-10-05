@@ -127,7 +127,7 @@ subprojects {
         val assertJ = "3.26.3"
         testImplementation("org.assertj:assertj-core:$assertJ")
 
-        val junit = "5.11.0"
+        val junit = "5.11.2"
         testImplementation("org.junit.jupiter:junit-jupiter-params:$junit")
         testImplementation("org.junit.jupiter:junit-jupiter-api:$junit")
         testImplementation("org.junit.jupiter:junit-jupiter-engine:$junit")
