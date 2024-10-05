@@ -29,23 +29,23 @@ $ java -jar reposilite.jar --parameter=value
 
 List of available parameters:
 
-| Parameter | Default value | Description |
-| :--: | :--: | :--: |
-| `--help` | - | Displays help message with all parameters |
-| `--version` | - | Display current version of Reposilite |
-| `--working-directory` <br/> `-wd` | `./` | Sets custom working directory for this instance, so the location where Reposilite keeps local data |
-| `--plugin-directory` <br/> `-pd` | `./plugins` | Sets custom directory for plugins |
-| `--generate-configuration` <br/> `-gc` | - | Generate default template of the requested file. Supported templates: `configuration.cdn` for local configuration and `configuration.shared.json` for shared configuration |
-| `--local-configuration`<br/>`--local-config`<br/>`-lc` | `configuration.cdn` | Sets custom location of local configuration file in CDN format. By default it's relative to working directory path, but you can also use absolute path. |
-| `--local-configuration-mode`<br/>`--local-config-mode`<br/>`-lcm` | `auto` | Configuration modes description: [Configuration modes](#configuration-modes) |
-| `--shared-configuration`<br/>`--shared-config`<br/>`-sc` | `configuration.shared.cdn` | Replaces database oriented storage of shared configuration with manually linked JSON file with all defined properties |
-| `--hostname`<br/>`-h`| Value from [local configuration](#local-configuration) | Overrides hostname from local configuration |
-| `--port`<br/>`-p` | Value from [local configuration](#local-configuration) | Overrides port from local configuration |
-| `--database` | Value from [local configuration](#local-configuration) | Overrides database from local configuration |
-| `--token`<br/>`-t` | Empty | Create temporary token with the given credentials in `name:secret` format |
-| `--channel`<br/>`-c` | `info` | Sets channel of Reposilite updates. Supported channels: `fatal`, `error`, `warn`, `info`, `debug`, `trace` |
-| `--enable-migrations` | - | Runs set of optional migrations. Currently available migrations: <br/> 1. 001 Change `repository` identifier size from 32 to 64. This migration is required to support longer repository names |
-| `--test-env`<br/>`--debug`<br/>`-d` | - | Enables debug mode |
+| Parameter                                                         | Description                                                                                                                                                                                    |                     Default value                      |
+|:------------------------------------------------------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:------------------------------------------------------:|
+| `--help`                                                          | Displays help message with all parameters                                                                                                                                                      |                           -                            |
+| `--version`                                                       | Display current version of Reposilite                                                                                                                                                          |                           -                            |
+| `--working-directory` <br/> `-wd`                                 | Sets custom working directory for this instance, so the location where Reposilite keeps local data                                                                                             |                          `./`                          |
+| `--plugin-directory` <br/> `-pd`                                  | Sets custom directory for plugins                                                                                                                                                              |                      `./plugins`                       |
+| `--generate-configuration` <br/> `-gc`                            | Generate default template of the requested file. Supported templates: `configuration.cdn` for local configuration and `configuration.shared.json` for shared configuration                     |                           -                            |
+| `--local-configuration`<br/>`--local-config`<br/>`-lc`            | Sets custom location of local configuration file in CDN format. By default it's relative to working directory path, but you can also use absolute path.                                        |                  `configuration.cdn`                   |
+| `--local-configuration-mode`<br/>`--local-config-mode`<br/>`-lcm` | Configuration modes description: [Configuration modes](#configuration-modes)                                                                                                                   |                         `auto`                         |
+| `--shared-configuration`<br/>`--shared-config`<br/>`-sc`          | Replaces database oriented storage of shared configuration with manually linked JSON file with all defined properties                                                                          |               `configuration.shared.cdn`               |
+| `--hostname`<br/>`-h`                                             | Overrides hostname from local configuration                                                                                                                                                    | Value from [local configuration](#local-configuration) |
+| `--port`<br/>`-p`                                                 | Overrides port from local configuration                                                                                                                                                        | Value from [local configuration](#local-configuration) |
+| `--database`                                                      | Overrides database from local configuration                                                                                                                                                    | Value from [local configuration](#local-configuration) |
+| `--token`<br/>`-t`                                                | Create temporary token with the given credentials in `name:secret` format                                                                                                                      |                         Empty                          |
+| `--channel`<br/>`-c`                                              | Sets channel of Reposilite updates. Supported channels: `fatal`, `error`, `warn`, `info`, `debug`, `trace`                                                                                     |                         `info`                         |
+| `--enable-migrations`                                             | Runs set of optional migrations. Currently available migrations: <br/> 1. 001 Change `repository` identifier size from 32 to 64. This migration is required to support longer repository names |                           -                            |
+| `--test-env`<br/>`--debug`<br/>`-d`                               | Enables debug mode                                                                                                                                                                             |                           -                            |
 
 #### Configuration modes
 

@@ -87,7 +87,7 @@ const CodeVariants = ({ children }) => {
 // `text`
 const Highlight = (props) => (
   <Code
-    fontSize={'xs'}
+      fontSize={'xs'}
     background='purple.100'
     borderRadius={'full'}
     whiteSpace={'pre'}
@@ -101,6 +101,7 @@ const Highlight = (props) => (
 // ```text```
 const Snippet = (props) => (
   <Box
+    fontSize={'sm'}
     border="1px solid black"
     background={'#282a36'}
     marginY='4'

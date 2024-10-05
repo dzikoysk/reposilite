@@ -25,7 +25,7 @@ const HeroDescription = ({ style }) => {
           Reposilite <Text as="u">3.x</Text>
         </Heading>
         <Text fontWeight={'bold'} paddingTop={6}>
-          Lightweight and easy-to-use repository manager for Maven based artifacts in JVM ecosystem.
+          Lightweight and easy-to-use repository manager for Maven-based artifacts in the JVM ecosystem.
         </Text>
         <Text paddingTop={2}>
           <Text as='i' color="purple.400">Simple, extensible, scalable and self-hosted</Text>
