@@ -31,15 +31,22 @@ Team - a group of users sharing the same permissions {
         UserPermissions[] - a set of rules that define what the user can do
         
         Tokens[] - a unique identifier that can be used to authenticate the user {
-            Routes[] - a set of rules that define what paths the token can access {
-                <repository> - repo
-                <path> (optional) - e.g. gav for maven repos
-                PathPermissions[] - a set of rules that define what the token can do {
+            ProjectAccess[] {
+                Project
+                ProjectAccessPermissions[] - a set of rules that define what the token can do {
                     - read
                     - write
                 }
             }
         }
+    }
+}
+
+Project {
+    Name
+    Routes[] - a set of rules that define what paths the token can access {
+        Repository - repo
+        Path (optional) - e.g. gav for maven repos
     }
 }
 ```
