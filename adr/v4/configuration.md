@@ -1,6 +1,30 @@
 # Configuration
  
 ```
+Authentication {
+    Local {
+        Allow registration
+    }
+    SSO {
+        Google {
+            Client ID
+            Client Secret
+            // todo: check extra fields
+        }
+    }
+    LDAP {
+        Host
+        Port
+        Base DN
+        Search-User DN
+        Search-User Password
+        Type attribute
+        User attribute
+        User filter
+        User type (persistent, temporary)
+    }
+}
+
 Users {
     Existing users[] {
         Edit
@@ -37,15 +61,44 @@ Teams[] {
 }
 
 Repositories[] {
-    Name
+    Name (Identifier)
+    Redeployments Enabled
     Type (Genric, Maven, Docker)
     Owner (user)
     Storage provider {
-        Local
+        Local {
+            Quota
+            Mount
+        }
         S3
     }
-    Mirros[] {
-    
+    ...on Maven {
+        Preserve snapshots
+        Mirros[] {
+            Link (URL or local id)
+            Store
+            Groups # GAVs that can be requested from this mirror
+            Allowed extensions
+            Timeouts {
+                Connect
+                Read
+            }
+            Authentication {
+                Basic {
+                    Username
+                    Password
+                }
+                Header {
+                    Name
+                    Value
+                }
+            }
+            HTTP Proxy {
+                HTTP or Socks
+            }
+        }
+    }
+    ...on Docker {
     }
 }
 
@@ -62,8 +115,20 @@ Projects {
 }
 
 UI {
+    Id
     Title
+    Description
+    Website 
     Logo
-    Description 
+    ICP License
+}
+
+Statistics {
+    Enabled
+    Accuracy (daily, weekly, monthly, yearly)
+}
+
+Other {
+    Forwarded IP (header)
 }
 ```
