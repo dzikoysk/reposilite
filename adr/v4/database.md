@@ -24,4 +24,11 @@ Project <---------- Route
                                                                              
                  RouteAccess  <-------  Token  <--------  User <------> Team 
                                                                              
+                                                            ^                
+                                                            |                
+                                                            |                
+                                                            |                
+                                                                             
+                                                      Authentication         
+                                                                             
 ```
