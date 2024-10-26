@@ -32,8 +32,8 @@ Team - a group of users sharing the same permissions {
         
         Tokens[] - a unique identifier that can be used to authenticate the user {
             UserPermissions[] - selected permissions that define what the token can do
-            Routes[] {
-                Project.Route
+            RouteAccess[] {
+                Project.Route OR custom path
                 ProjectAccessPermissions[] - a set of rules that define what the token can do {
                     - read
                     - write
