@@ -18,7 +18,6 @@ package com.reposilite.status.application
 
 import com.reposilite.VERSION
 import com.reposilite.configuration.local.LocalConfiguration
-import com.reposilite.console.ConsoleFacade
 import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposiliteDisposeEvent
 import com.reposilite.plugin.api.ReposiliteInitializeEvent
@@ -30,8 +29,6 @@ import com.reposilite.plugin.parameters
 import com.reposilite.plugin.reposilite
 import com.reposilite.shared.extensions.TimeUtils
 import com.reposilite.status.FailureFacade
-import com.reposilite.status.FailuresCommand
-import com.reposilite.status.StatusCommand
 import com.reposilite.status.StatusFacade
 import com.reposilite.status.StatusSnapshotScheduler
 import com.reposilite.status.infrastructure.StatusEndpoints
@@ -45,7 +42,7 @@ import panda.std.reactive.Reference.Dependencies.dependencies
 import panda.std.reactive.Reference.computed
 import panda.utilities.console.Effect
 
-@Plugin(name = "status", dependencies = ["console", "failure", "local-configuration"])
+@Plugin(name = "status", dependencies = ["failure", "local-configuration"])
 internal class StatusPlugin : ReposilitePlugin() {
 
     private val remoteVersionEndpoint = "https://maven.reposilite.com/api/maven/latest/version/releases/com/reposilite/reposilite?type=raw"
@@ -54,7 +51,6 @@ internal class StatusPlugin : ReposilitePlugin() {
         val webServer = Completable<HttpServer>()
         val failureFacade = facade<FailureFacade>()
         val localConfiguration = facade<LocalConfiguration>()
-        val consoleFacade = facade<ConsoleFacade>()
 
         val statusFacade = StatusComponents(
             testEnv = parameters().testEnv,
@@ -77,8 +73,6 @@ internal class StatusPlugin : ReposilitePlugin() {
 
         event { _: ReposiliteInitializeEvent ->
             webServer.complete(reposilite().webServer)
-            consoleFacade.registerCommand(FailuresCommand(failureFacade))
-            consoleFacade.registerCommand(StatusCommand(statusFacade))
         }
 
         event { event: RoutingSetupEvent ->

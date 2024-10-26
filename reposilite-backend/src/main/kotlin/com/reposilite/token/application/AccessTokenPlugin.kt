@@ -16,7 +16,6 @@
 
 package com.reposilite.token.application
 
-import com.reposilite.console.api.CommandsSetupEvent
 import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposiliteInitializeEvent
 import com.reposilite.plugin.api.ReposilitePlugin
@@ -25,17 +24,7 @@ import com.reposilite.plugin.parameters
 import com.reposilite.plugin.reposilite
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.AccessTokenPermission.MANAGER
-import com.reposilite.token.ExportTokensCommand
-import com.reposilite.token.ImportTokensCommand
-import com.reposilite.token.infrastructure.RouteAdd
-import com.reposilite.token.infrastructure.RouteRemove
 import com.reposilite.token.infrastructure.AccessTokenApiEndpoints
-import com.reposilite.token.infrastructure.ChModCommand
-import com.reposilite.token.infrastructure.ChNameCommand
-import com.reposilite.token.infrastructure.KeygenCommand
-import com.reposilite.token.infrastructure.RegenerateCommand
-import com.reposilite.token.infrastructure.RevokeCommand
-import com.reposilite.token.infrastructure.TokensCommand
 import com.reposilite.web.api.RoutingSetupEvent
 
 @Plugin(name = "access-token")
@@ -55,22 +44,6 @@ internal class AccessTokenPlugin : ReposilitePlugin() {
         parameters().tokens.forEach {
             val (token) = accessTokenFacade.createAccessToken(it)
             accessTokenFacade.addPermission(token.identifier, MANAGER)
-        }
-
-        event { event: CommandsSetupEvent ->
-            event.registerCommand(TokensCommand(accessTokenFacade))
-            event.registerCommand(KeygenCommand(accessTokenFacade))
-            event.registerCommand(ChNameCommand(accessTokenFacade))
-            event.registerCommand(ChModCommand(accessTokenFacade))
-            event.registerCommand(RevokeCommand(accessTokenFacade))
-            event.registerCommand(RegenerateCommand(accessTokenFacade))
-
-            event.registerCommand(RouteAdd(accessTokenFacade))
-            event.registerCommand(RouteRemove(accessTokenFacade))
-
-            val workingDirectory = parameters().workingDirectory
-            event.registerCommand(ExportTokensCommand(workingDirectory, accessTokenFacade))
-            event.registerCommand(ImportTokensCommand(workingDirectory, accessTokenFacade))
         }
 
         event { event: RoutingSetupEvent ->
