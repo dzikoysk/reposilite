@@ -22,7 +22,6 @@ import com.reposilite.ReposiliteObjectMapper
 import com.reposilite.VERSION
 import com.reposilite.configuration.local.LocalConfiguration
 import com.reposilite.configuration.shared.SharedConfigurationFacade
-import com.reposilite.frontend.application.FrontendSettings
 import com.reposilite.journalist.Journalist
 import com.reposilite.web.api.HttpServerConfigurationEvent
 import com.reposilite.web.api.HttpServerStartedEvent
@@ -33,7 +32,6 @@ import com.reposilite.web.infrastructure.createReposiliteDsl
 import io.javalin.config.JavalinConfig
 import io.javalin.json.JavalinJackson
 import io.javalin.openapi.plugin.OpenApiPlugin
-import io.javalin.plugin.bundled.SslRedirectPlugin
 import kotlin.time.Duration.Companion.minutes
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
@@ -50,7 +48,6 @@ internal object JavalinConfiguration {
         val localConfiguration = reposilite.extensions.facade<LocalConfiguration>()
         val sharedConfigurationFacade = reposilite.extensions.facade<SharedConfigurationFacade>()
         val webSettings = sharedConfigurationFacade.getDomainSettings<WebSettings>()
-        val frontendSettings = sharedConfigurationFacade.getDomainSettings<FrontendSettings>()
 
         reposilite.extensions.registerEvent { _: HttpServerStartedEvent ->
             server.connectors.filterIsInstance<ServerConnector>().forEach { it.idleTimeout = localConfiguration.idleTimeout.get() }
@@ -67,7 +64,7 @@ internal object JavalinConfiguration {
         configureJavalin(config, localConfiguration, webSettings)
         configureJsonSerialization(config)
         configureCors(config)
-        configureOpenApi(config, frontendSettings.get())
+        configureOpenApi(config, "Title", "Description")
         configureDebug(reposilite, localConfiguration, config)
         configureRoutingPlugin(config, reposilite)
     }
@@ -128,12 +125,12 @@ internal object JavalinConfiguration {
         }
     }
 
-    private fun configureOpenApi(config: JavalinConfig, frontendSettings: FrontendSettings) {
+    private fun configureOpenApi(config: JavalinConfig, title: String, description: String) {
         config.registerPlugin(OpenApiPlugin { openapi ->
             openapi.withDefinitionConfiguration { _, configuration ->
                 configuration.withInfo {
-                    it.title = frontendSettings.title
-                    it.description = frontendSettings.description
+                    it.title = title
+                    it.description = description
                     it.version = VERSION
                 }
             }

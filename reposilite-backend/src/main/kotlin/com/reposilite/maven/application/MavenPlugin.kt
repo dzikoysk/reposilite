@@ -18,7 +18,6 @@ package com.reposilite.maven.application
 
 import com.reposilite.configuration.local.LocalConfiguration
 import com.reposilite.configuration.shared.SharedConfigurationFacade
-import com.reposilite.frontend.application.FrontendSettings
 import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.PreservedBuildsListener
 import com.reposilite.maven.infrastructure.MavenApiEndpoints
@@ -32,11 +31,12 @@ import com.reposilite.plugin.facade
 import com.reposilite.plugin.parameters
 import com.reposilite.shared.http.HttpRemoteClientProvider
 import com.reposilite.web.api.RoutingSetupEvent
+import panda.std.reactive.Reference
 import java.time.Clock
 
 @Plugin(
     name = "maven",
-    dependencies = ["failure", "local-configuration", "shared-configuration", "statistics", "frontend", "authentication", "access-token", "storage"],
+    dependencies = ["failure", "local-configuration", "shared-configuration", "statistics", "authentication", "access-token", "storage"],
     settings = MavenSettings::class
 )
 internal class MavenPlugin : ReposilitePlugin() {
@@ -57,7 +57,7 @@ internal class MavenPlugin : ReposilitePlugin() {
                 accessTokenFacade = facade(),
                 statisticsFacade = facade(),
                 mavenSettings = sharedConfigurationFacade.getDomainSettings<MavenSettings>(),
-                frontendSettings = sharedConfigurationFacade.getDomainSettings<FrontendSettings>()
+                id = Reference.reference("repository-id"), // todo: get repo id from cfg
             ).mavenFacade()
 
         logger.info("")
@@ -68,7 +68,7 @@ internal class MavenPlugin : ReposilitePlugin() {
         event { event: RoutingSetupEvent ->
             val localConfiguration = facade<LocalConfiguration>()
             event.registerRoutes(MavenApiEndpoints(mavenFacade))
-            event.registerRoutes(MavenEndpoints(mavenFacade, facade(), localConfiguration.compressionStrategy.get()))
+            event.registerRoutes(MavenEndpoints(mavenFacade, basePath = "/", localConfiguration.compressionStrategy.get())) // todo: check base-path
             event.registerRoutes(MavenLatestApiEndpoints(mavenFacade, localConfiguration.compressionStrategy.get()))
         }
 

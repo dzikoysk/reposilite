@@ -18,7 +18,6 @@ package com.reposilite.maven.specification
 
 import com.reposilite.auth.application.AuthenticationComponents
 import com.reposilite.auth.application.AuthenticationSettings
-import com.reposilite.frontend.application.FrontendSettings
 import com.reposilite.journalist.backend.InMemoryLogger
 import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.Repository
@@ -137,7 +136,7 @@ internal abstract class MavenSpecification {
             mavenSettings = reference(MavenSettings(
                 repositories = repositories()
             )),
-            frontendSettings = reference(FrontendSettings())
+            id = reference("test-repository-id")
         ).mavenFacade()
     }
 
