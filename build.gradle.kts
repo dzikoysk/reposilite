@@ -50,8 +50,6 @@ scmVersion {
         fileUpdate(".github/README.md") { version -> "dzikoysk/reposilite:$version" }
         fileUpdate("docker-compose.yml") { version -> "image: reposilite:$version" }
         fileUpdate("reposilite-backend/src/main/kotlin/com/reposilite/Reposilite.kt") { version -> "const val VERSION = \"$version\"" }
-        fileUpdate("reposilite-frontend/package.json") { version -> "\"version\": \"$version\"" }
-        fileUpdate("reposilite-frontend/package-lock.json") { version -> "\"version\": \"$version\"" }
         fileUpdate("reposilite-site/data/guides/developers/endpoints.md") { version -> "\"version\": \"$version\"" }
         fileUpdate("reposilite-site/data/guides/developers/plugin-api.md") { version -> "\"com.reposilite:reposilite:$version\"" }
         fileUpdate("reposilite-site/data/guides/installation/docker.md") { version -> version }

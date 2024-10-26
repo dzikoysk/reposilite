@@ -17,7 +17,6 @@
 rootProject.name = "reposilite-parent"
 
 include(
-    "reposilite-frontend",
     "reposilite-backend",
     "reposilite-plugins",
     "reposilite-plugins:checksum-plugin",
