@@ -3,9 +3,9 @@ name: "Reposilite CI"
 
 on:
   push:
-    branches: [ "main", "3.0" ]
+    branches: [ "main", "3.0", "4.x" ]
   pull_request:
-    branches: [ "main", "3.0" ]
+    branches: [ "main", "3.0", "4.x" ]
 
 jobs:
   build:

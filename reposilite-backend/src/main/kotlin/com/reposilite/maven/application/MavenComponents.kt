@@ -17,7 +17,6 @@
 package com.reposilite.maven.application
 
 import com.reposilite.auth.AuthenticationFacade
-import com.reposilite.frontend.application.FrontendSettings
 import com.reposilite.journalist.Journalist
 import com.reposilite.maven.LatestService
 import com.reposilite.maven.MavenFacade
@@ -48,7 +47,7 @@ internal class MavenComponents(
     private val accessTokenFacade: AccessTokenFacade,
     private val statisticsFacade: StatisticsFacade,
     private val mavenSettings: Reference<MavenSettings>,
-    private val frontendSettings: Reference<FrontendSettings>,
+    private val id: Reference<String>,
 ) : PluginComponents {
 
     private fun securityProvider(): RepositorySecurityProvider =
@@ -82,7 +81,7 @@ internal class MavenComponents(
         )
 
     private fun latestService(): LatestService =
-        LatestService(frontendSettings.computed { it.id })
+        LatestService(id)
 
     fun mavenFacade(
         securityProvider: RepositorySecurityProvider = securityProvider(),

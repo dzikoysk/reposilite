@@ -16,34 +16,23 @@
 package com.reposilite.console.application
 
 import com.reposilite.configuration.shared.SharedConfigurationFacade
-import com.reposilite.console.HelpCommand
-import com.reposilite.console.LevelCommand
-import com.reposilite.console.StopCommand
-import com.reposilite.console.api.CommandsSetupEvent
-import com.reposilite.console.infrastructure.ConsoleWebSocketHandler
-import com.reposilite.console.infrastructure.ConsoleEndpoint
 import com.reposilite.console.infrastructure.ConsoleSseHandler
 import com.reposilite.plugin.api.Facade
 import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposiliteDisposeEvent
-import com.reposilite.plugin.api.ReposiliteInitializeEvent
 import com.reposilite.plugin.api.ReposilitePlugin
-import com.reposilite.plugin.api.ReposiliteStartedEvent
 import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
-import com.reposilite.plugin.parameters
 import com.reposilite.plugin.reposilite
 import com.reposilite.web.api.HttpServerInitializationEvent
-import com.reposilite.web.api.RoutingSetupEvent
 import com.reposilite.web.application.WebSettings
 import io.javalin.http.sse.SseClient
 
 @Plugin(name = "console", dependencies = [ "shared-configuration", "failure", "access-token", "authentication" ])
 internal class ConsolePlugin : ReposilitePlugin() {
 
-    override fun initialize(): Facade {
+    override fun initialize(): Facade? {
         val sharedConfigurationFacade = facade<SharedConfigurationFacade>()
-        val consoleFacade = ConsoleComponents(this, facade()).consoleFacade()
         val client = ConsoleSseHandler(
             journalist = reposilite().journalist,
             accessTokenFacade = facade(),
@@ -52,37 +41,8 @@ internal class ConsolePlugin : ReposilitePlugin() {
             scheduler = reposilite().scheduler
         )
 
-        event { _: ReposiliteInitializeEvent ->
-            consoleFacade.registerCommand(HelpCommand(consoleFacade))
-            consoleFacade.registerCommand(LevelCommand(reposilite().journalist))
-            consoleFacade.registerCommand(StopCommand(reposilite()))
-
-            val setup = extensions().emitEvent(CommandsSetupEvent())
-            setup.getCommands().forEach { consoleFacade.registerCommand(it) }
-
-            // disable console daemon in tests due to issues with coverage and interrupt method call
-            // https://github.com/jacoco/jacoco/issues/1066
-            if (!parameters().testEnv) {
-                consoleFacade.commandExecutor.hook()
-            }
-        }
-
-        event { event: RoutingSetupEvent ->
-            event.registerRoutes(ConsoleEndpoint(consoleFacade))
-        }
-
         event { event: HttpServerInitializationEvent ->
             event.config.router.mount {
-                it.ws(
-                    "/api/console/sock",
-                    ConsoleWebSocketHandler(
-                        journalist = reposilite().journalist,
-                        accessTokenFacade = facade(),
-                        authenticationFacade = facade(),
-                        consoleFacade = consoleFacade,
-                        forwardedIp = sharedConfigurationFacade.getDomainSettings<WebSettings>().computed { it.forwardedIp }
-                    )
-                )
                 it.sse(
                     "/api/console/log",
                     client::handleSseLiveLog
@@ -90,24 +50,11 @@ internal class ConsolePlugin : ReposilitePlugin() {
             }
         }
 
-        if (!parameters().testEnv) {
-            event { _: ReposiliteStartedEvent ->
-                reposilite().ioService.execute {
-                    logger.info("Collecting status metrics...")
-                    logger.info("")
-                    consoleFacade.executeCommand("status")
-                    logger.info("")
-                    logger.info("For help, type 'help' or '?'")
-                }
-            }
-        }
-
         event { _: ReposiliteDisposeEvent ->
-            consoleFacade.commandExecutor.stop()
             client.users.keys.forEach(SseClient::close)
         }
 
-        return consoleFacade
+        return null
     }
 
 }

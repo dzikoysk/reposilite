@@ -17,7 +17,6 @@
 package com.reposilite.statistics.application
 
 import com.reposilite.configuration.shared.SharedConfigurationFacade
-import com.reposilite.console.ConsoleFacade
 import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposiliteInitializeEvent
 import com.reposilite.plugin.api.ReposilitePlugin
@@ -26,12 +25,11 @@ import com.reposilite.plugin.facade
 import com.reposilite.plugin.parameters
 import com.reposilite.plugin.reposilite
 import com.reposilite.statistics.StatisticsFacade
-import com.reposilite.statistics.StatsCommand
 import com.reposilite.statistics.infrastructure.StatisticsEndpoint
 import com.reposilite.web.api.RoutingSetupEvent
 import java.util.concurrent.TimeUnit.SECONDS
 
-@Plugin(name = "statistics", dependencies = ["shared-configuration", "console"], settings = StatisticsSettings::class)
+@Plugin(name = "statistics", dependencies = ["shared-configuration"], settings = StatisticsSettings::class)
 internal class StatisticsPlugin : ReposilitePlugin() {
 
     override fun initialize(): StatisticsFacade {
@@ -43,9 +41,6 @@ internal class StatisticsPlugin : ReposilitePlugin() {
             runMigrations = parameters().runMigrations,
             statisticsSettings = settingsFacade.getDomainSettings<StatisticsSettings>()
         ).statisticsFacade()
-
-        val consoleFacade = facade<ConsoleFacade>()
-        consoleFacade.registerCommand(StatsCommand(statisticsFacade))
 
         event { _: ReposiliteInitializeEvent ->
             reposilite().scheduler.scheduleWithFixedDelay({
