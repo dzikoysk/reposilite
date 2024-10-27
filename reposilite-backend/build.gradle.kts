@@ -43,6 +43,7 @@ dependencies {
 
     val javalin = "6.3.0"
     api("io.javalin:javalin:$javalin")
+    implementation("io.javalin:javalin-rendering:$javalin")
 
     val javalinOpenApi = "6.3.0"
     api("io.javalin.community.openapi:javalin-openapi-plugin:$javalinOpenApi")
@@ -50,6 +51,10 @@ dependencies {
 
     val javalinRouting = "6.3.0"
     api("io.javalin.community.routing:routing-dsl:$javalinRouting")
+
+    val jte = "3.1.13"
+    implementation("gg.jte:jte:$jte")
+    implementation("gg.jte:jte-watcher:$jte")
 
     val bcrypt = "0.10.2"
     implementation("at.favre.lib:bcrypt:$bcrypt")

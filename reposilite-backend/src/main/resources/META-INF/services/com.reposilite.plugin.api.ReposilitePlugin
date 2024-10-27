@@ -11,3 +11,4 @@ com.reposilite.storage.StoragePlugin
 com.reposilite.status.application.FailurePlugin
 com.reposilite.token.application.AccessTokenPlugin
 com.reposilite.web.application.WebPlugin
+com.reposilite.ui.UiPlugin
