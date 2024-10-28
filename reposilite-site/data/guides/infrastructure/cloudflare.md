@@ -10,6 +10,10 @@ To avoid these problems, you have to exclude Reposilite from cached resources.
 
 If you use Cloudflare - you can set `Cache Level` property to `Bypass` through the custom page rules (`Rules` -> `Page Rules`):
 
+![Rules](/images/guides/cloudflare-cache-bypass-rules.png)
+
+![Rules Settings](/images/guides/cloudflare-cache-bypass-rules-settings.png)
+
 ![Cache Bypass](/images/guides/cloudflare-cache-bypass.png)
 
 Associated issue on GitHub: [GH-156 Wrong artifact is being downloaded](https://github.com/dzikoysk/reposilite/issues/156)
