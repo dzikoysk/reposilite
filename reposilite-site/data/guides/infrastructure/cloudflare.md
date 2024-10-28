@@ -8,7 +8,7 @@ By default, these services use some kind of cache policy which causes a lot of r
 To avoid these problems, you have to exclude Reposilite from cached resources.
 
 
-If you use Cloudflare - you can set `Cache Level` property to `Bypass` through the custom page rules:
+If you use Cloudflare - you can set `Cache Level` property to `Bypass` through the custom page rules (`Rules` -> `Page Rules`):
 
 ![Cache Bypass](/images/guides/cloudflare-cache-bypass.png)
 
