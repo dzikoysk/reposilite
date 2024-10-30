@@ -28,10 +28,10 @@ application {
 dependencies {
     compileOnly(project(":reposilite-backend"))
 
-    val prometheus = "1.3.1"
-    implementation("io.prometheus:prometheus-metrics-core:$prometheus")
-    implementation("io.prometheus:prometheus-metrics-instrumentation-jvm:$prometheus")
-    implementation("io.prometheus:prometheus-metrics-exporter-common:$prometheus")
+    val prometheusMetrics = "1.3.2"
+    implementation("io.prometheus:prometheus-metrics-core:$prometheusMetrics")
+    implementation("io.prometheus:prometheus-metrics-instrumentation-jvm:$prometheusMetrics")
+    implementation("io.prometheus:prometheus-metrics-exporter-common:$prometheusMetrics")
 
     testImplementation(project(":reposilite-backend"))
 }
