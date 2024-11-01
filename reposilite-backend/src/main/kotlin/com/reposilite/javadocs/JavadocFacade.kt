@@ -22,9 +22,9 @@ import com.reposilite.javadocs.api.JavadocRawResponse
 import com.reposilite.javadocs.api.JavadocResponse
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
-import com.reposilite.maven.MavenFacade
-import com.reposilite.maven.Repository
-import com.reposilite.maven.api.VersionLookupRequest
+import com.reposilite.packages.maven.MavenFacade
+import com.reposilite.packages.maven.MavenRepository
+import com.reposilite.packages.maven.api.VersionLookupRequest
 import com.reposilite.plugin.api.Facade
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.notFound
@@ -65,15 +65,15 @@ class JavadocFacade internal constructor(
 
     fun findJavadocPage(request: JavadocPageRequest): Result<JavadocResponse, ErrorResponse> =
         with (request) {
-            mavenFacade.canAccessResource(accessToken, repository, gav)
-                .flatMap { createPage(accessToken, repository, resolveGav(request)) }
+            mavenFacade.canAccessResource(accessToken, mavenRepository, gav)
+                .flatMap { createPage(accessToken, mavenRepository, resolveGav(request)) }
                 .onError { logger.error("Cannot extract javadoc: ${it.message} (${it.status})}") }
         }
 
     fun findRawJavadocResource(request: JavadocRawRequest): Result<JavadocRawResponse, ErrorResponse> =
         with (request) {
-            mavenFacade.canAccessResource(accessToken, repository, gav)
-                .flatMap { javadocContainerService.loadContainer(accessToken, repository, gav) }
+            mavenFacade.canAccessResource(accessToken, mavenRepository, gav)
+                .flatMap { javadocContainerService.loadContainer(accessToken, mavenRepository, gav) }
                 .filter({ Files.exists(it.javadocUnpackPath.resolve(resource.toString())) }, { notFound("Resource $resource not found") })
                 .map {
                     JavadocRawResponse(
@@ -83,8 +83,8 @@ class JavadocFacade internal constructor(
                 }
         }
 
-    private fun createPage(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<JavadocResponse, ErrorResponse> {
-        val resourcesFile = createPlainFile(javadocFolder, repository, gav)
+    private fun createPage(accessToken: AccessTokenIdentifier?, mavenRepository: MavenRepository, gav: Location): Result<JavadocResponse, ErrorResponse> {
+        val resourcesFile = createPlainFile(javadocFolder, mavenRepository, gav)
 
         return when {
             /* File not found */
@@ -103,14 +103,14 @@ class JavadocFacade internal constructor(
             /* Load resource */
             else ->
                 javadocContainerService
-                    .loadContainer(accessToken, repository, gav)
+                    .loadContainer(accessToken, mavenRepository, gav)
                     .map { JavadocResponse(ContentType.HTML, readFile(it.javadocContainerIndex)) }
         }
     }
 
-    private fun createPlainFile(javadocFolder: Path, repository: Repository, gav: Location): JavadocPlainFile? =
+    private fun createPlainFile(javadocFolder: Path, mavenRepository: MavenRepository, gav: Location): JavadocPlainFile? =
         javadocFolder
-            .resolve(repository.name)
+            .resolve(mavenRepository.name)
             .resolve(gav.toString())
             .let { targetPath -> targetPath to supportedExtensions[gav.getExtension()] }
             .takeIf { (_, contentType) -> contentType != null }
@@ -123,7 +123,7 @@ class JavadocFacade internal constructor(
         request.gav
             .takeIf { it.contains("/latest") }
             ?.let { request.gav.locationBeforeLast("/latest") }
-            ?.let { gavWithoutVersion -> VersionLookupRequest(request.accessToken, request.repository, gavWithoutVersion) }
+            ?.let { gavWithoutVersion -> VersionLookupRequest(request.accessToken, request.mavenRepository, gavWithoutVersion) }
             ?.let { mavenFacade.findLatestVersion(it) }
             ?.map { request.gav.replace(LATEST_PATTERN, "/%s".format(it.version)) }
             ?.orNull()

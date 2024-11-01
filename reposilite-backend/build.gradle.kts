@@ -34,18 +34,16 @@ application {
 }
 
 dependencies {
-    implementation(project(":reposilite-frontend"))
-
 //    val detekt = "1.23.5"
 //    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:$detekt")
 
-    val kotlin = "2.0.20"
+    val kotlin = "2.0.21"
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin")
 
     val javalin = "6.3.0"
     api("io.javalin:javalin:$javalin")
-    api("io.javalin.community.ssl:ssl-plugin:$javalin")
+    implementation("io.javalin:javalin-rendering:$javalin")
 
     val javalinOpenApi = "6.3.0"
     api("io.javalin.community.openapi:javalin-openapi-plugin:$javalinOpenApi")
@@ -53,6 +51,10 @@ dependencies {
 
     val javalinRouting = "6.3.0"
     api("io.javalin.community.routing:routing-dsl:$javalinRouting")
+
+    val jte = "3.1.13"
+    implementation("gg.jte:jte:$jte")
+    implementation("gg.jte:jte-watcher:$jte")
 
     val bcrypt = "0.10.2"
     implementation("at.favre.lib:bcrypt:$bcrypt")
@@ -71,21 +73,15 @@ dependencies {
     api("info.picocli:picocli:$picocli")
 
     val awssdk = "2.28.16"
-    implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
-
-    val awsSdkV1 = "1.12.773"
-    testImplementation("com.amazonaws:aws-java-sdk-s3:$awsSdkV1")
 
     val exposed = "0.55.0"
     api("org.jetbrains.exposed:exposed-core:$exposed")
-    api("org.jetbrains.exposed:exposed-dao:$exposed")
     api("org.jetbrains.exposed:exposed-jdbc:$exposed")
     api("org.jetbrains.exposed:exposed-java-time:$exposed")
     // Drivers
     implementation("com.zaxxer:HikariCP:6.0.0")
     implementation("org.xerial:sqlite-jdbc:3.46.1.3")
-    implementation("mysql:mysql-connector-java:8.0.33")
     implementation("org.mariadb.jdbc:mariadb-java-client:3.4.1")
     implementation("org.postgresql:postgresql:42.7.4")
     implementation("com.h2database:h2:2.3.232")
@@ -142,7 +138,6 @@ tasks.withType<ShadowJar> {
         exclude(dependency("org.eclipse.jetty:.*"))
         exclude(dependency("org.eclipse.jetty.http2:.*"))
         exclude(dependency("org.eclipse.jetty.websocket:.*"))
-        exclude(dependency("org.bouncycastle:.*"))
         exclude(dependency("com.fasterxml.woodstox:woodstox-core:.*"))
         exclude(dependency("commons-logging:commons-logging:.*"))
         exclude(dependency("org.jetbrains.kotlin:kotlin-reflect:.*"))

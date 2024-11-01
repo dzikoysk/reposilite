@@ -22,7 +22,6 @@ import com.reposilite.ReposiliteObjectMapper
 import com.reposilite.VERSION
 import com.reposilite.configuration.local.LocalConfiguration
 import com.reposilite.configuration.shared.SharedConfigurationFacade
-import com.reposilite.frontend.application.FrontendSettings
 import com.reposilite.journalist.Journalist
 import com.reposilite.web.api.HttpServerConfigurationEvent
 import com.reposilite.web.api.HttpServerStartedEvent
@@ -30,11 +29,9 @@ import com.reposilite.web.api.RoutingSetupEvent
 import com.reposilite.web.infrastructure.ApiCacheBypassHandler
 import com.reposilite.web.infrastructure.EndpointAccessLoggingHandler
 import com.reposilite.web.infrastructure.createReposiliteDsl
-import io.javalin.community.ssl.SslPlugin
 import io.javalin.config.JavalinConfig
 import io.javalin.json.JavalinJackson
 import io.javalin.openapi.plugin.OpenApiPlugin
-import io.javalin.plugin.bundled.SslRedirectPlugin
 import kotlin.time.Duration.Companion.minutes
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
@@ -51,7 +48,6 @@ internal object JavalinConfiguration {
         val localConfiguration = reposilite.extensions.facade<LocalConfiguration>()
         val sharedConfigurationFacade = reposilite.extensions.facade<SharedConfigurationFacade>()
         val webSettings = sharedConfigurationFacade.getDomainSettings<WebSettings>()
-        val frontendSettings = sharedConfigurationFacade.getDomainSettings<FrontendSettings>()
 
         reposilite.extensions.registerEvent { _: HttpServerStartedEvent ->
             server.connectors.filterIsInstance<ServerConnector>().forEach { it.idleTimeout = localConfiguration.idleTimeout.get() }
@@ -67,9 +63,8 @@ internal object JavalinConfiguration {
 
         configureJavalin(config, localConfiguration, webSettings)
         configureJsonSerialization(config)
-        configureSSL(reposilite, localConfiguration, config)
         configureCors(config)
-        configureOpenApi(config, frontendSettings.get())
+        configureOpenApi(config, "Title", "Description")
         configureDebug(reposilite, localConfiguration, config)
         configureRoutingPlugin(config, reposilite)
     }
@@ -122,47 +117,6 @@ internal object JavalinConfiguration {
         config.jsonMapper(JavalinJackson(objectMapper))
     }
 
-    private fun configureSSL(reposilite: Reposilite, localConfiguration: LocalConfiguration, config: JavalinConfig) {
-        if (localConfiguration.sslEnabled.get()) {
-            reposilite.logger.info("Enabling SSL connector at ::${localConfiguration.sslPort.get()}")
-
-            config.registerPlugin(SslPlugin {
-                it.insecure = true
-                it.insecurePort = localConfiguration.port.get()
-
-                it.secure = true
-                it.securePort = localConfiguration.sslPort.get()
-
-                val keyConfiguration = localConfiguration.keyPath.map { path ->
-                    path.replace(
-                        "\${WORKING_DIRECTORY}",
-                        reposilite.parameters.workingDirectory.toAbsolutePath().toString()
-                    )
-                }
-                val keyPassword = localConfiguration.keyPassword.get()
-
-                when {
-                    keyConfiguration.endsWith(".pem") -> {
-                        val (certPath, keyPath) = keyConfiguration.split(" ")
-                        it.pemFromPath(certPath, keyPath, keyPassword)
-                    }
-                    keyConfiguration.endsWith(".jks") -> it.keystoreFromPath(keyConfiguration, keyPassword)
-                    else -> throw IllegalArgumentException("Provided key extension is not supported.")
-                }
-
-                it.configConnectors { connector -> connector.idleTimeout = localConfiguration.idleTimeout.get() }
-                it.sniHostCheck = false
-            })
-        }
-
-        if (localConfiguration.enforceSsl.get()) {
-            config.registerPlugin(SslRedirectPlugin {
-                it.redirectOnLocalhost = true
-                it.sslPort = localConfiguration.sslPort.get()
-            })
-        }
-    }
-
     private fun configureCors(config: JavalinConfig) {
         config.bundledPlugins.enableCors { cors ->
             cors.addRule {
@@ -171,12 +125,12 @@ internal object JavalinConfiguration {
         }
     }
 
-    private fun configureOpenApi(config: JavalinConfig, frontendSettings: FrontendSettings) {
+    private fun configureOpenApi(config: JavalinConfig, title: String, description: String) {
         config.registerPlugin(OpenApiPlugin { openapi ->
             openapi.withDefinitionConfiguration { _, configuration ->
                 configuration.withInfo {
-                    it.title = frontendSettings.title
-                    it.description = frontendSettings.description
+                    it.title = title
+                    it.description = description
                     it.version = VERSION
                 }
             }

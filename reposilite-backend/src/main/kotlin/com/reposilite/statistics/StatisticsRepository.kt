@@ -16,7 +16,7 @@
 
 package com.reposilite.statistics
 
-import com.reposilite.maven.api.Identifier
+import com.reposilite.packages.maven.api.Identifier
 import com.reposilite.statistics.api.ResolvedEntry
 import java.time.LocalDate
 import kotlin.Int.Companion.MAX_VALUE

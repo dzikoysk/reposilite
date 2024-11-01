@@ -1,7 +1,7 @@
 package com.reposilite.plugin.prometheus
 
-import com.reposilite.maven.api.DeployEvent
-import com.reposilite.maven.api.ResolvedFileEvent
+import com.reposilite.packages.maven.api.DeployEvent
+import com.reposilite.packages.maven.api.ResolvedFileEvent
 import com.reposilite.plugin.api.Facade
 import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposilitePlugin

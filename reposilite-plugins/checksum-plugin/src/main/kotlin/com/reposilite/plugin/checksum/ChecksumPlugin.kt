@@ -1,8 +1,8 @@
 package com.reposilite.plugin.checksum
 
-import com.reposilite.maven.MavenFacade
-import com.reposilite.maven.api.LookupRequest
-import com.reposilite.maven.api.PreResolveEvent
+import com.reposilite.packages.maven.MavenFacade
+import com.reposilite.packages.maven.api.LookupRequest
+import com.reposilite.packages.maven.api.PreResolveEvent
 import com.reposilite.plugin.api.Facade
 import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposilitePlugin

@@ -20,9 +20,9 @@ import com.reposilite.DatabaseMigrations.MIGRATION_001
 import com.reposilite.DatabaseMigrations.MIGRATION_002
 import com.reposilite.DatabaseMigrations.MIGRATION_003
 import com.reposilite.journalist.Journalist
-import com.reposilite.maven.api.GAV_MAX_LENGTH
-import com.reposilite.maven.api.Identifier
-import com.reposilite.maven.api.REPOSITORY_NAME_MAX_LENGTH
+import com.reposilite.packages.maven.api.GAV_MAX_LENGTH
+import com.reposilite.packages.maven.api.Identifier
+import com.reposilite.packages.maven.api.REPOSITORY_NAME_MAX_LENGTH
 import com.reposilite.shared.extensions.executeQuery
 import com.reposilite.statistics.StatisticsRepository
 import com.reposilite.statistics.api.ResolvedEntry

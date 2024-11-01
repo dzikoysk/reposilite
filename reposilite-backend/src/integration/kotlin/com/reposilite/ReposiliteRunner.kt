@@ -22,9 +22,9 @@ import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.journalist.Channel
 import com.reposilite.journalist.Logger
 import com.reposilite.journalist.backend.PrintStreamLogger
-import com.reposilite.maven.application.MavenSettings
-import com.reposilite.maven.application.MirroredRepositorySettings
-import com.reposilite.maven.application.RepositorySettings
+import com.reposilite.packages.maven.application.MavenSettings
+import com.reposilite.packages.maven.application.MirroredRepositorySettings
+import com.reposilite.packages.maven.application.RepositorySettings
 import com.reposilite.storage.StorageProviderSettings
 import io.javalin.util.JavalinBindException
 import net.dzikoysk.cdn.KCdnFactory

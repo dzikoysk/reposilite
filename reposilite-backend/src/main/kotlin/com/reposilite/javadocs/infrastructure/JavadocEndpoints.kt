@@ -19,7 +19,7 @@ package com.reposilite.javadocs.infrastructure
 import com.reposilite.javadocs.JavadocFacade
 import com.reposilite.javadocs.api.JavadocPageRequest
 import com.reposilite.javadocs.api.JavadocRawRequest
-import com.reposilite.maven.infrastructure.MavenRoutes
+import com.reposilite.packages.maven.infrastructure.MavenRoutes
 import com.reposilite.shared.extensions.encoding
 import com.reposilite.storage.api.toLocation
 import com.reposilite.web.api.ReposiliteRoute

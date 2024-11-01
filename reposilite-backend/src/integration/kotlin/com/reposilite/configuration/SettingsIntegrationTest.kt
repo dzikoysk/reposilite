@@ -25,8 +25,7 @@ import com.reposilite.auth.application.AuthenticationSettings
 import com.reposilite.auth.application.LdapSettings
 import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.configuration.specification.SettingsIntegrationSpecification
-import com.reposilite.frontend.application.FrontendSettings
-import com.reposilite.maven.application.MavenSettings
+import com.reposilite.packages.maven.application.MavenSettings
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.statistics.api.ResolvedRequestsInterval.YEARLY
 import com.reposilite.statistics.application.StatisticsSettings
@@ -51,7 +50,6 @@ internal abstract class SettingsIntegrationTest : SettingsIntegrationSpecificati
             "web" to WebSettings::class,
             "authentication" to AuthenticationSettings::class,
             "statistics" to StatisticsSettings::class,
-            "frontend" to FrontendSettings::class,
             "maven" to MavenSettings::class
         )
     }
@@ -120,7 +118,6 @@ internal abstract class SettingsIntegrationTest : SettingsIntegrationSpecificati
         "web" to WebSettings(forwardedIp = "test"),
         "authentication" to AuthenticationSettings(ldap = LdapSettings(enabled = true)),
         "statistics" to StatisticsSettings(resolvedRequestsInterval = YEARLY),
-        "frontend" to FrontendSettings(id = "test"),
         "maven" to MavenSettings(repositories = emptyList())
     )
 

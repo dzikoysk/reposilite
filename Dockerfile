@@ -3,8 +3,6 @@ FROM openjdk:21-slim AS build
 COPY . /home/reposilite-build
 WORKDIR /home/reposilite-build
 RUN \
-  rm -rf reposilite-frontend/node_modules
-RUN \
   apt-get update; apt-get install -y curl
 RUN \
   export GRADLE_OPTS="-Djdk.lang.Process.launchMechanism=vfork" && \

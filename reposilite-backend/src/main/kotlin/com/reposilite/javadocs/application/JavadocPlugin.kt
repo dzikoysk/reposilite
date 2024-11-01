@@ -19,8 +19,8 @@ package com.reposilite.javadocs.application
 import com.reposilite.javadocs.JavadocContainerService
 import com.reposilite.javadocs.JavadocFacade
 import com.reposilite.javadocs.infrastructure.JavadocEndpoints
-import com.reposilite.maven.MavenFacade
-import com.reposilite.maven.api.DeployEvent
+import com.reposilite.packages.maven.MavenFacade
+import com.reposilite.packages.maven.api.DeployEvent
 import com.reposilite.plugin.api.Facade
 import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposilitePlugin
@@ -56,7 +56,7 @@ internal class JavadocPlugin : ReposilitePlugin() {
                 .takeIf { it.toString().endsWith("-javadoc.jar") }
                 ?: return@event
 
-            val container = javadocContainerService.createContainer(javadocFolder, event.repository, gav)
+            val container = javadocContainerService.createContainer(javadocFolder, event.mavenRepository, gav)
             val javadocDirectory = container.javadocContainerPath.toFile()
 
             if (javadocDirectory.exists()) {

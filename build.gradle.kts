@@ -23,7 +23,7 @@ plugins {
     application
     `maven-publish`
 
-    val kotlinVersion = "2.0.20"
+    val kotlinVersion = "2.0.21"
     kotlin("jvm") version kotlinVersion
     kotlin("kapt") version kotlinVersion
 
@@ -50,8 +50,6 @@ scmVersion {
         fileUpdate(".github/README.md") { version -> "dzikoysk/reposilite:$version" }
         fileUpdate("docker-compose.yml") { version -> "image: reposilite:$version" }
         fileUpdate("reposilite-backend/src/main/kotlin/com/reposilite/Reposilite.kt") { version -> "const val VERSION = \"$version\"" }
-        fileUpdate("reposilite-frontend/package.json") { version -> "\"version\": \"$version\"" }
-        fileUpdate("reposilite-frontend/package-lock.json") { version -> "\"version\": \"$version\"" }
         fileUpdate("reposilite-site/data/guides/developers/endpoints.md") { version -> "\"version\": \"$version\"" }
         fileUpdate("reposilite-site/data/guides/developers/plugin-api.md") { version -> "\"com.reposilite:reposilite:$version\"" }
         fileUpdate("reposilite-site/data/guides/installation/docker.md") { version -> version }
@@ -100,8 +98,8 @@ allprojects {
     }
 
     java {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
 
         withJavadocJar()
         withSourcesJar()
@@ -109,8 +107,8 @@ allprojects {
 
     tasks.withType<KotlinCompile>().configureEach {
         kotlinOptions {
-            jvmTarget = "11"
-            languageVersion = "1.9"
+            jvmTarget = "17"
+            languageVersion = "2.0"
             freeCompilerArgs = listOf("-Xjvm-default=all") // For generating default methods in interfaces
         }
     }

@@ -16,7 +16,7 @@
 
 package com.reposilite.statistics.api
 
-import com.reposilite.maven.api.Identifier
+import com.reposilite.packages.maven.api.Identifier
 
 /* Per repository */
 
