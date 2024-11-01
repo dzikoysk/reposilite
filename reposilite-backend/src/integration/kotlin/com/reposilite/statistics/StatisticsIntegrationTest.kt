@@ -22,7 +22,7 @@ import com.reposilite.ExperimentalLocalSpecificationJunitExtension
 import com.reposilite.ExperimentalRemoteSpecficiationJunitExtension
 import com.reposilite.RecommendedLocalSpecificationJunitExtension
 import com.reposilite.RecommendedRemoteSpecificationJunitExtension
-import com.reposilite.maven.api.Identifier
+import com.reposilite.packages.maven.api.Identifier
 import com.reposilite.statistics.api.AllResolvedResponse
 import com.reposilite.statistics.api.IntervalRecord
 import com.reposilite.statistics.api.RepositoryStatistics

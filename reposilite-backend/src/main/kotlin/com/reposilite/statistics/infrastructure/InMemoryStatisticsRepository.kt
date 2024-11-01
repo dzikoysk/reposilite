@@ -16,7 +16,7 @@
 
 package com.reposilite.statistics.infrastructure
 
-import com.reposilite.maven.api.Identifier
+import com.reposilite.packages.maven.api.Identifier
 import com.reposilite.statistics.StatisticsRepository
 import com.reposilite.statistics.api.ResolvedEntry
 import java.time.LocalDate

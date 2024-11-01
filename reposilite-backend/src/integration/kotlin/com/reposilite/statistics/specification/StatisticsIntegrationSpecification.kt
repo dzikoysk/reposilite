@@ -17,7 +17,7 @@
 package com.reposilite.statistics.specification
 
 import com.reposilite.ReposiliteSpecification
-import com.reposilite.maven.api.Identifier
+import com.reposilite.packages.maven.api.Identifier
 import com.reposilite.statistics.StatisticsFacade
 import io.javalin.http.HttpStatus.OK
 import kong.unirest.core.Unirest.get

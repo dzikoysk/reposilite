@@ -16,11 +16,11 @@
 
 package com.reposilite
 
-import com.reposilite.maven.MavenFacade
-import com.reposilite.maven.api.DeployRequest
-import com.reposilite.maven.api.Metadata
-import com.reposilite.maven.api.SaveMetadataRequest
-import com.reposilite.maven.api.Versioning
+import com.reposilite.packages.maven.MavenFacade
+import com.reposilite.packages.maven.api.DeployRequest
+import com.reposilite.packages.maven.api.Metadata
+import com.reposilite.packages.maven.api.SaveMetadataRequest
+import com.reposilite.packages.maven.api.Versioning
 import com.reposilite.plugin.api.Facade
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.storage.VersionComparator
@@ -121,7 +121,7 @@ internal abstract class ReposiliteSpecification : ReposiliteRunner() {
         if (store) {
             mavenFacade.deployFile(
                 DeployRequest(
-                    repository = mavenFacade.getRepository(repository)!!,
+                    mavenRepository = mavenFacade.getRepository(repository)!!,
                     gav = "$gav/$file".toLocation(),
                     by = "junit",
                     content = content.byteInputStream(Charsets.UTF_8),
@@ -147,7 +147,7 @@ internal abstract class ReposiliteSpecification : ReposiliteRunner() {
 
         return repository to mavenFacade.saveMetadata(
             SaveMetadataRequest(
-                repository = mavenFacade.getRepository(repository)!!,
+                mavenRepository = mavenFacade.getRepository(repository)!!,
                 gav = "$groupId.$artifactId".replace(".", "/").toLocation(),
                 metadata = metadata
             )

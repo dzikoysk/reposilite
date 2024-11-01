@@ -1,8 +1,8 @@
 package com.reposilite.javadocs
 
-import com.reposilite.maven.MavenFacade
-import com.reposilite.maven.Repository
-import com.reposilite.maven.api.LookupRequest
+import com.reposilite.packages.maven.MavenFacade
+import com.reposilite.packages.maven.MavenRepository
+import com.reposilite.packages.maven.api.LookupRequest
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.badRequest
 import com.reposilite.shared.badRequestError
@@ -39,22 +39,22 @@ internal class JavadocContainerService(
     private val javadocFolder: Path
 ) {
 
-    fun loadContainer(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<JavadocContainer, ErrorResponse> {
-        val javadocJar = this.resolveJavadocJar(repository, gav) ?: return badRequestError("Invalid GAV")
+    fun loadContainer(accessToken: AccessTokenIdentifier?, mavenRepository: MavenRepository, gav: Location): Result<JavadocContainer, ErrorResponse> {
+        val javadocJar = this.resolveJavadocJar(mavenRepository, gav) ?: return badRequestError("Invalid GAV")
 
-        return mavenFacade.findDetails(LookupRequest(accessToken, repository.name, javadocJar))
+        return mavenFacade.findDetails(LookupRequest(accessToken, mavenRepository.name, javadocJar))
             .filter({ it.type === FILE }, { badRequest("Invalid request") })
             .filter({ isJavadocJar(it.name) }, { notFound("Please do not provide a direct link to a non javadoc file! GAV must be pointing to a directory or a javadoc file!") })
-            .flatMap { loadJavadocJarContainer(accessToken, repository, javadocJar) }
+            .flatMap { loadJavadocJarContainer(accessToken, mavenRepository, javadocJar) }
     }
 
-    private fun resolveJavadocJar(repository: Repository, gav: Location): Location? = when {
+    private fun resolveJavadocJar(mavenRepository: MavenRepository, gav: Location): Location? = when {
         gav.endsWith(".jar") -> gav
-        gav.endsWith("/$INDEX_FILE") -> resolveIndexGav(repository, gav)
-        else -> resolveJavadocJar(repository, gav.resolve(INDEX_FILE))
+        gav.endsWith("/$INDEX_FILE") -> resolveIndexGav(mavenRepository, gav)
+        else -> resolveJavadocJar(mavenRepository, gav.resolve(INDEX_FILE))
     }
 
-    private fun resolveIndexGav(repository: Repository, gav: Location): Location? {
+    private fun resolveIndexGav(mavenRepository: MavenRepository, gav: Location): Location? {
         val rootGav = gav.locationBeforeLast("/$INDEX_FILE")
         val elements = rootGav.toString().split("/")
 
@@ -66,7 +66,7 @@ internal class JavadocContainerService(
         var version = elements[elements.size - 1]
 
         if (version.contains("-SNAPSHOT")) {
-            val metadataResult = mavenFacade.findMetadata(repository, rootGav)
+            val metadataResult = mavenFacade.findMetadata(mavenRepository, rootGav)
             val snapshot = if (metadataResult.isOk) metadataResult.get().versioning?.snapshot else null
 
             if (snapshot?.timestamp != null && snapshot.buildNumber != null) {
@@ -77,8 +77,8 @@ internal class JavadocContainerService(
         return rootGav.resolve("${name}-${version}-javadoc.jar")
     }
 
-    private fun loadJavadocJarContainer(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<JavadocContainer, ErrorResponse> {
-        val container: JavadocContainer = createContainer(javadocFolder, repository, gav)
+    private fun loadJavadocJarContainer(accessToken: AccessTokenIdentifier?, mavenRepository: MavenRepository, gav: Location): Result<JavadocContainer, ErrorResponse> {
+        val container: JavadocContainer = createContainer(javadocFolder, mavenRepository, gav)
 
         if (Files.exists(container.javadocContainerIndex)) {
             return Result.ok(container)
@@ -89,16 +89,16 @@ internal class JavadocContainerService(
         Files.createDirectories(javadocUnpackPath)
         val copyJarPath = javadocUnpackPath.resolve("javadoc.jar")
 
-        return mavenFacade.findFile(LookupRequest(accessToken, repository.name, gav))
+        return mavenFacade.findFile(LookupRequest(accessToken, mavenRepository.name, gav))
             .peek { (_, originInput) -> this.copyJavadocJar(originInput, copyJarPath) }
             .flatMap { this.unpackJavadocJar(copyJarPath, javadocUnpackPath) }
             .peek { this.createDocIndexHtml(container) }
             .map { container }
     }
 
-    internal fun createContainer(javadocFolder: Path, repository: Repository, jarLocation: Location): JavadocContainer {
+    internal fun createContainer(javadocFolder: Path, mavenRepository: MavenRepository, jarLocation: Location): JavadocContainer {
         val javadocContainerPath = javadocFolder
-            .resolve(repository.name)
+            .resolve(mavenRepository.name)
             .resolve(jarLocation.locationBeforeLast("/").toString())
             .resolve(".cache")
 

@@ -1,6 +1,6 @@
 package com.reposilite.javadocs.api
 
-import com.reposilite.maven.Repository
+import com.reposilite.packages.maven.MavenRepository
 import com.reposilite.storage.api.Location
 import com.reposilite.token.AccessTokenIdentifier
 import io.javalin.http.ContentType
@@ -8,13 +8,13 @@ import java.io.InputStream
 
 data class JavadocPageRequest(
     val accessToken: AccessTokenIdentifier?,
-    val repository: Repository,
+    val mavenRepository: MavenRepository,
     val gav: Location
 )
 
 data class JavadocRawRequest(
     val accessToken: AccessTokenIdentifier?,
-    val repository: Repository,
+    val mavenRepository: MavenRepository,
     val gav: Location,
     val resource: Location
 )

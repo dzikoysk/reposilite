@@ -17,7 +17,7 @@ package com.reposilite.statistics
 
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
-import com.reposilite.maven.api.Identifier
+import com.reposilite.packages.maven.api.Identifier
 import com.reposilite.plugin.api.Facade
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.badRequestError

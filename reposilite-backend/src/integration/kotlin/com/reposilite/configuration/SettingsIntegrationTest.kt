@@ -25,7 +25,7 @@ import com.reposilite.auth.application.AuthenticationSettings
 import com.reposilite.auth.application.LdapSettings
 import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.configuration.specification.SettingsIntegrationSpecification
-import com.reposilite.maven.application.MavenSettings
+import com.reposilite.packages.maven.application.MavenSettings
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.statistics.api.ResolvedRequestsInterval.YEARLY
 import com.reposilite.statistics.application.StatisticsSettings
