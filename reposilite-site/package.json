@@ -17,7 +17,7 @@
     "@heroicons/react": "2.1.5",
     "@mapbox/rehype-prism": "0.9.0",
     "@nextui-org/react": "2.4.8",
-    "framer-motion": "11.11.1",
+    "framer-motion": "11.11.11",
     "gray-matter": "4.0.3",
     "next": "14.2.14",
     "next-mdx-remote": "5.0.0",
