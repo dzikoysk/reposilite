@@ -4,13 +4,14 @@ import io.prometheus.metrics.core.metrics.Counter
 import io.prometheus.metrics.core.metrics.CounterWithCallback
 import io.prometheus.metrics.core.metrics.GaugeWithCallback
 import io.prometheus.metrics.core.metrics.Summary
+import org.eclipse.jetty.io.Connection
 import org.eclipse.jetty.server.handler.StatisticsHandler
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.DurationUnit
 import io.prometheus.metrics.model.snapshots.Unit as MetricsUnit
 
 
-object JettyMetrics {
+object JettyMetrics : Connection.Listener {
     val responseTimeSummary: Summary = Summary.builder()
         .name("jetty_response_time_seconds")
         .help("Time spent for a response")
@@ -18,17 +19,18 @@ object JettyMetrics {
         .quantile(0.01, 0.05, 0.1, 0.5, 0.9, 0.95, 0.99)
         .register()
 
-    val responseSizeSummary: Summary = Summary.builder()
-        .name("jetty_response_bytes")
-        .help("Size in bytes of responses")
+    val requestBytesSummary: Summary = Summary.builder()
+        .name("jetty_request_bytes")
+        .help("Size in bytes of incoming requests")
         .unit(MetricsUnit.BYTES)
         .quantile(0.01, 0.05, 0.1, 0.5, 0.9, 0.95, 0.99)
         .register()
 
-    val responseCounter: Counter = Counter.builder()
-        .name("reposilite_responses_total")
-        .help("Total response count")
-        .labelNames("code")
+    val responseBytesSummary: Summary = Summary.builder()
+        .name("jetty_response_bytes")
+        .help("Size in bytes of outgoing responses")
+        .unit(MetricsUnit.BYTES)
+        .quantile(0.01, 0.05, 0.1, 0.5, 0.9, 0.95, 0.99)
         .register()
 
     fun register(statisticsHandler: StatisticsHandler) {
@@ -191,5 +193,12 @@ object JettyMetrics {
             .help("Total number of bytes across all responses")
             .callback { callback -> callback.call(statisticsHandler.responsesBytesTotal.toDouble()) }
             .register()
+    }
+
+    override fun onOpened(connection: Connection) {}
+
+    override fun onClosed(connection: Connection) {
+        requestBytesSummary.observe(connection.bytesIn.toDouble())
+        responseBytesSummary.observe(connection.bytesOut.toDouble())
     }
 }

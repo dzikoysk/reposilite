@@ -2,7 +2,6 @@ package com.reposilite.plugin.prometheus
 
 import com.reposilite.maven.api.DeployEvent
 import com.reposilite.maven.api.ResolvedFileEvent
-import com.reposilite.plugin.api.Facade
 import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.event
@@ -12,14 +11,16 @@ import com.reposilite.plugin.prometheus.metrics.QueuedThreadPoolMetrics
 import com.reposilite.plugin.prometheus.metrics.ReposiliteMetrics
 import com.reposilite.status.FailureFacade
 import com.reposilite.status.StatusFacade
+import com.reposilite.storage.api.toLocation
 import com.reposilite.web.api.HttpServerConfigurationEvent
+import com.reposilite.web.api.HttpServerStartedEvent
 import com.reposilite.web.api.RoutingSetupEvent
 import io.prometheus.metrics.instrumentation.jvm.JvmMetrics
-import org.eclipse.jetty.server.Response
 import org.eclipse.jetty.server.handler.StatisticsHandler
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.DurationUnit
+
 
 @Plugin(name = "prometheus", dependencies = ["failure", "statistics", "status"])
 class PrometheusPlugin : ReposilitePlugin() {
@@ -28,9 +29,9 @@ class PrometheusPlugin : ReposilitePlugin() {
         logger.info("")
         logger.info("--- Prometheus")
 
-        val prometheusPath = System.getProperty("reposilite.prometheus.path")
+        val prometheusPath = (System.getProperty("reposilite.prometheus.path")
             ?: System.getenv("REPOSILITE_PROMETHEUS_PATH")
-            ?: "/metrics"
+            ?: "/metrics").toLocation()
 
         val prometheusUser = System.getProperty("reposilite.prometheus.user")
             ?: System.getenv("REPOSILITE_PROMETHEUS_USER")
@@ -66,19 +67,16 @@ class PrometheusPlugin : ReposilitePlugin() {
 
 
         event { event: HttpServerConfigurationEvent ->
-            val server = event.config.pvt.jetty.server!!
-            val handler = StatisticsHandler()
-            server.handler = handler
-
-            JettyMetrics.register(handler)
-
             event.config.router.mount {
                 it.before { ctx ->
                     ctx.attribute("timestamp", System.currentTimeMillis())
                 }
 
                 it.after { ctx ->
-                    JettyMetrics.responseCounter.labelValues(ctx.statusCode().toString()).inc()
+                    if (ctx.path().toLocation() == prometheusPath)
+                        return@after
+
+                    ReposiliteMetrics.responseCounter.labelValues(ctx.statusCode().toString()).inc()
 
                     val currentTime = System.currentTimeMillis()
                     val timestamp = ctx.attribute<Long>("timestamp")
@@ -86,24 +84,31 @@ class PrometheusPlugin : ReposilitePlugin() {
                     if (timestamp != null)
                         JettyMetrics.responseTimeSummary.labelValues(ctx.statusCode().toString())
                             .observe((currentTime - timestamp).milliseconds.toDouble(DurationUnit.SECONDS))
-
-
-                    val response = ctx.res()
-                    if (response is Response) // should always succeed
-                        JettyMetrics.responseSizeSummary.observe(response.contentCount.toDouble())
                 }
             }
 
-            logger.info("Prometheus | Jetty StatisticsHandler metrics has been initialized.")
+            event.config.jetty.modifyServer { server ->
+                val handler = StatisticsHandler()
+                server.insertHandler(handler)
+                JettyMetrics.register(handler)
 
+                when (val threadPool = server.threadPool) {
+                    is QueuedThreadPool -> {
+                        QueuedThreadPoolMetrics.register(threadPool)
+                        logger.info("Prometheus | Queued Thread Pool metrics has been initialized.")
+                    }
 
-            when (val threadPool = server.threadPool) {
-                is QueuedThreadPool -> {
-                    QueuedThreadPoolMetrics.register(threadPool)
-                    logger.info("Prometheus | Queued Thread Pool metrics has been initialized.")
+                    else -> logger.warn("Prometheus | Unsupported thread pool for metrics: ${threadPool.javaClass.name}, ignoring")
                 }
 
-                else -> logger.warn("Prometheus | Unsupported thread pool for metrics: ${threadPool.javaClass.name}, ignoring")
+                // yes, I need to nest events (I need access to the server and I can't get that from HttpServerStartedEvent)
+                event<HttpServerStartedEvent> { _ ->
+                    for (connector in server.connectors) {
+                        connector.addBean(JettyMetrics)
+                    }
+
+                    logger.info("Prometheus | Jetty metrics has been initialized.")
+                }
             }
         }
 
@@ -111,12 +116,11 @@ class PrometheusPlugin : ReposilitePlugin() {
             event.registerRoutes(
                 PrometheusEndpoints(
                     prometheusFacade = prometheusFacade,
-                    prometheusPath = prometheusPath
+                    prometheusPath = prometheusPath.toString()
                 )
             )
         }
 
         return prometheusFacade
     }
-
 }
