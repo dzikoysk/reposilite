@@ -33,12 +33,6 @@ object JettyMetrics : Connection.Listener {
         .quantile(0.01, 0.05, 0.1, 0.5, 0.9, 0.95, 0.99)
         .register()
 
-    val responseCounter: Counter = Counter.builder()
-        .name("jetty_responses_total")
-        .help("Total response count")
-        .labelNames("code")
-        .register()
-
     fun register(statisticsHandler: StatisticsHandler) {
         CounterWithCallback.builder()
             .name("jetty_requests_total")

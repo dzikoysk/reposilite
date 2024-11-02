@@ -30,6 +30,12 @@ object ReposiliteMetrics {
         .help("Total successful deployments count")
         .register()
 
+    val responseCounter: Counter = Counter.builder()
+        .name("reposilite_responses_total")
+        .help("Total response count, filtered to exclude /metrics")
+        .labelNames("code")
+        .register()
+
     fun register(statusFacade: StatusFacade, failureFacade: FailureFacade) {
         GaugeWithCallback.builder()
             .name("reposilite_uptime_seconds")

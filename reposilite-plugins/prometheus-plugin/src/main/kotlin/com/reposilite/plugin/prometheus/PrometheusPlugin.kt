@@ -11,6 +11,7 @@ import com.reposilite.plugin.prometheus.metrics.QueuedThreadPoolMetrics
 import com.reposilite.plugin.prometheus.metrics.ReposiliteMetrics
 import com.reposilite.status.FailureFacade
 import com.reposilite.status.StatusFacade
+import com.reposilite.storage.api.toLocation
 import com.reposilite.web.api.HttpServerConfigurationEvent
 import com.reposilite.web.api.HttpServerStartedEvent
 import com.reposilite.web.api.RoutingSetupEvent
@@ -28,9 +29,9 @@ class PrometheusPlugin : ReposilitePlugin() {
         logger.info("")
         logger.info("--- Prometheus")
 
-        val prometheusPath = System.getProperty("reposilite.prometheus.path")
+        val prometheusPath = (System.getProperty("reposilite.prometheus.path")
             ?: System.getenv("REPOSILITE_PROMETHEUS_PATH")
-            ?: "/metrics"
+            ?: "/metrics").toLocation()
 
         val prometheusUser = System.getProperty("reposilite.prometheus.user")
             ?: System.getenv("REPOSILITE_PROMETHEUS_USER")
@@ -72,10 +73,10 @@ class PrometheusPlugin : ReposilitePlugin() {
                 }
 
                 it.after { ctx ->
-                    if (ctx.path() == prometheusPath)
+                    if (ctx.path().toLocation() == prometheusPath)
                         return@after
 
-                    JettyMetrics.responseCounter.labelValues(ctx.statusCode().toString()).inc()
+                    ReposiliteMetrics.responseCounter.labelValues(ctx.statusCode().toString()).inc()
 
                     val currentTime = System.currentTimeMillis()
                     val timestamp = ctx.attribute<Long>("timestamp")
@@ -115,7 +116,7 @@ class PrometheusPlugin : ReposilitePlugin() {
             event.registerRoutes(
                 PrometheusEndpoints(
                     prometheusFacade = prometheusFacade,
-                    prometheusPath = prometheusPath
+                    prometheusPath = prometheusPath.toString()
                 )
             )
         }
