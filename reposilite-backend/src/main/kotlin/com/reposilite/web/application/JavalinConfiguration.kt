@@ -30,6 +30,7 @@ import com.reposilite.web.infrastructure.ApiCacheBypassHandler
 import com.reposilite.web.infrastructure.EndpointAccessLoggingHandler
 import com.reposilite.web.infrastructure.createReposiliteDsl
 import io.javalin.config.JavalinConfig
+import io.javalin.http.staticfiles.Location
 import io.javalin.json.JavalinJackson
 import io.javalin.openapi.plugin.OpenApiPlugin
 import kotlin.time.Duration.Companion.minutes
@@ -67,6 +68,12 @@ internal object JavalinConfiguration {
         configureOpenApi(config, "Title", "Description")
         configureDebug(reposilite, localConfiguration, config)
         configureRoutingPlugin(config, reposilite)
+
+        config.staticFiles.add {
+            it.location = Location.EXTERNAL
+            it.directory = "./static"
+            it.hostedPath = "/"
+        }
     }
 
     private fun configureJavalin(config: JavalinConfig, localConfiguration: LocalConfiguration, webSettings: Reference<WebSettings>) {
