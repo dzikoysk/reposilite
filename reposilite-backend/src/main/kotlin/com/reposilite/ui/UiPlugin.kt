@@ -27,7 +27,7 @@ internal class UiPlugin : ReposilitePlugin() {
                 IndexView(
                     title = "Reposilite Repository",
                     description = "Official public Maven repository powered by Reposilite",
-                    logo = "logo.png",
+                    logo = "logo-square.png",
                     website = "https://reposilite.com",
                     repositories = listOf(
                         IndexView.Repository("assets", "Generic"),

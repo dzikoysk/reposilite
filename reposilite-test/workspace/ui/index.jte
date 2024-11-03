@@ -13,7 +13,7 @@
         <main class="container mx-auto">
             <div class="flex">
                 <div class="w-32">
-                    <img alt="Logo" src="${view.getLogo()}" class="rounded-full border-2 border-zinc-200 dark:border-zinc-500" />
+                    <img alt="Logo" src="${view.getLogo()}" class="rounded-md border-2 border-zinc-200 dark:border-zinc-700" />
                 </div>
                 <div class="flex flex-col pl-6 justify-center">
                     <h1>${view.getDescription()}</h1>
@@ -86,7 +86,7 @@
                 </div>
                 <div class="flex flex-col w-full">
                     @if (view.getBrowsedRepository() == null)
-                        <input class="w-full bg-white dark:bg-zinc-800 rounded-sm py-2.5 px-3" placeholder="🔍 Search" />
+<%--                        <input class="w-full bg-white dark:bg-zinc-800 rounded-sm py-2.5 px-3" placeholder="🔍 Search" />--%>
                     @else
                         <div class="bg-white dark:bg-zinc-800 w-fit px-4 py-2 rounded-md min-w-44">
                             @for(IndexView.BrowsedRepository.Entry entry : view.getBrowsedRepository().getFiles())
