@@ -11,7 +11,7 @@
         @template.component.Header(title = view.getTitle())
 
         <main class="container mx-auto">
-            <div class="flex">
+            <div class="flex min-h-[128px]">
                 <div class="w-32">
                     <img alt="Logo" src="${view.getLogo()}" class="rounded-md border-2 border-zinc-200 dark:border-zinc-700" />
                 </div>
@@ -25,70 +25,97 @@
                     </p>
                 </div>
             </div>
-            <div class="flex justify-between flex-wrap w-full pt-14 gap-2">
-                @for(Project project : view.getHighlightedProjects())
-                    <div class="
-                        flex flex-1 flex-col justify-between
-                        min-w-1/3 max-w-1/3 px-4 pt-3 pb-4
-                        border rounded-md border-white shadow-sm dark:border-zinc-700
-                        bg-white dark:bg-zinc-800
-                    ">
-                        <div class="flex-col">
-                            <h2 class="font-bold">${project.getName()}</h2>
-                            <p class="text-wrap break-normal text-sm pt-1">${project.getDescription()}</p>
-                        </div>
-                        <div class="flex pt-3 gap-2">
-                            @for(String packageName : project.getSupportedPackages())
-                                <p class="text-xs">
-                                    @if(packageName.equals("Generic"))
-                                        <span class="px-3 py-0.5 bg-zinc-300 text-black rounded-full">Generic</span>
-                                    @elseif(packageName.equals("Maven"))
-                                        <span class="px-3 py-0.5 bg-orange-300 text-black rounded-full">Maven</span>
-                                    @elseif(packageName.equals("Docker"))
-                                        <span class="px-3 py-0.5 bg-blue-300 text-black rounded-full">Docker</span>
-                                    @elseif(packageName.equals("NPM"))
-                                        <span class="px-3 py-0.5 bg-yellow-200 text-black rounded-full">NPM</span>
-                                    @endif
-                                </p>
-                            @endfor
-                        </div>
-                    </div>
-                @endfor
-            </div>
-            <div class="py-12">
-                <hr class="border-zinc-200 dark:border-zinc-700" />
-            </div>
-            <div class="flex">
-                <div class="flex flex-wrap items-center w-full gap-2">
-                    @for(var group : view.getGroupedRepositories())
+            @if (view.getBrowsedRepository() == null)
+                <div class="flex justify-between flex-wrap w-full pt-14 gap-2">
+                    @for(Project project : view.getHighlightedProjects())
                         <div class="
-                            flex flex-col flex-1 px-4 py-3 h-full
-                            bg-white dark:bg-zinc-800 border border-white shadow-sm dark:border-zinc-700 rounded-md
+                            flex flex-1 flex-col justify-between
+                            min-w-1/3 max-w-1/3 px-4 pt-3 pb-4
+                            border rounded-md border-white shadow-sm dark:border-zinc-700
+                            bg-white dark:bg-zinc-800
+                            hover:transform hover:scale-[1.015] transition-transform cursor-pointer
                         ">
-                            <h2 class="font-semibold pb-1.5">${group.getType()}</h2>
-                            <div class="flex flex-col px-0.5">
-                                @for(IndexView.Repository repository : group.getRepositories())
-                                    <div class="flex flex-1 items-center gap-2">
-                                        <div class="w-2 h-2 rounded-md
-                                        @if(repository.getType().equals("Generic"))
-                                             bg-zinc-300
-                                        @elseif(repository.getType().equals("Maven"))
-                                             bg-orange-300
-                                        @elseif(repository.getType().equals("Docker"))
-                                             bg-blue-300
-                                        @elseif(repository.getType().equals("NPM"))
-                                             bg-yellow-200
+                            <div class="flex-col">
+                                <h2 class="font-bold">${project.getName()}</h2>
+                                <p class="text-wrap break-normal text-sm pt-1">${project.getDescription()}</p>
+                            </div>
+                            <div class="flex pt-3 gap-2">
+                                @for(String packageName : project.getSupportedPackages())
+                                    <p class="text-xs">
+                                        @if(packageName.equals("Generic"))
+                                            <span class="px-3 py-0.5 bg-zinc-300 text-black rounded-full">Generic</span>
+                                        @elseif(packageName.equals("Maven"))
+                                            <span class="px-3 py-0.5 bg-orange-300 text-black rounded-full">Maven</span>
+                                        @elseif(packageName.equals("Docker"))
+                                            <span class="px-3 py-0.5 bg-blue-300 text-black rounded-full">Docker</span>
+                                        @elseif(packageName.equals("NPM"))
+                                            <span class="px-3 py-0.5 bg-yellow-200 text-black rounded-full">NPM</span>
                                         @endif
-                                    ">
-                                        </div>
-                                        <p class="px-2 py-1.5 text-sm">${repository.getName()}</p>
-                                    </div>
+                                    </p>
                                 @endfor
                             </div>
                         </div>
                     @endfor
                 </div>
-            </div>
+                <div class="py-12">
+                    <hr class="border-zinc-200 dark:border-zinc-700" />
+                </div>
+                <div class="flex">
+                    <div class="flex flex-wrap items-center w-full gap-2">
+                        @for(var group : view.getGroupedRepositories())
+                            <div class="
+                                flex flex-col flex-1 px-4 py-3 h-full
+                                bg-white dark:bg-zinc-800 border border-white shadow-sm dark:border-zinc-700 rounded-md
+                            ">
+                                <h2 class="font-semibold pb-1.5">${group.getType()}</h2>
+                                <div class="flex flex-col">
+                                    @for(IndexView.Repository repository : group.getRepositories())
+                                        <a href="/${repository.getName()}" class="text-white">
+                                            <div class="flex flex-1 items-center gap-2 hover:bg-zinc-200 dark:hover:bg-zinc-900 rounded-md px-3.5 cursor-pointer">
+                                                <div class="w-2 h-2 rounded-md
+                                                    @if(repository.getType().equals("Generic"))
+                                                         bg-zinc-300
+                                                    @elseif(repository.getType().equals("Maven"))
+                                                         bg-orange-300
+                                                    @elseif(repository.getType().equals("Docker"))
+                                                         bg-blue-300
+                                                    @elseif(repository.getType().equals("NPM"))
+                                                         bg-yellow-200
+                                                    @endif
+                                                ">
+                                                </div>
+                                                <p class="px-2 py-1.5 text-sm">
+                                                    ${repository.getName()}
+                                                </p>
+                                            </div>
+                                        </a>
+                                    @endfor
+                                </div>
+                            </div>
+                        @endfor
+                    </div>
+                </div>
+            @else
+                <p class="pt-12">
+                    Index of /${view.getBrowsedRepository().getName()}
+                    <a href="/">
+                        <span class="font-normal text-xl text-gray-500 select-none inter-500"> ⤴ </span>
+                    </a>
+                </p>
+                <div class="flex flex-col mt-3 bg-zinc-800 rounded-md px-4 py-3">
+                    @for(var entry : view.getBrowsedRepository().getFiles())
+                        <div class="py-1 flex items-center gap-3 hover:bg-zinc-700 dark:hover:bg-zinc-900 rounded-md px-3 cursor-pointer">
+                        @if (entry instanceof IndexView.BrowsedRepository.Directory directory)
+                            <div class="bg-yellow-300 w-2 h-2 mt-0.5 rounded-full"></div>
+                            <p>${directory.getName()}</p>
+                        @elseif (entry instanceof IndexView.BrowsedRepository.File file)
+                            <div class="bg-white w-2 h-2 mt-0.5 rounded-full"></div>
+                            <p>${file.getName()}</p>
+                        @endif
+                        </div>
+                    @endfor
+                </div>
+            @endif
 
 <%--            <button hx-post="/clicked" hx-swap="innerHTML">--%>
 <%--                Click me--%>

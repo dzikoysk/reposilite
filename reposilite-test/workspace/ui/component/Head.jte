@@ -11,6 +11,8 @@
     @template.lib.HTMX()
     @template.lib.Tailwind()
     @template.lib.DevMode()
+    @template.lib.fonts.Inter()
+    @template.lib.fonts.OpenSans()
 
     <style>
         #theme-switcher span {
