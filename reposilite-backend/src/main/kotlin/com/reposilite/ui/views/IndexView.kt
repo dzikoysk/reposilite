@@ -39,4 +39,14 @@ data class IndexView(
             val name: String,
         ) : Entry
     }
+    data class GroupedRepository(
+        val type: String,
+        val repositories: List<Repository>
+    )
+    fun getGroupedRepositories(): List<GroupedRepository> =
+        repositories
+            .groupBy { it.type }
+            .entries
+            .map { GroupedRepository(type = it.key, repositories = it.value) }
+            .sortedByDescending { it.repositories.size }
 }

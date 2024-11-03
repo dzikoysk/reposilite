@@ -8,16 +8,22 @@
                 <div class="h-4 w-4">
                     @template.lib.icons.SearchIcon()
                 </div>
-                <input class="w-full text-sm bg-white dark:bg-zinc-800 py-1.5 rounded-full px-3 focus-visible:outline-none focus-visible:ring-0 placeholder:focus-visible:text-white" placeholder="Search" />
+                <input
+                    class="w-full text-sm bg-white dark:bg-zinc-800 py-1.5 px-3 focus-visible:outline-none focus-visible:ring-0 placeholder:focus-visible:text-white"
+                    placeholder="Search"
+                />
             </div>
-            <nav>
-                <button id="theme-switcher" class="flex bg-white dark:bg-zinc-800 rounded-full px-2 py-2">
-                <span class="sun-icon color-white">
-                    @template.lib.icons.SunIcon()
-                </span>
-                    <span class="moon-icon color-black">
-                    @template.lib.icons.MoonIcon()
-                </span>
+            <nav class="flex gap-2">
+                <button class="bg-white dark:bg-zinc-800 px-3 py-0.5 rounded-md text-sm">
+                    Sign in
+                </button>
+                <button id="theme-switcher" class="flex bg-white dark:bg-zinc-800 rounded-md px-2 py-1.5">
+                    <span class="sun-icon color-white">
+                        @template.lib.icons.SunIcon()
+                    </span>
+                        <span class="moon-icon color-black">
+                        @template.lib.icons.MoonIcon()
+                    </span>
                 </button>
             </nav>
         </nav>
