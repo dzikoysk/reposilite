@@ -7,7 +7,8 @@ import com.reposilite.token.RoutePermission.READ
 import com.reposilite.token.RoutePermission.WRITE
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import java.nio.file.Files
+import kotlin.io.path.exists
+import kotlin.io.path.writeText
 
 internal class MigrationPluginTest : MigrationPluginSpecification() {
 
@@ -15,7 +16,7 @@ internal class MigrationPluginTest : MigrationPluginSpecification() {
     fun `should migrate old yaml scheme to the new json scheme`() {
         // given: a tokens.dat file and a list of repositories
         val tokensFile = workingDirectory().resolve("tokens.dat")
-        Files.write(tokensFile, resource(test = "should migrate old yaml scheme to the new json scheme", file = "tokens.dat").toByteArray())
+        tokensFile.writeText(resource(test = "should migrate old yaml scheme to the new json scheme", file = "tokens.dat"))
         val repositories = setOf("releases", "snapshots", "private")
 
         // when: migration plugin will proceed migration
@@ -23,7 +24,7 @@ internal class MigrationPluginTest : MigrationPluginSpecification() {
 
         // then: a valid json scheme with up-to-date tokens should be generated
         val schema = workingDirectory().resolve("tokens.json")
-        assertThat(Files.exists(schema)).isTrue
+        assertThat(schema.exists()).isTrue
         assertThat(tokens.size).isEqualTo(3)
 
         val privateToken = tokens.first { it.accessToken.name == "private" }

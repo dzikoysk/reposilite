@@ -32,12 +32,15 @@ import com.reposilite.shared.notFoundError
 import com.reposilite.storage.api.Location
 import com.reposilite.token.AccessTokenIdentifier
 import io.javalin.http.ContentType
-import java.nio.file.Files
-import java.nio.file.Path
 import panda.std.Result
 import panda.std.Result.supplyThrowing
 import panda.std.asSuccess
 import panda.utilities.StringUtils
+import java.nio.file.Path
+import kotlin.io.path.exists
+import kotlin.io.path.inputStream
+import kotlin.io.path.notExists
+import kotlin.io.path.readLines
 
 private const val LATEST_PATTERN = "/latest"
 
@@ -74,11 +77,12 @@ class JavadocFacade internal constructor(
         with (request) {
             mavenFacade.canAccessResource(accessToken, repository, gav)
                 .flatMap { javadocContainerService.loadContainer(accessToken, repository, gav) }
-                .filter({ Files.exists(it.javadocUnpackPath.resolve(resource.toString())) }, { notFound("Resource $resource not found") })
+                .map { it.javadocUnpackPath.resolve(resource.toString()) }
+                .filter({ it.exists() }, { notFound("Resource $resource not found") })
                 .map {
                     JavadocRawResponse(
                         contentType = supportedExtensions[resource.getExtension()] ?: ContentType.APPLICATION_OCTET_STREAM,
-                        content = Files.newInputStream(it.javadocUnpackPath.resolve(resource.toString()))
+                        content = it.inputStream()
                     )
                 }
         }
@@ -88,7 +92,7 @@ class JavadocFacade internal constructor(
 
         return when {
             /* File not found */
-            resourcesFile != null && !Files.exists(resourcesFile.targetPath) ->
+            resourcesFile != null && resourcesFile.targetPath.notExists() ->
                 JavadocResponse(resourcesFile.contentType.mimeType, StringUtils.EMPTY).asSuccess()
             /* File exists */
             resourcesFile != null ->
@@ -117,7 +121,7 @@ class JavadocFacade internal constructor(
             ?.let { (targetPath, contentType) -> JavadocPlainFile(targetPath, gav.getExtension(), contentType!!) }
 
     private fun readFile(indexFile: Path): String =
-        Files.readAllLines(indexFile).joinToString(separator = "\n")
+        indexFile.readLines().joinToString(separator = "\n")
 
     private fun resolveGav(request: JavadocPageRequest): Location =
         request.gav

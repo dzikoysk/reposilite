@@ -19,9 +19,9 @@ package com.reposilite.storage.filesystem
 import com.reposilite.journalist.Journalist
 import com.reposilite.status.FailureFacade
 import com.reposilite.storage.StorageProviderFactory
-import java.nio.file.Files
 import java.nio.file.Path
 import java.util.regex.Pattern
+import kotlin.io.path.createDirectories
 
 class FileSystemStorageProviderFactory : StorageProviderFactory<FileSystemStorageProvider, FileSystemStorageProviderSettings> {
 
@@ -107,7 +107,7 @@ class FileSystemStorageProviderFactory : StorageProviderFactory<FileSystemStorag
             else
                 workingDirectory.resolve(settings.mount)
 
-        Files.createDirectories(repositoryDirectory)
+        repositoryDirectory.createDirectories()
 
         return of(
             journalist = journalist,

@@ -24,7 +24,6 @@ import com.reposilite.shared.notFoundError
 import com.reposilite.status.FailureFacade
 import com.reposilite.storage.api.toLocation
 import com.reposilite.storage.getExtension
-import com.reposilite.storage.getSimpleName
 import com.reposilite.storage.inputStream
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
@@ -32,14 +31,14 @@ import io.javalin.community.routing.Route.GET
 import io.javalin.http.ContentType
 import io.javalin.http.Context
 import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
-import java.io.InputStream
-import java.nio.charset.StandardCharsets.UTF_8
-import java.nio.file.Files
-import java.nio.file.Path
-import kotlin.io.path.isDirectory
-import kotlin.streams.asSequence
 import panda.std.Result
 import panda.std.asSuccess
+import java.io.InputStream
+import java.nio.charset.StandardCharsets.UTF_8
+import java.nio.file.Path
+import kotlin.io.path.isDirectory
+import kotlin.io.path.name
+import kotlin.io.path.useDirectoryEntries
 
 internal sealed class FrontendHandler(
     private val frontendFacade: FrontendFacade,
@@ -107,14 +106,14 @@ internal class CustomFrontendHandler(
     directory: Path
 ) : FrontendHandler(frontendFacade, failureFacade) {
 
-    private fun rootFileHandler(file: Path) = ReposiliteRoute<InputStream>("/${file.getSimpleName()}", GET) {
-        response = respondWithResource(ctx, file.getSimpleName()) {
+    private fun rootFileHandler(file: Path) = ReposiliteRoute<InputStream>("/${file.name}", GET) {
+        response = respondWithResource(ctx, file.name) {
             file.inputStream().orNull()
         }
     }
 
     private fun directoryHandler(directory: Path) = ReposiliteRoute<InputStream>("/${directory.fileName}/<path>", GET) {
-        response = respondWithResource(ctx, directory.getSimpleName()) {
+        response = respondWithResource(ctx, directory.name) {
             parameter("path")
                 .toLocation()
                 .toPath()
@@ -133,9 +132,8 @@ internal class CustomFrontendHandler(
     }
 
     override val routes =
-        Files.list(directory).use { staticDirectoryStream ->
-            staticDirectoryStream.asSequence()
-                .map {
+        directory.useDirectoryEntries { staticDirectoryStream ->
+            staticDirectoryStream.map {
                     when {
                         it.isDirectory() -> directoryHandler(it)
                         else -> rootFileHandler(it)

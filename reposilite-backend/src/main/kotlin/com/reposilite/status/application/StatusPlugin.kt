@@ -38,12 +38,13 @@ import com.reposilite.status.infrastructure.StatusEndpoints
 import com.reposilite.web.HttpServer
 import com.reposilite.web.api.HttpServerStoppedEvent
 import com.reposilite.web.api.RoutingSetupEvent
-import java.nio.file.Files
-import java.nio.file.StandardOpenOption
 import panda.std.reactive.Completable
 import panda.std.reactive.Reference.Dependencies.dependencies
 import panda.std.reactive.Reference.computed
 import panda.utilities.console.Effect
+import java.nio.file.StandardOpenOption
+import kotlin.io.path.createDirectories
+import kotlin.io.path.writeText
 
 @Plugin(name = "status", dependencies = ["console", "failure", "local-configuration"])
 internal class StatusPlugin : ReposilitePlugin() {
@@ -100,12 +101,12 @@ internal class StatusPlugin : ReposilitePlugin() {
 
         event { _: ReposiliteStartedEvent ->
             val localTmpDataDirectory = parameters().workingDirectory.resolve(".local")
-            Files.createDirectories(localTmpDataDirectory)
+            localTmpDataDirectory.createDirectories()
 
-            Files.writeString(
-                localTmpDataDirectory.resolve("reposilite.address"),
+            val reposiliteAddressFile = localTmpDataDirectory.resolve("reposilite.address")
+            reposiliteAddressFile.writeText(
                 "${parameters().hostname}:${parameters().port}",
-                StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.SYNC
+                options = arrayOf(StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.SYNC)
             )
         }
 

@@ -26,17 +26,17 @@ import panda.std.Result
 import panda.std.Result.supplyThrowing
 import picocli.CommandLine.Command
 import picocli.CommandLine.Parameters
-import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption.CREATE
 import java.nio.file.StandardOpenOption.TRUNCATE_EXISTING
 import kotlin.io.path.absolute
 import kotlin.io.path.readText
+import kotlin.io.path.writeText
 
 class ExportService {
 
     fun exportToFile(tokens: Collection<AccessTokenDetails>, toFile: Path): Path =
-        Files.writeString(toFile, DEFAULT_OBJECT_MAPPER.writeValueAsString(tokens), TRUNCATE_EXISTING, CREATE)
+        toFile.also { it.writeText(DEFAULT_OBJECT_MAPPER.writeValueAsString(tokens), options = arrayOf(TRUNCATE_EXISTING, CREATE)) }
 
     fun importFromFile(fromFile: Path): Result<Collection<AccessTokenDetails>, Exception> =
         supplyThrowing { DEFAULT_OBJECT_MAPPER.readValue<List<AccessTokenDetails>>(fromFile.readText()) }

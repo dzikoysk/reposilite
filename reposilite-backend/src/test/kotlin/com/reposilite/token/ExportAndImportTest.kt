@@ -7,7 +7,7 @@ import com.reposilite.token.RoutePermission.READ
 import com.reposilite.token.specification.AccessTokenSpecification
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import java.nio.file.Files
+import kotlin.io.path.exists
 
 internal class ExportAndImportTest : AccessTokenSpecification() {
 
@@ -26,18 +26,18 @@ internal class ExportAndImportTest : AccessTokenSpecification() {
         val context = CommandContext()
 
         // when: tokens are exported to file
-        val exportCommand = ExportTokensCommand(workingDirectory(), accessTokenFacade).also { it.name = fileName }
+        val exportCommand = ExportTokensCommand(workingDirectory, accessTokenFacade).also { it.name = fileName }
         exportCommand.execute(context)
 
         // then: tokens were successfully exported
         assertThat(context.status).isEqualTo(SUCCEEDED)
-        assertThat(Files.exists(workingDirectory.toPath().resolve(fileName))).isTrue
+        assertThat(workingDirectory.resolve(fileName).exists()).isTrue
 
         // given: a facade without tokens
         deleteAllTokens()
 
         // when: exported tokens are imported from the given file
-        val importCommand = ImportTokensCommand(workingDirectory(), accessTokenFacade).also { it.name = fileName }
+        val importCommand = ImportTokensCommand(workingDirectory, accessTokenFacade).also { it.name = fileName }
         importCommand.execute(context)
 
         // then: the imported tokens match the old ones

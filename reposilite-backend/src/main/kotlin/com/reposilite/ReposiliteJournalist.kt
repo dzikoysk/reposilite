@@ -30,19 +30,19 @@ import org.slf4j.LoggerFactory
 import org.tinylog.provider.ProviderRegistry
 import panda.std.reactive.Subscriber
 import java.io.PrintStream
-import java.nio.file.Files
 import kotlin.collections.MutableMap.MutableEntry
+import kotlin.io.path.createTempFile
 
 /**
- * Initializes quite complicated flow of logging used in Reposilite.
- * The order of processing is as follows:
- *
+ * Initializes quite complicated flow of logging used in Reposilite. The
+ * order of processing is as follows:
  * 1. Message is sent to ReposiliteLogger
- * 2. Message is redirected to the standard SL4J implementation
- *   2.1 SLF4J writes every log entry to the log.txt file
- * 3. Message is caught by TinyLog wrapper and redirected to the rest of loggers
- *   3.1 Cached logger catches all messages and stores them in memory
- *   3.2 Visible logger prints messages that fulfills threshold requirements in the console
+ * 2. Message is redirected to the standard SL4J implementation 2.1 SLF4J
+ *    writes every log entry to the log.txt file
+ * 3. Message is caught by TinyLog wrapper and redirected to the rest of
+ *    loggers 3.1 Cached logger catches all messages and stores them in
+ *    memory 3.2 Visible logger prints messages that fulfills threshold
+ *    requirements in the console
  */
 class ReposiliteJournalist(
     visibleJournalist: Journalist,
@@ -72,7 +72,7 @@ class ReposiliteJournalist(
 
         this.mainLogger =
             if (testEnv)
-                PrintStreamLogger(PrintStream(Files.createTempFile("reposilite", "test-out").toFile()), System.err)
+                PrintStreamLogger(PrintStream(createTempFile("reposilite", "test-out").toFile()), System.err)
             else
                 Slf4jLogger(LoggerFactory.getLogger(Reposilite::class.java))
     }

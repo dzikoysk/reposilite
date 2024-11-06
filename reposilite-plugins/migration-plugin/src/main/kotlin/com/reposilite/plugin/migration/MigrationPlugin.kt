@@ -15,10 +15,10 @@ import com.reposilite.token.Route
 import com.reposilite.token.RoutePermission
 import com.reposilite.token.RoutePermission.READ
 import com.reposilite.token.api.AccessTokenDetails
-import java.nio.file.Files
-import java.nio.file.Path
-import kotlin.io.path.readBytes
 import org.panda_lang.reposilite.auth.TokenCollection
+import java.nio.file.Path
+import kotlin.io.path.notExists
+import kotlin.io.path.readBytes
 
 @Plugin(name = "migration", dependencies = ["maven"])
 class MigrationPlugin : ReposilitePlugin() {
@@ -41,7 +41,7 @@ class MigrationPlugin : ReposilitePlugin() {
     fun migrateTokens(workingDirectory: Path, repositories: Collection<String>): Collection<AccessTokenDetails>? {
         val tokensFile = workingDirectory.resolve("tokens.dat")
 
-        if (Files.notExists(tokensFile)) {
+        if (tokensFile.notExists()) {
             logger.warn("Migration | 'tokens.dat' file not found in working directory, there is nothing that migration plugin can do.")
             return null
         }

@@ -17,16 +17,18 @@
 package com.reposilite.plugin
 
 import com.reposilite.plugin.api.ReposilitePlugin
-import com.reposilite.storage.getSimpleName
 import panda.std.Result.supplyThrowing
 import java.io.File
 import java.net.URLClassLoader
-import java.nio.file.Files
 import java.nio.file.Path
 import java.util.ServiceLoader
 import java.util.jar.JarFile
-import kotlin.io.path.absolutePathString
-import kotlin.streams.asSequence
+import kotlin.io.path.absolute
+import kotlin.io.path.createDirectories
+import kotlin.io.path.extension
+import kotlin.io.path.isDirectory
+import kotlin.io.path.notExists
+import kotlin.io.path.useDirectoryEntries
 
 class PluginLoader(
     val pluginsDirectory: Path,
@@ -57,20 +59,19 @@ class PluginLoader(
                 .sortedBy { it.name }
                 .associateBy({ it.name }, { it.dependencies.toList() })
                 .let { toFlattenedDependencyGraph(it) }
-                .map { this[it]!! }
+                .mapNotNull { this[it] }
         }
 
     internal fun loadPluginsByServiceFiles() {
-        if (Files.notExists(pluginsDirectory)) {
-            Files.createDirectories(pluginsDirectory)
+        if (pluginsDirectory.notExists()) {
+            pluginsDirectory.createDirectories()
         }
 
-        check (Files.isDirectory(pluginsDirectory)) { "The path is not a directory" }
-        extensions.logger.debug("Plugins directory: ${pluginsDirectory.absolutePathString()}")
+        check(pluginsDirectory.isDirectory()) { "The path is not a directory" }
+        extensions.logger.debug("Plugins directory: ${pluginsDirectory.absolute()}")
 
-        Files.list(pluginsDirectory).use { pluginDirectoryStream ->
-            pluginDirectoryStream.asSequence()
-                .filter { it.getSimpleName().endsWith(".jar") }
+        pluginsDirectory.useDirectoryEntries { pluginDirectoryStream ->
+            pluginDirectoryStream.filter { it.extension == ".jar" }
                 .filter { isValidJarFile(it.toFile()) }
                 .map { it.toUri().toURL() }
                 .toList()

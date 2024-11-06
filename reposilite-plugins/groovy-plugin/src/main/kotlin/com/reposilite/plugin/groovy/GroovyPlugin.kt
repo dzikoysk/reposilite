@@ -20,9 +20,9 @@ import com.reposilite.plugin.PluginLoader
 import com.reposilite.plugin.api.Facade
 import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposilitePlugin
-import com.reposilite.storage.getSimpleName
 import groovy.lang.GroovyClassLoader
-import java.nio.file.Files
+import kotlin.io.path.extension
+import kotlin.io.path.useDirectoryEntries
 
 @Plugin(name = "groovy")
 class GroovyPlugin : ReposilitePlugin() {
@@ -30,9 +30,9 @@ class GroovyPlugin : ReposilitePlugin() {
     override fun load(loader: PluginLoader) {
         val groovyClassLoader = GroovyClassLoader(this::class.java.classLoader)
 
-        Files.list(loader.pluginsDirectory).use { pluginDirectoryStream ->
+        loader.pluginsDirectory.useDirectoryEntries { pluginDirectoryStream ->
             pluginDirectoryStream
-                .filter { it.getSimpleName().endsWith(".groovy") }
+                .filter { it.extension == "groovy" }
                 .map { groovyClassLoader.parseClass(it.toFile()) }
                 .forEach { extensions().registerPlugin(it.getConstructor().newInstance() as ReposilitePlugin) }
         }

@@ -18,24 +18,23 @@
 
 package com.reposilite.configuration
 
+import com.reposilite.RecommendedLocalSpecificationJunitExtension
 import com.reposilite.ReposiliteParameters
+import com.reposilite.ReposiliteSpecification
 import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.frontend.application.FrontendSettings
-import com.reposilite.RecommendedLocalSpecificationJunitExtension
-import com.reposilite.ReposiliteSpecification
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import java.nio.file.Files
 
 @ExtendWith(RecommendedLocalSpecificationJunitExtension::class)
 internal class StartupParametersIntegrationTest : ReposiliteSpecification() {
 
     override fun overrideParameters(parameters: ReposiliteParameters) {
         // given: a custom shared configuration
-        parameters.sharedConfigurationPath = reposiliteWorkingDirectory.resolve("custom-shared-configuration.json").toPath()
-        Files.writeString(
-            parameters.sharedConfigurationPath,
+        val sharedConfiguration = reposiliteWorkingDirectory.resolve("custom-shared-configuration.json")
+        parameters.sharedConfigurationPath = sharedConfiguration.toPath()
+        sharedConfiguration.writeText(
             """
             {
                 "frontend": {
