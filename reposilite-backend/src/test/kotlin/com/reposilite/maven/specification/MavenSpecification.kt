@@ -57,8 +57,10 @@ import panda.std.reactive.Reference
 import panda.std.reactive.reference
 import panda.std.reactive.toReference
 import java.io.File
-import java.nio.file.Files
 import java.time.Clock
+import kotlin.io.path.createFile
+import kotlin.io.path.createParentDirectories
+import kotlin.io.path.writeText
 
 internal abstract class MavenSpecification {
 
@@ -167,9 +169,9 @@ internal abstract class MavenSpecification {
             .resolve(fileSpec.repository)
             .resolve(fileSpec.gav.toLocation().toPath().get())
             .also {
-                Files.createDirectories(it.parent)
-                Files.createFile(it)
-                Files.write(it, fileSpec.content.toByteArray())
+                it.createParentDirectories()
+                it.createFile()
+                it.writeText(fileSpec.content)
             }
 
         return fileSpec

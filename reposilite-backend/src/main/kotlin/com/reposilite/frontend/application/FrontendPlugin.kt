@@ -33,9 +33,10 @@ import com.reposilite.web.api.HttpServerInitializationEvent
 import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.api.RoutingSetupEvent
 import io.javalin.http.NotFoundResponse
-import java.nio.file.Files
 import java.nio.file.Path
+import kotlin.io.path.createDirectory
 import kotlin.io.path.exists
+import kotlin.io.path.outputStream
 
 @Plugin(name = "frontend", dependencies = ["local-configuration", "shared-configuration", "failure"], settings = FrontendSettings::class)
 internal class FrontendPlugin : ReposilitePlugin() {
@@ -63,7 +64,7 @@ internal class FrontendPlugin : ReposilitePlugin() {
 
             staticDirectory
                 .takeUnless { it.exists() }
-                ?.also { Files.createDirectory(it) }
+                ?.also { it.createDirectory() }
                 ?.also { copyResourceTo(INDEX, it.resolve(INDEX)) }
 
             staticDirectory.resolve(FAVICON)
@@ -107,7 +108,7 @@ internal class FrontendPlugin : ReposilitePlugin() {
 
     private fun copyResourceTo(file: String, to: Path) {
         Reposilite::class.java.getResourceAsStream("/$STATIC_DIRECTORY/$file")?.use {
-            Files.copy(it, to)
+            it.transferTo(to.outputStream())
         }
     }
 

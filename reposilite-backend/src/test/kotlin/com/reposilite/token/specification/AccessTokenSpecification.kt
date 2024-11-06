@@ -26,16 +26,15 @@ import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.token.api.CreateAccessTokenRequest
 import com.reposilite.token.api.CreateAccessTokenResponse
 import com.reposilite.token.infrastructure.InMemoryAccessTokenRepository
-import java.io.File
-import java.nio.file.Path
 import org.junit.jupiter.api.io.TempDir
+import java.nio.file.Path
 
 internal abstract class AccessTokenSpecification {
 
     val logger = AggregatedLogger(InMemoryLogger(), PrintStreamLogger(System.out, System.out))
 
     @TempDir
-    lateinit var workingDirectory: File
+    lateinit var workingDirectory: Path
     var accessTokenFacade: AccessTokenFacade = AccessTokenFacade(logger, InMemoryAccessTokenRepository(), InMemoryAccessTokenRepository(), ExportService())
 
     fun createToken(name: String): CreateAccessTokenResponse =
@@ -47,8 +46,4 @@ internal abstract class AccessTokenSpecification {
     fun deleteAllTokens() {
         accessTokenFacade.getAccessTokens().forEach { accessTokenFacade.deleteToken(it.identifier) }
     }
-
-    fun workingDirectory(): Path =
-        workingDirectory.toPath()
-
 }

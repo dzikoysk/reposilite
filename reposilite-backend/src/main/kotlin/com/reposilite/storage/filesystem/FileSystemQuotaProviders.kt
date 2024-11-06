@@ -20,9 +20,9 @@ import com.reposilite.journalist.Journalist
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.toErrorResponse
 import io.javalin.http.HttpStatus.INSUFFICIENT_STORAGE
-import java.nio.file.Files
-import java.nio.file.Path
 import panda.std.Result
+import java.nio.file.Path
+import kotlin.io.path.fileStore
 
 /**
  * @param rootDirectory root directory of storage space
@@ -76,7 +76,7 @@ internal class PercentageQuota(
     override fun canHold(contentLength: Long): Result<Long, ErrorResponse> =
         usage()
             .map { usage ->
-                val capacity = Files.getFileStore(rootDirectory).usableSpace
+                val capacity = rootDirectory.fileStore().usableSpace
                 val max = capacity * maxPercentage
                 max.toLong() - usage
             }

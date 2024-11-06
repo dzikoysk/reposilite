@@ -27,8 +27,8 @@ import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposilitePlugin
 import net.dzikoysk.cdn.KCdnFactory
 import net.dzikoysk.cdn.source.Source
-import java.nio.file.Files
 import java.util.ServiceLoader
+import kotlin.io.path.writeText
 import kotlin.reflect.full.createInstance
 import kotlin.reflect.full.findAnnotation
 
@@ -50,7 +50,7 @@ internal fun generateRequestedConfiguration(parameters: ReposiliteParameters) {
                 .mapValues { (_, type) -> type.createInstance() }
                 .let { ReposiliteObjectMapper.DEFAULT_OBJECT_MAPPER.valueToTree<JsonNode>(it) }
                 .toPrettyString()
-                .also { Files.writeString(sharedConfigurationFile, it) }
+                .also { sharedConfigurationFile.writeText(it) }
             println("Shared configuration has been generated to the $sharedConfigurationFile file")
         }
         else -> println("Unknown configuration: ${parameters.configurationRequested}")

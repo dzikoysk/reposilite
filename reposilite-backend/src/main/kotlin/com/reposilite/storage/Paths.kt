@@ -24,32 +24,23 @@ import com.reposilite.storage.api.FileType.DIRECTORY
 import com.reposilite.storage.api.FileType.FILE
 import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
 import io.javalin.http.HttpStatus.NO_CONTENT
-import java.io.InputStream
-import java.nio.file.Files
-import java.nio.file.Path
-import kotlin.io.path.isDirectory
 import panda.std.Result
+import java.io.InputStream
+import java.nio.file.Path
+import kotlin.io.path.exists
+import kotlin.io.path.isDirectory
+import kotlin.io.path.inputStream as newInputStream
 
 fun Path.type(): FileType =
     if (this.isDirectory()) DIRECTORY else FILE
 
 fun Path.inputStream(): Result<InputStream, ErrorResponse> =
-    Result.`when`(Files.exists(this), this, notFound(""))
-        .filter({ it.isDirectory().not() }, { NO_CONTENT.toErrorResponse("Requested file is a directory") })
+    Result.`when`(this.exists(), this, notFound("File not found"))
+        .filter({ !it.isDirectory() }, { NO_CONTENT.toErrorResponse("Requested file is a directory") })
         .flatMap {
-            Result.supplyThrowing { Files.newInputStream(it) }
+            Result.supplyThrowing { it.newInputStream() }
                 .onError { it.printStackTrace() }
                 .mapErr { INTERNAL_SERVER_ERROR.toErrorResponse("Cannot read file") }
         }
 
-internal fun Path.getExtension(): String =
-    getSimpleName().getExtension()
-
-fun Path.getSimpleName(): String =
-    fileName.toString()
-
-fun String.getExtension(): String =
-    lastIndexOf(".")
-        .takeIf { it != -1 }
-        ?.let { substring(it + 1) }
-        ?: ""
+fun String.getExtension(): String = substringAfterLast('.', "")

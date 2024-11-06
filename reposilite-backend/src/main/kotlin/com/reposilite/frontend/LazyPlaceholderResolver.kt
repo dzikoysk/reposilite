@@ -22,8 +22,9 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.nio.charset.MalformedInputException
 import java.nio.charset.StandardCharsets.UTF_8
-import java.nio.file.Files
-import java.nio.file.StandardOpenOption
+import kotlin.io.path.createTempFile
+import kotlin.io.path.inputStream
+import kotlin.io.path.outputStream
 
 internal class LazyPlaceholderResolver(private val placeholders: Map<String, String>) {
 
@@ -38,17 +39,17 @@ internal class LazyPlaceholderResolver(private val placeholders: Map<String, Str
         ?: 0
 
     fun createProcessedResource(input: InputStream): ResourceSupplier {
-        val temporaryResourcePath = Files.createTempFile("reposilite", "frontend-resource")
+        val temporaryResourcePath = createTempFile("reposilite", "frontend-resource")
 
         input.use { inputStream ->
-            Files.newOutputStream(temporaryResourcePath, StandardOpenOption.WRITE).use { outputStream ->
+            temporaryResourcePath.outputStream().use { outputStream ->
                 process(inputStream, outputStream)
             }
         }
 
         return ResourceSupplier {
             Result.supplyThrowing(IOException::class.java) {
-                Files.newInputStream(temporaryResourcePath)
+                temporaryResourcePath.inputStream()
             }
         }
     }

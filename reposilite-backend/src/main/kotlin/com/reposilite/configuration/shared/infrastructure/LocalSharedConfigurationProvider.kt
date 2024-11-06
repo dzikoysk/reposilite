@@ -18,9 +18,10 @@ package com.reposilite.configuration.shared.infrastructure
 
 import com.reposilite.configuration.shared.SharedConfigurationProvider
 import com.reposilite.journalist.Journalist
-import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.exists
+import kotlin.io.path.readText
+import kotlin.io.path.writeText
 
 const val SHARED_CONFIGURATION_FILE = "configuration.shared.json"
 
@@ -31,13 +32,13 @@ class LocalSharedConfigurationProvider(
 ) : SharedConfigurationProvider {
 
     override fun updateConfiguration(content: String) {
-        Files.writeString(workingDirectory.resolve(configurationFile), content)
+        workingDirectory.resolve(configurationFile).writeText(content)
     }
 
     override fun fetchConfiguration(): String =
         workingDirectory.resolve(configurationFile)
             .takeIf { it.exists() }
-            ?.let { Files.readString(it) }
+            ?.readText()
             ?: ""
 
     override fun isUpdateRequired(): Boolean =
