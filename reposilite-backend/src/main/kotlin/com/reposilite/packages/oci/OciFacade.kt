@@ -24,6 +24,8 @@ import com.reposilite.packages.oci.api.SaveManifestRequest
 import com.reposilite.packages.oci.api.UploadState
 import com.reposilite.plugin.api.Facade
 import com.reposilite.shared.ErrorResponse
+import com.reposilite.shared.badRequestError
+import com.reposilite.shared.notFoundError
 import com.reposilite.storage.StorageProvider
 import com.reposilite.storage.api.toLocation
 import panda.std.Result
@@ -52,7 +54,7 @@ class OciFacade(
         return saveManifestRequest.let { ManifestResponse(it.schemaVersion, it.mediaType, it.config, it.layers) }.asSuccess()
     }
 
-    fun retrieveUploadSessionId(namespace: String): Result<String, ErrorResponse> {
+    fun retrieveBlobUploadSessionId(namespace: String): Result<String, ErrorResponse> {
         val sessionId = UUID.randomUUID().toString()
 
         sessions[sessionId] = UploadState(
@@ -64,6 +66,15 @@ class OciFacade(
         )
 
         return sessionId.asSuccess()
+    }
+
+    fun uploadBlobStreamPart(namespace: String, sessionId: String, part: ByteArray): Result<UploadState, ErrorResponse> {
+        val session = sessions[sessionId] ?: return notFoundError("Session not found")
+
+        session.uploadedData += part
+        session.bytesReceived += part.size
+
+        return session.asSuccess()
     }
 
     fun findBlobByDigest(namespace: String, digest: String): Result<BlobResponse, ErrorResponse> =
@@ -86,6 +97,14 @@ class OciFacade(
         val location = "manifests/${namespace}/${tag}/manifest.sha256".toLocation()
         return storageProvider.getFile(location)
             .map { it.readAllBytes().joinToString("") { "%02x".format(it) } }
+    }
+
+    fun validateDigest(digest: String): Result<String, ErrorResponse> {
+        if (!digest.startsWith("sha256:")) {
+            return badRequestError("Invalid digest format")
+        }
+
+        return digest.asSuccess()
     }
 
     override fun getLogger(): Logger =
