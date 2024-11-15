@@ -59,7 +59,7 @@ $ docker run -e JAVA_OPTS='-Xmx128M' -p 80:8080 dzikoysk/reposilite
 
 #### Reposilite properties
 
-To pass custom parameters described in [setup#parameters](setup#parameters), use `REPOSILITE_OPTS` variable:
+To pass custom parameters described in [general#parameters](general#parameters), use `REPOSILITE_OPTS` variable:
 
 ```bash
 $ docker run -e REPOSILITE_OPTS='--local-configuration=/app/data/custom.cdn' -p 80:8080 dzikoysk/reposilite
