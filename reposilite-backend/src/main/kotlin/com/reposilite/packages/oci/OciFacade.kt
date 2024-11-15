@@ -25,6 +25,7 @@ import com.reposilite.packages.oci.api.UploadState
 import com.reposilite.plugin.api.Facade
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.badRequestError
+import com.reposilite.shared.notFound
 import com.reposilite.shared.notFoundError
 import com.reposilite.storage.StorageProvider
 import com.reposilite.storage.api.toLocation
@@ -68,7 +69,7 @@ class OciFacade(
         return sessionId.asSuccess()
     }
 
-    fun uploadBlobStreamPart(namespace: String, sessionId: String, part: ByteArray): Result<UploadState, ErrorResponse> {
+    fun uploadBlobStreamPart(sessionId: String, part: ByteArray): Result<UploadState, ErrorResponse> {
         val session = sessions[sessionId] ?: return notFoundError("Session not found")
 
         session.uploadedData += part
@@ -86,6 +87,7 @@ class OciFacade(
                     content = it
                 )
             }
+            .mapErr { notFound("Could not find blob with specified digest") }
 
     fun findManifestChecksumByDigest(namespace: String, digest: String): Result<String, ErrorResponse> {
         val location = "manifests/${namespace}/${digest}".toLocation()
@@ -95,8 +97,22 @@ class OciFacade(
 
     fun findManifestChecksumByTag(namespace: String, tag: String): Result<String, ErrorResponse> {
         val location = "manifests/${namespace}/${tag}/manifest.sha256".toLocation()
+
         return storageProvider.getFile(location)
             .map { it.readAllBytes().joinToString("") { "%02x".format(it) } }
+    }
+
+    fun findManifestTagByDigest(namespace: String, digest: String): Result<String, ErrorResponse> {
+        val tagsDirectory = "manifests/${namespace}".toLocation()
+
+        // todo replace with exposed (digest to tag mapping)
+        return storageProvider.getFiles(tagsDirectory)
+            .flatMap { files ->
+                files
+                    .map { storageProvider.getFile(it.resolve("manifest.sha256")) }
+                    .map { it.map { it.readAllBytes().joinToString("") { "%02x".format(it) } } }
+                    .first()
+            }
     }
 
     fun validateDigest(digest: String): Result<String, ErrorResponse> {

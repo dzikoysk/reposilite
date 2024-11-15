@@ -20,28 +20,27 @@ import com.reposilite.packages.oci.OciFacade
 import com.reposilite.packages.oci.api.ManifestResponse
 import com.reposilite.packages.oci.api.SaveManifestRequest
 import com.reposilite.shared.badRequest
-import com.reposilite.shared.extractFromHeader
-import com.reposilite.shared.notFoundError
+import com.reposilite.shared.badRequestError
 import com.reposilite.web.api.ReposiliteRoute
-import com.reposilite.web.api.ReposiliteRoutes
 import io.javalin.community.routing.Route.*
+import io.javalin.http.HandlerType
 import io.javalin.http.bodyAsClass
 import panda.std.Result.supplyThrowing
 
 internal class OciEndpoints(
     private val ociFacade: OciFacade,
-    private val basePath: String,
-    private val compressionStrategy: String
-) : ReposiliteRoutes() {
+) {
 
-    fun saveManifest(namespace: String, reference: String) =
-        ReposiliteRoute<ManifestResponse>("/api/oci/v2/$namespace/manifests/$reference", PUT) {
+    fun saveManifest(namespace: String) =
+        ReposiliteRoute<ManifestResponse>("/api/oci/v2/$namespace/manifests/{reference}", PUT) {
             accessed {
                 val contentType = ctx.header("Content-Type")
                 if (contentType != "application/vnd.docker.distribution.manifest.v2+json") {
-                    response = notFoundError("Invalid content type")
+                    response = badRequestError("Invalid content type")
                     return@accessed
                 }
+
+                val reference = parameter("reference") ?: return@accessed
 
                 response = supplyThrowing { ctx.bodyAsClass<SaveManifestRequest>() }
                     .mapErr { badRequest("Request does not contain valid body") }
@@ -53,6 +52,72 @@ internal class OciEndpoints(
             }
         }
 
-    override val routes = routes(saveManifest())
+    fun retrieveBlobUploadSessionId(namespace: String) =
+        ReposiliteRoute<Unit>("/api/oci/v2/$namespace/blobs/uploads", POST) {
+            accessed {
+                val digest = queryParameter("digest")
+                if (digest == null) {
+                    response = ociFacade.retrieveBlobUploadSessionId(namespace)
+                        .map {
+                            ctx.status(202)
+                            ctx.header("Location", "/api/oci/v2/$namespace/blobs/uploads/$it")
+                        }
+
+                    return@accessed
+                }
+            }
+        }
+
+    fun uploadBlobStreamPart(namespace: String) =
+        ReposiliteRoute<Unit>("/api/oci/v2/$namespace/blobs/uploads/{sessionId}", PATCH) {
+            accessed {
+                val contentType = ctx.header("Content-Type")
+                if (contentType != "application/octet-stream") {
+                    response = badRequestError("Invalid content type")
+                    return@accessed
+                }
+
+                val sessionId = parameter("sessionId") ?: return@accessed
+
+                response = supplyThrowing { ctx.bodyAsBytes() }
+                    .mapErr { badRequest("Body does not contain any bytes") }
+                    .flatMap { ociFacade.uploadBlobStreamPart(sessionId, it) }
+                    .map {
+                        ctx.status(202)
+                        ctx.header("Location", "/api/oci/v2/$namespace/blobs/uploads/$sessionId")
+                        ctx.header("Range", "0-${it.bytesReceived - 1}")
+                    }
+            }
+        }
+
+    fun findBlobByDigest(namespace: String) =
+        ReposiliteRoute<ByteArray>("/api/oci/v2/$namespace/blobs/{digest}", GET, HEAD) {
+            accessed {
+                val digest = parameter("digest") ?: return@accessed
+
+                response = ociFacade.findBlobByDigest(namespace, digest)
+                    .peek {
+                        ctx.header("Content-Length", it.length.toString())
+                        ctx.header("Docker-Content-Digest", it.digest)
+                    }
+                    .takeIf { ctx.method() == HandlerType.GET }
+                    ?.map { it.content.readNBytes(it.length) }
+            }
+        }
+
+    fun findManifestChecksumByReference(namespace: String) =
+        ReposiliteRoute<Unit>("/api/oci/v2/$namespace/manifests/{reference}", HEAD) {
+            accessed {
+                val reference = parameter("reference") ?: return@accessed
+
+                response = ociFacade.validateDigest(reference)
+                    .flatMap { ociFacade.findManifestChecksumByDigest(namespace, reference) }
+                    .flatMapErr { ociFacade.findManifestChecksumByTag(namespace, reference) }
+                    .map {
+                        ctx.status(200)
+                        ctx.header("Docker-Content-Digest", it)
+                    }
+            }
+        }
 
 }
