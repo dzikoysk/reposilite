@@ -1,4 +1,5 @@
 ### Reposilite ###
+.build
 stats.yml
 stats.dat
 *.db
