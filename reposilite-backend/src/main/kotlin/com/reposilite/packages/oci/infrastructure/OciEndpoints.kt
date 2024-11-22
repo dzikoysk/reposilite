@@ -90,6 +90,28 @@ internal class OciEndpoints(
             }
         }
 
+    fun finalizeBlobUpload(namespace: String) =
+        ReposiliteRoute<Unit>("/api/oci/v2/$namespace/blobs/{sessionId}", PUT) {
+            accessed {
+                val sessionId = parameter("sessionId") ?: return@accessed
+                val digest = queryParameter("digest")
+                if (digest == null) {
+                    response = badRequestError("No digest provided")
+                    return@accessed
+                }
+
+                response = supplyThrowing { ctx.bodyAsBytes() }
+                    .fold(
+                        { ociFacade.finalizeBlobUpload(namespace, digest, sessionId, it) },
+                        { ociFacade.finalizeBlobUpload(namespace, digest, sessionId, null) },
+                    )
+                    .map {
+                        ctx.status(201)
+                        ctx.header("Location", "/api/oci/v2/$namespace/blobs/${it.digest}")
+                    }
+            }
+        }
+
     fun findBlobByDigest(namespace: String) =
         ReposiliteRoute<ByteArray>("/api/oci/v2/$namespace/blobs/{digest}", GET, HEAD) {
             accessed {
@@ -111,8 +133,10 @@ internal class OciEndpoints(
                 val reference = parameter("reference") ?: return@accessed
 
                 response = ociFacade.validateDigest(reference)
-                    .flatMap { ociFacade.findManifestChecksumByDigest(namespace, reference) }
-                    .flatMapErr { ociFacade.findManifestChecksumByTag(namespace, reference) }
+                    .fold(
+                        { ociFacade.findManifestChecksumByDigest(namespace, reference) },
+                        { ociFacade.findManifestChecksumByTag(namespace, reference) }
+                    )
                     .map {
                         ctx.status(200)
                         ctx.header("Docker-Content-Digest", it)

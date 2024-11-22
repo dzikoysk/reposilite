@@ -78,6 +78,20 @@ class OciFacade(
         return session.asSuccess()
     }
 
+    fun finalizeBlobUpload(namespace: String, digest: String, sessionId: String, lastPart: ByteArray?): Result<BlobResponse, ErrorResponse> {
+        val session = sessions[sessionId] ?: return notFoundError("Session not found")
+
+        if (lastPart != null) {
+            session.bytesReceived += lastPart.size
+        }
+
+        storageProvider.putFile("blobs/$namespace/$digest".toLocation(), session.uploadedData.inputStream())
+
+        sessions.remove(sessionId)
+
+        return findBlobByDigest(namespace, digest)
+    }
+
     fun findBlobByDigest(namespace: String, digest: String): Result<BlobResponse, ErrorResponse> =
         storageProvider.getFile("blobs/${namespace}/${digest}".toLocation())
             .map {
