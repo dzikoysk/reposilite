@@ -3,8 +3,10 @@
 <header class="border-b-1 border-gray-50 flex items-center w-full py-10">
     <div class="mx-auto container flex justify-between w-full">
         <nav class="font-medium text-xl flex justify-between items-center w-full">
-            <a href="/">${title}</a>
-            <div class="flex bg-white dark:bg-zinc-800 items-center rounded-md px-3 w-1/2">
+            <a href="/" class="w-1/5">
+                ${title}
+            </a>
+            <div class="flex bg-white dark:bg-zinc-800 items-center rounded-md px-3 w-2/5">
                 <div class="h-4 w-4">
                     @template.lib.icons.SearchIcon()
                 </div>
@@ -13,7 +15,7 @@
                     placeholder="Search"
                 />
             </div>
-            <nav class="flex gap-2">
+            <nav class="flex gap-2 w-1/5 justify-end">
                 <button class="bg-white dark:bg-zinc-800 px-3 py-0.5 rounded-md text-sm">
                     Sign in
                 </button>

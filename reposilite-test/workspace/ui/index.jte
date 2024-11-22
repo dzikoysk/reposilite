@@ -5,15 +5,17 @@
 
 <!DOCTYPE html>
 <html lang="en">
-    @template.component.Head(title = "Reposilite")
+    @template.component.Head(title = view.getTitle())
 
     <body class="min-h-full text-black dark:text-white min-w-full bg-zinc-100 dark:bg-zinc-900">
         @template.component.Header(title = view.getTitle())
 
-        <main class="container mx-auto">
+        <main class="container mx-auto pt-1">
             <div class="flex min-h-[128px]">
                 <div class="w-32">
-                    <img alt="Logo" src="${view.getLogo()}" class="rounded-md border-2 border-zinc-200 dark:border-zinc-700" />
+                    <a href="">
+                        <img alt="Logo" src="${view.getLogo()}" class="rounded-md border-2 border-zinc-200 dark:border-zinc-700" />
+                    </a>
                 </div>
                 <div class="flex flex-col pl-6 justify-center">
                     <h1>${view.getDescription()}</h1>
@@ -33,7 +35,7 @@
                             min-w-1/3 max-w-1/3 px-4 pt-3 pb-4
                             border rounded-md border-white shadow-sm dark:border-zinc-700
                             bg-white dark:bg-zinc-800
-                            hover:transform hover:scale-[1.015] transition-transform cursor-pointer
+                            hover:transform hover:scale-[1.01] transition-transform cursor-pointer
                         ">
                             <div class="flex-col">
                                 <h2 class="font-bold">${project.getName()}</h2>
@@ -70,7 +72,7 @@
                                 <h2 class="font-semibold pb-1.5">${group.getType()}</h2>
                                 <div class="flex flex-col">
                                     @for(IndexView.Repository repository : group.getRepositories())
-                                        <a href="/${repository.getName()}" class="text-white">
+                                        <a href="/browse/${repository.getName()}" class="text-black dark:text-white">
                                             <div class="flex flex-1 items-center gap-2 hover:bg-zinc-200 dark:hover:bg-zinc-900 rounded-md px-3.5 cursor-pointer">
                                                 <div class="w-2 h-2 rounded-md
                                                     @if(repository.getType().equals("Generic"))
@@ -80,11 +82,11 @@
                                                     @elseif(repository.getType().equals("Docker"))
                                                          bg-blue-300
                                                     @elseif(repository.getType().equals("NPM"))
-                                                         bg-yellow-200
+                                                         bg-yellow-300
                                                     @endif
                                                 ">
                                                 </div>
-                                                <p class="px-2 py-1.5 text-sm">
+                                                <p class="px-2 py-1.5 text-[0.93rem]">
                                                     ${repository.getName()}
                                                 </p>
                                             </div>
@@ -96,24 +98,64 @@
                     </div>
                 </div>
             @else
-                <p class="pt-12">
-                    Index of /${view.getBrowsedRepository().getName()}
-                    <a href="/">
-                        <span class="font-normal text-xl text-gray-500 select-none inter-500"> ⤴ </span>
-                    </a>
-                </p>
-                <div class="flex flex-col mt-3 bg-zinc-800 rounded-md px-4 py-3">
-                    @for(var entry : view.getBrowsedRepository().getFiles())
-                        <div class="py-1 flex items-center gap-3 hover:bg-zinc-700 dark:hover:bg-zinc-900 rounded-md px-3 cursor-pointer">
-                        @if (entry instanceof IndexView.BrowsedRepository.Directory directory)
-                            <div class="bg-yellow-300 w-2 h-2 mt-0.5 rounded-full"></div>
-                            <p>${directory.getName()}</p>
-                        @elseif (entry instanceof IndexView.BrowsedRepository.File file)
-                            <div class="bg-white w-2 h-2 mt-0.5 rounded-full"></div>
-                            <p>${file.getName()}</p>
-                        @endif
+                <div class="flex justify-between pt-12">
+                    <p class="">
+                        Index of /${view.getBrowsedRepository().getName()}
+                        <a href="/">
+                            <span class="font-normal text-xl text-gray-500 select-none inter-500"> ⤴ </span>
+                        </a>
+                    </p>
+<%--                    <div>--%>
+<%--                        @template.lib.icons.ViewGrid()--%>
+<%--                    </div>--%>
+                </div>
+                <div class="flex gap-2 mt-3">
+                    <div class="flex flex-1 h-fit flex-col bg-white dark:bg-zinc-800 rounded-md px-3 py-3">
+                        @for(var entry : view.getBrowsedRepository().getFiles())
+                            <div class="py-1 flex items-center gap-3 hover:bg-zinc-200 dark:hover:bg-zinc-700 dark:hover:bg-zinc-900 rounded-md px-3 cursor-pointer">
+                                @if (entry instanceof IndexView.BrowsedRepository.Directory directory)
+                                    <div class="bg-yellow-300 w-2 h-2 mt-0.5 rounded-full"></div>
+                                    <p>${directory.getName()}</p>
+                                @elseif (entry instanceof IndexView.BrowsedRepository.File file)
+                                    <div class="bg-zinc-300 w-2 h-2 mt-0.5 rounded-full"></div>
+                                    <p>${file.getName()}</p>
+                                @endif
+                            </div>
+                        @endfor
+                    </div>
+                    <div class="flex w-2/5 flex-col">
+                        <div class="bg-white dark:bg-zinc-800 px-5 py-4 rounded-md h-fit">
+                            <h2 class="text-sm font-semibold py-0.5">Repository details</h2>
+                            <nav class="flex justify-between pt-4">
+                                <button class="flex-1 py-2.5 text-sm rounded-t-md text-center bg-zinc-100 dark:bg-zinc-900 font-semibold">Maven</button>
+                                <button class="flex-1 py-2.5 text-sm rounded-t-md text-center">Gradle Kotlin</button>
+                                <button class="flex-1 py-2.5 text-sm rounded-t-md text-center">Gradle Groovy</button>
+                                <button class="flex-1 py-2.5 text-sm rounded-t-md text-center">SBT</button>
+                            </nav>
+                            <div>
+                                <xmp class="font-mono bg-zinc-100 dark:bg-zinc-900 px-4 py-4 my-0 mb-1 rounded-b-md text-xs"><repository>
+    <id>reposilite-repository-${view.getBrowsedRepository().getName().toLowerCase()}</id>
+    <name>Reposilite Repository</name>
+    <url>https://maven.reposilite.com/${view.getBrowsedRepository().getName()}</url>
+</repository></xmp>
+                            </div>
                         </div>
-                    @endfor
+                        <div class="flex justify-center bg-white dark:bg-zinc-800 h-2">
+                            <div class="flex-1 bg-zinc-100 dark:bg-zinc-900 rounded-r-full"></div>
+                            <div class="w-[97.5%] h-2"></div>
+                            <div class="flex-1 bg-zinc-100 dark:bg-zinc-900 rounded-l-full"></div>
+                        </div>
+                        <div class="bg-white dark:bg-zinc-800 px-5 py-4 rounded-md h-fit">
+                            <h2 class="text-sm font-semibold py-0.5">Artifact details</h2>
+                            <div>
+                                <xmp class="font-mono bg-zinc-100 dark:bg-zinc-900 px-4 py-4 rounded-md text-xs"><dependency>
+    <groupId>com.reposilite</groupId>
+    <artifactId>reposilite</artifactId>
+    <version>4.0.0</version>
+</dependency></xmp>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             @endif
 

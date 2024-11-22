@@ -27,7 +27,7 @@ internal class UiPlugin : ReposilitePlugin() {
                 IndexView(
                     title = "Reposilite Repository",
                     description = "Official public Maven repository powered by Reposilite",
-                    logo = "logo-square.png",
+                    logo = "/logo-square.png",
                     website = "https://reposilite.com",
                     repositories = listOf(
                         IndexView.Repository("assets", "Generic"),
@@ -72,12 +72,12 @@ internal class UiPlugin : ReposilitePlugin() {
                             mapOf("view" to view)
                         )
                     }
-                    .get("/releases") {
+                    .get("/browse/<repository>") {
                         it.render(
                             "index.jte",
                             mapOf("view" to view.copy(
                                 browsedRepository = IndexView.BrowsedRepository(
-                                    name = "releases",
+                                    name = it.pathParam("repository"),
                                     files = listOf(
                                         IndexView.BrowsedRepository.Directory("assets"),
                                         IndexView.BrowsedRepository.Directory("com"),
