@@ -39,13 +39,20 @@ dependencies {
 //    val detekt = "1.23.5"
 //    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:$detekt")
 
-    val kotlin = "2.0.20"
+    val kotlin = "2.0.21"
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin")
 
     val javalin = "6.3.0"
-    api("io.javalin:javalin:$javalin")
+    api("io.javalin:javalin:$javalin") {
+        exclude(group = "org.eclipse.jetty", module = "jetty-server")
+        exclude(group = "org.eclipse.jetty", module = "jetty-http")
+    }
     api("io.javalin.community.ssl:ssl-plugin:$javalin")
+
+    val jetty = "11.0.24"
+    implementation("org.eclipse.jetty:jetty-server:$jetty")
+    implementation("org.eclipse.jetty:jetty-http:$jetty")
 
     val javalinOpenApi = "6.3.0"
     api("io.javalin.community.openapi:javalin-openapi-plugin:$javalinOpenApi")
@@ -70,38 +77,42 @@ dependencies {
     kapt("info.picocli:picocli-codegen:$picocli")
     api("info.picocli:picocli:$picocli")
 
-    val awssdk = "2.28.16"
+    val awssdk = "2.29.19"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
 
     val awsSdkV1 = "1.12.773"
     testImplementation("com.amazonaws:aws-java-sdk-s3:$awsSdkV1")
 
-    val exposed = "0.55.0"
+    val exposed = "0.56.0"
     api("org.jetbrains.exposed:exposed-core:$exposed")
     api("org.jetbrains.exposed:exposed-dao:$exposed")
     api("org.jetbrains.exposed:exposed-jdbc:$exposed")
     api("org.jetbrains.exposed:exposed-java-time:$exposed")
+
     // Drivers
-    implementation("com.zaxxer:HikariCP:6.0.0")
-    implementation("org.xerial:sqlite-jdbc:3.46.1.3")
-    implementation("mysql:mysql-connector-java:8.0.33")
-    implementation("org.mariadb.jdbc:mariadb-java-client:3.4.1")
+    implementation("com.zaxxer:HikariCP:6.2.1")
+    implementation("org.xerial:sqlite-jdbc:3.47.0.0")
+    implementation("org.mariadb.jdbc:mariadb-java-client:3.5.1")
     implementation("org.postgresql:postgresql:42.7.4")
     implementation("com.h2database:h2:2.3.232")
+    implementation("com.mysql:mysql-connector-j:9.1.0") {
+        exclude(group = "com.google.protobuf", module = "protobuf-java")
+    }
+    implementation("com.google.protobuf:protobuf-java:4.28.3")
 
     val exposedUpsert = "1.2.2"
     api("net.dzikoysk:exposed-upsert:$exposedUpsert")
 
-    val jackson = "2.18.0"
+    val jackson = "2.18.1"
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jackson")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jackson")
 
-    val jsonSchema = "4.36.0"
+    val jsonSchema = "4.37.0"
     implementation("com.github.victools:jsonschema-generator:$jsonSchema")
 
-    val httpClient = "1.45.0"
+    val httpClient = "1.45.1"
     implementation("com.google.http-client:google-http-client:$httpClient") {
         exclude(group = "commons-codec", module = "commons-codec")
     }
@@ -123,7 +134,7 @@ dependencies {
     implementation("org.tinylog:tinylog-api:$tinylog")
     implementation("org.tinylog:tinylog-impl:$tinylog")
 
-    val testcontainers = "1.20.2"
+    val testcontainers = "1.20.4"
     testImplementation("org.testcontainers:postgresql:$testcontainers")
     testImplementation("org.testcontainers:mariadb:$testcontainers")
     testImplementation("org.testcontainers:testcontainers:$testcontainers")
