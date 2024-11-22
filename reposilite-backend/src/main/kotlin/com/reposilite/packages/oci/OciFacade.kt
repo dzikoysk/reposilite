@@ -36,7 +36,8 @@ import java.util.*
 
 class OciFacade(
     private val journalist: Journalist,
-    private val storageProvider: StorageProvider
+    private val storageProvider: StorageProvider,
+    private val ociRepositoryProvider: OciRepositoryProvider
 ) : Journalist, Facade {
 
     private val sessions = mutableMapOf<String, UploadState>()
@@ -136,6 +137,9 @@ class OciFacade(
 
         return digest.asSuccess()
     }
+
+    fun getRepositories(): Collection<OciRepository> =
+        ociRepositoryProvider.getRepositories()
 
     override fun getLogger(): Logger =
         journalist.logger

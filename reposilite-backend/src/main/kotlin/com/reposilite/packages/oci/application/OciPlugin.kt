@@ -17,9 +17,14 @@
 package com.reposilite.packages.oci.application
 
 import com.reposilite.packages.oci.OciFacade
+import com.reposilite.packages.oci.OciRepositoryProvider
+import com.reposilite.packages.oci.infrastructure.OciEndpoints
 import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposilitePlugin
+import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
+import com.reposilite.token.infrastructure.AccessTokenApiEndpoints
+import com.reposilite.web.api.RoutingSetupEvent
 
 @Plugin(
     name = "oci",
@@ -28,10 +33,31 @@ import com.reposilite.plugin.facade
 internal class OciPlugin : ReposilitePlugin() {
 
     override fun initialize(): OciFacade {
+        val ociRepositoryProvider = OciRepositoryProvider()
+
         val ociFacade = OciFacade(
             journalist = this,
-            storageProvider = facade()
+            storageProvider = facade(),
+            ociRepositoryProvider = ociRepositoryProvider
         )
+
+        // register endpoints
+        event { event: RoutingSetupEvent ->
+            ociFacade.getRepositories().forEach {
+                when (it.type) {
+                    "oci" -> {
+                        val ociEndpoints = OciEndpoints(ociFacade)
+
+                        event.register(ociEndpoints.saveManifest(it.name))
+                        event.register(ociEndpoints.retrieveBlobUploadSessionId(it.name))
+                        event.register(ociEndpoints.findManifestChecksumByReference(it.name))
+                        event.register(ociEndpoints.findBlobByDigest(it.name))
+                        event.register(ociEndpoints.uploadBlobStreamPart(it.name))
+                        event.register(ociEndpoints.finalizeBlobUpload(it.name))
+                    }
+                }
+            }
+        }
 
         return ociFacade
     }
