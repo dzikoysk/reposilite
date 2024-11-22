@@ -19,6 +19,7 @@ package com.reposilite.packages.oci.application
 import com.reposilite.packages.oci.OciFacade
 import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposilitePlugin
+import com.reposilite.plugin.facade
 
 @Plugin(
     name = "oci",
@@ -27,7 +28,10 @@ import com.reposilite.plugin.api.ReposilitePlugin
 internal class OciPlugin : ReposilitePlugin() {
 
     override fun initialize(): OciFacade {
-        val ociFacade = OciFacade(this)
+        val ociFacade = OciFacade(
+            journalist = this,
+            storageProvider = facade()
+        )
 
         return ociFacade
     }

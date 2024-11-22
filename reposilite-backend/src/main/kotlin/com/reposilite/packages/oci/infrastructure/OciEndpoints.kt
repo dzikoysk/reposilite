@@ -31,8 +31,8 @@ internal class OciEndpoints(
     private val ociFacade: OciFacade,
 ) {
 
-    fun saveManifest(namespace: String) =
-        ReposiliteRoute<ManifestResponse>("/api/oci/v2/$namespace/manifests/{reference}", PUT) {
+    fun saveManifest(repository: String) =
+        ReposiliteRoute<ManifestResponse>("/api/oci/v2/$repository/manifests/{reference}", PUT) {
             accessed {
                 val contentType = ctx.header("Content-Type")
                 if (contentType != "application/vnd.docker.distribution.manifest.v2+json") {
@@ -47,22 +47,22 @@ internal class OciEndpoints(
                     .flatMap { saveManifestRequest ->
                         ociFacade.validateDigest(reference)
                             .fold(
-                                { ociFacade.saveManifest(namespace, reference, saveManifestRequest) },
-                                { ociFacade.saveTaggedManifest(namespace, reference, saveManifestRequest) }
+                                { ociFacade.saveManifest(repository, reference, saveManifestRequest) },
+                                { ociFacade.saveTaggedManifest(repository, reference, saveManifestRequest) }
                             )
                     }
             }
         }
 
-    fun retrieveBlobUploadSessionId(namespace: String) =
-        ReposiliteRoute<Unit>("/api/oci/v2/$namespace/blobs/uploads", POST) {
+    fun retrieveBlobUploadSessionId(repository: String) =
+        ReposiliteRoute<Unit>("/api/oci/v2/$repository/blobs/uploads", POST) {
             accessed {
                 val digest = queryParameter("digest")
                 if (digest == null) {
-                    response = ociFacade.retrieveBlobUploadSessionId(namespace)
+                    response = ociFacade.retrieveBlobUploadSessionId(repository)
                         .map {
                             ctx.status(202)
-                            ctx.header("Location", "/api/oci/v2/$namespace/blobs/uploads/$it")
+                            ctx.header("Location", "/api/oci/v2/$repository/blobs/uploads/$it")
                         }
 
                     return@accessed
@@ -70,8 +70,8 @@ internal class OciEndpoints(
             }
         }
 
-    fun uploadBlobStreamPart(namespace: String) =
-        ReposiliteRoute<Unit>("/api/oci/v2/$namespace/blobs/uploads/{sessionId}", PATCH) {
+    fun uploadBlobStreamPart(repository: String) =
+        ReposiliteRoute<Unit>("/api/oci/v2/$repository/blobs/uploads/{sessionId}", PATCH) {
             accessed {
                 val contentType = ctx.header("Content-Type")
                 if (contentType != "application/octet-stream") {
@@ -86,14 +86,14 @@ internal class OciEndpoints(
                     .flatMap { ociFacade.uploadBlobStreamPart(sessionId, it) }
                     .map {
                         ctx.status(202)
-                        ctx.header("Location", "/api/oci/v2/$namespace/blobs/uploads/$sessionId")
+                        ctx.header("Location", "/api/oci/v2/$repository/blobs/uploads/$sessionId")
                         ctx.header("Range", "0-${it.bytesReceived - 1}")
                     }
             }
         }
 
-    fun finalizeBlobUpload(namespace: String) =
-        ReposiliteRoute<Unit>("/api/oci/v2/$namespace/blobs/{sessionId}", PUT) {
+    fun finalizeBlobUpload(repository: String) =
+        ReposiliteRoute<Unit>("/api/oci/v2/$repository/blobs/{sessionId}", PUT) {
             accessed {
                 val sessionId = parameter("sessionId") ?: return@accessed
                 val digest = queryParameter("digest")
@@ -104,22 +104,22 @@ internal class OciEndpoints(
 
                 response = supplyThrowing { ctx.bodyAsBytes() }
                     .fold(
-                        { ociFacade.finalizeBlobUpload(namespace, digest, sessionId, it) },
-                        { ociFacade.finalizeBlobUpload(namespace, digest, sessionId, null) },
+                        { ociFacade.finalizeBlobUpload(repository, digest, sessionId, it) },
+                        { ociFacade.finalizeBlobUpload(repository, digest, sessionId, null) },
                     )
                     .map {
                         ctx.status(201)
-                        ctx.header("Location", "/api/oci/v2/$namespace/blobs/${it.digest}")
+                        ctx.header("Location", "/api/oci/v2/$repository/blobs/${it.digest}")
                     }
             }
         }
 
-    fun findBlobByDigest(namespace: String) =
-        ReposiliteRoute<ByteArray>("/api/oci/v2/$namespace/blobs/{digest}", GET, HEAD) {
+    fun findBlobByDigest(repository: String) =
+        ReposiliteRoute<ByteArray>("/api/oci/v2/$repository/blobs/{digest}", GET, HEAD) {
             accessed {
                 val digest = parameter("digest") ?: return@accessed
 
-                response = ociFacade.findBlobByDigest(namespace, digest)
+                response = ociFacade.findBlobByDigest(repository, digest)
                     .peek {
                         ctx.header("Content-Length", it.length.toString())
                         ctx.header("Docker-Content-Digest", it.digest)
@@ -129,15 +129,15 @@ internal class OciEndpoints(
             }
         }
 
-    fun findManifestChecksumByReference(namespace: String) =
-        ReposiliteRoute<Unit>("/api/oci/v2/$namespace/manifests/{reference}", HEAD) {
+    fun findManifestChecksumByReference(repository: String) =
+        ReposiliteRoute<Unit>("/api/oci/v2/$repository/manifests/{reference}", HEAD) {
             accessed {
                 val reference = parameter("reference") ?: return@accessed
 
                 response = ociFacade.validateDigest(reference)
                     .fold(
-                        { ociFacade.findManifestChecksumByDigest(namespace, reference) },
-                        { ociFacade.findManifestChecksumByTag(namespace, reference) }
+                        { ociFacade.findManifestChecksumByDigest(repository, reference) },
+                        { ociFacade.findManifestChecksumByTag(repository, reference) }
                     )
                     .map {
                         ctx.status(200)
