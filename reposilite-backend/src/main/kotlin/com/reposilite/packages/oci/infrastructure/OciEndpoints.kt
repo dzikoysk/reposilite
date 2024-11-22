@@ -46,8 +46,10 @@ internal class OciEndpoints(
                     .mapErr { badRequest("Request does not contain valid body") }
                     .flatMap { saveManifestRequest ->
                         ociFacade.validateDigest(reference)
-                            .flatMap { ociFacade.saveManifest(namespace, reference, saveManifestRequest) }
-                            .flatMapErr { ociFacade.saveTaggedManifest(namespace, reference, saveManifestRequest) }
+                            .fold(
+                                { ociFacade.saveManifest(namespace, reference, saveManifestRequest) },
+                                { ociFacade.saveTaggedManifest(namespace, reference, saveManifestRequest) }
+                            )
                     }
             }
         }
