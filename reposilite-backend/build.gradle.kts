@@ -115,11 +115,11 @@ dependencies {
     val httpClient = "1.45.1"
     implementation("com.google.http-client:google-http-client:$httpClient") {
         exclude(group = "commons-codec", module = "commons-codec")
+        exclude(group = "com.google.guava", module = "guava")
     }
+    api("commons-codec:commons-codec:1.17.1")
+    api("com.google.guava:guava:33.3.1-android")
     testImplementation("com.google.http-client:google-http-client-jackson2:$httpClient")
-
-    val commonsCoded = "1.17.1"
-    api("commons-codec:commons-codec:$commonsCoded")
 
     val jansi = "2.4.1"
     implementation("org.fusesource.jansi:jansi:$jansi")
@@ -135,12 +135,15 @@ dependencies {
     implementation("org.tinylog:tinylog-impl:$tinylog")
 
     val testcontainers = "1.20.4"
-    testImplementation("org.testcontainers:postgresql:$testcontainers")
     testImplementation("org.testcontainers:mariadb:$testcontainers")
     testImplementation("org.testcontainers:testcontainers:$testcontainers")
     testImplementation("org.testcontainers:junit-jupiter:$testcontainers")
     testImplementation("org.testcontainers:localstack:$testcontainers")
     testImplementation("org.testcontainers:mysql:$testcontainers")
+    testImplementation("org.testcontainers:postgresql:$testcontainers") {
+        exclude(group = "org.apache.commons", module = "commons-compress")
+    }
+    testImplementation("org.apache.commons:commons-compress:1.27.1")
 
     val ldap = "7.0.1"
     testImplementation("com.unboundid:unboundid-ldapsdk:$ldap")

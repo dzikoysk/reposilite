@@ -71,7 +71,8 @@ class PluginLoader(
         extensions.logger.debug("Plugins directory: ${pluginsDirectory.absolute()}")
 
         pluginsDirectory.useDirectoryEntries { pluginDirectoryStream ->
-            pluginDirectoryStream.filter { it.extension == ".jar" }
+            pluginDirectoryStream
+                .filter { it.extension == "jar" }
                 .filter { isValidJarFile(it.toFile()) }
                 .map { it.toUri().toURL() }
                 .toList()

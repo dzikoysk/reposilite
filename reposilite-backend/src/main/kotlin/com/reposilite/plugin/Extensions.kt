@@ -72,7 +72,9 @@ class Extensions(private val journalist: Journalist) : Journalist {
 
     @Suppress("UNCHECKED_CAST")
     fun <F : Facade> facade(type: Class<F>): F =
-        getFacades().find { type.isInstance(it) }!! as F
+        getFacades()
+            .find { type.isInstance(it) } as? F
+            ?: throw IllegalStateException("Facade ${type.name} not found")
 
     fun getFacades(): Collection<Facade> =
         facades.toList()
