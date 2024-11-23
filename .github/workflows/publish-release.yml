@@ -101,6 +101,15 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: "Generate Docker Tags"
+        id: generate-tags
+        run: |
+          VERSION="${{ needs.github.outputs.version }}"
+          MAJOR=$(echo $VERSION | cut -d '.' -f 1)
+          MINOR=$(echo $VERSION | cut -d '.' -f 2)
+
+          echo "::set-output name=tags::dzikoysk/reposilite:latest,dzikoysk/reposilite:${VERSION},dzikoysk/reposilite:${MAJOR},dzikoysk/reposilite:${MAJOR}.${MINOR},ghcr.io/dzikoysk/reposilite:latest,ghcr.io/dzikoysk/reposilite:${VERSION},ghcr.io/dzikoysk/reposilite:${MAJOR},ghcr.io/dzikoysk/reposilite:${MAJOR}.${MINOR}"
+
       - name: "Build and push"
         id: docker_build
         uses: docker/build-push-action@v3
@@ -108,8 +117,4 @@ jobs:
           context: .
           platforms: "linux/amd64,linux/arm64"
           push: true
-          tags: |
-            dzikoysk/reposilite:latest
-            dzikoysk/reposilite:${{ needs.github.outputs.version }}
-            ghcr.io/dzikoysk/reposilite:latest
-            ghcr.io/dzikoysk/reposilite:${{ needs.github.outputs.version }}
+          tags: ${{ steps.generate-tags.outputs.tags }}
