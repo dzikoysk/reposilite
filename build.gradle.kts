@@ -1,5 +1,7 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 /*
@@ -108,9 +110,9 @@ allprojects {
     }
 
     tasks.withType<KotlinCompile>().configureEach {
-        kotlinOptions {
-            jvmTarget = "11"
-            languageVersion = "1.9"
+        compilerOptions {
+            jvmTarget = JvmTarget.JVM_11
+            languageVersion = KotlinVersion.KOTLIN_1_9
             freeCompilerArgs = listOf("-Xjvm-default=all") // For generating default methods in interfaces
         }
     }
