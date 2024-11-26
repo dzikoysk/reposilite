@@ -1,12 +1,13 @@
 package com.reposilite.plugin.prometheus.metrics
 
 import io.prometheus.metrics.core.metrics.GaugeWithCallback
+import io.prometheus.metrics.model.registry.PrometheusRegistry
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 import io.prometheus.metrics.model.snapshots.Unit as MetricsUnit
 
 
 object QueuedThreadPoolMetrics {
-    fun register(queuedThreadPool: QueuedThreadPool) {
+    fun register(queuedThreadPool: QueuedThreadPool, registry: PrometheusRegistry = PrometheusRegistry.defaultRegistry) {
         GaugeWithCallback.builder()
             .name("jetty_queued_thread_pool_threads_state")
             .help("Number of threads by state")
@@ -21,25 +22,25 @@ object QueuedThreadPoolMetrics {
                 callback.call(queuedThreadPool.utilizedThreads.toDouble(), "utilized")
                 callback.call(queuedThreadPool.maxAvailableThreads.toDouble(), "max_available")
             }
-            .register()
+            .register(registry)
 
         GaugeWithCallback.builder()
             .name("jetty_queued_thread_pool_utilization")
             .help("Percentage of threads in use")
             .unit(MetricsUnit.RATIO)
             .callback { callback -> callback.call(queuedThreadPool.utilizationRate) }
-            .register()
+            .register(registry)
 
         GaugeWithCallback.builder()
             .name("jetty_queued_thread_pool_jobs")
             .help("Number of total jobs")
             .callback { callback -> callback.call(queuedThreadPool.queueSize.toDouble()) }
-            .register()
+            .register(registry)
 
         GaugeWithCallback.builder()
             .name("jetty_queued_thread_pool_low_on_threads")
             .help("Number of total jobs")
             .callback { callback -> callback.call(if (queuedThreadPool.isLowOnThreads) 1.0 else 0.0) }
-            .register()
+            .register(registry)
     }
 }
