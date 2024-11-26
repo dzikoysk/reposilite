@@ -44,7 +44,6 @@ RUN <<EOF
     mkdir -p /app/data
     mkdir -p /var/log/reposilite
     addgroup -Sg "$PGID" reposilite
-
     adduser -SH \
     -h /app \
     -s "/usr/sbin/nologin" \
@@ -68,5 +67,4 @@ HEALTHCHECK --interval=30s --timeout=30s --start-period=15s \
         echo Fail && exit 2\
     )"]
 ENTRYPOINT ["/app/entrypoint.sh"]
-CMD []
 EXPOSE 8080
