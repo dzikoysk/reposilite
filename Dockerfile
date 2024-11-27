@@ -1,7 +1,7 @@
 # syntax=docker.io/docker/dockerfile:1.7-labs
 
 # Build stage
-FROM bellsoft/liberica-runtime-container:jdk-21-cds-musl AS build
+FROM bellsoft/liberica-runtime-container:jdk-21-musl AS build
 COPY --exclude=entrypoint.sh . /home/reposilite-build
 WORKDIR /home/reposilite-build
 
