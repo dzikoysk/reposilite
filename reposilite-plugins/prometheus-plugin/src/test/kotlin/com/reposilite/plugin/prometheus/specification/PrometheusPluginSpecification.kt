@@ -12,7 +12,7 @@ import panda.std.reactive.Reference
 
 internal open class PrometheusPluginSpecification {
     private val logger = InMemoryLogger()
-    private val extensions = Extensions(AggregatedLogger(logger, PrintStreamLogger(System.out, System.err)))
+    protected val extensions = Extensions(AggregatedLogger(logger, PrintStreamLogger(System.out, System.err)))
     protected val prometheusPlugin = PrometheusPlugin()
 
     init {
