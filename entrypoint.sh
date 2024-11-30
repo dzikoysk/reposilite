@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env sh
 
 # shellcheck disable=SC2086
 set -e
@@ -11,7 +11,8 @@ case "$REPOSILITE_OPTS" in
 esac
 
 # GH-1762: support for running as non-root user
-if (($(id -u) != 0)); then
+
+if [ "$(id -u)" != 0 ]; then
   exec java \
        -Dtinylog.writerFile.file="/var/log/reposilite/log_{date}.txt" \
        -Dtinylog.writerFile.latest=/var/log/reposilite/latest.log \
