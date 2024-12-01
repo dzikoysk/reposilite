@@ -50,7 +50,7 @@ dependencies {
     }
     api("io.javalin.community.ssl:ssl-plugin:$javalin")
 
-    val jetty = "11.0.24"
+    val jetty = "12.0.15"
     implementation("org.eclipse.jetty:jetty-server:$jetty")
     implementation("org.eclipse.jetty:jetty-http:$jetty")
 
