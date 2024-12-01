@@ -35,7 +35,7 @@
     "vue-axios": "^3.5.2",
     "vue-final-modal": "^4.5.5",
     "vue-float-menu": "^1.9.1",
-    "vue-router": "^4.4.5",
+    "vue-router": "^4.5.0",
     "vue-upload-component": "^3.1.17",
     "vue3-apexcharts": "^1.8.0",
     "vue3-tabs": "^0.1.13-beta.3"
