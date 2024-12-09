@@ -24,7 +24,7 @@ plugins {
     jacoco
     kotlin("jvm")
     kotlin("kapt")
-    id("com.coditory.integration-test") version "1.4.5"
+    id("com.coditory.integration-test") version "2.2.1"
     id("com.github.johnrengelman.shadow") version "8.1.1"
 //    id("io.gitlab.arturbosch.detekt").version("1.22.0")
 }
