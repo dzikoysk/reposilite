@@ -39,7 +39,7 @@ dependencies {
 //    val detekt = "1.23.5"
 //    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:$detekt")
 
-    val kotlin = "2.0.21"
+    val kotlin = "2.1.0"
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin")
 
@@ -77,14 +77,14 @@ dependencies {
     kapt("info.picocli:picocli-codegen:$picocli")
     api("info.picocli:picocli:$picocli")
 
-    val awssdk = "2.29.19"
+    val awssdk = "2.29.29"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
 
-    val awsSdkV1 = "1.12.773"
+    val awsSdkV1 = "1.12.779"
     testImplementation("com.amazonaws:aws-java-sdk-s3:$awsSdkV1")
 
-    val exposed = "0.56.0"
+    val exposed = "0.57.0"
     api("org.jetbrains.exposed:exposed-core:$exposed")
     api("org.jetbrains.exposed:exposed-dao:$exposed")
     api("org.jetbrains.exposed:exposed-jdbc:$exposed")
@@ -92,19 +92,19 @@ dependencies {
 
     // Drivers
     implementation("com.zaxxer:HikariCP:6.2.1")
-    implementation("org.xerial:sqlite-jdbc:3.47.0.0")
+    implementation("org.xerial:sqlite-jdbc:3.47.1.0")
     implementation("org.mariadb.jdbc:mariadb-java-client:3.5.1")
     implementation("org.postgresql:postgresql:42.7.4")
     implementation("com.h2database:h2:2.3.232")
     implementation("com.mysql:mysql-connector-j:9.1.0") {
         exclude(group = "com.google.protobuf", module = "protobuf-java")
     }
-    implementation("com.google.protobuf:protobuf-java:4.28.3")
+    implementation("com.google.protobuf:protobuf-java:4.29.1")
 
     val exposedUpsert = "1.2.2"
     api("net.dzikoysk:exposed-upsert:$exposedUpsert")
 
-    val jackson = "2.18.1"
+    val jackson = "2.18.2"
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jackson")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jackson")
@@ -112,7 +112,7 @@ dependencies {
     val jsonSchema = "4.37.0"
     implementation("com.github.victools:jsonschema-generator:$jsonSchema")
 
-    val httpClient = "1.45.1"
+    val httpClient = "1.45.2"
     implementation("com.google.http-client:google-http-client:$httpClient") {
         exclude(group = "commons-codec", module = "commons-codec")
         exclude(group = "com.google.guava", module = "guava")
@@ -145,7 +145,7 @@ dependencies {
     }
     testImplementation("org.apache.commons:commons-compress:1.27.1")
 
-    val ldap = "7.0.1"
+    val ldap = "7.0.2"
     testImplementation("com.unboundid:unboundid-ldapsdk:$ldap")
 }
 
