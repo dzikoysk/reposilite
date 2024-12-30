@@ -76,7 +76,15 @@ class ReposiliteParameters : Runnable {
     @Option(names = ["--port", "-p"], description = ["Override port from configuration"])
     var port = -1
 
-    @Option(names = ["--database"], description = ["Override database connection from local configuration"])
+    @Option(names = ["--database"], description = ["Override database connection from local configuration. Supported storage providers:",
+        "mysql localhost:3306 database user password",
+        "mariadb localhost:3306 database user password",
+        "sqlite reposilite.db",
+        "sqlite --temporary",
+        "mongodb mongodb://localhost:27017/database",
+        "postgresql localhost:5432 database user password",
+        "h2 reposilite"
+    ])
     var database = ""
 
     @Option(names = ["--token", "-t"], description = ["Create temporary token with the given credentials in name:secret format", "Created token has all permissions"])

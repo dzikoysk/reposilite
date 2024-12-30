@@ -20,14 +20,17 @@ import com.reposilite.configuration.ConfigurationFacade
 import com.reposilite.configuration.ConfigurationRepository
 import com.reposilite.configuration.infrastructure.InMemoryConfigurationRepository
 import com.reposilite.configuration.infrastructure.SqlConfigurationRepository
+import com.reposilite.configuration.infrastructure.MongoConfigurationRepository
 import org.jetbrains.exposed.sql.Database
+import com.mongodb.client.MongoClient
 
-class ConfigurationComponents(private val database: Database? = null) {
+class ConfigurationComponents(private val database: Database? = null, private val mongoClient: MongoClient? = null, private val databaseName: String? = null) {
 
     private fun configurationRepository(): ConfigurationRepository =
-        when (database) {
-            null -> InMemoryConfigurationRepository()
-            else -> SqlConfigurationRepository(database)
+        when {
+            mongoClient != null && databaseName != null -> MongoConfigurationRepository(mongoClient, databaseName)
+            database != null -> SqlConfigurationRepository(database)
+            else -> InMemoryConfigurationRepository()
         }
 
     fun configurationFacade(configurationRepository: ConfigurationRepository = configurationRepository()): ConfigurationFacade =

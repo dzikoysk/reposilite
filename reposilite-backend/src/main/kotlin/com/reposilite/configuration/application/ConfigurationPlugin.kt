@@ -20,11 +20,18 @@ import com.reposilite.configuration.ConfigurationFacade
 import com.reposilite.plugin.api.Plugin
 import com.reposilite.plugin.api.ReposilitePlugin
 import com.reposilite.plugin.reposilite
+import com.mongodb.client.MongoClients
 
 @Plugin(name = "configuration")
 class ConfigurationPlugin : ReposilitePlugin() {
 
-    override fun initialize(): ConfigurationFacade =
-        ConfigurationComponents(reposilite().database).configurationFacade()
+    override fun initialize(): ConfigurationFacade {
+        val parameters = reposilite().parameters
+        val databaseConnection = reposilite().databaseConnection
+        val mongoClient = if (parameters.database.startsWith("mongodb")) MongoClients.create(parameters.database) else null
+        val databaseName = if (parameters.database.startsWith("mongodb")) parameters.database.split("/").last() else null
+
+        return ConfigurationComponents(databaseConnection.database, mongoClient, databaseName).configurationFacade()
+    }
 
 }
