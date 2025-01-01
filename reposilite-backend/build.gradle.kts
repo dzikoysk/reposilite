@@ -99,7 +99,7 @@ dependencies {
     implementation("com.mysql:mysql-connector-j:9.1.0") {
         exclude(group = "com.google.protobuf", module = "protobuf-java")
     }
-    implementation("com.google.protobuf:protobuf-java:4.29.1")
+    implementation("com.google.protobuf:protobuf-java:4.29.2")
 
     val exposedUpsert = "1.2.2"
     api("net.dzikoysk:exposed-upsert:$exposedUpsert")
