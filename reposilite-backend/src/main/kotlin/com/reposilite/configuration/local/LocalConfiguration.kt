@@ -47,10 +47,11 @@ class LocalConfiguration : Facade {
     /* Database */
 
     @Description("# Database configuration. Supported storage providers:")
-    @Description("# - mysql localhost:3306 database user password")
+    @Description("# - mariadb localhost:3306 database user password")
     @Description("# - sqlite reposilite.db")
     @Description("# - sqlite --temporary")
     @Description("# Experimental providers (not covered with tests):")
+    @Description("# - mysql localhost:3306 database user password")
     @Description("# - postgresql localhost:5432 database user password")
     @Description("# - h2 reposilite")
     val database = reference("sqlite reposilite.db")
