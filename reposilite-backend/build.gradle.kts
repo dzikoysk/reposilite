@@ -164,6 +164,7 @@ tasks.withType<ShadowJar> {
         exclude(dependency("org.xerial:sqlite-jdbc.*"))
         exclude(dependency("org.sqlite:.*"))
         exclude(dependency("mysql:.*"))
+        exclude(dependency("com.mysql:.*"))
         exclude(dependency("org.mariadb.jdbc:.*"))
         exclude(dependency("org.postgresql:.*"))
         exclude(dependency("org.h2:.*"))
