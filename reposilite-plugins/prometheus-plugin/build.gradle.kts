@@ -28,7 +28,7 @@ application {
 dependencies {
     compileOnly(project(":reposilite-backend"))
 
-    val prometheusMetrics = "1.3.4"
+    val prometheusMetrics = "1.3.5"
     implementation("io.prometheus:prometheus-metrics-core:$prometheusMetrics")
     implementation("io.prometheus:prometheus-metrics-instrumentation-jvm:$prometheusMetrics")
     implementation("io.prometheus:prometheus-metrics-exporter-common:$prometheusMetrics")
