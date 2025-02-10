@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "@dzikoysk/vue-vanilla": "^3.4.1",
-    "@jsonforms/core": "^3.4.1",
+    "@jsonforms/core": "^3.5.1",
     "@jsonforms/vue": "^3.4.1",
     "@vueform/toggle": "^2.1.4",
     "@vueuse/core": "^12.5.0",
