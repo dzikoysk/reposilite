@@ -27,7 +27,7 @@
     "apexcharts": "^4.4.0",
     "axios": "^1.7.9",
     "downloadjs": "^1.4.7",
-    "extended-eventsource": "^1.7.0",
+    "extended-eventsource": "^2.1.0",
     "mime-types": "^2.1.35",
     "mosha-vue-toastify": "^1.0.23",
     "pretty-bytes": "^6.1.1",
