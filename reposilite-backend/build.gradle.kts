@@ -39,7 +39,7 @@ dependencies {
 //    val detekt = "1.23.5"
 //    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:$detekt")
 
-    val kotlin = "2.1.0"
+    val kotlin = "2.1.10"
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin")
 
@@ -65,7 +65,7 @@ dependencies {
     api("org.panda-lang:expressible-kt:$expressible")
     testImplementation("org.panda-lang:expressible-junit:$expressible")
 
-    val cdn = "1.14.5"
+    val cdn = "1.14.6"
     api("net.dzikoysk:cdn:$cdn")
     api("net.dzikoysk:cdn-kt:$cdn")
 
@@ -73,14 +73,14 @@ dependencies {
     kapt("info.picocli:picocli-codegen:$picocli")
     api("info.picocli:picocli:$picocli")
 
-    val awssdk = "2.29.43"
+    val awssdk = "2.30.16"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
 
     val awsSdkV1 = "1.12.780"
     testImplementation("com.amazonaws:aws-java-sdk-s3:$awsSdkV1")
 
-    val exposed = "0.57.0"
+    val exposed = "0.59.0"
     api("org.jetbrains.exposed:exposed-core:$exposed")
     api("org.jetbrains.exposed:exposed-dao:$exposed")
     api("org.jetbrains.exposed:exposed-jdbc:$exposed")
@@ -88,14 +88,14 @@ dependencies {
 
     // Drivers
     implementation("com.zaxxer:HikariCP:6.2.1")
-    implementation("org.xerial:sqlite-jdbc:3.47.1.0")
+    implementation("org.xerial:sqlite-jdbc:3.49.0.0")
     implementation("org.mariadb.jdbc:mariadb-java-client:3.5.1")
-    implementation("org.postgresql:postgresql:42.7.4")
+    implementation("org.postgresql:postgresql:42.7.5")
     implementation("com.h2database:h2:2.3.232")
-    implementation("com.mysql:mysql-connector-j:9.1.0") {
+    implementation("com.mysql:mysql-connector-j:9.2.0") {
         exclude(group = "com.google.protobuf", module = "protobuf-java")
     }
-    implementation("com.google.protobuf:protobuf-java:4.29.2")
+    implementation("com.google.protobuf:protobuf-java:4.29.3")
 
     val exposedUpsert = "1.2.2"
     api("net.dzikoysk:exposed-upsert:$exposedUpsert")
@@ -108,12 +108,12 @@ dependencies {
     val jsonSchema = "4.37.0"
     implementation("com.github.victools:jsonschema-generator:$jsonSchema")
 
-    val httpClient = "1.45.3"
+    val httpClient = "1.46.1"
     implementation("com.google.http-client:google-http-client:$httpClient") {
         exclude(group = "commons-codec", module = "commons-codec")
         exclude(group = "com.google.guava", module = "guava")
     }
-    api("commons-codec:commons-codec:1.17.1")
+    api("commons-codec:commons-codec:1.18.0")
     api("com.google.guava:guava:33.4.0-android")
     testImplementation("com.google.http-client:google-http-client-jackson2:$httpClient")
 
