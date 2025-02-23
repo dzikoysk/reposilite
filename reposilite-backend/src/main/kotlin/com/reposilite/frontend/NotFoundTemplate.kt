@@ -21,7 +21,7 @@ import org.intellij.lang.annotations.Language
 object NotFoundTemplate {
 
     private val uriFormatter = Regex("/+") // exclude common typos from URI
-    private val regexAntiXss = Regex("[^A-Za-z0-9/.\\- ]") // exclude custom non-standard characters from template
+    private val regexAntiXss = Regex("[^A-Za-z0-9/.\\-_ ]") // exclude custom non-standard characters from template
 
     fun createNotFoundPage(basePath: String, originUri: String, details: String): String {
         val uri = originUri.replace(uriFormatter, "/")

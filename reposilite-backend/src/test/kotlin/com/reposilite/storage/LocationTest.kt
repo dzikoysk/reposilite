@@ -30,6 +30,7 @@ class LocationTest {
         assertThat(Location.of("/group").resolve("/artifact").toString()).isEqualTo("group/artifact")
         assertThat(Location.of("/////group/////").resolve("/////artifact/////").toString()).isEqualTo("group/artifact")
         assertThat(Location.of("\\\\\\group\\\\\\").resolve("\\\\\\artifact\\\\\\").toString()).isEqualTo("group/artifact")
+        assertThat(Location.of(".abc").resolve("_cdf.efg").toString()).isEqualTo(".abc/_cdf.efg")
         assertThat(Location.of("시험").resolve("기준").toString()).isEqualTo("시험/기준")
     }
 
