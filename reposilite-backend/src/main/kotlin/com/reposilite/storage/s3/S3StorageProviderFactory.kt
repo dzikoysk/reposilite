@@ -21,12 +21,16 @@ import com.reposilite.status.FailureFacade
 import com.reposilite.storage.StorageProviderFactory
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
+import software.amazon.awssdk.auth.signer.AwsS3V4Signer
+import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.S3Configuration
 import java.net.URI
 import java.nio.file.Path
 import java.time.Duration
+
+private val useS3V4Signer = System.getProperty("reposilite.s3.use-s3-v4-signer", "false") == "true"
 
 class S3StorageProviderFactory : StorageProviderFactory<S3StorageProvider, S3StorageProviderSettings> {
 
@@ -75,6 +79,10 @@ class S3StorageProviderFactory : StorageProviderFactory<S3StorageProvider, S3Sto
             it.retryPolicy { cfg ->
                 cfg.backoffStrategy(ExponentialBackoffStrategy(Duration.ofSeconds(1), Duration.ofMinutes(1)))
                 cfg.numRetries(5)
+            }
+
+            if (useS3V4Signer) {
+                it.putAdvancedOption(SdkAdvancedClientOption.SIGNER, AwsS3V4Signer.create())
             }
         }
 
