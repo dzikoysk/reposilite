@@ -17,8 +17,8 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
-    id("com.github.johnrengelman.shadow") version "8.1.1"
     kotlin("jvm")
+    id("com.gradleup.shadow") version "8.3.5"
 }
 
 application {
@@ -28,7 +28,7 @@ application {
 dependencies {
     compileOnly(project(":reposilite-backend"))
 
-    val prometheusMetrics = "1.3.5"
+    val prometheusMetrics = "1.3.6"
     implementation("io.prometheus:prometheus-metrics-core:$prometheusMetrics")
     implementation("io.prometheus:prometheus-metrics-instrumentation-jvm:$prometheusMetrics")
     implementation("io.prometheus:prometheus-metrics-exporter-common:$prometheusMetrics")

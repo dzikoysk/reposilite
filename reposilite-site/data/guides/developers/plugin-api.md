@@ -14,7 +14,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 group = "example.plugin"
 
 plugins {
-    id("com.github.johnrengelman.shadow") version "7.1.1"
+    id("com.gradleup.shadow") version "8.3.5"
 }
 
 application {

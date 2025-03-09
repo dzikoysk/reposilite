@@ -25,7 +25,7 @@ plugins {
     kotlin("jvm")
     kotlin("kapt")
     id("com.coditory.integration-test") version "1.4.5"
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("com.gradleup.shadow") version "8.3.5"
 //    id("io.gitlab.arturbosch.detekt").version("1.22.0")
 }
 
@@ -73,14 +73,14 @@ dependencies {
     kapt("info.picocli:picocli-codegen:$picocli")
     api("info.picocli:picocli:$picocli")
 
-    val awssdk = "2.30.16"
+    val awssdk = "2.30.36"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
 
-    val awsSdkV1 = "1.12.780"
+    val awsSdkV1 = "1.12.782"
     testImplementation("com.amazonaws:aws-java-sdk-s3:$awsSdkV1")
 
-    val exposed = "0.59.0"
+    val exposed = "0.60.0"
     api("org.jetbrains.exposed:exposed-core:$exposed")
     api("org.jetbrains.exposed:exposed-dao:$exposed")
     api("org.jetbrains.exposed:exposed-jdbc:$exposed")
@@ -88,19 +88,19 @@ dependencies {
 
     // Drivers
     implementation("com.zaxxer:HikariCP:6.2.1")
-    implementation("org.xerial:sqlite-jdbc:3.49.0.0")
-    implementation("org.mariadb.jdbc:mariadb-java-client:3.5.1")
+    implementation("org.xerial:sqlite-jdbc:3.49.1.0")
+    implementation("org.mariadb.jdbc:mariadb-java-client:3.5.2")
     implementation("org.postgresql:postgresql:42.7.5")
     implementation("com.h2database:h2:2.3.232")
     implementation("com.mysql:mysql-connector-j:9.2.0") {
         exclude(group = "com.google.protobuf", module = "protobuf-java")
     }
-    implementation("com.google.protobuf:protobuf-java:4.29.3")
+    implementation("com.google.protobuf:protobuf-java:4.30.0")
 
     val exposedUpsert = "1.2.2"
     api("net.dzikoysk:exposed-upsert:$exposedUpsert")
 
-    val jackson = "2.18.2"
+    val jackson = "2.18.3"
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jackson")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jackson")
@@ -108,7 +108,7 @@ dependencies {
     val jsonSchema = "4.37.0"
     implementation("com.github.victools:jsonschema-generator:$jsonSchema")
 
-    val httpClient = "1.46.1"
+    val httpClient = "1.46.3"
     implementation("com.google.http-client:google-http-client:$httpClient") {
         exclude(group = "commons-codec", module = "commons-codec")
         exclude(group = "com.google.guava", module = "guava")
@@ -130,7 +130,7 @@ dependencies {
     implementation("org.tinylog:tinylog-api:$tinylog")
     implementation("org.tinylog:tinylog-impl:$tinylog")
 
-    val testcontainers = "1.20.4"
+    val testcontainers = "1.20.6"
     testImplementation("org.testcontainers:mariadb:$testcontainers")
     testImplementation("org.testcontainers:testcontainers:$testcontainers")
     testImplementation("org.testcontainers:junit-jupiter:$testcontainers")
