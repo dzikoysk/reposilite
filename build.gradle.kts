@@ -133,6 +133,9 @@ subprojects {
         testImplementation("org.junit.jupiter:junit-jupiter-params:$junit")
         testImplementation("org.junit.jupiter:junit-jupiter-api:$junit")
         testImplementation("org.junit.jupiter:junit-jupiter-engine:$junit")
+
+        val junitPlatform = "1.12.0"
+        testRuntimeOnly("org.junit.platform:junit-platform-launcher:$junitPlatform")
     }
 
     sourceSets.main {
