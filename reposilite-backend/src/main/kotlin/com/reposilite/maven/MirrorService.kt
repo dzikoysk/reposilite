@@ -25,6 +25,7 @@ import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.notFoundError
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.Location
+import com.reposilite.token.AccessTokenIdentifier
 import panda.std.Blank
 import panda.std.Result
 import panda.std.Result.error
@@ -52,13 +53,13 @@ internal class MirrorService(
             .map { it.toInstant().plus(repository.metadataMaxAgeInSeconds, ChronoUnit.SECONDS) }
             .matches { it.isAfter(Instant.now(clock)) }
 
-    fun findRemoteDetails(repository: Repository, gav: Location): Result<FileDetails, ErrorResponse> =
-        searchInRemoteRepositories(repository, gav) { (host, config, client) ->
+    fun findRemoteDetails(repository: Repository, gav: Location, accessToken: AccessTokenIdentifier? = null): Result<FileDetails, ErrorResponse> =
+        searchInRemoteRepositories(repository, gav, accessToken) { (host, config, client) ->
             client.head("${host.removeSuffix("/")}/$gav", config.authorization, config.connectTimeout, config.readTimeout)
         }
 
-    fun findRemoteFile(repository: Repository, gav: Location): Result<InputStream, ErrorResponse> =
-        searchInRemoteRepositories(repository, gav) { (host, config, client) ->
+    fun findRemoteFile(repository: Repository, gav: Location, accessToken: AccessTokenIdentifier? = null): Result<InputStream, ErrorResponse> =
+        searchInRemoteRepositories(repository, gav, accessToken) { (host, config, client) ->
             client.get("${host.removeSuffix("/")}/$gav", config.authorization, config.connectTimeout, config.readTimeout)
                 .flatMap { data -> if (config.store) storeFile(repository, gav, data) else ok(data) }
                 .mapErr { error -> error.updateMessage { "$host: $it" } }
@@ -69,8 +70,9 @@ internal class MirrorService(
             .putFile(gav, data)
             .flatMap { repository.storageProvider.getFile(gav) }
 
-    private fun <V> searchInRemoteRepositories(repository: Repository, gav: Location, fetch: (MirrorHost) -> Result<V, ErrorResponse>): Result<V, ErrorResponse> =
+    private fun <V> searchInRemoteRepositories(repository: Repository, gav: Location, accessToken: AccessTokenIdentifier?, fetch: (MirrorHost) -> Result<V, ErrorResponse>): Result<V, ErrorResponse> =
         repository.mirrorHosts.asSequence()
+            .filter { !it.configuration.authenticatedFetchingOnly || accessToken != null  }
             .filter { (_, config) ->
                 isAllowed(config, gav).fold(
                     { true },

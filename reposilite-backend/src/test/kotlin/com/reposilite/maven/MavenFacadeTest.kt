@@ -60,6 +60,9 @@ internal class MavenFacadeTest : MavenSpecification() {
         )),
         RepositorySettings("PROXIED-LOOPBACK", visibility = PUBLIC, proxied = mutableListOf(
             MirroredRepositorySettings(reference = "PROXIED")
+        )),
+        RepositorySettings("PROXIED-PULL-AUTHED", visibility = HIDDEN, proxied = mutableListOf(
+            MirroredRepositorySettings(reference = REMOTE_REPOSITORY, store = true, authorization = REMOTE_AUTH, authenticatedFetchingOnly = true),
         ))
     )
 
@@ -273,6 +276,53 @@ internal class MavenFacadeTest : MavenSpecification() {
                     .toLookupRequest(UNAUTHORIZED)
                     .copy(repository = "PROXIED-LOOPBACK")
             )
+
+            // then: the file has been properly proxied
+            val (_, data) = assertOk(response)
+            assertThat(data.readBytes().decodeToString()).isEqualTo(REMOTE_CONTENT)
+        }
+
+        @Test
+        fun `should not find remote file when repo is pull authenticated and no auth exists` () {
+            // given: an artifact that is  both available and allowed
+            val file = FileSpec("PROXIED-PULL-AUTHED", "/do/allow.jar", REMOTE_CONTENT)
+
+            // when: the file is requested with no auth
+            val response = mavenFacade.findFile(file.toLookupRequest(UNAUTHORIZED))
+
+            // then: the file is not found
+            assertError(response)
+        }
+
+        @Test
+        fun `should find cached remote file when repo is pull authenticated and no auth exists` () {
+            // given: an artifact that is  both available and allowed
+            val file = FileSpec("PROXIED-PULL-AUTHED", "/do/allow.jar", REMOTE_CONTENT)
+
+            // when: the file is requested with auth
+            val token = createAccessToken("invalid", "invalid", "invalid", "invalid", READ)
+            val response_authed = mavenFacade.findFile(file.toLookupRequest(token))
+
+            // then: the file is cached and downloaded
+            val (_, data_authed) = assertOk(response_authed)
+            assertThat(data_authed.readBytes().decodeToString()).isEqualTo(REMOTE_CONTENT)
+
+            // when: the file is then requested with no auth
+            val response_unauthed = mavenFacade.findFile(file.toLookupRequest(UNAUTHORIZED))
+
+            // then: the cached file is found
+            val (_, data_unauthed) = assertOk(response_unauthed)
+            assertThat(data_unauthed.readBytes().decodeToString()).isEqualTo(REMOTE_CONTENT)
+        }
+
+        @Test
+        fun `should find and cache remote file when repo is pull authenticated and auth exists` () {
+            // given: an artifact that is  both available and allowed
+            val file = FileSpec("PROXIED-PULL-AUTHED", "/do/allow.jar", REMOTE_CONTENT)
+
+            // when: the file is requested with no auth
+            val token = createAccessToken("invalid", "invalid", "invalid", "invalid", READ)
+            val response = mavenFacade.findFile(file.toLookupRequest(token))
 
             // then: the file has been properly proxied
             val (_, data) = assertOk(response)

@@ -98,7 +98,13 @@ data class MirroredRepositorySettings(
         HTTP 127.0.0.1:1081 <br/>
         SOCKS 127.0.0.1:1080 login password 
     """)
-    val httpProxy: String = ""
+    val httpProxy: String = "",
+    @get:Doc(title = "Authenticated Fetching Only", description = """
+        Whether to require an authenticated connection before fetching uncached artifacts from the remote repository.<br/>
+        _This should only ever be turned on in conjunction with the store option or with a secondary mirror host that has this option turned off.<br/>
+        If you are looking to hide this mirror from unauthenticated connections, please use repository visibility options instead._
+    """)
+    val authenticatedFetchingOnly: Boolean = false
 ) : SharedSettings
 
 @Doc(title = "Mirror Credentials", description = "The authorization credentials used to access mirrored repository.")
