@@ -63,10 +63,12 @@ class S3StorageProviderFactory : StorageProviderFactory<S3StorageProvider, S3Sto
             )
         }
 
-        val region = when {
-            settings.region.isNotEmpty() -> Region.of(settings.region)
-            else -> Region.of("reposilite")
-        }
+        // The AWS Java SDK uses by default the env variable AWS_REGION to determine the region
+        // We use reposilite as a dummy region for S3-compatible providers, see https://github.com/dzikoysk/reposilite/issues/1666
+        val region = Region.of(when {
+            settings.region.isNotEmpty() -> settings.region
+            else -> System.getenv("AWS_REGION") ?: "reposilite"
+        })
 
         client.region(region)
 
