@@ -47,4 +47,4 @@ You can run Reposilite in various ways, it depends on what you expect:
 * Run Reposilite in test workspace with predefined configuration for IntelliJ - [Reposilite.run.xml](https://github.com/dzikoysk/reposilite/blob/main/.run/Reposilite.run.xml)
 * Run all tests with Gradle - `gradlew test`
 * Build final fat JAR - `gradlew clean build shadowJar`
-* Build final fat JAR without tests - `gradlew -x test clean build shadowJar`
+* Build final fat JAR without tests - `gradlew -x test -x integrationTest clean build shadowJar`
