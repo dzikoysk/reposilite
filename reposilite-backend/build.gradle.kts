@@ -76,6 +76,9 @@ dependencies {
     val awssdk = "2.30.36"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
+    // STS is needed so it Web Identity Tokens can be used
+    // See https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts-minimum-sdk.html
+    implementation("software.amazon.awssdk:sts:$awssdk")
 
     val awsSdkV1 = "1.12.782"
     testImplementation("com.amazonaws:aws-java-sdk-s3:$awsSdkV1")
