@@ -19,7 +19,7 @@
     "@nextui-org/react": "2.6.11",
     "framer-motion": "12.4.10",
     "gray-matter": "4.0.3",
-    "next": "15.2.3",
+    "next": "15.2.4",
     "next-mdx-remote": "5.0.0",
     "next-seo": "6.6.0",
     "nextjs-color-mode": "1.0.5",
