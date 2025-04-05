@@ -39,7 +39,7 @@ dependencies {
 //    val detekt = "1.23.5"
 //    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:$detekt")
 
-    val kotlin = "2.1.10"
+    val kotlin = "2.1.20"
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin")
 
@@ -73,7 +73,7 @@ dependencies {
     kapt("info.picocli:picocli-codegen:$picocli")
     api("info.picocli:picocli:$picocli")
 
-    val awssdk = "2.30.36"
+    val awssdk = "2.31.16"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
     // STS is needed so it Web Identity Tokens can be used
@@ -90,15 +90,15 @@ dependencies {
     api("org.jetbrains.exposed:exposed-java-time:$exposed")
 
     // Drivers
-    implementation("com.zaxxer:HikariCP:6.2.1")
+    implementation("com.zaxxer:HikariCP:6.3.0")
     implementation("org.xerial:sqlite-jdbc:3.49.1.0")
-    implementation("org.mariadb.jdbc:mariadb-java-client:3.5.2")
+    implementation("org.mariadb.jdbc:mariadb-java-client:3.5.3")
     implementation("org.postgresql:postgresql:42.7.5")
     implementation("com.h2database:h2:2.3.232")
     implementation("com.mysql:mysql-connector-j:9.2.0") {
         exclude(group = "com.google.protobuf", module = "protobuf-java")
     }
-    implementation("com.google.protobuf:protobuf-java:4.30.0")
+    implementation("com.google.protobuf:protobuf-java:4.30.2")
 
     val exposedUpsert = "1.2.2"
     api("net.dzikoysk:exposed-upsert:$exposedUpsert")
@@ -108,7 +108,7 @@ dependencies {
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jackson")
 
-    val jsonSchema = "4.37.0"
+    val jsonSchema = "4.38.0"
     implementation("com.github.victools:jsonschema-generator:$jsonSchema")
 
     val httpClient = "1.46.3"

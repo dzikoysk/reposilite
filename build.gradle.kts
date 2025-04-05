@@ -25,7 +25,7 @@ plugins {
     application
     `maven-publish`
 
-    val kotlinVersion = "2.1.10"
+    val kotlinVersion = "2.1.20"
     kotlin("jvm") version kotlinVersion
     kotlin("kapt") version kotlinVersion
 
@@ -129,12 +129,12 @@ subprojects {
         val assertJ = "3.27.3"
         testImplementation("org.assertj:assertj-core:$assertJ")
 
-        val junit = "5.12.0"
+        val junit = "5.12.1"
         testImplementation("org.junit.jupiter:junit-jupiter-params:$junit")
         testImplementation("org.junit.jupiter:junit-jupiter-api:$junit")
         testImplementation("org.junit.jupiter:junit-jupiter-engine:$junit")
 
-        val junitPlatform = "1.12.0"
+        val junitPlatform = "1.12.1"
         testRuntimeOnly("org.junit.platform:junit-platform-launcher:$junitPlatform")
     }
 
