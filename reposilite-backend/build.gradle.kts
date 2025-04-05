@@ -25,7 +25,7 @@ plugins {
     kotlin("jvm")
     kotlin("kapt")
     id("com.coditory.integration-test") version "1.4.5"
-    id("com.gradleup.shadow") version "8.3.5"
+    id("com.gradleup.shadow") version "8.3.6"
 //    id("io.gitlab.arturbosch.detekt").version("1.22.0")
 }
 
