@@ -125,6 +125,29 @@ internal class MavenFacadeTest : MavenSpecification() {
             assertOk(fileDetails)
         }
 
+        @Test
+        fun `should return 404 if authenticated user tries to access non-existing artifact`() {
+            // given: an empty private repository
+            val repository = PRIVATE.name
+
+            // when: the non-existing file is requested by unauthenticated user
+            val errorResponse = mavenFacade.findDetails(LookupRequest(UNAUTHORIZED, repository, "gav/artifact.jar".toLocation()))
+
+            // then: the response contains unauthorized error
+            assertError(errorResponse)
+            assertThat(errorResponse.error.status).isEqualTo(401)
+
+            // given: access token with access to the repository
+            val authentication = createAccessToken("name", "secret", repository, "gav", READ)
+
+            // when: the non-existing file is requested with valid credentials
+            val fileDetails = mavenFacade.findDetails(LookupRequest(authentication, repository, "gav/artifact.jar".toLocation()))
+
+            // then: response still contains error, but with 404 status
+            assertError(fileDetails)
+            assertThat(fileDetails.error.status).isEqualTo(404)
+        }
+
         @ParameterizedTest
         @EnumSource(value = RepositoryVisibility::class, names = [ "HIDDEN", "PRIVATE" ])
         fun `should restrict directory indexing in hidden and private repositories `(visibility: RepositoryVisibility) {
