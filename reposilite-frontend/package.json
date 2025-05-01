@@ -25,7 +25,7 @@
     "@vueuse/head": "^2.0.0",
     "ansi-to-html": "^0.7.2",
     "apexcharts": "^4.5.0",
-    "axios": "^1.8.4",
+    "axios": "^1.9.0",
     "downloadjs": "^1.4.7",
     "extended-eventsource": "^1.7.0",
     "mime-types": "^3.0.1",
