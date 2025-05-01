@@ -80,7 +80,7 @@ dependencies {
     // See https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts-minimum-sdk.html
     implementation("software.amazon.awssdk:sts:$awssdk")
 
-    val awsSdkV1 = "1.12.782"
+    val awsSdkV1 = "1.12.783"
     testImplementation("com.amazonaws:aws-java-sdk-s3:$awsSdkV1")
 
     val exposed = "0.60.0"
