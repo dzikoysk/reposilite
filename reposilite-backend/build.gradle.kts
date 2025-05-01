@@ -69,7 +69,7 @@ dependencies {
     api("net.dzikoysk:cdn:$cdn")
     api("net.dzikoysk:cdn-kt:$cdn")
 
-    val picocli = "4.7.6"
+    val picocli = "4.7.7"
     kapt("info.picocli:picocli-codegen:$picocli")
     api("info.picocli:picocli:$picocli")
 
