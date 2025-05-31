@@ -94,7 +94,7 @@ internal class StatusPlugin : ReposilitePlugin() {
             logger.info("  ${Effect.BOLD}talismanplatform,${Effect.RESET}")
             logger.info("  ${Effect.BOLD}joshuasing, andrm, rdehuyss, amp7368, insertt, GotoFinal, Kamilkime, gcobr,${Effect.RESET}")
             logger.info("  ${Effect.BOLD}SirEndii, Koressi, tipsy, that-apex,${Effect.RESET}")
-            logger.info("  ${Effect.BOLD}crejk, Rollczi, Jan Bojarczuk, Petersoj, jdsdc${Effect.RESET}")
+            logger.info("  ${Effect.BOLD}crejk, Rollczi, Jan Bojarczuk, Petersoj, jdsdc, frankielc${Effect.RESET}")
             logger.info("")
             logger.info("${Effect.RESET}")
         }

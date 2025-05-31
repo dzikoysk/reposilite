@@ -110,7 +110,8 @@ Thanks to all contributors and people that decided to support my work financiall
     <a href="https://github.com/Rollczi">Rollczi</a>,
     <a href="https://github.com/Kebab81">Jan Bojarczuk</a>,
     <a href="https://github.com/Petersoj">Petersoj</a>,
-    <a href="https://github.com/jdsdc">jdsdc</a>
+    <a href="https://github.com/jdsdc">jdsdc</a>,
+    <a href="https://github.com/frankielc">frankielc</a>
   </td>
  </tr>
  <tr>
@@ -161,7 +162,8 @@ Thanks to all contributors and people that decided to support my work financiall
    <a href="https://github.com/bopke">bopke</a>,
    <a href="https://github.com/asikkema">asikkema</a>,
    <a href="https://github.com/jdsdc">jdsdc</a>,
-   <a href="https://github.com/gcobr">gcobr</a>
+   <a href="https://github.com/gcobr">gcobr</a>,
+   <a href="https://github.com/frankielc">frankielc</a>
   </td>
  </tr>
 </table>
