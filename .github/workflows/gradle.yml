@@ -23,7 +23,7 @@ jobs:
       run: git fetch --tags --unshallow
 
     - name: "Validate gradle wrapper"
-      uses: gradle/wrapper-validation-action@v1
+      uses: gradle/actions/wrapper-validation@v3
 
     - name: "Set up Java ${{ matrix.java-version }}"
       uses: actions/setup-java@v3
