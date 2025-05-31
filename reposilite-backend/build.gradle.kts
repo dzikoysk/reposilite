@@ -60,7 +60,7 @@ dependencies {
     val bcrypt = "0.10.2"
     implementation("at.favre.lib:bcrypt:$bcrypt")
 
-    val expressible = "1.3.8"
+    val expressible = "1.3.6"
     api("org.panda-lang:expressible:$expressible")
     api("org.panda-lang:expressible-kt:$expressible")
     testImplementation("org.panda-lang:expressible-junit:$expressible")
