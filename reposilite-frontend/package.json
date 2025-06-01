@@ -48,7 +48,7 @@
     "concurrently": "^9.1.2",
     "eslint": "9.28.0",
     "eslint-plugin-vue": "^9.32.0",
-    "express": "^4.21.2",
+    "express": "^5.1.0",
     "express-ws": "^5.0.2",
     "globals": "^16.2.0",
     "jsdoc": "^4.0.4",
