@@ -56,11 +56,11 @@ internal class JavadocPlugin : ReposilitePlugin() {
                 .takeIf { it.toString().endsWith("-javadoc.jar") }
                 ?: return@event
 
-            val container = javadocContainerService.createContainer(javadocFolder, event.repository, gav)
-            val javadocDirectory = container.javadocContainerPath.toFile()
+            val artifactRootContainer = javadocContainerService.createContainer(javadocFolder, event.repository, gav.getParent())
+            val artifactRootDirectory = artifactRootContainer.javadocContainerPath.toFile().parentFile
 
-            if (javadocDirectory.exists()) {
-                javadocDirectory.deleteRecursively()
+            if (artifactRootDirectory.exists()) {
+                artifactRootDirectory.deleteRecursively()
             }
         }
 
