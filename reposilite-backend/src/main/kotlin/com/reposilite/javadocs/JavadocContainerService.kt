@@ -9,6 +9,9 @@ import com.reposilite.shared.badRequestError
 import com.reposilite.shared.errorResponse
 import com.reposilite.shared.notFound
 import com.reposilite.status.FailureFacade
+import com.reposilite.storage.api.DirectoryInfo
+import com.reposilite.storage.api.FileDetails
+import com.reposilite.storage.api.FileType
 import com.reposilite.storage.api.FileType.FILE
 import com.reposilite.storage.api.Location
 import com.reposilite.storage.api.toLocation
@@ -97,9 +100,35 @@ internal class JavadocContainerService(
         return mavenFacade.findFile(LookupRequest(accessToken, repository.name, gav))
             .peek { (_, originInput) -> this.copyJavadocJar(originInput, copyJarPath) }
             .flatMap { this.unpackJavadocJar(copyJarPath, javadocUnpackPath) }
-            .peek { this.createDocIndexHtml(container) }
+            .peek {
+                val javadocList = findAvailableJavadocList(LookupRequest(accessToken, repository.name, gav.getParent().getParent()))
+                    .orElseGet { emptyList() }
+                this.createDocIndexHtml(container, javadocList)
+            }
             .map { container }
     }
+
+    private fun findAvailableJavadocList(request: LookupRequest): Result<List<FileDetails>, ErrorResponse> =
+        with(request){
+            mavenFacade.findDetails(request)
+                .map { details ->
+                    val directoryInfo = details as? DirectoryInfo ?: return@map emptyList()
+
+                    val versionDirs = mavenFacade.getAvailableFiles(request, directoryInfo)
+                        .filter { it.type == FileType.DIRECTORY }
+
+                    val dirsWithJavadoc = versionDirs.filter { versionDir ->
+                        val versionGav = request.gav.resolve(versionDir.name)
+                        val versionRequest = request.copy(gav = versionGav)
+
+                        val versionDetails = mavenFacade.findDetails(versionRequest).orNull()
+                        val versionFiles = (versionDetails as? DirectoryInfo)?.files ?: return@filter false
+
+                        versionFiles.any { it.name.endsWith("-javadoc.jar") }
+                    }
+                    dirsWithJavadoc
+                }
+        }
 
     internal fun createContainer(javadocFolder: Path, repository: Repository, jarLocation: Location): JavadocContainer {
         val javadocContainerPath = javadocFolder
@@ -160,8 +189,8 @@ internal class JavadocContainerService(
                 .also { if (jarPath.exists()) jarPath.deleteExisting() }
         }
 
-    private fun createDocIndexHtml(container: JavadocContainer) {
-        container.javadocContainerIndex.writeText(JavadocView.index("/.cache/unpack/index.html"))
+    private fun createDocIndexHtml(container: JavadocContainer, javadocList: List<FileDetails>) {
+        container.javadocContainerIndex.writeText(JavadocView.index("/.cache/unpack/index.html", javadocList))
     }
 
     private fun isJavadocJar(path: String) =
