@@ -24,6 +24,7 @@ import com.reposilite.maven.api.Identifier
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.PreResolveEvent
 import com.reposilite.maven.api.ResolvedDocument
+import com.reposilite.maven.api.ResolvedFileDataEvent
 import com.reposilite.maven.api.ResolvedFileEvent
 import com.reposilite.plugin.Extensions
 import com.reposilite.shared.ErrorResponse
@@ -162,6 +163,8 @@ internal class RepositoryService(
                 logger.debug("Cannot find '$gav' in '${repository.name}' repository, requesting proxied repositories")
                 mirrorService.findRemoteFile(repository, gav, accessToken)
             }
+        }.peek {
+            extensions.emitEvent(ResolvedFileDataEvent(accessToken, repository, gav, Result.ok(it)))
         }
 
     private fun findDetails(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<FileDetails, ErrorResponse> =
