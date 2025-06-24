@@ -21,19 +21,28 @@ import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.api.DeleteRequest
 import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.LookupRequest
-import com.reposilite.plugin.Extensions
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.extensions.resultAttachment
 import com.reposilite.shared.extensions.uri
 import com.reposilite.storage.api.DirectoryInfo
 import com.reposilite.storage.api.DocumentInfo
+import com.reposilite.storage.api.FileType
 import com.reposilite.storage.api.Location
 import com.reposilite.token.AccessTokenIdentifier
 import com.reposilite.web.api.ReposiliteRoute
-import io.javalin.community.routing.Route.*
+import io.javalin.community.routing.Route.DELETE
+import io.javalin.community.routing.Route.GET
+import io.javalin.community.routing.Route.HEAD
+import io.javalin.community.routing.Route.POST
+import io.javalin.community.routing.Route.PUT
+import io.javalin.http.ContentType
 import io.javalin.http.Context
-import io.javalin.openapi.*
 import io.javalin.openapi.ContentType.FORM_DATA_MULTIPART
+import io.javalin.openapi.HttpMethod
+import io.javalin.openapi.OpenApi
+import io.javalin.openapi.OpenApiContent
+import io.javalin.openapi.OpenApiParam
+import io.javalin.openapi.OpenApiResponse
 import panda.std.Result
 
 const val X_GENERATE_CHECKSUMS = "X-Generate-Checksums"
@@ -41,7 +50,7 @@ const val X_GENERATE_CHECKSUMS = "X-Generate-Checksums"
 internal class MavenEndpoints(
     mavenFacade: MavenFacade,
     private val frontendFacade: FrontendFacade,
-    private val compressionStrategy: String,
+    private val compressionStrategy: String
 ) : MavenRoutes(mavenFacade) {
 
     @OpenApi(
