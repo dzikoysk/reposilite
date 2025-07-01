@@ -24,6 +24,7 @@ import com.reposilite.maven.api.Identifier
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.maven.api.PreResolveEvent
 import com.reposilite.maven.api.ResolvedDocument
+import com.reposilite.maven.api.ResolvedFileDataEvent
 import com.reposilite.maven.api.ResolvedFileEvent
 import com.reposilite.plugin.Extensions
 import com.reposilite.shared.ErrorResponse
@@ -146,8 +147,8 @@ internal class RepositoryService(
     fun findInputStream(lookupRequest: LookupRequest): Result<InputStream, ErrorResponse> =
         resolve(lookupRequest) { repository, gav -> findInputStream(repository, gav, lookupRequest.accessToken) }
 
-    private fun findInputStream(repository: Repository, gav: Location, accessToken: AccessTokenIdentifier? = null): Result<InputStream, ErrorResponse> =
-        when {
+    private fun findInputStream(repository: Repository, gav: Location, accessToken: AccessTokenIdentifier? = null): Result<InputStream, ErrorResponse> {
+        val result = when {
             mirrorService.shouldPrioritizeMirrorRepository(repository, gav) -> {
                 logger.debug("Prioritizing mirror repository for '$gav'")
                 mirrorService
@@ -163,6 +164,10 @@ internal class RepositoryService(
                 mirrorService.findRemoteFile(repository, gav, accessToken)
             }
         }
+
+        val event = ResolvedFileDataEvent(accessToken, repository, gav, result);
+        return extensions.emitEvent(event).result
+    }
 
     private fun findDetails(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<FileDetails, ErrorResponse> =
         when {
