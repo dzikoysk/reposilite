@@ -147,8 +147,8 @@ internal class RepositoryService(
     fun findInputStream(lookupRequest: LookupRequest): Result<InputStream, ErrorResponse> =
         resolve(lookupRequest) { repository, gav -> findInputStream(repository, gav, lookupRequest.accessToken) }
 
-    private fun findInputStream(repository: Repository, gav: Location, accessToken: AccessTokenIdentifier? = null): Result<InputStream, ErrorResponse> =
-        when {
+    private fun findInputStream(repository: Repository, gav: Location, accessToken: AccessTokenIdentifier? = null): Result<InputStream, ErrorResponse> {
+        val result = when {
             mirrorService.shouldPrioritizeMirrorRepository(repository, gav) -> {
                 logger.debug("Prioritizing mirror repository for '$gav'")
                 mirrorService
@@ -163,9 +163,11 @@ internal class RepositoryService(
                 logger.debug("Cannot find '$gav' in '${repository.name}' repository, requesting proxied repositories")
                 mirrorService.findRemoteFile(repository, gav, accessToken)
             }
-        }.peek {
-            extensions.emitEvent(ResolvedFileDataEvent(accessToken, repository, gav, Result.ok(it)))
         }
+
+        val event = ResolvedFileDataEvent(accessToken, repository, gav, result);
+        return extensions.emitEvent(event).result
+    }
 
     private fun findDetails(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<FileDetails, ErrorResponse> =
         when {
