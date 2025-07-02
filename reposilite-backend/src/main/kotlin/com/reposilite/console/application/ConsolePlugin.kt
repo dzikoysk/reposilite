@@ -62,7 +62,7 @@ internal class ConsolePlugin : ReposilitePlugin() {
 
             // disable console daemon in tests due to issues with coverage and interrupt method call
             // https://github.com/jacoco/jacoco/issues/1066
-            if (!parameters().testEnv) {
+            if (!parameters().testEnv && !parameters().disableInteractiveConsole) {
                 consoleFacade.commandExecutor.hook()
             }
         }
