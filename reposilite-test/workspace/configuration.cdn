@@ -13,10 +13,11 @@ hostname: 0.0.0.0
 # Port to bind
 port: 8080
 # Database configuration. Supported storage providers:
-# - mysql localhost:3306 database user password
+# - mariadb localhost:3306 database user password
 # - sqlite reposilite.db
 # - sqlite --temporary
 # Experimental providers (not covered with tests):
+# - mysql localhost:3306 database user password
 # - postgresql localhost:5432 database user password
 # - h2 reposilite
 database: sqlite reposilite.db
@@ -32,7 +33,7 @@ sslPort: 443
 # keyPath: ${WORKING_DIRECTORY}/cert.pem ${WORKING_DIRECTORY}/key.pem
 # Example .jks path setup:
 # keyPath: ${WORKING_DIRECTORY}/keystore.jks
-keyPath: ${WORKING_DIRECTORY}/cert.pem ${WORKING_DIRECTORY}/key.pem
+keyPath: "${WORKING_DIRECTORY}/cert.pem ${WORKING_DIRECTORY}/key.pem"
 # Key password to use
 keyPassword: reposilite
 # Redirect http traffic to https
