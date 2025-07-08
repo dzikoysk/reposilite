@@ -48,6 +48,7 @@ const categories = [
       'maven',
       'sbt',
       'github',
+      'ivy'
     ]
   },
   {
