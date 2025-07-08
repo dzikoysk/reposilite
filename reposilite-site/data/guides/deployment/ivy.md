@@ -5,7 +5,7 @@ title: Ivy
 
 ### Ivy
 
-For the best Ivy experience, configure the Reposilite repositories as &lt;dual&gt; resolvers with both subresolvers pointing to the same repository.  This allows Ivy to resolve dynamic revisions (2.+, [1.0,2.0], latest.[status], etc) and module configurations.
+For the best Ivy experience, configure Reposilite repositories as &lt;dual&gt; resolvers with both subresolvers pointing to the same repository.  This allows Ivy to resolve both dynamic revisions (2.+, [1.0,2.0], latest.[status], etc) and module configurations.
 
 ```xml
 <resolvers>
@@ -18,7 +18,7 @@ For the best Ivy experience, configure the Reposilite repositories as &lt;dual&g
 </resolvers>
 ```
 
-If supporting Ivy configurations is not needed,Reposilite repositories may be configured as a simple &lt;ibiblio&gt; resolver.  Dynamic revisions will work as expected, however Ivy will be unable to resolve module configurations.
+If supporting Ivy configurations is not needed, Reposilite repositories may be configured as a simple &lt;ibiblio&gt; resolver.  Dynamic revisions will work as expected, however Ivy will be unable to resolve module configurations.
 
 ```xml
 <resolvers>
@@ -26,8 +26,7 @@ If supporting Ivy configurations is not needed,Reposilite repositories may be co
 </resolvers>
 ```
 
-To publish or access private repositories, add a &lt;credentials&gt; element to your
-ivysettings.xml file with your Reposilite user name and generated token.
+To publish or access private repositories, add a &lt;credentials&gt; element to your ivysettings.xml file with your Reposilite user name and generated token.
 
 ```xml
   <credentials host="hostname" realm="Reposilite" username="username" passwd="auth-token"/>
