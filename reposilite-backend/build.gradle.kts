@@ -117,7 +117,7 @@ dependencies {
         exclude(group = "com.google.guava", module = "guava")
     }
     api("commons-codec:commons-codec:1.18.0")
-    api("com.google.guava:guava:33.4.0-android")
+    api("com.google.guava:guava:33.4.8-android")
     testImplementation("com.google.http-client:google-http-client-jackson2:$httpClient")
 
     val jansi = "2.4.2"
