@@ -90,7 +90,7 @@ dependencies {
     api("org.jetbrains.exposed:exposed-java-time:$exposed")
 
     // Drivers
-    implementation("com.zaxxer:HikariCP:6.3.0")
+    implementation("com.zaxxer:HikariCP:7.0.0")
     implementation("org.xerial:sqlite-jdbc:3.49.1.0")
     implementation("org.mariadb.jdbc:mariadb-java-client:3.5.3")
     implementation("org.postgresql:postgresql:42.7.7")
