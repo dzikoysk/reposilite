@@ -1,7 +1,7 @@
 version: "3.9"
 services:
   reposilite:
-    image: dzikoysk/reposilite:3.2.0
+    image: dzikoysk/reposilite:3.5.25
     #
     # To build from sources:
     #
