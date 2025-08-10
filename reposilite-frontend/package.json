@@ -55,7 +55,7 @@
     "json-server": "^0.17.4",
     "nodemon": "^3.1.10",
     "rollup-plugin-visualizer": "^6.0.3",
-    "vite": "^6.3.5",
+    "vite": "^7.1.1",
     "vite-plugin-windicss": "^1.9.4",
     "windicss": "^3.5.6",
     "ws": "^8.18.3"
