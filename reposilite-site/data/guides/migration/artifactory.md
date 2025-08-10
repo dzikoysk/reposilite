@@ -8,7 +8,7 @@ title: Artifactory
 Reposilite works slightly different than Artifactory or Nexus, so make sure you've properly configured your instance and environment.
 Guides you may find especially useful during migration:
 
-* [Reposilite / Guide - Settings](/guide/settings) - How you can configure Reposilite instance
+* [Reposilite / Guide - General](/guide/general) - How you can configure Reposilite instance
 * [Reposilite / Guide - Tokens](/guide/tokens) - How to generate access to your instance
 
 ### Export repository from Artifactory
