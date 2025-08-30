@@ -32,7 +32,6 @@ client.value.statistics.allResolved()
 const chartOptions = {
   chart: {
     id: "reposilite-requests-over-time",
-    stacked: true
   },
   tooltip: {
     shared: true,
