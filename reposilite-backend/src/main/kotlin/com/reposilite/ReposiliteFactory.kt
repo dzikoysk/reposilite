@@ -28,7 +28,6 @@ import com.reposilite.shared.extensions.newFixedThreadPool
 import com.reposilite.shared.extensions.newSingleThreadScheduledExecutor
 import com.reposilite.web.HttpServer
 import kotlin.io.path.absolutePathString
-import panda.utilities.console.Effect
 
 object ReposiliteFactory {
 
@@ -43,11 +42,12 @@ object ReposiliteFactory {
             visibleJournalist = rootJournalist,
             cachedLogSize = localConfiguration.cachedLogSize.get(),
             defaultVisibilityThreshold = Channel.of(parameters.level).orElseGet { Channel.INFO },
-            testEnv = parameters.testEnv
+            testEnv = parameters.testEnv,
+            noColor = parameters.noColor,
         )
 
         journalist.logger.info("")
-        journalist.logger.info("${Effect.MAGENTA_BOLD}Reposilite $VERSION${Effect.RESET}")
+        journalist.logger.info("${journalist.effect { MAGENTA_BOLD }}Reposilite $VERSION${journalist.effect { RESET }}")
         journalist.logger.info("")
         journalist.logger.info("--- Environment")
         journalist.logger.info("Platform: ${System.getProperty("java.version")} (${System.getProperty("os.name")} :: ${System.getProperty("os.arch")})")

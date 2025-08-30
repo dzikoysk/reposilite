@@ -41,7 +41,6 @@ import com.reposilite.web.api.RoutingSetupEvent
 import panda.std.reactive.Completable
 import panda.std.reactive.Reference.Dependencies.dependencies
 import panda.std.reactive.Reference.computed
-import panda.utilities.console.Effect
 import java.nio.file.StandardOpenOption
 import kotlin.io.path.createDirectories
 import kotlin.io.path.writeText
@@ -52,6 +51,7 @@ internal class StatusPlugin : ReposilitePlugin() {
     private val remoteVersionEndpoint = "https://maven.reposilite.com/api/maven/latest/version/releases/com/reposilite/reposilite?type=raw"
 
     override fun initialize(): StatusFacade {
+        val journalist = reposilite().journalist
         val webServer = Completable<HttpServer>()
         val failureFacade = facade<FailureFacade>()
         val localConfiguration = facade<LocalConfiguration>()
@@ -88,15 +88,15 @@ internal class StatusPlugin : ReposilitePlugin() {
 
         event { _: ReposiliteStartedEvent ->
             logger.info("")
-            logger.info("${Effect.GREEN}Done (${TimeUtils.getPrettyUptimeInSeconds(statusFacade.getUptime())})!${Effect.RESET}")
+            logger.info("${journalist.effect { GREEN }}Done (${TimeUtils.getPrettyUptimeInSeconds(statusFacade.getUptime())})!${journalist.effect { RESET }}")
             logger.info("")
-            logger.info("${Effect.YELLOW_BOLD}$VERSION version has been sponsored by:${Effect.RESET}")
-            logger.info("  ${Effect.BOLD}talismanplatform,${Effect.RESET}")
-            logger.info("  ${Effect.BOLD}joshuasing, andrm, rdehuyss, amp7368, insertt, GotoFinal, Kamilkime, gcobr,${Effect.RESET}")
-            logger.info("  ${Effect.BOLD}SirEndii, Koressi, tipsy, that-apex,${Effect.RESET}")
-            logger.info("  ${Effect.BOLD}crejk, Rollczi, Jan Bojarczuk, Petersoj, jdsdc, frankielc${Effect.RESET}")
+            logger.info("${journalist.effect { YELLOW_BOLD }}$VERSION version has been sponsored by:${journalist.effect { RESET }}")
+            logger.info("  ${journalist.effect { BOLD }}talismanplatform,${journalist.effect { RESET }}")
+            logger.info("  ${journalist.effect { BOLD }}joshuasing, andrm, rdehuyss, amp7368, insertt, GotoFinal, Kamilkime, gcobr,${journalist.effect { RESET }}")
+            logger.info("  ${journalist.effect { BOLD }}SirEndii, Koressi, tipsy, that-apex,${journalist.effect { RESET }}")
+            logger.info("  ${journalist.effect { BOLD }}crejk, Rollczi, Jan Bojarczuk, Petersoj, jdsdc, frankielc${journalist.effect { RESET }}")
             logger.info("")
-            logger.info("${Effect.RESET}")
+            logger.info(journalist.effect { RESET })
         }
 
         event { _: ReposiliteStartedEvent ->

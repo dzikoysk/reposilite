@@ -20,8 +20,6 @@ import com.reposilite.console.CommandStatus.FAILED
 import com.reposilite.console.api.ReposiliteCommand
 import panda.std.Option.supplyThrowing
 import panda.std.take
-import panda.utilities.console.Effect.BLACK_BOLD
-import panda.utilities.console.Effect.RESET
 import picocli.CommandLine.Command
 import picocli.CommandLine.Parameters
 
@@ -47,7 +45,7 @@ internal class StatsCommand(private val statisticsFacade: StatisticsFacade) : Re
         statisticsFacade.findResolvedRequestsByPhrase(repository, phrase, limiter)
             .peek { response ->
                 context.append("Search results:")
-                context.append("  Filter: '${highlight(phrase)}' / Limit: $limiter")
+                context.append("  Filter: '${context.highlight(phrase)}' / Limit: $limiter")
                 if (repository.isNotEmpty()) context.append("  In repository: $repository")
                 context.append("  Sum of matched requests: ${response.sum}")
                 context.append("  Records:")
@@ -60,7 +58,7 @@ internal class StatsCommand(private val statisticsFacade: StatisticsFacade) : Re
             }
     }
 
-    private fun highlight(value: Any): String =
-        BLACK_BOLD.toString() + value.toString() + RESET
+    private fun CommandContext.highlight(value: Any): String =
+        effect { BLACK_BOLD } + value.toString() + effect { RESET }
 
 }

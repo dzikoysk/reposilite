@@ -20,10 +20,6 @@ import com.reposilite.VERSION
 import com.reposilite.console.CommandContext
 import com.reposilite.console.api.ReposiliteCommand
 import com.reposilite.shared.extensions.TimeUtils
-import panda.utilities.console.Effect.GREEN
-import panda.utilities.console.Effect.GREEN_BOLD
-import panda.utilities.console.Effect.RED_UNDERLINED
-import panda.utilities.console.Effect.RESET
 import picocli.CommandLine.Command
 
 @Command(name = "status", description = ["Display summary status of app health"])
@@ -32,7 +28,7 @@ internal class StatusCommand(private val statusFacade: StatusFacade) : Reposilit
     override fun execute(context: CommandContext) {
         statusFacade.fetchInstanceStatus().apply {
             context.append("Reposilite $VERSION Status")
-            context.append("  Active: $GREEN_BOLD${statusFacade.isAlive()}$RESET")
+            context.append("  Active: ${context.effect { GREEN_BOLD }}${statusFacade.isAlive()}${context.effect { RESET }}")
             context.append("  Uptime: ${TimeUtils.getPrettyUptime(statusFacade.getUptime())}")
             context.append("  Memory usage of process: ${TimeUtils.format(usedMemory)}M")
             context.append("  Active threads in group: $usedThreads")
@@ -41,8 +37,8 @@ internal class StatusCommand(private val statusFacade: StatusFacade) : Reposilit
 
         statusFacade.getLatestVersion()
             .fold(
-                { "${if (VERSION == it) GREEN else RED_UNDERLINED}$it$RESET" },
-                { "$RED_UNDERLINED$it${RESET}" }
+                { "${if (VERSION == it) context.effect { GREEN } else context.effect { RED_UNDERLINED }}$it${context.effect { RESET }}" },
+                { "${context.effect { RED_UNDERLINED }}$it${context.effect { RESET }}" }
             )
             .let { coloredStatus -> context.append("  Latest version of Reposilite: $coloredStatus") }
     }

@@ -15,6 +15,7 @@
  */
 package com.reposilite.console
 
+import com.reposilite.ReposiliteJournalist
 import com.reposilite.VERSION
 import com.reposilite.console.CommandStatus.FAILED
 import com.reposilite.console.api.ExecutionResponse
@@ -31,7 +32,7 @@ import java.util.function.Consumer
 
 @Command(name = "", version = ["Reposilite $VERSION"])
 internal class CommandExecutor(
-    private val journalist: Journalist,
+    private val journalist: ReposiliteJournalist,
     failureFacade: FailureFacade,
     source: InputStream
 ) : Journalist {
@@ -66,7 +67,7 @@ internal class CommandExecutor(
 
             commandObject
                 ?.let {
-                    val context = CommandContext()
+                    val context = CommandContext(journalist)
                     commandObject.execute(context)
                     ExecutionResponse(context.status, context.output())
                 }

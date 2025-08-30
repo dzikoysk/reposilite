@@ -29,6 +29,7 @@ import com.reposilite.journalist.tinylog.TinyLogWriter
 import org.slf4j.LoggerFactory
 import org.tinylog.provider.ProviderRegistry
 import panda.std.reactive.Subscriber
+import panda.utilities.console.Effect
 import java.io.PrintStream
 import kotlin.collections.MutableMap.MutableEntry
 import kotlin.io.path.createTempFile
@@ -48,8 +49,19 @@ class ReposiliteJournalist(
     visibleJournalist: Journalist,
     cachedLogSize: Int,
     defaultVisibilityThreshold: Channel = Channel.INFO,
-    private val testEnv: Boolean
+    private val testEnv: Boolean,
+    private val noColor: Boolean,
 ) : Journalist {
+    object Colors {
+        val RESET: String = Effect.RESET.code
+        val GREEN: String = Effect.GREEN.code
+        val BOLD: String = Effect.BOLD.code
+        val BLACK_BOLD: String = Effect.BLACK_BOLD.code
+        val YELLOW_BOLD: String = Effect.YELLOW_BOLD.code
+        val GREEN_BOLD: String = Effect.GREEN_BOLD.code
+        val MAGENTA_BOLD: String = Effect.MAGENTA_BOLD.code
+        val RED_UNDERLINED: String = Effect.RED_UNDERLINED.code
+    }
 
     val cachedLogger = CachedLogger(Channel.ALL, cachedLogSize)
 
@@ -94,6 +106,9 @@ class ReposiliteJournalist(
             ProviderRegistry.getLoggingProvider().shutdown()
         }
     }
+
+    fun effect(body: Colors.() -> String): String =
+        if (noColor) "" else body(Colors)
 
     override fun getLogger(): Logger =
         mainLogger

@@ -42,10 +42,17 @@ import io.javalin.http.sse.SseClient
 internal class ConsolePlugin : ReposilitePlugin() {
 
     override fun initialize(): Facade {
+        val journalist = reposilite().journalist
         val sharedConfigurationFacade = facade<SharedConfigurationFacade>()
-        val consoleFacade = ConsoleComponents(this, facade()).consoleFacade()
+
+        val consoleComponents = ConsoleComponents(
+            journalist = journalist,
+            failureFacade = facade(),
+        )
+        val consoleFacade = consoleComponents.consoleFacade()
+
         val client = ConsoleSseHandler(
-            journalist = reposilite().journalist,
+            journalist = journalist,
             accessTokenFacade = facade(),
             authenticationFacade = facade(),
             forwardedIp = sharedConfigurationFacade.getDomainSettings<WebSettings>().computed { it.forwardedIp },

@@ -22,7 +22,6 @@ import com.reposilite.console.api.ReposiliteCommand
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.Route
 import com.reposilite.token.RoutePermission
-import panda.utilities.console.Effect
 import picocli.CommandLine.Command
 import picocli.CommandLine.Parameters
 
@@ -60,7 +59,7 @@ internal class RouteAdd(private val accessTokenFacade: AccessTokenFacade) : Repo
                 val routes = accessTokenFacade.getRoutes(token.identifier)
 
                 if (routes.any { entry -> entry.path == route }) {
-                    context.append("${Effect.BOLD}[*] Token $name already has route with path $route, so it will be overridden [*]${Effect.RESET}")
+                    context.append("${context.effect { BOLD }}[*] Token $name already has route with path $route, so it will be overridden [*]${context.effect { RESET }}")
                     accessTokenFacade.deleteRoutesByPath(token.identifier, route)
                 }
 

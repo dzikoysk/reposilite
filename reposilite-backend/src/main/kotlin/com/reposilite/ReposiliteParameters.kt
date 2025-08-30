@@ -100,6 +100,9 @@ class ReposiliteParameters : Runnable {
     @Option(names = ["--disable-interactive-console", "--disable-it"], description = ["Disable interactive console"])
     var disableInteractiveConsole = false
 
+    @Option(names = ["--no-color"], description = ["Disable ANSI colors in console output"])
+    var noColor = false
+
     override fun run() {
         this.workingDirectory = Paths.get(workingDirectoryName)
         this.pluginDirectory = pluginDirectoryName?.let { Paths.get(it) } ?: workingDirectory.resolve("plugins")

@@ -16,14 +16,14 @@
 
 package com.reposilite.console.application
 
+import com.reposilite.ReposiliteJournalist
 import com.reposilite.console.CommandExecutor
 import com.reposilite.console.ConsoleFacade
-import com.reposilite.journalist.Journalist
 import com.reposilite.status.FailureFacade
 import java.io.InputStream
 
 internal class ConsoleComponents(
-    private val journalist: Journalist,
+    private val journalist: ReposiliteJournalist,
     private val failureFacade: FailureFacade
 ) {
 

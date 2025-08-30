@@ -16,15 +16,20 @@
 
 package com.reposilite.console
 
+import com.reposilite.ReposiliteJournalist
+
 enum class CommandStatus {
     SUCCEEDED,
     FAILED
 }
 
-class CommandContext {
+class CommandContext(private val journalist: ReposiliteJournalist) {
 
     var status = CommandStatus.SUCCEEDED
     private val output = mutableListOf<String>()
+
+    fun effect(colors: ReposiliteJournalist.Colors.() -> String): String =
+        journalist.effect(colors)
 
     fun append(outputMessage: String): CommandContext =
         also { output.add(outputMessage) }
