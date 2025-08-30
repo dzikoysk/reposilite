@@ -147,6 +147,17 @@ internal class SqlAccessTokenRepository(private val database: Database) : Access
         }
     }
 
+    override fun deleteRoutesByPath(id: AccessTokenIdentifier, path: String) {
+        transaction(database) {
+            PermissionToRouteTable.deleteWhere {
+                Op.andOf(
+                    { PermissionToRouteTable.accessTokenId eq id.value },
+                    { PermissionToRouteTable.route eq path }
+                )
+            }
+        }
+    }
+
     override fun deleteRoute(id: AccessTokenIdentifier, route: Route) {
         transaction(database) {
             PermissionToRouteTable.deleteWhere {

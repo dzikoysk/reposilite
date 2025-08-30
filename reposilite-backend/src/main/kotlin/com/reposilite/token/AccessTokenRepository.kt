@@ -36,6 +36,8 @@ interface AccessTokenRepository {
 
     fun deleteRoute(id: AccessTokenIdentifier, route: Route)
 
+    fun deleteRoutesByPath(id: AccessTokenIdentifier, path: String)
+
     fun findAccessTokenRoutesById(id: AccessTokenIdentifier): Set<Route>
 
     fun findAll(): Collection<AccessToken>

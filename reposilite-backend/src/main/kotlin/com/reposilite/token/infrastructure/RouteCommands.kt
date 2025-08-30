@@ -22,10 +22,11 @@ import com.reposilite.console.api.ReposiliteCommand
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.Route
 import com.reposilite.token.RoutePermission
+import panda.utilities.console.Effect
 import picocli.CommandLine.Command
 import picocli.CommandLine.Parameters
 
-@Command(name = "route-add", description = ["Add new route to access token"])
+@Command(name = "route-add", description = ["Add new route to access token or modify existing one"])
 internal class RouteAdd(private val accessTokenFacade: AccessTokenFacade) : ReposiliteCommand {
 
     @Parameters(index = "0", paramLabel = "<access_token>", description = ["Name of access token to modify"])
@@ -44,14 +45,6 @@ internal class RouteAdd(private val accessTokenFacade: AccessTokenFacade) : Repo
     override fun execute(context: CommandContext) {
         accessTokenFacade.getAccessToken(name)
             ?.also { token ->
-                val routes = accessTokenFacade.getRoutes(token.identifier)
-
-                if (routes.any { entry -> entry.path == route }) {
-                    context.status = FAILED
-                    context.append("Token $name already has route with path $route")
-                    return
-                }
-
                 val mappedPermissions = mapPermissions() ?: let {
                     context.status = FAILED
                     context.append("Unknown permission shortcuts (${permissions.toCharArray().joinToString()})")
@@ -64,8 +57,15 @@ internal class RouteAdd(private val accessTokenFacade: AccessTokenFacade) : Repo
                     context.append("Provided route has been prefixed with /")
                 }
 
+                val routes = accessTokenFacade.getRoutes(token.identifier)
+
+                if (routes.any { entry -> entry.path == route }) {
+                    context.append("${Effect.BOLD}[*] Token $name already has route with path $route, so it will be overridden [*]${Effect.RESET}")
+                    accessTokenFacade.deleteRoutesByPath(token.identifier, route)
+                }
+
                 mappedPermissions.forEach { accessTokenFacade.addRoute(token.identifier, Route(route, it)) }
-                context.append("Route $route has been added to token ${token.name}")
+                context.append("Route $route has been added to token ${token.name} with permissions $mappedPermissions")
             }
             ?: run {
                 context.status = FAILED

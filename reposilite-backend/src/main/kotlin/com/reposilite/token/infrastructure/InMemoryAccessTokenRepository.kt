@@ -71,7 +71,11 @@ internal class InMemoryAccessTokenRepository : AccessTokenRepository {
     }
 
     override fun deleteRoute(id: AccessTokenIdentifier, route: Route) {
-        routes.removeIf { it.second == route }
+        routes.removeIf { it.first == id.value && it.second == route }
+    }
+
+    override fun deleteRoutesByPath(id: AccessTokenIdentifier, path: String) {
+        routes.removeIf { it.first == id.value && it.second.path == path }
     }
 
     override fun findAccessTokenRoutesById(id: AccessTokenIdentifier): Set<Route> =

@@ -117,6 +117,9 @@ class AccessTokenFacade internal constructor(
     fun deleteRoute(identifier: AccessTokenIdentifier, route: Route) =
         identifier.type.getRepository().deleteRoute(identifier, route)
 
+    fun deleteRoutesByPath(identifier: AccessTokenIdentifier, path: String) =
+        identifier.type.getRepository().deleteRoutesByPath(identifier, path)
+
     fun getRoutes(id: AccessTokenIdentifier): Set<Route> =
         id.type.getRepository().findAccessTokenRoutesById(id)
 
