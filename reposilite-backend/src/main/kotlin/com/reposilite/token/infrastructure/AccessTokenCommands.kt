@@ -56,6 +56,9 @@ internal class KeygenCommand(private val accessTokenFacade: AccessTokenFacade) :
     @Option(names = ["--secret", "-s"], description = ["Override generated token with custom secret"], required = false)
     var secret: String? = null
 
+    @Option(names = ["--silent"], description = ["Do not print the generated token secret to the console"], required = false)
+    var silent: Boolean = false
+
     @Parameters(index = "0", paramLabel = "<name>", description = ["Access token name"])
     private lateinit var name: String
 
@@ -86,8 +89,12 @@ internal class KeygenCommand(private val accessTokenFacade: AccessTokenFacade) :
             accessTokenFacade.addPermission(response.accessToken.identifier, it)
         }
 
-        context.append("Generated new access token for $name with '$permissions' permissions. Secret:")
-        context.append(response.secret)
+        if (silent) {
+            context.append("Generated new access token for $name with '$permissions' permissions.")
+        } else {
+            context.append("Generated new access token for $name with '$permissions' permissions. Secret:")
+            context.append(response.secret)
+        }
     }
 
 }

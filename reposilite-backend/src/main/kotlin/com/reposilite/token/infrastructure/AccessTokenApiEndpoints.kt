@@ -80,7 +80,7 @@ internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessToke
             required = true,
             description = "Data about the account including the secret and it's permissions"
         ),
-        pathParams = [OpenApiParam(name = "name", description = "Name of the token to be deleted", required = true)],
+        pathParams = [OpenApiParam(name = "name", description = "Name of the token to be created or updated", required = true)],
         methods = [HttpMethod.PUT]
     )
     val createOrUpdateToken = ReposiliteRoute<CreateAccessTokenResponse>("/api/tokens/{name}", PUT) {

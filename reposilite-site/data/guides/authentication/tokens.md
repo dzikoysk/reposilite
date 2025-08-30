@@ -42,11 +42,14 @@ When you'll generate your tokens, go to [Guide / Routes](/guide/routes) to learn
 You can generate command via CLI _(in terminal or web console)_:
 
 ```bash
-$ token-generate [--secret=<secret>] <name> [<permissions>]
+$ token-generate [--secret=<secret>] [--silent] <name> [<permissions>]
 ```
 
-`secret` is optional and it's recommended to let Reposilite generate strong password,
+`secret` is optional and gives option to use user-provided secret instead of auto-generated value.
+It is recommended to let Reposilite generate strong password,
 but it might be useful for some people that want to migrate from Reposilite 2.x or other repository manager.
+
+`silent` is optional and if specified, Reposilite will not print the generated secret to the console.
 
 `permissions` is optional list of token permissions. Currently, you can define only one, 
 which is management permission. You have to use permissions shortcuts.
