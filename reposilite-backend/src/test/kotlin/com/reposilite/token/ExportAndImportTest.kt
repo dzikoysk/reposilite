@@ -1,7 +1,9 @@
 package com.reposilite.token
 
+import com.reposilite.ReposiliteJournalist
 import com.reposilite.console.CommandContext
 import com.reposilite.console.CommandStatus.SUCCEEDED
+import com.reposilite.journalist.backend.InMemoryLogger
 import com.reposilite.token.AccessTokenPermission.MANAGER
 import com.reposilite.token.RoutePermission.READ
 import com.reposilite.token.specification.AccessTokenSpecification
@@ -23,7 +25,8 @@ internal class ExportAndImportTest : AccessTokenSpecification() {
             .map { accessTokenFacade.getAccessTokenDetailsById(it.identifier)!! }
 
         val fileName = "test.json"
-        val context = CommandContext()
+        val journalist = ReposiliteJournalist(InMemoryLogger(), 0, testEnv = true, noColor = false)
+        val context = CommandContext(journalist)
 
         // when: tokens are exported to file
         val exportCommand = ExportTokensCommand(workingDirectory, accessTokenFacade).also { it.name = fileName }

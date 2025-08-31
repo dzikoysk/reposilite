@@ -26,13 +26,13 @@ interface AccessTokenRepository {
 
     fun findAccessTokenByName(name: String): AccessToken?
 
-    fun addPermission(id: AccessTokenIdentifier, permission: AccessTokenPermission)
+    fun addPermission(id: AccessTokenIdentifier, permission: AccessTokenPermission): AccessTokenPermission
 
     fun deletePermission(id: AccessTokenIdentifier, permission: AccessTokenPermission)
 
     fun findAccessTokenPermissionsById(id: AccessTokenIdentifier): Set<AccessTokenPermission>
 
-    fun addRoute(id: AccessTokenIdentifier, route: Route)
+    fun addRoute(id: AccessTokenIdentifier, route: Route): Route
 
     fun deleteRoute(id: AccessTokenIdentifier, route: Route)
 

@@ -21,6 +21,7 @@ import com.reposilite.shared.notFoundError
 import com.reposilite.shared.toErrorResult
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.AccessTokenPermission
+import com.reposilite.token.RoutePermission
 import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.token.api.CreateAccessTokenRequest
 import com.reposilite.token.api.CreateAccessTokenResponse
@@ -49,7 +50,7 @@ internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessToke
         summary = "Returns all existing tokens and data such as their permissions. Note: Requires Manager",
         methods = [HttpMethod.GET]
     )
-    val tokens = ReposiliteRoute<Collection<AccessTokenDto>>("/api/tokens", GET) {
+    val findAllTokens = ReposiliteRoute<Collection<AccessTokenDto>>("/api/tokens", GET) {
         managerOnly {
             response = ok(accessTokenFacade.getAccessTokens())
         }
@@ -62,7 +63,7 @@ internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessToke
         pathParams = [OpenApiParam(name = "name", description = "Name of the token to be deleted", required = true)],
         methods = [HttpMethod.GET]
     )
-    val token = ReposiliteRoute<AccessTokenDto>("/api/tokens/{name}", GET) {
+    val findToken = ReposiliteRoute<AccessTokenDto>("/api/tokens/{name}", GET) {
         authenticated {
             response = accessTokenFacade.getAccessToken(requireParameter("name"))
                 ?.takeIf { isManager().isOk || name == it.name }
@@ -83,20 +84,34 @@ internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessToke
         pathParams = [OpenApiParam(name = "name", description = "Name of the token to be created or updated", required = true)],
         methods = [HttpMethod.PUT]
     )
-    val createOrUpdateToken = ReposiliteRoute<CreateAccessTokenResponse>("/api/tokens/{name}", PUT) {
+    val upsertToken = ReposiliteRoute<CreateAccessTokenResponse>("/api/tokens/{name}", PUT) {
         managerOnly {
             response = supplyThrowing { ctx.bodyAsClass<CreateAccessTokenWithNoNameRequest>() }
                 .mapErr { badRequest("Failed to read body") }
+                .filter({ request -> request.permissions.all { AccessTokenPermission.findByAny(it) != null } }) {
+                    badRequest("Unknown access token permission, supported: ${AccessTokenPermission.entries.joinToString { it.identifier }}")
+                }
+                .filter({ request -> request.routes.all { route -> route.permissions.all { RoutePermission.findRoutePermissionByShortcut(it).isOk }}}) {
+                    badRequest("Unknown route permission, supported: ${RoutePermission.entries.joinToString { it.shortcut }}")
+                }
                 .map { request ->
-                    Pair(
-                        accessTokenFacade.createAccessToken(CreateAccessTokenRequest(request.type, requireParameter("name"), secret = request.secret)),
-                        request.permissions.mapNotNull { AccessTokenPermission.findByAny(it) }
+                    accessTokenFacade.createAccessToken(
+                        CreateAccessTokenRequest(
+                            type = request.type,
+                            secret = request.secret,
+                            secretType = request.secretType,
+                            name = requireParameter("name"),
+                            permissions = request.permissions.mapNotNullTo(HashSet()) { AccessTokenPermission.findByAny(it) },
+                            routes =
+                                request.routes.mapTo(HashSet()) { route ->
+                                    CreateAccessTokenRequest.Route(
+                                        path = route.path,
+                                        permissions = route.permissions.mapNotNullTo(HashSet()) { RoutePermission.findRoutePermissionByShortcut(it).orNull() },
+                                    )
+                                },
+                        )
                     )
                 }
-                .peek { (token, permissions) ->
-                    permissions.forEach { accessTokenFacade.addPermission(token.accessToken.identifier, it) }
-                }
-                .map { (response, _) -> response }
         }
     }
 
@@ -115,6 +130,6 @@ internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessToke
         }
     }
 
-    override val routes = routes(tokens, token, createOrUpdateToken, deleteToken)
+    override val routes = routes(findAllTokens, findToken, upsertToken, deleteToken)
 
 }

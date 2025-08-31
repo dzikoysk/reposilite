@@ -26,6 +26,7 @@ import com.reposilite.token.AccessTokenType.PERSISTENT
 import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.token.api.CreateAccessTokenResponse
 import com.reposilite.token.api.CreateAccessTokenWithNoNameRequest
+import com.reposilite.token.api.SecretType
 import com.reposilite.token.specification.AccessTokenIntegrationSpecification
 import io.javalin.http.HttpStatus.FORBIDDEN
 import io.javalin.http.HttpStatus.OK
@@ -110,10 +111,21 @@ internal abstract class AccessTokenIntegrationTest : AccessTokenIntegrationSpeci
         // then: the unauthorized request is rejected
         assertErrorResponse(FORBIDDEN, unauthorized)
 
-        // when: valid manager token creates a new token
+        // when: valid token with management permission creates a new token
         val response = put("$base/api/tokens/$name")
             .basicAuth(managerName, managerSecret)
-            .body(CreateAccessTokenWithNoNameRequest(PERSISTENT, secret = secret, permissions = permissions.map { it.shortcut }.toSet()))
+            .body(
+                CreateAccessTokenWithNoNameRequest(
+                    type = PERSISTENT,
+                    secretType = SecretType.RAW,
+                    secret = secret,
+                    permissions = permissions.map { it.shortcut }.toSet(),
+                    routes = setOf(
+                        CreateAccessTokenWithNoNameRequest.Route("/private", setOf("r", "w")),
+                        CreateAccessTokenWithNoNameRequest.Route("/public", setOf("r"))
+                    )
+                ),
+            )
             .asJacksonObject(CreateAccessTokenResponse::class)
 
         // then: response contains valid token with generated secret
@@ -121,6 +133,13 @@ internal abstract class AccessTokenIntegrationTest : AccessTokenIntegrationSpeci
             assertThat(it.accessToken.name).isEqualTo(name)
             assertThat(it.secret).isEqualTo(secret)
             assertThat(getPermissions(it.accessToken.identifier)).isEqualTo(permissions)
+            assertThat(getRoutes(it.accessToken.identifier)).isEqualTo(
+                setOf(
+                    Route("/private", RoutePermission.READ),
+                    Route("/private", RoutePermission.WRITE),
+                    Route("/public", RoutePermission.READ)
+                )
+            )
         }
     }
 

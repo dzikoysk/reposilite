@@ -116,14 +116,14 @@ internal class SqlAccessTokenRepository(private val database: Database) : Access
         return accessToken
     }
 
-    override fun addPermission(id: AccessTokenIdentifier, permission: AccessTokenPermission) {
+    override fun addPermission(id: AccessTokenIdentifier, permission: AccessTokenPermission) =
         transaction(database) {
             PermissionToAccessTokenTable.insert {
                 it[this.accessTokenId] = EntityID(id.value, AccessTokenTable)
                 it[this.permission] = permission.identifier
             }
+            permission
         }
-    }
 
     override fun deletePermission(id: AccessTokenIdentifier, permission: AccessTokenPermission) {
         transaction(database) {
@@ -136,7 +136,7 @@ internal class SqlAccessTokenRepository(private val database: Database) : Access
         }
     }
 
-    override fun addRoute(id: AccessTokenIdentifier, route: Route) {
+    override fun addRoute(id: AccessTokenIdentifier, route: Route): Route =
         transaction(database) {
             PermissionToRouteTable.insert {
                 it[this.accessTokenId] = EntityID(id.value, AccessTokenTable)
@@ -144,8 +144,8 @@ internal class SqlAccessTokenRepository(private val database: Database) : Access
                 it[this.route] = route.path
                 it[this.permission] = route.permission.identifier
             }
+            route
         }
-    }
 
     override fun deleteRoutesByPath(id: AccessTokenIdentifier, path: String) {
         transaction(database) {

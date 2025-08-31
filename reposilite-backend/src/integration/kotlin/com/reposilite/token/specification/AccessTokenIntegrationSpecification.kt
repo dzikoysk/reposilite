@@ -27,11 +27,14 @@ import com.reposilite.token.api.CreateAccessTokenRequest
 
 internal abstract class AccessTokenIntegrationSpecification : ReposiliteSpecification() {
 
+    private val accessTokenFacade: AccessTokenFacade
+        get() = useFacade<AccessTokenFacade>()
+
     protected fun useToken(name: String, secret: String) =
-        useFacade<AccessTokenFacade>().createAccessToken(CreateAccessTokenRequest(PERSISTENT, name, secret = secret)).accessToken to secret
+        accessTokenFacade.createAccessToken(CreateAccessTokenRequest(PERSISTENT, name, secret = secret)).accessToken to secret
 
     protected fun useExistingToken(name: String): SessionDetails =
-        useFacade<AccessTokenFacade>().getAccessToken(name)!!
+        accessTokenFacade.getAccessToken(name)!!
             .identifier
             .let { useFacade<AuthenticationFacade>().getSessionDetails(it) }
             .get()
@@ -40,6 +43,9 @@ internal abstract class AccessTokenIntegrationSpecification : ReposiliteSpecific
         Triple(name, secret, permissions)
 
     protected fun getPermissions(identifier: AccessTokenIdentifier): Set<AccessTokenPermission> =
-        useFacade<AccessTokenFacade>().getPermissions(identifier)
+        accessTokenFacade.getPermissions(identifier)
+
+    protected fun getRoutes(identifier: AccessTokenIdentifier) =
+        accessTokenFacade.getRoutes(identifier)
 
 }

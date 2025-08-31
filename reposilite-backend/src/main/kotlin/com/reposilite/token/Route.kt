@@ -40,16 +40,16 @@ enum class RoutePermission(val identifier: String, val shortcut: String) {
     companion object {
 
         fun findRoutePermissionByIdentifier(identifier: String): Result<RoutePermission, String> =
-            values()
+            entries
                 .firstOrNull { it.identifier == identifier }
                 ?.asSuccess()
-                ?: Result.error("Unknown permission identifier ($identifier) available options (${values().joinToString { it.identifier }})")
+                ?: Result.error("Unknown permission identifier ($identifier) available options (${entries.joinToString { it.identifier }})")
 
         fun findRoutePermissionByShortcut(shortcut: String): Result<RoutePermission, String> =
-            values()
+            entries
                 .firstOrNull { it.shortcut == shortcut }
                 ?.asSuccess()
-                ?: Result.error("Unknown permission shortcut ($shortcut) available options (${values().joinToString { it.shortcut }})")
+                ?: Result.error("Unknown permission shortcut ($shortcut) available options (${entries.joinToString { it.shortcut }})")
 
         @JsonCreator
         @JvmStatic

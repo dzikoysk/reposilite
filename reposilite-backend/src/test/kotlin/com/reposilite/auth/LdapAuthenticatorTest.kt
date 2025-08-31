@@ -114,7 +114,7 @@ internal class LdapAuthenticatorTest : LdapSpecification() {
 
         @Test
         fun `should authenticate existing ldap user`() {
-            val (token, secret) = accessTokenFacade.createAccessToken(
+            val createdToken = accessTokenFacade.createAccessToken(
                 CreateAccessTokenRequest(
                     type = TEMPORARY,
                     name = "Bella Swan",
@@ -125,14 +125,14 @@ internal class LdapAuthenticatorTest : LdapSpecification() {
             val authenticationResult = authenticator.authenticate(
                 Credentials(
                     host = "host",
-                    name = token.name,
-                    secret = secret
+                    name = createdToken.accessToken.name,
+                    secret = createdToken.secret
                 )
             )
 
             val accessToken = assertOk(authenticationResult)
             assertThat(accessToken.name).isEqualTo("Bella Swan")
-            assertThat(accessToken).isEqualTo(token)
+            assertThat(accessToken).isEqualTo(createdToken.accessToken)
         }
 
     }

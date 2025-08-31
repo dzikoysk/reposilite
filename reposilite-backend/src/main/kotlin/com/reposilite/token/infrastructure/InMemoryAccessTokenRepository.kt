@@ -52,8 +52,9 @@ internal class InMemoryAccessTokenRepository : AccessTokenRepository {
     override fun findAccessTokenByName(name: String): AccessToken? =
         tokens.values.firstOrNull { it.name == name }
 
-    override fun addPermission(id: AccessTokenIdentifier, permission: AccessTokenPermission) {
+    override fun addPermission(id: AccessTokenIdentifier, permission: AccessTokenPermission): AccessTokenPermission {
         permissions.add(id.value to permission)
+        return permission
     }
 
     override fun deletePermission(id: AccessTokenIdentifier, permission: AccessTokenPermission) {
@@ -66,8 +67,9 @@ internal class InMemoryAccessTokenRepository : AccessTokenRepository {
             .map { it.second }
             .toSet()
 
-    override fun addRoute(id: AccessTokenIdentifier, route: Route) {
+    override fun addRoute(id: AccessTokenIdentifier, route: Route): Route {
         routes.add(Pair(id.value, route))
+        return route
     }
 
     override fun deleteRoute(id: AccessTokenIdentifier, route: Route) {

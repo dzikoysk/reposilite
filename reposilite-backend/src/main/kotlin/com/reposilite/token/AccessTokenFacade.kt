@@ -44,14 +44,47 @@ class AccessTokenFacade internal constructor(
 
     fun createAccessToken(request: CreateAccessTokenRequest): CreateAccessTokenResponse {
         val secret = request.secret ?: generateSecret()
-        val encodedSecret = secret.letIf(request.secretType == RAW) { AccessTokenSecurityProvider.encodeSecret(it) }
-        val accessToken = AccessToken(identifier = AccessTokenIdentifier(type = request.type), name = request.name, encryptedSecret = encodedSecret)
 
-        return request.type.getRepository()
-            .also { getAccessToken(accessToken.name)?.run { it.deleteAccessToken(this.identifier) } }
-            .saveAccessToken(accessToken)
-            .toDto()
-            .let { CreateAccessTokenResponse(it, secret) }
+        val encodedSecret =
+            when (request.secretType) {
+                RAW -> AccessTokenSecurityProvider.encodeSecret(secret)
+                ENCRYPTED -> secret
+            }
+
+        val accessToken =
+            AccessToken(
+                identifier = AccessTokenIdentifier(type = request.type),
+                name = request.name,
+                encryptedSecret = encodedSecret,
+            )
+
+        val createdToken =
+            request.type.getRepository()
+                .also { getAccessToken(accessToken.name)?.run { it.deleteAccessToken(this.identifier) } }
+                .saveAccessToken(accessToken)
+                .toDto()
+
+        val permissions =
+            request.permissions.mapTo(HashSet()) {
+                addPermission(identifier = createdToken.identifier, permission = it)
+            }
+
+        val routes =
+            request.routes.flatMapTo(HashSet()) { route ->
+                route.permissions.map { permission ->
+                    addRoute(
+                        identifier = createdToken.identifier,
+                        route = Route(path = route.path, permission = permission)
+                    )
+                }
+            }
+
+        return CreateAccessTokenResponse(
+            accessToken = createdToken,
+            permissions = permissions,
+            secret = secret,
+            routes = routes
+        )
     }
 
     fun addAccessToken(accessTokenDetails: AccessTokenDetails): AccessTokenDto =
@@ -89,7 +122,7 @@ class AccessTokenFacade internal constructor(
             ?.let { AccessTokenSecurityProvider.matches(it.encryptedSecret, secret) }
             ?: false
 
-    fun addPermission(identifier: AccessTokenIdentifier, permission: AccessTokenPermission) =
+    fun addPermission(identifier: AccessTokenIdentifier, permission: AccessTokenPermission): AccessTokenPermission =
         identifier.type.getRepository().addPermission(identifier, permission)
 
     fun hasPermission(identifier: AccessTokenIdentifier, permission: AccessTokenPermission): Boolean =
@@ -111,7 +144,7 @@ class AccessTokenFacade internal constructor(
     fun getPermissions(identifier: AccessTokenIdentifier): Set<AccessTokenPermission> =
         identifier.type.getRepository().findAccessTokenPermissionsById(identifier)
 
-    fun addRoute(identifier: AccessTokenIdentifier, route: Route) =
+    fun addRoute(identifier: AccessTokenIdentifier, route: Route): Route =
         identifier.type.getRepository().addRoute(identifier, route)
 
     fun deleteRoute(identifier: AccessTokenIdentifier, route: Route) =
