@@ -142,7 +142,7 @@ dependencies {
     testImplementation("org.testcontainers:postgresql:$testcontainers") {
         exclude(group = "org.apache.commons", module = "commons-compress")
     }
-    testImplementation("org.apache.commons:commons-compress:1.27.1")
+    testImplementation("org.apache.commons:commons-compress:1.28.0")
 
     val ldap = "7.0.2"
     testImplementation("com.unboundid:unboundid-ldapsdk:$ldap")
