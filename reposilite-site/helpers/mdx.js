@@ -4,7 +4,7 @@ import { serialize } from 'next-mdx-remote/serialize'
 import path from 'path'
 import { promisify } from 'util'
 import remarkGfm from 'remark-gfm'
-import rehypePrism from '@mapbox/rehype-prism'
+import rehypePrism from 'rehype-prism-plus'
 import { categories } from '../data/guides/guides'
 
 const GUIDE_PATH = path.join(process.cwd(), "data", "guides")
