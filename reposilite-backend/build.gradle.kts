@@ -39,22 +39,22 @@ dependencies {
 //    val detekt = "1.23.5"
 //    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:$detekt")
 
-    val kotlin = "2.1.21"
+    val kotlin = "2.2.20"
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin")
 
-    val javalin = "6.6.0"
+    val javalin = "6.7.0"
     api("io.javalin:javalin:$javalin") {
         exclude(group = "org.eclipse.jetty", module = "jetty-server")
         exclude(group = "org.eclipse.jetty", module = "jetty-http")
     }
     api("io.javalin.community.ssl:ssl-plugin:$javalin")
 
-    val javalinOpenApi = "6.6.0"
+    val javalinOpenApi = "6.7.0-2"
     api("io.javalin.community.openapi:javalin-openapi-plugin:$javalinOpenApi")
     kapt("io.javalin.community.openapi:openapi-annotation-processor:$javalinOpenApi")
 
-    val javalinRouting = "6.6.0"
+    val javalinRouting = "6.7.0"
     api("io.javalin.community.routing:routing-dsl:$javalinRouting")
 
     val bcrypt = "0.10.2"
@@ -65,7 +65,7 @@ dependencies {
     api("org.panda-lang:expressible-kt:$expressible")
     testImplementation("org.panda-lang:expressible-junit:$expressible")
 
-    val cdn = "1.14.8"
+    val cdn = "1.14.9"
     api("net.dzikoysk:cdn:$cdn")
     api("net.dzikoysk:cdn-kt:$cdn")
 
@@ -73,14 +73,14 @@ dependencies {
     kapt("info.picocli:picocli-codegen:$picocli")
     api("info.picocli:picocli:$picocli")
 
-    val awssdk = "2.31.54"
+    val awssdk = "2.34.0"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
     // STS is needed so it Web Identity Tokens can be used
     // See https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts-minimum-sdk.html
     implementation("software.amazon.awssdk:sts:$awssdk")
 
-    val awsSdkV1 = "1.12.783"
+    val awsSdkV1 = "1.12.791"
     testImplementation("com.amazonaws:aws-java-sdk-s3:$awsSdkV1")
 
     val exposed = "0.61.0"
@@ -90,20 +90,20 @@ dependencies {
     api("org.jetbrains.exposed:exposed-java-time:$exposed")
 
     // Drivers
-    implementation("com.zaxxer:HikariCP:7.0.0")
-    implementation("org.xerial:sqlite-jdbc:3.49.1.0")
-    implementation("org.mariadb.jdbc:mariadb-java-client:3.5.3")
-    implementation("org.postgresql:postgresql:42.7.7")
+    implementation("com.zaxxer:HikariCP:7.0.2")
+    implementation("org.xerial:sqlite-jdbc:3.50.3.0")
+    implementation("org.mariadb.jdbc:mariadb-java-client:3.5.6")
+    implementation("org.postgresql:postgresql:42.7.8")
     implementation("com.h2database:h2:2.3.232")
-    implementation("com.mysql:mysql-connector-j:9.3.0") {
+    implementation("com.mysql:mysql-connector-j:9.4.0") {
         exclude(group = "com.google.protobuf", module = "protobuf-java")
     }
-    implementation("com.google.protobuf:protobuf-java:4.31.1")
+    implementation("com.google.protobuf:protobuf-java:4.32.1")
 
     val exposedUpsert = "1.2.2"
     api("net.dzikoysk:exposed-upsert:$exposedUpsert")
 
-    val jackson = "2.19.2"
+    val jackson = "2.20.0"
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jackson")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jackson")
@@ -142,9 +142,9 @@ dependencies {
     testImplementation("org.testcontainers:postgresql:$testcontainers") {
         exclude(group = "org.apache.commons", module = "commons-compress")
     }
-    testImplementation("org.apache.commons:commons-compress:1.27.1")
+    testImplementation("org.apache.commons:commons-compress:1.28.0")
 
-    val ldap = "7.0.2"
+    val ldap = "7.0.3"
     testImplementation("com.unboundid:unboundid-ldapsdk:$ldap")
 }
 
