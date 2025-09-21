@@ -1,11 +1,11 @@
 version: "3.9"
 services:
   reposilite:
-    image: dzikoysk/reposilite:3.5.25
+    image: dzikoysk/reposilite:3.5.26
     #
     # To build from sources:
     #
-    # image: reposilite:3.5.25
+    # image: reposilite:3.5.26
     # build:
     #  context: .
     #  dockerfile: Dockerfile
