@@ -25,7 +25,7 @@ plugins {
     application
     `maven-publish`
 
-    val kotlinVersion = "2.1.21"
+    val kotlinVersion = "2.2.20"
     kotlin("jvm") version kotlinVersion
     kotlin("kapt") version kotlinVersion
 
@@ -123,19 +123,19 @@ subprojects {
     apply(plugin = "maven-publish")
 
     dependencies {
-        val unirest = "4.4.7"
+        val unirest = "4.5.1"
         testImplementation("com.konghq:unirest-java-core:$unirest")
         testImplementation("com.konghq:unirest-modules-jackson:$unirest")
 
-        val assertJ = "3.27.3"
+        val assertJ = "3.27.5"
         testImplementation("org.assertj:assertj-core:$assertJ")
 
-        val junit = "5.13.0"
+        val junit = "5.13.4"
         testImplementation("org.junit.jupiter:junit-jupiter-params:$junit")
         testImplementation("org.junit.jupiter:junit-jupiter-api:$junit")
         testImplementation("org.junit.jupiter:junit-jupiter-engine:$junit")
 
-        val junitPlatform = "1.13.0"
+        val junitPlatform = "1.13.4"
         testRuntimeOnly("org.junit.platform:junit-platform-launcher:$junitPlatform")
     }
 
