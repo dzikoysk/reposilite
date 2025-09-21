@@ -27,7 +27,13 @@ data class FrontendSettings(
     val id: String = "reposilite-repository",
     @get:Doc(title = "Title", description = "The title displayed on the frontend homepage.")
     val title: String = "Reposilite Repository",
-    @get:Doc(title = "Description", description = "The description displayed on the frontend homepage.")
+    @get:Doc(
+        title = "Description",
+        description = """
+            The description displayed on the frontend homepage.
+            Note: HTML tags are not supported.
+        """,
+    )
     val description: String = "Public Maven repository hosted through the Reposilite",
     @get:Doc(title = "Organisation Website", description = "Link to organization's website.")
     val organizationWebsite: String = "https://reposilite.com",
