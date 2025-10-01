@@ -111,7 +111,7 @@ dependencies {
     val jsonSchema = "4.38.0"
     implementation("com.github.victools:jsonschema-generator:$jsonSchema")
 
-    val httpClient = "2.0.0"
+    val httpClient = "2.0.1"
     implementation("com.google.http-client:google-http-client:$httpClient") {
         exclude(group = "commons-codec", module = "commons-codec")
         exclude(group = "com.google.guava", module = "guava")
