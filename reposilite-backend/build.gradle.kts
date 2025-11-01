@@ -95,7 +95,7 @@ dependencies {
     implementation("org.mariadb.jdbc:mariadb-java-client:3.5.6")
     implementation("org.postgresql:postgresql:42.7.8")
     implementation("com.h2database:h2:2.3.232")
-    implementation("com.mysql:mysql-connector-j:9.4.0") {
+    implementation("com.mysql:mysql-connector-j:9.5.0") {
         exclude(group = "com.google.protobuf", module = "protobuf-java")
     }
     implementation("com.google.protobuf:protobuf-java:4.32.1")
