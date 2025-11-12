@@ -23,13 +23,10 @@ export default function Guide({ plugins }) {
     })
   }, [])
 
-  useEffect(() => {
-    loadedPlugins.sort((a, b) => {
-      let result = a.stars - b.stars
-      if (result == 0) result = (a.id < b.id) ? -1 : 1
-      return result
-    })
-  }, [loadedPlugins])
+  const sortedPlugins = [...loadedPlugins].sort((a, b) => {
+    // sort by stars descending (most stars first), then by id ascending
+    return b.stars - a.stars || a.id.localeCompare(b.id)
+  })
 
   const [cardBg, cardBgCss] = useColorModeValue('plugin-card-bg', chakraColor('gray.50'), chakraColor('gray.900'))
   const [cardBorder, cardBorderCss] = useColorModeValue('plugin-card-border', chakraColor('gray.200'), 'black')
@@ -42,7 +39,7 @@ export default function Guide({ plugins }) {
       <ColorModeStyles styles={[cardBgCss, cardBorderCss]} />
       <Box maxW={{ base: '95vw', md: 'container.md' }} mx='auto'>
         <Flex direction={{ base: 'column' }} justifyContent={'space-around'}>
-          {loadedPlugins.map(plugin => (
+          {sortedPlugins.map(plugin => (
             <Box
               key={plugin.id}
               marginTop={6} 
