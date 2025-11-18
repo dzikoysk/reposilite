@@ -83,6 +83,8 @@ dependencies {
     val awsSdkV1 = "1.12.791"
     testImplementation("com.amazonaws:aws-java-sdk-s3:$awsSdkV1")
 
+    implementation("com.github.ben-manes.caffeine:caffeine:3.2.3")
+
     val exposed = "0.61.0"
     api("org.jetbrains.exposed:exposed-core:$exposed")
     api("org.jetbrains.exposed:exposed-dao:$exposed")
@@ -171,6 +173,7 @@ tasks.withType<ShadowJar> {
         exclude(dependency("org.tinylog:.*"))
         exclude(dependency("org.slf4j:.*"))
         exclude(dependency("software.amazon.awssdk:.*"))
+        exclude(dependency("com.github.ben-manes.caffeine:.*"))
     }
 }
 
