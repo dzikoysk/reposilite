@@ -96,14 +96,14 @@ internal class MirrorService(
 
     private fun isAllowedExtension(config: MirroredRepositorySettings, gav: Location): Result<Blank, DisallowedReason> =
         when {
-            config.allowedExtensions.isEmpty() -> ok()
+            config.allowedExtensions.none { it.isNotBlank() } -> ok()
             config.allowedExtensions.any { gav.endsWith(it) } -> ok()
             else -> error(DisallowedReason.EXTENSION)
         }
 
     private fun isAllowedGroup(config: MirroredRepositorySettings, gav: Location): Result<Blank, DisallowedReason> =
         when {
-            config.allowedGroups.isEmpty() -> ok()
+            config.allowedGroups.none { it.isNotBlank() } -> ok()
             config.allowedGroups.any { gav.toString().startsWith(it.replace('.', '/')) } -> ok()
             else -> error(DisallowedReason.GROUP)
         }
