@@ -116,7 +116,7 @@ dependencies {
         exclude(group = "commons-codec", module = "commons-codec")
         exclude(group = "com.google.guava", module = "guava")
     }
-    api("commons-codec:commons-codec:1.19.0")
+    api("commons-codec:commons-codec:1.20.0")
     api("com.google.guava:guava:33.5.0-android")
     testImplementation("com.google.http-client:google-http-client-jackson2:$httpClient")
 
