@@ -173,6 +173,8 @@ tasks.withType<ShadowJar> {
         exclude(dependency("org.tinylog:.*"))
         exclude(dependency("org.slf4j:.*"))
         exclude(dependency("software.amazon.awssdk:.*"))
+        // this is need otherwise the class com.github.benmanes.caffeine.cache.SSMSAW is not found at runtime
+        // see also https://github.com/ben-manes/caffeine/discussions/762
         exclude(dependency("com.github.ben-manes.caffeine:.*"))
     }
 }

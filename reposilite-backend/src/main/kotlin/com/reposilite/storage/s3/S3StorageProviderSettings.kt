@@ -47,6 +47,6 @@ data class S3StorageProviderSettings(
     val secretKey: String = "",
     @get:Doc(title = "Region", description = "Overwrite AWS region (optional)")
     val region: String = "",
-    @get:Doc(title = "Metadata Cache", description = "Set metadata cache settings (optional) - default is disabling caching")
+    @get:Doc(title = "Local Metadata Cache", description = "Local metadata cache settings (optional). The default is no caching. NOTE: This cache is local only. If you run multiple instances, they will not share the cache!")
     val metadataCacheSettings: S3MetadataCacheSettings? = null,
 ) : StorageProviderSettings
