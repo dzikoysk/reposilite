@@ -67,51 +67,60 @@ class HttpRemoteClient(private val journalist: Journalist, proxy: Proxy?) : Remo
 
     override fun head(uri: String, credentials: RemoteCredentials?, connectTimeoutInSeconds: Int, readTimeoutInSeconds: Int): Result<FileDetails, ErrorResponse> =
         createRequest(HttpMethods.HEAD, uri, credentials, connectTimeoutInSeconds, readTimeoutInSeconds)
-            .execute { response ->
-                response.disconnect()
-                val headers = response.headers
+            .flatMap {
+                it.execute { response ->
+                    response.disconnect()
+                    val headers = response.headers
 
-                // Nexus can send misleading for client content-length of chunked responses
-                // ~ https://github.com/dzikoysk/reposilite/issues/549
-                val contentLength = headers.contentLength
-                    ?.takeUnless { "gzip" == headers.contentEncoding } // remove content-length header
-                    ?: UNKNOWN_LENGTH
+                    // Nexus can send misleading for client content-length of chunked responses
+                    // ~ https://github.com/dzikoysk/reposilite/issues/549
+                    val contentLength = headers.contentLength
+                        ?.takeUnless { "gzip" == headers.contentEncoding } // remove content-length header
+                        ?: UNKNOWN_LENGTH
 
-                val contentType = headers.contentType
-                    ?.let { ContentType.getContentType(it) }
-                    ?: ContentType.getContentTypeByExtension(uri.getExtension())
-                    ?: ContentType.APPLICATION_OCTET_STREAM
+                    val contentType = headers.contentType
+                        ?.let { ContentType.getContentType(it) }
+                        ?: ContentType.getContentTypeByExtension(uri.getExtension())
+                        ?: ContentType.APPLICATION_OCTET_STREAM
 
-                val lastModified = headers.lastModified
-                    ?.trim()
-                    ?.takeIf { it.isNotEmpty() }
-                    ?.let {
-                        try {
-                            ZonedDateTime.parse(it, DateTimeFormatter.RFC_1123_DATE_TIME).toInstant()
-                        } catch (dateTimeParsedException: DateTimeParseException) {
-                            null
+                    val lastModified = headers.lastModified
+                        ?.trim()
+                        ?.takeIf { it.isNotEmpty() }
+                        ?.let {
+                            try {
+                                ZonedDateTime.parse(it, DateTimeFormatter.RFC_1123_DATE_TIME).toInstant()
+                            } catch (dateTimeParsedException: DateTimeParseException) {
+                                null
+                            }
                         }
-                    }
 
-                DocumentInfo(
-                    name = uri.toLocation().getSimpleName(),
-                    contentType = contentType,
-                    contentLength = contentLength,
-                    lastModifiedTime = lastModified,
-                ).asSuccess()
+                    DocumentInfo(
+                        name = uri.toLocation().getSimpleName(),
+                        contentType = contentType,
+                        contentLength = contentLength,
+                        lastModifiedTime = lastModified,
+                    ).asSuccess()
+                }
             }
 
-    override fun get(uri: String, credentials: RemoteCredentials?, connectTimeoutInSeconds: Int, readTimeoutInSeconds: Int): Result<InputStream, ErrorResponse> =
-        createRequest(HttpMethods.GET, uri, credentials, connectTimeoutInSeconds, readTimeoutInSeconds)
-            .execute { it.content.asSuccess() }
+    override fun get(uri: String, credentials: RemoteCredentials?, connectTimeoutInSeconds: Int, readTimeoutInSeconds: Int): Result<InputStream, ErrorResponse> {
+        return createRequest(HttpMethods.GET, uri, credentials, connectTimeoutInSeconds, readTimeoutInSeconds)
+            .flatMap { it.execute { response -> response.content.asSuccess() } }
+    }
 
-    private fun createRequest(method: String, uri: String, credentials: RemoteCredentials?, connectTimeout: Int, readTimeout: Int): HttpRequest {
-        val request = requestFactory.buildRequest(method, GenericUrl(uri), null)
+
+    private fun createRequest(method: String, uri: String, credentials: RemoteCredentials?, connectTimeout: Int, readTimeout: Int): Result<HttpRequest, ErrorResponse> {
+        val url = try {
+            GenericUrl(uri)
+        }catch (exception: IllegalArgumentException) {
+            return badRequestError("Invalid remote URI: $uri")
+        }
+        val request = requestFactory.buildRequest(method, url, null)
         request.throwExceptionOnExecuteError = false
         request.connectTimeout = connectTimeout * 1000
         request.readTimeout = readTimeout * 1000
         request.authenticateWith(credentials)
-        return request
+        return request.asSuccess()
     }
 
     private fun <R> HttpRequest.execute(consumer: (HttpResponse) -> Result<R, ErrorResponse>): Result<R, ErrorResponse> =
