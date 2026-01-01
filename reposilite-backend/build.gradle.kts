@@ -91,7 +91,7 @@ dependencies {
 
     // Drivers
     implementation("com.zaxxer:HikariCP:7.0.2")
-    implementation("org.xerial:sqlite-jdbc:3.49.1.0") // note: 3.50.3.0 is broken
+    implementation("org.xerial:sqlite-jdbc:3.50.3.0") // note: 3.50.3.0 is broken
     implementation("org.mariadb.jdbc:mariadb-java-client:3.5.6")
     implementation("org.postgresql:postgresql:42.7.8")
     implementation("com.h2database:h2:2.3.232")
