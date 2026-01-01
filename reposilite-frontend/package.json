@@ -42,7 +42,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.2.4",
-    "@vitejs/plugin-vue-jsx": "^5.1.2",
+    "@vitejs/plugin-vue-jsx": "^5.1.3",
     "@vue/compiler-sfc": "^3.5.21",
     "body-parser": "^1.20.4",
     "concurrently": "^9.2.1",
