@@ -95,7 +95,7 @@ watch(
       </div>
     </div>
     <div class="bg-white dark:bg-gray-900 rounded-lg">
-      <div id="console" class="overflow-scroll h-144 px-4 whitespace-pre-wrap font-mono text-xs">
+      <div id="console" class="overflow-scroll h-144 px-4 py-2 whitespace-pre-wrap font-mono text-xs">
         <p v-for="entry in log" :key="entry.id" v-html="entry.message" class="whitespace-nowrap"/>
       </div>
       <hr class="dark:border-dark-300">
