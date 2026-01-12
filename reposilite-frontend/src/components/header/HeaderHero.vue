@@ -28,9 +28,7 @@ const { description, organizationWebsite, organizationLogo } = usePlaceholders()
         <img class="border-2 rounded-full dark:border-gray-700" :src="organizationLogo">
       </div>
       <div class="flex flex-col justify-center px-10 <sm:px-0">
-        <div class="<sm:text-center">
-          {{description}}
-        </div>
+        <div class="<sm:text-center" v-html="description"></div>
         <div class="flex flex-row py-2 <sm:justify-center">
           <GlobeIcon />
           <a class="px-3 text-gray-500" :href="organizationWebsite" target="_blank">{{organizationWebsite}}</a>

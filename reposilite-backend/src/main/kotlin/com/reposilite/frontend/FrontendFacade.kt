@@ -15,7 +15,6 @@
  */
 package com.reposilite.frontend
 
-import com.google.common.html.HtmlEscapers
 import com.reposilite.frontend.BasePathFormatter.formatAsViteBasePath
 import com.reposilite.frontend.application.FrontendSettings
 import com.reposilite.plugin.api.Facade
@@ -30,7 +29,7 @@ class FrontendFacade internal constructor(
 ) : Facade {
 
     private val resources = HashMap<String, ResourceSupplier>(0)
-    val formattedBasePath = basePath.computed { BasePathFormatter.formatBasePath(it) }
+    val formattedBasePath: Reference<String> = basePath.computed { BasePathFormatter.formatBasePath(it) }
 
     init {
         computed(basePath, formattedBasePath, frontendSettings) {
@@ -46,10 +45,14 @@ class FrontendFacade internal constructor(
             ?.let { createLazyPlaceholderResolver().createProcessedResource(it) }
             ?.also { resources[uri] = it }
 
+    private fun escapeForJsString(value: String): String =
+        value
+            .replace("\\", "\\\\")
+            .replace("'", "\\'")
+            .replace("\n", "\\n")
+
     private fun createLazyPlaceholderResolver(): LazyPlaceholderResolver =
         with (frontendSettings.get()) {
-            val escaper = HtmlEscapers.htmlEscaper()
-
             LazyPlaceholderResolver(mapOf(
                 "{{REPOSILITE.BASE_PATH}}" to formattedBasePath.get(),
                 URLEncoder.encode("{{REPOSILITE.BASE_PATH}}", StandardCharsets.UTF_8) to formattedBasePath.get(),
@@ -58,8 +61,8 @@ class FrontendFacade internal constructor(
                 URLEncoder.encode("{{REPOSILITE.VITE_BASE_PATH}}", StandardCharsets.UTF_8) to formatAsViteBasePath(formattedBasePath.get()),
 
                 "{{REPOSILITE.ID}}" to id,
-                "{{REPOSILITE.TITLE}}" to escaper.escape(title).replace("\"", "'"),
-                "{{REPOSILITE.DESCRIPTION}}" to escaper.escape(description).replace("\"", "'"),
+                "{{REPOSILITE.TITLE}}" to escapeForJsString(title),
+                "{{REPOSILITE.DESCRIPTION}}" to escapeForJsString(description),
                 "{{REPOSILITE.ORGANIZATION_WEBSITE}}" to organizationWebsite,
                 "{{REPOSILITE.ORGANIZATION_LOGO}}" to organizationLogo,
                 "{{REPOSILITE.ICP_LICENSE}}" to icpLicense,

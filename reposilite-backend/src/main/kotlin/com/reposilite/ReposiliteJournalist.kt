@@ -76,11 +76,13 @@ class ReposiliteJournalist(
             // Log.setProperty("org.eclipse.jetty.util.log.announce", "false")
         }
 
+        // Journalist's logger usually logs to console, the publisher logger forwards messages to subscribers
         this.visibleLogger = AggregatedLogger(visibleJournalist.logger, publisherLogger)
         setVisibleThreshold(defaultVisibilityThreshold)
 
+        // Redirects logs to TinyLog and local cache for later retrieval
         val redirectedLogger = AggregatedLogger(cachedLogger, visibleLogger)
-        this.tinyLog = TinyLogLogger(Channel.ALL, redirectedLogger) // Redirect TinyLog output to redirected loggers
+        this.tinyLog = TinyLogLogger(Channel.ALL, redirectedLogger)
 
         this.mainLogger =
             if (testEnv)
