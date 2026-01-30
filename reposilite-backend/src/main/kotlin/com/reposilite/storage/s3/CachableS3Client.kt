@@ -47,8 +47,7 @@ class CachableS3Client : DelegatingS3Client {
         // When in doubt, we invalidate the cache a bit too often, but it keeps the logic simple and more robust
         Path.of(s3Key).parent?.parent?.let { parentPath ->
             val metadataKey = parentPath.resolve("maven-metadata.xml").toString()
-            cache.invalidate(metadataKey)
-            cache.invalidate("${metadataKey}.sha1")
+            cache.asMap().keys.removeIf { s -> s.startsWith(metadataKey) }
         }
     }
 }

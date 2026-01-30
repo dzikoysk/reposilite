@@ -91,17 +91,18 @@ class S3StorageProviderFactory : StorageProviderFactory<S3StorageProvider, S3Sto
             }
         }
 
-        val s3Client : S3Client
-        if (settings.metadataCacheSettings?.enabled == true) {
-            val cache: Cache<String, HeadObjectResponse> = Caffeine.newBuilder()
-                .maximumSize(settings.metadataCacheSettings.maximumSize)
-                .expireAfterWrite(Duration.ofSeconds(settings.metadataCacheSettings.expireAfterCreationSeconds))
-                .expireAfterAccess(Duration.ofSeconds(settings.metadataCacheSettings.expireAfterAccessSeconds))
-                .build()
-            s3Client = CachableS3Client(client.build(), cache)
-        } else {
-            s3Client = client.build()
-        }
+        val s3Client =
+            when {
+                settings.metadataCacheSettings?.enabled == true -> {
+                    val cache: Cache<String, HeadObjectResponse> = Caffeine.newBuilder()
+                        .maximumSize(settings.metadataCacheSettings.maximumSize)
+                        .expireAfterWrite(Duration.ofSeconds(settings.metadataCacheSettings.expireAfterCreationSeconds))
+                        .expireAfterAccess(Duration.ofSeconds(settings.metadataCacheSettings.expireAfterAccessSeconds))
+                        .build()
+                    CachableS3Client(client.build(), cache)
+                }
+                else -> client.build()
+            }
 
         return try {
             S3StorageProvider(
