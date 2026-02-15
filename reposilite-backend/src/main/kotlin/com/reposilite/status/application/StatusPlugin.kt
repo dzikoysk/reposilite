@@ -105,7 +105,7 @@ internal class StatusPlugin : ReposilitePlugin() {
 
             val reposiliteAddressFile = localTmpDataDirectory.resolve("reposilite.address")
             reposiliteAddressFile.writeText(
-                "${parameters().hostname}:${parameters().port}",
+                "http://${parameters().hostname}:${parameters().port}",
                 options = arrayOf(StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.SYNC)
             )
         }
