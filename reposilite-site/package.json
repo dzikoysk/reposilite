@@ -19,7 +19,7 @@
     "framer-motion": "12.34.0",
     "gray-matter": "4.0.3",
     "next": "15.5.9",
-    "next-mdx-remote": "5.0.0",
+    "next-mdx-remote": "6.0.0",
     "next-seo": "6.8.0",
     "nextjs-color-mode": "1.0.5",
     "node-fetch": "3.3.2",
