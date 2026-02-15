@@ -16,6 +16,8 @@
 
 package com.reposilite.storage.s3
 
+import com.github.benmanes.caffeine.cache.Cache
+import com.github.benmanes.caffeine.cache.Caffeine
 import com.reposilite.journalist.Journalist
 import com.reposilite.status.FailureFacade
 import com.reposilite.storage.StorageProviderFactory
@@ -26,6 +28,7 @@ import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.S3Configuration
+import software.amazon.awssdk.services.s3.model.HeadObjectResponse
 import java.net.URI
 import java.nio.file.Path
 import java.time.Duration
@@ -88,10 +91,23 @@ class S3StorageProviderFactory : StorageProviderFactory<S3StorageProvider, S3Sto
             }
         }
 
+        val s3Client =
+            when {
+                settings.metadataCacheSettings?.enabled == true -> {
+                    val cache: Cache<String, HeadObjectResponse> = Caffeine.newBuilder()
+                        .maximumSize(settings.metadataCacheSettings.maximumSize)
+                        .expireAfterWrite(Duration.ofSeconds(settings.metadataCacheSettings.expireAfterCreationSeconds))
+                        .expireAfterAccess(Duration.ofSeconds(settings.metadataCacheSettings.expireAfterAccessSeconds))
+                        .build()
+                    CachableS3Client(client.build(), cache)
+                }
+                else -> client.build()
+            }
+
         return try {
             S3StorageProvider(
                 failureFacade = failureFacade,
-                s3 = client.build(),
+                s3 = s3Client,
                 bucket = settings.bucketName
             )
         } catch (exception: Exception) {
