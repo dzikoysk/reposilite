@@ -89,6 +89,7 @@ internal class MavenApiEndpoints(mavenFacade: MavenFacade) : MavenRoutes(mavenFa
         ],
         queryParams = [
             OpenApiParam(name = "filter", description = "Version (prefix) filter to apply", required = false),
+            OpenApiParam(name = "sorted", description = "Whether to sort versions using built-in comparator (default: true). Set to false to preserve raw order from maven-metadata.xml", required = false),
         ]
     )
     private val findVersions = ReposiliteRoute<VersionsResponse>("/api/maven/versions/{repository}/<gav>", GET) {
@@ -100,7 +101,8 @@ internal class MavenApiEndpoints(mavenFacade: MavenFacade) : MavenRoutes(mavenFa
                             accessToken = this?.identifier,
                             repository = repository,
                             gav = gav,
-                            filter = ctx.queryParam("filter")
+                            filter = ctx.queryParam("filter"),
+                            sorted = ctx.queryParam("sorted")?.toBooleanStrictOrNull() ?: true
                         )
                     )
                 }

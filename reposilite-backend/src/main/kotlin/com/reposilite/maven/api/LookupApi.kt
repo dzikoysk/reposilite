@@ -35,7 +35,8 @@ data class VersionLookupRequest(
     val accessToken: AccessTokenIdentifier?,
     val repository: Repository,
     val gav: Location,
-    val filter: String? = null
+    val filter: String? = null,
+    val sorted: Boolean = true
 )
 
 data class VersionsResponse(

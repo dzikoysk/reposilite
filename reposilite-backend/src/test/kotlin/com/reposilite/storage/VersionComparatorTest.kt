@@ -88,6 +88,33 @@ internal class VersionComparatorTest : VersionComparatorSpecification() {
         )
     }
 
+    // GH-2421: Documents known limitation where timestamp suffixes cause incorrect ordering
+    // when versions have different segment counts (e.g. 1.21-timestamp vs 1.21.2-timestamp).
+    // The comparator treats all separators (.-_) equally, so it compares the timestamp against the patch version.
+    // Users can work around this by using ?sorted=false to preserve raw metadata order.
+    // TODO: Address in 4.x
+    @Test
+    fun `should misorder versions with timestamp suffixes across different segment depths`() {
+        // given: versions where timestamps cause segment misalignment (GH-2421)
+        val versions = listOf(
+            "1.21-20240613.152323",
+            "1.21.2-20241022.151510",
+            "1.21.1-20240808.144430"
+        )
+
+        // when: sorted using the version comparator
+        val sortedResult = versions.sortedWith(versionComparator)
+
+        // then: 1.21 is incorrectly placed after 1.21.2 because timestamp 20240613 > patch 2
+        assertThat(sortedResult).isEqualTo(
+            listOf(
+                "1.21.1-20240808.144430",
+                "1.21.2-20241022.151510",
+                "1.21-20240613.152323"
+            )
+        )
+    }
+
     @Test
     fun `should sort mixed contents in ascending order`() {
         // given: an unordered list of versions

@@ -131,7 +131,7 @@ internal class MetadataService(private val repositorySecurityProvider: Repositor
         repository.storageProvider.getFile(gav.resolveMetadataFile())
             .map { it.use { data -> xml.readValue<Metadata>(data) } }
 
-    fun findVersions(repository: Repository, gav: Location, filter: String?): Result<VersionsResponse, ErrorResponse> =
+    fun findVersions(repository: Repository, gav: Location, filter: String?, sorted: Boolean = true): Result<VersionsResponse, ErrorResponse> =
         repository.storageProvider.getFile(gav.resolveMetadataFile())
             .map { it.use { data -> xml.readValue<Metadata>(data) } }
             .map { extractVersions(it) }
@@ -143,7 +143,7 @@ internal class MetadataService(private val repositorySecurityProvider: Repositor
 
                 versions
                     .filter(matchedFilter)
-                    .let { VersionComparator.sortStrings(it) }
+                    .let { if (sorted) VersionComparator.sortStrings(it) else it }
                     .let { VersionsResponse(isSnapshot, it.toList()) }
             }
 
