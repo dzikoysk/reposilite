@@ -56,6 +56,7 @@ class AccessTokenFacade internal constructor(
                 identifier = AccessTokenIdentifier(type = request.type),
                 name = request.name,
                 encryptedSecret = encodedSecret,
+                expiresAt = request.expiresAt,
             )
 
         val createdToken =

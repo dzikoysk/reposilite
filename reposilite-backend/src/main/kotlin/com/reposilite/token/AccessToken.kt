@@ -21,6 +21,7 @@ import com.reposilite.token.AccessTokenType.PERSISTENT
 import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.token.application.AccessTokenPlugin.Companion.MAX_TOKEN_NAME
 import net.dzikoysk.exposed.shared.UNINITIALIZED_ENTITY_ID
+import java.time.Instant
 import java.time.LocalDate
 
 enum class AccessTokenType {
@@ -39,6 +40,7 @@ data class AccessToken(
     val encryptedSecret: String = "",
     val createdAt: LocalDate = LocalDate.now(),
     val description: String = "",
+    val expiresAt: Instant? = null,
 ) {
 
     init {
@@ -46,12 +48,16 @@ data class AccessToken(
         check(!name.contains(":")) { "Access token name cannot contain ':' character" }
     }
 
+    fun isExpired(): Boolean =
+        expiresAt != null && Instant.now().isAfter(expiresAt)
+
     fun toDto(): AccessTokenDto =
         AccessTokenDto(
             identifier = identifier,
             name = name,
             createdAt = createdAt,
-            description = description
+            description = description,
+            expiresAt = expiresAt,
         )
 
 }

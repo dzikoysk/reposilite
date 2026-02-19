@@ -17,6 +17,7 @@ Access Token {
   Secret                      # Encrypted secret using BCrypt function
   Created At                  # Creation date
   Description                 # Token description
+  Expires At                  # Optional expiration timestamp (ISO-8601 Instant)
   Permissions [               # List of access token permissions
     Access Token Permission   # Enum: MANAGER (m)
   ]
@@ -56,6 +57,8 @@ which is management permission. You have to use permissions shortcuts.
 
 #### Temporary tokens
 For bootstrapping your permissions setup, or fixing a broken one, you may have to use a temporary manager token. Via the `--token root:root-secret` command line parameter to your Reposilite instance, you can create a manager token named `root` with the secret `root-secret`. This token will not be persisted in the database and cease to exist if the Reposilite process is restarted without the command line option.
+
+Temporary tokens can optionally have an expiration time (`expiresAt`). When set, the token is automatically evicted from memory once the expiration timestamp has passed. Expired tokens, along with their associated routes and permissions, are cleaned up lazily on the next access attempt or listing operation. This is useful for short-lived tokens created programmatically (eg. by CI/CD authentication plugins) that should not accumulate indefinitely in memory.
 
 #### First access visualization
 If you're confused about your first auth configuration, you may find this video helpful:
