@@ -21,6 +21,7 @@ import com.reposilite.shared.notFoundError
 import com.reposilite.shared.toErrorResult
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.AccessTokenPermission
+import com.reposilite.token.AccessTokenType
 import com.reposilite.token.RoutePermission
 import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.token.api.CreateAccessTokenRequest
@@ -94,6 +95,9 @@ internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessToke
                 .filter({ request -> request.routes.all { route -> route.permissions.all { RoutePermission.findRoutePermissionByShortcut(it).isOk }}}) {
                     badRequest("Unknown route permission, supported: ${RoutePermission.entries.joinToString { it.shortcut }}")
                 }
+                .filter({ it.type != AccessTokenType.PERSISTENT || it.expiresAt == null }) {
+                    badRequest("Expiration date is only supported for temporary access tokens")
+                }
                 .map { request ->
                     accessTokenFacade.createAccessToken(
                         CreateAccessTokenRequest(
@@ -109,6 +113,7 @@ internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessToke
                                         permissions = route.permissions.mapNotNullTo(HashSet()) { RoutePermission.findRoutePermissionByShortcut(it).orNull() },
                                     )
                                 },
+                            expiresAt = request.expiresAt,
                         )
                     )
                 }

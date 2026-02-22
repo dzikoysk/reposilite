@@ -23,13 +23,15 @@ import com.reposilite.token.AccessTokenRepository
 import com.reposilite.token.AccessTokenType.TEMPORARY
 import com.reposilite.token.Route
 import net.dzikoysk.exposed.shared.UNINITIALIZED_ENTITY_ID
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.atomic.AtomicInteger
 
 internal class InMemoryAccessTokenRepository : AccessTokenRepository {
 
-    private val tokens = mutableMapOf<Int, AccessToken>()
-    private val permissions = mutableListOf<Pair<Int, AccessTokenPermission>>()
-    private val routes = mutableListOf<Pair<Int, Route>>()
+    private val tokens = ConcurrentHashMap<Int, AccessToken>()
+    private val permissions = CopyOnWriteArrayList<Pair<Int, AccessTokenPermission>>()
+    private val routes = CopyOnWriteArrayList<Pair<Int, Route>>()
     private val id = AtomicInteger()
 
     override fun saveAccessToken(accessToken: AccessToken): AccessToken {
