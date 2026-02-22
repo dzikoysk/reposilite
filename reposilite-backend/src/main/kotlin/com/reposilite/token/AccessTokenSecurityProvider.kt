@@ -36,6 +36,10 @@ object AccessTokenSecurityProvider {
         bcryptHasher.hashToString(bcryptStrength, secret.toCharArray())
 
     fun matches(encryptedSecret: String, rawSecret: String): Boolean =
-        bcryptVerifier.verify(rawSecret.toCharArray(), encryptedSecret.toCharArray()).verified
+        try {
+            bcryptVerifier.verify(rawSecret.toCharArray(), encryptedSecret.toCharArray()).verified
+        } catch (_: IllegalArgumentException) {
+            false
+        }
 
 }
