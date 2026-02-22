@@ -43,6 +43,10 @@ class AccessTokenFacade internal constructor(
 ) : Facade, Journalist {
 
     fun createAccessToken(request: CreateAccessTokenRequest): CreateAccessTokenResponse {
+        require(request.expiresAt == null || request.type != PERSISTENT) {
+            "Expiration date is only supported for temporary access tokens"
+        }
+
         val secret = request.secret ?: generateSecret()
 
         val encodedSecret =
@@ -56,6 +60,7 @@ class AccessTokenFacade internal constructor(
                 identifier = AccessTokenIdentifier(type = request.type),
                 name = request.name,
                 encryptedSecret = encodedSecret,
+                expiresAt = request.expiresAt,
             )
 
         val createdToken =

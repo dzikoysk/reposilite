@@ -23,13 +23,15 @@ import com.reposilite.token.AccessTokenRepository
 import com.reposilite.token.AccessTokenType.TEMPORARY
 import com.reposilite.token.Route
 import net.dzikoysk.exposed.shared.UNINITIALIZED_ENTITY_ID
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.atomic.AtomicInteger
 
 internal class InMemoryAccessTokenRepository : AccessTokenRepository {
 
-    private val tokens = mutableMapOf<Int, AccessToken>()
-    private val permissions = mutableListOf<Pair<Int, AccessTokenPermission>>()
-    private val routes = mutableListOf<Pair<Int, Route>>()
+    private val tokens = ConcurrentHashMap<Int, AccessToken>()
+    private val permissions = CopyOnWriteArrayList<Pair<Int, AccessTokenPermission>>()
+    private val routes = CopyOnWriteArrayList<Pair<Int, Route>>()
     private val id = AtomicInteger()
 
     override fun saveAccessToken(accessToken: AccessToken): AccessToken {
@@ -46,11 +48,23 @@ internal class InMemoryAccessTokenRepository : AccessTokenRepository {
         tokens.remove(id.value)
     }
 
-    override fun findAccessTokenById(id: AccessTokenIdentifier): AccessToken? =
-        tokens[id.value]
+    override fun findAccessTokenById(id: AccessTokenIdentifier): AccessToken? {
+        val token = tokens[id.value] ?: return null
+        if (token.isExpired()) {
+            evict(token.identifier)
+            return null
+        }
+        return token
+    }
 
-    override fun findAccessTokenByName(name: String): AccessToken? =
-        tokens.values.firstOrNull { it.name == name }
+    override fun findAccessTokenByName(name: String): AccessToken? {
+        val token = tokens.values.firstOrNull { it.name == name } ?: return null
+        if (token.isExpired()) {
+            evict(token.identifier)
+            return null
+        }
+        return token
+    }
 
     override fun addPermission(id: AccessTokenIdentifier, permission: AccessTokenPermission): AccessTokenPermission {
         permissions.add(id.value to permission)
@@ -86,10 +100,22 @@ internal class InMemoryAccessTokenRepository : AccessTokenRepository {
             .map { it.second }
             .toSet()
 
-    override fun findAll(): Collection<AccessToken> =
-        tokens.values
+    override fun findAll(): Collection<AccessToken> {
+        val expired = tokens.values.filter { it.isExpired() }
+        expired.forEach { evict(it.identifier) }
+        return tokens.values.toList()
+    }
 
-    override fun countAccessTokens(): Long =
-        tokens.size.toLong()
+    override fun countAccessTokens(): Long {
+        val expired = tokens.values.filter { it.isExpired() }
+        expired.forEach { evict(it.identifier) }
+        return tokens.size.toLong()
+    }
+
+    private fun evict(id: AccessTokenIdentifier) {
+        tokens.remove(id.value)
+        permissions.removeIf { it.first == id.value }
+        routes.removeIf { it.first == id.value }
+    }
 
 }
