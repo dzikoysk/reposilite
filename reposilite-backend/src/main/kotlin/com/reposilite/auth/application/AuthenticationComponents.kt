@@ -25,7 +25,6 @@ import com.reposilite.plugin.api.PluginComponents
 import com.reposilite.status.FailureFacade
 import com.reposilite.token.AccessTokenFacade
 import panda.std.reactive.Reference
-import panda.std.reactive.Reference.Dependencies
 import java.util.SortedSet
 
 class AuthenticationComponents(
@@ -42,10 +41,10 @@ class AuthenticationComponents(
     private fun ldapAuthenticator(): LdapAuthenticator =
         LdapAuthenticator(
             journalist = journalist,
-            ldapSettings = Reference.computed(Dependencies.dependencies(authenticationSettings)) { authenticationSettings.map { it.ldap } },
             accessTokenFacade = accessTokenFacade,
             failureFacade = failureFacade,
             disableUserPasswordAuthentication = disableUserPasswordAuthentication,
+            ldapSettings = authenticationSettings.computed { it.ldap },
         )
 
     private fun authenticators(): SortedSet<Authenticator> =
@@ -59,7 +58,8 @@ class AuthenticationComponents(
         AuthenticationFacade(
             journalist = journalist,
             authenticators = authenticators,
-            accessTokenFacade = accessTokenFacade
+            accessTokenFacade = accessTokenFacade,
+            bruteForceProtectionSettings = authenticationSettings.computed { it.bruteForceProtection }
         )
 
 }
