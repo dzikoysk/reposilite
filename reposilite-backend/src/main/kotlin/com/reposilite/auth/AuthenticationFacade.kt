@@ -53,15 +53,17 @@ class AuthenticationFacade(
         CacheBuilder
             .newBuilder()
             .maximumSize(16)
+            .concurrencyLevel(2)
             .expireAfterAccess(1, MINUTES)
             .build()
 
-    private val failedAttempts: Cache<String, FailedAttempt> =
+    private val failedAttempts: Cache<String, FailedAttempt> by lazy {
         CacheBuilder
             .newBuilder()
-            .maximumSize(1024)
+            .concurrencyLevel(2)
             .expireAfterWrite(1, HOURS)
             .build()
+        }
 
     fun registerAuthenticator(authenticator: Authenticator) {
         this.authenticators.add(authenticator)
@@ -103,11 +105,14 @@ class AuthenticationFacade(
             return false
         }
 
-        if (System.currentTimeMillis() - attempt.firstFailureMillis < bruteForceProtectionSettings.map { it.banDurationSeconds } * 1000) {
-            return true
+        val banDuration = bruteForceProtectionSettings.map { it.banDurationSeconds } * 1000
+        val trackedDuration = System.currentTimeMillis() - attempt.firstFailureMillis
+
+        if (trackedDuration < banDuration) {
+            return true // Host is still blocked
         }
 
-        failedAttempts.invalidate(ip)
+        failedAttempts.invalidate(ip) // Ban duration has passed, unblocking the host
         return false
     }
 
