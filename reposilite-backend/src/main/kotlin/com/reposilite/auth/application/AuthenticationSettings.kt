@@ -25,9 +25,9 @@ import io.javalin.openapi.JsonSchema
 @JsonSchema(requireNonNulls = false)
 @Doc(title = "Authentication", description = "Authenticator settings")
 data class AuthenticationSettings(
-    val ldap: LdapSettings = LdapSettings(),
     @get:Doc(title = "Brute Force Protection", description = "Rate limiting for failed authentication attempts")
-    val bruteForceProtection: BruteForceProtectionSettings = BruteForceProtectionSettings()
+    val bruteForceProtection: BruteForceProtectionSettings = BruteForceProtectionSettings(),
+    val ldap: LdapSettings = LdapSettings(),
 ) : SharedSettings
 
 @Doc(title = "Brute Force Protection", description = "Brute force protection settings")
