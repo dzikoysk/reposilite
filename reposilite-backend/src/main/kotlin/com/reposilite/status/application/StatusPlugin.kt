@@ -92,9 +92,9 @@ internal class StatusPlugin : ReposilitePlugin() {
             logger.info("")
             logger.info("${journalist.effect { YELLOW_BOLD }}$VERSION version has been sponsored by:${journalist.effect { RESET }}")
             logger.info("  ${journalist.effect { BOLD }}talismanplatform,${journalist.effect { RESET }}")
-            logger.info("  ${journalist.effect { BOLD }}joshuasing, andrm, rdehuyss, amp7368, insertt, GotoFinal, Kamilkime, gcobr,${journalist.effect { RESET }}")
-            logger.info("  ${journalist.effect { BOLD }}SirEndii, Koressi, tipsy, that-apex,${journalist.effect { RESET }}")
-            logger.info("  ${journalist.effect { BOLD }}crejk, Rollczi, Jan Bojarczuk, Petersoj, jdsdc, frankielc${journalist.effect { RESET }}")
+            logger.info("  ${journalist.effect { BOLD }}joshuasing, andrm, rdehuyss, insertt, Kamilkime,${journalist.effect { RESET }}")
+            logger.info("  ${journalist.effect { BOLD }}Koressi, tipsy, that-apex, P3ridot${journalist.effect { RESET }}")
+            logger.info("  ${journalist.effect { BOLD }}Rollczi, Jan Bojarczuk, frankielc${journalist.effect { RESET }}")
             logger.info("")
             logger.info(journalist.effect { RESET })
         }

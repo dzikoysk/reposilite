@@ -97,21 +97,16 @@ Thanks to all contributors and people that decided to support my work financiall
     <a href="https://github.com/talismanplatform">talismanplatform</a>,
     <a href="https://github.com/andrm">andrm</a>, 
     <a href="https://github.com/rdehuyss">rdehuyss</a>,
-    <a href="https://github.com/amp7368">amp7368</a>,
     <a href="https://github.com/joshuasing">joshuasing</a>, 
-    <a href="https://github.com/GotoFinal">GotoFinal</a>,
     <a href="https://github.com/insertt">insertt</a>,
     <a href="https://github.com/Kamilkime">Kamilkime</a>,
-    <a href="https://github.com/gcobr">gcobr</a>,
     <a href="https://github.com/Koressi">Koressi</a>,
     <a href="https://github.com/tipsy">tipsy</a>,
     <a href="https://github.com/that-apex">that-apex</a>,
-    <a href="https://github.com/crejk">crejk</a>,
     <a href="https://github.com/Rollczi">Rollczi</a>,
     <a href="https://github.com/Kebab81">Jan Bojarczuk</a>,
-    <a href="https://github.com/Petersoj">Petersoj</a>,
-    <a href="https://github.com/jdsdc">jdsdc</a>,
-    <a href="https://github.com/frankielc">frankielc</a>
+    <a href="https://github.com/frankielc">frankielc</a>,
+    <a href="https://github.com/P3ridot">P3ridot</a>
   </td>
  </tr>
  <tr>
@@ -163,7 +158,8 @@ Thanks to all contributors and people that decided to support my work financiall
    <a href="https://github.com/asikkema">asikkema</a>,
    <a href="https://github.com/jdsdc">jdsdc</a>,
    <a href="https://github.com/gcobr">gcobr</a>,
-   <a href="https://github.com/frankielc">frankielc</a>
+   <a href="https://github.com/frankielc">frankielc</a>,
+   <a href="https://github.com/P3ridot">P3ridot</a>
   </td>
  </tr>
 </table>
