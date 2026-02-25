@@ -15,8 +15,8 @@ There are three different types of tags used on the Docker images:
 First of all, you have to pull the image from Docker Hub:
 
 ```bash
-# released builds, e.g. 3.5.26
-$ docker pull dzikoysk/reposilite:3.5.26
+# released builds, e.g. 3.5.27
+$ docker pull dzikoysk/reposilite:3.5.27
 
 # nightly builds
 $ docker pull dzikoysk/reposilite:nightly
@@ -25,8 +25,8 @@ $ docker pull dzikoysk/reposilite:nightly
 Or from the [GitHub Container Registry](https://github.com/features/packages) (useful if you have been rate limited on Docker Hub):
 
 ```bash
-# released builds, e.g. 3.5.26
-$ docker pull ghcr.io/dzikoysk/reposilite:3.5.26
+# released builds, e.g. 3.5.27
+$ docker pull ghcr.io/dzikoysk/reposilite:3.5.27
 
 # nightly builds
 $ docker pull ghcr.io/dzikoysk/reposilite:nightly
