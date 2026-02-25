@@ -22,6 +22,7 @@ export default function usePlaceholders() {
   const description = available ? '{{REPOSILITE.DESCRIPTION}}' : 'Public Maven repository hosted through the Reposilite'
   const organizationWebsite = available ? '{{REPOSILITE.ORGANIZATION_WEBSITE}}' : location.protocol + '//' + location.host + basePath
   const organizationLogo = available ? '{{REPOSILITE.ORGANIZATION_LOGO}}' : 'https://avatars.githubusercontent.com/u/75123628?s=200&v=4'
+  const privacyPolicy = available ? '{{REPOSILITE.PRIVACY_POLICY}}' : 'https://example.com/privacy'
   const icpLicense = available ? '{{REPOSILITE.ICP_LICENSE}}' : '国ICP备000000000号'
 
   const productionUrl =
@@ -40,6 +41,7 @@ export default function usePlaceholders() {
     description,
     organizationWebsite,
     organizationLogo,
+    privacyPolicy,
     icpLicense,
     productionUrl,
     baseUrl

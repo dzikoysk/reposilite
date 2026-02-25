@@ -66,6 +66,7 @@ class FrontendFacade internal constructor(
                 "{{REPOSILITE.ORGANIZATION_WEBSITE}}" to organizationWebsite,
                 "{{REPOSILITE.ORGANIZATION_LOGO}}" to organizationLogo,
                 "{{REPOSILITE.ICP_LICENSE}}" to icpLicense,
+                "{{REPOSILITE.PRIVACY_POLICY}}" to privacyPolicy,
             ))
         }
 
