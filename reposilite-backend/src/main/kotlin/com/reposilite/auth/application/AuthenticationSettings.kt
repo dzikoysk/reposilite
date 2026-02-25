@@ -25,8 +25,20 @@ import io.javalin.openapi.JsonSchema
 @JsonSchema(requireNonNulls = false)
 @Doc(title = "Authentication", description = "Authenticator settings")
 data class AuthenticationSettings(
-    val ldap: LdapSettings = LdapSettings()
+    @get:Doc(title = "Brute Force Protection", description = "Rate limiting for failed authentication attempts")
+    val bruteForceProtection: BruteForceProtectionSettings = BruteForceProtectionSettings(),
+    val ldap: LdapSettings = LdapSettings(),
 ) : SharedSettings
+
+@Doc(title = "Brute Force Protection", description = "Brute force protection settings")
+data class BruteForceProtectionSettings(
+    @get:Doc(title = "Enabled", description = "Enable brute force protection")
+    val enabled: Boolean = false,
+    @get:Doc(title = "Max Attempts", description = "Maximum failed authentication attempts before blocking an IP")
+    val maxAttempts: Int = 10,
+    @get:Doc(title = "Ban Duration Seconds", description = "Duration in seconds an IP is blocked after exceeding max attempts")
+    val banDurationSeconds: Long = 300
+)
 
 @Doc(title = "LDAP", description = "LDAP Authenticator settings")
 data class LdapSettings(

@@ -20,16 +20,19 @@ import com.reposilite.auth.AuthenticationFacade
 import com.reposilite.auth.Authenticator
 import com.reposilite.auth.BasicAuthenticator
 import com.reposilite.auth.LdapAuthenticator
+import com.reposilite.auth.application.BruteForceProtectionSettings
 import com.reposilite.auth.application.LdapSettings
 import com.reposilite.status.FailureFacade
 import com.reposilite.token.specification.AccessTokenSpecification
 import org.junit.jupiter.api.BeforeEach
+import panda.std.reactive.MutableReference
 import panda.std.reactive.toMutableReference
 
 internal abstract class AuthenticationSpecification : AccessTokenSpecification() {
 
     protected val failureFacade = FailureFacade(logger)
     protected val ldapConfiguration = LdapSettings().toMutableReference()
+    protected val bruteForceProtectionSettings: MutableReference<BruteForceProtectionSettings> = BruteForceProtectionSettings().toMutableReference()
 
     protected lateinit var authenticationFacade: AuthenticationFacade
 
@@ -47,7 +50,8 @@ internal abstract class AuthenticationSpecification : AccessTokenSpecification()
                     failureFacade = failureFacade
                 )
             ),
-            accessTokenFacade = accessTokenFacade
+            accessTokenFacade = accessTokenFacade,
+            bruteForceProtectionSettings = bruteForceProtectionSettings
         )
     }
 
