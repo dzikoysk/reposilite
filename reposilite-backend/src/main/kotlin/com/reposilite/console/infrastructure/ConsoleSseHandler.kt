@@ -79,9 +79,9 @@ internal class ConsoleSseHandler(
 
                 users[sse] = SseSession(identifier, subscriberId, watcher)
 
-                journalist.cachedLogger.messages.forEach { message ->
-                    sse.sendEvent(SSE_EVENT_NAME, message.value)
-                }
+                journalist.cachedLogger.messages
+                    .filter { it.key.priority >= journalist.visibleThreshold.priority }
+                    .forEach { message -> sse.sendEvent(SSE_EVENT_NAME, message.value) }
             }
             .onError {
                 journalist.logger.info("CLI | ${it.message} (${it.status})")

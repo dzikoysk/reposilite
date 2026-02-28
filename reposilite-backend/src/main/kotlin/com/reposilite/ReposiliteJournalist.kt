@@ -69,6 +69,8 @@ class ReposiliteJournalist(
     private val visibleLogger: Logger
     private val mainLogger: Logger
     private val tinyLog: TinyLogLogger
+    var visibleThreshold: Channel = defaultVisibilityThreshold
+        private set
 
     init {
         if (!testEnv) {
@@ -98,6 +100,7 @@ class ReposiliteJournalist(
         publisherLogger.unsubscribe(subscriberId)
 
     fun setVisibleThreshold(channel: Channel) {
+        visibleThreshold = channel
         visibleLogger.setThreshold(channel)
     }
 

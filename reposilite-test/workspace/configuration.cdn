@@ -20,6 +20,8 @@ port: 8080
 # - mysql localhost:3306 database user password
 # - postgresql localhost:5432 database user password
 # - h2 reposilite
+# You can also provide a custom JDBC URL to pass extra properties to the driver:
+# - jdbc:mariadb://localhost:3306/db?sslMode=verify-full user password
 database: sqlite reposilite.db
 
 # Support encrypted connections
@@ -60,7 +62,7 @@ idleTimeout: 30000
 # Helps to avoid various random issues caused by proxy provides (e.g. Cloudflare) and browsers.
 bypassExternalCache: true
 # Amount of messages stored in cached logger.
-cachedLogSize: 50
+cachedLogSize: 64
 # Enable default frontend with dashboard
 defaultFrontend: true
 # Set custom base path for Reposilite instance.

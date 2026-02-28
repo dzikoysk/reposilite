@@ -76,9 +76,9 @@ internal class ConsoleWebSocketHandler(
 
                             users[ctx] = WsSession(identifier, subscriberId)
 
-                            journalist.cachedLogger.messages.forEach { message ->
-                                ctx.send(message.value)
-                            }
+                            journalist.cachedLogger.messages
+                                .filter { it.key.priority >= journalist.visibleThreshold.priority }
+                                .forEach { message -> ctx.send(message.value) }
                         }
                         .onError {
                             journalist.logger.info("CLI | ${it.message} (${it.status})")

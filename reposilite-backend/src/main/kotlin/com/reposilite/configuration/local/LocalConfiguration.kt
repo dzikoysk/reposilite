@@ -133,7 +133,7 @@ class LocalConfiguration : Facade {
     val bypassExternalCache = reference(true)
 
     @Description("# Amount of messages stored in cached logger.")
-    val cachedLogSize = reference(32)
+    val cachedLogSize = reference(64)
 
     /* Frontend */
 
