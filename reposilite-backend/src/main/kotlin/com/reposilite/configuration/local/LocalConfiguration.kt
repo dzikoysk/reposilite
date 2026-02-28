@@ -54,6 +54,8 @@ class LocalConfiguration : Facade {
     @Description("# - mysql localhost:3306 database user password")
     @Description("# - postgresql localhost:5432 database user password")
     @Description("# - h2 reposilite")
+    @Description("# You can also provide a custom JDBC URL to pass extra properties to the driver:")
+    @Description("# - jdbc:mariadb://localhost:3306/db?sslMode=verify-full user password")
     val database = reference("sqlite reposilite.db")
 
     @Command(name = "embedded")

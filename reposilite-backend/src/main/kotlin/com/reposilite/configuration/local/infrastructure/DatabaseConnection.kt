@@ -41,24 +41,38 @@ data class DatabaseConnection(
 
 object DatabaseConnectionFactory {
 
+    private val DRIVER_MAPPING = mapOf(
+        "jdbc:mariadb" to "org.mariadb.jdbc.Driver",
+        "jdbc:mysql" to "com.mysql.cj.jdbc.Driver",
+        "jdbc:postgresql" to "org.postgresql.Driver",
+        "jdbc:sqlite" to "org.sqlite.JDBC",
+        "jdbc:h2" to "org.h2.Driver",
+    )
+
     fun createConnection(workingDirectory: Path, databaseConfiguration: String, databaseThreadPoolSize: Int): DatabaseConnection =
         when {
-            databaseConfiguration.startsWith("mariadb") -> connectWithStandardDatabase(databaseConfiguration, "jdbc:mariadb", "org.mariadb.jdbc.Driver", databaseThreadPoolSize)
-            databaseConfiguration.startsWith("sqlite") -> connectWithEmbeddedDatabase(workingDirectory, databaseConfiguration, "org.sqlite.JDBC", "jdbc:sqlite:%file%")
+            databaseConfiguration.startsWith("mariadb") -> connectWithStandardDatabase(databaseConfiguration, "jdbc:mariadb", databaseThreadPoolSize)
+            databaseConfiguration.startsWith("sqlite") -> connectWithEmbeddedDatabase(workingDirectory, databaseConfiguration, "jdbc:sqlite:%file%")
             /* Experimental implementations (not covered with integration tests) */
-            databaseConfiguration.startsWith("mysql") -> connectWithStandardDatabase(databaseConfiguration, "jdbc:mysql", "com.mysql.cj.jdbc.Driver", databaseThreadPoolSize)
-            databaseConfiguration.startsWith("postgresql") -> connectWithStandardDatabase(databaseConfiguration, "jdbc:postgresql", "org.postgresql.Driver", databaseThreadPoolSize)
-            databaseConfiguration.startsWith("h2") -> connectWithEmbeddedDatabase(workingDirectory, databaseConfiguration, "org.h2.Driver", "jdbc:h2:%file%;MODE=MYSQL")
+            databaseConfiguration.startsWith("mysql") -> connectWithStandardDatabase(databaseConfiguration, "jdbc:mysql", databaseThreadPoolSize)
+            databaseConfiguration.startsWith("postgresql") -> connectWithStandardDatabase(databaseConfiguration, "jdbc:postgresql", databaseThreadPoolSize)
+            databaseConfiguration.startsWith("h2") -> connectWithEmbeddedDatabase(workingDirectory, databaseConfiguration, "jdbc:h2:%file%;MODE=MYSQL")
+            /* Raw */
+            databaseConfiguration.startsWith("jdbc:") -> connectWithCustomJdbcUrl(databaseConfiguration, databaseThreadPoolSize)
             else -> throw RuntimeException("Unknown database: $databaseConfiguration")
         }
 
-    private fun connectWithStandardDatabase(databaseConfiguration: String, dialect: String, driver: String, databaseThreadPoolSize: Int): DatabaseConnection =
+    private fun connectWithCustomJdbcUrl(jdbcUrl: String, databaseThreadPoolSize: Int): DatabaseConnection =
+        createDataSource(jdbcUrl, databaseThreadPoolSize)
+            .let { DatabaseConnection(it, Database.connect(it)) }
+
+    private fun connectWithStandardDatabase(databaseConfiguration: String, dialect: String, databaseThreadPoolSize: Int): DatabaseConnection =
         with(loadCommandBasedConfiguration(StandardSQLDatabaseSettings(), databaseConfiguration).configuration) {
-            createDataSource(driver, "$dialect://$host/$database", databaseThreadPoolSize, user, password)
+            createDataSource("$dialect://$host/$database", databaseThreadPoolSize, user, password)
                 .let { DatabaseConnection(it, Database.connect(it)) }
         }
 
-    private fun connectWithEmbeddedDatabase(workingDirectory: Path, databaseConfiguration: String, driver: String, dialect: String): DatabaseConnection =
+    private fun connectWithEmbeddedDatabase(workingDirectory: Path, databaseConfiguration: String, dialect: String): DatabaseConnection =
         with(loadCommandBasedConfiguration(EmbeddedSQLDatabaseSettings(), databaseConfiguration).configuration) {
             val databaseFile =
                 if (temporary)
@@ -68,20 +82,26 @@ object DatabaseConnectionFactory {
                 else
                     workingDirectory.resolve(fileName)
 
-            createDataSource(driver, dialect.replace("%file%", databaseFile.absolutePathString()), 1)
+            createDataSource(dialect.replace("%file%", databaseFile.absolutePathString()), 1)
                 .let { DatabaseConnection(it, Database.connect(it)) }
                 .also { TransactionManager.manager.defaultIsolationLevel = TRANSACTION_SERIALIZABLE }
         }
 
-    private fun createDataSource(driver: String, url: String, threadPool: Int, username: String? = null, password: String? = null): HikariDataSource =
+    private fun createDataSource(url: String, threadPool: Int, username: String? = null, password: String? = null): HikariDataSource =
         HikariDataSource(
             HikariConfig().apply {
                 this.jdbcUrl = url
-                this.driverClassName = driver
+                this.driverClassName = resolveDriver(url)
                 this.maximumPoolSize = threadPool
                 username?.also { this.username = it }
                 password?.also { this.password = it }
             }
         )
+
+    private fun resolveDriver(jdbcUrl: String): String =
+        DRIVER_MAPPING.entries
+            .firstOrNull { (prefix, _) -> jdbcUrl.startsWith(prefix) }
+            ?.value
+            ?: throw RuntimeException("Unsupported JDBC driver for URL: $jdbcUrl")
 
 }
