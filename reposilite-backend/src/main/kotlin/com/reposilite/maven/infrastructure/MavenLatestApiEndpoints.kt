@@ -61,6 +61,7 @@ internal class MavenLatestApiEndpoints(
             OpenApiParam(name = "classifier", description = "Appends classifier suffix to matched file", required = false),
             OpenApiParam(name = "filter", description = "Version (prefix) filter to apply", required = false),
             OpenApiParam(name = "type", description = "Format of expected response type: empty (default) for json; 'raw' for plain text", required = false),
+            OpenApiParam(name = "sorted", description = "Whether to sort versions using built-in comparator (default: true). Set to false to preserve raw order from maven-metadata.xml", required = false),
         ],
         responses = [
             OpenApiResponse("200", content = [OpenApiContent(from = LatestVersionResponse::class)], description = "default response"),
@@ -71,7 +72,7 @@ internal class MavenLatestApiEndpoints(
         accessed {
             requireGav { gav ->
                 requireRepository { repository ->
-                    response = VersionLookupRequest(this?.identifier, repository, gav, ctx.queryParam("filter"))
+                    response = VersionLookupRequest(this?.identifier, repository, gav, ctx.queryParam("filter"), ctx.queryParam("sorted")?.toBooleanStrictOrNull() ?: true)
                         .let { mavenFacade.findLatestVersion(it) }
                         .flatMap {
                             when (val type = ctx.queryParam("type")) {
