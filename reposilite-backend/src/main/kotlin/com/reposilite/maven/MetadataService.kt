@@ -154,8 +154,8 @@ internal class MetadataService(private val repositorySecurityProvider: Repositor
             else -> ({ it.startsWith(filter) })
         }
 
-    fun findLatestVersion(repository: Repository, gav: Location, filter: String?): Result<LatestVersionResponse, ErrorResponse> =
-        findVersions(repository, gav, filter)
+    fun findLatestVersion(repository: Repository, gav: Location, filter: String?, sorted: Boolean = true): Result<LatestVersionResponse, ErrorResponse> =
+        findVersions(repository, gav, filter, sorted)
             .filter({ it.versions.isNotEmpty() }, { notFound("Given artifact does not have any declared version") })
             .map { (isSnapshot, versions) -> LatestVersionResponse(isSnapshot, versions.last()) }
 

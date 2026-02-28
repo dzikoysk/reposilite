@@ -395,6 +395,19 @@ internal class MavenFacadeTest : MavenSpecification() {
         }
 
         @Test
+        fun `should preserve raw metadata order for latest version when sorted is false`() {
+            // given: an artifact with metadata file containing versions in specific order
+            val rawOrder = listOf("1.21-20240613.152323", "1.21.2-20241022.151510", "1.20.6-20240627.102356")
+            val (repository, artifact) = useMetadata(PUBLIC.name, "/unsorted", rawOrder)
+
+            // when: latest version is requested with sorted=false
+            val response = mavenFacade.findLatestVersion(VersionLookupRequest(UNAUTHORIZED, repository, artifact, filter = null, sorted = false))
+
+            // then: should preserve the original order from maven-metadata.xml
+            assertOk(rawOrder.last(), response.map { it.version })
+        }
+
+        @Test
         fun `should sort versions by default`() {
             // given: an artifact with metadata file containing unordered versions
             val versions = listOf("2.0.0", "1.0.0", "1.1.0")
