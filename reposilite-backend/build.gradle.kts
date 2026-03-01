@@ -95,7 +95,7 @@ dependencies {
     implementation("com.zaxxer:HikariCP:7.0.2")
     implementation("org.xerial:sqlite-jdbc:3.49.1.0") // note: 3.50.3.0 is broken
     implementation("org.mariadb.jdbc:mariadb-java-client:3.5.6")
-    implementation("org.postgresql:postgresql:42.7.9")
+    implementation("org.postgresql:postgresql:42.7.10")
     implementation("com.h2database:h2:2.3.232")
     implementation("com.mysql:mysql-connector-j:9.5.0") {
         exclude(group = "com.google.protobuf", module = "protobuf-java")
