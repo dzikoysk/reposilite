@@ -50,7 +50,7 @@
     "eslint-plugin-vue": "^9.32.0",
     "express": "^4.22.1",
     "express-ws": "^5.0.2",
-    "globals": "^16.5.0",
+    "globals": "^17.4.0",
     "jsdoc": "^4.0.5",
     "json-server": "^0.17.4",
     "nodemon": "^3.1.11",
