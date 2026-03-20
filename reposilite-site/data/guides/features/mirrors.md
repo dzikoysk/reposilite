@@ -59,6 +59,7 @@ By default, Reposilite allows these extensions:
 
 - `.jar`
 - `.war`
+- `.aar`
 - `.xml`
 - `.pom`
 - `.module`
