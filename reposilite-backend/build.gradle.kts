@@ -80,9 +80,6 @@ dependencies {
     // See https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts-minimum-sdk.html
     implementation("software.amazon.awssdk:sts:$awssdk")
 
-    val awsSdkV1 = "1.12.791"
-    testImplementation("com.amazonaws:aws-java-sdk-s3:$awsSdkV1")
-
     implementation("com.github.ben-manes.caffeine:caffeine:3.2.3")
 
     val exposed = "0.61.0"
@@ -139,7 +136,6 @@ dependencies {
     testImplementation("org.testcontainers:mariadb:$testcontainers")
     testImplementation("org.testcontainers:testcontainers:$testcontainers")
     testImplementation("org.testcontainers:junit-jupiter:$testcontainers")
-    testImplementation("org.testcontainers:localstack:$testcontainers")
     testImplementation("org.testcontainers:mysql:$testcontainers")
     testImplementation("org.testcontainers:postgresql:$testcontainers") {
         exclude(group = "org.apache.commons", module = "commons-compress")
