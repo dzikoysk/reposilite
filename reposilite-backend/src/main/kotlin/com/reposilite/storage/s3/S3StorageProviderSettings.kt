@@ -47,6 +47,8 @@ data class S3StorageProviderSettings(
     val secretKey: String = "",
     @get:Doc(title = "Region", description = "Overwrite AWS region (optional)")
     val region: String = "",
+    @get:Doc(title = "Path Style Access", description = "Enable path-style access for S3-compatible providers (e.g. MinIO, Floci). Required when using a custom endpoint that does not support virtual-hosted-style URLs.")
+    val pathStyleAccess: Boolean = false,
     @get:Doc(title = "Local Metadata Cache", description = "Local metadata cache settings (optional). The default is no caching. NOTE: This cache is local only. If you run multiple instances, they will not share the cache!")
     val metadataCacheSettings: S3MetadataCacheSettings? = null,
 ) : StorageProviderSettings

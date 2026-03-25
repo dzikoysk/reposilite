@@ -61,7 +61,8 @@ internal class RecommendedRemoteSpecificationJunitExtension : Extension, BeforeE
                     endpoint = "http://${floci.host}:${floci.getMappedPort(4566)}",
                     accessKey = "test", // Floci accepts any credentials
                     secretKey = "test", // Floci accepts any credentials
-                    region = "us-east-1"
+                    region = "us-east-1",
+                    pathStyleAccess = true
                 )
             )
         }

@@ -45,7 +45,7 @@ class S3StorageProviderFactory : StorageProviderFactory<S3StorageProvider, S3Sto
         settings: S3StorageProviderSettings
     ): S3StorageProvider {
         val client = S3Client.builder()
-        val pathStyleAccessEnabled = System.getProperty("reposilite.s3.pathStyleAccessEnabled") == "true"
+        val pathStyleAccessEnabled = settings.pathStyleAccess || System.getProperty("reposilite.s3.pathStyleAccessEnabled") == "true"
 
         if (pathStyleAccessEnabled) {
             client.serviceConfiguration(
