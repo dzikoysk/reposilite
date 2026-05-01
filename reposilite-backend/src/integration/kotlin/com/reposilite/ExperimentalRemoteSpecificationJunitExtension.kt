@@ -28,7 +28,7 @@ import org.testcontainers.utility.DockerImageName
 
 /**
  * Integrations used in remote stack:
- * - PostreSQL
+ * - PostgreSQL
  * - Local file system
  */
 @Testcontainers
