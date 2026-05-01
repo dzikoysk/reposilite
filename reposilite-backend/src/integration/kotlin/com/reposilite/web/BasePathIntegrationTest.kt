@@ -57,17 +57,18 @@ internal class BasePathIntegrationTest : ReposiliteSpecification() {
     fun `run reposilite with custom base path`() {
         val await = CountDownLatch(1)
 
-        Javalin.create()
-            .get("/") { it.html("Index") }
-            .get(basePath) { Unirest.get(it.reposiliteLocation()).redirect(it) }
-            .get("$basePath/<uri>") { Unirest.get(it.reposiliteLocation()).redirect(it) }
-            .head("$basePath/<uri>") { Unirest.head(it.reposiliteLocation()).redirect(it) }
-            .post("$basePath/<uri>") { Unirest.post(it.reposiliteLocation()).redirect(it) }
-            .put("$basePath/<uri>") { Unirest.put(it.reposiliteLocation()).redirect(it) }
-            .delete("$basePath/<uri>") { Unirest.delete(it.reposiliteLocation()).redirect(it) }
-            .options("$basePath/<uri>") { Unirest.options(it.reposiliteLocation()).redirect(it) }
-            .get("/stop") { await.countDown() }
-            .start(8080)
+        Javalin.create { config ->
+            config.routes
+                .get("/") { it.html("Index") }
+                .get(basePath) { Unirest.get(it.reposiliteLocation()).redirect(it) }
+                .get("$basePath/<uri>") { Unirest.get(it.reposiliteLocation()).redirect(it) }
+                .head("$basePath/<uri>") { Unirest.head(it.reposiliteLocation()).redirect(it) }
+                .post("$basePath/<uri>") { Unirest.post(it.reposiliteLocation()).redirect(it) }
+                .put("$basePath/<uri>") { Unirest.put(it.reposiliteLocation()).redirect(it) }
+                .delete("$basePath/<uri>") { Unirest.delete(it.reposiliteLocation()).redirect(it) }
+                .options("$basePath/<uri>") { Unirest.options(it.reposiliteLocation()).redirect(it) }
+                .get("/stop") { await.countDown() }
+        }.start(8080)
 
         await.await()
     }

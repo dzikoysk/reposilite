@@ -41,22 +41,18 @@ class HttpServer {
             useLoom = false
         )
 
-        this.javalin = Javalin.createAndStart { config ->
-            config.jetty.defaultHost = reposilite.parameters.hostname
-            config.jetty.defaultPort = reposilite.parameters.port
+        this.javalin = Javalin.start { config ->
+            config.jetty.host = reposilite.parameters.hostname
+            config.jetty.port = reposilite.parameters.port
 
             JavalinConfiguration.configure(reposilite, webThreadPool, config)
 
-            config.router.mount {
-                it.exception(EofException::class.java) { _, _ ->
-                    reposilite.logger.warn("Client closed connection")
-                }
+            config.routes.exception(EofException::class.java) { _, _ ->
+                reposilite.logger.warn("Client closed connection")
             }
 
-            config.events {
-                it.serverStopping { reposilite.logger.info("Server stopping...") }
-                it.serverStopped { extensionsManagement.emitEvent(HttpServerStoppedEvent) }
-            }
+            config.events.serverStopping { reposilite.logger.info("Server stopping...") }
+            config.events.serverStopped { extensionsManagement.emitEvent(HttpServerStoppedEvent) }
 
             reposilite.extensions.emitEvent(HttpServerInitializationEvent(reposilite, config))
         }

@@ -45,11 +45,11 @@ internal class RecommendedRemoteSpecificationJunitExtension : Extension, BeforeE
     private val localstack: LocalStackContainer = LocalStackContainer(DockerImageName.parse("localstack/localstack:latest"))
         .withServices(S3)
 
-    override fun beforeEach(context: ExtensionContext?) {
+    override fun beforeEach(context: ExtensionContext) {
         mariaDb.start()
         localstack.start()
 
-        context?.also {
+        context.also {
             val instance = it.requiredTestInstance
             val type = instance::class.java
 
@@ -68,7 +68,7 @@ internal class RecommendedRemoteSpecificationJunitExtension : Extension, BeforeE
         }
     }
 
-    override fun afterEach(context: ExtensionContext?) {
+    override fun afterEach(context: ExtensionContext) {
         mariaDb.stop()
         localstack.stop()
     }

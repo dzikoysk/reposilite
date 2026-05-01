@@ -6,6 +6,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.server.handler.StatisticsHandler
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
+import java.time.Duration
 
 internal class JettyMetricsTest : PrometheusPluginSpecification() {
     private val statistics = FakeStatisticsHandler()
@@ -41,11 +42,6 @@ internal class JettyMetricsTest : PrometheusPluginSpecification() {
             "jetty_dispatched_time_seconds_max_seconds",
             "jetty_dispatched_time_seconds_mean_seconds",
             "jetty_dispatched_time_seconds_stddev_seconds",
-            "jetty_async_requests",
-            "jetty_async_requests_waiting",
-            "jetty_async_requests_waiting_max",
-            "jetty_async_dispatches",
-            "jetty_expires",
             "jetty_errors",
             "jetty_responses",
             "jetty_responses_thrown",
@@ -59,8 +55,8 @@ internal class JettyMetricsTest : PrometheusPluginSpecification() {
     fun `should not fail with NaN statistics`() {
         statistics._requestTimeMean = Double.NaN
         statistics._requestTimeStdDev = Double.NaN
-        statistics._dispatchedTimeMean = Double.NaN
-        statistics._dispatchedTimeStdDev = Double.NaN
+        statistics._handleTimeMean = Double.NaN
+        statistics._handleTimeStdDev = Double.NaN
 
         assertDoesNotThrow {
             JettyMetrics.register(statistics, registry)
@@ -77,27 +73,22 @@ internal class JettyMetricsTest : PrometheusPluginSpecification() {
         statistics._requestTimeTotal = Long.MAX_VALUE
         statistics._requestTimeMean = Double.MAX_VALUE
         statistics._requestTimeStdDev = Double.MAX_VALUE
-        statistics._dispatched = Int.MAX_VALUE
-        statistics._dispatchedActive = Int.MAX_VALUE
-        statistics._dispatchedActiveMax = Int.MAX_VALUE
-        statistics._dispatchedTimeMax = Long.MAX_VALUE
-        statistics._dispatchedTimeTotal = Long.MAX_VALUE
-        statistics._dispatchedTimeMean = Double.MAX_VALUE
-        statistics._dispatchedTimeStdDev = Double.MAX_VALUE
-        statistics._asyncRequests = Int.MAX_VALUE
-        statistics._asyncRequestsWaiting = Int.MAX_VALUE
-        statistics._asyncRequestsWaitingMax = Int.MAX_VALUE
-        statistics._asyncDispatches = Int.MAX_VALUE
-        statistics._expires = Int.MAX_VALUE
-        statistics._errors = Int.MAX_VALUE
+        statistics._handleTotal = Int.MAX_VALUE
+        statistics._handleActive = Int.MAX_VALUE
+        statistics._handleActiveMax = Int.MAX_VALUE
+        statistics._handleTimeMax = Long.MAX_VALUE
+        statistics._handleTimeTotal = Long.MAX_VALUE
+        statistics._handleTimeMean = Double.MAX_VALUE
+        statistics._handleTimeStdDev = Double.MAX_VALUE
+        statistics._failures = Int.MAX_VALUE
         statistics._responses1xx = Int.MAX_VALUE
         statistics._responses2xx = Int.MAX_VALUE
         statistics._responses3xx = Int.MAX_VALUE
         statistics._responses4xx = Int.MAX_VALUE
         statistics._responses5xx = Int.MAX_VALUE
-        statistics._responsesThrown = Int.MAX_VALUE
-        statistics._statsOnMs = Long.MAX_VALUE
-        statistics._responsesBytesTotal = Long.MAX_VALUE
+        statistics._handlingFailures = Int.MAX_VALUE
+        statistics._statisticsDuration = Duration.ofMillis(Long.MAX_VALUE)
+        statistics._bytesWritten = Long.MAX_VALUE
 
         assertDoesNotThrow {
             JettyMetrics.register(statistics, registry)
@@ -113,14 +104,12 @@ internal class JettyMetricsTest : PrometheusPluginSpecification() {
         statistics._requestTimeMax = Long.MIN_VALUE
         statistics._requestTimeMean = Double.MIN_VALUE
         statistics._requestTimeStdDev = Double.MIN_VALUE
-        statistics._dispatchedActive = Int.MIN_VALUE
-        statistics._dispatchedActiveMax = Int.MIN_VALUE
-        statistics._dispatchedTimeMax = Long.MIN_VALUE
-        statistics._dispatchedTimeMean = Double.MIN_VALUE
-        statistics._dispatchedTimeStdDev = Double.MIN_VALUE
-        statistics._asyncRequestsWaiting = Int.MIN_VALUE
-        statistics._asyncRequestsWaitingMax = Int.MIN_VALUE
-        statistics._statsOnMs = Long.MIN_VALUE
+        statistics._handleActive = Int.MIN_VALUE
+        statistics._handleActiveMax = Int.MIN_VALUE
+        statistics._handleTimeMax = Long.MIN_VALUE
+        statistics._handleTimeMean = Double.MIN_VALUE
+        statistics._handleTimeStdDev = Double.MIN_VALUE
+        statistics._statisticsDuration = Duration.ofMillis(Long.MIN_VALUE)
 
         assertDoesNotThrow {
             JettyMetrics.register(statistics, registry)
@@ -137,27 +126,22 @@ internal class JettyMetricsTest : PrometheusPluginSpecification() {
         statistics._requestTimeTotal = 0
         statistics._requestTimeMean = 0.0
         statistics._requestTimeStdDev = 0.0
-        statistics._dispatched = 0
-        statistics._dispatchedActive = 0
-        statistics._dispatchedActiveMax = 0
-        statistics._dispatchedTimeMax = 0
-        statistics._dispatchedTimeTotal = 0
-        statistics._dispatchedTimeMean = 0.0
-        statistics._dispatchedTimeStdDev = 0.0
-        statistics._asyncRequests = 0
-        statistics._asyncRequestsWaiting = 0
-        statistics._asyncRequestsWaitingMax = 0
-        statistics._asyncDispatches = 0
-        statistics._expires = 0
-        statistics._errors = 0
+        statistics._handleTotal = 0
+        statistics._handleActive = 0
+        statistics._handleActiveMax = 0
+        statistics._handleTimeMax = 0
+        statistics._handleTimeTotal = 0
+        statistics._handleTimeMean = 0.0
+        statistics._handleTimeStdDev = 0.0
+        statistics._failures = 0
         statistics._responses1xx = 0
         statistics._responses2xx = 0
         statistics._responses3xx = 0
         statistics._responses4xx = 0
         statistics._responses5xx = 0
-        statistics._responsesThrown = 0
-        statistics._statsOnMs = 0
-        statistics._responsesBytesTotal = 0
+        statistics._handlingFailures = 0
+        statistics._statisticsDuration = Duration.ZERO
+        statistics._bytesWritten = 0
 
         assertDoesNotThrow {
             JettyMetrics.register(statistics, registry)
@@ -174,27 +158,22 @@ internal class JettyMetricsTest : PrometheusPluginSpecification() {
         var _requestTimeTotal: Long = 1
         var _requestTimeMean: Double = 1.0
         var _requestTimeStdDev: Double = 1.0
-        var _dispatched: Int = 1
-        var _dispatchedActive: Int = 1
-        var _dispatchedActiveMax: Int = 1
-        var _dispatchedTimeMax: Long = 1
-        var _dispatchedTimeTotal: Long = 1
-        var _dispatchedTimeMean: Double = 1.0
-        var _dispatchedTimeStdDev: Double = 1.0
-        var _asyncRequests: Int = 1
-        var _asyncRequestsWaiting: Int = 1
-        var _asyncRequestsWaitingMax: Int = 1
-        var _asyncDispatches: Int = 1
-        var _expires: Int = 1
-        var _errors: Int = 1
+        var _handleTotal: Int = 1
+        var _handleActive: Int = 1
+        var _handleActiveMax: Int = 1
+        var _handleTimeMax: Long = 1
+        var _handleTimeTotal: Long = 1
+        var _handleTimeMean: Double = 1.0
+        var _handleTimeStdDev: Double = 1.0
+        var _failures: Int = 1
         var _responses1xx: Int = 1
         var _responses2xx: Int = 1
         var _responses3xx: Int = 1
         var _responses4xx: Int = 1
         var _responses5xx: Int = 1
-        var _responsesThrown: Int = 1
-        var _statsOnMs: Long = 1
-        var _responsesBytesTotal: Long = 1
+        var _handlingFailures: Int = 1
+        var _statisticsDuration: Duration = Duration.ofMillis(1)
+        var _bytesWritten: Long = 1
 
         override fun getRequests(): Int = _requests
         override fun getRequestsActive(): Int = _requestsActive
@@ -203,26 +182,21 @@ internal class JettyMetricsTest : PrometheusPluginSpecification() {
         override fun getRequestTimeTotal(): Long = _requestTimeTotal
         override fun getRequestTimeMean(): Double = _requestTimeMean
         override fun getRequestTimeStdDev(): Double = _requestTimeStdDev
-        override fun getDispatched(): Int = _dispatched
-        override fun getDispatchedActive(): Int = _dispatchedActive
-        override fun getDispatchedActiveMax(): Int = _dispatchedActiveMax
-        override fun getDispatchedTimeMax(): Long = _dispatchedTimeMax
-        override fun getDispatchedTimeTotal(): Long = _dispatchedTimeTotal
-        override fun getDispatchedTimeMean(): Double = _dispatchedTimeMean
-        override fun getDispatchedTimeStdDev(): Double = _dispatchedTimeStdDev
-        override fun getAsyncRequests(): Int = _asyncRequests
-        override fun getAsyncRequestsWaiting(): Int = _asyncRequestsWaiting
-        override fun getAsyncRequestsWaitingMax(): Int = _asyncRequestsWaitingMax
-        override fun getAsyncDispatches(): Int = _asyncDispatches
-        override fun getExpires(): Int = _expires
-        override fun getErrors(): Int = _errors
+        override fun getHandleTotal(): Int = _handleTotal
+        override fun getHandleActive(): Int = _handleActive
+        override fun getHandleActiveMax(): Int = _handleActiveMax
+        override fun getHandleTimeMax(): Long = _handleTimeMax
+        override fun getHandleTimeTotal(): Long = _handleTimeTotal
+        override fun getHandleTimeMean(): Double = _handleTimeMean
+        override fun getHandleTimeStdDev(): Double = _handleTimeStdDev
+        override fun getFailures(): Int = _failures
         override fun getResponses1xx(): Int = _responses1xx
         override fun getResponses2xx(): Int = _responses2xx
         override fun getResponses3xx(): Int = _responses3xx
         override fun getResponses4xx(): Int = _responses4xx
         override fun getResponses5xx(): Int = _responses5xx
-        override fun getResponsesThrown(): Int = _responsesThrown
-        override fun getStatsOnMs(): Long = _statsOnMs
-        override fun getResponsesBytesTotal(): Long = _responsesBytesTotal
+        override fun getHandlingFailures(): Int = _handlingFailures
+        override fun getStatisticsDuration(): Duration = _statisticsDuration
+        override fun getBytesWritten(): Long = _bytesWritten
     }
 }

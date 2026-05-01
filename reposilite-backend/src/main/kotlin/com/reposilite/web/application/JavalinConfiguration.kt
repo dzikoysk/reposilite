@@ -30,8 +30,12 @@ import com.reposilite.web.api.RoutingSetupEvent
 import com.reposilite.web.infrastructure.ApiCacheBypassHandler
 import com.reposilite.web.infrastructure.EndpointAccessLoggingHandler
 import com.reposilite.web.infrastructure.createReposiliteDsl
+import io.javalin.community.routing.RoutingSetupScope
 import io.javalin.community.ssl.SslPlugin
+import io.javalin.compression.Brotli
+import io.javalin.compression.CompressionStrategy
 import io.javalin.config.JavalinConfig
+import io.javalin.config.JavalinState
 import io.javalin.json.JavalinJackson
 import io.javalin.openapi.plugin.OpenApiPlugin
 import io.javalin.plugin.bundled.SslRedirectPlugin
@@ -45,7 +49,7 @@ internal object JavalinConfiguration {
 
     internal fun configure(reposilite: Reposilite, webThreadPool: ThreadPool, config: JavalinConfig) {
         val server = Server(webThreadPool)
-        config.pvt.jetty.server = server
+        config.unsafe.jettyInternal.server = server
         reposilite.extensions.emitEvent(HttpServerConfigurationEvent(reposilite, config))
 
         val localConfiguration = reposilite.extensions.facade<LocalConfiguration>()
@@ -75,7 +79,7 @@ internal object JavalinConfiguration {
     }
 
     private fun configureJavalin(config: JavalinConfig, localConfiguration: LocalConfiguration, webSettings: Reference<WebSettings>) {
-        config.showJavalinBanner = false
+        config.startup.showJavalinBanner = false
         config.http.asyncTimeout = 10.minutes.inWholeMilliseconds
         config.contextResolver.ip = { it.header(webSettings.get().forwardedIp) ?: it.req().remoteAddr }
 
@@ -83,10 +87,10 @@ internal object JavalinConfiguration {
             config.http.maxRequestSize = it.toLong()
         }
 
-        when (localConfiguration.compressionStrategy.get().lowercase()) {
-            "none" -> config.http.disableCompression()
-            "gzip" -> config.http.gzipOnlyCompression()
-            "brotli" -> config.http.brotliOnlyCompression()
+        config.http.compressionStrategy = when (localConfiguration.compressionStrategy.get().lowercase()) {
+            "none" -> CompressionStrategy.NONE
+            "gzip" -> CompressionStrategy.GZIP
+            "brotli" -> CompressionStrategy(Brotli(4), null)
             else -> error("Unknown compression strategy ${localConfiguration.compressionStrategy.get()}")
         }
     }
@@ -101,7 +105,7 @@ internal object JavalinConfiguration {
             authenticationFacade = extensionManager.facade()
         )
 
-        val routes = extensionManager.emitEvent(RoutingSetupEvent(reposilite))
+        val dslRoutes = extensionManager.emitEvent(RoutingSetupEvent(reposilite))
             .getRoutes()
             .asSequence()
             .flatMap { it.toDslRoutes() }
@@ -109,10 +113,8 @@ internal object JavalinConfiguration {
             .toSet()
 
         config.registerPlugin(object : JavalinPlugin<Unit?>() {
-            override fun onStart(config: JavalinConfig) {
-                config.router.mount(reposiliteDsl) {
-                    it.routes(routes)
-                }
+            override fun onStart(state: JavalinState) {
+                reposiliteDsl.initialize(state) { register(dslRoutes) }
             }
         })
     }
@@ -173,11 +175,11 @@ internal object JavalinConfiguration {
 
     private fun configureOpenApi(config: JavalinConfig, frontendSettings: FrontendSettings) {
         config.registerPlugin(OpenApiPlugin { openapi ->
-            openapi.withDefinitionConfiguration { _, configuration ->
-                configuration.withInfo {
-                    it.title = frontendSettings.title
-                    it.description = frontendSettings.description
-                    it.version = VERSION
+            openapi.withDefinitionConfiguration { _, builder ->
+                builder.info {
+                    it.title(frontendSettings.title)
+                    it.description(frontendSettings.description)
+                    it.version(VERSION)
                 }
             }
         })

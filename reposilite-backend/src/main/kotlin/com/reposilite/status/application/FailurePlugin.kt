@@ -30,9 +30,7 @@ internal class FailurePlugin : ReposilitePlugin() {
         val failureFacade = FailureComponents(this).failureFacade()
 
         event { event: HttpServerInitializationEvent ->
-            event.config.router.mount {
-                it.exception(Exception::class.java, FailureHandler(failureFacade))
-            }
+            event.config.routes.exception(Exception::class.java, FailureHandler(failureFacade))
         }
 
         return failureFacade

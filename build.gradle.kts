@@ -103,8 +103,8 @@ allprojects {
     }
 
     java {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
 
         withJavadocJar()
         withSourcesJar()
@@ -112,9 +112,9 @@ allprojects {
 
     tasks.withType<KotlinCompile>().configureEach {
         compilerOptions {
-            jvmTarget = JvmTarget.JVM_11
-            languageVersion = KotlinVersion.KOTLIN_2_2
-            freeCompilerArgs = listOf("-Xjvm-default=all") // For generating default methods in interfaces
+            jvmTarget = JvmTarget.JVM_17
+            languageVersion = KotlinVersion.KOTLIN_2_3
+            freeCompilerArgs = listOf("-jvm-default=no-compatibility") // For generating default methods in interfaces
         }
     }
 }
@@ -127,15 +127,15 @@ subprojects {
         testImplementation("com.konghq:unirest-java-core:$unirest")
         testImplementation("com.konghq:unirest-modules-jackson:$unirest")
 
-        val assertJ = "3.27.7"
+        val assertJ = "4.0.0-M1"
         testImplementation("org.assertj:assertj-core:$assertJ")
 
-        val junit = "5.14.4"
+        val junit = "6.0.3"
         testImplementation("org.junit.jupiter:junit-jupiter-params:$junit")
         testImplementation("org.junit.jupiter:junit-jupiter-api:$junit")
         testImplementation("org.junit.jupiter:junit-jupiter-engine:$junit")
 
-        val junitPlatform = "1.14.4"
+        val junitPlatform = "6.0.3"
         testRuntimeOnly("org.junit.platform:junit-platform-launcher:$junitPlatform")
     }
 

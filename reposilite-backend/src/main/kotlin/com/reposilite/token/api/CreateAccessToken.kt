@@ -22,6 +22,7 @@ import com.reposilite.token.Route
 import com.reposilite.token.RoutePermission
 import com.reposilite.token.api.SecretType.RAW
 import io.javalin.openapi.OpenApiDescription
+import io.javalin.openapi.OpenApiName
 import java.time.Instant
 
 enum class SecretType {
@@ -58,6 +59,7 @@ data class CreateAccessTokenWithNoNameRequest(
     @get:OpenApiDescription("Optional expiration timestamp (ISO-8601 Instant), only supported for temporary tokens")
     val expiresAt: Instant? = null,
 ) {
+    @OpenApiName("CreateAccessTokenWithNoNameRequestRoute")
     data class Route(
         @get:OpenApiDescription("The path to which the permissions apply")
         val path: String,

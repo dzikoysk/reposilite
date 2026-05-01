@@ -108,7 +108,7 @@ class S3StorageProvider(
                 val builder = PutObjectRequest.builder()
                 builder.bucket(bucket)
                 builder.key(location.toString().replace('\\', '/'))
-                builder.contentType(ContentType.getMimeTypeByExtension(location.getExtension()) ?: OCTET_STREAM)
+                builder.contentType(ContentType.mimeTypeByExtension(location.getExtension()) ?: OCTET_STREAM)
                 builder.contentLength(temporary.length())
                 s3.putObject(builder.build(), RequestBody.fromFile(temporary))
                 ok(Unit)
@@ -149,7 +149,7 @@ class S3StorageProvider(
     private fun toDocumentInfo(location: Location, head: HeadObjectResponse): FileDetails =
         DocumentInfo(
             name = location.getSimpleName(),
-            contentType = ContentType.getContentTypeByExtension(location.getExtension()) ?: APPLICATION_OCTET_STREAM,
+            contentType = ContentType.contentTypeByExtension(location.getExtension()) ?: APPLICATION_OCTET_STREAM,
             contentLength = head.contentLength(),
             lastModifiedTime = head.lastModified(),
         )

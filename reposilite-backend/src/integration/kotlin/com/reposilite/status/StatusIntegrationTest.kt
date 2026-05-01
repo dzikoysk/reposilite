@@ -19,7 +19,7 @@
 package com.reposilite.status
 
 import com.reposilite.ExperimentalLocalSpecificationJunitExtension
-import com.reposilite.ExperimentalRemoteSpecficiationJunitExtension
+import com.reposilite.ExperimentalRemoteSpecificationJunitExtension
 import com.reposilite.RecommendedLocalSpecificationJunitExtension
 import com.reposilite.RecommendedRemoteSpecificationJunitExtension
 import com.reposilite.VERSION
@@ -34,7 +34,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 
-@ExtendWith(ExperimentalRemoteSpecficiationJunitExtension::class)
+@ExtendWith(ExperimentalRemoteSpecificationJunitExtension::class)
 internal class ExperimentalRemoteStatusIntegrationTest : StatusIntegrationTest()
 
 @ExtendWith(RecommendedRemoteSpecificationJunitExtension::class)

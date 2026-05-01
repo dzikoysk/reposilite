@@ -79,8 +79,8 @@ class HttpRemoteClient(private val journalist: Journalist, proxy: Proxy?) : Remo
                         ?: UNKNOWN_LENGTH
 
                     val contentType = headers.contentType
-                        ?.let { ContentType.getContentType(it) }
-                        ?: ContentType.getContentTypeByExtension(uri.getExtension())
+                        ?.let { ContentType.contentType(it) }
+                        ?: ContentType.contentTypeByExtension(uri.getExtension())
                         ?: ContentType.APPLICATION_OCTET_STREAM
 
                     val lastModified = headers.lastModified

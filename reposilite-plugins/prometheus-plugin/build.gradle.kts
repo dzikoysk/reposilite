@@ -18,7 +18,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
     kotlin("jvm")
-    id("com.gradleup.shadow") version "8.3.10"
+    id("com.gradleup.shadow") version "9.4.1"
 }
 
 application {

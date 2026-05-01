@@ -68,84 +68,54 @@ object JettyMetrics : Connection.Listener {
 
         CounterWithCallback.builder()
             .name("jetty_dispatched_total")
-            .help("Number of dispatches")
-            .callback { callback -> callback.call(statisticsHandler.dispatched.toDouble()) }
+            .help("Number of handled requests")
+            .callback { callback -> callback.call(statisticsHandler.handleTotal.toDouble()) }
             .register(registry)
 
         GaugeWithCallback.builder()
             .name("jetty_dispatched_active")
-            .help("Number of dispatches currently active")
-            .callback { callback -> callback.call(statisticsHandler.dispatchedActive.toDouble()) }
+            .help("Number of requests currently being handled")
+            .callback { callback -> callback.call(statisticsHandler.handleActive.toDouble()) }
             .register(registry)
 
         GaugeWithCallback.builder()
             .name("jetty_dispatched_active_max")
-            .help("Maximum number of active dispatches being handled")
-            .callback { callback -> callback.call(statisticsHandler.dispatchedActiveMax.toDouble()) }
+            .help("Maximum number of requests being handled at once")
+            .callback { callback -> callback.call(statisticsHandler.handleActiveMax.toDouble()) }
             .register(registry)
 
         GaugeWithCallback.builder()
             .name("jetty_dispatched_time_seconds_max")
-            .help("Maximum time spent in dispatch handling")
+            .help("Maximum time spent handling a request")
             .unit(MetricsUnit.SECONDS)
-            .callback { callback -> callback.call(statisticsHandler.dispatchedTimeMax.toMillisFinite()) }
+            .callback { callback -> callback.call(statisticsHandler.handleTimeMax.toMillisFinite()) }
             .register(registry)
 
         CounterWithCallback.builder()
             .name("jetty_dispatched_time_seconds_total")
-            .help("Total time spent in dispatch handling")
+            .help("Total time spent handling requests")
             .unit(MetricsUnit.SECONDS)
-            .callback { callback -> callback.call(statisticsHandler.dispatchedTimeTotal.toMillisFinite()) }
+            .callback { callback -> callback.call(statisticsHandler.handleTimeTotal.toMillisFinite()) }
             .register(registry)
 
         GaugeWithCallback.builder()
             .name("jetty_dispatched_time_seconds_mean")
-            .help("Mean time spent in dispatch handling")
+            .help("Mean time spent handling requests")
             .unit(MetricsUnit.SECONDS)
-            .callback { callback -> callback.call(statisticsHandler.dispatchedTimeMean.toMillisFinite()) }
+            .callback { callback -> callback.call(statisticsHandler.handleTimeMean.toMillisFinite()) }
             .register(registry)
 
         GaugeWithCallback.builder()
             .name("jetty_dispatched_time_seconds_stddev")
-            .help("Standard deviation of time spent in dispatch handling")
+            .help("Standard deviation of time spent handling requests")
             .unit(MetricsUnit.SECONDS)
-            .callback { callback -> callback.call(statisticsHandler.dispatchedTimeStdDev.toMillisFinite()) }
-            .register(registry)
-
-        CounterWithCallback.builder()
-            .name("jetty_async_requests_total")
-            .help("Total number of async requests")
-            .callback { callback -> callback.call(statisticsHandler.asyncRequests.toDouble()) }
-            .register(registry)
-
-        GaugeWithCallback.builder()
-            .name("jetty_async_requests_waiting")
-            .help("Currently waiting async requests")
-            .callback { callback -> callback.call(statisticsHandler.asyncRequestsWaiting.toDouble()) }
-            .register(registry)
-
-        GaugeWithCallback.builder()
-            .name("jetty_async_requests_waiting_max")
-            .help("Maximum number of waiting async requests")
-            .callback { callback -> callback.call(statisticsHandler.asyncRequestsWaitingMax.toDouble()) }
-            .register(registry)
-
-        CounterWithCallback.builder()
-            .name("jetty_async_dispatches_total")
-            .help("Number of requested that have been asynchronously dispatched")
-            .callback { callback -> callback.call(statisticsHandler.asyncDispatches.toDouble()) }
-            .register(registry)
-
-        CounterWithCallback.builder()
-            .name("jetty_expires_total")
-            .help("Number of async requests requests that have expired")
-            .callback { callback -> callback.call(statisticsHandler.expires.toDouble()) }
+            .callback { callback -> callback.call(statisticsHandler.handleTimeStdDev.toMillisFinite()) }
             .register(registry)
 
         CounterWithCallback.builder()
             .name("jetty_errors_total")
-            .help("Number of async errors that occurred")
-            .callback { callback -> callback.call(statisticsHandler.errors.toDouble()) }
+            .help("Number of failures that occurred while handling requests")
+            .callback { callback -> callback.call(statisticsHandler.failures.toDouble()) }
             .register(registry)
 
         CounterWithCallback.builder()
@@ -163,21 +133,21 @@ object JettyMetrics : Connection.Listener {
 
         CounterWithCallback.builder()
             .name("jetty_responses_thrown_total")
-            .help("Number of requests that threw an exception")
-            .callback { callback -> callback.call(statisticsHandler.responsesThrown.toDouble()) }
+            .help("Number of requests that threw an exception while writing the response")
+            .callback { callback -> callback.call(statisticsHandler.handlingFailures.toDouble()) }
             .register(registry)
 
         GaugeWithCallback.builder()
             .name("jetty_stats_seconds")
             .help("Time in seconds stats have been collected for")
             .unit(MetricsUnit.SECONDS)
-            .callback { callback -> callback.call(statisticsHandler.statsOnMs.toMillisFinite()) }
+            .callback { callback -> callback.call(statisticsHandler.statisticsDuration.toMillis().toDouble().milliseconds.toDouble(DurationUnit.SECONDS)) }
             .register(registry)
 
         CounterWithCallback.builder()
             .name("jetty_responses_bytes_total")
             .help("Total number of bytes across all responses")
-            .callback { callback -> callback.call(statisticsHandler.responsesBytesTotal.toDouble()) }
+            .callback { callback -> callback.call(statisticsHandler.bytesWritten.toDouble()) }
             .register(registry)
 
         responseTimeSummary = Summary.builder()

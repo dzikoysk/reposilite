@@ -28,8 +28,8 @@ import org.junit.jupiter.api.extension.ExtensionContext
  */
 internal class RecommendedLocalSpecificationJunitExtension : Extension, BeforeEachCallback {
 
-    override fun beforeEach(context: ExtensionContext?) {
-        context?.also {
+    override fun beforeEach(context: ExtensionContext) {
+        context.also {
             val instance = it.requiredTestInstance
             val type = instance::class.java
 

@@ -97,10 +97,8 @@ internal class FrontendPlugin : ReposilitePlugin() {
         }
 
         event { event: HttpServerInitializationEvent ->
-            event.config.router.mount {
-                it.exception(NotFoundResponse::class.java, NotFoundHandler(frontendFacade))
-                it.error(404, NotFoundHandler(frontendFacade))
-            }
+            event.config.routes.exception(NotFoundResponse::class.java, NotFoundHandler(frontendFacade))
+            event.config.routes.error(404, NotFoundHandler(frontendFacade))
         }
 
         return frontendFacade

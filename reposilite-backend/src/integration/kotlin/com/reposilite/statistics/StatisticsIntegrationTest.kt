@@ -19,7 +19,7 @@
 package com.reposilite.statistics
 
 import com.reposilite.ExperimentalLocalSpecificationJunitExtension
-import com.reposilite.ExperimentalRemoteSpecficiationJunitExtension
+import com.reposilite.ExperimentalRemoteSpecificationJunitExtension
 import com.reposilite.RecommendedLocalSpecificationJunitExtension
 import com.reposilite.RecommendedRemoteSpecificationJunitExtension
 import com.reposilite.maven.api.Identifier
@@ -41,7 +41,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import panda.std.component1
 
-@ExtendWith(ExperimentalRemoteSpecficiationJunitExtension::class)
+@ExtendWith(ExperimentalRemoteSpecificationJunitExtension::class)
 internal class ExperimentalRemoteStatisticsIntegrationTest : StatisticsIntegrationTest()
 
 @ExtendWith(RecommendedRemoteSpecificationJunitExtension::class)

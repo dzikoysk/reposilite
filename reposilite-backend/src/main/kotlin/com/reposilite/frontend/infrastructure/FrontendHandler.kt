@@ -46,7 +46,7 @@ internal sealed class FrontendHandler(
 ) : ReposiliteRoutes() {
 
     protected fun respondWithResource(ctx: Context, uri: String, source: Source): Result<InputStream, ErrorResponse> {
-        val contentType = ContentType.getContentTypeByExtension(uri.getExtension())
+        val contentType = ContentType.contentTypeByExtension(uri.getExtension())
         ctx.contentType(contentType?.mimeType ?: ContentType.OCTET_STREAM)
 
         return when (uri.contains(".html") || uri.contains(".js")) {

@@ -79,22 +79,20 @@ internal class ConsolePlugin : ReposilitePlugin() {
         }
 
         event { event: HttpServerInitializationEvent ->
-            event.config.router.mount {
-                it.ws(
-                    "/api/console/sock",
-                    ConsoleWebSocketHandler(
-                        journalist = reposilite().journalist,
-                        accessTokenFacade = facade(),
-                        authenticationFacade = facade(),
-                        consoleFacade = consoleFacade,
-                        forwardedIp = sharedConfigurationFacade.getDomainSettings<WebSettings>().computed { it.forwardedIp }
-                    )
+            event.config.routes.ws(
+                "/api/console/sock",
+                ConsoleWebSocketHandler(
+                    journalist = reposilite().journalist,
+                    accessTokenFacade = facade(),
+                    authenticationFacade = facade(),
+                    consoleFacade = consoleFacade,
+                    forwardedIp = sharedConfigurationFacade.getDomainSettings<WebSettings>().computed { it.forwardedIp }
                 )
-                it.sse(
-                    "/api/console/log",
-                    client::handleSseLiveLog
-                )
-            }
+            )
+            event.config.routes.sse(
+                "/api/console/log",
+                client::handleSseLiveLog
+            )
         }
 
         if (!parameters().testEnv) {

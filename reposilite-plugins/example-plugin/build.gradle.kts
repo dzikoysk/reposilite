@@ -19,7 +19,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 // group = "com.reposilite.plugin"
 
 plugins {
-    id("com.gradleup.shadow") version "8.3.10"
+    id("com.gradleup.shadow") version "9.4.1"
 }
 
 application {

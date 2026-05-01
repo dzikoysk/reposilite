@@ -25,7 +25,7 @@ plugins {
     kotlin("jvm")
     kotlin("kapt")
     id("com.coditory.integration-test") version "1.4.5"
-    id("com.gradleup.shadow") version "8.3.10"
+    id("com.gradleup.shadow") version "9.4.1"
 //    id("io.gitlab.arturbosch.detekt").version("1.22.0")
 }
 
@@ -43,18 +43,18 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin")
 
-    val javalin = "6.7.0"
+    val javalin = "7.2.0"
     api("io.javalin:javalin:$javalin") {
         exclude(group = "org.eclipse.jetty", module = "jetty-server")
         exclude(group = "org.eclipse.jetty", module = "jetty-http")
     }
-    api("io.javalin.community.ssl:ssl-plugin:$javalin")
+    api("io.javalin.community.ssl:javalin-ssl:$javalin")
 
-    val javalinOpenApi = "6.7.0-5"
+    val javalinOpenApi = "7.2.0"
     api("io.javalin.community.openapi:javalin-openapi-plugin:$javalinOpenApi")
     kapt("io.javalin.community.openapi:openapi-annotation-processor:$javalinOpenApi")
 
-    val javalinRouting = "6.7.0"
+    val javalinRouting = "7.2.0"
     api("io.javalin.community.routing:routing-dsl:$javalinRouting")
 
     val bcrypt = "0.10.2"

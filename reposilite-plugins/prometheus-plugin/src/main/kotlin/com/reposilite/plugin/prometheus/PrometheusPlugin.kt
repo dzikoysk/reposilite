@@ -67,24 +67,22 @@ class PrometheusPlugin : ReposilitePlugin() {
 
 
         event { event: HttpServerConfigurationEvent ->
-            event.config.router.mount {
-                it.before { ctx ->
-                    ctx.attribute("timestamp", System.currentTimeMillis())
-                }
+            event.config.routes.before { ctx ->
+                ctx.attribute("timestamp", System.currentTimeMillis())
+            }
 
-                it.after { ctx ->
-                    if (ctx.path().toLocation() == prometheusPath)
-                        return@after
+            event.config.routes.after { ctx ->
+                if (ctx.path().toLocation() == prometheusPath)
+                    return@after
 
-                    ReposiliteMetrics.responseCounter.labelValues(ctx.statusCode().toString()).inc()
+                ReposiliteMetrics.responseCounter.labelValues(ctx.statusCode().toString()).inc()
 
-                    val currentTime = System.currentTimeMillis()
-                    val timestamp = ctx.attribute<Long>("timestamp")
+                val currentTime = System.currentTimeMillis()
+                val timestamp = ctx.attribute<Long>("timestamp")
 
-                    if (timestamp != null)
-                        JettyMetrics.responseTimeSummary.labelValues(ctx.statusCode().toString())
-                            .observe((currentTime - timestamp).milliseconds.toDouble(DurationUnit.SECONDS))
-                }
+                if (timestamp != null)
+                    JettyMetrics.responseTimeSummary.labelValues(ctx.statusCode().toString())
+                        .observe((currentTime - timestamp).milliseconds.toDouble(DurationUnit.SECONDS))
             }
 
             event.config.jetty.modifyServer { server ->

@@ -32,17 +32,17 @@ import org.testcontainers.utility.DockerImageName
  * - Local file system
  */
 @Testcontainers
-internal class ExperimentalRemoteSpecficiationJunitExtension : Extension, BeforeEachCallback, AfterEachCallback {
+internal class ExperimentalRemoteSpecificationJunitExtension : Extension, BeforeEachCallback, AfterEachCallback {
 
     private class SpecifiedPostgreSQLContainer(image: String) : PostgreSQLContainer<SpecifiedPostgreSQLContainer>(DockerImageName.parse(image))
 
     @Container
     private val postgres = SpecifiedPostgreSQLContainer("postgres:latest")
 
-    override fun beforeEach(context: ExtensionContext?) {
+    override fun beforeEach(context: ExtensionContext) {
         postgres.start()
 
-        context?.also {
+        context.also {
             val instance = it.requiredTestInstance
             val type = instance::class.java
 

@@ -30,11 +30,11 @@ internal abstract class MavenIntegrationSpecification : ReposiliteSpecification(
     ) {
         val serverStartedJob = Job()
 
-        val application = Javalin.create()
-            .events { it.serverStarted { serverStartedJob.complete() } }
-            .head("/$repository/$gav") { ctx -> ctx.result(content) }
-            .get("/$repository/$gav") { ctx -> ctx.result(content) }
-            .start(reposilite.parameters.port + 1)
+        val application = Javalin.create { config ->
+            config.events.serverStarted { serverStartedJob.complete() }
+            config.routes.head("/$repository/$gav") { ctx -> ctx.result(content) }
+            config.routes.get("/$repository/$gav") { ctx -> ctx.result(content) }
+        }.start(reposilite.parameters.port + 1)
 
         serverStartedJob.join()
         block(gav, content)

@@ -171,7 +171,7 @@ abstract class FileSystemStorageProvider protected constructor(
             .let {
                 DocumentInfo(
                     name = path.name,
-                    contentType = ContentType.getContentTypeByExtension(path.extension) ?: APPLICATION_OCTET_STREAM,
+                    contentType = ContentType.contentTypeByExtension(path.extension) ?: APPLICATION_OCTET_STREAM,
                     contentLength = it.size(),
                     lastModifiedTime = it.lastModifiedTime().toInstant(),
                 )

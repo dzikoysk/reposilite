@@ -126,6 +126,6 @@ internal class ConsoleWebSocketHandler(
     }
 
     private fun WsContext.getHost(): String =
-        header(forwardedIp.get()) ?: session.remoteAddress.toString()
+        header(forwardedIp.get()) ?: session.remoteSocketAddress.toString()
 
 }
