@@ -21,9 +21,9 @@ import org.junit.jupiter.api.extension.AfterEachCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.Extension
 import org.junit.jupiter.api.extension.ExtensionContext
+import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.MariaDBContainer
-import org.testcontainers.containers.localstack.LocalStackContainer
-import org.testcontainers.containers.localstack.LocalStackContainer.Service.S3
+import org.testcontainers.containers.wait.strategy.Wait
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import org.testcontainers.utility.DockerImageName
@@ -31,7 +31,7 @@ import org.testcontainers.utility.DockerImageName
 /**
  * Integrations used in remote stack:
  * - MariaDB
- * - AWS S3 through LocalStack
+ * - AWS S3 through Floci
  */
 @Testcontainers
 internal class RecommendedRemoteSpecificationJunitExtension : Extension, BeforeEachCallback, AfterEachCallback {
@@ -42,12 +42,13 @@ internal class RecommendedRemoteSpecificationJunitExtension : Extension, BeforeE
     private val mariaDb = SpecifiedMariaDBContainer("mariadb:latest")
 
     @Container
-    private val localstack: LocalStackContainer = LocalStackContainer(DockerImageName.parse("localstack/localstack:latest"))
-        .withServices(S3)
+    private val floci: GenericContainer<*> = GenericContainer(DockerImageName.parse("floci/floci:latest"))
+        .withExposedPorts(4566)
+        .waitingFor(Wait.forListeningPort())
 
     override fun beforeEach(context: ExtensionContext) {
         mariaDb.start()
-        localstack.start()
+        floci.start()
 
         context.also {
             val instance = it.requiredTestInstance
@@ -59,10 +60,10 @@ internal class RecommendedRemoteSpecificationJunitExtension : Extension, BeforeE
                 instance,
                 S3StorageProviderSettings(
                     bucketName = "test-repository",
-                    endpoint = localstack.getEndpointOverride(S3).toString(),
-                    accessKey = localstack.accessKey,
-                    secretKey = localstack.secretKey,
-                    region = localstack.region
+                    endpoint = "http://${floci.host}:${floci.getMappedPort(4566)}",
+                    accessKey = "test",
+                    secretKey = "test",
+                    region = "us-east-1"
                 )
             )
         }
@@ -70,7 +71,7 @@ internal class RecommendedRemoteSpecificationJunitExtension : Extension, BeforeE
 
     override fun afterEach(context: ExtensionContext) {
         mariaDb.stop()
-        localstack.stop()
+        floci.stop()
     }
 
 }

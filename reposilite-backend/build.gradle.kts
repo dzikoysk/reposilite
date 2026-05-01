@@ -139,7 +139,6 @@ dependencies {
     testImplementation("org.testcontainers:mariadb:$testcontainers")
     testImplementation("org.testcontainers:testcontainers:$testcontainers")
     testImplementation("org.testcontainers:junit-jupiter:$testcontainers")
-    testImplementation("org.testcontainers:localstack:$testcontainers")
     testImplementation("org.testcontainers:mysql:$testcontainers")
     testImplementation("org.testcontainers:postgresql:$testcontainers") {
         exclude(group = "org.apache.commons", module = "commons-compress")
@@ -233,6 +232,12 @@ tasks.test {
     }
 
     finalizedBy("jacocoTestReport")
+}
+
+tasks.named<Test>("integrationTest") {
+    // Floci (used in S3 integration tests) does not auto-rewrite virtual-host requests
+    // to the container's random port, so the AWS SDK must use path-style addressing.
+    systemProperty("reposilite.s3.pathStyleAccessEnabled", "true")
 }
 
 tasks.jacocoTestReport {

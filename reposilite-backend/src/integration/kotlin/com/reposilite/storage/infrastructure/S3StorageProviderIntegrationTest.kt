@@ -23,8 +23,8 @@ import com.reposilite.storage.StorageProviderIntegrationTest
 import com.reposilite.storage.s3.S3StorageProviderSettings
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
-import org.testcontainers.containers.localstack.LocalStackContainer
-import org.testcontainers.containers.localstack.LocalStackContainer.Service.S3
+import org.testcontainers.containers.GenericContainer
+import org.testcontainers.containers.wait.strategy.Wait
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import org.testcontainers.utility.DockerImageName
@@ -37,8 +37,9 @@ internal class S3StorageProviderIntegrationTest : StorageProviderIntegrationTest
     lateinit var rootDirectory: File
 
     @Container
-    val localstack: LocalStackContainer = LocalStackContainer(DockerImageName.parse("localstack/localstack:latest"))
-        .withServices(S3)
+    val floci: GenericContainer<*> = GenericContainer(DockerImageName.parse("floci/floci:latest"))
+        .withExposedPorts(4566)
+        .waitingFor(Wait.forListeningPort())
 
     @BeforeEach
     fun setup() {
@@ -53,10 +54,10 @@ internal class S3StorageProviderIntegrationTest : StorageProviderIntegrationTest
             repository = "test-repository",
             storageSettings = S3StorageProviderSettings(
                 bucketName = "test-repository",
-                endpoint = localstack.getEndpointOverride(S3).toURL().toString(),
-                accessKey = localstack.accessKey,
-                secretKey = localstack.secretKey,
-                region = localstack.region
+                endpoint = "http://${floci.host}:${floci.getMappedPort(4566)}",
+                accessKey = "test",
+                secretKey = "test",
+                region = "us-east-1"
             )
         )!!
     }
