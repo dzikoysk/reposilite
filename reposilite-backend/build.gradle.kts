@@ -25,7 +25,7 @@ plugins {
     kotlin("jvm")
     kotlin("kapt")
     id("com.coditory.integration-test") version "1.4.5"
-    id("com.gradleup.shadow") version "8.3.9"
+    id("com.gradleup.shadow") version "8.3.10"
 //    id("io.gitlab.arturbosch.detekt").version("1.22.0")
 }
 
@@ -39,7 +39,7 @@ dependencies {
 //    val detekt = "1.23.5"
 //    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:$detekt")
 
-    val kotlin = "2.3.0"
+    val kotlin = "2.3.21"
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin")
 
@@ -73,14 +73,14 @@ dependencies {
     kapt("info.picocli:picocli-codegen:$picocli")
     api("info.picocli:picocli:$picocli")
 
-    val awssdk = "2.41.19"
+    val awssdk = "2.43.2"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
     // STS is needed so it Web Identity Tokens can be used
     // See https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts-minimum-sdk.html
     implementation("software.amazon.awssdk:sts:$awssdk")
 
-    val awsSdkV1 = "1.12.791"
+    val awsSdkV1 = "1.12.797"
     testImplementation("com.amazonaws:aws-java-sdk-s3:$awsSdkV1")
 
     implementation("com.github.ben-manes.caffeine:caffeine:3.2.3")
@@ -94,18 +94,18 @@ dependencies {
     // Drivers
     implementation("com.zaxxer:HikariCP:7.0.2")
     implementation("org.xerial:sqlite-jdbc:3.49.1.0") // note: 3.50.3.0 is broken
-    implementation("org.mariadb.jdbc:mariadb-java-client:3.5.6")
-    implementation("org.postgresql:postgresql:42.7.9")
+    implementation("org.mariadb.jdbc:mariadb-java-client:3.5.8")
+    implementation("org.postgresql:postgresql:42.7.11")
     implementation("com.h2database:h2:2.3.232")
-    implementation("com.mysql:mysql-connector-j:9.5.0") {
+    implementation("com.mysql:mysql-connector-j:9.7.0") {
         exclude(group = "com.google.protobuf", module = "protobuf-java")
     }
-    implementation("com.google.protobuf:protobuf-java:4.33.5")
+    implementation("com.google.protobuf:protobuf-java:4.34.1")
 
     val exposedUpsert = "1.2.2"
     api("net.dzikoysk:exposed-upsert:$exposedUpsert")
 
-    val jackson = "2.21.0"
+    val jackson = "2.21.3"
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jackson")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jackson")
@@ -113,16 +113,16 @@ dependencies {
     val jsonSchema = "4.38.0"
     implementation("com.github.victools:jsonschema-generator:$jsonSchema")
 
-    val httpClient = "2.0.3"
+    val httpClient = "2.1.0"
     implementation("com.google.http-client:google-http-client:$httpClient") {
         exclude(group = "commons-codec", module = "commons-codec")
         exclude(group = "com.google.guava", module = "guava")
     }
-    api("commons-codec:commons-codec:1.20.0")
-    api("com.google.guava:guava:33.5.0-android")
+    api("commons-codec:commons-codec:1.22.0")
+    api("com.google.guava:guava:33.6.0-android")
     testImplementation("com.google.http-client:google-http-client-jackson2:$httpClient")
 
-    val jansi = "2.4.2"
+    val jansi = "2.4.3"
     implementation("org.fusesource.jansi:jansi:$jansi")
 
     val journalist = "1.0.12"
@@ -146,7 +146,7 @@ dependencies {
     }
     testImplementation("org.apache.commons:commons-compress:1.28.0")
 
-    val ldap = "7.0.3"
+    val ldap = "7.0.4"
     testImplementation("com.unboundid:unboundid-ldapsdk:$ldap")
 }
 

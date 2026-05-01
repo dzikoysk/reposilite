@@ -25,13 +25,13 @@
     "@vueuse/head": "^2.0.0",
     "ansi-to-html": "^0.7.2",
     "apexcharts": "^4.7.0",
-    "axios": "^1.13.5",
+    "axios": "^1.15.2",
     "downloadjs": "^1.4.7",
     "extended-eventsource": "^2.1.0",
     "mime-types": "^3.0.2",
     "mosha-vue-toastify": "^1.0.23",
     "pretty-bytes": "^7.1.0",
-    "vue": "^3.5.28",
+    "vue": "^3.5.33",
     "vue-axios": "^3.5.2",
     "vue-final-modal": "^4.5.5",
     "vue-float-menu": "^1.9.1",
@@ -42,8 +42,8 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.2.4",
-    "@vitejs/plugin-vue-jsx": "^5.1.4",
-    "@vue/compiler-sfc": "^3.5.28",
+    "@vitejs/plugin-vue-jsx": "^5.1.5",
+    "@vue/compiler-sfc": "^3.5.33",
     "body-parser": "^1.20.4",
     "concurrently": "^9.2.1",
     "eslint": "9.39.2",
@@ -53,11 +53,11 @@
     "globals": "^16.5.0",
     "jsdoc": "^4.0.5",
     "json-server": "^0.17.4",
-    "nodemon": "^3.1.11",
+    "nodemon": "^3.1.14",
     "rollup-plugin-visualizer": "^6.0.5",
     "vite": "^6.4.1",
     "vite-plugin-windicss": "^1.9.4",
     "windicss": "^3.5.6",
-    "ws": "^8.19.0"
+    "ws": "^8.20.0"
   }
 }

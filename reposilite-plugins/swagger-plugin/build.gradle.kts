@@ -18,7 +18,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
     kotlin("jvm")
-    id("com.gradleup.shadow") version "8.3.5"
+    id("com.gradleup.shadow") version "8.3.10"
 }
 
 application {
@@ -27,7 +27,7 @@ application {
 
 dependencies {
     compileOnly(project(":reposilite-backend"))
-    implementation("io.javalin.community.openapi:javalin-swagger-plugin:6.7.0-2")
+    implementation("io.javalin.community.openapi:javalin-swagger-plugin:6.7.0-5")
 }
 
 tasks.withType<ShadowJar> {

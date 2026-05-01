@@ -23,5 +23,5 @@ repositories {
 }
 
 dependencies {
-    implementation("pl.allegro.tech.build:axion-release-plugin:1.13.6")
+    implementation("pl.allegro.tech.build:axion-release-plugin:1.21.1")
 }
