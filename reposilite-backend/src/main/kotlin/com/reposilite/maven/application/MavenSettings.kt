@@ -80,7 +80,7 @@ data class MirroredRepositorySettings(
     val store: Boolean = false,
     @get:Doc(title = "Allowed Groups", description = "Allowed artifact groups. If none are given, all artifacts can be obtained from this mirror.")
     val allowedGroups: List<String> = listOf(),
-    @get:Doc(title = "Allowed Extensions", description = "List of accepted file extensions. If none are given, all files can be obtained from this mirror.")
+    @get:Doc(title = "Allowed Extensions", description = "List of accepted file extensions. If none are given, all files can be obtained from this mirror. Use the special value '&lt;none&gt;' to permit files without an extension (e.g. native binaries).")
     val allowedExtensions: List<String> = listOf(".jar", ".war", ".aar", ".pom", ".xml", ".module", ".md5", ".sha1", ".sha256", ".sha512", ".asc"),
     @Min(0)
     @get:Doc(title = "Connect Timeout", description = "How long Reposilite can wait for establishing the connection with a remote host. (In seconds)")

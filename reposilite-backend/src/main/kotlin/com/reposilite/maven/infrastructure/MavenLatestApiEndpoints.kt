@@ -57,7 +57,7 @@ internal class MavenLatestApiEndpoints(
             OpenApiParam(name = "gav", description = "Artifact path qualifier", required = true, allowEmptyValue = true)
         ],
         queryParams = [
-            OpenApiParam(name = "extension", description = "Changes extension of matched file (by default matches 'jar')", required = false),
+            OpenApiParam(name = "extension", description = "Changes extension of matched file (by default matches 'jar'). Pass an empty value to match files without an extension.", required = false),
             OpenApiParam(name = "classifier", description = "Appends classifier suffix to matched file", required = false),
             OpenApiParam(name = "filter", description = "Version (prefix) filter to apply", required = false),
             OpenApiParam(name = "type", description = "Format of expected response type: empty (default) for json; 'raw' for plain text", required = false),
@@ -95,7 +95,7 @@ internal class MavenLatestApiEndpoints(
             OpenApiParam(name = "gav", description = "Artifact path qualifier", required = true, allowEmptyValue = true)
         ],
         queryParams = [
-            OpenApiParam(name = "extension", description = "Changes extension of matched file (by default matches 'jar')", required = false),
+            OpenApiParam(name = "extension", description = "Changes extension of matched file (by default matches 'jar'). Pass an empty value to match files without an extension.", required = false),
             OpenApiParam(name = "classifier", description = "Appends classifier suffix to matched file", required = false),
             OpenApiParam(name = "filter", description = "Version (prefix) filter to apply", required = false),
         ],
@@ -123,7 +123,7 @@ internal class MavenLatestApiEndpoints(
             OpenApiParam(name = "gav", description = "Artifact path qualifier", required = true, allowEmptyValue = true)
         ],
         queryParams = [
-            OpenApiParam(name = "extension", description = "Changes extension of matched file (by default matches 'jar')", required = false),
+            OpenApiParam(name = "extension", description = "Changes extension of matched file (by default matches 'jar'). Pass an empty value to match files without an extension.", required = false),
             OpenApiParam(name = "classifier", description = "Appends classifier suffix to matched file", required = false),
             OpenApiParam(name = "filter", description = "Version (prefix) filter to apply", required = false),
         ]

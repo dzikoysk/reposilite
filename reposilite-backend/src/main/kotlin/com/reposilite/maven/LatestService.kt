@@ -74,7 +74,7 @@ internal class LatestService(private val repositoryId: Reference<out String>) {
 
     private fun createLatestArtifactLocation(query: LatestArtifactQuery, isSnapshot: Boolean, version: String): Pair<String, Location> =
         with(query) {
-            val suffix = version + (if (classifier != null) "-$classifier" else "") + "." + extension
+            val suffix = version + (if (classifier != null) "-$classifier" else "") + (if (extension.isNotEmpty()) ".$extension" else "")
 
             if (isSnapshot)
                 version to "$gav/${gav.locationBeforeLast("/", "").locationAfterLast("/", "")}-$suffix".toLocation()

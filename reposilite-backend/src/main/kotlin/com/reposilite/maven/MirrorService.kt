@@ -35,6 +35,8 @@ import java.time.Clock
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 
+internal const val NO_EXTENSION_MARKER = "<none>"
+
 internal class MirrorService(
     private val journalist: Journalist,
     private val clock: Clock
@@ -97,7 +99,12 @@ internal class MirrorService(
     private fun isAllowedExtension(config: MirroredRepositorySettings, gav: Location): Result<Blank, DisallowedReason> =
         when {
             config.allowedExtensions.none { it.isNotBlank() } -> ok()
-            config.allowedExtensions.any { gav.endsWith(it) } -> ok()
+            config.allowedExtensions.any { entry ->
+                when (val trimmed = entry.trim()) {
+                    NO_EXTENSION_MARKER -> gav.getExtension().isEmpty()
+                    else -> gav.endsWith(trimmed)
+                }
+            } -> ok()
             else -> error(DisallowedReason.EXTENSION)
         }
 
