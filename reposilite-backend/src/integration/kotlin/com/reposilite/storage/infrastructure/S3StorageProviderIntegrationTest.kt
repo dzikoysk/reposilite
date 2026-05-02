@@ -20,14 +20,19 @@ import com.reposilite.journalist.backend.InMemoryLogger
 import com.reposilite.status.FailureFacade
 import com.reposilite.storage.StorageFacade
 import com.reposilite.storage.StorageProviderIntegrationTest
+import com.reposilite.storage.api.DirectoryInfo
+import com.reposilite.storage.api.toLocation
 import com.reposilite.storage.s3.S3StorageProviderSettings
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.wait.strategy.Wait
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import org.testcontainers.utility.DockerImageName
+import panda.std.ResultAssertions.assertOk
 import java.io.File
 
 @Testcontainers
@@ -60,6 +65,25 @@ internal class S3StorageProviderIntegrationTest : StorageProviderIntegrationTest
                 region = "us-east-1"
             )
         )!!
+    }
+
+    // GH-2612: ListObjectsV2 caps a single response at 1000 keys; without continuation-token
+    // pagination, directory listings and bulk deletes silently truncate beyond that.
+    @Test
+    fun `should list and remove all entries when directory holds more than a single S3 page`() {
+        val entryCount = 1001
+        val content = "x".toByteArray()
+
+        repeat(entryCount) { i ->
+            storageProvider.putFile("/snapshots/file-$i.jar".toLocation(), content.inputStream())
+        }
+
+        val listing = assertOk(storageProvider.getFileDetails("/snapshots".toLocation())) as DirectoryInfo
+        assertThat(listing.files).hasSize(entryCount)
+
+        assertOk(storageProvider.removeFile("/snapshots".toLocation()))
+        assertThat(storageProvider.exists("/snapshots/file-0.jar".toLocation())).isFalse
+        assertThat(storageProvider.exists("/snapshots/file-${entryCount - 1}.jar".toLocation())).isFalse
     }
 
 }

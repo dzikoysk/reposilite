@@ -167,11 +167,9 @@ class S3StorageProvider(
                 .prefix(location.toString().replace('\\', '/'))
                 .build()
 
-            s3.listObjectsV2(request)
+            s3.listObjectsV2Paginator(request)
                 .contents()
-                .asSequence()
-                .map { createDeleteRequest(it.key().toLocation()) }
-                .forEach { s3.deleteObject(it) }
+                .forEach { s3.deleteObject(createDeleteRequest(it.key().toLocation())) }
 
             ok(Unit)
         } catch (exception: Exception) {
@@ -194,19 +192,11 @@ class S3StorageProvider(
                 .bucket(bucket)
                 .prefix(directoryString)
                 .delimiter("/")
+                .build()
 
-            val directories = s3.listObjectsV2(request.build())
-                .commonPrefixes()
-                .asSequence()
-                .map { it.prefix().toLocation() }
-                .toList()
-
-            val files = s3.listObjectsV2(request.build())
-                .contents()
-                .asSequence()
-                .map { it.key().toLocation() }
-                .toList()
-
+            val pages = s3.listObjectsV2Paginator(request).toList()
+            val directories = pages.flatMap { it.commonPrefixes() }.map { it.prefix().toLocation() }
+            val files = pages.flatMap { it.contents() }.map { it.key().toLocation() }
             val paths = directories + files
 
             if (paths.isEmpty())
