@@ -23,6 +23,7 @@ import com.reposilite.ExperimentalRemoteSpecificationJunitExtension
 import com.reposilite.RecommendedLocalSpecificationJunitExtension
 import com.reposilite.RecommendedRemoteSpecificationJunitExtension
 import com.reposilite.VERSION
+import com.reposilite.status.api.HealthResponse
 import com.reposilite.status.api.InstanceStatusResponse
 import com.reposilite.status.api.StatusSnapshot
 import com.reposilite.status.specification.StatusIntegrationSpecification
@@ -88,6 +89,16 @@ internal abstract class StatusIntegrationTest : StatusIntegrationSpecification()
         // then: service should respond with valid instance dto
         assertThat(response.status).isEqualTo(OK.code)
         assertThat(response.body.getOrNull(0)).isNotNull
+    }
+
+    @Test
+    fun `should expose unauthenticated health endpoint`() {
+        // when: health service is requested without credentials
+        val response = get("$base/api/status/health").asObject(HealthResponse::class.java)
+
+        // then: it responds with 200 and a healthy status
+        assertThat(response.status).isEqualTo(OK.code)
+        assertThat(response.body.status).isEqualTo("UP")
     }
 
 }

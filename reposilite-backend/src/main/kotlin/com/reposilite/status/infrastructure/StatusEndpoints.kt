@@ -18,18 +18,24 @@ package com.reposilite.status.infrastructure
 
 import com.reposilite.status.FailureFacade
 import com.reposilite.status.StatusFacade
+import com.reposilite.status.api.HealthResponse
 import com.reposilite.status.api.InstanceStatusResponse
 import com.reposilite.status.api.StatusSnapshot
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
 import io.javalin.community.routing.Route.GET
+import io.javalin.http.HttpStatus.OK
+import io.javalin.http.HttpStatus.SERVICE_UNAVAILABLE
 import io.javalin.openapi.HttpMethod
 import io.javalin.openapi.OpenApi
 import io.javalin.openapi.OpenApiContent
 import io.javalin.openapi.OpenApiResponse
 import panda.std.asSuccess
 
-internal class StatusEndpoints(private val statusFacade: StatusFacade, val failureFacade: FailureFacade) : ReposiliteRoutes() {
+internal class StatusEndpoints(
+    private val statusFacade: StatusFacade,
+    val failureFacade: FailureFacade,
+) : ReposiliteRoutes() {
 
     @OpenApi(
         path = "/api/status/instance",
@@ -57,6 +63,21 @@ internal class StatusEndpoints(private val statusFacade: StatusFacade, val failu
         }
     }
 
-    override val routes = routes(getInstanceStatus, getStatusSnapshots)
+    @OpenApi(
+        path = "/api/status/health",
+        methods = [HttpMethod.GET],
+        responses = [
+            OpenApiResponse(status = "200", content = [OpenApiContent(from = HealthResponse::class)]),
+            OpenApiResponse(status = "503", content = [OpenApiContent(from = HealthResponse::class)])
+        ]
+    )
+    private val getHealth = ReposiliteRoute<HealthResponse>("/api/status/health", GET) {
+        statusFacade.isAlive().also { alive ->
+            ctx.status(if (alive) OK else SERVICE_UNAVAILABLE)
+            response = HealthResponse(status = if (alive) "UP" else "DOWN").asSuccess()
+        }
+    }
+
+    override val routes = routes(getInstanceStatus, getStatusSnapshots, getHealth)
 
 }

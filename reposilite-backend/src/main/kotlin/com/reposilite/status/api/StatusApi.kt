@@ -35,3 +35,7 @@ data class StatusSnapshot(
     val memory: Int,
     val threads: Int
 )
+
+data class HealthResponse(
+    val status: String
+)
