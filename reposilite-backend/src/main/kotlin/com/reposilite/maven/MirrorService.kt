@@ -34,6 +34,8 @@ import java.io.InputStream
 import java.time.Clock
 import java.time.Instant
 import java.time.temporal.ChronoUnit
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.ConcurrentHashMap
 
 internal const val NO_EXTENSION_MARKER = "<none>"
 
@@ -41,6 +43,11 @@ internal class MirrorService(
     private val journalist: Journalist,
     private val clock: Clock
 ) : Journalist {
+
+    // Tracks an in-flight upstream fetch+store per (repository, gav) so that N concurrent client
+    // requests for the same artifact collapse into a single upstream call. Each waiter then opens
+    // its own fresh InputStream from local storage; the future itself only carries success/error.
+    private val inFlightFetches = ConcurrentHashMap<Pair<String, Location>, CompletableFuture<Result<Unit, ErrorResponse>>>()
 
     fun shouldPrioritizeMirrorRepository(repository: Repository, gav: Location): Boolean =
         when {
@@ -60,10 +67,33 @@ internal class MirrorService(
             client.head("${host.removeSuffix("/")}/$gav", config.authorization, config.connectTimeout, config.readTimeout)
         }
 
-    fun findRemoteFile(repository: Repository, gav: Location, accessToken: AccessTokenIdentifier? = null): Result<InputStream, ErrorResponse> =
+    fun findRemoteFile(repository: Repository, gav: Location, accessToken: AccessTokenIdentifier? = null): Result<InputStream, ErrorResponse> {
+        // Single-flight only applies when every mirror host stores; otherwise we'd have to coordinate
+        // a fetch path that doesn't write to local storage, and waiters can't share a remote stream.
+        if (repository.mirrorHosts.isEmpty() || !repository.mirrorHosts.all { it.configuration.store }) {
+            return fetchFromRemoteHosts(repository, gav, accessToken)
+        }
+
+        val key = repository.name to gav
+        val future = inFlightFetches.computeIfAbsent(key) {
+            CompletableFuture.supplyAsync { fetchAndStoreFromRemoteHosts(repository, gav, accessToken) }
+                .also { it.whenComplete { _, _ -> inFlightFetches.remove(key, it) } }
+        }
+
+        return future.join().flatMap { repository.storageProvider.getFile(gav) }
+    }
+
+    private fun fetchFromRemoteHosts(repository: Repository, gav: Location, accessToken: AccessTokenIdentifier?): Result<InputStream, ErrorResponse> =
         searchInRemoteRepositories(repository, gav, accessToken) { (host, config, client) ->
             client.get("${host.removeSuffix("/")}/$gav", config.authorization, config.connectTimeout, config.readTimeout)
                 .flatMap { data -> if (config.store) storeFile(repository, gav, data) else ok(data) }
+                .mapErr { error -> error.updateMessage { "$host: $it" } }
+        }
+
+    private fun fetchAndStoreFromRemoteHosts(repository: Repository, gav: Location, accessToken: AccessTokenIdentifier?): Result<Unit, ErrorResponse> =
+        searchInRemoteRepositories(repository, gav, accessToken) { (host, config, client) ->
+            client.get("${host.removeSuffix("/")}/$gav", config.authorization, config.connectTimeout, config.readTimeout)
+                .flatMap { data -> repository.storageProvider.putFile(gav, data) }
                 .mapErr { error -> error.updateMessage { "$host: $it" } }
         }
 
