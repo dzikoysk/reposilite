@@ -136,6 +136,7 @@ internal abstract class MavenSpecification {
             authenticationFacade = authenticationFacade,
             accessTokenFacade = accessTokenFacade,
             statisticsFacade = StatisticsFacade(logger, Reference.reference(false), DailyDateIntervalProvider.toReference(), InMemoryStatisticsRepository()),
+            ioService = java.util.concurrent.Executors.newCachedThreadPool(),
             mavenSettings = reference(MavenSettings(
                 repositories = repositories()
             )),

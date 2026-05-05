@@ -20,7 +20,10 @@ import com.reposilite.journalist.Journalist
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.badRequest
 import com.reposilite.shared.notFound
+import com.reposilite.shared.stream.BoundedInputStream
+import com.reposilite.shared.stream.BoundedInputStreamLimitExceededException
 import com.reposilite.shared.toErrorResponse
+import com.reposilite.shared.toErrorResult
 import com.reposilite.storage.FilesComparator
 import com.reposilite.storage.StorageProvider
 import com.reposilite.storage.VersionComparator
@@ -38,6 +41,7 @@ import io.javalin.http.ContentType.APPLICATION_OCTET_STREAM
 import io.javalin.http.HttpStatus.INSUFFICIENT_STORAGE
 import panda.std.Result
 import panda.std.asSuccess
+import panda.std.mapToUnit
 import java.io.Closeable
 import java.io.FilterInputStream
 import java.io.IOException
@@ -46,9 +50,9 @@ import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
 import java.nio.file.attribute.FileTime
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.Semaphore
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createParentDirectories
 import kotlin.io.path.createTempFile
@@ -72,7 +76,6 @@ import kotlin.io.path.useDirectoryEntries
 abstract class FileSystemStorageProvider protected constructor(
     val journalist: Journalist,
     val rootDirectory: Path,
-    @Suppress("UNUSED_PARAMETER") maxResourceLockLifetimeInSeconds: Int
 ) : StorageProvider {
 
     private enum class LockMode {
@@ -81,77 +84,99 @@ abstract class FileSystemStorageProvider protected constructor(
     }
 
     private class FileAccessor(
-        val lock: Semaphore = Semaphore(1),
-        val reads: AtomicInteger = AtomicInteger(0),
-        // Number of in-flight acquires (read + write) using this accessor. The accessor is removed
-        // from the map only when this drops to zero, so it cannot be evicted while still held.
+        val rwLock: ReentrantReadWriteLock = ReentrantReadWriteLock(),
+        /** Refcount of in-flight acquires; the accessor is evicted from the map only when this hits zero. */
         val holders: AtomicInteger = AtomicInteger(0),
     )
 
     private val lockedLocations = ConcurrentHashMap<Location, FileAccessor>()
 
     private fun acquireFileAccessLock(location: Location, lockMode: LockMode): Closeable {
-        // `compute` is atomic per key, so a concurrent eviction cannot race the increment.
         val accessor = lockedLocations.compute(location) { _, existing ->
             (existing ?: FileAccessor()).also { it.holders.incrementAndGet() }
         }!!
 
-        when (lockMode) {
-            LockMode.READ -> if (accessor.reads.incrementAndGet() == 1) accessor.lock.acquire()
-            LockMode.WRITE -> accessor.lock.acquire()
+        val lock = when (lockMode) {
+            LockMode.READ -> accessor.rwLock.readLock()
+            LockMode.WRITE -> accessor.rwLock.writeLock()
+        }
+
+        try {
+            lock.lockInterruptibly()
+        } catch (interrupted: InterruptedException) {
+            decrementHolders(location, accessor)
+            throw IOException("Failed to acquire $lockMode lock for $location", interrupted)
         }
 
         return Closeable {
-            when (lockMode) {
-                LockMode.READ -> if (accessor.reads.decrementAndGet() == 0) accessor.lock.release()
-                LockMode.WRITE -> accessor.lock.release()
+            try {
+                lock.unlock()
+            } finally {
+                decrementHolders(location, accessor)
             }
-            lockedLocations.compute(location) { _, existing ->
-                when {
-                    existing !== accessor -> existing
-                    accessor.holders.decrementAndGet() == 0 -> null
-                    else -> existing
-                }
+        }
+    }
+
+    private fun decrementHolders(location: Location, accessor: FileAccessor) {
+        lockedLocations.compute(location) { _, existing ->
+            when {
+                existing !== accessor -> existing
+                accessor.holders.decrementAndGet() == 0 -> null
+                else -> existing
             }
         }
     }
 
     override fun putFile(location: Location, inputStream: InputStream): Result<Unit, ErrorResponse> =
         inputStream.use { data ->
-            location.resolveWithRootDirectory().flatMap { file ->
-                file.createParentDirectories()
+            canHold(0)
+                .mapErr { INSUFFICIENT_STORAGE.toErrorResponse("Not enough storage space available: ${it.message}") }
+                .flatMap { limit -> location.resolveWithRootDirectory().map { limit to it } }
+                .peek { (_, file) -> file.createParentDirectories() }
+                .flatMap { (limit, file) ->
+                    // TO-FIX: FS locks are not truly respected, there might be a need to enhanced it with .lock file to be sure if it's respected.
+                    // In theory people shouldn't redeploy multiple times the same file, but who knows.
+                    // Let's try with temporary files.
+                    // ~ https://github.com/dzikoysk/reposilite/issues/264
 
-                // Temp file lives inside the storage root so that `moveTo` is an atomic same-filesystem
-                // rename — `java.io.tmpdir` is often a separate filesystem (tmpfs) in containers, which
-                // would silently degrade to a non-atomic copy+delete and let readers see a partial file.
-                val temporaryFile = createTempFile(rootDirectory, "reposilite-", "-fs-put")
-
-                try {
-                    temporaryFile.outputStream().use { destination ->
-                        data.copyTo(destination)
-                    }
-
-                    // Quota is enforced post-write because `InputStream.available()` is only a hint
-                    // and returns 0 for HTTP request bodies, which would let oversized uploads through.
-                    canHold(temporaryFile.fileSize())
-                        .mapErr { INSUFFICIENT_STORAGE.toErrorResponse("Not enough storage space available: ${it.message}") }
-                        .map {
-                            acquireFileAccessLock(location, LockMode.WRITE).use {
-                                temporaryFile.moveTo(file, overwrite = true)
-                                Unit
+                    useTempFile { temporaryFile ->
+                        copyBounded(source = data, destination = temporaryFile, maxBytes = limit)
+                            // Re-check post-write: InputStream.available() is just a hint and returns 0 for HTTP request bodies.
+                            .flatMap { canHold(temporaryFile.fileSize()).mapErr { INSUFFICIENT_STORAGE.toErrorResponse("Not enough storage space available: ${it.message}") } }
+                            .peek {
+                                acquireFileAccessLock(location, LockMode.WRITE).use {
+                                    temporaryFile.moveTo(file, overwrite = true)
+                                }
                             }
-                        }
-                } finally {
-                    temporaryFile.deleteIfExists()
+                            .mapToUnit()
+                    }
                 }
-            }
         }
 
-    private class LockedFilterInputStream(private val inputStream: InputStream, private val lock: Closeable) : FilterInputStream(inputStream) {
-        // Frameworks (Javalin/Jetty defensive close + GC) may close response streams more than once.
-        // Without this guard, repeated close() drives the underlying read counter negative and breaks
-        // exclusion against future writers for this location.
+    private inline fun <T> useTempFile(block: (Path) -> T): T {
+        val temporaryFile = createTempFile("reposilite-", "-fs-put")
+        return try {
+            block(temporaryFile)
+        } finally {
+            temporaryFile.deleteIfExists()
+        }
+    }
+
+    private fun copyBounded(source: InputStream, destination: Path, maxBytes: Long): Result<Unit, ErrorResponse> =
+        try {
+            destination.outputStream().use { out -> BoundedInputStream(source, maxBytes).copyTo(out) }
+            Unit.asSuccess()
+        } catch (overflow: BoundedInputStreamLimitExceededException) {
+            INSUFFICIENT_STORAGE.toErrorResult("Upload exceeded the available quota of ${overflow.limitBytes} bytes")
+        }
+
+    private class LockedFilterInputStream(
+        private val inputStream: InputStream,
+        private val lock: Closeable,
+    ) : FilterInputStream(inputStream) {
+        // Javalin/Jetty may call close() more than once; without the guard the read counter goes negative and wedges future writers.
         private val closed = AtomicBoolean(false)
+
         override fun close() {
             if (closed.compareAndSet(false, true)) {
                 lock.use {
@@ -217,9 +242,10 @@ abstract class FileSystemStorageProvider protected constructor(
 
     @OptIn(ExperimentalPathApi::class)
     override fun removeFile(location: Location): Result<Unit, ErrorResponse> =
+        // No read/write lock yet — concurrent delete + read/write on the same location is rare in practice.
         location.resolveWithRootDirectory().map { rootPath ->
             when {
-                rootDirectory.isDirectory() -> rootPath.deleteRecursively()
+                rootPath.isDirectory() -> rootPath.deleteRecursively()
                 else -> rootPath.deleteExisting()
             }
         }

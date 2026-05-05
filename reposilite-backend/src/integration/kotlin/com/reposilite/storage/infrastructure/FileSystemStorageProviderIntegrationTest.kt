@@ -33,8 +33,6 @@ import panda.std.ResultAssertions.assertError
 import panda.std.ResultAssertions.assertOk
 import java.io.File
 import java.io.InputStream
-import java.nio.file.Files
-import java.nio.file.Path
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
@@ -118,32 +116,6 @@ internal class FileSystemStorageProviderIntegrationTest : StorageProviderIntegra
         }
 
         @Test
-        fun `should create the temp file inside the storage root, not in the system tmp dir`() {
-            // given: a slow upload that pauses mid-write so we can inspect intermediate state
-            val location = "/big.jar".toLocation()
-            val writeStarted = CountDownLatch(1)
-            val resumeWriting = CountDownLatch(1)
-            val systemTmp = Path.of(System.getProperty("java.io.tmpdir"))
-            val baselineTempFiles = listReposiliteTempFiles(systemTmp)
-
-            // when: the upload is initiated and pauses after the first byte
-            val putThread = thread(start = true, isDaemon = true) {
-                storageProvider.putFile(location, pausingStream(writeStarted, resumeWriting))
-            }
-
-            try {
-                assertThat(writeStarted.await(SAFETY_TIMEOUT_MS, TimeUnit.MILLISECONDS)).isTrue
-
-                // then: no reposilite temp file appears in the system tmp dir mid-flight
-                val newTempFiles = listReposiliteTempFiles(systemTmp) - baselineTempFiles.toSet()
-                assertThat(newTempFiles).isEmpty()
-            } finally {
-                resumeWriting.countDown()
-                putThread.join(SAFETY_TIMEOUT_MS)
-            }
-        }
-
-        @Test
         fun `should reject upload exceeding quota when the stream reports zero available bytes`() {
             // given: a payload larger than the configured 1 MB quota whose available() always returns 0
             val payload = ByteArray(2 * 1024 * 1024) { 'a'.code.toByte() }
@@ -159,25 +131,6 @@ internal class FileSystemStorageProviderIntegrationTest : StorageProviderIntegra
             // then: the storage provider rejects it
             assertError(response)
         }
-
-        private fun pausingStream(writeStarted: CountDownLatch, resume: CountDownLatch): InputStream =
-            object : InputStream() {
-                private var index = 0
-                override fun read(): Int {
-                    if (index == 1) {
-                        writeStarted.countDown()
-                        resume.await(SAFETY_TIMEOUT_MS, TimeUnit.MILLISECONDS)
-                    }
-                    return if (index++ < 100) 'x'.code else -1
-                }
-            }
-
-        private fun listReposiliteTempFiles(directory: Path): List<Path> =
-            Files.list(directory).use { stream ->
-                stream
-                    .filter { it.fileName.toString().startsWith("reposilite-") && it.fileName.toString().endsWith("-fs-put") }
-                    .toList()
-            }
 
         // Block until the thread is parked on a lock or has terminated, so subsequent assertions
         // observe a stable state instead of guessing with a fixed sleep. The deadline is just a

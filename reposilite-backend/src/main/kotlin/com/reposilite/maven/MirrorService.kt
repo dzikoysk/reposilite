@@ -22,7 +22,9 @@ import com.reposilite.maven.StoragePolicy.PRIORITIZE_UPSTREAM_METADATA
 import com.reposilite.maven.api.METADATA_FILE
 import com.reposilite.maven.application.MirroredRepositorySettings
 import com.reposilite.shared.ErrorResponse
+import com.reposilite.shared.internalServerError
 import com.reposilite.shared.notFoundError
+import com.reposilite.status.FailureFacade
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.Location
 import com.reposilite.token.AccessTokenIdentifier
@@ -36,18 +38,24 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ExecutorService
 
 internal const val NO_EXTENSION_MARKER = "<none>"
 
 internal class MirrorService(
     private val journalist: Journalist,
-    private val clock: Clock
+    private val failureFacade: FailureFacade,
+    private val clock: Clock,
+    private val ioService: ExecutorService,
 ) : Journalist {
 
-    // Tracks an in-flight upstream fetch+store per (repository, gav) so that N concurrent client
-    // requests for the same artifact collapse into a single upstream call. Each waiter then opens
-    // its own fresh InputStream from local storage; the future itself only carries success/error.
-    private val inFlightFetches = ConcurrentHashMap<Pair<String, Location>, CompletableFuture<Result<Unit, ErrorResponse>>>()
+    private data class FetchKey(
+        val repository: String,
+        val gav: Location,
+        val accessToken: AccessTokenIdentifier?,
+    )
+
+    private val inFlightFetches = ConcurrentHashMap<FetchKey, CompletableFuture<Result<Unit, ErrorResponse>>>()
 
     fun shouldPrioritizeMirrorRepository(repository: Repository, gav: Location): Boolean =
         when {
@@ -68,19 +76,31 @@ internal class MirrorService(
         }
 
     fun findRemoteFile(repository: Repository, gav: Location, accessToken: AccessTokenIdentifier? = null): Result<InputStream, ErrorResponse> {
-        // Single-flight only applies when every mirror host stores; otherwise we'd have to coordinate
-        // a fetch path that doesn't write to local storage, and waiters can't share a remote stream.
         if (repository.mirrorHosts.isEmpty() || !repository.mirrorHosts.all { it.configuration.store }) {
             return fetchFromRemoteHosts(repository, gav, accessToken)
         }
 
-        val key = repository.name to gav
+        val key = FetchKey(
+            repository = repository.name,
+            gav = gav,
+            accessToken = accessToken,
+        )
+
         val future = inFlightFetches.computeIfAbsent(key) {
-            CompletableFuture.supplyAsync { fetchAndStoreFromRemoteHosts(repository, gav, accessToken) }
-                .also { it.whenComplete { _, _ -> inFlightFetches.remove(key, it) } }
+            CompletableFuture.supplyAsync({
+                try {
+                    fetchAndStoreFromRemoteHosts(repository, gav, accessToken)
+                } catch (throwable: Throwable) {
+                    failureFacade.throwException("Mirror fetch ${repository.name}/$gav", throwable)
+                    internalServerError("Mirror fetch failed: ${throwable.message}")
+                }
+            }, ioService)
         }
 
-        return future.join().flatMap { repository.storageProvider.getFile(gav) }
+        return future
+            .whenComplete { _, _ -> inFlightFetches.remove(key, future) }
+            .join()
+            .flatMap { repository.storageProvider.getFile(gav) }
     }
 
     private fun fetchFromRemoteHosts(repository: Repository, gav: Location, accessToken: AccessTokenIdentifier?): Result<InputStream, ErrorResponse> =
@@ -98,7 +118,8 @@ internal class MirrorService(
         }
 
     private fun storeFile(repository: Repository, gav: Location, data: InputStream): Result<InputStream, ErrorResponse> =
-        repository.storageProvider
+        repository
+            .storageProvider
             .putFile(gav, data)
             .flatMap { repository.storageProvider.getFile(gav) }
 
