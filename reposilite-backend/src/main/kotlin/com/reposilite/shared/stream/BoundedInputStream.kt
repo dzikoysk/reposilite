@@ -48,6 +48,28 @@ class BoundedInputStream(delegate: InputStream, private val maxBytes: Long) : Fi
         return n
     }
 
+    override fun skip(n: Long): Long {
+        if (n <= 0) return 0
+        val buffer = ByteArray(minOf(n, SKIP_BUFFER_BYTES.toLong()).toInt())
+        var skipped = 0L
+        while (skipped < n) {
+            val read = read(buffer, 0, minOf(buffer.size.toLong(), n - skipped).toInt())
+            if (read <= 0) break
+            skipped += read
+        }
+        return skipped
+    }
+
+    override fun markSupported(): Boolean = false
+
+    override fun mark(readlimit: Int) {}
+
+    override fun reset(): Nothing = throw IOException("mark/reset not supported")
+
+    private companion object {
+        const val SKIP_BUFFER_BYTES = 8 * 1024
+    }
+
 }
 
 class BoundedInputStreamLimitExceededException(val limitBytes: Long) :

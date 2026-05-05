@@ -39,6 +39,7 @@ import java.time.temporal.ChronoUnit
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ExecutorService
+import java.util.concurrent.RejectedExecutionException
 
 internal const val NO_EXTENSION_MARKER = "<none>"
 
@@ -87,14 +88,20 @@ internal class MirrorService(
         )
 
         val future = inFlightFetches.computeIfAbsent(key) {
-            CompletableFuture.supplyAsync({
-                try {
-                    fetchAndStoreFromRemoteHosts(repository, gav, accessToken)
-                } catch (throwable: Throwable) {
-                    failureFacade.throwException("Mirror fetch ${repository.name}/$gav", throwable)
-                    internalServerError("Mirror fetch failed: ${throwable.message}")
-                }
-            }, ioService)
+            try {
+                CompletableFuture.supplyAsync({
+                    try {
+                        fetchAndStoreFromRemoteHosts(repository, gav, accessToken)
+                    } catch (throwable: Throwable) {
+                        failureFacade.throwException("Mirror fetch ${repository.name}/$gav", throwable)
+                        internalServerError("Mirror fetch failed: ${throwable.message}")
+                    }
+                }, ioService)
+            } catch (rejected: RejectedExecutionException) {
+                // ioService refused the task (typically: shutdown is in progress). Surface as a normal
+                // ErrorResponse rather than letting the runtime exception escape into Javalin.
+                CompletableFuture.completedFuture(internalServerError("Mirror fetch rejected: ${rejected.message}"))
+            }
         }
 
         return future

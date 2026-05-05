@@ -22,6 +22,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import java.io.ByteArrayInputStream
+import java.io.IOException
 
 internal class BoundedInputStreamTest {
 
@@ -96,6 +97,37 @@ internal class BoundedInputStreamTest {
         // when / then: the very first byte trips the limit
         assertThatThrownBy { bounded.read() }
             .isInstanceOf(BoundedInputStreamLimitExceededException::class.java)
+    }
+
+    @Test
+    fun `should enforce the limit when bytes are skipped`() {
+        // given: a 200-byte payload and a 100-byte limit
+        val bounded = BoundedInputStream(ByteArrayInputStream(ByteArray(200)), maxBytes = 100)
+
+        // when / then: skipping past the limit must throw, not silently bypass
+        assertThatThrownBy { bounded.skip(150) }
+            .isInstanceOf(BoundedInputStreamLimitExceededException::class.java)
+    }
+
+    @Test
+    fun `should allow skipping up to the limit`() {
+        // given: a 100-byte payload and a 100-byte limit
+        val bounded = BoundedInputStream(ByteArrayInputStream(ByteArray(100)), maxBytes = 100)
+
+        // when: every byte is skipped
+        val skipped = bounded.skip(100)
+
+        // then: all 100 bytes are consumed without an overflow
+        assertThat(skipped).isEqualTo(100L)
+        assertThat(bounded.read()).isEqualTo(-1)
+    }
+
+    @Test
+    fun `should not advertise mark support`() {
+        val bounded = BoundedInputStream(ByteArrayInputStream(byteArrayOf(1, 2, 3)), maxBytes = 10)
+
+        assertThat(bounded.markSupported()).isFalse()
+        assertThatThrownBy { bounded.reset() }.isInstanceOf(IOException::class.java)
     }
 
     @Test

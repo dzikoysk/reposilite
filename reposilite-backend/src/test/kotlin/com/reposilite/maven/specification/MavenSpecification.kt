@@ -49,6 +49,7 @@ import com.reposilite.token.RoutePermission
 import com.reposilite.token.api.CreateAccessTokenRequest
 import com.reposilite.token.application.AccessTokenComponents
 import io.javalin.http.ContentType.TEXT_XML
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
 import panda.std.Quad
@@ -58,6 +59,8 @@ import panda.std.reactive.reference
 import panda.std.reactive.toReference
 import java.io.File
 import java.time.Clock
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 import kotlin.io.path.createFile
 import kotlin.io.path.createParentDirectories
 import kotlin.io.path.writeText
@@ -75,6 +78,7 @@ internal abstract class MavenSpecification {
     @TempDir
     lateinit var workingDirectory: File
     protected lateinit var mavenFacade: MavenFacade
+    private lateinit var ioService: ExecutorService
 
     private val clock = Clock.systemDefaultZone()
     private val logger = InMemoryLogger()
@@ -100,6 +104,8 @@ internal abstract class MavenSpecification {
 
     @BeforeEach
     fun initializeFacade() {
+        this.ioService = Executors.newCachedThreadPool()
+
         val remoteClientProvider = FakeRemoteClientProvider(
             headHandler = { uri, credentials, _, _ ->
                 if (uri.startsWith(REMOTE_REPOSITORY) && REMOTE_AUTH == credentials && !uri.isAllowed())
@@ -136,12 +142,17 @@ internal abstract class MavenSpecification {
             authenticationFacade = authenticationFacade,
             accessTokenFacade = accessTokenFacade,
             statisticsFacade = StatisticsFacade(logger, Reference.reference(false), DailyDateIntervalProvider.toReference(), InMemoryStatisticsRepository()),
-            ioService = java.util.concurrent.Executors.newCachedThreadPool(),
+            ioService = ioService,
             mavenSettings = reference(MavenSettings(
                 repositories = repositories()
             )),
             frontendSettings = reference(FrontendSettings())
         ).mavenFacade()
+    }
+
+    @AfterEach
+    fun shutdownIoService() {
+        ioService.shutdownNow()
     }
 
     protected inner class FileSpec(
