@@ -91,6 +91,9 @@ abstract class FileSystemStorageProvider protected constructor(
 
     private val lockedLocations = ConcurrentHashMap<Location, FileAccessor>()
 
+    internal fun lockedLocationsSize(): Int =
+        lockedLocations.size
+
     private fun acquireFileAccessLock(location: Location, lockMode: LockMode): Closeable {
         val accessor = lockedLocations.compute(location) { _, existing ->
             (existing ?: FileAccessor()).also { it.holders.incrementAndGet() }

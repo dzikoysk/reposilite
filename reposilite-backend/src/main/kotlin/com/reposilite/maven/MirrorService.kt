@@ -53,7 +53,12 @@ internal class MirrorService(
     private data class FetchKey(
         val repository: String,
         val gav: Location,
-        val accessToken: AccessTokenIdentifier?,
+        /**
+         * Authenticated and anonymous callers are bucketed separately,
+         * because a host configured `authenticatedFetchingOnly` is only reachable for authenticated callers.
+         * Collapsing the two would let an anonymous "not found" poison the dedup result for a privileged caller.
+         */
+        val authenticated: Boolean,
     )
 
     private val inFlightFetches = ConcurrentHashMap<FetchKey, CompletableFuture<Result<Unit, ErrorResponse>>>()
@@ -77,6 +82,8 @@ internal class MirrorService(
         }
 
     fun findRemoteFile(repository: Repository, gav: Location, accessToken: AccessTokenIdentifier? = null): Result<InputStream, ErrorResponse> {
+        // Single-flight only kicks in when every host stores; if any host streams without persisting,
+        // waiters can't share the result and we fall back to per-caller fetches.
         if (repository.mirrorHosts.isEmpty() || !repository.mirrorHosts.all { it.configuration.store }) {
             return fetchFromRemoteHosts(repository, gav, accessToken)
         }
@@ -84,7 +91,7 @@ internal class MirrorService(
         val key = FetchKey(
             repository = repository.name,
             gav = gav,
-            accessToken = accessToken,
+            authenticated = accessToken != null,
         )
 
         val future = inFlightFetches.computeIfAbsent(key) {

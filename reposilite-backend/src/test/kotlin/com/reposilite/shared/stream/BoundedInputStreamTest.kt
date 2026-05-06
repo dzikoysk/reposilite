@@ -131,6 +131,21 @@ internal class BoundedInputStreamTest {
     }
 
     @Test
+    fun `should not over-consume the delegate when len greatly exceeds remaining headroom`() {
+        // given: a delegate whose position we can observe and a 100-byte limit
+        val payload = ByteArray(8192)
+        val delegate = ByteArrayInputStream(payload)
+        val bounded = BoundedInputStream(delegate, maxBytes = 100)
+
+        // when: a single 8 KiB read is requested and trips the limit
+        assertThatThrownBy { bounded.read(ByteArray(8192), 0, 8192) }
+            .isInstanceOf(BoundedInputStreamLimitExceededException::class.java)
+
+        // then: at most maxBytes + 1 bytes were pulled off the delegate (101 of 8192)
+        assertThat(payload.size - delegate.available()).isLessThanOrEqualTo(101)
+    }
+
+    @Test
     fun `should treat read with len zero as a no-op`() {
         // given: a payload and a buffered read of length zero
         val bounded = BoundedInputStream(ByteArrayInputStream(byteArrayOf(1, 2, 3)), maxBytes = 10)

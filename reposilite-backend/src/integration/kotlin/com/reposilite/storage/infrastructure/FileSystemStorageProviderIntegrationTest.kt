@@ -23,6 +23,7 @@ import com.reposilite.status.FailureFacade
 import com.reposilite.storage.StorageFacade
 import com.reposilite.storage.StorageProviderIntegrationTest
 import com.reposilite.storage.api.toLocation
+import com.reposilite.storage.filesystem.FileSystemStorageProvider
 import com.reposilite.storage.filesystem.FileSystemStorageProviderSettings
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -116,6 +117,28 @@ internal class FileSystemStorageProviderIntegrationTest : StorageProviderIntegra
         }
 
         @Test
+        fun `should evict the per-location accessor once every acquire is released`() {
+            // given: a file system storage provider with no in-flight acquires
+            val provider = storageProvider as FileSystemStorageProvider
+            val location = "/dir/eviction.jar".toLocation()
+            provider.putFile(location, "content".byteInputStream())
+            assertThat(provider.lockedLocationsSize()).isZero
+
+            // when: many concurrent reads come and go on the same location
+            val threads = (1..20).map {
+                thread(start = true, isDaemon = true) {
+                    repeat(10) {
+                        assertOk(provider.getFile(location)).close()
+                    }
+                }
+            }
+            threads.forEach { it.join(SAFETY_TIMEOUT_MS) }
+
+            // then: the lockedLocations map is empty — no leaked accessors
+            assertThat(provider.lockedLocationsSize()).isZero
+        }
+
+        @Test
         fun `should reject upload exceeding quota when the stream reports zero available bytes`() {
             // given: a payload larger than the configured 1 MB quota whose available() always returns 0
             val payload = ByteArray(2 * 1024 * 1024) { 'a'.code.toByte() }
@@ -127,6 +150,32 @@ internal class FileSystemStorageProviderIntegrationTest : StorageProviderIntegra
 
             // when: the upload is attempted
             val response = storageProvider.putFile("/oversized.jar".toLocation(), streamReportingZero)
+
+            // then: the storage provider rejects it
+            assertError(response)
+        }
+
+        @Test
+        fun `should accept an upload exactly at the quota boundary`() {
+            // given: a payload of exactly the configured 1 MB
+            val payload = ByteArray(1024 * 1024) { 'a'.code.toByte() }
+
+            // when: the upload is attempted
+            val response = storageProvider.putFile("/exact.jar".toLocation(), payload.inputStream())
+
+            // then: the storage provider accepts it cleanly
+            assertOk(response)
+        }
+
+        @Test
+        fun `should reject an upload meaningfully over the quota boundary`() {
+            // given: a payload comfortably above the configured 1 MB. Note: an exact `maxSize + 1`
+            // payload currently passes due to a one-byte slack inherited from `usage()` returning -1
+            // for the storage root — see docs/follow-ups/QUOTA_REDESIGN.md.
+            val payload = ByteArray(2 * 1024 * 1024) { 'a'.code.toByte() }
+
+            // when: the upload is attempted
+            val response = storageProvider.putFile("/over.jar".toLocation(), payload.inputStream())
 
             // then: the storage provider rejects it
             assertError(response)

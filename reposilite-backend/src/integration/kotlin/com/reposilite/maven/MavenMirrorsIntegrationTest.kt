@@ -68,7 +68,7 @@ internal abstract class MavenMirrorsIntegrationTest : MavenIntegrationSpecificat
             config.routes.head("/releases/$gav") { ctx -> ctx.contentType("application/java-archive").header("Content-Length", "100").status(200) }
             config.routes.get("/releases/$gav") { ctx -> ctx.status(500).result("upstream temporarily unavailable") }
         }
-        started.await()
+        assertThat(started.await(10, TimeUnit.SECONDS)).isTrue
 
         try {
             // when: client requests the artifact through the proxy
@@ -100,7 +100,7 @@ internal abstract class MavenMirrorsIntegrationTest : MavenIntegrationSpecificat
                 ctx.result(content)
             }
         }
-        started.await()
+        assertThat(started.await(10, TimeUnit.SECONDS)).isTrue
 
         try {
             // when: five clients request the same artifact in parallel through a storing mirror

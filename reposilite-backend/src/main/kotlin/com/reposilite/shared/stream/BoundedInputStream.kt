@@ -41,7 +41,11 @@ class BoundedInputStream(delegate: InputStream, private val maxBytes: Long) : Fi
 
     override fun read(b: ByteArray, off: Int, len: Int): Int {
         if (len == 0) return 0
-        val n = super.read(b, off, len)
+        // Clamp the delegated read so we never pull more than (remaining + 1) bytes off the underlying
+        // stream — the +1 still lets us observe overflow on the boundary read without over-consuming.
+        val remaining = maxBytes - bytesRead
+        val capped = minOf(len.toLong(), remaining + 1).coerceAtLeast(1).toInt()
+        val n = super.read(b, off, capped)
         if (n <= 0) return n
         bytesRead += n
         if (bytesRead > maxBytes) throw BoundedInputStreamLimitExceededException(maxBytes)
