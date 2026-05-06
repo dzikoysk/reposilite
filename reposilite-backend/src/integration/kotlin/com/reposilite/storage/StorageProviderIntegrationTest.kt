@@ -119,6 +119,24 @@ internal abstract class StorageProviderIntegrationTest : StorageProviderSpecific
     }
 
     @Test
+    fun `should refuse to delete the repository root`() {
+        // given: a file in storage so a successful root-delete would be observable
+        storageProvider.putFile("/keep/me.jar".toLocation(), "content".byteInputStream())
+
+        // when: a client attempts to delete locations that collapse to the repository root
+        //   - "."  : Location.of(".")  -> Path("").normalize() -> resolves to rootDirectory itself
+        //   - "/"  : Location.of("/")  -> "" after leading-slash strip -> Location.empty()
+        //   - "..": Location.of("..") -> ".."-collapsed-to-"." -> same as above
+        listOf(".", "/", "..").forEach { rootLike ->
+            val response = storageProvider.removeFile(rootLike.toLocation())
+
+            // then: provider must reject the request and leave existing files intact
+            assertError(response)
+            assertThat(storageProvider.exists("/keep/me.jar".toLocation())).isTrue
+        }
+    }
+
+    @Test
     fun `should delete directory with files`() {
         // given: a directory with file & subdirectory in storage provider
         storageProvider.putFile("/directory/sub/sub/test.jar".toLocation(), "content".byteInputStream())

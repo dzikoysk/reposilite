@@ -19,6 +19,7 @@ package com.reposilite.storage.s3
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
 import com.reposilite.shared.ErrorResponse
+import com.reposilite.shared.badRequestError
 import com.reposilite.shared.internalServerError
 import com.reposilite.shared.notFoundError
 import com.reposilite.status.FailureFacade
@@ -160,11 +161,18 @@ class S3StorageProvider(
             files.map { getSimplifiedFileDetails(it) }
         )
 
-    override fun removeFile(location: Location): Result<Unit, ErrorResponse> =
-        try {
+    override fun removeFile(location: Location): Result<Unit, ErrorResponse> {
+        val prefix = location.toString().replace('\\', '/')
+        // Inputs that collapse to "" or "." would prefix-match the entire bucket and wipe every repository
+        // sharing it; mirrors the FileSystemStorageProvider guard against DELETE on the repository root.
+        if (prefix.isBlank() || prefix == ".") {
+            return badRequestError("Cannot remove repository root")
+        }
+
+        return try {
             val request = ListObjectsV2Request.builder()
                 .bucket(bucket)
-                .prefix(location.toString().replace('\\', '/'))
+                .prefix(prefix)
                 .build()
 
             s3.listObjectsV2Paginator(request)
@@ -175,6 +183,7 @@ class S3StorageProvider(
         } catch (exception: Exception) {
             internalServerError(exception.message ?: exception::class.toString())
         }
+    }
 
     private fun createDeleteRequest(location: Location): DeleteObjectRequest =
         DeleteObjectRequest.builder()

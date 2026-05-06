@@ -246,12 +246,15 @@ abstract class FileSystemStorageProvider protected constructor(
     @OptIn(ExperimentalPathApi::class)
     override fun removeFile(location: Location): Result<Unit, ErrorResponse> =
         // No read/write lock yet — concurrent delete + read/write on the same location is rare in practice.
-        location.resolveWithRootDirectory().map { rootPath ->
-            when {
-                rootPath.isDirectory() -> rootPath.deleteRecursively()
-                else -> rootPath.deleteExisting()
+        location
+            .resolveWithRootDirectory()
+            .filter({ !it.normalize().equals(rootDirectory.normalize()) }, { badRequest("Cannot remove repository root") })
+            .map { rootPath ->
+                when {
+                    rootPath.isDirectory() -> rootPath.deleteRecursively()
+                    else -> rootPath.deleteExisting()
+                }
             }
-        }
 
     override fun getFiles(location: Location): Result<List<Location>, ErrorResponse> =
         location.resolveWithRootDirectory()
