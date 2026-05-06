@@ -35,6 +35,7 @@ import com.reposilite.token.AccessTokenFacade
 import panda.std.reactive.Reference
 import java.nio.file.Path
 import java.time.Clock
+import java.util.concurrent.ExecutorService
 
 internal class MavenComponents(
     private val clock: Clock,
@@ -47,6 +48,7 @@ internal class MavenComponents(
     private val authenticationFacade: AuthenticationFacade,
     private val accessTokenFacade: AccessTokenFacade,
     private val statisticsFacade: StatisticsFacade,
+    private val ioService: ExecutorService,
     private val mavenSettings: Reference<MavenSettings>,
     private val frontendSettings: Reference<FrontendSettings>,
 ) : PluginComponents {
@@ -60,7 +62,9 @@ internal class MavenComponents(
     private fun mirrorService(): MirrorService =
         MirrorService(
             journalist = journalist,
-            clock = clock
+            failureFacade = failureFacade,
+            clock = clock,
+            ioService = ioService,
         )
 
     private fun repositoryProvider(

@@ -44,6 +44,7 @@ import io.javalin.openapi.OpenApiContent
 import io.javalin.openapi.OpenApiParam
 import io.javalin.openapi.OpenApiResponse
 import panda.std.Result
+import panda.std.asSuccess
 
 const val X_GENERATE_CHECKSUMS = "X-Generate-Checksums"
 
@@ -76,43 +77,43 @@ internal class MavenEndpoints(
         }
     }
 
-    fun findFile(ctx: Context, identifier: AccessTokenIdentifier?, repository: String, gav: Location): Result<Any, ErrorResponse> =
-        LookupRequest(accessToken = identifier, repository = repository, gav = gav).let { request ->
-            mavenFacade
-                .findDetails(request)
-                .map { details ->
-                    when (details) {
-                        is DocumentInfo ->
-                            mavenFacade
-                                .findData(request)
-                                .peek {
-                                    ctx.resultAttachment(
-                                        name = details.name,
-                                        contentType = details.contentType,
-                                        contentLength = details.contentLength,
-                                        lastTimeModified = details.lastModifiedTime,
-                                        compressionStrategy = compressionStrategy,
-                                        cache = mavenFacade.acceptsCachingOf(request),
-                                        data = it,
-                                    )
-                                }
-                        is DirectoryInfo ->
-                            ctx.html(
-                                createDirectoryIndexPage(
-                                    basePath = frontendFacade.formattedBasePath.get(),
-                                    uri = ctx.uri(),
-                                    authenticatedFiles = mavenFacade.getAvailableFiles(request, details),
-                                )
-                            )
-                        else ->
-                            throw IllegalStateException("Expected file details, but got $details")
+    fun findFile(ctx: Context, identifier: AccessTokenIdentifier?, repository: String, gav: Location): Result<Unit, ErrorResponse> {
+        val request = LookupRequest(accessToken = identifier, repository = repository, gav = gav)
+        val allDetails = mavenFacade.findDetails(request)
+
+        return allDetails.flatMap { details ->
+            when (details) {
+                is DocumentInfo ->
+                    mavenFacade.findData(request).map { data ->
+                        ctx.resultAttachment(
+                            name = details.name,
+                            contentType = details.contentType,
+                            contentLength = details.contentLength,
+                            lastTimeModified = details.lastModifiedTime,
+                            compressionStrategy = compressionStrategy,
+                            cache = mavenFacade.acceptsCachingOf(request),
+                            data = data,
+                        )
                     }
+                is DirectoryInfo -> {
+                    ctx.html(
+                        createDirectoryIndexPage(
+                            basePath = frontendFacade.formattedBasePath.get(),
+                            uri = ctx.uri(),
+                            authenticatedFiles = mavenFacade.getAvailableFiles(request, details),
+                        )
+                    )
+                    Unit.asSuccess()
                 }
-                .onError {
-                    ctx.status(it.status).html(frontendFacade.createNotFoundPage(ctx.uri(), it.message))
-                    mavenFacade.logger.debug("FIND | Could not find file due to $it")
-                }
+                else ->
+                    throw IllegalStateException("Expected file details, but got $details")
+            }
         }
+        .onError {
+            ctx.status(it.status).html(frontendFacade.createNotFoundPage(ctx.uri(), it.message))
+            mavenFacade.logger.debug("FIND | Could not find file due to $it")
+        }
+    }
 
     @OpenApi(
         tags = [ "Maven" ],

@@ -32,11 +32,9 @@ internal class FixedQuota(
     journalist: Journalist,
     rootDirectory: Path,
     private val maxSize: Long,
-    maxResourceLockLifetimeInSeconds: Int
 ) : FileSystemStorageProvider(
     journalist = journalist,
     rootDirectory = rootDirectory,
-    maxResourceLockLifetimeInSeconds = maxResourceLockLifetimeInSeconds
 ) {
 
     init {
@@ -60,11 +58,9 @@ internal class PercentageQuota(
     journalist: Journalist,
     rootDirectory: Path,
     private val maxPercentage: Double,
-    maxResourceLockLifetimeInSeconds: Int
 ) : FileSystemStorageProvider(
     journalist = journalist,
     rootDirectory = rootDirectory,
-    maxResourceLockLifetimeInSeconds = maxResourceLockLifetimeInSeconds
 ) {
 
     init {

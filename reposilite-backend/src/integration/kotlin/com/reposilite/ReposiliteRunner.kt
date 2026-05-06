@@ -107,10 +107,22 @@ internal abstract class ReposiliteRunner {
                     )
                 )
             )
+            val proxiedStoredConfiguration = RepositorySettings(
+                id = "proxied-stored",
+                proxied = listOf(
+                    MirroredRepositorySettings(
+                        reference = "http://localhost:${parameters.port + 1}/releases",
+                        store = true,
+                    )
+                )
+            )
 
             return@update old.copy(
                 repositories = old.repositories.associateBy { it.id }.toMutableMap()
-                    .also { repositories -> repositories["proxied"] = proxiedConfiguration }
+                    .also { repositories ->
+                        repositories["proxied"] = proxiedConfiguration
+                        repositories["proxied-stored"] = proxiedStoredConfiguration
+                    }
                     .mapValues { (_, repositoryConfiguration) ->
                         repositoryConfiguration.copy(
                             redeployment = true,
