@@ -31,7 +31,11 @@ internal class RouteAdd(private val accessTokenFacade: AccessTokenFacade) : Repo
     @Parameters(index = "0", paramLabel = "<access_token>", description = ["Name of access token to modify"])
     private lateinit var name: String
 
-    @Parameters(index = "1", paramLabel = "<path>", description = ["Path to the route, e.g. /releases/com/reposilite"])
+    @Parameters(index = "1", paramLabel = "<path>", description = [
+        "Path prefix granted to the token, e.g. /releases/com/reposilite.",
+        "Matching is a case-insensitive byte-prefix, so /releases covers /releases-snapshots.",
+        "Append a trailing / to anchor at a segment boundary: /releases/ does not match /releases-snapshots."
+    ])
     private lateinit var route: String
 
     @Parameters(index = "2", paramLabel = "<permissions>", description = [

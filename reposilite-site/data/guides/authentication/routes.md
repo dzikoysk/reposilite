@@ -14,13 +14,16 @@ The path must follow the given pattern: `/{repository}/{gav}`:
 * `{repository}` - required name of repository used to distinguish repositories
 * `{gav}` - optional GAV (`group-artifact-version`) path
 
+Matching is a **case-insensitive byte-prefix** — a request is authorized when the request URI starts with the route's path. This means a route cascades to every URI sharing the prefix, including sibling paths that happen to share the same leading characters. Append a trailing `/` to anchor the prefix at a segment boundary: `/releases/` does not match `/releases-snapshots`, while `/releases` does.
+
 Some examples of path declaration and matched URLs:
 
 | Path | Matches | Status |
 | :--  | :--     | :--:   |
 | / | /releases/* <br/>/snapshots/* | Ok<br/>Ok |
-| /releases | /releases/* <br/>/snapshots/* | Ok<br/>Unauthorized |
-| /releases/groupId/artifactId | /releases/groupId/artifactId/* <br/>/releases/groupId/* <br/>/snapshots/*| Ok<br/>Unauthorized<br/>Unauthorized |
+| /releases | /releases/* <br/>/releases-snapshots/* <br/>/snapshots/* | Ok<br/>Ok (byte-prefix)<br/>Unauthorized |
+| /releases/ | /releases/* <br/>/releases-snapshots/* <br/>/snapshots/* | Ok<br/>Unauthorized<br/>Unauthorized |
+| /releases/groupId/artifactId | /releases/groupId/artifactId/* <br/>/releases/groupId/artifactId-other/* <br/>/releases/groupId/* <br/>/snapshots/* | Ok<br/>Ok (byte-prefix)<br/>Unauthorized<br/>Unauthorized |
 
 #### Permissions
 Currently supported permissions:
