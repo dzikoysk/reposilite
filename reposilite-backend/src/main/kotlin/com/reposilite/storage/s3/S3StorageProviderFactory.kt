@@ -19,6 +19,7 @@ package com.reposilite.storage.s3
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.reposilite.journalist.Journalist
+import com.reposilite.shared.maskSecret
 import com.reposilite.status.FailureFacade
 import com.reposilite.storage.StorageProviderFactory
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
@@ -117,8 +118,8 @@ class S3StorageProviderFactory : StorageProviderFactory<S3StorageProvider, S3Sto
             failureFacade.logger.error("  - Region: ${region.id()} (isGlobalRegion: ${region.isGlobalRegion})")
             failureFacade.logger.error("  - Custom endpoint: $customEndpoint")
             failureFacade.logger.error("  - Path style access: $pathStyleAccessEnabled")
-            failureFacade.logger.error("  - Access key: ${settings.accessKey}")
-            failureFacade.logger.error("  - Secret key: ${settings.secretKey}")
+            failureFacade.logger.error("  - Access key: ${maskSecret(settings.accessKey)}")
+            failureFacade.logger.error("  - Secret key: ${maskSecret(settings.secretKey)}")
             throw IllegalStateException("Failed to initialize S3 storage provider", exception)
         }
     }
