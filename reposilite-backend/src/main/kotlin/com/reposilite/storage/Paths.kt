@@ -27,6 +27,8 @@ import io.javalin.http.HttpStatus.NO_CONTENT
 import panda.std.Result
 import java.io.InputStream
 import java.nio.file.Path
+import kotlin.io.path.ExperimentalPathApi
+import kotlin.io.path.deleteRecursively
 import kotlin.io.path.exists
 import kotlin.io.path.isDirectory
 import kotlin.io.path.inputStream as newInputStream
@@ -43,4 +45,17 @@ fun Path.inputStream(): Result<InputStream, ErrorResponse> =
                 .mapErr { INTERNAL_SERVER_ERROR.toErrorResponse("Cannot read file") }
         }
 
-fun String.getExtension(): String = substringAfterLast('.', "")
+fun String.getExtension(): String =
+    substringAfterLast('.', "")
+
+@OptIn(ExperimentalPathApi::class)
+fun Path.deleteRecursivelyInside(root: Path) {
+    val target = normalize()
+    val anchor = root.normalize()
+
+    require(target != anchor && target.startsWith(anchor)) {
+        "Refusing to recursively delete $this — must be strictly inside $root"
+    }
+
+    deleteRecursively()
+}

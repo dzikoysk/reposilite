@@ -28,7 +28,9 @@ import com.reposilite.plugin.event
 import com.reposilite.plugin.facade
 import com.reposilite.plugin.parameters
 import com.reposilite.status.FailureFacade
+import com.reposilite.storage.deleteRecursivelyInside
 import com.reposilite.web.api.RoutingSetupEvent
+import kotlin.io.path.exists
 
 @Plugin(name = "javadoc", dependencies = ["failure", "maven"])
 internal class JavadocPlugin : ReposilitePlugin() {
@@ -57,10 +59,15 @@ internal class JavadocPlugin : ReposilitePlugin() {
                 ?: return@event
 
             val artifactRootContainer = javadocContainerService.createContainer(javadocFolder, event.repository, gav.getParent())
-            val artifactRootDirectory = artifactRootContainer.javadocContainerPath.toFile().parentFile
+            val artifactRootDirectory = artifactRootContainer.javadocContainerPath.parent ?: return@event
+            val repositoryJavadocRoot = javadocFolder.resolve(event.repository.name)
 
             if (artifactRootDirectory.exists()) {
-                artifactRootDirectory.deleteRecursively()
+                runCatching {
+                    artifactRootDirectory.deleteRecursivelyInside(repositoryJavadocRoot)
+                }.onFailure {
+                    failureFacade.throwException("Cannot evict javadoc cache for ${event.gav}", it)
+                }
             }
         }
 
