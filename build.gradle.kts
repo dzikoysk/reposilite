@@ -80,11 +80,7 @@ allprojects {
     }
 
     repositories {
-        maven("https://maven.reposilite.com/maven-central") {
-            mavenContent {
-                releasesOnly()
-            }
-        }
+        mavenCentral()
         maven("https://maven.reposilite.com/releases") {
             mavenContent {
                 releasesOnly()

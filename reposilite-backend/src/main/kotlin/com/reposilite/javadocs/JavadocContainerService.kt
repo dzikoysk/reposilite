@@ -6,8 +6,10 @@ import com.reposilite.maven.api.LookupRequest
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.badRequest
 import com.reposilite.shared.badRequestError
-import com.reposilite.shared.errorResponse
+import com.reposilite.shared.internalServer
 import com.reposilite.shared.notFound
+import com.reposilite.shared.stream.BoundedInputStream
+import com.reposilite.shared.stream.BoundedInputStreamLimitExceededException
 import com.reposilite.status.FailureFacade
 import com.reposilite.storage.api.DirectoryInfo
 import com.reposilite.storage.api.FileDetails
@@ -16,7 +18,6 @@ import com.reposilite.storage.api.FileType.FILE
 import com.reposilite.storage.api.Location
 import com.reposilite.storage.api.toLocation
 import com.reposilite.token.AccessTokenIdentifier
-import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
 import panda.std.Result
 import panda.std.asSuccess
 import java.io.FileOutputStream
@@ -44,7 +45,10 @@ internal class JavadocContainer(
 internal class JavadocContainerService(
     private val failureFacade: FailureFacade,
     private val mavenFacade: MavenFacade,
-    private val javadocFolder: Path
+    private val javadocFolder: Path,
+    private val maxEntryBytes: Long = 2L * 1024 * 1024,
+    private val maxTotalBytes: Long = 50L * 1024 * 1024,
+    private val maxEntries: Int = 50_000,
 ) {
 
     fun loadContainer(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<JavadocContainer, ErrorResponse> {
@@ -147,7 +151,7 @@ internal class JavadocContainerService(
         originInput.copyToAndClose(FileOutputStream(destinationJarPath.toString()))
     }
 
-    private fun unpackJavadocJar(jarPath: Path, javadocUnpackPath: Path): Result<Unit, ErrorResponse> =
+    internal fun unpackJavadocJar(jarPath: Path, javadocUnpackPath: Path): Result<Unit, ErrorResponse> =
         when {
             !jarPath.name.contains("javadoc.jar") -> badRequestError("Invalid javadoc jar! Name must contain: 'javadoc.jar'")
             jarPath.isDirectory() -> badRequestError("JavaDoc jar path has to be a file!")
@@ -155,39 +159,62 @@ internal class JavadocContainerService(
             else -> jarPath.toAbsolutePath().toString()
                 .let { JarFile(it) }
                 .use { jarFile ->
-                    if (!hasIndex(jarFile)) {
-                        return errorResponse(INTERNAL_SERVER_ERROR, "Invalid javadoc.jar given for extraction")
+                    when {
+                        !hasIndex(jarFile) -> reportMalformed(jarPath, "Missing $INDEX_FILE", internalServer("Invalid javadoc.jar given for extraction"))
+                        else -> extractEntries(jarFile, jarPath, javadocUnpackPath)
                     }
-
-                    jarFile
-                        .entries()
-                        .asSequence()
-                        .forEach { file ->
-                            if (file.isDirectory) {
-                                return@forEach
-                            }
-
-                            // GHSA-frvj-cfq4-3228: treat archive file name as external path that can be malicious
-                            val processedArchiveFileLocation = file.name.toLocation()
-
-                            processedArchiveFileLocation
-                                .toPath()
-                                .map { javadocUnpackPath.resolve(it) }
-                                .peek {
-                                    it.createParentDirectories()
-                                    jarFile.getInputStream(file).copyToAndClose(it.outputStream())
-                                }
-                                .onError {
-                                    failureFacade.throwException(
-                                        "Malicious resource path detected: $processedArchiveFileLocation in $jarPath",
-                                        IllegalArgumentException("Malicious resource path detected: $it")
-                                    )
-                                }
-                        }
-                        .asSuccess<Unit, ErrorResponse>()
                 }
                 .also { if (jarPath.exists()) jarPath.deleteExisting() }
         }
+
+    private fun extractEntries(jarFile: JarFile, jarPath: Path, javadocUnpackPath: Path): Result<Unit, ErrorResponse> {
+        var totalBytes = 0L
+        var entryCount = 0
+
+        for (file in jarFile.entries()) {
+            if (file.isDirectory) continue
+
+            if (++entryCount > maxEntries) {
+                return reportMalformed(jarPath, "Entry-count limit of $maxEntries exceeded", badRequest("Javadoc archive exceeds the entry-count limit of $maxEntries"))
+            }
+
+            // GHSA-frvj-cfq4-3228: treat archive file name as external path that can be malicious
+            val processedArchiveFileLocation = file.name.toLocation()
+
+            val resolved = processedArchiveFileLocation
+                .toPath()
+                .map { javadocUnpackPath.resolve(it) }
+                .onError {
+                    failureFacade.throwException(
+                        "Malicious resource path detected: $processedArchiveFileLocation in $jarPath",
+                        IllegalArgumentException("Malicious resource path detected: $it")
+                    )
+                }
+                .orNull() ?: continue
+
+            resolved.createParentDirectories()
+
+            try {
+                BoundedInputStream(jarFile.getInputStream(file), maxEntryBytes).use { bounded ->
+                    resolved.outputStream().use { sink ->
+                        totalBytes += bounded.copyTo(sink)
+                        if (totalBytes > maxTotalBytes) {
+                            throw BoundedInputStreamLimitExceededException(maxTotalBytes)
+                        }
+                    }
+                }
+            } catch (overflow: BoundedInputStreamLimitExceededException) {
+                return reportMalformed(jarPath, "Size limit of ${overflow.limitBytes} bytes exceeded on entry ${file.name}", badRequest("Javadoc archive exceeds the size limit of ${overflow.limitBytes} bytes"))
+            }
+        }
+
+        return Unit.asSuccess()
+    }
+
+    private fun reportMalformed(jarPath: Path, reason: String, response: ErrorResponse): Result<Unit, ErrorResponse> {
+        failureFacade.throwException("Malformed javadoc jar at $jarPath: $reason", IllegalStateException(reason))
+        return Result.error(response)
+    }
 
     private fun createDocIndexHtml(container: JavadocContainer, javadocList: List<FileDetails>) {
         container.javadocContainerIndex.writeText(JavadocView.index("/.cache/unpack/index.html", javadocList))
