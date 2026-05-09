@@ -39,6 +39,13 @@ class LocationTest {
         assertThat(Location.of(Path.of("../../artifact")).toPath().get().toString()).isEqualTo("artifact")
         assertThat(Location.of(Path.of("C:/artifact")).toPath().get().toString()).isEqualTo("artifact")
         assertThat(Location.of("artifact").resolve("../../root").toPath().get().toString()).isEqualTo("artifact" + File.separator + "root")
+        assertThat(Location.of("..\\..\\artifact").toPath().get().toString()).isEqualTo("artifact")
+        assertThat(Location.of("....//....//artifact").toPath().get().toString()).isEqualTo("artifact")
+        assertThat(Location.of("/artifact").toPath().get().toString()).isEqualTo("artifact")
+        assertThat(Location.of(".").toPath().get().toString()).isEqualTo("")
+        assertThat(Location.of("..").toPath().get().toString()).isEqualTo("")
+        assertThat(Location.of("/").toPath().get().toString()).isEqualTo("")
+        assertThat(Location.of("").toPath().get().toString()).isEqualTo("")
     }
 
 }
