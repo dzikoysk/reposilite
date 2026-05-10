@@ -23,7 +23,7 @@ import com.reposilite.statistics.StatisticsRepository
 import com.reposilite.statistics.createDateIntervalProvider
 import com.reposilite.statistics.infrastructure.InMemoryStatisticsRepository
 import com.reposilite.statistics.infrastructure.SqlStatisticsRepository
-import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.v1.jdbc.Database
 import panda.std.reactive.Reference
 
 class StatisticsComponents(

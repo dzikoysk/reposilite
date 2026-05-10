@@ -16,17 +16,16 @@
 
 package com.reposilite.shared.extensions
 
-import org.jetbrains.exposed.sql.Op
-import org.jetbrains.exposed.sql.SqlExpressionBuilder
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.statements.api.ExposedConnection
-import org.jetbrains.exposed.sql.statements.api.PreparedStatementApi
+import org.jetbrains.exposed.v1.core.Op
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.jdbc.statements.api.ExposedConnection
+import org.jetbrains.exposed.v1.jdbc.statements.api.JdbcPreparedStatementApi
 
 fun ExposedConnection<*>.executeQuery(
     query: String,
     returnKeys: Boolean = false
 ) {
-    var statement: PreparedStatementApi? = null
+    var statement: JdbcPreparedStatementApi? = null
 
     try {
         statement = prepareStatement(query, returnKeys)
@@ -36,9 +35,9 @@ fun ExposedConnection<*>.executeQuery(
     }
 }
 
-fun Op.Companion.andOf(vararg ops: SqlExpressionBuilder.() -> Op<Boolean>): Op<Boolean> {
+fun Op.Companion.andOf(vararg ops: () -> Op<Boolean>): Op<Boolean> {
     require(ops.isNotEmpty()) { "At least one operation required to build 'and' query" }
     var operation: Op<Boolean>? = null
-    ops.forEach { operation = operation?.and(it) ?: build(it) }
+    ops.forEach { op -> operation = operation?.and(op()) ?: op() }
     return operation!!
 }

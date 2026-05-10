@@ -22,7 +22,7 @@ import com.reposilite.token.AccessTokenPermission
 import com.reposilite.token.AccessTokenRepository
 import com.reposilite.token.AccessTokenType.TEMPORARY
 import com.reposilite.token.Route
-import net.dzikoysk.exposed.shared.UNINITIALIZED_ENTITY_ID
+import com.reposilite.token.UNINITIALIZED_ENTITY_ID
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.atomic.AtomicInteger

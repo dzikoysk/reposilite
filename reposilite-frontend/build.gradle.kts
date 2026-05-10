@@ -17,11 +17,11 @@
 import com.github.gradle.node.npm.task.NpmTask
 
 plugins {
-    id("com.github.node-gradle.node") version "3.2.1"
+    id("com.github.node-gradle.node") version "7.1.0"
 }
 
 node {
-    version.set("18.16.1")
+    version.set("24.15.0")
     download.set(true)
 }
 

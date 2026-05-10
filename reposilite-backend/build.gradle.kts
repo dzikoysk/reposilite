@@ -24,7 +24,7 @@ plugins {
     jacoco
     kotlin("jvm")
     kotlin("kapt")
-    id("com.coditory.integration-test") version "1.4.5"
+    id("com.coditory.integration-test") version "2.2.5"
     id("com.gradleup.shadow") version "9.4.1"
 //    id("io.gitlab.arturbosch.detekt").version("1.22.0")
 }
@@ -73,7 +73,7 @@ dependencies {
     kapt("info.picocli:picocli-codegen:$picocli")
     api("info.picocli:picocli:$picocli")
 
-    val awssdk = "2.43.2"
+    val awssdk = "2.44.4"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
     // STS is needed so it Web Identity Tokens can be used
@@ -83,9 +83,9 @@ dependencies {
     val awsSdkV1 = "1.12.797"
     testImplementation("com.amazonaws:aws-java-sdk-s3:$awsSdkV1")
 
-    implementation("com.github.ben-manes.caffeine:caffeine:3.2.3")
+    implementation("com.github.ben-manes.caffeine:caffeine:3.2.4")
 
-    val exposed = "0.61.0"
+    val exposed = "1.2.0"
     api("org.jetbrains.exposed:exposed-core:$exposed")
     api("org.jetbrains.exposed:exposed-dao:$exposed")
     api("org.jetbrains.exposed:exposed-jdbc:$exposed")
@@ -102,14 +102,12 @@ dependencies {
     }
     implementation("com.google.protobuf:protobuf-java:4.34.1")
 
-    val exposedUpsert = "1.2.2"
-    api("net.dzikoysk:exposed-upsert:$exposedUpsert")
-
     val jackson = "2.21.3"
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jackson")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jackson")
 
+    // Pinned at 4.x: jsonschema-generator 5.x requires Jackson 3.x (full tools.jackson.* package rename); we're on Jackson 2.21.x.
     val jsonSchema = "4.38.0"
     implementation("com.github.victools:jsonschema-generator:$jsonSchema")
 
@@ -135,12 +133,12 @@ dependencies {
     implementation("org.tinylog:tinylog-api:$tinylog")
     implementation("org.tinylog:tinylog-impl:$tinylog")
 
-    val testcontainers = "1.21.4"
-    testImplementation("org.testcontainers:mariadb:$testcontainers")
+    val testcontainers = "2.0.5"
+    testImplementation("org.testcontainers:testcontainers-mariadb:$testcontainers")
     testImplementation("org.testcontainers:testcontainers:$testcontainers")
-    testImplementation("org.testcontainers:junit-jupiter:$testcontainers")
-    testImplementation("org.testcontainers:mysql:$testcontainers")
-    testImplementation("org.testcontainers:postgresql:$testcontainers") {
+    testImplementation("org.testcontainers:testcontainers-junit-jupiter:$testcontainers")
+    testImplementation("org.testcontainers:testcontainers-mysql:$testcontainers")
+    testImplementation("org.testcontainers:testcontainers-postgresql:$testcontainers") {
         exclude(group = "org.apache.commons", module = "commons-compress")
     }
     testImplementation("org.apache.commons:commons-compress:1.28.0")
@@ -234,7 +232,7 @@ tasks.test {
     finalizedBy("jacocoTestReport")
 }
 
-tasks.named<Test>("integrationTest") {
+tasks.named<Test>("integration") {
     // Floci (used in S3 integration tests) does not auto-rewrite virtual-host requests
     // to the container's random port, so the AWS SDK must use path-style addressing.
     systemProperty("reposilite.s3.pathStyleAccessEnabled", "true")
@@ -283,14 +281,14 @@ val testCoverage by tasks.registering {
 
     dependsOn(
         ":reposilite-backend:test",
-        ":reposilite-backend:integrationTest",
+        ":reposilite-backend:integration",
         ":reposilite-backend:jacocoTestReport",
         ":reposilite-backend:jacocoTestCoverageVerification"
     )
 }
 
-tasks["integrationTest"].mustRunAfter(tasks["test"])
-tasks["jacocoTestReport"].mustRunAfter(tasks["integrationTest"])
+tasks["integration"].mustRunAfter(tasks["test"])
+tasks["jacocoTestReport"].mustRunAfter(tasks["integration"])
 tasks["jacocoTestCoverageVerification"].mustRunAfter(tasks["jacocoTestReport"])
 
 //detekt {

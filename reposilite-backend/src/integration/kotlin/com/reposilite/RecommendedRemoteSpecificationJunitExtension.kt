@@ -22,10 +22,10 @@ import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.Extension
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.testcontainers.containers.GenericContainer
-import org.testcontainers.containers.MariaDBContainer
 import org.testcontainers.containers.wait.strategy.Wait
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
+import org.testcontainers.mariadb.MariaDBContainer
 import org.testcontainers.utility.DockerImageName
 
 /**
@@ -36,10 +36,8 @@ import org.testcontainers.utility.DockerImageName
 @Testcontainers
 internal class RecommendedRemoteSpecificationJunitExtension : Extension, BeforeEachCallback, AfterEachCallback {
 
-    private class SpecifiedMariaDBContainer(image: String) : MariaDBContainer<SpecifiedMariaDBContainer>(DockerImageName.parse(image))
-
     @Container
-    private val mariaDb = SpecifiedMariaDBContainer("mariadb:latest")
+    private val mariaDb = MariaDBContainer(DockerImageName.parse("mariadb:latest"))
 
     @Container
     private val floci: GenericContainer<*> = GenericContainer(DockerImageName.parse("floci/floci:latest"))

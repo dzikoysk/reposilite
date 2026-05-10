@@ -23,7 +23,7 @@ import com.reposilite.token.AccessTokenRepository
 import com.reposilite.token.ExportService
 import com.reposilite.token.infrastructure.InMemoryAccessTokenRepository
 import com.reposilite.token.infrastructure.SqlAccessTokenRepository
-import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.v1.jdbc.Database
 
 class AccessTokenComponents(
     private val journalist: Journalist,

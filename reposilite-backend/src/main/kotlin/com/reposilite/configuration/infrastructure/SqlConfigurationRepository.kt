@@ -17,18 +17,18 @@
 package com.reposilite.configuration.infrastructure
 
 import com.reposilite.configuration.ConfigurationRepository
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.javatime.datetime
-import org.jetbrains.exposed.sql.select
-import org.jetbrains.exposed.sql.transactions.transaction
-import org.jetbrains.exposed.sql.update
+import org.jetbrains.exposed.v1.core.Table
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.javatime.datetime
+import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.SchemaUtils
+import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import org.jetbrains.exposed.v1.jdbc.update
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneOffset
-import org.jetbrains.exposed.sql.selectAll
 
 @Suppress("RemoveRedundantQualifierName")
 internal class SqlConfigurationRepository(private val database: Database) : ConfigurationRepository {
