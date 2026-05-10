@@ -26,28 +26,24 @@ import com.reposilite.maven.api.REPOSITORY_NAME_MAX_LENGTH
 import com.reposilite.shared.extensions.executeQuery
 import com.reposilite.statistics.StatisticsRepository
 import com.reposilite.statistics.api.ResolvedEntry
-import com.reposilite.statistics.toUTCMillis
-import net.dzikoysk.exposed.upsert.upsert
-import net.dzikoysk.exposed.upsert.withUnique
 import org.intellij.lang.annotations.Language
-import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.dao.id.IntIdTable
-import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.ReferenceOption.CASCADE
-import org.jetbrains.exposed.sql.SortOrder.DESC
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.like
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.plus
-import org.jetbrains.exposed.sql.javatime.date
-import org.jetbrains.exposed.sql.statements.BatchUpdateStatement
-import org.jetbrains.exposed.sql.transactions.TransactionManager
-import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.v1.core.*
+import org.jetbrains.exposed.v1.core.ReferenceOption.CASCADE
+import org.jetbrains.exposed.v1.core.SortOrder.DESC
+import org.jetbrains.exposed.v1.core.dao.id.IntIdTable
+import org.jetbrains.exposed.v1.core.java.javaUUID
+import org.jetbrains.exposed.v1.javatime.date
+import org.jetbrains.exposed.v1.jdbc.*
+import org.jetbrains.exposed.v1.jdbc.transactions.TransactionManager
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import panda.std.firstAndMap
 import java.nio.ByteBuffer
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
-import java.util.UUID
+import java.util.*
+
+private val MYSQL_FAMILY_VENDORS = setOf("mysql", "mariadb", "h2")
 
 @Suppress("RemoveRedundantQualifierName")
 internal class SqlStatisticsRepository(
@@ -57,7 +53,7 @@ internal class SqlStatisticsRepository(
 ) : StatisticsRepository {
 
     object IdentifierTable : Table("statistics_identifier") {
-        val id = uuid("identifier_id")
+        val id = javaUUID("identifier_id")
         val repository = varchar("repository", REPOSITORY_NAME_MAX_LENGTH).index("idx_statistics_identifier_repository")
         val gav = varchar("gav", GAV_MAX_LENGTH)
 
@@ -69,7 +65,9 @@ internal class SqlStatisticsRepository(
         val date = date("date")
         val count = long("count")
 
-        val uniqueIdentifierIdWithDate = withUnique("uq_statistics_resolved_identifier_identifier_id_date", identifierId, date)
+        init {
+            uniqueIndex("uq_statistics_resolved_identifier_identifier_id_date", identifierId, date)
+        }
     }
 
     init {
@@ -123,7 +121,7 @@ internal class SqlStatisticsRepository(
                 val query = "SELECT id, identifier_id, date, count FROM statistics_resolved_identifier WHERE date NOT LIKE '%-%';".trimIndent()
 
                 val statement = TransactionManager.current().connection.prepareStatement(query, false)
-                val result = statement.executeQuery()
+                val result = statement.executeQuery().result
                 val resolvedRequestIdToTimestamp = mutableMapOf<Int, Triple<UUID, LocalDate, Long>>()
 
                 while (result.next()) {
@@ -167,19 +165,24 @@ internal class SqlStatisticsRepository(
 
     override fun incrementResolvedRequests(requests: Map<Identifier, Long>, date: LocalDate) =
         transaction(database) {
+            // MySQL/MariaDB/H2-in-MySQL-mode reject explicit conflict keys in ON DUPLICATE KEY UPDATE;
+            // they infer the conflict from any unique constraint on the table (the uniqueIndex declared on
+            // (identifierId, date) in ResolvedTable). PostgreSQL/SQLite require explicit conflict columns.
+            val conflictKeys: Array<Column<*>> =
+                if (database.vendor.lowercase() in MYSQL_FAMILY_VENDORS) emptyArray()
+                else arrayOf(ResolvedTable.identifierId, ResolvedTable.date)
+
             requests.forEach { (identifier, count) ->
-                ResolvedTable.upsert(conflictIndex = ResolvedTable.uniqueIdentifierIdWithDate,
-                    insertBody = {
-                        it[ResolvedTable.identifierId] = findOrCreateIdentifierId(identifier)
-                        it[ResolvedTable.date] = date
-                        it[ResolvedTable.count] = count
-                    },
-                    updateBody = {
-                        with(SqlExpressionBuilder) {
-                            it[ResolvedTable.count] = ResolvedTable.count + count
-                        }
+                ResolvedTable.upsert(
+                    *conflictKeys,
+                    onUpdate = {
+                        it[ResolvedTable.count] = ResolvedTable.count + count
                     }
-                )
+                ) {
+                    it[ResolvedTable.identifierId] = findOrCreateIdentifierId(identifier)
+                    it[ResolvedTable.date] = date
+                    it[ResolvedTable.count] = count
+                }
             }
         }
 
@@ -211,7 +214,7 @@ internal class SqlStatisticsRepository(
                 if (repository.isEmpty())
                     IdentifierTable.gav like "%$phrase%"
                 else
-                    AndOp(listOf(Op.build { IdentifierTable.repository eq repository }, Op.build { IdentifierTable.gav like "%$phrase%" }))
+                    AndOp(listOf(IdentifierTable.repository eq repository, IdentifierTable.gav like "%$phrase%"))
 
             IdentifierTable.leftJoin(ResolvedTable, { IdentifierTable.id }, { ResolvedTable.identifierId })
                 .select(IdentifierTable.gav, resolvedSum)

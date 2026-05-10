@@ -20,9 +20,10 @@ import com.fasterxml.jackson.annotation.JsonFormat
 import com.reposilite.token.AccessTokenType.PERSISTENT
 import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.token.application.AccessTokenPlugin.Companion.MAX_TOKEN_NAME
-import net.dzikoysk.exposed.shared.UNINITIALIZED_ENTITY_ID
 import java.time.Instant
 import java.time.LocalDate
+
+const val UNINITIALIZED_ENTITY_ID: Int = -1
 
 enum class AccessTokenType {
     PERSISTENT,

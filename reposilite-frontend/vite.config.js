@@ -26,9 +26,7 @@ export default defineConfig({
     port: 80,
   },
   plugins: [
-    vue({
-      reactivityTransform: true, // Lack of support in ESLint rules tho
-    }),
+    vue(),
     vueJsx(),
     WindiCSS(),
     visualizer(),

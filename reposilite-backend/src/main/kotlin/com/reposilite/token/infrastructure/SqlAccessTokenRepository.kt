@@ -27,27 +27,26 @@ import com.reposilite.token.AccessTokenRepository
 import com.reposilite.token.AccessTokenType.PERSISTENT
 import com.reposilite.token.Route
 import com.reposilite.token.RoutePermission.Companion.findRoutePermissionByIdentifier
+import com.reposilite.token.UNINITIALIZED_ENTITY_ID
 import com.reposilite.token.application.AccessTokenPlugin.Companion.MAX_ROUTE_LENGTH
 import com.reposilite.token.application.AccessTokenPlugin.Companion.MAX_TOKEN_NAME
 import java.util.UUID
-import net.dzikoysk.exposed.shared.UNINITIALIZED_ENTITY_ID
-import net.dzikoysk.exposed.upsert.withIndex
-import net.dzikoysk.exposed.upsert.withUnique
-import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.dao.id.IntIdTable
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.Op
-import org.jetbrains.exposed.sql.ReferenceOption.CASCADE
-import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.javatime.date
-import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.transactions.transaction
-import org.jetbrains.exposed.sql.update
+import org.jetbrains.exposed.v1.core.Op
+import org.jetbrains.exposed.v1.core.ReferenceOption.CASCADE
+import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.Table
+import org.jetbrains.exposed.v1.core.dao.id.EntityID
+import org.jetbrains.exposed.v1.core.dao.id.IntIdTable
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.java.javaUUID
+import org.jetbrains.exposed.v1.javatime.date
+import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.SchemaUtils
+import org.jetbrains.exposed.v1.jdbc.deleteWhere
+import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import org.jetbrains.exposed.v1.jdbc.update
 import panda.std.firstAndMap
 
 object AccessTokenTable : IntIdTable("access_token") {
@@ -62,20 +61,20 @@ object PermissionToAccessTokenTable : Table("permission_access_token") {
     val permission = varchar("permission", 48)
 
     init {
-        withIndex("index_access_token_id", columns = arrayOf(accessTokenId))
-        withUnique("unique_access_token_id_permission", accessTokenId, permission)
+        index("index_access_token_id", isUnique = false, accessTokenId)
+        uniqueIndex("unique_access_token_id_permission", accessTokenId, permission)
     }
 }
 
 object PermissionToRouteTable : Table("permission_route") {
     val accessTokenId = reference("access_token_id", AccessTokenTable.id, onDelete = CASCADE, onUpdate = CASCADE)
-    val routeId = uuid("route_id")
+    val routeId = javaUUID("route_id")
     val route = varchar("route", MAX_ROUTE_LENGTH)
     val permission = varchar("permission", 48)
 
     init {
-        withIndex("index_access_token_id_route_id", columns = arrayOf(accessTokenId, routeId))
-        withUnique("unique_access_token_id_route_id_permission", accessTokenId, routeId, permission)
+        index("index_access_token_id_route_id", isUnique = false, accessTokenId, routeId)
+        uniqueIndex("unique_access_token_id_route_id_permission", accessTokenId, routeId, permission)
     }
 }
 

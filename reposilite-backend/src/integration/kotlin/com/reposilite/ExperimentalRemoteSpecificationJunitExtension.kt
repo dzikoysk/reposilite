@@ -21,9 +21,9 @@ import org.junit.jupiter.api.extension.AfterEachCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.Extension
 import org.junit.jupiter.api.extension.ExtensionContext
-import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
+import org.testcontainers.postgresql.PostgreSQLContainer
 import org.testcontainers.utility.DockerImageName
 
 /**
@@ -34,10 +34,8 @@ import org.testcontainers.utility.DockerImageName
 @Testcontainers
 internal class ExperimentalRemoteSpecificationJunitExtension : Extension, BeforeEachCallback, AfterEachCallback {
 
-    private class SpecifiedPostgreSQLContainer(image: String) : PostgreSQLContainer<SpecifiedPostgreSQLContainer>(DockerImageName.parse(image))
-
     @Container
-    private val postgres = SpecifiedPostgreSQLContainer("postgres:latest")
+    private val postgres = PostgreSQLContainer(DockerImageName.parse("postgres:latest"))
 
     override fun beforeEach(context: ExtensionContext) {
         postgres.start()

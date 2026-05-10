@@ -1,5 +1,5 @@
 import { ChakraProvider } from '@chakra-ui/react'
-import { DefaultSeo } from 'next-seo'
+import { generateDefaultSeo } from 'next-seo/pages'
 import Head from 'next/head'
 import { ColorModeScript } from 'nextjs-color-mode'
 import '../components/MDX.css'
@@ -16,8 +16,8 @@ function App({ Component, pageProps }) {
     <>
       <Head>
         <style dangerouslySetInnerHTML={{ __html: criticalThemeCss }} />
+        {generateDefaultSeo(defaultSeoConfig)}
       </Head>
-      <DefaultSeo {...defaultSeoConfig} />
       <ChakraProvider>
         <ColorModeScript />
         <Component {...pageProps} />

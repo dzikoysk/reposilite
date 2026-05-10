@@ -16,12 +16,17 @@
 
 import js from "@eslint/js";
 import pluginVue from 'eslint-plugin-vue'
+import globals from 'globals'
 
 export default [
   js.configs.recommended,
   ...pluginVue.configs['flat/recommended'],
   {
     languageOptions: {
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+      },
       parserOptions: {
         "ecmaVersion": 2020,
         "ecmaFeatures": {
@@ -30,8 +35,6 @@ export default [
       },
     },
     rules: {
-      'vue/script-setup-uses-vars': 'error',
-      'vue/no-setup-props-destructure': 'error',
       'vue/no-unused-vars': 'error',
       'vue/multi-word-component-names': 'error',
       'vue/jsx-uses-vars': 'error',

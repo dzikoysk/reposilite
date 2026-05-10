@@ -21,8 +21,8 @@ import com.reposilite.configuration.local.LocalConfiguration.StandardSQLDatabase
 import com.reposilite.shared.extensions.loadCommandBasedConfiguration
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.transactions.TransactionManager
+import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.transactions.TransactionManager
 import java.io.Closeable
 import java.io.File
 import java.nio.file.Path

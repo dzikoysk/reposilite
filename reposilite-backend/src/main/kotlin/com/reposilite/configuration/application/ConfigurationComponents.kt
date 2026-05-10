@@ -20,7 +20,7 @@ import com.reposilite.configuration.ConfigurationFacade
 import com.reposilite.configuration.ConfigurationRepository
 import com.reposilite.configuration.infrastructure.InMemoryConfigurationRepository
 import com.reposilite.configuration.infrastructure.SqlConfigurationRepository
-import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.v1.jdbc.Database
 
 class ConfigurationComponents(private val database: Database? = null) {
 
