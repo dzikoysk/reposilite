@@ -48,4 +48,12 @@ class LocationTest {
         assertThat(Location.of("").toPath().get().toString()).isEqualTo("")
     }
 
+    @Test
+    fun `should strip HTML metacharacters so locations are safe to interpolate into HTML`() {
+        assertThat(Location.of("group/<x/artifact").toString()).isEqualTo("group/x/artifact")
+        assertThat(Location.of("group/x>/artifact").toString()).isEqualTo("group/x/artifact")
+        assertThat(Location.of("group/\"x/artifact").toString()).isEqualTo("group/x/artifact")
+        assertThat(Location.of("group/'x/artifact").toString()).isEqualTo("group/x/artifact")
+    }
+
 }

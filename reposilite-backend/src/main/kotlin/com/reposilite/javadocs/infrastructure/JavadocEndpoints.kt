@@ -37,7 +37,12 @@ internal class JavadocEndpoints(javadoc: JavadocFacade) : MavenRoutes(javadoc.ma
                         else -> {
                             response = JavadocPageRequest(this?.identifier, repository, gav)
                                 .let { javadoc.findJavadocPage(it) }
-                                .peek { ctx.encoding(Charsets.UTF_8).contentType(it.contentType) }
+                                .peek {
+                                    ctx
+                                        .encoding(Charsets.UTF_8)
+                                        .contentType(it.contentType)
+                                        .header(Header.CONTENT_SECURITY_POLICY, "sandbox allow-scripts")
+                                }
                                 .map { it.content }
                         }
                     }
