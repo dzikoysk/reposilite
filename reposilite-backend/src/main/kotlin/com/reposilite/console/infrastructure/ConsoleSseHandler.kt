@@ -94,7 +94,7 @@ internal class ConsoleSseHandler(
         return extractFromHeader(connection.header(Header.AUTHORIZATION))
             .map { (name, secret) ->
                 Credentials(
-                    host = connection.ip(),
+                    ip = connection.ip(),
                     name = name,
                     secret = secret
                 )

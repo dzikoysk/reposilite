@@ -101,7 +101,7 @@ internal class LdapAuthenticatorTest : LdapSpecification() {
         fun `should authenticate non-existing ldap user`() {
             val authenticationResult = authenticator.authenticate(
                 Credentials(
-                    host = "host",
+                    ip = "host",
                     name = "Bella Swan",
                     secret = "secret"
                 )
@@ -124,7 +124,7 @@ internal class LdapAuthenticatorTest : LdapSpecification() {
 
             val authenticationResult = authenticator.authenticate(
                 Credentials(
-                    host = "host",
+                    ip = "host",
                     name = createdToken.accessToken.name,
                     secret = createdToken.secret
                 )
@@ -178,7 +178,7 @@ internal class LdapAuthenticatorTest : LdapSpecification() {
         fun `should not authenticate mykola`() {
             val authenticationResult = authenticator.authenticate(
                 Credentials(
-                    host = "host",
+                    ip = "host",
                     name = "mykola",
                     secret = "mykola-secret"
                 )
@@ -191,7 +191,7 @@ internal class LdapAuthenticatorTest : LdapSpecification() {
         fun `should authenticate panda`() {
             val authenticationResult = authenticator.authenticate(
                 Credentials(
-                    host = "host",
+                    ip = "host",
                     name = "panda",
                     secret = "panda-secret"
                 )
