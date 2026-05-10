@@ -58,7 +58,7 @@ fun createReposiliteDsl(
             accessTokenFacade = accessTokenFacade,
             authenticationResult = javalinLazy {
                 extractFromHeader(header(Header.AUTHORIZATION))
-                    .map { (name, secret) -> Credentials(host = host() ?: req().remoteAddr, name = name, secret = secret) }
+                    .map { (name, secret) -> Credentials(ip = ip(), name = name, secret = secret) }
                     .flatMap { authenticationFacade.authenticateByCredentials(it) }
             }
         )

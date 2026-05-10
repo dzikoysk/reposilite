@@ -112,7 +112,7 @@ internal class ConsoleWebSocketHandler(
         return extractFromString(authMessage.replaceFirst(AUTHORIZATION_PREFIX, ""))
             .map { (name, secret) ->
                 Credentials(
-                    host = connection.getHost(),
+                    ip = connection.getHost(),
                     name = name,
                     secret = secret
                 )

@@ -70,7 +70,7 @@ class AuthenticationFacade(
     }
 
     fun authenticateByCredentials(credentials: Credentials): Result<out AccessTokenDto, ErrorResponse> {
-        if (isBruteForceBlocked(credentials.host)) {
+        if (isBruteForceBlocked(credentials.ip)) {
             return unauthorizedError("Invalid authorization credentials")
         }
 
@@ -84,13 +84,13 @@ class AuthenticationFacade(
                     .map { authenticator ->
                         authenticator
                             .authenticate(credentials)
-                            .onError { logger.debug("${credentials.name}@${credentials.host} failed to authenticate with ${authenticator.realm()} realm due to $it") }
+                            .onError { logger.debug("${credentials.name}@${credentials.ip} failed to authenticate with ${authenticator.realm()} realm due to $it") }
                     }
                     .firstOrNull { it.isOk }
                     ?.peek { authenticationCache.put(credentials, it) }
                 ?: unauthorizedError("Invalid authorization credentials")
 
-        trackBruteForceAttempt(ip = credentials.host, success = result.isOk)
+        trackBruteForceAttempt(ip = credentials.ip, success = result.isOk)
         return result
     }
 

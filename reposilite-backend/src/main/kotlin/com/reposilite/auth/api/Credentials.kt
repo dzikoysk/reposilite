@@ -17,7 +17,7 @@
 package com.reposilite.auth.api
 
 data class Credentials(
-    val host: String,
+    val ip: String,
     val name: String,
     val secret: String
 )
