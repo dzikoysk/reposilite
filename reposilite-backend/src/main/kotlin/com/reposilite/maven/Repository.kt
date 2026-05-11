@@ -36,12 +36,16 @@ class Repository internal constructor(
     val mirrorHosts: List<MirrorHost>,
     val storageProvider: StorageProvider,
     val storagePolicy: StoragePolicy,
-    val metadataMaxAgeInSeconds: Long
+    val metadataMaxAgeInSeconds: Long,
+    resolutionCacheMaxEntries: Int,
 ) {
 
     init {
         check(name.length < REPOSITORY_NAME_MAX_LENGTH) { "Repository name cannot exceed $REPOSITORY_NAME_MAX_LENGTH characters" }
     }
+
+    internal val resolutionCache: ResolutionCache? =
+        if (resolutionCacheMaxEntries > 0 && mirrorHosts.isNotEmpty()) ResolutionCache(resolutionCacheMaxEntries) else null
 
     fun acceptsDeploymentOf(location: Location): Boolean =
         redeployment || location.getSimpleName().contains(METADATA_FILE) || !storageProvider.exists(location)

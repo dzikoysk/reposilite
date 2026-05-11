@@ -59,8 +59,10 @@ import panda.std.reactive.reference
 import panda.std.reactive.toReference
 import java.io.File
 import java.time.Clock
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.io.path.createFile
 import kotlin.io.path.createParentDirectories
 import kotlin.io.path.writeText
@@ -79,6 +81,8 @@ internal abstract class MavenSpecification {
     lateinit var workingDirectory: File
     protected lateinit var mavenFacade: MavenFacade
     private lateinit var ioService: ExecutorService
+
+    protected val remoteRequestsByUri = ConcurrentHashMap<String, AtomicInteger>()
 
     private val clock = Clock.systemDefaultZone()
     private val logger = InMemoryLogger()
@@ -108,6 +112,7 @@ internal abstract class MavenSpecification {
 
         val remoteClientProvider = FakeRemoteClientProvider(
             headHandler = { uri, credentials, _, _ ->
+                remoteRequestsByUri.computeIfAbsent(uri) { AtomicInteger() }.incrementAndGet()
                 if (uri.startsWith(REMOTE_REPOSITORY) && REMOTE_AUTH == credentials && !uri.isAllowed())
                     DocumentInfo(
                         name = uri.toLocation().getSimpleName(),
@@ -122,6 +127,7 @@ internal abstract class MavenSpecification {
                     notFoundError("Not found")
             },
             getHandler = { uri, credentials, _, _ ->
+                remoteRequestsByUri.computeIfAbsent(uri) { AtomicInteger() }.incrementAndGet()
                 if (uri.startsWith(REMOTE_REPOSITORY) && REMOTE_AUTH == credentials && !uri.isAllowed())
                     REMOTE_CONTENT.byteInputStream().asSuccess()
                 else if (uri.startsWith(REMOTE_REPOSITORY_WITH_WHITELIST) && uri.isAllowed())

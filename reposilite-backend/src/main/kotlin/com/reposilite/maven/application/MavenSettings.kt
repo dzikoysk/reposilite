@@ -67,6 +67,16 @@ data class RepositorySettings(
         If set to "0" then a fetch is done always. (Default: 0 seconds)
     """)
     val metadataMaxAge: Long = 0L,
+    @Min(0)
+    @get:Doc(title = "Resolution cache size", description = """
+        When > 0, Reposilite caches per-prefix routing decisions taken from maven-metadata.xml outcomes:
+        whether a given group/artifact resolved locally (so subsequent requests skip the storage stat),
+        from a specific upstream mirror (so subsequent requests pin to that mirror and skip the round-robin probe),
+        or from nowhere at all (so subsequent requests 404 immediately).<br/>
+        Entries are evicted by lowest hit count when the cap is reached and invalidated on local deployment.<br/>
+        Recommended starting value: 512. Set to 0 to disable. (Default: 0)
+    """)
+    val resolutionCacheMaxEntries: Int = 0,
     @get:Doc(title = "Mirrored repositories", description = "List of mirrored repositories associated with this repository.")
     val proxied: List<MirroredRepositorySettings> = listOf()
 ) : SharedSettings
