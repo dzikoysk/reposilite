@@ -155,4 +155,30 @@ internal class ResolutionCacheTest {
         assertThat(cache.size()).isZero()
     }
 
+    @Test
+    fun `re-recording the same origin preserves accumulated hitCount`() {
+        val cache = ResolutionCache(maxEntries = 4)
+        cache.record("org/example/foo".toLocation(), authenticated = false, origin = Origin.Local)
+
+        // Simulate a hot prefix being read several times between metadata refreshes.
+        repeat(5) { cache.lookup("org/example/foo/1.0/foo.jar".toLocation(), authenticated = false) }
+
+        // A subsequent metadata fetch records the same Local origin again — must not reset the entry.
+        cache.record("org/example/foo".toLocation(), authenticated = false, origin = Origin.Local)
+
+        assertThat(cache.stats(top = 1).single().hitCount).isEqualTo(5)
+    }
+
+    @Test
+    fun `re-recording a different origin replaces the entry`() {
+        val cache = ResolutionCache(maxEntries = 4)
+        cache.record("org/example/foo".toLocation(), authenticated = false, origin = Origin.Remote("h1"))
+        cache.lookup("org/example/foo/1.0/foo.jar".toLocation(), authenticated = false)
+
+        cache.record("org/example/foo".toLocation(), authenticated = false, origin = Origin.Local)
+
+        assertThat(cache.lookup("org/example/foo/1.0/foo.jar".toLocation(), authenticated = false))
+            .isEqualTo(Origin.Local)
+    }
+
 }

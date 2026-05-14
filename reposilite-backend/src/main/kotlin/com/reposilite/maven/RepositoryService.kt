@@ -83,7 +83,7 @@ internal class RepositoryService(
                     repository.storageProvider
                         .putFile(gav, deployRequest.content)
                         .peek { logger.info("DEPLOY | Artifact $gav successfully deployed to ${repository.name} by ${deployRequest.by}") }
-                        .peek { repository.resolutionCache?.invalidate(gav) }
+                        .peek { if (gav.getSimpleName().contains(METADATA_FILE)) repository.resolutionCache?.invalidate(gav) }
                         .peek { extensions.emitEvent(DeployEvent(repository, gav, deployRequest.by)) }
                         .flatMap { _ ->
                             when {
@@ -109,7 +109,7 @@ internal class RepositoryService(
                     repository.storageProvider
                         .removeFile(gav)
                         .peek { logger.info("DELETE | File $gav has been deleted from ${repository.name} by ${deleteRequest.by}") }
-                        .peek { repository.resolutionCache?.invalidate(gav) }
+                        .peek { if (gav.getSimpleName().contains(METADATA_FILE)) repository.resolutionCache?.invalidate(gav) }
                 else -> unauthorizedError("Unauthorized access request")
             }
         }
@@ -198,11 +198,11 @@ internal class RepositoryService(
             ?.let { decision -> repository.mirrorHosts.filter { it.host == decision.host }.ifEmpty { repository.mirrorHosts } }
             ?: repository.mirrorHosts
 
+        // Remote means "no local copy exists" — we have to go remote regardless of policy.
+        // Local and null both follow the policy: stale metadata still gets refreshed under PRIORITIZE_UPSTREAM_METADATA.
         val localFirst = when (cached) {
-            ResolutionCache.Origin.Local -> true
             is ResolutionCache.Origin.Remote -> false
-            null -> !mirrorFirst
-            ResolutionCache.Origin.Negative -> error("unreachable")
+            else -> !mirrorFirst
         }
 
         val outcome = AtomicReference(MirrorProbeOutcome.UNDETERMINED)
@@ -232,7 +232,14 @@ internal class RepositoryService(
                     localResolved ->
                         cache.record(prefix, authenticated, ResolutionCache.Origin.Local)
                     probe.winningHost != null ->
-                        cache.record(prefix, authenticated, ResolutionCache.Origin.Remote(probe.winningHost.host))
+                        // store=true means the mirror persisted the file locally — we now own a copy, so cache it as Local.
+                        // Remote pinning only makes sense for non-storing mirrors where every read has to go upstream.
+                        cache.record(
+                            prefix,
+                            authenticated,
+                            if (probe.winningHost.configuration.store) ResolutionCache.Origin.Local
+                            else ResolutionCache.Origin.Remote(probe.winningHost.host)
+                        )
                     localAttempted && remoteAttempted && probe.allMissing ->
                         cache.record(prefix, authenticated, ResolutionCache.Origin.Negative)
                 }

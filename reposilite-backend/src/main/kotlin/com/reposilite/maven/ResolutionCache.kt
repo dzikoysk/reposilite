@@ -57,6 +57,8 @@ internal class ResolutionCache(private val maxEntries: Int) {
     fun record(prefix: Location, authenticated: Boolean, origin: Origin) {
         if (prefix.toString().isEmpty()) return
         val key = Key(prefix, authenticated)
+        // Same-origin re-record is a no-op so a hot prefix accumulates hitCount across repeated metadata fetches.
+        if (entries[key]?.origin == origin) return
         // Evict before insert so the just-recorded entry (hitCount = 0) isn't itself the victim.
         if (!entries.containsKey(key) && entries.size >= maxEntries) evictDownTo(maxEntries - 1)
         entries[key] = Entry(origin)
