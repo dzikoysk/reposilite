@@ -19,8 +19,20 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
+import com.reposilite.storage.api.Location
 
 internal const val METADATA_FILE = "maven-metadata.xml"
+
+internal fun Location.isResolutionMetadata(): Boolean {
+    val name = getSimpleName()
+    return when {
+        name.endsWith(".pom") -> true
+        name.endsWith(".module") -> true
+        name == METADATA_FILE -> true
+        name.endsWith(".xml") -> name == "ivy.xml" || name.startsWith("ivy-")
+        else -> false
+    }
+}
 
 @JacksonXmlRootElement(localName = "metadata")
 data class Metadata(

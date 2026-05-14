@@ -22,11 +22,11 @@ import com.reposilite.maven.api.DeployEvent
 import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.Identifier
 import com.reposilite.maven.api.LookupRequest
-import com.reposilite.maven.api.METADATA_FILE
 import com.reposilite.maven.api.PreResolveEvent
 import com.reposilite.maven.api.ResolvedDocument
 import com.reposilite.maven.api.ResolvedFileDataEvent
 import com.reposilite.maven.api.ResolvedFileEvent
+import com.reposilite.maven.api.isResolutionMetadata
 import com.reposilite.plugin.Extensions
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.errorResponse
@@ -83,7 +83,7 @@ internal class RepositoryService(
                     repository.storageProvider
                         .putFile(gav, deployRequest.content)
                         .peek { logger.info("DEPLOY | Artifact $gav successfully deployed to ${repository.name} by ${deployRequest.by}") }
-                        .peek { if (gav.getSimpleName().contains(METADATA_FILE)) repository.resolutionCache?.invalidate(gav) }
+                        .peek { if (gav.isResolutionMetadata()) repository.resolutionCache?.invalidate(gav) }
                         .peek { extensions.emitEvent(DeployEvent(repository, gav, deployRequest.by)) }
                         .flatMap { _ ->
                             when {
@@ -109,7 +109,7 @@ internal class RepositoryService(
                     repository.storageProvider
                         .removeFile(gav)
                         .peek { logger.info("DELETE | File $gav has been deleted from ${repository.name} by ${deleteRequest.by}") }
-                        .peek { if (gav.getSimpleName().contains(METADATA_FILE)) repository.resolutionCache?.invalidate(gav) }
+                        .peek { if (gav.isResolutionMetadata()) repository.resolutionCache?.invalidate(gav) }
                 else -> unauthorizedError("Unauthorized access request")
             }
         }
@@ -189,8 +189,11 @@ internal class RepositoryService(
         val cache = repository.resolutionCache
         val authenticated = accessToken != null
         val cached = cache?.lookup(gav, authenticated)
+        val isMetadata = gav.isResolutionMetadata()
 
-        if (cached == ResolutionCache.Origin.Negative) {
+        // Negative is only authoritative for resolution-metadata reads; raw file requests must fall through to
+        // real resolution so directly-uploaded artifacts under a Negative-cached prefix are still served.
+        if (isMetadata && cached == ResolutionCache.Origin.Negative) {
             return notFoundError("Cannot find '$gav' in local or remote repositories")
         }
 
@@ -198,8 +201,8 @@ internal class RepositoryService(
             ?.let { decision -> repository.mirrorHosts.filter { it.host == decision.host }.ifEmpty { repository.mirrorHosts } }
             ?: repository.mirrorHosts
 
-        // Remote means "no local copy exists" — we have to go remote regardless of policy.
-        // Local and null both follow the policy: stale metadata still gets refreshed under PRIORITIZE_UPSTREAM_METADATA.
+        // Remote forces remote-first because no local copy exists; everything else honors the policy so stale
+        // metadata still triggers an upstream refresh under PRIORITIZE_UPSTREAM_METADATA.
         val localFirst = when (cached) {
             is ResolutionCache.Origin.Remote -> false
             else -> !mirrorFirst
@@ -223,7 +226,7 @@ internal class RepositoryService(
             if (localFirst) runLocal().flatMapErr { runRemote() }
             else runRemote().flatMapErr { runLocal() }
 
-        if (cache != null && gav.getSimpleName().contains(METADATA_FILE)) {
+        if (cache != null && isMetadata) {
             val prefix = gav.getParent()
             if (prefix.toString().isNotEmpty()) {
                 val probe = outcome.get()
@@ -232,8 +235,8 @@ internal class RepositoryService(
                     localResolved ->
                         cache.record(prefix, authenticated, ResolutionCache.Origin.Local)
                     probe.winningHost != null ->
-                        // store=true means the mirror persisted the file locally — we now own a copy, so cache it as Local.
-                        // Remote pinning only makes sense for non-storing mirrors where every read has to go upstream.
+                        // store=true persisted the file locally, so the prefix is effectively Local now — pinning a
+                        // Remote(host) would force needless upstream hops for files we already own.
                         cache.record(
                             prefix,
                             authenticated,

@@ -21,13 +21,14 @@ import com.reposilite.maven.ResolutionCache.Origin.Negative
 import com.reposilite.maven.ResolutionCache.Origin.Remote
 import com.reposilite.storage.api.Location
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.LongAdder
 
 internal class ResolutionCache(private val maxEntries: Int) {
 
     private data class Key(val prefix: Location, val authenticated: Boolean)
 
     private class Entry(val origin: Origin) {
-        @Volatile var hitCount: Long = 0
+        val hitCount: LongAdder = LongAdder()
     }
 
     sealed interface Origin {
@@ -46,7 +47,7 @@ internal class ResolutionCache(private val maxEntries: Int) {
         while (prefix.toString().isNotEmpty()) {
             val entry = entries[Key(prefix, authenticated)]
             if (entry != null) {
-                entry.hitCount++
+                entry.hitCount.increment()
                 return entry.origin
             }
             prefix = prefix.getParent()
@@ -57,7 +58,7 @@ internal class ResolutionCache(private val maxEntries: Int) {
     fun record(prefix: Location, authenticated: Boolean, origin: Origin) {
         if (prefix.toString().isEmpty()) return
         val key = Key(prefix, authenticated)
-        // Same-origin re-record is a no-op so a hot prefix accumulates hitCount across repeated metadata fetches.
+        // No-op on same origin so hot prefixes don't lose accumulated hitCount on every metadata refresh.
         if (entries[key]?.origin == origin) return
         // Evict before insert so the just-recorded entry (hitCount = 0) isn't itself the victim.
         if (!entries.containsKey(key) && entries.size >= maxEntries) evictDownTo(maxEntries - 1)
@@ -82,7 +83,7 @@ internal class ResolutionCache(private val maxEntries: Int) {
 
     fun stats(top: Int): List<Snapshot> =
         entries.entries.asSequence()
-            .map { (key, entry) -> Snapshot(key.prefix, key.authenticated, entry.origin, entry.hitCount) }
+            .map { (key, entry) -> Snapshot(key.prefix, key.authenticated, entry.origin, entry.hitCount.sum()) }
             .sortedByDescending { it.hitCount }
             .take(top)
             .toList()
@@ -90,7 +91,7 @@ internal class ResolutionCache(private val maxEntries: Int) {
     private fun evictDownTo(targetSize: Int) {
         synchronized(evictionLock) {
             while (entries.size > targetSize) {
-                val victim = entries.entries.minByOrNull { it.value.hitCount } ?: return
+                val victim = entries.entries.minByOrNull { it.value.hitCount.sum() } ?: return
                 entries.remove(victim.key, victim.value)
             }
         }
