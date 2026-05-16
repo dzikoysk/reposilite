@@ -14,36 +14,59 @@
  * limitations under the License.
  */
 
-package com.reposilite.maven
+package com.reposilite.maven.infrastructure
 
 import com.reposilite.console.CommandContext
 import com.reposilite.console.CommandStatus.FAILED
 import com.reposilite.console.api.ReposiliteCommand
+import com.reposilite.maven.MavenFacade
+import com.reposilite.maven.Repository
+import com.reposilite.maven.ResolutionCache
 import picocli.CommandLine.Command
 import picocli.CommandLine.Option
 import picocli.CommandLine.Parameters
 
 private const val DEFAULT_TOP = 20
 
-@Command(name = "cache-stats", description = ["Print resolution cache size and top entries by hit count"])
-internal class CacheStatsCommand(private val mavenFacade: MavenFacade) : ReposiliteCommand {
+@Command(name = "cache", description = ["Inspect or purge a Reposilite cache. Usage: cache <target> <action> [<repository>]. Targets: resolution. Actions: stats, purge."])
+internal class CacheCommand(private val mavenFacade: MavenFacade) : ReposiliteCommand {
 
-    @Parameters(index = "0", paramLabel = "[<repository>]", defaultValue = "", description = ["Limit output to a single repository. Defaults to all."])
+    @Parameters(index = "0", paramLabel = "<target>", description = ["Cache to operate on. Supported: 'resolution'."])
+    private lateinit var target: String
+
+    @Parameters(index = "1", paramLabel = "<action>", description = ["Action to perform. Supported: 'stats', 'purge'."])
+    private lateinit var action: String
+
+    @Parameters(index = "2", paramLabel = "[<repository>]", defaultValue = "", description = ["Limit to a single repository. Defaults to all."])
     private lateinit var repository: String
 
-    @Option(names = ["--top"], description = ["Number of top entries to display per repository (default: $DEFAULT_TOP)."], defaultValue = "$DEFAULT_TOP")
+    @Option(names = ["--top"], description = ["Number of top entries to display per repository for 'stats' (default: $DEFAULT_TOP)."], defaultValue = "$DEFAULT_TOP")
     private var top: Int = DEFAULT_TOP
 
     override fun execute(context: CommandContext) {
+        when (target) {
+            "resolution" -> dispatch(context)
+            else -> context.fail("Unknown cache '$target'. Supported: resolution")
+        }
+    }
+
+    private fun dispatch(context: CommandContext) {
         val repositories = mavenFacade.getRepositories()
             .filter { repository.isEmpty() || it.name == repository }
 
         if (repositories.isEmpty()) {
-            context.append("No repository named '$repository' found")
-            context.status = FAILED
+            context.fail("No repository named '$repository' found")
             return
         }
 
+        when (action) {
+            "stats" -> stats(repositories, context)
+            "purge" -> purge(repositories, context)
+            else -> context.fail("Unknown action '$action'. Supported: stats, purge")
+        }
+    }
+
+    private fun stats(repositories: List<Repository>, context: CommandContext) {
         repositories.forEach { repo ->
             val cache = repo.resolutionCache
             if (cache == null) {
@@ -57,52 +80,34 @@ internal class CacheStatsCommand(private val mavenFacade: MavenFacade) : Reposil
                 return@forEach
             }
             snapshots.forEach { snap ->
-                val target = when (val origin = snap.origin) {
+                val destination = when (val origin = snap.origin) {
                     ResolutionCache.Origin.Local -> "(local)"
                     is ResolutionCache.Origin.Remote -> origin.host
                     ResolutionCache.Origin.Negative -> "(not found)"
                 }
-                val auth = if (snap.authenticated) "auth" else "anon"
-                context.append("  [${auth}] /${snap.prefix} -> $target  (hits: ${snap.hitCount})")
+                val auth = when {
+                    snap.authenticated -> "auth"
+                    else -> "anon"
+                }
+                context.append("  [$auth] /${snap.prefix} -> $destination  (hits: ${snap.hitCount})")
             }
         }
     }
-}
 
-@Command(name = "cache-purge", description = ["Purge a named Reposilite cache. Today only 'resolution' is supported."])
-internal class CachePurgeCommand(private val mavenFacade: MavenFacade) : ReposiliteCommand {
-
-    @Parameters(index = "0", paramLabel = "<target>", description = ["Cache to purge. Supported: 'resolution'."])
-    private lateinit var target: String
-
-    @Parameters(index = "1", paramLabel = "[<repository>]", defaultValue = "", description = ["Limit purge to a single repository. Defaults to all."])
-    private lateinit var repository: String
-
-    override fun execute(context: CommandContext) {
-        if (target != "resolution") {
-            context.append("Unknown cache '$target'. Supported: resolution")
-            context.status = FAILED
-            return
-        }
-
-        val repositories = mavenFacade.getRepositories()
-            .filter { repository.isEmpty() || it.name == repository }
-
-        if (repositories.isEmpty()) {
-            context.append("No repository named '$repository' found")
-            context.status = FAILED
-            return
-        }
-
+    private fun purge(repositories: List<Repository>, context: CommandContext) {
         var totalCleared = 0
         var affected = 0
         repositories.forEach { repo ->
             val cache = repo.resolutionCache ?: return@forEach
-            val before = cache.size()
+            totalCleared += cache.size()
             cache.purge()
-            totalCleared += before
             affected++
         }
         context.append("Cleared $totalCleared resolution cache entries across $affected repositor${if (affected == 1) "y" else "ies"}.")
+    }
+
+    private fun CommandContext.fail(message: String) {
+        append(message)
+        status = FAILED
     }
 }

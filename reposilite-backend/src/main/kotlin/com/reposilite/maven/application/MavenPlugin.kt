@@ -20,10 +20,9 @@ import com.reposilite.configuration.local.LocalConfiguration
 import com.reposilite.configuration.shared.SharedConfigurationFacade
 import com.reposilite.console.api.CommandsSetupEvent
 import com.reposilite.frontend.application.FrontendSettings
-import com.reposilite.maven.CachePurgeCommand
-import com.reposilite.maven.CacheStatsCommand
 import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.PreservedBuildsListener
+import com.reposilite.maven.infrastructure.CacheCommand
 import com.reposilite.maven.infrastructure.MavenApiEndpoints
 import com.reposilite.maven.infrastructure.MavenEndpoints
 import com.reposilite.maven.infrastructure.MavenLatestApiEndpoints
@@ -80,8 +79,7 @@ internal class MavenPlugin : ReposilitePlugin() {
         event(PreservedBuildsListener(mavenFacade))
 
         event { event: CommandsSetupEvent ->
-            event.registerCommand(CacheStatsCommand(mavenFacade))
-            event.registerCommand(CachePurgeCommand(mavenFacade))
+            event.registerCommand(CacheCommand(mavenFacade))
         }
 
         event { _: ReposiliteDisposeEvent ->

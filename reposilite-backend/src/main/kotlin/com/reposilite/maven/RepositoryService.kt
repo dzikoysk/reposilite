@@ -22,11 +22,11 @@ import com.reposilite.maven.api.DeployEvent
 import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.Identifier
 import com.reposilite.maven.api.LookupRequest
+import com.reposilite.maven.api.METADATA_FILE
 import com.reposilite.maven.api.PreResolveEvent
 import com.reposilite.maven.api.ResolvedDocument
 import com.reposilite.maven.api.ResolvedFileDataEvent
 import com.reposilite.maven.api.ResolvedFileEvent
-import com.reposilite.maven.api.isResolutionMetadata
 import com.reposilite.plugin.Extensions
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.errorResponse
@@ -48,7 +48,6 @@ import panda.std.Result
 import panda.std.asSuccess
 import panda.std.ok
 import java.io.InputStream
-import java.util.concurrent.atomic.AtomicReference
 
 internal class RepositoryService(
     private val journalist: Journalist,
@@ -158,7 +157,7 @@ internal class RepositoryService(
             accessToken = accessToken,
             mirrorFirst = mirrorService.shouldPrioritizeMirrorRepository(repository, gav),
             tryLocal = { repository.storageProvider.getFile(gav) },
-            tryRemote = { hosts, outcome -> mirrorService.findRemoteFile(repository, gav, accessToken, hosts, outcome) },
+            tryRemote = { hosts -> mirrorService.findRemoteFile(repository, gav, accessToken, hosts) },
         )
         return extensions.emitEvent(ResolvedFileDataEvent(accessToken, repository, gav, result)).result
     }
@@ -170,10 +169,7 @@ internal class RepositoryService(
             accessToken = accessToken,
             mirrorFirst = mirrorService.shouldPrioritizeMirrorRepository(repository, gav),
             tryLocal = { findLocalDetails(accessToken, repository, gav) },
-            tryRemote = { hosts, outcome ->
-                mirrorService.findRemoteDetails(repository, gav, accessToken, hosts, outcome)
-                    .mapErr { notFound("Cannot find '$gav' in local and remote repositories") }
-            },
+            tryRemote = { hosts -> mirrorService.findRemoteDetails(repository, gav, accessToken, hosts) },
         ).peek {
             recordResolvedRequest(Identifier(repository.name, gav.toString()), it)
         }
@@ -184,72 +180,91 @@ internal class RepositoryService(
         accessToken: AccessTokenIdentifier?,
         mirrorFirst: Boolean,
         crossinline tryLocal: () -> Result<T, ErrorResponse>,
-        crossinline tryRemote: (hosts: List<MirrorHost>, outcome: AtomicReference<MirrorProbeOutcome>) -> Result<T, ErrorResponse>,
+        crossinline tryRemote: (hosts: List<MirrorHost>) -> MirrorResolution<T>,
     ): Result<T, ErrorResponse> {
         val cache = repository.resolutionCache
         val authenticated = accessToken != null
         val cached = cache?.lookup(gav, authenticated)
         val isMetadata = gav.isResolutionMetadata()
+        val notFoundMessage = "Cannot find '$gav' in local or remote repositories"
 
-        // Negative is only authoritative for resolution-metadata reads; raw file requests must fall through to
-        // real resolution so directly-uploaded artifacts under a Negative-cached prefix are still served.
         if (isMetadata && cached == ResolutionCache.Origin.Negative) {
-            return notFoundError("Cannot find '$gav' in local or remote repositories")
+            return notFoundError(notFoundMessage)
         }
 
         val hosts = (cached as? ResolutionCache.Origin.Remote)
             ?.let { decision -> repository.mirrorHosts.filter { it.host == decision.host }.ifEmpty { repository.mirrorHosts } }
             ?: repository.mirrorHosts
 
-        // Remote forces remote-first because no local copy exists; everything else honors the policy so stale
-        // metadata still triggers an upstream refresh under PRIORITIZE_UPSTREAM_METADATA.
-        val localFirst = when (cached) {
-            is ResolutionCache.Origin.Remote -> false
-            else -> !mirrorFirst
+        val attempt = when {
+            cached is ResolutionCache.Origin.Remote || mirrorFirst -> tryRemoteFirst(tryLocal, tryRemote, hosts, notFoundMessage)
+            else -> tryLocalFirst(tryLocal, tryRemote, hosts, notFoundMessage)
         }
 
-        val outcome = AtomicReference(MirrorProbeOutcome.UNDETERMINED)
-        var localAttempted = false
-        var localResolved = false
-        var remoteAttempted = false
+        if (cache != null && isMetadata) attempt.recordTo(cache, gav, authenticated)
+        return attempt.result
+    }
 
-        val runLocal: () -> Result<T, ErrorResponse> = {
-            localAttempted = true
-            tryLocal().also { if (it.isOk) localResolved = true }
-        }
-        val runRemote: () -> Result<T, ErrorResponse> = {
-            remoteAttempted = true
-            tryRemote(hosts, outcome)
-        }
-
-        val result =
-            if (localFirst) runLocal().flatMapErr { runRemote() }
-            else runRemote().flatMapErr { runLocal() }
-
-        if (cache != null && isMetadata) {
-            val prefix = gav.getParent()
-            if (prefix.toString().isNotEmpty()) {
-                val probe = outcome.get()
-                // Negative requires confirmation from both sides — anything less risks pinning a transient outage as a permanent miss.
-                when {
-                    localResolved ->
-                        cache.record(prefix, authenticated, ResolutionCache.Origin.Local)
-                    probe.winningHost != null ->
-                        // store=true persisted the file locally, so the prefix is effectively Local now — pinning a
-                        // Remote(host) would force needless upstream hops for files we already own.
-                        cache.record(
-                            prefix,
-                            authenticated,
-                            if (probe.winningHost.configuration.store) ResolutionCache.Origin.Local
-                            else ResolutionCache.Origin.Remote(probe.winningHost.host)
-                        )
-                    localAttempted && remoteAttempted && probe.allMissing ->
-                        cache.record(prefix, authenticated, ResolutionCache.Origin.Negative)
-                }
+    private inline fun <T : Any> tryLocalFirst(
+        tryLocal: () -> Result<T, ErrorResponse>,
+        tryRemote: (List<MirrorHost>) -> MirrorResolution<T>,
+        hosts: List<MirrorHost>,
+        notFoundMessage: String,
+    ): ResolveAttempt<T> {
+        val local = tryLocal()
+        return when {
+            local.isOk -> ResolveAttempt(local, remote = null)
+            else -> {
+                val remote = tryRemote(hosts)
+                ResolveAttempt(remote.toResult(notFoundMessage).flatMapErr { local }, remote)
             }
         }
+    }
 
-        return result
+    private inline fun <T : Any> tryRemoteFirst(
+        tryLocal: () -> Result<T, ErrorResponse>,
+        tryRemote: (List<MirrorHost>) -> MirrorResolution<T>,
+        hosts: List<MirrorHost>,
+        notFoundMessage: String,
+    ): ResolveAttempt<T> {
+        val remote = tryRemote(hosts)
+        return when (remote) {
+            is MirrorResolution.Resolved -> ResolveAttempt(Result.ok(remote.value), remote)
+            else -> ResolveAttempt(tryLocal().flatMapErr { remote.toResult(notFoundMessage) }, remote)
+        }
+    }
+
+    private fun <T> ResolveAttempt<T>.recordTo(cache: ResolutionCache, gav: Location, authenticated: Boolean) {
+        val prefix = gav.getParent()
+        if (prefix.toString().isEmpty()) return
+        val origin = when {
+            result.isOk -> when (val r = remote) {
+                is MirrorResolution.Resolved -> when {
+                    r.mirror.configuration.store -> ResolutionCache.Origin.Local
+                    else -> ResolutionCache.Origin.Remote(r.mirror.host)
+                }
+                else -> ResolutionCache.Origin.Local
+            }
+            remote is MirrorResolution.NotFound -> ResolutionCache.Origin.Negative
+            else -> return // transient failure or no mirrors probed — don't poison cache
+        }
+        cache.record(prefix, authenticated, origin)
+    }
+
+    private data class ResolveAttempt<T>(
+        val result: Result<T, ErrorResponse>,
+        val remote: MirrorResolution<T>?, // null when remote was not attempted
+    )
+
+    private fun Location.isResolutionMetadata(): Boolean {
+        val name = getSimpleName()
+        return when {
+            name.endsWith(".pom") -> true
+            name.endsWith(".module") -> true
+            name == METADATA_FILE -> true
+            name.endsWith(".xml") -> name == "ivy.xml" || name.startsWith("ivy-")
+            else -> false
+        }
     }
 
     private fun findLocalDetails(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<FileDetails, ErrorResponse> =

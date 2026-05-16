@@ -17,7 +17,10 @@
 package com.reposilite.maven
 
 import com.reposilite.maven.application.MirroredRepositorySettings
+import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.http.RemoteClient
+import com.reposilite.shared.notFoundError
+import panda.std.Result
 
 data class MirrorHost(
     val host: String,
@@ -29,3 +32,17 @@ enum class StoragePolicy {
     PRIORITIZE_UPSTREAM_METADATA,
     STRICT
 }
+
+internal sealed interface MirrorResolution<out T> {
+    data object NoEligibleHosts : MirrorResolution<Nothing>
+    data object NotFound : MirrorResolution<Nothing>
+    data class Failed(val error: ErrorResponse) : MirrorResolution<Nothing>
+    data class Resolved<T>(val value: T, val mirror: MirrorHost) : MirrorResolution<T>
+}
+
+internal fun <T : Any> MirrorResolution<T>.toResult(notFoundMessage: String): Result<T, ErrorResponse> =
+    when (this) {
+        is MirrorResolution.Resolved -> Result.ok(value)
+        is MirrorResolution.Failed -> Result.error(error)
+        MirrorResolution.NoEligibleHosts, MirrorResolution.NotFound -> notFoundError(notFoundMessage)
+    }

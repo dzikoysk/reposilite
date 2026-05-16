@@ -16,9 +16,6 @@
 
 package com.reposilite.maven
 
-import com.reposilite.maven.ResolutionCache.Origin.Local
-import com.reposilite.maven.ResolutionCache.Origin.Negative
-import com.reposilite.maven.ResolutionCache.Origin.Remote
 import com.reposilite.storage.api.Location
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.LongAdder
@@ -28,7 +25,7 @@ internal class ResolutionCache(private val maxEntries: Int) {
     private data class Key(val prefix: Location, val authenticated: Boolean)
 
     private class Entry(val origin: Origin) {
-        val hitCount: LongAdder = LongAdder()
+        val hitCount = LongAdder()
     }
 
     sealed interface Origin {
@@ -58,9 +55,7 @@ internal class ResolutionCache(private val maxEntries: Int) {
     fun record(prefix: Location, authenticated: Boolean, origin: Origin) {
         if (prefix.toString().isEmpty()) return
         val key = Key(prefix, authenticated)
-        // No-op on same origin so hot prefixes don't lose accumulated hitCount on every metadata refresh.
-        if (entries[key]?.origin == origin) return
-        // Evict before insert so the just-recorded entry (hitCount = 0) isn't itself the victim.
+        if (entries[key]?.origin == origin) return // preserve accumulated hitCount on same-origin refresh
         if (!entries.containsKey(key) && entries.size >= maxEntries) evictDownTo(maxEntries - 1)
         entries[key] = Entry(origin)
     }

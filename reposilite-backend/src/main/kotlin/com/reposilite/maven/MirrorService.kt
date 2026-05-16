@@ -22,8 +22,8 @@ import com.reposilite.maven.StoragePolicy.PRIORITIZE_UPSTREAM_METADATA
 import com.reposilite.maven.api.METADATA_FILE
 import com.reposilite.maven.application.MirroredRepositorySettings
 import com.reposilite.shared.ErrorResponse
-import com.reposilite.shared.internalServerError
-import com.reposilite.shared.notFoundError
+import com.reposilite.shared.internalServer
+import com.reposilite.shared.notFound
 import com.reposilite.status.FailureFacade
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.Location
@@ -40,15 +40,8 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.RejectedExecutionException
-import java.util.concurrent.atomic.AtomicReference
 
 internal const val NO_EXTENSION_MARKER = "<none>"
-
-internal data class MirrorProbeOutcome(val winningHost: MirrorHost?, val allMissing: Boolean) {
-    companion object {
-        val UNDETERMINED = MirrorProbeOutcome(winningHost = null, allMissing = false)
-    }
-}
 
 internal class MirrorService(
     private val journalist: Journalist,
@@ -68,7 +61,7 @@ internal class MirrorService(
         val authenticated: Boolean,
     )
 
-    private val inFlightFetches = ConcurrentHashMap<FetchKey, CompletableFuture<Result<Unit, ErrorResponse>>>()
+    private val inFlightFetches = ConcurrentHashMap<FetchKey, CompletableFuture<MirrorResolution<Unit>>>()
 
     fun shouldPrioritizeMirrorRepository(repository: Repository, gav: Location): Boolean =
         when {
@@ -88,9 +81,8 @@ internal class MirrorService(
         gav: Location,
         accessToken: AccessTokenIdentifier? = null,
         hosts: List<MirrorHost> = repository.mirrorHosts,
-        outcome: AtomicReference<MirrorProbeOutcome>? = null,
-    ): Result<FileDetails, ErrorResponse> =
-        searchInRemoteRepositories(repository, gav, accessToken, hosts, outcome) { (host, config, client) ->
+    ): MirrorResolution<FileDetails> =
+        searchInRemoteRepositories(repository, gav, accessToken, hosts) { (host, config, client) ->
             client.head("${host.removeSuffix("/")}/$gav", config.authorization, config.connectTimeout, config.readTimeout)
         }
 
@@ -99,12 +91,11 @@ internal class MirrorService(
         gav: Location,
         accessToken: AccessTokenIdentifier? = null,
         hosts: List<MirrorHost> = repository.mirrorHosts,
-        outcome: AtomicReference<MirrorProbeOutcome>? = null,
-    ): Result<InputStream, ErrorResponse> {
+    ): MirrorResolution<InputStream> {
         // Single-flight only kicks in when every host stores; if any host streams without persisting,
         // waiters can't share the result and we fall back to per-caller fetches.
         if (hosts.isEmpty() || !hosts.all { it.configuration.store }) {
-            return fetchFromRemoteHosts(repository, gav, accessToken, hosts, outcome)
+            return fetchFromRemoteHosts(repository, gav, accessToken, hosts)
         }
 
         val key = FetchKey(
@@ -117,34 +108,43 @@ internal class MirrorService(
             try {
                 CompletableFuture.supplyAsync({
                     try {
-                        fetchAndStoreFromRemoteHosts(repository, gav, accessToken, hosts, outcome)
+                        fetchAndStoreFromRemoteHosts(repository, gav, accessToken, hosts)
                     } catch (throwable: Throwable) {
                         failureFacade.throwException("Mirror fetch ${repository.name}/$gav", throwable)
-                        internalServerError("Mirror fetch failed: ${throwable.message}")
+                        MirrorResolution.Failed(internalServer("Mirror fetch failed: ${throwable.message}"))
                     }
                 }, ioService)
             } catch (rejected: RejectedExecutionException) {
                 // ioService refused the task (typically: shutdown is in progress). Surface as a normal
                 // ErrorResponse rather than letting the runtime exception escape into Javalin.
-                CompletableFuture.completedFuture(internalServerError("Mirror fetch rejected: ${rejected.message}"))
+                CompletableFuture.completedFuture(MirrorResolution.Failed(internalServer("Mirror fetch rejected: ${rejected.message}")))
             }
         }
 
         return future
             .whenComplete { _, _ -> inFlightFetches.remove(key, future) }
             .join()
-            .flatMap { repository.storageProvider.getFile(gav) }
+            .let { it.openLocal(repository, gav) }
     }
 
-    private fun fetchFromRemoteHosts(repository: Repository, gav: Location, accessToken: AccessTokenIdentifier?, hosts: List<MirrorHost>, outcome: AtomicReference<MirrorProbeOutcome>?): Result<InputStream, ErrorResponse> =
-        searchInRemoteRepositories(repository, gav, accessToken, hosts, outcome) { (host, config, client) ->
+    private fun MirrorResolution<Unit>.openLocal(repository: Repository, gav: Location): MirrorResolution<InputStream> =
+        when (this) {
+            is MirrorResolution.Resolved -> repository.storageProvider.getFile(gav)
+                .fold({ MirrorResolution.Resolved(it, mirror) }, { MirrorResolution.Failed(it) })
+            is MirrorResolution.Failed -> this
+            MirrorResolution.NotFound -> MirrorResolution.NotFound
+            MirrorResolution.NoEligibleHosts -> MirrorResolution.NoEligibleHosts
+        }
+
+    private fun fetchFromRemoteHosts(repository: Repository, gav: Location, accessToken: AccessTokenIdentifier?, hosts: List<MirrorHost>): MirrorResolution<InputStream> =
+        searchInRemoteRepositories(repository, gav, accessToken, hosts) { (host, config, client) ->
             client.get("${host.removeSuffix("/")}/$gav", config.authorization, config.connectTimeout, config.readTimeout)
                 .flatMap { data -> if (config.store) storeFile(repository, gav, data) else ok(data) }
                 .mapErr { error -> error.updateMessage { "$host: $it" } }
         }
 
-    private fun fetchAndStoreFromRemoteHosts(repository: Repository, gav: Location, accessToken: AccessTokenIdentifier?, hosts: List<MirrorHost>, outcome: AtomicReference<MirrorProbeOutcome>?): Result<Unit, ErrorResponse> =
-        searchInRemoteRepositories(repository, gav, accessToken, hosts, outcome) { (host, config, client) ->
+    private fun fetchAndStoreFromRemoteHosts(repository: Repository, gav: Location, accessToken: AccessTokenIdentifier?, hosts: List<MirrorHost>): MirrorResolution<Unit> =
+        searchInRemoteRepositories(repository, gav, accessToken, hosts) { (host, config, client) ->
             client.get("${host.removeSuffix("/")}/$gav", config.authorization, config.connectTimeout, config.readTimeout)
                 .flatMap { data -> repository.storageProvider.putFile(gav, data) }
                 .mapErr { error -> error.updateMessage { "$host: $it" } }
@@ -161,9 +161,8 @@ internal class MirrorService(
         gav: Location,
         accessToken: AccessTokenIdentifier?,
         hosts: List<MirrorHost>,
-        outcome: AtomicReference<MirrorProbeOutcome>?,
         fetch: (MirrorHost) -> Result<V, ErrorResponse>,
-    ): Result<V, ErrorResponse> {
+    ): MirrorResolution<V> {
         val eligibleHosts = hosts
             .filter { !it.configuration.authenticatedFetchingOnly || accessToken != null }
             .filter { (_, config) ->
@@ -175,20 +174,18 @@ internal class MirrorService(
                     }
                 )
             }
-        if (eligibleHosts.isEmpty()) {
-            return notFoundError("Cannot find '$gav' in remote repositories")
-        }
+        if (eligibleHosts.isEmpty()) return MirrorResolution.NoEligibleHosts
+
         var allMissing = true
         for (host in eligibleHosts) {
             val result = fetch(host)
-            if (result.isOk) {
-                outcome?.set(MirrorProbeOutcome(winningHost = host, allMissing = false))
-                return result
-            }
-            if (result.getError().status != 404) allMissing = false
+            if (result.isOk) return MirrorResolution.Resolved(result.get(), host)
+            if (result.error.status != 404) allMissing = false
         }
-        outcome?.set(MirrorProbeOutcome(winningHost = null, allMissing = allMissing))
-        return notFoundError("Cannot find '$gav' in remote repositories")
+        return when {
+            allMissing -> MirrorResolution.NotFound
+            else -> MirrorResolution.Failed(notFound("Cannot find '$gav' in remote repositories"))
+        }
     }
 
     private enum class DisallowedReason {
