@@ -69,6 +69,7 @@ internal class MetadataService(private val repositorySecurityProvider: Repositor
                 .mapErr { internalServer("Cannot parse metadata file") }
                 .flatMap { repository.storageProvider.putFile(gav.resolveMetadataFile(), it.inputStream()).map { _ -> it } }
                 .flatMap { repository.writeFileChecksums(gav.resolveMetadataFile(), it) }
+                .peek { repository.resolutionCache?.invalidate(gav.resolveMetadataFile()) }
                 .map { metadata }
         }
 

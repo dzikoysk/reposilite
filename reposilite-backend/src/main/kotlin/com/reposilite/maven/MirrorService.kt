@@ -22,8 +22,8 @@ import com.reposilite.maven.StoragePolicy.PRIORITIZE_UPSTREAM_METADATA
 import com.reposilite.maven.api.METADATA_FILE
 import com.reposilite.maven.application.MirroredRepositorySettings
 import com.reposilite.shared.ErrorResponse
-import com.reposilite.shared.internalServerError
-import com.reposilite.shared.notFoundError
+import com.reposilite.shared.internalServer
+import com.reposilite.shared.notFound
 import com.reposilite.status.FailureFacade
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.Location
@@ -61,7 +61,7 @@ internal class MirrorService(
         val authenticated: Boolean,
     )
 
-    private val inFlightFetches = ConcurrentHashMap<FetchKey, CompletableFuture<Result<Unit, ErrorResponse>>>()
+    private val inFlightFetches = ConcurrentHashMap<FetchKey, CompletableFuture<MirrorResolution<Unit>>>()
 
     fun shouldPrioritizeMirrorRepository(repository: Repository, gav: Location): Boolean =
         when {
@@ -76,16 +76,26 @@ internal class MirrorService(
             .map { it.toInstant().plus(repository.metadataMaxAgeInSeconds, ChronoUnit.SECONDS) }
             .matches { it.isAfter(Instant.now(clock)) }
 
-    fun findRemoteDetails(repository: Repository, gav: Location, accessToken: AccessTokenIdentifier? = null): Result<FileDetails, ErrorResponse> =
-        searchInRemoteRepositories(repository, gav, accessToken) { (host, config, client) ->
+    fun findRemoteDetails(
+        repository: Repository,
+        gav: Location,
+        accessToken: AccessTokenIdentifier? = null,
+        hosts: List<MirrorHost> = repository.mirrorHosts,
+    ): MirrorResolution<FileDetails> =
+        searchInRemoteRepositories(repository, gav, accessToken, hosts) { (host, config, client) ->
             client.head("${host.removeSuffix("/")}/$gav", config.authorization, config.connectTimeout, config.readTimeout)
         }
 
-    fun findRemoteFile(repository: Repository, gav: Location, accessToken: AccessTokenIdentifier? = null): Result<InputStream, ErrorResponse> {
+    fun findRemoteFile(
+        repository: Repository,
+        gav: Location,
+        accessToken: AccessTokenIdentifier? = null,
+        hosts: List<MirrorHost> = repository.mirrorHosts,
+    ): MirrorResolution<InputStream> {
         // Single-flight only kicks in when every host stores; if any host streams without persisting,
         // waiters can't share the result and we fall back to per-caller fetches.
-        if (repository.mirrorHosts.isEmpty() || !repository.mirrorHosts.all { it.configuration.store }) {
-            return fetchFromRemoteHosts(repository, gav, accessToken)
+        if (hosts.isEmpty() || !hosts.all { it.configuration.store }) {
+            return fetchFromRemoteHosts(repository, gav, accessToken, hosts)
         }
 
         val key = FetchKey(
@@ -98,35 +108,49 @@ internal class MirrorService(
             try {
                 CompletableFuture.supplyAsync({
                     try {
-                        fetchAndStoreFromRemoteHosts(repository, gav, accessToken)
+                        fetchAndStoreFromRemoteHosts(repository, gav, accessToken, hosts)
                     } catch (throwable: Throwable) {
                         failureFacade.throwException("Mirror fetch ${repository.name}/$gav", throwable)
-                        internalServerError("Mirror fetch failed: ${throwable.message}")
+                        MirrorResolution.Failed(internalServer("Mirror fetch failed: ${throwable.message}"))
                     }
                 }, ioService)
             } catch (rejected: RejectedExecutionException) {
                 // ioService refused the task (typically: shutdown is in progress). Surface as a normal
                 // ErrorResponse rather than letting the runtime exception escape into Javalin.
-                CompletableFuture.completedFuture(internalServerError("Mirror fetch rejected: ${rejected.message}"))
+                CompletableFuture.completedFuture(MirrorResolution.Failed(internalServer("Mirror fetch rejected: ${rejected.message}")))
             }
         }
 
         return future
             .whenComplete { _, _ -> inFlightFetches.remove(key, future) }
-            .join()
-            .flatMap { repository.storageProvider.getFile(gav) }
+            .join().openLocal(repository, gav)
     }
 
-    private fun fetchFromRemoteHosts(repository: Repository, gav: Location, accessToken: AccessTokenIdentifier?): Result<InputStream, ErrorResponse> =
-        searchInRemoteRepositories(repository, gav, accessToken) { (host, config, client) ->
-            client.get("${host.removeSuffix("/")}/$gav", config.authorization, config.connectTimeout, config.readTimeout)
-                .flatMap { data -> if (config.store) storeFile(repository, gav, data) else ok(data) }
+    private fun MirrorResolution<Unit>.openLocal(repository: Repository, gav: Location): MirrorResolution<InputStream> =
+        when (this) {
+            is MirrorResolution.Resolved -> repository.storageProvider.getFile(gav).fold({ MirrorResolution.Resolved(it, mirror) }, { MirrorResolution.Failed(it) })
+            is MirrorResolution.Failed -> this
+            MirrorResolution.NotFound -> MirrorResolution.NotFound
+            MirrorResolution.NoEligibleHosts -> MirrorResolution.NoEligibleHosts
+        }
+
+    private fun fetchFromRemoteHosts(repository: Repository, gav: Location, accessToken: AccessTokenIdentifier?, hosts: List<MirrorHost>): MirrorResolution<InputStream> =
+        searchInRemoteRepositories(repository, gav, accessToken, hosts) { (host, config, client) ->
+            client
+                .get("${host.removeSuffix("/")}/$gav", config.authorization, config.connectTimeout, config.readTimeout)
+                .flatMap { data ->
+                    when {
+                        config.store -> storeFile(repository, gav, data)
+                        else -> ok(data)
+                    }
+                }
                 .mapErr { error -> error.updateMessage { "$host: $it" } }
         }
 
-    private fun fetchAndStoreFromRemoteHosts(repository: Repository, gav: Location, accessToken: AccessTokenIdentifier?): Result<Unit, ErrorResponse> =
-        searchInRemoteRepositories(repository, gav, accessToken) { (host, config, client) ->
-            client.get("${host.removeSuffix("/")}/$gav", config.authorization, config.connectTimeout, config.readTimeout)
+    private fun fetchAndStoreFromRemoteHosts(repository: Repository, gav: Location, accessToken: AccessTokenIdentifier?, hosts: List<MirrorHost>): MirrorResolution<Unit> =
+        searchInRemoteRepositories(repository, gav, accessToken, hosts) { (host, config, client) ->
+            client
+                .get("${host.removeSuffix("/")}/$gav", config.authorization, config.connectTimeout, config.readTimeout)
                 .flatMap { data -> repository.storageProvider.putFile(gav, data) }
                 .mapErr { error -> error.updateMessage { "$host: $it" } }
         }
@@ -137,9 +161,15 @@ internal class MirrorService(
             .putFile(gav, data)
             .flatMap { repository.storageProvider.getFile(gav) }
 
-    private fun <V> searchInRemoteRepositories(repository: Repository, gav: Location, accessToken: AccessTokenIdentifier?, fetch: (MirrorHost) -> Result<V, ErrorResponse>): Result<V, ErrorResponse> =
-        repository.mirrorHosts.asSequence()
-            .filter { !it.configuration.authenticatedFetchingOnly || accessToken != null  }
+    private fun <V> searchInRemoteRepositories(
+        repository: Repository,
+        gav: Location,
+        accessToken: AccessTokenIdentifier?,
+        hosts: List<MirrorHost>,
+        fetch: (MirrorHost) -> Result<V, ErrorResponse>,
+    ): MirrorResolution<V> {
+        val eligibleHosts = hosts
+            .filter { !it.configuration.authenticatedFetchingOnly || accessToken != null }
             .filter { (_, config) ->
                 isAllowed(config, gav).fold(
                     { true },
@@ -149,9 +179,23 @@ internal class MirrorService(
                     }
                 )
             }
-            .map { fetch(it) }
-            .firstOrNull { it.isOk }
-            ?: notFoundError("Cannot find '$gav' in remote repositories")
+        if (eligibleHosts.isEmpty()) {
+            return MirrorResolution.NoEligibleHosts
+        }
+
+        val allMissing = eligibleHosts.fold(true) { acc, host ->
+            val result = fetch(host)
+            if (result.isOk) {
+                return MirrorResolution.Resolved(result.get(), host)
+            }
+            acc && result.error.status == 404
+        }
+
+        return when {
+            allMissing -> MirrorResolution.NotFound
+            else -> MirrorResolution.Failed(notFound("Cannot find '$gav' in remote repositories"))
+        }
+    }
 
     private enum class DisallowedReason {
         EXTENSION,
@@ -164,13 +208,14 @@ internal class MirrorService(
     private fun isAllowedExtension(config: MirroredRepositorySettings, gav: Location): Result<Blank, DisallowedReason> =
         when {
             config.allowedExtensions.none { it.isNotBlank() } -> ok()
-            config.allowedExtensions.any { entry ->
-                when (val trimmed = entry.trim()) {
-                    NO_EXTENSION_MARKER -> gav.getExtension().isEmpty()
-                    else -> gav.endsWith(trimmed)
-                }
-            } -> ok()
+            config.allowedExtensions.any { matchesExtension(it, gav) } -> ok()
             else -> error(DisallowedReason.EXTENSION)
+        }
+
+    private fun matchesExtension(entry: String, gav: Location): Boolean =
+        when (val trimmed = entry.trim()) {
+            NO_EXTENSION_MARKER -> gav.getExtension().isEmpty()
+            else -> gav.endsWith(trimmed)
         }
 
     private fun isAllowedGroup(config: MirroredRepositorySettings, gav: Location): Result<Blank, DisallowedReason> =

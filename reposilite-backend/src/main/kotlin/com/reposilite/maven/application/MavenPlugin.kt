@@ -18,9 +18,11 @@ package com.reposilite.maven.application
 
 import com.reposilite.configuration.local.LocalConfiguration
 import com.reposilite.configuration.shared.SharedConfigurationFacade
+import com.reposilite.console.api.CommandsSetupEvent
 import com.reposilite.frontend.application.FrontendSettings
 import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.PreservedBuildsListener
+import com.reposilite.maven.infrastructure.CacheCommand
 import com.reposilite.maven.infrastructure.MavenApiEndpoints
 import com.reposilite.maven.infrastructure.MavenEndpoints
 import com.reposilite.maven.infrastructure.MavenLatestApiEndpoints
@@ -75,6 +77,10 @@ internal class MavenPlugin : ReposilitePlugin() {
         }
 
         event(PreservedBuildsListener(mavenFacade))
+
+        event { event: CommandsSetupEvent ->
+            event.registerCommand(CacheCommand(mavenFacade))
+        }
 
         event { _: ReposiliteDisposeEvent ->
             mavenFacade.getRepositories().forEach {
