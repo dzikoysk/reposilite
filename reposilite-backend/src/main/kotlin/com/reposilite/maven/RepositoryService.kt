@@ -201,7 +201,9 @@ internal class RepositoryService(
             else -> tryLocalFirst(tryLocal, tryRemote, hosts, notFoundMessage)
         }
 
-        if (cache != null && isMetadata) attempt.recordTo(cache, gav, authenticated)
+        if (cache != null && isMetadata) {
+            attempt.recordTo(cache, gav, authenticated)
+        }
         return attempt.result
     }
 
@@ -236,7 +238,9 @@ internal class RepositoryService(
 
     private fun <T> ResolveAttempt<T>.recordTo(cache: ResolutionCache, gav: Location, authenticated: Boolean) {
         val prefix = gav.getParent()
-        if (prefix.toString().isEmpty()) return
+        if (prefix.toString().isEmpty()) {
+            return
+        }
         val origin = when {
             result.isOk -> when (val r = remote) {
                 is MirrorResolution.Resolved -> when {

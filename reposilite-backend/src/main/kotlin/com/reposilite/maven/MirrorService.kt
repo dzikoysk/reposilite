@@ -123,14 +123,12 @@ internal class MirrorService(
 
         return future
             .whenComplete { _, _ -> inFlightFetches.remove(key, future) }
-            .join()
-            .let { it.openLocal(repository, gav) }
+            .join().openLocal(repository, gav)
     }
 
     private fun MirrorResolution<Unit>.openLocal(repository: Repository, gav: Location): MirrorResolution<InputStream> =
         when (this) {
-            is MirrorResolution.Resolved -> repository.storageProvider.getFile(gav)
-                .fold({ MirrorResolution.Resolved(it, mirror) }, { MirrorResolution.Failed(it) })
+            is MirrorResolution.Resolved -> repository.storageProvider.getFile(gav).fold({ MirrorResolution.Resolved(it, mirror) }, { MirrorResolution.Failed(it) })
             is MirrorResolution.Failed -> this
             MirrorResolution.NotFound -> MirrorResolution.NotFound
             MirrorResolution.NoEligibleHosts -> MirrorResolution.NoEligibleHosts
@@ -138,14 +136,21 @@ internal class MirrorService(
 
     private fun fetchFromRemoteHosts(repository: Repository, gav: Location, accessToken: AccessTokenIdentifier?, hosts: List<MirrorHost>): MirrorResolution<InputStream> =
         searchInRemoteRepositories(repository, gav, accessToken, hosts) { (host, config, client) ->
-            client.get("${host.removeSuffix("/")}/$gav", config.authorization, config.connectTimeout, config.readTimeout)
-                .flatMap { data -> if (config.store) storeFile(repository, gav, data) else ok(data) }
+            client
+                .get("${host.removeSuffix("/")}/$gav", config.authorization, config.connectTimeout, config.readTimeout)
+                .flatMap { data ->
+                    when {
+                        config.store -> storeFile(repository, gav, data)
+                        else -> ok(data)
+                    }
+                }
                 .mapErr { error -> error.updateMessage { "$host: $it" } }
         }
 
     private fun fetchAndStoreFromRemoteHosts(repository: Repository, gav: Location, accessToken: AccessTokenIdentifier?, hosts: List<MirrorHost>): MirrorResolution<Unit> =
         searchInRemoteRepositories(repository, gav, accessToken, hosts) { (host, config, client) ->
-            client.get("${host.removeSuffix("/")}/$gav", config.authorization, config.connectTimeout, config.readTimeout)
+            client
+                .get("${host.removeSuffix("/")}/$gav", config.authorization, config.connectTimeout, config.readTimeout)
                 .flatMap { data -> repository.storageProvider.putFile(gav, data) }
                 .mapErr { error -> error.updateMessage { "$host: $it" } }
         }
@@ -174,14 +179,18 @@ internal class MirrorService(
                     }
                 )
             }
-        if (eligibleHosts.isEmpty()) return MirrorResolution.NoEligibleHosts
-
-        var allMissing = true
-        for (host in eligibleHosts) {
-            val result = fetch(host)
-            if (result.isOk) return MirrorResolution.Resolved(result.get(), host)
-            if (result.error.status != 404) allMissing = false
+        if (eligibleHosts.isEmpty()) {
+            return MirrorResolution.NoEligibleHosts
         }
+
+        val allMissing = eligibleHosts.fold(true) { acc, host ->
+            val result = fetch(host)
+            if (result.isOk) {
+                return MirrorResolution.Resolved(result.get(), host)
+            }
+            acc && result.error.status == 404
+        }
+
         return when {
             allMissing -> MirrorResolution.NotFound
             else -> MirrorResolution.Failed(notFound("Cannot find '$gav' in remote repositories"))
@@ -199,13 +208,14 @@ internal class MirrorService(
     private fun isAllowedExtension(config: MirroredRepositorySettings, gav: Location): Result<Blank, DisallowedReason> =
         when {
             config.allowedExtensions.none { it.isNotBlank() } -> ok()
-            config.allowedExtensions.any { entry ->
-                when (val trimmed = entry.trim()) {
-                    NO_EXTENSION_MARKER -> gav.getExtension().isEmpty()
-                    else -> gav.endsWith(trimmed)
-                }
-            } -> ok()
+            config.allowedExtensions.any { matchesExtension(it, gav) } -> ok()
             else -> error(DisallowedReason.EXTENSION)
+        }
+
+    private fun matchesExtension(entry: String, gav: Location): Boolean =
+        when (val trimmed = entry.trim()) {
+            NO_EXTENSION_MARKER -> gav.getExtension().isEmpty()
+            else -> gav.endsWith(trimmed)
         }
 
     private fun isAllowedGroup(config: MirroredRepositorySettings, gav: Location): Result<Blank, DisallowedReason> =
