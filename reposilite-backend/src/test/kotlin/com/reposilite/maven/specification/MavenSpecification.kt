@@ -32,8 +32,10 @@ import com.reposilite.maven.application.MirrorCredentials
 import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.plugin.Extensions
 import com.reposilite.shared.http.AuthenticationMethod.BASIC
+import com.reposilite.shared.errorResponse
 import com.reposilite.shared.http.FakeRemoteClientProvider
 import com.reposilite.shared.notFoundError
+import io.javalin.http.HttpStatus.BAD_GATEWAY
 import com.reposilite.statistics.DailyDateIntervalProvider
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.statistics.infrastructure.InMemoryStatisticsRepository
@@ -73,6 +75,8 @@ internal abstract class MavenSpecification {
         val UNAUTHORIZED: AccessTokenIdentifier? = null
         const val REMOTE_REPOSITORY = "https://domain.com/releases"
         const val REMOTE_REPOSITORY_WITH_WHITELIST = "https://example.com/whitelist"
+        // Always responds with a transient 5xx error — for tests that need a non-404 upstream failure.
+        const val REMOTE_REPOSITORY_BROKEN = "https://broken.example/releases"
         val REMOTE_AUTH = MirrorCredentials(BASIC, "panda", "secret")
         const val REMOTE_CONTENT = "content"
     }
@@ -113,7 +117,9 @@ internal abstract class MavenSpecification {
         val remoteClientProvider = FakeRemoteClientProvider(
             headHandler = { uri, credentials, _, _ ->
                 remoteRequestsByUri.computeIfAbsent(uri) { AtomicInteger() }.incrementAndGet()
-                if (uri.startsWith(REMOTE_REPOSITORY) && REMOTE_AUTH == credentials && !uri.isAllowed())
+                if (uri.startsWith(REMOTE_REPOSITORY_BROKEN))
+                    errorResponse(BAD_GATEWAY, "Simulated upstream failure")
+                else if (uri.startsWith(REMOTE_REPOSITORY) && REMOTE_AUTH == credentials && !uri.isAllowed())
                     DocumentInfo(
                         name = uri.toLocation().getSimpleName(),
                         contentType = TEXT_XML,
@@ -128,7 +134,9 @@ internal abstract class MavenSpecification {
             },
             getHandler = { uri, credentials, _, _ ->
                 remoteRequestsByUri.computeIfAbsent(uri) { AtomicInteger() }.incrementAndGet()
-                if (uri.startsWith(REMOTE_REPOSITORY) && REMOTE_AUTH == credentials && !uri.isAllowed())
+                if (uri.startsWith(REMOTE_REPOSITORY_BROKEN))
+                    errorResponse(BAD_GATEWAY, "Simulated upstream failure")
+                else if (uri.startsWith(REMOTE_REPOSITORY) && REMOTE_AUTH == credentials && !uri.isAllowed())
                     REMOTE_CONTENT.byteInputStream().asSuccess()
                 else if (uri.startsWith(REMOTE_REPOSITORY_WITH_WHITELIST) && uri.isAllowed())
                     REMOTE_CONTENT.byteInputStream().asSuccess()

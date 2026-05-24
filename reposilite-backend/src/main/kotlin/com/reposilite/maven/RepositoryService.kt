@@ -188,7 +188,7 @@ internal class RepositoryService(
         val isMetadata = gav.isResolutionMetadata()
         val notFoundMessage = "Cannot find '$gav' in local or remote repositories"
 
-        if (isMetadata && cached == ResolutionCache.Origin.Negative) {
+        if (isMetadata && cached == ResolutionCache.Origin.MissingMetadata) {
             return notFoundError(notFoundMessage)
         }
 
@@ -241,16 +241,29 @@ internal class RepositoryService(
         if (prefix.toString().isEmpty()) {
             return
         }
-        val origin = when {
-            result.isOk -> when (val r = remote) {
-                is MirrorResolution.Resolved -> when {
-                    r.mirror.configuration.store -> ResolutionCache.Origin.Local
-                    else -> ResolutionCache.Origin.Remote(r.mirror.host)
-                }
-                else -> ResolutionCache.Origin.Local
+
+        val resolved = result.isOk
+        val remote = remote
+
+        // Successful resolve but upstream actually failed — we served a local fallback.
+        // Log it for visibility, but do not cache: the upstream may recover.
+        if (resolved && remote is MirrorResolution.Failed) {
+            logger.warn("Resolution | Upstream failed (${remote.error.status}: ${remote.error.message}) — served '$gav' from local fallback")
+            return
+        }
+
+        // Failed resolve: only NotFound is a stable signal worth caching. Everything else is transient.
+        if (!resolved) {
+            if (remote is MirrorResolution.NotFound) {
+                cache.record(prefix, authenticated, ResolutionCache.Origin.MissingMetadata)
             }
-            remote is MirrorResolution.NotFound -> ResolutionCache.Origin.Negative
-            else -> return // transient failure or no mirrors probed — don't poison cache
+            return
+        }
+
+        // Successful resolve: pin the host only when the mirror won't keep a local copy; otherwise we served locally.
+        val origin = when (remote) {
+            is MirrorResolution.Resolved if !remote.mirror.configuration.store -> ResolutionCache.Origin.Remote(remote.mirror.host)
+            else -> ResolutionCache.Origin.Local
         }
         cache.record(prefix, authenticated, origin)
     }

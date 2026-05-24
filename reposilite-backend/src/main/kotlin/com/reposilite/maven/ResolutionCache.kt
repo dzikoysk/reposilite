@@ -31,19 +31,28 @@ internal class ResolutionCache(private val maxEntries: Int) {
     sealed interface Origin {
         data object Local : Origin
         data class Remote(val host: String) : Origin
-        data object Negative : Origin
+        // Recorded only when the metadata file at this exact prefix is missing both locally and from every probed mirror.
+        // Authoritative only for exact-prefix lookups — does not inherit to descendants (a child file may exist independently).
+        data object MissingMetadata : Origin
     }
 
-    data class Snapshot(val prefix: Location, val authenticated: Boolean, val origin: Origin, val hitCount: Long)
+    data class ResolutionCacheEntry(val prefix: Location, val authenticated: Boolean, val origin: Origin, val hitCount: Long)
 
     private val entries = ConcurrentHashMap<Key, Entry>()
     private val evictionLock = Any()
 
     fun lookup(gav: Location, authenticated: Boolean): Origin? {
-        var prefix = gav.getParent()
+        val exactPrefix = gav.getParent()
+        var prefix = exactPrefix
         while (prefix.toString().isNotEmpty()) {
             val entry = entries[Key(prefix, authenticated)]
             if (entry != null) {
+                // Negative is authoritative only at the exact prefix — it says "this metadata file returned 404",
+                // not "every descendant is empty." Local/Remote pins still inherit down (routing decisions).
+                if (entry.origin is Origin.MissingMetadata && prefix != exactPrefix) {
+                    prefix = prefix.getParent()
+                    continue
+                }
                 entry.hitCount.increment()
                 return entry.origin
             }
@@ -69,12 +78,13 @@ internal class ResolutionCache(private val maxEntries: Int) {
     }
 
     fun invalidate(gav: Location) {
-        var prefix = gav.getParent()
-        while (prefix.toString().isNotEmpty()) {
-            entries.remove(Key(prefix, authenticated = true))
-            entries.remove(Key(prefix, authenticated = false))
-            prefix = prefix.getParent()
+        // Only the exact parent prefix — ancestor pins (e.g. group-level routing) remain valid after a child write.
+        val prefix = gav.getParent()
+        if (prefix.toString().isEmpty()) {
+            return
         }
+        entries.remove(Key(prefix, authenticated = true))
+        entries.remove(Key(prefix, authenticated = false))
     }
 
     fun purge() {
@@ -84,9 +94,9 @@ internal class ResolutionCache(private val maxEntries: Int) {
     fun size(): Int =
         entries.size
 
-    fun stats(top: Int): List<Snapshot> =
+    fun stats(top: Int): List<ResolutionCacheEntry> =
         entries.entries.asSequence()
-            .map { (key, entry) -> Snapshot(key.prefix, key.authenticated, entry.origin, entry.hitCount.sum()) }
+            .map { (key, entry) -> ResolutionCacheEntry(key.prefix, key.authenticated, entry.origin, entry.hitCount.sum()) }
             .sortedByDescending { it.hitCount }
             .take(top)
             .toList()

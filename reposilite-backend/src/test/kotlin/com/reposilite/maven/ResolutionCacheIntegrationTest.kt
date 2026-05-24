@@ -33,7 +33,7 @@ import panda.std.ResultAssertions.assertOk
 
 internal class ResolutionCacheIntegrationTest : MavenSpecification() {
 
-    // CACHED          — STRICT, non-storing whitelist mirror that 404s anything not ending in "/allow" → exercises Local / Negative paths.
+    // CACHED          — STRICT, non-storing whitelist mirror that 404s anything not ending in "/allow" → exercises Local / MissingMetadata paths.
     // MIRROR_STORE    — PRIORITIZE_UPSTREAM_METADATA, mirror with store=true, maxAge=60 → exercises the "we own a local copy now, cache as Local" path.
     // MIRROR_PIN      — PRIORITIZE_UPSTREAM_METADATA, mirror with store=false → exercises Remote(host) pinning.
     // MIRROR_REFRESH  — PRIORITIZE_UPSTREAM_METADATA, mirror with store=true, maxAge=0 → exercises stale-local refresh (cached Local must not override the policy).
@@ -112,6 +112,16 @@ internal class ResolutionCacheIntegrationTest : MavenSpecification() {
                 MirroredRepositorySettings(reference = REMOTE_REPOSITORY, authorization = REMOTE_AUTH),
             ),
         ),
+        RepositorySettings(
+            id = "MIRROR_TRANSIENT",
+            visibility = PUBLIC,
+            storagePolicy = StoragePolicy.PRIORITIZE_UPSTREAM_METADATA,
+            metadataMaxAge = 0L,
+            resolutionCacheMaxEntries = 16,
+            proxied = listOf(
+                MirroredRepositorySettings(reference = REMOTE_REPOSITORY_BROKEN),
+            ),
+        ),
     )
 
     private fun upstreamMetadataUri(gav: String): String =
@@ -124,19 +134,17 @@ internal class ResolutionCacheIntegrationTest : MavenSpecification() {
         "$REMOTE_REPOSITORY/$gav/$METADATA_FILE"
 
     @Test
-    fun `negative metadata result is cached and short-circuits subsequent resolution-metadata reads`() {
+    fun `negative metadata result is cached and short-circuits repeated reads of the same metadata`() {
         // given: a GA whose metadata does not exist upstream
         val ga = "com/missing/foo"
         val metadata = "$ga/$METADATA_FILE".toLocation()
 
-        // when: the metadata is requested twice and a POM under the same prefix is requested
+        // when: the metadata is requested twice
         assertError(mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "CACHED", metadata)))
         assertError(mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "CACHED", metadata)))
-        assertError(mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "CACHED", "$ga/1.0/foo-1.0.pom".toLocation())))
 
-        // then: the upstream was only probed once and the POM did not hit upstream
+        // then: the upstream was only probed once — Negative at the exact prefix short-circuits the second read
         assertThat(remoteRequestsByUri[upstreamMetadataUri(ga)]?.get()).isEqualTo(1)
-        assertThat(remoteRequestsByUri[upstreamFileUri("$ga/1.0/foo-1.0.pom")]).isNull()
     }
 
     @Test
@@ -248,7 +256,7 @@ internal class ResolutionCacheIntegrationTest : MavenSpecification() {
         val metadata = "$ga/$METADATA_FILE".toLocation()
         mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "CACHED", metadata))
         val cache = mavenFacade.getRepository("CACHED")!!.resolutionCache!!
-        assertThat(cache.lookup(metadata, authenticated = false)).isEqualTo(ResolutionCache.Origin.Negative)
+        assertThat(cache.lookup(metadata, authenticated = false)).isEqualTo(ResolutionCache.Origin.MissingMetadata)
 
         // when: a server-side metadata write happens (saveMetadata bypasses deployFile)
         val saved = mavenFacade.saveMetadata(
@@ -311,7 +319,7 @@ internal class ResolutionCacheIntegrationTest : MavenSpecification() {
         val jar = "$ga/1.0.0/foo-1.0.0.jar".toLocation()
         assertError(mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "CACHED", metadata)))
         val cache = mavenFacade.getRepository("CACHED")!!.resolutionCache!!
-        assertThat(cache.lookup(metadata, authenticated = false)).isEqualTo(ResolutionCache.Origin.Negative)
+        assertThat(cache.lookup(metadata, authenticated = false)).isEqualTo(ResolutionCache.Origin.MissingMetadata)
         addFileToRepository(FileSpec("CACHED", "/$jar", "jarbytes"))
 
         // when: the JAR is requested
@@ -322,28 +330,27 @@ internal class ResolutionCacheIntegrationTest : MavenSpecification() {
     }
 
     @Test
-    fun `direct POM upload invalidates a Negative-cached prefix`() {
-        // given: a Negative-cached GA prefix
-        val ga = "com/pom-upload/foo"
+    fun `metadata deploy at the same prefix invalidates a Negative-cached entry`() {
+        // given: a Negative entry recorded at the artifact-level metadata prefix
+        val ga = "com/redeploy/foo"
         val metadata = "$ga/$METADATA_FILE".toLocation()
-        val pom = "$ga/1.0.0/foo-1.0.0.pom".toLocation()
         assertError(mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "CACHED", metadata)))
         val cache = mavenFacade.getRepository("CACHED")!!.resolutionCache!!
-        assertThat(cache.lookup(metadata, authenticated = false)).isEqualTo(ResolutionCache.Origin.Negative)
+        assertThat(cache.lookup(metadata, authenticated = false)).isEqualTo(ResolutionCache.Origin.MissingMetadata)
 
-        // when: a POM is deployed under that prefix
+        // when: the metadata itself is deployed at the same prefix
         val deploy = mavenFacade.deployFile(
             DeployRequest(
                 repository = mavenFacade.getRepository("CACHED")!!,
-                gav = pom,
+                gav = metadata,
                 by = "test",
-                content = "<project/>".byteInputStream(),
+                content = "<metadata/>".byteInputStream(),
                 generateChecksums = false,
             )
         )
         assertOk(deploy)
 
-        // then: the Negative entry is cleared
+        // then: the Negative entry at the exact prefix is cleared
         assertThat(cache.lookup(metadata, authenticated = false)).isNull()
     }
 
@@ -394,5 +401,76 @@ internal class ResolutionCacheIntegrationTest : MavenSpecification() {
         // then: only the pinned host is hit
         assertThat(remoteRequestsByUri[h1Uri]?.get() ?: 0).isEqualTo(h1AfterFirst)
         assertThat(remoteRequestsByUri[h2Uri]?.get() ?: 0).isGreaterThan(h2AfterFirst)
+    }
+
+    @Test
+    fun `child deploy must not invalidate cached ancestor prefixes`() {
+        // given: a group-level metadata read populates the cache at the ancestor prefix `org/example`
+        // (group-level metadata.xml is the real Maven concept for plugin discovery)
+        addFileToRepository(FileSpec("CACHED", "/org/example/$METADATA_FILE", "<metadata/>"))
+        assertOk(mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "CACHED", "org/example/$METADATA_FILE".toLocation())))
+            .content.close()
+        val cache = mavenFacade.getRepository("CACHED")!!.resolutionCache!!
+        assertThat(cache.lookup("org/example/$METADATA_FILE".toLocation(), authenticated = false))
+            .isEqualTo(ResolutionCache.Origin.Local)
+
+        // when: an unrelated nested POM is deployed deep under that prefix
+        val deploy = mavenFacade.deployFile(
+            DeployRequest(
+                repository = mavenFacade.getRepository("CACHED")!!,
+                gav = "org/example/foo/1.0/foo-1.0.pom".toLocation(),
+                by = "test",
+                content = "<project/>".byteInputStream(),
+                generateChecksums = false,
+            )
+        )
+        assertOk(deploy)
+
+        // then: the ancestor `org/example` entry survives — it carries a legitimate routing decision
+        // unrelated to the nested artifact, and invalidating it forces a re-probe of every group-level read.
+        assertThat(cache.lookup("org/example/$METADATA_FILE".toLocation(), authenticated = false))
+            .isEqualTo(ResolutionCache.Origin.Local)
+    }
+
+    @Test
+    fun `negative cached at an ancestor prefix must not swallow newly-appeared lower-prefix metadata`() {
+        // given: a tooling probe at the group-level metadata records Negative at `com/foo`
+        // (this is the case where a tool like versions:display-dependency-updates fires once)
+        val groupMetadata = "com/foo/$METADATA_FILE".toLocation()
+        assertError(mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "MIRROR_FAIL", groupMetadata)))
+        val cache = mavenFacade.getRepository("MIRROR_FAIL")!!.resolutionCache!!
+        assertThat(cache.lookup(groupMetadata, authenticated = false))
+            .isEqualTo(ResolutionCache.Origin.MissingMetadata)
+
+        // and: a metadata file appears at a lower prefix via a path that bypasses deployFile
+        // (S3 copy, plugin-installed writer, manual fs write, partial-publish race — all real)
+        val artifactMetadata = "com/foo/bar/$METADATA_FILE"
+        addFileToRepository(FileSpec("MIRROR_FAIL", "/$artifactMetadata", "<metadata/>"))
+
+        // when: the lower-prefix metadata is requested
+        val result = mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "MIRROR_FAIL", artifactMetadata.toLocation()))
+
+        // then: it must be served from local — the ancestor's Negative says nothing about descendants
+        // that may have been populated independently.
+        assertOk(result).content.close()
+    }
+
+    @Test
+    fun `transient upstream failure with local fallback does not poison the cache as Local`() {
+        // given: PRIORITIZE_UPSTREAM_METADATA with maxAge=0 so every request takes the remote-first path,
+        // and a mirror that always responds with a 502 (non-404) — i.e. transient failure, not a definitive miss.
+        // Local has a pre-populated metadata that can serve as backup.
+        val ga = "com/transient/foo"
+        val metadata = "$ga/$METADATA_FILE".toLocation()
+        addFileToRepository(FileSpec("MIRROR_TRANSIENT", "/$metadata", "<metadata/>"))
+
+        // when: the metadata is requested — remote fails with 502, local serves as backup
+        assertOk(mavenFacade.findFile(LookupRequest(UNAUTHORIZED, "MIRROR_TRANSIENT", metadata))).content.close()
+
+        // then: the cache must NOT record this prefix as Local — the upstream failure was transient
+        // and trusting "Local" here would let a future read silently keep serving stale through an outage
+        // (per the explicit "don't poison cache" intent at recordTo's else branch).
+        val cache = mavenFacade.getRepository("MIRROR_TRANSIENT")!!.resolutionCache!!
+        assertThat(cache.lookup(metadata, authenticated = false)).isNull()
     }
 }

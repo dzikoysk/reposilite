@@ -17,6 +17,7 @@
 package com.reposilite.maven
 
 import com.reposilite.maven.ResolutionCache.Origin
+import com.reposilite.maven.api.METADATA_FILE
 import com.reposilite.storage.api.toLocation
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -64,16 +65,18 @@ internal class ResolutionCacheTest {
     }
 
     @Test
-    fun `negative entry short-circuits any path under the prefix`() {
-        // given: a Negative entry recorded at a GA prefix
+    fun `negative entry matches only at the exact prefix it was recorded for`() {
+        // given: a Negative entry recorded at a metadata prefix
         val cache = ResolutionCache(maxEntries = 4)
-        cache.record("org/missing/foo".toLocation(), authenticated = false, origin = Origin.Negative)
+        cache.record("org/missing/foo".toLocation(), authenticated = false, origin = Origin.MissingMetadata)
 
-        // when: a path under the prefix is looked up
-        val result = cache.lookup("org/missing/foo/1.0/foo.jar".toLocation(), authenticated = false)
+        // when: looked up at exact prefix and at a deeper descendant
+        val exact = cache.lookup("org/missing/foo/$METADATA_FILE".toLocation(), authenticated = false)
+        val descendant = cache.lookup("org/missing/foo/1.0/foo-1.0.pom".toLocation(), authenticated = false)
 
-        // then: the prefix's Negative origin is returned
-        assertThat(result).isEqualTo(Origin.Negative)
+        // then: Negative matches only at the exact prefix — it says "this metadata 404'd", not "every descendant is empty"
+        assertThat(exact).isEqualTo(Origin.MissingMetadata)
+        assertThat(descendant).isNull()
     }
 
     @Test
@@ -96,7 +99,7 @@ internal class ResolutionCacheTest {
     fun `auth bucket is isolated`() {
         // given: distinct entries recorded for the same prefix in each auth bucket
         val cache = ResolutionCache(maxEntries = 4)
-        cache.record("org/example/foo".toLocation(), authenticated = false, origin = Origin.Negative)
+        cache.record("org/example/foo".toLocation(), authenticated = false, origin = Origin.Local)
         cache.record("org/example/foo".toLocation(), authenticated = true, origin = Origin.Remote("https://private"))
 
         // when: the same path is looked up in both buckets
@@ -104,24 +107,27 @@ internal class ResolutionCacheTest {
         val authenticated = cache.lookup("org/example/foo/1.0/foo.jar".toLocation(), authenticated = true)
 
         // then: each bucket returns its own entry
-        assertThat(anonymous).isEqualTo(Origin.Negative)
+        assertThat(anonymous).isEqualTo(Origin.Local)
         assertThat(authenticated).isEqualTo(Origin.Remote("https://private"))
     }
 
     @Test
-    fun `invalidate removes every cached prefix on the path of the deployed gav`() {
-        // given: cached entries on a GA prefix and a version prefix in different auth buckets
+    fun `invalidate removes only the exact parent prefix entries in both auth buckets`() {
+        // given: a version-level entry (both auth buckets) plus an unrelated ancestor pin
         val cache = ResolutionCache(maxEntries = 4)
-        cache.record("org/example/foo".toLocation(), authenticated = false, origin = Origin.Negative)
-        cache.record("org/example/foo/1.0".toLocation(), authenticated = true, origin = Origin.Remote("https://central"))
+        cache.record("org/example/foo".toLocation(), authenticated = false, origin = Origin.Local)
+        cache.record("org/example/foo/1.0".toLocation(), authenticated = false, origin = Origin.Remote("https://central"))
+        cache.record("org/example/foo/1.0".toLocation(), authenticated = true, origin = Origin.Remote("https://private"))
 
-        // when: invalidate is called for a file under both prefixes
+        // when: invalidate is called for a file under the version prefix
         cache.invalidate("org/example/foo/1.0/foo.jar".toLocation())
 
-        // then: every entry on the path is removed in both auth buckets
-        assertThat(cache.lookup("org/example/foo/1.0/foo.jar".toLocation(), authenticated = false)).isNull()
-        assertThat(cache.lookup("org/example/foo/1.0/foo.jar".toLocation(), authenticated = true)).isNull()
-        assertThat(cache.size()).isZero()
+        // then: the version-prefix entries are cleared in both auth buckets, but the ancestor pin survives
+        assertThat(cache.lookup("org/example/foo/1.0/foo.jar".toLocation(), authenticated = false))
+            .isEqualTo(Origin.Local) // inherits from the ancestor pin at org/example/foo
+        assertThat(cache.lookup("org/example/foo/$METADATA_FILE".toLocation(), authenticated = false))
+            .isEqualTo(Origin.Local)
+        assertThat(cache.size()).isEqualTo(1)
     }
 
     @Test
@@ -129,7 +135,7 @@ internal class ResolutionCacheTest {
         // given: a cache with entries across both auth buckets
         val cache = ResolutionCache(maxEntries = 4)
         cache.record("a".toLocation(), authenticated = false, origin = Origin.Remote("x"))
-        cache.record("b".toLocation(), authenticated = true, origin = Origin.Negative)
+        cache.record("b".toLocation(), authenticated = true, origin = Origin.MissingMetadata)
         cache.record("c".toLocation(), authenticated = false, origin = Origin.Local)
 
         // when: purge is called
@@ -164,7 +170,7 @@ internal class ResolutionCacheTest {
         val cache = ResolutionCache(maxEntries = 8)
         cache.record("a".toLocation(), authenticated = false, origin = Origin.Remote("host-a"))
         cache.record("b".toLocation(), authenticated = false, origin = Origin.Remote("host-b"))
-        cache.record("c".toLocation(), authenticated = false, origin = Origin.Negative)
+        cache.record("c".toLocation(), authenticated = false, origin = Origin.MissingMetadata)
         repeat(3) { cache.lookup("b/anything".toLocation(), authenticated = false) }
         repeat(1) { cache.lookup("a/anything".toLocation(), authenticated = false) }
 

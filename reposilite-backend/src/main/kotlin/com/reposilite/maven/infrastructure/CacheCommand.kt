@@ -83,7 +83,7 @@ internal class CacheCommand(private val mavenFacade: MavenFacade) : ReposiliteCo
                 val destination = when (val origin = snap.origin) {
                     ResolutionCache.Origin.Local -> "(local)"
                     is ResolutionCache.Origin.Remote -> origin.host
-                    ResolutionCache.Origin.Negative -> "(not found)"
+                    ResolutionCache.Origin.MissingMetadata -> "(missing metadata)"
                 }
                 val auth = when {
                     snap.authenticated -> "auth"
