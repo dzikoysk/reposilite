@@ -16,6 +16,9 @@
 
 rootProject.name = "reposilite-parent"
 
+val cores = Runtime.getRuntime().availableProcessors()
+gradle.startParameter.maxWorkerCount = maxOf(1, minOf(cores - 2, 16))
+
 include(
     "reposilite-frontend",
     "reposilite-backend",
