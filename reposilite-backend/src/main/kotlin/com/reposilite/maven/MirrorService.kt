@@ -123,7 +123,8 @@ internal class MirrorService(
 
         return future
             .whenComplete { _, _ -> inFlightFetches.remove(key, future) }
-            .join().openLocal(repository, gav)
+            .join()
+            .openLocal(repository, gav)
     }
 
     private fun MirrorResolution<Unit>.openLocal(repository: Repository, gav: Location): MirrorResolution<InputStream> =

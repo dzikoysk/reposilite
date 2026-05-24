@@ -44,7 +44,7 @@ internal class ResolutionCache(private val maxEntries: Int) {
     fun lookup(gav: Location, authenticated: Boolean): Origin? {
         val exactPrefix = gav.getParent()
         var prefix = exactPrefix
-        while (prefix.toString().isNotEmpty()) {
+        while (prefix != Location.empty()) {
             val entry = entries[Key(prefix, authenticated)]
             if (entry != null) {
                 // Negative is authoritative only at the exact prefix — it says "this metadata file returned 404",
@@ -62,7 +62,7 @@ internal class ResolutionCache(private val maxEntries: Int) {
     }
 
     fun record(prefix: Location, authenticated: Boolean, origin: Origin) {
-        if (prefix.toString().isEmpty()) {
+        if (prefix == Location.empty()) {
             return
         }
         val key = Key(prefix, authenticated)
@@ -81,7 +81,7 @@ internal class ResolutionCache(private val maxEntries: Int) {
     fun invalidate(gav: Location) {
         // Only the exact parent prefix — ancestor pins (e.g. group-level routing) remain valid after a child write.
         val prefix = gav.getParent()
-        if (prefix.toString().isEmpty()) {
+        if (prefix == Location.empty()) {
             return
         }
         entries.remove(Key(prefix, authenticated = true))

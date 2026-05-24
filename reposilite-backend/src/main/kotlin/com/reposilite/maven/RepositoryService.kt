@@ -238,22 +238,19 @@ internal class RepositoryService(
 
     private fun <T> ResolveAttempt<T>.recordTo(cache: ResolutionCache, gav: Location, authenticated: Boolean) {
         val prefix = gav.getParent()
-        if (prefix.toString().isEmpty()) {
+        if (prefix == Location.empty()) {
             return
         }
 
-        val resolved = result.isOk
-        val remote = remote
-
         // Successful resolve but upstream actually failed — we served a local fallback.
         // Log it for visibility, but do not cache: the upstream may recover.
-        if (resolved && remote is MirrorResolution.Failed) {
+        if (result.isOk && remote is MirrorResolution.Failed) {
             logger.warn("Resolution | Upstream failed (${remote.error.status}: ${remote.error.message}) — served '$gav' from local fallback")
             return
         }
 
         // Failed resolve: only NotFound is a stable signal worth caching. Everything else is transient.
-        if (!resolved) {
+        if (!result.isOk) {
             if (remote is MirrorResolution.NotFound) {
                 cache.record(prefix, authenticated, ResolutionCache.Origin.MissingMetadata)
             }
