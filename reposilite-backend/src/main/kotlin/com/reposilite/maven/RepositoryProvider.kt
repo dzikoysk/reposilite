@@ -41,6 +41,7 @@ internal class RepositoryProvider(
     statisticsFacade: StatisticsFacade,
     private val storageFacade: StorageFacade,
     mirrorService: MirrorService,
+    resolutionProvider: ResolutionProvider,
     repositorySecurityProvider: RepositorySecurityProvider,
     repositoriesSource: Reference<List<RepositorySettings>>,
 ) {
@@ -50,6 +51,7 @@ internal class RepositoryProvider(
         repositoryProvider = this,
         securityProvider = repositorySecurityProvider,
         mirrorService = mirrorService,
+        resolutionProvider = resolutionProvider,
         statisticsFacade = statisticsFacade,
         extensions = extensions
     )

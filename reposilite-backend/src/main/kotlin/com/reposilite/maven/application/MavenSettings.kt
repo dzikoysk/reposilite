@@ -67,6 +67,18 @@ data class RepositorySettings(
         If set to "0" then a fetch is done always. (Default: 0 seconds)
     """)
     val metadataMaxAge: Long = 0L,
+    @Min(0)
+    @get:Doc(title = "Resolution cache size", description = """
+        Caches routing decisions for metadata reads (maven-metadata.xml, *.pom, *.module, Ivy XML)
+        to speed up repeated requests. Size scales with the number of distinct GAVs touched
+        through your mirrors, not with user traffic:<br/>
+        0 — disabled (no mirrors, or caching not needed)<br/>
+        128 — proxying a small fixed set of artifacts (single vendor SDK, internal repos)<br/>
+        512 — proxying focused ecosystems (BOM + transitives, a few curated mirrors)<br/>
+        2048+ — proxying broad ecosystems like Maven Central<br/>
+        (Default: 0)
+    """)
+    val resolutionCacheMaxEntries: Int = 0,
     @get:Doc(title = "Mirrored repositories", description = "List of mirrored repositories associated with this repository.")
     val proxied: List<MirroredRepositorySettings> = listOf()
 ) : SharedSettings

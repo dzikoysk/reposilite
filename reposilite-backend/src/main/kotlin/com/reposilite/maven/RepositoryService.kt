@@ -41,7 +41,6 @@ import com.reposilite.storage.api.FileType.DIRECTORY
 import com.reposilite.storage.api.Location
 import com.reposilite.storage.api.SimpleDirectoryInfo
 import com.reposilite.token.AccessTokenIdentifier
-import com.reposilite.token.api.AccessTokenDetails
 import io.javalin.http.HttpStatus.CONFLICT
 import panda.std.Result
 import panda.std.asSuccess
@@ -53,6 +52,7 @@ internal class RepositoryService(
     val repositoryProvider: RepositoryProvider,
     private val securityProvider: RepositorySecurityProvider,
     private val mirrorService: MirrorService,
+    private val resolutionProvider: ResolutionProvider,
     private val statisticsFacade: StatisticsFacade,
     private val extensions: Extensions,
 ) : Journalist {
@@ -81,6 +81,7 @@ internal class RepositoryService(
                     repository.storageProvider
                         .putFile(gav, deployRequest.content)
                         .peek { logger.info("DEPLOY | Artifact $gav successfully deployed to ${repository.name} by ${deployRequest.by}") }
+                        .peek { resolutionProvider.invalidate(repository, gav) }
                         .peek { extensions.emitEvent(DeployEvent(repository, gav, deployRequest.by)) }
                         .flatMap { _ ->
                             when {
@@ -106,6 +107,7 @@ internal class RepositoryService(
                     repository.storageProvider
                         .removeFile(gav)
                         .peek { logger.info("DELETE | File $gav has been deleted from ${repository.name} by ${deleteRequest.by}") }
+                        .peek { resolutionProvider.invalidate(repository, gav) }
                 else -> unauthorizedError("Unauthorized access request")
             }
         }
@@ -148,38 +150,26 @@ internal class RepositoryService(
         resolve(lookupRequest) { repository, gav -> findInputStream(repository, gav, lookupRequest.accessToken) }
 
     private fun findInputStream(repository: Repository, gav: Location, accessToken: AccessTokenIdentifier? = null): Result<InputStream, ErrorResponse> {
-        val result = when {
-            mirrorService.shouldPrioritizeMirrorRepository(repository, gav) -> {
-                logger.debug("Prioritizing mirror repository for '$gav'")
-                mirrorService
-                    .findRemoteFile(repository, gav, accessToken)
-                    .flatMapErr { repository.storageProvider.getFile(gav) }
-            }
-            repository.storageProvider.exists(gav) -> {
-                logger.debug("Gav '$gav' found in '${repository.name}' repository")
-                repository.storageProvider.getFile(gav)
-            }
-            else -> {
-                logger.debug("Cannot find '$gav' in '${repository.name}' repository, requesting proxied repositories")
-                mirrorService.findRemoteFile(repository, gav, accessToken)
-            }
-        }
-
-        val event = ResolvedFileDataEvent(accessToken, repository, gav, result);
-        return extensions.emitEvent(event).result
+        val result = resolutionProvider.resolve(
+            repository = repository,
+            gav = gav,
+            accessToken = accessToken,
+            mirrorFirst = mirrorService.shouldPrioritizeMirrorRepository(repository, gav),
+            tryLocal = { repository.storageProvider.getFile(gav) },
+            tryRemote = { hosts -> mirrorService.findRemoteFile(repository, gav, accessToken, hosts) },
+        )
+        return extensions.emitEvent(ResolvedFileDataEvent(accessToken, repository, gav, result)).result
     }
 
     private fun findDetails(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<FileDetails, ErrorResponse> =
-        when {
-            mirrorService.shouldPrioritizeMirrorRepository(repository, gav) -> {
-                logger.debug("Prioritizing mirror repository for '$gav'")
-                this
-                    .findProxiedDetails(repository, gav, accessToken)
-                    .flatMapErr { findLocalDetails(accessToken, repository, gav) }
-            }
-            repository.storageProvider.exists(gav) -> findLocalDetails(accessToken, repository, gav) // todo: add fallback to local for shouldPrioritizeMirrorRepository
-            else -> findProxiedDetails(repository, gav, accessToken)
-        }.peek {
+        resolutionProvider.resolve(
+            repository = repository,
+            gav = gav,
+            accessToken = accessToken,
+            mirrorFirst = mirrorService.shouldPrioritizeMirrorRepository(repository, gav),
+            tryLocal = { findLocalDetails(accessToken, repository, gav) },
+            tryRemote = { hosts -> mirrorService.findRemoteDetails(repository, gav, accessToken, hosts) },
+        ).peek {
             recordResolvedRequest(Identifier(repository.name, gav.toString()), it)
         }
 
@@ -190,11 +180,6 @@ internal class RepositoryService(
                     ?.let { securityProvider.canBrowseResource(accessToken, repository, gav).map { _ -> it } }
                     ?: it.asSuccess()
             }
-
-    private fun findProxiedDetails(repository: Repository, gav: Location, accessToken: AccessTokenIdentifier?): Result<FileDetails, ErrorResponse> =
-        mirrorService
-            .findRemoteDetails(repository, gav, accessToken)
-            .mapErr { notFound("Cannot find '$gav' in local and remote repositories") }
 
     private fun recordResolvedRequest(identifier: Identifier, fileDetails: FileDetails) {
         if (fileDetails is DocumentInfo && ignoredExtensions.none { extension -> fileDetails.name.endsWith(extension) }) {
