@@ -31,8 +31,8 @@ internal class ResolutionCache(private val maxEntries: Int) {
     sealed interface Origin {
         data object Local : Origin
         data class Remote(val host: String) : Origin
-        // Recorded only when the metadata file at this exact prefix is missing both locally and from every probed mirror.
-        // Authoritative only for exact-prefix lookups — does not inherit to descendants (a child file may exist independently).
+        // Recorded when any resolution-metadata file (maven-metadata.xml, *.pom, etc.) at this exact prefix
+        // is missing both locally and from every probed mirror. Does not inherit to descendants.
         data object MissingMetadata : Origin
     }
 
@@ -70,7 +70,8 @@ internal class ResolutionCache(private val maxEntries: Int) {
         if (entries[key]?.origin == origin) {
             return
         }
-        // evict before insert so the just-recorded entry (hitCount = 0) isn't itself the victim
+        // Size check + insert is intentionally not synchronized — maxEntries is a soft cap that may
+        // transiently overshoot under concurrent writes; the next record self-heals via eviction.
         if (!entries.containsKey(key) && entries.size >= maxEntries) {
             evictDownTo(maxEntries - 1)
         }

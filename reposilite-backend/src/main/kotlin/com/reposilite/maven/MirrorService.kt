@@ -183,17 +183,21 @@ internal class MirrorService(
             return MirrorResolution.NoEligibleHosts
         }
 
-        val allMissing = eligibleHosts.fold(true) { acc, host ->
+        var allMissing = true
+        var lastUpstreamError: ErrorResponse? = null
+        for (host in eligibleHosts) {
             val result = fetch(host)
             if (result.isOk) {
                 return MirrorResolution.Resolved(result.get(), host)
             }
-            acc && result.error.status == 404
+            if (result.error.status != 404) {
+                allMissing = false
+                lastUpstreamError = result.error
+            }
         }
-
         return when {
             allMissing -> MirrorResolution.NotFound
-            else -> MirrorResolution.Failed(notFound("Cannot find '$gav' in remote repositories"))
+            else -> MirrorResolution.Failed(lastUpstreamError ?: notFound("Cannot find '$gav' in remote repositories"))
         }
     }
 
