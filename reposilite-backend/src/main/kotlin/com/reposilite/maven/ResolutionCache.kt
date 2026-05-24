@@ -99,7 +99,7 @@ internal class ResolutionCache(private val maxEntries: Int) {
         entries.entries.asSequence()
             .map { (key, entry) -> ResolutionCacheEntry(key.prefix, key.authenticated, entry.origin, entry.hitCount.sum()) }
             .sortedByDescending { it.hitCount }
-            .take(top)
+            .take(top.coerceAtLeast(0))
             .toList()
 
     private fun evictDownTo(targetSize: Int) {

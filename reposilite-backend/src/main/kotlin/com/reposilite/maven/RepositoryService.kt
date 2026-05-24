@@ -22,7 +22,6 @@ import com.reposilite.maven.api.DeployEvent
 import com.reposilite.maven.api.DeployRequest
 import com.reposilite.maven.api.Identifier
 import com.reposilite.maven.api.LookupRequest
-import com.reposilite.maven.api.METADATA_FILE
 import com.reposilite.maven.api.PreResolveEvent
 import com.reposilite.maven.api.ResolvedDocument
 import com.reposilite.maven.api.ResolvedFileDataEvent
@@ -42,7 +41,6 @@ import com.reposilite.storage.api.FileType.DIRECTORY
 import com.reposilite.storage.api.Location
 import com.reposilite.storage.api.SimpleDirectoryInfo
 import com.reposilite.token.AccessTokenIdentifier
-import com.reposilite.token.api.AccessTokenDetails
 import io.javalin.http.HttpStatus.CONFLICT
 import panda.std.Result
 import panda.std.asSuccess
@@ -54,6 +52,7 @@ internal class RepositoryService(
     val repositoryProvider: RepositoryProvider,
     private val securityProvider: RepositorySecurityProvider,
     private val mirrorService: MirrorService,
+    private val resolutionProvider: ResolutionProvider,
     private val statisticsFacade: StatisticsFacade,
     private val extensions: Extensions,
 ) : Journalist {
@@ -82,7 +81,7 @@ internal class RepositoryService(
                     repository.storageProvider
                         .putFile(gav, deployRequest.content)
                         .peek { logger.info("DEPLOY | Artifact $gav successfully deployed to ${repository.name} by ${deployRequest.by}") }
-                        .peek { if (gav.isResolutionMetadata()) repository.resolutionCache?.invalidate(gav) }
+                        .peek { resolutionProvider.invalidate(repository, gav) }
                         .peek { extensions.emitEvent(DeployEvent(repository, gav, deployRequest.by)) }
                         .flatMap { _ ->
                             when {
@@ -108,7 +107,7 @@ internal class RepositoryService(
                     repository.storageProvider
                         .removeFile(gav)
                         .peek { logger.info("DELETE | File $gav has been deleted from ${repository.name} by ${deleteRequest.by}") }
-                        .peek { if (gav.isResolutionMetadata()) repository.resolutionCache?.invalidate(gav) }
+                        .peek { resolutionProvider.invalidate(repository, gav) }
                 else -> unauthorizedError("Unauthorized access request")
             }
         }
@@ -151,7 +150,7 @@ internal class RepositoryService(
         resolve(lookupRequest) { repository, gav -> findInputStream(repository, gav, lookupRequest.accessToken) }
 
     private fun findInputStream(repository: Repository, gav: Location, accessToken: AccessTokenIdentifier? = null): Result<InputStream, ErrorResponse> {
-        val result = resolveWithCache(
+        val result = resolutionProvider.resolve(
             repository = repository,
             gav = gav,
             accessToken = accessToken,
@@ -163,7 +162,7 @@ internal class RepositoryService(
     }
 
     private fun findDetails(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<FileDetails, ErrorResponse> =
-        resolveWithCache(
+        resolutionProvider.resolve(
             repository = repository,
             gav = gav,
             accessToken = accessToken,
@@ -173,113 +172,6 @@ internal class RepositoryService(
         ).peek {
             recordResolvedRequest(Identifier(repository.name, gav.toString()), it)
         }
-
-    private inline fun <T : Any> resolveWithCache(
-        repository: Repository,
-        gav: Location,
-        accessToken: AccessTokenIdentifier?,
-        mirrorFirst: Boolean,
-        crossinline tryLocal: () -> Result<T, ErrorResponse>,
-        crossinline tryRemote: (hosts: List<MirrorHost>) -> MirrorResolution<T>,
-    ): Result<T, ErrorResponse> {
-        val cache = repository.resolutionCache
-        val authenticated = accessToken != null
-        val cached = cache?.lookup(gav, authenticated)
-        val isMetadata = gav.isResolutionMetadata()
-        val notFoundMessage = "Cannot find '$gav' in local or remote repositories"
-
-        if (isMetadata && cached == ResolutionCache.Origin.MissingMetadata) {
-            return notFoundError(notFoundMessage)
-        }
-
-        val hosts = (cached as? ResolutionCache.Origin.Remote)
-            ?.let { decision -> repository.mirrorHosts.filter { it.host == decision.host }.ifEmpty { repository.mirrorHosts } }
-            ?: repository.mirrorHosts
-
-        val attempt = when {
-            cached is ResolutionCache.Origin.Remote || mirrorFirst -> tryRemoteFirst(tryLocal, tryRemote, hosts, notFoundMessage)
-            else -> tryLocalFirst(tryLocal, tryRemote, hosts, notFoundMessage)
-        }
-
-        if (cache != null && isMetadata) {
-            attempt.recordTo(cache, gav, authenticated)
-        }
-        return attempt.result
-    }
-
-    private inline fun <T : Any> tryLocalFirst(
-        tryLocal: () -> Result<T, ErrorResponse>,
-        tryRemote: (List<MirrorHost>) -> MirrorResolution<T>,
-        hosts: List<MirrorHost>,
-        notFoundMessage: String,
-    ): ResolveAttempt<T> {
-        val local = tryLocal()
-        return when {
-            local.isOk -> ResolveAttempt(local, remote = null)
-            else -> {
-                val remote = tryRemote(hosts)
-                ResolveAttempt(remote.toResult(notFoundMessage).flatMapErr { local }, remote)
-            }
-        }
-    }
-
-    private inline fun <T : Any> tryRemoteFirst(
-        tryLocal: () -> Result<T, ErrorResponse>,
-        tryRemote: (List<MirrorHost>) -> MirrorResolution<T>,
-        hosts: List<MirrorHost>,
-        notFoundMessage: String,
-    ): ResolveAttempt<T> {
-        val remote = tryRemote(hosts)
-        return when (remote) {
-            is MirrorResolution.Resolved -> ResolveAttempt(Result.ok(remote.value), remote)
-            else -> ResolveAttempt(tryLocal().flatMapErr { remote.toResult(notFoundMessage) }, remote)
-        }
-    }
-
-    private fun <T> ResolveAttempt<T>.recordTo(cache: ResolutionCache, gav: Location, authenticated: Boolean) {
-        val prefix = gav.getParent()
-        if (prefix == Location.empty()) {
-            return
-        }
-
-        // Successful resolve but upstream actually failed — we served a local fallback.
-        // Log it for visibility, but do not cache: the upstream may recover.
-        if (result.isOk && remote is MirrorResolution.Failed) {
-            logger.warn("Resolution | Upstream failed (${remote.error.status}: ${remote.error.message}) — served '$gav' from local fallback")
-            return
-        }
-
-        // Failed resolve: only NotFound is a stable signal worth caching. Everything else is transient.
-        if (!result.isOk) {
-            if (remote is MirrorResolution.NotFound) {
-                cache.record(prefix, authenticated, ResolutionCache.Origin.MissingMetadata)
-            }
-            return
-        }
-
-        // Successful resolve: pin the host only when the mirror won't keep a local copy; otherwise we served locally.
-        val origin = when (remote) {
-            is MirrorResolution.Resolved if !remote.mirror.configuration.store -> ResolutionCache.Origin.Remote(remote.mirror.host)
-            else -> ResolutionCache.Origin.Local
-        }
-        cache.record(prefix, authenticated, origin)
-    }
-
-    private data class ResolveAttempt<T>(
-        val result: Result<T, ErrorResponse>,
-        val remote: MirrorResolution<T>?, // null when remote was not attempted
-    )
-
-    private fun Location.isResolutionMetadata(): Boolean {
-        val name = getSimpleName()
-        return when {
-            name.endsWith(".pom") -> true
-            name.endsWith(".module") -> true
-            name == METADATA_FILE -> true
-            name.endsWith(".xml") -> name == "ivy.xml" || name.startsWith("ivy-")
-            else -> false
-        }
-    }
 
     private fun findLocalDetails(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<FileDetails, ErrorResponse> =
         repository.storageProvider.getFileDetails(gav)

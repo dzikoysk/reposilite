@@ -23,6 +23,7 @@ import com.reposilite.maven.LatestService
 import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.MetadataService
 import com.reposilite.maven.MirrorService
+import com.reposilite.maven.ResolutionProvider
 import com.reposilite.maven.RepositoryProvider
 import com.reposilite.maven.RepositorySecurityProvider
 import com.reposilite.plugin.Extensions
@@ -67,8 +68,12 @@ internal class MavenComponents(
             ioService = ioService,
         )
 
+    private fun resolutionProvider(): ResolutionProvider =
+        ResolutionProvider(journalist)
+
     private fun repositoryProvider(
         mirrorService: MirrorService = mirrorService(),
+        resolutionProvider: ResolutionProvider = resolutionProvider(),
         securityProvider: RepositorySecurityProvider = securityProvider(),
     ): RepositoryProvider =
         RepositoryProvider(
@@ -79,6 +84,7 @@ internal class MavenComponents(
             failureFacade = failureFacade,
             storageFacade = storageFacade,
             mirrorService = mirrorService,
+            resolutionProvider = resolutionProvider,
             statisticsFacade = statisticsFacade,
             extensions = extensions,
             repositorySecurityProvider = securityProvider,
