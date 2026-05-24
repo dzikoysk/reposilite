@@ -40,24 +40,28 @@ class StatusFacade(
     private val failureFacade: FailureFacade
 ) : Facade {
 
-    private val cachedLatestVersion: Supplier<Result<String, String>> = Suppliers.memoizeWithExpiration({
-        when {
-            testEnv ->
-                Result.ok(VERSION)
-            else ->
-                IOUtils.fetchContent(remoteVersionUrl)
-                    .onError {
-                        when (it.message?.contains("java.security.NoSuchAlgorithmException")) {
-                            true -> failureFacade.logger.warn("Cannot load SSL context for HTTPS request due to the lack of available memory")
-                            else -> failureFacade.logger.warn("$remoteVersionUrl is unavailable: ${it.message}")
-                        }
-                    }
-                    .mapErr { "<unknown>" }
-        }
-    }, 1, TimeUnit.HOURS)
-
     private val cachedStatusSnapshots = EvictingQueue.create<StatusSnapshot>(12)
-    private val runtime = Runtime.getRuntime()
+
+    private val cachedLatestVersion: Supplier<Result<String, String>> =
+        Suppliers.memoizeWithExpiration({
+            when {
+                testEnv || !remoteVersionCheckEnabled ->
+                    Result.ok(VERSION)
+                else ->
+                    IOUtils
+                        .fetchContent(remoteVersionUrl)
+                        .onError {
+                            when (it.message?.contains("java.security.NoSuchAlgorithmException")) {
+                                true -> failureFacade.logger.warn("Cannot load SSL context for HTTPS request due to the lack of available memory")
+                                else -> failureFacade.logger.warn("$remoteVersionUrl is unavailable: ${it.message}")
+                            }
+                        }
+                        .mapErr { "<unknown>" }
+            }
+        }, 1, TimeUnit.HOURS)
+
+    private val remoteVersionCheckEnabled: Boolean
+        get() = System.getProperty("reposilite.status.remote-version-check", "true") == "true"
 
     init {
         recordStatusSnapshot()
@@ -78,7 +82,7 @@ class StatusFacade(
             latestVersion = cachedLatestVersion.get().fold({ it }, { it }),
             uptime = System.currentTimeMillis() - getUptime(),
             usedMemory = getUsedMemory(),
-            maxMemory = (runtime.maxMemory() / 1024 / 1024).toInt(),
+            maxMemory = (Runtime.getRuntime().maxMemory() / 1024 / 1024).toInt(),
             usedThreads = getUsedThreads(),
             maxThreads = maxThreads.get(),
             failuresCount = failureFacade.getFailures().size
@@ -88,7 +92,7 @@ class StatusFacade(
         Thread.activeCount()
 
     private fun getUsedMemory(): Double =
-        (runtime.totalMemory() - runtime.freeMemory()) / 1024.0 / 1024.0
+        (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1024.0 / 1024.0
 
     internal fun getLatestVersion(): Result<String, String> =
         cachedLatestVersion.get()
