@@ -41,6 +41,8 @@ data class FrontendSettings(
     val organizationLogo: String = "https://avatars.githubusercontent.com/u/88636591",
     @get:Doc(title = "Privacy Policy", description = "Link to your privacy policy displayed in the footer. Useful for EU GDPR compliance.")
     val privacyPolicy: String = "",
+    @get:Doc(title = "Legal Notice", description = "Link to your legal notice displayed in the footer. Useful for local law compliance.")
+    val legalNotice: String = "",
     @get:Doc(title = "ICP License", description = """
         Web services in China require ICP license, a permit issued by the Chinese government to permit China-based websites to operate in China.
         In order to fulfill the conditions, you should apply for ICP license from your service provider and fill in this parameter.
