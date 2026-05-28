@@ -38,15 +38,18 @@ import kotlin.io.path.exists
 internal class JavadocPlugin : ReposilitePlugin() {
 
     override fun initialize(): Facade {
-        val javadocFolder = parameters().workingDirectory.resolve("javadocs")
         val failureFacade = facade<FailureFacade>()
         val mavenFacade = facade<MavenFacade>()
+        val frontendFacade = facade<FrontendFacade>()
+
         val javadocSettings = facade<SharedConfigurationFacade>().getDomainSettings<JavadocSettings>()
         val javadocEnabled = javadocSettings.computed { it.enabled }
+        val javadocFolder = parameters().workingDirectory.resolve("javadocs")
 
-        facade<FrontendFacade>().registerPlaceholder("{{REPOSILITE.JAVADOC_ENABLED}}", javadocSettings) {
-            javadocEnabled.get().toString()
-        }
+        frontendFacade.registerPlaceholder(
+            key = "{{REPOSILITE.JAVADOC_ENABLED}}",
+            value = javadocEnabled.computed { it.toString() },
+        )
 
         val javadocContainerService = JavadocContainerService(
             mavenFacade = mavenFacade,
@@ -58,15 +61,10 @@ internal class JavadocPlugin : ReposilitePlugin() {
             journalist = this,
             javadocFolder = javadocFolder,
             mavenFacade = mavenFacade,
-            javadocContainerService = javadocContainerService,
-            javadocEnabled = javadocEnabled
+            javadocContainerService = javadocContainerService
         )
 
         event { event: DeployEvent ->
-            if (!javadocEnabled.get()) {
-                return@event
-            }
-
             val gav = event.gav
                 .takeIf { it.toString().endsWith("-javadoc.jar") }
                 ?: return@event
@@ -85,7 +83,12 @@ internal class JavadocPlugin : ReposilitePlugin() {
         }
 
         event { event: RoutingSetupEvent ->
-            event.registerRoutes(JavadocEndpoints(javadocFacade))
+            event.registerRoutes(
+                JavadocEndpoints(
+                    javadocFacade = javadocFacade,
+                    javadocEnabled = javadocEnabled,
+                ),
+            )
         }
 
         return javadocFacade

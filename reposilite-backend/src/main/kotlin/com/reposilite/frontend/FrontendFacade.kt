@@ -29,7 +29,7 @@ class FrontendFacade internal constructor(
 ) : Facade {
 
     private val resources = HashMap<String, ResourceSupplier>(0)
-    private val additionalPlaceholders = mutableMapOf<String, () -> String>()
+    private val additionalPlaceholders = mutableMapOf<String, Reference<String>>()
     val formattedBasePath: Reference<String> = basePath.computed { BasePathFormatter.formatBasePath(it) }
 
     init {
@@ -38,12 +38,9 @@ class FrontendFacade internal constructor(
         }
     }
 
-    fun registerPlaceholder(key: String, source: Reference<*>, valueSupplier: () -> String) {
-        additionalPlaceholders[key] = valueSupplier
-        source.computed {
-            resources.clear()
-            it
-        }
+    fun registerPlaceholder(key: String, value: Reference<String>) {
+        additionalPlaceholders[key] = value
+        computed(value) { resources.clear() }
     }
 
     fun resolve(uri: String, source: Source): ResourceSupplier? =
@@ -77,7 +74,9 @@ class FrontendFacade internal constructor(
                 put("{{REPOSILITE.ICP_LICENSE}}", icpLicense)
                 put("{{REPOSILITE.PRIVACY_POLICY}}", privacyPolicy)
 
-                additionalPlaceholders.forEach { (key, supplier) -> put(key, supplier()) }
+                additionalPlaceholders.forEach { (key, value) ->
+                    put(key, value.get())
+                }
             })
         }
 

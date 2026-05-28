@@ -25,10 +25,20 @@ import com.reposilite.storage.api.toLocation
 import com.reposilite.web.api.ReposiliteRoute
 import io.javalin.community.routing.Route.GET
 import io.javalin.http.Header
+import io.javalin.http.HttpStatus.NOT_FOUND
+import panda.std.reactive.Reference
 
-internal class JavadocEndpoints(javadoc: JavadocFacade) : MavenRoutes(javadoc.mavenFacade) {
+internal class JavadocEndpoints(
+    javadocFacade: JavadocFacade,
+    private val javadocEnabled: Reference<Boolean>
+) : MavenRoutes(javadocFacade.mavenFacade) {
 
     private val javadocRoute = ReposiliteRoute<Any>("/javadoc/{repository}/<gav>", GET) {
+        if (!javadocEnabled.get()) {
+            ctx.status(NOT_FOUND)
+            return@ReposiliteRoute
+        }
+
         accessed {
             requireGav { gav ->
                 requireRepository { repository ->
@@ -36,7 +46,7 @@ internal class JavadocEndpoints(javadoc: JavadocFacade) : MavenRoutes(javadoc.ma
                         uri.endsWith("/") -> ctx.redirect(uri.dropLast(1))
                         else -> {
                             response = JavadocPageRequest(this?.identifier, repository, gav)
-                                .let { javadoc.findJavadocPage(it) }
+                                .let { javadocFacade.findJavadocPage(it) }
                                 .peek {
                                     ctx
                                         .encoding(Charsets.UTF_8)
@@ -52,11 +62,16 @@ internal class JavadocEndpoints(javadoc: JavadocFacade) : MavenRoutes(javadoc.ma
     }
 
     private val javadocRawRoute = ReposiliteRoute<Any>("/javadoc/{repository}/<gav>/raw/<resource>", GET) {
+        if (!javadocEnabled.get()) {
+            ctx.status(NOT_FOUND)
+            return@ReposiliteRoute
+        }
+
         accessed {
             requireGav { gav ->
                 requireRepository { repository ->
                     response = JavadocRawRequest(this?.identifier, repository, gav, requireParameter("resource").toLocation())
-                        .let { javadoc.findRawJavadocResource(it) }
+                        .let { javadocFacade.findRawJavadocResource(it) }
                         .peek { ctx.encoding(Charsets.UTF_8).contentType(it.contentType).header(Header.CONTENT_SECURITY_POLICY, "sandbox allow-scripts") }
                         .map { it.content }
                 }

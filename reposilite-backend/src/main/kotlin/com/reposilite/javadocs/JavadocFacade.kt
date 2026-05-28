@@ -35,7 +35,6 @@ import io.javalin.http.ContentType
 import panda.std.Result
 import panda.std.Result.supplyThrowing
 import panda.std.asSuccess
-import panda.std.reactive.Reference
 import panda.utilities.StringUtils
 import java.nio.file.Path
 import kotlin.io.path.exists
@@ -49,8 +48,7 @@ class JavadocFacade internal constructor(
     private val journalist: Journalist,
     val mavenFacade: MavenFacade,
     private val javadocFolder: Path,
-    private val javadocContainerService: JavadocContainerService,
-    private val javadocEnabled: Reference<Boolean>
+    private val javadocContainerService: JavadocContainerService
 ) : Journalist, Facade {
 
     private val supportedExtensions = mapOf(
@@ -68,24 +66,15 @@ class JavadocFacade internal constructor(
         val contentType: ContentType
     )
 
-    fun findJavadocPage(request: JavadocPageRequest): Result<JavadocResponse, ErrorResponse> {
-        if (!javadocEnabled.get()) {
-            return notFoundError("Javadoc integration is disabled")
-        }
-
-        return with (request) {
+    fun findJavadocPage(request: JavadocPageRequest): Result<JavadocResponse, ErrorResponse> =
+        with (request) {
             mavenFacade.canAccessResource(accessToken, repository, gav)
                 .flatMap { createPage(accessToken, repository, resolveGav(request)) }
                 .onError { logger.error("Cannot extract javadoc: ${it.message} (${it.status})}") }
         }
-    }
 
-    fun findRawJavadocResource(request: JavadocRawRequest): Result<JavadocRawResponse, ErrorResponse> {
-        if (!javadocEnabled.get()) {
-            return notFoundError("Javadoc integration is disabled")
-        }
-
-        return with (request) {
+    fun findRawJavadocResource(request: JavadocRawRequest): Result<JavadocRawResponse, ErrorResponse> =
+        with (request) {
             mavenFacade.canAccessResource(accessToken, repository, gav)
                 .flatMap { javadocContainerService.loadContainer(accessToken, repository, gav) }
                 .map { it.javadocUnpackPath.resolve(resource.toString()) }
@@ -97,7 +86,6 @@ class JavadocFacade internal constructor(
                     )
                 }
         }
-    }
 
     private fun createPage(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<JavadocResponse, ErrorResponse> {
         val resourcesFile = createPlainFile(javadocFolder, repository, gav)
