@@ -16,6 +16,8 @@
 
 package com.reposilite.javadocs.application
 
+import com.reposilite.configuration.shared.SharedConfigurationFacade
+import com.reposilite.frontend.FrontendFacade
 import com.reposilite.javadocs.JavadocContainerService
 import com.reposilite.javadocs.JavadocFacade
 import com.reposilite.javadocs.infrastructure.JavadocEndpoints
@@ -32,13 +34,19 @@ import com.reposilite.storage.deleteRecursivelyInside
 import com.reposilite.web.api.RoutingSetupEvent
 import kotlin.io.path.exists
 
-@Plugin(name = "javadoc", dependencies = ["failure", "maven"])
+@Plugin(name = "javadoc", dependencies = ["failure", "shared-configuration", "frontend", "maven"], settings = JavadocSettings::class)
 internal class JavadocPlugin : ReposilitePlugin() {
 
     override fun initialize(): Facade {
         val javadocFolder = parameters().workingDirectory.resolve("javadocs")
         val failureFacade = facade<FailureFacade>()
         val mavenFacade = facade<MavenFacade>()
+        val javadocSettings = facade<SharedConfigurationFacade>().getDomainSettings<JavadocSettings>()
+        val javadocEnabled = javadocSettings.computed { it.enabled }
+
+        facade<FrontendFacade>().registerPlaceholder("{{REPOSILITE.JAVADOC_ENABLED}}", javadocSettings) {
+            javadocEnabled.get().toString()
+        }
 
         val javadocContainerService = JavadocContainerService(
             mavenFacade = mavenFacade,
@@ -50,10 +58,15 @@ internal class JavadocPlugin : ReposilitePlugin() {
             journalist = this,
             javadocFolder = javadocFolder,
             mavenFacade = mavenFacade,
-            javadocContainerService = javadocContainerService
+            javadocContainerService = javadocContainerService,
+            javadocEnabled = javadocEnabled
         )
 
         event { event: DeployEvent ->
+            if (!javadocEnabled.get()) {
+                return@event
+            }
+
             val gav = event.gav
                 .takeIf { it.toString().endsWith("-javadoc.jar") }
                 ?: return@event

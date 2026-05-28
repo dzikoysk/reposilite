@@ -29,11 +29,20 @@ class FrontendFacade internal constructor(
 ) : Facade {
 
     private val resources = HashMap<String, ResourceSupplier>(0)
+    private val additionalPlaceholders = mutableMapOf<String, () -> String>()
     val formattedBasePath: Reference<String> = basePath.computed { BasePathFormatter.formatBasePath(it) }
 
     init {
         computed(basePath, formattedBasePath, frontendSettings) {
             resources.clear()
+        }
+    }
+
+    fun registerPlaceholder(key: String, source: Reference<*>, valueSupplier: () -> String) {
+        additionalPlaceholders[key] = valueSupplier
+        source.computed {
+            resources.clear()
+            it
         }
     }
 
@@ -53,21 +62,23 @@ class FrontendFacade internal constructor(
 
     private fun createLazyPlaceholderResolver(): LazyPlaceholderResolver =
         with (frontendSettings.get()) {
-            LazyPlaceholderResolver(mapOf(
-                "{{REPOSILITE.BASE_PATH}}" to formattedBasePath.get(),
-                URLEncoder.encode("{{REPOSILITE.BASE_PATH}}", StandardCharsets.UTF_8) to formattedBasePath.get(),
+            LazyPlaceholderResolver(buildMap {
+                put("{{REPOSILITE.BASE_PATH}}", formattedBasePath.get())
+                put(URLEncoder.encode("{{REPOSILITE.BASE_PATH}}", StandardCharsets.UTF_8), formattedBasePath.get())
 
-                "{{REPOSILITE.VITE_BASE_PATH}}" to formatAsViteBasePath(formattedBasePath.get()),
-                URLEncoder.encode("{{REPOSILITE.VITE_BASE_PATH}}", StandardCharsets.UTF_8) to formatAsViteBasePath(formattedBasePath.get()),
+                put("{{REPOSILITE.VITE_BASE_PATH}}", formatAsViteBasePath(formattedBasePath.get()))
+                put(URLEncoder.encode("{{REPOSILITE.VITE_BASE_PATH}}", StandardCharsets.UTF_8), formatAsViteBasePath(formattedBasePath.get()))
 
-                "{{REPOSILITE.ID}}" to id,
-                "{{REPOSILITE.TITLE}}" to escapeForJsString(title),
-                "{{REPOSILITE.DESCRIPTION}}" to escapeForJsString(description),
-                "{{REPOSILITE.ORGANIZATION_WEBSITE}}" to organizationWebsite,
-                "{{REPOSILITE.ORGANIZATION_LOGO}}" to organizationLogo,
-                "{{REPOSILITE.ICP_LICENSE}}" to icpLicense,
-                "{{REPOSILITE.PRIVACY_POLICY}}" to privacyPolicy,
-            ))
+                put("{{REPOSILITE.ID}}", id)
+                put("{{REPOSILITE.TITLE}}", escapeForJsString(title))
+                put("{{REPOSILITE.DESCRIPTION}}", escapeForJsString(description))
+                put("{{REPOSILITE.ORGANIZATION_WEBSITE}}", organizationWebsite)
+                put("{{REPOSILITE.ORGANIZATION_LOGO}}", organizationLogo)
+                put("{{REPOSILITE.ICP_LICENSE}}", icpLicense)
+                put("{{REPOSILITE.PRIVACY_POLICY}}", privacyPolicy)
+
+                additionalPlaceholders.forEach { (key, supplier) -> put(key, supplier()) }
+            })
         }
 
     fun createNotFoundPage(originUri: String, details: String): String =

@@ -18,6 +18,7 @@
 import prettyBytes from 'pretty-bytes'
 import {createURL} from "../../store/client"
 import {useSession} from '../../store/session'
+import usePlaceholders from '../../store/placeholders'
 import EyeIcon from '../icons/EyeIcon.vue'
 import JavaDocsIcon from "../icons/JavaDocsIcon.vue"
 import TrashIcon from '../icons/TrashIcon.vue'
@@ -33,6 +34,7 @@ const props = defineProps({
 })
 
 const { hasPermissionTo } = useSession()
+const { javadocEnabled } = usePlaceholders()
 
 const humanReadableMimeTypes = ['application/xml', 'text/plain', 'text/xml', 'text/markdown', 'application/json']
 const isHumanReadable = humanReadableMimeTypes.some(type => props.file?.contentType == type)
@@ -40,7 +42,7 @@ const isHumanReadable = humanReadableMimeTypes.some(type => props.file?.contentT
 const openUrl = (url) =>
     window.open(url, '_blank')
 
-const isJavaDocsAvailable = () => props.file.name.endsWith('-javadoc.jar') && getJavaDocsUrl() != null
+const isJavaDocsAvailable = () => javadocEnabled && props.file.name.endsWith('-javadoc.jar') && getJavaDocsUrl() != null
 const getJavaDocsUrl = () => {
   const qualifier = props.qualifier.path
   const elements = qualifier.split('/')
