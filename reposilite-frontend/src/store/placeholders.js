@@ -24,6 +24,7 @@ export default function usePlaceholders() {
   const organizationLogo = available ? '{{REPOSILITE.ORGANIZATION_LOGO}}' : 'https://avatars.githubusercontent.com/u/75123628?s=200&v=4'
   const privacyPolicy = available ? '{{REPOSILITE.PRIVACY_POLICY}}' : 'https://example.com/privacy'
   const icpLicense = available ? '{{REPOSILITE.ICP_LICENSE}}' : '国ICP备000000000号'
+  const javadocEnabled = available ? '{{REPOSILITE.JAVADOC_ENABLED}}' === 'true' : true
 
   const productionUrl =
     window.location.protocol + '//' + location.host + basePath
@@ -43,6 +44,7 @@ export default function usePlaceholders() {
     organizationLogo,
     privacyPolicy,
     icpLicense,
+    javadocEnabled,
     productionUrl,
     baseUrl
   }

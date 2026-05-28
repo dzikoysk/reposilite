@@ -16,6 +16,8 @@
 
 package com.reposilite.javadocs.application
 
+import com.reposilite.configuration.shared.SharedConfigurationFacade
+import com.reposilite.frontend.FrontendFacade
 import com.reposilite.javadocs.JavadocContainerService
 import com.reposilite.javadocs.JavadocFacade
 import com.reposilite.javadocs.infrastructure.JavadocEndpoints
@@ -32,13 +34,22 @@ import com.reposilite.storage.deleteRecursivelyInside
 import com.reposilite.web.api.RoutingSetupEvent
 import kotlin.io.path.exists
 
-@Plugin(name = "javadoc", dependencies = ["failure", "maven"])
+@Plugin(name = "javadoc", dependencies = ["failure", "shared-configuration", "frontend", "maven"], settings = JavadocSettings::class)
 internal class JavadocPlugin : ReposilitePlugin() {
 
     override fun initialize(): Facade {
-        val javadocFolder = parameters().workingDirectory.resolve("javadocs")
         val failureFacade = facade<FailureFacade>()
         val mavenFacade = facade<MavenFacade>()
+        val frontendFacade = facade<FrontendFacade>()
+
+        val javadocSettings = facade<SharedConfigurationFacade>().getDomainSettings<JavadocSettings>()
+        val javadocEnabled = javadocSettings.computed { it.enabled }
+        val javadocFolder = parameters().workingDirectory.resolve("javadocs")
+
+        frontendFacade.registerPlaceholder(
+            key = "{{REPOSILITE.JAVADOC_ENABLED}}",
+            value = javadocEnabled.computed { it.toString() },
+        )
 
         val javadocContainerService = JavadocContainerService(
             mavenFacade = mavenFacade,
@@ -72,7 +83,12 @@ internal class JavadocPlugin : ReposilitePlugin() {
         }
 
         event { event: RoutingSetupEvent ->
-            event.registerRoutes(JavadocEndpoints(javadocFacade))
+            event.registerRoutes(
+                JavadocEndpoints(
+                    javadocFacade = javadocFacade,
+                    javadocEnabled = javadocEnabled,
+                ),
+            )
         }
 
         return javadocFacade
