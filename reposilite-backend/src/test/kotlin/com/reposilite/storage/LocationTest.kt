@@ -42,6 +42,8 @@ class LocationTest {
         assertThat(Location.of("..\\..\\artifact").toPath().get().toString()).isEqualTo("artifact")
         assertThat(Location.of("....//....//artifact").toPath().get().toString()).isEqualTo("artifact")
         assertThat(Location.of("/artifact").toPath().get().toString()).isEqualTo("artifact")
+        assertThat(Location.of(".<.").toPath().get().toString()).isEqualTo("")
+        assertThat(Location.of(".<./.<./artifact").toPath().get().toString()).isEqualTo("artifact")
         assertThat(Location.of(".").toPath().get().toString()).isEqualTo("")
         assertThat(Location.of("..").toPath().get().toString()).isEqualTo("")
         assertThat(Location.of("/").toPath().get().toString()).isEqualTo("")

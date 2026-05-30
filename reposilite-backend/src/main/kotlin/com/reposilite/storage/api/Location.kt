@@ -33,17 +33,16 @@ class Location private constructor(private val uri: String) {
         private val empty = Location("")
         private val multipleSlashes = Regex("/+")
         private val multipleDirectoryOperators = Regex("\\.{2,}")
-        private val htmlMetacharacters = Regex("[<>\"']")
+        private val strippedCharacters = Regex("[:<>\"']")
 
         @JvmStatic
         fun of(uri: String): Location {
             return uri
                 .replaceBefore(":", "")
-                .replace(":", "")
-                .replace(multipleDirectoryOperators, ".")
+                .replace(strippedCharacters, "")
                 .replace("\\", "/")
+                .replace(multipleDirectoryOperators, ".")
                 .replace(multipleSlashes, "/")
-                .replace(htmlMetacharacters, "")
                 .letIf({ it.startsWith("/") }) { it.removePrefix("/") }
                 .letIf({ it.endsWith("/") }) { it.removeSuffix("/") }
                 .let { Location(it) }
