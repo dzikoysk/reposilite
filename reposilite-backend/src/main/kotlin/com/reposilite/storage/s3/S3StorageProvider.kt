@@ -29,6 +29,7 @@ import com.reposilite.storage.api.DocumentInfo
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.Location
 import com.reposilite.storage.api.SimpleDirectoryInfo
+import com.reposilite.storage.api.UNKNOWN_LENGTH
 import com.reposilite.storage.api.toLocation
 import io.javalin.http.ContentType
 import io.javalin.http.ContentType.APPLICATION_OCTET_STREAM
@@ -41,6 +42,7 @@ import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.model.BucketAlreadyExistsException
 import software.amazon.awssdk.services.s3.model.BucketAlreadyOwnedByYouException
+import software.amazon.awssdk.services.s3.model.CommonPrefix
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest
 import software.amazon.awssdk.services.s3.model.GetObjectRequest
 import software.amazon.awssdk.services.s3.model.HeadBucketRequest
@@ -50,10 +52,12 @@ import software.amazon.awssdk.services.s3.model.ListObjectsV2Request
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException
 import software.amazon.awssdk.services.s3.model.PutObjectRequest
+import software.amazon.awssdk.services.s3.model.S3Object
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.nio.file.attribute.FileTime
+import java.time.Instant
 
 private val skipBucketCreation = System.getProperty("reposilite.s3.skip-bucket-creation", "false") == "true"
 
@@ -129,36 +133,58 @@ class S3StorageProvider(
             s3.getObject(request.build()).asSuccess()
             // val bytes = ByteArray(Math.toIntExact(response.response().contentLength()))
             // response.read(bytes)
-        } catch (noSuchKeyException: NoSuchKeyException) {
+        } catch (_: NoSuchKeyException) {
             notFoundError("File not found: $location")
-        } catch (ioException: IOException) {
+        } catch (_: IOException) {
             notFoundError("File not found: $location")
         }
 
     override fun getFileDetails(location: Location): Result<FileDetails, ErrorResponse> =
         head(location)
             .map { toDocumentInfo(location, it) }
-            .flatMapErr { getFiles(location).map { toDirectoryInfo(location, it) } }
+            .flatMapErr { listDirectoryDetails(location) }
 
-    private fun getSimplifiedFileDetails(location: Location): FileDetails =
-        head(location)
-            .fold(
-                { toDocumentInfo(location, it) },
-                { SimpleDirectoryInfo(location.getSimpleName()) }
-            )
+    private fun listDirectoryDetails(location: Location): Result<FileDetails, ErrorResponse> =
+        listDirectory(
+            location = location,
+            onDirectory = {
+                SimpleDirectoryInfo(
+                    name = it.prefix().toLocation().getSimpleName(),
+                )
+            },
+            onFile = {
+                it.key().toLocation().toDocumentInfo(
+                    contentLength = it.size(),
+                    lastModifiedTime = it.lastModified(),
+                )
+            },
+        ).map {
+            location.toDirectoryInfo(files = it)
+        }
+
+    private fun Location.toDirectoryPrefix(): String =
+        toString().replace('\\', '/')
+            .let { "$it/" }
+            .letIf({ it == "/" }, { "" })
 
     private fun toDocumentInfo(location: Location, head: HeadObjectResponse): FileDetails =
-        DocumentInfo(
-            name = location.getSimpleName(),
-            contentType = ContentType.contentTypeByExtension(location.getExtension()) ?: APPLICATION_OCTET_STREAM,
+        location.toDocumentInfo(
             contentLength = head.contentLength(),
             lastModifiedTime = head.lastModified(),
         )
 
-    private fun toDirectoryInfo(location: Location, files: List<Location>): DirectoryInfo =
+    private fun Location.toDocumentInfo(contentLength: Long?, lastModifiedTime: Instant?): DocumentInfo =
+        DocumentInfo(
+            name = getSimpleName(),
+            contentType = ContentType.contentTypeByExtension(getExtension()) ?: APPLICATION_OCTET_STREAM,
+            contentLength = contentLength ?: UNKNOWN_LENGTH,
+            lastModifiedTime = lastModifiedTime,
+        )
+
+    private fun Location.toDirectoryInfo(files: List<FileDetails>): FileDetails =
         DirectoryInfo(
-            location.getSimpleName(),
-            files.map { getSimplifiedFileDetails(it) }
+            name = getSimpleName(),
+            files = files,
         )
 
     override fun removeFile(location: Location): Result<Unit, ErrorResponse> {
@@ -192,26 +218,35 @@ class S3StorageProvider(
             .build()
 
     override fun getFiles(location: Location): Result<List<Location>, ErrorResponse> =
-        try {
-            val directoryString = location.toString().replace('\\', '/')
-                .let { "$it/" }
-                .letIf({ it == "/" }, { "" })
+        listDirectory(
+            location = location,
+            onDirectory = { it.prefix().toLocation() },
+            onFile = { it.key().toLocation() },
+        )
 
-            val request = ListObjectsV2Request.builder()
-                .bucket(bucket)
-                .prefix(directoryString)
-                .delimiter("/")
-                .build()
+    private fun <T> listDirectory(
+        location: Location,
+        onDirectory: (CommonPrefix) -> T,
+        onFile: (S3Object) -> T,
+    ): Result<List<T>, ErrorResponse> =
+        try {
+            val request =
+                ListObjectsV2Request
+                    .builder()
+                    .bucket(bucket)
+                    .prefix(location.toDirectoryPrefix())
+                    .delimiter("/")
+                    .build()
 
             val pages = s3.listObjectsV2Paginator(request).toList()
-            val directories = pages.flatMap { it.commonPrefixes() }.map { it.prefix().toLocation() }
-            val files = pages.flatMap { it.contents() }.map { it.key().toLocation() }
-            val paths = directories + files
+            val directories = pages.flatMap { it.commonPrefixes() }.map(onDirectory)
+            val files = pages.flatMap { it.contents() }.map(onFile)
+            val entries = directories + files
 
-            if (paths.isEmpty())
-                notFoundError("Directory not found or is empty")
-            else
-                paths.asSuccess()
+            when {
+                entries.isEmpty() -> notFoundError("Directory not found or is empty")
+                else -> entries.asSuccess()
+            }
         } catch (exception: Exception) {
             internalServerError(exception.localizedMessage)
         }
