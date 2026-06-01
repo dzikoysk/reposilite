@@ -49,7 +49,8 @@ internal class AccessTokenPlugin : ReposilitePlugin() {
     override fun initialize(): AccessTokenFacade {
         val accessTokenFacade = AccessTokenComponents(
             journalist = this,
-            database = reposilite().database
+            database = reposilite().database,
+            runMigrations = parameters().runMigrations
         ).accessTokenFacade()
 
         parameters().tokens.forEach {

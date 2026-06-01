@@ -90,7 +90,8 @@ class ReposiliteParameters : Runnable {
         "Opt-in to run all available migrations. Available migrations:",
         "001 - Change `repository` identifier size from 32 to 64.",
         "002 - Remove `.module` entries from recorded requests.",
-        "003 - Convert timestamp dates in SQLite to ISO format"
+        "003 - Convert timestamp dates in SQLite to ISO format",
+        "004 - Remove orphaned access token permissions and routes."
     ])
     var runMigrations = arrayOf<String>()
 

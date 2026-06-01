@@ -27,7 +27,8 @@ import org.jetbrains.exposed.v1.jdbc.Database
 
 class AccessTokenComponents(
     private val journalist: Journalist,
-    private val database: Database?
+    private val database: Database?,
+    private val runMigrations: Array<String> = emptyArray()
 ) : PluginComponents {
 
     private fun temporaryRepository(): AccessTokenRepository =
@@ -36,7 +37,7 @@ class AccessTokenComponents(
     private fun persistentRepository(): AccessTokenRepository =
         when (database) {
             null -> InMemoryAccessTokenRepository()
-            else -> SqlAccessTokenRepository(database)
+            else -> SqlAccessTokenRepository(database, journalist, runMigrations)
         }
 
     private fun exportService(): ExportService =
