@@ -85,7 +85,7 @@ dependencies {
 
     implementation("com.github.ben-manes.caffeine:caffeine:3.2.4")
 
-    val exposed = "1.2.0"
+    val exposed = "1.3.0"
     api("org.jetbrains.exposed:exposed-core:$exposed")
     api("org.jetbrains.exposed:exposed-dao:$exposed")
     api("org.jetbrains.exposed:exposed-jdbc:$exposed")
