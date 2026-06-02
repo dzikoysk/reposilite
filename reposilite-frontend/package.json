@@ -43,7 +43,7 @@
     "@eslint/js": "^10.0.1",
     "@vitejs/plugin-vue": "^6.0.6",
     "@vitejs/plugin-vue-jsx": "^5.1.5",
-    "@vue/compiler-sfc": "^3.5.33",
+    "@vue/compiler-sfc": "^3.5.35",
     "body-parser": "^2.2.2",
     "concurrently": "^9.2.1",
     "eslint": "^10.3.0",
