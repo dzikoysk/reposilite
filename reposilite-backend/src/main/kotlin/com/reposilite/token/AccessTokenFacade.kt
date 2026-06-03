@@ -47,6 +47,9 @@ class AccessTokenFacade internal constructor(
             "Expiration date is only supported for temporary access tokens"
         }
 
+        val existingTokenInTargetRepository = request.type.getRepository().findAccessTokenByName(request.name)
+        val existingTokenInOppositeRepository = request.type.getOppositeRepository().findAccessTokenByName(request.name)
+
         val secret = request.secret ?: generateSecret()
 
         val encodedSecret =
@@ -57,7 +60,9 @@ class AccessTokenFacade internal constructor(
 
         val accessToken =
             AccessToken(
-                identifier = AccessTokenIdentifier(type = request.type),
+                identifier = existingTokenInTargetRepository
+                    ?.identifier
+                    ?: AccessTokenIdentifier(type = request.type),
                 name = request.name,
                 encryptedSecret = encodedSecret,
                 expiresAt = request.expiresAt,
@@ -65,7 +70,11 @@ class AccessTokenFacade internal constructor(
 
         val createdToken =
             request.type.getRepository()
-                .also { getAccessToken(accessToken.name)?.run { it.deleteAccessToken(this.identifier) } }
+                .also {
+                    existingTokenInOppositeRepository?.let {
+                        it.identifier.type.getRepository().deleteAccessToken(it.identifier)
+                    }
+                }
                 .saveAccessToken(accessToken)
                 .toDto()
 
@@ -207,6 +216,9 @@ class AccessTokenFacade internal constructor(
 
     private fun AccessTokenType.getRepository(): AccessTokenRepository =
         if (this == PERSISTENT) persistentRepository else temporaryRepository
+
+    private fun AccessTokenType.getOppositeRepository(): AccessTokenRepository =
+        if (this == PERSISTENT) temporaryRepository else persistentRepository
 
     override fun getLogger(): Logger =
         journalist.logger
