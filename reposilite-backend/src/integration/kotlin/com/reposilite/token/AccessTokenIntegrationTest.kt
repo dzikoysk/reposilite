@@ -173,6 +173,45 @@ internal abstract class AccessTokenIntegrationTest : AccessTokenIntegrationSpeci
     }
 
     @Test
+    fun `should update permissions and routes on repeated upsert`() {
+        // given: management token and details about token to create
+        val (managerName, managerSecret) = useDefaultManagementToken()
+        val tokenName = "reapplied-token"
+        val body = CreateAccessTokenWithNoNameRequest(
+            type = PERSISTENT,
+            secret = "secret",
+            permissions = setOf(MANAGER.shortcut),
+            routes = setOf(CreateAccessTokenWithNoNameRequest.Route("/private", setOf("r", "w")))
+        )
+
+        // when: token is created for the first time
+        val firstResponse = put("$base/api/tokens/$tokenName")
+            .basicAuth(managerName, managerSecret)
+            .body(body)
+            .asJacksonObject(CreateAccessTokenResponse::class)
+
+        // and: the same token is applied again
+        val secondResponse = put("$base/api/tokens/$tokenName")
+            .basicAuth(managerName, managerSecret)
+            .body(body)
+            .asJacksonObject(CreateAccessTokenResponse::class)
+
+        // then: identifier is preserved and permissions and routes match the request
+        assertSuccessResponse(OK, firstResponse) { firstToken ->
+            assertSuccessResponse(OK, secondResponse) { secondToken ->
+                assertThat(secondToken.accessToken.identifier).isEqualTo(firstToken.accessToken.identifier)
+                assertThat(getPermissions(secondToken.accessToken.identifier)).isEqualTo(setOf(MANAGER))
+                assertThat(getRoutes(secondToken.accessToken.identifier)).isEqualTo(
+                    setOf(
+                        Route("/private", RoutePermission.READ),
+                        Route("/private", RoutePermission.WRITE)
+                    )
+                )
+            }
+        }
+    }
+
+    @Test
     fun `should move token to target repository when updating token type`() {
         // given: management token and details about token to create
         val (managerName, managerSecret) = useDefaultManagementToken()

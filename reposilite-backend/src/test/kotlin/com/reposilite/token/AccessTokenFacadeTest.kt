@@ -211,13 +211,13 @@ internal class AccessTokenFacadeTest : AccessTokenSpecification() {
     }
 
     @Test
-    fun `should not delete existing token when creating token with same type`() {
-        // given: an existing token with permission
+    fun `should update existing token in place when creating token with the same type`() {
+        // given: an existing token with a permission
         val existingToken = createToken("reposilite").accessToken
         accessTokenFacade.addPermission(existingToken.identifier, AccessTokenPermission.MANAGER)
 
-        // when: a token with the same name and type is created again
-        val recreatedToken = accessTokenFacade.createAccessToken(
+        // when: a token with the same name and type is created again without permissions
+        val updatedToken = accessTokenFacade.createAccessToken(
             CreateAccessTokenRequest(
                 type = existingToken.identifier.type,
                 name = existingToken.name,
@@ -225,8 +225,9 @@ internal class AccessTokenFacadeTest : AccessTokenSpecification() {
             )
         ).accessToken
 
-        // then: token is still available and existing permission is not removed
-        assertThat(accessTokenFacade.secretMatches(recreatedToken.identifier, "updated-secret")).isTrue
-        assertThat(accessTokenFacade.getPermissions(recreatedToken.identifier)).contains(AccessTokenPermission.MANAGER)
+        // then: existing token is updated in place and its permissions match the request
+        assertThat(updatedToken.identifier).isEqualTo(existingToken.identifier)
+        assertThat(accessTokenFacade.secretMatches(updatedToken.identifier, "updated-secret")).isTrue
+        assertThat(accessTokenFacade.getPermissions(updatedToken.identifier)).isEmpty()
     }
 }

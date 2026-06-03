@@ -47,51 +47,39 @@ class AccessTokenFacade internal constructor(
             "Expiration date is only supported for temporary access tokens"
         }
 
-        val existingTokenInTargetRepository = request.type.getRepository().findAccessTokenByName(request.name)
-        val existingTokenInOppositeRepository = request.type.getOppositeRepository().findAccessTokenByName(request.name)
+        val existingToken = request.type.getRepository().findAccessTokenByName(request.name)
+        val oppositeToken = request.type.getOppositeRepository().findAccessTokenByName(request.name)
 
         val secret = request.secret ?: generateSecret()
-
         val encodedSecret =
             when (request.secretType) {
                 RAW -> AccessTokenSecurityProvider.encodeSecret(secret)
                 ENCRYPTED -> secret
             }
 
-        val accessToken =
-            AccessToken(
-                identifier = existingTokenInTargetRepository
-                    ?.identifier
-                    ?: AccessTokenIdentifier(type = request.type),
-                name = request.name,
-                encryptedSecret = encodedSecret,
-                expiresAt = request.expiresAt,
-            )
-
         val createdToken =
             request.type.getRepository()
-                .also {
-                    existingTokenInOppositeRepository?.let {
-                        it.identifier.type.getRepository().deleteAccessToken(it.identifier)
-                    }
-                }
-                .saveAccessToken(accessToken)
-                .toDto()
-
-        val permissions =
-            request.permissions.mapTo(HashSet()) {
-                addPermission(identifier = createdToken.identifier, permission = it)
-            }
-
-        val routes =
-            request.routes.flatMapTo(HashSet()) { route ->
-                route.permissions.map { permission ->
-                    addRoute(
-                        identifier = createdToken.identifier,
-                        route = Route(path = route.path, permission = permission)
+                .saveAccessToken(
+                    AccessToken(
+                        identifier = existingToken?.identifier ?: AccessTokenIdentifier(type = request.type),
+                        name = request.name,
+                        encryptedSecret = encodedSecret,
+                        expiresAt = request.expiresAt,
                     )
-                }
-            }
+                )
+                .toDto()
+        oppositeToken?.let { request.type.getOppositeRepository().deleteAccessToken(it.identifier) }
+
+        val identifier = createdToken.identifier
+        val currentPermissions = getPermissions(identifier)
+        val permissions = request.permissions
+        (currentPermissions - permissions).forEach { deletePermission(identifier, it) }
+        (permissions - currentPermissions).forEach { addPermission(identifier, it) }
+
+        val routes = request.routes.flatMapTo(HashSet()) { route -> route.permissions.map { Route(route.path, it) } }
+        val currentRoutes = getRoutes(identifier)
+        (currentRoutes - routes).forEach { deleteRoute(identifier, it) }
+        (routes - currentRoutes).forEach { addRoute(identifier, it) }
 
         return CreateAccessTokenResponse(
             accessToken = createdToken,
