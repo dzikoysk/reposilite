@@ -21,12 +21,18 @@ gradle.startParameter.maxWorkerCount = maxOf(1, minOf(cores - 2, 16))
 
 include(
     "reposilite-frontend",
-    "reposilite-backend",
-    "reposilite-plugins",
-    "reposilite-plugins:checksum-plugin",
-    "reposilite-plugins:example-plugin",
-    "reposilite-plugins:groovy-plugin",
-    "reposilite-plugins:migration-plugin",
-    "reposilite-plugins:prometheus-plugin",
-    "reposilite-plugins:swagger-plugin"
+    "reposilite-backend"
 )
+
+// Plugins aren't needed to build the server jar, so the Docker build trims them from the context (see .dockerignore).
+if (rootDir.resolve("reposilite-plugins").isDirectory) {
+    include(
+        "reposilite-plugins",
+        "reposilite-plugins:checksum-plugin",
+        "reposilite-plugins:example-plugin",
+        "reposilite-plugins:groovy-plugin",
+        "reposilite-plugins:migration-plugin",
+        "reposilite-plugins:prometheus-plugin",
+        "reposilite-plugins:swagger-plugin"
+    )
+}
