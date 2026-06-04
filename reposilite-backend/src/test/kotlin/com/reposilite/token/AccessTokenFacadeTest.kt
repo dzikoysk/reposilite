@@ -209,4 +209,25 @@ internal class AccessTokenFacadeTest : AccessTokenSpecification() {
         // then: stored token should be updated
         assertThat(accessTokenFacade.secretMatches(token.identifier, "new secret")).isTrue
     }
+
+    @Test
+    fun `should update existing token in place when creating token with the same type`() {
+        // given: an existing token with a permission
+        val existingToken = createToken("reposilite").accessToken
+        accessTokenFacade.addPermission(existingToken.identifier, AccessTokenPermission.MANAGER)
+
+        // when: a token with the same name and type is created again without permissions
+        val updatedToken = accessTokenFacade.createAccessToken(
+            CreateAccessTokenRequest(
+                type = existingToken.identifier.type,
+                name = existingToken.name,
+                secret = "updated-secret"
+            )
+        ).accessToken
+
+        // then: existing token is updated in place and its permissions match the request
+        assertThat(updatedToken.identifier).isEqualTo(existingToken.identifier)
+        assertThat(accessTokenFacade.secretMatches(updatedToken.identifier, "updated-secret")).isTrue
+        assertThat(accessTokenFacade.getPermissions(updatedToken.identifier)).isEmpty()
+    }
 }

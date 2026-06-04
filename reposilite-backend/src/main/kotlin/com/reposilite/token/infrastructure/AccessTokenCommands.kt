@@ -186,11 +186,20 @@ internal class RegenerateCommand(private val accessTokenFacade: AccessTokenFacad
     @Option(names = ["--secret", "-s"], description = ["Override generated token with custom secret"], required = false)
     var secret: String? = null
 
+    @Option(names = ["--silent"], description = ["Do not print regenerated token secret"], required = false)
+    var silent: Boolean = false
+
     override fun execute(context: CommandContext) {
         accessTokenFacade.getAccessToken(name)
             ?.also { token ->
                 accessTokenFacade.regenerateAccessToken(token, secret)
-                    .peek { context.append("New secret for '$name': $it") }
+                    .peek {
+                        if (silent) {
+                            context.append("Secret for '$name' has been regenerated")
+                        } else {
+                            context.append("New secret for '$name': $it")
+                        }
+                    }
                     .onError {
                         context.status = FAILED
                         context.append("Token '$name' not found")
