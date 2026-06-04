@@ -24,6 +24,7 @@ import JavaDocsIcon from "../icons/JavaDocsIcon.vue"
 import TrashIcon from '../icons/TrashIcon.vue'
 import {property} from '../../helpers/vue-extensions'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps({
   file: property(Object, true),
@@ -35,6 +36,7 @@ const props = defineProps({
 
 const { hasPermissionTo } = useSession()
 const { javadocEnabled } = usePlaceholders()
+const { t } = useI18n()
 
 const humanReadableMimeTypes = ['application/xml', 'text/plain', 'text/xml', 'text/markdown', 'application/json']
 const isHumanReadable = humanReadableMimeTypes.some(type => props.file?.contentType == type)
@@ -68,7 +70,7 @@ const defaultMode = computed(() => !props.compactMode)
       <div class="entry-menu hidden flex flex-row justify-end">
         <EyeIcon
           v-if="file.hasOwnProperty('contentLength') && isHumanReadable" 
-          :title="`Click to view ${file.name} file content in a new tab`"
+          :title="t('browser.viewFile', { name: file.name })"
           id="view-button"
           class="px-1 mr-6 pt-0.4 rounded-full text-purple-300 hover:(transition-colors duration-200 bg-gray-100 dark:bg-gray-900)" 
           @click.left.prevent="openUrl(url)"
@@ -76,7 +78,7 @@ const defaultMode = computed(() => !props.compactMode)
         />
         <JavaDocsIcon
           v-if="isJavaDocsAvailable()"
-          :title="`Click to view ${file.name} javadocs in a new tab`"
+          :title="t('browser.viewJavadocs', { name: file.name })"
           id="javadoc-button"
           class="px-1 mr-6 pt-0.4 rounded-full text-purple-300 hover:(transition-colors duration-200 bg-gray-100 dark:bg-gray-900)"
           @click.left.prevent="openUrl(getJavaDocsUrl())"

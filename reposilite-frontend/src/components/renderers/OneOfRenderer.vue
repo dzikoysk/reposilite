@@ -5,7 +5,7 @@
         v-for="(oneOfRenderInfo, oneOfIndex) in oneOfRenderInfos"
         :key="`${control.path}-${oneOfIndex}`"
         :val="oneOfIndex"
-        :label="oneOfRenderInfo.label"
+        :label="translateSettingsText(oneOfRenderInfo.label)"
         :indicator="true"
         @click="tabChanged" 
       />
@@ -30,12 +30,11 @@
   </div>
   <DialogWrapper :open="dialog">
     <p>
-      Your data will be cleared if you navigate away from this tab. 
-      Do you want to proceed?
+      {{ t('settings.tabChangeWarning') }}
     </p>
     <div class="dialog-actions">
-      <button @click="cancel"> No </button>
-      <button ref="confirm" @click="confirm"> Yes </button>
+      <button @click="cancel">{{ t('common.no') }}</button>
+      <button ref="confirm" @click="confirm">{{ t('common.yes') }}</button>
     </div>
   </DialogWrapper>
 </template>
@@ -54,6 +53,8 @@ import {useVanillaControl} from '@dzikoysk/vue-vanilla'
 import {Tabs, Tab, TabPanels, TabPanel} from 'vue3-tabs'
 import isEmpty from 'lodash/isEmpty'
 import DialogWrapper from '../util/DialogWrapper.vue'
+import { useI18n } from 'vue-i18n'
+import { translateSettingsSchemaText } from '../../i18n/settings-schema'
 
 export const tester = rankWith(2, isOneOfControl)
 
@@ -92,6 +93,8 @@ export default {
     const newSelectedIndex = ref(0)
     const dialog = ref(false)
     const jsonforms = inject('jsonforms')
+    const { t } = useI18n()
+    const translateSettingsText = (text) => translateSettingsSchemaText(t, text)
 
     if (!jsonforms) {
       throw new Error("'jsonforms' couldn't be injected. Are you within JSON Forms?")
@@ -105,6 +108,8 @@ export default {
       tabIndex,
       newSelectedIndex,
       dialog,
+      t,
+      translateSettingsText,
       controlEnabled
     }
   },

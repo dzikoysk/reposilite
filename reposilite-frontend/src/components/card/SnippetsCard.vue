@@ -15,7 +15,7 @@
   -->
 
 <script setup>
-import { ref, watch, watchEffect } from 'vue'
+import { computed, ref, watch, watchEffect } from 'vue'
 import { useClipboard } from '@vueuse/core'
 import { createToast } from 'mosha-vue-toastify'
 import { useSession } from '../../store/session'
@@ -25,6 +25,7 @@ import CopyIcon from '../icons/CopyIcon.vue'
 import CardMenu from './CardMenu.vue'
 import RepositorySnippet from "./RepositorySnippet.vue"
 import ArtifactSnippet from "./ArtifactSnippet.vue"
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps({
   qualifier: {
@@ -33,7 +34,7 @@ const props = defineProps({
   }
 })
 
-const title = ref('')
+const titleKey = ref('')
 const configurations = [
   { name: 'Maven', lang: 'xml' },
   { name: 'Gradle Kotlin', lang: 'kotlin' },
@@ -41,18 +42,19 @@ const configurations = [
   { name: 'SBT', lang: 'scala' }
 ]
 const data = ref({})
+const { t } = useI18n()
 const { createRepositories } = useRepository()
 const { parseMetadata } = useMetadata()
 const { client } = useSession()
 const { copy: copyText, isSupported: isCopySupported } = useClipboard()
 
 const displayRepository = () => {
-  title.value = 'Repository details'
+  titleKey.value = 'card.repositoryDetails'
   data.value = createRepositories(props.qualifier)
 }
 
 const displayArtifact = (metadataSource, version) => {
-  title.value = 'Artifact details'
+  titleKey.value = 'card.artifactDetails'
   const { groupId, artifactId, versions } = parseMetadata(metadataSource)
   const latestVersion = versions[version ? versions.indexOf(version) : versions.length - 1]
   data.value = { type: 'artifact', groupId, artifactId, version: latestVersion }
@@ -99,11 +101,13 @@ const snippetRef = ref()
 const copy = async () => {
   let snippet = snippetRef.value[0].content.trim()
   await copyText(snippet)
-  return createToast('Snippet copied', { type: 'info', timeout: '2000' })
+  return createToast(t('card.copied'), { type: 'info', timeout: '2000' })
 }
 
 const selectTab = (tab) =>
   selectedTab.value = tab
+
+const title = computed(() => t(titleKey.value))
 </script>
 
 <template>

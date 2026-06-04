@@ -9,8 +9,11 @@ import { default as ArrayListRenderer, tester as arrayListTester } from '../comp
 import { default as OneOfRenderer, tester as oneOfTester } from '../components/renderers/OneOfRenderer.vue'
 import { default as ConstantRenderer, tester as constantTester } from '../components/renderers/ConstantRenderer.vue'
 import { default as OptionalRenderer, tester as optionalTester } from '../components/renderers/OptionalRenderer.vue'
+import { default as BooleanControlRenderer, tester as booleanControlTester } from '../components/renderers/BooleanControlRenderer.vue'
+import { i18n } from '../i18n'
 
 const { client } = useSession()
+const { t } = i18n.global
 const domains = ref([])
 const schemas = ref({})
 const configurations = ref({})
@@ -26,7 +29,7 @@ const fetchConfiguration = () => {
         .then(configurationResponse => configurations.value[domain] = configurationResponse.data)))
     )
     .then(() => selectedDomain.value = domains.value[0])
-    .then(() => createToast('Configuration loaded', { type: 'success' }))
+    .then(() => createToast(t('settings.configurationLoaded'), { type: 'success' }))
     .catch(error => createToast(`${error || ''}`, { type: 'danger' }))
 }
 
@@ -38,8 +41,10 @@ const updateConfiguration = () => {
   })
 
   return Promise.all(updates)
-    .then(() => createToast('Configuration updated', { type: 'success' }))
-    .catch(error => createToast(`Failed to update ${error.join(', ')}`, { type: 'danger' }))
+    .then(() => createToast(t('settings.configurationUpdated'), { type: 'success' }))
+    .catch(error => createToast(t('settings.failedToUpdate', {
+      error: Array.isArray(error) ? error.join(', ') : error
+    }), { type: 'danger' }))
 }
 
 const renderers = markRaw([
@@ -48,6 +53,7 @@ const renderers = markRaw([
   { tester: oneOfTester, renderer: OneOfRenderer },
   { tester: constantTester, renderer: ConstantRenderer },
   { tester: optionalTester, renderer: OptionalRenderer },
+  { tester: booleanControlTester, renderer: BooleanControlRenderer },
   {
     // needed because without it hangs TODO find out why
     tester: (uischema, schema) => {

@@ -2,10 +2,12 @@
 import { ref, defineAsyncComponent } from "vue"
 import { createErrorToast } from '../../helpers/toast'
 import { useSession } from "../../store/session"
+import { useI18n } from 'vue-i18n'
 
 const VueApexCharts = defineAsyncComponent(() => import('vue3-apexcharts'))
 
 const { client } = useSession()
+const { t } = useI18n()
 const statisticsEnabled = ref(false)
 const resolvedSeries = ref()
 
@@ -26,7 +28,7 @@ client.value.statistics.allResolved()
   })
   .catch(error => {
     console.log(error)
-    createErrorToast(`Cannot load statistics`)
+    createErrorToast(t('dashboard.cannotLoadStatistics'))
   })
 
 const chartOptions = {
@@ -67,7 +69,7 @@ const chartOptions = {
 
 <template>
   <div v-if="statisticsEnabled">
-    <h1 class="font-bold text-lg">Resolved requests</h1>
+    <h1 class="font-bold text-lg">{{ t('dashboard.resolvedRequests') }}</h1>
     <VueApexCharts 
       class="dark:text-black pt-2"
       width="100%"

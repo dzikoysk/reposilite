@@ -34,6 +34,7 @@
     "vue": "^3.5.33",
     "vue-axios": "^3.5.2",
     "vue-final-modal": "^4.5.5",
+    "vue-i18n": "^10.0.7",
     "vue-router": "^5.0.6",
     "vue-upload-component": "^3.1.17",
     "vue3-apexcharts": "^1.11.1",

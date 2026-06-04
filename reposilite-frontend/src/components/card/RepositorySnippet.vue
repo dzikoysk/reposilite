@@ -18,7 +18,7 @@
 import XmlTag from './XmlTag.vue'
 import CodeString from './CodeString.vue'
 import CodeBrackets from "./CodeBrackets.vue"
-import { computed, ref } from 'vue'
+import { computed, ref, unref } from 'vue'
 
 const props = defineProps({
   configuration: {
@@ -42,6 +42,7 @@ const gradleId = computed(() => {
 
 const preElement = ref(null)
 const content = computed(() => preElement?.value?.textContent)
+const repositoryTitle = computed(() => unref(props.data.title))
 
 defineExpose({ content })
 </script>
@@ -50,7 +51,7 @@ defineExpose({ content })
 <pre v-if="configuration.lang === 'xml'" ref="preElement">
 <XmlTag name="repository">
   <XmlTag name="id">{{ data.repoId }}</XmlTag>
-  <XmlTag name="name">{{ data.title }}</XmlTag>
+  <XmlTag name="name">{{ repositoryTitle }}</XmlTag>
   <XmlTag name="url">{{ data.domain }}</XmlTag>
 </XmlTag>
 </pre>

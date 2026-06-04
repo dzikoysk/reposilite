@@ -18,6 +18,8 @@ import {DispatchRenderer, rendererProps, useJsonFormsControlWithDetail} from '@j
 import {useVanillaControl} from '@dzikoysk/vue-vanilla'
 import {useNested} from './util'
 import isEmpty from 'lodash/isEmpty'
+import { useI18n } from 'vue-i18n'
+import { translateSettingsSchemaText } from '../../i18n/settings-schema'
 
 export const tester = rankWith(2, isObjectControl)
 
@@ -30,9 +32,11 @@ export default {
   setup: props => {
     const control = useVanillaControl(useJsonFormsControlWithDetail(props))
     const nested = useNested('object')
+    const { t } = useI18n()
     return {
       ...control,
       nested,
+      t,
     }
   },
   computed: {
@@ -49,7 +53,7 @@ export default {
       if (isEmpty(this.control.path)) {
         result.type = 'VerticalLayout'
       } else {
-        result.label = this.control.label
+        result.label = translateSettingsSchemaText(this.t, this.control.label)
         if (this.nested.level > 0) {
           result.options = {
             ...result.options,

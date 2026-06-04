@@ -9,11 +9,11 @@
         +
       </button>
       <label :class="styles.arrayList.label">
-        {{ control.label }}
+        {{ translateSettingsText(control.label) }}
       </label>
     </legend>
     <div v-if="control?.description" class="description">
-      {{ control.description }}
+      {{ translateSettingsText(control.description) }}
       <!-- It is a list of items. You can add new entries by clicking the '+' button on the right. -->
     </div>
     <div class="tabs-component">
@@ -54,7 +54,7 @@
             </array-list-element>
           </div>
           <div v-if="noData" :class="styles.arrayList.noData">
-            No data
+            {{ t('settings.noData') }}
           </div>
         </TabPanel>
       </TabPanels>
@@ -69,6 +69,8 @@ import { DispatchRenderer, rendererProps, useJsonFormsArrayControl } from '@json
 import { useVanillaArrayControl } from '@dzikoysk/vue-vanilla'
 import {Tabs, Tab, TabPanels, TabPanel} from 'vue3-tabs'
 import ArrayListElement from './ArrayListElement.vue'
+import { useI18n } from 'vue-i18n'
+import { translateSettingsSchemaText } from '../../i18n/settings-schema'
 
 export const tester = rankWith(2, schemaTypeIs('array'))
 
@@ -88,6 +90,8 @@ export default {
   setup(props) {
     const vanillaArrayControl = useVanillaArrayControl(useJsonFormsArrayControl(props))
     const selectedIndex = ref(0)
+    const { t } = useI18n()
+    const translateSettingsText = (text) => translateSettingsSchemaText(t, text)
 
     const createLabel = (element) => {
       if (element.id?.length > 0) {
@@ -112,12 +116,14 @@ export default {
         return element
       }
 
-      return '<New>'
+      return t('settings.newEntry')
     }
     
     return {
       createLabel,
       selectedIndex,
+      t,
+      translateSettingsText,
       ...vanillaArrayControl
     }
   },

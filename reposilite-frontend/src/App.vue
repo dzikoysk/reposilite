@@ -20,11 +20,13 @@ import { useSession } from "./store/session"
 import useTheme from "./store/theme"
 import useQualifier from "./store/qualifier"
 import usePlaceholders from './store/placeholders'
+import { useI18n } from 'vue-i18n'
 
 const { title, description, icpLicense, privacyPolicy } = usePlaceholders()
 const { theme, fetchColorMode } = useTheme()
 const { initializeSession } = useSession()
 const { qualifier } = useQualifier()
+const { t } = useI18n()
 
 useHead({
   title, 
@@ -44,7 +46,7 @@ initializeSession().catch(() => {})
       <div v-if="icpLicense || privacyPolicy" class="absolute h-8 pb-2 w-full text-center text-xs dark:bg-black dark:text-white">
         <a v-if="icpLicense" href="https://beian.miit.gov.cn" target="_blank">{{ icpLicense }}</a>
         <span v-if="icpLicense && privacyPolicy" class="mx-1">·</span>
-        <a v-if="privacyPolicy" :href="privacyPolicy" target="_blank">Privacy Policy</a>
+        <a v-if="privacyPolicy" :href="privacyPolicy" target="_blank">{{ t('app.privacyPolicy') }}</a>
       </div>
     </div>
   </div>

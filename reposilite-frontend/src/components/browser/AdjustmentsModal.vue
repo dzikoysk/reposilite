@@ -21,8 +21,10 @@ import { VueFinalModal } from 'vue-final-modal'
 import '@vueform/toggle/themes/default.css'
 import { useAdjustments } from '../../store/adjustments'
 import CloseIcon from '../icons/CloseIcon.vue'
+import { useI18n } from 'vue-i18n'
 
 const { reversedFileOrder, displayHashFiles } = useAdjustments()
+const { t } = useI18n()
 const showAdjustments = ref(false)
 </script>
 
@@ -41,15 +43,15 @@ export default {
     >
       <div class="relative border bg-white dark:bg-gray-900 border-gray-100 dark:border-black m-w-20 py-5 px-10 rounded-2xl shadow-xl text-center">
         <div>
-          <h1 class="font-bold pb-4">File browser adjustments</h1>
+          <h1 class="font-bold pb-4">{{ t('browser.fileBrowserAdjustments') }}</h1>
           <hr class>
           <div class="flex justify-between pt-6">
-            <p class="pr-7">Sort files from newest to oldest</p>
+            <p class="pr-7">{{ t('browser.sortNewestFirst') }}</p>
             <Toggle v-model="reversedFileOrder" class="ml-10"/>
           </div>
           <div class="flex justify-between pt-6">
             <p class="pr-7">
-              Display utility files such as 
+              {{ t('browser.displayUtilityFiles') }}
               <span class="font-italic font-mono bg-gray-200 dark:bg-black px-2 py-0.5 m-2 rounded-lg">.asc/.md5/.sha1/.sha256/.sha512</span>
             </p>
             <Toggle v-model="displayHashFiles" class="ml-10"/>

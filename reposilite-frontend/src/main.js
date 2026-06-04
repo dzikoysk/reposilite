@@ -21,6 +21,7 @@ import VueAxios from 'vue-axios'
 import Tabs from 'vue3-tabs'
 import App from './App.vue'
 import router from './router'
+import { i18n } from './i18n'
 
 import 'virtual:windi.css'
 import 'mosha-vue-toastify/dist/style.css'
@@ -38,6 +39,7 @@ app.config.globalProperties.drop = (path) =>
 
 app
   .use(createHead())
+  .use(i18n)
   .use(VueAxios, axios)
   .use(Tabs)
   .use(router)
