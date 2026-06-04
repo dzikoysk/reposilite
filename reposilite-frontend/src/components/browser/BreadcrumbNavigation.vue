@@ -18,12 +18,14 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { property } from '../../helpers/vue-extensions'
+import { useI18n } from 'vue-i18n'
 
 defineProps({
   parentPath: property(String, true)
 })
 
 const route = useRoute()
+const { t } = useI18n()
 
 const breadcrumbs = computed(() => {
   const crumbs = route.path.split('/')
@@ -39,7 +41,7 @@ const breadcrumbs = computed(() => {
   <div class="">
     <p class="pb-3 font-semibold">
       <span class="select-none">
-        <router-link to="/">Index of </router-link>
+        <router-link to="/">{{ t('browser.indexOf') }} </router-link>
       </span>
       <span class="select-text">
         <router-link v-for="crumb of breadcrumbs" :key="crumb.link" :to="crumb.link">

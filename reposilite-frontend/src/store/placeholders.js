@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
+import { computed } from 'vue'
+import { i18n } from '../i18n'
+
 export default function usePlaceholders() {
+  const { t } = i18n.global
   const available = !'{{REPOSILITE.BASE_PATH}}'.includes('REPOSILITE.BASE_PATH')
   const basePath = available ? '{{REPOSILITE.BASE_PATH}}' : '/'
   const id = available ? '{{REPOSILITE.ID}}' : 'reposilite-repository'
-  const title = available ? '{{REPOSILITE.TITLE}}' : 'Reposilite Repository'
-  const description = available ? '{{REPOSILITE.DESCRIPTION}}' : 'Public Maven repository hosted through the Reposilite'
+  const title = computed(() => available ? '{{REPOSILITE.TITLE}}' : t('app.defaultTitle'))
+  const description = computed(() => available ? '{{REPOSILITE.DESCRIPTION}}' : t('app.defaultDescription'))
   const organizationWebsite = available ? '{{REPOSILITE.ORGANIZATION_WEBSITE}}' : location.protocol + '//' + location.host + basePath
   const organizationLogo = available ? '{{REPOSILITE.ORGANIZATION_LOGO}}' : 'https://avatars.githubusercontent.com/u/75123628?s=200&v=4'
   const privacyPolicy = available ? '{{REPOSILITE.PRIVACY_POLICY}}' : 'https://example.com/privacy'

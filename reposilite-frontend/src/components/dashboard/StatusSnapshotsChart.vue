@@ -2,6 +2,7 @@
 import { ref, computed, defineAsyncComponent } from "vue"
 import { useSession } from "../../store/session"
 import { createErrorToast } from '../../helpers/toast'
+import { useI18n } from 'vue-i18n'
 
 const VueApexCharts = defineAsyncComponent(() => import('vue3-apexcharts'))
 
@@ -13,15 +14,16 @@ const props = defineProps({
 })
 
 const { client } = useSession()
+const { t } = useI18n()
 const statusSnapshots = ref()
 const statusSnapshotsSeries = computed(() => {
   return [
     {
-      name: 'Used memory (MB)',
+      name: t('dashboard.usedMemoryMb'),
       data: statusSnapshots.value.map(record => [record.at, record.memory])
     },
     {
-      name: 'Used threads',
+      name: t('dashboard.usedThreads'),
       data: statusSnapshots.value.map(record => [record.at, record.threads])
     }
   ]
@@ -38,7 +40,7 @@ function requestStatus() {
       })
       .catch(error => {
         console.log(error)
-        createErrorToast(`Cannot load status snapshots statistics`)
+        createErrorToast(t('dashboard.cannotLoadStatusSnapshots'))
       })
   }
 }
@@ -82,7 +84,7 @@ const chartOptions = {
 
 <template>
   <div v-if="statusSnapshots">
-    <h1 class="font-bold pt-6 text-lg">Resources</h1>
+    <h1 class="font-bold pt-6 text-lg">{{ t('dashboard.resources') }}</h1>
     <VueApexCharts 
       class="dark:text-black pt-1"
       width="100%"

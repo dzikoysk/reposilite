@@ -3,6 +3,7 @@ import { ref } from "vue"
 import { createErrorToast } from '../../helpers/toast'
 import DashboardBox from "./DashboardBox.vue"
 import { useSession } from "../../store/session"
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps({
   selectedTab: {
@@ -12,6 +13,7 @@ const props = defineProps({
 })
 
 const { client } = useSession()
+const { t } = useI18n()
 const instanceStatus = ref()
 
 function requestStatus() {
@@ -23,7 +25,7 @@ function requestStatus() {
         setTimeout(requestStatus, 1000)
       })
       .catch((error) => {
-        createErrorToast(`Cannot load instance status`)
+        createErrorToast(t('dashboard.cannotLoadInstanceStatus'))
         console.log(error)
       })
   }
@@ -49,24 +51,24 @@ const prettyUptime = (seconds) => {
   <div v-if="instanceStatus">
     <div class="flex w-full <sm:flex-wrap justify-center">
       <DashboardBox 
-        title="Version"
+        :title="t('dashboard.version')"
         :content="instanceStatus.version"
         link="https://github.com/dzikoysk/reposilite/releases"
       />
       <DashboardBox 
-        title="Uptime"
+        :title="t('dashboard.uptime')"
         :content="prettyUptime(instanceStatus.uptime / 1000)"
       />
       <DashboardBox 
-        title="Used memory"
+        :title="t('dashboard.usedMemory')"
         :content="`${instanceStatus.usedMemory.toFixed(1)} of ${instanceStatus.maxMemory} MB`"
       />
       <DashboardBox 
-        title="Used threads"
+        :title="t('dashboard.usedThreads')"
         :content="instanceStatus.usedThreads + ' of ' + instanceStatus.maxThreads"
       />
       <DashboardBox 
-        title="Failures"
+        :title="t('dashboard.failures')"
         :content="instanceStatus.failuresCount.toString()"
       />
     </div>

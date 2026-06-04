@@ -2,6 +2,9 @@
 import InstanceStatusCharts from "./InstanceStatusCharts.vue"
 import StatusSnapshotsChart from "./StatusSnapshotsChart.vue"
 import ResolvedRequestsChart from "./ResolvedRequestsChart.vue"
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 defineProps({
   selectedTab: {
@@ -14,7 +17,7 @@ defineProps({
 <template>
   <div class="container mx-auto pt-6 px-15 pb-10 text-xs <sm:px-2 ">
     <div class="flex">
-      <h1 class="font-bold pb-6 text-lg">Instance status</h1>
+      <h1 class="font-bold pb-6 text-lg">{{ t('dashboard.instanceStatus') }}</h1>
       <p class="text-3xl text-green-500 px-3 -mt-1 font-bold">•</p>
     </div>
     <InstanceStatusCharts :selectedTab="selectedTab" />

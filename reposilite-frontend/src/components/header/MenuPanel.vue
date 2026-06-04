@@ -22,9 +22,12 @@ import MoonIcon from '../icons/MoonIcon.vue'
 import SunIcon from '../icons/SunIcon.vue'
 import LogoutIcon from '../icons/LogoutIcon.vue'
 import useTheme from "../../store/theme"
+import { useI18n } from 'vue-i18n'
+import { localeLabel, toggleLocale } from '../../i18n'
 
 const { theme, changeTheme } = useTheme()
 const { token, isLogged, logout } = useSession()
+const { t } = useI18n()
 
 const toggleTheme = () => {
   switch (theme.mode) {
@@ -44,19 +47,26 @@ const toggleTheme = () => {
 <template>
   <nav class="flex flex-row <sm:(max-w-100px flex-wrap flex-1 justify-end min-w-1/2)">
     <div v-if="isLogged" class="pt-1.1 px-2 <sm:hidden">
-      Welcome 
+      {{ t('auth.welcome') }}
       <span class="font-bold underline">{{ token.name }}</span>
     </div>
     <LoginModal>
       <template v-slot:button>
         <MenuButton v-if="!isLogged">
-          Sign in
+          {{ t('auth.signIn') }}
         </MenuButton>
       </template>
     </LoginModal>
     <MenuButton v-if="isLogged" @click="logout()" class="<sm:hidden">
-      Logout
+      {{ t('auth.logout') }}
     </MenuButton>
+    <div
+      :title="t('language.switch')"
+      class="flex justify-center items-center rounded-full w-40px h-35px default-button"
+      @click="toggleLocale()"
+    >
+      <span class="font-bold text-sm">{{ localeLabel }}</span>
+    </div>
     <div
       v-if="isLogged"
       class="hidden px-2.7 pt-0.8 mr-1.5 cursor-pointer rounded-full bg-white dark:bg-gray-900 max-h-35px <sm:(block pt-1.5)"

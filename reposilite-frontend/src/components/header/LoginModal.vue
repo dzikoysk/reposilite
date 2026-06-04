@@ -20,8 +20,10 @@ import { VueFinalModal } from 'vue-final-modal'
 import { createToast } from 'mosha-vue-toastify'
 import { useSession } from '../../store/session'
 import CloseIcon from '../icons/CloseIcon.vue'
+import { useI18n } from 'vue-i18n'
 
 const { login } = useSession()
+const { t } = useI18n()
 const showLogin = ref(false)
 const name = ref('')
 const secret = ref('')
@@ -31,9 +33,12 @@ const close = () =>
 
 const signin = (name, secret) =>
   login(name, secret)
-    .then(() => createToast(`Dashboard accessed as ${name}`, { position: 'bottom-right' }))
+    .then(() => createToast(t('auth.dashboardAccessed', { name }), { position: 'bottom-right' }))
     .then(() => close())
-    .catch(error => createToast(`${error.response.status}: ${error.response.data.message}`, { type: 'danger' }))
+    .catch(error => createToast(t('auth.loginFailed', {
+      status: error.response.status,
+      message: error.response.data.message
+    }), { type: 'danger' }))
 </script>
 
 <script>
@@ -50,14 +55,14 @@ export default {
       class="flex justify-center items-center"
     >
       <div class="relative border bg-white dark:bg-gray-900 border-gray-100 dark:border-black m-w-20 py-5 px-10 rounded-2xl shadow-xl text-center">
-        <p class="font-bold text-xl pb-4">Login with access token</p>
+        <p class="font-bold text-xl pb-4">{{ t('auth.loginTitle') }}</p>
         <form class="flex flex-col w-96 <sm:w-65" @submit.prevent="signin(name, secret)">
-          <input placeholder="Name" v-model="name" type="text" class="input"/>
-          <input placeholder="Secret" v-model="secret" type="password" class="input"/>
+          <input :placeholder="t('auth.name')" v-model="name" type="text" class="input"/>
+          <input :placeholder="t('auth.secret')" v-model="secret" type="password" class="input"/>
           <div class="text-right mt-1">
-            <button @click="close()" class="text-blue-400 text-xs">← Back to index</button>
+            <button @click="close()" class="text-blue-400 text-xs">← {{ t('common.backToIndex') }}</button>
           </div>
-          <button class="bg-gray-100 dark:bg-gray-800 py-2 my-3 rounded-md cursor-pointer">Sign in</button>
+          <button class="bg-gray-100 dark:bg-gray-800 py-2 my-3 rounded-md cursor-pointer">{{ t('auth.signIn') }}</button>
         </form>
         <button class="absolute top-0 right-0 mt-5 mr-5" @click="close()">
           <CloseIcon />

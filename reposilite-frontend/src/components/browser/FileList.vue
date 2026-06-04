@@ -24,6 +24,7 @@ import ListEntry from './DetailedListEntry.vue'
 import DeleteEntryModal from './DeleteEntryModal.vue'
 import { ref } from 'vue'
 import { property } from '../../helpers/vue-extensions'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps({
   qualifier: property(Object, true),
@@ -33,11 +34,15 @@ const props = defineProps({
 
 const route = useRoute()
 const { client } = useSession()
+const { t } = useI18n()
 
 const downloadHandler = (path, name) => {
   client.value.maven.download(path.substring(1) + '/' + name)
     .then(response => download(response.data, name, response.headers['content-type']))
-    .catch(error => createToast(`Cannot download file - ${error.response.status}: ${error.response.data.message}`, {
+    .catch(error => createToast(t('browser.downloadFailed', {
+      status: error.response.status,
+      message: error.response.data.message
+    }), {
       type: 'danger'
     }))
 }
@@ -111,10 +116,10 @@ const RouterEntry = ({ file }, context) => {
       </div>
     </div>
     <div v-if="files.isEmpty" class="pl-2 pb-4">
-      <p>Directory is empty</p>
+      <p>{{ t('browser.empty') }}</p>
     </div>
     <div v-if="files.error" class="pl-2">
-      <p>Directory not found</p>
+      <p>{{ t('browser.directoryNotFound') }}</p>
     </div>
   </div>
 </template>

@@ -15,13 +15,16 @@
   -->
   
 <script setup>
-import {ref, toRaw, watch} from 'vue'
+import {computed, ref, toRaw, watch} from 'vue'
 import {JsonForms} from '@jsonforms/vue'
 import {Tabs, Tab, TabPanels, TabPanel} from 'vue3-tabs'
 import { useConfiguration } from '../../store/configuration'
 import download from 'downloadjs'
 import FactoryResetModal from './FactoryResetModal.vue'
 import { property } from '../../helpers/vue-extensions'
+import { useI18n } from 'vue-i18n'
+import { locale } from '../../i18n'
+import { translateSettingsSchemaText } from '../../i18n/settings-schema'
 
 const props = defineProps({
   selectedTab: property(String, true)
@@ -40,6 +43,11 @@ const {
 
 const isValid = ref(true)
 const hasChanged = ref(false)
+const { t } = useI18n()
+const jsonFormsI18n = computed(() => ({
+  locale: locale.value,
+  translate: (key, fallback) => translateSettingsSchemaText(t, fallback || key)
+}))
 
 const executeIfValid = (callback) => { 
   if (isValid.value) callback() 
@@ -91,8 +99,8 @@ const formsConfiguration = {
   <div class="container mx-auto py-10 px-15">
     <div class="flex justify-between pb-3 flex-col">
       <div>
-        <p>Modify configuration shared between all instances.</p>
-        <p><strong>Remember</strong>: Configuration propagation can take up to 10 seconds on all your instances.</p>
+        <p>{{ t('settings.description') }}</p>
+        <p><strong>{{ t('settings.remember') }}</strong>: {{ t('settings.propagationNotice') }}</p>
       </div>
       <div id="configuration-state" class="flex flex-row pt-8">
         <button 
@@ -100,11 +108,11 @@ const formsConfiguration = {
           class="bg-gray-800 dark:bg-gray-600"
           :class="{ forbidden: !isValid }"
         >
-          Download as JSON
+          {{ t('settings.downloadJson') }}
         </button>
         <FactoryResetModal :callback="factoryReset">
             <template v-slot:button>
-                <button class="bg-gray-800 dark:bg-gray-600">Factory reset</button>
+                <button class="bg-gray-800 dark:bg-gray-600">{{ t('settings.factoryReset') }}</button>
             </template>
         </FactoryResetModal>
         <button 
@@ -113,7 +121,7 @@ const formsConfiguration = {
           :class="{ changed: hasChanged, forbidden: !isValid }"
           :disabled="!isValid || !hasChanged"
         >
-          Update and reload
+          {{ t('settings.updateAndReload') }}
         </button>
         <button 
           @click.prevent="fetchConfiguration"
@@ -121,7 +129,7 @@ const formsConfiguration = {
           :class="{ changed: hasChanged }"
           :disabled="!isValid || !hasChanged"
         >
-          Reset changes
+          {{ t('settings.resetChanges') }}
         </button>
       </div>
     </div>
@@ -130,7 +138,7 @@ const formsConfiguration = {
         class="item"
         :key="`config:${domain}`"
         :val="domain"
-        :label="schemas[domain]?.title"
+        :label="translateSettingsSchemaText(t, schemas[domain]?.title)"
         :indicator="true"
       />
     </Tabs>
@@ -148,6 +156,7 @@ const formsConfiguration = {
           :schema="schemas[domain]"
           :renderers="renderers"
           :ajv="configurationValidator"
+          :i18n="jsonFormsI18n"
           @change="updateFormsConfiguration(domain, $event)"
         />
       </TabPanel>

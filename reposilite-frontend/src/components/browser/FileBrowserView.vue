@@ -29,6 +29,7 @@ import ViewGrid from '../icons/ViewGrid.vue'
 import ViewList from '../icons/ViewList.vue'
 import { property } from '../../helpers/vue-extensions'
 import { createErrorToast } from '../../helpers/toast'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps({
   qualifier: property(Object, true)
@@ -39,6 +40,7 @@ const files = ref({})
 const { details, client, hasPermissionTo } = useSession()
 const { applyAdjustments } = useAdjustments()
 const { getParentPath } = useQualifier()
+const { t } = useI18n()
 
 const processedFiles = computed(() => ({
   ...files.value,
@@ -94,7 +96,10 @@ watch(
             error: false
           }
         } else {
-          createErrorToast(`${error.response.status}: ${error.response.data.message}`)
+          createErrorToast(t('browser.loadFailed', {
+            status: error.response.status,
+            message: error.response.data.message
+          }))
           files.value = {
             list: [],
             error: true

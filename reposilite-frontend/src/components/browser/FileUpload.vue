@@ -5,8 +5,10 @@ import { useSession } from '../../store/session'
 import useQualifier from '../../store/qualifier'
 import FileUpload from 'vue-upload-component'
 import CloseIcon from '../icons/CloseIcon.vue'
+import { useI18n } from 'vue-i18n'
 
 const { client } = useSession()
+const { t } = useI18n()
 
 const { qualifier, refreshQualifier } = useQualifier()
 const repository = computed(() => qualifier.path.split("/")[0])
@@ -76,23 +78,30 @@ const removeFile = (file) =>
 
 const uploadFiles = () => {
   if (stubPomEnabled.value && (artifactId.value == "" || groupId.value == "" || version.value == "")) {
-    createErrorToast(`Cannot upload files, one of artifactId/groupId/version is empty`)
+    createErrorToast(t('browser.invalidPomCoordinates'))
     return
   }
 
   files.value.forEach(vueFile => 
     client.value.maven.deploy(`${destination.value}/${vueFile.name}`, vueFile.file, checksumsEnabled.value)
-      .then(() => createSuccessToast(`File ${vueFile.name} has been uploaded`))
+      .then(() => createSuccessToast(t('browser.filesUploaded', { name: vueFile.name })))
       .then(() => removeFile(vueFile))
       .then(() => refreshQualifier())
-      .catch(error => createErrorToast(`Cannot upload file ${vueFile.name} - ${error.response.status}: ${error.response.data.message}`))
+      .catch(error => createErrorToast(t('browser.uploadFailed', {
+        name: vueFile.name,
+        status: error.response.status,
+        message: error.response.data.message
+      })))
       .catch(error => createErrorToast(error))
   )
 
   if (stubPomEnabled.value) {
     client.value.maven.generatePom(destination.value, groupId.value, artifactId.value, version.value)
-      .then(() => createSuccessToast(`Stub POM.xml file has been generated`))
-      .catch(error => createErrorToast(`Cannot generate stub POM file - ${error.response.status}: ${error.response.data.message}`))
+      .then(() => createSuccessToast(t('browser.generatedPom')))
+      .catch(error => createErrorToast(t('browser.pomGenerationFailed', {
+        status: error.response.status,
+        message: error.response.data.message
+      })))
       .catch(error => createErrorToast(error))
   }
 }
@@ -120,13 +129,13 @@ const uploadFiles = () => {
         <div class="my-3 px-6">
           <div v-if="isEnabled" class="py-1">
             <p class="font-bold">
-              Deploy selected files to
+              {{ t('browser.uploadTo') }}
               <span class="text-gray-500">{{'/' + destination}}</span>
             </p>
           </div>
           <div v-else class="flex">
             <span class="text-xm pt-1.6">🟣</span>
-            <span class="font-bold px-5">Select files</span>
+            <span class="font-bold px-5">{{ t('browser.selectFiles') }}</span>
           </div>
         </div>
       </FileUpload>
@@ -142,23 +151,23 @@ const uploadFiles = () => {
         <div class="px-6 pb-4">
           <div>
             <input type="checkbox" v-model="checksumsEnabled" class="mb-1 ml-1 dark:bg-gray-900" />
-            <span class="pl-3" @click="checksumsEnabled = !checksumsEnabled" >Generate default checksums</span>
+            <span class="pl-3" @click="checksumsEnabled = !checksumsEnabled" >{{ t('browser.generateChecksums') }}</span>
           </div>
           <div>
             <input type="checkbox" v-model="stubPomEnabled" class="mb-1 ml-1 dark:bg-gray-900" />
-            <span class="pl-3" @click="stubPomEnabled = !stubPomEnabled" >Generate stub POM file</span>
+            <span class="pl-3" @click="stubPomEnabled = !stubPomEnabled" >{{ t('browser.generatePom') }}</span>
           </div>
           <div v-if="stubPomEnabled" class="pom-form mt-4 border px-3 pb-3 pt-1 bg-gray-100 dark:bg-black dark:border-gray-800 rounded">
             <div>
-              <label>Group</label>
+              <label>{{ t('browser.group') }}</label>
               <input v-model="groupId" placeholder="com.dzikoysk" required/>
             </div>
             <div>
-              <label>Artifact</label>
+              <label>{{ t('browser.artifact') }}</label>
               <input v-model="artifactId" placeholder="reposilite" required/>
             </div>
             <div>
-              <label>Version</label>
+              <label>{{ t('browser.version') }}</label>
               <input v-model="version" placeholder="3.0.0" required/>
             </div>
           </div>
@@ -170,7 +179,7 @@ const uploadFiles = () => {
         <input
           class="flex-1 mt-2 mr-2 rounded px-6 border-dashed dark:bg-gray-900 dark:border-gray-800 border"
           v-model="to"
-          placeholder="E.g. path/to/deploy"
+          :placeholder="t('browser.targetPathPlaceholder')"
           @change="customDestination = true"
         />
         <button
@@ -181,11 +190,11 @@ const uploadFiles = () => {
             dark:bg-black dark:border-gray-700 dark:text-white dark:hover:(transition-colors duration-200 bg-purple-700)
           "
         >
-          <span>Upload files </span>
+          <span>{{ t('browser.uploadFiles') }} </span>
           <span class="font-bold text-purple-400">↝</span>
         </button>
       </div>
-      <span v-if="!pathMatchesPom" class="px-6 text-yellow-500">⚠ Warning: Path does not match artifact coordinates</span>
+      <span v-if="!pathMatchesPom" class="px-6 text-yellow-500">⚠ {{ t('browser.pathMismatch') }}</span>
     </div>
   </div>
 </template>

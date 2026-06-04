@@ -1,11 +1,11 @@
 <template>
   <div>
     <div class="label">
-      {{ control.label }}
+      {{ translateSettingsText(control.label) }}
       <input type="checkbox" v-model="present" class="mx-4 mb-1" />
     </div>
     <div class="description">
-      {{ control.description }}
+      {{ translateSettingsText(control.description) }}
     </div>
     <div v-if="present && control.visible" class="border-1 rounded-lg mt-1">
       <DispatchRenderer
@@ -28,6 +28,8 @@ import {ref} from 'vue'
 import {and, rankWith, schemaMatches, uiTypeIs} from '@jsonforms/core'
 import includes from 'lodash/includes'
 import {findUISchema} from '@jsonforms/core/src/reducers'
+import { useI18n } from 'vue-i18n'
+import { translateSettingsSchemaText } from '../../i18n/settings-schema'
 
 export const tester = rankWith(2, and(uiTypeIs('Control'), schemaMatches(schema => Array.isArray(schema.type) && includes(schema.type, 'null'))))
 
@@ -38,9 +40,13 @@ export default {
   setup(props) {
     const control = useVanillaControl(useJsonFormsControlWithDetail(props))
     const present = ref(control.control.data !== undefined)
+    const { t } = useI18n()
+    const translateSettingsText = (text) => translateSettingsSchemaText(t, text)
+
     return {
       ...control,
-      present
+      present,
+      translateSettingsText
     }
   },
   computed: {

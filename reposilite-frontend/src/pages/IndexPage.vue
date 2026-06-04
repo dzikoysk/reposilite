@@ -22,6 +22,7 @@ import DefaultHeader from '../components/header/DefaultHeader.vue'
 import FileBrowserView from '../components/browser/FileBrowserView.vue'
 import {Tabs, Tab, TabPanels, TabPanel} from 'vue3-tabs'
 import { property } from '../helpers/vue-extensions'
+import { useI18n } from 'vue-i18n'
 
 const ConsoleView = defineAsyncComponent(() => import('../components/console/ConsoleView.vue'))
 const DashboardView = defineAsyncComponent(() => import('../components/dashboard/DashboardView.vue'))
@@ -32,19 +33,19 @@ defineProps({
 })
 
 const listOfTabs = [
-  { name: 'Overview', manager: false },
-  { name: 'Dashboard', manager: true },
-  { name: 'Console', manager: true },
-  { name: 'Settings', manager: true },
+  { name: 'Overview', translation: 'tabs.overview', manager: false },
+  { name: 'Dashboard', translation: 'tabs.dashboard', manager: true },
+  { name: 'Console', translation: 'tabs.console', manager: true },
+  { name: 'Settings', translation: 'tabs.settings', manager: true },
 ]
 
 const { isManager } = useSession()
 const { redirectTo } = useQualifier()
+const { t } = useI18n()
 
 const menuTabs = computed(() => {
   return listOfTabs
     .filter(entry => !entry?.manager || isManager.value)
-    .map(entry => entry.name)
 })
 
 const selectedTab = ref(localStorage.getItem('selectedTab') || 'Overview')
@@ -77,17 +78,17 @@ const selectHomepage = () =>
             :key="`menu${i}`"
           >
             <Tab
-              v-if="tab !== 'Dashboard'"
+              v-if="tab.name !== 'Dashboard'"
               class="item font-normal <sm:w-1/4"
-              :val="tab"
-              :label="tab"
+              :val="tab.name"
+              :label="t(tab.translation)"
               :indicator="true"
             />
             <Tab
-              v-if="tab === 'Dashboard'"
+              v-if="tab.name === 'Dashboard'"
               class="item font-normal dashboard <sm:w-1/4"
-              :val="tab"
-              :label="tab"
+              :val="tab.name"
+              :label="t(tab.translation)"
               :indicator="true"
             />
           </template>

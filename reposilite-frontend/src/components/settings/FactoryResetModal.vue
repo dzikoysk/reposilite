@@ -3,12 +3,14 @@ import { ref } from 'vue'
 import { VueFinalModal } from 'vue-final-modal'
 import { property } from '../../helpers/vue-extensions'
 import CloseIcon from '../icons/CloseIcon.vue'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps({
   callback: property(Function, true)
 })
 
 const showFactoryReset = ref(false)
+const { t } = useI18n()
 
 const factoryReset = () => {
   props.callback()
@@ -31,11 +33,11 @@ export default {
     >
       <div class="relative border bg-white dark:bg-gray-900 border-gray-100 dark:border-black m-w-20 py-5 px-10 rounded-2xl shadow-xl text-center">
         <div>
-          <h1 class="font-bold pb-4">Factory reset</h1>
-          <p>Do you really want to reset whole configuration to the default values?</p>
+          <h1 class="font-bold pb-4">{{ t('settings.factoryReset') }}</h1>
+          <p>{{ t('settings.factoryResetQuestion') }}</p>
           <div class="factory-reset-confirm flex mx-auto w-full">
-            <button class="mx-auto" @click="factoryReset">Yes</button>
-            <button class="mx-auto" @click="showFactoryReset = false">No</button>
+            <button class="mx-auto" @click="factoryReset">{{ t('common.yes') }}</button>
+            <button class="mx-auto" @click="showFactoryReset = false">{{ t('common.no') }}</button>
           </div>
         </div>
         <button class="absolute top-0 right-0 mt-5 mr-9" @click="showFactoryReset = false">
