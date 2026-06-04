@@ -25,7 +25,7 @@ plugins {
     application
     `maven-publish`
 
-    val kotlinVersion = "2.3.21"
+    val kotlinVersion = "2.4.0"
     kotlin("jvm") version kotlinVersion
     kotlin("kapt") version kotlinVersion
 
@@ -119,19 +119,20 @@ subprojects {
     apply(plugin = "maven-publish")
 
     dependencies {
-        val unirest = "4.5.1"
+        // Capped at 4.6.0: unirest-modules-jackson 4.7.0+ migrated to Jackson 3 (tools.jackson.*); we're pinned to Jackson 2.x.
+        val unirest = "4.6.0"
         testImplementation("com.konghq:unirest-java-core:$unirest")
         testImplementation("com.konghq:unirest-modules-jackson:$unirest")
 
         val assertJ = "4.0.0-M1"
         testImplementation("org.assertj:assertj-core:$assertJ")
 
-        val junit = "6.0.3"
+        val junit = "6.1.0"
         testImplementation("org.junit.jupiter:junit-jupiter-params:$junit")
         testImplementation("org.junit.jupiter:junit-jupiter-api:$junit")
         testImplementation("org.junit.jupiter:junit-jupiter-engine:$junit")
 
-        val junitPlatform = "6.0.3"
+        val junitPlatform = "6.1.0"
         testRuntimeOnly("org.junit.platform:junit-platform-launcher:$junitPlatform")
     }
 
@@ -158,13 +159,14 @@ subprojects {
                 // ~ https://github.com/gradle/gradle/issues/15932
                 pom.withXml {
                     val repositories = asNode().appendNode("repositories")
-                    project.repositories.findAll(closureOf<Any> {
-                        if (this is MavenArtifactRepository && this.url.toString().startsWith("https")) {
+                    project.repositories
+                        .filterIsInstance<MavenArtifactRepository>()
+                        .filter { it.url.toString().startsWith("https") }
+                        .forEach { repo ->
                             val repository = repositories.appendNode("repository")
-                            repository.appendNode("id", this.url.toString().replace("https://", "").replace(".", "-").replace("/", "-"))
-                            repository.appendNode("url", this.url.toString())
+                            repository.appendNode("id", repo.url.toString().replace("https://", "").replace(".", "-").replace("/", "-"))
+                            repository.appendNode("url", repo.url.toString())
                         }
-                    })
                 }
             }
         }

@@ -18,9 +18,9 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
     kotlin("jvm")
-    kotlin("plugin.serialization") version "2.3.21"
+    kotlin("plugin.serialization") version "2.4.0"
 
-    id("com.gradleup.shadow") version "9.4.1"
+    id("com.gradleup.shadow") version "9.4.2"
 }
 
 application {

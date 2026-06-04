@@ -25,7 +25,7 @@ plugins {
     kotlin("jvm")
     kotlin("kapt")
     id("com.coditory.integration-test") version "2.2.5"
-    id("com.gradleup.shadow") version "9.4.1"
+    id("com.gradleup.shadow") version "9.4.2"
 //    id("io.gitlab.arturbosch.detekt").version("1.22.0")
 }
 
@@ -39,22 +39,22 @@ dependencies {
 //    val detekt = "1.23.5"
 //    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:$detekt")
 
-    val kotlin = "2.3.21"
+    val kotlin = "2.4.0"
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin")
 
-    val javalin = "7.2.0"
+    val javalin = "7.2.2"
     api("io.javalin:javalin:$javalin") {
         exclude(group = "org.eclipse.jetty", module = "jetty-server")
         exclude(group = "org.eclipse.jetty", module = "jetty-http")
     }
     api("io.javalin.community.ssl:javalin-ssl:$javalin")
 
-    val javalinOpenApi = "7.2.0"
+    val javalinOpenApi = "7.2.2"
     api("io.javalin.community.openapi:javalin-openapi-plugin:$javalinOpenApi")
     kapt("io.javalin.community.openapi:openapi-annotation-processor:$javalinOpenApi")
 
-    val javalinRouting = "7.2.0"
+    val javalinRouting = "7.2.2"
     api("io.javalin.community.routing:routing-dsl:$javalinRouting")
 
     val bcrypt = "0.10.2"
@@ -73,7 +73,7 @@ dependencies {
     kapt("info.picocli:picocli-codegen:$picocli")
     api("info.picocli:picocli:$picocli")
 
-    val awssdk = "2.44.4"
+    val awssdk = "2.46.3"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
     // STS is needed so it Web Identity Tokens can be used
@@ -85,7 +85,7 @@ dependencies {
 
     implementation("com.github.ben-manes.caffeine:caffeine:3.2.4")
 
-    val exposed = "1.2.0"
+    val exposed = "1.3.0"
     api("org.jetbrains.exposed:exposed-core:$exposed")
     api("org.jetbrains.exposed:exposed-dao:$exposed")
     api("org.jetbrains.exposed:exposed-jdbc:$exposed")
@@ -100,7 +100,7 @@ dependencies {
     implementation("com.mysql:mysql-connector-j:9.7.0") {
         exclude(group = "com.google.protobuf", module = "protobuf-java")
     }
-    implementation("com.google.protobuf:protobuf-java:4.34.1")
+    implementation("com.google.protobuf:protobuf-java:4.35.0")
 
     val jackson = "2.21.3"
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jackson")
@@ -185,13 +185,14 @@ publishing {
             // ~ https://github.com/gradle/gradle/issues/15932
             pom.withXml {
                 val repositories = asNode().appendNode("repositories")
-                project.repositories.findAll(closureOf<Any> {
-                    if (this is MavenArtifactRepository && this.url.toString().startsWith("https")) {
+                project.repositories
+                    .filterIsInstance<MavenArtifactRepository>()
+                    .filter { it.url.toString().startsWith("https") }
+                    .forEach { repo ->
                         val repository = repositories.appendNode("repository")
-                        repository.appendNode("id", this.url.toString().replace("https://", "").replace(".", "-").replace("/", "-"))
-                        repository.appendNode("url", this.url.toString())
+                        repository.appendNode("id", repo.url.toString().replace("https://", "").replace(".", "-").replace("/", "-"))
+                        repository.appendNode("url", repo.url.toString())
                     }
-                })
             }
         }
     }
@@ -221,7 +222,7 @@ kapt {
 }
 
 jacoco {
-    toolVersion = "0.8.11"
+    toolVersion = "0.8.14"
 }
 
 tasks.test {

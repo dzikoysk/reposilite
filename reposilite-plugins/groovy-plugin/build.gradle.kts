@@ -18,7 +18,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
     kotlin("jvm")
-    id("com.gradleup.shadow") version "9.4.1"
+    id("com.gradleup.shadow") version "9.4.2"
 }
 
 application {
@@ -27,7 +27,7 @@ application {
 
 dependencies {
     compileOnly(project(":reposilite-backend"))
-    implementation("org.apache.groovy:groovy:4.0.31")
+    implementation("org.apache.groovy:groovy:4.0.32")
 }
 
 tasks.withType<ShadowJar> {
