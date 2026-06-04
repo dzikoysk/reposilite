@@ -21,8 +21,10 @@ package com.reposilite.token
 import com.reposilite.RecommendedLocalSpecificationJunitExtension
 import com.reposilite.RecommendedRemoteSpecificationJunitExtension
 import com.reposilite.shared.ErrorResponse
+import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.AccessTokenPermission.MANAGER
 import com.reposilite.token.AccessTokenType.PERSISTENT
+import com.reposilite.token.AccessTokenType.TEMPORARY
 import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.token.api.CreateAccessTokenResponse
 import com.reposilite.token.api.CreateAccessTokenWithNoNameRequest
@@ -140,6 +142,100 @@ internal abstract class AccessTokenIntegrationTest : AccessTokenIntegrationSpeci
                     Route("/public", RoutePermission.READ)
                 )
             )
+        }
+    }
+
+    @Test
+    fun `should keep token identifier when updating token with the same type`() {
+        // given: management token and details about token to create
+        val (managerName, managerSecret) = useDefaultManagementToken()
+        val tokenName = "upsert-token"
+
+        // when: token is created for the first time
+        val firstResponse = put("$base/api/tokens/$tokenName")
+            .basicAuth(managerName, managerSecret)
+            .body(CreateAccessTokenWithNoNameRequest(PERSISTENT, secret = "first-secret", permissions = emptySet()))
+            .asJacksonObject(CreateAccessTokenResponse::class)
+
+        // and: token is updated with the same type
+        val secondResponse = put("$base/api/tokens/$tokenName")
+            .basicAuth(managerName, managerSecret)
+            .body(CreateAccessTokenWithNoNameRequest(PERSISTENT, secret = "second-secret", permissions = emptySet()))
+            .asJacksonObject(CreateAccessTokenResponse::class)
+
+        // then: identifier is preserved and secret has been updated
+        assertSuccessResponse(OK, firstResponse) { firstToken ->
+            assertSuccessResponse(OK, secondResponse) { secondToken ->
+                assertThat(secondToken.accessToken.identifier).isEqualTo(firstToken.accessToken.identifier)
+                assertThat(useFacade<AccessTokenFacade>().secretMatches(secondToken.accessToken.identifier, "second-secret")).isTrue
+            }
+        }
+    }
+
+    @Test
+    fun `should update permissions and routes on repeated upsert`() {
+        // given: management token and details about token to create
+        val (managerName, managerSecret) = useDefaultManagementToken()
+        val tokenName = "reapplied-token"
+        val body = CreateAccessTokenWithNoNameRequest(
+            type = PERSISTENT,
+            secret = "secret",
+            permissions = setOf(MANAGER.shortcut),
+            routes = setOf(CreateAccessTokenWithNoNameRequest.Route("/private", setOf("r", "w")))
+        )
+
+        // when: token is created for the first time
+        val firstResponse = put("$base/api/tokens/$tokenName")
+            .basicAuth(managerName, managerSecret)
+            .body(body)
+            .asJacksonObject(CreateAccessTokenResponse::class)
+
+        // and: the same token is applied again
+        val secondResponse = put("$base/api/tokens/$tokenName")
+            .basicAuth(managerName, managerSecret)
+            .body(body)
+            .asJacksonObject(CreateAccessTokenResponse::class)
+
+        // then: identifier is preserved and permissions and routes match the request
+        assertSuccessResponse(OK, firstResponse) { firstToken ->
+            assertSuccessResponse(OK, secondResponse) { secondToken ->
+                assertThat(secondToken.accessToken.identifier).isEqualTo(firstToken.accessToken.identifier)
+                assertThat(getPermissions(secondToken.accessToken.identifier)).isEqualTo(setOf(MANAGER))
+                assertThat(getRoutes(secondToken.accessToken.identifier)).isEqualTo(
+                    setOf(
+                        Route("/private", RoutePermission.READ),
+                        Route("/private", RoutePermission.WRITE)
+                    )
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `should move token to target repository when updating token type`() {
+        // given: management token and details about token to create
+        val (managerName, managerSecret) = useDefaultManagementToken()
+        val tokenName = "type-change-token"
+
+        // when: token is created in persistent repository
+        val firstResponse = put("$base/api/tokens/$tokenName")
+            .basicAuth(managerName, managerSecret)
+            .body(CreateAccessTokenWithNoNameRequest(PERSISTENT, secret = "persistent-secret", permissions = emptySet()))
+            .asJacksonObject(CreateAccessTokenResponse::class)
+
+        // and: token type is changed to temporary
+        val secondResponse = put("$base/api/tokens/$tokenName")
+            .basicAuth(managerName, managerSecret)
+            .body(CreateAccessTokenWithNoNameRequest(TEMPORARY, secret = "temporary-secret", permissions = emptySet()))
+            .asJacksonObject(CreateAccessTokenResponse::class)
+
+        // then: token is now temporary and old persistent token is gone
+        assertSuccessResponse(OK, firstResponse) { firstToken ->
+            assertSuccessResponse(OK, secondResponse) { secondToken ->
+                assertThat(secondToken.accessToken.identifier.type).isEqualTo(TEMPORARY)
+                assertThat(useFacade<AccessTokenFacade>().getAccessTokenById(firstToken.accessToken.identifier)).isNull()
+                assertThat(useFacade<AccessTokenFacade>().secretMatches(secondToken.accessToken.identifier, "temporary-secret")).isTrue
+            }
         }
     }
 
