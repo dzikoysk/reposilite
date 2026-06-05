@@ -19,9 +19,9 @@ package com.reposilite.maven.infrastructure
 import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.Repository
 import com.reposilite.shared.ContextDsl
+import com.reposilite.shared.badRequestError
 import com.reposilite.shared.notFoundError
 import com.reposilite.storage.api.Location
-import com.reposilite.storage.api.toLocation
 import com.reposilite.web.api.ReposiliteRoutes
 
 abstract class MavenRoutes(val mavenFacade: MavenFacade) : ReposiliteRoutes() {
@@ -44,7 +44,10 @@ abstract class MavenRoutes(val mavenFacade: MavenFacade) : ReposiliteRoutes() {
         }
     }
 
-    fun <R> ContextDsl<R>.requireGav(block: (Location) -> Unit) =
-        block(requireParameter("gav").toLocation())
+    fun <R> ContextDsl<R>.requireGav(block: (Location) -> Unit) {
+        Location.ofRequest(requireParameter("gav"))
+            .peek { block(it) }
+            .onError { response = badRequestError(it) }
+    }
 
 }

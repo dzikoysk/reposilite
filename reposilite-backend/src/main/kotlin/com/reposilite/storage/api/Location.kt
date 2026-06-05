@@ -49,6 +49,15 @@ class Location private constructor(private val uri: String) {
         }
 
         @JvmStatic
+        fun ofRequest(uri: String): Result<Location, String> =
+            when {
+                strippedCharacters.containsMatchIn(uri) || multipleDirectoryOperators.containsMatchIn(uri) || uri.any { it.isISOControl() } ->
+                    Result.error("Illegal character or path operator in URI")
+                else ->
+                    of(uri).asSuccess()
+            }
+
+        @JvmStatic
         fun of(path: Path): Location =
             of(path.normalize().toString())
 

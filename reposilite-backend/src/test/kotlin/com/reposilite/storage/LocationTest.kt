@@ -58,4 +58,14 @@ class LocationTest {
         assertThat(Location.of("group/'x/artifact").toString()).isEqualTo("group/x/artifact")
     }
 
+    @Test
+    fun `should reject untrusted requests with illegal characters or operators`() {
+        assertThat(Location.ofRequest("group/c:/artifact").isErr).isTrue()
+        assertThat(Location.ofRequest("group/../../artifact").isErr).isTrue()
+        assertThat(Location.ofRequest("group/<artifact").isErr).isTrue()
+        assertThat(Location.ofRequest("group/artifact\r\nDEPLOY").isErr).isTrue()
+        assertThat(Location.ofRequest("group/artifact").get().toString()).isEqualTo("group/artifact")
+        assertThat(Location.ofRequest("/group//artifact/").get().toString()).isEqualTo("group/artifact")
+    }
+
 }
