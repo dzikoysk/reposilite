@@ -45,7 +45,7 @@ internal class InMemoryAccessTokenRepository : AccessTokenRepository {
     }
 
     override fun deleteAccessToken(id: AccessTokenIdentifier) {
-        tokens.remove(id.value)
+        evict(id)
     }
 
     override fun findAccessTokenById(id: AccessTokenIdentifier): AccessToken? {

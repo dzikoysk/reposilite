@@ -95,6 +95,12 @@ object DatabaseConnectionFactory {
                 this.maximumPoolSize = threadPool
                 username?.also { this.username = it }
                 password?.also { this.password = it }
+
+                if (url.startsWith("jdbc:sqlite")) {
+                    // SQLite disables foreign key enforcement per connection by default,
+                    // so declared foreign key constraints (e.g. ON DELETE CASCADE) are not enforced and dependent rows leak on delete.
+                    this.connectionInitSql = "PRAGMA foreign_keys=ON"
+                }
             }
         )
 

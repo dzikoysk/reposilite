@@ -18,6 +18,8 @@
 
 package com.reposilite.token.infrastructure
 
+import com.reposilite.DatabaseMigrations.MIGRATION_004
+import com.reposilite.journalist.Journalist
 import com.reposilite.shared.extensions.andOf
 import com.reposilite.token.AccessToken
 import com.reposilite.token.AccessTokenIdentifier
@@ -38,12 +40,14 @@ import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.IntIdTable
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.notInSubQuery
 import org.jetbrains.exposed.v1.core.java.javaUUID
 import org.jetbrains.exposed.v1.javatime.date
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.jdbc.update
@@ -78,12 +82,33 @@ object PermissionToRouteTable : Table("permission_route") {
     }
 }
 
-internal class SqlAccessTokenRepository(private val database: Database) : AccessTokenRepository {
+internal class SqlAccessTokenRepository(
+    private val database: Database,
+    private val journalist: Journalist,
+    private val runMigrations: Array<String>
+) : AccessTokenRepository {
 
     init {
         transaction(database) {
             SchemaUtils.create(AccessTokenTable, PermissionToAccessTokenTable, PermissionToRouteTable)
             SchemaUtils.createMissingTablesAndColumns(AccessTokenTable, PermissionToAccessTokenTable, PermissionToRouteTable)
+        }
+        runFixes()
+    }
+
+    private fun runFixes() {
+        // 004 Fix: Remove permissions and routes orphaned by deletes that did not cascade, e.g. on SQLite
+        // databases where foreign key enforcement was disabled (see PRAGMA foreign_keys in DatabaseConnection).
+        if (MIGRATION_004 in runMigrations) {
+            transaction(database) {
+                val removedPermissions = PermissionToAccessTokenTable.deleteWhere {
+                    PermissionToAccessTokenTable.accessTokenId notInSubQuery AccessTokenTable.select(AccessTokenTable.id)
+                }
+                val removedRoutes = PermissionToRouteTable.deleteWhere {
+                    PermissionToRouteTable.accessTokenId notInSubQuery AccessTokenTable.select(AccessTokenTable.id)
+                }
+                journalist.logger.info("SqlAccessTokenRepository | Removed $removedPermissions orphaned permission(s) and $removedRoutes orphaned route(s)")
+            }
         }
     }
 
