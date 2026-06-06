@@ -17,9 +17,10 @@
 package com.reposilite.storage
 
 import com.reposilite.storage.api.Location
-import java.io.File
+import com.reposilite.storage.api.UnsupportedLocationException
 import java.nio.file.Path
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 
 class LocationTest {
@@ -29,33 +30,38 @@ class LocationTest {
         assertThat(Location.of("group").resolve("artifact").toString()).isEqualTo("group/artifact")
         assertThat(Location.of("/group").resolve("/artifact").toString()).isEqualTo("group/artifact")
         assertThat(Location.of("/////group/////").resolve("/////artifact/////").toString()).isEqualTo("group/artifact")
-        assertThat(Location.of("\\\\\\group\\\\\\").resolve("\\\\\\artifact\\\\\\").toString()).isEqualTo("group/artifact")
         assertThat(Location.of(".abc").resolve("_cdf.efg").toString()).isEqualTo(".abc/_cdf.efg")
         assertThat(Location.of("시험").resolve("기준").toString()).isEqualTo("시험/기준")
     }
 
     @Test
-    fun `should normalize corrupted paths`() {
-        assertThat(Location.of(Path.of("../../artifact")).toPath().get().toString()).isEqualTo("artifact")
-        assertThat(Location.of(Path.of("C:/artifact")).toPath().get().toString()).isEqualTo("artifact")
-        assertThat(Location.of("artifact").resolve("../../root").toPath().get().toString()).isEqualTo("artifact" + File.separator + "root")
-        assertThat(Location.of("..\\..\\artifact").toPath().get().toString()).isEqualTo("artifact")
-        assertThat(Location.of("....//....//artifact").toPath().get().toString()).isEqualTo("artifact")
+    fun `should normalize benign surrounding and redundant slashes`() {
         assertThat(Location.of("/artifact").toPath().get().toString()).isEqualTo("artifact")
-        assertThat(Location.of(".<.").toPath().get().toString()).isEqualTo("")
-        assertThat(Location.of(".<./.<./artifact").toPath().get().toString()).isEqualTo("artifact")
+        assertThat(Location.of("group//artifact").toString()).isEqualTo("group/artifact")
         assertThat(Location.of(".").toPath().get().toString()).isEqualTo("")
-        assertThat(Location.of("..").toPath().get().toString()).isEqualTo("")
         assertThat(Location.of("/").toPath().get().toString()).isEqualTo("")
         assertThat(Location.of("").toPath().get().toString()).isEqualTo("")
     }
 
     @Test
-    fun `should strip HTML metacharacters so locations are safe to interpolate into HTML`() {
-        assertThat(Location.of("group/<x/artifact").toString()).isEqualTo("group/x/artifact")
-        assertThat(Location.of("group/x>/artifact").toString()).isEqualTo("group/x/artifact")
-        assertThat(Location.of("group/\"x/artifact").toString()).isEqualTo("group/x/artifact")
-        assertThat(Location.of("group/'x/artifact").toString()).isEqualTo("group/x/artifact")
+    fun `should canonicalize trusted file-system paths`() {
+        assertThat(Location.of(Path.of("group/artifact")).toString()).isEqualTo("group/artifact")
+        assertThat(Location.of(Path.of("group"), Path.of("group/artifact/file.jar")).toString()).isEqualTo("artifact/file.jar")
+    }
+
+    @Test
+    fun `should reject paths with illegal characters or path operators`() {
+        assertThatThrownBy { Location.of("group/../artifact") }.isInstanceOf(UnsupportedLocationException::class.java)
+        assertThatThrownBy { Location.of("..") }.isInstanceOf(UnsupportedLocationException::class.java)
+        assertThatThrownBy { Location.of("....//....//artifact") }.isInstanceOf(UnsupportedLocationException::class.java)
+        assertThatThrownBy { Location.of("group/c:/artifact") }.isInstanceOf(UnsupportedLocationException::class.java)
+        assertThatThrownBy { Location.of("C:/artifact") }.isInstanceOf(UnsupportedLocationException::class.java)
+        assertThatThrownBy { Location.of("group\\artifact") }.isInstanceOf(UnsupportedLocationException::class.java)
+        assertThatThrownBy { Location.of("..\\..\\artifact") }.isInstanceOf(UnsupportedLocationException::class.java)
+        assertThatThrownBy { Location.of("group/<artifact") }.isInstanceOf(UnsupportedLocationException::class.java)
+        assertThatThrownBy { Location.of("group/x>/artifact") }.isInstanceOf(UnsupportedLocationException::class.java)
+        assertThatThrownBy { Location.of("group/\"x/artifact") }.isInstanceOf(UnsupportedLocationException::class.java)
+        assertThatThrownBy { Location.of("group/'x/artifact") }.isInstanceOf(UnsupportedLocationException::class.java)
     }
 
     @Test
@@ -63,6 +69,7 @@ class LocationTest {
         assertThat(Location.ofRequest("group/c:/artifact").isErr).isTrue()
         assertThat(Location.ofRequest("group/../../artifact").isErr).isTrue()
         assertThat(Location.ofRequest("group/<artifact").isErr).isTrue()
+        assertThat(Location.ofRequest("group\\artifact").isErr).isTrue()
         assertThat(Location.ofRequest("group/artifact\r\nDEPLOY").isErr).isTrue()
         assertThat(Location.ofRequest("group/artifact").get().toString()).isEqualTo("group/artifact")
         assertThat(Location.ofRequest("/group//artifact/").get().toString()).isEqualTo("group/artifact")

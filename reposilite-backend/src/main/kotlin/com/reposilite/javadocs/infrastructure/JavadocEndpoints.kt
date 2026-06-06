@@ -20,8 +20,9 @@ import com.reposilite.javadocs.JavadocFacade
 import com.reposilite.javadocs.api.JavadocPageRequest
 import com.reposilite.javadocs.api.JavadocRawRequest
 import com.reposilite.maven.infrastructure.MavenRoutes
+import com.reposilite.shared.badRequestError
 import com.reposilite.shared.extensions.encoding
-import com.reposilite.storage.api.toLocation
+import com.reposilite.storage.api.Location
 import com.reposilite.web.api.ReposiliteRoute
 import io.javalin.community.routing.Route.GET
 import io.javalin.http.Header
@@ -70,10 +71,14 @@ internal class JavadocEndpoints(
         accessed {
             requireGav { gav ->
                 requireRepository { repository ->
-                    response = JavadocRawRequest(this?.identifier, repository, gav, requireParameter("resource").toLocation())
-                        .let { javadocFacade.findRawJavadocResource(it) }
-                        .peek { ctx.encoding(Charsets.UTF_8).contentType(it.contentType).header(Header.CONTENT_SECURITY_POLICY, "sandbox allow-scripts") }
-                        .map { it.content }
+                    Location.ofRequest(requireParameter("resource"))
+                        .peek { resource ->
+                            response = JavadocRawRequest(this?.identifier, repository, gav, resource)
+                                .let { javadocFacade.findRawJavadocResource(it) }
+                                .peek { ctx.encoding(Charsets.UTF_8).contentType(it.contentType).header(Header.CONTENT_SECURITY_POLICY, "sandbox allow-scripts") }
+                                .map { it.content }
+                        }
+                        .onError { response = badRequestError(it) }
                 }
             }
         }

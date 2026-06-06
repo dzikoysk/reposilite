@@ -30,7 +30,6 @@ import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.Location
 import com.reposilite.storage.api.SimpleDirectoryInfo
 import com.reposilite.storage.api.UNKNOWN_LENGTH
-import com.reposilite.storage.api.toLocation
 import io.javalin.http.ContentType
 import io.javalin.http.ContentType.APPLICATION_OCTET_STREAM
 import io.javalin.http.ContentType.Companion.OCTET_STREAM
@@ -148,15 +147,15 @@ class S3StorageProvider(
         listDirectory(
             location = location,
             onDirectory = {
-                SimpleDirectoryInfo(
-                    name = it.prefix().toLocation().getSimpleName(),
-                )
+                Location.ofRequest(it.prefix()).orNull()
+                    ?.let { prefix -> SimpleDirectoryInfo(name = prefix.getSimpleName()) }
             },
             onFile = {
-                it.key().toLocation().toDocumentInfo(
-                    contentLength = it.size(),
-                    lastModifiedTime = it.lastModified(),
-                )
+                Location.ofRequest(it.key()).orNull()
+                    ?.toDocumentInfo(
+                        contentLength = it.size(),
+                        lastModifiedTime = it.lastModified(),
+                    )
             },
         ).map {
             location.toDirectoryInfo(files = it)
@@ -203,7 +202,7 @@ class S3StorageProvider(
 
             s3.listObjectsV2Paginator(request)
                 .contents()
-                .forEach { s3.deleteObject(createDeleteRequest(it.key().toLocation())) }
+                .forEach { s3.deleteObject(createDeleteRequest(it.key())) }
 
             ok(Unit)
         } catch (exception: Exception) {
@@ -211,23 +210,23 @@ class S3StorageProvider(
         }
     }
 
-    private fun createDeleteRequest(location: Location): DeleteObjectRequest =
+    private fun createDeleteRequest(key: String): DeleteObjectRequest =
         DeleteObjectRequest.builder()
             .bucket(bucket)
-            .key(location.toString().replace('\\', '/'))
+            .key(key)
             .build()
 
     override fun getFiles(location: Location): Result<List<Location>, ErrorResponse> =
         listDirectory(
             location = location,
-            onDirectory = { it.prefix().toLocation() },
-            onFile = { it.key().toLocation() },
+            onDirectory = { Location.ofRequest(it.prefix()).orNull() },
+            onFile = { Location.ofRequest(it.key()).orNull() },
         )
 
     private fun <T> listDirectory(
         location: Location,
-        onDirectory: (CommonPrefix) -> T,
-        onFile: (S3Object) -> T,
+        onDirectory: (CommonPrefix) -> T?,
+        onFile: (S3Object) -> T?,
     ): Result<List<T>, ErrorResponse> =
         try {
             val request =
@@ -239,8 +238,8 @@ class S3StorageProvider(
                     .build()
 
             val pages = s3.listObjectsV2Paginator(request).toList()
-            val directories = pages.flatMap { it.commonPrefixes() }.map(onDirectory)
-            val files = pages.flatMap { it.contents() }.map(onFile)
+            val directories = pages.flatMap { it.commonPrefixes() }.mapNotNull(onDirectory)
+            val files = pages.flatMap { it.contents() }.mapNotNull(onFile)
             val entries = directories + files
 
             when {

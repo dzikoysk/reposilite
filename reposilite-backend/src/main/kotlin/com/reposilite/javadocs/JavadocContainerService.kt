@@ -16,7 +16,6 @@ import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.FileType
 import com.reposilite.storage.api.FileType.FILE
 import com.reposilite.storage.api.Location
-import com.reposilite.storage.api.toLocation
 import com.reposilite.token.AccessTokenIdentifier
 import panda.std.Result
 import panda.std.asSuccess
@@ -179,14 +178,12 @@ internal class JavadocContainerService(
             }
 
             // GHSA-frvj-cfq4-3228: treat archive file name as external path that can be malicious
-            val processedArchiveFileLocation = file.name.toLocation()
-
-            val resolved = processedArchiveFileLocation
-                .toPath()
+            val resolved = Location.ofRequest(file.name)
+                .flatMap { it.toPath() }
                 .map { javadocUnpackPath.resolve(it) }
                 .onError {
                     failureFacade.throwException(
-                        "Malicious resource path detected: $processedArchiveFileLocation in $jarPath",
+                        "Malicious resource path detected: ${file.name} in $jarPath",
                         IllegalArgumentException("Malicious resource path detected: $it")
                     )
                 }
