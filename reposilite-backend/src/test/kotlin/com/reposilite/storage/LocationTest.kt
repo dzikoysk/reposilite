@@ -36,11 +36,11 @@ class LocationTest {
 
     @Test
     fun `should normalize benign surrounding and redundant slashes`() {
-        assertThat(Location.of("/artifact").toPath().get().toString()).isEqualTo("artifact")
+        assertThat(Location.of("/artifact").toPath().toString()).isEqualTo("artifact")
         assertThat(Location.of("group//artifact").toString()).isEqualTo("group/artifact")
-        assertThat(Location.of(".").toPath().get().toString()).isEqualTo("")
-        assertThat(Location.of("/").toPath().get().toString()).isEqualTo("")
-        assertThat(Location.of("").toPath().get().toString()).isEqualTo("")
+        assertThat(Location.of(".").toPath().toString()).isEqualTo("")
+        assertThat(Location.of("/").toPath().toString()).isEqualTo("")
+        assertThat(Location.of("").toPath().toString()).isEqualTo("")
     }
 
     @Test
@@ -62,6 +62,9 @@ class LocationTest {
         assertThatThrownBy { Location.of("group/x>/artifact") }.isInstanceOf(UnsupportedLocationException::class.java)
         assertThatThrownBy { Location.of("group/\"x/artifact") }.isInstanceOf(UnsupportedLocationException::class.java)
         assertThatThrownBy { Location.of("group/'x/artifact") }.isInstanceOf(UnsupportedLocationException::class.java)
+        assertThatThrownBy { Location.of("group/a?b") }.isInstanceOf(UnsupportedLocationException::class.java)
+        assertThatThrownBy { Location.of("group/a*b") }.isInstanceOf(UnsupportedLocationException::class.java)
+        assertThatThrownBy { Location.of("group/a|b") }.isInstanceOf(UnsupportedLocationException::class.java)
     }
 
     @Test

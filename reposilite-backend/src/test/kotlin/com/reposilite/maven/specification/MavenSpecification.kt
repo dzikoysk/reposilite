@@ -193,7 +193,7 @@ internal abstract class MavenSpecification {
         workingDirectory.toPath()
             .resolve("repositories")
             .resolve(fileSpec.repository)
-            .resolve(fileSpec.gav.toLocation().toPath().get())
+            .resolve(fileSpec.gav.toLocation().toPath())
             .also {
                 it.createParentDirectories()
                 it.createFile()

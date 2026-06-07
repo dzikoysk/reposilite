@@ -179,8 +179,7 @@ internal class JavadocContainerService(
 
             // GHSA-frvj-cfq4-3228: treat archive file name as external path that can be malicious
             val resolved = Location.ofRequest(file.name)
-                .flatMap { it.toPath() }
-                .map { javadocUnpackPath.resolve(it) }
+                .map { javadocUnpackPath.resolve(it.toPath()) }
                 .onError {
                     failureFacade.throwException(
                         "Malicious resource path detected: ${file.name} in $jarPath",

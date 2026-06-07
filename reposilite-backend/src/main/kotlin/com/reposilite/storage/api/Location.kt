@@ -16,6 +16,8 @@
 
 package com.reposilite.storage.api
 
+import com.reposilite.shared.ErrorResponse
+import com.reposilite.shared.badRequestError
 import com.reposilite.storage.getExtension
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -32,7 +34,7 @@ class Location private constructor(private val uri: String) {
         private val empty = Location("")
         private val multipleSlashes = Regex("/+")
         private val pathOperator = Regex("\\.{2,}")
-        private val illegalCharacters = Regex("[:<>\"'\\\\]")
+        private val illegalCharacters = Regex("[:<>\"'\\\\|?*]")
 
         @JvmStatic
         fun of(uri: String): Location {
@@ -43,11 +45,11 @@ class Location private constructor(private val uri: String) {
         }
 
         @JvmStatic
-        fun ofRequest(uri: String): Result<Location, String> =
+        fun ofRequest(uri: String): Result<Location, ErrorResponse> =
             try {
                 of(uri).asSuccess()
             } catch (exception: UnsupportedLocationException) {
-                Result.error(exception.message ?: "Illegal character or path operator in URI")
+                badRequestError(exception.message)
             }
 
         @JvmStatic
@@ -64,8 +66,8 @@ class Location private constructor(private val uri: String) {
 
     }
 
-    fun toPath(): Result<Path, String> =
-        Paths.get(uri).normalize().asSuccess()
+    fun toPath(): Path =
+        Paths.get(uri).normalize()
 
     fun resolve(subLocation: String): Location =
         resolve(subLocation.toLocation())

@@ -294,8 +294,6 @@ abstract class FileSystemStorageProvider protected constructor(
         filter({ it.exists() }) { notFound("File not found") }
 
     private fun Location.resolveWithRootDirectory(): Result<Path, ErrorResponse> =
-        toPath()
-            .map { rootDirectory.resolve(it) }
-            .mapErr { badRequest(it) }
+        rootDirectory.resolve(toPath()).asSuccess()
 
 }

@@ -26,7 +26,6 @@ import com.reposilite.maven.api.LatestVersionResponse
 import com.reposilite.maven.api.VersionLookupRequest
 import com.reposilite.shared.ContextDsl
 import com.reposilite.shared.ErrorResponse
-import com.reposilite.shared.badRequest
 import com.reposilite.shared.badRequestError
 import com.reposilite.shared.extensions.contentDisposition
 import com.reposilite.shared.extensions.resultAttachment
@@ -156,7 +155,6 @@ internal class MavenLatestApiEndpoints(
 
     private fun <T> resolveLatestArtifact(context: ContextDsl<*>, accessToken: AccessTokenDto?, repository: Repository, handler: MatchedVersionHandler<T>): Result<T, ErrorResponse> =
         Location.ofRequest(context.requireParameter("gav"))
-            .mapErr { badRequest(it) }
             .flatMap { gav ->
                 mavenFacade.findLatestVersionFile(
                     LatestArtifactQueryRequest(

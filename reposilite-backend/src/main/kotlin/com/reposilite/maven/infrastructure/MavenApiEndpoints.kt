@@ -24,7 +24,6 @@ import com.reposilite.maven.api.VersionsResponse
 import com.reposilite.maven.api.PomDetails
 import com.reposilite.shared.ContextDsl
 import com.reposilite.shared.ErrorResponse
-import com.reposilite.shared.badRequestError
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.Location
 import com.reposilite.web.api.ReposiliteRoute
@@ -75,10 +74,7 @@ internal class MavenApiEndpoints(mavenFacade: MavenFacade) : MavenRoutes(mavenFa
                     null -> mavenFacade.findRepositories(accessToken = this?.identifier).asSuccess()
                     else ->
                         Location.ofRequest(parameter("gav") ?: "")
-                            .fold(
-                                { gav -> mavenFacade.findDetails(LookupRequest(this?.identifier, repository, gav)) },
-                                { badRequestError(it) },
-                            )
+                            .flatMap { gav -> mavenFacade.findDetails(LookupRequest(this?.identifier, repository, gav)) }
                 }
         }
     }
