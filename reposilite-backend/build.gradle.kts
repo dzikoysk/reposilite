@@ -102,7 +102,7 @@ dependencies {
     }
     implementation("com.google.protobuf:protobuf-java:4.35.0")
 
-    val jackson = "2.21.3"
+    val jackson = "2.22.0"
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jackson")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jackson")
