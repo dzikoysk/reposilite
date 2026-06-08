@@ -126,8 +126,7 @@ internal abstract class StorageProviderIntegrationTest : StorageProviderSpecific
         // when: a client attempts to delete locations that collapse to the repository root
         //   - "."  : Location.of(".")  -> Path("").normalize() -> resolves to rootDirectory itself
         //   - "/"  : Location.of("/")  -> "" after leading-slash strip -> Location.empty()
-        //   - "..": Location.of("..") -> ".."-collapsed-to-"." -> same as above
-        listOf(".", "/", "..").forEach { rootLike ->
+        listOf(".", "/").forEach { rootLike ->
             val response = storageProvider.removeFile(rootLike.toLocation())
 
             // then: provider must reject the request and leave existing files intact

@@ -25,7 +25,7 @@ import com.reposilite.maven.api.PomDetails
 import com.reposilite.shared.ContextDsl
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.storage.api.FileDetails
-import com.reposilite.storage.api.toLocation
+import com.reposilite.storage.api.Location
 import com.reposilite.web.api.ReposiliteRoute
 import io.javalin.community.routing.Route.GET
 import io.javalin.community.routing.Route.POST
@@ -69,9 +69,13 @@ internal class MavenApiEndpoints(mavenFacade: MavenFacade) : MavenRoutes(mavenFa
     )
     private val findFileDetails: ContextDsl<FileDetails>.() -> Unit = {
         accessed {
-            response = parameter("repository")
-                ?.let { repository -> mavenFacade.findDetails(LookupRequest(this?.identifier, repository, wildcard("gav").toLocation())) }
-                ?: mavenFacade.findRepositories(this?.identifier).asSuccess()
+            response =
+                when (val repository = parameter("repository")) {
+                    null -> mavenFacade.findRepositories(accessToken = this?.identifier).asSuccess()
+                    else ->
+                        Location.ofRequest(parameter("gav") ?: "")
+                            .flatMap { gav -> mavenFacade.findDetails(LookupRequest(this?.identifier, repository, gav)) }
+                }
         }
     }
 

@@ -106,26 +106,27 @@ internal class CustomFrontendHandler(
     directory: Path
 ) : FrontendHandler(frontendFacade, failureFacade) {
 
-    private fun rootFileHandler(file: Path) = ReposiliteRoute<InputStream>("/${file.name}", GET) {
+    private fun rootFileHandler(file: Path) = ReposiliteRoute("/${file.name}", GET) {
         response = respondWithResource(ctx, file.name) {
             file.inputStream().orNull()
         }
     }
 
-    private fun directoryHandler(directory: Path) = ReposiliteRoute<InputStream>("/${directory.fileName}/<path>", GET) {
+    private fun directoryHandler(directory: Path) = ReposiliteRoute("/${directory.fileName}/<path>", GET) {
         response = respondWithResource(ctx, directory.name) {
             parameter("path")
                 .toLocation()
                 .toPath()
-                .map { path -> directory.resolve(path) }
-                .flatMap { path -> path.inputStream().mapErr { error -> error.message } }
+                .let { directory.resolve(it) }
+                .inputStream()
                 .orNull()
         }
     }
 
-    private fun indexHandler(directory: Path) = ReposiliteRoute<InputStream>("/", GET) {
+    private fun indexHandler(directory: Path) = ReposiliteRoute("/", GET) {
         response = respondWithResource(ctx, "index.html") {
-            directory.resolve("index.html")
+            directory
+                .resolve("index.html")
                 .inputStream()
                 .orNull()
         }

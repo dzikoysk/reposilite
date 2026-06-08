@@ -30,7 +30,7 @@ import com.reposilite.shared.badRequestError
 import com.reposilite.shared.extensions.contentDisposition
 import com.reposilite.shared.extensions.resultAttachment
 import com.reposilite.storage.api.FileDetails
-import com.reposilite.storage.api.toLocation
+import com.reposilite.storage.api.Location
 import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.web.api.ReposiliteRoute
 import io.javalin.community.routing.Route.GET
@@ -154,19 +154,22 @@ internal class MavenLatestApiEndpoints(
     }
 
     private fun <T> resolveLatestArtifact(context: ContextDsl<*>, accessToken: AccessTokenDto?, repository: Repository, handler: MatchedVersionHandler<T>): Result<T, ErrorResponse> =
-        mavenFacade.findLatestVersionFile(
-            LatestArtifactQueryRequest(
-                accessToken = accessToken?.identifier,
-                repository = repository,
-                query = LatestArtifactQuery(
-                    gav = context.requireParameter("gav").toLocation(),
-                    extension = context.queryParameter("extension") ?: "jar",
-                    classifier = context.queryParameter("classifier"),
-                    filter = context.ctx.queryParam("filter"),
+        Location.ofRequest(context.requireParameter("gav"))
+            .flatMap { gav ->
+                mavenFacade.findLatestVersionFile(
+                    LatestArtifactQueryRequest(
+                        accessToken = accessToken?.identifier,
+                        repository = repository,
+                        query = LatestArtifactQuery(
+                            gav = gav,
+                            extension = context.queryParameter("extension") ?: "jar",
+                            classifier = context.queryParameter("classifier"),
+                            filter = context.ctx.queryParam("filter"),
+                        )
+                    ),
+                    handler = handler
                 )
-            ),
-            handler = handler
-        )
+            }
 
     @OpenApi(
         path = "/api/badge/latest/{repository}/{gav}", // Rename 'badge/latest' to 'maven/latest/badge'?

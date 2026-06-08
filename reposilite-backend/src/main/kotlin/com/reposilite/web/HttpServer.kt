@@ -18,6 +18,9 @@ package com.reposilite.web
 
 import com.reposilite.Reposilite
 import com.reposilite.configuration.local.LocalConfiguration
+import com.reposilite.shared.badRequest
+import com.reposilite.shared.extensions.error
+import com.reposilite.storage.api.UnsupportedLocationException
 import com.reposilite.web.api.HttpServerInitializationEvent
 import com.reposilite.web.api.HttpServerStartedEvent
 import com.reposilite.web.api.HttpServerStoppedEvent
@@ -49,6 +52,10 @@ class HttpServer {
 
             config.routes.exception(EofException::class.java) { _, _ ->
                 reposilite.logger.warn("Client closed connection")
+            }
+
+            config.routes.exception(UnsupportedLocationException::class.java) { exception, ctx ->
+                ctx.error(badRequest(exception.message))
             }
 
             config.events.serverStopping { reposilite.logger.info("Server stopping...") }

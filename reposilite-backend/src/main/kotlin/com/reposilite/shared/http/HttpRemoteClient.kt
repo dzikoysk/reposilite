@@ -33,7 +33,6 @@ import com.reposilite.shared.toErrorResult
 import com.reposilite.storage.api.DocumentInfo
 import com.reposilite.storage.api.FileDetails
 import com.reposilite.storage.api.UNKNOWN_LENGTH
-import com.reposilite.storage.api.toLocation
 import com.reposilite.storage.getExtension
 import io.javalin.http.ContentType
 import io.javalin.http.HttpStatus.NOT_ACCEPTABLE
@@ -95,7 +94,7 @@ class HttpRemoteClient(private val journalist: Journalist, proxy: Proxy?) : Remo
                         }
 
                     DocumentInfo(
-                        name = uri.toLocation().getSimpleName(),
+                        name = uri.substringAfterLast('/'),
                         contentType = contentType,
                         contentLength = contentLength,
                         lastModifiedTime = lastModified,

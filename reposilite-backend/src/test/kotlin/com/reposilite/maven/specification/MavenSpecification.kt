@@ -121,12 +121,12 @@ internal abstract class MavenSpecification {
                     errorResponse(BAD_GATEWAY, "Simulated upstream failure")
                 else if (uri.startsWith(REMOTE_REPOSITORY) && REMOTE_AUTH == credentials && !uri.isAllowed())
                     DocumentInfo(
-                        name = uri.toLocation().getSimpleName(),
+                        name = uri.substringAfterLast('/'),
                         contentType = TEXT_XML,
                     ).asSuccess()
                 else if (uri.startsWith(REMOTE_REPOSITORY_WITH_WHITELIST) && uri.isAllowed())
                     DocumentInfo(
-                        name = uri.toLocation().getSimpleName(),
+                        name = uri.substringAfterLast('/'),
                         contentType = TEXT_XML,
                     ).asSuccess()
                 else
@@ -193,7 +193,7 @@ internal abstract class MavenSpecification {
         workingDirectory.toPath()
             .resolve("repositories")
             .resolve(fileSpec.repository)
-            .resolve(fileSpec.gav.toLocation().toPath().get())
+            .resolve(fileSpec.gav.toLocation().toPath())
             .also {
                 it.createParentDirectories()
                 it.createFile()

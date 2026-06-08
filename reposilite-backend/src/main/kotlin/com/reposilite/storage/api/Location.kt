@@ -16,12 +16,13 @@
 
 package com.reposilite.storage.api
 
+import com.reposilite.shared.ErrorResponse
+import com.reposilite.shared.badRequestError
 import com.reposilite.storage.getExtension
 import java.nio.file.Path
 import java.nio.file.Paths
 import panda.std.Result
 import panda.std.asSuccess
-import panda.std.letIf
 
 /**
  * [Path] alternative, represents location of resource in [com.reposilite.storage.StorageProvider]
@@ -32,25 +33,28 @@ class Location private constructor(private val uri: String) {
 
         private val empty = Location("")
         private val multipleSlashes = Regex("/+")
-        private val multipleDirectoryOperators = Regex("\\.{2,}")
-        private val strippedCharacters = Regex("[:<>\"']")
+        private val pathOperator = Regex("\\.{2,}")
+        private val illegalCharacters = Regex("[:<>\"'\\\\|?*]")
 
         @JvmStatic
         fun of(uri: String): Location {
-            return uri
-                .replaceBefore(":", "")
-                .replace(strippedCharacters, "")
-                .replace("\\", "/")
-                .replace(multipleDirectoryOperators, ".")
-                .replace(multipleSlashes, "/")
-                .letIf({ it.startsWith("/") }) { it.removePrefix("/") }
-                .letIf({ it.endsWith("/") }) { it.removeSuffix("/") }
-                .let { Location(it) }
+            if (illegalCharacters.containsMatchIn(uri) || pathOperator.containsMatchIn(uri) || uri.any { it.isISOControl() }) {
+                throw UnsupportedLocationException(uri)
+            }
+            return Location(uri.replace(multipleSlashes, "/").trim('/'))
         }
 
         @JvmStatic
+        fun ofRequest(uri: String): Result<Location, ErrorResponse> =
+            try {
+                of(uri).asSuccess()
+            } catch (exception: UnsupportedLocationException) {
+                badRequestError(exception.message)
+            }
+
+        @JvmStatic
         fun of(path: Path): Location =
-            of(path.normalize().toString())
+            of(path.normalize().toString().replace("\\", "/"))
 
         @JvmStatic
         fun of(root: Path, path: Path): Location =
@@ -62,12 +66,8 @@ class Location private constructor(private val uri: String) {
 
     }
 
-    fun toPath(): Result<Path, String> {
-        if (uri.contains(":") || uri.contains("\\") || uri.contains(multipleDirectoryOperators)) {
-            return Result.error("Illegal path operator in URI")
-        }
-        return Paths.get(uri).normalize().asSuccess()
-    }
+    fun toPath(): Path =
+        Paths.get(uri).normalize()
 
     fun resolve(subLocation: String): Location =
         resolve(subLocation.toLocation())
