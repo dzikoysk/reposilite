@@ -147,11 +147,13 @@ class S3StorageProvider(
         listDirectory(
             location = location,
             onDirectory = {
-                Location.ofRequest(it.prefix()).orNull()
+                Location.ofRequest(it.prefix())
+                    .orNull()
                     ?.let { prefix -> SimpleDirectoryInfo(name = prefix.getSimpleName()) }
             },
             onFile = {
-                Location.ofRequest(it.key()).orNull()
+                Location.ofRequest(it.key())
+                    .orNull()
                     ?.toDocumentInfo(
                         contentLength = it.size(),
                         lastModifiedTime = it.lastModified(),

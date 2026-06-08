@@ -54,6 +54,7 @@ class LocationTest {
         assertThatThrownBy { Location.of("group/../artifact") }.isInstanceOf(UnsupportedLocationException::class.java)
         assertThatThrownBy { Location.of("..") }.isInstanceOf(UnsupportedLocationException::class.java)
         assertThatThrownBy { Location.of("....//....//artifact") }.isInstanceOf(UnsupportedLocationException::class.java)
+        assertThatThrownBy { Location.of("artifact-1.0..1.jar") }.isInstanceOf(UnsupportedLocationException::class.java)
         assertThatThrownBy { Location.of("group/c:/artifact") }.isInstanceOf(UnsupportedLocationException::class.java)
         assertThatThrownBy { Location.of("C:/artifact") }.isInstanceOf(UnsupportedLocationException::class.java)
         assertThatThrownBy { Location.of("group\\artifact") }.isInstanceOf(UnsupportedLocationException::class.java)

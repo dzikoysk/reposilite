@@ -181,9 +181,10 @@ internal class JavadocContainerService(
             val resolved = Location.ofRequest(file.name)
                 .map { javadocUnpackPath.resolve(it.toPath()) }
                 .onError {
+                    val sanitizedName = file.name.filterNot(Char::isISOControl)
                     failureFacade.throwException(
-                        "Malicious resource path detected: ${file.name} in $jarPath",
-                        IllegalArgumentException("Malicious resource path detected: $it")
+                        identifier = "Malicious resource path detected: $sanitizedName in $jarPath",
+                        throwable = IllegalArgumentException("Malicious resource path detected: $it")
                     )
                 }
                 .orNull() ?: continue
