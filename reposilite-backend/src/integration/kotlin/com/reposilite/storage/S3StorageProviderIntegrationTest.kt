@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package com.reposilite.storage.infrastructure
+package com.reposilite.storage
 
 import com.reposilite.journalist.backend.InMemoryLogger
 import com.reposilite.status.FailureFacade
-import com.reposilite.storage.StorageFacade
-import com.reposilite.storage.StorageProviderIntegrationTest
 import com.reposilite.storage.api.DirectoryInfo
 import com.reposilite.storage.api.toLocation
 import com.reposilite.storage.s3.S3StorageProviderSettings
@@ -84,6 +82,43 @@ internal class S3StorageProviderIntegrationTest : StorageProviderIntegrationTest
         assertOk(storageProvider.removeFile("/snapshots".toLocation()))
         assertThat(storageProvider.exists("/snapshots/file-0.jar".toLocation())).isFalse
         assertThat(storageProvider.exists("/snapshots/file-${entryCount - 1}.jar".toLocation())).isFalse
+    }
+
+    // GH-2623: multiple repositories may share one bucket in single-bucket mode, which namespaces
+    // keys under '<prefix>/<repository>/' so they neither see nor overwrite each other.
+    @Test
+    fun `should isolate repositories sharing one bucket in single-bucket mode`() {
+        val alpha = sharedBucketStorageProvider(repository = "alpha")
+        val beta = sharedBucketStorageProvider(repository = "beta")
+        val artifact = "/com/example/artifact.jar".toLocation()
+
+        assertOk(alpha.putFile(artifact, "alpha".toByteArray().inputStream()))
+
+        assertThat(alpha.exists(artifact)).isTrue
+        assertThat(beta.exists(artifact)).isFalse
+
+        assertOk(beta.putFile(artifact, "beta".toByteArray().inputStream()))
+        assertThat(String(assertOk(alpha.getFile(artifact)).readBytes())).isEqualTo("alpha")
+        assertThat(String(assertOk(beta.getFile(artifact)).readBytes())).isEqualTo("beta")
+    }
+
+    private fun sharedBucketStorageProvider(repository: String): StorageProvider {
+        val logger = InMemoryLogger()
+        return StorageFacade().createStorageProvider(
+            journalist = logger,
+            failureFacade = FailureFacade(logger),
+            workingDirectory = rootDirectory.toPath(),
+            repository = repository,
+            storageSettings = S3StorageProviderSettings(
+                bucketName = "shared-bucket",
+                endpoint = "http://${floci.host}:${floci.getMappedPort(4566)}",
+                accessKey = "test",
+                secretKey = "test",
+                region = "us-east-1",
+                prefix = "reposilite",
+                sharedBucket = true
+            )
+        )!!
     }
 
 }

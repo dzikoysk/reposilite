@@ -105,22 +105,35 @@ class S3StorageProviderFactory : StorageProviderFactory<S3StorageProvider, S3Sto
                 else -> client.build()
             }
 
+        val keyPrefix = resolveKeyPrefix(settings, repositoryName)
+
         return try {
             S3StorageProvider(
                 failureFacade = failureFacade,
                 s3 = s3Client,
-                bucket = settings.bucketName
+                bucket = settings.bucketName,
+                keyPrefix = keyPrefix
             )
         } catch (exception: Exception) {
             failureFacade.logger.error("Cannot connect to S3 storage provider: ${exception.message}")
             failureFacade.logger.error("S3 storage provider configuration:")
             failureFacade.logger.error("  - Bucket: ${settings.bucketName}")
+            failureFacade.logger.error("  - Key prefix: ${keyPrefix.ifEmpty { "<none>" }}")
             failureFacade.logger.error("  - Region: ${region.id()} (isGlobalRegion: ${region.isGlobalRegion})")
             failureFacade.logger.error("  - Custom endpoint: $customEndpoint")
             failureFacade.logger.error("  - Path style access: $pathStyleAccessEnabled")
             failureFacade.logger.error("  - Access key: ${maskSecret(settings.accessKey)}")
             failureFacade.logger.error("  - Secret key: ${maskSecret(settings.secretKey)}")
             throw IllegalStateException("Failed to initialize S3 storage provider", exception)
+        }
+    }
+
+    // "" for a dedicated bucket; "<prefix>/" / "<repo>/" / "<prefix>/<repo>/" once a prefix or single-bucket mode is set
+    private fun resolveKeyPrefix(settings: S3StorageProviderSettings, repositoryName: String): String {
+        val base = settings.prefix.trim('/').let { if (it.isEmpty()) "" else "$it/" }
+        return when {
+            settings.sharedBucket -> base + repositoryName.trim('/') + "/"
+            else -> base
         }
     }
 

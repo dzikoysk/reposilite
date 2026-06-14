@@ -16,12 +16,10 @@
 
 @file:Suppress("FunctionName")
 
-package com.reposilite.storage.infrastructure
+package com.reposilite.storage
 
 import com.reposilite.journalist.backend.InMemoryLogger
 import com.reposilite.status.FailureFacade
-import com.reposilite.storage.StorageFacade
-import com.reposilite.storage.StorageProviderIntegrationTest
 import com.reposilite.storage.api.toLocation
 import com.reposilite.storage.filesystem.FileSystemStorageProvider
 import com.reposilite.storage.filesystem.FileSystemStorageProviderSettings
