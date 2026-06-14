@@ -57,7 +57,7 @@ data class S3StorageProviderSettings(
 
 fun findS3SharedBucketConflicts(repositories: List<Pair<String, S3StorageProviderSettings>>): Set<String> =
     repositories
-        .groupBy { (_, settings) -> settings.endpoint to settings.bucketName }
+        .groupBy { (_, settings) -> settings.endpoint.trim().trimEnd('/') to settings.bucketName.trim() }
         .filterValues { it.size > 1 }
         .values
         .flatten()

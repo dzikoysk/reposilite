@@ -73,4 +73,14 @@ internal class S3SharedBucketConflictsTest {
 
         assertThat(conflicts).isEmpty()
     }
+
+    @Test
+    fun `should detect a conflict when endpoint and bucket differ only by trailing slash or whitespace`() {
+        val conflicts = findS3SharedBucketConflicts(listOf(
+            repository("releases", "shared", endpoint = "https://s3.example"),
+            repository("snapshots", " shared ", endpoint = "https://s3.example/"),
+        ))
+
+        assertThat(conflicts).containsExactlyInAnyOrder("releases", "snapshots")
+    }
 }
