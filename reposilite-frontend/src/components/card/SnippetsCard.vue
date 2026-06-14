@@ -41,6 +41,7 @@ const configurations = [
   { name: 'SBT', lang: 'scala' }
 ]
 const data = ref({})
+const loading = ref(false)
 const { createRepositories } = useRepository()
 const { parseMetadata } = useMetadata()
 const { client } = useSession()
@@ -66,21 +67,36 @@ watchEffect(() => {
   const qualifier = props.qualifier.path
   const elements = qualifier.split('/')
 
+  const isStale = () => qualifier !== props.qualifier.path
+
   if (elements.length === 1 && elements[0] == '') {
+    loading.value = false
     displayRepository()
     return
   }
 
+  loading.value = true
+
   client.value.maven.content(`${qualifier}/maven-metadata.xml`)
-    .then(response => displayArtifact(response.data))
+    .then(response => {
+      if (isStale()) return
+      displayArtifact(response.data)
+      loading.value = false
+    })
     .catch(() => {
       client.value.maven.content(`${qualifier.substring(0, qualifier.indexOf(elements[elements.length-1])-1)}/maven-metadata.xml`)
-        .then(response => displayArtifact(response.data, elements[elements.length-1]))
+        .then(response => {
+          if (isStale()) return
+          displayArtifact(response.data, elements[elements.length-1])
+          loading.value = false
+        })
         .catch(error => {
+          if (isStale()) return
           if (error.response?.status !== 404 && error.response?.status !== 403) {
             console.log(error)
           }
           displayRepository()
+          loading.value = false
         })
     })
 })
@@ -110,8 +126,9 @@ const selectTab = (tab) =>
   <div class="bg-white dark:bg-gray-900 shadow-lg p-7 rounded-xl border-gray-100 dark:border-black">
     <div class="flex flex-row justify-between">
       <h1 class="font-bold flex items-center w-full">
-        {{title}}
-        <span v-if="isCopySupported" @click="copy" class="ml-auto cursor-pointer">
+        <span v-if="loading" class="h-4 w-36 rounded bg-gray-200 dark:bg-gray-700 skeleton-bars" />
+        <template v-else>{{title}}</template>
+        <span v-if="isCopySupported && !loading" @click="copy" class="ml-auto cursor-pointer">
           <CopyIcon />
         </span>
       </h1>
@@ -127,20 +144,28 @@ const selectTab = (tab) =>
 
     <transition :name="transitionName" mode="out-in">
       <div :key="selectedTab" class="card-editor overflow-auto font-mono text-ssm h-29 relative mt-6 py-3 px-4 rounded-lg bg-gray-100 dark:bg-gray-800">
-        <template v-for="entry in configurations" :key="entry.name">
-          <template v-if="entry.name === selectedTab">
-            <RepositorySnippet
-                v-if="data.type === 'repository'"
-                ref="snippetRef"
-                :configuration="entry"
-                :data="data"
-            />
-            <ArtifactSnippet
-                v-else-if="data.type === 'artifact'"
-                ref="snippetRef"
-                :configuration="entry"
-                :data="data"
-            />
+        <div v-if="loading" class="skeleton-bars space-y-2.5 pt-1">
+          <div class="h-3 rounded bg-gray-200 dark:bg-gray-700" style="width: 80%" />
+          <div class="h-3 rounded bg-gray-200 dark:bg-gray-700" style="width: 55%" />
+          <div class="h-3 rounded bg-gray-200 dark:bg-gray-700" style="width: 68%" />
+          <div class="h-3 rounded bg-gray-200 dark:bg-gray-700" style="width: 40%" />
+        </div>
+        <template v-else>
+          <template v-for="entry in configurations" :key="entry.name">
+            <template v-if="entry.name === selectedTab">
+              <RepositorySnippet
+                  v-if="data.type === 'repository'"
+                  ref="snippetRef"
+                  :configuration="entry"
+                  :data="data"
+              />
+              <ArtifactSnippet
+                  v-else-if="data.type === 'artifact'"
+                  ref="snippetRef"
+                  :configuration="entry"
+                  :data="data"
+              />
+            </template>
           </template>
         </template>
       </div>

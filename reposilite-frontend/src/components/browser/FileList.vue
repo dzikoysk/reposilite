@@ -22,14 +22,26 @@ import { createURL } from '../../store/client'
 import { useSession } from '../../store/session'
 import ListEntry from './DetailedListEntry.vue'
 import DeleteEntryModal from './DeleteEntryModal.vue'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { property } from '../../helpers/vue-extensions'
 
 const props = defineProps({
   qualifier: property(Object, true),
   files: property(Object, true),
-  compactMode: property(Boolean, true)
+  compactMode: property(Boolean, true),
+  loading: property(Boolean, true)
 })
+
+// cycled across skeleton rows so the placeholder name bars vary in width
+const skeletonWidths = ['11rem', '7rem', '14rem', '9rem', '12rem', '8rem']
+const skeletonCount = computed(() => Math.min(props.files.list?.length || 5, 10))
+
+// one index-keyed loop so rows patch in place (skeleton -> data) instead of remounting
+const displayedEntries = computed(() =>
+  props.loading
+    ? Array.from({ length: skeletonCount.value }, () => ({ __skeleton: true }))
+    : (props.files.list ?? [])
+)
 
 const route = useRoute()
 const { client } = useSession()
@@ -90,30 +102,48 @@ const RouterEntry = ({ file }, context) => {
       :close="closeDeleteModal"
     />
     <div :class="{'compact-background': compactMode}">
-      <div v-for="file in files.list" v-bind:key="file">
-        <RouterEntry v-if="isDirectory(file)" :file="file">
-          <ListEntry
-            :file="file"
-            :qualifier="qualifier"
-            :openDeleteEntryModal="openDeleteModal"
-            :compactMode="compactMode"
-          />
-        </RouterEntry>
-        <LinkEntry v-else :file="file">
-          <ListEntry 
-            :file="file" 
-            :qualifier="qualifier"
-            :url="createURL(`${$route.path}/${file.name}`)"
-            :openDeleteEntryModal="openDeleteModal"
-            :compactMode="compactMode"
-          />
-        </LinkEntry>
+      <div v-for="(entry, index) in displayedEntries" :key="index">
+        <div
+          v-if="entry.__skeleton"
+          :class="{ 'default-entry': !compactMode, 'compact-entry': compactMode }"
+        >
+          <div class="flex flex-row max-w-full items-center skeleton-bars">
+            <div :class="{ 'default-icon': !compactMode, 'compact-icon': compactMode }">
+              <div class="w-3 h-3 rounded-full bg-gray-200 dark:bg-gray-700" />
+            </div>
+            <div class="h-3.5 rounded bg-gray-200 dark:bg-gray-700" :style="{ width: skeletonWidths[index % skeletonWidths.length] }" />
+          </div>
+          <div class="flex flex-1 justify-end items-center skeleton-bars">
+            <div class="pr-6">
+              <div class="h-3 w-10 rounded bg-gray-200 dark:bg-gray-700" />
+            </div>
+          </div>
+        </div>
+        <template v-else>
+          <RouterEntry v-if="isDirectory(entry)" :file="entry">
+            <ListEntry
+              :file="entry"
+              :qualifier="qualifier"
+              :openDeleteEntryModal="openDeleteModal"
+              :compactMode="compactMode"
+            />
+          </RouterEntry>
+          <LinkEntry v-else :file="entry">
+            <ListEntry
+              :file="entry"
+              :qualifier="qualifier"
+              :url="createURL(`${$route.path}/${entry.name}`)"
+              :openDeleteEntryModal="openDeleteModal"
+              :compactMode="compactMode"
+            />
+          </LinkEntry>
+        </template>
       </div>
     </div>
-    <div v-if="files.isEmpty" class="pl-2 pb-4">
+    <div v-if="!loading && files.isEmpty" class="pl-2 pb-4">
       <p>Directory is empty</p>
     </div>
-    <div v-if="files.error" class="pl-2">
+    <div v-if="!loading && files.error" class="pl-2">
       <p>Directory not found</p>
     </div>
   </div>

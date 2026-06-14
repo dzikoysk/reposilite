@@ -73,4 +73,13 @@ html, body {
 .bg-default {
   @apply bg-gray-100 dark:border-gray-900;
 }
+
+/* skeleton placeholders: the card/background is instant, only these bars fade in so a fast response replaces them before they flicker */
+.skeleton-bars {
+  animation: skeleton-fade-in 0.8s ease-out 0.2s both;
+}
+@keyframes skeleton-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
 </style>

@@ -36,6 +36,7 @@ const props = defineProps({
 
 const parentPath = ref('')
 const files = ref({})
+const loading = ref(true)
 const { details, client, hasPermissionTo } = useSession()
 const { applyAdjustments } = useAdjustments()
 const { getParentPath } = useQualifier()
@@ -56,21 +57,23 @@ watch(
       return
     }
 
-    files.value = {
-      list: []
-    }
-
     const qualifier = props.qualifier.path
+    const isStale = () => qualifier !== props.qualifier.path
+    parentPath.value = getParentPath()
+    loading.value = true
 
     client.value.maven.details(qualifier)
       .then(response => {
+        if (isStale()) return
         files.value = {
           list: response.data.files,
           isEmpty: response.data.files.length === 0,
           error: false
         }
+        loading.value = false
       })
       .catch(error => {
+        if (isStale()) return
         // simulate intermediate directory if 403 & user has access to only one directory
         const currentRoutes = details.value.routes
             ?.filter(route => route.path.startsWith(`/${qualifier}`))
@@ -100,9 +103,9 @@ watch(
             error: true
           }
         }
-      })
 
-    parentPath.value = getParentPath()
+        loading.value = false
+      })
   },
   { immediate: true }
 )
@@ -151,7 +154,7 @@ const MenuButton = (_, context) => {
               </AdjustmentsModal>
             </div>
           </div>
-          <FileList :qualifier="qualifier" :files="processedFiles" :compactMode="fileBrowserCompactMode"/>
+          <FileList :qualifier="qualifier" :files="processedFiles" :compactMode="fileBrowserCompactMode" :loading="loading"/>
           <BrowserUpload v-if="canUpload" :qualifier="qualifier" />
         </div>
       </div>
