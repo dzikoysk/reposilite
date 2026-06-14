@@ -47,19 +47,14 @@ data class S3StorageProviderSettings(
     val secretKey: String = "",
     @get:Doc(title = "Region", description = "Overwrite AWS region (optional)")
     val region: String = "",
-    @get:Doc(title = "Key Prefix", description = "Optional prefix prepended to every object key, e.g. 'reposilite', to scope Reposilite's data within a bucket shared with other services. Empty by default.")
+    @get:Doc(title = "Key Prefix", description = "Optional prefix prepended to all object keys, e.g. to scope data within a bucket shared with other services")
     val prefix: String = "",
-    @get:Doc(title = "Shared Bucket", description = "Enable when several repositories share this bucket. Object keys are then namespaced under the repository name to avoid collisions. Must be enabled on every repository sharing a bucket; otherwise those repositories are refused on startup.")
+    @get:Doc(title = "Shared Bucket", description = "Namespace objects under the repository name so several repositories can share one bucket (optional)")
     val sharedBucket: Boolean = false,
     @get:Doc(title = "Local Metadata Cache", description = "Local metadata cache settings (optional). The default is no caching. NOTE: This cache is local only. If you run multiple instances, they will not share the cache!")
     val metadataCacheSettings: S3MetadataCacheSettings? = null,
 ) : StorageProviderSettings
 
-/**
- * Multiple repositories may share one S3 bucket only in single-bucket mode ([S3StorageProviderSettings.sharedBucket]),
- * which namespaces keys under the repository name. Returns the ids of repositories that target a bucket also used by
- * another repository while not in single-bucket mode - those would collide at the bucket root and must not be loaded.
- */
 fun findS3SharedBucketConflicts(repositories: List<Pair<String, S3StorageProviderSettings>>): Set<String> =
     repositories
         .groupBy { (_, settings) -> settings.endpoint to settings.bucketName }

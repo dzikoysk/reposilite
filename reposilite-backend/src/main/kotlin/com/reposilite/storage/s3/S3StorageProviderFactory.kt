@@ -128,7 +128,6 @@ class S3StorageProviderFactory : StorageProviderFactory<S3StorageProvider, S3Sto
         }
     }
 
-    // "" for a dedicated bucket; "<prefix>/" / "<repo>/" / "<prefix>/<repo>/" once a prefix or single-bucket mode is set
     private fun resolveKeyPrefix(settings: S3StorageProviderSettings, repositoryName: String): String {
         val base = settings.prefix.trim('/').let { if (it.isEmpty()) "" else "$it/" }
         return when {

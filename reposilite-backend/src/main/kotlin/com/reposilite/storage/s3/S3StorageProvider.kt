@@ -64,7 +64,6 @@ class S3StorageProvider(
     private val failureFacade: FailureFacade,
     private val s3: S3Client,
     private val bucket: String,
-    // normalized to "" or "<some>/<path>/"; namespaces this repository's keys within the bucket
     private val keyPrefix: String = "",
 ) : StorageProvider, Journalist {
 
@@ -176,7 +175,6 @@ class S3StorageProvider(
     private fun Location.toBucketDirectoryPrefix(): String =
         keyPrefix + toDirectoryPrefix()
 
-    // S3 returns keys/prefixes including keyPrefix; strip it before rebuilding repository-relative Locations
     private fun String.withoutKeyPrefix(): String =
         removePrefix(keyPrefix)
 
