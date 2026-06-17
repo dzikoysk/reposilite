@@ -21,6 +21,16 @@ import org.junit.jupiter.api.Test
 
 internal class S3SharedBucketConflictsTest {
 
+    @Test
+    fun `should ignore repositories with a blank bucket name`() {
+        val conflicts = findS3SharedBucketConflicts(listOf(
+            repository("releases", ""),
+            repository("snapshots", ""),
+        ))
+
+        assertThat(conflicts).isEmpty()
+    }
+
     private fun repository(id: String, bucket: String, endpoint: String = "", prefix: String = "", sharedBucket: Boolean = false): Pair<String, S3StorageProviderSettings> =
         id to S3StorageProviderSettings(bucketName = bucket, endpoint = endpoint, prefix = prefix, sharedBucket = sharedBucket)
 

@@ -67,6 +67,7 @@ fun findS3SharedBucketConflicts(repositories: List<Pair<String, S3StorageProvide
     val conflicts = mutableSetOf<String>()
 
     repositories
+        .filterNot { (_, settings) -> settings.bucketName.isBlank() }
         .groupBy { (_, settings) -> settings.endpoint.trim().trimEnd('/') to settings.bucketName.trim() }
         .values
         .filter { it.size > 1 }

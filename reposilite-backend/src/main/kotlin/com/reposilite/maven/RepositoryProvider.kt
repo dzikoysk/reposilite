@@ -89,7 +89,10 @@ internal class RepositoryProvider(
             .mapNotNull { configuration ->
                 when (configuration.id) {
                     in sharedBucketConflicts -> {
-                        failureFacade.logger.error("Cannot load repository '${configuration.id}': its S3 key namespace overlaps another repository sharing the same bucket. Give each repository a distinct 'prefix', or enable 'sharedBucket' on every repository sharing the bucket.")
+                        failureFacade.throwException(
+                            identifier = "Cannot load repository '${configuration.id}'",
+                            throwable = IllegalStateException("Its S3 key namespace overlaps another repository sharing the same bucket. Give each repository a distinct 'prefix', or enable 'sharedBucket' on every repository sharing the bucket.")
+                        )
                         null
                     }
                     else ->

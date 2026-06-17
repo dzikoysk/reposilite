@@ -207,9 +207,11 @@ class S3StorageProvider(
         }
 
         return try {
+            s3.deleteObject(createDeleteRequest(keyPrefix + prefix))
+
             val request = ListObjectsV2Request.builder()
                 .bucket(bucket)
-                .prefix(keyPrefix + prefix)
+                .prefix("$keyPrefix$prefix/")
                 .build()
 
             s3.listObjectsV2Paginator(request)
