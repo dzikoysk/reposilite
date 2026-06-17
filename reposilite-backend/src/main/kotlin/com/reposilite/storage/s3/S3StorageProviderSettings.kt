@@ -55,11 +55,31 @@ data class S3StorageProviderSettings(
     val metadataCacheSettings: S3MetadataCacheSettings? = null,
 ) : StorageProviderSettings
 
-fun findS3SharedBucketConflicts(repositories: List<Pair<String, S3StorageProviderSettings>>): Set<String> =
+fun S3StorageProviderSettings.resolveKeyPrefix(repositoryName: String): String {
+    val base = prefix.trim().trim('/').let { if (it.isEmpty()) "" else "$it/" }
+    return when {
+        sharedBucket -> base + repositoryName.trim().trim('/') + "/"
+        else -> base
+    }
+}
+
+fun findS3SharedBucketConflicts(repositories: List<Pair<String, S3StorageProviderSettings>>): Set<String> {
+    val conflicts = mutableSetOf<String>()
+
     repositories
         .groupBy { (_, settings) -> settings.endpoint.trim().trimEnd('/') to settings.bucketName.trim() }
-        .filterValues { it.size > 1 }
         .values
-        .flatten()
-        .filterNot { (_, settings) -> settings.sharedBucket }
-        .mapTo(mutableSetOf()) { (id, _) -> id }
+        .filter { it.size > 1 }
+        .forEach { group ->
+            val keyPrefixes = group.map { (id, settings) -> id to settings.resolveKeyPrefix(id) }
+            keyPrefixes.forEach { (id, keyPrefix) ->
+                // collide when key namespaces are equal or one nests under the other
+                val collides = keyPrefixes.any { (otherId, otherKeyPrefix) ->
+                    otherId != id && (keyPrefix.startsWith(otherKeyPrefix) || otherKeyPrefix.startsWith(keyPrefix))
+                }
+                if (collides) conflicts += id
+            }
+        }
+
+    return conflicts
+}

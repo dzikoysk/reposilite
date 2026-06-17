@@ -88,8 +88,8 @@ internal class S3StorageProviderIntegrationTest : StorageProviderIntegrationTest
     // keys under '<prefix>/<repository>/' so they neither see nor overwrite each other.
     @Test
     fun `should isolate repositories sharing one bucket in single-bucket mode`() {
-        val alpha = sharedBucketStorageProvider(repository = "alpha")
-        val beta = sharedBucketStorageProvider(repository = "beta")
+        val alpha = storageProvider(repository = "alpha")
+        val beta = storageProvider(repository = "beta")
         val artifact = "/com/example/artifact.jar".toLocation()
 
         assertOk(alpha.putFile(artifact, "alpha".toByteArray().inputStream()))
@@ -102,7 +102,34 @@ internal class S3StorageProviderIntegrationTest : StorageProviderIntegrationTest
         assertThat(String(assertOk(beta.getFile(artifact)).readBytes())).isEqualTo("beta")
     }
 
-    private fun sharedBucketStorageProvider(repository: String): StorageProvider {
+    @Test
+    fun `should scope removals to the deleting repository in single-bucket mode`() {
+        val alpha = storageProvider(repository = "alpha")
+        val beta = storageProvider(repository = "beta")
+        val artifact = "/com/example/artifact.jar".toLocation()
+
+        assertOk(alpha.putFile(artifact, "alpha".toByteArray().inputStream()))
+        assertOk(beta.putFile(artifact, "beta".toByteArray().inputStream()))
+
+        assertOk(alpha.removeFile("/com/example".toLocation()))
+
+        assertThat(alpha.exists(artifact)).isFalse
+        assertThat(beta.exists(artifact)).isTrue
+    }
+
+    @Test
+    fun `should isolate a prefixed repository from the bucket root without single-bucket mode`() {
+        val prefixed = storageProvider(repository = "prefixed", prefix = "reposilite", sharedBucket = false)
+        val root = storageProvider(repository = "root", prefix = "", sharedBucket = false)
+        val artifact = "/com/example/artifact.jar".toLocation()
+
+        assertOk(prefixed.putFile(artifact, "data".toByteArray().inputStream()))
+
+        assertThat(String(assertOk(prefixed.getFile(artifact)).readBytes())).isEqualTo("data")
+        assertThat(root.exists(artifact)).isFalse
+    }
+
+    private fun storageProvider(repository: String, prefix: String = "reposilite", sharedBucket: Boolean = true): StorageProvider {
         val logger = InMemoryLogger()
         return StorageFacade().createStorageProvider(
             journalist = logger,
@@ -115,8 +142,8 @@ internal class S3StorageProviderIntegrationTest : StorageProviderIntegrationTest
                 accessKey = "test",
                 secretKey = "test",
                 region = "us-east-1",
-                prefix = "reposilite",
-                sharedBucket = true
+                prefix = prefix,
+                sharedBucket = sharedBucket
             )
         )!!
     }

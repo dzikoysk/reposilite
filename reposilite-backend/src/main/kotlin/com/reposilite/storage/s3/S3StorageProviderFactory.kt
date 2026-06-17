@@ -105,7 +105,7 @@ class S3StorageProviderFactory : StorageProviderFactory<S3StorageProvider, S3Sto
                 else -> client.build()
             }
 
-        val keyPrefix = resolveKeyPrefix(settings, repositoryName)
+        val keyPrefix = settings.resolveKeyPrefix(repositoryName)
 
         return try {
             S3StorageProvider(
@@ -125,14 +125,6 @@ class S3StorageProviderFactory : StorageProviderFactory<S3StorageProvider, S3Sto
             failureFacade.logger.error("  - Access key: ${maskSecret(settings.accessKey)}")
             failureFacade.logger.error("  - Secret key: ${maskSecret(settings.secretKey)}")
             throw IllegalStateException("Failed to initialize S3 storage provider", exception)
-        }
-    }
-
-    private fun resolveKeyPrefix(settings: S3StorageProviderSettings, repositoryName: String): String {
-        val base = settings.prefix.trim('/').let { if (it.isEmpty()) "" else "$it/" }
-        return when {
-            settings.sharedBucket -> base + repositoryName.trim('/') + "/"
-            else -> base
         }
     }
 

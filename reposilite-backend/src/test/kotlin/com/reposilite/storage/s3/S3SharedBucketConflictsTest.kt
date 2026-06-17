@@ -21,8 +21,8 @@ import org.junit.jupiter.api.Test
 
 internal class S3SharedBucketConflictsTest {
 
-    private fun repository(id: String, bucket: String, endpoint: String = "", sharedBucket: Boolean = false): Pair<String, S3StorageProviderSettings> =
-        id to S3StorageProviderSettings(bucketName = bucket, endpoint = endpoint, sharedBucket = sharedBucket)
+    private fun repository(id: String, bucket: String, endpoint: String = "", prefix: String = "", sharedBucket: Boolean = false): Pair<String, S3StorageProviderSettings> =
+        id to S3StorageProviderSettings(bucketName = bucket, endpoint = endpoint, prefix = prefix, sharedBucket = sharedBucket)
 
     @Test
     fun `should report no conflicts when each repository targets its own bucket`() {
@@ -55,13 +55,33 @@ internal class S3SharedBucketConflictsTest {
     }
 
     @Test
-    fun `should report only the repository that opts out of single-bucket mode on a shared bucket`() {
+    fun `should allow non-shared repositories that share a bucket with distinct prefixes`() {
         val conflicts = findS3SharedBucketConflicts(listOf(
-            repository("releases", "shared", sharedBucket = true),
-            repository("snapshots", "shared", sharedBucket = false),
+            repository("releases", "shared", prefix = "releases"),
+            repository("snapshots", "shared", prefix = "snapshots"),
         ))
 
-        assertThat(conflicts).containsExactly("snapshots")
+        assertThat(conflicts).isEmpty()
+    }
+
+    @Test
+    fun `should report both repositories when non-shared repositories share a bucket and prefix`() {
+        val conflicts = findS3SharedBucketConflicts(listOf(
+            repository("releases", "shared", prefix = "artifacts"),
+            repository("snapshots", "shared", prefix = "artifacts"),
+        ))
+
+        assertThat(conflicts).containsExactlyInAnyOrder("releases", "snapshots")
+    }
+
+    @Test
+    fun `should report both repositories when one prefix nests under another`() {
+        val conflicts = findS3SharedBucketConflicts(listOf(
+            repository("outer", "shared", prefix = "team"),
+            repository("inner", "shared", prefix = "team/inner"),
+        ))
+
+        assertThat(conflicts).containsExactlyInAnyOrder("outer", "inner")
     }
 
     @Test
