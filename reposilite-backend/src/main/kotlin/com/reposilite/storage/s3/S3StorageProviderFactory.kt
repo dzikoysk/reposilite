@@ -105,16 +105,20 @@ class S3StorageProviderFactory : StorageProviderFactory<S3StorageProvider, S3Sto
                 else -> client.build()
             }
 
+        val keyPrefix = settings.resolveKeyPrefix(repositoryName)
+
         return try {
             S3StorageProvider(
                 failureFacade = failureFacade,
                 s3 = s3Client,
-                bucket = settings.bucketName
+                bucket = settings.bucketName,
+                keyPrefix = keyPrefix
             )
         } catch (exception: Exception) {
             failureFacade.logger.error("Cannot connect to S3 storage provider: ${exception.message}")
             failureFacade.logger.error("S3 storage provider configuration:")
             failureFacade.logger.error("  - Bucket: ${settings.bucketName}")
+            failureFacade.logger.error("  - Key prefix: ${keyPrefix.ifEmpty { "<none>" }}")
             failureFacade.logger.error("  - Region: ${region.id()} (isGlobalRegion: ${region.isGlobalRegion})")
             failureFacade.logger.error("  - Custom endpoint: $customEndpoint")
             failureFacade.logger.error("  - Path style access: $pathStyleAccessEnabled")

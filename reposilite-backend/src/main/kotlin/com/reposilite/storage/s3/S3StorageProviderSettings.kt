@@ -47,6 +47,40 @@ data class S3StorageProviderSettings(
     val secretKey: String = "",
     @get:Doc(title = "Region", description = "Overwrite AWS region (optional)")
     val region: String = "",
+    @get:Doc(title = "Key Prefix", description = "Optional prefix prepended to all object keys, e.g. to scope data within a bucket shared with other services")
+    val prefix: String = "",
+    @get:Doc(title = "Shared Bucket", description = "Namespace objects under the repository name so several repositories can share one bucket (optional)")
+    val sharedBucket: Boolean = false,
     @get:Doc(title = "Local Metadata Cache", description = "Local metadata cache settings (optional). The default is no caching. NOTE: This cache is local only. If you run multiple instances, they will not share the cache!")
     val metadataCacheSettings: S3MetadataCacheSettings? = null,
 ) : StorageProviderSettings
+
+fun S3StorageProviderSettings.resolveKeyPrefix(repositoryName: String): String {
+    val base = prefix.trim().trim('/').let { if (it.isEmpty()) "" else "$it/" }
+    return when {
+        sharedBucket -> base + repositoryName.trim().trim('/') + "/"
+        else -> base
+    }
+}
+
+fun findS3SharedBucketConflicts(repositories: List<Pair<String, S3StorageProviderSettings>>): Set<String> {
+    val conflicts = mutableSetOf<String>()
+
+    repositories
+        .filterNot { (_, settings) -> settings.bucketName.isBlank() }
+        .groupBy { (_, settings) -> settings.endpoint.trim().trimEnd('/') to settings.bucketName.trim() }
+        .values
+        .filter { it.size > 1 }
+        .forEach { group ->
+            val keyPrefixes = group.map { (id, settings) -> id to settings.resolveKeyPrefix(id) }
+            keyPrefixes.forEach { (id, keyPrefix) ->
+                // collide when key namespaces are equal or one nests under the other
+                val collides = keyPrefixes.any { (otherId, otherKeyPrefix) ->
+                    otherId != id && (keyPrefix.startsWith(otherKeyPrefix) || otherKeyPrefix.startsWith(keyPrefix))
+                }
+                if (collides) conflicts += id
+            }
+        }
+
+    return conflicts
+}

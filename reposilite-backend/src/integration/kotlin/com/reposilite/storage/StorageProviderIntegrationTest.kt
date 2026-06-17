@@ -136,6 +136,21 @@ internal abstract class StorageProviderIntegrationTest : StorageProviderSpecific
     }
 
     @Test
+    fun `should not delete sibling entries that share a name prefix`() {
+        // given: a directory and a sibling whose name starts with the same characters
+        storageProvider.putFile("/com/example/foo/1.0.0/foo.jar".toLocation(), "content".byteInputStream())
+        storageProvider.putFile("/com/example/foo-bar/1.0.0/foo-bar.jar".toLocation(), "content".byteInputStream())
+
+        // when: the first directory is deleted
+        val response = storageProvider.removeFile("/com/example/foo".toLocation())
+
+        // then: the sibling sharing the name prefix must survive
+        assertOk(response)
+        assertThat(storageProvider.exists("/com/example/foo/1.0.0/foo.jar".toLocation())).isFalse
+        assertThat(storageProvider.exists("/com/example/foo-bar/1.0.0/foo-bar.jar".toLocation())).isTrue
+    }
+
+    @Test
     fun `should delete directory with files`() {
         // given: a directory with file & subdirectory in storage provider
         storageProvider.putFile("/directory/sub/sub/test.jar".toLocation(), "content".byteInputStream())

@@ -26,6 +26,8 @@ import com.reposilite.shared.notFoundError
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.status.FailureFacade
 import com.reposilite.storage.StorageFacade
+import com.reposilite.storage.s3.S3StorageProviderSettings
+import com.reposilite.storage.s3.findS3SharedBucketConflicts
 import java.nio.file.Path
 import panda.std.Result
 import panda.std.asSuccess
@@ -77,11 +79,27 @@ internal class RepositoryProvider(
             repositoriesNames = repositoriesConfiguration.map { it.id },
         )
 
+        val sharedBucketConflicts = findS3SharedBucketConflicts(
+            repositoriesConfiguration.mapNotNull { configuration ->
+                (configuration.storageProvider as? S3StorageProviderSettings)?.let { configuration.id to it }
+            }
+        )
+
         return repositoriesConfiguration.asSequence()
             .mapNotNull { configuration ->
-                runCatching { factory.createRepository(configuration.id, configuration) }
-                    .onFailure { failureFacade.throwException("Cannot load ${configuration.id} repository", it) }
-                    .getOrNull()
+                when (configuration.id) {
+                    in sharedBucketConflicts -> {
+                        failureFacade.throwException(
+                            identifier = "Cannot load repository '${configuration.id}'",
+                            throwable = IllegalStateException("Its S3 key namespace overlaps another repository sharing the same bucket. Give each repository a distinct 'prefix', or enable 'sharedBucket' on every repository sharing the bucket.")
+                        )
+                        null
+                    }
+                    else ->
+                        runCatching { factory.createRepository(configuration.id, configuration) }
+                            .onFailure { failureFacade.throwException("Cannot load ${configuration.id} repository", it) }
+                            .getOrNull()
+                }
             }
             .associateBy { it.name }
     }

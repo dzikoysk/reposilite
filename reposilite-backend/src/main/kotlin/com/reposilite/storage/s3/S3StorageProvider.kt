@@ -64,6 +64,7 @@ class S3StorageProvider(
     private val failureFacade: FailureFacade,
     private val s3: S3Client,
     private val bucket: String,
+    private val keyPrefix: String = "",
 ) : StorageProvider, Journalist {
 
     init {
@@ -111,7 +112,7 @@ class S3StorageProvider(
             try {
                 val builder = PutObjectRequest.builder()
                 builder.bucket(bucket)
-                builder.key(location.toString().replace('\\', '/'))
+                builder.key(location.toBucketKey())
                 builder.contentType(ContentType.mimeTypeByExtension(location.getExtension()) ?: OCTET_STREAM)
                 builder.contentLength(temporary.length())
                 s3.putObject(builder.build(), RequestBody.fromFile(temporary))
@@ -128,7 +129,7 @@ class S3StorageProvider(
         try {
             val request = GetObjectRequest.builder()
             request.bucket(bucket)
-            request.key(location.toString().replace('\\', '/'))
+            request.key(location.toBucketKey())
             s3.getObject(request.build()).asSuccess()
             // val bytes = ByteArray(Math.toIntExact(response.response().contentLength()))
             // response.read(bytes)
@@ -147,12 +148,12 @@ class S3StorageProvider(
         listDirectory(
             location = location,
             onDirectory = {
-                Location.ofRequest(it.prefix())
+                Location.ofRequest(it.prefix().withoutKeyPrefix())
                     .orNull()
                     ?.let { prefix -> SimpleDirectoryInfo(name = prefix.getSimpleName()) }
             },
             onFile = {
-                Location.ofRequest(it.key())
+                Location.ofRequest(it.key().withoutKeyPrefix())
                     .orNull()
                     ?.toDocumentInfo(
                         contentLength = it.size(),
@@ -167,6 +168,15 @@ class S3StorageProvider(
         toString().replace('\\', '/')
             .let { "$it/" }
             .letIf({ it == "/" }, { "" })
+
+    private fun Location.toBucketKey(): String =
+        keyPrefix + toString().replace('\\', '/')
+
+    private fun Location.toBucketDirectoryPrefix(): String =
+        keyPrefix + toDirectoryPrefix()
+
+    private fun String.withoutKeyPrefix(): String =
+        removePrefix(keyPrefix)
 
     private fun toDocumentInfo(location: Location, head: HeadObjectResponse): FileDetails =
         location.toDocumentInfo(
@@ -197,9 +207,11 @@ class S3StorageProvider(
         }
 
         return try {
+            s3.deleteObject(createDeleteRequest(keyPrefix + prefix))
+
             val request = ListObjectsV2Request.builder()
                 .bucket(bucket)
-                .prefix(prefix)
+                .prefix("$keyPrefix$prefix/")
                 .build()
 
             s3.listObjectsV2Paginator(request)
@@ -221,8 +233,8 @@ class S3StorageProvider(
     override fun getFiles(location: Location): Result<List<Location>, ErrorResponse> =
         listDirectory(
             location = location,
-            onDirectory = { Location.ofRequest(it.prefix()).orNull() },
-            onFile = { Location.ofRequest(it.key()).orNull() },
+            onDirectory = { Location.ofRequest(it.prefix().withoutKeyPrefix()).orNull() },
+            onFile = { Location.ofRequest(it.key().withoutKeyPrefix()).orNull() },
         )
 
     private fun <T> listDirectory(
@@ -235,7 +247,7 @@ class S3StorageProvider(
                 ListObjectsV2Request
                     .builder()
                     .bucket(bucket)
-                    .prefix(location.toDirectoryPrefix())
+                    .prefix(location.toBucketDirectoryPrefix())
                     .delimiter("/")
                     .build()
 
@@ -264,7 +276,7 @@ class S3StorageProvider(
         try {
             val request = HeadObjectRequest.builder()
             request.bucket(bucket)
-            request.key(location.toString().replace('\\', '/'))
+            request.key(location.toBucketKey())
             s3.headObject(request.build()).asSuccess()
         } catch (ignored: NoSuchKeyException) {
             notFoundError(ignored.message ?: "File not found")
