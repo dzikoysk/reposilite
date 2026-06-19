@@ -79,7 +79,7 @@ abstract class FileSystemStorageProvider protected constructor(
     val rootDirectory: Path,
 ) : StorageProvider {
 
-    private val usageCounterFile: Path = rootDirectory.resolve(".reposilite-usage")
+    private val usageCounterFile: Path = rootDirectory.resolve(".local/usage/${rootDirectory.name}")
     private val usageLock = Any()
     private var loadedUsage: Long = loadUsage()
 
