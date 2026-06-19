@@ -186,10 +186,11 @@ abstract class FileSystemStorageProvider protected constructor(
                             .flatMap { canHold(temporaryFile.fileSize()).mapErr { INSUFFICIENT_STORAGE.toErrorResponse("Not enough storage space available: ${it.message}") } }
                             .peek {
                                 val size = temporaryFile.fileSize()
+                                val oldSize = if (file.exists()) file.fileSize() else 0L
                                 acquireFileAccessLock(location, LockMode.WRITE).use {
                                     temporaryFile.moveTo(file, overwrite = true)
                                 }
-                                addToUsage(size)
+                                addToUsage(size - oldSize)
                             }
                             .mapToUnit()
                     }
