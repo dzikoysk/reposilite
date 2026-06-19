@@ -23,6 +23,7 @@ import com.reposilite.shared.notFound
 import com.reposilite.shared.stream.BoundedInputStream
 import com.reposilite.shared.stream.BoundedInputStreamLimitExceededException
 import com.reposilite.shared.toErrorResponse
+import com.reposilite.shared.internalServerError
 import com.reposilite.shared.toErrorResult
 import com.reposilite.storage.FilesComparator
 import com.reposilite.storage.StorageProvider
@@ -46,6 +47,7 @@ import java.io.Closeable
 import java.io.FilterInputStream
 import java.io.IOException
 import java.io.InputStream
+import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
 import java.nio.file.attribute.FileTime
@@ -288,7 +290,16 @@ abstract class FileSystemStorageProvider protected constructor(
             .fold({ true }, { false })
 
     override fun usage(): Result<Long, ErrorResponse> =
-        getFileSize(Location.empty())
+        try {
+            var total = 0L
+            Files.walk(rootDirectory).use { stream ->
+                stream.filter { it.type() == FILE }
+                    .forEach { total += it.fileSize() }
+            }
+            total.asSuccess()
+        } catch (e: IOException) {
+            internalServerError(e.message ?: "Failed to calculate usage")
+        }
 
     private fun Result<Path, ErrorResponse>.exists(): Result<Path, ErrorResponse> =
         filter({ it.exists() }) { notFound("File not found") }

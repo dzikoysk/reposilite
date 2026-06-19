@@ -167,9 +167,7 @@ internal class FileSystemStorageProviderIntegrationTest : StorageProviderIntegra
 
         @Test
         fun `should reject an upload meaningfully over the quota boundary`() {
-            // given: a payload comfortably above the configured 1 MB. Note: an exact `maxSize + 1`
-            // payload currently passes due to a one-byte slack inherited from `usage()` returning -1
-            // for the storage root — see docs/follow-ups/QUOTA_REDESIGN.md.
+            // given: a payload comfortably above the configured 1 MB
             val payload = ByteArray(2 * 1024 * 1024) { 'a'.code.toByte() }
 
             // when: the upload is attempted
