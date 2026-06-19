@@ -23,7 +23,6 @@ import com.reposilite.shared.notFound
 import com.reposilite.shared.stream.BoundedInputStream
 import com.reposilite.shared.stream.BoundedInputStreamLimitExceededException
 import com.reposilite.shared.toErrorResponse
-import com.reposilite.shared.internalServerError
 import com.reposilite.shared.toErrorResult
 import com.reposilite.storage.FilesComparator
 import com.reposilite.storage.StorageProvider
@@ -79,6 +78,43 @@ abstract class FileSystemStorageProvider protected constructor(
     val journalist: Journalist,
     val rootDirectory: Path,
 ) : StorageProvider {
+
+    private val usageCounterFile: Path = rootDirectory.resolve(".reposilite-usage")
+    private val usageLock = Any()
+    private var loadedUsage: Long = loadUsage()
+
+    private fun loadUsage(): Long =
+        try {
+            if (usageCounterFile.exists()) {
+                usageCounterFile.toFile().readText().trim().toLongOrNull()?.takeIf { it >= 0 }
+                    ?: recalculateUsage()
+            } else {
+                recalculateUsage()
+            }
+        } catch (e: Exception) {
+            recalculateUsage()
+        }
+
+    private fun recalculateUsage(): Long {
+        val size = Files.walk(rootDirectory).use { stream ->
+            stream.filter { it.type() == FILE }
+                .mapToLong { it.fileSize() }
+                .sum()
+        }
+        usageCounterFile.toFile().writeText("$size\n")
+        return size
+    }
+
+    private fun addToUsage(delta: Long) {
+        synchronized(usageLock) {
+            loadedUsage += delta
+            if (loadedUsage < 0) {
+                loadedUsage = recalculateUsage()
+            } else {
+                usageCounterFile.toFile().writeText("$loadedUsage\n")
+            }
+        }
+    }
 
     private enum class LockMode {
         READ,
@@ -149,9 +185,11 @@ abstract class FileSystemStorageProvider protected constructor(
                             // Re-check post-write: InputStream.available() is just a hint and returns 0 for HTTP request bodies.
                             .flatMap { canHold(temporaryFile.fileSize()).mapErr { INSUFFICIENT_STORAGE.toErrorResponse("Not enough storage space available: ${it.message}") } }
                             .peek {
+                                val size = temporaryFile.fileSize()
                                 acquireFileAccessLock(location, LockMode.WRITE).use {
                                     temporaryFile.moveTo(file, overwrite = true)
                                 }
+                                addToUsage(size)
                             }
                             .mapToUnit()
                     }
@@ -252,10 +290,19 @@ abstract class FileSystemStorageProvider protected constructor(
             .resolveWithRootDirectory()
             .filter({ !it.normalize().equals(rootDirectory.normalize()) }, { badRequest("Cannot remove repository root") })
             .map { rootPath ->
+                val removedSize = when {
+                    rootPath.isDirectory() -> Files.walk(rootPath).use { stream ->
+                        stream.filter { it.type() == FILE }
+                            .mapToLong { it.fileSize() }
+                            .sum()
+                    }
+                    else -> rootPath.fileSize()
+                }
                 when {
                     rootPath.isDirectory() -> rootPath.deleteRecursively()
                     else -> rootPath.deleteExisting()
                 }
+                addToUsage(-removedSize)
             }
 
     override fun getFiles(location: Location): Result<List<Location>, ErrorResponse> =
@@ -290,16 +337,7 @@ abstract class FileSystemStorageProvider protected constructor(
             .fold({ true }, { false })
 
     override fun usage(): Result<Long, ErrorResponse> =
-        try {
-            var total = 0L
-            Files.walk(rootDirectory).use { stream ->
-                stream.filter { it.type() == FILE }
-                    .forEach { total += it.fileSize() }
-            }
-            total.asSuccess()
-        } catch (e: IOException) {
-            internalServerError(e.message ?: "Failed to calculate usage")
-        }
+        loadedUsage.asSuccess()
 
     private fun Result<Path, ErrorResponse>.exists(): Result<Path, ErrorResponse> =
         filter({ it.exists() }) { notFound("File not found") }
