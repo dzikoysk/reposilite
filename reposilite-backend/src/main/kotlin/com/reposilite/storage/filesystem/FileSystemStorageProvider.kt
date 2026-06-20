@@ -74,47 +74,11 @@ import kotlin.io.path.useDirectoryEntries
 /**
  * @param rootDirectory root directory of storage space
  */
-abstract class FileSystemStorageProvider protected constructor(
+abstract class FileSystemStorageProvider internal constructor(
     val journalist: Journalist,
     val rootDirectory: Path,
+    private val usageTracker: UsageTracker? = null,
 ) : StorageProvider {
-
-    private val usageCounterFile: Path = rootDirectory.resolve(".local/usage/${rootDirectory.name}")
-    private val usageLock = Any()
-    private var loadedUsage: Long = loadUsage()
-
-    private fun loadUsage(): Long =
-        try {
-            if (usageCounterFile.exists()) {
-                usageCounterFile.toFile().readText().trim().toLongOrNull()?.takeIf { it >= 0 }
-                    ?: recalculateUsage()
-            } else {
-                recalculateUsage()
-            }
-        } catch (e: Exception) {
-            recalculateUsage()
-        }
-
-    private fun recalculateUsage(): Long {
-        val size = Files.walk(rootDirectory).use { stream ->
-            stream.filter { it.type() == FILE }
-                .mapToLong { it.fileSize() }
-                .sum()
-        }
-        usageCounterFile.toFile().writeText("$size\n")
-        return size
-    }
-
-    private fun addToUsage(delta: Long) {
-        synchronized(usageLock) {
-            loadedUsage += delta
-            if (loadedUsage < 0) {
-                loadedUsage = recalculateUsage()
-            } else {
-                usageCounterFile.toFile().writeText("$loadedUsage\n")
-            }
-        }
-    }
 
     private enum class LockMode {
         READ,
@@ -190,7 +154,7 @@ abstract class FileSystemStorageProvider protected constructor(
                                 acquireFileAccessLock(location, LockMode.WRITE).use {
                                     temporaryFile.moveTo(file, overwrite = true)
                                 }
-                                addToUsage(size - oldSize)
+                                usageTracker?.addDelta(size - oldSize)
                             }
                             .mapToUnit()
                     }
@@ -303,7 +267,7 @@ abstract class FileSystemStorageProvider protected constructor(
                     rootPath.isDirectory() -> rootPath.deleteRecursively()
                     else -> rootPath.deleteExisting()
                 }
-                addToUsage(-removedSize)
+                usageTracker?.addDelta(-removedSize)
             }
 
     override fun getFiles(location: Location): Result<List<Location>, ErrorResponse> =
@@ -338,7 +302,7 @@ abstract class FileSystemStorageProvider protected constructor(
             .fold({ true }, { false })
 
     override fun usage(): Result<Long, ErrorResponse> =
-        loadedUsage.asSuccess()
+        if (usageTracker != null) usageTracker.getUsage().asSuccess() else (-1L).asSuccess()
 
     private fun Result<Path, ErrorResponse>.exists(): Result<Path, ErrorResponse> =
         filter({ it.exists() }) { notFound("File not found") }
