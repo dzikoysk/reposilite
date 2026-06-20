@@ -41,4 +41,4 @@ Reposilite can mirror (proxy) other repositories:
 ### Custom repository
 You can also define a new one by just adding it in the configuration:
 
-![Configuration](/images/guides/settings-repositories.png)
+![Configuration](../../../public/images/guides/settings-repositories.png)

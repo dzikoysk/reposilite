@@ -65,7 +65,7 @@ If you're confused about your first auth configuration, you may find this video 
 
   <Spoiler title="Open visualization">
     <video controls>
-      <source src="/images/guides/token-generate.webm" type="video/webm" />
+      <source src="../../../public/images/guides/token-generate.webm" type="video/webm" />
       Your browser does not support the video tag.
     </video>
   </Spoiler>

@@ -37,7 +37,7 @@ $ java -Xmx32M -jar reposilite.jar
 Reposilite exposes interactive console directly in a terminal and it awaits for an input.
 Type `help` and learn more about available commands.
 
-![Interactive CLI](/images/guides/interactive-cli.gif)
+![Interactive CLI](../../../public/images/guides/interactive-cli.gif)
 
 `Note` Your first access token has to be generated through the terminal or provided as a command line argument.  
 Read more about tokens and token management commands in [Guide / Tokens](/guide/tokens).
@@ -47,7 +47,7 @@ Read more about tokens and token management commands in [Guide / Tokens](/guide/
 If Reposilite has been launched properly,
 you should be able to see its frontend located under the default http://localhost:8080/#/ address.
 
-![Web Interface Preview](/images/guides/web-interface-preview.png)
+![Web Interface Preview](../../../public/images/guides/web-interface-preview.png)
 
 ### Data structure
 

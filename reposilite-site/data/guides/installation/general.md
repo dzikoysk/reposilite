@@ -167,7 +167,7 @@ due to the lack of 3rd party service that could broadcast data between instances
 
 Shared configuration can be modified by access token with management permission through web interface in _Settings_ tab:
 
-![Dashboard / Configuration](/images/guides/web-interface-configuration.png)
+![Dashboard / Configuration](../../../public/images/guides/web-interface-configuration.png)
 
 #### Shared configuration as file
 

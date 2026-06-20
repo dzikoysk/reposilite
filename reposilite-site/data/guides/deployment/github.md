@@ -9,7 +9,7 @@ Before you can start working with [GitHub Actions](https://github.com/features/a
 you have to add access token to your environment.
 You can do this in `Your repository -> Settings -> Security -> Secrets and variables -> Actions`:
 
-![GitHub Actions :: Secret](/images/guides/github-actions-secrets.png)
+![GitHub Actions :: Secret](../../../public/images/guides/github-actions-secrets.png)
 
 Defined variables can be used in workflow files using the given syntax: `${{ secrets.VARIABLE }}`.
 
