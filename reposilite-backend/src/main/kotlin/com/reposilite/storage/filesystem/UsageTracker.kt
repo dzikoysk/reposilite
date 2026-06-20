@@ -21,7 +21,7 @@ internal class UsageTracker(
 
     fun addDelta(delta: Long) {
         synchronized(lock) {
-            loadedUsage += delta
+            loadedUsage = loadUsage() + delta
             if (loadedUsage < 0) {
                 loadedUsage = recalculate()
             } else {
