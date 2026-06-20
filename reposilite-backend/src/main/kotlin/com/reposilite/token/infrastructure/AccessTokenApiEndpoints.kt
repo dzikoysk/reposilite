@@ -129,7 +129,7 @@ internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessToke
         requestBody = OpenApiRequestBody(
             content = [OpenApiContent(UpdateAccessTokenWithNoNameRequest::class)],
             required = true,
-            description = "Fields to update; null expiresAt removes any existing expiration"
+            description = "Full token metadata; omitted fields fall back to defaults and overwrite existing values"
         ),
         pathParams = [OpenApiParam(name = "name", description = "Name of the token to update", required = true)],
         methods = [HttpMethod.PATCH]

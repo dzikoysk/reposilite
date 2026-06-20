@@ -69,8 +69,8 @@ const createToken = (name, { type, description = '' }) =>
 const saveToken = (token, overrides, successMessage) =>
   client.value.tokens.update(token.name, { ...toUpdateRequest(token), ...overrides })
     .then(() => fetchTokens())
-    .then(() => createSuccessToast(successMessage))
-    .catch(error => createErrorToast(errorMessage(error)))
+    .then(() => { createSuccessToast(successMessage); return true })
+    .catch(error => { createErrorToast(errorMessage(error)); return false })
 
 const saveTokenMeta = (token, { description, manager, expiresAt }) =>
   saveToken(token, {

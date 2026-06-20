@@ -78,6 +78,18 @@ internal class AccessTokenFacadeTest : AccessTokenSpecification() {
     }
 
     @Test
+    fun `should update a token to an already-past expiration without failing`() {
+        // given: an existing token
+        val token = createToken("reposilite").accessToken
+
+        // when: it is updated with an expiration in the past (which evicts it on the next lookup)
+        val result = accessTokenFacade.updateAccessToken(token.name, UpdateAccessTokenRequest(expiresAt = Instant.now().minusSeconds(60)))
+
+        // then: the update returns the resulting details instead of throwing
+        assertOk(result)
+    }
+
+    @Test
     fun `should fail to update a non-existing token`() {
         // when: a token that does not exist is updated
         val result = accessTokenFacade.updateAccessToken("ghost", UpdateAccessTokenRequest(description = "updated"))

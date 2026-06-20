@@ -57,7 +57,7 @@ data class CreateAccessTokenWithNoNameRequest(
     val permissions: Set<String> = emptySet(),
     @get:OpenApiDescription("Route permissions assigned to the created token")
     val routes: Set<Route> = emptySet(),
-    @get:OpenApiDescription("Optional expiration timestamp (ISO-8601 Instant), only supported for temporary tokens")
+    @get:OpenApiDescription("Optional expiration timestamp (ISO-8601 Instant); null for no expiration")
     val expiresAt: Instant? = null,
     @get:OpenApiDescription("Optional human-readable description of the token")
     val description: String = "",

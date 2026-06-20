@@ -91,7 +91,7 @@ const editToken = (token) => {
   editing.value = `token:${tid(token)}`
 }
 const saveToken = (token) =>
-  saveTokenMeta(token, draft.value).then(close)
+  saveTokenMeta(token, draft.value).then(ok => { if (ok) close() })
 
 const editRoute = (token, route) => { editing.value = `route:${tid(token)}:${route.path}`; draft.value = { path: route.path, read: route.read, write: route.write, original: route.path } }
 const addRoute = (token) => { editing.value = `newroute:${tid(token)}`; draft.value = { path: '', read: true, write: false } }
@@ -100,7 +100,7 @@ const persistRoute = (token) => {
   if (!path) return
   if (!path.startsWith('/')) path = '/' + path
   if (!draft.value.read && !draft.value.write) { createWarningToast('Select read and/or write'); return }
-  saveRoute(token, { ...draft.value, path }, draft.value.original).then(close)
+  saveRoute(token, { ...draft.value, path }, draft.value.original).then(ok => { if (ok) close() })
 }
 
 const startCreate = () => { editing.value = 'newtoken'; draft.value = { name: '', type: 'PERSISTENT' } }

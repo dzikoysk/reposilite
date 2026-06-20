@@ -86,15 +86,16 @@ class AccessTokenFacade internal constructor(
     }
 
     fun updateAccessToken(name: String, request: UpdateAccessTokenRequest): Result<AccessTokenDetailsDto, ErrorResponse> {
-        val dto = getAccessToken(name) ?: return notFoundError("Token not found")
+        val existing = getAccessToken(name) ?: return notFoundError("Token not found")
+        val updated = existing.copy(description = request.description, expiresAt = request.expiresAt)
 
-        getRawAccessTokenById(dto.identifier)
-            ?.copy(description = request.description, expiresAt = request.expiresAt)
-            ?.let { dto.identifier.type.getRepository().saveAccessToken(it) }
+        getRawAccessTokenById(updated.identifier)
+            ?.copy(description = updated.description, expiresAt = updated.expiresAt)
+            ?.let { updated.identifier.type.getRepository().saveAccessToken(it) }
 
-        syncPermissionsAndRoutes(dto.identifier, request.permissions, request.routes)
+        syncPermissionsAndRoutes(updated.identifier, request.permissions, request.routes)
 
-        return getAccessTokenDetails(getAccessToken(name)!!).asSuccess()
+        return getAccessTokenDetails(updated).asSuccess()
     }
 
     private fun syncPermissionsAndRoutes(
