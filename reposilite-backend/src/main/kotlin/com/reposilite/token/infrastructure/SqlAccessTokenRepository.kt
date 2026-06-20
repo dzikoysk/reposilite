@@ -43,6 +43,7 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.notInSubQuery
 import org.jetbrains.exposed.v1.core.java.javaUUID
 import org.jetbrains.exposed.v1.javatime.date
+import org.jetbrains.exposed.v1.javatime.timestamp
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
@@ -58,6 +59,7 @@ object AccessTokenTable : IntIdTable("access_token") {
     val secret = varchar("secret", 512)
     val createdAt = date("createdAt")
     val description = text("description")
+    val expiresAt = timestamp("expiresAt").nullable()
 }
 
 object PermissionToAccessTokenTable : Table("permission_access_token") {
@@ -126,6 +128,7 @@ internal class SqlAccessTokenRepository(
             it[this.secret] = accessToken.encryptedSecret
             it[this.createdAt] = accessToken.createdAt
             it[this.description] = accessToken.description
+            it[this.expiresAt] = accessToken.expiresAt
         }
         return accessToken.copy(identifier = AccessTokenIdentifier(PERSISTENT, getIdByName(accessToken.name)))
     }
@@ -136,6 +139,7 @@ internal class SqlAccessTokenRepository(
             it[this.secret] = accessToken.encryptedSecret
             it[this.createdAt] = accessToken.createdAt
             it[this.description] = accessToken.description
+            it[this.expiresAt] = accessToken.expiresAt
         })
         return accessToken
     }
@@ -229,7 +233,8 @@ internal class SqlAccessTokenRepository(
             result[AccessTokenTable.name],
             result[AccessTokenTable.secret],
             result[AccessTokenTable.createdAt],
-            result[AccessTokenTable.description]
+            result[AccessTokenTable.description],
+            result[AccessTokenTable.expiresAt]
         )
 
     override fun findAccessTokenByName(name: String): AccessToken? =

@@ -16,7 +16,9 @@
 
 package com.reposilite.token
 
+import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.token.api.CreateAccessTokenRequest
+import com.reposilite.token.api.UpdateAccessTokenRequest
 import com.reposilite.token.specification.AccessTokenSpecification
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -25,6 +27,14 @@ import java.time.Instant
 import java.time.LocalDate
 
 internal class AccessTokenFacadeTest : AccessTokenSpecification() {
+
+    @Test
+    fun `should report token expiry from expiresAt`() {
+        val id = AccessTokenIdentifier(value = 1)
+        assertThat(AccessTokenDto(id, "no-expiry", LocalDate.now(), "", null).isExpired()).isFalse()
+        assertThat(AccessTokenDto(id, "future", LocalDate.now(), "", Instant.now().plusSeconds(60)).isExpired()).isFalse()
+        assertThat(AccessTokenDto(id, "past", LocalDate.now(), "", Instant.now().minusSeconds(60)).isExpired()).isTrue()
+    }
 
     @Test
     fun `should create token`() {
@@ -52,6 +62,43 @@ internal class AccessTokenFacadeTest : AccessTokenSpecification() {
         // then: stored token should be updated
         val storedToken = accessTokenFacade.getAccessToken("reposilite")!!
         assertThat(storedToken.name).isEqualTo("reposilite")
+    }
+
+    @Test
+    fun `should preserve the secret when updating an existing token`() {
+        // given: a token with a known secret
+        val token = createToken("reposilite", "original-secret")
+
+        // when: the token is updated via updateAccessToken (the UI's edit path)
+        assertOk(accessTokenFacade.updateAccessToken(token.name, UpdateAccessTokenRequest(description = "updated")))
+
+        // then: the secret is unchanged and the new metadata is applied
+        assertThat(accessTokenFacade.secretMatches(token.identifier, "original-secret")).isTrue
+        assertThat(accessTokenFacade.getAccessToken(token.name)!!.description).isEqualTo("updated")
+    }
+
+    @Test
+    fun `should fail to update a non-existing token`() {
+        // when: a token that does not exist is updated
+        val result = accessTokenFacade.updateAccessToken("ghost", UpdateAccessTokenRequest(description = "updated"))
+
+        // then: a not-found error is returned
+        assertThat(result.isErr).isTrue
+        assertThat(result.error.status).isEqualTo(404)
+    }
+
+    @Test
+    fun `should preserve creation date when updating an existing token`() {
+        // given: a token whose creation date is in the past
+        val token = createToken("reposilite").accessToken
+        val originalCreatedAt = LocalDate.now().minusDays(30)
+        accessTokenFacade.updateToken(token.copy(createdAt = originalCreatedAt))
+
+        // when: the token is updated via updateAccessToken (the UI's edit path)
+        assertOk(accessTokenFacade.updateAccessToken(token.name, UpdateAccessTokenRequest(description = "updated")))
+
+        // then: the original creation date is retained, not reset to today
+        assertThat(accessTokenFacade.getAccessToken(token.name)!!.createdAt).isEqualTo(originalCreatedAt)
     }
 
     @Test

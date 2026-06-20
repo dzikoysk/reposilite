@@ -88,7 +88,7 @@ const formsConfiguration = {
 </script>
 
 <template>
-  <div class="container mx-auto py-10 px-15">
+  <div class="settings-view container mx-auto pt-7 px-15 pb-12">
     <div class="flex justify-between pb-3 flex-col">
       <div>
         <p>Modify configuration shared between all instances.</p>
@@ -255,7 +255,7 @@ const formsConfiguration = {
 .tabs > div {
   @apply rounded-t-lg;
 }
-.tab-panel {
+.settings-view .tab-panel {
   @apply h-full;
   @apply border rounded-md px-6 py-2 dark:border-gray-600;
 }

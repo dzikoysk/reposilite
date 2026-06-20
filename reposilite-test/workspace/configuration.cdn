@@ -11,7 +11,7 @@
 # 127.0.0.1 will only allow connections from localhost.
 hostname: 0.0.0.0
 # Port to bind
-port: 8080
+port: 8888
 # Database configuration. Supported storage providers:
 # - mariadb localhost:3306 database user password
 # - sqlite reposilite.db

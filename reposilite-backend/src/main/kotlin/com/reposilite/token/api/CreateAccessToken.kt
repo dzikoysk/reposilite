@@ -38,6 +38,7 @@ data class CreateAccessTokenRequest(
     val permissions: Set<AccessTokenPermission> = emptySet(),
     val routes: Set<Route> = emptySet(),
     val expiresAt: Instant? = null,
+    val description: String = "",
 ) {
     data class Route(
         val path: String,
@@ -58,6 +59,8 @@ data class CreateAccessTokenWithNoNameRequest(
     val routes: Set<Route> = emptySet(),
     @get:OpenApiDescription("Optional expiration timestamp (ISO-8601 Instant), only supported for temporary tokens")
     val expiresAt: Instant? = null,
+    @get:OpenApiDescription("Optional human-readable description of the token")
+    val description: String = "",
 ) {
     @OpenApiName("CreateAccessTokenWithNoNameRequestRoute")
     data class Route(
@@ -73,4 +76,30 @@ data class CreateAccessTokenResponse(
     val permissions: Set<AccessTokenPermission>,
     val routes: Set<Route>,
     val secret: String,
+)
+
+data class UpdateAccessTokenWithNoNameRequest(
+    @get:OpenApiDescription("Optional human-readable description of the token")
+    val description: String = "",
+    @get:OpenApiDescription("Permissions assigned to the token: [MANAGER]")
+    val permissions: Set<String> = emptySet(),
+    @get:OpenApiDescription("Route permissions assigned to the token")
+    val routes: Set<Route> = emptySet(),
+    @get:OpenApiDescription("Optional expiration timestamp (ISO-8601 Instant); null removes any existing expiration")
+    val expiresAt: Instant? = null,
+) {
+    @OpenApiName("UpdateAccessTokenWithNoNameRequestRoute")
+    data class Route(
+        @get:OpenApiDescription("The path to which the permissions apply")
+        val path: String,
+        @get:OpenApiDescription("Permissions assigned to the provided path: [READ, WRITE]")
+        val permissions: Set<String> = emptySet(),
+    )
+}
+
+data class UpdateAccessTokenRequest(
+    val description: String = "",
+    val permissions: Set<AccessTokenPermission> = emptySet(),
+    val routes: Set<CreateAccessTokenRequest.Route> = emptySet(),
+    val expiresAt: Instant? = null,
 )

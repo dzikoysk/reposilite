@@ -46,6 +46,45 @@ let memory = 20
 let threads = 10
 let failures = 0
 
+const todayLocalDate = () => {
+  const now = new Date()
+  return [now.getFullYear(), now.getMonth() + 1, now.getDate()]
+}
+const permissionObject = (value) =>
+  value === "m" || value === "access-token:manager"
+    ? { identifier: "access-token:manager", shortcut: "m" }
+    : { identifier: value, shortcut: value }
+const routePermissionObject = (shortcut) =>
+  shortcut === "w"
+    ? { identifier: "route:write", shortcut: "w" }
+    : { identifier: "route:read", shortcut: "r" }
+
+let tokenSequence = 2
+let accessTokens = [
+  {
+    identifier: { type: "PERSISTENT", value: 1 },
+    name: "admin",
+    createdAt: [2023, 1, 1],
+    description: "Primary management token",
+    expiresAt: null,
+    permissions: [{ identifier: "access-token:manager", shortcut: "m" }],
+    routes: [],
+  },
+  {
+    identifier: { type: "PERSISTENT", value: 2 },
+    name: "ci-deployer",
+    createdAt: [2023, 2, 15],
+    description: "Used by the release pipeline",
+    expiresAt: null,
+    permissions: [],
+    routes: [
+      { path: "/releases", permission: { identifier: "route:read", shortcut: "r" } },
+      { path: "/releases", permission: { identifier: "route:write", shortcut: "w" } },
+      { path: "/snapshots", permission: { identifier: "route:read", shortcut: "r" } },
+    ],
+  },
+]
+
 setInterval(() => {
   memory += Math.random() * 10
   threads += 1
@@ -85,7 +124,7 @@ application
     res.setHeader("Access-Control-Allow-Headers", "*")
     res.setHeader(
       "Access-Control-Allow-Methods",
-      "PUT, POST, GET, HEAD, DELETE, OPTIONS"
+      "PUT, PATCH, POST, GET, HEAD, DELETE, OPTIONS"
     )
     next()
   })
@@ -96,6 +135,71 @@ application
   .get('/api/settings/schema/maven', (req, res) => res.send(mavenSettingsSchema))
   .get('/api/settings/domain/maven', (req, res) => res.send(mavenSettingsEntity))
   .put('/api/settings/domain/maven', (req, res) => { mavenSettingsEntity = req.body; res.send("") })
+  .get('/api/tokens', (req, res) =>
+    authorized(req, () => res.send(accessTokens), () => invalidCredentials(res))
+  )
+  .get('/api/tokens/:name', (req, res) =>
+    authorized(req, () => {
+      const token = accessTokens.find(entry => entry.name === req.params.name)
+      token ? res.send(token) : res.status(404).send({ status: 404, message: "Token not found" })
+    }, () => invalidCredentials(res))
+  )
+  .put('/api/tokens/:name', (req, res) =>
+    authorized(req, () => {
+      const name = req.params.name
+      const existing = accessTokens.find(entry => entry.name === name)
+      const secret = req.body.secret || crypto.randomBytes(24).toString("hex")
+      const permissions = (req.body.permissions || []).map(permissionObject)
+      const routes = (req.body.routes || []).flatMap(route =>
+        (route.permissions || []).map(permission => ({ path: route.path, permission: routePermissionObject(permission) }))
+      )
+      const token = {
+        identifier: existing ? existing.identifier : { type: req.body.type || "PERSISTENT", value: ++tokenSequence },
+        name,
+        createdAt: todayLocalDate(),
+        description: req.body.description || "",
+        expiresAt: req.body.expiresAt ? Math.floor(Date.parse(req.body.expiresAt) / 1000) : null,
+        permissions,
+        routes,
+      }
+      accessTokens = accessTokens.filter(entry => entry.name !== name).concat(token)
+      res.send({ accessToken: token, permissions, routes, secret })
+    }, () => invalidCredentials(res))
+  )
+  .patch('/api/tokens/:name', (req, res) =>
+    authorized(req, () => {
+      const name = req.params.name
+      const existing = accessTokens.find(entry => entry.name === name)
+      if (!existing) return res.status(404).send({ status: 404, message: "Token not found" })
+      const permissions = (req.body.permissions || []).map(permissionObject)
+      const routes = (req.body.routes || []).flatMap(route =>
+        (route.permissions || []).map(permission => ({ path: route.path, permission: routePermissionObject(permission) }))
+      )
+      const token = {
+        ...existing,
+        description: req.body.description || "",
+        expiresAt: req.body.expiresAt ? Math.floor(Date.parse(req.body.expiresAt) / 1000) : null,
+        permissions,
+        routes,
+      }
+      accessTokens = accessTokens.filter(entry => entry.name !== name).concat(token)
+      res.send({ ...token, permissions, routes })
+    }, () => invalidCredentials(res))
+  )
+  .delete('/api/tokens/:name', (req, res) =>
+    authorized(req, () => {
+      accessTokens = accessTokens.filter(entry => entry.name !== req.params.name)
+      res.send("")
+    }, () => invalidCredentials(res))
+  )
+  .post('/api/tokens/:name/secret', (req, res) =>
+    authorized(req, () => {
+      const token = accessTokens.find(entry => entry.name === req.params.name)
+      token
+        ? res.send(crypto.randomBytes(24).toString("hex"))
+        : res.status(404).send({ status: 404, message: "Token not found" })
+    }, () => invalidCredentials(res))
+  )
   .get(
     "/api/maven/details/snapshots",
     respond(createDirectoryDetails("/snapshot", []))
@@ -314,7 +418,7 @@ application
     )
     res.send(repositories)
   })
-  .put("*", (req, res) => {
+  .put(/.*/, (req, res) => {
     authorized(
       req,
       () => {
@@ -327,7 +431,7 @@ application
       () => invalidCredentials(res)
     )
   })
-  .delete("*", (req, res) => {
+  .delete(/.*/, (req, res) => {
     authorized(
       req,
       () => {
@@ -337,12 +441,12 @@ application
       () => invalidCredentials(res)
     )
   })
-  .get("*", (req, res) =>
+  .get(/.*/, (req, res) =>
     res.status(404).send({
       status: 404,
       message: "Not found",
     })
   )
-  .listen(8080)
+  .listen(8887)
 
-console.log("Reposilite stub API started on port 80")
+console.log("Reposilite stub API started on port 8887")

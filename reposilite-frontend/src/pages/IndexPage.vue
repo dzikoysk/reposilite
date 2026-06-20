@@ -25,6 +25,7 @@ import { property } from '../helpers/vue-extensions'
 
 const ConsoleView = defineAsyncComponent(() => import('../components/console/ConsoleView.vue'))
 const DashboardView = defineAsyncComponent(() => import('../components/dashboard/DashboardView.vue'))
+const TokensView = defineAsyncComponent(() => import('../components/tokens/TokensView.vue'))
 const SettingsView = defineAsyncComponent(() => import('../components/settings/SettingsView.vue'))
 
 defineProps({
@@ -35,6 +36,7 @@ const listOfTabs = [
   { name: 'Overview', manager: false },
   { name: 'Dashboard', manager: true },
   { name: 'Console', manager: true },
+  { name: 'Tokens', manager: true },
   { name: 'Settings', manager: true },
 ]
 
@@ -104,6 +106,9 @@ const selectHomepage = () =>
           </TabPanel>
           <TabPanel :val="'Console'" v-show="isManager">
             <ConsoleView v-if="selectedTab == 'Console'" :selectedTab="selectedTab" />
+          </TabPanel>
+          <TabPanel :val="'Tokens'" v-show="isManager">
+            <TokensView v-if="selectedTab == 'Tokens'" :selectedTab="selectedTab" />
           </TabPanel>
            <TabPanel :val="'Settings'" v-show="isManager">
             <SettingsView v-if="selectedTab == 'Settings'" :selectedTab="selectedTab" />

@@ -24,16 +24,19 @@ import com.reposilite.token.AccessTokenPermission.MANAGER
 import com.reposilite.token.AccessTokenSecurityProvider.generateSecret
 import com.reposilite.token.AccessTokenType.PERSISTENT
 import com.reposilite.token.api.AccessTokenDetails
+import com.reposilite.token.api.AccessTokenDetailsDto
 import com.reposilite.token.api.AccessTokenDto
 import com.reposilite.token.api.CreateAccessTokenRequest
 import com.reposilite.token.api.CreateAccessTokenResponse
 import com.reposilite.token.api.SecretType
 import com.reposilite.token.api.SecretType.ENCRYPTED
 import com.reposilite.token.api.SecretType.RAW
+import com.reposilite.token.api.UpdateAccessTokenRequest
 import panda.std.Result
 import panda.std.asSuccess
 import panda.std.letIf
 import java.nio.file.Path
+import java.time.LocalDate
 
 class AccessTokenFacade internal constructor(
     private val journalist: Journalist,
@@ -43,10 +46,6 @@ class AccessTokenFacade internal constructor(
 ) : Facade, Journalist {
 
     fun createAccessToken(request: CreateAccessTokenRequest): CreateAccessTokenResponse {
-        require(request.expiresAt == null || request.type != PERSISTENT) {
-            "Expiration date is only supported for temporary access tokens"
-        }
-
         val existingToken = request.type.getRepository().findAccessTokenByName(request.name)
         val oppositeToken = request.type.getOppositeRepository().findAccessTokenByName(request.name)
 
@@ -63,30 +62,55 @@ class AccessTokenFacade internal constructor(
                     AccessToken(
                         identifier = existingToken?.identifier ?: AccessTokenIdentifier(type = request.type),
                         name = request.name,
+                        createdAt = LocalDate.now(),
                         encryptedSecret = encodedSecret,
+                        description = request.description,
                         expiresAt = request.expiresAt,
                     )
                 )
                 .toDto()
         oppositeToken?.let { request.type.getOppositeRepository().deleteAccessToken(it.identifier) }
 
-        val identifier = createdToken.identifier
-        val currentPermissions = getPermissions(identifier)
-        val permissions = request.permissions
-        (currentPermissions - permissions).forEach { deletePermission(identifier, it) }
-        (permissions - currentPermissions).forEach { addPermission(identifier, it) }
-
-        val routes = request.routes.flatMapTo(HashSet()) { route -> route.permissions.map { Route(route.path, it) } }
-        val currentRoutes = getRoutes(identifier)
-        (currentRoutes - routes).forEach { deleteRoute(identifier, it) }
-        (routes - currentRoutes).forEach { addRoute(identifier, it) }
+        val routes = syncPermissionsAndRoutes(
+            identifier = createdToken.identifier,
+            permissions = request.permissions,
+            routeRequests = request.routes
+        )
 
         return CreateAccessTokenResponse(
             accessToken = createdToken,
-            permissions = permissions,
+            permissions = request.permissions,
             secret = secret,
             routes = routes
         )
+    }
+
+    fun updateAccessToken(name: String, request: UpdateAccessTokenRequest): Result<AccessTokenDetailsDto, ErrorResponse> {
+        val dto = getAccessToken(name) ?: return notFoundError("Token not found")
+
+        getRawAccessTokenById(dto.identifier)
+            ?.copy(description = request.description, expiresAt = request.expiresAt)
+            ?.let { dto.identifier.type.getRepository().saveAccessToken(it) }
+
+        syncPermissionsAndRoutes(dto.identifier, request.permissions, request.routes)
+
+        return getAccessTokenDetails(getAccessToken(name)!!).asSuccess()
+    }
+
+    private fun syncPermissionsAndRoutes(
+        identifier: AccessTokenIdentifier,
+        permissions: Set<AccessTokenPermission>,
+        routeRequests: Set<CreateAccessTokenRequest.Route>,
+    ): Set<Route> {
+        val currentPermissions = getPermissions(identifier)
+        (currentPermissions - permissions).forEach { deletePermission(identifier, it) }
+        (permissions - currentPermissions).forEach { addPermission(identifier, it) }
+
+        val routes = routeRequests.flatMapTo(HashSet()) { route -> route.permissions.map { Route(route.path, it) } }
+        val currentRoutes = getRoutes(identifier)
+        (currentRoutes - routes).forEach { deleteRoute(identifier, it) }
+        (routes - currentRoutes).forEach { addRoute(identifier, it) }
+        return routes
     }
 
     fun addAccessToken(accessTokenDetails: AccessTokenDetails): AccessTokenDto =
@@ -96,7 +120,8 @@ class AccessTokenFacade internal constructor(
                     type = accessToken.identifier.type,
                     name = accessToken.name,
                     secretType = ENCRYPTED,
-                    secret = accessToken.encryptedSecret
+                    secret = accessToken.encryptedSecret,
+                    description = accessToken.description
                 )
             )
 
@@ -198,6 +223,12 @@ class AccessTokenFacade internal constructor(
 
     fun getAccessTokens(): Collection<AccessTokenDto> =
         (temporaryRepository.findAll() + persistentRepository.findAll()).map { it.toDto() }
+
+    fun getAccessTokenDetails(token: AccessTokenDto): AccessTokenDetailsDto =
+        AccessTokenDetailsDto.of(token, getPermissions(token.identifier), getRoutes(token.identifier))
+
+    fun getAccessTokensDetails(): Collection<AccessTokenDetailsDto> =
+        getAccessTokens().map { getAccessTokenDetails(it) }
 
     fun count(): Long =
         temporaryRepository.countAccessTokens() + persistentRepository.countAccessTokens()
