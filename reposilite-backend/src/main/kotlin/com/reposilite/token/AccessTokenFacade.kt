@@ -87,11 +87,14 @@ class AccessTokenFacade internal constructor(
 
     fun updateAccessToken(name: String, request: UpdateAccessTokenRequest): Result<AccessTokenDetailsDto, ErrorResponse> {
         val existing = getAccessToken(name) ?: return notFoundError("Token not found")
-        val updated = existing.copy(description = request.description, expiresAt = request.expiresAt)
+        val raw = getRawAccessTokenById(existing.identifier) ?: return notFoundError("Token not found")
 
-        getRawAccessTokenById(updated.identifier)
-            ?.copy(description = updated.description, expiresAt = updated.expiresAt)
-            ?.let { updated.identifier.type.getRepository().saveAccessToken(it) }
+        val updated = raw.identifier.type.getRepository()
+            .saveAccessToken(raw.copy(
+                description = request.description ?: raw.description,
+                expiresAt = if (request.updateExpiresAt) request.expiresAt else raw.expiresAt,
+            ))
+            .toDto()
 
         syncPermissionsAndRoutes(updated.identifier, request.permissions, request.routes)
 
@@ -100,12 +103,16 @@ class AccessTokenFacade internal constructor(
 
     private fun syncPermissionsAndRoutes(
         identifier: AccessTokenIdentifier,
-        permissions: Set<AccessTokenPermission>,
-        routeRequests: Set<CreateAccessTokenRequest.Route>,
+        permissions: Set<AccessTokenPermission>?,
+        routeRequests: Set<CreateAccessTokenRequest.Route>?,
     ): Set<Route> {
-        val currentPermissions = getPermissions(identifier)
-        (currentPermissions - permissions).forEach { deletePermission(identifier, it) }
-        (permissions - currentPermissions).forEach { addPermission(identifier, it) }
+        permissions?.let {
+            val currentPermissions = getPermissions(identifier)
+            (currentPermissions - it).forEach { permission -> deletePermission(identifier, permission) }
+            (it - currentPermissions).forEach { permission -> addPermission(identifier, permission) }
+        }
+
+        if (routeRequests == null) return getRoutes(identifier)
 
         val routes = routeRequests.flatMapTo(HashSet()) { route -> route.permissions.map { Route(route.path, it) } }
         val currentRoutes = getRoutes(identifier)

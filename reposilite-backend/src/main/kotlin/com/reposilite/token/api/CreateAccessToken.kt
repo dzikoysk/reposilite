@@ -57,9 +57,9 @@ data class CreateAccessTokenWithNoNameRequest(
     val permissions: Set<String> = emptySet(),
     @get:OpenApiDescription("Route permissions assigned to the created token")
     val routes: Set<Route> = emptySet(),
-    @get:OpenApiDescription("Optional expiration timestamp (ISO-8601 Instant); null for no expiration")
+    @get:OpenApiDescription("Expiration timestamp (ISO-8601 Instant). If not provided, the token never expires")
     val expiresAt: Instant? = null,
-    @get:OpenApiDescription("Optional human-readable description of the token")
+    @get:OpenApiDescription("Human-readable description of the token")
     val description: String = "",
 ) {
     @OpenApiName("CreateAccessTokenWithNoNameRequestRoute")
@@ -79,27 +79,20 @@ data class CreateAccessTokenResponse(
 )
 
 data class UpdateAccessTokenWithNoNameRequest(
-    @get:OpenApiDescription("Optional human-readable description of the token")
-    val description: String = "",
-    @get:OpenApiDescription("Permissions assigned to the token: [MANAGER]")
-    val permissions: Set<String> = emptySet(),
-    @get:OpenApiDescription("Route permissions assigned to the token")
-    val routes: Set<Route> = emptySet(),
-    @get:OpenApiDescription("Optional expiration timestamp (ISO-8601 Instant); null removes any existing expiration")
+    @get:OpenApiDescription("Human-readable description of the token. If not provided, the current description is kept")
+    val description: String? = null,
+    @get:OpenApiDescription("Permissions assigned to the token: [MANAGER]. If not provided, the current permissions are kept")
+    val permissions: Set<String>? = null,
+    @get:OpenApiDescription("Route permissions assigned to the token. If not provided, the current routes are kept")
+    val routes: Set<CreateAccessTokenWithNoNameRequest.Route>? = null,
+    @get:OpenApiDescription("Expiration timestamp (ISO-8601 Instant). If not provided, the current expiration is kept. A null value clears it")
     val expiresAt: Instant? = null,
-) {
-    @OpenApiName("UpdateAccessTokenWithNoNameRequestRoute")
-    data class Route(
-        @get:OpenApiDescription("The path to which the permissions apply")
-        val path: String,
-        @get:OpenApiDescription("Permissions assigned to the provided path: [READ, WRITE]")
-        val permissions: Set<String> = emptySet(),
-    )
-}
+)
 
 data class UpdateAccessTokenRequest(
-    val description: String = "",
-    val permissions: Set<AccessTokenPermission> = emptySet(),
-    val routes: Set<CreateAccessTokenRequest.Route> = emptySet(),
+    val description: String? = null,
+    val permissions: Set<AccessTokenPermission>? = null,
+    val routes: Set<CreateAccessTokenRequest.Route>? = null,
     val expiresAt: Instant? = null,
+    val updateExpiresAt: Boolean = false,
 )

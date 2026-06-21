@@ -171,19 +171,15 @@ application
       const name = req.params.name
       const existing = accessTokens.find(entry => entry.name === name)
       if (!existing) return res.status(404).send({ status: 404, message: "Token not found" })
-      const permissions = (req.body.permissions || []).map(permissionObject)
-      const routes = (req.body.routes || []).flatMap(route =>
+      const token = { ...existing }
+      if (req.body.description != null) token.description = req.body.description
+      if (req.body.permissions != null) token.permissions = req.body.permissions.map(permissionObject)
+      if (req.body.routes != null) token.routes = req.body.routes.flatMap(route =>
         (route.permissions || []).map(permission => ({ path: route.path, permission: routePermissionObject(permission) }))
       )
-      const token = {
-        ...existing,
-        description: req.body.description || "",
-        expiresAt: req.body.expiresAt ? Math.floor(Date.parse(req.body.expiresAt) / 1000) : null,
-        permissions,
-        routes,
-      }
+      if ('expiresAt' in req.body) token.expiresAt = req.body.expiresAt ? Math.floor(Date.parse(req.body.expiresAt) / 1000) : null
       accessTokens = accessTokens.filter(entry => entry.name !== name).concat(token)
-      res.send({ ...token, permissions, routes })
+      res.send(token)
     }, () => invalidCredentials(res))
   )
   .delete('/api/tokens/:name', (req, res) =>

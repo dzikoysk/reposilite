@@ -44,7 +44,7 @@ const groupedToRequestRoutes = (grouped) =>
     .map(route => ({ path: route.path, permissions: [route.read && 'r', route.write && 'w'].filter(Boolean) }))
 
 const toMs = (value) =>
-  Array.isArray(value) ? new Date(value[0], value[1] - 1, value[2]).getTime()
+  Array.isArray(value) ? Date.UTC(value[0], value[1] - 1, value[2])
     : typeof value === 'number' ? (value < 1e12 ? value * 1000 : value)
     : new Date(value).getTime()
 

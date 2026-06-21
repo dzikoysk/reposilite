@@ -83,10 +83,53 @@ internal class AccessTokenFacadeTest : AccessTokenSpecification() {
         val token = createToken("reposilite").accessToken
 
         // when: it is updated with an expiration in the past (which evicts it on the next lookup)
-        val result = accessTokenFacade.updateAccessToken(token.name, UpdateAccessTokenRequest(expiresAt = Instant.now().minusSeconds(60)))
+        val result = accessTokenFacade.updateAccessToken(token.name, UpdateAccessTokenRequest(expiresAt = Instant.now().minusSeconds(60), updateExpiresAt = true))
 
         // then: the update returns the resulting details instead of throwing
         assertOk(result)
+    }
+
+    @Test
+    fun `should update only the provided fields and leave the rest unchanged`() {
+        // given: a token with a description, manager permission, a route, and an expiry
+        val token = createToken("reposilite").accessToken
+        val expiry = Instant.now().plusSeconds(3600)
+        assertOk(accessTokenFacade.updateAccessToken(token.name, UpdateAccessTokenRequest(
+            description = "original",
+            permissions = setOf(AccessTokenPermission.MANAGER),
+            routes = setOf(CreateAccessTokenRequest.Route("/releases", setOf(RoutePermission.READ))),
+            expiresAt = expiry,
+            updateExpiresAt = true,
+        )))
+
+        // when: only the description is updated, every other field omitted
+        assertOk(accessTokenFacade.updateAccessToken(token.name, UpdateAccessTokenRequest(description = "changed")))
+
+        // then: the description changes; permissions, routes and expiry are preserved
+        val updated = accessTokenFacade.getAccessToken(token.name)!!
+        assertThat(updated.description).isEqualTo("changed")
+        assertThat(updated.expiresAt).isEqualTo(expiry)
+        assertThat(accessTokenFacade.getPermissions(token.identifier)).contains(AccessTokenPermission.MANAGER)
+        assertThat(accessTokenFacade.getRoutes(token.identifier)).isNotEmpty
+    }
+
+    @Test
+    fun `should clear permissions and routes when explicitly set to empty`() {
+        // given: a token granted a manager permission and a route
+        val token = createToken("reposilite").accessToken
+        assertOk(accessTokenFacade.updateAccessToken(token.name, UpdateAccessTokenRequest(
+            permissions = setOf(AccessTokenPermission.MANAGER),
+            routes = setOf(CreateAccessTokenRequest.Route("/releases", setOf(RoutePermission.READ))),
+        )))
+        assertThat(accessTokenFacade.getPermissions(token.identifier)).contains(AccessTokenPermission.MANAGER)
+        assertThat(accessTokenFacade.getRoutes(token.identifier)).isNotEmpty
+
+        // when: permissions and routes are explicitly set to empty (not omitted)
+        assertOk(accessTokenFacade.updateAccessToken(token.name, UpdateAccessTokenRequest(permissions = emptySet(), routes = emptySet())))
+
+        // then: both are cleared
+        assertThat(accessTokenFacade.getPermissions(token.identifier)).isEmpty()
+        assertThat(accessTokenFacade.getRoutes(token.identifier)).isEmpty()
     }
 
     @Test

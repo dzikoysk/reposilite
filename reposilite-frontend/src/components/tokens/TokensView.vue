@@ -44,7 +44,7 @@ const draft = ref({})
 const secret = ref(null)
 const confirming = ref(null)
 
-const tid = (token) => token.identifier.value
+const tid = (token) => token.name
 const isOpen = (key) => editing.value === key
 const close = () => { editing.value = null }
 
@@ -56,13 +56,14 @@ const filtered = computed(() => {
     (token.routes || []).some(route => route.path.toLowerCase().includes(q)))
 })
 
-const formatDate = (value) => value == null ? null : new Date(toMs(value)).toLocaleDateString()
+const formatDate = (value) => value == null ? null : new Date(toMs(value)).toLocaleDateString(undefined, { timeZone: 'UTC' })
 const toDateInput = (value) => {
   if (!value) return ''
   const date = new Date(toMs(value))
   const pad = (n) => String(n).padStart(2, '0')
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
+  return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())}`
 }
+const minExpiry = () => toDateInput(Date.now())
 const routeLabel = (route) => [route.read && 'read', route.write && 'write'].filter(Boolean).join(' · ')
 
 const DAY = 86400000
@@ -80,21 +81,22 @@ const datesTitle = (token) => `Created ${formatDate(token.createdAt)}` + (token.
 
 /* Placeholder usage metric (UI commented out below) — Reposilite tracks no per-token usage yet. */
 const spark = (token) => {
-  const seed = tid(token) * 7 + token.name.length
+  const seed = token.name.length * 7
   return Array.from({ length: 10 }, (_, i) => 5 + ((seed * (i + 3)) % 18))
 }
 const requests = (token) => spark(token).reduce((a, b) => a + b, 0) * 11
 
 const editToken = (token) => {
   if (editing.value === `token:${tid(token)}`) { close(); return }
+  confirming.value = null
   draft.value = { description: token.description || '', manager: tokenIsManager(token), expiresAt: toDateInput(token.expiresAt) }
   editing.value = `token:${tid(token)}`
 }
 const saveToken = (token) =>
   saveTokenMeta(token, draft.value).then(ok => { if (ok) close() })
 
-const editRoute = (token, route) => { editing.value = `route:${tid(token)}:${route.path}`; draft.value = { path: route.path, read: route.read, write: route.write, original: route.path } }
-const addRoute = (token) => { editing.value = `newroute:${tid(token)}`; draft.value = { path: '', read: true, write: false } }
+const editRoute = (token, route) => { confirming.value = null; editing.value = `route:${tid(token)}:${route.path}`; draft.value = { path: route.path, read: route.read, write: route.write, original: route.path } }
+const addRoute = (token) => { confirming.value = null; editing.value = `newroute:${tid(token)}`; draft.value = { path: '', read: true, write: false } }
 const persistRoute = (token) => {
   let path = (draft.value.path || '').trim()
   if (!path) return
@@ -103,7 +105,7 @@ const persistRoute = (token) => {
   saveRoute(token, { ...draft.value, path }, draft.value.original).then(ok => { if (ok) close() })
 }
 
-const startCreate = () => { editing.value = 'newtoken'; draft.value = { name: '', type: 'PERSISTENT' } }
+const startCreate = () => { confirming.value = null; editing.value = 'newtoken'; draft.value = { name: '', type: 'PERSISTENT' } }
 const create = () => {
   const name = (draft.value.name || '').trim()
   if (name === '') { createWarningToast('Token name is required'); return }
@@ -114,7 +116,7 @@ const create = () => {
     .catch(error => createErrorToast(errorMessage(error)))
 }
 
-const ask = (token, action) => { confirming.value = { id: tid(token), action } }
+const ask = (token, action) => { editing.value = null; confirming.value = { id: tid(token), action } }
 const isConfirming = (token) => confirming.value?.id === tid(token)
 const runConfirm = (token) => {
   const { action } = confirming.value
@@ -187,7 +189,7 @@ const runConfirm = (token) => {
             <button :class="{ on: draft.manager }" @click="draft.manager = !draft.manager">manager</button>
           </div>
           <span class="when-label">expires</span>
-          <input class="when" type="date" v-model="draft.expiresAt" />
+          <input class="when" type="date" :min="minExpiry()" v-model="draft.expiresAt" />
           <button v-if="draft.expiresAt" class="sm" @click="draft.expiresAt = ''">clear</button>
           <button class="primary sm" @click="saveToken(token)">Save</button>
           <button class="sm" @click="close">Cancel</button>

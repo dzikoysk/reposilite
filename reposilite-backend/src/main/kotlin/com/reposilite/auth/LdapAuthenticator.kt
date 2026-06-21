@@ -112,6 +112,7 @@ internal class LdapAuthenticator(
                             )
                         ).accessToken
                 }
+                .filter({ !it.isExpired() }) { unauthorized("Invalid authorization credentials") }
         }
 
     private fun createDirContext(user: String, password: String): Result<out DirContext, ErrorResponse> =

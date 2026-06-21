@@ -16,6 +16,7 @@
 
 package com.reposilite.token.infrastructure
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.reposilite.shared.badRequest
 import com.reposilite.shared.notFoundError
 import com.reposilite.shared.toErrorResult
@@ -93,11 +94,9 @@ internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessToke
         managerOnly {
             response = supplyThrowing { ctx.bodyAsClass<CreateAccessTokenWithNoNameRequest>() }
                 .mapErr { badRequest("Failed to read body") }
-                .filter({ request -> request.permissions.all { AccessTokenPermission.findByAny(it) != null } }) {
-                    badRequest("Unknown access token permission, supported: ${AccessTokenPermission.entries.joinToString { it.identifier }}")
-                }
+                .filter({ request -> request.permissions.all { AccessTokenPermission.findByAny(it) != null } }) { unknownPermissionError() }
                 .filter({ request -> request.routes.all { route -> route.permissions.all { RoutePermission.findRoutePermissionByShortcut(it).isOk }}}) {
-                    badRequest("Unknown route permission, supported: ${RoutePermission.entries.joinToString { it.shortcut }}")
+                    unknownRouteError()
                 }
                 .map { request ->
                     accessTokenFacade.createAccessToken(
@@ -106,14 +105,8 @@ internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessToke
                             secret = request.secret,
                             secretType = request.secretType,
                             name = requireParameter("name"),
-                            permissions = request.permissions.mapNotNullTo(HashSet()) { AccessTokenPermission.findByAny(it) },
-                            routes =
-                                request.routes.mapTo(HashSet()) { route ->
-                                    CreateAccessTokenRequest.Route(
-                                        path = route.path,
-                                        permissions = route.permissions.mapNotNullTo(HashSet()) { RoutePermission.findRoutePermissionByShortcut(it).orNull() },
-                                    )
-                                },
+                            permissions = toPermissions(request.permissions),
+                            routes = toRequestRoutes(request.routes),
                             expiresAt = request.expiresAt,
                             description = request.description,
                         )
@@ -129,34 +122,30 @@ internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessToke
         requestBody = OpenApiRequestBody(
             content = [OpenApiContent(UpdateAccessTokenWithNoNameRequest::class)],
             required = true,
-            description = "Full token metadata; omitted fields fall back to defaults and overwrite existing values"
+            description = "Token metadata to update. Any field that is not provided is left unchanged"
         ),
-        pathParams = [OpenApiParam(name = "name", description = "Name of the token to update", required = true)],
+        pathParams = [OpenApiParam(name = "name", description = "Name of the token to be updated", required = true)],
         methods = [HttpMethod.PATCH]
     )
     val patchToken = ReposiliteRoute<AccessTokenDetailsDto>("/api/tokens/{name}", PATCH) {
         managerOnly {
-            response = supplyThrowing { ctx.bodyAsClass<UpdateAccessTokenWithNoNameRequest>() }
+            response = supplyThrowing { ctx.bodyAsClass<UpdateAccessTokenWithNoNameRequest>() to ctx.bodyAsClass<JsonNode>().has("expiresAt") }
                 .mapErr { badRequest("Failed to read body") }
-                .filter({ request -> request.permissions.all { AccessTokenPermission.findByAny(it) != null } }) {
-                    badRequest("Unknown access token permission, supported: ${AccessTokenPermission.entries.joinToString { it.identifier }}")
+                .filter({ (request, _) -> request.permissions.orEmpty().all { AccessTokenPermission.findByAny(it) != null } }) {
+                    unknownPermissionError()
                 }
-                .filter({ request -> request.routes.all { route -> route.permissions.all { RoutePermission.findRoutePermissionByShortcut(it).isOk }}}) {
-                    badRequest("Unknown route permission, supported: ${RoutePermission.entries.joinToString { it.shortcut }}")
+                .filter({ (request, _) -> request.routes.orEmpty().all { route -> route.permissions.all { RoutePermission.findRoutePermissionByShortcut(it).isOk }}}) {
+                    unknownRouteError()
                 }
-                .flatMap { request ->
+                .flatMap { (request, expiresAtProvided) ->
                     accessTokenFacade.updateAccessToken(
                         requireParameter("name"),
                         UpdateAccessTokenRequest(
                             description = request.description,
-                            permissions = request.permissions.mapNotNullTo(HashSet()) { AccessTokenPermission.findByAny(it) },
-                            routes = request.routes.mapTo(HashSet()) { route ->
-                                CreateAccessTokenRequest.Route(
-                                    path = route.path,
-                                    permissions = route.permissions.mapNotNullTo(HashSet()) { RoutePermission.findRoutePermissionByShortcut(it).orNull() },
-                                )
-                            },
+                            permissions = request.permissions?.let { toPermissions(it) },
+                            routes = request.routes?.let { toRequestRoutes(it) },
                             expiresAt = request.expiresAt,
+                            updateExpiresAt = expiresAtProvided,
                         )
                     )
                 }
@@ -192,6 +181,23 @@ internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessToke
                 ?: notFoundError("Token not found")
         }
     }
+
+    private fun unknownPermissionError() =
+        badRequest("Unknown access token permission, supported: ${AccessTokenPermission.entries.joinToString { it.identifier }}")
+
+    private fun unknownRouteError() =
+        badRequest("Unknown route permission, supported: ${RoutePermission.entries.joinToString { it.shortcut }}")
+
+    private fun toPermissions(permissions: Set<String>) =
+        permissions.mapNotNullTo(HashSet()) { AccessTokenPermission.findByAny(it) }
+
+    private fun toRequestRoutes(routes: Set<CreateAccessTokenWithNoNameRequest.Route>) =
+        routes.mapTo(HashSet()) { route ->
+            CreateAccessTokenRequest.Route(
+                path = route.path,
+                permissions = route.permissions.mapNotNullTo(HashSet()) { RoutePermission.findRoutePermissionByShortcut(it).orNull() },
+            )
+        }
 
     override val routes = routes(findAllTokens, findToken, upsertToken, patchToken, regenerateSecret, deleteToken)
 
