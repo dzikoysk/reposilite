@@ -28,7 +28,7 @@ internal class BasicAuthenticator(private val accessTokenFacade: AccessTokenFaca
 
     override fun authenticate(credentials: Credentials): Result<AccessTokenDto, ErrorResponse> =
         accessTokenFacade.getAccessToken(credentials.name)
-            ?.takeIf { accessTokenFacade.secretMatches(it.identifier, credentials.secret) }
+            ?.takeIf { !it.isExpired() && accessTokenFacade.secretMatches(it.identifier, credentials.secret) }
             ?.asSuccess()
             ?: unauthorizedError("Invalid authorization credentials")
 

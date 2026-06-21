@@ -147,6 +147,40 @@ const createClient = (defaultName, defaultSecret) => {
         })
       },
     },
+    tokens: {
+      list() {
+        return get("/api/tokens")
+      },
+      get(name) {
+        return get(`/api/tokens/${encodeURIComponent(name)}`)
+      },
+      createOrUpdate(name, request) {
+        return axios.put(createURL(`/api/tokens/${encodeURIComponent(name)}`), request, {
+          headers: {
+            "Content-Type": "application/json",
+            ...defaultAuthorization().headers,
+          },
+        })
+      },
+      update(name, request) {
+        return axios.patch(createURL(`/api/tokens/${encodeURIComponent(name)}`), request, {
+          headers: {
+            "Content-Type": "application/json",
+            ...defaultAuthorization().headers,
+          },
+        })
+      },
+      delete(name) {
+        return axios.delete(createURL(`/api/tokens/${encodeURIComponent(name)}`), {
+          ...defaultAuthorization(),
+        })
+      },
+      regenerateSecret(name) {
+        return axios.post(createURL(`/api/tokens/${encodeURIComponent(name)}/secret`), {}, {
+          ...defaultAuthorization(),
+        })
+      },
+    },
   }
 }
 
