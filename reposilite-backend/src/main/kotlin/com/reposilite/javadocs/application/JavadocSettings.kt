@@ -25,4 +25,6 @@ import io.javalin.openapi.JsonSchema
 data class JavadocSettings(
     @get:Doc(title = "Enabled", description = "Enable javadoc integration")
     val enabled: Boolean = true,
+    @get:Doc(title = "Suffixes", description = "Artifact file suffixes served through the javadoc viewer, e.g. -javadoc.jar, -groovydoc.jar, -docs.zip.")
+    val suffixes: List<String> = listOf("-javadoc.jar", "-groovydoc.jar"),
 ) : SharedSettings

@@ -44,6 +44,7 @@ internal class JavadocPlugin : ReposilitePlugin() {
 
         val javadocSettings = facade<SharedConfigurationFacade>().getDomainSettings<JavadocSettings>()
         val javadocEnabled = javadocSettings.computed { it.enabled }
+        val javadocSuffixes = javadocSettings.computed { it.suffixes }
         val javadocFolder = parameters().workingDirectory.resolve("javadocs")
 
         frontendFacade.registerPlaceholder(
@@ -55,6 +56,7 @@ internal class JavadocPlugin : ReposilitePlugin() {
             mavenFacade = mavenFacade,
             javadocFolder = javadocFolder,
             failureFacade = failureFacade,
+            suffixes = javadocSuffixes,
         )
 
         val javadocFacade = JavadocFacade(
@@ -66,7 +68,7 @@ internal class JavadocPlugin : ReposilitePlugin() {
 
         event { event: DeployEvent ->
             val gav = event.gav
-                .takeIf { it.toString().endsWith("-javadoc.jar") }
+                .takeIf { gav -> javadocSuffixes.get().any { gav.toString().endsWith(it) } }
                 ?: return@event
 
             val artifactRootContainer = javadocContainerService.createContainer(javadocFolder, event.repository, gav.getParent())

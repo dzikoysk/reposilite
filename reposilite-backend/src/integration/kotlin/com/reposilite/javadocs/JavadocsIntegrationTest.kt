@@ -48,6 +48,60 @@ internal abstract class JavadocsIntegrationTest : JavadocsIntegrationSpecificati
     }
 
     @Test
+    fun `should serve a non-javadoc suffix through the viewer`() {
+        // given: an artifact published only with a groovydoc suffix (served by default)
+        val (repository, metadata) = useMetadata(
+            repository = "releases",
+            groupId = "gav",
+            artifactId = "reposilite",
+            versions = listOf("3.0.0")
+        )
+
+        mavenFacade.getRepository(repository)!!
+            .storageProvider
+            .putFile(
+                location = Location.of("${metadata.groupId}/${metadata.artifactId}/3.0.0/reposilite-3.0.0-groovydoc.jar"),
+                inputStream = JavadocsIntegrationTest::class.java.getResourceAsStream("/reposilite-javadoc.jar")!!
+            )
+
+        // when: client requests javadocs through the directory url
+        val response = get("$base/javadoc/releases/gav/reposilite/3.0.0")
+            .asString()
+
+        // then: response contains javadocs container
+        assertThat(response.body).contains("""iframe id="javadoc"""")
+    }
+
+    @Test
+    fun `should serve a non-jar extension when its suffix is configured`() {
+        // given: a zip artifact and a configuration that serves the -docs.zip suffix
+        val (repository, metadata) = useMetadata(
+            repository = "releases",
+            groupId = "gav",
+            artifactId = "reposilite",
+            versions = listOf("3.0.0")
+        )
+
+        mavenFacade.getRepository(repository)!!
+            .storageProvider
+            .putFile(
+                location = Location.of("${metadata.groupId}/${metadata.artifactId}/3.0.0/reposilite-3.0.0-docs.zip"),
+                inputStream = JavadocsIntegrationTest::class.java.getResourceAsStream("/reposilite-javadoc.jar")!!
+            )
+
+        useFacade<SharedConfigurationFacade>()
+            .getDomainSettings<JavadocSettings>()
+            .update(JavadocSettings(suffixes = listOf("-javadoc.jar", "-docs.zip")))
+
+        // when: client requests javadocs through the directory url
+        val response = get("$base/javadoc/releases/gav/reposilite/3.0.0")
+            .asString()
+
+        // then: response contains javadocs container
+        assertThat(response.body).contains("""iframe id="javadoc"""")
+    }
+
+    @Test
     fun `should respond with not found when javadoc integration is disabled`() {
         // given: some javadocs file & metadata file with the javadoc integration disabled
         val (repository, metadata) = useMetadata(
