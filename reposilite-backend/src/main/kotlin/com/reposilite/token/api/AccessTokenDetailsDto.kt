@@ -17,18 +17,32 @@
 package com.reposilite.token.api
 
 import com.reposilite.token.AccessTokenIdentifier
+import com.reposilite.token.AccessTokenPermission
+import com.reposilite.token.Route
 import java.time.Instant
 import java.time.LocalDate
 
-data class AccessTokenDto(
+data class AccessTokenDetailsDto(
     val identifier: AccessTokenIdentifier,
     val name: String,
     val createdAt: LocalDate,
     val description: String,
-    val expiresAt: Instant? = null,
+    val expiresAt: Instant?,
+    val permissions: Set<AccessTokenPermission>,
+    val routes: Set<Route>,
 ) {
 
-    fun isExpired(): Boolean =
-        expiresAt != null && Instant.now().isAfter(expiresAt)
+    companion object {
+        fun of(token: AccessTokenDto, permissions: Set<AccessTokenPermission>, routes: Set<Route>): AccessTokenDetailsDto =
+            AccessTokenDetailsDto(
+                identifier = token.identifier,
+                name = token.name,
+                createdAt = token.createdAt,
+                description = token.description,
+                expiresAt = token.expiresAt,
+                permissions = permissions,
+                routes = routes,
+            )
+    }
 
 }

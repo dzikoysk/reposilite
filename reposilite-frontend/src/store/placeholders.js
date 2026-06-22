@@ -32,7 +32,7 @@ export default function usePlaceholders() {
   const baseUrl =
     process.env.NODE_ENV === 'production'
       ? (productionUrl.endsWith('/') ? productionUrl.slice(0, -1) : productionUrl)
-      : 'http://localhost:8080'
+      : 'http://localhost:8887'
   
   return {
     available,

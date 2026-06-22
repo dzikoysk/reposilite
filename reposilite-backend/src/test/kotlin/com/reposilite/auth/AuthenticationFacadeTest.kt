@@ -20,11 +20,14 @@ import com.reposilite.auth.api.Credentials
 import com.reposilite.auth.application.BruteForceProtectionSettings
 import com.reposilite.auth.specification.AuthenticationSpecification
 import com.reposilite.shared.unauthorized
+import com.reposilite.token.AccessTokenType
+import com.reposilite.token.api.CreateAccessTokenRequest
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import panda.std.ResultAssertions.assertError
 import panda.std.ResultAssertions.assertOk
+import java.time.Instant
 
 internal class AuthenticationFacadeTest : AuthenticationSpecification() {
 
@@ -53,6 +56,27 @@ internal class AuthenticationFacadeTest : AuthenticationSpecification() {
 
         // then: the request has been authorized
         assertOk(accessToken, response)
+    }
+
+    @Test
+    fun `should reject authentication with an expired token`() = runBlocking {
+        // given: a token that has already expired
+        val name = "expired"
+        val secret = "secret"
+        accessTokenFacade.createAccessToken(
+            CreateAccessTokenRequest(
+                type = AccessTokenType.PERSISTENT,
+                name = name,
+                secret = secret,
+                expiresAt = Instant.now().minusSeconds(60)
+            )
+        )
+
+        // when: an authentication is requested with its credentials
+        val response = authenticationFacade.authenticateByCredentials(Credentials("host", name, secret))
+
+        // then: the request has been rejected
+        assertError(unauthorized("Invalid authorization credentials"), response)
     }
 
     @Test

@@ -38,6 +38,7 @@ data class CreateAccessTokenRequest(
     val permissions: Set<AccessTokenPermission> = emptySet(),
     val routes: Set<Route> = emptySet(),
     val expiresAt: Instant? = null,
+    val description: String = "",
 ) {
     data class Route(
         val path: String,
@@ -56,8 +57,10 @@ data class CreateAccessTokenWithNoNameRequest(
     val permissions: Set<String> = emptySet(),
     @get:OpenApiDescription("Route permissions assigned to the created token")
     val routes: Set<Route> = emptySet(),
-    @get:OpenApiDescription("Optional expiration timestamp (ISO-8601 Instant), only supported for temporary tokens")
+    @get:OpenApiDescription("Expiration timestamp (ISO-8601 Instant). If not provided, the token never expires")
     val expiresAt: Instant? = null,
+    @get:OpenApiDescription("Human-readable description of the token")
+    val description: String = "",
 ) {
     @OpenApiName("CreateAccessTokenWithNoNameRequestRoute")
     data class Route(
@@ -73,4 +76,23 @@ data class CreateAccessTokenResponse(
     val permissions: Set<AccessTokenPermission>,
     val routes: Set<Route>,
     val secret: String,
+)
+
+data class UpdateAccessTokenWithNoNameRequest(
+    @get:OpenApiDescription("Human-readable description of the token. If not provided, the current description is kept")
+    val description: String? = null,
+    @get:OpenApiDescription("Permissions assigned to the token: [MANAGER]. If not provided, the current permissions are kept")
+    val permissions: Set<String>? = null,
+    @get:OpenApiDescription("Route permissions assigned to the token. If not provided, the current routes are kept")
+    val routes: Set<CreateAccessTokenWithNoNameRequest.Route>? = null,
+    @get:OpenApiDescription("Expiration timestamp (ISO-8601 Instant). If not provided, the current expiration is kept. A null value clears it")
+    val expiresAt: Instant? = null,
+)
+
+data class UpdateAccessTokenRequest(
+    val description: String? = null,
+    val permissions: Set<AccessTokenPermission>? = null,
+    val routes: Set<CreateAccessTokenRequest.Route>? = null,
+    val expiresAt: Instant? = null,
+    val updateExpiresAt: Boolean = false,
 )

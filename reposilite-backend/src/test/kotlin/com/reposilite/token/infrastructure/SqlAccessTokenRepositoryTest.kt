@@ -34,6 +34,8 @@ import org.junit.jupiter.api.io.TempDir
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import java.nio.file.Path
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 internal class SqlAccessTokenRepositoryTest {
@@ -65,6 +67,24 @@ internal class SqlAccessTokenRepositoryTest {
             // then: the dependent rows are removed alongside it (foreign key cascade)
             assertThat(countPermissions(it.database)).isZero()
             assertThat(countRoutes(it.database)).isZero()
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["sqlite --temporary", "h2 --temporary"])
+    fun `persists and reads back the token expiration`(databaseConfiguration: String) {
+        val connection = DatabaseConnectionFactory.createConnection(workingDirectory, databaseConfiguration, 1)
+
+        connection.use {
+            val repository = SqlAccessTokenRepository(it.database, journalist, emptyArray())
+            val expiresAt = Instant.now().plusSeconds(3600).truncatedTo(ChronoUnit.SECONDS)
+
+            // when: a persistent token with an expiration is saved
+            val saved = repository.saveAccessToken(AccessToken(name = "expiring", encryptedSecret = "secret", expiresAt = expiresAt))
+
+            // then: the expiration survives a round-trip through the database
+            assertThat(repository.findAccessTokenByName("expiring")?.expiresAt).isEqualTo(expiresAt)
+            assertThat(repository.findAccessTokenById(saved.identifier)?.expiresAt).isEqualTo(expiresAt)
         }
     }
 

@@ -16,21 +16,25 @@
 
 package com.reposilite.token.infrastructure
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.reposilite.shared.badRequest
 import com.reposilite.shared.notFoundError
 import com.reposilite.shared.toErrorResult
 import com.reposilite.token.AccessTokenFacade
 import com.reposilite.token.AccessTokenPermission
-import com.reposilite.token.AccessTokenType
 import com.reposilite.token.RoutePermission
-import com.reposilite.token.api.AccessTokenDto
+import com.reposilite.token.api.AccessTokenDetailsDto
 import com.reposilite.token.api.CreateAccessTokenRequest
 import com.reposilite.token.api.CreateAccessTokenResponse
 import com.reposilite.token.api.CreateAccessTokenWithNoNameRequest
+import com.reposilite.token.api.UpdateAccessTokenRequest
+import com.reposilite.token.api.UpdateAccessTokenWithNoNameRequest
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
 import io.javalin.community.routing.Route.DELETE
 import io.javalin.community.routing.Route.GET
+import io.javalin.community.routing.Route.PATCH
+import io.javalin.community.routing.Route.POST
 import io.javalin.community.routing.Route.PUT
 import io.javalin.http.HttpStatus.FORBIDDEN
 import io.javalin.http.bodyAsClass
@@ -51,9 +55,9 @@ internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessToke
         summary = "Returns all existing tokens and data such as their permissions. Note: Requires Manager",
         methods = [HttpMethod.GET]
     )
-    val findAllTokens = ReposiliteRoute<Collection<AccessTokenDto>>("/api/tokens", GET) {
+    val findAllTokens = ReposiliteRoute<Collection<AccessTokenDetailsDto>>("/api/tokens", GET) {
         managerOnly {
-            response = ok(accessTokenFacade.getAccessTokens())
+            response = ok(accessTokenFacade.getAccessTokensDetails())
         }
     }
 
@@ -64,10 +68,11 @@ internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessToke
         pathParams = [OpenApiParam(name = "name", description = "Name of the token to be deleted", required = true)],
         methods = [HttpMethod.GET]
     )
-    val findToken = ReposiliteRoute<AccessTokenDto>("/api/tokens/{name}", GET) {
+    val findToken = ReposiliteRoute<AccessTokenDetailsDto>("/api/tokens/{name}", GET) {
         authenticated {
             response = accessTokenFacade.getAccessToken(requireParameter("name"))
                 ?.takeIf { isManager().isOk || name == it.name }
+                ?.let { accessTokenFacade.getAccessTokenDetails(it) }
                 ?.asSuccess()
                 ?: FORBIDDEN.toErrorResult("You must be the token owner or a manager to access this.")
         }
@@ -89,14 +94,9 @@ internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessToke
         managerOnly {
             response = supplyThrowing { ctx.bodyAsClass<CreateAccessTokenWithNoNameRequest>() }
                 .mapErr { badRequest("Failed to read body") }
-                .filter({ request -> request.permissions.all { AccessTokenPermission.findByAny(it) != null } }) {
-                    badRequest("Unknown access token permission, supported: ${AccessTokenPermission.entries.joinToString { it.identifier }}")
-                }
+                .filter({ request -> request.permissions.all { AccessTokenPermission.findByAny(it) != null } }) { unknownPermissionError() }
                 .filter({ request -> request.routes.all { route -> route.permissions.all { RoutePermission.findRoutePermissionByShortcut(it).isOk }}}) {
-                    badRequest("Unknown route permission, supported: ${RoutePermission.entries.joinToString { it.shortcut }}")
-                }
-                .filter({ it.type != AccessTokenType.PERSISTENT || it.expiresAt == null }) {
-                    badRequest("Expiration date is only supported for temporary access tokens")
+                    unknownRouteError()
                 }
                 .map { request ->
                     accessTokenFacade.createAccessToken(
@@ -105,18 +105,65 @@ internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessToke
                             secret = request.secret,
                             secretType = request.secretType,
                             name = requireParameter("name"),
-                            permissions = request.permissions.mapNotNullTo(HashSet()) { AccessTokenPermission.findByAny(it) },
-                            routes =
-                                request.routes.mapTo(HashSet()) { route ->
-                                    CreateAccessTokenRequest.Route(
-                                        path = route.path,
-                                        permissions = route.permissions.mapNotNullTo(HashSet()) { RoutePermission.findRoutePermissionByShortcut(it).orNull() },
-                                    )
-                                },
+                            permissions = toPermissions(request.permissions),
+                            routes = toRequestRoutes(request.routes),
                             expiresAt = request.expiresAt,
+                            description = request.description,
                         )
                     )
                 }
+        }
+    }
+
+    @OpenApi(
+        path = "/api/tokens/{name}",
+        tags = ["Tokens"],
+        summary = "Updates token metadata (description, permissions, routes, expiry) without regenerating the secret. Note: Requires Manager",
+        requestBody = OpenApiRequestBody(
+            content = [OpenApiContent(UpdateAccessTokenWithNoNameRequest::class)],
+            required = true,
+            description = "Token metadata to update. Any field that is not provided is left unchanged"
+        ),
+        pathParams = [OpenApiParam(name = "name", description = "Name of the token to be updated", required = true)],
+        methods = [HttpMethod.PATCH]
+    )
+    val patchToken = ReposiliteRoute<AccessTokenDetailsDto>("/api/tokens/{name}", PATCH) {
+        managerOnly {
+            response = supplyThrowing { ctx.bodyAsClass<UpdateAccessTokenWithNoNameRequest>() to ctx.bodyAsClass<JsonNode>().has("expiresAt") }
+                .mapErr { badRequest("Failed to read body") }
+                .filter({ (request, _) -> request.permissions.orEmpty().all { AccessTokenPermission.findByAny(it) != null } }) {
+                    unknownPermissionError()
+                }
+                .filter({ (request, _) -> request.routes.orEmpty().all { route -> route.permissions.all { RoutePermission.findRoutePermissionByShortcut(it).isOk }}}) {
+                    unknownRouteError()
+                }
+                .flatMap { (request, expiresAtProvided) ->
+                    accessTokenFacade.updateAccessToken(
+                        requireParameter("name"),
+                        UpdateAccessTokenRequest(
+                            description = request.description,
+                            permissions = request.permissions?.let { toPermissions(it) },
+                            routes = request.routes?.let { toRequestRoutes(it) },
+                            expiresAt = request.expiresAt,
+                            updateExpiresAt = expiresAtProvided,
+                        )
+                    )
+                }
+        }
+    }
+
+    @OpenApi(
+        path = "/api/tokens/{name}/secret",
+        tags = ["Tokens"],
+        summary = "Regenerates and returns a new secret for the token, invalidating the previous one. Note: Requires Manager",
+        pathParams = [OpenApiParam(name = "name", description = "Name of the token whose secret is regenerated", required = true)],
+        methods = [HttpMethod.POST]
+    )
+    val regenerateSecret = ReposiliteRoute<String>("/api/tokens/{name}/secret", POST) {
+        managerOnly {
+            response = accessTokenFacade.getAccessToken(requireParameter("name"))
+                ?.let { accessTokenFacade.regenerateAccessToken(it, secret = null) }
+                ?: notFoundError("Token not found")
         }
     }
 
@@ -135,6 +182,23 @@ internal class AccessTokenApiEndpoints(private val accessTokenFacade: AccessToke
         }
     }
 
-    override val routes = routes(findAllTokens, findToken, upsertToken, deleteToken)
+    private fun unknownPermissionError() =
+        badRequest("Unknown access token permission, supported: ${AccessTokenPermission.entries.joinToString { it.identifier }}")
+
+    private fun unknownRouteError() =
+        badRequest("Unknown route permission, supported: ${RoutePermission.entries.joinToString { it.shortcut }}")
+
+    private fun toPermissions(permissions: Set<String>) =
+        permissions.mapNotNullTo(HashSet()) { AccessTokenPermission.findByAny(it) }
+
+    private fun toRequestRoutes(routes: Set<CreateAccessTokenWithNoNameRequest.Route>) =
+        routes.mapTo(HashSet()) { route ->
+            CreateAccessTokenRequest.Route(
+                path = route.path,
+                permissions = route.permissions.mapNotNullTo(HashSet()) { RoutePermission.findRoutePermissionByShortcut(it).orNull() },
+            )
+        }
+
+    override val routes = routes(findAllTokens, findToken, upsertToken, patchToken, regenerateSecret, deleteToken)
 
 }
