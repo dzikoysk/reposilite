@@ -22,6 +22,7 @@ import com.reposilite.maven.application.RepositorySettings
 import com.reposilite.maven.specification.MavenSpecification
 import com.reposilite.status.FailureFacade
 import org.junit.jupiter.api.BeforeEach
+import panda.std.reactive.Reference
 import java.nio.file.Path
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
@@ -50,6 +51,7 @@ internal abstract class JavadocSpecification : MavenSpecification() {
             failureFacade = javadocFailureFacade,
             mavenFacade = mavenFacade,
             javadocFolder = workingDirectory.toPath().resolve("javadocs"),
+            suffixes = Reference.reference(listOf("-javadoc.jar", "-groovydoc.jar")),
             maxEntryBytes = maxEntryBytes,
             maxTotalBytes = maxTotalBytes,
             maxEntries = maxEntries,

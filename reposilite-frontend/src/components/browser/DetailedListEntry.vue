@@ -34,7 +34,7 @@ const props = defineProps({
 })
 
 const { hasPermissionTo } = useSession()
-const { javadocEnabled } = usePlaceholders()
+const { javadocSuffixes } = usePlaceholders()
 
 const humanReadableMimeTypes = ['application/xml', 'text/plain', 'text/xml', 'text/markdown', 'application/json']
 const isHumanReadable = humanReadableMimeTypes.some(type => props.file?.contentType == type)
@@ -42,7 +42,7 @@ const isHumanReadable = humanReadableMimeTypes.some(type => props.file?.contentT
 const openUrl = (url) =>
     window.open(url, '_blank')
 
-const isJavaDocsAvailable = () => javadocEnabled && props.file.name.endsWith('-javadoc.jar') && getJavaDocsUrl() != null
+const isJavaDocsAvailable = () => javadocSuffixes.some(suffix => props.file.name.endsWith(suffix)) && getJavaDocsUrl() != null
 const getJavaDocsUrl = () => {
   const qualifier = props.qualifier.path
   const elements = qualifier.split('/')

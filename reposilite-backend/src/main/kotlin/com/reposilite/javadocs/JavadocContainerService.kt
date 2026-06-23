@@ -19,6 +19,7 @@ import com.reposilite.storage.api.Location
 import com.reposilite.token.AccessTokenIdentifier
 import panda.std.Result
 import panda.std.asSuccess
+import panda.std.reactive.Reference
 import java.io.FileOutputStream
 import java.io.InputStream
 import java.io.OutputStream
@@ -45,13 +46,14 @@ internal class JavadocContainerService(
     private val failureFacade: FailureFacade,
     private val mavenFacade: MavenFacade,
     private val javadocFolder: Path,
+    private val suffixes: Reference<List<String>>,
     private val maxEntryBytes: Long = 2L * 1024 * 1024,
     private val maxTotalBytes: Long = 50L * 1024 * 1024,
     private val maxEntries: Int = 50_000,
 ) {
 
     fun loadContainer(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<JavadocContainer, ErrorResponse> {
-        val javadocJar = this.resolveJavadocJar(repository, gav) ?: return badRequestError("Invalid GAV")
+        val javadocJar = this.resolveJavadocJar(accessToken, repository, gav) ?: return badRequestError("Invalid GAV")
 
         return mavenFacade.findDetails(LookupRequest(accessToken, repository.name, javadocJar))
             .filter({ it.type === FILE }, { badRequest("Invalid request") })
@@ -59,13 +61,14 @@ internal class JavadocContainerService(
             .flatMap { loadJavadocJarContainer(accessToken, repository, javadocJar) }
     }
 
-    private fun resolveJavadocJar(repository: Repository, gav: Location): Location? = when {
-        gav.getExtension() == "jar" -> gav
-        gav.endsWith("/$INDEX_FILE") -> resolveIndexGav(repository, gav)
-        else -> resolveJavadocJar(repository, gav.resolve(INDEX_FILE))
-    }
+    private fun resolveJavadocJar(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Location? =
+        when {
+            suffixes.get().any { gav.getExtension() == it.substringAfterLast('.') } -> gav
+            gav.endsWith("/$INDEX_FILE") -> resolveIndexGav(accessToken, repository, gav)
+            else -> resolveJavadocJar(accessToken, repository, gav.resolve(INDEX_FILE))
+        }
 
-    private fun resolveIndexGav(repository: Repository, gav: Location): Location? {
+    private fun resolveIndexGav(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Location? {
         val rootGav = gav.locationBeforeLast("/$INDEX_FILE")
         val elements = rootGav.toString().split("/")
 
@@ -85,7 +88,11 @@ internal class JavadocContainerService(
             }
         }
 
-        return rootGav.resolve("${name}-${version}-javadoc.jar")
+        val candidates = suffixes.get().map { rootGav.resolve("${name}-${version}${it}") }
+
+        return candidates
+            .firstOrNull { mavenFacade.findDetails(LookupRequest(accessToken = accessToken, repository = repository.name, gav = it)).isOk }
+            ?: candidates.firstOrNull()
     }
 
     private fun loadJavadocJarContainer(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<JavadocContainer, ErrorResponse> {
@@ -100,44 +107,44 @@ internal class JavadocContainerService(
         javadocUnpackPath.createDirectories()
         val copyJarPath = javadocUnpackPath.resolve("javadoc.jar")
 
-        return mavenFacade.findFile(LookupRequest(accessToken, repository.name, gav))
-            .peek { (_, originInput) -> this.copyJavadocJar(originInput, copyJarPath) }
-            .flatMap { this.unpackJavadocJar(copyJarPath, javadocUnpackPath) }
-            .peek {
-                val javadocList = findAvailableJavadocList(LookupRequest(accessToken, repository.name, gav.getParent().getParent()))
-                    .orElseGet { emptyList() }
-                this.createDocIndexHtml(container, javadocList)
-            }
+        return mavenFacade
+            .findFile(LookupRequest(accessToken = accessToken, repository = repository.name, gav = gav))
+            .peek { (_, originInput) -> copyJavadocJar(originInput = originInput, destinationJarPath = copyJarPath) }
+            .flatMap { unpackJavadocJar(jarPath = copyJarPath, javadocUnpackPath = javadocUnpackPath) }
+            .map { findAvailableJavadocList(LookupRequest(accessToken = accessToken, repository = repository.name, gav = gav.getParent().getParent())) }
+            .peek { createDocIndexHtml(container = container, javadocList = it.orElseGet { emptyList() }) }
             .map { container }
     }
 
     private fun findAvailableJavadocList(request: LookupRequest): Result<List<FileDetails>, ErrorResponse> =
-        with(request){
-            mavenFacade.findDetails(request)
-                .map { details ->
-                    val directoryInfo = details as? DirectoryInfo ?: return@map emptyList()
+        mavenFacade
+            .findDetails(request)
+            .map { details ->
+                val directoryInfo = details as? DirectoryInfo ?: return@map emptyList()
 
-                    val versionDirs = mavenFacade.getAvailableFiles(request, directoryInfo)
+                val versionDirs =
+                    mavenFacade
+                        .getAvailableFiles(request, directoryInfo)
                         .filter { it.type == FileType.DIRECTORY }
 
-                    val dirsWithJavadoc = versionDirs.filter { versionDir ->
-                        val versionGav = request.gav.resolve(versionDir.name)
-                        val versionRequest = request.copy(gav = versionGav)
+                val dirsWithJavadoc = versionDirs.filter { versionDir ->
+                    val versionGav = request.gav.resolve(versionDir.name)
+                    val versionRequest = request.copy(gav = versionGav)
 
-                        val versionDetails = mavenFacade.findDetails(versionRequest).orNull()
-                        val versionFiles = (versionDetails as? DirectoryInfo)?.files ?: return@filter false
+                    val versionDetails = mavenFacade.findDetails(versionRequest).orNull()
+                    val versionFiles = (versionDetails as? DirectoryInfo)?.files ?: return@filter false
 
-                        versionFiles.any { it.name.endsWith("-javadoc.jar") }
-                    }
-                    dirsWithJavadoc
+                    versionFiles.any { file -> suffixes.get().any { file.name.endsWith(it) } }
                 }
-        }
+                dirsWithJavadoc
+            }
 
     internal fun createContainer(javadocFolder: Path, repository: Repository, jarLocation: Location): JavadocContainer {
-        val javadocContainerPath = javadocFolder
-            .resolve(repository.name)
-            .resolve(jarLocation.locationBeforeLast("/").toString())
-            .resolve(".cache")
+        val javadocContainerPath =
+            javadocFolder
+                .resolve(repository.name)
+                .resolve(jarLocation.locationBeforeLast("/").toString())
+                .resolve(".cache")
 
         return JavadocContainer(
             javadocContainerPath = javadocContainerPath,
@@ -201,7 +208,11 @@ internal class JavadocContainerService(
                     }
                 }
             } catch (overflow: BoundedInputStreamLimitExceededException) {
-                return reportMalformed(jarPath, "Size limit of ${overflow.limitBytes} bytes exceeded on entry ${file.name}", badRequest("Javadoc archive exceeds the size limit of ${overflow.limitBytes} bytes"))
+                return reportMalformed(
+                    jarPath = jarPath,
+                    reason = "Size limit of ${overflow.limitBytes} bytes exceeded on entry ${file.name}",
+                    response = badRequest("Javadoc archive exceeds the size limit of ${overflow.limitBytes} bytes")
+                )
             }
         }
 
@@ -218,7 +229,7 @@ internal class JavadocContainerService(
     }
 
     private fun isJavadocJar(path: String) =
-        path.endsWith("-javadoc.jar")
+        suffixes.get().any { path.endsWith(it) }
 
     private fun hasIndex(jarFile: JarFile) =
         jarFile.getJarEntry(INDEX_FILE)?.isDirectory == false
