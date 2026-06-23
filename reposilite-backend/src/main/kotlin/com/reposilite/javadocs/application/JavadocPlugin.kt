@@ -48,8 +48,8 @@ internal class JavadocPlugin : ReposilitePlugin() {
         val javadocFolder = parameters().workingDirectory.resolve("javadocs")
 
         frontendFacade.registerPlaceholder(
-            key = "{{REPOSILITE.JAVADOC_ENABLED}}",
-            value = javadocEnabled.computed { it.toString() },
+            key = "{{REPOSILITE.JAVADOC_SUFFIXES}}",
+            value = javadocSettings.computed { if (it.enabled) it.suffixes.joinToString(",") else "" },
         )
 
         val javadocContainerService = JavadocContainerService(
