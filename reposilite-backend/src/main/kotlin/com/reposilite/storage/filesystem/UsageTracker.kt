@@ -12,7 +12,7 @@ import kotlin.io.path.name
 internal class UsageTracker(
     private val rootDirectory: Path,
 ) {
-    private val counterFile: Path = "/app/data/.local/usage/${rootDirectory.name}")
+    private val counterFile: Path = Path.of("/app/data").resolve(".local/usage/${rootDirectory.name}")
     private val lock = Any()
     @Volatile
     private var loadedUsage: Long = loadUsage()
