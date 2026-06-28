@@ -35,8 +35,8 @@ defineProps({
 const listOfTabs = [
   { name: 'Overview', manager: false },
   { name: 'Dashboard', manager: true },
-  { name: 'Console', manager: true },
   { name: 'Tokens', manager: true },
+  { name: 'Console', manager: true },
   { name: 'Settings', manager: true },
 ]
 

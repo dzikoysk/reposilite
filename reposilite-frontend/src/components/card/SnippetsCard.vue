@@ -17,11 +17,11 @@
 <script setup>
 import { ref, watch, watchEffect } from 'vue'
 import { useClipboard } from '@vueuse/core'
-import { createToast } from 'mosha-vue-toastify'
 import { useSession } from '../../store/session'
 import useRepository from '../../store/maven/repository'
 import useMetadata from '../../store/maven/metadata'
 import CopyIcon from '../icons/CopyIcon.vue'
+import CopiedIcon from '../icons/CopiedIcon.vue'
 import CardMenu from './CardMenu.vue'
 import RepositorySnippet from "./RepositorySnippet.vue"
 import ArtifactSnippet from "./ArtifactSnippet.vue"
@@ -111,11 +111,16 @@ watch(selectedTab, (to, from) => {
 })
 
 const snippetRef = ref()
+const copied = ref(false)
 
 const copy = async () => {
+  if (copied.value) return
   let snippet = snippetRef.value[0].content.trim()
   await copyText(snippet)
-  return createToast('Snippet copied', { type: 'info', timeout: '2000' })
+  copied.value = true
+  setTimeout(() => {
+    copied.value = false
+  }, 2000)
 }
 
 const selectTab = (tab) =>
@@ -128,9 +133,6 @@ const selectTab = (tab) =>
       <h1 class="font-bold flex items-center w-full">
         <span v-if="loading" class="h-4 w-36 rounded bg-gray-200 dark:bg-gray-700 skeleton-bars" />
         <template v-else>{{title}}</template>
-        <span v-if="isCopySupported && !loading" @click="copy" class="ml-auto cursor-pointer">
-          <CopyIcon />
-        </span>
       </h1>
       <!-- <button class="bg-black dark:bg-white text-white dark:text-black px-6 py-1 rounded">Download</button> -->
     </div>
@@ -142,34 +144,47 @@ const selectTab = (tab) =>
 
     <hr class="dark:border-gray-800 <sm:(hidden)">
 
-    <transition :name="transitionName" mode="out-in">
-      <div :key="selectedTab" class="card-editor overflow-auto font-mono text-ssm h-29 relative mt-6 py-3 px-4 rounded-lg bg-gray-100 dark:bg-gray-800">
-        <div v-if="loading" class="skeleton-bars space-y-2.5 pt-1">
-          <div class="h-3 rounded bg-gray-200 dark:bg-gray-700" style="width: 80%" />
-          <div class="h-3 rounded bg-gray-200 dark:bg-gray-700" style="width: 55%" />
-          <div class="h-3 rounded bg-gray-200 dark:bg-gray-700" style="width: 68%" />
-          <div class="h-3 rounded bg-gray-200 dark:bg-gray-700" style="width: 40%" />
-        </div>
-        <template v-else>
-          <template v-for="entry in configurations" :key="entry.name">
-            <template v-if="entry.name === selectedTab">
-              <RepositorySnippet
-                  v-if="data.type === 'repository'"
-                  ref="snippetRef"
-                  :configuration="entry"
-                  :data="data"
-              />
-              <ArtifactSnippet
-                  v-else-if="data.type === 'artifact'"
-                  ref="snippetRef"
-                  :configuration="entry"
-                  :data="data"
-              />
+    <div class="mt-6">
+      <transition :name="transitionName" mode="out-in">
+        <div :key="selectedTab" class="relative">
+          <span
+            v-if="isCopySupported && !loading"
+            @click="copy"
+            class="absolute top-2 right-2 z-10 flex items-center cursor-pointer select-none rounded-md p-1 bg-gray-100 dark:bg-gray-800 text-gray-400 hover:(text-gray-600 bg-gray-200) dark:hover:(text-gray-200 bg-gray-700) transition-colors duration-200"
+          >
+            <span v-if="copied" class="text-ssm font-normal text-green-500 mr-1.5">Copied</span>
+            <CopiedIcon v-if="copied" class="text-green-500" />
+            <CopyIcon v-else />
+          </span>
+          <div class="card-editor overflow-auto font-mono text-ssm h-29 relative py-3 px-4 rounded-lg bg-gray-100 dark:bg-gray-800">
+            <div v-if="loading" class="skeleton-bars space-y-2.5 pt-1">
+              <div class="h-3 rounded bg-gray-200 dark:bg-gray-700" style="width: 80%" />
+              <div class="h-3 rounded bg-gray-200 dark:bg-gray-700" style="width: 55%" />
+              <div class="h-3 rounded bg-gray-200 dark:bg-gray-700" style="width: 68%" />
+              <div class="h-3 rounded bg-gray-200 dark:bg-gray-700" style="width: 40%" />
+            </div>
+            <template v-else>
+              <template v-for="entry in configurations" :key="entry.name">
+                <template v-if="entry.name === selectedTab">
+                  <RepositorySnippet
+                      v-if="data.type === 'repository'"
+                      ref="snippetRef"
+                      :configuration="entry"
+                      :data="data"
+                  />
+                  <ArtifactSnippet
+                      v-else-if="data.type === 'artifact'"
+                      ref="snippetRef"
+                      :configuration="entry"
+                      :data="data"
+                  />
+                </template>
+              </template>
             </template>
-          </template>
-        </template>
-      </div>
-    </transition>
+          </div>
+        </div>
+      </transition>
+    </div>
   </div>
 </template>
 
