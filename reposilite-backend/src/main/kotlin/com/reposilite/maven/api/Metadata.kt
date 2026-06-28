@@ -96,6 +96,7 @@ data class Snapshot(
 
 @JacksonXmlRootElement(localName = "snapshotVersion")
 data class SnapshotVersion(
+    val classifier: String? = null,
     val extension: String? = null,
     val value: String? = null,
     val updated: String? = null

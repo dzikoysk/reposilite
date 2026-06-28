@@ -3,6 +3,7 @@ package com.reposilite.javadocs
 import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.Repository
 import com.reposilite.maven.api.LookupRequest
+import com.reposilite.maven.api.Metadata
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.badRequest
 import com.reposilite.shared.badRequestError
@@ -77,22 +78,46 @@ internal class JavadocContainerService(
         }
 
         val name = elements[elements.size - 2]
-        var version = elements[elements.size - 1]
-
-        if (version.contains("-SNAPSHOT")) {
-            val metadataResult = mavenFacade.findMetadata(repository, rootGav)
-            val snapshot = if (metadataResult.isOk) metadataResult.get().versioning?.snapshot else null
-
-            if (snapshot?.timestamp != null && snapshot.buildNumber != null) {
-                version = "${version.replace("-SNAPSHOT", "")}-${snapshot.timestamp}-${snapshot.buildNumber}"
+        val version = elements[elements.size - 1]
+        val metadata =
+            when {
+                version.contains("-SNAPSHOT") -> mavenFacade.findMetadata(repository, rootGav).orNull()
+                else -> null
             }
+        val candidates = suffixes.get().map { suffix ->
+            rootGav.resolve("${name}-${resolveSnapshotVersion(version, suffix, metadata)}${suffix}")
         }
-
-        val candidates = suffixes.get().map { rootGav.resolve("${name}-${version}${it}") }
 
         return candidates
             .firstOrNull { mavenFacade.findDetails(LookupRequest(accessToken = accessToken, repository = repository.name, gav = it)).isOk }
             ?: candidates.firstOrNull()
+    }
+
+    // GH-1905: a SNAPSHOT's Javadoc classifier may carry a different build number than the main jar,
+    // so resolve the classifier's own <snapshotVersion> value and fall back to the global <snapshot> build.
+    private fun resolveSnapshotVersion(version: String, suffix: String, metadata: Metadata?): String {
+        val versioning =
+            metadata
+                ?.versioning
+                ?.takeIf { version.contains("-SNAPSHOT") }
+                ?: return version
+
+        val extension = suffix.substringAfterLast('.')
+        val classifier = suffix.removeSuffix(".$extension").removePrefix("-")
+
+        val classifierVersion =
+            versioning
+                .snapshotVersions
+                ?.firstOrNull { it.classifier == classifier && it.extension == extension }
+                ?.value
+
+        val snapshot = versioning.snapshot
+
+        return when {
+            classifierVersion != null -> classifierVersion
+            snapshot?.timestamp != null && snapshot.buildNumber != null -> "${version.replace("-SNAPSHOT", "")}-${snapshot.timestamp}-${snapshot.buildNumber}"
+            else -> version
+        }
     }
 
     private fun loadJavadocJarContainer(accessToken: AccessTokenIdentifier?, repository: Repository, gav: Location): Result<JavadocContainer, ErrorResponse> {
