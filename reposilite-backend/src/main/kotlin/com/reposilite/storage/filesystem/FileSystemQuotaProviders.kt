@@ -21,6 +21,7 @@ import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.toErrorResponse
 import io.javalin.http.HttpStatus.INSUFFICIENT_STORAGE
 import panda.std.Result
+import panda.std.asSuccess
 import java.nio.file.Path
 import kotlin.io.path.fileStore
 
@@ -31,10 +32,12 @@ import kotlin.io.path.fileStore
 internal class FixedQuota(
     journalist: Journalist,
     rootDirectory: Path,
+    usageTracker: UsageTracker,
     private val maxSize: Long,
 ) : FileSystemStorageProvider(
     journalist = journalist,
     rootDirectory = rootDirectory,
+    usageTracker = usageTracker,
 ) {
 
     init {
@@ -57,10 +60,12 @@ internal class FixedQuota(
 internal class PercentageQuota(
     journalist: Journalist,
     rootDirectory: Path,
+    usageTracker: UsageTracker,
     private val maxPercentage: Double,
 ) : FileSystemStorageProvider(
     journalist = journalist,
     rootDirectory = rootDirectory,
+    usageTracker = usageTracker,
 ) {
 
     init {
@@ -77,5 +82,18 @@ internal class PercentageQuota(
                 max.toLong() - usage
             }
             .filter({ available -> contentLength <= available }, { INSUFFICIENT_STORAGE.toErrorResponse("Repository cannot hold the given file ($contentLength too much for $maxPercentage%)") })
+
+}
+
+internal class NoQuota(
+    journalist: Journalist,
+    rootDirectory: Path,
+) : FileSystemStorageProvider(
+    journalist = journalist,
+    rootDirectory = rootDirectory,
+) {
+
+    override fun canHold(contentLength: Long): Result<Long, ErrorResponse> =
+        Long.MAX_VALUE.asSuccess()
 
 }
