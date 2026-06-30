@@ -70,6 +70,18 @@ And update the base path property in the local configuration (by default `config
 basePath: /reposilite/
 ```
 
+Alternatively, instead of hardcoding `basePath`, you can let the proxy advertise the prefix
+per-request through the `X-Forwarded-Prefix` header. Reposilite honors it when generating links
+on the repository index pages, so the same instance keeps working both directly and behind the proxy:
+
+```json5
+location /reposilite/ {
+    rewrite /reposilite/(.*) /$1 break;
+    proxy_set_header X-Forwarded-Prefix /reposilite;
+    # [...]
+}
+```
+
 ### SSL Configuration
 
 Lots of people like to use a reverse proxy like Nginx with Reposilite.
