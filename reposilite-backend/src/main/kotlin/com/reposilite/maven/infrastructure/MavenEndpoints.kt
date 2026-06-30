@@ -98,7 +98,7 @@ internal class MavenEndpoints(
                 is DirectoryInfo -> {
                     ctx.html(
                         createDirectoryIndexPage(
-                            basePath = frontendFacade.formattedBasePath.get(),
+                            basePath = frontendFacade.resolveBasePath(ctx.header(FrontendFacade.X_FORWARDED_PREFIX)),
                             uri = ctx.uri(),
                             authenticatedFiles = mavenFacade.getAvailableFiles(request, details),
                         )
@@ -110,7 +110,7 @@ internal class MavenEndpoints(
             }
         }
         .onError {
-            ctx.status(it.status).html(frontendFacade.createNotFoundPage(ctx.uri(), it.message))
+            ctx.status(it.status).html(frontendFacade.createNotFoundPage(ctx.uri(), it.message, ctx.header(FrontendFacade.X_FORWARDED_PREFIX)))
             mavenFacade.logger.debug("FIND | Could not find file due to $it")
         }
     }
