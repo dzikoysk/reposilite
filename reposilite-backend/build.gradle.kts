@@ -108,7 +108,7 @@ dependencies {
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jackson")
 
     // Pinned at 4.x: jsonschema-generator 5.x requires Jackson 3.x (full tools.jackson.* package rename); we're on Jackson 2.21.x.
-    val jsonSchema = "4.38.0"
+    val jsonSchema = "5.0.0"
     implementation("com.github.victools:jsonschema-generator:$jsonSchema")
 
     val httpClient = "2.1.0"
