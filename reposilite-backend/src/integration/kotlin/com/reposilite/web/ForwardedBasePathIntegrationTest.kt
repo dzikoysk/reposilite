@@ -50,13 +50,13 @@ internal class ForwardedBasePathIntegrationTest : ReposiliteSpecification() {
     }
 
     @Test
-    fun `should render index links under the configured base path when proxy forwards a prefix`() {
-        // when: the directory is requested through the proxy
+    fun `should render index links under the configured base path for any forwarded request`() {
+        // when: the directory is requested through the proxy with a header value that differs from the base path
         val response = get("$base/releases/gav")
-            .header(FORWARDED_PREFIX_HEADER, BASE_PATH)
+            .header(FORWARDED_PREFIX_HEADER, "/ignored-value")
             .asString()
 
-        // then: links use the configured base path
+        // then: the configured base path is used regardless of the header value
         assertThat(response.isSuccess).isTrue
         assertThat(response.body).contains("<base href='/maven/releases/gav/'>")
     }
@@ -75,12 +75,23 @@ internal class ForwardedBasePathIntegrationTest : ReposiliteSpecification() {
     fun `should render the 404 dashboard link under the configured base path when forwarded`() {
         // when: a missing resource is requested through the proxy
         val response = get("$base/releases/unknown-gav/unknown-file")
-            .header(FORWARDED_PREFIX_HEADER, BASE_PATH)
+            .header(FORWARDED_PREFIX_HEADER, "/ignored-value")
             .asString()
 
         // then: the dashboard link uses the configured base path
         assertThat(response.status).isEqualTo(NOT_FOUND.code)
         assertThat(response.body).contains("/maven/#")
+    }
+
+    @Test
+    fun `should render the 404 dashboard link at the root when the request is not forwarded`() {
+        // when: a missing resource is requested directly, without the forwarded header
+        val response = get("$base/releases/unknown-gav/unknown-file").asString()
+
+        // then: the dashboard link falls back to the root
+        assertThat(response.status).isEqualTo(NOT_FOUND.code)
+        assertThat(response.body).contains("href=\"/#")
+        assertThat(response.body).doesNotContain("/maven/#")
     }
 
 }
@@ -98,15 +109,18 @@ internal class DisabledForwardedBasePathIntegrationTest : ReposiliteSpecificatio
     }
 
     @Test
-    fun `should ignore the forwarded prefix header when the feature is disabled`() {
-        // when: the directory is requested with the header while the feature is off (default)
-        val response = get("$base/releases/gav")
-            .header(FORWARDED_PREFIX_HEADER, "/other")
-            .asString()
+    fun `should always use the configured base path when the feature is disabled`() {
+        // when: a request arrives without the forwarded header
+        val direct = get("$base/releases/gav").asString()
 
-        // then: links always use the configured base path
-        assertThat(response.isSuccess).isTrue
-        assertThat(response.body).contains("<base href='/maven/releases/gav/'>")
+        // then: the base path stays configured, not the root
+        assertThat(direct.body).contains("<base href='/maven/releases/gav/'>")
+
+        // when: a request arrives carrying the forwarded header
+        val forwarded = get("$base/releases/gav").header(FORWARDED_PREFIX_HEADER, "/other").asString()
+
+        // then: the header is ignored and the base path stays configured
+        assertThat(forwarded.body).contains("<base href='/maven/releases/gav/'>")
     }
 
 }
