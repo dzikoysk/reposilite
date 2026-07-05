@@ -25,12 +25,9 @@ import java.nio.charset.StandardCharsets
 
 class FrontendFacade internal constructor(
     basePath: Reference<String>,
-    private val frontendSettings: Reference<FrontendSettings>
+    private val frontendSettings: Reference<FrontendSettings>,
+    val forwardedPrefixHeader: Reference<String>
 ) : Facade {
-
-    companion object {
-        const val X_FORWARDED_PREFIX = "X-Forwarded-Prefix"
-    }
 
     private val resources = HashMap<String, ResourceSupplier>(0)
     private val additionalPlaceholders = mutableMapOf<String, Reference<String>>()
@@ -87,12 +84,9 @@ class FrontendFacade internal constructor(
     fun createNotFoundPage(originUri: String, details: String, forwardedPrefix: String?): String =
         NotFoundTemplate.createNotFoundPage(resolveBasePath(forwardedPrefix), originUri, details)
 
-    // Resolves the base path for a single request, honoring the X-Forwarded-Prefix header set by a reverse proxy.
-    // Falls back to the configured base path when the header is absent or invalid.
     fun resolveBasePath(forwardedPrefix: String?): String =
         forwardedPrefix
             ?.let { BasePathFormatter.formatForwardedBasePath(it) }
-            ?.takeIf { it.isNotEmpty() }
             ?: formattedBasePath.get()
 
 }

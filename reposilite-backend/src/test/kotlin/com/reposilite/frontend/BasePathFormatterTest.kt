@@ -29,13 +29,23 @@ class BasePathFormatterTest {
     }
 
     @Test
-    fun `should reject an unsafe forwarded prefix`() {
-        // would break out of the HTML attribute
+    fun `should treat a blank forwarded prefix as absent`() {
+        assertThat(BasePathFormatter.formatForwardedBasePath("")).isNull()
+        assertThat(BasePathFormatter.formatForwardedBasePath("   ")).isNull()
+    }
+
+    @Test
+    fun `should reject a forwarded prefix that breaks out of the HTML attribute`() {
         assertThat(BasePathFormatter.formatForwardedBasePath("/maven'><script>")).isNull()
         assertThat(BasePathFormatter.formatForwardedBasePath("/maven\"")).isNull()
         assertThat(BasePathFormatter.formatForwardedBasePath("/path with spaces")).isNull()
-        // would turn the base path into an absolute URL pointing somewhere else
+        assertThat(BasePathFormatter.formatForwardedBasePath("/maven\n/evil")).isNull()
+    }
+
+    @Test
+    fun `should reject a forwarded prefix that resolves to an absolute URL`() {
         assertThat(BasePathFormatter.formatForwardedBasePath("//evil.com")).isNull()
+        assertThat(BasePathFormatter.formatForwardedBasePath("https://evil.com")).isNull()
     }
 
 }

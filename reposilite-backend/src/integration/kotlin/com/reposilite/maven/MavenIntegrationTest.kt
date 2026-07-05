@@ -168,4 +168,62 @@ internal abstract class MavenIntegrationTest : MavenIntegrationSpecification() {
         assertThat(response.body).contains("Reposilite - 404 Not Found")
     }
 
+    @Test
+    fun `should render directory index links with forwarded prefix`() {
+        // given: an existing file inside a repository directory
+        val (repository, gav) = useDocument("releases", "gav", "artifact.jar", "content", true)
+
+        // when: the directory is requested through a proxy that advertises its mount prefix
+        val response = get("$base/$repository/$gav")
+            .header("X-Forwarded-Prefix", "/maven")
+            .asString()
+
+        // then: generated links keep the proxy prefix
+        assertThat(response.isSuccess).isTrue
+        assertThat(response.body).contains("<base href='/maven/$repository/$gav/'>")
+    }
+
+    @Test
+    fun `should render directory index links with configured base path when forwarded prefix is absent`() {
+        // given: an existing file inside a repository directory
+        val (repository, gav) = useDocument("releases", "gav", "artifact.jar", "content", true)
+
+        // when: the directory is requested directly, without a proxy prefix
+        val response = get("$base/$repository/$gav").asString()
+
+        // then: links fall back to the configured base path
+        assertThat(response.isSuccess).isTrue
+        assertThat(response.body).contains("<base href='/$repository/$gav/'>")
+    }
+
+    @Test
+    fun `should ignore an unsafe forwarded prefix when rendering directory index`() {
+        // given: an existing file inside a repository directory
+        val (repository, gav) = useDocument("releases", "gav", "artifact.jar", "content", true)
+
+        // when: the directory is requested with a malicious prefix
+        val response = get("$base/$repository/$gav")
+            .header("X-Forwarded-Prefix", "/maven'><script>alert(1)</script>")
+            .asString()
+
+        // then: the unsafe value is rejected and links fall back to the configured base path
+        assertThat(response.body).doesNotContain("<script>alert(1)</script>")
+        assertThat(response.body).contains("<base href='/$repository/$gav/'>")
+    }
+
+    @Test
+    fun `should render custom 404 page with forwarded prefix dashboard link`() {
+        // given: an address to a non-existing resource behind a proxy prefix
+        val address = "$base/releases/unknown-gav/unknown-file"
+
+        // when: the missing resource is requested through the proxy
+        val response = get(address)
+            .header("X-Forwarded-Prefix", "/maven")
+            .asString()
+
+        // then: the dashboard link keeps the proxy prefix
+        assertThat(response.status).isEqualTo(NOT_FOUND.code)
+        assertThat(response.body).contains("/maven/#")
+    }
+
 }

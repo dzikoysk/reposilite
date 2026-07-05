@@ -28,7 +28,13 @@ internal class NotFoundHandler(private val frontendFacade: FrontendFacade) : Han
     // It does not support async handlers
     private val defaultNotFoundHandler: (Context) -> Unit = { ctx ->
         if (ctx.resultInputStream() == null) {
-            ctx.html(frontendFacade.createNotFoundPage(ctx.req().requestURI, "", ctx.header(FrontendFacade.X_FORWARDED_PREFIX)))
+            ctx.html(
+                frontendFacade.createNotFoundPage(
+                    originUri = ctx.req().requestURI,
+                    details = "",
+                    forwardedPrefix = ctx.header(frontendFacade.forwardedPrefixHeader.get()),
+                ),
+            )
             ctx.status(NOT_FOUND)
         }
     }

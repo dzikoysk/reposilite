@@ -32,6 +32,7 @@ import com.reposilite.status.FailureFacade
 import com.reposilite.web.api.HttpServerInitializationEvent
 import com.reposilite.web.api.ReposiliteRoutes
 import com.reposilite.web.api.RoutingSetupEvent
+import com.reposilite.web.application.WebSettings
 import io.javalin.http.NotFoundResponse
 import java.nio.file.Path
 import kotlin.io.path.createDirectory
@@ -53,10 +54,12 @@ internal class FrontendPlugin : ReposilitePlugin() {
         val failureFacade = facade<FailureFacade>()
         val sharedConfigurationFacade = facade<SharedConfigurationFacade>()
         val frontendSettings = sharedConfigurationFacade.getDomainSettings<FrontendSettings>()
+        val webSettings = sharedConfigurationFacade.getDomainSettings<WebSettings>()
 
         val frontendFacade = FrontendComponents(
             basePath = localConfiguration.basePath,
-            frontendSettings = frontendSettings
+            frontendSettings = frontendSettings,
+            forwardedPrefixHeader = webSettings.computed { it.forwardedPrefix }
         ).frontendFacade()
 
         event { event: ReposiliteInitializeEvent ->

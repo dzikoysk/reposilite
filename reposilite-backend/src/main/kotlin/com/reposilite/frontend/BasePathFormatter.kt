@@ -22,8 +22,7 @@ internal object BasePathFormatter {
 
     private val pathRegex = Regex("^/|/$")
 
-    // The X-Forwarded-Prefix header is client-controlled, so we only accept a simple path
-    // and reject anything that could break out of an HTML attribute or become an absolute URL.
+    // Client-controlled header written into HTML attributes - reject attribute breakout and absolute URLs
     private val safeForwardedPrefix = Regex("/?[a-zA-Z0-9._~/-]*")
 
     fun formatBasePath(originBasePath: String): String =
@@ -31,11 +30,9 @@ internal object BasePathFormatter {
             .letIf({ it.isNotEmpty() && !it.startsWith("/") }, { "/$it" })
             .letIf({ it.isNotEmpty() && !it.endsWith("/")}, { "$it/" })
 
-    // Validates and normalizes a base path coming from the X-Forwarded-Prefix header.
-    // Returns null when the value is unsafe, so the caller can fall back to the configured base path.
     fun formatForwardedBasePath(forwardedPrefix: String): String? =
         forwardedPrefix
-            .takeIf { it.matches(safeForwardedPrefix) && !it.contains("//") }
+            .takeIf { it.isNotBlank() && it.matches(safeForwardedPrefix) && !it.contains("//") }
             ?.let { formatBasePath(it) }
 
     fun formatAsViteBasePath(path: String): String =
