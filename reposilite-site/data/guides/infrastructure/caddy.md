@@ -7,7 +7,10 @@ Caddy is a http server with support for reverse proxy and automatic https. The a
 takes care of requesting, installing and updating SSL certificates which means that you need much less configuration settings
 or maintenance compared with e.g. Nginx.
 
-Note that websockets are also transparent in the case of reverse proxying.
+Note that the interactive web console streams logs via [Server-Sent Events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events)
+on `/api/console/log`. 
+Caddy detects `text/event-stream` responses and streams them without buffering, 
+so the console works through `reverse_proxy` with no extra configuration.
 
 First [download and install caddy](https://caddyserver.com/docs/install) and modify your caddy configuration file, 
 typically found in `/etc/caddy/Caddyfile`.

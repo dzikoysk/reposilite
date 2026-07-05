@@ -175,6 +175,23 @@ add_header Strict-Transport-Security "max-age=63072000;includeSubdomains;";
 Finally, run `sudo nginx -t` to verify the config and `sudo systemctl restart nginx` to restart nginx.
 This config also works with [Cloudflare](https://www.cloudflare.com/).
 
+### Web console
+
+The web console streams logs from `/api/console/log` using [Server-Sent Events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events) (a long-lived `GET`).
+Older versions used a WebSocket, so the `map $http_upgrade` block and `Upgrade`/`Connection` headers above are no longer required. 
+Nginx buffers proxied responses by default, so add a location that disables it:
+
+```json5
+location /api/console/log {
+    proxy_pass http://reposilite;
+    proxy_set_header Host $host;
+    proxy_buffering off;
+}
+```
+
+If you require a client certificate, set `ssl_verify_client` on the whole `server` block, not per-location.
+Browsers won't present a certificate during the TLS renegotiation a per-location rule triggers on the console's background request ([#2417](https://github.com/dzikoysk/reposilite/issues/2417)).
+
 ### Additional Notes
 
 #### nginxconfig.io / DigitalOcean Nginx config generator
