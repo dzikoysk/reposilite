@@ -25,7 +25,8 @@ import java.nio.charset.StandardCharsets
 
 class FrontendFacade internal constructor(
     basePath: Reference<String>,
-    private val frontendSettings: Reference<FrontendSettings>
+    private val frontendSettings: Reference<FrontendSettings>,
+    val forwardedPrefixHeader: Reference<String>
 ) : Facade {
 
     private val resources = HashMap<String, ResourceSupplier>(0)
@@ -80,7 +81,13 @@ class FrontendFacade internal constructor(
             })
         }
 
-    fun createNotFoundPage(originUri: String, details: String): String =
-        NotFoundTemplate.createNotFoundPage(formattedBasePath.get(), originUri, details)
+    fun createNotFoundPage(originUri: String, details: String, forwardedPrefix: String?): String =
+        NotFoundTemplate.createNotFoundPage(resolveBasePath(forwardedPrefix), originUri, details)
+
+    fun resolveBasePath(forwardedPrefix: String?): String =
+        when {
+            forwardedPrefixHeader.get().isNotBlank() && forwardedPrefix.isNullOrBlank() -> "/"
+            else -> formattedBasePath.get()
+        }
 
 }

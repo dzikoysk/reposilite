@@ -26,7 +26,6 @@ import com.reposilite.shared.extensions.resultAttachment
 import com.reposilite.shared.extensions.uri
 import com.reposilite.storage.api.DirectoryInfo
 import com.reposilite.storage.api.DocumentInfo
-import com.reposilite.storage.api.FileType
 import com.reposilite.storage.api.Location
 import com.reposilite.token.AccessTokenIdentifier
 import com.reposilite.web.api.ReposiliteRoute
@@ -35,7 +34,6 @@ import io.javalin.community.routing.Route.GET
 import io.javalin.community.routing.Route.HEAD
 import io.javalin.community.routing.Route.POST
 import io.javalin.community.routing.Route.PUT
-import io.javalin.http.ContentType
 import io.javalin.http.Context
 import io.javalin.openapi.ContentType.FORM_DATA_MULTIPART
 import io.javalin.openapi.HttpMethod
@@ -98,7 +96,7 @@ internal class MavenEndpoints(
                 is DirectoryInfo -> {
                     ctx.html(
                         createDirectoryIndexPage(
-                            basePath = frontendFacade.formattedBasePath.get(),
+                            basePath = frontendFacade.resolveBasePath(ctx.header(frontendFacade.forwardedPrefixHeader.get())),
                             uri = ctx.uri(),
                             authenticatedFiles = mavenFacade.getAvailableFiles(request, details),
                         )
@@ -110,7 +108,13 @@ internal class MavenEndpoints(
             }
         }
         .onError {
-            ctx.status(it.status).html(frontendFacade.createNotFoundPage(ctx.uri(), it.message))
+            ctx.status(it.status).html(
+                frontendFacade.createNotFoundPage(
+                    originUri = ctx.uri(),
+                    details = it.message,
+                    forwardedPrefix = ctx.header(frontendFacade.forwardedPrefixHeader.get()),
+                ),
+            )
             mavenFacade.logger.debug("FIND | Could not find file due to $it")
         }
     }

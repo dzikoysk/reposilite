@@ -70,6 +70,23 @@ And update the base path property in the local configuration (by default `config
 basePath: /reposilite/
 ```
 
+If the same instance is reached both directly and through the proxy, keep the `basePath` above and
+also set **Forwarded Prefix Header** in the shared *Web* settings to the header the proxy uses to
+advertise the mount (e.g. `X-Forwarded-Prefix`), then have the proxy send it:
+
+```json5
+location /reposilite/ {
+    rewrite /reposilite/(.*) /$1 break;
+    proxy_set_header X-Forwarded-Prefix /reposilite;
+    # [...]
+}
+```
+
+Requests arriving with that header render repository **index and 404 links** under `basePath`, while
+direct requests render them at the root — so both entry points work. This covers only those
+server-rendered pages; the dashboard web console always follows the configured `basePath`, so serve
+it under a sub-path via `basePath` or a dedicated subdomain.
+
 ### SSL Configuration
 
 Lots of people like to use a reverse proxy like Nginx with Reposilite.
