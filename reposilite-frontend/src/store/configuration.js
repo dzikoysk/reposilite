@@ -30,17 +30,14 @@ const fetchConfiguration = () => {
     .catch(error => createToast(`${error || ''}`, { type: 'danger' }))
 }
 
-const updateConfiguration = () => {
-  const updates = domains.value.map(domain => {
+const updateConfiguration = () =>
+  Promise.all(domains.value.map(domain =>
     client.value.settings.update(domain, toRaw(configurations.value[domain]))
       .then(() => client.value.settings.fetch(domain))
-      .then(response => { configurations[domain] = response.data })
-  })
-
-  return Promise.all(updates)
+      .then(response => configurations.value[domain] = response.data)
+  ))
     .then(() => createToast('Configuration updated', { type: 'success' }))
-    .catch(error => createToast(`Failed to update ${error.join(', ')}`, { type: 'danger' }))
-}
+    .catch(error => createToast(`${error || ''}`, { type: 'danger' }))
 
 const renderers = markRaw([
   { tester: arrayListTester, renderer: ArrayListRenderer },

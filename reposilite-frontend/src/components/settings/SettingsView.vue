@@ -56,6 +56,8 @@ const updateFormsConfiguration = (domain, event) => {
   })
 }
 
+const reload = (action) => action().then(() => hasChanged.value = false)
+
 watch(
   () => props.selectedTab,
   (selectedTab, prev) => {
@@ -99,6 +101,7 @@ const formsConfiguration = {
           @click.prevent="executeIfValid(downloadSettings)" 
           class="bg-gray-800 dark:bg-gray-600"
           :class="{ forbidden: !isValid }"
+          v-if="!hasChanged"
         >
           Download as JSON
         </button>
@@ -108,15 +111,16 @@ const formsConfiguration = {
             </template>
         </FactoryResetModal>
         <button 
-          @click.prevent="executeIfValid(updateConfiguration)" 
+          @click.prevent="reload(updateConfiguration)"
           class="bg-gray-500 dark:bg-gray-800 cursor-not-allowed"
           :class="{ changed: hasChanged, forbidden: !isValid }"
           :disabled="!isValid || !hasChanged"
+          v-if="hasChanged"
         >
           Update and reload
         </button>
         <button 
-          @click.prevent="fetchConfiguration"
+          @click.prevent="reload(fetchConfiguration)"
           class="bg-gray-500 dark:bg-gray-800 cursor-not-allowed"
           :class="{ changed: hasChanged }"
           :disabled="!isValid || !hasChanged"

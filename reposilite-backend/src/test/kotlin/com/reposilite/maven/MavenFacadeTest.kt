@@ -63,6 +63,15 @@ internal class MavenFacadeTest : MavenSpecification() {
         )),
         RepositorySettings("PROXIED-PULL-AUTHED", visibility = HIDDEN, proxied = mutableListOf(
             MirroredRepositorySettings(reference = REMOTE_REPOSITORY, store = true, authorization = REMOTE_AUTH, authenticatedFetchingOnly = true),
+        )),
+        RepositorySettings("PROXIED-DEFAULT-EXTENSIONS", visibility = HIDDEN, proxied = mutableListOf(
+            MirroredRepositorySettings(reference = REMOTE_REPOSITORY, store = true, authorization = REMOTE_AUTH)
+        )),
+        RepositorySettings("PROXIED-ALL-EXTENSIONS", visibility = HIDDEN, proxied = mutableListOf(
+            MirroredRepositorySettings(reference = REMOTE_REPOSITORY, store = true, authorization = REMOTE_AUTH, allowedExtensions = emptyList())
+        )),
+        RepositorySettings("PROXIED-BLANK-EXTENSIONS", visibility = HIDDEN, proxied = mutableListOf(
+            MirroredRepositorySettings(reference = REMOTE_REPOSITORY, store = true, authorization = REMOTE_AUTH, allowedExtensions = listOf(""))
         ))
     )
 
@@ -284,6 +293,44 @@ internal class MavenFacadeTest : MavenSpecification() {
             val response = mavenFacade.findFile(file.toLookupRequest(UNAUTHORIZED))
 
             // then: the file is found
+            val (_, data) = assertOk(response)
+            assertThat(data.readBytes().decodeToString()).isEqualTo(REMOTE_CONTENT)
+        }
+
+        @Test
+        fun `should not proxy artifact whose extension is missing from the default whitelist` () {
+            // given: a .wsdl artifact available upstream but not covered by the default allowedExtensions whitelist (GH-2518)
+            val file = FileSpec("PROXIED-DEFAULT-EXTENSIONS", "/com/example/service.wsdl", REMOTE_CONTENT)
+
+            // when: the file is requested
+            val response = mavenFacade.findFile(file.toLookupRequest(UNAUTHORIZED))
+
+            // then: it is rejected by the extension filter
+            assertError(response)
+        }
+
+        @Test
+        fun `should proxy artifact with any extension when allowedExtensions is empty` () {
+            // given: a mirror configured with an empty allowedExtensions list, which permits every extension
+            val file = FileSpec("PROXIED-ALL-EXTENSIONS", "/com/example/service.wsdl", REMOTE_CONTENT)
+
+            // when: the file is requested
+            val response = mavenFacade.findFile(file.toLookupRequest(UNAUTHORIZED))
+
+            // then: the .wsdl file is served
+            val (_, data) = assertOk(response)
+            assertThat(data.readBytes().decodeToString()).isEqualTo(REMOTE_CONTENT)
+        }
+
+        @Test
+        fun `should treat a blank allowedExtensions entry as allow-all` () {
+            // given: a mirror whose allowedExtensions holds only a blank string, as the settings UI produces when the list is cleared (GH-2518)
+            val file = FileSpec("PROXIED-BLANK-EXTENSIONS", "/com/example/service.wsdl", REMOTE_CONTENT)
+
+            // when: the file is requested
+            val response = mavenFacade.findFile(file.toLookupRequest(UNAUTHORIZED))
+
+            // then: the blank entry does not act as a filter and the file is served
             val (_, data) = assertOk(response)
             assertThat(data.readBytes().decodeToString()).isEqualTo(REMOTE_CONTENT)
         }
