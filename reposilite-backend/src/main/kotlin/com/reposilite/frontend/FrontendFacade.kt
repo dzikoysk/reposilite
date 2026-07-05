@@ -85,8 +85,9 @@ class FrontendFacade internal constructor(
         NotFoundTemplate.createNotFoundPage(resolveBasePath(forwardedPrefix), originUri, details)
 
     fun resolveBasePath(forwardedPrefix: String?): String =
-        forwardedPrefix
-            ?.let { BasePathFormatter.formatForwardedBasePath(it) }
-            ?: formattedBasePath.get()
+        when {
+            forwardedPrefixHeader.get().isNotBlank() && forwardedPrefix.isNullOrBlank() -> "/"
+            else -> formattedBasePath.get()
+        }
 
 }

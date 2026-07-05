@@ -31,11 +31,12 @@ data class WebSettings(
         Popular: X-Real-IP
     """)
     val forwardedIp: String = "X-Forwarded-For",
-    @get:Doc(title = "Forwarded Prefix", description = """
-        A reverse proxy may mount Reposilite under a sub-path and strip it before forwarding.
-        This header lets the proxy advertise that prefix per request, so generated links stay valid
-        without hardcoding the base path. <br />
+    @get:Doc(title = "Forwarded Prefix Header", description = """
+        Name of the header a reverse proxy uses to advertise the sub-path Reposilite is mounted under
+        (e.g. X-Forwarded-Prefix). When set, requests carrying it render the repository index and 404
+        links under the configured base path, while direct requests render them at the root, so a single
+        instance works both ways. Leave empty to disable. <br />
         Standard: X-Forwarded-Prefix
     """)
-    val forwardedPrefix: String = "X-Forwarded-Prefix",
+    val forwardedPrefix: String = "",
 ) : SharedSettings

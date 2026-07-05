@@ -22,18 +22,10 @@ internal object BasePathFormatter {
 
     private val pathRegex = Regex("^/|/$")
 
-    // Client-controlled header written into HTML attributes - reject attribute breakout and absolute URLs
-    private val safeForwardedPrefix = Regex("/?[a-zA-Z0-9._~/-]*")
-
     fun formatBasePath(originBasePath: String): String =
         originBasePath
             .letIf({ it.isNotEmpty() && !it.startsWith("/") }, { "/$it" })
             .letIf({ it.isNotEmpty() && !it.endsWith("/")}, { "$it/" })
-
-    fun formatForwardedBasePath(forwardedPrefix: String): String? =
-        forwardedPrefix
-            .takeIf { it.isNotBlank() && it.matches(safeForwardedPrefix) && !it.contains("//") }
-            ?.let { formatBasePath(it) }
 
     fun formatAsViteBasePath(path: String): String =
         path
