@@ -92,6 +92,27 @@ internal abstract class StatusIntegrationTest : StatusIntegrationSpecification()
     }
 
     @Test
+    fun `should respond with failures list`() {
+        // when: failures service is requested without valid credentials
+        val unauthorizedResponse = get("$base/api/status/failures").asString()
+
+        // then: service rejects request
+        assertThat(unauthorizedResponse.status).isEqualTo(UNAUTHORIZED.code)
+
+        // given: a valid credentials
+        val (name, secret) = useAuth("name", "secret", listOf(MANAGER))
+
+        // when: service is requested with valid credentials
+        val response = get("$base/api/status/failures")
+            .basicAuth(name, secret)
+            .asJacksonObject(Array<String>::class)
+
+        // then: service should respond with a list of failures
+        assertThat(response.status).isEqualTo(OK.code)
+        assertThat(response.body).isNotNull
+    }
+
+    @Test
     fun `should expose unauthenticated health endpoint`() {
         // when: health service is requested without credentials
         val response = get("$base/api/status/health").asObject(HealthResponse::class.java)

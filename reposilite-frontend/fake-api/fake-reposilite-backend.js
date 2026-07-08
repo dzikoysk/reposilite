@@ -44,7 +44,21 @@ let mavenSettingsEntity = require('./maven-settings-entity.json')
 let uptime = 1000
 let memory = 20
 let threads = 10
-let failures = 0
+let failures = [
+  [
+    'failure /api/maven/releases/com/example/app/1.0.0/app-1.0.0.jar',
+    '  by NullPointerException: Cannot invoke "Repository.getName()" because "repository" is null',
+    '  at com.reposilite.maven.MavenFacade.findFile(MavenFacade.kt:88)',
+    '  at com.reposilite.maven.MavenFacade.findDetails(MavenFacade.kt:120)',
+    '  at com.reposilite.maven.infrastructure.MavenEndpoints.findFile(MavenEndpoints.kt:64)',
+  ].join('\n'),
+  [
+    'failure /api/badge/latest/releases/com/example/lib',
+    '  by IllegalStateException: No versions found for the requested artifact',
+    '  at com.reposilite.badge.BadgeFacade.findLatestVersion(BadgeFacade.kt:52)',
+    '  at com.reposilite.badge.infrastructure.BadgeEndpoints.latestBadge(BadgeEndpoints.kt:41)',
+  ].join('\n'),
+]
 
 const todayLocalDate = () => {
   const now = new Date()
@@ -89,32 +103,52 @@ setInterval(() => {
   memory += Math.random() * 10
   threads += 1
   uptime += 5000
-  failures += 1
+  if (failures.length < 6) {
+    failures.push([
+      `failure /api/maven/releases/com/example/app/1.0.${failures.length}/app.jar`,
+      '  by RuntimeException: Simulated failure emitted by the fake backend',
+      '  at com.reposilite.fake.Simulator.tick(Simulator.kt:10)',
+    ].join('\n'))
+  }
 }, 5000)
 
+const statisticsBaseDate = new Date().getTime() - (19 * 86400000)
 const statisticsSeries = [
   {
     name: 'Releases',
-    data: generateDayWiseTimeSeries(new Date('11 Feb 2022 GMT').getTime(), 20, {
+    data: generateDayWiseTimeSeries(statisticsBaseDate, 20, {
       min: 10,
       max: 60
     })
   },
   {
     name: 'Snapshots',
-    data: generateDayWiseTimeSeries(new Date('11 Feb 2022 GMT').getTime(), 20, {
+    data: generateDayWiseTimeSeries(statisticsBaseDate, 20, {
       min: 10,
       max: 20
     })
   },
   {
     name: 'Maven Central',
-    data: generateDayWiseTimeSeries(new Date('11 Feb 2022 GMT').getTime(), 20, {
+    data: generateDayWiseTimeSeries(statisticsBaseDate, 20, {
       min: 10,
       max: 15
     })
   }
 ]
+
+const resolvedArtifacts = {
+  releases: [
+    { gav: 'com/example/app/2.4.1/app-2.4.1.jar', count: 48120 },
+    { gav: 'org/panda-lang/utilities/1.8.4/utilities-1.8.4.jar', count: 39540 },
+    { gav: 'com/example/lib/1.9.0/lib-1.9.0.jar', count: 31205 },
+    { gav: 'com/example/app/2.4.0/app-2.4.0.jar', count: 22870 },
+    { gav: 'net/dzikoysk/cdn/1.14.4/cdn-1.14.4.jar', count: 18930 },
+    { gav: 'com/example/app/maven-metadata.xml', count: 15540 },
+    { gav: 'com/example/lib/1.8.2/lib-1.8.2.jar', count: 11020 },
+    { gav: 'io/javalin/javalin/6.1.3/javalin-6.1.3.jar', count: 8640 },
+  ]
+}
 
 application
   .get("/", (req, res) => res.send("Reposilite stub API"))
@@ -348,7 +382,7 @@ application
           maxMemory: '32',
           usedThreads: threads,
           maxThreads: 64,
-          failuresCount: failures
+          failuresCount: failures.length
         })
       },
       () => invalidCredentials(res)
@@ -374,6 +408,14 @@ application
       () => invalidCredentials(res)
     )
   })
+  .get("/api/status/failures", (req, res) => {
+    authorized(
+      req,
+      () => res.send(failures),
+      () => invalidCredentials(res)
+    )
+  })
+  .get("/api/status/health", (req, res) => res.send({ status: "UP" }))
   .get("/api/statistics/resolved/all", (req, res) => {
     authorized(
       req,
@@ -382,6 +424,32 @@ application
           statisticsEnabled: true,
           repositories: statisticsSeries
         }),
+      () => invalidCredentials(res)
+    )
+  })
+  .get("/api/statistics/resolved/unique", (req, res) => {
+    authorized(
+      req,
+      () => res.send(Object.values(resolvedArtifacts).flat().length),
+      () => invalidCredentials(res)
+    )
+  })
+  .get(/^\/api\/statistics\/resolved\/phrase\/(\d+)\/([^/]+)\/(.*)$/, (req, res) => {
+    authorized(
+      req,
+      () => {
+        const limit = parseInt(req.params[0], 10) || 20
+        const phrase = req.params[2].toLowerCase()
+        const pool = resolvedArtifacts[req.params[1]] || []
+        const requests = pool
+          .filter(entry => entry.gav.toLowerCase().includes(phrase))
+          .sort((a, b) => b.count - a.count)
+          .slice(0, limit)
+        res.send({
+          sum: requests.reduce((sum, entry) => sum + entry.count, 0),
+          requests
+        })
+      },
       () => invalidCredentials(res)
     )
   })

@@ -79,13 +79,6 @@ const isExpired = (token) => !!token.expiresAt && Date.now() > toMs(token.expire
 const expiryOf = (token) => !token.expiresAt ? '∞' : (isExpired(token) ? 'expired' : rel(toMs(token.expiresAt)) + ' left')
 const datesTitle = (token) => `Created ${formatDate(token.createdAt)}` + (token.expiresAt ? `  •  Expires ${formatDate(token.expiresAt)}` : '  •  Never expires')
 
-/* Placeholder usage metric (UI commented out below) — Reposilite tracks no per-token usage yet. */
-const spark = (token) => {
-  const seed = token.name.length * 7
-  return Array.from({ length: 10 }, (_, i) => 5 + ((seed * (i + 3)) % 18))
-}
-const requests = (token) => spark(token).reduce((a, b) => a + b, 0) * 11
-
 const editToken = (token) => {
   if (editing.value === `token:${tid(token)}`) { close(); return }
   confirming.value = null
@@ -130,7 +123,7 @@ const runConfirm = (token) => {
 
 <template>
   <div class="container mx-auto pt-7 px-15 pb-12 <sm:px-4">
-    <div class="pb-7">
+    <div class="head">
       <p>Generate and revoke access tokens used to authenticate with this Reposilite instance.</p>
       <p class="text-sm text-gray-500">A token's secret is shown only once, at the moment it is generated.</p>
     </div>
@@ -162,14 +155,7 @@ const runConfirm = (token) => {
           <span class="tag">{{ token.identifier.type.toLowerCase() }}</span>
           <span v-if="tokenIsManager(token)" class="tag mgr">manager</span>
           <span class="desc">{{ token.description }}</span>
-          <span class="dates" :title="datesTitle(token)"><span>{{ ageOf(token) }}</span><span class="exsep">·</span><span class="ex" :class="{ expired: isExpired(token), forever: !token.expiresAt }">{{ expiryOf(token) }}</span><!-- usage count (placeholder, disabled): <span class="exsep">·</span><span class="reqs" title="Sample data — Reposilite doesn't track per-token usage yet">{{ requests(token).toLocaleString() }} requests</span> --></span>
-          <!-- usage chart (placeholder, disabled — no per-token stats in the backend yet)
-          <span class="usage" title="Sample data — Reposilite doesn't track per-token usage yet">
-            <svg class="spark" viewBox="0 0 60 18" preserveAspectRatio="none">
-              <rect v-for="(h, i) in spark(token)" :key="i" :x="i * 6 + 0.5" :y="18 - h" width="5" :height="h" rx="1" />
-            </svg>
-          </span>
-          -->
+          <span class="dates" :title="datesTitle(token)"><span>{{ ageOf(token) }}</span><span class="exsep">·</span><span class="ex" :class="{ expired: isExpired(token), forever: !token.expiresAt }">{{ expiryOf(token) }}</span></span>
           <span class="ctl">
             <template v-if="isConfirming(token)">
               <button class="confirm-yes" @click="runConfirm(token)">{{ confirming.action === 'revoke' ? 'Revoke' : 'Regenerate' }}</button>
@@ -238,20 +224,23 @@ const runConfirm = (token) => {
 </template>
 
 <style scoped>
-.flat { @apply bg-white dark:bg-transparent dark:border dark:border-gray-800 rounded-lg overflow-hidden text-sm text-gray-600 dark:text-gray-300; }
+.head { @apply pb-7 text-gray-800 dark:text-gray-100; }
+.head p + p { @apply mt-1 text-gray-500 dark:text-gray-400; }
+
+.flat { @apply bg-white dark:bg-gray-900 rounded-lg overflow-hidden text-sm text-gray-600 dark:text-gray-300; }
 .flat > :last-child { @apply border-b-0; }
 
-.bar { @apply flex items-center gap-3 px-3.5 py-3.5 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-transparent; }
-.search { @apply flex items-center gap-2 flex-1 px-3 h-9 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800; }
+.bar { @apply flex items-center gap-3 px-3.5 py-3.5 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 flex-wrap; }
+.search { @apply flex items-center gap-2 flex-1 min-w-56 px-3 h-9 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 <sm:w-full <sm:min-w-0; }
 .search input { @apply flex-1 bg-transparent outline-none text-gray-700 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-400; }
 
-.row { @apply flex items-center gap-2 px-4.5 h-11.5 border-b border-gray-200 dark:border-gray-800 transition-colors; }
-.row:hover { @apply bg-gray-50 dark:bg-gray-900; }
-.row.is-open { @apply bg-gray-100 dark:bg-gray-900; }
-.indent { @apply pl-9.5; }
+.row { @apply flex items-center gap-2 px-4.5 min-h-11.5 py-2 border-b border-gray-200 dark:border-gray-800 transition-colors <sm:flex-wrap <sm:items-start <sm:py-3; }
+.row:hover { @apply bg-gray-50 dark:bg-gray-800; }
+.row.is-open { @apply bg-gray-100 dark:bg-gray-800; }
+.indent { @apply pl-9.5 <sm:pl-4.5; }
 .lead { @apply whitespace-nowrap; }
 .meta { @apply text-gray-500 dark:text-gray-500 truncate; }
-.desc { @apply flex-1 min-w-0 truncate text-gray-500 dark:text-gray-500; }
+.desc { @apply flex-1 min-w-0 truncate text-gray-500 dark:text-gray-500 <sm:basis-full <sm:order-5; }
 .dates { @apply inline-flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap cursor-default <sm:hidden; }
 .exsep { @apply text-gray-400 dark:text-gray-500; }
 .ex { @apply text-gray-600 dark:text-gray-300; }
@@ -261,13 +250,8 @@ const runConfirm = (token) => {
 .tag { @apply text-[0.7rem] px-1.5 py-0.5 rounded-full bg-gray-150 dark:bg-gray-800 text-gray-600 dark:text-gray-400 whitespace-nowrap; }
 .tag.mgr { @apply bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200; }
 
-.reqs { @apply text-xs tabular-nums text-gray-600 dark:text-gray-400; }
-.usage { @apply flex items-center mr-1; }
-.spark { width: 60px; height: 18px; }
-.spark rect { @apply fill-blue-300 dark:fill-blue-900; }
-
 .ctl { @apply flex items-center gap-1; }
-.row .ctl { @apply opacity-0 transition-opacity; }
+.row .ctl { @apply opacity-0 transition-opacity <sm:opacity-100; }
 .row:hover .ctl, .row.confirming .ctl { @apply opacity-100; }
 .row:not(.indent) .ctl { @apply opacity-100; }
 .ic { @apply text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-100; }
@@ -282,19 +266,20 @@ const runConfirm = (token) => {
 
 .primary { @apply px-3.5 h-9 rounded-md bg-blue-700 text-white font-medium whitespace-nowrap hover:bg-blue-800; }
 .primary.sm { @apply h-8 px-3; }
+.bar .primary { @apply <sm:w-full; }
 button.sm { @apply h-8 px-3 rounded-md border border-gray-300 dark:border-gray-700; }
 
-.routeform, .tokenform { @apply flex flex-wrap items-center gap-2 px-4.5 py-3 bg-gray-100 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800; }
-.routeform.indent { @apply pl-9.5; }
+.routeform, .tokenform { @apply flex flex-wrap items-center gap-2 px-4.5 py-3 bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-800; }
+.routeform.indent { @apply pl-9.5 <sm:pl-4.5; }
 .routeform .path, .tokenform .field, .tokenform .when {
-  @apply h-8 px-3 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 outline-none focus:border-blue-500;
+  @apply h-8 px-3 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 outline-none focus:border-blue-500;
 }
 .routeform .path { @apply flex-1 min-w-48 font-mono; }
 .tokenform .field { @apply flex-1 min-w-48; }
 .tokenform .when { @apply text-sm; }
 .when-label { @apply text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400; }
 .seg { @apply inline-flex rounded-md overflow-hidden border border-gray-300 dark:border-gray-700; }
-.seg button { @apply px-3 h-8 text-xs bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-r border-gray-300 dark:border-gray-700; }
+.seg button { @apply px-3 h-8 text-xs bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400 border-r border-gray-300 dark:border-gray-700; }
 .seg button:last-child { @apply border-r-0; }
 .seg button.on { @apply bg-blue-600 text-white; }
 

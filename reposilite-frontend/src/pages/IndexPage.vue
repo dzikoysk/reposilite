@@ -25,6 +25,8 @@ import { property } from '../helpers/vue-extensions'
 
 const ConsoleView = defineAsyncComponent(() => import('../components/console/ConsoleView.vue'))
 const DashboardView = defineAsyncComponent(() => import('../components/dashboard/DashboardView.vue'))
+const StatisticsView = defineAsyncComponent(() => import('../components/dashboard/StatisticsView.vue'))
+const DiagnosticsView = defineAsyncComponent(() => import('../components/dashboard/DiagnosticsView.vue'))
 const TokensView = defineAsyncComponent(() => import('../components/tokens/TokensView.vue'))
 const SettingsView = defineAsyncComponent(() => import('../components/settings/SettingsView.vue'))
 
@@ -35,6 +37,8 @@ defineProps({
 const listOfTabs = [
   { name: 'Overview', manager: false },
   { name: 'Dashboard', manager: true },
+  { name: 'Statistics', manager: true },
+  { name: 'Diagnostics', manager: true },
   { name: 'Tokens', manager: true },
   { name: 'Console', manager: true },
   { name: 'Settings', manager: true },
@@ -80,14 +84,14 @@ const selectHomepage = () =>
           >
             <Tab
               v-if="tab !== 'Dashboard'"
-              class="item font-normal <sm:w-1/4"
+              class="item font-normal <sm:w-1/3"
               :val="tab"
               :label="tab"
               :indicator="true"
             />
             <Tab
               v-if="tab === 'Dashboard'"
-              class="item font-normal dashboard <sm:w-1/4"
+              class="item font-normal dashboard <sm:w-1/3"
               :val="tab"
               :label="tab"
               :indicator="true"
@@ -102,16 +106,22 @@ const selectHomepage = () =>
             <FileBrowserView v-if="selectedTab == 'Overview'" :qualifier="qualifier" ref=""/>
           </TabPanel>
           <TabPanel :val="'Dashboard'" v-show="isManager">
-            <DashboardView v-if="selectedTab == 'Dashboard'" :selectedTab="selectedTab" />
+            <DashboardView v-if="selectedTab == 'Dashboard'" :selected-tab="selectedTab" @goto="selectedTab = $event" />
+          </TabPanel>
+          <TabPanel :val="'Statistics'" v-show="isManager">
+            <StatisticsView v-if="selectedTab == 'Statistics'" :selected-tab="selectedTab" />
+          </TabPanel>
+          <TabPanel :val="'Diagnostics'" v-show="isManager">
+            <DiagnosticsView v-if="selectedTab == 'Diagnostics'" :selected-tab="selectedTab" />
           </TabPanel>
           <TabPanel :val="'Console'" v-show="isManager">
-            <ConsoleView v-if="selectedTab == 'Console'" :selectedTab="selectedTab" />
+            <ConsoleView v-if="selectedTab == 'Console'" :selected-tab="selectedTab" />
           </TabPanel>
           <TabPanel :val="'Tokens'" v-show="isManager">
-            <TokensView v-if="selectedTab == 'Tokens'" :selectedTab="selectedTab" />
+            <TokensView v-if="selectedTab == 'Tokens'" :selected-tab="selectedTab" />
           </TabPanel>
-           <TabPanel :val="'Settings'" v-show="isManager">
-            <SettingsView v-if="selectedTab == 'Settings'" :selectedTab="selectedTab" />
+          <TabPanel :val="'Settings'" v-show="isManager">
+            <SettingsView v-if="selectedTab == 'Settings'" :selected-tab="selectedTab" />
           </TabPanel>
         </TabPanels>
       </div>

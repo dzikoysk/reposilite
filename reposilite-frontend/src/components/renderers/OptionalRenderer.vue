@@ -7,7 +7,7 @@
     <div class="description">
       {{ control.description }}
     </div>
-    <div v-if="present && control.visible" class="border-1 rounded-lg mt-1">
+    <div v-if="present && control.visible" class="optional-panel">
       <DispatchRenderer
         :visible="control.visible"
         :enabled="control.enabled"
@@ -69,5 +69,7 @@ export default {
 </script>
 
 <style scoped>
-
+.optional-panel {
+  @apply mt-1 rounded-lg bg-gray-100 dark:bg-gray-800 px-4 py-3;
+}
 </style>

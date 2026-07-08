@@ -21,7 +21,6 @@ client.value.statistics.allResolved()
         }))
       }
     })
-    console.log(resolvedSeries.value)
     statisticsEnabled.value = allResolved.statisticsEnabled
   })
   .catch(error => {
@@ -67,7 +66,7 @@ const chartOptions = {
 
 <template>
   <div v-if="statisticsEnabled">
-    <h1 class="font-bold text-lg">Resolved requests</h1>
+    <h1 class="font-semibold text-lg">Resolved requests</h1>
     <VueApexCharts 
       class="dark:text-black pt-2"
       width="100%"

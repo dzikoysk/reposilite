@@ -62,11 +62,23 @@ const createClient = (defaultName, defaultSecret) => {
       },
       snapshots() {
         return get("/api/status/snapshots")
+      },
+      failures() {
+        return get("/api/status/failures")
+      },
+      health() {
+        return get("/api/status/health")
       }
     },
     statistics: {
       allResolved() {
         return get("/api/statistics/resolved/all")
+      },
+      unique() {
+        return get("/api/statistics/resolved/unique")
+      },
+      resolvedByPhrase(limit, repository, phrase) {
+        return get(`/api/statistics/resolved/phrase/${limit}/${repository}/${phrase || ""}`)
       }
     },
     maven: {

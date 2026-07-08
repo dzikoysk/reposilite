@@ -1,0 +1,173 @@
+<script setup>
+import { ref, computed, watch } from "vue"
+import { useSession } from "../../store/session"
+import StatusSnapshotsChart from "./StatusSnapshotsChart.vue"
+import ResolvedRequestsChart from "./ResolvedRequestsChart.vue"
+
+defineProps({
+  selectedTab: {
+    type: String,
+    required: true
+  }
+})
+
+const { client } = useSession()
+
+const repositories = ref([])
+const kpis = ref(null)
+const uniqueCount = ref(0)
+
+const phrase = ref('')
+const repository = ref('')
+const limit = ref(20)
+const results = ref(null)
+let debounce = null
+
+client.value.settings.fetch('maven')
+  .then(response => repositories.value = response.data.repositories || [])
+  .catch(error => console.log(error))
+
+client.value.statistics.unique()
+  .then(response => uniqueCount.value = response.data)
+  .catch(error => console.log(error))
+
+client.value.statistics.allResolved()
+  .then(response => response.data)
+  .then(allResolved => {
+    if (!allResolved.statisticsEnabled) return
+    const points = allResolved.repositories.flatMap(repo => repo.data)
+    const byDate = {}
+    points.forEach(point => byDate[point.date] = (byDate[point.date] || 0) + point.count)
+    const dates = Object.keys(byDate).sort()
+    const last30 = dates.slice(-30).reduce((sum, date) => sum + byDate[date], 0)
+    const today = dates.length ? byDate[dates.at(-1)] : 0
+    const total = dates.reduce((sum, date) => sum + byDate[date], 0)
+    kpis.value = { total, last30, today }
+  })
+  .catch(error => console.log(error))
+
+function search() {
+  const repos = repository.value ? [repository.value] : repositories.value.map(repo => repo.id)
+
+  if (repos.length === 0) {
+    results.value = { sum: 0, requests: [] }
+    return
+  }
+
+  Promise.all(repos.map(repo =>
+    client.value.statistics.resolvedByPhrase(limit.value, repo, phrase.value).then(response => response.data)
+  ))
+    .then(responses => {
+      const merged = responses.flatMap(response => response.requests)
+      merged.sort((a, b) => b.count - a.count)
+      results.value = {
+        sum: responses.reduce((sum, response) => sum + response.sum, 0),
+        requests: merged.slice(0, limit.value)
+      }
+    })
+    .catch(error => console.log(error))
+}
+
+watch(repositories, () => search())
+watch([repository, limit], () => search())
+watch(phrase, () => {
+  clearTimeout(debounce)
+  debounce = setTimeout(search, 250)
+})
+
+const maxCount = computed(() => results.value?.requests[0]?.count || 1)
+const barWidth = (count) => `${Math.max(4, Math.round((count / maxCount.value) * 100))}%`
+</script>
+
+<template>
+  <div class="container mx-auto pt-7 px-15 pb-12 <sm:px-4">
+    <div class="head">
+      <h1 class="font-semibold text-lg">Statistics</h1>
+    </div>
+
+    <div v-if="kpis" class="chart-block">
+      <div class="kpis">
+        <div class="kpi"><div class="k">Total</div><div class="v num">{{ kpis.total.toLocaleString() }}</div></div>
+        <div class="kpi"><div class="k">Last 30 days</div><div class="v num">{{ kpis.last30.toLocaleString() }}</div></div>
+        <div class="kpi"><div class="k">Today</div><div class="v num">{{ kpis.today.toLocaleString() }}</div></div>
+      </div>
+      <ResolvedRequestsChart />
+    </div>
+
+    <div class="chart-block">
+      <StatusSnapshotsChart :selected-tab="selectedTab" />
+    </div>
+
+    <div class="section-head">
+      <h1 class="font-semibold text-lg">Most resolved artifacts</h1>
+      <span class="meta">Unique <b class="num">{{ uniqueCount.toLocaleString() }}</b></span>
+    </div>
+
+    <div class="flat">
+      <div class="bar">
+        <div class="search">
+          <svg viewBox="0 0 24 24" class="w-4 h-4 flex-shrink-0 text-gray-400"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M21 21l-4.3-4.3m1.3-5.2a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          <input v-model="phrase" placeholder="Filter by artifact path…" />
+        </div>
+        <select class="sel" v-model="repository">
+          <option value="">All repositories</option>
+          <option v-for="repo in repositories" :key="repo.id" :value="repo.id">{{ repo.id }}</option>
+        </select>
+        <select class="sel" v-model.number="limit">
+          <option :value="10">Top 10</option>
+          <option :value="20">Top 20</option>
+          <option :value="50">Top 50</option>
+          <option :value="100">Top 100</option>
+        </select>
+        <span v-if="results" class="sum">Matched <b class="num">{{ results.sum.toLocaleString() }}</b></span>
+      </div>
+
+      <div v-if="results" class="rows">
+        <div v-for="(entry, index) in results.requests" :key="entry.gav" class="srow">
+          <span class="rank num">{{ index + 1 }}</span>
+          <span class="gav font-mono">/{{ entry.gav }}</span>
+          <span class="rbar"><i :style="{ width: barWidth(entry.count) }"></i></span>
+          <span class="cnt num">{{ entry.count.toLocaleString() }}</span>
+        </div>
+        <div v-if="!results.requests.length" class="empty">
+          {{ phrase ? `No artifacts match “${phrase}”.` : 'No resolved requests recorded yet.' }}
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.head { @apply mb-5; }
+.section-head { @apply mt-6 mb-5 flex items-baseline justify-between gap-3; }
+.section-head .meta { @apply text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap; }
+.section-head .meta b { @apply text-gray-800 dark:text-gray-100 font-semibold; }
+
+.chart-block { @apply bg-white dark:bg-gray-900 rounded-lg p-5; }
+.chart-block + .chart-block { @apply mt-4; }
+
+.kpis { @apply flex gap-8 flex-wrap mb-4 pb-4 border-b border-gray-200 dark:border-gray-800; }
+.kpi .k { @apply text-sm text-gray-500 dark:text-gray-400; }
+.kpi .v { @apply text-xl font-semibold mt-0.5; }
+
+.flat { @apply bg-white dark:bg-gray-900 rounded-lg overflow-hidden text-sm text-gray-600 dark:text-gray-300; }
+.flat > :last-child { @apply border-b-0; }
+.bar { @apply flex items-center gap-3 px-3.5 py-3.5 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 flex-wrap; }
+.search { @apply flex items-center gap-2 flex-1 min-w-48 px-3 h-9 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 <sm:w-full <sm:min-w-0; }
+.search input { @apply flex-1 bg-transparent outline-none text-gray-700 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-400; }
+.sel { @apply h-9 px-3 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 text-sm outline-none <sm:flex-1; }
+.sum { @apply ml-auto text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap <sm:ml-0 <sm:w-full; }
+.sum b { @apply text-gray-800 dark:text-gray-100 font-semibold; }
+
+.srow { @apply flex items-center gap-3.5 px-4.5 h-12 border-b border-gray-200 dark:border-gray-800; }
+.srow:last-child { @apply border-b-0; }
+.srow:hover { @apply bg-gray-50 dark:bg-gray-800; }
+.rank { @apply w-5 text-right text-gray-400 dark:text-gray-600 text-sm flex-none; }
+.gav { @apply flex-1 min-w-0 truncate text-sm text-gray-800 dark:text-gray-100; }
+.rbar { @apply w-32 h-2 rounded-full bg-gray-150 dark:bg-gray-800 overflow-hidden flex-none <sm:hidden; }
+.rbar i { @apply block h-full rounded-full bg-blue-600 dark:bg-blue-500 opacity-85; }
+.cnt { @apply w-16 text-right text-base font-semibold flex-none; }
+
+.empty { @apply px-4.5 py-10 text-center text-gray-500 dark:text-gray-400; }
+.num { font-variant-numeric: tabular-nums; }
+</style>

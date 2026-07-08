@@ -64,6 +64,19 @@ internal class StatusEndpoints(
     }
 
     @OpenApi(
+        path = "/api/status/failures",
+        methods = [HttpMethod.GET],
+        responses = [
+            OpenApiResponse(status = "200", content = [OpenApiContent(from = Array<String>::class)])
+        ]
+    )
+    private val getFailures = ReposiliteRoute<Array<String>>("/api/status/failures", GET) {
+        managerOnly {
+            response = failureFacade.getFailures().toTypedArray().asSuccess()
+        }
+    }
+
+    @OpenApi(
         path = "/api/status/health",
         methods = [HttpMethod.GET],
         responses = [
@@ -78,6 +91,6 @@ internal class StatusEndpoints(
         }
     }
 
-    override val routes = routes(getInstanceStatus, getStatusSnapshots, getHealth)
+    override val routes = routes(getInstanceStatus, getStatusSnapshots, getFailures, getHealth)
 
 }

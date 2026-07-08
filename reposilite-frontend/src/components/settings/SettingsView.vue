@@ -90,96 +90,127 @@ const formsConfiguration = {
 </script>
 
 <template>
-  <div class="settings-view container mx-auto pt-7 px-15 pb-12">
-    <div class="flex justify-between pb-3 flex-col">
-      <div>
+  <div class="settings-view container mx-auto pt-7 px-15 pb-12 <sm:px-4">
+    <div class="settings-head">
+      <div class="copy">
         <p>Modify configuration shared between all instances.</p>
-        <p><strong>Remember</strong>: Configuration propagation can take up to 10 seconds on all your instances.</p>
+        <p><strong>Remember</strong>: Configuration propagation can take up to 10 seconds on all instances.</p>
       </div>
-      <div id="configuration-state" class="flex flex-row pt-8">
-        <button 
-          @click.prevent="executeIfValid(downloadSettings)" 
-          class="bg-gray-800 dark:bg-gray-600"
+      <div id="configuration-state" class="actions">
+        <button
+          v-if="hasChanged"
+          class="action primary"
           :class="{ forbidden: !isValid }"
+          :disabled="!isValid"
+          @click.prevent="reload(updateConfiguration)"
+        >
+          Update and reload
+        </button>
+        <button
+          v-if="hasChanged"
+          class="action danger"
+          @click.prevent="reload(fetchConfiguration)"
+        >
+          Reset changes
+        </button>
+        <button
           v-if="!hasChanged"
+          class="action utility"
+          :class="{ forbidden: !isValid }"
+          :disabled="!isValid"
+          @click.prevent="executeIfValid(downloadSettings)"
         >
           Download as JSON
         </button>
         <FactoryResetModal :callback="factoryReset">
-            <template v-slot:button>
-                <button class="bg-gray-800 dark:bg-gray-600">Factory reset</button>
-            </template>
+          <template #button>
+            <button class="action danger">
+              Factory reset
+            </button>
+          </template>
         </FactoryResetModal>
-        <button 
-          @click.prevent="reload(updateConfiguration)"
-          class="bg-gray-500 dark:bg-gray-800 cursor-not-allowed"
-          :class="{ changed: hasChanged, forbidden: !isValid }"
-          :disabled="!isValid || !hasChanged"
-          v-if="hasChanged"
-        >
-          Update and reload
-        </button>
-        <button 
-          @click.prevent="reload(fetchConfiguration)"
-          class="bg-gray-500 dark:bg-gray-800 cursor-not-allowed"
-          :class="{ changed: hasChanged }"
-          :disabled="!isValid || !hasChanged"
-        >
-          Reset changes
-        </button>
       </div>
     </div>
-    <Tabs v-model="selectedDomain">
-      <Tab v-for="domain in domains"
-        class="item"
-        :key="`config:${domain}`"
-        :val="domain"
-        :label="schemas[domain]?.title"
-        :indicator="true"
-      />
-    </Tabs>
-    <TabPanels v-model="selectedDomain">
-      <TabPanel 
-        v-for="domain in domains" 
-        :val="domain" 
-        :key="`config_tab:${domain}`" 
-        class="border-1 rounded dark:border-gray-700 p-4"
-      >
-        <JsonForms
-          v-if="configurations[domain]"
-          :config="formsConfiguration"
-          :data="configurations[domain]"
-          :schema="schemas[domain]"
-          :renderers="renderers"
-          :ajv="configurationValidator"
-          @change="updateFormsConfiguration(domain, $event)"
+    <div class="settings-card">
+      <Tabs v-model="selectedDomain" class="domain-tabs">
+        <Tab v-for="domain in domains"
+          class="item"
+          :key="`config:${domain}`"
+          :val="domain"
+          :label="schemas[domain]?.title"
+          :indicator="true"
         />
-      </TabPanel>
-    </TabPanels>
+      </Tabs>
+      <TabPanels v-model="selectedDomain">
+        <TabPanel
+          v-for="domain in domains"
+          :val="domain"
+          :key="`config_tab:${domain}`"
+          class="settings-panel"
+        >
+          <JsonForms
+            v-if="configurations[domain]"
+            :config="formsConfiguration"
+            :data="configurations[domain]"
+            :schema="schemas[domain]"
+            :renderers="renderers"
+            :ajv="configurationValidator"
+            @change="updateFormsConfiguration(domain, $event)"
+          />
+        </TabPanel>
+      </TabPanels>
+    </div>
   </div>
 </template>
 
 <!--suppress CssInvalidAtRule -->
 <style scoped>
-#configuration-state button {
-  @apply mx-2 rounded text-sm px-4 text-white py-2;
+.settings-head {
+  @apply pb-5 flex justify-between gap-4 <md:flex-col;
 }
-#configuration-state .changed {
-  @apply bg-blue-700 cursor-pointer !important;
+.settings-head .copy {
+  @apply text-gray-800 dark:text-gray-100;
+}
+.settings-head .copy p + p {
+  @apply mt-1 text-sm text-gray-500 dark:text-gray-400;
+}
+.settings-card {
+  @apply bg-white dark:bg-gray-900 rounded-lg overflow-hidden;
+}
+#configuration-state {
+  @apply flex flex-wrap gap-2 items-center;
+}
+#configuration-state button {
+  @apply rounded-md text-sm px-3.5 h-9 text-white whitespace-nowrap;
+}
+#configuration-state .utility {
+  @apply bg-gray-800 dark:bg-gray-700 hover:bg-gray-900 dark:hover:bg-gray-600;
+}
+#configuration-state .primary {
+  @apply bg-blue-700 hover:bg-blue-800 dark:hover:bg-blue-600 cursor-pointer;
+}
+#configuration-state .danger {
+  @apply bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-500 cursor-pointer;
 }
 #configuration-state .forbidden {
   @apply bg-gray-500 cursor-not-allowed !important;
 }
 .item {
-  @apply pb-1;
-  @apply pt-1.5;
-  @apply cursor-pointer;
-  @apply text-gray-600 dark:text-gray-300;
-  @apply bg-gray-100 dark:bg-black;
+  @apply cursor-pointer whitespace-nowrap rounded-t-md px-3 py-1 text-sm leading-5 text-gray-600 dark:text-gray-300 bg-transparent;
 }
-.tabs .item:hover {
-  @apply bg-gray-150 dark:bg-gray-900;
+.domain-tabs {
+  @apply bg-gray-100 dark:bg-black overflow-x-auto;
+}
+.domain-tabs :deep(.tab) {
+  @apply whitespace-nowrap;
+}
+.domain-tabs :deep(.item:hover) {
+  @apply bg-white dark:bg-gray-800;
   transition: background-color 0.5s;
+}
+.domain-tabs :deep(.active),
+.domain-tabs :deep(.item.active) {
+  @apply bg-white dark:bg-gray-900 text-gray-900 dark:text-white;
 }
 </style>
 
@@ -192,20 +223,27 @@ const formsConfiguration = {
   @apply container mx-auto;
 }
 .control .input:not([type=checkbox]), .control .select {
-  @apply text-sm h-9 px-4 text-black;
+  @apply text-sm h-9 px-4 text-black dark:text-white bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 outline-none;
+}
+.control .input:not([type=checkbox]):focus, .control .select:focus {
+  @apply border-blue-500;
 }
 .control .input[type="checkbox"] {
   @apply h-5 w-5;
 }
 .control .input, .control .select {
-  @apply mx-2 rounded;
+  @apply mx-2 rounded <sm:mx-0;
 }
 .control .select {
   @apply pr-8;
 }
-.vertical-layout, .group, .array-list {
+.vertical-layout, .group {
   @apply flex flex-col flex-wrap py-4 h-full;
   gap: 1rem;
+}
+.array-list {
+  @apply flex flex-col flex-wrap h-full;
+  gap: 0.75rem;
 }
 .label, label {
   padding-bottom: 0.5em;
@@ -228,7 +266,7 @@ const formsConfiguration = {
   margin-right: auto;
 }
 .array-list-item-delete {
-  @apply absolute right-0 top-2;
+  @apply absolute right-0 top-2 text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300;
 }
 .array-list-item-toolbar {
   @apply flex flex-row items-baseline relative;
@@ -239,32 +277,48 @@ const formsConfiguration = {
 .array-list-item-toolbar>button {
   padding: 0.5rem;
 }
-.array-list-legend {
-  @apply flex flex-row-reverse gap-2 w-full;
-  margin-bottom: 1rem;
-}
-.array-list-item-wrapper {
-}
 .one-of-container {
-  @apply h-full flex flex-col; 
-}
-.one-of-container .active, .tab-panel .array-list .tab-panel .array-list .active {
-  @apply bg-gray-125 dark:bg-gray-900;
-}
-.one-of-container .tab-panel, .tab-panel .array-list .tab-panel .array-list .tab-panel {
-  @apply bg-gray-125 dark: bg-gray-900;
-  border-radius: 0.25rem;
-  padding-left: 17px;
-}
-.tabs > div {
-  @apply rounded-t-lg;
+  @apply h-full flex flex-col rounded-lg bg-gray-100 dark:bg-gray-800 px-3 py-3;
 }
 .settings-view .tab-panel {
   @apply h-full;
-  @apply border rounded-md px-6 py-2 dark:border-gray-600;
+}
+.settings-view .settings-panel {
+  @apply bg-white dark:bg-gray-900 px-5 py-5 <sm:px-4;
+}
+.settings-view .array-list-shell {
+  @apply rounded-lg bg-gray-100 dark:bg-gray-800 px-4 py-3 <sm:px-3;
+}
+.settings-view .array-list-head {
+  @apply flex items-center justify-between gap-3 w-full;
+}
+.settings-view .one-of-tabs,
+.settings-view .array-list-tabs {
+  @apply overflow-x-auto;
+}
+.settings-view .one-of-tabs .tab,
+.settings-view .array-list-tabs .tab {
+  @apply whitespace-nowrap;
+}
+.settings-view .one-of-tabs .item,
+.settings-view .array-list-tabs .item {
+  @apply cursor-pointer whitespace-nowrap rounded-t-md bg-transparent px-3 py-1 text-sm leading-5 text-gray-600 dark:text-gray-300;
+}
+.settings-view .one-of-tabs .item:hover,
+.settings-view .array-list-tabs .item:hover {
+  @apply bg-white dark:bg-gray-700;
+  transition: background-color 0.2s;
+}
+.settings-view .one-of-tabs .active,
+.settings-view .array-list-tabs .active {
+  @apply bg-white dark:bg-gray-900 text-gray-900 dark:text-white;
+}
+.settings-view .one-of-panel,
+.settings-view .array-list-panel {
+  @apply rounded-b-lg rounded-tr-lg bg-white dark:bg-gray-900 px-4 py-3 <sm:px-3;
 }
 .array-list-add {
-  @apply rounded-full h-6 w-6 leading-6 bg-blue-700 ml-auto text-white z-1;
+  @apply rounded-full h-6 w-6 leading-6 bg-blue-700 text-white z-1 flex-none;
 }
 .array-list-item-move-up {
   display: none;
@@ -273,22 +327,28 @@ const formsConfiguration = {
   display: none;
 }
 .array-list-no-data {
-  @apply p-4 bg-gray-200 dark:bg-gray-900 italic rounded-md;
+  @apply p-4 bg-white dark:bg-gray-900 italic rounded-md;
 }
 .wrapper {
-  @apply flex py-2;
+  @apply flex py-2 <sm:flex-col;
 }
 .wrapper p {
   @apply px-2 text-sm;
 }
 .wrapper input {
-  @apply w-1/2;
+  @apply w-1/2 <sm:w-full;
 }
 .wrapper input, .wrapper select {
   @apply dark:bg-gray-800 dark:text-white !important;
 }
 .wrapper input:not([type=checkbox]):read-only {
   @apply bg-gray-200 dark:bg-gray-800 text-gray-500 !important;
+}
+.array-list-item-wrapper {
+  @apply bg-transparent rounded-none p-0;
+}
+.array-list-item-toolbar {
+  @apply min-h-8;
 }
 .array-list-legend {
   margin-bottom: 0;
