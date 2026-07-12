@@ -37,7 +37,7 @@ object ReposiliteMetrics {
         CounterWithCallback.builder()
             .name("reposilite_failures_total")
             .help("Number of failures reposilite has encountered")
-            .callback { callback -> callback.call(failureFacade.getFailures().size.toDouble()) }
+            .callback { callback -> callback.call(failureFacade.getFailuresCount().toDouble()) }
             .register(registry)
 
         responseFileSizeSummary = Summary.builder()

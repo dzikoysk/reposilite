@@ -25,6 +25,7 @@ import com.reposilite.RecommendedRemoteSpecificationJunitExtension
 import com.reposilite.VERSION
 import com.reposilite.status.api.HealthResponse
 import com.reposilite.status.api.InstanceStatusResponse
+import com.reposilite.status.api.RecordedFailure
 import com.reposilite.status.api.StatusSnapshot
 import com.reposilite.status.specification.StatusIntegrationSpecification
 import com.reposilite.token.AccessTokenPermission.MANAGER
@@ -105,7 +106,7 @@ internal abstract class StatusIntegrationTest : StatusIntegrationSpecification()
         // when: service is requested with valid credentials
         val response = get("$base/api/status/failures")
             .basicAuth(name, secret)
-            .asJacksonObject(Array<String>::class)
+            .asJacksonObject(Array<RecordedFailure>::class)
 
         // then: service should respond with a list of failures
         assertThat(response.status).isEqualTo(OK.code)

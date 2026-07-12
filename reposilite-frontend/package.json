@@ -17,9 +17,9 @@
     "npm": ">=10.0.0"
   },
   "dependencies": {
-    "@dzikoysk/vue-vanilla": "^3.4.1",
-    "@jsonforms/core": "^3.4.1",
-    "@jsonforms/vue": "^3.4.1",
+    "@jsonforms/core": "^3.8.0",
+    "@jsonforms/vue": "^3.8.0",
+    "@jsonforms/vue-vanilla": "^3.8.0",
     "@vueform/toggle": "^2.1.4",
     "@vueuse/core": "^14.3.0",
     "@vueuse/head": "^2.0.0",

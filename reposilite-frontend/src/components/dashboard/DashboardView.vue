@@ -3,6 +3,7 @@ import { ref, computed } from "vue"
 import { createErrorToast } from '../../helpers/toast'
 import { useSession } from "../../store/session"
 import { useTokens } from "../../store/tokens"
+import ViewHeader from '../util/ViewHeader.vue'
 
 const props = defineProps({
   selectedTab: {
@@ -113,9 +114,10 @@ const plural = (count, singular, pluralText) =>
 
 <template>
   <div v-if="instanceStatus" class="container mx-auto pt-7 px-15 pb-12 <sm:px-4">
-    <div class="head">
-      <h1 class="font-semibold text-lg">Instance status</h1>
-    </div>
+    <ViewHeader
+      title="Instance overview"
+      description="Live health, resources, repositories, and access state."
+    />
 
     <div class="grid">
       <div class="block c6">
@@ -140,7 +142,7 @@ const plural = (count, singular, pluralText) =>
       </div>
 
       <div class="block c3">
-        <div class="block-top"><span class="t">Resources</span><span class="tag">JVM</span></div>
+        <div class="block-top"><span class="t">Resources</span><button class="link" @click="$emit('goto', 'Diagnostics')">Diagnostics</button></div>
         <div class="meter">
           <div class="lab"><span class="name">Heap memory</span><span class="val num">{{ instanceStatus.usedMemory.toFixed(0) }} MB <small>/ {{ instanceStatus.maxMemory }} MB</small></span></div>
           <div class="track"><div class="fill" :style="{ width: heapUsage + '%' }"></div></div>
@@ -209,8 +211,6 @@ const plural = (count, singular, pluralText) =>
 </template>
 
 <style scoped>
-.head { @apply mb-5; }
-
 .grid { @apply grid grid-cols-6 gap-4 <md:grid-cols-1; }
 .c2 { @apply col-span-2 <md:col-span-1; }
 .c3 { @apply col-span-3 <md:col-span-1; }

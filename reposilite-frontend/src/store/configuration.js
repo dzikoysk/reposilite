@@ -2,7 +2,7 @@ import {computed, markRaw, ref, toRaw} from 'vue'
 import { useSession } from './session'
 import { createToast } from 'mosha-vue-toastify'
 import { createAjv } from '@jsonforms/core'
-import { vanillaRenderers } from '@dzikoysk/vue-vanilla'
+import { vanillaRenderers } from '@jsonforms/vue-vanilla'
 import { default as ObjectRenderer, tester as objectTester } from '../components/renderers/ObjectRenderer.vue'
 import { default as AllOfRenderer, tester as allOfTester } from '../components/renderers/AllOfRenderer.vue'
 import { default as ArrayListRenderer, tester as arrayListTester } from '../components/renderers/ArrayListRenderer.vue'
@@ -15,13 +15,35 @@ const domains = ref([])
 const schemas = ref({})
 const configurations = ref({})
 const selectedDomain = ref('')
-    
+
+const decodeDescription = (description) =>
+  description
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>\s*<p>/gi, '\n\n')
+    .replace(/<\/?p>/gi, '')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, '&')
+    .replace(/[ \t]*\n[ \t]*/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+
+const normalizeSchemaDescriptions = (schema) =>
+  JSON.parse(JSON.stringify(schema), (key, value) =>
+    key === 'description' && typeof value === 'string'
+      ? decodeDescription(value)
+      : value
+  )
+
 const fetchConfiguration = () => {
   return client.value.settings.domains()
     .then(domainsResponse => domains.value = domainsResponse.data)
     .then(() => Promise.all(domains.value.map(domain =>
       client.value.settings.schema(domain)
-        .then(schemaResponse => schemas.value[domain] = schemaResponse.data)
+        .then(schemaResponse => schemas.value[domain] = normalizeSchemaDescriptions(schemaResponse.data))
         .then(() => client.value.settings.fetch(domain))
         .then(configurationResponse => configurations.value[domain] = configurationResponse.data)))
     )

@@ -28,7 +28,7 @@ const statusSnapshotsSeries = computed(() => {
 })
 
 function requestStatus() {
-  if (props.selectedTab == 'Statistics') {
+  if (props.selectedTab == 'Diagnostics') {
     client.value.status.snapshots()
       .then(response => response.data)
       .then(snapshotsData => {
@@ -81,9 +81,8 @@ const chartOptions = {
 
 <template>
   <div v-if="statusSnapshots">
-    <h1 class="font-semibold text-lg">Resources</h1>
     <VueApexCharts 
-      class="dark:text-black pt-1"
+      class="dark:text-black"
       width="100%"
       height="320px"
       type="line"

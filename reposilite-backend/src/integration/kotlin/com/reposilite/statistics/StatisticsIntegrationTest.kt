@@ -27,6 +27,7 @@ import com.reposilite.statistics.api.AllResolvedResponse
 import com.reposilite.statistics.api.IntervalRecord
 import com.reposilite.statistics.api.RepositoryStatistics
 import com.reposilite.statistics.api.ResolvedCountResponse
+import com.reposilite.statistics.api.ResolvedEntriesResponse
 import com.reposilite.statistics.infrastructure.SqlStatisticsRepository
 import com.reposilite.statistics.specification.StatisticsIntegrationSpecification
 import com.reposilite.token.AccessTokenPermission.MANAGER
@@ -104,6 +105,38 @@ internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecifi
         assertThat(response.status).isEqualTo(OK.code)
         assertThat(response.body.sum).isEqualTo(1)
         assertThat(response.body.requests[0].gav).isEqualTo(identifier.gav)
+    }
+
+    @Test
+    fun `should return paginated resolved entries`() {
+        // given: a few routes to request and check
+        useResolvedRequest("releases", "com/reposilite.jar", "content")
+        useResolvedRequest("snapshots", "com/reposilite-snapshot.jar", "content")
+        val endpoint = "$base/api/statistics/resolved/entries?limit=1&phrase=reposilite"
+
+        // when: stats service is requested without valid credentials
+        val unauthorizedResponse = get(endpoint).asString()
+
+        // then: service rejects request
+        assertThat(unauthorizedResponse.status).isEqualTo(UNAUTHORIZED.code)
+
+        // given: a valid credentials
+        val (name, secret) = useAuth("name", "secret", listOf(MANAGER))
+
+        // when: service is requested with valid credentials
+        val response = get(endpoint)
+            .basicAuth(name, secret)
+            .asObject(ResolvedEntriesResponse::class.java)
+
+        // then: service responds with a paginated entry list
+        assertThat(response.status).isEqualTo(OK.code)
+        assertThat(response.body.entries).hasSize(1)
+        assertThat(response.body.entries[0].repository).isIn("releases", "snapshots")
+        assertThat(response.body.entries[0].path).contains("reposilite")
+        assertThat(response.body.page.limit).isEqualTo(1)
+        assertThat(response.body.page.offset).isEqualTo(0)
+        assertThat(response.body.page.hasMore).isTrue()
+        assertThat(response.body.page.nextOffset).isEqualTo(1)
     }
 
     @Test

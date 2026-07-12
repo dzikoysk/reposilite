@@ -66,4 +66,52 @@ internal class StatisticsFacadeTest : StatisticsSpecification() {
         assertThat(statisticsFacade.countUniqueRecords()).isEqualTo(3)
     }
 
+    @Test
+    fun `should find resolved entries across repositories`() {
+        // given: resolved entries in a few repositories
+        useResolvedIdentifier("releases", "/first", 5)
+        useResolvedIdentifier("snapshots", "/second", 3)
+        useResolvedIdentifier("private", "/third", 1)
+
+        // when: the first page of resolved entries is requested
+        val result = statisticsFacade.findResolvedEntries(
+            repository = null,
+            phrase = "/",
+            limit = 2,
+            offset = 0
+        )
+
+        // then: it should return sorted entries with page metadata
+        val response = assertOk(result)
+        assertThat(response.entries.map { it.path }).containsExactly("/first", "/second")
+        assertThat(response.entries.map { it.repository }).containsExactly("releases", "snapshots")
+        assertThat(response.page.limit).isEqualTo(2)
+        assertThat(response.page.offset).isEqualTo(0)
+        assertThat(response.page.hasMore).isTrue()
+        assertThat(response.page.nextOffset).isEqualTo(2)
+    }
+
+    @Test
+    fun `should find resolved entries in selected repository`() {
+        // given: same path resolved in two repositories
+        useResolvedIdentifier("releases", "/first", 5)
+        useResolvedIdentifier("snapshots", "/first", 3)
+
+        // when: selected repository is requested
+        val result = statisticsFacade.findResolvedEntries(
+            repository = "snapshots",
+            phrase = "first"
+        )
+
+        // then: it should only return entries from that repository
+        val response = assertOk(result)
+        assertThat(response.entries).hasSize(1)
+        val entry = response.entries.single()
+        assertThat(entry.repository).isEqualTo("snapshots")
+        assertThat(entry.path).isEqualTo("/first")
+        assertThat(entry.count).isEqualTo(3)
+        assertThat(response.page.hasMore).isFalse()
+        assertThat(response.page.nextOffset).isNull()
+    }
+
 }

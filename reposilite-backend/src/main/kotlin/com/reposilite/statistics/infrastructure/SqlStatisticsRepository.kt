@@ -26,9 +26,11 @@ import com.reposilite.maven.api.REPOSITORY_NAME_MAX_LENGTH
 import com.reposilite.shared.extensions.executeQuery
 import com.reposilite.statistics.StatisticsRepository
 import com.reposilite.statistics.api.ResolvedEntry
+import com.reposilite.statistics.api.ResolvedStatisticsEntry
 import org.intellij.lang.annotations.Language
 import org.jetbrains.exposed.v1.core.*
 import org.jetbrains.exposed.v1.core.ReferenceOption.CASCADE
+import org.jetbrains.exposed.v1.core.SortOrder.ASC
 import org.jetbrains.exposed.v1.core.SortOrder.DESC
 import org.jetbrains.exposed.v1.core.dao.id.IntIdTable
 import org.jetbrains.exposed.v1.core.java.javaUUID
@@ -225,6 +227,30 @@ internal class SqlStatisticsRepository(
                 .limit(limit)
                 .filter { (it.getOrNull(resolvedSum) ?: 0) > 0 }
                 .map { ResolvedEntry(it[IdentifierTable.gav], it[resolvedSum] ?: 0) }
+        }
+
+    override fun findResolvedEntries(repository: String?, phrase: String, limit: Int, offset: Long): List<ResolvedStatisticsEntry> =
+        transaction(database) {
+            val resolvedSum = ResolvedTable.count.sum()
+            val criteria = listOfNotNull(
+                IdentifierTable.gav like "%$phrase%",
+                repository?.let { IdentifierTable.repository eq it }
+            )
+
+            IdentifierTable.leftJoin(ResolvedTable, { IdentifierTable.id }, { ResolvedTable.identifierId })
+                .select(IdentifierTable.repository, IdentifierTable.gav, resolvedSum)
+                .where(AndOp(criteria))
+                .groupBy(IdentifierTable.id, IdentifierTable.repository, IdentifierTable.gav)
+                .having { resolvedSum greater 0L }
+                .orderBy(
+                    resolvedSum to DESC,
+                    IdentifierTable.repository to ASC,
+                    IdentifierTable.gav to ASC
+                )
+                .limit(limit)
+                .offset(offset)
+                .filter { (it.getOrNull(resolvedSum) ?: 0) > 0 }
+                .map { ResolvedStatisticsEntry(it[IdentifierTable.repository], it[IdentifierTable.gav], it[resolvedSum] ?: 0) }
         }
 
     override fun getAllResolvedRequestsPerRepositoryAsTimeSeries(): Map<String, Map<LocalDate, Long>> =

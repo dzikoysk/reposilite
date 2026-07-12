@@ -32,8 +32,29 @@ internal class FailureFacadeTest : FailureSpecification() {
         failureFacade.throwException("PATH /com/reposilite", exception)
 
         // then: service properly registered thrown exception
+        val recordedFailure = failureFacade.getRecordedFailures().single()
         assertThat(failureFacade.hasFailures()).isTrue
-        assertThat(failureFacade.getFailures().iterator().next().contains(message)).isTrue
+        assertThat(recordedFailure.path).isEqualTo("PATH /com/reposilite")
+        assertThat(recordedFailure.type).isEqualTo("RuntimeException")
+        assertThat(recordedFailure.message).isEqualTo(message)
+        assertThat(recordedFailure.trace).contains(message)
+        assertThat(failureFacade.getFailures().iterator().next()).isEqualTo(recordedFailure.trace)
     }
+
+    @Test
+    fun `should count duplicated failures`() {
+        // when: the same source fails more than once
+        failureFacade.throwException("PATH /com/reposilite", duplicatedFailure("Unlucky"))
+        failureFacade.throwException("PATH /com/reposilite", duplicatedFailure("Still unlucky"))
+
+        // then: the failure is stored once with an incremented occurrence count
+        val recordedFailure = failureFacade.getRecordedFailures().single()
+        assertThat(recordedFailure.occurrences).isEqualTo(2)
+        assertThat(failureFacade.getFailures()).hasSize(1)
+        assertThat(failureFacade.getFailuresCount()).isEqualTo(2)
+    }
+
+    private fun duplicatedFailure(message: String): RuntimeException =
+        RuntimeException(message)
 
 }

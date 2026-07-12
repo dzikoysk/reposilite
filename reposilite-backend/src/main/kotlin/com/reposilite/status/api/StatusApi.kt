@@ -30,6 +30,14 @@ data class InstanceStatusResponse(
     val failuresCount: Int
 )
 
+data class RecordedFailure(
+    val path: String,
+    val type: String,
+    val message: String,
+    val trace: String,
+    val occurrences: Int
+)
+
 data class StatusSnapshot(
     val at: Long = LocalDateTime.now().toUTCMillis(),
     val memory: Int,

@@ -67,7 +67,7 @@
 import { ref } from 'vue'
 import { composePaths, createDefaultValue, rankWith, schemaTypeIs } from '@jsonforms/core'
 import { DispatchRenderer, rendererProps, useJsonFormsArrayControl } from '@jsonforms/vue'
-import { useVanillaArrayControl } from '@dzikoysk/vue-vanilla'
+import { useVanillaArrayControl } from '@jsonforms/vue-vanilla'
 import {Tabs, Tab, TabPanels, TabPanel} from 'vue3-tabs'
 import ArrayListElement from './ArrayListElement.vue'
 
@@ -133,7 +133,7 @@ export default {
     addButtonClick() {
       this.addItem(
         this.control.path,
-        createDefaultValue(this.control.schema)
+        createDefaultValue(this.control.schema, this.control.rootSchema)
       )()
     }
   },

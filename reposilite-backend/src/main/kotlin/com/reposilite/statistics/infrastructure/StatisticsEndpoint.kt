@@ -21,6 +21,7 @@ import com.reposilite.statistics.MAX_PAGE_SIZE
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.statistics.api.AllResolvedResponse
 import com.reposilite.statistics.api.ResolvedCountResponse
+import com.reposilite.statistics.api.ResolvedEntriesResponse
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
 import io.javalin.community.routing.Route.GET
@@ -55,6 +56,32 @@ internal class StatisticsEndpoint(private val statisticsFacade: StatisticsFacade
 
     @OpenApi(
         tags = ["Statistics"],
+        path = "/api/statistics/resolved/entries",
+        methods = [HttpMethod.GET],
+        queryParams = [
+            OpenApiParam(name = "limit", description = "Amount of entries to find (Maximum: $MAX_PAGE_SIZE)", required = false),
+            OpenApiParam(name = "offset", description = "Amount of entries to skip", required = false),
+            OpenApiParam(name = "repository", description = "Repository to search in. If omitted, all repositories are searched.", required = false),
+            OpenApiParam(name = "phrase", description = "Phrase to search for", required = false)
+        ],
+        responses = [
+            OpenApiResponse("200", content = [ OpenApiContent(from = ResolvedEntriesResponse::class) ], description = "Paginated resolved entry statistics"),
+            OpenApiResponse("401", content = [ OpenApiContent(from = ErrorResponse::class) ], description = "When non-manager token is used")
+        ]
+    )
+    val findEntries = ReposiliteRoute<ResolvedEntriesResponse>("/api/statistics/resolved/entries", GET) {
+        managerOnly {
+            response = statisticsFacade.findResolvedEntries(
+                repository = ctx.queryParam("repository")?.takeIf(String::isNotBlank),
+                phrase = ctx.queryParam("phrase").orEmpty(),
+                limit = ctx.queryParam("limit")?.toIntOrNull() ?: MAX_PAGE_SIZE,
+                offset = ctx.queryParam("offset")?.toLongOrNull() ?: 0
+            )
+        }
+    }
+
+    @OpenApi(
+        tags = ["Statistics"],
         path = "/api/statistics/resolved/unique",
         methods = [HttpMethod.GET],
         responses = [
@@ -83,6 +110,6 @@ internal class StatisticsEndpoint(private val statisticsFacade: StatisticsFacade
         }
     }
 
-    override val routes = routes(findCountByPhrase, findUniqueCount, getAllStatistics)
+    override val routes = routes(findCountByPhrase, findEntries, findUniqueCount, getAllStatistics)
 
 }

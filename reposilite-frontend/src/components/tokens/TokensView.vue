@@ -22,6 +22,7 @@ import { property } from '../../helpers/vue-extensions'
 import PencilIcon from '../icons/PencilIcon.vue'
 import TrashIcon from '../icons/TrashIcon.vue'
 import RefreshIcon from '../icons/RefreshIcon.vue'
+import ViewHeader from '../util/ViewHeader.vue'
 
 const props = defineProps({
   selectedTab: property(String, true)
@@ -123,10 +124,14 @@ const runConfirm = (token) => {
 
 <template>
   <div class="container mx-auto pt-7 px-15 pb-12 <sm:px-4">
-    <div class="head">
-      <p>Generate and revoke access tokens used to authenticate with this Reposilite instance.</p>
-      <p class="text-sm text-gray-500">A token's secret is shown only once, at the moment it is generated.</p>
-    </div>
+    <ViewHeader
+      title="Access credentials"
+      description="Generate and revoke tokens used to authenticate with this instance."
+    >
+      <template #note>
+        A token's secret is shown only once, when it is generated.
+      </template>
+    </ViewHeader>
 
     <div class="flat">
       <div class="bar">
@@ -224,9 +229,6 @@ const runConfirm = (token) => {
 </template>
 
 <style scoped>
-.head { @apply pb-7 text-gray-800 dark:text-gray-100; }
-.head p + p { @apply mt-1 text-gray-500 dark:text-gray-400; }
-
 .flat { @apply bg-white dark:bg-gray-900 rounded-lg overflow-hidden text-sm text-gray-600 dark:text-gray-300; }
 .flat > :last-child { @apply border-b-0; }
 

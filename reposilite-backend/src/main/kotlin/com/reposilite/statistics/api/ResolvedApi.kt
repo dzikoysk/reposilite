@@ -52,3 +52,21 @@ data class ResolvedEntry(
     val gav: String,
     val count: Long
 )
+
+data class ResolvedEntriesResponse(
+    val page: ResolvedEntriesPage,
+    val entries: List<ResolvedStatisticsEntry>
+)
+
+data class ResolvedStatisticsEntry(
+    val repository: String,
+    val path: String,
+    val count: Long
+)
+
+data class ResolvedEntriesPage(
+    val limit: Int,
+    val offset: Long,
+    val hasMore: Boolean,
+    val nextOffset: Long?
+)

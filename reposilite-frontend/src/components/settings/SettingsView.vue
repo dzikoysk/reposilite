@@ -22,6 +22,7 @@ import { useConfiguration } from '../../store/configuration'
 import download from 'downloadjs'
 import FactoryResetModal from './FactoryResetModal.vue'
 import { property } from '../../helpers/vue-extensions'
+import ViewHeader from '../util/ViewHeader.vue'
 
 const props = defineProps({
   selectedTab: property(String, true)
@@ -91,46 +92,53 @@ const formsConfiguration = {
 
 <template>
   <div class="settings-view container mx-auto pt-7 px-15 pb-12 <sm:px-4">
-    <div class="settings-head">
-      <div class="copy">
-        <p>Modify configuration shared between all instances.</p>
-        <p><strong>Remember</strong>: Configuration propagation can take up to 10 seconds on all instances.</p>
-      </div>
-      <div id="configuration-state" class="actions">
-        <button
-          v-if="hasChanged"
-          class="action primary"
-          :class="{ forbidden: !isValid }"
-          :disabled="!isValid"
-          @click.prevent="reload(updateConfiguration)"
+    <ViewHeader
+      title="Shared configuration"
+      description="Modify configuration shared between all instances."
+    >
+      <template #note>
+        <strong>Remember</strong>: Configuration propagation can take up to 10 seconds on all instances.
+      </template>
+      <template #actions>
+        <div
+          id="configuration-state"
+          class="actions"
         >
-          Update and reload
-        </button>
-        <button
-          v-if="hasChanged"
-          class="action danger"
-          @click.prevent="reload(fetchConfiguration)"
-        >
-          Reset changes
-        </button>
-        <button
-          v-if="!hasChanged"
-          class="action utility"
-          :class="{ forbidden: !isValid }"
-          :disabled="!isValid"
-          @click.prevent="executeIfValid(downloadSettings)"
-        >
-          Download as JSON
-        </button>
-        <FactoryResetModal :callback="factoryReset">
-          <template #button>
-            <button class="action danger">
-              Factory reset
-            </button>
-          </template>
-        </FactoryResetModal>
-      </div>
-    </div>
+          <button
+            v-if="hasChanged"
+            class="action primary"
+            :class="{ forbidden: !isValid }"
+            :disabled="!isValid"
+            @click.prevent="reload(updateConfiguration)"
+          >
+            Update and reload
+          </button>
+          <button
+            v-if="hasChanged"
+            class="action danger"
+            @click.prevent="reload(fetchConfiguration)"
+          >
+            Reset changes
+          </button>
+          <button
+            v-if="!hasChanged"
+            class="action utility"
+            :class="{ forbidden: !isValid }"
+            :disabled="!isValid"
+            @click.prevent="executeIfValid(downloadSettings)"
+          >
+            Download as JSON
+          </button>
+          <FactoryResetModal :callback="factoryReset">
+            <template #button>
+              <button class="action danger">
+                Factory reset
+              </button>
+            </template>
+          </FactoryResetModal>
+        </div>
+      </template>
+    </ViewHeader>
     <div class="settings-card">
       <Tabs v-model="selectedDomain" class="domain-tabs">
         <Tab v-for="domain in domains"
@@ -165,15 +173,6 @@ const formsConfiguration = {
 
 <!--suppress CssInvalidAtRule -->
 <style scoped>
-.settings-head {
-  @apply pb-5 flex justify-between gap-4 <md:flex-col;
-}
-.settings-head .copy {
-  @apply text-gray-800 dark:text-gray-100;
-}
-.settings-head .copy p + p {
-  @apply mt-1 text-sm text-gray-500 dark:text-gray-400;
-}
 .settings-card {
   @apply bg-white dark:bg-gray-900 rounded-lg overflow-hidden;
 }
@@ -236,6 +235,19 @@ const formsConfiguration = {
 }
 .control .select {
   @apply pr-8;
+}
+.control {
+  @apply flex flex-col;
+}
+.control > .description {
+  order: 1;
+  white-space: pre-line;
+}
+.control > .wrapper {
+  order: 2;
+}
+.control > .error {
+  order: 3;
 }
 .vertical-layout, .group {
   @apply flex flex-col flex-wrap py-4 h-full;
@@ -331,6 +343,13 @@ const formsConfiguration = {
 }
 .wrapper {
   @apply flex py-2 <sm:flex-col;
+}
+.control > .wrapper:has(> input[type="checkbox"]) {
+  @apply items-center gap-2 <sm:flex-row;
+}
+.control > .wrapper:has(> input[type="checkbox"])::before {
+  content: "Enabled";
+  @apply px-2 text-sm text-gray-700 dark:text-gray-200;
 }
 .wrapper p {
   @apply px-2 text-sm;

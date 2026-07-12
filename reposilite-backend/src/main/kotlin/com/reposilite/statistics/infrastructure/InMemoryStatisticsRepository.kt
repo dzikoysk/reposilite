@@ -19,6 +19,7 @@ package com.reposilite.statistics.infrastructure
 import com.reposilite.maven.api.Identifier
 import com.reposilite.statistics.StatisticsRepository
 import com.reposilite.statistics.api.ResolvedEntry
+import com.reposilite.statistics.api.ResolvedStatisticsEntry
 import java.time.LocalDate
 
 internal class InMemoryStatisticsRepository : StatisticsRepository {
@@ -46,6 +47,16 @@ internal class InMemoryStatisticsRepository : StatisticsRepository {
             .sortedByDescending { (_, count) -> count }
             .take(limit)
             .map { (identifier, _, count) -> ResolvedEntry(identifier.gav, count) }
+            .toList()
+
+    override fun findResolvedEntries(repository: String?, phrase: String, limit: Int, offset: Long): List<ResolvedStatisticsEntry> =
+        resolvedRequests.asSequence()
+            .filter { repository == null || it.identifier.repository == repository }
+            .filter { (identifier) -> identifier.toString().contains(phrase) }
+            .sortedWith(compareByDescending<ResolvedRequest> { it.count }.thenBy { it.identifier.repository }.thenBy { it.identifier.gav })
+            .drop(offset.toInt())
+            .take(limit)
+            .map { (identifier, _, count) -> ResolvedStatisticsEntry(identifier.repository, identifier.gav, count) }
             .toList()
 
     override fun getAllResolvedRequestsPerRepositoryAsTimeSeries(): Map<String, Map<LocalDate, Long>> =

@@ -34,7 +34,7 @@
 </template>
 
 <script>
-import { classes } from '@dzikoysk/vue-vanilla'
+import { classes } from '@jsonforms/vue-vanilla'
 
 export default {
   name: 'array-list-element',

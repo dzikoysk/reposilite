@@ -20,6 +20,7 @@ import com.reposilite.status.FailureFacade
 import com.reposilite.status.StatusFacade
 import com.reposilite.status.api.HealthResponse
 import com.reposilite.status.api.InstanceStatusResponse
+import com.reposilite.status.api.RecordedFailure
 import com.reposilite.status.api.StatusSnapshot
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
@@ -67,12 +68,12 @@ internal class StatusEndpoints(
         path = "/api/status/failures",
         methods = [HttpMethod.GET],
         responses = [
-            OpenApiResponse(status = "200", content = [OpenApiContent(from = Array<String>::class)])
+            OpenApiResponse(status = "200", content = [OpenApiContent(from = Array<RecordedFailure>::class)])
         ]
     )
-    private val getFailures = ReposiliteRoute<Array<String>>("/api/status/failures", GET) {
+    private val getFailures = ReposiliteRoute<Array<RecordedFailure>>("/api/status/failures", GET) {
         managerOnly {
-            response = failureFacade.getFailures().toTypedArray().asSuccess()
+            response = failureFacade.getRecordedFailures().toTypedArray().asSuccess()
         }
     }
 

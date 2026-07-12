@@ -23,7 +23,7 @@
 
 <script>
 import {DispatchRenderer, rendererProps, useJsonFormsControlWithDetail} from '@jsonforms/vue'
-import {useVanillaControl} from '@dzikoysk/vue-vanilla'
+import {useVanillaControl} from '@jsonforms/vue-vanilla'
 import {ref} from 'vue'
 import {and, rankWith, schemaMatches, uiTypeIs} from '@jsonforms/core'
 import includes from 'lodash/includes'

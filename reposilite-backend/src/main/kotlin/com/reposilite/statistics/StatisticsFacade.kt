@@ -26,6 +26,8 @@ import com.reposilite.statistics.api.IncrementResolvedRequest
 import com.reposilite.statistics.api.IntervalRecord
 import com.reposilite.statistics.api.RepositoryStatistics
 import com.reposilite.statistics.api.ResolvedCountResponse
+import com.reposilite.statistics.api.ResolvedEntriesPage
+import com.reposilite.statistics.api.ResolvedEntriesResponse
 import panda.std.Result
 import panda.std.asSuccess
 import panda.std.reactive.Reference
@@ -69,6 +71,27 @@ class StatisticsFacade internal constructor(
                 }
             }
             ?: badRequestError("Requested too many records ($limit > $MAX_PAGE_SIZE)")
+
+    fun findResolvedEntries(repository: String?, phrase: String = "", limit: Int = MAX_PAGE_SIZE, offset: Long = 0): Result<ResolvedEntriesResponse, ErrorResponse> =
+        when {
+            limit !in 1..MAX_PAGE_SIZE ->
+                badRequestError("Requested invalid page size ($limit, expected 1..$MAX_PAGE_SIZE)")
+            offset < 0 ->
+                badRequestError("Requested invalid offset ($offset, expected >= 0)")
+            else -> {
+                val records = statisticsRepository.findResolvedEntries(repository, phrase, limit + 1, offset)
+                val entries = records.take(limit)
+                ResolvedEntriesResponse(
+                    page = ResolvedEntriesPage(
+                        limit = limit,
+                        offset = offset,
+                        hasMore = records.size > limit,
+                        nextOffset = if (records.size > limit) offset + limit else null
+                    ),
+                    entries = entries
+                ).asSuccess()
+            }
+        }
 
     fun getAllResolvedStatistics(): Result<AllResolvedResponse, ErrorResponse> =
         when {

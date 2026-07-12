@@ -3,6 +3,8 @@ import { ref, computed } from "vue"
 import { createErrorToast } from '../../helpers/toast'
 import { useSession } from "../../store/session"
 import FailuresList from "./FailuresList.vue"
+import StatusSnapshotsChart from "./StatusSnapshotsChart.vue"
+import ViewHeader from '../util/ViewHeader.vue'
 
 const props = defineProps({
   selectedTab: {
@@ -75,18 +77,28 @@ const prettyUptime = (seconds) => {
   return dDisplay + hDisplay + mDisplay
 }
 
+const failureText = (failure) =>
+  typeof failure === 'string' ? failure : failure?.failure || ''
+
+const failureOccurrences = (failure) =>
+  typeof failure === 'string' ? 1 : failure?.occurrences || 1
+
+const totalFailures = computed(() =>
+  failures.value.reduce((total, failure) => total + failureOccurrences(failure), 0))
+
 const filtered = computed(() => {
   const q = query.value.trim().toLowerCase()
   if (!q) return failures.value
-  return failures.value.filter(failure => failure.toLowerCase().includes(q))
+  return failures.value.filter(failure => failureText(failure).toLowerCase().includes(q))
 })
 </script>
 
 <template>
   <div v-if="instanceStatus" class="container mx-auto pt-7 px-15 pb-12 <sm:px-4">
-    <div class="head">
-      <h1 class="font-semibold text-lg">Diagnostics</h1>
-    </div>
+    <ViewHeader
+      title="Runtime health"
+      description="Service status, resource usage, and recorded failures since the last restart."
+    />
 
     <div class="statusbar">
       <div class="block">
@@ -105,8 +117,15 @@ const filtered = computed(() => {
     </div>
 
     <div class="flat">
-      <div class="bar">
-        <div class="count"><b class="num">{{ failures.length }}</b> recorded</div>
+      <div class="section-head">
+        <div class="section-copy">
+          <div class="section-title">
+            <h2>Recorded failures</h2>
+            <span class="count"><b class="num">{{ failures.length }}</b> unique</span>
+            <span v-if="totalFailures !== failures.length" class="count"><b class="num">{{ totalFailures }}</b> occurrences</span>
+          </div>
+          <p>Exception traces captured by this instance since the last restart.</p>
+        </div>
         <div class="search">
           <svg viewBox="0 0 24 24" class="w-4 h-4 flex-shrink-0 text-gray-400"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M21 21l-4.3-4.3m1.3-5.2a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
           <input v-model="query" placeholder="Filter by type or path…" />
@@ -118,12 +137,20 @@ const filtered = computed(() => {
         <p v-else><b>All clear.</b> No exceptions recorded since the last restart.</p>
       </div>
     </div>
+
+    <div class="chart-block">
+      <div class="section-head">
+        <div class="section-copy">
+          <h2>Resource usage</h2>
+          <p>Memory and thread samples collected from runtime status snapshots.</p>
+        </div>
+      </div>
+      <StatusSnapshotsChart :selected-tab="selectedTab" />
+    </div>
   </div>
 </template>
 
 <style scoped>
-.head { @apply mb-5; }
-
 .statusbar { @apply flex flex-wrap gap-4 mb-5; }
 .statusbar .block { @apply flex-1 min-w-40 bg-white dark:bg-gray-900 rounded-lg px-5 py-4 flex items-center justify-between <sm:min-w-full; }
 .statusbar .k { @apply text-sm text-gray-500 dark:text-gray-400; }
@@ -134,12 +161,20 @@ const filtered = computed(() => {
 .status.ok { @apply bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-200; }
 .status.crit { @apply bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-200; }
 
+.section-head { @apply mb-3 flex items-start justify-between gap-3 min-w-0 <sm:flex-col; }
+.section-copy { @apply min-w-0; }
+.section-title { @apply flex flex-wrap items-baseline gap-2; }
+.section-head h2 { @apply text-base font-semibold leading-6 text-gray-800 dark:text-gray-100; }
+.section-head p { @apply mt-0.5 truncate text-sm leading-5 text-gray-500 dark:text-gray-400 <md:whitespace-normal <md:overflow-visible; }
+.section-head .count { @apply text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap; }
+.section-head .count b { @apply text-gray-800 dark:text-gray-100 font-semibold; }
+
+.chart-block { @apply mt-5 bg-white dark:bg-gray-900 rounded-lg p-5; }
+
 .flat { @apply bg-white dark:bg-gray-900 rounded-lg overflow-hidden text-sm text-gray-600 dark:text-gray-300; }
+.flat .section-head { @apply mb-0 px-4.5 py-4 border-b border-gray-200 dark:border-gray-800; }
 .flat > :last-child { @apply border-b-0; }
-.bar { @apply flex items-center gap-3 px-3.5 py-3.5 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 flex-wrap; }
-.bar .count { @apply text-sm text-gray-500 dark:text-gray-400; }
-.bar .count b { @apply text-gray-800 dark:text-gray-100 font-semibold; }
-.search { @apply flex items-center gap-2 flex-1 max-w-72 h-9 px-3 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 <sm:max-w-none <sm:w-full; }
+.search { @apply flex items-center gap-2 w-72 h-9 px-3 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 <sm:w-full; }
 .search input { @apply flex-1 bg-transparent outline-none text-gray-700 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-400; }
 
 .empty { @apply px-4.5 py-10 text-center text-gray-500 dark:text-gray-400; }

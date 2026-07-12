@@ -85,7 +85,7 @@ class StatusFacade(
             maxMemory = (Runtime.getRuntime().maxMemory() / 1024 / 1024).toInt(),
             usedThreads = getUsedThreads(),
             maxThreads = maxThreads.get(),
-            failuresCount = failureFacade.getFailures().size
+            failuresCount = failureFacade.getFailuresCount()
         )
 
     private fun getUsedThreads(): Int =
