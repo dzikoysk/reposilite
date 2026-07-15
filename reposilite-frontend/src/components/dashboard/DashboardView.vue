@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from "vue"
+import { ref, computed, onUnmounted } from "vue"
 import { createErrorToast } from '../../helpers/toast'
 import { useSession } from "../../store/session"
 import { useTokens } from "../../store/tokens"
@@ -20,6 +20,7 @@ const { tokens, fetchTokens, tokenIsManager } = useTokens()
 const instanceStatus = ref()
 const repositories = ref([])
 const resolved = ref()
+let statusTimeout
 
 function requestStatus() {
   if (props.selectedTab == 'Dashboard') {
@@ -27,7 +28,7 @@ function requestStatus() {
       .then(response => response.data)
       .then(instanceStatusData => {
         instanceStatus.value = instanceStatusData
-        setTimeout(requestStatus, 1000)
+        statusTimeout = setTimeout(requestStatus, 1000)
       })
       .catch((error) => {
         createErrorToast(`Cannot load instance status`)
@@ -36,6 +37,7 @@ function requestStatus() {
   }
 }
 requestStatus()
+onUnmounted(() => clearTimeout(statusTimeout))
 
 client.value.settings.fetch('maven')
   .then(response => repositories.value = response.data.repositories || [])

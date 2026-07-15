@@ -25,9 +25,8 @@
 import {DispatchRenderer, rendererProps, useJsonFormsControlWithDetail} from '@jsonforms/vue'
 import {useVanillaControl} from '@jsonforms/vue-vanilla'
 import {ref} from 'vue'
-import {and, rankWith, schemaMatches, uiTypeIs} from '@jsonforms/core'
+import {and, findUISchema, rankWith, schemaMatches, uiTypeIs} from '@jsonforms/core'
 import includes from 'lodash/includes'
-import {findUISchema} from '@jsonforms/core/src/reducers'
 
 export const tester = rankWith(2, and(uiTypeIs('Control'), schemaMatches(schema => Array.isArray(schema.type) && includes(schema.type, 'null'))))
 

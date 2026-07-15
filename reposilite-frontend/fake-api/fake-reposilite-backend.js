@@ -1,5 +1,3 @@
-/* eslint-disable no-unused-vars */
-
 /*
  * Copyright (c) 2023 dzikoysk
  *
@@ -57,24 +55,25 @@ const parseFailureTrace = (trace) => {
 }
 
 const failureSignature = (failure) => {
-  const trace = typeof failure === 'string' ? failure : failure.trace || failure.failure || ''
-  const parsed = parseFailureTrace(trace)
+  const trace = failure.trace || ''
   const lines = trace.split(/\r?\n/)
   const firstFrame = lines.find(line => line.trim().startsWith('at ')) || '<unknown stacktrace>'
 
   return [
-    typeof failure === 'string' ? parsed.path : failure.path || parsed.path,
-    typeof failure === 'string' ? parsed.type : failure.type || parsed.type,
+    failure.path,
+    failure.type,
     firstFrame.trim()
   ].join('|')
 }
 
 const createFailure = (lines, occurrences = 1) => {
   const trace = lines.join('\n')
+  const failure = parseFailureTrace(trace)
 
   return {
-    ...parseFailureTrace(trace),
+    ...failure,
     trace,
+    messages: failure.message ? [failure.message] : [],
     occurrences
   }
 }
@@ -86,6 +85,9 @@ const recordFailure = (lines) => {
 
   if (recorded) {
     recorded.occurrences += 1
+    if (failure.message && !recorded.messages.includes(failure.message)) {
+      recorded.messages.push(failure.message)
+    }
     return
   }
 

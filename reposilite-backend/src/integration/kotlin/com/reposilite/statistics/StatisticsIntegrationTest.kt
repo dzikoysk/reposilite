@@ -108,6 +108,25 @@ internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecifi
     }
 
     @Test
+    fun `should limit phrase results to routes visible by token`() {
+        // given: two matching paths in the same repository, but only one under the token route
+        useResolvedRequest("releases", "com/reposilite/app.jar", "content")
+        useResolvedRequest("releases", "other/com/reposilite/app.jar", "content")
+        val endpoint = "$base/api/statistics/resolved/phrase/20/releases/com/reposilite"
+        val (name, secret) = useAuth("name", "secret", emptyList(), mapOf("/releases/com/reposilite" to READ))
+
+        // when: stats service is requested with route-scoped credentials
+        val response = get(endpoint)
+            .basicAuth(name, secret)
+            .asObject(ResolvedCountResponse::class.java)
+
+        // then: response only includes entries covered by the token route
+        assertThat(response.status).isEqualTo(OK.code)
+        assertThat(response.body.requests.map { it.gav }).containsExactly("com/reposilite/app.jar")
+        assertThat(response.body.sum).isEqualTo(1)
+    }
+
+    @Test
     fun `should return paginated resolved entries`() {
         // given: a few routes to request and check
         useResolvedRequest("releases", "com/reposilite.jar", "content")

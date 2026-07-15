@@ -34,6 +34,7 @@ data class RecordedFailure(
     val path: String,
     val type: String,
     val message: String,
+    val messages: List<String>,
     val trace: String,
     val occurrences: Int
 )

@@ -50,14 +50,18 @@ internal class InMemoryStatisticsRepository : StatisticsRepository {
             .toList()
 
     override fun findResolvedEntries(repository: String?, phrase: String, limit: Int, offset: Long): List<ResolvedStatisticsEntry> =
-        resolvedRequests.asSequence()
-            .filter { repository == null || it.identifier.repository == repository }
-            .filter { (identifier) -> identifier.toString().contains(phrase) }
-            .sortedWith(compareByDescending<ResolvedRequest> { it.count }.thenBy { it.identifier.repository }.thenBy { it.identifier.gav })
-            .drop(offset.toInt())
-            .take(limit)
-            .map { (identifier, _, count) -> ResolvedStatisticsEntry(identifier.repository, identifier.gav, count) }
-            .toList()
+        if (offset > Int.MAX_VALUE) {
+            emptyList()
+        } else {
+            resolvedRequests.asSequence()
+                .filter { repository == null || it.identifier.repository == repository }
+                .filter { (identifier) -> identifier.toString().contains(phrase) }
+                .sortedWith(compareByDescending<ResolvedRequest> { it.count }.thenBy { it.identifier.repository }.thenBy { it.identifier.gav })
+                .drop(offset.toInt())
+                .take(limit)
+                .map { (identifier, _, count) -> ResolvedStatisticsEntry(identifier.repository, identifier.gav, count) }
+                .toList()
+        }
 
     override fun getAllResolvedRequestsPerRepositoryAsTimeSeries(): Map<String, Map<LocalDate, Long>> =
         resolvedRequests

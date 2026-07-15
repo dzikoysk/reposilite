@@ -17,10 +17,12 @@
 package com.reposilite.statistics.infrastructure
 
 import com.reposilite.shared.ErrorResponse
+import com.reposilite.shared.badRequestError
 import com.reposilite.statistics.MAX_PAGE_SIZE
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.statistics.api.AllResolvedResponse
 import com.reposilite.statistics.api.ResolvedCountResponse
+import com.reposilite.statistics.api.ResolvedEntry
 import com.reposilite.statistics.api.ResolvedEntriesResponse
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
@@ -49,8 +51,14 @@ internal class StatisticsEndpoint(private val statisticsFacade: StatisticsFacade
         ]
     )
     val findCountByPhrase = ReposiliteRoute<ResolvedCountResponse>("/api/statistics/resolved/phrase/{limit}/{repository}/<gav>", GET) {
-        authorized("/${requireParameter("repository")}/${requireParameter("gav")}") {
-            response = statisticsFacade.findResolvedRequestsByPhrase(requireParameter("repository"), requireParameter("gav"), requireParameter("limit").toInt())
+        val repository = requireParameter("repository")
+        val gav = requireParameter("gav")
+        authorized(resolvedPath(repository, gav)) {
+            val limit = requireParameter("limit").toIntOrNull()
+            response = limit
+                ?.let { statisticsFacade.findResolvedRequestsByPhrase(repository, gav, it) }
+                ?.map { it.onlyAccessible(repository, ::canAccess) }
+                ?: badRequestError("Requested invalid page size (${requireParameter("limit")}, expected 1..$MAX_PAGE_SIZE)")
         }
     }
 
@@ -111,5 +119,18 @@ internal class StatisticsEndpoint(private val statisticsFacade: StatisticsFacade
     }
 
     override val routes = routes(findCountByPhrase, findEntries, findUniqueCount, getAllStatistics)
+
+    private fun ResolvedCountResponse.onlyAccessible(repository: String, canAccess: (String) -> Boolean): ResolvedCountResponse {
+        val accessibleRequests = requests
+            .filter { canAccess(resolvedPath(repository, it.gav)) }
+
+        return copy(
+            sum = accessibleRequests.sumOf(ResolvedEntry::count),
+            requests = accessibleRequests
+        )
+    }
+
+    private fun resolvedPath(repository: String, gav: String): String =
+        "/$repository/${gav.trimStart('/')}"
 
 }

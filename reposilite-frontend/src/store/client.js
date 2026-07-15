@@ -67,7 +67,9 @@ const createClient = (defaultName, defaultSecret) => {
         return get("/api/status/failures")
       },
       health() {
-        return get("/api/status/health")
+        return axios.get(createURL("/api/status/health"), {
+          validateStatus: status => status === 200 || status === 503
+        })
       }
     },
     statistics: {
@@ -85,9 +87,6 @@ const createClient = (defaultName, defaultSecret) => {
         if (repository) query.set("repository", repository)
         if (phrase) query.set("phrase", phrase)
         return get(`/api/statistics/resolved/entries?${query}`)
-      },
-      resolvedByPhrase(limit, repository, phrase) {
-        return get(`/api/statistics/resolved/phrase/${limit}/${repository}/${phrase || ""}`)
       }
     },
     maven: {

@@ -61,7 +61,7 @@ class StatisticsFacade internal constructor(
             }
 
     fun findResolvedRequestsByPhrase(repository: String = "", phrase: String, limit: Int = MAX_PAGE_SIZE): Result<ResolvedCountResponse, ErrorResponse> =
-        limit.takeIf { it <= MAX_PAGE_SIZE }
+        limit.takeIf { it in 1..MAX_PAGE_SIZE }
             ?.let {
                 statisticsRepository.findResolvedRequestsByPhrase(repository, phrase, limit).let {
                     ResolvedCountResponse(
@@ -70,7 +70,7 @@ class StatisticsFacade internal constructor(
                     ).asSuccess()
                 }
             }
-            ?: badRequestError("Requested too many records ($limit > $MAX_PAGE_SIZE)")
+            ?: badRequestError("Requested invalid page size ($limit, expected 1..$MAX_PAGE_SIZE)")
 
     fun findResolvedEntries(repository: String?, phrase: String = "", limit: Int = MAX_PAGE_SIZE, offset: Long = 0): Result<ResolvedEntriesResponse, ErrorResponse> =
         when {

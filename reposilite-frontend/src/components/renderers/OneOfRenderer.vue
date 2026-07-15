@@ -151,7 +151,7 @@ export default {
     openNewTab() {
       this.handleChange(
           this.path,
-          createDefaultValue(this.control.schema.oneOf[this.newSelectedIndex])
+          createDefaultValue(this.control.schema.oneOf[this.newSelectedIndex], this.control.rootSchema)
       )
       this.tabIndex = this.newSelectedIndex
       this.selectedIndex = this.newSelectedIndex

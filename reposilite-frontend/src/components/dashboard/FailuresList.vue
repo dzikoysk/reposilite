@@ -22,37 +22,14 @@ const openIndex = ref(null)
 const copiedIndex = ref(null)
 const toggle = (index) => openIndex.value = openIndex.value === index ? null : index
 
-const parseTrace = (trace) => {
-  const lines = trace.split(/\r?\n/)
-  const path = lines[0].replace(/^failure\s+/, '')
-  const cause = (lines[1] || '').match(/^\s*by\s+([^:]+):\s*(.*)$/)
-  return {
-    path,
-    type: cause ? cause[1].trim() : 'Exception',
-    message: cause ? cause[2].trim() : (lines[1] || '').trim()
-  }
-}
-
-const normalizeFailure = (failure) => {
-  const trace = typeof failure === 'string' ? failure : failure?.trace || failure?.failure || ''
-  const parsed = parseTrace(trace)
-
-  if (typeof failure === 'string') {
-    return {
-      ...parsed,
-      trace,
-      occurrences: 1
-    }
-  }
-
-  return {
-    path: failure?.path || parsed.path,
-    type: failure?.type || parsed.type,
-    message: failure?.message ?? parsed.message,
-    trace,
-    occurrences: failure?.occurrences || 1
-  }
-}
+const normalizeFailure = (failure) => ({
+  path: failure?.path || '',
+  type: failure?.type || 'Exception',
+  message: failure?.message || '',
+  messages: failure?.messages || (failure?.message ? [failure.message] : []),
+  trace: failure?.trace || '',
+  occurrences: failure?.occurrences || 1
+})
 
 const reportUrl = (entry) => {
   const occurrenceNote = entry.occurrences > 1
@@ -106,6 +83,7 @@ const copyTrace = (failure, index) =>
         <div class="fmeta">
           <span class="ftype">{{ entry.type }}</span>
           <span v-if="entry.occurrences > 1" class="occurrences"><b class="num">{{ entry.occurrences }}</b> occurrences</span>
+          <span v-if="entry.messages.length > 1" class="occurrences"><b class="num">{{ entry.messages.length }}</b> messages</span>
         </div>
         <div class="fmid">
           <div class="fpath">{{ entry.path }}</div>
@@ -119,6 +97,9 @@ const copyTrace = (failure, index) =>
         </div>
       </div>
       <div v-if="openIndex === index" class="row-detail open">
+        <div v-if="entry.messages.length > 1" class="messages">
+          <div v-for="message in entry.messages" :key="message">{{ message }}</div>
+        </div>
         <div class="trace">
           <button class="copy" title="Copy trace" @click="copyTrace(entry.trace, index)">
             <span v-if="copiedIndex === index">Copied</span>
@@ -154,6 +135,7 @@ const copyTrace = (failure, index) =>
 
 .row-detail { @apply px-4 pb-4 pl-10 bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-800 <sm:px-3 <sm:pl-3; }
 .row-detail:last-child { @apply border-b-0; }
+.messages { @apply mb-3 space-y-1 rounded-lg bg-white dark:bg-gray-900 px-4 py-3 font-mono text-xs text-gray-600 dark:text-gray-300; }
 .trace { @apply relative; }
 .trace pre { @apply m-0 font-mono text-sm leading-6 text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-900 rounded-lg py-3.5 pl-4 pr-13 overflow-x-auto <sm:text-xs <sm:leading-5; }
 .copy { @apply absolute top-2 right-2 z-10 flex items-center cursor-pointer select-none rounded-md p-1 bg-gray-100 dark:bg-gray-800 text-gray-400 hover:(text-gray-600 bg-gray-200) dark:hover:(text-gray-200 bg-gray-700) transition-colors duration-200; }

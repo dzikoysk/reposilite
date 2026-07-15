@@ -37,6 +37,7 @@ internal class FailureFacadeTest : FailureSpecification() {
         assertThat(recordedFailure.path).isEqualTo("PATH /com/reposilite")
         assertThat(recordedFailure.type).isEqualTo("RuntimeException")
         assertThat(recordedFailure.message).isEqualTo(message)
+        assertThat(recordedFailure.messages).containsExactly(message)
         assertThat(recordedFailure.trace).contains(message)
         assertThat(failureFacade.getFailures().iterator().next()).isEqualTo(recordedFailure.trace)
     }
@@ -50,6 +51,7 @@ internal class FailureFacadeTest : FailureSpecification() {
         // then: the failure is stored once with an incremented occurrence count
         val recordedFailure = failureFacade.getRecordedFailures().single()
         assertThat(recordedFailure.occurrences).isEqualTo(2)
+        assertThat(recordedFailure.messages).containsExactly("Unlucky", "Still unlucky")
         assertThat(failureFacade.getFailures()).hasSize(1)
         assertThat(failureFacade.getFailuresCount()).isEqualTo(2)
     }

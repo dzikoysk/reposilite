@@ -21,6 +21,8 @@ import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
 import com.reposilite.plugin.api.Facade
 import com.reposilite.status.api.RecordedFailure
+import java.util.Collections
+import java.util.LinkedHashSet
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -35,16 +37,17 @@ class FailureFacade(private val journalist: Journalist) : Journalist, Facade {
         logger.log(channel, identifier)
         logger.exception(channel, throwable)
 
+        val message = throwable.message.orEmpty()
         val trace = arrayOf("failure $identifier", exceptionToString(throwable))
             .joinToString(separator = System.lineSeparator())
             .trim()
 
         exceptions.compute(failureSignature(identifier, throwable)) { _, cachedFailure ->
-            cachedFailure?.incrementOccurrences()
+            cachedFailure?.incrementOccurrences(message)
                 ?: CachedFailure(
                     path = identifier,
                     type = throwable.javaClass.simpleName,
-                    message = throwable.message.orEmpty(),
+                    message = message,
                     trace = trace
                 )
         }
@@ -95,17 +98,32 @@ private data class CachedFailure(
     val type: String,
     val message: String,
     val trace: String,
+    val messages: MutableSet<String> = Collections.synchronizedSet(LinkedHashSet<String>()),
     val occurrences: AtomicInteger = AtomicInteger(1)
 ) {
 
-    fun incrementOccurrences(): CachedFailure =
-        apply { occurrences.incrementAndGet() }
+    init {
+        addMessage(message)
+    }
+
+    fun incrementOccurrences(message: String): CachedFailure =
+        apply {
+            occurrences.incrementAndGet()
+            addMessage(message)
+        }
+
+    private fun addMessage(message: String) {
+        if (message.isNotBlank()) {
+            messages.add(message)
+        }
+    }
 
     fun toRecordedFailure(): RecordedFailure =
         RecordedFailure(
             path = path,
             type = type,
             message = message,
+            messages = synchronized(messages) { messages.toList() },
             trace = trace,
             occurrences = occurrences.get()
         )

@@ -80,6 +80,12 @@ class ContextDsl<R>(
         }
     }
 
+    fun canAccess(to: String): Boolean =
+        authenticationResult.value
+            .orNull()
+            ?.let { accessTokenFacade.hasPermissionTo(it.identifier, to, METHOD_PERMISSIONS[ctx.method()]!!) }
+            ?: false
+
     /**
      * Request was created with manager access token
      */

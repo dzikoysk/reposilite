@@ -55,6 +55,12 @@ internal class StatisticsFacadeTest : StatisticsSpecification() {
     }
 
     @Test
+    fun `should reject invalid resolved requests page size`() {
+        assertThat(statisticsFacade.findResolvedRequestsByPhrase("releases", "/", 0).isErr).isTrue()
+        assertThat(statisticsFacade.findResolvedRequestsByPhrase("releases", "/", -1).isErr).isTrue()
+    }
+
+    @Test
     fun `should properly count records and unique records`() {
         // given: two different identifiers
         useResolvedIdentifier("releases", "/first", 2)

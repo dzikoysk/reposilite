@@ -19,17 +19,8 @@ const instanceStatus = ref()
 const health = ref()
 const failures = ref([])
 const query = ref('')
-let lastFailuresCount = -1
 
-function requestFailures(count) {
-  if (count === lastFailuresCount) return
-  lastFailuresCount = count
-
-  if (count === 0) {
-    failures.value = []
-    return
-  }
-
+function requestFailures() {
   client.value.status.failures()
     .then(response => failures.value = response.data)
     .catch(error => console.log(error))
@@ -41,8 +32,11 @@ function requestStatus() {
       .then(response => response.data)
       .then(instanceStatusData => {
         instanceStatus.value = instanceStatusData
-        requestFailures(instanceStatusData.failuresCount)
-        setTimeout(requestStatus, 1000)
+        if (instanceStatusData.failuresCount > 0) {
+          requestFailures()
+        } else {
+          failures.value = []
+        }
       })
       .catch((error) => {
         createErrorToast(`Cannot load instance status`)
@@ -58,7 +52,6 @@ function requestHealth() {
       .then(response => response.data)
       .then(healthData => {
         health.value = healthData
-        setTimeout(requestHealth, 30 * 1000)
       })
       .catch(error => console.log(error))
   }
@@ -78,7 +71,15 @@ const prettyUptime = (seconds) => {
 }
 
 const failureText = (failure) =>
-  typeof failure === 'string' ? failure : failure?.failure || ''
+  typeof failure === 'string'
+    ? failure
+    : [
+        failure?.path,
+        failure?.type,
+        failure?.message,
+        ...(failure?.messages || []),
+        failure?.trace
+      ].filter(Boolean).join(' ')
 
 const failureOccurrences = (failure) =>
   typeof failure === 'string' ? 1 : failure?.occurrences || 1

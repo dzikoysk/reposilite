@@ -100,7 +100,8 @@ internal abstract class StatusIntegrationTest : StatusIntegrationSpecification()
         // then: service rejects request
         assertThat(unauthorizedResponse.status).isEqualTo(UNAUTHORIZED.code)
 
-        // given: a valid credentials
+        // given: a recorded failure and valid credentials
+        useFacade<FailureFacade>().throwException("GET /broken", IllegalStateException("Broken route"))
         val (name, secret) = useAuth("name", "secret", listOf(MANAGER))
 
         // when: service is requested with valid credentials
@@ -110,7 +111,14 @@ internal abstract class StatusIntegrationTest : StatusIntegrationSpecification()
 
         // then: service should respond with a list of failures
         assertThat(response.status).isEqualTo(OK.code)
-        assertThat(response.body).isNotNull
+        assertThat(response.body).hasSize(1)
+        val failure = response.body.single()
+        assertThat(failure.path).isEqualTo("GET /broken")
+        assertThat(failure.type).isEqualTo("IllegalStateException")
+        assertThat(failure.message).isEqualTo("Broken route")
+        assertThat(failure.messages).containsExactly("Broken route")
+        assertThat(failure.trace).contains("Broken route")
+        assertThat(failure.occurrences).isEqualTo(1)
     }
 
     @Test

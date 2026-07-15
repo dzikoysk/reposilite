@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, defineAsyncComponent } from "vue"
+import { ref, computed, defineAsyncComponent, onUnmounted } from "vue"
 import { useSession } from "../../store/session"
 import { createErrorToast } from '../../helpers/toast'
 
@@ -14,6 +14,7 @@ const props = defineProps({
 
 const { client } = useSession()
 const statusSnapshots = ref()
+let statusTimeout
 const statusSnapshotsSeries = computed(() => {
   return [
     {
@@ -33,7 +34,7 @@ function requestStatus() {
       .then(response => response.data)
       .then(snapshotsData => {
         statusSnapshots.value = snapshotsData
-        setTimeout(requestStatus, 1000 * 30)
+        statusTimeout = setTimeout(requestStatus, 1000 * 30)
       })
       .catch(error => {
         console.log(error)
@@ -42,6 +43,7 @@ function requestStatus() {
   }
 }
 requestStatus()
+onUnmounted(() => clearTimeout(statusTimeout))
 
 const chartOptions = {
   chart: {
