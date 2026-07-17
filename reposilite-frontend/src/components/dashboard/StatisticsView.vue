@@ -21,7 +21,6 @@ const phrase = ref('')
 const repository = ref('')
 const limit = ref(20)
 const results = ref(null)
-let debounce = null
 
 client.value.settings.fetch('maven')
   .then(response => repositories.value = response.data.repositories || [])
@@ -54,9 +53,9 @@ function search() {
 
 search()
 watch([repository, limit], () => search())
-watch(phrase, () => {
-  clearTimeout(debounce)
-  debounce = setTimeout(search, 250)
+watch(phrase, (_, __, onCleanup) => {
+  const debounce = setTimeout(search, 250)
+  onCleanup(() => clearTimeout(debounce))
 })
 
 const entries = computed(() => results.value?.entries || [])
