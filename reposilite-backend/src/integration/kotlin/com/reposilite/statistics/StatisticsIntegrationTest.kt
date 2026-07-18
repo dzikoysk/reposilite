@@ -28,6 +28,7 @@ import com.reposilite.statistics.api.IntervalRecord
 import com.reposilite.statistics.api.RepositoryStatistics
 import com.reposilite.statistics.api.ResolvedCountResponse
 import com.reposilite.statistics.api.ResolvedEntriesResponse
+import com.reposilite.statistics.api.ResolvedRequestsInterval.MONTHLY
 import com.reposilite.statistics.infrastructure.SqlStatisticsRepository
 import com.reposilite.statistics.specification.StatisticsIntegrationSpecification
 import com.reposilite.token.AccessTokenPermission.MANAGER
@@ -61,6 +62,11 @@ internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecifi
         // given: a route to request
         val endpoint = "$base/api/statistics/resolved/unique"
         repeat(10) { useResolvedRequest("releases", "com/reposilite.jar", "content") }
+        SqlStatisticsRepository(reposilite.database, reposilite.journalist, emptyArray())
+            .incrementResolvedRequests(
+                mapOf(Identifier("releases", "com/reposilite.jar") to 1),
+                LocalDate.now().minusMonths(1)
+            )
 
         // when: stats service is requested without valid credentials
         val unauthorizedResponse = get(endpoint).asString()
@@ -111,9 +117,11 @@ internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecifi
     fun `should limit phrase results to routes visible by token`() {
         // given: two matching paths in the same repository, but only one under the token route
         useResolvedRequest("releases", "com/reposilite/app.jar", "content")
-        useResolvedRequest("releases", "other/com/reposilite/app.jar", "content")
-        val endpoint = "$base/api/statistics/resolved/phrase/20/releases/com/reposilite"
-        val (name, secret) = useAuth("name", "secret", emptyList(), mapOf("/releases/com/reposilite" to READ))
+        repeat(2) {
+            useResolvedRequest("releases", "other/com/reposilite/app.jar", "content")
+        }
+        val endpoint = "$base/api/statistics/resolved/phrase/1/releases/com/reposilite"
+        val (name, secret) = useAuth("name", "secret", emptyList(), mapOf("/releases/COM/REPOSILITE" to READ))
 
         // when: stats service is requested with route-scoped credentials
         val response = get(endpoint)
@@ -195,6 +203,7 @@ internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecifi
 
         // then: service should respond with time-series not older than a year
         assertThat(response.status).isEqualTo(OK.code)
+        assertThat(response.body.interval).isEqualTo(MONTHLY)
 
         assertThat(response.body).isEqualTo(
             AllResolvedResponse(

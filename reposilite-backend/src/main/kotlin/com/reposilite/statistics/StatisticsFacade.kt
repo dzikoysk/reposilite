@@ -28,6 +28,11 @@ import com.reposilite.statistics.api.RepositoryStatistics
 import com.reposilite.statistics.api.ResolvedCountResponse
 import com.reposilite.statistics.api.ResolvedEntriesPage
 import com.reposilite.statistics.api.ResolvedEntriesResponse
+import com.reposilite.token.AccessTokenFacade
+import com.reposilite.token.AccessTokenIdentifier
+import com.reposilite.token.AccessTokenPermission.MANAGER
+import com.reposilite.token.Route
+import com.reposilite.token.RoutePermission.READ
 import panda.std.Result
 import panda.std.asSuccess
 import panda.std.reactive.Reference
@@ -39,7 +44,8 @@ class StatisticsFacade internal constructor(
     private val journalist: Journalist,
     private val statisticsEnabled: Reference<Boolean>,
     private val dateIntervalProvider: Reference<DateIntervalProvider>,
-    private val statisticsRepository: StatisticsRepository
+    private val statisticsRepository: StatisticsRepository,
+    private val accessTokenFacade: AccessTokenFacade
 ) : Journalist, Facade {
 
     private val resolvedRequestsBulk: ConcurrentHashMap<Identifier, Long> = ConcurrentHashMap()
@@ -60,10 +66,16 @@ class StatisticsFacade internal constructor(
                 logger.debug("Statistics | Saved bulk with ${it.size} records")
             }
 
-    fun findResolvedRequestsByPhrase(repository: String = "", phrase: String, limit: Int = MAX_PAGE_SIZE): Result<ResolvedCountResponse, ErrorResponse> =
+    fun findResolvedRequestsByPhrase(
+        repository: String = "",
+        phrase: String,
+        limit: Int = MAX_PAGE_SIZE,
+        accessToken: AccessTokenIdentifier? = null
+    ): Result<ResolvedCountResponse, ErrorResponse> =
         limit.takeIf { it in 1..MAX_PAGE_SIZE }
             ?.let {
-                statisticsRepository.findResolvedRequestsByPhrase(repository, phrase, limit).let {
+                val accessibleGavPrefixes = accessToken?.let { getAccessibleGavPrefixes(it, repository) }
+                statisticsRepository.findResolvedRequestsByPhrase(repository, phrase, limit, accessibleGavPrefixes).let {
                     ResolvedCountResponse(
                         sum = it.sumOf { resolved -> resolved.count },
                         requests = it
@@ -71,6 +83,26 @@ class StatisticsFacade internal constructor(
                 }
             }
             ?: badRequestError("Requested invalid page size ($limit, expected 1..$MAX_PAGE_SIZE)")
+
+    private fun getAccessibleGavPrefixes(accessToken: AccessTokenIdentifier, repository: String): Set<String>? =
+        if (accessTokenFacade.hasPermission(accessToken, MANAGER)) {
+            null
+        } else {
+            accessTokenFacade.getRoutes(accessToken)
+                .asSequence()
+                .filter { it.permission == READ }
+                .mapNotNull { it.toGavPrefix(repository) }
+                .toSet()
+        }
+
+    private fun Route.toGavPrefix(repository: String): String? {
+        val repositoryRoot = "/$repository"
+        return when {
+            repositoryRoot.startsWith(path, ignoreCase = true) -> ""
+            path.startsWith("$repositoryRoot/", ignoreCase = true) -> path.substring(repositoryRoot.length + 1)
+            else -> null
+        }
+    }
 
     fun findResolvedEntries(repository: String?, phrase: String = "", limit: Int = MAX_PAGE_SIZE, offset: Long = 0): Result<ResolvedEntriesResponse, ErrorResponse> =
         when {
@@ -97,6 +129,7 @@ class StatisticsFacade internal constructor(
         when {
             statisticsEnabled.get() ->
                 AllResolvedResponse(
+                    interval = dateIntervalProvider.get().interval,
                     repositories =
                         statisticsRepository.getAllResolvedRequestsPerRepositoryAsTimeSeries()
                             .mapValues { (_, records) ->
@@ -116,7 +149,10 @@ class StatisticsFacade internal constructor(
                             .toList()
                 )
             else ->
-                AllResolvedResponse(statisticsEnabled = false)
+                AllResolvedResponse(
+                    statisticsEnabled = false,
+                    interval = dateIntervalProvider.get().interval
+                )
         }.asSuccess()
 
     fun countUniqueRecords(): Long =

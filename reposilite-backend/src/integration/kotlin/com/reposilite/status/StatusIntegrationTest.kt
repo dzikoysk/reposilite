@@ -25,7 +25,7 @@ import com.reposilite.RecommendedRemoteSpecificationJunitExtension
 import com.reposilite.VERSION
 import com.reposilite.status.api.HealthResponse
 import com.reposilite.status.api.InstanceStatusResponse
-import com.reposilite.status.api.RecordedFailure
+import com.reposilite.status.api.FailuresResponse
 import com.reposilite.status.api.StatusSnapshot
 import com.reposilite.status.specification.StatusIntegrationSpecification
 import com.reposilite.token.AccessTokenPermission.MANAGER
@@ -107,12 +107,12 @@ internal abstract class StatusIntegrationTest : StatusIntegrationSpecification()
         // when: service is requested with valid credentials
         val response = get("$base/api/status/failures")
             .basicAuth(name, secret)
-            .asJacksonObject(Array<RecordedFailure>::class)
+            .asObject(FailuresResponse::class.java)
 
         // then: service should respond with a list of failures
         assertThat(response.status).isEqualTo(OK.code)
-        assertThat(response.body).hasSize(1)
-        val failure = response.body.single()
+        assertThat(response.body.failures).hasSize(1)
+        val failure = response.body.failures.single()
         assertThat(failure.path).isEqualTo("GET /broken")
         assertThat(failure.type).isEqualTo("IllegalStateException")
         assertThat(failure.message).isEqualTo("Broken route")

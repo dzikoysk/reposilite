@@ -209,14 +209,26 @@ internal class SqlStatisticsRepository(
                 ?.let { it[IdentifierTable.id] }
         }
 
-    override fun findResolvedRequestsByPhrase(repository: String, phrase: String, limit: Int): List<ResolvedEntry> =
+    override fun findResolvedRequestsByPhrase(
+        repository: String,
+        phrase: String,
+        limit: Int,
+        accessibleGavPrefixes: Set<String>?
+    ): List<ResolvedEntry> =
         transaction(database) {
+            if (accessibleGavPrefixes?.isEmpty() == true) {
+                return@transaction emptyList()
+            }
+
             val resolvedSum = ResolvedTable.count.sum()
-            val whereCriteria =
-                if (repository.isEmpty())
-                    IdentifierTable.gav like "%$phrase%"
-                else
-                    AndOp(listOf(IdentifierTable.repository eq repository, IdentifierTable.gav like "%$phrase%"))
+            val restrictedPrefixes = accessibleGavPrefixes?.takeUnless { "" in it }
+            val whereCriteria = AndOp(listOfNotNull(
+                repository.takeIf(String::isNotEmpty)?.let { IdentifierTable.repository eq it },
+                phrase.takeIf(String::isNotEmpty)?.let { IdentifierTable.gav like "%$it%" },
+                restrictedPrefixes?.let { prefixes ->
+                    OrOp(prefixes.map { IdentifierTable.gav.lowerCase() like (LikePattern.ofLiteral(it.lowercase()) + "%") })
+                }
+            ))
 
             IdentifierTable.leftJoin(ResolvedTable, { IdentifierTable.id }, { ResolvedTable.identifierId })
                 .select(IdentifierTable.gav, resolvedSum)
@@ -233,7 +245,7 @@ internal class SqlStatisticsRepository(
         transaction(database) {
             val resolvedSum = ResolvedTable.count.sum()
             val criteria = listOfNotNull(
-                IdentifierTable.gav like "%$phrase%",
+                phrase.takeIf(String::isNotEmpty)?.let { IdentifierTable.gav like "%$it%" },
                 repository?.let { IdentifierTable.repository eq it }
             )
 
@@ -272,9 +284,8 @@ internal class SqlStatisticsRepository(
 
     override fun countUniqueResolvedRequests(): Long =
         transaction(database) {
-            ResolvedTable.selectAll()
-                .groupBy(ResolvedTable.id, ResolvedTable.identifierId)
-                .count()
+            val uniqueIdentifiers = ResolvedTable.identifierId.countDistinct()
+            ResolvedTable.select(uniqueIdentifiers).first()[uniqueIdentifiers]
         }
 
     override fun countResolvedRequests(): Long =

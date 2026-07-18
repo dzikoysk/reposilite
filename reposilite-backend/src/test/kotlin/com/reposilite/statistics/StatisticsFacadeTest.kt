@@ -17,6 +17,9 @@
 package com.reposilite.statistics
 
 import com.reposilite.statistics.specification.StatisticsSpecification
+import com.reposilite.token.AccessTokenType.PERSISTENT
+import com.reposilite.token.RoutePermission.READ
+import com.reposilite.token.api.CreateAccessTokenRequest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import panda.std.ResultAssertions.assertOk
@@ -118,6 +121,31 @@ internal class StatisticsFacadeTest : StatisticsSpecification() {
         assertThat(entry.count).isEqualTo(3)
         assertThat(response.page.hasMore).isFalse()
         assertThat(response.page.nextOffset).isNull()
+    }
+
+    @Test
+    fun `should limit phrase results to accessible prefixes`() {
+        // given: matching entries both inside and outside of the accessible prefix
+        useResolvedIdentifier("releases", "com/reposilite/app.jar", 1)
+        useResolvedIdentifier("releases", "other/com/reposilite/app.jar", 2)
+        val accessToken = accessTokenFacade.createAccessToken(
+            CreateAccessTokenRequest(
+                type = PERSISTENT,
+                name = "reader",
+                routes = setOf(CreateAccessTokenRequest.Route("/releases/com/reposilite", setOf(READ)))
+            )
+        ).accessToken
+
+        // when: a limited search is performed with an accessible prefix
+        val response = assertOk(statisticsFacade.findResolvedRequestsByPhrase(
+            repository = "releases",
+            phrase = "reposilite",
+            limit = 1,
+            accessToken = accessToken.identifier
+        ))
+
+        // then: inaccessible entries do not consume the result limit
+        assertThat(response.requests.map { it.gav }).containsExactly("com/reposilite/app.jar")
     }
 
 }

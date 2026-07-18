@@ -18,12 +18,18 @@ const { client } = useSession()
 const instanceStatus = ref()
 const health = ref()
 const failures = ref([])
+const failuresError = ref(false)
 const query = ref('')
 
 function requestFailures() {
+  failuresError.value = false
   client.value.status.failures()
-    .then(response => failures.value = response.data)
-    .catch(error => console.log(error))
+    .then(response => failures.value = response.data.failures)
+    .catch(error => {
+      failuresError.value = true
+      createErrorToast(`Cannot load recorded failures`)
+      console.log(error)
+    })
 }
 
 function requestStatus() {
@@ -35,6 +41,7 @@ function requestStatus() {
         if (instanceStatusData.failuresCount > 0) {
           requestFailures()
         } else {
+          failuresError.value = false
           failures.value = []
         }
       })
@@ -53,7 +60,10 @@ function requestHealth() {
       .then(healthData => {
         health.value = healthData
       })
-      .catch(error => console.log(error))
+      .catch(error => {
+        createErrorToast(`Cannot load instance health`)
+        console.log(error)
+      })
   }
 }
 requestHealth()
@@ -132,9 +142,10 @@ const filtered = computed(() => {
           <input v-model="query" placeholder="Filter by type or path…" />
         </div>
       </div>
-      <FailuresList v-if="filtered.length" :failures="filtered" :version="instanceStatus.version" />
+      <FailuresList v-if="!failuresError && filtered.length" :failures="filtered" :version="instanceStatus.version" />
       <div v-else class="empty">
-        <p v-if="failures.length"><b>No matches.</b> No recorded failures match “{{ query }}”.</p>
+        <p v-if="failuresError"><b>Cannot load failures.</b> Check the connection and try again.</p>
+        <p v-else-if="failures.length"><b>No matches.</b> No recorded failures match “{{ query }}”.</p>
         <p v-else><b>All clear.</b> No exceptions recorded since the last restart.</p>
       </div>
     </div>

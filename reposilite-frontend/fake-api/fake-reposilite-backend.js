@@ -497,7 +497,7 @@ application
   .get("/api/status/failures", (req, res) => {
     authorized(
       req,
-      () => res.send(failures),
+      () => res.send({ failures }),
       () => invalidCredentials(res)
     )
   })
@@ -508,6 +508,7 @@ application
       () =>
         res.send({
           statisticsEnabled: true,
+          interval: 'DAILY',
           repositories: statisticsSeries
         }),
       () => invalidCredentials(res)

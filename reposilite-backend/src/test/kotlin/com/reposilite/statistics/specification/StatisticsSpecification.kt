@@ -22,6 +22,8 @@ import com.reposilite.statistics.DailyDateIntervalProvider
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.statistics.api.IncrementResolvedRequest
 import com.reposilite.statistics.infrastructure.InMemoryStatisticsRepository
+import com.reposilite.token.AccessTokenFacade
+import com.reposilite.token.application.AccessTokenComponents
 import panda.std.reactive.Reference
 import panda.std.reactive.toReference
 
@@ -29,11 +31,17 @@ internal open class StatisticsSpecification {
 
     private val logger = InMemoryLogger()
 
+    protected val accessTokenFacade: AccessTokenFacade = AccessTokenComponents(
+        journalist = logger,
+        database = null
+    ).accessTokenFacade()
+
     protected val statisticsFacade = StatisticsFacade(
         journalist = logger,
         statisticsEnabled = Reference.reference(true),
         dateIntervalProvider = DailyDateIntervalProvider.toReference(),
-        statisticsRepository = InMemoryStatisticsRepository()
+        statisticsRepository = InMemoryStatisticsRepository(),
+        accessTokenFacade = accessTokenFacade
     )
 
     protected fun useResolvedIdentifier(repository: String, gav: String, count: Long = 1): Pair<Identifier, Long> {

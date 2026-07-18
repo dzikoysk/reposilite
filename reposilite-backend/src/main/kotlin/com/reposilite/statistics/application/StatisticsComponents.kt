@@ -23,6 +23,7 @@ import com.reposilite.statistics.StatisticsRepository
 import com.reposilite.statistics.createDateIntervalProvider
 import com.reposilite.statistics.infrastructure.InMemoryStatisticsRepository
 import com.reposilite.statistics.infrastructure.SqlStatisticsRepository
+import com.reposilite.token.AccessTokenFacade
 import org.jetbrains.exposed.v1.jdbc.Database
 import panda.std.reactive.Reference
 
@@ -30,7 +31,8 @@ class StatisticsComponents(
     private val journalist: Journalist,
     private val database: Database?,
     private val runMigrations: Array<String>,
-    private val statisticsSettings: Reference<StatisticsSettings>
+    private val statisticsSettings: Reference<StatisticsSettings>,
+    private val accessTokenFacade: AccessTokenFacade
 ) : PluginComponents {
 
     private fun statisticsRepository(): StatisticsRepository =
@@ -44,7 +46,8 @@ class StatisticsComponents(
             journalist = journalist,
             statisticsEnabled = statisticsSettings.computed { it.enabled },
             dateIntervalProvider = statisticsSettings.computed { createDateIntervalProvider(it.resolvedRequestsInterval) },
-            statisticsRepository = statisticsRepository
+            statisticsRepository = statisticsRepository,
+            accessTokenFacade = accessTokenFacade
         )
 
 }

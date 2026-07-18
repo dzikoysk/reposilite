@@ -37,6 +37,8 @@ fun createDateIntervalProvider(mode: ResolvedRequestsInterval): DateIntervalProv
 
 sealed interface DateIntervalProvider {
 
+    val interval: ResolvedRequestsInterval
+
     fun createDate(): LocalDate
 
     fun createTimeSeries(): List<LocalDate>
@@ -44,6 +46,8 @@ sealed interface DateIntervalProvider {
 }
 
 internal object DailyDateIntervalProvider : DateIntervalProvider {
+
+    override val interval = DAILY
 
     override fun createDate(): LocalDate =
         LocalDate.now()
@@ -54,6 +58,8 @@ internal object DailyDateIntervalProvider : DateIntervalProvider {
 }
 
 internal object WeeklyDateIntervalProvider : DateIntervalProvider {
+
+    override val interval = WEEKLY
 
     private val firstDayOfWeek = WeekFields.of(Locale.getDefault()).firstDayOfWeek
 
@@ -67,6 +73,8 @@ internal object WeeklyDateIntervalProvider : DateIntervalProvider {
 
 internal object MonthlyDateIntervalProvider : DateIntervalProvider {
 
+    override val interval = MONTHLY
+
     override fun createDate(): LocalDate =
         LocalDate.now().with(TemporalAdjusters.firstDayOfMonth())
 
@@ -76,6 +84,8 @@ internal object MonthlyDateIntervalProvider : DateIntervalProvider {
 }
 
 internal object YearlyDateIntervalProvider : DateIntervalProvider {
+
+    override val interval = YEARLY
 
     override fun createDate(): LocalDate =
         LocalDate.now().with(TemporalAdjusters.firstDayOfYear())

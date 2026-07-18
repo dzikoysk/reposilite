@@ -22,6 +22,13 @@ const repository = ref('')
 const limit = ref(20)
 const results = ref(null)
 
+const intervalLabels = {
+  DAILY: { average: 'Average / day', current: 'Today' },
+  WEEKLY: { average: 'Average / week', current: 'This week' },
+  MONTHLY: { average: 'Average / month', current: 'This month' },
+  YEARLY: { average: 'Average / year', current: 'This year' }
+}
+
 client.value.settings.fetch('maven')
   .then(response => repositories.value = response.data.repositories || [])
   .catch(error => console.log(error))
@@ -38,10 +45,14 @@ client.value.statistics.allResolved()
     const byDate = {}
     points.forEach(point => byDate[point.date] = (byDate[point.date] || 0) + point.count)
     const dates = Object.keys(byDate).sort()
-    const last30 = dates.slice(-30).reduce((sum, date) => sum + byDate[date], 0)
-    const today = dates.length ? byDate[dates.at(-1)] : 0
     const total = dates.reduce((sum, date) => sum + byDate[date], 0)
-    kpis.value = { total, last30, today }
+    const labels = intervalLabels[allResolved.interval] || intervalLabels.MONTHLY
+    kpis.value = {
+      total,
+      average: dates.length ? Math.round(total / dates.length) : 0,
+      current: dates.length ? byDate[dates.at(-1)] : 0,
+      labels
+    }
   })
   .catch(error => console.log(error))
 
@@ -111,9 +122,9 @@ const barWidth = (count) => `${Math.max(4, Math.round((count / maxCount.value) *
 
     <div v-if="kpis" class="chart-block">
       <div class="kpis">
-        <div class="kpi"><div class="k">Total</div><div class="v num">{{ kpis.total.toLocaleString() }}</div></div>
-        <div class="kpi"><div class="k">Last 30 days</div><div class="v num">{{ kpis.last30.toLocaleString() }}</div></div>
-        <div class="kpi"><div class="k">Today</div><div class="v num">{{ kpis.today.toLocaleString() }}</div></div>
+        <div class="kpi"><div class="k">Visible period</div><div class="v num">{{ kpis.total.toLocaleString() }}</div></div>
+        <div class="kpi"><div class="k">{{ kpis.labels.average }}</div><div class="v num">{{ kpis.average.toLocaleString() }}</div></div>
+        <div class="kpi"><div class="k">{{ kpis.labels.current }}</div><div class="v num">{{ kpis.current.toLocaleString() }}</div></div>
       </div>
       <ResolvedRequestsChart />
     </div>
@@ -136,7 +147,7 @@ const barWidth = (count) => `${Math.max(4, Math.round((count / maxCount.value) *
 .flat > :last-child { @apply border-b-0; }
 .bar { @apply flex items-center gap-3 px-3.5 py-3.5 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 flex-wrap; }
 .search { @apply flex items-center gap-2 flex-1 min-w-48 px-3 h-9 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 <sm:w-full <sm:min-w-0; }
-.search input { @apply flex-1 bg-transparent outline-none text-gray-700 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-400; }
+.search input { @apply flex-1 min-w-0 bg-transparent outline-none text-gray-700 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-400; }
 .sel { @apply h-9 min-w-36 pl-3 pr-9 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 text-sm outline-none <sm:flex-1; }
 .sum { @apply ml-auto text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap <sm:ml-0 <sm:w-full; }
 .sum b { @apply text-gray-800 dark:text-gray-100 font-semibold; }

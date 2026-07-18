@@ -39,6 +39,10 @@ data class RecordedFailure(
     val occurrences: Int
 )
 
+data class FailuresResponse(
+    val failures: List<RecordedFailure>
+)
+
 data class StatusSnapshot(
     val at: Long = LocalDateTime.now().toUTCMillis(),
     val memory: Int,

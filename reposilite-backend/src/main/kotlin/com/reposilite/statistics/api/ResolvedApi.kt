@@ -22,6 +22,7 @@ import com.reposilite.maven.api.Identifier
 
 data class AllResolvedResponse(
     val statisticsEnabled: Boolean = true,
+    val interval: ResolvedRequestsInterval = ResolvedRequestsInterval.MONTHLY,
     val repositories: Collection<RepositoryStatistics> = emptyList()
 )
 

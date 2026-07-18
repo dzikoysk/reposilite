@@ -26,7 +26,12 @@ interface StatisticsRepository {
 
     fun incrementResolvedRequests(requests: Map<Identifier, Long>, date: LocalDate)
 
-    fun findResolvedRequestsByPhrase(repository: String, phrase: String, limit: Int = MAX_VALUE): List<ResolvedEntry>
+    fun findResolvedRequestsByPhrase(
+        repository: String,
+        phrase: String,
+        limit: Int = MAX_VALUE,
+        accessibleGavPrefixes: Set<String>? = null
+    ): List<ResolvedEntry>
 
     fun findResolvedEntries(repository: String?, phrase: String, limit: Int = MAX_VALUE, offset: Long = 0): List<ResolvedStatisticsEntry>
 

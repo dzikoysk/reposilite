@@ -40,10 +40,16 @@ internal class InMemoryStatisticsRepository : StatisticsRepository {
                 ?: resolvedRequests.add(ResolvedRequest(identifier, date, count))
         }
 
-    override fun findResolvedRequestsByPhrase(repository: String, phrase: String, limit: Int): List<ResolvedEntry> =
+    override fun findResolvedRequestsByPhrase(
+        repository: String,
+        phrase: String,
+        limit: Int,
+        accessibleGavPrefixes: Set<String>?
+    ): List<ResolvedEntry> =
         resolvedRequests.asSequence()
             .filter { it.identifier.repository == repository }
-            .filter { (identifier) -> identifier.toString().contains(phrase) }
+            .filter { (identifier) -> phrase.isEmpty() || identifier.gav.contains(phrase) }
+            .filter { (identifier) -> accessibleGavPrefixes == null || accessibleGavPrefixes.any { identifier.gav.startsWith(it, ignoreCase = true) } }
             .sortedByDescending { (_, count) -> count }
             .take(limit)
             .map { (identifier, _, count) -> ResolvedEntry(identifier.gav, count) }
@@ -55,7 +61,7 @@ internal class InMemoryStatisticsRepository : StatisticsRepository {
         } else {
             resolvedRequests.asSequence()
                 .filter { repository == null || it.identifier.repository == repository }
-                .filter { (identifier) -> identifier.toString().contains(phrase) }
+                .filter { (identifier) -> phrase.isEmpty() || identifier.gav.contains(phrase) }
                 .sortedWith(compareByDescending<ResolvedRequest> { it.count }.thenBy { it.identifier.repository }.thenBy { it.identifier.gav })
                 .drop(offset.toInt())
                 .take(limit)

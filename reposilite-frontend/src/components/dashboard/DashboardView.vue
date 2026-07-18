@@ -99,15 +99,27 @@ const tokenTags = computed(() => {
   return tags
 })
 
+const currentIntervalLabels = {
+  DAILY: 'Today',
+  WEEKLY: 'This week',
+  MONTHLY: 'This month',
+  YEARLY: 'This year'
+}
+
 const traffic = computed(() => {
   if (!resolved.value?.statisticsEnabled) return null
   const repositories = resolved.value.repositories || []
   const total = repositories.reduce((sum, repository) => sum + repository.data.reduce((s, r) => s + r.count, 0), 0)
-  const today = repositories.reduce((sum, repository) => sum + (repository.data.at(-1)?.count || 0), 0)
+  const current = repositories.reduce((sum, repository) => sum + (repository.data.at(-1)?.count || 0), 0)
   const busiest = repositories
     .map(repository => ({ name: repository.name, total: repository.data.reduce((s, r) => s + r.count, 0) }))
     .sort((a, b) => b.total - a.total)[0]
-  return { total, today, busiest: busiest?.name }
+  return {
+    total,
+    current,
+    currentLabel: currentIntervalLabels[resolved.value.interval] || currentIntervalLabels.MONTHLY,
+    busiest: busiest?.name
+  }
 })
 
 const plural = (count, singular, pluralText) =>
@@ -163,7 +175,7 @@ const plural = (count, singular, pluralText) =>
             <span class="unit">resolved requests</span>
           </div>
           <div class="details two">
-            <div><span>Today</span><b class="num">{{ traffic.today.toLocaleString() }}</b></div>
+            <div><span>{{ traffic.currentLabel }}</span><b class="num">{{ traffic.current.toLocaleString() }}</b></div>
             <div><span>Busiest</span><b>{{ traffic.busiest || 'No data' }}</b></div>
           </div>
         </template>
