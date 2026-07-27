@@ -41,8 +41,15 @@ internal object LocalConfigurationFactory {
     /**
      * Load custom properties from environment variables and system properties.
      */
-    private fun loadCustomPropertiesViaReflections(journalist: Journalist?, localConfiguration: LocalConfiguration) {
-        (getEnvironmentVariables() + getProperties()).forEach { (key, value) ->
+    private fun loadCustomPropertiesViaReflections(journalist: Journalist?, localConfiguration: LocalConfiguration) =
+        applyCustomProperties(journalist, localConfiguration, getEnvironmentVariables() + getProperties())
+
+    internal fun applyCustomProperties(
+        journalist: Journalist?,
+        localConfiguration: LocalConfiguration,
+        properties: Map<String, String>
+    ) {
+        properties.forEach { (key, value) ->
             val property = localConfiguration::class.declaredMemberProperties.find { it.name.equals(key, ignoreCase = true) } ?: run {
                 journalist?.logger?.warn("Unknown local configuration property: $key")
                 return@forEach
@@ -54,6 +61,7 @@ internal object LocalConfigurationFactory {
             when (reference.type.kotlin) {
                 Boolean::class -> ReferenceUtils.setValue(reference, value.toBoolean())
                 Int::class -> ReferenceUtils.setValue(reference, value.toInt())
+                Long::class -> ReferenceUtils.setValue(reference, value.toLong())
                 String::class -> ReferenceUtils.setValue(reference, value)
                 else -> throw IllegalArgumentException("Unsupported local configuration property type: $key (expected: ${reference.type})")
             }
