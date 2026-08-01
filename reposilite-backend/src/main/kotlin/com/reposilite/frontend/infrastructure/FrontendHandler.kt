@@ -113,8 +113,10 @@ internal class CustomFrontendHandler(
     }
 
     private fun directoryHandler(directory: Path) = ReposiliteRoute("/${directory.fileName}/<path>", GET) {
-        response = respondWithResource(ctx, directory.name) {
-            parameter("path")
+        val path = parameter("path")
+
+        response = respondWithResource(ctx, "${directory.name}/$path") {
+            path
                 .toLocation()
                 .toPath()
                 .let { directory.resolve(it) }

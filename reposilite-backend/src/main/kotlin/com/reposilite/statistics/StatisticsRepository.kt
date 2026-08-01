@@ -33,9 +33,15 @@ interface StatisticsRepository {
         accessibleGavPrefixes: Set<String>? = null
     ): List<ResolvedEntry>
 
-    fun findResolvedEntries(repository: String?, phrase: String, limit: Int = MAX_VALUE, offset: Long = 0): List<ResolvedStatisticsEntry>
+    fun findResolvedEntries(
+        repository: String?,
+        phrase: String,
+        from: LocalDate,
+        limit: Int = MAX_VALUE,
+        offset: Long = 0
+    ): List<ResolvedStatisticsEntry>
 
-    fun getAllResolvedRequestsPerRepositoryAsTimeSeries(): Map<String, Map<LocalDate, Long>>
+    fun getAllResolvedRequestsPerRepositoryAsTimeSeries(from: LocalDate): Map<String, Map<LocalDate, Long>>
 
     fun countUniqueResolvedRequests(): Long
 

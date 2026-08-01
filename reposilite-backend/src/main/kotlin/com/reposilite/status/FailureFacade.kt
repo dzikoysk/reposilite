@@ -21,10 +21,7 @@ import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
 import com.reposilite.plugin.api.Facade
 import com.reposilite.status.api.RecordedFailure
-import java.util.Collections
-import java.util.LinkedHashSet
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.atomic.AtomicInteger
 
 class FailureFacade(private val journalist: Journalist) : Journalist, Facade {
 
@@ -43,7 +40,10 @@ class FailureFacade(private val journalist: Journalist) : Journalist, Facade {
             .trim()
 
         exceptions.compute(failureSignature(identifier, throwable)) { _, cachedFailure ->
-            cachedFailure?.incrementOccurrences(message)
+            cachedFailure?.copy(
+                messages = if (message.isBlank()) cachedFailure.messages else cachedFailure.messages + message,
+                occurrences = cachedFailure.occurrences + 1
+            )
                 ?: CachedFailure(
                     path = identifier,
                     type = throwable.javaClass.simpleName,
@@ -54,11 +54,10 @@ class FailureFacade(private val journalist: Journalist) : Journalist, Facade {
     }
 
     private fun failureSignature(identifier: String, throwable: Throwable): String =
-        listOf(
-            identifier,
-            throwable.javaClass.name,
-            throwable.stackTrace.firstOrNull()?.toString() ?: "<unknown stacktrace>"
-        ).joinToString(separator = "|")
+        generateSequence(throwable) { it.cause }
+            .joinToString(prefix = "$identifier|", separator = "|") {
+                "${it.javaClass.name}@${it.stackTrace.firstOrNull() ?: "<unknown stacktrace>"}"
+            }
 
     private fun exceptionToString(throwable: Throwable?): String =
         throwable?.let {
@@ -80,7 +79,7 @@ class FailureFacade(private val journalist: Journalist) : Journalist, Facade {
         exceptions.isNotEmpty()
 
     fun getFailuresCount(): Int =
-        exceptions.values.sumOf { it.occurrences.get() }
+        exceptions.values.sumOf { it.occurrences }
 
     fun getFailures(): Collection<String> =
         getRecordedFailures().map { it.trace }
@@ -88,44 +87,28 @@ class FailureFacade(private val journalist: Journalist) : Journalist, Facade {
     fun getRecordedFailures(): Collection<RecordedFailure> =
         exceptions.values.map { it.toRecordedFailure() }
 
+    private data class CachedFailure(
+        val path: String,
+        val type: String,
+        val message: String,
+        val trace: String,
+        val messages: Set<String> = if (message.isBlank()) emptySet() else setOf(message),
+        val occurrences: Int = 1
+    ) {
+
+        fun toRecordedFailure(): RecordedFailure =
+            RecordedFailure(
+                path = path,
+                type = type,
+                message = message,
+                messages = messages.toList(),
+                trace = trace,
+                occurrences = occurrences
+            )
+
+    }
+
     override fun getLogger(): Logger =
         journalist.logger
-
-}
-
-private data class CachedFailure(
-    val path: String,
-    val type: String,
-    val message: String,
-    val trace: String,
-    val messages: MutableSet<String> = Collections.synchronizedSet(LinkedHashSet<String>()),
-    val occurrences: AtomicInteger = AtomicInteger(1)
-) {
-
-    init {
-        addMessage(message)
-    }
-
-    fun incrementOccurrences(message: String): CachedFailure =
-        apply {
-            occurrences.incrementAndGet()
-            addMessage(message)
-        }
-
-    private fun addMessage(message: String) {
-        if (message.isNotBlank()) {
-            messages.add(message)
-        }
-    }
-
-    fun toRecordedFailure(): RecordedFailure =
-        RecordedFailure(
-            path = path,
-            type = type,
-            message = message,
-            messages = synchronized(messages) { messages.toList() },
-            trace = trace,
-            occurrences = occurrences.get()
-        )
 
 }

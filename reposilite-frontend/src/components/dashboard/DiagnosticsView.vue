@@ -81,21 +81,10 @@ const prettyUptime = (seconds) => {
 }
 
 const failureText = (failure) =>
-  typeof failure === 'string'
-    ? failure
-    : [
-        failure?.path,
-        failure?.type,
-        failure?.message,
-        ...(failure?.messages || []),
-        failure?.trace
-      ].filter(Boolean).join(' ')
-
-const failureOccurrences = (failure) =>
-  typeof failure === 'string' ? 1 : failure?.occurrences || 1
+  [failure.path, failure.type, failure.message, ...failure.messages, failure.trace].join(' ')
 
 const totalFailures = computed(() =>
-  failures.value.reduce((total, failure) => total + failureOccurrences(failure), 0))
+  failures.value.reduce((total, failure) => total + failure.occurrences, 0))
 
 const filtered = computed(() => {
   const q = query.value.trim().toLowerCase()

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import CopiedIcon from '../icons/CopiedIcon.vue'
 import CopyIcon from '../icons/CopyIcon.vue'
 import LinkIcon from '../icons/LinkIcon.vue'
@@ -18,18 +18,13 @@ const props = defineProps({
 const REPOSITORY_URL = 'https://github.com/dzikoysk/reposilite'
 const MAX_LOG_LENGTH = 6000
 
-const openIndex = ref(null)
-const copiedIndex = ref(null)
-const toggle = (index) => openIndex.value = openIndex.value === index ? null : index
-
-const normalizeFailure = (failure) => ({
-  path: failure?.path || '',
-  type: failure?.type || 'Exception',
-  message: failure?.message || '',
-  messages: failure?.messages || (failure?.message ? [failure.message] : []),
-  trace: failure?.trace || '',
-  occurrences: failure?.occurrences || 1
-})
+const openFailureKey = ref(null)
+const copiedFailureKey = ref(null)
+const failureKey = (failure) => `${failure.path}:${failure.type}:${failure.trace}`
+const toggle = (failure) => {
+  const key = failureKey(failure)
+  openFailureKey.value = openFailureKey.value === key ? null : key
+}
 
 const reportUrl = (entry) => {
   const occurrenceNote = entry.occurrences > 1
@@ -50,33 +45,25 @@ const reportUrl = (entry) => {
   return `${REPOSITORY_URL}/issues/new?${params.toString()}`
 }
 
-const parsedFailures = computed(() =>
-  props.failures.map((failure, index) => {
-    const normalized = normalizeFailure(failure)
-
-    return {
-      ...normalized,
-      key: `${index}:${normalized.trace}:${normalized.occurrences}`
-    }
-  }))
-
-const copyTrace = (failure, index) =>
-  navigator.clipboard.writeText(failure)
+const copyTrace = (failure) => {
+  const key = failureKey(failure)
+  return navigator.clipboard.writeText(failure.trace)
     .then(() => {
-      copiedIndex.value = index
+      copiedFailureKey.value = key
       setTimeout(() => {
-        if (copiedIndex.value === index) copiedIndex.value = null
+        if (copiedFailureKey.value === key) copiedFailureKey.value = null
       }, 1200)
     })
+}
 </script>
 
 <template>
   <div>
-    <template v-for="(entry, index) in parsedFailures" :key="entry.key">
+    <template v-for="entry in failures" :key="failureKey(entry)">
       <div
         class="frow"
-        :class="{ open: openIndex === index }"
-        @click="toggle(index)"
+        :class="{ open: openFailureKey === failureKey(entry) }"
+        @click="toggle(entry)"
       >
         <div class="stripe"></div>
         <svg class="caret" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg>
@@ -96,14 +83,14 @@ const copyTrace = (failure, index) =>
           </a>
         </div>
       </div>
-      <div v-if="openIndex === index" class="row-detail open">
+      <div v-if="openFailureKey === failureKey(entry)" class="row-detail open">
         <div v-if="entry.messages.length > 1" class="messages">
           <div v-for="message in entry.messages" :key="message">{{ message }}</div>
         </div>
         <div class="trace">
-          <button class="copy" title="Copy trace" @click="copyTrace(entry.trace, index)">
-            <span v-if="copiedIndex === index">Copied</span>
-            <CopiedIcon v-if="copiedIndex === index" />
+          <button class="copy" title="Copy trace" @click="copyTrace(entry)">
+            <span v-if="copiedFailureKey === failureKey(entry)">Copied</span>
+            <CopiedIcon v-if="copiedFailureKey === failureKey(entry)" />
             <CopyIcon v-else />
           </button>
           <pre>{{ entry.trace }}</pre>

@@ -16,10 +16,12 @@
 
 package com.reposilite.statistics
 
+import com.reposilite.maven.api.Identifier
 import com.reposilite.statistics.specification.StatisticsSpecification
 import com.reposilite.token.AccessTokenType.PERSISTENT
 import com.reposilite.token.RoutePermission.READ
 import com.reposilite.token.api.CreateAccessTokenRequest
+import java.time.LocalDate
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import panda.std.ResultAssertions.assertOk
@@ -124,6 +126,29 @@ internal class StatisticsFacadeTest : StatisticsSpecification() {
     }
 
     @Test
+    fun `should aggregate in-memory records within the visible window`() {
+        // given: the same literal path recorded on multiple dates, including an expired record
+        val identifier = Identifier("releases", "com/Literal%_Match.jar")
+        statisticsRepository.incrementResolvedRequests(mapOf(identifier to 2), LocalDate.now())
+        statisticsRepository.incrementResolvedRequests(mapOf(identifier to 3), LocalDate.now().minusDays(1))
+        statisticsRepository.incrementResolvedRequests(mapOf(identifier to 7), LocalDate.now().minusYears(2))
+        statisticsRepository.incrementResolvedRequests(
+            mapOf(Identifier("releases", "com/LiteralXXMatch.jar") to 20),
+            LocalDate.now()
+        )
+
+        // when: entries and all-time phrase results are requested using different casing
+        val entries = assertOk(statisticsFacade.findResolvedEntries(null, "%_MATCH"))
+        val phrase = assertOk(statisticsFacade.findResolvedRequestsByPhrase("releases", "%_MATCH"))
+        val all = assertOk(statisticsFacade.getAllResolvedStatistics())
+
+        // then: current entries are aggregated, while the existing phrase API remains all-time
+        assertThat(entries.entries.single().count).isEqualTo(5)
+        assertThat(phrase.sum).isEqualTo(12)
+        assertThat(all.repositories.single().data.sumOf { it.count }).isEqualTo(25)
+    }
+
+    @Test
     fun `should limit phrase results to accessible prefixes`() {
         // given: matching entries both inside and outside of the accessible prefix
         useResolvedIdentifier("releases", "com/reposilite/app.jar", 1)
@@ -139,13 +164,18 @@ internal class StatisticsFacadeTest : StatisticsSpecification() {
         // when: a limited search is performed with an accessible prefix
         val response = assertOk(statisticsFacade.findResolvedRequestsByPhrase(
             repository = "releases",
-            phrase = "reposilite",
+            phrase = "com/reposilite",
             limit = 1,
             accessToken = accessToken.identifier
         ))
 
         // then: inaccessible entries do not consume the result limit
         assertThat(response.requests.map { it.gav }).containsExactly("com/reposilite/app.jar")
+        assertThat(statisticsFacade.findResolvedRequestsByPhrase(
+            repository = "releases",
+            phrase = "other/com/reposilite",
+            accessToken = accessToken.identifier
+        ).isErr).isTrue()
     }
 
 }

@@ -20,6 +20,7 @@ import { useSession } from "./store/session"
 import useTheme from "./store/theme"
 import useQualifier from "./store/qualifier"
 import usePlaceholders from './store/placeholders'
+import HeartIcon from './components/icons/HeartIcon.vue'
 
 const { title, description, icpLicense, privacyPolicy } = usePlaceholders()
 const { theme, fetchColorMode } = useTheme()
@@ -35,17 +36,49 @@ initializeSession().catch(() => {})
 </script>
 
 <template>
-  <div v-bind:class="{ 'dark': theme.isDark }">
-    <div class="min-h-screen dark:bg-black dark:text-white">
+  <div :class="{ 'dark': theme.isDark }">
+    <div class="min-h-screen flex flex-col dark:bg-black dark:text-white">
       <router-view 
-        class="router-view-full "
+        class="flex-1"
         :qualifier="qualifier"
       />
-      <div v-if="icpLicense || privacyPolicy" class="absolute h-8 pb-2 w-full text-center text-xs dark:bg-black dark:text-white">
-        <a v-if="icpLicense" href="https://beian.miit.gov.cn" target="_blank">{{ icpLicense }}</a>
-        <span v-if="icpLicense && privacyPolicy" class="mx-1">·</span>
-        <a v-if="privacyPolicy" :href="privacyPolicy" target="_blank">Privacy Policy</a>
-      </div>
+      <footer class="page-footer">
+        <div class="container mx-auto flex items-center justify-center gap-2 <sm:flex-wrap">
+          <span class="footer-attribution">
+            <a
+              href="https://reposilite.com"
+              target="_blank"
+              rel="noopener noreferrer"
+            >Reposilite</a>
+            <HeartIcon
+              class="footer-heart"
+              aria-hidden="true"
+            />
+            <span class="sr-only">loves</span>
+            <a
+              href="https://github.com/dzikoysk/reposilite"
+              target="_blank"
+              rel="noopener noreferrer"
+            >Open Source</a>
+          </span>
+          <template v-if="icpLicense">
+            <span aria-hidden="true">·</span>
+            <a
+              href="https://beian.miit.gov.cn"
+              target="_blank"
+              rel="noopener noreferrer"
+            >{{ icpLicense }}</a>
+          </template>
+          <template v-if="privacyPolicy">
+            <span aria-hidden="true">·</span>
+            <a
+              :href="privacyPolicy"
+              target="_blank"
+              rel="noopener noreferrer"
+            >Privacy Policy</a>
+          </template>
+        </div>
+      </footer>
     </div>
   </div>
 </template>
@@ -61,8 +94,17 @@ html, body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-.router-view-full {
-  min-height: calc(100vh - 2rem);
+.page-footer {
+  @apply w-full bg-gray-100 dark:bg-black py-3 text-center text-xs text-gray-500 dark:text-gray-400;
+}
+.page-footer a {
+  @apply hover:text-gray-800 dark:hover:text-gray-100;
+}
+.footer-attribution {
+  @apply inline-flex items-center gap-1.5;
+}
+.footer-heart {
+  @apply h-2.5 w-2.5 text-black dark:text-white;
 }
 .container {
   @apply px-10 <sm:px-2;

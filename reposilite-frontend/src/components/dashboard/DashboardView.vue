@@ -4,6 +4,7 @@ import { createErrorToast } from '../../helpers/toast'
 import { useSession } from "../../store/session"
 import { useTokens } from "../../store/tokens"
 import ViewHeader from '../util/ViewHeader.vue'
+import VersionSponsors from './VersionSponsors.vue'
 
 const props = defineProps({
   selectedTab: {
@@ -82,11 +83,15 @@ const threadsUsage = computed(() => {
   return Math.min(100, Math.round((instanceStatus.value.usedThreads / instanceStatus.value.maxThreads) * 100))
 })
 
-const visibleRepositories = computed(() =>
-  repositories.value.slice(0, 2))
+const repositoryTags = computed(() => {
+  const visibilityCounts = new Map()
 
-const hiddenRepositories = computed(() =>
-  Math.max(0, repositories.value.length - visibleRepositories.value.length))
+  repositories.value.forEach(({ visibility }) =>
+    visibilityCounts.set(visibility, (visibilityCounts.get(visibility) || 0) + 1))
+
+  return [...visibilityCounts]
+    .map(([visibility, count]) => `${count} ${visibility.toLowerCase()}`)
+})
 
 const tokenTags = computed(() => {
   const persistent = tokens.value.filter(token => token.identifier.type === 'PERSISTENT').length
@@ -127,7 +132,10 @@ const plural = (count, singular, pluralText) =>
 </script>
 
 <template>
-  <div v-if="instanceStatus" class="container mx-auto pt-7 px-15 pb-12 <sm:px-4">
+  <div
+    v-if="instanceStatus"
+    class="container mx-auto pt-7 px-15 pb-12 <sm:px-4"
+  >
     <ViewHeader
       title="Instance overview"
       description="Live health, resources, repositories, and access state."
@@ -137,87 +145,192 @@ const plural = (count, singular, pluralText) =>
       <div class="block c6">
         <div class="hero">
           <div class="cell">
-            <div class="k">Status</div>
-            <div class="v"><span class="status-ok">Online</span></div>
+            <div class="k">
+              Status
+            </div>
+            <div class="v">
+              <span class="status-ok">Online</span>
+            </div>
+            <div
+              class="meta"
+              :class="{ warn: instanceStatus.failuresCount > 0 }"
+            >
+              {{ instanceStatus.failuresCount === 0
+                ? 'No failures since restart'
+                : `${instanceStatus.failuresCount} ${plural(instanceStatus.failuresCount, 'failure', 'failures')} since restart` }}
+            </div>
           </div>
-          <div class="cell">
-            <div class="k">Version</div>
-            <div class="v num">{{ instanceStatus.version }} <small v-if="isUpToDate">· up to date</small></div>
+          <div class="cell runtime">
+            <div class="k">
+              Runtime
+            </div>
+            <div class="v num">
+              {{ prettyUptime(instanceStatus.uptime / 1000) }}
+            </div>
+            <div class="meta num">
+              Started {{ startedAt }}
+            </div>
           </div>
-          <div class="cell">
-            <div class="k">Uptime</div>
-            <div class="v num">{{ prettyUptime(instanceStatus.uptime / 1000) }}</div>
-          </div>
-          <div class="cell">
-            <div class="k">Started</div>
-            <div class="v sm num">{{ startedAt }}</div>
+          <div class="cell version">
+            <div class="k">
+              Version
+            </div>
+            <div class="v num">
+              <VersionSponsors
+                :version="instanceStatus.version"
+                :up-to-date="isUpToDate"
+                :sponsors="instanceStatus.sponsors"
+              />
+            </div>
           </div>
         </div>
       </div>
 
       <div class="block c3">
-        <div class="block-top"><span class="t">Resources</span><button class="link" @click="$emit('goto', 'Diagnostics')">Diagnostics</button></div>
-        <div class="meter">
-          <div class="lab"><span class="name">Heap memory</span><span class="val num">{{ instanceStatus.usedMemory.toFixed(0) }} MB <small>/ {{ instanceStatus.maxMemory }} MB</small></span></div>
-          <div class="track"><div class="fill" :style="{ width: heapUsage + '%' }"></div></div>
+        <div class="block-top">
+          <span class="t">Resources</span><button
+            class="link"
+            @click="$emit('goto', 'Diagnostics')"
+          >
+            Diagnostics
+          </button>
         </div>
         <div class="meter">
-          <div class="lab"><span class="name">Threads</span><span class="val num">{{ instanceStatus.usedThreads }} <small>/ {{ instanceStatus.maxThreads }}</small></span></div>
-          <div class="track"><div class="fill" :style="{ width: threadsUsage + '%' }"></div></div>
+          <div class="lab">
+            <span class="name">Heap memory</span><span class="val num">{{ instanceStatus.usedMemory.toFixed(0) }} MB <small>/ {{ instanceStatus.maxMemory }} MB</small></span>
+          </div>
+          <div class="track">
+            <div
+              class="fill"
+              :style="{ width: heapUsage + '%' }"
+            />
+          </div>
+        </div>
+        <div class="meter">
+          <div class="lab">
+            <span class="name">Threads</span><span class="val num">{{ instanceStatus.usedThreads }} <small>/ {{ instanceStatus.maxThreads }}</small></span>
+          </div>
+          <div class="track">
+            <div
+              class="fill"
+              :style="{ width: threadsUsage + '%' }"
+            />
+          </div>
         </div>
       </div>
 
       <div class="block c3">
-        <div class="block-top"><span class="t">Traffic</span><button class="link" @click="$emit('goto', 'Statistics')">Statistics</button></div>
+        <div class="block-top">
+          <span class="t">Traffic</span><button
+            class="link"
+            @click="$emit('goto', 'Statistics')"
+          >
+            Statistics
+          </button>
+        </div>
         <template v-if="traffic">
           <div class="metric">
             <span class="big num">{{ traffic.total.toLocaleString() }}</span>
             <span class="unit">resolved requests</span>
           </div>
-          <div class="details two">
-            <div><span>{{ traffic.currentLabel }}</span><b class="num">{{ traffic.current.toLocaleString() }}</b></div>
-            <div><span>Busiest</span><b>{{ traffic.busiest || 'No data' }}</b></div>
+          <div class="traffic-details">
+            <div class="traffic-detail">
+              <span>{{ traffic.currentLabel }}</span>
+              <b class="num">{{ traffic.current.toLocaleString() }}</b>
+            </div>
+            <div class="traffic-detail">
+              <span>Top repository</span>
+              <b>{{ traffic.busiest || 'No data' }}</b>
+            </div>
           </div>
         </template>
-        <div v-else class="subline">Statistics disabled</div>
+        <div
+          v-else
+          class="subline"
+        >
+          Statistics disabled
+        </div>
       </div>
 
       <div class="block c2">
-        <div class="block-top"><span class="t">Repositories</span><button class="link" @click="$emit('goto', 'Settings')">Configure</button></div>
+        <div class="block-top">
+          <span class="t">Repositories</span><button
+            class="link"
+            @click="$emit('goto', 'Settings')"
+          >
+            Configure
+          </button>
+        </div>
         <div class="metric">
           <span class="big num">{{ repositories.length }}</span>
           <span class="unit">{{ plural(repositories.length, 'repository', 'repositories') }}</span>
         </div>
-        <div class="details list">
-          <div v-for="repository in visibleRepositories" :key="repository.id">
-            <span>{{ repository.id }}</span><b>{{ repository.visibility.toLowerCase() }}</b>
-          </div>
-          <div v-if="hiddenRepositories > 0"><span>More</span><b class="num">+{{ hiddenRepositories }}</b></div>
-          <div v-if="repositories.length === 0"><span>No repositories configured</span></div>
+        <div class="tags compact">
+          <span
+            v-for="tag in repositoryTags"
+            :key="tag"
+            class="tag"
+          >{{ tag }}</span>
+          <span
+            v-if="repositoryTags.length === 0"
+            class="muted"
+          >No repositories configured</span>
         </div>
       </div>
 
       <div class="block c2">
-        <div class="block-top"><span class="t">Access tokens</span><button class="link" @click="$emit('goto', 'Tokens')">Manage</button></div>
+        <div class="block-top">
+          <span class="t">Access tokens</span><button
+            class="link"
+            @click="$emit('goto', 'Tokens')"
+          >
+            Manage
+          </button>
+        </div>
         <div class="metric">
           <span class="big num">{{ tokens.length }}</span>
           <span class="unit">{{ plural(tokens.length, 'token', 'tokens') }}</span>
         </div>
         <div class="tags compact">
-          <span v-for="tag in tokenTags" :key="tag.text || tag" class="tag" :class="{ mgr: tag.mgr }">{{ tag.text || tag }}</span>
-          <span v-if="tokenTags.length === 0" class="muted">No access tokens</span>
+          <span
+            v-for="tag in tokenTags"
+            :key="tag.text || tag"
+            class="tag"
+            :class="{ mgr: tag.mgr }"
+          >{{ tag.text || tag }}</span>
+          <span
+            v-if="tokenTags.length === 0"
+            class="muted"
+          >No access tokens</span>
         </div>
       </div>
 
       <div class="block c2">
-        <div class="block-top"><span class="t">Diagnostics</span><button class="link" @click="$emit('goto', 'Diagnostics')">Open</button></div>
+        <div class="block-top">
+          <span class="t">Diagnostics</span><button
+            class="link"
+            @click="$emit('goto', 'Diagnostics')"
+          >
+            Open
+          </button>
+        </div>
         <div class="metric">
-          <span class="big num" :class="{ crit: instanceStatus.failuresCount > 0 }">{{ instanceStatus.failuresCount }}</span>
-          <span class="unit" :class="{ warn: instanceStatus.failuresCount > 0 }">{{ plural(instanceStatus.failuresCount, 'failure', 'failures') }}</span>
+          <span
+            class="big num"
+            :class="{ crit: instanceStatus.failuresCount > 0 }"
+          >{{ instanceStatus.failuresCount }}</span>
+          <span
+            class="unit"
+            :class="{ warn: instanceStatus.failuresCount > 0 }"
+          >{{ plural(instanceStatus.failuresCount, 'failure', 'failures') }}</span>
         </div>
         <div class="details list">
-          <div v-if="instanceStatus.failuresCount === 0"><span>Since restart</span><b>Clean</b></div>
-          <div v-else><span>Since restart</span><b class="warn">Needs review</b></div>
+          <div v-if="instanceStatus.failuresCount === 0">
+            <span>Since restart</span><b>Clean</b>
+          </div>
+          <div v-else>
+            <span>Since restart</span><b class="warn">Needs review</b>
+          </div>
         </div>
       </div>
     </div>
@@ -242,11 +355,14 @@ const plural = (count, singular, pluralText) =>
 .block-top .t { @apply text-sm font-semibold text-gray-600 dark:text-gray-300; }
 .link { @apply text-sm text-blue-600 dark:text-blue-300 cursor-pointer hover:text-blue-700 dark:hover:text-blue-200 bg-transparent border-0 p-0; }
 
-.hero { @apply grid grid-cols-4 gap-6 <sm:grid-cols-2 <sm:gap-5; }
+.hero { @apply grid grid-cols-3 gap-6 <sm:grid-cols-2 <sm:gap-5; }
+.hero .version { @apply <sm:col-span-2; }
 .cell .k { @apply text-sm text-gray-500 dark:text-gray-400 mb-2; }
 .cell .v { @apply text-lg font-semibold flex items-center gap-2; }
 .cell .v small { @apply text-xs font-normal text-gray-500 dark:text-gray-400; }
 .cell .v.sm { @apply text-base; }
+.cell .meta { @apply mt-1 text-xs text-gray-500 dark:text-gray-400; }
+.cell .meta.warn { @apply text-red-600 dark:text-red-400; }
 
 .status-ok { @apply text-green-600 dark:text-green-400 font-semibold text-lg inline-flex items-center gap-2; }
 .status-ok::before { content: ""; @apply w-2 h-2 rounded-full bg-green-500; }
@@ -273,6 +389,11 @@ const plural = (count, singular, pluralText) =>
 .details span { @apply truncate; }
 .details b { @apply text-gray-800 dark:text-gray-100 font-semibold truncate text-right; }
 .details b.warn { @apply text-red-600 dark:text-red-400; }
+
+.traffic-details { @apply mt-4 grid grid-cols-2 gap-3 <sm:grid-cols-1; }
+.traffic-detail { @apply min-w-0; }
+.traffic-detail span { @apply block text-sm text-gray-500 dark:text-gray-400; }
+.traffic-detail b { @apply block mt-1 truncate text-base text-gray-800 dark:text-gray-100 font-semibold; }
 
 .meter + .meter { @apply mt-3.5; }
 .meter .lab { @apply flex justify-between items-baseline gap-3 text-sm mb-2 <sm:flex-wrap; }

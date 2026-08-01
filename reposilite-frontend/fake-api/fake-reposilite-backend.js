@@ -468,7 +468,13 @@ application
           maxMemory: '32',
           usedThreads: threads,
           maxThreads: 64,
-          failuresCount: failuresCount()
+          failuresCount: failuresCount(),
+          sponsors: [
+            ['talismanplatform'],
+            ['joshuasing', 'andrm', 'rdehuyss', 'insertt', 'Kamilkime'],
+            ['Koressi', 'tipsy', 'that-apex', 'P3ridot'],
+            ['Rollczi', 'Jan Bojarczuk', 'frankielc']
+          ]
         })
       },
       () => invalidCredentials(res)

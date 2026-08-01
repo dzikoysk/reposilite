@@ -222,13 +222,13 @@ internal class SqlStatisticsRepository(
 
             val resolvedSum = ResolvedTable.count.sum()
             val restrictedPrefixes = accessibleGavPrefixes?.takeUnless { "" in it }
-            val whereCriteria = AndOp(listOfNotNull(
+            val whereCriteria = listOfNotNull(
                 repository.takeIf(String::isNotEmpty)?.let { IdentifierTable.repository eq it },
-                phrase.takeIf(String::isNotEmpty)?.let { IdentifierTable.gav like "%$it%" },
+                phrase.takeIf(String::isNotEmpty)?.let { IdentifierTable.gav.lowerCase() like it.toContainsPattern() },
                 restrictedPrefixes?.let { prefixes ->
                     OrOp(prefixes.map { IdentifierTable.gav.lowerCase() like (LikePattern.ofLiteral(it.lowercase()) + "%") })
                 }
-            ))
+            ).let { if (it.isEmpty()) Op.TRUE else AndOp(it) }
 
             IdentifierTable.leftJoin(ResolvedTable, { IdentifierTable.id }, { ResolvedTable.identifierId })
                 .select(IdentifierTable.gav, resolvedSum)
@@ -241,11 +241,18 @@ internal class SqlStatisticsRepository(
                 .map { ResolvedEntry(it[IdentifierTable.gav], it[resolvedSum] ?: 0) }
         }
 
-    override fun findResolvedEntries(repository: String?, phrase: String, limit: Int, offset: Long): List<ResolvedStatisticsEntry> =
+    override fun findResolvedEntries(
+        repository: String?,
+        phrase: String,
+        from: LocalDate,
+        limit: Int,
+        offset: Long
+    ): List<ResolvedStatisticsEntry> =
         transaction(database) {
             val resolvedSum = ResolvedTable.count.sum()
-            val criteria = listOfNotNull(
-                phrase.takeIf(String::isNotEmpty)?.let { IdentifierTable.gav like "%$it%" },
+            val criteria = listOfNotNull<Op<Boolean>>(
+                ResolvedTable.date greaterEq from,
+                phrase.takeIf(String::isNotEmpty)?.let { IdentifierTable.gav.lowerCase() like it.toContainsPattern() },
                 repository?.let { IdentifierTable.repository eq it }
             )
 
@@ -265,13 +272,11 @@ internal class SqlStatisticsRepository(
                 .map { ResolvedStatisticsEntry(it[IdentifierTable.repository], it[IdentifierTable.gav], it[resolvedSum] ?: 0) }
         }
 
-    override fun getAllResolvedRequestsPerRepositoryAsTimeSeries(): Map<String, Map<LocalDate, Long>> =
+    override fun getAllResolvedRequestsPerRepositoryAsTimeSeries(from: LocalDate): Map<String, Map<LocalDate, Long>> =
         transaction(database) {
-            val start = LocalDate.now().minusYears(1).withDayOfMonth(1)
-
             ResolvedTable.leftJoin(IdentifierTable, { ResolvedTable.identifierId }, { IdentifierTable.id })
                 .select(IdentifierTable.repository, ResolvedTable.date, ResolvedTable.count.sum())
-                .where { ResolvedTable.date greaterEq start }
+                .where { ResolvedTable.date greaterEq from }
                 .groupBy(IdentifierTable.repository, ResolvedTable.date)
                 .asSequence()
                 .map { Triple(it[IdentifierTable.repository], it[ResolvedTable.date], it[ResolvedTable.count.sum()]) }
@@ -296,3 +301,6 @@ internal class SqlStatisticsRepository(
         }
 
 }
+
+private fun String.toContainsPattern(): LikePattern =
+    LikePattern.ofLiteral(lowercase()).let { it.copy(pattern = "%${it.pattern}%") }

@@ -21,6 +21,7 @@ import com.reposilite.maven.api.Identifier
 import com.reposilite.plugin.api.Facade
 import com.reposilite.shared.ErrorResponse
 import com.reposilite.shared.badRequestError
+import com.reposilite.shared.toErrorResult
 import com.reposilite.statistics.api.AllResolvedResponse
 import com.reposilite.statistics.api.IncrementResolvedRequest
 import com.reposilite.statistics.api.IntervalRecord
@@ -33,6 +34,7 @@ import com.reposilite.token.AccessTokenIdentifier
 import com.reposilite.token.AccessTokenPermission.MANAGER
 import com.reposilite.token.Route
 import com.reposilite.token.RoutePermission.READ
+import io.javalin.http.HttpStatus.FORBIDDEN
 import panda.std.Result
 import panda.std.asSuccess
 import panda.std.reactive.Reference
@@ -71,29 +73,45 @@ class StatisticsFacade internal constructor(
         phrase: String,
         limit: Int = MAX_PAGE_SIZE,
         accessToken: AccessTokenIdentifier? = null
-    ): Result<ResolvedCountResponse, ErrorResponse> =
-        limit.takeIf { it in 1..MAX_PAGE_SIZE }
-            ?.let {
-                val accessibleGavPrefixes = accessToken?.let { getAccessibleGavPrefixes(it, repository) }
-                statisticsRepository.findResolvedRequestsByPhrase(repository, phrase, limit, accessibleGavPrefixes).let {
-                    ResolvedCountResponse(
-                        sum = it.sumOf { resolved -> resolved.count },
-                        requests = it
-                    ).asSuccess()
-                }
-            }
-            ?: badRequestError("Requested invalid page size ($limit, expected 1..$MAX_PAGE_SIZE)")
-
-    private fun getAccessibleGavPrefixes(accessToken: AccessTokenIdentifier, repository: String): Set<String>? =
-        if (accessTokenFacade.hasPermission(accessToken, MANAGER)) {
-            null
-        } else {
-            accessTokenFacade.getRoutes(accessToken)
-                .asSequence()
-                .filter { it.permission == READ }
-                .mapNotNull { it.toGavPrefix(repository) }
-                .toSet()
+    ): Result<ResolvedCountResponse, ErrorResponse> {
+        if (limit !in 1..MAX_PAGE_SIZE) {
+            return badRequestError("Requested invalid page size ($limit, expected 1..$MAX_PAGE_SIZE)")
         }
+
+        val accessibleGavPrefixes: Result<Set<String>?, ErrorResponse> =
+            accessToken?.let { getAccessibleGavPrefixes(it, repository, phrase) } ?: Result.ok(null)
+
+        return accessibleGavPrefixes.map { prefixes ->
+            val requests = statisticsRepository.findResolvedRequestsByPhrase(repository, phrase, limit, prefixes)
+            ResolvedCountResponse(
+                sum = requests.sumOf { it.count },
+                requests = requests
+            )
+        }
+    }
+
+    private fun getAccessibleGavPrefixes(
+        accessToken: AccessTokenIdentifier,
+        repository: String,
+        phrase: String
+    ): Result<Set<String>?, ErrorResponse> {
+        if (accessTokenFacade.hasPermission(accessToken, MANAGER)) {
+            return Result.ok(null)
+        }
+
+        val routes = accessTokenFacade.getRoutes(accessToken)
+
+        if (routes.none { it.hasPermissionTo(resolvedPath(repository, phrase), READ) }) {
+            return FORBIDDEN.toErrorResult("This token is not authorized to access this path")
+        }
+
+        val prefixes: Set<String>? = routes.asSequence()
+            .filter { it.permission == READ }
+            .mapNotNull { it.toGavPrefix(repository) }
+            .toSet()
+
+        return Result.ok(prefixes)
+    }
 
     private fun Route.toGavPrefix(repository: String): String? {
         val repositoryRoot = "/$repository"
@@ -111,7 +129,8 @@ class StatisticsFacade internal constructor(
             offset < 0 ->
                 badRequestError("Requested invalid offset ($offset, expected >= 0)")
             else -> {
-                val records = statisticsRepository.findResolvedEntries(repository, phrase, limit + 1, offset)
+                val from = dateIntervalProvider.get().createTimeSeries().min()
+                val records = statisticsRepository.findResolvedEntries(repository, phrase, from, limit + 1, offset)
                 val entries = records.take(limit)
                 ResolvedEntriesResponse(
                     page = ResolvedEntriesPage(
@@ -125,18 +144,18 @@ class StatisticsFacade internal constructor(
             }
         }
 
-    fun getAllResolvedStatistics(): Result<AllResolvedResponse, ErrorResponse> =
-        when {
-            statisticsEnabled.get() ->
-                AllResolvedResponse(
-                    interval = dateIntervalProvider.get().interval,
-                    repositories =
-                        statisticsRepository.getAllResolvedRequestsPerRepositoryAsTimeSeries()
-                            .mapValues { (_, records) ->
-                                val timeSeries = dateIntervalProvider
-                                    .map { it.createTimeSeries() }
-                                    .associateWith { 0L }
+    fun getAllResolvedStatistics(): Result<AllResolvedResponse, ErrorResponse> {
+        val intervalProvider = dateIntervalProvider.get()
 
+        return when {
+            statisticsEnabled.get() -> {
+                val timeSeries = intervalProvider.createTimeSeries().associateWith { 0L }
+
+                AllResolvedResponse(
+                    interval = intervalProvider.interval,
+                    repositories =
+                        statisticsRepository.getAllResolvedRequestsPerRepositoryAsTimeSeries(timeSeries.keys.min())
+                            .mapValues { (_, records) ->
                                 (timeSeries + records)
                                     .asSequence()
                                     .map { (date, count) -> IntervalRecord(date.toUTCMillis(), count) }
@@ -148,12 +167,17 @@ class StatisticsFacade internal constructor(
                             .sortedWith(compareBy({ repository -> -repository.data.sumOf { it.count } }, { it.name }))
                             .toList()
                 )
+            }
             else ->
                 AllResolvedResponse(
                     statisticsEnabled = false,
-                    interval = dateIntervalProvider.get().interval
+                    interval = intervalProvider.interval
                 )
         }.asSuccess()
+    }
+
+    private fun resolvedPath(repository: String, gav: String): String =
+        "/$repository/${gav.trimStart('/')}"
 
     fun countUniqueRecords(): Long =
         statisticsRepository.countUniqueResolvedRequests()

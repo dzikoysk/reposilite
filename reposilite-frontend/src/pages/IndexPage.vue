@@ -109,7 +109,7 @@ const selectHomepage = () =>
             <DashboardView v-if="selectedTab == 'Dashboard'" :selected-tab="selectedTab" @goto="selectedTab = $event" />
           </TabPanel>
           <TabPanel :val="'Statistics'" v-show="isManager">
-            <StatisticsView v-if="selectedTab == 'Statistics'" :selected-tab="selectedTab" />
+            <StatisticsView v-if="selectedTab == 'Statistics'" />
           </TabPanel>
           <TabPanel :val="'Diagnostics'" v-show="isManager">
             <DiagnosticsView v-if="selectedTab == 'Diagnostics'" :selected-tab="selectedTab" />

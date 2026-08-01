@@ -1,32 +1,22 @@
 <script setup>
-import { ref, defineAsyncComponent } from "vue"
-import { createErrorToast } from '../../helpers/toast'
-import { useSession } from "../../store/session"
+import { computed, defineAsyncComponent } from "vue"
 
 const VueApexCharts = defineAsyncComponent(() => import('vue3-apexcharts'))
 
-const { client } = useSession()
-const statisticsEnabled = ref(false)
-const resolvedSeries = ref()
+const props = defineProps({
+  statistics: {
+    type: Object,
+    required: true
+  }
+})
 
-client.value.statistics.allResolved()
-  .then(response => response.data)
-  .then(allResolved => {
-    resolvedSeries.value = allResolved.repositories.map(repositoryStatistics => {
-      return {
-        name: repositoryStatistics.name,
-        data: repositoryStatistics.data.map(record => ({
-          x: record.date,
-          y: record.count
-        }))
-      }
-    })
-    statisticsEnabled.value = allResolved.statisticsEnabled
-  })
-  .catch(error => {
-    console.log(error)
-    createErrorToast(`Cannot load statistics`)
-  })
+const resolvedSeries = computed(() => props.statistics.repositories.map(repositoryStatistics => ({
+  name: repositoryStatistics.name,
+  data: repositoryStatistics.data.map(record => ({
+    x: record.date,
+    y: record.count
+  }))
+})))
 
 const chartOptions = {
   chart: {
@@ -65,7 +55,7 @@ const chartOptions = {
 </script>
 
 <template>
-  <div v-if="statisticsEnabled">
+  <div>
     <h1 class="font-semibold text-lg">Resolved requests</h1>
     <VueApexCharts 
       class="dark:text-black pt-2"

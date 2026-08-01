@@ -36,11 +36,13 @@ internal open class StatisticsSpecification {
         database = null
     ).accessTokenFacade()
 
+    protected val statisticsRepository = InMemoryStatisticsRepository()
+
     protected val statisticsFacade = StatisticsFacade(
         journalist = logger,
         statisticsEnabled = Reference.reference(true),
         dateIntervalProvider = DailyDateIntervalProvider.toReference(),
-        statisticsRepository = InMemoryStatisticsRepository(),
+        statisticsRepository = statisticsRepository,
         accessTokenFacade = accessTokenFacade
     )
 

@@ -53,4 +53,21 @@ class LazyPlaceholderResolverTest {
         assertThat(result).contains("Reposilite")
     }
 
+    @Test
+    fun `should resolve the longest placeholder split across buffers`() {
+        val encodedPlaceholder = "%7B%7BREPOSILITE.VITE_BASE_PATH%7D%7D"
+        val resolver = LazyPlaceholderResolver(
+            mapOf(
+                "{{REPOSILITE.VITE_BASE_PATH}}" to ".",
+                encodedPlaceholder to "."
+            )
+        )
+        val input = (ByteArray(bufferSize - encodedPlaceholder.length + 1) + encodedPlaceholder.toByteArray()).inputStream()
+        val output = ByteArrayOutputStream()
+
+        resolver.process(input, output)
+
+        assertThat(output.toByteArray().decodeToString()).contains(".")
+    }
+
 }

@@ -33,9 +33,7 @@ internal class LazyPlaceholderResolver(private val placeholders: Map<String, Str
     }
 
     private val theLongestPlaceholderInBytes = placeholders.keys
-        .maxOfOrNull { it }
-        ?.toByteArray(Charsets.UTF_8)
-        ?.size
+        .maxOfOrNull { it.toByteArray(UTF_8).size }
         ?: 0
 
     fun createProcessedResource(input: InputStream): ResourceSupplier {

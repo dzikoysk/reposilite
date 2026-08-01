@@ -27,7 +27,8 @@ data class InstanceStatusResponse(
     val maxMemory: Int,
     val usedThreads: Int,
     val maxThreads: Int,
-    val failuresCount: Int
+    val failuresCount: Int,
+    val sponsors: List<List<String>>
 )
 
 data class RecordedFailure(

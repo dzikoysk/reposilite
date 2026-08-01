@@ -138,3 +138,4 @@ log.txt
 
 # Fleet
 .fleet/
+.gstack/

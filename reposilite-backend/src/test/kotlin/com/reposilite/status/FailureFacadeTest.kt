@@ -56,7 +56,20 @@ internal class FailureFacadeTest : FailureSpecification() {
         assertThat(failureFacade.getFailuresCount()).isEqualTo(2)
     }
 
+    @Test
+    fun `should separate failures with different root causes`() {
+        // when: the same source and wrapper location fail for different reasons
+        failureFacade.throwException("PATH /com/reposilite", wrappedFailure(IllegalArgumentException("invalid")))
+        failureFacade.throwException("PATH /com/reposilite", wrappedFailure(IllegalStateException("unavailable")))
+
+        // then: each root cause is recorded as a separate failure
+        assertThat(failureFacade.getRecordedFailures()).hasSize(2)
+    }
+
     private fun duplicatedFailure(message: String): RuntimeException =
         RuntimeException(message)
+
+    private fun wrappedFailure(cause: Throwable): RuntimeException =
+        RuntimeException("Wrapped failure", cause)
 
 }

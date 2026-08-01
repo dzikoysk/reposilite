@@ -33,10 +33,11 @@ import com.reposilite.statistics.infrastructure.SqlStatisticsRepository
 import com.reposilite.statistics.specification.StatisticsIntegrationSpecification
 import com.reposilite.token.AccessTokenPermission.MANAGER
 import com.reposilite.token.RoutePermission.READ
+import io.javalin.http.HttpStatus.BAD_REQUEST
+import io.javalin.http.HttpStatus.FORBIDDEN
 import io.javalin.http.HttpStatus.OK
 import io.javalin.http.HttpStatus.UNAUTHORIZED
 import java.time.LocalDate
-import java.time.temporal.ChronoUnit
 import kong.unirest.core.Unirest.get
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -114,6 +115,22 @@ internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecifi
     }
 
     @Test
+    fun `should return resolved requests without filters`() {
+        // given: a recorded request
+        val repository = SqlStatisticsRepository(reposilite.database, reposilite.journalist, emptyArray())
+        repository.incrementResolvedRequests(
+            mapOf(Identifier("releases", "com/reposilite.jar") to 1),
+            LocalDate.now()
+        )
+
+        // when: statistics are requested without a repository or phrase
+        val requests = repository.findResolvedRequestsByPhrase("", "", 20, null)
+
+        // then: the unrestricted query returns recorded requests
+        assertThat(requests.map { it.gav }).contains("com/reposilite.jar")
+    }
+
+    @Test
     fun `should limit phrase results to routes visible by token`() {
         // given: two matching paths in the same repository, but only one under the token route
         useResolvedRequest("releases", "com/reposilite/app.jar", "content")
@@ -132,6 +149,12 @@ internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecifi
         assertThat(response.status).isEqualTo(OK.code)
         assertThat(response.body.requests.map { it.gav }).containsExactly("com/reposilite/app.jar")
         assertThat(response.body.sum).isEqualTo(1)
+
+        val forbiddenResponse = get("$base/api/statistics/resolved/phrase/1/releases/other")
+            .basicAuth(name, secret)
+            .asString()
+
+        assertThat(forbiddenResponse.status).isEqualTo(FORBIDDEN.code)
     }
 
     @Test
@@ -167,6 +190,52 @@ internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecifi
     }
 
     @Test
+    fun `should return unfiltered entries and reject malformed pagination`() {
+        // given: a recorded request and manager credentials
+        useResolvedRequest("releases", "com/reposilite.jar", "content")
+        val (name, secret) = useAuth("name", "secret", listOf(MANAGER))
+
+        // when: entries are requested without optional filters
+        val response = get("$base/api/statistics/resolved/entries")
+            .basicAuth(name, secret)
+            .asObject(ResolvedEntriesResponse::class.java)
+
+        // then: the request succeeds and malformed pagination is rejected
+        assertThat(response.status).isEqualTo(OK.code)
+        assertThat(response.body.entries.map { it.path }).contains("com/reposilite.jar")
+        assertThat(get("$base/api/statistics/resolved/entries?limit=invalid").basicAuth(name, secret).asString().status)
+            .isEqualTo(BAD_REQUEST.code)
+        assertThat(get("$base/api/statistics/resolved/entries?offset=invalid").basicAuth(name, secret).asString().status)
+            .isEqualTo(BAD_REQUEST.code)
+    }
+
+    @Test
+    fun `should treat search phrases as case-insensitive literals`() {
+        // given: paths that only wildcard matching would consider equivalent
+        SqlStatisticsRepository(reposilite.database, reposilite.journalist, emptyArray())
+            .incrementResolvedRequests(
+                mapOf(
+                    Identifier("releases", "com/Literal%_Match.jar") to 1,
+                    Identifier("releases", "com/LiteralXXMatch.jar") to 1
+                ),
+                LocalDate.now()
+            )
+        val (name, secret) = useAuth("name", "secret", listOf(MANAGER))
+
+        // when: both statistics search endpoints receive an encoded literal phrase
+        val phraseResponse = get("$base/api/statistics/resolved/phrase/10/releases/LITERAL%25_")
+            .basicAuth(name, secret)
+            .asObject(ResolvedCountResponse::class.java)
+        val entriesResponse = get("$base/api/statistics/resolved/entries?phrase=LITERAL%25_")
+            .basicAuth(name, secret)
+            .asObject(ResolvedEntriesResponse::class.java)
+
+        // then: only the path containing the literal characters is returned
+        assertThat(phraseResponse.body.requests.map { it.gav }).containsExactly("com/Literal%_Match.jar")
+        assertThat(entriesResponse.body.entries.map { it.path }).containsExactly("com/Literal%_Match.jar")
+    }
+
+    @Test
     fun `should return time-series`() {
         // given: a database with some requests
         val hackyDatabaseStateAccessor = SqlStatisticsRepository(reposilite.database, reposilite.journalist, emptyArray())
@@ -186,6 +255,10 @@ internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecifi
                 )
             }
         }
+        hackyDatabaseStateAccessor.incrementResolvedRequests(
+            mapOf(Identifier("releases", "/old/only.jar") to 100),
+            LocalDate.now().minusYears(2)
+        )
 
         // when: stats service is requested without valid credentials
         val unauthorizedResponse = get("$base/api/statistics/resolved/all").asString()
@@ -211,10 +284,10 @@ internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecifi
                     .map { repository ->
                         RepositoryStatistics(
                             name = repository,
-                            data = (0..ChronoUnit.MONTHS.between(LocalDate.now().minusYears(1), LocalDate.now())) // may be 12 or 13 months
+                            data = (0..11)
                                 .map { index ->
                                     IntervalRecord(
-                                        date = LocalDate.now().minusMonths(index).withDayOfMonth(1).toUTCMillis(),
+                                        date = LocalDate.now().minusMonths(index.toLong()).withDayOfMonth(1).toUTCMillis(),
                                         count = 2L * index
                                     )
                                 }
@@ -224,6 +297,16 @@ internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecifi
                     .sortedBy { it.name }
             )
         )
+
+        val entries = get("$base/api/statistics/resolved/entries?phrase=reposilite")
+            .basicAuth(name, secret)
+            .asObject(ResolvedEntriesResponse::class.java)
+        val oldEntries = get("$base/api/statistics/resolved/entries?phrase=old")
+            .basicAuth(name, secret)
+            .asObject(ResolvedEntriesResponse::class.java)
+
+        assertThat(entries.body.entries.map { it.count }).containsExactly(132L, 132L)
+        assertThat(oldEntries.body.entries).isEmpty()
     }
 
 }

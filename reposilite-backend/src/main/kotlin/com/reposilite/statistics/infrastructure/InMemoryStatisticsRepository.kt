@@ -35,7 +35,7 @@ internal class InMemoryStatisticsRepository : StatisticsRepository {
     override fun incrementResolvedRequests(requests: Map<Identifier, Long>, date: LocalDate) =
         requests.forEach { (identifier, count) ->
             resolvedRequests
-                .firstOrNull { it.identifier == identifier }
+                .firstOrNull { it.identifier == identifier && it.date == date }
                 ?.let { it.count += count }
                 ?: resolvedRequests.add(ResolvedRequest(identifier, date, count))
         }
@@ -47,38 +47,45 @@ internal class InMemoryStatisticsRepository : StatisticsRepository {
         accessibleGavPrefixes: Set<String>?
     ): List<ResolvedEntry> =
         resolvedRequests.asSequence()
-            .filter { it.identifier.repository == repository }
-            .filter { (identifier) -> phrase.isEmpty() || identifier.gav.contains(phrase) }
+            .filter { repository.isEmpty() || it.identifier.repository == repository }
+            .filter { (identifier) -> phrase.isEmpty() || identifier.gav.contains(phrase, ignoreCase = true) }
             .filter { (identifier) -> accessibleGavPrefixes == null || accessibleGavPrefixes.any { identifier.gav.startsWith(it, ignoreCase = true) } }
-            .sortedByDescending { (_, count) -> count }
+            .groupBy { it.identifier }
+            .map { (identifier, records) -> ResolvedEntry(identifier.gav, records.sumOf { it.count }) }
+            .sortedByDescending { it.count }
             .take(limit)
-            .map { (identifier, _, count) -> ResolvedEntry(identifier.gav, count) }
-            .toList()
 
-    override fun findResolvedEntries(repository: String?, phrase: String, limit: Int, offset: Long): List<ResolvedStatisticsEntry> =
+    override fun findResolvedEntries(
+        repository: String?,
+        phrase: String,
+        from: LocalDate,
+        limit: Int,
+        offset: Long
+    ): List<ResolvedStatisticsEntry> =
         if (offset > Int.MAX_VALUE) {
             emptyList()
         } else {
             resolvedRequests.asSequence()
+                .filter { it.date >= from }
                 .filter { repository == null || it.identifier.repository == repository }
-                .filter { (identifier) -> phrase.isEmpty() || identifier.gav.contains(phrase) }
-                .sortedWith(compareByDescending<ResolvedRequest> { it.count }.thenBy { it.identifier.repository }.thenBy { it.identifier.gav })
+                .filter { (identifier) -> phrase.isEmpty() || identifier.gav.contains(phrase, ignoreCase = true) }
+                .groupBy { it.identifier }
+                .map { (identifier, records) -> ResolvedStatisticsEntry(identifier.repository, identifier.gav, records.sumOf { it.count }) }
+                .sortedWith(compareByDescending<ResolvedStatisticsEntry> { it.count }.thenBy { it.repository }.thenBy { it.path })
                 .drop(offset.toInt())
                 .take(limit)
-                .map { (identifier, _, count) -> ResolvedStatisticsEntry(identifier.repository, identifier.gav, count) }
-                .toList()
         }
 
-    override fun getAllResolvedRequestsPerRepositoryAsTimeSeries(): Map<String, Map<LocalDate, Long>> =
+    override fun getAllResolvedRequestsPerRepositoryAsTimeSeries(from: LocalDate): Map<String, Map<LocalDate, Long>> =
         resolvedRequests
-            .groupBy(
-                keySelector = { it.identifier.repository },
-                valueTransform = { it.date to it.count }
-            )
-            .mapValues { (_, records) -> records.toMap() }
+            .filter { it.date >= from }
+            .groupBy { it.identifier.repository }
+            .mapValues { (_, records) ->
+                records.groupingBy { it.date }.fold(0L) { count, record -> count + record.count }
+            }
 
     override fun countUniqueResolvedRequests(): Long =
-        resolvedRequests.size.toLong()
+        resolvedRequests.asSequence().map { it.identifier }.distinct().count().toLong()
 
     override fun countResolvedRequests(): Long =
         resolvedRequests.sumOf { it.count }

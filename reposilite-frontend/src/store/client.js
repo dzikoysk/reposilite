@@ -76,9 +76,6 @@ const createClient = (defaultName, defaultSecret) => {
       allResolved() {
         return get("/api/statistics/resolved/all")
       },
-      unique() {
-        return get("/api/statistics/resolved/unique")
-      },
       resolvedEntries(limit, repository, phrase, offset = 0) {
         const query = new URLSearchParams({
           limit,

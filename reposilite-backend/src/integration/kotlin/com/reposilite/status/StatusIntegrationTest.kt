@@ -23,6 +23,7 @@ import com.reposilite.ExperimentalRemoteSpecificationJunitExtension
 import com.reposilite.RecommendedLocalSpecificationJunitExtension
 import com.reposilite.RecommendedRemoteSpecificationJunitExtension
 import com.reposilite.VERSION
+import com.reposilite.VERSION_SPONSORS
 import com.reposilite.status.api.HealthResponse
 import com.reposilite.status.api.InstanceStatusResponse
 import com.reposilite.status.api.FailuresResponse
@@ -69,6 +70,7 @@ internal abstract class StatusIntegrationTest : StatusIntegrationSpecification()
         // then: service should respond with valid instance dto
         assertThat(response.status).isEqualTo(OK.code)
         assertThat(response.body.version).isEqualTo(VERSION)
+        assertThat(response.body.sponsors).isEqualTo(VERSION_SPONSORS)
     }
 
     @Test

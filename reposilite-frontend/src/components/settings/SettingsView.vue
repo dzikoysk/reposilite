@@ -94,15 +94,11 @@ const formsConfiguration = {
   <div class="settings-view container mx-auto pt-7 px-15 pb-12 <sm:px-4">
     <ViewHeader
       title="Shared configuration"
-      description="Modify configuration shared between all instances."
+      description="Modify configuration shared between all instances. Updates can take up to 10 seconds to propagate."
     >
-      <template #note>
-        <strong>Remember</strong>: Configuration propagation can take up to 10 seconds on all instances.
-      </template>
       <template #actions>
         <div
           id="configuration-state"
-          class="actions"
         >
           <button
             v-if="hasChanged"
@@ -140,10 +136,15 @@ const formsConfiguration = {
       </template>
     </ViewHeader>
     <div class="settings-card">
-      <Tabs v-model="selectedDomain" class="domain-tabs">
-        <Tab v-for="domain in domains"
-          class="item"
+      <Tabs
+        v-if="domains.length > 1"
+        v-model="selectedDomain"
+        class="domain-tabs"
+      >
+        <Tab
+          v-for="domain in domains"
           :key="`config:${domain}`"
+          class="item"
           :val="domain"
           :label="schemas[domain]?.title"
           :indicator="true"
@@ -152,8 +153,8 @@ const formsConfiguration = {
       <TabPanels v-model="selectedDomain">
         <TabPanel
           v-for="domain in domains"
-          :val="domain"
           :key="`config_tab:${domain}`"
+          :val="domain"
           class="settings-panel"
         >
           <JsonForms
@@ -174,13 +175,16 @@ const formsConfiguration = {
 <!--suppress CssInvalidAtRule -->
 <style scoped>
 .settings-card {
-  @apply bg-white dark:bg-gray-900 rounded-lg overflow-hidden;
+  @apply bg-gray-100 dark:bg-black rounded-lg overflow-hidden;
+}
+.settings-view :deep(.view-header > .actions) {
+  @apply self-center <md:self-start;
 }
 #configuration-state {
-  @apply flex flex-wrap gap-2 items-center;
+  @apply flex flex-nowrap items-center justify-end gap-2 <md:flex-wrap <md:justify-start;
 }
 #configuration-state button {
-  @apply rounded-md text-sm px-3.5 h-9 text-white whitespace-nowrap;
+  @apply rounded-md h-8 px-3 text-sm text-white whitespace-nowrap;
 }
 #configuration-state .utility {
   @apply bg-gray-800 dark:bg-gray-700 hover:bg-gray-900 dark:hover:bg-gray-600;
@@ -198,7 +202,7 @@ const formsConfiguration = {
   @apply cursor-pointer whitespace-nowrap rounded-t-md px-3 py-1 text-sm leading-5 text-gray-600 dark:text-gray-300 bg-transparent;
 }
 .domain-tabs {
-  @apply bg-gray-100 dark:bg-black overflow-x-auto;
+  @apply overflow-x-auto pt-2;
 }
 .domain-tabs :deep(.tab) {
   @apply whitespace-nowrap;
