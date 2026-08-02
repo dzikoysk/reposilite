@@ -29,7 +29,6 @@ import com.reposilite.statistics.api.RepositoryStatistics
 import com.reposilite.statistics.api.ResolvedCountResponse
 import com.reposilite.statistics.api.ResolvedEntriesResponse
 import com.reposilite.statistics.api.ResolvedRequestsInterval.MONTHLY
-import com.reposilite.statistics.infrastructure.SqlStatisticsRepository
 import com.reposilite.statistics.specification.StatisticsIntegrationSpecification
 import com.reposilite.token.AccessTokenPermission.MANAGER
 import com.reposilite.token.RoutePermission.READ
@@ -63,11 +62,10 @@ internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecifi
         // given: a route to request
         val endpoint = "$base/api/statistics/resolved/unique"
         repeat(10) { useResolvedRequest("releases", "com/reposilite.jar", "content") }
-        SqlStatisticsRepository(reposilite.database, reposilite.journalist, emptyArray())
-            .incrementResolvedRequests(
-                mapOf(Identifier("releases", "com/reposilite.jar") to 1),
-                LocalDate.now().minusMonths(1)
-            )
+        useResolvedRequests(
+            mapOf(Identifier("releases", "com/reposilite.jar") to 1),
+            LocalDate.now().minusMonths(1)
+        )
 
         // when: stats service is requested without valid credentials
         val unauthorizedResponse = get(endpoint).asString()
@@ -101,7 +99,7 @@ internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecifi
         assertThat(unauthorizedResponse.status).isEqualTo(UNAUTHORIZED.code)
 
         // given: a valid credentials
-        val (name, secret) = useAuth("name", "secret", emptyList(),  mapOf(identifier.toString() to READ))
+        val (name, secret) = useAuth("name", "secret", emptyList(), mapOf(identifier.toString() to READ))
 
         // when: service is requested with valid credentials
         val response = get(endpoint)
@@ -117,14 +115,13 @@ internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecifi
     @Test
     fun `should return resolved requests without filters`() {
         // given: a recorded request
-        val repository = SqlStatisticsRepository(reposilite.database, reposilite.journalist, emptyArray())
-        repository.incrementResolvedRequests(
+        useResolvedRequests(
             mapOf(Identifier("releases", "com/reposilite.jar") to 1),
             LocalDate.now()
         )
 
         // when: statistics are requested without a repository or phrase
-        val requests = repository.findResolvedRequestsByPhrase("", "", 20, null)
+        val requests = findResolvedRequests("", "", 20)
 
         // then: the unrestricted query returns recorded requests
         assertThat(requests.map { it.gav }).contains("com/reposilite.jar")
@@ -212,14 +209,13 @@ internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecifi
     @Test
     fun `should treat search phrases as case-insensitive literals`() {
         // given: paths that only wildcard matching would consider equivalent
-        SqlStatisticsRepository(reposilite.database, reposilite.journalist, emptyArray())
-            .incrementResolvedRequests(
-                mapOf(
-                    Identifier("releases", "com/Literal%_Match.jar") to 1,
-                    Identifier("releases", "com/LiteralXXMatch.jar") to 1
-                ),
-                LocalDate.now()
-            )
+        useResolvedRequests(
+            mapOf(
+                Identifier("releases", "com/Literal%_Match.jar") to 1,
+                Identifier("releases", "com/LiteralXXMatch.jar") to 1
+            ),
+            LocalDate.now()
+        )
         val (name, secret) = useAuth("name", "secret", listOf(MANAGER))
 
         // when: both statistics search endpoints receive an encoded literal phrase
@@ -238,15 +234,13 @@ internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecifi
     @Test
     fun `should return time-series`() {
         // given: a database with some requests
-        val hackyDatabaseStateAccessor = SqlStatisticsRepository(reposilite.database, reposilite.journalist, emptyArray())
-
         repeat(2) { // repeat 2 times to verify aggregation
             repeat(24) { index -> // 24 months
                 val date = LocalDate.now()
                     .minusMonths(index.toLong())
                     .withDayOfMonth(1)
 
-                hackyDatabaseStateAccessor.incrementResolvedRequests(
+                useResolvedRequests(
                     requests = mapOf(
                         Identifier("releases", "/com/reposilite/1.0.0/reposilite-1.0.0.jar") to index.toLong(),
                         Identifier("snapshots", "/com/reposilite/1.0.0-SNAPSHOT/reposilite-1.0.0-SNAPSHOT.jar") to index.toLong()
@@ -255,7 +249,7 @@ internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecifi
                 )
             }
         }
-        hackyDatabaseStateAccessor.incrementResolvedRequests(
+        useResolvedRequests(
             mapOf(Identifier("releases", "/old/only.jar") to 100),
             LocalDate.now().minusYears(2)
         )
