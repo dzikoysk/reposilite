@@ -17,7 +17,11 @@
 package com.reposilite.status.specification
 
 import com.reposilite.ReposiliteSpecification
+import com.reposilite.status.FailureFacade
 
 internal abstract class StatusIntegrationSpecification : ReposiliteSpecification() {
 
+    protected fun useFailure(path: String, exception: Throwable) {
+        useFacade<FailureFacade>().throwException(path, exception)
+    }
 }

@@ -22,8 +22,10 @@ import com.reposilite.statistics.DailyDateIntervalProvider
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.statistics.api.IncrementResolvedRequest
 import com.reposilite.statistics.infrastructure.InMemoryStatisticsRepository
-import com.reposilite.token.AccessTokenFacade
+import com.reposilite.token.AccessTokenType.PERSISTENT
+import com.reposilite.token.api.CreateAccessTokenRequest
 import com.reposilite.token.application.AccessTokenComponents
+import java.time.LocalDate
 import panda.std.reactive.Reference
 import panda.std.reactive.toReference
 
@@ -31,12 +33,12 @@ internal open class StatisticsSpecification {
 
     private val logger = InMemoryLogger()
 
-    protected val accessTokenFacade: AccessTokenFacade = AccessTokenComponents(
+    private val accessTokenFacade = AccessTokenComponents(
         journalist = logger,
         database = null
     ).accessTokenFacade()
 
-    protected val statisticsRepository = InMemoryStatisticsRepository()
+    private val statisticsRepository = InMemoryStatisticsRepository()
 
     protected val statisticsFacade = StatisticsFacade(
         journalist = logger,
@@ -51,6 +53,15 @@ internal open class StatisticsSpecification {
         increaseAndSave(identifier, count)
         return identifier to count
     }
+
+    protected fun useResolvedRequests(requests: Map<Identifier, Long>, date: LocalDate) {
+        statisticsRepository.incrementResolvedRequests(requests, date)
+    }
+
+    protected fun useAccessToken(name: String, routes: Set<CreateAccessTokenRequest.Route>) =
+        accessTokenFacade.createAccessToken(
+            CreateAccessTokenRequest(type = PERSISTENT, name = name, routes = routes)
+        ).accessToken
 
     private fun increaseAndSave(identifier: Identifier, count: Long) {
         statisticsFacade.incrementResolvedRequest(IncrementResolvedRequest(identifier, count))

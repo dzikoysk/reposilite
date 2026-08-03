@@ -45,8 +45,9 @@ internal class FailureFacadeTest : FailureSpecification() {
     @Test
     fun `should count duplicated failures`() {
         // when: the same source fails more than once
-        failureFacade.throwException("PATH /com/reposilite", duplicatedFailure("Unlucky"))
-        failureFacade.throwException("PATH /com/reposilite", duplicatedFailure("Still unlucky"))
+        listOf("Unlucky", "Still unlucky").forEach { message ->
+            failureFacade.throwException("PATH /com/reposilite", RuntimeException(message))
+        }
 
         // then: the failure is stored once with an incremented occurrence count
         val recordedFailure = failureFacade.getRecordedFailures().single()
@@ -59,17 +60,11 @@ internal class FailureFacadeTest : FailureSpecification() {
     @Test
     fun `should separate failures with different root causes`() {
         // when: the same source and wrapper location fail for different reasons
-        failureFacade.throwException("PATH /com/reposilite", wrappedFailure(IllegalArgumentException("invalid")))
-        failureFacade.throwException("PATH /com/reposilite", wrappedFailure(IllegalStateException("unavailable")))
+        failureFacade.throwException("PATH /com/reposilite", RuntimeException("Wrapped failure", IllegalArgumentException("invalid")))
+        failureFacade.throwException("PATH /com/reposilite", RuntimeException("Wrapped failure", IllegalStateException("unavailable")))
 
         // then: each root cause is recorded as a separate failure
         assertThat(failureFacade.getRecordedFailures()).hasSize(2)
     }
-
-    private fun duplicatedFailure(message: String): RuntimeException =
-        RuntimeException(message)
-
-    private fun wrappedFailure(cause: Throwable): RuntimeException =
-        RuntimeException("Wrapped failure", cause)
 
 }

@@ -18,7 +18,6 @@ package com.reposilite.statistics
 
 import com.reposilite.maven.api.Identifier
 import com.reposilite.statistics.specification.StatisticsSpecification
-import com.reposilite.token.AccessTokenType.PERSISTENT
 import com.reposilite.token.RoutePermission.READ
 import com.reposilite.token.api.CreateAccessTokenRequest
 import java.time.LocalDate
@@ -129,10 +128,10 @@ internal class StatisticsFacadeTest : StatisticsSpecification() {
     fun `should aggregate in-memory records within the visible window`() {
         // given: the same literal path recorded on multiple dates, including an expired record
         val identifier = Identifier("releases", "com/Literal%_Match.jar")
-        statisticsRepository.incrementResolvedRequests(mapOf(identifier to 2), LocalDate.now())
-        statisticsRepository.incrementResolvedRequests(mapOf(identifier to 3), LocalDate.now().minusDays(1))
-        statisticsRepository.incrementResolvedRequests(mapOf(identifier to 7), LocalDate.now().minusYears(2))
-        statisticsRepository.incrementResolvedRequests(
+        useResolvedRequests(mapOf(identifier to 2), LocalDate.now())
+        useResolvedRequests(mapOf(identifier to 3), LocalDate.now().minusDays(1))
+        useResolvedRequests(mapOf(identifier to 7), LocalDate.now().minusYears(2))
+        useResolvedRequests(
             mapOf(Identifier("releases", "com/LiteralXXMatch.jar") to 20),
             LocalDate.now()
         )
@@ -153,13 +152,10 @@ internal class StatisticsFacadeTest : StatisticsSpecification() {
         // given: matching entries both inside and outside of the accessible prefix
         useResolvedIdentifier("releases", "com/reposilite/app.jar", 1)
         useResolvedIdentifier("releases", "other/com/reposilite/app.jar", 2)
-        val accessToken = accessTokenFacade.createAccessToken(
-            CreateAccessTokenRequest(
-                type = PERSISTENT,
-                name = "reader",
-                routes = setOf(CreateAccessTokenRequest.Route("/releases/com/reposilite", setOf(READ)))
-            )
-        ).accessToken
+        val accessToken = useAccessToken(
+            "reader",
+            setOf(CreateAccessTokenRequest.Route("/releases/com/reposilite", setOf(READ)))
+        )
 
         // when: a limited search is performed with an accessible prefix
         val response = assertOk(statisticsFacade.findResolvedRequestsByPhrase(

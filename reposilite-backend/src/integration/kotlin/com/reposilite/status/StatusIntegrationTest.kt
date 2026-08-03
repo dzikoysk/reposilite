@@ -24,9 +24,9 @@ import com.reposilite.RecommendedLocalSpecificationJunitExtension
 import com.reposilite.RecommendedRemoteSpecificationJunitExtension
 import com.reposilite.VERSION
 import com.reposilite.VERSION_SPONSORS
+import com.reposilite.status.api.FailuresResponse
 import com.reposilite.status.api.HealthResponse
 import com.reposilite.status.api.InstanceStatusResponse
-import com.reposilite.status.api.FailuresResponse
 import com.reposilite.status.api.StatusSnapshot
 import com.reposilite.status.specification.StatusIntegrationSpecification
 import com.reposilite.token.AccessTokenPermission.MANAGER
@@ -103,7 +103,7 @@ internal abstract class StatusIntegrationTest : StatusIntegrationSpecification()
         assertThat(unauthorizedResponse.status).isEqualTo(UNAUTHORIZED.code)
 
         // given: a recorded failure and valid credentials
-        useFacade<FailureFacade>().throwException("GET /broken", IllegalStateException("Broken route"))
+        useFailure("GET /broken", IllegalStateException("Broken route"))
         val (name, secret) = useAuth("name", "secret", listOf(MANAGER))
 
         // when: service is requested with valid credentials
