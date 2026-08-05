@@ -5,6 +5,7 @@ import { useSession } from "../../store/session"
 import { useTokens } from "../../store/tokens"
 import ViewHeader from '../util/ViewHeader.vue'
 import VersionSponsors from './VersionSponsors.vue'
+import sponsors from '../../data/version-sponsors.json'
 
 const props = defineProps({
   selectedTab: {
@@ -179,7 +180,7 @@ const plural = (count, singular, pluralText) =>
               <VersionSponsors
                 :version="instanceStatus.version"
                 :up-to-date="isUpToDate"
-                :sponsors="instanceStatus.sponsors"
+                :sponsors="sponsors"
               />
             </div>
           </div>

@@ -22,7 +22,6 @@ import com.google.common.base.Supplier
 import com.google.common.base.Suppliers
 import com.google.common.collect.EvictingQueue
 import com.reposilite.VERSION
-import com.reposilite.VERSION_SPONSORS
 import com.reposilite.plugin.api.Facade
 import com.reposilite.status.api.InstanceStatusResponse
 import com.reposilite.status.api.StatusSnapshot
@@ -86,8 +85,7 @@ class StatusFacade(
             maxMemory = (Runtime.getRuntime().maxMemory() / 1024 / 1024).toInt(),
             usedThreads = getUsedThreads(),
             maxThreads = maxThreads.get(),
-            failuresCount = failureFacade.getFailuresCount(),
-            sponsors = VERSION_SPONSORS
+            failuresCount = failureFacade.getFailuresCount()
         )
 
     private fun getUsedThreads(): Int =

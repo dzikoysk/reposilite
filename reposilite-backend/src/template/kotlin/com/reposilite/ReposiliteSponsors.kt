@@ -15,9 +15,4 @@
  */
 package com.reposilite
 
-internal val VERSION_SPONSORS = listOf(
-    listOf("talismanplatform"),
-    listOf("joshuasing", "andrm", "rdehuyss", "insertt", "Kamilkime"),
-    listOf("Koressi", "tipsy", "that-apex", "P3ridot"),
-    listOf("Rollczi", "Jan Bojarczuk", "frankielc")
-)
+internal val VERSION_SPONSORS = @sponsors@
