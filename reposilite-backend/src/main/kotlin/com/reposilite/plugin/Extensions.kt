@@ -59,7 +59,7 @@ class Extensions(private val journalist: Journalist) : Journalist {
         val listeners = events.computeIfAbsent(eventClass) { mutableListOf() }
         @Suppress("UNCHECKED_CAST")
         listeners.add(listener as EventListener<Event>)
-        listeners.sortedBy { it.priority() }
+        listeners.sortBy { it.priority() }
     }
 
     fun <E : Event> emitEvent(event: E): E {
