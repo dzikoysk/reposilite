@@ -19,7 +19,7 @@
 <script>
 import {and, isControl, rankWith, schemaMatches} from '@jsonforms/core'
 import {rendererProps, useJsonFormsControl} from '@jsonforms/vue'
-import {ControlWrapper, useVanillaControl} from '@dzikoysk/vue-vanilla'
+import {ControlWrapper, useVanillaControl} from '@jsonforms/vue-vanilla'
 
 export const tester = rankWith(4, and(isControl, schemaMatches(schema => 'const' in schema)))
 

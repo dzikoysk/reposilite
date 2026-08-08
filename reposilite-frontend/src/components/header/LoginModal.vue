@@ -60,7 +60,7 @@ export default {
           <button class="bg-gray-100 dark:bg-gray-800 py-2 my-3 rounded-md cursor-pointer">Sign in</button>
         </form>
         <button class="absolute top-0 right-0 mt-5 mr-5" @click="close()">
-          <CloseIcon />
+          <CloseIcon class="w-6 h-6" />
         </button>
       </div>
     </VueFinalModal>

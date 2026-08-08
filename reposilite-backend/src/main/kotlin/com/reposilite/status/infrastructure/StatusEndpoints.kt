@@ -18,6 +18,7 @@ package com.reposilite.status.infrastructure
 
 import com.reposilite.status.FailureFacade
 import com.reposilite.status.StatusFacade
+import com.reposilite.status.api.FailuresResponse
 import com.reposilite.status.api.HealthResponse
 import com.reposilite.status.api.InstanceStatusResponse
 import com.reposilite.status.api.StatusSnapshot
@@ -34,7 +35,7 @@ import panda.std.asSuccess
 
 internal class StatusEndpoints(
     private val statusFacade: StatusFacade,
-    val failureFacade: FailureFacade,
+    private val failureFacade: FailureFacade
 ) : ReposiliteRoutes() {
 
     @OpenApi(
@@ -64,6 +65,19 @@ internal class StatusEndpoints(
     }
 
     @OpenApi(
+        path = "/api/status/failures",
+        methods = [HttpMethod.GET],
+        responses = [
+            OpenApiResponse(status = "200", content = [OpenApiContent(from = FailuresResponse::class)])
+        ]
+    )
+    private val getFailures = ReposiliteRoute<FailuresResponse>("/api/status/failures", GET) {
+        managerOnly {
+            response = FailuresResponse(failureFacade.getRecordedFailures().toList()).asSuccess()
+        }
+    }
+
+    @OpenApi(
         path = "/api/status/health",
         methods = [HttpMethod.GET],
         responses = [
@@ -78,6 +92,6 @@ internal class StatusEndpoints(
         }
     }
 
-    override val routes = routes(getInstanceStatus, getStatusSnapshots, getHealth)
+    override val routes = routes(getInstanceStatus, getStatusSnapshots, getFailures, getHealth)
 
 }

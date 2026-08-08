@@ -1,12 +1,13 @@
 <template>
   <div v-if="control.visible" class="one-of-container">
-    <Tabs v-model="tabIndex">
+    <Tabs v-model="tabIndex" class="one-of-tabs">
       <Tab 
         v-for="(oneOfRenderInfo, oneOfIndex) in oneOfRenderInfos"
         :key="`${control.path}-${oneOfIndex}`"
         :val="oneOfIndex"
         :label="oneOfRenderInfo.label"
         :indicator="true"
+        class="item"
         @click="tabChanged" 
       />
     </Tabs>
@@ -16,6 +17,7 @@
         :key="`${control.path}-${oneOfIndex}`"
         :val="oneOfIndex"
         :name="`${control.path}-${oneOfIndex}`"
+        class="one-of-panel"
       >
         <DispatchRenderer
           v-if="selectedIndex === oneOfIndex"
@@ -50,7 +52,7 @@ import {
   rankWith,
 } from '@jsonforms/core'
 import {DispatchRenderer, rendererProps, useJsonFormsOneOfControl} from '@jsonforms/vue'
-import {useVanillaControl} from '@dzikoysk/vue-vanilla'
+import {useVanillaControl} from '@jsonforms/vue-vanilla'
 import {Tabs, Tab, TabPanels, TabPanel} from 'vue3-tabs'
 import isEmpty from 'lodash/isEmpty'
 import DialogWrapper from '../util/DialogWrapper.vue'
@@ -149,7 +151,7 @@ export default {
     openNewTab() {
       this.handleChange(
           this.path,
-          createDefaultValue(this.control.schema.oneOf[this.newSelectedIndex])
+          createDefaultValue(this.control.schema.oneOf[this.newSelectedIndex], this.control.rootSchema)
       )
       this.tabIndex = this.newSelectedIndex
       this.selectedIndex = this.newSelectedIndex
@@ -166,7 +168,7 @@ export default {
 }
 dialog {
   @apply text-gray-600 dark:text-gray-300;
-  @apply bg-gray-100 dark:bg-black;
+  @apply bg-white dark:bg-gray-900;
   @apply border-gray-200 dark:border-gray-700;
   @apply rounded border-2;
 }

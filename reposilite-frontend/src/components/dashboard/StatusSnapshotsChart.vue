@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, defineAsyncComponent } from "vue"
+import { ref, computed, defineAsyncComponent, onUnmounted } from "vue"
 import { useSession } from "../../store/session"
 import { createErrorToast } from '../../helpers/toast'
 
@@ -14,6 +14,7 @@ const props = defineProps({
 
 const { client } = useSession()
 const statusSnapshots = ref()
+let statusTimeout
 const statusSnapshotsSeries = computed(() => {
   return [
     {
@@ -28,13 +29,12 @@ const statusSnapshotsSeries = computed(() => {
 })
 
 function requestStatus() {
-  if (props.selectedTab == 'Dashboard') {
+  if (props.selectedTab == 'Diagnostics') {
     client.value.status.snapshots()
       .then(response => response.data)
       .then(snapshotsData => {
         statusSnapshots.value = snapshotsData
-        console.log(statusSnapshots.value)
-        setTimeout(requestStatus, 1000 * 30)
+        statusTimeout = setTimeout(requestStatus, 1000 * 30)
       })
       .catch(error => {
         console.log(error)
@@ -43,6 +43,7 @@ function requestStatus() {
   }
 }
 requestStatus()
+onUnmounted(() => clearTimeout(statusTimeout))
 
 const chartOptions = {
   chart: {
@@ -82,9 +83,8 @@ const chartOptions = {
 
 <template>
   <div v-if="statusSnapshots">
-    <h1 class="font-bold pt-6 text-lg">Resources</h1>
     <VueApexCharts 
-      class="dark:text-black pt-1"
+      class="dark:text-black"
       width="100%"
       height="320px"
       type="line"

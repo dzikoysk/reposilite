@@ -25,6 +25,8 @@ import { property } from '../helpers/vue-extensions'
 
 const ConsoleView = defineAsyncComponent(() => import('../components/console/ConsoleView.vue'))
 const DashboardView = defineAsyncComponent(() => import('../components/dashboard/DashboardView.vue'))
+const StatisticsView = defineAsyncComponent(() => import('../components/dashboard/StatisticsView.vue'))
+const DiagnosticsView = defineAsyncComponent(() => import('../components/dashboard/DiagnosticsView.vue'))
 const TokensView = defineAsyncComponent(() => import('../components/tokens/TokensView.vue'))
 const SettingsView = defineAsyncComponent(() => import('../components/settings/SettingsView.vue'))
 
@@ -35,6 +37,8 @@ defineProps({
 const listOfTabs = [
   { name: 'Overview', manager: false },
   { name: 'Dashboard', manager: true },
+  { name: 'Statistics', manager: true },
+  { name: 'Diagnostics', manager: true },
   { name: 'Tokens', manager: true },
   { name: 'Console', manager: true },
   { name: 'Settings', manager: true },
@@ -80,17 +84,19 @@ const selectHomepage = () =>
           >
             <Tab
               v-if="tab !== 'Dashboard'"
-              class="item font-normal <sm:w-1/4"
+              class="item main-menu-tab font-normal <sm:w-1/3"
+              :class="{ 'main-menu-tab-active': selectedTab === tab }"
               :val="tab"
               :label="tab"
-              :indicator="true"
+              :indicator="false"
             />
             <Tab
               v-if="tab === 'Dashboard'"
-              class="item font-normal dashboard <sm:w-1/4"
+              class="item main-menu-tab font-normal dashboard <sm:w-1/3"
+              :class="{ 'main-menu-tab-active': selectedTab === tab }"
               :val="tab"
               :label="tab"
-              :indicator="true"
+              :indicator="false"
             />
           </template>
         </Tabs>
@@ -101,17 +107,57 @@ const selectHomepage = () =>
           <TabPanel :val="'Overview'">
             <FileBrowserView v-if="selectedTab == 'Overview'" :qualifier="qualifier" ref=""/>
           </TabPanel>
-          <TabPanel :val="'Dashboard'" v-show="isManager">
-            <DashboardView v-if="selectedTab == 'Dashboard'" :selectedTab="selectedTab" />
+          <TabPanel
+            v-show="isManager"
+            :val="'Dashboard'"
+          >
+            <DashboardView
+              v-if="selectedTab == 'Dashboard'"
+              :selected-tab="selectedTab"
+              @goto="selectedTab = $event"
+            />
           </TabPanel>
-          <TabPanel :val="'Console'" v-show="isManager">
-            <ConsoleView v-if="selectedTab == 'Console'" :selectedTab="selectedTab" />
+          <TabPanel
+            v-show="isManager"
+            :val="'Statistics'"
+          >
+            <StatisticsView v-if="selectedTab == 'Statistics'" />
           </TabPanel>
-          <TabPanel :val="'Tokens'" v-show="isManager">
-            <TokensView v-if="selectedTab == 'Tokens'" :selectedTab="selectedTab" />
+          <TabPanel
+            v-show="isManager"
+            :val="'Diagnostics'"
+          >
+            <DiagnosticsView
+              v-if="selectedTab == 'Diagnostics'"
+              :selected-tab="selectedTab"
+            />
           </TabPanel>
-           <TabPanel :val="'Settings'" v-show="isManager">
-            <SettingsView v-if="selectedTab == 'Settings'" :selectedTab="selectedTab" />
+          <TabPanel
+            v-show="isManager"
+            :val="'Console'"
+          >
+            <ConsoleView
+              v-if="selectedTab == 'Console'"
+              :selected-tab="selectedTab"
+            />
+          </TabPanel>
+          <TabPanel
+            v-show="isManager"
+            :val="'Tokens'"
+          >
+            <TokensView
+              v-if="selectedTab == 'Tokens'"
+              :selected-tab="selectedTab"
+            />
+          </TabPanel>
+          <TabPanel
+            v-show="isManager"
+            :val="'Settings'"
+          >
+            <SettingsView
+              v-if="selectedTab == 'Settings'"
+              :selected-tab="selectedTab"
+            />
           </TabPanel>
         </TabPanels>
       </div>
@@ -149,7 +195,7 @@ const selectHomepage = () =>
   @apply text-gray-600 dark:text-gray-300;
   @apply bg-gray-100 dark:bg-black;
 }
-.selected {
+:deep(.main-menu-tab-active) {
   @apply border-b-2;
   @apply border-black dark:border-white;
   @apply text-black dark:text-white;

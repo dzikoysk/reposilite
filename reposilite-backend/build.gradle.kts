@@ -17,6 +17,8 @@
 //import io.gitlab.arturbosch.detekt.Detekt
 //import io.gitlab.arturbosch.detekt.DetektCreateBaselineTask
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
 import org.apache.tools.ant.filters.ReplaceTokens
 import org.jetbrains.kotlin.gradle.tasks.KaptGenerateStubs
 
@@ -198,12 +200,25 @@ publishing {
     }
 }
 
+val versionSponsors = (JsonSlurper()
+    .parse(project(":reposilite-frontend").file("src/data/version-sponsors.json")) as List<*>)
+    .map { it as List<*> }
+
+val versionSponsorsKotlin = versionSponsors.joinToString(
+    separator = ",\n    ",
+    prefix = "listOf(\n    ",
+    postfix = "\n)"
+) { group ->
+    group.joinToString(prefix = "listOf(", postfix = ")") { sponsor -> JsonOutput.toJson(sponsor) }
+}
+
 tasks {
     register<Copy>("generateKotlin") {
         inputs.property("version", version)
+        inputs.file(project(":reposilite-frontend").file("src/data/version-sponsors.json"))
         from("$projectDir/src/template/kotlin")
         into("$projectDir/src/generated/kotlin")
-        filter(ReplaceTokens::class, "tokens" to mapOf("version" to version))
+        filter(ReplaceTokens::class, "tokens" to mapOf("version" to version, "sponsors" to versionSponsorsKotlin))
     }
     compileKotlin { dependsOn("generateKotlin") }
     sourcesJar { dependsOn("generateKotlin") }

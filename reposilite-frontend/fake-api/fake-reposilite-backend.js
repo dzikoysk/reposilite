@@ -1,5 +1,3 @@
-/* eslint-disable no-unused-vars */
-
 /*
  * Copyright (c) 2023 dzikoysk
  *
@@ -20,7 +18,6 @@ import { createRequire } from "module"
 const require = createRequire(import.meta.url)
 
 const express = require("express")
-const expressWs = require("express-ws")
 const bodyParser = require('body-parser')
 const crypto = require("crypto")
 
@@ -28,14 +25,13 @@ const {
   respond,
   authorized,
   invalidCredentials,
-  sendMessage,
   createFileDetails,
   createDirectoryDetails,
   generateDayWiseTimeSeries
 } = require("./extensions.cjs")
 
 const application = express()
-expressWs(application)
+const port = process.env.PORT || 8887
 
 let uploadedFiles = []
 let mavenSettingsSchema = require('./maven-settings-schema.json')
@@ -44,7 +40,38 @@ let mavenSettingsEntity = require('./maven-settings-entity.json')
 let uptime = 1000
 let memory = 20
 let threads = 10
-let failures = 0
+const failuresCount = () =>
+  failures.reduce((sum, failure) => sum + failure.occurrences, 0)
+
+const failures = [
+  {
+    path: '/api/maven/releases/com/example/app/1.0.0/app-1.0.0.jar',
+    type: 'NullPointerException',
+    message: 'Cannot invoke "Repository.getName()" because "repository" is null',
+    messages: ['Cannot invoke "Repository.getName()" because "repository" is null'],
+    trace: [
+      'failure /api/maven/releases/com/example/app/1.0.0/app-1.0.0.jar',
+      '  by NullPointerException: Cannot invoke "Repository.getName()" because "repository" is null',
+      '  at com.reposilite.maven.MavenFacade.findFile(MavenFacade.kt:88)',
+      '  at com.reposilite.maven.MavenFacade.findDetails(MavenFacade.kt:120)',
+      '  at com.reposilite.maven.infrastructure.MavenEndpoints.findFile(MavenEndpoints.kt:64)',
+    ].join('\n'),
+    occurrences: 3
+  },
+  {
+    path: '/api/badge/latest/releases/com/example/lib',
+    type: 'IllegalStateException',
+    message: 'No versions found for the requested artifact',
+    messages: ['No versions found for the requested artifact'],
+    trace: [
+      'failure /api/badge/latest/releases/com/example/lib',
+      '  by IllegalStateException: No versions found for the requested artifact',
+      '  at com.reposilite.badge.BadgeFacade.findLatestVersion(BadgeFacade.kt:52)',
+      '  at com.reposilite.badge.infrastructure.BadgeEndpoints.latestBadge(BadgeEndpoints.kt:41)',
+    ].join('\n'),
+    occurrences: 1
+  }
+]
 
 const todayLocalDate = () => {
   const now = new Date()
@@ -85,36 +112,72 @@ let accessTokens = [
   },
 ]
 
+const consoleClients = new Set()
+let consoleMessages = [
+  "INFO | Reposilite fake console initialized",
+  "INFO | Type a command to broadcast a fake response"
+]
+
+const writeConsoleEvent = (response, message) => {
+  response.write("event: log\n")
+  message
+    .toString()
+    .split(/\r?\n/)
+    .forEach(line => response.write(`data: ${line}\n`))
+  response.write("\n")
+}
+
+const pushConsoleMessage = (message) => {
+  const formatted = `${new Date().toDateString()} ${message}`
+  consoleMessages.push(formatted)
+  consoleMessages = consoleMessages.slice(-100)
+  consoleClients.forEach(client => writeConsoleEvent(client, formatted))
+  return formatted
+}
+
 setInterval(() => {
   memory += Math.random() * 10
   threads += 1
   uptime += 5000
-  failures += 1
 }, 5000)
 
+const statisticsBaseDate = new Date().getTime() - (19 * 86400000)
 const statisticsSeries = [
   {
     name: 'Releases',
-    data: generateDayWiseTimeSeries(new Date('11 Feb 2022 GMT').getTime(), 20, {
+    data: generateDayWiseTimeSeries(statisticsBaseDate, 20, {
       min: 10,
       max: 60
     })
   },
   {
     name: 'Snapshots',
-    data: generateDayWiseTimeSeries(new Date('11 Feb 2022 GMT').getTime(), 20, {
+    data: generateDayWiseTimeSeries(statisticsBaseDate, 20, {
       min: 10,
       max: 20
     })
   },
   {
     name: 'Maven Central',
-    data: generateDayWiseTimeSeries(new Date('11 Feb 2022 GMT').getTime(), 20, {
+    data: generateDayWiseTimeSeries(statisticsBaseDate, 20, {
       min: 10,
       max: 15
     })
   }
 ]
+
+const resolvedArtifacts = {
+  releases: [
+    { gav: 'com/example/app/2.4.1/app-2.4.1.jar', count: 48120 },
+    { gav: 'org/panda-lang/utilities/1.8.4/utilities-1.8.4.jar', count: 39540 },
+    { gav: 'com/example/lib/1.9.0/lib-1.9.0.jar', count: 31205 },
+    { gav: 'com/example/app/2.4.0/app-2.4.0.jar', count: 22870 },
+    { gav: 'net/dzikoysk/cdn/1.14.4/cdn-1.14.4.jar', count: 18930 },
+    { gav: 'com/example/app/maven-metadata.xml', count: 15540 },
+    { gav: 'com/example/lib/1.8.2/lib-1.8.2.jar', count: 11020 },
+    { gav: 'io/javalin/javalin/6.1.3/javalin-6.1.3.jar', count: 8640 },
+  ]
+}
 
 application
   .get("/", (req, res) => res.send("Reposilite stub API"))
@@ -126,6 +189,10 @@ application
       "Access-Control-Allow-Methods",
       "PUT, PATCH, POST, GET, HEAD, DELETE, OPTIONS"
     )
+    if (req.method === "OPTIONS") {
+      res.status(204).send("")
+      return
+    }
     next()
   })
   .use(express.text())
@@ -348,7 +415,7 @@ application
           maxMemory: '32',
           usedThreads: threads,
           maxThreads: 64,
-          failuresCount: failures
+          failuresCount: failuresCount()
         })
       },
       () => invalidCredentials(res)
@@ -374,34 +441,131 @@ application
       () => invalidCredentials(res)
     )
   })
+  .get("/api/status/failures", (req, res) => {
+    authorized(
+      req,
+      () => res.send({ failures }),
+      () => invalidCredentials(res)
+    )
+  })
+  .get("/api/status/health", (req, res) => res.send({ status: "UP" }))
   .get("/api/statistics/resolved/all", (req, res) => {
     authorized(
       req,
       () =>
         res.send({
           statisticsEnabled: true,
+          interval: 'DAILY',
           repositories: statisticsSeries
         }),
       () => invalidCredentials(res)
     )
   })
-  .ws("/api/console/sock", (connection) => {
-    let authenticated = false
+  .get("/api/statistics/resolved/unique", (req, res) => {
+    authorized(
+      req,
+      () => res.send(Object.values(resolvedArtifacts).flat().length),
+      () => invalidCredentials(res)
+    )
+  })
+  .get("/api/statistics/resolved/entries", (req, res) => {
+    authorized(
+      req,
+      () => {
+        const limit = parseInt(req.query.limit, 10) || 20
+        const offset = parseInt(req.query.offset, 10) || 0
+        const phrase = (req.query.phrase || "").toLowerCase()
+        const repositories = req.query.repository
+          ? [req.query.repository]
+          : Object.keys(resolvedArtifacts)
+        const matches = repositories
+          .flatMap(repository =>
+            (resolvedArtifacts[repository] || [])
+              .filter(entry => entry.gav.toLowerCase().includes(phrase))
+              .map(entry => ({ repository, path: entry.gav, count: entry.count })))
+          .sort((a, b) => b.count - a.count || a.repository.localeCompare(b.repository) || a.path.localeCompare(b.path))
+        const page = matches.slice(offset, offset + limit)
+        const nextOffset = offset + limit
+        res.send({
+          page: {
+            limit,
+            offset,
+            hasMore: matches.length > nextOffset,
+            nextOffset: matches.length > nextOffset ? nextOffset : null
+          },
+          entries: page
+        })
+      },
+      () => invalidCredentials(res)
+    )
+  })
+  .get(/^\/api\/statistics\/resolved\/phrase\/(\d+)\/([^/]+)\/(.*)$/, (req, res) => {
+    authorized(
+      req,
+      () => {
+        const limit = parseInt(req.params[0], 10) || 20
+        const phrase = req.params[2].toLowerCase()
+        const pool = resolvedArtifacts[req.params[1]] || []
+        const requests = pool
+          .filter(entry => entry.gav.toLowerCase().includes(phrase))
+          .sort((a, b) => b.count - a.count)
+          .slice(0, limit)
+        res.send({
+          sum: requests.reduce((sum, entry) => sum + entry.count, 0),
+          requests
+        })
+      },
+      () => invalidCredentials(res)
+    )
+  })
+  .get("/api/console/log", (req, res) => {
+    authorized(
+      req,
+      () => {
+        res.writeHead(200, {
+          "Content-Type": "text/event-stream",
+          "Cache-Control": "no-cache",
+          "Connection": "keep-alive",
+          "X-Accel-Buffering": "no"
+        })
+        res.flushHeaders?.()
 
-    connection.on("message", (message) => {
-      if (message == "Authorization:name:secret") {
-        sendMessage(connection, "DEBUG | Authorized")
-        authenticated = true
-      }
+        consoleClients.add(res)
+        consoleMessages.forEach(message => writeConsoleEvent(res, message))
+        pushConsoleMessage(`DEBUG | Authorized console stream from ${req.ip}`)
 
-      if (!authenticated || message == "stop") {
-        sendMessage(connection, "Connection closed")
-        connection.close()
-        return
-      }
+        const keepAlive = setInterval(() => res.write(": ping\n\n"), 5000)
+        req.on("close", () => {
+          clearInterval(keepAlive)
+          consoleClients.delete(res)
+        })
+      },
+      () => invalidCredentials(res)
+    )
+  })
+  .post("/api/console/execute", express.text({ type: "*/*" }), (req, res) => {
+    authorized(
+      req,
+      () => {
+        const command = (req.body || "").toString().trim()
 
-      sendMessage(connection, "INFO | Response: " + message)
-    })
+        if (command.length === 0) {
+          res.status(400).send({
+            status: 400,
+            message: "Command cannot be empty"
+          })
+          return
+        }
+
+        pushConsoleMessage(`INFO | name (${req.ip}) requested command: ${command}`)
+        pushConsoleMessage(`INFO | Response: fake backend received '${command}'`)
+        res.send({
+          status: "SUCCEEDED",
+          response: [`Fake backend received '${command}'`]
+        })
+      },
+      () => invalidCredentials(res)
+    )
   })
   .get("/api/maven/details", (req, res) => {
     const repositories = createDirectoryDetails("/", [
@@ -443,6 +607,6 @@ application
       message: "Not found",
     })
   )
-  .listen(8887)
+  .listen(port)
 
-console.log("Reposilite stub API started on port 8887")
+console.log(`Reposilite stub API started on port ${port}`)

@@ -17,7 +17,17 @@
 package com.reposilite.status.specification
 
 import com.reposilite.ReposiliteSpecification
+import com.reposilite.status.FailureFacade
 
 internal abstract class StatusIntegrationSpecification : ReposiliteSpecification() {
 
+    protected fun useFailure(path: String, message: String) =
+        useFacade<FailureFacade>().throwException(
+            path,
+            IllegalStateException(message).apply {
+                stackTrace = arrayOf(
+                    StackTraceElement("StatusIntegrationSpecification", "failure", "StatusIntegrationSpecification.kt", 1)
+                )
+            }
+        )
 }

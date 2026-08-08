@@ -7,7 +7,7 @@
     <div class="description">
       {{ control.description }}
     </div>
-    <div v-if="present && control.visible" class="border-1 rounded-lg mt-1">
+    <div v-if="present && control.visible" class="optional-panel">
       <DispatchRenderer
         :visible="control.visible"
         :enabled="control.enabled"
@@ -23,11 +23,10 @@
 
 <script>
 import {DispatchRenderer, rendererProps, useJsonFormsControlWithDetail} from '@jsonforms/vue'
-import {useVanillaControl} from '@dzikoysk/vue-vanilla'
+import {useVanillaControl} from '@jsonforms/vue-vanilla'
 import {ref} from 'vue'
-import {and, rankWith, schemaMatches, uiTypeIs} from '@jsonforms/core'
+import {and, findUISchema, rankWith, schemaMatches, uiTypeIs} from '@jsonforms/core'
 import includes from 'lodash/includes'
-import {findUISchema} from '@jsonforms/core/src/reducers'
 
 export const tester = rankWith(2, and(uiTypeIs('Control'), schemaMatches(schema => Array.isArray(schema.type) && includes(schema.type, 'null'))))
 
@@ -69,5 +68,7 @@ export default {
 </script>
 
 <style scoped>
-
+.optional-panel {
+  @apply mt-1 rounded-lg bg-gray-100 dark:bg-gray-800 px-4 py-3;
+}
 </style>

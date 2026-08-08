@@ -1,6 +1,9 @@
 <template>
-  <fieldset v-if="control.visible" :class="styles.arrayList.root">
-    <legend :class="styles.arrayList.legend">
+  <div v-if="control.visible" :class="[styles.arrayList.root, 'array-list-shell']">
+    <div :class="[styles.arrayList.legend, 'array-list-head']">
+      <div :class="styles.arrayList.label">
+        {{ control.label }}
+      </div>
       <button
         :class="styles.arrayList.addButton"
         @click="addButtonClick"
@@ -8,16 +11,13 @@
       >
         +
       </button>
-      <label :class="styles.arrayList.label">
-        {{ control.label }}
-      </label>
-    </legend>
+    </div>
     <div v-if="control?.description" class="description">
       {{ control.description }}
       <!-- It is a list of items. You can add new entries by clicking the '+' button on the right. -->
     </div>
     <div class="tabs-component">
-       <Tabs v-model="selectedIndex">
+       <Tabs v-model="selectedIndex" class="array-list-tabs">
         <Tab
           v-for="(element, index) in control.data"
           :key="`${control.path}-${index}-tab`"
@@ -32,6 +32,7 @@
             v-for="(element, index) in control.data"
             :key="`${control.path}-${index}-panel`"
             :val="index"
+            class="array-list-panel"
         >
           <div :class="styles.arrayList.itemWrapper">
             <array-list-element
@@ -59,14 +60,14 @@
         </TabPanel>
       </TabPanels>
     </div>
-  </fieldset>
+  </div>
 </template>
 
 <script>
 import { ref } from 'vue'
 import { composePaths, createDefaultValue, rankWith, schemaTypeIs } from '@jsonforms/core'
 import { DispatchRenderer, rendererProps, useJsonFormsArrayControl } from '@jsonforms/vue'
-import { useVanillaArrayControl } from '@dzikoysk/vue-vanilla'
+import { useVanillaArrayControl } from '@jsonforms/vue-vanilla'
 import {Tabs, Tab, TabPanels, TabPanel} from 'vue3-tabs'
 import ArrayListElement from './ArrayListElement.vue'
 
@@ -132,7 +133,7 @@ export default {
     addButtonClick() {
       this.addItem(
         this.control.path,
-        createDefaultValue(this.control.schema)
+        createDefaultValue(this.control.schema, this.control.rootSchema)
       )()
     }
   },

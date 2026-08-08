@@ -16,6 +16,7 @@
 
 package com.reposilite.status
 
+import com.reposilite.status.api.RecordedFailure
 import com.reposilite.status.specification.FailureSpecification
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -26,14 +27,77 @@ internal class FailureFacadeTest : FailureSpecification() {
     fun `should store failure`() {
         // given: an exception with a message
         val message = "Unlucky"
-        val exception = RuntimeException(message)
+        val exception = failure(message)
 
         // when: an error has been registered in failure facade
         failureFacade.throwException("PATH /com/reposilite", exception)
 
         // then: service properly registered thrown exception
+        val recordedFailure = RecordedFailure(
+            path = "PATH /com/reposilite",
+            type = "RuntimeException",
+            message = message,
+            messages = listOf(message),
+            trace = trace(message),
+            occurrences = 1
+        )
         assertThat(failureFacade.hasFailures()).isTrue
-        assertThat(failureFacade.getFailures().iterator().next().contains(message)).isTrue
+        assertThat(failureFacade.getRecordedFailures()).containsExactly(recordedFailure)
+        assertThat(failureFacade.getFailures()).containsExactly(recordedFailure.trace)
+    }
+
+    @Test
+    fun `should count duplicated failures`() {
+        // when: the same source fails more than once
+        listOf("Unlucky", "Still unlucky").forEach { message ->
+            failureFacade.throwException("PATH /com/reposilite", failure(message))
+        }
+
+        // then: the failure is stored once with an incremented occurrence count
+        val recordedFailure = RecordedFailure(
+            path = "PATH /com/reposilite",
+            type = "RuntimeException",
+            message = "Unlucky",
+            messages = listOf("Unlucky", "Still unlucky"),
+            trace = trace("Unlucky"),
+            occurrences = 2
+        )
+        assertThat(failureFacade.getRecordedFailures()).containsExactly(recordedFailure)
+        assertThat(failureFacade.getFailures()).containsExactly(recordedFailure.trace)
+        assertThat(failureFacade.getFailuresCount()).isEqualTo(2)
+    }
+
+    @Test
+    fun `should separate failures with different root causes`() {
+        // when: the same source and wrapper location fail for different reasons
+        failureFacade.throwException(
+            "PATH /com/reposilite",
+            failure("Wrapped failure", cause(IllegalArgumentException("invalid")))
+        )
+        failureFacade.throwException(
+            "PATH /com/reposilite",
+            failure("Wrapped failure", cause(IllegalStateException("unavailable")))
+        )
+
+        // then: each root cause is recorded as a separate failure
+        assertThat(failureFacade.getRecordedFailures()).containsExactlyInAnyOrder(
+            RecordedFailure(
+                path = "PATH /com/reposilite",
+                type = "RuntimeException",
+                message = "Wrapped failure",
+                messages = listOf("Wrapped failure"),
+                trace = trace("Wrapped failure", "IllegalArgumentException: invalid"),
+                occurrences = 1
+            ),
+            RecordedFailure(
+                path = "PATH /com/reposilite",
+                type = "RuntimeException",
+                message = "Wrapped failure",
+                messages = listOf("Wrapped failure"),
+                trace = trace("Wrapped failure", "IllegalStateException: unavailable"),
+                occurrences = 1
+            )
+        )
     }
 
 }

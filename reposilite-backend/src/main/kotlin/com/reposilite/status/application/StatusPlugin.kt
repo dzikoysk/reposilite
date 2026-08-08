@@ -17,6 +17,7 @@
 package com.reposilite.status.application
 
 import com.reposilite.VERSION
+import com.reposilite.VERSION_SPONSORS
 import com.reposilite.configuration.local.LocalConfiguration
 import com.reposilite.console.ConsoleFacade
 import com.reposilite.plugin.api.Plugin
@@ -91,10 +92,9 @@ internal class StatusPlugin : ReposilitePlugin() {
             logger.info("${journalist.effect { GREEN }}Done (${TimeUtils.getPrettyUptimeInSeconds(statusFacade.getUptime())})!${journalist.effect { RESET }}")
             logger.info("")
             logger.info("${journalist.effect { YELLOW_BOLD }}$VERSION version has been sponsored by:${journalist.effect { RESET }}")
-            logger.info("  ${journalist.effect { BOLD }}talismanplatform,${journalist.effect { RESET }}")
-            logger.info("  ${journalist.effect { BOLD }}joshuasing, andrm, rdehuyss, insertt, Kamilkime,${journalist.effect { RESET }}")
-            logger.info("  ${journalist.effect { BOLD }}Koressi, tipsy, that-apex, P3ridot${journalist.effect { RESET }}")
-            logger.info("  ${journalist.effect { BOLD }}Rollczi, Jan Bojarczuk, frankielc${journalist.effect { RESET }}")
+            VERSION_SPONSORS.forEach { sponsors ->
+                logger.info("  ${journalist.effect { BOLD }}${sponsors.joinToString()}${journalist.effect { RESET }}")
+            }
             logger.info("")
             logger.info(journalist.effect { RESET })
         }

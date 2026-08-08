@@ -1,8 +1,9 @@
 import {computed, markRaw, ref, toRaw} from 'vue'
 import { useSession } from './session'
 import { createToast } from 'mosha-vue-toastify'
-import { createAjv } from '@jsonforms/core'
-import { vanillaRenderers } from '@dzikoysk/vue-vanilla'
+import { vanillaRenderers } from '@jsonforms/vue-vanilla'
+import Ajv2020 from 'ajv/dist/2020'
+import addFormats from 'ajv-formats'
 import { default as ObjectRenderer, tester as objectTester } from '../components/renderers/ObjectRenderer.vue'
 import { default as AllOfRenderer, tester as allOfTester } from '../components/renderers/AllOfRenderer.vue'
 import { default as ArrayListRenderer, tester as arrayListTester } from '../components/renderers/ArrayListRenderer.vue'
@@ -15,7 +16,7 @@ const domains = ref([])
 const schemas = ref({})
 const configurations = ref({})
 const selectedDomain = ref('')
-    
+
 const fetchConfiguration = () => {
   return client.value.settings.domains()
     .then(domainsResponse => domains.value = domainsResponse.data)
@@ -57,7 +58,11 @@ const renderers = markRaw([
 ])
 
 const configurationValidator = computed(() => {
-  const ajv = createAjv({
+  const ajv = new Ajv2020({
+    allErrors: true,
+    verbose: true,
+    strict: false,
+    addUsedSchema: false,
     useDefaults: true,
     removeAdditional: false,
     formats: {
@@ -69,6 +74,7 @@ const configurationValidator = computed(() => {
       'repositories.proxied.allowedGroups': /^(\w+\.)*\w+$/,
     }
   })
+  addFormats(ajv)
   ajv.addFormat("repositories.id", {
     type: "string",
     validate: (value) => !value.endsWith(' ')

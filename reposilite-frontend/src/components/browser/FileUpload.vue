@@ -134,7 +134,7 @@ const uploadFiles = () => {
         <div class="-mt-2 pb-2">
           <div v-for="file in files" :key="file.name" class="pt-1 px-6 flex">
             <span @click="removeFile(file)" class="pt-0.85">
-              <CloseIcon class="h-5 pb-1 text-purple-400" />
+              <CloseIcon class="w-5 h-5 pb-1 text-purple-400" />
             </span>
             <span class="px-2">{{file.name}}</span>
           </div>

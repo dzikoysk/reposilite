@@ -17,12 +17,14 @@
     "npm": ">=10.0.0"
   },
   "dependencies": {
-    "@dzikoysk/vue-vanilla": "^3.4.1",
-    "@jsonforms/core": "^3.4.1",
-    "@jsonforms/vue": "^3.4.1",
+    "@jsonforms/core": "^3.8.0",
+    "@jsonforms/vue": "^3.8.0",
+    "@jsonforms/vue-vanilla": "^3.8.0",
     "@vueform/toggle": "^2.1.4",
     "@vueuse/core": "^14.3.0",
     "@vueuse/head": "^2.0.0",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^2.1.1",
     "ansi-to-html": "^0.7.2",
     "apexcharts": "^5.13.0",
     "axios": "^1.17.0",
@@ -49,7 +51,6 @@
     "eslint": "^10.4.1",
     "eslint-plugin-vue": "^10.9.2",
     "express": "^5.2.1",
-    "express-ws": "^5.0.2",
     "globals": "^17.6.0",
     "jsdoc": "^4.0.5",
     "json-server": "^0.17.4",
@@ -57,7 +58,6 @@
     "rollup-plugin-visualizer": "^7.0.1",
     "vite": "^8.0.16",
     "vite-plugin-windicss": "^1.9.4",
-    "windicss": "^3.5.6",
-    "ws": "^8.21.0"
+    "windicss": "^3.5.6"
   }
 }

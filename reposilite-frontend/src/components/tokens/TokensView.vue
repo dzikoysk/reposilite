@@ -22,6 +22,7 @@ import { property } from '../../helpers/vue-extensions'
 import PencilIcon from '../icons/PencilIcon.vue'
 import TrashIcon from '../icons/TrashIcon.vue'
 import RefreshIcon from '../icons/RefreshIcon.vue'
+import ViewHeader from '../util/ViewHeader.vue'
 
 const props = defineProps({
   selectedTab: property(String, true)
@@ -79,13 +80,6 @@ const isExpired = (token) => !!token.expiresAt && Date.now() > toMs(token.expire
 const expiryOf = (token) => !token.expiresAt ? '∞' : (isExpired(token) ? 'expired' : rel(toMs(token.expiresAt)) + ' left')
 const datesTitle = (token) => `Created ${formatDate(token.createdAt)}` + (token.expiresAt ? `  •  Expires ${formatDate(token.expiresAt)}` : '  •  Never expires')
 
-/* Placeholder usage metric (UI commented out below) — Reposilite tracks no per-token usage yet. */
-const spark = (token) => {
-  const seed = token.name.length * 7
-  return Array.from({ length: 10 }, (_, i) => 5 + ((seed * (i + 3)) % 18))
-}
-const requests = (token) => spark(token).reduce((a, b) => a + b, 0) * 11
-
 const editToken = (token) => {
   if (editing.value === `token:${tid(token)}`) { close(); return }
   confirming.value = null
@@ -130,176 +124,316 @@ const runConfirm = (token) => {
 
 <template>
   <div class="container mx-auto pt-7 px-15 pb-12 <sm:px-4">
-    <div class="pb-7">
-      <p>Generate and revoke access tokens used to authenticate with this Reposilite instance.</p>
-      <p class="text-sm text-gray-500">A token's secret is shown only once, at the moment it is generated.</p>
-    </div>
+    <ViewHeader
+      title="Access credentials"
+      description="Generate and revoke tokens used to authenticate with this instance."
+    >
+      <template #note>
+        A token's secret is shown only once, when it is generated.
+      </template>
+    </ViewHeader>
 
-    <div class="flat">
-      <div class="bar">
-        <div class="search">
-          <svg viewBox="0 0 24 24" class="w-4 h-4 flex-shrink-0 text-gray-400"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M21 21l-4.3-4.3m1.3-5.2a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-          <input v-model="query" placeholder="Search tokens, routes…" />
+    <div class="overflow-hidden rounded-lg bg-white text-sm text-gray-600 dark:bg-gray-900 dark:text-gray-300">
+      <div class="flex flex-wrap items-center gap-3 border-b border-gray-200 bg-white px-3.5 py-3.5 dark:border-gray-800 dark:bg-gray-900">
+        <div class="flex h-9 min-w-56 flex-1 items-center gap-2 rounded-md border border-gray-300 bg-white px-3 dark:border-gray-700 dark:bg-gray-800 <sm:w-full <sm:min-w-0">
+          <svg
+            viewBox="0 0 24 24"
+            class="w-4 h-4 flex-shrink-0 text-gray-400"
+          ><path
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            d="M21 21l-4.3-4.3m1.3-5.2a7 7 0 11-14 0 7 7 0 0114 0z"
+          /></svg>
+          <input
+            v-model="query"
+            class="flex-1 bg-transparent text-gray-700 outline-none placeholder-gray-500 dark:text-gray-200 dark:placeholder-gray-400"
+            placeholder="Search tokens, routes…"
+          >
         </div>
-        <button class="primary" @click="startCreate">+ Generate token</button>
+        <button
+          class="h-9 whitespace-nowrap rounded-md bg-blue-700 px-3.5 font-medium text-white hover:bg-blue-800 <sm:w-full"
+          @click="startCreate"
+        >
+          + Generate token
+        </button>
       </div>
 
-      <div v-if="isOpen('newtoken')" class="tokenform">
-        <input class="field" v-model="draft.name" placeholder="Token name (e.g. ci-bot)" @keyup.enter="create" />
-        <div class="seg">
-          <button :class="{ on: draft.type === 'PERSISTENT' }" @click="draft.type = 'PERSISTENT'">persistent</button>
-          <button :class="{ on: draft.type === 'TEMPORARY' }" @click="draft.type = 'TEMPORARY'">temporary</button>
+      <div
+        v-if="isOpen('newtoken')"
+        class="flex flex-wrap items-center gap-2 border-b border-gray-200 bg-gray-100 px-4.5 py-3 dark:border-gray-800 dark:bg-gray-800"
+      >
+        <input
+          v-model="draft.name"
+          class="h-8 min-w-48 flex-1 rounded-md border border-gray-300 bg-white px-3 text-gray-800 outline-none placeholder-gray-500 focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 dark:placeholder-gray-400"
+          placeholder="Token name (e.g. ci-bot)"
+          @keyup.enter="create"
+        >
+        <div class="inline-flex overflow-hidden rounded-md border border-gray-300 dark:border-gray-700">
+          <button
+            class="h-8 border-r border-gray-300 bg-white px-3 text-xs text-gray-600 last:border-r-0 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400"
+            :class="{ 'bg-blue-600 text-white': draft.type === 'PERSISTENT' }"
+            @click="draft.type = 'PERSISTENT'"
+          >
+            persistent
+          </button>
+          <button
+            class="h-8 border-r border-gray-300 bg-white px-3 text-xs text-gray-600 last:border-r-0 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400"
+            :class="{ 'bg-blue-600 text-white': draft.type === 'TEMPORARY' }"
+            @click="draft.type = 'TEMPORARY'"
+          >
+            temporary
+          </button>
         </div>
-        <button class="primary sm" @click="create">Generate</button>
-        <button class="sm" @click="close">Cancel</button>
+        <button
+          class="h-8 rounded-md bg-blue-700 px-3 font-medium text-white hover:bg-blue-800"
+          @click="create"
+        >
+          Generate
+        </button>
+        <button
+          class="h-8 rounded-md border border-gray-300 px-3 dark:border-gray-700"
+          @click="close"
+        >
+          Cancel
+        </button>
       </div>
 
-      <div v-if="secret" class="banner">New secret for <strong>{{ secret.name }}</strong>: <code>{{ secret.value }}</code> — copy it now. <button class="link" @click="secret = null">Dismiss</button></div>
+      <div
+        v-if="secret"
+        class="border-b border-gray-200 bg-blue-50 px-4.5 py-3 text-blue-900 dark:border-gray-800 dark:bg-blue-900 dark:text-blue-100"
+      >
+        New secret for <strong>{{ secret.name }}</strong>: <code class="px-1 font-mono">{{ secret.value }}</code> — copy it now. <button
+          class="ml-2 underline"
+          @click="secret = null"
+        >
+          Dismiss
+        </button>
+      </div>
 
-      <template v-for="token in filtered" :key="tid(token)">
-        <div class="row" :class="{ 'is-open': isOpen(`token:${tid(token)}`), confirming: isConfirming(token) }">
-          <span class="lead font-semibold text-gray-800 dark:text-gray-100">{{ token.name }}</span>
-          <span class="tag">{{ token.identifier.type.toLowerCase() }}</span>
-          <span v-if="tokenIsManager(token)" class="tag mgr">manager</span>
-          <span class="desc">{{ token.description }}</span>
-          <span class="dates" :title="datesTitle(token)"><span>{{ ageOf(token) }}</span><span class="exsep">·</span><span class="ex" :class="{ expired: isExpired(token), forever: !token.expiresAt }">{{ expiryOf(token) }}</span><!-- usage count (placeholder, disabled): <span class="exsep">·</span><span class="reqs" title="Sample data — Reposilite doesn't track per-token usage yet">{{ requests(token).toLocaleString() }} requests</span> --></span>
-          <!-- usage chart (placeholder, disabled — no per-token stats in the backend yet)
-          <span class="usage" title="Sample data — Reposilite doesn't track per-token usage yet">
-            <svg class="spark" viewBox="0 0 60 18" preserveAspectRatio="none">
-              <rect v-for="(h, i) in spark(token)" :key="i" :x="i * 6 + 0.5" :y="18 - h" width="5" :height="h" rx="1" />
-            </svg>
-          </span>
-          -->
-          <span class="ctl">
+      <template
+        v-for="token in filtered"
+        :key="tid(token)"
+      >
+        <div
+          class="group flex min-h-11.5 items-center gap-2 border-b border-gray-200 px-4.5 py-2 transition-colors dark:border-gray-800 <sm:flex-wrap <sm:items-start <sm:py-3"
+          :class="{ 'bg-gray-100 dark:bg-gray-800': isOpen(`token:${tid(token)}`), 'hover:bg-gray-50 dark:hover:bg-gray-800': !isOpen(`token:${tid(token)}`) }"
+        >
+          <span class="whitespace-nowrap font-semibold text-gray-800 dark:text-gray-100">{{ token.name }}</span>
+          <span class="whitespace-nowrap rounded-full bg-gray-150 px-1.5 py-0.5 text-[0.7rem] text-gray-600 dark:bg-gray-800 dark:text-gray-400">{{ token.identifier.type.toLowerCase() }}</span>
+          <span
+            v-if="tokenIsManager(token)"
+            class="whitespace-nowrap rounded-full bg-blue-100 px-1.5 py-0.5 text-[0.7rem] text-blue-700 dark:bg-blue-900 dark:text-blue-200"
+          >manager</span>
+          <span class="min-w-0 flex-1 truncate text-gray-500 dark:text-gray-500 <sm:basis-full <sm:order-5">{{ token.description }}</span>
+          <span
+            class="inline-flex cursor-default items-center gap-2 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400 <sm:hidden"
+            :title="datesTitle(token)"
+          ><span>{{ ageOf(token) }}</span><span class="text-gray-400 dark:text-gray-500">·</span><span
+            class="text-gray-600 dark:text-gray-300"
+            :class="{ 'text-red-500': isExpired(token), 'align-middle text-lg leading-none': !token.expiresAt }"
+          >{{ expiryOf(token) }}</span></span>
+          <span class="flex items-center gap-1">
             <template v-if="isConfirming(token)">
-              <button class="confirm-yes" @click="runConfirm(token)">{{ confirming.action === 'revoke' ? 'Revoke' : 'Regenerate' }}</button>
-              <button class="confirm-cancel" @click="confirming = null">Cancel</button>
+              <button
+                class="text-xs font-medium text-red-600 dark:text-red-400"
+                @click="runConfirm(token)"
+              >{{ confirming.action === 'revoke' ? 'Revoke' : 'Regenerate' }}</button>
+              <button
+                class="text-xs text-gray-500 dark:text-gray-400"
+                @click="confirming = null"
+              >Cancel</button>
             </template>
             <template v-else>
-              <button class="ic" title="Edit token" @click="editToken(token)"><PencilIcon /></button>
-              <button class="ic" title="Regenerate secret" @click="ask(token, 'regenerate')"><RefreshIcon /></button>
-              <button class="ic danger" title="Revoke token" @click="ask(token, 'revoke')"><TrashIcon /></button>
+              <button
+                class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-100"
+                title="Edit token"
+                @click="editToken(token)"
+              ><PencilIcon class="h-4 w-4" /></button>
+              <button
+                class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-100"
+                title="Regenerate secret"
+                @click="ask(token, 'regenerate')"
+              ><RefreshIcon class="h-4 w-4" /></button>
+              <button
+                class="text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-500"
+                title="Revoke token"
+                @click="ask(token, 'revoke')"
+              ><TrashIcon class="h-4 w-4" /></button>
             </template>
           </span>
         </div>
 
-        <div v-if="isOpen(`token:${tid(token)}`)" class="tokenform">
-          <input class="field" v-model="draft.description" placeholder="Description" />
-          <div class="seg">
-            <button :class="{ on: draft.manager }" @click="draft.manager = !draft.manager">manager</button>
+        <div
+          v-if="isOpen(`token:${tid(token)}`)"
+          class="flex flex-wrap items-center gap-2 border-b border-gray-200 bg-gray-100 px-4.5 py-3 dark:border-gray-800 dark:bg-gray-800"
+        >
+          <input
+            v-model="draft.description"
+            class="h-8 min-w-48 flex-1 rounded-md border border-gray-300 bg-white px-3 text-gray-800 outline-none placeholder-gray-500 focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 dark:placeholder-gray-400"
+            placeholder="Description"
+          >
+          <div class="inline-flex overflow-hidden rounded-md border border-gray-300 dark:border-gray-700">
+            <button
+              class="h-8 border-r border-gray-300 bg-white px-3 text-xs text-gray-600 last:border-r-0 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400"
+              :class="{ 'bg-blue-600 text-white': draft.manager }"
+              @click="draft.manager = !draft.manager"
+            >
+              manager
+            </button>
           </div>
-          <span class="when-label">expires</span>
-          <input class="when" type="date" :min="minExpiry()" v-model="draft.expiresAt" />
-          <button v-if="draft.expiresAt" class="sm" @click="draft.expiresAt = ''">clear</button>
-          <button class="primary sm" @click="saveToken(token)">Save</button>
-          <button class="sm" @click="close">Cancel</button>
+          <span class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">expires</span>
+          <input
+            v-model="draft.expiresAt"
+            class="h-8 rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-800 outline-none placeholder-gray-500 focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 dark:placeholder-gray-400"
+            type="date"
+            :min="minExpiry()"
+          >
+          <button
+            v-if="draft.expiresAt"
+            class="h-8 rounded-md border border-gray-300 px-3 dark:border-gray-700"
+            @click="draft.expiresAt = ''"
+          >
+            clear
+          </button>
+          <button
+            class="h-8 rounded-md bg-blue-700 px-3 font-medium text-white hover:bg-blue-800"
+            @click="saveToken(token)"
+          >
+            Save
+          </button>
+          <button
+            class="h-8 rounded-md border border-gray-300 px-3 dark:border-gray-700"
+            @click="close"
+          >
+            Cancel
+          </button>
         </div>
 
         <template v-if="!tokenIsManager(token)">
-          <template v-for="route in groupRoutes(token)" :key="route.path">
-            <div class="row indent" :class="{ 'is-open': isOpen(`route:${tid(token)}:${route.path}`) }">
-              <span class="lead font-mono text-gray-700 dark:text-gray-200">{{ route.path }}</span>
-              <span class="meta">{{ routeLabel(route) }}</span>
-              <span class="ctl">
-                <button class="ic" title="Edit" @click="editRoute(token, route)"><PencilIcon /></button>
-                <button class="ic danger" title="Remove" @click="removeRoute(token, route.path)"><TrashIcon /></button>
+          <template
+            v-for="route in groupRoutes(token)"
+            :key="route.path"
+          >
+            <div
+              class="group flex min-h-11.5 items-center gap-2 border-b border-gray-200 py-2 pl-9.5 pr-4.5 transition-colors hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800 <sm:flex-wrap <sm:items-start <sm:py-3 <sm:pl-4.5"
+              :class="{ 'bg-gray-100 dark:bg-gray-800': isOpen(`route:${tid(token)}:${route.path}`) }"
+            >
+              <span class="whitespace-nowrap font-mono text-gray-700 dark:text-gray-200">{{ route.path }}</span>
+              <span class="truncate text-gray-500 dark:text-gray-500">{{ routeLabel(route) }}</span>
+              <span class="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100 <sm:opacity-100">
+                <button
+                  class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-100"
+                  title="Edit"
+                  @click="editRoute(token, route)"
+                ><PencilIcon class="h-4 w-4" /></button>
+                <button
+                  class="text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-500"
+                  title="Remove"
+                  @click="removeRoute(token, route.path)"
+                ><TrashIcon class="h-4 w-4" /></button>
               </span>
             </div>
-            <div v-if="isOpen(`route:${tid(token)}:${route.path}`)" class="routeform indent">
-              <input class="path" v-model="draft.path" />
-              <div class="seg">
-                <button :class="{ on: draft.read }" @click="draft.read = !draft.read">read</button>
-                <button :class="{ on: draft.write }" @click="draft.write = !draft.write">write</button>
+            <div
+              v-if="isOpen(`route:${tid(token)}:${route.path}`)"
+              class="flex flex-wrap items-center gap-2 border-b border-gray-200 bg-gray-100 py-3 pl-9.5 pr-4.5 dark:border-gray-800 dark:bg-gray-800 <sm:pl-4.5"
+            >
+              <input
+                v-model="draft.path"
+                class="h-8 min-w-48 flex-1 rounded-md border border-gray-300 bg-white px-3 font-mono text-gray-800 outline-none placeholder-gray-500 focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 dark:placeholder-gray-400"
+              >
+              <div class="inline-flex overflow-hidden rounded-md border border-gray-300 dark:border-gray-700">
+                <button
+                  class="h-8 border-r border-gray-300 bg-white px-3 text-xs text-gray-600 last:border-r-0 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400"
+                  :class="{ 'bg-blue-600 text-white': draft.read }"
+                  @click="draft.read = !draft.read"
+                >
+                  read
+                </button>
+                <button
+                  class="h-8 border-r border-gray-300 bg-white px-3 text-xs text-gray-600 last:border-r-0 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400"
+                  :class="{ 'bg-blue-600 text-white': draft.write }"
+                  @click="draft.write = !draft.write"
+                >
+                  write
+                </button>
               </div>
-              <button class="primary sm" @click="persistRoute(token)">Save</button>
-              <button class="sm" @click="close">Cancel</button>
+              <button
+                class="h-8 rounded-md bg-blue-700 px-3 font-medium text-white hover:bg-blue-800"
+                @click="persistRoute(token)"
+              >
+                Save
+              </button>
+              <button
+                class="h-8 rounded-md border border-gray-300 px-3 dark:border-gray-700"
+                @click="close"
+              >
+                Cancel
+              </button>
             </div>
           </template>
 
-          <div v-if="!isOpen(`newroute:${tid(token)}`)" class="row indent add" @click="addRoute(token)">
-            <span class="lead">+ Add route</span>
+          <div
+            v-if="!isOpen(`newroute:${tid(token)}`)"
+            class="flex min-h-11.5 cursor-pointer items-center gap-2 border-b border-gray-200 py-2 pl-9.5 pr-4.5 text-blue-600 hover:bg-gray-50 hover:text-blue-700 dark:border-gray-800 dark:text-blue-300 dark:hover:bg-gray-800 dark:hover:text-blue-200 <sm:flex-wrap <sm:items-start <sm:py-3 <sm:pl-4.5"
+            @click="addRoute(token)"
+          >
+            <span class="whitespace-nowrap">+ Add route</span>
           </div>
-          <div v-else class="routeform indent new">
-            <input class="path" v-model="draft.path" placeholder="/releases/com/example/artifact" />
-            <div class="seg">
-              <button :class="{ on: draft.read }" @click="draft.read = !draft.read">read</button>
-              <button :class="{ on: draft.write }" @click="draft.write = !draft.write">write</button>
+          <div
+            v-else
+            class="flex flex-wrap items-center gap-2 border-b border-gray-200 bg-gray-100 py-3 pl-9.5 pr-4.5 dark:border-gray-800 dark:bg-gray-800 <sm:pl-4.5"
+          >
+            <input
+              v-model="draft.path"
+              class="h-8 min-w-48 flex-1 rounded-md border border-gray-300 bg-white px-3 font-mono text-gray-800 outline-none placeholder-gray-500 focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 dark:placeholder-gray-400"
+              placeholder="/releases/com/example/artifact"
+            >
+            <div class="inline-flex overflow-hidden rounded-md border border-gray-300 dark:border-gray-700">
+              <button
+                class="h-8 border-r border-gray-300 bg-white px-3 text-xs text-gray-600 last:border-r-0 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400"
+                :class="{ 'bg-blue-600 text-white': draft.read }"
+                @click="draft.read = !draft.read"
+              >
+                read
+              </button>
+              <button
+                class="h-8 border-r border-gray-300 bg-white px-3 text-xs text-gray-600 last:border-r-0 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400"
+                :class="{ 'bg-blue-600 text-white': draft.write }"
+                @click="draft.write = !draft.write"
+              >
+                write
+              </button>
             </div>
-            <button class="primary sm" @click="persistRoute(token)">Add</button>
-            <button class="sm" @click="close">Cancel</button>
+            <button
+              class="h-8 rounded-md bg-blue-700 px-3 font-medium text-white hover:bg-blue-800"
+              @click="persistRoute(token)"
+            >
+              Add
+            </button>
+            <button
+              class="h-8 rounded-md border border-gray-300 px-3 dark:border-gray-700"
+              @click="close"
+            >
+              Cancel
+            </button>
           </div>
         </template>
-        <div v-else class="row indent full">Full access to all repositories</div>
+        <div
+          v-else
+          class="flex min-h-11.5 items-center gap-2 border-b border-gray-200 py-2 pl-9.5 pr-4.5 text-gray-500 dark:border-gray-800 dark:text-gray-500 <sm:flex-wrap <sm:items-start <sm:py-3 <sm:pl-4.5"
+        >
+          Full access to all repositories
+        </div>
       </template>
 
-      <div v-if="!filtered.length" class="empty">{{ query ? `No tokens match “${query}”.` : 'No access tokens yet. Generate one to get started.' }}</div>
+      <div
+        v-if="!filtered.length"
+        class="px-4.5 py-10 text-center text-gray-500 dark:text-gray-400"
+      >
+        {{ query ? `No tokens match “${query}”.` : 'No access tokens yet. Generate one to get started.' }}
+      </div>
     </div>
   </div>
 </template>
-
-<style scoped>
-.flat { @apply bg-white dark:bg-transparent dark:border dark:border-gray-800 rounded-lg overflow-hidden text-sm text-gray-600 dark:text-gray-300; }
-.flat > :last-child { @apply border-b-0; }
-
-.bar { @apply flex items-center gap-3 px-3.5 py-3.5 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-transparent; }
-.search { @apply flex items-center gap-2 flex-1 px-3 h-9 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800; }
-.search input { @apply flex-1 bg-transparent outline-none text-gray-700 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-400; }
-
-.row { @apply flex items-center gap-2 px-4.5 h-11.5 border-b border-gray-200 dark:border-gray-800 transition-colors; }
-.row:hover { @apply bg-gray-50 dark:bg-gray-900; }
-.row.is-open { @apply bg-gray-100 dark:bg-gray-900; }
-.indent { @apply pl-9.5; }
-.lead { @apply whitespace-nowrap; }
-.meta { @apply text-gray-500 dark:text-gray-500 truncate; }
-.desc { @apply flex-1 min-w-0 truncate text-gray-500 dark:text-gray-500; }
-.dates { @apply inline-flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap cursor-default <sm:hidden; }
-.exsep { @apply text-gray-400 dark:text-gray-500; }
-.ex { @apply text-gray-600 dark:text-gray-300; }
-.ex.expired { @apply text-red-500; }
-.ex.forever { @apply text-lg leading-none align-middle; }
-
-.tag { @apply text-[0.7rem] px-1.5 py-0.5 rounded-full bg-gray-150 dark:bg-gray-800 text-gray-600 dark:text-gray-400 whitespace-nowrap; }
-.tag.mgr { @apply bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200; }
-
-.reqs { @apply text-xs tabular-nums text-gray-600 dark:text-gray-400; }
-.usage { @apply flex items-center mr-1; }
-.spark { width: 60px; height: 18px; }
-.spark rect { @apply fill-blue-300 dark:fill-blue-900; }
-
-.ctl { @apply flex items-center gap-1; }
-.row .ctl { @apply opacity-0 transition-opacity; }
-.row:hover .ctl, .row.confirming .ctl { @apply opacity-100; }
-.row:not(.indent) .ctl { @apply opacity-100; }
-.ic { @apply text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-100; }
-.ic :deep(svg) { @apply w-4 h-4; }
-.ic.danger:hover { @apply text-red-500; }
-.confirm-yes { @apply text-xs font-medium text-red-600 dark:text-red-400; }
-.confirm-cancel { @apply text-xs text-gray-500 dark:text-gray-400; }
-.add { @apply text-blue-600 dark:text-blue-300 cursor-pointer; }
-.add:hover { @apply text-blue-700 dark:text-blue-200; }
-.full { @apply text-gray-500 dark:text-gray-500; }
-.full:hover { @apply bg-transparent; }
-
-.primary { @apply px-3.5 h-9 rounded-md bg-blue-700 text-white font-medium whitespace-nowrap hover:bg-blue-800; }
-.primary.sm { @apply h-8 px-3; }
-button.sm { @apply h-8 px-3 rounded-md border border-gray-300 dark:border-gray-700; }
-
-.routeform, .tokenform { @apply flex flex-wrap items-center gap-2 px-4.5 py-3 bg-gray-100 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800; }
-.routeform.indent { @apply pl-9.5; }
-.routeform .path, .tokenform .field, .tokenform .when {
-  @apply h-8 px-3 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 outline-none focus:border-blue-500;
-}
-.routeform .path { @apply flex-1 min-w-48 font-mono; }
-.tokenform .field { @apply flex-1 min-w-48; }
-.tokenform .when { @apply text-sm; }
-.when-label { @apply text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400; }
-.seg { @apply inline-flex rounded-md overflow-hidden border border-gray-300 dark:border-gray-700; }
-.seg button { @apply px-3 h-8 text-xs bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-r border-gray-300 dark:border-gray-700; }
-.seg button:last-child { @apply border-r-0; }
-.seg button.on { @apply bg-blue-600 text-white; }
-
-.banner { @apply px-4.5 py-3 text-blue-900 bg-blue-50 dark:bg-blue-900 dark:text-blue-100 border-b border-gray-200 dark:border-gray-800; }
-.banner code { @apply font-mono px-1; }
-.link { @apply underline ml-2; }
-.empty { @apply px-4.5 py-10 text-center text-gray-500 dark:text-gray-400; }
-</style>

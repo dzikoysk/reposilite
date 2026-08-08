@@ -29,12 +29,18 @@ internal class FailuresCommand(private val failureFacade: FailureFacade) : Repos
         }
 
         context.append("")
-        context.append("List of cached failures: " + "(" + failureFacade.getFailures().size + ")")
+        val failures = failureFacade.getRecordedFailures()
+
+        context.append("List of cached failures: " + "(${failures.size} unique, ${failureFacade.getFailuresCount()} total)")
         context.append("")
 
-        failureFacade.getFailures()
-            .map { it.split(System.lineSeparator()) }
-            .forEach { context.appendAll(it) }
+        failures
+            .forEach {
+                context.appendAll(it.trace.split(System.lineSeparator()))
+                if (it.occurrences > 1) {
+                    context.append("  occurrences: ${it.occurrences}")
+                }
+            }
     }
 
 }

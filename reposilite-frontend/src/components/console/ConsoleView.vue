@@ -20,6 +20,7 @@ import { createToast } from 'mosha-vue-toastify'
 import { useSession } from '../../store/session'
 import useLog from '../../store/console/log'
 import useConsole from '../../store/console/connection'
+import ViewHeader from '../util/ViewHeader.vue'
 
 const props = defineProps({
   selectedTab: {
@@ -80,7 +81,12 @@ watch(
 </script>
 
 <template>
-  <div class="container mx-auto pt-7 px-15 pb-12 text-xs">
+  <div class="container mx-auto pt-7 px-15 pb-12 text-xs <sm:px-4">
+    <ViewHeader
+      title="Live command stream"
+      description="Server log output and remote command entry."
+    />
+
     <div class="flex text-sm flex-col xl:flex-row w-full py-2 justify-between">
       <input placeholder="Filter" v-model="filter" class="w-full xl:w-1/2 mr-5 py-1 px-4 rounded-lg bg-white dark:bg-gray-900" />
       <div class="flex flex-row justify-around w-full xl:w-1/2 <md:flex-wrap">

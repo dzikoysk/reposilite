@@ -20,11 +20,12 @@ import com.reposilite.journalist.Channel
 import com.reposilite.journalist.Journalist
 import com.reposilite.journalist.Logger
 import com.reposilite.plugin.api.Facade
+import com.reposilite.status.api.RecordedFailure
 import java.util.concurrent.ConcurrentHashMap
 
 class FailureFacade(private val journalist: Journalist) : Journalist, Facade {
 
-    private val exceptions = ConcurrentHashMap.newKeySet<String>()
+    private val exceptions = ConcurrentHashMap<String, CachedFailure>()
 
     fun throwException(identifier: String, throwable: Throwable) =
         throwException(identifier, Channel.ERROR, throwable)
@@ -33,11 +34,30 @@ class FailureFacade(private val journalist: Journalist) : Journalist, Facade {
         logger.log(channel, identifier)
         logger.exception(channel, throwable)
 
-        arrayOf("failure $identifier", exceptionToString(throwable))
+        val message = throwable.message.orEmpty()
+        val trace = arrayOf("failure $identifier", exceptionToString(throwable))
             .joinToString(separator = System.lineSeparator())
             .trim()
-            .let { exceptions.add(it) }
+
+        exceptions.compute(failureSignature(identifier, throwable)) { _, cachedFailure ->
+            cachedFailure?.copy(
+                messages = if (message.isBlank()) cachedFailure.messages else cachedFailure.messages + message,
+                occurrences = cachedFailure.occurrences + 1
+            )
+                ?: CachedFailure(
+                    path = identifier,
+                    type = throwable.javaClass.simpleName,
+                    message = message,
+                    trace = trace
+                )
+        }
     }
+
+    private fun failureSignature(identifier: String, throwable: Throwable): String =
+        generateSequence(throwable) { it.cause }
+            .joinToString(prefix = "$identifier|", separator = "|") {
+                "${it.javaClass.name}@${it.stackTrace.firstOrNull() ?: "<unknown stacktrace>"}"
+            }
 
     private fun exceptionToString(throwable: Throwable?): String =
         throwable?.let {
@@ -58,8 +78,35 @@ class FailureFacade(private val journalist: Journalist) : Journalist, Facade {
     fun hasFailures() =
         exceptions.isNotEmpty()
 
+    fun getFailuresCount(): Int =
+        exceptions.values.sumOf { it.occurrences }
+
     fun getFailures(): Collection<String> =
-        exceptions
+        getRecordedFailures().map { it.trace }
+
+    fun getRecordedFailures(): Collection<RecordedFailure> =
+        exceptions.values.map { it.toRecordedFailure() }
+
+    private data class CachedFailure(
+        val path: String,
+        val type: String,
+        val message: String,
+        val trace: String,
+        val messages: Set<String> = if (message.isBlank()) emptySet() else setOf(message),
+        val occurrences: Int = 1
+    ) {
+
+        fun toRecordedFailure(): RecordedFailure =
+            RecordedFailure(
+                path = path,
+                type = type,
+                message = message,
+                messages = messages.toList(),
+                trace = trace,
+                occurrences = occurrences
+            )
+
+    }
 
     override fun getLogger(): Logger =
         journalist.logger

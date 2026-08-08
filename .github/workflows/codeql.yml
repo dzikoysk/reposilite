@@ -1,0 +1,37 @@
+name: "CodeQL"
+
+on:
+  push:
+    branches: [ "main", "3.0" ]
+  pull_request:
+    branches: [ "main", "3.0" ]
+  schedule:
+    - cron: "30 3 * * 1"
+
+permissions:
+  actions: read
+  contents: read
+  security-events: write
+
+jobs:
+  analyze:
+    name: "Analyze ${{ matrix.language }}"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ "actions", "javascript-typescript" ]
+    steps:
+      - name: "Checkout repository"
+        uses: actions/checkout@v6
+
+      - name: "Initialize CodeQL"
+        uses: github/codeql-action/init@v4
+        with:
+          languages: "${{ matrix.language }}"
+          config: |
+            paths-ignore:
+              - "reposilite-frontend/fake-api/**"
+
+      - name: "Analyze"
+        uses: github/codeql-action/analyze@v4

@@ -27,14 +27,18 @@ import com.reposilite.statistics.api.AllResolvedResponse
 import com.reposilite.statistics.api.IntervalRecord
 import com.reposilite.statistics.api.RepositoryStatistics
 import com.reposilite.statistics.api.ResolvedCountResponse
-import com.reposilite.statistics.infrastructure.SqlStatisticsRepository
+import com.reposilite.statistics.api.ResolvedEntriesPage
+import com.reposilite.statistics.api.ResolvedEntriesResponse
+import com.reposilite.statistics.api.ResolvedEntry
+import com.reposilite.statistics.api.ResolvedStatisticsEntry
 import com.reposilite.statistics.specification.StatisticsIntegrationSpecification
 import com.reposilite.token.AccessTokenPermission.MANAGER
 import com.reposilite.token.RoutePermission.READ
+import io.javalin.http.HttpStatus.BAD_REQUEST
+import io.javalin.http.HttpStatus.FORBIDDEN
 import io.javalin.http.HttpStatus.OK
 import io.javalin.http.HttpStatus.UNAUTHORIZED
 import java.time.LocalDate
-import java.time.temporal.ChronoUnit
 import kong.unirest.core.Unirest.get
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -60,6 +64,10 @@ internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecifi
         // given: a route to request
         val endpoint = "$base/api/statistics/resolved/unique"
         repeat(10) { useResolvedRequest("releases", "com/reposilite.jar", "content") }
+        useResolvedRequests(
+            mapOf(Identifier("releases", "com/reposilite.jar") to 1),
+            LocalDate.now().minusMonths(1)
+        )
 
         // when: stats service is requested without valid credentials
         val unauthorizedResponse = get(endpoint).asString()
@@ -93,7 +101,7 @@ internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecifi
         assertThat(unauthorizedResponse.status).isEqualTo(UNAUTHORIZED.code)
 
         // given: a valid credentials
-        val (name, secret) = useAuth("name", "secret", emptyList(),  mapOf(identifier.toString() to READ))
+        val (name, secret) = useAuth("name", "secret", emptyList(), mapOf(identifier.toString() to READ))
 
         // when: service is requested with valid credentials
         val response = get(endpoint)
@@ -107,17 +115,160 @@ internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecifi
     }
 
     @Test
+    fun `should return resolved requests without filters`() {
+        // given: a recorded request
+        useResolvedRequests(
+            mapOf(Identifier("releases", "com/reposilite.jar") to 1),
+            LocalDate.now()
+        )
+
+        // when: statistics are requested without a repository or phrase
+        val requests = findResolvedRequests("", "", 20)
+
+        // then: the unrestricted query returns recorded requests
+        assertThat(requests).isEqualTo(listOf(ResolvedEntry("com/reposilite.jar", 1)))
+    }
+
+    @Test
+    fun `should limit phrase results to routes visible by token`() {
+        // given: two matching paths in the same repository, but only one under the token route
+        useResolvedRequest("releases", "com/reposilite/app.jar", "content")
+        repeat(2) {
+            useResolvedRequest("releases", "other/com/reposilite/app.jar", "content")
+        }
+        val endpoint = "$base/api/statistics/resolved/phrase/1/releases/com/reposilite"
+        val (name, secret) = useAuth("name", "secret", emptyList(), mapOf("/releases/COM/REPOSILITE" to READ))
+
+        // when: stats service is requested with route-scoped credentials
+        val response = get(endpoint)
+            .basicAuth(name, secret)
+            .asObject(ResolvedCountResponse::class.java)
+
+        // then: response only includes entries covered by the token route
+        assertThat(response.status).isEqualTo(OK.code)
+        assertThat(response.body).isEqualTo(
+            ResolvedCountResponse(
+                sum = 1,
+                requests = listOf(ResolvedEntry("com/reposilite/app.jar", 1))
+            )
+        )
+
+        val forbiddenResponse = get("$base/api/statistics/resolved/phrase/1/releases/other")
+            .basicAuth(name, secret)
+            .asString()
+
+        assertThat(forbiddenResponse.status).isEqualTo(FORBIDDEN.code)
+    }
+
+    @Test
+    fun `should return paginated resolved entries`() {
+        // given: a few routes to request and check
+        useResolvedRequests(
+            mapOf(
+                Identifier("releases", "com/reposilite.jar") to 2,
+                Identifier("snapshots", "com/reposilite-snapshot.jar") to 1
+            ),
+            LocalDate.now()
+        )
+        val endpoint = "$base/api/statistics/resolved/entries?limit=1&phrase=reposilite"
+
+        // when: stats service is requested without valid credentials
+        val unauthorizedResponse = get(endpoint).asString()
+
+        // then: service rejects request
+        assertThat(unauthorizedResponse.status).isEqualTo(UNAUTHORIZED.code)
+
+        // given: a valid credentials
+        val (name, secret) = useAuth("name", "secret", listOf(MANAGER))
+
+        // when: service is requested with valid credentials
+        val response = get(endpoint)
+            .basicAuth(name, secret)
+            .asObject(ResolvedEntriesResponse::class.java)
+
+        // then: service responds with a paginated entry list
+        assertThat(response.status).isEqualTo(OK.code)
+        assertThat(response.body).isEqualTo(
+            ResolvedEntriesResponse(
+                page = ResolvedEntriesPage(limit = 1, offset = 0, hasMore = true, nextOffset = 1),
+                entries = listOf(ResolvedStatisticsEntry("releases", "com/reposilite.jar", 2))
+            )
+        )
+    }
+
+    @Test
+    fun `should return unfiltered entries and reject malformed pagination`() {
+        // given: a recorded request and manager credentials
+        useResolvedRequest("releases", "com/reposilite.jar", "content")
+        val (name, secret) = useAuth("name", "secret", listOf(MANAGER))
+
+        // when: entries are requested without optional filters
+        val response = get("$base/api/statistics/resolved/entries")
+            .basicAuth(name, secret)
+            .asObject(ResolvedEntriesResponse::class.java)
+
+        // then: the request succeeds and malformed pagination is rejected
+        assertThat(response.status).isEqualTo(OK.code)
+        assertThat(response.body).isEqualTo(
+            ResolvedEntriesResponse(
+                page = ResolvedEntriesPage(limit = 100, offset = 0, hasMore = false, nextOffset = null),
+                entries = listOf(ResolvedStatisticsEntry("releases", "com/reposilite.jar", 1))
+            )
+        )
+        assertThat(get("$base/api/statistics/resolved/entries?limit=invalid").basicAuth(name, secret).asString().status)
+            .isEqualTo(BAD_REQUEST.code)
+        assertThat(get("$base/api/statistics/resolved/entries?offset=invalid").basicAuth(name, secret).asString().status)
+            .isEqualTo(BAD_REQUEST.code)
+    }
+
+    @Test
+    fun `should treat search phrases as case-insensitive literals`() {
+        // given: paths that only wildcard matching would consider equivalent
+        useResolvedRequests(
+            mapOf(
+                Identifier("releases", "com/Literal%_Match.jar") to 1,
+                Identifier("releases", "com/LiteralXXMatch.jar") to 1
+            ),
+            LocalDate.now()
+        )
+        val (name, secret) = useAuth("name", "secret", listOf(MANAGER))
+
+        // when: both statistics search endpoints receive an encoded literal phrase
+        val phraseResponse = get("$base/api/statistics/resolved/phrase/10/releases/LITERAL%25_")
+            .basicAuth(name, secret)
+            .asObject(ResolvedCountResponse::class.java)
+        val entriesResponse = get("$base/api/statistics/resolved/entries?phrase=LITERAL%25_")
+            .basicAuth(name, secret)
+            .asObject(ResolvedEntriesResponse::class.java)
+
+        // then: only the path containing the literal characters is returned
+        assertThat(phraseResponse.status).isEqualTo(OK.code)
+        assertThat(phraseResponse.body).isEqualTo(
+            ResolvedCountResponse(
+                sum = 1,
+                requests = listOf(ResolvedEntry("com/Literal%_Match.jar", 1))
+            )
+        )
+        assertThat(entriesResponse.status).isEqualTo(OK.code)
+        assertThat(entriesResponse.body).isEqualTo(
+            ResolvedEntriesResponse(
+                page = ResolvedEntriesPage(limit = 100, offset = 0, hasMore = false, nextOffset = null),
+                entries = listOf(ResolvedStatisticsEntry("releases", "com/Literal%_Match.jar", 1))
+            )
+        )
+    }
+
+    @Test
     fun `should return time-series`() {
         // given: a database with some requests
-        val hackyDatabaseStateAccessor = SqlStatisticsRepository(reposilite.database, reposilite.journalist, emptyArray())
-
+        val today = LocalDate.now()
         repeat(2) { // repeat 2 times to verify aggregation
             repeat(24) { index -> // 24 months
-                val date = LocalDate.now()
+                val date = today
                     .minusMonths(index.toLong())
                     .withDayOfMonth(1)
 
-                hackyDatabaseStateAccessor.incrementResolvedRequests(
+                useResolvedRequests(
                     requests = mapOf(
                         Identifier("releases", "/com/reposilite/1.0.0/reposilite-1.0.0.jar") to index.toLong(),
                         Identifier("snapshots", "/com/reposilite/1.0.0-SNAPSHOT/reposilite-1.0.0-SNAPSHOT.jar") to index.toLong()
@@ -126,6 +277,10 @@ internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecifi
                 )
             }
         }
+        useResolvedRequests(
+            mapOf(Identifier("releases", "/old/only.jar") to 100),
+            today.minusYears(2)
+        )
 
         // when: stats service is requested without valid credentials
         val unauthorizedResponse = get("$base/api/statistics/resolved/all").asString()
@@ -143,17 +298,16 @@ internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecifi
 
         // then: service should respond with time-series not older than a year
         assertThat(response.status).isEqualTo(OK.code)
-
         assertThat(response.body).isEqualTo(
             AllResolvedResponse(
                 repositories = listOf("releases", "snapshots")
                     .map { repository ->
                         RepositoryStatistics(
                             name = repository,
-                            data = (0..ChronoUnit.MONTHS.between(LocalDate.now().minusYears(1), LocalDate.now())) // may be 12 or 13 months
+                            data = (0..11)
                                 .map { index ->
                                     IntervalRecord(
-                                        date = LocalDate.now().minusMonths(index).withDayOfMonth(1).toUTCMillis(),
+                                        date = today.minusMonths(index.toLong()).withDayOfMonth(1).toUTCMillis(),
                                         count = 2L * index
                                     )
                                 }
@@ -161,6 +315,30 @@ internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecifi
                         )
                     }
                     .sortedBy { it.name }
+            )
+        )
+
+        val entries = get("$base/api/statistics/resolved/entries?repository=releases&phrase=reposilite")
+            .basicAuth(name, secret)
+            .asObject(ResolvedEntriesResponse::class.java)
+        val oldEntries = get("$base/api/statistics/resolved/entries?phrase=old")
+            .basicAuth(name, secret)
+            .asObject(ResolvedEntriesResponse::class.java)
+
+        assertThat(entries.status).isEqualTo(OK.code)
+        assertThat(entries.body).isEqualTo(
+            ResolvedEntriesResponse(
+                page = ResolvedEntriesPage(limit = 100, offset = 0, hasMore = false, nextOffset = null),
+                entries = listOf(
+                    ResolvedStatisticsEntry("releases", "/com/reposilite/1.0.0/reposilite-1.0.0.jar", 132)
+                )
+            )
+        )
+        assertThat(oldEntries.status).isEqualTo(OK.code)
+        assertThat(oldEntries.body).isEqualTo(
+            ResolvedEntriesResponse(
+                page = ResolvedEntriesPage(limit = 100, offset = 0, hasMore = false, nextOffset = null),
+                entries = emptyList()
             )
         )
     }

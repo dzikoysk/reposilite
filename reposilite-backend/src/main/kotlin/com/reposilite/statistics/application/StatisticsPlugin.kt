@@ -28,10 +28,11 @@ import com.reposilite.plugin.reposilite
 import com.reposilite.statistics.StatisticsFacade
 import com.reposilite.statistics.StatsCommand
 import com.reposilite.statistics.infrastructure.StatisticsEndpoint
+import com.reposilite.token.AccessTokenFacade
 import com.reposilite.web.api.RoutingSetupEvent
 import java.util.concurrent.TimeUnit.SECONDS
 
-@Plugin(name = "statistics", dependencies = ["shared-configuration", "console"], settings = StatisticsSettings::class)
+@Plugin(name = "statistics", dependencies = ["shared-configuration", "console", "access-token"], settings = StatisticsSettings::class)
 internal class StatisticsPlugin : ReposilitePlugin() {
 
     override fun initialize(): StatisticsFacade {
@@ -41,7 +42,8 @@ internal class StatisticsPlugin : ReposilitePlugin() {
             journalist = this,
             database = reposilite().database,
             runMigrations = parameters().runMigrations,
-            statisticsSettings = settingsFacade.getDomainSettings<StatisticsSettings>()
+            statisticsSettings = settingsFacade.getDomainSettings<StatisticsSettings>(),
+            accessTokenFacade = facade<AccessTokenFacade>()
         ).statisticsFacade()
 
         val consoleFacade = facade<ConsoleFacade>()

@@ -24,6 +24,12 @@ import { visualizer } from "rollup-plugin-visualizer"
 export default defineConfig({
   server: {
     port: 8888,
+    watch: {
+      ignored: [
+        "**/.gradle/**",
+        "**/build/**",
+      ],
+    },
   },
   plugins: [
     vue(),

@@ -19,13 +19,27 @@ package com.reposilite.statistics.specification
 import com.reposilite.ReposiliteSpecification
 import com.reposilite.maven.api.Identifier
 import com.reposilite.statistics.StatisticsFacade
+import com.reposilite.statistics.StatisticsRepository
+import com.reposilite.statistics.infrastructure.SqlStatisticsRepository
 import io.javalin.http.HttpStatus.OK
+import java.time.LocalDate
 import kong.unirest.core.Unirest.get
 import kong.unirest.core.Unirest.put
 import org.assertj.core.api.Assertions.assertThat
 import panda.std.Mono
 
 internal abstract class StatisticsIntegrationSpecification : ReposiliteSpecification() {
+
+    private val statisticsRepository: StatisticsRepository by lazy {
+        SqlStatisticsRepository(reposilite.database, reposilite.journalist, emptyArray())
+    }
+
+    protected fun useResolvedRequests(requests: Map<Identifier, Long>, date: LocalDate) {
+        statisticsRepository.incrementResolvedRequests(requests, date)
+    }
+
+    protected fun findResolvedRequests(repository: String, phrase: String, limit: Int) =
+        statisticsRepository.findResolvedRequestsByPhrase(repository, phrase, limit, null)
 
     fun useResolvedRequest(repository: String, gav: String, content: String): Mono<Identifier> {
         val uri = "$base/$repository/$gav"

@@ -23,8 +23,10 @@ import com.reposilite.ExperimentalRemoteSpecificationJunitExtension
 import com.reposilite.RecommendedLocalSpecificationJunitExtension
 import com.reposilite.RecommendedRemoteSpecificationJunitExtension
 import com.reposilite.VERSION
+import com.reposilite.status.api.FailuresResponse
 import com.reposilite.status.api.HealthResponse
 import com.reposilite.status.api.InstanceStatusResponse
+import com.reposilite.status.api.RecordedFailure
 import com.reposilite.status.api.StatusSnapshot
 import com.reposilite.status.specification.StatusIntegrationSpecification
 import com.reposilite.token.AccessTokenPermission.MANAGER
@@ -89,6 +91,45 @@ internal abstract class StatusIntegrationTest : StatusIntegrationSpecification()
         // then: service should respond with valid instance dto
         assertThat(response.status).isEqualTo(OK.code)
         assertThat(response.body.getOrNull(0)).isNotNull
+    }
+
+    @Test
+    fun `should respond with failures list`() {
+        // when: failures service is requested without valid credentials
+        val unauthorizedResponse = get("$base/api/status/failures").asString()
+
+        // then: service rejects request
+        assertThat(unauthorizedResponse.status).isEqualTo(UNAUTHORIZED.code)
+
+        // given: a recorded failure and valid credentials
+        useFailure("GET /broken", "Broken route")
+        val (name, secret) = useAuth("name", "secret", listOf(MANAGER))
+
+        // when: service is requested with valid credentials
+        val response = get("$base/api/status/failures")
+            .basicAuth(name, secret)
+            .asObject(FailuresResponse::class.java)
+
+        // then: service should respond with a list of failures
+        assertThat(response.status).isEqualTo(OK.code)
+        assertThat(response.body).isEqualTo(
+            FailuresResponse(
+                listOf(
+                    RecordedFailure(
+                        path = "GET /broken",
+                        type = "IllegalStateException",
+                        message = "Broken route",
+                        messages = listOf("Broken route"),
+                        trace = listOf(
+                            "failure GET /broken",
+                            "  by IllegalStateException: Broken route",
+                            "  at StatusIntegrationSpecification.failure(StatusIntegrationSpecification.kt:1)"
+                        ).joinToString(System.lineSeparator()),
+                        occurrences = 1
+                    )
+                )
+            )
+        )
     }
 
     @Test

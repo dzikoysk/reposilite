@@ -26,9 +26,11 @@ import com.reposilite.maven.api.REPOSITORY_NAME_MAX_LENGTH
 import com.reposilite.shared.extensions.executeQuery
 import com.reposilite.statistics.StatisticsRepository
 import com.reposilite.statistics.api.ResolvedEntry
+import com.reposilite.statistics.api.ResolvedStatisticsEntry
 import org.intellij.lang.annotations.Language
 import org.jetbrains.exposed.v1.core.*
 import org.jetbrains.exposed.v1.core.ReferenceOption.CASCADE
+import org.jetbrains.exposed.v1.core.SortOrder.ASC
 import org.jetbrains.exposed.v1.core.SortOrder.DESC
 import org.jetbrains.exposed.v1.core.dao.id.IntIdTable
 import org.jetbrains.exposed.v1.core.java.javaUUID
@@ -207,14 +209,26 @@ internal class SqlStatisticsRepository(
                 ?.let { it[IdentifierTable.id] }
         }
 
-    override fun findResolvedRequestsByPhrase(repository: String, phrase: String, limit: Int): List<ResolvedEntry> =
+    override fun findResolvedRequestsByPhrase(
+        repository: String,
+        phrase: String,
+        limit: Int,
+        accessibleGavPrefixes: Set<String>?
+    ): List<ResolvedEntry> =
         transaction(database) {
+            if (accessibleGavPrefixes?.isEmpty() == true) {
+                return@transaction emptyList()
+            }
+
             val resolvedSum = ResolvedTable.count.sum()
-            val whereCriteria =
-                if (repository.isEmpty())
-                    IdentifierTable.gav like "%$phrase%"
-                else
-                    AndOp(listOf(IdentifierTable.repository eq repository, IdentifierTable.gav like "%$phrase%"))
+            val restrictedPrefixes = accessibleGavPrefixes?.takeUnless { "" in it }
+            val whereCriteria = listOfNotNull(
+                repository.takeIf(String::isNotEmpty)?.let { IdentifierTable.repository eq it },
+                phrase.takeIf(String::isNotEmpty)?.let { IdentifierTable.gav.lowerCase() like it.toContainsPattern() },
+                restrictedPrefixes?.let { prefixes ->
+                    OrOp(prefixes.map { IdentifierTable.gav.lowerCase() like (LikePattern.ofLiteral(it.lowercase()) + "%") })
+                }
+            ).let { if (it.isEmpty()) Op.TRUE else AndOp(it) }
 
             IdentifierTable.leftJoin(ResolvedTable, { IdentifierTable.id }, { ResolvedTable.identifierId })
                 .select(IdentifierTable.gav, resolvedSum)
@@ -227,13 +241,42 @@ internal class SqlStatisticsRepository(
                 .map { ResolvedEntry(it[IdentifierTable.gav], it[resolvedSum] ?: 0) }
         }
 
-    override fun getAllResolvedRequestsPerRepositoryAsTimeSeries(): Map<String, Map<LocalDate, Long>> =
+    override fun findResolvedEntries(
+        repository: String?,
+        phrase: String,
+        from: LocalDate,
+        limit: Int,
+        offset: Long
+    ): List<ResolvedStatisticsEntry> =
         transaction(database) {
-            val start = LocalDate.now().minusYears(1).withDayOfMonth(1)
+            val resolvedSum = ResolvedTable.count.sum()
+            val criteria = listOfNotNull<Op<Boolean>>(
+                ResolvedTable.date greaterEq from,
+                phrase.takeIf(String::isNotEmpty)?.let { IdentifierTable.gav.lowerCase() like it.toContainsPattern() },
+                repository?.let { IdentifierTable.repository eq it }
+            )
 
+            IdentifierTable.leftJoin(ResolvedTable, { IdentifierTable.id }, { ResolvedTable.identifierId })
+                .select(IdentifierTable.repository, IdentifierTable.gav, resolvedSum)
+                .where(AndOp(criteria))
+                .groupBy(IdentifierTable.id, IdentifierTable.repository, IdentifierTable.gav)
+                .having { resolvedSum greater 0L }
+                .orderBy(
+                    resolvedSum to DESC,
+                    IdentifierTable.repository to ASC,
+                    IdentifierTable.gav to ASC
+                )
+                .limit(limit)
+                .offset(offset)
+                .filter { (it.getOrNull(resolvedSum) ?: 0) > 0 }
+                .map { ResolvedStatisticsEntry(it[IdentifierTable.repository], it[IdentifierTable.gav], it[resolvedSum] ?: 0) }
+        }
+
+    override fun getAllResolvedRequestsPerRepositoryAsTimeSeries(from: LocalDate): Map<String, Map<LocalDate, Long>> =
+        transaction(database) {
             ResolvedTable.leftJoin(IdentifierTable, { ResolvedTable.identifierId }, { IdentifierTable.id })
                 .select(IdentifierTable.repository, ResolvedTable.date, ResolvedTable.count.sum())
-                .where { ResolvedTable.date greaterEq start }
+                .where { ResolvedTable.date greaterEq from }
                 .groupBy(IdentifierTable.repository, ResolvedTable.date)
                 .asSequence()
                 .map { Triple(it[IdentifierTable.repository], it[ResolvedTable.date], it[ResolvedTable.count.sum()]) }
@@ -246,9 +289,8 @@ internal class SqlStatisticsRepository(
 
     override fun countUniqueResolvedRequests(): Long =
         transaction(database) {
-            ResolvedTable.selectAll()
-                .groupBy(ResolvedTable.id, ResolvedTable.identifierId)
-                .count()
+            val uniqueIdentifiers = ResolvedTable.identifierId.countDistinct()
+            ResolvedTable.select(uniqueIdentifiers).first()[uniqueIdentifiers]
         }
 
     override fun countResolvedRequests(): Long =
@@ -259,3 +301,6 @@ internal class SqlStatisticsRepository(
         }
 
 }
+
+private fun String.toContainsPattern(): LikePattern =
+    LikePattern.ofLiteral(lowercase()).let { it.copy(pattern = "%${it.pattern}%") }

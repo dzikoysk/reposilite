@@ -62,11 +62,28 @@ const createClient = (defaultName, defaultSecret) => {
       },
       snapshots() {
         return get("/api/status/snapshots")
+      },
+      failures() {
+        return get("/api/status/failures")
+      },
+      health() {
+        return axios.get(createURL("/api/status/health"), {
+          validateStatus: status => status === 200 || status === 503
+        })
       }
     },
     statistics: {
       allResolved() {
         return get("/api/statistics/resolved/all")
+      },
+      resolvedEntries(limit, repository, phrase, offset = 0) {
+        const query = new URLSearchParams({
+          limit,
+          offset
+        })
+        if (repository) query.set("repository", repository)
+        if (phrase) query.set("phrase", phrase)
+        return get(`/api/statistics/resolved/entries?${query}`)
       }
     },
     maven: {
