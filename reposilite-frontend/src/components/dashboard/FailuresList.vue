@@ -59,36 +59,78 @@ const copyTrace = (failure) => {
 
 <template>
   <div>
-    <template v-for="entry in failures" :key="failureKey(entry)">
+    <template
+      v-for="entry in failures"
+      :key="failureKey(entry)"
+    >
       <div
         class="frow"
         :class="{ open: openFailureKey === failureKey(entry) }"
         @click="toggle(entry)"
       >
-        <div class="stripe"></div>
-        <svg class="caret" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg>
+        <div class="stripe" />
+        <svg
+          class="caret"
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+        ><path d="M9 6l6 6-6 6" /></svg>
         <div class="fmeta">
           <span class="ftype">{{ entry.type }}</span>
-          <span v-if="entry.occurrences > 1" class="occurrences"><b class="num">{{ entry.occurrences }}</b> occurrences</span>
-          <span v-if="entry.messages.length > 1" class="occurrences"><b class="num">{{ entry.messages.length }}</b> messages</span>
+          <span
+            v-if="entry.occurrences > 1"
+            class="occurrences"
+          ><b class="num">{{ entry.occurrences }}</b> occurrences</span>
+          <span
+            v-if="entry.messages.length > 1"
+            class="occurrences"
+          ><b class="num">{{ entry.messages.length }}</b> messages</span>
         </div>
         <div class="fmid">
-          <div class="fpath">{{ entry.path }}</div>
-          <div class="fmsg">{{ entry.message }}</div>
+          <div class="fpath">
+            {{ entry.path }}
+          </div>
+          <div class="fmsg">
+            {{ entry.message }}
+          </div>
         </div>
         <div class="fact">
-          <a :href="reportUrl(entry)" target="_blank" class="report-link" title="Report on GitHub" @click.stop>
+          <a
+            :href="reportUrl(entry)"
+            target="_blank"
+            class="report-link"
+            title="Report on GitHub"
+            @click.stop
+          >
             Report on GitHub
             <LinkIcon />
           </a>
         </div>
       </div>
-      <div v-if="openFailureKey === failureKey(entry)" class="row-detail open">
-        <div v-if="entry.messages.length > 1" class="messages">
-          <div v-for="message in entry.messages" :key="message">{{ message }}</div>
+      <div
+        v-if="openFailureKey === failureKey(entry)"
+        class="row-detail open"
+      >
+        <div
+          v-if="entry.messages.length > 1"
+          class="messages"
+        >
+          <div
+            v-for="message in entry.messages"
+            :key="message"
+          >
+            {{ message }}
+          </div>
         </div>
         <div class="trace">
-          <button class="copy" title="Copy trace" @click="copyTrace(entry)">
+          <button
+            class="copy"
+            title="Copy trace"
+            @click="copyTrace(entry)"
+          >
             <span v-if="copiedFailureKey === failureKey(entry)">Copied</span>
             <CopiedIcon v-if="copiedFailureKey === failureKey(entry)" />
             <CopyIcon v-else />

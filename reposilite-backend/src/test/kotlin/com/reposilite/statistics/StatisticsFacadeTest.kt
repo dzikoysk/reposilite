@@ -17,6 +17,15 @@
 package com.reposilite.statistics
 
 import com.reposilite.maven.api.Identifier
+import com.reposilite.statistics.api.AllResolvedResponse
+import com.reposilite.statistics.api.IntervalRecord
+import com.reposilite.statistics.api.RepositoryStatistics
+import com.reposilite.statistics.api.ResolvedCountResponse
+import com.reposilite.statistics.api.ResolvedEntriesPage
+import com.reposilite.statistics.api.ResolvedEntriesResponse
+import com.reposilite.statistics.api.ResolvedEntry
+import com.reposilite.statistics.api.ResolvedRequestsInterval.DAILY
+import com.reposilite.statistics.api.ResolvedStatisticsEntry
 import com.reposilite.statistics.specification.StatisticsSpecification
 import com.reposilite.token.RoutePermission.READ
 import com.reposilite.token.api.CreateAccessTokenRequest
@@ -93,12 +102,15 @@ internal class StatisticsFacadeTest : StatisticsSpecification() {
 
         // then: it should return sorted entries with page metadata
         val response = assertOk(result)
-        assertThat(response.entries.map { it.path }).containsExactly("/first", "/second")
-        assertThat(response.entries.map { it.repository }).containsExactly("releases", "snapshots")
-        assertThat(response.page.limit).isEqualTo(2)
-        assertThat(response.page.offset).isEqualTo(0)
-        assertThat(response.page.hasMore).isTrue()
-        assertThat(response.page.nextOffset).isEqualTo(2)
+        assertThat(response).isEqualTo(
+            ResolvedEntriesResponse(
+                page = ResolvedEntriesPage(limit = 2, offset = 0, hasMore = true, nextOffset = 2),
+                entries = listOf(
+                    ResolvedStatisticsEntry("releases", "/first", 5),
+                    ResolvedStatisticsEntry("snapshots", "/second", 3)
+                )
+            )
+        )
     }
 
     @Test
@@ -115,25 +127,25 @@ internal class StatisticsFacadeTest : StatisticsSpecification() {
 
         // then: it should only return entries from that repository
         val response = assertOk(result)
-        assertThat(response.entries).hasSize(1)
-        val entry = response.entries.single()
-        assertThat(entry.repository).isEqualTo("snapshots")
-        assertThat(entry.path).isEqualTo("/first")
-        assertThat(entry.count).isEqualTo(3)
-        assertThat(response.page.hasMore).isFalse()
-        assertThat(response.page.nextOffset).isNull()
+        assertThat(response).isEqualTo(
+            ResolvedEntriesResponse(
+                page = ResolvedEntriesPage(limit = 100, offset = 0, hasMore = false, nextOffset = null),
+                entries = listOf(ResolvedStatisticsEntry("snapshots", "/first", 3))
+            )
+        )
     }
 
     @Test
     fun `should aggregate in-memory records within the visible window`() {
         // given: the same literal path recorded on multiple dates, including an expired record
         val identifier = Identifier("releases", "com/Literal%_Match.jar")
-        useResolvedRequests(mapOf(identifier to 2), LocalDate.now())
-        useResolvedRequests(mapOf(identifier to 3), LocalDate.now().minusDays(1))
-        useResolvedRequests(mapOf(identifier to 7), LocalDate.now().minusYears(2))
+        val today = LocalDate.now()
+        useResolvedRequests(mapOf(identifier to 2), today)
+        useResolvedRequests(mapOf(identifier to 3), today.minusDays(1))
+        useResolvedRequests(mapOf(identifier to 7), today.minusYears(2))
         useResolvedRequests(
             mapOf(Identifier("releases", "com/LiteralXXMatch.jar") to 20),
-            LocalDate.now()
+            today
         )
 
         // when: entries and all-time phrase results are requested using different casing
@@ -142,9 +154,38 @@ internal class StatisticsFacadeTest : StatisticsSpecification() {
         val all = assertOk(statisticsFacade.getAllResolvedStatistics())
 
         // then: current entries are aggregated, while the existing phrase API remains all-time
-        assertThat(entries.entries.single().count).isEqualTo(5)
-        assertThat(phrase.sum).isEqualTo(12)
-        assertThat(all.repositories.single().data.sumOf { it.count }).isEqualTo(25)
+        assertThat(entries).isEqualTo(
+            ResolvedEntriesResponse(
+                page = ResolvedEntriesPage(limit = 100, offset = 0, hasMore = false, nextOffset = null),
+                entries = listOf(ResolvedStatisticsEntry("releases", "com/Literal%_Match.jar", 5))
+            )
+        )
+        assertThat(phrase).isEqualTo(
+            ResolvedCountResponse(
+                sum = 12,
+                requests = listOf(ResolvedEntry("com/Literal%_Match.jar", 12))
+            )
+        )
+        assertThat(all).isEqualTo(
+            AllResolvedResponse(
+                interval = DAILY,
+                repositories = listOf(
+                    RepositoryStatistics(
+                        name = "releases",
+                        data = DailyDateIntervalProvider.createTimeSeries()
+                            .associateWith { date ->
+                                when (date) {
+                                    today -> 22L
+                                    today.minusDays(1) -> 3L
+                                    else -> 0L
+                                }
+                            }
+                            .map { (date, count) -> IntervalRecord(date.toUTCMillis(), count) }
+                            .sortedBy { it.date }
+                    )
+                )
+            )
+        )
     }
 
     @Test
@@ -166,7 +207,12 @@ internal class StatisticsFacadeTest : StatisticsSpecification() {
         ))
 
         // then: inaccessible entries do not consume the result limit
-        assertThat(response.requests.map { it.gav }).containsExactly("com/reposilite/app.jar")
+        assertThat(response).isEqualTo(
+            ResolvedCountResponse(
+                sum = 1,
+                requests = listOf(ResolvedEntry("com/reposilite/app.jar", 1))
+            )
+        )
         assertThat(statisticsFacade.findResolvedRequestsByPhrase(
             repository = "releases",
             phrase = "other/com/reposilite",

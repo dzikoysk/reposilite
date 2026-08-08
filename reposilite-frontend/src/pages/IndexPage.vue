@@ -105,23 +105,57 @@ const selectHomepage = () =>
           <TabPanel :val="'Overview'">
             <FileBrowserView v-if="selectedTab == 'Overview'" :qualifier="qualifier" ref=""/>
           </TabPanel>
-          <TabPanel :val="'Dashboard'" v-show="isManager">
-            <DashboardView v-if="selectedTab == 'Dashboard'" :selected-tab="selectedTab" @goto="selectedTab = $event" />
+          <TabPanel
+            v-show="isManager"
+            :val="'Dashboard'"
+          >
+            <DashboardView
+              v-if="selectedTab == 'Dashboard'"
+              :selected-tab="selectedTab"
+              @goto="selectedTab = $event"
+            />
           </TabPanel>
-          <TabPanel :val="'Statistics'" v-show="isManager">
+          <TabPanel
+            v-show="isManager"
+            :val="'Statistics'"
+          >
             <StatisticsView v-if="selectedTab == 'Statistics'" />
           </TabPanel>
-          <TabPanel :val="'Diagnostics'" v-show="isManager">
-            <DiagnosticsView v-if="selectedTab == 'Diagnostics'" :selected-tab="selectedTab" />
+          <TabPanel
+            v-show="isManager"
+            :val="'Diagnostics'"
+          >
+            <DiagnosticsView
+              v-if="selectedTab == 'Diagnostics'"
+              :selected-tab="selectedTab"
+            />
           </TabPanel>
-          <TabPanel :val="'Console'" v-show="isManager">
-            <ConsoleView v-if="selectedTab == 'Console'" :selected-tab="selectedTab" />
+          <TabPanel
+            v-show="isManager"
+            :val="'Console'"
+          >
+            <ConsoleView
+              v-if="selectedTab == 'Console'"
+              :selected-tab="selectedTab"
+            />
           </TabPanel>
-          <TabPanel :val="'Tokens'" v-show="isManager">
-            <TokensView v-if="selectedTab == 'Tokens'" :selected-tab="selectedTab" />
+          <TabPanel
+            v-show="isManager"
+            :val="'Tokens'"
+          >
+            <TokensView
+              v-if="selectedTab == 'Tokens'"
+              :selected-tab="selectedTab"
+            />
           </TabPanel>
-          <TabPanel :val="'Settings'" v-show="isManager">
-            <SettingsView v-if="selectedTab == 'Settings'" :selected-tab="selectedTab" />
+          <TabPanel
+            v-show="isManager"
+            :val="'Settings'"
+          >
+            <SettingsView
+              v-if="selectedTab == 'Settings'"
+              :selected-tab="selectedTab"
+            />
           </TabPanel>
         </TabPanels>
       </div>

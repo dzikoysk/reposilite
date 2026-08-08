@@ -18,9 +18,9 @@ package com.reposilite.status.infrastructure
 
 import com.reposilite.status.FailureFacade
 import com.reposilite.status.StatusFacade
+import com.reposilite.status.api.FailuresResponse
 import com.reposilite.status.api.HealthResponse
 import com.reposilite.status.api.InstanceStatusResponse
-import com.reposilite.status.api.FailuresResponse
 import com.reposilite.status.api.StatusSnapshot
 import com.reposilite.web.api.ReposiliteRoute
 import com.reposilite.web.api.ReposiliteRoutes
@@ -35,7 +35,7 @@ import panda.std.asSuccess
 
 internal class StatusEndpoints(
     private val statusFacade: StatusFacade,
-    val failureFacade: FailureFacade,
+    private val failureFacade: FailureFacade
 ) : ReposiliteRoutes() {
 
     @OpenApi(

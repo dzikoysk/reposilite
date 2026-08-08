@@ -18,7 +18,6 @@ import { createRequire } from "module"
 const require = createRequire(import.meta.url)
 
 const express = require("express")
-const expressWs = require("express-ws")
 const bodyParser = require('body-parser')
 const crypto = require("crypto")
 
@@ -33,7 +32,6 @@ const {
 } = require("./extensions.cjs")
 
 const application = express()
-expressWs(application)
 const port = process.env.PORT || 8887
 
 let uploadedFiles = []
@@ -619,24 +617,6 @@ application
       },
       () => invalidCredentials(res)
     )
-  })
-  .ws("/api/console/sock", (connection) => {
-    let authenticated = false
-
-    connection.on("message", (message) => {
-      if (message == "Authorization:name:secret") {
-        sendMessage(connection, "DEBUG | Authorized")
-        authenticated = true
-      }
-
-      if (!authenticated || message == "stop") {
-        sendMessage(connection, "Connection closed")
-        connection.close()
-        return
-      }
-
-      sendMessage(connection, "INFO | Response: " + message)
-    })
   })
   .get("/api/maven/details", (req, res) => {
     const repositories = createDirectoryDetails("/", [

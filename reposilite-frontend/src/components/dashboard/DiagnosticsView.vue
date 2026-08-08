@@ -94,7 +94,10 @@ const filtered = computed(() => {
 </script>
 
 <template>
-  <div v-if="instanceStatus" class="container mx-auto pt-7 px-15 pb-12 <sm:px-4">
+  <div
+    v-if="instanceStatus"
+    class="container mx-auto pt-7 px-15 pb-12 <sm:px-4"
+  >
     <ViewHeader
       title="Runtime health"
       description="Service status, resource usage, and recorded failures since the last restart."
@@ -103,16 +106,38 @@ const filtered = computed(() => {
     <div class="statusbar">
       <div class="block">
         <div>
-          <div class="k">Instance</div>
-          <div class="v" :class="health?.status ? (health.status === 'UP' ? 'ok' : 'crit') : ''">{{ health?.status === 'UP' ? 'Online' : (health?.status || '…') }}</div>
+          <div class="k">
+            Instance
+          </div>
+          <div
+            class="v"
+            :class="health?.status ? (health.status === 'UP' ? 'ok' : 'crit') : ''"
+          >
+            {{ health?.status === 'UP' ? 'Online' : (health?.status || '…') }}
+          </div>
         </div>
       </div>
       <div class="block">
-        <div><div class="k">Failures</div><div class="v num">{{ instanceStatus.failuresCount }}</div></div>
-        <span class="status" :class="instanceStatus.failuresCount > 0 ? 'crit' : 'ok'">{{ instanceStatus.failuresCount > 0 ? 'review' : 'clean' }}</span>
+        <div>
+          <div class="k">
+            Failures
+          </div><div class="v num">
+            {{ instanceStatus.failuresCount }}
+          </div>
+        </div>
+        <span
+          class="status"
+          :class="instanceStatus.failuresCount > 0 ? 'crit' : 'ok'"
+        >{{ instanceStatus.failuresCount > 0 ? 'review' : 'clean' }}</span>
       </div>
       <div class="block">
-        <div><div class="k">Uptime</div><div class="v num">{{ prettyUptime(instanceStatus.uptime / 1000) }}</div></div>
+        <div>
+          <div class="k">
+            Uptime
+          </div><div class="v num">
+            {{ prettyUptime(instanceStatus.uptime / 1000) }}
+          </div>
+        </div>
       </div>
     </div>
 
@@ -122,20 +147,48 @@ const filtered = computed(() => {
           <div class="section-title">
             <h2>Recorded failures</h2>
             <span class="count"><b class="num">{{ failures.length }}</b> unique</span>
-            <span v-if="totalFailures !== failures.length" class="count"><b class="num">{{ totalFailures }}</b> occurrences</span>
+            <span
+              v-if="totalFailures !== failures.length"
+              class="count"
+            ><b class="num">{{ totalFailures }}</b> occurrences</span>
           </div>
           <p>Exception traces captured by this instance since the last restart.</p>
         </div>
         <div class="search">
-          <svg viewBox="0 0 24 24" class="w-4 h-4 flex-shrink-0 text-gray-400"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M21 21l-4.3-4.3m1.3-5.2a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-          <input v-model="query" placeholder="Filter by type or path…" />
+          <svg
+            viewBox="0 0 24 24"
+            class="w-4 h-4 flex-shrink-0 text-gray-400"
+          ><path
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            d="M21 21l-4.3-4.3m1.3-5.2a7 7 0 11-14 0 7 7 0 0114 0z"
+          /></svg>
+          <input
+            v-model="query"
+            placeholder="Filter by type or path…"
+          >
         </div>
       </div>
-      <FailuresList v-if="!failuresError && filtered.length" :failures="filtered" :version="instanceStatus.version" />
-      <div v-else class="empty">
-        <p v-if="failuresError"><b>Cannot load failures.</b> Check the connection and try again.</p>
-        <p v-else-if="failures.length"><b>No matches.</b> No recorded failures match “{{ query }}”.</p>
-        <p v-else><b>All clear.</b> No exceptions recorded since the last restart.</p>
+      <FailuresList
+        v-if="!failuresError && filtered.length"
+        :failures="filtered"
+        :version="instanceStatus.version"
+      />
+      <div
+        v-else
+        class="empty"
+      >
+        <p v-if="failuresError">
+          <b>Cannot load failures.</b> Check the connection and try again.
+        </p>
+        <p v-else-if="failures.length">
+          <b>No matches.</b> No recorded failures match “{{ query }}”.
+        </p>
+        <p v-else>
+          <b>All clear.</b> No exceptions recorded since the last restart.
+        </p>
       </div>
     </div>
 

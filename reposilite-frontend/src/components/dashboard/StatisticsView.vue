@@ -93,53 +93,126 @@ const barWidth = (count) => `${Math.max(4, Math.round((count / maxCount.value) *
 
     <template v-if="statisticsEnabled">
       <div class="section-head">
-        <h1 class="font-semibold text-lg">Most resolved paths</h1>
+        <h1 class="font-semibold text-lg">
+          Most resolved paths
+        </h1>
       </div>
 
       <div class="flat">
         <div class="bar">
           <div class="search">
-            <svg viewBox="0 0 24 24" class="w-4 h-4 flex-shrink-0 text-gray-400"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M21 21l-4.3-4.3m1.3-5.2a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-            <input v-model="phrase" placeholder="Filter by path…" />
+            <svg
+              viewBox="0 0 24 24"
+              class="w-4 h-4 flex-shrink-0 text-gray-400"
+            ><path
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              d="M21 21l-4.3-4.3m1.3-5.2a7 7 0 11-14 0 7 7 0 0114 0z"
+            /></svg>
+            <input
+              v-model="phrase"
+              placeholder="Filter by path…"
+            >
           </div>
-          <select class="sel" v-model="repository">
-            <option value="">All repositories</option>
-            <option v-for="repo in repositories" :key="repo.id" :value="repo.id">{{ repo.id }}</option>
+          <select
+            v-model="repository"
+            class="sel"
+          >
+            <option value="">
+              All repositories
+            </option>
+            <option
+              v-for="repo in repositories"
+              :key="repo.id"
+              :value="repo.id"
+            >
+              {{ repo.id }}
+            </option>
           </select>
-          <select class="sel" v-model.number="limit">
-            <option :value="10">Top 10</option>
-            <option :value="20">Top 20</option>
-            <option :value="50">Top 50</option>
-            <option :value="100">Top 100</option>
+          <select
+            v-model.number="limit"
+            class="sel"
+          >
+            <option :value="10">
+              Top 10
+            </option>
+            <option :value="20">
+              Top 20
+            </option>
+            <option :value="50">
+              Top 50
+            </option>
+            <option :value="100">
+              Top 100
+            </option>
           </select>
-          <span v-if="results" class="sum">
+          <span
+            v-if="results"
+            class="sum"
+          >
             Showing <b class="num">{{ entries.length.toLocaleString() }}</b><template v-if="results.page?.hasMore">+</template>
           </span>
         </div>
 
-        <div v-if="results" class="rows">
-          <div v-for="(entry, index) in entries" :key="`${entry.repository}:${entry.path}`" class="srow">
+        <div
+          v-if="results"
+          class="rows"
+        >
+          <div
+            v-for="(entry, index) in entries"
+            :key="`${entry.repository}:${entry.path}`"
+            class="srow"
+          >
             <span class="rank num">{{ index + 1 }}</span>
             <span class="path font-mono">/{{ repository ? entry.path : `${entry.repository}/${entry.path}` }}</span>
-            <span class="rbar"><i :style="{ width: barWidth(entry.count) }"></i></span>
+            <span class="rbar"><i :style="{ width: barWidth(entry.count) }" /></span>
             <span class="cnt num">{{ entry.count.toLocaleString() }}</span>
           </div>
-          <div v-if="!entries.length" class="empty">
+          <div
+            v-if="!entries.length"
+            class="empty"
+          >
             {{ phrase ? `No paths match “${phrase}”.` : 'No resolved requests recorded yet.' }}
           </div>
         </div>
       </div>
 
-      <div v-if="kpis" class="chart-block">
+      <div
+        v-if="kpis"
+        class="chart-block"
+      >
         <div class="kpis">
-          <div class="kpi"><div class="k">Visible period</div><div class="v num">{{ kpis.total.toLocaleString() }}</div></div>
-          <div class="kpi"><div class="k">{{ kpis.labels.average }}</div><div class="v num">{{ kpis.average.toLocaleString() }}</div></div>
-          <div class="kpi"><div class="k">{{ kpis.labels.current }}</div><div class="v num">{{ kpis.current.toLocaleString() }}</div></div>
+          <div class="kpi">
+            <div class="k">
+              Visible period
+            </div><div class="v num">
+              {{ kpis.total.toLocaleString() }}
+            </div>
+          </div>
+          <div class="kpi">
+            <div class="k">
+              {{ kpis.labels.average }}
+            </div><div class="v num">
+              {{ kpis.average.toLocaleString() }}
+            </div>
+          </div>
+          <div class="kpi">
+            <div class="k">
+              {{ kpis.labels.current }}
+            </div><div class="v num">
+              {{ kpis.current.toLocaleString() }}
+            </div>
+          </div>
         </div>
         <ResolvedRequestsChart :statistics="resolvedStatistics" />
       </div>
     </template>
-    <div v-else-if="statisticsEnabled === false" class="flat empty">
+    <div
+      v-else-if="statisticsEnabled === false"
+      class="flat empty"
+    >
       <b>Statistics disabled.</b> Enable resolved request statistics to view traffic analytics.
     </div>
   </div>
