@@ -56,9 +56,8 @@ const chartOptions = {
 
 <template>
   <div>
-    <h1 class="font-semibold text-lg">Resolved requests</h1>
     <VueApexCharts 
-      class="dark:text-black pt-2"
+      class="dark:text-black"
       width="100%"
       height="320px"
       type="area"

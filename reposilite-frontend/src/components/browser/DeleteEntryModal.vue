@@ -76,7 +76,7 @@ export default {
           </div>
         </div>
         <button class="absolute top-0 right-0 mt-5 mr-9" @click.left.prevent="close()" v-on:click.stop>
-          <CloseIcon />
+          <CloseIcon class="w-6 h-6" />
         </button>
       </div>
     </VueFinalModal>

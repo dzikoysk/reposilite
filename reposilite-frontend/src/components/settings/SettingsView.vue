@@ -99,11 +99,12 @@ const formsConfiguration = {
       <template #actions>
         <div
           id="configuration-state"
+          class="flex flex-nowrap items-center justify-end gap-2 <md:flex-wrap <md:justify-start"
         >
           <button
             v-if="hasChanged"
-            class="action primary"
-            :class="{ forbidden: !isValid }"
+            class="h-8 whitespace-nowrap rounded-md bg-blue-700 px-3 text-sm text-white hover:bg-blue-800 dark:hover:bg-blue-600 cursor-pointer"
+            :class="{ '!bg-gray-500 cursor-not-allowed': !isValid }"
             :disabled="!isValid"
             @click.prevent="reload(updateConfiguration)"
           >
@@ -111,15 +112,15 @@ const formsConfiguration = {
           </button>
           <button
             v-if="hasChanged"
-            class="action danger"
+            class="h-8 whitespace-nowrap rounded-md bg-red-600 px-3 text-sm text-white hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-500 cursor-pointer"
             @click.prevent="reload(fetchConfiguration)"
           >
             Reset changes
           </button>
           <button
             v-if="!hasChanged"
-            class="action utility"
-            :class="{ forbidden: !isValid }"
+            class="h-8 whitespace-nowrap rounded-md bg-gray-800 px-3 text-sm text-white hover:bg-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600"
+            :class="{ '!bg-gray-500 cursor-not-allowed': !isValid }"
             :disabled="!isValid"
             @click.prevent="executeIfValid(downloadSettings)"
           >
@@ -127,7 +128,7 @@ const formsConfiguration = {
           </button>
           <FactoryResetModal :callback="factoryReset">
             <template #button>
-              <button class="action danger">
+              <button class="h-8 whitespace-nowrap rounded-md bg-red-600 px-3 text-sm text-white hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-500 cursor-pointer">
                 Factory reset
               </button>
             </template>
@@ -135,19 +136,20 @@ const formsConfiguration = {
         </div>
       </template>
     </ViewHeader>
-    <div class="settings-card">
+    <div class="overflow-hidden rounded-lg bg-gray-100 dark:bg-black">
       <Tabs
         v-if="domains.length > 1"
         v-model="selectedDomain"
-        class="domain-tabs"
+        class="domain-tabs overflow-x-auto pt-2"
       >
         <Tab
           v-for="domain in domains"
           :key="`config:${domain}`"
-          class="item"
+          class="item cursor-pointer whitespace-nowrap rounded-t-md bg-transparent px-3 py-1 text-sm leading-5 text-gray-600 dark:text-gray-300"
+          :class="{ 'domain-tab-active': selectedDomain === domain }"
           :val="domain"
           :label="schemas[domain]?.title"
-          :indicator="true"
+          :indicator="false"
         />
       </Tabs>
       <TabPanels v-model="selectedDomain">
@@ -174,36 +176,6 @@ const formsConfiguration = {
 
 <!--suppress CssInvalidAtRule -->
 <style scoped>
-.settings-card {
-  @apply bg-gray-100 dark:bg-black rounded-lg overflow-hidden;
-}
-.settings-view :deep(.view-header > .actions) {
-  @apply self-center <md:self-start;
-}
-#configuration-state {
-  @apply flex flex-nowrap items-center justify-end gap-2 <md:flex-wrap <md:justify-start;
-}
-#configuration-state button {
-  @apply rounded-md h-8 px-3 text-sm text-white whitespace-nowrap;
-}
-#configuration-state .utility {
-  @apply bg-gray-800 dark:bg-gray-700 hover:bg-gray-900 dark:hover:bg-gray-600;
-}
-#configuration-state .primary {
-  @apply bg-blue-700 hover:bg-blue-800 dark:hover:bg-blue-600 cursor-pointer;
-}
-#configuration-state .danger {
-  @apply bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-500 cursor-pointer;
-}
-#configuration-state .forbidden {
-  @apply bg-gray-500 cursor-not-allowed !important;
-}
-.item {
-  @apply cursor-pointer whitespace-nowrap rounded-t-md px-3 py-1 text-sm leading-5 text-gray-600 dark:text-gray-300 bg-transparent;
-}
-.domain-tabs {
-  @apply overflow-x-auto pt-2;
-}
 .domain-tabs :deep(.tab) {
   @apply whitespace-nowrap;
 }
@@ -211,172 +183,178 @@ const formsConfiguration = {
   @apply bg-white dark:bg-gray-800;
   transition: background-color 0.5s;
 }
-.domain-tabs :deep(.active),
-.domain-tabs :deep(.item.active) {
+.domain-tabs :deep(.domain-tab-active) {
   @apply bg-white dark:bg-gray-900 text-gray-900 dark:text-white;
 }
 </style>
 
 <!--suppress CssInvalidAtRule -->
-<style>
-.error {
+<style scoped>
+.settings-view :deep(.error) {
   @apply text-red-500 px-2 font-bold;
 }
-.vertical-layout, .group-layout {
+.settings-view :deep(.vertical-layout),
+.settings-view :deep(.group-layout) {
   @apply container mx-auto;
 }
-.control .input:not([type=checkbox]), .control .select {
+.settings-view :deep(.control .input:not([type=checkbox])),
+.settings-view :deep(.control .select) {
   @apply text-sm h-9 px-4 text-black dark:text-white bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 outline-none;
 }
-.control .input:not([type=checkbox]):focus, .control .select:focus {
+.settings-view :deep(.control .input:not([type=checkbox]):focus),
+.settings-view :deep(.control .select:focus) {
   @apply border-blue-500;
 }
-.control .input[type="checkbox"] {
+.settings-view :deep(.control .input[type="checkbox"]) {
   @apply h-5 w-5;
 }
-.control .input, .control .select {
+.settings-view :deep(.control .input),
+.settings-view :deep(.control .select) {
   @apply mx-2 rounded <sm:mx-0;
 }
-.control .select {
+.settings-view :deep(.control .select) {
   @apply pr-8;
 }
-.control {
+.settings-view :deep(.control) {
   @apply flex flex-col;
 }
-.control > .description {
+.settings-view :deep(.control > .description) {
   order: 1;
   white-space: pre-line;
 }
-.control > .wrapper {
+.settings-view :deep(.control > .wrapper) {
   order: 2;
 }
-.control > .error {
+.settings-view :deep(.control > .error) {
   order: 3;
 }
-.vertical-layout, .group {
+.settings-view :deep(.vertical-layout),
+.settings-view :deep(.group) {
   @apply flex flex-col flex-wrap py-4 h-full;
   gap: 1rem;
 }
-.array-list {
+.settings-view :deep(.array-list) {
   @apply flex flex-col flex-wrap h-full;
   gap: 0.75rem;
 }
-.label, label {
+.settings-view :deep(.label),
+.settings-view :deep(label) {
   padding-bottom: 0.5em;
   padding-left: 0.45em;
   display: inline-block;
   font-weight: bold;
 }
-.description {
+.settings-view :deep(.description) {
   padding-left: 0.45em;
   padding-bottom: 0.7em;
   @apply text-sm italic;
 }
-.array-list {
+.settings-view :deep(.array-list) {
   padding: 0;
 }
-.array-list-label {
+.settings-view :deep(.array-list-label) {
   font-weight: bold;
 }
-.array-list-item-label {
+.settings-view :deep(.array-list-item-label) {
   margin-right: auto;
 }
-.array-list-item-delete {
+.settings-view :deep(.array-list-item-delete) {
   @apply absolute right-0 top-2 text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300;
 }
-.array-list-item-toolbar {
+.settings-view :deep(.array-list-item-toolbar) {
   @apply flex flex-row items-baseline relative;
 }
-.array-list-item-label {
+.settings-view :deep(.array-list-item-label) {
   display: none;
 }
-.array-list-item-toolbar>button {
+.settings-view :deep(.array-list-item-toolbar > button) {
   padding: 0.5rem;
 }
-.one-of-container {
+.settings-view :deep(.one-of-container) {
   @apply h-full flex flex-col rounded-lg bg-gray-100 dark:bg-gray-800 px-3 py-3;
 }
-.settings-view .tab-panel {
+.settings-view :deep(.tab-panel) {
   @apply h-full;
 }
-.settings-view .settings-panel {
+.settings-view :deep(.settings-panel) {
   @apply bg-white dark:bg-gray-900 px-5 py-5 <sm:px-4;
 }
-.settings-view .array-list-shell {
+.settings-view :deep(.array-list-shell) {
   @apply rounded-lg bg-gray-100 dark:bg-gray-800 px-4 py-3 <sm:px-3;
 }
-.settings-view .array-list-head {
+.settings-view :deep(.array-list-head) {
   @apply flex items-center justify-between gap-3 w-full;
 }
-.settings-view .one-of-tabs,
-.settings-view .array-list-tabs {
+.settings-view :deep(.one-of-tabs),
+.settings-view :deep(.array-list-tabs) {
   @apply overflow-x-auto;
 }
-.settings-view .one-of-tabs .tab,
-.settings-view .array-list-tabs .tab {
+.settings-view :deep(.one-of-tabs .tab),
+.settings-view :deep(.array-list-tabs .tab) {
   @apply whitespace-nowrap;
 }
-.settings-view .one-of-tabs .item,
-.settings-view .array-list-tabs .item {
+.settings-view :deep(.one-of-tabs .item),
+.settings-view :deep(.array-list-tabs .item) {
   @apply cursor-pointer whitespace-nowrap rounded-t-md bg-transparent px-3 py-1 text-sm leading-5 text-gray-600 dark:text-gray-300;
 }
-.settings-view .one-of-tabs .item:hover,
-.settings-view .array-list-tabs .item:hover {
+.settings-view :deep(.one-of-tabs .item:hover),
+.settings-view :deep(.array-list-tabs .item:hover) {
   @apply bg-white dark:bg-gray-700;
   transition: background-color 0.2s;
 }
-.settings-view .one-of-tabs .active,
-.settings-view .array-list-tabs .active {
+.settings-view :deep(.one-of-tabs .active),
+.settings-view :deep(.array-list-tabs .active) {
   @apply bg-white dark:bg-gray-900 text-gray-900 dark:text-white;
 }
-.settings-view .one-of-panel,
-.settings-view .array-list-panel {
+.settings-view :deep(.one-of-panel),
+.settings-view :deep(.array-list-panel) {
   @apply rounded-b-lg rounded-tr-lg bg-white dark:bg-gray-900 px-4 py-3 <sm:px-3;
 }
-.array-list-add {
+.settings-view :deep(.array-list-add) {
   @apply rounded-full h-6 w-6 leading-6 bg-blue-700 text-white z-1 flex-none;
 }
-.array-list-item-move-up {
+.settings-view :deep(.array-list-item-move-up) {
   display: none;
 }
-.array-list-item-move-down {
+.settings-view :deep(.array-list-item-move-down) {
   display: none;
 }
-.array-list-no-data {
+.settings-view :deep(.array-list-no-data) {
   @apply p-4 bg-white dark:bg-gray-900 italic rounded-md;
 }
-.wrapper {
+.settings-view :deep(.wrapper) {
   @apply flex py-2 <sm:flex-col;
 }
-.control > .wrapper:has(> input[type="checkbox"]) {
+.settings-view :deep(.control > .wrapper:has(> input[type="checkbox"])) {
   @apply items-center gap-2 <sm:flex-row;
 }
-.control > .wrapper:has(> input[type="checkbox"])::before {
+.settings-view :deep(.control > .wrapper:has(> input[type="checkbox"])::before) {
   content: "Enabled";
   @apply px-2 text-sm text-gray-700 dark:text-gray-200;
 }
-.wrapper p {
+.settings-view :deep(.wrapper p) {
   @apply px-2 text-sm;
 }
-.wrapper input {
+.settings-view :deep(.wrapper input) {
   @apply w-1/2 <sm:w-full;
 }
-.wrapper input, .wrapper select {
+.settings-view :deep(.wrapper input),
+.settings-view :deep(.wrapper select) {
   @apply dark:bg-gray-800 dark:text-white !important;
 }
-.wrapper input:not([type=checkbox]):read-only {
+.settings-view :deep(.wrapper input:not([type=checkbox]):read-only) {
   @apply bg-gray-200 dark:bg-gray-800 text-gray-500 !important;
 }
-.array-list-item-wrapper {
+.settings-view :deep(.array-list-item-wrapper) {
   @apply bg-transparent rounded-none p-0;
 }
-.array-list-item-toolbar {
+.settings-view :deep(.array-list-item-toolbar) {
   @apply min-h-8;
 }
-.array-list-legend {
+.settings-view :deep(.array-list-legend) {
   margin-bottom: 0;
 }
-.description {
+.settings-view :deep(.description) {
   padding-bottom: 0;
 }
 </style>

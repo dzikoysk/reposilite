@@ -84,17 +84,19 @@ const selectHomepage = () =>
           >
             <Tab
               v-if="tab !== 'Dashboard'"
-              class="item font-normal <sm:w-1/3"
+              class="item main-menu-tab font-normal <sm:w-1/3"
+              :class="{ 'main-menu-tab-active': selectedTab === tab }"
               :val="tab"
               :label="tab"
-              :indicator="true"
+              :indicator="false"
             />
             <Tab
               v-if="tab === 'Dashboard'"
-              class="item font-normal dashboard <sm:w-1/3"
+              class="item main-menu-tab font-normal dashboard <sm:w-1/3"
+              :class="{ 'main-menu-tab-active': selectedTab === tab }"
               :val="tab"
               :label="tab"
-              :indicator="true"
+              :indicator="false"
             />
           </template>
         </Tabs>
@@ -193,7 +195,7 @@ const selectHomepage = () =>
   @apply text-gray-600 dark:text-gray-300;
   @apply bg-gray-100 dark:bg-black;
 }
-.selected {
+:deep(.main-menu-tab-active) {
   @apply border-b-2;
   @apply border-black dark:border-white;
   @apply text-black dark:text-white;

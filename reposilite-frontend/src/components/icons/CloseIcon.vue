@@ -16,8 +16,7 @@
 
 <template>
   <!-- Source: https://heroicons.dev/ -->
-  <svg 
-    class="w-6 h-6" 
+  <svg
     fill="none" 
     stroke="currentColor" 
     viewBox="0 0 24 24" 

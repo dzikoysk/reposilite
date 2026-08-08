@@ -12,12 +12,14 @@ defineProps({
 </script>
 
 <template>
-  <header class="view-header">
-    <div class="copy">
-      <h1>{{ title }}</h1>
+  <header class="mb-5 flex items-start justify-between gap-4 text-gray-800 dark:text-gray-100 <md:flex-col">
+    <div class="min-w-0">
+      <h1 class="text-lg font-semibold leading-7">
+        {{ title }}
+      </h1>
       <p
         v-if="description || $slots.note"
-        class="summary"
+        class="mt-1 max-w-full truncate text-sm leading-5 text-gray-500 dark:text-gray-400 <md:whitespace-normal <md:overflow-visible"
       >
         <span v-if="description">{{ description }}</span>
         {{ description && $slots.note ? ' ' : '' }}
@@ -26,31 +28,9 @@ defineProps({
     </div>
     <div
       v-if="$slots.actions"
-      class="actions"
+      class="flex flex-wrap self-center items-center justify-end gap-2 <md:w-full <md:self-start <md:justify-start"
     >
       <slot name="actions" />
     </div>
   </header>
 </template>
-
-<!--suppress CssInvalidAtRule -->
-<style scoped>
-.view-header {
-  @apply mb-5 flex items-start justify-between gap-4 text-gray-800 dark:text-gray-100 <md:flex-col;
-}
-.copy {
-  @apply min-w-0;
-}
-.copy h1 {
-  @apply text-lg font-semibold leading-7;
-}
-.summary {
-  @apply mt-1 max-w-full truncate text-sm leading-5 text-gray-500 dark:text-gray-400 <md:whitespace-normal <md:overflow-visible;
-}
-.summary :deep(strong) {
-  @apply text-gray-700 dark:text-gray-200;
-}
-.actions {
-  @apply flex flex-wrap items-center justify-end gap-2 <md:w-full <md:justify-start;
-}
-</style>

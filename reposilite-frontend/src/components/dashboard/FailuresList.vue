@@ -64,13 +64,13 @@ const copyTrace = (failure) => {
       :key="failureKey(entry)"
     >
       <div
-        class="frow group flex items-center gap-3 pr-4 py-3.5 border-b border-gray-200 dark:border-gray-800 cursor-pointer transition-colors last:border-b-0 hover:bg-gray-50 dark:hover:bg-gray-800 <sm:gap-2 <sm:pr-3"
-        :class="openFailureKey === failureKey(entry) ? 'open bg-gray-100 dark:bg-gray-800 border-b-0' : ''"
+        class="group flex items-center gap-3 pr-4 py-3.5 border-b border-gray-200 dark:border-gray-800 cursor-pointer transition-colors last:border-b-0 hover:bg-gray-50 dark:hover:bg-gray-800 <sm:grid <sm:grid-cols-[4px_12px_minmax(0,1fr)] <sm:items-start <sm:gap-x-2 <sm:gap-y-1 <sm:pr-3"
+        :class="openFailureKey === failureKey(entry) ? 'bg-gray-100 dark:bg-gray-800 border-b-0' : ''"
         @click="toggle(entry)"
       >
-        <div class="stripe w-1 self-stretch bg-red-500 flex-none opacity-80" />
+        <div class="w-1 self-stretch bg-red-500 flex-none opacity-80 <sm:col-start-1 <sm:row-start-1 <sm:row-end-4" />
         <svg
-          class="caret text-gray-400 dark:text-gray-600 flex-none transition-transform ml-3 transform"
+          class="text-gray-400 dark:text-gray-600 flex-none transition-transform ml-3 transform <sm:col-start-2 <sm:row-start-1 <sm:row-end-3 <sm:ml-0 <sm:mt-0.5"
           :class="{ 'rotate-90': openFailureKey === failureKey(entry) }"
           width="12"
           height="12"
@@ -79,7 +79,7 @@ const copyTrace = (failure) => {
           stroke="currentColor"
           stroke-width="2.5"
         ><path d="M9 6l6 6-6 6" /></svg>
-        <div class="fmeta flex flex-none flex-wrap items-center gap-2 min-w-0">
+        <div class="flex flex-none flex-wrap items-center gap-2 min-w-0 <sm:col-start-3 <sm:row-start-1">
           <span class="font-mono text-sm font-semibold text-red-600 dark:text-red-400 <sm:text-xs">{{ entry.type }}</span>
           <span
             v-if="entry.occurrences > 1"
@@ -90,7 +90,7 @@ const copyTrace = (failure) => {
             class="inline-flex items-center gap-1 rounded-full bg-gray-100 dark:bg-gray-700 px-2 py-0.5 text-xs text-gray-600 dark:text-gray-300 whitespace-nowrap"
           ><b class="font-semibold text-gray-800 dark:text-gray-100 tabular-nums">{{ entry.messages.length }}</b> messages</span>
         </div>
-        <div class="fmid min-w-0 flex-1">
+        <div class="min-w-0 flex-1 <sm:col-start-3 <sm:row-start-2">
           <div class="font-mono text-sm truncate <sm:text-xs">
             {{ entry.path }}
           </div>
@@ -99,8 +99,8 @@ const copyTrace = (failure) => {
           </div>
         </div>
         <div
-          class="fact flex-none flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100"
-          :class="{ 'opacity-100': openFailureKey === failureKey(entry) }"
+          class="flex-none flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100 <sm:col-start-3 <sm:row-start-3 <sm:mt-1.5 <sm:opacity-100"
+          :class="openFailureKey === failureKey(entry) ? 'opacity-100 <sm:flex' : '<sm:hidden'"
         >
           <a
             :href="reportUrl(entry)"
@@ -154,49 +154,3 @@ const copyTrace = (failure) => {
     </template>
   </div>
 </template>
-
-<style scoped>
-@media (max-width: 640px) {
-  .frow {
-    display: grid;
-    grid-template-columns: 4px 12px minmax(0, 1fr);
-    align-items: start;
-    column-gap: 0.5rem;
-    row-gap: 0.25rem;
-    padding-right: 0.75rem;
-  }
-
-  .stripe {
-    grid-column: 1;
-    grid-row: 1 / 4;
-    width: 4px;
-  }
-
-  .caret {
-    grid-column: 2;
-    grid-row: 1 / 3;
-    margin-left: 0;
-    margin-top: 0.2rem;
-  }
-
-  .fmeta {
-    grid-column: 3;
-    grid-row: 1;
-  }
-
-  .fmid {
-    grid-column: 3;
-    grid-row: 2;
-  }
-
-  .fact {
-    display: none;
-    grid-column: 3;
-    grid-row: 3;
-    opacity: 1;
-    margin-top: 0.35rem;
-  }
-
-  .frow.open .fact { display: flex; }
-}
-</style>

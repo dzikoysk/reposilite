@@ -106,8 +106,9 @@ internal class StatisticsEndpoint(private val statisticsFacade: StatisticsFacade
         tags = ["Statistics"],
         path = "/api/statistics/resolved/unique",
         methods = [HttpMethod.GET],
+        deprecated = true,
         responses = [
-            OpenApiResponse("200", content = [ OpenApiContent(from = Long::class) ], description = "Number of all unique requests"),
+            OpenApiResponse("200", content = [ OpenApiContent(from = Long::class) ], description = "Number of all unique requests. Deprecated and may be removed in Reposilite 4.x."),
             OpenApiResponse("401", content = [ OpenApiContent(from = ErrorResponse::class) ], description = "When invalid token is used"),
             OpenApiResponse("403", content = [ OpenApiContent(from = ErrorResponse::class) ], description = "When non-manager token is used")
         ]
