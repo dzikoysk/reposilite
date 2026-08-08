@@ -100,23 +100,4 @@ internal class FailureFacadeTest : FailureSpecification() {
         )
     }
 
-    private fun failure(message: String, cause: Throwable? = null): RuntimeException =
-        RuntimeException(message, cause).apply {
-            stackTrace = arrayOf(StackTraceElement("FailureFacadeTest", "failure", "FailureFacadeTest.kt", 1))
-        }
-
-    private fun <T : Throwable> cause(throwable: T): T =
-        throwable.apply {
-            stackTrace = arrayOf(StackTraceElement("FailureFacadeTest", "cause", "FailureFacadeTest.kt", 2))
-        }
-
-    private fun trace(message: String, cause: String? = null): String =
-        listOfNotNull(
-            "failure PATH /com/reposilite",
-            "  by RuntimeException: $message",
-            "  at FailureFacadeTest.failure(FailureFacadeTest.kt:1)",
-            cause?.let { "  by $it" },
-            cause?.let { "  at FailureFacadeTest.cause(FailureFacadeTest.kt:2)" }
-        ).joinToString(System.lineSeparator())
-
 }

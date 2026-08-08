@@ -261,9 +261,10 @@ internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecifi
     @Test
     fun `should return time-series`() {
         // given: a database with some requests
+        val today = LocalDate.now()
         repeat(2) { // repeat 2 times to verify aggregation
             repeat(24) { index -> // 24 months
-                val date = LocalDate.now()
+                val date = today
                     .minusMonths(index.toLong())
                     .withDayOfMonth(1)
 
@@ -278,7 +279,7 @@ internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecifi
         }
         useResolvedRequests(
             mapOf(Identifier("releases", "/old/only.jar") to 100),
-            LocalDate.now().minusYears(2)
+            today.minusYears(2)
         )
 
         // when: stats service is requested without valid credentials
@@ -306,7 +307,7 @@ internal abstract class StatisticsIntegrationTest : StatisticsIntegrationSpecifi
                             data = (0..11)
                                 .map { index ->
                                     IntervalRecord(
-                                        date = LocalDate.now().minusMonths(index.toLong()).withDayOfMonth(1).toUTCMillis(),
+                                        date = today.minusMonths(index.toLong()).withDayOfMonth(1).toUTCMillis(),
                                         count = 2L * index
                                     )
                                 }

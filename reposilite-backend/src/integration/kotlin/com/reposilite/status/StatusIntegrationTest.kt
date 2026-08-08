@@ -102,10 +102,7 @@ internal abstract class StatusIntegrationTest : StatusIntegrationSpecification()
         assertThat(unauthorizedResponse.status).isEqualTo(UNAUTHORIZED.code)
 
         // given: a recorded failure and valid credentials
-        val exception = IllegalStateException("Broken route").apply {
-            stackTrace = arrayOf(StackTraceElement("FailureTest", "broken", "FailureTest.kt", 1))
-        }
-        useFailure("GET /broken", exception)
+        useFailure("GET /broken", "Broken route")
         val (name, secret) = useAuth("name", "secret", listOf(MANAGER))
 
         // when: service is requested with valid credentials
@@ -126,7 +123,7 @@ internal abstract class StatusIntegrationTest : StatusIntegrationSpecification()
                         trace = listOf(
                             "failure GET /broken",
                             "  by IllegalStateException: Broken route",
-                            "  at FailureTest.broken(FailureTest.kt:1)"
+                            "  at StatusIntegrationSpecification.failure(StatusIntegrationSpecification.kt:1)"
                         ).joinToString(System.lineSeparator()),
                         occurrences = 1
                     )
