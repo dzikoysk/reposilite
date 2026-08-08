@@ -142,41 +142,41 @@ const plural = (count, singular, pluralText) =>
       description="Live health, resources, repositories, and access state."
     />
 
-    <div class="grid">
-      <div class="block c6">
-        <div class="hero">
-          <div class="cell">
-            <div class="k">
+    <div class="grid grid-cols-6 gap-4 <md:grid-cols-1">
+      <div class="col-span-6 <md:col-span-1 bg-white dark:bg-gray-900 rounded-lg p-5 min-w-0">
+        <div class="grid grid-cols-3 gap-6 <sm:grid-cols-2 <sm:gap-5">
+          <div>
+            <div class="text-sm text-gray-500 dark:text-gray-400 mb-2">
               Status
             </div>
-            <div class="v">
-              <span class="status-ok">Online</span>
+            <div class="text-lg font-semibold flex items-center gap-2">
+              <span class="text-green-600 dark:text-green-400 font-semibold text-lg inline-flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-green-500" />Online</span>
             </div>
             <div
-              class="meta"
-              :class="{ warn: instanceStatus.failuresCount > 0 }"
+              class="mt-1 text-xs text-gray-500 dark:text-gray-400"
+              :class="{ 'text-red-600 dark:text-red-400': instanceStatus.failuresCount > 0 }"
             >
               {{ instanceStatus.failuresCount === 0
                 ? 'No failures since restart'
                 : `${instanceStatus.failuresCount} ${plural(instanceStatus.failuresCount, 'failure', 'failures')} since restart` }}
             </div>
           </div>
-          <div class="cell runtime">
-            <div class="k">
+          <div>
+            <div class="text-sm text-gray-500 dark:text-gray-400 mb-2">
               Runtime
             </div>
-            <div class="v num">
+            <div class="text-lg font-semibold flex items-center gap-2 tabular-nums">
               {{ prettyUptime(instanceStatus.uptime / 1000) }}
             </div>
-            <div class="meta num">
+            <div class="mt-1 text-xs text-gray-500 dark:text-gray-400 tabular-nums">
               Started {{ startedAt }}
             </div>
           </div>
-          <div class="cell version">
-            <div class="k">
+          <div class="<sm:col-span-2">
+            <div class="text-sm text-gray-500 dark:text-gray-400 mb-2">
               Version
             </div>
-            <div class="v num">
+            <div class="text-lg font-semibold flex items-center gap-2 tabular-nums">
               <VersionSponsors
                 :version="instanceStatus.version"
                 :up-to-date="isUpToDate"
@@ -187,222 +187,159 @@ const plural = (count, singular, pluralText) =>
         </div>
       </div>
 
-      <div class="block c3">
-        <div class="block-top">
-          <span class="t">Resources</span><button
-            class="link"
+      <div class="col-span-3 <md:col-span-1 bg-white dark:bg-gray-900 rounded-lg p-5 min-w-0">
+        <div class="flex items-center justify-between mb-3.5">
+          <span class="text-sm font-semibold text-gray-600 dark:text-gray-300">Resources</span><button
+            class="text-sm text-blue-600 dark:text-blue-300 cursor-pointer hover:text-blue-700 dark:hover:text-blue-200 bg-transparent border-0 p-0"
             @click="$emit('goto', 'Diagnostics')"
           >
             Diagnostics
           </button>
         </div>
-        <div class="meter">
-          <div class="lab">
-            <span class="name">Heap memory</span><span class="val num">{{ instanceStatus.usedMemory.toFixed(0) }} MB <small>/ {{ instanceStatus.maxMemory }} MB</small></span>
+        <div>
+          <div class="flex justify-between items-baseline gap-3 text-sm mb-2 <sm:flex-wrap">
+            <span class="text-gray-500 dark:text-gray-400">Heap memory</span><span class="font-semibold tabular-nums">{{ instanceStatus.usedMemory.toFixed(0) }} MB <small class="text-gray-600 dark:text-gray-300 font-normal">/ {{ instanceStatus.maxMemory }} MB</small></span>
           </div>
-          <div class="track">
+          <div class="h-2 rounded-full bg-gray-150 dark:bg-gray-800 overflow-hidden">
             <div
-              class="fill"
+              class="h-full rounded-full bg-blue-600 dark:bg-blue-500"
               :style="{ width: heapUsage + '%' }"
             />
           </div>
         </div>
-        <div class="meter">
-          <div class="lab">
-            <span class="name">Threads</span><span class="val num">{{ instanceStatus.usedThreads }} <small>/ {{ instanceStatus.maxThreads }}</small></span>
+        <div class="mt-3.5">
+          <div class="flex justify-between items-baseline gap-3 text-sm mb-2 <sm:flex-wrap">
+            <span class="text-gray-500 dark:text-gray-400">Threads</span><span class="font-semibold tabular-nums">{{ instanceStatus.usedThreads }} <small class="text-gray-600 dark:text-gray-300 font-normal">/ {{ instanceStatus.maxThreads }}</small></span>
           </div>
-          <div class="track">
+          <div class="h-2 rounded-full bg-gray-150 dark:bg-gray-800 overflow-hidden">
             <div
-              class="fill"
+              class="h-full rounded-full bg-blue-600 dark:bg-blue-500"
               :style="{ width: threadsUsage + '%' }"
             />
           </div>
         </div>
       </div>
 
-      <div class="block c3">
-        <div class="block-top">
-          <span class="t">Traffic</span><button
-            class="link"
+      <div class="col-span-3 <md:col-span-1 bg-white dark:bg-gray-900 rounded-lg p-5 min-w-0">
+        <div class="flex items-center justify-between mb-3.5">
+          <span class="text-sm font-semibold text-gray-600 dark:text-gray-300">Traffic</span><button
+            class="text-sm text-blue-600 dark:text-blue-300 cursor-pointer hover:text-blue-700 dark:hover:text-blue-200 bg-transparent border-0 p-0"
             @click="$emit('goto', 'Statistics')"
           >
             Statistics
           </button>
         </div>
         <template v-if="traffic">
-          <div class="metric">
-            <span class="big num">{{ traffic.total.toLocaleString() }}</span>
-            <span class="unit">resolved requests</span>
+          <div class="flex items-baseline gap-2 min-w-0">
+            <span class="text-2xl font-semibold leading-tight tabular-nums">{{ traffic.total.toLocaleString() }}</span>
+            <span class="text-sm text-gray-500 dark:text-gray-400 truncate">resolved requests</span>
           </div>
-          <div class="traffic-details">
-            <div class="traffic-detail">
-              <span>{{ traffic.currentLabel }}</span>
-              <b class="num">{{ traffic.current.toLocaleString() }}</b>
+          <div class="mt-4 grid grid-cols-2 gap-3 <sm:grid-cols-1">
+            <div class="min-w-0">
+              <span class="block text-sm text-gray-500 dark:text-gray-400">{{ traffic.currentLabel }}</span>
+              <b class="block mt-1 truncate text-base text-gray-800 dark:text-gray-100 font-semibold tabular-nums">{{ traffic.current.toLocaleString() }}</b>
             </div>
-            <div class="traffic-detail">
-              <span>Top repository</span>
-              <b>{{ traffic.busiest || 'No data' }}</b>
+            <div class="min-w-0">
+              <span class="block text-sm text-gray-500 dark:text-gray-400">Top repository</span>
+              <b class="block mt-1 truncate text-base text-gray-800 dark:text-gray-100 font-semibold">{{ traffic.busiest || 'No data' }}</b>
             </div>
           </div>
         </template>
         <div
           v-else
-          class="subline"
+          class="text-gray-500 dark:text-gray-400 text-sm mt-2"
         >
           Statistics disabled
         </div>
       </div>
 
-      <div class="block c2">
-        <div class="block-top">
-          <span class="t">Repositories</span><button
-            class="link"
+      <div class="col-span-2 <md:col-span-1 bg-white dark:bg-gray-900 rounded-lg p-5 min-w-0">
+        <div class="flex items-center justify-between mb-3.5">
+          <span class="text-sm font-semibold text-gray-600 dark:text-gray-300">Repositories</span><button
+            class="text-sm text-blue-600 dark:text-blue-300 cursor-pointer hover:text-blue-700 dark:hover:text-blue-200 bg-transparent border-0 p-0"
             @click="$emit('goto', 'Settings')"
           >
             Configure
           </button>
         </div>
-        <div class="metric">
-          <span class="big num">{{ repositories.length }}</span>
-          <span class="unit">{{ plural(repositories.length, 'repository', 'repositories') }}</span>
+        <div class="flex items-baseline gap-2 min-w-0">
+          <span class="text-2xl font-semibold leading-tight tabular-nums">{{ repositories.length }}</span>
+          <span class="text-sm text-gray-500 dark:text-gray-400 truncate">{{ plural(repositories.length, 'repository', 'repositories') }}</span>
         </div>
-        <div class="tags compact">
+        <div class="flex flex-wrap gap-1.5 mt-4 min-h-8 content-start">
           <span
             v-for="tag in repositoryTags"
             :key="tag"
-            class="tag"
+            class="text-xs px-1.5 py-0.5 rounded-full bg-gray-150 dark:bg-gray-800 text-gray-600 dark:text-gray-300 whitespace-nowrap"
           >{{ tag }}</span>
           <span
             v-if="repositoryTags.length === 0"
-            class="muted"
+            class="text-sm text-gray-500 dark:text-gray-400"
           >No repositories configured</span>
         </div>
       </div>
 
-      <div class="block c2">
-        <div class="block-top">
-          <span class="t">Access tokens</span><button
-            class="link"
+      <div class="col-span-2 <md:col-span-1 bg-white dark:bg-gray-900 rounded-lg p-5 min-w-0">
+        <div class="flex items-center justify-between mb-3.5">
+          <span class="text-sm font-semibold text-gray-600 dark:text-gray-300">Access tokens</span><button
+            class="text-sm text-blue-600 dark:text-blue-300 cursor-pointer hover:text-blue-700 dark:hover:text-blue-200 bg-transparent border-0 p-0"
             @click="$emit('goto', 'Tokens')"
           >
             Manage
           </button>
         </div>
-        <div class="metric">
-          <span class="big num">{{ tokens.length }}</span>
-          <span class="unit">{{ plural(tokens.length, 'token', 'tokens') }}</span>
+        <div class="flex items-baseline gap-2 min-w-0">
+          <span class="text-2xl font-semibold leading-tight tabular-nums">{{ tokens.length }}</span>
+          <span class="text-sm text-gray-500 dark:text-gray-400 truncate">{{ plural(tokens.length, 'token', 'tokens') }}</span>
         </div>
-        <div class="tags compact">
+        <div class="flex flex-wrap gap-1.5 mt-4 min-h-8 content-start">
           <span
             v-for="tag in tokenTags"
             :key="tag.text || tag"
-            class="tag"
-            :class="{ mgr: tag.mgr }"
+            class="text-xs px-1.5 py-0.5 rounded-full bg-gray-150 dark:bg-gray-800 text-gray-600 dark:text-gray-300 whitespace-nowrap"
+            :class="{ 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200': tag.mgr }"
           >{{ tag.text || tag }}</span>
           <span
             v-if="tokenTags.length === 0"
-            class="muted"
+            class="text-sm text-gray-500 dark:text-gray-400"
           >No access tokens</span>
         </div>
       </div>
 
-      <div class="block c2">
-        <div class="block-top">
-          <span class="t">Diagnostics</span><button
-            class="link"
+      <div class="col-span-2 <md:col-span-1 bg-white dark:bg-gray-900 rounded-lg p-5 min-w-0">
+        <div class="flex items-center justify-between mb-3.5">
+          <span class="text-sm font-semibold text-gray-600 dark:text-gray-300">Diagnostics</span><button
+            class="text-sm text-blue-600 dark:text-blue-300 cursor-pointer hover:text-blue-700 dark:hover:text-blue-200 bg-transparent border-0 p-0"
             @click="$emit('goto', 'Diagnostics')"
           >
             Open
           </button>
         </div>
-        <div class="metric">
+        <div class="flex items-baseline gap-2 min-w-0">
           <span
-            class="big num"
-            :class="{ crit: instanceStatus.failuresCount > 0 }"
+            class="text-2xl font-semibold leading-tight tabular-nums"
+            :class="{ 'text-red-600 dark:text-red-400': instanceStatus.failuresCount > 0 }"
           >{{ instanceStatus.failuresCount }}</span>
           <span
-            class="unit"
-            :class="{ warn: instanceStatus.failuresCount > 0 }"
+            class="text-sm text-gray-500 dark:text-gray-400 truncate"
+            :class="{ 'text-red-500 dark:text-red-400': instanceStatus.failuresCount > 0 }"
           >{{ plural(instanceStatus.failuresCount, 'failure', 'failures') }}</span>
         </div>
-        <div class="details list">
-          <div v-if="instanceStatus.failuresCount === 0">
-            <span>Since restart</span><b>Clean</b>
+        <div class="mt-4 text-sm text-gray-500 dark:text-gray-400 space-y-2">
+          <div
+            v-if="instanceStatus.failuresCount === 0"
+            class="flex items-center justify-between gap-3 min-w-0"
+          >
+            <span class="truncate">Since restart</span><b class="text-gray-800 dark:text-gray-100 font-semibold truncate text-right">Clean</b>
           </div>
-          <div v-else>
-            <span>Since restart</span><b class="warn">Needs review</b>
+          <div
+            v-else
+            class="flex items-center justify-between gap-3 min-w-0"
+          >
+            <span class="truncate">Since restart</span><b class="text-red-600 dark:text-red-400 font-semibold truncate text-right">Needs review</b>
           </div>
         </div>
       </div>
     </div>
   </div>
 </template>
-
-<style scoped>
-.grid { @apply grid grid-cols-6 gap-4 <md:grid-cols-1; }
-.c2 { @apply col-span-2 <md:col-span-1; }
-.c3 { @apply col-span-3 <md:col-span-1; }
-.c6 { @apply col-span-6; }
-
-@media (max-width: 767px) {
-  .grid { grid-template-columns: minmax(0, 1fr); }
-  .c2,
-  .c3,
-  .c6 { grid-column: 1 / -1; }
-}
-
-.block { @apply bg-white dark:bg-gray-900 rounded-lg p-5 min-w-0; }
-.block-top { @apply flex items-center justify-between mb-3.5; }
-.block-top .t { @apply text-sm font-semibold text-gray-600 dark:text-gray-300; }
-.link { @apply text-sm text-blue-600 dark:text-blue-300 cursor-pointer hover:text-blue-700 dark:hover:text-blue-200 bg-transparent border-0 p-0; }
-
-.hero { @apply grid grid-cols-3 gap-6 <sm:grid-cols-2 <sm:gap-5; }
-.hero .version { @apply <sm:col-span-2; }
-.cell .k { @apply text-sm text-gray-500 dark:text-gray-400 mb-2; }
-.cell .v { @apply text-lg font-semibold flex items-center gap-2; }
-.cell .v small { @apply text-xs font-normal text-gray-500 dark:text-gray-400; }
-.cell .v.sm { @apply text-base; }
-.cell .meta { @apply mt-1 text-xs text-gray-500 dark:text-gray-400; }
-.cell .meta.warn { @apply text-red-600 dark:text-red-400; }
-
-.status-ok { @apply text-green-600 dark:text-green-400 font-semibold text-lg inline-flex items-center gap-2; }
-.status-ok::before { content: ""; @apply w-2 h-2 rounded-full bg-green-500; }
-
-.tag { @apply text-xs px-1.5 py-0.5 rounded-full bg-gray-150 dark:bg-gray-800 text-gray-600 dark:text-gray-300 whitespace-nowrap; }
-.tag.mgr { @apply bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200; }
-.tags { @apply flex flex-wrap gap-1.5 mt-3.5; }
-.tags.compact { @apply mt-4 min-h-8 content-start; }
-.muted { @apply text-sm text-gray-500 dark:text-gray-400; }
-
-.big { @apply text-2xl font-semibold leading-tight; }
-.big.crit { @apply text-red-600 dark:text-red-400; }
-.subline { @apply text-gray-500 dark:text-gray-400 text-sm mt-2; }
-.subline b { @apply text-gray-800 dark:text-gray-100 font-semibold; }
-.metric { @apply flex items-baseline gap-2 min-w-0; }
-.unit { @apply text-sm text-gray-500 dark:text-gray-400 truncate; }
-.unit.warn { @apply text-red-500 dark:text-red-400; }
-.details { @apply mt-4 text-sm text-gray-500 dark:text-gray-400; }
-.details.two { @apply grid grid-cols-2 gap-3 <sm:grid-cols-1; }
-.details.list { @apply space-y-2; }
-.details div { @apply min-w-0; }
-.details.two div,
-.details.list div { @apply flex items-center justify-between gap-3; }
-.details span { @apply truncate; }
-.details b { @apply text-gray-800 dark:text-gray-100 font-semibold truncate text-right; }
-.details b.warn { @apply text-red-600 dark:text-red-400; }
-
-.traffic-details { @apply mt-4 grid grid-cols-2 gap-3 <sm:grid-cols-1; }
-.traffic-detail { @apply min-w-0; }
-.traffic-detail span { @apply block text-sm text-gray-500 dark:text-gray-400; }
-.traffic-detail b { @apply block mt-1 truncate text-base text-gray-800 dark:text-gray-100 font-semibold; }
-
-.meter + .meter { @apply mt-3.5; }
-.meter .lab { @apply flex justify-between items-baseline gap-3 text-sm mb-2 <sm:flex-wrap; }
-.meter .lab .name { @apply text-gray-500 dark:text-gray-400; }
-.meter .lab .val { @apply font-semibold; }
-.meter .lab .val small { @apply text-gray-600 dark:text-gray-300 font-normal; }
-.track { @apply h-2 rounded-full bg-gray-150 dark:bg-gray-800 overflow-hidden; }
-.fill { @apply h-full rounded-full bg-blue-600 dark:bg-blue-500; }
-
-.num { font-variant-numeric: tabular-nums; }
-</style>

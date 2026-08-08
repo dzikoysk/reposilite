@@ -34,9 +34,6 @@ const authorized = (req, success, failure) => {
 const invalidCredentials = (res) =>
   res.status(401).send({message:'Invalid credentials'})
 
-const sendMessage = (connection, message) =>
-  connection.send(`${new Date().toDateString()} ${message}`)
-
 const createFileDetails = (name, contentType, contentLength) =>
   ({ type: 'FILE', name, contentType, contentLength })
 
@@ -62,7 +59,6 @@ module.exports = {
   basicAuth,
   authorized,
   invalidCredentials,
-  sendMessage,
   createFileDetails,
   createDirectoryDetails,
   generateDayWiseTimeSeries

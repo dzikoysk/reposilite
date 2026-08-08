@@ -92,15 +92,15 @@ const barWidth = (count) => `${Math.max(4, Math.round((count / maxCount.value) *
     />
 
     <template v-if="statisticsEnabled">
-      <div class="section-head">
+      <div class="mb-3 flex items-baseline justify-between gap-3">
         <h1 class="font-semibold text-lg">
           Most resolved paths
         </h1>
       </div>
 
-      <div class="flat">
-        <div class="bar">
-          <div class="search">
+      <div class="bg-white dark:bg-gray-900 rounded-lg overflow-hidden text-sm text-gray-600 dark:text-gray-300">
+        <div class="flex items-center gap-3 px-3.5 py-3.5 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 flex-wrap">
+          <div class="flex items-center gap-2 flex-1 min-w-48 px-3 h-9 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 <sm:w-full <sm:min-w-0">
             <svg
               viewBox="0 0 24 24"
               class="w-4 h-4 flex-shrink-0 text-gray-400"
@@ -113,12 +113,13 @@ const barWidth = (count) => `${Math.max(4, Math.round((count / maxCount.value) *
             /></svg>
             <input
               v-model="phrase"
+              class="flex-1 min-w-0 bg-transparent outline-none text-gray-700 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-400"
               placeholder="Filter by path…"
             >
           </div>
           <select
             v-model="repository"
-            class="sel"
+            class="h-9 min-w-36 pl-3 pr-9 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 text-sm outline-none <sm:flex-1"
           >
             <option value="">
               All repositories
@@ -133,7 +134,7 @@ const barWidth = (count) => `${Math.max(4, Math.round((count / maxCount.value) *
           </select>
           <select
             v-model.number="limit"
-            class="sel"
+            class="h-9 min-w-36 pl-3 pr-9 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 text-sm outline-none <sm:flex-1"
           >
             <option :value="10">
               Top 10
@@ -150,29 +151,29 @@ const barWidth = (count) => `${Math.max(4, Math.round((count / maxCount.value) *
           </select>
           <span
             v-if="results"
-            class="sum"
+            class="ml-auto text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap <sm:ml-0 <sm:w-full"
           >
-            Showing <b class="num">{{ entries.length.toLocaleString() }}</b><template v-if="results.page?.hasMore">+</template>
+            Showing <b class="text-gray-800 dark:text-gray-100 font-semibold tabular-nums">{{ entries.length.toLocaleString() }}</b><template v-if="results.page?.hasMore">+</template>
           </span>
         </div>
 
-        <div
-          v-if="results"
-          class="rows"
-        >
+        <div v-if="results">
           <div
             v-for="(entry, index) in entries"
             :key="`${entry.repository}:${entry.path}`"
-            class="srow"
+            class="flex items-center gap-3.5 px-4.5 h-12 border-b border-gray-200 dark:border-gray-800 last:border-b-0 hover:bg-gray-50 dark:hover:bg-gray-800"
           >
-            <span class="rank num">{{ index + 1 }}</span>
-            <span class="path font-mono">/{{ repository ? entry.path : `${entry.repository}/${entry.path}` }}</span>
-            <span class="rbar"><i :style="{ width: barWidth(entry.count) }" /></span>
-            <span class="cnt num">{{ entry.count.toLocaleString() }}</span>
+            <span class="w-5 text-right text-gray-400 dark:text-gray-600 text-sm flex-none tabular-nums">{{ index + 1 }}</span>
+            <span class="flex-1 min-w-0 truncate text-sm text-gray-800 dark:text-gray-100 font-mono">/{{ repository ? entry.path : `${entry.repository}/${entry.path}` }}</span>
+            <span class="w-32 h-2 rounded-full bg-gray-150 dark:bg-gray-800 overflow-hidden flex-none <sm:hidden"><i
+              class="block h-full rounded-full bg-blue-600 dark:bg-blue-500 opacity-85"
+              :style="{ width: barWidth(entry.count) }"
+            /></span>
+            <span class="w-16 text-right text-base font-semibold flex-none tabular-nums">{{ entry.count.toLocaleString() }}</span>
           </div>
           <div
             v-if="!entries.length"
-            class="empty"
+            class="px-4.5 py-10 text-center text-gray-500 dark:text-gray-400"
           >
             {{ phrase ? `No paths match “${phrase}”.` : 'No resolved requests recorded yet.' }}
           </div>
@@ -181,27 +182,27 @@ const barWidth = (count) => `${Math.max(4, Math.round((count / maxCount.value) *
 
       <div
         v-if="kpis"
-        class="chart-block"
+        class="mt-6 bg-white dark:bg-gray-900 rounded-lg p-5"
       >
-        <div class="kpis">
-          <div class="kpi">
-            <div class="k">
+        <div class="flex gap-8 flex-wrap mb-4 pb-4 border-b border-gray-200 dark:border-gray-800">
+          <div>
+            <div class="text-sm text-gray-500 dark:text-gray-400">
               Visible period
-            </div><div class="v num">
+            </div><div class="text-xl font-semibold mt-0.5 tabular-nums">
               {{ kpis.total.toLocaleString() }}
             </div>
           </div>
-          <div class="kpi">
-            <div class="k">
+          <div>
+            <div class="text-sm text-gray-500 dark:text-gray-400">
               {{ kpis.labels.average }}
-            </div><div class="v num">
+            </div><div class="text-xl font-semibold mt-0.5 tabular-nums">
               {{ kpis.average.toLocaleString() }}
             </div>
           </div>
-          <div class="kpi">
-            <div class="k">
+          <div>
+            <div class="text-sm text-gray-500 dark:text-gray-400">
               {{ kpis.labels.current }}
-            </div><div class="v num">
+            </div><div class="text-xl font-semibold mt-0.5 tabular-nums">
               {{ kpis.current.toLocaleString() }}
             </div>
           </div>
@@ -211,41 +212,9 @@ const barWidth = (count) => `${Math.max(4, Math.round((count / maxCount.value) *
     </template>
     <div
       v-else-if="statisticsEnabled === false"
-      class="flat empty"
+      class="bg-white dark:bg-gray-900 rounded-lg overflow-hidden text-sm text-gray-600 dark:text-gray-300 px-4.5 py-10 text-center text-gray-500 dark:text-gray-400"
     >
       <b>Statistics disabled.</b> Enable resolved request statistics to view traffic analytics.
     </div>
   </div>
 </template>
-
-<style scoped>
-.section-head { @apply mb-3 flex items-baseline justify-between gap-3; }
-
-.chart-block { @apply bg-white dark:bg-gray-900 rounded-lg p-5; }
-.flat + .chart-block { @apply mt-6; }
-
-.kpis { @apply flex gap-8 flex-wrap mb-4 pb-4 border-b border-gray-200 dark:border-gray-800; }
-.kpi .k { @apply text-sm text-gray-500 dark:text-gray-400; }
-.kpi .v { @apply text-xl font-semibold mt-0.5; }
-
-.flat { @apply bg-white dark:bg-gray-900 rounded-lg overflow-hidden text-sm text-gray-600 dark:text-gray-300; }
-.flat > :last-child { @apply border-b-0; }
-.bar { @apply flex items-center gap-3 px-3.5 py-3.5 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 flex-wrap; }
-.search { @apply flex items-center gap-2 flex-1 min-w-48 px-3 h-9 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 <sm:w-full <sm:min-w-0; }
-.search input { @apply flex-1 min-w-0 bg-transparent outline-none text-gray-700 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-400; }
-.sel { @apply h-9 min-w-36 pl-3 pr-9 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 text-sm outline-none <sm:flex-1; }
-.sum { @apply ml-auto text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap <sm:ml-0 <sm:w-full; }
-.sum b { @apply text-gray-800 dark:text-gray-100 font-semibold; }
-
-.srow { @apply flex items-center gap-3.5 px-4.5 h-12 border-b border-gray-200 dark:border-gray-800; }
-.srow:last-child { @apply border-b-0; }
-.srow:hover { @apply bg-gray-50 dark:bg-gray-800; }
-.rank { @apply w-5 text-right text-gray-400 dark:text-gray-600 text-sm flex-none; }
-.path { @apply flex-1 min-w-0 truncate text-sm text-gray-800 dark:text-gray-100; }
-.rbar { @apply w-32 h-2 rounded-full bg-gray-150 dark:bg-gray-800 overflow-hidden flex-none <sm:hidden; }
-.rbar i { @apply block h-full rounded-full bg-blue-600 dark:bg-blue-500 opacity-85; }
-.cnt { @apply w-16 text-right text-base font-semibold flex-none; }
-
-.empty { @apply px-4.5 py-10 text-center text-gray-500 dark:text-gray-400; }
-.num { font-variant-numeric: tabular-nums; }
-</style>

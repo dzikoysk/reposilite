@@ -22,7 +22,7 @@ defineProps({
     <a v-if="link" :href="link" target="_blank">
       <div class="flex text-blue-500 w-full justify-center">
         <h1 class="text-md pt-1">{{title}}</h1>
-        <LinkIcon class="w-3 py-1"/>
+        <LinkIcon class="w-3 h-3" />
       </div>
     </a>
     <h1 v-else class="text-md pt-1">{{title}}</h1>

@@ -25,7 +25,6 @@ const {
   respond,
   authorized,
   invalidCredentials,
-  sendMessage,
   createFileDetails,
   createDirectoryDetails,
   generateDayWiseTimeSeries
@@ -41,81 +40,37 @@ let mavenSettingsEntity = require('./maven-settings-entity.json')
 let uptime = 1000
 let memory = 20
 let threads = 10
-const parseFailureTrace = (trace) => {
-  const lines = trace.split(/\r?\n/)
-  const cause = (lines[1] || '').match(/^\s*by\s+([^:]+):\s*(.*)$/)
-
-  return {
-    path: (lines[0] || '').replace(/^failure\s+/, ''),
-    type: cause ? cause[1].trim() : 'Exception',
-    message: cause ? cause[2].trim() : (lines[1] || '').trim()
-  }
-}
-
-const failureSignature = (failure) => {
-  const trace = failure.trace || ''
-  const lines = trace.split(/\r?\n/)
-  const firstFrame = lines.find(line => line.trim().startsWith('at ')) || '<unknown stacktrace>'
-
-  return [
-    failure.path,
-    failure.type,
-    firstFrame.trim()
-  ].join('|')
-}
-
-const createFailure = (lines, occurrences = 1) => {
-  const trace = lines.join('\n')
-  const failure = parseFailureTrace(trace)
-
-  return {
-    ...failure,
-    trace,
-    messages: failure.message ? [failure.message] : [],
-    occurrences
-  }
-}
-
-const recordFailure = (lines) => {
-  const failure = createFailure(lines)
-  const signature = failureSignature(failure)
-  const recorded = failures.find(entry => failureSignature(entry) === signature)
-
-  if (recorded) {
-    recorded.occurrences += 1
-    if (failure.message && !recorded.messages.includes(failure.message)) {
-      recorded.messages.push(failure.message)
-    }
-    return
-  }
-
-  failures.push(failure)
-}
-
 const failuresCount = () =>
   failures.reduce((sum, failure) => sum + failure.occurrences, 0)
 
-let failures = [
-  createFailure([
-    'failure /api/maven/releases/com/example/app/1.0.0/app-1.0.0.jar',
-    '  by NullPointerException: Cannot invoke "Repository.getName()" because "repository" is null',
-    '  at com.reposilite.maven.MavenFacade.findFile(MavenFacade.kt:88)',
-    '  at com.reposilite.maven.MavenFacade.findDetails(MavenFacade.kt:120)',
-    '  at com.reposilite.maven.infrastructure.MavenEndpoints.findFile(MavenEndpoints.kt:64)',
-  ], 3),
-  createFailure([
-    'failure /api/badge/latest/releases/com/example/lib',
-    '  by IllegalStateException: No versions found for the requested artifact',
-    '  at com.reposilite.badge.BadgeFacade.findLatestVersion(BadgeFacade.kt:52)',
-    '  at com.reposilite.badge.infrastructure.BadgeEndpoints.latestBadge(BadgeEndpoints.kt:41)',
-  ])
-]
-
-let simulatedFailureVersion = 0
-const simulatedFailure = () => [
-  `failure /api/maven/releases/com/example/app/1.0.${simulatedFailureVersion}/app.jar`,
-  '  by RuntimeException: Simulated failure emitted by the fake backend',
-  '  at com.reposilite.fake.Simulator.tick(Simulator.kt:10)',
+const failures = [
+  {
+    path: '/api/maven/releases/com/example/app/1.0.0/app-1.0.0.jar',
+    type: 'NullPointerException',
+    message: 'Cannot invoke "Repository.getName()" because "repository" is null',
+    messages: ['Cannot invoke "Repository.getName()" because "repository" is null'],
+    trace: [
+      'failure /api/maven/releases/com/example/app/1.0.0/app-1.0.0.jar',
+      '  by NullPointerException: Cannot invoke "Repository.getName()" because "repository" is null',
+      '  at com.reposilite.maven.MavenFacade.findFile(MavenFacade.kt:88)',
+      '  at com.reposilite.maven.MavenFacade.findDetails(MavenFacade.kt:120)',
+      '  at com.reposilite.maven.infrastructure.MavenEndpoints.findFile(MavenEndpoints.kt:64)',
+    ].join('\n'),
+    occurrences: 3
+  },
+  {
+    path: '/api/badge/latest/releases/com/example/lib',
+    type: 'IllegalStateException',
+    message: 'No versions found for the requested artifact',
+    messages: ['No versions found for the requested artifact'],
+    trace: [
+      'failure /api/badge/latest/releases/com/example/lib',
+      '  by IllegalStateException: No versions found for the requested artifact',
+      '  at com.reposilite.badge.BadgeFacade.findLatestVersion(BadgeFacade.kt:52)',
+      '  at com.reposilite.badge.infrastructure.BadgeEndpoints.latestBadge(BadgeEndpoints.kt:41)',
+    ].join('\n'),
+    occurrences: 1
+  }
 ]
 
 const todayLocalDate = () => {
@@ -184,12 +139,6 @@ setInterval(() => {
   memory += Math.random() * 10
   threads += 1
   uptime += 5000
-  if (failures.length < 6) {
-    simulatedFailureVersion = failures.length
-  } else {
-    simulatedFailureVersion = 5
-  }
-  recordFailure(simulatedFailure())
 }, 5000)
 
 const statisticsBaseDate = new Date().getTime() - (19 * 86400000)
