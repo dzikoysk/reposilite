@@ -18,7 +18,7 @@
 import XmlTag from './XmlTag.vue'
 import CodeString from './CodeString.vue'
 import CodeBrackets from "./CodeBrackets.vue"
-import { computed, ref } from "vue";
+import { computed, ref } from "vue"
 
 defineProps({
   configuration: {

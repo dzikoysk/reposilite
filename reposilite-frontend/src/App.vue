@@ -15,7 +15,7 @@
   -->
 
 <script setup>
-import { useHead } from '@vueuse/head'
+import { useHead } from '@unhead/vue'
 import { useSession } from "./store/session"
 import useTheme from "./store/theme"
 import useQualifier from "./store/qualifier"

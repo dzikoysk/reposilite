@@ -15,7 +15,7 @@
  */
 
 import { createApp } from 'vue'
-import { createHead } from '@vueuse/head'
+import { createHead } from '@unhead/vue/client'
 import axios from 'axios'
 import VueAxios from 'vue-axios'
 import Tabs from 'vue3-tabs'

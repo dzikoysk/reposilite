@@ -16,8 +16,8 @@
 
 import { ref } from "vue"
 import { createURL } from '../client'
-import { EventSource as Eventsource } from 'extended-eventsource';
-import { useSession } from "../session.js";
+import { EventSource as Eventsource } from 'extended-eventsource'
+import { useSession } from "../session.js"
 
 const { client } = useSession()
 
@@ -25,7 +25,7 @@ const connection = ref()
 const command = ref("")
 
 export default function useConsole() {
-  const consoleAddress = createURL("/api/console/log");
+  const consoleAddress = createURL("/api/console/log")
 
   const isConnected = () => {
     // using built-in EventSource for readystate constants
@@ -90,8 +90,8 @@ export default function useConsole() {
         // this is needed to stop an error from appearing in console when
         // switching/refreshing the page without closing the connection
         window.onbeforeunload = function () {
-          close();
-        };
+          close()
+        }
 
         onOpen?.value()
       }

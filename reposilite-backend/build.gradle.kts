@@ -27,7 +27,7 @@ plugins {
     kotlin("jvm")
     kotlin("kapt")
     id("com.coditory.integration-test") version "2.2.5"
-    id("com.gradleup.shadow") version "9.4.2"
+    id("com.gradleup.shadow") version "9.6.1"
 //    id("io.gitlab.arturbosch.detekt").version("1.22.0")
 }
 
@@ -41,7 +41,7 @@ dependencies {
 //    val detekt = "1.23.5"
 //    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:$detekt")
 
-    val kotlin = "2.4.0"
+    val kotlin = "2.4.10"
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin")
 
@@ -102,7 +102,7 @@ dependencies {
     implementation("com.mysql:mysql-connector-j:9.7.0") {
         exclude(group = "com.google.protobuf", module = "protobuf-java")
     }
-    implementation("com.google.protobuf:protobuf-java:4.35.0")
+    implementation("com.google.protobuf:protobuf-java:4.35.1")
 
     val jackson = "2.21.3"
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jackson")
@@ -113,12 +113,12 @@ dependencies {
     val jsonSchema = "4.38.0"
     implementation("com.github.victools:jsonschema-generator:$jsonSchema")
 
-    val httpClient = "2.1.0"
+    val httpClient = "2.2.0"
     implementation("com.google.http-client:google-http-client:$httpClient") {
         exclude(group = "commons-codec", module = "commons-codec")
         exclude(group = "com.google.guava", module = "guava")
     }
-    api("commons-codec:commons-codec:1.22.0")
+    api("commons-codec:commons-codec:1.22.1")
     api("com.google.guava:guava:33.6.0-android")
     testImplementation("com.google.http-client:google-http-client-jackson2:$httpClient")
 
@@ -145,7 +145,7 @@ dependencies {
     }
     testImplementation("org.apache.commons:commons-compress:1.28.0")
 
-    val ldap = "7.0.4"
+    val ldap = "7.0.5"
     testImplementation("com.unboundid:unboundid-ldapsdk:$ldap")
 }
 
@@ -237,7 +237,7 @@ kapt {
 }
 
 jacoco {
-    toolVersion = "0.8.14"
+    toolVersion = "0.8.15"
 }
 
 tasks.test {
@@ -262,7 +262,11 @@ tasks.jacocoTestReport {
         xml.outputLocation.set(file("./build/reports/jacoco/reposilite-backend-report.xml"))
     }
 
-    executionData(fileTree(project.layout.buildDirectory.get()).include("jacoco/*.exec"))
+    dependsOn(tasks.test, tasks.named<Test>("integration"))
+    executionData(
+        tasks.test.get().extensions.getByType<JacocoTaskExtension>().destinationFile,
+        tasks.named<Test>("integration").get().extensions.getByType<JacocoTaskExtension>().destinationFile
+    )
     finalizedBy("jacocoTestCoverageVerification")
 }
 
