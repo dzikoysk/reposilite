@@ -71,33 +71,33 @@ const defaultMode = computed(() => !props.compactMode)
           type="button"
           :title="`Click to view ${file.name} file content in a new tab`"
           :aria-label="`View ${file.name} file content in a new tab`"
-          class="px-1 mr-6 pt-0.4 rounded-full text-purple-300 hover:(transition-colors duration-200 bg-gray-100 dark:bg-gray-900)" 
+          class="w-6 h-6 p-0 mr-6 rounded-full text-purple-300 hover:(transition-colors duration-200 bg-gray-100 dark:bg-gray-900)"
           @click.left.prevent="openUrl(url)"
           v-on:click.stop
         >
-          <EyeIcon aria-hidden="true" />
+          <EyeIcon class="px-1 pt-0.4" aria-hidden="true" />
         </button>
         <button
           v-if="isJavaDocsAvailable()"
           type="button"
           :title="`Click to view ${file.name} javadocs in a new tab`"
           :aria-label="`View ${file.name} Javadocs in a new tab`"
-          class="px-1 mr-6 pt-0.4 rounded-full text-purple-300 hover:(transition-colors duration-200 bg-gray-100 dark:bg-gray-900)"
+          class="w-6 h-6 p-0 mr-6 rounded-full text-purple-300 hover:(transition-colors duration-200 bg-gray-100 dark:bg-gray-900)"
           @click.left.prevent="openUrl(getJavaDocsUrl())"
           v-on:click.stop
         >
-          <JavaDocsIcon aria-hidden="true" />
+          <JavaDocsIcon class="px-1 pt-0.4" aria-hidden="true" />
         </button>
         <button
           v-if="qualifier.path.length > 1 && hasPermissionTo(`/${qualifier.path}`, 'route:write')"
           type="button"
-          class="px-1 mr-6 pt-0.4 rounded-full text-purple-300 hover:(transition-colors duration-200 bg-gray-100 dark:bg-gray-900)"
+          class="w-6 h-6 p-0 mr-6 rounded-full text-purple-300 hover:(transition-colors duration-200 bg-gray-100 dark:bg-gray-900)"
           :aria-label="`Delete ${file.name}`"
           :title="`Delete ${file.name}`"
           @click.left.prevent="openDeleteEntryModal(file.name)"
           v-on:click.stop
         >
-          <TrashIcon aria-hidden="true" />
+          <TrashIcon class="px-1 pt-0.4" aria-hidden="true" />
         </button>
       </div>
       <div v-if="file.hasOwnProperty('contentLength')" class="pr-6">
