@@ -2,7 +2,12 @@
   <div>
     <div class="label">
       {{ control.label }}
-      <input type="checkbox" v-model="present" class="mx-4 mb-1" />
+      <input
+        type="checkbox"
+        :checked="present"
+        class="mx-4 mb-1"
+        @change="toggle"
+      />
     </div>
     <div class="description">
       {{ control.description }}
@@ -24,7 +29,7 @@
 <script>
 import {DispatchRenderer, rendererProps, useJsonFormsControlWithDetail} from '@jsonforms/vue'
 import {useVanillaControl} from '@jsonforms/vue-vanilla'
-import {ref} from 'vue'
+import {computed} from 'vue'
 import {and, findUISchema, rankWith, schemaMatches, uiTypeIs} from '@jsonforms/core'
 import includes from 'lodash/includes'
 
@@ -36,10 +41,17 @@ export default {
   props: rendererProps(),
   setup(props) {
     const control = useVanillaControl(useJsonFormsControlWithDetail(props))
-    const present = ref(control.control.data !== undefined)
+    const present = computed(() => control.control.value.data != null)
+    const toggle = event =>
+      control.handleChange(
+        control.control.value.path,
+        event.target.checked ? {} : null
+      )
+
     return {
       ...control,
-      present
+      present,
+      toggle
     }
   },
   computed: {
